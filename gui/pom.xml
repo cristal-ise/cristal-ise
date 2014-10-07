@@ -1,0 +1,172 @@
+<!--
+
+    This file is part of the CRISTAL-iSE default user interface.
+    Copyright (c) 2001-2014 The CRISTAL Consortium. All rights reserved.
+
+    This library is free software; you can redistribute it and/or modify it
+    under the terms of the GNU Lesser General Public License as published
+    by the Free Software Foundation; either version 3 of the License, or (at
+    your option) any later version.
+
+    This library is distributed in the hope that it will be useful, but WITHOUT
+    ANY WARRANTY; with out even the implied warranty of MERCHANTABILITY or
+    FITNESS FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public
+    License for more details.
+
+    You should have received a copy of the GNU Lesser General Public License
+    along with this library; if not, write to the Free Software Foundation,
+    Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA.
+
+    http://www.fsf.org/licensing/licenses/lgpl.html
+
+-->
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<groupId>org.cristalise</groupId>
+	<artifactId>cristalise-gui</artifactId>
+	<version>3.0-SNAPSHOT</version>
+	<name>cristalise-gui</name>
+	<description>Cristal-ise default GUI</description>
+	<properties>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+	</properties>	
+	<dependencies>
+		<dependency>
+			<groupId>org.cristalise</groupId>
+			<artifactId>cristalise-kernel</artifactId>
+		</dependency>
+	</dependencies>
+	<dependencyManagement>
+		<dependencies>
+			<dependency>
+				<groupId>org.cristalise</groupId>
+				<artifactId>cristalise-kernel</artifactId>
+				<version>3.0-SNAPSHOT</version>
+			</dependency>
+		</dependencies>
+	</dependencyManagement>
+	<build>
+		<resources>
+			<resource>
+				<directory>src/main/resources</directory>
+				<targetPath>META-INF/cristal</targetPath>
+				<filtering>true</filtering>
+				<includes>
+					<include>module.xml</include>
+				</includes>
+			</resource>
+			<resource>
+				<directory>src/main/resources</directory>
+				<targetPath>com/c2kernel/gui/resources</targetPath>
+				<excludes>
+					<exclude>module.xml</exclude>
+				</excludes>
+			</resource>
+		</resources>
+		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-source-plugin</artifactId>
+				<version>2.1.2</version>
+				<executions>
+					<execution>
+						<id>attach-sources</id>
+						<phase>verify</phase>
+						<goals>
+							<goal>jar-no-fork</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<version>2.3.2</version>
+				<configuration>
+					<source>1.7</source>
+					<target>1.7</target>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-release-plugin</artifactId>
+				<version>2.4.1</version>
+			</plugin>
+			<plugin>
+				<groupId>com.mycila</groupId>
+				<artifactId>license-maven-plugin</artifactId>
+				<version>2.3</version>
+				<configuration>
+					<header>HEADER.txt</header>
+					<excludes>
+						<exclude>src/main/resources/</exclude>
+						<exclude>bin/**</exclude>
+					</excludes>
+				</configuration>
+				<executions>
+						<execution>
+							<goals>
+								<goal>check</goal>
+							</goals>
+						</execution>
+				</executions>				
+			</plugin>			
+		</plugins>
+	</build>
+ 	<issueManagement>
+		<url>http://dev.cccs.uwe.ac.uk/redmine/projects/cristal-gui/</url>
+		<system>Redmine</system>
+	</issueManagement>
+	<organization>
+		<name>The CRISTAL Consortium</name>
+		<url>http://dev.cccs.uwe.ac.uk/redmine/projects/cristal</url>
+	</organization>
+	<ciManagement>
+		<system>Jenkins</system>
+		<url>http://dev.cccs.uwe.ac.uk:8080/job/cristal-gui/</url>
+	</ciManagement>
+	<scm>
+		<developerConnection>scm:git:ssh://dev.cccs.uwe.ac.uk/var/git/cristal-gui.git</developerConnection>
+		<url>http://dev.cccs.uwe.ac.uk/redmine/projects/cristal-gui/repository</url>
+	  <tag>HEAD</tag>
+  </scm>
+	<distributionManagement>
+		<repository>
+			<id>cccs.releases</id>
+			<url>http://dev.cccs.uwe.ac.uk:8081/nexus/content/repositories/releases</url>
+		</repository>
+		<snapshotRepository>
+			<id>cccs.snapshots</id>
+			<url>http://dev.cccs.uwe.ac.uk:8081/nexus/content/repositories/snapshots</url>
+		</snapshotRepository>
+	</distributionManagement>
+
+	<repositories>
+		<repository>
+			<id>cccs.releases</id>
+			<name>CCCS Nexus Release Repository</name>
+			<url>http://dev.cccs.uwe.ac.uk:8081/nexus/content/repositories/releases</url>
+			<releases>
+				<enabled>true</enabled>
+			</releases>
+			<snapshots>
+				<enabled>false</enabled>
+			</snapshots>
+		</repository>
+		<repository>
+			<id>cccs.snapshots</id>
+			<name>CCCS Nexus Snapshot Repository</name>
+			<url>http://dev.cccs.uwe.ac.uk:8081/nexus/content/repositories/snapshots</url>
+			<releases>
+				<enabled>false</enabled>
+			</releases>
+			<snapshots>
+				<enabled>true</enabled>
+			</snapshots>
+		</repository>
+		<repository>
+			<id>cccs.public</id>
+			<name>CCCS Nexus Public Repository</name>
+			<url>http://wall.cccs.uwe.ac.uk:8081/nexus/content/repositories/public</url>
+		</repository>
+	</repositories>
+</project>
