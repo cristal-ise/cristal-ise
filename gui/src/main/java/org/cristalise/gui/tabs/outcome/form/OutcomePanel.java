@@ -48,6 +48,7 @@ import org.cristalise.gui.tabs.outcome.OutcomeNotInitialisedException;
 import org.cristalise.kernel.persistency.outcome.Outcome;
 import org.cristalise.kernel.utils.FileStringUtility;
 import org.cristalise.kernel.utils.Logger;
+import org.exolab.castor.xml.schema.ComplexType;
 import org.exolab.castor.xml.schema.ElementDecl;
 import org.exolab.castor.xml.schema.Schema;
 import org.exolab.castor.xml.schema.reader.SchemaReader;
@@ -303,7 +304,11 @@ public class OutcomePanel extends JPanel implements OutcomeHandler
 
         if (rootElementDecl == null)
             throw new InvalidSchemaException("No root elements defined");
-        documentRoot = new DataRecord(rootElementDecl, readOnly, help, false);
+        
+        if (rootElementDecl.getType().isSimpleType() || ((ComplexType)rootElementDecl.getType()).isSimpleContent())
+        	documentRoot = new Field(rootElementDecl, readOnly, help);
+        else
+        	documentRoot = new DataRecord(rootElementDecl, readOnly, help, false);
 
         Logger.msg(5, "Finished structure. Populating...");
         if (docElement == null)

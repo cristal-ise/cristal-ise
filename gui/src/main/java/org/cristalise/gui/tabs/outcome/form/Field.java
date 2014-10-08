@@ -20,6 +20,9 @@
  */
 package org.cristalise.gui.tabs.outcome.form;
 import java.awt.Component;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
+import java.awt.Insets;
 
 import javax.swing.JComponent;
 import javax.swing.JLabel;
@@ -62,6 +65,37 @@ public class Field extends OutcomeStructure {
 
         tagName = new JLabel(model.getName());
         tagName.setVerticalAlignment(SwingConstants.BOTTOM);
+        setupPanel();
+    }
+    
+    private void setupPanel() {
+        GridBagLayout gridbag = new java.awt.GridBagLayout();
+        setLayout(gridbag);
+        GridBagConstraints position = new GridBagConstraints();
+        position.anchor = GridBagConstraints.NORTHWEST;
+        position.ipadx = 5; position.ipady = 5;
+        position.insets = new Insets(5,5,0,0);
+        position.gridwidth=1;
+        position.gridy=0; position.gridx=0;
+        position.weightx=2; position.weighty=0;
+        position.fill=GridBagConstraints.NONE;
+        gridbag.setConstraints(getLabel(), position);
+        this.add(getLabel());
+        position.gridy++;
+        position.weighty=1;
+        position.fill = GridBagConstraints.HORIZONTAL;
+        gridbag.setConstraints(getCData(), position);
+        this.add(getCData());
+        position.gridx++;
+        position.gridy--;
+        position.gridheight=2;
+        position.weightx=0;
+        position.fill=GridBagConstraints.NONE;
+        gridbag.setConstraints(getAttributes(), position);
+        this.add(getAttributes());
+        position.gridx=0;
+        position.gridheight=1;
+        position.gridy++;
     }
 
     public JComponent getLabel() {

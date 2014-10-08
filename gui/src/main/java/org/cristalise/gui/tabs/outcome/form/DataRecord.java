@@ -125,42 +125,13 @@ public class DataRecord extends OutcomeStructure implements ChangeListener {
         else {
             DRPanel = null;// have to make a new tabbed pane now
             deferChild = false;
-            if (newElement instanceof Field) {
-              Field newField = (Field)newElement;
-                // make some nice columns
-                position.gridwidth=1;
-                position.gridy++;
-                position.gridx=0;
-                position.weightx=2;
-                position.weighty=0;
-                position.fill=GridBagConstraints.NONE;
-                gridbag.setConstraints(newField.getLabel(), position);
-                this.add(newField.getLabel());
-                position.gridy++;
-                position.weighty=1;
-                position.fill = GridBagConstraints.HORIZONTAL;
-                gridbag.setConstraints(newField.getCData(), position);
-                this.add(newField.getCData());
-                position.gridx++;
-                position.gridy--;
-                position.gridheight=2;
-                position.weightx=0;
-                position.fill=GridBagConstraints.NONE;
-                gridbag.setConstraints(newField.getAttributes(), position);
-                this.add(newField.getAttributes());
-                position.gridx=0;
-                position.gridheight=1;
-                position.gridy++;
-            }
-            else {
-                position.fill=GridBagConstraints.HORIZONTAL;
-                position.gridwidth=3;
-                position.weightx=1.0;
-                position.gridy++;
-                position.weighty=1.0;
-                gridbag.setConstraints(newElement, position);
-                add(newElement);
-            }
+            position.fill=GridBagConstraints.HORIZONTAL;
+            position.gridwidth=3;
+            position.weightx=1.0;
+            position.gridy++;
+            position.weighty=1.0;
+            gridbag.setConstraints(newElement, position);
+            add(newElement);
         }
     }
 
