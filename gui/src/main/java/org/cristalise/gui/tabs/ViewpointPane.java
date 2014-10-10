@@ -388,11 +388,12 @@ public class ViewpointPane extends ItemTabPane implements ItemListener, ActionLi
                 JOptionPane.YES_NO_OPTION) != JOptionPane.YES_OPTION)
             return;
 
-        oldView.setEventId(newEvent.eventId);
         try {
-            String[] predefParams = new String[1];
-            predefParams[0] = Gateway.getMarshaller().marshall(oldView);
-            MainFrame.userAgent.execute(sourceItem.getItem(), "AddC2KObject", predefParams);
+            String[] predefParams = new String[3];
+            predefParams[0] = oldView.getSchemaName();
+            predefParams[1] = oldView.getName();
+            predefParams[2] = String.valueOf(newEvent.eventId);
+            MainFrame.userAgent.execute(sourceItem.getItem(), "WriteViewpoint", predefParams);
         } catch (Exception e) {
             Logger.error(e);
             MainFrame.exceptionDialog(e);
