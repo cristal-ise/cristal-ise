@@ -98,7 +98,6 @@
 				<configuration>
 					<header>HEADER.txt</header>
 					<excludes>
-						<exclude>src/main/resources/</exclude>
 						<exclude>bin/**</exclude>
 					</excludes>
 				</configuration>
