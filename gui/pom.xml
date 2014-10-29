@@ -111,23 +111,23 @@
 			</plugin>			
 		</plugins>
 	</build>
- 	<issueManagement>
-		<url>http://dev.cccs.uwe.ac.uk/redmine/projects/cristal-gui/</url>
-		<system>Redmine</system>
+	<issueManagement>
+		<url>https://github.com/cristal-ise/gui/issues</url>
+		<system>GitHub</system>
 	</issueManagement>
 	<organization>
-		<name>The CRISTAL Consortium</name>
-		<url>http://dev.cccs.uwe.ac.uk/redmine/projects/cristal</url>
+		<name>CRISTAL-iSE</name>
+		<url>http://cristal-ise.github.io/</url>
 	</organization>
 	<ciManagement>
 		<system>Jenkins</system>
-		<url>http://dev.cccs.uwe.ac.uk:8080/job/cristal-gui/</url>
+		<url>http://dev.cccs.uwe.ac.uk:8080/job/cristal-gui-github/</url>
 	</ciManagement>
 	<scm>
-		<developerConnection>scm:git:ssh://dev.cccs.uwe.ac.uk/var/git/cristal-gui.git</developerConnection>
-		<url>http://dev.cccs.uwe.ac.uk/redmine/projects/cristal-gui/repository</url>
-	  <tag>HEAD</tag>
-  </scm>
+		<developerConnection>https://github.com/cristal-ise/gui.git</developerConnection>
+		<url>https://github.com/cristal-ise/gui</url>
+		<tag>master</tag>
+	</scm>	
 	<distributionManagement>
 		<repository>
 			<id>cccs.releases</id>
