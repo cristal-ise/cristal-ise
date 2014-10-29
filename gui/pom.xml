@@ -124,7 +124,7 @@
 		<url>http://dev.cccs.uwe.ac.uk:8080/job/cristal-gui-github/</url>
 	</ciManagement>
 	<scm>
-		<developerConnection>https://github.com/cristal-ise/gui.git</developerConnection>
+		<developerConnection>scm:https://github.com/cristal-ise/gui.git</developerConnection>
 		<url>https://github.com/cristal-ise/gui</url>
 		<tag>master</tag>
 	</scm>	
