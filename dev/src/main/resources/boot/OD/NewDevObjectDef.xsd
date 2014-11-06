@@ -1,0 +1,23 @@
+<!-- edited with XMLSpy v2006 sp1 U (http://www.altova.com) by Andrew Branson 
+	(CERN) -->
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+	elementFormDefault="qualified" attributeFormDefault="unqualified">
+	<xs:element name="NewDevObjectDef">
+		<xs:complexType>
+			<xs:sequence>
+				<xs:element name="ObjectName" type="xs:string">
+					<xs:annotation>
+						<xs:documentation>Please give a name for your new object.
+						</xs:documentation>
+					</xs:annotation>
+				</xs:element>
+				<xs:element name="SubFolder" type="xs:string">
+					<xs:annotation>
+						<xs:documentation>If you want to store your object in a subfolder,
+							give the subpath here.</xs:documentation>
+					</xs:annotation>
+				</xs:element>
+			</xs:sequence>
+		</xs:complexType>
+	</xs:element>
+</xs:schema>

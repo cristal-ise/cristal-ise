@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<cristalscript>
+	<output name="errors" type="org.cristalise.kernel.scripting.ErrorInfo" />
+	<script language="javascript" name=""><![CDATA[
+
+		]]></script>
+</cristalscript>

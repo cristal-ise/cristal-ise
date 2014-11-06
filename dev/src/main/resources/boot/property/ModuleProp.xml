@@ -1,0 +1,10 @@
+<AllProperties>
+	<PropertyDescription DefaultValue=""
+		IsClassIdentifier="false" IsMutable="true" Name="Name" />
+	<PropertyDescription DefaultValue=""
+		IsClassIdentifier="false" IsMutable="true" Name="Version" />
+	<PropertyDescription DefaultValue=""
+		IsClassIdentifier="false" IsMutable="true" Name="Namespace" />
+	<PropertyDescription DefaultValue="Module"
+		IsClassIdentifier="true" IsMutable="false" Name="Type" />
+</AllProperties>

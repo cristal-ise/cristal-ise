@@ -1,0 +1,6 @@
+<AllProperties>
+	<PropertyDescription DefaultValue=""
+		IsClassIdentifier="false" IsMutable="true" Name="Name" />
+	<PropertyDescription DefaultValue="ItemDescription"
+		IsClassIdentifier="true" IsMutable="false" Name="Type" />
+</AllProperties>

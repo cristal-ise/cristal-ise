@@ -1,0 +1,152 @@
+<CristalModule ns="dev" name="CristaliseDev">
+	<Info>
+		<Description>CRISTAL-iSE Development Items, such as resource factories and workflows. Also includes a demonstrative description factory</Description>
+		<Version>${version}</Version>
+		<Dependency>CristalXMLDB</Dependency>
+	</Info>
+	<ResourceURL>uk/ac/uwe/cristaldev/resources/</ResourceURL>
+    <Config name="Module.dev.debug">true</Config>
+    <Config name="OutcomeInit.Dev">org.cristalise.dev.DevObjectOutcomeInitiator</Config>
+	<Imports>
+		<Resource name="NewDevObjectDef" version="0" type="OD">boot/OD/NewDevObjectDef.xsd</Resource>
+		<Resource name="ChooseWorkflow" version="0" type="OD">boot/OD/ChooseWorkflow.xsd</Resource>
+		<Resource name="CreateNewLocalObjectDef" version="0" type="EA">boot/EA/CreateNewLocalObjectDef.xml</Resource>
+		<Resource name="EditPropertyDescription" version="0" type="EA">boot/EA/EditPropertyDescription.xml</Resource>
+		<Resource name="CreateItem" version="0" type="EA">boot/EA/CreateItem.xml</Resource>
+		<Resource name="SetInstanceWorkflow" version="0" type="EA">boot/EA/SetInstanceWorkflow.xml</Resource>
+		<Resource name="CreateNewNumberedVersionFromLast" version="0" type="SC">boot/SC/CreateNewNumberedVersionFromLast.xml</Resource>
+		<Resource name="AssignNewVersionFromLast" version="0" type="EA">boot/EA/AssignNewVersionFromLast.xml</Resource>
+		<Resource name="SetLastNumberedVersionToLast" version="0" type="SC">boot/SC/SetLastNumberedVersionToLast.xml</Resource>
+		<Resource name="MoveLatestVersionToLast" version="0" type="EA">boot/EA/MoveLatestVersionToLast.xml</Resource>		
+		<Resource name="EditDefinition" version="0" type="EA">boot/EA/EditDefinition.xml</Resource>
+		<Resource name="ManageCompositeActDef" version="0" type="CA">boot/CA/ManageCompositeActDef.xml</Resource>
+		<Resource name="ManageElementaryActDef" version="0" type="CA">boot/CA/ManageElementaryActDef.xml</Resource>
+		<Resource name="ManageScript" version="0" type="CA">boot/CA/ManageScript.xml</Resource>
+		<Resource name="ManageSchema" version="0" type="CA">boot/CA/ManageSchema.xml</Resource>
+		<Resource name="ManageStateMachine" version="0" type="CA">boot/CA/ManageStateMachine.xml</Resource>
+		<Resource name="CompositeActivityFactory" version="0" type="CA">boot/CA/CompositeActivityFactory.xml</Resource>
+		<Resource name="ElementaryActivityFactory" version="0" type="CA">boot/CA/ElementaryActivityFactory.xml</Resource>
+		<Resource name="SchemaFactoryWf" version="0" type="CA">boot/CA/SchemaFactoryWf.xml</Resource>
+		<Resource name="ScriptFactoryWf" version="0" type="CA">boot/CA/ScriptFactoryWf.xml</Resource>
+		<Resource name="StateMachineFactoryWf" version="0" type="CA">boot/CA/StateMachineFactoryWf.xml</Resource>
+		<Resource name="ItemDescriptionWf" version="0" type="CA" id="b9415b57-3a4a-4b31-825a-d307d1280ac0">boot/CA/ItemDescriptionWf.xml</Resource>
+		<Resource name="ItemDescriptionFactoryWf" version="0" type="CA">boot/CA/ItemDescriptionFactoryWf.xml</Resource>
+		<Resource name="ReadOnlyItemDescriptionWf" version="0" type="CA">boot/CA/ReadOnlyItemDescriptionWf.xml</Resource>
+		<Resource name="LocalObjectDefCreator" version="0" type="SC">boot/SC/LocalObjectDefCreator.xml</Resource>
+		<Resource name="InstantiateItem" version="0" type="SC">boot/SC/InstantiateItem.xml</Resource>
+		<Resource name="SetWorkflow" version="0" type="SC">boot/SC/SetWorkflow.xml</Resource>
+		<Resource name="ModuleFactory" version="0" type="CA">boot/CA/ModuleFactory.xml</Resource>
+		<Resource name="ModuleExportPath" version="0" type="OD">boot/OD/ModuleExportPath.xsd</Resource>
+		<Resource name="ExportModule" version="0" type="EA">boot/EA/ExportModule.xml</Resource>
+		<Resource name="ModuleAgents" version="0" type="OD">boot/OD/ModuleAgents.xsd</Resource>
+		<Resource name="EditModuleAgents" version="0" type="EA">boot/EA/EditModuleAgents.xml</Resource>
+		<Resource name="ModuleProperties" version="0" type="OD">boot/OD/ModuleProperties.xsd</Resource>
+		<Resource name="EditModuleConfiguration" version="0" type="EA">boot/EA/EditModuleConfiguration.xml</Resource>
+		<Resource name="ModuleDevWorkflow" version="0" type="CA">boot/CA/ModuleDevWorkflow.xml</Resource>
+		<Item name="ScriptFactory" initialPath="/desc/dev" workflow="ScriptFactoryWf">
+			<Property name="LocalObjectType">Script</Property>
+			<Property name="Type">Factory</Property>
+			<Outcome viewname="last" schema="PropertyDescription" version="0">boot/property/SCProp.xml</Outcome>
+			<Outcome viewname="last" schema="Script" version="0">boot/SC/New.xml</Outcome>
+			<Dependency name="workflow" isDescription="false">
+				<DependencyMember itemPath="/desc/ActivityDesc/system/dev/ManageScript">
+					<MemberProperties>
+						<KeyValuePair Key="Version" String="0"/>
+					</MemberProperties>
+				</DependencyMember>
+				<CollectionProperties/>
+			</Dependency>
+		</Item>
+		<Item name="ElementaryActivityDefFactory" initialPath="/desc/dev" workflow="ElementaryActivityFactory">
+			<Property name="LocalObjectType">ElementaryActivityDef</Property>
+			<Property name="Type">Factory</Property>
+			<Outcome viewname="last" schema="PropertyDescription" version="0">boot/property/EAProp.xml</Outcome>
+			<Dependency name="workflow" isDescription="false">
+				<DependencyMember itemPath="desc/ActivityDesc/system/dev/ManageElementaryActDef">
+					<MemberProperties>
+						<KeyValuePair Key="Version" String="0"/>
+					</MemberProperties>
+				</DependencyMember>
+				<CollectionProperties/>
+			</Dependency>
+		</Item>
+		<Item name="CompositeActivityDefFactory" initialPath="/desc/dev" workflow="CompositeActivityFactory">
+			<Property name="LocalObjectType">CompositeActivityDef</Property>
+			<Property name="Type">Factory</Property>
+			<Outcome viewname="last" schema="PropertyDescription" version="0">boot/property/CAProp.xml</Outcome>
+			<Dependency name="workflow" isDescription="false">
+				<DependencyMember itemPath="/desc/ActivityDesc/system/dev/ManageCompositeActDef">
+					<MemberProperties>
+						<KeyValuePair Key="Version" String="0"/>
+					</MemberProperties>
+				</DependencyMember>
+				<CollectionProperties/>
+			</Dependency>
+		</Item>
+		<Item name="SchemaFactory" initialPath="/desc/dev" workflow="SchemaFactoryWf">
+			<Property name="LocalObjectType">Schema</Property>
+			<Property name="Type">Factory</Property>
+			<Outcome viewname="last" schema="PropertyDescription" version="0">boot/property/ODProp.xml</Outcome>
+			<Outcome viewname="last" schema="Schema" version="0">boot/OD/New.xsd</Outcome>
+			<Dependency name="workflow" isDescription="false">
+				<DependencyMember itemPath="/desc/ActivityDesc/system/dev/ManageSchema">
+					<MemberProperties>
+						<KeyValuePair Key="Version" String="0"/>
+					</MemberProperties>
+				</DependencyMember>
+				<CollectionProperties/>
+			</Dependency>
+		</Item>
+		<Item name="StateMachineFactory" initialPath="/desc/dev" workflow="StateMachineFactoryWf">
+			<Property name="LocalObjectType">StateMachine</Property>
+			<Property name="Type">Factory</Property>
+			<Outcome viewname="last" schema="PropertyDescription" version="0">boot/property/SMProp.xml</Outcome>
+			<Dependency name="workflow" isDescription="false">
+				<DependencyMember itemPath="/desc/ActivityDesc/system/dev/ManageStateMachine">
+					<MemberProperties>
+						<KeyValuePair Key="Version" String="0"/>
+					</MemberProperties>
+				</DependencyMember>
+				<CollectionProperties/>
+			</Dependency>
+		</Item>
+		<Item name="DescriptionFactory" initialPath="/desc/dev" workflow="ItemDescriptionFactoryWf" id="57d87f6d-a83e-42b9-a7c2-800778d5e4d5">
+			<Property name="Type">Factory</Property>
+			<Outcome viewname="last" schema="PropertyDescription" version="0">boot/property/DescProp.xml</Outcome>
+			<Dependency name="workflow" isDescription="false">
+				<DependencyMember itemPath="/entity/b9415b57-3a4a-4b31-825a-d307d1280ac0">
+					<MemberProperties>
+						<KeyValuePair Key="Version" String="0"/>
+					</MemberProperties>
+				</DependencyMember>
+				<CollectionProperties/>
+			</Dependency>
+			<Dependency name="workflow'" isDescription="true">
+				<DependencyMember itemPath="/desc/dev/CompositeActivityDefFactory"/>
+				<CollectionProperties/>
+			</Dependency>
+		</Item>
+		<Item name="ModuleFactory" initialPath="/desc/dev" workflow="ModuleFactory" id="ac4a49d0-a156-48ec-ae1a-c54b616899f1">
+			<Property name="Type">Factory</Property>
+			<Outcome viewname="last" schema="PropertyDescription" version="0">boot/property/ModuleProp.xml</Outcome>
+			<Dependency name="workflow" isDescription="false">
+				<DependencyMember itemPath="/desc/ActivityDesc/system/dev/ModuleDevWorkflow">
+					<MemberProperties>
+						<KeyValuePair Key="Version" String="0"/>
+					</MemberProperties>
+				</DependencyMember>
+				<CollectionProperties/>
+			</Dependency>
+			<Dependency name="contents" isDescription="true"/>		
+		</Item>
+		<Role jobList="false">User</Role>
+		<Role jobList="false">User/SubUser</Role>
+		<Agent name="dev" password="test">
+			<Role>Admin</Role>
+		</Agent>
+		<Agent name="user" password="test">
+			<Role>SubUser</Role>
+			<Role>Admin</Role>
+		</Agent>
+	</Imports>
+</CristalModule>

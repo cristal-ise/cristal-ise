@@ -1,0 +1,8 @@
+<AllProperties>
+	<PropertyDescription Name="Name" IsClassIdentifier="false"
+		DefaultValue="" IsMutable="true" />
+	<PropertyDescription Name="Type" IsClassIdentifier="true"
+		DefaultValue="OutcomeDesc" IsMutable="false" />
+	<PropertyDescription Name="Breakapart"
+		IsClassIdentifier="false" DefaultValue="0" IsMutable="false" />
+</AllProperties>
