@@ -12,8 +12,6 @@ ItemServer.Proxy.port=1555
 ItemServer.Console.port=8080
 
 // LDAP Lookup config
-Authenticator=org.cristalise.kernel.lookup.ldap.LDAPAuthManager
-Lookup=org.cristalise.kernel.lookup.ldap.LDAPLookup
 LDAP.GlobalPath=SUFFIX
 LDAP.RootPath=cn=cristal
 LDAP.LocalPath=cn=dev
