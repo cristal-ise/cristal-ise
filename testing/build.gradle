@@ -1,0 +1,34 @@
+apply plugin: 'groovy'
+apply plugin: 'eclipse'
+apply plugin: 'maven'
+apply plugin: 'project-report'
+
+group = 'org.cristalise'
+version = '3.1-SNAPSHOT'
+
+description = "Cristal Testing Module"
+
+sourceCompatibility = 1.7
+targetCompatibility = 1.7
+
+// In this section declare where to find the dependencies
+repositories {
+     mavenCentral() //equivalent to 'maven { url "http://repo.maven.apache.org/maven2" }'
+     maven { url "http://dev.cccs.uwe.ac.uk:8081/nexus/content/repositories/releases" }
+     maven { url "http://dev.cccs.uwe.ac.uk:8081/nexus/content/repositories/snapshots" }
+     maven { url "http://dev.cccs.uwe.ac.uk:8081/nexus/content/repositories/public" }
+    jcenter() //Bintray's JCenter repository 
+}
+
+//In this section declare the dependencies of production and test code
+dependencies {
+    compile 'org.codehaus.groovy:groovy-all:2.3.7'
+
+    compile group: 'org.cristalise', name: 'cristalise-kernel', version:'3.1-SNAPSHOT'
+    compile group: 'org.cristalise', name: 'cristalise-gui',    version:'3.0'
+    compile group: 'org.cristalise', name: 'cristalise-xmldb',  version:'1.0'
+    compile group: 'org.cristalise', name: 'cristalise-ldap',   version:'3.0'
+
+    testCompile 'org.spockframework:spock-core:0.7-groovy-2.0'
+    testCompile 'junit:junit:4.11'
+}
