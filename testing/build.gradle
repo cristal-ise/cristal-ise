@@ -17,7 +17,7 @@ repositories {
      maven { url "http://dev.cccs.uwe.ac.uk:8081/nexus/content/repositories/releases" }
      maven { url "http://dev.cccs.uwe.ac.uk:8081/nexus/content/repositories/snapshots" }
      maven { url "http://dev.cccs.uwe.ac.uk:8081/nexus/content/repositories/public" }
-    jcenter() //Bintray's JCenter repository 
+     jcenter() //Bintray's JCenter repository 
 }
 
 //In this section declare the dependencies of production and test code
