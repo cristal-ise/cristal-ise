@@ -1,16 +1,15 @@
 package org.cristalise.kernel.test.unit.workflow;
 
-import static org.junit.Assert.*;
-import groovy.transform.CompileStatic;
+import static org.junit.Assert.*
+import groovy.transform.CompileStatic
 
-import org.cristalise.kernel.lifecycle.instance.CompositeActivity;
-import org.cristalise.kernel.lifecycle.instance.Workflow;
-import org.cristalise.kernel.lifecycle.instance.predefined.PredefinedStepContainer;
-import org.cristalise.kernel.lifecycle.instance.predefined.item.ItemPredefinedStepContainer;
-import org.cristalise.kernel.process.Gateway;
-import org.cristalise.kernel.utils.Logger;
-import org.junit.Before;
-import org.junit.Test;
+import org.cristalise.kernel.lifecycle.instance.CompositeActivity
+import org.cristalise.kernel.lifecycle.instance.Workflow
+import org.cristalise.kernel.lifecycle.instance.predefined.item.ItemPredefinedStepContainer
+import org.cristalise.kernel.utils.Logger
+import org.junit.Before
+import org.junit.Ignore
+import org.junit.Test
 
 @CompileStatic
 class PredefinedStepTests {
@@ -23,6 +22,7 @@ class PredefinedStepTests {
     }
 
     @Test
+    @Ignore("Not yet implemented") 
     public void addDomainPath() {
         def wf = new Workflow( new CompositeActivity(), new ItemPredefinedStepContainer() )
 
