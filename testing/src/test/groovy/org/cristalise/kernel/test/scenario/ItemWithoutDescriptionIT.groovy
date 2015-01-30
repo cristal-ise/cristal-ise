@@ -64,7 +64,7 @@ class ItemWithoutDescriptionIT {
      * @param role
      * @return
      */
-    private createNewRole(String role) {
+    private void createNewRole(String role) {
         ItemProxy roleFactory = agent.getItem("/domain/servers/localhost")
         assert roleFactory && roleFactory.getName() == "localhost"
 
@@ -81,7 +81,7 @@ class ItemWithoutDescriptionIT {
      * @param name
      * @return
      */
-    private createNewAgent(String role, String name) {
+    private void createNewAgent(String role, String name) {
         ItemProxy agentFactory = agent.getItem("/domain/servers/localhost")
         assert agentFactory && agentFactory.getName() == "localhost"
 
@@ -98,7 +98,7 @@ class ItemWithoutDescriptionIT {
      * @param name
      * @return
      */
-    private createNewItem(String name) {
+    private void createNewItem(String name) {
         ItemProxy factory = agent.getItem("/domain/servers/localhost")
         assert factory && factory.getName() == "localhost"
 

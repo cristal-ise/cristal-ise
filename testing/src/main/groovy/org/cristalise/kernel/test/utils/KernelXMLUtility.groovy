@@ -19,6 +19,7 @@ class KernelXMLUtility {
     public static String getRoleXML(params) {
         def writer = new StringWriter()
         def xml = new MarkupBuilder(writer)
+		
         writer << '<?xml version="1.0" encoding="UTF-8"?>\n'
 
         assert params.name, "name must be set"
@@ -39,6 +40,8 @@ class KernelXMLUtility {
     public static String getAgentXML(params) {
         def writer = new StringWriter()
         def xml = new MarkupBuilder(writer)
+		
+		//TODO: Agent can have many roles - IMPLEMENT
 
         writer << '<?xml version="1.0" encoding="UTF-8"?>\n'
 
@@ -71,9 +74,9 @@ class KernelXMLUtility {
         assert params.workflow, "workflow must be set"
         assert params.initialPath, "initialPath must be set"
 
-        if(!params.schema)   { params.schema   = ''}
-        if(!params.version)  { params.version  = ''}
-        if(!params.viewname) { params.viewname = ''}
+        if(!params.schema)   { params.schema   = '' }
+        if(!params.version)  { params.version  = '' }
+        if(!params.viewname) { params.viewname = '' }
 
         xml.Item(name:"$params.name", workflow:"$params.workflow", initialPath:"$params.initialPath") {
             Property(name:"Name", mutable:"true",  "$params.name")

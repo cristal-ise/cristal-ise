@@ -1,7 +1,9 @@
 /bin/
 /db
 /target
+/build
 /.classpath
 /.project
 /.settings
 /.gradle
+/.groovy
