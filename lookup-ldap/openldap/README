@@ -1,0 +1,5 @@
+cristal.schema goes in OpenLDAP/schemas, or change the include line to point to it here.
+
+edit your slapd.conf to include it.
+edit the suffix and rootdn and rootpass
+use this slapd to help you
