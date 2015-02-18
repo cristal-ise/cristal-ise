@@ -1,5 +1,3 @@
-/bin/
-/db
 /target
 /build
 /.classpath
@@ -7,3 +5,4 @@
 /.settings
 /.gradle
 /.groovy
+/bin/

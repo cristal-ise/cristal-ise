@@ -7,10 +7,13 @@ import org.cristalise.dev.test.utils.DevXMLUtility
 import org.cristalise.kernel.entity.agent.Job
 import org.cristalise.kernel.entity.proxy.AgentProxy
 import org.cristalise.kernel.entity.proxy.ItemProxy
-import org.cristalise.kernel.process.AbstractMain
+import org.cristalise.kernel.lookup.DomainPath
+import org.cristalise.kernel.lookup.ItemPath
+import org.cristalise.kernel.lookup.RolePath
 import org.cristalise.kernel.process.Gateway
-import org.junit.After
+import org.cristalise.kernel.test.KernelScenarioTestBase
 import org.junit.Before
+import org.junit.Ignore
 import org.junit.Test
 
 
@@ -21,27 +24,12 @@ import org.junit.Test
  *
  */
 @CompileStatic
-class BasicDevDescriptionIT {
-
-    AgentProxy agent
-    String timeStamp
+class BasicDevDescriptionIT extends KernelScenarioTestBase {
 
     @Before
     void before() {
-        String[] args = ['-logLevel', '8', '-config', 'bin/client.conf', '-connect', 'bin/dev.clc']
-
-        Properties props = AbstractMain.readC2KArgs(args)
-        Gateway.init(props)
-        agent = Gateway.connect("dev", "test")
-
-        timeStamp = new Date().format("yyyy-MM-dd_HH:mm:ss_SSS")
+        super.beforeClient('src/test/conf/devClient.conf', 'src/test/conf/devServer.clc')
     }
-
-    @After
-    void tearDown() {
-        Gateway.close()
-    }
-
 
     /**
      * 
@@ -87,4 +75,48 @@ class BasicDevDescriptionIT {
         editEADesc(name, folder, "Admin", "Errors")
 	}
 
+ 
+    @Test
+    public void checkPath() {
+        //Code to experiment with Lookup and LDAP based in dev module data
+        
+        Gateway.getLookup().getChildren(new DomainPath("")).each {
+            println "Domain: ${it.getClass().getName()} - $it"
+        }
+
+        Gateway.getLookup().getChildren(new DomainPath("agent")).each {
+            println "Domain: ${it.getClass().getName()} - $it"
+        }
+
+        Gateway.getLookup().getChildren(new RolePath()).each {
+            println "Role  : ${it.getClass().getName()} - $it"
+        }
+        
+        Gateway.getLookup().search(new DomainPath("desc"), "dev").each {
+            println "Domain search  : ${it.getClass().getName()} - $it"
+        }
+
+        Gateway.getLookup().searchAliases(new ItemPath("8e0d5225-2250-432f-aceb-cd6689ca4883")).each {
+            println "Item alias search: ${it.getClass().getName()} - $it"
+        }
+        
+        def buff = ""
+        ["desc","OutcomeDesc","system","dev"].each {
+            buff += "/$it"
+            assert Gateway.getLookup().exists(new DomainPath(buff))
+//            assert Gateway.getLookup().resolvePath(new DomainPath(buff))
+        }
+    }
+
+
+    @Test @Ignore("NOT Implemented")
+    public void proxyLoaderCacheTest() {
+        ItemProxy eaDescFactory = agent.getItem("/domain/desc/dev/ElementaryActivityDefFactory")
+        assert eaDescFactory && eaDescFactory.getName() == "ElementaryActivityDefFactory"
+
+        eaDescFactory.queryData("AuditTrail/0")
+        println "----------------------------------------------"
+        //TODO: Implement testing of the cache, as this second call shall read from it
+        eaDescFactory.queryData("AuditTrail/0")
+    }
 }

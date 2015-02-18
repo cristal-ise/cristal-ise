@@ -1,0 +1,4 @@
+Name=Cristal Test In Memory Server
+
+Authenticator=org.cristalise.lookup.lite.InMemoryAuthManager
+Lookup=org.cristalise.lookup.lite.InMemoryLookupManager

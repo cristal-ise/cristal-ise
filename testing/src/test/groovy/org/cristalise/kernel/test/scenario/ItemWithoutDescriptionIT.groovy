@@ -1,20 +1,15 @@
 package org.cristalise.kernel.test.scenario;
 
 import static org.junit.Assert.*
-
-import org.junit.After
-import org.junit.Before
-import org.junit.Test
-
 import groovy.transform.CompileStatic
 
 import org.cristalise.kernel.entity.agent.Job
 import org.cristalise.kernel.entity.proxy.AgentProxy
 import org.cristalise.kernel.entity.proxy.ItemProxy
-import org.cristalise.kernel.process.AbstractMain
-import org.cristalise.kernel.process.Gateway
-
-import org.cristalise.kernel.test.utils.KernelXMLUtility;
+import org.cristalise.kernel.test.KernelScenarioTestBase
+import org.cristalise.kernel.test.utils.KernelXMLUtility
+import org.junit.Before
+import org.junit.Test
 
 
 
@@ -24,25 +19,11 @@ import org.cristalise.kernel.test.utils.KernelXMLUtility;
  *
  */
 @CompileStatic
-class ItemWithoutDescriptionIT {
-
-    AgentProxy agent
-    String timeStamp
+class ItemWithoutDescriptionIT extends KernelScenarioTestBase {
 
     @Before
     void before() {
-        String[] args = ['-logLevel', '8', '-config', 'bin/client.conf', '-connect', 'bin/dev.clc']
-
-        Properties props = AbstractMain.readC2KArgs(args)
-        Gateway.init(props)
-        agent = Gateway.connect("dev", "test")
-
-        timeStamp = new Date().format("yyyy-MM-dd_HH:mm:ss_SSS")
-    }
-
-    @After
-    void tearDown() {
-        Gateway.close()
+        super.beforeClient('src/test/conf/devClient.conf', 'src/test/conf/devServer.clc')
     }
 
 
