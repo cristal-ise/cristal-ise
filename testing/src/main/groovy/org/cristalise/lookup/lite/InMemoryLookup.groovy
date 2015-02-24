@@ -31,6 +31,7 @@ abstract class InMemoryLookup implements Lookup {
     
     /**
      * 
+     * 
      * @param key
      * @return
      */
@@ -59,6 +60,7 @@ abstract class InMemoryLookup implements Lookup {
     @Override
     public void close() {
         Logger.msg(8, "InMemoryLookup.close() - Do nothing");
+        cache.clear()
     }
 
     /**
@@ -124,10 +126,9 @@ abstract class InMemoryLookup implements Lookup {
     @Override
     public boolean exists(Path path) {
         Logger.msg(5, "InMemoryLookup.exists() - Path: $path.string");
-        
-        
-        
-        return cache.containsKey(path.string);
+
+        //returns true if any of the keys in the map starts with the path
+        return cache.keySet().find {it =~ "^$path.string"}
     }
 
     @Override

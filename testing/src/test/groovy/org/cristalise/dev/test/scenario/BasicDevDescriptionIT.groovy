@@ -106,6 +106,14 @@ class BasicDevDescriptionIT extends KernelScenarioTestBase {
             assert Gateway.getLookup().exists(new DomainPath(buff))
 //            assert Gateway.getLookup().resolvePath(new DomainPath(buff))
         }
+        
+        assert Gateway.getLookup().getAgentPath("Admin")
+
+        Gateway.getLookup().search(new DomainPath("dev")).each {
+            println it.dump()
+        }
+        //assert new DomainPath("/agent/Admin").getItemPath()
+        
     }
 
 

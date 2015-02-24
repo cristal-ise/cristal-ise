@@ -44,7 +44,6 @@ class KernelScenarioTestBase {
         init(config, connect)
 
         agent = Gateway.connect("dev", "test")
-
     }
     
     /**

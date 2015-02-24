@@ -30,6 +30,7 @@ dependencies {
 //    compile group: 'org.cristalise', name: 'cristalise-xmldb',  version:'1.0'
     compile group: 'org.cristalise', name: 'cristalise-ldap',   version:'3.0'
 
+    testCompile 'commons-lang:commons-lang:2.6'
     testCompile 'org.spockframework:spock-core:0.7-groovy-2.0'
     testCompile 'junit:junit:4.11'
 }
