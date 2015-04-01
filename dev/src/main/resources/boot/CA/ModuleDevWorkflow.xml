@@ -349,7 +349,7 @@
 		<KeyValuePair Key="ScriptVersion" String="" />
 		<KeyValuePair Key="Viewpoint" String="" />
 		<KeyValuePair Key="Agent Name" String="" />
-		<KeyValuePair Key="StateMachineName" String="Default" />
+		<KeyValuePair Key="StateMachineName" String="CompositeActivity" />
 		<KeyValuePair Key="SchemaVersion" String="" />
 		<KeyValuePair Key="ScriptName" String="" />
 		<KeyValuePair Key="Breakpoint" Boolean="false" />
