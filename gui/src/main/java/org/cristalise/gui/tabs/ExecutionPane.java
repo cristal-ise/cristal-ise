@@ -53,7 +53,7 @@ public class ExecutionPane extends ItemTabPane implements ProxyObserver<Workflow
     JLabel noActs = new JLabel(Language.translate("There are currently no activities that you can execute in this item."));
     JPanel view = new JPanel(new GridLayout(1, 1));
     ActivityViewer currentActView;
-    JComboBox activitySelector = new JComboBox();
+    JComboBox<ActivityItem> activitySelector = new JComboBox<ActivityItem>();
     Box activityBox = Box.createHorizontalBox();
     String selAct = null;
     ArrayList<ActivityItem> activities;
@@ -96,6 +96,8 @@ public class ExecutionPane extends ItemTabPane implements ProxyObserver<Workflow
             runCommand(autoRun);
             autoRun = null;
         }
+        else if (activities.size() == 1)
+        	currentActView.init();
     }
     private void loadJobList() {
         synchronized (jobLock) {
@@ -130,7 +132,6 @@ public class ExecutionPane extends ItemTabPane implements ProxyObserver<Workflow
                     c.fill = GridBagConstraints.BOTH;
                     gridbag.setConstraints(view, c);
                     view.add(currentActView);
-                    currentActView.init();
                     break;
                 default :
                     c.fill = GridBagConstraints.HORIZONTAL;
@@ -144,6 +145,8 @@ public class ExecutionPane extends ItemTabPane implements ProxyObserver<Workflow
     @Override
 	public void reload() {
         loadJobList();
+        if (activities.size() == 1)
+        	currentActView.init();
     }
     private void addActivity(ActivityItem newAct) {
         if (activities.contains(newAct)) {
