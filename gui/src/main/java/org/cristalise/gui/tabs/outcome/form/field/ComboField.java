@@ -31,8 +31,11 @@ import javax.swing.text.JTextComponent;
 import org.cristalise.gui.MainFrame;
 import org.cristalise.gui.tabs.outcome.form.StructuralException;
 import org.cristalise.kernel.scripting.Script;
+import org.cristalise.kernel.utils.Logger;
 import org.exolab.castor.types.AnyNode;
+import org.exolab.castor.xml.schema.Annotation;
 import org.exolab.castor.xml.schema.AttributeDecl;
+import org.exolab.castor.xml.schema.Documentation;
 import org.exolab.castor.xml.schema.ElementDecl;
 import org.exolab.castor.xml.schema.Facet;
 import org.exolab.castor.xml.schema.SimpleType;
@@ -68,6 +71,11 @@ public class ComboField extends StringEditField {
         else
             return "";
     }
+    
+    public void setDefaultValue(String defaultVal) {
+    	vals.setDefaultValue(defaultVal);
+    	comboModel.setSelectedItem(vals.getDefaultKey());
+    }
 
     @Override
 	public String getText() {
@@ -82,7 +90,11 @@ public class ComboField extends StringEditField {
 
     @Override
 	public void setText(String text) {
-        comboModel.setSelectedItem(text);
+        if (vals.containsValue(text)) {
+        	comboModel.setSelectedItem(vals.findKey(text));
+        }
+        else
+        	Logger.error("Illegal value for ComboField "+getName()+": "+text);
     }
 
     @Override
@@ -109,13 +121,20 @@ public class ComboField extends StringEditField {
             Enumeration<Facet> enums = content.getFacets(Facet.ENUMERATION);
             while (enums.hasMoreElements()) {
                 Facet thisEnum = enums.nextElement();
-                vals.put(thisEnum.getValue(), thisEnum.getValue(), false);
-            }
+                String desc = thisEnum.getValue();
+                Enumeration<Annotation> annos = thisEnum.getAnnotations();
+                if (annos.hasMoreElements()) {
+                	Annotation thisAnno = annos.nextElement();
+                	Enumeration<Documentation> docs = thisAnno.getDocumentation();
+                	if (docs.hasMoreElements()) 
+                		desc = docs.nextElement().getContent();
+                }
+                vals.put(desc, thisEnum.getValue(), false);
+             }
         }
 
-        String[] keyArray = new String[vals.keySet().size()];
-        comboModel = new DefaultComboBoxModel(vals.keySet().toArray(keyArray));
-        comboModel.setSelectedItem(vals.getDefaultKey());
+        comboModel = new DefaultComboBoxModel(vals.getKeyArray());
+        //if (vals.getDefaultKey() != null) comboModel.setSelectedItem(vals.getDefaultKey());
         comboField.setModel(comboModel);
     }
 
@@ -144,13 +163,13 @@ public class ComboField extends StringEditField {
     @Override
 	public void setDecl(AttributeDecl model) throws StructuralException {
         super.setDecl(model);
-        createLOV();
+        setDefaultValue(model.getDefaultValue());
     }
 
     @Override
 	public void setDecl(ElementDecl model) throws StructuralException {
         super.setDecl(model);
-        createLOV();
+        setDefaultValue(model.getDefaultValue());
     }
 
     /**

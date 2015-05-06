@@ -20,7 +20,10 @@
  */
 package org.cristalise.gui.tabs.outcome.form.field;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+
+import org.cristalise.kernel.utils.Logger;
 
 /**************************************************************************
  *
@@ -34,18 +37,40 @@ import java.util.HashMap;
 public class ListOfValues extends HashMap<String, Object> {
 
     String defaultKey = null;
+    ArrayList<String> orderedKeys = new ArrayList<String>();
 
     public ListOfValues() {
         super();
     }
 
-    public String put(String key, String value, boolean isDefaultKey) {
+    public String put(String key, Object value, boolean isDefaultKey) {
         if (isDefaultKey) defaultKey = key;
+        orderedKeys.add(key);
         return (String)super.put(key, value);
+    }
+    
+    public String[] getKeyArray() {
+    	return orderedKeys.toArray(new String[orderedKeys.size()]);
     }
 
     public String getDefaultKey() {
         return defaultKey;
+    }
+    
+    public void setDefaultValue(String newDefaultVal) {
+    	defaultKey = findKey(newDefaultVal);
+    }
+    
+    public String findKey(String value) {
+    	for (String key : keySet()) {
+			if (get(key).equals(value))
+				return key;
+		}
+    	return null;
+    }
+    
+    public Object getDefaultValue() {
+    	return get(defaultKey);
     }
 
 }
