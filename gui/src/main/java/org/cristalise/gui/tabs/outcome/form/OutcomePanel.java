@@ -25,10 +25,12 @@ import java.io.File;
 import java.io.IOException;
 import java.io.StringReader;
 import java.net.URL;
+import java.util.HashMap;
 
 import javax.swing.Box;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
@@ -292,14 +294,21 @@ public class OutcomePanel extends JPanel implements OutcomeHandler
         ElementDecl rootElementDecl = null;
         docElement = (outcomeDOM == null) ? null : outcomeDOM.getDocumentElement();
 
+        HashMap<String, ElementDecl> foundRoots = new HashMap<String, ElementDecl>();
         for (ElementDecl elementDecl: schemaSOM.getElementDecls())
-        {
-            rootElementDecl = elementDecl;
-            // REVISIT: We don't detect which is the most likely root element if there is more than one root decl
-            // xmlspy looks for an element not referenced elsewhere. simple but hard
-            // if we already have a document then use its root element to find the right decl
-            if (docElement != null && docElement.getTagName().equals(rootElementDecl.getName()))
-                break;
+        	foundRoots.put(elementDecl.getName(), elementDecl);
+        if (foundRoots.size() == 0)
+        	throw new InvalidSchemaException("No root elements defined");
+        if (foundRoots.size() == 1)
+        	rootElementDecl = foundRoots.values().iterator().next();
+        else if (docElement != null)
+        	rootElementDecl = foundRoots.get(docElement.getTagName());
+        else { //choose root
+        	String[] rootArr = foundRoots.keySet().toArray(new String[0]);
+        	String choice = (String) JOptionPane.showInputDialog(this, "Choose the root element:",
+        			"Multiple possible root elements found", JOptionPane.PLAIN_MESSAGE,
+        			null, rootArr, rootArr[0]);
+        	rootElementDecl = foundRoots.get(choice);
         }
 
         if (rootElementDecl == null)
