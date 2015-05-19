@@ -1,0 +1,85 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<groupId>org.cristalise</groupId>
+	<artifactId>js-rhino</artifactId>
+	<version>1.0-SNAPSHOT</version>
+	<name>js-rhino</name>
+	<description>Rhino Javascript Module</description>
+	<properties>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+	</properties>
+	<build>
+		<resources>
+			<resource>
+				<directory>src/main/resources</directory>
+				<targetPath>META-INF/cristal</targetPath>
+				<filtering>true</filtering>
+				<includes>
+					<include>module.xml</include>
+				</includes>
+			</resource>
+			<resource>
+				<directory>src/main/resources</directory>
+				<targetPath>org/cristalise/js_rhino/resources</targetPath>
+				<excludes>
+					<exclude>module.xml</exclude>
+				</excludes>
+			</resource>
+		</resources>
+	</build>
+	<distributionManagement>
+		<repository>
+			<id>cccs.releases</id>
+			<url>http://dev.cccs.uwe.ac.uk:8081/nexus/content/repositories/releases</url>
+		</repository>
+		<snapshotRepository>
+			<id>cccs.snapshots</id>
+			<url>http://dev.cccs.uwe.ac.uk:8081/nexus/content/repositories/snapshots</url>
+		</snapshotRepository>
+	</distributionManagement>
+
+	<repositories>
+		<repository>
+			<id>cccs.releases</id>
+			<name>CCCS Nexus Release Repository</name>
+			<url>http://dev.cccs.uwe.ac.uk:8081/nexus/content/repositories/releases</url>
+			<releases>
+				<enabled>true</enabled>
+			</releases>
+			<snapshots>
+				<enabled>false</enabled>
+			</snapshots>
+		</repository>
+		<repository>
+			<id>cccs.snapshots</id>
+			<name>CCCS Nexus Snapshot Repository</name>
+			<url>http://dev.cccs.uwe.ac.uk:8081/nexus/content/repositories/snapshots</url>
+			<releases>
+				<enabled>false</enabled>
+			</releases>
+			<snapshots>
+				<enabled>true</enabled>
+			</snapshots>
+		</repository>
+		<repository>
+			<id>cccs.public</id>
+			<name>CCCS Nexus Public Repository</name>
+			<url>http://dev.cccs.uwe.ac.uk:8081/nexus/content/repositories/public</url>
+		</repository>
+	</repositories>
+	<dependencies>
+		<dependency>
+			<groupId>org.mozilla</groupId>
+			<artifactId>rhino</artifactId>
+			<version>1.7.6</version>
+			<scope>runtime</scope>
+		</dependency>
+		<dependency>
+			<groupId>de.christophkraemer</groupId>
+			<artifactId>rhino-script-engine</artifactId>
+			<version>1.1.1</version>
+			<scope>runtime</scope>
+		</dependency>		
+	</dependencies>
+</project>

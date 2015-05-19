@@ -1,0 +1,14 @@
+<CristalModule ns="rhino" name="js-rhino">
+	<Info>
+		<Description>CRISTAL Module to force use of the latest Mozilla Rhino for all CRISTAL javascript scripts. 
+		This will ensure that every scripts behaves identically on Java 7 & 8. Requires kernel 3.1-SNAPSHOT.</Description>
+		<Version>${version}</Version>
+	</Info>
+    <Config name="OverrideScriptLang.javascript">rhino</Config>
+    <Config name="OverrideScriptLang.JavaScript">rhino</Config>
+    <Config name="OverrideScriptLang.js">rhino</Config>
+    <Config name="OverrideScriptLang.JS">rhino</Config>
+    <Config name="OverrideScriptLang.ECMAScript">rhino</Config>
+    <Config name="OverrideScriptLang.ecmascript">rhino</Config>
+	<Imports/>
+</CristalModule>
