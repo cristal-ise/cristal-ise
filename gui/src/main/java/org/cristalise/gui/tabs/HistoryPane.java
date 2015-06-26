@@ -50,7 +50,6 @@ import org.cristalise.kernel.events.Event;
 import org.cristalise.kernel.events.History;
 import org.cristalise.kernel.lifecycle.instance.stateMachine.StateMachine;
 import org.cristalise.kernel.persistency.ClusterStorage;
-import org.cristalise.kernel.utils.Language;
 import org.cristalise.kernel.utils.LocalObjectLoader;
 import org.cristalise.kernel.utils.Logger;
 
@@ -254,14 +253,14 @@ public class HistoryPane extends ItemTabPane implements ActionListener, ProxyObs
 		@Override
 		public String getColumnName(int columnIndex) {
 			switch(columnIndex) {
-				case 0: return Language.translate("ID");
-				case 1: return Language.translate("Activity");
-				case 2: return Language.translate("Transition");
-				case 3: return Language.translate("Date");
-                case 4: return Language.translate("Agent Name");
-                case 5: return Language.translate("Agent Role");
-                case 6: return Language.translate("Schema");
-                case 7: return Language.translate("View");
+				case 0: return "ID";
+				case 1: return "Activity";
+				case 2: return "Transition";
+				case 3: return "Date";
+                case 4: return "Agent Name";
+                case 5: return "Agent Role";
+                case 6: return "Schema";
+                case 7: return "View";
 				default: return "";
 			}
 		}

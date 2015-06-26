@@ -50,7 +50,6 @@ import org.cristalise.gui.tabs.outcome.form.OutcomePanel;
 import org.cristalise.gui.tree.NodeItem;
 import org.cristalise.kernel.entity.proxy.ProxyObserver;
 import org.cristalise.kernel.process.Gateway;
-import org.cristalise.kernel.utils.Language;
 import org.cristalise.kernel.utils.Logger;
 
 /**
@@ -85,9 +84,9 @@ public class ItemTabPane extends JPanel implements Runnable {
 	}
 
     public ItemTabPane(String tabName, String titleText) {
-        this.tabName = Language.translate(tabName);
+        this.tabName = tabName;
         this.titleText =
-            titleText == null ? null : Language.translate(titleText);
+            titleText == null ? null : titleText;
         if (titleFont == null)
             titleFont =
                 new Font("SansSerif", Font.BOLD, this.getFont().getSize() + 5);
@@ -122,7 +121,7 @@ public class ItemTabPane extends JPanel implements Runnable {
         title.setFont(titleFont);
         title.setForeground(headingColor);
         JButton refreshButton = new JButton(mReloadIcon);
-        refreshButton.setToolTipText(Language.translate("Refresh"));
+        refreshButton.setToolTipText("Refresh");
         refreshButton.setMargin(new Insets(0, 0, 0, 0));
         refreshButton.addActionListener(new ActionListener() {
             @Override
@@ -137,7 +136,7 @@ public class ItemTabPane extends JPanel implements Runnable {
             new JToggleButton(ImageLoader.findImage("graph/start.png"));
         defaultStart.setMargin(new Insets(0, 0, 0, 0));
         defaultStart.setToolTipText(
-            Language.translate("Select this tab to be the default one opened when you double click an item"));
+            "Select this tab to be the default one opened when you double click an item");
         defaultStart.setSelected(tabName.equals(defaultStartTab));
         defaultStart.setActionCommand(tabName);
         defaultStart.addActionListener(new ActionListener() {

@@ -26,8 +26,6 @@ import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.text.JTextComponent;
 
-import org.cristalise.kernel.utils.Language;
-
 
 
 /**************************************************************************
@@ -44,7 +42,7 @@ public class LongStringEditField extends StringEditField {
     JScrollPane bigScroller;
     public LongStringEditField() {
         super();
-        field.setToolTipText(Language.translate("This field can contain any string."));
+        field.setToolTipText("This field can contain any string.");
     }
 
     @Override

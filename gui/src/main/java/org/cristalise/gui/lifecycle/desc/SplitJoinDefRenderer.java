@@ -34,7 +34,6 @@ import org.cristalise.kernel.lifecycle.LoopDef;
 import org.cristalise.kernel.lifecycle.OrSplitDef;
 import org.cristalise.kernel.lifecycle.WfVertexDef;
 import org.cristalise.kernel.lifecycle.XOrSplitDef;
-import org.cristalise.kernel.utils.Language;
 
 
 
@@ -78,22 +77,22 @@ public class SplitJoinDefRenderer implements VertexRenderer
         }
         if ( vertex instanceof  LoopDef )
         {
-            text        = Language.translate(mLoopText);
+            text        = mLoopText;
             textXOffset = mLoopTextXOffset;
         }
         else if ( vertex instanceof  XOrSplitDef )
         {
-            text        = Language.translate(mXOrText);
+            text        = mXOrText;
             textXOffset = mXOrTextXOffset;
         }
         else if ( vertex instanceof OrSplitDef )
         {
-            text        = Language.translate(mOrText);
+            text        = mOrText;
             textXOffset = mOrTextXOffset;
         }
         else if ( vertex instanceof AndSplitDef  )
         {
-            text        = Language.translate(mAndText);
+            text        = mAndText;
             textXOffset = mAndTextXOffset;
         }
         else if ( vertex instanceof JoinDef)
@@ -106,7 +105,7 @@ public class SplitJoinDefRenderer implements VertexRenderer
             }
             else
             {
-                text        = Language.translate(mJoinText);
+                text        = mJoinText;
                 textXOffset = mJoinTextXOffset;
             }
         }
@@ -136,7 +135,7 @@ public class SplitJoinDefRenderer implements VertexRenderer
         g2d.drawString( text, centrePoint.x - textXOffset, centrePoint.y + mTextYOffset );
         if (hasError) {
             g2d.setPaint( mErrorPaint );
-            String errors = Language.translate(((WfVertexDef)vertex).getErrors());
+            String errors = ((WfVertexDef)vertex).getErrors();
             int errorWidth = g2d.getFontMetrics().stringWidth( errors );
             g2d.drawString( errors, centrePoint.x - ( errorWidth / 2), centrePoint.y + vertexHeight );
         }
@@ -148,12 +147,12 @@ public class SplitJoinDefRenderer implements VertexRenderer
 
 
         mTextYOffset     = metrics.getHeight() / 3;
-        mAndTextXOffset  = metrics.stringWidth( Language.translate(mAndText) ) / 2;
-        mOrTextXOffset   = metrics.stringWidth( Language.translate(mOrText) ) / 2;
-        mXOrTextXOffset  = metrics.stringWidth( Language.translate(mXOrText) ) / 2;
-        mJoinTextXOffset = metrics.stringWidth( Language.translate(mJoinText) ) / 2;
-        mLoopTextXOffset = metrics.stringWidth( Language.translate(mJoinText) ) / 2;
-        mRouteTextXOffset  = metrics.stringWidth( Language.translate(mRouteText) ) / 2;
+        mAndTextXOffset  = metrics.stringWidth( mAndText) / 2;
+        mOrTextXOffset   = metrics.stringWidth( mOrText) / 2;
+        mXOrTextXOffset  = metrics.stringWidth( mXOrText) / 2;
+        mJoinTextXOffset = metrics.stringWidth( mJoinText) / 2;
+        mLoopTextXOffset = metrics.stringWidth( mJoinText) / 2;
+        mRouteTextXOffset  = metrics.stringWidth( mRouteText) / 2;
     }
 }
 

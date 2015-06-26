@@ -30,7 +30,6 @@ import org.cristalise.gui.tree.Node;
 import org.cristalise.gui.tree.NodeItem;
 import org.cristalise.gui.tree.NodeSubscriber;
 import org.cristalise.kernel.lookup.Path;
-import org.cristalise.kernel.utils.Language;
 import org.cristalise.kernel.utils.Logger;
 
 
@@ -93,13 +92,13 @@ public class DynamicTreeBuilder extends Node implements NodeSubscriber {
 	public String toString() {
         switch (state) {
             case IDLE:
-                return Language.translate("Initializing Tree Node Loader");
+                return "Initializing Tree Node Loader";
             case LOADING:
-                return Language.translate("Loading . . .");
+                return "Loading . . .";
             case PARTIAL:
-                return Language.translate("Double-click to load more");
+                return "Double-click to load more";
             case FINISHED:
-                return Language.translate("Done");
+                return "Done";
             default:
                 return "";
         }

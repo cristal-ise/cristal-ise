@@ -19,7 +19,6 @@
  * http://www.fsf.org/licensing/licenses/lgpl.html
  */
 package org.cristalise.gui.lifecycle.instance;
-import java.io.Serializable;
 import java.util.HashMap;
 
 import javax.swing.JOptionPane;
@@ -34,7 +33,6 @@ import org.cristalise.kernel.graph.model.VertexFactory;
 import org.cristalise.kernel.lifecycle.ActivityDef;
 import org.cristalise.kernel.lifecycle.instance.Activity;
 import org.cristalise.kernel.lifecycle.instance.CompositeActivity;
-import org.cristalise.kernel.utils.Language;
 import org.cristalise.kernel.utils.LocalObjectLoader;
 
 public class WfVertexFactory implements VertexFactory, WorkflowDialogue
@@ -55,8 +53,8 @@ public class WfVertexFactory implements VertexFactory, WorkflowDialogue
 				//************************************************
 				ActivityChooser a =
 					new ActivityChooser(
-						Language.translate("Please enter a Type for the new activity"),
-						Language.translate("New " + vertexTypeId + " Activity"),
+						"Please enter a Type for the new activity",
+						"New " + vertexTypeId + " Activity",
 						ImageLoader.findImage("graph/newvertex_large.png").getImage(),
 						this,
 						mhm);
@@ -87,8 +85,8 @@ public class WfVertexFactory implements VertexFactory, WorkflowDialogue
 			unicName =
 				(String) JOptionPane.showInputDialog(
 					null,
-					Language.translate("Activity name not unique. Please give another."),
-					Language.translate("New " + vertexTypeId + " Activity"),
+					"Activity name not unique. Please give another.",
+					"New " + vertexTypeId + " Activity",
 					JOptionPane.QUESTION_MESSAGE,
 					ImageLoader.findImage("graph/newvertex_large.png"),
 					null,

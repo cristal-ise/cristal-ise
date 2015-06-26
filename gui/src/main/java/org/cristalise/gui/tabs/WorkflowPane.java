@@ -51,7 +51,6 @@ import org.cristalise.kernel.lifecycle.instance.Workflow;
 import org.cristalise.kernel.persistency.ClusterStorage;
 import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.utils.FileStringUtility;
-import org.cristalise.kernel.utils.Language;
 import org.cristalise.kernel.utils.Logger;
 
 public class WorkflowPane extends ItemTabPane implements ProxyObserver<Workflow>
@@ -82,10 +81,10 @@ public class WorkflowPane extends ItemTabPane implements ProxyObserver<Workflow>
 		// Workflow factories
 		mWfEdgeFactory = new WfEdgeFactory();
 		mWfVertexFactory = new WfVertexFactory();
-		mZoomOutButton.setToolTipText(Language.translate("Zoom Out"));
-		mLayoutButton.setToolTipText(Language.translate("Auto Layout"));
-		mLoadButton.setToolTipText(Language.translate("Load"));
-		mSaveButton.setToolTipText(Language.translate("Save"));
+		mZoomOutButton.setToolTipText("Zoom Out");
+		mLayoutButton.setToolTipText("Auto Layout");
+		mLoadButton.setToolTipText("Load");
+		mSaveButton.setToolTipText("Save");
 		mOtherToolBarButtons = new JButton[] { mZoomOutButton, mLayoutButton, mLoadButton, mSaveButton };
 
 	}

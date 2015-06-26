@@ -47,7 +47,6 @@ import org.cristalise.kernel.entity.proxy.AgentProxy;
 import org.cristalise.kernel.lookup.DomainPath;
 import org.cristalise.kernel.process.AbstractMain;
 import org.cristalise.kernel.process.Gateway;
-import org.cristalise.kernel.utils.Language;
 import org.cristalise.kernel.utils.Logger;
 import org.omg.CORBA.UserException;
 
@@ -119,8 +118,7 @@ public class MainFrame extends javax.swing.JFrame {
         // Log in
         logoURL = Gateway.getProperties().getString("Logo");
         URL pictureUrl;
-        String bottomMessage =
-            Language.translate("Please enter username & password");
+        String bottomMessage = "Please enter username & password";
         ImageIcon imageHolder = new ImageIcon("");
         try {
             pictureUrl = new URL(logoURL);
@@ -147,7 +145,7 @@ public class MainFrame extends javax.swing.JFrame {
         getContentPane().setLayout(gridbag);
 
         this.setTitle(
-                userAgent.getName()+"@"+Gateway.getProperties().getString("Name") + " - " + Language.translate("Cristal 2"));
+                userAgent.getName()+"@"+Gateway.getProperties().getString("Name") + " - Cristal");
 
         String iconFile = Gateway.getProperties().getString("AppIcon");
         if (iconFile != null)

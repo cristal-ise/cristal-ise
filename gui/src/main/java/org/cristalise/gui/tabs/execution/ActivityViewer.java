@@ -50,7 +50,6 @@ import org.cristalise.kernel.common.ObjectNotFoundException;
 import org.cristalise.kernel.entity.agent.Job;
 import org.cristalise.kernel.entity.proxy.ItemProxy;
 import org.cristalise.kernel.utils.FileStringUtility;
-import org.cristalise.kernel.utils.Language;
 import org.cristalise.kernel.utils.LocalObjectLoader;
 import org.cristalise.kernel.utils.Logger;
 
@@ -65,7 +64,7 @@ public class ActivityViewer extends JPanel implements Runnable {
     JPanel errorView = new JPanel(new GridLayout(2,1));
     ActivityItem thisAct;
     ArrayList<RequestButton> requestButtons = new ArrayList<RequestButton>();
-    JLabel noOutcome = new JLabel(Language.translate("No outcome data is required for this activity"));
+    JLabel noOutcome = new JLabel("No outcome data is required for this activity");
     ExecutionPane parent;
     JLabel status;
     JComboBox executors;
@@ -104,7 +103,7 @@ public class ActivityViewer extends JPanel implements Runnable {
         c.fill = GridBagConstraints.HORIZONTAL;
 
 // activity title
-        JLabel actTitle = new JLabel(Language.translate("Activity")+": "+newAct.name);
+        JLabel actTitle = new JLabel("Activity"+": "+newAct.name);
         actTitle.setFont(ItemTabPane.titleFont);
         gridbag.setConstraints(actTitle, c);
         add(actTitle);
@@ -150,7 +149,7 @@ public class ActivityViewer extends JPanel implements Runnable {
         String roleName = firstJob.getAgentRole();
         if (roleName!= null && roleName.length()>0) {
             c.gridy++;
-            JLabel role = new JLabel(Language.translate("Agent Role")+": "+roleName);
+            JLabel role = new JLabel("Agent Role: "+roleName);
             gridbag.setConstraints(role, c);
             add(role);
         }
@@ -170,7 +169,7 @@ public class ActivityViewer extends JPanel implements Runnable {
 
         c.gridy++;
 
-        status = new JLabel(Language.translate("Waiting for request"));
+        status = new JLabel("Waiting for request");
         status.setFont(ItemTabPane.titleFont);
         gridbag.setConstraints(status, c);
         add(status);
@@ -210,9 +209,9 @@ public class ActivityViewer extends JPanel implements Runnable {
 						outcomeView = outcomePanel.getPanel();
 						newButton.setEnabled(true);
 					} catch (ObjectNotFoundException ex) {
-						outcomeView.add(new JLabel(Language.translate("Schema not found:")+" "+schemaName+" v"+schemaVersion));
+						outcomeView.add(new JLabel("Schema not found: "+schemaName+" v"+schemaVersion));
 	              	} catch (Exception ex) {
-	                    outcomeView.add(new JLabel(Language.translate("ERROR loading outcome editor: ")
+	                    outcomeView.add(new JLabel("ERROR loading outcome editor: "
 	                        +ex.getClass().getName()+" ("+ex.getMessage()+")"));
 	                    Logger.error(ex);
 	            	}
@@ -223,7 +222,7 @@ public class ActivityViewer extends JPanel implements Runnable {
             			errorView.add(errorPanel.getPanel());
             			newButton.setEnabled(true);
 					} catch (Exception ex) {
-						errorView.add(new JLabel(Language.translate("ERROR loading error editor: ")
+						errorView.add(new JLabel("ERROR loading error editor: "
 		                        +ex.getClass().getName()+" ("+ex.getMessage()+")"));
 	
 					}
@@ -346,8 +345,8 @@ public class ActivityViewer extends JPanel implements Runnable {
             selectedExecutor.execute(executingJob, status);
         } catch (Exception e) {
             Logger.error(e);
-            MainFrame.progress.stopBouncing(Language.translate("Error during execution"));
-            status.setText(Language.translate("Error during execution: "+e.getClass().getSimpleName()));
+            MainFrame.progress.stopBouncing("Error during execution");
+            status.setText("Error during execution: "+e.getClass().getSimpleName());
             MainFrame.exceptionDialog(e);
         }
         enableAllButtons(true);

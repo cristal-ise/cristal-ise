@@ -32,7 +32,6 @@ import org.cristalise.kernel.graph.model.GraphPoint;
 import org.cristalise.kernel.graph.model.Vertex;
 import org.cristalise.kernel.lifecycle.instance.Activity;
 import org.cristalise.kernel.utils.DateUtility;
-import org.cristalise.kernel.utils.Language;
 
 public class ActivityRenderer implements VertexRenderer
 {
@@ -55,7 +54,7 @@ public class ActivityRenderer implements VertexRenderer
 		linesOfText[0] = "(" + activity.getType() + ")";
 		linesOfText[1] = activity.getName();
 		if (hasError)
-			linesOfText[2] = Language.translate(activity.getErrors());
+			linesOfText[2] = activity.getErrors();
 		else
 		{
 			boolean showTime = activity.getActive() && ((Boolean) activity.getProperties().get("Show time")).booleanValue();
@@ -65,7 +64,7 @@ public class ActivityRenderer implements VertexRenderer
 			} catch (InvalidDataException ex) { }
 			
 			linesOfText[2] = 
-					Language.translate(stateName) + (showTime ? " " + getWaitTime(activity.getStateDate()) : "");
+					stateName + (showTime ? " " + getWaitTime(activity.getStateDate()) : "");
 		}
 
 		FontMetrics metrics = g2d.getFontMetrics();
@@ -121,11 +120,11 @@ public class ActivityRenderer implements VertexRenderer
 		long hours = (diff / 3600) % 24;
 		long days = (diff / 3600 / 24);
 		if (days > 0)
-			return days + " " + Language.translate("d") + " " + hours + " " + Language.translate("h");
+			return days + " " + "d" + " " + hours + " " + "h";
 		if (hours > 0)
-			return hours + " " + Language.translate("h") + " " + minutes + " " + Language.translate("min");
+			return hours + " " + "h" + " " + minutes + " " + "min";
 		if (minutes > 0)
-			return minutes + " " + Language.translate("min");
-		return secondes + " " + Language.translate("sec");
+			return minutes + " " + "min";
+		return secondes + " " + "sec";
 	}
 }

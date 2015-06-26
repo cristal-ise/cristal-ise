@@ -43,7 +43,6 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 
 import org.cristalise.gui.ImageLoader;
-import org.cristalise.kernel.utils.Language;
 import org.cristalise.kernel.utils.Logger;
 
 
@@ -87,14 +86,14 @@ public class ActivityChooser extends JFrame
     private JButton getJButtonOK()
     {
         if (mButtonOK == null)
-            mButtonOK = new JButton(Language.translate("OK"));
+            mButtonOK = new JButton("OK");
         return mButtonOK;
     }
 
     private JButton getJButtonCancel()
     {
         if (mButtonCancel == null)
-            mButtonCancel = new JButton(Language.translate("Cancel"));
+            mButtonCancel = new JButton("Cancel");
         return mButtonCancel;
     }
 

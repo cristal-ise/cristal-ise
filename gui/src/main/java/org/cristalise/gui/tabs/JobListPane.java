@@ -53,7 +53,6 @@ import org.cristalise.kernel.entity.proxy.ProxyObserver;
 import org.cristalise.kernel.persistency.ClusterStorage;
 import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.property.Property;
-import org.cristalise.kernel.utils.Language;
 import org.cristalise.kernel.utils.Logger;
 
 
@@ -257,10 +256,10 @@ public class JobListPane extends ItemTabPane implements ActionListener, ProxyObs
 		@Override
 		public String getColumnName(int columnIndex) {
 			switch(columnIndex) {
-				case 0: return Language.translate("ID");
-				case 1: return Language.translate("Subject");
-				case 2: return Language.translate("Activity");
-				case 3: return Language.translate("Transition");
+				case 0: return "ID";
+				case 1: return "Subject";
+				case 2: return "Activity";
+				case 3: return "Transition";
 				default: return "";
 			}
 		}

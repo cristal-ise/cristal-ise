@@ -51,7 +51,6 @@ import org.cristalise.kernel.entity.proxy.ProxyObserver;
 import org.cristalise.kernel.persistency.ClusterStorage;
 import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.property.Property;
-import org.cristalise.kernel.utils.Language;
 
 
 /**
@@ -103,7 +102,7 @@ public class PropertiesPane extends ItemTabPane implements ProxyObserver<Propert
             if (Gateway.getProperties().getBoolean("EnableItemErase")) {
                 c.gridy++;
                 c.fill = GridBagConstraints.NONE;
-                eraseButton = new JButton(Language.translate("Erase!"));
+                eraseButton = new JButton("Erase!");
                 eraseButton.addActionListener(this);
                 eraseButton.setActionCommand("Erase Item");
                 gridbag.setConstraints(eraseButton, c);
@@ -143,7 +142,7 @@ public class PropertiesPane extends ItemTabPane implements ProxyObserver<Propert
         JLabel propLabel = loadedProps.get(newProp.getName());
         if (propLabel == null) { // new prop
             JPanel summaryPanel = new JPanel(new GridLayout(0,2));
-            summaryPanel.add(new JLabel(Language.translate(newProp.getName()) + ":"));
+            summaryPanel.add(new JLabel(newProp.getName() + ":"));
             Box valueBox = Box.createHorizontalBox();
             propLabel = new JLabel(newProp.getValue());
             loadedProps.put(newProp.getName(), propLabel);

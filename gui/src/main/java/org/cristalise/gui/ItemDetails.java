@@ -40,7 +40,6 @@ import javax.swing.event.ChangeListener;
 import org.cristalise.gui.tabs.ItemTabPane;
 import org.cristalise.gui.tree.NodeItem;
 import org.cristalise.kernel.lookup.ItemPath;
-import org.cristalise.kernel.utils.Language;
 import org.cristalise.kernel.utils.Logger;
 
 
@@ -112,7 +111,7 @@ public class ItemDetails extends JPanel implements ChangeListener, Runnable {
             startTab = "Properties";
             startCommand = null;
         }
-        runCommand(Language.translate(startTab), startCommand);
+        runCommand(startTab, startCommand);
         myTabbedPane.setVisible(true);
         myTabbedPane.addChangeListener(this);
         validate();

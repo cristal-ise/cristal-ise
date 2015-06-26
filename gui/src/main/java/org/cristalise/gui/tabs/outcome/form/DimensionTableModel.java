@@ -25,7 +25,6 @@ import java.util.Enumeration;
 import javax.swing.table.AbstractTableModel;
 
 import org.cristalise.gui.tabs.outcome.OutcomeException;
-import org.cristalise.kernel.utils.Language;
 import org.cristalise.kernel.utils.Logger;
 import org.exolab.castor.xml.schema.Annotated;
 import org.exolab.castor.xml.schema.AttributeDecl;
@@ -109,7 +108,7 @@ public class DimensionTableModel extends AbstractTableModel {
             helpText = OutcomeStructure.extractHelp(decl);
 
 		if (helpText.length() == 0)
-            helpText = "<i>"+Language.translate("No help is available for this cell")+"</i>";
+            helpText = "<i>No help is available for this cell</i>";
 
         colHelp.add(helpText);
 

@@ -51,7 +51,6 @@ import org.cristalise.kernel.graph.model.GraphableEdge;
 import org.cristalise.kernel.graph.model.GraphableVertex;
 import org.cristalise.kernel.graph.model.Vertex;
 import org.cristalise.kernel.utils.CastorHashMap;
-import org.cristalise.kernel.utils.Language;
 
 
 /**************************************************************************
@@ -216,7 +215,7 @@ public class VertexPropertyPanel extends JPanel implements Observer, TableModelL
         add(scroll);
 
         newPropBox = Box.createHorizontalBox();
-        newPropBox.add(new JLabel(Language.translate("New :")));
+        newPropBox.add(new JLabel("New :"));
         newPropBox.add(Box.createHorizontalGlue());
         newPropName = new JTextField(15);
         newPropBox.add(newPropName);

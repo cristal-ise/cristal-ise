@@ -53,8 +53,6 @@ import org.cristalise.kernel.events.Event;
 import org.cristalise.kernel.persistency.ClusterStorage;
 import org.cristalise.kernel.persistency.outcome.Outcome;
 import org.cristalise.kernel.persistency.outcome.Viewpoint;
-import org.cristalise.kernel.process.Gateway;
-import org.cristalise.kernel.utils.Language;
 import org.cristalise.kernel.utils.LocalObjectLoader;
 import org.cristalise.kernel.utils.Logger;
 
@@ -99,7 +97,7 @@ public class ViewpointPane extends ItemTabPane implements ItemListener, ActionLi
 
         Box viewBox = Box.createHorizontalBox();
 
-        JLabel label = new JLabel(Language.translate("Outcome Type")+":", SwingConstants.LEFT);
+        JLabel label = new JLabel("Outcome Type:", SwingConstants.LEFT);
         viewBox.add(label);
         viewBox.add(Box.createHorizontalStrut(7));
 
@@ -108,7 +106,7 @@ public class ViewpointPane extends ItemTabPane implements ItemListener, ActionLi
         viewBox.add(Box.createHorizontalGlue());
         schemas.addItemListener(this);
 
-        label = new JLabel(Language.translate("View")+":", SwingConstants.LEFT);
+        label = new JLabel("View:", SwingConstants.LEFT);
         viewBox.add(label);
         viewBox.add(Box.createHorizontalStrut(7));
 
@@ -124,7 +122,7 @@ public class ViewpointPane extends ItemTabPane implements ItemListener, ActionLi
         c.gridy++;
         Box eventBox = Box.createHorizontalBox();
 
-        label = new JLabel(Language.translate("Event")+":", SwingConstants.LEFT);
+        label = new JLabel("Event:", SwingConstants.LEFT);
         eventBox.add(label);
         eventBox.add(Box.createHorizontalStrut(7));
 
@@ -138,7 +136,7 @@ public class ViewpointPane extends ItemTabPane implements ItemListener, ActionLi
         eventBox.add(Box.createHorizontalGlue());
 
         if (MainFrame.isAdmin) {
-            viewButton = new JButton(Language.translate("Write View"));
+            viewButton = new JButton("Write View");
             viewButton.setMargin(new Insets(0, 0, 0, 0));
             viewButton.setActionCommand("setview");
             eventBox.add(viewButton);
@@ -146,7 +144,7 @@ public class ViewpointPane extends ItemTabPane implements ItemListener, ActionLi
             viewButton.addActionListener(this);
         }
 
-        exportButton = new JButton(Language.translate("Export"));
+        exportButton = new JButton("Export");
         exportButton.setMargin(new Insets(0, 0, 0, 0));
         exportButton.setActionCommand("export");
         exportButton.addActionListener(this);
@@ -525,9 +523,9 @@ public class ViewpointPane extends ItemTabPane implements ItemListener, ActionLi
         public String getEventDesc() {
             try {
                 Event myEvent = (Event)sourceItem.getItem().getObject(ClusterStorage.HISTORY+"/"+eventId);
-                return (Language.translate("Recorded on")+" "+myEvent.getTimeString()+" "+
-                    Language.translate("by")+" "+myEvent.getAgentPath().getAgentName()+" "+
-                    Language.translate("using schema v")+schemaVersion);
+                return ("Recorded on "+myEvent.getTimeString()+
+                    " by "+myEvent.getAgentPath().getAgentName()+
+                    " using schema v"+schemaVersion);
             } catch (Exception ex) {
                 Logger.error(ex);
                 return ("Error retrieving event details");
