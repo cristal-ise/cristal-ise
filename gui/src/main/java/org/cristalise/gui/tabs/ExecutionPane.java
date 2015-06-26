@@ -41,7 +41,6 @@ import org.cristalise.kernel.entity.proxy.MemberSubscription;
 import org.cristalise.kernel.entity.proxy.ProxyObserver;
 import org.cristalise.kernel.lifecycle.instance.Workflow;
 import org.cristalise.kernel.persistency.ClusterStorage;
-import org.cristalise.kernel.utils.Language;
 import org.cristalise.kernel.utils.Logger;
 
 
@@ -50,7 +49,7 @@ public class ExecutionPane extends ItemTabPane implements ProxyObserver<Workflow
     ArrayList<Job> jobList = null;
     Object jobLock = new Object();
     ActivityItem emptyAct = new ActivityItem();
-    JLabel noActs = new JLabel(Language.translate("There are currently no activities that you can execute in this item."));
+    JLabel noActs = new JLabel("There are currently no activities that you can execute in this item.");
     JPanel view = new JPanel(new GridLayout(1, 1));
     ActivityViewer currentActView;
     JComboBox<ActivityItem> activitySelector = new JComboBox<ActivityItem>();
@@ -73,7 +72,7 @@ public class ExecutionPane extends ItemTabPane implements ProxyObserver<Workflow
 
         add(view);
         // create activity selection box
-        activityBox.add(new JLabel(Language.translate("Select Activity") + ": "));
+        activityBox.add(new JLabel("Select Activity: "));
         activityBox.add(Box.createHorizontalStrut(5));
         activitySelector.setEditable(false);
         activityBox.add(activitySelector);

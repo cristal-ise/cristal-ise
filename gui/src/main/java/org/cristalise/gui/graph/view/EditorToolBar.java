@@ -50,7 +50,6 @@ import org.cristalise.gui.graph.controller.DeletionController;
 import org.cristalise.gui.graph.controller.StartVertexController;
 import org.cristalise.kernel.graph.model.GraphModelManager;
 import org.cristalise.kernel.graph.model.TypeNameAndConstructionInfo;
-import org.cristalise.kernel.utils.Language;
 import org.cristalise.kernel.utils.Logger;
 
 /**
@@ -113,13 +112,13 @@ public class EditorToolBar extends Box implements Printable
 	protected void prepareModeButtons()
 	{
 		// Set the tool tip texts
-		mVertexModeButton.setToolTipText(Language.translate("Create vertex"));
-		mSelectModeButton.setToolTipText(Language.translate("Multi-select and drag"));
-		mEdgeModeButton.setToolTipText(Language.translate("Create edge"));
-		mStartButton.setToolTipText(Language.translate("Select the start vertex of the graph"));
-		mDeleteButton.setToolTipText(Language.translate("Delete the selection"));
-        mPrintButton.setToolTipText(Language.translate("Print this graph"));
-        mCopyButton.setToolTipText(Language.translate("Copy an image of this graph to the clipboard"));
+		mVertexModeButton.setToolTipText("Create vertex");
+		mSelectModeButton.setToolTipText("Multi-select and drag");
+		mEdgeModeButton.setToolTipText("Create edge");
+		mStartButton.setToolTipText("Select the start vertex of the graph");
+		mDeleteButton.setToolTipText("Delete the selection");
+        mPrintButton.setToolTipText("Print this graph");
+        mCopyButton.setToolTipText("Copy an image of this graph to the clipboard");
 		// Set the button margins to 0
 		mVertexModeButton.setMargin(new Insets(0, 0, 0, 0));
 		mSelectModeButton.setMargin(new Insets(0, 0, 0, 0));

@@ -31,7 +31,6 @@ import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.text.JTextComponent;
 
-import org.cristalise.kernel.utils.Language;
 import org.exolab.castor.xml.schema.SimpleType;
 
 
@@ -63,7 +62,7 @@ public class ArrayEditField extends StringEditField implements ActionListener {
     public ArrayEditField(SimpleType type) {
         arrayBox = Box.createVerticalBox();
         arrayBox.add(arrayLabel);
-        arrayButton = new JButton(Language.translate("Show"));
+        arrayButton = new JButton("Show");
         arrayButton.addActionListener(this);
         arrayButton.setActionCommand("toggle");
         arrayBox.add(arrayButton);

@@ -44,7 +44,6 @@ import org.cristalise.kernel.graph.model.Vertex;
 import org.cristalise.kernel.lookup.DomainPath;
 import org.cristalise.kernel.lookup.ItemPath;
 import org.cristalise.kernel.process.Gateway;
-import org.cristalise.kernel.utils.Language;
 
 
 /**************************************************************************
@@ -62,9 +61,9 @@ public class SelectedMemberPanel extends SelectedVertexPanel implements DomainKe
 	JLabel slotNumber = new JLabel();
     JTextField memberKey = new JTextField(14);
 
-	JButton findButton = new JButton(Language.translate("Find"));
-    JToggleButton changeButton = new JToggleButton(Language.translate("Change"));
-    JButton removeButton = new JButton(Language.translate("Remove"));
+	JButton findButton = new JButton("Find");
+    JToggleButton changeButton = new JToggleButton("Change");
+    JButton removeButton = new JButton("Remove");
 
     SelectedMemberPanel me;
     AggregationMember selectedMember = null;
@@ -74,9 +73,9 @@ public class SelectedMemberPanel extends SelectedVertexPanel implements DomainKe
 		setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
 
         JPanel attrs = new JPanel(new GridLayout(3,2));
-        attrs.add(new JLabel(Language.translate("Slot Number:")));
+        attrs.add(new JLabel("Slot Number:"));
         attrs.add(slotNumber);
-        attrs.add(new JLabel(Language.translate("Assigned Member:")));
+        attrs.add(new JLabel("Assigned Member:"));
         attrs.add(memberKey);
         memberKey.setEditable(false);
 

@@ -49,7 +49,6 @@ import javax.swing.border.EmptyBorder;
 
 import org.cristalise.kernel.entity.proxy.AgentProxy;
 import org.cristalise.kernel.process.Gateway;
-import org.cristalise.kernel.utils.Language;
 import org.cristalise.kernel.utils.Logger;
 
 
@@ -108,7 +107,7 @@ public  class LoginBox extends JFrame {
       this.title = "Cristal";
     else
       this.title = title;
-    setTitle(Language.translate("Log in to ")+title);
+    setTitle("Log in to "+title);
     username.setText(lastUser);
 
   }
@@ -136,7 +135,7 @@ public  class LoginBox extends JFrame {
     if (!logged) {
       Logger.msg("Login attempt "+loginAttemptNumber+" of "+maxNumberLogon+" failed");
       if (loginAttemptNumber>=maxNumberLogon) Logger.die("Login failure limit reached");
-      if (!errorSet) this.errorLabel.setText(Language.translate("Please enter username & password"));
+      if (!errorSet) this.errorLabel.setText("Please enter username & password");
 //      int posx=xMov+120;
 //      int posy=yMov;
 //      if (posy<135) posy=135;
@@ -174,20 +173,20 @@ public  class LoginBox extends JFrame {
     password.addKeyListener(submitListener);
     this.getContentPane().setLayout(gridBagLayout1);
 
-    passwordLabel.setText(Language.translate("Password")+":");
+    passwordLabel.setText("Password:");
 
     OK.setActionCommand("OK");
     OK.setSelected(true);
-    OK.setText(Language.translate("OK"));
+    OK.setText("OK");
     OK.addActionListener(new Frame2_OK_actionAdapter(this));
     OK.setPreferredSize(new Dimension(80,30));
 
     Cancel.setActionCommand("Cancel");
-    Cancel.setText(Language.translate("Cancel"));
+    Cancel.setText("Cancel");
     Cancel.addActionListener(new Frame2_Cancel_actionAdapter(this));
     Cancel.setPreferredSize(new Dimension(80,30));
 
-    userLabel.setText(Language.translate("User")+":");
+    userLabel.setText("User:");
     pictureLabel= new JLabel(imageMainHolder);
     pictureLabel.setBorder(new EmptyBorder(0,0,0,5));
     password.setText("");

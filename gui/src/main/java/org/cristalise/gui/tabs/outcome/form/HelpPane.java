@@ -23,8 +23,6 @@ package org.cristalise.gui.tabs.outcome.form;
 import javax.swing.JEditorPane;
 import javax.swing.text.html.HTMLEditorKit;
 
-import org.cristalise.kernel.utils.Language;
-
 
 /**************************************************************************
  *
@@ -37,7 +35,7 @@ import org.cristalise.kernel.utils.Language;
 
 public class HelpPane extends JEditorPane {
 
-    public static final String header = "<h2><font color=\"blue\">"+Language.translate("Help")+"</font></h2>";
+    public static final String header = "<h2><font color=\"blue\">Help</font></h2>";
 
     public HelpPane() {
         super();

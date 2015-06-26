@@ -43,7 +43,6 @@ import org.cristalise.kernel.lookup.ItemPath;
 import org.cristalise.kernel.persistency.ClusterStorage;
 import org.cristalise.kernel.persistency.outcome.Outcome;
 import org.cristalise.kernel.process.Gateway;
-import org.cristalise.kernel.utils.Language;
 import org.cristalise.kernel.utils.Logger;
 
 
@@ -85,10 +84,10 @@ public class CollectionHistoryWindow extends JFrame  {
 		@Override
 		public String getColumnName(int columnIndex) {
 			switch(columnIndex) {
-				case 0: return Language.translate("Date");
-				case 1: return Language.translate("Operation");
-				case 2: return Language.translate("Slot");
-				case 3: return Language.translate("Child");
+				case 0: return "Date";
+				case 1: return "Operation";
+				case 2: return "Slot";
+				case 3: return "Child";
 				default: return "";
 			}
 		}

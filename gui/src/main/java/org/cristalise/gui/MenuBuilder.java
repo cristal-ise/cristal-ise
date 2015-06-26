@@ -53,7 +53,6 @@ import org.cristalise.kernel.persistency.ClusterStorage;
 import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.property.Property;
 import org.cristalise.kernel.utils.FileStringUtility;
-import org.cristalise.kernel.utils.Language;
 import org.cristalise.kernel.utils.Logger;
 
 /**
@@ -79,23 +78,23 @@ public class MenuBuilder extends JMenuBar implements ActionListener, ItemListene
     public MenuBuilder(MainFrame parentFrame)
 	{
 		myParentFrame = parentFrame;
-		fileMenu = new JMenu(Language.translate("File"));
-		consoleMenu = new JMenu(Language.translate("Console"));
-		styleMenu = new JMenu(Language.translate("Style"));
+		fileMenu = new JMenu("File");
+		consoleMenu = new JMenu("Console");
+		styleMenu = new JMenu("Style");
 		prefMenu = new JMenu("Preferences");
-		helpMenu = new JMenu(Language.translate("Help"));
+		helpMenu = new JMenu("Help");
 		availableMenus.put("file", fileMenu);
 		availableMenus.put("console", consoleMenu);
 		availableMenus.put("preferences", prefMenu);
 		availableMenus.put("style", styleMenu);
 		availableMenus.put("help", helpMenu);
 
-        addMenuItem(Language.translate("Close All"), "file", null, 0);
-        addMenuItem(Language.translate("Close Others"), "file", null, 0);
+        addMenuItem("Close All", "file", null, 0);
+        addMenuItem("Close Others", "file", null, 0);
         fileMenu.insertSeparator(2);
-		addMenuItem(Language.translate("Exit"), "file", null, 0);
+		addMenuItem("Exit", "file", null, 0);
 
-        addMenuItem(Language.translate("Local console"), "console", null, 0);
+        addMenuItem("Local console", "console", null, 0);
         consoleMenu.insertSeparator(5);
         addServerConsoles();
 
@@ -103,10 +102,10 @@ public class MenuBuilder extends JMenuBar implements ActionListener, ItemListene
 		for (LookAndFeelInfo availableView : availableViews)
 			addMenuItem(availableView.getName(), "style", styleButtonGroup, 0);
 
-		addMenuItem(Language.translate("Tree Browser"), "preferences", null, MainFrame.getPref("ShowTree", "true").equals("true")?2:1);
-		addMenuItem(Language.translate("Outcome Field Help"), "preferences", null, MainFrame.getPref("ShowHelp", "true").equals("true")?2:1);
-		addMenuItem(Language.translate("Graph Properties"), "preferences", null, MainFrame.getPref("ShowProps", "true").equals("true")?2:1);
-		addMenuItem(Language.translate("About"), "help", null, 0);
+		addMenuItem("Tree Browser", "preferences", null, MainFrame.getPref("ShowTree", "true").equals("true")?2:1);
+		addMenuItem("Outcome Field Help", "preferences", null, MainFrame.getPref("ShowHelp", "true").equals("true")?2:1);
+		addMenuItem("Graph Properties", "preferences", null, MainFrame.getPref("ShowProps", "true").equals("true")?2:1);
+		addMenuItem("About", "help", null, 0);
 
 		add(fileMenu);
 		add(consoleMenu);
@@ -178,9 +177,9 @@ public class MenuBuilder extends JMenuBar implements ActionListener, ItemListene
 		if (s.equals("Close All") || s.equals("Close Others")) {
 			MainFrame.myDesktopManager.closeAll(s.equals("Close Others"));
 		}
-		else if (s.equals(Language.translate("Exit")))
+		else if (s.equals("Exit"))
 			myParentFrame.exitForm();
-		else if (s.equals(Language.translate("About")))
+		else if (s.equals("About"))
 			showAboutWindow();
 		else if (i >= 0)
 		{
@@ -194,7 +193,7 @@ public class MenuBuilder extends JMenuBar implements ActionListener, ItemListene
 				ex.printStackTrace();
 			}
 		}
-		else if (s.equals(Language.translate("Tree Browser")))
+		else if (s.equals("Tree Browser"))
 		{
 			myParentFrame.toggleTree();
 		}
@@ -209,7 +208,7 @@ public class MenuBuilder extends JMenuBar implements ActionListener, ItemListene
                 Logger.error(ex);
             }
         }
-        else if (s.equals(Language.translate("Local console"))) {
+        else if (s.equals("Local console")) {
             try
             {
                 new Console("localhost", Logger.getConsolePort()).setVisible(true);
@@ -219,10 +218,10 @@ public class MenuBuilder extends JMenuBar implements ActionListener, ItemListene
                 Logger.error(ex);
             }
         }
-        else if (s.equals(Language.translate("Outcome Field Help"))) {
+        else if (s.equals("Outcome Field Help")) {
         	MainFrame.setPref("ShowHelp", String.valueOf(!MainFrame.getPref("ShowHelp", "true").equals("true")));
         }
-        else if (s.equals(Language.translate("Graph Properties"))) {
+        else if (s.equals("Graph Properties")) {
         	MainFrame.setPref("ShowProps", String.valueOf(!MainFrame.getPref("ShowProps", "true").equals("true")));
         }
 		else
@@ -241,7 +240,7 @@ public class MenuBuilder extends JMenuBar implements ActionListener, ItemListene
 		}
 		catch (Exception e)
 		{
-			aboutInfo = Language.translate("Cristal 2 Itembrowser");
+			aboutInfo = "CRISTAL Item Browser";
 		}
         JLabel title = new JLabel(aboutInfo);
         about.add(title);
@@ -277,7 +276,7 @@ public class MenuBuilder extends JMenuBar implements ActionListener, ItemListene
         about.add(scroll);
 		myPane.setMessage(about);
 		myPane.setMessageType(JOptionPane.INFORMATION_MESSAGE);
-		JDialog dialog = myPane.createDialog(null, Language.translate("About"));
+		JDialog dialog = myPane.createDialog(null, "About");
 		dialog.setResizable(false);
 		Icon icon = ImageLoader.findImage(Gateway.getProperties().getString("banner"));
 		myPane.setIcon(icon);

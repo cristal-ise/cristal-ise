@@ -38,7 +38,6 @@ import org.cristalise.kernel.collection.AggregationMember;
 import org.cristalise.kernel.collection.AggregationVertexFactory;
 import org.cristalise.kernel.collection.AggregationVertexOutlineCreator;
 import org.cristalise.kernel.collection.Collection;
-import org.cristalise.kernel.utils.Language;
 
 /**
  * @version $Revision: 1.5 $ $Date: 2006/09/15 15:02:24 $
@@ -83,7 +82,7 @@ public class AggregationView extends CollectionView<AggregationMember>
 	}
 	public void createLayout()
 	{
-		mSaveButton.setToolTipText(Language.translate("Save Layout Changes"));
+		mSaveButton.setToolTipText("Save Layout Changes");
 		mSplitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, mEditorPanel, mPropertyPanel);
         mSplitPane.setDividerSize(5);
 		add(mSplitPane);

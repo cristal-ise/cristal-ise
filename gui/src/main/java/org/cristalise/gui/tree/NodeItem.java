@@ -44,7 +44,6 @@ import org.cristalise.kernel.entity.proxy.ItemProxy;
 import org.cristalise.kernel.lookup.Path;
 import org.cristalise.kernel.persistency.ClusterStorage;
 import org.cristalise.kernel.process.Gateway;
-import org.cristalise.kernel.utils.Language;
 import org.cristalise.kernel.utils.Logger;
 
 
@@ -147,7 +146,7 @@ public class NodeItem extends Node implements Transferable {
 	public JPopupMenu getPopupMenu() {
 		
         JPopupMenu popup = super.getPopupMenu();
-        JMenuItem openItem = new JMenuItem(Language.translate("Open"));
+        JMenuItem openItem = new JMenuItem("Open");
         openItem.addActionListener(new ActionListener() {
             @Override
 			public void actionPerformed(ActionEvent e) {

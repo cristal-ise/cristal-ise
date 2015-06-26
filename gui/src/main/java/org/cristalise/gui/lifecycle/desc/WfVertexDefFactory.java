@@ -33,7 +33,6 @@ import org.cristalise.kernel.graph.model.TypeNameAndConstructionInfo;
 import org.cristalise.kernel.graph.model.VertexFactory;
 import org.cristalise.kernel.lifecycle.ActivityDef;
 import org.cristalise.kernel.lifecycle.CompositeActivityDef;
-import org.cristalise.kernel.utils.Language;
 import org.cristalise.kernel.utils.LocalObjectLoader;
 import org.cristalise.kernel.utils.Logger;
 
@@ -56,8 +55,8 @@ public class WfVertexDefFactory implements VertexFactory, WorkflowDialogue
 				//************************************************
 				ActivityChooser a =
 					new ActivityChooser(
-						Language.translate("Please enter a Type for the new activityDef"),
-						Language.translate("New " + vertexTypeId + " Activity"),
+						"Please enter a Type for the new activityDef",
+						"New " + vertexTypeId + " Activity",
 						ImageLoader.findImage("graph/newvertex_large.png").getImage(),
 						this,
 						mhm);
@@ -85,8 +84,8 @@ public class WfVertexDefFactory implements VertexFactory, WorkflowDialogue
 				unicName =
 					(String) JOptionPane.showInputDialog(
 						null,
-						Language.translate("Please type a Name"),
-						Language.translate("New " + vertexTypeId + " Activity"),
+						"Please type a Name",
+						"New " + vertexTypeId + " Activity",
 						JOptionPane.QUESTION_MESSAGE,
 						ImageLoader.findImage("graph/newvertex_large.png"),
 						null,

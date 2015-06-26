@@ -45,7 +45,6 @@ import org.cristalise.kernel.common.ObjectNotFoundException;
 import org.cristalise.kernel.lookup.ItemPath;
 import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.utils.CastorHashMap;
-import org.cristalise.kernel.utils.Language;
 
 
 public class CollectionMemberPropertyPanel extends JPanel implements ActionListener {
@@ -61,7 +60,7 @@ public class CollectionMemberPropertyPanel extends JPanel implements ActionListe
     JButton delPropButton;
     Box newPropBox;
     private JTextField newPropName;
-    private JComboBox newPropType;
+    private JComboBox<String> newPropType;
     String[] typeOptions = { "String", "Boolean", "Integer", "Float" };
     String[] typeInitVal = { "", "false", "0", "0.0"};
 
@@ -126,11 +125,11 @@ public class CollectionMemberPropertyPanel extends JPanel implements ActionListe
         add(scroll);
 
         newPropBox = Box.createHorizontalBox();
-        newPropBox.add(new JLabel(Language.translate("New :")));
+        newPropBox.add(new JLabel("New :"));
         newPropBox.add(Box.createHorizontalGlue());
         newPropName = new JTextField(15);
         newPropBox.add(newPropName);
-        newPropType = new JComboBox(typeOptions);
+        newPropType = new JComboBox<String>(typeOptions);
         newPropBox.add(newPropType);
         newPropBox.add(Box.createHorizontalStrut(1));
         addPropButton = new JButton("Add");

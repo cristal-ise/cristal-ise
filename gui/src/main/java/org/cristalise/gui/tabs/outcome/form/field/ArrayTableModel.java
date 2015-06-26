@@ -27,7 +27,6 @@ import java.util.StringTokenizer;
 import javax.swing.table.AbstractTableModel;
 
 import org.cristalise.gui.tabs.outcome.form.OutcomeStructure;
-import org.cristalise.kernel.utils.Language;
 import org.exolab.castor.xml.schema.SimpleType;
 
 
@@ -104,7 +103,7 @@ public class ArrayTableModel extends AbstractTableModel {
 
     @Override
 	public String getColumnName(int column) {
-        return Language.translate("Value");
+        return "Value";
     }
 
     @Override

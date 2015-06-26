@@ -43,7 +43,6 @@ import org.cristalise.kernel.lookup.DomainPath;
 import org.cristalise.kernel.lookup.Lookup;
 import org.cristalise.kernel.lookup.Path;
 import org.cristalise.kernel.process.Gateway;
-import org.cristalise.kernel.utils.Language;
 import org.cristalise.kernel.utils.Logger;
 
 
@@ -101,7 +100,7 @@ public class ItemFinder extends Box implements Runnable {
 
     private void initPanel() {
 
-        JLabel search = new JLabel(" "+Language.translate("Search")+":");
+        JLabel search = new JLabel("Search:");
         add(search);
         add(Box.createHorizontalStrut(7));
 
@@ -115,7 +114,7 @@ public class ItemFinder extends Box implements Runnable {
              }
         });
 
-		findButton = new JButton(mFindIcon);//(Language.translate("Find"));
+		findButton = new JButton(mFindIcon);//("Find"));
         findButton.setMargin(new Insets(2, 5, 2, 5));
         findButton.addActionListener( new ActionListener() {
              @Override
@@ -126,7 +125,7 @@ public class ItemFinder extends Box implements Runnable {
         add(findButton);
         add(Box.createHorizontalStrut(5));
 
-		findNextButton = new JButton(mNextIcon);//(Language.translate("Next"));
+		findNextButton = new JButton(mNextIcon);
         findNextButton.setMargin(new Insets(2, 5, 2, 5));
         findNextButton.addActionListener( new ActionListener() {
              @Override

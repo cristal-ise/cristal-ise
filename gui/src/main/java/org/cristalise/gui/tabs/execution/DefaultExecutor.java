@@ -24,7 +24,6 @@ import javax.swing.JLabel;
 
 import org.cristalise.gui.MainFrame;
 import org.cristalise.kernel.entity.agent.Job;
-import org.cristalise.kernel.utils.Language;
 
 
 /**************************************************************************
@@ -44,7 +43,7 @@ public class DefaultExecutor implements Executor {
 
     @Override
 	public void execute(Job job, JLabel status) throws Exception {
-        status.setText(Language.translate("Submitting..."));
+        status.setText("Submitting...");
         MainFrame.progress.startBouncing("Requesting, please wait.");
         MainFrame.userAgent.execute(job);
         MainFrame.progress.stopBouncing("Execution complete.");

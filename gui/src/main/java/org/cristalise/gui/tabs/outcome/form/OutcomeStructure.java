@@ -29,7 +29,6 @@ import javax.swing.ImageIcon;
 import javax.swing.JPanel;
 
 import org.cristalise.gui.tabs.outcome.OutcomeException;
-import org.cristalise.kernel.utils.Language;
 import org.cristalise.kernel.utils.Logger;
 import org.exolab.castor.types.AnyNode;
 import org.exolab.castor.xml.schema.Annotated;
@@ -57,7 +56,7 @@ public abstract class OutcomeStructure extends JPanel {
     boolean readOnly;
     HashMap<String, OutcomeStructure> subStructure = new HashMap<String, OutcomeStructure>();
     ArrayList<String> order = new ArrayList<String>();
-    String help = "<i>"+Language.translate("No help is available for this element")+"</i>";
+    String help = "<i>No help is available for this element</i>";
     HelpPane helpPane;
     boolean deferChild = false;
 

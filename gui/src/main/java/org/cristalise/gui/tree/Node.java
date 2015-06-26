@@ -40,7 +40,6 @@ import org.cristalise.kernel.lookup.ItemPath;
 import org.cristalise.kernel.lookup.Path;
 import org.cristalise.kernel.lookup.RolePath;
 import org.cristalise.kernel.process.Gateway;
-import org.cristalise.kernel.utils.Language;
 import org.cristalise.kernel.utils.Logger;
 
 
@@ -249,7 +248,7 @@ public abstract class Node implements Runnable {
 
 	public JPopupMenu getPopupMenu() {
 		JPopupMenu popup = new JPopupMenu();
-		JMenuItem menuItem = new JMenuItem(Language.translate("Refresh"));
+		JMenuItem menuItem = new JMenuItem("Refresh");
 		menuItem.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {

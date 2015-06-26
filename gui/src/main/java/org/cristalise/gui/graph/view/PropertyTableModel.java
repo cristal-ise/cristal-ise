@@ -29,7 +29,6 @@ import javax.swing.event.TableModelEvent;
 import javax.swing.table.AbstractTableModel;
 
 import org.cristalise.kernel.utils.CastorHashMap;
-import org.cristalise.kernel.utils.Language;
 
 
 /**************************************************************************
@@ -43,7 +42,7 @@ import org.cristalise.kernel.utils.Language;
 
 public class PropertyTableModel extends AbstractTableModel {
 
-    private final String[] mColumnNames = { Language.translate("Name"), Language.translate("Value"), Language.translate("Abstract") };
+    private final String[] mColumnNames = { "Name", "Value", "Abstract" };
     public CastorHashMap sourceMap = new CastorHashMap();
     public ArrayList<String> sortedNameList = new ArrayList<String>();
     boolean isEditable = false;

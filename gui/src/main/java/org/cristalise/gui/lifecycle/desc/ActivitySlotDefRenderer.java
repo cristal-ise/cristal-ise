@@ -29,7 +29,6 @@ import org.cristalise.gui.graph.view.VertexRenderer;
 import org.cristalise.kernel.graph.model.GraphPoint;
 import org.cristalise.kernel.graph.model.Vertex;
 import org.cristalise.kernel.lifecycle.ActivitySlotDef;
-import org.cristalise.kernel.utils.Language;
 
 
 public class ActivitySlotDefRenderer implements VertexRenderer
@@ -64,7 +63,7 @@ public class ActivitySlotDefRenderer implements VertexRenderer
         linesOfText[0]="("+activitySlotDef.getActivityDef()+")";
         linesOfText[1]=(String)activitySlotDef.getProperties().get("Name");
 
-        if (!hasError)linesOfText[2]=Language.translate(activitySlotDef.getErrors());
+        if (!hasError)linesOfText[2]=activitySlotDef.getErrors();
 
         g2d.setPaint( !hasError ? mErrorPaint : isComposite ? mCompositePaint : mInactivePaint );
         g2d.fill3DRect
