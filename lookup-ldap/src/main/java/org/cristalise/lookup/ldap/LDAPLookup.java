@@ -55,7 +55,7 @@ public class LDAPLookup implements LookupManager{
 	protected LDAPPropertyManager mPropManager;
 	protected LDAPProperties ldapProps;
 
-    private String mGlobalPath, mRootPath, mLocalPath, mRolePath, mItemTypeRoot, mDomainTypeRoot;
+    private String mGlobalPath, mRootPath, mLocalPath, mRoleTypeRoot, mItemTypeRoot, mDomainTypeRoot;
 
     /**
      * 
@@ -79,7 +79,7 @@ public class LDAPLookup implements LookupManager{
 
         mItemTypeRoot = "cn=entity,"+props.mLocalPath;
         mDomainTypeRoot = "cn=domain,"+props.mLocalPath;
-        mRolePath = "cn=agent,"+mDomainTypeRoot; 
+        mRoleTypeRoot = "cn=role,"+props.mLocalPath;
     }
     
     /**
@@ -289,8 +289,9 @@ public class LDAPLookup implements LookupManager{
     	StringBuffer filter = new StringBuffer();
     	int propCount = 0;
     	for (Property prop: props) {
-    		filter.append("(cristalprop="+LDAPLookupUtils.escapeSearchFilter((prop.isMutable()?"":"!")+prop.getName()+
-    				":"+prop.getValue())+")");
+    		filter.append("(|(cristalprop="+LDAPLookupUtils.escapeSearchFilter(prop.getName()+
+    				":"+prop.getValue())+")(cristalprop="+LDAPLookupUtils.escapeSearchFilter("!"+prop.getName()+
+    	    		":"+prop.getValue())+"))");
     		propCount++;
     	}
     	
@@ -421,7 +422,7 @@ public class LDAPLookup implements LookupManager{
         }
         else if (LDAPLookupUtils.existsAttributeValue(entry,"objectclass","cristalrole"))
         { //cristalrole
-            thisPath = new RolePath(getPathComponents(dn.substring(0, dn.lastIndexOf(mDomainTypeRoot))),
+            thisPath = new RolePath(getPathComponents(dn.substring(0, dn.lastIndexOf(mRoleTypeRoot))),
                     LDAPLookupUtils.getFirstAttributeValue(entry, "jobList").equals("TRUE"));
         }
         else if (LDAPLookupUtils.existsAttributeValue(entry,"objectclass","aliasObject") ||
@@ -608,7 +609,7 @@ public class LDAPLookup implements LookupManager{
         LDAPSearchConstraints searchCons = new LDAPSearchConstraints();
         searchCons.setBatchSize(0);
         searchCons.setDereference(LDAPSearchConstraints.DEREF_NEVER );
-        return search(mRolePath,LDAPConnection.SCOPE_SUB,filter,searchCons).hasNext();
+        return search(mRoleTypeRoot,LDAPConnection.SCOPE_SUB,filter,searchCons).hasNext();
     }
 
     @Override
@@ -651,7 +652,7 @@ public class LDAPLookup implements LookupManager{
         LDAPSearchConstraints searchCons = new LDAPSearchConstraints();
         searchCons.setBatchSize(0);
         searchCons.setDereference(LDAPSearchConstraints.DEREF_NEVER );
-    	Iterator<?> roles = search(mRolePath,LDAPConnection.SCOPE_SUB,filter,searchCons);
+    	Iterator<?> roles = search(mRoleTypeRoot,LDAPConnection.SCOPE_SUB,filter,searchCons);
         ArrayList<RolePath> roleList = new ArrayList<RolePath>();
 
     	while(roles.hasNext())
@@ -698,7 +699,7 @@ public class LDAPLookup implements LookupManager{
         searchCons.setBatchSize(0);
         searchCons.setDereference(LDAPSearchConstraints.DEREF_NEVER );
         String filter = "(&(objectclass=cristalrole)(cn="+roleName+"))";
-		Iterator<Path> res = search(mRolePath,LDAPConnection.SCOPE_SUB,filter,searchCons);
+		Iterator<Path> res = search(mRoleTypeRoot,LDAPConnection.SCOPE_SUB,filter,searchCons);
 		if (!res.hasNext())
             throw new ObjectNotFoundException("Role not found");
         Path result = res.next();

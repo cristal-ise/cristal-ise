@@ -1,2 +1,3 @@
 cn=entity,
 cn=domain,
+cn=role,
