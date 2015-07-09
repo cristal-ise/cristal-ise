@@ -8,7 +8,6 @@ import org.cristalise.kernel.common.PersistencyException;
 import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.process.StandardClient;
 import org.cristalise.kernel.process.resource.BadArgumentsException;
-import org.cristalise.kernel.utils.Logger;
 import org.glassfish.grizzly.http.server.HttpServer;
 import org.glassfish.jersey.grizzly2.httpserver.GrizzlyHttpServerFactory;
 import org.glassfish.jersey.server.ResourceConfig;
