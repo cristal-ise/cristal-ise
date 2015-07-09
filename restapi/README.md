@@ -1,6 +1,5 @@
-# restapi
-REST API for CRISTAL
+# REST API for CRISTAL
 
-This is the start of a JAX-RS wrapper for the CRISTAL Client API. So far there's no authentication, and only GET is supported for Item UUIDs to retrieve Item objects.
+This is the start of a JAX-RS wrapper for the CRISTAL Client API as specified on the [Google Doc](https://docs.google.com/document/d/1jAJyETl-iFbNXvrWa7FJLGi4mu1vEmAZNGlKlQ1I4X8/edit?usp=sharing)
 
-The included Main may be invoked as a CRISTAL Client with -conf and -connect parameters, and will launch a Jersey http server on port 8081.
+The included Main may be invoked as a CRISTAL Client with -conf and -connect parameters, and will launch a Jersey http server on the URI specified in the CRISTAL property 'REST.URI', which defaults to http://localhost:8081/.
