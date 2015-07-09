@@ -45,7 +45,7 @@ public class Main extends StandardClient {
     public static void main(String[] args) throws IOException, InvalidDataException, BadArgumentsException, PersistencyException {
     	Gateway.init(readC2KArgs(args));
     	Gateway.connect();
-    	String uri = Gateway.getProperties().getString("REST.URI");
+    	String uri = Gateway.getProperties().getString("REST.URI", "http://localhost:8081/");
     	if (uri == null || uri.length()==0)
     		throw new BadArgumentsException("Please specify REST.URI on which to listen in config.");
         final HttpServer server = startServer(uri);
