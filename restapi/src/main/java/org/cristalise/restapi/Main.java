@@ -18,22 +18,20 @@ import org.glassfish.jersey.server.ResourceConfig;
  *
  */
 public class Main extends StandardClient {
-    // Base URI the Grizzly HTTP server will listen on
-    public static final String BASE_URI = "http://localhost:8081/";
 
     /**
      * Starts Grizzly HTTP server exposing JAX-RS resources defined in this application.
      * @return Grizzly HTTP server.
      */
-    public static HttpServer startServer() {
+    public static HttpServer startServer(String uri) {
     	
         // create a resource config that scans for JAX-RS resources and providers
         // in org.cristalise.restapi package
         final ResourceConfig rc = new ResourceConfig().packages("org.cristalise.restapi");
 
         // create and start a new instance of grizzly http server
-        // exposing the Jersey application at BASE_URI
-        return GrizzlyHttpServerFactory.createHttpServer(URI.create(BASE_URI), rc);
+        // exposing the Jersey application at the given URI
+        return GrizzlyHttpServerFactory.createHttpServer(URI.create(uri), rc);
     }
 
     /**
@@ -47,9 +45,12 @@ public class Main extends StandardClient {
     public static void main(String[] args) throws IOException, InvalidDataException, BadArgumentsException, PersistencyException {
     	Gateway.init(readC2KArgs(args));
     	Gateway.connect();
-        final HttpServer server = startServer();
+    	String uri = Gateway.getProperties().getString("REST.URI");
+    	if (uri == null || uri.length()==0)
+    		throw new BadArgumentsException("Please specify REST.URI on which to listen in config.");
+        final HttpServer server = startServer(uri);
         System.out.println(String.format("Jersey app started with WADL available at "
-                + "%sapplication.wadl\nHit enter to stop it...", BASE_URI));
+                + "%sapplication.wadl\nHit enter to stop it...", uri));
         System.in.read();
         server.stop();
     }
