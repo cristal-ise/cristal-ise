@@ -241,11 +241,12 @@ public abstract class ItemUtils extends RestHandler {
 	}
 	
 	private void addProps(LinkedHashMap<String, Object> collData, CastorHashMap props, String classProps, boolean includeClassProps) {
-		List<String> propList = Arrays.asList(classProps.split(","));
+		List<String> propList = null;
+		if (classProps != null) propList = Arrays.asList(classProps.split(","));
 		LinkedHashMap<String, Object> classPropData = new LinkedHashMap<String, Object>(), 
 				propData = new LinkedHashMap<String, Object>();
 		for (KeyValuePair prop : props.getKeyValuePairs()) {
-			if (propList.contains(prop.getKey()))  // is classProp
+			if (propList != null && propList.contains(prop.getKey()))  // is classProp
 				classPropData.put(prop.getKey(), prop.getValue());
 			else
 				propData.put(prop.getKey(), prop.getValue());
