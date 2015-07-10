@@ -41,7 +41,7 @@ public class ItemHistory extends RemoteMapAccess {
 		for (String key : events.keySet()) {
 			Object obj = events.get(key);
 			if (obj instanceof Event) {
-				events.replace(key, makeEventData((Event)obj, uri));
+				events.put(key, makeEventData((Event)obj, uri));
 			}
 		}
 		return toJSON(events);

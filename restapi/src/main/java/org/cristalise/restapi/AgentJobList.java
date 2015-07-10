@@ -47,11 +47,11 @@ public class AgentJobList extends RemoteMapAccess {
 			if (obj instanceof Job) {
 				Job job = (Job)obj;
 				try {
-					jobs.replace(key, makeJobData(job, job.getItemProxy().getName(), uri));
+					jobs.put(key, makeJobData(job, job.getItemProxy().getName(), uri));
 				} catch (ObjectNotFoundException e) {
-					jobs.replace(key, "ERROR: Item "+job.getItemUUID()+" not found");
+					jobs.put(key, "ERROR: Item "+job.getItemUUID()+" not found");
 				} catch (InvalidItemPathException e) {
-					jobs.replace(key, "ERROR: Invalid Item UUID in Job:"+job.getItemUUID());
+					jobs.put(key, "ERROR: Invalid Item UUID in Job:"+job.getItemUUID());
 				}
 			}
 		}
