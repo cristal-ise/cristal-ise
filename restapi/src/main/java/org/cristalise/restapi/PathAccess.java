@@ -28,15 +28,22 @@ import org.cristalise.kernel.utils.Logger;
 public class PathAccess extends RestHandler {
 	
 	@GET
+	@Produces(MediaType.APPLICATION_JSON)
+	public Response queryPath(@QueryParam("start") Integer start, @QueryParam("batch") Integer batchSize, @QueryParam("search") String search,
+			@Context UriInfo uri) { // allow missing path to query root of domain tree
+		return queryPath("/", start, batchSize, search, uri);
+	}
+	
+	@GET
 	@Path("{path: .*}")
 	@Produces(MediaType.APPLICATION_JSON)
 	public Response queryPath(@PathParam("path") String path, 
 			@QueryParam("start") Integer start, @QueryParam("batch") Integer batchSize, @QueryParam("search") String search,
 			@Context UriInfo uri) {	
 		DomainPath domPath = new DomainPath(path);
-		Response r;
 		if (start == null) start = 0;
-		if (batchSize == null) batchSize = Gateway.getProperties().getInt("REST.Path.DefaultBatchSize", 75);
+		if (batchSize == null) batchSize = Gateway.getProperties().getInt("REST.Path.DefaultBatchSize", 
+				Gateway.getProperties().getInt("REST.DefaultBatchSize", 75));
 		
 		// Return 404 if the domain path doesn't exist
 		if (!domPath.exists()) 
@@ -45,8 +52,7 @@ public class PathAccess extends RestHandler {
 		// If the domain path represents an item, redirect to it
 		try {
 			ItemPath item = domPath.getItemPath();
-			r = Response.seeOther(uri.getBaseUriBuilder().path("item").path(item.getUUID().toString()).build()).build();
-			return r;
+			return Response.seeOther(uri.getBaseUriBuilder().path("item").path(item.getUUID().toString()).build()).build();
 		} catch (ObjectNotFoundException ex) { } // not an item
 		LinkedHashMap<String, URI> childPathData = new LinkedHashMap<String, URI>();
 		Iterator<org.cristalise.kernel.lookup.Path> childSearch;
@@ -114,7 +120,7 @@ public class PathAccess extends RestHandler {
 		}
 		// if there are more, give a link
 		if (childSearch.hasNext())
-				childPathData.put("nextBatch", uri.getAbsolutePathBuilder().replaceQueryParam("start", start+batchSize+1).replaceQueryParam("batch", batchSize).build());
+				childPathData.put("nextBatch", uri.getAbsolutePathBuilder().replaceQueryParam("start", start+batchSize).replaceQueryParam("batch", batchSize).build());
 		return toJSON(childPathData);
 	}
 }
