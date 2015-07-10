@@ -86,13 +86,13 @@ final public class LDAPLookupUtils
         return (String)attr.getStringValues().nextElement();
     }
 
-    static public String[] getAllAttributeValues(LDAPEntry anEntry, String attribute) throws ObjectNotFoundException
+    static public String[] getAllAttributeValues(LDAPEntry anEntry, String attribute)
     {
         LDAPAttribute attr = anEntry.getAttribute(attribute);
         if (attr!=null)
             return attr.getStringValueArray();
 
-        throw new ObjectNotFoundException("No attributes named '"+attribute+"'");
+        return new String[0];
 
     }
 
