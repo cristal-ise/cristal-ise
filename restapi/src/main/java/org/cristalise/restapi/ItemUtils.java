@@ -158,7 +158,9 @@ public abstract class ItemUtils extends RestHandler {
 		LinkedHashMap<String, Object> activityPropData = new LinkedHashMap<String, Object>();
 		for (KeyValuePair actProp : job.getKeyValuePairs()) {
 			String key = actProp.getKey();
-			activityPropData.put(key, job.getActPropString(key));
+			String value = job.getActPropString(key);
+			if (value!=null && value.length()>0)
+				activityPropData.put(key, job.getActPropString(key));
 		}
 		activityData.put("properties", activityPropData);
 		jobData.put("activity", activityData);
