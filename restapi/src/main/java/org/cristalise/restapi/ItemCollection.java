@@ -10,7 +10,6 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 
-import org.cristalise.kernel.collection.Collection;
 import org.cristalise.kernel.common.ObjectNotFoundException;
 import org.cristalise.kernel.entity.proxy.ItemProxy;
 import org.cristalise.kernel.persistency.ClusterStorage;
@@ -32,7 +31,7 @@ public class ItemCollection extends ItemUtils {
 			@Context UriInfo uri) {
 		ItemProxy item = getProxy(uuid);
 		try {
-			return toJSON(item.getCollection(collName));
+			return toJSON(makeCollectionData(item.getCollection(collName), uri));
 		} catch (ObjectNotFoundException e) {
 			throw new WebApplicationException(404);
 		}
@@ -52,7 +51,7 @@ public class ItemCollection extends ItemUtils {
 			@PathParam("version") String collVersion, @Context UriInfo uri) {
 		ItemProxy item = getProxy(uuid);
 		try {
-			return toJSON(item.getCollection(collName, collVersion.equals("last")?null:Integer.valueOf(collVersion)));
+			return toJSON(makeCollectionData(item.getCollection(collName, collVersion.equals("last")?null:Integer.valueOf(collVersion)), uri));
 		} catch (ObjectNotFoundException e) {
 			throw new WebApplicationException(404);
 		} catch (NumberFormatException e) {
