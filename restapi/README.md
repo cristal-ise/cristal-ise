@@ -1,4 +1,4 @@
-# REST API for CRISTAL
+# REST API for CRISTAL [![Build Status](https://travis-ci.org/cristal-ise/restapi.svg?branch=master)](https://travis-ci.org/cristal-ise/restapi)
 
 This is the start of a JAX-RS wrapper for the CRISTAL Client API as specified on the [Google Doc](https://docs.google.com/document/d/1jAJyETl-iFbNXvrWa7FJLGi4mu1vEmAZNGlKlQ1I4X8/edit?usp=sharing)
 
