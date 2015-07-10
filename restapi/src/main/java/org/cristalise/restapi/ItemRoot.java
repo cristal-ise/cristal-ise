@@ -24,33 +24,38 @@ import org.cristalise.kernel.persistency.ClusterStorage;
 import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.utils.Logger;
 
-@Path("item")
+@Path("/item/{uuid}")
 public class ItemRoot extends ItemUtils {
 
 	@GET
+	@Path("name")
+	@Produces(MediaType.TEXT_PLAIN)
+	public String getName(@PathParam("uuid") String uuid) {
+		return getProxy(uuid).getName();
+	}
+
+	@GET
 	@Produces(MediaType.APPLICATION_JSON)
-	@Path("{uuid}")
 	public Response getItemSummary(@PathParam("uuid") String uuid,
 			@Context UriInfo uri) {
 		ItemProxy item = getProxy(uuid);
 		
 		LinkedHashMap<String, Object> itemSummary = new LinkedHashMap<String, Object>();
-		itemSummary.put("Name", item.getName());
+		itemSummary.put("name", item.getName());
 		try {
-			itemSummary.put("Properties", getPropertySummary(item));
+			itemSummary.put("properties", getPropertySummary(item));
 		} catch (ObjectNotFoundException e) {
 			Logger.error(e);
 			throw new WebApplicationException("No Properties found", 400);
 		}
 		
-		itemSummary.put("Data", enumerate(item, ClusterStorage.VIEWPOINT, "data", uri));
+		itemSummary.put("data", enumerate(item, ClusterStorage.VIEWPOINT, "data", uri));
 		
 		return toJSON(itemSummary);
 	}
 	
 	@OPTIONS
 	@Produces(MediaType.APPLICATION_JSON)
-	@Path("{uuid}")
 	public Response getJobs(@PathParam("uuid") String uuid, 
 			@QueryParam("agent") String agentName, @Context UriInfo uri) {
 		ItemProxy item = getProxy(uuid);
