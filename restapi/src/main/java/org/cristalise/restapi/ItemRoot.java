@@ -51,6 +51,7 @@ public class ItemRoot extends ItemUtils {
 		
 		itemSummary.put("data", enumerate(item, ClusterStorage.VIEWPOINT, "data", uri));
 		
+		itemSummary.put("collections", enumerate(item, ClusterStorage.COLLECTION, "collection", uri));
 		return toJSON(itemSummary);
 	}
 	
