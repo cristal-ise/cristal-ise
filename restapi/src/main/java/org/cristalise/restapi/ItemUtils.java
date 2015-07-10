@@ -4,13 +4,21 @@ import java.net.URI;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.LinkedHashMap;
+import java.util.List;
 
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 
+import org.cristalise.kernel.collection.Aggregation;
+import org.cristalise.kernel.collection.AggregationMember;
+import org.cristalise.kernel.collection.Collection;
+import org.cristalise.kernel.collection.CollectionDescription;
+import org.cristalise.kernel.collection.CollectionMember;
+import org.cristalise.kernel.collection.Dependency;
 import org.cristalise.kernel.common.InvalidDataException;
 import org.cristalise.kernel.common.ObjectNotFoundException;
 import org.cristalise.kernel.common.PersistencyException;
@@ -23,6 +31,7 @@ import org.cristalise.kernel.lookup.ItemPath;
 import org.cristalise.kernel.persistency.ClusterStorage;
 import org.cristalise.kernel.persistency.outcome.Outcome;
 import org.cristalise.kernel.process.Gateway;
+import org.cristalise.kernel.utils.CastorHashMap;
 import org.cristalise.kernel.utils.KeyValuePair;
 import org.cristalise.kernel.utils.LocalObjectLoader;
 import org.cristalise.kernel.utils.Logger;
@@ -96,7 +105,7 @@ public abstract class ItemUtils extends RestHandler {
 		return Response.ok(oc.getData()).lastModified(eventDate).build();
 	}
 
-	protected LinkedHashMap<String, Object> jsonEvent(Event ev, UriInfo uri) {
+	protected LinkedHashMap<String, Object> makeEventData(Event ev, UriInfo uri) {
 		LinkedHashMap<String, Object> eventData = new LinkedHashMap<String, Object>();
 		eventData.put("id", ev.getID());
 		eventData.put("timestamp", ev.getTimeString());
@@ -138,7 +147,7 @@ public abstract class ItemUtils extends RestHandler {
 		return eventData;
 	}
 	
-	protected LinkedHashMap<String, Object> jsonJob(ItemProxy item, Job job, UriInfo uri) {
+	protected LinkedHashMap<String, Object> makeJobData(Job job, String itemName, UriInfo uri) {
 		LinkedHashMap<String, Object> jobData = new LinkedHashMap<String, Object>();
 		String agentName = job.getAgentName();
 		if (agentName != null && agentName.length() > 0)
@@ -147,8 +156,8 @@ public abstract class ItemUtils extends RestHandler {
 		
 		//item data
 		LinkedHashMap<String, Object> itemData = new LinkedHashMap<String, Object>();
-		itemData.put("name", item.getName());
-		itemData.put("location", uri.getBaseUriBuilder().path("item").path(item.getPath().getUUID().toString()).build());
+		itemData.put("name", itemName);
+		itemData.put("location", uri.getBaseUriBuilder().path("item").path(job.getItemUUID()).build());
 		jobData.put("item", itemData);
 		
 		// activity data
@@ -188,5 +197,60 @@ public abstract class ItemUtils extends RestHandler {
 		}
 		
 		return jobData;
+	}
+	
+	protected LinkedHashMap<String, Object> makeCollectionData(Collection<?> coll, UriInfo uri) {
+		LinkedHashMap<String, Object> collData = new LinkedHashMap<String, Object>();
+		collData.put("name", coll.getName());
+		collData.put("version", coll.getVersionName());
+		String collType = "Collection";
+		if (coll instanceof Aggregation) {
+			collType = "Aggregation";
+		}
+		else if (coll instanceof Dependency) {
+			collType = "Dependency";
+		}
+		collData.put("type", collType);
+		collData.put("isDescription", coll instanceof CollectionDescription);
+		if (coll instanceof Dependency) {
+			Dependency dep = (Dependency)coll;
+			addProps(collData, dep.getProperties(), dep.getClassProps(), true); // include class props for dependencies here, not in member
+		}
+		
+		LinkedHashMap<String, Object> memberData = new LinkedHashMap<String, Object>();
+		for (CollectionMember member : coll.getMembers().list) {
+			LinkedHashMap<String, Object> thisMemberData = new LinkedHashMap<String, Object>();
+			if (member.getItemPath() != null)
+				thisMemberData.put("item", uri.getBaseUriBuilder().path("item").path(member.getItemPath().getUUID().toString()).build());
+			else
+				thisMemberData.put("item", "");
+			addProps(thisMemberData, member.getProperties(), member.getClassProps(), coll instanceof Aggregation); // omit class props for dependencies
+			if (member instanceof AggregationMember) {
+				AggregationMember aggMem = (AggregationMember)member;
+				LinkedHashMap<String, Integer> geo = new LinkedHashMap<String, Integer>();
+				geo.put("x", aggMem.getCentrePoint().x);
+				geo.put("y", aggMem.getCentrePoint().y);
+				geo.put("w", aggMem.getWidth());
+				geo.put("h", aggMem.getHeight());
+				thisMemberData.put("geometry", geo);
+			}
+			memberData.put(String.valueOf(member.getID()), thisMemberData);
+		}
+		collData.put("members", memberData);
+		return collData;
+	}
+	
+	private void addProps(LinkedHashMap<String, Object> collData, CastorHashMap props, String classProps, boolean includeClassProps) {
+		List<String> propList = Arrays.asList(classProps.split(","));
+		LinkedHashMap<String, Object> classPropData = new LinkedHashMap<String, Object>(), 
+				propData = new LinkedHashMap<String, Object>();
+		for (KeyValuePair prop : props.getKeyValuePairs()) {
+			if (propList.contains(prop.getKey()))  // is classProp
+				classPropData.put(prop.getKey(), prop.getValue());
+			else
+				propData.put(prop.getKey(), prop.getValue());
+		}
+		if (classPropData.size() > 0 && includeClassProps) collData.put("classIdentifiers", classPropData);
+		if (propData.size() > 0) collData.put("properties", propData);
 	}
 }

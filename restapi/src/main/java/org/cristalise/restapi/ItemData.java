@@ -99,7 +99,7 @@ public class ItemData extends ItemUtils {
 			throw new WebApplicationException("Database error loading event data for view "+viewName+" of schema "+schema);
 		}
 		
-		return toJSON(jsonEvent(ev, uri));
+		return toJSON(makeEventData(ev, uri));
 	}
 	
 	@GET
@@ -175,6 +175,6 @@ public class ItemData extends ItemUtils {
 		if (!schema.equals(ev.getSchemaName()) || !viewName.equals(ev.getViewName())) {
 			throw new WebApplicationException("Event does not belong to this data", 400);
 		}
-		return toJSON(jsonEvent(ev, uri));
+		return toJSON(makeEventData(ev, uri));
 	}
 }

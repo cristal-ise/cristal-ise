@@ -83,8 +83,9 @@ public class ItemRoot extends ItemUtils {
 		}
 		
 		ArrayList<Object> jobListData = new ArrayList<Object>();
+		String itemName = item.getName();
 		for (Job job : jobList) {
-			jobListData.add(jsonJob(item, job, uri));
+			jobListData.add(makeJobData(job, itemName, uri));
 		}
 		
 		return toJSON(jobListData);

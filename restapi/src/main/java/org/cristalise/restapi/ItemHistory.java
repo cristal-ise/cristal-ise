@@ -28,27 +28,23 @@ public class ItemHistory extends RemoteMapAccess {
 	@Produces(MediaType.APPLICATION_JSON)
 	public Response list(@PathParam("uuid") String uuid, @QueryParam("start") Integer start, 
 			@QueryParam("batch") Integer batchSize,	@Context UriInfo uri) {
-		try {
-			ItemProxy item = getProxy(uuid);
-			if (start == null) start = 0;
-			if (batchSize == null) batchSize = Gateway.getProperties().getInt("REST.Event.DefaultBatchSize", 
-					Gateway.getProperties().getInt("REST.DefaultBatchSize", 50));
-			
-			// fetch this batch of events from the RemoteMap
-			LinkedHashMap<String, Object> events = super.list(item, ClusterStorage.HISTORY, start, batchSize, uri);
-			
-			// replace Events with their JSON form. Leave any other object (like the nextBatch URI) as they are
-			for (String key : events.keySet()) {
-				Object obj = events.get(key);
-				if (obj instanceof Event) {
-					events.replace(key, jsonEvent((Event)obj, uri));
-				}
+
+		ItemProxy item = getProxy(uuid);
+		if (start == null) start = 0;
+		if (batchSize == null) batchSize = Gateway.getProperties().getInt("REST.Event.DefaultBatchSize", 
+				Gateway.getProperties().getInt("REST.DefaultBatchSize", 50));
+		
+		// fetch this batch of events from the RemoteMap
+		LinkedHashMap<String, Object> events = super.list(item, ClusterStorage.HISTORY, start, batchSize, uri);
+		
+		// replace Events with their JSON form. Leave any other object (like the nextBatch URI) as they are
+		for (String key : events.keySet()) {
+			Object obj = events.get(key);
+			if (obj instanceof Event) {
+				events.replace(key, makeEventData((Event)obj, uri));
 			}
-			return toJSON(events);
-		} catch (Throwable e) {
-			Logger.error(e);
-			throw new WebApplicationException();
 		}
+		return toJSON(events);
 	}
 	
 	@GET
@@ -57,7 +53,7 @@ public class ItemHistory extends RemoteMapAccess {
 	public Response getEvent(@PathParam("uuid") String uuid, @PathParam("eventId") String eventId, @Context UriInfo uri) {
 		ItemProxy item = getProxy(uuid);
 		Event ev = (Event)get(item, ClusterStorage.HISTORY, eventId);
-		return toJSON(jsonEvent(ev, uri));
+		return toJSON(makeEventData(ev, uri));
 	}
 	
 	@GET

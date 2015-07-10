@@ -35,7 +35,8 @@ public class RemoteMapAccess extends ItemUtils {
 			i++;
 		}
 		if (i < last) {
-			batch.put("nextBatch", uri.getAbsolutePathBuilder().replaceQueryParam("start", start+batchSize).replaceQueryParam("batch", batchSize).build());
+			while (map.get(i) == null) i++;
+			batch.put("nextBatch", uri.getAbsolutePathBuilder().replaceQueryParam("start", i).replaceQueryParam("batch", batchSize).build());
 		}
 		
 		return batch;
