@@ -192,7 +192,7 @@ public class ItemData extends ItemUtils {
 			throw new WebApplicationException("Event "+eventId+" was not found", 404);
 		}
 		if (!schema.equals(ev.getSchemaName()) || !viewName.equals(ev.getViewName())) {
-			throw new WebApplicationException("Event does not belong to this data");
+			throw new WebApplicationException("Event does not belong to this data", 400);
 		}
 		Outcome oc;
 		try {
@@ -201,5 +201,26 @@ public class ItemData extends ItemUtils {
 			throw new WebApplicationException("Outcome "+eventId+" was not found", 404);
 		}
 		return getOutcomeResponse(oc, ev);
+	}
+	
+	@GET
+	@Produces(MediaType.APPLICATION_JSON)
+	@Path("{uuid}/data/{schema}/{viewName}/history/{event}/event")
+	public Response getOutcomeEvent(@PathParam("uuid") String uuid,
+			@PathParam("schema") String schema,
+			@PathParam("viewName") String viewName,
+			@PathParam("event") Integer eventId,
+			@Context UriInfo uri) {
+		ItemProxy item = ItemSummary.getProxy(uuid);
+		Event ev;
+		try {
+			ev = (Event)item.getObject(ClusterStorage.HISTORY+"/"+eventId);
+		} catch (ObjectNotFoundException e) {
+			throw new WebApplicationException("Event "+eventId+" was not found", 404);
+		}
+		if (!schema.equals(ev.getSchemaName()) || !viewName.equals(ev.getViewName())) {
+			throw new WebApplicationException("Event does not belong to this data", 400);
+		}
+		return toJSON(jsonEvent(ev));
 	}
 }
