@@ -1,6 +1,5 @@
 package org.cristalise.restapi;
 
-import java.io.IOException;
 import java.net.URI;
 import java.text.DateFormat;
 import java.text.ParseException;
@@ -12,25 +11,28 @@ import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 
-import org.codehaus.jackson.map.ObjectMapper;
+import org.cristalise.kernel.common.InvalidDataException;
 import org.cristalise.kernel.common.ObjectNotFoundException;
 import org.cristalise.kernel.common.PersistencyException;
+import org.cristalise.kernel.entity.agent.Job;
 import org.cristalise.kernel.entity.proxy.ItemProxy;
 import org.cristalise.kernel.events.Event;
+import org.cristalise.kernel.lifecycle.instance.stateMachine.StateMachine;
 import org.cristalise.kernel.lookup.InvalidItemPathException;
 import org.cristalise.kernel.lookup.ItemPath;
 import org.cristalise.kernel.persistency.ClusterStorage;
 import org.cristalise.kernel.persistency.outcome.Outcome;
 import org.cristalise.kernel.process.Gateway;
+import org.cristalise.kernel.utils.KeyValuePair;
+import org.cristalise.kernel.utils.LocalObjectLoader;
 import org.cristalise.kernel.utils.Logger;
 
-public abstract class ItemUtils {
+public abstract class ItemUtils extends RestHandler {
 	
-	ObjectMapper mapper;
 	DateFormat dateFormatter;
 	
 	public ItemUtils() {
-		mapper = new ObjectMapper();
+		super();
 		dateFormatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 	}
 	
@@ -47,10 +49,13 @@ public abstract class ItemUtils {
 		ItemProxy item;
 		ItemPath itemPath;
 		try {
-			itemPath = new ItemPath(uuid);
+			itemPath = Gateway.getLookup().getItemPath(uuid);
 		} catch (InvalidItemPathException e) {
 			Logger.error(e);
 			throw new WebApplicationException(400); // Bad Request - the UUID wasn't valid
+		} catch (ObjectNotFoundException e) {
+			Logger.error(e);
+			throw new WebApplicationException(404); // UUID isn't used in this server
 		}
 		
 		try {
@@ -90,15 +95,95 @@ public abstract class ItemUtils {
 		}
 		return Response.ok(oc.getData()).lastModified(eventDate).build();
 	}
-	
-	public Response toJSON(LinkedHashMap<String, ?> map) {
-		String childPathDataJSON;
-		try {
-			childPathDataJSON = mapper.writeValueAsString(map);
-		} catch (IOException e) {
-			Logger.error(e);
-			throw new WebApplicationException("Problem building response JSON: "+e.getMessage());
+
+	protected LinkedHashMap<String, Object> jsonEvent(Event ev, UriInfo uri) {
+		LinkedHashMap<String, Object> eventData = new LinkedHashMap<String, Object>();
+		eventData.put("id", ev.getID());
+		eventData.put("timestamp", ev.getTimeString());
+		eventData.put("agent", ev.getAgentPath().getAgentName());
+		eventData.put("role", ev.getAgentRole());
+		
+		if (ev.getSchemaName() != null && ev.getSchemaName().length()>0) { // add outcome info
+			LinkedHashMap<String, Object> outcomeData = new LinkedHashMap<String, Object>();
+			outcomeData.put("name", ev.getViewName());
+			outcomeData.put("schema", ev.getSchemaName()+" v"+ev.getSchemaVersion());
+			outcomeData.put("schemaData", uri.getBaseUriBuilder().path("schema").path(ev.getSchemaName()).path(String.valueOf(ev.getSchemaVersion())).build());
+			eventData.put("data", outcomeData);
 		}
-		return Response.ok(childPathDataJSON).build();
+		
+		// activity data
+		LinkedHashMap<String, Object> activityData = new LinkedHashMap<String, Object>();
+		activityData.put("name", ev.getStepName());
+		activityData.put("path", ev.getStepPath());
+		activityData.put("type", ev.getStepType());
+		eventData.put("activity", activityData);
+		
+		// state data
+		LinkedHashMap<String, Object> stateData = new LinkedHashMap<String, Object>();
+		try {
+			StateMachine sm = LocalObjectLoader.getStateMachine(ev.getStateMachineName(), ev.getStateMachineVersion());
+			stateData.put("name", sm.getState(ev.getTransition()).getName());
+			stateData.put("origin", sm.getState(ev.getOriginState()).getName());
+			stateData.put("target", sm.getState(ev.getTargetState()).getName());
+			stateData.put("stateMachine", ev.getStateMachineName()+" v"+ev.getStateMachineVersion());
+			stateData.put("stateMachineData", uri.getBaseUriBuilder().path("stateMachine").path(ev.getStateMachineName()).path(String.valueOf(ev.getStateMachineVersion())).build());
+			eventData.put("transition", stateData);
+		} catch (ObjectNotFoundException e) {
+			eventData.put("transition", "ERROR: State Machine "+ev.getStateMachineName()+" v"+ev.getStateMachineVersion()+" not found!");
+		} catch (InvalidDataException e) {
+			eventData.put("transition", "ERROR: State Machine definition "+ev.getStateMachineName()+" v"+ev.getStateMachineVersion()+" not valid!");
+		}
+		
+		return eventData;
+	}
+	
+	protected LinkedHashMap<String, Object> jsonJob(ItemProxy item, Job job, UriInfo uri) {
+		LinkedHashMap<String, Object> jobData = new LinkedHashMap<String, Object>();
+		String agentName = job.getAgentName();
+		if (agentName != null && agentName.length() > 0)
+			jobData.put("agent", agentName);
+		jobData.put("role", job.getAgentRole());
+		
+		//item data
+		LinkedHashMap<String, Object> itemData = new LinkedHashMap<String, Object>();
+		itemData.put("name", item.getName());
+		itemData.put("location", uri.getBaseUriBuilder().path("item").path(item.getPath().getUUID().toString()).build());
+		jobData.put("item", itemData);
+		
+		// activity data
+		LinkedHashMap<String, Object> activityData = new LinkedHashMap<String, Object>();
+		activityData.put("name", job.getStepName());
+		activityData.put("path", job.getStepPath());
+		activityData.put("type", job.getStepType());
+		LinkedHashMap<String, Object> activityPropData = new LinkedHashMap<String, Object>();
+		for (KeyValuePair actProp : job.getKeyValuePairs()) {
+			String key = actProp.getKey();
+			activityPropData.put(key, job.getActPropString(key));
+		}
+		activityData.put("properties", activityPropData);
+		jobData.put("activity", activityData);
+		
+		LinkedHashMap<String, Object> stateData = new LinkedHashMap<String, Object>();
+		stateData.put("name", job.getTransition().getName());
+		stateData.put("origin", job.getOriginStateName());
+		stateData.put("target", job.getTargetStateName());
+		stateData.put("stateMachine", job.getActPropString("StateMachineName")+" v"+job.getActPropString("StateMachineVersion"));
+		stateData.put("stateMachineData", uri.getBaseUriBuilder().path("stateMachine").path(job.getActPropString("StateMachineName")).path(job.getActPropString("StateMachineVersion")).build());
+		jobData.put("transition", stateData);
+		
+		if (job.hasOutcome()) { // add outcome info
+			LinkedHashMap<String, Object> outcomeData = new LinkedHashMap<String, Object>();
+			try {
+				outcomeData.put("required", job.isOutcomeRequired());
+				outcomeData.put("schema", job.getSchemaName()+" v"+job.getSchemaVersion());
+				outcomeData.put("schemaData", uri.getBaseUriBuilder().path("schema").path(job.getSchemaName()).path(String.valueOf(job.getSchemaVersion())).build());
+				jobData.put("data", outcomeData);
+			} catch (InvalidDataException | ObjectNotFoundException e) {
+				Logger.error(e);
+				jobData.put("data", "Schema not found");
+			}
+		}
+		
+		return jobData;
 	}
 }

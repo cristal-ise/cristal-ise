@@ -24,15 +24,11 @@ import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.property.Property;
 import org.cristalise.kernel.utils.Logger;
 
-@Path("/domain/{path: .*}")
-public class PathAccess {
-	ObjectMapper mapper;
-	
-	public PathAccess() {
-		mapper = new ObjectMapper();
-	}
+@Path("/domain")
+public class PathAccess extends RestHandler {
 	
 	@GET
+	@Path("{path: .*}")
 	@Produces(MediaType.APPLICATION_JSON)
 	public Response queryPath(@PathParam("path") String path, 
 			@QueryParam("start") Integer start, @QueryParam("batch") Integer batchSize, @QueryParam("search") String search,
@@ -119,14 +115,6 @@ public class PathAccess {
 		// if there are more, give a link
 		if (childSearch.hasNext())
 				childPathData.put("nextBatch", uri.getAbsolutePathBuilder().replaceQueryParam("start", start+batchSize+1).replaceQueryParam("batch", batchSize).build());
-		String childPathDataJSON;
-		try {
-			childPathDataJSON = mapper.writeValueAsString(childPathData);
-		} catch (IOException e) {
-			Logger.error(e);
-			throw new WebApplicationException("Problem building response JSON: "+e.getMessage());
-		}
-		r = Response.ok(childPathDataJSON).build();
-		return r;
+		return toJSON(childPathData);
 	}
 }
