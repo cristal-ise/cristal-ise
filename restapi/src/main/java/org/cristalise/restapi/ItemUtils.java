@@ -45,7 +45,7 @@ public abstract class ItemUtils extends RestHandler {
 		return props;
 	}	
 	
-	protected static ItemProxy getProxy(String uuid) throws WebApplicationException {
+	protected static ItemProxy getProxy(String uuid) {
 		ItemProxy item;
 		ItemPath itemPath;
 		try {
@@ -108,7 +108,8 @@ public abstract class ItemUtils extends RestHandler {
 			outcomeData.put("name", ev.getViewName());
 			outcomeData.put("schema", ev.getSchemaName()+" v"+ev.getSchemaVersion());
 			outcomeData.put("schemaData", uri.getBaseUriBuilder().path("schema").path(ev.getSchemaName()).path(String.valueOf(ev.getSchemaVersion())).build());
-			eventData.put("data", outcomeData);
+			outcomeData.put("data", uri.getBaseUriBuilder().path("item").path(ev.getItemUUID()).path("history").path(String.valueOf(ev.getID())).path("data").build());
+			eventData.put("outcome", outcomeData);
 		}
 		
 		// activity data
