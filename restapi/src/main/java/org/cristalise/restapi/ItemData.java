@@ -22,12 +22,11 @@ import org.cristalise.kernel.persistency.outcome.Outcome;
 import org.cristalise.kernel.persistency.outcome.Viewpoint;
 import org.cristalise.kernel.utils.Logger;
 
-@Path("item")
+@Path("/item/{uuid}/data")
 public class ItemData extends ItemUtils {
 
 	@GET
     @Produces(MediaType.APPLICATION_JSON)
-	@Path("{uuid}/data")
 	public Response getSchemas(@PathParam("uuid") String uuid,
 			@Context UriInfo uri) {
 		ItemProxy item = ItemRoot.getProxy(uuid);
@@ -36,7 +35,7 @@ public class ItemData extends ItemUtils {
 	
 	@GET
 	@Produces(MediaType.APPLICATION_JSON)
-	@Path("{uuid}/data/{schema}")
+	@Path("{schema}")
 	public Response getViewNames(@PathParam("uuid") String uuid,
 			@PathParam("schema") String schema,
 			@Context UriInfo uri) {
@@ -46,7 +45,7 @@ public class ItemData extends ItemUtils {
 	
 	@GET
 	@Produces(MediaType.TEXT_XML)
-	@Path("{uuid}/data/{schema}/{viewName}")
+	@Path("{schema}/{viewName}")
 	public Response queryData(@PathParam("uuid") String uuid,
 			@PathParam("schema") String schema,
 			@PathParam("viewName") String viewName,
@@ -79,7 +78,7 @@ public class ItemData extends ItemUtils {
 	
 	@GET
 	@Produces(MediaType.APPLICATION_JSON)
-	@Path("{uuid}/data/{schema}/{viewName}/event")
+	@Path("{schema}/{viewName}/event")
 	public Response getViewEvent(@PathParam("uuid") String uuid,
 			@PathParam("schema") String schema,
 			@PathParam("viewName") String viewName,
@@ -105,7 +104,7 @@ public class ItemData extends ItemUtils {
 	
 	@GET
 	@Produces(MediaType.APPLICATION_JSON)
-	@Path("{uuid}/data/{schema}/{viewName}/history")
+	@Path("{schema}/{viewName}/history")
 	public Response getAllEventsForView(@PathParam("uuid") String uuid,
 			@PathParam("schema") String schema,
 			@PathParam("viewName") String viewName,
@@ -133,7 +132,7 @@ public class ItemData extends ItemUtils {
 	
 	@GET
 	@Produces(MediaType.TEXT_XML)
-	@Path("{uuid}/data/{schema}/{viewName}/history/{event}")
+	@Path("{schema}/{viewName}/history/{event}")
 	public Response getOutcomeForEvent(@PathParam("uuid") String uuid,
 			@PathParam("schema") String schema,
 			@PathParam("viewName") String viewName,
@@ -160,7 +159,7 @@ public class ItemData extends ItemUtils {
 	
 	@GET
 	@Produces(MediaType.APPLICATION_JSON)
-	@Path("{uuid}/data/{schema}/{viewName}/history/{event}/event")
+	@Path("{schema}/{viewName}/history/{event}/event")
 	public Response getOutcomeEvent(@PathParam("uuid") String uuid,
 			@PathParam("schema") String schema,
 			@PathParam("viewName") String viewName,
