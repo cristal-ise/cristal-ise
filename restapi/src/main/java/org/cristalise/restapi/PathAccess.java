@@ -1,10 +1,10 @@
 package org.cristalise.restapi;
 
-import java.io.IOException;
 import java.net.URI;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 
+import javax.ws.rs.DefaultValue;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
@@ -16,7 +16,6 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 
-import org.codehaus.jackson.map.ObjectMapper;
 import org.cristalise.kernel.common.ObjectNotFoundException;
 import org.cristalise.kernel.lookup.DomainPath;
 import org.cristalise.kernel.lookup.ItemPath;
@@ -38,10 +37,9 @@ public class PathAccess extends RestHandler {
 	@Path("{path: .*}")
 	@Produces(MediaType.APPLICATION_JSON)
 	public Response queryPath(@PathParam("path") String path, 
-			@QueryParam("start") Integer start, @QueryParam("batch") Integer batchSize, @QueryParam("search") String search,
-			@Context UriInfo uri) {	
+			@DefaultValue("0") @QueryParam("start") Integer start, @QueryParam("batch") Integer batchSize, 
+			@QueryParam("search") String search, @Context UriInfo uri) {	
 		DomainPath domPath = new DomainPath(path);
-		if (start == null) start = 0;
 		if (batchSize == null) batchSize = Gateway.getProperties().getInt("REST.Path.DefaultBatchSize", 
 				Gateway.getProperties().getInt("REST.DefaultBatchSize", 75));
 		

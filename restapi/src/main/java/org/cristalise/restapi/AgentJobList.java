@@ -3,6 +3,7 @@ package org.cristalise.restapi;
 import java.net.URI;
 import java.util.LinkedHashMap;
 
+import javax.ws.rs.DefaultValue;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
@@ -29,12 +30,12 @@ public class AgentJobList extends RemoteMapAccess {
 	@GET
 	@Path("job")
 	@Produces(MediaType.APPLICATION_JSON)
-	public Response list(@PathParam("uuid") String uuid, @QueryParam("start") Integer start, 
-		@QueryParam("batch") Integer batchSize,	@Context UriInfo uri) {
+	public Response list(@PathParam("uuid") String uuid, 
+			@DefaultValue("0") @QueryParam("start") Integer start, 
+			@QueryParam("batch") Integer batchSize,	@Context UriInfo uri) {
 		ItemProxy item = getProxy(uuid);
 		if (!(item instanceof AgentProxy))
 			throw new WebApplicationException("UUID does not belong to an Agent", 400);
-		if (start == null) start = 0;
 		if (batchSize == null) batchSize = Gateway.getProperties().getInt("REST.Job.DefaultBatchSize", 
 				Gateway.getProperties().getInt("REST.DefaultBatchSize", 50));
 		
