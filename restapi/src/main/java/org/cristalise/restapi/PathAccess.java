@@ -30,7 +30,7 @@ public class PathAccess extends RestHandler {
 	
 	@GET
 	@Produces(MediaType.APPLICATION_JSON)
-	public Response queryPath(@QueryParam("start") Integer start, @QueryParam("batch") Integer batchSize, @QueryParam("search") String search,
+	public Response queryPath(@DefaultValue("0") @QueryParam("start") Integer start, @QueryParam("batch") Integer batchSize, @QueryParam("search") String search,
 			@CookieParam(COOKIENAME) Cookie authCookie,
 			@Context UriInfo uri) {
 		return queryPath("/", start, batchSize, search, authCookie, uri);
@@ -43,6 +43,7 @@ public class PathAccess extends RestHandler {
 			@DefaultValue("0") @QueryParam("start") Integer start, @QueryParam("batch") Integer batchSize, 
 			@QueryParam("search") String search, @CookieParam(COOKIENAME) Cookie authCookie,
 			@Context UriInfo uri) {
+		try {
 		checkAuth(authCookie);	
 		DomainPath domPath = new DomainPath(path);
 		if (batchSize == null) batchSize = Gateway.getProperties().getInt("REST.Path.DefaultBatchSize", 
@@ -125,5 +126,9 @@ public class PathAccess extends RestHandler {
 		if (childSearch.hasNext())
 				childPathData.put("nextBatch", uri.getAbsolutePathBuilder().replaceQueryParam("start", start+batchSize).replaceQueryParam("batch", batchSize).build());
 		return toJSON(childPathData);
+	} catch (Exception e) {
+		Logger.error(e);
+		throw new WebApplicationException();
+	}
 	}
 }
