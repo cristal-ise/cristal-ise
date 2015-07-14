@@ -4,6 +4,7 @@ import java.net.URI;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 
+import javax.ws.rs.CookieParam;
 import javax.ws.rs.DefaultValue;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
@@ -12,6 +13,7 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Context;
+import javax.ws.rs.core.Cookie;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
@@ -29,8 +31,9 @@ public class PathAccess extends RestHandler {
 	@GET
 	@Produces(MediaType.APPLICATION_JSON)
 	public Response queryPath(@QueryParam("start") Integer start, @QueryParam("batch") Integer batchSize, @QueryParam("search") String search,
-			@Context UriInfo uri) { // allow missing path to query root of domain tree
-		return queryPath("/", start, batchSize, search, uri);
+			@CookieParam(COOKIENAME) Cookie authCookie,
+			@Context UriInfo uri) {
+		return queryPath("/", start, batchSize, search, authCookie, uri);
 	}
 	
 	@GET
@@ -38,7 +41,9 @@ public class PathAccess extends RestHandler {
 	@Produces(MediaType.APPLICATION_JSON)
 	public Response queryPath(@PathParam("path") String path, 
 			@DefaultValue("0") @QueryParam("start") Integer start, @QueryParam("batch") Integer batchSize, 
-			@QueryParam("search") String search, @Context UriInfo uri) {	
+			@QueryParam("search") String search, @CookieParam(COOKIENAME) Cookie authCookie,
+			@Context UriInfo uri) {
+		checkAuth(authCookie);	
 		DomainPath domPath = new DomainPath(path);
 		if (batchSize == null) batchSize = Gateway.getProperties().getInt("REST.Path.DefaultBatchSize", 
 				Gateway.getProperties().getInt("REST.DefaultBatchSize", 75));

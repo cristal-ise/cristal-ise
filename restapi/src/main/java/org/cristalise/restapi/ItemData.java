@@ -1,12 +1,14 @@
 package org.cristalise.restapi;
 import java.util.LinkedHashMap;
 
+import javax.ws.rs.CookieParam;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Context;
+import javax.ws.rs.core.Cookie;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
@@ -28,7 +30,9 @@ public class ItemData extends ItemUtils {
 	@GET
     @Produces(MediaType.APPLICATION_JSON)
 	public Response getSchemas(@PathParam("uuid") String uuid,
+			@CookieParam(COOKIENAME) Cookie authCookie,
 			@Context UriInfo uri) {
+		checkAuth(authCookie);
 		ItemProxy item = ItemRoot.getProxy(uuid);
 		return toJSON(enumerate(item, ClusterStorage.VIEWPOINT, "data", uri));
 	}
@@ -38,7 +42,9 @@ public class ItemData extends ItemUtils {
 	@Path("{schema}")
 	public Response getViewNames(@PathParam("uuid") String uuid,
 			@PathParam("schema") String schema,
+			@CookieParam(COOKIENAME) Cookie authCookie,
 			@Context UriInfo uri) {
+		checkAuth(authCookie);
 		ItemProxy item = ItemRoot.getProxy(uuid);
 		return toJSON(enumerate(item, ClusterStorage.VIEWPOINT+"/"+schema, "data/"+schema, uri));
 	}
@@ -49,7 +55,9 @@ public class ItemData extends ItemUtils {
 	public Response queryData(@PathParam("uuid") String uuid,
 			@PathParam("schema") String schema,
 			@PathParam("viewName") String viewName,
+			@CookieParam(COOKIENAME) Cookie authCookie,
 			@Context UriInfo uri) {
+		checkAuth(authCookie);
 		ItemProxy item = ItemRoot.getProxy(uuid);
 		Viewpoint view;
 		try {
@@ -82,7 +90,9 @@ public class ItemData extends ItemUtils {
 	public Response getViewEvent(@PathParam("uuid") String uuid,
 			@PathParam("schema") String schema,
 			@PathParam("viewName") String viewName,
+			@CookieParam(COOKIENAME) Cookie authCookie,
 			@Context UriInfo uri) {
+		checkAuth(authCookie);
 		ItemProxy item = ItemRoot.getProxy(uuid);
 		Viewpoint view;
 		try {
@@ -108,7 +118,9 @@ public class ItemData extends ItemUtils {
 	public Response getAllEventsForView(@PathParam("uuid") String uuid,
 			@PathParam("schema") String schema,
 			@PathParam("viewName") String viewName,
+			@CookieParam(COOKIENAME) Cookie authCookie,
 			@Context UriInfo uri) {
+		checkAuth(authCookie);
 		ItemProxy item = ItemRoot.getProxy(uuid);
 		History history;
 		try {
@@ -137,7 +149,9 @@ public class ItemData extends ItemUtils {
 			@PathParam("schema") String schema,
 			@PathParam("viewName") String viewName,
 			@PathParam("event") Integer eventId,
+			@CookieParam(COOKIENAME) Cookie authCookie,
 			@Context UriInfo uri) {
+		checkAuth(authCookie);
 		ItemProxy item = ItemRoot.getProxy(uuid);
 		Event ev;
 		try {
@@ -164,7 +178,9 @@ public class ItemData extends ItemUtils {
 			@PathParam("schema") String schema,
 			@PathParam("viewName") String viewName,
 			@PathParam("event") Integer eventId,
+			@CookieParam(COOKIENAME) Cookie authCookie,
 			@Context UriInfo uri) {
+		checkAuth(authCookie);
 		ItemProxy item = ItemRoot.getProxy(uuid);
 		Event ev;
 		try {

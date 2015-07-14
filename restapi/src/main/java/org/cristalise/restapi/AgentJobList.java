@@ -3,6 +3,7 @@ package org.cristalise.restapi;
 import java.net.URI;
 import java.util.LinkedHashMap;
 
+import javax.ws.rs.CookieParam;
 import javax.ws.rs.DefaultValue;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
@@ -11,6 +12,7 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Context;
+import javax.ws.rs.core.Cookie;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
@@ -32,7 +34,9 @@ public class AgentJobList extends RemoteMapAccess {
 	@Produces(MediaType.APPLICATION_JSON)
 	public Response list(@PathParam("uuid") String uuid, 
 			@DefaultValue("0") @QueryParam("start") Integer start, 
-			@QueryParam("batch") Integer batchSize,	@Context UriInfo uri) {
+			@QueryParam("batch") Integer batchSize, @CookieParam(COOKIENAME) Cookie authCookie,
+			@Context UriInfo uri) {
+		checkAuth(authCookie);
 		ItemProxy item = getProxy(uuid);
 		if (!(item instanceof AgentProxy))
 			throw new WebApplicationException("UUID does not belong to an Agent", 400);
@@ -62,7 +66,9 @@ public class AgentJobList extends RemoteMapAccess {
 	@GET
 	@Path("job/{jobId}")
 	@Produces(MediaType.APPLICATION_JSON)
-	public Response getEvent(@PathParam("uuid") String uuid, @PathParam("jobId") String jobId, @Context UriInfo uri) {
+	public Response getEvent(@PathParam("uuid") String uuid, @PathParam("jobId") String jobId, @CookieParam(COOKIENAME) Cookie authCookie,
+			@Context UriInfo uri) {
+		checkAuth(authCookie);
 		ItemProxy item = getProxy(uuid);
 		if (!(item instanceof AgentProxy))
 			throw new WebApplicationException("UUID does not belong to an Agent", 400);
@@ -79,7 +85,9 @@ public class AgentJobList extends RemoteMapAccess {
 	@GET
 	@Path("roles")
 	@Produces(MediaType.APPLICATION_JSON)
-	public Response getRoles(@PathParam("uuid") String uuid, @Context UriInfo uri) {
+	public Response getRoles(@PathParam("uuid") String uuid, @CookieParam(COOKIENAME) Cookie authCookie,
+			@Context UriInfo uri) {
+		checkAuth(authCookie);
 		ItemProxy item = getProxy(uuid);
 		if (!(item instanceof AgentProxy))
 			throw new WebApplicationException("UUID does not belong to an Agent", 400);

@@ -2,6 +2,7 @@ package org.cristalise.restapi;
 
 import java.util.LinkedHashMap;
 
+import javax.ws.rs.CookieParam;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
@@ -9,6 +10,7 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Context;
+import javax.ws.rs.core.Cookie;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
@@ -27,8 +29,9 @@ public class ItemHistory extends RemoteMapAccess {
 	@GET
 	@Produces(MediaType.APPLICATION_JSON)
 	public Response list(@PathParam("uuid") String uuid, @QueryParam("start") Integer start, 
-			@QueryParam("batch") Integer batchSize,	@Context UriInfo uri) {
-
+			@QueryParam("batch") Integer batchSize,	@CookieParam(COOKIENAME) Cookie authCookie,
+			@Context UriInfo uri) {
+		checkAuth(authCookie);
 		ItemProxy item = getProxy(uuid);
 		if (start == null) start = 0;
 		if (batchSize == null) batchSize = Gateway.getProperties().getInt("REST.Event.DefaultBatchSize", 
@@ -50,7 +53,9 @@ public class ItemHistory extends RemoteMapAccess {
 	@GET
 	@Path("{eventId}")
 	@Produces(MediaType.APPLICATION_JSON)
-	public Response getEvent(@PathParam("uuid") String uuid, @PathParam("eventId") String eventId, @Context UriInfo uri) {
+	public Response getEvent(@PathParam("uuid") String uuid, @PathParam("eventId") String eventId, 
+			@CookieParam(COOKIENAME) Cookie authCookie,	@Context UriInfo uri) {
+		checkAuth(authCookie);
 		ItemProxy item = getProxy(uuid);
 		Event ev = (Event)get(item, ClusterStorage.HISTORY, eventId);
 		return toJSON(makeEventData(ev, uri));
@@ -59,7 +64,9 @@ public class ItemHistory extends RemoteMapAccess {
 	@GET
 	@Path("{eventId}/data")
 	@Produces(MediaType.APPLICATION_JSON)
-	public Response getEventOutcome(@PathParam("uuid") String uuid, @PathParam("eventId") String eventId, @Context UriInfo uri) {
+	public Response getEventOutcome(@PathParam("uuid") String uuid, @PathParam("eventId") String eventId, 
+			@CookieParam(COOKIENAME) Cookie authCookie,	@Context UriInfo uri) {
+		checkAuth(authCookie);
 		ItemProxy item = getProxy(uuid);
 		Event ev = (Event)get(item, ClusterStorage.HISTORY, eventId);
 		if (ev.getSchemaName() == null || ev.getSchemaName().equals(""))

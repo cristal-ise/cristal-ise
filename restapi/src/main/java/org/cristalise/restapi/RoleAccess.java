@@ -3,12 +3,14 @@ package org.cristalise.restapi;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 
+import javax.ws.rs.CookieParam;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Context;
+import javax.ws.rs.core.Cookie;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
@@ -24,7 +26,9 @@ public class RoleAccess extends RestHandler {
 	
 	@GET
 	@Produces(MediaType.APPLICATION_JSON)
-	public Response listRoles(@Context UriInfo uri) {
+	public Response listRoles(@CookieParam(COOKIENAME) Cookie authCookie,
+			@Context UriInfo uri) {
+		checkAuth(authCookie);
 		LinkedHashMap<String, Object> roles = new LinkedHashMap<>();
 		Iterator<org.cristalise.kernel.lookup.Path> iter = Gateway.getLookup().search(new RolePath(), "*");
 		while (iter.hasNext()) {
@@ -37,7 +41,9 @@ public class RoleAccess extends RestHandler {
 	@GET
 	@Path("{role}")
 	@Produces(MediaType.APPLICATION_JSON)
-	public Response getRole(@PathParam("role") String roleName, @Context UriInfo uri) {
+	public Response getRole(@PathParam("role") String roleName, @CookieParam(COOKIENAME) Cookie authCookie,
+			@Context UriInfo uri) {
+		checkAuth(authCookie);
 		RolePath role;
 		try {
 			role = Gateway.getLookup().getRolePath(roleName);
