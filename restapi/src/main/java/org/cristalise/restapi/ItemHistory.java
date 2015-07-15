@@ -21,7 +21,6 @@ import org.cristalise.kernel.events.Event;
 import org.cristalise.kernel.persistency.ClusterStorage;
 import org.cristalise.kernel.persistency.outcome.Outcome;
 import org.cristalise.kernel.process.Gateway;
-import org.cristalise.kernel.utils.Logger;
 
 @Path("/item/{uuid}/history")
 public class ItemHistory extends RemoteMapAccess {

@@ -8,9 +8,6 @@ import javax.ws.rs.core.UriInfo;
 import org.cristalise.kernel.common.ObjectNotFoundException;
 import org.cristalise.kernel.entity.C2KLocalObject;
 import org.cristalise.kernel.entity.proxy.ItemProxy;
-import org.cristalise.kernel.events.Event;
-import org.cristalise.kernel.events.History;
-import org.cristalise.kernel.persistency.ClusterStorage;
 import org.cristalise.kernel.persistency.RemoteMap;
 import org.cristalise.kernel.utils.Logger;
 
