@@ -20,7 +20,6 @@ import org.junit.Test
 
 /**
  * 
- * @author kovax
  *
  */
 @CompileStatic
@@ -80,26 +79,32 @@ class BasicDevDescriptionIT extends KernelScenarioTestBase {
     public void checkPath() {
         //Code to experiment with Lookup and LDAP based in dev module data
         
-        Gateway.getLookup().getChildren(new DomainPath("")).each {
-            println "Domain: ${it.getClass().getName()} - $it"
+        println "------------------------------------------------------------------------"
+        Gateway.getLookup().getChildren(new DomainPath("/")).each {
+            println "Domain /: ${it.getClass().getName()} - $it"
         }
 
-        Gateway.getLookup().getChildren(new DomainPath("agent")).each {
-            println "Domain: ${it.getClass().getName()} - $it"
+        println "------------------------------------------------------------------------"
+        Gateway.getLookup().getChildren(new DomainPath("/agent")).each {
+            println "Domain /agent: ${it.getClass().getName()} - $it"
         }
 
+        println "------------------------------------------------------------------------"
         Gateway.getLookup().getChildren(new RolePath()).each {
-            println "Role  : ${it.getClass().getName()} - $it"
+            println "Role /: ${it.getClass().getName()} - $it"
         }
         
+        println "------------------------------------------------------------------------"
         Gateway.getLookup().search(new DomainPath("desc"), "dev").each {
-            println "Domain search  : ${it.getClass().getName()} - $it"
+            println "Domain search : ${it.getClass().getName()} - $it"
         }
 
+        println "------------------------------------------------------------------------"
         Gateway.getLookup().searchAliases(new ItemPath("8e0d5225-2250-432f-aceb-cd6689ca4883")).each {
             println "Item alias search: ${it.getClass().getName()} - $it"
         }
         
+        println "------------------------------------------------------------------------"
         def buff = ""
         ["desc","OutcomeDesc","system","dev"].each {
             buff += "/$it"
@@ -109,6 +114,7 @@ class BasicDevDescriptionIT extends KernelScenarioTestBase {
         
         assert Gateway.getLookup().getAgentPath("Admin")
 
+        println "------------------------------------------------------------------------"
         Gateway.getLookup().search(new DomainPath("dev")).each {
             println it.dump()
         }

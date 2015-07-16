@@ -1,3 +1,23 @@
+/**
+ * This file is part of the CRISTAL-iSE kernel.
+ * Copyright (c) 2001-2015 The CRISTAL Consortium. All rights reserved.
+ *
+ * This library is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU Lesser General Public License as published
+ * by the Free Software Foundation; either version 3 of the License, or (at
+ * your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; with out even the implied warranty of MERCHANTABILITY or
+ * FITNESS FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public
+ * License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this library; if not, write to the Free Software Foundation,
+ * Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA.
+ *
+ * http://www.fsf.org/licensing/licenses/lgpl.html
+ */
 package org.cristalise.lookup.lite;
 
 import groovy.transform.CompileStatic
@@ -20,7 +40,7 @@ import org.cristalise.kernel.utils.Logger
 abstract class InMemoryLookup implements Lookup {
 
     protected Map cache = [:] //LinkedHashMap
-
+    
     private Iterator<Path> getEmptyPathIter() {
         return new Iterator<Path>() {
             public boolean hasNext() { return false; }
@@ -51,7 +71,7 @@ abstract class InMemoryLookup implements Lookup {
      */
     @Override
     public void open(Authenticator user) {
-        Logger.msg(8, "InMemoryLookup.open() - Do nothing");
+        Logger.msg(8, "InMemoryLookup.open(user) - Do nothing");
     }
 
     /**
@@ -79,14 +99,14 @@ abstract class InMemoryLookup implements Lookup {
 
     @Override
     public AgentPath getAgentPath(String agentName) throws ObjectNotFoundException {
-        // TODO Auto-generated method stub
-        return null;
+        Logger.msg(5, "InMemoryLookup.getAgentPath() - agentName: $agentName");
+        return (AgentPath) retrievePath(agentName);
     }
 
     @Override
     public RolePath getRolePath(String roleName) throws ObjectNotFoundException {
-        // TODO Auto-generated method stub
-        return null;
+        Logger.msg(5, "InMemoryLookup.getRolePath() - roleName:$roleName");
+        return (RolePath) retrievePath(roleName);
     }
 
     /**
@@ -99,8 +119,8 @@ abstract class InMemoryLookup implements Lookup {
      */
     @Override
     public ItemPath resolvePath(DomainPath domainPath) throws InvalidItemPathException, ObjectNotFoundException {
-        // TODO Auto-generated method stub
-        return null;
+        Logger.msg(5, "InMemoryLookup.resolvePath() - domainPath: ${domainPath.UUID}")
+        return ((DomainPath) retrievePath(domainPath.string)).getItemPath();
     }
 
     /**
@@ -136,6 +156,7 @@ abstract class InMemoryLookup implements Lookup {
         Logger.msg(5, "InMemoryLookup.getChildren() - Path: $path.string");
 
         // TODO: Implement search
+        Logger.warning("InMemoryLookup.getChildren() - This implemetation ALWAYS returns empty result!");
         
         return getEmptyPathIter();
     }
@@ -144,7 +165,11 @@ abstract class InMemoryLookup implements Lookup {
     public Iterator<Path> search(Path start, String name) {
         Logger.msg(5, "InMemoryLookup.search() - Path: $start, Name: $name");
 
-        // TODO: Implement search
+        if(exists(start)) {
+            cache.each {
+            
+            }
+        }
         
         return getEmptyPathIter();
     }
@@ -154,6 +179,7 @@ abstract class InMemoryLookup implements Lookup {
         Logger.msg(5, "InMemoryLookup.search() - Path: $start, # of props: $props.length, props[0]: ${props[0].name} - ${props[0].value}");
 
         // TODO: Implement search
+        Logger.warning("InMemoryLookup.search() - This implemetation ALWAYS returns empty result!");
 
         return getEmptyPathIter();
     }
@@ -163,6 +189,7 @@ abstract class InMemoryLookup implements Lookup {
         Logger.msg(5, "InMemoryLookup.search() - Path: $start, # of props: $props.list.size");
         
         // TODO: Implement search
+        Logger.warning("InMemoryLookup.search() - This implemetation ALWAYS returns empty result!");
 
         return getEmptyPathIter();
     }

@@ -23,7 +23,7 @@ class ItemWithoutDescriptionIT extends KernelScenarioTestBase {
 
     @Before
     void before() {
-        super.beforeClient('src/test/conf/devClient.conf', 'src/test/conf/devServer.clc')
+        beforeClient('src/test/conf/devClient.conf', 'src/test/conf/devServer.clc')
     }
 
 
