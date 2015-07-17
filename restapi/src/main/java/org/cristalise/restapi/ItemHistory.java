@@ -34,7 +34,7 @@ public class ItemHistory extends RemoteMapAccess {
 		ItemProxy item = getProxy(uuid);
 		if (start == null) start = 0;
 		if (batchSize == null) batchSize = Gateway.getProperties().getInt("REST.Event.DefaultBatchSize", 
-				Gateway.getProperties().getInt("REST.DefaultBatchSize", 50));
+				Gateway.getProperties().getInt("REST.DefaultBatchSize", 20));
 		
 		// fetch this batch of events from the RemoteMap
 		LinkedHashMap<String, Object> events = super.list(item, ClusterStorage.HISTORY, start, batchSize, uri);

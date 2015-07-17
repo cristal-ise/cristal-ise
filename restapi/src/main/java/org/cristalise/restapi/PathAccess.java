@@ -30,9 +30,8 @@ public class PathAccess extends RestHandler {
 	
 	@GET
 	@Produces(MediaType.APPLICATION_JSON)
-	public Response queryPath(@DefaultValue("0") @QueryParam("start") Integer start, @QueryParam("batch") Integer batchSize, @QueryParam("search") String search,
-			@CookieParam(COOKIENAME) Cookie authCookie,
-			@Context UriInfo uri) {
+	public Response queryPath(@DefaultValue("0") @QueryParam("start") Integer start, @QueryParam("batch") Integer batchSize, 
+			@QueryParam("search") String search, @CookieParam(COOKIENAME) Cookie authCookie, @Context UriInfo uri) {
 		return queryPath("/", start, batchSize, search, authCookie, uri);
 	}
 	

@@ -41,7 +41,7 @@ public class AgentJobList extends RemoteMapAccess {
 		if (!(item instanceof AgentProxy))
 			throw new WebApplicationException("UUID does not belong to an Agent", 400);
 		if (batchSize == null) batchSize = Gateway.getProperties().getInt("REST.Job.DefaultBatchSize", 
-				Gateway.getProperties().getInt("REST.DefaultBatchSize", 50));
+				Gateway.getProperties().getInt("REST.DefaultBatchSize", 20));
 		
 		// fetch this batch of events from the RemoteMap
 		LinkedHashMap<String, Object> jobs = super.list(item, ClusterStorage.JOB, start, batchSize, uri);
