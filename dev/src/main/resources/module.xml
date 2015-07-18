@@ -114,7 +114,7 @@
 			<Property name="Type">Factory</Property>
 			<Outcome viewname="last" schema="PropertyDescription" version="0">boot/property/DescProp.xml</Outcome>
 			<Dependency name="workflow" isDescription="false">
-				<DependencyMember itemPath="/entity/b9415b57-3a4a-4b31-825a-d307d1280ac0">
+				<DependencyMember itemPath="b9415b57-3a4a-4b31-825a-d307d1280ac0">
 					<MemberProperties>
 						<KeyValuePair Key="Version" String="0"/>
 					</MemberProperties>
