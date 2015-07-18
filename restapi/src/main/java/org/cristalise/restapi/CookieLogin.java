@@ -25,12 +25,12 @@ public class CookieLogin extends RestHandler {
 	public Response login(@QueryParam("user") String user, @QueryParam("pass") String pass, @Context UriInfo uri) {
         try {
 			if (!Gateway.getAuthenticator().authenticate(user, pass, null))
-				throw new WebApplicationException("Bad username/password");
+				throw new WebApplicationException("Bad username/password", 401);
 		} catch (InvalidDataException e) {
 			Logger.error(e);
 			throw new WebApplicationException("Problem logging in");
 		} catch (ObjectNotFoundException e1) {
-			throw new WebApplicationException("Bad username/password");
+			throw new WebApplicationException("Bad username/password", 401);
 		}
 
         AgentPath agentPath;
@@ -38,7 +38,7 @@ public class CookieLogin extends RestHandler {
 			agentPath = Gateway.getLookup().getAgentPath(user);
 		} catch (ObjectNotFoundException e) {
 			Logger.error(e);
-			throw new WebApplicationException("Agent '"+user+"' not found");
+			throw new WebApplicationException("Agent '"+user+"' not found", 404);
 		}
 		
 		// create and set cookie
