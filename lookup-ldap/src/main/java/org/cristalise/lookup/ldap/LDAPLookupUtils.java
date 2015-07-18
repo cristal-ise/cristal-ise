@@ -54,7 +54,9 @@ final public class LDAPLookupUtils
      * @throws LDAPException when the connection was unsuccessful
      */
     public static LDAPConnection createConnection(LDAPProperties lp) throws LDAPException {
-        LDAPConnection ld = new LDAPConnection();
+        LDAPConnection ld;
+        if (lp.mTimeOut == 0) ld = new LDAPConnection();
+        else ld = new LDAPConnection(lp.mTimeOut);
 
         Logger.msg(3, "LDAPLookup - connecting to " + lp.mHost);
         ld.connect(lp.mHost, Integer.valueOf(lp.mPort).intValue());

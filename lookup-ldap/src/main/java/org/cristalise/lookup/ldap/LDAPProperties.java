@@ -45,6 +45,7 @@ public class LDAPProperties {
 	public static final String LDAP_PROP_PORT = "LDAP.port";
 	public static final String LDAP_PROP_RPATH = "LDAP.RootPath";
 	public static final String LDAP_PROP_USER = "LDAP.user";
+	public static final String LDAP_PROP_TIMEOUT = "LDAP.timeOut";
 	
 	public String mGlobalPath = null; // o=cern.ch
 	public String mHost = null;
@@ -53,6 +54,7 @@ public class LDAPProperties {
 	public Integer mPort = null;
 	public String mRootPath = null; // cn=cristal2
 	public String mUser = null;
+	public Integer mTimeOut = null;
 
 	/**
 	 * @param aObjectProps
@@ -76,6 +78,7 @@ public class LDAPProperties {
 
 			mPort = aObjectProps.getInt(LDAP_PROP_PORT, 389);
 			mHost = aObjectProps.getProperty(LDAP_PROP_HOST);
+			mTimeOut = aObjectProps.getInt(LDAP_PROP_TIMEOUT, 0);
 			mUser = aObjectProps.getProperty(LDAP_PROP_USER);
 			mPassword = aObjectProps.getProperty(LDAP_PROP_PASS);
 
