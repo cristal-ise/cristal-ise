@@ -35,7 +35,6 @@ import org.cristalise.kernel.property.Property
 import org.cristalise.kernel.property.PropertyDescriptionList
 import org.cristalise.kernel.utils.Logger
 
-
 @CompileStatic
 abstract class InMemoryLookup implements Lookup {
 
@@ -170,25 +169,20 @@ abstract class InMemoryLookup implements Lookup {
     @Override
     public Iterator<Path> search(Path start, String name) {
         Logger.msg(5, "InMemoryLookup.search() - Path: $start, Name: $name");
-
         return cache.values().findAll { ((Path)it).string =~ /^$start.string.*$name/ }.iterator()
     }
 
     @Override
     public Iterator<Path> search(Path start, Property... props) {
-        Logger.msg(5, "InMemoryLookup.search() - Path: $start, # of props: $props.length, props[0]: ${props[0].name} - ${props[0].value}");
-
         // TODO: Implement search(Path, props)
-        Logger.warning("InMemoryLookup.search() - This implemetation ALWAYS returns empty result!");
+        Logger.warning("InMemoryLookup.search() - Path: $start, # of props: $props.length, props[0]: ${props[0].name} - ${props[0].value} -This implemetation ALWAYS returns empty result!");
         return getEmptyPathIter();
     }
 
     @Override
     public Iterator<Path> search(Path start, PropertyDescriptionList props) {
-        Logger.msg(5, "InMemoryLookup.search() - Path: $start, # of props: $props.list.size");
-        
         // TODO: Implement search(Path,PropList)
-        Logger.warning("InMemoryLookup.search() - This implemetation ALWAYS returns empty result!");
+        Logger.warning("InMemoryLookup.search() - Path: $start, # of props: $props.list.size - This implemetation ALWAYS returns empty result!");
         return getEmptyPathIter();
     }
 
@@ -200,24 +194,46 @@ abstract class InMemoryLookup implements Lookup {
     }
 
     @Override
-    public AgentPath[] getAgents(RolePath rolePath) throws ObjectNotFoundException {
-        // TODO: Implement getAgents
-        Logger.warning("InMemoryLookup.getAgents() - RolePath: $rolePath - This implemetation ALWAYS returns empty result!");
+    public AgentPath[] getAgents(RolePath role) throws ObjectNotFoundException {
+        Logger.msg(5, "InMemoryLookup.getAgents() - RolePath: $role");
+        List agents = role2AgentsCache[retrievePath(role.string).string]
+
+        if(agents) {
+            AgentPath[] retVal = new AgentPath[agents.size()]
+            agents.eachWithIndex {key, i -> retVal[i] = (AgentPath) retrievePath(key) }
+            return retVal
+        }
+        
         return new AgentPath[0];
     }
 
     @Override
-    public RolePath[] getRoles(AgentPath AgentPath) {
-        // TODO: Implement getRoles
-        Logger.warning("InMemoryLookup.getRoles() - AgentPath: $AgentPath - This implemetation ALWAYS returns empty result!");
+    public RolePath[] getRoles(AgentPath agent) {
+        Logger.msg(5,"InMemoryLookup.getRoles() - AgentPath: $agent");
+
+        try {
+            List roles = agent2RolesCache[retrievePath(agent.string).string]
+
+            if(roles) {
+                RolePath[] retVal = new RolePath[roles.size()]
+                roles.eachWithIndex {key, i -> retVal[i] = (RolePath) retrievePath(key) }
+                return retVal
+            }
+        } 
+        catch (Exception e) {}
+
         return new RolePath[0];
     }
 
     @Override
-    public boolean hasRole(AgentPath agentPath, RolePath role) {
-        // TODO: Implement hasRole
-        Logger.warning("InMemoryLookup.hasRole() - AgentPath: $AgentPath, RolePath: $role - This implemetation ALWAYS returns false");
-        return false;
+    public boolean hasRole(AgentPath agent, RolePath role) {
+        Logger.msg(5, "InMemoryLookup.hasRole() - AgentPath: $agent, RolePath: $role");
+        try {
+            return agent2RolesCache[retrievePath(agent.string).string].contains(role.string)
+        }
+        catch(Exception e) {
+            return false
+        }
     }
 
     @Override

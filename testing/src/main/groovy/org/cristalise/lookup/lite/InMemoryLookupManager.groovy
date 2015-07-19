@@ -38,8 +38,6 @@ import org.cristalise.kernel.utils.Logger
 @CompileStatic
 class InMemoryLookupManager extends InMemoryLookup implements LookupManager {
     
-    public InMemoryLookupManager() {}
-
     @Override
     public void initializeDirectory() throws ObjectNotFoundException {
         Logger.msg(8, "InMemoryLookupManager.initializeDirectory() - Do nothing");
@@ -86,12 +84,12 @@ class InMemoryLookupManager extends InMemoryLookup implements LookupManager {
 
         if(! exists(agent))    throw new ObjectNotFoundException("$agent")
         if(! exists(rolePath)) throw new ObjectNotFoundException("$rolePath")
-        
-        if( agent2RolesCache[agent.string]?.find {it == rolePath.string} ) throw new ObjectCannotBeUpdated("$agent alrady has role $rolePath")
-        
-        if(agent2RolesCache[agent.string] == null) agent2RolesCache[agent.string] = []
+
+        if( agent2RolesCache[agent.string]?.find {it == rolePath.string} ) throw new ObjectCannotBeUpdated("Agent $agent already has role $rolePath")
+
+        if(agent2RolesCache[agent.string] == null)    agent2RolesCache[agent.string] = []
         if(role2AgentsCache[rolePath.string] == null) role2AgentsCache[rolePath.string] = []
-        
+
         agent2RolesCache[agent.string].add(rolePath.string)
         role2AgentsCache[rolePath.string].add(agent.string)
     }
