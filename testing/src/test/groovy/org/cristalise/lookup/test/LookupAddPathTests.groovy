@@ -67,11 +67,11 @@ class LookupAddPathTests {
 
     @Test
     public void addDomainPath() {
-        Path p = new DomainPath("emtpy/toto")
-        assert p.string == "/domain/emtpy/toto"
+        Path p = new DomainPath("empty/toto")
+        assert p.string == "/domain/empty/toto"
         lookup.add(p)
         assert lookup.exists(p)
-        assert lookup.exists(new DomainPath("emtpy"))
+        assert lookup.exists(new DomainPath("empty"))
         assert ! lookup.exists(new DomainPath("toto"))
     }
 

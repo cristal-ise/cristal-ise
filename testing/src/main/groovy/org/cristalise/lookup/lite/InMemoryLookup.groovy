@@ -41,6 +41,12 @@ abstract class InMemoryLookup implements Lookup {
 
     protected Map cache = [:] //LinkedHashMap
     
+    //Maps String RolePath to List of String AgentPath
+    protected Map<String,List<String>> role2AgentsCache  = [:]
+
+    //Maps String RolePath to List of String AgentPath
+    protected Map<String,List<String>> agent2RolesCache = [:]
+    
     private Iterator<Path> getEmptyPathIter() {
         return new Iterator<Path>() {
             public boolean hasNext() { return false; }
@@ -48,7 +54,7 @@ abstract class InMemoryLookup implements Lookup {
             public void remove() {}
         };
     }
-    
+
     /**
      * 
      * 
@@ -165,22 +171,15 @@ abstract class InMemoryLookup implements Lookup {
     public Iterator<Path> search(Path start, String name) {
         Logger.msg(5, "InMemoryLookup.search() - Path: $start, Name: $name");
 
-        if(exists(start)) {
-            cache.each {
-            
-            }
-        }
-        
-        return getEmptyPathIter();
+        return cache.values().findAll { ((Path)it).string =~ /^$start.string.*$name/ }.iterator()
     }
 
     @Override
     public Iterator<Path> search(Path start, Property... props) {
         Logger.msg(5, "InMemoryLookup.search() - Path: $start, # of props: $props.length, props[0]: ${props[0].name} - ${props[0].value}");
 
-        // TODO: Implement search
+        // TODO: Implement search(Path, props)
         Logger.warning("InMemoryLookup.search() - This implemetation ALWAYS returns empty result!");
-
         return getEmptyPathIter();
     }
 
@@ -188,39 +187,43 @@ abstract class InMemoryLookup implements Lookup {
     public Iterator<Path> search(Path start, PropertyDescriptionList props) {
         Logger.msg(5, "InMemoryLookup.search() - Path: $start, # of props: $props.list.size");
         
-        // TODO: Implement search
+        // TODO: Implement search(Path,PropList)
         Logger.warning("InMemoryLookup.search() - This implemetation ALWAYS returns empty result!");
-
         return getEmptyPathIter();
     }
 
     @Override
     public Iterator<Path> searchAliases(ItemPath itemPath) {
-        // TODO Auto-generated method stub
-        return null;
+        // TODO: Implement searchAliases
+        Logger.warning("InMemoryLookup.searchAliases() - ItemPath: $itemPath - This implemetation ALWAYS returns empty result!");
+        return getEmptyPathIter();
     }
 
     @Override
     public AgentPath[] getAgents(RolePath rolePath) throws ObjectNotFoundException {
-        // TODO Auto-generated method stub
-        return null;
+        // TODO: Implement getAgents
+        Logger.warning("InMemoryLookup.getAgents() - RolePath: $rolePath - This implemetation ALWAYS returns empty result!");
+        return new AgentPath[0];
     }
 
     @Override
-    public RolePath[] getRoles(AgentPath agentPath) {
-        // TODO Auto-generated method stub
-        return null;
+    public RolePath[] getRoles(AgentPath AgentPath) {
+        // TODO: Implement getRoles
+        Logger.warning("InMemoryLookup.getRoles() - AgentPath: $AgentPath - This implemetation ALWAYS returns empty result!");
+        return new RolePath[0];
     }
 
     @Override
     public boolean hasRole(AgentPath agentPath, RolePath role) {
-        // TODO Auto-generated method stub
+        // TODO: Implement hasRole
+        Logger.warning("InMemoryLookup.hasRole() - AgentPath: $AgentPath, RolePath: $role - This implemetation ALWAYS returns false");
         return false;
     }
 
     @Override
     public String getAgentName(AgentPath agentPath) throws ObjectNotFoundException {
-        // TODO Auto-generated method stub
-        return null;
+        Logger.msg(5, "InMemoryLookup.getAgentName() - AgentPath: $agentPath");
+        AgentPath p = (AgentPath) retrievePath(agentPath.string)
+        return p.agentName;
     }
 }

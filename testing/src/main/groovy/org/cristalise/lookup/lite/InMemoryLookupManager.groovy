@@ -28,6 +28,7 @@ import org.cristalise.kernel.common.ObjectAlreadyExistsException
 import org.cristalise.kernel.common.ObjectCannotBeUpdated
 import org.cristalise.kernel.common.ObjectNotFoundException
 import org.cristalise.kernel.lookup.AgentPath
+import org.cristalise.kernel.lookup.DomainPath
 import org.cristalise.kernel.lookup.LookupManager
 import org.cristalise.kernel.lookup.Path
 import org.cristalise.kernel.lookup.RolePath
@@ -50,7 +51,12 @@ class InMemoryLookupManager extends InMemoryLookup implements LookupManager {
 
         if(cache.containsKey(newPath.getString())) { throw new ObjectAlreadyExistsException()}
         else {
-            cache[newPath.getString()] = newPath
+            if(Path instanceof DomainPath) {
+                Logger.msg(8, "InMemoryLookupManager.add() - Adding each DomainPath element")
+                newPath.getPath().each {
+                }
+            }
+            else cache[newPath.getString()] = newPath
         }
     }
 
@@ -68,32 +74,43 @@ class InMemoryLookupManager extends InMemoryLookup implements LookupManager {
 
     @Override
     public RolePath createRole(RolePath role) throws ObjectAlreadyExistsException, ObjectCannotBeUpdated {
-        // TODO Auto-generated method stub
-        return null;
+        Logger.msg(5, "InMemoryLookupManager.createRole() - RolePath: $role");
+        if(exists(role)) throw new ObjectAlreadyExistsException(role.toString())
+        add(role)
+        return role
     }
 
     @Override
     public void addRole(AgentPath agent, RolePath rolePath) throws ObjectCannotBeUpdated, ObjectNotFoundException {
-        // TODO Auto-generated method stub
+        Logger.msg(5, "InMemoryLookupManager.addRole() - AgentPath: $agent, RolePath: $rolePath");
 
+        if(! exists(agent))    throw new ObjectNotFoundException("$agent")
+        if(! exists(rolePath)) throw new ObjectNotFoundException("$rolePath")
+        
+        if( agent2RolesCache[agent.string]?.find {it == rolePath.string} ) throw new ObjectCannotBeUpdated("$agent alrady has role $rolePath")
+        
+        if(agent2RolesCache[agent.string] == null) agent2RolesCache[agent.string] = []
+        if(role2AgentsCache[rolePath.string] == null) role2AgentsCache[rolePath.string] = []
+        
+        agent2RolesCache[agent.string].add(rolePath.string)
+        role2AgentsCache[rolePath.string].add(agent.string)
     }
 
     @Override
     public void removeRole(AgentPath agent, RolePath role) throws ObjectCannotBeUpdated, ObjectNotFoundException {
+        Logger.warning("InMemoryLookupManager.removeRole() - AgentPath: $agent, RolePath: $role - This implemetation does NOTHING");
         // TODO Auto-generated method stub
-
     }
 
     @Override
-    public void setAgentPassword(AgentPath agent, String newPassword) throws ObjectNotFoundException, ObjectCannotBeUpdated,
-            NoSuchAlgorithmException {
+    public void setAgentPassword(AgentPath agent, String newPassword) throws ObjectNotFoundException, ObjectCannotBeUpdated, NoSuchAlgorithmException {
+        Logger.warning("InMemoryLookupManager.setAgentPassword() - AgentPath: $agent - This implemetation does NOTHING");
         // TODO Auto-generated method stub
-
     }
 
     @Override
     public void setHasJobList(RolePath role, boolean hasJobList) throws ObjectNotFoundException, ObjectCannotBeUpdated {
+        Logger.warning("InMemoryLookupManager.setAgentPassword() - RolePath: $role - This implemetation does NOTHING");
         // TODO Auto-generated method stub
-
     }
 }
