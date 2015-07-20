@@ -41,6 +41,7 @@ public class LDAPAuthManager implements Authenticator {
                 mLDAPConn = LDAPLookupUtils.createConnection(ldapProps);
                 return true;
             } catch (LDAPException e) {
+            	Logger.error(e);
                 return false;
             }
         }
