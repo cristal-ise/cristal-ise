@@ -77,7 +77,7 @@ public class LDAPLookup implements LookupManager{
         mRootPath=props.mRootPath;
         mLocalPath=props.mLocalPath;
 
-        mItemTypeRoot = "cn=entity,"+props.mLocalPath;
+        mItemTypeRoot = "cn=item,"+props.mLocalPath;
         mDomainTypeRoot = "cn=domain,"+props.mLocalPath;
         mRoleTypeRoot = "cn=role,"+props.mLocalPath;
     }
@@ -440,7 +440,7 @@ public class LDAPLookup implements LookupManager{
                 thisPath = entityKey;
             }
             else
-                throw new ObjectNotFoundException("Entity found outside entity tree");
+                throw new ObjectNotFoundException("Item found outside entity tree");
         }
         else
         {
