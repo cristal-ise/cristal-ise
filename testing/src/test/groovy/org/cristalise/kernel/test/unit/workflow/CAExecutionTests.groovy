@@ -36,7 +36,7 @@ class CAExecutionTests {
              Gateway.getResource().getTextResource(null, "boot/SM/Default.xml"));
 
         itemPath  = new ItemPath()
-        agentPath = new AgentPath(UUID.randomUUID())
+        agentPath = new AgentPath(new ItemPath(), "dev")
     }
 
     @After

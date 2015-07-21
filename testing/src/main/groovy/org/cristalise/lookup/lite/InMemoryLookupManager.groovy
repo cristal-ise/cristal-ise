@@ -47,51 +47,84 @@ class InMemoryLookupManager extends InMemoryLookup implements LookupManager {
     public void add(Path newPath) throws ObjectCannotBeUpdated, ObjectAlreadyExistsException {
         Logger.msg(5, "InMemoryLookupManager.add() - Path: $newPath.string");
 
-        if(cache.containsKey(newPath.getString())) { throw new ObjectAlreadyExistsException()}
+        if(cache.containsKey(newPath.getString())) { throw new ObjectAlreadyExistsException("$newPath")}
         else {
-            if(Path instanceof DomainPath) {
-                Logger.msg(8, "InMemoryLookupManager.add() - Adding each DomainPath element")
+            if(newPath instanceof RolePath) {
+                createRole(newPath)
+            }
+            else if(newPath instanceof DomainPath) {
+                Logger.msg(8, "InMemoryLookupManager.add() + Adding each DomainPath element")
+                GString sPath
                 newPath.getPath().each {
+                    if(sPath) { sPath = "$sPath/$it" }
+                    else      { sPath = "$it" }
+
+                    if(exists(new DomainPath(sPath))) {
+                        Logger.msg(8, "InMemoryLookupManager.add() + DomainPath '$sPath' already exists")
+                    }
+                    else {
+                        DomainPath d = new DomainPath(sPath)
+                        cache[d.string] = d
+                        Logger.msg(8, "InMemoryLookupManager.add() + DomainPath '$d' was added")
+                    }
                 }
             }
-            else cache[newPath.getString()] = newPath
+            else cache[newPath.string] = newPath
         }
     }
 
     @Override
     public void delete(Path path) throws ObjectCannotBeUpdated {
         Logger.msg(5, "InMemoryLookupManager.delete() - Path: $path.string");
-        
-        if(cache.containsKey(path.getString())) {
+
+        if(exists(path)) {
             cache.remove(path.getString())
+            //FIXME: remove path from role2AgentsCache and agent2RolesCache
         }
         else {
-            throw new ObjectCannotBeUpdated()
+            throw new ObjectCannotBeUpdated("$path does not exists")
         }
     }
 
     @Override
     public RolePath createRole(RolePath role) throws ObjectAlreadyExistsException, ObjectCannotBeUpdated {
         Logger.msg(5, "InMemoryLookupManager.createRole() - RolePath: $role");
-        if(exists(role)) throw new ObjectAlreadyExistsException(role.toString())
-        add(role)
-        return role
+        RolePath parent = new RolePath()
+
+        if(!exists(parent)) cache[parent.string] = parent
+
+        role.path.each { String name ->
+            if(name == "agent") return
+
+            RolePath child = new RolePath(parent, name)
+
+            if(exists(child)) {
+                Logger.msg(8, "InMemoryLookupManager.createRole() - RolePath '$child' already exists");
+            }
+            else {
+                Logger.msg(5, "InMemoryLookupManager.createRole() - Adding RolePath '$child' ")
+                cache[child.string] = child
+            }
+            parent = child
+        }
+
+        return parent
     }
 
     @Override
-    public void addRole(AgentPath agent, RolePath rolePath) throws ObjectCannotBeUpdated, ObjectNotFoundException {
-        Logger.msg(5, "InMemoryLookupManager.addRole() - AgentPath: $agent, RolePath: $rolePath");
+    public void addRole(AgentPath agent, RolePath role) throws ObjectCannotBeUpdated, ObjectNotFoundException {
+        Logger.msg(5, "InMemoryLookupManager.addRole() - AgentPath: $agent, RolePath: $role");
 
-        if(! exists(agent))    throw new ObjectNotFoundException("$agent")
-        if(! exists(rolePath)) throw new ObjectNotFoundException("$rolePath")
+        if(! exists(agent)) throw new ObjectNotFoundException("$agent")
+        if(! exists(role))  throw new ObjectNotFoundException("$role")
 
-        if( agent2RolesCache[agent.string]?.find {it == rolePath.string} ) throw new ObjectCannotBeUpdated("Agent $agent already has role $rolePath")
+        if( agent2RolesCache[agent.string]?.find {it == role.string} ) throw new ObjectCannotBeUpdated("Agent $agent already has role $role")
 
-        if(agent2RolesCache[agent.string] == null)    agent2RolesCache[agent.string] = []
-        if(role2AgentsCache[rolePath.string] == null) role2AgentsCache[rolePath.string] = []
+        if(agent2RolesCache[agent.string] == null) agent2RolesCache[agent.string] = []
+        if(role2AgentsCache[role.string]  == null) role2AgentsCache[role.string] = []
 
-        agent2RolesCache[agent.string].add(rolePath.string)
-        role2AgentsCache[rolePath.string].add(agent.string)
+        agent2RolesCache[agent.string].add(role.string)
+        role2AgentsCache[role.string].add(agent.string)
     }
 
     @Override

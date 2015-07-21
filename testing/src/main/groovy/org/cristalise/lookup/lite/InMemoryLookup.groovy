@@ -105,13 +105,28 @@ abstract class InMemoryLookup implements Lookup {
     @Override
     public AgentPath getAgentPath(String agentName) throws ObjectNotFoundException {
         Logger.msg(5, "InMemoryLookup.getAgentPath() - agentName: $agentName");
-        return (AgentPath) retrievePath(agentName);
+        Iterator<Path> iter = search(new DomainPath("entity"), agentName)
+        
+        def pList = cache.values().findAll {it instanceof AgentPath && ((AgentPath)it).agentName ==  agentName}
+
+        if     (pList.size() == 0) throw new ObjectNotFoundException("$agentName")
+        else if(pList.size() > 1)  throw new ObjectNotFoundException("Umbiguous result for agent '$agentName'")
+        
+        Logger.msg(5, "InMemoryLookup.getAgentPath() - agentName '$agentName' was found");
+
+        return (AgentPath)pList[0]
     }
 
     @Override
     public RolePath getRolePath(String roleName) throws ObjectNotFoundException {
         Logger.msg(5, "InMemoryLookup.getRolePath() - roleName:$roleName");
-        return (RolePath) retrievePath(roleName);
+        Iterator<Path> iter = search(new RolePath(), roleName)
+        if(iter.hasNext()) {
+            RolePath role = (RolePath)iter.next()
+            if(iter.hasNext()) throw new RuntimeException("Role '$roleName' is ambiguous")
+            else return role
+        }
+        else throw new ObjectNotFoundException("$roleName")
     }
 
     /**
@@ -153,7 +168,8 @@ abstract class InMemoryLookup implements Lookup {
         Logger.msg(5, "InMemoryLookup.exists() - Path: $path.string");
 
         //returns true if any of the keys in the map starts with the path
-        return cache.keySet().find {it =~ "^$path.string"}
+//        return cache.keySet().find ({it =~ "^$path.string"})
+        return cache.keySet().contains(path.string)
     }
 
     @Override
