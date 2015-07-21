@@ -36,7 +36,6 @@ class LookupAddPathTests extends LookupTestBase {
         assert p.string == "/entity/${uuid0.toString()}"
         lookup.add(p)
         assert lookup.exists(p)
-
         assert lookup.getAgentPath("toto")
     }
 

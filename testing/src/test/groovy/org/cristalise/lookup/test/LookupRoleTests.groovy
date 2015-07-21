@@ -3,6 +3,7 @@ package org.cristalise.lookup.test;
 import static org.junit.Assert.*
 import groovy.transform.CompileStatic
 
+import org.cristalise.kernel.common.ObjectAlreadyExistsException
 import org.cristalise.kernel.lookup.AgentPath
 import org.cristalise.kernel.lookup.ItemPath
 import org.cristalise.kernel.lookup.LookupManager
@@ -44,6 +45,16 @@ class LookupRoleTests extends LookupTestBase {
     @Test
     public void createRole() {
         createUserRole("Internist")
+    }
+
+    @Test
+    public void createRole_ObjectAlreadyExists() {
+        createUserRole("Internist")
+        try {
+            createUserRole("Internist")
+            fail("Should throw ObjectAlreadyExistsException")
+        }
+        catch (ObjectAlreadyExistsException e) {}
     }
 
     @Test

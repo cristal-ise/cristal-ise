@@ -90,11 +90,13 @@ class InMemoryLookupManager extends InMemoryLookup implements LookupManager {
     public RolePath createRole(RolePath role) throws ObjectAlreadyExistsException, ObjectCannotBeUpdated {
         Logger.msg(5, "InMemoryLookupManager.createRole() - RolePath: $role");
         RolePath parent = new RolePath()
+        
+        if(exists(role)) throw new ObjectAlreadyExistsException("$role")
 
         if(!exists(parent)) cache[parent.string] = parent
 
         role.path.each { String name ->
-            if(name == "agent") return
+            if(name == "agent") return //skip agent path element
 
             RolePath child = new RolePath(parent, name)
 
