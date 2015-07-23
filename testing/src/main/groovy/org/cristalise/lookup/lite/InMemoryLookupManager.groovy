@@ -75,11 +75,32 @@ class InMemoryLookupManager extends InMemoryLookup implements LookupManager {
 
     @Override
     public void delete(Path path) throws ObjectCannotBeUpdated {
-        Logger.msg(5, "InMemoryLookupManager.delete() - Path: $path.string");
+        Logger.msg(5, "InMemoryLookupManager.delete() - Path: $path");
 
         if(exists(path)) {
-            cache.remove(path.getString())
-            //FIXME: remove path from role2AgentsCache and agent2RolesCache
+            if(search(path, "").size() != 1 ) throw new ObjectCannotBeUpdated("Path $path is not a leaf")
+
+            if(path instanceof RolePath && role2AgentsCache.containsKey(path.string)) {
+                Logger.msg(8, "InMemoryLookupManager.delete() - RolePath: $path");
+                role2AgentsCache[path.string].each { removeRole(new AgentPath(it), path) }
+            }
+            else if(path instanceof AgentPath && agent2RolesCache.containsKey(path.string)) {
+                Logger.msg(8, "InMemoryLookupManager.delete() - AgentPath: $path");
+                agent2RolesCache[path.string].each { removeRole(path, new RolePath(it.split("/"),false)) }
+            }
+            /*
+            else if(path instanceof ItemPath && !(path instanceof AgentPath)) {
+                Logger.msg(8, "InMemoryLookupManager.delete() - ItemPath: $path");
+                throw new RuntimeException("UNIMPLEMENTED - InMemoryLookupManager.delete(ItemPath: $path)")
+            }
+            else if(path instanceof DomainPath && !(path instanceof RolePath)) {
+                Logger.msg(8, "InMemoryLookupManager.delete() - DomainPath: $path");
+                throw new RuntimeException("UNIMPLEMENTED - InMemoryLookupManager.delete(DomainPath: $path)")
+            }
+            */
+
+            cache.remove(path.string)
+            Logger.msg(8, "InMemoryLookupManager.delete() - $path removed");
         }
         else {
             throw new ObjectCannotBeUpdated("$path does not exists")
@@ -90,7 +111,7 @@ class InMemoryLookupManager extends InMemoryLookup implements LookupManager {
     public RolePath createRole(RolePath role) throws ObjectAlreadyExistsException, ObjectCannotBeUpdated {
         Logger.msg(5, "InMemoryLookupManager.createRole() - RolePath: $role");
         RolePath parent = new RolePath()
-        
+
         if(exists(role)) throw new ObjectAlreadyExistsException("$role")
 
         if(!exists(parent)) cache[parent.string] = parent
@@ -120,7 +141,7 @@ class InMemoryLookupManager extends InMemoryLookup implements LookupManager {
         if(! exists(agent)) throw new ObjectNotFoundException("$agent")
         if(! exists(role))  throw new ObjectNotFoundException("$role")
 
-        if( agent2RolesCache[agent.string]?.find {it == role.string} ) throw new ObjectCannotBeUpdated("Agent $agent already has role $role")
+        if( agent2RolesCache[agent.string]?.find {it == role.string} ) throw new ObjectCannotBeUpdated("Agent '$agent' already has role '$role'")
 
         if(agent2RolesCache[agent.string] == null) agent2RolesCache[agent.string] = []
         if(role2AgentsCache[role.string]  == null) role2AgentsCache[role.string] = []
@@ -131,8 +152,17 @@ class InMemoryLookupManager extends InMemoryLookup implements LookupManager {
 
     @Override
     public void removeRole(AgentPath agent, RolePath role) throws ObjectCannotBeUpdated, ObjectNotFoundException {
-        Logger.warning("InMemoryLookupManager.removeRole() - AgentPath: $agent, RolePath: $role - This implemetation does NOTHING");
-        // TODO Auto-generated method stub
+        Logger.msg(5, "InMemoryLookupManager.removeRole() - AgentPath: $agent, RolePath: $role");
+
+        if(! exists(agent)) throw new ObjectNotFoundException("$agent")
+        if(! exists(role))  throw new ObjectNotFoundException("$role")
+
+        if(! agent2RolesCache[agent.string]?.find {it == role.string} ) throw new ObjectCannotBeUpdated("Agent '$agent' has not got such role '$role'")
+
+        List<String> roles = agent2RolesCache[agent.string]
+
+        roles.remove(role)
+        Logger.msg(5, "InMemoryLookupManager.removeRole() - AgentPath: $agent, RolePath: $role -> DONE");
     }
 
     @Override

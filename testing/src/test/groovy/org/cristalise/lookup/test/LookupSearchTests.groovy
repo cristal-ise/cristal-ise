@@ -36,10 +36,10 @@ class LookupSearchTests extends LookupTestBase {
                         new DomainPath("empty/something"), 
                         new DomainPath("empty/something/uuid0")]
 
-        lookup.search(new DomainPath("empty"), "").each { assert expected.contains(it) }
+        CompareUtils.comparePathLists(expected, lookup.search(new DomainPath("empty"), ""))
 
         expected = [new DomainPath("empty/something/uuid0")]
 
-        lookup.search(new DomainPath("empty"), "uuid0").each { assert expected.contains(it) }
+        CompareUtils.comparePathLists(expected, lookup.search(new DomainPath("empty"), "uuid0"))
     }
 }

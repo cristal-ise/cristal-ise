@@ -4,6 +4,7 @@ import static org.junit.Assert.*
 import groovy.transform.CompileStatic
 
 import org.cristalise.kernel.common.ObjectAlreadyExistsException
+import org.cristalise.kernel.common.ObjectCannotBeUpdated
 import org.cristalise.kernel.lookup.AgentPath
 import org.cristalise.kernel.lookup.ItemPath
 import org.cristalise.kernel.lookup.LookupManager
@@ -56,17 +57,51 @@ class LookupRoleTests extends LookupTestBase {
         }
         catch (ObjectAlreadyExistsException e) {}
     }
+    
+    @Test
+    public void addRole_ObjectCannotBeUpdated() {
+        RolePath internist = createUserRole("Internist")
+        lookup.addRole(jim, internist)
+        try {
+            lookup.addRole(jim, internist)
+            fail("Should throw ObjectCannotBeUpdated exception")
+        } catch (ObjectCannotBeUpdated e) {}
+    }
 
     @Test
-    public void addRole() {
+    public void removeRole_ObjectCannotBeUpdated() {
+        RolePath internist = createUserRole("Internist")
+        lookup.addRole(jim, internist)
+        lookup.removeRole(jim, internist)
+        try {
+            lookup.removeRole(jim, internist)
+            fail("Should throw ObjectCannotBeUpdated exception")
+        } catch (ObjectCannotBeUpdated e) {}
+    }
+
+    @Test
+    public void addRemoveRole() {
         RolePath internist    = createUserRole("Internist")
         RolePath cardiologist = createUserRole("Cardiologist")
-
-        def expected = [internist, cardiologist]
 
         lookup.addRole(jim, internist)
         lookup.addRole(jim, cardiologist)
 
-        for(RolePath r: lookup.getRoles(jim) ) { assert expected.contains(r) }
+        CompareUtils.comparePathLists([internist, cardiologist], lookup.getRoles(jim))
+
+        lookup.removeRole(jim, cardiologist)
+
+        CompareUtils.comparePathLists([internist], lookup.getRoles(jim))
+    }
+
+    @Test
+    public void deleteRole() {
+        RolePath internist = createUserRole("Internist")
+        lookup.addRole(jim, internist)
+        CompareUtils.comparePathLists([internist], lookup.getRoles(jim))
+
+        lookup.delete(internist)
+        assert ! lookup.exists(internist)
+        CompareUtils.comparePathLists([], lookup.getRoles(jim))
     }
 }
