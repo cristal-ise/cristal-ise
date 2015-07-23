@@ -94,9 +94,14 @@ public class PropertyTableModel extends AbstractTableModel {
             String rowName = sortedNameList.get(rowIndex);
             if (colIndex == 1) {
 	            Class<? extends Object> oldElement = sourceMap.get(rowName).getClass();
+	            // Correct incorrectly typed values - Booleans seem to be ok for now, but Integers started coming back as String in Java 7
 	            if (oldElement == Double.class && value.getClass() == String.class)
 	        		try {
 	        			value = Double.valueOf((String)value);
+	        		} catch (Exception ex) { }
+	            if (oldElement == Integer.class && value.getClass() == String.class)
+	        		try {
+	        			value = Integer.valueOf((String)value);
 	        		} catch (Exception ex) { }
 	            if (value.getClass() != oldElement)
 	            	JOptionPane.showMessageDialog(null, "This property should contain a "+oldElement.getName()+" not a "+value.getClass().getName(), "Incorrect datatype", JOptionPane.ERROR_MESSAGE);
