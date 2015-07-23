@@ -61,7 +61,7 @@ abstract class InMemoryLookup implements Lookup {
      * @return
      */
     private Path retrievePath(String key) throws ObjectNotFoundException {
-        Logger.msg(5, "InMemoryLookup.retrievePath() - key: $key");
+        Logger.msg(5, "InMemoryLookup.retrievePath() - key: $key")
 
         Path p = (Path) cache[key]
         
@@ -76,7 +76,7 @@ abstract class InMemoryLookup implements Lookup {
      */
     @Override
     public void open(Authenticator user) {
-        Logger.msg(8, "InMemoryLookup.open(user) - Do nothing");
+        Logger.msg(8, "InMemoryLookup.open(user) - Do nothing")
     }
 
     /**
@@ -99,27 +99,27 @@ abstract class InMemoryLookup implements Lookup {
      */
     @Override
     public ItemPath getItemPath(String sysKey) throws InvalidItemPathException, ObjectNotFoundException {
-        return (ItemPath) retrievePath(new ItemPath(sysKey).string);
+        return (ItemPath) retrievePath(new ItemPath(sysKey).string)
     }
 
     @Override
     public AgentPath getAgentPath(String agentName) throws ObjectNotFoundException {
-        Logger.msg(5, "InMemoryLookup.getAgentPath() - agentName: $agentName");
+        Logger.msg(5, "InMemoryLookup.getAgentPath() - agentName: $agentName")
         Iterator<Path> iter = search(new DomainPath("entity"), agentName)
-        
+
         def pList = cache.values().findAll {it instanceof AgentPath && ((AgentPath)it).agentName ==  agentName}
 
         if     (pList.size() == 0) throw new ObjectNotFoundException("$agentName")
         else if(pList.size() > 1)  throw new ObjectNotFoundException("Umbiguous result for agent '$agentName'")
-        
-        Logger.msg(5, "InMemoryLookup.getAgentPath() - agentName '$agentName' was found");
+
+        Logger.msg(5, "InMemoryLookup.getAgentPath() - agentName '$agentName' was found")
 
         return (AgentPath)pList[0]
     }
 
     @Override
     public RolePath getRolePath(String roleName) throws ObjectNotFoundException {
-        Logger.msg(5, "InMemoryLookup.getRolePath() - roleName:$roleName");
+        Logger.msg(5, "InMemoryLookup.getRolePath() - roleName:$roleName")
         Iterator<Path> iter = search(new RolePath(), roleName)
         if(iter.hasNext()) {
             RolePath role = (RolePath)iter.next()
@@ -140,7 +140,7 @@ abstract class InMemoryLookup implements Lookup {
     @Override
     public ItemPath resolvePath(DomainPath domainPath) throws InvalidItemPathException, ObjectNotFoundException {
         Logger.msg(5, "InMemoryLookup.resolvePath() - domainPath: ${domainPath.UUID}")
-        return ((DomainPath) retrievePath(domainPath.string)).getItemPath();
+        return ((DomainPath) retrievePath(domainPath.string)).getItemPath()
     }
 
     /**
@@ -152,9 +152,8 @@ abstract class InMemoryLookup implements Lookup {
      */
     @Override
     public String getIOR(Path path) throws ObjectNotFoundException {
-        Logger.msg(5, "InMemoryLookup.getIOR() - Path: $path.string");
-
-        return retrievePath(path.string).IOR.toString();
+        Logger.msg(5, "InMemoryLookup.getIOR() - Path: $path")
+        return retrievePath(path.string).IOR.toString()
     }
 
     /**
@@ -165,7 +164,7 @@ abstract class InMemoryLookup implements Lookup {
      */
     @Override
     public boolean exists(Path path) {
-        Logger.msg(5, "InMemoryLookup.exists() - Path: $path.string");
+        Logger.msg(5, "InMemoryLookup.exists() - Path: $path");
 
         //returns true if any of the keys in the map starts with the path
 //        return cache.keySet().find ({it =~ "^$path.string"})
@@ -174,12 +173,8 @@ abstract class InMemoryLookup implements Lookup {
 
     @Override
     public Iterator<Path> getChildren(Path path) {
-        Logger.msg(5, "InMemoryLookup.getChildren() - Path: $path.string");
-
-        // TODO: Implement search
-        Logger.warning("InMemoryLookup.getChildren() - This implemetation ALWAYS returns empty result!");
-        
-        return getEmptyPathIter();
+        Logger.msg(5, "InMemoryLookup.getChildren() - Path: $path")
+        return cache.values().findAll { ((Path)it).string =~ /^$path.string\/\w+$/ }.iterator()
     }
 
     @Override

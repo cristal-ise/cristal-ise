@@ -42,4 +42,11 @@ class LookupSearchTests extends LookupTestBase {
 
         CompareUtils.comparePathLists(expected, lookup.search(new DomainPath("empty"), "uuid0"))
     }
+
+    @Test
+    public void getChildren() {
+        CompareUtils.comparePathLists(
+            [new DomainPath("empty/nothing"),  new DomainPath("empty/something")], 
+            lookup.getChildren(new DomainPath("empty")))
+    }
 }
