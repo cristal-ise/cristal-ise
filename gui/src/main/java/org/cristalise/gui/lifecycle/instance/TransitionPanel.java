@@ -185,13 +185,18 @@ public class TransitionPanel extends SelectedVertexPanel implements ActionListen
 
     @Override
 	public void actionPerformed(ActionEvent e) {
-    	if (e.getSource() == active && mCurrentAct != null) {
-    		mCurrentAct.active = active.isSelected();
-    		return;
+    	if (active.isEnabled()) {
+    		if (e.getSource() == active && mCurrentAct != null) {
+    			mCurrentAct.active = active.isSelected();
+    			return;
+    		}
     	}
-    	if (e.getSource() == states && mCurrentAct != null) {
-    		mCurrentAct.setState(states.getSelectedIndex());
-    		return;
+        if (states.isEnabled()) {    		
+    		if (e.getSource() == states && mCurrentAct != null) {
+    			Logger.msg(1, "Setting state of "+mCurrentAct.getName()+" to "+states.getSelectedItem());
+    			mCurrentAct.setState(states.getSelectedIndex());
+    			return;
+    		}
     	}
     	if (!e.getActionCommand().startsWith("Trans:")) return;
         int transition = Integer.parseInt(e.getActionCommand().substring(6));
@@ -216,12 +221,12 @@ public class TransitionPanel extends SelectedVertexPanel implements ActionListen
 
     @Override
 	public void clear() {
+    	states.setEnabled(false);
+        active.setEnabled(false);
     	mCurrentAct = null;
         transBox.removeAll();
         status.setText("No activity selected");
-        states.setEnabled(false);
         active.setSelected(false);
-        active.setEnabled(false);
         revalidate();
     }
 
