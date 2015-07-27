@@ -70,6 +70,7 @@ public class Console extends JFrame {
 
     public Console(String host, int port) {
         super("Cristal Console - "+host);
+        this.setDefaultCloseOperation(DISPOSE_ON_CLOSE);
         GridBagLayout gridbag = new GridBagLayout();
         getContentPane().setLayout(gridbag);
         output = new JTextArea("Type 'help' for help. . .\n");

@@ -53,6 +53,7 @@ public class CollectionHistoryWindow extends JFrame  {
 
 	public CollectionHistoryWindow(ItemProxy item, Aggregation coll) throws HeadlessException {
 		super("Collection History");
+		this.setDefaultCloseOperation(DISPOSE_ON_CLOSE);
 		historyModel = new HistoryTableModel(item, coll);
 		historyTable = new JTable(historyModel);
 		this.getContentPane().add(new JScrollPane(historyTable));

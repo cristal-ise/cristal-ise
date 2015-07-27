@@ -154,6 +154,7 @@ public class MainFrame extends javax.swing.JFrame {
         //preload loading image
         ImageLoader.findImage("loading.gif");
         // close listener
+        setDefaultCloseOperation(DISPOSE_ON_CLOSE);
         addWindowListener(new java.awt.event.WindowAdapter() {
             @Override
 			public void windowClosing(java.awt.event.WindowEvent evt) {
@@ -260,12 +261,6 @@ public class MainFrame extends javax.swing.JFrame {
         }
         this.setVisible(false);
         AbstractMain.shutdown(0);
-		// allow waiting threads time to quit
-        try {
-            Thread.sleep(2000);
-        } catch (InterruptedException e) {
-        }
-        System.exit(0);
     }
 
     public void toggleTree() {

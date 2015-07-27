@@ -66,17 +66,10 @@ class OutcomeEditor extends JFrame implements ActionListener {
 
 
         this.setTitle("Outcome Editor");
+        this.setDefaultCloseOperation(DISPOSE_ON_CLOSE);
         GridBagLayout gridbag = new GridBagLayout();
         getContentPane().setLayout(gridbag);
 
-        addWindowListener(
-            new java.awt.event.WindowAdapter() {
-                @Override
-				public void windowClosing(java.awt.event.WindowEvent evt) {
-                    System.exit(0);
-                }
-            }
-        );
         // select files if url is empty
 
         if (schemaFile == null) { // prompt for schema
