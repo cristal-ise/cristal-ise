@@ -169,13 +169,13 @@ class InMemoryLookupManager extends InMemoryLookup implements LookupManager {
 
     @Override
     public void setAgentPassword(AgentPath agent, String newPassword) throws ObjectNotFoundException, ObjectCannotBeUpdated, NoSuchAlgorithmException {
-        Logger.warning("InMemoryLookupManager.setAgentPassword() - AgentPath: $agent - This implemetation does NOTHING");
-        // TODO Auto-generated method stub
+        Logger.msg(5, "InMemoryLookupManager.setAgentPassword() - AgentPath: $agent");
+        ((AgentPath)retrievePath(agent.string)).setPassword(newPassword)
     }
 
     @Override
     public void setHasJobList(RolePath role, boolean hasJobList) throws ObjectNotFoundException, ObjectCannotBeUpdated {
-        Logger.warning("InMemoryLookupManager.setAgentPassword() - RolePath: $role - This implemetation does NOTHING");
-        // TODO Auto-generated method stub
+        Logger.msg(5, "InMemoryLookupManager.setAgentPassword() - RolePath: $role, hasJobList: $hasJobList");
+        ((RolePath)retrievePath(role.string)).setHasJobList(hasJobList)
     }
 }

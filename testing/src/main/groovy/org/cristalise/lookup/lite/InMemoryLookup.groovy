@@ -60,7 +60,7 @@ abstract class InMemoryLookup implements Lookup {
      * @param key
      * @return
      */
-    private Path retrievePath(String key) throws ObjectNotFoundException {
+    protected Path retrievePath(String key) throws ObjectNotFoundException {
         Logger.msg(5, "InMemoryLookup.retrievePath() - key: $key")
 
         Path p = (Path) cache[key]
@@ -194,8 +194,8 @@ abstract class InMemoryLookup implements Lookup {
 
     @Override
     public Iterator<Path> search(Path start, PropertyDescriptionList props) {
-        // TODO: Implement search(Path,PropList)
-        Logger.warning("InMemoryLookup.search() - Path: $start, # of props: $props.list.size - This implemetation ALWAYS returns empty result!");
+        // TODO: Implement search(Path,PropDescList)
+        Logger.warning("InMemoryLookup.search() - Path: $start, # of propDescList: $props.list.size - This implemetation ALWAYS returns empty result!");
         return getEmptyPathIter();
     }
 
