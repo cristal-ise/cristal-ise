@@ -53,6 +53,8 @@ class InMemoryLookupManager extends InMemoryLookup implements LookupManager {
                 createRole(newPath)
             }
             else if(newPath instanceof DomainPath) {
+                cache[newPath.string] = newPath
+
                 Logger.msg(8, "InMemoryLookupManager.add() + Adding each DomainPath element")
                 GString sPath
                 newPath.getPath().each {

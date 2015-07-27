@@ -22,11 +22,11 @@ class LookupSearchTests extends LookupTestBase {
     public void setUp() throws Exception {
         super.setUp()
 
-        lookup.add new ItemPath(uuid0.toString())
-        lookup.add new AgentPath(new ItemPath(uuid1.toString()), "Jim")
-        lookup.add new DomainPath("empty/nothing")
-        lookup.add new DomainPath("empty/something/uuid0", lookup.getItemPath(uuid0.toString()))
-        lookup.add new RolePath()
+        lookup.add( new ItemPath(uuid0.toString()) )
+        lookup.add( new AgentPath(new ItemPath(uuid1.toString()), "Jim") )
+        lookup.add( new DomainPath("empty/nothing") )
+        lookup.add( new DomainPath("empty/something/uuid0", (ItemPath)lookup.getItemPath(uuid0.toString())) )
+        lookup.add( new RolePath() )
     }
 
     @Test
@@ -48,5 +48,10 @@ class LookupSearchTests extends LookupTestBase {
         CompareUtils.comparePathLists(
             [new DomainPath("empty/nothing"),  new DomainPath("empty/something")], 
             lookup.getChildren(new DomainPath("empty")))
+    }
+    
+    @Test
+    public void resolvePath() {
+        assert lookup.resolvePath(new DomainPath("empty/something/uuid0"))
     }
 }

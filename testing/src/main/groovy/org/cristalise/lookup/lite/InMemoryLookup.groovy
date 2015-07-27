@@ -139,8 +139,10 @@ abstract class InMemoryLookup implements Lookup {
      */
     @Override
     public ItemPath resolvePath(DomainPath domainPath) throws InvalidItemPathException, ObjectNotFoundException {
-        Logger.msg(5, "InMemoryLookup.resolvePath() - domainPath: ${domainPath.UUID}")
-        return ((DomainPath) retrievePath(domainPath.string)).getItemPath()
+        Logger.msg(5, "InMemoryLookup.resolvePath() - domainPath: $domainPath")
+        DomainPath dp = (DomainPath) retrievePath(domainPath.string)
+        return dp.getItemPath()
+//        return null
     }
 
     /**
