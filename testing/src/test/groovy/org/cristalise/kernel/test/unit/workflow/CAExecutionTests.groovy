@@ -3,49 +3,51 @@ package org.cristalise.kernel.test.unit.workflow;
 import static org.junit.Assert.*
 import groovy.transform.CompileStatic
 
+import org.cristalise.kernel.common.InvalidTransitionException
 import org.cristalise.kernel.lifecycle.instance.Activity
 import org.cristalise.kernel.lifecycle.instance.CompositeActivity
 import org.cristalise.kernel.lifecycle.instance.WfVertex
 import org.cristalise.kernel.lifecycle.instance.Workflow
+import org.cristalise.kernel.lifecycle.instance.WfVertex.Types
 import org.cristalise.kernel.lifecycle.instance.predefined.server.ServerPredefinedStepContainer
 import org.cristalise.kernel.lifecycle.instance.stateMachine.StateMachine
+import org.cristalise.kernel.lifecycle.instance.stateMachine.Transition
 import org.cristalise.kernel.lookup.AgentPath
 import org.cristalise.kernel.lookup.ItemPath
-import org.cristalise.kernel.process.AbstractMain
 import org.cristalise.kernel.process.Gateway
-import org.junit.After
 import org.junit.Before
 import org.junit.Test
 
 
 @CompileStatic
-class CAExecutionTests {
+class CAExecutionTests extends WorkflowTestBase {
 
     private ItemPath itemPath = null
     private AgentPath agentPath = null
 
-    private StateMachine eaStateMachine = null
+    private StateMachine eaSM = null
+    private StateMachine caSM = null
+    
+    Workflow          wf     = null
+    CompositeActivity rootCA = null
+    Activity          ea0    = null
+    Activity          ea1    = null
 
     @Before
     public void init() {
-        String[] args = ['-logLevel', '8', '-config', 'src/test/conf/testServer.conf', '-connect', 'src/test/conf/testInMemory.clc']
-        Gateway.init(AbstractMain.readC2KArgs(args))
-        Gateway.connect()
-        
-        eaStateMachine = (StateMachine)Gateway.getMarshaller().unmarshall(
-             Gateway.getResource().getTextResource(null, "boot/SM/Default.xml"));
+        super.init()
+
+        eaSM = (StateMachine)Gateway.getMarshaller().unmarshall(Gateway.getResource().getTextResource(null, "boot/SM/Default.xml"));
+        caSM = (StateMachine)Gateway.getMarshaller().unmarshall(Gateway.getResource().getTextResource(null, "boot/SM/CompositeActivity.xml"));
 
         itemPath  = new ItemPath()
         agentPath = new AgentPath(new ItemPath(), "dev")
     }
 
-    @After
-    public void tearDown() {
-        Gateway.close()
-    }
-
-    private int eaTransID(String name) {
-        return eaStateMachine.getTransitions().find{ it.name == name }.id
+    private int getTransID(StateMachine sm, String name) {
+        Transition t = sm.getTransitions().find{ it.name == name }
+        assert t, "Transition name '$name' is invalid for StateMachine $sm.name"
+        return t.id
     }
 
     private void checkActStatus(Activity act, Map status) {
@@ -54,112 +56,107 @@ class CAExecutionTests {
         assert act.getActive() == status.active
     }
 
-    private Workflow createWf(List wfList) {
-        CompositeActivity rootCA = new CompositeActivity()
-        Workflow wf = new Workflow(rootCA, new ServerPredefinedStepContainer())
-        
+    private void createSequentialWf(List wfList) {
+        rootCA = new CompositeActivity()
+        wf = new Workflow(rootCA, new ServerPredefinedStepContainer())
+
         boolean first = true;
         WfVertex prevVertex = null
 
         wfList.each { type ->
             WfVertex currentVertex = rootCA.newChild((WfVertex.Types)type, "", first, null)
-            if(prevVertex) {
-                prevVertex.addNext(currentVertex)
-            }
+            prevVertex?.addNext(currentVertex)
             first = false
             prevVertex = currentVertex
         }
 
+        ea0 = (Activity)wf.search("workflow/domain/0")
+        ea1 = (Activity)wf.search("workflow/domain/1") //this migth return null
+
+        checkActStatus(rootCA, [state: "Waiting", active: false])
+        checkActStatus(ea0,    [state: "Waiting", active: false])
+        if(ea1) checkActStatus(ea1, [state: "Waiting", active: false])
+
         wf.initialise(itemPath, agentPath)
+
+        checkActStatus(rootCA, [state: "Started", active: true])
+        checkActStatus(ea0,    [state: "Waiting", active: true])
+        if(ea1) checkActStatus(ea1, [state: "Waiting", active: false])
+    }
+
+    private void requestAction(Activity act, String trans) {
+        int transID = -1
+
+        if(act instanceof CompositeActivity) transID = getTransID(caSM, trans)
+        else                                 transID = getTransID(eaSM, trans)
+
+        wf.requestAction(agentPath, act.path, itemPath, transID, "")
+    }
+
+    @Test
+    public void singleAct_Done() {
+        createSequentialWf( [Types.Atomic] )
+
+        requestAction(ea0, "Done")
         
-        return wf
+        checkActStatus(rootCA, [state: "Started",  active: true])
+        checkActStatus(ea0,    [state: "Finished", active: true])
+
+        requestAction(rootCA, "Complete")
+
+        checkActStatus(rootCA, [state: "Finished", active: false])
+        checkActStatus(ea0,    [state: "Finished", active: true])
     }
 
     @Test
-    public void eaRun_Done_SingleAct() {
-        Workflow wf = createWf( [WfVertex.Types.Atomic] )
+    public void singleAct_StartFinish() {
+        createSequentialWf( [Types.Atomic] )
 
-        CompositeActivity rootCA = (CompositeActivity)wf.search("workflow/domain")
+        requestAction( ea0, "Start")
 
-        checkActStatus(rootCA,  [state: "Waiting", active: true])
+        checkActStatus(rootCA, [state: "Started", active: true])
+        checkActStatus(ea0,    [state: "Started", active: true])
 
-        Activity ea0 = (Activity)wf.search("workflow/domain/0")
+        requestAction( ea0, "Complete" )
 
-        checkActStatus(ea0, [state: "Waiting", active: true])
+        checkActStatus(rootCA, [state: "Started",  active: true])
+        checkActStatus(ea0,    [state: "Finished", active: true])
 
-        wf.requestAction(agentPath, "workflow/domain/0", itemPath, eaTransID("Done"), "")
+        requestAction(rootCA, "Complete")
 
-        checkActStatus(ea0, [state: "Finished", active: true])
-    }
-
-    @Test
-    public void eaRun_StartFinish_SingleAct() {
-        Workflow wf = createWf( [WfVertex.Types.Atomic] )
-
-        CompositeActivity rootCA = (CompositeActivity)wf.search("workflow/domain")
-
-        checkActStatus(rootCA,  [state: "Waiting", active: true])
-
-        Activity ea0 = (Activity)wf.search("workflow/domain/0")
-
-        checkActStatus(ea0, [state: "Waiting", active: true])
-
-        wf.requestAction(agentPath, "workflow/domain/0", itemPath, eaTransID("Start"), "")
-
-        checkActStatus(ea0, [state: "Started", active: true])
-
-        wf.requestAction(agentPath, "workflow/domain/0", itemPath, eaTransID("Complete"), "")
-
-        checkActStatus(ea0, [state: "Finished", active: true])
+        checkActStatus(rootCA, [state: "Finished", active: false])
+        checkActStatus(ea0,    [state: "Finished", active: true])
     }
 
 
     @Test
-    public void eaRun2Acts() {
-        Workflow wf = createWf( [WfVertex.Types.Atomic, WfVertex.Types.Atomic] )
+    public void twoActs_Done() {
+        createSequentialWf( [Types.Atomic, Types.Atomic] )
 
-        CompositeActivity rootCA = (CompositeActivity)wf.search("workflow/domain")
+        requestAction(ea0, "Done")
 
-        checkActStatus(rootCA,  [state: "Waiting", active: true])
-
-        Activity ea0 = (Activity)wf.search("workflow/domain/0")
-        Activity ea1 = (Activity)wf.search("workflow/domain/1")
-
-        checkActStatus(rootCA,  [state: "Waiting", active: true])
-        checkActStatus(ea0,     [state: "Waiting", active: true])
-        checkActStatus(ea1,     [state: "Waiting", active: false])
-        
-        wf.requestAction(agentPath, "workflow/domain/0", itemPath, eaTransID("Done"), "")
-
-        checkActStatus(rootCA,  [state: "Waiting",  active: true])
+        checkActStatus(rootCA,  [state: "Started",  active: true])
         checkActStatus(ea0,     [state: "Finished", active: false])
         checkActStatus(ea1,     [state: "Waiting",  active: true])
+
+        requestAction(ea1, "Done")
+
+        checkActStatus(rootCA,  [state: "Started",  active: true])
+        checkActStatus(ea0,     [state: "Finished", active: false])
+        checkActStatus(ea1,     [state: "Finished", active: true])
+        
+        requestAction(rootCA, "Complete")
+
+        checkActStatus(rootCA,  [state: "Finished", active: false])
+        checkActStatus(ea0,     [state: "Finished", active: false])
+        checkActStatus(ea1,     [state: "Finished", active: true])
     }
 
-    
-    @Test
-    public void simpleCARun() {
-        CompositeActivity ca = new CompositeActivity()
-        Activity act = new Activity()
 
-        ca.addChild(act, null)
-        ca.getChildrenGraphModel().setStartVertexId(act.getID())
-        
-        Workflow wf = new Workflow(ca, new ServerPredefinedStepContainer())
+    @Test(expected = InvalidTransitionException.class)
+    public void singleAct_OnlyCompleteCA() {
+        createSequentialWf( [Types.Atomic] )
 
-        checkActStatus(ca,  [state: "Waiting", active: false])
-        checkActStatus(act, [state: "Waiting", active: false])
-
-        wf.initialise(itemPath, agentPath)
-
-        checkActStatus(ca,  [state: "Waiting", active: true])
-//        checkActStatus(act, [state: "Waiting", active: false]) //act should be inactive before CA is requested
-        checkActStatus(act, [state: "Waiting", active: true])
-
-//        ca.request(agentPath, itemPath, 0, "")
-        wf.requestAction(agentPath, "workflow/domain", itemPath, 0, "")
-
-        checkActStatus(ca,  [state: "Started", active: true])
-        checkActStatus(act, [state: "Waiting", active: true])
+        requestAction(rootCA, "Complete")
     }
 }

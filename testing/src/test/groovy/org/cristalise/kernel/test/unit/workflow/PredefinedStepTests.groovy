@@ -12,7 +12,7 @@ import org.junit.Ignore
 import org.junit.Test
 
 @CompileStatic
-class PredefinedStepTests {
+class PredefinedStepTests extends WorkflowTestBase {
 
     @Before
     public void init() {
