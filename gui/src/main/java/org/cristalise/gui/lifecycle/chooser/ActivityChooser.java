@@ -75,6 +75,7 @@ public class ActivityChooser extends JFrame
     public ActivityChooser(String message, String title, Image img, WorkflowDialogue parent, HashMap<String, Object> hashmap)
     {
         super(title);
+        this.setDefaultCloseOperation(DISPOSE_ON_CLOSE);
         mMessage = message;
         img = ImageLoader.findImage("graph/newvertex_large.png").getImage();
         setIconImage(img);

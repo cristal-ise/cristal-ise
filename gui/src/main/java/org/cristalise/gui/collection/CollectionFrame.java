@@ -42,6 +42,7 @@ public class CollectionFrame extends JFrame
 	public CollectionFrame()
 	{
 		createLayout();
+		this.setDefaultCloseOperation(DISPOSE_ON_CLOSE);
 	}
 
     public void setAggregation(Aggregation aggregation)

@@ -48,6 +48,7 @@ import javax.swing.JTextField;
 import javax.swing.border.EmptyBorder;
 
 import org.cristalise.kernel.entity.proxy.AgentProxy;
+import org.cristalise.kernel.process.AbstractMain;
 import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.utils.Logger;
 
@@ -134,7 +135,11 @@ public  class LoginBox extends JFrame {
     }
     if (!logged) {
       Logger.msg("Login attempt "+loginAttemptNumber+" of "+maxNumberLogon+" failed");
-      if (loginAttemptNumber>=maxNumberLogon) Logger.die("Login failure limit reached");
+      if (loginAttemptNumber>=maxNumberLogon)  {
+    	  dispose();
+    	  Logger.error("Login failure limit reached");
+    	  AbstractMain.shutdown(1);
+      }
       if (!errorSet) this.errorLabel.setText("Please enter username & password");
 //      int posx=xMov+120;
 //      int posy=yMov;
@@ -155,6 +160,7 @@ public  class LoginBox extends JFrame {
       this.setVisible(false);
       mainFrameFather.mainFrameShow();
       Logger.msg(1, "Login attempt "+loginAttemptNumber+" of "+maxNumberLogon+" succeeded.");
+      dispose();
     }
   }
 
@@ -162,7 +168,13 @@ public  class LoginBox extends JFrame {
   private void jbInit() throws Exception {
 
     //this.getContentPane().setBackground(SystemColor.control);
-    this.setDefaultCloseOperation(EXIT_ON_CLOSE);
+    this.setDefaultCloseOperation(DISPOSE_ON_CLOSE);
+    addWindowListener(new java.awt.event.WindowAdapter() {
+        @Override
+		public void windowClosing(java.awt.event.WindowEvent evt) {
+        	AbstractMain.shutdown(0);
+        }
+    });
     this.setEnabled(true);
     this.setLocale(java.util.Locale.getDefault());
     this.setResizable(false);
@@ -282,7 +294,9 @@ public  class LoginBox extends JFrame {
   }
 
   void Cancel_actionPerformed(ActionEvent e) {
-    Logger.die("User cancelled login.");
+	dispose();
+    Logger.msg("User cancelled login.");
+    AbstractMain.shutdown(0);
   }
 
   void OK_actionPerformed(ActionEvent e) {
