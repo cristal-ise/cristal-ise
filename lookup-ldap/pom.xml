@@ -4,8 +4,8 @@
 	<groupId>org.cristalise</groupId>
 	<artifactId>cristalise-ldap</artifactId>
 	<version>3.1-SNAPSHOT</version>
-	<name>cristalise-ldap</name>
-	<description>CRISTAL Module</description>
+	<name>CristalLDAP</name>
+	<description>CRISTAL LDAP Lookup, Authentication and Property Storage Module</description>
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 	</properties>
