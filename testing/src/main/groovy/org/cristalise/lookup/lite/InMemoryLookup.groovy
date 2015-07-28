@@ -167,9 +167,6 @@ abstract class InMemoryLookup implements Lookup {
     @Override
     public boolean exists(Path path) {
         Logger.msg(5, "InMemoryLookup.exists() - Path: $path");
-
-        //returns true if any of the keys in the map starts with the path
-//        return cache.keySet().find ({it =~ "^$path.string"})
         return cache.keySet().contains(path.string)
     }
 
@@ -209,11 +206,11 @@ abstract class InMemoryLookup implements Lookup {
     @Override
     public AgentPath[] getAgents(RolePath role) throws ObjectNotFoundException {
         Logger.msg(5, "InMemoryLookup.getAgents() - RolePath: $role");
-        List agents = role2AgentsCache[retrievePath(role.string).string]
+        List<String> agents = role2AgentsCache[retrievePath(role.string).string]
 
         if(agents) {
             AgentPath[] retVal = new AgentPath[agents.size()]
-            agents.eachWithIndex {key, i -> retVal[i] = (AgentPath) retrievePath(key) }
+            agents.eachWithIndex { key, i -> retVal[i] = (AgentPath) retrievePath(key) }
             return retVal
         }
         
