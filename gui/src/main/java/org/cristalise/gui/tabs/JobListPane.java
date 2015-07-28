@@ -126,6 +126,7 @@ public class JobListPane extends ItemTabPane implements ActionListener, ProxyObs
         Thread.currentThread().setName("Joblist Pane Builder");
 		try {
             joblist = (JobList)sourceItem.getItem().getObject(ClusterStorage.JOB);
+            joblist.activate();
             sourceItem.getItem().subscribe(new MemberSubscription<Job>(this, ClusterStorage.JOB, false));
 		} catch (ObjectNotFoundException e) {
 			Logger.error(e);

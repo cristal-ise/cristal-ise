@@ -135,7 +135,8 @@ public class HistoryPane extends ItemTabPane implements ActionListener, ProxyObs
         MainFrame.progress.startBouncing("Loading history");
 		try {
 			history = (History)sourceItem.getItem().getObject(ClusterStorage.HISTORY);
-            sourceItem.getItem().subscribe(new MemberSubscription<Event>(this, ClusterStorage.HISTORY, true));
+			history.activate();
+            sourceItem.getItem().subscribe(new MemberSubscription<Event>(this, ClusterStorage.HISTORY, false));
 		} catch (ObjectNotFoundException e) {
 			Logger.error(e);
 		}
@@ -151,6 +152,7 @@ public class HistoryPane extends ItemTabPane implements ActionListener, ProxyObs
 		if (lastEvent < currentSize) currentSize = lastEvent + 1;
 		Logger.msg(5, "HistoryPane.run() - init table start "+firstEvent+" for "+currentSize);
 		model.setView(firstEvent, currentSize);
+		MainFrame.progress.stopBouncing("History loaded");
     }
 
     @Override
