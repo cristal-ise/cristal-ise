@@ -64,7 +64,7 @@ task stopInMemoryServer(type: KillProcessTask)
 
 
 //check task fails the build if there are failing integration tests.
-check.dependsOn integrationTest
+//check.dependsOn integrationTest
 
 //unit tests are run before our integration tests
 integrationTest.mustRunAfter test
@@ -91,12 +91,14 @@ dependencies {
     compile 'org.codehaus.groovy:groovy-all:2.4.3'
 
     compile group: 'org.cristalise', name: 'cristalise-kernel', version:'3.1-SNAPSHOT'
-//    compile group: 'org.cristalise', name: 'cristalise-xmldb',  version:'1.0'
-    compile group: 'org.cristalise', name: 'cristalise-ldap',   version:'3.1-SNAPSHOT'
+//    compile(group: 'org.cristalise', name: 'cristalise-dev',   version: '3.1-SNAPSHOT') { exclude group: 'org.cristalise' }
+//    compile group: 'org.cristalise', name: 'cristalise-xmldb', version:'1.0'
+//    compile group: 'org.cristalise', name: 'cristalise-ldap',  version:'3.1-SNAPSHOT'
 
     testCompile 'commons-lang:commons-lang:2.6'
-    testCompile 'org.spockframework:spock-core:0.7-groovy-2.0'
+    testCompile 'org.spockframework:spock-core:1.0-groovy-2.4'
     testCompile 'junit:junit:4.11'
 
+    //example to use the new integrationTest test set
     //integrationTestCompile 'org.assertj:assertj-core:3.0.0'
 }
