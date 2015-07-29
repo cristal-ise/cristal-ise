@@ -11,6 +11,7 @@
 	<Imports>
 		<Resource name="NewDevObjectDef" version="0" type="OD">boot/OD/NewDevObjectDef.xsd</Resource>
 		<Resource name="ChooseWorkflow" version="0" type="OD">boot/OD/ChooseWorkflow.xsd</Resource>
+		<Resource name="NewCollection" version="0" type="OD">boot/OD/NewCollection.xsd</Resource>
 		<Resource name="CreateNewLocalObjectDef" version="0" type="EA">boot/EA/CreateNewLocalObjectDef.xml</Resource>
 		<Resource name="EditPropertyDescription" version="0" type="EA">boot/EA/EditPropertyDescription.xml</Resource>
 		<Resource name="CreateItem" version="0" type="EA">boot/EA/CreateItem.xml</Resource>
@@ -20,6 +21,7 @@
 		<Resource name="SetLastNumberedVersionToLast" version="0" type="SC">boot/SC/SetLastNumberedVersionToLast.xml</Resource>
 		<Resource name="MoveLatestVersionToLast" version="0" type="EA">boot/EA/MoveLatestVersionToLast.xml</Resource>		
 		<Resource name="EditDefinition" version="0" type="EA">boot/EA/EditDefinition.xml</Resource>
+		<Resource name="DefineNewCollection" version="0" type="EA">boot/EA/DefineNewCollection.xml</Resource>
 		<Resource name="ManageCompositeActDef" version="0" type="CA">boot/CA/ManageCompositeActDef.xml</Resource>
 		<Resource name="ManageElementaryActDef" version="0" type="CA">boot/CA/ManageElementaryActDef.xml</Resource>
 		<Resource name="ManageScript" version="0" type="CA">boot/CA/ManageScript.xml</Resource>
@@ -36,6 +38,7 @@
 		<Resource name="LocalObjectDefCreator" version="0" type="SC">boot/SC/LocalObjectDefCreator.xml</Resource>
 		<Resource name="InstantiateItem" version="0" type="SC">boot/SC/InstantiateItem.xml</Resource>
 		<Resource name="SetWorkflow" version="0" type="SC">boot/SC/SetWorkflow.xml</Resource>
+		<Resource name="CollDescCreator" version="0" type="SC">boot/SC/CollDescCreator.xml</Resource>
 		<Resource name="ModuleFactory" version="0" type="CA">boot/CA/ModuleFactory.xml</Resource>
 		<Resource name="ModuleExportPath" version="0" type="OD">boot/OD/ModuleExportPath.xsd</Resource>
 		<Resource name="ExportModule" version="0" type="EA">boot/EA/ExportModule.xml</Resource>
