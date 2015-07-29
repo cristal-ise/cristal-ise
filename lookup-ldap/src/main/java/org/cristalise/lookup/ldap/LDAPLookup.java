@@ -8,6 +8,7 @@ package org.cristalise.lookup.ldap;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.Stack;
 import java.util.StringTokenizer;
 
 import org.cristalise.kernel.common.ObjectAlreadyExistsException;
@@ -27,7 +28,6 @@ import org.cristalise.kernel.property.Property;
 import org.cristalise.kernel.property.PropertyDescription;
 import org.cristalise.kernel.property.PropertyDescriptionList;
 import org.cristalise.kernel.utils.Logger;
-import org.omg.CORBA.Object;
 
 import com.novell.ldap.LDAPAttribute;
 import com.novell.ldap.LDAPAttributeSet;
@@ -55,7 +55,7 @@ public class LDAPLookup implements LookupManager{
 	protected LDAPPropertyManager mPropManager;
 	protected LDAPProperties ldapProps;
 
-    private String mGlobalPath, mRootPath, mLocalPath, mRolePath, mItemTypeRoot, mDomainTypeRoot;
+    private String mGlobalPath, mRootPath, mLocalPath, mRoleTypeRoot, mItemTypeRoot, mDomainTypeRoot;
 
     /**
      * 
@@ -79,7 +79,7 @@ public class LDAPLookup implements LookupManager{
 
         mItemTypeRoot = "cn=entity,"+props.mLocalPath;
         mDomainTypeRoot = "cn=domain,"+props.mLocalPath;
-        mRolePath = "cn=agent,"+mDomainTypeRoot; 
+        mRoleTypeRoot = "cn=role,"+props.mLocalPath;
     }
     
     /**
@@ -95,6 +95,77 @@ public class LDAPLookup implements LookupManager{
         
     	mLDAPAuth = (LDAPAuthManager)auth;
       	mPropManager = new LDAPPropertyManager(this, mLDAPAuth);
+      	
+    }
+
+    private void migrateOldRoles() {
+    	//search the mDomainPath tree uniqueMember=userDN
+    	//filter = objectclass=cristalrole AND uniqueMember=userDN
+        
+        String oldAgentPath = "cn=agent,"+mDomainTypeRoot;
+        LDAPSearchConstraints searchCons = new LDAPSearchConstraints();
+        searchCons.setBatchSize(0);
+        searchCons.setDereference(LDAPSearchConstraints.DEREF_NEVER );
+        searchCons.setMaxResults(0);
+        String[] attr = { LDAPConnection.ALL_USER_ATTRS };
+        try {
+			LDAPSearchResults res = mLDAPAuth.getAuthObject().search(oldAgentPath, LDAPConnection.SCOPE_SUB,
+					"(objectclass=cristalrole)", attr, false, searchCons);
+			Stack<LDAPEntry> toDelete = new Stack<LDAPEntry>();
+			while (res.hasMore()) {
+				LDAPEntry role = res.next();
+				toDelete.push(role);
+				String choppedRole = role.getDN().substring(0, role.getDN().lastIndexOf(oldAgentPath));
+				if (choppedRole.length() == 0) continue;
+				String[] roleComponents = choppedRole.split(",");
+				String[] rolePathStr = new String[roleComponents.length];
+				for (int i=0; i<roleComponents.length; i++) {
+					Logger.msg(i+": "+roleComponents[i]);
+					if (roleComponents[i].matches("^cn=.*"))
+						rolePathStr[roleComponents.length-i-1] = roleComponents[i].substring(3);
+				}
+				boolean hasJobList = role.getAttribute("jobList").getStringValue().equals("TRUE");
+				RolePath newRole = new RolePath(rolePathStr, hasJobList);
+				Logger.msg("Migrating role: "+newRole.toString());
+				try {
+					createRole(newRole);
+				} catch (ObjectAlreadyExistsException e1) {
+					Logger.warning("Role "+newRole.toString()+" already exists");
+				} catch (ObjectCannotBeUpdated e1) {
+					Logger.die("Could not migrate role "+newRole);
+				}
+
+				LDAPAttribute memberAttr = role.getAttribute("uniqueMember");
+				if (memberAttr!=null) {
+					String[] members = memberAttr.getStringValueArray();
+					for (String member : members) {
+						String uuid = member.substring(3,  member.indexOf(','));
+						AgentPath agent;
+						try {
+							ItemPath item = new ItemPath(uuid);
+							agent = new AgentPath(item);
+							if (!agent.hasRole(newRole)) {
+								try {
+									Logger.msg("Adding agent "+agent.getAgentName()+" to new role "+newRole.toString());
+									addRole(agent, newRole);
+								} catch (Exception e) {
+									Logger.die("Could not add agent "+agent.getAgentName()+" to role "+newRole);
+								}
+							}
+						} catch (InvalidItemPathException e) {
+							Logger.die("Invalid agent in role "+newRole+": "+uuid);
+						}
+					}
+				}
+			}
+			while (!toDelete.isEmpty()) {
+				LDAPLookupUtils.delete(mLDAPAuth.getAuthObject(), toDelete.pop().getDN());
+			}
+			
+		} catch (LDAPException e) {
+			Logger.error(e);
+			Logger.die("LDAP Exception migrating roles");
+		}
     }
 
     /**
@@ -259,23 +330,17 @@ public class LDAPLookup implements LookupManager{
 	public void initializeDirectory() throws ObjectNotFoundException
     {
         createBootTree();
-        initTree( Gateway.getResource().getTextResource("ldap", "LDAPboot.txt"));
+        LDAPLookupUtils.createCristalContext(mLDAPAuth.getAuthObject(), mItemTypeRoot);
+        LDAPLookupUtils.createCristalContext(mLDAPAuth.getAuthObject(), mDomainTypeRoot);
+        try {
+			createRole(new RolePath());
+		} catch (ObjectAlreadyExistsException e) { } catch (ObjectCannotBeUpdated e) {
+			Logger.die("Could not create root Role");
+		}
+        if (new DomainPath("agent").exists()) migrateOldRoles();
     }
 
-    public void initTree(String bootFile)
-    {
-        Logger.msg(8,"Verifying Cristal LDAP roots");
-        StringTokenizer strTokenizer = new StringTokenizer(bootFile, "\n\r");
-        while (strTokenizer.hasMoreTokens())
-        {
-            String line = strTokenizer.nextToken();
-            Logger.msg(8,"Checking " + line+mLocalPath);
-            LDAPLookupUtils.createCristalContext(mLDAPAuth.getAuthObject(), line+mLocalPath);
-        }
-
-    }
-
- 	//typically search for cn=barcode
+    //typically search for cn=barcode
     @Override
 	public LDAPPathSet search(Path start, String filter)
     {
@@ -289,8 +354,9 @@ public class LDAPLookup implements LookupManager{
     	StringBuffer filter = new StringBuffer();
     	int propCount = 0;
     	for (Property prop: props) {
-    		filter.append("(cristalprop="+LDAPLookupUtils.escapeSearchFilter((prop.isMutable()?"":"!")+prop.getName()+
-    				":"+prop.getValue())+")");
+    		filter.append("(|(cristalprop="+LDAPLookupUtils.escapeSearchFilter(prop.getName()+
+    				":"+prop.getValue())+")(cristalprop="+LDAPLookupUtils.escapeSearchFilter("!"+prop.getName()+
+    	    		":"+prop.getValue())+"))");
     		propCount++;
     	}
     	
@@ -421,7 +487,7 @@ public class LDAPLookup implements LookupManager{
         }
         else if (LDAPLookupUtils.existsAttributeValue(entry,"objectclass","cristalrole"))
         { //cristalrole
-            thisPath = new RolePath(getPathComponents(dn.substring(0, dn.lastIndexOf(mDomainTypeRoot))),
+            thisPath = new RolePath(getPathComponents(dn.substring(0, dn.lastIndexOf(mRoleTypeRoot))),
                     LDAPLookupUtils.getFirstAttributeValue(entry, "jobList").equals("TRUE"));
         }
         else if (LDAPLookupUtils.existsAttributeValue(entry,"objectclass","aliasObject") ||
@@ -439,7 +505,7 @@ public class LDAPLookup implements LookupManager{
                 thisPath = entityKey;
             }
             else
-                throw new ObjectNotFoundException("Entity found outside entity tree");
+                throw new ObjectNotFoundException("Item found outside entity tree");
         }
         else
         {
@@ -608,7 +674,7 @@ public class LDAPLookup implements LookupManager{
         LDAPSearchConstraints searchCons = new LDAPSearchConstraints();
         searchCons.setBatchSize(0);
         searchCons.setDereference(LDAPSearchConstraints.DEREF_NEVER );
-        return search(mRolePath,LDAPConnection.SCOPE_SUB,filter,searchCons).hasNext();
+        return search(mRoleTypeRoot,LDAPConnection.SCOPE_SUB,filter,searchCons).hasNext();
     }
 
     @Override
@@ -651,7 +717,7 @@ public class LDAPLookup implements LookupManager{
         LDAPSearchConstraints searchCons = new LDAPSearchConstraints();
         searchCons.setBatchSize(0);
         searchCons.setDereference(LDAPSearchConstraints.DEREF_NEVER );
-    	Iterator<?> roles = search(mRolePath,LDAPConnection.SCOPE_SUB,filter,searchCons);
+    	Iterator<?> roles = search(mRoleTypeRoot,LDAPConnection.SCOPE_SUB,filter,searchCons);
         ArrayList<RolePath> roleList = new ArrayList<RolePath>();
 
     	while(roles.hasNext())
@@ -698,7 +764,7 @@ public class LDAPLookup implements LookupManager{
         searchCons.setBatchSize(0);
         searchCons.setDereference(LDAPSearchConstraints.DEREF_NEVER );
         String filter = "(&(objectclass=cristalrole)(cn="+roleName+"))";
-		Iterator<Path> res = search(mRolePath,LDAPConnection.SCOPE_SUB,filter,searchCons);
+		Iterator<Path> res = search(mRoleTypeRoot,LDAPConnection.SCOPE_SUB,filter,searchCons);
 		if (!res.hasNext())
             throw new ObjectNotFoundException("Role not found");
         Path result = res.next();
