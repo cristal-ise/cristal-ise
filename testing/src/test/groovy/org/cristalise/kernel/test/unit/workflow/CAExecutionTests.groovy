@@ -30,8 +30,8 @@ class CAExecutionTests extends WorkflowTestBase {
     
     Workflow          wf     = null
     CompositeActivity rootCA = null
-    Activity          ea0    = null
-    Activity          ea1    = null
+    Activity          act0   = null
+    Activity          act1   = null
 
     @Before
     public void init() {
@@ -56,32 +56,56 @@ class CAExecutionTests extends WorkflowTestBase {
         assert act.getActive() == status.active
     }
 
-    private void createSequentialWf(List wfList) {
-        rootCA = new CompositeActivity()
-        wf = new Workflow(rootCA, new ServerPredefinedStepContainer())
-
+    private void createSequentialCA(CompositeActivity ca, List caList) {
         boolean first = true;
         WfVertex prevVertex = null
 
-        wfList.each { type ->
-            WfVertex currentVertex = rootCA.newChild((WfVertex.Types)type, "", first, null)
+        caList.each { member ->
+            WfVertex currentVertex
+
+            if(member instanceof List) {
+                 currentVertex = ca.newChild(Types.Composite, "", first, null)
+                 createSequentialCA((CompositeActivity)currentVertex, (List)member)
+            }
+            else {
+                currentVertex = ca.newChild((WfVertex.Types)member, "", first, null)
+            }
+
             prevVertex?.addNext(currentVertex)
             first = false
             prevVertex = currentVertex
         }
+    }
 
-        ea0 = (Activity)wf.search("workflow/domain/0")
-        ea1 = (Activity)wf.search("workflow/domain/1") //this migth return null
+    private void createSequentialWf(List wfList, boolean doChecks = true) {
+        rootCA = new CompositeActivity()
+        wf     = new Workflow(rootCA, new ServerPredefinedStepContainer())
 
-        checkActStatus(rootCA, [state: "Waiting", active: false])
-        checkActStatus(ea0,    [state: "Waiting", active: false])
-        if(ea1) checkActStatus(ea1, [state: "Waiting", active: false])
+        createSequentialCA(rootCA, wfList)
+
+        act0 = (Activity)wf.search("workflow/domain/0")
+        act1 = (Activity)wf.search("workflow/domain/1") //this migth return null
+
+        if(doChecks) {
+            checkActStatus(         rootCA, [state: "Waiting", active: false])
+            checkActStatus(         act0,   [state: "Waiting", active: false])
+            if(act1) checkActStatus(act1,   [state: "Waiting", active: false])
+        }
 
         wf.initialise(itemPath, agentPath)
 
-        checkActStatus(rootCA, [state: "Started", active: true])
-        checkActStatus(ea0,    [state: "Waiting", active: true])
-        if(ea1) checkActStatus(ea1, [state: "Waiting", active: false])
+        if(doChecks) {
+            checkActStatus(rootCA, [state: "Started", active: true])
+
+            if(act0 instanceof CompositeActivity) {
+                checkActStatus(         act0, [state: "Started", active: true])
+                if(act1) checkActStatus(act1, [state: "Waiting", active: true])
+            }
+            else {
+                checkActStatus(         act0, [state: "Waiting", active: true])
+                if(act1) checkActStatus(act1, [state: "Waiting", active: false])
+            }
+        }
     }
 
     private void requestAction(Activity act, String trans) {
@@ -97,66 +121,100 @@ class CAExecutionTests extends WorkflowTestBase {
     public void singleAct_Done() {
         createSequentialWf( [Types.Atomic] )
 
-        requestAction(ea0, "Done")
+        requestAction(act0, "Done")
         
         checkActStatus(rootCA, [state: "Started",  active: true])
-        checkActStatus(ea0,    [state: "Finished", active: true])
+        checkActStatus(act0,   [state: "Finished", active: true])
 
         requestAction(rootCA, "Complete")
 
         checkActStatus(rootCA, [state: "Finished", active: false])
-        checkActStatus(ea0,    [state: "Finished", active: true])
+        checkActStatus(act0,   [state: "Finished", active: true])
     }
 
     @Test
     public void singleAct_StartFinish() {
         createSequentialWf( [Types.Atomic] )
 
-        requestAction( ea0, "Start")
+        requestAction( act0, "Start")
 
         checkActStatus(rootCA, [state: "Started", active: true])
-        checkActStatus(ea0,    [state: "Started", active: true])
+        checkActStatus(act0,   [state: "Started", active: true])
 
-        requestAction( ea0, "Complete" )
+        requestAction( act0, "Complete" )
 
         checkActStatus(rootCA, [state: "Started",  active: true])
-        checkActStatus(ea0,    [state: "Finished", active: true])
+        checkActStatus(act0,   [state: "Finished", active: true])
 
         requestAction(rootCA, "Complete")
 
         checkActStatus(rootCA, [state: "Finished", active: false])
-        checkActStatus(ea0,    [state: "Finished", active: true])
+        checkActStatus(act0,   [state: "Finished", active: true])
     }
-
 
     @Test
     public void twoActs_Done() {
         createSequentialWf( [Types.Atomic, Types.Atomic] )
 
-        requestAction(ea0, "Done")
+        requestAction(act0, "Done")
 
-        checkActStatus(rootCA,  [state: "Started",  active: true])
-        checkActStatus(ea0,     [state: "Finished", active: false])
-        checkActStatus(ea1,     [state: "Waiting",  active: true])
+        checkActStatus(rootCA, [state: "Started",  active: true])
+        checkActStatus(act0,   [state: "Finished", active: false])
+        checkActStatus(act1,   [state: "Waiting",  active: true])
 
-        requestAction(ea1, "Done")
+        requestAction(act1, "Done")
 
-        checkActStatus(rootCA,  [state: "Started",  active: true])
-        checkActStatus(ea0,     [state: "Finished", active: false])
-        checkActStatus(ea1,     [state: "Finished", active: true])
+        checkActStatus(rootCA, [state: "Started",  active: true])
+        checkActStatus(act0,   [state: "Finished", active: false])
+        checkActStatus(act1,   [state: "Finished", active: true])
         
         requestAction(rootCA, "Complete")
 
-        checkActStatus(rootCA,  [state: "Finished", active: false])
-        checkActStatus(ea0,     [state: "Finished", active: false])
-        checkActStatus(ea1,     [state: "Finished", active: true])
+        checkActStatus(rootCA, [state: "Finished", active: false])
+        checkActStatus(act0,   [state: "Finished", active: false])
+        checkActStatus(act1,   [state: "Finished", active: true])
     }
-
 
     @Test(expected = InvalidTransitionException.class)
     public void singleAct_OnlyCompleteCA() {
         createSequentialWf( [Types.Atomic] )
 
         requestAction(rootCA, "Complete")
+    }
+
+    @Test(expected = InvalidTransitionException.class)
+    public void emptyWf_Complete() {
+        createSequentialWf([], false)
+
+        checkActStatus(rootCA, [state: "Waiting", active: true])
+
+        requestAction(rootCA, "Complete")
+    }
+
+    @Test
+    public void wfWithEmptyCompAct_Complete() {
+        createSequentialWf([[]], false)
+
+        checkActStatus(rootCA, [state: "Started", active: true])
+        checkActStatus(act0,   [state: "Waiting", active: true])  //CA
+
+        requestAction(rootCA, "Complete")
+    }
+
+    @Test
+    public void wfWithCompAct_FullyExecuted() {
+        createSequentialWf([[Types.Atomic]] )
+        
+        requestAction(act1, "Done")
+
+        checkActStatus(rootCA, [state: "Started",  active: true])
+        checkActStatus(act0,   [state: "Finished", active: true])  //CA
+        checkActStatus(act1,   [state: "Finished", active: false]) //EA
+
+        requestAction(rootCA, "Complete")
+
+        checkActStatus(rootCA, [state: "Finished", active: false])
+        checkActStatus(act0,   [state: "Finished", active: true])  //CA
+        checkActStatus(act1,   [state: "Finished", active: false]) //EA
     }
 }
