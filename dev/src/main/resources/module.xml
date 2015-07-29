@@ -3,6 +3,7 @@
 		<Description>CRISTAL-iSE Development Items, such as resource factories and workflows. Also includes a demonstrative description factory</Description>
 		<Version>${version}</Version>
 		<Dependency>CristalXMLDB</Dependency>
+		<Dependency>CristalLDAP</Dependency>
 	</Info>
 	<ResourceURL>uk/ac/uwe/cristaldev/resources/</ResourceURL>
     <Config name="Module.dev.debug">true</Config>
