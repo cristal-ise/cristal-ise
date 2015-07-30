@@ -58,7 +58,7 @@ class LookupAddPathTests extends LookupTestBase {
     @Test
     public void addDeleteRolePath() {
         Path p = new RolePath(new RolePath(), "User")
-        assert p.string == "/domain/agent/User"
+        assert p.string == "/role/User"
         lookup.add(p)
         assert lookup.exists(p)
         assert lookup.getRolePath("User")
