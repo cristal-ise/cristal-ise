@@ -125,6 +125,7 @@ public class ItemData extends ItemUtils {
 		History history;
 		try {
 			history = (History)item.getObject(ClusterStorage.HISTORY);
+			history.activate();
 		} catch (ObjectNotFoundException e) {
 			throw new WebApplicationException("Could not load History");
 		}
