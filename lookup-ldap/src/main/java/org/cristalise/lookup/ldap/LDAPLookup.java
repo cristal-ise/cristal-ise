@@ -159,7 +159,11 @@ public class LDAPLookup implements LookupManager{
 				}
 			}
 			while (!toDelete.isEmpty()) {
-				LDAPLookupUtils.delete(mLDAPAuth.getAuthObject(), toDelete.pop().getDN());
+				try {
+					LDAPLookupUtils.delete(mLDAPAuth.getAuthObject(), toDelete.pop().getDN());
+				} catch (Exception ex) { // must be out of order, try again next time
+					Logger.error("Error deleting old Role. "+ex.getMessage());
+				}
 			}
 			
 		} catch (LDAPException e) {
