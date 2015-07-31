@@ -96,7 +96,7 @@ class CAExecutionSpecs extends Specification {
         when: "requesting Root CompAct Complete transition"
         util.requestAction(util.rootCA, "Complete")
 
-        then: "Root CompAct state is Finished"
+        then: "all Acts are Finished and inactive"
         util.checkActStatus(util.rootCA, [state: "Finished", active: false])
         util.checkActStatus(util.act0,   [state: "Finished", active: false])
         util.checkActStatus(act1,        [state: "Finished", active: true])
@@ -115,7 +115,7 @@ class CAExecutionSpecs extends Specification {
         when: "requesting first ElemAct Done transition"
         util.requestAction(act1, "Done")
 
-        then: "ElemAct state is Finished and CompAct state is Finished"
+        then: "ElemAct and CompAct state is Finished"
         util.checkActStatus(util.rootCA, [state: "Started",  active: true])
         util.checkActStatus(util.act0,   [state: "Finished", active: true])  //CA
         util.checkActStatus(act1,        [state: "Finished", active: false]) //EA
