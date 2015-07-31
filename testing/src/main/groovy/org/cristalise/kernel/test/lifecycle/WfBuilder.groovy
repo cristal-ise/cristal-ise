@@ -21,11 +21,10 @@
 
 package org.cristalise.kernel.test.lifecycle
 
-import groovy.transform.CompileStatic
-
 import org.cristalise.kernel.lifecycle.instance.Activity
 import org.cristalise.kernel.lifecycle.instance.AndSplit
 import org.cristalise.kernel.lifecycle.instance.CompositeActivity
+import org.cristalise.kernel.lifecycle.instance.Join
 import org.cristalise.kernel.lifecycle.instance.WfVertex
 import org.cristalise.kernel.lifecycle.instance.Workflow
 import org.cristalise.kernel.lifecycle.instance.WfVertex.Types
@@ -35,11 +34,12 @@ import org.cristalise.kernel.lifecycle.instance.stateMachine.Transition
 import org.cristalise.kernel.lookup.AgentPath
 import org.cristalise.kernel.lookup.ItemPath
 import org.cristalise.kernel.process.Gateway
+import org.cristalise.kernel.utils.Logger
 
 /**
  *
  */
-@CompileStatic
+//@CompileStatic
 class WfBuilder {
     ItemPath itemPath = null
     AgentPath agentPath = null
@@ -50,11 +50,16 @@ class WfBuilder {
     Workflow          wf     = null
     CompositeActivity rootCA = null
     Activity          act0   = null
-    
+
     //The actual CompAct under construction
     CompositeActivity currentCA    = null
     WfVertex          prevVertex   = null
     boolean           firstVertext = true
+
+    Map<String,Activity> actCache = [:]
+
+    List<Map<String, WfVertex>> splitCache = null
+    List<Map<String, WfVertex>> blockStack = []
 
     /**
      * 
@@ -84,15 +89,38 @@ class WfBuilder {
 
     /**
      * 
+     * @param name
+     * @param status
+     */
+    public void checkActStatus(String name, Map status) {
+        checkActStatus(actCache[name], status)
+    }
+
+    /**
+     * 
      * @param act
      * @param status
      */
     public static void checkActStatus(Activity act, Map status) {
-        assert act
-        assert act.getStateName() == "$status.state"
-        assert act.getActive() == status.active
+        assert act, "Activity '$act.name' shall not be null"
+        assert act.getStateName() == "$status.state", "Activity '$act.name' state is not correct"
+        assert act.getActive() == status.active, "Activity '$act.name' shall ${(status.active) ? '' : 'NOT '}be active"
     }
 
+    /**
+     * 
+     * @param name
+     * @param trans
+     */
+    public void requestAction(String name, String trans) {
+        requestAction(actCache[name], trans)
+    }
+
+    /**
+     * 
+     * @param act
+     * @param trans
+     */
     public void requestAction(Activity act, String trans) {
         int transID = -1
 
@@ -109,7 +137,7 @@ class WfBuilder {
      * @return
      */
     public Workflow buildWf(boolean doChecks = true, Closure cl) {
-        assert cl, "WfBuilder only works with a valid Closure"
+        assert cl, "buildWf() only works with a valid Closure"
 
         currentCA = rootCA
 
@@ -147,10 +175,16 @@ class WfBuilder {
 
     /**
      * 
-     * @return
+     * @param vertex
      */
-    public Activity ElemAct() {
-        return ElemAct("")
+    private void updateBlockCache(WfVertex vertex) {
+        if(blockStack && blockStack.last()) {
+            Logger.msg 1, "updateBlockCache() ID: $vertex.ID"
+
+            def cache = blockStack.last()
+            if(cache['first'] == null) cache['first'] = vertex
+            cache['last'] = vertex
+        }
     }
 
     /**
@@ -158,36 +192,41 @@ class WfBuilder {
      * @param name
      * @return
      */
-    public Activity ElemAct(String name) {
+    public Activity ElemAct(String name = "") {
         def currentVertex = currentCA.newChild(Types.Atomic, name, firstVertext, null)
+
+        Logger.msg 1, "ElemAct() name: $name; path: $currentVertex.path; firstVertext: $firstVertext"
+
+        updateBlockCache(currentVertex)
+
         prevVertex?.addNext(currentVertex)
         prevVertex = currentVertex
         firstVertext = false
+
+        if(name) actCache[name] = (Activity)currentVertex
+
         return (Activity)currentVertex
     }
 
     /**
      * 
-     * @param cl
-     * @return
-     */
-    public CompositeActivity CompAct(Closure cl) {
-        return CompAct("", cl)
-    }
-
-    /**
-     * 
      * @param name
      * @param cl
      * @return
      */
-    public CompositeActivity CompAct(String name, Closure cl) {
+    public CompositeActivity CompAct(String name = "", Closure cl) {
         assert cl, "WfBuilder.CompAct only works with a valid Closure"
 
         def currentVertex = currentCA.newChild(Types.Composite, name, firstVertext, null)
-        prevVertex?.addNext(currentVertex)
+        updateBlockCache(currentVertex)
 
+        Logger.msg 1, "CompAct() name: $name; ID: $currentVertex.ID"
+
+        prevVertex?.addNext(currentVertex)
+        
+        //CA creates a new sequence so reseting variables
         firstVertext = true
+        prevVertex = null 
         def prevCA = currentCA
         currentCA = (CompositeActivity)currentVertex
 
@@ -196,27 +235,64 @@ class WfBuilder {
         cl()
 
         firstVertext = false
+        prevVertex = currentVertex
         currentCA = prevCA
+
+        if(name) actCache[name] = (Activity)currentVertex
 
         return (CompositeActivity)currentVertex
     }
 
-    /**
-     * 
-     * @param cl
-     * @return
-     */
-    public AndSplit AndSplit(Closure cl) {
-        return AndSplit("", cl)
+    public void Block(Closure cl) {
+        assert cl, "WfBuilder.Block only works with a valid Closure"
+
+        Logger.msg 1, "Block(start) ---------------------------------------"
+
+        //Block creates a new sequence so reseting variables and storing original prevVertex
+        WfVertex oldVertex = prevVertex
+        prevVertex = null
+
+        //initilaise cache so subsequent DSL calls will know that they belong to this Block
+        blockStack.add([first: (WfVertex)null, last: (WfVertex)null])
+
+        cl.delegate = this
+        cl.resolveStrategy = Closure.DELEGATE_FIRST
+        cl()
+
+        firstVertext = false
+        def cache = blockStack.pop()
+        oldVertex?.addNext(cache['first'])
+
+        if(blockStack.isEmpty()) prevVertex = cache['last']
+        else                     blockStack.last()['last'] = cache['last']
+
+        Logger.msg 1, "Block(end) +++++++++++++++++++++++++++++++++++++++++"
     }
 
-    /**
-     * 
-     * @param name
-     * @param cl
-     * @return
-     */
-    public AndSplit AndSplit(String name, Closure cl) {
+    public AndSplit AndSplit(Closure cl) {
         assert cl, "WfBuilder.AndSplit only works with a valid Closure"
+
+        AndSplit Split = (AndSplit) currentCA.newChild(Types.AndSplit, "", firstVertext, null)
+        Join     Join  = (Join)     currentCA.newChild(Types.Join,     "", firstVertext, null)
+
+        //updateBlockCache(currentVertex)
+        
+        prevVertex?.addNext(Split)
+        splitCache = []
+
+        cl.delegate = this
+        cl.resolveStrategy = Closure.DELEGATE_FIRST
+        cl()
+
+        splitCache.each { Map<String, WfVertex> m ->
+            Split.addNext(m["first"])
+            m["last"].addNext(Join)
+        }
+
+        splitCache = null
+        firstVertext = false
+        prevVertex = Join
+
+        return Split
     }
 }
