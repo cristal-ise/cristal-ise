@@ -104,3 +104,7 @@ dependencies {
     //example to use the new integrationTest test set
     //integrationTestCompile 'org.assertj:assertj-core:3.0.0'
 }
+
+test {
+    testLogging { exceptionFormat = 'full' }
+}
