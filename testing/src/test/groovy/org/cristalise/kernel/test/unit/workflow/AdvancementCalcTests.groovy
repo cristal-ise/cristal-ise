@@ -7,6 +7,7 @@ import org.cristalise.kernel.graph.model.GraphPoint
 import org.cristalise.kernel.lifecycle.instance.Activity
 import org.cristalise.kernel.lifecycle.instance.AdvancementCalculator
 import org.cristalise.kernel.lifecycle.instance.CompositeActivity
+import org.cristalise.kernel.lifecycle.instance.WfVertex.Types
 import org.junit.Test
 
 
@@ -16,10 +17,7 @@ class AdvancementCalcTests extends WorkflowTestBase {
     @Test
     public void advancementCalculate() {
         CompositeActivity ca = new CompositeActivity()
-        Activity act = new Activity()
-
-        ca.addChild(act, new GraphPoint())
-        ca.getChildrenGraphModel().setStartVertexId(act.getID())
+        Activity act = (Activity)ca.newChild(Types.Atomic, "", true, (GraphPoint)null)
 
         AdvancementCalculator advCalc = new AdvancementCalculator()
 

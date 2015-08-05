@@ -3,7 +3,6 @@ package org.cristalise.kernel.test.unit.workflow;
 import static org.junit.Assert.*
 
 import org.cristalise.kernel.common.InvalidTransitionException
-import org.cristalise.kernel.lifecycle.instance.Activity
 import org.cristalise.kernel.process.AbstractMain
 import org.cristalise.kernel.process.Gateway
 import org.cristalise.kernel.test.lifecycle.WfBuilder
@@ -29,115 +28,112 @@ class CAExecutionSpecs extends Specification {
 
     def 'Execute ElemAct using Done transition'() {
         given: "Workflow contaning single ElemAct"
-        util.buildWf { ElemAct() }
+        util.buildAndInitWf { ElemAct('first') }
 
         when: "requesting ElemAct Done transition"
-        util.requestAction(util.act0, "Done")
+        util.requestAction('first', "Done")
 
         then: "ElemAct state is Finished"
-        util.checkActStatus(util.rootCA, [state: "Started",  active: true])
-        util.checkActStatus(util.act0,   [state: "Finished", active: true])
+        util.checkActStatus('rootCA', [state: "Started",  active: true])
+        util.checkActStatus('first',   [state: "Finished", active: true])
 
         when: "requesting Root CompAct Complete transition"
-        util.requestAction(util.rootCA, "Complete")
+        util.requestAction('rootCA', "Complete")
 
         then: "Root CompAct state is Finished"
-        util.checkActStatus(util.rootCA, [state: "Finished", active: false])
-        util.checkActStatus(util.act0,   [state: "Finished", active: true])
+        util.checkActStatus('rootCA', [state: "Finished", active: false])
+        util.checkActStatus('first',   [state: "Finished", active: true])
     }
 
     def 'Execute ElemAct using Start/Complete transition'() {
         given: "Workflow contaning single ElemAct"
-        util.buildWf { ElemAct() }
+        util.buildAndInitWf { ElemAct('first') }
 
         when: "requesting ElemAct Start transition"
-        util.requestAction( util.act0, "Start")
+        util.requestAction( 'first', "Start")
 
         then: "ElemAct state is Started"
-        util.checkActStatus(util.rootCA, [state: "Started", active: true])
-        util.checkActStatus(util.act0,   [state: "Started", active: true])
+        util.checkActStatus('rootCA', [state: "Started", active: true])
+        util.checkActStatus('first',   [state: "Started", active: true])
 
         when: "requesting ElemAct Complete transition"
-        util.requestAction( util.act0, "Complete" )
+        util.requestAction( 'first', "Complete" )
 
         then: "ElemAct state is Finished"
-        util.checkActStatus(util.rootCA, [state: "Started",  active: true])
-        util.checkActStatus(util.act0,   [state: "Finished", active: true])
+        util.checkActStatus('rootCA', [state: "Started",  active: true])
+        util.checkActStatus('first',   [state: "Finished", active: true])
 
         when: "requesting Root CompAct Complete transition"
-        util.requestAction(util.rootCA, "Complete")
+        util.requestAction('rootCA', "Complete")
 
         then: "Root CompAct state is Finished"
-        util.checkActStatus(util.rootCA, [state: "Finished", active: false])
-        util.checkActStatus(util.act0,   [state: "Finished", active: true])
+        util.checkActStatus('rootCA', [state: "Finished", active: false])
+        util.checkActStatus('first',   [state: "Finished", active: true])
     }
 
     def 'Execute sequence of ElemActs using Done transition'() {
         given: "Workflow contaning sequence of two ElemAct"
-        util.buildWf { ElemAct(); ElemAct() }
-        Activity act1 = (Activity)util.wf.search("workflow/domain/1")
+        util.buildAndInitWf { ElemAct('first'); ElemAct('second') }
 
         when: "requesting first ElemAct Done transition"
-        util.requestAction(util.act0, "Done")
+        util.requestAction('first', "Done")
 
         then: "first ElemAct state is Finished and second is still Waiting"
-        util.checkActStatus(util.rootCA, [state: "Started",  active: true])
-        util.checkActStatus(util.act0,   [state: "Finished", active: false])
-        util.checkActStatus(act1,        [state: "Waiting",  active: true])
+        util.checkActStatus('rootCA', [state: "Started",  active: true])
+        util.checkActStatus('first',   [state: "Finished", active: false])
+        util.checkActStatus('second',  [state: "Waiting",  active: true])
 
         when: "requesting second ElemAct Done transition"
-        util.requestAction(act1, "Done")
+        util.requestAction('second', "Done")
 
         then: "first ElemAct state is Finished and second is Finished"
-        util.checkActStatus(util.rootCA, [state: "Started",  active: true])
-        util.checkActStatus(util.act0,   [state: "Finished", active: false])
-        util.checkActStatus(act1,        [state: "Finished", active: true])
-        
+        util.checkActStatus('rootCA', [state: "Started",  active: true])
+        util.checkActStatus('first',   [state: "Finished", active: false])
+        util.checkActStatus('second',  [state: "Finished", active: true])
+
         when: "requesting Root CompAct Complete transition"
-        util.requestAction(util.rootCA, "Complete")
+        util.requestAction('rootCA', "Complete")
 
         then: "all Acts are Finished and inactive"
-        util.checkActStatus(util.rootCA, [state: "Finished", active: false])
-        util.checkActStatus(util.act0,   [state: "Finished", active: false])
-        util.checkActStatus(act1,        [state: "Finished", active: true])
+        util.checkActStatus('rootCA', [state: "Finished", active: false])
+        util.checkActStatus('first',   [state: "Finished", active: false])
+        util.checkActStatus('second',  [state: "Finished", active: true])
     }
 
     def 'Execute ElemcAct in CompAct using Done transition'() {
         given: "Workflow contaning CompAct containig one ElemAct"
-        util.buildWf { 
-            CompAct { 
-                ElemAct() 
+        util.buildAndInitWf { 
+            CompAct('ca') { 
+                ElemAct('first') 
             }
         }
 
-        Activity act1 = (Activity)util.wf.search("workflow/domain/1")
-
         when: "requesting first ElemAct Done transition"
-        util.requestAction(act1, "Done")
+        util.requestAction('first', "Done")
 
         then: "ElemAct and CompAct state is Finished"
-        util.checkActStatus(util.rootCA, [state: "Started",  active: true])
-        util.checkActStatus(util.act0,   [state: "Finished", active: true])  //CA
-        util.checkActStatus(act1,        [state: "Finished", active: false]) //EA
+        util.checkActStatus('rootCA', [state: "Started",  active: true])
+        util.checkActStatus('ca',     [state: "Finished", active: true])
+        util.checkActStatus('first',  [state: "Finished", active: false])
 
         when: "requesting Root CompAct Complete transition"
-        util.requestAction(util.rootCA, "Complete")
+        util.requestAction('rootCA', "Complete")
 
         then: "Root CompAct state is Finished"
-        util.checkActStatus(util.rootCA, [state: "Finished", active: false])
-        util.checkActStatus(util.act0,   [state: "Finished", active: true])  //CA
-        util.checkActStatus(act1,        [state: "Finished", active: false]) //EA
+        util.checkActStatus('rootCA', [state: "Finished", active: false])
+        util.checkActStatus('ca',     [state: "Finished", active: true])
+        util.checkActStatus('first',  [state: "Finished", active: false])
     }
 
     def 'Empty Wf cannot be executed'() {
         given: "empty Workflow"
-        util.buildWf(false) {
+        util.buildAndInitWf(false) {
             //checks before Wf.init()
-            checkActStatus(rootCA, [state: "Waiting", active: false])
+            util.checkActStatus('rootCA', [state: "Waiting", active: false])
         }
 
         when: "requesting Root CompAct Complete transition"
-        util.requestAction(util.rootCA, "Complete")
+        util.requestAction('rootCA', "Complete")
 
         then: "InvalidTransitionException is thrown"
         thrown InvalidTransitionException
@@ -145,19 +141,19 @@ class CAExecutionSpecs extends Specification {
 
     public void 'Cannot execute Wf containing empty CompAct'() {
         given: "empty Workflow containing empty CompAct"
-        util.buildWf(false) {
-            CompAct {}
+        util.buildAndInitWf(false) {
+            CompAct('ca') {}
 
             //checks before Wf.init()
-            checkActStatus(rootCA, [state: "Waiting", active: false])
-            checkActStatus((Activity)wf.search("workflow/domain/0"),   [state: "Waiting", active: false])  //CA
+            util.checkActStatus('rootCA', [state: "Waiting", active: false])
+            util.checkActStatus('ca',     [state: "Waiting", active: false])
         }
         //checks after Wf.init()
-        util.checkActStatus(util.rootCA, [state: "Started", active: true])
-        util.checkActStatus(util.act0,   [state: "Waiting", active: true])  //CA
+        util.checkActStatus('rootCA', [state: "Started", active: true])
+        util.checkActStatus('ca',   [state: "Waiting", active: true])
 
         when: "requesting CompAct Complete transition"
-        util.requestAction(util.act0, "Complete")
+        util.requestAction('ca', "Complete")
 
         then: "InvalidTransitionException is thrown"
         thrown InvalidTransitionException
@@ -165,10 +161,10 @@ class CAExecutionSpecs extends Specification {
 
     def 'Cannot Complete Root Compact without finishing all ElemActs'() {
         given: "Workflow contaning single ElemAct"
-        util.buildWf { ElemAct() }
+        util.buildAndInitWf { ElemAct('first') }
 
         when: "requesting Root CompAct Complete transition"
-        util.requestAction(util.rootCA, "Complete")
+        util.requestAction('rootCA', "Complete")
 
         then: "InvalidTransitionException is thrown"
         thrown InvalidTransitionException
@@ -176,10 +172,10 @@ class CAExecutionSpecs extends Specification {
 
     def 'Cannot Complete Root Compact without finishing all CompActs'() {
         given: "Workflow contaning single and empty CompAct"
-        util.buildWf(false) { CompAct{} }
+        util.buildAndInitWf(false) { CompAct{} }
 
         when: "requesting Root CompAct Complete transition"
-        util.requestAction(util.rootCA, "Complete")
+        util.requestAction('rootCA', "Complete")
 
         then: "InvalidTransitionException is thrown"
         thrown InvalidTransitionException
