@@ -24,7 +24,6 @@ package org.cristalise.kernel.test.lifecycle
 
 import groovy.transform.CompileStatic
 
-import org.cristalise.kernel.lifecycle.instance.Activity
 import org.cristalise.kernel.lifecycle.instance.CompositeActivity
 import org.cristalise.kernel.lifecycle.instance.WfVertex
 import org.cristalise.kernel.lifecycle.instance.WfVertex.Types
@@ -38,20 +37,28 @@ import org.cristalise.kernel.utils.Logger
 public class BlockDelegate {
 
     CompActDelegate parentCABlock = null
-    
-    //CompositeActivity currentCA = null
 
     WfVertex firstVertex = null
     WfVertex lastVertex  = null
 
-    Map<String,Activity> actCache
+    Map<String, WfVertex> vertexCache
 
     public BlockDelegate() {}
 
-    public BlockDelegate(CompActDelegate caBlock, Map<String,Activity> cache) {
+    public BlockDelegate(CompActDelegate caBlock, Map<String, WfVertex> cache) {
         assert caBlock
         parentCABlock = caBlock
-        actCache = cache
+        vertexCache = cache
+    }
+    
+    def updateVertexCache(Types t, String name, WfVertex v) {
+        if(!name && (t == Types.AndSplit || t == Types.Join)) name = t.toString()
+
+        if(name) {
+//            if(vertexCache[name]) throw new RuntimeException("$name must be unique")
+            if(vertexCache[name]) Logger.warning("Block.updateVertexCache() - Skipping existing entry '$name'")
+            else vertexCache[name] = v
+        }
     }
 
     public WfVertex addVertex(Types t, String name) {
@@ -63,8 +70,8 @@ public class BlockDelegate {
         if(lastVertex) lastVertex.addNext(v)
         lastVertex = v
 
-        if(name && v instanceof Activity) actCache[name] = (Activity)v
-        
+        updateVertexCache(t, name, v)
+
         return v
     }
 
@@ -73,7 +80,7 @@ public class BlockDelegate {
      * @param parentBlock
      * @param cl
      */
-    public void processClosure(BlockDelegate parentBlock, Closure cl) {
+    public void processClosure(Closure cl) {
         assert cl, "Block only works with a valid Closure"
 
         Logger.msg 1, "Block(start) ---------------------------------------"
@@ -82,21 +89,24 @@ public class BlockDelegate {
         cl.resolveStrategy = Closure.DELEGATE_FIRST
         cl()
 
-        if(parentBlock) {
-            if(!parentBlock.firstVertex) parentBlock.firstVertex = lastVertex
-            if(parentBlock.lastVertex) parentBlock.lastVertex.addNext(firstVertex)
-            parentBlock.lastVertex = lastVertex
-        }
-
         Logger.msg 1, "Block(end) +++++++++++++++++++++++++++++++++++++++++"
+    }
+
+    def linkFirstWithLast(BlockDelegate b) {
+        Logger.msg 1, "Block.linkFirstWithLast() - ${b.getClass()}"
+        if(!firstVertex) firstVertex = b.lastVertex
+        if(lastVertex) lastVertex.addNext(b.firstVertex)
+        lastVertex = b.lastVertex
     }
 
     /**
      * 
      * @param cl
      */
-    public void Block(Types type = null, Closure cl) {
-        new BlockDelegate(parentCABlock, actCache).processClosure(this, cl)
+    public void Block(Closure cl) {
+        def b = new BlockDelegate(parentCABlock, vertexCache)
+        b.processClosure(cl)
+        linkFirstWithLast(b)
     }
 
     /**
@@ -116,9 +126,15 @@ public class BlockDelegate {
      */
     public void CompAct(String name = "", Closure cl) {
         CompositeActivity ca = (CompositeActivity)addVertex(Types.Composite, name)
-        new CompActDelegate(name, ca, actCache).processClosure(cl)
+        new CompActDelegate(name, ca, vertexCache).processClosure(cl)
     }
 
-    public void Split(String name = "", Types type, Closure cl) {
+    public void Split(Types type, Closure cl) {
+        new SplitDelegate(type, parentCABlock, vertexCache).processClosure(this, cl)
     }
+
+    public void AndSplit(Closure cl) {
+        Split(Types.AndSplit, cl)
+    }
+
 }

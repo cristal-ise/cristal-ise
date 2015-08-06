@@ -23,8 +23,12 @@ package org.cristalise.kernel.test.lifecycle
 
 import groovy.transform.CompileStatic
 
+import org.cristalise.kernel.graph.model.DirectedEdge
 import org.cristalise.kernel.lifecycle.instance.Activity
 import org.cristalise.kernel.lifecycle.instance.CompositeActivity
+import org.cristalise.kernel.lifecycle.instance.Join
+import org.cristalise.kernel.lifecycle.instance.Split
+import org.cristalise.kernel.lifecycle.instance.WfVertex
 import org.cristalise.kernel.lifecycle.instance.Workflow
 import org.cristalise.kernel.lifecycle.instance.predefined.server.ServerPredefinedStepContainer
 import org.cristalise.kernel.lifecycle.instance.stateMachine.StateMachine
@@ -32,6 +36,7 @@ import org.cristalise.kernel.lifecycle.instance.stateMachine.Transition
 import org.cristalise.kernel.lookup.AgentPath
 import org.cristalise.kernel.lookup.ItemPath
 import org.cristalise.kernel.process.Gateway
+import org.cristalise.kernel.utils.Logger
 
 /**
  *
@@ -46,7 +51,7 @@ class WfBuilder {
 
     private Workflow wf = null
 
-    private Map<String,Activity> actCache = [:]
+    private Map<String, WfVertex> vertexCache = [:]
 
     /**
      * 
@@ -77,7 +82,7 @@ class WfBuilder {
      * @param status
      */
     public void checkActStatus(String name, Map status) {
-        checkActStatus(actCache[name], status)
+        checkActStatus((Activity)vertexCache[name], status)
     }
 
     /**
@@ -92,12 +97,35 @@ class WfBuilder {
     }
 
     public void checkNext(String from, String to) {
-        assert actCache[from].next.terminusVertexId != actCache[from].ID, "Vertex '$from' shall not be linked to ITSELF"
-        assert actCache[from].next.terminusVertexId == actCache[to].ID, "Vertex '$from' shall be linked to '$to'"
+        Logger.msg 5, "checkNext() - Vertex '$from' -> '$to'"
+        WfVertex fromV = vertexCache[from]
+        
+        assert fromV, "Vertex '$from' is missing from cache"
+
+        List<Integer> fromIDs = []
+
+        if(fromV instanceof Activity) {
+            assert ((Activity)fromV).next, "Vertex '$from' has NO next"
+            int id = ((Activity)fromV).next.terminusVertexId
+            assert id != fromV.ID, "Vertex '$from' shall NOT be linked to ITSELF"
+            fromIDs.add(id)
+        }
+        else if(fromV instanceof Split) {
+            fromIDs = fromV.getOutEdges().collect { DirectedEdge e ->  e.terminusVertexId }
+        }
+        else if(fromV instanceof Join) {
+            int id = fromV.getOutEdges()[0].terminusVertexId
+            assert id != fromV.ID, "Vertex '$from' shall NOT be linked to ITSELF"
+            fromIDs.add(id)
+        }
+
+        Logger.msg 5, "checkNext() - fromIDs: $fromIDs"
+
+        assert fromIDs.contains(vertexCache[to].ID), "Vertex '$from' shall be linked to '$to'"
     }
 
     public void checkActPath(String path, String name) {
-        assert wf.search(path) == actCache[name], "Activity '$name' equals '$path'"
+        assert wf.search(path) == vertexCache[name], "Activity '$name' equals '$path'"
     }
 
     /**
@@ -106,7 +134,7 @@ class WfBuilder {
      * @param trans
      */
     public void requestAction(String name, String trans) {
-        requestAction(actCache[name], trans)
+        requestAction((Activity)vertexCache[name], trans)
     }
 
     /**
@@ -133,9 +161,9 @@ class WfBuilder {
 
         CompositeActivity rootCA = new CompositeActivity()
         wf = new Workflow(rootCA, new ServerPredefinedStepContainer())
-        actCache['rootCA'] = rootCA
+        vertexCache['rootCA'] = rootCA
 
-        new CompActDelegate('rootCA', rootCA, actCache).processClosure(cl)
+        new CompActDelegate('rootCA', rootCA, vertexCache).processClosure(cl)
 
         //FIXME: Move these checks to separate WfInitilaiseSpecs test class
         if(doChecks) {

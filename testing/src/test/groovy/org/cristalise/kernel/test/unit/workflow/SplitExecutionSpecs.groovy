@@ -1,8 +1,7 @@
 package org.cristalise.kernel.test.unit.workflow;
 
-import static org.cristalise.kernel.lifecycle.instance.WfVertex.Types.*
+//import static org.cristalise.kernel.lifecycle.instance.WfVertex.Types.*
 
-import org.cristalise.kernel.lifecycle.instance.WfVertex.Types
 import org.cristalise.kernel.process.AbstractMain
 import org.cristalise.kernel.process.Gateway
 import org.cristalise.kernel.test.lifecycle.WfBuilder
@@ -26,16 +25,27 @@ class SplitExecutionSpecs extends Specification {
         Gateway.close()
     }
 
+
     def 'first-AndSplit((left)(right))-last'() {
         given: "Workflow contaning AndSplit with two Blocks"
-        util.buildAndInitWf(false) {
+        util.buildAndInitWf() {
             ElemAct("first")
-            Split(AndSplit) {
+            AndSplit {
                 Block { ElemAct("left")  }
                 Block { ElemAct("right") }
             }
             ElemAct("last")
         }
+
+        println Gateway.getMarshaller().marshall(util.wf)
+        
+        util.checkNext('first','AndSplit')
+        util.checkNext('AndSplit','left')
+        util.checkNext('AndSplit','right')
+        util.checkNext('left','Join')
+        util.checkNext('right','Join')
+        util.checkNext('Join','last')
+
         util.checkActStatus("first", [state: "Waiting", active: true])
         util.checkActStatus("left",  [state: "Waiting", active: false])
         util.checkActStatus("right", [state: "Waiting", active: false])
@@ -54,7 +64,7 @@ class SplitExecutionSpecs extends Specification {
         util.requestAction("left", "Done")
 
         then: "ElemAct(left) state is Finished"
-        util.checkActStatus("left",  [state: "Finished", active: true])
+        util.checkActStatus("left",  [state: "Finished", active: false])
         util.checkActStatus("right", [state: "Waiting",  active: true])
         util.checkActStatus("last",  [state: "Waiting",  active: false])
 
@@ -62,17 +72,17 @@ class SplitExecutionSpecs extends Specification {
         util.requestAction("right", "Done")
 
         then: "ElemAct(right) state is Finished"
-        util.checkActStatus("left",  [state: "Finished", active: true])
-        util.checkActStatus("right", [state: "Finished", active: true])
+        util.checkActStatus("left",  [state: "Finished", active: false])
+        util.checkActStatus("right", [state: "Finished", active: false])
         util.checkActStatus("last",  [state: "Waiting",  active: true])
 
         when: "requesting ElemAct(last) Done transition"
         util.requestAction("last", "Done")
 
         then: "ElemAct(last) state is Finished"
-        util.checkActStatus("left",  [state: "Finished", active: true])
-        util.checkActStatus("right", [state: "Finished", active: true])
-        util.checkActStatus("last",  [state: "Finished", active: true])
+        util.checkActStatus("left",  [state: "Finished", active: false])
+        util.checkActStatus("right", [state: "Finished", active: false])
+        util.checkActStatus("last",  [state: "Finished", active: false])
     }
 
     def 'first-AndSplit(AndSplit((left2)(right2))(right1))-last'() {
@@ -88,6 +98,9 @@ class SplitExecutionSpecs extends Specification {
             }
             ElemAct("last")
         }
+        util.checkNext('first','AndSplit')
+        util.checkNext('Join','last')
+        
         util.checkActStatus("first",  [state: "Waiting", active: true])
         util.checkActStatus("left2",  [state: "Waiting", active: false])
         util.checkActStatus("right2", [state: "Waiting", active: false])

@@ -5,7 +5,6 @@ import static org.junit.Assert.*
 import org.cristalise.kernel.process.AbstractMain
 import org.cristalise.kernel.process.Gateway
 import org.cristalise.kernel.test.lifecycle.WfBuilder
-import org.cristalise.kernel.utils.Logger
 import org.junit.After
 import org.junit.Before
 import org.junit.Test
@@ -30,9 +29,9 @@ class NestedBlockGenerationTests {
     }
 
     def checkWfStructure() {
-        Logger.msg Gateway.getMarshaller().marshall(util.wf)
+        //Logger.msg Gateway.getMarshaller().marshall(util.wf)
 
-        assert util.wf.search('workflow/domain') == util.actCache['rootCA']
+        assert util.wf.search('workflow/domain') == util.vertexCache['rootCA']
 
         util.checkNext('first',  'second')
         util.checkNext('second', 'third')

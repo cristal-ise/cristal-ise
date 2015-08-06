@@ -26,7 +26,6 @@ package org.cristalise.kernel.test.lifecycle
 import groovy.transform.CompileStatic
 
 import org.cristalise.kernel.graph.model.GraphPoint
-import org.cristalise.kernel.lifecycle.instance.Activity
 import org.cristalise.kernel.lifecycle.instance.CompositeActivity
 import org.cristalise.kernel.lifecycle.instance.WfVertex
 import org.cristalise.kernel.lifecycle.instance.WfVertex.Types
@@ -47,12 +46,12 @@ public class CompActDelegate extends BlockDelegate {
     
     public CompActDelegate(String caName) { name = caName; }
 
-    public CompActDelegate(String caName, CompositeActivity ca, Map<String,Activity> cache) {
+    public CompActDelegate(String caName, CompositeActivity ca, Map<String, WfVertex> cache) {
         this(caName)
 
         assert ca
         currentCA = ca
-        actCache = cache
+        vertexCache = cache
 
         parentCABlock = null
     }
@@ -60,6 +59,7 @@ public class CompActDelegate extends BlockDelegate {
     public WfVertex createVertex(Types t, String name) {
         WfVertex v = currentCA.newChild(t, name, firstFlag, (GraphPoint)null)
         firstFlag = false
+        updateVertexCache(t, name, v)
         return v
     }
 
@@ -71,8 +71,6 @@ public class CompActDelegate extends BlockDelegate {
         if(!firstVertex) firstVertex = v
         if(lastVertex) lastVertex.addNext(v)
         lastVertex = v
-
-        if(name && v instanceof Activity) actCache[name] = (Activity)v
 
         return v
     }
@@ -89,11 +87,15 @@ public class CompActDelegate extends BlockDelegate {
         Logger.msg 1, "CompAct(end) +++++++++++++++++++++++++++++++++++++++++"
     }
 
-    /**
-     *
-     * @param cl
-     */
-    public void Block(Types type = null, Closure cl) {
-        new BlockDelegate(this, actCache).processClosure(this, cl)
+    public void Block(Closure cl) {
+        def b = new BlockDelegate(this, vertexCache)
+        b.processClosure(cl)
+        linkFirstWithLast(b)
+    }
+
+    public void Split(Types type, Closure cl) {
+        def b = new SplitDelegate(type, this, vertexCache)
+        b.processClosure(this, cl)
+        linkFirstWithLast(b)
     }
 }

@@ -21,11 +21,77 @@
 
 package org.cristalise.kernel.test.lifecycle
 
+import groovy.transform.CompileStatic
+
+import org.cristalise.kernel.lifecycle.instance.CompositeActivity
+import org.cristalise.kernel.lifecycle.instance.WfVertex
+import org.cristalise.kernel.lifecycle.instance.WfVertex.Types
+import org.cristalise.kernel.utils.Logger
+
 
 /**
  *
  */
+@CompileStatic
 class SplitDelegate extends BlockDelegate {
-    
+    Types type
+    List<BlockDelegate> childBlocks = []
 
+    SplitDelegate() {}
+
+    public SplitDelegate(Types t, CompActDelegate caBlock, Map<String, WfVertex> cache) {
+        assert t
+        assert caBlock
+        assert cache
+
+        type = t
+        parentCABlock = caBlock
+        vertexCache = cache
+    }
+
+    public void processClosure(BlockDelegate parentBlock, Closure cl) {
+        assert cl, "Block only works with a valid Closure"
+
+        Logger.msg 1, "Split(type: $type) ----------------------------------"
+
+        def aSplit = parentCABlock.createVertex(type, '')
+        def aJoin  = parentCABlock.createVertex(Types.Join, '')
+
+        cl.delegate = this
+        cl.resolveStrategy = Closure.DELEGATE_FIRST
+        cl()
+
+        childBlocks.each {
+            aSplit.addNext(it.firstVertex)
+            it.lastVertex.addNext(aJoin)
+        }
+
+        firstVertex = aSplit
+        lastVertex = aJoin
+
+        Logger.msg 1, "Split(end) +++++++++++++++++++++++++++++++++++++++++"
+    }
+
+    public void ElemAct(String name = "", Closure cl = null) {
+        throw new RuntimeException("Split cannot have standalone Activity, it shall be within a Block/CA/Split/Loop")
+    }
+
+    public void Block(Closure cl) {
+        def b = new BlockDelegate(parentCABlock, vertexCache)
+        childBlocks.add(b)
+        b.processClosure(cl)
+    }
+
+    public void CompAct(String name = "", Closure cl) {
+        CompositeActivity ca = (CompositeActivity)addVertex(Types.Composite, name)
+        def caB = new CompActDelegate(name, ca, vertexCache)
+        childBlocks.add(caB)
+        caB.processClosure(cl)
+    }
+
+    public void Split(Types type, Closure cl) {
+        def sB = new SplitDelegate(type, parentCABlock, vertexCache)
+        childBlocks.add(sB)
+        sB.processClosure(this, cl)
+    }
 }

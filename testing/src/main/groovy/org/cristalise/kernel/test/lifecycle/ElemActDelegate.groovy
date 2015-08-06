@@ -23,7 +23,6 @@ package org.cristalise.kernel.test.lifecycle
 
 import groovy.transform.CompileStatic
 
-import org.cristalise.kernel.lifecycle.instance.Activity
 import org.cristalise.kernel.lifecycle.instance.WfVertex
 import org.cristalise.kernel.lifecycle.instance.WfVertex.Types
 
@@ -38,7 +37,7 @@ class ElemActDelegate {
     public ElemActDelegate() {}
     public ElemActDelegate(String eaName) { name = eaName }
 
-    public Activity processClosure(BlockDelegate nestingBlock, Closure cl = null) {
+    public void processClosure(BlockDelegate nestingBlock, Closure cl = null) {
         assert nestingBlock, "Activity must belong to Block"
 
         WfVertex currentVertex = nestingBlock.addVertex(Types.Atomic, name)
@@ -48,7 +47,5 @@ class ElemActDelegate {
             cl.resolveStrategy = Closure.DELEGATE_FIRST
             cl()
         }
-
-        return (Activity)currentVertex
     }
 }
