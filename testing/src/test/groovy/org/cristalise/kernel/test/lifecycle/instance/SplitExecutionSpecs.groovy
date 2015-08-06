@@ -1,10 +1,10 @@
-package org.cristalise.kernel.test.unit.workflow;
+package org.cristalise.kernel.test.lifecycle.instance;
 
 //import static org.cristalise.kernel.lifecycle.instance.WfVertex.Types.*
 
+import org.cristalise.dsl.lifecycle.instance.WfBuilder;
 import org.cristalise.kernel.process.AbstractMain
 import org.cristalise.kernel.process.Gateway
-import org.cristalise.kernel.test.lifecycle.WfBuilder
 
 import spock.lang.Specification
 

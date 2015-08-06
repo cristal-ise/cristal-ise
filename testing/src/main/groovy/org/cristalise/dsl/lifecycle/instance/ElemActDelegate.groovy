@@ -19,7 +19,7 @@
  * http://www.fsf.org/licensing/licenses/lgpl.html
  */
 
-package org.cristalise.kernel.test.lifecycle
+package org.cristalise.dsl.lifecycle.instance
 
 import groovy.transform.CompileStatic
 

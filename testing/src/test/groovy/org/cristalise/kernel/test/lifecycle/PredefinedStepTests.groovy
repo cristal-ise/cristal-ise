@@ -1,4 +1,4 @@
-package org.cristalise.kernel.test.unit.workflow;
+package org.cristalise.kernel.test.lifecycle;
 
 import static org.junit.Assert.*
 import groovy.transform.CompileStatic
