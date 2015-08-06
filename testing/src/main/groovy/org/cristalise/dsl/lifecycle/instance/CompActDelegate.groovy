@@ -37,19 +37,14 @@ import org.cristalise.kernel.utils.Logger
  */
 @CompileStatic
 public class CompActDelegate extends BlockDelegate {
-    String name = ""
-    
     CompositeActivity currentCA = null
     boolean firstFlag = true
 
     public CompActDelegate() {}
     
-    public CompActDelegate(String caName) { name = caName; }
-
     public CompActDelegate(String caName, CompositeActivity ca, Map<String, WfVertex> cache) {
-        this(caName)
-
         assert ca
+        name = caName
         currentCA = ca
         vertexCache = cache
 
@@ -58,6 +53,7 @@ public class CompActDelegate extends BlockDelegate {
 
     public WfVertex createVertex(Types t, String name) {
         WfVertex v = currentCA.newChild(t, name, firstFlag, (GraphPoint)null)
+
         firstFlag = false
         updateVertexCache(t, name, v)
         return v
@@ -93,8 +89,8 @@ public class CompActDelegate extends BlockDelegate {
         linkFirstWithLast(b)
     }
 
-    public void Split(Types type, Closure cl) {
-        def b = new SplitDelegate(type, this, vertexCache)
+    public void Split(String name = "", Types type, Closure cl) {
+        def b = new SplitDelegate(name, type, this, vertexCache)
         b.processClosure(this, cl)
         linkFirstWithLast(b)
     }

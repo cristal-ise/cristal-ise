@@ -34,16 +34,18 @@ import org.cristalise.kernel.utils.Logger
  */
 @CompileStatic
 class SplitDelegate extends BlockDelegate {
-    Types type
+    Types type = null
     List<BlockDelegate> childBlocks = []
 
     SplitDelegate() {}
 
-    public SplitDelegate(Types t, CompActDelegate caBlock, Map<String, WfVertex> cache) {
+    public SplitDelegate(String n, Types t, CompActDelegate caBlock, Map<String, WfVertex> cache) {
         assert t
+        assert (t == Types.AndSplit || t == Types.OrSplit || t == Types.XOrSplit), "Type shall be either And/Or/XOR Split"
         assert caBlock
         assert cache
 
+        name = n
         type = t
         parentCABlock = caBlock
         vertexCache = cache
@@ -54,8 +56,15 @@ class SplitDelegate extends BlockDelegate {
 
         Logger.msg 1, "Split(type: $type) ----------------------------------"
 
-        def aSplit = parentCABlock.createVertex(type, '')
-        def aJoin  = parentCABlock.createVertex(Types.Join, '')
+        if(!name) name = type.toString()
+
+        String joinName = name.replace(type.toString(), "Join")
+
+        def aSplit = parentCABlock.createVertex(type, name)
+        def aJoin  = parentCABlock.createVertex(Types.Join, joinName)
+        
+        aSplit.getProperties().put("RoutingScriptName", "javascript:true;");
+        aSplit.getProperties().put("RoutingScriptVersion", "");
 
         cl.delegate = this
         cl.resolveStrategy = Closure.DELEGATE_FIRST
@@ -89,8 +98,8 @@ class SplitDelegate extends BlockDelegate {
         caB.processClosure(cl)
     }
 
-    public void Split(Types type, Closure cl) {
-        def sB = new SplitDelegate(type, parentCABlock, vertexCache)
+    public void Split(String name = "", Types type, Closure cl) {
+        def sB = new SplitDelegate(name, type, parentCABlock, vertexCache)
         childBlocks.add(sB)
         sB.processClosure(this, cl)
     }

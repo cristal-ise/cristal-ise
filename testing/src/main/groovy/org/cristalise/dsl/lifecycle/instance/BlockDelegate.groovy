@@ -31,17 +31,18 @@ import org.cristalise.kernel.utils.Logger
 
 
 /**
- *
+ * Block is a group of WfVertices, it should used only within Splits
  */
 @CompileStatic
 public class BlockDelegate {
+    String name = ""
 
     CompActDelegate parentCABlock = null
 
     WfVertex firstVertex = null
     WfVertex lastVertex  = null
 
-    Map<String, WfVertex> vertexCache
+    Map<String, WfVertex> vertexCache = null
 
     public BlockDelegate() {}
 
@@ -50,14 +51,11 @@ public class BlockDelegate {
         parentCABlock = caBlock
         vertexCache = cache
     }
-    
-    def updateVertexCache(Types t, String name, WfVertex v) {
-        if(!name && (t == Types.AndSplit || t == Types.Join)) name = t.toString()
 
-        if(name) {
-//            if(vertexCache[name]) throw new RuntimeException("$name must be unique")
-            if(vertexCache[name]) Logger.warning("Block.updateVertexCache() - Skipping existing entry '$name'")
-            else vertexCache[name] = v
+    public void updateVertexCache(Types t, String n, WfVertex v) {
+        if(n) {
+            if(vertexCache.containsKey(n)) throw new RuntimeException("$n must be unique")
+            else vertexCache[n] = v
         }
     }
 
@@ -69,8 +67,6 @@ public class BlockDelegate {
         if(!firstVertex) firstVertex = v
         if(lastVertex) lastVertex.addNext(v)
         lastVertex = v
-
-        updateVertexCache(t, name, v)
 
         return v
     }
@@ -129,12 +125,22 @@ public class BlockDelegate {
         new CompActDelegate(name, ca, vertexCache).processClosure(cl)
     }
 
-    public void Split(Types type, Closure cl) {
-        new SplitDelegate(type, parentCABlock, vertexCache).processClosure(this, cl)
+    public void Split(String name = "", Types type, Closure cl) {
+        new SplitDelegate(name, type, parentCABlock, vertexCache).processClosure(this, cl)
     }
 
-    public void AndSplit(Closure cl) {
-        Split(Types.AndSplit, cl)
+    public void AndSplit(String name = "", Closure cl) {
+        if(name) assert name.startsWith('AndSplit'), "Name shall start with 'AndSplit'"
+        Split(name, Types.AndSplit, cl)
     }
 
+    public void OrSplit(String name = "", Closure cl) {
+        if(name) assert name.startsWith('OrSplit'), "Name shall start with 'OrSplit'"
+        Split(name, Types.OrSplit, cl)
+    }
+
+    public void XOrSplit(String name = "", Closure cl) {
+        if(name) assert name.startsWith('XOrSplit'), "Name shall start with 'XOrSplit'"
+        Split(name, Types.XOrSplit, cl)
+    }
 }

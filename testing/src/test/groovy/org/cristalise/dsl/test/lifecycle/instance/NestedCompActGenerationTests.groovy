@@ -2,7 +2,6 @@ package org.cristalise.dsl.test.lifecycle.instance;
 
 import static org.junit.Assert.*
 
-import org.cristalise.dsl.lifecycle.instance.WfBuilder;
 import org.cristalise.kernel.process.AbstractMain
 import org.cristalise.kernel.process.Gateway
 import org.junit.After
@@ -12,7 +11,7 @@ import org.junit.Test
 
 class NestedCompActGenerationTests {
 
-    WfBuilder util
+    WorkflowTestBuilder util
 
     @Before
     public void setup() {
@@ -20,7 +19,7 @@ class NestedCompActGenerationTests {
         Gateway.init(AbstractMain.readC2KArgs(args))
         Gateway.connect()
 
-        util = new WfBuilder()
+        util = new WorkflowTestBuilder()
     }
 
     @After
@@ -28,48 +27,22 @@ class NestedCompActGenerationTests {
         Gateway.close()
     }
 
-    def checkWorkflow() {
-        util.checkActStatus("first",  [state: "Waiting", active: true])
-        util.checkActStatus("second", [state: "Waiting", active: false])
-        util.checkActStatus("third",  [state: "Waiting", active: false])
-        util.checkActStatus("last",   [state: "Waiting", active: false])
 
-        println "======================================================"
-        util.requestAction("first", "Done")
+    def checkSeq() {
+        util.checkActPath('rootCA', 'workflow/domain')
+        util.checkActPath('ca',     'workflow/domain/0')
+        util.checkActPath('ca',     'workflow/domain/ca')
+        util.checkActPath('first',  'workflow/domain/ca/first')
+        util.checkActPath('second', 'workflow/domain/ca/second')
+        util.checkActPath('third',  'workflow/domain/ca/third')
+        util.checkActPath('last',   'workflow/domain/ca/last')
 
-        util.checkActStatus("first",  [state: "Finished", active: false])
-        util.checkActStatus("second", [state: "Waiting",  active: true])
-        util.checkActStatus("third",  [state: "Waiting",  active: false])
-        util.checkActStatus("last",   [state: "Waiting",  active: false])
-        
-        println "======================================================"
-        util.requestAction("second", "Done")
-
-        util.checkActStatus("first",  [state: "Finished", active: false])
-        util.checkActStatus("second", [state: "Finished", active: false])
-        util.checkActStatus("third",  [state: "Waiting",  active: true])
-        util.checkActStatus("last",   [state: "Waiting",  active: false])
-        
-        println "======================================================"
-        util.requestAction("third", "Done")
-
-        util.checkActStatus("first",  [state: "Finished", active: false])
-        util.checkActStatus("second", [state: "Finished", active: false])
-        util.checkActStatus("third",  [state: "Finished", active: false])
-        util.checkActStatus("last",   [state: "Waiting",  active: true])
-
-        println "======================================================"
-        util.requestAction("last", "Done")
-
-        util.checkActStatus("first",  [state: "Finished", active: false])
-        util.checkActStatus("second", [state: "Finished", active: false])
-        util.checkActStatus("third",  [state: "Finished", active: false])
-        util.checkActStatus("last",   [state: "Finished", active: false])
+        util.checkSequence('first', 'second', 'third', 'last')
     }
 
     @Test
     public void 'CompAct(first-second-third-last)'() {
-        util.buildAndInitWf(false) {
+        util.build {
             CompAct('ca') {
                 ElemAct("first")
                 ElemAct("second")
@@ -77,25 +50,12 @@ class NestedCompActGenerationTests {
                 ElemAct("last")
             }
         }
-
-        util.checkActPath('workflow/domain'           ,'rootCA')
-        util.checkActPath('workflow/domain/0'         ,'ca')
-        util.checkActPath('workflow/domain/ca'        ,'ca')
-        util.checkActPath('workflow/domain/ca/first'  ,'first')
-        util.checkActPath('workflow/domain/ca/second' ,'second')
-        util.checkActPath('workflow/domain/ca/third'  ,'third')
-        util.checkActPath('workflow/domain/ca/last'   ,'last')
-
-        util.checkNext('first',  'second')
-        util.checkNext('second', 'third')
-        util.checkNext('third',  'last')
-
-        checkWorkflow()
+        checkSeq()
     }
 
     @Test
     public void 'Block(CompAct(first-second-third-last))'() {
-        util.buildAndInitWf(false) {
+        util.build {
             Block {
                 CompAct('ca') {
                     ElemAct("first")
@@ -105,24 +65,12 @@ class NestedCompActGenerationTests {
                 }
             }
         }
-        util.checkActPath('workflow/domain'           ,'rootCA')
-        util.checkActPath('workflow/domain/0'         ,'ca')
-        util.checkActPath('workflow/domain/ca'        ,'ca')
-        util.checkActPath('workflow/domain/ca/first'  ,'first')
-        util.checkActPath('workflow/domain/ca/second' ,'second')
-        util.checkActPath('workflow/domain/ca/third'  ,'third')
-        util.checkActPath('workflow/domain/ca/last'   ,'last')
-
-        util.checkNext('first',  'second')
-        util.checkNext('second', 'third')
-        util.checkNext('third',  'last')
-
-        checkWorkflow()
+        checkSeq()
     }
 
     @Test
     public void 'Block(CompAct(first-Block(second-third-last)))'() {
-        util.buildAndInitWf(false) {
+        util.build {
             Block {
                 CompAct('ca') {
                     ElemAct("first")
@@ -134,24 +82,12 @@ class NestedCompActGenerationTests {
                 }
             }
         }
-        util.checkActPath('workflow/domain'           ,'rootCA')
-        util.checkActPath('workflow/domain/0'         ,'ca')
-        util.checkActPath('workflow/domain/ca'        ,'ca')
-        util.checkActPath('workflow/domain/ca/first'  ,'first')
-        util.checkActPath('workflow/domain/ca/second' ,'second')
-        util.checkActPath('workflow/domain/ca/third'  ,'third')
-        util.checkActPath('workflow/domain/ca/last'   ,'last')
-
-        util.checkNext('first',  'second')
-        util.checkNext('second', 'third')
-        util.checkNext('third',  'last')
-
-        checkWorkflow()
+        checkSeq()
     }
 
     @Test
     public void 'first-CompAct(second-third-last)'() {
-        util.buildAndInitWf(false) {
+        util.build {
             ElemAct("first")
             CompAct('ca') {
                 ElemAct("second")
@@ -159,17 +95,20 @@ class NestedCompActGenerationTests {
                 ElemAct("last")
             }
         }
+        util.checkActPath('first',  'workflow/domain/0')
+        util.checkActPath('ca',     'workflow/domain/ca')
+        util.checkActPath('first',  'workflow/domain/first')
+        util.checkActPath('second', 'workflow/domain/ca/second')
+        util.checkActPath('third',  'workflow/domain/ca/third')
+        util.checkActPath('last',   'workflow/domain/ca/last')
 
-        util.checkNext('first',  'ca')
-        util.checkNext('second', 'third')
-        util.checkNext('third',  'last')
-
-        checkWorkflow()
+        util.checkNext('first', 'ca')
+        util.checkSequence('second', 'third', 'last')
     }
 
     @Test
     public void 'CompAct(first-second-third)-last'() {
-        util.buildAndInitWf(false) {
+        util.build {
             CompAct('ca') {
                 ElemAct("first")
                 ElemAct("second")
@@ -178,16 +117,19 @@ class NestedCompActGenerationTests {
             ElemAct("last")
         }
 
-        util.checkNext('ca', 'last')
-        util.checkNext('first', 'second')
-        util.checkNext('second', 'last')
+        util.checkActPath('ca',     'workflow/domain/ca')
+        util.checkActPath('first',  'workflow/domain/ca/first')
+        util.checkActPath('second', 'workflow/domain/ca/second')
+        util.checkActPath('third',  'workflow/domain/ca/third')
+        util.checkActPath('last',   'workflow/domain/last')
 
-        checkWorkflow()
+        util.checkNext('ca', 'last')
+        util.checkSequence('first', 'second', 'third')
     }
 
     @Test
     public void 'first-CompAct(second-third)-last'() {
-        util.buildAndInitWf(false) {
+        util.build {
             ElemAct("first")
             CompAct('ca') {
                 ElemAct("second")
@@ -195,17 +137,19 @@ class NestedCompActGenerationTests {
             }
             ElemAct("last")
         }
+        util.checkActPath('ca',     'workflow/domain/ca')
+        util.checkActPath('first',  'workflow/domain/first')
+        util.checkActPath('second', 'workflow/domain/ca/second')
+        util.checkActPath('third',  'workflow/domain/ca/third')
+        util.checkActPath('last',   'workflow/domain/last')
 
-        util.checkNext('first',  'ca')
-        util.checkNext('ca',     'last')
+        util.checkSequence('first', 'ca','last')
         util.checkNext('second', 'third')
-
-        checkWorkflow()
     }
 
     @Test
     public void 'CompAct(CompAct(first-second-third-last))'() {
-        util.buildAndInitWf(false) {
+        util.build {
             CompAct('ca') {
                 CompAct('ca1') {
                     ElemAct("first")
@@ -215,17 +159,19 @@ class NestedCompActGenerationTests {
                 }
             }
         }
+        util.checkActPath('ca',     'workflow/domain/ca')
+        util.checkActPath('ca1',    'workflow/domain/ca/ca1')
+        util.checkActPath('first',  'workflow/domain/ca/ca1/first')
+        util.checkActPath('second', 'workflow/domain/ca/ca1/second')
+        util.checkActPath('third',  'workflow/domain/ca/ca1/third')
+        util.checkActPath('last',   'workflow/domain/ca/ca1/last')
 
-        util.checkNext('first',  'second')
-        util.checkNext('second', 'third')
-        util.checkNext('third',  'last')
-
-        checkWorkflow()
+        util.checkSequence('first', 'second', 'third', 'last')
     }
 
     @Test
     public void 'CompAct(first-CompAct(second-third-last))'() {
-        util.buildAndInitWf(false) {
+        util.build {
             CompAct('ca') {
                 ElemAct("first")
                 CompAct('ca1') {
@@ -235,87 +181,26 @@ class NestedCompActGenerationTests {
                 }
             }
         }
+        util.checkActPath('ca',     'workflow/domain/ca')
+        util.checkActPath('ca1',    'workflow/domain/ca/ca1')
+        util.checkActPath('first',  'workflow/domain/ca/first')
+        util.checkActPath('second', 'workflow/domain/ca/ca1/second')
+        util.checkActPath('third',  'workflow/domain/ca/ca1/third')
+        util.checkActPath('last',   'workflow/domain/ca/ca1/last')
 
-        checkWorkflow()
+        util.checkSequence('second', 'third', 'last')
     }
 
-    @Test
-    public void 'first-CompAct(second-CompAct(third-last))'() {
-        util.buildAndInitWf(false) {
-            ElemAct("first")
-            CompAct {
-                ElemAct("second")
-                CompAct {
-                    ElemAct("third")
-                    ElemAct("last")
-                }
-            }
-        }
-
-        checkWorkflow()
-    }
-
-    @Test
-    public void 'first-CompAct(second-CompAct(third))-last'() {
-        util.buildAndInitWf(false) {
-            ElemAct("first")
-            CompAct {
-                ElemAct("second")
-                CompAct {
-                    ElemAct("third")
-                }
-            }
-            ElemAct("last")
-        }
-
-        checkWorkflow()
-    }
-
-    @Test
-    public void 'CompAct(first-CompAct(second-CompAct(third)))-last'() {
-        util.buildAndInitWf(false) {
-            CompAct {
-                ElemAct("first")
-                CompAct {
-                    ElemAct("second")
-                    CompAct {
-                        ElemAct("third")
-                    }
-                }
-            }
-            ElemAct("last")
-        }
-
-        checkWorkflow()
-    }
-
-    @Test
-    public void 'CompAct(first-CompAct(second-CompAct(third))-last)'() {
-        util.buildAndInitWf(false) {
-            CompAct {
-                ElemAct("first")
-                CompAct {
-                    ElemAct("second")
-                    CompAct {
-                        ElemAct("third")
-                    }
-                }
-                ElemAct("last")
-            }
-        }
-
-        checkWorkflow()
-    }
 
     @Test
     public void 'CompAct(CompAct(first-CompAct(second-CompAct(third))-last))'() {
-        util.buildAndInitWf(false) {
-            CompAct {
-                CompAct {
+        util.build {
+            CompAct('ca') {
+                CompAct('ca1') {
                     ElemAct("first")
-                    CompAct {
+                    CompAct('ca2') {
                         ElemAct("second")
-                        CompAct {
+                        CompAct('ca3') {
                             ElemAct("third")
                         }
                     }
@@ -323,57 +208,40 @@ class NestedCompActGenerationTests {
                 }
             }
         }
+        util.checkActPath('ca',     'workflow/domain/ca')
+        util.checkActPath('ca1',    'workflow/domain/ca/ca1')
+        util.checkActPath('ca2',    'workflow/domain/ca/ca1/ca2')
+        util.checkActPath('ca3',    'workflow/domain/ca/ca1/ca2/ca3')
+        util.checkActPath('first',  'workflow/domain/ca/ca1/first')
+        util.checkActPath('second', 'workflow/domain/ca/ca1/ca2/second')
+        util.checkActPath('third',  'workflow/domain/ca/ca1/ca2/ca3/third')
+        util.checkActPath('last',   'workflow/domain/ca/ca1/last')
 
-        checkWorkflow()
-    }
-
-    @Test
-    public void 'CompAct(first-CompAct(second)-CompAct(third))-last'() {
-        util.buildAndInitWf(false) {
-            CompAct {
-                ElemAct("first")
-                CompAct {
-                    ElemAct("second")
-                }
-                CompAct {
-                    ElemAct("third")
-                }
-            }
-            ElemAct("last")
-        }
-
-        checkWorkflow()
+        util.checkSequence('first',  'ca2', 'last')
+        util.checkSequence('second', 'ca3')
     }
 
     @Test
     public void 'CompAct(first-second)-CompAct(third-last)'() {
-        util.buildAndInitWf(false) {
-            CompAct {
+        util.build {
+            CompAct('ca1') {
                 ElemAct("first")
                 ElemAct("second")
             }
-            CompAct {
+            CompAct('ca2') {
                 ElemAct("third")
                 ElemAct("last")
             }
         }
-
-        checkWorkflow()
-    }
-
-    @Test
-    public void 'first-CompAct(second)-third-CompAct(last)'() {
-        util.buildAndInitWf(false) {
-            ElemAct("first")
-            CompAct {
-                ElemAct("second")
-            }
-            ElemAct("third")
-            CompAct {
-                ElemAct("last")
-            }
-        }
-
-        checkWorkflow()
+        util.checkActPath('ca1',    'workflow/domain/ca1')
+        util.checkActPath('ca2',    'workflow/domain/ca2')
+        util.checkActPath('first',  'workflow/domain/ca1/first')
+        util.checkActPath('second', 'workflow/domain/ca1/second')
+        util.checkActPath('third',  'workflow/domain/ca2/third')
+        util.checkActPath('last',   'workflow/domain/ca2/last')
+       
+        util.checkSequence('first', 'second')
+        util.checkSequence('third', 'last')
+        util.checkSequence('ca1',   'ca2')
     }
 }

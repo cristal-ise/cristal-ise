@@ -19,10 +19,11 @@
  * http://www.fsf.org/licensing/licenses/lgpl.html
  */
 
-package org.cristalise.dsl.lifecycle.instance
+package org.cristalise.dsl.test.lifecycle.instance
 
 import groovy.transform.CompileStatic
 
+import org.cristalise.dsl.lifecycle.instance.WorkflowBuilder
 import org.cristalise.kernel.graph.model.DirectedEdge
 import org.cristalise.kernel.lifecycle.instance.Activity
 import org.cristalise.kernel.lifecycle.instance.CompositeActivity
@@ -30,7 +31,6 @@ import org.cristalise.kernel.lifecycle.instance.Join
 import org.cristalise.kernel.lifecycle.instance.Split
 import org.cristalise.kernel.lifecycle.instance.WfVertex
 import org.cristalise.kernel.lifecycle.instance.Workflow
-import org.cristalise.kernel.lifecycle.instance.predefined.server.ServerPredefinedStepContainer
 import org.cristalise.kernel.lifecycle.instance.stateMachine.StateMachine
 import org.cristalise.kernel.lifecycle.instance.stateMachine.Transition
 import org.cristalise.kernel.lookup.AgentPath
@@ -38,25 +38,24 @@ import org.cristalise.kernel.lookup.ItemPath
 import org.cristalise.kernel.process.Gateway
 import org.cristalise.kernel.utils.Logger
 
+
 /**
  *
  */
 @CompileStatic
-class WfBuilder {
-    private ItemPath  itemPath  = null
-    private AgentPath agentPath = null
+class WorkflowTestBuilder extends WorkflowBuilder {
+    ItemPath  itemPath  = null
+    AgentPath agentPath = null
 
-    private StateMachine eaSM = null
-    private StateMachine caSM = null
-
-    private Workflow wf = null
-
-    private Map<String, WfVertex> vertexCache = [:]
+    StateMachine eaSM = null
+    StateMachine caSM = null
 
     /**
      * 
      */
-    public WfBuilder() {
+    public WorkflowTestBuilder() {
+        super()
+
         eaSM = (StateMachine)Gateway.getMarshaller().unmarshall(Gateway.getResource().getTextResource(null, "boot/SM/Default.xml"));
         caSM = (StateMachine)Gateway.getMarshaller().unmarshall(Gateway.getResource().getTextResource(null, "boot/SM/CompositeActivity.xml"));
 
@@ -96,6 +95,64 @@ class WfBuilder {
         assert act.getActive() == status.active, "Activity '$act.name' shall ${(status.active) ? '' : 'NOT '}be active"
     }
 
+    /**
+     * 
+     * @param splitName
+     * @param toNames
+     */
+    public void checkSplit(String splitName, List<String> toNames ) {
+        Logger.msg 5, "checkSplit() - Split '$splitName' -> $toNames"
+
+        List<Integer> splitIDs = vertexCache[splitName].getOutEdges().collect { DirectedEdge e ->  e.terminusVertexId }.sort()
+        List<Integer> toIDs = toNames.collect { vertexCache[it].ID }.sort()
+
+        assert splitIDs == toIDs
+    }
+
+    /**
+     * 
+     * @param joinName
+     * @param fromNames
+     */
+    public void checkJoin(String joinName, List<String> fromNames) {
+        Logger.msg 5, "checkJoin() - Split '$joinName' -> $fromNames"
+
+        List<Integer> joinIDs = vertexCache[joinName].getInEdges().collect { DirectedEdge e ->  e.originVertexId }.sort()
+        List<Integer> fromIDs = fromNames.collect { vertexCache[it].ID }.sort()
+
+        assert fromIDs == joinIDs
+    }
+
+    /**
+     * 
+     * @param names
+     */
+    public void checkSequence(String... names) {
+        assert names.size() > 1
+
+        Logger.msg 5, "checkSequence() - '$names'"
+
+        for(int i = 1; i < names.size(); i++) {
+            checkOneToOneNext(names[i-1], names[i])
+        }
+    }
+
+    /**
+     * 
+     * @param from
+     * @param to
+     */
+    public void checkOneToOneNext(String from, String to) {
+        checkNext(from, to)
+        assert vertexCache[from].getOutEdges().size() == 1
+        assert vertexCache[to  ].getInEdges().size() == 1
+    }
+        
+    /**
+     * 
+     * @param from
+     * @param to
+     */
     public void checkNext(String from, String to) {
         Logger.msg 5, "checkNext() - Vertex '$from' -> '$to'"
         WfVertex fromV = vertexCache[from]
@@ -124,7 +181,12 @@ class WfBuilder {
         assert fromIDs.contains(vertexCache[to].ID), "Vertex '$from' shall be linked to '$to'"
     }
 
-    public void checkActPath(String path, String name) {
+    /**
+     * 
+     * @param path
+     * @param name
+     */
+    public void checkActPath(String name, String path) {
         assert wf.search(path) == vertexCache[name], "Activity '$name' equals '$path'"
     }
 
@@ -153,52 +215,19 @@ class WfBuilder {
 
     /**
      * 
-     * @param cl
-     * @return
      */
-    public Workflow buildWf(boolean doChecks = true, Closure cl) {
-        assert cl, "buildWf() only works with a valid Closure"
-
-        CompositeActivity rootCA = new CompositeActivity()
-        wf = new Workflow(rootCA, new ServerPredefinedStepContainer())
-        vertexCache['rootCA'] = rootCA
-
-        new CompActDelegate('rootCA', rootCA, vertexCache).processClosure(cl)
-
-        //FIXME: Move these checks to separate WfInitilaiseSpecs test class
-        if(doChecks) {
-            def act0 = wf.search("workflow/domain/0")
-
-            checkActStatus('rootCA', [state: "Waiting", active: false])
-            if(act0 instanceof Activity) checkActStatus(act0,     [state: "Waiting", active: false])
-        }
+    public void initialise() {
+        wf.initialise(itemPath, agentPath)
     }
-        
+
     /**
      * 
-     * @param doChecks
      * @param cl
      * @return
      */
-    public Workflow buildAndInitWf(boolean doChecks = true, Closure cl) {
-        buildWf(doChecks, cl)
-
-        wf.initialise(itemPath, agentPath)
-
-        //FIXME: Move these checks to separate WfInitilaiseSpecs test class
-        if(doChecks) {
-            checkActStatus('rootCA', [state: "Started", active: true])
-
-            def act0 = wf.search("workflow/domain/0")
-
-            if(act0 instanceof CompositeActivity) {
-                checkActStatus(act0, [state: "Started", active: true])
-            }
-            else if(act0 instanceof Activity) {
-                checkActStatus(act0, [state: "Waiting", active: true])
-            }
-        }
-
+    public Workflow buildAndInitWf(Closure cl) {
+        super.build(cl)
+        initialise()
         return wf
     }
 }

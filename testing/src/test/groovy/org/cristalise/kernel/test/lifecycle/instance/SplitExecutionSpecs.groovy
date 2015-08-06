@@ -2,7 +2,7 @@ package org.cristalise.kernel.test.lifecycle.instance;
 
 //import static org.cristalise.kernel.lifecycle.instance.WfVertex.Types.*
 
-import org.cristalise.dsl.lifecycle.instance.WfBuilder;
+import org.cristalise.dsl.test.lifecycle.instance.WorkflowTestBuilder
 import org.cristalise.kernel.process.AbstractMain
 import org.cristalise.kernel.process.Gateway
 
@@ -11,14 +11,14 @@ import spock.lang.Specification
 
 class SplitExecutionSpecs extends Specification {
 
-    WfBuilder util
+    WorkflowTestBuilder util
 
     def setup() {
         String[] args = ['-logLevel', '8', '-config', 'src/test/conf/testServer.conf', '-connect', 'src/test/conf/testInMemory.clc']
         Gateway.init(AbstractMain.readC2KArgs(args))
         Gateway.connect()
 
-        util = new WfBuilder()
+        util = new WorkflowTestBuilder()
     }
 
     def cleanup() {
@@ -38,7 +38,7 @@ class SplitExecutionSpecs extends Specification {
         }
 
         println Gateway.getMarshaller().marshall(util.wf)
-        
+
         util.checkNext('first','AndSplit')
         util.checkNext('AndSplit','left')
         util.checkNext('AndSplit','right')
@@ -87,10 +87,10 @@ class SplitExecutionSpecs extends Specification {
 
     def 'first-AndSplit(AndSplit((left2)(right2))(right1))-last'() {
         given: "Workflow contaning AndSplit with two Blocks"
-        util.buildAndInitWf(false) {
+        util.buildAndInitWf {
             ElemAct("first")
             AndSplit {
-                AndSplit {
+                AndSplit('AndSplit1') {
                     Block { ElemAct("left2")  }
                     Block { ElemAct("right2")  }
                 }
@@ -99,8 +99,14 @@ class SplitExecutionSpecs extends Specification {
             ElemAct("last")
         }
         util.checkNext('first','AndSplit')
+        util.checkNext('AndSplit','AndSplit1')
+        util.checkNext('AndSplit','right1')
+        util.checkNext('AndSplit1','left2')
+        util.checkNext('AndSplit1','right2')
+        util.checkNext('left2','Join1')
+        util.checkNext('right2','Join1')
         util.checkNext('Join','last')
-        
+
         util.checkActStatus("first",  [state: "Waiting", active: true])
         util.checkActStatus("left2",  [state: "Waiting", active: false])
         util.checkActStatus("right2", [state: "Waiting", active: false])

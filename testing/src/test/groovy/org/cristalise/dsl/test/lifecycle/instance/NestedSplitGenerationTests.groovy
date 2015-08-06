@@ -2,7 +2,6 @@ package org.cristalise.dsl.test.lifecycle.instance;
 
 import static org.junit.Assert.*
 
-import org.cristalise.dsl.lifecycle.instance.WfBuilder;
 import org.cristalise.kernel.process.AbstractMain
 import org.cristalise.kernel.process.Gateway
 import org.junit.After
@@ -12,7 +11,7 @@ import org.junit.Test
 
 class NestedSplitGenerationTests {
 
-    WfBuilder util
+    WorkflowTestBuilder util
 
     @Before
     public void setup() {
@@ -20,75 +19,102 @@ class NestedSplitGenerationTests {
         Gateway.init(AbstractMain.readC2KArgs(args))
         Gateway.connect()
 
-        util = new WfBuilder()
+        util = new WorkflowTestBuilder()
     }
 
     @After
     public void cleanup() {
+        //println Gateway.getMarshaller().marshall(util.wf)
         Gateway.close()
     }
 
     @Test
-    public void 'AndSplit((first)(left)(right)(last))'() {
-        given: "Workflow contaning AndSplit with two Blocks"
-        util.buildAndInitWf(false) {
+    public void 'AndSplit((left)(right)'() {
+        util.build {
             AndSplit {
-                Block { ElemAct("first") }
                 Block { ElemAct("left")  }
                 Block { ElemAct("right") }
-                Block { ElemAct("last")  }
             }
         }
 
-        println Gateway.getMarshaller().marshall(util.wf)
-        
-        util.checkNext('AndSplit','first')
-        util.checkNext('AndSplit','left')
-        util.checkNext('AndSplit','right')
-        util.checkNext('AndSplit','last')
-        util.checkNext('first','Join')
-        util.checkNext('left', 'Join')
-        util.checkNext('right','Join')
-        util.checkNext('last', 'Join')
-
-        util.checkActStatus("first", [state: "Waiting", active: true])
-        util.checkActStatus("left",  [state: "Waiting", active: true])
-        util.checkActStatus("right", [state: "Waiting", active: true])
-        util.checkActStatus("last",  [state: "Waiting", active: true])
+        util.checkSplit('AndSplit',['left','right'])
+        util.checkJoin ('Join',    ['left','right'])
     }
 
     @Test
-    public void 'first-AndSplit((left)(right)(last))'() {
-        given: "Workflow contaning AndSplit with two Blocks"
-        util.buildAndInitWf(false) {
+    public void 'OrSplit((left)(right)'() {
+        util.build {
+            OrSplit {
+                Block { ElemAct("left")  }
+                Block { ElemAct("right") }
+            }
+        }
+
+        util.checkSplit('OrSplit',['left','right'])
+        util.checkJoin ('Join',   ['left','right'])
+    }
+
+    @Test
+    public void 'XOrSplit((left)(right)'() {
+        util.build {
+            XOrSplit {
+                Block { ElemAct("left")  }
+                Block { ElemAct("right") }
+            }
+        }
+
+        util.checkSplit('XOrSplit',['left','right'])
+        util.checkJoin ('Join',    ['left','right'])
+    }
+
+    @Test
+    public void 'first-AndSplit((left)(right)'() {
+        util.build {
             ElemAct("first")
             AndSplit {
                 Block { ElemAct("left")  }
                 Block { ElemAct("right") }
-                Block { ElemAct("last")  }
             }
+            ElemAct("last")
         }
 
-        println Gateway.getMarshaller().marshall(util.wf)
+        util.checkNext('first',    'AndSplit')
+        util.checkSplit('AndSplit',['left','right'])
+        util.checkJoin ('Join',    ['left','right'])
+        util.checkNext('Join',    'last')
+    }
 
-        util.checkNext('first','AndSplit')
-        util.checkNext('AndSplit','left')
-        util.checkNext('AndSplit','right')
-        util.checkNext('AndSplit','last')
-        util.checkNext('left', 'Join')
-        util.checkNext('right','Join')
-        util.checkNext('last', 'Join')
+    @Test
+    public void 'first-OrSplit((left)(right)'() {
+        util.build {
+            ElemAct("first")
+            OrSplit {
+                Block { ElemAct("left")  }
+                Block { ElemAct("right") }
+            }
+            ElemAct("last")
+        }
 
-        util.checkActStatus("first", [state: "Waiting", active: true])
-        util.checkActStatus("left",  [state: "Waiting", active: false])
-        util.checkActStatus("right", [state: "Waiting", active: false])
-        util.checkActStatus("last",  [state: "Waiting", active: false])
+        util.checkNext('first',    'OrSplit')
+        util.checkSplit('OrSplit', ['left','right'])
+        util.checkJoin ('Join',    ['left','right'])
+        util.checkNext('Join',    'last')
+    }
 
-        util.requestAction("first", "Done")
+    @Test
+    public void 'first-XOrSplit((left)(right)'() {
+        util.build {
+            ElemAct("first")
+            XOrSplit {
+                Block { ElemAct("left")  }
+                Block { ElemAct("right") }
+            }
+            ElemAct("last")
+        }
 
-        util.checkActStatus("first", [state: "Finished", active: false])
-        util.checkActStatus("left",  [state: "Waiting", active: true])
-        util.checkActStatus("right", [state: "Waiting", active: true])
-        util.checkActStatus("last",  [state: "Waiting", active: true])
+        util.checkNext('first',    'XOrSplit')
+        util.checkSplit('XOrSplit',['left','right'])
+        util.checkJoin ('Join',    ['left','right'])
+        util.checkNext('Join',    'last')
     }
 }

@@ -2,7 +2,7 @@ package org.cristalise.kernel.test.lifecycle.instance;
 
 import static org.junit.Assert.*
 
-import org.cristalise.dsl.lifecycle.instance.WfBuilder;
+import org.cristalise.dsl.test.lifecycle.instance.WorkflowTestBuilder
 import org.cristalise.kernel.common.InvalidTransitionException
 import org.cristalise.kernel.process.AbstractMain
 import org.cristalise.kernel.process.Gateway
@@ -12,14 +12,14 @@ import spock.lang.Specification
 
 class CAExecutionSpecs extends Specification {
 
-    WfBuilder util
+    WorkflowTestBuilder util
 
     def setup() {
         String[] args = ['-logLevel', '8', '-config', 'src/test/conf/testServer.conf', '-connect', 'src/test/conf/testInMemory.clc']
         Gateway.init(AbstractMain.readC2KArgs(args))
         Gateway.connect()
 
-        util = new WfBuilder()
+        util = new WorkflowTestBuilder()
     }
 
     def cleanup() {
@@ -127,7 +127,7 @@ class CAExecutionSpecs extends Specification {
 
     def 'Empty Wf cannot be executed'() {
         given: "empty Workflow"
-        util.buildAndInitWf(false) {
+        util.buildAndInitWf {
             //checks before Wf.init()
             util.checkActStatus('rootCA', [state: "Waiting", active: false])
         }
@@ -141,7 +141,7 @@ class CAExecutionSpecs extends Specification {
 
     public void 'Cannot execute Wf containing empty CompAct'() {
         given: "empty Workflow containing empty CompAct"
-        util.buildAndInitWf(false) {
+        util.buildAndInitWf {
             CompAct('ca') {}
 
             //checks before Wf.init()
@@ -172,7 +172,7 @@ class CAExecutionSpecs extends Specification {
 
     def 'Cannot Complete Root Compact without finishing all CompActs'() {
         given: "Workflow contaning single and empty CompAct"
-        util.buildAndInitWf(false) { CompAct{} }
+        util.buildAndInitWf { CompAct{} }
 
         when: "requesting Root CompAct Complete transition"
         util.requestAction('rootCA', "Complete")

@@ -1,8 +1,7 @@
-package org.cristalise.dsl.test.lifecycle.instance;
+package org.cristalise.dsl.test.lifecycle.instance
 
 import static org.junit.Assert.*
 
-import org.cristalise.dsl.lifecycle.instance.WfBuilder;
 import org.cristalise.kernel.process.AbstractMain
 import org.cristalise.kernel.process.Gateway
 import org.junit.After
@@ -12,7 +11,7 @@ import org.junit.Test
 
 class NestedBlockGenerationTests {
 
-    WfBuilder util
+    WorkflowTestBuilder util
 
     @Before
     public void setup() {
@@ -20,78 +19,41 @@ class NestedBlockGenerationTests {
         Gateway.init(AbstractMain.readC2KArgs(args))
         Gateway.connect()
 
-        util = new WfBuilder()
+        util = new WorkflowTestBuilder()
     }
 
     @After
     public void cleanup() {
+        //println Gateway.getMarshaller().marshall(util.wf)
         Gateway.close()
     }
 
-    def checkWfStructure() {
-        //Logger.msg Gateway.getMarshaller().marshall(util.wf)
+    def checkStructure() {
+        util.checkActPath('rootCA', 'workflow/domain')
+        util.checkActPath('first',  'workflow/domain/first')
+        util.checkActPath('second', 'workflow/domain/second')
+        util.checkActPath('third',  'workflow/domain/third')
+        util.checkActPath('last',   'workflow/domain/last')
 
-        assert util.wf.search('workflow/domain') == util.vertexCache['rootCA']
-
-        util.checkNext('first',  'second')
-        util.checkNext('second', 'third')
-        util.checkNext('third',  'last')
-    }
-
-    def checkWorkflow() {
-        checkWfStructure()
-
-        util.checkActStatus("first",  [state: "Waiting", active: true])
-        util.checkActStatus("second", [state: "Waiting", active: false])
-        util.checkActStatus("third",  [state: "Waiting", active: false])
-        util.checkActStatus("last",   [state: "Waiting", active: false])
-
-        util.requestAction("first", "Done")
-
-        util.checkActStatus("first",  [state: "Finished", active: false])
-        util.checkActStatus("second", [state: "Waiting",  active: true])
-        util.checkActStatus("third",  [state: "Waiting",  active: false])
-        util.checkActStatus("last",   [state: "Waiting",  active: false])
-
-        util.requestAction("second", "Done")
-
-        util.checkActStatus("first",  [state: "Finished", active: false])
-        util.checkActStatus("second", [state: "Finished", active: false])
-        util.checkActStatus("third",  [state: "Waiting",  active: true])
-        util.checkActStatus("last",   [state: "Waiting",  active: false])
-        
-        util.requestAction("third", "Done")
-
-        util.checkActStatus("first",  [state: "Finished", active: false])
-        util.checkActStatus("second", [state: "Finished", active: false])
-        util.checkActStatus("third",  [state: "Finished", active: false])
-        util.checkActStatus("last",   [state: "Waiting",  active: true])
-
-        util.requestAction("last", "Done")
-
-        util.checkActStatus("first",  [state: "Finished", active: false])
-        util.checkActStatus("second", [state: "Finished", active: false])
-        util.checkActStatus("third",  [state: "Finished", active: false])
-        util.checkActStatus("last",   [state: "Finished", active: true])
-
+        util.checkSequence('first', 'second', 'third', 'last')
     }
 
     @Test
     public void 'first-second-third-last'() {
-        //There is an implicit Block created
-        util.buildAndInitWf() {
+        //There is an implicit Block/CompAct created
+        util.build {
             ElemAct("first")
             ElemAct("second")
             ElemAct("third")
             ElemAct("last")
         }
 
-        checkWorkflow()
+        checkStructure()
     }
 
     @Test
     public void 'Block(first-second-third-last)'() {
-        util.buildAndInitWf(false) {
+        util.build {
             Block {
                 ElemAct("first")
                 ElemAct("second")
@@ -100,12 +62,12 @@ class NestedBlockGenerationTests {
             }
         }
 
-        checkWorkflow()
+        checkStructure()
     }
 
     @Test
     public void 'first-Block(second-third-last)'() {
-        util.buildAndInitWf(false) {
+        util.build {
             ElemAct("first")
             Block {
                 ElemAct("second")
@@ -114,12 +76,12 @@ class NestedBlockGenerationTests {
             }
         }
 
-        checkWorkflow()
+        checkStructure()
     }
 
     @Test
     public void 'Block(first-second-third)-last'() {
-        util.buildAndInitWf(false) {
+        util.build {
             Block {
                 ElemAct("first")
                 ElemAct("second")
@@ -128,12 +90,12 @@ class NestedBlockGenerationTests {
             ElemAct("last")
         }
 
-        checkWorkflow()
+        checkStructure()
     }
 
     @Test
     public void 'first-Block(second-third)-last'() {
-        util.buildAndInitWf(false) {
+        util.build {
             ElemAct("first")
             Block {
                 ElemAct("second")
@@ -142,12 +104,12 @@ class NestedBlockGenerationTests {
             ElemAct("last")
         }
 
-        checkWorkflow()
+        checkStructure()
     }
 
     @Test
     public void 'Block(Block(first-second-third-last))'() {
-        util.buildAndInitWf(false) {
+        util.build {
             Block {
                 Block {
                     ElemAct("first")
@@ -158,12 +120,12 @@ class NestedBlockGenerationTests {
             }
         }
 
-        checkWorkflow()
+        checkStructure()
     }
 
     @Test
     public void 'Block(first-Block(second-third-last))'() {
-        util.buildAndInitWf(false) {
+        util.build {
             Block {
                 ElemAct("first")
                 Block {
@@ -174,12 +136,12 @@ class NestedBlockGenerationTests {
             }
         }
 
-        checkWorkflow()
+        checkStructure()
     }
 
     @Test
     public void 'first-Block(second-Block(third-last))'() {
-        util.buildAndInitWf(false) {
+        util.build {
             ElemAct("first")
             Block {
                 ElemAct("second")
@@ -190,12 +152,12 @@ class NestedBlockGenerationTests {
             }
         }
 
-        checkWorkflow()
+        checkStructure()
     }
 
     @Test
     public void 'first-Block(second-Block(third))-last'() {
-        util.buildAndInitWf(false) {
+        util.build {
             ElemAct("first")
             Block {
                 ElemAct("second")
@@ -206,12 +168,12 @@ class NestedBlockGenerationTests {
             ElemAct("last")
         }
 
-        checkWorkflow()
+        checkStructure()
     }
 
     @Test
     public void 'Block(first-Block(second-Block(third)))-last'() {
-        util.buildAndInitWf(false) {
+        util.build {
             Block {
                 ElemAct("first")
                 Block {
@@ -224,12 +186,12 @@ class NestedBlockGenerationTests {
             ElemAct("last")
         }
 
-        checkWorkflow()
+        checkStructure()
     }
 
     @Test
     public void 'Block(first-Block(second-Block(third))-last)'() {
-        util.buildAndInitWf(false) {
+        util.build {
             Block {
                 ElemAct("first")
                 Block {
@@ -242,12 +204,12 @@ class NestedBlockGenerationTests {
             }
         }
 
-        checkWorkflow()
+        checkStructure()
     }
 
     @Test
     public void 'Block(Block(first-Block(second-Block(third))-last))'() {
-        util.buildAndInitWf(false) {
+        util.build {
             Block {
                 Block {
                     ElemAct("first")
@@ -262,12 +224,12 @@ class NestedBlockGenerationTests {
             }
         }
 
-        checkWorkflow()
+        checkStructure()
     }
 
     @Test
     public void 'Block(first-Block(second)-Block(third))-last'() {
-        util.buildAndInitWf(false) {
+        util.build {
             Block {
                 ElemAct("first")
                 Block {
@@ -280,12 +242,12 @@ class NestedBlockGenerationTests {
             ElemAct("last")
         }
 
-        checkWorkflow()
+        checkStructure()
     }
 
     @Test
     public void 'first-Block(second)-third-Block(last)'() {
-        util.buildAndInitWf(false) {
+        util.build {
             ElemAct("first")
             Block { 
                 ElemAct("second")
@@ -296,12 +258,12 @@ class NestedBlockGenerationTests {
             }
         }
 
-        checkWorkflow()
+        checkStructure()
     }
 
     @Test
     public void 'Block(first-second)-Block(third-last)'() {
-        util.buildAndInitWf(false) {
+        util.build {
             Block {
                 ElemAct("first")
                 ElemAct("second")
@@ -312,6 +274,6 @@ class NestedBlockGenerationTests {
             }
         }
 
-        checkWorkflow()
+        checkStructure()
     }
 }
