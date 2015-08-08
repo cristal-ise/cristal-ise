@@ -117,10 +117,10 @@ class WorkflowTestBuilder extends WorkflowBuilder {
     public void checkJoin(String joinName, List<String> fromNames) {
         Logger.msg 5, "checkJoin() - Split '$joinName' -> $fromNames"
 
-        List<Integer> joinIDs = vertexCache[joinName].getInEdges().collect { DirectedEdge e ->  e.originVertexId }.sort()
-        List<Integer> fromIDs = fromNames.collect { vertexCache[it].ID }.sort()
+        List<Integer> joinInEdgeIDs = vertexCache[joinName].getInEdges().collect { DirectedEdge e ->  e.originVertexId }.sort()
+        List<Integer> expectedIDs  = fromNames.collect { vertexCache[it].ID }.sort()
 
-        assert fromIDs == joinIDs
+        assert  joinInEdgeIDs == expectedIDs
     }
 
     /**

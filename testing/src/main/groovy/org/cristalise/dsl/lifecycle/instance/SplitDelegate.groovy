@@ -23,7 +23,6 @@ package org.cristalise.dsl.lifecycle.instance
 
 import groovy.transform.CompileStatic
 
-import org.cristalise.kernel.lifecycle.instance.CompositeActivity
 import org.cristalise.kernel.lifecycle.instance.WfVertex
 import org.cristalise.kernel.lifecycle.instance.WfVertex.Types
 import org.cristalise.kernel.utils.Logger
@@ -36,35 +35,46 @@ import org.cristalise.kernel.utils.Logger
 class SplitDelegate extends BlockDelegate {
     Types type = null
     List<BlockDelegate> childBlocks = []
+    
+    String joinName = ""
 
     SplitDelegate() {}
 
     public SplitDelegate(String n, Types t, CompActDelegate caBlock, Map<String, WfVertex> cache) {
         assert t
-        assert (t == Types.AndSplit || t == Types.OrSplit || t == Types.XOrSplit), "Type shall be either And/Or/XOR Split"
+        assert (t == Types.AndSplit || t == Types.OrSplit || t == Types.XOrSplit || t == Types.LoopSplit), "Type shall be either And/Or/XOR/Loop Split"
         assert caBlock
         assert cache
 
-        name = n
+        //FIXME: Rework automatic naming of Split/Join
+        if(n) {
+            assert n.startsWith(t.toString()), "Name shall start with '$type'"
+            name = n
+        }
+        else {
+            name = t.toString()
+        }
+        joinName = name.replace(t.toString(), "Join")
+        
         type = t
         parentCABlock = caBlock
         vertexCache = cache
     }
 
+    public static void setRoutingScript(WfVertex aSplit) {
+        aSplit.getProperties().put("RoutingScriptName", "javascript:true;");
+        aSplit.getProperties().put("RoutingScriptVersion", "")
+    }
+
     public void processClosure(BlockDelegate parentBlock, Closure cl) {
         assert cl, "Block only works with a valid Closure"
 
-        Logger.msg 1, "Split(type: $type) ----------------------------------"
-
-        if(!name) name = type.toString()
-
-        String joinName = name.replace(type.toString(), "Join")
+        Logger.msg 1, "$name(type: $type) ----------------------------------"
 
         def aSplit = parentCABlock.createVertex(type, name)
         def aJoin  = parentCABlock.createVertex(Types.Join, joinName)
         
-        aSplit.getProperties().put("RoutingScriptName", "javascript:true;");
-        aSplit.getProperties().put("RoutingScriptVersion", "");
+        setRoutingScript(aSplit);
 
         cl.delegate = this
         cl.resolveStrategy = Closure.DELEGATE_FIRST
@@ -78,11 +88,21 @@ class SplitDelegate extends BlockDelegate {
         firstVertex = aSplit
         lastVertex = aJoin
 
-        Logger.msg 1, "Split(end) +++++++++++++++++++++++++++++++++++++++++"
+        //Loop is linked to its Join
+        if(type == Types.LoopSplit) {
+            ((org.cristalise.kernel.lifecycle.instance.Split)aSplit).addNext(aJoin)
+            Logger.msg 1, "..............................................."
+        }
+
+        Logger.msg 1, "$name(end) +++++++++++++++++++++++++++++++++++++++++"
     }
 
     public void ElemAct(String name = "", Closure cl = null) {
-        throw new RuntimeException("Split cannot have standalone Activity, it shall be within a Block/CA/Split/Loop")
+        throw new RuntimeException("Split cannot have standalone ElemAct, it shall be within a Block")
+        /*
+        if(type == Types.LoopSplit) super.ElemAct(name,cl)
+        else throw new RuntimeException("Split cannot have standalone Activity, it shall be within a Block/CA/Split/Loop")
+        */
     }
 
     public void Block(Closure cl) {
@@ -92,15 +112,21 @@ class SplitDelegate extends BlockDelegate {
     }
 
     public void CompAct(String name = "", Closure cl) {
+        throw new RuntimeException("Split cannot have standalone CompAct, it shall be within a Block")
+        /*
         CompositeActivity ca = (CompositeActivity)addVertex(Types.Composite, name)
         def caB = new CompActDelegate(name, ca, vertexCache)
         childBlocks.add(caB)
         caB.processClosure(cl)
+        */
     }
 
     public void Split(String name = "", Types type, Closure cl) {
+        throw new RuntimeException("Split cannot have standalone Split, it shall be within a Block")
+        /*
         def sB = new SplitDelegate(name, type, parentCABlock, vertexCache)
         childBlocks.add(sB)
         sB.processClosure(this, cl)
+        */
     }
 }

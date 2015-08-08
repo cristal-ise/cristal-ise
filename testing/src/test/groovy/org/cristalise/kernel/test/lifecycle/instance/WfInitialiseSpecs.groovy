@@ -46,7 +46,7 @@ class WfInitialiseSpecs extends Specification {
         Gateway.close()
     }
 
-    def 'Empty Workflow CAN be initialised'() {
+    def 'Empty Workflow is NOT fully initialised'() {
         given: "empty Workflow"
         wfBuilder.build {}
         wfBuilder.checkActStatus("rootCA", [state: "Waiting", active: false])
@@ -54,8 +54,60 @@ class WfInitialiseSpecs extends Specification {
         when: "the Workflow is initialised"
         wfBuilder.initialise()
 
-        then: "The root CA (domain) is still 'Waiting' but become active"
+        then: "The root CA (domain) is still 'Waiting' but became active"
         wfBuilder.checkActStatus("rootCA", [state: "Waiting", active: true])
+    }
+
+    def 'Workflow with single Act CAN be initialised'() {
+        given: "the Workflow with single ElemAct"
+        wfBuilder.build { 
+            ElemAct('first')
+        }
+        wfBuilder.checkActStatus("rootCA", [state: "Waiting", active: false])
+        wfBuilder.checkActStatus("first",  [state: "Waiting", active: false])
+        
+        when: "the Workflow is initialised"
+        wfBuilder.initialise()
+
+        then: "The root CA (domain) is 'Started' and ElemAct(frist) became active"
+        wfBuilder.checkActStatus("rootCA", [state: "Started", active: true])
+        wfBuilder.checkActStatus("first",  [state: "Waiting", active: true])
+    }
+
+    def 'Workflow with empty CompAct CAN be initialised'() {
+        given: "the Workflow with empty CompAct"
+        wfBuilder.build {
+            CompAct('ca') {}
+        }
+        wfBuilder.checkActStatus("rootCA", [state: "Waiting", active: false])
+        wfBuilder.checkActStatus("ca",     [state: "Waiting", active: false])
+        
+        when: "the Workflow is initialised"
+        wfBuilder.initialise()
+
+        then: "The root CA (domain) is 'Started' and CompAct(ca) became active"
+        wfBuilder.checkActStatus("rootCA", [state: "Started", active: true])
+        wfBuilder.checkActStatus("ca",     [state: "Waiting", active: true])
+    }
+
+    def 'Workflow with nested empty CompActs CAN be initialised'() {
+        given: "the Workflow with empty CompAct"
+        wfBuilder.build {
+            CompAct('ca') {
+                CompAct('ca1') {}
+            }
+        }
+        wfBuilder.checkActStatus("rootCA", [state: "Waiting", active: false])
+        wfBuilder.checkActStatus("ca",     [state: "Waiting", active: false])
+        wfBuilder.checkActStatus("ca1",    [state: "Waiting", active: false])
+        
+        when: "the Workflow is initialised"
+        wfBuilder.initialise()
+
+        then: "The root CA (domain) is 'Started' and ElemAct(frist) became active"
+        wfBuilder.checkActStatus("rootCA", [state: "Started", active: true])
+        wfBuilder.checkActStatus("ca",     [state: "Started", active: true])
+        wfBuilder.checkActStatus("ca1",    [state: "Waiting", active: true])
     }
 
     def 'Starting AndSplit initialise all Activities inside'() {
@@ -72,7 +124,7 @@ class WfInitialiseSpecs extends Specification {
         when: "the Workflow is initialised"
         wfBuilder.initialise()
         
-        then: "all Activities are enabled"
+        then: "all Activities are Waiting and active"
         wfBuilder.checkActStatus("left",  [state: "Waiting", active: true])
         wfBuilder.checkActStatus("right", [state: "Waiting", active: true])
     }
@@ -88,7 +140,7 @@ class WfInitialiseSpecs extends Specification {
         when: "the Workflow is initialised"
         wfBuilder.initialise()
         
-        then: "all Activities are enables"
+        then: "all Activities are Waiting and active"
         wfBuilder.checkActStatus("left",  [state: "Waiting", active: true])
         wfBuilder.checkActStatus("right", [state: "Waiting", active: true])
     }
@@ -107,7 +159,7 @@ class WfInitialiseSpecs extends Specification {
         when: "the Workflow is initialised"
         wfBuilder.initialise()
 
-        then: "all Activities are enabled"
+        then: "all Activities are Waiting and active"
         wfBuilder.checkActStatus("left",  [state: "Waiting", active: true])
         wfBuilder.checkActStatus("right", [state: "Waiting", active: true])
     }

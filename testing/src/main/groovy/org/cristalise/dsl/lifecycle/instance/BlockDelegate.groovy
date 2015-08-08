@@ -90,9 +90,19 @@ public class BlockDelegate {
 
     def linkFirstWithLast(BlockDelegate b) {
         Logger.msg 1, "Block.linkFirstWithLast() - ${b.getClass()}"
-        if(!firstVertex) firstVertex = b.lastVertex
-        if(lastVertex) lastVertex.addNext(b.firstVertex)
+
+        if(!firstVertex) firstVertex = b.firstVertex
+        else             lastVertex.addNext(b.firstVertex)
+
         lastVertex = b.lastVertex
+    }
+
+    /**
+     * 
+     * @param cl
+     */
+    public void B(Closure cl) {
+        Block(cl)
     }
 
     /**
@@ -103,6 +113,16 @@ public class BlockDelegate {
         def b = new BlockDelegate(parentCABlock, vertexCache)
         b.processClosure(cl)
         linkFirstWithLast(b)
+    }
+
+    /**
+     * Alias of ElemAct()
+     * 
+     * @param name
+     * @return
+     */
+    public void EA(String name = "", Closure cl = null) {
+        ElemAct(name,cl)
     }
 
     /**
@@ -118,6 +138,15 @@ public class BlockDelegate {
      * 
      * @param name
      * @param cl
+     */
+    public void CA(String name = "", Closure cl) {
+        CompAct(name, cl)
+    }
+
+    /**
+     * 
+     * @param name
+     * @param cl
      * @return
      */
     public void CompAct(String name = "", Closure cl) {
@@ -125,22 +154,51 @@ public class BlockDelegate {
         new CompActDelegate(name, ca, vertexCache).processClosure(cl)
     }
 
+    /**
+     * 
+     * @param name
+     * @param type
+     * @param cl
+     */
     public void Split(String name = "", Types type, Closure cl) {
-        new SplitDelegate(name, type, parentCABlock, vertexCache).processClosure(this, cl)
+        def b = new SplitDelegate(name, type, parentCABlock, vertexCache)
+        b.processClosure(this, cl)
+        linkFirstWithLast(b)
     }
 
+    /**
+     * 
+     * @param name
+     * @param cl
+     */
     public void AndSplit(String name = "", Closure cl) {
-        if(name) assert name.startsWith('AndSplit'), "Name shall start with 'AndSplit'"
         Split(name, Types.AndSplit, cl)
     }
 
+    /**
+     * 
+     * @param name
+     * @param cl
+     */
     public void OrSplit(String name = "", Closure cl) {
-        if(name) assert name.startsWith('OrSplit'), "Name shall start with 'OrSplit'"
         Split(name, Types.OrSplit, cl)
     }
 
+    /**
+     * 
+     * @param name
+     * @param cl
+     */
     public void XOrSplit(String name = "", Closure cl) {
-        if(name) assert name.startsWith('XOrSplit'), "Name shall start with 'XOrSplit'"
         Split(name, Types.XOrSplit, cl)
+    }
+
+    /**
+     * 
+     * @param name
+     * @param cl
+     */
+    public void Loop(String name = "", Closure cl) {
+        Split(name, Types.LoopSplit, cl)
     }
 }

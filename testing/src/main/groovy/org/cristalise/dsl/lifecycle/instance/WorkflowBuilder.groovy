@@ -35,16 +35,7 @@ import org.cristalise.kernel.lifecycle.instance.predefined.server.ServerPredefin
 class WorkflowBuilder {
     protected Workflow wf = null
 
-    Map<String, WfVertex> vertexCache = [:]
-
-    /**
-     * 
-     */
-    public WorkflowBuilder() {
-        CompositeActivity rootCA = new CompositeActivity()
-        wf = new Workflow(rootCA, new ServerPredefinedStepContainer())
-        vertexCache['rootCA'] = rootCA
-    }
+    Map<String, WfVertex> vertexCache = null
 
     /**
      * 
@@ -52,6 +43,12 @@ class WorkflowBuilder {
      * @return
      */
     public Workflow build(Closure cl) {
+        vertexCache = [:]
+        CompositeActivity rootCA = new CompositeActivity()
+
+        wf = new Workflow(rootCA, new ServerPredefinedStepContainer())
+        vertexCache['rootCA'] = rootCA
+
         assert cl, "buildWf() only works with a valid Closure"
         new CompActDelegate('rootCA', (CompositeActivity)vertexCache['rootCA'], vertexCache).processClosure(cl)
         return wf
