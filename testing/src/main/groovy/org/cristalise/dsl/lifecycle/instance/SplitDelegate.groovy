@@ -37,28 +37,42 @@ class SplitDelegate extends BlockDelegate {
     List<BlockDelegate> childBlocks = []
     
     String joinName = ""
-
-    SplitDelegate() {}
-
+    
+    int index = -1
+    
     public SplitDelegate(String n, Types t, CompActDelegate caBlock, Map<String, WfVertex> cache) {
-        assert t
-        assert (t == Types.AndSplit || t == Types.OrSplit || t == Types.XOrSplit || t == Types.LoopSplit), "Type shall be either And/Or/XOR/Loop Split"
         assert caBlock
         assert cache
+        
+        setAutoNameAndType(n, t)
 
-        //FIXME: Rework automatic naming of Split/Join
+        parentCABlock = caBlock
+        vertexCache = cache
+    }
+
+    public void setAutoNameAndType(String n, Types t) {
+        assert t
+        assert (t == Types.AndSplit || t == Types.OrSplit || t == Types.XOrSplit || t == Types.LoopSplit), "Type shall be either And/Or/XOR/Loop Split"
+
+        type = t
+
+        index = DelegateCounter.getNextCount(type)
+        String namePrefix = getNamePrefix(type)
+
         if(n) {
-            assert n.startsWith(t.toString()), "Name shall start with '$type'"
+            assert n.startsWith(namePrefix), "Name shall start with '$namePrefix'"
             name = n
         }
         else {
-            name = t.toString()
+            Logger.msg(5, "setAutoNameAndType() - type: $type, index: $index")
+            name = "${namePrefix}" + ((index == 0) ? "" : "$index")
         }
-        joinName = name.replace(t.toString(), "Join")
-        
-        type = t
-        parentCABlock = caBlock
-        vertexCache = cache
+        joinName = name.replace('Split', 'Join')
+    } 
+
+    public static String getNamePrefix(Types t) {
+        return t.toString()
+        //return t.toString().replace('Split','')
     }
 
     public static void setRoutingScript(WfVertex aSplit) {
@@ -91,7 +105,6 @@ class SplitDelegate extends BlockDelegate {
         //Loop is linked to its Join
         if(type == Types.LoopSplit) {
             ((org.cristalise.kernel.lifecycle.instance.Split)aSplit).addNext(aJoin)
-            Logger.msg 1, "..............................................."
         }
 
         Logger.msg 1, "$name(end) +++++++++++++++++++++++++++++++++++++++++"
@@ -99,10 +112,6 @@ class SplitDelegate extends BlockDelegate {
 
     public void ElemAct(String name = "", Closure cl = null) {
         throw new RuntimeException("Split cannot have standalone ElemAct, it shall be within a Block")
-        /*
-        if(type == Types.LoopSplit) super.ElemAct(name,cl)
-        else throw new RuntimeException("Split cannot have standalone Activity, it shall be within a Block/CA/Split/Loop")
-        */
     }
 
     public void Block(Closure cl) {
@@ -113,20 +122,9 @@ class SplitDelegate extends BlockDelegate {
 
     public void CompAct(String name = "", Closure cl) {
         throw new RuntimeException("Split cannot have standalone CompAct, it shall be within a Block")
-        /*
-        CompositeActivity ca = (CompositeActivity)addVertex(Types.Composite, name)
-        def caB = new CompActDelegate(name, ca, vertexCache)
-        childBlocks.add(caB)
-        caB.processClosure(cl)
-        */
     }
 
     public void Split(String name = "", Types type, Closure cl) {
         throw new RuntimeException("Split cannot have standalone Split, it shall be within a Block")
-        /*
-        def sB = new SplitDelegate(name, type, parentCABlock, vertexCache)
-        childBlocks.add(sB)
-        sB.processClosure(this, cl)
-        */
     }
 }

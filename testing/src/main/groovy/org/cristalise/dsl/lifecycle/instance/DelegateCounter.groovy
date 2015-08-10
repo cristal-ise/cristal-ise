@@ -21,39 +21,32 @@
 
 package org.cristalise.dsl.lifecycle.instance
 
-import groovy.transform.CompileStatic
+import static org.cristalise.kernel.lifecycle.instance.WfVertex.Types.*
 
-import org.cristalise.kernel.lifecycle.instance.CompositeActivity
-import org.cristalise.kernel.lifecycle.instance.WfVertex
-import org.cristalise.kernel.lifecycle.instance.Workflow
-import org.cristalise.kernel.lifecycle.instance.predefined.server.ServerPredefinedStepContainer
+import org.cristalise.kernel.lifecycle.instance.WfVertex.Types
+
 
 /**
+ * 
  *
  */
-@CompileStatic
-class WorkflowBuilder {
-    protected Workflow wf = null
+//@CompileStatic
+class DelegateCounter {
 
-    protected Map<String, WfVertex> vertexCache = null
+    private static Map<Types, Integer> counter = [:]
 
-    /**
-     * 
-     * @param cl
-     * @return
-     */
-    public Workflow build(Closure cl) {
-        vertexCache = [:]
-        DelegateCounter.reset()
+    public static void reset() {
+        counter = [
+            (Atomic):    -1,
+            (Composite): -1,
+            (OrSplit):   -1,
+            (XOrSplit):  -1,
+            (AndSplit):  -1,
+            (LoopSplit): -1]
+    }
 
-        CompositeActivity rootCA = new CompositeActivity()
-
-        wf = new Workflow(rootCA, new ServerPredefinedStepContainer())
-        vertexCache['rootCA'] = rootCA
-
-        assert cl, "buildWf() only works with a valid Closure"
-        new CompActDelegate('rootCA', (CompositeActivity)vertexCache['rootCA'], vertexCache).processClosure(cl)
-        return wf
+    public static int getNextCount(Types t) {
+        return ++counter[t]
     }
 
 }

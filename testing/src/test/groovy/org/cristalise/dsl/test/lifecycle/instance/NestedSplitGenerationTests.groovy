@@ -2,6 +2,8 @@ package org.cristalise.dsl.test.lifecycle.instance;
 
 import static org.junit.Assert.*
 
+import org.cristalise.dsl.lifecycle.instance.SplitDelegate
+import org.cristalise.kernel.lifecycle.instance.WfVertex.Types
 import org.cristalise.kernel.process.AbstractMain
 import org.cristalise.kernel.process.Gateway
 import org.junit.After
@@ -28,7 +30,7 @@ class NestedSplitGenerationTests {
         Gateway.close()
     }
 
-    def createAndCheck_Split(String type) {
+    def createAndCheck_Split(Types type) {
         util.build {
             "$type" {
                 Block { ElemAct("left")  }
@@ -38,11 +40,14 @@ class NestedSplitGenerationTests {
         util.checkActPath('right', 'workflow/domain/right')
         util.checkActPath('left',  'workflow/domain/left')
 
-        util.checkSplit(type,   ['left','right'])
-        util.checkJoin ('Join', ['left','right'])
+        def splitName = SplitDelegate.getNamePrefix(type)
+        def joinName = splitName.replace('Split', 'Join')
+        
+        util.checkSplit(splitName, ['left','right'])
+        util.checkJoin (joinName,  ['left','right'])
     }
 
-    def createAndCheck_Act_Split_Act(String type) {
+    def createAndCheck_Act_Split_Act(Types type) {
         util.build {
             ElemAct("first")
             "$type" {
@@ -56,25 +61,28 @@ class NestedSplitGenerationTests {
         util.checkActPath('left',  'workflow/domain/left')
         util.checkActPath('last',  'workflow/domain/last')
 
-        util.checkSequence('first', type)
-        util.checkSequence('Join', 'last')
+        def splitName = SplitDelegate.getNamePrefix(type)
+        def joinName = splitName.replace('Split', 'Join')
 
-        util.checkSplit(type,   ['left','right'])
-        util.checkJoin ('Join', ['left','right'])
+        util.checkSequence('first', splitName)
+        util.checkSequence(joinName, 'last')
+
+        util.checkSplit(splitName, ['left','right'])
+        util.checkJoin (joinName,  ['left','right'])
     }
 
     @Test
     public void 'Split((left)(right))'() {
-        createAndCheck_Split('AndSplit')
-        createAndCheck_Split('OrSplit')
-        createAndCheck_Split('XOrSplit')
+        createAndCheck_Split( Types.AndSplit )
+        createAndCheck_Split( Types.OrSplit )
+        createAndCheck_Split( Types.XOrSplit )
     }
 
     @Test
     public void 'first-Split((left)(right))-last'() {
-        createAndCheck_Act_Split_Act('AndSplit')
-        createAndCheck_Act_Split_Act('OrSplit')
-        createAndCheck_Act_Split_Act('XOrSplit')
+        createAndCheck_Act_Split_Act( Types.AndSplit )
+        createAndCheck_Act_Split_Act( Types.OrSplit )
+        createAndCheck_Act_Split_Act( Types.XOrSplit )
     }
 
     @Test
@@ -86,8 +94,8 @@ class NestedSplitGenerationTests {
         }
         util.checkActPath('first', 'workflow/domain/first')
 
-        util.checkSplit('LoopSplit', ['first','Join'])
-        util.checkJoin ('Join', ['first','LoopSplit'])
+        util.checkSplit('LoopSplit', ['first','LoopJoin'])
+        util.checkJoin ('LoopJoin',  ['first','LoopSplit'])
     }
 
     @Test
@@ -96,47 +104,22 @@ class NestedSplitGenerationTests {
             EA("first")
             Block {
                 AndSplit {
-                    B{ EA("inner") }
+                    B{ EA("left") }
+                    B{ CA("right") {} }
                 }
             }
             EA("last")
         }
         util.checkActPath('first', 'workflow/domain/first')
-        util.checkActPath('inner', 'workflow/domain/inner')
+        util.checkActPath('left',  'workflow/domain/left')
+        util.checkActPath('right', 'workflow/domain/right')
         util.checkActPath('last',  'workflow/domain/last')
 
-        util.checkSplit('AndSplit', ['inner'])
-        util.checkJoin ('Join',     ['inner'])
+        util.checkSplit('AndSplit', ['left','right'])
+        util.checkJoin ('AndJoin',  ['left','right'])
 
         util.checkSequence('first','AndSplit')
-        util.checkSequence('Join','last')
-    }
-
-    @Test(expected=RuntimeException)
-    public void 'Split cannot have EA'() {
-        util.build {
-            AndSplit {
-                ElemAct("first")
-            }
-        }
-    }
-
-    @Test(expected=RuntimeException)
-    public void 'Split cannot have CA'() {
-        util.build {
-            AndSplit {
-                CompAct {}
-            }
-        }
-    }
-
-    @Test(expected=RuntimeException)
-    public void 'Split cannot have Split'() {
-        util.build {
-            AndSplit {
-                AndSplit {}
-            }
-        }
+        util.checkSequence('AndJoin','last')
     }
 
     @Test
@@ -144,7 +127,7 @@ class NestedSplitGenerationTests {
         util.build {
             AndSplit() {
                 Block {
-                    AndSplit('AndSplit1') {
+                    AndSplit {
                         Block { ElemAct("left1") }
                         Block { ElemAct("right1") }
                    }
@@ -157,11 +140,11 @@ class NestedSplitGenerationTests {
         util.checkActPath('left1',  'workflow/domain/left1')
         util.checkActPath('right1', 'workflow/domain/right1')
 
-        util.checkSplit('AndSplit',['AndSplit1','right'])
-        util.checkJoin ('Join',    ['Join1',    'right'])
+        util.checkSplit('AndSplit', ['AndSplit1', 'right'])
+        util.checkJoin ('AndJoin',  ['AndJoin1',  'right'])
 
-        util.checkSplit('AndSplit1',['left1','right1'])
-        util.checkJoin ('Join1',    ['left1','right1'])
+        util.checkSplit('AndSplit1', ['left1','right1'])
+        util.checkJoin ('AndJoin1',  ['left1','right1'])
     }
 
     @Test
@@ -170,7 +153,7 @@ class NestedSplitGenerationTests {
             AndSplit {
                 Block { ElemAct("left") }
                 Block {
-                    AndSplit('AndSplit1') {
+                    AndSplit {
                         Block { ElemAct("left1") }
                         Block { ElemAct("right1") }
                     }
@@ -182,10 +165,10 @@ class NestedSplitGenerationTests {
         util.checkActPath('left1',  'workflow/domain/left1')
         util.checkActPath('right1', 'workflow/domain/right1')
 
-        util.checkSplit('AndSplit',['AndSplit1','left'])
-        util.checkJoin ('Join',    ['Join1',    'left'])
+        util.checkSplit('AndSplit', ['AndSplit1', 'left'])
+        util.checkJoin ('AndJoin',  ['AndJoin1',  'left'])
 
-        util.checkSplit('AndSplit1',['left1','right1'])
-        util.checkJoin ('Join1',    ['left1','right1'])
+        util.checkSplit('AndSplit1', ['left1','right1'])
+        util.checkJoin ('AndJoin1',  ['left1','right1'])
     }
 }
