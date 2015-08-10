@@ -102,11 +102,14 @@ class WorkflowTestBuilder extends WorkflowBuilder {
      */
     public void checkSplit(String splitName, List<String> toNames ) {
         Logger.msg 5, "checkSplit() - Split '$splitName' -> $toNames"
+        
+        assert vertexCache.containsKey(splitName), "Split '$splitName' is missing from cache"
+        toNames.each { assert vertexCache.containsKey(it), "Vertex '$it' is missing from cache" }
 
-        List<Integer> splitIDs = vertexCache[splitName].getOutEdges().collect { DirectedEdge e ->  e.terminusVertexId }.sort()
-        List<Integer> toIDs = toNames.collect { vertexCache[it].ID }.sort()
+        List<Integer> splitOutEdgeIDs = vertexCache[splitName].getOutEdges().collect { DirectedEdge e ->  e.terminusVertexId }.sort()
+        List<Integer> expectedIDs = toNames.collect { vertexCache[it].ID }.sort()
 
-        assert splitIDs == toIDs
+        assert splitOutEdgeIDs == expectedIDs
     }
 
     /**
@@ -116,6 +119,9 @@ class WorkflowTestBuilder extends WorkflowBuilder {
      */
     public void checkJoin(String joinName, List<String> fromNames) {
         Logger.msg 5, "checkJoin() - Split '$joinName' -> $fromNames"
+
+        assert vertexCache.containsKey(joinName), "Join '$joinName' is missing from cache"
+        fromNames.each { assert vertexCache.containsKey(it), "Vertex '$it' is missing from cache" }
 
         List<Integer> joinInEdgeIDs = vertexCache[joinName].getInEdges().collect { DirectedEdge e ->  e.originVertexId }.sort()
         List<Integer> expectedIDs  = fromNames.collect { vertexCache[it].ID }.sort()
