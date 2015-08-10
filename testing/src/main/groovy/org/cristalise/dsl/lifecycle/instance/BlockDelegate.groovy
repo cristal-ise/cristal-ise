@@ -54,7 +54,7 @@ public class BlockDelegate {
 
     public void updateVertexCache(Types t, String n, WfVertex v) {
         if(n) {
-            if(vertexCache.containsKey(n)) throw new RuntimeException("$n must be unique")
+            if(vertexCache.containsKey(n)) throw new RuntimeException("Vertex name '$n' must be unique")
             else vertexCache[n] = v
         }
     }
