@@ -146,35 +146,7 @@ public class BlockDelegate {
     }
 
     /**
-     * Alias of ElemAct()
-     * 
-     * @param name
-     * @return
-     */
-    public void EA(String name = "", Closure cl = null) {
-        ElemAct(name,cl)
-    }
-
-    /**
-     * 
-     * @param name
-     * @return
-     */
-    public void ElemAct(String name = "", Closure cl = null) {
-        new ElemActDelegate(name).processClosure(this, cl)
-    }
-
-    /**
-     * 
-     * @param name
-     * @param cl
-     */
-    public void CA(String name = "", Closure cl) {
-        CompAct(name, cl)
-    }
-
-    /**
-     * 
+     *
      * @param name
      * @param cl
      * @return
@@ -186,7 +158,7 @@ public class BlockDelegate {
     }
 
     /**
-     * 
+     *
      * @param name
      * @param type
      * @param cl
@@ -198,6 +170,37 @@ public class BlockDelegate {
     }
 
     /**
+     *
+     * @param name
+     * @return
+     */
+    public void ElemAct(String name = "", Closure cl = null) {
+        new ElemActDelegate(name).processClosure(this, cl)
+    }
+
+
+    /**
+     * Alias of ElemAct()
+     * 
+     * @param name
+     * @return
+     */
+    public void EA(String name = "", Closure cl = null) {
+        ElemAct(name,cl)
+    }
+
+    /**
+     * Alias of CompAct()
+     * 
+     * @param name
+     * @param cl
+     */
+    public void CA(String name = "", Closure cl) {
+        CompAct(name, cl)
+    }
+
+    /**
+     * 
      * 
      * @param name
      * @param cl
