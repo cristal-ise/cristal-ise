@@ -55,5 +55,4 @@ class WorkflowBuilder {
         new CompActDelegate('rootCA', (CompositeActivity)vertexCache['rootCA'], vertexCache).processClosure(cl)
         return wf
     }
-
 }

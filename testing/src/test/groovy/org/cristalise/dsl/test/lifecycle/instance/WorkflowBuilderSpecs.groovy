@@ -49,11 +49,11 @@ class WorkflowBuilderSpecs extends Specification {
         when: "Split contains ElemAct"
         wfBuilder.build {
             AndSplit {
-                ElemAct
+                ElemAct()
             }
         }
-        then: "RuntimeException is thrown"
-        thrown RuntimeException
+        then: "UnsupportedOperationException is thrown"
+        thrown UnsupportedOperationException
     }
 
     def 'Split cannot can only contain Block - CA'() {
@@ -63,9 +63,8 @@ class WorkflowBuilderSpecs extends Specification {
                 CompAct {}
             }
         }
-
-        then: "RuntimeException is thrown"
-        thrown RuntimeException
+        then: "UnsupportedOperationException is thrown"
+        thrown UnsupportedOperationException
     }
 
     def 'Split cannot can only contain Block - Split'() {
@@ -75,40 +74,46 @@ class WorkflowBuilderSpecs extends Specification {
                 AndSplit {}
             }
         }
-
-        then: "RuntimeException is thrown"
-        thrown RuntimeException
+        then: "UnsupportedOperationException is thrown"
+        thrown UnsupportedOperationException
     }
 
-    def 'Each type of Split is counted independently for auto naming'() {
+    def 'Each type is counted independently for auto naming'() {
         when: "Split contains Split of Splits"
         wfBuilder.build {
+            EA()
             AndSplit {
                 B { OrSplit {
                     B { AndSplit {} }
+                    B { EA() }
                 } }
             }
             AndSplit {
-                B { CA('ca') {
+                B { CA {
                     Loop {
                         B { XOrSplit {} }
                     }
                 } }
             }
+            CA { EA() }
         }
 
         then:
+        wfBuilder.checkSequence('EA','AndSplit')
+        wfBuilder.checkSequence('AndJoin','AndSplit2')
+        wfBuilder.checkSequence('AndJoin2','CA1')
+
         wfBuilder.checkSplit('AndSplit', ['OrSplit'])
         wfBuilder.checkJoin ('AndJoin',  ['OrJoin'])
 
-        wfBuilder.checkSplit('OrSplit', ['AndSplit1'])
-        wfBuilder.checkJoin ('OrJoin',  ['AndJoin1'])
+        wfBuilder.checkSplit('OrSplit', ['AndSplit1','EA1'])
+        wfBuilder.checkJoin ('OrJoin',  ['AndJoin1', 'EA1'])
 
-        wfBuilder.checkSplit('AndSplit2', ['ca'])
-        wfBuilder.checkJoin ('AndJoin2',  ['ca'])
+        wfBuilder.checkSplit('AndSplit2', ['CA'])
+        wfBuilder.checkJoin ('AndJoin2',  ['CA'])
 
         wfBuilder.checkSplit('LoopSplit', ['XOrSplit', 'LoopJoin'])
-        wfBuilder.checkJoin ('LoopJoin',   ['XOrJoin', 'LoopSplit'])
+        wfBuilder.checkJoin ('LoopJoin',  ['XOrJoin', 'LoopSplit'])
     }
 
     def 'B can be used as alias of Block'() {

@@ -38,41 +38,21 @@ class SplitDelegate extends BlockDelegate {
     
     String joinName = ""
     
-    int index = -1
     
     public SplitDelegate(String n, Types t, CompActDelegate caBlock, Map<String, WfVertex> cache) {
         assert caBlock
         assert cache
-        
-        setAutoNameAndType(n, t)
-
-        parentCABlock = caBlock
-        vertexCache = cache
-    }
-
-    public void setAutoNameAndType(String n, Types t) {
         assert t
         assert (t == Types.AndSplit || t == Types.OrSplit || t == Types.XOrSplit || t == Types.LoopSplit), "Type shall be either And/Or/XOR/Loop Split"
 
         type = t
-
         index = DelegateCounter.getNextCount(type)
-        String namePrefix = getNamePrefix(type)
 
-        if(n) {
-            assert n.startsWith(namePrefix), "Name shall start with '$namePrefix'"
-            name = n
-        }
-        else {
-            Logger.msg(5, "setAutoNameAndType() - type: $type, index: $index")
-            name = "${namePrefix}" + ((index == 0) ? "" : "$index")
-        }
+        name = getAutoName(n, type, index)
         joinName = name.replace('Split', 'Join')
-    } 
 
-    public static String getNamePrefix(Types t) {
-        return t.toString()
-        //return t.toString().replace('Split','')
+        parentCABlock = caBlock
+        vertexCache = cache
     }
 
     public static void setRoutingScript(WfVertex aSplit) {
@@ -80,14 +60,14 @@ class SplitDelegate extends BlockDelegate {
         aSplit.getProperties().put("RoutingScriptVersion", "")
     }
 
-    public void processClosure(BlockDelegate parentBlock, Closure cl) {
-        assert cl, "Block only works with a valid Closure"
+    public void processClosure(Closure cl) {
+        assert cl, "Split only works with a valid Closure"
 
         Logger.msg 1, "$name(type: $type) ----------------------------------"
 
         def aSplit = parentCABlock.createVertex(type, name)
         def aJoin  = parentCABlock.createVertex(Types.Join, joinName)
-        
+
         setRoutingScript(aSplit);
 
         cl.delegate = this
@@ -110,21 +90,21 @@ class SplitDelegate extends BlockDelegate {
         Logger.msg 1, "$name(end) +++++++++++++++++++++++++++++++++++++++++"
     }
 
-    public void ElemAct(String name = "", Closure cl = null) {
-        throw new RuntimeException("Split cannot have standalone ElemAct, it shall be within a Block")
-    }
-
     public void Block(Closure cl) {
         def b = new BlockDelegate(parentCABlock, vertexCache)
         childBlocks.add(b)
         b.processClosure(cl)
     }
 
+    public void ElemAct(String name = "", Closure cl = null) {
+        throw new UnsupportedOperationException("Split cannot have standalone ElemAct, it shall be within a Block")
+    }
+
     public void CompAct(String name = "", Closure cl) {
-        throw new RuntimeException("Split cannot have standalone CompAct, it shall be within a Block")
+        throw new UnsupportedOperationException("Split cannot have standalone CompAct, it shall be within a Block")
     }
 
     public void Split(String name = "", Types type, Closure cl) {
-        throw new RuntimeException("Split cannot have standalone Split, it shall be within a Block")
+        throw new UnsupportedOperationException("Split cannot have standalone Split, it shall be within a Block")
     }
 }

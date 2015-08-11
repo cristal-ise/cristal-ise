@@ -44,12 +44,37 @@ public class BlockDelegate {
 
     Map<String, WfVertex> vertexCache = null
 
+    int index = -1
+
     public BlockDelegate() {}
 
     public BlockDelegate(CompActDelegate caBlock, Map<String, WfVertex> cache) {
         assert caBlock
         parentCABlock = caBlock
         vertexCache = cache
+    }
+
+    public static String getNamePrefix(Types t) {
+        switch(t) {
+            case Types.Composite: return 'CA'
+            case Types.Atomic:    return 'EA'
+            default:              return t.toString()
+        }
+    }
+
+    public static String getAutoName(String n, Types t, int i) {
+        Logger.msg(5, "getAutoName() - name:'$n', type: $t, index: $i")
+
+        String namePrefix = getNamePrefix(t)
+
+        if(n) {
+            if(t == Types.AndSplit || t == Types.OrSplit || t == Types.XOrSplit || t == Types.LoopSplit)
+                assert n.startsWith(namePrefix), "Name shall start with '$namePrefix'"
+            return n
+        }
+        else {
+            return "${namePrefix}" + ((i == 0) ? "" : "$i")
+        }
     }
 
     public void updateVertexCache(Types t, String n, WfVertex v) {
@@ -88,13 +113,18 @@ public class BlockDelegate {
         Logger.msg 1, "Block(end) +++++++++++++++++++++++++++++++++++++++++"
     }
 
-    def linkFirstWithLast(BlockDelegate b) {
-        Logger.msg 1, "Block.linkFirstWithLast() - ${b.getClass()}"
+    /**
+     * Links the current block with its child block
+     * 
+     * @param childBlock
+     */
+    protected void linkWithChild(BlockDelegate childBlock) {
+        Logger.msg 1, "Block.linkWithChild() - ${childBlock.getClass()}"
 
-        if(!firstVertex) firstVertex = b.firstVertex
-        else             lastVertex.addNext(b.firstVertex)
+        if(!firstVertex) firstVertex = childBlock.firstVertex
+        else             lastVertex.addNext(childBlock.firstVertex)
 
-        lastVertex = b.lastVertex
+        lastVertex = childBlock.lastVertex
     }
 
     /**
@@ -112,7 +142,7 @@ public class BlockDelegate {
     public void Block(Closure cl) {
         def b = new BlockDelegate(parentCABlock, vertexCache)
         b.processClosure(cl)
-        linkFirstWithLast(b)
+        linkWithChild(b)
     }
 
     /**
@@ -150,8 +180,9 @@ public class BlockDelegate {
      * @return
      */
     public void CompAct(String name = "", Closure cl) {
-        CompositeActivity ca = (CompositeActivity)addVertex(Types.Composite, name)
-        new CompActDelegate(name, ca, vertexCache).processClosure(cl)
+        def b = new CompActDelegate(name, null, vertexCache)
+        b.currentCA =  (CompositeActivity)addVertex(Types.Composite, b.name)
+        b.processClosure(cl)
     }
 
     /**
@@ -162,8 +193,8 @@ public class BlockDelegate {
      */
     public void Split(String name = "", Types type, Closure cl) {
         def b = new SplitDelegate(name, type, parentCABlock, vertexCache)
-        b.processClosure(this, cl)
-        linkFirstWithLast(b)
+        b.processClosure(cl)
+        linkWithChild(b)
     }
 
     /**

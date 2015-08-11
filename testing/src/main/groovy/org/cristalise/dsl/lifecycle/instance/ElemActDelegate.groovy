@@ -18,7 +18,6 @@
  *
  * http://www.fsf.org/licensing/licenses/lgpl.html
  */
-
 package org.cristalise.dsl.lifecycle.instance
 
 import groovy.transform.CompileStatic
@@ -26,21 +25,26 @@ import groovy.transform.CompileStatic
 import org.cristalise.kernel.lifecycle.instance.WfVertex
 import org.cristalise.kernel.lifecycle.instance.WfVertex.Types
 
+
 /**
  *
  */
 @CompileStatic
 class ElemActDelegate {
+    public static final Types type = Types.Atomic
     
     String name = ""
+    int index = -1
 
-    public ElemActDelegate() {}
-    public ElemActDelegate(String eaName) { name = eaName }
+    public ElemActDelegate(String eaName) { 
+        index = DelegateCounter.getNextCount(type)
+        name = BlockDelegate.getAutoName(eaName, type, index)
+    }
 
     public void processClosure(BlockDelegate nestingBlock, Closure cl = null) {
-        assert nestingBlock, "Activity must belong to Block"
+        assert nestingBlock, "Activity must belong to Block/CA"
 
-        WfVertex currentVertex = nestingBlock.addVertex(Types.Atomic, name)
+        WfVertex currentVertex = nestingBlock.addVertex(type, name)
 
         if(cl) {
             cl.delegate = this

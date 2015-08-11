@@ -1,5 +1,3 @@
-
-
 /**
  * This file is part of the CRISTAL-iSE kernel.
  * Copyright (c) 2001-2015 The CRISTAL Consortium. All rights reserved.
@@ -37,17 +35,23 @@ import org.cristalise.kernel.utils.Logger
  */
 @CompileStatic
 public class CompActDelegate extends BlockDelegate {
+    public static final Types type = Types.Composite
+
     CompositeActivity currentCA = null
     boolean firstFlag = true
 
-    public CompActDelegate() {}
-    
     public CompActDelegate(String caName, CompositeActivity ca, Map<String, WfVertex> cache) {
-        assert ca
-        name = caName
+//        assert ca
+        assert cache
+
+        //the rootCA should not be counted
+        if(caName != 'rootCA') {
+            index = DelegateCounter.getNextCount(type)
+            name = getAutoName(caName, type, index)
+        }
         currentCA = ca
         vertexCache = cache
-
+        
         parentCABlock = null
     }
 
@@ -86,12 +90,12 @@ public class CompActDelegate extends BlockDelegate {
     public void Block(Closure cl) {
         def b = new BlockDelegate(this, vertexCache)
         b.processClosure(cl)
-        linkFirstWithLast(b)
+        linkWithChild(b)
     }
 
     public void Split(String name = "", Types type, Closure cl) {
         def b = new SplitDelegate(name, type, this, vertexCache)
-        b.processClosure(this, cl)
-        linkFirstWithLast(b)
+        b.processClosure(cl)
+        linkWithChild(b)
     }
 }
