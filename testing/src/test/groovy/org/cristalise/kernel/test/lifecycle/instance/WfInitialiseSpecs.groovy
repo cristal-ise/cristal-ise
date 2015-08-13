@@ -43,6 +43,7 @@ class WfInitialiseSpecs extends Specification {
     }
 
     def cleanup() {
+        println Gateway.getMarshaller().marshall(wfBuilder.wf)
         Gateway.close()
     }
 
@@ -65,7 +66,7 @@ class WfInitialiseSpecs extends Specification {
         }
         wfBuilder.checkActStatus("rootCA", [state: "Waiting", active: false])
         wfBuilder.checkActStatus("first",  [state: "Waiting", active: false])
-        
+
         when: "the Workflow is initialised"
         wfBuilder.initialise()
 
@@ -81,7 +82,7 @@ class WfInitialiseSpecs extends Specification {
         }
         wfBuilder.checkActStatus("rootCA", [state: "Waiting", active: false])
         wfBuilder.checkActStatus("ca",     [state: "Waiting", active: false])
-        
+
         when: "the Workflow is initialised"
         wfBuilder.initialise()
 
@@ -100,7 +101,7 @@ class WfInitialiseSpecs extends Specification {
         wfBuilder.checkActStatus("rootCA", [state: "Waiting", active: false])
         wfBuilder.checkActStatus("ca",     [state: "Waiting", active: false])
         wfBuilder.checkActStatus("ca1",    [state: "Waiting", active: false])
-        
+
         when: "the Workflow is initialised"
         wfBuilder.initialise()
 
@@ -123,7 +124,7 @@ class WfInitialiseSpecs extends Specification {
 
         when: "the Workflow is initialised"
         wfBuilder.initialise()
-        
+
         then: "all Activities are Waiting and active"
         wfBuilder.checkActStatus("left",  [state: "Waiting", active: true])
         wfBuilder.checkActStatus("right", [state: "Waiting", active: true])
@@ -139,7 +140,7 @@ class WfInitialiseSpecs extends Specification {
         }
         when: "the Workflow is initialised"
         wfBuilder.initialise()
-        
+
         then: "all Activities are Waiting and active"
         wfBuilder.checkActStatus("left",  [state: "Waiting", active: true])
         wfBuilder.checkActStatus("right", [state: "Waiting", active: true])
