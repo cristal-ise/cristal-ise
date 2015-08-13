@@ -1,3 +1,5 @@
+
+
 /**
  * This file is part of the CRISTAL-iSE kernel.
  * Copyright (c) 2001-2015 The CRISTAL Consortium. All rights reserved.
@@ -40,22 +42,25 @@ public class CompActDelegate extends BlockDelegate {
     CompositeActivity currentCA = null
     boolean firstFlag = true
 
-    public CompActDelegate(String caName, CompositeActivity ca, Map<String, WfVertex> cache) {
-//        assert ca
+    public CompActDelegate(String caName, Map<String, WfVertex> cache) {
         assert cache
-
-        //the rootCA should not be counted
-        if(caName != 'rootCA') {
+        vertexCache = cache
+        
+        //the rootCA should not be auto named neither counted 
+        if(caName == 'rootCA') {
+            name = caName
+            currentCA = (CompositeActivity)vertexCache[caName]
+        }
+        else {
             index = DelegateCounter.getNextCount(type)
             name = getAutoName(caName, type, index)
         }
-        currentCA = ca
-        vertexCache = cache
         
         parentCABlock = null
     }
 
     public WfVertex createVertex(Types t, String name) {
+        assert currentCA
         WfVertex v = currentCA.newChild(t, name, firstFlag, (GraphPoint)null)
 
         firstFlag = false
@@ -75,11 +80,14 @@ public class CompActDelegate extends BlockDelegate {
         return v
     }
 
-    public void processClosure(Closure cl) {
+    public void processClosure(BlockDelegate parentBlock, Closure cl) {
         assert cl, "CompAct only works with a valid Closure"
-
+        assert parentBlock, "CA must belong to Block/CA"
+        
         Logger.msg 1, "CompAct(start) ---------------------------------------"
 
+        currentCA =  (CompositeActivity)parentBlock.addVertex(Types.Composite, name)
+        
         cl.delegate = this
         cl.resolveStrategy = Closure.DELEGATE_FIRST
         cl()

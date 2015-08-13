@@ -52,7 +52,7 @@ class WorkflowBuilder {
         vertexCache['rootCA'] = rootCA
 
         assert cl, "buildWf() only works with a valid Closure"
-        new CompActDelegate('rootCA', (CompositeActivity)vertexCache['rootCA'], vertexCache).processClosure(cl)
+        new CompActDelegate('rootCA', vertexCache).processClosure(cl)
         return wf
     }
 }

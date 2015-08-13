@@ -41,10 +41,10 @@ class ElemActDelegate {
         name = BlockDelegate.getAutoName(eaName, type, index)
     }
 
-    public void processClosure(BlockDelegate nestingBlock, Closure cl = null) {
-        assert nestingBlock, "Activity must belong to Block/CA"
+    public void processClosure(BlockDelegate parentBlock, Closure cl = null) {
+        assert parentBlock, "Activity must belong to Block/CA"
 
-        WfVertex currentVertex = nestingBlock.addVertex(type, name)
+        WfVertex currentVertex = parentBlock.addVertex(type, name)
 
         if(cl) {
             cl.delegate = this

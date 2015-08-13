@@ -24,7 +24,6 @@ package org.cristalise.dsl.lifecycle.instance
 
 import groovy.transform.CompileStatic
 
-import org.cristalise.kernel.lifecycle.instance.CompositeActivity
 import org.cristalise.kernel.lifecycle.instance.WfVertex
 import org.cristalise.kernel.lifecycle.instance.WfVertex.Types
 import org.cristalise.kernel.utils.Logger
@@ -152,9 +151,8 @@ public class BlockDelegate {
      * @return
      */
     public void CompAct(String name = "", Closure cl) {
-        def b = new CompActDelegate(name, null, vertexCache)
-        b.currentCA =  (CompositeActivity)addVertex(Types.Composite, b.name)
-        b.processClosure(cl)
+        def b = new CompActDelegate(name, vertexCache)
+        b.processClosure(this,cl)
     }
 
     /**
