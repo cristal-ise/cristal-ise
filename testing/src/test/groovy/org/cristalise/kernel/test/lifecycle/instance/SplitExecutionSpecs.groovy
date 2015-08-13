@@ -22,6 +22,7 @@ class SplitExecutionSpecs extends Specification {
     }
 
     def cleanup() {
+        println Gateway.getMarshaller().marshall(util.wf)
         Gateway.close()
     }
 
@@ -36,15 +37,6 @@ class SplitExecutionSpecs extends Specification {
             }
             ElemAct("last")
         }
-
-        println Gateway.getMarshaller().marshall(util.wf)
-
-        util.checkNext('first','AndSplit')
-        util.checkNext('AndSplit','left')
-        util.checkNext('AndSplit','right')
-        util.checkNext('left','Join')
-        util.checkNext('right','Join')
-        util.checkNext('Join','last')
 
         util.checkActStatus("first", [state: "Waiting", active: true])
         util.checkActStatus("left",  [state: "Waiting", active: false])
@@ -90,23 +82,16 @@ class SplitExecutionSpecs extends Specification {
         util.buildAndInitWf {
             ElemAct("first")
             AndSplit {
-                AndSplit('AndSplit1') {
-                    Block { ElemAct("left2")  }
-                    Block { ElemAct("right2")  }
+                Block {
+                    AndSplit('AndSplit1') {
+                        Block { ElemAct("left2")  }
+                        Block { ElemAct("right2")  }
+                    }
                 }
                 Block { ElemAct("right1") }
             }
             ElemAct("last")
         }
-        util.checkNext('first','AndSplit')
-        util.checkNext('AndSplit','AndSplit1')
-        util.checkNext('AndSplit','right1')
-        util.checkNext('AndSplit1','left2')
-        util.checkNext('AndSplit1','right2')
-        util.checkNext('left2','Join1')
-        util.checkNext('right2','Join1')
-        util.checkNext('Join','last')
-
         util.checkActStatus("first",  [state: "Waiting", active: true])
         util.checkActStatus("left2",  [state: "Waiting", active: false])
         util.checkActStatus("right2", [state: "Waiting", active: false])
@@ -123,5 +108,4 @@ class SplitExecutionSpecs extends Specification {
         util.checkActStatus("right1", [state: "Waiting",  active: true])
         util.checkActStatus("last",   [state: "Waiting",  active: false])
     }
-
 }
