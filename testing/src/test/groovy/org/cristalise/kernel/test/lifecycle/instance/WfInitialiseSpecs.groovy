@@ -94,12 +94,12 @@ class WfInitialiseSpecs extends Specification {
     def 'Workflow with nested empty CompActs CAN be initialised'() {
         given: "the Workflow with empty CompAct"
         wfBuilder.build {
-            CompAct('ca') {
+            CompAct {
                 CompAct('ca1') {}
             }
         }
         wfBuilder.checkActStatus("rootCA", [state: "Waiting", active: false])
-        wfBuilder.checkActStatus("ca",     [state: "Waiting", active: false])
+        wfBuilder.checkActStatus("CA",     [state: "Waiting", active: false])
         wfBuilder.checkActStatus("ca1",    [state: "Waiting", active: false])
 
         when: "the Workflow is initialised"
@@ -107,19 +107,20 @@ class WfInitialiseSpecs extends Specification {
 
         then: "The root CA (domain) is 'Started' and ElemAct(frist) became active"
         wfBuilder.checkActStatus("rootCA", [state: "Started", active: true])
-        wfBuilder.checkActStatus("ca",     [state: "Started", active: true])
+        wfBuilder.checkActStatus("CA",     [state: "Started", active: true])
         wfBuilder.checkActStatus("ca1",    [state: "Waiting", active: true])
     }
 
     def 'Starting AndSplit initialise all Activities inside'() {
-        given: "Workflow with AndSplit((left)(right))"
+        given: "Workflow with AndSplit((left-left1)(right))"
         wfBuilder.build {
             AndSplit {
-                Block { ElemAct("left")  }
+                Block { ElemAct("left"); ElemAct("left1") }
                 Block { ElemAct("right") }
             }
         }
         wfBuilder.checkActStatus("left",  [state: "Waiting", active: false])
+        wfBuilder.checkActStatus("left1", [state: "Waiting", active: false])
         wfBuilder.checkActStatus("right", [state: "Waiting", active: false])
 
         when: "the Workflow is initialised"
@@ -127,34 +128,20 @@ class WfInitialiseSpecs extends Specification {
 
         then: "all Activities are Waiting and active"
         wfBuilder.checkActStatus("left",  [state: "Waiting", active: true])
+        wfBuilder.checkActStatus("left1", [state: "Waiting", active: false])
         wfBuilder.checkActStatus("right", [state: "Waiting", active: true])
     }
 
     def 'Starting OrSplit initialise all Activities inside'() {
-        given: "Workflow with OrSplit((left)(right)"
+        given: "Workflow with OrSplit((left-left1)(right)"
         wfBuilder.build {
             OrSplit {
-                Block { ElemAct("left")  }
-                Block { ElemAct("right") }
-            }
-        }
-        when: "the Workflow is initialised"
-        wfBuilder.initialise()
-
-        then: "all Activities are Waiting and active"
-        wfBuilder.checkActStatus("left",  [state: "Waiting", active: true])
-        wfBuilder.checkActStatus("right", [state: "Waiting", active: true])
-    }
-
-    def 'Starting XOrSplit initialise all Activities inside'() {
-        given: "Workflow with XOrSplit((left)(right)"
-        wfBuilder.build {
-            XOrSplit {
-                Block { ElemAct("left")  }
+                Block { ElemAct("left"); ElemAct("left1") }
                 Block { ElemAct("right") }
             }
         }
         wfBuilder.checkActStatus("left",  [state: "Waiting", active: false])
+        wfBuilder.checkActStatus("left1", [state: "Waiting", active: false])
         wfBuilder.checkActStatus("right", [state: "Waiting", active: false])
 
         when: "the Workflow is initialised"
@@ -162,6 +149,46 @@ class WfInitialiseSpecs extends Specification {
 
         then: "all Activities are Waiting and active"
         wfBuilder.checkActStatus("left",  [state: "Waiting", active: true])
+        wfBuilder.checkActStatus("left1", [state: "Waiting", active: false])
         wfBuilder.checkActStatus("right", [state: "Waiting", active: true])
+    }
+
+    def 'Starting XOrSplit initialise all Activities inside'() {
+        given: "Workflow with XOrSplit((leftl-left1)(right)"
+        wfBuilder.build {
+            XOrSplit {
+                Block { ElemAct("left"); ElemAct("left1") }
+                Block { ElemAct("right") }
+            }
+        }
+        wfBuilder.checkActStatus("left",  [state: "Waiting", active: false])
+        wfBuilder.checkActStatus("left1", [state: "Waiting", active: false])
+        wfBuilder.checkActStatus("right", [state: "Waiting", active: false])
+
+        when: "the Workflow is initialised"
+        wfBuilder.initialise()
+
+        then: "all Activities are Waiting and active"
+        wfBuilder.checkActStatus("left",  [state: "Waiting", active: true])
+        wfBuilder.checkActStatus("left1", [state: "Waiting", active: false])
+        wfBuilder.checkActStatus("right", [state: "Waiting", active: true])
+    }
+
+    def 'Starting Loop initialise the first Activity inside'() {
+        given: "Workflow with Loop(first-second)"
+        wfBuilder.build {
+            Loop {
+                B{ EA("first"); EA("second") }
+            }
+        }
+        wfBuilder.checkActStatus("first",  [state: "Waiting", active: false])
+        wfBuilder.checkActStatus("second", [state: "Waiting", active: false])
+
+        when: "the Workflow is initialised"
+        wfBuilder.initialise()
+
+        then: "all Activities are Waiting and active"
+        wfBuilder.checkActStatus("first",  [state: "Waiting", active: true])
+        wfBuilder.checkActStatus("second", [state: "Waiting", active: false])
     }
 }
