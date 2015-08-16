@@ -81,6 +81,7 @@ class WorkflowTestBuilder extends WorkflowBuilder {
      * @param status
      */
     public void checkActStatus(String name, Map status) {
+        assert vertexCache[name], "Activity '$name' is NOT found in cache"
         checkActStatus((Activity)vertexCache[name], status)
     }
 
@@ -90,7 +91,7 @@ class WorkflowTestBuilder extends WorkflowBuilder {
      * @param status
      */
     public static void checkActStatus(Activity act, Map status) {
-        assert act, "Activity '$act.name' shall NOT be null"
+        assert act
         assert act.getStateName() == "$status.state", "Activity '$act.name' state is NOT correct"
         assert act.getActive() == status.active, "Activity '$act.name' shall ${(status.active) ? '' : 'NOT '}be active"
     }
