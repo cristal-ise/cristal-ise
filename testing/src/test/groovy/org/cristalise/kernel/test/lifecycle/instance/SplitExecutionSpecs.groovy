@@ -26,9 +26,36 @@ class SplitExecutionSpecs extends Specification {
         Gateway.close()
     }
 
+    def 'OrSplit enables branch(es) using RoutingScript'() {
+        given: "Wf = first-OrSplit(script:1)((enabled)(disabled))-last"
+        util.buildAndInitWf() {
+            ElemAct("first")
+            OrSplit(javascript: 1) {
+                Block { ElemAct("enabled")  }
+                Block { ElemAct("disabled") }
+            }
+            ElemAct("last")
+        }
 
-    def 'first-AndSplit((left)(right))-last'() {
-        given: "Workflow contaning AndSplit with two Blocks"
+        when: "requesting ElemAct(first) Done transition"
+        util.requestAction("first", "Done")
+
+        then: "EA(enaled) is enabled but EA(disabled) is disabled"
+        util.checkActStatus("enabled",  [state: "Waiting", active: true])
+        util.checkActStatus("disabled", [state: "Waiting", active: false])
+        util.checkActStatus("last",     [state: "Waiting", active: false])
+
+        when: "requesting EA(enabled) Done transition"
+        util.requestAction("enabled", "Done")
+
+        then: "EA(enabled) is Finished but EA(disabled) is disabled"
+        util.checkActStatus("enabled",  [state: "Finished", active: false])
+        util.checkActStatus("disabled", [state: "Waiting",  active: false])
+        util.checkActStatus("last",     [state: "Waiting",  active: true])
+    }
+
+    def 'AndSplit enforces all branches to be executed'() {
+        given: "Wf = first-AndSplit((left)(right))-last "
         util.buildAndInitWf() {
             ElemAct("first")
             AndSplit {
@@ -46,7 +73,7 @@ class SplitExecutionSpecs extends Specification {
         when: "requesting ElemAct(first) Done transition"
         util.requestAction("first", "Done")
 
-        then: "ElemAct(first) state is Finished"
+        then: "ElemAct(first) state is Finished and EA(left) and EA(right) are enabled"
         util.checkActStatus("first", [state: "Finished", active: false])
         util.checkActStatus("left",  [state: "Waiting",  active: true])
         util.checkActStatus("right", [state: "Waiting",  active: true])
@@ -80,7 +107,7 @@ class SplitExecutionSpecs extends Specification {
     def 'first-AndSplit(AndSplit((left2)(right2))(right1))-last'() {
         given: "Workflow contaning AndSplit with two Blocks"
         util.buildAndInitWf {
-            ElemAct("first")
+            ElemAct("first") //This is only needed because of bug initializing Splits
             AndSplit {
                 Block {
                     AndSplit('AndSplit1') {

@@ -43,6 +43,8 @@ class WorkflowBuilder {
      * @return
      */
     public Workflow build(Closure cl) {
+        assert cl, "WorkflowBuilder.build() only works with a valid Closure"
+
         vertexCache = [:]
         DelegateCounter.reset()
 
@@ -51,7 +53,6 @@ class WorkflowBuilder {
         wf = new Workflow(rootCA, new ServerPredefinedStepContainer())
         vertexCache['rootCA'] = rootCA
 
-        assert cl, "buildWf() only works with a valid Closure"
         new CompActDelegate('rootCA', vertexCache).processClosure(cl)
         return wf
     }

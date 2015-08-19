@@ -101,9 +101,13 @@ public class CompActDelegate extends BlockDelegate {
         linkWithChild(b)
     }
 
-    public void Split(String name = "", Types type, Closure cl) {
-        def b = new SplitDelegate(name, type, this, vertexCache)
+    public void Split(Map props, Types t, Closure cl) {
+        def b = new SplitDelegate(props, t, this, vertexCache)
         b.processClosure(cl)
         linkWithChild(b)
+    }
+
+    public void Split(String n = "", Types t, Closure cl) {
+        Split(name: n, t, cl)
     }
 }

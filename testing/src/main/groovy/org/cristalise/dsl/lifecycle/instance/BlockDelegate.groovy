@@ -1,4 +1,3 @@
-
 /**
  * This file is part of the CRISTAL-iSE kernel.
  * Copyright (c) 2001-2015 The CRISTAL Consortium. All rights reserved.
@@ -19,7 +18,6 @@
  *
  * http://www.fsf.org/licensing/licenses/lgpl.html
  */
-
 package org.cristalise.dsl.lifecycle.instance
 
 import groovy.transform.CompileStatic
@@ -30,7 +28,7 @@ import org.cristalise.kernel.utils.Logger
 
 
 /**
- * Block is a group of WfVertices, it should used only within Splits
+ * Block is a group of WfVertices, it should only be used within Splits
  */
 @CompileStatic
 public class BlockDelegate {
@@ -113,9 +111,9 @@ public class BlockDelegate {
     }
 
     /**
-     * Links the current block with its child block
+     * Links the current Block with its child Block
      * 
-     * @param childBlock
+     * @param childBlock the child Block to be linked with
      */
     protected void linkWithChild(BlockDelegate childBlock) {
         Logger.msg 1, "Block.linkWithChild() - ${childBlock.getClass()}"
@@ -127,16 +125,18 @@ public class BlockDelegate {
     }
 
     /**
+     * Alias of the DSL method Block()
      * 
-     * @param cl
+     * @param cl the closure to be executed to build the Block
      */
     public void B(Closure cl) {
         Block(cl)
     }
 
     /**
+     * DSL method to add a Block to the Workflow
      * 
-     * @param cl
+     * @param cl the closure to be executed to build the Block
      */
     public void Block(Closure cl) {
         def b = new BlockDelegate(parentCABlock, vertexCache)
@@ -145,10 +145,10 @@ public class BlockDelegate {
     }
 
     /**
+     * DSL method to add a Composite Activity to the Workflow
      *
-     * @param name
-     * @param cl
-     * @return
+     * @param name the name of the Composite Activity, can be omitted
+     * @param cl the closure to be executed to build the Composite Activity
      */
     public void CompAct(String name = "", Closure cl) {
         def b = new CompActDelegate(name, vertexCache)
@@ -156,73 +156,75 @@ public class BlockDelegate {
     }
 
     /**
-     *
-     * @param name
-     * @param type
+     * 
+     * @param props
      * @param cl
      */
-    public void Split(String name = "", Types type, Closure cl) {
-        def b = new SplitDelegate(name, type, parentCABlock, vertexCache)
+    public void Split(Map props, Types t, Closure cl) {
+        def b = new SplitDelegate(props, t, parentCABlock, vertexCache)
         b.processClosure(cl)
         linkWithChild(b)
     }
 
     /**
+     * DSL method to add a typed Split to the Workflow
+     * 
+     * @param name the name of the Split, can be omitted
+     * @param type the type (And,Or,XOr, Loop) of the Split
+     * @param cl the closure to be executed to build the Split
+     */
+    public void Split(String n = "", Types t, Closure cl) {
+        Split(name: n, t, cl)
+    }
+
+    /**
+     * DSL method to add an Elementary Activity to the Workflow
      *
      * @param name
-     * @return
+     * @param cl the closure to be executed to build the Elementary Activity. Can be omitted.
      */
-    public void ElemAct(String name = "", Closure cl = null) {
-        new ElemActDelegate(name).processClosure(this, cl)
+    public void ElemAct(String n = "", Closure cl = null) {
+        new ElemActDelegate(n).processClosure(this, cl)
     }
 
 
     /**
-     * Alias of ElemAct()
+     * Alias of the DSL method ElemAct()
      * 
      * @param name
-     * @return
+     * @param cl the closure to be executed to build the Elementary Activity. Can be omitted.
      */
-    public void EA(String name = "", Closure cl = null) {
-        ElemAct(name,cl)
+    public void EA(String n = "", Closure cl = null) {
+        ElemAct(n, cl)
     }
 
     /**
-     * Alias of CompAct()
-     * 
-     * @param name
-     * @param cl
-     */
-    public void CA(String name = "", Closure cl) {
-        CompAct(name, cl)
-    }
-
-    /**
-     * 
+     * Alias of DSL method CompAct()
      * 
      * @param name
      * @param cl
      */
-    public void AndSplit(String name = "", Closure cl) {
-        Split(name, Types.AndSplit, cl)
+    public void CA(String n = "", Closure cl) {
+        CompAct(n, cl)
     }
 
     /**
      * 
-     * @param name
-     * @param cl
-     */
-    public void OrSplit(String name = "", Closure cl) {
-        Split(name, Types.OrSplit, cl)
-    }
-
-    /**
      * 
      * @param name
      * @param cl
      */
-    public void XOrSplit(String name = "", Closure cl) {
-        Split(name, Types.XOrSplit, cl)
+    public void AndSplit(String n = "", Closure cl) {
+        Split(n, Types.AndSplit, cl)
+    }
+
+    /**
+     * 
+     * @param props
+     * @param cl
+     */
+    public void OrSplit(Map props, Closure cl) {
+        Split(props, Types.OrSplit, cl)
     }
 
     /**
@@ -230,7 +232,25 @@ public class BlockDelegate {
      * @param name
      * @param cl
      */
-    public void Loop(String name = "", Closure cl) {
-        Split(name, Types.LoopSplit, cl)
+    public void OrSplit(String n = "", Closure cl) {
+        Split(name: n, Types.XOrSplit, cl)
+    }
+
+    /**
+     * 
+     * @param name
+     * @param cl
+     */
+    public void XOrSplit(String n = "", Closure cl) {
+        Split(n, Types.XOrSplit, cl)
+    }
+
+    /**
+     * 
+     * @param name
+     * @param cl
+     */
+    public void Loop(String n = "", Closure cl) {
+        Split(n, Types.LoopSplit, cl)
     }
 }

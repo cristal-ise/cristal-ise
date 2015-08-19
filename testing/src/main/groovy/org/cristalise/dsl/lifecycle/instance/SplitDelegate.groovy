@@ -34,12 +34,13 @@ import org.cristalise.kernel.utils.Logger
 @CompileStatic
 class SplitDelegate extends BlockDelegate {
     Types type = null
+    Map   properties = [:]
+
     List<BlockDelegate> childBlocks = []
-    
+
     String joinName = ""
     
-    
-    public SplitDelegate(String n, Types t, CompActDelegate caBlock, Map<String, WfVertex> cache) {
+    public SplitDelegate(Map props, Types t, CompActDelegate caBlock, Map<String, WfVertex> cache) {
         assert caBlock
         assert cache
         assert t
@@ -48,6 +49,12 @@ class SplitDelegate extends BlockDelegate {
         type = t
         index = DelegateCounter.getNextCount(type)
 
+        String n = ""
+        if(props) {
+            properties = props
+            n = properties?.name
+        }
+
         name = getAutoName(n, type, index)
         joinName = name.replace('Split', 'Join')
 
@@ -55,10 +62,18 @@ class SplitDelegate extends BlockDelegate {
         vertexCache = cache
     }
 
-    public static void setRoutingScript(WfVertex aSplit) {
-        aSplit.getProperties().put("RoutingScriptName", "javascript:true;");
-        aSplit.getProperties().put("RoutingScriptVersion", "")
+    public void setVertexProperties(WfVertex aSplit) {
+        if(properties.javascript) {
+            Logger.msg 5, "SplitDelegate.setVertexProperties() - setting costum RoutingScriptName "
+            aSplit.getProperties().put('RoutingScriptName', (String)"javascript:\"${properties.javascript}\";");
+            aSplit.getProperties().put('RoutingScriptVersion', '')
+        }
+        else {
+            aSplit.getProperties().put('RoutingScriptName', 'javascript:true;');
+            aSplit.getProperties().put('RoutingScriptVersion', '')
+        }
     }
+
 
     public void processClosure(Closure cl) {
         assert cl, "Split only works with a valid Closure"
@@ -68,7 +83,7 @@ class SplitDelegate extends BlockDelegate {
         def aSplit = parentCABlock.createVertex(type, name)
         def aJoin  = parentCABlock.createVertex(Types.Join, joinName)
 
-        setRoutingScript(aSplit);
+        setVertexProperties(aSplit);
 
         cl.delegate = this
         cl.resolveStrategy = Closure.DELEGATE_FIRST
