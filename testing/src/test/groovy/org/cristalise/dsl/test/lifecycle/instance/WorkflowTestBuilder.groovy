@@ -59,8 +59,8 @@ class WorkflowTestBuilder extends WorkflowBuilder {
         eaSM = (StateMachine)Gateway.getMarshaller().unmarshall(Gateway.getResource().getTextResource(null, "boot/SM/Default.xml"));
         caSM = (StateMachine)Gateway.getMarshaller().unmarshall(Gateway.getResource().getTextResource(null, "boot/SM/CompositeActivity.xml"));
 
-        itemPath  = new ItemPath()
-        agentPath = new AgentPath(new ItemPath(), "test")
+        itemPath  = new ItemPath(new UUID(0,0))
+        agentPath = new AgentPath(new ItemPath(new UUID(0,1)), "WorkflowTestBuilder")
     }
 
     /**
