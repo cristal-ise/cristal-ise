@@ -135,7 +135,7 @@ class WfInitialiseSpecs extends Specification {
     def 'Starting OrSplit initialise all Activities inside'() {
         given: "Workflow with OrSplit((left-left1)(right)"
         wfBuilder.build {
-            OrSplit {
+            OrSplit(javascript: '1,2') {
                 Block { ElemAct("left"); ElemAct("left1") }
                 Block { ElemAct("right") }
             }
