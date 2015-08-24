@@ -233,7 +233,7 @@ public class BlockDelegate {
      * @param cl
      */
     public void OrSplit(String n = "", Closure cl) {
-        Split(name: n, Types.XOrSplit, cl)
+        Split(name: n, Types.OrSplit, cl)
     }
 
     /**
