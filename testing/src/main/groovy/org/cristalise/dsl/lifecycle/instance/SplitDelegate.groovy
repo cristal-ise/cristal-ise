@@ -23,6 +23,7 @@ package org.cristalise.dsl.lifecycle.instance
 
 import groovy.transform.CompileStatic
 
+import org.cristalise.kernel.lifecycle.instance.Next
 import org.cristalise.kernel.lifecycle.instance.WfVertex
 import org.cristalise.kernel.lifecycle.instance.WfVertex.Types
 import org.cristalise.kernel.utils.Logger
@@ -63,17 +64,22 @@ class SplitDelegate extends BlockDelegate {
     }
 
     public void setVertexProperties(WfVertex aSplit) {
-        if(properties.javascript) {
-            Logger.msg 5, "SplitDelegate.setVertexProperties() - setting costum RoutingScriptName "
+        if(properties.scriptName && properties.scriptVersion) {
+            Logger.msg 5, "SplitDelegate.setVertexProperties(scriptName) - name: ${properties.scriptName} version:${properties.scriptVersion}"
+            aSplit.getProperties().put('RoutingScriptName', properties.scriptName);
+            aSplit.getProperties().put('RoutingScriptVersion', properties.scriptVersion)
+        }
+        else if(properties.javascript) {
+            Logger.msg 5, "SplitDelegate.setVertexProperties(javascript) - setting 'harcoded' javascript"
             aSplit.getProperties().put('RoutingScriptName', (String)"javascript:\"${properties.javascript}\";");
             aSplit.getProperties().put('RoutingScriptVersion', '')
         }
         else {
+            Logger.msg 5, "SplitDelegate.setVertexProperties(default) - RoutingScrip to 'javascript:true;'"
             aSplit.getProperties().put('RoutingScriptName', 'javascript:true;');
             aSplit.getProperties().put('RoutingScriptVersion', '')
         }
     }
-
 
     public void processClosure(Closure cl) {
         assert cl, "Split only works with a valid Closure"
@@ -89,8 +95,13 @@ class SplitDelegate extends BlockDelegate {
         cl.resolveStrategy = Closure.DELEGATE_FIRST
         cl()
 
+        if(type == Types.LoopSplit && childBlocks.size() != 1) {
+            throw new UnsupportedOperationException("Loop can have only one Block")
+        }
+
         childBlocks.each {
-            aSplit.addNext(it.firstVertex)
+            Next n = aSplit.addNext(it.firstVertex)
+            if(type == Types.LoopSplit) n.getProperties().put("Alias", 'true')
             it.lastVertex.addNext(aJoin)
         }
 
