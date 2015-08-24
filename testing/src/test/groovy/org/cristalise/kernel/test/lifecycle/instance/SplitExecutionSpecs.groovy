@@ -27,12 +27,12 @@ class SplitExecutionSpecs extends Specification {
     }
 
     def 'OrSplit enables branch(es) using RoutingScript'() {
-        given: "Wf = first-OrSplit(script:1)((enabled)(disabled))-last"
+        given: "Wf = first-OrSplit(script:1)((left)(right))-last"
         util.buildAndInitWf() {
             ElemAct("first")
             OrSplit(javascript: 1) {
-                Block { ElemAct("enabled")  }
-                Block { ElemAct("disabled") }
+                Block { ElemAct("left")  }
+                Block { ElemAct("right") }
             }
             ElemAct("last")
         }
@@ -40,18 +40,26 @@ class SplitExecutionSpecs extends Specification {
         when: "requesting ElemAct(first) Done transition"
         util.requestAction("first", "Done")
 
-        then: "EA(enaled) is enabled but EA(disabled) is disabled"
-        util.checkActStatus("enabled",  [state: "Waiting", active: true])
-        util.checkActStatus("disabled", [state: "Waiting", active: false])
-        util.checkActStatus("last",     [state: "Waiting", active: false])
+        then: "EA(left) is enabled but EA(right) is disabled"
+        util.checkActStatus("left",  [state: "Waiting", active: true])
+        util.checkActStatus("right", [state: "Waiting", active: false])
+        util.checkActStatus("last",  [state: "Waiting", active: false])
 
-        when: "requesting EA(enabled) Done transition"
-        util.requestAction("enabled", "Done")
+        when: "requesting EA(left) Done transition"
+        util.requestAction("left", "Done")
 
-        then: "EA(enabled) is Finished but EA(disabled) is disabled"
-        util.checkActStatus("enabled",  [state: "Finished", active: false])
-        util.checkActStatus("disabled", [state: "Waiting",  active: false])
-        util.checkActStatus("last",     [state: "Waiting",  active: true])
+        then: "EA(left) is Finished but EA(right) is disabled"
+        util.checkActStatus("left",  [state: "Finished", active: false])
+        util.checkActStatus("right", [state: "Waiting",  active: false])
+        util.checkActStatus("last",  [state: "Waiting",  active: true])
+        
+        when: "requesting EA(last) Done transition"
+        util.requestAction("last", "Done")
+
+        then: "EA(last) is Finished and disabled"
+        util.checkActStatus("left",  [state: "Finished", active: false])
+        util.checkActStatus("right", [state: "Waiting",  active: false])
+        util.checkActStatus("last",  [state: "Finished", active: false])
     }
 
     def 'AndSplit enforces all branches to be executed'() {
@@ -83,6 +91,7 @@ class SplitExecutionSpecs extends Specification {
         util.requestAction("left", "Done")
 
         then: "ElemAct(left) state is Finished"
+        util.checkActStatus("first", [state: "Finished", active: false])
         util.checkActStatus("left",  [state: "Finished", active: false])
         util.checkActStatus("right", [state: "Waiting",  active: true])
         util.checkActStatus("last",  [state: "Waiting",  active: false])
@@ -91,6 +100,7 @@ class SplitExecutionSpecs extends Specification {
         util.requestAction("right", "Done")
 
         then: "ElemAct(right) state is Finished"
+        util.checkActStatus("first", [state: "Finished", active: false])
         util.checkActStatus("left",  [state: "Finished", active: false])
         util.checkActStatus("right", [state: "Finished", active: false])
         util.checkActStatus("last",  [state: "Waiting",  active: true])
@@ -99,6 +109,7 @@ class SplitExecutionSpecs extends Specification {
         util.requestAction("last", "Done")
 
         then: "ElemAct(last) state is Finished"
+        util.checkActStatus("first", [state: "Finished", active: false])
         util.checkActStatus("left",  [state: "Finished", active: false])
         util.checkActStatus("right", [state: "Finished", active: false])
         util.checkActStatus("last",  [state: "Finished", active: false])
