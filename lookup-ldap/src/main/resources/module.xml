@@ -3,7 +3,6 @@
 		<Description>LDAP Lookup, Authenticator and NextKeyManager implementations.</Description>
 		<Version>${version}</Version>
 	</Info>
-	<ResourceURL>org/cristalise/lookup/ldap/resources/</ResourceURL>
     <Config name="Authenticator">org.cristalise.lookup.ldap.LDAPAuthManager</Config>
 	<Config name="Lookup">org.cristalise.lookup.ldap.LDAPLookup</Config>
 	<Imports/>
