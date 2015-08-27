@@ -35,7 +35,6 @@ import org.cristalise.kernel.utils.Logger
 @CompileStatic
 class SplitDelegate extends BlockDelegate {
     Types type = null
-    Map   properties = [:]
 
     List<BlockDelegate> childBlocks = []
 
@@ -63,33 +62,30 @@ class SplitDelegate extends BlockDelegate {
         vertexCache = cache
     }
 
-    public void setVertexProperties(WfVertex aSplit) {
-        if(properties.scriptName && properties.scriptVersion) {
-            Logger.msg 5, "SplitDelegate.setVertexProperties(scriptName) - name: ${properties.scriptName} version:${properties.scriptVersion}"
-            aSplit.getProperties().put('RoutingScriptName', properties.scriptName);
-            aSplit.getProperties().put('RoutingScriptVersion', properties.scriptVersion)
-        }
-        else if(properties.javascript) {
-            Logger.msg 5, "SplitDelegate.setVertexProperties(javascript) - setting 'harcoded' javascript"
-            aSplit.getProperties().put('RoutingScriptName', (String)"javascript:\"${properties.javascript}\";");
-            aSplit.getProperties().put('RoutingScriptVersion', '')
+    private void setSplitProperties(WfVertex aSplit) {
+        if(properties.javascript) {
+            setRoutingScript(aSplit, (String)"javascript:\"${properties.javascript}\";", '');
+            properties.remove('javascript')
         }
         else {
-            Logger.msg 5, "SplitDelegate.setVertexProperties(default) - RoutingScrip to 'javascript:true;'"
-            aSplit.getProperties().put('RoutingScriptName', 'javascript:true;');
-            aSplit.getProperties().put('RoutingScriptVersion', '')
+            setRoutingScript(aSplit, 'javascript:true;', '');
         }
+    }
+
+    private static void setRoutingScript(WfVertex aSplit, String name, String version) {
+        Logger.msg 5, "SplitDelegate.setRoutingScript() - splitName: $aSplit.name, name: '$name' version: '$version'"
+
+        aSplit.getProperties().put('RoutingScriptName',    name,    false);
+        aSplit.getProperties().put('RoutingScriptVersion', version, false)
     }
 
     public void processClosure(Closure cl) {
         assert cl, "Split only works with a valid Closure"
 
-        Logger.msg 1, "$name(type: $type) ----------------------------------"
+        Logger.msg 1, "$name(type: $type) -----------------------------"
 
         def aSplit = parentCABlock.createVertex(type, name)
         def aJoin  = parentCABlock.createVertex(Types.Join, joinName)
-
-        setVertexProperties(aSplit);
 
         cl.delegate = this
         cl.resolveStrategy = Closure.DELEGATE_FIRST
@@ -105,6 +101,9 @@ class SplitDelegate extends BlockDelegate {
             it.lastVertex.addNext(aJoin)
         }
 
+        setSplitProperties(aSplit)
+        setVertexProperties(aSplit);
+
         firstVertex = aSplit
         lastVertex = aJoin
 
@@ -113,7 +112,7 @@ class SplitDelegate extends BlockDelegate {
             ((org.cristalise.kernel.lifecycle.instance.Split)aSplit).addNext(aJoin)
         }
 
-        Logger.msg 1, "$name(end) +++++++++++++++++++++++++++++++++++++++++"
+        Logger.msg 1, "$name(end) +++++++++++++++++++++++++++++++++++++++"
     }
 
     public void Block(Closure cl) {
