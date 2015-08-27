@@ -87,10 +87,12 @@ public class CompActDelegate extends BlockDelegate {
         Logger.msg 1, "CompAct(start) ---------------------------------------"
 
         currentCA =  (CompositeActivity)parentBlock.addVertex(Types.Composite, name)
-        
+
         cl.delegate = this
         cl.resolveStrategy = Closure.DELEGATE_FIRST
         cl()
+
+        setVertexProperties(currentCA)
 
         Logger.msg 1, "CompAct(end) +++++++++++++++++++++++++++++++++++++++++"
     }

@@ -33,6 +33,8 @@ import org.cristalise.kernel.lifecycle.instance.WfVertex.Types
 class ElemActDelegate {
     public static final Types type = Types.Atomic
     
+    WfVertex currentVertex = null
+
     String name = ""
     int index = -1
 
@@ -41,10 +43,14 @@ class ElemActDelegate {
         name = BlockDelegate.getAutoName(eaName, type, index)
     }
 
+    public void Property(Map<String, Object> props) {
+        props.each { key, value -> currentVertex.properties.put(key, value, false) }
+    }
+
     public void processClosure(BlockDelegate parentBlock, Closure cl = null) {
         assert parentBlock, "Activity must belong to Block/CA"
 
-        WfVertex currentVertex = parentBlock.addVertex(type, name)
+        currentVertex = parentBlock.addVertex(type, name)
 
         if(cl) {
             cl.delegate = this
