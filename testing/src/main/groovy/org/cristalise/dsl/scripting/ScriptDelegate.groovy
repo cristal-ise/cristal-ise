@@ -22,20 +22,24 @@ package org.cristalise.dsl.scripting
 
 import groovy.xml.MarkupBuilder
 
-import org.cristalise.kernel.utils.Logger
-
 
 /**
  *
  */
+
 class ScriptDelegate {
     String name = ""
+    String module = ""
     int version = -1
 
     MarkupBuilder xml
     StringWriter writer
 
-    public ScriptDelegate() {
+    public ScriptDelegate(String m, String n, int v) {
+        module = m
+        name = n
+        version = v
+
         writer = new StringWriter()
         xml = new MarkupBuilder(writer)
         writer << '<?xml version="1.0" encoding="UTF-8"?>\n'
@@ -70,14 +74,10 @@ class ScriptDelegate {
     public void processClosure(Closure cl) {
         assert cl, "Script only works with a valid Closure"
 
-        Logger.msg 1, "Script(start) ---------------------------------------"
-
         xml.cristalscript {
             cl.delegate = this
             cl.resolveStrategy = Closure.DELEGATE_FIRST
             cl()
         }
-
-        Logger.msg 1, "Script(end) +++++++++++++++++++++++++++++++++++++++++"
     }
 }

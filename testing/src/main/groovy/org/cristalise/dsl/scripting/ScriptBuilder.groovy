@@ -27,6 +27,10 @@ import javax.xml.transform.stream.StreamSource
 import javax.xml.validation.Schema
 import javax.xml.validation.SchemaFactory
 
+import org.cristalise.dsl.process.DSLBoostrapper
+import org.cristalise.kernel.lookup.DomainPath
+import org.cristalise.kernel.persistency.outcome.Outcome
+import org.cristalise.kernel.process.Bootstrap
 import org.cristalise.kernel.process.Gateway
 import org.cristalise.kernel.scripting.Script
 import org.cristalise.kernel.utils.Logger
@@ -36,7 +40,11 @@ import org.cristalise.kernel.utils.Logger
  *
  */
 @CompileStatic
-class ScriptBuilder {
+class ScriptBuilder implements DSLBoostrapper {
+    String name = ""
+    String module = ""
+    int version = -1
+    
     Script script = null
     String scriptXML = null
 
@@ -61,17 +69,30 @@ class ScriptBuilder {
         }
     }
 
-    public Script build(Closure cl) {
-        def sDelegate = new ScriptDelegate()
+    public Script build(String module, String name, int version, Closure cl) {
+        this.module  = module
+        this.name    = name
+        this.version = version
+
+        def sDelegate = new ScriptDelegate(module, name, version)
         sDelegate.processClosure(cl)
+
+        //delegate's processClosure() can set these members, so copying the latest values
+        this.module  = sDelegate.module
+        this.name    = sDelegate.name
+        this.version = sDelegate.version
 
         scriptXML = sDelegate.writer.toString()
 
-        Logger.debug(5, "ScriptBuilder.build() - Generated xml: $scriptXML");
+        Logger.debug(5, "ScriptBuilder.build() - Generated xml\n: $scriptXML");
 
         validateScriptXML(scriptXML)
 
-        script = new Script(sDelegate.name, sDelegate.version, scriptXML)
+        script = new Script(name, version, scriptXML)
         return script
+    }
+
+    public DomainPath createResourceItem() {
+        return Bootstrap.verifyResource("test", name, version, "SC", [new Outcome(-1, scriptXML, "Script", version)] as Set, false)
     }
 }
