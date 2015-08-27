@@ -603,7 +603,7 @@ public class LDAPLookup implements LookupManager{
 	        			throw new ObjectCannotBeUpdated("Cryptographic libraries for password hashing not found.");
 	        		}
 	        	else
-	        		throw new ObjectCannotBeUpdated("Cannot create agent. No password given");
+	        		attrs.add(new LDAPAttribute("userPassword", "{sha}!"));
 	        }
 	        else {
 	        	attrs.add(new LDAPAttribute("objectclass","cristalentity"));
