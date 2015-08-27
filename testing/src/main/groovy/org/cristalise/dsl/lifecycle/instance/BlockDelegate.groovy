@@ -40,6 +40,8 @@ public class BlockDelegate {
     WfVertex lastVertex  = null
 
     Map<String, WfVertex> vertexCache = null
+    
+    Map<String, Object>  properties = [:]
 
     int index = -1
 
@@ -49,6 +51,11 @@ public class BlockDelegate {
         assert caBlock
         parentCABlock = caBlock
         vertexCache = cache
+    }
+
+    
+    protected void setVertexProperties(WfVertex vertex) {
+        properties.each { key, value -> vertex.properties.put(key, value, false) }
     }
 
     public static String getNamePrefix(Types t) {
@@ -122,6 +129,15 @@ public class BlockDelegate {
         else             lastVertex.addNext(childBlock.firstVertex)
 
         lastVertex = childBlock.lastVertex
+    }
+
+    /**
+     * DSL method to add properties
+     * 
+     * @param props Map containing properties
+     */
+    public void Property(Map<String, Object> props) {
+        properties << props
     }
 
     /**
@@ -234,6 +250,15 @@ public class BlockDelegate {
      */
     public void OrSplit(String n = "", Closure cl) {
         Split(name: n, Types.OrSplit, cl)
+    }
+
+    /**
+     * 
+     * @param name
+     * @param cl
+     */
+    public void XOrSplit(Map props, Closure cl) {
+        Split(props, Types.XOrSplit, cl)
     }
 
     /**
