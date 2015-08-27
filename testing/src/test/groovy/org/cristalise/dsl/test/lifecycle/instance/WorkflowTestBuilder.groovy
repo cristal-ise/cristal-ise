@@ -24,7 +24,6 @@ package org.cristalise.dsl.test.lifecycle.instance
 import groovy.transform.CompileStatic
 
 import org.cristalise.dsl.lifecycle.instance.WorkflowBuilder
-import org.cristalise.kernel.common.SystemKey
 import org.cristalise.kernel.graph.model.DirectedEdge
 import org.cristalise.kernel.lifecycle.instance.Activity
 import org.cristalise.kernel.lifecycle.instance.CompositeActivity
@@ -60,8 +59,8 @@ class WorkflowTestBuilder extends WorkflowBuilder {
         eaSM = (StateMachine)Gateway.getMarshaller().unmarshall(Gateway.getResource().getTextResource(null, "boot/SM/Default.xml"));
         caSM = (StateMachine)Gateway.getMarshaller().unmarshall(Gateway.getResource().getTextResource(null, "boot/SM/CompositeActivity.xml"));
 
-        itemPath  = new ItemPath(new SystemKey(0,0))
-        agentPath = new AgentPath(new ItemPath(new SystemKey(0,1)), "WorkflowTestBuilder")
+        itemPath  = new ItemPath()
+        agentPath = new AgentPath(new ItemPath(), "WorkflowTestBuilder")
     }
 
     /**
