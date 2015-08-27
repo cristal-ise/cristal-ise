@@ -20,7 +20,7 @@
  */
 package org.cristalise.dsl.test.scripting
 
-import org.cristalise.test.CristalTestSetup;
+import org.cristalise.test.CristalTestSetup
 
 import spock.lang.Specification
 
@@ -31,34 +31,30 @@ import spock.lang.Specification
  */
 class ScriptBuilderSpecs extends Specification implements CristalTestSetup {
     
-    ScriptTestBuilder builder = null
-    
     def setup() {
-        crSetup()
-        builder = new ScriptTestBuilder()
+        inMemorySetup()
     }
     
     def cleanup() {
-        crCleanup()
+        cristalCleanup()
     }
 
-    def 'Specifying new script'() {
-        expect:
-        builder.build {
-            name = "MyFirstScript"
-            version = 0
-            input("input1", "java.lang.String")
-            output("org.cristalise.kernel.scripting.ErrorInfo")
-            javascript { ";" }
 
 //            output(name: "errors", type: "org.cristalise.kernel.scripting.ErrorInfo")
 //            script('javascript') { ";" }
 //            script(language: 'javascript') { ";" }
+
+    def 'Specifying new script'() {
+        expect:
+        ScriptTestBuilder.build("testing", "MyFirstScript", 0) {
+            input("input1", "java.lang.String")
+            output("org.cristalise.kernel.scripting.ErrorInfo")
+            javascript { ";" }
         }
-        builder == """<cristalscript>
-                          <param name='input1' type='java.lang.String' />
-                          <output type='org.cristalise.kernel.scripting.ErrorInfo' />
-                          <script language='javascript' name=''><![CDATA[ ; ]]></script>
-                      </cristalscript>"""
+        .compareXML( """<cristalscript>
+                             <param name='input1' type='java.lang.String' />
+                             <output type='org.cristalise.kernel.scripting.ErrorInfo' />
+                             <script language='javascript' name='MyFirstScript'><![CDATA[ ; ]]></script>
+                         </cristalscript>""")
     }
 }

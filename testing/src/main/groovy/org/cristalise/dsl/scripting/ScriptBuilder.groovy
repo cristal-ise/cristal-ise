@@ -50,7 +50,13 @@ class ScriptBuilder implements DSLBoostrapper {
 
     Schema schema
 
-    public ScriptBuilder() {
+    public ScriptBuilder() {}
+
+    public ScriptBuilder(String module, String name, int version) {
+        this.module  = module
+        this.name    = name
+        this.version = version
+
         String xsd = Gateway.getResource().getTextResource(null, "boot/OD/Script.xsd")
         SchemaFactory factory = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI)
         schema = factory.newSchema(new StreamSource(new StringReader(xsd)))
@@ -69,30 +75,28 @@ class ScriptBuilder implements DSLBoostrapper {
         }
     }
 
-    public Script build(String module, String name, int version, Closure cl) {
-        this.module  = module
-        this.name    = name
-        this.version = version
+    public static ScriptBuilder build(String module, String name, int version, Closure cl) {
+        def sb = new ScriptBuilder(module, name, version)
 
-        def sDelegate = new ScriptDelegate(module, name, version)
-        sDelegate.processClosure(cl)
+        def scriptD = new ScriptDelegate(module, name, version)
+        scriptD.processClosure(cl)
 
         //delegate's processClosure() can set these members, so copying the latest values
-        this.module  = sDelegate.module
-        this.name    = sDelegate.name
-        this.version = sDelegate.version
+        sb.module  = scriptD.module
+        sb.name    = scriptD.name
+        sb.version = scriptD.version
 
-        scriptXML = sDelegate.writer.toString()
+        sb.scriptXML = scriptD.writer.toString()
 
-        Logger.debug(5, "ScriptBuilder.build() - Generated xml\n: $scriptXML");
+        Logger.debug(5, "ScriptBuilder.build() - Generated xml:\n $sb.scriptXML");
 
-        validateScriptXML(scriptXML)
+        sb.validateScriptXML(sb.scriptXML)
 
-        script = new Script(name, version, scriptXML)
-        return script
+        sb.script = new Script(name, version, sb.scriptXML)
+        return sb
     }
 
     public DomainPath createResourceItem() {
-        return Bootstrap.verifyResource("test", name, version, "SC", [new Outcome(-1, scriptXML, "Script", version)] as Set, false)
+        return Bootstrap.verifyResource(module, name, version, "SC", [new Outcome(-1, scriptXML, "Script", version)] as Set, false)
     }
 }

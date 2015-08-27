@@ -22,10 +22,11 @@ package org.cristalise.dsl.test.scripting
 
 import groovy.transform.CompileStatic
 
+import javax.xml.validation.Schema
+
 import org.cristalise.dsl.scripting.ScriptBuilder
-import org.cristalise.kernel.utils.Logger
-import org.custommonkey.xmlunit.DetailedDiff
-import org.custommonkey.xmlunit.XMLUnit
+import org.cristalise.kernel.scripting.Script
+import org.cristalise.kernel.test.utils.KernelXMLUtility
 
 
 /**
@@ -34,18 +35,24 @@ import org.custommonkey.xmlunit.XMLUnit
 @CompileStatic
 class ScriptTestBuilder extends ScriptBuilder {
     
-    @Override
-    public boolean equals(Object xml) {
-        Logger.msg(5, "ScriptTestBuilder.equals()")
+    public ScriptTestBuilder(ScriptBuilder sb) {
+        name = sb.name
+        module = sb.module
+        version = sb.version
 
-        XMLUnit.setIgnoreWhitespace(true);
-        XMLUnit.setIgnoreAttributeOrder(true);
-        XMLUnit.setIgnoreComments(true);
+        script = sb.script
+        scriptXML = sb.scriptXML
 
-        DetailedDiff diff = new DetailedDiff( XMLUnit.compareXML( (String)xml, this.scriptXML) );
+        schema = sb.schema
+    }
 
-        if(!diff.identical()) Logger.error(diff.toString())
+    public static ScriptTestBuilder build(String module, String name, int version, Closure cl) {
+        def sb = ScriptBuilder.build(module, name, version, cl) 
 
-        return diff.identical();
+        return new ScriptTestBuilder(sb)
+    }
+
+    public boolean compareXML(String xml) {
+        return KernelXMLUtility.compareXML(xml, scriptXML);
     }
 }

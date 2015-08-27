@@ -24,13 +24,12 @@ import groovy.xml.MarkupBuilder
 
 
 /**
- *
+ * Is is a wrapper for MarkapBuilder to make building cristalscript XML simpler
  */
-
 class ScriptDelegate {
-    String name = ""
     String module = ""
-    int version = -1
+    String name   = ""
+    int version   = -1
 
     MarkupBuilder xml
     StringWriter writer
@@ -47,17 +46,16 @@ class ScriptDelegate {
 
     def script(Map attrs, Closure cl) {
         assert attrs.language
-        String sName = attrs?.name
 
-        script(attrs.language, sName, cl)
+        script(attrs.language, cl)
     }
 
     def javascript(Closure cl) {
-        script('javascript', cl)
+        script('javascript',  cl)
     }
 
-    def script(String lang, String sName = "", Closure cl) {
-        xml.script(language: "$lang", name: "$sName") {
+    def script(String lang, Closure cl) {
+        xml.script(language: "$lang", name: "$name") {
             def string = cl()
             mkp.yieldUnescaped("<![CDATA[ $string ]]>")
         }
@@ -67,8 +65,8 @@ class ScriptDelegate {
         xml.output(type: "$type")
     }
 
-    def input(String name, String type) {
-        xml.param(name: name, type: type)
+    def input(String iName, String type) {
+        xml.param(name: iName, type: type)
     }
 
     public void processClosure(Closure cl) {
