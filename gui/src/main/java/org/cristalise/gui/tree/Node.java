@@ -94,11 +94,10 @@ public abstract class Node implements Runnable {
         try {
             if (path.getItemPath() instanceof AgentPath)
                 return new NodeAgent(path, desktop);
-            else
-                return new NodeItem(path, desktop);
-        } catch (ObjectNotFoundException ex) {
-        	if (path instanceof RolePath)
+            else if (path instanceof RolePath)
                 return new NodeRole(path, desktop);
+            return new NodeItem(path, desktop);
+        } catch (ObjectNotFoundException ex) {
             return new NodeContext(path, desktop);
         }
 

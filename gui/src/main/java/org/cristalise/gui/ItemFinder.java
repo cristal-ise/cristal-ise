@@ -55,7 +55,7 @@ public class ItemFinder extends Box implements Runnable {
     DomainKeyConsumer defaultConsumer = null;
 	DomainKeyConsumer currentConsumer = null;
     Iterator<?> matches;
-    Path rootNode = MainFrame.userNode.getPath();
+    Path rootNode = new DomainPath();
 
 	static protected ImageIcon 			mFindIcon 			= null;
 	static protected ImageIcon 			mNextIcon 			= null;
@@ -84,6 +84,10 @@ public class ItemFinder extends Box implements Runnable {
     public void setDefaultConsumer(DomainKeyConsumer newConsumer) {
 		defaultConsumer = newConsumer;
 		currentConsumer = newConsumer;
+    }
+    
+    public DomainKeyConsumer getDefaultConsumer() {
+    	return defaultConsumer;
     }
 
 	public void setConsumer(DomainKeyConsumer newConsumer, String label) {

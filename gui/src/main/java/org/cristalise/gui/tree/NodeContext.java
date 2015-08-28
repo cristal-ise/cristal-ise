@@ -46,7 +46,7 @@ public class NodeContext extends Node implements DomainPathSubscriber {
     @Override
 	public void loadChildren() {
         if (children == null) {
-            Gateway.getProxyManager().subscribeTree(this, (DomainPath)binding);
+            if (binding instanceof DomainPath) Gateway.getProxyManager().subscribeTree(this, (DomainPath)binding);
             children = Gateway.getLookup().getChildren(binding);
         }
 

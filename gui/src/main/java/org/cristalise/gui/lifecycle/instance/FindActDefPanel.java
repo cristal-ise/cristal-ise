@@ -60,7 +60,7 @@ public class FindActDefPanel extends SelectedVertexPanel {
 			public void actionPerformed(ActionEvent e)
             {
 				Iterator<Path> acts = Gateway.getLookup().search(new DomainPath("/desc/ActivityDesc/"), currentAct.getActivityDef());
-                if (acts.hasNext()) MainFrame.treeBrowser.push((DomainPath)acts.next());
+                if (acts.hasNext()) MainFrame.itemFinder.getDefaultConsumer().push((DomainPath)acts.next());
             }
         });
     }

@@ -36,6 +36,7 @@ import javax.swing.JComboBox;
 import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
 import javax.swing.JSplitPane;
+import javax.swing.JTabbedPane;
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 
@@ -43,8 +44,10 @@ import org.cristalise.gui.tabs.execution.DefaultExecutor;
 import org.cristalise.gui.tabs.execution.Executor;
 import org.cristalise.gui.tree.Node;
 import org.cristalise.gui.tree.NodeContext;
+import org.cristalise.gui.tree.NodeRole;
 import org.cristalise.kernel.entity.proxy.AgentProxy;
 import org.cristalise.kernel.lookup.DomainPath;
+import org.cristalise.kernel.lookup.RolePath;
 import org.cristalise.kernel.process.AbstractMain;
 import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.utils.Logger;
@@ -55,10 +58,10 @@ import org.omg.CORBA.UserException;
  * @author  $Author: abranson $
  */
 public class MainFrame extends javax.swing.JFrame {
-    public static TreeBrowser treeBrowser;
+    public static TreeBrowser domBrowser;
+    public static TreeBrowser roleBrowser;
     public static ItemTabManager myDesktopManager;
     public static ItemFinder itemFinder;
-    protected static Node userNode = null;
     protected MenuBuilder menuBuilder;
     protected org.omg.CORBA.ORB orb;
     public static Properties prefs = new Properties();
@@ -67,6 +70,7 @@ public class MainFrame extends javax.swing.JFrame {
     public String logoURL;
     public static AgentProxy userAgent;
     protected JSplitPane splitPane;
+    private JTabbedPane treePanel;
     public static boolean isAdmin;
     int splitPanePos;
     public static final JFileChooser xmlChooser;
@@ -171,9 +175,14 @@ public class MainFrame extends javax.swing.JFrame {
         // set the menu builder in the window manager
         myDesktopManager.setMenuBuilder(menuBuilder);
 
-        userNode = new NodeContext(new DomainPath(""), myDesktopManager);
-        treeBrowser = new TreeBrowser(myDesktopManager, userNode);
-        treeBrowser.setVisible(getPref("ShowTree", "true").equals("true"));
+        treePanel = new JTabbedPane(JTabbedPane.BOTTOM);
+        NodeContext userNode = new NodeContext(new DomainPath(""), myDesktopManager);
+        domBrowser = new TreeBrowser(myDesktopManager, userNode);
+        NodeRole roleNode = new NodeRole(new RolePath(), MainFrame.myDesktopManager);
+        roleBrowser = new TreeBrowser(MainFrame.myDesktopManager, roleNode);
+        treePanel.add("Domain", domBrowser);
+        treePanel.add("Roles", roleBrowser);
+        treePanel.setVisible(getPref("ShowTree", "true").equals("true"));
 
         // add search box
         itemFinder = new ItemFinder();
@@ -186,7 +195,7 @@ public class MainFrame extends javax.swing.JFrame {
         gridbag.setConstraints(itemFinder, c);
         getContentPane().add(itemFinder);
         // register the browser as the key consumer
-        itemFinder.setDefaultConsumer(treeBrowser);
+        itemFinder.setDefaultConsumer(domBrowser);
 
         c.gridy++;
         c.weightx = 1.0;
@@ -272,8 +281,8 @@ public class MainFrame extends javax.swing.JFrame {
         getSplitPanel().validate();
     }
 
-    public static JComboBox getExecutionPlugins() {
-        JComboBox plugins = new JComboBox();
+    public static JComboBox<Executor> getExecutionPlugins() {
+        JComboBox<Executor> plugins = new JComboBox<Executor>();
         // create execution selector
         Executor defaultExecutor = new DefaultExecutor();
         plugins.addItem(defaultExecutor);
@@ -301,10 +310,10 @@ public class MainFrame extends javax.swing.JFrame {
         //  create the split pane, and add the Tree to it.
         if (splitPane == null)
         {
-            splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, true, treeBrowser, myDesktopManager);
+            splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, true, treePanel, myDesktopManager);
             splitPane.setDividerSize(5);
             splitPanePos = Integer.parseInt(getPref("SplitPanePosition", "200"));
-            getSplitPanel().setDividerLocation(splitPanePos);
+            splitPane.setDividerLocation(splitPanePos);
         }
         return splitPane;
     }
