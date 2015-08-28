@@ -68,7 +68,7 @@ class SplitDelegate extends BlockDelegate {
             properties.remove('javascript')
         }
         else {
-            setRoutingScript(aSplit, 'javascript:true;', '');
+            setRoutingScript(aSplit, "javascript:\"true\";", '');
         }
     }
 
