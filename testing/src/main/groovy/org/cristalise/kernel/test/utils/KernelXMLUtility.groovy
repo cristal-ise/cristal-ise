@@ -22,6 +22,10 @@ package org.cristalise.kernel.test.utils;
 
 import groovy.xml.MarkupBuilder
 
+import org.cristalise.kernel.utils.Logger
+import org.custommonkey.xmlunit.DetailedDiff
+import org.custommonkey.xmlunit.XMLUnit
+
 
 
 /**
@@ -108,4 +112,23 @@ class KernelXMLUtility {
 
         return writer.toString()
     }
+
+    /**
+     * 
+     * @param expected
+     * @param actual
+     * @return
+     */
+    public static boolean compareXML(String expected, String actual) {
+        XMLUnit.setIgnoreWhitespace(true);
+        XMLUnit.setIgnoreAttributeOrder(true);
+        XMLUnit.setIgnoreComments(true);
+
+        DetailedDiff diff = new DetailedDiff( XMLUnit.compareXML( expected, actual) );
+
+        if(!diff.identical()) Logger.error(diff.toString())
+
+        return diff.identical();
+    }
+
 }

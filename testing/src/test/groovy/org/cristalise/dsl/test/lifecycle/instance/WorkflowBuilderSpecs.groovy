@@ -18,34 +18,92 @@
  *
  * http://www.fsf.org/licensing/licenses/lgpl.html
  */
-
 package org.cristalise.dsl.test.lifecycle.instance
 
-import org.cristalise.kernel.process.AbstractMain
-import org.cristalise.kernel.process.Gateway
+import org.cristalise.test.CristalTestSetup
 
 import spock.lang.Specification
+
 
 /**
  *
  */
-class WorkflowBuilderSpecs extends Specification {
+class WorkflowBuilderSpecs extends Specification implements CristalTestSetup {
 
     WorkflowTestBuilder wfBuilder
 
     def setup() {
-        String[] args = ['-logLevel', '8', '-config', 'src/test/conf/testServer.conf', '-connect', 'src/test/conf/testInMemory.clc']
-        Gateway.init(AbstractMain.readC2KArgs(args))
-        Gateway.connect()
-
+        inMemorySetup()
         wfBuilder = new WorkflowTestBuilder()
     }
 
     def cleanup() {
-        Gateway.close()
+        cristalCleanup()
     }
 
-    def 'Split cannot can only contain Block - EA'() {
+    def 'ElemAct can specify Properites'() {
+        when: "Workflow contains EA"
+        wfBuilder.build {
+            ElemAct('lonely') {
+                Property(stringVal: '1')
+                Property(intVal: 1, booleanVal: true)
+            }
+        }
+
+        then:""
+        wfBuilder.wf.search("workflow/domain/lonely").properties.stringVal  == '1'
+        wfBuilder.wf.search("workflow/domain/lonely").properties.intVal     == 1
+        wfBuilder.wf.search("workflow/domain/lonely").properties.booleanVal == true
+    }
+
+    def 'CompAct can specify Properites'() {
+        when: "Workflow contains CA"
+        wfBuilder.build {
+            CompAct('lonely') {
+                Property(stringVal: '1')
+                Property(intVal: 1, booleanVal: true)
+            }
+        }
+
+        then:""
+        wfBuilder.wf.search("workflow/domain/lonely").properties.stringVal  == '1'
+        wfBuilder.wf.search("workflow/domain/lonely").properties.intVal     == 1
+        wfBuilder.wf.search("workflow/domain/lonely").properties.booleanVal == true
+    }
+
+    def 'Default RoutingScriptis added to Split if nothing specified'() {
+        when: "Wf contains OrSplit"
+        wfBuilder.build {
+            OrSplit {}
+        }
+        then: "RoutingScriptName and Version were added to Properties"
+        wfBuilder.wf.search("workflow/domain/OrSplit").properties.RoutingScriptName  == "javascript:\"true\";"
+        wfBuilder.wf.search("workflow/domain/OrSplit").properties.RoutingScriptVersion  == ""
+    }
+
+    def 'OrSplit can use javascript keyword to specify hardcoded RoutingScript'() {
+        when: "Wf contains OrSplit"
+        wfBuilder.build {
+            OrSplit(javascript: true) {}
+        }
+        then: "RoutingScriptName and Version were added and javascript was removed from Properties"
+        wfBuilder.wf.search("workflow/domain/OrSplit").properties.RoutingScriptName  == "javascript:\"true\";"
+        wfBuilder.wf.search("workflow/domain/OrSplit").properties.RoutingScriptVersion  == ""
+        wfBuilder.wf.search("workflow/domain/OrSplit").properties.javascript  == null
+    }
+
+    def 'XOrSplit can use javascript keyword to specify hardcoded RoutingScript'() {
+        when: "Wf contains XOrSplit"
+        wfBuilder.build {
+            XOrSplit(javascript: true) {}
+        }
+        then: "RoutingScriptName and Version were added and javascript was removed from Properties"
+        wfBuilder.wf.search("workflow/domain/XOrSplit").properties.RoutingScriptName  == "javascript:\"true\";"
+        wfBuilder.wf.search("workflow/domain/XOrSplit").properties.RoutingScriptVersion  == ""
+        wfBuilder.wf.search("workflow/domain/XOrSplit").properties.javascript  == null
+    }
+
+    def 'Split can only contain Block not ElemAAct'() {
         when: "Split contains ElemAct"
         wfBuilder.build {
             AndSplit {
@@ -56,7 +114,7 @@ class WorkflowBuilderSpecs extends Specification {
         thrown UnsupportedOperationException
     }
 
-    def 'Split cannot can only contain Block - CA'() {
+    def 'Split can only contain Block not CompAct'() {
         when: "Split contains CompAct"
         wfBuilder.build {
             AndSplit {
@@ -67,7 +125,7 @@ class WorkflowBuilderSpecs extends Specification {
         thrown UnsupportedOperationException
     }
 
-    def 'Split cannot can only contain Block - Split'() {
+    def 'Split can only contain Block not Split'() {
         when: "Split contains Split"
         wfBuilder.build {
             AndSplit {

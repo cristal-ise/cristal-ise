@@ -3,27 +3,24 @@ package org.cristalise.kernel.test.lifecycle.instance;
 //import static org.cristalise.kernel.lifecycle.instance.WfVertex.Types.*
 
 import org.cristalise.dsl.test.lifecycle.instance.WorkflowTestBuilder
-import org.cristalise.kernel.process.AbstractMain
 import org.cristalise.kernel.process.Gateway
+import org.cristalise.test.CristalTestSetup
 
 import spock.lang.Specification
 
 
-class SplitExecutionSpecs extends Specification {
+class SplitExecutionSpecs extends Specification implements CristalTestSetup {
 
     WorkflowTestBuilder util
 
     def setup() {
-        String[] args = ['-logLevel', '8', '-config', 'src/test/conf/testServer.conf', '-connect', 'src/test/conf/testInMemory.clc']
-        Gateway.init(AbstractMain.readC2KArgs(args))
-        Gateway.connect()
-
+        inMemorySetup()
         util = new WorkflowTestBuilder()
     }
 
     def cleanup() {
         println Gateway.getMarshaller().marshall(util.wf)
-        Gateway.close()
+        cristalCleanup()
     }
 
     def 'OrSplit enables branch(es) using RoutingScript'() {

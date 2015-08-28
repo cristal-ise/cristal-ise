@@ -18,38 +18,37 @@
  *
  * http://www.fsf.org/licensing/licenses/lgpl.html
  */
-package org.cristalise.dsl.persistency.outcome
+
+package org.cristalise.dsl.test.persistency.outcome
 
 import groovy.transform.CompileStatic
 
-import org.cristalise.kernel.utils.Logger
-
+import org.cristalise.dsl.persistency.outcome.SchemaBuilder
+import org.cristalise.kernel.persistency.outcome.Schema
+import org.cristalise.kernel.test.utils.KernelXMLUtility
 
 /**
+ * @author kovax
  *
  */
 @CompileStatic
-class SchemaDelegate {
-    
-    String xsd
+class SchemaTestBuilder extends SchemaBuilder {
 
-    public void processClosure(Closure cl) {
-        assert cl, "Schema only works with a valid Closure"
+    public SchemaTestBuilder(SchemaBuilder sb) {
+        name = sb.name
+        module = sb.module
+        version = sb.version
 
-        Logger.msg 1, "Schema(start) ---------------------------------------"
-
-        cl.delegate = this
-        cl.resolveStrategy = Closure.DELEGATE_FIRST
-        cl()
-
-        Logger.msg 1, "Schema(end) +++++++++++++++++++++++++++++++++++++++++"
+        schema = sb.schema
     }
 
-    public void loadXSD(String xsdFile) {
-        xsd = new File(xsdFile).getText()
+    public static SchemaTestBuilder build(String module, String name, int version, Closure cl) {
+        def sb = SchemaBuilder.build(module, name, version, cl)
+
+        return new SchemaTestBuilder(sb)
     }
-    
-    def Struct(String name, String doc = null, Closure cl) {
-        //new StructDelegate(name, doc).processClosure(cl)
+
+    public boolean compareXML(String xml) {
+        return KernelXMLUtility.compareXML(xml, schema.schema);
     }
 }

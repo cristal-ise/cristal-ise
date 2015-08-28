@@ -50,6 +50,8 @@ class ScriptBuilder implements DSLBoostrapper {
 
     Schema schema
 
+    DomainPath domainPath = null
+
     public ScriptBuilder() {}
 
     public ScriptBuilder(String module, String name, int version) {
@@ -75,6 +77,31 @@ class ScriptBuilder implements DSLBoostrapper {
         }
     }
 
+    
+    /**
+     * Factory method to build a Script object and create the ResourceItem for it 
+     * 
+     * @param module the name of the module the Script instance belongs to
+     * @param name the name of the Script
+     * @param version the version of the Script
+     * @param cl the closure to build the Script
+     * @return the ScriptBuilder instance full configured
+     */
+    public static ScriptBuilder create(String module, String name, int version, Closure cl) {
+        def sb = build(module, name, version, cl)
+        sb.createResourceItem()
+        return sb
+    }
+
+    /**
+     * Factory method to build a Script object
+     * 
+     * @param module the name of the module the Script belongs to
+     * @param name the name of the Script
+     * @param version the version of the Script
+     * @param cl the closure to build the Script
+     * @return the ScriptBuilder instance full configured
+     */
     public static ScriptBuilder build(String module, String name, int version, Closure cl) {
         def sb = new ScriptBuilder(module, name, version)
 
@@ -96,7 +123,12 @@ class ScriptBuilder implements DSLBoostrapper {
         return sb
     }
 
+    /**
+     * Bootstrap method to create the ResourceItem from a fully configured ScriptBuilder
+     *  
+     * @return the ScriptBuilder instance full configured
+     */
     public DomainPath createResourceItem() {
-        return Bootstrap.verifyResource(module, name, version, "SC", [new Outcome(-1, scriptXML, "Script", version)] as Set, false)
+        return domainPath = Bootstrap.verifyResource(module, name, version, "SC", [new Outcome(-1, scriptXML, "Script", version)] as Set, false)
     }
 }

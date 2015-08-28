@@ -65,8 +65,12 @@ class ScriptDelegate {
         xml.output(type: "$type")
     }
 
-    def input(String iName, String type) {
+    def param(String iName, String type) {
         xml.param(name: iName, type: type)
+    }
+
+    def input(String iName, String type) {
+        param(iName, type)
     }
 
     public void processClosure(Closure cl) {

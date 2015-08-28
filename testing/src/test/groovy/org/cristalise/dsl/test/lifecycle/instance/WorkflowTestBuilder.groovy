@@ -35,6 +35,7 @@ import org.cristalise.kernel.lifecycle.instance.stateMachine.StateMachine
 import org.cristalise.kernel.lifecycle.instance.stateMachine.Transition
 import org.cristalise.kernel.lookup.AgentPath
 import org.cristalise.kernel.lookup.ItemPath
+import org.cristalise.kernel.persistency.outcome.Outcome
 import org.cristalise.kernel.process.Gateway
 import org.cristalise.kernel.utils.Logger
 
@@ -154,7 +155,7 @@ class WorkflowTestBuilder extends WorkflowBuilder {
         assert vertexCache[from].getOutEdges().size() == 1
         assert vertexCache[to  ].getInEdges().size() == 1
     }
-        
+
     /**
      * 
      * @param from
@@ -194,7 +195,17 @@ class WorkflowTestBuilder extends WorkflowBuilder {
      * @param name
      */
     public void checkActPath(String name, String path) {
-        assert wf.search(path) == vertexCache[name], "Activity '$name' equals '$path'"
+        assert wf.search(path).is(vertexCache[name]), "Activity '$name' equals '$path'"
+    }
+
+    /**
+     * 
+     * @param name
+     * @param trans
+     * @param outcome
+     */
+    public void requestAction(String name, String trans, Outcome outcome) {
+        requestAction((Activity)vertexCache[name], trans, outcome)
     }
 
     /**
@@ -203,7 +214,7 @@ class WorkflowTestBuilder extends WorkflowBuilder {
      * @param trans
      */
     public void requestAction(String name, String trans) {
-        requestAction((Activity)vertexCache[name], trans)
+        requestAction((Activity)vertexCache[name], trans, null)
     }
 
     /**
@@ -211,13 +222,16 @@ class WorkflowTestBuilder extends WorkflowBuilder {
      * @param act
      * @param trans
      */
-    public void requestAction(Activity act, String trans) {
+    public void requestAction(Activity act, String trans, Outcome outcome) {
         int transID = -1
+        String requestData = null
+        
+        if(outcome != null) requestData = outcome.getData()
 
         if(act instanceof CompositeActivity) transID = getTransID(caSM, trans)
         else                                 transID = getTransID(eaSM, trans)
 
-        wf.requestAction(agentPath, act.path, itemPath, transID, "")
+        wf.requestAction(agentPath, act.path, itemPath, transID, requestData)
     }
 
     /**

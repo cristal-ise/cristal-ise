@@ -20,36 +20,30 @@
  */
 package org.cristalise.dsl.persistency.outcome
 
-import groovy.transform.CompileStatic
-
-import org.cristalise.kernel.utils.Logger
+import groovy.xml.MarkupBuilder
 
 
 /**
  *
  */
-@CompileStatic
-class SchemaDelegate {
-    
-    String xsd
+class OutcomeDelegate {
+    MarkupBuilder xml
+    StringWriter writer
 
-    public void processClosure(Closure cl) {
-        assert cl, "Schema only works with a valid Closure"
-
-        Logger.msg 1, "Schema(start) ---------------------------------------"
-
-        cl.delegate = this
-        cl.resolveStrategy = Closure.DELEGATE_FIRST
-        cl()
-
-        Logger.msg 1, "Schema(end) +++++++++++++++++++++++++++++++++++++++++"
+    public OutcomeDelegate() {
+        writer = new StringWriter()
+        xml = new MarkupBuilder(writer)
+        writer << '<?xml version="1.0" encoding="UTF-8"?>\n'
     }
 
-    public void loadXSD(String xsdFile) {
-        xsd = new File(xsdFile).getText()
-    }
-    
-    def Struct(String name, String doc = null, Closure cl) {
-        //new StructDelegate(name, doc).processClosure(cl)
+    public void processClosure(String schema, Closure cl) {
+        assert cl, "OutcomeDelegate only works with a valid Closure"
+
+        //FIXME: retrieve root element from the Schema
+        xml."$schema" {
+            cl.delegate = xml
+            cl.resolveStrategy = Closure.DELEGATE_FIRST
+            cl()
+        }
     }
 }

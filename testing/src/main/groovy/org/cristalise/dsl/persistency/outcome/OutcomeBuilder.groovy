@@ -24,20 +24,31 @@ package org.cristalise.dsl.persistency.outcome
 import groovy.transform.CompileStatic
 
 import org.cristalise.kernel.persistency.outcome.Outcome
+import org.cristalise.kernel.utils.Logger
 
 /**
  *
  */
 @CompileStatic
 class OutcomeBuilder {
-    Outcome outcome = null
+
+    public static Outcome build(SchemaBuilder sb, Closure cl) {
+        return null
+    }
 
     /**
      * 
      * @param cl
      * @return
      */
-    public Outcome build(Closure cl) {
-        return outcome
+    public static Outcome build(String schema, int version, Closure cl) {
+        def ob = new  OutcomeBuilder()
+
+        def outcomeD = new OutcomeDelegate()
+        outcomeD.processClosure(schema, cl)
+        
+        Logger.msg 5, "OutcomeBuilder - generated xml:\n" + outcomeD.writer.toString()
+
+        return new Outcome(-1, outcomeD.writer.toString(), schema, version)
     }
 }

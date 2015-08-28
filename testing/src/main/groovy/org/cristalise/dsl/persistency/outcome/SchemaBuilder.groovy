@@ -18,28 +18,73 @@
  *
  * http://www.fsf.org/licensing/licenses/lgpl.html
  */
-
 package org.cristalise.dsl.persistency.outcome
 
 import groovy.transform.CompileStatic
 
+import org.cristalise.dsl.process.DSLBoostrapper
+import org.cristalise.kernel.lookup.DomainPath
+import org.cristalise.kernel.persistency.outcome.Outcome
 import org.cristalise.kernel.persistency.outcome.Schema
+import org.cristalise.kernel.process.Bootstrap
 
 
 /**
  *
  */
 @CompileStatic
-class SchemaBuilder {
+class SchemaBuilder implements DSLBoostrapper {
+    String module = ""
+    String name = ""
+    int version = -1
+
+    DomainPath domainPath = null
+
     Schema schema = null
+
+    public SchemaBuilder() {}
+
+    public SchemaBuilder(String module, String name, int version) {
+        this.module  = module
+        this.name    = name
+        this.version = version
+    }
+
+    /**
+     * 
+     * @param module
+     * @param name
+     * @param version
+     * @param cl
+     * @return
+     */
+    public static SchemaBuilder create(String module, String name, int version, Closure cl) {
+        def sb = build(module, name, version, cl)
+        sb.createResourceItem()
+        return sb
+    }
 
     /**
      * 
      * @param cl
      * @return
      */
-    public Schema build(Closure cl) {
+    public static SchemaBuilder build(String module, String name, int version, Closure cl) {
+        def sb = new SchemaBuilder(module, name, version)
+
+        def schemaD = new SchemaDelegate()
+        schemaD.processClosure(cl)
         
-        return schema
+        sb.schema = new Schema(name, version, schemaD.xsd)
+
+        return sb
+    }
+
+    /**
+     * 
+     * @return
+     */
+    public DomainPath createResourceItem() {
+        return domainPath = Bootstrap.verifyResource(module, name, version, "OD", [new Outcome(-1, schema.schema, "Schema", version)] as Set, false)
     }
 }

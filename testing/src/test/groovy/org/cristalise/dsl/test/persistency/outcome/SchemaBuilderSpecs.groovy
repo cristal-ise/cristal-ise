@@ -20,10 +20,6 @@
  */
 package org.cristalise.dsl.test.persistency.outcome
 
-import org.cristalise.dsl.persistency.outcome.SchemaBuilder
-import org.custommonkey.xmlunit.XMLAssert
-import org.custommonkey.xmlunit.XMLUnit
-
 import spock.lang.Specification
 
 
@@ -31,38 +27,26 @@ import spock.lang.Specification
  *
  */
 class SchemaBuilderSpecs extends Specification {
-    
-    SchemaBuilder sb = new SchemaBuilder()
-    
-    def setup() {
-        XMLUnit.setIgnoreWhitespace(true);
-        XMLUnit.setIgnoreAttributeOrder(true);
-        XMLUnit.setIgnoreComments(true);
-    }
 
     def 'PatientDetails of Basic Tutorial'() {
         expect: 
-        XMLAssert.assertXMLEqual(
-            """
-            <xs:schema attributeFormDefault="unqualified" elementFormDefault="qualified" xmlns:xs="http://www.w3.org/2001/XMLSchema">
-                <xs:element name="PatientDetails">
-                    <xs:complexType>
-                        <xs:sequence>
-                            <xs:element minOccurs="1" maxOccurs="1" name="InsuranceNumber" type="xs:string"/>
-                            <xs:element minOccurs="1" maxOccurs="1" name="Gender" type="xs:string"/>
-                            <xs:element minOccurs="1" maxOccurs="1" name="DateOfBirth" type="xs:string"/>
-                        </xs:sequence>
-                    </xs:complexType>
-                </xs:element>
-            </xs:schema>
-            """,
-            sb.build {
-                Struct(name: 'PatientDetails', documentation: 'This is the Schema for Basic Tutorial') {
-                    Field(name: 'InsuranceNumber', type: 'string')
-                    Field(name: 'DateOfBirth', type: 'date')
-                    Field(name: 'Gender', type: 'string', values: ['male', 'female'])
-                }
-            }.schema
-        )
+        SchemaTestBuilder.build {
+            Struct(name: 'PatientDetails', documentation: 'This is the Schema for Basic Tutorial') {
+                Field(name: 'InsuranceNumber', type: 'string')
+                Field(name: 'DateOfBirth',     type: 'date')
+                Field(name: 'Gender',          type: 'string', values: ['male', 'female'])
+            }
+        }.compareXML( 
+            """<xs:schema attributeFormDefault="unqualified" elementFormDefault="qualified" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+                    <xs:element name="PatientDetails">
+                        <xs:complexType>
+                            <xs:sequence>
+                                <xs:element minOccurs="1" maxOccurs="1" name="InsuranceNumber" type="xs:string"/>
+                                <xs:element minOccurs="1" maxOccurs="1" name="Gender" type="xs:string"/>
+                                <xs:element minOccurs="1" maxOccurs="1" name="DateOfBirth" type="xs:string"/>
+                            </xs:sequence>
+                        </xs:complexType>
+                    </xs:element>
+                </xs:schema>""")
     }
 }
