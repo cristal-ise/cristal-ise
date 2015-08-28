@@ -24,20 +24,38 @@ import groovy.transform.CompileStatic
 
 import org.cristalise.kernel.process.AbstractMain
 import org.cristalise.kernel.process.Gateway
-
+import org.cristalise.kernel.process.auth.Authenticator
+import org.cristalise.kernel.utils.Logger
 
 /**
  *
  */
 @CompileStatic
 trait CristalTestSetup {
-    def crSetup() {
-        String[] args = ['-logLevel', '8', '-config', 'src/test/conf/testServer.conf', '-connect', 'src/test/conf/testInMemory.clc']
-        Gateway.init(AbstractMain.readC2KArgs(args))
-        Gateway.connect()
+
+    public void inMemorySetup(int logLevel = 8) {
+        cristalSetup(logLevel, 'src/test/conf/testServer.conf', 'src/test/conf/testInMemory.clc')
+    }
+    
+    public void inMemoryServer(int logLevel = 8) {
+        serverSetup(logLevel, 'src/test/conf/testServer.conf', 'src/test/conf/testInMemory.clc')
+        Thread.sleep(5000)
+        println "-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+"
+    }
+    
+    public Authenticator serverSetup(int logLevel, String config, String connect) {
+        Authenticator auth = cristalSetup(logLevel, config, connect)
+        Logger.initConsole("ItemServer");
+        Gateway.startServer( auth )
     }
 
-    def crCleanup() {
+    public Authenticator cristalSetup(int logLevel, String config, String connect) {
+        String[] args = ['-logLevel', "$logLevel", '-config', config, '-connect', connect]
+        Gateway.init(AbstractMain.readC2KArgs(args))
+        return Gateway.connect()
+    }
+
+    public void cristalCleanup() {
         Gateway.close()
     }
 }
