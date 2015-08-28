@@ -76,6 +76,7 @@ class SchemaBuilder implements DSLBoostrapper {
         schemaD.processClosure(cl)
         
         sb.schema = new Schema(name, version, schemaD.xsd)
+        sb.schema.parse(null)
 
         return sb
     }

@@ -27,20 +27,26 @@ import groovy.xml.MarkupBuilder
  *
  */
 class OutcomeDelegate {
+    String rootElement = ""
+    
     MarkupBuilder xml
     StringWriter writer
 
-    public OutcomeDelegate() {
+    public OutcomeDelegate(String root) {
+        assert root
+
+        rootElement = root
+
         writer = new StringWriter()
         xml = new MarkupBuilder(writer)
         writer << '<?xml version="1.0" encoding="UTF-8"?>\n'
     }
 
-    public void processClosure(String schema, Closure cl) {
+    public void processClosure(Closure cl) {
         assert cl, "OutcomeDelegate only works with a valid Closure"
 
         //FIXME: retrieve root element from the Schema
-        xml."$schema" {
+        xml."$rootElement" {
             cl.delegate = xml
             cl.resolveStrategy = Closure.DELEGATE_FIRST
             cl()

@@ -32,8 +32,16 @@ import org.cristalise.kernel.utils.Logger
 @CompileStatic
 class OutcomeBuilder {
 
+    /*
+     * 
+     */
     public static Outcome build(SchemaBuilder sb, Closure cl) {
-        return null
+        assert sb.schema.som.getElementDecls(), "Schema must have one root element declaration"
+        assert sb.schema.som.getElementDecls().size() == 1, "Ambiguous root element size is bigger then 1. You need to use build() method to specify rootElement"
+
+        String rootElement = sb.schema.som.getElementDecls()[0].name
+
+        return build(rootElement, sb.name, sb.version, cl)
     }
 
     /**
@@ -41,12 +49,18 @@ class OutcomeBuilder {
      * @param cl
      * @return
      */
-    public static Outcome build(String schema, int version, Closure cl) {
-        def ob = new  OutcomeBuilder()
-
-        def outcomeD = new OutcomeDelegate()
-        outcomeD.processClosure(schema, cl)
+    public static Outcome build(String rootElement = null, String schema, int version, Closure cl) {
+        assert schema
         
+        def ob = new  OutcomeBuilder()
+        String root
+
+        if(!rootElement) root = rootElement
+        else             root = schema
+
+        def outcomeD = new OutcomeDelegate(root)
+        outcomeD.processClosure(cl)
+
         Logger.msg 5, "OutcomeBuilder - generated xml:\n" + outcomeD.writer.toString()
 
         return new Outcome(-1, outcomeD.writer.toString(), schema, version)

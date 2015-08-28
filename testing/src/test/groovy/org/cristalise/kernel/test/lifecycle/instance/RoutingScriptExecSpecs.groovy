@@ -38,14 +38,14 @@ class RoutingScriptExecSpecs extends Specification implements CristalTestSetup {
             javascript { "java.lang.Integer(counter % 2);" }
         }
 
-        SchemaBuilder.create(module, schemaName, 0) { loadXSD("src/test/data/${schemaName}.xsd") }
+        def schema = SchemaBuilder.create(module, schemaName, 0) { loadXSD("src/test/data/${schemaName}.xsd") }
 
         wfBuilder.buildAndInitWf() {
             ElemAct("first") {
                 Property(SchemaType: schemaName, SchemaVersion: 0, Viewpoint: 'last')
             }
             OrSplit(RoutingScriptName: 'CounterScript', RoutingScriptVersion: 0) {
-                Property(counter: "activity//./workflow/domain/first:/$schemaName/counter")
+                Property(counter: "activity//./workflow/domain/first:/${schemaName}/counter")
 
                 Block { ElemAct("left")  }
                 Block { ElemAct("right") }
@@ -54,7 +54,7 @@ class RoutingScriptExecSpecs extends Specification implements CristalTestSetup {
         }
 
         when: "requesting ElemAct(first) Done transition"
-        wfBuilder.requestAction("first", "Done", OutcomeBuilder.build(schemaName, 0) {counter 3})
+        wfBuilder.requestAction("first", "Done", OutcomeBuilder.build(schema) {counter 3})
 
         then: "EA(left) is enabled but EA(right) is disabled"
         wfBuilder.checkActStatus("left",  [state: "Waiting", active: true])
