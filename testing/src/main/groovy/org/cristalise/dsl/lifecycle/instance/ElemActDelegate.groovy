@@ -24,6 +24,7 @@ import groovy.transform.CompileStatic
 
 import org.cristalise.kernel.lifecycle.instance.WfVertex
 import org.cristalise.kernel.lifecycle.instance.WfVertex.Types
+import org.cristalise.kernel.utils.Logger
 
 
 /**
@@ -44,7 +45,8 @@ class ElemActDelegate {
     }
 
     public void Property(Map<String, Object> props) {
-        props.each { key, value -> currentVertex.properties.put(key, value, false) }
+        Logger.msg 5, "ElemActDelegate.Property() - props: $props"
+        props.each { key, value -> currentVertex.properties.put(key, (String)value, false) }
     }
 
     public void processClosure(BlockDelegate parentBlock, Closure cl = null) {

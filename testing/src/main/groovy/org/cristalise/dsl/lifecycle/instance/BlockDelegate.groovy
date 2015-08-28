@@ -40,7 +40,7 @@ public class BlockDelegate {
     WfVertex lastVertex  = null
 
     Map<String, WfVertex> vertexCache = null
-    
+
     Map<String, Object>  properties = [:]
 
     int index = -1
@@ -55,7 +55,7 @@ public class BlockDelegate {
 
     
     protected void setVertexProperties(WfVertex vertex) {
-        properties.each { key, value -> vertex.properties.put(key, value, false) }
+        properties.each { key, value -> vertex.properties.put(key, (String)value, false) }
     }
 
     public static String getNamePrefix(Types t) {
@@ -137,6 +137,7 @@ public class BlockDelegate {
      * @param props Map containing properties
      */
     public void Property(Map<String, Object> props) {
+        Logger.msg 5, "BlockDelegate.Property() - props: $props"
         properties << props
     }
 
