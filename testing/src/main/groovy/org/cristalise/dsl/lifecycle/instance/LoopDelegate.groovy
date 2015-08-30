@@ -1,3 +1,5 @@
+
+
 /**
  * This file is part of the CRISTAL-iSE kernel.
  * Copyright (c) 2001-2015 The CRISTAL Consortium. All rights reserved.
@@ -18,37 +20,28 @@
  *
  * http://www.fsf.org/licensing/licenses/lgpl.html
  */
-
 package org.cristalise.dsl.lifecycle.instance
 
 import groovy.transform.CompileStatic
 
 import org.cristalise.kernel.lifecycle.instance.Next
+import org.cristalise.kernel.lifecycle.instance.Split
 import org.cristalise.kernel.lifecycle.instance.WfVertex
 import org.cristalise.kernel.lifecycle.instance.WfVertex.Types
 import org.cristalise.kernel.utils.Logger
 
 
 /**
- *
+ * 
  */
 @CompileStatic
-class SplitDelegate extends BlockDelegate {
-    Types type = null
+class LoopDelegate extends BlockDelegate {
+    Types type = Types.LoopSplit
 
-    List<BlockDelegate> childBlocks = []
-
-    String joinName = ""
-
-    public SplitDelegate() {}
-
-    public SplitDelegate(Map props, Types t, CompActDelegate caBlock, Map<String, WfVertex> cache) {
+    public LoopDelegate(Map props, CompActDelegate caBlock, Map<String, WfVertex> cache) {
         assert caBlock
         assert cache
-        assert t
-        assert (t == Types.AndSplit || t == Types.OrSplit || t == Types.XOrSplit), "Type shall be either And/Or/XOR Split"
 
-        type = t
         index = DelegateCounter.getNextCount(type)
 
         String n = ""
@@ -58,7 +51,6 @@ class SplitDelegate extends BlockDelegate {
         }
 
         name = getAutoName(n, type, index)
-        joinName = name.replace('Split', 'Join')
 
         parentCABlock = caBlock
         vertexCache = cache
@@ -71,45 +63,39 @@ class SplitDelegate extends BlockDelegate {
     public void processClosure(Closure cl) {
         assert cl, "Split only works with a valid Closure"
 
-        Logger.msg 1, "$type(name: $name) -----------------------------"
+        Logger.msg 1, "$name -----------------------------------------"
 
-        def aSplit = parentCABlock.createVertex(type, name)
-        def aJoin  = parentCABlock.createVertex(Types.Join, joinName)
+        String joinName = name.replace('Split', 'Join')
+
+        def joinFirst  = parentCABlock.createVertex(Types.Join, "${joinName}_first")
+        def split      = parentCABlock.createVertex(type, name)
+        def joinLast   = parentCABlock.createVertex(Types.Join, "${joinName}_last")
 
         cl.delegate = this
         cl.resolveStrategy = Closure.DELEGATE_FIRST
         cl()
 
-        childBlocks.each {
-            Next n = aSplit.addNext(it.firstVertex)
-            it.lastVertex.addNext(aJoin)
+        if(firstVertex) {
+            joinFirst.addNext(firstVertex)
+            lastVertex.addNext(split)
+        }
+        else {
+            //in case of an empty Loop
+            joinFirst.addNext(split)
         }
 
-        setSplitProperties(aSplit)
-        setVertexProperties(aSplit);
+        Next n = ((Split)split).addNext(joinFirst)
+        n.getProperties().put("Alias", 'true')
 
-        firstVertex = aSplit
-        lastVertex = aJoin
+        n = ((Split)split).addNext(joinLast)
+        n.getProperties().put("Alias", 'false')
+        
+        setSplitProperties(split)
+        setVertexProperties(split);
 
+        firstVertex = joinFirst
+        lastVertex = joinLast
 
         Logger.msg 1, "$name(end) +++++++++++++++++++++++++++++++++++++++"
-    }
-
-    public void Block(Closure cl) {
-        def b = new BlockDelegate(parentCABlock, vertexCache)
-        childBlocks.add(b)
-        b.processClosure(cl)
-    }
-
-    public void ElemAct(String name = "", Closure cl = null) {
-        throw new UnsupportedOperationException("Split cannot have standalone ElemAct, it shall be within a Block")
-    }
-
-    public void CompAct(String name = "", Closure cl) {
-        throw new UnsupportedOperationException("Split cannot have standalone CompAct, it shall be within a Block")
-    }
-
-    public void Split(String name = "", Types type, Closure cl) {
-        throw new UnsupportedOperationException("Split cannot have standalone Split, it shall be within a Block")
     }
 }

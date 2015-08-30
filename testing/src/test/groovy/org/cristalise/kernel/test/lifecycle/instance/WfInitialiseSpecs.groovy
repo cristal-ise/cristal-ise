@@ -178,7 +178,7 @@ class WfInitialiseSpecs extends Specification {
         given: "Workflow with Loop(first-second)"
         wfBuilder.build {
             Loop {
-                B{ EA("first"); EA("second") }
+                EA("first"); EA("second")
             }
         }
         wfBuilder.checkActStatus("first",  [state: "Waiting", active: false])

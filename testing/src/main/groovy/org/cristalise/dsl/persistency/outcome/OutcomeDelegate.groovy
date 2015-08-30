@@ -45,7 +45,6 @@ class OutcomeDelegate {
     public void processClosure(Closure cl) {
         assert cl, "OutcomeDelegate only works with a valid Closure"
 
-        //FIXME: retrieve root element from the Schema
         xml."$rootElement" {
             cl.delegate = xml
             cl.resolveStrategy = Closure.DELEGATE_FIRST

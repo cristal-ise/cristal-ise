@@ -44,6 +44,12 @@ class SchemaBuilder implements DSLBoostrapper {
 
     public SchemaBuilder() {}
 
+    /**
+     * 
+     * @param module
+     * @param name
+     * @param version
+     */
     public SchemaBuilder(String module, String name, int version) {
         this.module  = module
         this.name    = name

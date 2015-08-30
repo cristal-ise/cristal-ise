@@ -35,12 +35,12 @@ trait CristalTestSetup {
 
     public void inMemorySetup(int logLevel = 8) {
         cristalSetup(logLevel, 'src/test/conf/testServer.conf', 'src/test/conf/testInMemory.clc')
+        //FieldUtils.writeDeclaredStaticField(Gateway.class, "mLookupManager", Gateway.getLookup(), true)
     }
-    
+
     public void inMemoryServer(int logLevel = 8) {
         serverSetup(logLevel, 'src/test/conf/testServer.conf', 'src/test/conf/testInMemory.clc')
         Thread.sleep(5000)
-        println "-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+"
     }
     
     public Authenticator serverSetup(int logLevel, String config, String connect) {

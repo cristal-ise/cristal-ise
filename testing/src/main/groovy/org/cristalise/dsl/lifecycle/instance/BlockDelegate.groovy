@@ -53,9 +53,35 @@ public class BlockDelegate {
         vertexCache = cache
     }
 
-    
     protected void setVertexProperties(WfVertex vertex) {
-        properties.each { key, value -> vertex.properties.put(key, (String)value, false) }
+        properties.each { key, value -> 
+            vertex.properties.put(key, (value instanceof String) ? (String)value : value, false)
+        }
+    }
+
+    protected void setSplitProperties(WfVertex aSplit) {
+        if(properties.containsKey('RoutingScriptName')) return
+
+        if(properties.javascript) {
+            setRoutingScript(aSplit, (String)"javascript:\"${properties.javascript}\";", '');
+            properties.remove('javascript')
+        }
+        else {
+            setRoutingScript(aSplit, "javascript:\"true\";", '');
+        }
+    }
+
+    /**
+     *
+     * @param aSplit
+     * @param name
+     * @param version
+     */
+    protected static void setRoutingScript(WfVertex aSplit, String name, String version) {
+        Logger.msg 5, "SplitDelegate.setRoutingScript() - splitName: $aSplit.name, name: '$name' version: '$version'"
+
+        aSplit.getProperties().put('RoutingScriptName',    name,    false);
+        aSplit.getProperties().put('RoutingScriptVersion', version, false)
     }
 
     public static String getNamePrefix(Types t) {
@@ -123,7 +149,7 @@ public class BlockDelegate {
      * @param childBlock the child Block to be linked with
      */
     protected void linkWithChild(BlockDelegate childBlock) {
-        Logger.msg 1, "Block.linkWithChild() - ${childBlock.getClass()}"
+        Logger.msg 1, "Block.linkWithChild() - class:'${childBlock.getClass()}', name: '$childBlock.name'"
 
         if(!firstVertex) firstVertex = childBlock.firstVertex
         else             lastVertex.addNext(childBlock.firstVertex)
@@ -137,7 +163,7 @@ public class BlockDelegate {
      * @param props Map containing properties
      */
     public void Property(Map<String, Object> props) {
-        Logger.msg 5, "BlockDelegate.Property() - props: $props"
+        Logger.msg 5, "BlockDelegate.Property() - adding props: $props"
         properties << props
     }
 
@@ -167,8 +193,8 @@ public class BlockDelegate {
      * @param name the name of the Composite Activity, can be omitted
      * @param cl the closure to be executed to build the Composite Activity
      */
-    public void CompAct(String name = "", Closure cl) {
-        def b = new CompActDelegate(name, vertexCache)
+    public void CompAct(String n = "", Closure cl) {
+        def b = new CompActDelegate(n, vertexCache)
         b.processClosure(this,cl)
     }
 
@@ -227,6 +253,15 @@ public class BlockDelegate {
 
     /**
      * 
+     * @param props
+     * @param cl
+     */
+    public void AndSplit(Map props, Closure cl) {
+        Split(props, Types.AndSplit, cl)
+    }
+
+    /**
+     * 
      * 
      * @param name
      * @param cl
@@ -276,7 +311,18 @@ public class BlockDelegate {
      * @param name
      * @param cl
      */
+    public void Loop(Map props, Closure cl) {
+        def b = new LoopDelegate(props, parentCABlock, vertexCache)
+        b.processClosure(cl)
+        linkWithChild(b)
+    }
+
+    /**
+     * 
+     * @param name
+     * @param cl
+     */
     public void Loop(String n = "", Closure cl) {
-        Split(n, Types.LoopSplit, cl)
+        Loop(name: n, cl)
     }
 }

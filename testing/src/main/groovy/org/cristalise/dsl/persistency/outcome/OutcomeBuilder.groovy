@@ -18,13 +18,13 @@
  *
  * http://www.fsf.org/licensing/licenses/lgpl.html
  */
-
 package org.cristalise.dsl.persistency.outcome
 
 import groovy.transform.CompileStatic
 
 import org.cristalise.kernel.persistency.outcome.Outcome
 import org.cristalise.kernel.utils.Logger
+
 
 /**
  *

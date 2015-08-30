@@ -46,7 +46,9 @@ class ElemActDelegate {
 
     public void Property(Map<String, Object> props) {
         Logger.msg 5, "ElemActDelegate.Property() - props: $props"
-        props.each { key, value -> currentVertex.properties.put(key, (String)value, false) }
+        props.each { key, value -> 
+            currentVertex.properties.put(key, (value instanceof String) ? (String)value : value, false)
+        }
     }
 
     public void processClosure(BlockDelegate parentBlock, Closure cl = null) {

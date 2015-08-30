@@ -24,6 +24,7 @@ class RoutingScriptExecSpecs extends Specification implements CristalTestSetup {
     def cleanup() {
         println Gateway.getMarshaller().marshall(wfBuilder.wf)
         cristalCleanup()
+        Thread.sleep(5000)
     }
 
     def 'OrSplit enables branch(es) using RoutingScript'() {
@@ -45,7 +46,7 @@ class RoutingScriptExecSpecs extends Specification implements CristalTestSetup {
                 Property(SchemaType: schemaName, SchemaVersion: 0, Viewpoint: 'last')
             }
             OrSplit(RoutingScriptName: 'CounterScript', RoutingScriptVersion: 0) {
-                Property(counter: "activity//./workflow/domain/first:/${schemaName}/counter")
+                Property(counter: "activity//./workflow/domain/first:/TestData/counter")
 
                 Block { ElemAct("left")  }
                 Block { ElemAct("right") }
@@ -60,21 +61,44 @@ class RoutingScriptExecSpecs extends Specification implements CristalTestSetup {
         wfBuilder.checkActStatus("left",  [state: "Waiting", active: true])
         wfBuilder.checkActStatus("right", [state: "Waiting", active: false])
         wfBuilder.checkActStatus("last",  [state: "Waiting", active: false])
+    }
 
-        when: "requesting EA(left) Done transition"
-        wfBuilder.requestAction("left", "Done")
+    def 'LoopSplit using RoutingScript'() {
+        given: "Workflow"
 
-        then: "EA(left) is Finished but EA(right) is disabled"
-        wfBuilder.checkActStatus("left",  [state: "Finished", active: false])
-        wfBuilder.checkActStatus("right", [state: "Waiting",  active: false])
-        wfBuilder.checkActStatus("last",  [state: "Waiting",  active: true])
-        
-        when: "requesting EA(last) Done transition"
-        wfBuilder.requestAction("last", "Done")
+        String module = 'testing'
+        String schemaName = 'TestData'
 
-        then: "EA(last) is Finished and disabled"
-        wfBuilder.checkActStatus("left",  [state: "Finished", active: false])
-        wfBuilder.checkActStatus("right", [state: "Waiting",  active: false])
-        wfBuilder.checkActStatus("last",  [state: "Finished", active: false])
+        ScriptBuilder.create(module, "CounterScript", 0) {
+            input("counter", "java.lang.String")
+            output('java.lang.Boolean')
+            javascript { "counter < 10;" }
+        }
+
+        def schema = SchemaBuilder.create(module, schemaName, 0) { loadXSD("src/test/data/${schemaName}.xsd") }
+
+        wfBuilder.buildAndInitWf {
+            Loop(RoutingScriptName: 'CounterScript', RoutingScriptVersion: 0) {
+                Property(counter: "activity//./workflow/domain/incrementer:/TestData/counter")
+
+                ElemAct("incrementer")  {
+                    Property(SchemaType: schemaName, SchemaVersion: 0, Viewpoint: 'last')
+                }
+            }
+            ElemAct("last")
+        }
+
+        for(i in (0..10)) {
+            when: "requesting ElemAct(incrementer) Done transition"
+            wfBuilder.requestAction("incrementer", "Done", OutcomeBuilder.build(schema) {counter i})
+
+            def msg = "EA(incrementer) is enabled, i = $i"
+            then: msg
+            println msg
+            wfBuilder.checkActStatus("incrementer",  [state: (i < 10)?"Waiting":"Finished", active: (i < 10)])
+        }
+
+        wfBuilder.checkActStatus("incrementer", [state: "Finished", active: false])
+        wfBuilder.checkActStatus("last",        [state: "Waiting", active: true])
     }
 }

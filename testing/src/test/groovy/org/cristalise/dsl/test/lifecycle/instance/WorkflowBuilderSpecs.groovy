@@ -20,6 +20,8 @@
  */
 package org.cristalise.dsl.test.lifecycle.instance
 
+import org.cristalise.kernel.lifecycle.instance.Activity
+import org.cristalise.kernel.lifecycle.instance.CompositeActivity
 import org.cristalise.test.CristalTestSetup
 
 import spock.lang.Specification
@@ -41,69 +43,7 @@ class WorkflowBuilderSpecs extends Specification implements CristalTestSetup {
         cristalCleanup()
     }
 
-    def 'ElemAct can specify Properites'() {
-        when: "Workflow contains EA"
-        wfBuilder.build {
-            ElemAct('lonely') {
-                Property(stringVal: '1')
-                Property(intVal: 1, booleanVal: true)
-            }
-        }
-
-        then:""
-        wfBuilder.wf.search("workflow/domain/lonely").properties.stringVal  == '1'
-        wfBuilder.wf.search("workflow/domain/lonely").properties.intVal     == 1
-        wfBuilder.wf.search("workflow/domain/lonely").properties.booleanVal == true
-    }
-
-    def 'CompAct can specify Properites'() {
-        when: "Workflow contains CA"
-        wfBuilder.build {
-            CompAct('lonely') {
-                Property(stringVal: '1')
-                Property(intVal: 1, booleanVal: true)
-            }
-        }
-
-        then:""
-        wfBuilder.wf.search("workflow/domain/lonely").properties.stringVal  == '1'
-        wfBuilder.wf.search("workflow/domain/lonely").properties.intVal     == 1
-        wfBuilder.wf.search("workflow/domain/lonely").properties.booleanVal == true
-    }
-
-    def 'Default RoutingScriptis added to Split if nothing specified'() {
-        when: "Wf contains OrSplit"
-        wfBuilder.build {
-            OrSplit {}
-        }
-        then: "RoutingScriptName and Version were added to Properties"
-        wfBuilder.wf.search("workflow/domain/OrSplit").properties.RoutingScriptName  == "javascript:\"true\";"
-        wfBuilder.wf.search("workflow/domain/OrSplit").properties.RoutingScriptVersion  == ""
-    }
-
-    def 'OrSplit can use javascript keyword to specify hardcoded RoutingScript'() {
-        when: "Wf contains OrSplit"
-        wfBuilder.build {
-            OrSplit(javascript: true) {}
-        }
-        then: "RoutingScriptName and Version were added and javascript was removed from Properties"
-        wfBuilder.wf.search("workflow/domain/OrSplit").properties.RoutingScriptName  == "javascript:\"true\";"
-        wfBuilder.wf.search("workflow/domain/OrSplit").properties.RoutingScriptVersion  == ""
-        wfBuilder.wf.search("workflow/domain/OrSplit").properties.javascript  == null
-    }
-
-    def 'XOrSplit can use javascript keyword to specify hardcoded RoutingScript'() {
-        when: "Wf contains XOrSplit"
-        wfBuilder.build {
-            XOrSplit(javascript: true) {}
-        }
-        then: "RoutingScriptName and Version were added and javascript was removed from Properties"
-        wfBuilder.wf.search("workflow/domain/XOrSplit").properties.RoutingScriptName  == "javascript:\"true\";"
-        wfBuilder.wf.search("workflow/domain/XOrSplit").properties.RoutingScriptVersion  == ""
-        wfBuilder.wf.search("workflow/domain/XOrSplit").properties.javascript  == null
-    }
-
-    def 'Split can only contain Block not ElemAAct'() {
+    def 'Split can only contain Block not ElemAct'() {
         when: "Split contains ElemAct"
         wfBuilder.build {
             AndSplit {
@@ -149,7 +89,7 @@ class WorkflowBuilderSpecs extends Specification implements CristalTestSetup {
             AndSplit {
                 B { CA {
                     Loop {
-                        B { XOrSplit {} }
+                        XOrSplit {}
                     }
                 } }
             }
@@ -170,8 +110,12 @@ class WorkflowBuilderSpecs extends Specification implements CristalTestSetup {
         wfBuilder.checkSplit('AndSplit2', ['CA'])
         wfBuilder.checkJoin ('AndJoin2',  ['CA'])
 
-        wfBuilder.checkSplit('LoopSplit', ['XOrSplit', 'LoopJoin'])
-        wfBuilder.checkJoin ('LoopJoin',  ['XOrJoin', 'LoopSplit'])
+        wfBuilder.checkSplit('LoopSplit', ['LoopJoin_first', 'LoopJoin_last'])
+        wfBuilder.checkJoin ('LoopJoin_first',  ['LoopSplit'])
+        wfBuilder.checkJoin ('LoopJoin_last',  ['LoopSplit'])
+
+        wfBuilder.checkSequence('LoopJoin_first', 'XOrSplit')
+        wfBuilder.checkSequence('XOrJoin', 'LoopSplit')
     }
 
     def 'B can be used as alias of Block'() {
@@ -179,9 +123,11 @@ class WorkflowBuilderSpecs extends Specification implements CristalTestSetup {
         wfBuilder.build { 
             B{
                 assert parentCABlock
+                ElemAct('lonely')
             }
         }
-        //FIXME: more assertion is needed
+        wfBuilder.checkActPath("lonely", "workflow/domain/lonely")
+        wfBuilder.wf.search("workflow/domain/lonely") instanceof Activity
     }
 
     def 'EA can be used as alias of ElemAct'() {
@@ -189,7 +135,8 @@ class WorkflowBuilderSpecs extends Specification implements CristalTestSetup {
         wfBuilder.build {
             EA('lonely')
         }
-        //FIXME: more assertion is needed
+        wfBuilder.checkActPath("lonely", "workflow/domain/lonely")
+        wfBuilder.wf.search("workflow/domain/lonely") instanceof Activity
     }
 
     def 'CA can be used as alias of CompAct'() {
@@ -197,6 +144,7 @@ class WorkflowBuilderSpecs extends Specification implements CristalTestSetup {
         wfBuilder.build {
             CA('lonely') {}
         }
-        //FIXME: more assertion is needed
+        wfBuilder.checkActPath("lonely", "workflow/domain/lonely")
+        wfBuilder.wf.search("workflow/domain/lonely") instanceof CompositeActivity
     }
 }

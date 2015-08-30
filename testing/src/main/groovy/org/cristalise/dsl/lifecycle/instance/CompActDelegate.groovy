@@ -109,7 +109,9 @@ public class CompActDelegate extends BlockDelegate {
         linkWithChild(b)
     }
 
-    public void Split(String n = "", Types t, Closure cl) {
-        Split(name: n, t, cl)
+    public void Loop(Map props, Closure cl) {
+        def b = new LoopDelegate(props, this, vertexCache)
+        b.processClosure(cl)
+        linkWithChild(b)
     }
 }
