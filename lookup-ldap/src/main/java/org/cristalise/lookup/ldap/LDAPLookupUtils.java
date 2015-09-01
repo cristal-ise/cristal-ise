@@ -6,6 +6,13 @@ package org.cristalise.lookup.ldap;
 
 //import netscape.ldap.*;
 //import netscape.ldap.util.*;
+import java.io.ByteArrayOutputStream;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.security.SecureRandom;
+import java.util.Random;
+
+import org.apache.xerces.impl.dv.util.Base64;
 import org.cristalise.kernel.common.ObjectAlreadyExistsException;
 import org.cristalise.kernel.common.ObjectCannotBeUpdated;
 import org.cristalise.kernel.common.ObjectNotFoundException;
@@ -30,6 +37,8 @@ final public class LDAPLookupUtils
 {
     static final char[] META_CHARS = {'+', '=', '"', ',', '<', '>', ';', '/'};
     static final String[] META_ESCAPED = {"2B", "3D", "22", "2C", "3C", "3E", "3B", "2F"};
+	private static final Random RANDOM = new SecureRandom();
+	
     static public LDAPEntry getEntry(LDAPConnection ld, String dn,int dereference)
         throws ObjectNotFoundException
     {
@@ -45,8 +54,29 @@ final public class LDAPLookupUtils
         throw new ObjectNotFoundException(dn+" does not exist");
 
     }
-    
 
+    public static String generateUserPassword(String pass) throws NoSuchAlgorithmException {
+        MessageDigest md = MessageDigest.getInstance("SHA");
+        md.reset();
+        String salt = generateSalt(16);
+        md.update((pass+salt).getBytes());
+        byte[] hash = md.digest();
+        byte[] saltBytes = salt.getBytes();
+        byte[] allBytes = new byte[hash.length+saltBytes.length];
+        System.arraycopy(hash, 0, allBytes, 0, hash.length);
+        System.arraycopy(saltBytes, 0, allBytes, hash.length, saltBytes.length);
+        
+        StringBuffer encPassword = new StringBuffer("{SSHA}");
+        encPassword.append(Base64.encode(allBytes));
+        return encPassword.toString();
+    }
+    
+    public static String generateSalt(int size) {
+    	byte[] salt = new byte[size];
+    	RANDOM.nextBytes(salt);
+    	return String.valueOf(salt);
+    }
+    
     /**
      * Utility method to connect to an LDAP server
      * @param lp LDAP properties to connect with

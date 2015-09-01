@@ -598,7 +598,8 @@ public class LDAPLookup implements LookupManager{
 	        	String agentPass = agentPath.getPassword();
 	        	if (agentPass != null && agentPass.length() > 0)
 	        		try {
-	        			attrs.add(new LDAPAttribute("userPassword", AgentPath.generateUserPassword(agentPass, "SHA")));
+	        			if (!agentPass.matches("^\\{[a-zA-Z0-5]*\\}")) agentPass = LDAPLookupUtils.generateUserPassword(agentPass);
+	        			attrs.add(new LDAPAttribute("userPassword", agentPass));
 	        		} catch (NoSuchAlgorithmException ex) {
 	        			throw new ObjectCannotBeUpdated("Cryptographic libraries for password hashing not found.");
 	        		}
@@ -793,14 +794,14 @@ public class LDAPLookup implements LookupManager{
 	
 	@Override
 	public void setAgentPassword(AgentPath agent, String newPassword) throws ObjectNotFoundException, ObjectCannotBeUpdated, NoSuchAlgorithmException {
-		String encPasswd = AgentPath.generateUserPassword(newPassword, "SHA");
+		if (!newPassword.matches("^\\{[a-zA-Z0-5]*\\}")) newPassword = LDAPLookupUtils.generateUserPassword(newPassword);
 		LDAPEntry agentEntry;
         try {
         	agentEntry = LDAPLookupUtils.getEntry(mLDAPAuth.getAuthObject(), getFullDN(agent));
         } catch (ObjectNotFoundException e) {
             throw new ObjectNotFoundException("Agent "+agent.getAgentName()+" does not exist");
         }
-		LDAPLookupUtils.setAttributeValue(mLDAPAuth.getAuthObject(), agentEntry, "userPassword", encPasswd);
+		LDAPLookupUtils.setAttributeValue(mLDAPAuth.getAuthObject(), agentEntry, "userPassword", newPassword);
 		
 	}
 
