@@ -34,7 +34,8 @@ import javax.swing.JButton;
 import javax.swing.JFileChooser;
 import javax.swing.JLabel;
 
-import org.apache.xerces.impl.dv.util.Base64;
+import org.castor.core.util.Base64Decoder;
+import org.castor.core.util.Base64Encoder;
 import org.cristalise.gui.MainFrame;
 
 
@@ -88,7 +89,7 @@ public class ImageEditField extends StringEditField {
 						ImageIcon newImage = new ImageIcon(Toolkit
 								.getDefaultToolkit().createImage(bArray));
 						imageLabel.setIcon(newImage);
-						encodedImage = Base64.encode(bArray);
+						encodedImage = String.valueOf(Base64Encoder.encode(bArray));
 					} catch (Exception ex) {
 						MainFrame.exceptionDialog(ex);
 					}
@@ -119,7 +120,7 @@ public class ImageEditField extends StringEditField {
 	public void setText(String text) {
 		encodedImage = text;
 		if (text != null && text.length() > 0) {
-			byte[] decodedImage = Base64.decode(encodedImage);
+			byte[] decodedImage = Base64Decoder.decode(encodedImage);
 			imageLabel.setIcon(new ImageIcon(Toolkit.getDefaultToolkit()
 					.createImage(decodedImage)));
 		}
