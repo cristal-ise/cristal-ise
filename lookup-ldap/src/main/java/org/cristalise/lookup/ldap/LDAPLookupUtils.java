@@ -6,13 +6,12 @@ package org.cristalise.lookup.ldap;
 
 //import netscape.ldap.*;
 //import netscape.ldap.util.*;
-import java.io.ByteArrayOutputStream;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.util.Random;
 
-import org.apache.xerces.impl.dv.util.Base64;
+import org.castor.core.util.Base64Encoder;
 import org.cristalise.kernel.common.ObjectAlreadyExistsException;
 import org.cristalise.kernel.common.ObjectCannotBeUpdated;
 import org.cristalise.kernel.common.ObjectNotFoundException;
@@ -67,7 +66,7 @@ final public class LDAPLookupUtils
         System.arraycopy(saltBytes, 0, allBytes, hash.length, saltBytes.length);
         
         StringBuffer encPassword = new StringBuffer("{SSHA}");
-        encPassword.append(Base64.encode(allBytes));
+        encPassword.append(Base64Encoder.encode(allBytes));
         return encPassword.toString();
     }
     
