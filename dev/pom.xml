@@ -184,7 +184,7 @@
   		<dependency>
   			<groupId>org.cristalise</groupId>
   			<artifactId>cristalise-xmldb</artifactId>
-  			<version>1.0</version>
+  			<version>1.1-SNAPSHOT</version>
   		</dependency>
   		<dependency>
   			<groupId>org.cristalise</groupId>
