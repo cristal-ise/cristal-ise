@@ -20,31 +20,14 @@
  */
 package org.cristalise.dsl.persistency.outcome
 
-import groovy.transform.CompileStatic
-import groovy.transform.TupleConstructor
-
-import org.cristalise.kernel.utils.Logger
 
 
 /**
  *
  */
-@CompileStatic
-@TupleConstructor()
-class FieldDelegate {
+class Struct {
     String name
-    String type //accepted values: string, boolean, integer, decimal, dateTime, any
-    List values
+    String documentation
 
-    public void processClosure(Closure cl) {
-        if(cl) {
-            Logger.msg 1, "Field(start) ---------------------------------------"
-
-            cl.delegate = this
-            cl.resolveStrategy = Closure.DELEGATE_FIRST
-            cl()
-
-            Logger.msg 1, "Field(end) +++++++++++++++++++++++++++++++++++++++++"
-        }
-    }
+    List<Field> fields = []
 }

@@ -20,30 +20,66 @@
  */
 package org.cristalise.dsl.test.persistency.outcome
 
+import org.cristalise.dsl.persistency.outcome.SchemaBuilder
+import org.cristalise.test.CristalTestSetup
+
 import spock.lang.Specification
 
 
 /**
  *
  */
-class SchemaBuilderSpecs extends Specification {
+class SchemaBuilderSpecs extends Specification implements CristalTestSetup {
+
+    def setup() {
+        loggerSetup()
+    }
+
+    def cleanup() {
+        cristalCleanup()
+    }
+    
+    def 'Simple TestData type'() {
+        given:
+        def sb = SchemaBuilder.build("Test", "TestData", 0, "src/test/data/TestData.xsd")
+
+        when:
+        def stb = SchemaTestBuilder.build('Test', 'TestData', 0) {
+            struct(name: 'TestData') {
+                field(name: 'counter', type: 'integer')
+            }
+        }
+
+        then:
+        stb.compareXML(sb.schema.schema)
+    }
 
     def 'PatientDetails of Basic Tutorial'() {
-        expect: 
-        SchemaTestBuilder.build {
-            Struct(name: 'PatientDetails', documentation: 'This is the Schema for Basic Tutorial') {
-                Field(name: 'InsuranceNumber', type: 'string')
-                Field(name: 'DateOfBirth',     type: 'date')
-                Field(name: 'Gender',          type: 'string', values: ['male', 'female'])
+        expect:
+        SchemaTestBuilder.build('test', 'PatientDetails', 0) {
+            struct(name: 'PatientDetails', documentation: 'This is the Schema for Basic Tutorial') {
+                field(name: 'InsuranceNumber', type: 'string', default: '123456789ABC')
+                field(name: 'DateOfBirth',     type: 'dateTime')
+                field(name: 'Gender',          type: 'string', values: ['male', 'female'])
             }
-        }.compareXML( 
-            """<xs:schema attributeFormDefault="unqualified" elementFormDefault="qualified" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+        }.compareXML(
+            """<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
                     <xs:element name="PatientDetails">
+                        <xs:annotation>
+                            <xs:documentation>This is the Schema for Basic Tutorial</xs:documentation>
+                        </xs:annotation>
                         <xs:complexType>
                             <xs:sequence>
-                                <xs:element minOccurs="1" maxOccurs="1" name="InsuranceNumber" type="xs:string"/>
-                                <xs:element minOccurs="1" maxOccurs="1" name="Gender" type="xs:string"/>
-                                <xs:element minOccurs="1" maxOccurs="1" name="DateOfBirth" type="xs:string"/>
+                                <xs:element minOccurs="1" maxOccurs="1" name="InsuranceNumber" type="xs:string" default= "123456789ABC"/>
+                                <xs:element minOccurs="1" maxOccurs="1" name="DateOfBirth" type="xs:dateTime"/>
+                                <xs:element minOccurs="1" maxOccurs="1" name="Gender">
+                                    <xs:simpleType>
+                                        <xs:restriction base="xs:string">
+                                           <xs:enumeration value="male" />
+                                           <xs:enumeration value="female" />
+                                        </xs:restriction>
+                                    </xs:simpleType>
+                                </xs:element>
                             </xs:sequence>
                         </xs:complexType>
                     </xs:element>

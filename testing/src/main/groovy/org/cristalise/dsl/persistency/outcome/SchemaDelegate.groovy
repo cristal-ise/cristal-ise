@@ -20,7 +20,7 @@
  */
 package org.cristalise.dsl.persistency.outcome
 
-import groovy.transform.CompileStatic
+import groovy.xml.MarkupBuilder
 
 import org.cristalise.kernel.utils.Logger
 
@@ -28,28 +28,74 @@ import org.cristalise.kernel.utils.Logger
 /**
  *
  */
-@CompileStatic
 class SchemaDelegate {
     
-    String xsd
+    String xsdString
 
     public void processClosure(Closure cl) {
         assert cl, "Schema only works with a valid Closure"
 
         Logger.msg 1, "Schema(start) ---------------------------------------"
 
-        cl.delegate = this
-        cl.resolveStrategy = Closure.DELEGATE_FIRST
-        cl()
+        def objBuilder = new ObjectGraphBuilder()
+        objBuilder.classLoader = this.class.classLoader
+        objBuilder.classNameResolver = 'org.cristalise.dsl.persistency.outcome'
+
+        cl.delegate = objBuilder
+
+        xsdString = buildXSD( cl() )
 
         Logger.msg 1, "Schema(end) +++++++++++++++++++++++++++++++++++++++++"
     }
 
-    public void loadXSD(String xsdFile) {
-        xsd = new File(xsdFile).getText()
+    public String buildXSD(Struct s) {
+        def writer = new StringWriter()
+        def xsd = new MarkupBuilder(writer)
+
+        xsd.setOmitEmptyAttributes(true)
+        xsd.setOmitNullAttributes(true)
+        xsd.mkp.xmlDeclaration(version: "1.0", encoding: "utf-8")
+
+        xsd.'xs:schema'('xmlns:xs': 'http://www.w3.org/2001/XMLSchema') {
+            buildStruct(xsd,s)
+        }
+
+        return writer.toString()
     }
-    
-    def Struct(String name, String doc = null, Closure cl) {
-        //new StructDelegate(name, doc).processClosure(cl)
+
+    private void buildStruct(xsd, Struct s) {
+        Logger.msg 1, "SchemaDelegate.buildStruct() - Struct: $s.name"
+
+        xsd.'xs:element'(name: s.name) {
+
+            if(s.documentation) 'xs:annotation' { 'xs:documentation'(s.documentation) }
+
+            'xs:complexType' {
+                'xs:sequence' {
+                    s.fields.each { Field f ->
+                        buildField(xsd, f)
+                    }
+                }
+            }
+        }
+    }
+
+    private void buildField(xsd, Field f) {
+        Logger.msg 1, "SchemaDelegate.buildField() - Field: $f.name"
+
+        String typeAttr = ''
+        if(!f.values) typeAttr = "xs:$f.type"
+
+        xsd.'xs:element'(name: f.name, type: typeAttr, minOccurs: f.minOccurs, maxOccurs: f.maxOccurs, 'default': f.defaultVal) {
+            if(f.values) {
+                'xs:simpleType' {
+                    'xs:restriction'(base: "xs:$f.type") {
+                        f.values.each {
+                           'xs:enumeration'(value: it)
+                        }
+                    }
+                }
+            }
+        }
     }
 }

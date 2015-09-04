@@ -27,6 +27,7 @@ import org.cristalise.kernel.lookup.DomainPath
 import org.cristalise.kernel.persistency.outcome.Outcome
 import org.cristalise.kernel.persistency.outcome.Schema
 import org.cristalise.kernel.process.Bootstrap
+import org.cristalise.kernel.utils.Logger
 
 
 /**
@@ -56,7 +57,17 @@ class SchemaBuilder implements DSLBoostrapper {
         this.version = version
     }
 
+    public SchemaBuilder loadXSD(String xsdFile) {
+        Logger.msg 5, "SchemaBuilder.loadXSD() - From file:$xsdFile"
+
+        schema = new Schema(name, version,  new File(xsdFile).getText())
+        schema.parse(null)
+
+        return this
+    }
+
     /**
+     * Builds the Schema and creates the Resource Item
      * 
      * @param module
      * @param name
@@ -72,6 +83,20 @@ class SchemaBuilder implements DSLBoostrapper {
 
     /**
      * 
+     * @param module
+     * @param name
+     * @param version
+     * @param xsdFile
+     * @return
+     */
+    public static SchemaBuilder create(String module, String name, int version, String xsdFile) {
+        def sb = build(module, name, version, xsdFile)
+        sb.createResourceItem()
+        return sb
+    }
+
+    /**
+     * 
      * @param cl
      * @return
      */
@@ -81,10 +106,17 @@ class SchemaBuilder implements DSLBoostrapper {
         def schemaD = new SchemaDelegate()
         schemaD.processClosure(cl)
         
-        sb.schema = new Schema(name, version, schemaD.xsd)
+        Logger.msg 5, "SchemaBuilder - generated xsd:\n" + schemaD.xsdString
+
+        sb.schema = new Schema(name, version, schemaD.xsdString)
         sb.schema.parse(null)
 
         return sb
+    }
+
+    public static SchemaBuilder build(String module, String name, int version, String xsdFile) {
+        def sb = new SchemaBuilder(module, name, version)
+        return sb.loadXSD(xsdFile)
     }
 
     /**

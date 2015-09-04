@@ -20,30 +20,22 @@
  */
 package org.cristalise.dsl.persistency.outcome
 
-import groovy.transform.CompileStatic
-import groovy.transform.TupleConstructor
-
-import org.cristalise.kernel.utils.Logger
-
 
 /**
  *
  */
-@CompileStatic
-@TupleConstructor()
-class StructDelegate {
-    String name
-    String documentation
+class Unit {
+    List<String> values = []
+    String defaultVal
+    boolean required
 
-    public void processClosure(Closure cl) {
-        assert cl, "Struct only works with a valid Closure"
-
-        Logger.msg 1, "Struct(start) ---------------------------------------"
-
-        cl.delegate = this
-        cl.resolveStrategy = Closure.DELEGATE_FIRST
-        cl()
-
-        Logger.msg 1, "Struct(end) +++++++++++++++++++++++++++++++++++++++++"
+    /**
+     * 'default' is a keyword, so it cannot be used as a variable name, 
+     * but this method makes the default keyword usable in the SchemaBuilder DSL
+     * 
+     * @param val
+     */
+    public void setDefault(String val) {
+        defaultVal = val
     }
 }

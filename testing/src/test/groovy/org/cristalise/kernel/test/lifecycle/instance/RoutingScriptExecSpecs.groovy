@@ -24,7 +24,6 @@ class RoutingScriptExecSpecs extends Specification implements CristalTestSetup {
     def cleanup() {
         println Gateway.getMarshaller().marshall(wfBuilder.wf)
         cristalCleanup()
-        Thread.sleep(5000)
     }
 
     def 'OrSplit enables branch(es) using RoutingScript'() {
@@ -39,7 +38,7 @@ class RoutingScriptExecSpecs extends Specification implements CristalTestSetup {
             javascript { "java.lang.Integer(counter % 2);" }
         }
 
-        def schema = SchemaBuilder.create(module, schemaName, 0) { loadXSD("src/test/data/${schemaName}.xsd") }
+        def schema = SchemaBuilder.create(module, schemaName, 0, "src/test/data/${schemaName}.xsd")
 
         wfBuilder.buildAndInitWf() {
             ElemAct("first") {

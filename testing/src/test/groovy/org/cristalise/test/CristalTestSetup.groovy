@@ -32,6 +32,10 @@ import org.cristalise.kernel.utils.Logger
  */
 @CompileStatic
 trait CristalTestSetup {
+    
+    public void loggerSetup(int logLevel = 8) {
+        Logger.addLogStream(System.out, logLevel);
+    }
 
     public void inMemorySetup(int logLevel = 8) {
         cristalSetup(logLevel, 'src/test/conf/testServer.conf', 'src/test/conf/testInMemory.clc')
