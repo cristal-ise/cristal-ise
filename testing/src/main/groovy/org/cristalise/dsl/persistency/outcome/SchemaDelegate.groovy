@@ -22,6 +22,7 @@ package org.cristalise.dsl.persistency.outcome
 
 import groovy.xml.MarkupBuilder
 
+import org.cristalise.kernel.common.InvalidDataException
 import org.cristalise.kernel.utils.Logger
 
 
@@ -29,7 +30,7 @@ import org.cristalise.kernel.utils.Logger
  *
  */
 class SchemaDelegate {
-    
+
     String xsdString
 
     public void processClosure(Closure cl) {
@@ -49,11 +50,14 @@ class SchemaDelegate {
     }
 
     public String buildXSD(Struct s) {
+        if(!s) throw new InvalidDataException("Schema cannot be built from empty declaration")
+        
         def writer = new StringWriter()
         def xsd = new MarkupBuilder(writer)
 
         xsd.setOmitEmptyAttributes(true)
         xsd.setOmitNullAttributes(true)
+
         xsd.mkp.xmlDeclaration(version: "1.0", encoding: "utf-8")
 
         xsd.'xs:schema'('xmlns:xs': 'http://www.w3.org/2001/XMLSchema') {
@@ -72,9 +76,7 @@ class SchemaDelegate {
 
             'xs:complexType' {
                 'xs:sequence' {
-                    s.fields.each { Field f ->
-                        buildField(xsd, f)
-                    }
+                    s.fields.each { Field f -> buildField(xsd, f) }
                 }
             }
         }
@@ -83,17 +85,33 @@ class SchemaDelegate {
     private void buildField(xsd, Field f) {
         Logger.msg 1, "SchemaDelegate.buildField() - Field: $f.name"
 
-        String typeAttr = ''
-        if(!f.values) typeAttr = "xs:$f.type"
-
-        xsd.'xs:element'(name: f.name, type: typeAttr, minOccurs: f.minOccurs, maxOccurs: f.maxOccurs, 'default': f.defaultVal) {
-            if(f.values) {
-                'xs:simpleType' {
-                    'xs:restriction'(base: "xs:$f.type") {
-                        f.values.each {
-                           'xs:enumeration'(value: it)
+        xsd.'xs:element'(name: f.name, type: (!f.values && !f.unit ? f.type : ''), 'default': f.defaultVal, minOccurs: f.minOccurs, maxOccurs: f.maxOccurs) {
+            if(f.unit) {
+                'xs:complexType' {
+                    'xs:simpleContent' {
+                        'xs:extension'(base: f.type) {
+                            'xs:attribute'(name:"unit", type: (!f.unit.values ? 'xs:string' : ''), 'use': (f.unit.required ? "required": "")) {
+                                if(f.unit.values) {
+                                    buildRestriction(xsd, 'xs:string', f.unit.values)
+                                }
+                            }
                         }
                     }
+                }
+            }
+            else if(f.values) {
+                buildRestriction(xsd, f.type, f.values)
+            }
+        }
+    }
+
+    private void buildRestriction(xsd, String type, List values) {
+        Logger.msg 1, "SchemaDelegate.buildRestriction() - type:$type, values: $values"
+
+        xsd.'xs:simpleType' {
+            'xs:restriction'(base: type) {
+                values.each {
+                    'xs:enumeration'(value: it)
                 }
             }
         }

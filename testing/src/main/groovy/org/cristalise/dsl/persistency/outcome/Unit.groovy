@@ -20,6 +20,8 @@
  */
 package org.cristalise.dsl.persistency.outcome
 
+import org.cristalise.kernel.common.InvalidDataException
+
 
 /**
  *
@@ -36,6 +38,8 @@ class Unit {
      * @param val
      */
     public void setDefault(String val) {
+        if(values && !values.contains(val)) throw new InvalidDataException("Default value '$val' is wrong, it must be one of these: $values")
+        
         defaultVal = val
     }
 }

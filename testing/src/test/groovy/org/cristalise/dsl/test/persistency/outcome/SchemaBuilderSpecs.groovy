@@ -20,7 +20,9 @@
  */
 package org.cristalise.dsl.test.persistency.outcome
 
+import org.cristalise.dsl.persistency.outcome.Field
 import org.cristalise.dsl.persistency.outcome.SchemaBuilder
+import org.cristalise.kernel.common.InvalidDataException
 import org.cristalise.test.CristalTestSetup
 
 import spock.lang.Specification
@@ -31,29 +33,208 @@ import spock.lang.Specification
  */
 class SchemaBuilderSpecs extends Specification implements CristalTestSetup {
 
-    def setup() {
-        loggerSetup()
+    def setup()   { loggerSetup()    }
+    def cleanup() { cristalCleanup() }
+
+
+    def 'Schema can be built from XSD file'() {
+        expect:
+        SchemaBuilder.build("Test", "TestData", 0, "src/test/data/TestData.xsd").schema.som.isValid()
     }
 
-    def cleanup() {
-        cristalCleanup()
-    }
-    
-    def 'Simple TestData type'() {
-        given:
-        def sb = SchemaBuilder.build("Test", "TestData", 0, "src/test/data/TestData.xsd")
 
+    def 'Empty specification throws InvalidDataException'() {
         when:
-        def stb = SchemaTestBuilder.build('Test', 'TestData', 0) {
+        SchemaBuilder.build('Test', 'TestData', 0) {}.schema.som.isValid()
+
+        then:
+        thrown(InvalidDataException)
+    }
+
+
+    def 'Empty named Structure builds a valid Schema'() {
+        expect:
+        SchemaBuilder.build('Test', 'TestData', 0) { struct(name: 'TestData') {} }.schema.som.isValid()
+    }
+
+
+    def 'Building empty Structure with documentation'() {
+        expect:
+        SchemaBuilder.build('Test', 'TestData', 0) {
+            struct(name: 'TestData') { documentation = "Test data documentation"}
+        }.schema.som.isValid()
+    }
+
+
+    def 'Default type is string for Fields'() {
+        expect:
+        SchemaTestBuilder.build('Test', 'TestData', 0) {
+            struct(name: 'TestData') { 
+                field(name:'stringField')
+            }
+        }.compareXML("""<xs:schema xmlns:xs='http://www.w3.org/2001/XMLSchema'>
+                            <xs:element name='TestData'>
+                                <xs:complexType>
+                                    <xs:sequence>
+                                        <xs:element name='stringField' type='xs:string' minOccurs='1' maxOccurs='1' />
+                                    </xs:sequence>
+                                </xs:complexType>
+                            </xs:element>
+                        </xs:schema>""")
+    }
+
+
+    def 'Field only accepts a number of types'() {
+        expect: "Accepted types are ${org.cristalise.dsl.persistency.outcome.Field.types}"
+        SchemaTestBuilder.build('Test', 'TestData', 0) {
             struct(name: 'TestData') {
-                field(name: 'counter', type: 'integer')
+                Field.types.each {
+                    field(name:"${it}Field", type: it)
+                }
+            }
+        }.compareXML("""<xs:schema xmlns:xs='http://www.w3.org/2001/XMLSchema'>
+                            <xs:element name='TestData'>
+                                <xs:complexType>
+                                    <xs:sequence>
+                                        <xs:element name='stringField'   type='xs:string'   minOccurs='1' maxOccurs='1' />
+                                        <xs:element name='booleanField'  type='xs:boolean'  minOccurs='1' maxOccurs='1' />
+                                        <xs:element name='integerField'  type='xs:integer'  minOccurs='1' maxOccurs='1' />
+                                        <xs:element name='decimalField'  type='xs:decimal'  minOccurs='1' maxOccurs='1' />
+                                        <xs:element name='dateField'     type='xs:date'     minOccurs='1' maxOccurs='1' />
+                                        <xs:element name='timeField'     type='xs:time'     minOccurs='1' maxOccurs='1' />
+                                        <xs:element name='dateTimeField' type='xs:dateTime' minOccurs='1' maxOccurs='1' />
+                                    </xs:sequence>
+                                </xs:complexType>
+                            </xs:element>
+                        </xs:schema>""")
+    }
+
+
+    def 'Unknown field type throws InvalidDataException'() {
+        when: "Accepted types are ${org.cristalise.dsl.persistency.outcome.Field.types}"
+
+        SchemaTestBuilder.build('Test', 'TestData', 0) {
+            struct(name: 'TestData') { 
+                field(name: 'byteField', type: 'byte')
             }
         }
 
         then:
-        stb.compareXML(sb.schema.schema)
+        thrown(InvalidDataException)
     }
 
+    def 'Field can specify multiplicity'() {
+        expect:
+        SchemaTestBuilder.build('Test', 'TestData', 0) {
+            struct(name: 'TestData') {
+                field(name:'default')
+                field(name:'many',        multiplicity:'*')
+                field(name:'fivehundred', multiplicity:'500')
+                field(name:'zeroToMany',  multiplicity:'0..*')
+                field(name:'oneToFive',   multiplicity:'1..5')
+                field(name:'reset',       multiplicity:'')
+            }
+        }.compareXML("""<xs:schema xmlns:xs='http://www.w3.org/2001/XMLSchema'>
+                            <xs:element name='TestData'>
+                                <xs:complexType>
+                                    <xs:sequence>
+                                        <xs:element name='default'     type='xs:string' minOccurs='1' maxOccurs='1' />
+                                        <xs:element name='many'        type='xs:string' minOccurs='0' />
+                                        <xs:element name='fivehundred' type='xs:string' minOccurs='500' maxOccurs='500' />
+                                        <xs:element name='zeroToMany'  type='xs:string' minOccurs='0' />
+                                        <xs:element name='oneToFive'   type='xs:string' minOccurs='1' maxOccurs='5' />
+                                        <xs:element name='reset'       type='xs:string' />
+                                    </xs:sequence>
+                                </xs:complexType>
+                            </xs:element>
+                        </xs:schema>""")
+    }
+
+    def 'Field can have a predefined set of values'() {
+        expect:
+        SchemaTestBuilder.build('Test', 'TestData', 0) {
+            struct(name: 'TestData') {
+                field(name: 'Gender', type: 'string', values: ['male', 'female'])
+            }
+        }.compareXML("""<xs:schema xmlns:xs='http://www.w3.org/2001/XMLSchema'>
+                            <xs:element name='TestData'>
+                                <xs:complexType>
+                                    <xs:sequence>
+                                        <xs:element minOccurs="1" maxOccurs="1" name="Gender">
+                                            <xs:simpleType>
+                                                <xs:restriction base="xs:string">
+                                                   <xs:enumeration value="male" />
+                                                   <xs:enumeration value="female" />
+                                                </xs:restriction>
+                                            </xs:simpleType>
+                                        </xs:element>
+                                    </xs:sequence>
+                                </xs:complexType>
+                            </xs:element>
+                        </xs:schema>""")
+    }
+
+
+    def 'Field can have Unit which is added as attribute of type string'() {
+        expect:
+        SchemaTestBuilder.build('Test', 'TestData', 0) {
+            struct(name: 'TestData') {
+                field(name: 'Weight', type: 'decimal') { unit() }
+            }
+        }.compareXML("""<xs:schema xmlns:xs='http://www.w3.org/2001/XMLSchema'>
+                            <xs:element name='TestData'>
+                                <xs:complexType>
+                                    <xs:sequence>
+                                        <xs:element name='Weight' minOccurs='1' maxOccurs='1'>
+                                            <xs:complexType>
+                                                <xs:simpleContent>
+                                                    <xs:extension base='xs:decimal'>
+                                                        <xs:attribute name='unit' type='xs:string'/>
+                                                    </xs:extension>
+                                                </xs:simpleContent>
+                                            </xs:complexType>
+                                        </xs:element>
+                                    </xs:sequence>
+                                </xs:complexType>
+                            </xs:element>
+                        </xs:schema>""")
+    }
+
+
+    def 'Unit can specify the list of values it contains'() {
+        expect:
+        SchemaTestBuilder.build('Test', 'TestData', 0) {
+            struct(name: 'TestData') {
+                field(name: 'Weight', type: 'decimal') { unit(values: ['g', 'kg'], required:true) }
+            }
+        }.compareXML("""<xs:schema xmlns:xs='http://www.w3.org/2001/XMLSchema'>
+                            <xs:element name='TestData'>
+                                <xs:complexType>
+                                    <xs:sequence>
+                                        <xs:element name='Weight' minOccurs='1' maxOccurs='1'>
+                                            <xs:complexType>
+                                                <xs:simpleContent>
+                                                    <xs:extension base='xs:decimal'>
+                                                        <xs:attribute name='unit' use='required'>
+                                                            <xs:simpleType>
+                                                                <xs:restriction base="xs:string">
+                                                                   <xs:enumeration value="g" />
+                                                                   <xs:enumeration value="kg" />
+                                                                </xs:restriction>
+                                                            </xs:simpleType>
+                                                        </xs:attribute>
+                                                    </xs:extension>
+                                                </xs:simpleContent>
+                                            </xs:complexType>
+                                        </xs:element>
+                                    </xs:sequence>
+                                </xs:complexType>
+                            </xs:element>
+                        </xs:schema>""")
+    }
+
+
+    /*
     def 'PatientDetails of Basic Tutorial'() {
         expect:
         SchemaTestBuilder.build('test', 'PatientDetails', 0) {
@@ -61,6 +242,7 @@ class SchemaBuilderSpecs extends Specification implements CristalTestSetup {
                 field(name: 'InsuranceNumber', type: 'string', default: '123456789ABC')
                 field(name: 'DateOfBirth',     type: 'dateTime')
                 field(name: 'Gender',          type: 'string', values: ['male', 'female'])
+                field(name: 'Weight',          type: 'decimal') { unit(values: ['g', 'kg'], required:true) }
             }
         }.compareXML(
             """<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
@@ -85,4 +267,5 @@ class SchemaBuilderSpecs extends Specification implements CristalTestSetup {
                     </xs:element>
                 </xs:schema>""")
     }
+    */
 }
