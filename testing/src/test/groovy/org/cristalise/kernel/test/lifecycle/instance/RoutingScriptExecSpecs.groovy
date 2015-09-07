@@ -62,6 +62,7 @@ class RoutingScriptExecSpecs extends Specification implements CristalTestSetup {
         wfBuilder.checkActStatus("last",  [state: "Waiting", active: false])
     }
 
+
     def 'LoopSplit using RoutingScript'() {
         given: "Workflow"
 
@@ -100,4 +101,67 @@ class RoutingScriptExecSpecs extends Specification implements CristalTestSetup {
         wfBuilder.checkActStatus("incrementer", [state: "Finished", active: false])
         wfBuilder.checkActStatus("last",        [state: "Waiting", active: true])
     }
+
+
+
+
+    def 'Loop-OrSplit-AndSPlit using RoutingScript'() {
+        given: "Workflow"
+
+        String module = 'testing'
+        String schemaName = 'TestData'
+
+        ScriptBuilder.create(module, "CounterScriptLoop", 0) {
+            input("counter", "java.lang.String")
+            output('java.lang.Boolean')
+            javascript { "counter < 10;" }
+        }
+
+        ScriptBuilder.create(module, "CounterScriptOrSplit", 0) {
+            input("counter", "java.lang.String")
+            output('java.lang.Integer')
+            javascript { "java.lang.Integer(counter % 2);" }
+        }
+
+
+        def schema = SchemaBuilder.create(module, schemaName, 0) { struct(name: schemaName) { field(name:'counter', type: 'integer') } }
+
+        wfBuilder.buildAndInitWf {
+            Loop(RoutingScriptName: 'CounterScriptLoop', RoutingScriptVersion: 0) {
+                Property(counter: "activity//./workflow/domain/incrementer:/TestData/counter")
+
+                ElemAct("incrementer")  {
+                    Property(SchemaType: schemaName, SchemaVersion: 0, Viewpoint: 'last')
+                }
+
+                OrSplit(RoutingScriptName: 'CounterScriptOrSplit', RoutingScriptVersion: 0) {
+                    Property(counter: "activity//./workflow/domain/first:/TestData/counter")
+
+                    Block {
+                        AndSplit {
+                            B { ElemAct("right-right") }
+                            B { ElemAct("right-left") }
+                        }
+                    }
+                    Block {
+                        ElemAct("left")
+                    }
+                }
+            }
+        }
+
+        for(i in (0..10)) {
+            when: "requesting ElemAct(incrementer) Done transition"
+            wfBuilder.requestAction("incrementer", "Done", OutcomeBuilder.build(schema) {counter i})
+
+            def msg = "EA(incrementer) is enabled, i = $i"
+            then: msg
+            println msg
+            wfBuilder.checkActStatus("incrementer",  [state: (i < 10)?"Waiting":"Finished", active: (i < 10)])
+        }
+
+        wfBuilder.checkActStatus("incrementer", [state: "Finished", active: false])
+        wfBuilder.checkActStatus("last",        [state: "Waiting", active: true])
+    }
+
 }
