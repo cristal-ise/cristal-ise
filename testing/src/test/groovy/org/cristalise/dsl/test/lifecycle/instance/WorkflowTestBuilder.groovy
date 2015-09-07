@@ -222,6 +222,8 @@ class WorkflowTestBuilder extends WorkflowBuilder {
      * @param trans
      */
     public void requestAction(Activity act, String trans, Outcome outcome) {
+        Logger.msg 1, "WorkflowTestBuilder.requestAction() - $act.path, $trans"
+
         int transID = -1
         String requestData = null
         

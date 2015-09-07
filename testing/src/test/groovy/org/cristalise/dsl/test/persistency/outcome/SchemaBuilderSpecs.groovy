@@ -112,7 +112,6 @@ class SchemaBuilderSpecs extends Specification implements CristalTestSetup {
 
     def 'Unknown field type throws InvalidDataException'() {
         when: "Accepted types are ${org.cristalise.dsl.persistency.outcome.Field.types}"
-
         SchemaTestBuilder.build('Test', 'TestData', 0) {
             struct(name: 'TestData') { 
                 field(name: 'byteField', type: 'byte')
