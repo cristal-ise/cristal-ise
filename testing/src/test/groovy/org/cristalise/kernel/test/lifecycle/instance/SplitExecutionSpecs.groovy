@@ -23,6 +23,7 @@ class SplitExecutionSpecs extends Specification implements CristalTestSetup {
         cristalCleanup()
     }
 
+
     def 'OrSplit enables branch(es) using RoutingScript'() {
         given: "Wf = first-OrSplit(script:1)((left)(right))-last"
         util.buildAndInitWf() {
@@ -56,8 +57,9 @@ class SplitExecutionSpecs extends Specification implements CristalTestSetup {
         then: "EA(last) is Finished and disabled"
         util.checkActStatus("left",  [state: "Finished", active: false])
         util.checkActStatus("right", [state: "Waiting",  active: false])
-        util.checkActStatus("last",  [state: "Finished", active: false])
+        util.checkActStatus("last",  [state: "Finished", active: true])
     }
+
 
     def 'AndSplit enforces all branches to be executed'() {
         given: "Wf = first-AndSplit((left)(right))-last "
@@ -109,8 +111,29 @@ class SplitExecutionSpecs extends Specification implements CristalTestSetup {
         util.checkActStatus("first", [state: "Finished", active: false])
         util.checkActStatus("left",  [state: "Finished", active: false])
         util.checkActStatus("right", [state: "Finished", active: false])
-        util.checkActStatus("last",  [state: "Finished", active: false])
+        util.checkActStatus("last",  [state: "Finished", active: true])
     }
+
+
+    def 'XOrSplit enforces one and only branch to be executed'() {
+        given: "Wf = first-AndSplit((left)(right))-last "
+        util.buildAndInitWf() {
+            ElemAct("first")
+            XOrSplit(javascript: '1') {
+                Block { ElemAct("left")  }
+                Block { ElemAct("middle")  }
+                Block { ElemAct("right") }
+            }
+            ElemAct("last")
+        }
+
+        when: "requesting ElemAct(first) Done transition"
+        util.requestAction("first", "Done")
+
+        then: "ElemAct(first) state is Finished and EA(left) and EA(right) are enabled"
+        util.checkActStatus("first", [state: "Finished", active: false])
+    }
+
 
     def 'first-AndSplit(AndSplit((left2)(right2))(right1))-last'() {
         given: "Workflow contaning AndSplit with two Blocks"
