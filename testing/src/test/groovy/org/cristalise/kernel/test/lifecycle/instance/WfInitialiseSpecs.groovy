@@ -22,29 +22,26 @@
 package org.cristalise.kernel.test.lifecycle.instance
 
 import org.cristalise.dsl.test.lifecycle.instance.WorkflowTestBuilder
-import org.cristalise.kernel.process.AbstractMain
 import org.cristalise.kernel.process.Gateway
+import org.cristalise.test.CristalTestSetup
 
 import spock.lang.Specification
 
 /**
  *
  */
-class WfInitialiseSpecs extends Specification {
+class WfInitialiseSpecs extends Specification  implements CristalTestSetup {
 
     WorkflowTestBuilder wfBuilder
 
     def setup() {
-        String[] args = ['-logLevel', '8', '-config', 'src/test/conf/testServer.conf', '-connect', 'src/test/conf/testInMemory.clc']
-        Gateway.init(AbstractMain.readC2KArgs(args))
-        Gateway.connect()
-
+        inMemorySetup(1)
         wfBuilder = new WorkflowTestBuilder()
     }
 
     def cleanup() {
         println Gateway.getMarshaller().marshall(wfBuilder.wf)
-        Gateway.close()
+        cristalCleanup()
     }
 
     def 'Empty Workflow is NOT fully initialised'() {
@@ -156,7 +153,7 @@ class WfInitialiseSpecs extends Specification {
     def 'Starting XOrSplit initialise all Activities inside'() {
         given: "Workflow with XOrSplit((leftl-left1)(right)"
         wfBuilder.build {
-            XOrSplit {
+            XOrSplit(javascript: '1') {
                 Block { ElemAct("left"); ElemAct("left1") }
                 Block { ElemAct("right") }
             }
@@ -170,8 +167,8 @@ class WfInitialiseSpecs extends Specification {
 
         then: "all Activities are Waiting and active"
         wfBuilder.checkActStatus("left",  [state: "Waiting", active: true])
+        wfBuilder.checkActStatus("right", [state: "Waiting", active: false])
         wfBuilder.checkActStatus("left1", [state: "Waiting", active: false])
-        wfBuilder.checkActStatus("right", [state: "Waiting", active: true])
     }
 
     def 'Starting Loop initialise the first Activity inside'() {
