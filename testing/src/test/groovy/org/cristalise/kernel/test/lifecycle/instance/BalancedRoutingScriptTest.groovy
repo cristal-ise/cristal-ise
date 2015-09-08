@@ -6,6 +6,7 @@ import org.cristalise.dsl.persistency.outcome.OutcomeBuilder
 import org.cristalise.dsl.persistency.outcome.SchemaBuilder
 import org.cristalise.dsl.scripting.ScriptBuilder
 import org.cristalise.dsl.test.lifecycle.instance.WorkflowTestBuilder
+import org.cristalise.kernel.process.Gateway
 import org.cristalise.test.CristalTestSetup
 import org.junit.After
 import org.junit.Before
@@ -24,6 +25,7 @@ class BalancedRoutingScriptTest implements CristalTestSetup {
 
     @After
     public void cleanup() {
+        println Gateway.getMarshaller().marshall(wfBuilder.wf)
         cristalCleanup()
     }
 
@@ -35,7 +37,7 @@ class BalancedRoutingScriptTest implements CristalTestSetup {
         ScriptBuilder.create(module, "LoopScript", 0) {
             input("counter", "java.lang.String")
             output('java.lang.Boolean')
-            javascript { "counter < 1000;" }
+            javascript { "counter < 10;" }
         }
 
         ScriptBuilder.create(module, "OrSplitScript", 0) {
@@ -75,7 +77,7 @@ class BalancedRoutingScriptTest implements CristalTestSetup {
             ElemAct("last")
         }
 
-        for(i in (0..1000)) {
+        for(i in (0..10)) {
             wfBuilder.requestAction("incrementer", "Done", OutcomeBuilder.build(schema) {counter i})
 
             if(i % 2) {
@@ -86,7 +88,7 @@ class BalancedRoutingScriptTest implements CristalTestSetup {
                 wfBuilder.requestAction("right-left" , "Done")
             }
 
-            wfBuilder.checkActStatus("last",  [state: "Waiting", active: !(i < 1000)])
+            wfBuilder.checkActStatus("last",  [state: "Waiting", active: !(i < 10)])
         }
 
         wfBuilder.requestAction("last", "Done")
