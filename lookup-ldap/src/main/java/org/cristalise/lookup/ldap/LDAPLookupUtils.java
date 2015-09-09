@@ -11,7 +11,6 @@ import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.util.Random;
 
-import org.castor.core.util.Base64Encoder;
 import org.cristalise.kernel.common.ObjectAlreadyExistsException;
 import org.cristalise.kernel.common.ObjectCannotBeUpdated;
 import org.cristalise.kernel.common.ObjectNotFoundException;
@@ -26,6 +25,7 @@ import com.novell.ldap.LDAPException;
 import com.novell.ldap.LDAPModification;
 import com.novell.ldap.LDAPSearchConstraints;
 import com.novell.ldap.LDAPSearchResults;
+import com.novell.ldap.util.Base64;
 
 /**
  * @version $Revision: 1.74 $ $Date: 2006/03/03 13:52:21 $
@@ -66,7 +66,7 @@ final public class LDAPLookupUtils
         System.arraycopy(saltBytes, 0, allBytes, hash.length, saltBytes.length);
         
         StringBuffer encPassword = new StringBuffer("{SSHA}");
-        encPassword.append(Base64Encoder.encode(allBytes));
+        encPassword.append(Base64.encode(allBytes));
         return encPassword.toString();
     }
     
