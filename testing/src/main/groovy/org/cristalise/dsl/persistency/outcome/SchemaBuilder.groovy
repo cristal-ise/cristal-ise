@@ -124,6 +124,6 @@ class SchemaBuilder implements DSLBoostrapper {
      * @return
      */
     public DomainPath createResourceItem() {
-        return domainPath = Bootstrap.verifyResource(module, name, version, "OD", [new Outcome(-1, schema.schema, "Schema", version)] as Set, false)
+        return domainPath = Bootstrap.createResource(module, name, version, "OD", [new Outcome(-1, schema.schema, "Schema", version)] as Set, false)
     }
 }
