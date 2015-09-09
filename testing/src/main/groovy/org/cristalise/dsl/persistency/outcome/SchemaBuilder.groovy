@@ -57,6 +57,11 @@ class SchemaBuilder implements DSLBoostrapper {
         this.version = version
     }
 
+    /**
+     * 
+     * @param xsdFile
+     * @return
+     */
     public SchemaBuilder loadXSD(String xsdFile) {
         Logger.msg 5, "SchemaBuilder.loadXSD() - From file:$xsdFile"
 
@@ -82,6 +87,7 @@ class SchemaBuilder implements DSLBoostrapper {
     }
 
     /**
+     * Loads and perses the file to 'build' Schema and creates the ResourceItem
      * 
      * @param module
      * @param name
@@ -114,16 +120,26 @@ class SchemaBuilder implements DSLBoostrapper {
         return sb
     }
 
+    /**
+     * 
+     * @param module
+     * @param name
+     * @param version
+     * @param xsdFile
+     * @return
+     */
     public static SchemaBuilder build(String module, String name, int version, String xsdFile) {
         def sb = new SchemaBuilder(module, name, version)
         return sb.loadXSD(xsdFile)
     }
 
     /**
-     * 
-     * @return
-     */
+      * Bootstrap method to create the ResourceItem from a fully configured SchemaBuilder
+     *  
+     * @return the DomainPath of the newly created resource Item
+    */
     public DomainPath createResourceItem() {
-        return domainPath = Bootstrap.verifyResource(module, name, version, "OD", [new Outcome(-1, schema.schema, "Schema", version)] as Set, false)
+//        return domainPath = Bootstrap.verifyResource(module, name, version, "OD", [new Outcome(-1, schema.schema, "Schema", version)] as Set, false)
+        return domainPath = Bootstrap.createResource(module, name, version, "OD", [new Outcome(-1, schema.schema, "Schema", version)] as Set, false)
     }
 }

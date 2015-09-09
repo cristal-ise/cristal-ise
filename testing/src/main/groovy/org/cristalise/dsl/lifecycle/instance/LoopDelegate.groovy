@@ -89,7 +89,7 @@ class LoopDelegate extends BlockDelegate {
 
         n = ((Split)split).addNext(joinLast)
         n.getProperties().put("Alias", 'false')
-        
+
         setSplitProperties(split)
         setVertexProperties(split);
 

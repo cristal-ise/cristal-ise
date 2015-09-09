@@ -9,6 +9,7 @@ import org.cristalise.dsl.test.lifecycle.instance.WorkflowTestBuilder
 import org.cristalise.kernel.process.Gateway
 import org.cristalise.test.CristalTestSetup
 
+import spock.lang.Ignore
 import spock.lang.Specification
 
 
@@ -26,6 +27,7 @@ class RoutingScriptExecSpecs extends Specification implements CristalTestSetup {
         cristalCleanup()
     }
 
+    @Ignore("TODO: Cannot run InMemoryServer many times during the same execution")
     def 'OrSplit enables branch(es) using RoutingScript'() {
         given: "Wf = first-OrSplit(script:1)((left)(right))-last"
         
@@ -62,6 +64,7 @@ class RoutingScriptExecSpecs extends Specification implements CristalTestSetup {
         wfBuilder.checkActStatus("last",  [state: "Waiting", active: false])
     }
 
+    @Ignore("TODO: Cannot run InMemoryServer many times during the same execution")
     def 'LoopSplit using RoutingScript'() {
         given: "Workflow"
 

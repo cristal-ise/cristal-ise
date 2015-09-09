@@ -56,4 +56,8 @@ class WorkflowBuilder {
         new CompActDelegate('rootCA', vertexCache).processClosure(cl)
         return wf
     }
+    
+    public boolean verify() {
+        return wf.verify()
+    }
 }

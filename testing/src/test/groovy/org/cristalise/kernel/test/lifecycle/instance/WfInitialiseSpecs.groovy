@@ -35,7 +35,7 @@ class WfInitialiseSpecs extends Specification  implements CristalTestSetup {
     WorkflowTestBuilder wfBuilder
 
     def setup() {
-        inMemorySetup(1)
+        inMemorySetup()
         wfBuilder = new WorkflowTestBuilder()
     }
 
@@ -184,7 +184,7 @@ class WfInitialiseSpecs extends Specification  implements CristalTestSetup {
         when: "the Workflow is initialised"
         wfBuilder.initialise()
 
-        then: "all Activities are Waiting and active"
+        then: "Activity 'first' is Waiting and active"
         wfBuilder.checkActStatus("first",  [state: "Waiting", active: true])
         wfBuilder.checkActStatus("second", [state: "Waiting", active: false])
     }
