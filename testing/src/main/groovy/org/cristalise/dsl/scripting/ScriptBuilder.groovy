@@ -129,7 +129,6 @@ class ScriptBuilder implements DSLBoostrapper {
      * @return the DomainPath of the newly created resource Item
      */
     public DomainPath createResourceItem() {
-//        return domainPath = Bootstrap.verifyResource(module, name, version, "SC", [new Outcome(-1, scriptXML, "Script", version)] as Set, false)
         return domainPath = Bootstrap.createResource(module, name, version, "SC", [new Outcome(-1, scriptXML, "Script", version)] as Set, false)
     }
 }
