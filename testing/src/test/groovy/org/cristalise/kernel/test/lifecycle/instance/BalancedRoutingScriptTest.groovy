@@ -19,7 +19,7 @@ class BalancedRoutingScriptTest implements CristalTestSetup {
 
     @Before
     public void setup() {
-        inMemoryServer(1)
+        inMemoryServer()
         wfBuilder = new WorkflowTestBuilder()
     }
 
@@ -33,11 +33,13 @@ class BalancedRoutingScriptTest implements CristalTestSetup {
     public void 'Loop-OrSplit-AndSPlit using RoutingScript'() {
         String module = 'testing'
         String schemaName = 'TestData'
+        
+        int repetition = 10
 
         ScriptBuilder.create(module, "LoopScript", 0) {
             input("counter", "java.lang.String")
             output('java.lang.Boolean')
-            javascript { "counter < 10;" }
+            javascript { "counter < $repetition;" }
         }
 
         ScriptBuilder.create(module, "OrSplitScript", 0) {
@@ -77,7 +79,7 @@ class BalancedRoutingScriptTest implements CristalTestSetup {
             ElemAct("last")
         }
 
-        for(i in (0..10)) {
+        for(i in (0..repetition)) {
             wfBuilder.requestAction("incrementer", "Done", OutcomeBuilder.build(schema) {counter i})
 
             if(i % 2) {
@@ -88,7 +90,7 @@ class BalancedRoutingScriptTest implements CristalTestSetup {
                 wfBuilder.requestAction("right-left" , "Done")
             }
 
-            wfBuilder.checkActStatus("last",  [state: "Waiting", active: !(i < 10)])
+            wfBuilder.checkActStatus("last",  [state: "Waiting", active: !(i < repetition)])
         }
 
         wfBuilder.requestAction("last", "Done")

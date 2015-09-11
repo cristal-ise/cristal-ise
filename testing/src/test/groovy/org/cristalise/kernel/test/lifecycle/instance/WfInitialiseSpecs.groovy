@@ -22,6 +22,7 @@
 package org.cristalise.kernel.test.lifecycle.instance
 
 import org.cristalise.dsl.test.lifecycle.instance.WorkflowTestBuilder
+import org.cristalise.kernel.common.InvalidDataException
 import org.cristalise.kernel.process.Gateway
 import org.cristalise.test.CristalTestSetup
 
@@ -150,7 +151,7 @@ class WfInitialiseSpecs extends Specification  implements CristalTestSetup {
         wfBuilder.checkActStatus("right", [state: "Waiting", active: true])
     }
 
-    def 'Starting XOrSplit initialise all Activities inside'() {
+    def 'Starting XOrSplit initialise one branch inside'() {
         given: "Workflow with XOrSplit((leftl-left1)(right)"
         wfBuilder.build {
             XOrSplit(javascript: '1') {
@@ -188,4 +189,59 @@ class WfInitialiseSpecs extends Specification  implements CristalTestSetup {
         wfBuilder.checkActStatus("first",  [state: "Waiting", active: true])
         wfBuilder.checkActStatus("second", [state: "Waiting", active: false])
     }
+
+    def 'OrSplit throws exception when no branch is enabled'() {
+        given: "Workflow with XOrSplit((leftl-left1)(right)"
+        wfBuilder.build {
+            OrSplit(javascript: '') {
+                Block { ElemAct("left") }
+                Block { ElemAct("right") }
+            }
+        }
+        wfBuilder.checkActStatus("left",  [state: "Waiting", active: false])
+        wfBuilder.checkActStatus("right", [state: "Waiting", active: false])
+
+        when: "the Workflow is initialised"
+        wfBuilder.initialise()
+
+        then: "InvalidDataException is thrown"
+        thrown InvalidDataException
+    }
+
+    def 'XOrSplit throws exception when no branch is enabled'() {
+        given: "Workflow with XOrSplit((leftl-left1)(right)"
+        wfBuilder.build {
+            XOrSplit(javascript: '') {
+                Block { ElemAct("left") }
+                Block { ElemAct("right") }
+            }
+        }
+        wfBuilder.checkActStatus("left",  [state: "Waiting", active: false])
+        wfBuilder.checkActStatus("right", [state: "Waiting", active: false])
+
+        when: "the Workflow is initialised"
+        wfBuilder.initialise()
+
+        then: "InvalidDataException is thrown"
+        thrown InvalidDataException
+    }
+
+    def 'XOrSplit throws exception when more than one branch is enabled'() {
+        given: "Workflow with XOrSplit((leftl-left1)(right)"
+        wfBuilder.build {
+            XOrSplit(javascript: '1,2') {
+                Block { ElemAct("left") }
+                Block { ElemAct("right") }
+            }
+        }
+        wfBuilder.checkActStatus("left",  [state: "Waiting", active: false])
+        wfBuilder.checkActStatus("right", [state: "Waiting", active: false])
+
+        when: "the Workflow is initialised"
+        wfBuilder.initialise()
+
+        then: "InvalidDataException is thrown"
+        thrown InvalidDataException
+    }
+
 }
