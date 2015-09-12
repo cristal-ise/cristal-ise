@@ -37,7 +37,7 @@ class RoutingScriptExecSpecs extends Specification implements CristalTestSetup {
         ScriptBuilder.create(module, "CounterScript", 0) {
             input("counter", "java.lang.String")
             output('java.lang.Integer')
-            javascript { "java.lang.Integer(counter % 2);" }
+            javascript { "new java.lang.Integer(counter % 2);" }
         }
 
         def schema = SchemaBuilder.create(module, schemaName, 0, "src/test/data/${schemaName}.xsd")

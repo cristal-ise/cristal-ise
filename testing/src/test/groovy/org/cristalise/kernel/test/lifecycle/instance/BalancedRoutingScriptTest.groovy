@@ -45,7 +45,7 @@ class BalancedRoutingScriptTest implements CristalTestSetup {
         ScriptBuilder.create(module, "OrSplitScript", 0) {
             input("counter", "java.lang.String")
             output('java.lang.Integer')
-            javascript { "java.lang.Integer(counter % 2 + 1);" }
+            javascript { "new java.lang.Integer(counter % 2 + 1);" }
         }
 
         def schema = SchemaBuilder.create(module, schemaName, 0) { 
