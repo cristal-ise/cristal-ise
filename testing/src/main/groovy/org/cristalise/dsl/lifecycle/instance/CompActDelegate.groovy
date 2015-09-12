@@ -137,6 +137,10 @@ public class CompActDelegate extends BlockDelegate {
             vName = vMap.XOrSplit
             vType = Types.XOrSplit
         }
+        else if(vMap.LoopSplit) {
+            vName = vMap.LoopSplit
+            vType = Types.LoopSplit
+        }
         else if(vMap.Join) {
             vName = vMap.Join
             vType = Types.Join

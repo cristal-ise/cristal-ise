@@ -40,13 +40,12 @@ class UnbalancedWfGenerationTests implements CristalTestSetup {
 
     @After
     public void cleanup() {
-        //println Gateway.getMarshaller().marshall(wfBuilder.wf)
         cristalCleanup()
     }
 
 
     @Test
-    public void 'Unbalanced first-second-third-last'() {
+    public void 'Generate sequence of first-second-third-last'() {
         wfBuilder.build {
             connect ElemAct: 'first' to ElemAct: 'second' to ElemAct: 'third' to ElemAct: 'last'
             setFirst('first')
@@ -57,4 +56,34 @@ class UnbalancedWfGenerationTests implements CristalTestSetup {
         wfBuilder.checkSequence('first', 'second', 'third', 'last')
     }
 
+    @Test
+    public void 'Generate complex unbalanced workflow - check issue 4'() {
+        wfBuilder.build {
+            connect ElemAct: 'first' to OrSplit: 'DateSplit'
+            connect OrSplit: 'DateSplit' to Join:    'JoinTop'
+            connect OrSplit: 'DateSplit' to ElemAct: 'EA1'
+            connect OrSplit: 'DateSplit' to ElemAct: 'EA2'
+
+            connect ElemAct: 'EA1' to Join: 'DateJoin'
+            connect ElemAct: 'EA2' to Join: 'DateJoin'
+            connect Join: 'DateJoin' to ElemAct: 'EA3' to 'Join': 'Join1' to 'LoopSplit': 'CounterLoop'
+
+            connect Join: 'JoinTop' to ElemAct: 'counter' to OrSplit: 'CounterSplit'
+            connect OrSplit: 'CounterSplit' to 'Join': 'Join1' 
+            connect OrSplit: 'CounterSplit' to 'Join': 'Join2'
+
+            connect 'LoopSplit': 'CounterLoop' to Join: 'JoinTop'
+            connect 'LoopSplit': 'CounterLoop' to Join: 'Join2'
+
+            connect Join: 'Join2' to ElemAct: 'last'
+            
+            setFirst('first')
+        }
+
+        assert wfBuilder.verify()
+
+        //wfBuilder.possiblePath('first','DateSplit','JoinTop','counter', 'CounterSplit', 'Join1','CounterLoop', 'Join2', 'last')
+        
+        wfBuilder.initialise()
+    }
 }
