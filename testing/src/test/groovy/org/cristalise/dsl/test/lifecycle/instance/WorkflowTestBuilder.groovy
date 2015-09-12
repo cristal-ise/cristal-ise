@@ -194,6 +194,7 @@ class WorkflowTestBuilder extends WorkflowBuilder {
      * @param name
      */
     public void checkActPath(String name, String path) {
+        assert vertexCache[name]
         assert wf.search(path).is(vertexCache[name]), "Activity '$name' equals '$path'"
     }
 

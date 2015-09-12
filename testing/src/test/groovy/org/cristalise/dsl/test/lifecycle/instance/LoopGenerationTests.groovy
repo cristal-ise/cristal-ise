@@ -49,9 +49,9 @@ class LoopGenerationTests implements CristalTestSetup {
         util.build {
             Loop {}
         }
-        util.checkActPath('LoopSplit',       'workflow/domain/LoopSplit')
-        util.checkActPath('LoopSplit_first', 'workflow/domain/LoopSplit_first')
-        util.checkActPath('LoopSplit_last',  'workflow/domain/LoopSplit_last')
+        util.checkActPath('LoopSplit',      'workflow/domain/LoopSplit')
+        util.checkActPath('LoopJoin_first', 'workflow/domain/LoopJoin_first')
+        util.checkActPath('LoopJoin_last',  'workflow/domain/LoopJoin_last')
         
         util.checkJoin ('LoopJoin_first', ['LoopSplit'])
         util.checkSplit('LoopSplit',      ['LoopJoin_first', 'LoopJoin_last'])
@@ -67,6 +67,7 @@ class LoopGenerationTests implements CristalTestSetup {
                 ElemAct("inner")
             }
         }
+        util.checkActPath('inner',     'workflow/domain/inner')
         util.checkActPath('LoopSplit', 'workflow/domain/LoopSplit')
 
         util.checkJoin ('LoopJoin_first', ['LoopSplit'])
@@ -86,7 +87,8 @@ class LoopGenerationTests implements CristalTestSetup {
             }
             ElemAct("last")
         }
-        util.checkActPath('inner',          'workflow/domain/inner')
+        util.checkActPath('innerA',         'workflow/domain/innerA')
+        util.checkActPath('innerB',         'workflow/domain/innerB')
         util.checkActPath('LoopSplit',      'workflow/domain/LoopSplit')
 
         util.checkJoin ('LoopJoin_first', ['first', 'LoopSplit'])
@@ -109,14 +111,21 @@ class LoopGenerationTests implements CristalTestSetup {
             }
             ElemAct("last")
         }
-        util.checkActPath('inner',     'workflow/domain/inner')
-        util.checkActPath('LoopSplit', 'workflow/domain/LoopSplit')
-
+        util.checkActPath('innerA',     'workflow/domain/innerA')
+        util.checkActPath('innerB',     'workflow/domain/innerB')
+        util.checkActPath('LoopSplit',  'workflow/domain/LoopSplit')
+        util.checkActPath('LoopSplit1', 'workflow/domain/LoopSplit1')
+        
         util.checkJoin ('LoopJoin_first', ['first', 'LoopSplit'])
         util.checkSplit('LoopSplit',      ['LoopJoin_first', 'LoopJoin_last'])
         util.checkJoin ('LoopJoin_last',  ['LoopSplit'])
 
-        util.checkSequence('LoopJoin_first', 'innerA', 'innerB', 'LoopSplit')
+        util.checkJoin ('LoopJoin1_first', ['innerA', 'LoopSplit1'])
+        util.checkSplit('LoopSplit1',      ['LoopJoin1_first', 'LoopJoin1_last'])
+        util.checkJoin ('LoopJoin1_last',  ['LoopSplit1'])
+
+        util.checkSequence('LoopJoin_first', 'innerA')
+        util.checkSequence('LoopJoin1_first', 'innerB', 'LoopSplit1')
         util.checkSequence('LoopJoin_last', 'last')
     }
 }
