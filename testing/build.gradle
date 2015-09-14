@@ -99,7 +99,7 @@ dependencies {
     testCompile 'commons-lang:commons-lang:2.6'
     testCompile 'junit:junit:4.11'
     testCompile 'org.spockframework:spock-core:1.0-groovy-2.4'
-    testCompile 'com.athaydes:spock-reports:1.2.7'
+    testRuntime 'com.athaydes:spock-reports:1.2.7'
 
     //example to use the new integrationTest test set
     //integrationTestCompile 'org.assertj:assertj-core:3.0.0'
