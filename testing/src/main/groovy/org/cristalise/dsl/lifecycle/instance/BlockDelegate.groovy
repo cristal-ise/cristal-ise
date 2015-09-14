@@ -78,7 +78,7 @@ public class BlockDelegate {
      * @param version
      */
     protected static void setRoutingScript(WfVertex aSplit, String name, String version) {
-        Logger.msg 5, "SplitDelegate.setRoutingScript() - splitName: $aSplit.name, name: '$name' version: '$version'"
+        Logger.msg 5, "BlockDelegate.setRoutingScript() - splitName: $aSplit.name, name: '$name' version: '$version'"
 
         aSplit.getProperties().put('RoutingScriptName',    name,    false);
         aSplit.getProperties().put('RoutingScriptVersion', version, false)

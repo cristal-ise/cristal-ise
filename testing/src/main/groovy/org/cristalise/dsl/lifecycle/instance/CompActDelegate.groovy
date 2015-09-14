@@ -184,6 +184,6 @@ public class CompActDelegate extends BlockDelegate {
     }
 
     public void setFirst(WfVertex v) {
-        //((CompositeActivity)v.getParent()).setFirstVertex(v.ID)
+        ((CompositeActivity)v.getParent()).setFirstVertex(v.ID)
     }
 }
