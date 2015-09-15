@@ -5,7 +5,9 @@ import java.net.URI;
 
 import org.cristalise.kernel.common.InvalidDataException;
 import org.cristalise.kernel.common.PersistencyException;
+import org.cristalise.kernel.process.AbstractMain;
 import org.cristalise.kernel.process.Gateway;
+import org.cristalise.kernel.process.ShutdownHandler;
 import org.cristalise.kernel.process.StandardClient;
 import org.cristalise.kernel.process.resource.BadArgumentsException;
 import org.glassfish.grizzly.http.server.HttpServer;
@@ -18,6 +20,7 @@ import org.glassfish.jersey.server.ResourceConfig;
  */
 public class Main extends StandardClient {
 
+	static HttpServer server;
     /**
      * Starts Grizzly HTTP server exposing JAX-RS resources defined in this application.
      * @return Grizzly HTTP server.
@@ -42,16 +45,22 @@ public class Main extends StandardClient {
      * @throws PersistencyException 
      */
     public static void main(String[] args) throws IOException, InvalidDataException, BadArgumentsException, PersistencyException {
+    	setShutdownHandler(new ShutdownHandler() {
+			@Override
+			public void shutdown(int errCode, boolean isServer) {
+				if (server != null) server.shutdown();
+			}
+    	});
     	Gateway.init(readC2KArgs(args));
     	Gateway.connect();
     	String uri = Gateway.getProperties().getString("REST.URI", "http://localhost:8081/");
     	if (uri == null || uri.length()==0)
     		throw new BadArgumentsException("Please specify REST.URI on which to listen in config.");
-        final HttpServer server = startServer(uri);
+        server = startServer(uri);
         System.out.println(String.format("Jersey app started with WADL available at "
                 + "%sapplication.wadl\nHit enter to stop it...", uri));
         System.in.read();
-        server.shutdown();
+        AbstractMain.shutdown(0);
     }
 }
 

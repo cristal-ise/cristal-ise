@@ -38,6 +38,12 @@
 		<dependency>
 			<groupId>org.glassfish.jersey.containers</groupId>
 			<artifactId>jersey-container-grizzly2-http</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<artifactId>javax.ws.rs-api</artifactId>
+			<groupId>javax.ws.rs</groupId>
+			<version>2.0.1</version>
 		</dependency>
 		<dependency>
 			<groupId>com.sun.jersey</groupId>
@@ -66,21 +72,6 @@
                 <configuration>
                     <source>1.7</source>
                     <target>1.7</target>
-                </configuration>
-            </plugin>
-            <plugin>
-                <groupId>org.codehaus.mojo</groupId>
-                <artifactId>exec-maven-plugin</artifactId>
-                <version>1.2.1</version>
-                <executions>
-                    <execution>
-                        <goals>
-                            <goal>java</goal>
-                        </goals>
-                    </execution>
-                </executions>
-                <configuration>
-                    <mainClass>org.cristalise.restapi.Main</mainClass>
                 </configuration>
             </plugin>
         </plugins>
