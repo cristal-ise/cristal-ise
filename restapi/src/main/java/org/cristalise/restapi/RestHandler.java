@@ -37,19 +37,20 @@ public class RestHandler {
 	
 	public RestHandler() {
 		mapper = new ObjectMapper();
-		if (cookieKey == null) try {
+		if (cookieKey == null) 
 			try {
-				initKeys(256);
-			} catch (InvalidKeyException ex) {
-				if (Gateway.getProperties().getBoolean("REST.allowWeakKey", false) == false)
-					Logger.die("Weak cookie crypto not allowed, and unlimited strength crypto not installed.");
-				Logger.msg("Unlimited crypto not installed. Trying 128-bit key.");
-				initKeys(128);
-			}
-		} catch (Exception e) {
-			Logger.error(e);
-			throw new WebApplicationException("Error initializing cookie encryption: "+e.getMessage());
-		} 
+				try {
+					initKeys(256);
+				} catch (InvalidKeyException ex) {
+					if (Gateway.getProperties().getBoolean("REST.allowWeakKey", false) == false)
+						Logger.die("Weak cookie crypto not allowed, and unlimited strength crypto not installed.");
+					Logger.msg("Unlimited crypto not installed. Trying 128-bit key.");
+					initKeys(128);
+				}
+			} catch (Exception e) {
+				Logger.error(e);
+				throw new WebApplicationException("Error initializing cookie encryption: "+e.getMessage());
+			} 
 	}
 	
 	private static void initKeys(int keySize) throws Exception {
