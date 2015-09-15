@@ -18,20 +18,25 @@
  *
  * http://www.fsf.org/licensing/licenses/lgpl.html
  */
-package org.cristalise.dsl.test.lifecycle.instance;
+package org.cristalise.kernel.test.lifecycle.instance
 
-import static org.junit.Assert.*
-
+import org.cristalise.dsl.test.lifecycle.instance.WorkflowTestBuilder
+import org.cristalise.kernel.graph.model.Vertex
+import org.cristalise.kernel.graph.traversal.GraphTraversal
+import org.cristalise.kernel.lifecycle.instance.Activity
 import org.cristalise.test.CristalTestSetup
 import org.junit.After
 import org.junit.Before
 import org.junit.Test
 
 
-class UnbalancedWfGenerationTests implements CristalTestSetup {
+/**
+ *
+ */
+class AdvancementCalculatorTest implements CristalTestSetup {
 
     WorkflowTestBuilder wfBuilder
-
+    
     @Before
     public void setup() {
         inMemorySetup()
@@ -43,22 +48,27 @@ class UnbalancedWfGenerationTests implements CristalTestSetup {
         cristalCleanup()
     }
 
-
     @Test
-    public void 'Generate sequence of first-second-third-last'() {
-        wfBuilder.build {
-            connect ElemAct: 'first' to ElemAct: 'second' to ElemAct: 'third' to ElemAct: 'last'
-            setFirst('first')
+    public void 'Simple sequence to check GraphTraversal'() {
+        wfBuilder.buildAndInitWf {
+            Loop {
+                ElemAct("inner")
+            }
         }
 
-        assert wfBuilder.verify()
-
-        wfBuilder.checkSequence('first', 'second', 'third', 'last')
+        Vertex[] vertices = GraphTraversal.getTraversal(wfBuilder.vertexCache["rootCA"].getChildGraphModel(),
+                                                        wfBuilder.vertexCache["LoopJoin_last"], 
+                                                        GraphTraversal.kUp,
+                                                        true)
+        vertices.each {
+            println it.path
+            if(it instanceof Activity) assert ((Activity)it).active
+        }
     }
 
     @Test
-    public void 'Generate complex unbalanced workflow - check issue 4'() {
-        wfBuilder.build {
+    public void 'Complex unbalanced workflow to test GraphTraversal'() {
+        wfBuilder.buildAndInitWf {
             connect ElemAct: 'first' to OrSplit: 'DateSplit'
             connect OrSplit: 'DateSplit' to Join:    'JoinTop'
             connect OrSplit: 'DateSplit' to ElemAct: 'EA1'
@@ -76,17 +86,18 @@ class UnbalancedWfGenerationTests implements CristalTestSetup {
             connect 'LoopSplit': 'CounterLoop' to Join: 'Join2'
 
             connect Join: 'Join2' to ElemAct: 'last'
-
+            
             setFirst('first')
-
-//            setRoutingScript(vertexCache['counter'], "", 1)
-//            vertexCache['counter'].properties.put("", null, false)
         }
 
-        assert wfBuilder.verify()
-
-        //wfBuilder.possiblePath('first','DateSplit','JoinTop','counter', 'CounterSplit', 'Join1','CounterLoop', 'Join2', 'last')
-
-        wfBuilder.initialise()
+        Vertex[] vertices = GraphTraversal.getTraversal(wfBuilder.vertexCache["rootCA"].getChildGraphModel(),
+                                                        wfBuilder.vertexCache["Join2"], 
+                                                        GraphTraversal.kUp,
+                                                        true)
+        vertices.each {
+            print it.path
+            if(it instanceof Activity) println "\t\t\tActive:"+((Activity)it).active
+            else println ""
+        }
     }
 }

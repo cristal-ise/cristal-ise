@@ -43,7 +43,7 @@ public class CompActDelegate extends BlockDelegate {
     public CompActDelegate(String caName, Map<String, WfVertex> cache) {
         assert cache
         vertexCache = cache
-        
+
         //the rootCA should not be auto named neither counted 
         if(caName == 'rootCA') {
             name = caName
@@ -53,7 +53,7 @@ public class CompActDelegate extends BlockDelegate {
             index = DelegateCounter.getNextCount(type)
             name = getAutoName(caName, type, index)
         }
-        
+
         parentCABlock = null
     }
 
@@ -117,7 +117,10 @@ public class CompActDelegate extends BlockDelegate {
 
     WfVertex dslCache
 
-    private CompActDelegate connectTo(Map<String, String> vMap, boolean connectFlag) {
+    private List decodeBuilderMap(Map<String, String> vMap) {
+        assert vMap, "decodeBuilderMap can only handle valid map"
+        assert vMap.size() == 1, "decodeBuilderMap can only handle single key/value in map"
+
         String vName
         Types vType
 
@@ -145,16 +148,42 @@ public class CompActDelegate extends BlockDelegate {
             vName = vMap.Join
             vType = Types.Join
         }
-        else throw new InvalidDataException("Unhandled values: $vMap")
+        else throw new InvalidDataException("Unhandled builder map values: $vMap")
+
+        return [vName, vType]
+    }
+
+
+    private CompActDelegate connectTo (Map<String, String> vMap, boolean connectFlag) {
+        //Unfortunately this groovy syntax does not work with CompiletStatic
+        //def (String vName, Types vType) = decodeBuilderMap(vMap)
+        def tempList = decodeBuilderMap(vMap)
+        String vName = tempList[0]
+        Types vType = (Types) tempList[1]
 
         if(vertexCache.containsKey(vName)) {
-            if(connectFlag) return connect(vertexCache[vName])
+            if(connectFlag) return connect(getVertex(vName, vType))
             else            return to(vertexCache[vName])
         }
         else {
             if(connectFlag) return connect(createVertex(vType, vName))
             else            return to(createVertex(vType, vName))
         }
+    }
+
+    /**
+     * This method creates a single VfVertex
+     * 
+     * @param vMap a Map ala groovy style ancoding the type and the name of the new
+     * @return 
+     */
+    public WfVertex create(Map<String, String> vMap) {
+        def tempList = decodeBuilderMap(vMap)
+        String vName = tempList[0]
+        Types vType = (Types) tempList[1]
+
+        if(vertexCache.containsKey(vName)) return getVertex(vName, vType)
+        else                               return createVertex(vType, vName)
     }
 
     public CompActDelegate connect(Map<String, String> vMap) {

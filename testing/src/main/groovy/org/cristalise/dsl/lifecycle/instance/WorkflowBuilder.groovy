@@ -18,7 +18,6 @@
  *
  * http://www.fsf.org/licensing/licenses/lgpl.html
  */
-
 package org.cristalise.dsl.lifecycle.instance
 
 import groovy.transform.CompileStatic
@@ -27,6 +26,7 @@ import org.cristalise.kernel.lifecycle.instance.CompositeActivity
 import org.cristalise.kernel.lifecycle.instance.WfVertex
 import org.cristalise.kernel.lifecycle.instance.Workflow
 import org.cristalise.kernel.lifecycle.instance.predefined.server.ServerPredefinedStepContainer
+
 
 /**
  *
@@ -42,7 +42,7 @@ class WorkflowBuilder {
      * @param cl
      * @return
      */
-    public Workflow build(Closure cl) {
+    public Workflow build(/*boolean verify = false,*/ Closure cl) {
         assert cl, "WorkflowBuilder.build() only works with a valid Closure"
 
         vertexCache = [:]
@@ -54,6 +54,9 @@ class WorkflowBuilder {
         vertexCache['rootCA'] = rootCA
 
         new CompActDelegate('rootCA', vertexCache).processClosure(cl)
+
+        //if(verify) assert wf.verify()
+
         return wf
     }
     

@@ -22,7 +22,15 @@ package org.cristalise.dsl.lifecycle.instance
 
 import groovy.transform.CompileStatic
 
+import org.cristalise.kernel.common.InvalidDataException
+import org.cristalise.kernel.lifecycle.instance.Activity
+import org.cristalise.kernel.lifecycle.instance.AndSplit
+import org.cristalise.kernel.lifecycle.instance.CompositeActivity
+import org.cristalise.kernel.lifecycle.instance.Join
+import org.cristalise.kernel.lifecycle.instance.Loop
+import org.cristalise.kernel.lifecycle.instance.OrSplit
 import org.cristalise.kernel.lifecycle.instance.WfVertex
+import org.cristalise.kernel.lifecycle.instance.XOrSplit
 import org.cristalise.kernel.lifecycle.instance.WfVertex.Types
 import org.cristalise.kernel.utils.Logger
 
@@ -52,6 +60,29 @@ public class BlockDelegate {
         parentCABlock = caBlock
         vertexCache = cache
     }
+
+    
+    public WfVertex getVertex(String vName, Types vType = null) throws InvalidDataException {
+        def v = vertexCache[vName]
+        if(v) {
+            if(vType) {
+                switch(vType) {
+                    case Types.Composite: if(v instanceof CompositeActivity) { return v }; break;
+                    case Types.Atomic:    if(v instanceof Activity)          { return v }; break;
+                    case Types.OrSplit:   if(v instanceof OrSplit)           { return v }; break;
+                    case Types.XOrSplit:  if(v instanceof XOrSplit)          { return v }; break;
+                    case Types.AndSplit:  if(v instanceof AndSplit)          { return v }; break;
+                    case Types.LoopSplit: if(v instanceof Loop)              { return v }; break;
+                    case Types.Join:      if(v instanceof Join)              { return v }; break;
+                }
+            }
+            else return v
+        }
+        else throw new InvalidDataException("Vertex name:'$vName' is not found in the cache")
+
+        throw new InvalidDataException("Vertex name/type:'$vName/$vType' is in the cache but with incompatible type: ${v.class}")
+    }
+
 
     protected void setVertexProperties(WfVertex vertex) {
         properties.each { key, value -> 
