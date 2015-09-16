@@ -240,7 +240,7 @@ class WorkflowTestBuilder extends WorkflowBuilder {
      * 
      */
     public void initialise() {
-        wf.initialise(itemPath, agentPath)
+        wf.initialise(itemPath, agentPath, null)
     }
 
     /**
