@@ -268,7 +268,7 @@ public class MainFrame extends javax.swing.JFrame {
             Logger.warning(
                 "Could not write to preferences file. Preferences have not been updated.");
         }
-        this.setVisible(false);
+        this.dispose();
         AbstractMain.shutdown(0);
     }
 
