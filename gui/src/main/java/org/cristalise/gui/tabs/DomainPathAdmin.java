@@ -138,11 +138,8 @@ public void actionPerformed(ActionEvent e) {
 
         public void loadPaths() {
             domPaths.clear();
-            for (Iterator<?> currentPaths = Gateway.getLookup().search(new DomainPath(), entity.getName()); currentPaths.hasNext();) {
-                DomainPath thisPath = (DomainPath)currentPaths.next();
-                try {
-					if (thisPath.getItemPath().equals(entity.getPath())) domPaths.add(thisPath);
-				} catch (ObjectNotFoundException e) { }
+            for (Iterator<?> currentPaths = Gateway.getLookup().searchAliases(entity.getPath()); currentPaths.hasNext();) {
+					domPaths.add((DomainPath)currentPaths.next());
             }
             fireTableDataChanged();
         }
