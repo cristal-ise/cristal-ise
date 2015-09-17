@@ -25,6 +25,7 @@ import groovy.transform.CompileStatic
 import org.cristalise.kernel.common.InvalidDataException
 import org.cristalise.kernel.graph.model.GraphPoint
 import org.cristalise.kernel.lifecycle.instance.CompositeActivity
+import org.cristalise.kernel.lifecycle.instance.Next
 import org.cristalise.kernel.lifecycle.instance.WfVertex
 import org.cristalise.kernel.lifecycle.instance.WfVertex.Types
 import org.cristalise.kernel.utils.Logger
@@ -113,9 +114,12 @@ public class CompActDelegate extends BlockDelegate {
         linkWithChild(b)
     }
 
+    /*************************************************************
+    * Unbalanced DSL methods and members
+    * TODO: Probably it needs to be moved the a new class
+    *************************************************************/
 
-
-    WfVertex dslCache
+    def dslCache
 
     private List decodeBuilderMap(Map<String, String> vMap) {
         assert vMap, "decodeBuilderMap can only handle valid map"
@@ -155,7 +159,7 @@ public class CompActDelegate extends BlockDelegate {
 
 
     private CompActDelegate connectTo (Map<String, String> vMap, boolean connectFlag) {
-        //Unfortunately this groovy syntax does not work with CompiletStatic
+        //Unfortunately multiple assigment syntax does not work with CompiletStatic
         //def (String vName, Types vType) = decodeBuilderMap(vMap)
         def tempList = decodeBuilderMap(vMap)
         String vName = tempList[0]
@@ -201,9 +205,20 @@ public class CompActDelegate extends BlockDelegate {
 
     public CompActDelegate to(WfVertex v) {
         assert dslCache, "Call connect() before calling to()"
+        assert dslCache instanceof WfVertex, "to() links WfVertex to WfVertex, cannot handle '${dslCache.class.name}'"
+        
+        dslCache = dslCache.addNext(v)
 
-        dslCache.addNext(v)
-        dslCache = v
+        return this
+    }
+
+    public CompActDelegate alias(Object val) {
+        assert dslCache, "Call to() before calling alias()"
+        assert dslCache instanceof Next, "alias() set Alias property of Next, cannot handle '${dslCache.class.name}'"
+
+        ((Next)dslCache).properties.Alias = val
+        dslCache = null
+
         return this
     }
 
