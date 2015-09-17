@@ -29,6 +29,7 @@ import org.cristalise.kernel.lifecycle.instance.CompositeActivity
 import org.cristalise.kernel.lifecycle.instance.Join
 import org.cristalise.kernel.lifecycle.instance.Loop
 import org.cristalise.kernel.lifecycle.instance.OrSplit
+import org.cristalise.kernel.lifecycle.instance.Split
 import org.cristalise.kernel.lifecycle.instance.WfVertex
 import org.cristalise.kernel.lifecycle.instance.XOrSplit
 import org.cristalise.kernel.lifecycle.instance.WfVertex.Types
@@ -90,6 +91,10 @@ public class BlockDelegate {
         }
     }
 
+    /**
+     * 
+     * @param aSplit
+     */
     protected void setSplitProperties(WfVertex aSplit) {
         if(properties.containsKey('RoutingScriptName')) return
 
@@ -103,18 +108,26 @@ public class BlockDelegate {
     }
 
     /**
-     *
-     * @param aSplit
-     * @param name
-     * @param version
+     * Convenience method to set RoutingScript quickly
+     * 
+     * @param aSplit the vertex of type Split
+     * @param name value of the RoutingScriptName property
+     * @param version value of the RoutingScriptVersion property
      */
     protected static void setRoutingScript(WfVertex aSplit, String name, String version) {
+        assert aSplit instanceof Split, "BlockDelegate.setRoutingScript() - Vertex '$aSplit.name' must be instance of Split"
+
         Logger.msg 5, "BlockDelegate.setRoutingScript() - splitName: $aSplit.name, name: '$name' version: '$version'"
 
         aSplit.getProperties().put('RoutingScriptName',    name,    false);
         aSplit.getProperties().put('RoutingScriptVersion', version, false)
     }
 
+    /**
+     * 
+     * @param t
+     * @return
+     */
     public static String getNamePrefix(Types t) {
         switch(t) {
             case Types.Composite: return 'CA'
@@ -123,6 +136,13 @@ public class BlockDelegate {
         }
     }
 
+    /**
+     * 
+     * @param n
+     * @param t
+     * @param i
+     * @return
+     */
     public static String getAutoName(String n, Types t, int i) {
         Logger.msg(5, "getAutoName() - name:'$n', type: $t, index: $i")
 
@@ -186,6 +206,17 @@ public class BlockDelegate {
         else             lastVertex.addNext(childBlock.firstVertex)
 
         lastVertex = childBlock.lastVertex
+    }
+
+    /**
+     * DSL method to be used to set RoutingScript quickly
+     * 
+     * @param sName name of the Split
+     * @param name value of the RoutingScriptName property
+     * @param version value of the RoutingScriptVersion property
+     */
+    public void setRoutingScript(String sName, String name, String version) {
+        setRoutingScript(getVertex(sName), name, version)
     }
 
     /**
