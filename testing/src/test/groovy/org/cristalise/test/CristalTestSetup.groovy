@@ -44,9 +44,9 @@ trait CristalTestSetup {
 
     public void inMemoryServer(int logLevel = 8) {
         serverSetup(logLevel, 'src/test/conf/testServer.conf', 'src/test/conf/testInMemory.clc')
-        Thread.sleep(5000)
+        Thread.sleep(2000)
     }
-    
+
     public Authenticator serverSetup(int logLevel, String config, String connect) {
         Authenticator auth = cristalSetup(logLevel, config, connect)
         Logger.initConsole("ItemServer");
