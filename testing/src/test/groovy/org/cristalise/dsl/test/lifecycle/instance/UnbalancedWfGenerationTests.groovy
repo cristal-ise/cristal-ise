@@ -47,46 +47,56 @@ class UnbalancedWfGenerationTests implements CristalTestSetup {
     @Test
     public void 'Generate sequence of first-second-third-last'() {
         wfBuilder.build {
-            connect ElemAct: 'first' to ElemAct: 'second' to ElemAct: 'third' to ElemAct: 'last'
+            connect ElemAct: 'first'  to ElemAct: 'second'
+            connect ElemAct: 'second' to ElemAct: 'third'
+            connect ElemAct: 'third'  to ElemAct: 'last'
             setFirst('first')
         }
-
         assert wfBuilder.verify()
-
         wfBuilder.checkSequence('first', 'second', 'third', 'last')
     }
 
     @Test
     public void 'Generate complex unbalanced workflow - check issue 4'() {
         wfBuilder.build {
-            connect ElemAct: 'first' to OrSplit: 'DateSplit'
-            connect OrSplit: 'DateSplit' to Join:    'JoinTop'
-            connect OrSplit: 'DateSplit' to ElemAct: 'EA1'
-            connect OrSplit: 'DateSplit' to ElemAct: 'EA2'
-
-            connect ElemAct: 'EA1' to Join: 'DateJoin'
-            connect ElemAct: 'EA2' to Join: 'DateJoin'
-            connect Join: 'DateJoin' to ElemAct: 'EA3' to 'Join': 'Join1' to 'LoopSplit': 'CounterLoop'
-
-            connect Join: 'JoinTop' to ElemAct: 'counter' to OrSplit: 'CounterSplit'
-            connect OrSplit: 'CounterSplit' to 'Join': 'Join1' 
-            connect OrSplit: 'CounterSplit' to 'Join': 'Join2'
-
-            connect 'LoopSplit': 'CounterLoop' to Join: 'JoinTop'
-            connect 'LoopSplit': 'CounterLoop' to Join: 'Join2'
-
-            connect Join: 'Join2' to ElemAct: 'last'
+            connect ElemAct:   'first'        to OrSplit:   'DateSplit'
+            connect OrSplit:   'DateSplit'    to Join:      'JoinTop'
+            connect OrSplit:   'DateSplit'    to ElemAct:   'EA1'
+            connect OrSplit:   'DateSplit'    to ElemAct:   'EA2'
+            connect ElemAct:   'EA1'          to Join:      'DateJoin'
+            connect ElemAct:   'EA2'          to Join:      'DateJoin'
+            connect Join:      'DateJoin'     to ElemAct:   'EA3'
+            connect ElemAct:   'EA3'          to Join:      'Join1'
+            connect Join:      'Join1'        to LoopSplit: 'CounterLoop'
+            connect Join:      'JoinTop'      to ElemAct:   'counter'
+            connect ElemAct:   'counter'      to OrSplit:   'CounterSplit'
+            connect OrSplit:   'CounterSplit' to Join:      'Join1' 
+            connect OrSplit:   'CounterSplit' to Join:      'Join2'
+            connect LoopSplit: 'CounterLoop'  to Join:      'JoinTop'
+            connect LoopSplit: 'CounterLoop'  to Join:      'Join2'
+            connect Join:      'Join2'        to ElemAct:   'last'
 
             setFirst('first')
-
-//            setRoutingScript(vertexCache['counter'], "", 1)
-//            vertexCache['counter'].properties.put("", null, false)
         }
-
         assert wfBuilder.verify()
+        //FIXME: add more asserts to check the actual structure
+    }
 
-        //wfBuilder.possiblePath('first','DateSplit','JoinTop','counter', 'CounterSplit', 'Join1','CounterLoop', 'Join2', 'last')
+    @Test
+    public void 'Generate two overlapping loops'() {
+        wfBuilder.build {
+            connect Join:      'Join1' to ElemAct:   'EA1'
+            connect ElemAct:   'EA1'   to Join:      'Join2'
+            connect Join:      'Join2' to LoopSplit: 'Loop1'
+            connect LoopSplit: 'Loop1' to Join:      'Join1'  alias 'true'
+            connect LoopSplit: 'Loop1' to ElemAct:   'EA2'    alias 'false'
+            connect ElemAct:   'EA2'   to LoopSplit: 'Loop2'
+            connect LoopSplit: 'Loop2' to Join:      'Join2'  alias 'true'
+            connect LoopSplit: 'Loop2' to ElemAct:    'EA3'   alias 'false'
 
-        wfBuilder.initialise()
+            setFirst('Join1')
+        }
+        assert wfBuilder.verify()
+        //FIXME: add more asserts to check the actual structure
     }
 }

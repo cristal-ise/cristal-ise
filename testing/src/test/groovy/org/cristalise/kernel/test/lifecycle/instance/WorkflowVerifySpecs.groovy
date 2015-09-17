@@ -100,7 +100,8 @@ class WorkflowVerifySpecs extends Specification implements CristalTestSetup {
     def 'Invalid Workflow - Sequence of two EA with AndSplit ending'() {
         when: "Workflow containind seqence of ElemActs connected to AndSplit"
         wfBuilder.build {
-            connect ElemAct: 'first' to ElemAct: 'second' to AndSplit: 'DummySplit'
+            connect ElemAct: 'first'  to ElemAct:  'second'
+            connect ElemAct: 'second' to AndSplit: 'DummySplit'
             setFirst('first')
         }
 
@@ -112,7 +113,8 @@ class WorkflowVerifySpecs extends Specification implements CristalTestSetup {
     def 'Invalid Workflow - Sequence of two EA with AndSplit in the middle'() {
         when: "Workflow containind seqence of ElemActs connected to AndSplit"
         wfBuilder.build {
-            connect ElemAct: 'first' to AndSplit: 'DummySplit' to ElemAct: 'second'
+            connect ElemAct:  'first'      to AndSplit: 'DummySplit' 
+            connect AndSplit: 'DummySplit' to ElemAct:  'second'
             setFirst('first')
         }
 
@@ -124,7 +126,8 @@ class WorkflowVerifySpecs extends Specification implements CristalTestSetup {
     def 'Invalid Workflow - Sequence of two EA with LoopSplit in the middle'() {
         when: "Workflow containind seqence of ElemActs connected to LoopSplit"
         wfBuilder.build {
-            connect ElemAct: 'first' to LoopSplit: 'DummySplit' to ElemAct: 'second'
+            connect ElemAct:   'first'      to LoopSplit: 'DummySplit'
+            connect LoopSplit: 'DummySplit' to ElemAct:   'second'
             setFirst('first')
         }
 
@@ -136,7 +139,8 @@ class WorkflowVerifySpecs extends Specification implements CristalTestSetup {
     def 'Sequence of two EA with Join in the middle'() {
         when: "Workflow containing seqence of ElemActs connected to Join"
         wfBuilder.build {
-            connect ElemAct: 'first' to Join: 'DummyJoin' to ElemAct: 'second'
+            connect ElemAct: 'first'     to Join:     'DummyJoin'
+            connect Join:    'DummyJoin' to ElemAct: 'second'
             setFirst('first')
         }
 
