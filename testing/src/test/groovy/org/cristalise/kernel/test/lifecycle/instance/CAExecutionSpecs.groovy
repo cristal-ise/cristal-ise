@@ -36,13 +36,6 @@ class CAExecutionSpecs extends Specification {
         then: "ElemAct state is Finished"
         util.checkActStatus('rootCA', [state: "Started",  active: true])
         util.checkActStatus('first',   [state: "Finished", active: true])
-
-        when: "requesting Root CompAct Complete transition"
-        util.requestAction('rootCA', "Complete")
-
-        then: "Root CompAct state is Finished"
-        util.checkActStatus('rootCA', [state: "Finished", active: false])
-        util.checkActStatus('first',   [state: "Finished", active: true])
     }
 
     def 'Execute ElemAct using Start/Complete transition'() {
@@ -61,13 +54,6 @@ class CAExecutionSpecs extends Specification {
 
         then: "ElemAct state is Finished"
         util.checkActStatus('rootCA', [state: "Started",  active: true])
-        util.checkActStatus('first',   [state: "Finished", active: true])
-
-        when: "requesting Root CompAct Complete transition"
-        util.requestAction('rootCA', "Complete")
-
-        then: "Root CompAct state is Finished"
-        util.checkActStatus('rootCA', [state: "Finished", active: false])
         util.checkActStatus('first',   [state: "Finished", active: true])
     }
 
@@ -90,14 +76,6 @@ class CAExecutionSpecs extends Specification {
         util.checkActStatus('rootCA', [state: "Started",  active: true])
         util.checkActStatus('first',   [state: "Finished", active: false])
         util.checkActStatus('second',  [state: "Finished", active: true])
-
-        when: "requesting Root CompAct Complete transition"
-        util.requestAction('rootCA', "Complete")
-
-        then: "all Acts are Finished and inactive"
-        util.checkActStatus('rootCA', [state: "Finished", active: false])
-        util.checkActStatus('first',   [state: "Finished", active: false])
-        util.checkActStatus('second',  [state: "Finished", active: true])
     }
 
     def 'Execute ElemcAct in CompAct using Done transition'() {
@@ -113,14 +91,6 @@ class CAExecutionSpecs extends Specification {
 
         then: "ElemAct and CompAct state is Finished"
         util.checkActStatus('rootCA', [state: "Started",  active: true])
-        util.checkActStatus('ca',     [state: "Finished", active: true])
-        util.checkActStatus('first',  [state: "Finished", active: false])
-
-        when: "requesting Root CompAct Complete transition"
-        util.requestAction('rootCA', "Complete")
-
-        then: "Root CompAct state is Finished"
-        util.checkActStatus('rootCA', [state: "Finished", active: false])
         util.checkActStatus('ca',     [state: "Finished", active: true])
         util.checkActStatus('first',  [state: "Finished", active: false])
     }
