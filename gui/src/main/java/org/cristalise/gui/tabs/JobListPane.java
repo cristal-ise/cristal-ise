@@ -50,6 +50,7 @@ import org.cristalise.kernel.entity.agent.Job;
 import org.cristalise.kernel.entity.agent.JobList;
 import org.cristalise.kernel.entity.proxy.MemberSubscription;
 import org.cristalise.kernel.entity.proxy.ProxyObserver;
+import org.cristalise.kernel.events.Event;
 import org.cristalise.kernel.persistency.ClusterStorage;
 import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.property.Property;
@@ -248,7 +249,7 @@ public class JobListPane extends ItemTabPane implements ActionListener, ProxyObs
 		 */
 		@Override
 		public int getColumnCount() {
-			return 4;
+			return 5;
 		}
 
 		/**
@@ -261,6 +262,7 @@ public class JobListPane extends ItemTabPane implements ActionListener, ProxyObs
 				case 1: return "Subject";
 				case 2: return "Activity";
 				case 3: return "Transition";
+				case 4: return "Date";
 				default: return "";
 			}
 		}
@@ -286,6 +288,7 @@ public class JobListPane extends ItemTabPane implements ActionListener, ProxyObs
                     case 1: return itemNames[rowIndex];
 					case 2: return job[rowIndex].getStepName();
 					case 3: return job[rowIndex].getTransition().getName();
+					case 4: return Event.timeToString(job[rowIndex].getCreationDate());
 					default: return "";
 				}
 			} catch (Exception e) {
