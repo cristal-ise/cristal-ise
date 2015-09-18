@@ -22,8 +22,6 @@ package org.cristalise.dsl.persistency.outcome
 
 import groovy.transform.CompileStatic
 
-import java.util.Set
-
 import org.cristalise.dsl.process.DSLBoostrapper
 import org.cristalise.kernel.lookup.DomainPath
 import org.cristalise.kernel.persistency.outcome.Outcome
@@ -89,7 +87,7 @@ class SchemaBuilder implements DSLBoostrapper {
     }
 
     /**
-     * Loads and perses the file to 'build' Schema and creates the ResourceItem
+     * Loads and parses the file to 'build' Schema and creates the ResourceItem
      * 
      * @param module
      * @param name
@@ -140,6 +138,7 @@ class SchemaBuilder implements DSLBoostrapper {
      *  
      * @return the DomainPath of the newly created resource Item
     */
+    @Override
     public DomainPath createResourceItem() {
         return domainPath = Bootstrap.createResource(module, name, version, "OD", [new Outcome(-1, schema.schema, "Schema", version)] as Set, false)
     }
