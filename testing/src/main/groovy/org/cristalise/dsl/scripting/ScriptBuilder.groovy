@@ -89,7 +89,7 @@ class ScriptBuilder implements DSLBoostrapper {
      */
     public static ScriptBuilder create(String module, String name, int version, Closure cl) {
         def sb = build(module, name, version, cl)
-        sb.createResourceItem()
+        sb.create()
         return sb
     }
 
@@ -128,7 +128,7 @@ class ScriptBuilder implements DSLBoostrapper {
      *  
      * @return the DomainPath of the newly created resource Item
      */
-    public DomainPath createResourceItem() {
+    public DomainPath create() {
         return domainPath = Bootstrap.createResource(module, name, version, "SC", [new Outcome(-1, scriptXML, "Script", version)] as Set, false)
     }
 }

@@ -82,7 +82,7 @@ class SchemaBuilder implements DSLBoostrapper {
      */
     public static SchemaBuilder create(String module, String name, int version, Closure cl) {
         def sb = build(module, name, version, cl)
-        sb.createResourceItem()
+        sb.create()
         return sb
     }
 
@@ -97,7 +97,7 @@ class SchemaBuilder implements DSLBoostrapper {
      */
     public static SchemaBuilder create(String module, String name, int version, String xsdFile) {
         def sb = build(module, name, version, xsdFile)
-        sb.createResourceItem()
+        sb.create()
         return sb
     }
 
@@ -139,7 +139,7 @@ class SchemaBuilder implements DSLBoostrapper {
      * @return the DomainPath of the newly created resource Item
     */
     @Override
-    public DomainPath createResourceItem() {
+    public DomainPath create() {
         return domainPath = Bootstrap.createResource(module, name, version, "OD", [new Outcome(-1, schema.schema, "Schema", version)] as Set, false)
     }
 }

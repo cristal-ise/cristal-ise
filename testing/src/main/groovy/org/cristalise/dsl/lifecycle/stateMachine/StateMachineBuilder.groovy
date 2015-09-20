@@ -70,7 +70,7 @@ class StateMachineBuilder implements DSLBoostrapper {
 
     public static StateMachine create(String module, String name, int version, Closure cl) {
         def smb = build(module, name, version, cl)
-        smb.createResourceItem()
+        smb.create()
         return smb.sm
     }
 
@@ -90,7 +90,7 @@ class StateMachineBuilder implements DSLBoostrapper {
 
     public static StateMachine create(String module, String name, int version, String xmlFile) {
         def smb = build(module, name, version, xmlFile)
-        smb.createResourceItem()
+        smb.create()
         return smb.sm
     }
 
@@ -105,7 +105,7 @@ class StateMachineBuilder implements DSLBoostrapper {
      * @return the DomainPath of the newly created resource Item
      */
     @Override
-    public DomainPath createResourceItem() {
+    public DomainPath create() {
         return domainPath = Bootstrap.createResource(module, name, version, "SM", [new Outcome(-1, smXML, "StateMachine", version)] as Set, false)
     }
 }

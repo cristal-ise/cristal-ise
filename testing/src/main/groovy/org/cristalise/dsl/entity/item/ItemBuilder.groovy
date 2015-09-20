@@ -18,18 +18,20 @@
  *
  * http://www.fsf.org/licensing/licenses/lgpl.html
  */
-package org.cristalise.dsl.process
 
-import groovy.transform.CompileStatic
+package org.cristalise.dsl.entity.item
 
+import org.cristalise.dsl.process.DSLBoostrapper
 import org.cristalise.kernel.lookup.DomainPath
-
 
 /**
  *
  */
-@CompileStatic
-public interface DSLBoostrapper {
+class ItemBuilder implements DSLBoostrapper {
 
-    public DomainPath create();
+    @Override
+    public DomainPath create() {
+        return null;
+    }
+
 }
