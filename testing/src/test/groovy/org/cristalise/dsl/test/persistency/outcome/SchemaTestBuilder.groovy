@@ -18,7 +18,6 @@
  *
  * http://www.fsf.org/licensing/licenses/lgpl.html
  */
-
 package org.cristalise.dsl.test.persistency.outcome
 
 import groovy.transform.CompileStatic
@@ -27,8 +26,8 @@ import org.cristalise.dsl.persistency.outcome.SchemaBuilder
 import org.cristalise.kernel.persistency.outcome.Schema
 import org.cristalise.kernel.test.utils.KernelXMLUtility
 
+
 /**
- * @author kovax
  *
  */
 @CompileStatic

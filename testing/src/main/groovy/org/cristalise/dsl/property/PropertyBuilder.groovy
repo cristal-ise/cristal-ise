@@ -1,3 +1,5 @@
+
+
 /**
  * This file is part of the CRISTAL-iSE kernel.
  * Copyright (c) 2001-2015 The CRISTAL Consortium. All rights reserved.
@@ -18,20 +20,21 @@
  *
  * http://www.fsf.org/licensing/licenses/lgpl.html
  */
-
 package org.cristalise.dsl.property
 
-import org.cristalise.dsl.process.DSLBoostrapper
-import org.cristalise.kernel.lookup.DomainPath
+import org.cristalise.kernel.property.PropertyArrayList
+
 
 /**
  *
  */
-class PropertyBuilder implements DSLBoostrapper {
+class PropertyBuilder {
 
-    @Override
-    public DomainPath create() {
-        return null;
+    public static PropertyArrayList build(Closure cl) {
+        def pd = new PropertyDelegate()
+        
+        pd.processClosure(cl)
+
+        return pd.props
     }
-
 }
