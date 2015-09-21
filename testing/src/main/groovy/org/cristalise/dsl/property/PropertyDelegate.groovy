@@ -25,6 +25,7 @@ import groovy.transform.CompileStatic
 import org.cristalise.kernel.common.InvalidDataException
 import org.cristalise.kernel.property.Property
 import org.cristalise.kernel.property.PropertyArrayList
+import org.cristalise.kernel.utils.Logger
 
 
 /**
@@ -47,6 +48,7 @@ class PropertyDelegate {
         assert attrs, "Inmutable Property must have the name and value pair set"
 
         attrs.each { k, v ->
+            Logger.msg 5, "InmutableProperty - name: $k"
             if(!v) throw new InvalidDataException("Inmutable Property must have valid value")
 
             if(v instanceof String) props.put(new Property(k, v, false))
@@ -62,6 +64,8 @@ class PropertyDelegate {
         assert attrs, "Mutable Property must have the name and value pair set"
 
         attrs.each { k, v ->
+            Logger.msg 5, "Property - name: $k"
+
             if(v instanceof String) props.put(new Property(k, v, true))
             else                    throw new InvalidDataException("Property value must be String")
         }

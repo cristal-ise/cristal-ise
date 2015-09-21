@@ -18,20 +18,98 @@
  *
  * http://www.fsf.org/licensing/licenses/lgpl.html
  */
-
 package org.cristalise.dsl.entity.item
 
+import groovy.transform.CompileStatic
+
 import org.cristalise.dsl.process.DSLBoostrapper
+import org.cristalise.kernel.common.CannotManageException
+import org.cristalise.kernel.common.InvalidDataException
+import org.cristalise.kernel.common.ObjectAlreadyExistsException
+import org.cristalise.kernel.common.PersistencyException
+import org.cristalise.kernel.entity.CorbaServer
+import org.cristalise.kernel.entity.TraceableEntity
+import org.cristalise.kernel.lifecycle.instance.Workflow
+import org.cristalise.kernel.lookup.AgentPath
 import org.cristalise.kernel.lookup.DomainPath
+import org.cristalise.kernel.lookup.ItemPath
+import org.cristalise.kernel.process.Gateway
+import org.cristalise.kernel.property.PropertyArrayList
+import org.cristalise.kernel.utils.Logger
+
 
 /**
  *
  */
+@CompileStatic
 class ItemBuilder implements DSLBoostrapper {
+
+    String              name
+    String              folder
+    PropertyArrayList   props
+    Workflow            wf
+
+    public ItemBuilder(ItemDelegate delegate) {
+        name   = delegate.name
+        folder = delegate.folder
+        props  = delegate.props
+        wf     = delegate.wf
+    }
+
+    public static ItemBuilder build(Map<String, String> attrs, Closure cl) {
+        assert attrs && attrs.name && attrs.folder
+        return build(attrs.name, attrs.folder, cl)
+    }
+
+    public static ItemBuilder build(String name, String folder, Closure cl) {
+        def itemD = new ItemDelegate(name, folder)
+
+        itemD.processClosure(cl)
+        
+        return new ItemBuilder(itemD)
+    }
 
     @Override
     public DomainPath create() {
-        return null;
-    }
+        //FIXME: the executing agent should be input parameter
+        AgentPath agent = new AgentPath(new ItemPath(), "ItemBuilder")
+        Gateway.getLookupManager().add(agent)
 
+        DomainPath context = new DomainPath(new DomainPath(folder), name);
+
+        if (context.exists()) throw new ObjectAlreadyExistsException("The path $context exists already.");
+
+        Logger.msg(3, "ItemBuilder.create() - Creating Corba Item");
+        ItemPath newItemPath = new ItemPath();
+        CorbaServer factory = Gateway.getCorbaServer();
+
+        if (factory == null) throw new CannotManageException("This process cannot create new Items");
+
+        TraceableEntity newItem = factory.createItem(newItemPath);
+        Gateway.getLookupManager().add(newItemPath);
+
+        Logger.msg(3, "ItemBuilder.create() - Initializing Item");
+        try {
+            newItem.initialise(
+                agent.getSystemKey(),
+                Gateway.getMarshaller().marshall(props),
+                Gateway.getMarshaller().marshall(wf.search("workflow/domain")),
+                null
+            );
+        }
+        catch (PersistencyException e) {
+            Logger.error(e)
+            throw e;
+        }
+        catch (Exception e) {
+            Logger.error(e)
+            Gateway.getLookupManager().delete(newItemPath);
+            throw new InvalidDataException("Problem initializing new Item. See log: "+e.getMessage());
+        }
+
+        // add its domain path
+        Logger.msg(3, "ItemBuilder.create() - Creating context:"+context);
+        context.setItemPath(newItemPath);
+        Gateway.getLookupManager().add(context);
+    }
 }
