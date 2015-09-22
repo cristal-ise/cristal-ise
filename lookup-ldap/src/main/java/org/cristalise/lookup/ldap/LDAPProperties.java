@@ -46,6 +46,8 @@ public class LDAPProperties {
 	public static final String LDAP_PROP_RPATH = "LDAP.RootPath";
 	public static final String LDAP_PROP_USER = "LDAP.user";
 	public static final String LDAP_PROP_TIMEOUT = "LDAP.timeOut";
+	public static final String LDAP_PROP_USETLS = "LDAP.useTLS";
+	public static final String LDAP_PROP_IGNORECERTERRORS = "LDAP.ignoreCertErrors";
 	
 	public String mGlobalPath = null; // o=cern.ch
 	public String mHost = null;
@@ -55,6 +57,8 @@ public class LDAPProperties {
 	public String mRootPath = null; // cn=cristal2
 	public String mUser = null;
 	public Integer mTimeOut = null;
+	public boolean mUseTLS;
+	public boolean mIgnoreCertErrors;
 
 	/**
 	 * @param aObjectProps
@@ -81,6 +85,8 @@ public class LDAPProperties {
 			mTimeOut = aObjectProps.getInt(LDAP_PROP_TIMEOUT, 0);
 			mUser = aObjectProps.getProperty(LDAP_PROP_USER);
 			mPassword = aObjectProps.getProperty(LDAP_PROP_PASS);
+			mUseTLS = aObjectProps.getBoolean(LDAP_PROP_USETLS, false);
+			mIgnoreCertErrors = aObjectProps.getBoolean(LDAP_PROP_IGNORECERTERRORS, false);
 
 			// if raw password not available, try to find base64 one
 			if (mPassword == null) {

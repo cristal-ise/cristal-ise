@@ -4,12 +4,19 @@
 
 package org.cristalise.lookup.ldap;
 
+import java.security.KeyManagementException;
 //import netscape.ldap.*;
 //import netscape.ldap.util.*;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
+import java.security.cert.X509Certificate;
 import java.util.Random;
+
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLSocketFactory;
+import javax.net.ssl.TrustManager;
+import javax.net.ssl.X509TrustManager;
 
 import org.cristalise.kernel.common.ObjectAlreadyExistsException;
 import org.cristalise.kernel.common.ObjectCannotBeUpdated;
@@ -22,9 +29,11 @@ import com.novell.ldap.LDAPConnection;
 import com.novell.ldap.LDAPDN;
 import com.novell.ldap.LDAPEntry;
 import com.novell.ldap.LDAPException;
+import com.novell.ldap.LDAPJSSEStartTLSFactory;
 import com.novell.ldap.LDAPModification;
 import com.novell.ldap.LDAPSearchConstraints;
 import com.novell.ldap.LDAPSearchResults;
+import com.novell.ldap.LDAPSocketFactory;
 import com.novell.ldap.util.Base64;
 
 /**
@@ -84,12 +93,32 @@ final public class LDAPLookupUtils
      */
     public static LDAPConnection createConnection(LDAPProperties lp) throws LDAPException {
         LDAPConnection ld;
+        if (lp.mUseTLS) try {
+        	LDAPSocketFactory lsf;
+        	if (lp.mIgnoreCertErrors)
+        		lsf = new LDAPJSSEStartTLSFactory(getPermissiveSocketFactory());
+        	else
+        		lsf = new LDAPJSSEStartTLSFactory();
+       		LDAPConnection.setSocketFactory(lsf);         	
+        } catch (Exception ex) {
+        	Logger.error(ex);
+        	Logger.die("Could not enable TLS over LDAP");
+        }
+        
         if (lp.mTimeOut == 0) ld = new LDAPConnection();
         else ld = new LDAPConnection(lp.mTimeOut);
 
         Logger.msg(3, "LDAPLookup - connecting to " + lp.mHost);
+        
         ld.connect(lp.mHost, Integer.valueOf(lp.mPort).intValue());
 
+        if (lp.mUseTLS) try {
+        	ld.startTLS();
+        } catch (Exception ex) {
+        	Logger.error(ex);
+        	Logger.die("Could not enable TLS over LDAP");
+        }
+        
         Logger.msg(3, "LDAPLookup - authenticating user:" + lp.mUser);
         ld.bind( LDAPConnection.LDAP_V3, lp.mUser,
                  String.valueOf(lp.mPassword).getBytes());
@@ -100,6 +129,19 @@ final public class LDAPLookupUtils
         ld.setConstraints(searchCons);
 
         return ld;
+    }
+    
+    static public SSLSocketFactory getPermissiveSocketFactory() throws NoSuchAlgorithmException, KeyManagementException {
+    	TrustManager[] trustAllCerts = new TrustManager[]{
+    			new X509TrustManager(){
+    			public X509Certificate[] getAcceptedIssuers(){ return null; }
+    			public void checkClientTrusted(X509Certificate[] certs, String authType) {}
+    			public void checkServerTrusted(X509Certificate[] certs, String authType) {}
+    			}
+    	};
+		SSLContext sslContext = SSLContext.getInstance("TLS");
+		sslContext.init(null, trustAllCerts, new SecureRandom());	
+		return sslContext.getSocketFactory();
     }
 
     //Given a DN, return an LDAP Entry
