@@ -129,16 +129,34 @@ class CAExecutionSpecs extends Specification {
         thrown InvalidTransitionException
     }
 
-    def 'Cannot Complete Root Compact without finishing all ElemActs'() {
-        given: "Workflow contaning single ElemAct"
-        util.buildAndInitWf { ElemAct('first') }
+    def 'Cannot complete Compact without finishing all ElemActs'() {
+        given: "Workflow containing single CompAct with a single ElemAct"
+        util.buildAndInitWf {
+			CompAct('ca') {
+				ElemAct('first') 
+			} 
+		}
 
-        when: "requesting Root CompAct Complete transition"
-        util.requestAction('rootCA', "Complete")
+        when: "requesting CompAct Complete transition"
+        util.requestAction('ca', "Complete")
 
         then: "InvalidTransitionException is thrown"
         thrown InvalidTransitionException
     }
+	
+	def 'Compact can be finished with active children if Abortable'() {
+		given: "Workflow containing single CompAct with a single ElemAct"
+		util.buildAndInitWf {CompAct('ca') {
+				Property('Abortable', true) 
+				ElemAct('first') 
+			} 
+		}
+		when: "requesting Root CompAct Complete transition"
+		util.requestAction('ca', "Complete")
+
+		then: "InvalidTransitionException is thrown"
+		thrown InvalidTransitionException
+	}
 
     def 'Cannot Complete Root Compact without finishing all CompActs'() {
         given: "Workflow contaning single and empty CompAct"
