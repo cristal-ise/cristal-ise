@@ -18,42 +18,45 @@
  *
  * http://www.fsf.org/licensing/licenses/lgpl.html
  */
-package org.cristalise.dsl.entity.item
+package org.cristalise.dsl.test.entity.role
 
-import groovy.transform.CompileStatic
+import org.cristalise.dsl.entity.role.RoleBuilder
+import org.cristalise.test.CristalTestSetup
 
-import org.cristalise.dsl.lifecycle.instance.WorkflowBuilder
-import org.cristalise.dsl.property.PropertyDelegate
-import org.cristalise.kernel.lifecycle.instance.Workflow
+import spock.lang.Specification
 
 
 /**
  *
  */
-@CompileStatic
-class ItemDelegate extends PropertyDelegate {
-    
-    String name
-    String folder
-    Workflow wf
+class RoleBuilderSpecs extends Specification implements CristalTestSetup {
 
-    public ItemDelegate(String n, String f) {
-        name = n
-        folder = f
+    def setup()   { loggerSetup()    }
+    def cleanup() { cristalCleanup() }
+
+    def "Default value for jobList is false"() {
+        when:
+        def roles = RoleBuilder.build {
+            Role(name: 'User')
+        }
+
+        then:
+        roles[0].name == "User"
+        roles[0].jobList == false
     }
 
-    public void processClosure(Closure cl) {
-        assert cl
+    def "Builder build a list of Roles"() {
+        when:
+        def roles = RoleBuilder.build {
+            Role(name: 'User')
+            Role(name: 'User/SubUser', jobList: true)
+        }
+
+        then:
+        roles[0].name == "User"
+        roles[0].jobList == false
         
-        //Add the name of the Item to the Property list
-        Property(Name: name)
-
-        cl.delegate = this
-        cl.resolveStrategy = Closure.DELEGATE_FIRST
-        cl()
-    }
-
-    def Workflow(Closure cl) {
-        wf = new WorkflowBuilder().build(cl)
+        roles[1].name == "User/SubUser"
+        roles[1].jobList == true
     }
 }

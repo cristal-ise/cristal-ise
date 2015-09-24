@@ -22,12 +22,15 @@
  */
 package org.cristalise.dsl.property
 
+import groovy.transform.CompileStatic
+
 import org.cristalise.kernel.property.PropertyArrayList
 
 
 /**
  *
  */
+@CompileStatic
 class PropertyBuilder {
 
     public static PropertyArrayList build(Closure cl) {

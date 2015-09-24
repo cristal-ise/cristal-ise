@@ -18,42 +18,31 @@
  *
  * http://www.fsf.org/licensing/licenses/lgpl.html
  */
-package org.cristalise.dsl.entity.item
+package org.cristalise.kernel.test.entity.role
 
-import groovy.transform.CompileStatic
+import org.cristalise.dsl.entity.role.RoleBuilder
+import org.cristalise.kernel.common.ObjectNotFoundException
+import org.cristalise.test.CristalTestSetup
 
-import org.cristalise.dsl.lifecycle.instance.WorkflowBuilder
-import org.cristalise.dsl.property.PropertyDelegate
-import org.cristalise.kernel.lifecycle.instance.Workflow
+import spock.lang.Specification
 
 
 /**
  *
  */
-@CompileStatic
-class ItemDelegate extends PropertyDelegate {
+class RoleCreateSpecs extends Specification implements CristalTestSetup {
+
     
-    String name
-    String folder
-    Workflow wf
+    def setup()   { inMemoryServer()    }
+    def cleanup() { cristalCleanup() }
 
-    public ItemDelegate(String n, String f) {
-        name = n
-        folder = f
-    }
+    def "Parent Role must exists"() {
+        when:
+        def roles = RoleBuilder.create {
+            Role(name: 'Clerk/SubClerk', jobList: true)
+        }
 
-    public void processClosure(Closure cl) {
-        assert cl
-        
-        //Add the name of the Item to the Property list
-        Property(Name: name)
-
-        cl.delegate = this
-        cl.resolveStrategy = Closure.DELEGATE_FIRST
-        cl()
-    }
-
-    def Workflow(Closure cl) {
-        wf = new WorkflowBuilder().build(cl)
+        then:
+        thrown ObjectNotFoundException
     }
 }

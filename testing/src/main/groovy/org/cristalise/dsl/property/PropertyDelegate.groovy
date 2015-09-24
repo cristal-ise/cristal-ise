@@ -48,11 +48,12 @@ class PropertyDelegate {
         assert attrs, "Inmutable Property must have the name and value pair set"
 
         attrs.each { k, v ->
-            Logger.msg 5, "InmutableProperty - name: $k"
-            if(!v) throw new InvalidDataException("Inmutable Property must have valid value")
+            if(!v) throw new InvalidDataException("Inmutable Property '$k' must have valid value")
 
+            Logger.msg 5, "InmutableProperty - name/Value: $k/$v"
+            
             if(v instanceof String) props.put(new Property(k, v, false))
-            else                    throw new InvalidDataException("Property value must be String")
+            else                    throw new InvalidDataException("Property '$k' value must be String")
         }
     }
 
@@ -64,10 +65,10 @@ class PropertyDelegate {
         assert attrs, "Mutable Property must have the name and value pair set"
 
         attrs.each { k, v ->
-            Logger.msg 5, "Property - name: $k"
+            Logger.msg 5, "Property - name/Value: $k/$v"
 
             if(v instanceof String) props.put(new Property(k, v, true))
-            else                    throw new InvalidDataException("Property value must be String")
+            else                    throw new InvalidDataException("Property '$k' value must be String")
         }
     }
     

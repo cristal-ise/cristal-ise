@@ -5,6 +5,7 @@ import groovy.transform.CompileStatic
 
 import org.cristalise.kernel.common.ObjectAlreadyExistsException
 import org.cristalise.kernel.common.ObjectCannotBeUpdated
+import org.cristalise.kernel.common.ObjectNotFoundException
 import org.cristalise.kernel.lookup.AgentPath
 import org.cristalise.kernel.lookup.ItemPath
 import org.cristalise.kernel.lookup.LookupManager
@@ -57,7 +58,17 @@ class LookupRoleTests extends LookupTestBase {
         }
         catch (ObjectAlreadyExistsException e) {}
     }
-    
+
+    @Test
+    public void getParent_ObjectNotFoundException() {
+        def rp = new RolePath("Clerk/Secretary".split("/"), false)
+        try {
+            rp.getParent()
+            fail("Should throw ObjectNotFoundException")
+        }
+        catch (ObjectNotFoundException e) {}
+    }
+
     @Test
     public void addRole_ObjectCannotBeUpdated() {
         RolePath internist = createUserRole("Internist")

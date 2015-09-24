@@ -18,42 +18,41 @@
  *
  * http://www.fsf.org/licensing/licenses/lgpl.html
  */
-package org.cristalise.dsl.entity.item
+package org.cristalise.dsl.entity.role
 
 import groovy.transform.CompileStatic
 
-import org.cristalise.dsl.lifecycle.instance.WorkflowBuilder
-import org.cristalise.dsl.property.PropertyDelegate
-import org.cristalise.kernel.lifecycle.instance.Workflow
+import org.cristalise.kernel.entity.imports.ImportRole
+import org.cristalise.kernel.lookup.RolePath
+import org.cristalise.kernel.utils.Logger
 
 
 /**
  *
  */
 @CompileStatic
-class ItemDelegate extends PropertyDelegate {
-    
-    String name
-    String folder
-    Workflow wf
+class RoleBuilder {
 
-    public ItemDelegate(String n, String f) {
-        name = n
-        folder = f
+     public static List<RolePath> create(Closure cl) {
+        return createRoles(build(cl))
     }
 
-    public void processClosure(Closure cl) {
-        assert cl
+    public static List<ImportRole> build(Closure cl) {
+        def rB = new RoleBuilder()
         
-        //Add the name of the Item to the Property list
-        Property(Name: name)
+        def rd = new RoleDelegate()
+        rd.processClosure(cl)
 
-        cl.delegate = this
-        cl.resolveStrategy = Closure.DELEGATE_FIRST
-        cl()
+        Logger.msg 5, "RoleBuilder.build() - Done"
+
+        return rd.roles
     }
 
-    def Workflow(Closure cl) {
-        wf = new WorkflowBuilder().build(cl)
+    public static List<RolePath> createRoles(List<ImportRole> roles) {
+        List<RolePath> rolePathes = []
+        roles.each { ImportRole role ->
+            rolePathes.add((RolePath)role.create(null, false))
+        }
+        return rolePathes
     }
 }

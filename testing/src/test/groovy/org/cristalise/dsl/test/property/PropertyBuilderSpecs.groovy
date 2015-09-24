@@ -82,7 +82,7 @@ class PropertyBuilderSpecs extends Specification implements CristalTestSetup {
 
         then:
         InvalidDataException ex = thrown()
-        ex.message == "IDL:org.cristalise.kernel/common/InvalidDataException:1.0  Inmutable Property must have valid value"
+        ex.message == "IDL:org.cristalise.kernel/common/InvalidDataException:1.0  Inmutable Property 'Type' must have valid value"
     }
 
     def 'Property can only have String value'() {
@@ -93,7 +93,7 @@ class PropertyBuilderSpecs extends Specification implements CristalTestSetup {
 
         then:
         InvalidDataException ex = thrown()
-        ex.message == "IDL:org.cristalise.kernel/common/InvalidDataException:1.0  Property value must be String"
+        ex.message == "IDL:org.cristalise.kernel/common/InvalidDataException:1.0  Property 'Type' value must be String"
     }
 
     def 'Builder builds unlimited length of List keeping the order of declaration'() {
