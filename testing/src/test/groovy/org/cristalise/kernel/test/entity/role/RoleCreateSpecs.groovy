@@ -38,11 +38,26 @@ class RoleCreateSpecs extends Specification implements CristalTestSetup {
 
     def "Parent Role must exists"() {
         when:
-        def roles = RoleBuilder.create {
+        RoleBuilder.create {
             Role(name: 'Clerk/SubClerk', jobList: true)
         }
 
         then:
         thrown ObjectNotFoundException
+    }
+
+    def "Creating Roles and Subroles"() {
+        when:
+        def roles = RoleBuilder.create {
+            Role(name: 'Clerk', jobList: true)
+            Role(name: 'Clerk/SubClerk', jobList: true)
+        }
+
+        then:
+        roles[0].exists()
+        roles[0].string == "/role/Clerk"
+
+        roles[1].exists()
+        roles[1].string == "/role/Clerk/SubClerk"
     }
 }
