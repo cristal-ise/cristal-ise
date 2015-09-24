@@ -77,7 +77,7 @@ class RoutingScriptExecSpecs extends Specification implements CristalTestSetup {
             javascript { "counter < 10;" }
         }
 
-        def schema = SchemaBuilder.create(module, schemaName, 0) { loadXSD("src/test/data/${schemaName}.xsd") }
+        def schema = SchemaBuilder.create(module, schemaName, 0, "src/test/data/${schemaName}.xsd")
 
         wfBuilder.buildAndInitWf {
             Loop(RoutingScriptName: 'CounterScript', RoutingScriptVersion: 0) {

@@ -147,7 +147,7 @@ class CAExecutionSpecs extends Specification {
 	def 'Compact can be finished with active children if Abortable'() {
 		given: "Workflow containing single CompAct with a single ElemAct"
 		util.buildAndInitWf {CompAct('ca') {
-				Property('Abortable', true) 
+				Property('Abortable': true) 
 				ElemAct('first') 
 			} 
 		}
