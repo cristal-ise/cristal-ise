@@ -62,9 +62,16 @@ trait CristalTestSetup {
     }
 
     public void cristalCleanup() {
-        def ORB = Gateway.getORB()
+        def ORB = null
+        
+        try { ORB = Gateway.getORB() }
+        catch(any) { }
+
         Gateway.close()
-        com.sun.corba.se.spi.transport.CorbaTransportManager mgr = ((com.sun.corba.se.impl.orb.ORBImpl)ORB).getCorbaTransportManager();
-        for (Object accept: mgr.getAcceptors()) { ((com.sun.corba.se.pept.transport.Acceptor) accept).close(); }
+
+        if(ORB) {
+            com.sun.corba.se.spi.transport.CorbaTransportManager mgr = ((com.sun.corba.se.impl.orb.ORBImpl)ORB).getCorbaTransportManager();
+            for (Object accept: mgr.getAcceptors()) { ((com.sun.corba.se.pept.transport.Acceptor) accept).close(); }
+        }
     }
 }
