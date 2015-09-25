@@ -268,9 +268,9 @@ public class LDAPLookup implements LookupManager{
             	Gateway.getProxyServer().sendProxyEvent(new ProxyMessage(null, path.toString(), ProxyMessage.ADDED));
         } catch (LDAPException ex) {
             if (ex.getResultCode() == LDAPException.ENTRY_ALREADY_EXISTS)
-                throw new ObjectAlreadyExistsException(ex.getLDAPErrorMessage());
+                throw new ObjectAlreadyExistsException("Cannot add Path '"+path.getString()+"' - LDAPException:"+ex.getLDAPErrorMessage());
             else
-                throw new ObjectCannotBeUpdated(ex.getLDAPErrorMessage());
+                throw new ObjectCannotBeUpdated("Cannot add Path '"+path.getString()+"' - LDAPException:"+ex.getLDAPErrorMessage());
         }
      }
 
@@ -282,7 +282,7 @@ public class LDAPLookup implements LookupManager{
         try {
             LDAPLookupUtils.delete(mLDAPAuth.getAuthObject(),getDN(path)+mLocalPath);
         } catch (LDAPException ex) {
-            throw new ObjectCannotBeUpdated(ex.getLDAPErrorMessage());
+            throw new ObjectCannotBeUpdated("Cannot delete Path '"+path.getString()+"' - LDAPException:"+ex.getLDAPErrorMessage());
         }
         if (path instanceof DomainPath) {
         	Gateway.getProxyServer().sendProxyEvent(new ProxyMessage(null, path.toString(), ProxyMessage.DELETED));
@@ -441,13 +441,13 @@ public class LDAPLookup implements LookupManager{
             else if (type.equals("cristalagent"))
                 return new AgentPath(item);
             else
-                throw new ObjectNotFoundException("Not an entity");
+                throw new ObjectNotFoundException("Not an entity '"+uuid+"'");
 
         } catch (LDAPException ex) {
             if (ex.getResultCode() == LDAPException.NO_SUCH_OBJECT)
-                throw new ObjectNotFoundException("Entity does not exist");
+                throw new ObjectNotFoundException("Entity '"+uuid+"' does not exist");
             Logger.error(ex);
-            throw new ObjectNotFoundException("Error getting entity class");
+            throw new ObjectNotFoundException("Error getting entity class for '"+uuid+"'");
         }
     }
 
@@ -513,7 +513,7 @@ public class LDAPLookup implements LookupManager{
         }
         else
         {
-			throw new ObjectNotFoundException("Unrecognised LDAP entry. Not a cristal entry");
+			throw new ObjectNotFoundException("Unrecognised LDAP entry. Not a cristal entry '"+entry+"'");
         }
 
         //set IOR if we have one
@@ -593,7 +593,7 @@ public class LDAPLookup implements LookupManager{
 	        	if (agentName != null && agentName.length() > 0)
 	        		attrs.add(new LDAPAttribute("uid", agentName));
 	        	else
-	        		throw new ObjectCannotBeUpdated("Cannot create agent. No userId specified");
+	        		throw new ObjectCannotBeUpdated("Cannot create agent '"+agentName+"'. No userId specified");
 
 	        	String agentPass = agentPath.getPassword();
 	        	if (agentPass != null && agentPass.length() > 0)
@@ -621,14 +621,13 @@ public class LDAPLookup implements LookupManager{
 	public RolePath createRole(RolePath rolePath)
         throws ObjectAlreadyExistsException, ObjectCannotBeUpdated
     {
-
         // create the role
     	String roleDN = getFullDN(rolePath);
         LDAPEntry roleNode;
         try
         {
         	roleNode = LDAPLookupUtils.getEntry(mLDAPAuth.getAuthObject(), getFullDN(rolePath));
-            throw new ObjectAlreadyExistsException();
+            throw new ObjectAlreadyExistsException("Cannot create Role '"+rolePath.getName()+"' because it exists");
         } catch (ObjectNotFoundException ex) { }
 
         //create CristalRole if it does not exist
@@ -636,7 +635,7 @@ public class LDAPLookup implements LookupManager{
         try {
             LDAPLookupUtils.addEntry(mLDAPAuth.getAuthObject(),roleNode);
         } catch (LDAPException e) {
-            throw new ObjectCannotBeUpdated(e.getLDAPErrorMessage());
+            throw new ObjectCannotBeUpdated("Cannot create Role '"+rolePath.getName()+"'- LDAPException:"+ e.getLDAPErrorMessage());
         }
         return rolePath;
 
@@ -646,7 +645,7 @@ public class LDAPLookup implements LookupManager{
         try {
             LDAPLookupUtils.delete(mLDAPAuth.getAuthObject(), getFullDN(role));
         } catch (LDAPException ex) {
-            throw new ObjectCannotBeUpdated("Could not remove role");
+            throw new ObjectCannotBeUpdated("Could not remove role '"+role.getName()+"'");
         }
     }
 
@@ -670,7 +669,7 @@ public class LDAPLookup implements LookupManager{
     	if (LDAPLookupUtils.existsAttributeValue(roleEntry, "uniqueMember", getFullDN(agent)))
    			LDAPLookupUtils.removeAttributeValue(mLDAPAuth.getAuthObject(), roleEntry, "uniqueMember", getFullDN(agent));
     	else
-    		throw new ObjectCannotBeUpdated("Agent did not have that role");
+    		throw new ObjectCannotBeUpdated("Agent '"+agent.getAgentName()+"' did not have role '"+role.getName()+"'");
     }
 
     @Override
@@ -691,7 +690,7 @@ public class LDAPLookup implements LookupManager{
         try {
             roleEntry = LDAPLookupUtils.getEntry(mLDAPAuth.getAuthObject(), getFullDN(role));
         } catch (ObjectNotFoundException e) {
-            throw new ObjectNotFoundException("Role does not exist");
+            throw new ObjectNotFoundException("Role '"+role.getName()+"' does not exist");
         }
 
     	String[] res = LDAPLookupUtils.getAllAttributeValues(roleEntry,"uniqueMember");
@@ -759,7 +758,7 @@ public class LDAPLookup implements LookupManager{
         if (result instanceof AgentPath)
             return (AgentPath)result;
         else
-            throw new ObjectNotFoundException("Entry was not an Agent");
+            throw new ObjectNotFoundException("Entry '"+agentName+"' was not an Agent");
     }
 
     @Override
@@ -771,12 +770,12 @@ public class LDAPLookup implements LookupManager{
         String filter = "(&(objectclass=cristalrole)(cn="+roleName+"))";
 		Iterator<Path> res = search(mRoleTypeRoot,LDAPConnection.SCOPE_SUB,filter,searchCons);
 		if (!res.hasNext())
-            throw new ObjectNotFoundException("Role not found");
+            throw new ObjectNotFoundException("Role '"+roleName+"' not found");
         Path result = res.next();
         if (result instanceof RolePath)
             return (RolePath)result;
         else
-            throw new ObjectNotFoundException("Entry was not a Role");
+            throw new ObjectNotFoundException("Entry '"+roleName+"' was not a Role");
     }
 
 	@Override
@@ -786,7 +785,7 @@ public class LDAPLookup implements LookupManager{
         try {
             roleEntry = LDAPLookupUtils.getEntry(mLDAPAuth.getAuthObject(), getFullDN(role));
         } catch (ObjectNotFoundException e) {
-            throw new ObjectNotFoundException("Role does not exist");
+            throw new ObjectNotFoundException("Role '"+role.getName()+"' does not exist");
         }
 		// set attribute
         LDAPLookupUtils.setAttributeValue(mLDAPAuth.getAuthObject(), roleEntry, "jobList", hasJobList?"TRUE":"FALSE");
