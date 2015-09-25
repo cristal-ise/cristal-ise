@@ -26,7 +26,6 @@ import org.cristalise.dsl.process.DSLBoostrapper
 import org.cristalise.kernel.common.CannotManageException
 import org.cristalise.kernel.common.InvalidDataException
 import org.cristalise.kernel.common.ObjectAlreadyExistsException
-import org.cristalise.kernel.common.PersistencyException
 import org.cristalise.kernel.entity.CorbaServer
 import org.cristalise.kernel.entity.TraceableEntity
 import org.cristalise.kernel.lifecycle.instance.Workflow
@@ -49,6 +48,8 @@ class ItemBuilder implements DSLBoostrapper {
     PropertyArrayList   props
     Workflow            wf
 
+    public ItemBuilder() {}
+
     public ItemBuilder(ItemDelegate delegate) {
         name   = delegate.name
         folder = delegate.folder
@@ -56,25 +57,28 @@ class ItemBuilder implements DSLBoostrapper {
         wf     = delegate.wf
     }
 
-    public static ItemBuilder build(Map<String, String> attrs, Closure cl) {
+    public static DomainPath create(Map<String, Object> attrs, Closure cl) {
+        assert attrs.agent && (attrs.agent instanceof AgentPath)
+
+        def ib = build(attrs, cl)
+        return ib.create((AgentPath)attrs.agent)
+    }
+
+    public static ItemBuilder build(Map<String, Object> attrs, Closure cl) {
         assert attrs && attrs.name && attrs.folder
-        return build(attrs.name, attrs.folder, cl)
+        return build((String)attrs.name, (String)attrs.folder, cl)
     }
 
     public static ItemBuilder build(String name, String folder, Closure cl) {
         def itemD = new ItemDelegate(name, folder)
 
         itemD.processClosure(cl)
-        
+
         return new ItemBuilder(itemD)
     }
 
     @Override
-    public DomainPath create() {
-        //FIXME: the executing agent should be input parameter
-        AgentPath agent = new AgentPath(new ItemPath(), "ItemBuilder")
-        Gateway.getLookupManager().add(agent)
-
+    public DomainPath create(AgentPath agent) {
         DomainPath context = new DomainPath(new DomainPath(folder), name);
 
         if (context.exists()) throw new ObjectAlreadyExistsException("The path $context exists already.");
@@ -93,13 +97,9 @@ class ItemBuilder implements DSLBoostrapper {
             newItem.initialise(
                 agent.getSystemKey(),
                 Gateway.getMarshaller().marshall(props),
-                Gateway.getMarshaller().marshall(wf.search("workflow/domain")),
+                wf == null ? null : Gateway.getMarshaller().marshall(wf.search("workflow/domain")),
                 null
             );
-        }
-        catch (PersistencyException e) {
-            Logger.error(e)
-            throw e;
         }
         catch (Exception e) {
             Logger.error(e)

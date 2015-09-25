@@ -18,18 +18,27 @@
  *
  * http://www.fsf.org/licensing/licenses/lgpl.html
  */
-package org.cristalise.dsl.process
+package org.cristalise.kernel.test.entity.item
 
-import groovy.transform.CompileStatic
+import org.cristalise.dsl.test.entity.item.ItemTestBuilder
+import org.cristalise.test.CristalTestSetup
 
-import org.cristalise.kernel.lookup.AgentPath
-import org.cristalise.kernel.lookup.DomainPath
+import spock.lang.Specification
 
 
 /**
  *
  */
-@CompileStatic
-public interface DSLBoostrapper {
-    public DomainPath create(AgentPath agent);
+class ItemCreateSpecs extends Specification implements CristalTestSetup {
+
+    def setup()   { inMemoryServer()    }
+    def cleanup() { cristalCleanup() }
+
+    def 'Item can be crated without workflow'() {
+        when:
+        def builder = ItemTestBuilder.create(name: "myFisrtItem", folder: "testing") {}
+
+        then:
+        assert true
+    }
 }

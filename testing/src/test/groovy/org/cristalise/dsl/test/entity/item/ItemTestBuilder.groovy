@@ -23,6 +23,10 @@ package org.cristalise.dsl.test.entity.item
 import groovy.transform.CompileStatic
 
 import org.cristalise.dsl.entity.item.ItemBuilder
+import org.cristalise.kernel.lookup.AgentPath
+import org.cristalise.kernel.lookup.DomainPath
+import org.cristalise.kernel.lookup.ItemPath
+import org.cristalise.kernel.process.Gateway
 
 
 /**
@@ -30,15 +34,28 @@ import org.cristalise.dsl.entity.item.ItemBuilder
  */
 @CompileStatic
 class ItemTestBuilder extends ItemBuilder {
-    
+    DomainPath path
+    AgentPath agent
+
+    public ItemTestBuilder() {}
+
     public ItemTestBuilder(ItemBuilder ib) {
         name   = ib.name
         folder = ib.folder
         props  = ib.props
         wf     = ib.wf
+
+        agent = new AgentPath(new ItemPath(), "ItemTestBuilder")
+        if(!Gateway.getLookupManager().exists(agent)) Gateway.getLookupManager().add(agent)
     }
 
-    public static ItemTestBuilder build(Map<String, String> attrs, Closure cl) {
+    public static ItemTestBuilder create(Map<String, Object> attrs, Closure cl) {
+        def itb = new ItemTestBuilder(ItemBuilder.build(attrs, cl))
+        itb.path = itb.create(itb.agent)
+        return itb
+    }
+
+    public static ItemTestBuilder build(Map<String, Object> attrs, Closure cl) {
         return new ItemTestBuilder(ItemBuilder.build(attrs, cl))
     }
 }

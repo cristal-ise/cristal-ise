@@ -28,6 +28,7 @@ import javax.xml.validation.Schema
 import javax.xml.validation.SchemaFactory
 
 import org.cristalise.dsl.process.DSLBoostrapper
+import org.cristalise.kernel.lookup.AgentPath
 import org.cristalise.kernel.lookup.DomainPath
 import org.cristalise.kernel.persistency.outcome.Outcome
 import org.cristalise.kernel.process.Bootstrap
@@ -54,6 +55,12 @@ class ScriptBuilder implements DSLBoostrapper {
 
     public ScriptBuilder() {}
 
+    /**
+     * 
+     * @param module
+     * @param name
+     * @param version
+     */
     public ScriptBuilder(String module, String name, int version) {
         this.module  = module
         this.name    = name
@@ -64,6 +71,11 @@ class ScriptBuilder implements DSLBoostrapper {
         schema = factory.newSchema(new StreamSource(new StringReader(xsd)))
     }
 
+    /**
+     * 
+     * @param xml
+     * @throws Exception
+     */
     public void validateScriptXML(String xml) throws Exception {
         try {
             schema.newValidator().validate(new StreamSource(new StringReader(xml)));
@@ -77,7 +89,6 @@ class ScriptBuilder implements DSLBoostrapper {
         }
     }
 
-    
     /**
      * Factory method to build a Script object and create the ResourceItem for it 
      * 
@@ -89,7 +100,7 @@ class ScriptBuilder implements DSLBoostrapper {
      */
     public static ScriptBuilder create(String module, String name, int version, Closure cl) {
         def sb = build(module, name, version, cl)
-        sb.create()
+        sb.create(null)
         return sb
     }
 
@@ -128,7 +139,7 @@ class ScriptBuilder implements DSLBoostrapper {
      *  
      * @return the DomainPath of the newly created resource Item
      */
-    public DomainPath create() {
+    public DomainPath create(AgentPath agent) {
         return domainPath = Bootstrap.createResource(module, name, version, "SC", [new Outcome(-1, scriptXML, "Script", version)] as Set, false)
     }
 }

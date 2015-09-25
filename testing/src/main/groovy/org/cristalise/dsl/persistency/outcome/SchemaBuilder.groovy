@@ -23,6 +23,7 @@ package org.cristalise.dsl.persistency.outcome
 import groovy.transform.CompileStatic
 
 import org.cristalise.dsl.process.DSLBoostrapper
+import org.cristalise.kernel.lookup.AgentPath
 import org.cristalise.kernel.lookup.DomainPath
 import org.cristalise.kernel.persistency.outcome.Outcome
 import org.cristalise.kernel.persistency.outcome.Schema
@@ -82,7 +83,7 @@ class SchemaBuilder implements DSLBoostrapper {
      */
     public static SchemaBuilder create(String module, String name, int version, Closure cl) {
         def sb = build(module, name, version, cl)
-        sb.create()
+        sb.create(null)
         return sb
     }
 
@@ -97,7 +98,7 @@ class SchemaBuilder implements DSLBoostrapper {
      */
     public static SchemaBuilder create(String module, String name, int version, String xsdFile) {
         def sb = build(module, name, version, xsdFile)
-        sb.create()
+        sb.create(null)
         return sb
     }
 
@@ -139,7 +140,7 @@ class SchemaBuilder implements DSLBoostrapper {
      * @return the DomainPath of the newly created resource Item
     */
     @Override
-    public DomainPath create() {
+    public DomainPath create(AgentPath agent) {
         return domainPath = Bootstrap.createResource(module, name, version, "OD", [new Outcome(-1, schema.schema, "Schema", version)] as Set, false)
     }
 }

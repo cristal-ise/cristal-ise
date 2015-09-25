@@ -24,6 +24,7 @@ import groovy.transform.CompileStatic
 
 import org.cristalise.dsl.process.DSLBoostrapper
 import org.cristalise.kernel.lifecycle.instance.stateMachine.StateMachine
+import org.cristalise.kernel.lookup.AgentPath
 import org.cristalise.kernel.lookup.DomainPath
 import org.cristalise.kernel.persistency.outcome.Outcome
 import org.cristalise.kernel.process.Bootstrap
@@ -70,7 +71,7 @@ class StateMachineBuilder implements DSLBoostrapper {
 
     public static StateMachine create(String module, String name, int version, Closure cl) {
         def smb = build(module, name, version, cl)
-        smb.create()
+        smb.create(null)
         return smb.sm
     }
 
@@ -90,7 +91,7 @@ class StateMachineBuilder implements DSLBoostrapper {
 
     public static StateMachine create(String module, String name, int version, String xmlFile) {
         def smb = build(module, name, version, xmlFile)
-        smb.create()
+        smb.create(null)
         return smb.sm
     }
 
@@ -105,7 +106,7 @@ class StateMachineBuilder implements DSLBoostrapper {
      * @return the DomainPath of the newly created resource Item
      */
     @Override
-    public DomainPath create() {
+    public DomainPath create(AgentPath agent) {
         return domainPath = Bootstrap.createResource(module, name, version, "SM", [new Outcome(-1, smXML, "StateMachine", version)] as Set, false)
     }
 }
