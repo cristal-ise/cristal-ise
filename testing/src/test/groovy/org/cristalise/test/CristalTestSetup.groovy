@@ -27,22 +27,24 @@ import org.cristalise.kernel.process.Gateway
 import org.cristalise.kernel.process.auth.Authenticator
 import org.cristalise.kernel.utils.Logger
 
+
 /**
  *
  */
 @CompileStatic
 trait CristalTestSetup {
+    static final int defaulLogLevel = 8
     
-    public void loggerSetup(int logLevel = 8) {
+    public void loggerSetup(int logLevel = defaulLogLevel) {
         Logger.addLogStream(System.out, logLevel);
     }
 
-    public void inMemorySetup(int logLevel = 8) {
+    public void inMemorySetup(int logLevel = defaulLogLevel) {
         cristalSetup(logLevel, 'src/test/conf/testServer.conf', 'src/test/conf/testInMemory.clc')
         //FieldUtils.writeDeclaredStaticField(Gateway.class, "mLookupManager", Gateway.getLookup(), true)
     }
 
-    public void inMemoryServer(int logLevel = 8) {
+    public void inMemoryServer(int logLevel = defaulLogLevel) {
         serverSetup(logLevel, 'src/test/conf/testServer.conf', 'src/test/conf/testInMemory.clc')
         Thread.sleep(2000)
     }
@@ -60,6 +62,9 @@ trait CristalTestSetup {
     }
 
     public void cristalCleanup() {
+        def ORB = Gateway.getORB()
         Gateway.close()
+        com.sun.corba.se.spi.transport.CorbaTransportManager mgr = ((com.sun.corba.se.impl.orb.ORBImpl)ORB).getCorbaTransportManager();
+        for (Object accept: mgr.getAcceptors()) { ((com.sun.corba.se.pept.transport.Acceptor) accept).close(); }
     }
 }
