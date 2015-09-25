@@ -35,7 +35,10 @@ import org.cristalise.kernel.utils.Logger
 trait CristalTestSetup {
     static final int defaulLogLevel = 8
     
+    boolean serverSetup = false
+    
     public void loggerSetup(int logLevel = defaulLogLevel) {
+        serverSetup = false
         Logger.addLogStream(System.out, logLevel);
     }
 
@@ -50,21 +53,28 @@ trait CristalTestSetup {
     }
 
     public Authenticator serverSetup(int logLevel, String config, String connect) {
+        serverSetup = true
         Authenticator auth = cristalSetup(logLevel, config, connect)
         Logger.initConsole("ItemServer");
         Gateway.startServer( auth )
     }
 
     public Authenticator cristalSetup(int logLevel, String config, String connect) {
+        serverSetup = false
         String[] args = ['-logLevel', "$logLevel", '-config', config, '-connect', connect]
         Gateway.init(AbstractMain.readC2KArgs(args))
         return Gateway.connect()
     }
 
     public void cristalCleanup() {
-        def ORB = Gateway.getORB()
+        def ORB
+        if(serverSetup) ORB = Gateway.getORB()
+
         Gateway.close()
-        com.sun.corba.se.spi.transport.CorbaTransportManager mgr = ((com.sun.corba.se.impl.orb.ORBImpl)ORB).getCorbaTransportManager();
-        for (Object accept: mgr.getAcceptors()) { ((com.sun.corba.se.pept.transport.Acceptor) accept).close(); }
+
+        if(serverSetup) {
+            com.sun.corba.se.spi.transport.CorbaTransportManager mgr = ((com.sun.corba.se.impl.orb.ORBImpl)ORB).getCorbaTransportManager();
+            for (Object accept: mgr.getAcceptors()) { ((com.sun.corba.se.pept.transport.Acceptor) accept).close(); }
+        }
     }
 }
