@@ -15,7 +15,7 @@ class CAExecutionSpecs extends Specification {
     WorkflowTestBuilder util
 
     def setup() {
-        String[] args = ['-logLevel', '8', '-config', 'src/test/conf/testServer.conf', '-connect', 'src/test/conf/testInMemory.clc']
+        String[] args = ['-logLevel', '5', '-config', 'src/test/conf/testServer.conf', '-connect', 'src/test/conf/testInMemory.clc']
         Gateway.init(AbstractMain.readC2KArgs(args))
         Gateway.connect()
 
@@ -151,11 +151,14 @@ class CAExecutionSpecs extends Specification {
 				ElemAct('first') 
 			} 
 		}
+		util.checkActStatus('ca',   [state: "Started", active: true])
+		
 		when: "requesting Root CompAct Complete transition"
 		util.requestAction('ca', "Complete")
 
-		then: "InvalidTransitionException is thrown"
-		thrown InvalidTransitionException
+		then: "CompAct is finished, child is inactive but Waiting"
+		util.checkActStatus('ca',   [state: "Finished", active: true])
+		util.checkActStatus('first',   [state: "Waiting", active: false])
 	}
 
     def 'Cannot Complete Root Compact without finishing all CompActs'() {
