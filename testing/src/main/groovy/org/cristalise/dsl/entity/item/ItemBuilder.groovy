@@ -22,7 +22,6 @@ package org.cristalise.dsl.entity.item
 
 import groovy.transform.CompileStatic
 
-import org.cristalise.dsl.process.DSLBoostrapper
 import org.cristalise.kernel.common.CannotManageException
 import org.cristalise.kernel.common.InvalidDataException
 import org.cristalise.kernel.common.ObjectAlreadyExistsException
@@ -41,7 +40,7 @@ import org.cristalise.kernel.utils.Logger
  *
  */
 @CompileStatic
-class ItemBuilder implements DSLBoostrapper {
+class ItemBuilder {
 
     String              name
     String              folder
@@ -58,7 +57,7 @@ class ItemBuilder implements DSLBoostrapper {
     }
 
     public static DomainPath create(Map<String, Object> attrs, Closure cl) {
-        assert attrs.agent && (attrs.agent instanceof AgentPath)
+        assert attrs && attrs.agent && (attrs.agent instanceof AgentPath)
 
         def ib = build(attrs, cl)
         return ib.create((AgentPath)attrs.agent)
@@ -77,7 +76,6 @@ class ItemBuilder implements DSLBoostrapper {
         return new ItemBuilder(itemD)
     }
 
-    @Override
     public DomainPath create(AgentPath agent) {
         DomainPath context = new DomainPath(new DomainPath(folder), name);
 

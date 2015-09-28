@@ -44,7 +44,7 @@ class ItemDelegate extends PropertyDelegate {
 
     public void processClosure(Closure cl) {
         assert cl
-        
+
         //Add the name of the Item to the Property list
         Property(Name: name)
 
