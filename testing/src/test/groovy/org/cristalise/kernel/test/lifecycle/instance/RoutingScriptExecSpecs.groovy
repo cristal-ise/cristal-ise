@@ -26,10 +26,45 @@ class RoutingScriptExecSpecs extends Specification implements CristalTestSetup {
         cristalCleanup()
     }
 
-//    @Ignore("TODO: Cannot run InMemoryServer many times during the same execution")
-    def 'OrSplit enables branch(es) using RoutingScript'() {
-        given: "Wf = first-OrSplit(script:1)((left)(right))-last"
-        
+    def 'OrSplit enables branch(es) using RoutingScript  and ActivityDataHelper with relative path'() {
+        given: "Wf = first-OrSplit(CounterScript)((left)(right))-last"
+
+        String module = 'testing'
+        String schemaName = 'TestData'
+
+        ScriptBuilder.create(module, "CounterScript", 0) {
+            input("counter", "java.lang.String")
+            output('java.lang.Integer')
+            javascript { "new java.lang.Integer(counter % 2);" }
+        }
+
+        def schema = SchemaBuilder.create(module, schemaName, 0, "src/test/data/${schemaName}.xsd")
+
+        wfBuilder.buildAndInitWf() {
+            ElemAct("first") {
+                Property(SchemaType: schemaName, SchemaVersion: 0, Viewpoint: 'last')
+            }
+            OrSplit(RoutingScriptName: 'CounterScript', RoutingScriptVersion: 0) {
+                Property(counter: "activity//./first:/TestData/counter")
+
+                Block { ElemAct("left")  }
+                Block { ElemAct("right") }
+            }
+            ElemAct("last")
+        }
+
+        when: "requesting ElemAct(first) Done transition"
+        wfBuilder.requestAction("first", "Done", OutcomeBuilder.build(schema) {counter 3})
+
+        then: "EA(left) is enabled but EA(right) is disabled"
+        wfBuilder.checkActStatus("left",  [state: "Waiting", active: true])
+        wfBuilder.checkActStatus("right", [state: "Waiting", active: false])
+        wfBuilder.checkActStatus("last",  [state: "Waiting", active: false])
+    }
+
+    def 'OrSplit enables branch(es) using RoutingScript and ActivityDataHelper with absolute path'() {
+        given: "Wf = first-OrSplit(CounterScript)((left)(right))-last"
+
         String module = 'testing'
         String schemaName = 'TestData'
 
@@ -63,9 +98,8 @@ class RoutingScriptExecSpecs extends Specification implements CristalTestSetup {
         wfBuilder.checkActStatus("last",  [state: "Waiting", active: false])
     }
 
-//    @Ignore("TODO: Cannot run InMemoryServer many times during the same execution")
-    def 'LoopSplit using RoutingScript'() {
-        given: "Workflow"
+    def 'LoopSplit using RoutingScript and ActivityDataHelper'() {
+        given: "Wf = Loop(incrementer)"
 
         String module = 'testing'
         String schemaName = 'TestData'
@@ -80,7 +114,7 @@ class RoutingScriptExecSpecs extends Specification implements CristalTestSetup {
 
         wfBuilder.buildAndInitWf {
             Loop(RoutingScriptName: 'CounterScript', RoutingScriptVersion: 0) {
-                Property(counter: "activity//./workflow/domain/incrementer:/TestData/counter")
+                Property(counter: "activity//./incrementer:/TestData/counter")
 
                 ElemAct("incrementer")  {
                     Property(SchemaType: schemaName, SchemaVersion: 0, Viewpoint: 'last')
@@ -93,9 +127,7 @@ class RoutingScriptExecSpecs extends Specification implements CristalTestSetup {
             when: "requesting ElemAct(incrementer) Done transition"
             wfBuilder.requestAction("incrementer", "Done", OutcomeBuilder.build(schema) {counter i})
 
-            def msg = "EA(incrementer) is enabled, i = $i"
-            then: msg
-            println msg
+            then: "EA(incrementer) is enabled, i=$i"
             wfBuilder.checkActStatus("incrementer",  [state: (i < 10)?"Waiting":"Finished", active: (i < 10)])
         }
 

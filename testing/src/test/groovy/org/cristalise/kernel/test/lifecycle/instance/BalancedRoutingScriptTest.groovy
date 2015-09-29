@@ -56,14 +56,14 @@ class BalancedRoutingScriptTest implements CristalTestSetup {
 
         wfBuilder.buildAndInitWf {
             Loop(RoutingScriptName: 'LoopScript', RoutingScriptVersion: 0) {
-                Property(counter: "activity//./workflow/domain/incrementer:/TestData/counter")
+                Property(counter: "activity//./incrementer:/TestData/counter")
 
                 ElemAct("incrementer")  {
                     Property(SchemaType: schemaName, SchemaVersion: 0, Viewpoint: 'last')
                 }
 
                 OrSplit(RoutingScriptName: 'OrSplitScript', RoutingScriptVersion: 0) {
-                    Property(counter: "activity//./workflow/domain/incrementer:/TestData/counter")
+                    Property(counter: "activity//./incrementer:/TestData/counter")
 
                     Block {
                         AndSplit {
