@@ -65,7 +65,7 @@ class BasicDevDescriptionIT extends KernelScenarioTestBase {
     }
 
 
-    @Test
+    @Test @Ignore("Integrtion tests are not fully designed yet")
     public void createAndEditEADesc() {
         String name = "TestEADesc-$timeStamp"
         String folder = "TestEADesc"
@@ -75,7 +75,7 @@ class BasicDevDescriptionIT extends KernelScenarioTestBase {
 	}
 
  
-    @Test
+    @Test @Ignore("Integrtion tests are not fully designed yet")
     public void checkPath() {
         //Code to experiment with Lookup and LDAP based in dev module data
         

@@ -9,6 +9,7 @@ import org.cristalise.kernel.entity.proxy.ItemProxy
 import org.cristalise.kernel.test.KernelScenarioTestBase
 import org.cristalise.kernel.test.utils.KernelXMLUtility
 import org.junit.Before
+import org.junit.Ignore
 import org.junit.Test
 
 
@@ -90,7 +91,7 @@ class ItemWithoutDescriptionIT extends KernelScenarioTestBase {
     }
 
 
-    @Test
+    @Test @Ignore("Integrtion tests are not fully designed yet")
     public void createRole() {
         String role = "TestRole-$timeStamp"
 
@@ -98,7 +99,7 @@ class ItemWithoutDescriptionIT extends KernelScenarioTestBase {
     }
 
 
-    @Test
+    @Test @Ignore("Integrtion tests are not fully designed yet")
     public void createAgent() {
         String role = "TestRole-$timeStamp"
         String name = "TestAgent-$timeStamp"
@@ -108,7 +109,7 @@ class ItemWithoutDescriptionIT extends KernelScenarioTestBase {
     }
 
     
-    @Test
+    @Test @Ignore("Integrtion tests are not fully designed yet")
     public void createItem() {
         String name = "TestItem-$timeStamp"
         
