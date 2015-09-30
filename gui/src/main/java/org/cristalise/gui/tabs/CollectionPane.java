@@ -58,26 +58,38 @@ public class CollectionPane extends ItemTabPane implements ProxyObserver<Collect
         Logger.msg(5, "Got "+contents.getName()+": "+contents.getClass().getName());
         Logger.msg(7, "Looking for existing "+contents.getName());
 		CollectionView<? extends CollectionMember> thisCollView = findTabForCollName(contents.getName());
-        if (thisCollView == null){
-            if (contents instanceof Aggregation) {
-                AggregationView thisAggView = new AggregationView();
-                thisAggView.setItem(sourceItem.getItem());
-                thisAggView.setCollection((Aggregation)contents);
-                thisCollView = thisAggView;
-            }
-            else if (contents instanceof Dependency) {
-            	DependencyView thisDepView = new DependencyView();
-            	thisDepView.setItem(sourceItem.getItem());
-            	thisDepView.setCollection((Dependency)contents);
-                thisCollView = thisDepView;
-            }
-            else {
-                Logger.error("Collection type "+contents.getClass().getName()+" not known");
-                return;
-            }
-            Logger.msg(3, "Adding new "+thisCollView.getClass().getName());
-            collTabs.add(contents.getName()+(contents instanceof CollectionDescription?"*":""), thisCollView);
+        if (contents instanceof Aggregation) {
+        	AggregationView thisAggView;
+        	if (thisCollView == null) {
+        		thisAggView = new AggregationView();
+        		thisAggView.setItem(sourceItem.getItem());
+        		thisCollView = thisAggView;
+        	}
+        	else {
+        		thisAggView = (AggregationView)thisCollView;
+        	}
+            thisAggView.setCollection((Aggregation)contents);
+            
         }
+        else if (contents instanceof Dependency) {
+        	DependencyView thisDepView;
+        	if (thisCollView == null) {
+        		thisDepView = new DependencyView();
+        		thisDepView.setItem(sourceItem.getItem());
+                thisCollView = thisDepView;            		
+        	}
+        	else {
+        		thisDepView = (DependencyView)thisCollView;
+        	}
+        	thisDepView.setCollection((Dependency)contents);
+
+        }
+        else {
+            Logger.error("Collection type "+contents.getClass().getName()+" not known");
+            return;
+        }
+        Logger.msg(3, "Adding new "+thisCollView.getClass().getName());
+        collTabs.add(contents.getName()+(contents instanceof CollectionDescription?"*":""), thisCollView);
 	}
 
     @Override
