@@ -39,10 +39,6 @@ public class NodeAgent extends NodeItem {
     }
 
     @Override
-	public void loadChildren() {
-    }
-
-    @Override
 	public ArrayList<String> getTabs() {
 
         ArrayList<String> requiredTabs = super.getTabs();
