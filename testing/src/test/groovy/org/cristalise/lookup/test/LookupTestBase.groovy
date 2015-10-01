@@ -18,7 +18,7 @@ class LookupTestBase implements CristalTestSetup {
     
     @Before
     public void setUp() throws Exception {
-        loggerSetup(9)
+        loggerSetup()
 
         lookup = new InMemoryLookupManager()
 
