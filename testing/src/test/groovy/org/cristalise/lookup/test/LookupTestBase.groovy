@@ -6,29 +6,20 @@ import groovy.transform.CompileStatic
 import org.apache.commons.lang.reflect.FieldUtils
 import org.cristalise.kernel.lookup.LookupManager
 import org.cristalise.kernel.process.Gateway
-import org.cristalise.kernel.utils.Logger
 import org.cristalise.lookup.lite.InMemoryLookupManager
+import org.cristalise.test.CristalTestSetup
 import org.junit.After
 import org.junit.Before
-import org.junit.BeforeClass
 
 
 @CompileStatic
-class LookupTestBase {
-    private static beforeClass = false
-
+class LookupTestBase implements CristalTestSetup {
     LookupManager lookup
     
-    @BeforeClass
-    public static void init() {
-        if(!beforeClass) {
-            Logger.addLogStream(new PrintStream(System.out), 9);
-            beforeClass = true
-        }
-    }
-
     @Before
     public void setUp() throws Exception {
+        loggerSetup(9)
+
         lookup = new InMemoryLookupManager()
 
         FieldUtils.writeDeclaredStaticField(Gateway.class, "mLookupManager", lookup, true)
