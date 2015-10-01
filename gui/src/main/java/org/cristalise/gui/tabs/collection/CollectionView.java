@@ -54,6 +54,10 @@ public abstract class CollectionView<M extends CollectionMember> extends JPanel 
     }
 
     public abstract void setCollection(Collection<M> coll);
+    
+    public Collection<? extends CollectionMember> getCollection() {
+    	return thisColl;
+    }
 
     protected void saveCollection()
     {

@@ -101,12 +101,11 @@ public class CollectionPane extends ItemTabPane implements ProxyObserver<Collect
     private CollectionView<? extends CollectionMember> findTabForCollName(String collName) {
         CollectionView<? extends CollectionMember> thisCollView = null;
         for (int i = 0; i < collTabs.getTabCount(); i++) {
-            String tabName = collTabs.getTitleAt(i);
-            if (tabName.equals(collName)) {
-                thisCollView = (CollectionView<? extends CollectionMember>)collTabs.getComponentAt(i);
-            }
+        	thisCollView = (CollectionView<? extends CollectionMember>)collTabs.getComponentAt(i);
+        	if (thisCollView.getCollection() != null && collName.equals(thisCollView.getCollection().getName()))
+        			return thisCollView;
         }
-        return thisCollView;
+        return null;
     }
 
     protected void createLayout()
