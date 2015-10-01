@@ -6,6 +6,7 @@ import org.cristalise.dsl.persistency.outcome.OutcomeBuilder
 import org.cristalise.dsl.persistency.outcome.SchemaBuilder
 import org.cristalise.dsl.scripting.ScriptBuilder
 import org.cristalise.dsl.test.lifecycle.instance.WorkflowTestBuilder
+import org.cristalise.kernel.common.InvalidDataException
 import org.cristalise.kernel.process.Gateway
 import org.cristalise.test.CristalTestSetup
 
@@ -26,7 +27,7 @@ class RoutingScriptExecSpecs extends Specification implements CristalTestSetup {
         cristalCleanup()
     }
 
-    def 'OrSplit enables branch(es) using RoutingScript  and ActivityDataHelper with relative path'() {
+    def 'OrSplit enables branch(es) using RoutingScript and ActivityDataHelper with relative path'() {
         given: "Wf = first-OrSplit(CounterScript)((left)(right))-last"
 
         String module = 'testing'
@@ -133,5 +134,39 @@ class RoutingScriptExecSpecs extends Specification implements CristalTestSetup {
 
         wfBuilder.checkActStatus("incrementer", [state: "Finished", active: false])
         wfBuilder.checkActStatus("last",        [state: "Waiting", active: true])
+    }
+
+    def 'RoutingScript can only use String for input parameter'() {
+        given: "Wf = first-OrSplit(CounterScript)((left)(right))-last"
+
+        String module = 'testing'
+        String schemaName = 'TestData'
+
+        ScriptBuilder.create(module, "CounterScript", 0) {
+            input("counter", "java.lang.Integer")
+            output('java.lang.Integer')
+            javascript { "new java.lang.Integer(counter % 2);" }
+        }
+
+        def schema = SchemaBuilder.create(module, schemaName, 0, "src/test/data/${schemaName}.xsd")
+
+        wfBuilder.buildAndInitWf() {
+            ElemAct("first") {
+                Property(SchemaType: schemaName, SchemaVersion: 0, Viewpoint: 'last')
+            }
+            OrSplit(RoutingScriptName: 'CounterScript', RoutingScriptVersion: 0) {
+                Property(counter: "activity//./first:/TestData/counter")
+
+                Block { ElemAct("left")  }
+                Block { ElemAct("right") }
+            }
+            ElemAct("last")
+        }
+
+        when: "requesting ElemAct(first) Done transition"
+        wfBuilder.requestAction("first", "Done", OutcomeBuilder.build(schema) {counter 3})
+
+        then: "InvalidDataException is thrown"
+        thrown InvalidDataException
     }
 }
