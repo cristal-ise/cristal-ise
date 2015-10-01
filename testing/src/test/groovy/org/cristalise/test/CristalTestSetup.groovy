@@ -69,10 +69,10 @@ trait CristalTestSetup {
 
         Gateway.close()
 
-        if(ORB) {
+        if(ORB && ORB instanceof com.sun.corba.se.impl.orb.ORBImpl) {
             try {
-                com.sun.corba.se.spi.transport.CorbaTransportManager mgr = ((com.sun.corba.se.impl.orb.ORBImpl)ORB).getCorbaTransportManager();
-                for (Object accept: mgr.getAcceptors()) { ((com.sun.corba.se.pept.transport.Acceptor) accept).close(); }
+                def mgr = ORB.getCorbaTransportManager();
+                for (com.sun.corba.se.pept.transport.Acceptor accept: mgr.getAcceptors()) { accept.close(); }
             }
             catch(Exception e) {
                 e.printStackTrace()
