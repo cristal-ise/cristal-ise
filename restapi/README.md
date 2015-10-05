@@ -20,7 +20,7 @@ The REST API used several CRISTAL properties (as provided in the clc or conf fil
 
 Some useful example curl commands:
 
-* `curl -c cookies.txt http://{host:port}/login?user={user}&pass={pass}`
+* `curl -c cookies.txt http://{host:port}/login?user={user}\&pass={pass}`
   * *get a login cookie and store it in the local file cookies.txt*
 * `curl -b cookies.txt http://{host:port}/domain`
   * *get root listing of the item directory*
