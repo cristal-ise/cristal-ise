@@ -82,7 +82,7 @@ class RoutingScriptExecSpecs extends Specification implements CristalTestSetup {
                 Property(SchemaType: schemaName, SchemaVersion: 0, Viewpoint: 'last')
             }
             OrSplit(RoutingScriptName: 'CounterScript', RoutingScriptVersion: 0) {
-                Property(counter: "activity//./workflow/domain/first:/TestData/counter")
+                Property(counter: "activity//workflow/domain/first:/TestData/counter")
 
                 Block { ElemAct("left")  }
                 Block { ElemAct("right") }
