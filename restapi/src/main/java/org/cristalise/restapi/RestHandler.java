@@ -42,8 +42,10 @@ public class RestHandler {
 				try {
 					initKeys(256);
 				} catch (InvalidKeyException ex) {
-					if (Gateway.getProperties().getBoolean("REST.allowWeakKey", false) == false)
+					if (Gateway.getProperties().getBoolean("REST.allowWeakKey", false) == false) {
+						Logger.error(ex);
 						Logger.die("Weak cookie crypto not allowed, and unlimited strength crypto not installed.");
+					}
 					Logger.msg("Unlimited crypto not installed. Trying 128-bit key.");
 					initKeys(128);
 				}
