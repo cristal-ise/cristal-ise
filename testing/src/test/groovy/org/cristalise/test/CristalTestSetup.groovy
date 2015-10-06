@@ -39,6 +39,10 @@ trait CristalTestSetup {
         Logger.addLogStream(System.out, logLevel);
     }
 
+    public void loggerCleanup() {
+        Logger.removeLogStream(System.out);
+    }
+
     public void inMemorySetup(int logLevel = defaulLogLevel) {
         cristalSetup(logLevel, 'src/test/conf/testServer.conf', 'src/test/conf/testInMemory.clc')
         //FieldUtils.writeDeclaredStaticField(Gateway.class, "mLookupManager", Gateway.getLookup(), true)
@@ -68,18 +72,18 @@ trait CristalTestSetup {
         catch(any) { ORB = null }
 
         if(ORB && ORB instanceof com.sun.corba.se.impl.orb.ORBImpl) {
-			Logger.msg("Forcing Sun ORB port closure");
+            Logger.msg("Forcing Sun ORB port closure");
             try {
                 com.sun.corba.se.spi.transport.CorbaTransportManager mgr = ((com.sun.corba.se.impl.orb.ORBImpl)ORB).getCorbaTransportManager();
                 for (Object accept: mgr.getAcceptors()) {
-					((com.sun.corba.se.pept.transport.Acceptor) accept).close(); 
-					}
+                    ((com.sun.corba.se.pept.transport.Acceptor) accept).close(); 
+                }
             }
             catch(Throwable t) {
-				System.err.println("Error closing ORB!")
+                System.err.println("Error closing ORB!")
                 t.printStackTrace()
             }
         }
-		Gateway.close()
+        Gateway.close()
     }
 }

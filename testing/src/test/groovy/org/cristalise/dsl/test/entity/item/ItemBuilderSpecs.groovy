@@ -21,6 +21,7 @@
 package org.cristalise.dsl.test.entity.item
 
 import org.cristalise.dsl.entity.item.ItemBuilder
+import org.cristalise.kernel.common.InvalidDataException
 import org.cristalise.test.CristalTestSetup
 
 import spock.lang.Specification
@@ -31,17 +32,25 @@ import spock.lang.Specification
  */
 class ItemBuilderSpecs extends Specification implements CristalTestSetup {
 
-    def setup()   { inMemorySetup()    }
+    def setup()   { inMemorySetup()  }
     def cleanup() { cristalCleanup() }
+
+    def 'Cannot Build Item without folder specified'() {
+        when:
+        def itemB = ItemBuilder.build(name: "myFisrtItem") {}
+
+        then:
+        thrown InvalidDataException
+    }
 
     def 'ItemBuilder with empty Workflow adds Name to Properties'() {
         when:
         def itemB = ItemBuilder.build(name: "myFisrtItem", folder: "testing") {}
 
         then:
-        assert itemB.props.list.size == 1
-        assert itemB.props.list[0].name == "Name"
-        assert itemB.props.list[0].value == "myFisrtItem"
+        itemB.props.list.size == 1
+        itemB.props.list[0].name == "Name"
+        itemB.props.list[0].value == "myFisrtItem"
     }
 
     def 'ItemBuilder builds domain Workflow'() {
@@ -49,8 +58,7 @@ class ItemBuilderSpecs extends Specification implements CristalTestSetup {
         def itemB = ItemBuilder.build(name: "myFisrtItem", folder: "testing") { Workflow {} }
 
         then:
-        assert itemB.wf
-        assert itemB.wf.search("workflow/domain")
+        itemB.wf
+        itemB.wf.search("workflow/domain")
     }
-
 }

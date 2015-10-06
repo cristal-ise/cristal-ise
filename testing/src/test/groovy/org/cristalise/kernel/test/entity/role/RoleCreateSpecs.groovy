@@ -22,6 +22,7 @@ package org.cristalise.kernel.test.entity.role
 
 import org.cristalise.dsl.entity.role.RoleBuilder
 import org.cristalise.kernel.common.ObjectNotFoundException
+import org.cristalise.kernel.process.Gateway
 import org.cristalise.test.CristalTestSetup
 
 import spock.lang.Specification
@@ -49,15 +50,20 @@ class RoleCreateSpecs extends Specification implements CristalTestSetup {
     def "Creating Roles and Subroles"() {
         when:
         def roles = RoleBuilder.create {
-            Role(name: 'Clerk', jobList: true)
+            Role(name: 'Clerk')
             Role(name: 'Clerk/SubClerk', jobList: true)
         }
 
         then:
         roles[0].exists()
         roles[0].string == "/role/Clerk"
+        roles[0].hasJobList() == false
 
         roles[1].exists()
         roles[1].string == "/role/Clerk/SubClerk"
+        roles[1].hasJobList() == true
+
+        Gateway.lookup.getRolePath("Clerk").hasJobList() == false
+        Gateway.lookup.getRolePath("SubClerk").hasJobList() == true
     }
 }

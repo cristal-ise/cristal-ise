@@ -18,45 +18,44 @@
  *
  * http://www.fsf.org/licensing/licenses/lgpl.html
  */
-package org.cristalise.dsl.test.entity.role
+package org.cristalise.dsl.entity
 
-import org.cristalise.dsl.entity.role.RoleBuilder
-import org.cristalise.test.CristalTestSetup
+import groovy.transform.CompileStatic
 
-import spock.lang.Specification
+import org.cristalise.dsl.lifecycle.instance.WorkflowBuilder
+import org.cristalise.dsl.property.PropertyDelegate
+import org.cristalise.kernel.lifecycle.instance.Workflow
 
 
 /**
  *
  */
-class RoleBuilderSpecs extends Specification implements CristalTestSetup {
+@CompileStatic
+class EntityDelegate extends PropertyDelegate {
+    
+    String    name
+    String    type
+    Workflow  wf
 
-    def setup()   { loggerSetup()    }
-    def cleanup() { cristalCleanup() }
-
-    def "Default value for jobList is false"() {
-        when:
-        def roles = RoleBuilder.build {
-            Role(name: 'User')
-        }
-
-        then:
-        roles[0].name == "User"
-        roles[0].hasJobList() == false
+    public EntityDelegate(String n, String t) {
+        name = n
+        type = t
     }
 
-    def "Builder build a list of Roles"() {
-        when:
-        def roles = RoleBuilder.build {
-            Role(name: 'User')
-            Role(name: 'User/SubUser', jobList: true)
-        }
+    public void processClosure(Closure cl) {
+        assert cl
+        assert name
 
-        then:
-        roles[0].name == "User"
-        roles[0].hasJobList() == false
-        
-        roles[1].name == "User/SubUser"
-        roles[1].hasJobList() == true
+        //Add the name and type of the Item to the Properties
+        Property(Name: name)
+        if(type) Property(Type: type)
+
+        cl.delegate = this
+        cl.resolveStrategy = Closure.DELEGATE_FIRST
+        cl()
+    }
+
+    def Workflow(Closure cl) {
+        wf = new WorkflowBuilder().build(cl)
     }
 }

@@ -18,45 +18,30 @@
  *
  * http://www.fsf.org/licensing/licenses/lgpl.html
  */
-package org.cristalise.dsl.test.entity.role
+package org.cristalise.dsl.entity.agent
 
+import groovy.transform.CompileStatic
+
+import org.cristalise.dsl.entity.EntityDelegate
 import org.cristalise.dsl.entity.role.RoleBuilder
-import org.cristalise.test.CristalTestSetup
-
-import spock.lang.Specification
+import org.cristalise.kernel.entity.imports.ImportRole
 
 
 /**
  *
  */
-class RoleBuilderSpecs extends Specification implements CristalTestSetup {
+@CompileStatic
+class AgentDelegate extends EntityDelegate {
+    
+    List<ImportRole> roles
+    String pwd
 
-    def setup()   { loggerSetup()    }
-    def cleanup() { cristalCleanup() }
-
-    def "Default value for jobList is false"() {
-        when:
-        def roles = RoleBuilder.build {
-            Role(name: 'User')
-        }
-
-        then:
-        roles[0].name == "User"
-        roles[0].hasJobList() == false
+    public AgentDelegate(String n, String pwd) {
+        super(n, "Agent")
     }
 
-    def "Builder build a list of Roles"() {
-        when:
-        def roles = RoleBuilder.build {
-            Role(name: 'User')
-            Role(name: 'User/SubUser', jobList: true)
-        }
-
-        then:
-        roles[0].name == "User"
-        roles[0].hasJobList() == false
-        
-        roles[1].name == "User/SubUser"
-        roles[1].hasJobList() == true
+    def Roles(Closure cl) {
+        roles = new RoleBuilder().build(cl)
     }
+
 }

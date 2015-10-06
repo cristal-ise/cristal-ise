@@ -18,11 +18,11 @@
  *
  * http://www.fsf.org/licensing/licenses/lgpl.html
  */
-package org.cristalise.dsl.test.entity.item
+package org.cristalise.dsl.test.entity.agent
 
 import groovy.transform.CompileStatic
 
-import org.cristalise.dsl.entity.item.ItemBuilder
+import org.cristalise.dsl.entity.agent.AgentBuilder
 import org.cristalise.kernel.lookup.AgentPath
 import org.cristalise.kernel.lookup.ItemPath
 import org.cristalise.kernel.process.Gateway
@@ -32,29 +32,30 @@ import org.cristalise.kernel.process.Gateway
  *
  */
 @CompileStatic
-class ItemTestBuilder extends ItemBuilder {
+class AgentTestBuilder extends AgentBuilder {
     AgentPath builderAgent
-    ItemPath item
+    AgentPath agent
 
-    public ItemTestBuilder() {}
+    public AgentTestBuilder() {}
 
-    public ItemTestBuilder(ItemBuilder ib) {
+    public AgentTestBuilder(AgentBuilder ib) {
         name   = ib.name
-        folder = ib.folder
+        pwd    = ib.pwd
+        roles  = ib.roles
         props  = ib.props
         wf     = ib.wf
 
-        builderAgent = new AgentPath(new ItemPath(), "ItemTestBuilder")
+        builderAgent = new AgentPath(new ItemPath(), "AgentTestBuilder")
         if(!Gateway.getLookupManager().exists(builderAgent)) Gateway.getLookupManager().add(builderAgent)
     }
 
-    public static ItemTestBuilder create(Map<String, Object> attrs, Closure cl) {
-        def itb = new ItemTestBuilder(ItemBuilder.build(attrs, cl))
-        itb.item = itb.create(itb.builderAgent)
+    public static AgentTestBuilder create(Map<String, Object> attrs, Closure cl) {
+        def itb = new AgentTestBuilder(AgentBuilder.build(attrs, cl))
+        itb.agent = itb.create(itb.builderAgent)
         return itb
     }
 
-    public static ItemTestBuilder build(Map<String, Object> attrs, Closure cl) {
-        return new ItemTestBuilder(ItemBuilder.build(attrs, cl))
+    public static AgentTestBuilder build(Map<String, Object> attrs, Closure cl) {
+        return new AgentTestBuilder(AgentBuilder.build(attrs, cl))
     }
 }

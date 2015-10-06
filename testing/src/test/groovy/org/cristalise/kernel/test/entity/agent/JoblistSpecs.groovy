@@ -18,9 +18,11 @@
  *
  * http://www.fsf.org/licensing/licenses/lgpl.html
  */
-package org.cristalise.dsl.test.entity.role
+package org.cristalise.kernel.test.entity.agent
 
-import org.cristalise.dsl.entity.role.RoleBuilder
+import org.cristalise.dsl.test.entity.agent.AgentTestBuilder
+import org.cristalise.dsl.test.entity.item.ItemTestBuilder
+import org.cristalise.kernel.entity.agent.JobList
 import org.cristalise.test.CristalTestSetup
 
 import spock.lang.Specification
@@ -29,34 +31,35 @@ import spock.lang.Specification
 /**
  *
  */
-class RoleBuilderSpecs extends Specification implements CristalTestSetup {
+class JoblistSpecs extends Specification implements CristalTestSetup {
 
-    def setup()   { loggerSetup()    }
+    def setup()   { inMemoryServer() }
     def cleanup() { cristalCleanup() }
 
-    def "Default value for jobList is false"() {
+    def 'Joblist of Agent is automatically updated'() {
         when:
-        def roles = RoleBuilder.build {
-            Role(name: 'User')
+        AgentTestBuilder agentBuilder = AgentTestBuilder.create(name: "dummyAgent") {
+            Roles {
+                Role(name: 'toto', jobList: true)
+            }
         }
 
-        then:
-        roles[0].name == "User"
-        roles[0].hasJobList() == false
-    }
-
-    def "Builder build a list of Roles"() {
-        when:
-        def roles = RoleBuilder.build {
-            Role(name: 'User')
-            Role(name: 'User/SubUser', jobList: true)
+        ItemTestBuilder.create(name: "dummyItem", folder: "testing") {
+            Workflow {
+                EA('EA1') {
+                    Property('Agent Role': "toto")
+                }
+            }
         }
 
+        //some wait is needed until JobPusher thread finishes
+        Thread.sleep(500)
+        def jobList = new JobList(agentBuilder.agent, null)
+
         then:
-        roles[0].name == "User"
-        roles[0].hasJobList() == false
-        
-        roles[1].name == "User/SubUser"
-        roles[1].hasJobList() == true
+        agentBuilder.agent
+        agentBuilder.agent.exists()
+        jobList.get(0)
+        jobList.get(1)
     }
 }

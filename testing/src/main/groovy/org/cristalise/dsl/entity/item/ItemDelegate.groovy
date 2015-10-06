@@ -22,38 +22,19 @@ package org.cristalise.dsl.entity.item
 
 import groovy.transform.CompileStatic
 
-import org.cristalise.dsl.lifecycle.instance.WorkflowBuilder
-import org.cristalise.dsl.property.PropertyDelegate
-import org.cristalise.kernel.lifecycle.instance.Workflow
+import org.cristalise.dsl.entity.EntityDelegate
 
 
 /**
  *
  */
 @CompileStatic
-class ItemDelegate extends PropertyDelegate {
+class ItemDelegate extends EntityDelegate {
     
-    String name
     String folder
-    Workflow wf
 
-    public ItemDelegate(String n, String f) {
-        name = n
+    public ItemDelegate(String n, String t, String f) {
+        super(n, t)
         folder = f
-    }
-
-    public void processClosure(Closure cl) {
-        assert cl
-
-        //Add the name of the Item to the Property list
-        Property(Name: name)
-
-        cl.delegate = this
-        cl.resolveStrategy = Closure.DELEGATE_FIRST
-        cl()
-    }
-
-    def Workflow(Closure cl) {
-        wf = new WorkflowBuilder().build(cl)
     }
 }

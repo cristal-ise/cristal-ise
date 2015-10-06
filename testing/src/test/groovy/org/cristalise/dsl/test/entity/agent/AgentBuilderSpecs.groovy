@@ -18,9 +18,10 @@
  *
  * http://www.fsf.org/licensing/licenses/lgpl.html
  */
-package org.cristalise.dsl.test.entity.role
+package org.cristalise.dsl.test.entity.agent
 
-import org.cristalise.dsl.entity.role.RoleBuilder
+import org.cristalise.dsl.entity.agent.AgentBuilder
+import org.cristalise.kernel.common.InvalidDataException
 import org.cristalise.test.CristalTestSetup
 
 import spock.lang.Specification
@@ -29,34 +30,35 @@ import spock.lang.Specification
 /**
  *
  */
-class RoleBuilderSpecs extends Specification implements CristalTestSetup {
+class AgentBuilderSpecs extends Specification implements CristalTestSetup {
 
-    def setup()   { loggerSetup()    }
+    def setup()   { inMemorySetup()  }
     def cleanup() { cristalCleanup() }
 
-    def "Default value for jobList is false"() {
+    def 'Agent must have at least one Role defined'() {
         when:
-        def roles = RoleBuilder.build {
-            Role(name: 'User')
-        }
+        AgentBuilder.build(name: "dummy") {}
 
         then:
-        roles[0].name == "User"
-        roles[0].hasJobList() == false
+        thrown InvalidDataException
     }
 
-    def "Builder build a list of Roles"() {
+    def 'Agent with Role a role has name/type property added'() {
         when:
-        def roles = RoleBuilder.build {
-            Role(name: 'User')
-            Role(name: 'User/SubUser', jobList: true)
+        def agentB = AgentBuilder.build(name: "dummy") {
+            Roles {
+                Role(name: 'User')
+            }
         }
 
         then:
-        roles[0].name == "User"
-        roles[0].hasJobList() == false
+        agentB.props.list.size == 2
+        agentB.props.list[0].name == "Name"
+        agentB.props.list[0].value == "dummy"
+        agentB.props.list[1].name == "Type"
+        agentB.props.list[1].value == "Agent"
         
-        roles[1].name == "User/SubUser"
-        roles[1].hasJobList() == true
+        agentB.roles.size() == 1
+        agentB.roles[0].name == 'User'
     }
 }

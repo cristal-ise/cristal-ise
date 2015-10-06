@@ -43,6 +43,7 @@ import org.cristalise.kernel.utils.Logger
 class ItemBuilder {
 
     String              name
+    String              type
     String              folder
     PropertyArrayList   props
     Workflow            wf
@@ -51,63 +52,71 @@ class ItemBuilder {
 
     public ItemBuilder(ItemDelegate delegate) {
         name   = delegate.name
+        type   = delegate.type
         folder = delegate.folder
         props  = delegate.props
         wf     = delegate.wf
     }
 
-    public static DomainPath create(Map<String, Object> attrs, Closure cl) {
-        assert attrs && attrs.agent && (attrs.agent instanceof AgentPath)
+    public static ItemPath create(Map<String, Object> attrs, Closure cl) {
+        assert attrs, "ItemBuilder create() cannot work with empty attributes (Map)"
+        assert attrs.agent && (attrs.agent instanceof AgentPath)
 
         def ib = build(attrs, cl)
+
         return ib.create((AgentPath)attrs.agent)
     }
 
     public static ItemBuilder build(Map<String, Object> attrs, Closure cl) {
-        assert attrs && attrs.name && attrs.folder
+        assert attrs, "ItemBuilder build() cannot work with empty attributes (Map)"
         return build((String)attrs.name, (String)attrs.folder, cl)
     }
 
     public static ItemBuilder build(String name, String folder, Closure cl) {
-        def itemD = new ItemDelegate(name, folder)
+        if(!name || !folder) throw new InvalidDataException("")
+
+        def itemD = new ItemDelegate(name, null, folder)
 
         itemD.processClosure(cl)
 
         return new ItemBuilder(itemD)
     }
 
-    public DomainPath create(AgentPath agent) {
+    public ItemPath create(AgentPath agent) {
+        assert agent
+
         DomainPath context = new DomainPath(new DomainPath(folder), name);
 
         if (context.exists()) throw new ObjectAlreadyExistsException("The path $context exists already.");
 
-        Logger.msg(3, "ItemBuilder.create() - Creating Corba Item");
-        ItemPath newItemPath = new ItemPath();
+        Logger.msg(3, "ItemBuilder.create() - Creating CORBA Object");
         CorbaServer factory = Gateway.getCorbaServer();
-
         if (factory == null) throw new CannotManageException("This process cannot create new Items");
-
+        ItemPath newItemPath = new ItemPath();
         TraceableEntity newItem = factory.createItem(newItemPath);
+
+        Logger.msg(3, "ItemBuilder.create() - Adding entity '$newItemPath' to lookup");
         Gateway.getLookupManager().add(newItemPath);
 
-        Logger.msg(3, "ItemBuilder.create() - Initializing Item");
+        Logger.msg(3, "ItemBuilder.create() - Initializing entity");
         try {
             newItem.initialise(
                 agent.getSystemKey(),
                 Gateway.getMarshaller().marshall(props),
                 wf == null ? null : Gateway.getMarshaller().marshall(wf.search("workflow/domain")),
-                null
-            );
+                null);
         }
-        catch (Exception e) {
-            Logger.error(e)
+        catch (Exception ex) {
+            Logger.error(ex)
             Gateway.getLookupManager().delete(newItemPath);
-            throw new InvalidDataException("Problem initializing new Item. See log: "+e.getMessage());
+            throw new InvalidDataException("Problem initializing new Item '"+name+"'. See log: "+ex.getMessage());
         }
 
         // add its domain path
-        Logger.msg(3, "ItemBuilder.create() - Creating context:"+context);
+        Logger.msg(3, "ItemBuilder.create() - Creating context '$context'");
         context.setItemPath(newItemPath);
         Gateway.getLookupManager().add(context);
+        
+        return newItemPath
     }
 }
