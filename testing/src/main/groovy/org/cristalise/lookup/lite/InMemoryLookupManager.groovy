@@ -45,7 +45,7 @@ class InMemoryLookupManager extends InMemoryLookup implements LookupManager {
 
     @Override
     public void add(Path newPath) throws ObjectCannotBeUpdated, ObjectAlreadyExistsException {
-        Logger.msg(5, "InMemoryLookupManager.add() - Path: $newPath.string");
+        Logger.msg(5, "InMemoryLookupManager.add() - Path: $newPath");
 
         if(cache.containsKey(newPath.getString())) { throw new ObjectAlreadyExistsException("$newPath")}
         else {
@@ -112,28 +112,13 @@ class InMemoryLookupManager extends InMemoryLookup implements LookupManager {
     @Override
     public RolePath createRole(RolePath role) throws ObjectAlreadyExistsException, ObjectCannotBeUpdated {
         Logger.msg(5, "InMemoryLookupManager.createRole() - RolePath: $role");
-        RolePath parent = new RolePath()
 
         if(exists(role)) throw new ObjectAlreadyExistsException("$role")
 
-        if(!exists(parent)) cache[parent.string] = parent
-
-        role.path.each { String name ->
-            if(name == "agent") return //skip agent path element
-
-            RolePath child = new RolePath(parent, name)
-
-            if(exists(child)) {
-                Logger.msg(8, "InMemoryLookupManager.createRole() - RolePath '$child' already exists");
-            }
-            else {
-                Logger.msg(5, "InMemoryLookupManager.createRole() - Adding RolePath '$child' ")
-                cache[child.string] = child
-            }
-            parent = child
-        }
-
-        return parent
+        try                 { role.getParent() } 
+        catch (Throwable t) { Logger.error(t); throw new ObjectCannotBeUpdated("Parent role for '$role' does not exists") }
+        
+        cache[role.string] = role
     }
 
     @Override
@@ -175,7 +160,7 @@ class InMemoryLookupManager extends InMemoryLookup implements LookupManager {
 
     @Override
     public void setHasJobList(RolePath role, boolean hasJobList) throws ObjectNotFoundException, ObjectCannotBeUpdated {
-        Logger.msg(5, "InMemoryLookupManager.setAgentPassword() - RolePath: $role, hasJobList: $hasJobList");
+        Logger.msg(5, "InMemoryLookupManager.setHasJobList() - RolePath: $role, hasJobList: $hasJobList");
         ((RolePath)retrievePath(role.string)).setHasJobList(hasJobList)
     }
 }

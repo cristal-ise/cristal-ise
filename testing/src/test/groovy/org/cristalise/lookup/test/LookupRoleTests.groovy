@@ -31,22 +31,25 @@ class LookupRoleTests extends LookupTestBase {
         lookup.add(jim)
     }
 
-    public void checkRolePath(RolePath parent, RolePath role, String name) {
+    public void checkRolePath(RolePath parent, RolePath role, String name, boolean hasJobList = false) {
         assert role.getName() == name
         assert role.string == "$parent.string/$name"
         assert lookup.exists(role)
-        assert lookup.getRolePath(name) == role
+        def r = lookup.getRolePath(name)
+        assert r == role
+        assert r.hasJobList() == hasJobList
     }
 
-    public RolePath createUserRole(String name) {
-        RolePath role = lookup.createRole(new RolePath(user, name))
-        checkRolePath(user, role, name)
+    public RolePath createUserRole(String name, boolean hasJobList = false) {
+        RolePath role = lookup.createRole(new RolePath(user, name, hasJobList))
+        checkRolePath(user, role, name, hasJobList)
         return role
     }
 
     @Test
     public void createRole() {
         createUserRole("Internist")
+        createUserRole("Cardiologist", true)
     }
 
     @Test

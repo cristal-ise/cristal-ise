@@ -32,5 +32,6 @@ class LookupTestBase implements CristalTestSetup {
     @After
     public void tearDown() {
         lookup.close()
+        loggerCleanup()
     }
 }

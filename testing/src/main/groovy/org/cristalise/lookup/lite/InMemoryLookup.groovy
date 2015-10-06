@@ -105,7 +105,6 @@ abstract class InMemoryLookup implements Lookup {
     @Override
     public AgentPath getAgentPath(String agentName) throws ObjectNotFoundException {
         Logger.msg(5, "InMemoryLookup.getAgentPath() - agentName: $agentName")
-        Iterator<Path> iter = search(new DomainPath("entity"), agentName)
 
         def pList = cache.values().findAll {it instanceof AgentPath && ((AgentPath)it).agentName ==  agentName}
 
@@ -119,14 +118,16 @@ abstract class InMemoryLookup implements Lookup {
 
     @Override
     public RolePath getRolePath(String roleName) throws ObjectNotFoundException {
-        Logger.msg(5, "InMemoryLookup.getRolePath() - roleName:$roleName")
-        Iterator<Path> iter = search(new RolePath(), roleName)
-        if(iter.hasNext()) {
-            RolePath role = (RolePath)iter.next()
-            if(iter.hasNext()) throw new RuntimeException("Role '$roleName' is ambiguous")
-            else return role
-        }
-        else throw new ObjectNotFoundException("$roleName")
+        Logger.msg(5, "InMemoryLookup.getRolePath() - roleName: $roleName")
+
+        def pList = cache.values().findAll {it instanceof RolePath && ((RolePath)it).name ==  roleName}
+
+        if     (pList.size() == 0) throw new ObjectNotFoundException("$roleName")
+        else if(pList.size() > 1)  throw new ObjectNotFoundException("Umbiguous result for agent '$roleName'")
+
+        Logger.msg(5, "InMemoryLookup.getRolePath() - roleName '$roleName' was found")
+
+        return (RolePath)pList[0]
     }
 
     /**
@@ -142,7 +143,6 @@ abstract class InMemoryLookup implements Lookup {
         Logger.msg(5, "InMemoryLookup.resolvePath() - domainPath: $domainPath")
         DomainPath dp = (DomainPath) retrievePath(domainPath.string)
         return dp.getItemPath()
-//        return null
     }
 
     /**
@@ -166,7 +166,7 @@ abstract class InMemoryLookup implements Lookup {
      */
     @Override
     public boolean exists(Path path) {
-        Logger.msg(5, "InMemoryLookup.exists() - Path: $path");
+        //Logger.msg(5, "InMemoryLookup.exists() - Path: $path");
         return cache.keySet().contains(path.string)
     }
 
@@ -178,8 +178,10 @@ abstract class InMemoryLookup implements Lookup {
 
     @Override
     public Iterator<Path> search(Path start, String name) {
-        Logger.msg(5, "InMemoryLookup.search() - Path: $start, Name: $name");
-        return cache.values().findAll { ((Path)it).string =~ /^$start.string.*$name/ }.iterator()
+        Logger.msg(5, "InMemoryLookup.search(Name: $name) - start: $start");
+        def result = cache.values().findAll { ((Path)it).string =~ /^$start.string.*$name/ }
+        Logger.msg(5, "InMemoryLookup.search(Name: $name) - returning ${result.size()} pathes");
+        return result.iterator()
     }
 
     @Override
