@@ -35,6 +35,7 @@ public class LDAPAuthManager implements Authenticator {
                 String agentDN = anonLookup.getFullDN(anonLookup.getAgentPath(agentName));
 
                 //found agentDN, try to log in with it
+                Logger.msg(5, "Authenticating as: "+agentDN+" with "+password);
                 ldapProps.mUser = agentDN;
                 ldapProps.mPassword = password;
                 mLDAPConn = LDAPLookupUtils.createConnection(ldapProps);
