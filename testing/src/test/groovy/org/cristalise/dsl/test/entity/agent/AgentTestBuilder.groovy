@@ -23,6 +23,7 @@ package org.cristalise.dsl.test.entity.agent
 import groovy.transform.CompileStatic
 
 import org.cristalise.dsl.entity.agent.AgentBuilder
+import org.cristalise.kernel.entity.agent.JobList
 import org.cristalise.kernel.lookup.AgentPath
 import org.cristalise.kernel.lookup.ItemPath
 import org.cristalise.kernel.process.Gateway
@@ -35,6 +36,8 @@ import org.cristalise.kernel.process.Gateway
 class AgentTestBuilder extends AgentBuilder {
     AgentPath builderAgent
     AgentPath agent
+
+    JobList jobList = null
 
     public AgentTestBuilder() {}
 
@@ -52,10 +55,16 @@ class AgentTestBuilder extends AgentBuilder {
     public static AgentTestBuilder create(Map<String, Object> attrs, Closure cl) {
         def itb = new AgentTestBuilder(AgentBuilder.build(attrs, cl))
         itb.agent = itb.create(itb.builderAgent)
+
+        itb.jobList = new JobList(itb.agent, null)
         return itb
     }
 
     public static AgentTestBuilder build(Map<String, Object> attrs, Closure cl) {
         return new AgentTestBuilder(AgentBuilder.build(attrs, cl))
+    }
+
+    def checkJobList(List<Map<String, Object>> jobs) {
+        assert jobs && jobList && jobList.size() == jobs.size()
     }
 }

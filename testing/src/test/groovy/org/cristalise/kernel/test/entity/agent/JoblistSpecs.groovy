@@ -24,16 +24,18 @@ import org.cristalise.dsl.entity.role.RoleBuilder
 import org.cristalise.dsl.lifecycle.stateMachine.StateMachineBuilder
 import org.cristalise.dsl.test.entity.agent.AgentTestBuilder
 import org.cristalise.dsl.test.entity.item.ItemTestBuilder
-import org.cristalise.kernel.entity.agent.JobList
 import org.cristalise.test.CristalTestSetup
 
 import spock.lang.Specification
+import spock.util.concurrent.PollingConditions
 
 
 /**
  *
  */
 class JoblistSpecs extends Specification implements CristalTestSetup {
+
+    PollingConditions pollingWait = new PollingConditions(timeout: 1, initialDelay: 0.2, factor: 1)
 
     def setup()   { inMemoryServer() }
     def cleanup() { cristalCleanup() }
@@ -54,14 +56,12 @@ class JoblistSpecs extends Specification implements CristalTestSetup {
             }
         }
 
-        //some wait is needed until JobPusher thread finishes
-        Thread.sleep(500)
-        def jobList = new JobList(agentBuilder.agent, null)
-
         then:
-        jobList
-        jobList[0]
-        jobList[1]
+        pollingWait.eventually { agentBuilder.jobList }
+
+        agentBuilder.jobList.size() == 2
+        agentBuilder.jobList[0]
+        agentBuilder.jobList[1]
     }
 
     def 'StateMachine Transition can override Role specified in Actitiy'() {
@@ -99,12 +99,10 @@ class JoblistSpecs extends Specification implements CristalTestSetup {
             }
         }
 
-        //some wait is needed until JobPusher thread finishes
-        Thread.sleep(500)
-        def jobList = new JobList(timeoutAgent.agent, null)
-
         then:
-        jobList
-        jobList[0]
+        pollingWait.eventually { timeoutAgent.jobList }
+
+        timeoutAgent.jobList.size() == 1
+        timeoutAgent.jobList[0].transition.name =="Timeout"
     }
 }
