@@ -104,7 +104,11 @@ public class WfVertexDefFactory implements VertexFactory, WorkflowDialogue
 				MainFrame.exceptionDialog(ex);
 				return;
 			}
-			mCompositeActivityDef.newChild(newName, vertexTypeId, location);
+			
+			WfVertexDef newChild = mCompositeActivityDef.newChild(newName, vertexTypeId, location);
+			for(String propName: act.getProperties().getAbstract()) {
+				newChild.getProperties().put(propName, act.getProperties().get(propName));
+			}
 		}
 	}
 	@Override
