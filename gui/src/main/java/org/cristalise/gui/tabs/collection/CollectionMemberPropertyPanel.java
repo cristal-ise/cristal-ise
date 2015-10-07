@@ -67,7 +67,7 @@ public class CollectionMemberPropertyPanel extends JPanel implements ActionListe
 	public CollectionMemberPropertyPanel() {
         super();
         setLayout(gridbag);
-        mPropertyModel = new PropertyTableModel();
+        mPropertyModel = new PropertyTableModel(false);
         mPropertyTable = new PropertyTable(mPropertyModel);
         createLayout();
 	}

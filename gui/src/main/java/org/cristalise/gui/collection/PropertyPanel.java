@@ -33,7 +33,7 @@ public class PropertyPanel extends VertexPropertyPanel {
     Aggregation mCollection;
 
     public PropertyPanel() {
-       super();
+       super(false);
     }
 
     public void setCollection(Aggregation collection) {

@@ -234,7 +234,7 @@ public class CompActDefOutcomeHandler
                 Logger.error(ex);
             }
         }
-        return new VertexPropertyPanel();
+        return new VertexPropertyPanel(true);
     }
 
     @Override

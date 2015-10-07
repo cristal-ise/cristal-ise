@@ -42,13 +42,15 @@ import org.cristalise.kernel.utils.CastorHashMap;
 
 public class PropertyTableModel extends AbstractTableModel {
 
-    private final String[] mColumnNames = { "Name", "Value", "Abstract" };
+    private String[] mColumnNames = { "Name", "Value" };
+    private String[] mColumnNameswAbstract = { "Name", "Value", "Abstract" };
     public CastorHashMap sourceMap = new CastorHashMap();
     public ArrayList<String> sortedNameList = new ArrayList<String>();
     boolean isEditable = false;
 
-    public PropertyTableModel() {
+    public PropertyTableModel(boolean useAbstract) {
         super();
+        if (useAbstract) mColumnNames = mColumnNameswAbstract;
     }
 
     @Override

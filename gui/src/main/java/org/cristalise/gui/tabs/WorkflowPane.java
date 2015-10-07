@@ -288,7 +288,7 @@ public class WorkflowPane extends ItemTabPane implements ProxyObserver<Workflow>
 				Logger.error(ex);
 			}
 		}
-		mPropertyPanel = new VertexPropertyPanel();
+		mPropertyPanel = new VertexPropertyPanel(false);
 	}
 
 	@Override

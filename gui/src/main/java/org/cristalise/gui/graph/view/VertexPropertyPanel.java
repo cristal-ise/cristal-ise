@@ -77,14 +77,16 @@ public class VertexPropertyPanel extends JPanel implements Observer, TableModelL
     private JTextField newPropName;
     private JComboBox newPropType;
     private JCheckBox newPropAbstract;
+    private boolean useAbstract;
     String[] typeOptions = { "String", "Boolean", "Integer", "Float" };
     String[] typeInitVal = { "", "false", "0", "0.0"};
     SelectedVertexPanel mSelPanel;
 
-    public VertexPropertyPanel() {
+    public VertexPropertyPanel(boolean useAbstract) {
         super();
         setLayout(gridbag);
-        mPropertyModel = new PropertyTableModel();
+        this.useAbstract = useAbstract;
+        mPropertyModel = new PropertyTableModel(useAbstract);
         mPropertyModel.addTableModelListener(this);
         mPropertyTable = new PropertyTable(mPropertyModel);
     }
@@ -223,10 +225,12 @@ public class VertexPropertyPanel extends JPanel implements Observer, TableModelL
         newPropBox.add(newPropType);
         newPropBox.add(Box.createHorizontalGlue());
         newPropAbstract = new JCheckBox();
-        newPropBox.add(newPropAbstract);
-        newPropBox.add(Box.createHorizontalStrut(1));
-        newPropBox.add(new JLabel("Abstract"));
-        newPropBox.add(Box.createHorizontalStrut(1));
+    	if (useAbstract) {
+            	newPropBox.add(newPropAbstract);
+            	newPropBox.add(Box.createHorizontalStrut(1));
+            	newPropBox.add(new JLabel("Abstract"));
+            	newPropBox.add(Box.createHorizontalStrut(1));
+    	}
         addPropButton = new JButton("Add");
         addPropButton.setMargin(new Insets(0, 0, 0, 0));
         delPropButton = new JButton("Del");

@@ -62,7 +62,7 @@ public class ElemActDefOutcomeHandler extends VertexPropertyPanel implements Out
     ActivityDef act;
     boolean unsaved;
     public ElemActDefOutcomeHandler() {
-        super();
+        super(true);
         createLayout(null);
     }
 
