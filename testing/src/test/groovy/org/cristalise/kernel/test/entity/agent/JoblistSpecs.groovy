@@ -57,9 +57,8 @@ class JoblistSpecs extends Specification implements CristalTestSetup {
         def jobList = new JobList(agentBuilder.agent, null)
 
         then:
-        agentBuilder.agent
-        agentBuilder.agent.exists()
-        jobList.get(0)
-        jobList.get(1)
+        jobList
+        jobList[0]
+        jobList[1]
     }
 }

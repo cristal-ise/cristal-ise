@@ -23,6 +23,7 @@ package org.cristalise.kernel.test.entity.agent
 import org.cristalise.dsl.test.entity.agent.AgentTestBuilder
 import org.cristalise.test.CristalTestSetup
 
+import spock.lang.Ignore
 import spock.lang.Specification
 
 
@@ -51,6 +52,7 @@ class AgentCreateSpecs extends Specification implements CristalTestSetup {
         agentBuilder.agent.roles[0].hasJobList() == true
     }
 
+    @Ignore("Unimplemented")
     def 'Agent can be updated'() {
         when:
         AgentTestBuilder.create(name: "dummy") {
