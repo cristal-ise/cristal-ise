@@ -36,5 +36,6 @@ import java.util.HashMap;
  */
 public interface WorkflowDialogue
 {
-	public void loadThisWorkflow(String name, HashMap<String, Object> mhashmap);
+	public void loadThisWorkflow(String name, Integer actVersion, HashMap<String, Object> mhashmap);
+
 }

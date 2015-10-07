@@ -20,13 +20,20 @@
  */
 package org.cristalise.gui.lifecycle.chooser;
 import java.awt.Dimension;
+import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
+import java.util.ArrayList;
 
+import javax.swing.Box;
 import javax.swing.BoxLayout;
+import javax.swing.JComboBox;
+import javax.swing.JLabel;
 import javax.swing.JPanel;
 
-import org.cristalise.kernel.lookup.DomainPath;
+import org.cristalise.kernel.common.PersistencyException;
 import org.cristalise.kernel.persistency.ClusterStorage;
+import org.cristalise.kernel.process.Gateway;
+import org.cristalise.kernel.property.Property;
 import org.cristalise.kernel.utils.Logger;
 
 
@@ -40,13 +47,13 @@ public class LDAPFileChooser extends JPanel
 {
     public static String SCRIPT_CHOOSER = "Script";
     public static String SCHEMA_CHOOSER = "Schema";
-    public static String ACTIVITY_CHOOSER = "Activity";
+    public static String ELEM_ACTIVITY_CHOOSER = "Atomic";
+    public static String COMP_ACTIVITY_CHOOSER = "Composite";
     private String chooserMode = null;
     public LDAPEntryChooser mLec;
-    private boolean mEditable = false;
-    DomainPath domainPath;
-    String itemQuery = null;
-    boolean showversion = true;
+    JComboBox<Integer> mVer;
+    ArrayList<Property> props = new ArrayList<Property>();
+    String schemaName = null;
 
     public LDAPFileChooser(String choose)
     {
@@ -59,22 +66,30 @@ public class LDAPFileChooser extends JPanel
     {
         if (chooserMode.equals(SCHEMA_CHOOSER))
         {
-            itemQuery = ClusterStorage.VIEWPOINT + "/Schema/all";
-            domainPath = new DomainPath("/desc/OutcomeDesc/");
+        	props.add(new Property("Type", "Schema"));
+        	schemaName = "Schema";
         }
         else if (chooserMode.equals(SCRIPT_CHOOSER))
         {
-            itemQuery = ClusterStorage.VIEWPOINT + "/Script/all";
-            domainPath = new DomainPath("/desc/Script/");
+        	props.add(new Property("Type", "Script"));
+        	schemaName = "Schema";
         }
-        else if (chooserMode.equals(ACTIVITY_CHOOSER))
+        else if (chooserMode.equals(ELEM_ACTIVITY_CHOOSER))
         {
-            domainPath = new DomainPath("/desc/ActivityDesc/");
-            showversion = false;
+        	props.add(new Property("Type", "ActivityDesc"));
+        	props.add(new Property("Complexity", "Elementary"));
+        	schemaName = "ElementaryActivityDef";
         }
+        else if (chooserMode.equals(COMP_ACTIVITY_CHOOSER))
+        {
+        	props.add(new Property("Type", "ActivityDesc"));
+        	props.add(new Property("Complexity", "Composite"));
+        	schemaName = "CompositeActivityDef";
+        }        
         else
             return;
-        mLec = new LDAPEntryChooser(domainPath, mEditable);
+        
+        mLec = new LDAPEntryChooser(props);
 
         mLec.setPreferredSize(new Dimension(220, 19));
         mLec.setMaximumSize(new Dimension(3000, 22));
@@ -84,7 +99,31 @@ public class LDAPFileChooser extends JPanel
         BoxLayout blyt = new BoxLayout(this, BoxLayout.X_AXIS);
         setLayout(blyt);
         add(mLec);
-        mLec.setVisible(true);
+        add(Box.createHorizontalStrut(5));
+        add(new JLabel("Version:"));
+        mVer = new JComboBox<Integer>();
+        mVer.setPreferredSize(new Dimension(50, 19));
+        mVer.setMaximumSize(new Dimension(50, 22));
+        mVer.setMinimumSize(new Dimension(50, 19));
+        add(mVer);
+        
+        mLec.addItemListener(new ItemListener() {
+			public void itemStateChanged(ItemEvent e) {
+				mVer.removeAllItems();
+				String selectedItem = (String)e.getItem();
+				try {
+					String[] views = Gateway.getStorage().getClusterContents(mLec.getItem(selectedItem), ClusterStorage.VIEWPOINT+"/"+schemaName);
+					for (String thisVer : views) {
+						try {
+							mVer.addItem(Integer.parseInt(thisVer));
+						} catch (NumberFormatException ex) { }
+					}
+				} catch (PersistencyException e1) {	}
+				
+			}
+        });
+        
+        
         this.validate();
         this.setVisible(true);
 
@@ -116,15 +155,6 @@ public class LDAPFileChooser extends JPanel
         mLec.removeAllItems();
     }
 
-    /**
-     * @param b
-     */
-    public void setEditable(boolean b)
-    {
-        mEditable = b;
-        mLec.setEditable(b);
-    }
-
     @Override
 	public void updateUI()
 	{
@@ -136,5 +166,12 @@ public class LDAPFileChooser extends JPanel
 	public void setEnabled(boolean enabled)
     {
         mLec.setEnabled(enabled);
+        mVer.setEnabled(enabled);
     }
+
+	public Integer getEntryVersion() {
+		if (mVer.getSelectedIndex() == -1)
+			return null;
+		return mVer.getItemAt(mVer.getSelectedIndex());
+	}
 }

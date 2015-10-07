@@ -64,24 +64,21 @@ public class ActivityChooser extends JFrame
 
     private JPanel mJPanelHorizontal = null;
 
-    private String mMessage = "Choose or modify";
-
     private WorkflowDialogue mParent = null;
 
     private JLabel label = null;
 
     HashMap<String, Object> mhashmap = null;
 
-    public ActivityChooser(String message, String title, Image img, WorkflowDialogue parent, HashMap<String, Object> hashmap)
+    public ActivityChooser(String type, Image img, WorkflowDialogue parent, HashMap<String, Object> hashmap)
     {
-        super(title);
+        super("Select "+type+" activity definition");
         this.setDefaultCloseOperation(DISPOSE_ON_CLOSE);
-        mMessage = message;
         img = ImageLoader.findImage("graph/newvertex_large.png").getImage();
         setIconImage(img);
         mParent = parent;
         mhashmap = hashmap;
-        initialize();
+        initialize(type);
     }
 
     private JButton getJButtonOK()
@@ -98,16 +95,14 @@ public class ActivityChooser extends JFrame
         return mButtonCancel;
     }
 
-    private LDAPFileChooser getLDAPFileChooserActivity()
+    private LDAPFileChooser getLDAPFileChooserActivity(String type)
     {
         if (mLDAPFileChooserActivity == null)
         {
             try
             {
-                mLDAPFileChooserActivity = new LDAPFileChooser(LDAPFileChooser.ACTIVITY_CHOOSER);
+                mLDAPFileChooserActivity = new LDAPFileChooser(type);
                 mLDAPFileChooserActivity.setName("LDAPFileChooserRouting");
-                mLDAPFileChooserActivity.setEditable(false);
-                //mLDAPFileChooserActivity.setBounds(125, 13, 400, 19);
             } catch (Exception mExc)
             {
                 Logger.error(mExc);
@@ -116,7 +111,7 @@ public class ActivityChooser extends JFrame
         return mLDAPFileChooserActivity;
     }
 
-    private void initialize()
+    private void initialize(String type)
     {
         getJButtonOK().addActionListener(new ActionListener()
         {
@@ -125,7 +120,7 @@ public class ActivityChooser extends JFrame
             {
                 Logger.debug(5, "mLDAPFileChooserActivity.getEntryName()" + mLDAPFileChooserActivity.getEntryName());
                 setCursor(new Cursor(Cursor.WAIT_CURSOR));
-                mParent.loadThisWorkflow(mLDAPFileChooserActivity.getEntryName(), mhashmap);
+                mParent.loadThisWorkflow(mLDAPFileChooserActivity.getEntryName(), mLDAPFileChooserActivity.getEntryVersion(), mhashmap);
                 setCursor(new Cursor(Cursor.DEFAULT_CURSOR));
                 close();
             }
@@ -141,15 +136,14 @@ public class ActivityChooser extends JFrame
         //getContentPane().add(getJPanelVertical());
         Container contentPane = getContentPane();
         contentPane.setLayout(new BoxLayout(contentPane, BoxLayout.Y_AXIS));
-        contentPane.add(getJPanelVertical());
+        contentPane.add(getJPanelVertical(type));
         contentPane.add(getJPanelHorizontal());
         contentPane.add(Box.createGlue());
         Dimension d = Toolkit.getDefaultToolkit().getScreenSize();
         setLocation((d.width - getWidth()) / 2, (d.height - getHeight()) / 2);
         setResizable(true);
         pack();
-        setSize(new Dimension(getWidth(), getJButtonCancel().getHeight() + getLDAPFileChooserActivity().getHeight() + label.getHeight() + 100));
-        setVisible(true);
+        setSize(new Dimension(getWidth(), getJButtonCancel().getHeight() + getLDAPFileChooserActivity(type).getHeight() + label.getHeight() + 100));
         setVisible(true);
     }
 
@@ -160,7 +154,7 @@ public class ActivityChooser extends JFrame
         this.setVisible(false);
     }
 
-    private JPanel getJPanelVertical()
+    private JPanel getJPanelVertical(String type)
     {
         if (mJPanelVertical == null)
         {
@@ -170,14 +164,14 @@ public class ActivityChooser extends JFrame
                 mJPanelVertical = new JPanel();
                 mJPanelVertical.setName("JPanelV");
                 mJPanelVertical.setLayout(new BoxLayout(mJPanelVertical, BoxLayout.Y_AXIS));
-                label = new JLabel(mMessage);
+                label = new JLabel("Select item, then numeric version");
                 JPanel labelP = new JPanel();
                 labelP.setLayout(new BoxLayout(labelP, BoxLayout.X_AXIS));
                 labelP.add(label);
                 labelP.add(Box.createGlue());
                 mJPanelVertical.add(labelP);
                 mJPanelVertical.add(Box.createRigidArea(new Dimension(0, 5)));
-                mJPanelVertical.add(getLDAPFileChooserActivity(), getLDAPFileChooserActivity().getName());
+                mJPanelVertical.add(getLDAPFileChooserActivity(type));
                 //mJPanelVertical.add(Box.createRigidArea(new Dimension(0,
                 // 10)));
                 mJPanelVertical.add(Box.createGlue());

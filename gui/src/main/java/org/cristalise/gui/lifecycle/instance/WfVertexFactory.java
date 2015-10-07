@@ -53,7 +53,6 @@ public class WfVertexFactory implements VertexFactory, WorkflowDialogue
 				//************************************************
 				ActivityChooser a =
 					new ActivityChooser(
-						"Please enter a Type for the new activity",
 						"New " + vertexTypeId + " Activity",
 						ImageLoader.findImage("graph/newvertex_large.png").getImage(),
 						this,
@@ -71,7 +70,7 @@ public class WfVertexFactory implements VertexFactory, WorkflowDialogue
 			mRootAct = (CompositeActivity) newContext;
 	}
 	@Override
-	public void loadThisWorkflow(String newName, HashMap<String, Object> hashMap)
+	public void loadThisWorkflow(String newName, Integer version, HashMap<String, Object> hashMap)
 	{
 		String vertexTypeId = (String) hashMap.get("P1");
 		GraphPoint location = (GraphPoint) hashMap.get("P2");
@@ -97,7 +96,7 @@ public class WfVertexFactory implements VertexFactory, WorkflowDialogue
 		Activity act = null;
 		try
 		{
-			ActivityDef actD = LocalObjectLoader.getActDef(newName, 0);
+			ActivityDef actD = LocalObjectLoader.getActDef(newName, version==null?0:version);
 			act = (Activity)actD.instantiate(unicName);
 		}
 		catch (Exception e)

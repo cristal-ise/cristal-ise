@@ -33,6 +33,7 @@ import org.cristalise.kernel.graph.model.TypeNameAndConstructionInfo;
 import org.cristalise.kernel.graph.model.VertexFactory;
 import org.cristalise.kernel.lifecycle.ActivityDef;
 import org.cristalise.kernel.lifecycle.CompositeActivityDef;
+import org.cristalise.kernel.lifecycle.WfVertexDef;
 import org.cristalise.kernel.utils.LocalObjectLoader;
 import org.cristalise.kernel.utils.Logger;
 
@@ -55,8 +56,7 @@ public class WfVertexDefFactory implements VertexFactory, WorkflowDialogue
 				//************************************************
 				ActivityChooser a =
 					new ActivityChooser(
-						"Please enter a Type for the new activityDef",
-						"New " + vertexTypeId + " Activity",
+						vertexTypeId,
 						ImageLoader.findImage("graph/newvertex_large.png").getImage(),
 						this,
 						mhm);
@@ -67,7 +67,7 @@ public class WfVertexDefFactory implements VertexFactory, WorkflowDialogue
 		}
 	}
 	@Override
-	public void loadThisWorkflow(String newName, HashMap<String, Object> hashMap)
+	public void loadThisWorkflow(String newName, Integer version, HashMap<String, Object> hashMap)
 	{
 		String vertexTypeId = (String) hashMap.get("P1");
 		GraphPoint location = (GraphPoint) hashMap.get("P2");
@@ -97,7 +97,7 @@ public class WfVertexDefFactory implements VertexFactory, WorkflowDialogue
 		{
 			try
 			{
-				act = LocalObjectLoader.getActDef(newName, 0);
+				act = LocalObjectLoader.getActDef(newName, version==null?0:version);
 			}
 			catch (Exception ex)
 			{
@@ -106,6 +106,7 @@ public class WfVertexDefFactory implements VertexFactory, WorkflowDialogue
 			}
 			
 			WfVertexDef newChild = mCompositeActivityDef.newChild(newName, vertexTypeId, location);
+			newChild.getProperties().put("Version", version);
 			for(String propName: act.getProperties().getAbstract()) {
 				newChild.getProperties().put(propName, act.getProperties().get(propName));
 			}

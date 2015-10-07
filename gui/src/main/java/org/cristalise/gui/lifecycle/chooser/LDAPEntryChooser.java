@@ -27,26 +27,31 @@ package org.cristalise.gui.lifecycle.chooser;
 import java.awt.Dimension;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.Iterator;
 
 import javax.swing.JComboBox;
 
 import org.cristalise.gui.MainFrame;
 import org.cristalise.kernel.lookup.DomainPath;
+import org.cristalise.kernel.lookup.ItemPath;
+import org.cristalise.kernel.persistency.ClusterStorage;
 import org.cristalise.kernel.process.Gateway;
+import org.cristalise.kernel.property.Property;
+import org.cristalise.kernel.property.PropertyDescriptionList;
 
 
-public class LDAPEntryChooser extends JComboBox
+public class LDAPEntryChooser extends JComboBox<String>
 {
 
-    DomainPath mDomainPath = null;
+	ArrayList<Property> props;
     ArrayList<String> allItems = new ArrayList<String>();
+    HashMap<String, ItemPath> itemPaths = new HashMap<String, ItemPath>();
 
-    public LDAPEntryChooser(DomainPath domPath, boolean editable)
+    public LDAPEntryChooser(ArrayList<Property> props)
     {
         super();
-        setEditable(editable);
-        mDomainPath = domPath;
+        this.props = props;
         initialise();
      }
 
@@ -54,11 +59,13 @@ public class LDAPEntryChooser extends JComboBox
     {
         try
         {
-            Iterator<?> children = Gateway.getLookup().search(mDomainPath, "*");
+            Iterator<?> children = Gateway.getLookup().search(new DomainPath(""), props.toArray(new Property[props.size()]));
             while (children.hasNext())
             {
-                DomainPath domPath = (DomainPath)children.next();
-                allItems.add(domPath.getName());
+                ItemPath path = (ItemPath)children.next();
+                Property prop = (Property)Gateway.getStorage().get(path, ClusterStorage.PROPERTY+"/Name", null);
+                allItems.add(prop.getValue());
+                itemPaths.put(prop.getValue(), path);
             }
         }
         catch (Exception ex)
@@ -72,6 +79,10 @@ public class LDAPEntryChooser extends JComboBox
 			addItem(element);
 		}
 
+    }
+    
+    public ItemPath getItem(String name) {
+    	return itemPaths.get(name);
     }
 
     public void reload()
