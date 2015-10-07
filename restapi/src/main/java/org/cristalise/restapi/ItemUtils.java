@@ -38,7 +38,7 @@ import org.cristalise.kernel.utils.Logger;
 
 public abstract class ItemUtils extends RestHandler {
 	
-	DateFormat dateFormatter;
+	final DateFormat dateFormatter;
 	
 	public ItemUtils() {
 		super();
