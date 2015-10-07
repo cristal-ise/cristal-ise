@@ -33,6 +33,8 @@ import java.io.InputStreamReader;
 import java.io.InterruptedIOException;
 import java.io.PrintWriter;
 import java.net.Socket;
+import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.Properties;
 
 import javax.swing.Box;
@@ -65,8 +67,10 @@ public class Console extends JFrame {
     JButton toFileButton;
     FileWriter logFile;
     ConsoleConnection connection;
+    ConsoleInputListener specialKeyHandler;
     JFileChooser scriptLoader = new JFileChooser();
     static int bufferSize = Gateway.getProperties().getInt("Console.bufferSize", 200);
+    protected LinkedList<String> cmdHistory = new LinkedList<String>();
 
     public Console(String host, int port) {
         super("Cristal Console - "+host);
@@ -128,8 +132,8 @@ public class Console extends JFrame {
             }
         });
 
-
-        input.addKeyListener(new EnterListener(this));
+        specialKeyHandler = new ConsoleInputListener(this);
+        input.addKeyListener(specialKeyHandler);
 
         scroll = new JScrollPane(output);
         GridBagConstraints c = new GridBagConstraints();
@@ -237,17 +241,32 @@ public class Console extends JFrame {
         sendButton.setEnabled(false);
     }
 
-    private class EnterListener extends KeyAdapter
+    private class ConsoleInputListener extends KeyAdapter
     {
         Console parent;
-        public EnterListener(Console parent) {
+        int cmdIndex = -1;
+        public ConsoleInputListener(Console parent) {
             this.parent = parent;
         }
         @Override
 		public void keyPressed(KeyEvent e) {
-            if (e.getKeyCode()==10) {
+            if (e.getKeyCode()==KeyEvent.VK_ENTER) {
                 parent.submit();
             }
+            else if ((e.getKeyCode()==KeyEvent.VK_UP || e.getKeyCode()==KeyEvent.VK_KP_UP)
+            		&& cmdIndex+1 < cmdHistory.size()) {
+            	parent.input.setText(cmdHistory.get(++cmdIndex));
+            }
+            else if ((e.getKeyCode()==KeyEvent.VK_DOWN || e.getKeyCode()==KeyEvent.VK_KP_DOWN)) {
+            	if (cmdIndex > 0)
+            		parent.input.setText(cmdHistory.get(--cmdIndex));
+            	else
+            		parent.input.setText("");
+            }
+        }  
+        
+        public void resetHistoryIndex() {
+        	cmdIndex = -1;
         }
     };
 
@@ -289,6 +308,9 @@ public class Console extends JFrame {
 
         public void sendCommand(String command) {
             consoleOutput.println(command);
+            if (!command.equals(cmdHistory.peekFirst()))
+            		cmdHistory.push(command);
+            specialKeyHandler.resetHistoryIndex();
         }
 
         public void shutdown() {
