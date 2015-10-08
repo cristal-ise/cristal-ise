@@ -188,11 +188,16 @@ public class ViewpointPane extends ItemTabPane implements ItemListener, ActionLi
         try {
             String outcomeTypes = sourceItem.getItem().queryData(ClusterStorage.VIEWPOINT+"/all");
             StringTokenizer tok = new StringTokenizer(outcomeTypes, ",");
+            int nonSystemSchemas = 0; String defaultSelection = null;
             while (tok.hasMoreTokens()) {
                 String thisType = tok.nextToken();
                 schemas.addItem(thisType);
                 schemaList.add(thisType);
+                if (thisType.equals("PredefinedStepOutcome") || thisType.equals("ItemInitialization"))
+                	continue;
+                nonSystemSchemas++; defaultSelection = thisType;
             }
+            if (nonSystemSchemas == 1) schemas.setSelectedItem(defaultSelection);
         } catch (Exception e) {
             Logger.msg(2, "No viewpoints found");
         }
