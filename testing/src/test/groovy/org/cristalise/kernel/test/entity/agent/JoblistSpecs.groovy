@@ -42,7 +42,7 @@ class JoblistSpecs extends Specification implements CristalTestSetup {
 
     def 'Joblist of Agent is automatically updated'() {
         when:
-        AgentTestBuilder agentBuilder = AgentTestBuilder.create(name: "dummyAgent") {
+        AgentTestBuilder dummyAgent = AgentTestBuilder.create(name: "dummyAgent") {
             Roles {
                 Role(name: 'toto', jobList: true)
             }
@@ -57,11 +57,10 @@ class JoblistSpecs extends Specification implements CristalTestSetup {
         }
 
         then:
-        pollingWait.eventually { agentBuilder.jobList }
+        pollingWait.eventually { dummyAgent.jobList }
 
-        agentBuilder.jobList.size() == 2
-        agentBuilder.jobList[0]
-        agentBuilder.jobList[1]
+        dummyAgent.checkJobList([[stepName: "EA1", agentRole: "toto", transitionName: "Start"],
+                                 [stepName: "EA1", agentRole: "toto", transitionName: "Done" ]])
     }
 
     def 'StateMachine Transition can override Role specified in Actitiy'() {
@@ -102,7 +101,6 @@ class JoblistSpecs extends Specification implements CristalTestSetup {
         then:
         pollingWait.eventually { timeoutAgent.jobList }
 
-        timeoutAgent.jobList.size() == 1
-        timeoutAgent.jobList[0].transition.name =="Timeout"
+        timeoutAgent.checkJobList([[stepName: "EA1", agentRole: "Timeout", transitionName: "Timeout"]])
     }
 }

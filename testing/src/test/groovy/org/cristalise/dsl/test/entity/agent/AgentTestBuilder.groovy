@@ -23,6 +23,7 @@ package org.cristalise.dsl.test.entity.agent
 import groovy.transform.CompileStatic
 
 import org.cristalise.dsl.entity.agent.AgentBuilder
+import org.cristalise.kernel.entity.agent.Job
 import org.cristalise.kernel.entity.agent.JobList
 import org.cristalise.kernel.lookup.AgentPath
 import org.cristalise.kernel.lookup.ItemPath
@@ -64,7 +65,17 @@ class AgentTestBuilder extends AgentBuilder {
         return new AgentTestBuilder(AgentBuilder.build(attrs, cl))
     }
 
-    def checkJobList(List<Map<String, Object>> jobs) {
-        assert jobs && jobList && jobList.size() == jobs.size()
+    def checkJobList(List<Map<String, Object>> expectedJobs) {
+        assert expectedJobs && jobList && jobList.size() == expectedJobs.size()
+
+        expectedJobs.each { Map jobMap -> 
+            assert jobMap && jobMap.stepName && jobMap.agentRole && jobMap.transitionName
+
+            assert jobList.values().find {
+                ((Job) it).stepName == jobMap.stepName && 
+                ((Job) it).agentRole == jobMap.agentRole &&
+                ((Job) it).transition.name == jobMap.transitionName
+            }, "Cannot find Job: ${jobMap.stepName} , ${jobMap.agentRole} , ${jobMap.transitionName}"
+        }
     }
 }
