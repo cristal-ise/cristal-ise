@@ -92,7 +92,7 @@ class WorkflowTestBuilder extends WorkflowBuilder {
      */
     public static void checkActStatus(Activity act, Map status) {
         assert act
-        assert act.getStateName() == "$status.state", "Activity '$act.name' state is NOT correct"
+        assert act.getStateName() == "$status.state", "Activity '$act.name' state '${act.getStateName()}' is NOT correct"
         assert act.getActive() == status.active, "Activity '$act.name' shall ${(status.active) ? '' : 'NOT '}be active"
     }
 

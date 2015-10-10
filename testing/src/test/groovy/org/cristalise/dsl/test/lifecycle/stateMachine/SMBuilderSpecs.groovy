@@ -34,20 +34,34 @@ class SMBuilderSpecs extends Specification implements CristalTestSetup {
     public void setup()   { inMemorySetup() }
     public void cleanup() { cristalCleanup() }
 
-    @Ignore("Unimplemented")
     def 'Build StateMachine using builder command-chain methods'() {
-        expect:
-        StateMachineBuilder.build("testing", "SkipStateMachine", 0) {
-            transition "Start"    connects "Waiting" to "Started" using reservation: "set"
-            transition "Skip"     connects "Waiting" to "Fnished" using enablingProperty: "Skippable", reservation:"clear"
-            transition "Complete" connects "Started" to "Fnished" using reservation: "clear" {
-                outcome name:"\${SchemaType}", version:"\${SchemaVersion}"
-                script  name:"\${ScriptName}", version:"\${ScriptVersion}"
+        when:
+        def smb = StateMachineBuilder.build("testing", "SkipStateMachine", 0) {
+            transition("Start", [origin: "Waiting", target: "Started"]) {
+                property reservation: "set"
             }
+            transition("Skip", [origin: "Waiting", target: "Finished"]) {
+                property(enabledProp: "Skippable", reservation:"clear")
+            }
+            transition("Complete", [origin: "Started", target: "Finished"]) {
+                property(reservation: "clear")
+                outcome(name:"\${SchemaType}", version:"\${SchemaVersion}")
+                script( name:"\${ScriptName}", version:"\${ScriptVersion}")
+            }
+            initialState("Waiting")
+            finishingState("Finished")
         }
+
+        then:
+        smb.sm
+        smb.sm.validate()
+        smb.sm.getTransitions().find { it.name == "Start" }.originState.name == "Waiting"
+        smb.sm.getTransitions().find { it.name == "Start" }.targetState.name == "Started"
+        smb.sm.getTransitions().find { it.name == "Skip"  }.originState.name == "Waiting"
+        smb.sm.getTransitions().find { it.name == "Skip"  }.targetState.name == "Finished"
     }
 
-    @Ignore("Unimplemented")
+    @Ignore("deprecated")
     def 'Build StateMachine using XML builder'() {
         expect:
         StateMachineBuilder.build("testing", "SkipStateMachine", 0) {

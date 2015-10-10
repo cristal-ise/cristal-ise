@@ -41,7 +41,7 @@ class JoblistSpecs extends Specification implements CristalTestSetup {
     def cleanup() { cristalCleanup() }
 
     def 'Joblist of Agent is automatically updated'() {
-        when:
+        when: "the workflow of Item is initialised its first Activity is activated"
         AgentTestBuilder dummyAgent = AgentTestBuilder.create(name: "dummyAgent") {
             Roles {
                 Role(name: 'toto', jobList: true)
@@ -56,7 +56,7 @@ class JoblistSpecs extends Specification implements CristalTestSetup {
             }
         }
 
-        then:
+        then: "Agent gets Job(s) for the activity it was assigned to"
         pollingWait.eventually { dummyAgent.jobList }
 
         dummyAgent.checkJobList([[stepName: "EA1", agentRole: "toto", transitionName: "Start"],
@@ -66,18 +66,21 @@ class JoblistSpecs extends Specification implements CristalTestSetup {
     def 'StateMachine Transition can override Role specified in Actitiy'() {
         when:
         StateMachineBuilder.create("testing", "RoleOverrideSM", 0) {
-            State(id: "0", name: "Waiting")
-            State(id: "1", name: "Started")
-            State(id: "2", name: "Finished", proceeds: "true")
+            transition("Start", [origin:"Waiting", target:"Started"]) {
+                 property(reservation: "set")
+            }
+            transition("Complete", [origin:"Started", target:"Finished"]) {
+                property(reservation:"clear")
 
-            Transition(id:"1", name:"Start",    origin:"0", target:"1", reservation:"set")
-            Transition(id:"2", name:"Complete", origin:"1", target:"2", reservation:"clear") {
-                Outcome(name:"\${SchemaType}", version:"\${SchemaVersion}")
-                Script( name:"\${ScriptName}", version:"\${ScriptVersion}")
+                outcome(name:'${SchemaType}', version:'${SchemaVersion}')
+                script (name:'${ScriptName}', version:'${ScriptVersion}')
             }
-            Transition(id:"3", name:"Timeout", origin:"0", target:"0", roleOverride: '${RoleOverride}') {
-                Outcome(name:"Errors", version: "0")
+            transition("Timeout", [origin:"Waiting", target:"Waiting"]) {
+                property(roleOverride: '${RoleOverride}')
+                outcome(name:"Errors", version: "0")
             }
+            initialState("Waiting")
+            finishingState("Finished")
         }
 
         RoleBuilder.create { Role(name: 'toto') }

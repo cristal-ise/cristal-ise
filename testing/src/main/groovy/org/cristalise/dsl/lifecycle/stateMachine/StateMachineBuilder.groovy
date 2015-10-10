@@ -57,6 +57,16 @@ class StateMachineBuilder {
         this.name    = name
         this.version = version
     }
+        
+    /**
+     * 
+     * @param module
+     * @param delegate
+     */
+    public StateMachineBuilder(String module, StateMachineDelegate delegate) {
+        this(module, delegate.name, delegate.version)
+        this.sm = delegate.sm
+    }
 
     public StateMachineBuilder loadXML(String xmlFile) {
         Logger.msg 5, "StateMachineBuilder.loadXML() - From file:$xmlFile"
@@ -68,34 +78,34 @@ class StateMachineBuilder {
     }
 
     public static StateMachine create(String module, String name, int version, Closure cl) {
-        def smb = build(module, name, version, cl)
-        smb.create()
-        return smb.sm
+        def builder = build(module, name, version, cl)
+        builder.create()
+        return builder.sm
     }
 
     public static StateMachineBuilder build(String module, String name, int version, Closure cl) {
-        def smb = new StateMachineBuilder(module, name, version)
-        def smd = new StateMachineDelegate()
+        def delegate = new StateMachineDelegate(name, version)
 
-        smd.processClosure(cl)
+        delegate.processClosure(cl)
 
-        smb.smXML = smd.writer.toString()
-        smb.sm = (StateMachine)Gateway.getMarshaller().unmarshall(smb.smXML)
+        def builder = new StateMachineBuilder(module, delegate)
         
-        Logger.msg(5, smb.smXML)
+        builder.smXML =  Gateway.getMarshaller().marshall(builder.sm)
+        
+        Logger.msg(5, builder.smXML)
 
-        return smb
+        return builder
     }
 
     public static StateMachine create(String module, String name, int version, String xmlFile) {
-        def smb = build(module, name, version, xmlFile)
-        smb.create()
-        return smb.sm
+        def builder = build(module, name, version, xmlFile)
+        builder.create()
+        return builder.sm
     }
 
     public static StateMachineBuilder build(String module, String name, int version, String xmlFile) {
-        def smb = new StateMachineBuilder(module, name, version)
-        return smb.loadXML(xmlFile)
+        def builder = new StateMachineBuilder(module, name, version)
+        return builder.loadXML(xmlFile)
     }
 
     /**

@@ -20,31 +20,85 @@
  */
 package org.cristalise.dsl.lifecycle.stateMachine
 
-import groovy.xml.MarkupBuilder
+import groovy.transform.CompileStatic
+
+import org.cristalise.kernel.lifecycle.instance.stateMachine.State
+import org.cristalise.kernel.lifecycle.instance.stateMachine.StateMachine
+import org.cristalise.kernel.lifecycle.instance.stateMachine.Transition
+import org.cristalise.kernel.utils.Logger
 
 
 /**
  *
  */
+@CompileStatic
 class StateMachineDelegate {
-    String rootElement = ""
-    
-    MarkupBuilder xml
-    StringWriter writer
+    String name = ""
+    int version = -1
 
-    public StateMachineDelegate() {
-        writer = new StringWriter()
-        xml = new MarkupBuilder(writer)
-        writer << '<?xml version="1.0" encoding="UTF-8"?>\n'
+    StateMachine sm = null
+    
+    Map<String, State>      stateCache = [:]
+    Map<String, Transition> transCache = [:]
+
+    public StateMachineDelegate( String n, int v) {
+        name = n
+        version = v
+        
+        sm = new StateMachine(n, v)
     }
 
     public void processClosure(Closure cl) {
         assert cl, "StateMachineDelegate only works with a valid Closure"
 
-        xml.StateMachine(initialState: '0') {
-            cl.delegate = xml
-            cl.resolveStrategy = Closure.DELEGATE_FIRST
-            cl()
+        cl.delegate = this
+        cl.resolveStrategy = Closure.DELEGATE_FIRST
+        cl()
+    }
+
+    public void transition(String transName, Map<String,String> states = null, Closure cl = null) {
+        Logger.msg 5, "StateMachineDelegate.transition() - transName: $transName, states: $states"
+        assert transName
+
+        def trans = transCache[transName]
+        if(!trans){
+            trans = sm.createTransition(transName)
+            transCache[transName] = trans
         }
+
+        if(states) {
+            assert states.origin && states.target
+
+            def origin = stateCache[states.origin]
+            if(!origin) {
+                origin = sm.createState(states.origin)
+                stateCache[states.origin] = origin
+            }
+
+            def target = stateCache[states.target]
+            if(!target) {
+                target = sm.createState(states.target)
+                stateCache[states.target] = target
+            }
+
+            trans.originStateId = origin.id
+            trans.targetStateId = target.id
+        }
+
+        if(cl) new TransitionDelegate(trans).processClosure(cl)
+    }
+
+    public void initialState(String stateName) {
+        Logger.msg 5, "StateMachineDelegate.initialState() - stateName: $stateName"
+        assert stateCache && stateCache[stateName]
+
+        sm.initialState = stateCache[stateName]
+    }
+
+    public void finishingState(String stateName) {
+        Logger.msg 5, "StateMachineDelegate.finishingState() - stateName: $stateName"
+        assert stateCache && stateCache[stateName]
+
+        stateCache[stateName].finished = true
     }
 }

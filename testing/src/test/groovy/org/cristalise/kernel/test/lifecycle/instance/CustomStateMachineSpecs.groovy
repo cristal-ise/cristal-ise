@@ -40,24 +40,24 @@ class CustomStateMachineSpecs extends Specification implements CristalTestSetup 
         wfBuilder = new WorkflowTestBuilder()
     }
 
-    def cleanup() {
-        cristalCleanup()
-    }
-
+    def cleanup() { cristalCleanup() }
 
     def 'Specific Transition is enabled/disabled by a Property'() {
         given:
         wfBuilder.eaSM = StateMachineBuilder.create("testing", "SkipStateMachine", 0) {
-            State(id: "0", name: "Waiting")
-            State(id: "1", name: "Started")
-            State(id: "2", name: "Finished", proceeds: "true")
-
-            Transition(id:"1", name:"Start",    origin:"0", target:"1", reservation:"set")
-            Transition(id:"2", name:"Complete", origin:"1", target:"2", reservation:"clear") {
-                Outcome(name:"\${SchemaType}", version:"\${SchemaVersion}")
-                Script( name:"\${ScriptName}", version:"\${ScriptVersion}")
+            transition("Start", [origin: "Waiting", target: "Started"]) {
+                property reservation: "set"
             }
-            Transition(id:"3", name:"Skip", origin:"0", target:"2", enablingProperty: "Skippable", reservation:"clear")
+            transition("Skip", [origin: "Waiting", target: "Finished"]) {
+                property(enabledProp: "Skippable", reservation:"clear")
+            }
+            transition("Complete", [origin: "Started", target: "Finished"]) {
+                property(reservation: "clear")
+                outcome(name:"\${SchemaType}", version:"\${SchemaVersion}")
+                script( name:"\${ScriptName}", version:"\${ScriptVersion}")
+            }
+            initialState("Waiting")
+            finishingState("Finished")
         }
 
         wfBuilder.buildAndInitWf {
@@ -76,7 +76,7 @@ class CustomStateMachineSpecs extends Specification implements CristalTestSetup 
 
         then:
         wfBuilder.checkActStatus('EA1',[state: "Finished", active: false])
-        wfBuilder.checkActStatus('EA2',[state: "Waiting", active: true])
+        wfBuilder.checkActStatus('EA2',[state: "Waiting",  active: true])
 
         when:
         wfBuilder.requestAction("EA2", "Skip")
