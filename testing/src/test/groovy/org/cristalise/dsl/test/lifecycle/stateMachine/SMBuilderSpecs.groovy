@@ -34,7 +34,56 @@ class SMBuilderSpecs extends Specification implements CristalTestSetup {
     public void setup()   { inMemorySetup() }
     public void cleanup() { cristalCleanup() }
 
-    def 'Build StateMachine using builder command-chain methods'() {
+    def 'SM containing a single State is valid'() {
+        when:
+        def smb = StateMachineBuilder.build("testing", "dummySM", 0) {
+            state("Idle")
+        }
+
+        then:
+        smb.sm
+        smb.sm.validate()
+        smb.sm.getStates().find { it.name == "Idle" }
+    }
+
+    def 'SM containing a single State and Transition is valid'() {
+        when:
+        def smb = StateMachineBuilder.build("testing", "dummySM", 0) {
+            transition("Fire", [origin:'Idle', target: 'Idle'])
+        }
+
+        then:
+        smb.sm
+        smb.sm.validate()
+        smb.sm.getStates().find { it.name == "Idle" }
+    }
+
+    def 'SM containing a single Transition is NOT valid'() {
+        when:
+        def smb = StateMachineBuilder.build("testing", "dummySM", 0) {
+            transition("Useless")
+        }
+
+        then:
+        smb.sm
+        !smb.sm.validate()
+    }
+
+    @Ignore("unimplemented")
+    def 'Builder can edit existing StateMachine'() {
+        when: "the Skip transition is added"
+        def smb = StateMachineBuilder.update("", "Default", 0) {
+            transition("Skip", [origin: "Waiting", target: "Finished"]) {
+                property(enabledProp: "Skippable", reservation:"clear")
+            }
+        }
+
+        then:
+        smb.sm
+        smb.sm.validate()
+    }
+
+    def 'Build StateMachine using builder methods'() {
         when:
         def smb = StateMachineBuilder.build("testing", "SkipStateMachine", 0) {
             transition("Start", [origin: "Waiting", target: "Started"]) {

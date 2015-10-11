@@ -56,6 +56,18 @@ class StateMachineDelegate {
         cl()
     }
 
+    public void state(String stateName, Closure cl = null) {
+        Logger.msg 5, "StateMachineDelegate.state() - stateName: $stateName"
+        assert stateName
+        def state = stateCache[stateName]
+        if(!state) {
+            state = sm.createState(stateName)
+            stateCache[stateName] = state
+        }
+
+//        if(cl) new StateDelegate(state).processClosure(cl)
+    }
+
     public void transition(String transName, Map<String,String> states = null, Closure cl = null) {
         Logger.msg 5, "StateMachineDelegate.transition() - transName: $transName, states: $states"
         assert transName
