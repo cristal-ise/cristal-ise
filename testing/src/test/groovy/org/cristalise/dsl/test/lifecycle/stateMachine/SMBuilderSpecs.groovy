@@ -56,6 +56,8 @@ class SMBuilderSpecs extends Specification implements CristalTestSetup {
         smb.sm
         smb.sm.validate()
         smb.sm.getStates().find { it.name == "Idle" }
+        smb.sm.getTransitions().find { it.name == "Fire" }.originState.name == "Idle"
+        smb.sm.getTransitions().find { it.name == "Fire" }.targetState.name == "Idle"
     }
 
     def 'SM containing a single Transition is NOT valid'() {
