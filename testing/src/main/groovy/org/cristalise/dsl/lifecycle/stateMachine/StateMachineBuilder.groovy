@@ -73,6 +73,7 @@ class StateMachineBuilder {
 
         smXML = new File(xmlFile).getText()
         sm = (StateMachine)Gateway.getMarshaller().unmarshall(smXML)
+        sm.validate()
 
         return this
     }
@@ -89,9 +90,10 @@ class StateMachineBuilder {
         delegate.processClosure(cl)
 
         def builder = new StateMachineBuilder(module, delegate)
-        
+        builder.sm.validate()
+
         builder.smXML =  Gateway.getMarshaller().marshall(builder.sm)
-        
+
         Logger.msg(5, builder.smXML)
 
         return builder
