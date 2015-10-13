@@ -29,14 +29,14 @@ import spock.lang.Specification
 /**
  *
  */
-class PropertyBuilderSpecs extends Specification implements CristalTestSetup {
+class EntityPropertyBuilderSpecs extends Specification implements CristalTestSetup {
     
     def setup()   { loggerSetup()    }
     def cleanup() { cristalCleanup() }
 
-    def 'Mutable Property can be created from name only'() {
+    def 'Mutable EntityProperty can be created from name only'() {
         when:
-        def props = PropertyTestBuilder.build {
+        def props = EntityPropertyTestBuilder.build {
             Property("Type")
         }
 
@@ -47,9 +47,9 @@ class PropertyBuilderSpecs extends Specification implements CristalTestSetup {
         props.list[0].mutable == true
     }
 
-    def 'Mutable Property can be created from name and value'() {
+    def 'Mutable EntityProperty can be created from name and value'() {
         when:
-        def props = PropertyTestBuilder.build {
+        def props = EntityPropertyTestBuilder.build {
             Property(Type: "patient")
         }
 
@@ -60,9 +60,9 @@ class PropertyBuilderSpecs extends Specification implements CristalTestSetup {
         props.list[0].mutable == true
     }
 
-    def 'Inmutable Property can be created from name and value'() {
+    def 'Inmutable EntityProperty can be created from name and value'() {
         when:
-        def props = PropertyTestBuilder.build {
+        def props = EntityPropertyTestBuilder.build {
             InmutableProperty(Type: "patient")
         }
 
@@ -73,31 +73,31 @@ class PropertyBuilderSpecs extends Specification implements CristalTestSetup {
         props.list[0].mutable == false
     }
 
-    def 'Inmutable Property must have the value set'() {
+    def 'Inmutable EntityProperty must have the value set'() {
         when:
-        def props = PropertyTestBuilder.build {
+        def props = EntityPropertyTestBuilder.build {
             InmutableProperty(Type: "")
         }
 
         then:
         InvalidDataException ex = thrown()
-        ex.message == "IDL:org.cristalise.kernel/common/InvalidDataException:1.0  Inmutable Property 'Type' must have valid value"
+        ex.message == "IDL:org.cristalise.kernel/common/InvalidDataException:1.0  Inmutable EntityProperty 'Type' must have valid value"
     }
 
-    def 'Property can only have String value'() {
+    def 'EntityProperty can only have String value'() {
         when:
-        def props = PropertyTestBuilder.build {
+        def props = EntityPropertyTestBuilder.build {
             Property(Type: new Object())
         }
 
         then:
         InvalidDataException ex = thrown()
-        ex.message == "IDL:org.cristalise.kernel/common/InvalidDataException:1.0  Property 'Type' value must be String"
+        ex.message == "IDL:org.cristalise.kernel/common/InvalidDataException:1.0  EntityProperty 'Type' value must be String"
     }
 
-    def 'Builder builds unlimited length of List keeping the order of declaration'() {
+    def 'EntityProperty Builder builds unlimited length of List keeping the order of declaration'() {
         when:
-        def props = PropertyTestBuilder.build {
+        def props = EntityPropertyTestBuilder.build {
             Property("Name")
             InmutableProperty(Type: "testing")
             Property('Date of Birth': 'today')
@@ -119,9 +119,9 @@ class PropertyBuilderSpecs extends Specification implements CristalTestSetup {
         props.list[2].mutable == true
     }
 
-    def 'The last accurance of the Property with same Name is kept'() {
+    def 'The last accurance of the EntityProperty with same Name is kept'() {
         when:
-        def props = PropertyTestBuilder.build {
+        def props = EntityPropertyTestBuilder.build {
             Property("Type")
             Property("Zombi")
             Property(Type: "patient")

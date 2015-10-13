@@ -30,7 +30,7 @@ import org.cristalise.kernel.lifecycle.instance.Workflow
  *
  */
 @CompileStatic
-class EntityDelegate extends PropertyDelegate {
+class EntityDelegate extends EntityPropertyDelegate {
     
     String    name
     String    type

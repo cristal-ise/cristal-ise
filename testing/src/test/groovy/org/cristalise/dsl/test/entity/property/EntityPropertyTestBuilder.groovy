@@ -22,7 +22,7 @@ package org.cristalise.dsl.test.entity.property
 
 import groovy.transform.CompileStatic
 
-import org.cristalise.dsl.entity.PropertyDelegate;
+import org.cristalise.dsl.entity.EntityPropertyDelegate;
 import org.cristalise.kernel.property.PropertyArrayList
 
 
@@ -30,10 +30,10 @@ import org.cristalise.kernel.property.PropertyArrayList
  *
  */
 @CompileStatic
-class PropertyTestBuilder {
+class EntityPropertyTestBuilder {
 
     public static PropertyArrayList build(Closure cl) {
-        def pd = new PropertyDelegate()
+        def pd = new EntityPropertyDelegate()
         
         pd.processClosure(cl)
 

@@ -29,15 +29,16 @@ import org.cristalise.kernel.utils.Logger
 
 
 /**
- *
+ * Wrapper/Delegate class of PropertyArrayList used for Item and Agent Properties
+ * 
  */
 @CompileStatic
-class PropertyDelegate {
+class EntityPropertyDelegate {
 
     PropertyArrayList props = new PropertyArrayList()
 
     public void processClosure(Closure cl) {
-        assert cl, "PropertyDelegate only works with a valid Closure"
+        assert cl, "EntityPropertyDelegate only works with a valid Closure"
 
         cl.delegate = this
         cl.resolveStrategy = Closure.DELEGATE_FIRST
@@ -45,12 +46,12 @@ class PropertyDelegate {
     }
 
     public void InmutableProperty(Map<String, String> attrs) {
-        assert attrs, "Inmutable Property must have the name and value pair set"
+        assert attrs, "Inmutable EntityProperty must have the name and value pair set"
 
         attrs.each { k, v ->
-            if(!v) throw new InvalidDataException("Inmutable Property '$k' must have valid value")
+            if(!v) throw new InvalidDataException("Inmutable EntityProperty '$k' must have valid value")
 
-            Logger.msg 5, "InmutableProperty - name/Value: $k/$v"
+            Logger.msg 5, "Inmutable EntityProperty - name/Value: $k/$v"
             
             if(v instanceof String) props.put(new Property(k, v, false))
             else                    throw new InvalidDataException("Property '$k' value must be String")
@@ -62,15 +63,13 @@ class PropertyDelegate {
     }
 
     public void Property(Map<String, String> attrs) {
-        assert attrs, "Mutable Property must have the name and value pair set"
+        assert attrs, "Mutable EntityProperty must have the name and value pair set"
 
         attrs.each { k, v ->
             Logger.msg 5, "Property - name/Value: $k/$v"
 
             if(v instanceof String) props.put(new Property(k, v, true))
-            else                    throw new InvalidDataException("Property '$k' value must be String")
+            else                    throw new InvalidDataException("EntityProperty '$k' value must be String")
         }
     }
-    
-
 }
