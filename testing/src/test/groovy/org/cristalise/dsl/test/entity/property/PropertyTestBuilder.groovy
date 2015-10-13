@@ -18,10 +18,11 @@
  *
  * http://www.fsf.org/licensing/licenses/lgpl.html
  */
-package org.cristalise.dsl.property
+package org.cristalise.dsl.test.entity.property
 
 import groovy.transform.CompileStatic
 
+import org.cristalise.dsl.entity.PropertyDelegate;
 import org.cristalise.kernel.property.PropertyArrayList
 
 
@@ -29,7 +30,7 @@ import org.cristalise.kernel.property.PropertyArrayList
  *
  */
 @CompileStatic
-class PropertyBuilder {
+class PropertyTestBuilder {
 
     public static PropertyArrayList build(Closure cl) {
         def pd = new PropertyDelegate()

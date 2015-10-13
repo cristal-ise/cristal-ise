@@ -18,7 +18,7 @@
  *
  * http://www.fsf.org/licensing/licenses/lgpl.html
  */
-package org.cristalise.dsl.property
+package org.cristalise.dsl.entity
 
 import groovy.transform.CompileStatic
 

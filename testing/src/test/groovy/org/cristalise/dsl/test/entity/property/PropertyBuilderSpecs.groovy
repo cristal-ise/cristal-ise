@@ -18,9 +18,8 @@
  *
  * http://www.fsf.org/licensing/licenses/lgpl.html
  */
-package org.cristalise.dsl.test.property
+package org.cristalise.dsl.test.entity.property
 
-import org.cristalise.dsl.property.PropertyBuilder
 import org.cristalise.kernel.common.InvalidDataException
 import org.cristalise.test.CristalTestSetup
 
@@ -37,7 +36,7 @@ class PropertyBuilderSpecs extends Specification implements CristalTestSetup {
 
     def 'Mutable Property can be created from name only'() {
         when:
-        def props = PropertyBuilder.build {
+        def props = PropertyTestBuilder.build {
             Property("Type")
         }
 
@@ -50,7 +49,7 @@ class PropertyBuilderSpecs extends Specification implements CristalTestSetup {
 
     def 'Mutable Property can be created from name and value'() {
         when:
-        def props = PropertyBuilder.build {
+        def props = PropertyTestBuilder.build {
             Property(Type: "patient")
         }
 
@@ -63,7 +62,7 @@ class PropertyBuilderSpecs extends Specification implements CristalTestSetup {
 
     def 'Inmutable Property can be created from name and value'() {
         when:
-        def props = PropertyBuilder.build {
+        def props = PropertyTestBuilder.build {
             InmutableProperty(Type: "patient")
         }
 
@@ -76,7 +75,7 @@ class PropertyBuilderSpecs extends Specification implements CristalTestSetup {
 
     def 'Inmutable Property must have the value set'() {
         when:
-        def props = PropertyBuilder.build {
+        def props = PropertyTestBuilder.build {
             InmutableProperty(Type: "")
         }
 
@@ -87,7 +86,7 @@ class PropertyBuilderSpecs extends Specification implements CristalTestSetup {
 
     def 'Property can only have String value'() {
         when:
-        def props = PropertyBuilder.build {
+        def props = PropertyTestBuilder.build {
             Property(Type: new Object())
         }
 
@@ -98,7 +97,7 @@ class PropertyBuilderSpecs extends Specification implements CristalTestSetup {
 
     def 'Builder builds unlimited length of List keeping the order of declaration'() {
         when:
-        def props = PropertyBuilder.build {
+        def props = PropertyTestBuilder.build {
             Property("Name")
             InmutableProperty(Type: "testing")
             Property('Date of Birth': 'today')
@@ -122,7 +121,7 @@ class PropertyBuilderSpecs extends Specification implements CristalTestSetup {
 
     def 'The last accurance of the Property with same Name is kept'() {
         when:
-        def props = PropertyBuilder.build {
+        def props = PropertyTestBuilder.build {
             Property("Type")
             Property("Zombi")
             Property(Type: "patient")

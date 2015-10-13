@@ -23,7 +23,6 @@ package org.cristalise.dsl.entity
 import groovy.transform.CompileStatic
 
 import org.cristalise.dsl.lifecycle.instance.WorkflowBuilder
-import org.cristalise.dsl.property.PropertyDelegate
 import org.cristalise.kernel.lifecycle.instance.Workflow
 
 
