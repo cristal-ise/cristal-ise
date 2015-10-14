@@ -45,12 +45,32 @@ class ItemBuilderSpecs extends Specification implements CristalTestSetup {
 
     def 'ItemBuilder with empty Workflow adds Name to Properties'() {
         when:
-        def itemB = ItemBuilder.build(name: "myFisrtItem", folder: "testing") {}
+        def itemB = ItemBuilder.build(name: "dummy", folder: "testing") {}
 
         then:
         itemB.props.list.size == 1
         itemB.props.list[0].name == "Name"
-        itemB.props.list[0].value == "myFisrtItem"
+        itemB.props.list[0].value == "dummy"
+    }
+
+    def 'ItemBuilder with empty Workflow can have user defined Properties'() {
+        when:
+        def itemB = ItemBuilder.build(name: "userDefinedProps", folder: "testing") {
+            InmutableProperty("Brain": "kovax")
+            Property("Pinky": "kovax")
+        }
+
+        then:
+        itemB.props.list.size == 3
+        itemB.props.list[0].name    == "Name"
+        itemB.props.list[0].value   == "userDefinedProps"
+        itemB.props.list[0].mutable == true
+        itemB.props.list[1].name    == "Brain"
+        itemB.props.list[1].value   == "kovax"
+        itemB.props.list[1].mutable == false
+        itemB.props.list[2].name    == "Pinky"
+        itemB.props.list[2].value   == "kovax"
+        itemB.props.list[2].mutable == true
     }
 
     def 'ItemBuilder builds domain Workflow'() {
@@ -60,5 +80,7 @@ class ItemBuilderSpecs extends Specification implements CristalTestSetup {
         then:
         itemB.wf
         itemB.wf.search("workflow/domain")
+
+        itemB.props.list.size == 1
     }
 }
