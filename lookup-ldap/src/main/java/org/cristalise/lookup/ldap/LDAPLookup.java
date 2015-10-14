@@ -764,6 +764,7 @@ public class LDAPLookup implements LookupManager{
     @Override
 	public RolePath getRolePath(String roleName) throws ObjectNotFoundException
     {
+    	if (roleName.length() == 0) return new RolePath();
         LDAPSearchConstraints searchCons = new LDAPSearchConstraints();
         searchCons.setBatchSize(0);
         searchCons.setDereference(LDAPSearchConstraints.DEREF_NEVER );
