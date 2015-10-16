@@ -18,38 +18,22 @@
  *
  * http://www.fsf.org/licensing/licenses/lgpl.html
  */
-package org.cristalise.dsl.test.property
+package org.cristalise.dsl.property
 
-import org.cristalise.dsl.property.PropertyBuilder
-import org.cristalise.test.CristalTestSetup
+import groovy.transform.CompileStatic
 
-import spock.lang.Specification
+import org.cristalise.kernel.utils.CastorHashMap
 
 
 /**
  *
  */
-class PropertyBuilderSpecs extends Specification implements CristalTestSetup {
-    
-    def setup()   { loggerSetup()    }
-    def cleanup() { cristalCleanup() }
+@CompileStatic
+class PropertyBuilder {
 
-    def 'Property can be concrete, i.e. not abstract'() {
-        when:
-        def props = PropertyBuilder.build { Property("String": 'dummy', "Integer": -1) }
-
-        then:
-        props == ["String": 'dummy', "Integer": -1]
-        props.getAbstract().size() == 0
-    }
-
-    def 'Property can be abstract'() {
-        when:
-        def props = PropertyBuilder.build { AbstractProperty("Boolean": true) }
-
-        then:
-        props == ["Boolean": true]
-        props.getAbstract().size() == 1
-        props.getAbstract().contains("Boolean")
+    public static CastorHashMap build(Closure cl) {
+        def pd = new PropertyDelegate()
+        pd.processClosure(cl)
+        return pd.props
     }
 }

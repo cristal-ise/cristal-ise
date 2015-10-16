@@ -18,9 +18,9 @@
  *
  * http://www.fsf.org/licensing/licenses/lgpl.html
  */
-package org.cristalise.dsl.test.property
+package org.cristalise.dsl.test.collection
 
-import org.cristalise.dsl.property.PropertyBuilder
+import org.cristalise.dsl.collection.DependencyBuilder
 import org.cristalise.test.CristalTestSetup
 
 import spock.lang.Specification
@@ -29,27 +29,26 @@ import spock.lang.Specification
 /**
  *
  */
-class PropertyBuilderSpecs extends Specification implements CristalTestSetup {
-    
+class CollectionBuilderSpecs extends Specification implements CristalTestSetup {
+
     def setup()   { loggerSetup()    }
     def cleanup() { cristalCleanup() }
 
-    def 'Property can be concrete, i.e. not abstract'() {
+    def 'Build Dependency'() {
         when:
-        def props = PropertyBuilder.build { Property("String": 'dummy', "Integer": -1) }
+        def builder = DependencyBuilder.build("depend") {
+            Properties {
+                Property("toto": true)
+            }
+            Member(itemPath: "/entity/b9415b57-3a4a-4b31-825a-d307d1280ac0") { 
+                Property("version": 0)
+            }
+        }
 
         then:
-        props == ["String": 'dummy', "Integer": -1]
-        props.getAbstract().size() == 0
-    }
+        builder.dependency.properties.size() == 1
+        builder.dependency.members.list.size() == 1
 
-    def 'Property can be abstract'() {
-        when:
-        def props = PropertyBuilder.build { AbstractProperty("Boolean": true) }
-
-        then:
-        props == ["Boolean": true]
-        props.getAbstract().size() == 1
-        props.getAbstract().contains("Boolean")
+        builder.dependency.members.list[0].properties.size() == 2
     }
 }

@@ -18,30 +18,46 @@
  *
  * http://www.fsf.org/licensing/licenses/lgpl.html
  */
-package org.cristalise.dsl.test.property
+package org.cristalise.dsl.collection
 
 import groovy.transform.CompileStatic
 
-import org.cristalise.dsl.property.PropertyDelegate
-import org.cristalise.kernel.utils.CastorHashMap
+import org.cristalise.dsl.property.PropertyBuilder
+import org.cristalise.kernel.collection.Dependency
+import org.cristalise.kernel.lookup.ItemPath
 
 
 /**
+ * 
  *
  */
 @CompileStatic
-class PropertyTestBuilder {
-    CastorHashMap props = null
-    
-    public PropertyTestBuilder(CastorHashMap p) {
-        props = p
+class DependencyDelegate {
+    Dependency dependency
+
+    public DependencyDelegate(String n) {
+        dependency = new Dependency(n)
     }
 
-    public static PropertyTestBuilder build(Closure cl) {
-        def pd = new PropertyDelegate()
+    public void  processClosure(Closure cl) {
+        cl.delegate = this
+        cl.resolveStrategy = Closure.DELEGATE_FIRST
+        cl()
+    }
 
-        pd.processClosure(cl)
+    public void Properties(Closure cl) {
+        dependency.properties = PropertyBuilder.build(cl)
+    }
 
-        return new PropertyTestBuilder(pd.props)
+    public void Member(Map attrs, Closure cl = null) {
+        assert attrs && attrs.itemPath
+
+        def member = dependency.addMember(new ItemPath((String)attrs.itemPath))
+
+        if(cl) {
+            DependencyMemberDelegate delegate = new DependencyMemberDelegate()
+            delegate.processClosure(cl)
+            member.properties << delegate.props
+        }
     }
 }

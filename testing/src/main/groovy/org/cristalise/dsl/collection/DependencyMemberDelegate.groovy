@@ -18,52 +18,23 @@
  *
  * http://www.fsf.org/licensing/licenses/lgpl.html
  */
-package org.cristalise.dsl.property
+package org.cristalise.dsl.collection
 
 import groovy.transform.CompileStatic
 
-import org.cristalise.kernel.utils.CastorHashMap
-import org.cristalise.kernel.utils.Logger
+import org.cristalise.dsl.property.PropertyDelegate
 
 
 /**
- * Wrapper/Delegate class of CastorHashMap used in Lifecycle and Collection Properties
+ * 
  *
  */
 @CompileStatic
-class PropertyDelegate {
-
-    CastorHashMap props = new CastorHashMap()
+class DependencyMemberDelegate extends PropertyDelegate {
 
     public void processClosure(Closure cl) {
-        assert cl, "PropertyDelegate only works with a valid Closure"
-
         cl.delegate = this
         cl.resolveStrategy = Closure.DELEGATE_FIRST
         cl()
-    }
-
-    public void Property(String name) {
-        Property((name): "")
-    }
-
-    public void Property(Map<String, String> attrs) {
-        assert attrs, "Property must have the name and value pair set"
-
-        attrs.each { k, v ->
-            Logger.msg 8, "PropertyDelegate.Property() - adding name/Value: $k/$v"
-
-            props.put(k, v, false)
-        }
-    }
-
-    public void AbstractProperty(Map<String, String> attrs) {
-        assert attrs, "AbstractProperty must have the name and value pair set"
-
-        attrs.each { k, v ->
-            Logger.msg 8, "PropertyDelegate.AbstractProperty() - adding name/Value: $k/$v"
-
-            props.put(k, v, true)
-        }
     }
 }

@@ -18,38 +18,29 @@
  *
  * http://www.fsf.org/licensing/licenses/lgpl.html
  */
-package org.cristalise.dsl.test.property
+package org.cristalise.dsl.collection
 
-import org.cristalise.dsl.property.PropertyBuilder
-import org.cristalise.test.CristalTestSetup
+import groovy.transform.CompileStatic
 
-import spock.lang.Specification
+import org.cristalise.kernel.collection.Dependency
 
 
 /**
  *
  */
-class PropertyBuilderSpecs extends Specification implements CristalTestSetup {
-    
-    def setup()   { loggerSetup()    }
-    def cleanup() { cristalCleanup() }
+@CompileStatic
+class DependencyBuilder {
+    Dependency dependency
 
-    def 'Property can be concrete, i.e. not abstract'() {
-        when:
-        def props = PropertyBuilder.build { Property("String": 'dummy', "Integer": -1) }
-
-        then:
-        props == ["String": 'dummy', "Integer": -1]
-        props.getAbstract().size() == 0
+    public DependencyBuilder(Dependency d) {
+        dependency = d
     }
 
-    def 'Property can be abstract'() {
-        when:
-        def props = PropertyBuilder.build { AbstractProperty("Boolean": true) }
+    public static DependencyBuilder build(String n, Closure cl) {
+        def delegate = new DependencyDelegate(n)
 
-        then:
-        props == ["Boolean": true]
-        props.getAbstract().size() == 1
-        props.getAbstract().contains("Boolean")
+        delegate.processClosure(cl)
+
+        return new DependencyBuilder(delegate.dependency)
     }
 }
