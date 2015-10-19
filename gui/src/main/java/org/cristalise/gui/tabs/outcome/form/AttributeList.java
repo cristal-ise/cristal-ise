@@ -31,7 +31,7 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.SwingConstants;
 
-import org.cristalise.gui.tabs.outcome.form.field.StringEditField;
+import org.cristalise.gui.tabs.outcome.form.field.EditField;
 import org.cristalise.kernel.utils.Logger;
 import org.exolab.castor.xml.schema.AttributeDecl;
 import org.exolab.castor.xml.schema.ComplexType;
@@ -42,7 +42,7 @@ import org.w3c.dom.Element;
 
 public class AttributeList extends JPanel {
 
-    ArrayList<StringEditField> attrSet = new ArrayList<StringEditField>();
+    ArrayList<EditField> attrSet = new ArrayList<EditField>();
     ElementDecl model;
     Element myElement;
     boolean readOnly;
@@ -100,7 +100,7 @@ public class AttributeList extends JPanel {
 
             // Add entry
             try {
-                StringEditField entry = StringEditField.getEditField(thisDecl);
+                EditField entry = EditField.getEditField(thisDecl);
                 entry.setHelp(helpPane, helpText);
                 attrSet.add(entry);
                 if (readOnly) entry.setEditable(false);
@@ -120,7 +120,7 @@ public class AttributeList extends JPanel {
 
     public void setInstance(Element data) throws StructuralException {
         this.myElement = data;
-        for (StringEditField thisField : attrSet) {
+        for (EditField thisField : attrSet) {
             Logger.msg(8, "Populating Attribute "+thisField.getName());
             Attr thisAttr = myElement.getAttributeNode(thisField.getName());
             if (thisAttr == null)
@@ -151,7 +151,7 @@ public class AttributeList extends JPanel {
 
     public void initNew(Element parent) {
         AttributeDecl thisDecl;
-        StringEditField thisField;
+        EditField thisField;
         Attr thisAttr;
         this.myElement = parent;
 
@@ -159,7 +159,7 @@ public class AttributeList extends JPanel {
 
         ComplexType content = (ComplexType)model.getType();
 
-        for (Iterator<StringEditField> e = attrSet.iterator(); e.hasNext();) {
+        for (Iterator<EditField> e = attrSet.iterator(); e.hasNext();) {
             thisField = e.next();
 
             thisDecl = content.getAttributeDecl(thisField.getName());

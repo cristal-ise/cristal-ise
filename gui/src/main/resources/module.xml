@@ -29,7 +29,7 @@
 	<Config name="OutcomeHandler.CompositeActivityDef.0" target="client">org.cristalise.gui.lifecycle.desc.CompActDefOutcomeHandler</Config>
 	<Config name="OutcomeHandler.ElementaryActivityDef.0" target="client">org.cristalise.gui.lifecycle.desc.ElemActDefOutcomeHandler</Config>
 	<Config name="OutcomeHandler.Schema.0" target="client">org.cristalise.gui.tabs.outcome.BasicOutcomeEditor</Config>
-	<Config name="OutcomeHandler.Script.0" target="client">org.cristalise.gui.tabs.outcome.BasicOutcomeEditor</Config>
+	<Config name="OutcomeHandler.Script.0" target="client">org.cristalise.gui.tabs.outcome.ScriptOutcomeEditor</Config>
 	<Config name="banner" target="client">about.png</Config>
 	<Imports/>
 </CristalModule>

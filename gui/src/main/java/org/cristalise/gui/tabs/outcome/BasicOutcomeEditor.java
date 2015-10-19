@@ -32,6 +32,10 @@ import javax.swing.event.DocumentListener;
 import javax.swing.text.PlainDocument;
 
 import org.cristalise.kernel.utils.FileStringUtility;
+import org.fife.ui.rsyntaxtextarea.RSyntaxDocument;
+import org.fife.ui.rsyntaxtextarea.RSyntaxTextArea;
+import org.fife.ui.rsyntaxtextarea.SyntaxConstants;
+import org.fife.ui.rtextarea.RTextScrollPane;
 
 
 /**************************************************************************
@@ -47,18 +51,20 @@ import org.cristalise.kernel.utils.FileStringUtility;
 
 public class BasicOutcomeEditor extends JPanel implements OutcomeHandler {
 
-    PlainDocument doc;
-    JTextArea textarea;
+	RSyntaxTextArea textarea;
+	RSyntaxDocument doc;
     boolean unsaved;
 
     public BasicOutcomeEditor() {
         super();
         this.setLayout(new GridLayout(1,1));
-        doc = new PlainDocument();
-        textarea = new JTextArea(doc);
-        textarea.setTabSize(2);
-        textarea.setFont(Font.decode("monospaced"));
-        add(new JScrollPane(textarea));
+        doc = new RSyntaxDocument(SyntaxConstants.SYNTAX_STYLE_XML);
+        textarea = new RSyntaxTextArea(doc);
+        textarea.setAutoIndentEnabled(true);
+        textarea.setCodeFoldingEnabled(true);
+        RTextScrollPane scroll = new RTextScrollPane(textarea);
+		scroll.setLineNumbersEnabled(true);
+		add(scroll);
         doc.addDocumentListener(new DocumentListener() {
             @Override
 			public void changedUpdate(DocumentEvent e) { unsaved = true; }

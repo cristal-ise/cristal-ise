@@ -37,7 +37,7 @@ import org.cristalise.kernel.utils.Logger;
  * Copyright (C) 2003 CERN - European Organization for Nuclear Research
  * All rights reserved.
  **************************************************************************/
-public class BooleanEditField extends StringEditField {
+public class BooleanEditField extends EditField {
 
     JCheckBox checkbox;
 

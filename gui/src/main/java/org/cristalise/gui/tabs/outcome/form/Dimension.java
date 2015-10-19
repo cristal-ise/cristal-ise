@@ -29,6 +29,7 @@ import java.awt.event.ActionListener;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
 
 import javax.swing.BorderFactory;
@@ -75,8 +76,8 @@ public class Dimension extends OutcomeStructure implements ActionListener {
     protected static final short TABS = 2;
 
 
-    public Dimension(ElementDecl model, boolean readOnly, HelpPane help) {
-        super(model, readOnly, help);
+    public Dimension(ElementDecl model, boolean readOnly, HelpPane help, HashMap<String, Class<?>> specialControls) {
+        super(model, readOnly, help, specialControls);
         // set up panel
         gridbag = new java.awt.GridBagLayout();
         setLayout(gridbag);
@@ -182,7 +183,7 @@ public class Dimension extends OutcomeStructure implements ActionListener {
     public DimensionInstance newInstance() {
         DimensionInstance newInstance = null;
         try {
-            newInstance = new DimensionInstance(model, readOnly, helpPane, deferChild);
+            newInstance = new DimensionInstance(model, readOnly, helpPane, deferChild, specialEditFields);
             instances.add(newInstance);
             newInstance.setTabNumber(instances.size());
             newInstance.setParent(this);

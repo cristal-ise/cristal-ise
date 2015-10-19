@@ -53,6 +53,7 @@ public abstract class OutcomeStructure extends JPanel {
 
     ElementDecl model;
     Element myElement = null;
+    HashMap<String, Class<?>> specialEditFields;
     boolean readOnly;
     HashMap<String, OutcomeStructure> subStructure = new HashMap<String, OutcomeStructure>();
     ArrayList<String> order = new ArrayList<String>();
@@ -60,10 +61,11 @@ public abstract class OutcomeStructure extends JPanel {
     HelpPane helpPane;
     boolean deferChild = false;
 
-    public OutcomeStructure(ElementDecl model, boolean readOnly , HelpPane helpPane) {
+    public OutcomeStructure(ElementDecl model, boolean readOnly , HelpPane helpPane, HashMap<String, Class<?>> specialControls) {
         this.model = model;
         this.readOnly = readOnly;
         this.helpPane = helpPane;
+        this.specialEditFields = specialControls;
         subStructure = new HashMap<String, OutcomeStructure>();
         Logger.msg(8, "Creating " + model.getName() + " structure as " +
             this.getClass().getName().substring(this.getClass().getName().lastIndexOf('.') + 1));
@@ -94,13 +96,13 @@ public abstract class OutcomeStructure extends JPanel {
         if (model.getMaxOccurs() > 1
                 || model.getMaxOccurs() == Particle.UNBOUNDED
                 || model.getMinOccurs() == 0)
-            return new Dimension(model, readOnly, help);
+            return new Dimension(model, readOnly, help, specialEditFields);
 
         // must have a type from now on
         if (elementType == null)
             throw new StructuralException("Element "+model.getName()+" is elementary yet has no type.");
         // simple types will be fields
-        if (elementType instanceof SimpleType) return new Field(model, readOnly, help);
+        if (elementType instanceof SimpleType) return new Field(model, readOnly, help, specialEditFields);
 
         // otherwise is a complex type
         try {
@@ -111,10 +113,10 @@ public abstract class OutcomeStructure extends JPanel {
         }
 
         //when no element children -  field
-        if (elementComplexType.getParticleCount() == 0) return new Field(model, readOnly, help);
+        if (elementComplexType.getParticleCount() == 0) return new Field(model, readOnly, help, specialEditFields);
 
         //everything else is a data record
-        return new DataRecord(model, readOnly, help, deferChild);
+        return new DataRecord(model, readOnly, help, deferChild, specialEditFields);
     }
 
     /** Extracts child Element declarations from a content group and recursively from any group

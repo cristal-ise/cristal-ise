@@ -25,6 +25,7 @@ import java.awt.event.FocusListener;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.Enumeration;
+import java.util.HashMap;
 
 import javax.swing.ImageIcon;
 import javax.swing.JTextField;
@@ -54,7 +55,7 @@ import org.w3c.dom.Text;
 
 /** Superclass for the entry field for Field and AttributeList.
   */
-public class StringEditField implements FocusListener, DomainKeyConsumer {
+public class EditField implements FocusListener, DomainKeyConsumer {
 
     Node data;
     Structure model;
@@ -68,13 +69,13 @@ public class StringEditField implements FocusListener, DomainKeyConsumer {
     String name;
 
 
-    public StringEditField() {
+    public EditField() {
         field = makeTextField();
         if (field != null)
             field.addFocusListener(this);
     }
 
-    private static StringEditField getFieldForType(SimpleType type) {
+    private static EditField getFieldForType(SimpleType type) {
         // handle lists special
         if (type instanceof ListType)
             return new ArrayEditField(type.getBuiltInBaseType());
@@ -119,22 +120,26 @@ public class StringEditField implements FocusListener, DomainKeyConsumer {
             return new ImageEditField();
         else if (length > 60)
             return new LongStringEditField();
-        else return new StringEditField();
+        else return new EditField();
     }
 
-    public static StringEditField getEditField(AttributeDecl model) throws StructuralException {
+    public static EditField getEditField(AttributeDecl model) throws StructuralException {
     	if (model.isReference()) model = model.getReference();
-        StringEditField newField = getFieldForType(model.getSimpleType());
+        EditField newField = getFieldForType(model.getSimpleType());
         newField.setDecl(model);
         return newField;
     }
 
-    public static StringEditField getEditField(ElementDecl model) throws StructuralException {
+    public static EditField getEditField(ElementDecl model, HashMap<String, Class<?>> specialControls) throws StructuralException {
         try {
             XMLType baseType = model.getType();
             while (!(baseType instanceof SimpleType))
                 baseType = baseType.getBaseType();
-            StringEditField newField = getFieldForType((SimpleType)baseType);
+            EditField newField;
+            if (specialControls.containsKey(model.getName()))
+            	newField = (EditField)specialControls.get(model.getName()).newInstance();
+            else
+                newField = getFieldForType((SimpleType)baseType);
             newField.setDecl(model);
             return newField;
         } catch (Exception ex) {

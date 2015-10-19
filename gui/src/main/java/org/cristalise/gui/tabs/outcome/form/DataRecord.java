@@ -23,6 +23,7 @@ import java.awt.FlowLayout;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
+import java.util.HashMap;
 
 import javax.swing.JLabel;
 import javax.swing.JTabbedPane;
@@ -48,8 +49,8 @@ public class DataRecord extends OutcomeStructure implements ChangeListener {
     GridBagConstraints position;
     GridBagLayout gridbag;
 
-    public DataRecord(ElementDecl model, boolean readOnly, HelpPane help, boolean deferred) throws OutcomeException {
-        super(model, readOnly, help);
+    public DataRecord(ElementDecl model, boolean readOnly, HelpPane help, boolean deferred, HashMap<String, Class<?>> specialEditFields) throws OutcomeException {
+        super(model, readOnly, help, specialEditFields);
         this.deferred = deferred;
         if (!deferred) setupPanel();
     }

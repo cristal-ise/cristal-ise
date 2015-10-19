@@ -36,7 +36,7 @@ import javax.swing.text.JTextComponent;
  * Copyright (C) 2003 CERN - European Organization for Nuclear Research
  * All rights reserved.
  **************************************************************************/
-public class LongStringEditField extends StringEditField {
+public class LongStringEditField extends EditField {
 
     JTextArea bigText;
     JScrollPane bigScroller;

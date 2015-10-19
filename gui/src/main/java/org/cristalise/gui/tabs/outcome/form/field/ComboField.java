@@ -49,7 +49,7 @@ import org.exolab.castor.xml.schema.SimpleType;
  * rights reserved.
  ******************************************************************************/
 
-public class ComboField extends StringEditField {
+public class ComboField extends EditField {
 
     JComboBox comboField;
     ListOfValues vals;

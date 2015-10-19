@@ -23,6 +23,7 @@ import java.awt.Component;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
+import java.util.HashMap;
 
 import javax.swing.JComponent;
 import javax.swing.JLabel;
@@ -30,7 +31,7 @@ import javax.swing.JPanel;
 import javax.swing.SwingConstants;
 
 import org.cristalise.gui.tabs.outcome.OutcomeException;
-import org.cristalise.gui.tabs.outcome.form.field.StringEditField;
+import org.cristalise.gui.tabs.outcome.form.field.EditField;
 import org.cristalise.kernel.utils.Logger;
 import org.exolab.castor.xml.schema.ElementDecl;
 import org.w3c.dom.Document;
@@ -41,18 +42,18 @@ import org.w3c.dom.Text;
 
 public class Field extends OutcomeStructure {
 
-    StringEditField myElementPanel = null;
+    EditField myElementPanel = null;
     AttributeList myAttributes;
     JLabel tagName;
     Text textNode;
     boolean fixed;
     public static final JPanel nullPanel = new JPanel();
 
-    public Field(ElementDecl model, boolean readOnly, HelpPane helpPane) {
-        super(model, readOnly, helpPane);
+    public Field(ElementDecl model, boolean readOnly, HelpPane helpPane, HashMap<String, Class<?>> specialEditFields) {
+        super(model, readOnly, helpPane, specialEditFields);
 
         try {
-            myElementPanel = StringEditField.getEditField(model);
+            myElementPanel = EditField.getEditField(model, specialEditFields);
             Logger.msg(6, "Field type: "+myElementPanel.getClass().getName());
 			myElementPanel.setHelp(helpPane, help);
             if (readOnly) myElementPanel.setEditable(false);

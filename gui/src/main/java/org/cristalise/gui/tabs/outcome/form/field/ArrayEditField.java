@@ -43,7 +43,7 @@ import org.exolab.castor.xml.schema.SimpleType;
  * All rights reserved.
  **************************************************************************/
 
-public class ArrayEditField extends StringEditField implements ActionListener {
+public class ArrayEditField extends EditField implements ActionListener {
 
     Box arrayBox;
     Box expandBox;

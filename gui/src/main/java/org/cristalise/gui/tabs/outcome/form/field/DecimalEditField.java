@@ -38,7 +38,7 @@ import javax.swing.text.PlainDocument;
  * Copyright (C) 2003 CERN - European Organization for Nuclear Research
  * All rights reserved.
  **************************************************************************/
-public class DecimalEditField extends StringEditField {
+public class DecimalEditField extends EditField {
 
     public DecimalEditField() {
         super();

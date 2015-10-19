@@ -67,7 +67,6 @@ public class OutcomePanel extends JPanel implements OutcomeHandler
 {
 
     Schema schemaSOM;
-    //ASModel schemaASModel;
     Document outcomeDOM;
     OutcomeStructure documentRoot;
     DocumentBuilder parser;
@@ -77,7 +76,7 @@ public class OutcomePanel extends JPanel implements OutcomeHandler
     boolean unsaved = false;
     JScrollPane scrollpane = new JScrollPane();
     HelpPane help = new HelpPane();
-
+    protected HashMap<String, Class<?>> specialEditFields = new HashMap<String, Class<?>>();
     JTextArea basicView;
 
     public OutcomePanel()
@@ -315,9 +314,9 @@ public class OutcomePanel extends JPanel implements OutcomeHandler
             throw new InvalidSchemaException("No root elements defined");
         
         if (rootElementDecl.getType().isSimpleType() || ((ComplexType)rootElementDecl.getType()).isSimpleContent())
-        	documentRoot = new Field(rootElementDecl, readOnly, help);
+        	documentRoot = new Field(rootElementDecl, readOnly, help, specialEditFields);
         else
-        	documentRoot = new DataRecord(rootElementDecl, readOnly, help, false);
+        	documentRoot = new DataRecord(rootElementDecl, readOnly, help, false, specialEditFields);
 
         Logger.msg(5, "Finished structure. Populating...");
         if (docElement == null)

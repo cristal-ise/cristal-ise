@@ -39,7 +39,7 @@ import org.castor.core.util.Base64Encoder;
 import org.cristalise.gui.MainFrame;
 
 
-public class ImageEditField extends StringEditField {
+public class ImageEditField extends EditField {
 
 	JLabel imageLabel;
 

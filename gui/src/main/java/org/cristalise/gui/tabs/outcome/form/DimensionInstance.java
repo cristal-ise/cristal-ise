@@ -19,6 +19,8 @@
  * http://www.fsf.org/licensing/licenses/lgpl.html
  */
 package org.cristalise.gui.tabs.outcome.form;
+import java.util.HashMap;
+
 import org.cristalise.gui.tabs.outcome.OutcomeException;
 import org.exolab.castor.xml.schema.ElementDecl;
 
@@ -30,8 +32,8 @@ public class DimensionInstance extends DataRecord {
     int tabNumber;
     String tabName = null;
 
-    public DimensionInstance(ElementDecl model, boolean readOnly , HelpPane help, boolean deferred) throws OutcomeException {
-        super(model, readOnly, help, deferred);
+    public DimensionInstance(ElementDecl model, boolean readOnly , HelpPane help, boolean deferred, HashMap<String, Class<?>> specialControls) throws OutcomeException {
+        super(model, readOnly, help, deferred, specialControls);
     }
 
     public void setTabNumber(int tabNumber) {

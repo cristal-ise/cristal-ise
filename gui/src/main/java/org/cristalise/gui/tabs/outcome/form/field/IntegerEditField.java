@@ -38,7 +38,7 @@ import javax.swing.text.PlainDocument;
  * Copyright (C) 2003 CERN - European Organization for Nuclear Research
  * All rights reserved.
  **************************************************************************/
-public class IntegerEditField extends StringEditField {
+public class IntegerEditField extends EditField {
 
     public IntegerEditField() {
         super();
