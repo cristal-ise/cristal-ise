@@ -49,7 +49,18 @@ class PropertyBuilderSpecs extends Specification implements CristalTestSetup {
 
         then:
         props == ["Boolean": true]
-        props.getAbstract().size() == 1
-        props.getAbstract().contains("Boolean")
+        props.getAbstract() == ["Boolean"]
+    }
+
+    def 'Existing concrete Property can be changed to abstract'() {
+        when:
+        def props = PropertyBuilder.build { 
+            Property("Boolean": true)
+            AbstractProperty("Boolean": false)
+        }
+
+        then:
+        props == ["Boolean": false]
+        props.getAbstract() == ["Boolean"]
     }
 }

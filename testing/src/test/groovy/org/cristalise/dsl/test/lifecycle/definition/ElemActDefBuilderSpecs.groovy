@@ -21,7 +21,6 @@
 package org.cristalise.dsl.test.lifecycle.definition
 
 import org.cristalise.dsl.lifecycle.definition.ElemActDefBuilder
-import org.cristalise.kernel.graph.model.GraphableVertex
 import org.cristalise.test.CristalTestSetup
 
 import spock.lang.Specification
@@ -47,7 +46,7 @@ class ElemActDefBuilderSpecs extends Specification implements CristalTestSetup {
         eaDef.name == 'EADef'
         eaDef.version == 0
 
-        ((GraphableVertex)eaDef).getProperties() == defaultActProps
+        eaDef.getProperties() == defaultActProps
         eaDef.properties.getAbstract().size() == 0
     }
 
@@ -62,22 +61,24 @@ class ElemActDefBuilderSpecs extends Specification implements CristalTestSetup {
         eaDef.name == 'EADef'
         eaDef.version == 0
 
-        ((GraphableVertex)eaDef).getProperties() == defaultActProps
+        eaDef.getProperties() == defaultActProps
         eaDef.properties.getAbstract().size() == 0
     }
 
-    def 'ElemActDef can add new Properties'() {
+    def 'ElemActDef can add new Properties - concreate or abstract'() {
         when:
         def eaDef = ElemActDefBuilder.build(module: 'test', name: 'EADef', version: 0) {
-            Property(toto: 'dummy')
+            Property(concreteProp: 'dummy')
+            AbstractProperty(abstractProp: 'dummy')
         }
-        defaultActProps.toto = 'dummy'
+        defaultActProps.concreteProp = 'dummy'
+        defaultActProps.abstractProp = 'dummy'
 
         then:
         eaDef.name == 'EADef'
         eaDef.version == 0
 
-        ((GraphableVertex)eaDef).getProperties() == defaultActProps
-        eaDef.properties.getAbstract().size() == 0
+        eaDef.getProperties() == defaultActProps
+        eaDef.properties.getAbstract() == ["abstractProp"]
     }
 }

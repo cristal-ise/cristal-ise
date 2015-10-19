@@ -24,7 +24,6 @@ import groovy.transform.CompileStatic
 
 import org.cristalise.dsl.property.PropertyDelegate
 import org.cristalise.kernel.lifecycle.ActivityDef
-import org.cristalise.kernel.utils.KeyValuePair
 
 
 /**
@@ -33,7 +32,7 @@ import org.cristalise.kernel.utils.KeyValuePair
  */
 @CompileStatic
 class ElemActDefDelegate extends PropertyDelegate {
-    
+
     ActivityDef elemActDef
 
     public void processClosure(String name, int version, Closure cl) {
@@ -48,7 +47,7 @@ class ElemActDefDelegate extends PropertyDelegate {
         cl()
 
         props.each { k, v ->
-            elemActDef.properties.setKeyValuePair(new KeyValuePair(k, v, false))
+            elemActDef.properties.put(k, v, props.getAbstract().contains(k) ? true: false)
         }
     }
 }
