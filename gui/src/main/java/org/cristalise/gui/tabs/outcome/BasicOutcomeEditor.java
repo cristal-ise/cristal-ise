@@ -114,6 +114,8 @@ public class BasicOutcomeEditor extends JPanel implements OutcomeHandler {
 
     @Override
 	public void run() {
+        revalidate();
+        doLayout();
     }
 
 

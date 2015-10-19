@@ -221,6 +221,8 @@ public class CompActDefOutcomeHandler
         createListeners();
         mPropertyPanel.setGraphModelManager(mEditorPanel.mGraphModelManager);
         setUpGraphEditor();
+        revalidate();
+        doLayout();
     }
 
     public VertexPropertyPanel loadPropertyPanel()
