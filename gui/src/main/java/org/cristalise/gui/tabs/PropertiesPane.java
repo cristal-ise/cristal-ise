@@ -26,6 +26,7 @@
 
 package org.cristalise.gui.tabs;
 
+import java.awt.Component;
 /**
  * @author  abranson
  * @version
@@ -46,6 +47,8 @@ import javax.swing.SwingConstants;
 
 import org.cristalise.gui.MainFrame;
 import org.cristalise.gui.tree.NodeAgent;
+import org.cristalise.kernel.entity.Agent;
+import org.cristalise.kernel.entity.proxy.AgentProxy;
 import org.cristalise.kernel.entity.proxy.MemberSubscription;
 import org.cristalise.kernel.entity.proxy.ProxyObserver;
 import org.cristalise.kernel.persistency.ClusterStorage;
@@ -67,6 +70,8 @@ public class PropertiesPane extends ItemTabPane implements ProxyObserver<Propert
     HashMap<String, JLabel> loadedProps = new HashMap<String, JLabel>();
     JLabel domTitle;
     DomainPathAdmin domAdmin;
+    Box roleBox = Box.createVerticalBox();
+    RoleAdmin roleAdmin = null;
 
     public PropertiesPane() {
         super("Properties", "Properties");
@@ -81,8 +86,30 @@ public class PropertiesPane extends ItemTabPane implements ProxyObserver<Propert
         propertyBox = Box.createVerticalBox();
         gridbag.setConstraints(propertyBox, c);
         add(propertyBox);
-        if (MainFrame.isAdmin) { // edit dompath
+        
+        if (MainFrame.isAdmin) { 
+        	// role paths
+            // Domain Paths
+            JLabel roleTitle = new JLabel("Roles", titleIcon, SwingConstants.LEADING);
+            roleTitle.setFont(titleFont);
+            roleTitle.setForeground(headingColor);
+            roleTitle.setAlignmentX(Component.LEFT_ALIGNMENT);
+            Box labelBox = Box.createHorizontalBox();
+            labelBox.add(roleTitle);
+            labelBox.add(Box.createHorizontalGlue());
+            roleBox.add(labelBox);
+            roleBox.add(Box.createVerticalStrut(5));
+            roleAdmin = new RoleAdmin();
+            roleBox.add(roleAdmin);
+
             c.gridy++;
+            c.fill = GridBagConstraints.BOTH;
+            c.weighty=2.0;
+            roleBox.setVisible(false);
+            add(roleBox, c);
+            
+            // Domain Paths
+        	c.gridy++;
             c.fill = GridBagConstraints.NONE;
             c.weighty=0.0;
             domTitle = new JLabel("Domain Paths", titleIcon, SwingConstants.LEFT);
@@ -121,10 +148,9 @@ public class PropertiesPane extends ItemTabPane implements ProxyObserver<Propert
     @Override
 	public void run() {
         Thread.currentThread().setName("Property Pane Builder");
-        if (sourceItem instanceof NodeAgent) {
-            remove(domAdmin);
-            remove(domTitle);
-            eraseButton.setEnabled(false);
+        if (sourceItem instanceof NodeAgent && roleAdmin!=null) {
+            roleAdmin.setEntity((AgentProxy)sourceItem.getItem());
+            roleBox.setVisible(true);
         }
         else if (domAdmin != null)
             domAdmin.setEntity(sourceItem.getItem());

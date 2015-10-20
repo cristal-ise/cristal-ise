@@ -34,9 +34,18 @@ import javax.swing.JTable;
 import javax.swing.table.AbstractTableModel;
 
 import org.cristalise.gui.MainFrame;
+import org.cristalise.kernel.common.AccessRightsException;
+import org.cristalise.kernel.common.InvalidCollectionModification;
+import org.cristalise.kernel.common.InvalidDataException;
+import org.cristalise.kernel.common.InvalidTransitionException;
+import org.cristalise.kernel.common.ObjectAlreadyExistsException;
 import org.cristalise.kernel.common.ObjectNotFoundException;
+import org.cristalise.kernel.common.PersistencyException;
+import org.cristalise.kernel.entity.C2KLocalObject;
+import org.cristalise.kernel.entity.proxy.AgentProxy;
 import org.cristalise.kernel.entity.proxy.ItemProxy;
 import org.cristalise.kernel.lookup.DomainPath;
+import org.cristalise.kernel.lookup.RolePath;
 import org.cristalise.kernel.process.Gateway;
 
 
@@ -49,18 +58,18 @@ import org.cristalise.kernel.process.Gateway;
  * All rights reserved.
  **************************************************************************/
 
-public class DomainPathAdmin extends Box implements ActionListener {
+public class RoleAdmin extends Box implements ActionListener {
 
-    ItemProxy entity;
+    AgentProxy agent;
     JTable table;
-    DomainPathTableModel model;
+    RoleTableModel model = new RoleTableModel();
     JButton addButton;
     JButton removeButton;
+    JButton saveButton;
 
-    public DomainPathAdmin() {
+    public RoleAdmin() {
         super(BoxLayout.Y_AXIS);
 
-        model = new DomainPathTableModel(this);
         table = new JTable(model);
         add(new JScrollPane(table));
 
@@ -73,94 +82,101 @@ public class DomainPathAdmin extends Box implements ActionListener {
         removeButton = new JButton("Remove");
         buttonBox.add(removeButton);
         buttonBox.add(Box.createHorizontalGlue());
+        saveButton = new JButton("Save");
+        buttonBox.add(saveButton);
+        buttonBox.add(Box.createHorizontalGlue());
         add(buttonBox);
-
+        
         addButton.setActionCommand("add");
         addButton.addActionListener(this);
         removeButton.setActionCommand("remove");
         removeButton.addActionListener(this);
+        saveButton.setActionCommand("save");
+        saveButton.addActionListener(this);
+        addButton.setEnabled(true);
+        removeButton.setEnabled(true);
+        saveButton.setEnabled(false);
+        
+
     }
 
-    public void setEntity(ItemProxy entity) {
-        this.entity = entity;
+    public void setEntity(AgentProxy agent) {
+        this.agent = agent;
         model.loadPaths();
     }
 
    @Override
-public void actionPerformed(ActionEvent e) {
+   public void actionPerformed(ActionEvent e) {
        if (e.getActionCommand().equals("add")) {
-           String newPath = JOptionPane.showInputDialog(this, "Enter new path,", "Add Domain Path", JOptionPane.PLAIN_MESSAGE);
-           addDomainPath(new DomainPath(newPath));
-           model.loadPaths();
+           String newPath = JOptionPane.showInputDialog(this, "Enter new path", "Add Role Path", JOptionPane.PLAIN_MESSAGE);
+           model.addRole(newPath);
+           saveButton.setEnabled(true);
        }
        else if (e.getActionCommand().equals("remove")) {
            if (table.getSelectedRow() > -1) {
-               DomainPath oldPath = model.getPath(table.getSelectedRow());
-               removeDomainPath(oldPath);
-               model.loadPaths();
+               model.removeRole(table.getSelectedRow());
+               saveButton.setEnabled(true);
            }
+       }
+       else if (e.getActionCommand().equals("save")) {
+    	   try {
+			MainFrame.userAgent.execute(agent, "SetAgentRoles", model.getRolePaths());
+			saveButton.setEnabled(false);
+    	   } catch (Exception ex) {
+			MainFrame.exceptionDialog(ex);
+    	   }
        }
    }
 
-    public boolean removeDomainPath(DomainPath oldPath) {
-        return alterDomainPath(oldPath, "Remove");
-    }
 
-    public boolean addDomainPath(DomainPath newPath) {
-        return alterDomainPath(newPath, "Add");
-    }
-
-    public boolean alterDomainPath(DomainPath path, String action) {
-
-        if (JOptionPane.showConfirmDialog(this,
-                action+" "+path+"?",
-                action+" Domain Path",
-                JOptionPane.YES_NO_OPTION) != JOptionPane.YES_OPTION)
-            return false;
-
-        String[] params = new String[1];
-        params[0] = path.toString();
-        try {
-            MainFrame.userAgent.execute(entity, action+"DomainPath", params);
-        } catch (Exception e) {
-        	MainFrame.exceptionDialog(e);
-            return false;
-        }
-        return true;
-    }
-
-    private class DomainPathTableModel extends AbstractTableModel {
-        ArrayList<DomainPath> domPaths;
-        DomainPathAdmin parent;
-        public DomainPathTableModel(DomainPathAdmin parent) {
-            this.parent = parent;
-            domPaths = new ArrayList<DomainPath>();
+    private class RoleTableModel extends AbstractTableModel {
+        ArrayList<RolePath> rolePaths;
+        public RoleTableModel() {
+            rolePaths = new ArrayList<RolePath>();
         }
 
-        public void loadPaths() {
-            domPaths.clear();
-            for (Iterator<?> currentPaths = Gateway.getLookup().searchAliases(entity.getPath()); currentPaths.hasNext();) {
-					domPaths.add((DomainPath)currentPaths.next());
+        public void removeRole(int selectedRow) {
+        	if (rolePaths.size()>0)
+        		rolePaths.remove(selectedRow);
+        	if (rolePaths.size() < 1)
+        		removeButton.setEnabled(false);
+        	fireTableDataChanged();
+		}
+
+		public String[] getRolePaths() {
+			String[] roleNames = new String[rolePaths.size()];
+			int i=0;
+			for (RolePath role : rolePaths) {
+				roleNames[i++] = role.toString();
+			}
+			return roleNames;
+		}
+
+		public void addRole(String newPath) {
+			RolePath newRole;
+			try {
+				newRole = Gateway.getLookup().getRolePath(newPath);
+			} catch (ObjectNotFoundException e) {
+				MainFrame.exceptionDialog(e);
+				return;
+			}
+			if (rolePaths.contains(newRole)) {
+				JOptionPane.showMessageDialog(null, "Role already assigned to agent", "Error assigning Role", JOptionPane.ERROR_MESSAGE);
+				return;
+			}
+			rolePaths.add(newRole);
+			removeButton.setEnabled(true);
+			fireTableDataChanged();
+		}
+
+		public void loadPaths() {
+        	rolePaths.clear();
+            for (RolePath currentRole: Gateway.getLookup().getRoles(agent.getPath())) {
+            	rolePaths.add(currentRole);
             }
             fireTableDataChanged();
         }
-
-        public DomainPath getPath(int rowIndex) {
-            return domPaths.get(rowIndex);
-        }
-        @Override
-		public void setValueAt(Object aValue, int rowIndex, int columnIndex) {
-            DomainPath oldPath = domPaths.get(rowIndex);
-            DomainPath newPath = new DomainPath((String)aValue);
-            boolean success = parent.addDomainPath(newPath);
-            if (success)
-                success = parent.removeDomainPath(oldPath);
-            if (success) {
-                oldPath.setPath(newPath);
-                fireTableDataChanged();
-            }
-        }
-
+        
         @Override
 		public Class<?> getColumnClass(int columnIndex) {
             return String.class;
@@ -173,22 +189,22 @@ public void actionPerformed(ActionEvent e) {
 
         @Override
 		public String getColumnName(int column) {
-            return "Path";
+            return "Role";
         }
 
         @Override
 		public int getRowCount() {
-            return domPaths.size();
+            return rolePaths.size();
         }
 
         @Override
 		public Object getValueAt(int rowIndex, int columnIndex) {
-            return domPaths.get(rowIndex).toString();
+            return rolePaths.get(rowIndex).toString();
         }
 
         @Override
 		public boolean isCellEditable(int rowIndex, int columnIndex) {
-            return true;
+            return false;
         }
     }
 }
