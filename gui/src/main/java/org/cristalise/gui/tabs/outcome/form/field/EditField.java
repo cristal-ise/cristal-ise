@@ -34,7 +34,6 @@ import javax.swing.text.JTextComponent;
 import org.cristalise.gui.DomainKeyConsumer;
 import org.cristalise.gui.MainFrame;
 import org.cristalise.gui.tabs.outcome.OutcomeException;
-import org.cristalise.gui.tabs.outcome.form.HelpPane;
 import org.cristalise.gui.tabs.outcome.form.OutcomeStructure;
 import org.cristalise.gui.tabs.outcome.form.StructuralException;
 import org.cristalise.kernel.lookup.DomainPath;
@@ -60,8 +59,6 @@ public class EditField implements FocusListener, DomainKeyConsumer {
     Node data;
     Structure model;
     protected SimpleType content;
-    HelpPane helpPane;
-    String helpText;
     protected JTextComponent field;
 
     boolean isValid = true;
@@ -209,11 +206,6 @@ public class EditField implements FocusListener, DomainKeyConsumer {
         return "";
     }
 
-	public void setHelp(HelpPane helpPane, String helpText) {
-		this.helpPane = helpPane;
-		this.helpText = helpText;
-	}
-
     @Override
 	public void focusLost(FocusEvent e) {
         if (MainFrame.itemFinder != null)
@@ -223,7 +215,6 @@ public class EditField implements FocusListener, DomainKeyConsumer {
 
     @Override
 	public void focusGained(FocusEvent e) {
-    	helpPane.setHelp(name, helpText);
     	if (editable && MainFrame.itemFinder != null)
       		MainFrame.itemFinder.setConsumer(this, "Insert");
     }

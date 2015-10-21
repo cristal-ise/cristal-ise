@@ -26,8 +26,10 @@ import java.util.Enumeration;
 import java.util.HashMap;
 
 import javax.swing.ImageIcon;
+import javax.swing.JLabel;
 import javax.swing.JPanel;
 
+import org.cristalise.gui.ImageLoader;
 import org.cristalise.gui.tabs.outcome.OutcomeException;
 import org.cristalise.kernel.utils.Logger;
 import org.exolab.castor.types.AnyNode;
@@ -57,14 +59,13 @@ public abstract class OutcomeStructure extends JPanel {
     boolean readOnly;
     HashMap<String, OutcomeStructure> subStructure = new HashMap<String, OutcomeStructure>();
     ArrayList<String> order = new ArrayList<String>();
-    String help = "<i>No help is available for this element</i>";
-    HelpPane helpPane;
+    static public ImageIcon helpIconSmall = ImageLoader.findImage("query_16.png");
+    String help = null;
     boolean deferChild = false;
-
-    public OutcomeStructure(ElementDecl model, boolean readOnly , HelpPane helpPane, HashMap<String, Class<?>> specialControls) {
+    
+    public OutcomeStructure(ElementDecl model, boolean readOnly , HashMap<String, Class<?>> specialControls) {
         this.model = model;
         this.readOnly = readOnly;
-        this.helpPane = helpPane;
         this.specialEditFields = specialControls;
         subStructure = new HashMap<String, OutcomeStructure>();
         Logger.msg(8, "Creating " + model.getName() + " structure as " +
@@ -86,7 +87,7 @@ public abstract class OutcomeStructure extends JPanel {
      * <li> Everything else is a DataRecord
      * </ol>
      */
-    public OutcomeStructure createStructure(ElementDecl model, boolean readOnly, HelpPane help) throws OutcomeException {
+    public OutcomeStructure createStructure(ElementDecl model, boolean readOnly) throws OutcomeException {
         XMLType elementType = model.getType();
         ComplexType elementComplexType;
 
@@ -96,13 +97,13 @@ public abstract class OutcomeStructure extends JPanel {
         if (model.getMaxOccurs() > 1
                 || model.getMaxOccurs() == Particle.UNBOUNDED
                 || model.getMinOccurs() == 0)
-            return new Dimension(model, readOnly, help, specialEditFields);
+            return new Dimension(model, readOnly, specialEditFields);
 
         // must have a type from now on
         if (elementType == null)
             throw new StructuralException("Element "+model.getName()+" is elementary yet has no type.");
         // simple types will be fields
-        if (elementType instanceof SimpleType) return new Field(model, readOnly, help, specialEditFields);
+        if (elementType instanceof SimpleType) return new Field(model, readOnly, specialEditFields);
 
         // otherwise is a complex type
         try {
@@ -113,10 +114,10 @@ public abstract class OutcomeStructure extends JPanel {
         }
 
         //when no element children -  field
-        if (elementComplexType.getParticleCount() == 0) return new Field(model, readOnly, help, specialEditFields);
+        if (elementComplexType.getParticleCount() == 0) return new Field(model, readOnly, specialEditFields);
 
         //everything else is a data record
-        return new DataRecord(model, readOnly, help, deferChild, specialEditFields);
+        return new DataRecord(model, readOnly, deferChild, specialEditFields);
     }
 
     /** Extracts child Element declarations from a content group and recursively from any group
@@ -149,7 +150,7 @@ public abstract class OutcomeStructure extends JPanel {
             }
             else if (thisParticle instanceof ElementDecl) {
                 ElementDecl thisElement = (ElementDecl)thisParticle;
-                addStructure(createStructure(thisElement, readOnly, helpPane));
+                addStructure(createStructure(thisElement, readOnly));
             }
             else throw new StructuralException("Particle " + thisParticle.getClass() + " not implemented");
         }
@@ -185,6 +186,19 @@ public abstract class OutcomeStructure extends JPanel {
 
     public String getHelp() {
         return help;
+    }
+    
+    public static JLabel makeLabel(String name, String helpText) {
+    	JLabel label;
+        if (helpText == null) 
+        	label = new JLabel(name);
+        else {
+        	label = new JLabel(name, helpIconSmall, JLabel.LEFT);
+        	label.setHorizontalTextPosition(JLabel.LEADING);
+        	label.setToolTipText(helpText);
+        }
+        return label;
+    	
     }
 
     public String validateStructure() {

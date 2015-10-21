@@ -22,10 +22,12 @@ package org.cristalise.gui.tabs.outcome.form;
 import java.awt.FlowLayout;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
+import java.awt.GridLayout;
 import java.awt.Insets;
 import java.util.HashMap;
 
 import javax.swing.JLabel;
+import javax.swing.JPanel;
 import javax.swing.JTabbedPane;
 import javax.swing.SwingUtilities;
 import javax.swing.event.ChangeEvent;
@@ -43,14 +45,14 @@ import org.w3c.dom.NodeList;
 public class DataRecord extends OutcomeStructure implements ChangeListener {
 
     AttributeList myAttributes;
-    JTabbedPane DRPanel = null;
+    JTabbedPane childDRTabs = null;
     boolean deferred;
     Document parentDoc;
     GridBagConstraints position;
     GridBagLayout gridbag;
 
-    public DataRecord(ElementDecl model, boolean readOnly, HelpPane help, boolean deferred, HashMap<String, Class<?>> specialEditFields) throws OutcomeException {
-        super(model, readOnly, help, specialEditFields);
+    public DataRecord(ElementDecl model, boolean readOnly, boolean deferred, HashMap<String, Class<?>> specialEditFields) throws OutcomeException {
+        super(model, readOnly, specialEditFields);
         this.deferred = deferred;
         if (!deferred) setupPanel();
     }
@@ -79,9 +81,16 @@ public class DataRecord extends OutcomeStructure implements ChangeListener {
         position.gridx = 0; position.gridy = 0;
         position.ipadx = 5; position.ipady = 5;
         position.insets = new Insets(5,5,0,0);
+        
+        // help icon if needed
+        if (help != null) {
+        	position.fill = GridBagConstraints.BOTH;
+        	add(makeLabel(null, help), position);
+        	position.gridy++;
+        }
 
         // attributes at the top
-        myAttributes = new AttributeList(model, readOnly, helpPane);
+        myAttributes = new AttributeList(model, readOnly);
         position.gridwidth=3;
         gridbag.setConstraints(myAttributes, position);
         add(myAttributes);
@@ -94,7 +103,7 @@ public class DataRecord extends OutcomeStructure implements ChangeListener {
             throw new StructuralException("DataRecord created with non-ComplexType");
         }
 
-        //loop through all schema sub-elements
+        // loop through all schema sub-elements
         try {
             enumerateElements(elementType);
         } catch (OutcomeException e) {
@@ -109,22 +118,22 @@ public class DataRecord extends OutcomeStructure implements ChangeListener {
         if (newElement instanceof DataRecord) {
             DataRecord newRecord = (DataRecord)newElement;
             // set up enclosing tabbed pane for child drs
-            if (DRPanel == null) {
-                DRPanel = new JTabbedPane();
+            if (childDRTabs == null) {
+                childDRTabs = new JTabbedPane();
                 position.gridy++;
                 position.weightx=1.0;
                 position.fill=GridBagConstraints.HORIZONTAL;
                 position.gridwidth=3;
-                gridbag.setConstraints(DRPanel, position);
-                add(DRPanel);
+                gridbag.setConstraints(childDRTabs, position);
+                add(childDRTabs);
                 // defer further tabs in this pane
                 deferChild = true;
             }
-            DRPanel.addTab(newRecord.getName(), newRecord);
-            DRPanel.addChangeListener(newRecord);
+            childDRTabs.addTab(newRecord.getName(), newRecord);
+            childDRTabs.addChangeListener(newRecord);
         }
         else {
-            DRPanel = null;// have to make a new tabbed pane now
+            childDRTabs = null;// have to make a new tabbed pane now
             deferChild = false;
             position.fill=GridBagConstraints.HORIZONTAL;
             position.gridwidth=3;
@@ -139,11 +148,9 @@ public class DataRecord extends OutcomeStructure implements ChangeListener {
     @Override
 	public void addInstance(Element myElement, Document parentDoc) throws OutcomeException {
         Logger.msg(8, "Accepting DR "+myElement.getTagName());
-
         if (this.myElement != null) throw new CardinalException("DataRecord "+this.getName()+" cannot repeat.");
         this.myElement = myElement;
         this.parentDoc = parentDoc;
-
         if (!deferred)
             populateInstance();
     }
@@ -219,7 +226,6 @@ public class DataRecord extends OutcomeStructure implements ChangeListener {
         JTabbedPane targetPane = (JTabbedPane)e.getSource();
         DataRecord targetTab = (DataRecord)targetPane.getSelectedComponent();
         if (targetTab == this) {
-            helpPane.setHelp(getName(), getHelp());
             if (deferred) SwingUtilities.invokeLater(
                     new Thread(new Runnable() {
                         @Override

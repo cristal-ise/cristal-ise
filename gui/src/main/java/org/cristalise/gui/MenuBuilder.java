@@ -103,7 +103,6 @@ public class MenuBuilder extends JMenuBar implements ActionListener, ItemListene
 			addMenuItem(availableView.getName(), "style", styleButtonGroup, 0);
 
 		addMenuItem("Tree Browser", "preferences", null, MainFrame.getPref("ShowTree", "true").equals("true")?2:1);
-		addMenuItem("Outcome Field Help", "preferences", null, MainFrame.getPref("ShowHelp", "true").equals("true")?2:1);
 		addMenuItem("Graph Properties", "preferences", null, MainFrame.getPref("ShowProps", "true").equals("true")?2:1);
 		addMenuItem("About", "help", null, 0);
 
@@ -217,9 +216,6 @@ public class MenuBuilder extends JMenuBar implements ActionListener, ItemListene
             {
                 Logger.error(ex);
             }
-        }
-        else if (s.equals("Outcome Field Help")) {
-        	MainFrame.setPref("ShowHelp", String.valueOf(!MainFrame.getPref("ShowHelp", "true").equals("true")));
         }
         else if (s.equals("Graph Properties")) {
         	MainFrame.setPref("ShowProps", String.valueOf(!MainFrame.getPref("ShowProps", "true").equals("true")));

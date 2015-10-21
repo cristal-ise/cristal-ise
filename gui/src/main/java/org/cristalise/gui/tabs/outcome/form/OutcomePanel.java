@@ -75,10 +75,9 @@ public class OutcomePanel extends JPanel implements OutcomeHandler
     boolean panelBuilt = false;
     boolean unsaved = false;
     JScrollPane scrollpane = new JScrollPane();
-    HelpPane help = new HelpPane();
     protected HashMap<String, Class<?>> specialEditFields = new HashMap<String, Class<?>>();
     JTextArea basicView;
-
+    
     public OutcomePanel()
     {
         GridBagLayout gridbag = new java.awt.GridBagLayout();
@@ -98,16 +97,6 @@ public class OutcomePanel extends JPanel implements OutcomeHandler
 
         // Set up panel
 
-        JComponent pane;
-        if (!MainFrame.getPref("ShowHelp", "true").equals("true"))
-        	pane = scrollpane;
-        else {
-        JSplitPane splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, true, scrollpane, help);
-        splitPane.setOneTouchExpandable(true);
-        splitPane.setDividerSize(9);
-        pane = splitPane;
-        }
-
         GridBagConstraints c = new GridBagConstraints();
 
         c.gridx = 0;
@@ -119,8 +108,8 @@ public class OutcomePanel extends JPanel implements OutcomeHandler
         c.ipadx = 5;
         c.ipady = 5;
 
-        gridbag.setConstraints(pane, c);
-        this.add(pane);
+        gridbag.setConstraints(scrollpane, c);
+        this.add(scrollpane);
     }
 
     public OutcomePanel(boolean readOnly)
@@ -276,6 +265,7 @@ public class OutcomePanel extends JPanel implements OutcomeHandler
             }
             scrollpane.setViewportView(textPanel);
         }
+        
     }
 
     public void initPanel() throws OutcomeException
@@ -314,9 +304,9 @@ public class OutcomePanel extends JPanel implements OutcomeHandler
             throw new InvalidSchemaException("No root elements defined");
         
         if (rootElementDecl.getType().isSimpleType() || ((ComplexType)rootElementDecl.getType()).isSimpleContent())
-        	documentRoot = new Field(rootElementDecl, readOnly, help, specialEditFields);
+        	documentRoot = new Field(rootElementDecl, readOnly, specialEditFields);
         else
-        	documentRoot = new DataRecord(rootElementDecl, readOnly, help, false, specialEditFields);
+        	documentRoot = new DataRecord(rootElementDecl, readOnly, false, specialEditFields);
 
         Logger.msg(5, "Finished structure. Populating...");
         if (docElement == null)

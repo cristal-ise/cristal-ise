@@ -82,7 +82,7 @@ public class BooleanEditField extends EditField {
     /** don't reserve the item finder for a boolean */
     @Override
 	public void focusGained(FocusEvent e) {
-        helpPane.setHelp(name, helpText);
+        
     }
 
     /**

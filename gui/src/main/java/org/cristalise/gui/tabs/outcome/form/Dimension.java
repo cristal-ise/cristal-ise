@@ -76,8 +76,8 @@ public class Dimension extends OutcomeStructure implements ActionListener {
     protected static final short TABS = 2;
 
 
-    public Dimension(ElementDecl model, boolean readOnly, HelpPane help, HashMap<String, Class<?>> specialControls) {
-        super(model, readOnly, help, specialControls);
+    public Dimension(ElementDecl model, boolean readOnly, HashMap<String, Class<?>> specialControls) {
+        super(model, readOnly, specialControls);
         // set up panel
         gridbag = new java.awt.GridBagLayout();
         setLayout(gridbag);
@@ -88,8 +88,6 @@ public class Dimension extends OutcomeStructure implements ActionListener {
         position.gridx = 0; position.gridy = 0;
         position.ipadx = 0; position.ipady = 0;
         position.insets = new Insets(0,0,0,0);
-
-        // TODO: an element or attribute of the dimension can be flagged as an index, so it can be used as a title for a tab
 
         // set up the border
         setBorder(BorderFactory.createTitledBorder(
@@ -105,8 +103,13 @@ public class Dimension extends OutcomeStructure implements ActionListener {
         try {
             tableModel = new DimensionTableModel(model, readOnly);
             Logger.msg(8, "DIM "+model.getName()+" - Will be a table");
+            if (help != null) {
+            	add(makeLabel(null, help), position);
+            	position.gridy++;
+            }
             mode = TABLE;
             tableBox = Box.createVerticalBox();
+            // help icon if needed
             table = new DomKeyPushTable(tableModel, this);
             new MultiLinePasteAdapter(table, this);
             if (readOnly) table.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
@@ -172,6 +175,7 @@ public class Dimension extends OutcomeStructure implements ActionListener {
             else
                 target = instances.get(elements.size()-1);
             target.addInstance(myElement, parentDoc);
+            tabs.setTitleAt(tabs.indexOfComponent(target), target.getName());
         }
         checkButtons();
     }
@@ -183,7 +187,7 @@ public class Dimension extends OutcomeStructure implements ActionListener {
     public DimensionInstance newInstance() {
         DimensionInstance newInstance = null;
         try {
-            newInstance = new DimensionInstance(model, readOnly, helpPane, deferChild, specialEditFields);
+            newInstance = new DimensionInstance(model, readOnly, deferChild, specialEditFields);
             instances.add(newInstance);
             newInstance.setTabNumber(instances.size());
             newInstance.setParent(this);
@@ -391,13 +395,6 @@ public class Dimension extends OutcomeStructure implements ActionListener {
                 cellEditor.stopCellEditing();
             return null;
         }
-
-		@Override
-		public void changeSelection( int rowIndex, int columnIndex, boolean toggle,	boolean extend) {
-			super.changeSelection(rowIndex, columnIndex, toggle, extend);
-            DimensionTableModel dimModel = (DimensionTableModel)dataModel;
-			helpPane.setHelp(dimModel.getColumnName(columnIndex), dimModel.getHelp(columnIndex));
-		}
 
     }
 

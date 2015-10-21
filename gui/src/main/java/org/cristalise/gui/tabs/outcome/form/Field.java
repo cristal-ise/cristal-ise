@@ -28,7 +28,6 @@ import java.util.HashMap;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
-import javax.swing.SwingConstants;
 
 import org.cristalise.gui.tabs.outcome.OutcomeException;
 import org.cristalise.gui.tabs.outcome.form.field.EditField;
@@ -49,23 +48,22 @@ public class Field extends OutcomeStructure {
     boolean fixed;
     public static final JPanel nullPanel = new JPanel();
 
-    public Field(ElementDecl model, boolean readOnly, HelpPane helpPane, HashMap<String, Class<?>> specialEditFields) {
-        super(model, readOnly, helpPane, specialEditFields);
+    public Field(ElementDecl model, boolean readOnly, HashMap<String, Class<?>> specialEditFields) {
+        super(model, readOnly, specialEditFields);
 
         try {
             myElementPanel = EditField.getEditField(model, specialEditFields);
             Logger.msg(6, "Field type: "+myElementPanel.getClass().getName());
-			myElementPanel.setHelp(helpPane, help);
             if (readOnly) myElementPanel.setEditable(false);
 
         } catch (StructuralException e) { // no base type for field - only attributes
             myElementPanel = null;
         }
 
-        myAttributes = new AttributeList(model, readOnly, helpPane);
+        myAttributes = new AttributeList(model, readOnly);
 
-        tagName = new JLabel(model.getName());
-        tagName.setVerticalAlignment(SwingConstants.BOTTOM);
+        tagName = makeLabel(model.getName(), help);
+       
         setupPanel();
     }
     

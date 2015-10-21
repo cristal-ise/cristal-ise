@@ -48,7 +48,7 @@ public class AttributeList extends JPanel {
     boolean readOnly;
     static Font labelFont;
 
-    public AttributeList(ElementDecl model, boolean readOnly, HelpPane helpPane) {
+    public AttributeList(ElementDecl model, boolean readOnly) {
         super();
         AttributeDecl thisDecl;
         this.model = model;
@@ -80,28 +80,23 @@ public class AttributeList extends JPanel {
             thisDecl = (AttributeDecl)fields.nextElement();
             Logger.msg(8, "Includes Attribute "+thisDecl.getName());
 
-            // Add Label
-            JLabel heading = new JLabel(thisDecl.getName());
-            heading.setFont(labelFont);
-            heading.setVerticalAlignment(SwingConstants.BOTTOM);
-            gridbag.setConstraints(heading, c);
-            this.add(heading);
-
             // read help
-            String helpText;
+            String helpText = null;
             String doc = OutcomeStructure.extractHelp(thisDecl);
             if (doc.length() > 0)
                 helpText = doc.toString();
-            else
-                helpText = "<i>No help is available for this attribute</i>";
-
+            
+            // Add Label
+            
+            JLabel heading = OutcomeStructure.makeLabel(thisDecl.getName(), helpText);
+            gridbag.setConstraints(heading, c);
+            this.add(heading);
 
             c.gridy++;
 
             // Add entry
             try {
                 EditField entry = EditField.getEditField(thisDecl);
-                entry.setHelp(helpPane, helpText);
                 attrSet.add(entry);
                 if (readOnly) entry.setEditable(false);
                 gridbag.setConstraints(entry.getControl(), c);

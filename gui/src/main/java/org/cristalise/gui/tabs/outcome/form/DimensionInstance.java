@@ -32,8 +32,8 @@ public class DimensionInstance extends DataRecord {
     int tabNumber;
     String tabName = null;
 
-    public DimensionInstance(ElementDecl model, boolean readOnly , HelpPane help, boolean deferred, HashMap<String, Class<?>> specialControls) throws OutcomeException {
-        super(model, readOnly, help, deferred, specialControls);
+    public DimensionInstance(ElementDecl model, boolean readOnly, boolean deferred, HashMap<String, Class<?>> specialControls) throws OutcomeException {
+        super(model, readOnly, deferred, specialControls);
     }
 
     public void setTabNumber(int tabNumber) {
@@ -46,10 +46,11 @@ public class DimensionInstance extends DataRecord {
 
     @Override
 	public String getName() {
-        //TODO appinfo for picking out attributes or child elements for tab name
-        if (tabName == null)
-            return Integer.toString(tabNumber);
-        else
-            return tabName;
+        if (tabName != null) return tabName;
+    	if (myElement != null && myElement.hasAttribute("name")) {
+    		return myElement.getAttribute("name");
+    	}
+    	else
+    		return String.valueOf(tabNumber);
     }
 }
