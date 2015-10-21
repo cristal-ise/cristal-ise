@@ -20,6 +20,7 @@
  */
 package org.cristalise.gui.tabs;
 
+import java.awt.Dimension;
 import java.awt.GridBagConstraints;
 import java.awt.GridLayout;
 import java.awt.Insets;
@@ -52,8 +53,8 @@ public class ExecutionPane extends ItemTabPane implements ProxyObserver<Workflow
     JLabel noActs = new JLabel("There are currently no activities that you can execute in this item.");
     JPanel view = new JPanel(new GridLayout(1, 1));
     ActivityViewer currentActView;
-    JComboBox<ActivityItem> activitySelector = new JComboBox<ActivityItem>();
-    Box activityBox = Box.createHorizontalBox();
+    JComboBox<ActivityItem> activitySelector = new JFixedHeightComboBox<ActivityItem>();
+    
     String selAct = null;
     ArrayList<ActivityItem> activities;
     String autoRun = null;
@@ -62,20 +63,15 @@ public class ExecutionPane extends ItemTabPane implements ProxyObserver<Workflow
     public ExecutionPane() {
         super("Execution", "Activity Execution");
         super.initPanel();
-        // add view panel
-        c = new GridBagConstraints();
-        c.gridx = 0; c.gridy = 1; c.weightx = 1.0; c.weighty = 2.0;
-        c.insets = new Insets(5, 5, 5, 5);
-        c.anchor = GridBagConstraints.CENTER;
-        c.fill = GridBagConstraints.BOTH;
-        gridbag.setConstraints(view, c);
 
-        add(view);
         // create activity selection box
+        Box activityBox = Box.createHorizontalBox();
         activityBox.add(new JLabel("Select Activity: "));
         activityBox.add(Box.createHorizontalStrut(5));
         activitySelector.setEditable(false);
+        
         activityBox.add(activitySelector);
+        activityBox.setMaximumSize(activitySelector.getMaximumSize());
         activitySelector.addItemListener(new ItemListener() {
             @Override
 			public void itemStateChanged(ItemEvent selection) {
@@ -84,6 +80,10 @@ public class ExecutionPane extends ItemTabPane implements ProxyObserver<Workflow
                 }
             }
         });
+        add(activityBox);
+        add(Box.createVerticalStrut(5));
+        // add view panel
+        add(view);
     }
     @Override
 	public void run() {
@@ -128,14 +128,9 @@ public class ExecutionPane extends ItemTabPane implements ProxyObserver<Workflow
                     break;
                 case 1 :
                     currentActView = new ActivityViewer(activities.get(0), sourceItem.getItem(), this);
-                    c.fill = GridBagConstraints.BOTH;
-                    gridbag.setConstraints(view, c);
                     view.add(currentActView);
                     break;
                 default :
-                    c.fill = GridBagConstraints.HORIZONTAL;
-                    gridbag.setConstraints(view, c);
-                    view.add(activityBox);
             }
         }
         revalidate();
@@ -164,8 +159,6 @@ public class ExecutionPane extends ItemTabPane implements ProxyObserver<Workflow
         if (selObj.equals(emptyAct))
             return;
         view.removeAll();
-        c.fill = GridBagConstraints.BOTH;
-        gridbag.setConstraints(view, c);
         currentActView = new ActivityViewer((ActivityItem)selObj, sourceItem.getItem(), this);
         view.add(currentActView);
         revalidate();

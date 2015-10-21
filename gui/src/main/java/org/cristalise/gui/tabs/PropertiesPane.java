@@ -26,6 +26,7 @@
 
 package org.cristalise.gui.tabs;
 
+import java.awt.Color;
 import java.awt.Component;
 /**
  * @author  abranson
@@ -68,9 +69,8 @@ public class PropertiesPane extends ItemTabPane implements ProxyObserver<Propert
     JButton eraseButton;
     boolean subbed = false;
     HashMap<String, JLabel> loadedProps = new HashMap<String, JLabel>();
-    JLabel domTitle;
     DomainPathAdmin domAdmin;
-    Box roleBox = Box.createVerticalBox();
+    JLabel roleTitle;
     RoleAdmin roleAdmin = null;
 
     public PropertiesPane() {
@@ -78,63 +78,38 @@ public class PropertiesPane extends ItemTabPane implements ProxyObserver<Propert
         initPanel();
 
         // Create box container for properties
-        getGridBagConstraints();
-        c.gridx = 0; c.gridy = 1;
-        c.anchor = GridBagConstraints.NORTHWEST;
-        c.fill = GridBagConstraints.NONE;
-        c.weightx = 1.0; c.weighty = 2.0;
         propertyBox = Box.createVerticalBox();
-        gridbag.setConstraints(propertyBox, c);
         add(propertyBox);
+        addGlue();
         
         if (MainFrame.isAdmin) { 
         	// role paths
             // Domain Paths
-            JLabel roleTitle = new JLabel("Roles", titleIcon, SwingConstants.LEADING);
-            roleTitle.setFont(titleFont);
-            roleTitle.setForeground(headingColor);
-            roleTitle.setAlignmentX(Component.LEFT_ALIGNMENT);
-            Box labelBox = Box.createHorizontalBox();
-            labelBox.add(roleTitle);
-            labelBox.add(Box.createHorizontalGlue());
-            roleBox.add(labelBox);
-            roleBox.add(Box.createVerticalStrut(5));
+        	roleTitle = getTitle("Roles");
             roleAdmin = new RoleAdmin();
-            roleBox.add(roleAdmin);
-
-            c.gridy++;
-            c.fill = GridBagConstraints.BOTH;
-            c.weighty=2.0;
-            roleBox.setVisible(false);
-            add(roleBox, c);
+            roleTitle.setVisible(false);
+            roleAdmin.setVisible(false);
+            addTitle(roleTitle);
+            add(roleAdmin);
             
             // Domain Paths
-        	c.gridy++;
-            c.fill = GridBagConstraints.NONE;
-            c.weighty=0.0;
-            domTitle = new JLabel("Domain Paths", titleIcon, SwingConstants.LEFT);
-            domTitle.setFont(titleFont);
-            domTitle.setForeground(headingColor);
-            gridbag.setConstraints(domTitle, c);
-            add(domTitle);
-
-            c.gridy++;
-            c.fill = GridBagConstraints.BOTH;
-            c.weighty=1.0;
+            addTitle(getTitle("Domain Paths"));
+            add(Box.createVerticalStrut(5));
             domAdmin = new DomainPathAdmin();
-            gridbag.setConstraints(domAdmin, c);
             add(domAdmin);
 
-
             if (Gateway.getProperties().getBoolean("EnableItemErase")) {
-                c.gridy++;
-                c.fill = GridBagConstraints.NONE;
+            	addGlue();
+            	Box eraseBox = Box.createHorizontalBox();
+            	eraseBox.add(Box.createHorizontalGlue());
                 eraseButton = new JButton("Erase!");
                 eraseButton.addActionListener(this);
-                eraseButton.setActionCommand("Erase Item");
-                gridbag.setConstraints(eraseButton, c);
-                add(eraseButton);
+                eraseButton.setAlignmentX(RIGHT_ALIGNMENT);
+                eraseButton.setBackground(Color.RED);
+                eraseBox.add(eraseButton);
+                add(eraseBox);
             }
+            addGlue();
         }
     }
 
@@ -150,12 +125,11 @@ public class PropertiesPane extends ItemTabPane implements ProxyObserver<Propert
         Thread.currentThread().setName("Property Pane Builder");
         if (sourceItem instanceof NodeAgent && roleAdmin!=null) {
             roleAdmin.setEntity((AgentProxy)sourceItem.getItem());
-            roleBox.setVisible(true);
+            roleTitle.setVisible(true); roleAdmin.setVisible(true);
         }
         else if (domAdmin != null)
             domAdmin.setEntity(sourceItem.getItem());
         propertyBox.removeAll();
-        propertyBox.add(Box.createGlue());
 		revalidate();
         sourceItem.getItem().subscribe(new MemberSubscription<Property>(this, ClusterStorage.PROPERTY, true));
 
@@ -177,23 +151,10 @@ public class PropertiesPane extends ItemTabPane implements ProxyObserver<Propert
                 JButton editButton = new JButton("...");
                 editButton.setMargin(new Insets(0,0,0,0));
                 editButton.setActionCommand(newProp.getName());
-                editButton.addActionListener(new ActionListener() {
-                    @Override
-					public void actionPerformed(ActionEvent e){
-                        String oldVal = loadedProps.get(e.getActionCommand()).getText();
-                        String newVal = (String)JOptionPane.showInputDialog(null, "Enter new value for "+e.getActionCommand(), "Edit Property",
-                            JOptionPane.QUESTION_MESSAGE, null, null, oldVal);
-                        if (newVal!=null && !(newVal.equals(oldVal))) {
-                            try {
-                                (sourceItem.getItem()).setProperty(MainFrame.userAgent, e.getActionCommand(), newVal);
-                            } catch (Exception ex) {
-                            	MainFrame.exceptionDialog(ex);
-                            }
-                        }
-                    }
-                });
-                valueBox.add(Box.createVerticalStrut(7));
+                editButton.addActionListener(this);
+                valueBox.add(Box.createHorizontalStrut(7));
                 valueBox.add(editButton);
+                valueBox.add(Box.createHorizontalGlue());
 
             }
             summaryPanel.add(valueBox);
@@ -203,38 +164,44 @@ public class PropertiesPane extends ItemTabPane implements ProxyObserver<Propert
         propLabel.setText(newProp.getValue());
         revalidate();
     }
-
+   
     @Override
 	public void remove(String id) {
         String propName = id.substring(id.lastIndexOf("/")+1);
         JLabel propbox = loadedProps.get(propName);
-        if (propbox!= null) propbox.setText("DELETED");
+        if (propbox!= null) propbox.setText("[DELETED]");
         revalidate();
     }
 
     @Override
 	public void actionPerformed(ActionEvent e) {
-        String[] params;
-        String predefStep;
 
-        if (JOptionPane.showConfirmDialog(this,
-                "Are you sure?",
-                e.getActionCommand(),
-                JOptionPane.YES_NO_OPTION) != JOptionPane.YES_OPTION)
-            return;
+    	if (e.getSource() == eraseButton) {
+        	try {
+                if (JOptionPane.showConfirmDialog(this,
+                        "Are you sure?",
+                        "Erase Item",
+                        JOptionPane.YES_NO_OPTION) != JOptionPane.YES_OPTION)
+                    return;
 
-        if (e.getActionCommand().equals("Erase Item")) {
-            params = new String[0];
-            predefStep = "Erase";
+        		MainFrame.userAgent.execute(sourceItem.getItem(), "Erase", new String[0]);
+        	} catch (Exception ex) {
+        		MainFrame.exceptionDialog(ex);
+        	}
         }
-        else
-            return;
-
-        try {
-            MainFrame.userAgent.execute(sourceItem.getItem(), predefStep, params);
-        } catch (Exception ex) {
-            MainFrame.exceptionDialog(ex);
-        }
+    	
+    	else {
+	        String oldVal = loadedProps.get(e.getActionCommand()).getText();
+	        String newVal = (String)JOptionPane.showInputDialog(null, "Enter new value for "+e.getActionCommand(), "Edit Property",
+	            JOptionPane.QUESTION_MESSAGE, null, null, oldVal);
+	        if (newVal!=null && !(newVal.equals(oldVal))) {
+	            try {
+	                (sourceItem.getItem()).setProperty(MainFrame.userAgent, e.getActionCommand(), newVal);
+	            } catch (Exception ex) {
+	            	MainFrame.exceptionDialog(ex);
+	            }
+	        }
+    	}
     }
 
 	@Override

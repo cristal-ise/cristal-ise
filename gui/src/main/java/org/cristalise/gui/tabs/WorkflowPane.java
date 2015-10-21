@@ -20,11 +20,11 @@
  */
 package org.cristalise.gui.tabs;
 import java.awt.Cursor;
-import java.awt.GridBagConstraints;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
 
+import javax.swing.Box;
 import javax.swing.JButton;
 import javax.swing.JFileChooser;
 import javax.swing.JSplitPane;
@@ -162,15 +162,21 @@ public class WorkflowPane extends ItemTabPane implements ProxyObserver<Workflow>
 		{
 			mSplitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, getEditorPanel(), getPropertyPanel());
 			mSplitPane.setDividerSize(5);
-			mSplitPane.setDividerLocation(800);
+			if (mWorkflow!=null) {
+				CompositeActivity domain = (CompositeActivity) mWorkflow.search("workflow/domain");
+				mSplitPane.setDividerLocation(domain.getChildGraphModel().getWidth()+20);
+			}
 		}
+
 		return mSplitPane;
 	}
 	@Override
 	public void add(Workflow contents)
 	{
 		mWorkflow = contents;
-		addActivity((CompositeActivity) mWorkflow.search("workflow/domain"));
+		CompositeActivity domain = (CompositeActivity) mWorkflow.search("workflow/domain");
+		addActivity(domain);
+		if (mSplitPane != null) mSplitPane.setDividerLocation(domain.getChildGraphModel().getWidth()+20);
 	}
 	@Override
 	public void remove(String id)
@@ -192,7 +198,6 @@ public class WorkflowPane extends ItemTabPane implements ProxyObserver<Workflow>
         Thread.currentThread().setName("Workflow Pane Builder");
 		if (!init)
 		{
-			getEditorPanel();
 			createLayout();
 			createListeners();
 			mPropertyPanel.setGraphModelManager(mEditorPanel.mGraphModelManager);
@@ -212,12 +217,9 @@ public class WorkflowPane extends ItemTabPane implements ProxyObserver<Workflow>
     {
         initPanel();
         // Add the editor pane
-        getGridBagConstraints().gridx = 0;
-        getGridBagConstraints().gridy = 1;
-        getGridBagConstraints().fill = GridBagConstraints.BOTH;
-        getGridBagConstraints().weighty = 2.0;
-        gridbag.setConstraints(getJSplitPane(), getGridBagConstraints());
-        add(getJSplitPane());
+        Box wfPane = Box.createHorizontalBox();
+        wfPane.add(getJSplitPane());
+        add(wfPane);
         validate();
     }
 	protected void loadWorkflow()

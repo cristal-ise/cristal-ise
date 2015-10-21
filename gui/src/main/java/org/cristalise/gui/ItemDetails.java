@@ -49,7 +49,7 @@ import org.cristalise.kernel.utils.Logger;
  * @author  $Author: abranson $
  */
 public class ItemDetails extends JPanel implements ChangeListener, Runnable {
-    protected JTabbedPane myTabbedPane = new JTabbedPane(SwingConstants.BOTTOM);
+    protected JTabbedPane myTabbedPane = new JTabbedPane(SwingConstants.TOP);
     protected JPanel itemTitlePanel;
     private ItemTabManager desktopManager;
     protected NodeItem myItem;

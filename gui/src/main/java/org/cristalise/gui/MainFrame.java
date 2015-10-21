@@ -175,7 +175,7 @@ public class MainFrame extends javax.swing.JFrame {
         // set the menu builder in the window manager
         myDesktopManager.setMenuBuilder(menuBuilder);
 
-        treePanel = new JTabbedPane(JTabbedPane.BOTTOM);
+        treePanel = new JTabbedPane(JTabbedPane.TOP);
         NodeContext userNode = new NodeContext(new DomainPath(""), myDesktopManager);
         domBrowser = new TreeBrowser(myDesktopManager, userNode);
         NodeRole roleNode = new NodeRole(new RolePath(), MainFrame.myDesktopManager);

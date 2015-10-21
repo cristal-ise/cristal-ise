@@ -19,7 +19,6 @@
  * http://www.fsf.org/licensing/licenses/lgpl.html
  */
 package org.cristalise.gui.tabs;
-import java.awt.GridBagConstraints;
 import java.awt.GridLayout;
 import java.awt.Insets;
 import java.awt.event.ActionEvent;
@@ -59,9 +58,9 @@ import org.cristalise.kernel.utils.Logger;
 
 public class ViewpointPane extends ItemTabPane implements ItemListener, ActionListener, ProxyObserver<C2KLocalObject> {
 
-    JComboBox schemas;
-    JComboBox views;
-    JComboBox events;
+    JComboBox<String> schemas;
+    JComboBox<Viewpoint> views;
+    JComboBox<EventItem> events;
     JLabel eventDetails;
     JButton exportButton;
     JButton viewButton;
@@ -85,14 +84,6 @@ public class ViewpointPane extends ItemTabPane implements ItemListener, ActionLi
     public void initialize() {
         initPanel();
 
-        getGridBagConstraints();
-
-        c.gridx = 0; c.gridy = 1;
-        c.anchor = GridBagConstraints.NORTHWEST;
-        c.fill = GridBagConstraints.HORIZONTAL;
-        c.ipadx = 5; c.weightx = 1.0;
-        c.ipady = 5;
-
         // Set up view box
 
         Box viewBox = Box.createHorizontalBox();
@@ -101,7 +92,7 @@ public class ViewpointPane extends ItemTabPane implements ItemListener, ActionLi
         viewBox.add(label);
         viewBox.add(Box.createHorizontalStrut(7));
 
-        schemas = new JComboBox();
+        schemas = new JFixedHeightComboBox<String>();
         viewBox.add(schemas);
         viewBox.add(Box.createHorizontalGlue());
         schemas.addItemListener(this);
@@ -110,23 +101,21 @@ public class ViewpointPane extends ItemTabPane implements ItemListener, ActionLi
         viewBox.add(label);
         viewBox.add(Box.createHorizontalStrut(7));
 
-        views = new JComboBox();
+        views = new JFixedHeightComboBox<Viewpoint>();
         viewBox.add(views);
         viewBox.add(Box.createHorizontalGlue());
         views.addItemListener(this);
-
-        gridbag.setConstraints(viewBox, c);
+        viewBox.setMaximumSize(views.getMaximumSize());
         this.add(viewBox);
 
         // Set up event details box
-        c.gridy++;
         Box eventBox = Box.createHorizontalBox();
 
         label = new JLabel("Event:", SwingConstants.LEFT);
         eventBox.add(label);
         eventBox.add(Box.createHorizontalStrut(7));
 
-        events = new JComboBox();
+        events = new JFixedHeightComboBox<EventItem>();
         eventBox.add(events);
         eventBox.add(Box.createHorizontalStrut(7));
         events.addItemListener(this);
@@ -149,15 +138,11 @@ public class ViewpointPane extends ItemTabPane implements ItemListener, ActionLi
         exportButton.setActionCommand("export");
         exportButton.addActionListener(this);
         eventBox.add(exportButton);
-
-        gridbag.setConstraints(eventBox, c);
+        eventBox.setMaximumSize(events.getMaximumSize());
         this.add(eventBox);
+        add(Box.createVerticalStrut(5));
 
         // data pane
-        c.gridx = 0; c.gridy = 3;
-        c.anchor = GridBagConstraints.NORTHWEST; c.fill = GridBagConstraints.BOTH;
-        c.weighty = 1.0; c.weightx = 1.0;
-        gridbag.setConstraints(dataView, c);
         this.add(dataView);
     }
 

@@ -25,18 +25,20 @@
  */
 package org.cristalise.gui.tabs;
 import java.awt.Color;
+import java.awt.Component;
 import java.awt.Cursor;
 import java.awt.Font;
-import java.awt.GridBagConstraints;
-import java.awt.GridBagLayout;
 import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.FocusEvent;
 
+import javax.swing.BorderFactory;
 import javax.swing.Box;
+import javax.swing.BoxLayout;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
+import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JToggleButton;
@@ -64,8 +66,6 @@ public class ItemTabPane extends JPanel implements Runnable {
     protected String titleText = null;
     protected ImageIcon titleIcon = null;
     private final String tabName;
-    protected GridBagLayout gridbag = new GridBagLayout();
-    protected GridBagConstraints c = null;
     public static Font titleFont = null;
     public static Color headingColor = new Color(0, 0, 185);
     protected ItemDetails parent;
@@ -91,35 +91,43 @@ public class ItemTabPane extends JPanel implements Runnable {
             titleFont =
                 new Font("SansSerif", Font.BOLD, this.getFont().getSize() + 5);
         Logger.msg(2, "ItemTabPane.<init> - viewing " + tabName);
-        setLayout(gridbag);
+        setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
     }
     public void setParent(ItemDetails parent) {
         this.parent = parent;
     }
+
     public String getTabName() {
         return tabName;
     }
-    protected GridBagConstraints getGridBagConstraints() {
-        if (c == null)
-            c = new GridBagConstraints();
-        return c;
-    }
-    protected void initPanel() {
-        getGridBagConstraints().gridx = 0;
-        getGridBagConstraints().gridy = 0;
-        getGridBagConstraints().anchor = GridBagConstraints.NORTHWEST;
-        getGridBagConstraints().fill = GridBagConstraints.HORIZONTAL;
-        getGridBagConstraints().ipadx = 5;
-        getGridBagConstraints().weightx = 1.0;
-        getGridBagConstraints().ipady = 5;
-        // Help panel
-        if (titleText == null)
-            titleText = tabName;
+
+    protected JLabel getTitle(String titleText) {
         if (titleIcon == null)
             titleIcon = ImageLoader.findImage("info_16.png");
         JLabel title = new JLabel(titleText, titleIcon, SwingConstants.LEFT);
         title.setFont(titleFont);
         title.setForeground(headingColor);
+        return title;
+    }
+    
+    protected void addTitle(JLabel title) {
+        Box labelBox = Box.createHorizontalBox();
+        labelBox.add(title);
+        labelBox.add(Box.createHorizontalGlue());
+        add(labelBox);
+    }
+    
+    protected void addGlue() {
+    	add(Box.createVerticalGlue());
+    }
+    
+    protected void initPanel() {
+        // Help panel
+        if (titleText == null)
+            titleText = tabName;
+
+        JLabel title  = getTitle(titleText);
+
         JButton refreshButton = new JButton(mReloadIcon);
         refreshButton.setToolTipText("Refresh");
         refreshButton.setMargin(new Insets(0, 0, 0, 0));
@@ -151,9 +159,10 @@ public class ItemTabPane extends JPanel implements Runnable {
         titleBox.add(Box.createHorizontalGlue());
         titleBox.add(defaultStart);
         titleBox.add(refreshButton);
-        gridbag.setConstraints(titleBox, c);
         this.add(titleBox);
+        this.add(Box.createVerticalStrut(5));
     }
+    
     public void initForItem(NodeItem sourceItem) {
         this.sourceItem = sourceItem;
         Thread loader = new Thread(this);
@@ -162,17 +171,7 @@ public class ItemTabPane extends JPanel implements Runnable {
     @Override
 	public void run() {
         Thread.currentThread().setName("Default Entity Pane Builder");
-        getGridBagConstraints();
-        c.gridx = 0;
-        c.gridy = 1;
-        c.anchor = GridBagConstraints.NORTHWEST;
-        c.fill = GridBagConstraints.HORIZONTAL;
-        c.ipadx = 5;
-        c.weightx = 1.0;
-        c.weighty = 1.0;
-        c.ipady = 5;
         JLabel error = new JLabel("In Development");
-        gridbag.setConstraints(error, c);
         this.add(error);
     }
     public void reload() {

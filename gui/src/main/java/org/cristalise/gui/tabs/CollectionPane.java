@@ -19,7 +19,6 @@
  * http://www.fsf.org/licensing/licenses/lgpl.html
  */
 package org.cristalise.gui.tabs;
-import java.awt.GridBagConstraints;
 import java.util.StringTokenizer;
 
 import javax.swing.JTabbedPane;
@@ -112,13 +111,7 @@ public class CollectionPane extends ItemTabPane implements ProxyObserver<Collect
 	{
 		initPanel();
 		// Add the collection tab pane
-		getGridBagConstraints();
-		c.gridx = 0;
-		c.gridy = 1;
-		c.fill = GridBagConstraints.BOTH;
-		c.weighty = 2.0;
 		collTabs = new JTabbedPane();
-		gridbag.setConstraints(collTabs, c);
 		add(collTabs);
 	}
 

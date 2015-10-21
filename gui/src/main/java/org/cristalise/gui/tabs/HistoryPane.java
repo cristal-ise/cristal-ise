@@ -26,11 +26,6 @@
 
 package org.cristalise.gui.tabs;
 
-/**
- * @author  abranson
- * @version
- */
-import java.awt.GridBagConstraints;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
@@ -92,21 +87,11 @@ public class HistoryPane extends ItemTabPane implements ActionListener, ProxyObs
 		nextButton.addActionListener(this);
 		endButton.setActionCommand("end");
 		endButton.addActionListener(this);
-		getGridBagConstraints();
-		c.gridx = 0; c.gridy = 1;
-		c.anchor = GridBagConstraints.NORTHWEST;
-		c.fill=GridBagConstraints.NONE;
-		c.weightx=0; c.weighty=0;
-		gridbag.setConstraints(navBox, c);
 		add(navBox);
-
 
 		// Create table
 		eventTable = new JTable();
 		JScrollPane eventScroll= new JScrollPane(eventTable);
-		c.weightx = 1.0; c.weighty = 1.0;
-		c.fill = GridBagConstraints.BOTH; c.gridy++;
-		gridbag.setConstraints(eventScroll, c);
 		add(eventScroll);
 		
 		// open viewpoint pane when outcome events are clicked on
