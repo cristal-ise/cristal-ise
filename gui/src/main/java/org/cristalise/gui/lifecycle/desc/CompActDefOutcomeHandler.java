@@ -46,6 +46,7 @@ import org.cristalise.gui.tabs.outcome.OutcomeNotInitialisedException;
 import org.cristalise.kernel.graph.layout.DefaultGraphLayoutGenerator;
 import org.cristalise.kernel.lifecycle.CompositeActivityDef;
 import org.cristalise.kernel.lifecycle.WfVertexDefOutlineCreator;
+import org.cristalise.kernel.lifecycle.instance.CompositeActivity;
 import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.utils.FileStringUtility;
 import org.cristalise.kernel.utils.Logger;
@@ -108,6 +109,8 @@ public class CompActDefOutcomeHandler
         c.weightx = 2.0;
         mSplitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, mEditorPanel, mPropertyPanel);
         mSplitPane.setDividerSize(5);
+        if (mCompActDef != null)
+        	mSplitPane.setDividerLocation(mCompActDef.getChildGraphModel().getWidth()+20);
         gridbag.setConstraints(mSplitPane, c);
         add(mSplitPane);
         revalidate();
@@ -168,6 +171,8 @@ public class CompActDefOutcomeHandler
             if (mCompActDef != null)
                 newAct.setName(mCompActDef.getName());
             mCompActDef = newAct;
+            if (mSplitPane != null)
+            	mSplitPane.setDividerLocation(mCompActDef.getChildGraphModel().getWidth()+20);
         } catch (Exception ex) {
             Logger.error(ex);
             throw new InvalidOutcomeException(ex.getMessage());
