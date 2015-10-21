@@ -33,7 +33,7 @@ import org.cristalise.kernel.utils.Logger
  */
 @CompileStatic
 trait CristalTestSetup {
-    static final int defaulLogLevel = 8
+    final int defaulLogLevel = 8
 
     public void loggerSetup(int logLevel = defaulLogLevel) {
         Logger.addLogStream(System.out, logLevel);
