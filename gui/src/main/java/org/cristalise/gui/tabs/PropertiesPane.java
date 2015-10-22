@@ -127,7 +127,7 @@ public class PropertiesPane extends ItemTabPane implements ProxyObserver<Propert
             roleAdmin.setEntity((AgentProxy)sourceItem.getItem());
             roleTitle.setVisible(true); roleAdmin.setVisible(true);
         }
-        else if (domAdmin != null)
+        if (domAdmin != null)
             domAdmin.setEntity(sourceItem.getItem());
         propertyBox.removeAll();
 		revalidate();
