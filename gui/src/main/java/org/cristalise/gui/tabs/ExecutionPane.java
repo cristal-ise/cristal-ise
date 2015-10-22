@@ -66,9 +66,13 @@ public class ExecutionPane extends ItemTabPane implements ProxyObserver<Workflow
 
         // create activity selection box
         Box activityBox = Box.createHorizontalBox();
-        activityBox.add(new JLabel("Select Activity: "));
+     // activity title
+        JLabel actTitle = new JLabel("Activity: ");
+        actTitle.setFont(ItemTabPane.titleFont);
+        activityBox.add(actTitle);
         activityBox.add(Box.createHorizontalStrut(5));
         activitySelector.setEditable(false);
+        activitySelector.setFont(ItemTabPane.titleFont);
         
         activityBox.add(activitySelector);
         activityBox.setMaximumSize(activitySelector.getMaximumSize());
@@ -170,7 +174,7 @@ public class ExecutionPane extends ItemTabPane implements ProxyObserver<Workflow
         if (init) {
             for (ActivityItem act : activities) {
                 if (act.name.equals(command)) {
-                    selectActivity(act);
+                    activitySelector.setSelectedItem(act);
                 }
             }
         } else

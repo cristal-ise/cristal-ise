@@ -102,12 +102,6 @@ public class ActivityViewer extends JPanel implements Runnable {
         c.anchor = GridBagConstraints.NORTHWEST;
         c.fill = GridBagConstraints.HORIZONTAL;
 
-// activity title
-        JLabel actTitle = new JLabel("Activity"+": "+newAct.name);
-        actTitle.setFont(ItemTabPane.titleFont);
-        gridbag.setConstraints(actTitle, c);
-        add(actTitle);
-
         Job firstJob = (thisAct.getJobs().get(0));
 // desc
         String desc = firstJob.getDescription();
@@ -115,7 +109,7 @@ public class ActivityViewer extends JPanel implements Runnable {
             Box descBox = Box.createHorizontalBox();
 
             String chopDesc = null;
-            if(desc.length() >= 40) chopDesc = desc.substring(0,40);
+            if(desc.length() >= 80) chopDesc = desc.substring(0,80);
             else chopDesc = desc;
 
             descBox.add(new JLabel("Description: "+chopDesc));
@@ -139,7 +133,6 @@ public class ActivityViewer extends JPanel implements Runnable {
                 descBox.add(descButton);
             }
 
-            c.gridy++;
             gridbag.setConstraints(descBox, c);
             add(descBox);
         }
