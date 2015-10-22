@@ -27,12 +27,6 @@
 package org.cristalise.gui.tabs;
 
 import java.awt.Color;
-import java.awt.Component;
-/**
- * @author  abranson
- * @version
- */
-import java.awt.GridBagConstraints;
 import java.awt.GridLayout;
 import java.awt.Insets;
 import java.awt.event.ActionEvent;
@@ -44,12 +38,11 @@ import javax.swing.JButton;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
-import javax.swing.SwingConstants;
 
 import org.cristalise.gui.MainFrame;
 import org.cristalise.gui.tree.NodeAgent;
-import org.cristalise.kernel.entity.Agent;
 import org.cristalise.kernel.entity.proxy.AgentProxy;
+import org.cristalise.kernel.entity.proxy.ItemProxy;
 import org.cristalise.kernel.entity.proxy.MemberSubscription;
 import org.cristalise.kernel.entity.proxy.ProxyObserver;
 import org.cristalise.kernel.persistency.ClusterStorage;
@@ -183,8 +176,8 @@ public class PropertiesPane extends ItemTabPane implements ProxyObserver<Propert
                         "Erase Item",
                         JOptionPane.YES_NO_OPTION) != JOptionPane.YES_OPTION)
                     return;
-
-        		MainFrame.userAgent.execute(sourceItem.getItem(), "Erase", new String[0]);
+                String predefStep = sourceItem instanceof NodeAgent?"RemoveAgent":"Erase";
+        		MainFrame.userAgent.execute(sourceItem.getItem(), predefStep, new String[0]);
         	} catch (Exception ex) {
         		MainFrame.exceptionDialog(ex);
         	}
