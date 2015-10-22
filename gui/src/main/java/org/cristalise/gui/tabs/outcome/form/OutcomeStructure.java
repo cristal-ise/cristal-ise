@@ -195,7 +195,7 @@ public abstract class OutcomeStructure extends JPanel {
         else {
         	label = new JLabel(name, helpIconSmall, JLabel.LEFT);
         	label.setHorizontalTextPosition(JLabel.LEADING);
-        	label.setToolTipText(helpText);
+        	label.setToolTipText("<html>"+helpText+"</html>");
         }
         return label;
     	
