@@ -71,7 +71,7 @@
 							</commandLineArguments>
 						</program>					
 						<program>
-							<mainClass>org.cristalise.kernel.gui.Main</mainClass>
+							<mainClass>org.cristalise.gui.Main</mainClass>
 							<id>cristalise-gui</id>
 							<commandLineArguments>
 								<commandLineArgument>-logLevel</commandLineArgument>
