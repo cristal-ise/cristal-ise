@@ -154,12 +154,12 @@
       <version>1.0-groovy-2.4</version>
       <scope>test</scope>
     </dependency>
-    <dependency>
+    <!--dependency>
       <groupId>org.cristalise</groupId>
       <artifactId>cristalise-testing</artifactId>
       <version>3.1-SNAPSHOT</version>
       <scope>test</scope>
-    </dependency>
+    </dependency-->
     <dependency>
       <groupId>org.cristalise</groupId>
       <artifactId>cristalise-inmemory-lookup</artifactId>
