@@ -58,7 +58,7 @@ class ItemBuilder {
         wf     = delegate.wf
     }
 
-    public static ItemPath create(Map<String, Object> attrs, Closure cl) {
+    public static def create(Map<String, Object> attrs, Closure cl) {
         assert attrs, "ItemBuilder create() cannot work with empty attributes (Map)"
         assert attrs.agent && (attrs.agent instanceof AgentPath)
 

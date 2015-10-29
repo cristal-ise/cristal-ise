@@ -60,7 +60,7 @@ class AgentBuilder{
         wf     = delegate.wf
     }
 
-    public static AgentPath create(Map<String, Object> attrs, Closure cl) {
+    public static def create(Map<String, Object> attrs, Closure cl) {
         assert attrs && attrs.agent && (attrs.agent instanceof AgentPath)
 
         def ib = build(attrs, cl)
