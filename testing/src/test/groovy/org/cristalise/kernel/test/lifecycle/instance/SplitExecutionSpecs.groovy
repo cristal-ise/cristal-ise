@@ -2,9 +2,9 @@ package org.cristalise.kernel.test.lifecycle.instance;
 
 //import static org.cristalise.kernel.lifecycle.instance.WfVertex.Types.*
 
-import org.cristalise.dsl.test.lifecycle.instance.WorkflowTestBuilder
+import org.cristalise.dsl.test.builders.WorkflowTestBuilder;
 import org.cristalise.kernel.process.Gateway
-import org.cristalise.test.CristalTestSetup
+import org.cristalise.kernel.test.utils.CristalTestSetup;
 
 import spock.lang.Specification
 

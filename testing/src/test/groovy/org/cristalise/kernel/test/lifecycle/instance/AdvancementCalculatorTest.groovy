@@ -20,13 +20,13 @@
  */
 package org.cristalise.kernel.test.lifecycle.instance
 
-import org.cristalise.dsl.test.lifecycle.instance.WorkflowTestBuilder
+import org.cristalise.dsl.test.builders.WorkflowTestBuilder;
 import org.cristalise.kernel.graph.model.Vertex
 import org.cristalise.kernel.graph.traversal.GraphTraversal
 import org.cristalise.kernel.lifecycle.instance.Activity
 import org.cristalise.kernel.lifecycle.instance.WfVertex
 import org.cristalise.kernel.process.Gateway
-import org.cristalise.test.CristalTestSetup
+import org.cristalise.kernel.test.utils.CristalTestSetup;
 import org.junit.After
 import org.junit.Before
 import org.junit.Test

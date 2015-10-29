@@ -18,7 +18,7 @@
  *
  * http://www.fsf.org/licensing/licenses/lgpl.html
  */
-package org.cristalise.dsl.test.entity.agent
+package org.cristalise.dsl.test.builders
 
 import groovy.transform.CompileStatic
 

@@ -18,46 +18,36 @@
  *
  * http://www.fsf.org/licensing/licenses/lgpl.html
  */
-package org.cristalise.dsl.collection
+package org.cristalise.dsl.test.builders
 
 import groovy.transform.CompileStatic
 
-import org.cristalise.dsl.property.PropertyBuilder
-import org.cristalise.kernel.collection.Dependency
-import org.cristalise.kernel.lookup.ItemPath
+import org.cristalise.dsl.persistency.outcome.SchemaBuilder
+import org.cristalise.kernel.persistency.outcome.Schema
+import org.cristalise.kernel.test.utils.KernelXMLUtility
 
 
 /**
- * 
  *
  */
 @CompileStatic
-class DependencyDelegate {
-    Dependency dependency
+class SchemaTestBuilder extends SchemaBuilder {
 
-    public DependencyDelegate(String n) {
-        dependency = new Dependency(n)
+    public SchemaTestBuilder(SchemaBuilder sb) {
+        name = sb.name
+        module = sb.module
+        version = sb.version
+
+        schema = sb.schema
     }
 
-    public void  processClosure(Closure cl) {
-        cl.delegate = this
-        cl.resolveStrategy = Closure.DELEGATE_FIRST
-        cl()
+    public static SchemaTestBuilder build(String module, String name, int version, Closure cl) {
+        def sb = SchemaBuilder.build(module, name, version, cl)
+
+        return new SchemaTestBuilder(sb)
     }
 
-    public void Properties(Closure cl) {
-        dependency.properties = PropertyBuilder.build(cl)
-    }
-
-    public void Member(Map attrs, Closure cl = null) {
-        assert attrs && attrs.itemPath
-
-        def member = dependency.addMember(new ItemPath((String)attrs.itemPath))
-
-        if(cl) {
-            DependencyMemberDelegate delegate = new DependencyMemberDelegate()
-            delegate.processClosure(cl)
-            member.properties << delegate.props
-        }
+    public boolean compareXML(String xml) {
+        return KernelXMLUtility.compareXML(xml, schema.schema);
     }
 }

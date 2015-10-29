@@ -23,7 +23,7 @@ package org.cristalise.kernel.test.entity.role
 import org.cristalise.dsl.entity.role.RoleBuilder
 import org.cristalise.kernel.common.ObjectNotFoundException
 import org.cristalise.kernel.process.Gateway
-import org.cristalise.test.CristalTestSetup
+import org.cristalise.kernel.test.utils.CristalTestSetup;
 
 import spock.lang.Specification
 

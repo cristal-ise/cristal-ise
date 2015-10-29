@@ -18,36 +18,41 @@
  *
  * http://www.fsf.org/licensing/licenses/lgpl.html
  */
-package org.cristalise.dsl.entity.role
+package org.cristalise.dsl.test.builders
 
 import groovy.transform.CompileStatic
 
-import org.cristalise.kernel.entity.imports.ImportRole
+import javax.xml.validation.Schema
+
+import org.cristalise.dsl.scripting.ScriptBuilder
+import org.cristalise.kernel.scripting.Script
+import org.cristalise.kernel.test.utils.KernelXMLUtility
 
 
 /**
  *
  */
 @CompileStatic
-class RoleDelegate {
+class ScriptTestBuilder extends ScriptBuilder {
+    
+    public ScriptTestBuilder(ScriptBuilder sb) {
+        name = sb.name
+        module = sb.module
+        version = sb.version
 
-    List<ImportRole> roles = []
+        script = sb.script
+        scriptXML = sb.scriptXML
 
-    public void processClosure(Closure cl) {
-        cl.delegate = this
-        cl.resolveStrategy = Closure.DELEGATE_FIRST
-        cl()
+        schema = sb.schema
     }
 
-    public void Role(Map<String, Object> attrs) {
-        assert attrs && attrs.name
+    public static ScriptTestBuilder build(String module, String name, int version, Closure cl) {
+        def sb = ScriptBuilder.build(module, name, version, cl) 
 
-        if(!attrs.jobList) attrs.jobList = false
+        return new ScriptTestBuilder(sb)
+    }
 
-        def role = new ImportRole()
-        role.name = attrs.name
-        role.jobList = attrs.jobList
-
-        roles.add(role)
+    public boolean compareXML(String xml) {
+        return KernelXMLUtility.compareXML(xml, scriptXML);
     }
 }

@@ -20,8 +20,8 @@
  */
 package org.cristalise.kernel.test.entity.item
 
-import org.cristalise.dsl.test.entity.item.ItemTestBuilder
-import org.cristalise.test.CristalTestSetup
+import org.cristalise.dsl.test.builders.ItemTestBuilder;
+import org.cristalise.kernel.test.utils.CristalTestSetup;
 
 import spock.lang.Specification
 

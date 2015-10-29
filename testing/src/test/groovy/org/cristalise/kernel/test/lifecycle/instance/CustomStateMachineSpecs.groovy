@@ -21,9 +21,9 @@
 package org.cristalise.kernel.test.lifecycle.instance
 
 import org.cristalise.dsl.lifecycle.stateMachine.StateMachineBuilder
-import org.cristalise.dsl.test.lifecycle.instance.WorkflowTestBuilder
+import org.cristalise.dsl.test.builders.WorkflowTestBuilder;
 import org.cristalise.kernel.common.AccessRightsException
-import org.cristalise.test.CristalTestSetup
+import org.cristalise.kernel.test.utils.CristalTestSetup;
 
 import spock.lang.Specification
 

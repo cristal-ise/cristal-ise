@@ -20,8 +20,8 @@
  */
 package org.cristalise.kernel.test.entity.agent
 
-import org.cristalise.dsl.test.entity.agent.AgentTestBuilder
-import org.cristalise.test.CristalTestSetup
+import org.cristalise.dsl.test.builders.AgentTestBuilder;
+import org.cristalise.kernel.test.utils.CristalTestSetup;
 
 import spock.lang.Ignore
 import spock.lang.Specification

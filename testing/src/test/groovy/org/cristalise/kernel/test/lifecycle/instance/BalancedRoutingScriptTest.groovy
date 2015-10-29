@@ -5,9 +5,9 @@ package org.cristalise.kernel.test.lifecycle.instance;
 import org.cristalise.dsl.persistency.outcome.OutcomeBuilder
 import org.cristalise.dsl.persistency.outcome.SchemaBuilder
 import org.cristalise.dsl.scripting.ScriptBuilder
-import org.cristalise.dsl.test.lifecycle.instance.WorkflowTestBuilder
+import org.cristalise.dsl.test.builders.WorkflowTestBuilder;
 import org.cristalise.kernel.process.Gateway
-import org.cristalise.test.CristalTestSetup
+import org.cristalise.kernel.test.utils.CristalTestSetup;
 import org.junit.After
 import org.junit.Before
 import org.junit.Test

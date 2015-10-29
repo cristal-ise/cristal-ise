@@ -2,7 +2,7 @@ package org.cristalise.kernel.test.lifecycle.instance;
 
 import static org.junit.Assert.*
 
-import org.cristalise.dsl.test.lifecycle.instance.WorkflowTestBuilder
+import org.cristalise.dsl.test.builders.WorkflowTestBuilder;
 import org.cristalise.kernel.common.InvalidTransitionException
 import org.cristalise.kernel.process.AbstractMain
 import org.cristalise.kernel.process.Gateway

@@ -22,9 +22,9 @@ package org.cristalise.kernel.test.entity.agent
 
 import org.cristalise.dsl.entity.role.RoleBuilder
 import org.cristalise.dsl.lifecycle.stateMachine.StateMachineBuilder
-import org.cristalise.dsl.test.entity.agent.AgentTestBuilder
-import org.cristalise.dsl.test.entity.item.ItemTestBuilder
-import org.cristalise.test.CristalTestSetup
+import org.cristalise.dsl.test.builders.AgentTestBuilder;
+import org.cristalise.dsl.test.builders.ItemTestBuilder;
+import org.cristalise.kernel.test.utils.CristalTestSetup;
 
 import spock.lang.Specification
 import spock.util.concurrent.PollingConditions
