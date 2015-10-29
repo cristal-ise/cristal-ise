@@ -764,7 +764,25 @@ public class LDAPLookup implements LookupManager{
     @Override
 	public RolePath getRolePath(String roleName) throws ObjectNotFoundException
     {
+    	// empty rolename gives the core role
     	if (roleName.length() == 0) return new RolePath();
+    	
+    	if (roleName.contains("/")) { // absolute path
+    		RolePath absPath = new RolePath();
+    		absPath.setPath(roleName);
+    		if (absPath.exists()) {
+    			LDAPEntry entry = LDAPLookupUtils.getEntry(mLDAPAuth.getAuthObject(), getFullDN(absPath));
+    			try {
+					absPath.setHasJobList(LDAPLookupUtils.getFirstAttributeValue(entry, "jobList").equals("TRUE"));
+				} catch (Exception e) {
+					Logger.error(e);
+					throw new ObjectNotFoundException("Could not find role "+roleName);
+				}
+    			return absPath;
+    		}
+    	}
+    	
+    	// else search for named role
         LDAPSearchConstraints searchCons = new LDAPSearchConstraints();
         searchCons.setBatchSize(0);
         searchCons.setDereference(LDAPSearchConstraints.DEREF_NEVER );
