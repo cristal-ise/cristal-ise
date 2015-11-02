@@ -16,17 +16,7 @@
 		<Resource name="EditPropertyDescription" version="0" type="EA">boot/EA/EditPropertyDescription.xml</Resource>
 		<Resource name="CreateItem" version="0" type="EA">boot/EA/CreateItem.xml</Resource>
 		<Resource name="SetInstanceWorkflow" version="0" type="EA">boot/EA/SetInstanceWorkflow.xml</Resource>
-		<Resource name="CreateNewNumberedVersionFromLast" version="0" type="SC">boot/SC/CreateNewNumberedVersionFromLast.xml</Resource>
-		<Resource name="AssignNewVersionFromLast" version="0" type="EA">boot/EA/AssignNewVersionFromLast.xml</Resource>
-		<Resource name="SetLastNumberedVersionToLast" version="0" type="SC">boot/SC/SetLastNumberedVersionToLast.xml</Resource>
-		<Resource name="MoveLatestVersionToLast" version="0" type="EA">boot/EA/MoveLatestVersionToLast.xml</Resource>		
-		<Resource name="EditDefinition" version="0" type="EA">boot/EA/EditDefinition.xml</Resource>
 		<Resource name="DefineNewCollection" version="0" type="EA">boot/EA/DefineNewCollection.xml</Resource>
-		<Resource name="ManageCompositeActDef" version="0" type="CA">boot/CA/ManageCompositeActDef.xml</Resource>
-		<Resource name="ManageElementaryActDef" version="0" type="CA">boot/CA/ManageElementaryActDef.xml</Resource>
-		<Resource name="ManageScript" version="0" type="CA">boot/CA/ManageScript.xml</Resource>
-		<Resource name="ManageSchema" version="0" type="CA">boot/CA/ManageSchema.xml</Resource>
-		<Resource name="ManageStateMachine" version="0" type="CA">boot/CA/ManageStateMachine.xml</Resource>
 		<Resource name="CompositeActivityFactory" version="0" type="CA">boot/CA/CompositeActivityFactory.xml</Resource>
 		<Resource name="ElementaryActivityFactory" version="0" type="CA">boot/CA/ElementaryActivityFactory.xml</Resource>
 		<Resource name="SchemaFactoryWf" version="0" type="CA">boot/CA/SchemaFactoryWf.xml</Resource>
@@ -53,7 +43,7 @@
 			<Outcome viewname="last" schema="PropertyDescription" version="0">boot/property/SCProp.xml</Outcome>
 			<Outcome viewname="last" schema="Script" version="0">boot/SC/New.xml</Outcome>
 			<Dependency name="workflow" isDescription="false">
-				<DependencyMember itemPath="/desc/ActivityDesc/system/dev/ManageScript">
+				<DependencyMember itemPath="/desc/ActivityDesc/system/kernel/ManageScript">
 					<MemberProperties>
 						<KeyValuePair Key="Version" String="0"/>
 					</MemberProperties>
@@ -66,7 +56,7 @@
 			<Property name="Type">Factory</Property>
 			<Outcome viewname="last" schema="PropertyDescription" version="0">boot/property/EAProp.xml</Outcome>
 			<Dependency name="workflow" isDescription="false">
-				<DependencyMember itemPath="desc/ActivityDesc/system/dev/ManageElementaryActDef">
+				<DependencyMember itemPath="desc/ActivityDesc/system/kernel/ManageElementaryActDef">
 					<MemberProperties>
 						<KeyValuePair Key="Version" String="0"/>
 					</MemberProperties>
@@ -79,7 +69,7 @@
 			<Property name="Type">Factory</Property>
 			<Outcome viewname="last" schema="PropertyDescription" version="0">boot/property/CAProp.xml</Outcome>
 			<Dependency name="workflow" isDescription="false">
-				<DependencyMember itemPath="/desc/ActivityDesc/system/dev/ManageCompositeActDef">
+				<DependencyMember itemPath="/desc/ActivityDesc/system/kernel/ManageCompositeActDef">
 					<MemberProperties>
 						<KeyValuePair Key="Version" String="0"/>
 					</MemberProperties>
@@ -93,7 +83,7 @@
 			<Outcome viewname="last" schema="PropertyDescription" version="0">boot/property/ODProp.xml</Outcome>
 			<Outcome viewname="last" schema="Schema" version="0">boot/OD/New.xsd</Outcome>
 			<Dependency name="workflow" isDescription="false">
-				<DependencyMember itemPath="/desc/ActivityDesc/system/dev/ManageSchema">
+				<DependencyMember itemPath="/desc/ActivityDesc/system/kernel/ManageSchema">
 					<MemberProperties>
 						<KeyValuePair Key="Version" String="0"/>
 					</MemberProperties>
@@ -106,7 +96,7 @@
 			<Property name="Type">Factory</Property>
 			<Outcome viewname="last" schema="PropertyDescription" version="0">boot/property/SMProp.xml</Outcome>
 			<Dependency name="workflow" isDescription="false">
-				<DependencyMember itemPath="/desc/ActivityDesc/system/dev/ManageStateMachine">
+				<DependencyMember itemPath="/desc/ActivityDesc/system/kernel/ManageStateMachine">
 					<MemberProperties>
 						<KeyValuePair Key="Version" String="0"/>
 					</MemberProperties>
