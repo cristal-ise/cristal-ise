@@ -44,6 +44,7 @@ import javax.swing.SwingConstants;
 import org.cristalise.gui.MainFrame;
 import org.cristalise.gui.tabs.outcome.OutcomeException;
 import org.cristalise.gui.tabs.outcome.OutcomeHandler;
+import org.cristalise.kernel.common.InvalidDataException;
 import org.cristalise.kernel.common.ObjectNotFoundException;
 import org.cristalise.kernel.entity.C2KLocalObject;
 import org.cristalise.kernel.entity.proxy.MemberSubscription;
@@ -314,7 +315,9 @@ public class ViewpointPane extends ItemTabPane implements ItemListener, ActionLi
             return;
         } catch (ObjectNotFoundException ex) {
             error = "Schema not found";
-        } catch (OutcomeException ex) {
+        } catch (InvalidDataException e) {
+            error = "Schema was invalid";
+		} catch (OutcomeException ex) {
             error = "Outcome was not valid. See log for details: "+ex.getMessage();
             Logger.error(ex);
         }

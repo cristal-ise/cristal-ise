@@ -101,7 +101,7 @@ class OutcomeEditor extends JFrame implements ActionListener {
             else
                 outcome = new OutcomePanel(schemaURL, readOnly);
 
-            Schema thisSchema = new Schema(schemaURL.getFile(), -1, FileStringUtility.url2String(schemaURL));
+            Schema thisSchema = new Schema(schemaURL.getFile(), -1, null, FileStringUtility.url2String(schemaURL));
             thisValid = OutcomeValidator.getValidator(thisSchema);
 
         } catch (Exception e) { e.printStackTrace(); System.exit(0);}

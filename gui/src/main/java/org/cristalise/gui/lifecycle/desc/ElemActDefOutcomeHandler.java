@@ -218,7 +218,7 @@ public class ElemActDefOutcomeHandler extends VertexPropertyPanel implements Out
 			else return;
 
 			FileStringUtility.string2File(new File(dir, name+".xml"),
-			LocalObjectLoader.getScript(name, intVersion));
+			LocalObjectLoader.getScript(name, intVersion).getScriptData());
 			if (imports!=null) imports.write("<Resource name=\""+name+"\" "+(version==null?"":"version=\""+version+"\" ")+"type=\"SC\">boot/SC/"+name+".xml</Resource>\n");
 		} catch (NumberFormatException ex) {
 			JOptionPane.showMessageDialog(null, "Invalid version number in script version:"+version);
