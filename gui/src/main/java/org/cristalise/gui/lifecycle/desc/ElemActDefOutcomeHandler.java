@@ -162,7 +162,7 @@ public class ElemActDefOutcomeHandler extends VertexPropertyPanel implements Out
 			for (GraphableVertex childDef : childDefs) {
 				if (childDef instanceof ActivitySlotDef) {
 					if ("last".equals(childDef.getProperties().get("Version"))) {
-						resolveRealVersion((ActivitySlotDef)childDef);
+						throw new Exception("Version set to 'last' for Activity '"+childDef.getName()+"' in "+actDef.getActName());
 					}
 					exportAct(dir, imports, ((ActivitySlotDef)childDef).getTheActivityDef());
 				}
@@ -177,36 +177,6 @@ public class ElemActDefOutcomeHandler extends VertexPropertyPanel implements Out
 			FileStringUtility.string2File(new File(new File(dir, "EA"), actDef.getActName()+".xml"), Gateway.getMarshaller().marshall(actDef));
 			if (imports!=null) imports.write("<Resource name=\""+actDef.getActName()+"\" "+(actDef.getVersion()==-1?"":"version=\""+actDef.getVersion()+"\" ")+"type=\"EA\">boot/EA/"+actDef.getActName()+".xml</Resource>\n");
 		}
-	}
-
-	private static void resolveRealVersion(ActivitySlotDef childDef) throws ObjectNotFoundException {
-		String defName = childDef.getActName();
-		ItemProxy actDefItem = LocalObjectLoader.loadLocalObjectDef("/desc/ActivityDesc/", defName);
-		String actType = actDefItem.getProperty("Complexity");
-		Viewpoint last = actDefItem.getViewpoint( actType + "ActivityDef", "last");
-		String[] viewpoints = actDefItem.getContents(ClusterStorage.VIEWPOINT+"/"+actType + "ActivityDef");
-		for (String viewName : viewpoints) {
-			try {
-				Integer.parseInt(viewName);
-			} catch (NumberFormatException e) {
-				continue; // only count integer viewnames
-			}
-			Viewpoint thisView = actDefItem.getViewpoint(actType + "ActivityDef", viewName);
-			if (thisView.getEventId() == last.getEventId()) {
-				JOptionPane.showMessageDialog(null, defName+" defined as 'last'. Will use view "+viewName+" instead");
-				childDef.getProperties().put("Version", viewName);
-				return;
-			}
-		}
-		JOptionPane.showMessageDialog(null, "Last view for "+defName+" has not been materialized. Executing CreateFromLast");
-		try {
-			Job createJob = actDefItem.getJobByName("AssignNewActivityVersionFromLast", MainFrame.userAgent);
-			MainFrame.userAgent.execute(createJob);
-		} catch (Exception e) {
-			Logger.error(e);
-			throw new ObjectNotFoundException("Could not create new version of "+defName+" from last");
-		}
-		resolveRealVersion(childDef);
 	}
 
 	public static void exportScript(String name, Object version, BufferedWriter imports, File dir) {
