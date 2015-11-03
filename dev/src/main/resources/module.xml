@@ -12,10 +12,14 @@
 		<Resource name="NewDevObjectDef" version="0" type="OD">boot/OD/NewDevObjectDef.xsd</Resource>
 		<Resource name="ChooseWorkflow" version="0" type="OD">boot/OD/ChooseWorkflow.xsd</Resource>
 		<Resource name="NewCollection" version="0" type="OD">boot/OD/NewCollection.xsd</Resource>
+		<Resource name="LocalObjectDefCreator" version="0" type="SC">boot/SC/LocalObjectDefCreator.xml</Resource>
 		<Resource name="CreateNewLocalObjectDef" version="0" type="EA">boot/EA/CreateNewLocalObjectDef.xml</Resource>
 		<Resource name="EditPropertyDescription" version="0" type="EA">boot/EA/EditPropertyDescription.xml</Resource>
+		<Resource name="InstantiateItem" version="0" type="SC">boot/SC/InstantiateItem.xml</Resource>
 		<Resource name="CreateItem" version="0" type="EA">boot/EA/CreateItem.xml</Resource>
+		<Resource name="SetWorkflow" version="0" type="SC">boot/SC/SetWorkflow.xml</Resource>
 		<Resource name="SetInstanceWorkflow" version="0" type="EA">boot/EA/SetInstanceWorkflow.xml</Resource>
+		<Resource name="CollDescCreator" version="0" type="SC">boot/SC/CollDescCreator.xml</Resource>
 		<Resource name="DefineNewCollection" version="0" type="EA">boot/EA/DefineNewCollection.xml</Resource>
 		<Resource name="CompositeActivityFactory" version="0" type="CA">boot/CA/CompositeActivityFactory.xml</Resource>
 		<Resource name="ElementaryActivityFactory" version="0" type="CA">boot/CA/ElementaryActivityFactory.xml</Resource>
@@ -25,10 +29,6 @@
 		<Resource name="ItemDescriptionWf" version="0" type="CA" id="b9415b57-3a4a-4b31-825a-d307d1280ac0">boot/CA/ItemDescriptionWf.xml</Resource>
 		<Resource name="ItemDescriptionFactoryWf" version="0" type="CA">boot/CA/ItemDescriptionFactoryWf.xml</Resource>
 		<Resource name="ReadOnlyItemDescriptionWf" version="0" type="CA">boot/CA/ReadOnlyItemDescriptionWf.xml</Resource>
-		<Resource name="LocalObjectDefCreator" version="0" type="SC">boot/SC/LocalObjectDefCreator.xml</Resource>
-		<Resource name="InstantiateItem" version="0" type="SC">boot/SC/InstantiateItem.xml</Resource>
-		<Resource name="SetWorkflow" version="0" type="SC">boot/SC/SetWorkflow.xml</Resource>
-		<Resource name="CollDescCreator" version="0" type="SC">boot/SC/CollDescCreator.xml</Resource>
 		<Resource name="ModuleFactory" version="0" type="CA">boot/CA/ModuleFactory.xml</Resource>
 		<Resource name="ModuleExportPath" version="0" type="OD">boot/OD/ModuleExportPath.xsd</Resource>
 		<Resource name="ExportModule" version="0" type="EA">boot/EA/ExportModule.xml</Resource>
