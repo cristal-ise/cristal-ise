@@ -5,12 +5,12 @@
 		<KeyValuePair Key="Description" String="" />
 		<KeyValuePair Key="Agent Role" String="" />
 		<KeyValuePair Key="Show time" Boolean="true" />
-		<KeyValuePair Key="ScriptVersion" String="0" />
+		<KeyValuePair Key="ScriptVersion" String="" />
 		<KeyValuePair Key="Viewpoint" String="" />
 		<KeyValuePair Key="Agent Name" String="" />
 		<KeyValuePair Key="StateMachineName" String="Default" />
 		<KeyValuePair Key="SchemaVersion" String="0" />
-		<KeyValuePair Key="ScriptName" String="CreateModuleJar" />
+		<KeyValuePair Key="ScriptName" String="" />
 		<KeyValuePair Key="Breakpoint" Boolean="false" />
 		<KeyValuePair Key="SchemaType" String="ModuleExportPath" />
 	</Properties>
