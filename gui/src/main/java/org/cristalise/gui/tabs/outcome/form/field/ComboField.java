@@ -31,6 +31,7 @@ import javax.swing.text.JTextComponent;
 import org.cristalise.gui.MainFrame;
 import org.cristalise.gui.tabs.outcome.form.StructuralException;
 import org.cristalise.kernel.scripting.Script;
+import org.cristalise.kernel.utils.LocalObjectLoader;
 import org.cristalise.kernel.utils.Logger;
 import org.exolab.castor.types.AnyNode;
 import org.exolab.castor.xml.schema.Annotation;
@@ -152,7 +153,7 @@ public class ComboField extends EditField {
             StringTokenizer tok = new StringTokenizer(scriptName, "_");
             if (tok.countTokens() != 2)
                 throw new Exception("Invalid LOVScript name");
-            Script lovscript = new Script(tok.nextToken(), Integer.parseInt(tok.nextToken()));
+            Script lovscript = LocalObjectLoader.getScript(tok.nextToken(), Integer.parseInt(tok.nextToken()));
             lovscript.setInputParamValue("LOV", vals);
             lovscript.execute();
         } catch (Exception ex) {
