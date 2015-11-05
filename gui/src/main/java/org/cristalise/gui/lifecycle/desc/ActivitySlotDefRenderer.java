@@ -60,8 +60,12 @@ public class ActivitySlotDefRenderer implements VertexRenderer
         int             y                = 0;
         int             i                = 0;
 
-        linesOfText[0]="("+activitySlotDef.getActivityDef()+")";
-        linesOfText[1]=(String)activitySlotDef.getProperties().get("Name");
+        linesOfText[0]=(String)activitySlotDef.getProperties().get("Name");
+        try {
+			linesOfText[1]="("+activitySlotDef.getTheActivityDef().getActName()+")";
+		} catch (Exception e) {
+			linesOfText[1]="ERROR";
+		}
 
         if (!hasError)linesOfText[2]=activitySlotDef.getErrors();
 

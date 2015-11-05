@@ -27,6 +27,8 @@ import org.cristalise.gui.ImageLoader;
 import org.cristalise.gui.MainFrame;
 import org.cristalise.gui.lifecycle.chooser.ActivityChooser;
 import org.cristalise.gui.lifecycle.chooser.WorkflowDialogue;
+import org.cristalise.kernel.common.InvalidDataException;
+import org.cristalise.kernel.common.ObjectNotFoundException;
 import org.cristalise.kernel.graph.model.GraphModelManager;
 import org.cristalise.kernel.graph.model.GraphPoint;
 import org.cristalise.kernel.graph.model.TypeNameAndConstructionInfo;
@@ -41,7 +43,7 @@ public class WfVertexDefFactory implements VertexFactory, WorkflowDialogue
 {
 	protected CompositeActivityDef mCompositeActivityDef = null;
 	@Override
-	public void create(GraphModelManager graphModelManager, GraphPoint location, TypeNameAndConstructionInfo typeNameAndConstructionInfo)
+	public void create(GraphModelManager graphModelManager, GraphPoint location, TypeNameAndConstructionInfo typeNameAndConstructionInfo) throws ObjectNotFoundException, InvalidDataException
 	{
 		String vertexTypeId = null;
 		if (mCompositeActivityDef != null && typeNameAndConstructionInfo.mInfo instanceof String)
@@ -63,53 +65,57 @@ public class WfVertexDefFactory implements VertexFactory, WorkflowDialogue
 				a.setVisible(true);
 			}
 			else
-				mCompositeActivityDef.newChild("", vertexTypeId, location);
+				mCompositeActivityDef.newChild("", vertexTypeId, null, location);
 		}
 	}
 	@Override
-	public void loadThisWorkflow(String newName, Integer version, HashMap<String, Object> hashMap)
+	public void loadThisWorkflow(String newName, Integer version, HashMap<String, Object> hashMap) throws ObjectNotFoundException, InvalidDataException
 	{
 		String vertexTypeId = (String) hashMap.get("P1");
 		GraphPoint location = (GraphPoint) hashMap.get("P2");
 		if (newName == null || newName.equals(""))
 			return;
 		Logger.debug(5, newName);
-		ActivityDef act = (ActivityDef) mCompositeActivityDef.search(mCompositeActivityDef.getID() + "/" + newName);
-		if (act != null)
+		
+		// Resolve activity def
+		ActivityDef act;
+		try
 		{
-			String unicName = newName;
-			while (unicName == null
-				|| unicName == ""
-				|| mCompositeActivityDef.search(mCompositeActivityDef.getID() + "/" + unicName) != null)
-				unicName =
-					(String) JOptionPane.showInputDialog(
-						null,
-						"Please type a Name",
-						"New " + vertexTypeId + " Activity",
-						JOptionPane.QUESTION_MESSAGE,
-						ImageLoader.findImage("graph/newvertex_large.png"),
-						null,
-						null);
-			act = (ActivityDef) mCompositeActivityDef.search(mCompositeActivityDef.getID() + "/" + newName);
-			mCompositeActivityDef.addExistingActivityDef(unicName, act, location);
+			act = LocalObjectLoader.getActDef(newName, version==null?0:version);
+		}
+		catch (Exception ex)
+		{
+			MainFrame.exceptionDialog(ex);
+			return;
+		}
+		
+		// Check if it's already in this wf
+		WfVertexDef slot = (WfVertexDef) mCompositeActivityDef.search(mCompositeActivityDef.getID() + "/" + newName);
+		if (slot != null)
+		{
+			do {
+				newName =
+						(String) JOptionPane.showInputDialog(
+							null,
+							"Please provide a unique name for this instance of the activity",
+							"New " + vertexTypeId + " Activity Instance",
+							JOptionPane.QUESTION_MESSAGE,
+							ImageLoader.findImage("graph/newvertex_large.png"),
+							null,
+							null);
+
+			} while (newName == null || newName.length() == 0
+					|| mCompositeActivityDef.search(mCompositeActivityDef.getID() + "/" + newName) != null);
+			slot = mCompositeActivityDef.addExistingActivityDef(newName, act, location);
 		}
 		else
 		{
-			try
-			{
-				act = LocalObjectLoader.getActDef(newName, version==null?0:version);
-			}
-			catch (Exception ex)
-			{
-				MainFrame.exceptionDialog(ex);
-				return;
-			}
-			
-			WfVertexDef newChild = mCompositeActivityDef.newChild(newName, vertexTypeId, location);
-			newChild.getProperties().put("Version", version);
-			for(String propName: act.getProperties().getAbstract()) {
-				newChild.getProperties().put(propName, act.getProperties().get(propName));
-			}
+			slot = mCompositeActivityDef.newChild(newName, vertexTypeId, version, location);
+		}
+		
+		// Create all abstract properties in the new slot
+		for(String propName: act.getProperties().getAbstract()) {
+			slot.getProperties().put(propName, act.getProperties().get(propName));
 		}
 	}
 	@Override

@@ -28,6 +28,9 @@ package org.cristalise.gui.lifecycle.chooser;
 
 import java.util.HashMap;
 
+import org.cristalise.kernel.common.InvalidDataException;
+import org.cristalise.kernel.common.ObjectNotFoundException;
+
 /**
  * @author Developpement
  *
@@ -36,6 +39,6 @@ import java.util.HashMap;
  */
 public interface WorkflowDialogue
 {
-	public void loadThisWorkflow(String name, Integer actVersion, HashMap<String, Object> mhashmap);
+	public void loadThisWorkflow(String name, Integer actVersion, HashMap<String, Object> mhashmap) throws ObjectNotFoundException, InvalidDataException;
 
 }

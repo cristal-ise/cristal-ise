@@ -43,6 +43,7 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 
 import org.cristalise.gui.ImageLoader;
+import org.cristalise.gui.MainFrame;
 import org.cristalise.kernel.utils.Logger;
 
 
@@ -120,7 +121,12 @@ public class ActivityChooser extends JFrame
             {
                 Logger.debug(5, "mLDAPFileChooserActivity.getEntryName()" + mLDAPFileChooserActivity.getEntryName());
                 setCursor(new Cursor(Cursor.WAIT_CURSOR));
-                mParent.loadThisWorkflow(mLDAPFileChooserActivity.getEntryName(), mLDAPFileChooserActivity.getEntryVersion(), mhashmap);
+                try {
+					mParent.loadThisWorkflow(mLDAPFileChooserActivity.getEntryName(), mLDAPFileChooserActivity.getEntryVersion(), mhashmap);
+				} catch (Exception ex) {
+					Logger.error(ex);
+					MainFrame.exceptionDialog(ex);
+				}
                 setCursor(new Cursor(Cursor.DEFAULT_CURSOR));
                 close();
             }

@@ -30,6 +30,7 @@ import javax.swing.JComboBox;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 
+import org.cristalise.gui.MainFrame;
 import org.cristalise.kernel.common.PersistencyException;
 import org.cristalise.kernel.persistency.ClusterStorage;
 import org.cristalise.kernel.process.Gateway;
@@ -111,15 +112,18 @@ public class LDAPFileChooser extends JPanel
 			public void itemStateChanged(ItemEvent e) {
 				mVer.removeAllItems();
 				String selectedItem = (String)e.getItem();
-				try {
-					String[] views = Gateway.getStorage().getClusterContents(mLec.getItem(selectedItem), ClusterStorage.VIEWPOINT+"/"+schemaName);
-					for (String thisVer : views) {
-						try {
-							mVer.addItem(Integer.parseInt(thisVer));
-						} catch (NumberFormatException ex) { }
+				if (selectedItem != null && selectedItem.length() > 0) {
+					try {
+						String[] views = Gateway.getStorage().getClusterContents(mLec.getItem(selectedItem), ClusterStorage.VIEWPOINT+"/"+schemaName);
+						for (String thisVer : views) {
+							try {
+								mVer.addItem(Integer.parseInt(thisVer));
+							} catch (NumberFormatException ex) { } // skip non-numeric views
+						}
+					} catch (PersistencyException ex) {
+						MainFrame.exceptionDialog(ex);
 					}
-				} catch (PersistencyException e1) {	}
-				
+				}
 			}
         });
         
