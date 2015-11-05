@@ -57,14 +57,12 @@ public class ActivityRenderer implements VertexRenderer
 			linesOfText[2] = activity.getErrors();
 		else
 		{
-			boolean showTime = activity.getActive() && ((Boolean) activity.getProperties().get("Show time")).booleanValue();
 			String stateName = "Invalid State"; 
 			try {
 				stateName = activity.getStateName();
 			} catch (InvalidDataException ex) { }
 			
-			linesOfText[2] = 
-					stateName + (showTime ? " " + getWaitTime(activity.getStateDate()) : "");
+			linesOfText[2] = stateName + (" " + getWaitTime(activity.getStateDate()));
 		}
 
 		FontMetrics metrics = g2d.getFontMetrics();
