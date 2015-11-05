@@ -111,6 +111,8 @@ public class CompActDefOutcomeHandler
         mSplitPane.setDividerSize(5);
         if (mCompActDef != null) {
 			int minWidth = mCompActDef.getChildGraphModel().getWidth()+20;
+			int editWidth = (int)mEditorPanel.getPreferredSize().getWidth();
+			if (editWidth > minWidth) minWidth = editWidth;
 			if (mSplitPane.getDividerLocation() < minWidth) mSplitPane.setDividerLocation(minWidth);
         }
         gridbag.setConstraints(mSplitPane, c);
