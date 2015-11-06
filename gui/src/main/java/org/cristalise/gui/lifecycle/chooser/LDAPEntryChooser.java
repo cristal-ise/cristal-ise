@@ -38,7 +38,6 @@ import org.cristalise.kernel.lookup.ItemPath;
 import org.cristalise.kernel.persistency.ClusterStorage;
 import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.property.Property;
-import org.cristalise.kernel.property.PropertyDescriptionList;
 
 
 public class LDAPEntryChooser extends JComboBox<String>

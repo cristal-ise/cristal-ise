@@ -20,16 +20,12 @@
  */
 package org.cristalise.gui.tabs.outcome;
 
-import java.awt.Font;
 import java.awt.GridLayout;
 import java.io.File;
 
 import javax.swing.JPanel;
-import javax.swing.JScrollPane;
-import javax.swing.JTextArea;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
-import javax.swing.text.PlainDocument;
 
 import org.cristalise.kernel.utils.FileStringUtility;
 import org.fife.ui.rsyntaxtextarea.RSyntaxDocument;

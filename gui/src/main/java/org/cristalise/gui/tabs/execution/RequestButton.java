@@ -46,7 +46,7 @@ import org.cristalise.kernel.utils.Logger;
             if (myJob.hasOutcome()) {
             	setBackground(Color.white);
                 try {
-                	if (myJob.getSchemaName().equals("Errors")) setBackground(Color.pink);
+                	if (myJob.getSchema().getName().equals("Errors")) setBackground(Color.pink);
                 } catch (Exception e) {
                 	Logger.error(e);
                 	MainFrame.exceptionDialog(e);

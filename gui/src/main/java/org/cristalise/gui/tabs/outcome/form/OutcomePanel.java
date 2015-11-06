@@ -28,12 +28,10 @@ import java.net.URL;
 import java.util.HashMap;
 
 import javax.swing.Box;
-import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
-import javax.swing.JSplitPane;
 import javax.swing.JTabbedPane;
 import javax.swing.JTextArea;
 import javax.swing.SwingConstants;
@@ -41,7 +39,6 @@ import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 
-import org.cristalise.gui.MainFrame;
 import org.cristalise.gui.tabs.outcome.InvalidOutcomeException;
 import org.cristalise.gui.tabs.outcome.InvalidSchemaException;
 import org.cristalise.gui.tabs.outcome.OutcomeException;

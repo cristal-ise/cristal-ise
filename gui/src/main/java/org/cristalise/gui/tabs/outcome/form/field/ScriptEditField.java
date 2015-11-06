@@ -25,9 +25,6 @@ import java.awt.Component;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.JTextComponent;
 
-import org.cristalise.kernel.scripting.ParameterException;
-import org.cristalise.kernel.scripting.Script;
-import org.cristalise.kernel.scripting.ScriptParsingException;
 import org.fife.ui.rsyntaxtextarea.RSyntaxDocument;
 import org.fife.ui.rsyntaxtextarea.RSyntaxTextArea;
 import org.fife.ui.rsyntaxtextarea.SyntaxConstants;

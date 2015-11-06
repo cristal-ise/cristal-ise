@@ -23,8 +23,6 @@ package org.cristalise.gui.tabs.outcome.form.field;
 import java.util.ArrayList;
 import java.util.HashMap;
 
-import org.cristalise.kernel.utils.Logger;
-
 /**************************************************************************
  *
  * $Revision: 1.2 $

@@ -46,7 +46,6 @@ import org.cristalise.gui.tabs.outcome.OutcomeNotInitialisedException;
 import org.cristalise.kernel.graph.layout.DefaultGraphLayoutGenerator;
 import org.cristalise.kernel.lifecycle.CompositeActivityDef;
 import org.cristalise.kernel.lifecycle.WfVertexDefOutlineCreator;
-import org.cristalise.kernel.lifecycle.instance.CompositeActivity;
 import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.utils.FileStringUtility;
 import org.cristalise.kernel.utils.Logger;

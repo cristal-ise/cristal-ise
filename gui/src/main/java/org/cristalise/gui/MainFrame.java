@@ -42,7 +42,6 @@ import javax.swing.UIManager;
 
 import org.cristalise.gui.tabs.execution.DefaultExecutor;
 import org.cristalise.gui.tabs.execution.Executor;
-import org.cristalise.gui.tree.Node;
 import org.cristalise.gui.tree.NodeContext;
 import org.cristalise.gui.tree.NodeRole;
 import org.cristalise.kernel.entity.proxy.AgentProxy;

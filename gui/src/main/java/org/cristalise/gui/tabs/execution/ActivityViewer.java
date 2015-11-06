@@ -49,8 +49,8 @@ import org.cristalise.kernel.common.InvalidDataException;
 import org.cristalise.kernel.common.ObjectNotFoundException;
 import org.cristalise.kernel.entity.agent.Job;
 import org.cristalise.kernel.entity.proxy.ItemProxy;
+import org.cristalise.kernel.persistency.outcome.Schema;
 import org.cristalise.kernel.utils.FileStringUtility;
-import org.cristalise.kernel.utils.LocalObjectLoader;
 import org.cristalise.kernel.utils.Logger;
 
 
@@ -186,30 +186,28 @@ public class ActivityViewer extends JPanel implements Runnable {
             
             if (thisJob.hasOutcome()) {
 
-        		String schemaName;
-				int schemaVersion;
+        		Schema schema;
 				try {
-					schemaName = thisJob.getSchemaName();
-					schemaVersion = thisJob.getSchemaVersion();
+					schema = thisJob.getSchema();
 				} catch (Exception e) {
 					newButton.setToolTipText("Could not load schema for this job.");
 					continue;
 				} 
     
-            	if(!schemaName.equals("Errors") && outcomePanel == null) {
+            	if(!schema.getName().equals("Errors") && outcomePanel == null) {
             		try {
             			outcomePanel = getOutcomeHandler(thisJob);
 						outcomeView = outcomePanel.getPanel();
 						newButton.setEnabled(true);
 					} catch (ObjectNotFoundException ex) {
-						outcomeView.add(new JLabel("Schema not found: "+schemaName+" v"+schemaVersion));
+						outcomeView.add(new JLabel("Schema not found: "+schema.getName()+" v"+schema.getVersion()));
 	              	} catch (Exception ex) {
 	                    outcomeView.add(new JLabel("ERROR loading outcome editor: "
 	                        +ex.getClass().getName()+" ("+ex.getMessage()+")"));
 	                    Logger.error(ex);
 	            	}
             	}
-            	if (schemaName.equals("Errors")) {
+            	if (schema.getName().equals("Errors")) {
             		try {
             			errorPanel = getOutcomeHandler(thisJob);
             			errorView.add(errorPanel.getPanel());
@@ -239,12 +237,11 @@ public class ActivityViewer extends JPanel implements Runnable {
     }
 
     public OutcomeHandler getOutcomeHandler(Job thisJob) throws ObjectNotFoundException, InvalidSchemaException, InvalidOutcomeException, InvalidDataException {
-        String schema;
+        Schema schema = thisJob.getSchema();
         OutcomeHandler thisForm;
-    	schema = LocalObjectLoader.getSchema(thisJob.getSchemaName(), thisJob.getSchemaVersion()).schema;
-        thisForm = ItemTabPane.getOutcomeHandler(thisJob.getSchemaName(), thisJob.getSchemaVersion());
+        thisForm = ItemTabPane.getOutcomeHandler(schema.getName(), schema.getVersion());
         thisForm.setReadOnly(false);
-        thisForm.setDescription(schema);
+        thisForm.setDescription(schema.getSchemaData());
         String outcomeString = thisJob.getOutcomeString();
         if ( outcomeString!= null && outcomeString.length() > 0)
         	thisForm.setOutcome(outcomeString);
@@ -307,7 +304,7 @@ public class ActivityViewer extends JPanel implements Runnable {
     public void execute(Job thisJob) {
         try {
             if (thisJob.hasOutcome())
-            	if (!thisJob.getSchemaName().equals("Errors"))
+            	if (!thisJob.getSchema().getName().equals("Errors"))
             		thisJob.setOutcome(outcomePanel.getOutcome());
             	else {
 	            	Box errorBox = Box.createVerticalBox();

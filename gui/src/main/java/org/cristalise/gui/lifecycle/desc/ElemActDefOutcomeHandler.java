@@ -26,22 +26,16 @@ import java.io.File;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 
-import org.cristalise.gui.MainFrame;
 import org.cristalise.gui.graph.view.VertexPropertyPanel;
 import org.cristalise.gui.tabs.outcome.InvalidOutcomeException;
 import org.cristalise.gui.tabs.outcome.InvalidSchemaException;
 import org.cristalise.gui.tabs.outcome.OutcomeException;
 import org.cristalise.gui.tabs.outcome.OutcomeHandler;
 import org.cristalise.gui.tabs.outcome.OutcomeNotInitialisedException;
-import org.cristalise.kernel.common.ObjectNotFoundException;
-import org.cristalise.kernel.entity.agent.Job;
-import org.cristalise.kernel.entity.proxy.ItemProxy;
 import org.cristalise.kernel.graph.model.GraphableVertex;
 import org.cristalise.kernel.lifecycle.ActivityDef;
 import org.cristalise.kernel.lifecycle.ActivitySlotDef;
 import org.cristalise.kernel.lifecycle.CompositeActivityDef;
-import org.cristalise.kernel.persistency.ClusterStorage;
-import org.cristalise.kernel.persistency.outcome.Viewpoint;
 import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.utils.FileStringUtility;
 import org.cristalise.kernel.utils.LocalObjectLoader;
@@ -124,7 +118,8 @@ public class ElemActDefOutcomeHandler extends VertexPropertyPanel implements Out
      */
     @Override
 	public void run() {
-        validate();
+        revalidate();
+        doLayout();
     }
 
     @Override
@@ -206,7 +201,7 @@ public class ElemActDefOutcomeHandler extends VertexPropertyPanel implements Out
 			else if (version instanceof Integer) intVersion = ((Integer)version).intValue();
 			else return;
 			FileStringUtility.string2File(new File(dir, name+".xsd"),
-			LocalObjectLoader.getSchema(name, intVersion).schema);
+					LocalObjectLoader.getSchema(name, intVersion).getSchemaData());
 			if (imports!=null) imports.write("<Resource name=\""+name+"\" "+(version==null?"":"version=\""+version+"\" ")+"type=\"OD\">boot/OD/"+name+".xsd</Resource>\n");
 		} catch (NumberFormatException ex) {
 			JOptionPane.showMessageDialog(null, "Invalid version number in script version:"+version);

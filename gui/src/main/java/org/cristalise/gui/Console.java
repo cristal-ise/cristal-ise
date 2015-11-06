@@ -33,7 +33,6 @@ import java.io.InputStreamReader;
 import java.io.InterruptedIOException;
 import java.io.PrintWriter;
 import java.net.Socket;
-import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.Properties;
 

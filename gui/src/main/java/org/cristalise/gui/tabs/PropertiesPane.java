@@ -42,7 +42,6 @@ import javax.swing.JPanel;
 import org.cristalise.gui.MainFrame;
 import org.cristalise.gui.tree.NodeAgent;
 import org.cristalise.kernel.entity.proxy.AgentProxy;
-import org.cristalise.kernel.entity.proxy.ItemProxy;
 import org.cristalise.kernel.entity.proxy.MemberSubscription;
 import org.cristalise.kernel.entity.proxy.ProxyObserver;
 import org.cristalise.kernel.persistency.ClusterStorage;

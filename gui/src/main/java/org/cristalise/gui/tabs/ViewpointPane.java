@@ -44,16 +44,14 @@ import javax.swing.SwingConstants;
 import org.cristalise.gui.MainFrame;
 import org.cristalise.gui.tabs.outcome.OutcomeException;
 import org.cristalise.gui.tabs.outcome.OutcomeHandler;
-import org.cristalise.kernel.common.InvalidDataException;
-import org.cristalise.kernel.common.ObjectNotFoundException;
 import org.cristalise.kernel.entity.C2KLocalObject;
 import org.cristalise.kernel.entity.proxy.MemberSubscription;
 import org.cristalise.kernel.entity.proxy.ProxyObserver;
 import org.cristalise.kernel.events.Event;
 import org.cristalise.kernel.persistency.ClusterStorage;
 import org.cristalise.kernel.persistency.outcome.Outcome;
+import org.cristalise.kernel.persistency.outcome.Schema;
 import org.cristalise.kernel.persistency.outcome.Viewpoint;
-import org.cristalise.kernel.utils.LocalObjectLoader;
 import org.cristalise.kernel.utils.Logger;
 
 
@@ -296,15 +294,15 @@ public class ViewpointPane extends ItemTabPane implements ItemListener, ActionLi
     }
 
     public void setView(Outcome data) {
-		Logger.msg(6, "ViewpointPane: got outcome type: "+data.getSchemaType()+" version: "+data.getSchemaVersion());
-        String schema;
+		Logger.msg(6, "ViewpointPane: got outcome type: "+data.getSchema().getName()+" version: "+data.getSchema().getVersion());
+		Schema schema;
         currentOutcome = data;
         dataView.removeAll();
         String error = null;
         try {
-    		schema = LocalObjectLoader.getSchema(data.getSchemaType(), data.getSchemaVersion()).schema;
-    		thisOutcome = ItemTabPane.getOutcomeHandler(data.getSchemaType(), data.getSchemaVersion());
-            thisOutcome.setDescription(schema);
+        	schema = data.getSchema();
+    		thisOutcome = ItemTabPane.getOutcomeHandler(schema.getName(), schema.getVersion());
+            thisOutcome.setDescription(schema.getSchemaData());
             thisOutcome.setOutcome(data.getData());
             thisOutcome.setReadOnly(true);
 		    Thread builder = new Thread(thisOutcome);
@@ -313,10 +311,6 @@ public class ViewpointPane extends ItemTabPane implements ItemListener, ActionLi
             exportButton.setEnabled(true);
             if (viewButton!=null) viewButton.setEnabled(true);
             return;
-        } catch (ObjectNotFoundException ex) {
-            error = "Schema not found";
-        } catch (InvalidDataException e) {
-            error = "Schema was invalid";
 		} catch (OutcomeException ex) {
             error = "Outcome was not valid. See log for details: "+ex.getMessage();
             Logger.error(ex);
@@ -341,7 +335,7 @@ public class ViewpointPane extends ItemTabPane implements ItemListener, ActionLi
 
     private void saveOutcomeToFile() {
 
-        MainFrame.xmlChooser.setSelectedFile(new File(currentOutcome.getSchemaType()+".xml"));
+        MainFrame.xmlChooser.setSelectedFile(new File(currentOutcome.getSchema().getName()+".xml"));
         int returnVal = MainFrame.xmlChooser.showSaveDialog(this);
         if (returnVal == JFileChooser.APPROVE_OPTION) {
             File targetFile = MainFrame.xmlChooser.getSelectedFile();
@@ -454,10 +448,10 @@ public class ViewpointPane extends ItemTabPane implements ItemListener, ActionLi
     }
 
     public void addOutcome(Outcome contents) {
-        if (!(contents.getSchemaType().equals(currentSchema))) // not interested
+        if (!(contents.getSchema().getName().equals(currentSchema))) // not interested
             return;
         Logger.msg(3, "Adding event "+contents.getID());
-        EventItem newEvent = new EventItem(contents.getID(), contents.getSchemaVersion());
+        EventItem newEvent = new EventItem(contents.getID(), contents.getSchema().getVersion());
         eventList.add(newEvent);
         events.addItem(newEvent);
     }

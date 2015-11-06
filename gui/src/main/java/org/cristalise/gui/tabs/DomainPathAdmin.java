@@ -34,7 +34,6 @@ import javax.swing.JTable;
 import javax.swing.table.AbstractTableModel;
 
 import org.cristalise.gui.MainFrame;
-import org.cristalise.kernel.common.ObjectNotFoundException;
 import org.cristalise.kernel.entity.proxy.ItemProxy;
 import org.cristalise.kernel.lookup.DomainPath;
 import org.cristalise.kernel.process.Gateway;

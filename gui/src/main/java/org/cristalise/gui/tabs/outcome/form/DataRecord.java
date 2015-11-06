@@ -22,12 +22,10 @@ package org.cristalise.gui.tabs.outcome.form;
 import java.awt.FlowLayout;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
-import java.awt.GridLayout;
 import java.awt.Insets;
 import java.util.HashMap;
 
 import javax.swing.JLabel;
-import javax.swing.JPanel;
 import javax.swing.JTabbedPane;
 import javax.swing.SwingUtilities;
 import javax.swing.event.ChangeEvent;
@@ -40,7 +38,6 @@ import org.exolab.castor.xml.schema.ElementDecl;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
-
 
 public class DataRecord extends OutcomeStructure implements ChangeListener {
 

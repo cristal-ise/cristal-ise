@@ -29,8 +29,6 @@ import java.util.Iterator;
 
 import javax.swing.JLabel;
 import javax.swing.JPanel;
-import javax.swing.SwingConstants;
-
 import org.cristalise.gui.tabs.outcome.form.field.EditField;
 import org.cristalise.kernel.utils.Logger;
 import org.exolab.castor.xml.schema.AttributeDecl;

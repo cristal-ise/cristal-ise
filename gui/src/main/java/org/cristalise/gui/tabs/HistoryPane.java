@@ -45,6 +45,7 @@ import org.cristalise.kernel.events.Event;
 import org.cristalise.kernel.events.History;
 import org.cristalise.kernel.lifecycle.instance.stateMachine.StateMachine;
 import org.cristalise.kernel.persistency.ClusterStorage;
+import org.cristalise.kernel.persistency.outcome.Schema;
 import org.cristalise.kernel.utils.LocalObjectLoader;
 import org.cristalise.kernel.utils.Logger;
 
@@ -276,7 +277,14 @@ public class HistoryPane extends ItemTabPane implements ActionListener, ProxyObs
 					case 3: return event[rowIndex].getTimeString();
                     case 4: return event[rowIndex].getAgentPath().getAgentName();
                     case 5: return event[rowIndex].getAgentRole();
-                    case 6: return event[rowIndex].getSchemaName()+" v"+event[rowIndex].getSchemaVersion();
+                    case 6:
+                    	String schId = event[rowIndex].getSchemaName();
+                    	if (schId != null && !schId.isEmpty()) {
+                    		Schema evSch = LocalObjectLoader.getSchema(schId, event[rowIndex].getSchemaVersion());
+                    		return evSch.getName()+" v"+event[rowIndex].getSchemaVersion();
+                    	}
+                    	return null;
+                    	
                     case 7: return event[rowIndex].getViewName();
 					default: return "";
 				}
