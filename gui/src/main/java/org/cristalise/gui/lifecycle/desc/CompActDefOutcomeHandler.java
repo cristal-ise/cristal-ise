@@ -261,14 +261,17 @@ public class CompActDefOutcomeHandler
 
 	@Override
 	public void export(File targetFile) throws Exception {
+		//FileStringUtility.string2File(targetFile, getOutcome());
+		
 		//Make sure module structure is present
 		File parentDir = targetFile.getParentFile();
 		FileStringUtility.createNewDir(parentDir.getAbsolutePath()+"/CA");
 		FileStringUtility.createNewDir(parentDir.getAbsolutePath()+"/EA");
 		FileStringUtility.createNewDir(parentDir.getAbsolutePath()+"/OD");
 		FileStringUtility.createNewDir(parentDir.getAbsolutePath()+"/SC");
+		FileStringUtility.createNewDir(parentDir.getAbsolutePath()+"/SM");
 		BufferedWriter imports = new BufferedWriter(new FileWriter(new File(parentDir, mCompActDef.getActName()+"Imports.xml")));
-		ElemActDefOutcomeHandler.exportAct(targetFile.getParentFile(), imports, mCompActDef);
+		mCompActDef.export(imports, targetFile.getParentFile());
 		imports.close();
 	}
 }
