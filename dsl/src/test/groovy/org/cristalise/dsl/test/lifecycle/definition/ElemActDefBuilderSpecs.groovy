@@ -31,9 +31,7 @@ import spock.lang.Specification
  */
 class ElemActDefBuilderSpecs extends Specification implements CristalTestSetup {
     
-    def defaultActProps = ['Show time': true, Breakpoint: false, Description: '', 'Agent Role': '', 'Agent Name': '', 
-                           SchemaType: '', SchemaVersion: '', ScriptName: '', ScriptVersion: '', 
-                           StateMachineName: 'Default', StateMachineVersion: 0, 'Viewpoint': '', OutcomeInit: '']
+    def defaultActProps = [Breakpoint: false, Description: '', 'Agent Role': '', 'Agent Name': '', Viewpoint: '', OutcomeInit: '']
     
     def setup()   { loggerSetup()    }
     def cleanup() { cristalCleanup() }
@@ -65,7 +63,7 @@ class ElemActDefBuilderSpecs extends Specification implements CristalTestSetup {
         eaDef.properties.getAbstract().size() == 0
     }
 
-    def 'ElemActDef can add new Properties - concreate or abstract'() {
+    def 'ElemActDef can add new Properties - concrete or abstract'() {
         when:
         def eaDef = ElemActDefBuilder.build(module: 'test', name: 'EADef', version: 0) {
             Property(concreteProp: 'dummy')

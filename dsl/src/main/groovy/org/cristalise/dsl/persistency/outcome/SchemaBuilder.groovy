@@ -23,9 +23,11 @@ package org.cristalise.dsl.persistency.outcome
 import groovy.transform.CompileStatic
 
 import org.cristalise.kernel.lookup.DomainPath
+import org.cristalise.kernel.lookup.ItemPath
 import org.cristalise.kernel.persistency.outcome.Outcome
 import org.cristalise.kernel.persistency.outcome.Schema
 import org.cristalise.kernel.process.Bootstrap
+import org.cristalise.kernel.utils.LocalObjectLoader
 import org.cristalise.kernel.utils.Logger
 
 
@@ -38,6 +40,8 @@ class SchemaBuilder {
     String name = ""
     int version = -1
 
+    static Schema schemaSchema = LocalObjectLoader.getSchema("Schema", 0)
+
     DomainPath domainPath = null
 
     Schema schema = null
@@ -45,7 +49,7 @@ class SchemaBuilder {
     public SchemaBuilder() {}
 
     /**
-     * 
+     *
      * @param module
      * @param name
      * @param version
@@ -57,22 +61,22 @@ class SchemaBuilder {
     }
 
     /**
-     * 
+     *
      * @param xsdFile
      * @return
      */
     public SchemaBuilder loadXSD(String xsdFile) {
         Logger.msg 5, "SchemaBuilder.loadXSD() - From file:$xsdFile"
 
-        schema = new Schema(name, version,  new File(xsdFile).getText())
-        schema.parse(null)
+        schema = new Schema(name, version, (ItemPath)null, new File(xsdFile).getText())
+        schema.validate()
 
         return this
     }
 
     /**
      * Builds the Schema and creates the Resource Item
-     * 
+     *
      * @param module
      * @param name
      * @param version
@@ -87,7 +91,7 @@ class SchemaBuilder {
 
     /**
      * Loads and parses the file to 'build' Schema and creates the ResourceItem
-     * 
+     *
      * @param module
      * @param name
      * @param version
@@ -101,7 +105,7 @@ class SchemaBuilder {
     }
 
     /**
-     * 
+     *
      * @param cl
      * @return
      */
@@ -110,11 +114,11 @@ class SchemaBuilder {
 
         def schemaD = new SchemaDelegate()
         schemaD.processClosure(cl)
-        
+
         Logger.msg 5, "SchemaBuilder - generated xsd:\n" + schemaD.xsdString
 
-        sb.schema = new Schema(name, version, schemaD.xsdString)
-        sb.schema.parse(null)
+        sb.schema = new Schema(name, version, (ItemPath)null, schemaD.xsdString)
+        sb.schema.validate()
 
         return sb
     }
@@ -138,6 +142,6 @@ class SchemaBuilder {
      * @return the DomainPath of the newly created resource Item
     */
     public DomainPath create() {
-        return domainPath = Bootstrap.createResource(module, name, version, "OD", [new Outcome(-1, schema.schema, "Schema", version)] as Set, false)
+        return domainPath = Bootstrap.createResource(module, name, version, "OD", [new Outcome(-1, schema.schemaData, schemaSchema)] as Set, false)
     }
 }

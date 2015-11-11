@@ -23,6 +23,8 @@ package org.cristalise.dsl.persistency.outcome
 import groovy.transform.CompileStatic
 
 import org.cristalise.kernel.persistency.outcome.Outcome
+import org.cristalise.kernel.persistency.outcome.Schema
+import org.cristalise.kernel.utils.LocalObjectLoader
 import org.cristalise.kernel.utils.Logger
 
 
@@ -63,6 +65,6 @@ class OutcomeBuilder {
 
         Logger.msg 5, "OutcomeBuilder - generated xml:\n" + outcomeD.writer.toString()
 
-        return new Outcome(-1, outcomeD.writer.toString(), schema, version)
+        return new Outcome(-1, outcomeD.writer.toString(), LocalObjectLoader.getSchema(schema, version))
     }
 }

@@ -25,8 +25,10 @@ import groovy.transform.CompileStatic
 import org.cristalise.kernel.lifecycle.instance.stateMachine.StateMachine
 import org.cristalise.kernel.lookup.DomainPath
 import org.cristalise.kernel.persistency.outcome.Outcome
+import org.cristalise.kernel.persistency.outcome.Schema
 import org.cristalise.kernel.process.Bootstrap
 import org.cristalise.kernel.process.Gateway
+import org.cristalise.kernel.utils.LocalObjectLoader
 import org.cristalise.kernel.utils.Logger
 
 
@@ -39,8 +41,11 @@ class StateMachineBuilder {
     String name = ""
     int version = -1
 
+    static Schema smSchema = LocalObjectLoader.getSchema("StateMachine", 0)
+
     StateMachine sm
     String smXML
+
 
     DomainPath domainPath = null
 
@@ -57,7 +62,7 @@ class StateMachineBuilder {
         this.name    = name
         this.version = version
     }
-        
+
     /**
      * 
      * @param module
@@ -116,6 +121,6 @@ class StateMachineBuilder {
      * @return the DomainPath of the newly created resource Item
      */
     public DomainPath create() {
-        return domainPath = Bootstrap.createResource(module, name, version, "SM", [new Outcome(-1, smXML, "StateMachine", version)] as Set, false)
+        return domainPath = Bootstrap.createResource(module, name, version, "SM", [new Outcome(-1, smXML, smSchema)] as Set, false)
     }
 }
