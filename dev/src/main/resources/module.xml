@@ -51,32 +51,6 @@
 				<CollectionProperties/>
 			</Dependency>
 		</Item>
-		<Item name="ElementaryActivityDefFactory" initialPath="/desc/dev" workflow="ElementaryActivityFactory">
-			<Property name="LocalObjectType">ElementaryActivityDef</Property>
-			<Property name="Type">Factory</Property>
-			<Outcome viewname="last" schema="PropertyDescription" version="0">boot/property/EAProp.xml</Outcome>
-			<Dependency name="workflow" isDescription="false">
-				<DependencyMember itemPath="desc/ActivityDesc/system/kernel/ManageElementaryActDef">
-					<MemberProperties>
-						<KeyValuePair Key="Version" String="0"/>
-					</MemberProperties>
-				</DependencyMember>
-				<CollectionProperties/>
-			</Dependency>
-		</Item>
-		<Item name="CompositeActivityDefFactory" initialPath="/desc/dev" workflow="CompositeActivityFactory">
-			<Property name="LocalObjectType">CompositeActivityDef</Property>
-			<Property name="Type">Factory</Property>
-			<Outcome viewname="last" schema="PropertyDescription" version="0">boot/property/CAProp.xml</Outcome>
-			<Dependency name="workflow" isDescription="false">
-				<DependencyMember itemPath="/desc/ActivityDesc/system/kernel/ManageCompositeActDef">
-					<MemberProperties>
-						<KeyValuePair Key="Version" String="0"/>
-					</MemberProperties>
-				</DependencyMember>
-				<CollectionProperties/>
-			</Dependency>
-		</Item>
 		<Item name="SchemaFactory" initialPath="/desc/dev" workflow="SchemaFactoryWf">
 			<Property name="LocalObjectType">Schema</Property>
 			<Property name="Type">Factory</Property>
@@ -103,6 +77,48 @@
 				</DependencyMember>
 				<CollectionProperties/>
 			</Dependency>
+		</Item>		
+		<Item name="ElementaryActivityDefFactory" initialPath="/desc/dev" workflow="ElementaryActivityFactory">
+			<Property name="LocalObjectType">ElementaryActivityDef</Property>
+			<Property name="Type">Factory</Property>
+			<Outcome viewname="last" schema="PropertyDescription" version="0">boot/property/EAProp.xml</Outcome>
+			<Dependency name="workflow" isDescription="false">
+				<DependencyMember itemPath="desc/ActivityDesc/system/kernel/ManageElementaryActDef">
+					<MemberProperties>
+						<KeyValuePair Key="Version" String="0"/>
+					</MemberProperties>
+				</DependencyMember>
+				<CollectionProperties/>
+			</Dependency>
+			<Dependency name="Schema" isDescription="true">
+				<DependencyMember itemPath="desc/dev/SchemaFactory"/>
+			</Dependency>
+			<Dependency name="Script" isDescription="true">
+				<DependencyMember itemPath="desc/dev/ScriptFactory"/>
+			</Dependency>			
+			<Dependency name="StateMachine" isDescription="true">
+				<DependencyMember itemPath="desc/dev/StateMachineFactory"/>
+			</Dependency>			
+		</Item>
+		<Item name="ActivityDefType" initialPath="/desc/dev" workflow="NoWorkflow">
+			<Property name="Type">Type</Property>
+			<Outcome viewname="last" schema="PropertyDescription" version="0">boot/property/ACProp.xml</Outcome>
+		</Item>		
+		<Item name="CompositeActivityDefFactory" initialPath="/desc/dev" workflow="CompositeActivityFactory">
+			<Property name="LocalObjectType">CompositeActivityDef</Property>
+			<Property name="Type">Factory</Property>
+			<Outcome viewname="last" schema="PropertyDescription" version="0">boot/property/CAProp.xml</Outcome>
+			<Dependency name="workflow" isDescription="false">
+				<DependencyMember itemPath="/desc/ActivityDesc/system/kernel/ManageCompositeActDef">
+					<MemberProperties>
+						<KeyValuePair Key="Version" String="0"/>
+					</MemberProperties>
+				</DependencyMember>
+				<CollectionProperties/>
+			</Dependency>
+			<Dependency name="Activities" isDescription="true">
+				<DependencyMember itemPath="desc/dev/ActivityDefType"/>
+			</Dependency>			
 		</Item>
 		<Item name="DescriptionFactory" initialPath="/desc/dev" workflow="ItemDescriptionFactoryWf" id="57d87f6d-a83e-42b9-a7c2-800778d5e4d5">
 			<Property name="Type">Factory</Property>
