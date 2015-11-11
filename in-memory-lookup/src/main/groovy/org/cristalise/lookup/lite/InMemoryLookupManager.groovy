@@ -84,22 +84,12 @@ class InMemoryLookupManager extends InMemoryLookup implements LookupManager {
 
             if(path instanceof RolePath && role2AgentsCache.containsKey(path.string)) {
                 Logger.msg(8, "InMemoryLookupManager.delete() - RolePath: $path");
-                role2AgentsCache[path.string].each { removeRole(new AgentPath(it), path) }
+                role2AgentsCache[path.string].each { removeRole(new AgentPath(it), (RolePath)path) }
             }
             else if(path instanceof AgentPath && agent2RolesCache.containsKey(path.string)) {
                 Logger.msg(8, "InMemoryLookupManager.delete() - AgentPath: $path");
-                agent2RolesCache[path.string].each { removeRole(path, new RolePath(it.split("/"),false)) }
+                agent2RolesCache[path.string].each { removeRole((AgentPath)path, new RolePath(it.split("/"), false)) }
             }
-            /*
-            else if(path instanceof ItemPath && !(path instanceof AgentPath)) {
-                Logger.msg(8, "InMemoryLookupManager.delete() - ItemPath: $path");
-                throw new RuntimeException("UNIMPLEMENTED - InMemoryLookupManager.delete(ItemPath: $path)")
-            }
-            else if(path instanceof DomainPath && !(path instanceof RolePath)) {
-                Logger.msg(8, "InMemoryLookupManager.delete() - DomainPath: $path");
-                throw new RuntimeException("UNIMPLEMENTED - InMemoryLookupManager.delete(DomainPath: $path)")
-            }
-            */
 
             cache.remove(path.string)
             Logger.msg(8, "InMemoryLookupManager.delete() - $path removed");
