@@ -48,6 +48,6 @@ class SchemaTestBuilder extends SchemaBuilder {
     }
 
     public boolean compareXML(String xml) {
-        return KernelXMLUtility.compareXML(xml, schema.schema);
+        return KernelXMLUtility.compareXML(xml, schema.schemaData);
     }
 }

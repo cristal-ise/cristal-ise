@@ -42,8 +42,6 @@ class ScriptTestBuilder extends ScriptBuilder {
 
         script = sb.script
         scriptXML = sb.scriptXML
-
-        schema = sb.schema
     }
 
     public static ScriptTestBuilder build(String module, String name, int version, Closure cl) {

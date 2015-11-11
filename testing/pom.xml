@@ -127,7 +127,7 @@
     <dependency>
       <groupId>org.cristalise</groupId>
       <artifactId>cristalise-kernel</artifactId>
-      <version>3.1-SNAPSHOT</version>
+      <version>3.2-SNAPSHOT</version>
       <scope>compile</scope>
     </dependency>
     <dependency>
@@ -139,7 +139,7 @@
     <dependency>
       <groupId>org.cristalise</groupId>
       <artifactId>cristalise-dsl</artifactId>
-      <version>3.1-SNAPSHOT</version>
+      <version>3.2-SNAPSHOT</version>
       <scope>compile</scope>
     </dependency>
     <dependency>

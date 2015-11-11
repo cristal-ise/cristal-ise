@@ -1,14 +1,11 @@
 package org.cristalise.kernel.test.lifecycle.instance;
 
-//import static org.cristalise.kernel.lifecycle.instance.WfVertex.Types.*
-
 import org.cristalise.dsl.persistency.outcome.OutcomeBuilder
 import org.cristalise.dsl.persistency.outcome.SchemaBuilder
 import org.cristalise.dsl.scripting.ScriptBuilder
-import org.cristalise.dsl.test.builders.WorkflowTestBuilder;
+import org.cristalise.dsl.test.builders.WorkflowTestBuilder
 import org.cristalise.kernel.common.InvalidDataException
-import org.cristalise.kernel.process.Gateway
-import org.cristalise.kernel.test.utils.CristalTestSetup;
+import org.cristalise.kernel.test.utils.CristalTestSetup
 
 import spock.lang.Specification
 
