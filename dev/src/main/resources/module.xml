@@ -50,6 +50,7 @@
 				</DependencyMember>
 				<CollectionProperties/>
 			</Dependency>
+			<Dependency name="Include" isDescription="true"/>
 		</Item>
 		<Item name="SchemaFactory" initialPath="/desc/dev" workflow="SchemaFactoryWf">
 			<Property name="LocalObjectType">Schema</Property>
@@ -116,7 +117,7 @@
 				</DependencyMember>
 				<CollectionProperties/>
 			</Dependency>
-			<Dependency name="Activities" isDescription="true">
+			<Dependency name="Activity" isDescription="true">
 				<DependencyMember itemPath="desc/dev/ActivityDefType"/>
 			</Dependency>			
 		</Item>
