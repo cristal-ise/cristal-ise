@@ -119,7 +119,16 @@
 			</Dependency>
 			<Dependency name="Activity" isDescription="true">
 				<DependencyMember itemPath="desc/dev/ActivityDefType"/>
+			</Dependency>
+			<Dependency name="Schema" isDescription="true">
+				<DependencyMember itemPath="desc/dev/SchemaFactory"/>
+			</Dependency>
+			<Dependency name="Script" isDescription="true">
+				<DependencyMember itemPath="desc/dev/ScriptFactory"/>
 			</Dependency>			
+			<Dependency name="StateMachine" isDescription="true">
+				<DependencyMember itemPath="desc/dev/StateMachineFactory"/>
+			</Dependency>				
 		</Item>
 		<Item name="DescriptionFactory" initialPath="/desc/dev" workflow="ItemDescriptionFactoryWf" id="57d87f6d-a83e-42b9-a7c2-800778d5e4d5">
 			<Property name="Type">Factory</Property>
