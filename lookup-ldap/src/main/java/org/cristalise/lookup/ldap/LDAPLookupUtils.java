@@ -362,7 +362,8 @@ final public class LDAPLookupUtils
         }
         catch (Exception ex)
         {
-            Logger.error("LDAPLookupUtils.createCristalContext() " + ex.toString());
+        	Logger.error(ex);
+            Logger.die("Error creating CRISTAL LDAP roots. Is the cristal.schema configured correctly in the LDAP server?");
         }
     }
 
