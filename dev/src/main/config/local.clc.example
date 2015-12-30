@@ -5,15 +5,13 @@
 Name=Example Cristal Server
 Logo=http://path.to/image
 
-// TCP server ports
+// Item server network config
 ItemServer.name=HOSTNAME
 ItemServer.iiop=1500
 ItemServer.Proxy.port=1553
 ItemServer.Console.port=8080
 
 // LDAP config
-Authenticator=org.cristalise.kernel.lookup.ldap.LDAPAuthManager
-Lookup=org.cristalise.kernel.lookup.ldap.LDAPLookup
 LDAP.GlobalPath=LDAPROOTPATH
 LDAP.RootPath=cn=cristal
 LDAP.LocalPath=cn=dev
@@ -26,4 +24,4 @@ LDAP.password=LDAPPASSWORD
 XMLDB.URI=xmldb:exist://EXISTHOSTNAME:8080/exist/xmlrpc/db
 XMLDB.root=dev
 XMLDB.user=EXISTROOTUSER
-XMLDB.EXIST=EXISTPASSWORD
+XMLDB.password=EXISTPASSWORD
