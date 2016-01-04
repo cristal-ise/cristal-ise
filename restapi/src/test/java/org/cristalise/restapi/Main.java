@@ -28,8 +28,11 @@ public class Main extends StandardClient {
     public static HttpServer startServer(String uri) {
     	
         // create a resource config that scans for JAX-RS resources and providers
-        // in org.cristalise.restapi package
-        final ResourceConfig rc = new ResourceConfig().packages("org.cristalise.restapi");
+        //  in org.cristalise.restapi package
+        final ResourceConfig rc = new ResourceConfig()
+                .packages("org.cristalise.restapi");
+
+        if(Gateway.getProperties().getBoolean("REST.addCorsHeaders", false)) rc.register(CORSResponseFilter.class);
 
         // create and start a new instance of grizzly http server
         // exposing the Jersey application at the given URI
