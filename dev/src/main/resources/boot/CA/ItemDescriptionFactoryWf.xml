@@ -1,11 +1,8 @@
-<CompositeActivityDef ID="-1" Name="ItemDescriptionFactoryWf"
-	Height="0" Width="0" IsLayoutable="false" IsComposite="true">
+<CompositeActivityDef ID="-1" Name="ItemDescriptionFactoryWf" Height="0" Width="0" IsLayoutable="false" IsComposite="true">
 	<childrenGraphModel>
-		<GraphModelCastorData
-			ClassNameOfVertexOutlineCreator="org.cristalise.kernel.lifecycle.gui.model.WfVertexDefOutlineCreator"
+		<GraphModelCastorData ClassNameOfVertexOutlineCreator="org.cristalise.kernel.lifecycle.gui.model.WfVertexDefOutlineCreator"
 			StartVertexId="1" NextId="14">
-			<JoinDef ID="3" Name="" Height="24" Width="60" IsLayoutable="true"
-				IsComposite="false">
+			<JoinDef ID="3" Name="" Height="24" Width="60" IsLayoutable="true" IsComposite="false">
 				<CentrePoint x="312" y="390" />
 				<OutlinePoint x="282" y="378" />
 				<OutlinePoint x="342" y="378" />
@@ -16,8 +13,7 @@
 					<KeyValuePair Key="Type" String="Join" />
 				</Properties>
 			</JoinDef>
-			<LoopDef ID="2" Name="" Height="24" Width="60" IsLayoutable="true"
-				IsComposite="false" isNext="0">
+			<LoopDef ID="2" Name="" Height="24" Width="60" IsLayoutable="true" IsComposite="false" isNext="0">
 				<CentrePoint x="313" y="204" />
 				<OutlinePoint x="283" y="192" />
 				<OutlinePoint x="343" y="192" />
@@ -31,8 +27,7 @@
 					<KeyValuePair Key="RoutingScriptName" String="javascript:true;" />
 				</Properties>
 			</LoopDef>
-			<ActivitySlotDef ID="11" Name="CreateItem slot"
-				Height="60" Width="130" IsLayoutable="true" IsComposite="false">
+			<ActivitySlotDef ID="11" Name="CreateItem slot" Height="60" Width="130" IsLayoutable="true" IsComposite="false">
 				<CentrePoint x="126" y="204" />
 				<OutlinePoint x="61" y="174" />
 				<OutlinePoint x="191" y="174" />
@@ -46,8 +41,7 @@
 				</Properties>
 				<activityDef>CreateItem</activityDef>
 			</ActivitySlotDef>
-			<JoinDef ID="1" Name="" Height="24" Width="60" IsLayoutable="true"
-				IsComposite="false">
+			<JoinDef ID="1" Name="" Height="24" Width="60" IsLayoutable="true" IsComposite="false">
 				<CentrePoint x="126" y="57" />
 				<OutlinePoint x="96" y="45" />
 				<OutlinePoint x="156" y="45" />
@@ -87,20 +81,9 @@
 	</childrenGraphModel>
 	<Properties>
 		<KeyValuePair Key="Description" String="" />
-		<KeyValuePair Key="Ignorable" Boolean="false" />
-		<KeyValuePair Key="ScriptVersion" String="" />
-		<KeyValuePair Key="Mail Message" String="" />
 		<KeyValuePair Key="Viewpoint" String="" />
 		<KeyValuePair Key="Agent Name" String="" />
-		<KeyValuePair Key="SchemaVersion" String="" />
-		<KeyValuePair Key="Skippable" Boolean="false" />
-		<KeyValuePair Key="ScriptName" String="" />
-		<KeyValuePair Key="Mail event" String="" />
-		<KeyValuePair Key="Autostart" Boolean="true" />
-		<KeyValuePair Key="Repeatable" Boolean="false" />
 		<KeyValuePair Key="Show time" Boolean="true" />
 		<KeyValuePair Key="Agent Role" String="" />
-		<KeyValuePair Key="AlwaysUseOutcome" Boolean="false" />
-		<KeyValuePair Key="SchemaType" String="" />
 	</Properties>
 </CompositeActivityDef>

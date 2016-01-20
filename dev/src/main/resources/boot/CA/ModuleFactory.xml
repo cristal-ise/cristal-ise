@@ -88,17 +88,11 @@
 		</GraphModelCastorData>
 	</childrenGraphModel>
 	<Properties>
-		<KeyValuePair Key="StateMachineVersion" Integer="0" />
 		<KeyValuePair Key="Description" String="" />
 		<KeyValuePair Key="Agent Role" String="" />
 		<KeyValuePair Key="Show time" Boolean="true" />
-		<KeyValuePair Key="ScriptVersion" String="" />
 		<KeyValuePair Key="Viewpoint" String="" />
 		<KeyValuePair Key="Agent Name" String="" />
-		<KeyValuePair Key="StateMachineName" String="CompositeActivity" />
-		<KeyValuePair Key="SchemaVersion" String="" />
-		<KeyValuePair Key="ScriptName" String="" />
 		<KeyValuePair Key="Breakpoint" Boolean="false" />
-		<KeyValuePair Key="SchemaType" String="" />
 	</Properties>
 </CompositeActivityDef>

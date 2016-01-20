@@ -3,20 +3,9 @@
 	<Properties>
 		<KeyValuePair Key="Description"
 			String="Set the initial properties for new instances." />
-		<KeyValuePair Key="Ignorable" Boolean="false" />
-		<KeyValuePair Key="ScriptVersion" String="" />
-		<KeyValuePair Key="Mail Message" String="" />
 		<KeyValuePair Key="Viewpoint" String="last" />
 		<KeyValuePair Key="Agent Name" String="" />
-		<KeyValuePair Key="SchemaVersion" String="0" />
-		<KeyValuePair Key="Skippable" Boolean="false" />
-		<KeyValuePair Key="ScriptName" String="" />
-		<KeyValuePair Key="Mail event" String="" />
-		<KeyValuePair Key="Autostart" Boolean="true" />
-		<KeyValuePair Key="Repeatable" Boolean="false" />
 		<KeyValuePair Key="Show time" Boolean="true" />
 		<KeyValuePair Key="Agent Role" String="" />
-		<KeyValuePair Key="AlwaysUseOutcome" Boolean="false" />
-		<KeyValuePair Key="SchemaType" String="PropertyDescription" />
 	</Properties>
 </ActivityDef>
