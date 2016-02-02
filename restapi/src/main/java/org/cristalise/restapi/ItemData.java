@@ -48,15 +48,18 @@ public class ItemData extends ItemUtils {
 		ItemProxy item = ItemRoot.getProxy(uuid);
 		return toJSON(enumerate(item, ClusterStorage.VIEWPOINT+"/"+schema, "data/"+schema, uri));
 	}
-	
-	@GET
-	@Produces(MediaType.TEXT_XML)
-	@Path("{schema}/{viewName}")
-	public Response queryData(@PathParam("uuid") String uuid,
-			@PathParam("schema") String schema,
-			@PathParam("viewName") String viewName,
-			@CookieParam(COOKIENAME) Cookie authCookie,
-			@Context UriInfo uri) {
+
+    /**
+     *
+     * @param uuid
+     * @param schema
+     * @param viewName
+     * @param authCookie
+     * @param uri
+     * @param json
+     * @return
+     */
+	private Response queryData(String uuid, String schema, String viewName, Cookie authCookie, UriInfo uri, boolean json) {
 		checkAuth(authCookie);
 		ItemProxy item = ItemRoot.getProxy(uuid);
 		Viewpoint view;
@@ -73,18 +76,41 @@ public class ItemData extends ItemUtils {
 			Logger.error(e);
 			throw new WebApplicationException("Database error loading outcome for view "+viewName+" of schema "+schema);
 		}
-		Event ev;
+
 		try {
-			ev = view.getEvent();
-		} catch (InvalidDataException | PersistencyException | ObjectNotFoundException e) {
+			return getOutcomeResponse(oc, view.getEvent(), json);
+		}
+        catch (InvalidDataException | PersistencyException | ObjectNotFoundException e) {
 			Logger.error(e);
 			throw new WebApplicationException("Database error loading event data for view "+viewName+" of schema "+schema);
 		}
-		
-		return getOutcomeResponse(oc, ev);
 	}
-	
+
 	@GET
+	@Produces(MediaType.TEXT_XML)
+	@Path("{schema}/{viewName}")
+	public Response queryXMLData(@PathParam("uuid")       String  uuid,
+							     @PathParam("schema")     String  schema,
+							     @PathParam("viewName")   String  viewName,
+							     @CookieParam(COOKIENAME) Cookie  authCookie,
+							     @Context                 UriInfo uri)
+	{
+		return queryData(uuid, schema, viewName, authCookie, uri, false);
+	}
+
+    @GET
+    @Produces(MediaType.APPLICATION_JSON)
+    @Path("{schema}/{viewName}")
+    public Response queryJSONData(@PathParam("uuid")        String uuid,
+                                  @PathParam("schema")      String schema,
+                                  @PathParam("viewName")    String viewName,
+                                  @CookieParam(COOKIENAME)  Cookie authCookie,
+                                  @Context                  UriInfo uri)
+    {
+        return queryData(uuid, schema, viewName, authCookie, uri, true);
+    }
+
+    @GET
 	@Produces(MediaType.APPLICATION_JSON)
 	@Path("{schema}/{viewName}/event")
 	public Response getViewEvent(@PathParam("uuid") String uuid,
@@ -169,7 +195,8 @@ public class ItemData extends ItemUtils {
 		} catch (ObjectNotFoundException e) {
 			throw new WebApplicationException("Outcome "+eventId+" was not found", 404);
 		}
-		return getOutcomeResponse(oc, ev);
+		//TODO: implement retrieving json media type as well
+		return getOutcomeResponse(oc, ev, false);
 	}
 	
 	@GET

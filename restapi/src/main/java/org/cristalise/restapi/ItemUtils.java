@@ -35,6 +35,7 @@ import org.cristalise.kernel.utils.CastorHashMap;
 import org.cristalise.kernel.utils.KeyValuePair;
 import org.cristalise.kernel.utils.LocalObjectLoader;
 import org.cristalise.kernel.utils.Logger;
+import org.json.XML;
 
 public abstract class ItemUtils extends RestHandler {
 	
@@ -52,7 +53,7 @@ public abstract class ItemUtils extends RestHandler {
 				props.put(propName, item.getProperty(propName));
 		}
 		return props;
-	}	
+	}
 	
 	protected static ItemProxy getProxy(String uuid) {
 		ItemProxy item;
@@ -94,7 +95,7 @@ public abstract class ItemUtils extends RestHandler {
 		return childrenWithLinks;
 	}
 	
-	protected Response getOutcomeResponse(Outcome oc, Event ev) {
+	protected Response getOutcomeResponse(Outcome oc, Event ev, boolean json) {
 		Date eventDate;
 		try {
 			eventDate = dateFormatter.parse(ev.getTimeString());
@@ -102,7 +103,13 @@ public abstract class ItemUtils extends RestHandler {
 			Logger.error(e);
 			throw new WebApplicationException("Invalid timestamp in event "+ev.getID()+": "+ev.getTimeString());
 		}
-		return Response.ok(oc.getData()).lastModified(eventDate).build();
+
+		String result;
+
+		if(json) result = XML.toJSONObject(oc.getData()).toString();
+		else     result = oc.getData();
+
+		return Response.ok(result).lastModified(eventDate).build();
 	}
 
 	protected LinkedHashMap<String, Object> makeEventData(Event ev, UriInfo uri) {
@@ -129,15 +136,15 @@ public abstract class ItemUtils extends RestHandler {
 		eventData.put("activity", activityData);
 		
 		// state data
-		LinkedHashMap<String, Object> stateData = new LinkedHashMap<String, Object>();
+		LinkedHashMap<String, Object> transData = new LinkedHashMap<String, Object>();
 		try {
 			StateMachine sm = LocalObjectLoader.getStateMachine(ev.getStateMachineName(), ev.getStateMachineVersion());
-			stateData.put("name", sm.getState(ev.getTransition()).getName());
-			stateData.put("origin", sm.getState(ev.getOriginState()).getName());
-			stateData.put("target", sm.getState(ev.getTargetState()).getName());
-			stateData.put("stateMachine", ev.getStateMachineName()+" v"+ev.getStateMachineVersion());
-			stateData.put("stateMachineData", uri.getBaseUriBuilder().path("stateMachine").path(ev.getStateMachineName()).path(String.valueOf(ev.getStateMachineVersion())).build());
-			eventData.put("transition", stateData);
+			transData.put("name", sm.getTransition(ev.getTransition()).getName());
+			transData.put("origin", sm.getState(ev.getOriginState()).getName());
+			transData.put("target", sm.getState(ev.getTargetState()).getName());
+			transData.put("stateMachine", ev.getStateMachineName()+" v"+ev.getStateMachineVersion());
+			transData.put("stateMachineData", uri.getBaseUriBuilder().path("stateMachine").path(ev.getStateMachineName()).path(String.valueOf(ev.getStateMachineVersion())).build());
+			eventData.put("transition", transData);
 		} catch (ObjectNotFoundException e) {
 			eventData.put("transition", "ERROR: State Machine "+ev.getStateMachineName()+" v"+ev.getStateMachineVersion()+" not found!");
 		} catch (InvalidDataException e) {

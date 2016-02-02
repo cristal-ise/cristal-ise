@@ -62,7 +62,7 @@ public class ResourceAccess extends ItemUtils {
 		try {
 			ItemProxy item = Gateway.getProxyManager().getProxy(iter.next());
 			Viewpoint view = item.getViewpoint(schemaName, String.valueOf(version));
-			return getOutcomeResponse(view.getOutcome(), view.getEvent());
+			return getOutcomeResponse(view.getOutcome(), view.getEvent(), false);
 		} catch (ObjectNotFoundException e) {
 			throw new WebApplicationException(schemaName+" v"+version+" does not exist", 404);
 		} catch (PersistencyException e) {

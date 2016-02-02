@@ -59,12 +59,17 @@ public class ItemHistory extends RemoteMapAccess {
 		Event ev = (Event)get(item, ClusterStorage.HISTORY, eventId);
 		return toJSON(makeEventData(ev, uri));
 	}
-	
-	@GET
-	@Path("{eventId}/data")
-	@Produces(MediaType.APPLICATION_JSON)
-	public Response getEventOutcome(@PathParam("uuid") String uuid, @PathParam("eventId") String eventId, 
-			@CookieParam(COOKIENAME) Cookie authCookie,	@Context UriInfo uri) {
+
+	/**
+	 *
+	 * @param uuid
+	 * @param eventId
+	 * @param authCookie
+	 * @param uri
+	 * @param json
+     * @return
+     */
+	private Response getEventOutcome(String uuid, String eventId, Cookie authCookie, UriInfo uri, boolean json) {
 		checkAuth(authCookie);
 		ItemProxy item = getProxy(uuid);
 		Event ev = (Event)get(item, ClusterStorage.HISTORY, eventId);
@@ -76,6 +81,28 @@ public class ItemHistory extends RemoteMapAccess {
 		} catch (ObjectNotFoundException e) {
 			throw new WebApplicationException("Referenced data not found");
 		}
-		return getOutcomeResponse(oc, ev);
+		return getOutcomeResponse(oc, ev, json);
+	}
+
+	@GET
+	@Path("{eventId}/data")
+	@Produces(MediaType.APPLICATION_JSON)
+	public Response getEventJSONOutcome(@PathParam("uuid") 		 String uuid,
+										@PathParam("eventId") 	 String eventId,
+										@CookieParam(COOKIENAME) Cookie authCookie,
+										@Context 				 UriInfo uri)
+	{
+		return getEventOutcome(uuid, eventId, authCookie, uri, true);
+	}
+
+	@GET
+	@Path("{eventId}/data")
+	@Produces(MediaType.TEXT_XML)
+	public Response getEventXMLOutcome(@PathParam("uuid") 		String uuid,
+									   @PathParam("eventId") 	String eventId,
+									   @CookieParam(COOKIENAME) Cookie authCookie,
+									   @Context UriInfo 		uri)
+	{
+		return getEventOutcome(uuid, eventId, authCookie, uri, false);
 	}
 }
