@@ -28,8 +28,8 @@ Some useful example curl commands:
   * *list jobs available in the given item for the logged in user*
 * `curl -b cookies.txt -H "Content-Type: text/xml" -X POST -d '<NewDevObjectDef><ObjectName>SchemaFromRest</ObjectName><SubFolder/></NewDevObjectDef>' -D - http://pcuwe04:8081/item/{uuid of SchemaFactory}/workflow/domain/CreateNewSchema?done`
   * *create a new Schema by executing the 'CreateNewSchema' activity of the CristalDev SchemaFactory item.*
- * `curl -H Accept:text/xml http://{host:port}/item/{uuid}/data/{schema}/last`
-   * Use `Accept:text/xml` header to retrieve XML outcome
-   * Use `Accept:application/json` header to retrieve JSON outcome
-     * `curl -H Accept:application/json http://{host:port}/item/{uuid}/data/{schema}/last` 
-   * Use can use the Accepth header for the /item/{uuid}/history/{eventId}/data resources as well
+* `curl -H Accept:text/xml http://{host:port}/item/{uuid}/data/{schema}/last`
+  * Use `Accept:text/xml` header to retrieve XML outcome
+  * Use `Accept:application/json` header to retrieve JSON outcome
+    * `curl -H Accept:application/json http://{host:port}/item/{uuid}/data/{schema}/last` 
+  * Use can use the Accepth header for the /item/{uuid}/history/{eventId}/data resources as well
