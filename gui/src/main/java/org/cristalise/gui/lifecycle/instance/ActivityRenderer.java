@@ -24,6 +24,7 @@ import java.awt.FontMetrics;
 import java.awt.Graphics2D;
 import java.awt.Paint;
 import java.awt.Polygon;
+import java.util.ArrayList;
 
 import org.cristalise.gui.graph.view.VertexRenderer;
 import org.cristalise.kernel.common.GTimeStamp;
@@ -50,11 +51,13 @@ public class ActivityRenderer implements VertexRenderer
 		boolean isComposite = activity.getIsComposite();
 		GraphPoint centrePoint = activity.getCentrePoint();
 		//String description = activity.getDescription();
-		String[] linesOfText = new String[3];
-		linesOfText[0] = "(" + activity.getType() + ")";
-		linesOfText[1] = activity.getName();
+		ArrayList<String> linesOfText = new ArrayList<String>();
+		String type = activity.getTypeName();
+		if (type != null)
+			linesOfText.add("(" + type + ")");
+		linesOfText.add(activity.getName());
 		if (hasError)
-			linesOfText[2] = activity.getErrors();
+			linesOfText.add(activity.getErrors());
 		else
 		{
 			String stateName = "Invalid State"; 
@@ -62,13 +65,13 @@ public class ActivityRenderer implements VertexRenderer
 				stateName = activity.getStateName();
 			} catch (InvalidDataException ex) { }
 			
-			linesOfText[2] = stateName + (" " + getWaitTime(activity.getStateDate()));
+			linesOfText.add(stateName + (" " + getWaitTime(activity.getStateDate())));
 		}
 
 		FontMetrics metrics = g2d.getFontMetrics();
 		int lineWidth = 0;
 		int lineHeight = metrics.getHeight();
-		int linesHeight = lineHeight * linesOfText.length;
+		int linesHeight = lineHeight * linesOfText.size();
 		int linesStartY = centrePoint.y - linesHeight / 2 + lineHeight * 2 / 3;
 		int x = 0;
 		int y = 0;
@@ -90,12 +93,11 @@ public class ActivityRenderer implements VertexRenderer
 		//g2d.fill3DRect( centrePoint.x - mSize.width / 2, centrePoint.y - mSize.height / 2, mSize.width, mSize.height, true );
 		g2d.fill(graphPointsToPolygon(outline));
 		g2d.setPaint(mTextPaint);
-		for (i = 0; i < linesOfText.length; i++)
-		{
-			lineWidth = metrics.stringWidth(linesOfText[i]);
+		for (String line : linesOfText) {
+			lineWidth = metrics.stringWidth(line);
 			x = centrePoint.x - lineWidth / 2;
-			y = linesStartY + i * lineHeight;
-			g2d.drawString(linesOfText[i], x, y);
+			y = linesStartY + i++ * lineHeight;
+			g2d.drawString(line, x, y);
 		}
 	}
 	private static Polygon graphPointsToPolygon(GraphPoint[] points)
