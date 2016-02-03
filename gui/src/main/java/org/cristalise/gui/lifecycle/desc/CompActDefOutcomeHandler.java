@@ -66,7 +66,8 @@ public class CompActDefOutcomeHandler
 
     protected JButton mLoadButton = new JButton(ImageLoader.findImage("graph/load.png"));
     protected JButton mLayoutButton = new JButton(ImageLoader.findImage("graph/autolayout.png"));
-    protected JButton[] mOtherToolBarButtons = { mLayoutButton, mLoadButton };
+	protected JButton mZoomOutButton = new JButton(ImageLoader.findImage("graph/zoomout.png"));
+    protected JButton[] mOtherToolBarButtons = { mZoomOutButton, mLayoutButton, mLoadButton };
 
     protected CompositeActivityDef mCompActDef = null;
     protected WfEdgeDefFactory mWfEdgeDefFactory = new WfEdgeDefFactory();
@@ -96,6 +97,7 @@ public class CompActDefOutcomeHandler
     {
         mLoadButton.setToolTipText("Load from local file");
         mLayoutButton.setToolTipText("Auto-Layout");
+        mZoomOutButton.setToolTipText("Zoom Out");
 
         // Add the editor pane
         GridBagLayout gridbag = new GridBagLayout();
@@ -153,6 +155,15 @@ public class CompActDefOutcomeHandler
                 DefaultGraphLayoutGenerator.layoutGraph(mEditorPanel.mGraphModelManager.getModel());
             }
         });
+        
+		mZoomOutButton.addActionListener(new ActionListener()
+		{
+			@Override
+			public void actionPerformed(ActionEvent ae)
+			{
+				mEditorPanel.mGraphModelManager.zoomOut();
+			}
+		});
     }
 
     public void setUpGraphEditor() {

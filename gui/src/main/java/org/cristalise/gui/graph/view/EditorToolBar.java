@@ -77,9 +77,9 @@ public class EditorToolBar extends Box implements Printable
 		}
 	}
 	// Vertex types and ids
-	protected JComboBox mVertexTypeBox = new JComboBox();
+	protected JComboBox<TypeNameAndConstructionInfo> mVertexTypeBox = new JComboBox<TypeNameAndConstructionInfo>();
 	// Edge types and ids
-	protected JComboBox mEdgeTypeBox = new JComboBox();
+	protected JComboBox<TypeNameAndConstructionInfo> mEdgeTypeBox = new JComboBox<TypeNameAndConstructionInfo>();
 	// Mode buttons
 	protected ButtonGroup mModeButtonGroup = new ButtonGroup();
 	protected JToggleButton mVertexModeButton = new JToggleButton(ImageLoader.findImage("graph/newvertex.png"));

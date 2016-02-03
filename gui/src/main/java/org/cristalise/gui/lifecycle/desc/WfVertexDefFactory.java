@@ -64,8 +64,12 @@ public class WfVertexDefFactory implements VertexFactory, WorkflowDialogue
 						mhm);
 				a.setVisible(true);
 			}
-			else
-				mCompositeActivityDef.newChild("", vertexTypeId, null, location);
+			else {
+				String localName = "";
+				if (vertexTypeId.equals("AtomicLocal") || vertexTypeId.equals("CompositeLocal"))
+					localName = promptName(vertexTypeId);
+				mCompositeActivityDef.newChild(localName, vertexTypeId, null, location);
+			}
 		}
 	}
 	@Override
@@ -94,15 +98,7 @@ public class WfVertexDefFactory implements VertexFactory, WorkflowDialogue
 		if (slot != null)
 		{
 			do {
-				newName =
-						(String) JOptionPane.showInputDialog(
-							null,
-							"Please provide a unique name for this instance of the activity",
-							"New " + vertexTypeId + " Activity Instance",
-							JOptionPane.QUESTION_MESSAGE,
-							ImageLoader.findImage("graph/newvertex_large.png"),
-							null,
-							null);
+				newName = promptName(vertexTypeId);
 
 			} while (newName == null || newName.length() == 0
 					|| mCompositeActivityDef.search(mCompositeActivityDef.getID() + "/" + newName) != null);
@@ -123,5 +119,16 @@ public class WfVertexDefFactory implements VertexFactory, WorkflowDialogue
 	{
 		if (newContext != null && newContext instanceof CompositeActivityDef)
 			mCompositeActivityDef = (CompositeActivityDef) newContext;
+	}
+	
+	public String promptName(String type) {
+		return (String) JOptionPane.showInputDialog(
+				null,
+				"Please provide a unique name for this instance of the activity",
+				"New " + type + " Activity Instance",
+				JOptionPane.QUESTION_MESSAGE,
+				ImageLoader.findImage("graph/newvertex_large.png"),
+				null,
+				null);
 	}
 }

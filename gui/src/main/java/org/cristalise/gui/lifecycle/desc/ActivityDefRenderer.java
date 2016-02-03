@@ -24,14 +24,16 @@ import java.awt.Color;
 import java.awt.FontMetrics;
 import java.awt.Graphics2D;
 import java.awt.Paint;
+import java.util.ArrayList;
 
 import org.cristalise.gui.graph.view.VertexRenderer;
 import org.cristalise.kernel.graph.model.GraphPoint;
 import org.cristalise.kernel.graph.model.Vertex;
 import org.cristalise.kernel.lifecycle.ActivitySlotDef;
+import org.cristalise.kernel.lifecycle.WfVertexDef;
 
 
-public class ActivitySlotDefRenderer implements VertexRenderer
+public class ActivityDefRenderer implements VertexRenderer
 {
     private Paint mInactivePaint = new Color(255, 255, 255);
     private Paint mErrorPaint    = new Color( 255, 50, 0 );
@@ -42,34 +44,37 @@ public class ActivitySlotDefRenderer implements VertexRenderer
     @Override
 	public void draw( Graphics2D g2d, Vertex vertex)
     {
-        ActivitySlotDef activitySlotDef  = ( ActivitySlotDef )vertex;
-        boolean         hasError         = activitySlotDef.verify();
-		boolean         isComposite = false;
-        isComposite      = activitySlotDef.getIsComposite();
-        GraphPoint      centrePoint      = activitySlotDef.getCentrePoint();
-        int             vertexHeight     = activitySlotDef.getHeight();
-        int             vertexWidth      = activitySlotDef.getWidth();
+        WfVertexDef      activityDef      = ( WfVertexDef )vertex;
+        boolean          hasError         = activityDef.verify();
+        GraphPoint       centrePoint      = activityDef.getCentrePoint();
+        int              vertexHeight     = activityDef.getHeight();
+        int              vertexWidth      = activityDef.getWidth();
 
-        String[]        linesOfText      = new String[2+(hasError?0:1)];
-        FontMetrics     metrics          = g2d.getFontMetrics();
-        int             lineWidth        = 0;
-        int             lineHeight       = metrics.getHeight();
-        int             linesHeight      = lineHeight * linesOfText.length;
-        int             linesStartY      = centrePoint.y - linesHeight / 2 + lineHeight * 2 / 3;
-        int             x                = 0;
-        int             y                = 0;
-        int             i                = 0;
+        ArrayList<String>linesOfText      = new ArrayList<String>();
+        FontMetrics      metrics          = g2d.getFontMetrics();
+        int              lineHeight       = metrics.getHeight();
 
-        linesOfText[0]=(String)activitySlotDef.getProperties().get("Name");
-        try {
-			linesOfText[1]="("+activitySlotDef.getTheActivityDef().getActName()+")";
-		} catch (Exception e) {
-			linesOfText[1]="ERROR";
-		}
+        int              x                = 0;
+        int              y                = 0;
+        int              i                = 0;
 
-        if (!hasError)linesOfText[2]=activitySlotDef.getErrors();
+        if (activityDef instanceof ActivitySlotDef) {
+        	try {
+        		linesOfText.add((String)activityDef.getProperties().get("Name"));
+        		linesOfText.add("("+((ActivitySlotDef)activityDef).getTheActivityDef().getActName()+")");
+        	} catch (Exception e) {
+        		linesOfText.add("(Not found)");
+        	}
+        }
+        else
+        	linesOfText.add(activityDef.getName());
+        
 
-        g2d.setPaint( !hasError ? mErrorPaint : isComposite ? mCompositePaint : mInactivePaint );
+        if (!hasError)
+        	linesOfText.add(activityDef.getErrors());
+        
+
+        g2d.setPaint( !hasError ? mErrorPaint : activityDef.getIsComposite() ? mCompositePaint : mInactivePaint );
         g2d.fill3DRect
         (
             centrePoint.x - vertexWidth / 2,
@@ -81,14 +86,16 @@ public class ActivitySlotDefRenderer implements VertexRenderer
 
         g2d.setPaint( mTextPaint );
 
+        int linesHeight = lineHeight * linesOfText.size();
+        int linesStartY = centrePoint.y - linesHeight / 2 + lineHeight * 2 / 3;
         // Draw the lines of text
-        for ( i = 0; i < linesOfText.length; i++ )
-        {
-            if (linesOfText[i] == null) linesOfText[i] = "";
-            lineWidth = metrics.stringWidth( linesOfText[ i ] );
+
+        for (String line : linesOfText) {
+            if (line == null) line = "";
+            int lineWidth = metrics.stringWidth( line );
             x = centrePoint.x - lineWidth / 2;
-            y = linesStartY + i * lineHeight;
-            g2d.drawString( linesOfText[ i ], x, y );
+            y = linesStartY + i++ * lineHeight;
+            g2d.drawString( line, x, y );
         }
     }
 }

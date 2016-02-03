@@ -53,13 +53,8 @@ public class EditorPanel extends JPanel
 	protected EditorPanel()
     {
     }
-    public EditorPanel(EdgeFactory eFactory, VertexFactory vFactory, VertexOutlineCreator vOutlineCreator, boolean edgeCreationMode,	// True
-																																		// if
-																																		// edges
-																																		// can
-																																		// be
-																																		// created
-	JButton[] otherButtons, GraphPanel graphPanel)
+    public EditorPanel(EdgeFactory eFactory, VertexFactory vFactory, VertexOutlineCreator vOutlineCreator, boolean edgeCreationMode,	
+    		JButton[] otherButtons, GraphPanel graphPanel)
 	{
 		// Create the graph panel and editor tool bar
         setDoubleBuffered(true);

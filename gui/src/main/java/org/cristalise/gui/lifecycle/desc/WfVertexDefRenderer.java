@@ -24,6 +24,7 @@ import java.awt.Graphics2D;
 
 import org.cristalise.gui.graph.view.VertexRenderer;
 import org.cristalise.kernel.graph.model.Vertex;
+import org.cristalise.kernel.lifecycle.ActivityDef;
 import org.cristalise.kernel.lifecycle.ActivitySlotDef;
 import org.cristalise.kernel.lifecycle.AndSplitDef;
 import org.cristalise.kernel.lifecycle.JoinDef;
@@ -31,16 +32,16 @@ import org.cristalise.kernel.lifecycle.JoinDef;
 
 public class WfVertexDefRenderer implements VertexRenderer
 {
-    protected ActivitySlotDefRenderer mActivitySlotDefRenderer = new ActivitySlotDefRenderer();
+    protected ActivityDefRenderer mActivityDefRenderer = new ActivityDefRenderer();
     protected SplitJoinDefRenderer    mSplitJoinDefRenderer    = new SplitJoinDefRenderer();
 
 
     @Override
 	public void draw( Graphics2D g2d, Vertex vertex)
     {
-        if ( vertex instanceof ActivitySlotDef )
+        if ( vertex instanceof ActivitySlotDef || vertex instanceof ActivityDef)
         {
-            mActivitySlotDefRenderer.draw( g2d, vertex);
+            mActivityDefRenderer.draw( g2d, vertex);
         }
         else if ( ( vertex instanceof AndSplitDef ) || ( vertex instanceof JoinDef ) )
         {
