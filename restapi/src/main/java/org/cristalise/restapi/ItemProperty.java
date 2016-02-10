@@ -1,20 +1,14 @@
 package org.cristalise.restapi;
 
-import java.util.LinkedHashMap;
-
-import javax.ws.rs.CookieParam;
-import javax.ws.rs.GET;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
-import javax.ws.rs.WebApplicationException;
-import javax.ws.rs.core.Cookie;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-
 import org.cristalise.kernel.common.ObjectNotFoundException;
 import org.cristalise.kernel.persistency.ClusterStorage;
 import org.cristalise.kernel.property.Property;
+
+import javax.ws.rs.*;
+import javax.ws.rs.core.Cookie;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import java.util.LinkedHashMap;
 
 @Path("/item/{uuid}/property")
 public class ItemProperty extends ItemUtils {
@@ -26,7 +20,7 @@ public class ItemProperty extends ItemUtils {
 		try {
 			return toJSON(getPropertySummary(getProxy(uuid)));
 		} catch (ObjectNotFoundException e) {
-			throw new WebApplicationException(404);
+			throw ItemUtils.createWebAppException(e.getMessage(), Response.Status.NOT_FOUND);
 		} 
 	}
 	
@@ -39,7 +33,7 @@ public class ItemProperty extends ItemUtils {
 		try {
 			return getProxy(uuid).getProperty(name);
 		} catch (ObjectNotFoundException e) {
-			throw new WebApplicationException(404);
+			throw ItemUtils.createWebAppException(e.getMessage(), Response.Status.NOT_FOUND);
 		}
 	}
 	
@@ -56,7 +50,7 @@ public class ItemProperty extends ItemUtils {
 			propDetails.put("value", prop.getValue());
 			propDetails.put("readOnly", !prop.isMutable());
 		} catch (ObjectNotFoundException e) {
-			throw new WebApplicationException(404);
+			throw ItemUtils.createWebAppException(e.getMessage(), Response.Status.NOT_FOUND);
 		}
 		return toJSON(propDetails);
 	}

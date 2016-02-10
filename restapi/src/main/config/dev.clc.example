@@ -36,3 +36,6 @@ REST.Job.DefaultBatchSize=50
 REST.Event.DefaultBatchSize=50
 REST.Path.DefaultBatchSize=75
 REST.DefaultBatchSize=50
+
+//Use only for debugging! Set it to true for server to return exception details about the error
+REST.Debug.errorsWithBody=false

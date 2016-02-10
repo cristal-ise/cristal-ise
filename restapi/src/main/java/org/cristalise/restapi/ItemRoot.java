@@ -1,37 +1,18 @@
 package org.cristalise.restapi;
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
-import java.util.List;
 
-import javax.ws.rs.Consumes;
-import javax.ws.rs.CookieParam;
-import javax.ws.rs.GET;
-import javax.ws.rs.OPTIONS;
-import javax.ws.rs.POST;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
-import javax.ws.rs.QueryParam;
-import javax.ws.rs.WebApplicationException;
-import javax.ws.rs.core.Context;
-import javax.ws.rs.core.Cookie;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.UriInfo;
-
-import org.cristalise.kernel.common.AccessRightsException;
-import org.cristalise.kernel.common.InvalidCollectionModification;
-import org.cristalise.kernel.common.InvalidDataException;
-import org.cristalise.kernel.common.InvalidTransitionException;
-import org.cristalise.kernel.common.ObjectAlreadyExistsException;
-import org.cristalise.kernel.common.ObjectNotFoundException;
-import org.cristalise.kernel.common.PersistencyException;
+import org.cristalise.kernel.common.*;
 import org.cristalise.kernel.entity.agent.Job;
 import org.cristalise.kernel.entity.proxy.AgentProxy;
 import org.cristalise.kernel.entity.proxy.ItemProxy;
 import org.cristalise.kernel.persistency.ClusterStorage;
 import org.cristalise.kernel.scripting.ScriptErrorException;
 import org.cristalise.kernel.utils.Logger;
+
+import javax.ws.rs.*;
+import javax.ws.rs.core.*;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.List;
 
 @Path("/item/{uuid}")
 public class ItemRoot extends ItemUtils {
@@ -57,7 +38,7 @@ public class ItemRoot extends ItemUtils {
 			itemSummary.put("properties", getPropertySummary(item));
 		} catch (ObjectNotFoundException e) {
 			Logger.error(e);
-			throw new WebApplicationException("No Properties found", 400);
+			throw ItemUtils.createWebAppException("No Properties found", Response.Status.BAD_REQUEST);
 		}
 		
 		itemSummary.put("data", enumerate(item, ClusterStorage.VIEWPOINT, "data", uri));
@@ -79,7 +60,7 @@ public class ItemRoot extends ItemUtils {
 			jobList = item.getJobList(agent);
 		} catch (Exception e) {
 			Logger.error(e);
-			throw new WebApplicationException("Error loading joblist");
+			throw ItemUtils.createWebAppException("Error loading joblist");
 		}
 		
 		ArrayList<Object> jobListData = new ArrayList<Object>();
@@ -126,7 +107,7 @@ public class ItemRoot extends ItemUtils {
 			jobList = item.getJobList(agent);
 		} catch (Exception e) {
 			Logger.error(e);
-			throw new WebApplicationException("Error loading joblist");
+			throw ItemUtils.createWebAppException("Error loading joblist");
 		}
 		
 		// find the requested job by path and transition
@@ -137,7 +118,7 @@ public class ItemRoot extends ItemUtils {
 			}
 		}
 		if (thisJob == null)
-			throw new WebApplicationException("Job not found for agent", 404);
+			throw ItemUtils.createWebAppException("Job not found for agent", Response.Status.NOT_FOUND);
 		
 		// set outcome if required
 		if (thisJob.hasOutcome()) {
@@ -149,18 +130,18 @@ public class ItemRoot extends ItemUtils {
 			return agent.execute(thisJob);
 		} catch (InvalidDataException | ScriptErrorException | ObjectAlreadyExistsException | InvalidCollectionModification e) { // problem with submitted data
 			Logger.error(e);
-			throw new WebApplicationException(e.getMessage(), 400);
+			throw ItemUtils.createWebAppException(e.getMessage(), Response.Status.BAD_REQUEST);
 		} catch (AccessRightsException e) { // agent doesn't hold the right to execute
-			throw new WebApplicationException(e.getMessage(), 401);
+			throw ItemUtils.createWebAppException(e.getMessage(), Response.Status.UNAUTHORIZED);
 		} catch (ObjectNotFoundException e) { // workflow, schema, script etc not found.
 			Logger.error(e);
-			throw new WebApplicationException(e.getMessage(), 404);
+			throw ItemUtils.createWebAppException(e.getMessage(), Response.Status.NOT_FOUND);
 		} catch (InvalidTransitionException e) { // activity has already changed state
 			Logger.error(e);
-			throw new WebApplicationException(e.getMessage(), 409);
+			throw ItemUtils.createWebAppException(e.getMessage(), Response.Status.CONFLICT);
 		} catch (PersistencyException e) { // database failure
 			Logger.error(e);
-			throw new WebApplicationException(e.getMessage(), 500);
+			throw ItemUtils.createWebAppException(e.getMessage(), Response.Status.INTERNAL_SERVER_ERROR);
 		}
 	}
 }

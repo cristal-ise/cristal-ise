@@ -1,26 +1,16 @@
 package org.cristalise.restapi;
 
-import java.util.LinkedHashMap;
-
-import javax.ws.rs.CookieParam;
-import javax.ws.rs.GET;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
-import javax.ws.rs.QueryParam;
-import javax.ws.rs.WebApplicationException;
-import javax.ws.rs.core.Context;
-import javax.ws.rs.core.Cookie;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.UriInfo;
-
 import org.cristalise.kernel.common.ObjectNotFoundException;
 import org.cristalise.kernel.entity.proxy.ItemProxy;
 import org.cristalise.kernel.events.Event;
 import org.cristalise.kernel.persistency.ClusterStorage;
 import org.cristalise.kernel.persistency.outcome.Outcome;
 import org.cristalise.kernel.process.Gateway;
+import org.cristalise.kernel.utils.Logger;
+
+import javax.ws.rs.*;
+import javax.ws.rs.core.*;
+import java.util.LinkedHashMap;
 
 @Path("/item/{uuid}/history")
 public class ItemHistory extends RemoteMapAccess {
@@ -53,7 +43,8 @@ public class ItemHistory extends RemoteMapAccess {
 	@Path("{eventId}")
 	@Produces(MediaType.APPLICATION_JSON)
 	public Response getEvent(@PathParam("uuid") String uuid, @PathParam("eventId") String eventId, 
-			@CookieParam(COOKIENAME) Cookie authCookie,	@Context UriInfo uri) {
+			@CookieParam(COOKIENAME) Cookie authCookie,	@Context UriInfo uri)
+	{
 		checkAuth(authCookie);
 		ItemProxy item = getProxy(uuid);
 		Event ev = (Event)get(item, ClusterStorage.HISTORY, eventId);
@@ -74,12 +65,12 @@ public class ItemHistory extends RemoteMapAccess {
 		ItemProxy item = getProxy(uuid);
 		Event ev = (Event)get(item, ClusterStorage.HISTORY, eventId);
 		if (ev.getSchemaName() == null || ev.getSchemaName().equals(""))
-			throw new WebApplicationException("This event has no data", 404);
+			throw ItemUtils.createWebAppException("This event has no data", Response.Status.NOT_FOUND);
 		Outcome oc;
 		try {
 			oc = (Outcome)item.getObject(ClusterStorage.OUTCOME+"/"+ev.getSchemaName()+"/"+ev.getSchemaVersion()+"/"+ev.getID());
 		} catch (ObjectNotFoundException e) {
-			throw new WebApplicationException("Referenced data not found");
+			throw ItemUtils.createWebAppException("Referenced data not found", Response.Status.NOT_FOUND);
 		}
 		return getOutcomeResponse(oc, ev, json);
 	}

@@ -1,15 +1,15 @@
 package org.cristalise.restapi;
 
-import java.util.LinkedHashMap;
-
-import javax.ws.rs.WebApplicationException;
-import javax.ws.rs.core.UriInfo;
-
 import org.cristalise.kernel.common.ObjectNotFoundException;
 import org.cristalise.kernel.entity.C2KLocalObject;
 import org.cristalise.kernel.entity.proxy.ItemProxy;
 import org.cristalise.kernel.persistency.RemoteMap;
 import org.cristalise.kernel.utils.Logger;
+
+import javax.ws.rs.WebApplicationException;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.UriInfo;
+import java.util.LinkedHashMap;
 
 public class RemoteMapAccess extends ItemUtils {
 
@@ -19,10 +19,11 @@ public class RemoteMapAccess extends ItemUtils {
 			map = (RemoteMap<?>) item.getObject(root);
 		} catch (ObjectNotFoundException e) {
 			Logger.error(e);
-			throw new WebApplicationException("Could not access item history");
+			throw ItemUtils.createWebAppException("Could not access item history");
 		} catch (ClassCastException e) {
-			throw new WebApplicationException("Object was not a RemoteMap: "+root, 400);
+			throw ItemUtils.createWebAppException("Object was not a RemoteMap: "+root, Response.Status.BAD_REQUEST);
 		}
+
 		LinkedHashMap<String, Object> batch = new LinkedHashMap<String, Object>();
 		int i = start;
 		int last = map.getLastId();
@@ -45,12 +46,13 @@ public class RemoteMapAccess extends ItemUtils {
 			map = (RemoteMap<?>) item.getObject(root);
 		} catch (ObjectNotFoundException e) {
 			Logger.error(e);
-			throw new WebApplicationException("Could not access item history");
+			throw ItemUtils.createWebAppException(e.getMessage(), Response.Status.NOT_FOUND);
 		} catch (ClassCastException e) {
-			throw new WebApplicationException("Object was not a RemoteMap: "+root, 400);
+			throw ItemUtils.createWebAppException("Object was not a RemoteMap: "+root, Response.Status.BAD_REQUEST);
 		}
-		if (id.equals("last"))
-			id = String.valueOf(map.getLastId());
-		return map.get(id);
+		if (id.equals("last")) id = String.valueOf(map.getLastId());
+
+		if(map.containsKey(id)) return map.get(id);
+		else 			        throw ItemUtils.createWebAppException("Object was not found in "+root+" id:"+id, Response.Status.NOT_FOUND);
 	}
 }

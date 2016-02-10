@@ -1,29 +1,17 @@
 package org.cristalise.restapi;
 
-import java.net.URI;
-import java.util.Iterator;
-import java.util.LinkedHashMap;
-
-import javax.ws.rs.CookieParam;
-import javax.ws.rs.DefaultValue;
-import javax.ws.rs.GET;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
-import javax.ws.rs.QueryParam;
-import javax.ws.rs.WebApplicationException;
-import javax.ws.rs.core.Context;
-import javax.ws.rs.core.Cookie;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.UriInfo;
-
 import org.cristalise.kernel.common.ObjectNotFoundException;
 import org.cristalise.kernel.lookup.DomainPath;
 import org.cristalise.kernel.lookup.ItemPath;
 import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.property.Property;
 import org.cristalise.kernel.utils.Logger;
+
+import javax.ws.rs.*;
+import javax.ws.rs.core.*;
+import java.net.URI;
+import java.util.Iterator;
+import java.util.LinkedHashMap;
 
 @Path("/domain")
 public class PathAccess extends RestHandler {
@@ -58,7 +46,7 @@ public class PathAccess extends RestHandler {
 		
 		// Return 404 if the domain path doesn't exist
 		if (!domPath.exists()) 
-			throw new WebApplicationException(404);
+			throw ItemUtils.createWebAppException("Domain path doesn't exis", Response.Status.NOT_FOUND);
 		
 		// If the domain path represents an item, redirect to it
 		try {
@@ -77,14 +65,14 @@ public class PathAccess extends RestHandler {
 			for (int i=0; i<terms.length; i++) {
 				if (terms[i].contains(":")) { // assemble property if we have name:val
 					String[] nameval = terms[i].split(":");
-					if (nameval.length != 2) throw new WebApplicationException("Invalid search term: "+terms[i], 400);
+					if (nameval.length != 2) throw ItemUtils.createWebAppException("Invalid search term: "+terms[i], Response.Status.BAD_REQUEST);
 					props[i] = new Property(nameval[0], nameval[1]);
 				}
 				else if (i==0) { // first search term can imply Name if no propname given
 					props[i] = new Property("Name", terms[i]);
 				}
 				else {
-					throw new WebApplicationException("Only the first search term may omit property name", 400);
+					throw ItemUtils.createWebAppException("Only the first search term may omit property name", Response.Status.BAD_REQUEST);
 				}
 			}
 			childSearch = Gateway.getLookup().search(domPath, props);

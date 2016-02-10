@@ -1,24 +1,14 @@
 package org.cristalise.restapi;
 
-import java.util.Iterator;
-import java.util.LinkedHashMap;
-
-import javax.ws.rs.CookieParam;
-import javax.ws.rs.GET;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
-import javax.ws.rs.WebApplicationException;
-import javax.ws.rs.core.Context;
-import javax.ws.rs.core.Cookie;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.UriInfo;
-
 import org.cristalise.kernel.common.ObjectNotFoundException;
 import org.cristalise.kernel.lookup.AgentPath;
 import org.cristalise.kernel.lookup.RolePath;
 import org.cristalise.kernel.process.Gateway;
+
+import javax.ws.rs.*;
+import javax.ws.rs.core.*;
+import java.util.Iterator;
+import java.util.LinkedHashMap;
 
 @Path("/role")
 public class RoleAccess extends RestHandler {
@@ -47,7 +37,7 @@ public class RoleAccess extends RestHandler {
 		try {
 			role = Gateway.getLookup().getRolePath(roleName);
 		} catch (ObjectNotFoundException e1) {
-			throw new WebApplicationException(404);
+			throw ItemUtils.createWebAppException(e1.getMessage(), Response.Status.NOT_FOUND);
 		}
 		LinkedHashMap<String, Object> roleData = new LinkedHashMap<>();
 		roleData.put("name", roleName);
@@ -65,7 +55,7 @@ public class RoleAccess extends RestHandler {
 		try {
 			agents = Gateway.getLookup().getAgents(role);
 		} catch (ObjectNotFoundException e) {
-			throw new WebApplicationException(404);
+			throw ItemUtils.createWebAppException(e.getMessage(), Response.Status.NOT_FOUND);
 		}
 		if (agents.length > 0) {
 			LinkedHashMap<String, Object> agentData = new LinkedHashMap<String, Object>();

@@ -1,12 +1,5 @@
 package org.cristalise.restapi;
 
-import java.util.Iterator;
-import java.util.LinkedHashMap;
-
-import javax.ws.rs.WebApplicationException;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.UriInfo;
-
 import org.cristalise.kernel.common.InvalidDataException;
 import org.cristalise.kernel.common.ObjectNotFoundException;
 import org.cristalise.kernel.common.PersistencyException;
@@ -18,6 +11,12 @@ import org.cristalise.kernel.persistency.outcome.Viewpoint;
 import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.property.Property;
 import org.cristalise.kernel.utils.Logger;
+
+import javax.ws.rs.WebApplicationException;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.UriInfo;
+import java.util.Iterator;
+import java.util.LinkedHashMap;
 
 public class ResourceAccess extends ItemUtils {
 
@@ -42,13 +41,13 @@ public class ResourceAccess extends ItemUtils {
 		Iterator<org.cristalise.kernel.lookup.Path> iter =
 				Gateway.getLookup().search(new DomainPath("/desc/"+typeName), name);
 		if (!iter.hasNext())
-			throw new WebApplicationException(schemaName+" not found", 404);
+			throw ItemUtils.createWebAppException(schemaName+" not found", Response.Status.NOT_FOUND);
 		
 		try {
 			ItemProxy item = Gateway.getProxyManager().getProxy(iter.next());
 			return toJSON(enumerate(item, ClusterStorage.VIEWPOINT+"/"+schemaName, "/"+uriBase+"/"+name, uri));
 		} catch (ObjectNotFoundException e) {
-			throw new WebApplicationException(schemaName+" has no versions", 404);
+			throw ItemUtils.createWebAppException(schemaName+" has no versions", Response.Status.NOT_FOUND);
 		}
 		
 	}
@@ -57,19 +56,19 @@ public class ResourceAccess extends ItemUtils {
 		Iterator<org.cristalise.kernel.lookup.Path> iter =
 				Gateway.getLookup().search(new DomainPath("/desc/"+typeName), name);
 		if (!iter.hasNext())
-			throw new WebApplicationException(schemaName+" not found", 404);
+			throw ItemUtils.createWebAppException(schemaName+" not found", Response.Status.NOT_FOUND);
 		
 		try {
 			ItemProxy item = Gateway.getProxyManager().getProxy(iter.next());
 			Viewpoint view = item.getViewpoint(schemaName, String.valueOf(version));
 			return getOutcomeResponse(view.getOutcome(), view.getEvent(), false);
 		} catch (ObjectNotFoundException e) {
-			throw new WebApplicationException(schemaName+" v"+version+" does not exist", 404);
+			throw ItemUtils.createWebAppException(schemaName+" v"+version+" does not exist", Response.Status.NOT_FOUND);
 		} catch (PersistencyException e) {
 			Logger.error(e);
-			throw new WebApplicationException("Database error");
+			throw ItemUtils.createWebAppException("Database error");
 		} catch (InvalidDataException e) {
-			throw new WebApplicationException(schemaName+" v"+version+" doesn't point to any data", 404);
+			throw ItemUtils.createWebAppException(schemaName+" v"+version+" doesn't point to any data", Response.Status.NOT_FOUND);
 		}
 	}
 }

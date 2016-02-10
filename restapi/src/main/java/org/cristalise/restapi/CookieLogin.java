@@ -1,21 +1,13 @@
 package org.cristalise.restapi;
 
-import javax.ws.rs.GET;
-import javax.ws.rs.Path;
-import javax.ws.rs.Produces;
-import javax.ws.rs.QueryParam;
-import javax.ws.rs.WebApplicationException;
-import javax.ws.rs.core.Context;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.NewCookie;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.UriInfo;
-
 import org.cristalise.kernel.common.InvalidDataException;
 import org.cristalise.kernel.common.ObjectNotFoundException;
 import org.cristalise.kernel.lookup.AgentPath;
 import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.utils.Logger;
+
+import javax.ws.rs.*;
+import javax.ws.rs.core.*;
 
 @Path("login")
 public class CookieLogin extends RestHandler {
@@ -25,12 +17,13 @@ public class CookieLogin extends RestHandler {
 	public Response login(@QueryParam("user") String user, @QueryParam("pass") String pass, @Context UriInfo uri) {
         try {
 			if (!Gateway.getAuthenticator().authenticate(user, pass, null))
-				throw new WebApplicationException("Bad username/password", 401);
+				throw ItemUtils.createWebAppException("Bad username/password", Response.Status.UNAUTHORIZED);
 		} catch (InvalidDataException e) {
 			Logger.error(e);
-			throw new WebApplicationException("Problem logging in");
+			throw ItemUtils.createWebAppException("Problem logging in");
 		} catch (ObjectNotFoundException e1) {
-			throw new WebApplicationException("Bad username/password", 401);
+			Logger.msg(5, "CookieLogin.login() - Bad username/password");
+			throw ItemUtils.createWebAppException("Bad username/password", Response.Status.UNAUTHORIZED);
 		}
 
         AgentPath agentPath;
@@ -38,7 +31,7 @@ public class CookieLogin extends RestHandler {
 			agentPath = Gateway.getLookup().getAgentPath(user);
 		} catch (ObjectNotFoundException e) {
 			Logger.error(e);
-			throw new WebApplicationException("Agent '"+user+"' not found", 404);
+			throw ItemUtils.createWebAppException("Agent '"+user+"' not found", Response.Status.NOT_FOUND);
 		}
 		
 		// create and set cookie
@@ -54,7 +47,7 @@ public class CookieLogin extends RestHandler {
 			return Response.ok().cookie(cookie).build();
 		} catch (Exception e) {
 			Logger.error(e);
-			throw new WebApplicationException("Error creating cookie");
+			throw ItemUtils.createWebAppException("Error creating cookie");
 		}
 	}
 }

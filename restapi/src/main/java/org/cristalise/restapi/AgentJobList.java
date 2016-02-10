@@ -1,22 +1,5 @@
 package org.cristalise.restapi;
 
-import java.net.URI;
-import java.util.LinkedHashMap;
-
-import javax.ws.rs.CookieParam;
-import javax.ws.rs.DefaultValue;
-import javax.ws.rs.GET;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
-import javax.ws.rs.QueryParam;
-import javax.ws.rs.WebApplicationException;
-import javax.ws.rs.core.Context;
-import javax.ws.rs.core.Cookie;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.UriInfo;
-
 import org.cristalise.kernel.common.ObjectNotFoundException;
 import org.cristalise.kernel.entity.agent.Job;
 import org.cristalise.kernel.entity.proxy.AgentProxy;
@@ -25,6 +8,11 @@ import org.cristalise.kernel.lookup.InvalidItemPathException;
 import org.cristalise.kernel.lookup.RolePath;
 import org.cristalise.kernel.persistency.ClusterStorage;
 import org.cristalise.kernel.process.Gateway;
+
+import javax.ws.rs.*;
+import javax.ws.rs.core.*;
+import java.net.URI;
+import java.util.LinkedHashMap;
 
 @Path("/agent/{uuid}")
 public class AgentJobList extends RemoteMapAccess {
@@ -38,8 +26,10 @@ public class AgentJobList extends RemoteMapAccess {
 			@Context UriInfo uri) {
 		checkAuth(authCookie);
 		ItemProxy item = getProxy(uuid);
+
 		if (!(item instanceof AgentProxy))
-			throw new WebApplicationException("UUID does not belong to an Agent", 400);
+			throw ItemUtils.createWebAppException("UUID does not belong to an Agent", Response.Status.BAD_REQUEST);
+
 		if (batchSize == null) batchSize = Gateway.getProperties().getInt("REST.Job.DefaultBatchSize", 
 				Gateway.getProperties().getInt("REST.DefaultBatchSize", 20));
 		
@@ -62,7 +52,7 @@ public class AgentJobList extends RemoteMapAccess {
 		}
 		return toJSON(jobs);
 	}
-	
+
 	@GET
 	@Path("job/{jobId}")
 	@Produces(MediaType.APPLICATION_JSON)
@@ -71,17 +61,17 @@ public class AgentJobList extends RemoteMapAccess {
 		checkAuth(authCookie);
 		ItemProxy item = getProxy(uuid);
 		if (!(item instanceof AgentProxy))
-			throw new WebApplicationException("UUID does not belong to an Agent", 400);
+			throw ItemUtils.createWebAppException("UUID does not belong to an Agent", Response.Status.BAD_REQUEST);
 		Job job = (Job)get(item, ClusterStorage.JOB, jobId);
 		try {
 			return toJSON(makeJobData(job, job.getItemProxy().getName(), uri));
 		} catch (ObjectNotFoundException e) {
-			throw new WebApplicationException("Item "+job.getItemUUID()+" in Job not found");
+			throw ItemUtils.createWebAppException("Item "+job.getItemUUID()+" in Job not found");
 		} catch (InvalidItemPathException e) {
-			throw new WebApplicationException("Invalid Item UUID in Job "+job.getItemUUID()+" in Job not found");
+			throw ItemUtils.createWebAppException("Invalid Item UUID in Job "+job.getItemUUID()+" in Job not found");
 		}
 	}
-	
+
 	@GET
 	@Path("roles")
 	@Produces(MediaType.APPLICATION_JSON)
@@ -90,7 +80,7 @@ public class AgentJobList extends RemoteMapAccess {
 		checkAuth(authCookie);
 		ItemProxy item = getProxy(uuid);
 		if (!(item instanceof AgentProxy))
-			throw new WebApplicationException("UUID does not belong to an Agent", 400);
+			throw ItemUtils.createWebAppException("UUID does not belong to an Agent", Response.Status.BAD_REQUEST);
 		AgentProxy agent = (AgentProxy)item;
 		RolePath[] roles = Gateway.getLookup().getRoles(agent.getPath());
 		LinkedHashMap<String, URI> roleData = new LinkedHashMap<String, URI>();

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <launchConfiguration type="org.eclipse.jdt.launching.localJavaApplication">
 <listAttribute key="org.eclipse.debug.core.MAPPED_RESOURCE_PATHS">
-<listEntry value="/cristalise-restapi/src/test/java/org/cristalise/restapi/Main.java"/>
+<listEntry value="/cristal-restapi/src/test/java/org/cristalise/restapi/Main.java"/>
 </listAttribute>
 <listAttribute key="org.eclipse.debug.core.MAPPED_RESOURCE_TYPES">
 <listEntry value="1"/>
@@ -14,6 +14,6 @@
 <stringAttribute key="org.eclipse.jdt.launching.CLASSPATH_PROVIDER" value="org.eclipse.m2e.launchconfig.classpathProvider"/>
 <stringAttribute key="org.eclipse.jdt.launching.MAIN_TYPE" value="org.cristalise.restapi.Main"/>
 <stringAttribute key="org.eclipse.jdt.launching.PROGRAM_ARGUMENTS" value="-logLevel 0 -config src/main/config/client.conf -connect src/main/config/dev.clc"/>
-<stringAttribute key="org.eclipse.jdt.launching.PROJECT_ATTR" value="cristalise-restapi"/>
+<stringAttribute key="org.eclipse.jdt.launching.PROJECT_ATTR" value="cristal-restapi"/>
 <stringAttribute key="org.eclipse.jdt.launching.SOURCE_PATH_PROVIDER" value="org.eclipse.m2e.launchconfig.sourcepathProvider"/>
 </launchConfiguration>

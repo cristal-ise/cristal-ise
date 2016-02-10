@@ -1,21 +1,5 @@
 package org.cristalise.restapi;
 
-import java.io.IOException;
-import java.nio.ByteBuffer;
-import java.security.InvalidKeyException;
-import java.util.Date;
-
-import javax.crypto.BadPaddingException;
-import javax.crypto.Cipher;
-import javax.crypto.IllegalBlockSizeException;
-import javax.crypto.KeyGenerator;
-import javax.crypto.SecretKey;
-import javax.crypto.spec.IvParameterSpec;
-import javax.ws.rs.WebApplicationException;
-import javax.ws.rs.core.Cookie;
-import javax.ws.rs.core.Response;
-import javax.xml.bind.DatatypeConverter;
-
 import org.codehaus.jackson.map.ObjectMapper;
 import org.cristalise.kernel.common.InvalidDataException;
 import org.cristalise.kernel.common.ObjectNotFoundException;
@@ -26,6 +10,17 @@ import org.cristalise.kernel.lookup.InvalidAgentPathException;
 import org.cristalise.kernel.lookup.ItemPath;
 import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.utils.Logger;
+
+import javax.crypto.*;
+import javax.crypto.spec.IvParameterSpec;
+import javax.ws.rs.WebApplicationException;
+import javax.ws.rs.core.Cookie;
+import javax.ws.rs.core.Response;
+import javax.xml.bind.DatatypeConverter;
+import java.io.IOException;
+import java.nio.ByteBuffer;
+import java.security.InvalidKeyException;
+import java.util.Date;
 
 public class RestHandler {
 
@@ -51,7 +46,7 @@ public class RestHandler {
 				}
 			} catch (Exception e) {
 				Logger.error(e);
-				throw new WebApplicationException("Error initializing cookie encryption: "+e.getMessage());
+				throw ItemUtils.createWebAppException("Error initializing cookie encryption: "+e.getMessage());
 			} 
 	}
 	
@@ -82,7 +77,7 @@ public class RestHandler {
 			childPathDataJSON = mapper.writeValueAsString(data);
 		} catch (IOException e) {
 			Logger.error(e);
-			throw new WebApplicationException("Problem building response JSON: "+e.getMessage());
+			throw ItemUtils.createWebAppException("Problem building response JSON: "+e.getMessage());
 		}
 		return Response.ok(childPathDataJSON).build();
 	}
@@ -90,15 +85,15 @@ public class RestHandler {
 	public void checkAuth(Cookie authCookie) {
 		if (!Gateway.getProperties().getBoolean("REST.requireLoginCookie", true)) return;
 		if (authCookie == null) 
-			throw new WebApplicationException("Login required", 401);
+			throw ItemUtils.createWebAppException("Login required", Response.Status.UNAUTHORIZED);
 		try {
 			readCookie(authCookie);
 			return;
 		} catch (InvalidAgentPathException | InvalidDataException e) {
-			throw new WebApplicationException("Invalid login", 400);
+			throw ItemUtils.createWebAppException("Invalid login", Response.Status.BAD_REQUEST);
 		} catch (Exception e) {
 			Logger.error(e);
-			throw new WebApplicationException("Error reading authCookie");
+			throw ItemUtils.createWebAppException("Error reading authCookie");
 		}
 	}
 	
@@ -111,7 +106,7 @@ public class RestHandler {
 				agentPath = auth.agent;
 			} catch (Exception e) {
 				Logger.error(e);
-				throw new WebApplicationException("Bad auth cookie", 400);
+				throw ItemUtils.createWebAppException("Bad auth cookie", Response.Status.BAD_REQUEST);
 			}	
 		}
 		else if (agentName!=null && !(Gateway.getProperties().getBoolean("REST.requireLoginCookie", true))) {
@@ -119,17 +114,17 @@ public class RestHandler {
 				agentPath = Gateway.getLookup().getAgentPath(agentName);
 			} catch (ObjectNotFoundException e) {
 				Logger.error(e);
-				throw new WebApplicationException("Agent '"+agentName+"' not found", 404);
+				throw ItemUtils.createWebAppException("Agent '"+agentName+"' not found", Response.Status.NOT_FOUND);
 			}
 		}
 		else
-			throw new WebApplicationException(401);
+			throw ItemUtils.createWebAppException("Somthing wrong", Response.Status.UNAUTHORIZED);
 
 		try {
 			return (AgentProxy)Gateway.getProxyManager().getProxy(agentPath);
 		} catch (ObjectNotFoundException e) {
 			Logger.error(e);
-			throw new WebApplicationException("Agent not found", 404);
+			throw ItemUtils.createWebAppException("Agent not found", Response.Status.NOT_FOUND);
 		}
 	}
 	

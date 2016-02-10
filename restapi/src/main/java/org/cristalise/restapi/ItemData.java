@@ -1,17 +1,4 @@
 package org.cristalise.restapi;
-import java.util.LinkedHashMap;
-
-import javax.ws.rs.CookieParam;
-import javax.ws.rs.GET;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
-import javax.ws.rs.WebApplicationException;
-import javax.ws.rs.core.Context;
-import javax.ws.rs.core.Cookie;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.UriInfo;
 
 import org.cristalise.kernel.common.InvalidDataException;
 import org.cristalise.kernel.common.ObjectNotFoundException;
@@ -23,6 +10,10 @@ import org.cristalise.kernel.persistency.ClusterStorage;
 import org.cristalise.kernel.persistency.outcome.Outcome;
 import org.cristalise.kernel.persistency.outcome.Viewpoint;
 import org.cristalise.kernel.utils.Logger;
+
+import javax.ws.rs.*;
+import javax.ws.rs.core.*;
+import java.util.LinkedHashMap;
 
 @Path("/item/{uuid}/data")
 public class ItemData extends ItemUtils {
@@ -67,14 +58,15 @@ public class ItemData extends ItemUtils {
 			view = item.getViewpoint(schema, viewName);
 		} catch (ObjectNotFoundException e) {
 			Logger.error(e);
-			throw new WebApplicationException("Database error loading view "+viewName+" of schema "+schema);
+			throw ItemUtils.createWebAppException(e.getMessage(), Response.Status.NOT_FOUND);
+			//throw ItemUtils.createWebAppException("Database error loading view "+viewName+" of schema "+schema, Response.Status.NOT_FOUND);
 		}
 		Outcome oc;
 		try {
 			oc = view.getOutcome();
 		} catch (ObjectNotFoundException | PersistencyException e) {
 			Logger.error(e);
-			throw new WebApplicationException("Database error loading outcome for view "+viewName+" of schema "+schema);
+			throw ItemUtils.createWebAppException("Database error loading outcome for view "+viewName+" of schema "+schema);
 		}
 
 		try {
@@ -82,7 +74,7 @@ public class ItemData extends ItemUtils {
 		}
         catch (InvalidDataException | PersistencyException | ObjectNotFoundException e) {
 			Logger.error(e);
-			throw new WebApplicationException("Database error loading event data for view "+viewName+" of schema "+schema);
+			throw ItemUtils.createWebAppException("Database error loading event data for view "+viewName+" of schema "+schema);
 		}
 	}
 
@@ -125,14 +117,14 @@ public class ItemData extends ItemUtils {
 			view = item.getViewpoint(schema, viewName);
 		} catch (ObjectNotFoundException e) {
 			Logger.error(e);
-			throw new WebApplicationException("Database error loading view "+viewName+" of schema "+schema);
+			throw ItemUtils.createWebAppException("Database error loading view "+viewName+" of schema "+schema);
 		}
 		Event ev;
 		try {
 			ev = view.getEvent();
 		} catch (InvalidDataException | PersistencyException | ObjectNotFoundException e) {
 			Logger.error(e);
-			throw new WebApplicationException("Database error loading event data for view "+viewName+" of schema "+schema);
+			throw ItemUtils.createWebAppException("Database error loading event data for view "+viewName+" of schema "+schema);
 		}
 		
 		return toJSON(makeEventData(ev, uri));
@@ -153,7 +145,7 @@ public class ItemData extends ItemUtils {
 			history = (History)item.getObject(ClusterStorage.HISTORY);
 			history.activate();
 		} catch (ObjectNotFoundException e) {
-			throw new WebApplicationException("Could not load History");
+			throw ItemUtils.createWebAppException("Could not load History");
 		}
 		LinkedHashMap<String, Object> eventList = new LinkedHashMap<String, Object>();
 		for (int i=0; i<=history.getLastId(); i++) {
@@ -184,16 +176,16 @@ public class ItemData extends ItemUtils {
 		try {
 			ev = (Event)item.getObject(ClusterStorage.HISTORY+"/"+eventId);
 		} catch (ObjectNotFoundException e) {
-			throw new WebApplicationException("Event "+eventId+" was not found", 404);
+			throw ItemUtils.createWebAppException("Event "+eventId+" was not found", Response.Status.NOT_FOUND);
 		}
 		if (!schema.equals(ev.getSchemaName()) || !viewName.equals(ev.getViewName())) {
-			throw new WebApplicationException("Event does not belong to this data", 400);
+			throw ItemUtils.createWebAppException("Event does not belong to this data", Response.Status.BAD_REQUEST);
 		}
 		Outcome oc;
 		try {
 			oc = (Outcome)item.getObject(ClusterStorage.OUTCOME+"/"+schema+"/"+ev.getSchemaVersion()+"/"+eventId);
 		} catch (ObjectNotFoundException e) {
-			throw new WebApplicationException("Outcome "+eventId+" was not found", 404);
+			throw ItemUtils.createWebAppException("Outcome "+eventId+" was not found", Response.Status.NOT_FOUND);
 		}
 		//TODO: implement retrieving json media type as well
 		return getOutcomeResponse(oc, ev, false);
@@ -214,10 +206,10 @@ public class ItemData extends ItemUtils {
 		try {
 			ev = (Event)item.getObject(ClusterStorage.HISTORY+"/"+eventId);
 		} catch (ObjectNotFoundException e) {
-			throw new WebApplicationException("Event "+eventId+" was not found", 404);
+			throw ItemUtils.createWebAppException("Event "+eventId+" was not found", Response.Status.NOT_FOUND);
 		}
 		if (!schema.equals(ev.getSchemaName()) || !viewName.equals(ev.getViewName())) {
-			throw new WebApplicationException("Event does not belong to this data", 400);
+			throw ItemUtils.createWebAppException("Event does not belong to this data", Response.Status.BAD_REQUEST);
 		}
 		return toJSON(makeEventData(ev, uri));
 	}

@@ -1,24 +1,6 @@
 package org.cristalise.restapi;
 
-import java.net.URI;
-import java.text.DateFormat;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.LinkedHashMap;
-import java.util.List;
-
-import javax.ws.rs.WebApplicationException;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.UriInfo;
-
-import org.cristalise.kernel.collection.Aggregation;
-import org.cristalise.kernel.collection.AggregationMember;
-import org.cristalise.kernel.collection.Collection;
-import org.cristalise.kernel.collection.CollectionDescription;
-import org.cristalise.kernel.collection.CollectionMember;
-import org.cristalise.kernel.collection.Dependency;
+import org.cristalise.kernel.collection.*;
 import org.cristalise.kernel.common.InvalidDataException;
 import org.cristalise.kernel.common.ObjectNotFoundException;
 import org.cristalise.kernel.common.PersistencyException;
@@ -36,6 +18,18 @@ import org.cristalise.kernel.utils.KeyValuePair;
 import org.cristalise.kernel.utils.LocalObjectLoader;
 import org.cristalise.kernel.utils.Logger;
 import org.json.XML;
+
+import javax.ws.rs.WebApplicationException;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.UriInfo;
+import java.net.URI;
+import java.text.DateFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Arrays;
+import java.util.Date;
+import java.util.LinkedHashMap;
+import java.util.List;
 
 public abstract class ItemUtils extends RestHandler {
 	
@@ -62,46 +56,46 @@ public abstract class ItemUtils extends RestHandler {
 			itemPath = Gateway.getLookup().getItemPath(uuid);
 		} catch (InvalidItemPathException e) {
 			Logger.error(e);
-			throw new WebApplicationException(400); // Bad Request - the UUID wasn't valid
+			throw ItemUtils.createWebAppException(e.getMessage(), Response.Status.BAD_REQUEST); // Bad Request - the UUID wasn't valid
 		} catch (ObjectNotFoundException e) {
 			Logger.error(e);
-			throw new WebApplicationException(404); // UUID isn't used in this server
+			throw ItemUtils.createWebAppException(e.getMessage(), Response.Status.NOT_FOUND); // UUID isn't used in this server
 		}
-		
+
 		try {
 			item = Gateway.getProxyManager().getProxy(itemPath);
 		} catch (ObjectNotFoundException e) {
 			Logger.error(e);
-			throw new WebApplicationException(404); // Not found - the path doesn't exist
+			throw ItemUtils.createWebAppException(e.getMessage(), Response.Status.NOT_FOUND); // Not found - the path doesn't exist
 		}
 		return item;
 	}
-	
+
 	public LinkedHashMap<String, URI> enumerate(ItemProxy item, String dataPath, String uriPath, UriInfo uri) {
 		String[] children;
 		try {
 			children = Gateway.getStorage().getClusterContents(item.getPath(), dataPath);
 		} catch (PersistencyException e) {
 			Logger.error(e);
-			throw new WebApplicationException("Database Error");
+			throw ItemUtils.createWebAppException("Database Error");
 		}
-		
+
 		LinkedHashMap<String, URI> childrenWithLinks = new LinkedHashMap<>();
 		for (String child : children) {
 			childrenWithLinks.put(child, uri.getBaseUriBuilder().path("item").path(item.getPath().getUUID().toString()).
 					path(uriPath).path(child).build());
 		}
-		
+
 		return childrenWithLinks;
 	}
-	
+
 	protected Response getOutcomeResponse(Outcome oc, Event ev, boolean json) {
 		Date eventDate;
 		try {
 			eventDate = dateFormatter.parse(ev.getTimeString());
 		} catch (ParseException e) {
 			Logger.error(e);
-			throw new WebApplicationException("Invalid timestamp in event "+ev.getID()+": "+ev.getTimeString());
+			throw ItemUtils.createWebAppException("Invalid timestamp in event "+ev.getID()+": "+ev.getTimeString());
 		}
 
 		String result;
@@ -118,7 +112,7 @@ public abstract class ItemUtils extends RestHandler {
 		eventData.put("timestamp", ev.getTimeString());
 		eventData.put("agent", ev.getAgentPath().getAgentName());
 		eventData.put("role", ev.getAgentRole());
-		
+
 		if (ev.getSchemaName() != null && ev.getSchemaName().length()>0) { // add outcome info
 			LinkedHashMap<String, Object> outcomeData = new LinkedHashMap<String, Object>();
 			outcomeData.put("name", ev.getViewName());
@@ -127,14 +121,14 @@ public abstract class ItemUtils extends RestHandler {
 			outcomeData.put("data", uri.getBaseUriBuilder().path("item").path(ev.getItemUUID()).path("history").path(String.valueOf(ev.getID())).path("data").build());
 			eventData.put("outcome", outcomeData);
 		}
-		
+
 		// activity data
 		LinkedHashMap<String, Object> activityData = new LinkedHashMap<String, Object>();
 		activityData.put("name", ev.getStepName());
 		activityData.put("path", ev.getStepPath());
 		activityData.put("type", ev.getStepType());
 		eventData.put("activity", activityData);
-		
+
 		// state data
 		LinkedHashMap<String, Object> transData = new LinkedHashMap<String, Object>();
 		try {
@@ -150,23 +144,23 @@ public abstract class ItemUtils extends RestHandler {
 		} catch (InvalidDataException e) {
 			eventData.put("transition", "ERROR: State Machine definition "+ev.getStateMachineName()+" v"+ev.getStateMachineVersion()+" not valid!");
 		}
-		
+
 		return eventData;
 	}
-	
+
 	protected LinkedHashMap<String, Object> makeJobData(Job job, String itemName, UriInfo uri) {
 		LinkedHashMap<String, Object> jobData = new LinkedHashMap<String, Object>();
 		String agentName = job.getAgentName();
 		if (agentName != null && agentName.length() > 0)
 			jobData.put("agent", agentName);
 		jobData.put("role", job.getAgentRole());
-		
+
 		//item data
 		LinkedHashMap<String, Object> itemData = new LinkedHashMap<String, Object>();
 		itemData.put("name", itemName);
 		itemData.put("location", uri.getBaseUriBuilder().path("item").path(job.getItemUUID()).build());
 		jobData.put("item", itemData);
-		
+
 		// activity data
 		LinkedHashMap<String, Object> activityData = new LinkedHashMap<String, Object>();
 		activityData.put("name", job.getStepName());
@@ -181,7 +175,7 @@ public abstract class ItemUtils extends RestHandler {
 		}
 		activityData.put("properties", activityPropData);
 		jobData.put("activity", activityData);
-		
+
 		LinkedHashMap<String, Object> stateData = new LinkedHashMap<String, Object>();
 		stateData.put("name", job.getTransition().getName());
 		stateData.put("origin", job.getOriginStateName());
@@ -189,7 +183,7 @@ public abstract class ItemUtils extends RestHandler {
 		stateData.put("stateMachine", job.getActPropString("StateMachineName")+" v"+job.getActPropString("StateMachineVersion"));
 		stateData.put("stateMachineData", uri.getBaseUriBuilder().path("stateMachine").path(job.getActPropString("StateMachineName")).path(job.getActPropString("StateMachineVersion")).build());
 		jobData.put("transition", stateData);
-		
+
 		if (job.hasOutcome()) { // add outcome info
 			LinkedHashMap<String, Object> outcomeData = new LinkedHashMap<String, Object>();
 			try {
@@ -202,10 +196,10 @@ public abstract class ItemUtils extends RestHandler {
 				jobData.put("data", "Schema not found");
 			}
 		}
-		
+
 		return jobData;
 	}
-	
+
 	protected LinkedHashMap<String, Object> makeCollectionData(Collection<?> coll, UriInfo uri) {
 		LinkedHashMap<String, Object> collData = new LinkedHashMap<String, Object>();
 		collData.put("name", coll.getName());
@@ -223,7 +217,7 @@ public abstract class ItemUtils extends RestHandler {
 			Dependency dep = (Dependency)coll;
 			addProps(collData, dep.getProperties(), dep.getClassProps(), true); // include class props for dependencies here, not in member
 		}
-		
+
 		LinkedHashMap<String, Object> memberData = new LinkedHashMap<String, Object>();
 		for (CollectionMember member : coll.getMembers().list) {
 			LinkedHashMap<String, Object> thisMemberData = new LinkedHashMap<String, Object>();
@@ -246,11 +240,11 @@ public abstract class ItemUtils extends RestHandler {
 		collData.put("members", memberData);
 		return collData;
 	}
-	
+
 	private void addProps(LinkedHashMap<String, Object> collData, CastorHashMap props, String classProps, boolean includeClassProps) {
 		List<String> propList = null;
 		if (classProps != null) propList = Arrays.asList(classProps.split(","));
-		LinkedHashMap<String, Object> classPropData = new LinkedHashMap<String, Object>(), 
+		LinkedHashMap<String, Object> classPropData = new LinkedHashMap<String, Object>(),
 				propData = new LinkedHashMap<String, Object>();
 		for (KeyValuePair prop : props.getKeyValuePairs()) {
 			if (propList != null && propList.contains(prop.getKey()))  // is classProp
@@ -260,5 +254,18 @@ public abstract class ItemUtils extends RestHandler {
 		}
 		if (classPropData.size() > 0 && includeClassProps) collData.put("classIdentifiers", classPropData);
 		if (propData.size() > 0) collData.put("properties", propData);
+	}
+
+	public static WebApplicationException createWebAppException(String msg) {
+		return createWebAppException(msg, Response.Status.INTERNAL_SERVER_ERROR);
+	}
+
+	public static WebApplicationException createWebAppException(String msg, Response.Status status) {
+		if (Gateway.getProperties().getBoolean("REST.Debug.errorsWithBody", false)) {
+			return new WebApplicationException(msg, Response.status(status).entity(msg).build());
+		}
+		else {
+			return new WebApplicationException(msg, status);
+		}
 	}
 }

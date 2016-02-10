@@ -1,20 +1,11 @@
 package org.cristalise.restapi;
 
-import javax.ws.rs.CookieParam;
-import javax.ws.rs.GET;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
-import javax.ws.rs.WebApplicationException;
-import javax.ws.rs.core.Context;
-import javax.ws.rs.core.Cookie;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.UriInfo;
-
 import org.cristalise.kernel.common.ObjectNotFoundException;
 import org.cristalise.kernel.entity.proxy.ItemProxy;
 import org.cristalise.kernel.persistency.ClusterStorage;
+
+import javax.ws.rs.*;
+import javax.ws.rs.core.*;
 
 @Path("/item/{uuid}/collection")
 public class ItemCollection extends ItemUtils {
@@ -39,7 +30,7 @@ public class ItemCollection extends ItemUtils {
 		try {
 			return toJSON(makeCollectionData(item.getCollection(collName), uri));
 		} catch (ObjectNotFoundException e) {
-			throw new WebApplicationException(404);
+			throw ItemUtils.createWebAppException(e.getMessage(), Response.Status.NOT_FOUND);
 		}
 	}
 	
@@ -63,9 +54,9 @@ public class ItemCollection extends ItemUtils {
 		try {
 			return toJSON(makeCollectionData(item.getCollection(collName, collVersion.equals("last")?null:Integer.valueOf(collVersion)), uri));
 		} catch (ObjectNotFoundException e) {
-			throw new WebApplicationException(404);
+			throw ItemUtils.createWebAppException(e.getMessage(), Response.Status.NOT_FOUND);
 		} catch (NumberFormatException e) {
-			throw new WebApplicationException(404);
+			throw ItemUtils.createWebAppException(e.getMessage(), Response.Status.NOT_FOUND);
 		}
 	}
 }
