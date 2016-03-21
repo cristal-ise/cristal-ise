@@ -16,7 +16,7 @@ public class ItemProperty extends ItemUtils {
 	@GET
 	@Produces(MediaType.APPLICATION_JSON)
 	public Response listProperties(@PathParam("uuid") String uuid, @CookieParam(COOKIENAME) Cookie authCookie) {
-		checkAuth(authCookie);
+		checkAuthCookie(authCookie);
 		try {
 			return toJSON(getPropertySummary(getProxy(uuid)));
 		} catch (ObjectNotFoundException e) {
@@ -29,7 +29,7 @@ public class ItemProperty extends ItemUtils {
 	@Produces(MediaType.TEXT_PLAIN)
 	public String getProperty(@PathParam("uuid") String uuid, @PathParam("name") String name, 
 			@CookieParam(COOKIENAME) Cookie authCookie) {
-		checkAuth(authCookie);
+		checkAuthCookie(authCookie);
 		try {
 			return getProxy(uuid).getProperty(name);
 		} catch (ObjectNotFoundException e) {
@@ -42,7 +42,7 @@ public class ItemProperty extends ItemUtils {
 	@Produces(MediaType.APPLICATION_JSON)
 	public Response getPropertyDetails(@PathParam("uuid") String uuid, @PathParam("name") String name, 
 			@CookieParam(COOKIENAME) Cookie authCookie) {
-		checkAuth(authCookie);
+		checkAuthCookie(authCookie);
 		LinkedHashMap<String, Object> propDetails = new LinkedHashMap<String, Object>();
 		try {
 			Property prop = (Property)getProxy(uuid).getObject(ClusterStorage.PROPERTY+"/"+name);

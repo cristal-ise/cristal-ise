@@ -14,7 +14,7 @@ public class ItemCollection extends ItemUtils {
 	@Produces(MediaType.APPLICATION_JSON)
 	public Response getCollections(@PathParam("uuid") String uuid, @CookieParam(COOKIENAME) Cookie authCookie,
 			@Context UriInfo uri) {
-		checkAuth(authCookie);
+		checkAuthCookie(authCookie);
 		ItemProxy item = getProxy(uuid);
 		return toJSON(enumerate(item, ClusterStorage.COLLECTION, "collection", uri));
 	}
@@ -25,7 +25,7 @@ public class ItemCollection extends ItemUtils {
 	public Response getLastCollection(@PathParam("uuid") String uuid, @PathParam("name") String collName, 
 			@CookieParam(COOKIENAME) Cookie authCookie,
 			@Context UriInfo uri) {
-		checkAuth(authCookie);
+		checkAuthCookie(authCookie);
 		ItemProxy item = getProxy(uuid);
 		try {
 			return toJSON(makeCollectionData(item.getCollection(collName), uri));
@@ -39,7 +39,7 @@ public class ItemCollection extends ItemUtils {
 	public Response getCollectionVersions(@PathParam("uuid") String uuid, @PathParam("name") String collName, 
 			@CookieParam(COOKIENAME) Cookie authCookie,
 			@Context UriInfo uri) {
-		checkAuth(authCookie);
+		checkAuthCookie(authCookie);
 		ItemProxy item = getProxy(uuid);
 		return toJSON(enumerate(item, ClusterStorage.COLLECTION+"/"+collName, "collection/"+collName+"/version", uri));
 	}
@@ -49,7 +49,7 @@ public class ItemCollection extends ItemUtils {
 	public Response getCollectionVersion(@PathParam("uuid") String uuid, @PathParam("name") String collName, 
 			@PathParam("version") String collVersion, @CookieParam(COOKIENAME) Cookie authCookie,
 			@Context UriInfo uri) {
-		checkAuth(authCookie);
+		checkAuthCookie(authCookie);
 		ItemProxy item = getProxy(uuid);
 		try {
 			return toJSON(makeCollectionData(item.getCollection(collName, collVersion.equals("last")?null:Integer.valueOf(collVersion)), uri));

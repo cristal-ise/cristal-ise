@@ -41,9 +41,9 @@ public class CookieLogin extends RestHandler {
 			
 			int cookieLife = Gateway.getProperties().getInt("REST.loginCookieLife", 0);
 			if (cookieLife > 0) 
-				cookie = new NewCookie(COOKIENAME, makeCookie(agentData), "/", null, null, cookieLife, false);
+				cookie = new NewCookie(COOKIENAME, encryptAuthData(agentData), "/", null, null, cookieLife, false);
         	else
-        		cookie = new NewCookie(COOKIENAME, makeCookie(agentData));
+        		cookie = new NewCookie(COOKIENAME, encryptAuthData(agentData));
 			return Response.ok().cookie(cookie).build();
 		} catch (Exception e) {
 			Logger.error(e);

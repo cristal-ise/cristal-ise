@@ -24,7 +24,7 @@ public class AgentJobList extends RemoteMapAccess {
 			@DefaultValue("0") @QueryParam("start") Integer start, 
 			@QueryParam("batch") Integer batchSize, @CookieParam(COOKIENAME) Cookie authCookie,
 			@Context UriInfo uri) {
-		checkAuth(authCookie);
+		checkAuthCookie(authCookie);
 		ItemProxy item = getProxy(uuid);
 
 		if (!(item instanceof AgentProxy))
@@ -58,7 +58,7 @@ public class AgentJobList extends RemoteMapAccess {
 	@Produces(MediaType.APPLICATION_JSON)
 	public Response getEvent(@PathParam("uuid") String uuid, @PathParam("jobId") String jobId, @CookieParam(COOKIENAME) Cookie authCookie,
 			@Context UriInfo uri) {
-		checkAuth(authCookie);
+		checkAuthCookie(authCookie);
 		ItemProxy item = getProxy(uuid);
 		if (!(item instanceof AgentProxy))
 			throw ItemUtils.createWebAppException("UUID does not belong to an Agent", Response.Status.BAD_REQUEST);
@@ -77,7 +77,7 @@ public class AgentJobList extends RemoteMapAccess {
 	@Produces(MediaType.APPLICATION_JSON)
 	public Response getRoles(@PathParam("uuid") String uuid, @CookieParam(COOKIENAME) Cookie authCookie,
 			@Context UriInfo uri) {
-		checkAuth(authCookie);
+		checkAuthCookie(authCookie);
 		ItemProxy item = getProxy(uuid);
 		if (!(item instanceof AgentProxy))
 			throw ItemUtils.createWebAppException("UUID does not belong to an Agent", Response.Status.BAD_REQUEST);

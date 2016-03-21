@@ -20,7 +20,7 @@ public class ItemHistory extends RemoteMapAccess {
 	public Response list(@PathParam("uuid") String uuid, @QueryParam("start") Integer start, 
 			@QueryParam("batch") Integer batchSize,	@CookieParam(COOKIENAME) Cookie authCookie,
 			@Context UriInfo uri) {
-		checkAuth(authCookie);
+		checkAuthCookie(authCookie);
 		ItemProxy item = getProxy(uuid);
 		if (start == null) start = 0;
 		if (batchSize == null) batchSize = Gateway.getProperties().getInt("REST.Event.DefaultBatchSize", 
@@ -45,7 +45,7 @@ public class ItemHistory extends RemoteMapAccess {
 	public Response getEvent(@PathParam("uuid") String uuid, @PathParam("eventId") String eventId, 
 			@CookieParam(COOKIENAME) Cookie authCookie,	@Context UriInfo uri)
 	{
-		checkAuth(authCookie);
+		checkAuthCookie(authCookie);
 		ItemProxy item = getProxy(uuid);
 		Event ev = (Event)get(item, ClusterStorage.HISTORY, eventId);
 		return toJSON(makeEventData(ev, uri));
@@ -61,7 +61,7 @@ public class ItemHistory extends RemoteMapAccess {
      * @return
      */
 	private Response getEventOutcome(String uuid, String eventId, Cookie authCookie, UriInfo uri, boolean json) {
-		checkAuth(authCookie);
+		checkAuthCookie(authCookie);
 		ItemProxy item = getProxy(uuid);
 		Event ev = (Event)get(item, ClusterStorage.HISTORY, eventId);
 		if (ev.getSchemaName() == null || ev.getSchemaName().equals(""))
