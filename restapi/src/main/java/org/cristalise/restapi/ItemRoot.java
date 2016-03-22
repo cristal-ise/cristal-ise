@@ -21,7 +21,7 @@ public class ItemRoot extends ItemUtils {
 	@Path("name")
 	@Produces(MediaType.TEXT_PLAIN)
 	public String getName(@PathParam("uuid") String uuid, @CookieParam(COOKIENAME) Cookie authCookie) {
-		checkAuth(authCookie);
+		checkAuthCookie(authCookie);
 		return getProxy(uuid).getName();
 	}
 
@@ -29,7 +29,7 @@ public class ItemRoot extends ItemUtils {
 	@Produces(MediaType.APPLICATION_JSON)
 	public Response getItemSummary(@PathParam("uuid") String uuid, @CookieParam(COOKIENAME) Cookie authCookie,
 			@Context UriInfo uri) {
-		checkAuth(authCookie);
+		checkAuthCookie(authCookie);
 		ItemProxy item = getProxy(uuid);
 		
 		LinkedHashMap<String, Object> itemSummary = new LinkedHashMap<String, Object>();

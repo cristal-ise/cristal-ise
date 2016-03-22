@@ -39,7 +39,7 @@ public class PathAccess extends RestHandler {
 			@CookieParam(COOKIENAME) 				Cookie authCookie,
 			@Context 								UriInfo uri)
 	{
-		checkAuth(authCookie);	
+		checkAuthCookie(authCookie);	
 		DomainPath domPath = new DomainPath(path);
 		if (batchSize == null) batchSize = Gateway.getProperties().getInt("REST.Path.DefaultBatchSize", 
 				Gateway.getProperties().getInt("REST.DefaultBatchSize", 75));

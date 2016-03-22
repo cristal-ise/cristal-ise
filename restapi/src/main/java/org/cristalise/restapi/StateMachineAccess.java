@@ -10,7 +10,7 @@ public class StateMachineAccess extends ResourceAccess {
 	@Produces(MediaType.APPLICATION_JSON)
 	public Response listAllStateMachines(@CookieParam(COOKIENAME) Cookie authCookie,
 			@Context UriInfo uri) {
-		checkAuth(authCookie);
+		checkAuthCookie(authCookie);
 		return listAllResources("StateMachine", uri);
 	}
 	
@@ -19,7 +19,7 @@ public class StateMachineAccess extends ResourceAccess {
 	@Produces(MediaType.APPLICATION_JSON)
 	public Response listStateMachineVersions(@PathParam("name") String name, @CookieParam(COOKIENAME) Cookie authCookie,
 			@Context UriInfo uri) {
-		checkAuth(authCookie);
+		checkAuthCookie(authCookie);
 		return listResourceVersions("StateMachine", "StateMachine", "stateMachine", name, uri);
 	}
 	
@@ -28,7 +28,7 @@ public class StateMachineAccess extends ResourceAccess {
 	@Produces(MediaType.TEXT_XML)
 	public Response getStateMachineData(@PathParam("name") String name, @PathParam("version") Integer version,
 			@CookieParam(COOKIENAME) Cookie authCookie) {
-		checkAuth(authCookie);
+		checkAuthCookie(authCookie);
 		return getResource("StateMachine", "StateMachine", name, version);
 	}
 }

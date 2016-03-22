@@ -61,14 +61,17 @@ public class RestHandler {
 		decryptCipher.init(Cipher.DECRYPT_MODE, cookieKey, new IvParameterSpec(encryptCipher.getIV()));
 	}
 	
-	protected String makeCookie(AuthData auth) throws IllegalBlockSizeException, BadPaddingException {
+	private AuthData decryptAuthData(String authData)
+			throws InvalidAgentPathException, IllegalBlockSizeException,
+			BadPaddingException, InvalidDataException {
+		byte[] bytes = DatatypeConverter.parseBase64Binary(authData);
+		return new AuthData(decryptCipher.doFinal(bytes));
+	}
+
+	protected String encryptAuthData(AuthData auth)
+			throws IllegalBlockSizeException, BadPaddingException {
 		byte[] bytes = encryptCipher.doFinal(auth.getBytes());
 		return DatatypeConverter.printBase64Binary(bytes);
-	}
-	
-	private AuthData readCookie(Cookie cookie) throws InvalidAgentPathException, IllegalBlockSizeException, BadPaddingException, InvalidDataException {
-		byte[] bytes = DatatypeConverter.parseBase64Binary(cookie.getValue());
-		return new AuthData(decryptCipher.doFinal(bytes));
 	}
 	
 	public Response toJSON(Object data) {
@@ -82,18 +85,26 @@ public class RestHandler {
 		return Response.ok(childPathDataJSON).build();
 	}
 	
-	public void checkAuth(Cookie authCookie) {
-		if (!Gateway.getProperties().getBoolean("REST.requireLoginCookie", true)) return;
-		if (authCookie == null) 
-			throw ItemUtils.createWebAppException("Login required", Response.Status.UNAUTHORIZED);
+	public void checkAuthCookie(Cookie authCookie) {
+		checkAuthData(authCookie.getValue());
+	}
+	
+	public AgentPath checkAuthData(String authData) {
+		if (!Gateway.getProperties()
+				.getBoolean("REST.requireLoginCookie", true)) {
+			return null;
+		}
+		if (authData == null) {
+			throw new WebApplicationException("Login required", 401);
+		}
 		try {
-			readCookie(authCookie);
-			return;
+			AuthData data = decryptAuthData(authData);
+			return data.agent;
 		} catch (InvalidAgentPathException | InvalidDataException e) {
-			throw ItemUtils.createWebAppException("Invalid login", Response.Status.BAD_REQUEST);
+			throw new WebApplicationException("Invalid login", 400);
 		} catch (Exception e) {
 			Logger.error(e);
-			throw ItemUtils.createWebAppException("Error reading authCookie");
+			throw new WebApplicationException("Error reading authCookie");
 		}
 	}
 	
@@ -102,7 +113,7 @@ public class RestHandler {
 		
 		if (authCookie!=null) {
 			try {
-				AuthData auth = readCookie(authCookie);
+				AuthData auth = decryptAuthData(authCookie.getValue());
 				agentPath = auth.agent;
 			} catch (Exception e) {
 				Logger.error(e);
@@ -131,24 +142,28 @@ public class RestHandler {
 	public class AuthData {
 		AgentPath agent;
 		Date timestamp;
-		
+
 		public AuthData(AgentPath agent) {
 			this.agent = agent;
 			timestamp = new Date();
 		}
-		
-		public AuthData(byte[] bytes) throws InvalidAgentPathException, InvalidDataException {
+
+		public AuthData(byte[] bytes) throws InvalidAgentPathException,
+				InvalidDataException {
 			ByteBuffer buf = ByteBuffer.wrap(bytes);
 			SystemKey sysKey = new SystemKey(buf.getLong(), buf.getLong());
 			agent = new AgentPath(new ItemPath(sysKey));
 			timestamp = new Date(buf.getLong());
-			int cookieLife = Gateway.getProperties().getInt("REST.loginCookieLife", 0);
-			if (cookieLife > 0 && (new Date().getTime()-timestamp.getTime())/1000 > cookieLife)
+			int cookieLife = Gateway.getProperties().getInt(
+					"REST.loginCookieLife", 0);
+			if (cookieLife > 0
+					&& (new Date().getTime() - timestamp.getTime()) / 1000 > cookieLife) {
 				throw new InvalidDataException("Cookie too old");
+			}
 		}
-		
+
 		public byte[] getBytes() {
-			byte[] bytes = new byte[Long.SIZE*3];
+			byte[] bytes = new byte[Long.SIZE * 3];
 			SystemKey sysKey = agent.getSystemKey();
 			ByteBuffer buf = ByteBuffer.wrap(bytes);
 			buf.putLong(sysKey.msb);
@@ -157,4 +172,6 @@ public class RestHandler {
 			return bytes;
 		}
 	}
+	
+	
 }

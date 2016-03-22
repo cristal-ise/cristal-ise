@@ -23,7 +23,7 @@ public class ItemData extends ItemUtils {
 	public Response getSchemas(@PathParam("uuid") String uuid,
 			@CookieParam(COOKIENAME) Cookie authCookie,
 			@Context UriInfo uri) {
-		checkAuth(authCookie);
+		checkAuthCookie(authCookie);
 		ItemProxy item = ItemRoot.getProxy(uuid);
 		return toJSON(enumerate(item, ClusterStorage.VIEWPOINT, "data", uri));
 	}
@@ -35,7 +35,7 @@ public class ItemData extends ItemUtils {
 			@PathParam("schema") String schema,
 			@CookieParam(COOKIENAME) Cookie authCookie,
 			@Context UriInfo uri) {
-		checkAuth(authCookie);
+		checkAuthCookie(authCookie);
 		ItemProxy item = ItemRoot.getProxy(uuid);
 		return toJSON(enumerate(item, ClusterStorage.VIEWPOINT+"/"+schema, "data/"+schema, uri));
 	}
@@ -51,7 +51,7 @@ public class ItemData extends ItemUtils {
      * @return
      */
 	private Response queryData(String uuid, String schema, String viewName, Cookie authCookie, UriInfo uri, boolean json) {
-		checkAuth(authCookie);
+		checkAuthCookie(authCookie);
 		ItemProxy item = ItemRoot.getProxy(uuid);
 		Viewpoint view;
 		try {
@@ -110,7 +110,7 @@ public class ItemData extends ItemUtils {
 			@PathParam("viewName") String viewName,
 			@CookieParam(COOKIENAME) Cookie authCookie,
 			@Context UriInfo uri) {
-		checkAuth(authCookie);
+		checkAuthCookie(authCookie);
 		ItemProxy item = ItemRoot.getProxy(uuid);
 		Viewpoint view;
 		try {
@@ -138,7 +138,7 @@ public class ItemData extends ItemUtils {
 			@PathParam("viewName") String viewName,
 			@CookieParam(COOKIENAME) Cookie authCookie,
 			@Context UriInfo uri) {
-		checkAuth(authCookie);
+		checkAuthCookie(authCookie);
 		ItemProxy item = ItemRoot.getProxy(uuid);
 		History history;
 		try {
@@ -170,7 +170,7 @@ public class ItemData extends ItemUtils {
 			@PathParam("event") Integer eventId,
 			@CookieParam(COOKIENAME) Cookie authCookie,
 			@Context UriInfo uri) {
-		checkAuth(authCookie);
+		checkAuthCookie(authCookie);
 		ItemProxy item = ItemRoot.getProxy(uuid);
 		Event ev;
 		try {
@@ -200,7 +200,7 @@ public class ItemData extends ItemUtils {
 			@PathParam("event") Integer eventId,
 			@CookieParam(COOKIENAME) Cookie authCookie,
 			@Context UriInfo uri) {
-		checkAuth(authCookie);
+		checkAuthCookie(authCookie);
 		ItemProxy item = ItemRoot.getProxy(uuid);
 		Event ev;
 		try {
