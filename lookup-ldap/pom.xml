@@ -25,7 +25,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>org.cristalise</groupId>
 	<artifactId>cristalise-ldap</artifactId>
-	<version>3.1-SNAPSHOT</version>
+	<version>3.2-SNAPSHOT</version>
 	<name>CristalLDAP</name>
 	<description>CRISTAL LDAP Lookup, Authentication and Property Storage Module</description>
 	<properties>
@@ -93,7 +93,7 @@
 			<dependency>
 				<groupId>org.cristalise</groupId>
 				<artifactId>cristalise-kernel</artifactId>
-				<version>3.1-SNAPSHOT</version>
+				<version>3.2-SNAPSHOT</version>
 			</dependency>
 			<dependency>
 				<groupId>com.novell.ldap</groupId>
