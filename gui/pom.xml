@@ -24,7 +24,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>org.cristalise</groupId>
 	<artifactId>cristalise-gui</artifactId>
-	<version>3.2-SNAPSHOT</version>
+	<version>3.2</version>
 	<name>cristalise-gui</name>
 	<description>Cristal-ise default GUI</description>
 	<properties>
@@ -45,7 +45,7 @@
 			<dependency>
 				<groupId>org.cristalise</groupId>
 				<artifactId>cristalise-kernel</artifactId>
-				<version>3.2-SNAPSHOT</version>
+				<version>3.2</version>
 			</dependency>
 			<dependency>
 				<groupId>com.fifesoft</groupId>
