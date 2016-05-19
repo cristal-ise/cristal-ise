@@ -174,22 +174,22 @@
   		<dependency>
   			<groupId>org.cristalise</groupId>
   			<artifactId>cristalise-kernel</artifactId>
-  			<version>3.2-SNAPSHOT</version>
+  			<version>3.2</version>
   		</dependency>
   		<dependency>
   			<groupId>org.cristalise</groupId>
   			<artifactId>cristalise-gui</artifactId>
-  			<version>3.2-SNAPSHOT</version>
+  			<version>3.2</version>
   		</dependency>
   		<dependency>
   			<groupId>org.cristalise</groupId>
   			<artifactId>cristalise-xmldb</artifactId>
-  			<version>1.1-SNAPSHOT</version>
+  			<version>3.2</version>
   		</dependency>
   		<dependency>
   			<groupId>org.cristalise</groupId>
   			<artifactId>cristalise-ldap</artifactId>
-  			<version>3.1-SNAPSHOT</version>
+  			<version>3.2</version>
   		</dependency>
   		<dependency>
   			<groupId>org.cristalise</groupId>
