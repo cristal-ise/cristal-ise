@@ -1,0 +1,37 @@
+Name=Cristal Development Server
+
+//Authenticator=org.cristalise.lookup.ldap.LDAPAuthManager
+
+// TCP server ports
+ItemServer.name=localhost
+ItemServer.iiop=1505
+ItemServer.Proxy.port=1555
+
+// LDAP Lookup config
+LDAP.GlobalPath=o=cern,c=ch
+LDAP.RootPath=cn=cristal
+LDAP.LocalPath=cn=dev
+LDAP.port=389
+LDAP.host=localhost
+LDAP.user=cn=admin,o=cern,c=ch
+LDAP.password=cristal
+
+XMLDB.URI=xmldb:exist://localhost:8080/exist/xmlrpc/db
+XMLDB.root=dev
+XMLDB.user=admin
+XMLDB.password=admin
+
+// REST params
+REST.URI=http://localhost:8081/
+REST.allowWeakKey=true
+REST.requireLoginCookie=false
+REST.loginCookieLife=300
+// default batch sizes. Each batch may be configured individually or fall back to the global size
+REST.Job.DefaultBatchSize=50
+REST.Event.DefaultBatchSize=50
+REST.Path.DefaultBatchSize=75
+REST.DefaultBatchSize=50
+REST.addCorsHeaders=true
+
+//Use only for debugging! Set it to true for server to return exception details about the error
+REST.Debug.errorsWithBody=true
