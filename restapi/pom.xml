@@ -28,7 +28,7 @@
     <groupId>org.cristalise</groupId>
     <artifactId>cristalise-restapi</artifactId>
     <packaging>jar</packaging>
-    <version>3.2</version>
+    <version>3.3-SNAPSHOT</version>
     <name>cristalise-restapi</name>
     <dependencyManagement>
         <dependencies>
@@ -81,6 +81,12 @@
 			<artifactId>json</artifactId>
 			<version>20151123</version>
 		</dependency>
+        <dependency>
+            <groupId>org.cristalise</groupId>
+            <artifactId>cristalise-ldap</artifactId>
+            <version>3.2</version>
+            <scope>test</scope>
+        </dependency>
 	</dependencies>
 
     <build>
