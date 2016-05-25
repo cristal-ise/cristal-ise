@@ -26,6 +26,68 @@
 	<artifactId>cristalise-xmldb</artifactId>
 	<name>cristalise-xmldb</name>
 	<description>CRISTAL eXist-db Storage Module</description>
+	<url>https://github.com/cristal-ise/xmldb</url>
+	<licenses>
+		<license>
+			<name>GNU Library or Lesser General Public License v3 (LGPL3)</name>
+			<url>http://www.gnu.org/licenses/lgpl.html</url>
+		</license>
+	</licenses>
+	<developers>
+		<developer>
+			<name>Andrew Branson</name>
+			<email>andrew.branson@cern.ch</email>
+			<organization>UWE CCCS</organization>
+			<organizationUrl>http://www.cccs.uwe.ac.uk/et/research/cccs</organizationUrl>
+			<roles>
+				<role>CEO</role>
+			</roles>
+		</developer>
+		<developer>
+			<name>Jetendr Shamdasani</name>
+			<email>jetendr.shamdasani@cern.ch</email>
+			<organization>UWE CCCS</organization>
+			<organizationUrl>http://www.cccs.uwe.ac.uk/et/research/cccs</organizationUrl>
+			<roles>
+				<role>CEO</role>
+			</roles>
+		</developer>
+		<developer>
+			<name>Zsolt Kovács</name>
+			<email>zs.myth@gmail.com</email>
+			<organization>UWE CCCS</organization>
+			<organizationUrl>http://www.cccs.uwe.ac.uk/et/research/cccs</organizationUrl>
+			<roles>
+				<role>Pinky/Brain</role>
+			</roles>
+		</developer>
+	</developers>
+	<issueManagement>
+		<url>https://github.com/cristal-ise/xmldb/issues</url>
+		<system>GitHub</system>
+	</issueManagement>
+	<organization>
+		<name>CRISTAL-iSE</name>
+		<url>http://cristal-ise.github.io/</url>
+	</organization>
+	<ciManagement>
+		<system>Jenkins</system>
+		<url>https://travis-ci.org/cristal-ise/xmldb</url>
+	</ciManagement>
+	<scm>
+		<developerConnection>scm:https://github.com/cristal-ise/xmldb.git</developerConnection>
+		<url>https://github.com/cristal-ise/xmldb</url>
+		<tag>master</tag>
+	</scm>
+	<mailingLists>
+		<mailingList>
+			<name>User List</name>
+			<post>cristal-users@cern.ch</post>
+			<subscribe>cristal-users-subscribe@cern.ch</subscribe>
+			<unsubscribe>cristal-users-unsubscribe@cern.ch</unsubscribe>
+			<archive>https://groups.cern.ch/group/cristal-users/default.aspx</archive>
+		</mailingList>
+	</mailingLists>
 	<build>
 		<resources>
 			<resource>
