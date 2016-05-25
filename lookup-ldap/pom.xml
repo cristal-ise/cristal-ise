@@ -28,6 +28,68 @@
 	<version>3.2</version>
 	<name>CristalLDAP</name>
 	<description>CRISTAL LDAP Lookup, Authentication and Property Storage Module</description>
+	<url>https://github.com/cristal-ise/lookup-ldap</url>
+	<licenses>
+		<license>
+			<name>GNU Library or Lesser General Public License v3 (LGPL3)</name>
+			<url>http://www.gnu.org/licenses/lgpl.html</url>
+		</license>
+	</licenses>
+	<developers>
+		<developer>
+			<name>Andrew Branson</name>
+			<email>andrew.branson@cern.ch</email>
+			<organization>UWE CCCS</organization>
+			<organizationUrl>http://www.cccs.uwe.ac.uk/et/research/cccs</organizationUrl>
+			<roles>
+				<role>CEO</role>
+			</roles>
+		</developer>
+		<developer>
+			<name>Jetendr Shamdasani</name>
+			<email>jetendr.shamdasani@cern.ch</email>
+			<organization>UWE CCCS</organization>
+			<organizationUrl>http://www.cccs.uwe.ac.uk/et/research/cccs</organizationUrl>
+			<roles>
+				<role>CEO</role>
+			</roles>
+		</developer>
+		<developer>
+			<name>Zsolt Kovács</name>
+			<email>zs.myth@gmail.com</email>
+			<organization>UWE CCCS</organization>
+			<organizationUrl>http://www.cccs.uwe.ac.uk/et/research/cccs</organizationUrl>
+			<roles>
+				<role>Pinky/Brain</role>
+			</roles>
+		</developer>
+	</developers>
+	<issueManagement>
+		<url>https://github.com/cristal-ise/lookup-ldap/issues</url>
+		<system>GitHub</system>
+	</issueManagement>
+	<organization>
+		<name>CRISTAL-iSE</name>
+		<url>http://cristal-ise.github.io/</url>
+	</organization>
+	<ciManagement>
+		<system>Jenkins</system>
+		<url>https://travis-ci.org/cristal-ise/lookup-ldap</url>
+	</ciManagement>
+	<scm>
+		<developerConnection>scm:https://github.com/cristal-ise/lookup-ldap.git</developerConnection>
+		<url>https://github.com/cristal-ise/lookup-ldap</url>
+		<tag>master</tag>
+	</scm>
+	<mailingLists>
+		<mailingList>
+			<name>User List</name>
+			<post>cristal-users@cern.ch</post>
+			<subscribe>cristal-users-subscribe@cern.ch</subscribe>
+			<unsubscribe>cristal-users-unsubscribe@cern.ch</unsubscribe>
+			<archive>https://groups.cern.ch/group/cristal-users/default.aspx</archive>
+		</mailingList>
+	</mailingLists>
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 	</properties>
