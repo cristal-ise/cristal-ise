@@ -191,11 +191,6 @@
   			<artifactId>cristalise-ldap</artifactId>
   			<version>3.2</version>
   		</dependency>
-  		<dependency>
-  			<groupId>org.cristalise</groupId>
-  			<artifactId>cristalise-js-rhino</artifactId>
-  			<version>1.0</version>
-  		</dependency>
   	</dependencies>
   </dependencyManagement>
   <dependencies>
@@ -214,10 +209,6 @@
   	<dependency>
   		<groupId>org.cristalise</groupId>
   		<artifactId>cristalise-ldap</artifactId>
-  	</dependency>
-  	<dependency>
-  		<groupId>org.cristalise</groupId>
-  		<artifactId>cristalise-js-rhino</artifactId>
   	</dependency>
   </dependencies>
 </project>
