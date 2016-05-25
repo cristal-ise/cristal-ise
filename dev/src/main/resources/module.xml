@@ -9,6 +9,12 @@
 	<ResourceURL>uk/ac/uwe/cristaldev/resources/</ResourceURL>
     <Config name="Module.dev.debug">true</Config>
     <Config name="OutcomeInit.Dev">org.cristalise.dev.DevObjectOutcomeInitiator</Config>
+    <Config name="OverrideScriptLang.javascript">rhino</Config>
+    <Config name="OverrideScriptLang.JavaScript">rhino</Config>
+    <Config name="OverrideScriptLang.js">rhino</Config>
+    <Config name="OverrideScriptLang.JS">rhino</Config>
+    <Config name="OverrideScriptLang.ECMAScript">rhino</Config>
+    <Config name="OverrideScriptLang.ecmascript">rhino</Config>
 	<Imports>
 		<Resource name="NewDevObjectDef" version="0" type="OD">boot/OD/NewDevObjectDef.xsd</Resource>
 		<Resource name="ChooseWorkflow" version="0" type="OD">boot/OD/ChooseWorkflow.xsd</Resource>
@@ -209,12 +215,14 @@
 		</Item>
 		<Role jobList="false">User</Role>
 		<Role jobList="false">User/SubUser</Role>
+        <Role jobList="false">WBOperator</Role>
 		<Agent name="dev" password="test">
 			<Role>Admin</Role>
 		</Agent>
 		<Agent name="user" password="test">
 			<Role>SubUser</Role>
 			<Role>Admin</Role>
+            <Role>WBOperator</Role>
 		</Agent>
 	</Imports>
 </CristalModule>
