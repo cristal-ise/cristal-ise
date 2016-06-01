@@ -20,7 +20,7 @@ class LookupTestBase {
     public void setUp() throws Exception {
         Logger.addLogStream(System.out, 8);
 
-        lookup = new InMemoryLookupManager()
+        lookup = InMemoryLookupManager.instance
 
         FieldUtils.writeDeclaredStaticField(Gateway.class, "mLookupManager", lookup, true)
         FieldUtils.writeDeclaredStaticField(Gateway.class, "mLookup", lookup, true)

@@ -36,8 +36,14 @@ import org.cristalise.kernel.utils.Logger
 
 
 @CompileStatic
+@Singleton
 class InMemoryLookupManager extends InMemoryLookup implements LookupManager {
-    
+
+    public static InMemoryLookupManager getInstance() {
+        instance.clear()
+        return instance;
+    }
+
     @Override
     public void initializeDirectory() throws ObjectNotFoundException {
         Logger.msg(8, "InMemoryLookupManager.initializeDirectory() - Do nothing");
@@ -65,7 +71,8 @@ class InMemoryLookupManager extends InMemoryLookup implements LookupManager {
                         Logger.msg(8, "InMemoryLookupManager.add() + DomainPath '$sPath' already exists")
                     }
                     else {
-                        DomainPath d = new DomainPath(sPath)
+                        DomainPath d = new DomainPath(Path.CONTEXT)
+                        d.setPath(sPath)
                         cache[d.string] = d
                         Logger.msg(8, "InMemoryLookupManager.add() + DomainPath '$d' was added")
                     }

@@ -30,16 +30,21 @@ import org.cristalise.kernel.lookup.ItemPath
 import org.cristalise.kernel.lookup.Lookup
 import org.cristalise.kernel.lookup.Path
 import org.cristalise.kernel.lookup.RolePath
+import org.cristalise.kernel.persistency.ClusterStorage
 import org.cristalise.kernel.process.auth.Authenticator
 import org.cristalise.kernel.property.Property
 import org.cristalise.kernel.property.PropertyDescriptionList
 import org.cristalise.kernel.utils.Logger
+import org.cristalise.storage.MemoryOnlyClusterStorage
+
 
 @CompileStatic
-abstract class InMemoryLookup implements Lookup {
+abstract class InMemoryLookup extends ClusterStorage implements Lookup {
+
+    @Delegate MemoryOnlyClusterStorage propertyStore = new MemoryOnlyClusterStorage()
 
     protected Map cache = [:] //LinkedHashMap
-    
+
     //Maps String RolePath to List of String AgentPath
     protected Map<String,List<String>> role2AgentsCache  = [:]
 
@@ -52,6 +57,11 @@ abstract class InMemoryLookup implements Lookup {
             public Path next() { return null; }
             public void remove() {}
         };
+    }
+
+    public void clear() {
+        cache.clear()
+        propertyStore.clear()
     }
 
     /**
@@ -186,23 +196,41 @@ abstract class InMemoryLookup implements Lookup {
 
     @Override
     public Iterator<Path> search(Path start, Property... props) {
-        // TODO: Implement search(Path, props)
-        Logger.warning("InMemoryLookup.search() - Path: $start, # of props: $props.length, props[0]: ${props[0].name} - ${props[0].value} -This implemetation ALWAYS returns empty result!");
-        return getEmptyPathIter();
+        Logger.msg(5,"InMemoryLookup.search(props) - Start: $start, # of props: $props.length");
+        String name = ""
+
+        for(def prop in props) {
+            Logger.msg(5,"InMemoryLookup.search(props) - Property: ${prop.name} - ${prop.value}");
+            if(prop.name == "Name") name = prop.value
+        }
+
+        def result = []
+        def foundPathes = search(start, name)
+
+        foundPathes.each { Path p ->
+            ItemPath ip
+
+            if     (p instanceof DomainPath) { ip = ((DomainPath)p).itemPath }
+            else if(p instanceof ItemPath)   { ip = (ItemPath)p}
+            
+            if(checkItemProps(ip, props)) { result.add(p) }
+        }
+        Logger.msg(5, "InMemoryLookup.search(props) - returning ${result.size()} pathes");
+        return result.iterator()
     }
 
     @Override
     public Iterator<Path> search(Path start, PropertyDescriptionList props) {
         // TODO: Implement search(Path,PropDescList)
-        Logger.warning("InMemoryLookup.search() - Path: $start, # of propDescList: $props.list.size - This implemetation ALWAYS returns empty result!");
-        return getEmptyPathIter();
+        throw new RuntimeException("InMemoryLookup.search() - UNIMPLEMENTED Start: $start, # of propDescList: $props.list.size - This implemetation ALWAYS returns empty result!");
+        //return getEmptyPathIter();
     }
 
     @Override
     public Iterator<Path> searchAliases(ItemPath itemPath) {
         // TODO: Implement searchAliases
-        Logger.warning("InMemoryLookup.searchAliases() - ItemPath: $itemPath - This implemetation ALWAYS returns empty result!");
-        return getEmptyPathIter();
+        throw new RuntimeException("InMemoryLookup.searchAliases() - UNIMPLEMENTED ItemPath: $itemPath - This implemetation ALWAYS returns empty result!");
+        //return getEmptyPathIter();
     }
 
     @Override
@@ -254,4 +282,16 @@ abstract class InMemoryLookup implements Lookup {
         AgentPath p = (AgentPath) retrievePath(agentPath.string)
         return p.agentName;
     }
+
+    private boolean checkItemProps(ItemPath itemP, Property... props) {
+        boolean found = true
+        props.each { Property prop ->
+            Property p = (Property)propertyStore.get(itemP.itemPath,"Property/"+prop.name)
+            found = found && p && (p.value == prop.value)
+
+            if(!found) return
+        }
+        return found
+    }
+
 }
