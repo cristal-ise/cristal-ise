@@ -1,0 +1,9 @@
+<CristalModule ns="xpathoi" name="XPathOutcomeInitiator">
+	<Info>
+		<Description>CRISTAL-iSE ....</Description>
+		<Version>${version}</Version>
+		<KernelVersion>3.3</KernelVersion>
+	</Info>
+    <Config name="OutcomeInit.Empty">org.cristalise.kernel.persistency.outcome.EmptyOutcomeInitiator</Config>
+    <Config name="OutcomeInit.XPath">org.cristalise.kernel.persistency.outcome.XPathOutcomeInitiator</Config>
+</CristalModule>
