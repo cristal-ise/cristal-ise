@@ -26,7 +26,7 @@
 		</Activity>
 		<Activity name="EditPropertyDescription" version="0" resource="boot/EA/EditPropertyDescription.xml">
 			<Schema name="PropertyDescription" version="0"/>
-		</Activity>		
+		</Activity>
 		<Resource name="InstantiateItem" version="0" type="SC">boot/SC/InstantiateItem.xml</Resource>
 		<Activity name="CreateItem" version="0" resource="boot/EA/CreateItem.xml">
 			<Schema name="NewDevObjectDef" version="0"/>
@@ -67,10 +67,10 @@
 		</Workflow>
 		<Workflow name="ItemDescriptionFactoryWf" version="0" resource="boot/CA/ItemDescriptionFactoryWf.xml">
 			<Activity name="CreateItem" version="0"/>
-		</Workflow>		
+		</Workflow>
 		<Workflow name="ReadOnlyItemDescriptionWf" version="0" resource="boot/CA/ReadOnlyItemDescriptionWf.xml">
 			<Activity name="CreateItem" version="0"/>
-		</Workflow>		
+		</Workflow>
 		<Workflow name="ModuleFactory" version="0" resource="boot/CA/ModuleFactory.xml">
 			<Activity name="CreateItem" version="0"/>
 		</Workflow>
@@ -90,7 +90,7 @@
 			<Activity name="EditModuleConfiguration" version="0"/>
 			<Activity name="EditModuleAgents" version="0"/>
 			<Activity name="ExportModule" version="0"/>
-		</Workflow>	
+		</Workflow>
 		<Item name="ScriptFactory" initialPath="/desc/dev" workflow="ScriptFactoryWf">
 			<Property name="LocalObjectType">Script</Property>
 			<Property name="Type">Factory</Property>
@@ -132,7 +132,7 @@
 				</DependencyMember>
 				<CollectionProperties/>
 			</Dependency>
-		</Item>		
+		</Item>
 		<Item name="ElementaryActivityDefFactory" initialPath="/desc/dev" workflow="ElementaryActivityFactory">
 			<Property name="LocalObjectType">ElementaryActivityDef</Property>
 			<Property name="Type">Factory</Property>
@@ -158,7 +158,7 @@
 		<Item name="ActivityDefType" initialPath="/desc/dev" workflow="NoWorkflow">
 			<Property name="Type">Type</Property>
 			<Outcome viewname="last" schema="PropertyDescription" version="0">boot/property/ACProp.xml</Outcome>
-		</Item>		
+		</Item>
 		<Item name="CompositeActivityDefFactory" initialPath="/desc/dev" workflow="CompositeActivityFactory">
 			<Property name="LocalObjectType">CompositeActivityDef</Property>
 			<Property name="Type">Factory</Property>
@@ -215,14 +215,12 @@
 		</Item>
 		<Role jobList="false">User</Role>
 		<Role jobList="false">User/SubUser</Role>
-        <Role jobList="false">WBOperator</Role>
 		<Agent name="dev" password="test">
 			<Role>Admin</Role>
 		</Agent>
 		<Agent name="user" password="test">
 			<Role>SubUser</Role>
 			<Role>Admin</Role>
-            <Role>WBOperator</Role>
 		</Agent>
 	</Imports>
 </CristalModule>
