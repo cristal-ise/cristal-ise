@@ -2,7 +2,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>org.cristalise</groupId>
 	<artifactId>cristalise-dev</artifactId>
-	<version>3.2</version>
+	<version>3.3-SNAPSHOT</version>
 	<name>Cristal Development Module</name>
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -145,7 +145,7 @@
   		<dependency>
   			<groupId>org.cristalise</groupId>
   			<artifactId>cristalise-kernel</artifactId>
-  			<version>3.2</version>
+  			<version>3.3-SNAPSHOT</version>
   		</dependency>
   		<dependency>
   			<groupId>org.cristalise</groupId>
