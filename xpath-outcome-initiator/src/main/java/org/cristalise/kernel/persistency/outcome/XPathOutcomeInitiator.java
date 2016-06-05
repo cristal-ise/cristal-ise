@@ -51,11 +51,8 @@ public class XPathOutcomeInitiator extends EmptyOutcomeInitiator {
     }
 
     /**
-     * Finds all Properties of Activity where the name of the Property is a XPath
-     * and updates the empty Outcome with the values using the Property name and its valiu
      * 
      */
-    @Override
     public Outcome initOutcomeInstance(Job job) throws InvalidDataException {
         Map<String, Object> actProps = job.matchhActPropNames(propNamePattern);
 

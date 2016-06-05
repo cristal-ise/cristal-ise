@@ -20,29 +20,135 @@
  */
 package org.cristalise.kernel.persistency.outcome;
 
+import java.util.ArrayList;
+import java.util.Collection;
+
+import org.apache.xmlbeans.SchemaType;
+import org.apache.xmlbeans.SchemaTypeSystem;
+import org.apache.xmlbeans.XmlBeans;
+import org.apache.xmlbeans.XmlException;
+import org.apache.xmlbeans.XmlObject;
+import org.apache.xmlbeans.XmlOptions;
+import org.apache.xmlbeans.impl.xsd2inst.SampleXmlUtil;
 import org.cristalise.kernel.common.InvalidDataException;
+import org.cristalise.kernel.common.ObjectNotFoundException;
 import org.cristalise.kernel.entity.agent.Job;
+import org.cristalise.kernel.utils.Logger;
 
 /**
- * 
+ * OutcomeInitiator implementation creating an 'empty' Outcome from XML a Schema.
+ * It is based on Apache XMLBeans.
  */
 public class EmptyOutcomeInitiator implements OutcomeInitiator {
+
+    /**
+     * @return
+     */
+    protected static XmlOptions getXSDCompileOptions() {
+        XmlOptions options = new XmlOptions();
+
+        options.setCompileDownloadUrls();
+        options.setCompileNoPvrRule();
+        options.setCompileNoUpaRule();
+
+        return options;
+    }
+
+    protected static SchemaType getRootElement(String rootName, SchemaTypeSystem sts) throws InvalidDataException {
+        SchemaType[] globalElems = sts.documentTypes();
+        
+        if (globalElems == null) throw new InvalidDataException("Schema has no global elements.");
+
+        if(rootName == null) {
+            Logger.msg(5, "EmptyOutcomeInitiator.getRootElement() - rootName is null, trying to get the root from Schema");
+
+            if (globalElems.length != 1) throw new InvalidDataException("Ambiguious root: Schema has more than one global elements");
+
+            return globalElems[0];
+        }
+        else {
+            Logger.msg(5, "EmptyOutcomeInitiator.getRootElement() - rootName:"+rootName);
+
+            SchemaType elem = null;
+            boolean found = false;
+
+            for (int i = 0; i < globalElems.length && !found; i++) {
+                if (rootName.equals(globalElems[i].getDocumentElementName().getLocalPart())) {
+                    elem = globalElems[i];
+                    found = true;
+                }
+            }
+
+            if (!found) {
+                Logger.error("Could not find a global element with name '" + rootName + "'");
+                throw new InvalidDataException("Could not find a global element with name '" + rootName + "'");
+            }
+
+            return elem;
+        }
+    }
+    
+    protected static SchemaTypeSystem getSchemaTypeSystem(String xsd) throws InvalidDataException {
+        XmlObject[] schemas = new XmlObject[1]; 
+
+        try {
+            schemas[0] = XmlObject.Factory.parse( xsd, (new XmlOptions()).setLoadLineNumbers().setLoadMessageDigest());
+        }
+        catch (XmlException e) {
+            Logger.error(e);
+            throw new InvalidDataException(e.getMessage());
+        }
+
+        SchemaTypeSystem sts = null;
+        Collection errors = new ArrayList();
+
+        try {
+            sts = XmlBeans.compileXsd(schemas, XmlBeans.getBuiltinTypeSystem(), getXSDCompileOptions());
+            if (sts == null) throw new InvalidDataException("No Schemas to process.");
+            return sts;
+        }
+        catch (Exception e) {
+            Logger.error(e);
+
+            StringBuffer buffer = new StringBuffer();
+            
+            for (Object error: errors ) buffer.append(error.toString());
+
+            Logger.error("Errors to process Schema(s) : " + buffer.toString());
+            throw new InvalidDataException("Errors to process Schema(s) : " + buffer.toString());
+        }
+    }
 
     /**
      * 
      */
     @Override
     public String initOutcome(Job job) throws InvalidDataException {
-        return initOutcomeInstance(job).getData();
+        String xsd = null;
+        String rootElement = null;
+
+        try {
+            xsd = job.getSchema().getSchemaData();
+            rootElement = job.getActPropString("SchemaRootElementName");
+        }
+        catch (ObjectNotFoundException e) {
+            Logger.error(e);
+            throw new InvalidDataException(e.getMessage());
+        }
+
+        return SampleXmlUtil.createSampleForType( getRootElement(rootElement, getSchemaTypeSystem(xsd)) );
     }
 
     /**
-     * Finds all Properties of Activity where the name of the Property is a XPath
-     * and updates the empty Outcome with the values using the Property name and its valiu
      * 
      */
     @Override
     public Outcome initOutcomeInstance(Job job) throws InvalidDataException {
-        return null;
+        try {
+            return new Outcome(-1, initOutcome(job), job.getSchema());
+        } catch (ObjectNotFoundException e) {
+            Logger.error(e);
+            throw new InvalidDataException(e.getMessage());
+        }
     }
 }
