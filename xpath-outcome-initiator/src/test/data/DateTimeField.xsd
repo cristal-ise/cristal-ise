@@ -1,0 +1,9 @@
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+    <xs:element name="DateTimeField">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element minOccurs="1" maxOccurs="1" name="timestamp" type='xs:dateTime' />
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+</xs:schema>

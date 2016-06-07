@@ -8,6 +8,7 @@
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 	</properties>
+
 	<build>
 		<resources>
 			<resource>
@@ -42,6 +43,7 @@
 			</plugin>
 		</plugins>
 	</build>
+
 	<issueManagement>
 		<url>https://github.com/cristal-ise/xpath-outcome-initiator/issues</url>
 		<system>GitHub</system>
@@ -59,6 +61,7 @@
 		<url>https://github.com/cristal-ise/xpath-outcome-initiator</url>
 		<tag>master</tag>
 	</scm>
+
 	<distributionManagement>
 		<snapshotRepository>
 			<id>ossrh</id>
@@ -70,19 +73,11 @@
 		</repository>
 	</distributionManagement>
 
-	<dependencyManagement>
-		<dependencies>
-			<dependency>
-				<groupId>org.cristalise</groupId>
-				<artifactId>cristalise-kernel</artifactId>
-				<version>3.3-SNAPSHOT</version>
-			</dependency>
-		</dependencies>
-	</dependencyManagement>
 	<dependencies>
 		<dependency>
 			<groupId>org.cristalise</groupId>
 			<artifactId>cristalise-kernel</artifactId>
+			<version>3.3-SNAPSHOT</version>
 		</dependency>
 		<dependency>
 			<groupId>org.apache.xmlbeans</groupId>
@@ -93,6 +88,12 @@
 			<groupId>junit</groupId>
 			<artifactId>junit</artifactId>
 			<version>4.11</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.mockito</groupId>
+			<artifactId>mockito-core</artifactId>
+			<version>[2.0,)</version>
 			<scope>test</scope>
 		</dependency>
 	</dependencies>

@@ -21,18 +21,18 @@
 
 package org.cristalise.kernel.persistency.outcome;
 
-import static org.junit.Assert.fail;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 
-import org.cristalise.kernel.common.ObjectNotFoundException;
+import org.cristalise.kernel.common.InvalidDataException;
 import org.cristalise.kernel.entity.agent.Job;
-import org.cristalise.kernel.lifecycle.instance.stateMachine.Transition;
-import org.cristalise.kernel.lookup.ItemPath;
 import org.cristalise.kernel.utils.Logger;
 import org.custommonkey.xmlunit.DetailedDiff;
 import org.custommonkey.xmlunit.XMLUnit;
-import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.xml.sax.SAXException;
@@ -41,6 +41,8 @@ import org.xml.sax.SAXException;
  * 
  */
 public class EmptyOutcomeInitiatorTest {
+    
+    public static final String root = "src/test/data/";
     
     EmptyOutcomeInitiator emptyOI;
     
@@ -51,27 +53,22 @@ public class EmptyOutcomeInitiatorTest {
     public void setUp() throws Exception {
         emptyOI = new EmptyOutcomeInitiator();
     }
-    
-    public Job getJob() throws ObjectNotFoundException {
-        Job j = new Job();
-        j.setItemPath(new ItemPath());
-        j.setStepPath("/workflow/0");
-        j.setTransition(new Transition());
-        j.setOriginStateName("from");
-        j.setTargetStateName("to");
-        j.setStepName("toto");
-        j.setStepType("EA");
-        
-        try {
-            j.setAgentName("toto");
-        } catch (Exception e) {}
-        
-        j.setAgentRole("role");
+
+    public Job getJob(String xsd) throws Exception {
+        return getJob(xsd, null);
+    }
+
+    public Job getJob(String xsd, String rootElement) throws Exception {
+        Job j = mock(Job.class);
+
+     // stubbing appears before the actual execution
+        when(j.getSchema()).thenReturn(new Schema(xsd));
+        when(j.getActPropString("SchemaRootElementName")).thenReturn(rootElement);
 
         return j;
     }
-    
-    public static boolean compareXML(String expected, String actual) throws SAXException, IOException {
+
+    public boolean compareXML(String expected, String actual) throws SAXException, IOException {
         XMLUnit.setIgnoreWhitespace(true);
         XMLUnit.setIgnoreAttributeOrder(true);
         XMLUnit.setIgnoreComments(true);
@@ -83,26 +80,37 @@ public class EmptyOutcomeInitiatorTest {
         return diff.identical();
     }
 
-    /**
-     * @throws java.lang.Exception
-     */
-    @After
-    public void tearDown() throws Exception {
+    private void checkEmptyOutcome(String type) throws IOException, Exception, InvalidDataException, SAXException {
+        String xsd      = new String(Files.readAllBytes(Paths.get(root+type+".xsd")));
+        String expected = new String(Files.readAllBytes(Paths.get(root+type+".xml")));
+
+        Job j = getJob(xsd);
+
+        String actual = emptyOI.initOutcome(j);
+
+        Logger.msg(actual);
+
+        assert compareXML(expected, actual);
     }
 
-    /**
-     * 
-     * @throws Exception
-     */
     @Test
-    public void testInitOutcome() throws Exception {
-        Job j = getJob();
-        
-        String xml = emptyOI.initOutcome(j);
-        
-        assert compareXML("", xml);
-        
-        fail("Not yet implemented");
+    public void testSimpleFields() throws Exception {
+        checkEmptyOutcome("IntergerField");
+        checkEmptyOutcome("DecimalField");
+        checkEmptyOutcome("BooleanField");
+        checkEmptyOutcome("StringField");
+        checkEmptyOutcome("DateField");
+        checkEmptyOutcome("TimeField");
+        checkEmptyOutcome("DateTimeField");
     }
 
+    @Test
+    public void checkStateMachineInit() throws Exception {
+        checkEmptyOutcome("StateMachine");
+    }
+
+    @Test
+    public void checkPatientDetailsInit() throws Exception {
+        checkEmptyOutcome("PatientDetails");
+    }
 }

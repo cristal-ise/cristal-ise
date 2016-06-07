@@ -1,0 +1,9 @@
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+    <xs:element name="BooleanField">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element minOccurs="1" maxOccurs="1" name="flag" type='xs:boolean' />
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+</xs:schema>
