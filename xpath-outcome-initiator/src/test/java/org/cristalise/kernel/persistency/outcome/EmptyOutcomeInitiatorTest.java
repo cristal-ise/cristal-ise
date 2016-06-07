@@ -61,7 +61,6 @@ public class EmptyOutcomeInitiatorTest {
     public Job getJob(String xsd, String rootElement) throws Exception {
         Job j = mock(Job.class);
 
-     // stubbing appears before the actual execution
         when(j.getSchema()).thenReturn(new Schema(xsd));
         when(j.getActPropString("SchemaRootElementName")).thenReturn(rootElement);
 
@@ -94,7 +93,7 @@ public class EmptyOutcomeInitiatorTest {
     }
 
     @Test
-    public void testSimpleFields() throws Exception {
+    public void generateBasixXML() throws Exception {
         checkEmptyOutcome("IntergerField");
         checkEmptyOutcome("DecimalField");
         checkEmptyOutcome("BooleanField");
@@ -105,12 +104,17 @@ public class EmptyOutcomeInitiatorTest {
     }
 
     @Test
-    public void checkStateMachineInit() throws Exception {
+    public void generateStateMachineXML() throws Exception {
         checkEmptyOutcome("StateMachine");
     }
 
     @Test
-    public void checkPatientDetailsInit() throws Exception {
+    public void generatePatientDetailsXML() throws Exception {
         checkEmptyOutcome("PatientDetails");
+    }
+
+    @Test
+    public void generateModuleXML() throws Exception {
+        checkEmptyOutcome("Module");
     }
 }

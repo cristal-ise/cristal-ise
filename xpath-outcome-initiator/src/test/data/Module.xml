@@ -1,0 +1,86 @@
+<CristalModule name="string" ns="string">
+  <Info>
+    <Description>string</Description>
+    <Version>string</Version>
+    <!--Optional:-->
+    <KernelVersion>string</KernelVersion>
+    <!--Zero or more repetitions:-->
+    <Dependency>string</Dependency>
+  </Info>
+  <!--Optional:-->
+  <ResourceURL>string</ResourceURL>
+  <!--Zero or more repetitions:-->
+  <Config name="string" target="server">string</Config>
+  <!--Zero or more repetitions:-->
+  <Script event="install" target="client" lang="string">string</Script>
+  <!--Optional:-->
+  <Imports>
+    <!--You have a CHOICE of the next 6 items at this level-->
+    <!--Optional:-->
+    <Resource name="string" version="100" id="string" type="string">string</Resource>
+    <!--Optional:-->
+    <Activity name="string" version="100" id="string" resource="string">
+      <!--Zero or more repetitions:-->
+      <StateMachine uuid="stringstringstringstringstringstring" name="string" version="3"/>
+      <!--Zero or more repetitions:-->
+      <Schema uuid="stringstringstringstringstringstring" name="string" version="3"/>
+      <!--Zero or more repetitions:-->
+      <Script uuid="stringstringstringstringstringstring" name="string" version="3"/>
+    </Activity>
+    <!--Optional:-->
+    <Workflow name="string" version="100" id="string" resource="string">
+      <!--Zero or more repetitions:-->
+      <StateMachine uuid="stringstringstringstringstringstring" name="string" version="3"/>
+      <!--Zero or more repetitions:-->
+      <Schema uuid="stringstringstringstringstringstring" name="string" version="3"/>
+      <!--Zero or more repetitions:-->
+      <Script uuid="stringstringstringstringstringstring" name="string" version="3"/>
+      <!--Zero or more repetitions:-->
+      <Activity uuid="stringstringstringstringstringstring" name="string" version="3"/>
+    </Workflow>
+    <!--Optional:-->
+    <Item name="string" id="string" workflow="string" workflowVer="3" initialPath="string">
+      <!--Zero or more repetitions:-->
+      <Property name="string" mutable="true">string</Property>
+      <!--Zero or more repetitions:-->
+      <Outcome schema="string" version="string" viewname="string">string</Outcome>
+      <!--Zero or more repetitions:-->
+      <Dependency name="string" version="100" isDescription="false" itemDescriptionPath="string" itemDescriptionVersion="string">
+        <!--Zero or more repetitions:-->
+        <DependencyMember itemPath="string">
+          <!--Optional:-->
+          <MemberProperties>
+            <!--Zero or more repetitions:-->
+            <KeyValuePair Key="string" Boolean="true" String="string" Integer="3" Float="1.051732E7"/>
+          </MemberProperties>
+        </DependencyMember>
+        <!--Optional:-->
+        <CollectionProperties>
+          <!--Zero or more repetitions:-->
+          <KeyValuePair Key="string" Boolean="true" String="string" Integer="3" Float="1.051732E7"/>
+        </CollectionProperties>
+      </Dependency>
+      <!--Zero or more repetitions:-->
+      <Aggregation name="string" version="100" isDescription="true">
+        <!--Zero or more repetitions:-->
+        <AggregationMember slotNo="3" itemDescriptionPath="string" itemDescriptionVersion="string" itemPath="string">
+          <Geometry x="3" y="3" width="3" height="3"/>
+          <!--Optional:-->
+          <MemberProperties>
+            <!--Zero or more repetitions:-->
+            <KeyValuePair Key="string" Boolean="true" String="string" Integer="3" Float="1.051732E7"/>
+          </MemberProperties>
+        </AggregationMember>
+      </Aggregation>
+    </Item>
+    <!--Optional:-->
+    <Role jobList="false">string</Role>
+    <!--Optional:-->
+    <Agent name="string" password="string">
+      <!--Zero or more repetitions:-->
+      <Role>string</Role>
+      <!--Zero or more repetitions:-->
+      <Property name="string" mutable="true">string</Property>
+    </Agent>
+  </Imports>
+</CristalModule>
