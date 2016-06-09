@@ -42,7 +42,15 @@ import org.cristalise.kernel.utils.Logger;
 public class EmptyOutcomeInitiator implements OutcomeInitiator {
 
     /**
-     * @return
+     * The name of the Activity Property containing the root element name in the Schema.
+     * The property can be undefined.
+     */
+    public static final String ROOTNAME_PROPNAME = "SchemaRootElementName";
+
+    /**
+     * Created the option required by XML Beans, 
+     * 
+     * @return the XmlOptions
      */
     protected static XmlOptions getXSDCompileOptions() {
         XmlOptions options = new XmlOptions();
@@ -54,13 +62,20 @@ public class EmptyOutcomeInitiator implements OutcomeInitiator {
         return options;
     }
 
+    /**
+     * 
+     * @param rootName
+     * @param sts
+     * @return
+     * @throws InvalidDataException
+     */
     protected static SchemaType getRootElement(String rootName, SchemaTypeSystem sts) throws InvalidDataException {
         SchemaType[] globalElems = sts.documentTypes();
         
         if (globalElems == null) throw new InvalidDataException("Schema has no global elements.");
 
         if(rootName == null) {
-            Logger.msg(5, "EmptyOutcomeInitiator.getRootElement() - rootName is null, trying to get the root from Schema");
+            Logger.msg(5, "EmptyOutcomeInitiator.getRootElement() - rootName is null, taking the root from Schema");
 
             if (globalElems.length != 1) throw new InvalidDataException("Ambiguious root: Schema has more than one global elements");
 
@@ -88,6 +103,12 @@ public class EmptyOutcomeInitiator implements OutcomeInitiator {
         }
     }
     
+    /**
+     * 
+     * @param xsd the input Schema
+     * @return initialized SchemaTypeSystem instance
+     * @throws InvalidDataException
+     */
     protected static SchemaTypeSystem getSchemaTypeSystem(String xsd) throws InvalidDataException {
         XmlObject[] schemas = new XmlObject[1]; 
 
@@ -121,32 +142,39 @@ public class EmptyOutcomeInitiator implements OutcomeInitiator {
 
     /**
      * 
+     * @param rootName
+     * @param xsd
+     * @return
+     * @throws InvalidDataException
+     */
+    protected String getXMLString(String rootName, String xsd) throws InvalidDataException {
+        return SampleXmlUtil.createSampleForType( getRootElement(rootName, getSchemaTypeSystem(xsd)) );
+    }
+
+    /**
+     * Creates an initial instance of an Outcome using SampleXmlUtil class of Apache XMLBeans
      */
     @Override
     public String initOutcome(Job job) throws InvalidDataException {
-        String xsd = null;
-        String rootElement = null;
-
         try {
-            xsd = job.getSchema().getSchemaData();
-            rootElement = job.getActPropString("SchemaRootElementName");
+            return getXMLString( job.getActPropString(ROOTNAME_PROPNAME), job.getSchema().getSchemaData() );
         }
         catch (ObjectNotFoundException e) {
             Logger.error(e);
             throw new InvalidDataException(e.getMessage());
         }
-
-        return SampleXmlUtil.createSampleForType( getRootElement(rootElement, getSchemaTypeSystem(xsd)) );
     }
 
     /**
-     * 
+     * Creates an initial instance of an Outcome using Apache XMLBeans
      */
     @Override
     public Outcome initOutcomeInstance(Job job) throws InvalidDataException {
         try {
-            return new Outcome(-1, initOutcome(job), job.getSchema());
-        } catch (ObjectNotFoundException e) {
+            String xml = getXMLString( job.getActPropString(ROOTNAME_PROPNAME), job.getSchema().getSchemaData() );
+            return new Outcome(-1, xml, job.getSchema());
+        }
+        catch (ObjectNotFoundException e) {
             Logger.error(e);
             throw new InvalidDataException(e.getMessage());
         }

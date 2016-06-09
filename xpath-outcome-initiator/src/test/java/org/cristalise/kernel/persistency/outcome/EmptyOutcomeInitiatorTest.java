@@ -22,74 +22,36 @@
 package org.cristalise.kernel.persistency.outcome;
 
 import static org.junit.Assert.fail;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
-import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 
-import org.cristalise.kernel.common.InvalidDataException;
 import org.cristalise.kernel.entity.agent.Job;
-import org.cristalise.kernel.utils.Logger;
-import org.custommonkey.xmlunit.DetailedDiff;
-import org.custommonkey.xmlunit.XMLUnit;
 import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Test;
-import org.xml.sax.SAXException;
 
 /**
  * 
  */
-public class EmptyOutcomeInitiatorTest {
-
-    public static final String root = "src/test/data/";
+public class EmptyOutcomeInitiatorTest extends OutcomeInitiatorTestBase {
 
     EmptyOutcomeInitiator emptyOI;
 
-    @BeforeClass
-    public static void setup() {
-        XMLUnit.setIgnoreWhitespace(true);
-        XMLUnit.setIgnoreAttributeOrder(true);
-        XMLUnit.setIgnoreDiffBetweenTextAndCDATA(true);
-        XMLUnit.setIgnoreComments(true);
-    }
-
-    /**
-     * @throws java.lang.Exception
-     */
     @Before
     public void setUp() throws Exception {
         emptyOI = new EmptyOutcomeInitiator();
     }
 
-    public Job getJob(String xsd) throws Exception {
-        return getJob(xsd, null);
-    }
-
-    public Job getJob(String xsd, String rootElement) throws Exception {
-        Job j = mock(Job.class);
-
-        when(j.getSchema()).thenReturn(new Schema(xsd));
-        when(j.getActPropString("SchemaRootElementName")).thenReturn(rootElement);
-
-        return j;
-    }
-
-    public boolean compareXML(String expected, String actual) throws SAXException, IOException {
-        DetailedDiff diff = new DetailedDiff( XMLUnit.compareXML( expected, actual) );
-
-        if(!diff.identical()) Logger.warning(diff.toString());
-
-        return diff.similar();
-    }
-
-    private void checkEmptyOutcome(String type) throws IOException, Exception, InvalidDataException, SAXException {
+    /**
+     * 
+     * @param type
+     * @throws Exception
+     */
+    private void checkEmptyOutcome(String type) throws Exception {
         String xsd      = new String(Files.readAllBytes(Paths.get(root+type+".xsd")));
         String expected = new String(Files.readAllBytes(Paths.get(root+type+".xml")));
 
-        Job j = getJob(xsd);
+        Job j = mockJob(xsd);
 
         String actual = emptyOI.initOutcome(j);
 
@@ -124,7 +86,7 @@ public class EmptyOutcomeInitiatorTest {
     
     @Test
     public void generateIntegerXML() throws Exception {
-        checkEmptyOutcome("IntergerField");
+        checkEmptyOutcome("IntegerField");
     }
 
     @Test

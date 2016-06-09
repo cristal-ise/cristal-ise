@@ -56,11 +56,13 @@ public class XPathOutcomeInitiator extends EmptyOutcomeInitiator {
     public Outcome initOutcomeInstance(Job job) throws InvalidDataException {
         Map<String, Object> actProps = job.matchhActPropNames(propNamePattern);
 
-        Outcome emptyOutcome = super.initOutcomeInstance(job);
+        Outcome xpathOutcome = super.initOutcomeInstance(job);
 
         for(Map.Entry<String, Object> entry: actProps.entrySet()) {
+            Logger.msg(5, "XPathOutcomeInitiator.initOutcomeInstance() - Using Property name:"+entry.getKey()+" value:"+entry.getValue());
+
             try {
-                emptyOutcome.setFieldByXPath(entry.getKey(), (String) entry.getValue());
+                xpathOutcome.setFieldByXPath(entry.getKey(), (String) entry.getValue());
             }
             catch (XPathExpressionException e) {
                 Logger.msg(5,"XPathOutcomeInitiator - Invalid XPath:"+entry.getKey());
@@ -68,6 +70,6 @@ public class XPathOutcomeInitiator extends EmptyOutcomeInitiator {
             }
         }
 
-        return emptyOutcome;
+        return xpathOutcome;
     }
 }
