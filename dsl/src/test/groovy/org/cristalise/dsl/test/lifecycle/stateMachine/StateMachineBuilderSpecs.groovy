@@ -21,7 +21,7 @@
 package org.cristalise.dsl.test.lifecycle.stateMachine
 
 import org.cristalise.dsl.lifecycle.stateMachine.StateMachineBuilder
-import org.cristalise.kernel.test.utils.CristalTestSetup;
+import org.cristalise.kernel.test.utils.CristalTestSetup
 
 import spock.lang.Ignore
 import spock.lang.Specification
@@ -82,20 +82,36 @@ class StateMachineBuilderSpecs extends Specification implements CristalTestSetup
         builder.sm && builder.sm.isCoherent()
     }
 
-    def 'Build StateMachine using builder methods'() {
+    def 'Build SkipStateMachine using builder methods'() {
         when:
         def builder = StateMachineBuilder.build("testing", "SkipStateMachine", 0) {
             transition("Start", [origin: "Waiting", target: "Started"]) {
                 property reservation: "set"
             }
-            transition("Skip", [origin: "Waiting", target: "Finished"]) {
-                property(enabledProp: "Skippable", reservation:"clear")
-            }
-            transition("Complete", [origin: "Started", target: "Finished"]) {
+            transition("Done", [origin: "Waiting", target: "Finished"]) {
                 property(reservation: "clear")
                 outcome(name:"\${SchemaType}", version:"\${SchemaVersion}")
                 script( name:"\${ScriptName}", version:"\${ScriptVersion}")
             }
+            transition("Skip", [origin: "Waiting", target: "Finished"]) {
+                property(reservation: "clear")
+                property(enabledProp: "Skippable")
+                outcome(name:'Errors', version: "0")
+            }
+            transition("Complete", [origin: "Started", target: "Finished"]) {
+                property(reservation: "clear")
+                outcome(name: "\${SchemaType}", version:"\${SchemaVersion}")
+                script( name: "\${ScriptName}", version:"\${ScriptVersion}")
+            }
+            transition("Suspend", [origin: "Started", target: "Suspended"]) {
+                property(reservation: "set")
+                outcome(name: "Errors", version: "0")
+            }
+            transition("Resume", [origin: "Suspended", target: "Started"]) {
+                property(reservation: "preserve")
+                property(roleOverride: "Admin")
+            }
+
             initialState("Waiting")
             finishingState("Finished")
         }
