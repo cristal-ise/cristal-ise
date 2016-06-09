@@ -35,7 +35,7 @@
 			</plugin>
 			<plugin>
 				<artifactId>maven-compiler-plugin</artifactId>
-				<version>2.3.2</version>
+				<version>3.5</version>
 				<configuration>
 					<source>1.7</source>
 					<target>1.7</target>
@@ -101,6 +101,12 @@
 			<groupId>junit</groupId>
 			<artifactId>junit</artifactId>
 			<version>4.11</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.xmlunit</groupId>
+			<artifactId>xmlunit-core</artifactId>
+			<version>[2.2,)</version>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
