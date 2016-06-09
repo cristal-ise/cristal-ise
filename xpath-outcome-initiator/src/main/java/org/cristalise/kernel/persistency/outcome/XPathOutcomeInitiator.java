@@ -54,7 +54,7 @@ public class XPathOutcomeInitiator extends EmptyOutcomeInitiator {
      * 
      */
     public Outcome initOutcomeInstance(Job job) throws InvalidDataException {
-        Map<String, Object> actProps = job.matchhActPropNames(propNamePattern);
+        Map<String, Object> actProps = job.matchActPropNames(propNamePattern);
 
         Outcome xpathOutcome = super.initOutcomeInstance(job);
 
@@ -62,7 +62,19 @@ public class XPathOutcomeInitiator extends EmptyOutcomeInitiator {
             Logger.msg(5, "XPathOutcomeInitiator.initOutcomeInstance() - Using Property name:"+entry.getKey()+" value:"+entry.getValue());
 
             try {
-                xpathOutcome.setFieldByXPath(entry.getKey(), (String) entry.getValue());
+                String xpath = entry.getKey();
+                String value = (String)entry.getValue();
+
+                if(value == null) throw new InvalidDataException("Value is NULL for Property name '"+entry.getKey()+"'");
+                else value = value.trim();
+
+                if(value.startsWith("<") && value.endsWith(">")) {
+                    Logger.msg(5, "XPathOutcomeInitiator.initOutcomeInstance() - Updating XML fregment with xpath:"+xpath);
+                    xpathOutcome.appendXmlFragment(xpath, value);
+                }
+                else {
+                    xpathOutcome.setFieldByXPath(xpath, value);
+                }
             }
             catch (XPathExpressionException e) {
                 Logger.msg(5,"XPathOutcomeInitiator - Invalid XPath:"+entry.getKey());
