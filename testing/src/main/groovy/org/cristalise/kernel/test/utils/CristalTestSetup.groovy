@@ -33,9 +33,35 @@ import org.cristalise.kernel.utils.Logger
  */
 @CompileStatic
 trait CristalTestSetup {
-    final int defaulLogLevel = 8
+    final int defaultLogLevel = 8
 
-    public void loggerSetup(int logLevel = defaulLogLevel) {
+    private void waitBootstrapThread() {
+        ThreadGroup rootGroup = Thread.currentThread( ).getThreadGroup( );
+        ThreadGroup parentGroup;
+        while ( ( parentGroup = rootGroup.getParent() ) != null ) { rootGroup = parentGroup; }
+
+        Thread[] threads = new Thread[ rootGroup.activeCount() ];
+        while ( rootGroup.enumerate(threads) == threads.length ) {
+            threads = new Thread[ threads.length * 2 ];
+        }
+
+        Thread bootstrapT = null
+        int index = threads.length-1
+
+        while(bootstrapT == null && index >= 0 ) {
+            if(threads[index] && threads[index].getName() == "Bootstrapper") { bootstrapT = threads[index] }
+            index--
+        }
+
+        if(bootstrapT) {
+            Logger.msg "CristalTestSetup.waitBootstrapThread() - Bootstrapper FOUND"
+            bootstrapT.join()
+            Logger.msg "CristalTestSetup.waitBootstrapThread() - Bootstrapper FINISHED"
+        }
+    }
+
+
+    public void loggerSetup(int logLevel = defaultLogLevel) {
         Logger.addLogStream(System.out, logLevel);
     }
 
@@ -43,12 +69,12 @@ trait CristalTestSetup {
         Logger.removeLogStream(System.out);
     }
 
-    public void inMemorySetup(int logLevel = defaulLogLevel) {
+    public void inMemorySetup(int logLevel = defaultLogLevel) {
         cristalSetup(logLevel, 'src/test/conf/testServer.conf', 'src/test/conf/testInMemory.clc')
         //FieldUtils.writeDeclaredStaticField(Gateway.class, "mLookupManager", Gateway.getLookup(), true)
     }
 
-    public void inMemoryServer(int logLevel = defaulLogLevel) {
+    public void inMemoryServer(int logLevel = defaultLogLevel) {
         serverSetup(logLevel, 'src/test/conf/testServer.conf', 'src/test/conf/testInMemory.clc')
         Thread.sleep(2000)
     }
@@ -57,6 +83,8 @@ trait CristalTestSetup {
         Authenticator auth = cristalSetup(logLevel, config, connect)
         Logger.initConsole("ItemServer");
         Gateway.startServer( auth )
+        waitBootstrapThread()
+        return auth
     }
 
     public Authenticator cristalSetup(int logLevel, String config, String connect) {
