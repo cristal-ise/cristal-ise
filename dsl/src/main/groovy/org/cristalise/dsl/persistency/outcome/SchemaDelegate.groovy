@@ -90,7 +90,7 @@ class SchemaDelegate {
                 'xs:complexType' {
                     'xs:simpleContent' {
                         'xs:extension'(base: f.type) {
-                            'xs:attribute'(name:"unit", type: (!f.unit.values ? 'xs:string' : ''), 'use': (f.unit.required ? "required": "")) {
+                            'xs:attribute'(name:"unit", type: (!f.unit.values ? 'xs:string' : ''), 'default': f.unit.defaultVal, 'use': (f.unit.required && f.unit.defaultVal ? "optional": "required")) {
                                 if(f.unit.values) {
                                     buildRestriction(xsd, 'xs:string', f.unit.values)
                                 }

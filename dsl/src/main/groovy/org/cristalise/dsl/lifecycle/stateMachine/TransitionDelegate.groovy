@@ -47,7 +47,7 @@ class TransitionDelegate {
 
     public void property(Map<String,Object> attrs) {
         Logger.msg 5, "TransitionDelegate.property() - attrs: $attrs"
-        assert attrs
+        assert attrs, ""
 
         //FIXME: dynamic groovy is needed for this line only
         attrs.each { String k, v -> trans."$k" = v }
@@ -55,7 +55,7 @@ class TransitionDelegate {
 
     public void outcome(Map attrs) {
         Logger.msg 5, "TransitionDelegate.outcome() - attrs: $attrs"
-        assert attrs && attrs.name && attrs.version
+        assert attrs && attrs.name && attrs.version, "Transition Property Name or Version is null"
 
         trans.outcome = new TransitionOutcome(attrs.name, attrs.version)
     }

@@ -47,7 +47,7 @@ class ElemActDefDelegate extends PropertyDelegate {
         cl()
 
         props.each { k, v ->
-            elemActDef.properties.put(k, v, props.getAbstract().contains(k) ? true: false)
+            elemActDef.properties.put(k, v, props.getAbstract().contains(k))
         }
     }
 }

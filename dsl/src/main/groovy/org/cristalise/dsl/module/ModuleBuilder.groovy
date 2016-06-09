@@ -1,6 +1,6 @@
 /**
  * This file is part of the CRISTAL-iSE kernel.
- * Copyright (c) 2001-2015 The CRISTAL Consortium. All rights reserved.
+ * Copyright (c) 2001-2016 The CRISTAL Consortium. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as published
@@ -18,28 +18,19 @@
  *
  * http://www.fsf.org/licensing/licenses/lgpl.html
  */
-package org.cristalise.dsl.persistency.outcome
+package org.cristalise.dsl.module
 
-import org.cristalise.kernel.common.InvalidDataException
+import groovy.transform.CompileStatic
 
 
 /**
  *
  */
-class Unit {
-    List<String> values = []
-    String defaultVal
-    boolean required = true
+@CompileStatic
+class ModuleBuilder {
 
-    /**
-     * 'default' is a keyword, so it cannot be used as a variable name, 
-     * but this method makes the default keyword usable in the SchemaBuilder DSL
-     * 
-     * @param val
-     */
-    public void setDefault(String val) {
-        if(values && !values.contains(val)) throw new InvalidDataException("Default value '$val' is wrong, it must be one of these: $values")
-        
-        defaultVal = val
+    public static ModuleBuilder build(Closure cl) {
+        return null
     }
+
 }
