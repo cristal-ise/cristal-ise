@@ -22,9 +22,9 @@ package org.cristalise.dsl.test.persistency.outcome
 
 import org.cristalise.dsl.persistency.outcome.Field
 import org.cristalise.dsl.persistency.outcome.SchemaBuilder
-import org.cristalise.dsl.test.builders.SchemaTestBuilder;
+import org.cristalise.dsl.test.builders.SchemaTestBuilder
 import org.cristalise.kernel.common.InvalidDataException
-import org.cristalise.kernel.test.utils.CristalTestSetup;
+import org.cristalise.kernel.test.utils.CristalTestSetup
 
 import spock.lang.Specification
 
@@ -55,15 +55,36 @@ class SchemaBuilderSpecs extends Specification implements CristalTestSetup {
 
     def 'Empty named Structure builds a valid Schema'() {
         expect:
-        SchemaBuilder.build('Test', 'TestData', 0) { struct(name: 'TestData') {} }.schema.som.isValid()
+        SchemaTestBuilder.build('Test', 'TestData', 0) {
+            struct(name: 'TestData')
+        }
+        .compareXML("""<?xml version='1.0' encoding='utf-8'?>
+                       <xs:schema xmlns:xs='http://www.w3.org/2001/XMLSchema'>
+                         <xs:element name='TestData'>
+                           <xs:complexType>
+                             <xs:sequence />
+                           </xs:complexType>
+                         </xs:element>
+                       </xs:schema>""")
     }
 
 
-    def 'Building empty Structure with documentation'() {
+    def 'Building empty Structure with documentation adds xs:annotation to the xs:element'() {
         expect:
-        SchemaBuilder.build('Test', 'TestData', 0) {
-            struct(name: 'TestData') { documentation = "Test data documentation"}
-        }.schema.som.isValid()
+        SchemaTestBuilder.build('Test', 'TestData', 0) {
+            struct(name: 'TestData', documentation: "Test data documentation")
+        }
+        .compareXML("""<?xml version='1.0' encoding='utf-8'?>
+                       <xs:schema xmlns:xs='http://www.w3.org/2001/XMLSchema'>
+                         <xs:element name='TestData'>
+                           <xs:annotation>
+                             <xs:documentation>Test data documentation</xs:documentation>
+                           </xs:annotation>
+                           <xs:complexType>
+                             <xs:sequence />
+                           </xs:complexType>
+                         </xs:element>
+                       </xs:schema>""")
     }
 
 
@@ -85,7 +106,7 @@ class SchemaBuilderSpecs extends Specification implements CristalTestSetup {
     }
 
 
-    def 'Field only accepts a number of types'() {
+    def 'Field only accepts a number of types: string, boolean, integer, decimal, date, time, dateTime'() {
         expect: "Accepted types are ${org.cristalise.dsl.persistency.outcome.Field.types}"
         SchemaTestBuilder.build('Test', 'TestData', 0) {
             struct(name: 'TestData') {
@@ -189,7 +210,7 @@ class SchemaBuilderSpecs extends Specification implements CristalTestSetup {
                                             <xs:complexType>
                                                 <xs:simpleContent>
                                                     <xs:extension base='xs:decimal'>
-                                                        <xs:attribute name='unit' type='xs:string'/>
+                                                        <xs:attribute name='unit' type='xs:string' use='required'/>
                                                     </xs:extension>
                                                 </xs:simpleContent>
                                             </xs:complexType>
@@ -205,7 +226,7 @@ class SchemaBuilderSpecs extends Specification implements CristalTestSetup {
         expect:
         SchemaTestBuilder.build('Test', 'TestData', 0) {
             struct(name: 'TestData') {
-                field(name: 'Weight', type: 'decimal') { unit(values: ['g', 'kg'], required:true) }
+                field(name: 'Weight', type: 'decimal') { unit(values: ['g', 'kg']) }
             }
         }.compareXML("""<xs:schema xmlns:xs='http://www.w3.org/2001/XMLSchema'>
                             <xs:element name='TestData'>
@@ -234,38 +255,52 @@ class SchemaBuilderSpecs extends Specification implements CristalTestSetup {
     }
 
 
-    /*
-    def 'PatientDetails of Basic Tutorial'() {
+    def 'Complex example using PatientDetails from Basic Tutorial'() {
         expect:
         SchemaTestBuilder.build('test', 'PatientDetails', 0) {
             struct(name: 'PatientDetails', documentation: 'This is the Schema for Basic Tutorial') {
                 field(name: 'InsuranceNumber', type: 'string', default: '123456789ABC')
-                field(name: 'DateOfBirth',     type: 'dateTime')
+                field(name: 'DateOfBirth',     type: 'date')
                 field(name: 'Gender',          type: 'string', values: ['male', 'female'])
-                field(name: 'Weight',          type: 'decimal') { unit(values: ['g', 'kg'], required:true) }
+                field(name: 'Weight',          type: 'decimal') { unit(values: ['g', 'kg'], default: 'kg') }
             }
         }.compareXML(
             """<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
-                    <xs:element name="PatientDetails">
-                        <xs:annotation>
-                            <xs:documentation>This is the Schema for Basic Tutorial</xs:documentation>
-                        </xs:annotation>
-                        <xs:complexType>
-                            <xs:sequence>
-                                <xs:element minOccurs="1" maxOccurs="1" name="InsuranceNumber" type="xs:string" default= "123456789ABC"/>
-                                <xs:element minOccurs="1" maxOccurs="1" name="DateOfBirth" type="xs:dateTime"/>
-                                <xs:element minOccurs="1" maxOccurs="1" name="Gender">
-                                    <xs:simpleType>
-                                        <xs:restriction base="xs:string">
-                                           <xs:enumeration value="male" />
-                                           <xs:enumeration value="female" />
-                                        </xs:restriction>
-                                    </xs:simpleType>
-                                </xs:element>
-                            </xs:sequence>
-                        </xs:complexType>
-                    </xs:element>
-                </xs:schema>""")
+                 <xs:element name="PatientDetails">
+                   <xs:annotation>
+                     <xs:documentation>This is the Schema for Basic Tutorial</xs:documentation>
+                   </xs:annotation>
+                   <xs:complexType>
+                   <xs:sequence>
+                     <xs:element minOccurs="1" maxOccurs="1" name="InsuranceNumber" type="xs:string" default= "123456789ABC"/>
+                     <xs:element minOccurs="1" maxOccurs="1" name="DateOfBirth" type="xs:date"/>
+                     <xs:element minOccurs="1" maxOccurs="1" name="Gender">
+                       <xs:simpleType>
+                         <xs:restriction base="xs:string">
+                           <xs:enumeration value="male" />
+                           <xs:enumeration value="female" />
+                         </xs:restriction>
+                       </xs:simpleType>
+                     </xs:element>
+                     <xs:element name='Weight' minOccurs='1' maxOccurs='1'>
+                       <xs:complexType>
+                         <xs:simpleContent>
+                           <xs:extension base='xs:decimal'>
+                             <xs:attribute name='unit' default='kg' use='optional'>
+                               <xs:simpleType>
+                                 <xs:restriction base='xs:string'>
+                                   <xs:enumeration value='g' />
+                                   <xs:enumeration value='kg' />
+                                 </xs:restriction>
+                               </xs:simpleType>
+                             </xs:attribute>
+                           </xs:extension>
+                         </xs:simpleContent>
+                       </xs:complexType>
+                     </xs:element>
+                   </xs:sequence>
+                 </xs:complexType>
+               </xs:element>
+             </xs:schema>""")
     }
-    */
 }
