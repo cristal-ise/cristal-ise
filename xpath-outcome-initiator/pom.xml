@@ -41,7 +41,20 @@
 					<target>1.7</target>
 				</configuration>
 			</plugin>
-		</plugins>
+			<plugin>
+				<artifactId>maven-surefire-plugin</artifactId>
+        		<version>2.6</version>
+        		<configuration>
+        			<redirectTestOutputToFile>true</redirectTestOutputToFile>
+        			<includes>
+        				<include>**/*Spec.*</include>
+        				<include>**/*Test.*</include>
+        				<include>**/*Specs.*</include>
+        				<include>**/*Tests.*</include>
+        			</includes>
+        		</configuration>
+        	</plugin>
+		</plugins>		
 	</build>
 
 	<issueManagement>
