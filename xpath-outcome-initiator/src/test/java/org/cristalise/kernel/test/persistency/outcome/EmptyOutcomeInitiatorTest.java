@@ -19,7 +19,7 @@
  * http://www.fsf.org/licensing/licenses/lgpl.html
  */
 
-package org.cristalise.kernel.persistency.outcome;
+package org.cristalise.kernel.test.persistency.outcome;
 
 import static org.junit.Assert.fail;
 
@@ -27,6 +27,7 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 
 import org.cristalise.kernel.entity.agent.Job;
+import org.cristalise.kernel.persistency.outcome.EmptyOutcomeInitiator;
 import org.junit.Before;
 import org.junit.Test;
 

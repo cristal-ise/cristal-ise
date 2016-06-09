@@ -19,7 +19,7 @@
  * http://www.fsf.org/licensing/licenses/lgpl.html
  */
 
-package org.cristalise.kernel.persistency.outcome;
+package org.cristalise.kernel.test.persistency.outcome;
 
 import static org.junit.Assert.fail;
 import static org.mockito.Mockito.when;
@@ -30,6 +30,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.cristalise.kernel.entity.agent.Job;
+import org.cristalise.kernel.persistency.outcome.XPathOutcomeInitiator;
 import org.cristalise.kernel.utils.Logger;
 import org.junit.Before;
 import org.junit.Test;
@@ -62,7 +63,7 @@ public class XPathOutcomeInitiatorTest extends OutcomeInitiatorTestBase {
         Map<String, Object> resultMap = new HashMap<String, Object>();
         resultMap.put(xpath, value);
 
-        when(j.matchhActPropNames("^/")).thenReturn(resultMap);
+        when(j.matchActPropNames("^/")).thenReturn(resultMap);
 
         String actual = xpathOI.initOutcome(j);
 
@@ -76,4 +77,8 @@ public class XPathOutcomeInitiatorTest extends OutcomeInitiatorTestBase {
         checkUpdatedOutcome("IntegerField", "/IntegerField/counter", "123");
     }
 
+    @Test
+    public void updateNodeElement() throws Exception {
+        checkUpdatedOutcome("StateMachine", "/StateMachine", "<State id='30' name='new' proceeds='false'/>");
+    }
 }

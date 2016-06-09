@@ -19,7 +19,7 @@
  * http://www.fsf.org/licensing/licenses/lgpl.html
  */
 
-package org.cristalise.kernel.persistency.outcome;
+package org.cristalise.kernel.test.persistency.outcome;
 
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -27,11 +27,15 @@ import static org.mockito.Mockito.when;
 import java.io.IOException;
 
 import org.cristalise.kernel.entity.agent.Job;
+import org.cristalise.kernel.persistency.outcome.EmptyOutcomeInitiator;
+import org.cristalise.kernel.persistency.outcome.Schema;
 import org.cristalise.kernel.utils.Logger;
-import org.custommonkey.xmlunit.DetailedDiff;
-import org.custommonkey.xmlunit.XMLUnit;
 import org.junit.BeforeClass;
 import org.xml.sax.SAXException;
+import org.xmlunit.builder.DiffBuilder;
+import org.xmlunit.diff.DefaultNodeMatcher;
+import org.xmlunit.diff.Diff;
+import org.xmlunit.diff.ElementSelectors;
 
 /**
  * 
@@ -45,12 +49,7 @@ public class OutcomeInitiatorTestBase {
      */
     @BeforeClass
     public static void setup() {
-        XMLUnit.setIgnoreWhitespace(true);
-        XMLUnit.setIgnoreAttributeOrder(true);
-        XMLUnit.setIgnoreDiffBetweenTextAndCDATA(true);
-        XMLUnit.setIgnoreComments(true);
-        
-        Logger.addLogStream(System.out, 0);
+        Logger.addLogStream(System.out, 8);
     }
 
     /**
@@ -75,7 +74,7 @@ public class OutcomeInitiatorTestBase {
     public Job mockJob(String xsd, String rootElement) throws Exception {
         Job j = mock(Job.class);
 
-        when(j.getSchema()).thenReturn(new Schema(xsd));
+        when(j.getSchema()).thenReturn(new Schema("TestSchema", -1, null, xsd));
         when(j.getActPropString(EmptyOutcomeInitiator.ROOTNAME_PROPNAME)).thenReturn(rootElement);
 
         return j;
@@ -91,10 +90,16 @@ public class OutcomeInitiatorTestBase {
      * @throws IOException
      */
     public boolean compareXML(String expected, String actual) throws SAXException, IOException {
-        DetailedDiff diff = new DetailedDiff( XMLUnit.compareXML( expected, actual) );
 
-        if(!diff.identical()) Logger.warning(diff.toString());
+        Diff diffIdentical = DiffBuilder.compare(expected).withTest(actual)
+                .withNodeMatcher(new DefaultNodeMatcher(ElementSelectors.byNameAndAllAttributes))
+                .ignoreComments()
+                .ignoreWhitespace()
+                .checkForSimilar()
+                .build();
 
-        return diff.identical();
+        if(diffIdentical.hasDifferences()) Logger.warning(diffIdentical.toString());
+
+        return !diffIdentical.hasDifferences();
     }
 }
