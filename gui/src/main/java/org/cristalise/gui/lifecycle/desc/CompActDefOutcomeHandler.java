@@ -111,7 +111,7 @@ public class CompActDefOutcomeHandler
         mSplitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, mEditorPanel, mPropertyPanel);
         mSplitPane.setDividerSize(5);
         if (mCompActDef != null) {
-			int minWidth = mCompActDef.getChildGraphModel().getWidth()+20;
+			int minWidth = mCompActDef.getChildrenGraphModel().getWidth()+20;
 			int editWidth = (int)mEditorPanel.getPreferredSize().getWidth();
 			if (editWidth > minWidth) minWidth = editWidth;
 			if (mSplitPane.getDividerLocation() < minWidth) mSplitPane.setDividerLocation(minWidth);
@@ -186,7 +186,7 @@ public class CompActDefOutcomeHandler
                 newAct.setName(mCompActDef.getName());
             mCompActDef = newAct;
             if (mSplitPane != null) {
-        		int minWidth = mCompActDef.getChildGraphModel().getWidth()+20;
+        		int minWidth = mCompActDef.getChildrenGraphModel().getWidth()+20;
         		if (mSplitPane.getDividerLocation() < minWidth) mSplitPane.setDividerLocation(minWidth);
             }
         } catch (Exception ex) {

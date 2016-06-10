@@ -164,7 +164,7 @@ public class WorkflowPane extends ItemTabPane implements ProxyObserver<Workflow>
 			mSplitPane.setDividerSize(5);
 			if (mWorkflow!=null) {
 				CompositeActivity domain = (CompositeActivity) mWorkflow.search("workflow/domain");
-				int minWidth = domain.getChildGraphModel().getWidth()+20;
+				int minWidth = domain.getChildrenGraphModel().getWidth()+20;
 				if (mSplitPane.getDividerLocation() < minWidth) mSplitPane.setDividerLocation(minWidth);
 			}
 		}
@@ -178,7 +178,7 @@ public class WorkflowPane extends ItemTabPane implements ProxyObserver<Workflow>
 		CompositeActivity domain = (CompositeActivity) mWorkflow.search("workflow/domain");
 		addActivity(domain);
 		if (mSplitPane != null) {
-			int minWidth = domain.getChildGraphModel().getWidth()+20;
+			int minWidth = domain.getChildrenGraphModel().getWidth()+20;
 			if (mSplitPane.getDividerLocation() < minWidth) mSplitPane.setDividerLocation(minWidth);
 		}
 	}
