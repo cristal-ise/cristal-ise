@@ -1,5 +1,7 @@
 package org.cristalise.dev;
 
+import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.SchemaType;
+
 import org.cristalise.kernel.common.InvalidDataException;
 import org.cristalise.kernel.entity.agent.Job;
 import org.cristalise.kernel.entity.proxy.ItemProxy;
@@ -28,7 +30,7 @@ public class DevObjectOutcomeInitiator implements OutcomeInitiator {
 
     @Override
     public String initOutcome(Job job) throws InvalidDataException {
-        String type = job.getActPropString("SchemaType");
+        String type = job.getActPropString(SchemaType);
 
         DescriptionObject emptyObj = null;
 
