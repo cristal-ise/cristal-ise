@@ -188,9 +188,9 @@ abstract class InMemoryLookup extends ClusterStorage implements Lookup {
 
     @Override
     public Iterator<Path> search(Path start, String name) {
-        Logger.msg(5, "InMemoryLookup.search(Name: $name) - start: $start");
+        Logger.msg(5, "InMemoryLookup.search(name: $name) - start: $start");
         def result = cache.values().findAll { ((Path)it).string =~ /^$start.string.*$name/ }
-        Logger.msg(5, "InMemoryLookup.search(Name: $name) - returning ${result.size()} pathes");
+        Logger.msg(5, "InMemoryLookup.search(name: $name) - returning ${result.size()} pathes");
         return result.iterator()
     }
 
@@ -208,15 +208,25 @@ abstract class InMemoryLookup extends ClusterStorage implements Lookup {
         def foundPathes = search(start, name)
 
         foundPathes.each { Path p ->
-            ItemPath ip
+            ItemPath ip = null
 
-            if     (p instanceof DomainPath) { ip = ((DomainPath)p).itemPath }
+            if     (p instanceof DomainPath) { if(((DomainPath)p).type == Path.ITEM) ip = ((DomainPath)p).itemPath }
             else if(p instanceof ItemPath)   { ip = (ItemPath)p}
-            
-            if(checkItemProps(ip, props)) { result.add(p) }
+
+            if(ip && checkItemProps(ip, props)) { result.add(p) }
         }
         Logger.msg(5, "InMemoryLookup.search(props) - returning ${result.size()} pathes");
         return result.iterator()
+    }
+
+    private boolean checkItemProps(ItemPath itemP, Property... props) {
+        Logger.msg(5, "InMemoryLookup.checkItemProps(props) - ItemPath:$itemP # of props: $props.length");
+
+        for(Property prop: props) {
+            Property p = (Property)propertyStore.get(itemP.itemPath,"Property/"+prop.name)
+            if(!p || p.value != prop.value) return false
+        }
+        return true
     }
 
     @Override
@@ -282,16 +292,4 @@ abstract class InMemoryLookup extends ClusterStorage implements Lookup {
         AgentPath p = (AgentPath) retrievePath(agentPath.string)
         return p.agentName;
     }
-
-    private boolean checkItemProps(ItemPath itemP, Property... props) {
-        boolean found = true
-        props.each { Property prop ->
-            Property p = (Property)propertyStore.get(itemP.itemPath,"Property/"+prop.name)
-            found = found && p && (p.value == prop.value)
-
-            if(!found) return
-        }
-        return found
-    }
-
 }

@@ -33,6 +33,6 @@ class CompareUtils {
         if(actuals instanceof Iterator) for(Path p: actuals) { assert expecteds.contains(p); i++ }
         else actuals.each { assert expecteds.contains(it); i++ }
 
-        assert i == expecteds.size(), "Missmatching : expected.size != actual.size"
+        assert i == expecteds.size(), "Missmatch actual.size != expected.size"
     }
 }
