@@ -141,10 +141,12 @@ public class EmptyOutcomeInitiator implements OutcomeInitiator {
     }
 
     /**
+     * Returns the generated sample xml. This method is only needed to break the potential infinitive recursive calls of 
+     * initOutcome() between this class and its subclasses.
      * 
-     * @param rootName
-     * @param xsd
-     * @return
+     * @param rootName the name of the root element, can be null
+     * @param xsd the XSD string
+     * @return the generated sample xml
      * @throws InvalidDataException
      */
     protected String getXMLString(String rootName, String xsd) throws InvalidDataException {
@@ -152,7 +154,7 @@ public class EmptyOutcomeInitiator implements OutcomeInitiator {
     }
 
     /**
-     * Creates an initial instance of an Outcome using SampleXmlUtil class of Apache XMLBeans
+     * Creates an initial instance of an Outcome XML using SampleXmlUtil class of Apache XMLBeans
      */
     @Override
     public String initOutcome(Job job) throws InvalidDataException {
@@ -166,7 +168,7 @@ public class EmptyOutcomeInitiator implements OutcomeInitiator {
     }
 
     /**
-     * Creates an initial instance of an Outcome using Apache XMLBeans
+     * Creates an initial instance of an Outcome using SampleXmlUtil class of Apache XMLBeans
      */
     @Override
     public Outcome initOutcomeInstance(Job job) throws InvalidDataException {
