@@ -156,6 +156,31 @@
       <version>3.3-SNAPSHOT</version>
       <scope>test</scope>
     </dependency>
-    <!--dependency><groupId>com.athaydes</groupId><artifactId>spock-reports</artifactId><version>1.2.7</version><scope>test</scope></dependency-->
+    <dependency>
+      <groupId>com.athaydes</groupId>
+      <artifactId>spock-reports</artifactId>
+      <version>1.2.12</version>
+      <scope>test</scope>
+      <!-- this avoids affecting your version of Groovy/Spock -->
+      <exclusions>
+        <exclusion>
+          <groupId>*</groupId>
+          <artifactId>*</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+    <!--SLF4J implementation libs are only needed for spock-reports to work-->
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-api</artifactId>
+      <version>1.7.13</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-simple</artifactId>
+      <version>1.7.13</version>
+      <scope>test</scope>
+    </dependency>
   </dependencies>
 </project>
