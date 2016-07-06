@@ -23,7 +23,6 @@ package org.cristalise.dsl.persistency.outcome
 import groovy.transform.CompileStatic
 
 import org.cristalise.kernel.persistency.outcome.Outcome
-import org.cristalise.kernel.persistency.outcome.Schema
 import org.cristalise.kernel.utils.LocalObjectLoader
 import org.cristalise.kernel.utils.Logger
 
@@ -38,7 +37,7 @@ class OutcomeBuilder {
      * 
      */
     public static Outcome build(SchemaBuilder sb, Closure cl) {
-        assert sb.schema.som.getElementDecls(), "Schema must have one root element declaration"
+        assert sb.schema.som.getElementDecls(), "Schema must have root element declaration"
         assert sb.schema.som.getElementDecls().size() == 1, "Ambiguous root element size is bigger then 1. You need to use build() method to specify rootElement"
 
         String rootElement = sb.schema.som.getElementDecls()[0].name
@@ -66,5 +65,14 @@ class OutcomeBuilder {
         Logger.msg 5, "OutcomeBuilder - generated xml:\n" + outcomeD.writer.toString()
 
         return new Outcome(-1, outcomeD.writer.toString(), LocalObjectLoader.getSchema(schema, version))
+    }
+
+    public static String build(String rootElement, Closure cl) {
+        def outcomeD = new OutcomeDelegate(rootElement)
+        outcomeD.processClosure(cl)
+
+        Logger.msg 5, "OutcomeBuilder - generated xml:\n" + outcomeD.writer.toString()
+
+        return outcomeD.writer.toString()
     }
 }

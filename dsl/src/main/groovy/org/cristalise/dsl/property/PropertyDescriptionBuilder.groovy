@@ -18,39 +18,22 @@
  *
  * http://www.fsf.org/licensing/licenses/lgpl.html
  */
-package org.cristalise.dev.test.utils
+package org.cristalise.dsl.property
 
-import groovy.xml.MarkupBuilder
+import groovy.transform.CompileStatic
 
+import org.cristalise.kernel.property.PropertyDescriptionList
 
 
 /**
- * Utility class to create XMLs required to build 'dev' module Items
+ *
  */
-class DevXMLUtility {
+@CompileStatic
+class PropertyDescriptionBuilder {
 
-    /**
-     * 
-     * @param params
-     * @return the XML string
-     */
-    public static String getNewDevObjectDefXML(params) {
-        def writer = new StringWriter()
-        def xml = new MarkupBuilder(writer)
-
-        writer << '<?xml version="1.0" encoding="UTF-8"?>\n'
-
-        assert params.name, "name must be set"
-        assert params.folder, "folder must be set"
-
-        if(!params.name)   { params.name   = '' }
-        if(!params.folder) { params.folder = '' }
-
-        xml.NewDevObjectDef {
-            ObjectName("$params.name")
-            SubFolder("$params.folder")
-        }
-
-        return writer.toString()
+    public static PropertyDescriptionList build(Closure cl) {
+        def pdd = new PropertyDescriptionDelegate()
+        pdd.processClosure(cl)
+        return pdd.propDescList
     }
 }
