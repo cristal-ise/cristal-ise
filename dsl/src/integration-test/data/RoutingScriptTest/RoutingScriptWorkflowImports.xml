@@ -1,0 +1,20 @@
+	<Resource id="7c907c45-b8bc-431f-880b-1c00498f2793" name="GreaterThanTenScript" type="SC" version="2">boot/SC/GreaterThanTenScript.xml</Resource>
+	<Activity id="df011f05-3305-4e43-8e4a-098bfb78f1b7" name="ActCounter" resource="boot/EA/ActCounter.xml" version="0">
+		<StateMachine id="00000000-0000-0000-0000-00000000000c" name="Default" version="0"/>
+		<Schema id="cfee0dec-ed57-4ed3-a7f9-d1389c1a7b22" name="CounterSchema" version="0"/>
+	</Activity>
+	<Activity id="ad7560e5-339d-4478-8c51-e1399c0476fb" name="EmptyAct" resource="boot/EA/EmptyAct.xml" version="0">
+		<StateMachine id="00000000-0000-0000-0000-00000000000c" name="Default" version="0"/>
+	</Activity>
+	<Activity id="ad7560e5-339d-4478-8c51-e1399c0476fb" name="EmptyAct" resource="boot/EA/EmptyAct.xml" version="0">
+		<StateMachine id="00000000-0000-0000-0000-00000000000c" name="Default" version="0"/>
+	</Activity>
+	<Resource id="2b455225-1ccf-49e9-9ad6-9e91f9395504" name="CounterScript" type="SC" version="3">boot/SC/CounterScript.xml</Resource>
+	<Activity id="ad7560e5-339d-4478-8c51-e1399c0476fb" name="EmptyAct" resource="boot/EA/EmptyAct.xml" version="0">
+		<StateMachine id="00000000-0000-0000-0000-00000000000c" name="Default" version="0"/>
+	</Activity>
+	<Workflow name="RoutingScriptWorkflow" resource="boot/CA/RoutingScriptWorkflow.xml">
+		<StateMachine id="00000000-0000-0000-0000-00000000000d" name="CompositeActivity" version="0"/>
+		<Activity id="df011f05-3305-4e43-8e4a-098bfb78f1b7" name="ActCounter" version="0"/>
+		<Activity id="ad7560e5-339d-4478-8c51-e1399c0476fb" name="EmptyAct" version="0"/>
+	</Workflow>

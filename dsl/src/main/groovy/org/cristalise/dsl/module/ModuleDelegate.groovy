@@ -22,6 +22,8 @@ package org.cristalise.dsl.module
 
 import groovy.transform.CompileStatic
 
+import org.cristalise.kernel.process.module.Module
+
 
 /**
  *
@@ -29,17 +31,17 @@ import groovy.transform.CompileStatic
 @CompileStatic
 class ModuleDelegate {
     
-    String    name
-    String    version
+    Module module = new Module()
+    int version
     
-    public ModuleDelegate(String n, String v) {
-        name = n
+    public ModuleDelegate(String n, int v) {
+        module.name = n
         version = v
     }
 
     public void processClosure(Closure cl) {
         assert cl
-        assert name
+        assert module.name
 
         cl.delegate = this
         cl.resolveStrategy = Closure.DELEGATE_FIRST

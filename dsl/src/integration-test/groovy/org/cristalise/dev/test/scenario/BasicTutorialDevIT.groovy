@@ -20,8 +20,6 @@ class BasicTutorialDevIT extends KernelScenarioTestBase {
 
     @Test
     public void execute() {
-        String folder = "IntegrationTest"
-
         String schemaName = "PatientDetails-$timeStamp"
         String elemActName = "SetPatientDetails-$timeStamp"
         String compActName = "PatientLifecycle-$timeStamp"

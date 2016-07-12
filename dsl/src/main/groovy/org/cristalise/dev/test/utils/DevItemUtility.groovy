@@ -87,6 +87,21 @@ class DevItemUtility {
      * @param name
      * @param folder
      */
+    public void createNewScript(String name, String folder) {
+        ItemProxy schemaFactory = agent.getItem("/domain/desc/dev/ScriptFactory")
+        assert schemaFactory && schemaFactory.getName() == "ScriptFactory"
+
+        Job doneJob = getDoneJob(schemaFactory, "CreateNewScript")
+        doneJob.setOutcome( DevXMLUtility.getNewDevObjectDefXML(name: name, folder: folder) )
+
+        agent.execute(doneJob)
+    }
+
+    /**
+     * 
+     * @param name
+     * @param folder
+     */
     public void createNewCompActDesc(String name, String folder) {
         ItemProxy caDescFactory = agent.getItem("/domain/desc/dev/CompositeActivityDefFactory")
         assert caDescFactory && caDescFactory.getName() == "CompositeActivityDefFactory"
@@ -152,6 +167,28 @@ class DevItemUtility {
      * 
      * @param name
      * @param folder
+     * @param xsd
+     */
+    public void editScript(String name, String folder, String scriptXML) {
+        def resHandler = new DefaultResourceImportHandler("SC")
+
+        ItemProxy schemaItem = agent.getItem("${resHandler.typeRoot}/$folder/$name")
+        assert schemaItem && schemaItem.getName() == name
+
+        Job doneJob = getDoneJob(schemaItem, "EditDefinition")
+        doneJob.setOutcome( scriptXML )
+        agent.execute(doneJob)
+
+        doneJob = getDoneJob(schemaItem, "AssignNewScriptVersionFromLast")
+        agent.execute(doneJob)
+
+        assert schemaItem.getViewpoint(resHandler.name, "0")
+    }
+
+    /**
+     * 
+     * @param name
+     * @param folder
      * @param activityName
      * @param activityVersion
      */
@@ -171,7 +208,30 @@ class DevItemUtility {
         assert caDescItem.getViewpoint(resHandler.name, "0")
         assert caDescItem.getCollection(BuiltInCollections.ACTIVITY, 0).size() == 1
     }
-    
+
+    /**
+     * 
+     * @param name
+     * @param folder
+     * @param caXML
+     */
+    public void editCompActDesc(String name, String folder, String caXML) {
+        def resHandler = new DefaultResourceImportHandler("CA")
+
+        ItemProxy caDescItem = agent.getItem("${resHandler.typeRoot}/$folder/$name")
+        assert caDescItem && caDescItem.getName() == name
+
+        Job doneJob = getDoneJob(caDescItem, "EditDefinition")
+        doneJob.setOutcome(caXML)
+        agent.execute(doneJob)
+
+        doneJob = getDoneJob(caDescItem, "AssignNewActivityVersionFromLast")
+        agent.execute(doneJob)
+
+        assert caDescItem.getViewpoint(resHandler.name, "0")
+        assert caDescItem.getCollection(BuiltInCollections.ACTIVITY, 0).size()
+    }
+
     /**
      * 
      * @param name
@@ -204,7 +264,9 @@ class DevItemUtility {
         doneJob = getDoneJob(descriptionItem, "CreateNewInstance")
         doneJob.setOutcome( devObjectDefXML )
         agent.execute(doneJob)
+        
+        String instanceName = doneJob.getOutcome().getField("SubFolder") + "/" + doneJob.getOutcome().getField("ObjectName")
 
-        return descriptionItem
+        return agent.getItem(instanceName)
     }
 }

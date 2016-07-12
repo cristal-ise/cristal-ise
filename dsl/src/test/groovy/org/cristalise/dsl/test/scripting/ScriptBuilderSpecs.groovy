@@ -20,8 +20,8 @@
  */
 package org.cristalise.dsl.test.scripting
 
-import org.cristalise.dsl.test.builders.ScriptTestBuilder;
-import org.cristalise.kernel.test.utils.CristalTestSetup;
+import org.cristalise.dsl.test.builders.ScriptTestBuilder
+import org.cristalise.kernel.test.utils.CristalTestSetup
 
 import spock.lang.Specification
 
@@ -31,19 +31,13 @@ import spock.lang.Specification
  *
  */
 class ScriptBuilderSpecs extends Specification implements CristalTestSetup {
-    
     def setup() {
         inMemorySetup()
     }
-    
+
     def cleanup() {
         cristalCleanup()
     }
-
-
-//            output(name: "errors", type: "org.cristalise.kernel.scripting.ErrorInfo")
-//            script('javascript') { ";" }
-//            script(language: 'javascript') { ";" }
 
     def 'Specifying new script'() {
         expect:

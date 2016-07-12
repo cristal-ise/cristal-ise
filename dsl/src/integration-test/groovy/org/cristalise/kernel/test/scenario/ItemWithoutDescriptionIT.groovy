@@ -26,7 +26,6 @@ class ItemWithoutDescriptionIT extends KernelScenarioTestBase {
         beforeClient('src/test/conf/devClient.conf', 'src/test/conf/devServer.clc')
     }
 
-
     /**
      * 
      * @param role

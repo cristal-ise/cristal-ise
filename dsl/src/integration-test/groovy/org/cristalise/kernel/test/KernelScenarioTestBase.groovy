@@ -19,7 +19,8 @@ import org.junit.After
 class KernelScenarioTestBase extends DevItemUtility {
 
     String timeStamp = null
-    
+    String folder = "IntegrationTest"
+
     /**
      * 
      * @param config

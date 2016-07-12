@@ -24,7 +24,6 @@ class BasicDevDescriptionIT extends KernelScenarioTestBase {
     @Test
     public void createAndEditElemActDesc() {
         String name = "TestEADesc-$timeStamp"
-        String folder = "IntegrationTest"
 
         createNewElemActDesc(name, folder)
         editElemActDesc(name, folder, "User", "Errors", 0)
@@ -35,7 +34,6 @@ class BasicDevDescriptionIT extends KernelScenarioTestBase {
         String schema = "PatientDetails"
 
         String name = "$schema-$timeStamp"
-        String folder = "IntegrationTest"
 
         createNewSchema(name, folder)
         editSchema(name, folder, new File("src/integration-test/data/${schema}.xsd").text)
@@ -44,9 +42,16 @@ class BasicDevDescriptionIT extends KernelScenarioTestBase {
     @Test
     public void createAndEditCompActDesc() {
         String name = "TestCADesc-$timeStamp"
-        String folder = "IntegrationTest"
 
         createNewCompActDesc(name, folder)
         editCompActDesc(name, folder, "CreateNewItem", 0)
+    }
+
+    @Test
+    public void createAndEditScript() {
+        String name = "Script-$timeStamp"
+
+        createNewScript(name, folder)
+        editScript(name, folder, new File("src/integration-test/data/TestScript.xml").text)
     }
 }

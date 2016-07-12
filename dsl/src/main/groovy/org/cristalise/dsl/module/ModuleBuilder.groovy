@@ -22,6 +22,9 @@ package org.cristalise.dsl.module
 
 import groovy.transform.CompileStatic
 
+import org.cristalise.kernel.lookup.Path;
+import org.cristalise.kernel.process.module.Module
+
 
 /**
  *
@@ -29,8 +32,16 @@ import groovy.transform.CompileStatic
 @CompileStatic
 class ModuleBuilder {
 
-    public static ModuleBuilder build(Closure cl) {
-        return null
+    public static Module build(String name, int version, Closure cl) {
+        def md = new ModuleDelegate(name, version)
+        if(cl) md.processClosure(cl)
+
+        return md.module
     }
 
+    public static Path create(String name, int version, Closure cl) {
+        def module = build(name, version, cl)
+        
+        return module.create(null, false)
+    }
 }
