@@ -130,15 +130,20 @@ class DevItemUtility {
         doneJob.setOutcome( KernelXMLUtility.getActivityDefXML(Name: name, AgentRole: role) )
         agent.execute(doneJob)
 
-        doneJob = getDoneJob(eaDescItem, "SetSchema")
-        doneJob.setOutcome( KernelXMLUtility.getDescObjectDetailsXML(id: "Errors", version: 0) )
-        agent.execute(doneJob)
+        //This mean no schema for Activity
+        if(schemaName != null && !schemaName.startsWith("-")) {
+            doneJob = getDoneJob(eaDescItem, "SetSchema")
+            doneJob.setOutcome( KernelXMLUtility.getDescObjectDetailsXML(id: schemaName, version: schemaVersion) )
+            agent.execute(doneJob)
+        }
 
         doneJob = getDoneJob(eaDescItem, "AssignNewActivityVersionFromLast")
         agent.execute(doneJob)
 
-        assert eaDescItem.getViewpoint(resHandler.name, "0")
-        assert eaDescItem.getCollection(BuiltInCollections.SCHEMA, 0).size() == 1
+        if(schemaName != null && !schemaName.startsWith("-")) {
+            assert eaDescItem.getViewpoint(resHandler.name, "0")
+            assert eaDescItem.getCollection(BuiltInCollections.SCHEMA, 0).size() == 1
+        }
     }
 
     /**

@@ -43,7 +43,21 @@ class RoutingScriptTest_OrSplitLoop_DevIT extends KernelScenarioTestBase {
         }
 
         createNewCompActDesc(compActName+"-$timeStamp", folder)
-        editCompActDesc(compActName+"-$timeStamp", folder, new File("src/integration-test/data/RoutingScriptTest/CA/${compActName}.xml").text)
+
+        def vars = [:]
+        vars.WORKFLOW_NAME  = "RoutingScriptWorkflow-$timeStamp"
+        vars.LOOP_SCRIPT    = "GreaterThanTenScript-$timeStamp"
+        vars.ORSPLIT_SCRIPT = "CounterScript-$timeStamp"
+        vars.ACT_COUNTER    = "ActCounter-$timeStamp"
+        vars.ACT_EMPTY      = "EmptyAct-$timeStamp"
+
+        def caXML = evalMVELTemplate("src/integration-test/data/RoutingScriptTest/CA/${compActName}.xml", vars)
+
+        //println "-----------------------------------------------------------------------------------"
+        //println caXML
+        //println "-----------------------------------------------------------------------------------"
+        
+        editCompActDesc(compActName+"-$timeStamp", folder, caXML)
 
         createNewDescriptionItem(factoryName+"-$timeStamp", folder)
 
@@ -63,7 +77,35 @@ class RoutingScriptTest_OrSplitLoop_DevIT extends KernelScenarioTestBase {
             }
         );
 
-        instance.getJobList(agent).size == 1
+        def job = instance.getJobByName("ActCounter", agent)
+        assert job.transition.name == "Done"
+        job.setOutcome(OutcomeBuilder.build("CounterSchema") {counter 3})
+        agent.execute(job);
+        
+        job = instance.getJobByName("ActOdd", agent)
+        assert job.transition.name == "Done"
+        agent.execute(job);
 
+        job = instance.getJobByName("ActCounter", agent)
+        assert job.transition.name == "Done"
+        job.setOutcome(OutcomeBuilder.build("CounterSchema") {counter 10})
+        agent.execute(job);
+
+        job = instance.getJobByName("ActEven", agent)
+        assert job.transition.name == "Done"
+        agent.execute(job);
+
+        job = instance.getJobByName("ActCounter", agent)
+        assert job.transition.name == "Done"
+        job.setOutcome(OutcomeBuilder.build("CounterSchema") {counter 13})
+        agent.execute(job);
+
+        job = instance.getJobByName("ActOdd", agent)
+        assert job.transition.name == "Done"
+        agent.execute(job);
+
+        job = instance.getJobByName("Last", agent)
+        assert job.transition.name == "Done"
+        agent.execute(job);
     }
 }
