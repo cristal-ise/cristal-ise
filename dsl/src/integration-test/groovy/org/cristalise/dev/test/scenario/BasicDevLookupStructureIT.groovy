@@ -8,7 +8,6 @@ import org.cristalise.kernel.lookup.ItemPath
 import org.cristalise.kernel.lookup.RolePath
 import org.cristalise.kernel.process.Gateway
 import org.cristalise.kernel.test.KernelScenarioTestBase
-import org.junit.Before
 import org.junit.Test
 
 
@@ -19,11 +18,6 @@ import org.junit.Test
  */
 @CompileStatic
 class BasicDevLookupStructureIT extends KernelScenarioTestBase {
-
-    @Before
-    void before() {
-        super.beforeClient('src/test/conf/devClient.conf', 'src/test/conf/devServer.clc')
-    }
 
     @Test
     public void checkPath() {
