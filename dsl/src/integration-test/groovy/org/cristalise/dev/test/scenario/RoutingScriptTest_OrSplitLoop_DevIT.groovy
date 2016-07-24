@@ -4,7 +4,6 @@ import org.cristalise.dsl.persistency.outcome.OutcomeBuilder
 import org.cristalise.dsl.property.PropertyDescriptionBuilder
 import org.cristalise.kernel.entity.proxy.ItemProxy
 import org.cristalise.kernel.test.KernelScenarioTestBase
-import org.junit.Before
 import org.junit.Test
 
 
@@ -13,11 +12,6 @@ import org.junit.Test
  *
  */
 class RoutingScriptTest_OrSplitLoop_DevIT extends KernelScenarioTestBase {
-
-    @Before
-    void before() {
-        super.beforeClient('src/integration-test/conf/testClient.conf', 'src/integration-test/conf/devServer.clc')
-    }
 
     @Test
     public void execute() {

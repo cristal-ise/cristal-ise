@@ -4,7 +4,6 @@ import static org.junit.Assert.*
 import groovy.transform.CompileStatic
 
 import org.cristalise.kernel.test.KernelScenarioTestBase
-import org.junit.Before
 import org.junit.Test
 
 
@@ -15,11 +14,6 @@ import org.junit.Test
  */
 @CompileStatic
 class BasicDevDescriptionIT extends KernelScenarioTestBase {
-
-    @Before
-    void before() {
-        super.beforeClient('src/integration-test/conf/testClient.conf', 'src/integration-test/conf/devServer.clc')
-    }
 
     @Test
     public void createAndEditElemActDesc() {

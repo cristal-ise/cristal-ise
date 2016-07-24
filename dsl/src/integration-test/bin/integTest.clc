@@ -1,23 +1,30 @@
-Name=Cristal Development Server
+// Cristal Connect Local Centre example file
+// Copy this and change things
+
+// This name appears on the login box
+Name=Example Cristal Server
+Logo=http://path.to/image
+
+//Only used by XMLClusterStorage
+XMLStorage.root = C:/cristal/xmlFile/integTest
 
 // TCP server ports
 ItemServer.name=localhost
 ItemServer.iiop=1505
 ItemServer.Proxy.port=1555
-
-Authenticator = org.cristalise.lookup.ldap.LDAPAuthManager
-Lookup        = org.cristalise.lookup.ldap.LDAPLookup
+ItemServer.Console.port=8888
 
 // LDAP Lookup config
 LDAP.GlobalPath=o=cern,c=ch
 LDAP.RootPath=cn=cristal
-LDAP.LocalPath=cn=dev
+LDAP.LocalPath=cn=integTest
 LDAP.port=389
 LDAP.host=localhost
 LDAP.user=cn=admin,o=cern,c=ch
 LDAP.password=cristal
 
+// XMLDB config
 XMLDB.URI=xmldb:exist://localhost:8080/exist/xmlrpc/db
-XMLDB.root=dev
+XMLDB.root=integTest
 XMLDB.user=admin
 XMLDB.password=admin

@@ -1,0 +1,71 @@
+<CristalModule ns="integTest" name="IntegrationTest">
+    <Info>
+        <Description>CRISTAL-iSE Items for testing</Description>
+        <Version>3.3-SNAPSHOT</Version>
+        <KernelVersion>3.3</KernelVersion>
+        <Dependency>CristalXMLDB</Dependency>
+        <Dependency>CristalLDAP</Dependency>
+        <Dependency>CristaliseDev</Dependency>
+    </Info>
+    <ResourceURL>org/cristalise/dsl/resources/</ResourceURL>
+    <Config name="Module.dev.debug">true</Config>
+    <Imports>
+        <Workflow name="TestSchemaFactoryWf" resource="boot/CA/TestSchemaFactoryWf.xml">
+            <StateMachine name="CompositeActivity" version="0"/>
+            <Activity name="EditPropertyDescription" version="0"/>
+            <Activity name="EditDefinition" version="0"/>
+            <Activity name="CreateNewLocalObjectDef" version="0"/>
+        </Workflow>
+
+        <Workflow name="AssetDescriptionWf" version="0" resource="boot/CA/AssetDescriptionWf.xml">
+            <Activity name="EditPropertyDescription" version="0" />
+            <Activity name="SetInstanceWorkflow" version="0" />
+            <Activity name="CreateItem" version="0" />
+            <Activity name="DefineNewCollection" version="0" />
+            <Activity name="SetDescriptionObject" version="0"/>
+        </Workflow>
+
+        <!--  SchemaFactory is redefined to link with a new set PropertyDescriptions -->
+        <Item name="TestSchemaFactory" initialPath="/desc/integTest" workflow="TestSchemaFactoryWf">
+            <Property name="LocalObjectType">Schema</Property>
+            <Property name="Type">Factory</Property>
+
+            <Outcome viewname="last" schema="PropertyDescription" version="0">boot/property/SchemaProp.xml</Outcome>
+<!--        <Outcome viewname="last" schema="Schema"              version="0">boot/OD/New.xsd</Outcome> -->
+
+            <Dependency name="workflow" isDescription="false">
+                <DependencyMember itemPath="/desc/ActivityDesc/system/kernel/ManageSchema">
+                    <MemberProperties>
+                        <KeyValuePair Key="Version" String="0" />
+                    </MemberProperties>
+                </DependencyMember>
+                <CollectionProperties />
+            </Dependency>
+        </Item>
+
+        <Item name="AssetDescriptionFactory" initialPath="/desc/integTest" workflow="ItemDescriptionFactoryWf">
+            <Property name="Type">Factory</Property>
+
+            <Outcome viewname="last" schema="PropertyDescription" version="0">boot/property/AssetDescProp.xml</Outcome>
+
+            <Dependency name="workflow" isDescription="false">
+                <DependencyMember itemPath="desc/ActivityDesc/system/integTest/AssetDescriptionWf">
+                    <MemberProperties>
+                        <KeyValuePair Key="Version" String="0" />
+                    </MemberProperties>
+                </DependencyMember>
+                <CollectionProperties />
+            </Dependency>
+
+            <Dependency name="workflow'" isDescription="true">
+                <DependencyMember itemPath="/desc/dev/CompositeActivityDefFactory" />
+                <CollectionProperties />
+            </Dependency>
+
+            <Dependency name="Schema" isDescription="true">
+                <DependencyMember itemPath="/desc/integTest/TestSchemaFactory" />
+                <CollectionProperties />
+            </Dependency>
+        </Item>
+    </Imports>
+</CristalModule>

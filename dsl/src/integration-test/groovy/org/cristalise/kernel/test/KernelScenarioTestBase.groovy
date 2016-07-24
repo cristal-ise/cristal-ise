@@ -8,6 +8,7 @@ import org.cristalise.kernel.process.AbstractMain
 import org.cristalise.kernel.process.Gateway
 import org.cristalise.kernel.utils.Logger
 import org.junit.After
+import org.junit.Before
 import org.mvel2.templates.CompiledTemplate
 import org.mvel2.templates.TemplateCompiler
 import org.mvel2.templates.TemplateRuntime
@@ -23,7 +24,7 @@ import org.mvel2.templates.TemplateRuntime
 class KernelScenarioTestBase extends DevItemUtility {
 
     String timeStamp = null
-    String folder = "IntegrationTest"
+    String folder = "integTest"
 
     private static Map<String, CompiledTemplate> mvelExpressions = new HashMap<String, CompiledTemplate>();
 
@@ -63,6 +64,11 @@ class KernelScenarioTestBase extends DevItemUtility {
         timeStamp = new Date().format("yyyy-MM-dd_HH-mm-ss_SSS")
     }
 
+    @Before
+    public void beforClient() {
+        beforeClient('src/integration-test/bin/client.conf', 'src/integration-test/bin/integTest.clc')
+    }
+
     /**
      * 
      * @param config
@@ -81,8 +87,8 @@ class KernelScenarioTestBase extends DevItemUtility {
      */
     void beforeServer(String config, String connect) {
         init(config, connect)
-
-        Gateway.startServer( Gateway.connect() );
+        Gateway.connect();
+        Gateway.startServer();
     }
 
     @After
