@@ -2,6 +2,7 @@ package org.cristalise.dev.test.scenario;
 
 import org.cristalise.dsl.persistency.outcome.OutcomeBuilder
 import org.cristalise.dsl.property.PropertyDescriptionBuilder
+import org.cristalise.kernel.entity.proxy.AgentProxy
 import org.cristalise.kernel.entity.proxy.ItemProxy
 import org.cristalise.kernel.test.KernelScenarioTestBase
 import org.junit.Test
@@ -9,7 +10,7 @@ import org.junit.Test
 
 /**
  * 
- *
+ * 
  */
 class RoutingScriptTest_OrSplitLoop_DevIT extends KernelScenarioTestBase {
 
@@ -71,35 +72,25 @@ class RoutingScriptTest_OrSplitLoop_DevIT extends KernelScenarioTestBase {
             }
         );
 
-        def job = instance.getJobByName("ActCounter", agent)
-        assert job.transition.name == "Done"
-        job.setOutcome(OutcomeBuilder.build("CounterSchema") {counter 3})
-        agent.execute(job);
-        
-        job = instance.getJobByName("ActOdd", agent)
-        assert job.transition.name == "Done"
-        agent.execute(job);
+        executeCounterJob(instance, "ActCounter", 3);
+        executeJob(instance, "ActOdd")
+        executeCounterJob(instance, "ActCounter", 10);
+        executeJob(instance, "ActEven")
+        executeCounterJob(instance, "ActCounter", 13);
+        executeJob(instance, "ActOdd")
+        executeJob(instance, "Last")
+    }
 
-        job = instance.getJobByName("ActCounter", agent)
+    private void executeCounterJob(ItemProxy proxy, String actName, int number) {
+        def job = proxy.getJobByName(actName, agent)
         assert job.transition.name == "Done"
-        job.setOutcome(OutcomeBuilder.build("CounterSchema") {counter 10})
-        agent.execute(job);
+        job.setOutcome(OutcomeBuilder.build("CounterSchema") {counter number})
+        agent.execute(job)
+    }
 
-        job = instance.getJobByName("ActEven", agent)
+    private void executeJob(ItemProxy proxy, String actName) {
+        def job = proxy.getJobByName(actName, agent)
         assert job.transition.name == "Done"
-        agent.execute(job);
-
-        job = instance.getJobByName("ActCounter", agent)
-        assert job.transition.name == "Done"
-        job.setOutcome(OutcomeBuilder.build("CounterSchema") {counter 13})
-        agent.execute(job);
-
-        job = instance.getJobByName("ActOdd", agent)
-        assert job.transition.name == "Done"
-        agent.execute(job);
-
-        job = instance.getJobByName("Last", agent)
-        assert job.transition.name == "Done"
-        agent.execute(job);
+        agent.execute(job)
     }
 }
