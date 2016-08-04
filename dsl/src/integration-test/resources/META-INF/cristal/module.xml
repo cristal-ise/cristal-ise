@@ -43,6 +43,8 @@
             </Dependency>
         </Item>
 
+        <!-- Asset Description -->
+
         <Item name="AssetDescriptionFactory" initialPath="/desc/integTest" workflow="ItemDescriptionFactoryWf">
             <Property name="Type">Factory</Property>
 
@@ -65,6 +67,80 @@
             <Dependency name="Schema" isDescription="true">
                 <DependencyMember itemPath="/desc/integTest/TestSchemaFactory" />
                 <CollectionProperties />
+            </Dependency>
+        </Item>
+
+
+        <!-- XPathOutcomeInitTest -->
+
+        <Resource name="XPathOutcomeInitTest_Details"             version="0" type="OD">boot/OD/XPathOutcomeInitTest_Details.xsd</Resource>
+        <Resource name="XPathOutcomeInitTest_DetailsInstantiator" version="0" type="SC">boot/SC/XPathOutcomeInitTest_DetailsInstantiator.xml</Resource>
+
+        <Activity name="XPathOutcomeInitTest_SetDetails" resource="boot/EA/XPathOutcomeInitTest_SetDetails.xml" version="0">
+            <Schema name="XPathOutcomeInitTest_Details" version="0"/>
+        </Activity>
+
+        <Workflow name="XPathOutcomeInitTest_DetailsLifecycle" resource="boot/CA/XPathOutcomeInitTest_DetailsLifecycle.xml">
+            <Activity name="MoveLatestVersionToLast" version="0"/>
+            <Activity name="AssignNewVersionFromLast" version="0"/>
+            <Activity name="XPathOutcomeInitTest_SetDetails" version="0"/>
+        </Workflow>
+
+        <Workflow name="XPathOutcomeInitTest_FactoryLifecycle" resource="boot/CA/XPathOutcomeInitTest_FactoryLifecycle.xml">
+            <StateMachine name="CompositeActivity" version="0"/>
+            <Activity name="CreateItem" version="0"/>
+            <Activity name="EditPropertyDescription" version="0"/>
+        </Workflow>
+
+        <Item name="XPathOutcomeInitTest_DetailsFactory" initialPath="/desc/integTest" workflow="XPathOutcomeInitTest_FactoryLifecycle">
+            <Property name="Type">Factory</Property>
+
+            <Outcome viewname="last" schema="PropertyDescription" version="0">boot/property/XPathOutcomeInitTest_DetailsInitialProps.xml</Outcome>
+
+            <Dependency name="workflow" isDescription="false">
+                <DependencyMember itemPath="/desc/ActivityDesc/system/integTest/XPathOutcomeInitTest_DetailsLifecycle">
+                    <MemberProperties>
+                        <KeyValuePair Key="Version" String="0" />
+                    </MemberProperties>
+                </DependencyMember>
+                <CollectionProperties />
+            </Dependency>
+        </Item>
+
+        <Workflow name="XPathOutcomeInitTest_ManageCADef" resource="boot/CA/XPathOutcomeInitTest_ManageCADef.xml">
+            <StateMachine name="CompositeActivity" version="0"/>
+            <Activity name="MoveLatestVersionToLast" version="0"/>
+            <Activity name="EditDefinition" version="0"/>
+            <Activity name="SetDescriptionObject" version="0"/>
+            <Activity name="AssignNewVersionFromLast" version="0"/>
+        </Workflow>
+
+        <Item name="XPathOutcomeInitTest_CADefFactory" initialPath="/desc/integTest" workflow="CompositeActivityFactory">
+            <Property name="LocalObjectType">CompositeActivityDef</Property>
+            <Property name="Type">Factory</Property>
+            <Outcome viewname="last" schema="PropertyDescription" version="0">boot/property/CAProp.xml</Outcome>
+            <Dependency name="workflow" isDescription="false">
+                <DependencyMember itemPath="/desc/ActivityDesc/system/integTest/XPathOutcomeInitTest_ManageCADef">
+                    <MemberProperties>
+                        <KeyValuePair Key="Version" String="0" />
+                    </MemberProperties>
+                </DependencyMember>
+                <CollectionProperties />
+            </Dependency>
+            <Dependency name="Activity" isDescription="true">
+                <DependencyMember itemPath="desc/dev/ActivityDefType" />
+            </Dependency>
+            <Dependency name="Schema" isDescription="true">
+                <DependencyMember itemPath="desc/dev/SchemaFactory" />
+            </Dependency>
+            <Dependency name="Script" isDescription="true">
+                <DependencyMember itemPath="desc/dev/ScriptFactory" />
+            </Dependency>
+            <Dependency name="StateMachine" isDescription="true">
+                <DependencyMember itemPath="desc/dev/StateMachineFactory" />
+            </Dependency>
+            <Dependency name="XPathOutcomeInitTest" isDescription="true">
+                <DependencyMember itemPath="desc/integTest/XPathOutcomeInitTest_DetailsFactory" />
             </Dependency>
         </Item>
     </Imports>

@@ -21,7 +21,7 @@
 package org.cristalise.dsl.test.lifecycle.definition
 
 import org.cristalise.dsl.lifecycle.definition.ElemActDefBuilder
-import org.cristalise.kernel.test.utils.CristalTestSetup;
+import org.cristalise.kernel.test.utils.CristalTestSetup
 
 import spock.lang.Specification
 
@@ -31,8 +31,8 @@ import spock.lang.Specification
  */
 class ElemActDefBuilderSpecs extends Specification implements CristalTestSetup {
     
-    def defaultActProps = [Breakpoint: false, Description: '', 'Agent Role': '', 'Agent Name': '', Viewpoint: '', OutcomeInit: '']
-    
+    def defaultActProps = [StateMachineName: "Default", StateMachineVersion: "0", Breakpoint: false, Description: '', 'Agent Role': '', 'Agent Name': '', Viewpoint: '', OutcomeInit: '']
+
     def setup()   { loggerSetup()    }
     def cleanup() { cristalCleanup() }
 

@@ -1,0 +1,33 @@
+<cristalscript>
+    <param name="item"    type="org.cristalise.kernel.entity.proxy.ItemProxy"/>
+    <param name="agent"   type="org.cristalise.kernel.entity.proxy.AgentProxy"/>
+    <param name="storage" type="org.cristalise.kernel.persistency.TransactionManager"/>
+    <param name="proxy"   type="org.cristalise.kernel.entity.proxy.ProxyManager"/>
+    <param name="lookup"  type="org.cristalise.kernel.lookup.Lookup"/>
+
+    <param name="dependencyMember" type="org.cristalise.kernel.collection.DependencyMember"/>
+
+    <output type="org.cristalise.kernel.utils.CastorHashMap"/>
+
+    <script name="XPathOutcomeInitTest_DetailsInstantiator" language="javascript"><![CDATA[
+importClass(Packages.org.cristalise.kernel.utils.CastorHashMap);
+
+var props = new CastorHashMap();
+
+//TODO: using 'last' has to be replaced with version stored in the properties of the member
+var xpathInitView = storage.get(dependencyMember.getItemPath(), ClusterStorage.VIEWPOINT+"/XPathOutcomeInitTest_Details/last", null);
+var xpathInitDetails = xpathInitView.getOutcome();
+
+var slotID   = xpathInitDetails.getNodeByXPath("/Fields/@slotID");
+var nodeList = xpathInitDetails.getNodesByXPath("//Field");
+
+for(i = 0; i < nodeList.getLength(); i++) {
+    var fieldName  = nodeList.item(i).getFirstChild().getData();
+    var fieldValue = nodeList.item(i).getLastChild().getData();
+
+    props.put(fieldName, fieldValue, false);
+}
+
+new CastorHashMap().put(slotID, props);
+    ]]></script>
+</cristalscript>

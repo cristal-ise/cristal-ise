@@ -2,7 +2,4 @@
     <PropertyDescription Name="Name"       IsClassIdentifier="false" IsMutable="true"  DefaultValue="" />
     <PropertyDescription Name="Type"       IsClassIdentifier="true"  IsMutable="false" DefaultValue="OutcomeDesc" />
     <PropertyDescription Name="Breakapart" IsClassIdentifier="false" IsMutable="false" DefaultValue="0"/>
-
-<!--     <PropertyDescription Name="ScriptName"    IsClassIdentifier="false" IsMutable="true" Transitive="true" DefaultValue="BuiltInDependencyToItemProperties"/> -->
-<!--     <PropertyDescription Name="ScriptVersion" IsClassIdentifier="false" IsMutable="true" Transitive="true" DefaultValue="0"/> -->
 </AllProperties>

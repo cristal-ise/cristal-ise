@@ -23,6 +23,7 @@ package org.cristalise.dev.test.utils
 
 import groovy.transform.CompileStatic
 
+import org.cristalise.dsl.persistency.outcome.SchemaBuilder
 import org.cristalise.kernel.collection.BuiltInCollections
 import org.cristalise.kernel.entity.agent.Job
 import org.cristalise.kernel.entity.proxy.AgentProxy
@@ -130,7 +131,7 @@ class DevItemUtility {
         doneJob.setOutcome( KernelXMLUtility.getActivityDefXML(Name: name, AgentRole: role) )
         agent.execute(doneJob)
 
-        //This mean no schema for Activity
+        //it is possible there was no Schema specified for this Activity
         if(schemaName != null && !schemaName.startsWith("-")) {
             doneJob = getDoneJob(eaDescItem, "SetSchema")
             doneJob.setOutcome( KernelXMLUtility.getDescObjectDetailsXML(id: schemaName, version: schemaVersion) )
@@ -273,5 +274,15 @@ class DevItemUtility {
         String instanceName = doneJob.getOutcome().getField("SubFolder") + "/" + doneJob.getOutcome().getField("ObjectName")
 
         return agent.getItem(instanceName)
+    }
+
+    public void ElementaryActivityDef(String name, String folder, Closure cl) {
+        createNewElemActDesc(name, folder)
+        editElemActDesc(name, folder, 'role', 'schema', 0)
+    }
+
+    public void Schema(String name, String folder, Closure cl) {
+        createNewSchema(name, folder)
+        editSchema(name, folder, SchemaBuilder.build(name, 0, cl).XSD)
     }
 }

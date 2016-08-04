@@ -23,7 +23,6 @@ package org.cristalise.dsl.persistency.outcome
 import groovy.transform.CompileStatic
 
 import org.cristalise.kernel.lookup.DomainPath
-import org.cristalise.kernel.lookup.ItemPath
 import org.cristalise.kernel.persistency.outcome.Outcome
 import org.cristalise.kernel.persistency.outcome.Schema
 import org.cristalise.kernel.process.Bootstrap
@@ -49,6 +48,16 @@ class SchemaBuilder {
     public SchemaBuilder() {}
 
     /**
+     * 
+     * @param name
+     * @param version
+     */
+    public SchemaBuilder(String name, int version) {
+        this.name    = name
+        this.version = version
+    }
+
+    /**
      *
      * @param module
      * @param name
@@ -68,7 +77,7 @@ class SchemaBuilder {
     public SchemaBuilder loadXSD(String xsdFile) {
         Logger.msg 5, "SchemaBuilder.loadXSD() - From file:$xsdFile"
 
-        schema = new Schema(name, version, (ItemPath)null, new File(xsdFile).getText())
+        schema = new Schema(name, version, new File(xsdFile).text)
         schema.validate()
 
         return this
@@ -104,6 +113,14 @@ class SchemaBuilder {
         return sb
     }
 
+    public static Schema build(String name, int version, Closure cl) {
+        def sb = new SchemaBuilder(name, version)
+
+        generateSchema(sb, cl)
+
+        return sb.schema
+    }
+
     /**
      *
      * @param cl
@@ -112,15 +129,19 @@ class SchemaBuilder {
     public static SchemaBuilder build(String module, String name, int version, Closure cl) {
         def sb = new SchemaBuilder(module, name, version)
 
+        generateSchema(sb, cl)
+
+        return sb
+    }
+
+    private static void generateSchema(SchemaBuilder sb, Closure cl) {
         def schemaD = new SchemaDelegate()
         schemaD.processClosure(cl)
 
         Logger.msg 5, "SchemaBuilder - generated xsd:\n" + schemaD.xsdString
 
-        sb.schema = new Schema(name, version, (ItemPath)null, schemaD.xsdString)
+        sb.schema = new Schema(sb.name, sb.version, schemaD.xsdString)
         sb.schema.validate()
-
-        return sb
     }
 
     /**
