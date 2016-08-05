@@ -75,4 +75,13 @@ class OutcomeBuilder {
 
         return outcomeD.writer.toString()
     }
+
+    public static String build(Closure cl) {
+        def outcomeD = new OutcomeDelegate()
+        outcomeD.processClosure(cl)
+
+        Logger.msg 5, "OutcomeBuilder - generated xml:\n" + outcomeD.writer.toString()
+
+        return outcomeD.writer.toString()
+    }
 }

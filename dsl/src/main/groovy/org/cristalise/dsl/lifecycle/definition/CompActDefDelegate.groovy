@@ -25,53 +25,77 @@ import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.AGENT_RO
 import groovy.transform.CompileStatic
 
 import org.cristalise.dsl.property.PropertyDelegate
+import org.cristalise.kernel.graph.layout.DefaultGraphLayoutGenerator
+import org.cristalise.kernel.graph.model.GraphPoint
 import org.cristalise.kernel.lifecycle.ActivityDef
+import org.cristalise.kernel.lifecycle.ActivitySlotDef
+import org.cristalise.kernel.lifecycle.CompositeActivityDef
 import org.cristalise.kernel.lifecycle.instance.stateMachine.StateMachine
-import org.cristalise.kernel.persistency.outcome.Schema
-import org.cristalise.kernel.scripting.Script
+
 
 /**
- * Wrapper/Delegate class of Elementary Activity definition
+ * Wrapper/Delegate class of CompositeActivityDef
  *
  */
 @CompileStatic
-class ElemActDefDelegate extends PropertyDelegate {
+class CompActDefDelegate extends PropertyDelegate {
 
-    ActivityDef elemActDef
+    ActivitySlotDef prevActSlotDef = null
+    boolean prevActIsFirst = true
+
+    CompositeActivityDef compActDef
+
+    public void processClosure(CompositeActivityDef caDef, Closure cl) {
+        assert cl, "CompActDefDelegate only works with a valid Closure"
+
+        assert caDef
+
+        compActDef = caDef
+
+        cl.delegate = this
+        cl.resolveStrategy = Closure.DELEGATE_FIRST
+        cl()
+    }
 
     public void processClosure(String name, int version, Closure cl) {
-        assert cl, "ElemActDefDelegate only works with a valid Closure"
+        assert cl, "CompActDefDelegate only works with a valid Closure"
 
-        elemActDef = new ActivityDef()
-        elemActDef.name = name
-        elemActDef.version = version
+        compActDef = new CompositeActivityDef()
+        compActDef.name = name
+        compActDef.version = version
 
         cl.delegate = this
         cl.resolveStrategy = Closure.DELEGATE_FIRST
         cl()
 
         props.each { k, v ->
-            elemActDef.properties.put(k, v, props.getAbstract().contains(k))
+            compActDef.properties.put(k, v, props.getAbstract().contains(k))
         }
+
+        DefaultGraphLayoutGenerator.layoutGraph(compActDef.getChildrenGraphModel())
     }
 
-    def Schema(Schema s) {
-        elemActDef.setSchema(s)
-    }
-
-    def Script(Script s) {
-        elemActDef.setScript(s)
+    def Collections() {
+        
     }
 
     def StateMachine(StateMachine s) {
-        elemActDef.setStateMachine(s)
+        compActDef.setStateMachine(s)
     }
 
-    def Agent(String a) {
-        elemActDef.setBuiltInProperty(AGENT_NAME, a)
-    }
+    def ElemActDef(String actName, ActivityDef actDef) {
+        def newActSlotDef = compActDef.addExistingActivityDef(actName, actDef, new GraphPoint())
 
-    def Role(String r) {
-        elemActDef.setBuiltInProperty(AGENT_ROLE, r)
+        if(prevActSlotDef) {
+            compActDef.addNextDef(prevActSlotDef, newActSlotDef)
+
+            if(prevActIsFirst) compActDef.getChildrenGraphModel().setStartVertexId(prevActSlotDef.ID)
+
+            prevActIsFirst = false
+        }
+
+        prevActSlotDef = newActSlotDef;
+
+        return newActSlotDef.ID
     }
 }

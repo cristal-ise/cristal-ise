@@ -18,48 +18,28 @@
  *
  * http://www.fsf.org/licensing/licenses/lgpl.html
  */
-package org.cristalise.dsl.persistency.outcome
+package org.cristalise.dsl.lifecycle.definition
 
-import groovy.xml.MarkupBuilder
+import groovy.transform.CompileStatic
 
+import org.cristalise.kernel.lifecycle.CompositeActivityDef
 
+ 
 /**
  *
  */
-class OutcomeDelegate {
-    String rootElement = ""
-    
-    MarkupBuilder xml
-    StringWriter writer
+@CompileStatic
+class CompActDefBuilder {
 
-    public OutcomeDelegate() {
-        writer = new StringWriter()
-        xml = new MarkupBuilder(writer)
-        writer << '<?xml version="1.0" encoding="UTF-8"?>\n'
+    public static CompositeActivityDef build(Map<String, Object> attrs, Closure cl) {
+        def delegate = new CompActDefDelegate()
+        delegate.processClosure((String)attrs.name, (Integer)attrs.version, cl)
+        return delegate.compActDef
     }
 
-    public OutcomeDelegate(String root) {
-        this()
-
-        assert root
-        rootElement = root
-    }
-
-    public void processClosure(Closure cl) {
-        assert cl, "OutcomeDelegate only works with a valid Closure"
-        
-        if(rootElement) {
-            xml."$rootElement" {
-                cl.delegate = xml
-                cl.resolveStrategy = Closure.DELEGATE_FIRST
-                cl()
-            }
-        }
-        else {
-            cl.delegate = xml
-            cl.resolveStrategy = Closure.DELEGATE_FIRST
-            cl()
-        }
-
+    public static CompositeActivityDef build(CompositeActivityDef caDef, Closure cl) {
+        def delegate = new CompActDefDelegate()
+        delegate.processClosure(caDef, cl)
+        return caDef
     }
 }

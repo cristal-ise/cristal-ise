@@ -139,7 +139,7 @@
             <Dependency name="StateMachine" isDescription="true">
                 <DependencyMember itemPath="desc/dev/StateMachineFactory" />
             </Dependency>
-            <Dependency name="XPathOutcomeInitTest" isDescription="true">
+            <Dependency name="XPathOutcomeInitTest_Details" isDescription="true">
                 <DependencyMember itemPath="desc/integTest/XPathOutcomeInitTest_DetailsFactory" />
             </Dependency>
         </Item>

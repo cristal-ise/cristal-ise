@@ -95,7 +95,6 @@
                 <InEdgeId>10</InEdgeId>
                 <OutEdgeId>11</OutEdgeId>
                 <Properties>
-                    <KeyValuePair Key="Root" isAbstract="false" String="integTest" />
                     <KeyValuePair Key="Version" isAbstract="false" Integer="0" />
                     <KeyValuePair Key="Name" isAbstract="false" String="XPathOutcomeInitTest_CreateDescription" />
                 </Properties>

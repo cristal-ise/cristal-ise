@@ -18,48 +18,36 @@
  *
  * http://www.fsf.org/licensing/licenses/lgpl.html
  */
-package org.cristalise.dsl.persistency.outcome
+package org.cristalise.dsl.test.persistency.outcome
 
-import groovy.xml.MarkupBuilder
+import org.cristalise.dsl.persistency.outcome.OutcomeBuilder
+import org.cristalise.kernel.test.utils.CristalTestSetup
+import org.cristalise.kernel.test.utils.KernelXMLUtility
+
+import spock.lang.Specification
 
 
 /**
  *
  */
-class OutcomeDelegate {
-    String rootElement = ""
-    
-    MarkupBuilder xml
-    StringWriter writer
+class OutcomeBuilderSpecs extends Specification implements CristalTestSetup {
 
-    public OutcomeDelegate() {
-        writer = new StringWriter()
-        xml = new MarkupBuilder(writer)
-        writer << '<?xml version="1.0" encoding="UTF-8"?>\n'
-    }
+    def setup()   { loggerSetup()    }
+    def cleanup() { cristalCleanup() }
 
-    public OutcomeDelegate(String root) {
-        this()
-
-        assert root
-        rootElement = root
-    }
-
-    public void processClosure(Closure cl) {
-        assert cl, "OutcomeDelegate only works with a valid Closure"
+    def 'Empty root is built from the parameters given to the build method'() {
+        expect:
+        def xml = OutcomeBuilder.build('Root') {}
         
-        if(rootElement) {
-            xml."$rootElement" {
-                cl.delegate = xml
-                cl.resolveStrategy = Closure.DELEGATE_FIRST
-                cl()
-            }
-        }
-        else {
-            cl.delegate = xml
-            cl.resolveStrategy = Closure.DELEGATE_FIRST
-            cl()
+        KernelXMLUtility.compareXML("<Root/>", xml)
+    }
+
+    def 'Build method with no parameters requires to define the root element'() {
+        expect:
+        def xml = OutcomeBuilder.build() {
+            Root(attr:'toto'){}
         }
 
+        KernelXMLUtility.compareXML("<Root attr='toto'/>", xml)
     }
 }

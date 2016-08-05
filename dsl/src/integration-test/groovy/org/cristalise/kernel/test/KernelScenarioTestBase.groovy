@@ -3,7 +3,7 @@ package org.cristalise.kernel.test;
 import static org.junit.Assert.*
 import groovy.transform.CompileStatic
 
-import org.cristalise.dev.test.utils.DevItemUtility
+import org.cristalise.dev.test.utils.DevItemDSL
 import org.cristalise.kernel.process.AbstractMain
 import org.cristalise.kernel.process.Gateway
 import org.cristalise.kernel.utils.Logger
@@ -17,11 +17,9 @@ import org.mvel2.templates.TemplateRuntime
 
 /**
  * 
- * @author kovax
- *
  */
 @CompileStatic
-class KernelScenarioTestBase extends DevItemUtility {
+class KernelScenarioTestBase extends DevItemDSL {
 
     String timeStamp = null
     String folder = "integTest"

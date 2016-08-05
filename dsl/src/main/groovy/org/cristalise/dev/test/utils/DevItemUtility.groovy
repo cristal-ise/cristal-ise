@@ -21,17 +21,20 @@
 
 package org.cristalise.dev.test.utils
 
+import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.AGENT_ROLE
 import groovy.transform.CompileStatic
 
-import org.cristalise.dsl.persistency.outcome.SchemaBuilder
 import org.cristalise.kernel.collection.BuiltInCollections
 import org.cristalise.kernel.entity.agent.Job
 import org.cristalise.kernel.entity.proxy.AgentProxy
 import org.cristalise.kernel.entity.proxy.ItemProxy
+import org.cristalise.kernel.lifecycle.ActivityDef
+import org.cristalise.kernel.lifecycle.CompositeActivityDef
 import org.cristalise.kernel.process.Gateway
 import org.cristalise.kernel.process.resource.DefaultResourceImportHandler
 import org.cristalise.kernel.property.PropertyDescriptionList
 import org.cristalise.kernel.test.utils.KernelXMLUtility
+
 
 /**
  * 
@@ -40,6 +43,12 @@ import org.cristalise.kernel.test.utils.KernelXMLUtility
 class DevItemUtility {
 
     AgentProxy agent = null
+
+    public String elemActDefFactoryName = "/domain/desc/dev/ElementaryActivityDefFactory"
+    public String compActDefFactoryName = "/domain/desc/dev/CompositeActivityDefFactory"
+    public String schemaFactoryName     = "/domain/desc/dev/SchemaFactory"
+    public String scriptFactoryName     = "/domain/desc/dev/ScriptFactory"
+    public String descItemFactoryName   = "/domain/desc/dev/DescriptionFactory"
 
     /**
      *
@@ -55,17 +64,50 @@ class DevItemUtility {
 
     /**
      * 
+     * @param factoyPath
+     * @param factoryActName
      * @param name
      * @param folder
+     * @return
      */
-    public void createNewElemActDesc(String name, String folder) {
-        ItemProxy eaDescFactory = agent.getItem("/domain/desc/dev/ElementaryActivityDefFactory")
-        assert eaDescFactory && eaDescFactory.getName() == "ElementaryActivityDefFactory"
+    public ItemProxy createNewDevItem(String factoyPath, String factoryActName, String name, String folder) {
+        ItemProxy factory = agent.getItem(factoyPath)
+        assert factory && factory.getName() == factoyPath.substring(factoyPath.lastIndexOf('/')+1)
 
-        Job doneJob = getDoneJob(eaDescFactory, "CreateNewElementaryActivityDef")
+        Job doneJob = getDoneJob(factory, factoryActName)
         doneJob.setOutcome( DevXMLUtility.getNewDevObjectDefXML(name: name, folder: folder) )
 
         agent.execute(doneJob)
+
+        return factory
+    }
+
+    /**
+     * 
+     * @param type
+     * @param editActiName
+     * @param newVersionActName
+     * @param name
+     * @param folder
+     * @param xml
+     * @return
+     */
+    public ItemProxy editDevItem(String type, String editActName, String newVersionActName, String name, String folder, String xml) {
+        def resHandler = new DefaultResourceImportHandler(type)
+
+        ItemProxy devItem = agent.getItem("${resHandler.typeRoot}/$folder/$name")
+        assert devItem && devItem.getName() == name
+
+        Job doneJob = getDoneJob(devItem, editActName)
+        doneJob.setOutcome( xml )
+        agent.execute(doneJob)
+
+        doneJob = getDoneJob(devItem, newVersionActName)
+        agent.execute(doneJob)
+
+        assert devItem.getViewpoint(resHandler.name, "0")
+
+        return devItem
     }
 
     /**
@@ -73,14 +115,8 @@ class DevItemUtility {
      * @param name
      * @param folder
      */
-    public void createNewSchema(String name, String folder) {
-        ItemProxy schemaFactory = agent.getItem("/domain/desc/dev/SchemaFactory")
-        assert schemaFactory && schemaFactory.getName() == "SchemaFactory"
-
-        Job doneJob = getDoneJob(schemaFactory, "CreateNewSchema")
-        doneJob.setOutcome( DevXMLUtility.getNewDevObjectDefXML(name: name, folder: folder) )
-
-        agent.execute(doneJob)
+    public ItemProxy createNewElemActDesc(String name, String folder) {
+        return createNewDevItem( elemActDefFactoryName, "CreateNewElementaryActivityDef", name, folder)
     }
 
     /**
@@ -88,14 +124,8 @@ class DevItemUtility {
      * @param name
      * @param folder
      */
-    public void createNewScript(String name, String folder) {
-        ItemProxy schemaFactory = agent.getItem("/domain/desc/dev/ScriptFactory")
-        assert schemaFactory && schemaFactory.getName() == "ScriptFactory"
-
-        Job doneJob = getDoneJob(schemaFactory, "CreateNewScript")
-        doneJob.setOutcome( DevXMLUtility.getNewDevObjectDefXML(name: name, folder: folder) )
-
-        agent.execute(doneJob)
+    public ItemProxy createNewSchema(String name, String folder) {
+        return createNewDevItem( schemaFactoryName, "CreateNewSchema", name, folder)
     }
 
     /**
@@ -103,14 +133,17 @@ class DevItemUtility {
      * @param name
      * @param folder
      */
-    public void createNewCompActDesc(String name, String folder) {
-        ItemProxy caDescFactory = agent.getItem("/domain/desc/dev/CompositeActivityDefFactory")
-        assert caDescFactory && caDescFactory.getName() == "CompositeActivityDefFactory"
+    public ItemProxy createNewScript(String name, String folder) {
+        return createNewDevItem( scriptFactoryName, "CreateNewScript", name, folder)
+    }
 
-        Job doneJob = getDoneJob(caDescFactory, "CreateNewCompositeActivityDef")
-        doneJob.setOutcome( DevXMLUtility.getNewDevObjectDefXML(name: name, folder: folder) )
-
-        agent.execute(doneJob)
+    /**
+     * 
+     * @param name
+     * @param folder
+     */
+    public ItemProxy createNewCompActDesc(String name, String folder) {
+        return createNewDevItem( compActDefFactoryName, "CreateNewCompositeActivityDef", name, folder)
     }
 
     /**
@@ -132,7 +165,7 @@ class DevItemUtility {
         agent.execute(doneJob)
 
         //it is possible there was no Schema specified for this Activity
-        if(schemaName != null && !schemaName.startsWith("-")) {
+        if(schemaName && !schemaName.startsWith("-")) {
             doneJob = getDoneJob(eaDescItem, "SetSchema")
             doneJob.setOutcome( KernelXMLUtility.getDescObjectDetailsXML(id: schemaName, version: schemaVersion) )
             agent.execute(doneJob)
@@ -141,7 +174,40 @@ class DevItemUtility {
         doneJob = getDoneJob(eaDescItem, "AssignNewActivityVersionFromLast")
         agent.execute(doneJob)
 
-        if(schemaName != null && !schemaName.startsWith("-")) {
+        if(schemaName && !schemaName.startsWith("-")) {
+            assert eaDescItem.getViewpoint(resHandler.name, "0")
+            assert eaDescItem.getCollection(BuiltInCollections.SCHEMA, 0).size() == 1
+        }
+    }
+
+    /**
+     * 
+     * @param name
+     * @param folder
+     * @param eaDef
+     */
+    public void editElemActDesc(String name, String folder, ActivityDef eaDef) {
+        def resHandler = new DefaultResourceImportHandler("EA")
+
+        ItemProxy eaDescItem = agent.getItem("${resHandler.typeRoot}/$folder/$name")
+        assert eaDescItem && eaDescItem.getName() == name
+
+        eaDef.setItemPath(eaDescItem.getPath())
+
+        Job doneJob = getDoneJob(eaDescItem, "EditDefinition")
+        doneJob.setOutcome( Gateway.getMarshaller().marshall(eaDef) )
+        agent.execute(doneJob)
+
+        if(eaDef.schema) {
+            doneJob = getDoneJob(eaDescItem, "SetSchema")
+            doneJob.setOutcome( KernelXMLUtility.getDescObjectDetailsXML(id: eaDef.schema.name, version: eaDef.schema.version) )
+            agent.execute(doneJob)
+        }
+
+        doneJob = getDoneJob(eaDescItem, "AssignNewActivityVersionFromLast")
+        agent.execute(doneJob)
+
+        if(eaDef.schema) {
             assert eaDescItem.getViewpoint(resHandler.name, "0")
             assert eaDescItem.getCollection(BuiltInCollections.SCHEMA, 0).size() == 1
         }
@@ -153,20 +219,8 @@ class DevItemUtility {
      * @param folder
      * @param xsd
      */
-    public void editSchema(String name, String folder, String xsd) {
-        def resHandler = new DefaultResourceImportHandler("OD")
-
-        ItemProxy schemaItem = agent.getItem("${resHandler.typeRoot}/$folder/$name")
-        assert schemaItem && schemaItem.getName() == name
-
-        Job doneJob = getDoneJob(schemaItem, "EditDefinition")
-        doneJob.setOutcome( xsd )
-        agent.execute(doneJob)
-
-        doneJob = getDoneJob(schemaItem, "AssignNewSchemaVersionFromLast")
-        agent.execute(doneJob)
-
-        assert schemaItem.getViewpoint(resHandler.name, "0")
+    public ItemProxy editSchema(String name, String folder, String xsd) {
+        return editDevItem("OD", "EditDefinition", "AssignNewSchemaVersionFromLast", name, folder, xsd)
     }
 
     /**
@@ -175,20 +229,24 @@ class DevItemUtility {
      * @param folder
      * @param xsd
      */
-    public void editScript(String name, String folder, String scriptXML) {
-        def resHandler = new DefaultResourceImportHandler("SC")
+    public ItemProxy editScript(String name, String folder, String scriptXML) {
+        return editDevItem("SC", "EditDefinition", "AssignNewScriptVersionFromLast", name, folder, scriptXML)
+    }
 
-        ItemProxy schemaItem = agent.getItem("${resHandler.typeRoot}/$folder/$name")
-        assert schemaItem && schemaItem.getName() == name
+    /**
+     * 
+     * @param name
+     * @param folder
+     * @param caXML
+     * @param actCollSize
+     */
+    public ItemProxy editCompActDesc(String name, String folder, String caXML, int actCollSize = 0) {
+        def caDescItem = editDevItem( "CA", "EditDefinition", "AssignNewActivityVersionFromLast", name, folder, caXML)
 
-        Job doneJob = getDoneJob(schemaItem, "EditDefinition")
-        doneJob.setOutcome( scriptXML )
-        agent.execute(doneJob)
-
-        doneJob = getDoneJob(schemaItem, "AssignNewScriptVersionFromLast")
-        agent.execute(doneJob)
-
-        assert schemaItem.getViewpoint(resHandler.name, "0")
+        assert caDescItem.getCollection(BuiltInCollections.ACTIVITY, 0).size()
+        if(actCollSize) assert caDescItem.getCollection(BuiltInCollections.ACTIVITY, 0).size() == actCollSize
+        
+        return caDescItem
     }
 
     /**
@@ -198,44 +256,21 @@ class DevItemUtility {
      * @param activityName
      * @param activityVersion
      */
-    public void editCompActDesc(String name, String folder, String activityName, Integer activityVersion) {
-        def resHandler = new DefaultResourceImportHandler("CA")
-
-        ItemProxy caDescItem = agent.getItem("${resHandler.typeRoot}/$folder/$name")
-        assert caDescItem && caDescItem.getName() == name
-
-        Job doneJob = getDoneJob(caDescItem, "EditDefinition")
-        doneJob.setOutcome( KernelXMLUtility.getCompositeActivityDefXML(Name: name, ActivityName: activityName, ActivityVersion: activityVersion) )
-        agent.execute(doneJob)
-
-        doneJob = getDoneJob(caDescItem, "AssignNewActivityVersionFromLast")
-        agent.execute(doneJob)
-
-        assert caDescItem.getViewpoint(resHandler.name, "0")
-        assert caDescItem.getCollection(BuiltInCollections.ACTIVITY, 0).size() == 1
+    public ItemProxy editCompActDesc(String name, String folder, String activityName, Integer activityVersion) {
+        String caXML = KernelXMLUtility.getCompositeActivityDefXML(Name: name, ActivityName: activityName, ActivityVersion: activityVersion)
+        return editCompActDesc(name, folder, caXML)
     }
 
     /**
      * 
+     * 
      * @param name
      * @param folder
-     * @param caXML
+     * @param caDef
      */
-    public void editCompActDesc(String name, String folder, String caXML) {
-        def resHandler = new DefaultResourceImportHandler("CA")
-
-        ItemProxy caDescItem = agent.getItem("${resHandler.typeRoot}/$folder/$name")
-        assert caDescItem && caDescItem.getName() == name
-
-        Job doneJob = getDoneJob(caDescItem, "EditDefinition")
-        doneJob.setOutcome(caXML)
-        agent.execute(doneJob)
-
-        doneJob = getDoneJob(caDescItem, "AssignNewActivityVersionFromLast")
-        agent.execute(doneJob)
-
-        assert caDescItem.getViewpoint(resHandler.name, "0")
-        assert caDescItem.getCollection(BuiltInCollections.ACTIVITY, 0).size()
+    public ItemProxy editCompActDesc(String name, String folder, CompositeActivityDef caDef) {
+        String caXML = Gateway.getMarshaller().marshall(caDef)
+        return editCompActDesc(name, folder, caXML)
     }
 
     /**
@@ -244,15 +279,7 @@ class DevItemUtility {
      * @param folder
      */
     public ItemProxy createNewDescriptionItem(String name, String folder) {
-        ItemProxy descFactory = agent.getItem("/domain/desc/dev/DescriptionFactory")
-        assert descFactory && descFactory.getName() == "DescriptionFactory"
-
-        Job doneJob = getDoneJob(descFactory, "CreateNewDescription")
-        doneJob.setOutcome( DevXMLUtility.getNewDevObjectDefXML(name: name, folder: folder) )
-
-        agent.execute(doneJob)
-
-        return descFactory
+        return createNewDevItem( descItemFactoryName, "CreateNewDescription", name, folder)
     }
 
     public ItemProxy editDescriptionAndCreateItem(String name, String folder, PropertyDescriptionList propDesc, String setWorkflowXML, String devObjectDefXML) {
@@ -274,15 +301,5 @@ class DevItemUtility {
         String instanceName = doneJob.getOutcome().getField("SubFolder") + "/" + doneJob.getOutcome().getField("ObjectName")
 
         return agent.getItem(instanceName)
-    }
-
-    public void ElementaryActivityDef(String name, String folder, Closure cl) {
-        createNewElemActDesc(name, folder)
-        editElemActDesc(name, folder, 'role', 'schema', 0)
-    }
-
-    public void Schema(String name, String folder, Closure cl) {
-        createNewSchema(name, folder)
-        editSchema(name, folder, SchemaBuilder.build(name, 0, cl).XSD)
     }
 }
