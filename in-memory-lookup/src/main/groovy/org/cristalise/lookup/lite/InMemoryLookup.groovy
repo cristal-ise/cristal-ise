@@ -60,8 +60,11 @@ abstract class InMemoryLookup extends ClusterStorage implements Lookup {
     }
 
     public void clear() {
+        Logger.msg(1, "InMemoryLookup.clear() - Clearing lookup cache and property store")
         cache.clear()
         propertyStore.clear()
+        role2AgentsCache.clear()
+        agent2RolesCache.clear()
     }
 
     /**
@@ -87,6 +90,7 @@ abstract class InMemoryLookup extends ClusterStorage implements Lookup {
     @Override
     public void open(Authenticator user) {
         Logger.msg(8, "InMemoryLookup.open(user) - Do nothing")
+        clear()
     }
 
     /**
@@ -95,7 +99,7 @@ abstract class InMemoryLookup extends ClusterStorage implements Lookup {
     @Override
     public void close() {
         Logger.msg(8, "InMemoryLookup.close() - Do nothing");
-        cache.clear()
+        clear()
     }
 
     /**

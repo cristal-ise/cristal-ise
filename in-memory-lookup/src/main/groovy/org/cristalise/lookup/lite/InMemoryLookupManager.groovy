@@ -39,11 +39,6 @@ import org.cristalise.kernel.utils.Logger
 @Singleton
 class InMemoryLookupManager extends InMemoryLookup implements LookupManager {
 
-    public static InMemoryLookupManager getInstance() {
-        instance.clear()
-        return instance;
-    }
-
     @Override
     public void initializeDirectory() throws ObjectNotFoundException {
         Logger.msg(8, "InMemoryLookupManager.initializeDirectory() - Do nothing");
