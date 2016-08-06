@@ -63,10 +63,11 @@ public class EmptyOutcomeInitiator implements OutcomeInitiator {
     }
 
     /**
+     * Return the root element
      * 
      * @param rootName
-     * @param sts
-     * @return
+     * @param sts SchemaTypeSystem
+     * @return SchemaType
      * @throws InvalidDataException
      */
     protected static SchemaType getRootElement(String rootName, SchemaTypeSystem sts) throws InvalidDataException {
@@ -121,6 +122,7 @@ public class EmptyOutcomeInitiator implements OutcomeInitiator {
         }
 
         SchemaTypeSystem sts = null;
+        @SuppressWarnings("rawtypes")
         Collection errors = new ArrayList();
 
         try {
