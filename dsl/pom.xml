@@ -50,8 +50,8 @@
                 <artifactId>maven-compiler-plugin</artifactId>
                 <version>3.5</version>
                 <configuration>
-                    <source>1.7</source>
-                    <target>1.7</target>
+                    <source>1.8</source>
+                    <target>1.8</target>
                 </configuration>
             </plugin>
             <plugin>
@@ -172,6 +172,12 @@
             <groupId>org.cristalise</groupId>
             <artifactId>cristalise-ldap</artifactId>
             <version>3.2</version>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.cristalise</groupId>
+            <artifactId>cristalise-xpath-outcomeinit</artifactId>
+            <version>3.3-SNAPSHOT</version>
             <scope>compile</scope>
         </dependency>
         <dependency>
