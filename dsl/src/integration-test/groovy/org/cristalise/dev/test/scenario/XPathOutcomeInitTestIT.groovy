@@ -74,7 +74,8 @@ class XPathOutcomeInitTestIT extends KernelScenarioTestBase {
             }
 
             actDefs[index] = ElementaryActivityDef(actName+"-$timeStamp", folder) {
-                Role('dev')
+                Role('admin')
+                Property(OutcomeInit: "XPath")
                 Schema(schema)
             }
         }

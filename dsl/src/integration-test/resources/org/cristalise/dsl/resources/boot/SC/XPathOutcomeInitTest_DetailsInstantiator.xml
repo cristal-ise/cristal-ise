@@ -7,27 +7,48 @@
 
     <param name="dependencyMember" type="org.cristalise.kernel.collection.DependencyMember"/>
 
-    <output type="org.cristalise.kernel.utils.CastorHashMap"/>
+    <output name="outcomeInitProperties" type="org.cristalise.kernel.utils.CastorHashMap"/>
 
     <script name="XPathOutcomeInitTest_DetailsInstantiator" language="javascript"><![CDATA[
+importClass(Packages.org.cristalise.kernel.utils.Logger);
 importClass(Packages.org.cristalise.kernel.utils.CastorHashMap);
-
-var props = new CastorHashMap();
+importClass(Packages.org.cristalise.kernel.persistency.ClusterStorage);
+importClass(Packages.org.w3c.dom.Node);
 
 //TODO: using 'last' has to be replaced with version stored in the properties of the member
 var xpathInitView = storage.get(dependencyMember.getItemPath(), ClusterStorage.VIEWPOINT+"/XPathOutcomeInitTest_Details/last", null);
 var xpathInitDetails = xpathInitView.getOutcome();
 
-var slotID   = xpathInitDetails.getNodeByXPath("/Fields/@slotID");
-var nodeList = xpathInitDetails.getNodesByXPath("//Field");
+Logger.msg(8, "Script:XPathOutcomeInitTest_DetailsInstantiator - outcome:"+xpathInitDetails.getData());
 
-for(i = 0; i < nodeList.getLength(); i++) {
-    var fieldName  = nodeList.item(i).getFirstChild().getData();
-    var fieldValue = nodeList.item(i).getLastChild().getData();
+var slotID = xpathInitDetails.getNodeByXPath("/Fields/@slotID").getNodeValue();
+var fields = xpathInitDetails.getNodesByXPath("//Field");
 
-    props.put(fieldName, fieldValue, false);
+var outcomeInitProperties = new CastorHashMap();
+var tempMap = new CastorHashMap();
+
+for(i = 0; i < fields.getLength(); i++) {
+    var children = fields.item(i).getChildNodes();
+
+    var fieldName  = "";
+    var fieldValue = "";
+
+    for(j = 0; j < children.getLength(); j++) {
+        if(children.item(j).getNodeType() == Node.ELEMENT_NODE) {
+            if      (children.item(j).getNodeName().equals("FieldName"))  fieldName  = children.item(j).getTextContent().trim();
+            else if (children.item(j).getNodeName().equals("FieldValue")) fieldValue = children.item(j).getTextContent().trim();
+        }
+        else  {
+            if (Logger.doLog(8)) Logger.msg("Script:XPathOutcomeInitTest_DetailsInstantiator - SKIPPING nodeName:"+children.item(j).getNodeName()+" nodeType:"+children.item(j).getNodeType());
+        }
+    }
+
+    Logger.msg(5, "Script:XPathOutcomeInitTest_DetailsInstantiator - slotID:"+slotID+" fieldName:"+fieldName+" fieldValue:"+fieldValue);
+
+    tempMap.put(fieldName, fieldValue, false);
 }
 
-new CastorHashMap().put(slotID, props);
+outcomeInitProperties.put(parseInt(slotID), tempMap, false);
+outcomeInitProperties;
     ]]></script>
 </cristalscript>
