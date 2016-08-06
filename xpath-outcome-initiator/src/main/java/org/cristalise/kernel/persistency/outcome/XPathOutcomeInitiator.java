@@ -39,7 +39,7 @@ public class XPathOutcomeInitiator extends EmptyOutcomeInitiator {
     private String propNamePattern = null;
 
     public XPathOutcomeInitiator() {
-        propNamePattern = Gateway.getProperties().getString("XPathOutcomeInitiator.PropertyNamePattern", "^/");
+        propNamePattern = Gateway.getProperties().getString("XPathOutcomeInitiator.PropertyNamePattern", "/");
     }
 
     /**
@@ -47,6 +47,7 @@ public class XPathOutcomeInitiator extends EmptyOutcomeInitiator {
      */
     @Override
     public String initOutcome(Job job) throws InvalidDataException {
+        Logger.msg(5, "XPathOutcomeInitiator.initOutcome() - stepName:"+job.getStepName());
         return initOutcomeInstance(job).getData();
     }
 
