@@ -1,2 +1,1 @@
-# trigger
-Description-Driven Trigger module
+# Description-Driven Trigger module
