@@ -1,0 +1,7 @@
+<CristalModule ns="trigger" name="trigger">
+	<Info>
+		<Description>CRISTAL-iSE Trigger Module</Description>
+		<Version>${version}</Version>
+		<KernelVersion>3.3</KernelVersion>
+	</Info>
+</CristalModule>
