@@ -27,8 +27,8 @@ import org.apache.xmlbeans.SchemaType;
 import org.apache.xmlbeans.SchemaTypeSystem;
 import org.apache.xmlbeans.XmlBeans;
 import org.apache.xmlbeans.XmlException;
-import org.apache.xmlbeans.XmlObject;
 import org.apache.xmlbeans.XmlOptions;
+import org.apache.xmlbeans.impl.xb.xsdschema.SchemaDocument;
 import org.apache.xmlbeans.impl.xsd2inst.SampleXmlUtil;
 import org.cristalise.kernel.common.InvalidDataException;
 import org.cristalise.kernel.common.ObjectNotFoundException;
@@ -111,10 +111,10 @@ public class EmptyOutcomeInitiator implements OutcomeInitiator {
      * @throws InvalidDataException
      */
     protected static SchemaTypeSystem getSchemaTypeSystem(String xsd) throws InvalidDataException {
-        XmlObject[] schemas = new XmlObject[1]; 
+        SchemaDocument[] schemas = new SchemaDocument[1];
 
         try {
-            schemas[0] = XmlObject.Factory.parse( xsd, (new XmlOptions()).setLoadLineNumbers().setLoadMessageDigest());
+            schemas[0] = SchemaDocument.Factory.parse( xsd, (new XmlOptions()).setLoadLineNumbers().setLoadMessageDigest());
         }
         catch (XmlException e) {
             Logger.error(e);
@@ -127,10 +127,9 @@ public class EmptyOutcomeInitiator implements OutcomeInitiator {
 
         try {
             sts = XmlBeans.compileXsd(schemas, XmlBeans.getBuiltinTypeSystem(), getXSDCompileOptions());
-            if (sts == null) throw new InvalidDataException("No Schemas to process.");
-            return sts;
         }
         catch (Exception e) {
+            Logger.error(xsd);
             Logger.error(e);
 
             StringBuffer buffer = new StringBuffer();
@@ -140,6 +139,10 @@ public class EmptyOutcomeInitiator implements OutcomeInitiator {
             Logger.error("Errors to process Schema(s) : " + buffer.toString());
             throw new InvalidDataException("Errors to process Schema(s) : " + buffer.toString());
         }
+
+        if (sts == null) throw new InvalidDataException("No Schemas to process.");
+
+        return sts;
     }
 
     /**
