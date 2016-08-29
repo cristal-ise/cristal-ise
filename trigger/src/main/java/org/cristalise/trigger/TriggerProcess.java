@@ -20,14 +20,18 @@
  */
 package org.cristalise.trigger;
 
+import static org.quartz.JobBuilder.newJob;
+import static org.quartz.TriggerBuilder.newTrigger;
+
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
 
+import org.cristalise.kernel.common.AccessRightsException;
 import org.cristalise.kernel.common.ObjectNotFoundException;
-import org.cristalise.kernel.entity.C2KLocalObject;
+import org.cristalise.kernel.common.PersistencyException;
 import org.cristalise.kernel.entity.agent.Job;
+import org.cristalise.kernel.entity.agent.JobList;
 import org.cristalise.kernel.entity.proxy.MemberSubscription;
 import org.cristalise.kernel.entity.proxy.ProxyObserver;
 import org.cristalise.kernel.lifecycle.instance.stateMachine.StateMachine;
@@ -39,23 +43,23 @@ import org.cristalise.kernel.utils.Logger;
 import org.exolab.castor.mapping.MappingException;
 import org.exolab.castor.xml.MarshalException;
 import org.exolab.castor.xml.ValidationException;
+import org.quartz.DateBuilder;
+import org.quartz.DateBuilder.IntervalUnit;
+import org.quartz.JobDataMap;
+import org.quartz.JobDetail;
 import org.quartz.Scheduler;
 import org.quartz.SchedulerException;
 import org.quartz.SchedulerFactory;
+import org.quartz.SimpleTrigger;
 
 public class TriggerProcess extends StandardClient implements ProxyObserver<Job> {
 
     private final ArrayList<Integer> transitions = new ArrayList<Integer>();
-    private final HashMap<String, C2KLocalObject> jobs = new HashMap<String, C2KLocalObject>();
-    
+
     private Scheduler quartzScheduler = null;
 
-//    private static boolean active = true;
 
-
-
-    public TriggerProcess() 
-            throws MarshalException, ValidationException, ObjectNotFoundException, IOException, MappingException
+    public TriggerProcess() throws MarshalException, ValidationException, ObjectNotFoundException, IOException, MappingException
     {
         String stateMachinePath = Gateway.getProperties().getString("Trigger.StateMachine", "boot/SM/Trigger.xml");
         StateMachine sm = (StateMachine)Gateway.getMarshaller().unmarshall(Gateway.getResource().getTextResource(null, stateMachinePath));
@@ -70,8 +74,9 @@ public class TriggerProcess extends StandardClient implements ProxyObserver<Job>
             transitions.add(transID);
         }
 
+        agent.subscribe(new MemberSubscription<Job>(this, ClusterStorage.JOB, true));
+
         Logger.msg(5, "TriggerProcess() - StateMachine:" + sm.getName() + "transitions:" + Arrays.toString(transNames));
-//        Logger.msg(0, "TriggerProcess() - " + getDesc() + " initialised for " + agentName);
     }
 
     public void executeActions(Job job) throws Exception {
@@ -80,11 +85,15 @@ public class TriggerProcess extends StandardClient implements ProxyObserver<Job>
     }
 
 
-    public void startScheduler() throws SchedulerException {
+    public void startScheduler() throws SchedulerException, AccessRightsException, ObjectNotFoundException, PersistencyException {
         SchedulerFactory schedFact = new org.quartz.impl.StdSchedulerFactory();
 
         quartzScheduler = schedFact.getScheduler();
         quartzScheduler.start();
+        
+        JobList joblist = (JobList)agent.getObject(ClusterStorage.JOB);
+
+        for(String jobID: joblist.keySet()) add(joblist.get(jobID));
     }
     
     public void shutdownScheduler() throws SchedulerException {
@@ -92,62 +101,56 @@ public class TriggerProcess extends StandardClient implements ProxyObserver<Job>
     }
 
     /**
-     * Gets the next possible Job based on the Transitions
-     * 
-     * @return the actual Job
-     */
-    protected Job getActualJob() {
-        Job thisJob = null;
-
-        synchronized (jobs) {
-            if (jobs.size() > 0) {
-                
-                for(int transID: transitions) {
-                    thisJob = getJob(jobs, transID);
-
-                    if (thisJob != null) break;
-                }
-
-                if (thisJob == null) {
-                    Logger.warning("No supported jobs, but joblist is not empty! Discarding remaining jobs");
-                    jobs.clear();
-                }
-                else
-                    jobs.remove(ClusterStorage.getPath(thisJob));
-            }
-        }
-        return thisJob;
-    }
-
-	private static Job getJob(HashMap<String, C2KLocalObject> jobs, int transition) {
-        for (C2KLocalObject c2kLocalObject : jobs.values()) {
-            Job thisJob = (Job)c2kLocalObject;
-            if (thisJob.getTransition().getId() == transition) {
-                Logger.msg(1,"=================================================================");
-                Logger.msg(1, "Got "+thisJob.getTransition().getName()+" job for "+thisJob.getStepName()+" in "+thisJob.getItemPath());
-                return thisJob;
-            }
-        }
-        return null;
-    }
-
-    /**
      * Receives job from the AgentProxy. Reactivates thread if sleeping.
     */
     @Override
-	public void add(Job contents) {
-            synchronized(jobs) {
-                Logger.msg(7, "TriggerProcess.add() - id:"+ClusterStorage.getPath(contents));
+	public void add(Job currentJob) {
+        synchronized(quartzScheduler) {
+            Logger.msg(7, "TriggerProcess.add() - id:"+ClusterStorage.getPath(currentJob));
 
-                jobs.put(ClusterStorage.getPath(contents), contents);
-                jobs.notify();
-            }
+            currentJob.getActProp("");
+
+            JobDataMap jdm = new JobDataMap();
+            jdm.put("CristalAgent", agent);
+            jdm.put("CristalJob",   currentJob);
+
+            String jobID = currentJob.getItemUUID()+"/"+currentJob.getId();
+
+            JobDetail jobDetail = newJob(QuartzJob.class)
+                    .withIdentity(jobID)
+                    .usingJobData(jdm)
+                    .build();
+
+            buildTriggersAndScehduleJob(currentJob, jobID, jobDetail);
+        }
+    }
+
+    /**
+     * 
+     * 
+     * @param currentJob
+     * @param quartzJobId
+     * @param jobDetail
+     */
+    private void buildTriggersAndScehduleJob(Job currentJob, String quartzJobId, JobDetail jobDetail) {
+
+        SimpleTrigger trigger = (SimpleTrigger) newTrigger()
+                .withIdentity(quartzJobId)
+                .startAt(DateBuilder.futureDate(3600, IntervalUnit.SECOND))
+                .forJob(quartzJobId) 
+                .build();
+        
+        try {
+            quartzScheduler.scheduleJob(jobDetail, trigger);
+        }
+        catch (SchedulerException ex) {
+            Logger.error(ex);
+        }
     }
 
     @Override
     public void control(String control, String msg) {
-        if (MemberSubscription.ERROR.equals(control))
-            Logger.error("Error in job subscription: "+msg);
+        if (MemberSubscription.ERROR.equals(control)) Logger.error("Error in job subscription: "+msg);
     }
 
     /**
@@ -155,9 +158,9 @@ public class TriggerProcess extends StandardClient implements ProxyObserver<Job>
     */
     @Override
 	public void remove(String id) {
-        synchronized(jobs) {
+        synchronized(quartzScheduler) {
             Logger.msg(7, "TriggerProcess.remove() - id:"+id);
-            jobs.remove(id);
+//            jobs.remove(id);
         }
     }
 
