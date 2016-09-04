@@ -6,7 +6,7 @@ Name=Example Cristal Server
 Logo=http://path.to/image
 
 //Only used by XMLClusterStorage
-XMLStorage.root = src/integration-test/data/xmlFile/integTest
+XMLStorage.root = C:/cristal/xmlFile/integTest
 
 // TCP server ports
 ItemServer.name=localhost
@@ -15,12 +15,12 @@ ItemServer.Proxy.port=1555
 ItemServer.Console.port=8888
 
 // LDAP Lookup config
-LDAP.GlobalPath=dc=nodomain
+LDAP.GlobalPath=o=cern,c=ch
 LDAP.RootPath=cn=cristal
 LDAP.LocalPath=cn=integTest
 LDAP.port=389
 LDAP.host=localhost
-LDAP.user=cn=admin,dc=nodomain
+LDAP.user=cn=admin,o=cern,c=ch
 LDAP.password=cristal
 
 // XMLDB config
