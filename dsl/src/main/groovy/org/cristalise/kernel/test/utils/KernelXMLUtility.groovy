@@ -22,9 +22,16 @@ package org.cristalise.kernel.test.utils;
 
 import groovy.xml.MarkupBuilder
 
+import java.io.IOException;
+
 import org.cristalise.kernel.utils.Logger
 import org.custommonkey.xmlunit.DetailedDiff
 import org.custommonkey.xmlunit.XMLUnit
+import org.xml.sax.SAXException;
+import org.xmlunit.builder.DiffBuilder;
+import org.xmlunit.diff.DefaultNodeMatcher;
+import org.xmlunit.diff.Diff;
+import org.xmlunit.diff.ElementSelectors;
 
 
 
@@ -235,11 +242,28 @@ class KernelXMLUtility {
     }
 
     /**
-     * 
-     * @param expected
-     * @param actual
-     * @return
+     * Compares 2 XML string
+     *
+     * @param expected the reference XML
+     * @param actual the xml under test
+     * @return whether the two XMLs are identical or not
+     * @throws SAXException
+     * @throws IOException
      */
+    public static boolean compareXML(String expected, String actual) throws SAXException, IOException {
+        Diff diffIdentical = DiffBuilder.compare(expected).withTest(actual)
+                .withNodeMatcher(new DefaultNodeMatcher(ElementSelectors.byNameAndAllAttributes))
+                .ignoreComments()
+                .ignoreWhitespace()
+                .checkForSimilar()
+                .build();
+
+        if(diffIdentical.hasDifferences()) Logger.warning(diffIdentical.toString());
+
+        return !diffIdentical.hasDifferences();
+    }
+
+    /*
     public static boolean compareXML(String expected, String actual) {
         XMLUnit.setIgnoreWhitespace(true);
         XMLUnit.setIgnoreAttributeOrder(true);
@@ -251,5 +275,5 @@ class KernelXMLUtility {
 
         return diff.identical();
     }
-
+    */
 }
