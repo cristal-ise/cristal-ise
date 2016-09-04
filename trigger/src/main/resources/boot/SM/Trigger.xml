@@ -1,0 +1,28 @@
+<StateMachine initialState="0">
+    <State id="0" name="Waiting" proceeds="false"/>
+    <State id="1" name="Finished" proceeds="true"/>
+    <State id="2" name="Started" proceeds="false"/>
+    <State id="3" name="Suspended" proceeds="false"/>
+    <Transition id="0" name="Done" origin="0" reinitializes="false" target="1">
+        <Outcome name="${SchemaType}" required="true" version="${SchemaVersion}"/>
+        <Script name="${ScriptName}" version="${ScriptVersion}"/>
+    </Transition>
+    <Transition id="1" name="Start" origin="0" reinitializes="false" reservation="set" target="2"/>
+    <Transition id="2" name="Complete" origin="2" reinitializes="false" reservation="clear" target="1">
+        <Outcome name="${SchemaType}" required="true" version="${SchemaVersion}"/>
+        <Script name="${ScriptName}" version="${ScriptVersion}"/>
+    </Transition>
+    <Transition id="3" name="Timeout" origin="2" reinitializes="false" roleOverride="TriggerAdmin" target="2">
+        <Outcome name="${TimeoutSchemaType}" required="true" version="${TimeoutSchemaVersion}"/>
+        <Script name="${TimeoutScriptName}" version="${TimeoutScriptVersion}"/>
+    </Transition>
+    <Transition id="4" name="Warning" origin="2" reinitializes="false" roleOverride="TriggerAdmin" target="2">
+        <Outcome name="${WarningSchemaType}" required="true" version="${WarningSchemaVersion}"/>
+        <Script name="${WarningScriptName}" version="${WarningScriptVersion}"/>
+    </Transition>
+    <Transition id="5" name="Suspend" origin="2" reinitializes="false" target="3">
+        <Outcome name="Errors" required="true" version="0"/>
+    </Transition>
+    <Transition id="6" name="Resume" origin="3" reinitializes="false" reservation="preserve" roleOverride="Admin" target="2"/>
+    <Transition id="7" name="Proceed" origin="1" reinitializes="false" target="1"/>
+</StateMachine>

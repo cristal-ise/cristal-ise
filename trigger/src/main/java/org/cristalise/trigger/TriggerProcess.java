@@ -47,6 +47,7 @@ import org.quartz.DateBuilder;
 import org.quartz.DateBuilder.IntervalUnit;
 import org.quartz.JobDataMap;
 import org.quartz.JobDetail;
+import org.quartz.JobKey;
 import org.quartz.Scheduler;
 import org.quartz.SchedulerException;
 import org.quartz.SchedulerFactory;
@@ -108,20 +109,23 @@ public class TriggerProcess extends StandardClient implements ProxyObserver<Job>
         synchronized(quartzScheduler) {
             Logger.msg(7, "TriggerProcess.add() - id:"+ClusterStorage.getPath(currentJob));
 
-            currentJob.getActProp("");
+            if (transitions.contains(currentJob.getTransition().getId())) {
+                JobDataMap jdm = new JobDataMap();
+                jdm.put("CristalAgent", agent);
+                jdm.put("CristalJob",   currentJob);
 
-            JobDataMap jdm = new JobDataMap();
-            jdm.put("CristalAgent", agent);
-            jdm.put("CristalJob",   currentJob);
+                String jobID = currentJob.getItemUUID()+"/"+currentJob.getId();
 
-            String jobID = currentJob.getItemUUID()+"/"+currentJob.getId();
+                JobDetail jobDetail = newJob(QuartzJob.class)
+                        .withIdentity(jobID)
+                        .usingJobData(jdm)
+                        .build();
 
-            JobDetail jobDetail = newJob(QuartzJob.class)
-                    .withIdentity(jobID)
-                    .usingJobData(jdm)
-                    .build();
-
-            buildTriggersAndScehduleJob(currentJob, jobID, jobDetail);
+                buildTriggersAndScehduleJob(currentJob, jobID, jobDetail);
+            }
+            else {
+                Logger.warning("TriggerProcess.add() - SKIPPING job name:"+currentJob.getName()+" trans:"+currentJob.getTransition().getName()); 
+            }
         }
     }
 
@@ -132,11 +136,12 @@ public class TriggerProcess extends StandardClient implements ProxyObserver<Job>
      * @param quartzJobId
      * @param jobDetail
      */
-    private void buildTriggersAndScehduleJob(Job currentJob, String quartzJobId, JobDetail jobDetail) {
+    protected void buildTriggersAndScehduleJob(Job currentJob, String quartzJobId, JobDetail jobDetail) {
+        Integer duration = (Integer)currentJob.getActProp(currentJob.getTransition().getName()+"Duration");
 
         SimpleTrigger trigger = (SimpleTrigger) newTrigger()
                 .withIdentity(quartzJobId)
-                .startAt(DateBuilder.futureDate(3600, IntervalUnit.SECOND))
+                .startAt(DateBuilder.futureDate(duration, IntervalUnit.SECOND))
                 .forJob(quartzJobId) 
                 .build();
         
@@ -160,7 +165,13 @@ public class TriggerProcess extends StandardClient implements ProxyObserver<Job>
 	public void remove(String id) {
         synchronized(quartzScheduler) {
             Logger.msg(7, "TriggerProcess.remove() - id:"+id);
-//            jobs.remove(id);
+            try {
+                //JobKey key = new JobKey(currentJob.getItemUUID()+"/"+currentJob.getId());
+                quartzScheduler.deleteJob(new JobKey(id));
+            }
+            catch (SchedulerException e) {
+                Logger.error(e);
+            }
         }
     }
 

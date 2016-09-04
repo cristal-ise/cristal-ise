@@ -29,6 +29,7 @@ import org.cristalise.kernel.utils.Logger;
 import org.quartz.JobDataMap;
 import org.quartz.JobExecutionContext;
 import org.quartz.JobExecutionException;
+import org.quartz.JobKey;
 
 /**
  *
@@ -41,7 +42,10 @@ public class QuartzJob implements org.quartz.Job {
 
     @Override
     public void execute(JobExecutionContext context) throws JobExecutionException {
-        //JobKey key = context.getJobDetail().getKey();
+        JobKey key = context.getJobDetail().getKey();
+
+        Logger.msg(5, "QuartzJob.execute() - JobKey:"+key);
+
         JobDataMap jdm = context.getMergedJobDataMap();
 
         /*
@@ -54,7 +58,7 @@ public class QuartzJob implements org.quartz.Job {
         }
         catch (Exception ex) {
             Logger.error(ex);
+            throw new JobExecutionException(ex);
         }
     }
-
 }
