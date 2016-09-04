@@ -21,7 +21,10 @@
 package org.cristalise.dsl.test.lifecycle.stateMachine
 
 import org.cristalise.dsl.lifecycle.stateMachine.StateMachineBuilder
+import org.cristalise.kernel.lifecycle.instance.stateMachine.StateMachine;
+import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.test.utils.CristalTestSetup
+import org.cristalise.kernel.test.utils.KernelXMLUtility;
 
 import spock.lang.Ignore
 import spock.lang.Specification
@@ -81,6 +84,86 @@ class StateMachineBuilderSpecs extends Specification implements CristalTestSetup
         then:
         builder.sm && builder.sm.isCoherent()
     }
+
+    def 'Build Default StateMachine and crosscheck it with Kernel version'() {
+        when:
+        //StateMachine defaultSM = (StateMachine)Gateway.getMarshaller().unmarshall(Gateway.getResource().getTextResource(null, "boot/SM/Default.xml"));
+
+        def builder = StateMachineBuilder.build("testing", "SkipStateMachine", 0) {
+            transition("Done", [origin: "Waiting", target: "Finished"]) {
+                outcome(name:"\${SchemaType}", version:"\${SchemaVersion}")
+                script( name:"\${ScriptName}", version:"\${ScriptVersion}")
+            }
+            transition("Start", [origin: "Waiting", target: "Started"]) {
+                property reservation: "set"
+            }
+            transition("Complete", [origin: "Started", target: "Finished"]) {
+                property(reservation: "clear")
+                outcome(name: "\${SchemaType}", version:"\${SchemaVersion}")
+                script( name: "\${ScriptName}", version:"\${ScriptVersion}")
+            }
+            transition("Suspend", [origin: "Started", target: "Suspended"]) {
+                outcome(name: "Errors", version: "0")
+            }
+            transition("Resume", [origin: "Suspended", target: "Started"]) {
+                property(reservation: "preserve")
+                property(roleOverride: "Admin")
+            }
+            transition("Proceed", [origin: "Finished", target: "Finished"])
+ 
+            initialState("Waiting")
+            finishingState("Finished")
+        }
+
+        then:
+        builder.sm && builder.sm.isCoherent()
+        //KernelXMLUtility.compareXML(Gateway.getMarshaller().marshall(defaultSM), builder.smXML)
+    }
+
+    def 'Build Trigger StateMachine'() {
+        when:
+        def builder = StateMachineBuilder.build("testing", "SkipStateMachine", 0) {
+            transition("Done", [origin: "Waiting", target: "Finished"]) {
+                outcome(name:"\${SchemaType}", version:"\${SchemaVersion}")
+                script( name:"\${ScriptName}", version:"\${ScriptVersion}")
+            }
+            transition("Start", [origin: "Waiting", target: "Started"]) {
+                property reservation: "set"
+            }
+            transition("Complete", [origin: "Started", target: "Finished"]) {
+                property(reservation: "clear")
+                outcome(name: "\${SchemaType}", version:"\${SchemaVersion}")
+                script( name: "\${ScriptName}", version:"\${ScriptVersion}")
+            }
+            transition("Timeout", [origin: "Started", target: "Started"]) {
+                //property(reservation: "clear")
+                outcome(name: "\${TimeoutSchemaType}", version:"\${TimeoutSchemaVersion}")
+                script( name: "\${TimeoutScriptName}", version:"\${TimeoutScriptVersion}")
+                property(roleOverride: "TriggerAdmin")
+            }
+            transition("Warning", [origin: "Started", target: "Started"]) {
+                //property(reservation: "clear")
+                outcome(name: "\${WarningSchemaType}", version:"\${WarningSchemaVersion}")
+                script( name: "\${WarningScriptName}", version:"\${WarningScriptVersion}")
+                property(roleOverride: "TriggerAdmin")
+            }
+            transition("Suspend", [origin: "Started", target: "Suspended"]) {
+                outcome(name: "Errors", version: "0")
+            }
+            transition("Resume", [origin: "Suspended", target: "Started"]) {
+                property(reservation: "preserve")
+                property(roleOverride: "Admin")
+            }
+            transition("Proceed", [origin: "Finished", target: "Finished"])
+ 
+            initialState("Waiting")
+            finishingState("Finished")
+        }
+
+        then:
+        builder.sm && builder.sm.isCoherent()
+    }
+
 
     def 'Build SkipStateMachine using builder methods'() {
         when:
