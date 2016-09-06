@@ -21,7 +21,7 @@
             </resource>
             <resource>
                 <directory>src/main/resources</directory>
-                <targetPath>org/cristalise/xpath-outcomeinit/resources</targetPath>
+                <targetPath>org/cristalise/trigger/resources</targetPath>
                 <excludes>
                     <exclude>module.xml</exclude>
                 </excludes>
@@ -101,6 +101,11 @@
             <groupId>org.quartz-scheduler</groupId>
             <artifactId>quartz-jobs</artifactId>
             <version>2.2.1</version>
+        </dependency>
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-simple</artifactId>
+            <version>1.7.13</version>
         </dependency>
         <dependency>
             <groupId>org.projectlombok</groupId>
