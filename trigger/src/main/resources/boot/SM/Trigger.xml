@@ -1,4 +1,4 @@
-<StateMachine initialState="0">
+<StateMachine name="TriggerStateMachine" initialState="0">
     <State id="0" name="Waiting" proceeds="false"/>
     <State id="1" name="Finished" proceeds="true"/>
     <State id="2" name="Started" proceeds="false"/>
