@@ -1,14 +1,15 @@
-<CristalModule ns="trigger" name="trigger">
+<CristalModule ns="trigger" name="CristaliseTrigger">
     <Info>
         <Description>CRISTAL-iSE Trigger Module</Description>
         <Version>${version}</Version>
         <KernelVersion>3.3</KernelVersion>
     </Info>
+    <ResourceURL>org/cristalise/trigger/resources/</ResourceURL>
     <Imports>
-        <Resource name="Trigger" version="0" type="SM">boot/SM/Trigger.xml</Resource>
+        <Resource name="TriggerStateMachine" version="0" type="SM">boot/SM/Trigger.xml</Resource>
 
         <Role jobList="true">TriggerAdmin</Role>
-        <Agent name="trigger" password="test">
+        <Agent name="triggerAgent" password="test">
             <Role>TriggerAdmin</Role>
         </Agent>
     </Imports>
