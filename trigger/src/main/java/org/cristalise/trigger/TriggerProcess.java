@@ -63,9 +63,9 @@ public class TriggerProcess extends StandardClient implements ProxyObserver<Job>
     public TriggerProcess() throws MarshalException, ValidationException, ObjectNotFoundException, IOException, MappingException
     {
         String stateMachinePath = Gateway.getProperties().getString("Trigger.StateMachine", "boot/SM/Trigger.xml");
-        StateMachine sm = (StateMachine)Gateway.getMarshaller().unmarshall(Gateway.getResource().getTextResource(null, stateMachinePath));
+        StateMachine sm = (StateMachine)Gateway.getMarshaller().unmarshall(Gateway.getResource().getTextResource("trigger", stateMachinePath));
 
-        String[] transNames = Gateway.getProperties().getString("Trigger.Transitions", "Timeout").split(",");
+        String[] transNames = Gateway.getProperties().getString("Trigger.Transitions", "Warning,Timeout").split(",");
 
         for(String transName: transNames) {
             int transID = sm.getTransitionID(transName);
@@ -75,23 +75,20 @@ public class TriggerProcess extends StandardClient implements ProxyObserver<Job>
             transitions.add(transID);
         }
 
+        Logger.msg(5, "TriggerProcess() - StateMachine:" + sm.getName() + " transitions:" + Arrays.toString(transNames));
+    }
+
+
+    public void initialise() throws SchedulerException, AccessRightsException, ObjectNotFoundException, PersistencyException {
         agent.subscribe(new MemberSubscription<Job>(this, ClusterStorage.JOB, true));
 
-        Logger.msg(5, "TriggerProcess() - StateMachine:" + sm.getName() + "transitions:" + Arrays.toString(transNames));
-    }
-
-    public void executeActions(Job job) throws Exception {
-        // default implementation - the agent will execute any scripts defined when we execute
-        agent.execute(job);
-    }
-
-
-    public void startScheduler() throws SchedulerException, AccessRightsException, ObjectNotFoundException, PersistencyException {
         SchedulerFactory schedFact = new org.quartz.impl.StdSchedulerFactory();
 
         quartzScheduler = schedFact.getScheduler();
         quartzScheduler.start();
-        
+
+        Logger.msg(5, "TriggerProcess.startScheduler() - Retrieving initial list of Jobs.");
+
         JobList joblist = (JobList)agent.getObject(ClusterStorage.JOB);
 
         for(String jobID: joblist.keySet()) add(joblist.get(jobID));
@@ -108,8 +105,13 @@ public class TriggerProcess extends StandardClient implements ProxyObserver<Job>
 	public void add(Job currentJob) {
         synchronized(quartzScheduler) {
             Logger.msg(7, "TriggerProcess.add() - id:"+ClusterStorage.getPath(currentJob));
+            
+            Boolean diasbled = (Boolean)currentJob.getActProp("TriggerDisabled", false);
 
-            if (transitions.contains(currentJob.getTransition().getId())) {
+            if(diasbled) {
+                Logger.warning("TriggerProcess.add() - DISABLED job name:"+currentJob.getName()+" trans:"+currentJob.getTransition().getName()); 
+            }
+            else if (transitions.contains(currentJob.getTransition().getId())) {
                 JobDataMap jdm = new JobDataMap();
                 jdm.put("CristalAgent", agent);
                 jdm.put("CristalJob",   currentJob);
@@ -177,12 +179,14 @@ public class TriggerProcess extends StandardClient implements ProxyObserver<Job>
 
     static public void main(String[] args) {
         try {
-        	Gateway.init(readC2KArgs(args));
+            Gateway.init(readC2KArgs(args));
             TriggerProcess proc = new TriggerProcess();
 
-            proc.login( "trigger",/*InetAddress.getLocalHost().getHostName()*/ 
-                        "password", 
+            proc.login( "triggerAgent",
+                        "test", 
                         Gateway.getProperties().getString("AuthResource", "Cristal"));
+
+            proc.initialise();
 
             Runtime.getRuntime().addShutdownHook(new Thread() {
                 @Override
@@ -196,7 +200,7 @@ public class TriggerProcess extends StandardClient implements ProxyObserver<Job>
             Logger.error(ex);
 
             try {
-            	Gateway.close();
+                Gateway.close();
             }
             catch(Exception ex1) {
                 Logger.error(ex1);
