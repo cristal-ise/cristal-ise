@@ -25,8 +25,13 @@ import groovy.transform.CompileStatic
 import org.cristalise.dsl.entity.agent.AgentBuilder
 import org.cristalise.kernel.entity.agent.Job
 import org.cristalise.kernel.entity.agent.JobList
+import org.cristalise.kernel.entity.proxy.AgentProxy
+import org.cristalise.kernel.entity.proxy.ItemProxy
+import org.cristalise.kernel.entity.proxy.MemberSubscription
 import org.cristalise.kernel.lookup.AgentPath
 import org.cristalise.kernel.lookup.ItemPath
+import org.cristalise.kernel.persistency.ClusterStorage
+import org.cristalise.kernel.persistency.outcome.Outcome
 import org.cristalise.kernel.process.Gateway
 
 
@@ -57,7 +62,11 @@ class AgentTestBuilder extends AgentBuilder {
         def atb = new AgentTestBuilder(AgentBuilder.build(attrs, cl))
         atb.agent = atb.create(atb.builderAgent)
 
-        atb.jobList = new JobList(atb.agent, null)
+        AgentProxy agentProxy = Gateway.proxyManager.getAgentProxy(atb.agent)
+        
+        atb.jobList = (JobList)agentProxy.getObject(ClusterStorage.JOB)
+        atb.jobList.activate()
+
         return atb
     }
 
@@ -66,6 +75,7 @@ class AgentTestBuilder extends AgentBuilder {
     }
 
     def checkJobList(List<Map<String, Object>> expectedJobs) {
+        jobList.dump(8);
         assert expectedJobs && jobList && jobList.size() == expectedJobs.size()
 
         expectedJobs.each { Map jobMap -> 
@@ -77,5 +87,14 @@ class AgentTestBuilder extends AgentBuilder {
                 ((Job) it).transition.name == jobMap.transitionName
             }, "Cannot find Job: ${jobMap.stepName} , ${jobMap.agentRole} , ${jobMap.transitionName}"
         }
+    }
+
+    public String executeJob(ItemPath itemPath, String actName, String transName, Outcome outcome = null) {
+        AgentProxy agentProxy = Gateway.getProxyManager().getAgentProxy(agent)
+        ItemProxy  itemProxy  = Gateway.getProxyManager().getProxy(itemPath)
+
+        Job j = itemProxy.getJobByTransitionName(actName, transName, agent)
+        if (outcome != null) j.setOutcome(outcome)
+        return agentProxy.execute(j)
     }
 }

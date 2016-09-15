@@ -36,7 +36,10 @@ trait CristalTestSetup {
     final int defaultLogLevel = 8
 
     private void waitBootstrapThread() {
-        ThreadGroup rootGroup = Thread.currentThread( ).getThreadGroup( );
+        //Give some time the Bootstrapper to start so this check will not fail because it was executed prematurely
+        Thread.sleep(1000)
+
+        ThreadGroup rootGroup = Thread.currentThread().getThreadGroup();
         ThreadGroup parentGroup;
         while ( ( parentGroup = rootGroup.getParent() ) != null ) { rootGroup = parentGroup; }
 
@@ -58,8 +61,9 @@ trait CristalTestSetup {
             bootstrapT.join()
             Logger.msg "CristalTestSetup.waitBootstrapThread() - Bootstrapper FINISHED"
         }
+        else
+            Logger.die "CristalTestSetup.waitBootstrapThread() - NO Bootstrapper FOUND!?!?"
     }
-
 
     public void loggerSetup(int logLevel = defaultLogLevel) {
         Logger.addLogStream(System.out, logLevel);
@@ -82,8 +86,10 @@ trait CristalTestSetup {
     public Authenticator serverSetup(int logLevel, String config, String connect) {
         Authenticator auth = cristalSetup(logLevel, config, connect)
         Logger.initConsole("ItemServer");
+
         Gateway.startServer( auth )
         waitBootstrapThread()
+
         return auth
     }
 

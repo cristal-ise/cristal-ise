@@ -23,7 +23,11 @@ package org.cristalise.kernel.test.entity.agent
 import org.cristalise.dsl.entity.role.RoleBuilder
 import org.cristalise.dsl.lifecycle.stateMachine.StateMachineBuilder
 import org.cristalise.dsl.test.builders.AgentTestBuilder;
-import org.cristalise.dsl.test.builders.ItemTestBuilder;
+import org.cristalise.dsl.test.builders.ItemTestBuilder
+import org.cristalise.kernel.entity.agent.Job
+import org.cristalise.kernel.entity.proxy.AgentProxy
+import org.cristalise.kernel.entity.proxy.ItemProxy;
+import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.test.utils.CristalTestSetup;
 
 import spock.lang.Specification
@@ -35,20 +39,27 @@ import spock.util.concurrent.PollingConditions
  */
 class JoblistSpecs extends Specification implements CristalTestSetup {
 
-    PollingConditions pollingWait = new PollingConditions(timeout: 1, initialDelay: 0.2, factor: 1)
+    PollingConditions pollingWait = new PollingConditions(timeout: 2, initialDelay: 0.2, factor: 1)
+    
+    AgentTestBuilder dummyAgentBuilder
+    AgentTestBuilder timeoutAgentBuilder
 
     def setup()   { inMemoryServer() }
-    def cleanup() { cristalCleanup() }
+    def cleanup() {
+        if(dummyAgentBuilder) dummyAgentBuilder.jobList.deactivate()
+        if(timeoutAgentBuilder) timeoutAgentBuilder.jobList.deactivate()
+        cristalCleanup()
+    }
 
-    def 'Joblist of Agent is automatically updated'() {
+    def 'The persistent Joblist of Agent is automatically updated'() {
         when: "the workflow of Item is initialised its first Activity is activated"
-        AgentTestBuilder dummyAgent = AgentTestBuilder.create(name: "dummyAgent") {
+        dummyAgentBuilder = AgentTestBuilder.create(name: "dummyAgent") {
             Roles {
                 Role(name: 'toto', jobList: true)
             }
         }
 
-        ItemTestBuilder.create(name: "dummyItem", folder: "testing") {
+        ItemTestBuilder dummyItem = ItemTestBuilder.create(name: "dummyItem", folder: "testing") {
             Workflow {
                 EA('EA1') {
                     Property('Agent Role': "toto")
@@ -56,11 +67,20 @@ class JoblistSpecs extends Specification implements CristalTestSetup {
             }
         }
 
-        then: "Agent gets Job(s) for the activity it was assigned to"
-        pollingWait.eventually { dummyAgent.jobList }
+        then: "Agent gets 2 Jobs (Start, Complete) for the Activity it was assigned to"
+        pollingWait.eventually { dummyAgentBuilder.jobList }
 
-        dummyAgent.checkJobList([[stepName: "EA1", agentRole: "toto", transitionName: "Start"],
+        dummyAgentBuilder.checkJobList([[stepName: "EA1", agentRole: "toto", transitionName: "Start"],
                                  [stepName: "EA1", agentRole: "toto", transitionName: "Done" ]])
+
+        when: "the Job associated with the Start Transition is executed"
+        dummyAgentBuilder.executeJob(dummyItem.item, "EA1", "Start")
+        
+        then: "Agent gets two Jobs (Complete, Suspend) for the Activity it was assigned to"
+        pollingWait.eventually { dummyAgentBuilder.jobList && dummyAgentBuilder.jobList.size() == 2 }
+
+        dummyAgentBuilder.checkJobList([[stepName: "EA1", agentRole: "toto", transitionName: "Suspend" ],
+                                 [stepName: "EA1", agentRole: "toto", transitionName: "Complete"]])
     }
 
     def 'StateMachine Transition can override Role specified in Actitiy'() {
@@ -71,7 +91,6 @@ class JoblistSpecs extends Specification implements CristalTestSetup {
             }
             transition("Complete", [origin:"Started", target:"Finished"]) {
                 property(reservation:"clear")
-
                 outcome(name:'${SchemaType}', version:'${SchemaVersion}')
                 script (name:'${ScriptName}', version:'${ScriptVersion}')
             }
@@ -79,19 +98,27 @@ class JoblistSpecs extends Specification implements CristalTestSetup {
                 property(roleOverride: '${RoleOverride}')
                 outcome(name:"Errors", version: "0")
             }
+            transition("Timeout2", [origin:"Started", target:"Started"]) {
+                property(roleOverride: '${RoleOverride}')
+                outcome(name:"Errors", version: "0")
+            }
             initialState("Waiting")
             finishingState("Finished")
         }
 
-        RoleBuilder.create { Role(name: 'toto') }
+        AgentTestBuilder dummyAgentBuilder = AgentTestBuilder.create(name: "dummy") {
+            Roles { 
+                Role(name: 'toto')
+            }
+        }
 
-        AgentTestBuilder timeoutAgent = AgentTestBuilder.create(name: "TimeoutManager") {
+        AgentTestBuilder timeoutAgentBuilder = AgentTestBuilder.create(name: "TimeoutManager") {
             Roles {
                 Role(name: 'Timeout', jobList: true)
             }
         }
 
-        ItemTestBuilder.create(name: "dummyItem", folder: "testing") {
+        ItemTestBuilder dummyItemBuilder = ItemTestBuilder.create(name: "dummyItem", folder: "testing") {
             Workflow {
                 EA('EA1') {
                     Property('Agent Role'    : "toto")
@@ -102,8 +129,14 @@ class JoblistSpecs extends Specification implements CristalTestSetup {
         }
 
         then:
-        pollingWait.eventually { timeoutAgent.jobList }
+        pollingWait.eventually { timeoutAgentBuilder.jobList }
+        timeoutAgentBuilder.checkJobList([[stepName: "EA1", agentRole: "Timeout", transitionName: "Timeout"]])
 
-        timeoutAgent.checkJobList([[stepName: "EA1", agentRole: "Timeout", transitionName: "Timeout"]])
+        when:
+        dummyAgentBuilder.executeJob(dummyItemBuilder.item, 'EA1', 'Start')
+
+        then:
+        pollingWait.eventually { timeoutAgentBuilder.jobList && timeoutAgentBuilder.jobList.size() == 1 }
+        timeoutAgentBuilder.checkJobList([[stepName: "EA1", agentRole: "Timeout", transitionName: "Timeout2"]])
     }
 }
