@@ -58,6 +58,7 @@ public class QuartzJob implements org.quartz.Job {
         }
         catch (Exception ex) {
             Logger.error(ex);
+            //TODO: Execute activity in the Workflow of the Agent to store this error and probably remove Job from list
             throw new JobExecutionException(ex);
         }
     }
