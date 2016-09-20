@@ -22,39 +22,37 @@ package org.cristalise.dsl.entity
 
 import groovy.transform.CompileStatic
 
-import org.cristalise.dsl.lifecycle.instance.WorkflowBuilder
-import org.cristalise.kernel.lifecycle.instance.Workflow
+import org.cristalise.kernel.entity.imports.ImportRole
+import org.cristalise.kernel.lookup.RolePath
+import org.cristalise.kernel.utils.Logger
 
 
 /**
  *
  */
 @CompileStatic
-class EntityDelegate extends EntityPropertyDelegate {
-    
-    String    name
-    String    type
-    Workflow  wf
+class RoleBuilder {
 
-    public EntityDelegate(String n, String t) {
-        name = n
-        type = t
+     public static List<RolePath> create(Closure cl) {
+        return createRoles(build(cl))
     }
 
-    public void processClosure(Closure cl) {
-        assert cl
-        assert name
+    public static List<ImportRole> build(Closure cl) {
+        def rB = new RoleBuilder()
+        
+        def rd = new RoleDelegate()
+        rd.processClosure(cl)
 
-        //Add the name and type of the Item to the Properties
-        Property(Name: name)
-        if(type) Property(Type: type)
+        Logger.msg 5, "RoleBuilder.build() - Done"
 
-        cl.delegate = this
-        cl.resolveStrategy = Closure.DELEGATE_FIRST
-        cl()
+        return rd.roles
     }
 
-    def Workflow(Closure cl) {
-        wf = new WorkflowBuilder().build(cl)
+    public static List<RolePath> createRoles(List<ImportRole> roles) {
+        List<RolePath> rolePathes = []
+        roles.each { ImportRole role ->
+            rolePathes.add((RolePath)role.create(null, false))
+        }
+        return rolePathes
     }
 }

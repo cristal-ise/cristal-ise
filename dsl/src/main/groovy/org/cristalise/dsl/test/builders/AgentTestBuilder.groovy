@@ -22,9 +22,10 @@ package org.cristalise.dsl.test.builders
 
 import groovy.transform.CompileStatic
 
-import org.cristalise.dsl.entity.agent.AgentBuilder
+import org.cristalise.dsl.entity.AgentBuilder;
 import org.cristalise.kernel.entity.agent.Job
 import org.cristalise.kernel.entity.agent.JobList
+import org.cristalise.kernel.entity.imports.ImportAgent;
 import org.cristalise.kernel.entity.proxy.AgentProxy
 import org.cristalise.kernel.entity.proxy.ItemProxy
 import org.cristalise.kernel.entity.proxy.MemberSubscription
@@ -42,17 +43,18 @@ import org.cristalise.kernel.process.Gateway
 class AgentTestBuilder extends AgentBuilder {
     AgentPath builderAgent
     AgentPath agent
+    ImportAgent newAgent
 
     JobList jobList = null
 
     public AgentTestBuilder() {}
 
-    public AgentTestBuilder(AgentBuilder ib) {
-        name   = ib.name
-        pwd    = ib.pwd
-        roles  = ib.roles
-        props  = ib.props
-        wf     = ib.wf
+    public AgentTestBuilder(ImportAgent iAgent) {
+        newAgent.name   = iAgent.name
+        //newAgent.pwd    = iAgent.pwd
+        newAgent.roles  = iAgent.roles
+        newAgent.properties  = iAgent.properties
+        //newAgent.wf     = iAgent.wf
 
         builderAgent = new AgentPath(new ItemPath(), "AgentTestBuilder")
         if(!Gateway.getLookupManager().exists(builderAgent)) Gateway.getLookupManager().add(builderAgent)
@@ -60,7 +62,7 @@ class AgentTestBuilder extends AgentBuilder {
 
     public static AgentTestBuilder create(Map<String, Object> attrs, Closure cl) {
         def atb = new AgentTestBuilder(AgentBuilder.build(attrs, cl))
-        atb.agent = atb.create(atb.builderAgent)
+//        atb.agent = atb.create(atb.builderAgent)
 
         AgentProxy agentProxy = Gateway.proxyManager.getAgentProxy(atb.agent)
         

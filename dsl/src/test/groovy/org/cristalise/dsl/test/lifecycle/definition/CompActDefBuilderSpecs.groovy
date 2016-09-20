@@ -18,12 +18,11 @@
  *
  * http://www.fsf.org/licensing/licenses/lgpl.html
  */
-package org.cristalise.kernel.test.entity.role
+package org.cristalise.dsl.test.lifecycle.definition
 
-import org.cristalise.dsl.entity.RoleBuilder;
-import org.cristalise.kernel.common.ObjectNotFoundException
-import org.cristalise.kernel.process.Gateway
-import org.cristalise.kernel.test.utils.CristalTestSetup;
+import org.cristalise.dsl.lifecycle.definition.CompActDefBuilder;
+import org.cristalise.dsl.lifecycle.definition.ElemActDefBuilder
+import org.cristalise.kernel.test.utils.CristalTestSetup
 
 import spock.lang.Specification
 
@@ -31,39 +30,33 @@ import spock.lang.Specification
 /**
  *
  */
-class RoleCreateSpecs extends Specification implements CristalTestSetup {
-
+class CompActDefBuilderSpecs extends Specification implements CristalTestSetup {
     
-    def setup()   { inMemoryServer()    }
+    def setup()   { loggerSetup()    }
     def cleanup() { cristalCleanup() }
 
-    def "Parent Role must exists"() {
+    def 'CompositeActivityDef can be built without any ElementaryActivityDefs'() {
         when:
-        RoleBuilder.create {
-            Role(name: 'Clerk/SubClerk', jobList: true)
-        }
+        def caDef = CompActDefBuilder.build(module: 'test', name: 'CADef', version: 0) {}
 
         then:
-        thrown ObjectNotFoundException
+        caDef.name == 'CADef'
+        caDef.version == 0
+
+        caDef.properties.getAbstract().size() == 0
     }
 
-    def "Creating Roles and Subroles"() {
+    def 'CompositeActivityDef can build a sequence of ElementaryActivityDefs'() {
         when:
-        def roles = RoleBuilder.create {
-            Role(name: 'Clerk')
-            Role(name: 'Clerk/SubClerk', jobList: true)
+        def caDef = CompActDefBuilder.build(module: 'test', name: 'CADef', version: 0) {
+            ElemActDef('EA1', 0) {}
+            ElemActDef('EA2', 0)
         }
 
         then:
-        roles[0].exists()
-        roles[0].string == "/role/Clerk"
-        roles[0].hasJobList() == false
-
-        roles[1].exists()
-        roles[1].string == "/role/Clerk/SubClerk"
-        roles[1].hasJobList() == true
-
-        Gateway.lookup.getRolePath("Clerk").hasJobList() == false
-        Gateway.lookup.getRolePath("SubClerk").hasJobList() == true
+        caDef.name == 'CADef'
+        caDef.version == 0
+        caDef.childrenGraphModel.vertices.length == 2
+        caDef.childrenGraphModel.startVertex.name == "EA1"
     }
 }

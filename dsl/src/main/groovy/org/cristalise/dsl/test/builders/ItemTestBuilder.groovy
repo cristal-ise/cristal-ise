@@ -22,10 +22,13 @@ package org.cristalise.dsl.test.builders
 
 import groovy.transform.CompileStatic
 
-import org.cristalise.dsl.entity.item.ItemBuilder
+import org.cristalise.dsl.entity.ItemBuilder
+import org.cristalise.kernel.entity.imports.ImportItem;
 import org.cristalise.kernel.lookup.AgentPath
+import org.cristalise.kernel.lookup.DomainPath;
 import org.cristalise.kernel.lookup.ItemPath
 import org.cristalise.kernel.process.Gateway
+import org.cristalise.kernel.property.PropertyUtility;
 
 
 /**
@@ -34,15 +37,13 @@ import org.cristalise.kernel.process.Gateway
 @CompileStatic
 class ItemTestBuilder extends ItemBuilder {
     AgentPath builderAgent
-    ItemPath item
+    DomainPath itemDomPath
+    ImportItem newItem
 
     public ItemTestBuilder() {}
 
-    public ItemTestBuilder(ItemBuilder ib) {
-        name   = ib.name
-        folder = ib.folder
-        props  = ib.props
-        wf     = ib.wf
+    public ItemTestBuilder(ImportItem item) {
+        newItem = item
 
         builderAgent = new AgentPath(new ItemPath(), "ItemTestBuilder")
         if(!Gateway.getLookupManager().exists(builderAgent)) Gateway.getLookupManager().add(builderAgent)
@@ -50,11 +51,22 @@ class ItemTestBuilder extends ItemBuilder {
 
     public static ItemTestBuilder create(Map<String, Object> attrs, Closure cl) {
         def itb = new ItemTestBuilder(ItemBuilder.build(attrs, cl))
-        itb.item = itb.create(itb.builderAgent)
+        itb.itemDomPath = itb.create(itb.builderAgent, itb.newItem)
         return itb
     }
-
-    public static ItemTestBuilder build(Map<String, Object> attrs, Closure cl) {
-        return new ItemTestBuilder(ItemBuilder.build(attrs, cl))
+    
+    public void checkPathes(String name, String folder) {
+        assert itemDomPath && itemDomPath == "/domain/$folder/$name"
+        assert Gateway.lookup.exists(itemDomPath)
+        assert itemDomPath.itemPath
+        assert Gateway.lookup.exists(itemDomPath.itemPath)
     }
+
+    public void checkProperties(Map<String, Object> props) {
+        props.each { name, value ->
+            def p = PropertyUtility.getProperty(itemDomPath.itemPath, name, null)
+            assert p && p.value == value
+        }
+    }
+        
 }

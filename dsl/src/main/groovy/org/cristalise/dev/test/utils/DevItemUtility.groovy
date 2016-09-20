@@ -21,10 +21,11 @@
 
 package org.cristalise.dev.test.utils
 
-import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.AGENT_ROLE
+import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.*
+import static org.cristalise.kernel.collection.BuiltInCollections.*
+
 import groovy.transform.CompileStatic
 
-import org.cristalise.kernel.collection.BuiltInCollections
 import org.cristalise.kernel.entity.agent.Job
 import org.cristalise.kernel.entity.proxy.AgentProxy
 import org.cristalise.kernel.entity.proxy.ItemProxy
@@ -37,7 +38,8 @@ import org.cristalise.kernel.test.utils.KernelXMLUtility
 
 
 /**
- * 
+ * Utility class to implement ALL methods required to manage (create/edit)
+ * CRISTAL-iSE Resources and Items defined in the dev module:  https://github.com/cristal-ise/dev
  */
 @CompileStatic
 class DevItemUtility {
@@ -51,8 +53,8 @@ class DevItemUtility {
     public String descItemFactoryName   = "/domain/desc/dev/DescriptionFactory"
 
     /**
-     *
-     * @param eaFactory
+     * 
+     * @param proxy
      * @param actName
      * @return
      */
@@ -176,7 +178,7 @@ class DevItemUtility {
 
         if(schemaName && !schemaName.startsWith("-")) {
             assert eaDescItem.getViewpoint(resHandler.name, "0")
-            assert eaDescItem.getCollection(BuiltInCollections.SCHEMA, 0).size() == 1
+            assert eaDescItem.getCollection(SCHEMA, 0).size() == 1
         }
     }
 
@@ -204,13 +206,26 @@ class DevItemUtility {
             agent.execute(doneJob)
         }
 
+        if(eaDef.stateMachine) {
+            doneJob = getDoneJob(eaDescItem, "OverrideStateMachine")
+            doneJob.setOutcome( KernelXMLUtility.getDescObjectDetailsXML(id: eaDef.stateMachine.name, version: eaDef.stateMachine.version) )
+            agent.execute(doneJob)
+        }
+
+        if(eaDef.script) {
+            doneJob = getDoneJob(eaDescItem, "AssignScript")
+            doneJob.setOutcome( KernelXMLUtility.getDescObjectDetailsXML(id: eaDef.script.name, version: eaDef.script.version) )
+            agent.execute(doneJob)
+        }
+
         doneJob = getDoneJob(eaDescItem, "AssignNewActivityVersionFromLast")
         agent.execute(doneJob)
 
-        if(eaDef.schema) {
-            assert eaDescItem.getViewpoint(resHandler.name, "0")
-            assert eaDescItem.getCollection(BuiltInCollections.SCHEMA, 0).size() == 1
-        }
+        assert eaDescItem.getViewpoint(resHandler.name, "0")
+
+        if(eaDef.schema)       assert eaDescItem.getCollection(SCHEMA,        0).size() == 1
+        if(eaDef.script)       assert eaDescItem.getCollection(SCRIPT,        0).size() == 1
+        if(eaDef.stateMachine) assert eaDescItem.getCollection(STATE_MACHINE, 0).size() == 1
     }
 
     /**
@@ -243,8 +258,8 @@ class DevItemUtility {
     public ItemProxy editCompActDesc(String name, String folder, String caXML, int actCollSize = 0) {
         def caDescItem = editDevItem( "CA", "EditDefinition", "AssignNewActivityVersionFromLast", name, folder, caXML)
 
-        assert caDescItem.getCollection(BuiltInCollections.ACTIVITY, 0).size()
-        if(actCollSize) assert caDescItem.getCollection(BuiltInCollections.ACTIVITY, 0).size() == actCollSize
+        assert caDescItem.getCollection(ACTIVITY, 0).size()
+        if(actCollSize) assert caDescItem.getCollection(ACTIVITY, 0).size() == actCollSize
         
         return caDescItem
     }
@@ -277,29 +292,90 @@ class DevItemUtility {
      * 
      * @param name
      * @param folder
+     * @return ItemProxy of newly created DescriptionItem
      */
     public ItemProxy createNewDescriptionItem(String name, String folder) {
         return createNewDevItem( descItemFactoryName, "CreateNewDescription", name, folder)
     }
 
-    public ItemProxy editDescriptionAndCreateItem(String name, String folder, PropertyDescriptionList propDesc, String setWorkflowXML, String devObjectDefXML) {
+    /**
+     * 
+     * @param name
+     * @param folder
+     * @param propDesc
+     * @param workflowXML
+     * @return ItemProxy of the 
+     */
+    public ItemProxy editDescriptionItem(String name, String folder, PropertyDescriptionList propDesc, String chooseWorkflowXML) {
         ItemProxy descriptionItem = agent.getItem("/$folder/$name")
         assert descriptionItem && descriptionItem.getName() == name
+        return editDescriptionItem(descriptionItem, propDesc, chooseWorkflowXML);
+    }
 
+    /**
+     * 
+     * @param descriptionItem
+     * @param propDesc
+     * @param workflowXML
+     * @return
+     */
+    public ItemProxy editDescriptionItem(ItemProxy descriptionItem, PropertyDescriptionList propDesc, String chooseWorkflowXML) {
         Job doneJob = getDoneJob(descriptionItem, "SetPropertyDescription")
         doneJob.setOutcome( Gateway.getMarshaller().marshall(propDesc) )
         agent.execute(doneJob)
 
         doneJob = getDoneJob(descriptionItem, "SetInstanceWorkflow")
-        doneJob.setOutcome( setWorkflowXML )
+        doneJob.setOutcome(chooseWorkflowXML)
         agent.execute(doneJob)
 
-        doneJob = getDoneJob(descriptionItem, "CreateNewInstance")
+        return descriptionItem
+    }
+
+    /**
+     * 
+     * @param name
+     * @param folder
+     * @param devObjectDefXML
+     * @return
+     */
+    public ItemProxy createItemFromDescription(String name, String folder, String devObjectDefXML) {
+        ItemProxy descriptionItem = agent.getItem("/$folder/$name")
+        assert descriptionItem && descriptionItem.getName() == name
+        return createItemFromDescription(descriptionItem, devObjectDefXML)
+    }
+
+    /**
+     * 
+     * @param descriptionItem
+     * @param devObjectDefXML
+     * @return
+     */
+    public ItemProxy createItemFromDescription(ItemProxy descriptionItem, String devObjectDefXML) {
+        Job doneJob = getDoneJob(descriptionItem, "CreateNewInstance")
         doneJob.setOutcome( devObjectDefXML )
         agent.execute(doneJob)
-        
+
         String instanceName = doneJob.getOutcome().getField("SubFolder") + "/" + doneJob.getOutcome().getField("ObjectName")
 
         return agent.getItem(instanceName)
+    }
+
+    /**
+     * 
+     * @param name
+     * @param folder
+     * @param propDesc
+     * @param chooseWorkflowXML
+     * @param devObjectDefXML
+     * @return
+     */
+    public ItemProxy editDescriptionAndCreateItem( String name, 
+                                                   String folder, 
+                                                   PropertyDescriptionList propDesc, 
+                                                   String chooseWorkflowXML,
+                                                   String devObjectDefXML)
+    {
+        ItemProxy descriptionItem = editDescriptionItem(name, folder, propDesc, chooseWorkflowXML)
+        return createItemFromDescription(descriptionItem, devObjectDefXML)
     }
 }

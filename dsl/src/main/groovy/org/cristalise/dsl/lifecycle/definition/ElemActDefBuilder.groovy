@@ -31,7 +31,7 @@ import org.cristalise.kernel.lifecycle.ActivityDef
 @CompileStatic
 class ElemActDefBuilder {
 
-    public static ActivityDef build(Map<String, Object> attrs, Closure cl) {
+    public static ActivityDef build(LinkedHashMap<String, Object> attrs, Closure cl) {
         def delegate = new ElemActDefDelegate()
         delegate.processClosure((String)attrs.name, (Integer)attrs.version, cl)
         return delegate.elemActDef

@@ -18,9 +18,9 @@
  *
  * http://www.fsf.org/licensing/licenses/lgpl.html
  */
-package org.cristalise.dsl.test.entity.agent
+package org.cristalise.dsl.test.entity
 
-import org.cristalise.dsl.entity.agent.AgentBuilder
+import org.cristalise.dsl.entity.AgentBuilder;
 import org.cristalise.kernel.common.InvalidDataException
 import org.cristalise.kernel.test.utils.CristalTestSetup;
 

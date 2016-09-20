@@ -54,7 +54,7 @@ class KernelScenarioTestBase extends DevItemDSL {
      * @param connect
      */
     void init(String config, String connect) {
-        String[] args = ['-logLevel', '8', '-config', config, '-connect', connect]
+        String[] args = ['-logLevel', '5', '-config', config, '-connect', connect]
         
         Properties props = AbstractMain.readC2KArgs(args)
         Gateway.init(props)

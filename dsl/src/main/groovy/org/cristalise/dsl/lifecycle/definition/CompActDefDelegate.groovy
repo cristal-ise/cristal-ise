@@ -30,39 +30,39 @@ import org.cristalise.kernel.graph.model.GraphPoint
 import org.cristalise.kernel.lifecycle.ActivityDef
 import org.cristalise.kernel.lifecycle.ActivitySlotDef
 import org.cristalise.kernel.lifecycle.CompositeActivityDef
+import org.cristalise.kernel.lifecycle.WfVertexDef;
 import org.cristalise.kernel.lifecycle.instance.stateMachine.StateMachine
+import org.cristalise.kernel.utils.LocalObjectLoader;
 
 
 /**
  * Wrapper/Delegate class of CompositeActivityDef
- *
  */
 @CompileStatic
 class CompActDefDelegate extends PropertyDelegate {
 
     ActivitySlotDef prevActSlotDef = null
-    boolean prevActIsFirst = true
 
-    CompositeActivityDef compActDef
+    public CompositeActivityDef compActDef
 
-    public void processClosure(CompositeActivityDef caDef, Closure cl) {
-        assert cl, "CompActDefDelegate only works with a valid Closure"
+    //TODO: build this to enable easier testing
+    public Map<String, WfVertexDef> vertexDefCache = [:]
 
-        assert caDef
-
-        compActDef = caDef
-
-        cl.delegate = this
-        cl.resolveStrategy = Closure.DELEGATE_FIRST
-        cl()
-    }
-
-    public void processClosure(String name, int version, Closure cl) {
+    public Map<String, WfVertexDef> processClosure(String name, int version, Closure cl) {
         assert cl, "CompActDefDelegate only works with a valid Closure"
 
         compActDef = new CompositeActivityDef()
         compActDef.name = name
         compActDef.version = version
+
+        return processClosure(compActDef, cl)
+    }
+
+    public Map<String, WfVertexDef> processClosure(CompositeActivityDef caDef, Closure cl) {
+        assert cl, "CompActDefDelegate only works with a valid Closure"
+        assert caDef
+
+        compActDef = caDef
 
         cl.delegate = this
         cl.resolveStrategy = Closure.DELEGATE_FIRST
@@ -72,27 +72,28 @@ class CompActDefDelegate extends PropertyDelegate {
             compActDef.properties.put(k, v, props.getAbstract().contains(k))
         }
 
-        DefaultGraphLayoutGenerator.layoutGraph(compActDef.getChildrenGraphModel())
-    }
-
-    def Collections() {
-        
+        return vertexDefCache
     }
 
     def StateMachine(StateMachine s) {
         compActDef.setStateMachine(s)
     }
 
+    def StateMachine(String name, int version = 0) {
+        compActDef.setStateMachine(LocalObjectLoader.getStateMachine(name, version))
+    }
+
+    def ElemActDef(String actName, int actVer, Closure cl = null) {
+        ActivityDef eaDef = ElemActDefBuilder.build('name': (Object)actName, 'version': actVer, cl)
+        return ElemActDef(actName, eaDef)
+    }
+
     def ElemActDef(String actName, ActivityDef actDef) {
         def newActSlotDef = compActDef.addExistingActivityDef(actName, actDef, new GraphPoint())
 
-        if(prevActSlotDef) {
-            compActDef.addNextDef(prevActSlotDef, newActSlotDef)
-
-            if(prevActIsFirst) compActDef.getChildrenGraphModel().setStartVertexId(prevActSlotDef.ID)
-
-            prevActIsFirst = false
-        }
+        //Simple logic only to add sequential activities
+        if(prevActSlotDef) compActDef.addNextDef(prevActSlotDef, newActSlotDef)
+        else               compActDef.getChildrenGraphModel().setStartVertexId(newActSlotDef.ID)
 
         prevActSlotDef = newActSlotDef;
 

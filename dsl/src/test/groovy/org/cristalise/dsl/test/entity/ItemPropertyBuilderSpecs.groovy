@@ -18,7 +18,7 @@
  *
  * http://www.fsf.org/licensing/licenses/lgpl.html
  */
-package org.cristalise.dsl.test.entity.property
+package org.cristalise.dsl.test.entity
 
 import org.cristalise.kernel.common.InvalidDataException
 import org.cristalise.kernel.test.utils.CristalTestSetup;
@@ -29,53 +29,53 @@ import spock.lang.Specification
 /**
  *
  */
-class EntityPropertyBuilderSpecs extends Specification implements CristalTestSetup {
+class ItemPropertyBuilderSpecs extends Specification implements CristalTestSetup {
     
     def setup()   { loggerSetup()    }
     def cleanup() { cristalCleanup() }
 
     def 'Mutable EntityProperty can be created from name only'() {
         when:
-        def props = EntityPropertyTestBuilder.build {
+        def props = ItemPropertyTestBuilder.build {
             Property("Type")
         }
 
         then:
-        props.list && props.list.size() == 1
-        props.list[0].name == "Type"
-        props.list[0].value == ""
-        props.list[0].mutable == true
+        props && props.size() == 1
+        props[0].name == "Type"
+        props[0].value == ""
+        props[0].mutable == true
     }
 
     def 'Mutable EntityProperty can be created from name and value'() {
         when:
-        def props = EntityPropertyTestBuilder.build {
+        def props = ItemPropertyTestBuilder.build {
             Property(Type: "patient")
         }
 
         then:
-        props.list && props.list.size() == 1
-        props.list[0].name == "Type"
-        props.list[0].value == "patient"
-        props.list[0].mutable == true
+        props && props.size() == 1
+        props[0].name == "Type"
+        props[0].value == "patient"
+        props[0].mutable == true
     }
 
     def 'Inmutable EntityProperty can be created from name and value'() {
         when:
-        def props = EntityPropertyTestBuilder.build {
+        def props = ItemPropertyTestBuilder.build {
             InmutableProperty(Type: "patient")
         }
 
         then:
-        props.list && props.list.size() == 1
-        props.list[0].name == "Type"
-        props.list[0].value == "patient"
-        props.list[0].mutable == false
+        props && props.size() == 1
+        props[0].name == "Type"
+        props[0].value == "patient"
+        props[0].mutable == false
     }
 
     def 'Inmutable EntityProperty must have the value set'() {
         when:
-        def props = EntityPropertyTestBuilder.build {
+        def props = ItemPropertyTestBuilder.build {
             InmutableProperty(Type: "")
         }
 
@@ -86,7 +86,7 @@ class EntityPropertyBuilderSpecs extends Specification implements CristalTestSet
 
     def 'EntityProperty can only have String value'() {
         when:
-        def props = EntityPropertyTestBuilder.build {
+        def props = ItemPropertyTestBuilder.build {
             Property(Type: new Object())
         }
 
@@ -97,45 +97,45 @@ class EntityPropertyBuilderSpecs extends Specification implements CristalTestSet
 
     def 'EntityProperty Builder builds unlimited length of List keeping the order of declaration'() {
         when:
-        def props = EntityPropertyTestBuilder.build {
+        def props = ItemPropertyTestBuilder.build {
             Property("Name")
             InmutableProperty(Type: "testing")
             Property('Date of Birth': 'today')
         }
 
         then:
-        props.list && props.list.size() == 3
+        props && props.size() == 3
 
-        props.list[0].name == "Name"
-        props.list[0].value == ""
-        props.list[0].mutable == true
+        props[0].name == "Name"
+        props[0].value == ""
+        props[0].mutable == true
 
-        props.list[1].name == "Type"
-        props.list[1].value == "testing"
-        props.list[1].mutable == false
+        props[1].name == "Type"
+        props[1].value == "testing"
+        props[1].mutable == false
 
-        props.list[2].name == "Date of Birth"
-        props.list[2].value == "today"
-        props.list[2].mutable == true
+        props[2].name == "Date of Birth"
+        props[2].value == "today"
+        props[2].mutable == true
     }
 
     def 'The last accurance of the EntityProperty with same Name is kept'() {
         when:
-        def props = EntityPropertyTestBuilder.build {
+        def props = ItemPropertyTestBuilder.build {
             Property("Type")
             Property("Zombi")
             Property(Type: "patient")
         }
 
         then:
-        props.list && props.list.size() == 2
+        props && props.size() == 2
 
-        props.list[0].name == "Zombi"
-        props.list[0].value == ""
-        props.list[0].mutable == true
+        props[0].name == "Zombi"
+        props[0].value == ""
+        props[0].mutable == true
 
-        props.list[1].name == "Type"
-        props.list[1].value == "patient"
-        props.list[1].mutable == true
+        props[1].name == "Type"
+        props[1].value == "patient"
+        props[1].mutable == true
     }
 }

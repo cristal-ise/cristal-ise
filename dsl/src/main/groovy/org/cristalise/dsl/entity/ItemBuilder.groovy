@@ -18,22 +18,15 @@
  *
  * http://www.fsf.org/licensing/licenses/lgpl.html
  */
-package org.cristalise.dsl.entity.item
+package org.cristalise.dsl.entity
 
 import groovy.transform.CompileStatic
 
-import org.cristalise.kernel.common.CannotManageException
 import org.cristalise.kernel.common.InvalidDataException
-import org.cristalise.kernel.common.ObjectAlreadyExistsException
-import org.cristalise.kernel.entity.CorbaServer
-import org.cristalise.kernel.entity.TraceableEntity
-import org.cristalise.kernel.lifecycle.instance.Workflow
+import org.cristalise.kernel.entity.imports.ImportItem
 import org.cristalise.kernel.lookup.AgentPath
-import org.cristalise.kernel.lookup.DomainPath
+import org.cristalise.kernel.lookup.DomainPath;
 import org.cristalise.kernel.lookup.ItemPath
-import org.cristalise.kernel.process.Gateway
-import org.cristalise.kernel.property.PropertyArrayList
-import org.cristalise.kernel.utils.Logger
 
 
 /**
@@ -42,49 +35,35 @@ import org.cristalise.kernel.utils.Logger
 @CompileStatic
 class ItemBuilder {
 
-    String              name
-    String              type
-    String              folder
-    PropertyArrayList   props
-    Workflow            wf
-
     public ItemBuilder() {}
 
-    public ItemBuilder(ItemDelegate delegate) {
-        name   = delegate.name
-        type   = delegate.type
-        folder = delegate.folder
-        props  = delegate.props
-        wf     = delegate.wf
-    }
-
-    public static def create(Map<String, Object> attrs, Closure cl) {
-        assert attrs, "ItemBuilder create() cannot work with empty attributes (Map)"
-        assert attrs.agent && (attrs.agent instanceof AgentPath)
-
-        def ib = build(attrs, cl)
-
-        return ib.create((AgentPath)attrs.agent)
-    }
-
-    public static ItemBuilder build(Map<String, Object> attrs, Closure cl) {
+    public static ImportItem build(Map<String, Object> attrs, Closure cl) {
         assert attrs, "ItemBuilder build() cannot work with empty attributes (Map)"
         return build((String)attrs.name, (String)attrs.folder, cl)
     }
 
-    public static ItemBuilder build(String name, String folder, Closure cl) {
+    public static ImportItem build(String name, String folder, Closure cl) {
         if(!name || !folder) throw new InvalidDataException("")
 
-        def itemD = new ItemDelegate(name, null, folder)
+        def itemD = new ItemDelegate(name, folder)
 
         itemD.processClosure(cl)
 
-        return new ItemBuilder(itemD)
+        return itemD.newItem
     }
 
-    public ItemPath create(AgentPath agent) {
+    public static DomainPath create(Map<String, Object> attrs, Closure cl) {
+        assert attrs, "ItemBuilder create() cannot work with empty attributes (Map)"
+        assert attrs.agent && (attrs.agent instanceof AgentPath)
+
+        return create((AgentPath)attrs.agent, build(attrs, cl))
+    }
+
+    public static DomainPath create(AgentPath agent, ImportItem item) {
         assert agent
 
+        return (DomainPath)item.create(agent, true)
+        /*
         DomainPath context = new DomainPath(new DomainPath(folder), name);
 
         if (context.exists()) throw new ObjectAlreadyExistsException("The path $context exists already.");
@@ -118,5 +97,6 @@ class ItemBuilder {
         Gateway.getLookupManager().add(context);
         
         return newItemPath
+        */
     }
 }

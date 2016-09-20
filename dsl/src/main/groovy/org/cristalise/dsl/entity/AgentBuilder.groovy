@@ -18,16 +18,16 @@
  *
  * http://www.fsf.org/licensing/licenses/lgpl.html
  */
-package org.cristalise.dsl.entity.agent
+package org.cristalise.dsl.entity
 
 import groovy.transform.CompileStatic
 
-import org.cristalise.dsl.entity.role.RoleBuilder
 import org.cristalise.kernel.common.CannotManageException
 import org.cristalise.kernel.common.InvalidDataException
 import org.cristalise.kernel.common.ObjectNotFoundException
 import org.cristalise.kernel.entity.CorbaServer
 import org.cristalise.kernel.entity.agent.ActiveEntity
+import org.cristalise.kernel.entity.imports.ImportAgent;
 import org.cristalise.kernel.entity.imports.ImportRole
 import org.cristalise.kernel.lifecycle.instance.Workflow
 import org.cristalise.kernel.lookup.AgentPath
@@ -42,49 +42,40 @@ import org.cristalise.kernel.utils.Logger
  *
  */
 @CompileStatic
-class AgentBuilder{
-
-    String            name
-    String            pwd
-    List<ImportRole>  roles
-    PropertyArrayList props
-    Workflow          wf
+class AgentBuilder {
 
     public AgentBuilder() {}
-
-    public AgentBuilder(AgentDelegate delegate) {
-        name   = delegate.name
-        pwd    = delegate.pwd
-        roles  = delegate.roles
-        props  = delegate.props
-        wf     = delegate.wf
-    }
 
     public static def create(Map<String, Object> attrs, Closure cl) {
         assert attrs && attrs.agent && (attrs.agent instanceof AgentPath)
 
-        def ib = build(attrs, cl)
-        return ib.create((AgentPath)attrs.agent)
+        def item = build(attrs, cl)
+        return null
     }
 
-    public static AgentBuilder build(Map<String, Object> attrs, Closure cl) {
+    public static ImportAgent build(Map<String, Object> attrs, Closure cl) {
         assert attrs && attrs.name
         return build((String)attrs.name, (String)attrs.pwd, cl)
     }
 
-    public static AgentBuilder build(String name, String pwd, Closure cl) {
-        def agentD = new AgentDelegate(name, pwd)
+    public static ImportAgent build(String name, String pwd, Closure cl) {
+        def agentD = new AgentDelegate(pwd)
 
         agentD.processClosure(cl)
 
         if(!agentD.roles) throw new InvalidDataException("Agent '$name' does not have any Roles defined")
 
-        return new AgentBuilder(agentD)
+        return agentD.newAgent
     }
 
-    public AgentPath create(AgentPath agent) {
-        assert agent
+    public AgentPath create(AgentPath agentPath, ImportAgent agent) {
+        assert agentPath
+        return (AgentPath)agent.create(agentPath, true)
+    }
 
+/*
+    public AgentPath create(AgentPath agentPath) {
+        assert agentPath
         Logger.msg(3, "AgentBuilder.create() - Creating CORBA Object");
         CorbaServer factory = Gateway.getCorbaServer();
         if (factory == null) throw new CannotManageException("This process cannot create new Items");
@@ -125,4 +116,5 @@ class AgentBuilder{
             return new AgentPath(new ItemPath(), name);
         }
     }
+*/
 }

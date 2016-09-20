@@ -18,9 +18,9 @@
  *
  * http://www.fsf.org/licensing/licenses/lgpl.html
  */
-package org.cristalise.dsl.test.entity.role
+package org.cristalise.dsl.test.entity
 
-import org.cristalise.dsl.entity.role.RoleBuilder
+import org.cristalise.dsl.entity.RoleBuilder;
 import org.cristalise.kernel.test.utils.CristalTestSetup;
 
 import spock.lang.Specification

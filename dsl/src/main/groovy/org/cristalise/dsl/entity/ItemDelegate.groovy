@@ -18,30 +18,41 @@
  *
  * http://www.fsf.org/licensing/licenses/lgpl.html
  */
-package org.cristalise.dsl.entity.agent
+package org.cristalise.dsl.entity
 
 import groovy.transform.CompileStatic
 
-import org.cristalise.dsl.entity.EntityDelegate
-import org.cristalise.dsl.entity.role.RoleBuilder
-import org.cristalise.kernel.entity.imports.ImportRole
+import org.cristalise.dsl.lifecycle.instance.WorkflowBuilder
+import org.cristalise.kernel.entity.imports.ImportItem;
+import org.cristalise.kernel.lifecycle.instance.Workflow
 
 
 /**
  *
  */
 @CompileStatic
-class AgentDelegate extends EntityDelegate {
-    
-    List<ImportRole> roles
-    String pwd
+class ItemDelegate extends PropertyDelegate {
 
-    public AgentDelegate(String n, String pwd) {
-        super(n, "Agent")
+    public ImportItem newItem = new ImportItem()
+
+    public ItemDelegate(String name, String folder) {
+        newItem.name = name
+        newItem.initialPath = folder
     }
 
-    def Roles(Closure cl) {
-        roles = new RoleBuilder().build(cl)
+    public void processClosure(Closure cl) {
+        assert cl
+
+        Property(Name: newItem.name)
+
+        cl.delegate = this
+        cl.resolveStrategy = Closure.DELEGATE_FIRST
+        cl()
+        
+        if (itemProps) newItem.properties = itemProps.list
     }
 
+    def Workflow(Closure cl) {
+        newItem.wf = new WorkflowBuilder().build(cl)
+    }
 }

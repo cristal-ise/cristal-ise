@@ -18,41 +18,28 @@
  *
  * http://www.fsf.org/licensing/licenses/lgpl.html
  */
-package org.cristalise.dsl.entity.role
+package org.cristalise.dsl.test.entity
 
 import groovy.transform.CompileStatic
 
-import org.cristalise.kernel.entity.imports.ImportRole
-import org.cristalise.kernel.lookup.RolePath
-import org.cristalise.kernel.utils.Logger
+import java.util.ArrayList;
+
+import org.cristalise.dsl.entity.PropertyDelegate
+import org.cristalise.kernel.property.Property;
+import org.cristalise.kernel.property.PropertyArrayList
 
 
 /**
- *
+ * 
  */
 @CompileStatic
-class RoleBuilder {
+class ItemPropertyTestBuilder {
 
-     public static List<RolePath> create(Closure cl) {
-        return createRoles(build(cl))
-    }
+    public static ArrayList<Property> build(Closure cl) {
+        def pd = new PropertyDelegate()
 
-    public static List<ImportRole> build(Closure cl) {
-        def rB = new RoleBuilder()
-        
-        def rd = new RoleDelegate()
-        rd.processClosure(cl)
+        pd.processClosure(cl)
 
-        Logger.msg 5, "RoleBuilder.build() - Done"
-
-        return rd.roles
-    }
-
-    public static List<RolePath> createRoles(List<ImportRole> roles) {
-        List<RolePath> rolePathes = []
-        roles.each { ImportRole role ->
-            rolePathes.add((RolePath)role.create(null, false))
-        }
-        return rolePathes
+        return pd.itemProps.list
     }
 }

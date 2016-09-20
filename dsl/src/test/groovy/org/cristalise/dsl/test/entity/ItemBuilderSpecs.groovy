@@ -18,9 +18,9 @@
  *
  * http://www.fsf.org/licensing/licenses/lgpl.html
  */
-package org.cristalise.dsl.test.entity.item
+package org.cristalise.dsl.test.entity
 
-import org.cristalise.dsl.entity.item.ItemBuilder
+import org.cristalise.dsl.entity.ItemBuilder;
 import org.cristalise.kernel.common.InvalidDataException
 import org.cristalise.kernel.test.utils.CristalTestSetup;
 
@@ -37,7 +37,7 @@ class ItemBuilderSpecs extends Specification implements CristalTestSetup {
 
     def 'Cannot Build Item without folder specified'() {
         when:
-        def itemB = ItemBuilder.build(name: "myFisrtItem") {}
+        def item = ItemBuilder.build(name: "myFisrtItem") {}
 
         then:
         thrown InvalidDataException
@@ -45,42 +45,42 @@ class ItemBuilderSpecs extends Specification implements CristalTestSetup {
 
     def 'ItemBuilder with empty Workflow adds Name to Properties'() {
         when:
-        def itemB = ItemBuilder.build(name: "dummy", folder: "testing") {}
+        def item = ItemBuilder.build(name: "dummy", folder: "testing") {}
 
         then:
-        itemB.props.list.size == 1
-        itemB.props.list[0].name == "Name"
-        itemB.props.list[0].value == "dummy"
+        item.properties.size == 1
+        item.properties[0].name == "Name"
+        item.properties[0].value == "dummy"
     }
 
     def 'ItemBuilder with empty Workflow can have user defined Properties'() {
         when:
-        def itemB = ItemBuilder.build(name: "userDefinedProps", folder: "testing") {
+        def item = ItemBuilder.build(name: "userDefinedProps", folder: "testing") {
             InmutableProperty("Brain": "kovax")
             Property("Pinky": "kovax")
         }
 
         then:
-        itemB.props.list.size == 3
-        itemB.props.list[0].name    == "Name"
-        itemB.props.list[0].value   == "userDefinedProps"
-        itemB.props.list[0].mutable == true
-        itemB.props.list[1].name    == "Brain"
-        itemB.props.list[1].value   == "kovax"
-        itemB.props.list[1].mutable == false
-        itemB.props.list[2].name    == "Pinky"
-        itemB.props.list[2].value   == "kovax"
-        itemB.props.list[2].mutable == true
+        item.properties.size == 3
+        item.properties[0].name    == "Name"
+        item.properties[0].value   == "userDefinedProps"
+        item.properties[0].mutable == true
+        item.properties[1].name    == "Brain"
+        item.properties[1].value   == "kovax"
+        item.properties[1].mutable == false
+        item.properties[2].name    == "Pinky"
+        item.properties[2].value   == "kovax"
+        item.properties[2].mutable == true
     }
 
     def 'ItemBuilder builds domain Workflow'() {
         when:
-        def itemB = ItemBuilder.build(name: "myFisrtItem", folder: "testing") { Workflow {} }
+        def item = ItemBuilder.build(name: "myFisrtItem", folder: "testing") { Workflow {} }
 
         then:
-        itemB.wf
-        itemB.wf.search("workflow/domain")
+        item.wf
+        item.wf.search("workflow/domain")
 
-        itemB.props.list.size == 1
+        item.properties.size == 1
     }
 }

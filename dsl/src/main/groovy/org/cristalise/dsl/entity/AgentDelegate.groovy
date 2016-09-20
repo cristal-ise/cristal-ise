@@ -18,25 +18,23 @@
  *
  * http://www.fsf.org/licensing/licenses/lgpl.html
  */
-package org.cristalise.dsl.test.entity.property
+package org.cristalise.dsl.entity
 
 import groovy.transform.CompileStatic
 
-import org.cristalise.dsl.entity.EntityPropertyDelegate;
-import org.cristalise.kernel.property.PropertyArrayList
+import org.cristalise.kernel.entity.imports.ImportAgent;
+import org.cristalise.kernel.entity.imports.ImportRole
 
 
 /**
  *
  */
 @CompileStatic
-class EntityPropertyTestBuilder {
+class AgentDelegate extends RoleDelegate {
+    
+    ImportAgent newAgent = new ImportAgent()
 
-    public static PropertyArrayList build(Closure cl) {
-        def pd = new EntityPropertyDelegate()
-        
-        pd.processClosure(cl)
-
-        return pd.props
+    public AgentDelegate(String pwd) {
+        newAgent.password = pwd
     }
 }

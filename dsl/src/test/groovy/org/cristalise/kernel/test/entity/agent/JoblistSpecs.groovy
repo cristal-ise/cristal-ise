@@ -20,7 +20,7 @@
  */
 package org.cristalise.kernel.test.entity.agent
 
-import org.cristalise.dsl.entity.role.RoleBuilder
+import org.cristalise.dsl.entity.RoleBuilder;
 import org.cristalise.dsl.lifecycle.stateMachine.StateMachineBuilder
 import org.cristalise.dsl.test.builders.AgentTestBuilder;
 import org.cristalise.dsl.test.builders.ItemTestBuilder

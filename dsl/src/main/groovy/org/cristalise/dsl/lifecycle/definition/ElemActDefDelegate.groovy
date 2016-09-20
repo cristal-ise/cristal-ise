@@ -28,7 +28,9 @@ import org.cristalise.dsl.property.PropertyDelegate
 import org.cristalise.kernel.lifecycle.ActivityDef
 import org.cristalise.kernel.lifecycle.instance.stateMachine.StateMachine
 import org.cristalise.kernel.persistency.outcome.Schema
+import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.scripting.Script
+import org.cristalise.kernel.utils.LocalObjectLoader;
 
 /**
  * Wrapper/Delegate class of Elementary Activity definition
@@ -40,18 +42,18 @@ class ElemActDefDelegate extends PropertyDelegate {
     ActivityDef elemActDef
 
     public void processClosure(String name, int version, Closure cl) {
-        assert cl, "ElemActDefDelegate only works with a valid Closure"
-
         elemActDef = new ActivityDef()
         elemActDef.name = name
         elemActDef.version = version
 
-        cl.delegate = this
-        cl.resolveStrategy = Closure.DELEGATE_FIRST
-        cl()
-
-        props.each { k, v ->
-            elemActDef.properties.put(k, v, props.getAbstract().contains(k))
+        if(cl) {
+            cl.delegate = this
+            cl.resolveStrategy = Closure.DELEGATE_FIRST
+            cl()
+    
+            props.each { k, v ->
+                elemActDef.properties.put(k, v, props.getAbstract().contains(k))
+            }
         }
     }
 
@@ -59,12 +61,24 @@ class ElemActDefDelegate extends PropertyDelegate {
         elemActDef.setSchema(s)
     }
 
+    def Schema(String name, int ver = 0) {
+        elemActDef.setSchema(LocalObjectLoader.getSchema(name, ver))
+    }
+
     def Script(Script s) {
         elemActDef.setScript(s)
     }
 
+    def Script(String name, int ver = 0) {
+        elemActDef.setScript(LocalObjectLoader.getScript(name, ver))
+    }
+
     def StateMachine(StateMachine s) {
         elemActDef.setStateMachine(s)
+    }
+
+    def StateMachine(String name, int ver = 0) {
+        elemActDef.setStateMachine(LocalObjectLoader.getStateMachine(name, ver))
     }
 
     def Agent(String a) {

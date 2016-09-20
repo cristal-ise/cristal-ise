@@ -6,13 +6,13 @@ Name=Example Cristal Server
 Logo=http://path.to/image
 
 //Only used by XMLClusterStorage
-XMLStorage.root = src/integration-test/data/xmlFile/integTest
+XMLStorage.root = /home/kovax/cristal-data/xmlFile/integTest
 
 // TCP server ports
 ItemServer.name=localhost
 ItemServer.iiop=1505
 ItemServer.Proxy.port=1555
-ItemServer.Console.port=8888
+ItemServer.Console.port=8899
 
 // LDAP Lookup config
 LDAP.GlobalPath=dc=nodomain

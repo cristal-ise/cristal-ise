@@ -30,6 +30,7 @@ import org.cristalise.kernel.lifecycle.ActivityDef
 import org.cristalise.kernel.lifecycle.CompositeActivityDef
 import org.cristalise.kernel.persistency.outcome.Schema
 
+
 /**
  * 
  */
@@ -56,9 +57,8 @@ class DevItemDSL extends DevItemUtility {
         editCompActDesc(actName, folder, caDef)
         return caDef
     }
-
-    public CompositeActivityDef CompositeActivityDef(CompositeActivityDef caDef) {
-        
-        return caDef
+    
+    def DescriptionItem(String itemName, String folder, Closure cl) {
+        createNewDescriptionItem(itemName, folder)
     }
 }
