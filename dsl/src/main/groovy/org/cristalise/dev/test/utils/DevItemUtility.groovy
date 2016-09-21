@@ -35,6 +35,7 @@ import org.cristalise.kernel.process.Gateway
 import org.cristalise.kernel.process.resource.DefaultResourceImportHandler
 import org.cristalise.kernel.property.PropertyDescriptionList
 import org.cristalise.kernel.test.utils.KernelXMLUtility
+import org.cristalise.kernel.utils.Logger;
 
 
 /**
@@ -46,11 +47,12 @@ class DevItemUtility {
 
     AgentProxy agent = null
 
-    public String elemActDefFactoryName = "/domain/desc/dev/ElementaryActivityDefFactory"
-    public String compActDefFactoryName = "/domain/desc/dev/CompositeActivityDefFactory"
-    public String schemaFactoryName     = "/domain/desc/dev/SchemaFactory"
-    public String scriptFactoryName     = "/domain/desc/dev/ScriptFactory"
-    public String descItemFactoryName   = "/domain/desc/dev/DescriptionFactory"
+    public String elemActDefFactoryName   = "/domain/desc/dev/ElementaryActivityDefFactory"
+    public String compActDefFactoryName   = "/domain/desc/dev/CompositeActivityDefFactory"
+    public String schemaFactoryName       = "/domain/desc/dev/SchemaFactory"
+    public String scriptFactoryName       = "/domain/desc/dev/ScriptFactory"
+    public String stateMachineFactoryName = "/domain/desc/dev/ScriptFactory"
+    public String descItemFactoryName     = "/domain/desc/dev/DescriptionFactory"
 
     /**
      * 
@@ -59,29 +61,65 @@ class DevItemUtility {
      * @return
      */
     public Job getDoneJob(ItemProxy proxy, String actName) {
+        Logger.msg "DevItemUtility.getDoneJob() - proxy:"+proxy.name
         Job j = proxy.getJobByName(actName, agent)
         assert j && j.getStepName() == actName && j.transition.name == "Done"
         return j
     }
-
+    
     /**
      * 
-     * @param factoyPath
+     * @param factoryPath
      * @param factoryActName
      * @param name
      * @param folder
      * @return
      */
-    public ItemProxy createNewDevItem(String factoyPath, String factoryActName, String name, String folder) {
-        ItemProxy factory = agent.getItem(factoyPath)
-        assert factory && factory.getName() == factoyPath.substring(factoyPath.lastIndexOf('/')+1)
+    public ItemProxy createNewItemByFactory(String factoryPath, String factoryActName, String name, String folder) {
+        ItemProxy factory = agent.getItem(factoryPath)
+        assert factory && factory.getName() == factoryPath.substring(factoryPath.lastIndexOf('/')+1)
 
         Job doneJob = getDoneJob(factory, factoryActName)
         doneJob.setOutcome( DevXMLUtility.getNewDevObjectDefXML(name: name, folder: folder) )
 
         agent.execute(doneJob)
-
         return factory
+    }
+    
+    /**
+     * 
+     * @param type
+     * @return
+     */
+    public String getFactoryPath(String type) {
+        switch(type) {
+            case "EA": return elemActDefFactoryName
+            case "CA": return compActDefFactoryName
+            case "OD": return schemaFactoryName
+            case "SC": return scriptFactoryName
+            case "SM": return stateMachineFactoryName
+            default: return descItemFactoryName
+        }
+    }
+
+    /**
+     * 
+     * @param type type of the resource @see DefaultResourceImportHandler
+     * @param factoryActName 
+     * @param name
+     * @param folder
+     * @return
+     */
+    public ItemProxy createNewDevItem(String type, String factoryActName, String name, String folder) {
+        createNewItemByFactory(getFactoryPath(type), factoryActName, name, folder)
+
+        if(type == "DescItem") {
+            return agent.getItem("$folder/$name")
+        }
+        else {
+            def resHandler = new DefaultResourceImportHandler(type)
+            return agent.getItem("${resHandler.typeRoot}/$folder/$name")
+        }
     }
 
     /**
@@ -118,7 +156,7 @@ class DevItemUtility {
      * @param folder
      */
     public ItemProxy createNewElemActDesc(String name, String folder) {
-        return createNewDevItem( elemActDefFactoryName, "CreateNewElementaryActivityDef", name, folder)
+        return createNewDevItem( 'EA', "CreateNewElementaryActivityDef", name, folder)
     }
 
     /**
@@ -127,7 +165,7 @@ class DevItemUtility {
      * @param folder
      */
     public ItemProxy createNewSchema(String name, String folder) {
-        return createNewDevItem( schemaFactoryName, "CreateNewSchema", name, folder)
+        return createNewDevItem( 'OD', "CreateNewSchema", name, folder)
     }
 
     /**
@@ -136,7 +174,7 @@ class DevItemUtility {
      * @param folder
      */
     public ItemProxy createNewScript(String name, String folder) {
-        return createNewDevItem( scriptFactoryName, "CreateNewScript", name, folder)
+        return createNewDevItem( 'SC', "CreateNewScript", name, folder)
     }
 
     /**
@@ -145,7 +183,7 @@ class DevItemUtility {
      * @param folder
      */
     public ItemProxy createNewCompActDesc(String name, String folder) {
-        return createNewDevItem( compActDefFactoryName, "CreateNewCompositeActivityDef", name, folder)
+        return createNewDevItem( 'CA', "CreateNewCompositeActivityDef", name, folder)
     }
 
     /**
@@ -295,7 +333,7 @@ class DevItemUtility {
      * @return ItemProxy of newly created DescriptionItem
      */
     public ItemProxy createNewDescriptionItem(String name, String folder) {
-        return createNewDevItem( descItemFactoryName, "CreateNewDescription", name, folder)
+        return createNewDevItem( 'DescItem', "CreateNewDescription", name, folder)
     }
 
     /**
@@ -303,8 +341,8 @@ class DevItemUtility {
      * @param name
      * @param folder
      * @param propDesc
-     * @param workflowXML
-     * @return ItemProxy of the 
+     * @param chooseWorkflowXML
+     * @return
      */
     public ItemProxy editDescriptionItem(String name, String folder, PropertyDescriptionList propDesc, String chooseWorkflowXML) {
         ItemProxy descriptionItem = agent.getItem("/$folder/$name")
@@ -316,7 +354,7 @@ class DevItemUtility {
      * 
      * @param descriptionItem
      * @param propDesc
-     * @param workflowXML
+     * @param chooseWorkflowXML
      * @return
      */
     public ItemProxy editDescriptionItem(ItemProxy descriptionItem, PropertyDescriptionList propDesc, String chooseWorkflowXML) {
@@ -355,27 +393,21 @@ class DevItemUtility {
         doneJob.setOutcome( devObjectDefXML )
         agent.execute(doneJob)
 
-        String instanceName = doneJob.getOutcome().getField("SubFolder") + "/" + doneJob.getOutcome().getField("ObjectName")
+        String instancePath = doneJob.getOutcome().getField("SubFolder") + "/" + doneJob.getOutcome().getField("ObjectName")
 
-        return agent.getItem(instanceName)
+        return agent.getItem(instancePath)
     }
 
     /**
      * 
-     * @param name
-     * @param folder
+     * @param descriptionItem
      * @param propDesc
      * @param chooseWorkflowXML
      * @param devObjectDefXML
      * @return
      */
-    public ItemProxy editDescriptionAndCreateItem( String name, 
-                                                   String folder, 
-                                                   PropertyDescriptionList propDesc, 
-                                                   String chooseWorkflowXML,
-                                                   String devObjectDefXML)
-    {
-        ItemProxy descriptionItem = editDescriptionItem(name, folder, propDesc, chooseWorkflowXML)
+    public ItemProxy editDescriptionAndCreateItem( ItemProxy descriptionItem, PropertyDescriptionList propDesc, String chooseWorkflowXML, String devObjectDefXML) {
+        editDescriptionItem(descriptionItem, propDesc, chooseWorkflowXML)
         return createItemFromDescription(descriptionItem, devObjectDefXML)
     }
 }

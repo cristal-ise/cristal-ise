@@ -25,10 +25,14 @@ import groovy.transform.CompileStatic
 
 import org.cristalise.dsl.lifecycle.definition.CompActDefBuilder
 import org.cristalise.dsl.lifecycle.definition.ElemActDefBuilder
+import org.cristalise.dsl.persistency.outcome.OutcomeBuilder;
 import org.cristalise.dsl.persistency.outcome.SchemaBuilder
+import org.cristalise.kernel.entity.proxy.ItemProxy;
 import org.cristalise.kernel.lifecycle.ActivityDef
 import org.cristalise.kernel.lifecycle.CompositeActivityDef
+import org.cristalise.kernel.persistency.outcome.Outcome;
 import org.cristalise.kernel.persistency.outcome.Schema
+import org.cristalise.kernel.property.PropertyDescriptionList;
 
 
 /**
@@ -57,8 +61,12 @@ class DevItemDSL extends DevItemUtility {
         editCompActDesc(actName, folder, caDef)
         return caDef
     }
-    
-    def DescriptionItem(String itemName, String folder, Closure cl) {
-        createNewDescriptionItem(itemName, folder)
+
+    public ItemProxy DescriptionItem(String itemName, String folder, Closure cl) {
+        def descItem = createNewDescriptionItem(itemName, folder)
+        def difd = new DescriptionItemFactoryDelegate()
+        difd.processClosure(cl)
+        editDescriptionItem(descItem, difd.propDescList, difd.chooseWorkflowXML)
+        return descItem
     }
 }

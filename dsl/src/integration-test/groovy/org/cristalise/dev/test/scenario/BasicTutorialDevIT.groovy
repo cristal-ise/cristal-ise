@@ -14,7 +14,7 @@ class BasicTutorialDevIT extends KernelScenarioTestBase {
 
     @Test
     public void execute() {
-        String schemaName = "PatientDetails-$timeStamp"
+        String schemaName  = "PatientDetails-$timeStamp"
         String elemActName = "SetPatientDetails-$timeStamp"
         String compActName = "PatientLifecycle-$timeStamp"
         String factoryName = "PatientFactory-$timeStamp"
@@ -28,10 +28,8 @@ class BasicTutorialDevIT extends KernelScenarioTestBase {
         createNewCompActDesc(compActName, folder)
         editCompActDesc(compActName, folder, elemActName, 0)
 
-        createNewDescriptionItem(factoryName, folder)
-
         editDescriptionAndCreateItem( 
-            factoryName, folder, 
+            createNewDescriptionItem(factoryName, folder),
             PropertyDescriptionBuilder.build {
                 PropertyDesc("Name")
                 PropertyDesc(name: "Type", defaultValue: "Patient", isMutable: false, isClassIdentifier: true)

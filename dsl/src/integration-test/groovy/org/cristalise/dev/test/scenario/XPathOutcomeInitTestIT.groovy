@@ -31,20 +31,19 @@ import org.junit.Test
 
 
 class XPathOutcomeInitTestIT extends KernelScenarioTestBase {
+    
+    public static final String FactorytPath = "/domain/desc/integTest/XPathOutcomeInitTest_DetailsFactory"
+    public static final String FactoryActName = "XPathOutcomeInitTest_CreateDescription"
 
     private ItemProxy createNewXPathOutcomeInitTest_Details(String name, String folder) {
-        return createNewDevItem(
-            "/domain/desc/integTest/XPathOutcomeInitTest_DetailsFactory",
-            "XPathOutcomeInitTest_CreateDescription", 
-            name,
-            folder)
+        createNewItemByFactory(FactorytPath, FactoryActName, name, folder)
+        ItemProxy devItem = agent.getItem("$folder/$name")
+        assert devItem && devItem.getName() == name
+        return devItem
     }
 
     def XPathOutcomeInitTest_Details(String name, String folder, Closure cl) {
-        createNewXPathOutcomeInitTest_Details(name, folder)
-
-        ItemProxy devItem = agent.getItem("/domain/integTest/$name")
-        assert devItem && devItem.getName() == name
+        ItemProxy devItem = createNewXPathOutcomeInitTest_Details(name, folder)
 
         Job doneJob = getDoneJob(devItem, "XPathOutcomeInitTest_SetDetails")
         doneJob.setOutcome( OutcomeBuilder.build(cl) )

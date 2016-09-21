@@ -54,10 +54,8 @@ class RoutingScriptTest_OrSplitLoop_DevIT extends KernelScenarioTestBase {
         
         editCompActDesc(compActName+"-$timeStamp", folder, caXML)
 
-        createNewDescriptionItem(factoryName+"-$timeStamp", folder)
-
         ItemProxy instance = editDescriptionAndCreateItem( 
-            factoryName+"-$timeStamp", folder, 
+            createNewDescriptionItem(factoryName+"-$timeStamp", folder), 
             PropertyDescriptionBuilder.build {
                 PropertyDesc("Name")
                 PropertyDesc(name: "Type", defaultValue: "RoutingScriptTest", isMutable: false, isClassIdentifier: true)

@@ -18,45 +18,41 @@
  *
  * http://www.fsf.org/licensing/licenses/lgpl.html
  */
-package org.cristalise.dsl.property
+package org.cristalise.dev.test.utils
 
 import groovy.transform.CompileStatic
 
-import org.cristalise.kernel.common.InvalidDataException
+import org.cristalise.dsl.lifecycle.instance.WorkflowBuilder
+import org.cristalise.dsl.persistency.outcome.OutcomeBuilder;
+import org.cristalise.dsl.property.PropertyDescriptionDelegate;
+import org.cristalise.kernel.entity.imports.ImportItem
+import org.cristalise.kernel.lifecycle.CompositeActivityDef;
+import org.cristalise.kernel.lifecycle.instance.Workflow
+import org.cristalise.kernel.persistency.outcome.Outcome;
 import org.cristalise.kernel.property.PropertyDescriptionList
 
-
-/**
- * Wrapper/Delegate class of CastorHashMap used in Lifecycle and Collection Properties
- *
- */
-@CompileStatic
-class PropertyDescriptionDelegate {
-
-    public PropertyDescriptionList propDescList = new PropertyDescriptionList()
+class DescriptionItemFactoryDelegate extends PropertyDescriptionDelegate {
+    
+    public String chooseWorkflowXML
 
     public void processClosure(Closure cl) {
-        assert cl, "PropertyDescriptionDelegate only works with a valid Closure"
-
+        assert cl
         cl.delegate = this
         cl.resolveStrategy = Closure.DELEGATE_FIRST
         cl()
     }
 
-    public void PropertyDesc(String name) {
-        PropertyDesc(name: (Object)name)
+    def Workflow(CompositeActivityDef caDef) {
+        chooseWorkflowXML = OutcomeBuilder.build("ChooseWorkflow") {
+            WorkflowDefinitionName(caDef.name)
+            WorkflowDefinitionVersion(caDef.version)
+        }
     }
 
-    public void PropertyDesc(Map<String, Object> attrs) {
-        assert attrs && attrs.name, "PropertyDesc must have the name set"
-
-        if(attrs.defaultValue != null && !(attrs.defaultValue instanceof String)) {
-            throw new InvalidDataException("defaultValue must be String type, Property can only hold text value")
+    def Workflow(String name, String ver) {
+        chooseWorkflowXML = OutcomeBuilder.build("ChooseWorkflow") {
+            WorkflowDefinitionName(name)
+            WorkflowDefinitionVersion(ver)
         }
-
-        if(attrs.isClassIdentifier == null) attrs.isClassIdentifier = false
-        if(attrs.isMutable         == null) attrs.isMutable         = true
-
-        propDescList.add((String)attrs.name, (String)attrs.defaultValue, (boolean)attrs.isClassIdentifier, (boolean)attrs.isMutable)
     }
 }

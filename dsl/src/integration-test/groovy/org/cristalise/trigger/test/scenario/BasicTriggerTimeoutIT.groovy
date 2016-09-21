@@ -36,8 +36,9 @@ class BasicTriggerTimeoutIT extends KernelScenarioTestBase {
             ElemActDef('TriggerTestAct',  triggerTestActDef)
         }
 
-        DescriptionItem("TriggerableItemFactory-$timeStamp", folder) {
-            Property(Type: "Factory")
+        def factory = DescriptionItem("TriggerableItemFactory-$timeStamp", folder) {
+            PropertyDesc(name: "Type", defaultValue: "Triggerable", isMutable: false, isClassIdentifier: true)
+            Workflow(triggerWF)
         }
     }
 }
