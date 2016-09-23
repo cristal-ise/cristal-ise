@@ -51,8 +51,9 @@ class DevItemUtility {
     public String compActDefFactoryName   = "/domain/desc/dev/CompositeActivityDefFactory"
     public String schemaFactoryName       = "/domain/desc/dev/SchemaFactory"
     public String scriptFactoryName       = "/domain/desc/dev/ScriptFactory"
-    public String stateMachineFactoryName = "/domain/desc/dev/ScriptFactory"
+    public String stateMachineFactoryName = "/domain/desc/dev/StateMachineFactory"
     public String descItemFactoryName     = "/domain/desc/dev/DescriptionFactory"
+    public String moduleFactoryName       = "/domain/desc/dev/ModuleFactory"
 
     /**
      * 
@@ -75,17 +76,27 @@ class DevItemUtility {
      * @param folder
      * @return
      */
-    public ItemProxy createNewItemByFactory(String factoryPath, String factoryActName, String name, String folder) {
+    public void createNewItemByFactory(String factoryPath, String factoryActName, String name, String folder) {
         ItemProxy factory = agent.getItem(factoryPath)
         assert factory && factory.getName() == factoryPath.substring(factoryPath.lastIndexOf('/')+1)
+        
+        createNewItemByFactory(factory, factoryActName, name, folder)
+    }
 
+    /**
+     * 
+     * @param factory
+     * @param factoryActName
+     * @param name
+     * @param folder
+     * @return
+     */
+    public void createNewItemByFactory(ItemProxy factory, String factoryActName, String name, String folder) {
         Job doneJob = getDoneJob(factory, factoryActName)
         doneJob.setOutcome( DevXMLUtility.getNewDevObjectDefXML(name: name, folder: folder) )
-
         agent.execute(doneJob)
-        return factory
     }
-    
+
     /**
      * 
      * @param type
@@ -98,6 +109,7 @@ class DevItemUtility {
             case "OD": return schemaFactoryName
             case "SC": return scriptFactoryName
             case "SM": return stateMachineFactoryName
+
             default: return descItemFactoryName
         }
     }

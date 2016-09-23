@@ -45,20 +45,20 @@ class AgentBuilderSpecs extends Specification implements CristalTestSetup {
 
     def 'Agent with Role a role has name/type property added'() {
         when:
-        def agentB = AgentBuilder.build(name: "dummy") {
+        def newAgent = AgentBuilder.build(name: "dummy") {
             Roles {
                 Role(name: 'User')
             }
         }
 
         then:
-        agentB.props.list.size == 2
-        agentB.props.list[0].name == "Name"
-        agentB.props.list[0].value == "dummy"
-        agentB.props.list[1].name == "Type"
-        agentB.props.list[1].value == "Agent"
-        
-        agentB.roles.size() == 1
-        agentB.roles[0].name == 'User'
+        newAgent.properties.size == 2
+        newAgent.properties[0].name == "Name"
+        newAgent.properties[0].value == "dummy"
+        newAgent.properties[1].name == "Type"
+        newAgent.properties[1].value == "Agent"
+
+        newAgent.roles.size() == 1
+        newAgent.roles[0] == 'User'
     }
 }

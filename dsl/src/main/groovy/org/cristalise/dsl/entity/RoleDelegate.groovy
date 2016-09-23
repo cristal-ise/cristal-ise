@@ -31,7 +31,7 @@ import org.cristalise.kernel.entity.imports.ImportRole
 @CompileStatic
 class RoleDelegate {
 
-    List<ImportRole> roles = []
+    ArrayList<ImportRole> roles = new ArrayList<ImportRole>()
 
     public void processClosure(Closure cl) {
         cl.delegate = this

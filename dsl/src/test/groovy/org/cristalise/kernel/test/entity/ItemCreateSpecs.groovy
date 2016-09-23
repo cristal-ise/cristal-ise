@@ -18,7 +18,7 @@
  *
  * http://www.fsf.org/licensing/licenses/lgpl.html
  */
-package org.cristalise.kernel.test.entity.item
+package org.cristalise.kernel.test.entity
 
 import org.cristalise.dsl.test.builders.ItemTestBuilder
 import org.cristalise.kernel.process.Gateway;

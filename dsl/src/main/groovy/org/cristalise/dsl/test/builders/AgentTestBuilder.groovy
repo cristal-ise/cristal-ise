@@ -50,11 +50,7 @@ class AgentTestBuilder extends AgentBuilder {
     public AgentTestBuilder() {}
 
     public AgentTestBuilder(ImportAgent iAgent) {
-        newAgent.name   = iAgent.name
-        //newAgent.pwd    = iAgent.pwd
-        newAgent.roles  = iAgent.roles
-        newAgent.properties  = iAgent.properties
-        //newAgent.wf     = iAgent.wf
+        newAgent = iAgent
 
         builderAgent = new AgentPath(new ItemPath(), "AgentTestBuilder")
         if(!Gateway.getLookupManager().exists(builderAgent)) Gateway.getLookupManager().add(builderAgent)
@@ -62,7 +58,7 @@ class AgentTestBuilder extends AgentBuilder {
 
     public static AgentTestBuilder create(Map<String, Object> attrs, Closure cl) {
         def atb = new AgentTestBuilder(AgentBuilder.build(attrs, cl))
-//        atb.agent = atb.create(atb.builderAgent)
+        atb.agent = atb.create(atb.builderAgent, atb.newAgent)
 
         AgentProxy agentProxy = Gateway.proxyManager.getAgentProxy(atb.agent)
         

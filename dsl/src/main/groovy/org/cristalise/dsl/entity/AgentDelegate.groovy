@@ -20,7 +20,10 @@
  */
 package org.cristalise.dsl.entity
 
+import groovy.lang.Closure;
 import groovy.transform.CompileStatic
+
+import java.util.List;
 
 import org.cristalise.kernel.entity.imports.ImportAgent;
 import org.cristalise.kernel.entity.imports.ImportRole
@@ -30,11 +33,30 @@ import org.cristalise.kernel.entity.imports.ImportRole
  *
  */
 @CompileStatic
-class AgentDelegate extends RoleDelegate {
-    
+class AgentDelegate extends PropertyDelegate {
+
     ImportAgent newAgent = new ImportAgent()
 
-    public AgentDelegate(String pwd) {
+    public AgentDelegate(String name, String pwd) {
+        newAgent.name = name
         newAgent.password = pwd
+    }
+
+    public void processClosure(Closure cl) {
+        assert cl, "Delegate only works with a valid Closure"
+
+        Property(Name: newAgent.name)
+        Property(Type: "Agent")
+
+        cl.delegate = this
+        cl.resolveStrategy = Closure.DELEGATE_FIRST
+        cl()
+
+        if (itemProps) newAgent.properties = itemProps.list
+    }
+
+
+    def Roles(Closure cl) {
+        newAgent.roles = RoleBuilder.build(cl)
     }
 }

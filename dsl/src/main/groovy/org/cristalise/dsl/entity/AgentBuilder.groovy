@@ -59,20 +59,19 @@ class AgentBuilder {
     }
 
     public static ImportAgent build(String name, String pwd, Closure cl) {
-        def agentD = new AgentDelegate(pwd)
+        def agentD = new AgentDelegate(name, pwd)
 
         agentD.processClosure(cl)
 
-        if(!agentD.roles) throw new InvalidDataException("Agent '$name' does not have any Roles defined")
+        if(!agentD.newAgent.roles) throw new InvalidDataException("Agent '$name' does not have any Roles defined")
 
         return agentD.newAgent
     }
 
-    public AgentPath create(AgentPath agentPath, ImportAgent agent) {
+    public static AgentPath create(AgentPath agentPath, ImportAgent agent) {
         assert agentPath
         return (AgentPath)agent.create(agentPath, true)
     }
-
 /*
     public AgentPath create(AgentPath agentPath) {
         assert agentPath

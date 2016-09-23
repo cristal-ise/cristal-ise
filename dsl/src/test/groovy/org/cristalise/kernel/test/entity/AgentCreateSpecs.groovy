@@ -18,7 +18,7 @@
  *
  * http://www.fsf.org/licensing/licenses/lgpl.html
  */
-package org.cristalise.kernel.test.entity.agent
+package org.cristalise.kernel.test.entity
 
 import org.cristalise.dsl.test.builders.AgentTestBuilder;
 import org.cristalise.kernel.test.utils.CristalTestSetup;

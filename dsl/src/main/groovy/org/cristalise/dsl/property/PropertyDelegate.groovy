@@ -36,7 +36,7 @@ class PropertyDelegate {
     CastorHashMap props = new CastorHashMap()
 
     public void processClosure(Closure cl) {
-        assert cl, "PropertyDelegate only works with a valid Closure"
+        assert cl, "Delegate only works with a valid Closure"
 
         cl.delegate = this
         cl.resolveStrategy = Closure.DELEGATE_FIRST

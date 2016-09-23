@@ -136,16 +136,16 @@ class StateMachineBuilderSpecs extends Specification implements CristalTestSetup
                 script( name: "\${ScriptName}", version:"\${ScriptVersion}")
             }
             transition("Timeout", [origin: "Started", target: "Started"]) {
-                //property(reservation: "clear")
                 outcome(name: "\${TimeoutSchemaType}", version:"\${TimeoutSchemaVersion}")
                 script( name: "\${TimeoutScriptName}", version:"\${TimeoutScriptVersion}")
                 property(roleOverride: "TriggerAdmin")
+                property(enabledProp: "TimeoutOn")
             }
             transition("Warning", [origin: "Started", target: "Started"]) {
-                //property(reservation: "clear")
                 outcome(name: "\${WarningSchemaType}", version:"\${WarningSchemaVersion}")
                 script( name: "\${WarningScriptName}", version:"\${WarningScriptVersion}")
                 property(roleOverride: "TriggerAdmin")
+                property(enabledProp: "WarningOn")
             }
             transition("Suspend", [origin: "Started", target: "Suspended"]) {
                 outcome(name: "Errors", version: "0")

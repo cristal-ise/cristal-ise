@@ -48,7 +48,7 @@ class ItemDelegate extends PropertyDelegate {
         cl.delegate = this
         cl.resolveStrategy = Closure.DELEGATE_FIRST
         cl()
-        
+
         if (itemProps) newItem.properties = itemProps.list
     }
 

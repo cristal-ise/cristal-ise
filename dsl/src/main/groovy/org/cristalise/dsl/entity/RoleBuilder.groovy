@@ -33,13 +33,13 @@ import org.cristalise.kernel.utils.Logger
 @CompileStatic
 class RoleBuilder {
 
-     public static List<RolePath> create(Closure cl) {
+    public static List<RolePath> create(Closure cl) {
         return createRoles(build(cl))
     }
 
-    public static List<ImportRole> build(Closure cl) {
+    public static ArrayList<ImportRole> build(Closure cl) {
         def rB = new RoleBuilder()
-        
+
         def rd = new RoleDelegate()
         rd.processClosure(cl)
 

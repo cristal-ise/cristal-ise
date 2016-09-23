@@ -18,7 +18,7 @@
  *
  * http://www.fsf.org/licensing/licenses/lgpl.html
  */
-package org.cristalise.kernel.test.entity.role
+package org.cristalise.kernel.test.entity
 
 import org.cristalise.dsl.entity.RoleBuilder;
 import org.cristalise.kernel.common.ObjectNotFoundException
