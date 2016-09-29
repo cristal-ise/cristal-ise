@@ -49,6 +49,7 @@ import org.cristalise.kernel.events.Event;
 import org.cristalise.kernel.persistency.ClusterStorage;
 import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.property.Property;
+import org.cristalise.kernel.utils.DateUtility;
 import org.cristalise.kernel.utils.Logger;
 
 
@@ -275,7 +276,7 @@ public class JobListPane extends ItemTabPane implements ActionListener, ProxyObs
                     case 1: return itemNames[rowIndex];
 					case 2: return job[rowIndex].getStepName();
 					case 3: return job[rowIndex].getTransition().getName();
-					case 4: return Event.timeToString(job[rowIndex].getCreationDate());
+					case 4: return DateUtility.timeToString(job[rowIndex].getCreationDate());
 					default: return "";
 				}
 			} catch (Exception e) {
