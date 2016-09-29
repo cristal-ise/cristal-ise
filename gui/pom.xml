@@ -24,9 +24,9 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>org.cristalise</groupId>
 	<artifactId>cristalise-gui</artifactId>
-	<version>3.2</version>
+	<version>3.3-SNAPSHOT</version>
 	<name>cristalise-gui</name>
-	<description>Cristal-ise default GUI</description>
+	<description>CRISTAL-iSE default/administration GUI</description>
 	<url>https://github.com/cristal-ise/gui</url>
 	<licenses>
 		<license>
@@ -153,8 +153,8 @@
 				<artifactId>maven-compiler-plugin</artifactId>
 				<version>2.3.2</version>
 				<configuration>
-					<source>1.7</source>
-					<target>1.7</target>
+					<source>1.8</source>
+					<target>1.8</target>
 				</configuration>
 			</plugin>
 			<plugin>
@@ -178,8 +178,8 @@
 								<goal>check</goal>
 							</goals>
 						</execution>
-				</executions>				
-			</plugin>			
+				</executions>
+			</plugin>
 		</plugins>
 	</build>
 	<distributionManagement>
