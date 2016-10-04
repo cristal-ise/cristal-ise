@@ -75,9 +75,27 @@ class SchemaDelegate {
             if(s.documentation) 'xs:annotation' { 'xs:documentation'(s.documentation) }
 
             'xs:complexType' {
-                'xs:sequence' {
-                    s.fields.each { Field f -> buildField(xsd, f) }
+                if(s.fields) {
+                    'xs:sequence' {
+                        s.fields.each { Field f -> buildField(xsd, f) }
+                    }
+                } 
+                if(s.attributes) {
+                    s.attributes.each { Attribute a -> buildAtribute(xsd, a) }
                 }
+            }
+        }
+    }
+
+    private void buildAtribute(xsd, Attribute a) {
+        Logger.msg 1, "SchemaDelegate.buildAtribute() - attribute: $a.name"
+
+        xsd.'xs:attribute'(name: a.name, type: (!a.values && !a.pattern ? a.type : ''), 'default': a.defaultVal) {
+            if(a.values) {
+                buildRestriction(xsd, a.type, a.values)
+            }
+            else if(a.pattern) {
+                buildRestriction(xsd, a.type, a.pattern)
             }
         }
     }
@@ -103,10 +121,11 @@ class SchemaDelegate {
                 buildRestriction(xsd, f.type, f.values)
             }
             else if(f.pattern) {
-                buildRestriction(xsd, 'xs:string', f.pattern)
+                buildRestriction(xsd, f.type, f.pattern)
             }
         }
     }
+
 
     private void buildRestriction(xsd, String type, List values) {
         Logger.msg 1, "SchemaDelegate.buildRestriction() - type:$type, values: $values"
@@ -119,6 +138,7 @@ class SchemaDelegate {
             }
         }
     }
+
 
     private void buildRestriction(xsd, String type, String pattern) {
         Logger.msg 1, "SchemaDelegate.buildRestriction() - type:$type, pattern: $pattern"

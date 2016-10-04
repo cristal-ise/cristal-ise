@@ -20,42 +20,20 @@
  */
 package org.cristalise.dsl.persistency.outcome
 
+import java.util.List;
+
 import org.cristalise.kernel.common.InvalidDataException
 
 
-class Field {
-    String name
-    String type = 'xs:string'
-    String pattern
-    
+class Field extends Attribute {
     String multiplicity = ''
 
     String minOccurs = '1'
     String maxOccurs = '1'
 
-    List values
-    def defaultVal
-
     Unit unit
 
-
-    /**
-     * accepted values from XSD specification without namespace (i.e. xs:)
-     */
-    private static final List types = ['string', 'boolean', 'integer', 'decimal', 'date', 'time', 'dateTime']
-
-    /**
-     * Checks if the type is acceptable
-     * 
-     * @param t
-     * @return
-     */
-    def setType(String t) {
-        if( types.contains(t) ) {
-            type = "xs:$t"
-        }
-        else throw new InvalidDataException("Field type '$t' is wrong, it must be one of these: $types")
-    }
+    List<Attribute> attributes = []
 
     private String getMultiplicityVal(String m) {
         def dec = /^\d+$/
@@ -103,25 +81,12 @@ class Field {
      * 
      * @param vals
      * @return
-     */
-    def setValues(List vals) {
+    void setValues(List vals) {
         if(unit) throw new InvalidDataException("UNIMPLEMENTED: Cannot use unit and values together")
 
         values = vals
     }
-
-    /**
-     * 'default' is a keyword, so it cannot be used as a variable name, 
-     * but this method makes the default keyword usable in the SchemaBuilder DSL
-     * 
-     * @param val
-     * @return
      */
-    def setDefault(val) {
-        if(values && !values.contains(val)) throw new InvalidDataException("Default value '$val' is wrong, it must be one of these: $values")
-
-        defaultVal = val
-    }
 
     def setUnit(Unit u) {
         if(values) throw new InvalidDataException("UNIMPLEMENTED: Cannot use unit and values together")

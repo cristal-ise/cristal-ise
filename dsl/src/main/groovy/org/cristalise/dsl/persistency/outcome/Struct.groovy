@@ -30,4 +30,5 @@ class Struct {
     String documentation
 
     List<Field> fields = []
+    List<Attribute> attributes = []
 }

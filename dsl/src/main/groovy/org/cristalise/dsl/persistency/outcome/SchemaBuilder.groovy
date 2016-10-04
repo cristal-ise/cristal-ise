@@ -39,8 +39,6 @@ class SchemaBuilder {
     String name = ""
     int version = -1
 
-    static Schema schemaSchema = LocalObjectLoader.getSchema("Schema", 0)
-
     DomainPath domainPath = null
 
     Schema schema = null
@@ -163,6 +161,8 @@ class SchemaBuilder {
      * @return the DomainPath of the newly created resource Item
     */
     public DomainPath create() {
+        Schema schemaSchema = LocalObjectLoader.getSchema("Schema", 0)
+
         return domainPath = Bootstrap.createResource(module, name, version, "OD", [new Outcome(-1, schema.schemaData, schemaSchema)] as Set, false)
     }
 }

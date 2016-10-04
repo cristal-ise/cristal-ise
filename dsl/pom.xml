@@ -207,7 +207,7 @@
         <dependency>
             <groupId>com.athaydes</groupId>
             <artifactId>spock-reports</artifactId>
-            <version>1.2.12</version>
+            <version>1.2.13</version>
             <scope>test</scope>
             <!-- this avoids affecting your version of Groovy/Spock -->
             <exclusions>

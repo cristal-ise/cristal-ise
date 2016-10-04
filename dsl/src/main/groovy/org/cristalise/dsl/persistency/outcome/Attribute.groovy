@@ -23,23 +23,40 @@ package org.cristalise.dsl.persistency.outcome
 import org.cristalise.kernel.common.InvalidDataException
 
 
-/**
- * Unit is actually a specific Attribute which name is 'unit', type is 'string' and always required
- */
-class Unit {
-    List<String> values = []
-    String defaultVal
-    boolean required = true
+class Attribute {
+    /**
+     * accepted types from XSD specification without namespace (i.e. xs:)
+     */
+    public static final List types = ['string', 'boolean', 'integer', 'decimal', 'date', 'time', 'dateTime']
+
+    String name
+    String type = 'xs:string'
+    String pattern
+
+    List values
+    def defaultVal
+
+    /**
+     * Checks if the type is acceptable
+     * 
+     * @param t
+     * @return
+     */
+    def setType(String t) {
+        if (types.contains(t)) type = "xs:$t"
+        else                    throw new InvalidDataException("Field type '$t' is wrong, it must be one of these: $types")
+    }
 
     /**
      * 'default' is a keyword, so it cannot be used as a variable name, 
      * but this method makes the default keyword usable in the SchemaBuilder DSL
      * 
      * @param val
+     * @return
      */
-    public void setDefault(String val) {
+    def setDefault(val) {
         if(values && !values.contains(val)) throw new InvalidDataException("Default value '$val' is wrong, it must be one of these: $values")
-        
+
         defaultVal = val
     }
 }
