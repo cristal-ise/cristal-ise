@@ -31,13 +31,13 @@ import org.cristalise.kernel.lifecycle.CompositeActivityDef
 @CompileStatic
 class CompActDefBuilder {
 
-    public static CompositeActivityDef build(Map<String, Object> attrs, Closure cl) {
+    public static CompositeActivityDef build(Map<String, Object> attrs,  @DelegatesTo(CompActDefDelegate) Closure cl) {
         def delegate = new CompActDefDelegate()
         delegate.processClosure((String)attrs.name, (Integer)attrs.version, cl)
         return delegate.compActDef
     }
 
-    public static CompositeActivityDef build(CompositeActivityDef caDef, Closure cl) {
+    public static CompositeActivityDef build(CompositeActivityDef caDef,  @DelegatesTo(CompActDefDelegate) Closure cl) {
         def delegate = new CompActDefDelegate()
         delegate.processClosure(caDef, cl)
         return caDef

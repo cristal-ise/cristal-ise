@@ -18,25 +18,27 @@
  *
  * http://www.fsf.org/licensing/licenses/lgpl.html
  */
-
 package org.cristalise.dev.test.utils
 
-import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.*
 import static org.cristalise.kernel.collection.BuiltInCollections.*
+
+import java.util.List;
+import java.util.Map;
 
 import groovy.transform.CompileStatic
 
+import org.apache.commons.lang.StringUtils;
 import org.cristalise.kernel.entity.agent.Job
 import org.cristalise.kernel.entity.proxy.AgentProxy
 import org.cristalise.kernel.entity.proxy.ItemProxy
 import org.cristalise.kernel.lifecycle.ActivityDef
 import org.cristalise.kernel.lifecycle.CompositeActivityDef
+import org.cristalise.kernel.persistency.outcome.Outcome;
 import org.cristalise.kernel.process.Gateway
 import org.cristalise.kernel.process.resource.DefaultResourceImportHandler
 import org.cristalise.kernel.property.PropertyDescriptionList
 import org.cristalise.kernel.test.utils.KernelXMLUtility
 import org.cristalise.kernel.utils.Logger;
-
 
 /**
  * Utility class to implement ALL methods required to manage (create/edit)
@@ -55,6 +57,32 @@ class DevItemUtility {
     public String descItemFactoryName     = "/domain/desc/dev/DescriptionFactory"
     public String moduleFactoryName       = "/domain/desc/dev/ModuleFactory"
 
+    public boolean checkOutcomeCount(ItemProxy proxy, String schemaName, int numberOfInstances) {
+        return (proxy.getContents("Outcome") as List<String>).count { it.contains(schemaName) } == numberOfInstances
+    }
+
+    /**
+     * 
+     * @param proxy
+     * @param expectedJobs
+     */
+    public void checkJobs(ItemProxy proxy, List<Map<String, Object>> expectedJobs) {
+        def jobs = proxy.getJobList(agent);
+        println jobs
+
+        assert expectedJobs && jobs && jobs.size() == expectedJobs.size()
+
+        expectedJobs.each { Map expectedJob -> 
+            assert expectedJob && expectedJob.stepName && expectedJob.agentRole != null && expectedJob.transitionName
+
+            assert jobs.find { Job j ->
+                j.stepName == expectedJob.stepName && 
+                j.agentRole == expectedJob.agentRole &&
+                j.transition.name == expectedJob.transitionName
+            }, "Cannot find Job: '${expectedJob.stepName}' , '${expectedJob.agentRole}' , '${expectedJob.transitionName}'"
+        }
+    }
+
     /**
      * 
      * @param proxy
@@ -67,7 +95,13 @@ class DevItemUtility {
         assert j && j.getStepName() == actName && j.transition.name == "Done"
         return j
     }
-    
+
+    private void executeDoneJob(ItemProxy proxy, String actName, Outcome outcome = null) {
+        def job = getDoneJob(proxy, actName)
+        if(outcome) job.outcome = outcome
+        agent.execute(job)
+    }
+
     /**
      * 
      * @param factoryPath

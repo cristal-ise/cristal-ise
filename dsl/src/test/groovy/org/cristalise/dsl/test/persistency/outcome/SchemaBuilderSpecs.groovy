@@ -196,6 +196,30 @@ class SchemaBuilderSpecs extends Specification implements CristalTestSetup {
     }
 
 
+    def 'Field value can be restricted by reqex pattern'() {
+        expect:
+        SchemaTestBuilder.build('Test', 'TestData', 0) {
+            struct(name: 'TestData') {
+                field(name: 'Gender', type: 'string', pattern: 'male|female')
+            }
+        }.compareXML("""<xs:schema xmlns:xs='http://www.w3.org/2001/XMLSchema'>
+                          <xs:element name='TestData'>
+                            <xs:complexType>
+                              <xs:sequence>
+                                <xs:element minOccurs="1" maxOccurs="1" name="Gender">
+                                  <xs:simpleType>
+                                    <xs:restriction base="xs:string">
+                                      <xs:pattern value="male|female"/>
+                                    </xs:restriction>
+                                  </xs:simpleType>
+                                </xs:element>
+                              </xs:sequence>
+                            </xs:complexType>
+                          </xs:element>
+                        </xs:schema>""")
+    }
+
+
     def 'Field can have Unit which is added as attribute of type string'() {
         expect:
         SchemaTestBuilder.build('Test', 'TestData', 0) {

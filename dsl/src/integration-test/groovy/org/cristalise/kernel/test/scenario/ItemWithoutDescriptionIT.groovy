@@ -9,21 +9,20 @@ import org.cristalise.kernel.entity.proxy.ItemProxy
 import org.cristalise.kernel.test.KernelScenarioTestBase
 import org.cristalise.kernel.test.utils.KernelXMLUtility
 import org.junit.Before
+import org.junit.BeforeClass;
 import org.junit.Test
 
 
 
 /**
  * 
- * @author kovax
- *
  */
 @CompileStatic
 class ItemWithoutDescriptionIT extends KernelScenarioTestBase {
 
     @Before
-    void before() {
-        beforeClient('src/test/conf/devClient.conf', 'src/test/conf/devServer.clc')
+    public void before() {
+        init('src/test/conf/devClient.conf', 'src/test/conf/devServer.clc')
     }
 
     /**

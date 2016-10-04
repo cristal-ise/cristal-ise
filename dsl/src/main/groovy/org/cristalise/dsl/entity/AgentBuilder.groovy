@@ -68,52 +68,8 @@ class AgentBuilder {
         return agentD.newAgent
     }
 
-    public static AgentPath create(AgentPath agentPath, ImportAgent agent) {
-        assert agentPath
-        return (AgentPath)agent.create(agentPath, true)
+    public static AgentPath create(AgentPath builderAgent, ImportAgent newAgent) {
+        assert builderAgent && newAgent
+        return (AgentPath)newAgent.create(builderAgent, true)
     }
-/*
-    public AgentPath create(AgentPath agentPath) {
-        assert agentPath
-        Logger.msg(3, "AgentBuilder.create() - Creating CORBA Object");
-        CorbaServer factory = Gateway.getCorbaServer();
-        if (factory == null) throw new CannotManageException("This process cannot create new Items");
-        AgentPath newAgentPath = new AgentPath(getItemPath(), name);
-        if(pwd) newAgentPath.setPassword(pwd);
-        ActiveEntity newAgent = factory.createAgent(newAgentPath);
-
-        Logger.msg(3, "AgentBuilder.create() - Adding entity '$newAgentPath' to lookup");
-        Gateway.getLookupManager().add(newAgentPath);
-
-        Logger.msg(3, "AgentBuilder.create() - Initializing entity");
-        try {
-            newAgent.initialise(
-                agent.getSystemKey(), 
-                Gateway.getMarshaller().marshall(props), 
-                wf == null ? null : Gateway.getMarshaller().marshall(wf.search("workflow/domain")),
-                null);
-        }
-        catch (Exception ex) {
-            Logger.error(ex);
-            Gateway.getLookupManager().delete(newAgentPath);
-            throw new InvalidDataException("Problem initializing new Agent '"+name+"'. See log: "+ex.getMessage());
-        }
-
-        Logger.msg(3, "AgentBuilder.create() - Creating roles");
-        RoleBuilder.createRoles(roles).each { RolePath aRole ->
-            Gateway.getLookupManager().addRole(newAgentPath, aRole);
-        }
-
-        return newAgentPath;
-    }
-
-    private ItemPath getItemPath() {
-        try {
-            return Gateway.getLookup().getAgentPath(name);
-        }
-        catch (ObjectNotFoundException ex) {
-            return new AgentPath(new ItemPath(), name);
-        }
-    }
-*/
 }

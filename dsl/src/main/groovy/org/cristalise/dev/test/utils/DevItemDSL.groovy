@@ -25,14 +25,11 @@ import groovy.transform.CompileStatic
 
 import org.cristalise.dsl.lifecycle.definition.CompActDefBuilder
 import org.cristalise.dsl.lifecycle.definition.ElemActDefBuilder
-import org.cristalise.dsl.persistency.outcome.OutcomeBuilder;
 import org.cristalise.dsl.persistency.outcome.SchemaBuilder
-import org.cristalise.kernel.entity.proxy.ItemProxy;
+import org.cristalise.kernel.entity.proxy.ItemProxy
 import org.cristalise.kernel.lifecycle.ActivityDef
 import org.cristalise.kernel.lifecycle.CompositeActivityDef
-import org.cristalise.kernel.persistency.outcome.Outcome;
 import org.cristalise.kernel.persistency.outcome.Schema
-import org.cristalise.kernel.property.PropertyDescriptionList;
 
 
 /**

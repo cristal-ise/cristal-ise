@@ -26,7 +26,8 @@ import org.cristalise.kernel.common.InvalidDataException
 class Field {
     String name
     String type = 'xs:string'
-
+    String pattern
+    
     String multiplicity = ''
 
     String minOccurs = '1'

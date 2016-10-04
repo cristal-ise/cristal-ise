@@ -12,7 +12,7 @@ XMLStorage.root = /home/kovax/cristal-data/xmlFile/integTest
 ItemServer.name=localhost
 ItemServer.iiop=1505
 ItemServer.Proxy.port=1555
-ItemServer.Console.port=8899
+ItemServer.Console.port=9999
 
 // LDAP Lookup config
 LDAP.GlobalPath=dc=nodomain

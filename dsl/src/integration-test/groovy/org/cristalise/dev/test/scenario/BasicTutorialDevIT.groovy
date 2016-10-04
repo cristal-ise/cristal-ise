@@ -28,7 +28,7 @@ class BasicTutorialDevIT extends KernelScenarioTestBase {
         createNewCompActDesc(compActName, folder)
         editCompActDesc(compActName, folder, elemActName, 0)
 
-        editDescriptionAndCreateItem( 
+        def patientItem = editDescriptionAndCreateItem( 
             createNewDescriptionItem(factoryName, folder),
             PropertyDescriptionBuilder.build {
                 PropertyDesc("Name")

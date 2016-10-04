@@ -85,7 +85,7 @@ class SchemaDelegate {
     private void buildField(xsd, Field f) {
         Logger.msg 1, "SchemaDelegate.buildField() - Field: $f.name"
 
-        xsd.'xs:element'(name: f.name, type: (!f.values && !f.unit ? f.type : ''), 'default': f.defaultVal, minOccurs: f.minOccurs, maxOccurs: f.maxOccurs) {
+        xsd.'xs:element'(name: f.name, type: (!f.values && !f.unit && !f.pattern ? f.type : ''), 'default': f.defaultVal, minOccurs: f.minOccurs, maxOccurs: f.maxOccurs) {
             if(f.unit) {
                 'xs:complexType' {
                     'xs:simpleContent' {
@@ -102,6 +102,9 @@ class SchemaDelegate {
             else if(f.values) {
                 buildRestriction(xsd, f.type, f.values)
             }
+            else if(f.pattern) {
+                buildRestriction(xsd, 'xs:string', f.pattern)
+            }
         }
     }
 
@@ -113,6 +116,16 @@ class SchemaDelegate {
                 values.each {
                     'xs:enumeration'(value: it)
                 }
+            }
+        }
+    }
+
+    private void buildRestriction(xsd, String type, String pattern) {
+        Logger.msg 1, "SchemaDelegate.buildRestriction() - type:$type, pattern: $pattern"
+
+        xsd.'xs:simpleType' {
+            'xs:restriction'(base: type) {
+                'xs:pattern'(value: pattern)
             }
         }
     }

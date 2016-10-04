@@ -8,11 +8,12 @@ import org.cristalise.kernel.process.AbstractMain
 import org.cristalise.kernel.process.Gateway
 import org.cristalise.kernel.utils.Logger
 import org.junit.After
+import org.junit.AfterClass;
 import org.junit.Before
+import org.junit.BeforeClass;
 import org.mvel2.templates.CompiledTemplate
 import org.mvel2.templates.TemplateCompiler
 import org.mvel2.templates.TemplateRuntime
-
 
 
 /**
@@ -53,44 +54,23 @@ class KernelScenarioTestBase extends DevItemDSL {
      * @param config
      * @param connect
      */
-    void init(String config, String connect) {
+    public void init(String config, String connect) {
         String[] args = ['-logLevel', '5', '-config', config, '-connect', connect]
         
         Properties props = AbstractMain.readC2KArgs(args)
         Gateway.init(props)
         
         timeStamp = new Date().format("yyyy-MM-dd_HH-mm-ss_SSS")
+        agent = Gateway.connect("dev", "test")
     }
 
     @Before
-    public void beforClient() {
-        beforeClient('src/integration-test/bin/client.conf', 'src/integration-test/bin/integTest.clc')
-    }
-
-    /**
-     * 
-     * @param config
-     * @param connect
-     */
-    void beforeClient(String config, String connect) {
-        init(config, connect)
-
-        agent = Gateway.connect("dev", "test")
-    }
-    
-    /**
-     * 
-     * @param config
-     * @param connect
-     */
-    void beforeServer(String config, String connect) {
-        init(config, connect)
-        Gateway.connect();
-        Gateway.startServer();
+    public void before() {
+        init('src/integration-test/bin/client.conf', 'src/integration-test/bin/integTest.clc')
     }
 
     @After
-    void after() {
+    public void after() {
         Gateway.close()
     }
 }

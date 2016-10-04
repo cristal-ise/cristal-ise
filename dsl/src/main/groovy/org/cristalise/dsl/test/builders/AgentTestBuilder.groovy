@@ -42,28 +42,43 @@ import org.cristalise.kernel.process.Gateway
 @CompileStatic
 class AgentTestBuilder extends AgentBuilder {
     AgentPath builderAgent
-    AgentPath agent
+
     ImportAgent newAgent
+    AgentPath   newAgentPath
+    AgentProxy  newAgentProxy
 
     JobList jobList = null
 
     public AgentTestBuilder() {}
 
-    public AgentTestBuilder(ImportAgent iAgent) {
-        newAgent = iAgent
+    public AgentTestBuilder(ImportAgent agent) {
+        newAgent = agent
+        initBuilderAgent()
+    }
 
+    public AgentTestBuilder(AgentPath path) {
+        newAgentPath = path
+//        initBuilderAgent()
+        setupJobList()
+    }
+
+    public void initBuilderAgent() {
         builderAgent = new AgentPath(new ItemPath(), "AgentTestBuilder")
         if(!Gateway.getLookupManager().exists(builderAgent)) Gateway.getLookupManager().add(builderAgent)
     }
 
+    public void setupJobList() {
+        if(!newAgentProxy) newAgentProxy = Gateway.proxyManager.getAgentProxy(newAgentPath)
+
+        jobList = (JobList)newAgentProxy.getObject(ClusterStorage.JOB)
+        jobList.activate()
+    }
+
     public static AgentTestBuilder create(Map<String, Object> attrs, Closure cl) {
         def atb = new AgentTestBuilder(AgentBuilder.build(attrs, cl))
-        atb.agent = atb.create(atb.builderAgent, atb.newAgent)
 
-        AgentProxy agentProxy = Gateway.proxyManager.getAgentProxy(atb.agent)
-        
-        atb.jobList = (JobList)agentProxy.getObject(ClusterStorage.JOB)
-        atb.jobList.activate()
+        atb.newAgentPath = atb.create(atb.builderAgent, atb.newAgent)
+        atb.setupJobList()
 
         return atb
     }
@@ -72,13 +87,18 @@ class AgentTestBuilder extends AgentBuilder {
         return new AgentTestBuilder(AgentBuilder.build(attrs, cl))
     }
 
-    def checkJobList(List<Map<String, Object>> expectedJobs) {
-        jobList.dump(8);
+    public void checkJobList(List<Map<String, Object>> expectedJobs) {
+        jobList.dump(0);
+
+        //check if both list are empty or null
+        if(!expectedJobs && !jobList) return 
+
         assert expectedJobs && jobList && jobList.size() == expectedJobs.size()
 
         expectedJobs.each { Map jobMap -> 
             assert jobMap && jobMap.stepName && jobMap.agentRole && jobMap.transitionName
-
+//            assert jobMap && jobMap.stepName && jobMap.agentRole != null && jobMap.transitionName
+            
             assert jobList.values().find {
                 ((Job) it).stepName == jobMap.stepName && 
                 ((Job) it).agentRole == jobMap.agentRole &&
@@ -88,11 +108,14 @@ class AgentTestBuilder extends AgentBuilder {
     }
 
     public String executeJob(ItemPath itemPath, String actName, String transName, Outcome outcome = null) {
-        AgentProxy agentProxy = Gateway.getProxyManager().getAgentProxy(agent)
-        ItemProxy  itemProxy  = Gateway.getProxyManager().getProxy(itemPath)
+        return executeJob(Gateway.getProxyManager().getProxy(itemPath), actName, transName, outcome)
+    }
 
-        Job j = itemProxy.getJobByTransitionName(actName, transName, agent)
-        if (outcome != null) j.setOutcome(outcome)
-        return agentProxy.execute(j)
+    public String executeJob(ItemProxy itemProxy, String actName, String transName, Outcome outcome = null) {
+        if(!newAgentProxy) newAgentProxy = Gateway.getProxyManager().getAgentProxy(newAgentPath)
+
+        Job j = itemProxy.getJobByTransitionName(actName, transName, newAgentPath)
+        if (outcome) j.setOutcome(outcome)
+        return newAgentProxy.execute(j)
     }
 }

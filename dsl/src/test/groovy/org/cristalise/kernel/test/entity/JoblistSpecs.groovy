@@ -18,7 +18,7 @@
  *
  * http://www.fsf.org/licensing/licenses/lgpl.html
  */
-package org.cristalise.kernel.test
+package org.cristalise.kernel.test.entity
 
 import org.cristalise.dsl.entity.RoleBuilder;
 import org.cristalise.dsl.lifecycle.stateMachine.StateMachineBuilder
@@ -71,7 +71,7 @@ class JoblistSpecs extends Specification implements CristalTestSetup {
         pollingWait.eventually { dummyAgentBuilder.jobList }
 
         dummyAgentBuilder.checkJobList([[stepName: "EA1", agentRole: "toto", transitionName: "Start"],
-                                 [stepName: "EA1", agentRole: "toto", transitionName: "Done" ]])
+                                        [stepName: "EA1", agentRole: "toto", transitionName: "Done" ]])
 
         when: "the Job associated with the Start Transition is executed"
         dummyAgentBuilder.executeJob(dummyItem.item, "EA1", "Start")
@@ -133,7 +133,7 @@ class JoblistSpecs extends Specification implements CristalTestSetup {
         timeoutAgentBuilder.checkJobList([[stepName: "EA1", agentRole: "Timeout", transitionName: "Timeout"]])
 
         when:
-        dummyAgentBuilder.executeJob(dummyItemBuilder.item, 'EA1', 'Start')
+        dummyAgentBuilder.executeJob(dummyItemBuilder.itemDomPath, 'EA1', 'Start')
 
         then:
         pollingWait.eventually { timeoutAgentBuilder.jobList && timeoutAgentBuilder.jobList.size() == 1 }

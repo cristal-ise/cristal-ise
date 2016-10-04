@@ -87,9 +87,9 @@ class StateMachineBuilderSpecs extends Specification implements CristalTestSetup
 
     def 'Build Default StateMachine and crosscheck it with Kernel version'() {
         when:
-        //StateMachine defaultSM = (StateMachine)Gateway.getMarshaller().unmarshall(Gateway.getResource().getTextResource(null, "boot/SM/Default.xml"));
+        StateMachine defaultSM = (StateMachine)Gateway.getMarshaller().unmarshall(Gateway.getResource().getTextResource(null, "boot/SM/Default.xml"));
 
-        def builder = StateMachineBuilder.build("testing", "SkipStateMachine", 0) {
+        def builder = StateMachineBuilder.build("testing", "Default", 0) {
             transition("Done", [origin: "Waiting", target: "Finished"]) {
                 outcome(name:"\${SchemaType}", version:"\${SchemaVersion}")
                 script( name:"\${ScriptName}", version:"\${ScriptVersion}")
@@ -122,7 +122,7 @@ class StateMachineBuilderSpecs extends Specification implements CristalTestSetup
 
     def 'Build Trigger StateMachine'() {
         when:
-        def builder = StateMachineBuilder.build("testing", "SkipStateMachine", 0) {
+        def builder = StateMachineBuilder.build("testing", "TriggerStateMachine", 0) {
             transition("Done", [origin: "Waiting", target: "Finished"]) {
                 outcome(name:"\${SchemaType}", version:"\${SchemaVersion}")
                 script( name:"\${ScriptName}", version:"\${ScriptVersion}")
@@ -131,28 +131,37 @@ class StateMachineBuilderSpecs extends Specification implements CristalTestSetup
                 property reservation: "set"
             }
             transition("Complete", [origin: "Started", target: "Finished"]) {
-                property(reservation: "clear")
                 outcome(name: "\${SchemaType}", version:"\${SchemaVersion}")
                 script( name: "\${ScriptName}", version:"\${ScriptVersion}")
-            }
-            transition("Timeout", [origin: "Started", target: "Started"]) {
-                outcome(name: "\${TimeoutSchemaType}", version:"\${TimeoutSchemaVersion}")
-                script( name: "\${TimeoutScriptName}", version:"\${TimeoutScriptVersion}")
-                property(roleOverride: "TriggerAdmin")
-                property(enabledProp: "TimeoutOn")
+                property(reservation: "clear")
             }
             transition("Warning", [origin: "Started", target: "Started"]) {
                 outcome(name: "\${WarningSchemaType}", version:"\${WarningSchemaVersion}")
                 script( name: "\${WarningScriptName}", version:"\${WarningScriptVersion}")
                 property(roleOverride: "TriggerAdmin")
                 property(enabledProp: "WarningOn")
+                property(reservation: "preserve")
+            }
+            transition("Timeout", [origin: "Started", target: "Paused"]) {
+                outcome(name: "\${TimeoutSchemaType}", version:"\${TimeoutSchemaVersion}")
+                script( name: "\${TimeoutScriptName}", version:"\${TimeoutScriptVersion}")
+                property(roleOverride: "TriggerAdmin")
+                property(enabledProp: "TimeoutOn")
+            }
+            transition("Resolve", [origin: "Paused", target: "Started"]) {
+                property(roleOverride: "Admin")
+                property(reservation: "clear")
+            }
+            transition("Interrupt", [origin: "Paused", target: "Finished"]) {
+                property(roleOverride: "Admin")
+                property(reservation: "clear")
             }
             transition("Suspend", [origin: "Started", target: "Suspended"]) {
                 outcome(name: "Errors", version: "0")
             }
             transition("Resume", [origin: "Suspended", target: "Started"]) {
-                property(reservation: "preserve")
                 property(roleOverride: "Admin")
+                property(reservation: "preserve")
             }
             transition("Proceed", [origin: "Finished", target: "Finished"])
  
