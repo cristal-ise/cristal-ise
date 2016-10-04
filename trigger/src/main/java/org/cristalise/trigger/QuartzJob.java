@@ -18,21 +18,24 @@
  *
  * http://www.fsf.org/licensing/licenses/lgpl.html
  */
-
 package org.cristalise.trigger;
 
-import lombok.Setter;
+import javax.xml.xpath.XPathExpressionException;
 
+import org.cristalise.kernel.common.InvalidDataException;
+import org.cristalise.kernel.common.ObjectNotFoundException;
 import org.cristalise.kernel.entity.agent.Job;
 import org.cristalise.kernel.entity.proxy.AgentProxy;
+import org.cristalise.kernel.persistency.outcome.Outcome;
 import org.cristalise.kernel.utils.Logger;
-import org.quartz.JobDataMap;
 import org.quartz.JobExecutionContext;
 import org.quartz.JobExecutionException;
 import org.quartz.JobKey;
 
+import lombok.Setter;
+
 /**
- *
+ * Default implementation of Job handling
  */
 @Setter
 public class QuartzJob implements org.quartz.Job {
@@ -40,20 +43,20 @@ public class QuartzJob implements org.quartz.Job {
     private Job cristalJob;
     private AgentProxy cristalAgent;
 
+    /**
+     * 
+     */
     @Override
     public void execute(JobExecutionContext context) throws JobExecutionException {
         JobKey key = context.getJobDetail().getKey();
 
+        Logger.msg(5, "==================================================================");
         Logger.msg(5, "QuartzJob.execute() - JobKey:"+key);
 
-        JobDataMap jdm = context.getMergedJobDataMap();
-
-        /*
-        cristalJob   = (Job)jdm.get("cristalJob");
-        cristalAgent = (AgentProxy)jdm.get("cristalAgent");
-        */
+        context.getMergedJobDataMap();
 
         try {
+            setOutcome();
             cristalAgent.execute(cristalJob);
         }
         catch (Exception ex) {
@@ -61,5 +64,26 @@ public class QuartzJob implements org.quartz.Job {
             //TODO: Execute activity in the Workflow of the Agent to store this error and probably remove Job from list
             throw new JobExecutionException(ex);
         }
+    }
+
+    /**
+     * 
+     * @param key
+     * @throws InvalidDataException
+     * @throws ObjectNotFoundException
+     * @throws XPathExpressionException
+     */
+    public void setOutcome() throws InvalidDataException, ObjectNotFoundException, XPathExpressionException {
+        Outcome o = cristalJob.getOutcome();
+        String transName = cristalJob.getTransition().getName();
+
+        if(transName.equals("Timeout")) {
+            o.setFieldByXPath("/Timeout/Actions", "Executing key:"+cristalJob.getId());
+        }
+        else if(transName.equals("Warning")) {
+            o.setFieldByXPath("/Warning/Actions", "Executing key:"+cristalJob.getId());
+        }
+
+        cristalJob.setOutcome(o);
     }
 }

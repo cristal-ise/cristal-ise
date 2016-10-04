@@ -52,13 +52,23 @@ import org.quartz.SchedulerException;
 import org.quartz.SchedulerFactory;
 import org.quartz.SimpleTrigger;
 
+/**
+ * 
+ */
 public class TriggerProcess extends StandardClient implements ProxyObserver<Job> {
 
     private final ArrayList<String> transitions = new ArrayList<String>();
 
     private Scheduler quartzScheduler = null;
 
-
+    /**
+     * 
+     * @throws MarshalException
+     * @throws ValidationException
+     * @throws ObjectNotFoundException
+     * @throws IOException
+     * @throws MappingException
+     */
     public TriggerProcess() throws MarshalException, ValidationException, ObjectNotFoundException, IOException, MappingException
     {
         String stateMachineNS   = Gateway.getProperties().getString("Trigger.StateMachineNS", "trigger");
@@ -79,7 +89,13 @@ public class TriggerProcess extends StandardClient implements ProxyObserver<Job>
         Logger.msg(5, "TriggerProcess() - StateMachine:" + sm.getName() + " transitions:" + Arrays.toString(transNames));
     }
 
-
+    /**
+     * 
+     * @throws SchedulerException
+     * @throws AccessRightsException
+     * @throws ObjectNotFoundException
+     * @throws PersistencyException
+     */
     public void initialise() throws SchedulerException, AccessRightsException, ObjectNotFoundException, PersistencyException {
         SchedulerFactory schedFact = new org.quartz.impl.StdSchedulerFactory();
 
@@ -91,7 +107,11 @@ public class TriggerProcess extends StandardClient implements ProxyObserver<Job>
         //Subscribe to changes and fetch exiting Jobs from JobList of Agent
         agent.subscribe(new MemberSubscription<Job>(this, ClusterStorage.JOB, true));
     }
-    
+
+    /**
+     * 
+     * @throws SchedulerException
+     */
     public void shutdownScheduler() throws SchedulerException {
         quartzScheduler.shutdown();
     }
@@ -123,10 +143,10 @@ public class TriggerProcess extends StandardClient implements ProxyObserver<Job>
     protected void buildTriggersAndScehduleJob(Job currentJob, String jobID) {
         String transName = currentJob.getTransition().getName();
 
-        Logger.msg(7, "TriggerProcess.buildTriggersAndScehduleJob() - job:"+jobID+" trans:"+transName);
-
         Integer duration = (Integer)currentJob.getActProp(transName+"Duration");
         String  unit     = (String) currentJob.getActProp(transName+"Unit");
+
+        Logger.msg(5, "TriggerProcess.buildTriggersAndScehduleJob() - Scheduling job:"+jobID+" trans:"+transName+" Duration:"+duration+"["+unit+"]");
 
         try {
             SimpleTrigger trigger = (SimpleTrigger) newTrigger()
@@ -139,7 +159,7 @@ public class TriggerProcess extends StandardClient implements ProxyObserver<Job>
 
             quartzScheduler.scheduleJob(jobDetail, trigger);
 
-            Logger.msg(7,"TriggerProcess.buildTriggersAndScehduleJob() - Scheduled job:"+jobID+" duration:"+duration+" unit:"+unit);
+            Logger.msg(7, "TriggerProcess.buildTriggersAndScehduleJob() - Scheduled job:"+jobID+" trans:"+transName+" Duration:"+duration+"["+unit+"]");
         }
         catch (Exception ex) {
             Logger.error(ex);
@@ -164,17 +184,20 @@ public class TriggerProcess extends StandardClient implements ProxyObserver<Job>
                     buildTriggersAndScehduleJob(currentJob, jobID);
                 }
                 else {
-                    Logger.msg(7, "TriggerProcess.add() - Trigger DISABLED job:"+jobID+" trans:"+transName); 
-                    //TODO: remove Job from persistent list
+                    Logger.msg(7, "TriggerProcess.add() - disabled trans:"+transName+" job:"+jobID); 
+                    //TODO: Execute activity in the Workflow of the Agent to store this error and remove Job from list
                 }
             }
             else {
-                Logger.warning("TriggerProcess.add() - Cannot handle job:"+jobID+" trans:"+transName+" is UNKNOWN");
+                Logger.warning("TriggerProcess.add() - UKNOWN trans:"+transName+" job:"+jobID); 
                 //TODO: Execute activity in the Workflow of the Agent to store this error and probably remove Job from list
             }
         }
     }
 
+    /**
+     * Job control messages, could be errors as well
+     */
     @Override
     public void control(String control, String msg) {
         if (MemberSubscription.ERROR.equals(control)) { 
@@ -195,7 +218,7 @@ public class TriggerProcess extends StandardClient implements ProxyObserver<Job>
             }
             catch (Exception e) {
                 Logger.error(e);
-                //TODO: Execute activity in the Workflow of the Agent to store this error and probably remove Job from list
+                //TODO: Execute activity in the Workflow of the Agent to report this error
             }
         }
     }
