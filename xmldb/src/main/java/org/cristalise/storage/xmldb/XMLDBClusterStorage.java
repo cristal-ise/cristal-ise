@@ -40,239 +40,247 @@ import org.xmldb.api.base.Resource;
 import org.xmldb.api.base.XMLDBException;
 import org.xmldb.api.modules.CollectionManagementService;
 
-
+/**
+ * 
+ */
 public class XMLDBClusterStorage extends ClusterStorage {
 
-	public static final String XMLDB_URI = "XMLDB.URI";
-	public static final String XMLDB_USER = "XMLDB.user";
-	public static final String XMLDB_PASSWORD = "XMLDB.password";
-	public static final String XMLDB_ROOT = "XMLDB.root";
-	protected Database database;
-	protected Collection root;
-	
-	public XMLDBClusterStorage() throws Exception {
+    public static final String XMLDB_URI      = "XMLDB.URI";
+    public static final String XMLDB_USER     = "XMLDB.user";
+    public static final String XMLDB_PASSWORD = "XMLDB.password";
+    public static final String XMLDB_ROOT     = "XMLDB.root";
 
-	}
+    protected Database    database;
+    protected Collection  root;
 
-	protected static Collection verifyCollection(Collection parent, String name, boolean create) throws PersistencyException {
-		Collection coll;
-		try {
-			coll = parent.getChildCollection(name);
-			if (coll == null)
-				throw new XMLDBException(ErrorCodes.NO_SUCH_COLLECTION);
-		} catch (XMLDBException ex) {
-			if (ex.errorCode == ErrorCodes.NO_SUCH_COLLECTION) {
-				if (create) {
-					try {
-						CollectionManagementService collManager = (CollectionManagementService)parent.getService("CollectionManagementService", "1.0");
-						coll = collManager.createCollection(name);
-					} catch (Exception ex2) {
-						throw new PersistencyException("Could not create XMLDB collection for item "+name);
-					}
-				}
-				else // not found
-					return null;
-			}
-			else {
-				Logger.error(ex);
-				throw new PersistencyException("Error loading XMLDB collection for item "+name);
-			}
-		}
-		return coll;
-	}
+    public XMLDBClusterStorage() throws Exception {}
 
-	/* (non-Javadoc)
-	 * @see org.cristalise.kernel.persistency.ClusterStorage#open()
-	 */
-	@Override
-	public void open(Authenticator auth) throws PersistencyException {
-		
-		final String driver = "org.exist.xmldb.DatabaseImpl";
-		// Uncomment the following for integrated existdb
-		//System.setProperty("exist.initdb", "true");
-		//System.setProperty("exist.home", Gateway.getProperty("XMLDB.home"));
-		try {
-			Class<?> cl = Class.forName(driver);
-			database = (Database) cl.newInstance();
-			database.setProperty("create-database", "true");
-			DatabaseManager.registerDatabase(database);
-			Collection db = DatabaseManager.getCollection(Gateway.getProperties().getString(XMLDB_URI), 
-					Gateway.getProperties().getString(XMLDB_USER), Gateway.getProperties().getString(XMLDB_PASSWORD));
-			String rootColl = Gateway.getProperties().getString(XMLDB_ROOT);
-			if (rootColl != null && rootColl.length()>0) {
-				root = verifyCollection(db, rootColl, true);
-				db.close();
-			}
-			else
-				root = db;
-			
-		} catch (Exception ex) {
-			Logger.error(ex);
-			throw new PersistencyException("Error initializing XMLDB");
-		}
-		
-		if (root == null)
-			throw new PersistencyException("Root collection is null. Problem connecting to XMLDB.");	
-	}
+    /**
+     * Retrieves the collection from the root created for each Item (UUID)
+     * 
+     * @param itemPath the Path representing the Item
+     * @param create whether to create the missing collection or not
+     * @return returns the actual Collection or null if the collection was not found or created
+     * @throws PersistencyException
+     */
+    protected Collection getItemCollection(ItemPath itemPath, boolean create) throws PersistencyException {
+        return verifyCollection(root, itemPath.getUUID().toString(), create);
+    }
 
-	/* (non-Javadoc)
-	 * @see org.cristalise.kernel.persistency.ClusterStorage#close()
-	 */
-	@Override
-	public void close() throws PersistencyException {
-		try {
-			root.close();
-			//DatabaseInstanceManager manager = (DatabaseInstanceManager)db.getService("DatabaseInstanceManager", "1.0");
-			//manager.shutdown();
-		} catch (XMLDBException e) {
-			Logger.error(e);
-			throw new PersistencyException("Error shutting down eXist XMLDB");
-		}
-
-
-	}
-
-	/* (non-Javadoc)
-	 * @see org.cristalise.kernel.persistency.ClusterStorage#queryClusterSupport(java.lang.String)
-	 */
-	@Override
-	public short queryClusterSupport(String clusterType) {
-		return READWRITE;
-	}
-
-	/* (non-Javadoc)
-	 * @see org.cristalise.kernel.persistency.ClusterStorage#getName()
-	 */
-	@Override
-	public String getName() {
-		return "XMLDB";
-	}
-
-	/* (non-Javadoc)
-	 * @see org.cristalise.kernel.persistency.ClusterStorage#getId()
-	 */
-	@Override
-	public String getId() {
-		return "XMLDB";
-	}
-
-	/* (non-Javadoc)
-	 * @see org.cristalise.kernel.persistency.ClusterStorage#get(java.lang.Integer, java.lang.String)
-	 */
-	@Override
-	public C2KLocalObject get(ItemPath itemPath, String path)
-			throws PersistencyException {
-		String type = ClusterStorage.getClusterType(path);
-		// Get item collection
-		String subPath = itemPath.getUUID().toString();
-		Collection itemColl = verifyCollection(root, subPath, false);
-		if (itemColl == null) return null; // doesn't exist
-		
-		try {
-			String resourceName = path.replace('/', '.');
-			Resource resource = itemColl.getResource(resourceName);
-			if (resource != null) {
-				String objString = (String)resource.getContent();
-				itemColl.close();
-				if (type.equals(OUTCOME))
-					return new Outcome(path, objString);
-				else {
-					C2KLocalObject obj = (C2KLocalObject)Gateway.getMarshaller().unmarshall(objString);
-					return obj;
-				}
-			}
-			else
-				return null;
-		} catch (Exception e) {
-			Logger.error(e);
-			throw new PersistencyException("XMLDB error");
-		}
-	}
-
-	/* (non-Javadoc)
-	 * @see org.cristalise.kernel.persistency.ClusterStorage#put(java.lang.Integer, org.cristalise.kernel.entity.C2KLocalObject)
-	 */
-	@Override
-	public void put(ItemPath itemPath, C2KLocalObject obj)
-			throws PersistencyException {
-		
-		String resName = getPath(obj);
-		String subPath = itemPath.getUUID().toString();
-		Collection itemColl = verifyCollection(root, subPath, true);
-		
-		try {
-			resName = resName.replace('/', '.');
-			String objString = Gateway.getMarshaller().marshall(obj);
-			Resource res = itemColl.getResource(resName);
-			if (res == null)
-				res = itemColl.createResource(resName, "XMLResource");
-			res.setContent(objString);
-			itemColl.storeResource(res);
-			itemColl.close();
-		} catch (Exception e) {
-			Logger.error(e);
-			throw new PersistencyException("XMLDB error");
-		}
-	}
-
-	/* (non-Javadoc)
-	 * @see org.cristalise.kernel.persistency.ClusterStorage#delete(java.lang.Integer, java.lang.String)
-	 */
-	@Override
-	public void delete(ItemPath itemPath, String path)
-			throws PersistencyException {
-		String subPath = itemPath.getUUID().toString();
-		Collection itemColl = verifyCollection(root, subPath, false);
-		if (itemColl == null) return;
-
-		
-		try {
-			String resource = path.replace('/', '.');
-			Resource res = itemColl.getResource(resource);
-			if (res != null) itemColl.removeResource(res);
-			itemColl.close(); itemColl.close();
-        } catch (Exception e) {
-            Logger.error(e);
-            throw new PersistencyException("XMLClusterStorage.delete() - Could not delete "+path+" to "+itemPath);
+    /**
+     * Retrieves the collection from the given parent collection
+     * 
+     * @param parent the parent collection
+     * @param name name of the child collection
+     * @param create whether to create the missing collection or not
+     * @return returns the actual Collection or null if the collection was not found or created
+     * @throws PersistencyException
+     */
+    protected static Collection verifyCollection(Collection parent, String name, boolean create) throws PersistencyException {
+        Collection coll;
+        try {
+            coll = parent.getChildCollection(name);
+            if (coll == null) throw new XMLDBException(ErrorCodes.NO_SUCH_COLLECTION);
         }
-	}
+        catch (XMLDBException ex) {
+            if (ex.errorCode == ErrorCodes.NO_SUCH_COLLECTION) {
+                if (create) {
+                    try {
+                        CollectionManagementService collManager = 
+                                (CollectionManagementService) parent.getService("CollectionManagementService", "1.0");
+                        coll = collManager.createCollection(name);
+                    }
+                    catch (Exception ex2) {
+                        throw new PersistencyException("Could not create XMLDB collection for item " + name);
+                    }
+                }
+                else // not found
+                    return null;
+            }
+            else {
+                Logger.error(ex);
+                throw new PersistencyException("Error loading XMLDB collection for item " + name);
+            }
+        }
+        return coll;
+    }
 
-	/* (non-Javadoc)
-	 * @see org.cristalise.kernel.persistency.ClusterStorage#getClusterContents(java.lang.Integer, java.lang.String)
-	 */
-	@Override
-	public String[] getClusterContents(ItemPath itemPath, String path)
-			throws PersistencyException {
-		String subPath = itemPath.getUUID().toString();
-		Collection coll = verifyCollection(root, subPath, false);
-		if (coll == null) return new String[0];
-		ArrayList<String> contents = new ArrayList<String>();
-		
-		// Find prefix for our path level
-		StringBuffer resPrefix = new StringBuffer();
-		String[] pathComps = path.split("/");
-		if (pathComps.length > 0)
-			for (int i = 0; i < pathComps.length; i++) {
-				if (pathComps[i].length()>0) resPrefix.append(pathComps[i]).append(".");
-			}
-		// Look at each entry for matches. Trim off the ends.
-		try {
-			for (String res: coll.listResources()) {
-				if (res.startsWith(resPrefix.toString())) {
-					String resName = URLDecoder.decode(res.substring(resPrefix.length()), "UTF-8");
-					if (resName.indexOf('.')>-1)
-						resName = resName.substring(0, resName.indexOf('.'));
-					if (!contents.contains(resName)) contents.add(resName);
-				}
-			}
-		} catch (XMLDBException e) {
-			Logger.error(e);
-			throw new PersistencyException("Error listing collection resources for item "+itemPath);
-		} catch (UnsupportedEncodingException e) {
-			Logger.error(e);
-			throw new PersistencyException("Error listing decoding resource name for item "+itemPath);
-		}
-		return contents.toArray(new String[contents.size()]);
-	}
+    @Override
+    public void open(Authenticator auth) throws PersistencyException {
+        final String driver = "org.exist.xmldb.DatabaseImpl";
+        // Uncomment the following for integrated existdb
+        // System.setProperty("exist.initdb", "true");
+        // System.setProperty("exist.home", Gateway.getProperty("XMLDB.home"));
+        try {
+            Class<?> cl = Class.forName(driver);
+            database = (Database) cl.newInstance();
+            database.setProperty("create-database", "true");
+            DatabaseManager.registerDatabase(database);
 
+            Collection db = DatabaseManager.getCollection(
+                    Gateway.getProperties().getString(XMLDB_URI),
+                    Gateway.getProperties().getString(XMLDB_USER),
+                    Gateway.getProperties().getString(XMLDB_PASSWORD));
+
+            String rootColl = Gateway.getProperties().getString(XMLDB_ROOT);
+
+            if (rootColl != null && rootColl.length() > 0) {
+                root = verifyCollection(db, rootColl, true);
+                db.close();
+            }
+            else root = db;
+        }
+        catch (Exception ex) {
+            Logger.error(ex);
+            throw new PersistencyException("Error initializing XMLDB");
+        }
+
+        if (root == null) throw new PersistencyException("Root collection is null. Problem connecting to XMLDB.");
+    }
+
+    @Override
+    public void close() throws PersistencyException {
+        try {
+            root.close();
+            //DatabaseInstanceManager manager = (DatabaseInstanceManager)db.getService("DatabaseInstanceManager","1.0");
+            //manager.shutdown();
+        }
+        catch (XMLDBException e) {
+            Logger.error(e);
+            throw new PersistencyException("Error shutting down eXist XMLDB");
+        }
+    }
+
+    @Override
+    public short queryClusterSupport(String clusterType) {
+        return READWRITE;
+    }
+
+    @Override
+    public String getName() {
+        return "XMLDB";
+    }
+
+    @Override
+    public String getId() {
+        return "XMLDB";
+    }
+
+    @Override
+    public String adHocQuery(String query) throws PersistencyException {
+        throw new PersistencyException("UNIMPLEMENTED funnction");
+    }
+
+    @Override
+    public C2KLocalObject get(ItemPath itemPath, String path) throws PersistencyException {
+        String type = ClusterStorage.getClusterType(path);
+        // Get item collection
+        Collection itemColl = getItemCollection(itemPath, false);
+        if (itemColl == null) return null; // doesn't exist
+
+        try {
+            String resourceName = path.replace('/', '.');
+            Resource resource = itemColl.getResource(resourceName);
+            if (resource != null) {
+                String objString = (String) resource.getContent();
+                itemColl.close();
+                if (type.equals(OUTCOME)) return new Outcome(path, objString);
+                else {
+                    C2KLocalObject obj = (C2KLocalObject) Gateway.getMarshaller().unmarshall(objString);
+                    return obj;
+                }
+            }
+            else return null;
+        }
+        catch (Exception e) {
+            Logger.error(e);
+            throw new PersistencyException("XMLDB error");
+        }
+    }
+
+    @Override
+    public void put(ItemPath itemPath, C2KLocalObject obj) throws PersistencyException {
+        String resName = getPath(obj);
+        Collection itemColl = getItemCollection(itemPath, true);
+
+        try {
+            resName = resName.replace('/', '.');
+            String objString = Gateway.getMarshaller().marshall(obj);
+            Resource res = itemColl.getResource(resName);
+            if (res == null) res = itemColl.createResource(resName, "XMLResource");
+            res.setContent(objString);
+            itemColl.storeResource(res);
+            itemColl.close();
+        }
+        catch (Exception e) {
+            Logger.error(e);
+            throw new PersistencyException("XMLDB error");
+        }
+    }
+
+    @Override
+    public void delete(ItemPath itemPath, String path) throws PersistencyException {
+        Collection itemColl = getItemCollection(itemPath, false);
+        if (itemColl == null) return;
+
+        try {
+            Resource res = itemColl.getResource(path.replace('/', '.'));
+            if (res != null) itemColl.removeResource(res);
+            itemColl.close();
+        }
+        catch (Exception e) {
+            Logger.error(e);
+            throw new PersistencyException("XMLClusterStorage.delete() - Could not delete " + path + " to " + itemPath);
+        }
+    }
+
+    @Override
+    public String[] getClusterContents(ItemPath itemPath, String path) throws PersistencyException {
+        Collection itemCollection = getItemCollection(itemPath, false);
+        if (itemCollection == null) return new String[0];
+
+        ArrayList<String> contents = new ArrayList<String>();
+
+        // Find prefix for our path level
+        StringBuffer searchPrefix = new StringBuffer();
+        String[] pathComps = path.split("/");
+
+        if (pathComps.length > 0) {
+            for (int i = 0; i < pathComps.length; i++) {
+                if (pathComps[i].length() > 0) searchPrefix.append(pathComps[i]).append(".");
+            }
+        }
+
+        Logger.msg(5,"XMLDBClusterStorage.getClusterContents() - path:"+path+" converted to:"+searchPrefix);
+
+        // Look at each entry for matches. Trim off the ends.
+        try {
+            for (String dbResource : itemCollection.listResources()) {
+                Logger.msg(8,"XMLDBClusterStorage.getClusterContents() - dbResource:"+dbResource);
+
+                if (dbResource.startsWith(searchPrefix.toString())) {
+                    //Get string which is after the searchPerfix
+                    String contentName = URLDecoder.decode(dbResource.substring(searchPrefix.length()), "UTF-8");
+
+                    Logger.msg(8,"XMLDBClusterStorage.getClusterContents() - contentName:"+contentName);
+
+                    //Only add the name of the next section (sections are separated by '.')
+                    if (contentName.contains(".")) contentName = contentName.substring(0, contentName.indexOf('.'));
+
+                    //Do not add duplicates
+                    if (!contents.contains(contentName)) contents.add(contentName);
+                }
+            }
+        }
+        catch (XMLDBException e) {
+            Logger.error(e);
+            throw new PersistencyException("Error listing collection resources for item " + itemPath);
+        }
+        catch (UnsupportedEncodingException e) {
+            Logger.error(e);
+            throw new PersistencyException("Error listing decoding resource name for item " + itemPath);
+        }
+
+        return contents.toArray(new String[contents.size()]);
+    }
 }
