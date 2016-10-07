@@ -4,6 +4,7 @@ import static java.util.concurrent.TimeUnit.*
 import static org.awaitility.Awaitility.await
 
 import org.awaitility.Awaitility
+import org.awaitility.core.ConditionEvaluationLogger;
 import org.cristalise.dsl.test.builders.AgentTestBuilder
 import org.cristalise.kernel.entity.proxy.ItemProxy
 import org.cristalise.kernel.lifecycle.ActivityDef
@@ -28,8 +29,8 @@ class BasicTriggerTimeoutIT extends KernelScenarioTestBase {
     AgentTestBuilder triggerAgent
 
     public void bootstrap(boolean warningOn, boolean timeoutOn) {
-        Awaitility.setDefaultTimeout(5, SECONDS)
-        Awaitility.setDefaultPollInterval(200, MILLISECONDS)
+        Awaitility.setDefaultTimeout(10, SECONDS)
+        Awaitility.setDefaultPollInterval(500, MILLISECONDS)
         Awaitility.setDefaultPollDelay(200, MILLISECONDS)
 
         warningSchema = Schema("WarningSchema-$timeStamp", folder) {
@@ -87,6 +88,13 @@ class BasicTriggerTimeoutIT extends KernelScenarioTestBase {
         agent.execute(job)
     }
 
+    private void finishActivity() {
+        def job = triggerable.getJobByTransitionName("TriggerTestAct", "Start", agent.path)
+        assert job && job.transition.name == "Complete"
+        job.outcome = job.outcome
+        agent.execute(job)
+    }
+
     @Test
     public void 'Warning Transition is Enabled'() {
         bootstrap(true, false)
@@ -97,21 +105,32 @@ class BasicTriggerTimeoutIT extends KernelScenarioTestBase {
 
         startActivity()
 
-        await("Activity started").until { triggerAgent.jobList.size() == 1 }
+        await("TriggerTestAct started").until { triggerAgent.jobList.size() == 1 }
 
         triggerAgent.checkJobList([[stepName: "TriggerTestAct", agentRole: "TriggerAdmin", transitionName: "Warning"]])
         checkJobs(triggerable, [[stepName: "TriggerTestAct", agentRole: "Admin", transitionName: "Complete"],
                                 [stepName: "TriggerTestAct", agentRole: "Admin", transitionName: "Suspend" ],
                                 [stepName: "TriggerTestAct", agentRole: "Admin", transitionName: "Warning" ]])
 
-        await("Warning trigger fired once" ).pollDelay(2, SECONDS).until { checkOutcomeCount(triggerable, "WarningSchema-$timeStamp", 1) }
-        await("Warning trigger fired twice").pollDelay(2, SECONDS).until { checkOutcomeCount(triggerable, "WarningSchema-$timeStamp", 2) }
+        await("Warning trigger fired first time" ).with()
+            .conditionEvaluationListener(new ConditionEvaluationLogger())
+            .pollDelay(2, SECONDS)
+            .until { triggerable.getContents("Outcome/WarningSchema-$timeStamp/0").length >= 1 }
+
+        await("Warning trigger fired second time" ).with()
+            .conditionEvaluationListener(new ConditionEvaluationLogger())
+            .pollDelay(2, SECONDS)
+            .until { triggerable.getContents("Outcome/WarningSchema-$timeStamp/0").length >= 2 }
 
         triggerAgent.checkJobList([[stepName: "TriggerTestAct", agentRole: "TriggerAdmin", transitionName: "Warning"]])
         checkJobs(triggerable, [[stepName: "TriggerTestAct", agentRole: "Admin", transitionName: "Complete"],
                                 [stepName: "TriggerTestAct", agentRole: "Admin", transitionName: "Suspend" ],
                                 [stepName: "TriggerTestAct", agentRole: "Admin", transitionName: "Warning" ]])
         
+        finishActivity()
+
+        triggerAgent.checkJobList([])
+        checkJobs(triggerable, [])
     }
 
     @Ignore("not ready yet") @Test

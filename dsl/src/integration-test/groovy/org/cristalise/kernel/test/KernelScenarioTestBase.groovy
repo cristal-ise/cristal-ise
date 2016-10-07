@@ -49,6 +49,10 @@ class KernelScenarioTestBase extends DevItemDSL {
         return (String) TemplateRuntime.execute(expr, vars);
     }
 
+    public static String getNowString() {
+        return new Date().format("yyyy-MM-dd_HH-mm-ss_SSS")
+    }
+
     /**
      * 
      * @param config
@@ -60,7 +64,7 @@ class KernelScenarioTestBase extends DevItemDSL {
         Properties props = AbstractMain.readC2KArgs(args)
         Gateway.init(props)
         
-        timeStamp = new Date().format("yyyy-MM-dd_HH-mm-ss_SSS")
+        timeStamp = getNowString()
         agent = Gateway.connect("dev", "test")
     }
 

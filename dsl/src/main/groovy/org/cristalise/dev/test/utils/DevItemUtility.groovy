@@ -57,9 +57,9 @@ class DevItemUtility {
     public String descItemFactoryName     = "/domain/desc/dev/DescriptionFactory"
     public String moduleFactoryName       = "/domain/desc/dev/ModuleFactory"
 
-    public boolean checkOutcomeCount(ItemProxy proxy, String schemaName, int numberOfInstances) {
-        return (proxy.getContents("Outcome") as List<String>).count { it.contains(schemaName) } == numberOfInstances
-    }
+//    public boolean checkOutcomeCount(ItemProxy proxy, String schemaName, int numberOfInstances) {
+//        return proxy.getContents("Outcome/$schemaName").length == numberOfInstances
+//    }
 
     /**
      * 
