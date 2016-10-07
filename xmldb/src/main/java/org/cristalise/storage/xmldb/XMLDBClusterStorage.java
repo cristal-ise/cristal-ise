@@ -32,11 +32,16 @@ import org.cristalise.kernel.persistency.outcome.Outcome;
 import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.process.auth.Authenticator;
 import org.cristalise.kernel.utils.Logger;
+import org.exist.xmldb.EXistResource;
+import org.exist.xmldb.XQueryService;
 import org.xmldb.api.DatabaseManager;
 import org.xmldb.api.base.Collection;
+import org.xmldb.api.base.CompiledExpression;
 import org.xmldb.api.base.Database;
 import org.xmldb.api.base.ErrorCodes;
 import org.xmldb.api.base.Resource;
+import org.xmldb.api.base.ResourceIterator;
+import org.xmldb.api.base.ResourceSet;
 import org.xmldb.api.base.XMLDBException;
 import org.xmldb.api.modules.CollectionManagementService;
 
@@ -168,7 +173,32 @@ public class XMLDBClusterStorage extends ClusterStorage {
 
     @Override
     public String adHocQuery(String query) throws PersistencyException {
-        throw new PersistencyException("UNIMPLEMENTED funnction");
+        try {
+            XQueryService xqs = (XQueryService) root.getService("XQueryService", "1.0");
+            xqs.setProperty("indent", "yes");
+
+            CompiledExpression compiled = xqs.compile(query);
+            ResourceIterator resourceIter = xqs.execute(compiled).getIterator();
+            Resource resource = null;
+            StringBuffer resultBuffer = new StringBuffer();
+
+            while(resourceIter.hasMoreResources()) {
+                try {
+                    resource = resourceIter.nextResource();
+                    resultBuffer.append(resource.getContent());
+                }
+                finally {
+                    //dont forget to cleanup resources
+                    try { ((EXistResource)resource).freeResources(); } 
+                    catch(XMLDBException xe) {Logger.error(xe);}
+                }
+            }
+            return resultBuffer.toString();
+        }
+        catch (Exception e) {
+            Logger.error(e);
+            throw new PersistencyException(e.getMessage());
+        }
     }
 
     @Override
@@ -184,11 +214,9 @@ public class XMLDBClusterStorage extends ClusterStorage {
             if (resource != null) {
                 String objString = (String) resource.getContent();
                 itemColl.close();
+
                 if (type.equals(OUTCOME)) return new Outcome(path, objString);
-                else {
-                    C2KLocalObject obj = (C2KLocalObject) Gateway.getMarshaller().unmarshall(objString);
-                    return obj;
-                }
+                else                      return (C2KLocalObject) Gateway.getMarshaller().unmarshall(objString);
             }
             else return null;
         }
