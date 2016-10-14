@@ -41,7 +41,6 @@ import org.xmldb.api.base.Database;
 import org.xmldb.api.base.ErrorCodes;
 import org.xmldb.api.base.Resource;
 import org.xmldb.api.base.ResourceIterator;
-import org.xmldb.api.base.ResourceSet;
 import org.xmldb.api.base.XMLDBException;
 import org.xmldb.api.modules.CollectionManagementService;
 
@@ -162,6 +161,11 @@ public class XMLDBClusterStorage extends ClusterStorage {
     }
 
     @Override
+    public boolean checkQuerySupport(String queryType) {
+        return "existdb:xquery".equals(queryType.toLowerCase());
+    }
+
+    @Override
     public String getName() {
         return "XMLDB";
     }
@@ -172,11 +176,14 @@ public class XMLDBClusterStorage extends ClusterStorage {
     }
 
     @Override
-    public String adHocQuery(String query) throws PersistencyException {
+    public String adHocQuery(String query, String queryType) throws PersistencyException {
+        if(!checkQuerySupport(queryType)) throw new PersistencyException("Unsupported query type:"+queryType);
+
         try {
             XQueryService xqs = (XQueryService) root.getService("XQueryService", "1.0");
             xqs.setProperty("indent", "yes");
 
+            //XML-RPC server automatically caches compiled expressions
             CompiledExpression compiled = xqs.compile(query);
             ResourceIterator resourceIter = xqs.execute(compiled).getIterator();
             Resource resource = null;
