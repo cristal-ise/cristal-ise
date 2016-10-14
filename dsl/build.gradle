@@ -43,7 +43,7 @@ dependencies {
     compile group: 'org.cristalise', name: 'cristalise-dev',               version:'3.3-SNAPSHOT'
     compile group: 'org.cristalise', name: 'cristalise-xpath-outcomeinit', version:'3.3-SNAPSHOT'
     compile group: 'org.cristalise', name: 'cristalise-trigger',           version:'3.3-SNAPSHOT'
-    compile group: 'org.cristalise', name: 'cristalise-gui',               version:'3.2'
+    compile group: 'org.cristalise', name: 'cristalise-gui',               version:'3.3-SNAPSHOT'
     compile group: 'org.cristalise', name: 'cristalise-ldap',              version:'3.2'
 
     compile group: 'commons-lang', name: 'commons-lang', version:'2.6'
