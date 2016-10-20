@@ -22,6 +22,7 @@ package org.cristalise.dsl.lifecycle.stateMachine
 
 import org.cristalise.kernel.lifecycle.instance.stateMachine.Transition
 import org.cristalise.kernel.lifecycle.instance.stateMachine.TransitionOutcome
+import org.cristalise.kernel.lifecycle.instance.stateMachine.TransitionQuery
 import org.cristalise.kernel.lifecycle.instance.stateMachine.TransitionScript
 import org.cristalise.kernel.utils.Logger
 
@@ -65,5 +66,12 @@ class TransitionDelegate {
         assert attrs && attrs.name && attrs.version
 
         trans.script = new TransitionScript(attrs.name, attrs.version)
+    }
+
+    public void query(Map attrs) {
+        Logger.msg 5, "TransitionDelegate.query() - attrs: $attrs"
+        assert attrs && attrs.name && attrs.version
+
+        trans.query = new TransitionQuery(attrs.name, attrs.version)
     }
 }

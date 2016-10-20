@@ -22,16 +22,12 @@ package org.cristalise.kernel.test.utils;
 
 import groovy.xml.MarkupBuilder
 
-import java.io.IOException;
-
 import org.cristalise.kernel.utils.Logger
-import org.custommonkey.xmlunit.DetailedDiff
-import org.custommonkey.xmlunit.XMLUnit
-import org.xml.sax.SAXException;
-import org.xmlunit.builder.DiffBuilder;
-import org.xmlunit.diff.DefaultNodeMatcher;
-import org.xmlunit.diff.Diff;
-import org.xmlunit.diff.ElementSelectors;
+import org.xml.sax.SAXException
+import org.xmlunit.builder.DiffBuilder
+import org.xmlunit.diff.DefaultNodeMatcher
+import org.xmlunit.diff.Diff
+import org.xmlunit.diff.ElementSelectors
 
 
 
@@ -258,7 +254,10 @@ class KernelXMLUtility {
                 .checkForSimilar()
                 .build();
 
-        if(diffIdentical.hasDifferences()) Logger.warning(diffIdentical.toString());
+        if(diffIdentical.hasDifferences()) {
+            Logger.warning(actual);
+            Logger.warning(diffIdentical.toString());
+        }
 
         return !diffIdentical.hasDifferences();
     }

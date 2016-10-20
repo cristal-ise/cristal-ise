@@ -21,10 +21,9 @@
 package org.cristalise.dsl.test.lifecycle.stateMachine
 
 import org.cristalise.dsl.lifecycle.stateMachine.StateMachineBuilder
-import org.cristalise.kernel.lifecycle.instance.stateMachine.StateMachine;
-import org.cristalise.kernel.process.Gateway;
+import org.cristalise.kernel.lifecycle.instance.stateMachine.StateMachine
+import org.cristalise.kernel.process.Gateway
 import org.cristalise.kernel.test.utils.CristalTestSetup
-import org.cristalise.kernel.test.utils.KernelXMLUtility;
 
 import spock.lang.Ignore
 import spock.lang.Specification
@@ -93,6 +92,7 @@ class StateMachineBuilderSpecs extends Specification implements CristalTestSetup
             transition("Done", [origin: "Waiting", target: "Finished"]) {
                 outcome(name:"\${SchemaType}", version:"\${SchemaVersion}")
                 script( name:"\${ScriptName}", version:"\${ScriptVersion}")
+                query(  name:"\${QueryName}",  version:"\${QueryVersion}")
             }
             transition("Start", [origin: "Waiting", target: "Started"]) {
                 property reservation: "set"
@@ -101,6 +101,7 @@ class StateMachineBuilderSpecs extends Specification implements CristalTestSetup
                 property(reservation: "clear")
                 outcome(name: "\${SchemaType}", version:"\${SchemaVersion}")
                 script( name: "\${ScriptName}", version:"\${ScriptVersion}")
+                query(  name:"\${QueryName}",  version:"\${QueryVersion}")
             }
             transition("Suspend", [origin: "Started", target: "Suspended"]) {
                 outcome(name: "Errors", version: "0")
@@ -126,6 +127,7 @@ class StateMachineBuilderSpecs extends Specification implements CristalTestSetup
             transition("Done", [origin: "Waiting", target: "Finished"]) {
                 outcome(name:"\${SchemaType}", version:"\${SchemaVersion}")
                 script( name:"\${ScriptName}", version:"\${ScriptVersion}")
+                query(  name:"\${QueryName}",  version:"\${QueryVersion}")
             }
             transition("Start", [origin: "Waiting", target: "Started"]) {
                 property reservation: "set"
@@ -133,11 +135,13 @@ class StateMachineBuilderSpecs extends Specification implements CristalTestSetup
             transition("Complete", [origin: "Started", target: "Finished"]) {
                 outcome(name: "\${SchemaType}", version:"\${SchemaVersion}")
                 script( name: "\${ScriptName}", version:"\${ScriptVersion}")
+                query(  name: "\${QueryName}",  version:"\${QueryVersion}")
                 property(reservation: "clear")
             }
             transition("Warning", [origin: "Started", target: "Started"]) {
                 outcome(name: "\${WarningSchemaType}", version:"\${WarningSchemaVersion}")
                 script( name: "\${WarningScriptName}", version:"\${WarningScriptVersion}")
+                query(  name: "\${WarningQueryName}",  version:"\${WarningQueryVersion}")
                 property(roleOverride: "TriggerAdmin")
                 property(enabledProp: "WarningOn")
                 property(reservation: "preserve")
@@ -145,6 +149,7 @@ class StateMachineBuilderSpecs extends Specification implements CristalTestSetup
             transition("Timeout", [origin: "Started", target: "Paused"]) {
                 outcome(name: "\${TimeoutSchemaType}", version:"\${TimeoutSchemaVersion}")
                 script( name: "\${TimeoutScriptName}", version:"\${TimeoutScriptVersion}")
+                query(  name: "\${TimeoutQueryName}",  version:"\${TimeoutQueryVersion}")
                 property(roleOverride: "TriggerAdmin")
                 property(enabledProp: "TimeoutOn")
             }
