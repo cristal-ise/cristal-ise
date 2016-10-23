@@ -22,9 +22,11 @@ package org.cristalise.dsl.querying
 
 import groovy.xml.MarkupBuilder
 
+import org.cristalise.kernel.utils.Logger
+
 
 /**
- * Is is a wrapper for MarkapBuilder to make building cristalscript XML simpler
+ * Wrapper for MarkapBuilder to make building cristalscript XML simpler
  */
 class QueryDelegate {
     String module = ""
@@ -42,6 +44,17 @@ class QueryDelegate {
         writer = new StringWriter()
         xml = new MarkupBuilder(writer)
         writer << '<?xml version="1.0" encoding="UTF-8"?>\n'
+    }
+
+    def parameter(Map attrs) {
+        assert attrs.name && attrs.type
+
+        parameter(attrs.name, attrs.type)
+    }
+
+    def parameter(String n, String t) {
+        Logger.msg("QueryDelegate.parameter() name:$n type:$t")
+        xml.parameter('name': n, 'type': t)
     }
 
     def query(Map attrs, Closure cl) {

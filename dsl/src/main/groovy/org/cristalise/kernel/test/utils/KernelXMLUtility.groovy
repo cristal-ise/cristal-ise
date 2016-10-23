@@ -255,24 +255,11 @@ class KernelXMLUtility {
                 .build();
 
         if(diffIdentical.hasDifferences()) {
-            Logger.warning(actual);
+            Logger.warning("Actual:\n $actual");
+            Logger.warning("Expected:\n $expected");
             Logger.warning(diffIdentical.toString());
         }
 
         return !diffIdentical.hasDifferences();
     }
-
-    /*
-    public static boolean compareXML(String expected, String actual) {
-        XMLUnit.setIgnoreWhitespace(true);
-        XMLUnit.setIgnoreAttributeOrder(true);
-        XMLUnit.setIgnoreComments(true);
-
-        DetailedDiff diff = new DetailedDiff( XMLUnit.compareXML( expected, actual) );
-
-        if(!diff.identical()) Logger.error(diff.toString())
-
-        return diff.identical();
-    }
-    */
 }

@@ -42,22 +42,25 @@ class QueryBuilderSpecs extends Specification implements CristalTestSetup {
     def 'Specifying new query'() {
         expect:
         QueryTestBuilder.build("testing", "MyFirstQuery", 0) {
-            query(language: 'existdb:xquery') {
-                '''<TRList>{
-                    for $prop in collection('weighbridge')/Property[@name='Type']
-                    where $prop = "Weighbridge"
-                    return local:queryTransaction(util:collection-name($prop))
-                }</TRList>'''
+            parameter(name: 'uuid', type: 'java.lang.String')
+            query(language: "existdb:xquery") {
+'''<TRList>{
+    for $prop in collection('weighbridge')/Property[@name='Type']
+    where $prop = "Weighbridge"
+    return local:queryTransaction(util:collection-name($prop))
+    }</TRList>'''
             }
         }
-        .compareXML( '''<cristalquery name='MyFirstQuery' version='0'>
-                            <query language="existdb:xquery"><![CDATA[
-                            <TRList>{
-                                for $prop in collection('weighbridge')/Property[@name='Type']
-                                where $prop = "Weighbridge"
-                                return local:queryTransaction(util:collection-name($prop))
-                            }</TRList>
-                            ]]></query>
-                        </cristalquery>''')
+        .compareXML(
+'''<cristalquery name="MyFirstQuery" version="0">
+    <parameter name="uuid" type="java.lang.String"/>
+    <query language="existdb:xquery"><![CDATA[
+    <TRList>{
+    for $prop in collection('weighbridge')/Property[@name='Type']
+    where $prop = "Weighbridge"
+    return local:queryTransaction(util:collection-name($prop))
+    }</TRList>
+    ]]></query>
+</cristalquery>''')
     }
 }

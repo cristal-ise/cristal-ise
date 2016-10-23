@@ -56,8 +56,8 @@ class ScriptDelegate {
 
     def script(String lang, Closure cl) {
         xml.script(language: "$lang", name: "$name") {
-            def string = cl()
-            mkp.yieldUnescaped("<![CDATA[ $string ]]>")
+            def cdata = cl()
+            mkp.yieldUnescaped("<![CDATA[ $cdata ]]>")
         }
     }
 
