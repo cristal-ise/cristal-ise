@@ -24,6 +24,8 @@ import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import java.util.ArrayList;
 
+import javax.xml.transform.OutputKeys;
+
 import org.cristalise.kernel.common.PersistencyException;
 import org.cristalise.kernel.entity.C2KLocalObject;
 import org.cristalise.kernel.lookup.ItemPath;
@@ -31,6 +33,8 @@ import org.cristalise.kernel.persistency.ClusterStorage;
 import org.cristalise.kernel.persistency.outcome.Outcome;
 import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.process.auth.Authenticator;
+import org.cristalise.kernel.querying.Parameter;
+import org.cristalise.kernel.querying.Query;
 import org.cristalise.kernel.utils.Logger;
 import org.exist.xmldb.EXistResource;
 import org.exist.xmldb.XQueryService;
@@ -161,8 +165,8 @@ public class XMLDBClusterStorage extends ClusterStorage {
     }
 
     @Override
-    public boolean checkQuerySupport(String queryType) {
-        return "existdb:xquery".equals(queryType.toLowerCase());
+    public boolean checkQuerySupport(String language) {
+        return "existdb:xquery".equals(language.toLowerCase());
     }
 
     @Override
@@ -176,15 +180,22 @@ public class XMLDBClusterStorage extends ClusterStorage {
     }
 
     @Override
-    public String adHocQuery(String query, String queryType) throws PersistencyException {
-        if(!checkQuerySupport(queryType)) throw new PersistencyException("Unsupported query type:"+queryType);
+    public String executeQuery(Query query) throws PersistencyException {
+        if(!checkQuerySupport(query.getLanguage())) throw new PersistencyException("Unsupported query:"+query.getLanguage());
 
         try {
             XQueryService xqs = (XQueryService) root.getService("XQueryService", "1.0");
-            xqs.setProperty("indent", "yes");
+            xqs.setProperty(OutputKeys.INDENT, "yes");
+            xqs.setProperty(OutputKeys.ENCODING, "UTF-8");
+
+            if(query.hasParameters()) {
+                for(Parameter p: query.getParameters()) {
+                    xqs.declareVariable(p.getName(), p.getValue());
+                }
+            }
 
             //XML-RPC server automatically caches compiled expressions
-            CompiledExpression compiled = xqs.compile(query);
+            CompiledExpression compiled = xqs.compile(query.getQuery());
             ResourceIterator resourceIter = xqs.execute(compiled).getIterator();
             Resource resource = null;
             StringBuffer resultBuffer = new StringBuffer();
