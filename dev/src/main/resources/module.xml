@@ -57,6 +57,10 @@
             <Activity name="EditDefinition" version="0" />
             <Activity name="CreateNewLocalObjectDef" version="0" />
         </Workflow>
+        <Workflow name="QueryFactoryWf" version="0" resource="boot/CA/QueryFactoryWf.xml">
+            <Activity name="EditDefinition" version="0" />
+            <Activity name="CreateNewLocalObjectDef" version="0" />
+        </Workflow>
         <Workflow name="StateMachineFactoryWf" version="0" resource="boot/CA/StateMachineFactoryWf.xml">
             <Activity name="CreateNewLocalObjectDef" version="0" />
         </Workflow>
@@ -107,6 +111,20 @@
             </Dependency>
             <Dependency name="Include" isDescription="true" />
         </Item>
+        <Item name="QueryFactory" initialPath="/desc/dev" workflow="QueryFactoryWf">
+            <Property name="LocalObjectType">Query</Property>
+            <Property name="Type">Factory</Property>
+            <Outcome viewname="last" schema="PropertyDescription" version="0">boot/property/queryProp.xml</Outcome>
+            <Outcome viewname="last" schema="Query" version="0">boot/query/New.xml</Outcome>
+            <Dependency name="workflow" isDescription="false">
+                <DependencyMember itemPath="/desc/ActivityDesc/system/kernel/ManageQuery">
+                    <MemberProperties>
+                        <KeyValuePair Key="Version" String="0" />
+                    </MemberProperties>
+                </DependencyMember>
+                <CollectionProperties />
+            </Dependency>
+        </Item>
         <Item name="SchemaFactory" initialPath="/desc/dev" workflow="SchemaFactoryWf">
             <Property name="LocalObjectType">Schema</Property>
             <Property name="Type">Factory</Property>
@@ -151,6 +169,9 @@
             </Dependency>
             <Dependency name="Script" isDescription="true">
                 <DependencyMember itemPath="desc/dev/ScriptFactory" />
+            </Dependency>
+            <Dependency name="Query" isDescription="true">
+                <DependencyMember itemPath="desc/dev/QueryFactory" />
             </Dependency>
             <Dependency name="StateMachine" isDescription="true">
                 <DependencyMember itemPath="desc/dev/StateMachineFactory" />

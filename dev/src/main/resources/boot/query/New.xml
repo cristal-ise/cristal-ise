@@ -20,7 +20,8 @@
     http://www.fsf.org/licensing/licenses/lgpl.html
 
 -->
-<AllProperties>
- <PropertyDescription Name="Name" IsClassIdentifier="false" DefaultValue=""       IsMutable="true" />
- <PropertyDescription Name="Type" IsClassIdentifier="true"  DefaultValue="Script" IsMutable="false" />
-</AllProperties>
+<cristalquery name="">
+    <query language="existdb:xquery"><![CDATA[
+
+    ]]></query>
+</cristalquery>
