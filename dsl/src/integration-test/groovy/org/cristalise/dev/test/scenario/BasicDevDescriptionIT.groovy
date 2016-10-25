@@ -7,11 +7,6 @@ import org.cristalise.kernel.test.KernelScenarioTestBase
 import org.junit.Test
 
 
-
-/**
- * 
- *
- */
 @CompileStatic
 class BasicDevDescriptionIT extends KernelScenarioTestBase {
 
@@ -47,5 +42,13 @@ class BasicDevDescriptionIT extends KernelScenarioTestBase {
 
         createNewScript(name, folder)
         editScript(name, folder, new File("src/integration-test/data/TestScript.xml").text)
+    }
+
+    @Test
+    public void createAndEditQuery() {
+        String name = "Query-$timeStamp"
+
+        createNewQuery(name, folder)
+        editQuery(name, folder, new File("src/integration-test/data/TestQuery.xml").text)
     }
 }

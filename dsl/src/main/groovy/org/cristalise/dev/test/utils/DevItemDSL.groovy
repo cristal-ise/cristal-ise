@@ -26,10 +26,12 @@ import groovy.transform.CompileStatic
 import org.cristalise.dsl.lifecycle.definition.CompActDefBuilder
 import org.cristalise.dsl.lifecycle.definition.ElemActDefBuilder
 import org.cristalise.dsl.persistency.outcome.SchemaBuilder
+import org.cristalise.dsl.querying.QueryBuilder
 import org.cristalise.kernel.entity.proxy.ItemProxy
 import org.cristalise.kernel.lifecycle.ActivityDef
 import org.cristalise.kernel.lifecycle.CompositeActivityDef
 import org.cristalise.kernel.persistency.outcome.Schema
+import org.cristalise.kernel.querying.Query
 
 
 /**
@@ -43,6 +45,13 @@ class DevItemDSL extends DevItemUtility {
         def schema = SchemaBuilder.build(name, 0, cl);
         editSchema(name, folder, schema.XSD)
         return schema
+    }
+
+    public Query Query(String name, String folder, Closure cl) {
+        createNewQuery(name, folder)
+        def query = QueryBuilder.build("", name, 0, cl);
+        editQuery(name, folder, query.queryXML)
+        return query
     }
 
     public ActivityDef ElementaryActivityDef(String actName, String folder, Closure cl) {

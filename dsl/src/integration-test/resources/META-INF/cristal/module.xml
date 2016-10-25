@@ -143,5 +143,9 @@
                 <DependencyMember itemPath="desc/integTest/XPathOutcomeInitTest_DetailsFactory" />
             </Dependency>
         </Item>
+
+        <!-- QueryTest -->
+        <Resource name="TestQuery" version="0" type="query">boot/query/TestQuery.xml</Resource>
+
     </Imports>
 </CristalModule>

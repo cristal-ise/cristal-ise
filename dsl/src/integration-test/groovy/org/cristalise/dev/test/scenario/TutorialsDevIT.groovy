@@ -10,10 +10,10 @@ import org.junit.Test
  * 
  *
  */
-class BasicTutorialDevIT extends KernelScenarioTestBase {
+class TutorialsDevIT extends KernelScenarioTestBase {
 
     @Test
-    public void execute() {
+    public void basicTutorial() {
         String schemaName  = "PatientDetails-$timeStamp"
         String elemActName = "SetPatientDetails-$timeStamp"
         String compActName = "PatientLifecycle-$timeStamp"
@@ -29,7 +29,7 @@ class BasicTutorialDevIT extends KernelScenarioTestBase {
         editCompActDesc(compActName, folder, elemActName, 0)
 
         def patientItem = editDescriptionAndCreateItem( 
-            createNewDescriptionItem(factoryName, folder),
+           createNewDescriptionItem(factoryName, folder),
             PropertyDescriptionBuilder.build {
                 PropertyDesc("Name")
                 PropertyDesc(name: "Type", defaultValue: "Patient", isMutable: false, isClassIdentifier: true)
@@ -43,5 +43,10 @@ class BasicTutorialDevIT extends KernelScenarioTestBase {
                 SubFolder(folder)
             }
         );
+    }
+
+    @Test
+    public void advancedTutorialWithQuery() {
+        
     }
 }

@@ -21,24 +21,21 @@
 package org.cristalise.dev.test.utils
 
 import static org.cristalise.kernel.collection.BuiltInCollections.*
-
-import java.util.List;
-import java.util.Map;
-
+import static org.cristalise.kernel.process.resource.BuiltInResources.*
 import groovy.transform.CompileStatic
 
-import org.apache.commons.lang.StringUtils;
 import org.cristalise.kernel.entity.agent.Job
 import org.cristalise.kernel.entity.proxy.AgentProxy
 import org.cristalise.kernel.entity.proxy.ItemProxy
 import org.cristalise.kernel.lifecycle.ActivityDef
 import org.cristalise.kernel.lifecycle.CompositeActivityDef
-import org.cristalise.kernel.persistency.outcome.Outcome;
+import org.cristalise.kernel.persistency.outcome.Outcome
 import org.cristalise.kernel.process.Gateway
+import org.cristalise.kernel.process.resource.BuiltInResources
 import org.cristalise.kernel.process.resource.DefaultResourceImportHandler
 import org.cristalise.kernel.property.PropertyDescriptionList
 import org.cristalise.kernel.test.utils.KernelXMLUtility
-import org.cristalise.kernel.utils.Logger;
+import org.cristalise.kernel.utils.Logger
 
 /**
  * Utility class to implement ALL methods required to manage (create/edit)
@@ -53,6 +50,7 @@ class DevItemUtility {
     public String compActDefFactoryName   = "/domain/desc/dev/CompositeActivityDefFactory"
     public String schemaFactoryName       = "/domain/desc/dev/SchemaFactory"
     public String scriptFactoryName       = "/domain/desc/dev/ScriptFactory"
+    public String queryFactoryName        = "/domain/desc/dev/QueryFactory"
     public String stateMachineFactoryName = "/domain/desc/dev/StateMachineFactory"
     public String descItemFactoryName     = "/domain/desc/dev/DescriptionFactory"
     public String moduleFactoryName       = "/domain/desc/dev/ModuleFactory"
@@ -90,7 +88,7 @@ class DevItemUtility {
      * @return
      */
     public Job getDoneJob(ItemProxy proxy, String actName) {
-        Logger.msg "DevItemUtility.getDoneJob() - proxy:"+proxy.name
+        Logger.msg "DevItemUtility.getDoneJob() - proxy:$proxy.name actName:$actName"
         Job j = proxy.getJobByName(actName, agent)
         assert j && j.getStepName() == actName && j.transition.name == "Done"
         return j
@@ -136,13 +134,14 @@ class DevItemUtility {
      * @param type
      * @return
      */
-    public String getFactoryPath(String type) {
+    public String getFactoryPath(BuiltInResources type) {
         switch(type) {
-            case "EA": return elemActDefFactoryName
-            case "CA": return compActDefFactoryName
-            case "OD": return schemaFactoryName
-            case "SC": return scriptFactoryName
-            case "SM": return stateMachineFactoryName
+            case ELEM_ACT_DESC_RESOURCE: return elemActDefFactoryName
+            case COMP_ACT_DESC_RESOURCE: return compActDefFactoryName
+            case SCHEMA_RESOURCE:        return schemaFactoryName
+            case SCRIPT_RESOURCE:        return scriptFactoryName
+            case QUERY_RESOURCE:         return queryFactoryName
+            case STATE_MACHINE_RESOURCE: return stateMachineFactoryName
 
             default: return descItemFactoryName
         }
@@ -156,10 +155,10 @@ class DevItemUtility {
      * @param folder
      * @return
      */
-    public ItemProxy createNewDevItem(String type, String factoryActName, String name, String folder) {
+    public ItemProxy createNewDevItem(BuiltInResources type, String factoryActName, String name, String folder) {
         createNewItemByFactory(getFactoryPath(type), factoryActName, name, folder)
 
-        if(type == "DescItem") {
+        if(type == null) {
             return agent.getItem("$folder/$name")
         }
         else {
@@ -178,7 +177,7 @@ class DevItemUtility {
      * @param xml
      * @return
      */
-    public ItemProxy editDevItem(String type, String editActName, String newVersionActName, String name, String folder, String xml) {
+    public ItemProxy editDevItem(BuiltInResources type, String editActName, String newVersionActName, String name, String folder, String xml) {
         def resHandler = new DefaultResourceImportHandler(type)
 
         ItemProxy devItem = agent.getItem("${resHandler.typeRoot}/$folder/$name")
@@ -202,7 +201,7 @@ class DevItemUtility {
      * @param folder
      */
     public ItemProxy createNewElemActDesc(String name, String folder) {
-        return createNewDevItem( 'EA', "CreateNewElementaryActivityDef", name, folder)
+        return createNewDevItem(ELEM_ACT_DESC_RESOURCE, "CreateNewElementaryActivityDef", name, folder)
     }
 
     /**
@@ -211,7 +210,7 @@ class DevItemUtility {
      * @param folder
      */
     public ItemProxy createNewSchema(String name, String folder) {
-        return createNewDevItem( 'OD', "CreateNewSchema", name, folder)
+        return createNewDevItem(SCHEMA_RESOURCE, "CreateNewSchema", name, folder)
     }
 
     /**
@@ -220,7 +219,16 @@ class DevItemUtility {
      * @param folder
      */
     public ItemProxy createNewScript(String name, String folder) {
-        return createNewDevItem( 'SC', "CreateNewScript", name, folder)
+        return createNewDevItem(SCRIPT_RESOURCE, "CreateNewScript", name, folder)
+    }
+
+    /**
+     * 
+     * @param name
+     * @param folder
+     */
+    public ItemProxy createNewQuery(String name, String folder) {
+        return createNewDevItem(QUERY_RESOURCE, "CreateNewQuery", name, folder)
     }
 
     /**
@@ -229,7 +237,7 @@ class DevItemUtility {
      * @param folder
      */
     public ItemProxy createNewCompActDesc(String name, String folder) {
-        return createNewDevItem( 'CA', "CreateNewCompositeActivityDef", name, folder)
+        return createNewDevItem(COMP_ACT_DESC_RESOURCE, "CreateNewCompositeActivityDef", name, folder)
     }
 
     /**
@@ -302,6 +310,12 @@ class DevItemUtility {
             agent.execute(doneJob)
         }
 
+        if(eaDef.query) {
+            doneJob = getDoneJob(eaDescItem, "AssignQuery")
+            doneJob.setOutcome( KernelXMLUtility.getDescObjectDetailsXML(id: eaDef.query.name, version: eaDef.query.version) )
+            agent.execute(doneJob)
+        }
+
         doneJob = getDoneJob(eaDescItem, "AssignNewActivityVersionFromLast")
         agent.execute(doneJob)
 
@@ -309,6 +323,7 @@ class DevItemUtility {
 
         if(eaDef.schema)       assert eaDescItem.getCollection(SCHEMA,        0).size() == 1
         if(eaDef.script)       assert eaDescItem.getCollection(SCRIPT,        0).size() == 1
+        if(eaDef.query)        assert eaDescItem.getCollection(QUERY,         0).size() == 1
         if(eaDef.stateMachine) assert eaDescItem.getCollection(STATE_MACHINE, 0).size() == 1
     }
 
@@ -319,7 +334,7 @@ class DevItemUtility {
      * @param xsd
      */
     public ItemProxy editSchema(String name, String folder, String xsd) {
-        return editDevItem("OD", "EditDefinition", "AssignNewSchemaVersionFromLast", name, folder, xsd)
+        return editDevItem(SCHEMA_RESOURCE, "EditDefinition", "AssignNewSchemaVersionFromLast", name, folder, xsd)
     }
 
     /**
@@ -329,7 +344,17 @@ class DevItemUtility {
      * @param xsd
      */
     public ItemProxy editScript(String name, String folder, String scriptXML) {
-        return editDevItem("SC", "EditDefinition", "AssignNewScriptVersionFromLast", name, folder, scriptXML)
+        return editDevItem(SCRIPT_RESOURCE, "EditDefinition", "AssignNewScriptVersionFromLast", name, folder, scriptXML)
+    }
+
+    /**
+     * 
+     * @param name
+     * @param folder
+     * @param xml
+     */
+    public ItemProxy editQuery(String name, String folder, String QueryXML) {
+        return editDevItem(QUERY_RESOURCE, "EditDefinition", "AssignNewQueryVersionFromLast", name, folder, QueryXML)
     }
 
     /**
@@ -340,7 +365,7 @@ class DevItemUtility {
      * @param actCollSize
      */
     public ItemProxy editCompActDesc(String name, String folder, String caXML, int actCollSize = 0) {
-        def caDescItem = editDevItem( "CA", "EditDefinition", "AssignNewActivityVersionFromLast", name, folder, caXML)
+        def caDescItem = editDevItem(COMP_ACT_DESC_RESOURCE, "EditDefinition", "AssignNewActivityVersionFromLast", name, folder, caXML)
 
         assert caDescItem.getCollection(ACTIVITY, 0).size()
         if(actCollSize) assert caDescItem.getCollection(ACTIVITY, 0).size() == actCollSize
@@ -379,7 +404,7 @@ class DevItemUtility {
      * @return ItemProxy of newly created DescriptionItem
      */
     public ItemProxy createNewDescriptionItem(String name, String folder) {
-        return createNewDevItem( 'DescItem', "CreateNewDescription", name, folder)
+        return createNewDevItem( null, "CreateNewDescription", name, folder)
     }
 
     /**
