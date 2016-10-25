@@ -47,6 +47,7 @@ import org.cristalise.kernel.graph.layout.DefaultGraphLayoutGenerator;
 import org.cristalise.kernel.lifecycle.CompositeActivityDef;
 import org.cristalise.kernel.lifecycle.WfVertexDefOutlineCreator;
 import org.cristalise.kernel.process.Gateway;
+import org.cristalise.kernel.process.resource.BuiltInResources;
 import org.cristalise.kernel.utils.FileStringUtility;
 import org.cristalise.kernel.utils.Logger;
 
@@ -270,19 +271,18 @@ public class CompActDefOutcomeHandler
         unsaved = false;
     }
 
-	@Override
-	public void export(File targetFile) throws Exception {
-		//FileStringUtility.string2File(targetFile, getOutcome());
-		
-		//Make sure module structure is present
-		File parentDir = targetFile.getParentFile();
-		FileStringUtility.createNewDir(parentDir.getAbsolutePath()+"/CA");
-		FileStringUtility.createNewDir(parentDir.getAbsolutePath()+"/EA");
-		FileStringUtility.createNewDir(parentDir.getAbsolutePath()+"/OD");
-		FileStringUtility.createNewDir(parentDir.getAbsolutePath()+"/SC");
-		FileStringUtility.createNewDir(parentDir.getAbsolutePath()+"/SM");
-		BufferedWriter imports = new BufferedWriter(new FileWriter(new File(parentDir, mCompActDef.getActName()+"Imports.xml")));
-		mCompActDef.export(imports, targetFile.getParentFile());
-		imports.close();
-	}
+    @Override
+    public void export(File targetFile) throws Exception {
+        // FileStringUtility.string2File(targetFile, getOutcome());
+
+        // Make sure module structure is present
+        File parentDir = targetFile.getParentFile();
+        for (BuiltInResources res : BuiltInResources.values()) {
+            FileStringUtility.createNewDir(parentDir.getAbsolutePath() + "/" + res.getTypeCode());
+        }
+
+        BufferedWriter imports = new BufferedWriter(new FileWriter(new File(parentDir, mCompActDef.getActName() + "Imports.xml")));
+        mCompActDef.export(imports, targetFile.getParentFile());
+        imports.close();
+    }
 }
