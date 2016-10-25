@@ -83,7 +83,7 @@
 				<Properties>
 					<KeyValuePair Key="Prefill Version" String="-1" />
 					<KeyValuePair Key="Name" String="CreateNewQuery" />
-					<KeyValuePair Key="NewType" String="SC" />
+					<KeyValuePair Key="NewType" String="query" />
 					<KeyValuePair Key="Prefill" Boolean="false" />
 					<KeyValuePair Key="Version" Integer="0" />
 				</Properties>
