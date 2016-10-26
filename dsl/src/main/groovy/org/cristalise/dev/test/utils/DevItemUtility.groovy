@@ -94,10 +94,34 @@ class DevItemUtility {
         return j
     }
 
-    private void executeDoneJob(ItemProxy proxy, String actName, Outcome outcome = null) {
+    /**
+     * 
+     * @param proxy
+     * @param actName
+     * @param outcomeXML
+     * @return
+     */
+    public Job executeDoneJob(ItemProxy proxy, String actName, String outcomeXML) {
         def job = getDoneJob(proxy, actName)
-        if(outcome) job.outcome = outcome
+        job.setOutcome(outcomeXML)
         agent.execute(job)
+        return job
+    }
+
+    /**
+     * 
+     * @param proxy
+     * @param actName
+     * @param outcome
+     */
+    public Job executeDoneJob(ItemProxy proxy, String actName, Outcome outcome = null) {
+        def job = getDoneJob(proxy, actName)
+
+        if(outcome)               job.outcome = outcome
+        else if(job.hasOutcome()) job.outcome = job.getOutcome() //this calls outcome initiator if defined
+
+        agent.execute(job)
+        return job
     }
 
     /**
@@ -124,9 +148,7 @@ class DevItemUtility {
      * @return
      */
     public void createNewItemByFactory(ItemProxy factory, String factoryActName, String name, String folder) {
-        Job doneJob = getDoneJob(factory, factoryActName)
-        doneJob.setOutcome( DevXMLUtility.getNewDevObjectDefXML(name: name, folder: folder) )
-        agent.execute(doneJob)
+        executeDoneJob(factory, factoryActName, DevXMLUtility.getNewDevObjectDefXML(name: name, folder: folder) )
     }
 
     /**
@@ -183,12 +205,8 @@ class DevItemUtility {
         ItemProxy devItem = agent.getItem("${resHandler.typeRoot}/$folder/$name")
         assert devItem && devItem.getName() == name
 
-        Job doneJob = getDoneJob(devItem, editActName)
-        doneJob.setOutcome( xml )
-        agent.execute(doneJob)
-
-        doneJob = getDoneJob(devItem, newVersionActName)
-        agent.execute(doneJob)
+        executeDoneJob(devItem, editActName, xml)
+        executeDoneJob(devItem, newVersionActName)
 
         assert devItem.getViewpoint(resHandler.name, "0")
 
@@ -254,19 +272,14 @@ class DevItemUtility {
         ItemProxy eaDescItem = agent.getItem("${resHandler.typeRoot}/$folder/$name")
         assert eaDescItem && eaDescItem.getName() == name
 
-        Job doneJob = getDoneJob(eaDescItem, "EditDefinition")
-        doneJob.setOutcome( KernelXMLUtility.getActivityDefXML(Name: name, AgentRole: role) )
-        agent.execute(doneJob)
+        executeDoneJob(eaDescItem, "EditDefinition", KernelXMLUtility.getActivityDefXML(Name: name, AgentRole: role))
 
         //it is possible there was no Schema specified for this Activity
         if(schemaName && !schemaName.startsWith("-")) {
-            doneJob = getDoneJob(eaDescItem, "SetSchema")
-            doneJob.setOutcome( KernelXMLUtility.getDescObjectDetailsXML(id: schemaName, version: schemaVersion) )
-            agent.execute(doneJob)
+            executeDoneJob(eaDescItem, "SetSchema", KernelXMLUtility.getDescObjectDetailsXML(id: schemaName, version: schemaVersion))
         }
 
-        doneJob = getDoneJob(eaDescItem, "AssignNewActivityVersionFromLast")
-        agent.execute(doneJob)
+        executeDoneJob(eaDescItem, "AssignNewActivityVersionFromLast")
 
         if(schemaName && !schemaName.startsWith("-")) {
             assert eaDescItem.getViewpoint(resHandler.name, "0")
@@ -288,36 +301,25 @@ class DevItemUtility {
 
         eaDef.setItemPath(eaDescItem.getPath())
 
-        Job doneJob = getDoneJob(eaDescItem, "EditDefinition")
-        doneJob.setOutcome( Gateway.getMarshaller().marshall(eaDef) )
-        agent.execute(doneJob)
+        executeDoneJob(eaDescItem, "EditDefinition", Gateway.getMarshaller().marshall(eaDef) )
 
         if(eaDef.schema) {
-            doneJob = getDoneJob(eaDescItem, "SetSchema")
-            doneJob.setOutcome( KernelXMLUtility.getDescObjectDetailsXML(id: eaDef.schema.name, version: eaDef.schema.version) )
-            agent.execute(doneJob)
+            executeDoneJob(eaDescItem, "SetSchema", KernelXMLUtility.getDescObjectDetailsXML(id: eaDef.schema.name, version: eaDef.schema.version) )
         }
 
         if(eaDef.stateMachine) {
-            doneJob = getDoneJob(eaDescItem, "OverrideStateMachine")
-            doneJob.setOutcome( KernelXMLUtility.getDescObjectDetailsXML(id: eaDef.stateMachine.name, version: eaDef.stateMachine.version) )
-            agent.execute(doneJob)
+            executeDoneJob(eaDescItem, "OverrideStateMachine", KernelXMLUtility.getDescObjectDetailsXML(id: eaDef.stateMachine.name, version: eaDef.stateMachine.version) )
         }
 
         if(eaDef.script) {
-            doneJob = getDoneJob(eaDescItem, "AssignScript")
-            doneJob.setOutcome( KernelXMLUtility.getDescObjectDetailsXML(id: eaDef.script.name, version: eaDef.script.version) )
-            agent.execute(doneJob)
+            executeDoneJob(eaDescItem, "AssignScript", KernelXMLUtility.getDescObjectDetailsXML(id: eaDef.script.name, version: eaDef.script.version) )
         }
 
         if(eaDef.query) {
-            doneJob = getDoneJob(eaDescItem, "AssignQuery")
-            doneJob.setOutcome( KernelXMLUtility.getDescObjectDetailsXML(id: eaDef.query.name, version: eaDef.query.version) )
-            agent.execute(doneJob)
+            executeDoneJob(eaDescItem, "AssignQuery", KernelXMLUtility.getDescObjectDetailsXML(id: eaDef.query.name, version: eaDef.query.version) )
         }
 
-        doneJob = getDoneJob(eaDescItem, "AssignNewActivityVersionFromLast")
-        agent.execute(doneJob)
+        executeDoneJob(eaDescItem, "AssignNewActivityVersionFromLast")
 
         assert eaDescItem.getViewpoint(resHandler.name, "0")
 
@@ -429,13 +431,8 @@ class DevItemUtility {
      * @return
      */
     public ItemProxy editDescriptionItem(ItemProxy descriptionItem, PropertyDescriptionList propDesc, String chooseWorkflowXML) {
-        Job doneJob = getDoneJob(descriptionItem, "SetPropertyDescription")
-        doneJob.setOutcome( Gateway.getMarshaller().marshall(propDesc) )
-        agent.execute(doneJob)
-
-        doneJob = getDoneJob(descriptionItem, "SetInstanceWorkflow")
-        doneJob.setOutcome(chooseWorkflowXML)
-        agent.execute(doneJob)
+        executeDoneJob(descriptionItem, "SetPropertyDescription", Gateway.getMarshaller().marshall(propDesc) )
+        executeDoneJob(descriptionItem, "SetInstanceWorkflow",    chooseWorkflowXML)
 
         return descriptionItem
     }
@@ -460,13 +457,9 @@ class DevItemUtility {
      * @return
      */
     public ItemProxy createItemFromDescription(ItemProxy descriptionItem, String devObjectDefXML) {
-        Job doneJob = getDoneJob(descriptionItem, "CreateNewInstance")
-        doneJob.setOutcome( devObjectDefXML )
-        agent.execute(doneJob)
+        def doneJob = executeDoneJob(descriptionItem, "CreateNewInstance", devObjectDefXML )
 
-        String instancePath = doneJob.getOutcome().getField("SubFolder") + "/" + doneJob.getOutcome().getField("ObjectName")
-
-        return agent.getItem(instancePath)
+        return agent.getItem(doneJob.getOutcome().getField("SubFolder") + "/" + doneJob.getOutcome().getField("ObjectName"))
     }
 
     /**
