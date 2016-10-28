@@ -61,7 +61,7 @@ public class XMLDBClusterStorage extends ClusterStorage {
     protected Database    database;
     protected Collection  root;
 
-    public XMLDBClusterStorage() throws Exception {}
+    public XMLDBClusterStorage() {}
 
     /**
      * Retrieves the collection from the root created for each Item (UUID)
@@ -116,7 +116,7 @@ public class XMLDBClusterStorage extends ClusterStorage {
     @Override
     public void open(Authenticator auth) throws PersistencyException {
         final String driver = "org.exist.xmldb.DatabaseImpl";
-        // Uncomment the following for integrated existdb
+        // Uncomment the following for embedded existdb
         // System.setProperty("exist.initdb", "true");
         // System.setProperty("exist.home", Gateway.getProperty("XMLDB.home"));
         try {
@@ -166,7 +166,7 @@ public class XMLDBClusterStorage extends ClusterStorage {
 
     @Override
     public boolean checkQuerySupport(String language) {
-        return "existdb:xquery".equals(language.toLowerCase());
+        return "existdb:xquery".equals(language.trim().toLowerCase());
     }
 
     @Override
@@ -188,14 +188,20 @@ public class XMLDBClusterStorage extends ClusterStorage {
             xqs.setProperty(OutputKeys.INDENT, "yes");
             xqs.setProperty(OutputKeys.ENCODING, "UTF-8");
 
-            if(query.hasParameters()) {
+            //To optimise performance the root collection could be used in all cristal-ise queries
+            query.setStringParameter("rootCont", Gateway.getProperties().getString(XMLDB_ROOT));
+
+            //XML-RPC server automatically caches compiled expressions
+            if (query.hasParameters()) {
                 for(Parameter p: query.getParameters()) {
-                    xqs.declareVariable(p.getName(), p.getValue());
+                    if (p.getValue() != null) {
+                        Logger.msg(5, "XMLDBClusterStorage.executeQuery() - declareVariable:"+p.getName()+" value:"+p.getValue());
+                        xqs.declareVariable(p.getName(), p.getValue());
+                    }
                 }
             }
 
-            //XML-RPC server automatically caches compiled expressions
-            CompiledExpression compiled = xqs.compile(query.getQuery());
+            CompiledExpression compiled = xqs.compileAndCheck(query.getQuery());
             ResourceIterator resourceIter = xqs.execute(compiled).getIterator();
             Resource resource = null;
             StringBuffer resultBuffer = new StringBuffer();
@@ -215,6 +221,7 @@ public class XMLDBClusterStorage extends ClusterStorage {
         }
         catch (Exception e) {
             Logger.error(e);
+            Logger.error(query.getQuery());
             throw new PersistencyException(e.getMessage());
         }
     }

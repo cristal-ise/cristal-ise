@@ -18,13 +18,39 @@
  *
  * http://www.fsf.org/licensing/licenses/lgpl.html
  */
-package org.cristalise.storage;
+package org.cristalise.storage.xmldb;
+
+import org.cristalise.kernel.common.PersistencyException;
+import org.cristalise.kernel.entity.C2KLocalObject;
+import org.cristalise.kernel.lookup.ItemPath;
 
 /**
- * Provided for easier loading (may be referenced without package in ClusterStorage property)
+ * 
  */
-public class XMLDBClusterStorage extends org.cristalise.storage.xmldb.XMLDBClusterStorage {
-    public XMLDBClusterStorage() {
-        super();
+public class XMLDBClientReader extends XMLDBClusterStorage {
+
+    @Override
+    public short queryClusterSupport(String clusterType) {
+        return READ;
+    }
+
+    @Override
+    public String getName() {
+        return "XMLDB Client Reader";
+    }
+
+    @Override
+    public String getId() {
+        return "XMLDBClient";
+    }
+
+    @Override
+    public void put(ItemPath itemPath, C2KLocalObject obj) throws PersistencyException {
+        throw new PersistencyException("Writing not supported in XMLDBClientReader");
+    }
+
+    @Override
+    public void delete(ItemPath itemPath, String path) throws PersistencyException {
+        throw new PersistencyException("Writing not supported in XMLDBClientReader");
     }
 }

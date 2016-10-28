@@ -23,8 +23,8 @@ package org.cristalise.storage;
 /**
  * Provided for easier loading (may be referenced without package in ClusterStorage property)
  */
-public class XMLDBClusterStorage extends org.cristalise.storage.xmldb.XMLDBClusterStorage {
-    public XMLDBClusterStorage() {
+public class XMLDBClientReader extends org.cristalise.storage.xmldb.XMLDBClientReader {
+    public XMLDBClientReader() {
         super();
     }
 }
