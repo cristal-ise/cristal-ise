@@ -188,15 +188,12 @@ public class XMLDBClusterStorage extends ClusterStorage {
             xqs.setProperty(OutputKeys.INDENT, "yes");
             xqs.setProperty(OutputKeys.ENCODING, "UTF-8");
 
-            //To optimise performance the root collection could be used in all cristal-ise queries
-            query.setStringParameter("rootCont", Gateway.getProperties().getString(XMLDB_ROOT));
-
             //XML-RPC server automatically caches compiled expressions
             if (query.hasParameters()) {
                 for(Parameter p: query.getParameters()) {
                     if (p.getValue() != null) {
-                        Logger.msg(5, "XMLDBClusterStorage.executeQuery() - declareVariable:"+p.getName()+" value:"+p.getValue());
-                        xqs.declareVariable(p.getName(), p.getValue());
+                        Logger.msg(5, "XMLDBClusterStorage.executeQuery() - declareVariable:'"+p.getName()+"' = '"+p.getValue()+"'");
+                        xqs.declareVariable(p.getName(), (String)p.getValue());
                     }
                 }
             }
@@ -217,6 +214,7 @@ public class XMLDBClusterStorage extends ClusterStorage {
                     catch(XMLDBException xe) {Logger.error(xe);}
                 }
             }
+            if(Logger.doLog(5)) Logger.msg("XMLDBClusterStorage.executeQuery() - returning:"+resultBuffer.toString());
             return resultBuffer.toString();
         }
         catch (Exception e) {
