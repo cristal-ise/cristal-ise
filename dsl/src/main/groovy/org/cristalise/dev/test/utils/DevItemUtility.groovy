@@ -355,8 +355,8 @@ class DevItemUtility {
      * @param folder
      * @param xml
      */
-    public ItemProxy editQuery(String name, String folder, String QueryXML) {
-        return editDevItem(QUERY_RESOURCE, "EditDefinition", "AssignNewQueryVersionFromLast", name, folder, QueryXML)
+    public ItemProxy editQuery(String name, String folder, String queryXML) {
+        return editDevItem(QUERY_RESOURCE, "EditDefinition", "AssignNewQueryVersionFromLast", name, folder, queryXML)
     }
 
     /**

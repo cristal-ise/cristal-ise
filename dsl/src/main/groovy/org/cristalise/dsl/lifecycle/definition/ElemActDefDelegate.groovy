@@ -28,9 +28,8 @@ import org.cristalise.dsl.property.PropertyDelegate
 import org.cristalise.kernel.lifecycle.ActivityDef
 import org.cristalise.kernel.lifecycle.instance.stateMachine.StateMachine
 import org.cristalise.kernel.persistency.outcome.Schema
-import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.scripting.Script
-import org.cristalise.kernel.utils.LocalObjectLoader;
+import org.cristalise.kernel.utils.LocalObjectLoader
 
 /**
  * Wrapper/Delegate class of Elementary Activity definition
@@ -71,6 +70,14 @@ class ElemActDefDelegate extends PropertyDelegate {
 
     def Script(String name, int ver = 0) {
         elemActDef.setScript(LocalObjectLoader.getScript(name, ver))
+    }
+
+    def Query(org.cristalise.kernel.querying.Query q) {
+        elemActDef.setQuery(q)
+    }
+
+    def Query(String name, int ver = 0) {
+        elemActDef.setQuery(LocalObjectLoader.getQuery(name, ver))
     }
 
     def StateMachine(StateMachine s) {
