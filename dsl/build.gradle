@@ -44,7 +44,7 @@ dependencies {
     compile group: 'org.cristalise', name: 'cristalise-xpath-outcomeinit', version:'3.3-SNAPSHOT'
     compile group: 'org.cristalise', name: 'cristalise-trigger',           version:'3.3-SNAPSHOT'
     compile group: 'org.cristalise', name: 'cristalise-gui',               version:'3.3-SNAPSHOT'
-    compile group: 'org.cristalise', name: 'cristalise-ldap',              version:'3.2'
+    compile group: 'org.cristalise', name: 'cristalise-ldap',              version:'3.3-SNAPSHOT'
 
     compile group: 'commons-lang', name: 'commons-lang', version:'2.6'
     compile group: 'org.xmlunit',  name: 'xmlunit-core', version:'2.2.+'
@@ -53,6 +53,5 @@ dependencies {
     testCompile group: 'org.awaitility',     name: 'awaitility-groovy',          version:'2.0.0'
     testCompile group: 'org.spockframework', name: 'spock-core',                 version:'1.0-groovy-2.4'
     testCompile group: 'org.cristalise',     name: 'cristalise-inmemory-lookup', version:'3.3-SNAPSHOT'
-    testCompile group: 'org.mvel',           name: 'mvel2',                      version:'2.2.8.Final'
     testCompile(group: 'com.athaydes',       name: 'spock-reports',              version:'1.2.13') { exclude(module: '*') }
 }
