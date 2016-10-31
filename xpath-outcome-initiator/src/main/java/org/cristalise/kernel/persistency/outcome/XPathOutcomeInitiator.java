@@ -24,10 +24,12 @@ import java.util.Map;
 
 import javax.xml.xpath.XPathExpressionException;
 
+import org.apache.commons.lang3.StringUtils;
 import org.cristalise.kernel.common.InvalidDataException;
 import org.cristalise.kernel.entity.agent.Job;
 import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.utils.Logger;
+import org.mvel2.templates.TemplateRuntime;
 
 /**
  * OutcomeInitiator implementation using on Activity Properties. It is based on the convention that the name 
@@ -54,20 +56,22 @@ public class XPathOutcomeInitiator extends EmptyOutcomeInitiator {
     /**
      * 
      */
+    @Override
     public Outcome initOutcomeInstance(Job job) throws InvalidDataException {
-        Map<String, Object> actProps = job.matchActPropNames(propNamePattern);
+        Map<String, Object> matchedProps = job.matchActPropNames(propNamePattern);
 
         Outcome xpathOutcome = super.initOutcomeInstance(job);
 
-        for(Map.Entry<String, Object> entry: actProps.entrySet()) {
+        for(Map.Entry<String, Object> entry: matchedProps.entrySet()) {
             Logger.msg(5, "XPathOutcomeInitiator.initOutcomeInstance() - Using Property name:"+entry.getKey()+" value:"+entry.getValue());
 
             try {
                 String xpath = entry.getKey();
                 String value = (String)entry.getValue();
 
-                if(value == null) throw new InvalidDataException("Value is NULL for Property name '"+entry.getKey()+"'");
-                else value = value.trim();
+                if(StringUtils.isEmpty(value)) throw new InvalidDataException("Value is NULL/EMPTY for Property name '"+entry.getKey()+"'");
+
+                value = (String) TemplateRuntime.eval(value, job.getActProps());
 
                 if(value.startsWith("<") && value.endsWith(">")) {
                     Logger.msg(5, "XPathOutcomeInitiator.initOutcomeInstance() - Updating XML fregment with xpath:"+xpath);

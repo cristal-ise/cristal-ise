@@ -31,6 +31,7 @@ import java.util.Map;
 
 import org.cristalise.kernel.entity.agent.Job;
 import org.cristalise.kernel.persistency.outcome.XPathOutcomeInitiator;
+import org.cristalise.kernel.utils.CastorHashMap;
 import org.cristalise.kernel.utils.Logger;
 import org.junit.Before;
 import org.junit.Test;
@@ -62,8 +63,12 @@ public class XPathOutcomeInitiatorTest extends OutcomeInitiatorTestBase {
 
         Map<String, Object> resultMap = new HashMap<String, Object>();
         resultMap.put(xpath, value);
+        when(j.matchActPropNames("/")).thenReturn(resultMap);
 
-        when(j.matchActPropNames("^/")).thenReturn(resultMap);
+        CastorHashMap actProps = new CastorHashMap();
+        actProps.put(xpath, value);
+        actProps.put("IntValue", "123");
+        when(j.getActProps()).thenReturn(actProps);
 
         String actual = xpathOI.initOutcome(j);
 
@@ -81,4 +86,10 @@ public class XPathOutcomeInitiatorTest extends OutcomeInitiatorTestBase {
     public void updateNodeElement() throws Exception {
         checkUpdatedOutcome("StateMachine", "/StateMachine", "<State id='30' name='new' proceeds='false'/>");
     }
+
+    @Test
+    public void updateSingleElementUsingMVEL() throws Exception {
+        checkUpdatedOutcome("IntegerField", "/IntegerField/counter", "@{IntValue}");
+    }
+
 }
