@@ -9,6 +9,7 @@
     </Info>
     <ResourceURL>org/cristalise/dsl/resources/</ResourceURL>
     <Config name="Module.dev.debug">true</Config>
+    <Config name="OutcomeInit.Query">org.cristalise.kernel.persistency.outcome.QueryOutcomeInitiator</Config>
     <Imports>
         <Workflow name="TestSchemaFactoryWf" resource="boot/CA/TestSchemaFactoryWf.xml">
             <StateMachine name="CompositeActivity" version="0"/>

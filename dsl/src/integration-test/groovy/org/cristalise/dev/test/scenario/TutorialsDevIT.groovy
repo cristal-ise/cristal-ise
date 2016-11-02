@@ -76,10 +76,9 @@ class TutorialsDevIT extends KernelScenarioTestBase {
         def aggregatedSchema =  Schema("AggregatedPatientData-$timeStamp", folder) {
             struct(name: 'AggregatedPatientData') {
                 attribute(name: 'InsuranceNumber', type: 'string', default: '123456789ABC')
-                field(name: 'DateOfBirth', type: 'date')
-                field(name: 'Gender',      type: 'string', values: ['male', 'female'])
-                field(name: 'Weight',      type: 'decimal') { unit(values: ['g', 'kg'], default: 'kg') }
-
+                field(name: 'DateOfBirth',  type: 'date')
+                field(name: 'Gender',       type: 'string', values: ['male', 'female'])
+                field(name: 'Weight',       type: 'decimal') { unit(values: ['g', 'kg'], default: 'kg') }
                 field(name: 'Transparency', type: 'string', values: ['clear', 'clouded'])
                 field(name: 'Color',        type: 'string')
             }
@@ -106,12 +105,10 @@ class TutorialsDevIT extends KernelScenarioTestBase {
 
         executeDoneJob(patient, elemActName)
         executeDoneJob(patient, 'SetUrinSample')
-        executeDoneJob(patient, 'SetAggregated')
-    }
 
-    @Test
-    public void extendedTutorialWithQueryDEBUG() {
-        def patient = agent.getItem("$folder/$itemName-2016-10-28_15-36-51_621")
+        //TODO: set 'postFix' parameter in a Script associated with the SetAggregated Activity
+        getDoneJob(patient, 'SetAggregated').getQuery().setStringParameter('postFix', timeStamp)
+
         executeDoneJob(patient, 'SetAggregated')
     }
 }
