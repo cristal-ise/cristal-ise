@@ -4,5 +4,5 @@
 	<param name="agent" type="org.cristalise.kernel.entity.proxy.AgentProxy"/>
 
 	<output name="" type="java.lang.Boolean"/>
-	<script language="javascript"><![CDATA[new java.lang.Boolean(counter <= 10);]]></script>
+	<script language="groovy"><![CDATA[println "++++ counter=$counter"; new Integer(counter) <= 10;]]></script>
 </cristalscript>
