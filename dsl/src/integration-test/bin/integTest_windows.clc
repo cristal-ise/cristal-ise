@@ -20,11 +20,11 @@ LDAP.RootPath=cn=cristal
 LDAP.LocalPath=cn=integTest
 LDAP.port=389
 LDAP.host=localhost
-LDAP.user=cn=admin,o=cern,c=ch
-LDAP.password=cristal
+LDAP.user=cn=Manager,o=cern,c=ch
+LDAP.password=slap
 
 // XMLDB config
 XMLDB.URI=xmldb:exist://localhost:8080/exist/xmlrpc/db
 XMLDB.root=integTest
 XMLDB.user=admin
-XMLDB.password=admin
+XMLDB.password=cristal
