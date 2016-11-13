@@ -68,7 +68,7 @@ class KernelScenarioTestBase extends DevItemDSL {
 
     @Before
     public void before() {
-        init('src/integration-test/bin/client.conf', 'src/integration-test/bin/integTest_old.clc')
+        init('src/integration-test/bin/client.conf', 'src/integration-test/bin/integTest.clc')
     }
 
     @After

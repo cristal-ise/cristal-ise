@@ -1,5 +1,6 @@
 package org.cristalise.dev.test.scenario
 
+import org.cristalise.kernel.entity.proxy.ItemProxy
 import org.cristalise.kernel.lifecycle.ActivityDef
 import org.cristalise.kernel.test.KernelScenarioTestBase
 import org.junit.Test
@@ -16,7 +17,13 @@ class TutorialsDevIT extends KernelScenarioTestBase {
     String factoryName = "PatientFactory"
     String itemName    = "Patient"
 
-    private setupPatient(Map<String, ActivityDef> actDefList) {
+    ItemProxy patient
+
+	/**
+	 * 
+	 * @param actDefList
+	 */
+    private void setupPatient(Map<String, ActivityDef> actDefList) {
         def schema = Schema("$schemaName-$timeStamp", folder) {
             struct(name: schemaName, documentation: 'This is the Schema for Basic Tutorial') {
                 attribute(name: 'InsuranceNumber', type: 'string', default: '123456789ABC')
@@ -44,13 +51,13 @@ class TutorialsDevIT extends KernelScenarioTestBase {
         }
 
         createNewItemByFactory(factory, "CreateNewInstance", "$itemName-$timeStamp", folder)
+
+        patient = agent.getItem("$folder/$itemName-$timeStamp")
     }
 
     @Test
     public void basicTutorial() {
         setupPatient()
-
-        def patient = agent.getItem("$folder/$itemName-$timeStamp")
 
         executeDoneJob(patient, elemActName)
     }
@@ -101,7 +108,6 @@ class TutorialsDevIT extends KernelScenarioTestBase {
         actMap['SetAggregated'] = aggregatedEA
 
         setupPatient(actMap)
-        def patient = agent.getItem("$folder/$itemName-$timeStamp")
 
         executeDoneJob(patient, elemActName)
         executeDoneJob(patient, 'SetUrinSample')
@@ -109,6 +115,7 @@ class TutorialsDevIT extends KernelScenarioTestBase {
         //TODO: set 'postFix' parameter in a Script associated with the SetAggregated Activity
         getDoneJob(patient, 'SetAggregated').getQuery().setStringParameter('postFix', timeStamp)
 
+        //TODO: configure automatic execution of this activity 'SetAggregated' by UserCode
         executeDoneJob(patient, 'SetAggregated')
     }
 }
