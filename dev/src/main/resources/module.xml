@@ -202,6 +202,9 @@
             <Dependency name="Script" isDescription="true">
                 <DependencyMember itemPath="desc/dev/ScriptFactory" />
             </Dependency>
+            <Dependency name="Query" isDescription="true">
+                <DependencyMember itemPath="desc/dev/QueryFactory" />
+            </Dependency>
             <Dependency name="StateMachine" isDescription="true">
                 <DependencyMember itemPath="desc/dev/StateMachineFactory" />
             </Dependency>
