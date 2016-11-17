@@ -8,7 +8,7 @@ This diagram shows the CRISTAL-iSE Activity StateMachine defined in this module.
 
 ![CRISTAL-iSETriggerSM.puml](http://uml.mvnsearch.org/gist/f5a862d0bb01c192a6c34f0259f3b469)
 
-##Configuring the Trigger process
+##Trigger process configuration
 
 | Name |  Default Value | Description |
 |------|----------------|-------------|
@@ -18,7 +18,10 @@ This diagram shows the CRISTAL-iSE Activity StateMachine defined in this module.
 | Trigger.Transitions    | Warning,Timeout | the list of Transition names used bz the Trigger |
 
 ##Actitivty properties used by the Trigger
+Trigger uses the name of the Transition with On, Duration and Unit suffixes to find the data to create the Quartz Job.
 
-| Name | Description |
-|------|-------------|
-
+| Name | Default Value | Description |
+|------|---------------|-------------|
+| ${TransitionName}On       | true | enable/disable Triggering of this Transiation for the given Activity |
+| ${TransitionName}Duration | n/a  | |
+| ${TransitionName}Unit     | n/a  | Values of org.quartz.DateBuilder.IntervalUnit enum |
