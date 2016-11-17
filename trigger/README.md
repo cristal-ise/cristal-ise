@@ -8,3 +8,9 @@ This diagram shows the CRISTAL-iSE Activity StateMachine defined in this module.
 
 ![CRISTAL-iSETriggerSM.puml](http://uml.mvnsearch.org/gist/f5a862d0bb01c192a6c34f0259f3b469)
 
+##Configuring the StateMachine
+| Name |  Default Value | Description |
+|------|----------------|-------------|
+| Trigger.StateMachineNS | trigger | |
+| Trigger.StateMachine   | boot/SM/Trigger.xml | |
+| Trigger.Transitions    | Warning,Timeout | |
