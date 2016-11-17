@@ -16,3 +16,9 @@ This diagram shows the CRISTAL-iSE Activity StateMachine defined in this module.
 | Trigger.StateMachineNS | trigger | the namespace of the module (ns attribute) containing the definition of StateMachine |
 | Trigger.StateMachine   | boot/SM/Trigger.xml | the bootstrap file containing the definition of StateMachine |
 | Trigger.Transitions    | Warning,Timeout | the list of Transition names used bz the Trigger |
+
+##Actitivty properties used by the Trigger
+
+| Name | Description |
+|------|-------------|
+
