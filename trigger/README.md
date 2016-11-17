@@ -1,6 +1,6 @@
 # Description-Driven Trigger module
 
-This module is based on [Quartz Scheduler](http://www.quartz-scheduler.org/). The implementation use StdSchedulerFactory to create very basic jobs using SimpleTrigger. Jobs are not persisted by Quartz Scheduler, which means each time the process starts the QuartzJobs are recreated form the persistent Joblist of CRISTAL-iSE Agent (e.g. triggerAgent configured in module.xml).
+This module is based on [Quartz Scheduler](http://www.quartz-scheduler.org/). The implementation use StdSchedulerFactory to create very basic jobs using SimpleTrigger. Jobs are not persisted by Quartz Scheduler, which means each time the process starts the QuartzJobs are recreated form the persistent Joblist of CRISTAL-iSE Agent. Check the definition of triggerAgent in module.xml.
 
 ##Description of Trigger StateMachine
 
