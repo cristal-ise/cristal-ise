@@ -18,10 +18,10 @@ This diagram shows the CRISTAL-iSE Activity StateMachine defined in this module.
 | Trigger.Transitions    | Warning,Timeout | the list of Transition names used bz the Trigger |
 
 ##Actitivty properties used by the Trigger
-Trigger uses the name of the Transition with On, Duration and Unit suffixes to find the data to create the Quartz Job.
+Trigger uses the name of the Transition with On, Duration and Unit suffixes to find the data in Activity properties to create the Quartz Job.
 
 | Name | Default Value | Description |
 |------|---------------|-------------|
 | ${TransitionName}On       | true | enable/disable Triggering of this Transiation for the given Activity |
-| ${TransitionName}Duration | n/a  | |
+| ${TransitionName}Duration | n/a  | Time when the Quartz Job is triggered |
 | ${TransitionName}Unit     | n/a  | Values of org.quartz.DateBuilder.IntervalUnit enum |
