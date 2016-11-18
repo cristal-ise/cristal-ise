@@ -71,12 +71,12 @@ public class TriggerProcess extends StandardClient implements ProxyObserver<Job>
      */
     public TriggerProcess() throws MarshalException, ValidationException, ObjectNotFoundException, IOException, MappingException
     {
-        String stateMachineNS   = Gateway.getProperties().getString("Trigger.StateMachineNS", "trigger");
-        String stateMachinePath = Gateway.getProperties().getString("Trigger.StateMachine",   "boot/SM/Trigger.xml");
+        String stateMachineNS   = Gateway.getProperties().getString("Trigger.StateMachine.namespace", "trigger");
+        String stateMachinePath = Gateway.getProperties().getString("Trigger.StateMachine.bootfile",  "boot/SM/Trigger.xml");
 
         StateMachine sm = (StateMachine)Gateway.getMarshaller().unmarshall(Gateway.getResource().getTextResource(stateMachineNS, stateMachinePath));
 
-        String[] transNames = Gateway.getProperties().getString("Trigger.Transitions", "Warning,Timeout").split(",");
+        String[] transNames = Gateway.getProperties().getString("Trigger.StateMachine.transitions", "Warning,Timeout").split(",");
 
         for(String transName: transNames) {
             int transID = sm.getTransitionID(transName);
@@ -175,7 +175,7 @@ public class TriggerProcess extends StandardClient implements ProxyObserver<Job>
         String transName = currentJob.getTransition().getName();
         String jobID = Integer.toString(currentJob.getId());
 
-        Boolean enabled      = Gateway.getProperties().getBoolean("Trigger.Enabled", true);
+        Boolean enabled      = Gateway.getProperties().getBoolean("Trigger.enabled", true);
         Boolean transitionOn = (Boolean)currentJob.getActProp(transName+"On", true);
 
         synchronized(quartzScheduler) {
@@ -228,8 +228,8 @@ public class TriggerProcess extends StandardClient implements ProxyObserver<Job>
             Gateway.init(readC2KArgs(args));
             TriggerProcess proc = new TriggerProcess();
 
-            proc.login( "triggerAgent",
-                        "test", 
+            proc.login( Gateway.getProperties().getString("Trigger.agent", "triggerAgent"),
+                        Gateway.getProperties().getString("Trigger.password"),
                         Gateway.getProperties().getString("AuthResource", "Cristal"));
 
             proc.initialise();
