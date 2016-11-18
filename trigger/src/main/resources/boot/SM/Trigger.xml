@@ -19,7 +19,7 @@
         reservation="preserve">
         <Outcome name="${WarningSchemaType}" version="${WarningSchemaVersion}" required="true" />
         <Script  name="${WarningScriptName}" version="${WarningScriptVersion}" />
-        <Script  name="${WarningQueryName}"  version="${WarningQueryVersion}" />
+        <Query   name="${WarningQueryName}"  version="${WarningQueryVersion}" />
     </Transition>
     <Transition id="4" name="Timeout" origin="2" target="3" enablingProperty="TimeoutOn" reinitializes="false" roleOverride="TriggerAdmin">
         <Outcome name="${TimeoutSchemaType}" version="${TimeoutSchemaVersion}" required="true" />
