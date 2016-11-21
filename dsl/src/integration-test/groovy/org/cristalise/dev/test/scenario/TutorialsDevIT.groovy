@@ -95,27 +95,24 @@ class TutorialsDevIT extends KernelScenarioTestBase {
             parameter(name: 'root',       type: 'java.lang.String')
             parameter(name: 'uuid',       type: 'java.lang.String')
             parameter(name: 'schemaName', type: 'java.lang.String')
+            parameter(name: 'postFix',    type: 'java.lang.String')
             query(language: "existdb:xquery") {
                 new File('src/integration-test/data/AggregatePatientData.xql').text
             }
         }
 
-        def aggregatedEA = ElementaryActivityDef("SetAggregated-$timeStamp", folder) {
+        actMap['SetAggregated'] = ElementaryActivityDef("SetAggregated-$timeStamp", folder) {
+            Property(postFix: timeStamp)
+            Role("UserCode")
             Schema(aggregatedSchema)
             Query(aggregateQuery)
         }
-
-        actMap['SetAggregated'] = aggregatedEA
 
         setupPatient(actMap)
 
         executeDoneJob(patient, elemActName)
         executeDoneJob(patient, 'SetUrinSample')
 
-        //TODO: set 'postFix' parameter in a Script associated with the SetAggregated Activity
-        getDoneJob(patient, 'SetAggregated').getQuery().setStringParameter('postFix', timeStamp)
-
-        //TODO: configure automatic execution of this activity 'SetAggregated' by UserCode
-        executeDoneJob(patient, 'SetAggregated')
+        //TODO: Wait until notification is received abotu the execution of 'SetAggregated' Activity, and check the Outcome
     }
 }
