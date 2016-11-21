@@ -29,25 +29,20 @@ class BasicDevLookupStructureIT extends KernelScenarioTestBase {
         }
 
         println "------------------------------------------------------------------------"
-        Gateway.getLookup().getChildren(new DomainPath("/agent")).each {
-            println "Domain /agent: ${it.getClass().getName()} - $it"
-        }
-
-        println "------------------------------------------------------------------------"
         Gateway.getLookup().getChildren(new RolePath()).each {
             println "Role /: ${it.getClass().getName()} - $it"
         }
-        
+
         println "------------------------------------------------------------------------"
         Gateway.getLookup().search(new DomainPath("desc"), "dev").each {
             println "Domain search : ${it.getClass().getName()} - $it"
         }
 
         println "------------------------------------------------------------------------"
-        Gateway.getLookup().searchAliases(new ItemPath("8e0d5225-2250-432f-aceb-cd6689ca4883")).each {
+        Gateway.getLookup().searchAliases(new ItemPath("00000000-0000-0000-0000-00000000000c")).each {
             println "Item alias search: ${it.getClass().getName()} - $it"
         }
-        
+
         println "------------------------------------------------------------------------"
         def path = ""
         ["desc","OutcomeDesc","system","dev"].each {
