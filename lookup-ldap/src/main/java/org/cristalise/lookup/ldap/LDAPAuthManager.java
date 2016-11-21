@@ -33,19 +33,18 @@ public class LDAPAuthManager implements Authenticator {
 
     protected LDAPConnection mLDAPConn;
     protected LDAPProperties ldapProps;
-    
-	public LDAPAuthManager() {
-	}
 
-	@Override
-	public boolean authenticate(String agentName,
-			String password, String resource) throws InvalidDataException, ObjectNotFoundException {
-		
-		ldapProps = new LDAPProperties(Gateway.getProperties());
-		
-        if (ldapProps.mHost!=null && ldapProps.mPort!= null && ldapProps.mLocalPath!=null )
-        {
-            try { // anonymously bind to LDAP and find the agent entry for the username
+    public LDAPAuthManager() {}
+
+    @Override
+    public boolean authenticate(String agentName, String password, String resource) 
+            throws InvalidDataException, ObjectNotFoundException
+    {
+        ldapProps = new LDAPProperties(Gateway.getProperties());
+
+        if (ldapProps.mHost!=null && ldapProps.mPort!= null && ldapProps.mLocalPath!=null ) {
+            try { 
+                // anonymously bind to LDAP and find the agent entry for the username
                 ldapProps.mUser = "";
                 ldapProps.mPassword = "";
                 mLDAPConn = LDAPLookupUtils.createConnection(ldapProps);
@@ -56,64 +55,66 @@ public class LDAPAuthManager implements Authenticator {
                 anonLookup.close();
 
                 //found agentDN, try to log in with it
-                Logger.msg(5, "Authenticating as: "+agentDN+" with "+password);
+                Logger.msg(5, "LDAPAuthManager.authenticate() - agentDN:: "+agentDN);
                 ldapProps.mUser = agentDN;
                 ldapProps.mPassword = password;
                 mLDAPConn = LDAPLookupUtils.createConnection(ldapProps);
                 return true;
-            } catch (LDAPException e) {
-            	Logger.error(e);
+            } 
+            catch (LDAPException e) {
+                Logger.error(e);
                 return false;
             }
         }
-        else
-        {
+        else {
             throw new InvalidDataException("Cannot log in. Some connection properties are not set.");
         }
 
-	}
-	
-	@Override
-	public boolean authenticate(String resource) throws InvalidDataException, ObjectNotFoundException {
-		ldapProps = new LDAPProperties(Gateway.getProperties());
-		
-		if (ldapProps.mUser == null || ldapProps.mUser.length()==0 ||
-			ldapProps.mPassword == null || ldapProps.mPassword.length()==0)
-			throw new InvalidDataException("LDAP root user properties not found in config.");
-		try {
-			mLDAPConn = LDAPLookupUtils.createConnection(ldapProps);
-			return true;
-		} catch (LDAPException e) {
+    }
+
+    @Override
+    public boolean authenticate(String resource) throws InvalidDataException, ObjectNotFoundException {
+        ldapProps = new LDAPProperties(Gateway.getProperties());
+
+        if (ldapProps.mUser == null || ldapProps.mUser.length()==0 || ldapProps.mPassword == null || ldapProps.mPassword.length()==0) {
+            throw new InvalidDataException("LDAP root user properties not found in config.");
+        }
+
+        try {
+            mLDAPConn = LDAPLookupUtils.createConnection(ldapProps);
+            return true;
+        }
+        catch (LDAPException e) {
+            Logger.error(e);
             return false;
         }
-	}
+    }
 
-	/* (non-Javadoc)
-	 * @see org.cristalise.kernel.process.auth.Authenticator#getAuthObject()
-	 */
-	@Override
-	public LDAPConnection getAuthObject() {
-        
-		if (mLDAPConn==null || !mLDAPConn.isConnected()) {
-            Logger.warning("LDAPAuthManager - lost connection to LDAP server. Attempting to reconnect.");
+    @Override
+    public LDAPConnection getAuthObject() {
+        if (mLDAPConn==null || !mLDAPConn.isConnected()) {
+            Logger.warning("LDAPAuthManager.getAuthObject() - lost connection to LDAP server. Attempting to reconnect.");
             try {
                 mLDAPConn = LDAPLookupUtils.createConnection(ldapProps);
-            } catch (LDAPException ex) { }
+            }
+            catch (LDAPException ex) {
+                Logger.error(ex);
+            }
         }
         return mLDAPConn;
-	}
+    }
 
-	@Override
-	public void disconnect() {
-        Logger.msg(1, "LDAP Lookup: Shutting down LDAP connection.");
+    @Override
+    public void disconnect() {
+        Logger.msg(1, "LDAPAuthManager.disconnect() - Shutting down LDAP connection.");
         if (mLDAPConn != null) {
             try {
                 mLDAPConn.disconnect();
-            } catch (LDAPException e) {
+            }
+            catch (LDAPException e) {
                 Logger.error(e);
             }
             mLDAPConn = null;
         }
-		
-	}
+    }
 }
