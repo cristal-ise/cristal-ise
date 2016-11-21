@@ -28,6 +28,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 
 import org.cristalise.kernel.common.AccessRightsException;
+import org.cristalise.kernel.common.InvalidDataException;
 import org.cristalise.kernel.common.ObjectNotFoundException;
 import org.cristalise.kernel.common.PersistencyException;
 import org.cristalise.kernel.entity.agent.Job;
@@ -68,21 +69,15 @@ public class TriggerProcess extends StandardClient implements ProxyObserver<Job>
      * @throws ObjectNotFoundException
      * @throws IOException
      * @throws MappingException
+     * @throws InvalidDataException 
      */
-    public TriggerProcess() throws MarshalException, ValidationException, ObjectNotFoundException, IOException, MappingException
-    {
-        String stateMachineNS   = Gateway.getProperties().getString("Trigger.StateMachine.namespace", "trigger");
-        String stateMachinePath = Gateway.getProperties().getString("Trigger.StateMachine.bootfile",  "boot/SM/Trigger.xml");
-
-        StateMachine sm = (StateMachine)Gateway.getMarshaller().unmarshall(Gateway.getResource().getTextResource(stateMachineNS, stateMachinePath));
+    public TriggerProcess() throws InvalidDataException {
+        StateMachine sm = getRequiredStateMachine("Trigger", "trigger", "boot/SM/Trigger.xml");
 
         String[] transNames = Gateway.getProperties().getString("Trigger.StateMachine.transitions", "Warning,Timeout").split(",");
 
         for(String transName: transNames) {
-            int transID = sm.getTransitionID(transName);
-
-            if(transID == -1) throw new ObjectNotFoundException("StateMachine '" + sm.getName() + "' does NOT have '"+transName+"' transition");
-
+            sm.getValidTransitionID(transName); //checks if the trans name is correct or not
             transitions.add(transName);
         }
 
@@ -96,7 +91,7 @@ public class TriggerProcess extends StandardClient implements ProxyObserver<Job>
      * @throws ObjectNotFoundException
      * @throws PersistencyException
      */
-    public void initialise() throws SchedulerException, AccessRightsException, ObjectNotFoundException, PersistencyException {
+    public void initialise() throws SchedulerException {
         SchedulerFactory schedFact = new org.quartz.impl.StdSchedulerFactory();
 
         quartzScheduler = schedFact.getScheduler();
@@ -128,10 +123,7 @@ public class TriggerProcess extends StandardClient implements ProxyObserver<Job>
         jdm.put("CristalAgent", agent);
         jdm.put("CristalJob",   currentJob);
 
-        return newJob(QuartzJob.class)
-                .withIdentity(jobID)
-                .usingJobData(jdm)
-                .build();
+        return newJob(QuartzJob.class).withIdentity(jobID).usingJobData(jdm).build();
     }
 
     /**
