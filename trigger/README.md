@@ -15,8 +15,10 @@ This diagram shows the CRISTAL-iSE Activity StateMachine defined in this module.
 | Trigger.Enabled                  | true                | switch on/off the entire trigger |
 | Trigger.agent                    | triggerAgent        | the name of the agent |
 | Trigger.password                 | n/a                 | the password of the agent |
-| Trigger.StateMachine.namespace   | trigger             | the namespace of the module, i.e. ns attribute in the module.xml, containing the definition of StateMachine |
-| Trigger.StateMachine.bootfile    | boot/SM/Trigger.xml | the bootstrap file containing the definition of StateMachine |
+| Trigger.StateMachine.name        | n/a                 | the names of the required StateMachine to retrieve SM from the backend |
+| Trigger.StateMachine.version     | n/a                 | the version of the required StateMachine to retrieve SM from the backend |
+| Trigger.StateMachine.namespace   | trigger             | the namespace of the module, i.e. ns attribute in the module.xml, containing the definition of StateMachine. Use _Trigger.StateMachine.name and version_ if possbile |
+| Trigger.StateMachine.bootfile    | boot/SM/Trigger.xml | the bootstrap file containing the definition of StateMachine. Use _Trigger.StateMachine.name and version_ if possbile |
 | Trigger.StateMachine.transitions | Warning,Timeout     | the list of Transition names to be used by the TriggerProcess |
 
 ##Activity properties used by the TriggerProcess
