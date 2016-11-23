@@ -90,6 +90,10 @@
             <archive>https://groups.cern.ch/group/cristal-users/default.aspx</archive>
         </mailingList>
     </mailingLists>
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <additionalparam>-Xdoclint:none</additionalparam>
+    </properties>
     <build>
         <resources>
             <resource>
@@ -112,7 +116,7 @@
             <plugins>
                 <plugin>
                     <artifactId>maven-compiler-plugin</artifactId>
-                    <version>2.3.2</version>
+                    <version>3.5</version>
                     <configuration>
                         <source>1.8</source>
                         <target>1.8</target>
