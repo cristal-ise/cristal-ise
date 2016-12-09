@@ -51,7 +51,7 @@ dependencies {
 
     testCompile group: 'junit',              name: 'junit',                      version:'4.11'
     testCompile group: 'org.awaitility',     name: 'awaitility-groovy',          version:'2.0.0'
-    testCompile group: 'org.spockframework', name: 'spock-core',                 version:'1.0-groovy-2.4'
+    testCompile group: 'org.spockframework', name: 'spock-core',                 version:'1.1-groovy-2.4-rc-3'
     testCompile group: 'org.cristalise',     name: 'cristalise-inmemory-lookup', version:'3.3-SNAPSHOT'
     testCompile(group: 'com.athaydes',       name: 'spock-reports',              version:'1.2.13') { exclude(module: '*') }
 }
