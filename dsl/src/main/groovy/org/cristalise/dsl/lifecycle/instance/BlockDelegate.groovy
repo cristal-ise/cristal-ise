@@ -148,9 +148,9 @@ public class BlockDelegate {
 
         String namePrefix = getNamePrefix(t)
 
-        if(n) {
-            if(t == Types.AndSplit || t == Types.OrSplit || t == Types.XOrSplit || t == Types.LoopSplit)
-                assert n.startsWith(namePrefix), "Name shall start with '$namePrefix'"
+        if (n) {
+            if (t.name().contains("Split")) assert n.startsWith(namePrefix), "Name shall start with prefix '$namePrefix' for Splits"
+
             return n
         }
         else {
@@ -159,7 +159,7 @@ public class BlockDelegate {
     }
 
     public void updateVertexCache(Types t, String n, WfVertex v) {
-        if(n) {
+        if (n) {
             if(vertexCache.containsKey(n)) throw new RuntimeException("Vertex name '$n' must be unique")
             else vertexCache[n] = v
         }
