@@ -49,12 +49,12 @@ public class Main extends StandardClient {
      * Creates Grizzly HTTP server exposing the Jersey application at the given URI
      * Us
      * 
-     * @return Grizzly HTTP server.
-     * @throws BadArgumentsException 
-     * @throws InvalidDataException 
-     * @throws PersistencyException 
+     * @throws BadArgumentsException Bad Arguments
+     * @throws InvalidDataException Invalid Data
+     * @throws PersistencyException Persistency
+     * @throws ObjectNotFoundException Object Not Found
      */
-    public static void startServer(String[] args) throws BadArgumentsException, InvalidDataException, PersistencyException
+    public static void startServer(String[] args) throws BadArgumentsException, InvalidDataException, PersistencyException, ObjectNotFoundException
     {
         setShutdownHandler(new ShutdownHandler() {
             @Override
