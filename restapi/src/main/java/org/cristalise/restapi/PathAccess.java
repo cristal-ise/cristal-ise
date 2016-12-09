@@ -20,6 +20,8 @@
  */
 package org.cristalise.restapi;
 
+import static org.cristalise.kernel.property.BuiltInItemProperties.NAME;
+
 import org.cristalise.kernel.common.ObjectNotFoundException;
 import org.cristalise.kernel.lookup.DomainPath;
 import org.cristalise.kernel.lookup.ItemPath;
@@ -89,7 +91,7 @@ public class PathAccess extends RestHandler {
 					props[i] = new Property(nameval[0], nameval[1]);
 				}
 				else if (i==0) { // first search term can imply Name if no propname given
-					props[i] = new Property("Name", terms[i]);
+					props[i] = new Property(NAME, terms[i]);
 				}
 				else {
 					throw ItemUtils.createWebAppException("Only the first search term may omit property name", Response.Status.BAD_REQUEST);
