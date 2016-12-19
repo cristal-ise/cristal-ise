@@ -39,40 +39,43 @@ import org.cristalise.kernel.utils.Logger;
 @Path("auth")
 public class TokenLogin extends RestHandler {
 
-	@GET
-	@Produces(MediaType.TEXT_PLAIN)
-	public Response login(@QueryParam("user") final String user,
-			@QueryParam("pass") final String pass, @Context final UriInfo uri) {
-		try {
-			if (!Gateway.getAuthenticator().authenticate(user, pass, null)) {
-				throw new WebApplicationException("Bad username/password", 401);
-			}
-		} catch (InvalidDataException e) {
-			Logger.error(e);
-			throw new WebApplicationException("Problem logging in");
-		} catch (ObjectNotFoundException e1) {
-			throw new WebApplicationException("Bad username/password", 401);
-		}
+    @GET
+    @Produces(MediaType.TEXT_PLAIN)
+    public Response login(@QueryParam("user") final String user, @QueryParam("pass") final String pass, @Context final UriInfo uri)
+    {
+        try {
+            if (!Gateway.getAuthenticator().authenticate(user, pass, null)) {
+                throw new WebApplicationException("Bad username/password", 401);
+            }
+        }
+        catch (InvalidDataException e) {
+            Logger.error(e);
+            throw new WebApplicationException("Problem logging in");
+        }
+        catch (ObjectNotFoundException e1) {
+            throw new WebApplicationException("Bad username/password", 401);
+        }
 
-		AgentPath agentPath;
-		try {
-			agentPath = Gateway.getLookup().getAgentPath(user);
-		} catch (ObjectNotFoundException e) {
-			Logger.error(e);
-			throw new WebApplicationException("Agent '" + user + "' not found",
-					404);
-		}
+        AgentPath agentPath;
+        try {
+            agentPath = Gateway.getLookup().getAgentPath(user);
+        }
+        catch (ObjectNotFoundException e) {
+            Logger.error(e);
+            throw new WebApplicationException("Agent '" + user + "' not found", 404);
+        }
 
-		// create and set token
-		AuthData agentData = new AuthData(agentPath);
-		try {
+        // create and set token
+        AuthData agentData = new AuthData(agentPath);
+        try {
 
-			String token = encryptAuthData(agentData);
-			return Response.ok(token).build();
-		} catch (Exception e) {
-			Logger.error(e);
-			throw new WebApplicationException("Error creating token");
-		}
-	}
+            String token = encryptAuthData(agentData);
+            return Response.ok(token).build();
+        }
+        catch (Exception e) {
+            Logger.error(e);
+            throw new WebApplicationException("Error creating token");
+        }
+    }
 
 }

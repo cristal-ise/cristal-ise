@@ -47,8 +47,7 @@ public class ItemRoot extends ItemUtils {
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    public Response getItemSummary(@PathParam("uuid") String uuid, @CookieParam(COOKIENAME) Cookie authCookie,
-            @Context UriInfo uri) {
+    public Response getItemSummary(@PathParam("uuid") String uuid, @CookieParam(COOKIENAME) Cookie authCookie, @Context UriInfo uri) {
         checkAuthCookie(authCookie);
         ItemProxy item = getProxy(uuid);
 
@@ -56,7 +55,8 @@ public class ItemRoot extends ItemUtils {
         itemSummary.put("name", item.getName());
         try {
             itemSummary.put("properties", getPropertySummary(item));
-        } catch (ObjectNotFoundException e) {
+        }
+        catch (ObjectNotFoundException e) {
             Logger.error(e);
             throw ItemUtils.createWebAppException("No Properties found", Response.Status.BAD_REQUEST);
         }
@@ -69,8 +69,10 @@ public class ItemRoot extends ItemUtils {
 
     @OPTIONS
     @Produces(MediaType.APPLICATION_JSON)
-    public Response getJobs(@PathParam("uuid") String uuid, 
-            @QueryParam("agent") String agentName, @CookieParam(COOKIENAME) Cookie authCookie,
+    public Response getJobs(
+            @PathParam("uuid") String uuid,
+            @QueryParam("agent") String agentName,
+            @CookieParam(COOKIENAME) Cookie authCookie,
             @Context UriInfo uri) {
         ItemProxy item = getProxy(uuid);
         AgentProxy agent = getAgent(agentName, authCookie);
@@ -78,7 +80,8 @@ public class ItemRoot extends ItemUtils {
         List<Job> jobList;
         try {
             jobList = item.getJobList(agent);
-        } catch (Exception e) {
+        }
+        catch (Exception e) {
             Logger.error(e);
             throw ItemUtils.createWebAppException("Error loading joblist");
         }
@@ -97,27 +100,29 @@ public class ItemRoot extends ItemUtils {
     @Consumes(MediaType.TEXT_XML)
     @Produces(MediaType.TEXT_XML)
     @Path("{activityPath: .*}")
-    public String requestTransition(String postData, @PathParam("uuid") String uuid,
+    public String requestTransition(
+            String postData, 
+            @PathParam("uuid") String uuid,
             @PathParam("activityPath") String actPath,
             @QueryParam("transition") String transition,
             @QueryParam("agent") String agentName,
             @CookieParam(COOKIENAME) Cookie authCookie,
-            @Context UriInfo uri) {
-
+            @Context UriInfo uri)
+    {
         // if transition isn't used explicitly, look for a valueless parameter
         if (transition == null) {
-            for(String key: uri.getQueryParameters().keySet()) {
+            for (String key : uri.getQueryParameters().keySet()) {
                 List<String> vals = uri.getQueryParameters().get(key);
-                if (vals.size()==1 && vals.get(0).length() == 0) {
+                if (vals.size() == 1 && vals.get(0).length() == 0) {
                     transition = key;
                     break;
                 }
             }
             if (transition == null) // default to Done
                 transition = "Done";
-        }	
+        }
 
-        //Find agent
+        // Find agent
         ItemProxy item = getProxy(uuid);
         AgentProxy agent = getAgent(agentName, authCookie);
 
@@ -125,7 +130,8 @@ public class ItemRoot extends ItemUtils {
         List<Job> jobList;
         try {
             jobList = item.getJobList(agent);
-        } catch (Exception e) {
+        }
+        catch (Exception e) {
             Logger.error(e);
             throw ItemUtils.createWebAppException("Error loading joblist");
         }
@@ -148,18 +154,26 @@ public class ItemRoot extends ItemUtils {
                 thisJob.setOutcome(postData);
             }
             return agent.execute(thisJob);
-        } catch (InvalidDataException | ScriptErrorException | ObjectAlreadyExistsException | InvalidCollectionModification e) { // problem with submitted data
+        }
+        catch (InvalidDataException | ScriptErrorException | ObjectAlreadyExistsException | InvalidCollectionModification e) { // problem
+                                                                                                                               // with
+                                                                                                                               // submitted
+                                                                                                                               // data
             Logger.error(e);
             throw ItemUtils.createWebAppException(e.getMessage(), Response.Status.BAD_REQUEST);
-        } catch (AccessRightsException e) { // agent doesn't hold the right to execute
+        }
+        catch (AccessRightsException e) { // agent doesn't hold the right to execute
             throw ItemUtils.createWebAppException(e.getMessage(), Response.Status.UNAUTHORIZED);
-        } catch (ObjectNotFoundException e) { // workflow, schema, script etc not found.
+        }
+        catch (ObjectNotFoundException e) { // workflow, schema, script etc not found.
             Logger.error(e);
             throw ItemUtils.createWebAppException(e.getMessage(), Response.Status.NOT_FOUND);
-        } catch (InvalidTransitionException e) { // activity has already changed state
+        }
+        catch (InvalidTransitionException e) { // activity has already changed state
             Logger.error(e);
             throw ItemUtils.createWebAppException(e.getMessage(), Response.Status.CONFLICT);
-        } catch (PersistencyException e) { // database failure
+        }
+        catch (PersistencyException e) { // database failure
             Logger.error(e);
             throw ItemUtils.createWebAppException(e.getMessage(), Response.Status.INTERNAL_SERVER_ERROR);
         }

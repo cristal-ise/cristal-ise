@@ -153,7 +153,7 @@ public class RestHandler {
      * 
      * @param agentName the name of the Agent
      * @param authCookie the cookie sent by the client
-     * @return
+     * @returnAgentProxy
      */
     public AgentProxy getAgent(String agentName, Cookie authCookie) {
         if(authCookie == null) return getAgent(agentName, (String)null);
@@ -166,7 +166,7 @@ public class RestHandler {
      * 
      * @param agentName the name of the Agent
      * @param authData authorisation data (from cookie or token)
-     * @return
+     * @return AgentProxy
      */
     public AgentProxy getAgent(String agentName, String authData) {
         AgentPath agentPath = checkAuthData(authData);

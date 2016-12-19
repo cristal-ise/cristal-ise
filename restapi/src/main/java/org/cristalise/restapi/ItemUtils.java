@@ -222,7 +222,6 @@ public abstract class ItemUtils extends RestHandler {
                 jobData.put("data", "Schema not found");
             }
         }
-
         return jobData;
     }
 
