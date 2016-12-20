@@ -21,6 +21,6 @@
 
 -->
 <AllProperties>
- <PropertyDescription Name="Name" IsClassIdentifier="false" DefaultValue=""       IsMutable="true" />
- <PropertyDescription Name="Type" IsClassIdentifier="true"  DefaultValue="Script" IsMutable="false" />
+    <PropertyDescription Name="Name" IsClassIdentifier="false" DefaultValue=""       IsMutable="true" />
+    <PropertyDescription Name="Type" IsClassIdentifier="true"  DefaultValue="Script" IsMutable="false" />
 </AllProperties>

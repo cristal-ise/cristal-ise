@@ -21,6 +21,6 @@
 
 -->
 <AllProperties>
-	<PropertyDescription Name="Name" IsClassIdentifier="false" DefaultValue=""     IsMutable="false"/>
-	<PropertyDescription Name="Type" IsClassIdentifier="true" DefaultValue="Query" IsMutable="false"/>
+    <PropertyDescription Name="Name" IsClassIdentifier="false" DefaultValue=""     IsMutable="false"/>
+    <PropertyDescription Name="Type" IsClassIdentifier="true" DefaultValue="Query" IsMutable="false"/>
 </AllProperties>
