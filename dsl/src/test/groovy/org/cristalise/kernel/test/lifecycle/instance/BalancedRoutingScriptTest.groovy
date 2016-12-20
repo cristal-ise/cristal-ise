@@ -25,7 +25,7 @@ class BalancedRoutingScriptTest implements CristalTestSetup {
 
     @After
     public void cleanup() {
-        println Gateway.getMarshaller().marshall(wfBuilder.wf)
+        if (wfBuilder && wfBuilder.wf) println Gateway.getMarshaller().marshall(wfBuilder.wf)
         cristalCleanup()
     }
 
