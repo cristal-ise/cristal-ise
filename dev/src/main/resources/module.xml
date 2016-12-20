@@ -124,7 +124,7 @@
             <Outcome viewname="last" schema="PropertyDescription" version="0">boot/property/SCProp.xml</Outcome>
             <Outcome viewname="last" schema="Script" version="0">boot/SC/New.xml</Outcome>
             <Dependency name="workflow" isDescription="false">
-                <DependencyMember itemPath="/desc/ActivityDesc/system/kernel/ManageScript">
+                <DependencyMember itemPath="/desc/ActivityDesc/kernel/ManageScript">
                     <MemberProperties>
                         <KeyValuePair Key="Version" String="0" />
                     </MemberProperties>
@@ -139,7 +139,7 @@
             <Outcome viewname="last" schema="PropertyDescription" version="0">boot/property/queryProp.xml</Outcome>
             <Outcome viewname="last" schema="Query" version="0">boot/query/New.xml</Outcome>
             <Dependency name="workflow" isDescription="false">
-                <DependencyMember itemPath="/desc/ActivityDesc/system/kernel/ManageQuery">
+                <DependencyMember itemPath="/desc/ActivityDesc/kernel/ManageQuery">
                     <MemberProperties>
                         <KeyValuePair Key="Version" String="0" />
                     </MemberProperties>
@@ -153,7 +153,7 @@
             <Outcome viewname="last" schema="PropertyDescription" version="0">boot/property/ODProp.xml</Outcome>
             <Outcome viewname="last" schema="Schema" version="0">boot/OD/New.xsd</Outcome>
             <Dependency name="workflow" isDescription="false">
-                <DependencyMember itemPath="/desc/ActivityDesc/system/kernel/ManageSchema">
+                <DependencyMember itemPath="/desc/ActivityDesc/kernel/ManageSchema">
                     <MemberProperties>
                         <KeyValuePair Key="Version" String="0" />
                     </MemberProperties>
@@ -166,7 +166,7 @@
             <Property name="Type">Factory</Property>
             <Outcome viewname="last" schema="PropertyDescription" version="0">boot/property/SMProp.xml</Outcome>
             <Dependency name="workflow" isDescription="false">
-                <DependencyMember itemPath="/desc/ActivityDesc/system/kernel/ManageStateMachine">
+                <DependencyMember itemPath="/desc/ActivityDesc/kernel/ManageStateMachine">
                     <MemberProperties>
                         <KeyValuePair Key="Version" String="0" />
                     </MemberProperties>
@@ -179,7 +179,7 @@
             <Property name="Type">Factory</Property>
             <Outcome viewname="last" schema="PropertyDescription" version="0">boot/property/EAProp.xml</Outcome>
             <Dependency name="workflow" isDescription="false">
-                <DependencyMember itemPath="desc/ActivityDesc/system/kernel/ManageElementaryActDef">
+                <DependencyMember itemPath="desc/ActivityDesc/kernel/ManageElementaryActDef">
                     <MemberProperties>
                         <KeyValuePair Key="Version" String="0" />
                     </MemberProperties>
@@ -208,7 +208,7 @@
             <Property name="Type">Factory</Property>
             <Outcome viewname="last" schema="PropertyDescription" version="0">boot/property/CAProp.xml</Outcome>
             <Dependency name="workflow" isDescription="false">
-                <DependencyMember itemPath="/desc/ActivityDesc/system/kernel/ManageCompositeActDef">
+                <DependencyMember itemPath="/desc/ActivityDesc/kernel/ManageCompositeActDef">
                     <MemberProperties>
                         <KeyValuePair Key="Version" String="0" />
                     </MemberProperties>
@@ -251,7 +251,7 @@
             <Property name="Type">Factory</Property>
             <Outcome viewname="last" schema="PropertyDescription" version="0">boot/property/ModuleProp.xml</Outcome>
             <Dependency name="workflow" isDescription="false">
-                <DependencyMember itemPath="/desc/ActivityDesc/system/dev/ModuleDevWorkflow">
+                <DependencyMember itemPath="/desc/ActivityDesc/dev/ModuleDevWorkflow">
                     <MemberProperties>
                         <KeyValuePair Key="Version" String="0" />
                     </MemberProperties>
