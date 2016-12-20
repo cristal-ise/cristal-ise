@@ -45,7 +45,7 @@ class BasicDevLookupStructureIT extends KernelScenarioTestBase {
 
         println "------------------------------------------------------------------------"
         def path = ""
-        ["desc","OutcomeDesc","system","dev"].each {
+        ["desc","OutcomeDesc","dev"].each {
             path += "/$it"
             assert Gateway.getLookup().exists(new DomainPath(path))
 //            assert Gateway.getLookup().resolvePath(new DomainPath(path))
