@@ -35,7 +35,7 @@
 <!--        <Outcome viewname="last" schema="Schema"              version="0">boot/OD/New.xsd</Outcome> -->
 
             <Dependency name="workflow" isDescription="false">
-                <DependencyMember itemPath="/desc/ActivityDesc/system/kernel/ManageSchema">
+                <DependencyMember itemPath="/desc/ActivityDesc/kernel/ManageSchema">
                     <MemberProperties>
                         <KeyValuePair Key="Version" String="0" />
                     </MemberProperties>
@@ -52,7 +52,7 @@
             <Outcome viewname="last" schema="PropertyDescription" version="0">boot/property/AssetDescProp.xml</Outcome>
 
             <Dependency name="workflow" isDescription="false">
-                <DependencyMember itemPath="desc/ActivityDesc/system/integTest/AssetDescriptionWf">
+                <DependencyMember itemPath="desc/ActivityDesc/integTest/AssetDescriptionWf">
                     <MemberProperties>
                         <KeyValuePair Key="Version" String="0" />
                     </MemberProperties>
@@ -99,7 +99,7 @@
             <Outcome viewname="last" schema="PropertyDescription" version="0">boot/property/XPathOutcomeInitTest_DetailsInitialProps.xml</Outcome>
 
             <Dependency name="workflow" isDescription="false">
-                <DependencyMember itemPath="/desc/ActivityDesc/system/integTest/XPathOutcomeInitTest_DetailsLifecycle">
+                <DependencyMember itemPath="/desc/ActivityDesc/integTest/XPathOutcomeInitTest_DetailsLifecycle">
                     <MemberProperties>
                         <KeyValuePair Key="Version" String="0" />
                     </MemberProperties>
@@ -121,7 +121,7 @@
             <Property name="Type">Factory</Property>
             <Outcome viewname="last" schema="PropertyDescription" version="0">boot/property/CAProp.xml</Outcome>
             <Dependency name="workflow" isDescription="false">
-                <DependencyMember itemPath="/desc/ActivityDesc/system/integTest/XPathOutcomeInitTest_ManageCADef">
+                <DependencyMember itemPath="/desc/ActivityDesc/integTest/XPathOutcomeInitTest_ManageCADef">
                     <MemberProperties>
                         <KeyValuePair Key="Version" String="0" />
                     </MemberProperties>
