@@ -1,5 +1,5 @@
 <AllProperties>
     <PropertyDescription Name="Name"       IsClassIdentifier="false" IsMutable="true"  DefaultValue="" />
-    <PropertyDescription Name="Type"       IsClassIdentifier="true"  IsMutable="false" DefaultValue="OutcomeDesc" />
+    <PropertyDescription Name="Type"       IsClassIdentifier="true"  IsMutable="false" DefaultValue="Schema" />
     <PropertyDescription Name="Breakapart" IsClassIdentifier="false" IsMutable="false" DefaultValue="0"/>
 </AllProperties>
