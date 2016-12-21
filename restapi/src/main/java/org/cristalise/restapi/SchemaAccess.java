@@ -38,7 +38,7 @@ public class SchemaAccess extends ResourceAccess {
     @Produces(MediaType.APPLICATION_JSON)
     public Response listAllSchemas(@CookieParam(COOKIENAME) Cookie authCookie, @Context UriInfo uri) {
         checkAuthCookie(authCookie);
-        return listAllResources("OutcomeDesc", uri);
+        return listAllResources("Schema", uri);
     }
 
     @GET
@@ -46,7 +46,7 @@ public class SchemaAccess extends ResourceAccess {
     @Produces(MediaType.APPLICATION_JSON)
     public Response listSchemaVersions(@PathParam("name") String name, @CookieParam(COOKIENAME) Cookie authCookie, @Context UriInfo uri) {
         checkAuthCookie(authCookie);
-        return listResourceVersions("OutcomeDesc", "Schema", "schema", name, uri);
+        return listResourceVersions("Schema", "Schema", "schema", name, uri);
     }
 
     @GET
@@ -54,6 +54,6 @@ public class SchemaAccess extends ResourceAccess {
     @Produces(MediaType.TEXT_XML)
     public Response getSchema(@PathParam("name") String name, @PathParam("version") Integer version, @CookieParam(COOKIENAME) Cookie authCookie) {
         checkAuthCookie(authCookie);
-        return getResource("OutcomeDesc", "Schema", name, version);
+        return getResource("Schema", "Schema", name, version);
     }
 }
