@@ -28,7 +28,10 @@ import java.nio.file.Paths;
 
 import org.cristalise.kernel.entity.agent.Job;
 import org.cristalise.kernel.persistency.outcome.EmptyOutcomeInitiator;
+import org.cristalise.kernel.persistency.outcome.Outcome;
+import org.cristalise.kernel.utils.Logger;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
 /**
@@ -54,11 +57,13 @@ public class EmptyOutcomeInitiatorTest extends OutcomeInitiatorTestBase {
 
         Job j = mockJob(xsd);
 
-        String actual = emptyOI.initOutcome(j);
+        Outcome actual = emptyOI.initOutcomeInstance(j);
 
-        //Logger.msg(actual);
+        if (!type.equals("Module")) actual.validateAndCheck();
 
-        if(!compareXML(expected, actual)) fail("");
+        Logger.msg(actual.getData());
+
+        if (!compareXML(expected, actual.getData())) fail("");
     }
 
     @Test
@@ -108,5 +113,10 @@ public class EmptyOutcomeInitiatorTest extends OutcomeInitiatorTestBase {
     @Test
     public void generateModuleXML() throws Exception {
         checkEmptyOutcome("Module");
+    }
+
+    @Test @Ignore("default value is not used to generate the XML")
+    public void counterIDWithDefault() throws Exception {
+        checkEmptyOutcome("CounterID");
     }
 }
