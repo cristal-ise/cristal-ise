@@ -48,13 +48,13 @@ class InMemoryLookupManager extends InMemoryLookup implements LookupManager {
     public void add(Path newPath) throws ObjectCannotBeUpdated, ObjectAlreadyExistsException {
         Logger.msg(5, "InMemoryLookupManager.add() - Path: $newPath");
 
-        if(cache.containsKey(newPath.getString())) { throw new ObjectAlreadyExistsException("$newPath")}
+        if(cache.containsKey(newPath.getStringPath())) { throw new ObjectAlreadyExistsException("$newPath")}
         else {
             if(newPath instanceof RolePath) {
                 createRole(newPath)
             }
             else if(newPath instanceof DomainPath) {
-                cache[newPath.string] = newPath
+                cache[newPath.stringPath] = newPath
 
                 Logger.msg(8, "InMemoryLookupManager.add() + Adding each DomainPath element")
                 GString sPath
@@ -62,18 +62,18 @@ class InMemoryLookupManager extends InMemoryLookup implements LookupManager {
                     if(sPath) { sPath = "$sPath/$it" }
                     else      { sPath = "$it" }
 
-                    if(exists(new DomainPath(sPath))) {
-                        Logger.msg(8, "InMemoryLookupManager.add() + DomainPath '$sPath' already exists")
+                    DomainPath d = new DomainPath(sPath)
+
+                    if(exists(d)) {
+                        Logger.msg(8, "InMemoryLookupManager.add() + DomainPath '$d' already exists")
                     }
                     else {
-                        DomainPath d = new DomainPath(Path.CONTEXT)
-                        d.setPath(sPath)
-                        cache[d.string] = d
+                        cache[d.stringPath] = d
                         Logger.msg(8, "InMemoryLookupManager.add() + DomainPath '$d' was added")
                     }
                 }
             }
-            else cache[newPath.string] = newPath
+            else cache[newPath.stringPath] = newPath
         }
     }
 
@@ -84,16 +84,16 @@ class InMemoryLookupManager extends InMemoryLookup implements LookupManager {
         if(exists(path)) {
             if(search(path, "").size() != 1 ) throw new ObjectCannotBeUpdated("Path $path is not a leaf")
 
-            if(path instanceof RolePath && role2AgentsCache.containsKey(path.string)) {
+            if(path instanceof RolePath && role2AgentsCache.containsKey(path.stringPath)) {
                 Logger.msg(8, "InMemoryLookupManager.delete() - RolePath: $path");
-                role2AgentsCache[path.string].each { removeRole(new AgentPath(it), (RolePath)path) }
+                role2AgentsCache[path.stringPath].each { removeRole(new AgentPath(it), (RolePath)path) }
             }
-            else if(path instanceof AgentPath && agent2RolesCache.containsKey(path.string)) {
+            else if(path instanceof AgentPath && agent2RolesCache.containsKey(path.stringPath)) {
                 Logger.msg(8, "InMemoryLookupManager.delete() - AgentPath: $path");
-                agent2RolesCache[path.string].each { removeRole((AgentPath)path, new RolePath(it.split("/"), false)) }
+                agent2RolesCache[path.stringPath].each { removeRole((AgentPath)path, new RolePath(it.split("/"), false)) }
             }
 
-            cache.remove(path.string)
+            cache.remove(path.stringPath)
             Logger.msg(8, "InMemoryLookupManager.delete() - $path removed");
         }
         else {
@@ -110,7 +110,7 @@ class InMemoryLookupManager extends InMemoryLookup implements LookupManager {
         try                 { role.getParent() } 
         catch (Throwable t) { Logger.error(t); throw new ObjectCannotBeUpdated("Parent role for '$role' does not exists") }
         
-        cache[role.string] = role
+        cache[role.stringPath] = role
     }
 
     @Override
@@ -120,13 +120,13 @@ class InMemoryLookupManager extends InMemoryLookup implements LookupManager {
         if(! exists(agent)) throw new ObjectNotFoundException("$agent")
         if(! exists(role))  throw new ObjectNotFoundException("$role")
 
-        if( agent2RolesCache[agent.string]?.find {it == role.string} ) throw new ObjectCannotBeUpdated("Agent '$agent' already has role '$role'")
+        if( agent2RolesCache[agent.stringPath]?.find {it == role.stringPath} ) throw new ObjectCannotBeUpdated("Agent '$agent' already has role '$role'")
 
-        if(agent2RolesCache[agent.string] == null) agent2RolesCache[agent.string] = []
-        if(role2AgentsCache[role.string]  == null) role2AgentsCache[role.string] = []
+        if(agent2RolesCache[agent.stringPath] == null) agent2RolesCache[agent.stringPath] = []
+        if(role2AgentsCache[role.stringPath]  == null) role2AgentsCache[role.stringPath] = []
 
-        agent2RolesCache[agent.string].add(role.string)
-        role2AgentsCache[role.string].add(agent.string)
+        agent2RolesCache[agent.stringPath].add(role.stringPath)
+        role2AgentsCache[role.stringPath].add(agent.stringPath)
     }
 
     @Override
@@ -136,9 +136,9 @@ class InMemoryLookupManager extends InMemoryLookup implements LookupManager {
         if(! exists(agent)) throw new ObjectNotFoundException("$agent")
         if(! exists(role))  throw new ObjectNotFoundException("$role")
 
-        if(! agent2RolesCache[agent.string]?.find {it == role.string} ) throw new ObjectCannotBeUpdated("Agent '$agent' has not got such role '$role'")
+        if(! agent2RolesCache[agent.stringPath]?.find {it == role.stringPath} ) throw new ObjectCannotBeUpdated("Agent '$agent' has not got such role '$role'")
 
-        List<String> roles = agent2RolesCache[agent.string]
+        List<String> roles = agent2RolesCache[agent.stringPath]
 
         roles.remove(role)
         Logger.msg(5, "InMemoryLookupManager.removeRole() - AgentPath: $agent, RolePath: $role -> DONE");
@@ -147,12 +147,12 @@ class InMemoryLookupManager extends InMemoryLookup implements LookupManager {
     @Override
     public void setAgentPassword(AgentPath agent, String newPassword) throws ObjectNotFoundException, ObjectCannotBeUpdated, NoSuchAlgorithmException {
         Logger.msg(5, "InMemoryLookupManager.setAgentPassword() - AgentPath: $agent");
-        ((AgentPath)retrievePath(agent.string)).setPassword(newPassword)
+        ((AgentPath)retrievePath(agent.stringPath)).setPassword(newPassword)
     }
 
     @Override
     public void setHasJobList(RolePath role, boolean hasJobList) throws ObjectNotFoundException, ObjectCannotBeUpdated {
         Logger.msg(5, "InMemoryLookupManager.setHasJobList() - RolePath: $role, hasJobList: $hasJobList");
-        ((RolePath)retrievePath(role.string)).setHasJobList(hasJobList)
+        ((RolePath)retrievePath(role.stringPath)).setHasJobList(hasJobList)
     }
 }

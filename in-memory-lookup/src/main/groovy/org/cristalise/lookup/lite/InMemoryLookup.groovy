@@ -113,7 +113,7 @@ abstract class InMemoryLookup extends ClusterStorage implements Lookup {
      */
     @Override
     public ItemPath getItemPath(String sysKey) throws InvalidItemPathException, ObjectNotFoundException {
-        return (ItemPath) retrievePath(new ItemPath(sysKey).string)
+        return (ItemPath) retrievePath(new ItemPath(sysKey).stringPath)
     }
 
     @Override
@@ -155,8 +155,8 @@ abstract class InMemoryLookup extends ClusterStorage implements Lookup {
     @Override
     public ItemPath resolvePath(DomainPath domainPath) throws InvalidItemPathException, ObjectNotFoundException {
         Logger.msg(5, "InMemoryLookup.resolvePath() - domainPath: $domainPath")
-        DomainPath dp = (DomainPath) retrievePath(domainPath.string)
-        return dp.getItemPath()
+        DomainPath dp = (DomainPath) retrievePath(domainPath.stringPath)
+        return dp.getTarget()
     }
 
     /**
@@ -169,7 +169,7 @@ abstract class InMemoryLookup extends ClusterStorage implements Lookup {
     @Override
     public String getIOR(Path path) throws ObjectNotFoundException {
         Logger.msg(5, "InMemoryLookup.getIOR() - Path: $path")
-        return retrievePath(path.string).IOR.toString()
+        return retrievePath(path.stringPath).IOR.toString()
     }
 
     /**
@@ -181,19 +181,19 @@ abstract class InMemoryLookup extends ClusterStorage implements Lookup {
     @Override
     public boolean exists(Path path) {
         //Logger.msg(5, "InMemoryLookup.exists() - Path: $path");
-        return cache.keySet().contains(path.string)
+        return cache.keySet().contains(path.stringPath)
     }
 
     @Override
     public Iterator<Path> getChildren(Path path) {
         Logger.msg(5, "InMemoryLookup.getChildren() - Path: $path")
-        return cache.values().findAll { ((Path)it).string =~ /^$path.string\/\w+$/ }.iterator()
+        return cache.values().findAll { ((Path)it).stringPath =~ /^$path.stringPath\/\w+$/ }.iterator()
     }
 
     @Override
     public Iterator<Path> search(Path start, String name) {
         Logger.msg(5, "InMemoryLookup.search(name: $name) - start: $start");
-        def result = cache.values().findAll { ((Path)it).string =~ /^$start.string.*$name/ }
+        def result = cache.values().findAll { ((Path)it).stringPath =~ /^$start.stringPath.*$name/ }
         Logger.msg(5, "InMemoryLookup.search(name: $name) - returning ${result.size()} pathes");
         return result.iterator()
     }
@@ -214,7 +214,7 @@ abstract class InMemoryLookup extends ClusterStorage implements Lookup {
         foundPathes.each { Path p ->
             ItemPath ip = null
 
-            if     (p instanceof DomainPath) { if(((DomainPath)p).type == Path.ITEM) ip = ((DomainPath)p).itemPath }
+            if     (p instanceof DomainPath) { if(!((DomainPath)p).isContext()) ip = ((DomainPath)p).itemPath }
             else if(p instanceof ItemPath)   { ip = (ItemPath)p}
 
             if(ip && checkItemProps(ip, props)) { result.add(p) }
@@ -227,7 +227,7 @@ abstract class InMemoryLookup extends ClusterStorage implements Lookup {
         Logger.msg(5, "InMemoryLookup.checkItemProps(props) - ItemPath:$itemP # of props: $props.length");
 
         for(Property prop: props) {
-            Property p = (Property)propertyStore.get(itemP.itemPath,"Property/"+prop.name)
+            Property p = (Property)propertyStore.get(itemP.itemPath, ClusterStorage.PROPERTY+"/"+prop.name)
             if(!p || p.value != prop.value) return false
         }
         return true
@@ -250,7 +250,7 @@ abstract class InMemoryLookup extends ClusterStorage implements Lookup {
     @Override
     public AgentPath[] getAgents(RolePath role) throws ObjectNotFoundException {
         Logger.msg(5, "InMemoryLookup.getAgents() - RolePath: $role");
-        List<String> agents = role2AgentsCache[retrievePath(role.string).string]
+        List<String> agents = role2AgentsCache[retrievePath(role.stringPath).stringPath]
 
         if(agents) {
             AgentPath[] retVal = new AgentPath[agents.size()]
@@ -266,14 +266,14 @@ abstract class InMemoryLookup extends ClusterStorage implements Lookup {
         Logger.msg(5,"InMemoryLookup.getRoles() - AgentPath: $agent");
 
         try {
-            List roles = agent2RolesCache[retrievePath(agent.string).string]
+            List roles = agent2RolesCache[retrievePath(agent.stringPath).stringPath]
 
             if(roles) {
                 RolePath[] retVal = new RolePath[roles.size()]
                 roles.eachWithIndex {key, i -> retVal[i] = (RolePath) retrievePath(key) }
                 return retVal
             }
-        } 
+        }
         catch (Exception e) {}
 
         return new RolePath[0];
@@ -283,7 +283,7 @@ abstract class InMemoryLookup extends ClusterStorage implements Lookup {
     public boolean hasRole(AgentPath agent, RolePath role) {
         Logger.msg(5, "InMemoryLookup.hasRole() - AgentPath: $agent, RolePath: $role");
         try {
-            return agent2RolesCache[retrievePath(agent.string).string].contains(role.string)
+            return agent2RolesCache[retrievePath(agent.stringPath).stringPath].contains(role.stringPath)
         }
         catch(Exception e) {
             return false
@@ -293,7 +293,7 @@ abstract class InMemoryLookup extends ClusterStorage implements Lookup {
     @Override
     public String getAgentName(AgentPath agentPath) throws ObjectNotFoundException {
         Logger.msg(5, "InMemoryLookup.getAgentName() - AgentPath: $agentPath");
-        AgentPath p = (AgentPath) retrievePath(agentPath.string)
+        AgentPath p = (AgentPath) retrievePath(agentPath.stringPath)
         return p.agentName;
     }
 }
