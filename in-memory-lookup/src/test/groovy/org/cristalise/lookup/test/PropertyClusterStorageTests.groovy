@@ -6,6 +6,7 @@ import org.cristalise.kernel.persistency.ClusterStorage
 import org.cristalise.kernel.property.Property
 import org.cristalise.kernel.utils.Logger
 import org.cristalise.storage.InMemoryPropertyClusterStorage
+import org.junit.After
 import org.junit.Before
 import org.junit.Test
 
@@ -16,10 +17,10 @@ class PropertyClusterStorageTests {
     UUID uuid1 = new UUID(0,1)
 
     InMemoryPropertyClusterStorage propClusterStore
-    
+
     ItemPath itemPath0, itemPath1
     Property propType, propStyle
-    
+
     @Before
     public void init() {
         Logger.addLogStream(System.out, 9);
@@ -37,6 +38,12 @@ class PropertyClusterStorageTests {
         propClusterStore.put(itemPath1, propStyle)
         propClusterStore.add(new DomainPath("toto/item0", itemPath0))
         propClusterStore.add(new DomainPath("toto/item1", itemPath1))
+    }
+
+    @After
+    public void tearDown() {
+        propClusterStore.close()
+        Logger.removeLogStream(System.out);
     }
 
     @Test
