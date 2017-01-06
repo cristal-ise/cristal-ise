@@ -24,10 +24,11 @@ import java.util.List;
 
 import org.cristalise.kernel.common.InvalidDataException
 
+import groovy.transform.CompileStatic;
 
+
+@CompileStatic
 class Field extends Attribute {
-    String multiplicity = ''
-
     String minOccurs = '1'
     String maxOccurs = '1'
 
@@ -50,7 +51,7 @@ class Field extends Attribute {
      * @param m
      * @return
      */
-    def setMultiplicity(String m) {
+    public void setMultiplicity(String m) {
         if(!m) {
             minOccurs = ''; maxOccurs = '';
         }
@@ -73,8 +74,6 @@ class Field extends Attribute {
             if(!v) { minOccurs = '0'; maxOccurs = ''; }
             else   { minOccurs = v;   maxOccurs = v; }
         }
-
-        multiplicity = m
     }
 
     /**

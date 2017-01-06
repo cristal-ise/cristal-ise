@@ -76,9 +76,17 @@ class SchemaDelegate {
 
             'xs:complexType' {
                 if(s.fields) {
-                    'xs:sequence' {
-                        s.fields.each { Field f -> buildField(xsd, f) }
+                    if(s.useSequence) {
+                        'xs:sequence' {
+                            s.fields.each { Field f -> buildField(xsd, f) }
+                        }
                     }
+                    else {
+                        'xs:all'(minOccurs: '0') {
+                            s.fields.each { Field f -> buildField(xsd, f) }
+                        }
+                    }
+
                 } 
                 if(s.attributes) {
                     s.attributes.each { Attribute a -> buildAtribute(xsd, a) }
@@ -90,7 +98,7 @@ class SchemaDelegate {
     private void buildAtribute(xsd, Attribute a) {
         Logger.msg 1, "SchemaDelegate.buildAtribute() - attribute: $a.name"
 
-        xsd.'xs:attribute'(name: a.name, type: (!a.values && !a.pattern ? a.type : ''), 'default': a.defaultVal) {
+        xsd.'xs:attribute'(name: a.name, type: (!a.values && !a.pattern ? a.type : ''), 'default': a.defaultVal, 'use': (a?.required ? "required": "")) {
             if(a.values) {
                 buildRestriction(xsd, a.type, a.values)
             }
@@ -108,7 +116,7 @@ class SchemaDelegate {
                 'xs:complexType' {
                     'xs:simpleContent' {
                         'xs:extension'(base: f.type) {
-                            'xs:attribute'(name:"unit", type: (!f.unit.values ? 'xs:string' : ''), 'default': f.unit.defaultVal, 'use': (f.unit.required && f.unit.defaultVal ? "optional": "required")) {
+                            'xs:attribute'(name:"unit", type: (!f.unit.values ? 'xs:string' : ''), 'default': f.unit.defaultVal, 'use': (f.unit.defaultVal ? "optional": "required")) {
                                 if(f.unit.values) {
                                     buildRestriction(xsd, 'xs:string', f.unit.values)
                                 }

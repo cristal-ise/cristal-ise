@@ -22,7 +22,10 @@ package org.cristalise.dsl.persistency.outcome
 
 import org.cristalise.kernel.common.InvalidDataException
 
+import groovy.transform.CompileStatic;
 
+
+@CompileStatic
 class Attribute {
     /**
      * accepted types from XSD specification without namespace (i.e. xs:)
@@ -35,6 +38,8 @@ class Attribute {
 
     List values
     def defaultVal
+
+    boolean required = false
 
     /**
      * Checks if the type is acceptable
@@ -58,5 +63,14 @@ class Attribute {
         if(values && !values.contains(val)) throw new InvalidDataException("Default value '$val' is wrong, it must be one of these: $values")
 
         defaultVal = val
+    }
+
+    public void setMultiplicity(String m) {
+        if(m) {
+            if(m == "1")         required = true
+            else if(m == "1..1") required = true
+            else if(m == "0..1") required = false
+            else                 throw new InvalidDataException("Invalid value for attribute multiplicity : '$m'")
+        }
     }
 }

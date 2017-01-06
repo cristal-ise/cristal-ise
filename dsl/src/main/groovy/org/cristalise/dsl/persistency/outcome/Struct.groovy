@@ -28,6 +28,7 @@ package org.cristalise.dsl.persistency.outcome
 class Struct {
     String name
     String documentation
+    boolean useSequence = false
 
     List<Field> fields = []
     List<Attribute> attributes = []

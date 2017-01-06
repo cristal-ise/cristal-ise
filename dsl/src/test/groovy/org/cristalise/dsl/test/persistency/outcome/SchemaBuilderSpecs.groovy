@@ -105,10 +105,10 @@ class SchemaBuilderSpecs extends Specification implements CristalTestSetup {
     }
 
 
-    def 'Structure can have a list of Fields which default type is string and multiplicity is 1'() {
+    def 'Structure can define sequence of Fields which default type is string and multiplicity is 1'() {
         expect:
         SchemaTestBuilder.build('Test', 'TestData', 0) {
-            struct(name: 'TestData') { 
+            struct(name: 'TestData', useSequence: true) { 
                 field(name:'stringField1')
                 field(name:'stringField2')
             }
@@ -119,6 +119,26 @@ class SchemaBuilderSpecs extends Specification implements CristalTestSetup {
                                 <xs:element name='stringField1' type='xs:string' minOccurs='1' maxOccurs='1' />
                                 <xs:element name='stringField2' type='xs:string' minOccurs='1' maxOccurs='1' />
                               </xs:sequence>
+                            </xs:complexType>
+                          </xs:element>
+                        </xs:schema>""")
+    }
+
+
+    def 'Structure can define an unordered set of Fields xs:all which default type is string and multiplicity is 1'() {
+        expect:
+        SchemaTestBuilder.build('Test', 'TestData', 0) {
+            struct(name: 'TestData') { 
+                field(name:'stringField1')
+                field(name:'stringField2')
+            }
+        }.compareXML("""<xs:schema xmlns:xs='http://www.w3.org/2001/XMLSchema'>
+                          <xs:element name='TestData'>
+                            <xs:complexType>
+                              <xs:all minOccurs='0'>
+                                <xs:element name='stringField1' type='xs:string' minOccurs='1' maxOccurs='1' />
+                                <xs:element name='stringField2' type='xs:string' minOccurs='1' maxOccurs='1' />
+                              </xs:all>
                             </xs:complexType>
                           </xs:element>
                         </xs:schema>""")
@@ -160,7 +180,7 @@ class SchemaBuilderSpecs extends Specification implements CristalTestSetup {
         }.compareXML("""<xs:schema xmlns:xs='http://www.w3.org/2001/XMLSchema'>
                           <xs:element name='TestData'>
                             <xs:complexType>
-                              <xs:sequence>
+                              <xs:all minOccurs='0'>
                                 <xs:element name='stringField'   type='xs:string'   minOccurs='1' maxOccurs='1' />
                                 <xs:element name='booleanField'  type='xs:boolean'  minOccurs='1' maxOccurs='1' />
                                 <xs:element name='integerField'  type='xs:integer'  minOccurs='1' maxOccurs='1' />
@@ -168,7 +188,7 @@ class SchemaBuilderSpecs extends Specification implements CristalTestSetup {
                                 <xs:element name='dateField'     type='xs:date'     minOccurs='1' maxOccurs='1' />
                                 <xs:element name='timeField'     type='xs:time'     minOccurs='1' maxOccurs='1' />
                                 <xs:element name='dateTimeField' type='xs:dateTime' minOccurs='1' maxOccurs='1' />
-                              </xs:sequence>
+                              </xs:all>
                             </xs:complexType>
                           </xs:element>
                         </xs:schema>""")
@@ -200,7 +220,34 @@ class SchemaBuilderSpecs extends Specification implements CristalTestSetup {
         thrown(InvalidDataException)
     }
 
+    def 'Attribute can use multiplicity to specify if it is optional or not'() {
+        expect:
+        SchemaTestBuilder.build('Test', 'TestData', 0) {
+            struct(name: 'TestData') {
+                attribute(name: 'byteField', multiplicity: '1..1')
+            }
+        }.compareXML("""<xs:schema xmlns:xs='http://www.w3.org/2001/XMLSchema'>
+                          <xs:element name='TestData'>
+                            <xs:complexType>
+                              <xs:attribute name="byteField" type='xs:string' use="required"/>
+                            </xs:complexType>
+                          </xs:element>
+                        </xs:schema>""")
+        }
+        
+        
+    def 'Attribute CANNOT specify multiplicity other than 0..1 and 1..1'() {
+        when: "attribute specifies multiplicity"
+        SchemaTestBuilder.build('Test', 'TestData', 0) {
+            struct(name: 'TestData') {
+                attribute(name: 'byteField', multiplicity: '2')
+            }
+        }
 
+        then: "InvalidDataException is thrown"
+        thrown(InvalidDataException)
+    }
+ 
     def 'Field can specify multiplicity'() {
         expect:
         SchemaTestBuilder.build('Test', 'TestData', 0) {
@@ -215,14 +262,14 @@ class SchemaBuilderSpecs extends Specification implements CristalTestSetup {
         }.compareXML("""<xs:schema xmlns:xs='http://www.w3.org/2001/XMLSchema'>
                             <xs:element name='TestData'>
                                 <xs:complexType>
-                                    <xs:sequence>
+                                    <xs:all minOccurs='0'>
                                         <xs:element name='default'     type='xs:string' minOccurs='1' maxOccurs='1' />
                                         <xs:element name='many'        type='xs:string' minOccurs='0' />
                                         <xs:element name='fivehundred' type='xs:string' minOccurs='500' maxOccurs='500' />
                                         <xs:element name='zeroToMany'  type='xs:string' minOccurs='0' />
                                         <xs:element name='oneToFive'   type='xs:string' minOccurs='1' maxOccurs='5' />
                                         <xs:element name='reset'       type='xs:string' />
-                                    </xs:sequence>
+                                    </xs:all>
                                 </xs:complexType>
                             </xs:element>
                         </xs:schema>""")
@@ -254,9 +301,9 @@ class SchemaBuilderSpecs extends Specification implements CristalTestSetup {
         }.compareXML("""<xs:schema xmlns:xs='http://www.w3.org/2001/XMLSchema'>
                             <xs:element name='TestData'>
                                 <xs:complexType>
-                                    <xs:sequence>
+                                    <xs:all minOccurs='0'>
                                         <xs:element minOccurs="1" maxOccurs="1" name="Gender" type='xs:string' default="female"/>
-                                    </xs:sequence>
+                                    </xs:all>
                                 </xs:complexType>
                             </xs:element>
                         </xs:schema>""")
@@ -289,7 +336,7 @@ class SchemaBuilderSpecs extends Specification implements CristalTestSetup {
     def 'Field can define a predefined set of values'() {
         expect:
         SchemaTestBuilder.build('Test', 'TestData', 0) {
-            struct(name: 'TestData') {
+            struct(name: 'TestData', useSequence: true) {
                 field(name: 'Gender', type: 'string', values: ['male', 'female'])
             }
         }.compareXML("""<xs:schema xmlns:xs='http://www.w3.org/2001/XMLSchema'>
@@ -342,7 +389,7 @@ class SchemaBuilderSpecs extends Specification implements CristalTestSetup {
         }.compareXML("""<xs:schema xmlns:xs='http://www.w3.org/2001/XMLSchema'>
                           <xs:element name='TestData'>
                             <xs:complexType>
-                              <xs:sequence>
+                              <xs:all minOccurs='0'>
                                 <xs:element minOccurs="1" maxOccurs="1" name="Gender">
                                   <xs:simpleType>
                                     <xs:restriction base="xs:string">
@@ -350,7 +397,7 @@ class SchemaBuilderSpecs extends Specification implements CristalTestSetup {
                                     </xs:restriction>
                                   </xs:simpleType>
                                 </xs:element>
-                              </xs:sequence>
+                              </xs:all>
                             </xs:complexType>
                           </xs:element>
                         </xs:schema>""")
@@ -360,7 +407,7 @@ class SchemaBuilderSpecs extends Specification implements CristalTestSetup {
     def 'Field can have Unit which is added as attribute of type string'() {
         expect:
         SchemaTestBuilder.build('Test', 'TestData', 0) {
-            struct(name: 'TestData') {
+            struct(name: 'TestData', useSequence: true) {
                 field(name: 'Weight', type: 'decimal') { unit() }
             }
         }.compareXML("""<xs:schema xmlns:xs='http://www.w3.org/2001/XMLSchema'>
@@ -386,7 +433,7 @@ class SchemaBuilderSpecs extends Specification implements CristalTestSetup {
     def 'Unit can specify the list of values it contains'() {
         expect:
         SchemaTestBuilder.build('Test', 'TestData', 0) {
-            struct(name: 'TestData') {
+            struct(name: 'TestData', useSequence: true) {
                 field(name: 'Weight', type: 'decimal') { unit(values: ['g', 'kg']) }
             }
         }.compareXML("""<xs:schema xmlns:xs='http://www.w3.org/2001/XMLSchema'>
@@ -432,7 +479,7 @@ class SchemaBuilderSpecs extends Specification implements CristalTestSetup {
                      <xs:documentation>This is the Schema for Basic Tutorial</xs:documentation>
                    </xs:annotation>
                    <xs:complexType>
-                   <xs:sequence>
+                   <xs:all minOccurs="0">
                      <xs:element minOccurs="1" maxOccurs="1" name="DateOfBirth" type="xs:date"/>
                      <xs:element minOccurs="1" maxOccurs="1" name="Gender">
                        <xs:simpleType>
@@ -458,7 +505,7 @@ class SchemaBuilderSpecs extends Specification implements CristalTestSetup {
                          </xs:simpleContent>
                        </xs:complexType>
                      </xs:element>
-                   </xs:sequence>
+                   </xs:all>
                    <xs:attribute name="InsuranceNumber" type="xs:string" default= "123456789ABC"/>
                  </xs:complexType>
                </xs:element>

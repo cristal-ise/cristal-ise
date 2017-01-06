@@ -22,14 +22,16 @@ package org.cristalise.dsl.persistency.outcome
 
 import org.cristalise.kernel.common.InvalidDataException
 
+import groovy.transform.CompileStatic;
+
 
 /**
  * Unit is actually a specific Attribute which name is 'unit', type is 'string' and always required
  */
+@CompileStatic
 class Unit {
     List<String> values = []
     String defaultVal
-    boolean required = true
 
     /**
      * 'default' is a keyword, so it cannot be used as a variable name, 

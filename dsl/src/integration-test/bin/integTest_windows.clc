@@ -28,3 +28,5 @@ XMLDB.URI=xmldb:exist://localhost:8080/exist/xmlrpc/db
 XMLDB.root=integTest
 XMLDB.user=admin
 XMLDB.password=cristal
+
+Trigger.password=test
