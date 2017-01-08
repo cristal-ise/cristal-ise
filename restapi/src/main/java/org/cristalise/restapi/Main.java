@@ -37,7 +37,7 @@ import org.glassfish.jersey.grizzly2.httpserver.GrizzlyHttpServerFactory;
 import org.glassfish.jersey.server.ResourceConfig;
 
 /**
- * Main class to launch the Test Restapi server
+ * Main class to launch the Test Restapi server. It is based on grizzly HTTP server.
  */
 public class Main extends StandardClient {
 
@@ -46,15 +46,18 @@ public class Main extends StandardClient {
     /**
      * Initialise standard CRISTAL-iSE client process.
      * Creates ResourceConfig that scans for JAX-RS resources and providers in 'org.cristalise.restapi' package
-     * Creates Grizzly HTTP server exposing the Jersey application at the given URI
-     * Us
+     * Creates Grizzly HTTP server exposing the Jersey application at the given URI.
      * 
      * @throws BadArgumentsException Bad Arguments
      * @throws InvalidDataException Invalid Data
-     * @throws PersistencyException Persistency
+     * @throws PersistencyException Persistency problem
      * @throws ObjectNotFoundException Object Not Found
      */
-    public static void startServer(String[] args) throws BadArgumentsException, InvalidDataException, PersistencyException, ObjectNotFoundException
+    public static void startServer(String[] args) 
+            throws BadArgumentsException, 
+                   InvalidDataException, 
+                   PersistencyException, 
+                   ObjectNotFoundException
     {
         setShutdownHandler(new ShutdownHandler() {
             @Override
@@ -75,20 +78,20 @@ public class Main extends StandardClient {
 
         if (Gateway.getProperties().getBoolean("REST.addCorsHeaders", false)) rc.register(CORSResponseFilter.class);
 
-        Logger.msg("Jersey app started with WADL available at "+uri+"application.wadl");
+        Logger.msg("Main.startServer() - Jersey app started with WADL available at "+uri+"application.wadl");
 
         server = GrizzlyHttpServerFactory.createHttpServer(URI.create(uri), rc);
     }
 
     /**
-     * Main method.
+     * Very basic main method to Start HTTP server and initialise CRISTAL-iSE connection.
      * 
-     * @param args
-     * @throws IOException
-     * @throws BadArgumentsException
-     * @throws InvalidDataException
-     * @throws PersistencyException
-     * @throws ObjectNotFoundException
+     * @param args input parameters
+     * @throws IOException Input was incorrect
+     * @throws BadArgumentsException Bad Arguments
+     * @throws InvalidDataException Invalid Data
+     * @throws PersistencyException Persistency problem
+     * @throws ObjectNotFoundException Object Not Found
      */
     public static void main(String[] args)
             throws IOException,

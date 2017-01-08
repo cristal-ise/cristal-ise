@@ -29,7 +29,7 @@ import javax.ws.rs.core.MultivaluedMap;
 import java.io.IOException;
 
 /**
- * Add CORS headers to each Response
+ * Implements ContainerResponseFilter to add CORS headers to each Response.
  */
 public class CORSResponseFilter implements ContainerResponseFilter {
 
@@ -39,7 +39,7 @@ public class CORSResponseFilter implements ContainerResponseFilter {
         MultivaluedMap<String, Object> respHeaders = responseContext.getHeaders();
 
         respHeaders.add("Access-Control-Allow-Headers", "X-Requested-With, Content-Type, X-Codingpedia");
-        respHeaders.add("Access-Control-Allow-Origin", Gateway.getProperties().getString("REST.corsAllowOrigin", "*"));
-        respHeaders.add("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
+        respHeaders.add("Access-Control-Allow-Origin",  Gateway.getProperties().getString("REST.corsAllowOrigin",  "*"));
+        respHeaders.add("Access-Control-Allow-Methods", Gateway.getProperties().getString("REST.corsAllowMethods", "GET, POST, OPTIONS"));
     }
 }
