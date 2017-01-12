@@ -13,7 +13,7 @@ import org.jooq.DSLContext;
 import org.jooq.Record;
 import org.jooq.impl.SQLDataType;
 
-public class JOOQOutcome {
+public class JooqOutcome {
     public static final String tableName = "OUTCOME";
 
     public int put(DSLContext context, UUID uuid, Outcome outcome) {

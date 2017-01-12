@@ -14,7 +14,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.cristalise.kernel.common.ObjectAlreadyExistsException;
 import org.cristalise.kernel.common.ObjectCannotBeUpdated;
 import org.cristalise.kernel.common.ObjectNotFoundException;
-import org.cristalise.kernel.common.PersistencyException;
 import org.cristalise.kernel.lookup.AgentPath;
 import org.cristalise.kernel.lookup.DomainPath;
 import org.cristalise.kernel.lookup.InvalidItemPathException;
@@ -34,7 +33,7 @@ import org.jooq.exception.DataAccessException;
 /**
  *
  */
-public class JOOQLookupManager implements LookupManager {
+public class JooqLookupManager implements LookupManager {
 
     public static final String JOOQ_URI      = "JOOQ.URI";
     public static final String JOOQ_USER     = "JOOQ.user";

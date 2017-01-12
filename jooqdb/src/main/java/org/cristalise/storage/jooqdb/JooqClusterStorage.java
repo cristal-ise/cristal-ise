@@ -26,7 +26,7 @@ import org.jooq.SQLDialect;
 import org.jooq.exception.DataAccessException;
 import org.jooq.impl.DefaultConnectionProvider;
 
-public class JOOQClusterStorage extends TransactionalClusterStorage {
+public class JooqClusterStorage extends TransactionalClusterStorage {
     public static final String JOOQ_URI      = "JOOQ.URI";
     public static final String JOOQ_USER     = "JOOQ.user";
     public static final String JOOQ_PASSWORD = "JOOQ.password";
@@ -34,8 +34,8 @@ public class JOOQClusterStorage extends TransactionalClusterStorage {
 
     private DSLContext context;
 
-    JOOQItemProperty propertyHandler;
-    JOOQOutcome      outcomeHandler;
+    JooqItemProperty propertyHandler;
+    JooqOutcome      outcomeHandler;
 
     @Override
     public void open(Authenticator auth) throws PersistencyException {
@@ -54,10 +54,10 @@ public class JOOQClusterStorage extends TransactionalClusterStorage {
         try {
             context = using(DriverManager.getConnection(uri, user, pwd), dialect);
 
-            propertyHandler = new JOOQItemProperty();
+            propertyHandler = new JooqItemProperty();
             propertyHandler.createTables(context);
 
-            outcomeHandler = new JOOQOutcome();
+            outcomeHandler = new JooqOutcome();
             outcomeHandler.createTables(context);
         }
         catch (SQLException | DataAccessException ex) {
@@ -162,18 +162,18 @@ public class JOOQClusterStorage extends TransactionalClusterStorage {
             return p;
         }
         else if (path.startsWith(ClusterStorage.OUTCOME)) {
-            Outcome o = outcomeHandler.fetch(context, uuid, pathArray[1], new Integer(pathArray[2]), new Integer(pathArray[3]));
+            Outcome outcome = outcomeHandler.fetch(context, uuid, pathArray[1], new Integer(pathArray[2]), new Integer(pathArray[3]));
 
-            if (o == null) throw new PersistencyException("Could not fetch '"+itemPath+"/"+path+"'");
+            if (outcome == null) throw new PersistencyException("Could not fetch '"+itemPath+"/"+path+"'");
 
             try {
-                o.setSchema(LocalObjectLoader.getSchema(pathArray[1], new Integer(pathArray[2])));
+                outcome.setSchema(LocalObjectLoader.getSchema(pathArray[1], new Integer(pathArray[2])));
             }
             catch (NumberFormatException | ObjectNotFoundException | InvalidDataException e) {
                 Logger.error(e);
                 throw new PersistencyException(e.getMessage());
             }
-            return o;
+            return outcome;
         }
         throw new PersistencyException("Read is not supported for '"+path+"'");
     }
@@ -185,19 +185,14 @@ public class JOOQClusterStorage extends TransactionalClusterStorage {
 
     @Override
     public void put(ItemPath itemPath, C2KLocalObject obj, Object locker) throws PersistencyException {
-        String clusterPath = obj.getClusterPath();
         UUID uuid = itemPath.getUUID();
 
         if (obj instanceof Property) {
             propertyHandler.put(context, itemPath.getUUID(), (Property)obj);
         }
         else if (obj instanceof Outcome) {
-            Outcome outcome = (Outcome) obj;
             try {
-                outcomeHandler.put(context, uuid, outcome);
-
-//                if      (clusterPath.contains("/Transaction/")) TransactionToSqlDb.put(context, uuid, outcome);
-//                else if (clusterPath.contains("/Storage/"))     StorageToSqlDb.put(    context, uuid, outcome);
+                outcomeHandler.put(context, uuid, (Outcome) obj);
             }
             catch (Exception e) {
                 Logger.error(e);

@@ -8,8 +8,8 @@ import org.cristalise.kernel.process.AbstractMain
 import org.cristalise.kernel.process.Gateway
 import org.cristalise.kernel.utils.Logger
 import org.cristalise.kernel.utils.ObjectProperties
-import org.cristalise.storage.jooqdb.JOOQClusterStorage
-import org.cristalise.storage.jooqdb.JOOQLookupManager
+import org.cristalise.storage.jooqdb.JooqClusterStorage
+import org.cristalise.storage.jooqdb.JooqLookupManager
 import org.junit.After
 import org.junit.Before
 import org.springframework.cache.config.CacheAdviceParser.Props
@@ -26,14 +26,14 @@ class LookupTestBase {
     public void setUp() throws Exception {
         Logger.addLogStream(System.out, 8);
 
-        lookup = new JOOQLookupManager()
+        lookup = new JooqLookupManager()
 
         ObjectProperties c2kProps = new ObjectProperties();
 
-        c2kProps.put(JOOQClusterStorage.JOOQ_URI, "jdbc:h2:mem:");
-        c2kProps.put(JOOQClusterStorage.JOOQ_USER, "sa");
-        c2kProps.put(JOOQClusterStorage.JOOQ_PASSWORD, "sa");
-        c2kProps.put(JOOQClusterStorage.JOOQ_DIALECT, "H2");
+        c2kProps.put(JooqClusterStorage.JOOQ_URI, "jdbc:h2:mem:");
+        c2kProps.put(JooqClusterStorage.JOOQ_USER, "sa");
+        c2kProps.put(JooqClusterStorage.JOOQ_PASSWORD, "sa");
+        c2kProps.put(JooqClusterStorage.JOOQ_DIALECT, "H2");
 
         FieldUtils.writeDeclaredStaticField(Gateway.class, "mLookupManager", lookup, true)
         FieldUtils.writeDeclaredStaticField(Gateway.class, "mLookup",        lookup, true)

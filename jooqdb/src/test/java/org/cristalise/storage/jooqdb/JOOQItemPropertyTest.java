@@ -7,7 +7,7 @@ import java.sql.DriverManager;
 import java.util.UUID;
 
 import org.cristalise.kernel.property.Property;
-import org.cristalise.storage.jooqdb.JOOQItemProperty;
+import org.cristalise.storage.jooqdb.JooqItemProperty;
 import org.jooq.DSLContext;
 import org.jooq.SQLDialect;
 import org.junit.Before;
@@ -18,7 +18,7 @@ public class JOOQItemPropertyTest {
     UUID       uuid = UUID.randomUUID();
     Property   property = new Property("toto", "value", true);
 
-    JOOQItemProperty jooq;
+    JooqItemProperty jooq;
 
     private void compareProperties(Property actual, Property expected) {
         assert actual.getName().equals(expected.getName());
@@ -36,7 +36,7 @@ public class JOOQItemPropertyTest {
             Connection conn = DriverManager.getConnection(url, userName, password);
             context = using(conn, SQLDialect.H2);
 
-            jooq = new JOOQItemProperty();
+            jooq = new JooqItemProperty();
             jooq.createTables(context);
             assert jooq.put(context, uuid, property) == 1;
         }

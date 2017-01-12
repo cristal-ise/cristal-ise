@@ -11,7 +11,7 @@ import org.jooq.DSLContext;
 import org.jooq.Record;
 import org.jooq.impl.SQLDataType;
 
-public class JOOQItemProperty {
+public class JooqItemProperty {
     public static final String tableName = "ITEM_PROPERTY";
 
     public int put(DSLContext context, UUID uuid, Property prop) {
