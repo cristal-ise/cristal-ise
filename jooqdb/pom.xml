@@ -1,7 +1,7 @@
 <!--
 
-    This file is part of the CRISTAL-iSE MySQL Cluster Storage Module.
-    Copyright (c) 2001-2015 The CRISTAL Consortium. All rights reserved.
+    This file is part of the CRISTAL-iSE JOOQB Storage Module.
+    Copyright (c) 2001-2017 The CRISTAL Consortium. All rights reserved.
 
     This library is free software; you can redistribute it and/or modify it
     under the terms of the GNU Lesser General Public License as published
@@ -23,12 +23,12 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
-    <name>cristalise-mysql</name>
+    <name>cristalise-jooqdb</name>
     <groupId>org.cristalise</groupId>
-    <artifactId>cristalise-mysql</artifactId>
+    <artifactId>cristalise-jooqdb</artifactId>
     <version>3.3-SNAPSHOT</version>
-    <description>CRISTAL MxSQL Storage Module</description>
-    <url>https://github.com/cristal-ise/mysql-storage</url>
+    <description>CRISTAL-iSE JOOQ Storage Module</description>
+    <url>https://github.com/cristal-ise/jooqdb</url>
     <licenses>
         <license>
             <name>GNU Library or Lesser General Public License v3 (LGPL3)</name>
@@ -69,7 +69,7 @@
         </developer>
     </developers>
     <issueManagement>
-        <url>https://github.com/cristal-ise/mysql-storage/issues</url>
+        <url>https://github.com/cristal-ise/jooqdb/issues</url>
         <system>GitHub</system>
     </issueManagement>
     <organization>
@@ -78,11 +78,11 @@
     </organization>
     <ciManagement>
         <system>Jenkins</system>
-        <url>https://travis-ci.org/cristal-ise/mysql-storage</url>
+        <url>https://travis-ci.org/cristal-ise/jooqdb</url>
     </ciManagement>
     <scm>
-        <developerConnection>scm:https://github.com/cristal-ise/mysql-storage.git</developerConnection>
-        <url>https://github.com/cristal-ise/mysql-storage</url>
+        <developerConnection>scm:https://github.com/cristal-ise/jooqdb.git</developerConnection>
+        <url>https://github.com/cristal-ise/jooqdb</url>
         <tag>master</tag>
     </scm>
     <mailingLists>
@@ -106,7 +106,7 @@
             </resource>
             <resource>
                 <directory>src/main/resources</directory>
-                <targetPath>org/cristalise/storage/mysql-storage/resources</targetPath>
+                <targetPath>org/cristalise/storage/jooqdb/resources</targetPath>
                 <excludes>
                     <exclude>module.xml</exclude>
                 </excludes>
