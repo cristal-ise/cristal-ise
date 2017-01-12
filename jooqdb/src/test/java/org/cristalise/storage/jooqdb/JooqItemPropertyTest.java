@@ -13,7 +13,7 @@ import org.jooq.SQLDialect;
 import org.junit.Before;
 import org.junit.Test;
 
-public class JOOQItemPropertyTest {
+public class JooqItemPropertyTest {
     DSLContext context;
     UUID       uuid = UUID.randomUUID();
     Property   property = new Property("toto", "value", true);
