@@ -18,7 +18,7 @@
  *
  * http://www.fsf.org/licensing/licenses/lgpl.html
  */
-package org.cristalise.storage.mysql;
+package org.cristalise.storage.jooqdb;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
