@@ -33,7 +33,7 @@ public class JooqOutcomeTest {
         jooq.createTables(context);
 
         outcome = new Outcome(1, "<xml/>", new Schema("SchemaName", 0, "<xs:schema/>"));
-        jooq.put(context, uuid, outcome);
+        assert jooq.put(context, uuid, outcome) == 1;
     }
 
     @Test
@@ -44,7 +44,7 @@ public class JooqOutcomeTest {
     }
 
     @Test(expected=IllegalArgumentException.class)
-    public void cannotUpdateOutcome() throws Exception {
+    public void updateOutcome_exception() throws Exception {
         jooq.put(context, uuid, outcome);
     }
 }

@@ -107,7 +107,7 @@ public class JooqClusterStorage extends TransactionalClusterStorage {
         Logger.msg(1, "JOOQClusterStorage.abort()");
         try {
             ((DefaultConnectionProvider)context.configuration().connectionProvider()).rollback();
-        } 
+        }
         catch (DataAccessException e) {
             Logger.error(e);
         }
@@ -117,7 +117,7 @@ public class JooqClusterStorage extends TransactionalClusterStorage {
     public short queryClusterSupport(String clusterType) {
         if(     PROPERTY.equals(clusterType))   return READWRITE;
         else if(OUTCOME.equals(clusterType))    return READWRITE;
-        else if(VIEWPOINT.equals(clusterType))  return NONE;
+        else if(VIEWPOINT.equals(clusterType))  return READWRITE;
         else if(LIFECYCLE.equals(clusterType))  return NONE;
         else if(HISTORY.equals(clusterType))    return NONE;
         else if(COLLECTION.equals(clusterType)) return NONE;
