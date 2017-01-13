@@ -6,32 +6,42 @@ import static org.jooq.impl.DSL.table;
 
 import java.util.UUID;
 
+import org.cristalise.kernel.entity.C2KLocalObject;
 import org.cristalise.kernel.property.Property;
 import org.jooq.DSLContext;
 import org.jooq.Record;
 import org.jooq.impl.SQLDataType;
 
-public class JooqItemProperty {
+public class JooqItemPropertyHandler implements JooqHandler {
     public static final String tableName = "ITEM_PROPERTY";
 
-    public int put(DSLContext context, UUID uuid, Property prop) {
-        Property p = fetch(context, uuid, prop.getName());
+    @Override
+    public int put(DSLContext context, UUID uuid, C2KLocalObject obj) {
+        C2KLocalObject p = fetch(context, uuid, obj.getName());
 
-        if (p == null) return insert(context, uuid, prop);
-        else           return update(context, uuid, prop);
+        if (p == null) return insert(context, uuid, obj);
+        else           return update(context, uuid, obj);
     }
 
-    public int update(DSLContext context, UUID uuid, Property prop) {
+    @Override
+    public int update(DSLContext context, UUID uuid, C2KLocalObject obj) {
         return context
                 .update(table(tableName))
-                .set(field("VALUE"),   prop.getValue())
-                .set(field("MUTABLE"), prop.isMutable())
+                .set(field("VALUE"),   ((Property)obj).getValue())
+                .set(field("MUTABLE"), ((Property)obj).isMutable())
                 .where(field("UUID").equal(uuid))
-                  .and(field("NAME").equal(prop.getName()))
+                  .and(field("NAME").equal(obj.getName()))
                 .execute();
     }
 
-    public int insert(DSLContext context, UUID uuid, Property prop) {
+    @Override
+    public C2KLocalObject delete(DSLContext context, UUID uuid, String... primaryKeys) {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    @Override
+    public int insert(DSLContext context, UUID uuid, C2KLocalObject obj) {
         return context
                 .insertInto(
                     table(tableName), 
@@ -40,15 +50,16 @@ public class JooqItemProperty {
                         field("VALUE"),
                         field("MUTABLE")
                  )
-                .values(uuid, prop.getName(), prop.getValue(), prop.isMutable())
+                .values(uuid, obj.getName(),  ((Property)obj).getValue(),  ((Property)obj).isMutable())
                 .execute();
     }
 
-    public Property fetch(DSLContext context, UUID uuid, String name) {
+    @Override
+    public C2KLocalObject fetch(DSLContext context, UUID uuid, String...primaryKeys) {
         Record result = context
                 .select().from(table(tableName))
                 .where(field("UUID").equal(uuid))
-                  .and(field("NAME").equal(name))
+                  .and(field("NAME").equal(primaryKeys[0]))
                 .fetchOne();
 
         if(result != null) return new Property(result.get(field("NAME",    String.class)),
@@ -57,6 +68,12 @@ public class JooqItemProperty {
         else               return null;
     }
 
+    @Override
+    public String[] getClusterContent(DSLContext context, String path) {
+        return null;
+    }
+
+    @Override
     public void createTables(DSLContext context) {
         context.createTableIfNotExists(table(tableName))
             .column(field("UUID",    UUID.class),    SQLDataType.UUID.nullable(false))

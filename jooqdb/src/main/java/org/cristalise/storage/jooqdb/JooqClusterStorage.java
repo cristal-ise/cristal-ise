@@ -4,22 +4,19 @@ import static org.jooq.impl.DSL.using;
 
 import java.sql.DriverManager;
 import java.sql.SQLException;
+import java.util.Arrays;
+import java.util.HashMap;
 import java.util.UUID;
 
 import org.apache.commons.lang3.StringUtils;
-import org.cristalise.kernel.common.InvalidDataException;
-import org.cristalise.kernel.common.ObjectNotFoundException;
 import org.cristalise.kernel.common.PersistencyException;
 import org.cristalise.kernel.entity.C2KLocalObject;
 import org.cristalise.kernel.lookup.ItemPath;
 import org.cristalise.kernel.persistency.ClusterStorage;
 import org.cristalise.kernel.persistency.TransactionalClusterStorage;
-import org.cristalise.kernel.persistency.outcome.Outcome;
 import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.process.auth.Authenticator;
-import org.cristalise.kernel.property.Property;
 import org.cristalise.kernel.querying.Query;
-import org.cristalise.kernel.utils.LocalObjectLoader;
 import org.cristalise.kernel.utils.Logger;
 import org.jooq.DSLContext;
 import org.jooq.SQLDialect;
@@ -32,10 +29,12 @@ public class JooqClusterStorage extends TransactionalClusterStorage {
     public static final String JOOQ_PASSWORD = "JOOQ.password";
     public static final String JOOQ_DIALECT  = "JOOQ.dialect";
 
+    public static final String JOOQ_DOMAIN_HANDLER  = "JOOQ.domainHandler";
+
     private DSLContext context;
 
-    JooqItemProperty propertyHandler;
-    JooqOutcome      outcomeHandler;
+    HashMap<String, JooqHandler> jooqHandlers = new HashMap<String, JooqHandler>();
+    JooqHandler domainHandler;
 
     @Override
     public void open(Authenticator auth) throws PersistencyException {
@@ -54,17 +53,42 @@ public class JooqClusterStorage extends TransactionalClusterStorage {
         try {
             context = using(DriverManager.getConnection(uri, user, pwd), dialect);
 
-            propertyHandler = new JooqItemProperty();
-            propertyHandler.createTables(context);
-
-            outcomeHandler = new JooqOutcome();
-            outcomeHandler.createTables(context);
+            initialiseHandlers();
         }
         catch (SQLException | DataAccessException ex) {
-            Logger.error("Could not connect to URI '" + uri + "' with user '" + user + "' and password '" + pwd + "'");
+            Logger.error("JooqClusterStorage could not connect to URI '" + uri + "' with user '" + user + "'");
             Logger.error(ex);
             throw new PersistencyException(ex.getMessage());
         }
+    }
+
+    /**
+     * 
+     */
+    public void initialiseHandlers() throws PersistencyException {
+        try {
+            if(Gateway.getProperties().containsKey(JOOQ_DOMAIN_HANDLER)) {
+                domainHandler = (JooqHandler)Gateway.getProperties().getInstance(JOOQ_DOMAIN_HANDLER);
+            }
+        }
+        catch (InstantiationException | IllegalAccessException | ClassNotFoundException ex) {
+            Logger.error("JooqClusterStorage could not instantiate domain handler");
+            Logger.error(ex);
+            throw new PersistencyException(ex.getMessage());
+        }
+
+        jooqHandlers.put(ClusterStorage.PROPERTY, new JooqItemPropertyHandler());
+        jooqHandlers.get(ClusterStorage.PROPERTY).createTables(context);
+
+        jooqHandlers.put(ClusterStorage.OUTCOME, new JooqOutcomeHandler());
+        jooqHandlers.get(ClusterStorage.OUTCOME).createTables(context);
+
+
+        jooqHandlers.put(ClusterStorage.VIEWPOINT, new JooqViewpointHandler());
+        jooqHandlers.get(ClusterStorage.VIEWPOINT).createTables(context);
+
+        jooqHandlers.put(ClusterStorage.LIFECYCLE, new JooqLifecycleHandler());
+        jooqHandlers.get(ClusterStorage.LIFECYCLE).createTables(context);
     }
 
     @Override
@@ -118,7 +142,7 @@ public class JooqClusterStorage extends TransactionalClusterStorage {
         if(     PROPERTY.equals(clusterType))   return READWRITE;
         else if(OUTCOME.equals(clusterType))    return READWRITE;
         else if(VIEWPOINT.equals(clusterType))  return READWRITE;
-        else if(LIFECYCLE.equals(clusterType))  return NONE;
+        else if(LIFECYCLE.equals(clusterType))  return READWRITE;
         else if(HISTORY.equals(clusterType))    return NONE;
         else if(COLLECTION.equals(clusterType)) return NONE;
         else if(JOB.equals(clusterType))        return NONE;
@@ -127,8 +151,8 @@ public class JooqClusterStorage extends TransactionalClusterStorage {
 
     @Override
     public boolean checkQuerySupport(String language) {
-        return false;
-        //return "mysql:sql".equals(language.trim().toLowerCase());
+        String lang = language.trim().toUpperCase();
+        return "SQL".equals(lang) || ("SQL:"+context.dialect()).equals(lang);
     }
 
     @Override
@@ -148,7 +172,7 @@ public class JooqClusterStorage extends TransactionalClusterStorage {
 
     @Override
     public String[] getClusterContents(ItemPath itemPath, String path) throws PersistencyException {
-        throw new PersistencyException("Read is not supported");
+        throw new PersistencyException("UnImplemented");
     }
 
     @Override
@@ -156,26 +180,20 @@ public class JooqClusterStorage extends TransactionalClusterStorage {
         UUID uuid = itemPath.getUUID();
         String[] pathArray = path.split("/");
 
-        if (path.startsWith(ClusterStorage.PROPERTY)) {
-            Property p = propertyHandler.fetch(context, uuid, pathArray[1]);
-            if (p == null) throw new PersistencyException("Could not fetch '"+itemPath+"/"+path+"'");
-            return p;
-        }
-        else if (path.startsWith(ClusterStorage.OUTCOME)) {
-            Outcome outcome = outcomeHandler.fetch(context, uuid, pathArray[1], new Integer(pathArray[2]), new Integer(pathArray[3]));
+        String cluster = pathArray[0];
+        String[] primaryKeys = Arrays.copyOfRange(pathArray, 1, pathArray.length-1);
 
-            if (outcome == null) throw new PersistencyException("Could not fetch '"+itemPath+"/"+path+"'");
+        JooqHandler handler = jooqHandlers.get(cluster);
 
-            try {
-                outcome.setSchema(LocalObjectLoader.getSchema(pathArray[1], new Integer(pathArray[2])));
-            }
-            catch (NumberFormatException | ObjectNotFoundException | InvalidDataException e) {
-                Logger.error(e);
-                throw new PersistencyException(e.getMessage());
-            }
-            return outcome;
+        if (handler != null) {
+            Logger.msg(5, "JooqClusterStorage-get() - uuid:"+uuid+" cluster:"+cluster+" primaryKeys"+Arrays.toString(primaryKeys));
+
+            C2KLocalObject obj = jooqHandlers.get(cluster).fetch(context, uuid, primaryKeys);
+            if (obj == null) throw new PersistencyException("JooqClusterStorage could not fetch '"+itemPath+"/"+path+"'");
+            return obj;
         }
-        throw new PersistencyException("Read is not supported for '"+path+"'");
+        else
+            throw new PersistencyException("Read is not supported for '"+path+"'");
     }
 
     @Override
@@ -186,31 +204,38 @@ public class JooqClusterStorage extends TransactionalClusterStorage {
     @Override
     public void put(ItemPath itemPath, C2KLocalObject obj, Object locker) throws PersistencyException {
         UUID uuid = itemPath.getUUID();
+        String cluster = obj.getClusterPath().split("/")[0];
 
-        if (obj instanceof Property) {
-            propertyHandler.put(context, itemPath.getUUID(), (Property)obj);
+        JooqHandler handler = jooqHandlers.get(cluster);
+
+        if (handler != null) {
+            Logger.msg(5, "JooqClusterStorage-get() - uuid:"+uuid+" cluster:"+cluster+" path:"+obj.getClusterPath());
+            handler.put(context, uuid, obj);
         }
-        else if (obj instanceof Outcome) {
-            try {
-                outcomeHandler.put(context, uuid, (Outcome) obj);
-            }
-            catch (Exception e) {
-                Logger.error(e);
-                throw new PersistencyException(itemPath + " could not be persisted" + e.getMessage());
-            }
-        }
-        else{
-            throw new PersistencyException("Unimplemented feature to store '"+obj.getClusterPath()+"'");
-        }
+        else
+            throw new PersistencyException("Write is not supported for '"+obj.getClusterPath()+"'");
     }
 
     @Override
     public void delete(ItemPath itemPath, String path) throws PersistencyException {
-        throw new PersistencyException("Delete is not supported");
+        delete(itemPath, path, null);
     }
 
     @Override
     public void delete(ItemPath itemPath, String path, Object locker) throws PersistencyException {
-        throw new PersistencyException("Delete is not supported");
+        UUID uuid = itemPath.getUUID();
+        String[] pathArray = path.split("/");
+
+        String cluster = pathArray[0];
+        String[] primaryKeys = Arrays.copyOfRange(pathArray, 1, pathArray.length-1);
+
+        JooqHandler handler = jooqHandlers.get(cluster);
+
+        if (handler != null) {
+            Logger.msg(5, "JooqClusterStorage.delete() - uuid:"+uuid+" cluster:"+cluster+" primaryKeys"+Arrays.toString(primaryKeys));
+            handler.delete(context, uuid, primaryKeys);
+        }
+        else
+            throw new PersistencyException("Delete is not supported for '"+path+"'");
     }
 }

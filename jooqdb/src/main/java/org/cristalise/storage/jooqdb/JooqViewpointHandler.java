@@ -6,23 +6,27 @@ import static org.jooq.impl.DSL.table;
 
 import java.util.UUID;
 
+import org.cristalise.kernel.entity.C2KLocalObject;
 import org.cristalise.kernel.lookup.ItemPath;
 import org.cristalise.kernel.persistency.outcome.Viewpoint;
 import org.jooq.DSLContext;
 import org.jooq.Record;
 import org.jooq.impl.SQLDataType;
 
-public class JooqViewpoint {
+public class JooqViewpointHandler implements JooqHandler {
     public static final String tableName = "VIEWPOINT";
 
-    public int put(DSLContext context, UUID uuid, Viewpoint view) {
-        Viewpoint v = fetch(context, uuid, view.getSchemaName(), view.getName());
+    @Override
+    public int put(DSLContext context, UUID uuid, C2KLocalObject obj) {
+        C2KLocalObject v = fetch(context, uuid, ((Viewpoint)obj).getSchemaName(), ((Viewpoint)obj).getName());
 
-        if (v == null) return insert(context, uuid, view);
-        else           return update(context, uuid, view);
+        if (v == null) return insert(context, uuid, obj);
+        else           return update(context, uuid, obj);
     }
 
-    public int update(DSLContext context, UUID uuid, Viewpoint view) {
+    @Override
+    public int update(DSLContext context, UUID uuid, C2KLocalObject obj) {
+        Viewpoint view = (Viewpoint)obj;
         return context
                 .update(table(tableName))
                 .set(field("SCHEMA_VERSION"), view.getSchemaVersion())
@@ -33,7 +37,15 @@ public class JooqViewpoint {
                 .execute();
     }
 
-    public int insert(DSLContext context, UUID uuid, Viewpoint view) {
+    @Override
+    public C2KLocalObject delete(DSLContext context, UUID uuid, String... primaryKeys) {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    @Override
+    public int insert(DSLContext context, UUID uuid, C2KLocalObject obj) {
+        Viewpoint view = (Viewpoint)obj;
         return context
                 .insertInto(
                     table(tableName), 
@@ -47,7 +59,11 @@ public class JooqViewpoint {
                 .execute();
     }
 
-    public Viewpoint fetch(DSLContext context, UUID uuid,  String shcemaName, String name) {
+    @Override
+    public C2KLocalObject fetch(DSLContext context, UUID uuid, String...primaryKeys) {
+        String shcemaName = primaryKeys[0];
+        String name       = primaryKeys[1];
+
         Record result = context
                 .select().from(table(tableName))
                 .where(field("UUID").equal(uuid))
@@ -63,6 +79,13 @@ public class JooqViewpoint {
         else               return null;
     }
 
+    @Override
+    public String[] getClusterContent(DSLContext context, String path) {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    @Override
     public void createTables(DSLContext context) {
         context.createTableIfNotExists(table(tableName))
             .column(field("UUID",           UUID.class),    SQLDataType.UUID.nullable(false))

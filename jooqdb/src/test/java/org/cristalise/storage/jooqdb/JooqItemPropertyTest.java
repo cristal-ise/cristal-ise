@@ -1,24 +1,13 @@
 package org.cristalise.storage.jooqdb;
 
-import static org.jooq.impl.DSL.using;
-
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.util.UUID;
-
 import org.cristalise.kernel.property.Property;
-import org.cristalise.storage.jooqdb.JooqItemProperty;
-import org.jooq.DSLContext;
-import org.jooq.SQLDialect;
 import org.junit.Before;
 import org.junit.Test;
 
-public class JooqItemPropertyTest {
-    DSLContext context;
-    UUID       uuid = UUID.randomUUID();
-    Property   property = new Property("toto", "value", true);
+public class JooqItemPropertyTest extends JooqTestBase {
 
-    JooqItemProperty jooq;
+    Property property;
+    JooqItemPropertyHandler jooq;
 
     private void compareProperties(Property actual, Property expected) {
         assert actual.getName().equals(expected.getName());
@@ -27,27 +16,19 @@ public class JooqItemPropertyTest {
     }
 
     @Before
-    public void before() {
-        String userName = "sa";
-        String password = "sa";
-        String url      = "jdbc:h2:mem:";
+    public void before() throws Exception {
+        super.before();
 
-        try {
-            Connection conn = DriverManager.getConnection(url, userName, password);
-            context = using(conn, SQLDialect.H2);
+        jooq = new JooqItemPropertyHandler();
+        jooq.createTables(context);
 
-            jooq = new JooqItemProperty();
-            jooq.createTables(context);
-            assert jooq.put(context, uuid, property) == 1;
-        }
-        catch (Exception e) {
-            e.printStackTrace();
-        }
+        property = new Property("toto", "value", true);
+        assert jooq.put(context, uuid, property) == 1;
     }
 
     @Test
     public void fetchProperty() throws Exception {
-        compareProperties(jooq.fetch(context, uuid, "toto"), property);
+        compareProperties((Property)jooq.fetch(context, uuid, "toto"), property);
     }
 
     @Test
@@ -55,7 +36,7 @@ public class JooqItemPropertyTest {
         Property propertyPrime = new Property("toto", "valueNew", true);
         assert jooq.put(context, uuid, propertyPrime) == 1;
 
-        compareProperties(jooq.fetch(context, uuid, "toto"), propertyPrime);
+        compareProperties((Property)jooq.fetch(context, uuid, "toto"), propertyPrime);
     }
 
     @Test
@@ -63,7 +44,7 @@ public class JooqItemPropertyTest {
         Property property2 = new Property("zaza", "value", false);
         assert jooq.put(context, uuid, property2) == 1;
 
-        compareProperties(jooq.fetch(context, uuid, "toto"), property);
-        compareProperties(jooq.fetch(context, uuid, "zaza"), property2);
+        compareProperties((Property)jooq.fetch(context, uuid, "toto"), property);
+        compareProperties((Property)jooq.fetch(context, uuid, "zaza"), property2);
     }
 }
