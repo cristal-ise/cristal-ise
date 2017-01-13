@@ -4,10 +4,18 @@ import static org.jooq.impl.DSL.constraint;
 import static org.jooq.impl.DSL.field;
 import static org.jooq.impl.DSL.table;
 
+import java.io.IOException;
 import java.util.UUID;
 
 import org.cristalise.kernel.entity.C2KLocalObject;
+import org.cristalise.kernel.process.Gateway;
+import org.cristalise.kernel.utils.Logger;
+import org.exolab.castor.mapping.MappingException;
+import org.exolab.castor.xml.MarshalException;
+import org.exolab.castor.xml.ValidationException;
 import org.jooq.DSLContext;
+import org.jooq.Record;
+import org.jooq.exception.DataAccessException;
 import org.jooq.impl.SQLDataType;
 
 public class JooqLifecycleHandler implements JooqHandler {
@@ -15,36 +23,73 @@ public class JooqLifecycleHandler implements JooqHandler {
 
     @Override
     public int put(DSLContext context, UUID uuid, C2KLocalObject obj) {
-        // TODO Auto-generated method stub
-        return 0;
+        C2KLocalObject o = fetch(context, uuid);
+
+        if (o == null) return insert(context, uuid, obj);
+        else           return update(context, uuid, obj);
     }
 
     @Override
     public int update(DSLContext context, UUID uuid, C2KLocalObject obj) {
-        // TODO Auto-generated method stub
+        try {
+            return context
+                    .update(table(tableName))
+                    .set(field("NAME"), obj.getName())
+                    .set(field("XML"),  Gateway.getMarshaller().marshall(obj))
+                    .where(field("UUID").equal(uuid))
+                    .execute();
+        }
+        catch (MarshalException | ValidationException | DataAccessException | IOException | MappingException e) {
+            Logger.error(e);
+        }
         return 0;
     }
 
     @Override
-    public C2KLocalObject delete(DSLContext context, UUID uuid, String... primaryKeys) {
+    public void delete(DSLContext context, UUID uuid, String... primaryKeys) {
         // TODO Auto-generated method stub
-        return null;
     }
 
     @Override
     public int insert(DSLContext context, UUID uuid, C2KLocalObject obj) {
-        // TODO Auto-generated method stub
+        try {
+            return context
+                    .insertInto(
+                        table(tableName), 
+                            field("UUID", UUID.class),
+                            field("NAME", String.class),
+                            field("XML",  String.class)
+                     )
+                    .values(uuid, obj.getName(), Gateway.getMarshaller().marshall(obj))
+                    .execute();
+        }
+        catch (MarshalException | ValidationException | DataAccessException | IOException | MappingException e) {
+            Logger.error(e);
+        }
         return 0;
     }
 
     @Override
     public C2KLocalObject fetch(DSLContext context, UUID uuid, String... primaryKeys) {
-        // TODO Auto-generated method stub
+        Record result = context
+                .select().from(table(tableName))
+                .where(field("UUID").equal(uuid))
+                .fetchOne();
+
+        if(result != null) {
+            try {
+                String xml = result.get(field("XML", String.class));
+                return (C2KLocalObject)Gateway.getMarshaller().unmarshall(xml);
+            }
+            catch (MarshalException | ValidationException | IOException | MappingException e) {
+                Logger.error(e);
+            }
+        }
         return null;
     }
 
     @Override
-    public String[] getClusterContent(DSLContext context, String path) {
+    public String[] getNextPrimaryKeys(DSLContext context, UUID uuid, String...primaryKeys) {
         // TODO Auto-generated method stub
         return null;
     }

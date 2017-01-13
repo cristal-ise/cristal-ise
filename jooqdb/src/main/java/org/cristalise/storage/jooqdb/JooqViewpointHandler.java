@@ -4,13 +4,21 @@ import static org.jooq.impl.DSL.constraint;
 import static org.jooq.impl.DSL.field;
 import static org.jooq.impl.DSL.table;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import java.util.UUID;
 
 import org.cristalise.kernel.entity.C2KLocalObject;
 import org.cristalise.kernel.lookup.ItemPath;
 import org.cristalise.kernel.persistency.outcome.Viewpoint;
+import org.cristalise.kernel.utils.Logger;
+import org.jooq.Condition;
 import org.jooq.DSLContext;
+import org.jooq.Field;
 import org.jooq.Record;
+import org.jooq.Result;
+import org.jooq.impl.DSL;
 import org.jooq.impl.SQLDataType;
 
 public class JooqViewpointHandler implements JooqHandler {
@@ -29,18 +37,17 @@ public class JooqViewpointHandler implements JooqHandler {
         Viewpoint view = (Viewpoint)obj;
         return context
                 .update(table(tableName))
-                .set(field("SCHEMA_VERSION"), view.getSchemaVersion())
-                .set(field("EVENT_ID"),       view.getEventId())
-                .where(field("UUID").equal(uuid))
-                  .and(field("SCHEMA_NAME").equal(view.getSchemaName()))
-                  .and(field("NAME").equal(view.getName()))
+                .set(field("SCHEMA_VERSION", Integer.class), view.getSchemaVersion())
+                .set(field("EVENT_ID",       Integer.class), view.getEventId())
+                .where(field("UUID",        UUID.class  ).equal(uuid))
+                  .and(field("SCHEMA_NAME", String.class).equal(view.getSchemaName()))
+                  .and(field("NAME",        String.class).equal(view.getName()))
                 .execute();
     }
 
     @Override
-    public C2KLocalObject delete(DSLContext context, UUID uuid, String... primaryKeys) {
+    public void delete(DSLContext context, UUID uuid, String... primaryKeys) {
         // TODO Auto-generated method stub
-        return null;
     }
 
     @Override
@@ -49,11 +56,11 @@ public class JooqViewpointHandler implements JooqHandler {
         return context
                 .insertInto(
                     table(tableName), 
-                        field("UUID"),
-                        field("SCHEMA_NAME"),
-                        field("NAME"),
-                        field("SCHEMA_VERSION"),
-                        field("EVENT_ID")
+                        field("UUID",           UUID.class),
+                        field("SCHEMA_NAME",    String.class),
+                        field("NAME",           String.class),
+                        field("SCHEMA_VERSION", Integer.class),
+                        field("EVENT_ID",       Integer.class)
                  )
                 .values(uuid, view.getSchemaName(), view.getName(), view.getSchemaVersion(), view.getEventId())
                 .execute();
@@ -80,9 +87,44 @@ public class JooqViewpointHandler implements JooqHandler {
     }
 
     @Override
-    public String[] getClusterContent(DSLContext context, String path) {
-        // TODO Auto-generated method stub
-        return null;
+    public String[] getNextPrimaryKeys(DSLContext context, UUID uuid, String...primaryKeys) {
+        Field<?>[] fields = new Field[1];
+
+        List<Condition> conditions = new ArrayList<>();
+        conditions.add(field("UUID").equal(uuid));
+
+        switch (primaryKeys.length) {
+            case 0: 
+                fields[0] = field("SCHEMA_NAME");
+                break;
+            case 1:
+                fields[0] = field("NAME");
+                conditions.add(field("SCHEMA_NAME").equal(primaryKeys[0]));
+                break;
+            case 2:
+                fields[0] = field("NAME");
+                conditions.add(field("SCHEMA_NAME").equal(primaryKeys[0]));
+                conditions.add(field("NAME"       ).equal(primaryKeys[1]));
+                break;
+
+            default:
+                throw new IllegalArgumentException("Invalid number of primary keys (max 2):"+Arrays.toString(primaryKeys));
+        }
+
+//        Logger.msg(DSL.selectDistinct(fields).from(table(tableName)).where(conditions).getSQL());
+
+        Result<Record> result = context
+                .selectDistinct(fields)
+                .from(table(tableName))
+                .where(conditions)
+                .fetch();
+
+        String[] returnValue = new String[result.size()];
+
+        int i = 0;
+        for (Record rec : result) returnValue[i++] = rec.get(0).toString();
+
+        return returnValue;
     }
 
     @Override

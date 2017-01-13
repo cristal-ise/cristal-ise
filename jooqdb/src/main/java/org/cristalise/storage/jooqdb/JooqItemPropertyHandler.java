@@ -4,12 +4,18 @@ import static org.jooq.impl.DSL.constraint;
 import static org.jooq.impl.DSL.field;
 import static org.jooq.impl.DSL.table;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import java.util.UUID;
 
 import org.cristalise.kernel.entity.C2KLocalObject;
 import org.cristalise.kernel.property.Property;
+import org.jooq.Condition;
 import org.jooq.DSLContext;
+import org.jooq.Field;
 import org.jooq.Record;
+import org.jooq.Result;
 import org.jooq.impl.SQLDataType;
 
 public class JooqItemPropertyHandler implements JooqHandler {
@@ -35,9 +41,8 @@ public class JooqItemPropertyHandler implements JooqHandler {
     }
 
     @Override
-    public C2KLocalObject delete(DSLContext context, UUID uuid, String... primaryKeys) {
+    public void delete(DSLContext context, UUID uuid, String... primaryKeys) {
         // TODO Auto-generated method stub
-        return null;
     }
 
     @Override
@@ -69,8 +74,38 @@ public class JooqItemPropertyHandler implements JooqHandler {
     }
 
     @Override
-    public String[] getClusterContent(DSLContext context, String path) {
-        return null;
+    public String[] getNextPrimaryKeys(DSLContext context, UUID uuid, String...primaryKeys) {
+        Field<?>[] fields = new Field[1];
+
+        List<Condition> conditions = new ArrayList<>();
+        conditions.add(field("UUID").equal(uuid));
+
+        switch (primaryKeys.length) {
+            case 0: 
+                fields[0] = field("NAME");
+                break;
+            case 1:
+                fields[0] = field("NAME");
+                conditions.add(field("NAME").equal(primaryKeys[0]));
+                break;
+
+            default:
+                throw new IllegalArgumentException("Invalid number of primary keys (max 2):"+Arrays.toString(primaryKeys));
+        }
+
+        Result<Record> result = context
+                .selectDistinct(fields)
+                .from(table(tableName))
+                .where(conditions)
+                .fetch();
+
+        String[] returnValue = new String[result.size()];
+
+        int i = 0;
+        for (Record rec : result) returnValue[i++] = rec.get(0).toString();
+
+        return returnValue;
+
     }
 
     @Override

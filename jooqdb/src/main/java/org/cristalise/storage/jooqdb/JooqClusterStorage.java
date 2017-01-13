@@ -172,7 +172,21 @@ public class JooqClusterStorage extends TransactionalClusterStorage {
 
     @Override
     public String[] getClusterContents(ItemPath itemPath, String path) throws PersistencyException {
-        throw new PersistencyException("UnImplemented");
+        UUID uuid = itemPath.getUUID();
+        String[] pathArray = path.split("/");
+
+        String cluster = pathArray[0];
+        String[] primaryKeys = Arrays.copyOfRange(pathArray, 1, pathArray.length-1);
+
+        JooqHandler handler = jooqHandlers.get(cluster);
+
+        if (handler != null) {
+            Logger.msg(5, "JooqClusterStorage-getClusterContents() - uuid:"+uuid+" cluster:"+cluster+" primaryKeys"+Arrays.toString(primaryKeys));
+
+            return jooqHandlers.get(cluster).getNextPrimaryKeys(context, uuid, primaryKeys);
+        }
+        else
+            throw new PersistencyException("Read is not supported for '"+path+"'");
     }
 
     @Override

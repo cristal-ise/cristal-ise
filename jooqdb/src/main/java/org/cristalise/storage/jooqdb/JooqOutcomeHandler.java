@@ -40,9 +40,8 @@ public class JooqOutcomeHandler implements JooqHandler {
     }
 
     @Override
-    public C2KLocalObject delete(DSLContext context, UUID uuid, String... primaryKeys) {
+    public void delete(DSLContext context, UUID uuid, String... primaryKeys) {
         // TODO Auto-generated method stub
-        return null;
     }
 
     @Override
@@ -84,12 +83,11 @@ public class JooqOutcomeHandler implements JooqHandler {
                 Logger.error(e);
             }
         }
-
         return null;
     }
 
     @Override
-    public String[] getClusterContent(DSLContext context, String path) {
+    public String[] getNextPrimaryKeys(DSLContext context, UUID uuid, String...primaryKeys) {
         // TODO Auto-generated method stub
         return null;
     }

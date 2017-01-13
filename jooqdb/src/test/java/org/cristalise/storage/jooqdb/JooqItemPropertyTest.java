@@ -1,6 +1,7 @@
 package org.cristalise.storage.jooqdb;
 
 import org.cristalise.kernel.property.Property;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -46,5 +47,16 @@ public class JooqItemPropertyTest extends JooqTestBase {
 
         compareProperties((Property)jooq.fetch(context, uuid, "toto"), property);
         compareProperties((Property)jooq.fetch(context, uuid, "zaza"), property2);
+    }
+
+    @Test
+    public void getPropertyNames() throws Exception {
+        assert jooq.put(context, uuid, new Property("zaza", "value", false)) == 1;
+
+        String[] keys = jooq.getNextPrimaryKeys(context, uuid);
+
+        Assert.assertEquals(2, keys.length);
+        Assert.assertEquals("toto", keys[0]);
+        Assert.assertEquals("zaza", keys[0]);
     }
 }

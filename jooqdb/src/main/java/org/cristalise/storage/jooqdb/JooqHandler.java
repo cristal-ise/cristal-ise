@@ -15,10 +15,10 @@ public interface JooqHandler {
     /**
      * 
      * @param context
-     * @param path
+     * @param primaryKeys
      * @return
      */
-    public String[] getClusterContent(DSLContext context, String path);
+    public String[] getNextPrimaryKeys(DSLContext context, UUID uuid, String...primaryKeys);
 
     /**
      * 
@@ -43,9 +43,8 @@ public interface JooqHandler {
      * @param context
      * @param uuid
      * @param primaryKeys
-     * @return
      */
-    public C2KLocalObject delete(DSLContext context, UUID uuid, String...primaryKeys);
+    public void delete(DSLContext context, UUID uuid, String...primaryKeys);
 
     /**
      * 
