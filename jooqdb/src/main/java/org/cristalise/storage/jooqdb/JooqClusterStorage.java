@@ -173,7 +173,7 @@ public class JooqClusterStorage extends TransactionalClusterStorage {
         String[] pathArray = path.split("/");
 
         String cluster = pathArray[0];
-        String[] primaryKeys = Arrays.copyOfRange(pathArray, 1, pathArray.length-1);
+        String[] primaryKeys = JooqHandler.pathToPrimaryKeys(path);
 
         JooqHandler handler = jooqHandlers.get(cluster);
 
