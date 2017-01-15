@@ -1,8 +1,28 @@
+/**
+ * This file is part of the CRISTAL-iSE jOOQ Cluster Storage Module.
+ * Copyright (c) 2001-2017 The CRISTAL Consortium. All rights reserved.
+ *
+ * This library is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU Lesser General Public License as published
+ * by the Free Software Foundation; either version 3 of the License, or (at
+ * your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; with out even the implied warranty of MERCHANTABILITY or
+ * FITNESS FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public
+ * License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this library; if not, write to the Free Software Foundation,
+ * Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA.
+ *
+ * http://www.fsf.org/licensing/licenses/lgpl.html
+ */
 package org.cristalise.storage.jooqdb;
 
-import java.util.Arrays;
 import java.util.UUID;
 
+import org.cristalise.kernel.common.PersistencyException;
 import org.cristalise.kernel.entity.C2KLocalObject;
 import org.jooq.DSLContext;
 import org.jooq.DataType;
@@ -17,66 +37,17 @@ public interface JooqHandler {
     public DataType<Integer> EVENTID_TYPE = SQLDataType.INTEGER;
     public DataType<String>  XML_TYPE     = SQLDataType.CLOB;
 
-    public static String[] pathToPrimaryKeys(String path) {
-        String[] pathArray = path.split("/");
-        return Arrays.copyOfRange(pathArray, 1, pathArray.length-1);
-    }
+    public void createTables(DSLContext context) throws PersistencyException;
 
-    /**
-     * 
-     * @param context
-     */
-    public void createTables(DSLContext context);
+    public String[] getNextPrimaryKeys(DSLContext context, UUID uuid, String...primaryKeys) throws PersistencyException;
 
-    /**
-     * 
-     * @param context
-     * @param primaryKeys
-     * @return
-     */
-    public String[] getNextPrimaryKeys(DSLContext context, UUID uuid, String...primaryKeys);
+    public int put(DSLContext context, UUID uuid, C2KLocalObject obj) throws PersistencyException;
 
-    /**
-     * 
-     * @param context
-     * @param uuid
-     * @param obj
-     * @return
-     */
-    public int put(DSLContext context, UUID uuid, C2KLocalObject obj);
-    
-    /**
-     * 
-     * @param context
-     * @param uuid
-     * @param obj
-     * @return
-     */
-    public int update(DSLContext context, UUID uuid, C2KLocalObject obj);
+    public int update(DSLContext context, UUID uuid, C2KLocalObject obj) throws PersistencyException;
 
-    /**
-     * 
-     * @param context
-     * @param uuid
-     * @param primaryKeys
-     */
-    public int delete(DSLContext context, UUID uuid, String...primaryKeys);
+    public int delete(DSLContext context, UUID uuid, String...primaryKeys) throws PersistencyException;
 
-    /**
-     * 
-     * @param context
-     * @param uuid
-     * @param obj
-     * @return
-     */
-    public int insert(DSLContext context, UUID uuid, C2KLocalObject obj);
+    public int insert(DSLContext context, UUID uuid, C2KLocalObject obj) throws PersistencyException;
 
-    /**
-     * 
-     * @param context
-     * @param uuid
-     * @param id
-     * @return
-     */
-    public C2KLocalObject fetch(DSLContext context, UUID uuid, String...primaryKeys);
+    public C2KLocalObject fetch(DSLContext context, UUID uuid, String...primaryKeys) throws PersistencyException;
 }
