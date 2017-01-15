@@ -39,8 +39,11 @@ import org.exolab.castor.xml.MarshalException;
 import org.exolab.castor.xml.ValidationException;
 import org.jooq.Condition;
 import org.jooq.DSLContext;
+import org.jooq.Field;
 import org.jooq.Record;
+import org.jooq.Result;
 import org.jooq.exception.DataAccessException;
+import org.jooq.impl.DSL;
 
 public class JooqCollectionHadler implements JooqHandler {
     public static final String tableName = "COLLECTION";
@@ -69,8 +72,39 @@ public class JooqCollectionHadler implements JooqHandler {
 
     @Override
     public String[] getNextPrimaryKeys(DSLContext context, UUID uuid, String... primaryKeys) {
-        // TODO Auto-generated method stub
-        return null;
+        Field<?>[] fields = new Field[1];
+
+        List<Condition> conditions = getPKConditions(uuid, primaryKeys);
+
+        switch (primaryKeys.length) {
+            case 0: 
+                fields[0] = field("NAME");
+                break;
+            case 1:
+                fields[0] = field("VERSION");
+                break;
+            case 2:
+                fields[0] = field("VERSION");
+                break;
+
+            default:
+                throw new IllegalArgumentException("Invalid number of primary keys (max 2):"+Arrays.toString(primaryKeys));
+        }
+
+        Logger.msg(DSL.selectDistinct(fields).from(table(tableName)).where(conditions).getSQL());
+
+        Result<Record> result = context
+                .selectDistinct(fields)
+                .from(table(tableName))
+                .where(conditions)
+                .fetch();
+
+        String[] returnValue = new String[result.size()];
+
+        int i = 0;
+        for (Record rec : result) returnValue[i++] = rec.get(0).toString();
+
+        return returnValue;
     }
 
     @Override
@@ -90,9 +124,9 @@ public class JooqCollectionHadler implements JooqHandler {
             return context
                     .update(table(tableName))
                     .set(field("XML"),  Gateway.getMarshaller().marshall(obj))
-                    .where(field("UUID",  UUID.class  ).equal(uuid))
-                    .and(field("NAME",    String.class).equal(collection.getName()))
-                    .and(field("VERSION", String.class).equal(collection.getVersionName()))
+                    .where(field("UUID",    UUID.class  ).equal(uuid))
+                      .and(field("NAME",    String.class).equal(collection.getName()))
+                      .and(field("VERSION", String.class).equal(collection.getVersionName()))
                     .execute();
         }
         catch (MarshalException | ValidationException | DataAccessException | IOException | MappingException e) {

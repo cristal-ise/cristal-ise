@@ -49,19 +49,62 @@ public class JooqCollectionTest extends JooqTestBase {
         Assert.assertEquals(expected.getVersionName(), actual.getVersionName());
     }
 
-    @Test
-    public void fetchDependency() throws Exception {
-        Dependency d = new Dependency("TestDependency");
-        d.setVersion(0);
-        
+    private Dependency addDependency(String name, Integer version) {
+        Dependency d = new Dependency(name, version);
         assert jooq.put(context, uuid, d) == 1;
+        return d;
+    }
 
-        Dependency d1 = (Dependency) jooq.fetch(context, uuid, "TestDependency", "0");
+    @Test
+    public void fetch() throws Exception {
+        Dependency d = addDependency("TestDependency", null);
+        Dependency d1 = (Dependency) jooq.fetch(context, uuid, "TestDependency", "last");
+        compareCollections(d, d1);
 
+        d = addDependency("TestDependency", 0);
+        d1 = (Dependency) jooq.fetch(context, uuid, "TestDependency", "0");
         compareCollections(d, d1);
     }
 
     @Test
     public void delete() throws Exception {
+        addDependency("Test1", 1);
+        addDependency("Test2", null);
+        assert jooq.delete(context, uuid) == 2;
+    }
+
+    @Test
+    public void getNames() throws Exception {
+        addDependency("Test1", 1);
+        addDependency("Test2", null);
+
+        String[] keys = jooq.getNextPrimaryKeys(context, uuid);
+
+        Assert.assertEquals(2, keys.length);
+        Assert.assertEquals("Test1", keys[0]);
+        Assert.assertEquals("Test2", keys[1]);
+    }
+
+    @Test
+    public void getVersions() throws Exception {
+        addDependency("Test", 0);
+        addDependency("Test", null);
+
+        String[] keys = jooq.getNextPrimaryKeys(context, uuid, "Test");
+
+        Assert.assertEquals(2, keys.length);
+        Assert.assertEquals("last", keys[0]);
+        Assert.assertEquals("0", keys[1]);
+    }
+
+    @Test
+    public void getVersion() throws Exception {
+        addDependency("Test", 0);
+        addDependency("Test", null);
+
+        String[] keys = jooq.getNextPrimaryKeys(context, uuid, "Test", "0");
+
+        Assert.assertEquals(1, keys.length);
+        Assert.assertEquals("0", keys[0]);
     }
 }
