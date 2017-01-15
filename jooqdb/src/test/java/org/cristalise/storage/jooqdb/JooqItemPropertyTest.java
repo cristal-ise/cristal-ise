@@ -1,5 +1,7 @@
 package org.cristalise.storage.jooqdb;
 
+import java.util.UUID;
+
 import org.cristalise.kernel.property.Property;
 import org.junit.Assert;
 import org.junit.Before;
@@ -51,12 +53,48 @@ public class JooqItemPropertyTest extends JooqTestBase {
 
     @Test
     public void getPropertyNames() throws Exception {
-        assert jooq.put(context, uuid, new Property("zaza", "value", false)) == 1;
+        assert jooq.put(context, uuid,              new Property("zaza", "value", false)) == 1;
+        assert jooq.put(context, UUID.randomUUID(), new Property("mimi", "value", false)) == 1;
 
         String[] keys = jooq.getNextPrimaryKeys(context, uuid);
 
         Assert.assertEquals(2, keys.length);
         Assert.assertEquals("toto", keys[0]);
+        Assert.assertEquals("zaza", keys[1]);
+    }
+
+    @Test
+    public void checkName() throws Exception {
+        assert jooq.put(context, uuid,              new Property("zaza", "value", false)) == 1;
+        assert jooq.put(context, UUID.randomUUID(), new Property("mimi", "value", false)) == 1;
+
+        String[] keys = jooq.getNextPrimaryKeys(context, uuid, "zaza");
+
+        Assert.assertEquals(1, keys.length);
         Assert.assertEquals("zaza", keys[0]);
+    }
+
+    @Test
+    public void checkName_empty() throws Exception {
+        assert jooq.put(context, uuid,              new Property("zaza", "value", false)) == 1;
+        assert jooq.put(context, UUID.randomUUID(), new Property("mimi", "value", false)) == 1;
+
+        String[] keys = jooq.getNextPrimaryKeys(context, uuid, "mimi");
+
+        Assert.assertEquals(0, keys.length);
+    }
+
+    @Test
+    public void delete() throws Exception {
+        UUID uuid2 = UUID.randomUUID();
+        assert jooq.put(context, uuid,  new Property("zaza", "value", false)) == 1;
+        assert jooq.put(context, uuid2, new Property("mimi", "value", false)) == 1;
+        
+        assert jooq.delete(context, uuid) == 2;
+
+        String[] keys = jooq.getNextPrimaryKeys(context, uuid2);
+
+        Assert.assertEquals(1, keys.length);
+        Assert.assertEquals("mimi", keys[0]);
     }
 }

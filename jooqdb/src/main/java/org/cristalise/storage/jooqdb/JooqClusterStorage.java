@@ -83,12 +83,14 @@ public class JooqClusterStorage extends TransactionalClusterStorage {
         jooqHandlers.put(ClusterStorage.OUTCOME, new JooqOutcomeHandler());
         jooqHandlers.get(ClusterStorage.OUTCOME).createTables(context);
 
-
         jooqHandlers.put(ClusterStorage.VIEWPOINT, new JooqViewpointHandler());
         jooqHandlers.get(ClusterStorage.VIEWPOINT).createTables(context);
 
         jooqHandlers.put(ClusterStorage.LIFECYCLE, new JooqLifecycleHandler());
         jooqHandlers.get(ClusterStorage.LIFECYCLE).createTables(context);
+
+        jooqHandlers.put(ClusterStorage.COLLECTION, new JooqCollectionHadler());
+        jooqHandlers.get(ClusterStorage.COLLECTION).createTables(context);
     }
 
     @Override
@@ -139,14 +141,7 @@ public class JooqClusterStorage extends TransactionalClusterStorage {
 
     @Override
     public short queryClusterSupport(String clusterType) {
-        if(     PROPERTY.equals(clusterType))   return READWRITE;
-        else if(OUTCOME.equals(clusterType))    return READWRITE;
-        else if(VIEWPOINT.equals(clusterType))  return READWRITE;
-        else if(LIFECYCLE.equals(clusterType))  return READWRITE;
-        else if(HISTORY.equals(clusterType))    return NONE;
-        else if(COLLECTION.equals(clusterType)) return NONE;
-        else if(JOB.equals(clusterType))        return NONE;
-        else                                    return NONE;
+        return READWRITE;
     }
 
     @Override
@@ -172,6 +167,8 @@ public class JooqClusterStorage extends TransactionalClusterStorage {
 
     @Override
     public String[] getClusterContents(ItemPath itemPath, String path) throws PersistencyException {
+        if (StringUtils.isBlank(path)) return ClusterStorage.allClusterTypes;
+
         UUID uuid = itemPath.getUUID();
         String[] pathArray = path.split("/");
 

@@ -12,17 +12,37 @@ import java.util.UUID;
 import org.cristalise.kernel.entity.C2KLocalObject;
 import org.cristalise.kernel.lookup.ItemPath;
 import org.cristalise.kernel.persistency.outcome.Viewpoint;
-import org.cristalise.kernel.utils.Logger;
 import org.jooq.Condition;
 import org.jooq.DSLContext;
 import org.jooq.Field;
 import org.jooq.Record;
 import org.jooq.Result;
-import org.jooq.impl.DSL;
-import org.jooq.impl.SQLDataType;
 
 public class JooqViewpointHandler implements JooqHandler {
     public static final String tableName = "VIEWPOINT";
+
+    private List<Condition> getPKConditions(UUID uuid, String... primaryKeys) {
+        List<Condition> conditions = new ArrayList<>();
+
+        switch (primaryKeys.length) {
+            case 0: 
+                conditions.add(field("UUID").equal(uuid));
+                break;
+            case 1:
+                conditions.add(field("UUID").equal(uuid));
+                conditions.add(field("SCHEMA_NAME").equal(primaryKeys[0]));
+                break;
+            case 2:
+                conditions.add(field("UUID").equal(uuid));
+                conditions.add(field("SCHEMA_NAME").equal(primaryKeys[0]));
+                conditions.add(field("NAME"       ).equal(primaryKeys[1]));
+                break;
+
+            default:
+                throw new IllegalArgumentException("Invalid number of primary keys (max 3):"+Arrays.toString(primaryKeys));
+        }
+        return conditions;
+    }
 
     @Override
     public int put(DSLContext context, UUID uuid, C2KLocalObject obj) {
@@ -46,8 +66,12 @@ public class JooqViewpointHandler implements JooqHandler {
     }
 
     @Override
-    public void delete(DSLContext context, UUID uuid, String... primaryKeys) {
-        // TODO Auto-generated method stub
+    public int delete(DSLContext context, UUID uuid, String... primaryKeys) {
+        List<Condition> conditions = getPKConditions(uuid, primaryKeys);
+        return context
+                .delete(table(tableName))
+                .where(conditions)
+                .execute();
     }
 
     @Override
@@ -79,19 +103,18 @@ public class JooqViewpointHandler implements JooqHandler {
                 .fetchOne();
 
         if(result != null) return new Viewpoint(new ItemPath(uuid),
-                                                result.get(field("SCHEMA_NAME",    String.class)),
-                                                result.get(field("NAME",           String.class)),
-                                                result.get(field("SCHEMA_VERSION", Integer.class)),
-                                                result.get(field("EVENT_ID",       Integer.class)));
-        else               return null;
+                                                result.get(field("SCHEMA_NAME", String.class)),
+                                                result.get(field("NAME", String.class)),
+                                                Integer.valueOf(result.get(field("SCHEMA_VERSION", String.class))),
+                                                result.get(field("EVENT_ID", Integer.class)));
+        else return null;
     }
 
     @Override
     public String[] getNextPrimaryKeys(DSLContext context, UUID uuid, String...primaryKeys) {
         Field<?>[] fields = new Field[1];
 
-        List<Condition> conditions = new ArrayList<>();
-        conditions.add(field("UUID").equal(uuid));
+        List<Condition> conditions = getPKConditions(uuid, primaryKeys);
 
         switch (primaryKeys.length) {
             case 0: 
@@ -99,16 +122,13 @@ public class JooqViewpointHandler implements JooqHandler {
                 break;
             case 1:
                 fields[0] = field("NAME");
-                conditions.add(field("SCHEMA_NAME").equal(primaryKeys[0]));
                 break;
             case 2:
                 fields[0] = field("NAME");
-                conditions.add(field("SCHEMA_NAME").equal(primaryKeys[0]));
-                conditions.add(field("NAME"       ).equal(primaryKeys[1]));
                 break;
 
             default:
-                throw new IllegalArgumentException("Invalid number of primary keys (max 2):"+Arrays.toString(primaryKeys));
+                throw new IllegalArgumentException("Invalid number of primary keys (max 3):"+Arrays.toString(primaryKeys));
         }
 
 //        Logger.msg(DSL.selectDistinct(fields).from(table(tableName)).where(conditions).getSQL());
@@ -130,11 +150,11 @@ public class JooqViewpointHandler implements JooqHandler {
     @Override
     public void createTables(DSLContext context) {
         context.createTableIfNotExists(table(tableName))
-            .column(field("UUID",           UUID.class),    SQLDataType.UUID.nullable(false))
-            .column(field("SCHEMA_NAME",    String.class),  SQLDataType.VARCHAR.length(50).nullable(true))
-            .column(field("NAME",           String.class),  SQLDataType.VARCHAR.length(50).nullable(false))
-            .column(field("SCHEMA_VERSION", Integer.class), SQLDataType.INTEGER.nullable(true))
-            .column(field("EVENT_ID",       Integer.class), SQLDataType.INTEGER.nullable(true))
+            .column(field("UUID",           UUID.class),    UUID_TYPE.nullable(false))
+            .column(field("SCHEMA_NAME",    String.class),  NAME_TYPE.nullable(true))
+            .column(field("NAME",           String.class),  NAME_TYPE.nullable(false))
+            .column(field("SCHEMA_VERSION", String.class),  VERSION_TYPE.nullable(true))
+            .column(field("EVENT_ID",       Integer.class), EVENTID_TYPE.nullable(true))
             .constraints(constraint("PK_"+tableName).primaryKey(field("UUID"), field("SCHEMA_NAME"), field("NAME")))
         .execute();
     }

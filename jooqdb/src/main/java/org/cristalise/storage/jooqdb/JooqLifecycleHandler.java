@@ -16,7 +16,6 @@ import org.exolab.castor.xml.ValidationException;
 import org.jooq.DSLContext;
 import org.jooq.Record;
 import org.jooq.exception.DataAccessException;
-import org.jooq.impl.SQLDataType;
 
 public class JooqLifecycleHandler implements JooqHandler {
     public static final String tableName = "OUTCOME";
@@ -46,8 +45,11 @@ public class JooqLifecycleHandler implements JooqHandler {
     }
 
     @Override
-    public void delete(DSLContext context, UUID uuid, String... primaryKeys) {
-        // TODO Auto-generated method stub
+    public int delete(DSLContext context, UUID uuid, String... primaryKeys) {
+        return context
+                .delete(table(tableName))
+                .where(field("UUID").equal(uuid))
+                .execute();
     }
 
     @Override
@@ -97,9 +99,9 @@ public class JooqLifecycleHandler implements JooqHandler {
     @Override
     public void createTables(DSLContext context) {
         context.createTableIfNotExists(table(tableName))
-            .column(field("UUID", UUID.class),    SQLDataType.UUID.nullable(false))
-            .column(field("NAME", String.class),  SQLDataType.VARCHAR.length(50).nullable(false))
-            .column(field("XML",  String.class),  SQLDataType.CLOB.nullable(false))
+            .column(field("UUID", UUID.class),    UUID_TYPE.nullable(false))
+            .column(field("NAME", String.class),  NAME_TYPE.nullable(false))
+            .column(field("XML",  String.class),  XML_TYPE. nullable(false))
             .constraints(constraint("PK_UUID").primaryKey(field("UUID")))
         .execute();
     }

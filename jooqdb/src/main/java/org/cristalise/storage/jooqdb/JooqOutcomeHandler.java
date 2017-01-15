@@ -4,6 +4,9 @@ import static org.jooq.impl.DSL.constraint;
 import static org.jooq.impl.DSL.field;
 import static org.jooq.impl.DSL.table;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import java.util.UUID;
 
 import org.cristalise.kernel.common.InvalidDataException;
@@ -12,13 +15,45 @@ import org.cristalise.kernel.entity.C2KLocalObject;
 import org.cristalise.kernel.persistency.outcome.Outcome;
 import org.cristalise.kernel.utils.LocalObjectLoader;
 import org.cristalise.kernel.utils.Logger;
+import org.jooq.Condition;
 import org.jooq.DSLContext;
+import org.jooq.Field;
 import org.jooq.Record;
-import org.jooq.impl.SQLDataType;
+import org.jooq.Result;
+import org.jooq.impl.DSL;
 
 public class JooqOutcomeHandler implements JooqHandler {
 
     public static final String tableName = "OUTCOME";
+
+    private List<Condition> getPKConditions(UUID uuid, String... primaryKeys) {
+        List<Condition> conditions = new ArrayList<>();
+
+        switch (primaryKeys.length) {
+            case 0: 
+                conditions.add(field("UUID").equal(uuid));
+                break;
+            case 1:
+                conditions.add(field("UUID"       ).equal(uuid));
+                conditions.add(field("SCHEMA_NAME").equal(primaryKeys[0]));
+                break;
+            case 2:
+                conditions.add(field("UUID"          ).equal(uuid));
+                conditions.add(field("SCHEMA_NAME"   ).equal(primaryKeys[0]));
+                conditions.add(field("SCHEMA_VERSION").equal(primaryKeys[1]));
+                break;
+            case 3:
+                conditions.add(field("UUID"          ).equal(uuid));
+                conditions.add(field("SCHEMA_NAME"   ).equal(primaryKeys[0]));
+                conditions.add(field("SCHEMA_VERSION").equal(primaryKeys[1]));
+                conditions.add(field("EVENT_ID"      ).equal(primaryKeys[2]));
+                break;
+
+            default:
+                throw new IllegalArgumentException("Invalid number of primary keys (max 4):"+Arrays.toString(primaryKeys));
+        }
+        return conditions;
+    }
 
     @Override
     public int put(DSLContext context, UUID uuid, C2KLocalObject obj) {
@@ -40,8 +75,12 @@ public class JooqOutcomeHandler implements JooqHandler {
     }
 
     @Override
-    public void delete(DSLContext context, UUID uuid, String... primaryKeys) {
-        // TODO Auto-generated method stub
+    public int delete(DSLContext context, UUID uuid, String... primaryKeys) {
+        List<Condition> conditions = getPKConditions(uuid, primaryKeys);
+        return context
+                .delete(table(tableName))
+                .where(conditions)
+                .execute();
     }
 
     @Override
@@ -88,18 +127,52 @@ public class JooqOutcomeHandler implements JooqHandler {
 
     @Override
     public String[] getNextPrimaryKeys(DSLContext context, UUID uuid, String...primaryKeys) {
-        // TODO Auto-generated method stub
-        return null;
+        Field<?>[] fields = new Field[1];
+
+        List<Condition> conditions = getPKConditions(uuid, primaryKeys);
+
+        switch (primaryKeys.length) {
+            case 0: 
+                fields[0] = field("SCHEMA_NAME");
+                break;
+            case 1:
+                fields[0] = field("SCHEMA_VERSION");
+                break;
+            case 2:
+                fields[0] = field("EVENT_ID");
+                break;
+            case 3:
+                fields[0] = field("EVENT_ID");
+                break;
+
+            default:
+                throw new IllegalArgumentException("Invalid number of primary keys (max 4):"+Arrays.toString(primaryKeys));
+        }
+
+        Logger.msg(DSL.selectDistinct(fields).from(table(tableName)).where(conditions).getSQL());
+
+        Result<Record> result = context
+                .selectDistinct(fields)
+                .from(table(tableName))
+                .where(conditions)
+                .fetch();
+
+        String[] returnValue = new String[result.size()];
+
+        int i = 0;
+        for (Record rec : result) returnValue[i++] = rec.get(0).toString();
+
+        return returnValue;
     }
 
     @Override
     public void createTables(DSLContext context) {
         context.createTableIfNotExists(table(tableName))
-            .column(field("UUID",           UUID.class),    SQLDataType.UUID.nullable(false))
-            .column(field("SCHEMA_NAME",    String.class),  SQLDataType.VARCHAR.length(50).nullable(false))
-            .column(field("SCHEMA_VERSION", Integer.class), SQLDataType.INTEGER.nullable(false))
-            .column(field("EVENT_ID",       Integer.class), SQLDataType.INTEGER.nullable(false))
-            .column(field("XML",            String.class), SQLDataType.CLOB.nullable(false))
+            .column(field("UUID",           UUID.class),    UUID_TYPE.   nullable(false))
+            .column(field("SCHEMA_NAME",    String.class),  NAME_TYPE.   nullable(false))
+            .column(field("SCHEMA_VERSION", String.class),  VERSION_TYPE.nullable(false))
+            .column(field("EVENT_ID",       Integer.class), EVENTID_TYPE.nullable(false))
+            .column(field("XML",            String.class),  XML_TYPE.    nullable(false))
             .constraints(constraint("PK_UUID").primaryKey(field("UUID"), 
                                                           field("SCHEMA_NAME"), 
                                                           field("SCHEMA_VERSION"), 
