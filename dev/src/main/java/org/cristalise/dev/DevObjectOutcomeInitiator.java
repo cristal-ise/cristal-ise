@@ -25,7 +25,7 @@ public class DevObjectOutcomeInitiator implements OutcomeInitiator {
 
     @Override
     public Outcome initOutcomeInstance(Job job) throws InvalidDataException {
-        throw new InvalidDataException("DevObjectOutcomeInitiator.initOutcomeInstance() is not applicable!");
+    	return new Outcome(initOutcome(job));
     }
 
     @Override
