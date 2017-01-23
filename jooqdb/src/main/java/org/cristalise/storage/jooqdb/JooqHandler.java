@@ -20,6 +20,7 @@
  */
 package org.cristalise.storage.jooqdb;
 
+import java.sql.Timestamp;
 import java.util.UUID;
 
 import org.cristalise.kernel.common.PersistencyException;
@@ -30,12 +31,14 @@ import org.jooq.impl.SQLDataType;
 
 public interface JooqHandler {
 
-    public DataType<UUID>    UUID_TYPE    = SQLDataType.UUID;
-    public DataType<String>  NAME_TYPE    = SQLDataType.VARCHAR.length(64);
-    public DataType<String>  VERSION_TYPE = SQLDataType.VARCHAR.length(64);
-    public DataType<String>  STRING_TYPE  = SQLDataType.VARCHAR.length(4096);
-    public DataType<Integer> EVENTID_TYPE = SQLDataType.INTEGER;
-    public DataType<String>  XML_TYPE     = SQLDataType.CLOB;
+    public DataType<UUID>           UUID_TYPE      = SQLDataType.UUID;
+    public DataType<String>         NAME_TYPE      = SQLDataType.VARCHAR.length(64);
+    public DataType<Integer>        VERSION_TYPE   = SQLDataType.INTEGER;
+    public DataType<String>         STRING_TYPE    = SQLDataType.VARCHAR.length(4096);
+    public DataType<Integer>        ID_TYPE        = SQLDataType.INTEGER;
+    public DataType<Timestamp>      TIMESTAMP_TYPE = SQLDataType.TIMESTAMP;
+//    public DataType<OffsetDateTime> TIMESTAMP_TYPE = SQLDataType.TIMESTAMPWITHTIMEZONE;
+    public DataType<String>         XML_TYPE       = SQLDataType.CLOB;
 
     public void createTables(DSLContext context) throws PersistencyException;
 

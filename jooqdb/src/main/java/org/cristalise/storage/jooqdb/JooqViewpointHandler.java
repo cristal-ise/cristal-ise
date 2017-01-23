@@ -125,7 +125,7 @@ public class JooqViewpointHandler implements JooqHandler {
         if(result != null) return new Viewpoint(new ItemPath(uuid),
                                                 result.get(field("SCHEMA_NAME", String.class)),
                                                 result.get(field("NAME", String.class)),
-                                                Integer.valueOf(result.get(field("SCHEMA_VERSION", String.class))),
+                                                result.get(field("SCHEMA_VERSION", Integer.class)),
                                                 result.get(field("EVENT_ID", Integer.class)));
         else return null;
     }
@@ -171,10 +171,10 @@ public class JooqViewpointHandler implements JooqHandler {
     public void createTables(DSLContext context) {
         context.createTableIfNotExists(table(tableName))
             .column(field("UUID",           UUID.class),    UUID_TYPE.nullable(false))
-            .column(field("SCHEMA_NAME",    String.class),  NAME_TYPE.nullable(true))
+            .column(field("SCHEMA_NAME",    String.class),  NAME_TYPE.nullable(false))
             .column(field("NAME",           String.class),  NAME_TYPE.nullable(false))
-            .column(field("SCHEMA_VERSION", String.class),  VERSION_TYPE.nullable(true))
-            .column(field("EVENT_ID",       Integer.class), EVENTID_TYPE.nullable(true))
+            .column(field("SCHEMA_VERSION", Integer.class), VERSION_TYPE.nullable(true))
+            .column(field("EVENT_ID",       Integer.class), ID_TYPE.nullable(true))
             .constraints(constraint("PK_"+tableName).primaryKey(field("UUID"), field("SCHEMA_NAME"), field("NAME")))
         .execute();
     }

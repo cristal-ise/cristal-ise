@@ -111,6 +111,9 @@ public class JooqClusterStorage extends TransactionalClusterStorage {
 
         jooqHandlers.put(ClusterStorage.COLLECTION, new JooqCollectionHadler());
         jooqHandlers.get(ClusterStorage.COLLECTION).createTables(context);
+
+        jooqHandlers.put(ClusterStorage.HISTORY, new JooqHistoryHandler());
+        jooqHandlers.get(ClusterStorage.HISTORY).createTables(context);
     }
 
     @Override

@@ -189,10 +189,10 @@ public class JooqCollectionHadler implements JooqHandler {
     @Override
     public void createTables(DSLContext context) {
         context.createTableIfNotExists(table(tableName))
-            .column(field("UUID",    UUID.class),   UUID_TYPE.   nullable(false))
-            .column(field("NAME",    String.class), NAME_TYPE.   nullable(false))
-            .column(field("VERSION", String.class), VERSION_TYPE.nullable(false))
-            .column(field("XML",     String.class), XML_TYPE.    nullable(false))
+            .column(field("UUID",    UUID.class),   UUID_TYPE.nullable(false))
+            .column(field("NAME",    String.class), NAME_TYPE.nullable(false))
+            .column(field("VERSION", String.class), NAME_TYPE.nullable(false))
+            .column(field("XML",     String.class), XML_TYPE.nullable(false))
             .constraints(constraint("PK_UUID").primaryKey(field("UUID"), field("NAME"), field("VERSION")))
         .execute();
     }

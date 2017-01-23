@@ -90,8 +90,8 @@ public class JooqOutcomeHandler implements JooqHandler {
     }
 
     @Override
-    public int update(DSLContext context, UUID uuid, C2KLocalObject o) {
-        throw new IllegalArgumentException("Outcome must not be updated");
+    public int update(DSLContext context, UUID uuid, C2KLocalObject obj) {
+        throw new IllegalArgumentException("Outcome must not be updated uuid:"+uuid+" name:"+obj.getName());
     }
 
     @Override
@@ -127,10 +127,10 @@ public class JooqOutcomeHandler implements JooqHandler {
 
         Record result = context
                 .select().from(table(tableName))
-                .where(field("UUID").equal(uuid))
-                  .and(field("SCHEMA_NAME").equal(schemaName))
-                  .and(field("SCHEMA_VERSION").equal(schemaVersion))
-                  .and(field("EVENT_ID").equal(eventID))
+                .where(field("UUID",           UUID.class).equal(uuid))
+                  .and(field("SCHEMA_NAME",    String.class).equal(schemaName))
+                  .and(field("SCHEMA_VERSION", Integer.class).equal(schemaVersion))
+                  .and(field("EVENT_ID",       Integer.class).equal(eventID))
                 .fetchOne();
 
         if(result != null) {
@@ -188,11 +188,11 @@ public class JooqOutcomeHandler implements JooqHandler {
     @Override
     public void createTables(DSLContext context) {
         context.createTableIfNotExists(table(tableName))
-            .column(field("UUID",           UUID.class),    UUID_TYPE.   nullable(false))
-            .column(field("SCHEMA_NAME",    String.class),  NAME_TYPE.   nullable(false))
-            .column(field("SCHEMA_VERSION", String.class),  VERSION_TYPE.nullable(false))
-            .column(field("EVENT_ID",       Integer.class), EVENTID_TYPE.nullable(false))
-            .column(field("XML",            String.class),  XML_TYPE.    nullable(false))
+            .column(field("UUID",           UUID.class),    UUID_TYPE   .nullable(false))
+            .column(field("SCHEMA_NAME",    String.class),  NAME_TYPE   .nullable(false))
+            .column(field("SCHEMA_VERSION", Integer.class), VERSION_TYPE.nullable(false))
+            .column(field("EVENT_ID",       Integer.class), ID_TYPE     .nullable(false))
+            .column(field("XML",            String.class),  XML_TYPE    .nullable(false))
             .constraints(constraint("PK_UUID").primaryKey(field("UUID"), 
                                                           field("SCHEMA_NAME"), 
                                                           field("SCHEMA_VERSION"), 
