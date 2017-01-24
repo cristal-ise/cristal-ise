@@ -17,13 +17,15 @@ class LookupSearchTests extends LookupTestBase {
 
     UUID uuid0 = new UUID(0,0)
     UUID uuid1 = new UUID(0,1)
+    UUID uuid2 = new UUID(0,2)
     
     @Before
     public void setUp() throws Exception {
         super.setUp()
 
-        lookup.add( new ItemPath(uuid0.toString()) )
-        lookup.add( new AgentPath(new ItemPath(uuid1.toString()), "Jim") )
+        lookup.add( new ItemPath(uuid0) )
+        lookup.add( new AgentPath(uuid1, "Jim") )
+        lookup.add( new AgentPath(uuid2, "John") )
         lookup.add( new DomainPath("empty/nothing") )
         lookup.add( new DomainPath("empty/something/uuid0", (ItemPath)lookup.getItemPath(uuid0.toString())) )
         lookup.add( new RolePath() )
@@ -53,5 +55,11 @@ class LookupSearchTests extends LookupTestBase {
     @Test
     public void resolvePath() {
         assert lookup.resolvePath(new DomainPath("empty/something/uuid0"))
+    }
+
+    @Test
+    public void getAgentName() {
+        assert lookup.getAgentName(new AgentPath(uuid1)) == "Jim"
+        assert lookup.getAgentName(new AgentPath(uuid2)) == "John"
     }
 }
