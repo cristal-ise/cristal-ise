@@ -191,7 +191,7 @@ public class TransitionPanel extends SelectedVertexPanel implements ActionListen
     			return;
     		}
     	}
-        if (states.isEnabled()) {    		
+        if (states.isEnabled()) {
     		if (e.getSource() == states && mCurrentAct != null) {
     			Logger.msg(1, "Setting state of "+mCurrentAct.getName()+" to "+states.getSelectedItem());
     			mCurrentAct.setState(states.getSelectedIndex());
@@ -202,12 +202,13 @@ public class TransitionPanel extends SelectedVertexPanel implements ActionListen
         int transition = Integer.parseInt(e.getActionCommand().substring(6));
         Logger.msg("Requesting transition "+transition);
         try {
-        	StateMachine actSM = mCurrentAct.getStateMachine();
-        	Job thisJob = new Job(mCurrentAct,      		
-        					mItem.getPath(),
-                            actSM.getTransition(transition),
-                            MainFrame.userAgent.getPath(),
-                            "Admin");
+            StateMachine actSM = mCurrentAct.getStateMachine();
+            Job thisJob = new Job(mCurrentAct,
+                                  mItem.getPath(),
+                                  actSM.getTransition(transition),
+                                  MainFrame.userAgent.getPath(),
+                                  null,
+                                  "Admin");
             Executor selectedExecutor = (Executor)executors.getSelectedItem();
             selectedExecutor.execute(thisJob, status);
         } catch (Exception ex) {
