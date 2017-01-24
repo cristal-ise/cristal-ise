@@ -20,28 +20,19 @@
  */
 package org.cristalise.storage.jooqdb;
 
-import static org.jooq.impl.DSL.using;
-
-import java.sql.Connection;
-import java.sql.DriverManager;
 import java.util.Arrays;
 import java.util.UUID;
 
-import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.lang3.ArrayUtils;
 import org.cristalise.kernel.common.PersistencyException;
 import org.cristalise.kernel.events.Event;
 import org.cristalise.kernel.lookup.AgentPath;
 import org.cristalise.kernel.lookup.InvalidItemPathException;
 import org.cristalise.kernel.lookup.ItemPath;
-import org.cristalise.kernel.persistency.outcome.Viewpoint;
 import org.cristalise.kernel.utils.DateUtility;
 import org.cristalise.kernel.utils.Logger;
 import org.hamcrest.collection.IsIterableContainingInAnyOrder;
-import org.jooq.SQLDialect;
 import org.junit.Assert;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 
 public class JooqHistoryTest extends JooqTestBase {
@@ -49,12 +40,28 @@ public class JooqHistoryTest extends JooqTestBase {
     JooqHistoryHandler jooq;
 
     private void compareEvents(Event actual, Event expected) {
-        assert actual != null;
-        assert actual.getID() == expected.getID();
-        assert actual.getItemPath().getStringPath().equals(expected.getItemPath().getStringPath());
-        assert actual.getName().equals(expected.getName());
-        assert actual.getSchemaName().equals(expected.getSchemaName());
-        assert actual.getSchemaVersion() == expected.getSchemaVersion();
+        Assert.assertNotNull(actual);
+        Assert.assertEquals(expected.getID(),                   actual.getID());
+        Assert.assertEquals(expected.getItemPath(),             actual.getItemPath());
+        Assert.assertEquals(expected.getAgentPath(),            actual.getAgentPath());
+        Assert.assertEquals(expected.getAgentRole(),            actual.getAgentRole());
+        Assert.assertEquals(expected.getName(),                 actual.getName());
+        Assert.assertEquals(expected.getSchemaName(),           actual.getSchemaName());
+        Assert.assertEquals(expected.getSchemaVersion(),        actual.getSchemaVersion());
+        Assert.assertEquals(expected.getStateMachineName(),     actual.getStateMachineName());
+        Assert.assertEquals(expected.getStateMachineVersion(),  actual.getStateMachineVersion());
+        Assert.assertEquals(expected.getStepName(),             actual.getStepName());
+        Assert.assertEquals(expected.getStepPath(),             actual.getStepPath());
+        Assert.assertEquals(expected.getStepType(),             actual.getStepType());
+        Assert.assertEquals(expected.getOriginState(),          actual.getOriginState());
+        Assert.assertEquals(expected.getTargetState(),          actual.getTargetState());
+        Assert.assertEquals(expected.getTransition(),           actual.getTransition());
+        Assert.assertEquals(expected.getViewName(),             actual.getViewName());
+
+        if (expected.getDelegatePath() != null)
+            Assert.assertEquals(expected.getDelegatePath(), actual.getDelegatePath());
+
+        compareTimestramps(expected.getTimeStamp(), actual.getTimeStamp());
     }
 
     private Event createEvent(UUID itemUUID, int id) throws InvalidItemPathException {

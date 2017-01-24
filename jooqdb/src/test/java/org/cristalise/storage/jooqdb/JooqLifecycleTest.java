@@ -38,8 +38,6 @@ public class JooqLifecycleTest extends JooqTestBase {
 
     @Before
     public void before() throws Exception {
-        Gateway.init(new Properties());
-
         super.before();
 
         jooq = new JooqLifecycleHandler();

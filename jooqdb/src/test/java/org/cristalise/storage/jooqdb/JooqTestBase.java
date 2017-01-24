@@ -24,14 +24,30 @@ import static org.jooq.impl.DSL.using;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
+import java.util.Properties;
 import java.util.UUID;
 
+import org.cristalise.kernel.common.GTimeStamp;
+import org.cristalise.kernel.process.Gateway;
 import org.jooq.DSLContext;
 import org.jooq.SQLDialect;
+import org.junit.AfterClass;
+import org.junit.Assert;
+import org.junit.BeforeClass;
 
 public class JooqTestBase {
     DSLContext context;
     UUID       uuid = UUID.randomUUID();
+
+    @BeforeClass
+    public static void beforeClass() throws Exception {
+        Gateway.init(new Properties());
+    }
+
+    @AfterClass
+    public static void afterClass() throws Exception {
+        Gateway.close();
+    }
 
     public void before() throws Exception {
         String userName = "sa";
@@ -40,5 +56,16 @@ public class JooqTestBase {
 
         Connection conn = DriverManager.getConnection(url, userName, password);
         context = using(conn, SQLDialect.H2);
+    }
+    
+    public static void compareTimestramps(GTimeStamp actual, GTimeStamp expected) {
+        Assert.assertNotNull(actual);
+        Assert.assertEquals(expected.mYear,       actual.mYear);
+        Assert.assertEquals(expected.mMonth,      actual.mMonth);
+        Assert.assertEquals(expected.mDay,        actual.mDay);
+        Assert.assertEquals(expected.mHour,       actual.mHour);
+        Assert.assertEquals(expected.mMinute,     actual.mMinute);
+        Assert.assertEquals(expected.mSecond,     actual.mSecond);
+        //Assert.assertEquals(expected.mTimeOffset, actual.mTimeOffset);
     }
 }

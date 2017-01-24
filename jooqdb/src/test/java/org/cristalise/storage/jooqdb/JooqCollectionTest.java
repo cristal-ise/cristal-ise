@@ -20,11 +20,8 @@
  */
 package org.cristalise.storage.jooqdb;
 
-import java.util.Properties;
-
 import org.cristalise.kernel.collection.Collection;
 import org.cristalise.kernel.collection.Dependency;
-import org.cristalise.kernel.process.Gateway;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -35,8 +32,6 @@ public class JooqCollectionTest extends JooqTestBase {
 
     @Before
     public void before() throws Exception {
-        Gateway.init(new Properties());
-
         super.before();
 
         jooq = new JooqCollectionHadler();

@@ -21,7 +21,6 @@
 package org.cristalise.storage.jooqdb;
 
 import java.util.Arrays;
-import java.util.Properties;
 import java.util.UUID;
 
 import org.cristalise.kernel.common.PersistencyException;
@@ -31,10 +30,8 @@ import org.cristalise.kernel.lifecycle.instance.stateMachine.Transition;
 import org.cristalise.kernel.lookup.AgentPath;
 import org.cristalise.kernel.lookup.InvalidItemPathException;
 import org.cristalise.kernel.lookup.ItemPath;
-import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.utils.CastorHashMap;
 import org.cristalise.kernel.utils.DateUtility;
-import org.cristalise.kernel.utils.Logger;
 import org.hamcrest.collection.IsIterableContainingInAnyOrder;
 import org.junit.Assert;
 import org.junit.Before;
@@ -46,8 +43,6 @@ public class JooqJobTest extends JooqTestBase {
     CastorHashMap actProps;
 
     private void compareJobs(Job actual, Job expected) throws Exception {
-        Logger.msg("---- Actual:"+actual+" agent:"+actual.getAgentPath());
-
         Assert.assertNotNull(actual);
         Assert.assertEquals(expected.getId(),              actual.getId());
         Assert.assertEquals(expected.getItemPath(),        actual.getItemPath());
@@ -60,6 +55,11 @@ public class JooqJobTest extends JooqTestBase {
         Assert.assertEquals(expected.getStepType(),        actual.getStepType());
         Assert.assertEquals(expected.getOriginStateName(), actual.getOriginStateName());
         Assert.assertEquals(expected.getTargetStateName(), actual.getTargetStateName());
+
+        if (expected.getDelegatePath() != null)
+            Assert.assertEquals(expected.getDelegatePath(), actual.getDelegatePath());
+
+        compareTimestramps(expected.getCreationDate(), actual.getCreationDate());
     }
 
     private Job createJob(UUID itemUUID, int id) throws InvalidItemPathException {
@@ -81,13 +81,11 @@ public class JooqJobTest extends JooqTestBase {
 
     @Before
     public void before() throws Exception {
-        Gateway.init(new Properties());
+        super.before();
 
         actProps = new CastorHashMap();
         actProps.setBuiltInProperty(BuiltInVertexProperties.STATE_MACHINE_NAME, "Default");
         actProps.setBuiltInProperty(BuiltInVertexProperties.STATE_MACHINE_VERSION, "0");
-
-        super.before();
 
         jooq = new JooqJobHandler();
         jooq.createTables(context);
@@ -139,7 +137,6 @@ public class JooqJobTest extends JooqTestBase {
         assert jooq.put(context, uuid2, createJob(uuid2, 2)) == 1;
 
         String[] keys = jooq.getNextPrimaryKeys(context, uuid);
-        Logger.msg(Arrays.toString(keys));
 
         Assert.assertThat(Arrays.asList(keys), IsIterableContainingInAnyOrder.containsInAnyOrder("0", "1", "2", "3"));
     }
