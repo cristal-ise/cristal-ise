@@ -1,23 +1,3 @@
-/**
- * This file is part of the CRISTAL-iSE jOOQ Cluster Storage Module.
- * Copyright (c) 2001-2017 The CRISTAL Consortium. All rights reserved.
- *
- * This library is free software; you can redistribute it and/or modify it
- * under the terms of the GNU Lesser General Public License as published
- * by the Free Software Foundation; either version 3 of the License, or (at
- * your option) any later version.
- *
- * This library is distributed in the hope that it will be useful, but WITHOUT
- * ANY WARRANTY; with out even the implied warranty of MERCHANTABILITY or
- * FITNESS FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public
- * License for more details.
- *
- * You should have received a copy of the GNU Lesser General Public License
- * along with this library; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA.
- *
- * http://www.fsf.org/licensing/licenses/lgpl.html
- */
 package org.cristalise.lookup.test;
 
 import static org.junit.Assert.*
@@ -37,13 +17,15 @@ class LookupSearchTests extends LookupTestBase {
 
     UUID uuid0 = new UUID(0,0)
     UUID uuid1 = new UUID(0,1)
+    UUID uuid2 = new UUID(0,2)
     
     @Before
     public void setUp() throws Exception {
         super.setUp()
 
-        lookup.add( new ItemPath(uuid0.toString()) )
-        lookup.add( new AgentPath(new ItemPath(uuid1.toString()), "Jim") )
+        lookup.add( new ItemPath(uuid0) )
+        lookup.add( new AgentPath(uuid1, "Jim") )
+        lookup.add( new AgentPath(uuid2, "John") )
         lookup.add( new DomainPath("empty/nothing") )
         lookup.add( new DomainPath("empty/something/uuid0", (ItemPath)lookup.getItemPath(uuid0.toString())) )
         lookup.add( new RolePath() )
@@ -73,5 +55,11 @@ class LookupSearchTests extends LookupTestBase {
     @Test
     public void resolvePath() {
         assert lookup.resolvePath(new DomainPath("empty/something/uuid0"))
+    }
+
+    @Test
+    public void getAgentName() {
+        assert lookup.getAgentName(new AgentPath(uuid1)) == "Jim"
+        assert lookup.getAgentName(new AgentPath(uuid2)) == "John"
     }
 }
