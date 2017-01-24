@@ -193,7 +193,7 @@ public class JooqCollectionHadler implements JooqHandler {
             .column(field("NAME",    String.class), NAME_TYPE.nullable(false))
             .column(field("VERSION", String.class), NAME_TYPE.nullable(false))
             .column(field("XML",     String.class), XML_TYPE.nullable(false))
-            .constraints(constraint("PK_UUID").primaryKey(field("UUID"), field("NAME"), field("VERSION")))
+            .constraints(constraint("PK_"+tableName).primaryKey(field("UUID"), field("NAME"), field("VERSION")))
         .execute();
     }
 }

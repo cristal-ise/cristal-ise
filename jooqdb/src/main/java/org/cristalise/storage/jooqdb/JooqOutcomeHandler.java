@@ -193,10 +193,10 @@ public class JooqOutcomeHandler implements JooqHandler {
             .column(field("SCHEMA_VERSION", Integer.class), VERSION_TYPE.nullable(false))
             .column(field("EVENT_ID",       Integer.class), ID_TYPE     .nullable(false))
             .column(field("XML",            String.class),  XML_TYPE    .nullable(false))
-            .constraints(constraint("PK_UUID").primaryKey(field("UUID"), 
-                                                          field("SCHEMA_NAME"), 
-                                                          field("SCHEMA_VERSION"), 
-                                                          field("EVENT_ID")))
+            .constraints(constraint("PK_"+tableName).primaryKey(field("UUID"), 
+                                                                field("SCHEMA_NAME"), 
+                                                                field("SCHEMA_VERSION"), 
+                                                                field("EVENT_ID")))
         .execute();
     }
 }

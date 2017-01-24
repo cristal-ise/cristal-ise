@@ -20,12 +20,10 @@
  */
 package org.cristalise.storage.jooqdb;
 
-import java.util.Properties;
 import java.util.UUID;
 
 import org.cristalise.kernel.persistency.outcome.Outcome;
 import org.cristalise.kernel.persistency.outcome.Schema;
-import org.cristalise.kernel.process.Gateway;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;

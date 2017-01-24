@@ -122,7 +122,7 @@ public class JooqLifecycleHandler implements JooqHandler {
             .column(field("UUID", UUID.class),    UUID_TYPE.nullable(false))
             .column(field("NAME", String.class),  NAME_TYPE.nullable(false))
             .column(field("XML",  String.class),  XML_TYPE. nullable(false))
-            .constraints(constraint("PK_UUID").primaryKey(field("UUID")))
+            .constraints(constraint("PK_"+tableName).primaryKey(field("UUID")))
         .execute();
     }
 

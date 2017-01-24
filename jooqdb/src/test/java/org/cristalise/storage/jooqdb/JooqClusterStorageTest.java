@@ -20,35 +20,42 @@
  */
 package org.cristalise.storage.jooqdb;
 
-import org.cristalise.kernel.lifecycle.instance.CompositeActivity;
-import org.cristalise.kernel.lifecycle.instance.Workflow;
-import org.cristalise.kernel.lifecycle.instance.predefined.server.ServerPredefinedStepContainer;
-import org.cristalise.kernel.lookup.ItemPath;
+import java.util.Properties;
+
+import org.cristalise.kernel.process.Gateway;
+import org.junit.AfterClass;
 import org.junit.Before;
-import org.junit.Ignore;
+import org.junit.BeforeClass;
 import org.junit.Test;
 
-public class JooqLifecycleTest extends JooqTestBase {
+public class JooqClusterStorageTest {
 
-    Workflow wf;
-    JooqLifecycleHandler jooq;
+    JooqClusterStorage jooq;
+
+    @BeforeClass
+    public static void beforeClass() throws Exception {
+        Properties props = new Properties();
+        
+        props.put(JooqClusterStorage.JOOQ_URI,      "jdbc:h2:mem:");
+        props.put(JooqClusterStorage.JOOQ_USER,     "sa");
+        props.put(JooqClusterStorage.JOOQ_PASSWORD, "sa");
+        props.put(JooqClusterStorage.JOOQ_DIALECT,  "H2");
+
+        Gateway.init(props);
+    }
+
+    @AfterClass
+    public static void afterClass() throws Exception {
+        Gateway.close();
+    }
 
     @Before
     public void before() throws Exception {
-        super.before();
-
-        jooq = new JooqLifecycleHandler();
-        jooq.createTables(context);
-
-        wf = new Workflow(new CompositeActivity(), new ServerPredefinedStepContainer());
-        wf.initialise(new ItemPath(), null, null);
-        assert jooq.put(context, uuid, wf) == 1;
+        jooq = new JooqClusterStorage();
+        jooq.open(null);
     }
 
-    @Test @Ignore
-    public void fetchWorkflow() throws Exception {
-        Workflow wfPrime = (Workflow)jooq.fetch(context, uuid);
-        assert wfPrime != null;
-        //assert "<xml/>".equals(outcomePrime.getData());
+    @Test
+    public void openConnectionAndCreateTables() {
     }
 }
