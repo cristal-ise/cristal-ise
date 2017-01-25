@@ -51,7 +51,7 @@ public class JooqClusterStorage extends TransactionalClusterStorage {
 
     public static final String JOOQ_DOMAIN_HANDLER  = "JOOQ.domainHandler";
 
-    private DSLContext context;
+    protected DSLContext context;
 
     HashMap<String, JooqHandler> jooqHandlers = new HashMap<String, JooqHandler>();
     JooqHandler domainHandler;
@@ -68,7 +68,7 @@ public class JooqClusterStorage extends TransactionalClusterStorage {
 
         SQLDialect dialect = SQLDialect.valueOf(Gateway.getProperties().getString(JOOQ_DIALECT, "POSTGRES"));
 
-        Logger.msg(1, "JOOQClusterStorage.open() - uri:'"+uri+"' user:'"+user+"' dialect:'"+dialect+"'");
+        Logger.msg(1, "JooqClusterStorage.open() - uri:'"+uri+"' user:'"+user+"' dialect:'"+dialect+"'");
 
         try {
             context = using(DriverManager.getConnection(uri, user, pwd), dialect);
@@ -97,31 +97,20 @@ public class JooqClusterStorage extends TransactionalClusterStorage {
             throw new PersistencyException(ex.getMessage());
         }
 
-        jooqHandlers.put(ClusterStorage.PROPERTY, new JooqItemPropertyHandler());
-        jooqHandlers.get(ClusterStorage.PROPERTY).createTables(context);
-
-        jooqHandlers.put(ClusterStorage.OUTCOME, new JooqOutcomeHandler());
-        jooqHandlers.get(ClusterStorage.OUTCOME).createTables(context);
-
-        jooqHandlers.put(ClusterStorage.VIEWPOINT, new JooqViewpointHandler());
-        jooqHandlers.get(ClusterStorage.VIEWPOINT).createTables(context);
-
-        jooqHandlers.put(ClusterStorage.LIFECYCLE, new JooqLifecycleHandler());
-        jooqHandlers.get(ClusterStorage.LIFECYCLE).createTables(context);
-
+        jooqHandlers.put(ClusterStorage.PROPERTY,   new JooqItemPropertyHandler());
+        jooqHandlers.put(ClusterStorage.OUTCOME,    new JooqOutcomeHandler());
+        jooqHandlers.put(ClusterStorage.VIEWPOINT,  new JooqViewpointHandler());
+        jooqHandlers.put(ClusterStorage.LIFECYCLE,  new JooqLifecycleHandler());
         jooqHandlers.put(ClusterStorage.COLLECTION, new JooqCollectionHadler());
-        jooqHandlers.get(ClusterStorage.COLLECTION).createTables(context);
+        jooqHandlers.put(ClusterStorage.HISTORY,    new JooqHistoryHandler());
+        jooqHandlers.put(ClusterStorage.JOB,        new JooqJobHandler());
 
-        jooqHandlers.put(ClusterStorage.HISTORY, new JooqHistoryHandler());
-        jooqHandlers.get(ClusterStorage.HISTORY).createTables(context);
-
-        jooqHandlers.put(ClusterStorage.JOB, new JooqJobHandler());
-        jooqHandlers.get(ClusterStorage.JOB).createTables(context);
+        for(JooqHandler handler: jooqHandlers.values()) handler.createTables(context);
     }
 
     @Override
     public void close() throws PersistencyException {
-        Logger.msg(1, "JOOQClusterStorage.close()");
+        Logger.msg(1, "JooqClusterStorage.close()");
         try {
             context.close();
         }
@@ -133,7 +122,7 @@ public class JooqClusterStorage extends TransactionalClusterStorage {
 
     @Override
     public void begin(Object locker) {
-        Logger.msg(1, "JOOQClusterStorage.begin()");
+        Logger.msg(1, "JooqClusterStorage.begin()");
         try {
             ((DefaultConnectionProvider)context.configuration().connectionProvider()).setAutoCommit(false);
         } 
@@ -144,7 +133,7 @@ public class JooqClusterStorage extends TransactionalClusterStorage {
 
     @Override
     public void commit(Object locker) throws PersistencyException {
-        Logger.msg(1, "JOOQClusterStorage.commit()");
+        Logger.msg(1, "JooqClusterStorage.commit()");
         try {
             ((DefaultConnectionProvider)context.configuration().connectionProvider()).commit();
         } 
@@ -156,7 +145,7 @@ public class JooqClusterStorage extends TransactionalClusterStorage {
 
     @Override
     public void abort(Object locker) {
-        Logger.msg(1, "JOOQClusterStorage.abort()");
+        Logger.msg(1, "JooqClusterStorage.abort()");
         try {
             ((DefaultConnectionProvider)context.configuration().connectionProvider()).rollback();
         }
@@ -193,13 +182,13 @@ public class JooqClusterStorage extends TransactionalClusterStorage {
 
     @Override
     public String[] getClusterContents(ItemPath itemPath, String path) throws PersistencyException {
-        if (StringUtils.isBlank(path)) return ClusterStorage.allClusterTypes;
+        if (StringUtils.isBlank(path)) return jooqHandlers.keySet().toArray(new String[0]);
 
         UUID uuid = itemPath.getUUID();
         String[] pathArray = path.split("/");
 
         String cluster = pathArray[0];
-        String[] primaryKeys = Arrays.copyOfRange(pathArray, 1, pathArray.length-1);
+        String[] primaryKeys = Arrays.copyOfRange(pathArray, 1, pathArray.length);
 
         JooqHandler handler = jooqHandlers.get(cluster);
 
@@ -218,7 +207,7 @@ public class JooqClusterStorage extends TransactionalClusterStorage {
         String[] pathArray = path.split("/");
 
         String cluster = pathArray[0];
-        String[] primaryKeys = Arrays.copyOfRange(pathArray, 1, pathArray.length-1);
+        String[] primaryKeys = Arrays.copyOfRange(pathArray, 1, pathArray.length);
 
         JooqHandler handler = jooqHandlers.get(cluster);
 
@@ -226,7 +215,10 @@ public class JooqClusterStorage extends TransactionalClusterStorage {
             Logger.msg(5, "JooqClusterStorage-get() - uuid:"+uuid+" cluster:"+cluster+" primaryKeys"+Arrays.toString(primaryKeys));
 
             C2KLocalObject obj = jooqHandlers.get(cluster).fetch(context, uuid, primaryKeys);
-            if (obj == null) throw new PersistencyException("JooqClusterStorage could not fetch '"+itemPath+"/"+path+"'");
+
+            if (obj == null && Logger.doLog(8)) {
+                Logger.warning(("JooqClusterStorage could not fetch '"+itemPath+"/"+path+"'"));
+            }
             return obj;
         }
         else
@@ -264,7 +256,7 @@ public class JooqClusterStorage extends TransactionalClusterStorage {
         String[] pathArray = path.split("/");
 
         String cluster = pathArray[0];
-        String[] primaryKeys = Arrays.copyOfRange(pathArray, 1, pathArray.length-1);
+        String[] primaryKeys = Arrays.copyOfRange(pathArray, 1, pathArray.length);
 
         JooqHandler handler = jooqHandlers.get(cluster);
 

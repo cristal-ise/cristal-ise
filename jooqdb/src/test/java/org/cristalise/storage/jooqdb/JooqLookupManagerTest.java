@@ -20,29 +20,28 @@
  */
 package org.cristalise.storage.jooqdb;
 
-import static org.jooq.impl.DSL.using;
-
-import java.sql.Connection;
-import java.sql.DriverManager;
 import java.util.Properties;
-import java.util.UUID;
 
-import org.cristalise.kernel.common.GTimeStamp;
 import org.cristalise.kernel.process.Gateway;
-import org.jooq.DSLContext;
-import org.jooq.SQLDialect;
-import org.junit.After;
 import org.junit.AfterClass;
-import org.junit.Assert;
+import org.junit.Before;
 import org.junit.BeforeClass;
+import org.junit.Test;
 
-public class JooqTestBase {
-    DSLContext context;
-    UUID       uuid = UUID.randomUUID();
+public class JooqLookupManagerTest {
+
+    JooqLookupManager jooq;
 
     @BeforeClass
     public static void beforeClass() throws Exception {
-        Gateway.init(new Properties());
+        Properties props = new Properties();
+        
+        props.put(JooqClusterStorage.JOOQ_URI,      "jdbc:h2:mem:");
+        props.put(JooqClusterStorage.JOOQ_USER,     "sa");
+        props.put(JooqClusterStorage.JOOQ_PASSWORD, "sa");
+        props.put(JooqClusterStorage.JOOQ_DIALECT,  "H2");
+
+        Gateway.init(props);
     }
 
     @AfterClass
@@ -50,28 +49,13 @@ public class JooqTestBase {
         Gateway.close();
     }
 
+    @Before
     public void before() throws Exception {
-        String userName = "sa";
-        String password = "sa";
-        String url      = "jdbc:h2:mem:";
-
-        Connection conn = DriverManager.getConnection(url, userName, password);
-        context = using(conn, SQLDialect.H2);
+        jooq = new JooqLookupManager();
+        jooq.open(null);
     }
 
-    @After
-    public void after() throws Exception {
-        context.close();
-    }
-
-    public static void compareTimestramps(GTimeStamp actual, GTimeStamp expected) {
-        Assert.assertNotNull(actual);
-        Assert.assertEquals(expected.mYear,       actual.mYear);
-        Assert.assertEquals(expected.mMonth,      actual.mMonth);
-        Assert.assertEquals(expected.mDay,        actual.mDay);
-        Assert.assertEquals(expected.mHour,       actual.mHour);
-        Assert.assertEquals(expected.mMinute,     actual.mMinute);
-        Assert.assertEquals(expected.mSecond,     actual.mSecond);
-        //Assert.assertEquals(expected.mTimeOffset, actual.mTimeOffset);
+    @Test
+    public void openConnectionAndCreateTables() {
     }
 }

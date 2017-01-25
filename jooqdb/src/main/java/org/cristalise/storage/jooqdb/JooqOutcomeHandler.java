@@ -22,6 +22,7 @@ package org.cristalise.storage.jooqdb;
 
 import static org.jooq.impl.DSL.constraint;
 import static org.jooq.impl.DSL.field;
+import static org.jooq.impl.DSL.name;
 import static org.jooq.impl.DSL.table;
 
 import java.util.ArrayList;
@@ -31,6 +32,7 @@ import java.util.UUID;
 
 import org.cristalise.kernel.common.InvalidDataException;
 import org.cristalise.kernel.common.ObjectNotFoundException;
+import org.cristalise.kernel.common.PersistencyException;
 import org.cristalise.kernel.entity.C2KLocalObject;
 import org.cristalise.kernel.persistency.outcome.Outcome;
 import org.cristalise.kernel.utils.LocalObjectLoader;
@@ -40,43 +42,47 @@ import org.jooq.DSLContext;
 import org.jooq.Field;
 import org.jooq.Record;
 import org.jooq.Result;
-import org.jooq.impl.DSL;
+import org.jooq.Table;
 
 public class JooqOutcomeHandler implements JooqHandler {
+    static final Table<?> OUTCOME_TABLE = table(name("OUTCOME"));
 
-    public static final String tableName = "OUTCOME";
+    static final Field<UUID>    UUID            = field(name("UUID"),           UUID.class);
+    static final Field<String>  SCHEMA_NAME     = field(name("SCHEMA_NAME"),    String.class);
+    static final Field<Integer> SCHEMA_VERSION  = field(name("SCHEMA_VERSION"), Integer.class);
+    static final Field<Integer> EVENT_ID        = field(name("EVENT_ID"),       Integer.class);
+    static final Field<String>  XML             = field(name("XML"),            String.class);
 
-    private List<Condition> getPKConditions(UUID uuid, String... primaryKeys) {
+    private List<Condition> getPKConditions(UUID uuid, String... primaryKeys) throws PersistencyException {
         List<Condition> conditions = new ArrayList<>();
 
         switch (primaryKeys.length) {
             case 0: 
-                conditions.add(field("UUID").equal(uuid));
+                conditions.add(UUID.equal(uuid));
                 break;
             case 1:
-                conditions.add(field("UUID"       ).equal(uuid));
-                conditions.add(field("SCHEMA_NAME").equal(primaryKeys[0]));
+                conditions.add(UUID       .equal(uuid));
+                conditions.add(SCHEMA_NAME.equal(primaryKeys[0]));
                 break;
             case 2:
-                conditions.add(field("UUID"          ).equal(uuid));
-                conditions.add(field("SCHEMA_NAME"   ).equal(primaryKeys[0]));
-                conditions.add(field("SCHEMA_VERSION").equal(primaryKeys[1]));
+                conditions.add(UUID          .equal(uuid));
+                conditions.add(SCHEMA_NAME   .equal(primaryKeys[0]));
+                conditions.add(SCHEMA_VERSION.equal(Integer.valueOf(primaryKeys[1])));
                 break;
             case 3:
-                conditions.add(field("UUID"          ).equal(uuid));
-                conditions.add(field("SCHEMA_NAME"   ).equal(primaryKeys[0]));
-                conditions.add(field("SCHEMA_VERSION").equal(primaryKeys[1]));
-                conditions.add(field("EVENT_ID"      ).equal(primaryKeys[2]));
+                conditions.add(UUID          .equal(uuid));
+                conditions.add(SCHEMA_NAME   .equal(primaryKeys[0]));
+                conditions.add(SCHEMA_VERSION.equal(Integer.valueOf(primaryKeys[1])));
+                conditions.add(EVENT_ID      .equal(Integer.valueOf(primaryKeys[2])));
                 break;
-
             default:
-                throw new IllegalArgumentException("Invalid number of primary keys (max 4):"+Arrays.toString(primaryKeys));
+                throw new PersistencyException("Invalid number of primary keys (max 4):"+Arrays.toString(primaryKeys));
         }
         return conditions;
     }
 
     @Override
-    public int put(DSLContext context, UUID uuid, C2KLocalObject obj) {
+    public int put(DSLContext context, UUID uuid, C2KLocalObject obj) throws PersistencyException {
         Outcome outcome = (Outcome)obj;
 
         String schemaName    = outcome.getSchema().getName();
@@ -90,15 +96,15 @@ public class JooqOutcomeHandler implements JooqHandler {
     }
 
     @Override
-    public int update(DSLContext context, UUID uuid, C2KLocalObject obj) {
+    public int update(DSLContext context, UUID uuid, C2KLocalObject obj) throws PersistencyException {
         throw new IllegalArgumentException("Outcome must not be updated uuid:"+uuid+" name:"+obj.getName());
     }
 
     @Override
-    public int delete(DSLContext context, UUID uuid, String... primaryKeys) {
+    public int delete(DSLContext context, UUID uuid, String... primaryKeys) throws PersistencyException {
         List<Condition> conditions = getPKConditions(uuid, primaryKeys);
         return context
-                .delete(table(tableName))
+                .delete(OUTCOME_TABLE)
                 .where(conditions)
                 .execute();
     }
@@ -107,73 +113,68 @@ public class JooqOutcomeHandler implements JooqHandler {
     public int insert(DSLContext context, UUID uuid, C2KLocalObject obj) {
         Outcome outcome = (Outcome)obj;
         return context
-                .insertInto(
-                    table(tableName), 
-                        field("UUID"),
-                        field("SCHEMA_NAME"),
-                        field("SCHEMA_VERSION"),
-                        field("EVENT_ID"),
-                        field("XML")
-                 )
-                .values(uuid, outcome.getSchema().getName(), outcome.getSchema().getVersion(), outcome.getID(), outcome.getData())
+                .insertInto(OUTCOME_TABLE) 
+                        .set(UUID,           uuid)
+                        .set(SCHEMA_NAME,    outcome.getSchema().getName())
+                        .set(SCHEMA_VERSION, outcome.getSchema().getVersion())
+                        .set(EVENT_ID,       outcome.getID())
+                        .set(XML,            outcome.getData())
                 .execute();
     }
 
     @Override
-    public C2KLocalObject fetch(DSLContext context, UUID uuid, String...primaryKeys) {
+    public C2KLocalObject fetch(DSLContext context, UUID uuid, String...primaryKeys) throws PersistencyException {
         String  schemaName    = primaryKeys[0];
         Integer schemaVersion = Integer.parseInt(primaryKeys[1]);
         Integer eventID       = Integer.parseInt(primaryKeys[2]);
 
         Record result = context
-                .select().from(table(tableName))
-                .where(field("UUID",           UUID.class).equal(uuid))
-                  .and(field("SCHEMA_NAME",    String.class).equal(schemaName))
-                  .and(field("SCHEMA_VERSION", Integer.class).equal(schemaVersion))
-                  .and(field("EVENT_ID",       Integer.class).equal(eventID))
+                .select().from(OUTCOME_TABLE)
+                .where(UUID          .equal(uuid))
+                  .and(SCHEMA_NAME   .equal(schemaName))
+                  .and(SCHEMA_VERSION.equal(schemaVersion))
+                  .and(EVENT_ID      .equal(eventID))
                 .fetchOne();
 
         if(result != null) {
             try {
-                String xml = result.get(field("XML", String.class));
+                String xml = result.get(XML);
                 return new Outcome(eventID, xml, LocalObjectLoader.getSchema(schemaName, schemaVersion));
             }
             catch (InvalidDataException | ObjectNotFoundException e) {
                 Logger.error(e);
+                throw new PersistencyException(e.getMessage());
             }
         }
         return null;
     }
 
     @Override
-    public String[] getNextPrimaryKeys(DSLContext context, UUID uuid, String...primaryKeys) {
+    public String[] getNextPrimaryKeys(DSLContext context, UUID uuid, String...primaryKeys) throws PersistencyException {
         Field<?>[] fields = new Field[1];
 
         List<Condition> conditions = getPKConditions(uuid, primaryKeys);
 
         switch (primaryKeys.length) {
             case 0: 
-                fields[0] = field("SCHEMA_NAME");
+                fields[0] = SCHEMA_NAME;
                 break;
             case 1:
-                fields[0] = field("SCHEMA_VERSION");
+                fields[0] = SCHEMA_VERSION;
                 break;
             case 2:
-                fields[0] = field("EVENT_ID");
+                fields[0] = EVENT_ID;
                 break;
             case 3:
-                fields[0] = field("EVENT_ID");
+                fields[0] = EVENT_ID;
                 break;
-
             default:
-                throw new IllegalArgumentException("Invalid number of primary keys (max 4):"+Arrays.toString(primaryKeys));
+                throw new PersistencyException("Invalid number of primary keys (max 4):"+Arrays.toString(primaryKeys));
         }
-
-        Logger.msg(DSL.selectDistinct(fields).from(table(tableName)).where(conditions).getSQL());
 
         Result<Record> result = context
                 .selectDistinct(fields)
-                .from(table(tableName))
+                .from(OUTCOME_TABLE)
                 .where(conditions)
                 .fetch();
 
@@ -186,17 +187,15 @@ public class JooqOutcomeHandler implements JooqHandler {
     }
 
     @Override
-    public void createTables(DSLContext context) {
-        context.createTableIfNotExists(table(tableName))
-            .column(field("UUID",           UUID.class),    UUID_TYPE   .nullable(false))
-            .column(field("SCHEMA_NAME",    String.class),  NAME_TYPE   .nullable(false))
-            .column(field("SCHEMA_VERSION", Integer.class), VERSION_TYPE.nullable(false))
-            .column(field("EVENT_ID",       Integer.class), ID_TYPE     .nullable(false))
-            .column(field("XML",            String.class),  XML_TYPE    .nullable(false))
-            .constraints(constraint("PK_"+tableName).primaryKey(field("UUID"), 
-                                                                field("SCHEMA_NAME"), 
-                                                                field("SCHEMA_VERSION"), 
-                                                                field("EVENT_ID")))
+    public void createTables(DSLContext context) throws PersistencyException {
+        context.createTableIfNotExists(OUTCOME_TABLE)
+            .column(UUID,           UUID_TYPE   .nullable(false))
+            .column(SCHEMA_NAME,    NAME_TYPE   .nullable(false))
+            .column(SCHEMA_VERSION, VERSION_TYPE.nullable(false))
+            .column(EVENT_ID,       ID_TYPE     .nullable(false))
+            .column(XML,            XML_TYPE    .nullable(false))
+            .constraints(
+                    constraint("PK_"+OUTCOME_TABLE).primaryKey(UUID, SCHEMA_NAME, SCHEMA_VERSION, EVENT_ID))
         .execute();
     }
 }

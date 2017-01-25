@@ -70,7 +70,7 @@ public class JooqHistoryHandler implements JooqHandler {
 
 //    static final Field<OffsetDateTime> TIMESTAMP = field(name("TIMESTAMP"), Timestamp.class);
 
-    private List<Condition> getPKConditions(UUID uuid, String... primaryKeys) {
+    private List<Condition> getPKConditions(UUID uuid, String... primaryKeys) throws PersistencyException {
         List<Condition> conditions = new ArrayList<>();
 
         switch (primaryKeys.length) {
@@ -81,9 +81,8 @@ public class JooqHistoryHandler implements JooqHandler {
                 conditions.add(UUID.equal(uuid));
                 conditions.add(ID.equal(Integer.valueOf(primaryKeys[0])));
                 break;
-
             default:
-                throw new IllegalArgumentException("Invalid number of primary keys (max 4):"+Arrays.toString(primaryKeys));
+                throw new PersistencyException("Invalid number of primary keys (max 4):"+Arrays.toString(primaryKeys));
         }
         return conditions;
     }
@@ -212,18 +211,18 @@ public class JooqHistoryHandler implements JooqHandler {
             .column(ID,                   ID_TYPE        .nullable(false))
             .column(AGENT_UUID,           UUID_TYPE      .nullable(false))
             .column(DELEGATE_UUID,        UUID_TYPE      .nullable(true))
-            .column(AGENT_ROLE,           NAME_TYPE      .nullable(false))
-            .column(SCHEMA_NAME,          NAME_TYPE      .nullable(false))
-            .column(SCHEMA_VERSION,       VERSION_TYPE   .nullable(false))
+            .column(AGENT_ROLE,           NAME_TYPE      .nullable(true))
+            .column(SCHEMA_NAME,          NAME_TYPE      .nullable(true))
+            .column(SCHEMA_VERSION,       VERSION_TYPE   .nullable(true))
             .column(STATEMACHINE_NAME,    NAME_TYPE      .nullable(false))
-            .column(STATEMACHINE_VERSION, VERSION_TYPE   .nullable(false))
+            .column(STATEMACHINE_VERSION, VERSION_TYPE   .nullable(true))
             .column(STEP_NAME,            NAME_TYPE      .nullable(false))
             .column(STEP_PATH,            NAME_TYPE      .nullable(false))
-            .column(STEP_TYPE,            NAME_TYPE      .nullable(false))
+            .column(STEP_TYPE,            NAME_TYPE      .nullable(true))
             .column(ORIGIN_STATE_ID,      ID_TYPE        .nullable(false))
             .column(TARGET_STATE_ID,      ID_TYPE        .nullable(false))
             .column(TRANSITION_ID,        ID_TYPE        .nullable(false))
-            .column(VIEW_NAME,            NAME_TYPE      .nullable(false))
+            .column(VIEW_NAME,            NAME_TYPE      .nullable(true))
             .column(TIMESTAMP,            TIMESTAMP_TYPE .nullable(false))
             .constraints(constraint("PK_"+EVENT_TABLE).primaryKey(UUID, ID))
         .execute();

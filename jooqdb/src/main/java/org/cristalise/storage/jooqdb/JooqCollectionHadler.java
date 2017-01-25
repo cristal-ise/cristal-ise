@@ -22,6 +22,7 @@ package org.cristalise.storage.jooqdb;
 
 import static org.jooq.impl.DSL.constraint;
 import static org.jooq.impl.DSL.field;
+import static org.jooq.impl.DSL.name;
 import static org.jooq.impl.DSL.table;
 
 import java.io.IOException;
@@ -31,6 +32,7 @@ import java.util.List;
 import java.util.UUID;
 
 import org.cristalise.kernel.collection.Collection;
+import org.cristalise.kernel.common.PersistencyException;
 import org.cristalise.kernel.entity.C2KLocalObject;
 import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.utils.Logger;
@@ -42,60 +44,62 @@ import org.jooq.DSLContext;
 import org.jooq.Field;
 import org.jooq.Record;
 import org.jooq.Result;
+import org.jooq.Table;
 import org.jooq.exception.DataAccessException;
-import org.jooq.impl.DSL;
 
 public class JooqCollectionHadler implements JooqHandler {
-    public static final String tableName = "COLLECTION";
+    static final Table<?> COLLECTION_TABLE = table(name("COLLECTION"));
 
-    private List<Condition> getPKConditions(UUID uuid, String... primaryKeys) {
+    static final Field<UUID>   UUID    = field(name("UUID"),    UUID.class);
+    static final Field<String> NAME    = field(name("NAME"),    String.class);
+    static final Field<String> VERSION = field(name("VERSION"), String.class);
+    static final Field<String> XML     = field(name("XML"),     String.class);
+
+    private List<Condition> getPKConditions(UUID uuid, String... primaryKeys) throws PersistencyException {
         List<Condition> conditions = new ArrayList<>();
 
         switch (primaryKeys.length) {
             case 0: 
-                conditions.add(field("UUID").equal(uuid));
+                conditions.add(UUID.equal(uuid));
                 break;
             case 1:
-                conditions.add(field("UUID").equal(uuid));
-                conditions.add(field("NAME").equal(primaryKeys[0]));
+                conditions.add(UUID.equal(uuid));
+                conditions.add(NAME.equal(primaryKeys[0]));
                 break;
             case 2:
-                conditions.add(field("UUID"   ).equal(uuid));
-                conditions.add(field("NAME"   ).equal(primaryKeys[0]));
-                conditions.add(field("VERSION").equal(primaryKeys[1]));
+                conditions.add(UUID   .equal(uuid));
+                conditions.add(NAME   .equal(primaryKeys[0]));
+                conditions.add(VERSION.equal(primaryKeys[1]));
                 break;
             default:
-                throw new IllegalArgumentException("Invalid number of primary keys (max 2):"+Arrays.toString(primaryKeys));
+                throw new PersistencyException("Invalid number of primary keys (max 2):"+Arrays.toString(primaryKeys));
         }
         return conditions;
     }
 
     @Override
-    public String[] getNextPrimaryKeys(DSLContext context, UUID uuid, String... primaryKeys) {
+    public String[] getNextPrimaryKeys(DSLContext context, UUID uuid, String... primaryKeys) throws PersistencyException {
         Field<?>[] fields = new Field[1];
 
         List<Condition> conditions = getPKConditions(uuid, primaryKeys);
 
         switch (primaryKeys.length) {
             case 0: 
-                fields[0] = field("NAME");
+                fields[0] = NAME;
                 break;
             case 1:
-                fields[0] = field("VERSION");
+                fields[0] = VERSION;
                 break;
             case 2:
-                fields[0] = field("VERSION");
+                fields[0] = VERSION;
                 break;
-
             default:
-                throw new IllegalArgumentException("Invalid number of primary keys (max 2):"+Arrays.toString(primaryKeys));
+                throw new PersistencyException("Invalid number of primary keys (max 2):"+Arrays.toString(primaryKeys));
         }
-
-        Logger.msg(DSL.selectDistinct(fields).from(table(tableName)).where(conditions).getSQL());
 
         Result<Record> result = context
                 .selectDistinct(fields)
-                .from(table(tableName))
+                .from(COLLECTION_TABLE)
                 .where(conditions)
                 .fetch();
 
@@ -108,7 +112,7 @@ public class JooqCollectionHadler implements JooqHandler {
     }
 
     @Override
-    public int put(DSLContext context, UUID uuid, C2KLocalObject obj) {
+    public int put(DSLContext context, UUID uuid, C2KLocalObject obj) throws PersistencyException {
         Collection<?> collection = ((Collection<?>)obj);
 
         C2KLocalObject c = fetch(context, uuid, collection.getName(), collection.getVersionName());
@@ -118,82 +122,81 @@ public class JooqCollectionHadler implements JooqHandler {
     }
 
     @Override
-    public int update(DSLContext context, UUID uuid, C2KLocalObject obj) {
+    public int update(DSLContext context, UUID uuid, C2KLocalObject obj) throws PersistencyException {
         Collection<?> collection = ((Collection<?>)obj);
         try {
             return context
-                    .update(table(tableName))
-                    .set(field("XML"),  Gateway.getMarshaller().marshall(obj))
-                    .where(field("UUID",    UUID.class  ).equal(uuid))
-                      .and(field("NAME",    String.class).equal(collection.getName()))
-                      .and(field("VERSION", String.class).equal(collection.getVersionName()))
+                    .update(COLLECTION_TABLE)
+                    .set(XML, Gateway.getMarshaller().marshall(obj))
+                    .where(UUID   .equal(uuid))
+                      .and(NAME   .equal(collection.getName()))
+                      .and(VERSION.equal(collection.getVersionName()))
                     .execute();
         }
         catch (MarshalException | ValidationException | DataAccessException | IOException | MappingException e) {
             Logger.error(e);
+            throw new PersistencyException(e.getMessage());
         }
-        return 0;
     }
 
     @Override
-    public int insert(DSLContext context, UUID uuid, C2KLocalObject obj) {
+    public int insert(DSLContext context, UUID uuid, C2KLocalObject obj) throws PersistencyException {
         Collection<?> collection = ((Collection<?>)obj);
         try {
             return context
-                    .insertInto(
-                        table(tableName), 
-                            field("UUID",    UUID.class),
-                            field("NAME",    String.class),
-                            field("VERSION", String.class),
-                            field("XML",     String.class)
-                     )
-                    .values(uuid, collection.getName(), collection.getVersionName(), Gateway.getMarshaller().marshall(obj))
+                    .insertInto(COLLECTION_TABLE)
+                        .set(UUID,    uuid)
+                        .set(NAME,    collection.getName())
+                        .set(VERSION, collection.getVersionName())
+                        .set(XML,     Gateway.getMarshaller().marshall(obj))
                     .execute();
         }
         catch (MarshalException | ValidationException | DataAccessException | IOException | MappingException e) {
             Logger.error(e);
+            throw new PersistencyException(e.getMessage());
         }
-        return 0;
     }
 
     @Override
-    public int delete(DSLContext context, UUID uuid, String... primaryKeys) {
+    public int delete(DSLContext context, UUID uuid, String... primaryKeys) throws PersistencyException {
         List<Condition> conditions = getPKConditions(uuid, primaryKeys);
         return context
-                .delete(table(tableName))
+                .delete(COLLECTION_TABLE)
                 .where(conditions)
                 .execute();
     }
 
     @Override
-    public C2KLocalObject fetch(DSLContext context, UUID uuid, String... primaryKeys) {
+    public C2KLocalObject fetch(DSLContext context, UUID uuid, String... primaryKeys) throws PersistencyException {
         List<Condition> conditions = getPKConditions(uuid, primaryKeys);
 
         Record result = context
-                .select().from(table(tableName))
+                .select().from(COLLECTION_TABLE)
                 .where(conditions)
                 .fetchOne();
 
         if(result != null) {
             try {
-                String xml = result.get(field("XML", String.class));
+                String xml = result.get(XML);
                 return (C2KLocalObject)Gateway.getMarshaller().unmarshall(xml);
             }
             catch (MarshalException | ValidationException | IOException | MappingException e) {
                 Logger.error(e);
+                throw new PersistencyException(e.getMessage());
             }
         }
         return null;
     }
 
     @Override
-    public void createTables(DSLContext context) {
-        context.createTableIfNotExists(table(tableName))
-            .column(field("UUID",    UUID.class),   UUID_TYPE.nullable(false))
-            .column(field("NAME",    String.class), NAME_TYPE.nullable(false))
-            .column(field("VERSION", String.class), NAME_TYPE.nullable(false))
-            .column(field("XML",     String.class), XML_TYPE.nullable(false))
-            .constraints(constraint("PK_"+tableName).primaryKey(field("UUID"), field("NAME"), field("VERSION")))
+    public void createTables(DSLContext context) throws PersistencyException {
+        context.createTableIfNotExists(COLLECTION_TABLE)
+            .column(UUID,    UUID_TYPE.nullable(false))
+            .column(NAME,    NAME_TYPE.nullable(false))
+            .column(VERSION, NAME_TYPE.nullable(false))
+            .column(XML,     XML_TYPE.nullable(false))
+            .constraints(
+                    constraint("PK_"+COLLECTION_TABLE).primaryKey(UUID, NAME, VERSION))
         .execute();
-    }
+  }
 }

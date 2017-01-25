@@ -44,7 +44,7 @@ public class JooqCollectionTest extends JooqTestBase {
         Assert.assertEquals(expected.getVersionName(), actual.getVersionName());
     }
 
-    private Dependency addDependency(String name, Integer version) {
+    private Dependency addDependency(String name, Integer version) throws Exception {
         Dependency d = new Dependency(name, version);
         assert jooq.put(context, uuid, d) == 1;
         return d;

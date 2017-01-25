@@ -22,6 +22,7 @@ package org.cristalise.storage.jooqdb;
 
 import static org.jooq.impl.DSL.constraint;
 import static org.jooq.impl.DSL.field;
+import static org.jooq.impl.DSL.name;
 import static org.jooq.impl.DSL.table;
 
 import java.io.IOException;
@@ -51,40 +52,53 @@ import org.jooq.DSLContext;
 import org.jooq.Field;
 import org.jooq.Record;
 import org.jooq.Result;
-import org.jooq.impl.DSL;
+import org.jooq.Table;
 
 public class JooqJobHandler implements JooqHandler {
-    public static final String tableName = "JOB";
+    static final Table<?> JOB_TABLE = table(name("JOB"));
 
-    private List<Condition> getPKConditions(UUID uuid, String... primaryKeys) {
+    static final Field<UUID>      UUID              = field(name("UUID"),              UUID.class);
+    static final Field<Integer>   ID                = field(name("ID"),                Integer.class);
+    static final Field<UUID>      DELEGATE_UUID     = field(name("DELEGATE_UUID"),     UUID.class);
+    static final Field<UUID>      ITEM_UUID         = field(name("ITEM_UUID"),         UUID.class);
+    static final Field<String>    STEP_NAME         = field(name("STEP_NAME"),         String.class);
+    static final Field<String>    STEP_PATH         = field(name("STEP_PATH"),         String.class);
+    static final Field<String>    STEP_TYPE         = field(name("STEP_TYPE"),         String.class);
+    static final Field<String>    TRANSITION        = field(name("TRANSITION"),        String.class);
+    static final Field<String>    ORIGIN_STATE_NAME = field(name("ORIGIN_STATE_NAME"), String.class);
+    static final Field<String>    TARGET_STATE_NAME = field(name("TARGET_STATE_NAME"), String.class);
+    static final Field<String>    AGENT_ROLE        = field(name("AGENT_ROLE"),        String.class);
+    static final Field<String>    ACT_PROPERTIES    = field(name("ACT_PROPERTIES"),    String.class);
+    static final Field<Timestamp> CREATION_TS       = field(name("CREATION_TS"),       Timestamp.class);
+
+//  static final Field<OffsetDateTime> CREATION_TS = field(name("CREATION_TS"), OffsetDateTime.class);
+
+    private List<Condition> getPKConditions(UUID uuid, String... primaryKeys) throws PersistencyException {
         List<Condition> conditions = new ArrayList<>();
 
         switch (primaryKeys.length) {
             case 0: 
-                conditions.add(field("UUID").equal(uuid));
+                conditions.add(UUID.equal(uuid));
                 break;
             case 1:
-                conditions.add(field("UUID").equal(uuid));
-                conditions.add(field("ID"  ).equal(primaryKeys[0]));
+                conditions.add(UUID.equal(uuid));
+                conditions.add(ID  .equal(Integer.valueOf(primaryKeys[0])));
                 break;
-
             default:
-                throw new IllegalArgumentException("Invalid number of primary keys (max 4):"+Arrays.toString(primaryKeys));
+                throw new PersistencyException("Invalid number of primary keys (max 4):"+Arrays.toString(primaryKeys));
         }
         return conditions;
     }
 
     @Override
     public String[] getNextPrimaryKeys(DSLContext context, UUID uuid, String... primaryKeys) throws PersistencyException {
-        Field<?>[] fields = { field("ID") };
+        Field<?>[] fields = { ID };
 
         List<Condition> conditions = getPKConditions(uuid, primaryKeys);
 
-        Logger.msg(DSL.selectDistinct(fields).from(table(tableName)).where(conditions).getSQL());
-
         Result<Record> result = context
                 .selectDistinct(fields)
-                .from(table(tableName))
+                .from(JOB_TABLE)
                 .where(conditions)
                 .fetch();
 
@@ -124,37 +138,20 @@ public class JooqJobHandler implements JooqHandler {
         }
 
         return context
-                .insertInto(
-                    table(tableName), 
-                    field("UUID",              UUID.class),
-                    field("ID",                Integer.class),
-                    field("DELEGATE_UUID",     UUID.class),
-                    field("ITEM_UUID",         UUID.class),
-                    field("STEP_NAME",         String.class),
-                    field("STEP_PATH",         String.class),
-                    field("STEP_TYPE",         String.class),
-                    field("TRANSITION",        String.class),
-                    field("ORIGIN_STATE_NAME", String.class),
-                    field("TARGET_STATE_NAME", String.class),
-                    field("AGENT_ROLE",        String.class),
-                    field("ACT_PROPERTIES",    String.class),
-                    field("CREATION_TS",       Timestamp.class)
-                   //field("CREATION_TS",      OffsetDateTime.class)
-                 )
-                .values(uuid, 
-                        job.getId(),
-                        (job.getDelegatePath() == null) ? null: job.getDelegatePath().getUUID(),
-                        job.getItemPath().getUUID(),
-                        job.getStepName(),
-                        job.getStepPath(),
-                        job.getStepType(),
-                        transXML,
-                        job.getOriginStateName(),
-                        job.getTargetStateName(),
-                        job.getAgentRole(),
-                        actPropsXML,
-                        DateUtility.toSqlTimestamp(job.getCreationDate()))
-//                        DateUtility.toOffsetDateTime(job.getCreationDate()))
+                .insertInto(JOB_TABLE)
+                    .set(UUID,              uuid)
+                    .set(ID,                job.getId())
+                    .set(DELEGATE_UUID,     (job.getDelegatePath() == null) ? null: job.getDelegatePath().getUUID())
+                    .set(ITEM_UUID,         job.getItemPath().getUUID())
+                    .set(STEP_NAME,         job.getStepName())
+                    .set(STEP_PATH,         job.getStepPath())
+                    .set(STEP_TYPE,         job.getStepType())
+                    .set(TRANSITION,        transXML)
+                    .set(ORIGIN_STATE_NAME, job.getOriginStateName())
+                    .set(TARGET_STATE_NAME, job.getTargetStateName())
+                    .set(AGENT_ROLE,        job.getAgentRole())
+                    .set(ACT_PROPERTIES,    actPropsXML)
+                    .set(CREATION_TS,       DateUtility.toSqlTimestamp(job.getCreationDate()))
                 .execute();
     }
 
@@ -162,7 +159,7 @@ public class JooqJobHandler implements JooqHandler {
     public int delete(DSLContext context, UUID uuid, String... primaryKeys) throws PersistencyException {
         List<Condition> conditions = getPKConditions(uuid, primaryKeys);
         return context
-                .delete(table(tableName))
+                .delete(JOB_TABLE)
                 .where(conditions)
                 .execute();
     }
@@ -172,32 +169,32 @@ public class JooqJobHandler implements JooqHandler {
         Integer id = Integer.parseInt(primaryKeys[0]);
         
         Record result = context
-                .select().from(table(tableName))
-                .where(field("UUID").equal(uuid))
-                  .and(field("ID").equal(id))
+                .select().from(JOB_TABLE)
+                .where(UUID.equal(uuid))
+                  .and(ID  .equal(id))
                 .fetchOne();
 
         if (result != null) {
             try {
-                Transition trans       = (Transition)   Gateway.getMarshaller().unmarshall(result.get(field("TRANSITION",     String.class)));
-                CastorHashMap actProps = (CastorHashMap)Gateway.getMarshaller().unmarshall(result.get(field("ACT_PROPERTIES", String.class)));
+                Transition trans       = (Transition)   Gateway.getMarshaller().unmarshall(result.get(TRANSITION));
+                CastorHashMap actProps = (CastorHashMap)Gateway.getMarshaller().unmarshall(result.get(ACT_PROPERTIES));
 
-                UUID delegate = result.get(field("DELEGATE_UUID", UUID.class));
+                UUID delegate = result.get(DELEGATE_UUID);
 
-                GTimeStamp ts = DateUtility.fromSqlTimestamp( result.get(field("CREATION_TS", Timestamp.class)));
-                //GTimeStamp ts = DateUtility.fromOffsetDateTime( result.get(field("CREATION_TS", OffsetDateTime.class)));
+                GTimeStamp ts = DateUtility.fromSqlTimestamp( result.get(CREATION_TS));
+                //GTimeStamp ts = DateUtility.fromOffsetDateTime( result.get(CREATION_TS));
 
                 return new Job(
-                        result.get(field("ID", Integer.class)),
-                        new ItemPath(result.get(field("ITEM_UUID", UUID.class))),
-                        result.get(field("STEP_NAME", String.class)),
-                        result.get(field("STEP_PATH", String.class)),
-                        result.get(field("STEP_TYPE", String.class)),
+                        result.get(ID),
+                        new ItemPath(result.get(ITEM_UUID)),
+                        result.get(STEP_NAME),
+                        result.get(STEP_PATH),
+                        result.get(STEP_TYPE),
                         trans,
-                        result.get(field("ORIGIN_STATE_NAME", String.class)),
-                        result.get(field("TARGET_STATE_NAME", String.class)),
-                        result.get(field("AGENT_ROLE", String.class)),
-                        new AgentPath(result.get(field("UUID", UUID.class))),
+                        result.get(ORIGIN_STATE_NAME),
+                        result.get(TARGET_STATE_NAME),
+                        result.get(AGENT_ROLE),
+                        new AgentPath(result.get(UUID)),
                         (delegate == null) ? null : new AgentPath(delegate),
                         actProps,
                         ts);
@@ -215,22 +212,21 @@ public class JooqJobHandler implements JooqHandler {
 
     @Override
     public void createTables(DSLContext context) {
-        context.createTableIfNotExists(table(tableName))
-            .column(field("UUID",              UUID.class),           UUID_TYPE      .nullable(false))
-            .column(field("ID",                Integer.class),        ID_TYPE        .nullable(false))
-            .column(field("DELEGATE_UUID",     UUID.class),           UUID_TYPE      .nullable(true))
-            .column(field("ITEM_UUID",         UUID.class),           UUID_TYPE      .nullable(false))
-            .column(field("STEP_NAME",         String.class),         NAME_TYPE      .nullable(false))
-            .column(field("STEP_PATH",         String.class),         NAME_TYPE      .nullable(false))
-            .column(field("STEP_TYPE",         String.class),         NAME_TYPE      .nullable(false))
-            .column(field("TRANSITION",        String.class),         XML_TYPE        .nullable(false))
-            .column(field("ORIGIN_STATE_NAME", String.class),         NAME_TYPE      .nullable(false))
-            .column(field("TARGET_STATE_NAME", String.class),         NAME_TYPE      .nullable(false))
-            .column(field("AGENT_ROLE",        String.class),         NAME_TYPE      .nullable(false))
-            .column(field("ACT_PROPERTIES",    String.class),         XML_TYPE        .nullable(false))
-            .column(field("CREATION_TS",       Timestamp.class),      TIMESTAMP_TYPE .nullable(false))
-//          .column(field("CREATION_TS",       OffsetDateTime.class), TIMESTAMP_TYPE .nullable(false))
-            .constraints(constraint("PK_"+tableName).primaryKey(field("UUID"), field("UUID"), field("ID")))
+        context.createTableIfNotExists(JOB_TABLE)
+            .column(UUID,               UUID_TYPE     .nullable(false))
+            .column(ID,                 ID_TYPE       .nullable(false))
+            .column(DELEGATE_UUID,      UUID_TYPE     .nullable(true))
+            .column(ITEM_UUID,          UUID_TYPE     .nullable(false))
+            .column(STEP_NAME,          NAME_TYPE     .nullable(false))
+            .column(STEP_PATH,          NAME_TYPE     .nullable(false))
+            .column(STEP_TYPE,          NAME_TYPE     .nullable(false))
+            .column(TRANSITION,         XML_TYPE      .nullable(false))
+            .column(ORIGIN_STATE_NAME,  NAME_TYPE     .nullable(false))
+            .column(TARGET_STATE_NAME,  NAME_TYPE     .nullable(false))
+            .column(AGENT_ROLE,         NAME_TYPE     .nullable(false))
+            .column(ACT_PROPERTIES,     XML_TYPE      .nullable(false))
+            .column(CREATION_TS,       TIMESTAMP_TYPE .nullable(false))
+            .constraints(constraint("PK_"+JOB_TABLE).primaryKey(UUID, ID))
         .execute();
     }
 }

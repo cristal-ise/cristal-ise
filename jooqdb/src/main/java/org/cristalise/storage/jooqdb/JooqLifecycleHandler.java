@@ -22,26 +22,35 @@ package org.cristalise.storage.jooqdb;
 
 import static org.jooq.impl.DSL.constraint;
 import static org.jooq.impl.DSL.field;
+import static org.jooq.impl.DSL.name;
 import static org.jooq.impl.DSL.table;
 
 import java.io.IOException;
 import java.util.UUID;
 
+import org.cristalise.kernel.common.PersistencyException;
 import org.cristalise.kernel.entity.C2KLocalObject;
+import org.cristalise.kernel.persistency.ClusterStorage;
 import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.utils.Logger;
 import org.exolab.castor.mapping.MappingException;
 import org.exolab.castor.xml.MarshalException;
 import org.exolab.castor.xml.ValidationException;
 import org.jooq.DSLContext;
+import org.jooq.Field;
 import org.jooq.Record;
+import org.jooq.Table;
 import org.jooq.exception.DataAccessException;
 
 public class JooqLifecycleHandler implements JooqHandler {
-    public static final String tableName = "OUTCOME";
+    static final Table<?> LIFECYCLE_TABLE = table(name("LIFECYCLE"));
+
+    static final Field<UUID>   UUID = field(name("UUID"), UUID.class);
+    static final Field<String> NAME = field(name("NAME"), String.class);
+    static final Field<String> XML  = field(name("XML"),  String.class);
 
     @Override
-    public int put(DSLContext context, UUID uuid, C2KLocalObject obj) {
+    public int put(DSLContext context, UUID uuid, C2KLocalObject obj) throws PersistencyException {
         C2KLocalObject o = fetch(context, uuid);
 
         if (o == null) return insert(context, uuid, obj);
@@ -49,80 +58,89 @@ public class JooqLifecycleHandler implements JooqHandler {
     }
 
     @Override
-    public int update(DSLContext context, UUID uuid, C2KLocalObject obj) {
+    public int update(DSLContext context, UUID uuid, C2KLocalObject obj) throws PersistencyException {
         try {
             return context
-                    .update(table(tableName))
-                    .set(field("NAME"), obj.getName())
-                    .set(field("XML"),  Gateway.getMarshaller().marshall(obj))
-                    .where(field("UUID").equal(uuid))
+                    .update(LIFECYCLE_TABLE)
+                        .set(NAME, obj.getName())
+                        .set(XML,  Gateway.getMarshaller().marshall(obj))
+                        .where(UUID.equal(uuid))
                     .execute();
         }
         catch (MarshalException | ValidationException | DataAccessException | IOException | MappingException e) {
             Logger.error(e);
+            throw new PersistencyException(e.getMessage());
         }
-        return 0;
     }
 
     @Override
-    public int delete(DSLContext context, UUID uuid, String... primaryKeys) {
+    public int delete(DSLContext context, UUID uuid, String... primaryKeys) throws PersistencyException {
         return context
-                .delete(table(tableName))
-                .where(field("UUID").equal(uuid))
+                .delete(LIFECYCLE_TABLE)
+                .where(UUID.equal(uuid))
                 .execute();
     }
 
     @Override
-    public int insert(DSLContext context, UUID uuid, C2KLocalObject obj) {
+    public int insert(DSLContext context, UUID uuid, C2KLocalObject obj) throws PersistencyException {
         try {
             return context
-                    .insertInto(
-                        table(tableName), 
-                            field("UUID", UUID.class),
-                            field("NAME", String.class),
-                            field("XML",  String.class)
-                     )
-                    .values(uuid, obj.getName(), Gateway.getMarshaller().marshall(obj))
+                    .insertInto(LIFECYCLE_TABLE)
+                        .set(UUID,  uuid)
+                        .set(NAME,  obj.getName())
+                        .set(XML,   Gateway.getMarshaller().marshall(obj))
                     .execute();
         }
         catch (MarshalException | ValidationException | DataAccessException | IOException | MappingException e) {
             Logger.error(e);
+            throw new PersistencyException(e.getMessage());
         }
-        return 0;
     }
 
     @Override
-    public C2KLocalObject fetch(DSLContext context, UUID uuid, String... primaryKeys) {
+    public C2KLocalObject fetch(DSLContext context, UUID uuid, String... primaryKeys) throws PersistencyException {
         Record result = context
-                .select().from(table(tableName))
-                .where(field("UUID").equal(uuid))
+                .select().from(LIFECYCLE_TABLE)
+                .where(UUID.equal(uuid))
                 .fetchOne();
 
         if(result != null) {
             try {
-                String xml = result.get(field("XML", String.class));
+                String xml = result.get(XML);
                 return (C2KLocalObject)Gateway.getMarshaller().unmarshall(xml);
             }
             catch (MarshalException | ValidationException | IOException | MappingException e) {
                 Logger.error(e);
+                throw new PersistencyException(e.getMessage());
             }
         }
         return null;
     }
 
     @Override
-    public String[] getNextPrimaryKeys(DSLContext context, UUID uuid, String...primaryKeys) {
-        // TODO Auto-generated method stub
-        return null;
+    public String[] getNextPrimaryKeys(DSLContext context, UUID uuid, String...primaryKeys) throws PersistencyException {
+        try {
+            Record result = context
+                    .select().from(LIFECYCLE_TABLE)
+                    .where(UUID.equal(uuid))
+                    .fetchOne();
+
+            if(result != null) { String[] keys = new String[1]; keys[0] = ClusterStorage.LIFECYCLE; return keys;}
+            else               return null;
+        }
+        catch ( DataAccessException e) {
+            Logger.error(e);
+            throw new PersistencyException(e.getMessage());
+        }
     }
 
     @Override
     public void createTables(DSLContext context) {
-        context.createTableIfNotExists(table(tableName))
-            .column(field("UUID", UUID.class),    UUID_TYPE.nullable(false))
-            .column(field("NAME", String.class),  NAME_TYPE.nullable(false))
-            .column(field("XML",  String.class),  XML_TYPE. nullable(false))
-            .constraints(constraint("PK_"+tableName).primaryKey(field("UUID")))
+        context.createTableIfNotExists(LIFECYCLE_TABLE)
+            .column(UUID, UUID_TYPE.nullable(false))
+            .column(NAME, NAME_TYPE.nullable(false))
+            .column(XML,  XML_TYPE. nullable(false))
+            .constraints(constraint("PK_"+LIFECYCLE_TABLE).primaryKey(UUID))
         .execute();
     }
 

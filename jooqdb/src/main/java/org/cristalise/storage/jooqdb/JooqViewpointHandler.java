@@ -22,6 +22,7 @@ package org.cristalise.storage.jooqdb;
 
 import static org.jooq.impl.DSL.constraint;
 import static org.jooq.impl.DSL.field;
+import static org.jooq.impl.DSL.name;
 import static org.jooq.impl.DSL.table;
 
 import java.util.ArrayList;
@@ -29,6 +30,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 
+import org.cristalise.kernel.common.PersistencyException;
 import org.cristalise.kernel.entity.C2KLocalObject;
 import org.cristalise.kernel.lookup.ItemPath;
 import org.cristalise.kernel.persistency.outcome.Viewpoint;
@@ -37,35 +39,42 @@ import org.jooq.DSLContext;
 import org.jooq.Field;
 import org.jooq.Record;
 import org.jooq.Result;
+import org.jooq.Table;
 
 public class JooqViewpointHandler implements JooqHandler {
-    public static final String tableName = "VIEWPOINT";
+    static final Table<?> VIEWPOINT_TABLE = table(name("VIEWPOINT"));
 
-    private List<Condition> getPKConditions(UUID uuid, String... primaryKeys) {
+    static final Field<UUID>    UUID            = field(name("UUID"),           UUID.class);
+    static final Field<String>  SCHEMA_NAME     = field(name("SCHEMA_NAME"),    String.class);
+    static final Field<String>  NAME            = field(name("NAME"),           String.class);
+    static final Field<Integer> SCHEMA_VERSION  = field(name("SCHEMA_VERSION"), Integer.class);
+    static final Field<Integer> EVENT_ID        = field(name("EVENT_ID"),       Integer.class);
+
+    private List<Condition> getPKConditions(UUID uuid, String... primaryKeys) throws PersistencyException {
         List<Condition> conditions = new ArrayList<>();
 
         switch (primaryKeys.length) {
             case 0: 
-                conditions.add(field("UUID").equal(uuid));
+                conditions.add(UUID.equal(uuid));
                 break;
             case 1:
-                conditions.add(field("UUID").equal(uuid));
-                conditions.add(field("SCHEMA_NAME").equal(primaryKeys[0]));
+                conditions.add(UUID       .equal(uuid));
+                conditions.add(SCHEMA_NAME.equal(primaryKeys[0]));
                 break;
             case 2:
-                conditions.add(field("UUID").equal(uuid));
-                conditions.add(field("SCHEMA_NAME").equal(primaryKeys[0]));
-                conditions.add(field("NAME"       ).equal(primaryKeys[1]));
+                conditions.add(UUID       .equal(uuid));
+                conditions.add(SCHEMA_NAME.equal(primaryKeys[0]));
+                conditions.add(NAME       .equal(primaryKeys[1]));
                 break;
 
             default:
-                throw new IllegalArgumentException("Invalid number of primary keys (max 3):"+Arrays.toString(primaryKeys));
+                throw new PersistencyException("Invalid number of primary keys (max 3):"+Arrays.toString(primaryKeys));
         }
         return conditions;
     }
 
     @Override
-    public int put(DSLContext context, UUID uuid, C2KLocalObject obj) {
+    public int put(DSLContext context, UUID uuid, C2KLocalObject obj) throws PersistencyException {
         C2KLocalObject v = fetch(context, uuid, ((Viewpoint)obj).getSchemaName(), ((Viewpoint)obj).getName());
 
         if (v == null) return insert(context, uuid, obj);
@@ -73,89 +82,84 @@ public class JooqViewpointHandler implements JooqHandler {
     }
 
     @Override
-    public int update(DSLContext context, UUID uuid, C2KLocalObject obj) {
+    public int update(DSLContext context, UUID uuid, C2KLocalObject obj) throws PersistencyException {
         Viewpoint view = (Viewpoint)obj;
         return context
-                .update(table(tableName))
-                .set(field("SCHEMA_VERSION", Integer.class), view.getSchemaVersion())
-                .set(field("EVENT_ID",       Integer.class), view.getEventId())
-                .where(field("UUID",        UUID.class  ).equal(uuid))
-                  .and(field("SCHEMA_NAME", String.class).equal(view.getSchemaName()))
-                  .and(field("NAME",        String.class).equal(view.getName()))
+                .update(VIEWPOINT_TABLE)
+                .set(SCHEMA_VERSION, view.getSchemaVersion())
+                .set(EVENT_ID,       view.getEventId())
+                .where(UUID       .equal(uuid))
+                  .and(SCHEMA_NAME.equal(view.getSchemaName()))
+                  .and(NAME       .equal(view.getName()))
                 .execute();
     }
 
     @Override
-    public int delete(DSLContext context, UUID uuid, String... primaryKeys) {
+    public int delete(DSLContext context, UUID uuid, String... primaryKeys) throws PersistencyException {
         List<Condition> conditions = getPKConditions(uuid, primaryKeys);
         return context
-                .delete(table(tableName))
+                .delete(VIEWPOINT_TABLE)
                 .where(conditions)
                 .execute();
     }
 
     @Override
-    public int insert(DSLContext context, UUID uuid, C2KLocalObject obj) {
+    public int insert(DSLContext context, UUID uuid, C2KLocalObject obj) throws PersistencyException {
         Viewpoint view = (Viewpoint)obj;
         return context
-                .insertInto(
-                    table(tableName), 
-                        field("UUID",           UUID.class),
-                        field("SCHEMA_NAME",    String.class),
-                        field("NAME",           String.class),
-                        field("SCHEMA_VERSION", Integer.class),
-                        field("EVENT_ID",       Integer.class)
-                 )
-                .values(uuid, view.getSchemaName(), view.getName(), view.getSchemaVersion(), view.getEventId())
+                .insertInto(VIEWPOINT_TABLE) 
+                        .set(UUID,           uuid)
+                        .set(SCHEMA_NAME,    view.getSchemaName())
+                        .set(NAME,           view.getName())
+                        .set(SCHEMA_VERSION, view.getSchemaVersion())
+                        .set(EVENT_ID,       view.getEventId())
                 .execute();
     }
 
     @Override
-    public C2KLocalObject fetch(DSLContext context, UUID uuid, String...primaryKeys) {
+    public C2KLocalObject fetch(DSLContext context, UUID uuid, String...primaryKeys) throws PersistencyException {
         String shcemaName = primaryKeys[0];
         String name       = primaryKeys[1];
 
         Record result = context
-                .select().from(table(tableName))
-                .where(field("UUID").equal(uuid))
-                  .and(field("SCHEMA_NAME").equal(shcemaName))
-                  .and(field("NAME").equal(name))
+                .select().from(VIEWPOINT_TABLE)
+                .where(UUID       .equal(uuid))
+                  .and(SCHEMA_NAME.equal(shcemaName))
+                  .and(NAME       .equal(name))
                 .fetchOne();
 
         if(result != null) return new Viewpoint(new ItemPath(uuid),
-                                                result.get(field("SCHEMA_NAME", String.class)),
-                                                result.get(field("NAME", String.class)),
-                                                result.get(field("SCHEMA_VERSION", Integer.class)),
-                                                result.get(field("EVENT_ID", Integer.class)));
+                                                result.get(SCHEMA_NAME),
+                                                result.get(NAME),
+                                                result.get(SCHEMA_VERSION),
+                                                result.get(EVENT_ID));
         else return null;
     }
 
     @Override
-    public String[] getNextPrimaryKeys(DSLContext context, UUID uuid, String...primaryKeys) {
+    public String[] getNextPrimaryKeys(DSLContext context, UUID uuid, String...primaryKeys) throws PersistencyException {
         Field<?>[] fields = new Field[1];
 
         List<Condition> conditions = getPKConditions(uuid, primaryKeys);
 
         switch (primaryKeys.length) {
             case 0: 
-                fields[0] = field("SCHEMA_NAME");
+                fields[0] = SCHEMA_NAME;
                 break;
             case 1:
-                fields[0] = field("NAME");
+                fields[0] = NAME;
                 break;
             case 2:
-                fields[0] = field("NAME");
+                fields[0] = NAME;
                 break;
 
             default:
-                throw new IllegalArgumentException("Invalid number of primary keys (max 3):"+Arrays.toString(primaryKeys));
+                throw new PersistencyException("Invalid number of primary keys (max 3):"+Arrays.toString(primaryKeys));
         }
-
-//        Logger.msg(DSL.selectDistinct(fields).from(table(tableName)).where(conditions).getSQL());
 
         Result<Record> result = context
                 .selectDistinct(fields)
-                .from(table(tableName))
+                .from(VIEWPOINT_TABLE)
                 .where(conditions)
                 .fetch();
 
@@ -168,14 +172,15 @@ public class JooqViewpointHandler implements JooqHandler {
     }
 
     @Override
-    public void createTables(DSLContext context) {
-        context.createTableIfNotExists(table(tableName))
-            .column(field("UUID",           UUID.class),    UUID_TYPE.nullable(false))
-            .column(field("SCHEMA_NAME",    String.class),  NAME_TYPE.nullable(false))
-            .column(field("NAME",           String.class),  NAME_TYPE.nullable(false))
-            .column(field("SCHEMA_VERSION", Integer.class), VERSION_TYPE.nullable(true))
-            .column(field("EVENT_ID",       Integer.class), ID_TYPE.nullable(true))
-            .constraints(constraint("PK_"+tableName).primaryKey(field("UUID"), field("SCHEMA_NAME"), field("NAME")))
+    public void createTables(DSLContext context) throws PersistencyException {
+        context.createTableIfNotExists(VIEWPOINT_TABLE)
+            .column(UUID,           UUID_TYPE.nullable(false))
+            .column(SCHEMA_NAME,    NAME_TYPE.nullable(false))
+            .column(NAME,           NAME_TYPE.nullable(false))
+            .column(SCHEMA_VERSION, VERSION_TYPE.nullable(true))
+            .column(EVENT_ID,       ID_TYPE.nullable(true))
+            .constraints(
+                    constraint("PK_"+VIEWPOINT_TABLE).primaryKey(UUID, SCHEMA_NAME, NAME))
         .execute();
     }
 }
