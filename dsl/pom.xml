@@ -205,6 +205,12 @@
         </dependency>
         <dependency>
             <groupId>org.cristalise</groupId>
+            <artifactId>cristalise-jooqdb</artifactId>
+            <version>3.3-SNAPSHOT</version>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.cristalise</groupId>
             <artifactId>cristalise-restapi</artifactId>
             <version>3.3-SNAPSHOT</version>
             <scope>compile</scope>
