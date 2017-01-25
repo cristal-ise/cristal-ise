@@ -22,6 +22,7 @@ package org.cristalise.storage.jooqdb;
 
 import static org.jooq.impl.DSL.constraint;
 import static org.jooq.impl.DSL.field;
+import static org.jooq.impl.DSL.name;
 import static org.jooq.impl.DSL.table;
 
 import java.sql.Timestamp;
@@ -44,21 +45,41 @@ import org.jooq.DSLContext;
 import org.jooq.Field;
 import org.jooq.Record;
 import org.jooq.Result;
-import org.jooq.impl.DSL;
+import org.jooq.Table;
 
 public class JooqHistoryHandler implements JooqHandler {
-    public static final String tableName = "EVENT";
+    static final Table<?> EVENT_TABLE = table(name("EVENT"));
+
+    static final Field<UUID>      UUID                  = field(name("UUID"),                 UUID.class);
+    static final Field<Integer>   ID                    = field(name("ID"),                   Integer.class);
+    static final Field<UUID>      AGENT_UUID            = field(name("AGENT_UUID"),           UUID.class);
+    static final Field<UUID>      DELEGATE_UUID         = field(name("DELEGATE_UUID"),        UUID.class);
+    static final Field<String>    AGENT_ROLE            = field(name("AGENT_ROLE"),           String.class);
+    static final Field<String>    SCHEMA_NAME           = field(name("SCHEMA_NAME"),          String.class);
+    static final Field<Integer>   SCHEMA_VERSION        = field(name("SCHEMA_VERSION"),       Integer.class);
+    static final Field<String>    STATEMACHINE_NAME     = field(name("STATEMACHINE_NAME"),    String.class);
+    static final Field<Integer>   STATEMACHINE_VERSION  = field(name("STATEMACHINE_VERSION"), Integer.class);
+    static final Field<String>    STEP_NAME             = field(name("STEP_NAME"),            String.class);
+    static final Field<String>    STEP_PATH             = field(name("STEP_PATH"),            String.class);
+    static final Field<String>    STEP_TYPE             = field(name("STEP_TYPE"),            String.class);
+    static final Field<Integer>   ORIGIN_STATE_ID       = field(name("ORIGIN_STATE_ID"),      Integer.class);
+    static final Field<Integer>   TARGET_STATE_ID       = field(name("TARGET_STATE_ID"),      Integer.class);
+    static final Field<Integer>   TRANSITION_ID         = field(name("TRANSITION_ID"),        Integer.class);
+    static final Field<String>    VIEW_NAME             = field(name("VIEW_NAME"),            String.class);
+    static final Field<Timestamp> TIMESTAMP             = field(name("TIMESTAMP"),            Timestamp.class);
+
+//    static final Field<OffsetDateTime> TIMESTAMP = field(name("TIMESTAMP"), Timestamp.class);
 
     private List<Condition> getPKConditions(UUID uuid, String... primaryKeys) {
         List<Condition> conditions = new ArrayList<>();
 
         switch (primaryKeys.length) {
             case 0: 
-                conditions.add(field("UUID").equal(uuid));
+                conditions.add(UUID.equal(uuid));
                 break;
             case 1:
-                conditions.add(field("UUID").equal(uuid));
-                conditions.add(field("ID"  ).equal(primaryKeys[0]));
+                conditions.add(UUID.equal(uuid));
+                conditions.add(ID.equal(Integer.valueOf(primaryKeys[0])));
                 break;
 
             default:
@@ -69,15 +90,15 @@ public class JooqHistoryHandler implements JooqHandler {
 
     @Override
     public String[] getNextPrimaryKeys(DSLContext context, UUID uuid, String... primaryKeys) throws PersistencyException {
-        Field<?>[] fields = { field("ID") };
+        Field<?>[] fields = { ID };
 
         List<Condition> conditions = getPKConditions(uuid, primaryKeys);
 
-        Logger.msg(DSL.selectDistinct(fields).from(table(tableName)).where(conditions).getSQL());
+        //Logger.msg(DSL.selectDistinct(fields).from(TABLE_NAME).where(conditions).getSQL());
 
         Result<Record> result = context
                 .selectDistinct(fields)
-                .from(table(tableName))
+                .from(EVENT_TABLE)
                 .where(conditions)
                 .fetch();
 
@@ -105,49 +126,27 @@ public class JooqHistoryHandler implements JooqHandler {
     @Override
     public int insert(DSLContext context, UUID uuid, C2KLocalObject obj) throws PersistencyException {
         Event event = (Event)obj;
-        GTimeStamp ts = event.getTimeStamp();
         AgentPath delegate = event.getDelegatePath();
 
         return context
-                .insertInto(
-                    table(tableName), 
-                    field("UUID",                 UUID.class),
-                    field("ID",                   Integer.class),
-                    field("AGENT_UUID",           UUID.class),
-                    field("DELEGATE_UUID",        UUID.class),
-                    field("AGENT_ROLE",           String.class),
-                    field("SCHEMA_NAME",          String.class),
-                    field("SCHEMA_VERSION",       String.class),
-                    field("STATEMACHINE_NAME",    String.class),
-                    field("STATEMACHINE_VERSION", String.class),
-                    field("STEP_NAME",            String.class),
-                    field("STEP_PATH",            String.class),
-                    field("STEP_TYPE",            String.class),
-                    field("ORIGIN_STATE_ID",      Integer.class),
-                    field("TARGET_STATE_ID",      Integer.class),
-                    field("TRANSITION_ID",        Integer.class),
-                    field("VIEW_NAME",            String.class),
-                    field("TIMESTAMP",            Timestamp.class)
-//                    field("TIMESTAMP",            OffsetDateTime.class)
-                 )
-                .values(uuid, 
-                        event.getID(),
-                        event.getAgentPath().getUUID(),
-                        delegate == null ?  null : delegate.getUUID(),
-                        event.getAgentRole(),
-                        event.getSchemaName(),
-                        event.getSchemaVersion().toString(),
-                        event.getStateMachineName(),
-                        event.getStateMachineVersion().toString(),
-                        event.getStepName(),
-                        event.getStepPath(),
-                        event.getStepType(),
-                        event.getOriginState(),
-                        event.getTargetState(),
-                        event.getTransition(),
-                        event.getViewName(),
-                        DateUtility.toSqlTimestamp(ts))
-//                        DateUtility.toOffsetDateTime(ts))
+                .insertInto(EVENT_TABLE)
+                    .set(UUID,                  uuid)
+                    .set(ID,                    event.getID())
+                    .set(AGENT_UUID,            event.getAgentPath().getUUID())
+                    .set(DELEGATE_UUID,         delegate == null ?  null : delegate.getUUID())
+                    .set(AGENT_ROLE,            event.getAgentRole())
+                    .set(SCHEMA_NAME,           event.getSchemaName())
+                    .set(SCHEMA_VERSION,        event.getSchemaVersion())
+                    .set(STATEMACHINE_NAME,     event.getStateMachineName())
+                    .set(STATEMACHINE_VERSION,  event.getSchemaVersion())
+                    .set(STEP_NAME,             event.getStepName())
+                    .set(STEP_PATH,             event.getStepPath())
+                    .set(STEP_TYPE,             event.getStepType())
+                    .set(ORIGIN_STATE_ID,       event.getOriginState())
+                    .set(TARGET_STATE_ID,       event.getTargetState())
+                    .set(TRANSITION_ID,         event.getTransition())
+                    .set(VIEW_NAME,             event.getViewName())
+                    .set(TIMESTAMP,             DateUtility.toSqlTimestamp(event.getTimeStamp()))
                 .execute();
     }
 
@@ -155,7 +154,7 @@ public class JooqHistoryHandler implements JooqHandler {
     public int delete(DSLContext context, UUID uuid, String... primaryKeys) throws PersistencyException {
         List<Condition> conditions = getPKConditions(uuid, primaryKeys);
         return context
-                .delete(table(tableName))
+                .delete(EVENT_TABLE)
                 .where(conditions)
                 .execute();
     }
@@ -165,36 +164,36 @@ public class JooqHistoryHandler implements JooqHandler {
         Integer id = Integer.parseInt(primaryKeys[0]);
         
         Record result = context
-                .select().from(table(tableName))
-                .where(field("UUID").equal(uuid))
-                  .and(field("ID").equal(id))
+                .select().from(EVENT_TABLE)
+                .where(UUID.equal(uuid))
+                  .and(ID.equal(id))
                 .fetchOne();
 
         if (result != null) {
-            UUID agent    = result.get(field("AGENT_UUID",    UUID.class));
-            UUID delegate = result.get(field("DELEGATE_UUID", UUID.class));
+            UUID agent    = result.get(AGENT_UUID);
+            UUID delegate = result.get(DELEGATE_UUID);
 
-            GTimeStamp ts = DateUtility.fromSqlTimestamp( result.get(field("TIMESTAMP", Timestamp.class)));
-            //GTimeStamp ts = DateUtility.fromOffsetDateTime( result.get(field("TIMESTAMP", OffsetDateTime.class)));
+            GTimeStamp ts = DateUtility.fromSqlTimestamp( result.get(TIMESTAMP));
+            //GTimeStamp ts = DateUtility.fromOffsetDateTime( result.get(TIMESTAMP", OffsetDateTime.class)));
 
             try {
                 return new Event(
-                        result.get(field("ID", Integer.class)),
+                        result.get(ID),
                         new ItemPath(uuid),
                         new AgentPath(agent),
                         (delegate == null) ? null : new AgentPath(delegate),
-                        result.get(field("AGENT_ROLE",           String.class)),
-                        result.get(field("STEP_NAME",            String.class)),
-                        result.get(field("STEP_PATH",            String.class)),
-                        result.get(field("STEP_TYPE",            String.class)),
-                        result.get(field("STATEMACHINE_NAME",    String.class)),
-                        result.get(field("STATEMACHINE_VERSION", Integer.class)),
-                        result.get(field("TRANSITION_ID",        Integer.class)),
-                        result.get(field("ORIGIN_STATE_ID",      Integer.class)),
-                        result.get(field("TARGET_STATE_ID",      Integer.class)),
-                        result.get(field("SCHEMA_NAME",          String.class)),
-                        result.get(field("SCHEMA_VERSION",       Integer.class)),
-                        result.get(field("VIEW_NAME",            String.class)),
+                        result.get(AGENT_ROLE),
+                        result.get(STEP_NAME),
+                        result.get(STEP_PATH),
+                        result.get(STEP_TYPE),
+                        result.get(STATEMACHINE_NAME),
+                        result.get(STATEMACHINE_VERSION),
+                        result.get(TRANSITION_ID),
+                        result.get(ORIGIN_STATE_ID),
+                        result.get(TARGET_STATE_ID),
+                        result.get(SCHEMA_NAME),
+                        result.get(SCHEMA_VERSION),
+                        result.get(VIEW_NAME),
                         ts);
             }
             catch (InvalidAgentPathException | IllegalArgumentException ex) {
@@ -208,26 +207,25 @@ public class JooqHistoryHandler implements JooqHandler {
 
     @Override
     public void createTables(DSLContext context) {
-        context.createTableIfNotExists(table(tableName))
-            .column(field("UUID",                 UUID.class),           UUID_TYPE      .nullable(false))
-            .column(field("ID",                   Integer.class),        ID_TYPE        .nullable(false))
-            .column(field("AGENT_UUID",           UUID.class),           UUID_TYPE      .nullable(false))
-            .column(field("DELEGATE_UUID",        UUID.class),           UUID_TYPE      .nullable(true))
-            .column(field("AGENT_ROLE",           String.class),         NAME_TYPE      .nullable(false))
-            .column(field("SCHEMA_NAME",          String.class),         NAME_TYPE      .nullable(false))
-            .column(field("SCHEMA_VERSION",       Integer.class),        VERSION_TYPE   .nullable(false))
-            .column(field("STATEMACHINE_NAME",    String.class),         NAME_TYPE      .nullable(false))
-            .column(field("STATEMACHINE_VERSION", Integer.class),        VERSION_TYPE   .nullable(false))
-            .column(field("STEP_NAME",            String.class),         NAME_TYPE      .nullable(false))
-            .column(field("STEP_PATH",            String.class),         NAME_TYPE      .nullable(false))
-            .column(field("STEP_TYPE",            String.class),         NAME_TYPE      .nullable(false))
-            .column(field("ORIGIN_STATE_ID",      Integer.class),        ID_TYPE        .nullable(false))
-            .column(field("TARGET_STATE_ID",      Integer.class),        ID_TYPE        .nullable(false))
-            .column(field("TRANSITION_ID",        Integer.class),        ID_TYPE        .nullable(false))
-            .column(field("VIEW_NAME",            String.class),         NAME_TYPE      .nullable(false))
-            .column(field("TIMESTAMP",            Timestamp.class),      TIMESTAMP_TYPE .nullable(false))
-//          .column(field("TIMESTAMP",            OffsetDateTime.class), TIMESTAMP_TYPE .nullable(false))
-            .constraints(constraint("PK_"+tableName).primaryKey(field("UUID"), field("ID")))
+        context.createTableIfNotExists(EVENT_TABLE)
+            .column(UUID,                 UUID_TYPE      .nullable(false))
+            .column(ID,                   ID_TYPE        .nullable(false))
+            .column(AGENT_UUID,           UUID_TYPE      .nullable(false))
+            .column(DELEGATE_UUID,        UUID_TYPE      .nullable(true))
+            .column(AGENT_ROLE,           NAME_TYPE      .nullable(false))
+            .column(SCHEMA_NAME,          NAME_TYPE      .nullable(false))
+            .column(SCHEMA_VERSION,       VERSION_TYPE   .nullable(false))
+            .column(STATEMACHINE_NAME,    NAME_TYPE      .nullable(false))
+            .column(STATEMACHINE_VERSION, VERSION_TYPE   .nullable(false))
+            .column(STEP_NAME,            NAME_TYPE      .nullable(false))
+            .column(STEP_PATH,            NAME_TYPE      .nullable(false))
+            .column(STEP_TYPE,            NAME_TYPE      .nullable(false))
+            .column(ORIGIN_STATE_ID,      ID_TYPE        .nullable(false))
+            .column(TARGET_STATE_ID,      ID_TYPE        .nullable(false))
+            .column(TRANSITION_ID,        ID_TYPE        .nullable(false))
+            .column(VIEW_NAME,            NAME_TYPE      .nullable(false))
+            .column(TIMESTAMP,            TIMESTAMP_TYPE .nullable(false))
+            .constraints(constraint("PK_"+EVENT_TABLE).primaryKey(UUID, ID))
         .execute();
     }
 }
