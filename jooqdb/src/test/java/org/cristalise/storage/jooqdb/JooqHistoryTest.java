@@ -41,6 +41,7 @@ public class JooqHistoryTest extends JooqTestBase {
 
     private void compareEvents(Event actual, Event expected) {
         Assert.assertNotNull(actual);
+
         Assert.assertEquals(expected.getID(),                   actual.getID());
         Assert.assertEquals(expected.getItemPath(),             actual.getItemPath());
         Assert.assertEquals(expected.getAgentPath(),            actual.getAgentPath());
@@ -75,13 +76,34 @@ public class JooqHistoryTest extends JooqTestBase {
                 "stepaPath"+id,
                 "stepType"+id,
                 "Default",
+                id+1, //smVersion
+                id+2, //transitionId
+                id+3, //originState
+                id+4, //targetState
+                "schemaname"+id,
+                id+5, //schemaVersion
+                "last", //viewName
+                DateUtility.getNow());
+    }
+
+    private Event createEventNullable(UUID itemUUID, int id) throws InvalidItemPathException {
+        return new Event(
+                id,
+                new ItemPath(itemUUID), 
+                new AgentPath(new ItemPath(), "agent"),
+                null, 
+                null, 
+                "stepName"+id, 
+                "stepaPath"+id,
+                null,
+                "Default",
                 0, //smVersion
                 0, //transitionId
                 1, //originState
                 0, //targetState
-                "schemaname"+id,
+                null,
                 0, //schemaVersion
-                "last", //viewName
+                null, //viewName
                 DateUtility.getNow());
     }
 
@@ -101,8 +123,15 @@ public class JooqHistoryTest extends JooqTestBase {
         compareEvents((Event)jooq.fetch(context, uuid, "0"), event);
     }
 
+    @Test
+    public void fetchEventWithNulls() throws Exception {
+        Event eventNulls = createEventNullable(uuid, 1);
+        assert jooq.put(context, uuid, eventNulls) == 1;
+        compareEvents((Event)jooq.fetch(context, uuid, "1"), eventNulls);
+    }
+
     @Test(expected=PersistencyException.class)
-    public void updateEvent() throws Exception {
+    public void updateEvent_ThrowsException() throws Exception {
         jooq.put(context, uuid, event);
     }
 
