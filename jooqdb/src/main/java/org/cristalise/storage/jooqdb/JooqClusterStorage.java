@@ -212,7 +212,7 @@ public class JooqClusterStorage extends TransactionalClusterStorage {
         JooqHandler handler = jooqHandlers.get(cluster);
 
         if (handler != null) {
-            Logger.msg(5, "JooqClusterStorage-get() - uuid:"+uuid+" cluster:"+cluster+" primaryKeys"+Arrays.toString(primaryKeys));
+            Logger.msg(5, "JooqClusterStorage.get() - uuid:"+uuid+" cluster:"+cluster+" primaryKeys:"+Arrays.toString(primaryKeys));
 
             C2KLocalObject obj = jooqHandlers.get(cluster).fetch(context, uuid, primaryKeys);
 
@@ -238,7 +238,7 @@ public class JooqClusterStorage extends TransactionalClusterStorage {
         JooqHandler handler = jooqHandlers.get(cluster);
 
         if (handler != null) {
-            Logger.msg(5, "JooqClusterStorage-get() - uuid:"+uuid+" cluster:"+cluster+" path:"+obj.getClusterPath());
+            Logger.msg(5, "JooqClusterStorage.put() - uuid:"+uuid+" cluster:"+cluster+" path:"+obj.getClusterPath());
             handler.put(context, uuid, obj);
         }
         else
