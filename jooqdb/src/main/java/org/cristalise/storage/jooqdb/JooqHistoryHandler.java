@@ -137,7 +137,7 @@ public class JooqHistoryHandler implements JooqHandler {
                     .set(SCHEMA_NAME,           event.getSchemaName())
                     .set(SCHEMA_VERSION,        event.getSchemaVersion())
                     .set(STATEMACHINE_NAME,     event.getStateMachineName())
-                    .set(STATEMACHINE_VERSION,  event.getSchemaVersion())
+                    .set(STATEMACHINE_VERSION,  event.getStateMachineVersion())
                     .set(STEP_NAME,             event.getStepName())
                     .set(STEP_PATH,             event.getStepPath())
                     .set(STEP_TYPE,             event.getStepType())
@@ -161,7 +161,7 @@ public class JooqHistoryHandler implements JooqHandler {
     @Override
     public C2KLocalObject fetch(DSLContext context, UUID uuid, String... primaryKeys) throws PersistencyException {
         Integer id = Integer.parseInt(primaryKeys[0]);
-        
+
         Record result = context
                 .select().from(EVENT_TABLE)
                 .where(UUID.equal(uuid))
@@ -215,7 +215,7 @@ public class JooqHistoryHandler implements JooqHandler {
             .column(SCHEMA_NAME,          NAME_TYPE      .nullable(true))
             .column(SCHEMA_VERSION,       VERSION_TYPE   .nullable(true))
             .column(STATEMACHINE_NAME,    NAME_TYPE      .nullable(false))
-            .column(STATEMACHINE_VERSION, VERSION_TYPE   .nullable(true))
+            .column(STATEMACHINE_VERSION, VERSION_TYPE   .nullable(false))
             .column(STEP_NAME,            NAME_TYPE      .nullable(false))
             .column(STEP_PATH,            NAME_TYPE      .nullable(false))
             .column(STEP_TYPE,            NAME_TYPE      .nullable(true))
