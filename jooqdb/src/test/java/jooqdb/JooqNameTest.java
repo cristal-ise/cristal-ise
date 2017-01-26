@@ -106,7 +106,7 @@ public class JooqNameTest {
         testLogic();
     }
 
-    @Test //@Ignore("Postgres test cannot run in Travis")
+    @Test @Ignore("Postgres test cannot run in Travis")
     public void testWithPostgres() throws Exception {
         openPostgres();
         testLogic();
