@@ -99,22 +99,29 @@ public class JooqNameTest {
         if(result != null) return result.get(field(name("VALUE")), String.class);
         return null;
     }
-
+    
     @Test
     public void testWithH2() throws Exception {
         openH2();
-        UUID uuid = UUID.randomUUID();
-        createTable();
-        assert insert(uuid, "Type", "Serious") == 1;
-        Assert.assertEquals("Serious", fetch(uuid, "Type"));
+        testLogic();
     }
 
-    @Test @Ignore("Postgres test cannot run in Travis")
+    @Test //@Ignore("Postgres test cannot run in Travis")
     public void testWithPostgres() throws Exception {
         openPostgres();
+        testLogic();
+    }
+
+    /**
+     * 
+     */
+    private void testLogic() {
         UUID uuid = UUID.randomUUID();
         createTable();
         assert insert(uuid, "Type", "Serious") == 1;
         Assert.assertEquals("Serious", fetch(uuid, "Type"));
+
+        assert insert(uuid, "NullValue", null) == 1;
+        Assert.assertEquals(null, fetch(uuid, "NullValue"));
     }
 }

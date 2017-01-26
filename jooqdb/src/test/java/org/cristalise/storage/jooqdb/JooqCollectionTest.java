@@ -32,7 +32,7 @@ public class JooqCollectionTest extends JooqTestBase {
 
     @Before
     public void before() throws Exception {
-        super.before();
+        initH2();
 
         jooq = new JooqCollectionHadler();
         jooq.createTables(context);

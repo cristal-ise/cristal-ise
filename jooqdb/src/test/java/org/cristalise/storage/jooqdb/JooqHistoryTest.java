@@ -87,7 +87,7 @@ public class JooqHistoryTest extends JooqTestBase {
 
     @Before
     public void before() throws Exception {
-        super.before();
+        initH2();
 
         jooq = new JooqHistoryHandler();
         jooq.createTables(context);

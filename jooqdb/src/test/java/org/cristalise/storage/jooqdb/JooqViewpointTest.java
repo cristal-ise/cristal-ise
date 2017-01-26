@@ -43,7 +43,7 @@ public class JooqViewpointTest extends JooqTestBase {
 
     @Before
     public void before() throws Exception {
-        super.before();
+        initH2();
 
         jooq = new JooqViewpointHandler();
         jooq.createTables(context);

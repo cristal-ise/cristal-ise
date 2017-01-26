@@ -33,14 +33,16 @@ public class JooqItemPropertyTest extends JooqTestBase {
     JooqItemPropertyHandler jooq;
 
     private void compareProperties(Property actual, Property expected) {
-        assert actual.getName().equals(expected.getName());
-        assert actual.getValue().equals(expected.getValue());
-        assert actual.isMutable() == expected.isMutable();
-    }
+        Assert.assertNotNull(actual);
+
+        Assert.assertEquals(expected.getName(),   actual.getName());
+        Assert.assertEquals(expected.isMutable(), actual.isMutable());
+        Assert.assertEquals(expected.getValue(),  actual.getValue());
+}
 
     @Before
     public void before() throws Exception {
-        super.before();
+        initH2();
 
         jooq = new JooqItemPropertyHandler();
         jooq.createTables(context);
@@ -52,6 +54,13 @@ public class JooqItemPropertyTest extends JooqTestBase {
     @Test
     public void fetchProperty() throws Exception {
         compareProperties((Property)jooq.fetch(context, uuid, "toto"), property);
+    }
+
+    @Test
+    public void fetchProperty_NullValue() throws Exception {
+        Property propertyNullValue = new Property("zaza", null, true);
+        assert jooq.put(context, uuid, propertyNullValue) == 1;
+        compareProperties((Property)jooq.fetch(context, uuid, "zaza"), propertyNullValue);
     }
 
     @Test

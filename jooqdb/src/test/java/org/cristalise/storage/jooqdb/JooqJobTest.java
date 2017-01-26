@@ -81,7 +81,7 @@ public class JooqJobTest extends JooqTestBase {
 
     @Before
     public void before() throws Exception {
-        super.before();
+        initH2();
 
         actProps = new CastorHashMap();
         actProps.setBuiltInProperty(BuiltInVertexProperties.STATE_MACHINE_NAME, "Default");

@@ -50,7 +50,22 @@ public class JooqTestBase {
         Gateway.close();
     }
 
-    public void before() throws Exception {
+    /**
+     * Use this if testing needs to be done with postgres. Makse sure that 'integtest' database is created.
+     * This is not the default setup because postgres cannot be run in travis as it has no in-memory/embedded mode.
+     * 
+     * @throws Exception throw anything that could happen
+     */
+    public void initPostrgres() throws Exception {
+        String userName = "postgres";
+        String password = "cristal";
+        String url      = "jdbc:postgresql://localhost:5432/integtest";
+
+        Connection conn = DriverManager.getConnection(url, userName, password);
+        context = using(conn, SQLDialect.H2);
+    }
+
+    public void initH2() throws Exception {
         String userName = "sa";
         String password = "sa";
         String url      = "jdbc:h2:mem:";
