@@ -113,9 +113,7 @@ public class JooqItemPropertyHandler implements JooqHandler {
                   .and(NAME.equal(primaryKeys[0]))
                 .fetchOne();
 
-        if(result != null) return new Property(result.get(field(name("NAME")),    String.class),
-                                               result.get(field(name("VALUE")),   String.class),
-                                               result.get(field(name("MUTABLE")), Boolean.class));
+        if(result != null) return new Property(result.get(NAME), result.get(VALUE), result.get(MUTABLE));
         else               return null;
     }
 
