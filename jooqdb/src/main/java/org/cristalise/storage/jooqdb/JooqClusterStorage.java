@@ -46,14 +46,16 @@ import org.jooq.exception.DataAccessException;
 import org.jooq.impl.DefaultConnectionProvider;
 
 public class JooqClusterStorage extends TransactionalClusterStorage {
-    public static final String JOOQ_URI      = "JOOQ.URI";
-    public static final String JOOQ_USER     = "JOOQ.user";
-    public static final String JOOQ_PASSWORD = "JOOQ.password";
-    public static final String JOOQ_DIALECT  = "JOOQ.dialect";
+    public static final String JOOQ_URI        = "JOOQ.URI";
+    public static final String JOOQ_USER       = "JOOQ.user";
+    public static final String JOOQ_PASSWORD   = "JOOQ.password";
+    public static final String JOOQ_DIALECT    = "JOOQ.dialect";
+    public static final String JOOQ_AUTOCOMMIT = "JOOQ.autoCommit";
 
     public static final String JOOQ_DOMAIN_HANDLERS  = "JOOQ.domainHandlers";
 
     protected DSLContext context;
+    protected Boolean autoCommit;
 
     HashMap<String, JooqHandler> jooqHandlers  = new HashMap<String, JooqHandler>();
     List<JooqHandler>            domainHandlers= new ArrayList<JooqHandler>();
@@ -63,6 +65,8 @@ public class JooqClusterStorage extends TransactionalClusterStorage {
         String uri  = Gateway.getProperties().getString(JOOQ_URI);
         String user = Gateway.getProperties().getString(JOOQ_USER); 
         String pwd  = Gateway.getProperties().getString(JOOQ_PASSWORD);
+
+        autoCommit  = Gateway.getProperties().getBoolean(JOOQ_AUTOCOMMIT, false);
 
         if (StringUtils.isAnyBlank(uri, user, pwd)) {
             throw new PersistencyException("JOOQ (uri, user, password) config values must not be blank");
@@ -74,6 +78,7 @@ public class JooqClusterStorage extends TransactionalClusterStorage {
 
         try {
             context = using(DriverManager.getConnection(uri, user, pwd), dialect);
+            ((DefaultConnectionProvider)context.configuration().connectionProvider()).setAutoCommit(autoCommit);
 
             initialiseHandlers();
         }
@@ -134,17 +139,16 @@ public class JooqClusterStorage extends TransactionalClusterStorage {
 
     @Override
     public void begin(Object locker) {
-        Logger.msg(1, "JooqClusterStorage.begin()");
-        try {
-            ((DefaultConnectionProvider)context.configuration().connectionProvider()).setAutoCommit(false);
-        } 
-        catch (DataAccessException e) {
-            Logger.error(e);
-        }
+        Logger.msg(8, "JooqClusterStorage.begin() - Nothing DONE.");
     }
 
     @Override
     public void commit(Object locker) throws PersistencyException {
+        if (autoCommit) {
+            Logger.msg(1, "JooqClusterStorage.commit(DISABLED) - autoCommit:"+autoCommit);
+            return;
+        }
+
         Logger.msg(1, "JooqClusterStorage.commit()");
         try {
             ((DefaultConnectionProvider)context.configuration().connectionProvider()).commit();
@@ -157,6 +161,11 @@ public class JooqClusterStorage extends TransactionalClusterStorage {
 
     @Override
     public void abort(Object locker) {
+        if (autoCommit) {
+            Logger.msg(1, "JooqClusterStorage.abort(DISABLED) - autoCommit:"+autoCommit);
+            return;
+        }
+
         Logger.msg(1, "JooqClusterStorage.abort()");
         try {
             ((DefaultConnectionProvider)context.configuration().connectionProvider()).rollback();
