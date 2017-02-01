@@ -30,6 +30,12 @@ import org.jooq.DataType;
 import org.jooq.impl.SQLDataType;
 
 public interface JooqHandler {
+    public static final String JOOQ_URI              = "JOOQ.URI";
+    public static final String JOOQ_USER             = "JOOQ.user";
+    public static final String JOOQ_PASSWORD         = "JOOQ.password";
+    public static final String JOOQ_DIALECT          = "JOOQ.dialect";
+    public static final String JOOQ_AUTOCOMMIT       = "JOOQ.autoCommit";
+    public static final String JOOQ_DOMAIN_HANDLERS  = "JOOQ.domainHandlers";
 
     public DataType<UUID>           UUID_TYPE      = SQLDataType.UUID;
     public DataType<String>         NAME_TYPE      = SQLDataType.VARCHAR.length(64);

@@ -46,13 +46,6 @@ import org.jooq.exception.DataAccessException;
 import org.jooq.impl.DefaultConnectionProvider;
 
 public class JooqClusterStorage extends TransactionalClusterStorage {
-    public static final String JOOQ_URI        = "JOOQ.URI";
-    public static final String JOOQ_USER       = "JOOQ.user";
-    public static final String JOOQ_PASSWORD   = "JOOQ.password";
-    public static final String JOOQ_DIALECT    = "JOOQ.dialect";
-    public static final String JOOQ_AUTOCOMMIT = "JOOQ.autoCommit";
-
-    public static final String JOOQ_DOMAIN_HANDLERS  = "JOOQ.domainHandlers";
 
     protected DSLContext context;
     protected Boolean autoCommit;
@@ -62,17 +55,17 @@ public class JooqClusterStorage extends TransactionalClusterStorage {
 
     @Override
     public void open(Authenticator auth) throws PersistencyException {
-        String uri  = Gateway.getProperties().getString(JOOQ_URI);
-        String user = Gateway.getProperties().getString(JOOQ_USER); 
-        String pwd  = Gateway.getProperties().getString(JOOQ_PASSWORD);
+        String uri  = Gateway.getProperties().getString(JooqHandler.JOOQ_URI);
+        String user = Gateway.getProperties().getString(JooqHandler.JOOQ_USER); 
+        String pwd  = Gateway.getProperties().getString(JooqHandler.JOOQ_PASSWORD);
 
-        autoCommit  = Gateway.getProperties().getBoolean(JOOQ_AUTOCOMMIT, false);
+        autoCommit  = Gateway.getProperties().getBoolean(JooqHandler.JOOQ_AUTOCOMMIT, false);
 
         if (StringUtils.isAnyBlank(uri, user, pwd)) {
             throw new PersistencyException("JOOQ (uri, user, password) config values must not be blank");
         }
 
-        SQLDialect dialect = SQLDialect.valueOf(Gateway.getProperties().getString(JOOQ_DIALECT, "POSTGRES"));
+        SQLDialect dialect = SQLDialect.valueOf(Gateway.getProperties().getString(JooqHandler.JOOQ_DIALECT, "POSTGRES"));
 
         Logger.msg(1, "JooqClusterStorage.open() - uri:'"+uri+"' user:'"+user+"' dialect:'"+dialect+"'");
 
@@ -106,8 +99,8 @@ public class JooqClusterStorage extends TransactionalClusterStorage {
         for(JooqHandler handler: jooqHandlers.values()) handler.createTables(context);
 
         try {
-            if(Gateway.getProperties().containsKey(JOOQ_DOMAIN_HANDLERS)) {
-                for(String handlerClass: Gateway.getProperties().getString(JOOQ_DOMAIN_HANDLERS, "").split(",")) {
+            if(Gateway.getProperties().containsKey(JooqHandler.JOOQ_DOMAIN_HANDLERS)) {
+                for(String handlerClass: Gateway.getProperties().getString(JooqHandler.JOOQ_DOMAIN_HANDLERS, "").split(",")) {
                     if (!handlerClass.contains(".")) handlerClass = "org.cristalise.storage."+handlerClass;
 
                     Logger.msg(1, "JooqClusterStorage.initialiseHandlers() - Instantiate domain handler:"+handlerClass);
