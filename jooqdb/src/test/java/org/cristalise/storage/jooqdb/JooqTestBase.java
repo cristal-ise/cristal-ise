@@ -62,7 +62,7 @@ public class JooqTestBase {
         String url      = "jdbc:postgresql://localhost:5432/integtest";
 
         Connection conn = DriverManager.getConnection(url, userName, password);
-        context = using(conn, SQLDialect.H2);
+        context = using(conn, SQLDialect.POSTGRES);
     }
 
     public void initH2() throws Exception {

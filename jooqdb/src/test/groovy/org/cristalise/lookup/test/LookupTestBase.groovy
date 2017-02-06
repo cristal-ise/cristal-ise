@@ -29,6 +29,7 @@ import org.cristalise.kernel.process.Gateway
 import org.cristalise.kernel.utils.Logger
 import org.cristalise.kernel.utils.ObjectProperties
 import org.cristalise.storage.jooqdb.JooqClusterStorage
+import org.cristalise.storage.jooqdb.JooqHandler
 import org.cristalise.storage.jooqdb.JooqLookupManager
 import org.junit.After
 import org.junit.Before
@@ -50,16 +51,16 @@ class LookupTestBase {
 
         ObjectProperties c2kProps = new ObjectProperties();
 
-        c2kProps.put(JooqClusterStorage.JOOQ_URI,      "jdbc:h2:mem:");
-        c2kProps.put(JooqClusterStorage.JOOQ_USER,     "sa");
-        c2kProps.put(JooqClusterStorage.JOOQ_PASSWORD, "sa");
-        c2kProps.put(JooqClusterStorage.JOOQ_DIALECT,  "H2");
+        c2kProps.put(JooqHandler.JOOQ_URI,      "jdbc:h2:mem:");
+        c2kProps.put(JooqHandler.JOOQ_USER,     "sa");
+        c2kProps.put(JooqHandler.JOOQ_PASSWORD, "sa");
+        c2kProps.put(JooqHandler.JOOQ_DIALECT,  "H2");
 
-//        Gateway.init(c2kProps);
+        Gateway.init(c2kProps);
 
-        FieldUtils.writeDeclaredStaticField(Gateway.class, "mLookupManager", lookup, true)
-        FieldUtils.writeDeclaredStaticField(Gateway.class, "mLookup",        lookup, true)
-        FieldUtils.writeDeclaredStaticField(Gateway.class, "mC2KProps",      c2kProps, true)
+//        FieldUtils.writeDeclaredStaticField(Gateway.class, "mLookupManager", lookup, true)
+//        FieldUtils.writeDeclaredStaticField(Gateway.class, "mLookup",        lookup, true)
+//        FieldUtils.writeDeclaredStaticField(Gateway.class, "mC2KProps",      c2kProps, true)
 
         lookup.open(null)
         lookup.initializeDirectory()

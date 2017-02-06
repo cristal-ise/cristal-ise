@@ -36,10 +36,10 @@ public class JooqLookupManagerTest {
     public static void beforeClass() throws Exception {
         Properties props = new Properties();
         
-        props.put(JooqClusterStorage.JOOQ_URI,      "jdbc:h2:mem:");
-        props.put(JooqClusterStorage.JOOQ_USER,     "sa");
-        props.put(JooqClusterStorage.JOOQ_PASSWORD, "sa");
-        props.put(JooqClusterStorage.JOOQ_DIALECT,  "H2");
+        props.put(JooqHandler.JOOQ_URI,      "jdbc:h2:mem:");
+        props.put(JooqHandler.JOOQ_USER,     "sa");
+        props.put(JooqHandler.JOOQ_PASSWORD, "sa");
+        props.put(JooqHandler.JOOQ_DIALECT,  "H2");
 
         Gateway.init(props);
     }

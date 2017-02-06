@@ -98,17 +98,10 @@ class LookupAddPathTests extends LookupTestBase {
         }
         catch (ObjectAlreadyExistsException e) {}
     }
-    
-    @Test
-    public void ObjectIsNotALeafException() {
-        lookup.add(new DomainPath("empty/toto"))
 
-        try {
-            lookup.delete(new DomainPath("empty"))
-            fail("Should throw ObjectCannotBeUpdated(Path 'domain/empty' is not a leaf)")
-        }
-        catch (ObjectCannotBeUpdated e) {
-            assert e.message.contains("Path /domain/empty is not a leaf")
-        }
+    @Test(expected=ObjectCannotBeUpdated)
+    public void deleteDomainPath_ObjectIsNotALeafException() {
+        lookup.add(new DomainPath("empty/toto"))
+        lookup.delete(new DomainPath("empty"))
     }
 }
