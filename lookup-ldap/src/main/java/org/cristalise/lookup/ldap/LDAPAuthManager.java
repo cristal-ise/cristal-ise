@@ -20,6 +20,7 @@
  */
 package org.cristalise.lookup.ldap;
 
+import org.apache.commons.lang3.StringUtils;
 import org.cristalise.kernel.common.InvalidDataException;
 import org.cristalise.kernel.common.ObjectNotFoundException;
 import org.cristalise.kernel.process.Gateway;
@@ -42,7 +43,7 @@ public class LDAPAuthManager implements Authenticator {
     {
         ldapProps = new LDAPProperties(Gateway.getProperties());
 
-        if (ldapProps.mHost!=null && ldapProps.mPort!= null && ldapProps.mLocalPath!=null ) {
+        if (ldapProps.mHost != null && ldapProps.mPort != null && ldapProps.mLocalPath != null ) {
             try { 
                 // anonymously bind to LDAP and find the agent entry for the username
                 ldapProps.mUser = "";
@@ -67,7 +68,7 @@ public class LDAPAuthManager implements Authenticator {
             }
         }
         else {
-            throw new InvalidDataException("Cannot log in. Some connection properties are not set.");
+            throw new InvalidDataException("Cannot log in. Some connection properties (host, port, localPath) are not set.");
         }
 
     }
@@ -76,7 +77,7 @@ public class LDAPAuthManager implements Authenticator {
     public boolean authenticate(String resource) throws InvalidDataException, ObjectNotFoundException {
         ldapProps = new LDAPProperties(Gateway.getProperties());
 
-        if (ldapProps.mUser == null || ldapProps.mUser.length()==0 || ldapProps.mPassword == null || ldapProps.mPassword.length()==0) {
+        if (StringUtils.isAnyBlank(ldapProps.mUser, ldapProps.mPassword)) {
             throw new InvalidDataException("LDAP root user properties not found in config.");
         }
 

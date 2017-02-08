@@ -227,8 +227,7 @@ public class LDAPLookup implements LookupManager {
      */
 
     @Override
-    public String getIOR(Path path)
-            throws ObjectNotFoundException {
+    public String getIOR(Path path) throws ObjectNotFoundException {
         return resolveObject(getFullDN(path));
     }
 
@@ -240,8 +239,7 @@ public class LDAPLookup implements LookupManager {
      * @throws ObjectNotFoundException
      *             when the dn or aliased dn does not exist
      */
-    private String resolveObject(String dn)
-            throws ObjectNotFoundException {
+    private String resolveObject(String dn) throws ObjectNotFoundException {
         Logger.msg(8, "LDAPLookup.resolveObject(" + dn + ")");
         LDAPEntry anEntry = LDAPLookupUtils.getEntry(mLDAPAuth.getAuthObject(), dn, LDAPSearchConstraints.DEREF_NEVER);
         if (anEntry != null) {
