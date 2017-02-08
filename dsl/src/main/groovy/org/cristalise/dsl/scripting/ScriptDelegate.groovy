@@ -54,6 +54,14 @@ class ScriptDelegate {
         script('javascript',  cl)
     }
 
+    def groovy(Closure cl) {
+        script('groovy',  cl)
+    }
+
+    def jython(Closure cl) {
+        script('jython',  cl)
+    }
+
     def script(String lang, Closure cl) {
         xml.script(language: "$lang", name: "$name") {
             def cdata = cl()
@@ -61,8 +69,16 @@ class ScriptDelegate {
         }
     }
 
+    def include(String name, Integer version) {
+        xml.include(name: "$name", version: "$version")
+    }
+
     def output(String type) {
         xml.output(type: "$type")
+    }
+
+    def output(String name, String type) {
+        xml.output(name: "$name", type: "$type")
     }
 
     def param(String iName, String type) {

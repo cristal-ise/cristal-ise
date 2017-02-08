@@ -1,0 +1,111 @@
+package org.cristalise.kernel.test.scripting
+
+import org.cristalise.dsl.scripting.ScriptBuilder
+import org.cristalise.kernel.scripting.Script
+import org.cristalise.kernel.scripting.ScriptingEngineException
+import org.cristalise.kernel.test.utils.CristalTestSetup
+import org.cristalise.kernel.utils.CastorHashMap
+import org.cristalise.kernel.utils.LocalObjectLoader
+
+import javassist.expr.Instanceof
+import spock.lang.Specification
+
+class ScriptExecutionSpecs extends Specification implements CristalTestSetup {
+
+    def setup()   { inMemoryServer(8) }
+    def cleanup() { cristalCleanup() }
+
+    def 'Script can use input parameter and can return a value'() {
+        given:
+        ScriptBuilder.create("integTest", "Modulo", 0) {
+            input("counter", "java.lang.Integer")
+            output('java.lang.Integer')
+            groovy { "counter % 2;" }
+        }
+        Script script = LocalObjectLoader.getScript("Modulo", 0)
+
+        when:
+        def properties = new CastorHashMap()
+        properties['counter'] = 3 
+        def result = script.evaluate(null, properties, null, null)
+
+        then:
+        result == 1
+    }
+
+    def 'Script can declare named output value, which returned as a map'() {
+        given:
+        ScriptBuilder.create("integTest", "Counter", 0) {
+            output('count', 'java.lang.Integer')
+            groovy { "count = 2" }
+        }
+        Script script = LocalObjectLoader.getScript("Counter", 0)
+
+        when:
+        def properties = new CastorHashMap()
+        def result = script.evaluate(null, properties, null, null)
+
+        then:
+        result instanceof Map
+        result.count == 2
+    }
+
+    def 'Script can declare more than one named outputs, which returned as a map'() {
+        given:
+        ScriptBuilder.create("integTest", "Counter", 0) {
+            output('label', 'java.lang.String')
+            output('count', 'java.lang.Integer')
+            groovy { "label = 'toto'; count = 2" }
+        }
+        Script script = LocalObjectLoader.getScript("Counter", 0)
+
+        when:
+        def properties = new CastorHashMap()
+        def result = script.evaluate(null, properties, null, null)
+
+        then:
+        result instanceof Map
+        result.label == 'toto'
+        result.count == 2
+    }
+
+    def 'When having more then one output all of them has to be named'() {
+        given:
+        ScriptBuilder.create("integTest", "Counter", 0) {
+            output('label', 'java.lang.String')
+            output('java.lang.Integer')
+            groovy { "label = 'toto'; return 2" }
+        }
+        Script script = LocalObjectLoader.getScript("Counter", 0)
+
+        when:
+        def properties = new CastorHashMap()
+        def result = script.evaluate(null, properties, null, null)
+
+        then:
+        thrown ScriptingEngineException
+    }
+
+    def 'Script can use output values from included Script as inputs'() {
+        given:
+        ScriptBuilder.create("integTest", "Counter", 0) {
+            output('label', 'java.lang.String')
+            output('count', 'java.lang.Integer')
+            groovy { "label = 'toto'; count = 2" }
+        }
+        ScriptBuilder.create("integTest", "Modulo", 0) {
+            include("Counter", 0)
+            input("count", "java.lang.Integer")
+            output('java.lang.Integer')
+            groovy { "count % 2;" }
+        }
+        Script script = LocalObjectLoader.getScript("Modulo", 0)
+
+        when:
+        def properties = new CastorHashMap()
+        def result = script.evaluate(null, properties, null, null)
+
+        then:
+        result == 0
+    }
+}

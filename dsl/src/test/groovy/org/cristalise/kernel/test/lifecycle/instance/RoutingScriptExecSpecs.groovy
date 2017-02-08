@@ -5,6 +5,7 @@ import org.cristalise.dsl.persistency.outcome.SchemaBuilder
 import org.cristalise.dsl.scripting.ScriptBuilder
 import org.cristalise.dsl.test.builders.WorkflowTestBuilder
 import org.cristalise.kernel.common.InvalidDataException
+import org.cristalise.kernel.process.Gateway
 import org.cristalise.kernel.test.utils.CristalTestSetup
 
 import spock.lang.Specification
@@ -27,7 +28,7 @@ class RoutingScriptExecSpecs extends Specification implements CristalTestSetup {
     def 'OrSplit enables branch(es) using RoutingScript and ActivityDataHelper with relative path'() {
         given: "Wf = first-OrSplit(CounterScript)((left)(right))-last"
 
-        String module = 'testing'
+        String module = 'integTest'
         String schemaName = 'TestData'
 
         ScriptBuilder.create(module, "CounterScript", 0) {

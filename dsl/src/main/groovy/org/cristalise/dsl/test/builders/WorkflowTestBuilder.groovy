@@ -241,6 +241,7 @@ class WorkflowTestBuilder extends WorkflowBuilder {
      */
     public void initialise() {
         wf.initialise(itemPath, agentPath, null)
+        Gateway.getStorage().put(itemPath, wf, null)
     }
 
     /**
