@@ -44,6 +44,7 @@ import org.cristalise.gui.tabs.outcome.InvalidSchemaException;
 import org.cristalise.gui.tabs.outcome.OutcomeException;
 import org.cristalise.gui.tabs.outcome.OutcomeHandler;
 import org.cristalise.gui.tabs.outcome.OutcomeNotInitialisedException;
+import org.cristalise.kernel.common.InvalidDataException;
 import org.cristalise.kernel.persistency.outcome.Outcome;
 import org.cristalise.kernel.utils.FileStringUtility;
 import org.cristalise.kernel.utils.Logger;
@@ -256,7 +257,14 @@ public class OutcomePanel extends JPanel implements OutcomeHandler
             textPanel.add(errorMsg);
             textPanel.add(Box.createVerticalGlue());
             if (outcomeDOM!=null) {
-                basicView = new JTextArea(Outcome.serialize(outcomeDOM, true));
+                String xml = "";
+
+                try {
+                    xml = Outcome.serialize(outcomeDOM, true);
+                }
+                catch (InvalidDataException e) {}
+
+                basicView = new JTextArea(xml);
                 basicView.setEnabled(!readOnly);
                 textPanel.add(basicView);
             }
@@ -343,7 +351,11 @@ public class OutcomePanel extends JPanel implements OutcomeHandler
         if (useForm)
         {
             documentRoot.validateStructure();
-            return Outcome.serialize(outcomeDOM, false);
+            try {
+                return Outcome.serialize(outcomeDOM, false);
+            }
+            catch (InvalidDataException e) {}
+            return "";
         }
         else
         {
