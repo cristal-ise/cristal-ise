@@ -64,7 +64,7 @@ class RoutingScriptExecSpecs extends Specification implements CristalTestSetup {
     def 'OrSplit enables branch(es) using RoutingScript and ActivityDataHelper with absolute path'() {
         given: "Wf = first-OrSplit(CounterScript)((left)(right))-last"
 
-        String module = 'testing'
+        String module = 'integTest'
         String schemaName = 'TestData'
 
         ScriptBuilder.create(module, "CounterScript", 0) {
@@ -100,7 +100,7 @@ class RoutingScriptExecSpecs extends Specification implements CristalTestSetup {
     def 'LoopSplit using RoutingScript and ActivityDataHelper'() {
         given: "Wf = Loop(incrementer)"
 
-        String module = 'testing'
+        String module = 'integTest'
         String schemaName = 'TestData'
 
         ScriptBuilder.create(module, "CounterScript", 0) {
@@ -137,7 +137,7 @@ class RoutingScriptExecSpecs extends Specification implements CristalTestSetup {
     def 'RoutingScript can only use String for input parameter'() {
         given: "Wf = first-OrSplit(CounterScript)((left)(right))-last"
 
-        String module = 'testing'
+        String module = 'integTest'
         String schemaName = 'TestData'
 
         ScriptBuilder.create(module, "CounterScript", 0) {

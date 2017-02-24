@@ -31,7 +31,7 @@ class BalancedRoutingScriptTest implements CristalTestSetup {
 
     @Test
     public void 'Loop-OrSplit-AndSPlit using RoutingScript'() {
-        String module = 'testing'
+        String module = 'integTest'
         String schemaName = 'TestData'
         
         int repetition = 10

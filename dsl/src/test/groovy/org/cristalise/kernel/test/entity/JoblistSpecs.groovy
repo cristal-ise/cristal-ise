@@ -74,7 +74,7 @@ class JoblistSpecs extends Specification implements CristalTestSetup {
                                         [stepName: "EA1", agentRole: "toto", transitionName: "Done" ]])
 
         when: "the Job associated with the Start Transition is executed"
-        dummyAgentBuilder.executeJob(dummyItem.item, "EA1", "Start")
+        dummyAgentBuilder.executeJob(dummyItem.itemDomPath.itemPath, "EA1", "Start")
         
         then: "Agent gets two Jobs (Complete, Suspend) for the Activity it was assigned to"
         pollingWait.eventually { dummyAgentBuilder.jobList && dummyAgentBuilder.jobList.size() == 2 }
@@ -133,7 +133,7 @@ class JoblistSpecs extends Specification implements CristalTestSetup {
         timeoutAgentBuilder.checkJobList([[stepName: "EA1", agentRole: "Timeout", transitionName: "Timeout"]])
 
         when:
-        dummyAgentBuilder.executeJob(dummyItemBuilder.itemDomPath, 'EA1', 'Start')
+        dummyAgentBuilder.executeJob(dummyItemBuilder.itemDomPath.itemPath, 'EA1', 'Start')
 
         then:
         pollingWait.eventually { timeoutAgentBuilder.jobList && timeoutAgentBuilder.jobList.size() == 1 }

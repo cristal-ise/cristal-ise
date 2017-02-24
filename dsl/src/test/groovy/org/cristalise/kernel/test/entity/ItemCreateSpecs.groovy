@@ -25,6 +25,7 @@ import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.property.PropertyUtility;
 import org.cristalise.kernel.test.utils.CristalTestSetup
 
+import spock.lang.Ignore
 import spock.lang.Specification
 
 
@@ -47,6 +48,7 @@ class ItemCreateSpecs extends Specification implements CristalTestSetup {
         //assert workflow only has predefined steps
     }
     
+    @Ignore
     def 'Item can be created with CompActDef'() {
         when:
         def builder = ItemTestBuilder.create(name: "myFisrtItem", folder: "testing") {

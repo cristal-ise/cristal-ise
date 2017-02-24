@@ -68,5 +68,4 @@ class ItemTestBuilder extends ItemBuilder {
             assert p && p.value == value
         }
     }
-        
 }

@@ -42,7 +42,7 @@ class RoleBuilderSpecs extends Specification implements CristalTestSetup {
 
         then:
         roles[0].name == "User"
-        roles[0].hasJobList() == false
+        roles[0].jobList == false
     }
 
     def "Builder build a list of Roles"() {
@@ -54,9 +54,9 @@ class RoleBuilderSpecs extends Specification implements CristalTestSetup {
 
         then:
         roles[0].name == "User"
-        roles[0].hasJobList() == false
+        roles[0].jobList == false
         
         roles[1].name == "User/SubUser"
-        roles[1].hasJobList() == true
+        roles[1].jobList == true
     }
 }

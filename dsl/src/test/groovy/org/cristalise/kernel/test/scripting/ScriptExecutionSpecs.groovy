@@ -7,7 +7,6 @@ import org.cristalise.kernel.test.utils.CristalTestSetup
 import org.cristalise.kernel.utils.CastorHashMap
 import org.cristalise.kernel.utils.LocalObjectLoader
 
-import javassist.expr.Instanceof
 import spock.lang.Specification
 
 class ScriptExecutionSpecs extends Specification implements CristalTestSetup {

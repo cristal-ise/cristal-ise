@@ -44,12 +44,12 @@ class AgentCreateSpecs extends Specification implements CristalTestSetup {
         }
 
         then:
-        agentBuilder.agent.exists()
-        agentBuilder.agent.agentName == 'dummy'
-        agentBuilder.agent.roles
-        agentBuilder.agent.roles.size() == 1
-        agentBuilder.agent.roles[0].name == 'toto'
-        agentBuilder.agent.roles[0].hasJobList() == true
+        agentBuilder.newAgentPath.exists()
+        agentBuilder.newAgentPath.agentName == 'dummy'
+        agentBuilder.newAgent.roles
+        agentBuilder.newAgent.roles.size() == 1
+        agentBuilder.newAgent.roles[0].name == 'toto'
+        agentBuilder.newAgent.roles[0].jobList == true
     }
 
     @Ignore("Unimplemented")

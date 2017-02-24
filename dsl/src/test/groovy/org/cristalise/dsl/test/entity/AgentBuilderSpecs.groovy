@@ -59,6 +59,6 @@ class AgentBuilderSpecs extends Specification implements CristalTestSetup {
         newAgent.properties[1].value == "Agent"
 
         newAgent.roles.size() == 1
-        newAgent.roles[0] == 'User'
+        newAgent.roles[0].name == 'User'
     }
 }
