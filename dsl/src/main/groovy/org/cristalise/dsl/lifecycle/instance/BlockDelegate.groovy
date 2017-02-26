@@ -102,6 +102,10 @@ public class BlockDelegate {
             setRoutingScript(aSplit, (String)"javascript:\"${properties.javascript}\";", '');
             properties.remove('javascript')
         }
+        else if(properties.groovy) {
+            setRoutingScript(aSplit, (String)"groovy:\"${properties.groovy}\";", '');
+            properties.remove('groovy')
+        }
         else {
             setRoutingScript(aSplit, "javascript:\"true\";", '');
         }
