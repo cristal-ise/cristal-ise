@@ -23,6 +23,7 @@ package org.cristalise.storage.jooqdb;
 import java.util.Properties;
 
 import org.cristalise.kernel.process.Gateway;
+import org.cristalise.storage.JooqClusterStorage;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;

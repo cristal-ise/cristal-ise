@@ -24,6 +24,7 @@ import java.util.UUID;
 
 import org.cristalise.kernel.persistency.outcome.Outcome;
 import org.cristalise.kernel.persistency.outcome.Schema;
+import org.cristalise.storage.jooqdb.clusterStore.JooqOutcomeHandler;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;

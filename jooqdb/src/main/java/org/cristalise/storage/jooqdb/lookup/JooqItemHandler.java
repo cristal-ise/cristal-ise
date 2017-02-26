@@ -18,7 +18,7 @@
  *
  * http://www.fsf.org/licensing/licenses/lgpl.html
  */
-package org.cristalise.storage.jooqdb;
+package org.cristalise.storage.jooqdb.lookup;
 
 import static org.jooq.impl.DSL.constraint;
 import static org.jooq.impl.DSL.field;
@@ -30,6 +30,7 @@ import java.util.UUID;
 import org.cristalise.kernel.common.PersistencyException;
 import org.cristalise.kernel.lookup.AgentPath;
 import org.cristalise.kernel.lookup.ItemPath;
+import org.cristalise.storage.jooqdb.JooqHandler;
 import org.jooq.DSLContext;
 import org.jooq.Field;
 import org.jooq.Record;

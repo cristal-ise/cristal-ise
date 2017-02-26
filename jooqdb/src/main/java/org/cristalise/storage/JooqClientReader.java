@@ -20,12 +20,43 @@
  */
 package org.cristalise.storage;
 
-/**
- * Provided for easier loading (may be referenced without package in ClusterStorage property)
- */
-public class JooqClientReader extends org.cristalise.storage.jooqdb.JooqClientReader {
+import org.cristalise.kernel.common.PersistencyException;
+import org.cristalise.kernel.entity.C2KLocalObject;
+import org.cristalise.kernel.lookup.ItemPath;
 
-    public JooqClientReader() {
-        super();
+public class JooqClientReader extends JooqClusterStorage {
+    @Override
+    public short queryClusterSupport(String clusterType) {
+        return READ;
+    }
+
+    @Override
+    public String getName() {
+        return getId()+" ClientReader";
+    }
+
+    @Override
+    public String getId() {
+        return "JOOQCLIENT:"+context.dialect();
+    }
+
+    @Override
+    public void put(ItemPath itemPath, C2KLocalObject obj) throws PersistencyException {
+        put(itemPath, obj, null);
+    }
+
+    @Override
+    public void put(ItemPath itemPath, C2KLocalObject obj, Object locker) throws PersistencyException {
+        throw new PersistencyException("Writing not supported in JooqClientReader");
+    }
+
+    @Override
+    public void delete(ItemPath itemPath, String path) throws PersistencyException {
+        delete(itemPath, path, null);
+    }
+
+    @Override
+    public void delete(ItemPath itemPath, String path, Object locker) throws PersistencyException {
+        throw new PersistencyException("Delete not supported in JooqClientReader");
     }
 }

@@ -18,7 +18,7 @@
  *
  * http://www.fsf.org/licensing/licenses/lgpl.html
  */
-package org.cristalise.storage.jooqdb;
+package org.cristalise.storage.jooqdb.clusterStore;
 
 import static org.jooq.impl.DSL.constraint;
 import static org.jooq.impl.DSL.field;
@@ -30,13 +30,11 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 
-import org.cristalise.kernel.common.InvalidDataException;
-import org.cristalise.kernel.common.ObjectNotFoundException;
 import org.cristalise.kernel.common.PersistencyException;
 import org.cristalise.kernel.entity.C2KLocalObject;
-import org.cristalise.kernel.persistency.outcome.Outcome;
-import org.cristalise.kernel.utils.LocalObjectLoader;
-import org.cristalise.kernel.utils.Logger;
+import org.cristalise.kernel.lookup.ItemPath;
+import org.cristalise.kernel.persistency.outcome.Viewpoint;
+import org.cristalise.storage.jooqdb.JooqHandler;
 import org.jooq.Condition;
 import org.jooq.DSLContext;
 import org.jooq.Field;
@@ -44,14 +42,14 @@ import org.jooq.Record;
 import org.jooq.Result;
 import org.jooq.Table;
 
-public class JooqOutcomeHandler implements JooqHandler {
-    static final Table<?> OUTCOME_TABLE = table(name("OUTCOME"));
+public class JooqViewpointHandler implements JooqHandler {
+    static final Table<?> VIEWPOINT_TABLE = table(name("VIEWPOINT"));
 
     static final Field<UUID>    UUID            = field(name("UUID"),           UUID.class);
     static final Field<String>  SCHEMA_NAME     = field(name("SCHEMA_NAME"),    String.class);
+    static final Field<String>  NAME            = field(name("NAME"),           String.class);
     static final Field<Integer> SCHEMA_VERSION  = field(name("SCHEMA_VERSION"), Integer.class);
     static final Field<Integer> EVENT_ID        = field(name("EVENT_ID"),       Integer.class);
-    static final Field<String>  XML             = field(name("XML"),            String.class);
 
     private List<Condition> getPKConditions(UUID uuid, String... primaryKeys) throws PersistencyException {
         List<Condition> conditions = new ArrayList<>();
@@ -65,88 +63,78 @@ public class JooqOutcomeHandler implements JooqHandler {
                 conditions.add(SCHEMA_NAME.equal(primaryKeys[0]));
                 break;
             case 2:
-                conditions.add(UUID          .equal(uuid));
-                conditions.add(SCHEMA_NAME   .equal(primaryKeys[0]));
-                conditions.add(SCHEMA_VERSION.equal(Integer.valueOf(primaryKeys[1])));
+                conditions.add(UUID       .equal(uuid));
+                conditions.add(SCHEMA_NAME.equal(primaryKeys[0]));
+                conditions.add(NAME       .equal(primaryKeys[1]));
                 break;
-            case 3:
-                conditions.add(UUID          .equal(uuid));
-                conditions.add(SCHEMA_NAME   .equal(primaryKeys[0]));
-                conditions.add(SCHEMA_VERSION.equal(Integer.valueOf(primaryKeys[1])));
-                conditions.add(EVENT_ID      .equal(Integer.valueOf(primaryKeys[2])));
-                break;
+
             default:
-                throw new PersistencyException("Invalid number of primary keys (max 4):"+Arrays.toString(primaryKeys));
+                throw new PersistencyException("Invalid number of primary keys (max 3):"+Arrays.toString(primaryKeys));
         }
         return conditions;
     }
 
     @Override
     public int put(DSLContext context, UUID uuid, C2KLocalObject obj) throws PersistencyException {
-        Outcome outcome = (Outcome)obj;
+        C2KLocalObject v = fetch(context, uuid, ((Viewpoint)obj).getSchemaName(), ((Viewpoint)obj).getName());
 
-        String schemaName    = outcome.getSchema().getName();
-        String schemaVersion = outcome.getSchema().getVersion().toString();
-        String eventID       = outcome.getID().toString();
-
-        C2KLocalObject o = fetch(context, uuid, schemaName, schemaVersion, eventID);
-
-        if (o == null) return insert(context, uuid, outcome);
-        else           return update(context, uuid, outcome);
+        if (v == null) return insert(context, uuid, obj);
+        else           return update(context, uuid, obj);
     }
 
     @Override
     public int update(DSLContext context, UUID uuid, C2KLocalObject obj) throws PersistencyException {
-        throw new IllegalArgumentException("Outcome must not be updated uuid:"+uuid+" name:"+obj.getName());
+        Viewpoint view = (Viewpoint)obj;
+        return context
+                .update(VIEWPOINT_TABLE)
+                .set(SCHEMA_VERSION, view.getSchemaVersion())
+                .set(EVENT_ID,       view.getEventId())
+                .where(UUID       .equal(uuid))
+                  .and(SCHEMA_NAME.equal(view.getSchemaName()))
+                  .and(NAME       .equal(view.getName()))
+                .execute();
     }
 
     @Override
     public int delete(DSLContext context, UUID uuid, String... primaryKeys) throws PersistencyException {
         List<Condition> conditions = getPKConditions(uuid, primaryKeys);
         return context
-                .delete(OUTCOME_TABLE)
+                .delete(VIEWPOINT_TABLE)
                 .where(conditions)
                 .execute();
     }
 
     @Override
-    public int insert(DSLContext context, UUID uuid, C2KLocalObject obj) {
-        Outcome outcome = (Outcome)obj;
+    public int insert(DSLContext context, UUID uuid, C2KLocalObject obj) throws PersistencyException {
+        Viewpoint view = (Viewpoint)obj;
         return context
-                .insertInto(OUTCOME_TABLE) 
+                .insertInto(VIEWPOINT_TABLE) 
                         .set(UUID,           uuid)
-                        .set(SCHEMA_NAME,    outcome.getSchema().getName())
-                        .set(SCHEMA_VERSION, outcome.getSchema().getVersion())
-                        .set(EVENT_ID,       outcome.getID())
-                        .set(XML,            outcome.getData())
+                        .set(SCHEMA_NAME,    view.getSchemaName())
+                        .set(NAME,           view.getName())
+                        .set(SCHEMA_VERSION, view.getSchemaVersion())
+                        .set(EVENT_ID,       view.getEventId())
                 .execute();
     }
 
     @Override
     public C2KLocalObject fetch(DSLContext context, UUID uuid, String...primaryKeys) throws PersistencyException {
-        String  schemaName    = primaryKeys[0];
-        Integer schemaVersion = Integer.parseInt(primaryKeys[1]);
-        Integer eventID       = Integer.parseInt(primaryKeys[2]);
+        String shcemaName = primaryKeys[0];
+        String name       = primaryKeys[1];
 
         Record result = context
-                .select().from(OUTCOME_TABLE)
-                .where(UUID          .equal(uuid))
-                  .and(SCHEMA_NAME   .equal(schemaName))
-                  .and(SCHEMA_VERSION.equal(schemaVersion))
-                  .and(EVENT_ID      .equal(eventID))
+                .select().from(VIEWPOINT_TABLE)
+                .where(UUID       .equal(uuid))
+                  .and(SCHEMA_NAME.equal(shcemaName))
+                  .and(NAME       .equal(name))
                 .fetchOne();
 
-        if(result != null) {
-            try {
-                String xml = result.get(XML);
-                return new Outcome(eventID, xml, LocalObjectLoader.getSchema(schemaName, schemaVersion));
-            }
-            catch (InvalidDataException | ObjectNotFoundException e) {
-                Logger.error(e);
-                throw new PersistencyException(e.getMessage());
-            }
-        }
-        return null;
+        if(result != null) return new Viewpoint(new ItemPath(uuid),
+                                                result.get(SCHEMA_NAME),
+                                                result.get(NAME),
+                                                result.get(SCHEMA_VERSION),
+                                                result.get(EVENT_ID));
+        else return null;
     }
 
     @Override
@@ -160,21 +148,19 @@ public class JooqOutcomeHandler implements JooqHandler {
                 fields[0] = SCHEMA_NAME;
                 break;
             case 1:
-                fields[0] = SCHEMA_VERSION;
+                fields[0] = NAME;
                 break;
             case 2:
-                fields[0] = EVENT_ID;
+                fields[0] = NAME;
                 break;
-            case 3:
-                fields[0] = EVENT_ID;
-                break;
+
             default:
-                throw new PersistencyException("Invalid number of primary keys (max 4):"+Arrays.toString(primaryKeys));
+                throw new PersistencyException("Invalid number of primary keys (max 3):"+Arrays.toString(primaryKeys));
         }
 
         Result<Record> result = context
                 .selectDistinct(fields)
-                .from(OUTCOME_TABLE)
+                .from(VIEWPOINT_TABLE)
                 .where(conditions)
                 .fetch();
 
@@ -188,14 +174,14 @@ public class JooqOutcomeHandler implements JooqHandler {
 
     @Override
     public void createTables(DSLContext context) throws PersistencyException {
-        context.createTableIfNotExists(OUTCOME_TABLE)
-            .column(UUID,           UUID_TYPE   .nullable(false))
-            .column(SCHEMA_NAME,    NAME_TYPE   .nullable(false))
-            .column(SCHEMA_VERSION, VERSION_TYPE.nullable(false))
-            .column(EVENT_ID,       ID_TYPE     .nullable(false))
-            .column(XML,            XML_TYPE    .nullable(false))
+        context.createTableIfNotExists(VIEWPOINT_TABLE)
+            .column(UUID,           UUID_TYPE.nullable(false))
+            .column(SCHEMA_NAME,    NAME_TYPE.nullable(false))
+            .column(NAME,           NAME_TYPE.nullable(false))
+            .column(SCHEMA_VERSION, VERSION_TYPE.nullable(true))
+            .column(EVENT_ID,       ID_TYPE.nullable(true))
             .constraints(
-                    constraint("PK_"+OUTCOME_TABLE).primaryKey(UUID, SCHEMA_NAME, SCHEMA_VERSION, EVENT_ID))
+                    constraint("PK_"+VIEWPOINT_TABLE).primaryKey(UUID, SCHEMA_NAME, NAME))
         .execute();
     }
 }

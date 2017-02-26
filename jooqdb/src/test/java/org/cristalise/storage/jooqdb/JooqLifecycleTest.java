@@ -24,6 +24,7 @@ import org.cristalise.kernel.lifecycle.instance.CompositeActivity;
 import org.cristalise.kernel.lifecycle.instance.Workflow;
 import org.cristalise.kernel.lifecycle.instance.predefined.server.ServerPredefinedStepContainer;
 import org.cristalise.kernel.lookup.ItemPath;
+import org.cristalise.storage.jooqdb.clusterStore.JooqLifecycleHandler;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;

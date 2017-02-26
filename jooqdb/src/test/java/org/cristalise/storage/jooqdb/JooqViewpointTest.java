@@ -24,6 +24,7 @@ import java.util.UUID;
 
 import org.cristalise.kernel.lookup.ItemPath;
 import org.cristalise.kernel.persistency.outcome.Viewpoint;
+import org.cristalise.storage.jooqdb.clusterStore.JooqViewpointHandler;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;

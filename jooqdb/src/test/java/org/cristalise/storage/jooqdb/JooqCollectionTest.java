@@ -22,6 +22,7 @@ package org.cristalise.storage.jooqdb;
 
 import org.cristalise.kernel.collection.Collection;
 import org.cristalise.kernel.collection.Dependency;
+import org.cristalise.storage.jooqdb.clusterStore.JooqCollectionHadler;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;

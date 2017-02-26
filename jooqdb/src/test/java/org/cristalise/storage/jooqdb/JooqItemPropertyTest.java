@@ -23,6 +23,7 @@ package org.cristalise.storage.jooqdb;
 import java.util.UUID;
 
 import org.cristalise.kernel.property.Property;
+import org.cristalise.storage.jooqdb.clusterStore.JooqItemPropertyHandler;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;

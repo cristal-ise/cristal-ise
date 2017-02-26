@@ -28,9 +28,9 @@ import org.cristalise.kernel.process.AbstractMain
 import org.cristalise.kernel.process.Gateway
 import org.cristalise.kernel.utils.Logger
 import org.cristalise.kernel.utils.ObjectProperties
-import org.cristalise.storage.jooqdb.JooqClusterStorage
+import org.cristalise.storage.JooqClusterStorage
+import org.cristalise.storage.JooqLookupManager
 import org.cristalise.storage.jooqdb.JooqHandler
-import org.cristalise.storage.jooqdb.JooqLookupManager
 import org.junit.After
 import org.junit.Before
 import org.springframework.cache.config.CacheAdviceParser.Props
@@ -41,7 +41,7 @@ import groovy.transform.CompileStatic
 @CompileStatic
 class LookupTestBase {
 
-    LookupManager lookup
+    JooqLookupManager lookup
 
     @Before
     public void setUp() throws Exception {
