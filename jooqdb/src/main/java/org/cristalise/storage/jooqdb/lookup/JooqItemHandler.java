@@ -30,7 +30,10 @@ import java.util.UUID;
 import org.cristalise.kernel.common.PersistencyException;
 import org.cristalise.kernel.lookup.AgentPath;
 import org.cristalise.kernel.lookup.ItemPath;
+import org.cristalise.kernel.property.BuiltInItemProperties;
+import org.cristalise.kernel.property.Property;
 import org.cristalise.storage.jooqdb.JooqHandler;
+import org.cristalise.storage.jooqdb.clusterStore.JooqItemPropertyHandler;
 import org.jooq.DSLContext;
 import org.jooq.Field;
 import org.jooq.Record;
@@ -70,17 +73,31 @@ public class JooqItemHandler {
                 .execute();
     }
 
-    public int insert(DSLContext context, ItemPath path) throws PersistencyException {
-        boolean isAgent = path instanceof AgentPath;
-        String pwd = null;
-        if (isAgent) pwd = ((AgentPath)path).getPassword();
+    public int insert(DSLContext context, AgentPath agentPath, JooqItemPropertyHandler properties) throws PersistencyException {
+        int rows = context
+                .insertInto(ITEM_TABLE)
+                    .set(UUID,     agentPath.getUUID())
+                    .set(IOR,      agentPath.getIORString())
+                    .set(IS_AGENT, true)
+                    .set(PASSWORD, agentPath.getPassword())
+                .execute();
 
+        if (rows != 1) throw new PersistencyException("Insert into ITEM table rows:"+rows);
+
+        rows = properties.insert(context, agentPath.getUUID(), new Property(BuiltInItemProperties.NAME, agentPath.getAgentName(), true));
+
+        if (rows != 1) throw new PersistencyException("Insert into ITEM_PROPERTY table rows:"+rows);
+
+        return rows;
+    }
+
+    public int insert(DSLContext context, ItemPath path) throws PersistencyException {
         return context
                 .insertInto(ITEM_TABLE)
                     .set(UUID,     path.getUUID())
                     .set(IOR,      path.getIORString())
-                    .set(IS_AGENT, isAgent)
-                    .set(PASSWORD, pwd)
+                    .set(IS_AGENT, false)
+                    .set(PASSWORD, (String)null)
                 .execute();
     }
 
@@ -101,8 +118,8 @@ public class JooqItemHandler {
 
         if(result != null) {
             boolean isAgent = result.get(IS_AGENT);
-            String ior = result.get(IOR);
-            String pwd = result.get(PASSWORD);
+            String  ior     = result.get(IOR);
+            String  pwd     = result.get(PASSWORD);
 
             if(isAgent) return new AgentPath(uuid, ior, pwd);
             else        return new ItemPath(uuid, ior);

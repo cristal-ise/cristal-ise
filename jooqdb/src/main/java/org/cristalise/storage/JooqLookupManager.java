@@ -85,14 +85,14 @@ public class JooqLookupManager implements LookupManager {
         try {
             context = using(DriverManager.getConnection(uri, user, pwd), dialect);
 
-            items = new JooqItemHandler();
-            domains = new JooqDomainPathHandler();
-            roles = new JooqRolePathHandler();
+            items      = new JooqItemHandler();
+            domains    = new JooqDomainPathHandler();
+            roles      = new JooqRolePathHandler();
             properties = new JooqItemPropertyHandler();
 
-            items.createTables(context);
-            domains.createTables(context);
-            roles.createTables(context);
+            items     .createTables(context);
+            domains   .createTables(context);
+            roles     .createTables(context);
             properties.createTables(context);
         }
         catch (SQLException | DataAccessException | PersistencyException ex) {
@@ -116,10 +116,10 @@ public class JooqLookupManager implements LookupManager {
     @Override
     public boolean exists(Path path) {
         try {
-            if      (path instanceof ItemPath)   return items.exists(context, path.getUUID());
-            else if (path instanceof AgentPath)  return items.exists(context, path.getUUID());
+            if      (path instanceof ItemPath)   return items  .exists(context, path.getUUID());
+            else if (path instanceof AgentPath)  return items  .exists(context, path.getUUID());
             else if (path instanceof DomainPath) return domains.exists(context, path.getStringPath());
-            else if (path instanceof RolePath)   return roles.exists(context, path.getStringPath());
+            else if (path instanceof RolePath)   return roles  .exists(context, path.getStringPath());
         }
         catch (PersistencyException e) {
             Logger.error(e);
@@ -133,10 +133,11 @@ public class JooqLookupManager implements LookupManager {
 
         try {
             int rows = 0;
-            if      (newPath instanceof ItemPath)   rows = items.insert(context, (ItemPath)newPath);
-            else if (newPath instanceof AgentPath)  rows = items.insert(context, (ItemPath)newPath);
+
+            if      (newPath instanceof AgentPath)  rows = items  .insert(context, (AgentPath) newPath, properties);
+            else if (newPath instanceof ItemPath)   rows = items  .insert(context, (ItemPath)  newPath);
             else if (newPath instanceof DomainPath) rows = domains.insert(context, (DomainPath)newPath);
-            else if (newPath instanceof RolePath)   rows = roles.insert(context, (RolePath)newPath);
+            else if (newPath instanceof RolePath)   rows = roles  .insert(context, (RolePath)  newPath);
 
             if (rows == 0)
                 throw new ObjectCannotBeUpdated("JOOQLookupManager must insert some records:"+rows);
@@ -208,13 +209,21 @@ public class JooqLookupManager implements LookupManager {
 
     @Override
     public AgentPath getAgentPath(String agentName) throws ObjectNotFoundException {
-        // TODO Auto-generated method stub
-        return null;
+        List<UUID> uuids = properties.findItemsByName(context, agentName);
+
+        if (uuids.size() == 0) throw new ObjectNotFoundException("Could not find agent:"+agentName);
+
+        try {
+            return (AgentPath) items.fetch(context, uuids.get(0));
+        }
+        catch (PersistencyException e) {
+            throw new ObjectNotFoundException("agent:"+agentName + " error:"+e.getMessage());
+        }
     }
 
     @Override
     public RolePath getRolePath(String roleName) throws ObjectNotFoundException {
-        if (!exists(new RolePath())) throw new ObjectNotFoundException("Role does not exist:"+roleName);
+        if (!exists(new RolePath())) throw new ObjectNotFoundException("Role '"+roleName+"' does not exist");
 
         return null;
     }
@@ -305,8 +314,6 @@ public class JooqLookupManager implements LookupManager {
      */
     @Override
     public void initializeDirectory() throws ObjectNotFoundException {
-        // TODO Auto-generated method stub
-
     }
 
     /* (non-Javadoc)
