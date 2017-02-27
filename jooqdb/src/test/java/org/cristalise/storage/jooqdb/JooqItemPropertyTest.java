@@ -20,6 +20,7 @@
  */
 package org.cristalise.storage.jooqdb;
 
+import java.util.List;
 import java.util.UUID;
 
 import org.cristalise.kernel.property.Property;
@@ -126,5 +127,28 @@ public class JooqItemPropertyTest extends JooqTestBase {
 
         Assert.assertEquals(1, keys.length);
         Assert.assertEquals("mimi", keys[0]);
+    }
+
+    @Test
+    public void findItemByName() throws Exception {
+        Property property2 = new Property("Name", "prop2", false);
+        assert jooq.put(context, uuid, property2) == 1;
+
+        List<UUID> items = jooq.findItemsByName(context, "prop2");
+
+        Assert.assertNotNull(items);
+        Assert.assertEquals(1, items.size());
+        Assert.assertEquals(uuid, items.get(0));
+    }
+
+    @Test
+    public void findItems() throws Exception {
+        Property property2 = new Property("zaza", "value", false);
+        assert jooq.put(context, uuid, property2) == 1;
+
+        List<UUID> items = jooq.findItems(context, property, property2);
+        Assert.assertNotNull(items);
+        Assert.assertEquals(1, items.size());
+        Assert.assertEquals(uuid, items.get(0));
     }
 }

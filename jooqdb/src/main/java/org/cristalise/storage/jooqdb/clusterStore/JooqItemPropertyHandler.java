@@ -28,17 +28,23 @@ import static org.jooq.impl.DSL.table;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Set;
+import java.util.TreeSet;
 import java.util.UUID;
 
 import org.cristalise.kernel.common.PersistencyException;
 import org.cristalise.kernel.entity.C2KLocalObject;
+import org.cristalise.kernel.property.BuiltInItemProperties;
 import org.cristalise.kernel.property.Property;
+import org.cristalise.kernel.utils.Logger;
 import org.cristalise.storage.jooqdb.JooqHandler;
 import org.jooq.Condition;
 import org.jooq.DSLContext;
 import org.jooq.Field;
+import org.jooq.Operator;
 import org.jooq.Record;
 import org.jooq.Result;
+import org.jooq.SelectQuery;
 import org.jooq.Table;
 import org.jooq.impl.SQLDataType;
 
@@ -138,6 +144,31 @@ public class JooqItemPropertyHandler implements JooqHandler {
         return returnValue;
     }
 
+    public List<UUID> findItemsByName(DSLContext context, String name) {
+        return findItems(context, new Property(BuiltInItemProperties.NAME, name));
+    }
+
+    public List<UUID> findItems(DSLContext context, Property...properties) {
+        Logger.msg(5, "JooqItemPropertyHandler.findItems() - properties:"+Arrays.toString(properties));
+
+        SelectQuery<?> select = context.selectQuery(ITEM_PROPERTY_TABLE);
+
+        for (Property p : properties) {
+            Condition actualCondition = NAME.equal(p.getName()) .and (VALUE.equal(p.getValue()));
+            select.addConditions(Operator.OR, actualCondition);
+        }
+
+        Logger.msg(8, "JooqItemPropertyHandler.findItems() - SQL:"+select);
+
+        Result<?> result =  select.fetch();
+
+        Set<UUID> returnValue = new TreeSet<UUID>();
+
+        for (Record record : result) returnValue.add(record.get(UUID));
+
+        return new ArrayList<UUID>(returnValue);
+    }
+
     @Override
     public void createTables(DSLContext context) throws PersistencyException {
         context.createTableIfNotExists(ITEM_PROPERTY_TABLE)
@@ -149,4 +180,5 @@ public class JooqItemPropertyHandler implements JooqHandler {
                     constraint("PK_"+ITEM_PROPERTY_TABLE).primaryKey(UUID, NAME))
         .execute();
     }
+
 }
