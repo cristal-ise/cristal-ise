@@ -84,7 +84,7 @@ public class JooqItemHandler {
 
         if (rows != 1) throw new PersistencyException("Insert into ITEM table rows:"+rows);
 
-        rows = properties.insert(context, agentPath.getUUID(), new Property(BuiltInItemProperties.NAME, agentPath.getAgentName(), true));
+        rows = properties.insert(context, agentPath.getUUID(), new Property(BuiltInItemProperties.NAME, agentPath.getAgentName()));
 
         if (rows != 1) throw new PersistencyException("Insert into ITEM_PROPERTY table rows:"+rows);
 
@@ -107,10 +107,10 @@ public class JooqItemHandler {
                 .where(UUID.equal(uuid))
                 .fetchOne();
 
-        return count != null && count.getValue(0, Integer.class) == 1;
+        return count != null && count.get(0, Integer.class) == 1;
     }
 
-    public ItemPath fetch(DSLContext context, UUID uuid) throws PersistencyException {
+    public ItemPath fetch(DSLContext context, UUID uuid, JooqItemPropertyHandler properties) throws PersistencyException {
         Record result = context
                 .select().from(ITEM_TABLE)
                 .where(UUID.equal(uuid))
@@ -121,8 +121,16 @@ public class JooqItemHandler {
             String  ior     = result.get(IOR);
             String  pwd     = result.get(PASSWORD);
 
-            if(isAgent) return new AgentPath(uuid, ior, pwd);
-            else        return new ItemPath(uuid, ior);
+            if(isAgent) {
+                AgentPath ap = new AgentPath(uuid, ior, pwd);
+                
+                Property prop = (Property)properties.fetch(context, uuid, "Name");
+                ap.setAgentName(prop.getValue());
+
+                return ap;
+            }
+            else
+                return new ItemPath(uuid, ior);
         }
         return null;
     }

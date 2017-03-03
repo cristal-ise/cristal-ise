@@ -33,7 +33,6 @@ import org.cristalise.kernel.lookup.RolePath
 import org.junit.Before
 import org.junit.Test
 
-
 @CompileStatic
 class LookupRoleTests extends LookupTestBase {
 
@@ -53,7 +52,7 @@ class LookupRoleTests extends LookupTestBase {
 
     public void checkRolePath(RolePath parent, RolePath role, String name, boolean hasJobList = false) {
         assert role.getName() == name
-        assert role.string == "$parent.string/$name"
+        assert role.stringPath == "$parent.stringPath/$name"
         assert lookup.exists(role)
         def r = lookup.getRolePath(name)
         assert r == role

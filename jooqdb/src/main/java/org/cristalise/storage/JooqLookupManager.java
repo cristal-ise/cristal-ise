@@ -103,6 +103,11 @@ public class JooqLookupManager implements LookupManager {
     }
 
     @Override
+    public void initializeDirectory() throws ObjectNotFoundException {
+        Logger.msg(6, "JOOQLookupManager.initializeDirectory() - NOTHING done.");
+    }
+
+    @Override
     public void close() {
         try {
             context.close();
@@ -130,6 +135,8 @@ public class JooqLookupManager implements LookupManager {
     @Override
     public void add(Path newPath) throws ObjectCannotBeUpdated, ObjectAlreadyExistsException {
         if (exists(newPath)) throw new ObjectAlreadyExistsException("Path exist:"+newPath);
+
+        Logger.msg(8, "JooqLookupManager.add() - path:"+newPath);
 
         try {
             int rows = 0;
@@ -178,7 +185,7 @@ public class JooqLookupManager implements LookupManager {
         if (!exists(new ItemPath(sysKey))) throw new ObjectNotFoundException("Path does not exist:"+sysKey);
 
         try {
-            return items.fetch(context, UUID.fromString(sysKey));
+            return items.fetch(context, UUID.fromString(sysKey), properties);
         }
         catch (PersistencyException e) {
             Logger.error(e);
@@ -198,10 +205,11 @@ public class JooqLookupManager implements LookupManager {
 
     @Override
     public Iterator<Path> search(Path start, String name) {
+        
         List<Path> result = null;
 
-        if      (start instanceof DomainPath) result = domains.search(context, start.getStringPath(), name);
-//        else if (start instanceof RolePath)   result = roles.search(context, start.getStringPath(), name);
+        if      (start instanceof DomainPath) result = domains.find(context, start.getStringPath(), name);
+        else if (start instanceof RolePath)   result = roles  .find(context, start.getStringPath(), name);
 
         if (result == null) return new ArrayList<Path>().iterator(); //returns empty iterator
         else                return result.iterator();
@@ -214,25 +222,65 @@ public class JooqLookupManager implements LookupManager {
         if (uuids.size() == 0) throw new ObjectNotFoundException("Could not find agent:"+agentName);
 
         try {
-            return (AgentPath) items.fetch(context, uuids.get(0));
+            return (AgentPath) items.fetch(context, uuids.get(0), properties);
         }
         catch (PersistencyException e) {
-            throw new ObjectNotFoundException("agent:"+agentName + " error:"+e.getMessage());
+            throw new ObjectNotFoundException("Could not retrieve agentName:"+agentName + " error:"+e.getMessage());
         }
     }
 
     @Override
     public RolePath getRolePath(String roleName) throws ObjectNotFoundException {
-        if (!exists(new RolePath())) throw new ObjectNotFoundException("Role '"+roleName+"' does not exist");
+        List<Path> result = roles.find(context, "%/"+roleName);
 
-        return null;
+        if      (result == null || result.size() == 0) throw new ObjectNotFoundException("Role '"+roleName+"' does not exist");
+        else if (result.size() > 1)                    throw new ObjectNotFoundException("Unbiguos roleName:'"+roleName+"'");
+
+        return (RolePath)result.get(0);
     }
 
-    /* (non-Javadoc)
-     * @see org.cristalise.kernel.lookup.Lookup#resolvePath(org.cristalise.kernel.lookup.DomainPath)
-     */
     @Override
     public ItemPath resolvePath(DomainPath domainPath) throws InvalidItemPathException, ObjectNotFoundException {
+        if (!exists(domainPath)) throw new ObjectNotFoundException("Path does not exist:"+domainPath);
+
+        try {
+            DomainPath dp = domains.fetch(context, domainPath.getStringPath());
+
+            if (dp.getTarget() == null) throw new InvalidItemPathException("DomainPath has no target:"+domainPath);
+
+            return dp.getTarget();
+        }
+        catch (PersistencyException e) {
+            Logger.error(e);
+            throw new ObjectNotFoundException(e.getMessage());
+        }
+    }
+
+    @Override
+    public String getAgentName(AgentPath agentPath) throws ObjectNotFoundException {
+        if (!exists(agentPath)) throw new ObjectNotFoundException("Path does not exist:"+agentPath);
+
+        try {
+            AgentPath ap = (AgentPath)items.fetch(context, agentPath.getUUID(), properties);
+            return ap.getAgentName();
+        }
+        catch (PersistencyException e) {
+            Logger.error(e);
+            throw new ObjectNotFoundException(e.getMessage());
+        }
+    }
+
+    @Override
+    public Iterator<Path> getChildren(Path path) {
+        String pattern = "^" + path.getStringPath() + "\\/\\w+$";
+
+        if      (path instanceof ItemPath) return new ArrayList<Path>().iterator(); //empty iterator
+        else if (path instanceof RolePath) return roles  .findByRegex(context, pattern ).iterator();
+        else                               return domains.findByRegex(context, pattern ).iterator();
+    }
+
+    @Override
+    public Iterator<Path> search(Path start, Property... props) {
         // TODO Auto-generated method stub
         return null;
     }
@@ -241,16 +289,7 @@ public class JooqLookupManager implements LookupManager {
      * @see org.cristalise.kernel.lookup.Lookup#getChildren(org.cristalise.kernel.lookup.Path)
      */
     @Override
-    public Iterator<Path> getChildren(Path path) {
-        // TODO Auto-generated method stub
-        return null;
-    }
-
-    /* (non-Javadoc)
-     * @see org.cristalise.kernel.lookup.Lookup#search(org.cristalise.kernel.lookup.Path, org.cristalise.kernel.property.Property[])
-     */
-    @Override
-    public Iterator<Path> search(Path start, Property... props) {
+    public RolePath createRole(RolePath role) throws ObjectAlreadyExistsException, ObjectCannotBeUpdated {
         // TODO Auto-generated method stub
         return null;
     }
@@ -298,31 +337,6 @@ public class JooqLookupManager implements LookupManager {
     public boolean hasRole(AgentPath agentPath, RolePath role) {
         // TODO Auto-generated method stub
         return false;
-    }
-
-    /* (non-Javadoc)
-     * @see org.cristalise.kernel.lookup.Lookup#getAgentName(org.cristalise.kernel.lookup.AgentPath)
-     */
-    @Override
-    public String getAgentName(AgentPath agentPath) throws ObjectNotFoundException {
-        // TODO Auto-generated method stub
-        return null;
-    }
-
-    /* (non-Javadoc)
-     * @see org.cristalise.kernel.lookup.LookupManager#initializeDirectory()
-     */
-    @Override
-    public void initializeDirectory() throws ObjectNotFoundException {
-    }
-
-    /* (non-Javadoc)
-     * @see org.cristalise.kernel.lookup.LookupManager#createRole(org.cristalise.kernel.lookup.RolePath)
-     */
-    @Override
-    public RolePath createRole(RolePath role) throws ObjectAlreadyExistsException, ObjectCannotBeUpdated {
-        // TODO Auto-generated method stub
-        return null;
     }
 
     /* (non-Javadoc)

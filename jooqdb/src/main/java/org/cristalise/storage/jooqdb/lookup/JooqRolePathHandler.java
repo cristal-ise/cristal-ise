@@ -72,20 +72,56 @@ public class JooqRolePathHandler {
                 .selectCount().from(ROLE_PATH_TABLE)
                 .where(PATH.equal(path))
                 .fetchOne();
-        return count != null && count.getValue(0, Integer.class) == 1;
+        return count != null && count.get(0, Integer.class) == 1;
     }
 
-    public List<RolePath> fetch(DSLContext context, String path) throws PersistencyException {
-        Result<Record> result = context
+    public RolePath fetch(DSLContext context, String path) throws PersistencyException {
+        Record result = context
                 .select().from(ROLE_PATH_TABLE)
                 .where(PATH.equal(path))
+                .fetchOne();
+
+        if(result != null) {
+            return new RolePath(path, result.get(JOBLIST));
+        }
+        return null;
+    }
+
+    public List<Path> findByRegex(DSLContext context, String pattern) {
+        Result<Record> result = context
+                .select().from(ROLE_PATH_TABLE)
+                .where(PATH.likeRegex(pattern))
                 .fetch();
 
-        ArrayList<RolePath> roles = new ArrayList<RolePath>();
+        List<Path> foundPathes = new ArrayList<>();
+
+        if (result != null) {
+            for (Record record : result) foundPathes.add(new RolePath(record.get(PATH), record.get(JOBLIST)));
+        }
+
+        return foundPathes;
+    }
+
+    public List<Path> find(DSLContext context, String startPath, String name) {
+        String pattern;
+
+        if (startPath.endsWith("/")) pattern = startPath + "%"  + name;
+        else                         pattern = startPath + "/%" + name;
+
+        return find(context, pattern);
+    }
+
+    public List<Path> find(DSLContext context, String pattern) {
+        Result<Record> result = context
+                .select().from(ROLE_PATH_TABLE)
+                .where(PATH.like(pattern))
+                .fetch();
+
+        ArrayList<Path> roles = new ArrayList<>();
 
         if(result != null) {
             for (Record record: result) {
-                roles.add(new RolePath(path.split(Path.delim), record.get(JOBLIST)));
+                roles.add(new RolePath(record.get(PATH), record.get(JOBLIST)));
             }
         }
         return roles;

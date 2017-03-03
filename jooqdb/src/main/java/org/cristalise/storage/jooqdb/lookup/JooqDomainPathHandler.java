@@ -29,6 +29,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
+import org.apache.commons.lang3.StringUtils;
 import org.cristalise.kernel.common.PersistencyException;
 import org.cristalise.kernel.lookup.DomainPath;
 import org.cristalise.kernel.lookup.ItemPath;
@@ -49,10 +50,6 @@ public class JooqDomainPathHandler {
     static final Field<String> PATH   = field(name("PATH"),   String.class);
     static final Field<UUID>   TARGET = field(name("TARGET"), UUID.class);
 
-//    public int update(DSLContext context, DomainPath path) throws PersistencyException {
-//        throw new PersistencyException("Unimplemented");
-//    }
-
     public int delete(DSLContext context, String path) throws PersistencyException {
         return context
                 .delete(DOMAIN_PATH_TABLE)
@@ -71,12 +68,15 @@ public class JooqDomainPathHandler {
             if (!exists(context, newPath.toString())) {
                 insertInto.addValue(PATH, newPath.toString());
 
-                if (path.getStringPath().equals(newPath)) insertInto.addValue(TARGET, path.getUUID());
-                else                                      insertInto.addValue(TARGET, (UUID)null);
+                if (path.getStringPath().equals(newPath.toString())) insertInto.addValue(TARGET, path.getTarget() == null ? null: path.getTarget().getUUID());
+                else                                                 insertInto.addValue(TARGET, (UUID)null);
+
                 insertInto.newRecord();
             }
         }
-        Logger.msg(insertInto.toString());
+
+        Logger.msg(8, insertInto.toString());
+
         return insertInto.execute();
    }
 
@@ -86,7 +86,18 @@ public class JooqDomainPathHandler {
                 .where(PATH.equal(path))
                 .fetchOne();
 
-        return count != null && count.getValue(0, Integer.class) == 1;
+        return count != null && count.get(0, Integer.class) == 1;
+    }
+
+    private DomainPath getDomainPath(Record record) {
+        if (record != null) {
+            UUID uuid = record.get(TARGET);
+
+            if(uuid == null) return new DomainPath(record.get(PATH));
+            else             return new DomainPath(record.get(PATH), new ItemPath(uuid));
+        }
+
+        return null;
     }
 
     public DomainPath fetch(DSLContext context, String path) throws PersistencyException {
@@ -95,32 +106,43 @@ public class JooqDomainPathHandler {
                 .where(PATH.equal(path))
                 .fetchOne();
 
-        if(result != null) {
-            UUID uuid = result.get(TARGET);
-
-            if(uuid == null) return new DomainPath(result.get(PATH));
-            else             return new DomainPath(result.get(PATH), new ItemPath(uuid));
-        }
-
-        return null;
+        return getDomainPath(result);
     }
 
-    public List<Path> search(DSLContext context, String startPath, String name) {
-        String pattern = "^$" + startPath+".*"+name;
-
+    public List<Path> findByRegex(DSLContext context, String pattern) {
         Result<Record> result = context
                 .select().from(DOMAIN_PATH_TABLE)
                 .where(PATH.likeRegex(pattern))
                 .fetch();
 
+        List<Path> foundPathes = new ArrayList<>();
+
         if (result != null) {
-            List<Path> foundPathes = new ArrayList<Path>();
-            for (Record record : result) {
-                foundPathes.add(new DomainPath(record.getValue(PATH)));
-            }
-            return foundPathes;
+            for (Record record : result) foundPathes.add(getDomainPath(record));
         }
-        return null;
+
+        return foundPathes;
+    }
+
+    public List<Path> find(DSLContext context, String startPath, String name) {
+        String pattern;
+
+        if (StringUtils.isBlank(name))    pattern = startPath + "%"  + name;
+        else if (startPath.endsWith("/")) pattern = startPath + "%"  + name;
+        else                              pattern = startPath + "/%" + name;
+
+        Result<Record> result = context
+                .select().from(DOMAIN_PATH_TABLE)
+                .where(PATH.like(pattern))
+                .fetch();
+
+        List<Path> foundPathes = new ArrayList<>();
+
+        if (result != null) {
+            for (Record record : result) foundPathes.add(getDomainPath(record));
+        }
+
+        return foundPathes;
     }
 
     public void createTables(DSLContext context) throws PersistencyException {
@@ -131,6 +153,6 @@ public class JooqDomainPathHandler {
                     constraint("PK_"+DOMAIN_PATH_TABLE).primaryKey(PATH),
                     constraint("FK_"+DOMAIN_PATH_TABLE).foreignKey(TARGET).references(JooqItemHandler.ITEM_TABLE, JooqItemHandler.UUID)
              )
-        .execute();
+            .execute();
     }
 }

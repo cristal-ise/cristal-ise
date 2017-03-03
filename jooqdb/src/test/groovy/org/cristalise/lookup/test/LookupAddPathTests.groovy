@@ -44,7 +44,7 @@ class LookupAddPathTests extends LookupTestBase {
     @Test
     public void addDeleteItemPath() {
         Path p = new ItemPath(uuid0.toString())
-        assert p.string == "/entity/${uuid0.toString()}"
+        assert p.stringPath == "/entity/${uuid0.toString()}"
         lookup.add(p)
         assert lookup.exists(p)
         assert lookup.getItemPath(uuid0.toString()).getUUID() == uuid0
@@ -55,7 +55,7 @@ class LookupAddPathTests extends LookupTestBase {
     @Test
     public void addDeleteAgentPath() {
         Path p = new AgentPath(new ItemPath(uuid0.toString()), "toto")
-        assert p.string == "/entity/${uuid0.toString()}"
+        assert p.stringPath == "/entity/${uuid0.toString()}"
         lookup.add(p)
         assert lookup.exists(p)
         assert lookup.getAgentPath("toto")
@@ -66,7 +66,7 @@ class LookupAddPathTests extends LookupTestBase {
     @Test
     public void addDeleteDomainPath() {
         Path p = new DomainPath("empty/toto")
-        assert p.string == "/domain/empty/toto"
+        assert p.stringPath == "/domain/empty/toto"
         lookup.add(p)
         assert lookup.exists(p)
         assert lookup.exists(new DomainPath("empty"))
@@ -78,7 +78,7 @@ class LookupAddPathTests extends LookupTestBase {
     @Test
     public void addDeleteRolePath() {
         Path p = new RolePath(new RolePath(), "User")
-        assert p.string == "/role/User"
+        assert p.stringPath == "/role/User"
         lookup.add(p)
         assert lookup.exists(p)
         assert lookup.getRolePath("User")
