@@ -25,11 +25,14 @@ import static org.jooq.impl.DSL.field;
 import static org.jooq.impl.DSL.name;
 import static org.jooq.impl.DSL.table;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 import org.cristalise.kernel.common.PersistencyException;
 import org.cristalise.kernel.lookup.AgentPath;
 import org.cristalise.kernel.lookup.ItemPath;
+import org.cristalise.kernel.lookup.Path;
 import org.cristalise.kernel.property.BuiltInItemProperties;
 import org.cristalise.kernel.property.Property;
 import org.cristalise.storage.jooqdb.JooqHandler;
@@ -38,8 +41,10 @@ import org.jooq.DSLContext;
 import org.jooq.Field;
 import org.jooq.Record;
 import org.jooq.Record1;
+import org.jooq.Result;
 import org.jooq.Table;
 import org.jooq.impl.SQLDataType;
+import org.python.antlr.PythonParser.return_stmt_return;
 
 /**
  * Table to store data of ItemPath and AgentPath
@@ -127,10 +132,17 @@ public class JooqItemHandler {
                 .where(UUID.equal(uuid))
                 .fetchOne();
 
-        if(result != null) {
-            boolean isAgent = result.get(IS_AGENT);
-            String  ior     = result.get(IOR);
-            String  pwd     = result.get(PASSWORD);
+        return getItemPath(context, properties, result);
+    }
+
+    public ItemPath getItemPath(DSLContext context, JooqItemPropertyHandler properties, Record record)
+            throws PersistencyException
+    {
+        if(record != null) {
+            boolean isAgent = record.get(IS_AGENT);
+            String  ior     = record.get(IOR);
+            String  pwd     = record.get(PASSWORD);
+            UUID    uuid    = record.get(UUID);
 
             if(isAgent) {
                 AgentPath ap = new AgentPath(uuid, ior, pwd);
@@ -144,5 +156,20 @@ public class JooqItemHandler {
                 return new ItemPath(uuid, ior);
         }
         return null;
+    }
+
+    public List<Path> fetchAll(DSLContext context, List<UUID> uuids, JooqItemPropertyHandler properties)
+            throws PersistencyException
+    {
+        Result<Record> result = context
+                .select().from(ITEM_TABLE)
+                .where(UUID.in(uuids))
+                .fetch();
+        
+        List<Path> foundPathes = new ArrayList<>();
+
+        for (Record record : result) foundPathes.add(getItemPath(context, properties, record));
+
+        return foundPathes;
     }
 }

@@ -128,6 +128,33 @@ public class JooqRolePathHandler {
         return getRolePath(result);
     }
 
+    public List<UUID> findAgents(DSLContext context, RolePath role) throws PersistencyException {
+        Result<Record> result = context
+                .select().from(ROLE_PATH_TABLE)
+                .where(PATH.equal(role.getStringPath()))
+                .fetch();
+
+        ArrayList<UUID> agents = new ArrayList<>();
+
+        if(result != null) {
+            for (Record record: result) {
+                UUID agent = record.get(AGENT);
+                if (agent != NO_AGENT) agents.add(agent);
+            }
+        }
+
+        return agents;
+    }
+
+    public List<Path> findRolesOfAgent(DSLContext context, AgentPath agent) throws PersistencyException {
+        Result<Record> result = context
+                .select().from(ROLE_PATH_TABLE)
+                .where(AGENT.equal(agent.getUUID()))
+                .fetch();
+
+        return getLisOfPaths(result);
+    }
+
     public List<Path> findByRegex(DSLContext context, String pattern) {
         Result<Record> result = context
                 .select().from(ROLE_PATH_TABLE)

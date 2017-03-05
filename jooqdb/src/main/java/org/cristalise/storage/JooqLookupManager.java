@@ -328,23 +328,27 @@ public class JooqLookupManager implements LookupManager {
     }
 
 
-    /* (non-Javadoc)
-     * @see org.cristalise.kernel.lookup.Lookup#getAgents(org.cristalise.kernel.lookup.RolePath)
-     */
     @Override
-    public AgentPath[] getAgents(RolePath rolePath) throws ObjectNotFoundException {
-        roles.find(context, null);
-        // TODO Auto-generated method stub
-        return null;
+    public AgentPath[] getAgents(RolePath role) throws ObjectNotFoundException {
+        try {
+            List<UUID> uuids = roles.findAgents(context, role);
+            return items.fetchAll(context, uuids, properties).toArray(new AgentPath[0]);
+        }
+        catch (PersistencyException e) {
+            Logger.error(e);
+        }
+        return new AgentPath[0];
     }
 
-    /* (non-Javadoc)
-     * @see org.cristalise.kernel.lookup.Lookup#getRoles(org.cristalise.kernel.lookup.AgentPath)
-     */
     @Override
-    public RolePath[] getRoles(AgentPath agentPath) {
-        // TODO Auto-generated method stub
-        return null;
+    public RolePath[] getRoles(AgentPath agent) {
+        try {
+            return roles.findRolesOfAgent(context, agent).toArray(new RolePath[0]);
+        }
+        catch (PersistencyException e) {
+            Logger.error(e);
+        }
+        return new RolePath[0];
     }
 
     @Override
@@ -384,14 +388,14 @@ public class JooqLookupManager implements LookupManager {
     }
 
     @Override
-    public Iterator<Path> search(Path start, PropertyDescriptionList props) {
-        //FIXME: this method is not used at all
-        throw new RuntimeException("InMemoryLookup.search(PropertyDescriptionList) - UNIMPLEMENTED start:"+start);
+    public Iterator<Path> searchAliases(ItemPath itemPath) {
+        // TODO Auto-generated method stub
+        return null;
     }
 
     @Override
-    public Iterator<Path> searchAliases(ItemPath itemPath) {
+    public Iterator<Path> search(Path start, PropertyDescriptionList props) {
         //FIXME: this method is not used at all
-        throw new RuntimeException("InMemoryLookup.searchAliases() - UNIMPLEMENTED itemPath:"+itemPath);
+        throw new RuntimeException("InMemoryLookup.search(PropertyDescriptionList) - UNIMPLEMENTED start:"+start);
     }
 }
