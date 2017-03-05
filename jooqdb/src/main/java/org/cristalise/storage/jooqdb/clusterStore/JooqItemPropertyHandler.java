@@ -28,8 +28,6 @@ import static org.jooq.impl.DSL.table;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Set;
-import java.util.TreeSet;
 import java.util.UUID;
 
 import org.cristalise.kernel.common.PersistencyException;
@@ -153,6 +151,9 @@ public class JooqItemPropertyHandler implements JooqHandler {
 
         SelectQuery<?> select = context.selectQuery(ITEM_PROPERTY_TABLE);
 
+        select.setDistinct(true);
+        select.addSelect(UUID);
+
         for (Property p : properties) {
             Condition actualCondition = NAME.equal(p.getName()) .and (VALUE.equal(p.getValue()));
             select.addConditions(Operator.OR, actualCondition);
@@ -162,11 +163,11 @@ public class JooqItemPropertyHandler implements JooqHandler {
 
         Result<?> result =  select.fetch();
 
-        Set<UUID> returnValue = new TreeSet<UUID>();
+        List<UUID> returnValue = new ArrayList<UUID>();
 
         for (Record record : result) returnValue.add(record.get(UUID));
 
-        return new ArrayList<UUID>(returnValue);
+        return returnValue;
     }
 
     @Override
@@ -180,5 +181,4 @@ public class JooqItemPropertyHandler implements JooqHandler {
                     constraint("PK_"+ITEM_PROPERTY_TABLE).primaryKey(UUID, NAME))
         .execute();
     }
-
 }

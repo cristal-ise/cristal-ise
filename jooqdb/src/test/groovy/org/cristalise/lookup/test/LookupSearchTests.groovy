@@ -60,11 +60,11 @@ class LookupSearchTests extends LookupTestBase {
         def expected = [new DomainPath("empty"), 
                         new DomainPath("empty/nothing"), 
                         new DomainPath("empty/something"), 
-                        new DomainPath("empty/something/uuid0")]
+                        new DomainPath("empty/something/uuid0", new ItemPath(uuid0))]
 
         CompareUtils.comparePathLists(expected, lookup.search(new DomainPath("empty"), ""))
 
-        expected = [new DomainPath("empty/something/uuid0")]
+        expected = [new DomainPath("empty/something/uuid0", new ItemPath(uuid0))]
 
         CompareUtils.comparePathLists(expected, lookup.search(new DomainPath("empty"), "uuid0"))
     }

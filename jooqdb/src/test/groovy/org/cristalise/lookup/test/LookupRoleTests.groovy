@@ -36,18 +36,17 @@ import org.junit.Test
 @CompileStatic
 class LookupRoleTests extends LookupTestBase {
 
-    UUID uuid0 = new UUID(0,0)
-    UUID uuid1 = new UUID(0,1)
-
-    RolePath user = new RolePath(new RolePath(), "User")
+    RolePath user = new RolePath( new RolePath(), "User")
     AgentPath jim = new AgentPath(new ItemPath(), "Jim")
+    AgentPath tom = new AgentPath(new ItemPath(), "Tom")
 
     @Before
     public void setUp() throws Exception {
         super.setUp()
-        
+
         lookup.add(user)
         lookup.add(jim)
+        lookup.add(tom)
     }
 
     public void checkRolePath(RolePath parent, RolePath role, String name, boolean hasJobList = false) {
@@ -98,7 +97,8 @@ class LookupRoleTests extends LookupTestBase {
         try {
             lookup.addRole(jim, internist)
             fail("Should throw ObjectCannotBeUpdated exception")
-        } catch (ObjectCannotBeUpdated e) {}
+        }
+        catch (ObjectCannotBeUpdated e) {}
     }
 
     @Test
@@ -109,7 +109,39 @@ class LookupRoleTests extends LookupTestBase {
         try {
             lookup.removeRole(jim, internist)
             fail("Should throw ObjectCannotBeUpdated exception")
-        } catch (ObjectCannotBeUpdated e) {}
+        }
+        catch (ObjectCannotBeUpdated e) {}
+    }
+
+    @Test
+    public void addTwoRolesToAgent() {
+        RolePath internist    = createUserRole("Internist")
+        RolePath cardiologist = createUserRole("Cardiologist")
+
+        lookup.addRole(jim, internist)
+        lookup.addRole(jim, cardiologist)
+        
+        assert lookup.hasRole(jim, internist)
+        assert lookup.hasRole(jim, cardiologist)
+
+        CompareUtils.comparePathLists([internist, cardiologist], lookup.getRoles(jim))
+        CompareUtils.comparePathLists([jim], lookup.getAgents(internist))
+        CompareUtils.comparePathLists([jim], lookup.getAgents(cardiologist))
+    }
+
+    @Test
+    public void addTwoAgentsToRole() {
+        RolePath internist = createUserRole("Internist")
+
+        lookup.addRole(jim, internist)
+        lookup.addRole(tom, internist)
+
+        assert lookup.hasRole(jim, internist)
+        assert lookup.hasRole(tom, internist)
+
+        CompareUtils.comparePathLists([jim, tom],  lookup.getAgents(internist))
+        CompareUtils.comparePathLists([internist], lookup.getRoles(jim))
+        CompareUtils.comparePathLists([internist], lookup.getRoles(tom))
     }
 
     @Test
@@ -119,12 +151,25 @@ class LookupRoleTests extends LookupTestBase {
 
         lookup.addRole(jim, internist)
         lookup.addRole(jim, cardiologist)
+        lookup.addRole(tom, cardiologist)
+
+        assert lookup.hasRole(jim, internist)
+        assert lookup.hasRole(jim, cardiologist)
 
         CompareUtils.comparePathLists([internist, cardiologist], lookup.getRoles(jim))
+        CompareUtils.comparePathLists([cardiologist],            lookup.getRoles(tom))
+        CompareUtils.comparePathLists([jim],                     lookup.getAgents(internist))
+        CompareUtils.comparePathLists([jim, tom],                lookup.getAgents(cardiologist))
 
         lookup.removeRole(jim, cardiologist)
 
-        CompareUtils.comparePathLists([internist], lookup.getRoles(jim))
+        assert   lookup.hasRole(jim, internist)
+        assert ! lookup.hasRole(jim, cardiologist)
+
+        CompareUtils.comparePathLists([internist],    lookup.getRoles(jim))
+        CompareUtils.comparePathLists([cardiologist], lookup.getRoles(tom))
+        CompareUtils.comparePathLists([jim],          lookup.getAgents(internist))
+        CompareUtils.comparePathLists([tom],          lookup.getAgents(cardiologist))
     }
 
     @Test

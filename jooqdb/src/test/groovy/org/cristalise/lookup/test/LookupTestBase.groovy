@@ -58,8 +58,8 @@ class LookupTestBase {
 
         Gateway.init(c2kProps)
 
-//        FieldUtils.writeDeclaredStaticField(Gateway.class, "mLookupManager", lookup, true)
-//        FieldUtils.writeDeclaredStaticField(Gateway.class, "mLookup",        lookup, true)
+        FieldUtils.writeDeclaredStaticField(Gateway.class, "mLookupManager", lookup, true)
+        FieldUtils.writeDeclaredStaticField(Gateway.class, "mLookup",        lookup, true)
 //        FieldUtils.writeDeclaredStaticField(Gateway.class, "mC2KProps",      c2kProps, true)
 
         lookup.open(null)

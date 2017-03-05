@@ -26,12 +26,13 @@ import org.cristalise.kernel.lookup.Path
  *
  */
 class CompareUtils {
-    public static void comparePathLists(expecteds, actuals) {
+    public static void comparePathLists(List expecteds, actuals) {
+        assert actuals != null
         int i = 0
 
         if(actuals instanceof Iterator) for(Path p: actuals) { assert expecteds.contains(p); i++ }
         else actuals.each { assert expecteds.contains(it); i++ }
 
-        assert i == expecteds.size(), "Missmatch actual.size != expected.size"
+        assert i == expecteds.size()
     }
 }

@@ -123,8 +123,8 @@ public class JooqLookupManager implements LookupManager {
         try {
             if      (path instanceof ItemPath)   return items  .exists(context, path.getUUID());
             else if (path instanceof AgentPath)  return items  .exists(context, path.getUUID());
-            else if (path instanceof DomainPath) return domains.exists(context, path.getStringPath());
-            else if (path instanceof RolePath)   return roles  .exists(context, path.getStringPath());
+            else if (path instanceof DomainPath) return domains.exists(context, (DomainPath)path);
+            else if (path instanceof RolePath)   return roles  .exists(context, (RolePath)path, null);
         }
         catch (PersistencyException e) {
             Logger.error(e);
@@ -144,7 +144,7 @@ public class JooqLookupManager implements LookupManager {
             if      (newPath instanceof AgentPath)  rows = items  .insert(context, (AgentPath) newPath, properties);
             else if (newPath instanceof ItemPath)   rows = items  .insert(context, (ItemPath)  newPath);
             else if (newPath instanceof DomainPath) rows = domains.insert(context, (DomainPath)newPath);
-            else if (newPath instanceof RolePath)   rows = roles  .insert(context, (RolePath)  newPath);
+            else if (newPath instanceof RolePath)   rows = (createRole((RolePath) newPath) != null) ? 1 : 0;
 
             if (rows == 0)
                 throw new ObjectCannotBeUpdated("JOOQLookupManager must insert some records:"+rows);
@@ -161,12 +161,14 @@ public class JooqLookupManager implements LookupManager {
     public void delete(Path path) throws ObjectCannotBeUpdated {
         if (!exists(path)) throw new ObjectCannotBeUpdated("Path does not exist:"+path);
 
+        Logger.msg(8, "JooqLookupManager.delete() - path:"+path);
+
         try {
             int rows = 0;
-            if      (path instanceof ItemPath)   rows = items.delete(context, path.getUUID());
-            else if (path instanceof AgentPath)  rows = items.delete(context, path.getUUID());
+            if      (path instanceof ItemPath)   rows = items  .delete(context, path.getUUID());
+            else if (path instanceof AgentPath)  rows = items  .delete(context, path.getUUID());
             else if (path instanceof DomainPath) rows = domains.delete(context, path.getStringPath());
-            else if (path instanceof RolePath)   rows = roles.delete(context, path.getStringPath());
+            else if (path instanceof RolePath)   rows = roles  .delete(context, (RolePath)path, null);
 
             if (rows == 0)
                 throw new ObjectCannotBeUpdated("JOOQLookupManager must delete some records:"+rows);
@@ -203,13 +205,18 @@ public class JooqLookupManager implements LookupManager {
         }
     }
 
+    private List<Path> find(Path start, String name) {
+        Logger.msg(8, "JooqLookupManager.find() - start:"+start+" name:"+name);
+
+        if      (start instanceof DomainPath) return domains.find(context, (DomainPath)start, name);
+        else if (start instanceof RolePath)   return roles  .find(context, (RolePath)start,   name);
+
+        return new ArrayList<Path>();
+    }
+
     @Override
     public Iterator<Path> search(Path start, String name) {
-        
-        List<Path> result = null;
-
-        if      (start instanceof DomainPath) result = domains.find(context, start.getStringPath(), name);
-        else if (start instanceof RolePath)   result = roles  .find(context, start.getStringPath(), name);
+        List<Path> result = find(start, name);
 
         if (result == null) return new ArrayList<Path>().iterator(); //returns empty iterator
         else                return result.iterator();
@@ -244,7 +251,7 @@ public class JooqLookupManager implements LookupManager {
         if (!exists(domainPath)) throw new ObjectNotFoundException("Path does not exist:"+domainPath);
 
         try {
-            DomainPath dp = domains.fetch(context, domainPath.getStringPath());
+            DomainPath dp = domains.fetch(context, domainPath);
 
             if (dp.getTarget() == null) throw new InvalidItemPathException("DomainPath has no target:"+domainPath);
 
@@ -281,42 +288,52 @@ public class JooqLookupManager implements LookupManager {
 
     @Override
     public Iterator<Path> search(Path start, Property... props) {
-        // TODO Auto-generated method stub
+        if (!exists(start)) return new ArrayList<Path>().iterator(); //empty iterator
+        
+        List<Path> pathes = find(start, "");
+        List<UUID> uuids = properties.findItems(context, props);
+
         return null;
     }
 
-    /* (non-Javadoc)
-     * @see org.cristalise.kernel.lookup.Lookup#getChildren(org.cristalise.kernel.lookup.Path)
-     */
     @Override
     public RolePath createRole(RolePath role) throws ObjectAlreadyExistsException, ObjectCannotBeUpdated {
-        // TODO Auto-generated method stub
-        return null;
+        Logger.msg(5, "JooqLookupManager.createRole() - role:"+role);
+
+        if(exists(role)) throw new ObjectAlreadyExistsException("Role:"+role);
+
+        try {
+            role.getParent();
+            roles.insert(context, role, null);
+            return role;
+        } 
+        catch (Throwable t) {
+            Logger.error(t); 
+            throw new ObjectCannotBeUpdated("Parent role for '"+role+"' does not exists");
+        }
     }
 
-    /* (non-Javadoc)
-     * @see org.cristalise.kernel.lookup.Lookup#search(org.cristalise.kernel.lookup.Path, org.cristalise.kernel.property.PropertyDescriptionList)
-     */
     @Override
-    public Iterator<Path> search(Path start, PropertyDescriptionList props) {
-        // TODO Auto-generated method stub
-        return null;
+    public void addRole(AgentPath agent, RolePath role) throws ObjectCannotBeUpdated, ObjectNotFoundException {
+        if (!exists(role)) throw new ObjectNotFoundException("Role:"+role);
+
+        try {
+            int rows = roles.insert(context, role, agent);
+            if (rows != 1) throw new ObjectCannotBeUpdated("Updated rows must be 1 but it was '"+rows+"'");
+        }
+        catch (Exception e) {
+            Logger.error(e);
+            throw new ObjectCannotBeUpdated(e.getMessage());
+        }
     }
 
-    /* (non-Javadoc)
-     * @see org.cristalise.kernel.lookup.Lookup#searchAliases(org.cristalise.kernel.lookup.ItemPath)
-     */
-    @Override
-    public Iterator<Path> searchAliases(ItemPath itemPath) {
-        // TODO Auto-generated method stub
-        return null;
-    }
 
     /* (non-Javadoc)
      * @see org.cristalise.kernel.lookup.Lookup#getAgents(org.cristalise.kernel.lookup.RolePath)
      */
     @Override
     public AgentPath[] getAgents(RolePath rolePath) throws ObjectNotFoundException {
+        roles.find(context, null);
         // TODO Auto-generated method stub
         return null;
     }
@@ -330,22 +347,15 @@ public class JooqLookupManager implements LookupManager {
         return null;
     }
 
-    /* (non-Javadoc)
-     * @see org.cristalise.kernel.lookup.Lookup#hasRole(org.cristalise.kernel.lookup.AgentPath, org.cristalise.kernel.lookup.RolePath)
-     */
     @Override
-    public boolean hasRole(AgentPath agentPath, RolePath role) {
-        // TODO Auto-generated method stub
+    public boolean hasRole(AgentPath agent, RolePath role) {
+        try {
+            return roles.exists(context, role, agent);
+        }
+        catch (PersistencyException e) {
+            Logger.error(e);
+        }
         return false;
-    }
-
-    /* (non-Javadoc)
-     * @see org.cristalise.kernel.lookup.LookupManager#addRole(org.cristalise.kernel.lookup.AgentPath, org.cristalise.kernel.lookup.RolePath)
-     */
-    @Override
-    public void addRole(AgentPath agent, RolePath rolePath) throws ObjectCannotBeUpdated, ObjectNotFoundException {
-        // TODO Auto-generated method stub
-
     }
 
     /* (non-Javadoc)
@@ -354,7 +364,6 @@ public class JooqLookupManager implements LookupManager {
     @Override
     public void removeRole(AgentPath agent, RolePath role) throws ObjectCannotBeUpdated, ObjectNotFoundException {
         // TODO Auto-generated method stub
-
     }
 
     /* (non-Javadoc)
@@ -364,7 +373,6 @@ public class JooqLookupManager implements LookupManager {
     public void setAgentPassword(AgentPath agent, String newPassword)
             throws ObjectNotFoundException, ObjectCannotBeUpdated, NoSuchAlgorithmException {
         // TODO Auto-generated method stub
-
     }
 
     /* (non-Javadoc)
@@ -373,7 +381,17 @@ public class JooqLookupManager implements LookupManager {
     @Override
     public void setHasJobList(RolePath role, boolean hasJobList) throws ObjectNotFoundException, ObjectCannotBeUpdated {
         // TODO Auto-generated method stub
-
     }
 
+    @Override
+    public Iterator<Path> search(Path start, PropertyDescriptionList props) {
+        //FIXME: this method is not used at all
+        throw new RuntimeException("InMemoryLookup.search(PropertyDescriptionList) - UNIMPLEMENTED start:"+start);
+    }
+
+    @Override
+    public Iterator<Path> searchAliases(ItemPath itemPath) {
+        //FIXME: this method is not used at all
+        throw new RuntimeException("InMemoryLookup.searchAliases() - UNIMPLEMENTED itemPath:"+itemPath);
+    }
 }

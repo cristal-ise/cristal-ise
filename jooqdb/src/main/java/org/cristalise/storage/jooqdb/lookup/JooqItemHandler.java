@@ -52,6 +52,17 @@ public class JooqItemHandler {
     static final Field<Boolean> IS_AGENT = field(name("IS_AGENT"), Boolean.class);
     static final Field<String>  PASSWORD = field(name("PASSWORD"), String.class);
 
+    public void createTables(DSLContext context) throws PersistencyException {
+        context.createTableIfNotExists(ITEM_TABLE)
+            .column(UUID,     JooqHandler.UUID_TYPE    .nullable(false))
+            .column(IOR,      JooqHandler.STRING_TYPE  .nullable(true))
+            .column(IS_AGENT, SQLDataType.BOOLEAN      .nullable(false))
+            .column(PASSWORD, JooqHandler.STRING_TYPE  .nullable(true))
+            .constraints(
+                    constraint("PK_"+ITEM_TABLE).primaryKey(UUID))
+        .execute();
+    }
+
     public int update(DSLContext context, ItemPath path) throws PersistencyException {
         boolean isAgent = path instanceof AgentPath;
         String pwd = null;
@@ -133,16 +144,5 @@ public class JooqItemHandler {
                 return new ItemPath(uuid, ior);
         }
         return null;
-    }
-
-    public void createTables(DSLContext context) throws PersistencyException {
-        context.createTableIfNotExists(ITEM_TABLE)
-            .column(UUID,     JooqHandler.UUID_TYPE    .nullable(true))
-            .column(IOR,      JooqHandler.STRING_TYPE  .nullable(true))
-            .column(IS_AGENT, SQLDataType.BOOLEAN      .nullable(false))
-            .column(PASSWORD, JooqHandler.STRING_TYPE  .nullable(true))
-            .constraints(
-                    constraint("PK_"+ITEM_TABLE).primaryKey(UUID))
-        .execute();
     }
 }
