@@ -42,6 +42,7 @@ import org.jooq.InsertQuery;
 import org.jooq.Record;
 import org.jooq.Record1;
 import org.jooq.Result;
+import org.jooq.SelectConditionStep;
 import org.jooq.Table;
 
 public class JooqDomainPathHandler {
@@ -62,17 +63,13 @@ public class JooqDomainPathHandler {
     }
 
     private DomainPath getDomainPath(Record record) {
-        if (record != null) {
-            UUID uuid = record.get(TARGET);
+        UUID uuid = record.get(TARGET);
 
-            if(uuid == null) return new DomainPath(record.get(PATH));
-            else             return new DomainPath(record.get(PATH), new ItemPath(uuid));
-        }
-
-        return null;
+        if(uuid == null) return new DomainPath(record.get(PATH));
+        else             return new DomainPath(record.get(PATH), new ItemPath(uuid));
     }
 
-    private List<Path> getListOfPath(Result<Record> result) {
+    private List<Path> getListOfPath(Result<?> result) {
         List<Path> foundPathes = new ArrayList<>();
 
         if (result != null) {
@@ -139,15 +136,25 @@ public class JooqDomainPathHandler {
         return getListOfPath(result);
     }
 
-    public List<Path> find(DSLContext context, DomainPath startPath, String name) {
+    public List<Path> find(DSLContext context, DomainPath startPath, String name, List<UUID> uuids) {
         String pattern;
 
         if (StringUtils.isBlank(name)) pattern = startPath.getStringPath() + "%";
         else                           pattern = startPath.getStringPath() + "/%" + name;
 
+        SelectConditionStep<?> select = context.select().from(DOMAIN_PATH_TABLE).where(PATH.like(pattern));
+
+        if (uuids != null && uuids.size() != 0) select.and(TARGET.in(uuids));
+        
+        Logger.msg(8, "JooqDomainPathHandler.find() - SQL:\n"+select);
+
+        return getListOfPath(select.fetch());
+    }
+
+    public List<Path> find(DSLContext context, ItemPath item) {
         Result<Record> result = context
                 .select().from(DOMAIN_PATH_TABLE)
-                .where(PATH.like(pattern))
+                .where(TARGET.equal(item.getUUID()))
                 .fetch();
 
         return getListOfPath(result);

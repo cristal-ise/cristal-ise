@@ -20,20 +20,36 @@
  */
 package org.cristalise.lookup.test
 
-import org.cristalise.kernel.lookup.Path
+import static org.junit.Assert.*
 
-/**
- *
- */
-class CompareUtils {
-    public static void comparePathLists(List expecteds, actuals) {
-        if (expecteds) assert actuals
+import org.cristalise.kernel.utils.Logger
+import org.cristalise.storage.JooqAuthenticator
+import org.junit.After
+import org.junit.Before
+import org.junit.Test
 
-        int i = 0
+import groovy.transform.CompileStatic
 
-        if(actuals instanceof Iterator) for(Path p: actuals) { assert expecteds.contains(p); i++ }
-        else actuals.each { assert expecteds.contains(it); i++ }
+@CompileStatic
+class AuthenticatorTests {
+    
+    JooqAuthenticator auth
 
-        assert i == expecteds.size()
+    @Before
+    public void setUp() throws Exception {
+        Logger.addLogStream(System.out, 8)
+        
+        auth = new JooqAuthenticator()
+    }
+
+    @After
+    public void tearDown() {
+        auth.disconnect()
+        Logger.removeLogStream(System.out);
+    }
+
+    @Test
+    public void authentcateUser() {
+        fail("UNIMPLEMENTED")
     }
 }
