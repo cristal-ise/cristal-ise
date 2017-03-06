@@ -39,6 +39,7 @@ import org.cristalise.storage.jooqdb.JooqHandler;
 import org.jooq.Condition;
 import org.jooq.DSLContext;
 import org.jooq.Field;
+import org.jooq.JoinType;
 import org.jooq.Operator;
 import org.jooq.Record;
 import org.jooq.Result;
@@ -149,23 +150,38 @@ public class JooqItemPropertyHandler implements JooqHandler {
     public List<UUID> findItems(DSLContext context, Property...properties) {
         Logger.msg(5, "JooqItemPropertyHandler.findItems() - properties:"+Arrays.toString(properties));
 
-        SelectQuery<?> select = context.selectQuery(ITEM_PROPERTY_TABLE);
+        SelectQuery<?> select = context.selectQuery();
 
-        select.setDistinct(true);
-        select.addSelect(UUID);
+        Field<UUID> firstJoinField = null;
 
         for (Property p : properties) {
-            Condition actualCondition = NAME.equal(p.getName()) .and (VALUE.equal(p.getValue()));
-            select.addConditions(Operator.OR, actualCondition);
+            Field<UUID> currJoinField = field(name(p.getName(), "UUID"), UUID.class);
+
+            if (firstJoinField == null) {
+                select.addSelect(currJoinField);
+                select.addFrom(ITEM_PROPERTY_TABLE.as(p.getName()));
+
+                firstJoinField = currJoinField;
+            }
+            else {
+                select.addJoin(ITEM_PROPERTY_TABLE.as(p.getName()), JoinType.LEFT_OUTER_JOIN, firstJoinField.equal(currJoinField));
+            }
+
+            Condition actualCondition = 
+                    field(name(p.getName(), "NAME"),  String.class).equal(p.getName())
+                    .and(
+                    field(name(p.getName(), "VALUE"), String.class).equal(p.getValue()));
+
+            select.addConditions(Operator.AND, actualCondition);
         }
 
-        Logger.msg(8, "JooqItemPropertyHandler.findItems() - SQL:"+select);
+        Logger.msg(8, "JooqItemPropertyHandler.findItems() - SQL:\n"+select);
 
         Result<?> result =  select.fetch();
 
         List<UUID> returnValue = new ArrayList<UUID>();
 
-        for (Record record : result) returnValue.add(record.get(UUID));
+        for (Record record : result) returnValue.add(record.get(0, UUID.class));
 
         return returnValue;
     }

@@ -44,7 +44,6 @@ import org.jooq.Record1;
 import org.jooq.Result;
 import org.jooq.Table;
 import org.jooq.impl.SQLDataType;
-import org.python.antlr.PythonParser.return_stmt_return;
 
 /**
  * Table to store data of ItemPath and AgentPath
@@ -135,9 +134,7 @@ public class JooqItemHandler {
         return getItemPath(context, properties, result);
     }
 
-    public ItemPath getItemPath(DSLContext context, JooqItemPropertyHandler properties, Record record)
-            throws PersistencyException
-    {
+    public ItemPath getItemPath(DSLContext context, JooqItemPropertyHandler properties, Record record) throws PersistencyException {
         if(record != null) {
             boolean isAgent = record.get(IS_AGENT);
             String  ior     = record.get(IOR);

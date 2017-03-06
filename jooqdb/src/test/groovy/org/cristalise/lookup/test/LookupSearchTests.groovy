@@ -70,6 +70,15 @@ class LookupSearchTests extends LookupTestBase {
     }
 
     @Test
+    public void searchAliases() {
+        lookup.add( new DomainPath("empty/something/uuid0prime", lookup.getItemPath(uuid0.toString())) )
+
+        CompareUtils.comparePathLists(
+            [new DomainPath("empty/something/uuid0prime"),  new DomainPath("empty/something/uuid0")], 
+            lookup.searchAliases(new ItemPath(uuid0)))
+    }
+
+    @Test
     public void getChildren_DomainPath() {
         CompareUtils.comparePathLists(
             [new DomainPath("empty/nothing"),  new DomainPath("empty/something")], 

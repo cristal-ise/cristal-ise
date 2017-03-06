@@ -35,7 +35,9 @@ import org.cristalise.kernel.lookup.Path;
 import org.cristalise.kernel.lookup.RolePath;
 import org.cristalise.storage.jooqdb.JooqHandler;
 import org.jooq.DSLContext;
+import org.jooq.DeleteQuery;
 import org.jooq.Field;
+import org.jooq.Operator;
 import org.jooq.Record;
 import org.jooq.Record1;
 import org.jooq.Result;
@@ -87,10 +89,12 @@ public class JooqRolePathHandler {
     }
 
     public int delete(DSLContext context, RolePath role, AgentPath agent) throws PersistencyException {
-        return context
-                .delete(ROLE_PATH_TABLE)
-                .where(PATH.equal(role.getStringPath()))
-                .execute();
+        DeleteQuery<?> delete = context.deleteQuery(ROLE_PATH_TABLE);
+        delete.addConditions(PATH.equal(role.getStringPath()));
+
+        if (agent != null) delete.addConditions(Operator.AND, AGENT.equal(agent.getUUID()));
+
+        return delete.execute();
     }
 
     public int insert(DSLContext context, RolePath role, AgentPath agent) throws PersistencyException {
@@ -139,7 +143,7 @@ public class JooqRolePathHandler {
         if(result != null) {
             for (Record record: result) {
                 UUID agent = record.get(AGENT);
-                if (agent != NO_AGENT) agents.add(agent);
+                if (! agent.equals(NO_AGENT)) agents.add(agent);
             }
         }
 
@@ -164,13 +168,13 @@ public class JooqRolePathHandler {
         return getLisOfPaths(result);
     }
 
-    public List<Path> find(DSLContext context, RolePath startPath, String name) {
+    public List<Path> find(DSLContext context, RolePath startPath, String name, List<UUID> uuids) {
         String pattern = "" + startPath.getStringPath() + "/%" + name;
 
-        return find(context, pattern);
+        return find(context, pattern, uuids);
     }
 
-    public List<Path> find(DSLContext context, String pattern) {
+    public List<Path> find(DSLContext context, String pattern, List<UUID> uuids) {
         Result<Record> result = context
                 .select().from(ROLE_PATH_TABLE)
                 .where(PATH.like(pattern))

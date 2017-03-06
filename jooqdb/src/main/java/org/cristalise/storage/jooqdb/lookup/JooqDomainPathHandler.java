@@ -42,6 +42,7 @@ import org.jooq.InsertQuery;
 import org.jooq.Record;
 import org.jooq.Record1;
 import org.jooq.Result;
+import org.jooq.SelectConditionStep;
 import org.jooq.Table;
 
 public class JooqDomainPathHandler {
@@ -72,7 +73,7 @@ public class JooqDomainPathHandler {
         return null;
     }
 
-    private List<Path> getListOfPath(Result<Record> result) {
+    private List<Path> getListOfPath(Result<?> result) {
         List<Path> foundPathes = new ArrayList<>();
 
         if (result != null) {
@@ -139,17 +140,18 @@ public class JooqDomainPathHandler {
         return getListOfPath(result);
     }
 
-    public List<Path> find(DSLContext context, DomainPath startPath, String name) {
+    public List<Path> find(DSLContext context, DomainPath startPath, String name, List<UUID> uuids) {
         String pattern;
 
         if (StringUtils.isBlank(name)) pattern = startPath.getStringPath() + "%";
         else                           pattern = startPath.getStringPath() + "/%" + name;
 
-        Result<Record> result = context
-                .select().from(DOMAIN_PATH_TABLE)
-                .where(PATH.like(pattern))
-                .fetch();
+        SelectConditionStep<?> select = context.select().from(DOMAIN_PATH_TABLE).where(PATH.like(pattern));
 
-        return getListOfPath(result);
+        if (uuids != null && uuids.size() != 0) select.and(TARGET.in(uuids));
+        
+        Logger.msg(8, "JooqDomainPathHandler.find() - SQL:\n"+select);
+
+        return getListOfPath(select.fetch());
     }
 }
