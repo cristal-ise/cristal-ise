@@ -595,22 +595,14 @@ public class LDAPLookup implements LookupManager {
                 attrs.add(new LDAPAttribute("objectclass", "cristalagent"));
 
                 String agentName = agentPath.getAgentName();
+
                 if (agentName != null && agentName.length() > 0)
                     attrs.add(new LDAPAttribute("uid", agentName));
                 else
                     throw new ObjectCannotBeUpdated("Cannot create agent '" + agentName + "'. No userId specified");
 
-                String agentPass = agentPath.getPassword();
-                if (agentPass != null && agentPass.length() > 0)
-                    try {
-                        if (!agentPass.matches("^\\{[a-zA-Z0-5]*\\}")) agentPass = LDAPLookupUtils.generateUserPassword(agentPass);
-                        attrs.add(new LDAPAttribute("userPassword", agentPass));
-                    }
-                    catch (NoSuchAlgorithmException ex) {
-                        throw new ObjectCannotBeUpdated("Cryptographic libraries for password hashing not found.");
-                    }
-                else
-                    attrs.add(new LDAPAttribute("userPassword", "{sha}!"));
+                //password was removed from AgentPath because it was a vulnerability
+                attrs.add(new LDAPAttribute("userPassword", "{sha}!"));
             }
             else {
                 attrs.add(new LDAPAttribute("objectclass", "cristalentity"));
