@@ -89,6 +89,14 @@ public class JooqDomainPathHandler {
     public int insert(DSLContext context, DomainPath path) throws PersistencyException {
         InsertQuery<?> insertInto = context.insertQuery(DOMAIN_PATH_TABLE);
 
+        DomainPath root = new DomainPath();
+
+        if (!exists(context, root)) {
+            insertInto.addValue(PATH, root.getStringPath());
+            insertInto.addValue(TARGET, (UUID)null);
+            insertInto.newRecord();
+        }
+
         StringBuffer newPath = new StringBuffer(Path.delim + path.getRoot());
 
         for (String name: path.getPath()) {
@@ -104,7 +112,7 @@ public class JooqDomainPathHandler {
             }
         }
 
-        Logger.msg(8, insertInto.toString());
+        Logger.msg(8, "JooqDomainPathHandler.insert() - SQL:\n"+insertInto.toString());
 
         return insertInto.execute();
    }

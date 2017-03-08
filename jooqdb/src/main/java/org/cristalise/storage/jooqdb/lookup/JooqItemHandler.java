@@ -67,16 +67,21 @@ public class JooqItemHandler {
         .execute();
     }
 
+    public int updatePassword(DSLContext context, AgentPath agent, String password) throws PersistencyException {
+        return context
+                .update(ITEM_TABLE)
+                .set(PASSWORD, password)
+                .where(UUID.equal(agent.getUUID()))
+                .execute();
+    }
+
     public int update(DSLContext context, ItemPath path) throws PersistencyException {
         boolean isAgent = path instanceof AgentPath;
-        String pwd = null;
-        if (isAgent) pwd = ((AgentPath)path).getPassword();
 
         return context
                 .update(ITEM_TABLE)
                 .set(IOR,      path.getIORString())
                 .set(IS_AGENT, isAgent)
-                .set(PASSWORD, pwd)
                 .where(UUID.equal(path.getUUID()))
                 .execute();
     }
@@ -94,16 +99,18 @@ public class JooqItemHandler {
                     .set(UUID,     agentPath.getUUID())
                     .set(IOR,      agentPath.getIORString())
                     .set(IS_AGENT, true)
-                    .set(PASSWORD, agentPath.getPassword())
                 .execute();
 
         if (rows != 1) throw new PersistencyException("Insert into ITEM table rows:"+rows);
 
-        rows = properties.insert(context, agentPath.getUUID(), new Property(BuiltInItemProperties.NAME, agentPath.getAgentName()));
+        Property name = new Property(BuiltInItemProperties.NAME, agentPath.getAgentName(), true);
+        Property type = new Property(BuiltInItemProperties.TYPE, "Agent", false);
 
-        if (rows != 1) throw new PersistencyException("Insert into ITEM_PROPERTY table rows:"+rows);
+        rows = properties.insert(context, agentPath.getUUID(), name, type);
 
-        return rows;
+        if (rows != 2) throw new PersistencyException("Insert into ITEM_PROPERTY table rows:"+rows);
+
+        return 1;
     }
 
     public int insert(DSLContext context, ItemPath path) throws PersistencyException {
@@ -112,7 +119,6 @@ public class JooqItemHandler {
                     .set(UUID,     path.getUUID())
                     .set(IOR,      path.getIORString())
                     .set(IS_AGENT, false)
-                    .set(PASSWORD, (String)null)
                 .execute();
     }
 
@@ -134,20 +140,25 @@ public class JooqItemHandler {
         return getItemPath(context, properties, result);
     }
 
+    public String fetchPassword(DSLContext context, UUID uuid) throws PersistencyException {
+        Record result = context
+                .select(PASSWORD).from(ITEM_TABLE)
+                .where(UUID.equal(uuid))
+                .fetchOne();
+
+        return result.get(PASSWORD);
+    }
+
     public ItemPath getItemPath(DSLContext context, JooqItemPropertyHandler properties, Record record) throws PersistencyException {
         if(record != null) {
             boolean isAgent = record.get(IS_AGENT);
             String  ior     = record.get(IOR);
-            String  pwd     = record.get(PASSWORD);
             UUID    uuid    = record.get(UUID);
 
             if(isAgent) {
-                AgentPath ap = new AgentPath(uuid, ior, pwd);
-                
                 Property prop = (Property)properties.fetch(context, uuid, "Name");
-                ap.setAgentName(prop.getValue());
 
-                return ap;
+                return new AgentPath(uuid, ior, prop.getValue());
             }
             else
                 return new ItemPath(uuid, ior);

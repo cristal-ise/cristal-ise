@@ -24,8 +24,8 @@ import org.apache.commons.lang3.reflect.FieldUtils
 import org.cristalise.kernel.lookup.DomainPath
 import org.cristalise.kernel.lookup.ItemPath
 import org.cristalise.kernel.property.Property
-import org.cristalise.storage.JooqLookupManager
 import org.cristalise.storage.jooqdb.clusterStore.JooqItemPropertyHandler
+import org.cristalise.storage.jooqdb.lookup.JooqLookupManager
 import org.jooq.DSLContext
 import org.junit.Before
 import org.junit.Test

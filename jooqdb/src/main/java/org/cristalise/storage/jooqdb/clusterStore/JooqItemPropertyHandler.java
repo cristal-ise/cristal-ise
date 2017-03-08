@@ -39,6 +39,7 @@ import org.cristalise.storage.jooqdb.JooqHandler;
 import org.jooq.Condition;
 import org.jooq.DSLContext;
 import org.jooq.Field;
+import org.jooq.InsertQuery;
 import org.jooq.JoinType;
 import org.jooq.Operator;
 import org.jooq.Record;
@@ -102,13 +103,24 @@ public class JooqItemPropertyHandler implements JooqHandler {
 
     @Override
     public int insert(DSLContext context, UUID uuid, C2KLocalObject obj) throws PersistencyException {
-        return context
-                .insertInto(ITEM_PROPERTY_TABLE)
-                    .set(UUID,    uuid)
-                    .set(NAME,    obj.getName())
-                    .set(VALUE,   ((Property)obj).getValue())
-                    .set(MUTABLE, ((Property)obj).isMutable())
-                .execute();
+        return insert(context, uuid, new C2KLocalObject[] {obj});
+    }
+
+    public int insert(DSLContext context, UUID uuid, C2KLocalObject...objs) throws PersistencyException {
+        InsertQuery<?> insertInto = context.insertQuery(ITEM_PROPERTY_TABLE);
+
+        for (C2KLocalObject obj : objs) {
+            insertInto.addValue(UUID,    uuid);
+            insertInto.addValue(NAME,    obj.getName());
+            insertInto.addValue(VALUE,   ((Property)obj).getValue());
+            insertInto.addValue(MUTABLE, ((Property)obj).isMutable());
+
+            insertInto.newRecord();
+        }
+
+        Logger.msg(8, "JooqItemPropertyHandler.insert() - SQL:\n"+insertInto);
+
+        return insertInto.execute();
     }
 
     @Override

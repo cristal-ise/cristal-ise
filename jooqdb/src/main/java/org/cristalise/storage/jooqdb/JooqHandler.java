@@ -20,13 +20,21 @@
  */
 package org.cristalise.storage.jooqdb;
 
+import static org.jooq.impl.DSL.using;
+
+import java.sql.DriverManager;
 import java.sql.Timestamp;
 import java.util.UUID;
 
+import org.apache.commons.lang3.StringUtils;
 import org.cristalise.kernel.common.PersistencyException;
 import org.cristalise.kernel.entity.C2KLocalObject;
+import org.cristalise.kernel.process.Gateway;
+import org.cristalise.kernel.utils.Logger;
 import org.jooq.DSLContext;
 import org.jooq.DataType;
+import org.jooq.SQLDialect;
+import org.jooq.impl.DefaultConnectionProvider;
 import org.jooq.impl.SQLDataType;
 
 public interface JooqHandler {
@@ -45,6 +53,35 @@ public interface JooqHandler {
     public DataType<Timestamp>      TIMESTAMP_TYPE = SQLDataType.TIMESTAMP;
 //    public DataType<OffsetDateTime> TIMESTAMP_TYPE = SQLDataType.TIMESTAMPWITHTIMEZONE;
     public DataType<String>         XML_TYPE       = SQLDataType.CLOB;
+
+    public static DSLContext connect() throws PersistencyException {
+        String uri  = Gateway.getProperties().getString(JooqHandler.JOOQ_URI);
+        String user = Gateway.getProperties().getString(JooqHandler.JOOQ_USER); 
+        String pwd  = Gateway.getProperties().getString(JooqHandler.JOOQ_PASSWORD);
+
+        if (StringUtils.isAnyBlank(uri, user, pwd)) {
+            throw new IllegalArgumentException("JOOQ (uri, user, password) config values must not be blank");
+        }
+
+        SQLDialect dialect = SQLDialect.valueOf(Gateway.getProperties().getString(JooqHandler.JOOQ_DIALECT, "POSTGRES"));
+
+        Logger.msg(1, "JooqHandler.open() - uri:'"+uri+"' user:'"+user+"' dialect:'"+dialect+"'");
+
+        try {
+            DSLContext context = using(DriverManager.getConnection(uri, user, pwd), dialect);
+
+            boolean autoCommit = Gateway.getProperties().getBoolean(JooqHandler.JOOQ_AUTOCOMMIT, false);
+
+            ((DefaultConnectionProvider)context.configuration().connectionProvider()).setAutoCommit(autoCommit);
+
+            return context;
+        }
+        catch (Exception ex) {
+            Logger.error("JooqHandler could not connect to URI '"+uri+"' with user '"+user+"'");
+            Logger.error(ex);
+            throw new PersistencyException(ex.getMessage());
+        }
+    }
 
     public void createTables(DSLContext context) throws PersistencyException;
 

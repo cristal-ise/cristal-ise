@@ -20,10 +20,6 @@
  */
 package org.cristalise.storage;
 
-import static org.jooq.impl.DSL.using;
-
-import java.sql.DriverManager;
-import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -49,7 +45,6 @@ import org.cristalise.storage.jooqdb.clusterStore.JooqLifecycleHandler;
 import org.cristalise.storage.jooqdb.clusterStore.JooqOutcomeHandler;
 import org.cristalise.storage.jooqdb.clusterStore.JooqViewpointHandler;
 import org.jooq.DSLContext;
-import org.jooq.SQLDialect;
 import org.jooq.exception.DataAccessException;
 import org.jooq.impl.DefaultConnectionProvider;
 
@@ -63,31 +58,11 @@ public class JooqClusterStorage extends TransactionalClusterStorage {
 
     @Override
     public void open(Authenticator auth) throws PersistencyException {
-        String uri  = Gateway.getProperties().getString(JooqHandler.JOOQ_URI);
-        String user = Gateway.getProperties().getString(JooqHandler.JOOQ_USER); 
-        String pwd  = Gateway.getProperties().getString(JooqHandler.JOOQ_PASSWORD);
+        context = JooqHandler.connect();
 
-        autoCommit  = Gateway.getProperties().getBoolean(JooqHandler.JOOQ_AUTOCOMMIT, false);
+        autoCommit = Gateway.getProperties().getBoolean(JooqHandler.JOOQ_AUTOCOMMIT, false);
 
-        if (StringUtils.isAnyBlank(uri, user, pwd)) {
-            throw new PersistencyException("JOOQ (uri, user, password) config values must not be blank");
-        }
-
-        SQLDialect dialect = SQLDialect.valueOf(Gateway.getProperties().getString(JooqHandler.JOOQ_DIALECT, "POSTGRES"));
-
-        Logger.msg(1, "JooqClusterStorage.open() - uri:'"+uri+"' user:'"+user+"' dialect:'"+dialect+"'");
-
-        try {
-            context = using(DriverManager.getConnection(uri, user, pwd), dialect);
-            ((DefaultConnectionProvider)context.configuration().connectionProvider()).setAutoCommit(autoCommit);
-
-            initialiseHandlers();
-        }
-        catch (SQLException | DataAccessException ex) {
-            Logger.error("JooqClusterStorage could not connect to URI '" + uri + "' with user '" + user + "'");
-            Logger.error(ex);
-            throw new PersistencyException(ex.getMessage());
-        }
+        initialiseHandlers();
     }
 
     /**

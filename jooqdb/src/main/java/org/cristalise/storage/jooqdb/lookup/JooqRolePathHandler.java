@@ -41,6 +41,7 @@ import org.jooq.Operator;
 import org.jooq.Record;
 import org.jooq.Record1;
 import org.jooq.Result;
+import org.jooq.SelectConditionStep;
 import org.jooq.Table;
 import org.jooq.impl.SQLDataType;
 
@@ -70,7 +71,7 @@ public class JooqRolePathHandler {
         else                return null;
     }
 
-    public static List<Path> getLisOfPaths(Result<Record> result) {
+    public static List<Path> getLisOfPaths(Result<?> result) {
         ArrayList<Path> roles = new ArrayList<>();
 
         if(result != null) {
@@ -169,17 +170,16 @@ public class JooqRolePathHandler {
     }
 
     public List<Path> find(DSLContext context, RolePath startPath, String name, List<UUID> uuids) {
-        String pattern = "" + startPath.getStringPath() + "/%" + name;
+        String pattern = startPath.getStringPath() + "/%" + name;
 
         return find(context, pattern, uuids);
     }
 
     public List<Path> find(DSLContext context, String pattern, List<UUID> uuids) {
-        Result<Record> result = context
-                .select().from(ROLE_PATH_TABLE)
-                .where(PATH.like(pattern))
-                .fetch();
+        SelectConditionStep<?> select = context.select().from(ROLE_PATH_TABLE).where(PATH.like(pattern));
 
-        return getLisOfPaths(result);
+        if (uuids != null && uuids.size() != 0) select.and(AGENT.in(uuids));
+
+        return getLisOfPaths(select.fetch());
     }
 }

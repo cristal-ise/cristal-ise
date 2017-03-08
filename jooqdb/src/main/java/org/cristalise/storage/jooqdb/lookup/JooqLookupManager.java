@@ -18,19 +18,14 @@
  *
  * http://www.fsf.org/licensing/licenses/lgpl.html
  */
-package org.cristalise.storage;
-
-import static org.jooq.impl.DSL.using;
+package org.cristalise.storage.jooqdb.lookup;
 
 import java.security.NoSuchAlgorithmException;
-import java.sql.DriverManager;
-import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.UUID;
 
-import org.apache.commons.lang3.StringUtils;
 import org.cristalise.kernel.common.ObjectAlreadyExistsException;
 import org.cristalise.kernel.common.ObjectCannotBeUpdated;
 import org.cristalise.kernel.common.ObjectNotFoundException;
@@ -42,19 +37,14 @@ import org.cristalise.kernel.lookup.ItemPath;
 import org.cristalise.kernel.lookup.LookupManager;
 import org.cristalise.kernel.lookup.Path;
 import org.cristalise.kernel.lookup.RolePath;
-import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.process.auth.Authenticator;
 import org.cristalise.kernel.property.Property;
 import org.cristalise.kernel.property.PropertyDescriptionList;
 import org.cristalise.kernel.utils.Logger;
 import org.cristalise.storage.jooqdb.JooqHandler;
+import org.cristalise.storage.jooqdb.auth.Argo2Password;
 import org.cristalise.storage.jooqdb.clusterStore.JooqItemPropertyHandler;
-import org.cristalise.storage.jooqdb.lookup.JooqDomainPathHandler;
-import org.cristalise.storage.jooqdb.lookup.JooqItemHandler;
-import org.cristalise.storage.jooqdb.lookup.JooqRolePathHandler;
 import org.jooq.DSLContext;
-import org.jooq.SQLDialect;
-import org.jooq.exception.DataAccessException;
 
 /**
  *
@@ -68,22 +58,12 @@ public class JooqLookupManager implements LookupManager {
     private JooqRolePathHandler     roles;
     private JooqItemPropertyHandler properties;
 
+    private Argo2Password paswordHasher;
+
     @Override
     public void open(Authenticator auth) {
-        String uri  = Gateway.getProperties().getString(JooqHandler.JOOQ_URI);
-        String user = Gateway.getProperties().getString(JooqHandler.JOOQ_USER); 
-        String pwd  = Gateway.getProperties().getString(JooqHandler.JOOQ_PASSWORD);
-
-        if (StringUtils.isAnyBlank(uri, user, pwd)) {
-            throw new IllegalArgumentException("JOOQ (uri, user, password) config values must not be blank");
-        }
-
-        SQLDialect dialect = SQLDialect.valueOf(Gateway.getProperties().getString(JooqHandler.JOOQ_DIALECT, "POSTGRES"));
-
-        Logger.msg(1, "JOOQLookupManager.open() - uri:'"+uri+"' user:'"+user+"' dialect:'"+dialect+"'");
-
         try {
-            context = using(DriverManager.getConnection(uri, user, pwd), dialect);
+            context = JooqHandler.connect();
 
             items      = new JooqItemHandler();
             domains    = new JooqDomainPathHandler();
@@ -94,9 +74,10 @@ public class JooqLookupManager implements LookupManager {
             domains   .createTables(context);
             roles     .createTables(context);
             properties.createTables(context);
+
+            paswordHasher = new Argo2Password();
         }
-        catch (SQLException | DataAccessException | PersistencyException ex) {
-            Logger.error("JooqLookupManager could not connect to URI '" + uri + "' with user '" + user + "'");
+        catch (PersistencyException ex) {
             Logger.error(ex);
             throw new IllegalArgumentException(ex.getMessage());
         }
@@ -180,10 +161,12 @@ public class JooqLookupManager implements LookupManager {
 
     @Override
     public ItemPath getItemPath(String sysKey) throws InvalidItemPathException, ObjectNotFoundException {
-        if (!exists(new ItemPath(sysKey))) throw new ObjectNotFoundException("Path does not exist:"+sysKey);
+        ItemPath ip = new ItemPath(sysKey);
+
+        if (!exists(ip)) throw new ObjectNotFoundException("Path does not exist:"+sysKey);
 
         try {
-            return items.fetch(context, UUID.fromString(sysKey), properties);
+            return items.fetch(context, ip.getUUID(), properties);
         }
         catch (PersistencyException e) {
             Logger.error(e);
@@ -234,7 +217,10 @@ public class JooqLookupManager implements LookupManager {
 
     @Override
     public RolePath getRolePath(String roleName) throws ObjectNotFoundException {
-        List<Path> result = roles.find(context, "%/"+roleName, null);
+        List<UUID> uuids = new ArrayList<>();
+        uuids.add(JooqRolePathHandler.NO_AGENT);
+
+        List<Path> result = roles.find(context, "%/"+roleName, uuids);
 
         if      (result == null || result.size() == 0) throw new ObjectNotFoundException("Role '"+roleName+"' does not exist");
         else if (result.size() > 1)                    throw new ObjectNotFoundException("Unbiguos roleName:'"+roleName+"'");
@@ -276,6 +262,8 @@ public class JooqLookupManager implements LookupManager {
     @Override
     public Iterator<Path> getChildren(Path path) {
         String pattern = "^" + path.getStringPath() + "\\/\\w+$";
+
+        Logger.msg(8, "JooqLookupManager.getChildren() - pattern:"+pattern);
 
         if      (path instanceof ItemPath) return new ArrayList<Path>().iterator(); //empty iterator
         else if (path instanceof RolePath) return roles  .findByRegex(context, pattern ).iterator();
@@ -385,7 +373,8 @@ public class JooqLookupManager implements LookupManager {
         if (!exists(agent)) throw new ObjectNotFoundException("Agent:"+agent);
 
         try {
-            items.update(context, agent);
+            int rows = items.updatePassword(context, agent, paswordHasher.hashPassword(newPassword.toCharArray()));
+            if (rows != 1) throw new ObjectCannotBeUpdated("Agent:"+agent);
         }
         catch (Exception e) {
             Logger.error(e);
@@ -412,5 +401,4 @@ public class JooqLookupManager implements LookupManager {
     public Iterator<Path> searchAliases(ItemPath itemPath) {
         return domains.find(context, itemPath).iterator();
     }
-
 }

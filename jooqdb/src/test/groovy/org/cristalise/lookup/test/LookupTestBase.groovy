@@ -29,8 +29,8 @@ import org.cristalise.kernel.process.Gateway
 import org.cristalise.kernel.utils.Logger
 import org.cristalise.kernel.utils.ObjectProperties
 import org.cristalise.storage.JooqClusterStorage
-import org.cristalise.storage.JooqLookupManager
 import org.cristalise.storage.jooqdb.JooqHandler
+import org.cristalise.storage.jooqdb.lookup.JooqLookupManager
 import org.junit.After
 import org.junit.Before
 import org.springframework.cache.config.CacheAdviceParser.Props

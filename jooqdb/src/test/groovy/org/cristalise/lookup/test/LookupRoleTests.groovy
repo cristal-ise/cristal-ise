@@ -142,6 +142,8 @@ class LookupRoleTests extends LookupTestBase {
         CompareUtils.comparePathLists([jim, tom],  lookup.getAgents(internist))
         CompareUtils.comparePathLists([internist], lookup.getRoles(jim))
         CompareUtils.comparePathLists([internist], lookup.getRoles(tom))
+
+        assert lookup.getRolePath("Internist") == internist
     }
 
     @Test
