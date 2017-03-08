@@ -116,7 +116,7 @@
             <plugins>
                 <plugin>
                     <artifactId>maven-compiler-plugin</artifactId>
-                    <version>2.3.2</version>
+                    <version>3.5</version>
                     <configuration>
                         <source>1.8</source>
                         <target>1.8</target>
@@ -205,6 +205,11 @@
             <groupId>org.jooq</groupId>
             <artifactId>jooq</artifactId>
             <version>3.9.1</version>
+        </dependency>
+        <dependency>
+            <groupId>de.mkammerer</groupId>
+            <artifactId>argon2-jvm</artifactId>
+            <version>2.2</version>
         </dependency>
 
         <dependency>
