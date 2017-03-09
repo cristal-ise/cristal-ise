@@ -261,7 +261,7 @@ public class JooqLookupManager implements LookupManager {
 
     @Override
     public Iterator<Path> getChildren(Path path) {
-        String pattern = "^" + path.getStringPath() + "\\/\\w+$";
+        String pattern = "^" + path.getStringPath() + "/\\w+$";
 
         Logger.msg(8, "JooqLookupManager.getChildren() - pattern:"+pattern);
 

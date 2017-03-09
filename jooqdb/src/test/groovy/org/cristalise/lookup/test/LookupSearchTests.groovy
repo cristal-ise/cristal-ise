@@ -81,9 +81,11 @@ class LookupSearchTests extends LookupTestBase {
 
     @Test
     public void getChildren_DomainPath() {
-        CompareUtils.comparePathLists(
-            [new DomainPath("empty/nothing"),  new DomainPath("empty/something")], 
-            lookup.getChildren(new DomainPath()))
+        lookup.add( new DomainPath("dummy") )
+
+        CompareUtils.comparePathLists( 
+            [new DomainPath("empty"), new DomainPath("dummy")],
+            lookup.getChildren(new DomainPath()) )
 
         CompareUtils.comparePathLists(
             [new DomainPath("empty/nothing"),  new DomainPath("empty/something")], 

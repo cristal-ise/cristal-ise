@@ -136,6 +136,8 @@ public class JooqDomainPathHandler {
     }
 
     public List<Path> findByRegex(DSLContext context, String pattern) {
+        //Logger.msg( "+++++++++++++" + context.select().from(DOMAIN_PATH_TABLE).where(PATH.likeRegex(pattern)).toString());
+
         Result<Record> result = context
                 .select().from(DOMAIN_PATH_TABLE)
                 .where(PATH.likeRegex(pattern))
