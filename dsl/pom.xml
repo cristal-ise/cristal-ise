@@ -123,20 +123,9 @@
     <dependencies>
         <dependency>
             <groupId>org.cristalise</groupId>
-            <artifactId>cristalise-kernel</artifactId>
-            <version>3.3-SNAPSHOT</version>
-            <scope>compile</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.cristalise</groupId>
             <artifactId>cristalise-dev</artifactId>
             <version>3.3-SNAPSHOT</version>
             <scope>compile</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.cristalise</groupId>
-            <artifactId>cristalise-gui</artifactId>
-            <version>3.3-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>org.codehaus.groovy</groupId>
@@ -194,18 +183,7 @@
         </dependency>
         <dependency>
             <groupId>org.cristalise</groupId>
-            <artifactId>cristalise-ldap</artifactId>
-            <version>3.3-SNAPSHOT</version>
-        </dependency>
-        <dependency>
-            <groupId>org.cristalise</groupId>
             <artifactId>cristalise-xpath-outcomeinit</artifactId>
-            <version>3.3-SNAPSHOT</version>
-            <scope>compile</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.cristalise</groupId>
-            <artifactId>cristalise-jooqdb</artifactId>
             <version>3.3-SNAPSHOT</version>
             <scope>compile</scope>
         </dependency>

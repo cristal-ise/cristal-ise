@@ -51,4 +51,4 @@ JOOQ.URI=jdbc:postgresql://localhost:5432/integtest
 JOOQ.user=postgres
 JOOQ.password=cristal
 JOOQ.dialect=POSTGRES
-JOOQ.database=integtest
+JOOQ.autoCommit=true

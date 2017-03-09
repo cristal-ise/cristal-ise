@@ -3,8 +3,6 @@
         <Description>CRISTAL-iSE Items for testing</Description>
         <Version>3.3-SNAPSHOT</Version>
         <KernelVersion>3.3</KernelVersion>
-        <Dependency>CristalXMLDB</Dependency>
-        <Dependency>CristalLDAP</Dependency>
         <Dependency>CristaliseDev</Dependency>
     </Info>
     <ResourceURL>org/cristalise/dsl/resources/</ResourceURL>
