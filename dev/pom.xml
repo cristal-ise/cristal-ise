@@ -156,12 +156,7 @@
             </dependency>
             <dependency>
                 <groupId>org.cristalise</groupId>
-                <artifactId>cristalise-xmldb</artifactId>
-                <version>3.3-SNAPSHOT</version>
-            </dependency>
-            <dependency>
-                <groupId>org.cristalise</groupId>
-                <artifactId>cristalise-ldap</artifactId>
+                <artifactId>cristalise-jooqdb</artifactId>
                 <version>3.3-SNAPSHOT</version>
             </dependency>
         </dependencies>
@@ -177,11 +172,7 @@
         </dependency>
         <dependency>
             <groupId>org.cristalise</groupId>
-            <artifactId>cristalise-xmldb</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.cristalise</groupId>
-            <artifactId>cristalise-ldap</artifactId>
+            <artifactId>cristalise-jooqdb</artifactId>
         </dependency>
         <dependency>
             <groupId>org.mozilla</groupId>

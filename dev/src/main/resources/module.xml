@@ -22,12 +22,12 @@
 -->
 <CristalModule ns="dev" name="CristaliseDev">
     <Info>
-        <Description>CRISTAL-iSE Development Items, such as resource factories and workflows. Also includes a
-            demonstrative description factory</Description>
+        <Description>CRISTAL-iSE Development Items, such as resource factories and workflows. 
+        Also includes a demonstrative DescriptionFactory</Description>
         <Version>${version}</Version>
-        <KernelVersion>3.2</KernelVersion>
-        <Dependency>CristalXMLDB</Dependency>
-        <Dependency>CristalLDAP</Dependency>
+        <KernelVersion>3.3</KernelVersion>
+        <Dependency>CristalJooqDB</Dependency>
+        <Dependency>CristalGui</Dependency>
     </Info>
     <ResourceURL>uk/ac/uwe/cristaldev/resources/</ResourceURL>
     <Config name="Module.dev.debug">true</Config>
@@ -266,7 +266,7 @@
             <Role>Admin</Role>
         </Agent>
         <Agent name="user" password="test">
-            <Role>SubUser</Role>
+            <Role>User/SubUser</Role>
             <Role>Admin</Role>
         </Agent>
     </Imports>
