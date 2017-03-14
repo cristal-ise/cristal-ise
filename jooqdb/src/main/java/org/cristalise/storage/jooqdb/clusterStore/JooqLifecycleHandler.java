@@ -26,6 +26,9 @@ import static org.jooq.impl.DSL.name;
 import static org.jooq.impl.DSL.table;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import java.util.UUID;
 
 import org.cristalise.kernel.common.PersistencyException;
@@ -37,13 +40,14 @@ import org.cristalise.storage.jooqdb.JooqHandler;
 import org.exolab.castor.mapping.MappingException;
 import org.exolab.castor.xml.MarshalException;
 import org.exolab.castor.xml.ValidationException;
+import org.jooq.Condition;
 import org.jooq.DSLContext;
 import org.jooq.Field;
 import org.jooq.Record;
 import org.jooq.Table;
 import org.jooq.exception.DataAccessException;
 
-public class JooqLifecycleHandler implements JooqHandler {
+public class JooqLifecycleHandler extends JooqHandler {
     static final Table<?> LIFECYCLE_TABLE = table(name("LIFECYCLE"));
 
     static final Field<UUID>   UUID = field(name("UUID"), UUID.class);
@@ -51,11 +55,30 @@ public class JooqLifecycleHandler implements JooqHandler {
     static final Field<String> XML  = field(name("XML"),  String.class);
 
     @Override
-    public int put(DSLContext context, UUID uuid, C2KLocalObject obj) throws PersistencyException {
-        C2KLocalObject o = fetch(context, uuid);
+    protected Table<?> getTable() {
+        return LIFECYCLE_TABLE;
+    }
 
-        if (o == null) return insert(context, uuid, obj);
-        else           return update(context, uuid, obj);
+    @Override
+    protected Field<?> getNextPKField(String... primaryKeys) throws PersistencyException {
+        return null;
+    }
+
+    @Override
+    protected List<Condition> getPKConditions(UUID uuid, String... primaryKeys) throws PersistencyException {
+        List<Condition> conditions = new ArrayList<>();
+
+        switch (primaryKeys.length) {
+            case 0: 
+                conditions.add(UUID.equal(uuid));
+                break;
+            case 1: 
+                conditions.add(UUID.equal(uuid));
+                break;
+            default:
+                throw new PersistencyException("Invalid number of primary keys:"+Arrays.toString(primaryKeys));
+        }
+        return conditions;
     }
 
     @Override
@@ -72,14 +95,6 @@ public class JooqLifecycleHandler implements JooqHandler {
             Logger.error(e);
             throw new PersistencyException(e.getMessage());
         }
-    }
-
-    @Override
-    public int delete(DSLContext context, UUID uuid, String... primaryKeys) throws PersistencyException {
-        return context
-                .delete(LIFECYCLE_TABLE)
-                .where(UUID.equal(uuid))
-                .execute();
     }
 
     @Override
@@ -100,10 +115,7 @@ public class JooqLifecycleHandler implements JooqHandler {
 
     @Override
     public C2KLocalObject fetch(DSLContext context, UUID uuid, String... primaryKeys) throws PersistencyException {
-        Record result = context
-                .select().from(LIFECYCLE_TABLE)
-                .where(UUID.equal(uuid))
-                .fetchOne();
+        Record result = fetchRecord(context, uuid, primaryKeys);
 
         if(result != null) {
             try {
@@ -123,7 +135,7 @@ public class JooqLifecycleHandler implements JooqHandler {
         try {
             Record result = context
                     .select().from(LIFECYCLE_TABLE)
-                    .where(UUID.equal(uuid))
+                    .where(getPKConditions(uuid, primaryKeys))
                     .fetchOne();
 
             if(result != null) { String[] keys = new String[1]; keys[0] = ClusterStorage.LIFECYCLE; return keys;}
@@ -144,5 +156,4 @@ public class JooqLifecycleHandler implements JooqHandler {
             .constraints(constraint("PK_"+LIFECYCLE_TABLE).primaryKey(UUID))
         .execute();
     }
-
 }

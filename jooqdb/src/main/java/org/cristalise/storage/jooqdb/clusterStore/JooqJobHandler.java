@@ -52,10 +52,9 @@ import org.jooq.Condition;
 import org.jooq.DSLContext;
 import org.jooq.Field;
 import org.jooq.Record;
-import org.jooq.Result;
 import org.jooq.Table;
 
-public class JooqJobHandler implements JooqHandler {
+public class JooqJobHandler extends JooqHandler {
     static final Table<?> JOB_TABLE = table(name("JOB"));
 
     static final Field<UUID>      UUID              = field(name("UUID"),              UUID.class);
@@ -74,7 +73,18 @@ public class JooqJobHandler implements JooqHandler {
 
 //  static final Field<OffsetDateTime> CREATION_TS = field(name("CREATION_TS"), OffsetDateTime.class);
 
-    private List<Condition> getPKConditions(UUID uuid, String... primaryKeys) throws PersistencyException {
+    @Override
+    protected Table<?> getTable() {
+        return JOB_TABLE;
+    }
+
+    @Override
+    protected Field<?> getNextPKField(String... primaryKeys) throws PersistencyException {
+        return ID;
+    }
+
+    @Override
+    protected List<Condition> getPKConditions(UUID uuid, String... primaryKeys) throws PersistencyException {
         List<Condition> conditions = new ArrayList<>();
 
         switch (primaryKeys.length) {
@@ -86,37 +96,9 @@ public class JooqJobHandler implements JooqHandler {
                 conditions.add(ID  .equal(Integer.valueOf(primaryKeys[0])));
                 break;
             default:
-                throw new PersistencyException("Invalid number of primary keys (max 4):"+Arrays.toString(primaryKeys));
+                throw new PersistencyException("Invalid number of primary keys:"+Arrays.toString(primaryKeys));
         }
         return conditions;
-    }
-
-    @Override
-    public String[] getNextPrimaryKeys(DSLContext context, UUID uuid, String... primaryKeys) throws PersistencyException {
-        Field<?>[] fields = { ID };
-
-        List<Condition> conditions = getPKConditions(uuid, primaryKeys);
-
-        Result<Record> result = context
-                .selectDistinct(fields)
-                .from(JOB_TABLE)
-                .where(conditions)
-                .fetch();
-
-        String[] returnValue = new String[result.size()];
-
-        int i = 0;
-        for (Record rec : result) returnValue[i++] = rec.get(0).toString();
-
-        return returnValue;
-    }
-
-    @Override
-    public int put(DSLContext context, UUID uuid, C2KLocalObject obj) throws PersistencyException {
-        C2KLocalObject j = fetch(context, uuid, obj.getName());
-
-        if (j == null) return insert(context, uuid, obj);
-        else           return update(context, uuid, obj);
     }
 
     @Override
@@ -157,23 +139,8 @@ public class JooqJobHandler implements JooqHandler {
     }
 
     @Override
-    public int delete(DSLContext context, UUID uuid, String... primaryKeys) throws PersistencyException {
-        List<Condition> conditions = getPKConditions(uuid, primaryKeys);
-        return context
-                .delete(JOB_TABLE)
-                .where(conditions)
-                .execute();
-    }
-
-    @Override
     public C2KLocalObject fetch(DSLContext context, UUID uuid, String... primaryKeys) throws PersistencyException {
-        Integer id = Integer.parseInt(primaryKeys[0]);
-        
-        Record result = context
-                .select().from(JOB_TABLE)
-                .where(UUID.equal(uuid))
-                  .and(ID  .equal(id))
-                .fetchOne();
+        Record result = fetchRecord(context, uuid, primaryKeys);
 
         if (result != null) {
             try {

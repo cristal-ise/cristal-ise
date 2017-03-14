@@ -20,10 +20,13 @@
  */
 package org.cristalise.storage.jooqdb;
 
+import static org.jooq.impl.DSL.select;
 import static org.jooq.impl.DSL.using;
 
 import java.sql.DriverManager;
 import java.sql.Timestamp;
+import java.util.Arrays;
+import java.util.List;
 import java.util.UUID;
 
 import org.apache.commons.lang3.StringUtils;
@@ -31,13 +34,18 @@ import org.cristalise.kernel.common.PersistencyException;
 import org.cristalise.kernel.entity.C2KLocalObject;
 import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.utils.Logger;
+import org.jooq.Condition;
 import org.jooq.DSLContext;
 import org.jooq.DataType;
+import org.jooq.Field;
+import org.jooq.Record;
+import org.jooq.Result;
 import org.jooq.SQLDialect;
+import org.jooq.Table;
 import org.jooq.impl.DefaultConnectionProvider;
 import org.jooq.impl.SQLDataType;
 
-public interface JooqHandler {
+public abstract class JooqHandler {
     public static final String JOOQ_URI              = "JOOQ.URI";
     public static final String JOOQ_USER             = "JOOQ.user";
     public static final String JOOQ_PASSWORD         = "JOOQ.password";
@@ -45,14 +53,14 @@ public interface JooqHandler {
     public static final String JOOQ_AUTOCOMMIT       = "JOOQ.autoCommit";
     public static final String JOOQ_DOMAIN_HANDLERS  = "JOOQ.domainHandlers";
 
-    public DataType<UUID>           UUID_TYPE      = SQLDataType.UUID;
-    public DataType<String>         NAME_TYPE      = SQLDataType.VARCHAR.length(64);
-    public DataType<Integer>        VERSION_TYPE   = SQLDataType.INTEGER;
-    public DataType<String>         STRING_TYPE    = SQLDataType.VARCHAR.length(4096);
-    public DataType<Integer>        ID_TYPE        = SQLDataType.INTEGER;
-    public DataType<Timestamp>      TIMESTAMP_TYPE = SQLDataType.TIMESTAMP;
-//    public DataType<OffsetDateTime> TIMESTAMP_TYPE = SQLDataType.TIMESTAMPWITHTIMEZONE;
-    public DataType<String>         XML_TYPE       = SQLDataType.CLOB;
+    public static final DataType<UUID>           UUID_TYPE      = SQLDataType.UUID;
+    public static final DataType<String>         NAME_TYPE      = SQLDataType.VARCHAR.length(64);
+    public static final DataType<Integer>        VERSION_TYPE   = SQLDataType.INTEGER;
+    public static final DataType<String>         STRING_TYPE    = SQLDataType.VARCHAR.length(4096);
+    public static final DataType<Integer>        ID_TYPE        = SQLDataType.INTEGER;
+    public static final DataType<Timestamp>      TIMESTAMP_TYPE = SQLDataType.TIMESTAMP;
+//    public static final DataType<OffsetDateTime> TIMESTAMP_TYPE = SQLDataType.TIMESTAMPWITHTIMEZONE;
+    public static final DataType<String>         XML_TYPE       = SQLDataType.CLOB;
 
     public static DSLContext connect() throws PersistencyException {
         String uri  = Gateway.getProperties().getString(JooqHandler.JOOQ_URI);
@@ -83,17 +91,55 @@ public interface JooqHandler {
         }
     }
 
-    public void createTables(DSLContext context) throws PersistencyException;
+    abstract protected Table<?> getTable();
 
-    public String[] getNextPrimaryKeys(DSLContext context, UUID uuid, String...primaryKeys) throws PersistencyException;
+    abstract protected Field<?> getNextPKField(String... primaryKeys) throws PersistencyException;
 
-    public int put(DSLContext context, UUID uuid, C2KLocalObject obj) throws PersistencyException;
+    abstract protected List<Condition> getPKConditions(UUID uuid, String... primaryKeys) throws PersistencyException;
 
-    public int update(DSLContext context, UUID uuid, C2KLocalObject obj) throws PersistencyException;
+    protected Record fetchRecord(DSLContext context, UUID uuid, String...primaryKeys) throws PersistencyException {
+        return context.select().from(getTable()).where(getPKConditions(uuid, primaryKeys)).fetchOne();
+    }
 
-    public int delete(DSLContext context, UUID uuid, String...primaryKeys) throws PersistencyException;
+    protected Result<?> fetchDistinctResult(DSLContext context, Field<?> field, UUID uuid, String...primaryKeys) throws PersistencyException {
+        return context.selectDistinct(field).from(getTable()).where(getPKConditions(uuid, primaryKeys)).fetch();
+    }
 
-    public int insert(DSLContext context, UUID uuid, C2KLocalObject obj) throws PersistencyException;
+    protected List<Condition> getPKConditions(UUID uuid, C2KLocalObject obj) throws PersistencyException {
+        String[] pathArray   = obj.getClusterPath().split("/");
+        String[] primaryKeys = Arrays.copyOfRange(pathArray, 1, pathArray.length);
+        return getPKConditions(uuid, primaryKeys);
+    }
 
-    public C2KLocalObject fetch(DSLContext context, UUID uuid, String...primaryKeys) throws PersistencyException;
+    public int put(DSLContext context, UUID uuid, C2KLocalObject obj) throws PersistencyException {
+        if (exists(context, uuid, obj)) return update(context, uuid, obj);
+        else                            return insert(context, uuid, obj);
+    }
+
+    public int delete(DSLContext context, UUID uuid, String...primaryKeys) throws PersistencyException {
+        return context.delete(getTable()).where(getPKConditions(uuid, primaryKeys)).execute();
+    }
+
+    public String[] getNextPrimaryKeys(DSLContext context, UUID uuid, String... primaryKeys) throws PersistencyException {
+        Result<?> result = fetchDistinctResult(context, getNextPKField(primaryKeys), uuid, primaryKeys);
+
+        String[] returnValue = new String[result.size()];
+
+        int i = 0;
+        for (Record rec : result) returnValue[i++] = rec.get(0).toString();
+
+        return returnValue;
+    }
+
+    public boolean exists(DSLContext context, UUID uuid, C2KLocalObject obj) throws PersistencyException {
+        return context.fetchExists( select().from(getTable()).where(getPKConditions(uuid, obj)) );
+    }
+
+    abstract public void createTables(DSLContext context) throws PersistencyException;
+
+    abstract public int update(DSLContext context, UUID uuid, C2KLocalObject obj) throws PersistencyException;
+
+    abstract public int insert(DSLContext context, UUID uuid, C2KLocalObject obj) throws PersistencyException;
+
+    abstract public C2KLocalObject fetch(DSLContext context, UUID uuid, String...primaryKeys) throws PersistencyException;
 }

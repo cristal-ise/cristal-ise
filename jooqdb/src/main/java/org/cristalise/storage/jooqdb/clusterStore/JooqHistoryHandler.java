@@ -45,10 +45,9 @@ import org.jooq.Condition;
 import org.jooq.DSLContext;
 import org.jooq.Field;
 import org.jooq.Record;
-import org.jooq.Result;
 import org.jooq.Table;
 
-public class JooqHistoryHandler implements JooqHandler {
+public class JooqHistoryHandler extends JooqHandler {
     static final Table<?> EVENT_TABLE = table(name("EVENT"));
 
     static final Field<UUID>      UUID                  = field(name("UUID"),                 UUID.class);
@@ -71,7 +70,18 @@ public class JooqHistoryHandler implements JooqHandler {
 
 //    static final Field<OffsetDateTime> TIMESTAMP = field(name("TIMESTAMP"), Timestamp.class);
 
-    private List<Condition> getPKConditions(UUID uuid, String... primaryKeys) throws PersistencyException {
+    @Override
+    protected Table<?> getTable() {
+        return EVENT_TABLE;
+    }
+
+    @Override
+    protected Field<?> getNextPKField(String... primaryKeys) throws PersistencyException {
+        return ID;
+    }
+
+    @Override
+    protected List<Condition> getPKConditions(UUID uuid, String... primaryKeys) throws PersistencyException {
         List<Condition> conditions = new ArrayList<>();
 
         switch (primaryKeys.length) {
@@ -83,44 +93,14 @@ public class JooqHistoryHandler implements JooqHandler {
                 conditions.add(ID.equal(Integer.valueOf(primaryKeys[0])));
                 break;
             default:
-                throw new PersistencyException("Invalid number of primary keys (max 4):"+Arrays.toString(primaryKeys));
+                throw new PersistencyException("Invalid number of primary keys (max 1):"+Arrays.toString(primaryKeys));
         }
         return conditions;
     }
 
     @Override
-    public String[] getNextPrimaryKeys(DSLContext context, UUID uuid, String... primaryKeys) throws PersistencyException {
-        Field<?>[] fields = { ID };
-
-        List<Condition> conditions = getPKConditions(uuid, primaryKeys);
-
-        //Logger.msg(DSL.selectDistinct(fields).from(TABLE_NAME).where(conditions).getSQL());
-
-        Result<Record> result = context
-                .selectDistinct(fields)
-                .from(EVENT_TABLE)
-                .where(conditions)
-                .fetch();
-
-        String[] returnValue = new String[result.size()];
-
-        int i = 0;
-        for (Record rec : result) returnValue[i++] = rec.get(0).toString();
-
-        return returnValue;
-    }
-
-    @Override
-    public int put(DSLContext context, UUID uuid, C2KLocalObject obj) throws PersistencyException {
-        C2KLocalObject e = fetch(context, uuid, obj.getName());
-
-        if (e == null) return insert(context, uuid, obj);
-        else           return update(context, uuid, obj);
-    }
-
-    @Override
     public int update(DSLContext context, UUID uuid, C2KLocalObject obj) throws PersistencyException {
-        throw new PersistencyException("Event must not be updated uuid:"+uuid+" id:"+obj.getName());
+        throw new PersistencyException("Event must not be updated - uuid:"+uuid+" id:"+obj.getName());
     }
 
     @Override
@@ -151,23 +131,8 @@ public class JooqHistoryHandler implements JooqHandler {
     }
 
     @Override
-    public int delete(DSLContext context, UUID uuid, String... primaryKeys) throws PersistencyException {
-        List<Condition> conditions = getPKConditions(uuid, primaryKeys);
-        return context
-                .delete(EVENT_TABLE)
-                .where(conditions)
-                .execute();
-    }
-
-    @Override
     public C2KLocalObject fetch(DSLContext context, UUID uuid, String... primaryKeys) throws PersistencyException {
-        Integer id = Integer.parseInt(primaryKeys[0]);
-
-        Record result = context
-                .select().from(EVENT_TABLE)
-                .where(UUID.equal(uuid))
-                  .and(ID.equal(id))
-                .fetchOne();
+        Record result = fetchRecord(context, uuid, primaryKeys);
 
         if (result != null) {
             UUID agent    = result.get(AGENT_UUID);

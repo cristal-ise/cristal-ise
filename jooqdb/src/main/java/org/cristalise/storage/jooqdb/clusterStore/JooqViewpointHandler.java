@@ -39,10 +39,9 @@ import org.jooq.Condition;
 import org.jooq.DSLContext;
 import org.jooq.Field;
 import org.jooq.Record;
-import org.jooq.Result;
 import org.jooq.Table;
 
-public class JooqViewpointHandler implements JooqHandler {
+public class JooqViewpointHandler extends JooqHandler {
     static final Table<?> VIEWPOINT_TABLE = table(name("VIEWPOINT"));
 
     static final Field<UUID>    UUID            = field(name("UUID"),           UUID.class);
@@ -51,7 +50,24 @@ public class JooqViewpointHandler implements JooqHandler {
     static final Field<Integer> SCHEMA_VERSION  = field(name("SCHEMA_VERSION"), Integer.class);
     static final Field<Integer> EVENT_ID        = field(name("EVENT_ID"),       Integer.class);
 
-    private List<Condition> getPKConditions(UUID uuid, String... primaryKeys) throws PersistencyException {
+    @Override
+    protected Table<?> getTable() {
+        return VIEWPOINT_TABLE;
+    }
+
+    @Override
+    protected Field<?> getNextPKField(String... primaryKeys) throws PersistencyException {
+        switch (primaryKeys.length) {
+            case 0: return SCHEMA_NAME;
+            case 1: return NAME;
+            case 2: return NAME;
+            default:
+                throw new PersistencyException("Invalid number of primary keys:"+Arrays.toString(primaryKeys));
+        }
+    }
+
+    @Override
+    protected List<Condition> getPKConditions(UUID uuid, String... primaryKeys) throws PersistencyException {
         List<Condition> conditions = new ArrayList<>();
 
         switch (primaryKeys.length) {
@@ -67,19 +83,10 @@ public class JooqViewpointHandler implements JooqHandler {
                 conditions.add(SCHEMA_NAME.equal(primaryKeys[0]));
                 conditions.add(NAME       .equal(primaryKeys[1]));
                 break;
-
             default:
-                throw new PersistencyException("Invalid number of primary keys (max 3):"+Arrays.toString(primaryKeys));
+                throw new PersistencyException("Invalid number of primary keys:"+Arrays.toString(primaryKeys));
         }
         return conditions;
-    }
-
-    @Override
-    public int put(DSLContext context, UUID uuid, C2KLocalObject obj) throws PersistencyException {
-        C2KLocalObject v = fetch(context, uuid, ((Viewpoint)obj).getSchemaName(), ((Viewpoint)obj).getName());
-
-        if (v == null) return insert(context, uuid, obj);
-        else           return update(context, uuid, obj);
     }
 
     @Override
@@ -89,18 +96,7 @@ public class JooqViewpointHandler implements JooqHandler {
                 .update(VIEWPOINT_TABLE)
                 .set(SCHEMA_VERSION, view.getSchemaVersion())
                 .set(EVENT_ID,       view.getEventId())
-                .where(UUID       .equal(uuid))
-                  .and(SCHEMA_NAME.equal(view.getSchemaName()))
-                  .and(NAME       .equal(view.getName()))
-                .execute();
-    }
-
-    @Override
-    public int delete(DSLContext context, UUID uuid, String... primaryKeys) throws PersistencyException {
-        List<Condition> conditions = getPKConditions(uuid, primaryKeys);
-        return context
-                .delete(VIEWPOINT_TABLE)
-                .where(conditions)
+                .where(getPKConditions(uuid, obj))
                 .execute();
     }
 
@@ -119,15 +115,7 @@ public class JooqViewpointHandler implements JooqHandler {
 
     @Override
     public C2KLocalObject fetch(DSLContext context, UUID uuid, String...primaryKeys) throws PersistencyException {
-        String shcemaName = primaryKeys[0];
-        String name       = primaryKeys[1];
-
-        Record result = context
-                .select().from(VIEWPOINT_TABLE)
-                .where(UUID       .equal(uuid))
-                  .and(SCHEMA_NAME.equal(shcemaName))
-                  .and(NAME       .equal(name))
-                .fetchOne();
+        Record result = fetchRecord(context, uuid, primaryKeys);
 
         if(result != null) return new Viewpoint(new ItemPath(uuid),
                                                 result.get(SCHEMA_NAME),
@@ -135,41 +123,6 @@ public class JooqViewpointHandler implements JooqHandler {
                                                 result.get(SCHEMA_VERSION),
                                                 result.get(EVENT_ID));
         else return null;
-    }
-
-    @Override
-    public String[] getNextPrimaryKeys(DSLContext context, UUID uuid, String...primaryKeys) throws PersistencyException {
-        Field<?>[] fields = new Field[1];
-
-        List<Condition> conditions = getPKConditions(uuid, primaryKeys);
-
-        switch (primaryKeys.length) {
-            case 0: 
-                fields[0] = SCHEMA_NAME;
-                break;
-            case 1:
-                fields[0] = NAME;
-                break;
-            case 2:
-                fields[0] = NAME;
-                break;
-
-            default:
-                throw new PersistencyException("Invalid number of primary keys (max 3):"+Arrays.toString(primaryKeys));
-        }
-
-        Result<Record> result = context
-                .selectDistinct(fields)
-                .from(VIEWPOINT_TABLE)
-                .where(conditions)
-                .fetch();
-
-        String[] returnValue = new String[result.size()];
-
-        int i = 0;
-        for (Record rec : result) returnValue[i++] = rec.get(0).toString();
-
-        return returnValue;
     }
 
     @Override
