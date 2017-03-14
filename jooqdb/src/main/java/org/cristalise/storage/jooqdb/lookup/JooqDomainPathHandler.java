@@ -23,6 +23,7 @@ package org.cristalise.storage.jooqdb.lookup;
 import static org.jooq.impl.DSL.constraint;
 import static org.jooq.impl.DSL.field;
 import static org.jooq.impl.DSL.name;
+import static org.jooq.impl.DSL.select;
 import static org.jooq.impl.DSL.table;
 
 import java.util.ArrayList;
@@ -40,7 +41,6 @@ import org.jooq.DSLContext;
 import org.jooq.Field;
 import org.jooq.InsertQuery;
 import org.jooq.Record;
-import org.jooq.Record1;
 import org.jooq.Result;
 import org.jooq.SelectConditionStep;
 import org.jooq.Table;
@@ -118,12 +118,7 @@ public class JooqDomainPathHandler {
    }
 
     public boolean exists(DSLContext context, DomainPath path) throws PersistencyException {
-        Record1<Integer> count = context
-                .selectCount().from(DOMAIN_PATH_TABLE)
-                .where(PATH.equal(path.getStringPath()))
-                .fetchOne();
-
-        return count != null && count.get(0, Integer.class) == 1;
+        return context.fetchExists( select().from(DOMAIN_PATH_TABLE).where(PATH.equal(path.getStringPath())) );
     }
 
     public DomainPath fetch(DSLContext context, DomainPath path) throws PersistencyException {
@@ -136,8 +131,6 @@ public class JooqDomainPathHandler {
     }
 
     public List<Path> findByRegex(DSLContext context, String pattern) {
-        //Logger.msg( "+++++++++++++" + context.select().from(DOMAIN_PATH_TABLE).where(PATH.likeRegex(pattern)).toString());
-
         Result<Record> result = context
                 .select().from(DOMAIN_PATH_TABLE)
                 .where(PATH.likeRegex(pattern))

@@ -23,6 +23,7 @@ package org.cristalise.storage.jooqdb.lookup;
 import static org.jooq.impl.DSL.constraint;
 import static org.jooq.impl.DSL.field;
 import static org.jooq.impl.DSL.name;
+import static org.jooq.impl.DSL.select;
 import static org.jooq.impl.DSL.table;
 
 import java.util.ArrayList;
@@ -39,7 +40,6 @@ import org.jooq.DeleteQuery;
 import org.jooq.Field;
 import org.jooq.Operator;
 import org.jooq.Record;
-import org.jooq.Record1;
 import org.jooq.Result;
 import org.jooq.SelectConditionStep;
 import org.jooq.Table;
@@ -114,13 +114,7 @@ public class JooqRolePathHandler {
         UUID uuid = NO_AGENT;
         if (agent != null) uuid = agent.getUUID();
 
-        Record1<Integer> count = context
-                .selectCount().from(ROLE_PATH_TABLE)
-                .where(PATH.equal(role.getStringPath()))
-                  .and(AGENT.equal(uuid))
-                .fetchOne();
-
-        return count != null && count.get(0, Integer.class) == 1;
+        return context.fetchExists( select().from(ROLE_PATH_TABLE).where(PATH.equal(role.getStringPath())).and(AGENT.equal(uuid)) );
     }
 
     public RolePath fetch(DSLContext context, RolePath role) throws PersistencyException {

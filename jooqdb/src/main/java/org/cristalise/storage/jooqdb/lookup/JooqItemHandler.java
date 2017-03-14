@@ -23,6 +23,7 @@ package org.cristalise.storage.jooqdb.lookup;
 import static org.jooq.impl.DSL.constraint;
 import static org.jooq.impl.DSL.field;
 import static org.jooq.impl.DSL.name;
+import static org.jooq.impl.DSL.select;
 import static org.jooq.impl.DSL.table;
 
 import java.util.ArrayList;
@@ -40,7 +41,6 @@ import org.cristalise.storage.jooqdb.clusterStore.JooqItemPropertyHandler;
 import org.jooq.DSLContext;
 import org.jooq.Field;
 import org.jooq.Record;
-import org.jooq.Record1;
 import org.jooq.Result;
 import org.jooq.Table;
 import org.jooq.impl.SQLDataType;
@@ -123,12 +123,7 @@ public class JooqItemHandler {
     }
 
     public boolean exists(DSLContext context, UUID uuid) throws PersistencyException {
-        Record1<Integer> count = context
-                .selectCount().from(ITEM_TABLE)
-                .where(UUID.equal(uuid))
-                .fetchOne();
-
-        return count != null && count.get(0, Integer.class) == 1;
+        return context.fetchExists( select().from(ITEM_TABLE).where(UUID.equal(uuid)) );
     }
 
     public ItemPath fetch(DSLContext context, UUID uuid, JooqItemPropertyHandler properties) throws PersistencyException {
