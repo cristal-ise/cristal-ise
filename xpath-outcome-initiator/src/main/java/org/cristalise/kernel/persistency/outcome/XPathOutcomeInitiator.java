@@ -1,5 +1,5 @@
 /**
- * This file is part of the CRISTAL-iSE kernel.
+ * This file is part of the CRISTAL-iSE XPath Outcome Initiator module.
  * Copyright (c) 2001-2016 The CRISTAL Consortium. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it

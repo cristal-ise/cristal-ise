@@ -1,6 +1,6 @@
 /**
- * This file is part of the CRISTAL-iSE kernel.
- * Copyright (c) 2001-2015 The CRISTAL Consortium. All rights reserved.
+ * This file is part of the CRISTAL-iSE XPath Outcome Initiator module.
+ * Copyright (c) 2001-2016 The CRISTAL Consortium. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as published
@@ -18,7 +18,6 @@
  *
  * http://www.fsf.org/licensing/licenses/lgpl.html
  */
-
 package org.cristalise.kernel.test.persistency.outcome;
 
 import static org.mockito.Mockito.mock;
@@ -69,7 +68,7 @@ public class OutcomeInitiatorTestBase {
      * @param xsd the Schema XML
      * @param rootElement the name of the element to use for XML generation
      * @return the mock Job
-     * @throws Exception
+     * @throws Exception every exception
      */
     public Job mockJob(String xsd, String rootElement) throws Exception {
         Job j = mock(Job.class);
@@ -86,8 +85,8 @@ public class OutcomeInitiatorTestBase {
      * @param expected the reference XML
      * @param actual the xml under test
      * @return whether the two XMLs are identical or not
-     * @throws SAXException
-     * @throws IOException
+     * @throws SAXException every exception
+     * @throws IOException every exception
      */
     public boolean compareXML(String expected, String actual) throws SAXException, IOException {
 
