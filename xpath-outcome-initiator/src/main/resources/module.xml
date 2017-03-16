@@ -22,7 +22,7 @@
 -->
 <CristalModule ns="xpathoi" name="XPathOutcomeInitiator">
     <Info>
-        <Description>CRISTAL-iSE ....</Description>
+        <Description>CRISTAL-iSE XPath Outcome Initiator module</Description>
         <Version>${version}</Version>
         <KernelVersion>3.3</KernelVersion>
     </Info>
