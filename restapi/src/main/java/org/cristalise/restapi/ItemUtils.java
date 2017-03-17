@@ -214,8 +214,8 @@ public abstract class ItemUtils extends RestHandler {
             LinkedHashMap<String, Object> outcomeData = new LinkedHashMap<String, Object>();
             try {
                 outcomeData.put("required", job.isOutcomeRequired());
-                outcomeData.put("schema", job.getSchemaName()+" v"+job.getSchemaVersion());
-                outcomeData.put("schemaData", uri.getBaseUriBuilder().path("schema").path(job.getSchemaName()).path(String.valueOf(job.getSchemaVersion())).build());
+                outcomeData.put("schema", job.getSchema().getName()+" v"+job.getSchema().getVersion());
+                outcomeData.put("schemaData", uri.getBaseUriBuilder().path("schema").path(job.getSchema().getName()).path(String.valueOf(job.getSchema().getVersion())).build());
                 jobData.put("data", outcomeData);
             } catch (InvalidDataException | ObjectNotFoundException e) {
                 Logger.error(e);
