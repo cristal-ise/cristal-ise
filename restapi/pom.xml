@@ -22,37 +22,141 @@
 -->
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
-
     <modelVersion>4.0.0</modelVersion>
-
+    <name>CRISTAL-iSE Restapi</name>
     <groupId>org.cristalise</groupId>
     <artifactId>cristalise-restapi</artifactId>
     <packaging>jar</packaging>
     <version>3.3-SNAPSHOT</version>
-    <name>cristalise-restapi</name>
-
+    <description>CRISTAL-iSE REST API Module</description>
+    <url>https://github.com/cristal-ise/xpath-outcomeinit</url>
+    <licenses>
+        <license>
+            <name>GNU Library or Lesser General Public License v3 (LGPL3)</name>
+            <url>http://www.gnu.org/licenses/lgpl.html</url>
+        </license>
+    </licenses>
+    <developers>
+        <developer>
+            <name>Zsolt Kovács</name>
+            <email>zs.myth@gmail.com</email>
+            <organization>cristal-ise on github</organization>
+            <organizationUrl>https://github.com/cristal-ise</organizationUrl>
+            <roles>
+                <role>Pinky/Brain/CTO</role>
+            </roles>
+        </developer>
+    </developers>
+    <issueManagement>
+        <url>https://github.com/cristal-ise/restapi/issues</url>
+        <system>GitHub</system>
+    </issueManagement>
+    <organization>
+        <name>CRISTAL-iSE</name>
+        <url>http://cristal-ise.github.io/</url>
+    </organization>
+    <ciManagement>
+        <system>Travis</system>
+        <url>https://travis-ci.org/cristal-ise/restapi</url>
+    </ciManagement>
+    <scm>
+        <developerConnection>scm:https://github.com/cristal-ise/restapi.git</developerConnection>
+        <url>https://github.com/cristal-ise/restapi</url>
+        <tag>master</tag>
+    </scm>
+    <mailingLists>
+        <mailingList>
+            <name>User List</name>
+            <post>cristal-users@cern.ch</post>
+            <subscribe>cristal-users-subscribe@cern.ch</subscribe>
+            <unsubscribe>cristal-users-unsubscribe@cern.ch</unsubscribe>
+            <archive>https://groups.cern.ch/group/cristal-users/default.aspx</archive>
+        </mailingList>
+    </mailingLists>
     <properties>
         <jersey.version>2.16</jersey.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <additionalparam>-Xdoclint:none</additionalparam>
     </properties>
 
-    <dependencyManagement>
-        <dependencies>
-            <dependency>
-                <groupId>org.glassfish.jersey</groupId>
-                <artifactId>jersey-bom</artifactId>
-                <version>${jersey.version}</version>
-                <type>pom</type>
-                <scope>import</scope>
-            </dependency>
-            <dependency>
-                <groupId>org.cristalise</groupId>
-                <artifactId>cristalise-kernel</artifactId>
-                <version>3.3-SNAPSHOT</version>
-            </dependency>
-        </dependencies>
-    </dependencyManagement>
+    <build>
+        <resources>
+            <resource>
+                <directory>src/main/resources</directory>
+                <targetPath>META-INF/cristal</targetPath>
+                <filtering>true</filtering>
+                <includes>
+                    <include>module.xml</include>
+                </includes>
+            </resource>
+            <resource>
+                <directory>src/main/resources</directory>
+                <targetPath>org/cristalise/restapi/resources</targetPath>
+                <excludes>
+                    <exclude>module.xml</exclude>
+                </excludes>
+            </resource>
+        </resources>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.5</version>
+                <configuration>
+                    <source>1.8</source>
+                    <target>1.8</target>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-source-plugin</artifactId>
+                <version>2.2.1</version>
+                <executions>
+                    <execution>
+                        <id>attach-sources</id>
+                        <phase>verify</phase>
+                        <goals>
+                            <goal>jar-no-fork</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-javadoc-plugin</artifactId>
+                <version>2.9.1</version>
+                <executions>
+                    <execution>
+                        <id>attach-javadocs</id>
+                        <goals>
+                            <goal>jar</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-release-plugin</artifactId>
+                <version>2.4.1</version>
+            </plugin>
+            <plugin>
+                <groupId>com.mycila</groupId>
+                <artifactId>license-maven-plugin</artifactId>
+                <version>2.11</version>
+                <configuration>
+                    <header>HEADER.txt</header>
+                </configuration>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>check</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+
     <distributionManagement>
         <snapshotRepository>
             <id>ossrh</id>
@@ -63,10 +167,24 @@
             <url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
         </repository>
     </distributionManagement>
+
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>org.glassfish.jersey</groupId>
+                <artifactId>jersey-bom</artifactId>
+                <version>${jersey.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+
     <dependencies>
         <dependency>
             <groupId>org.glassfish.jersey.containers</groupId>
             <artifactId>jersey-container-grizzly2-http</artifactId>
+            <scope>test</scope>
         </dependency>
         <dependency>
             <artifactId>javax.ws.rs-api</artifactId>
@@ -81,6 +199,12 @@
         <dependency>
             <groupId>org.cristalise</groupId>
             <artifactId>cristalise-kernel</artifactId>
+            <version>3.3-SNAPSHOT</version>
+        </dependency>
+        <dependency>
+            <groupId>org.cristalise</groupId>
+            <artifactId>cristalise-jooqdb</artifactId>
+            <version>3.3-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>org.json</groupId>
@@ -89,35 +213,6 @@
         </dependency>
     </dependencies>
 
-    <build>
-        <plugins>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-compiler-plugin</artifactId>
-                <version>3.5</version>
-                <inherited>true</inherited>
-                <configuration>
-                    <source>1.8</source>
-                    <target>1.8</target>
-                </configuration>
-            </plugin>
-            <plugin>
-                <groupId>com.mycila</groupId>
-                <artifactId>license-maven-plugin</artifactId>
-                <version>2.3</version>
-                <configuration>
-                    <header>HEADER.txt</header>
-                </configuration>
-                <executions>
-                    <execution>
-                        <goals>
-                            <goal>check</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
-        </plugins>
-    </build>
     <profiles>
         <profile>
             <id>ossrh</id>
@@ -154,7 +249,7 @@
                     <plugin>
                         <groupId>org.sonatype.plugins</groupId>
                         <artifactId>nexus-staging-maven-plugin</artifactId>
-                        <version>1.6.2</version>
+                        <version>1.6.7</version>
                         <extensions>true</extensions>
                         <configuration>
                             <serverId>ossrh</serverId>
