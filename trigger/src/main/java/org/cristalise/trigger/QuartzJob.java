@@ -68,10 +68,9 @@ public class QuartzJob implements org.quartz.Job {
 
     /**
      * 
-     * @param key
-     * @throws InvalidDataException
-     * @throws ObjectNotFoundException
-     * @throws XPathExpressionException
+     * @throws InvalidDataException data was invalid
+     * @throws ObjectNotFoundException data was not found
+     * @throws XPathExpressionException xpath was incorrect
      */
     public void setOutcome() throws InvalidDataException, ObjectNotFoundException, XPathExpressionException {
         Outcome o = cristalJob.getOutcome();

@@ -23,14 +23,10 @@ package org.cristalise.trigger;
 import static org.quartz.JobBuilder.newJob;
 import static org.quartz.TriggerBuilder.newTrigger;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 
-import org.cristalise.kernel.common.AccessRightsException;
 import org.cristalise.kernel.common.InvalidDataException;
-import org.cristalise.kernel.common.ObjectNotFoundException;
-import org.cristalise.kernel.common.PersistencyException;
 import org.cristalise.kernel.entity.agent.Job;
 import org.cristalise.kernel.entity.proxy.MemberSubscription;
 import org.cristalise.kernel.entity.proxy.ProxyObserver;
@@ -40,9 +36,6 @@ import org.cristalise.kernel.process.AbstractMain;
 import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.process.StandardClient;
 import org.cristalise.kernel.utils.Logger;
-import org.exolab.castor.mapping.MappingException;
-import org.exolab.castor.xml.MarshalException;
-import org.exolab.castor.xml.ValidationException;
 import org.quartz.DateBuilder;
 import org.quartz.DateBuilder.IntervalUnit;
 import org.quartz.JobDataMap;
@@ -64,12 +57,7 @@ public class TriggerProcess extends StandardClient implements ProxyObserver<Job>
 
     /**
      * 
-     * @throws MarshalException
-     * @throws ValidationException
-     * @throws ObjectNotFoundException
-     * @throws IOException
-     * @throws MappingException
-     * @throws InvalidDataException 
+     * @throws InvalidDataException Invalid data 
      */
     public TriggerProcess() throws InvalidDataException {
         StateMachine sm = getRequiredStateMachine("Trigger", "trigger", "boot/SM/Trigger.xml");
@@ -86,10 +74,7 @@ public class TriggerProcess extends StandardClient implements ProxyObserver<Job>
 
     /**
      * 
-     * @throws SchedulerException
-     * @throws AccessRightsException
-     * @throws ObjectNotFoundException
-     * @throws PersistencyException
+     * @throws SchedulerException Scheduler error
      */
     public void initialise() throws SchedulerException {
         SchedulerFactory schedFact = new org.quartz.impl.StdSchedulerFactory();
@@ -105,7 +90,7 @@ public class TriggerProcess extends StandardClient implements ProxyObserver<Job>
 
     /**
      * 
-     * @throws SchedulerException
+     * @throws SchedulerException Scheduler error
      */
     public void shutdownScheduler() throws SchedulerException {
         quartzScheduler.shutdown();
@@ -115,7 +100,7 @@ public class TriggerProcess extends StandardClient implements ProxyObserver<Job>
      * 
      * @param currentJob
      * @param jobID
-     * @return
+     * @return JobDetail
      */
     protected JobDetail buildJobDetail(Job currentJob, String jobID) {
         JobDataMap jdm = new JobDataMap();
