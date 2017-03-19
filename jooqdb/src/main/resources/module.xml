@@ -24,6 +24,7 @@
     <Info>
         <Description>Relational DB (sql) implementation of ClusterStorage, Lookup and Authenticator based on JOOQ.</Description>
         <Version>${version}</Version>
+        <KernelVersion>3.3</KernelVersion>
     </Info>
     <Config name="Authenticator">org.cristalise.storage.jooqdb.auth.JooqAuthenticator</Config>
     <Config name="Lookup">org.cristalise.storage.jooqdb.lookup.JooqLookupManager</Config>

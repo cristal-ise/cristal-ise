@@ -26,7 +26,7 @@
     <name>CRISTAL-iSE JOOQ Storage</name>
     <groupId>org.cristalise</groupId>
     <artifactId>cristalise-jooqdb</artifactId>
-    <version>3.3-SNAPSHOT</version>
+    <version>3.3.0</version>
     <description>CRISTAL-iSE JOOQ Storage Module</description>
     <url>https://github.com/cristal-ise/jooqdb</url>
     <licenses>
@@ -175,19 +175,11 @@
             <url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
         </repository>
     </distributionManagement>
-    <dependencyManagement>
-        <dependencies>
-            <dependency>
-                <groupId>org.cristalise</groupId>
-                <artifactId>cristalise-kernel</artifactId>
-                <version>3.3-SNAPSHOT</version>
-            </dependency>
-        </dependencies>
-    </dependencyManagement>
     <dependencies>
         <dependency>
             <groupId>org.cristalise</groupId>
             <artifactId>cristalise-kernel</artifactId>
+                <version>3.3.0</version>
         </dependency>
         <dependency>
             <groupId>mysql</groupId>
