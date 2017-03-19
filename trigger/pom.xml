@@ -26,7 +26,7 @@
     <name>CRISTAL-iSE Trigger</name>
     <groupId>org.cristalise</groupId>
     <artifactId>cristalise-trigger</artifactId>
-    <version>3.3-SNAPSHOT</version>
+    <version>3.3.0</version>
     <description>CRISTAL-iSE Trigger Module</description>
     <url>https://github.com/cristal-ise/xpath-outcomeinit</url>
     <licenses>
@@ -183,12 +183,12 @@
         <dependency>
             <groupId>org.cristalise</groupId>
             <artifactId>cristalise-kernel</artifactId>
-            <version>3.3-SNAPSHOT</version>
+            <version>3.3.0</version>
         </dependency>
         <dependency>
             <groupId>org.cristalise</groupId>
             <artifactId>cristalise-xpath-outcomeinit</artifactId>
-            <version>3.3-SNAPSHOT</version>
+            <version>3.3.0</version>
         </dependency>
         <dependency>
             <groupId>org.quartz-scheduler</groupId>
