@@ -21,13 +21,14 @@
 
 -->
 <CristalModule ns="xmldb" name="CristalXMLDB">
-	<Info>
-		<Description>CRISTAL XMLDB Module using eXistDB</Description>
-		<Version>${version}</Version>
-	</Info>
+    <Info>
+        <Description>CRISTAL XMLDB Module using eXistDB</Description>
+        <Version>${version}</Version>
+        <KernelVersion>3.3</KernelVersion>
+    </Info>
     <Config name="Module.debug">true</Config>
     <Config name="XMLDB.URI">xmldb:exist:///db</Config>
     <Config name="XMLDB.user">admin</Config>
     <Config name="XMLDB.password">admin</Config>
-	<Imports/>
+    <Imports />
 </CristalModule>
