@@ -21,11 +21,12 @@
 
 -->
 <CristalModule ns="ldap" name="CristalLDAP">
-	<Info>
-		<Description>LDAP Lookup, Authenticator and NextKeyManager implementations.</Description>
-		<Version>${version}</Version>
-	</Info>
+    <Info>
+        <Description>LDAP Lookup, Authenticator and NextKeyManager implementations.</Description>
+        <Version>${version}</Version>
+        <KernelVersion>3.3</KernelVersion>
+    </Info>
     <Config name="Authenticator">org.cristalise.lookup.ldap.LDAPAuthManager</Config>
-	<Config name="Lookup">org.cristalise.lookup.ldap.LDAPLookup</Config>
-	<Imports/>
+    <Config name="Lookup">org.cristalise.lookup.ldap.LDAPLookup</Config>
+    <Imports />
 </CristalModule>
