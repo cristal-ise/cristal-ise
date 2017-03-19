@@ -26,7 +26,7 @@
     <name>CRISTAL-iSE Development</name>
     <groupId>org.cristalise</groupId>
     <artifactId>cristalise-dev</artifactId>
-    <version>3.3-SNAPSHOT</version>
+    <version>3.3.0</version>
     <description>CRISTAL-iSE Development Module</description>
     <url>https://github.com/cristal-ise/jooqdb</url>
     <licenses>
@@ -250,17 +250,17 @@
         <dependency>
             <groupId>org.cristalise</groupId>
             <artifactId>cristalise-kernel</artifactId>
-            <version>3.3-SNAPSHOT</version>
+            <version>3.3.0</version>
         </dependency>
         <dependency>
             <groupId>org.cristalise</groupId>
             <artifactId>cristalise-gui</artifactId>
-            <version>3.3-SNAPSHOT</version>
+            <version>3.3.0</version>
         </dependency>
         <dependency>
             <groupId>org.cristalise</groupId>
             <artifactId>cristalise-jooqdb</artifactId>
-            <version>3.3-SNAPSHOT</version>
+            <version>3.3.0</version>
         </dependency>
         <dependency>
             <groupId>org.mozilla</groupId>
