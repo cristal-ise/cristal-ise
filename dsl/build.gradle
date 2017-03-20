@@ -16,6 +16,10 @@ tasks.withType(JavaCompile) {
 	options.encoding = 'UTF-8'
 }
 
+ext {
+    cristaliseVersion = '3.3.0'
+}
+
 repositories {
     mavenLocal()
     jcenter()
@@ -37,14 +41,14 @@ uploadArchives {
 }
 
 dependencies {
-    compile group: 'org.codehaus.groovy', name: 'groovy-all', version:'2.4.7'
+    compile group: 'org.codehaus.groovy', name: 'groovy-all', version:'2.4.8'
 
-    compile group: 'org.cristalise', name: 'cristalise-kernel',            version:'3.3-SNAPSHOT'
-    compile group: 'org.cristalise', name: 'cristalise-dev',               version:'3.3-SNAPSHOT'
-    compile group: 'org.cristalise', name: 'cristalise-xpath-outcomeinit', version:'3.3-SNAPSHOT'
-    compile group: 'org.cristalise', name: 'cristalise-trigger',           version:'3.3-SNAPSHOT'
-    compile group: 'org.cristalise', name: 'cristalise-gui',               version:'3.3-SNAPSHOT'
-    compile group: 'org.cristalise', name: 'cristalise-ldap',              version:'3.3-SNAPSHOT'
+    compile group: 'org.cristalise', name: 'cristalise-kernel',            version: cristaliseVersion
+    compile group: 'org.cristalise', name: 'cristalise-dev',               version: cristaliseVersion
+    compile group: 'org.cristalise', name: 'cristalise-jooqdb',            version: cristaliseVersion
+    compile group: 'org.cristalise', name: 'cristalise-xpath-outcomeinit', version: cristaliseVersion
+    compile group: 'org.cristalise', name: 'cristalise-trigger',           version: cristaliseVersion
+    compile group: 'org.cristalise', name: 'cristalise-gui',               version: cristaliseVersion
 
     compile group: 'commons-lang', name: 'commons-lang', version:'2.6'
     compile group: 'org.xmlunit',  name: 'xmlunit-core', version:'2.2.+'
@@ -52,6 +56,7 @@ dependencies {
     testCompile group: 'junit',              name: 'junit',                      version:'4.11'
     testCompile group: 'org.awaitility',     name: 'awaitility-groovy',          version:'2.0.0'
     testCompile group: 'org.spockframework', name: 'spock-core',                 version:'1.1-groovy-2.4-rc-3'
-    testCompile group: 'org.cristalise',     name: 'cristalise-inmemory-lookup', version:'3.3-SNAPSHOT'
+    testCompile group: 'org.mvel',           name: 'mvel2',                      version>'2.2.8.Final'
+//    testCompile group: 'org.cristalise',     name: 'cristalise-inmemory-lookup', version: cristaliseVersion
     testCompile(group: 'com.athaydes',       name: 'spock-reports',              version:'1.2.13') { exclude(module: '*') }
 }
