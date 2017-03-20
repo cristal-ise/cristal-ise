@@ -2,13 +2,13 @@
 
 This module provides Description-Driven Trigger funcionalities. It is based on [Quartz Scheduler](http://www.quartz-scheduler.org/) and it uses StdSchedulerFactory to create very basic jobs using SimpleTrigger. Jobs are NOT persisted by Quartz Scheduler becuase Jobs are persysted in the JobList of the Agent. Each time the process starts the QuartzJobs are recreated form the persistent Joblist of CRISTAL-iSE Agent. Check the definition of triggerAgent in module.xml.
 
-##Description of Trigger StateMachine
+## Description of Trigger StateMachine
 
 This diagram shows the CRISTAL-iSE Activity StateMachine defined in this module. Check this wiki for further details on StateMachines: [cristal-ise/kernel/wiki/State-Machine](https://github.com/cristal-ise/kernel/wiki/State-Machine). This definition is provided so the the module can be used without further changes, but it is possible to configure it to use a different one.
 
 ![CRISTAL-iSETriggerSM.puml](http://uml.mvnsearch.org/gist/f5a862d0bb01c192a6c34f0259f3b469)
 
-##TriggerProcess configuration
+## TriggerProcess configuration
 
 | Name                             |  Default Value      | Description |
 |----------------------------------|---------------------|-------------|
@@ -21,7 +21,7 @@ This diagram shows the CRISTAL-iSE Activity StateMachine defined in this module.
 | Trigger.StateMachine.namespace   | trigger             | the namespace of the module, i.e. ns attribute in the module.xml, containing the definition of StateMachine. Use _Trigger.StateMachine.name and version_ if possbile |
 | Trigger.StateMachine.bootfile    | boot/SM/Trigger.xml | the bootstrap file containing the definition of StateMachine. Use _Trigger.StateMachine.name and version_ if possbile |
 
-##Activity properties used by the TriggerProcess
+## Activity properties used by the TriggerProcess
 Trigger uses the naming convention, i.e. the name of the Transition with On/Duration/Unit suffixes, to find the data in Activity properties to create the Quartz Job.
 
 | Name                      | Default Value | Description |
