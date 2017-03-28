@@ -19,10 +19,6 @@
  * http://www.fsf.org/licensing/licenses/lgpl.html
  */
 package org.cristalise.gui.lifecycle.chooser;
-/**
- * @version $Revision: 1.2 $ $Date: 2005/12/01 14:23:15 $
- * @author  $Author: abranson $
- */
 
 import java.awt.Dimension;
 import java.util.ArrayList;
@@ -35,6 +31,7 @@ import javax.swing.JComboBox;
 import org.cristalise.gui.MainFrame;
 import org.cristalise.kernel.lookup.DomainPath;
 import org.cristalise.kernel.lookup.ItemPath;
+import org.cristalise.kernel.lookup.Path;
 import org.cristalise.kernel.persistency.ClusterStorage;
 import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.property.Property;
@@ -42,8 +39,7 @@ import org.cristalise.kernel.property.Property;
 
 public class LDAPEntryChooser extends JComboBox<String>
 {
-
-	ArrayList<Property> props;
+    ArrayList<Property> props;
     ArrayList<String> allItems = new ArrayList<String>();
     HashMap<String, ItemPath> itemPaths = new HashMap<String, ItemPath>();
 
@@ -52,16 +48,16 @@ public class LDAPEntryChooser extends JComboBox<String>
         super();
         this.props = props;
         initialise();
-     }
+    }
 
     private void initialise()
     {
         try
         {
-            Iterator<?> children = Gateway.getLookup().search(new DomainPath(""), props.toArray(new Property[props.size()]));
+            Iterator<Path> children = Gateway.getLookup().search(new DomainPath(""), props.toArray(new Property[props.size()]));
             while (children.hasNext())
             {
-                ItemPath path = (ItemPath)children.next();
+                ItemPath path = children.next().getItemPath();
                 Property prop = (Property)Gateway.getStorage().get(path, ClusterStorage.PROPERTY+"/Name", null);
                 allItems.add(prop.getValue());
                 itemPaths.put(prop.getValue(), path);
@@ -69,19 +65,19 @@ public class LDAPEntryChooser extends JComboBox<String>
         }
         catch (Exception ex)
         {
-        	MainFrame.exceptionDialog(ex);
+            MainFrame.exceptionDialog(ex);
         }
 
         Collections.sort(allItems);
         addItem("");
         for (String element : allItems) {
-			addItem(element);
-		}
+            addItem(element);
+        }
 
     }
-    
+
     public ItemPath getItem(String name) {
-    	return itemPaths.get(name);
+        return itemPaths.get(name);
     }
 
     public void reload()
@@ -91,11 +87,10 @@ public class LDAPEntryChooser extends JComboBox<String>
     }
 
     @Override
-	public synchronized Dimension getSize()
+    public synchronized Dimension getSize()
     {
         if (Gateway.getProperties().getInt("ResizeCombo") > 0)
             return new Dimension(super.getSize().width<400?400:super.getSize().width,super.getSize().height);
         return super.getSize();
     }
-
 }
