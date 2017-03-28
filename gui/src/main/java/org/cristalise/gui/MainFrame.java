@@ -319,6 +319,8 @@ public class MainFrame extends javax.swing.JFrame {
 
 	static public void exceptionDialog(Exception ex)
 	{
+        if (Logger.doLog(8)) Logger.error(ex);
+
 		String className = ex.getClass().getSimpleName();
 		String error = ex.getMessage();
 		if (ex instanceof UserException)
