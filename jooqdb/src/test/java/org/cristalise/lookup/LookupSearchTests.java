@@ -50,6 +50,7 @@ public class LookupSearchTests extends LookupTestBase {
         lookup.add( new AgentPath(uuid2, "John") );
         lookup.add( new DomainPath("empty/nothing") );
         lookup.add( new DomainPath("empty/something/uuid0", lookup.getItemPath(uuid0.toString())) );
+//        lookup.add( new DomainPath("empty.old/something/uuid1", lookup.getItemPath(uuid1.toString())) );
         lookup.add( new RolePath(new RolePath(), "User") );
         lookup.add( new RolePath(new RolePath(), "User/SubUser") );
         lookup.add( new RolePath(new RolePath(), "User/SubUser/DummyUser") );
@@ -83,7 +84,7 @@ public class LookupSearchTests extends LookupTestBase {
     public void getChildren_DomainPath() throws Exception {
         lookup.add( new DomainPath("dummy") );
 
-        compare( Arrays.asList(new DomainPath("empty"), new DomainPath("dummy")),lookup.getChildren(new DomainPath()) );
+        compare(Arrays.asList(new DomainPath("empty"), new DomainPath("dummy")), lookup.getChildren(new DomainPath()) );
 
         compare(Arrays.asList(new DomainPath("empty/nothing"),  new DomainPath("empty/something")), 
             lookup.getChildren(new DomainPath("empty")));
@@ -93,6 +94,18 @@ public class LookupSearchTests extends LookupTestBase {
     public void getChildren_RolePath() throws Exception {
         compare(Arrays.asList(new RolePath(new RolePath("User", false), "SubUser"),  new RolePath(new RolePath("User", false), "LowerUser")),
             lookup.getChildren(new RolePath(new RolePath(), "User")));
+    }
+
+    @Test
+    public void getChildren_WithDots() throws Exception {
+        lookup.add( new DomainPath("empty/nothing.old") );
+        lookup.add( new DomainPath("empty/nothing.new/toto") );
+
+        compare(Arrays.asList(new DomainPath("empty/nothing"),
+                              new DomainPath("empty/something"),
+                              new DomainPath("empty/nothing.old"), 
+                              new DomainPath("empty/nothing.new")), 
+                lookup.getChildren(new DomainPath("empty")));
     }
 
     @Test
