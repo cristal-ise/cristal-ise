@@ -31,7 +31,7 @@ import org.cristalise.kernel.common.ObjectNotFoundException;
 import org.cristalise.kernel.common.PersistencyException;
 import org.cristalise.kernel.entity.proxy.ItemProxy;
 import org.cristalise.kernel.lookup.DomainPath;
-import org.cristalise.kernel.lookup.ItemPath;
+import org.cristalise.kernel.lookup.Path;
 import org.cristalise.kernel.persistency.ClusterStorage;
 import org.cristalise.kernel.persistency.outcome.Viewpoint;
 import org.cristalise.kernel.process.Gateway;
@@ -45,14 +45,14 @@ public class ResourceAccess extends ItemUtils {
         Iterator<org.cristalise.kernel.lookup.Path> iter = Gateway.getLookup().search(new DomainPath("/desc/" + typeName), new Property("Type", typeName));
 
         while (iter.hasNext()) {
-            ItemPath schemaPath = (ItemPath) iter.next();
+            Path p = iter.next();
             try {
-                ItemProxy proxy = Gateway.getProxyManager().getProxy(schemaPath);
+                ItemProxy proxy = Gateway.getProxyManager().getProxy(p.getItemPath());
                 String name = proxy.getName();
                 resourceNameData.put(name, uri.getAbsolutePathBuilder().path(name).build().toString());
             }
             catch (ObjectNotFoundException e) {
-                resourceNameData.put(schemaPath.getUUID().toString(), "Name not found");
+                resourceNameData.put(p.getStringPath(), "Path not found");
             }
         }
         return toJSON(resourceNameData);
