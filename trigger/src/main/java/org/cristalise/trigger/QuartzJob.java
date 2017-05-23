@@ -28,6 +28,7 @@ import org.cristalise.kernel.entity.agent.Job;
 import org.cristalise.kernel.entity.proxy.AgentProxy;
 import org.cristalise.kernel.persistency.outcome.Outcome;
 import org.cristalise.kernel.utils.Logger;
+import org.quartz.DisallowConcurrentExecution;
 import org.quartz.JobExecutionContext;
 import org.quartz.JobExecutionException;
 import org.quartz.JobKey;
@@ -38,6 +39,7 @@ import lombok.Setter;
  * Default implementation of Job handling
  */
 @Setter
+@DisallowConcurrentExecution
 public class QuartzJob implements org.quartz.Job {
 
     private Job cristalJob;
