@@ -1,5 +1,3 @@
-
-
 /**
  * This file is part of the CRISTAL-iSE kernel.
  * Copyright (c) 2001-2015 The CRISTAL Consortium. All rights reserved.
@@ -29,7 +27,6 @@ import org.cristalise.kernel.entity.proxy.ItemProxy
 import org.cristalise.kernel.test.KernelScenarioTestBase
 import org.junit.Test
 
-
 class XPathOutcomeInitTestIT extends KernelScenarioTestBase {
     
     public static final String FactorytPath = "/domain/desc/integTest/XPathOutcomeInitTest_DetailsFactory"
@@ -55,13 +52,44 @@ class XPathOutcomeInitTestIT extends KernelScenarioTestBase {
         assert devItem.getViewpoint('XPathOutcomeInitTest_Details', "0")
     }
 
+    //NOT USED YET
+    def createItems_XPathOutcomeInitTest_Details() {
+         XPathOutcomeInitTest_Details("XPathOutcomeInitTest_Second-$timeStamp", folder) {
+             Fields(slotID: caSlotIDs[1]) {
+                 Field {
+                     FieldName("/TwoFieldSchema/stringField-0")
+                     FieldValue("activity//./First:/OneFieldSchema/stringField-0")
+                 }
+             }
+         }
+ 
+         XPathOutcomeInitTest_Details("XPathOutcomeInitTest_Third-$timeStamp", folder) {
+             Fields(slotID: caSlotIDs[2]) {
+                 Field {
+                     FieldName("/ThreeFieldSchema/stringField-0")
+                     FieldValue("activity//./First:/OneFieldSchema/stringField-0")
+                 }
+                 Field {
+                     FieldName("/ThreeFieldSchema/stringField-1")
+                     FieldValue("activity//./Second:/TwoFieldSchema/stringField-1")
+                 }
+             }
+         }
+    }
+
+    def setFieldAndExecuteJob(ItemProxy proxy, String actName, String xpath) {
+        def job = getDoneJob(proxy, actName)
+        def outcome = job.getOutcome()
+        outcome.setFieldByXPath(xpath, actName)
+        agent.execute(job)
+    }
+
     @Test
     public void execute() {
-
         def elemActNames = [First: 'OneFieldSchema', Second: 'TwoFieldSchema', Third: 'ThreeFieldSchema']
         def actDefs = []
         def xpathInitDefs = []
-        
+
         elemActNames.eachWithIndex { actName, schemaName, index ->
 
             def schema = Schema(schemaName+"-$timeStamp", folder) {
@@ -73,42 +101,44 @@ class XPathOutcomeInitTestIT extends KernelScenarioTestBase {
             }
 
             actDefs[index] = ElementaryActivityDef(actName+"-$timeStamp", folder) {
-                Role('admin')
+                Role('Admin')
                 Property(OutcomeInit: "XPath")
+                if (index == 1) {
+                    Property('/TwoFieldSchema/stringField-0': 'activity//./First:/OneFieldSchema/stringField-0')
+                }
+                else if (index == 2) {
+                    Property('/ThreeFieldSchema/stringField-0': 'activity//./First:/OneFieldSchema/stringField-0')
+                    Property('/ThreeFieldSchema/stringField-1': 'activity//./Second:/TwoFieldSchema/stringField-1')
+                }
                 Schema(schema)
             }
         }
 
-        compActDefFactoryName = "/domain/desc/integTest/XPathOutcomeInitTest_CADefFactory"
-        
-        def caSlotIDs = []
+        //compActDefFactoryName = "/domain/desc/integTest/XPathOutcomeInitTest_CADefFactory"
 
-        CompositeActivityDef("XPathOutcomeInitTestWF-$timeStamp", folder) {
-            caSlotIDs[0] = ElemActDef('First',  actDefs[0])
-            caSlotIDs[1] = ElemActDef('Second', actDefs[1])
-            caSlotIDs[2] = ElemActDef('Third',  actDefs[2])
+        def wf = CompositeActivityDef("XPathOutcomeInitTestWF-$timeStamp", folder) {
+            ElemActDef('First',  actDefs[0])
+            ElemActDef('Second', actDefs[1])
+            ElemActDef('Third',  actDefs[2])
         }
 
-        XPathOutcomeInitTest_Details("XPathOutcomeInitTest_Second-$timeStamp", folder) {
-            Fields(slotID: caSlotIDs[1]) {
-                Field {
-                    FieldName("/TwoFieldSchema/stringField-0")
-                    FieldValue("activity//./First:/OneFieldSchema/stringField-0")
-                }
-            }
+        def factory = DescriptionItem("XPathOutcomeInitTestFactory-$timeStamp", folder) {
+            PropertyDesc(name: "Type", defaultValue: "XPathOutcomeInit", isMutable: false, isClassIdentifier: true)
+            Workflow(wf)
         }
 
-        XPathOutcomeInitTest_Details("XPathOutcomeInitTest_Third-$timeStamp", folder) {
-            Fields(slotID: caSlotIDs[2]) {
-                Field {
-                    FieldName("/ThreeFieldSchema/stringField-0")
-                    FieldValue("activity//./First:/OneFieldSchema/stringField-0")
-                }
-                Field {
-                    FieldName("/ThreeFieldSchema/stringField-1")
-                    FieldValue("activity//./Second:/TwoFieldSchema/stringField-1")
-                }
-            }
-        }
+        createNewItemByFactory(factory, "CreateNewInstance", "XPathOutcomeInitTest-$timeStamp", folder)
+
+        def item = agent.getItem("$folder/XPathOutcomeInitTest-$timeStamp")
+
+        setFieldAndExecuteJob(item, 'First',  '/OneFieldSchema/stringField-0')
+        setFieldAndExecuteJob(item, 'Second', '/TwoFieldSchema/stringField-1')
+        setFieldAndExecuteJob(item, 'Third',  '/ThreeFieldSchema/stringField-2')
+
+        def outcome = item.getViewpoint("ThreeFieldSchema-$timeStamp", 'last').getOutcome()
+
+        assert outcome.getField("stringField-0") == "First"
+        assert outcome.getField("stringField-1") == "Second"
+        assert outcome.getField("stringField-2") == "Third"
     }
 }
