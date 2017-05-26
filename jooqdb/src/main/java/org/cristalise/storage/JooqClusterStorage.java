@@ -194,7 +194,7 @@ public class JooqClusterStorage extends TransactionalClusterStorage {
         if (handler != null) {
             Logger.msg(5, "JooqClusterStorage.getClusterContents() - uuid:"+uuid+" cluster:"+cluster+" primaryKeys"+Arrays.toString(primaryKeys));
 
-            return jooqHandlers.get(cluster).getNextPrimaryKeys(context, uuid, primaryKeys);
+            return handler.getNextPrimaryKeys(context, uuid, primaryKeys);
         }
         else
             throw new PersistencyException("No handler found for cluster:'"+cluster+"'");
@@ -213,7 +213,7 @@ public class JooqClusterStorage extends TransactionalClusterStorage {
         if (handler != null) {
             Logger.msg(5, "JooqClusterStorage.get() - uuid:"+uuid+" cluster:"+cluster+" primaryKeys:"+Arrays.toString(primaryKeys));
 
-            C2KLocalObject obj = jooqHandlers.get(cluster).fetch(context, uuid, primaryKeys);
+            C2KLocalObject obj = handler.fetch(context, uuid, primaryKeys);
 
             if (obj == null && Logger.doLog(8)) {
                 Logger.warning(("JooqClusterStorage.get() - Could NOT fetch '"+itemPath+"/"+path+"'"));
