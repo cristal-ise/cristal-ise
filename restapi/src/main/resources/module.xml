@@ -26,5 +26,4 @@
         <Version>${version}</Version>
         <KernelVersion>3.3</KernelVersion>
     </Info>
-    <ResourceURL>org/cristalise/restapi/resources/</ResourceURL>
 </CristalModule>
