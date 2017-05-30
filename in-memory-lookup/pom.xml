@@ -3,7 +3,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>org.cristalise</groupId>
   <artifactId>cristalise-inmemory-lookup</artifactId>
-  <version>3.3-SNAPSHOT</version>
+  <version>3.4.0-SNAPSHOT</version>
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
@@ -124,7 +124,7 @@
     <dependency>
       <groupId>org.cristalise</groupId>
       <artifactId>cristalise-kernel</artifactId>
-      <version>3.3-SNAPSHOT</version>
+      <version>3.4.0-SNAPSHOT</version>
       <scope>compile</scope>
     </dependency>
     <dependency>
