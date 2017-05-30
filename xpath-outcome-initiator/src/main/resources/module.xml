@@ -26,6 +26,6 @@
         <Version>${version}</Version>
         <KernelVersion>3.3</KernelVersion>
     </Info>
-    <Config name="OutcomeInit.Empty">org.cristalise.kernel.persistency.outcome.EmptyOutcomeInitiator</Config>
-    <Config name="OutcomeInit.XPath">org.cristalise.kernel.persistency.outcome.XPathOutcomeInitiator</Config>
+    <Config name="OutcomeInit.Empty">org.cristalise.kernel.persistency.outcomeinit.EmptyOutcomeInitiator</Config>
+    <Config name="OutcomeInit.XPath">org.cristalise.kernel.persistency.outcomeinit.XPathOutcomeInitiator</Config>
 </CristalModule>

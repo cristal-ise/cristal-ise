@@ -18,7 +18,7 @@
  *
  * http://www.fsf.org/licensing/licenses/lgpl.html
  */
-package org.cristalise.kernel.persistency.outcome;
+package org.cristalise.kernel.persistency.outcomeinit;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -33,6 +33,8 @@ import org.apache.xmlbeans.impl.xsd2inst.SampleXmlUtil;
 import org.cristalise.kernel.common.InvalidDataException;
 import org.cristalise.kernel.common.ObjectNotFoundException;
 import org.cristalise.kernel.entity.agent.Job;
+import org.cristalise.kernel.persistency.outcome.Outcome;
+import org.cristalise.kernel.persistency.outcome.OutcomeInitiator;
 import org.cristalise.kernel.utils.Logger;
 
 /**

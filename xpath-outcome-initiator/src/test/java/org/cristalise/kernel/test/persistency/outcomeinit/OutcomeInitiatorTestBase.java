@@ -18,7 +18,7 @@
  *
  * http://www.fsf.org/licensing/licenses/lgpl.html
  */
-package org.cristalise.kernel.test.persistency.outcome;
+package org.cristalise.kernel.test.persistency.outcomeinit;
 
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -26,8 +26,8 @@ import static org.mockito.Mockito.when;
 import java.io.IOException;
 
 import org.cristalise.kernel.entity.agent.Job;
-import org.cristalise.kernel.persistency.outcome.EmptyOutcomeInitiator;
 import org.cristalise.kernel.persistency.outcome.Schema;
+import org.cristalise.kernel.persistency.outcomeinit.EmptyOutcomeInitiator;
 import org.cristalise.kernel.utils.Logger;
 import org.junit.BeforeClass;
 import org.xml.sax.SAXException;

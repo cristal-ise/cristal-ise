@@ -18,7 +18,7 @@
  *
  * http://www.fsf.org/licensing/licenses/lgpl.html
  */
-package org.cristalise.kernel.test.persistency.outcome;
+package org.cristalise.kernel.test.persistency.outcomeinit;
 
 import static org.junit.Assert.fail;
 import static org.mockito.Mockito.when;
@@ -29,7 +29,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.cristalise.kernel.entity.agent.Job;
-import org.cristalise.kernel.persistency.outcome.XPathOutcomeInitiator;
+import org.cristalise.kernel.persistency.outcomeinit.XPathOutcomeInitiator;
 import org.cristalise.kernel.utils.CastorHashMap;
 import org.cristalise.kernel.utils.Logger;
 import org.junit.Before;
