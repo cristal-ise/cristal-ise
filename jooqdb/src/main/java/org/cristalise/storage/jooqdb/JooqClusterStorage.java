@@ -18,7 +18,7 @@
  *
  * http://www.fsf.org/licensing/licenses/lgpl.html
  */
-package org.cristalise.storage;
+package org.cristalise.storage.jooqdb;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -37,8 +37,6 @@ import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.process.auth.Authenticator;
 import org.cristalise.kernel.querying.Query;
 import org.cristalise.kernel.utils.Logger;
-import org.cristalise.storage.jooqdb.JooqDomainHandler;
-import org.cristalise.storage.jooqdb.JooqHandler;
 import org.cristalise.storage.jooqdb.clusterStore.JooqCollectionHadler;
 import org.cristalise.storage.jooqdb.clusterStore.JooqHistoryHandler;
 import org.cristalise.storage.jooqdb.clusterStore.JooqItemPropertyHandler;
