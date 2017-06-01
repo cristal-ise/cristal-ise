@@ -42,7 +42,7 @@ public class JooqAuthenticator implements Authenticator {
     private JooqItemHandler         items;
     private JooqItemPropertyHandler properties;
 
-    private Argo2Password paswordHasher;
+    private Argon2Password paswordHasher;
 
     @Override
     public boolean authenticate(String resource) throws InvalidDataException, ObjectNotFoundException {
@@ -55,7 +55,7 @@ public class JooqAuthenticator implements Authenticator {
             items     .createTables(context);
             properties.createTables(context);
             
-            paswordHasher = new Argo2Password();
+            paswordHasher = new Argon2Password();
 
             return true;
         }

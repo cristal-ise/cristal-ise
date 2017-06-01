@@ -42,7 +42,7 @@ import org.cristalise.kernel.property.Property;
 import org.cristalise.kernel.property.PropertyDescriptionList;
 import org.cristalise.kernel.utils.Logger;
 import org.cristalise.storage.jooqdb.JooqHandler;
-import org.cristalise.storage.jooqdb.auth.Argo2Password;
+import org.cristalise.storage.jooqdb.auth.Argon2Password;
 import org.cristalise.storage.jooqdb.clusterStore.JooqItemPropertyHandler;
 import org.jooq.DSLContext;
 
@@ -58,7 +58,7 @@ public class JooqLookupManager implements LookupManager {
     private JooqRolePathHandler     roles;
     private JooqItemPropertyHandler properties;
 
-    private Argo2Password paswordHasher;
+    private Argon2Password passwordHasher;
 
     @Override
     public void open(Authenticator auth) {
@@ -75,7 +75,7 @@ public class JooqLookupManager implements LookupManager {
             roles     .createTables(context);
             properties.createTables(context);
 
-            paswordHasher = new Argo2Password();
+            passwordHasher = new Argon2Password();
         }
         catch (PersistencyException ex) {
             Logger.error(ex);
@@ -377,7 +377,7 @@ public class JooqLookupManager implements LookupManager {
         if (!exists(agent)) throw new ObjectNotFoundException("Agent:"+agent);
 
         try {
-            int rows = items.updatePassword(context, agent, paswordHasher.hashPassword(newPassword.toCharArray()));
+            int rows = items.updatePassword(context, agent, passwordHasher.hashPassword(newPassword.toCharArray()));
             if (rows != 1) throw new ObjectCannotBeUpdated("Agent:"+agent);
         }
         catch (Exception e) {

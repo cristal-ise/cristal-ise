@@ -25,19 +25,19 @@ import de.mkammerer.argon2.Argon2Constants;
 import de.mkammerer.argon2.Argon2Factory;
 import de.mkammerer.argon2.Argon2Factory.Argon2Types;
 
-public class Argo2Password {
+public class Argon2Password {
 
     private Argon2 argon2 = null;
 
-    final Argon2Types type;
-    final int         saltLenght;
-    final int         hashLenght;
+    private final Argon2Types type;
+    private final int         saltLenght;
+    private final int         hashLenght;
     
     private final int iterations;
     private final int memory;
     private final int parallelism;
 
-    public Argo2Password() {
+    public Argon2Password() {
         type       = Argon2Types.ARGON2i;
         saltLenght = Argon2Constants.DEFAULT_SALT_LENGTH;
         hashLenght = Argon2Constants.DEFAULT_HASH_LENGTH;
@@ -49,10 +49,23 @@ public class Argo2Password {
         parallelism = 1;
     }
 
+    /**
+     * Check if the given password string produces the same hash
+     * 
+     * @param hash the hashed password retrieved from database
+     * @param password the password string
+     * @return true, if the verification was successfull otherwise false
+     */
     public boolean checkPassword(final String hash, final char[] password) {
         return argon2.verify(hash, password);
     }
 
+    /**
+     * Create the hash from the password string
+     * 
+     * @param password the password string
+     * @return the hashed password
+     */
     public String hashPassword(final char[] password) {
         try {
             return argon2.hash(iterations, memory, parallelism, password);
