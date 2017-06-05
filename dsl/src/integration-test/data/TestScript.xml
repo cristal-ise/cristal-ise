@@ -1,5 +1,0 @@
-<cristalscript>
-    <param name='input1' type='java.lang.String' />
-    <output type='org.cristalise.kernel.scripting.ErrorInfo' />
-    <script language='javascript' name='MyFirstScript'><![CDATA[ return "Executed '"+input1+"'" ; ]]></script>
-</cristalscript>

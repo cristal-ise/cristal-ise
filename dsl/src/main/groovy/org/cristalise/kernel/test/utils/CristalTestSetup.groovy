@@ -100,6 +100,7 @@ trait CristalTestSetup {
     }
 
     public void cristalCleanup() {
+        /*
         def ORB = null
 
         try { ORB = Gateway.getORB() }
@@ -114,10 +115,12 @@ trait CristalTestSetup {
                 }
             }
             catch(Throwable t) {
-                System.err.println("Error closing ORB!")
-                t.printStackTrace()
+                Logger.error(t)
+//                System.err.println("Error closing ORB!")
+//                t.printStackTrace()
             }
         }
+        */
         Gateway.close()
     }
 }

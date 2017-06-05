@@ -6,25 +6,22 @@ import org.cristalise.dsl.test.builders.WorkflowTestBuilder;
 import org.cristalise.kernel.common.InvalidTransitionException
 import org.cristalise.kernel.process.AbstractMain
 import org.cristalise.kernel.process.Gateway
+import org.cristalise.kernel.test.utils.CristalTestSetup
 
 import spock.lang.Specification
 
 
-class CAExecutionSpecs extends Specification {
+class CAExecutionSpecs extends Specification implements CristalTestSetup {
 
     WorkflowTestBuilder util
 
     def setup() {
-        String[] args = ['-logLevel', '5', '-config', 'src/test/conf/testServer.conf', '-connect', 'src/test/conf/testInMemory.clc']
-        Gateway.init(AbstractMain.readC2KArgs(args))
-        Gateway.connect()
+        inMemoryServer()
 
         util = new WorkflowTestBuilder()
     }
 
-    def cleanup() {
-        Gateway.close()
-    }
+    def cleanup() { cristalCleanup() }
 
     def 'Execute ElemAct using Done transition'() {
         given: "Workflow contaning single ElemAct"

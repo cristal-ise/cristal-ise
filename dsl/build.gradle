@@ -68,21 +68,18 @@ repositories {
 }
 
 dependencies {
-    compile group: 'org.cristalise', name: 'cristalise-kernel',            version: cristaliseVer
-    compile group: 'org.cristalise', name: 'cristalise-dev',               version: cristaliseVer
-    compile group: 'org.cristalise', name: 'cristalise-jooqdb',            version: cristaliseVer
-    compile group: 'org.cristalise', name: 'cristalise-xpath-outcomeinit', version: '3.3.0'
-    compile group: 'org.cristalise', name: 'cristalise-trigger',           version: '3.3.0'
-    compile group: 'org.cristalise', name: 'cristalise-gui',               version: cristaliseVer
+    compile group: 'org.cristalise', name: 'cristalise-kernel', version: cristaliseVer
 
     compile group: 'org.codehaus.groovy', name: 'groovy-all',   version: groovyVer
     compile group: 'commons-lang',        name: 'commons-lang', version: commonsLangVer
     compile group: 'org.xmlunit',         name: 'xmlunit-core', version: xmlunitVer
 
-    testCompile group: 'com.h2database',     name: 'h2',                version: h2Ver
-    testCompile group: 'junit',              name: 'junit',             version: junitVer
-    testCompile group: 'org.awaitility',     name: 'awaitility-groovy', version: awaitilityVer
-    testCompile group: 'org.spockframework', name: 'spock-core',        version: spockVer
-    testCompile group: 'org.mvel',           name: 'mvel2',             version: mvel2Ver
-    testCompile(group: 'com.athaydes',       name: 'spock-reports',     version: spockReportsVer) { exclude(module: '*') }
+    testCompile group: 'org.cristalise',     name: 'cristalise-inmemory-lookup', version: cristaliseVer
+    testCompile group: 'com.h2database',     name: 'h2',                         version: h2Ver
+    testCompile group: 'junit',              name: 'junit',                      version: junitVer
+    testCompile group: 'org.awaitility',     name: 'awaitility-groovy',          version: awaitilityVer
+    testCompile group: 'org.spockframework', name: 'spock-core',                 version: spockVer
+    testCompile group: 'org.mvel',           name: 'mvel2',                      version: mvel2Ver
+    testCompile(group: 'com.athaydes',       name: 'spock-reports',              version: spockReportsVer) { exclude(module: '*') }
+    testCompile group: 'org.slf4j',          name: 'slf4j-simple',               version: '1.7.13'
 }

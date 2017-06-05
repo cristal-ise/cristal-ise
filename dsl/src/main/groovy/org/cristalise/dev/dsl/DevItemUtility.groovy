@@ -18,7 +18,7 @@
  *
  * http://www.fsf.org/licensing/licenses/lgpl.html
  */
-package org.cristalise.dev.test.utils
+package org.cristalise.dev.dsl
 
 import static org.cristalise.kernel.collection.BuiltInCollections.*
 import static org.cristalise.kernel.process.resource.BuiltInResources.*

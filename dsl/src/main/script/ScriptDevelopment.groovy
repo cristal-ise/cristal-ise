@@ -22,8 +22,8 @@ String pwd  = "test"
 
 //Change this parameters to setup the actual Script execution environment.
 //These 3 parameters will retrieve the Job used during AgentProxy.execute(job)
-String itemPath       = "/integTest/PatientFactory-2016-11-21_12-24-24_051"
-String activityName   = "CreateNewInstance"
+String itemPath       = "/integTest/XPathOutcomeInitTest_Second-2017-05-19_12-22-43_004"
+String activityName   = "AssignNewVersionFromLast"
 String transitionName = "Done"
 
 Gateway.init(AbstractMain.readC2KArgs( ['-logLevel', "$logLevel", '-config', config, '-connect', connect] as String[] ))
@@ -41,9 +41,10 @@ assert job
 if(job.hasQuery()) job.setOutcome(item.executeQuery(job.getQuery()));
 
 
+
 //========= Actual Script code shall be above this line ===================================
 
 //This line  will execute the actual Activity simulating the AgentProxy.execute(job) behaviour
-Logger.msg("Result:" + item.requestAction(job))
+//Logger.msg("Result:" + item.requestAction(job))
 
 Gateway.close()
