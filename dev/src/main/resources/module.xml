@@ -101,23 +101,6 @@
         <Workflow name="ModuleFactory" version="0" resource="boot/CA/ModuleFactory.xml">
             <Activity name="CreateItem" version="0" />
         </Workflow>
-        <Resource name="ModuleExportPath" version="0" type="OD">boot/OD/ModuleExportPath.xsd</Resource>
-        <Activity name="ExportModule" version="0" resource="boot/EA/ExportModule.xml">
-            <Schema name="ModuleExportPath" version="0" />
-        </Activity>
-        <Resource name="ModuleAgents" version="0" type="OD">boot/OD/ModuleAgents.xsd</Resource>
-        <Activity name="EditModuleAgents" version="0" resource="boot/EA/EditModuleAgents.xml">
-            <Schema name="ModuleAgents" version="0" />
-        </Activity>
-        <Resource name="ModuleProperties" version="0" type="OD">boot/OD/ModuleProperties.xsd</Resource>
-        <Activity name="EditModuleConfiguration" version="0" resource="boot/EA/EditModuleConfiguration.xml">
-            <Schema name="ModuleProperties" version="0" />
-        </Activity>
-        <Workflow name="ModuleDevWorkflow" version="0" resource="boot/CA/ModuleDevWorkflow.xml">
-            <Activity name="EditModuleConfiguration" version="0" />
-            <Activity name="EditModuleAgents" version="0" />
-            <Activity name="ExportModule" version="0" />
-        </Workflow>
         <Item name="ScriptFactory" initialPath="/desc/dev" workflow="ScriptFactoryWf">
             <Property name="LocalObjectType">Script</Property>
             <Property name="Type">Factory</Property>
@@ -251,7 +234,7 @@
             <Property name="Type">Factory</Property>
             <Outcome viewname="last" schema="PropertyDescription" version="0">boot/property/ModuleProp.xml</Outcome>
             <Dependency name="workflow" isDescription="false">
-                <DependencyMember itemPath="/desc/ActivityDesc/dev/ModuleDevWorkflow">
+                <DependencyMember itemPath="/desc/ActivityDesc/kernel/ManageModule">
                     <MemberProperties>
                         <KeyValuePair Key="Version" String="0" />
                     </MemberProperties>
