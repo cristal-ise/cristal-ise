@@ -30,6 +30,7 @@ import org.cristalise.kernel.common.PersistencyException;
 import org.cristalise.kernel.entity.C2KLocalObject;
 import org.cristalise.kernel.lookup.ItemPath;
 import org.cristalise.kernel.persistency.ClusterStorage;
+import org.cristalise.kernel.persistency.ClusterType;
 import org.cristalise.kernel.persistency.outcome.Outcome;
 import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.process.auth.Authenticator;
@@ -226,7 +227,7 @@ public class XMLDBClusterStorage extends ClusterStorage {
 
     @Override
     public C2KLocalObject get(ItemPath itemPath, String path) throws PersistencyException {
-        String type = ClusterStorage.getClusterType(path);
+        ClusterType type = ClusterStorage.getClusterType(path);
         // Get item collection
         Collection itemColl = getItemCollection(itemPath, false);
         if (itemColl == null) return null; // doesn't exist
@@ -238,8 +239,8 @@ public class XMLDBClusterStorage extends ClusterStorage {
                 String objString = (String) resource.getContent();
                 itemColl.close();
 
-                if (type.equals(OUTCOME)) return new Outcome(path, objString);
-                else                      return (C2KLocalObject) Gateway.getMarshaller().unmarshall(objString);
+                if (type == ClusterType.OUTCOME) return new Outcome(path, objString);
+                else                             return (C2KLocalObject) Gateway.getMarshaller().unmarshall(objString);
             }
             else return null;
         }
