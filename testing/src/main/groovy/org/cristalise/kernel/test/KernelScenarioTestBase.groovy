@@ -1,9 +1,8 @@
 package org.cristalise.kernel.test;
 
 import static org.junit.Assert.*
-import groovy.transform.CompileStatic
 
-import org.cristalise.dev.test.utils.DevItemDSL
+import org.cristalise.dev.dsl.DevItemDSL
 import org.cristalise.kernel.process.AbstractMain
 import org.cristalise.kernel.process.Gateway
 import org.cristalise.kernel.utils.Logger
@@ -12,6 +11,8 @@ import org.junit.Before
 import org.mvel2.templates.CompiledTemplate
 import org.mvel2.templates.TemplateCompiler
 import org.mvel2.templates.TemplateRuntime
+
+import groovy.transform.CompileStatic
 
 
 /**
@@ -68,7 +69,7 @@ class KernelScenarioTestBase extends DevItemDSL {
 
     @Before
     public void before() {
-        init('src/integration-test/bin/client.conf', 'src/integration-test/bin/integTest.clc')
+        init('src/main/bin/client.conf', 'src/main/bin/integTest.clc')
     }
 
     @After

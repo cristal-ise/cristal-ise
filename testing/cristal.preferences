@@ -1,7 +1,7 @@
 #Cristal 2
-#Mon Jun 05 16:31:40 CEST 2017
-Style=javax.swing.plaf.metal.MetalLookAndFeel
-SplitPanePosition=386
+#Fri Jul 07 10:51:15 CEST 2017
+Style=com.sun.java.swing.plaf.windows.WindowsLookAndFeel
+SplitPanePosition=425
 lastUser.integTest=dev
-WindowSize=1696,1036
-WindowPosition=321,151
+WindowPosition=198,143
+WindowSize=1397,538

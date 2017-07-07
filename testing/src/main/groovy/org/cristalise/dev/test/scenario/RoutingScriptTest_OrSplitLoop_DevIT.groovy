@@ -24,12 +24,12 @@ class RoutingScriptTest_OrSplitLoop_DevIT extends KernelScenarioTestBase {
 
         createNewSchema(schemaName+"-$timeStamp", folder)
         //TODO: use SchemaBuilder instead
-        editSchema(schemaName+"-$timeStamp", folder, new File("src/integration-test/data/RoutingScriptTest/OD/${schemaName}.xsd").text)
+        editSchema(schemaName+"-$timeStamp", folder, new File("src/main/data/RoutingScriptTest/OD/${schemaName}.xsd").text)
 
         routingScriptNames.each { String name ->
             createNewScript(name+"-$timeStamp", folder)
             //TODO: use ScriptBuilder instead
-            editScript(name+"-$timeStamp", folder, new File("src/integration-test/data/RoutingScriptTest/SC/${name}.xml").text)
+            editScript(name+"-$timeStamp", folder, new File("src/main/data/RoutingScriptTest/SC/${name}.xml").text)
         }
 
         elemActNames.each { String name, String schema ->
@@ -46,7 +46,7 @@ class RoutingScriptTest_OrSplitLoop_DevIT extends KernelScenarioTestBase {
         vars.ACT_COUNTER    = "ActCounter-$timeStamp"
         vars.ACT_EMPTY      = "EmptyAct-$timeStamp"
 
-        def caXML = evalMVELTemplate("src/integration-test/data/RoutingScriptTest/CA/${compActName}.xml", vars)
+        def caXML = evalMVELTemplate("src/main/data/RoutingScriptTest/CA/${compActName}.xml", vars)
 
         //println "-----------------------------------------------------------------------------------"
         //println caXML

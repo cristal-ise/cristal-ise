@@ -9,6 +9,8 @@ import org.junit.Test
 
 @CompileStatic
 class BasicDevDescriptionIT extends KernelScenarioTestBase {
+    
+    public static final String testDataRoot = "src/main/data";
 
     @Test
     public void createAndEditElemActDesc() {
@@ -25,7 +27,7 @@ class BasicDevDescriptionIT extends KernelScenarioTestBase {
         String name = "$schema-$timeStamp"
 
         createNewSchema(name, folder)
-        editSchema(name, folder, new File("src/integration-test/data/${schema}.xsd").text)
+        editSchema(name, folder, new File("$testDataRoot/${schema}.xsd").text)
     }
 
     @Test
@@ -41,7 +43,7 @@ class BasicDevDescriptionIT extends KernelScenarioTestBase {
         String name = "Script-$timeStamp"
 
         createNewScript(name, folder)
-        editScript(name, folder, new File("src/integration-test/data/TestScript.xml").text)
+        editScript(name, folder, new File("$testDataRoot/TestScript.xml").text)
     }
 
     @Test
@@ -49,6 +51,6 @@ class BasicDevDescriptionIT extends KernelScenarioTestBase {
         String name = "Query-$timeStamp"
 
         createNewQuery(name, folder)
-        editQuery(name, folder, new File("src/integration-test/data/TestQuery.xml").text)
+        editQuery(name, folder, new File("$testDataRoot/TestQuery.xml").text)
     }
 }

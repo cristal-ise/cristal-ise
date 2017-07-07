@@ -5,7 +5,7 @@
         <KernelVersion>3.3</KernelVersion>
         <Dependency>CristaliseDev</Dependency>
     </Info>
-    <ResourceURL>org/cristalise/dsl/resources/</ResourceURL>
+    <ResourceURL>org/cristalise/testing/resources/</ResourceURL>
     <Config name="Module.dev.debug">true</Config>
     <Config name="OutcomeInit.Query">org.cristalise.kernel.persistency.outcome.QueryOutcomeInitiator</Config>
     <Imports>
@@ -69,25 +69,24 @@
             </Dependency>
         </Item>
 
-
         <!-- XPathOutcomeInitTest -->
 
-        <Resource name="XPathOutcomeInitTest_Details"             version="0" type="OD">boot/OD/XPathOutcomeInitTest_Details.xsd</Resource>
-        <Resource name="XPathOutcomeInitTest_DetailsInstantiator" version="0" type="SC">boot/SC/XPathOutcomeInitTest_DetailsInstantiator.xml</Resource>
+        <SchemaResource name="XPathOutcomeInitTest_Details"             version="0"/>
+        <ScriptResource name="XPathOutcomeInitTest_DetailsInstantiator" version="0"/>
 
         <Activity name="XPathOutcomeInitTest_SetDetails" resource="boot/EA/XPathOutcomeInitTest_SetDetails.xml" version="0">
             <Schema name="XPathOutcomeInitTest_Details" version="0"/>
         </Activity>
 
         <Workflow name="XPathOutcomeInitTest_DetailsLifecycle" resource="boot/CA/XPathOutcomeInitTest_DetailsLifecycle.xml">
-            <Activity name="MoveLatestVersionToLast" version="0"/>
-            <Activity name="AssignNewVersionFromLast" version="0"/>
+            <Activity name="MoveLatestVersionToLast"         version="0"/>
+            <Activity name="AssignNewVersionFromLast"        version="0"/>
             <Activity name="XPathOutcomeInitTest_SetDetails" version="0"/>
         </Workflow>
 
         <Workflow name="XPathOutcomeInitTest_FactoryLifecycle" resource="boot/CA/XPathOutcomeInitTest_FactoryLifecycle.xml">
-            <StateMachine name="CompositeActivity" version="0"/>
-            <Activity name="CreateItem" version="0"/>
+            <StateMachine name="CompositeActivity"   version="0"/>
+            <Activity name="CreateItem"              version="0"/>
             <Activity name="EditPropertyDescription" version="0"/>
         </Workflow>
 
