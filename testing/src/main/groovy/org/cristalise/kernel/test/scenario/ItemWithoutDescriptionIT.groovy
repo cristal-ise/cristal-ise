@@ -1,17 +1,18 @@
 package org.cristalise.kernel.test.scenario;
 
 import static org.junit.Assert.*
-import groovy.transform.CompileStatic
 
 import org.cristalise.kernel.entity.agent.Job
 import org.cristalise.kernel.entity.proxy.AgentProxy
 import org.cristalise.kernel.entity.proxy.ItemProxy
+import org.cristalise.kernel.lookup.RolePath
+import org.cristalise.kernel.process.Gateway
 import org.cristalise.kernel.test.KernelScenarioTestBase
 import org.cristalise.kernel.test.utils.KernelXMLUtility
 import org.junit.Before
-import org.junit.BeforeClass;
 import org.junit.Test
 
+import groovy.transform.CompileStatic
 
 
 /**
@@ -20,83 +21,55 @@ import org.junit.Test
 @CompileStatic
 class ItemWithoutDescriptionIT extends KernelScenarioTestBase {
 
+    ItemProxy serverItem
+
     @Before
     public void before() {
-        init('src/test/conf/devClient.conf', 'src/test/conf/devServer.clc')
+        super.before();
+
+        serverItem = agent.getItem("/domain/servers/localhost")
+        assert serverItem && serverItem.getName() == "localhost"
     }
 
-    /**
-     * 
-     * @param role
-     * @return
-     */
-    private void createNewRole(String role) {
-        ItemProxy roleFactory = agent.getItem("/domain/servers/localhost")
-        assert roleFactory && roleFactory.getName() == "localhost"
-
-        Job doneJob = getDoneJob(roleFactory, "CreateNewRole")
-        doneJob.setOutcome( KernelXMLUtility.getRoleXML(name: role) )
-
-        agent.execute(doneJob)
+    private RolePath createRole(String role) {
+        executeDoneJob(serverItem, "CreateNewRole", KernelXMLUtility.getRoleXML(name: role))
+        return Gateway.getLookup().getRolePath(role);
     }
 
-
-    /**
-     * 
-     * @param role
-     * @param name
-     * @return
-     */
-    private void createNewAgent(String role, String name) {
-        ItemProxy agentFactory = agent.getItem("/domain/servers/localhost")
-        assert agentFactory && agentFactory.getName() == "localhost"
-
-        Job doneJob = getDoneJob(agentFactory, "CreateNewAgent")
-        doneJob.setOutcome( KernelXMLUtility.getAgentXML(name: name, password: "test", Role: role) )
-
-        agent.execute(doneJob)
-    }
-    
- 
-    /**
-     * 
-     * @param role
-     * @param name
-     * @return
-     */
-    private void createNewItem(String name) {
-        ItemProxy factory = agent.getItem("/domain/servers/localhost")
-        assert factory && factory.getName() == "localhost"
-
-        Job doneJob = getDoneJob(factory, "CreateNewItem")
-        doneJob.setOutcome( KernelXMLUtility.getItemXML( name: name, workflow: 'NoWorkflow', initialPath: '/domain/ItemTest') )
-
-        agent.execute(doneJob)
+    private void removeRole(String role) {
+        String[] params = [ role ];
+        agent.execute(serverItem, "RemoveRole", params);
+        assert ! Gateway.getLookup().exists(new RolePath(role, false));
     }
 
+    private AgentProxy createAgent(String name, String role) {
+        Job j = executeDoneJob(serverItem, "CreateNewAgent", KernelXMLUtility.getAgentXML(name: name, password: "test", Role: role))
+        return Gateway.getProxyManager().getAgentProxy( Gateway.getLookup().getAgentPath(name) )
+    }
+
+    private ItemProxy createItem(String name) {
+        Job j = executeDoneJob(serverItem, "CreateNewItem", KernelXMLUtility.getItemXML(name: name, workflow: 'NoWorkflow', initialPath: '/domain/itemTest'))
+        return Gateway.getProxyManager().getProxy( Gateway.getLookup().getItemPath(name) )
+    }
 
     @Test
-    public void createRole() {
+    public void 'CreateNewRole and RemoveRole predefined step of ServerItem'() {
         String role = "TestRole-$timeStamp"
-
-        createNewRole(role)
+        createRole(role)
+        removeRole(role)
     }
 
-
     @Test
-    public void createAgent() {
+    public void 'CreateNewAgent predefined step of ServerItem'() {
         String role = "TestRole-$timeStamp"
         String name = "TestAgent-$timeStamp"
 
-        createNewRole(role)
-        createNewAgent(role, name)
+        createRole(role)
+        createAgent(name, role)
     }
 
-    
     @Test
-    public void createItem() {
-        String name = "TestItem-$timeStamp"
-        
-        createNewItem(name)
+    public void 'CreateNewItem predefined step of ServerItem'() {
+        createItem("TestItem-$timeStamp")
     }
 }
