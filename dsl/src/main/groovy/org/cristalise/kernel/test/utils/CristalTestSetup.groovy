@@ -20,13 +20,12 @@
  */
 package org.cristalise.kernel.test.utils
 
-import groovy.transform.CompileStatic
-
 import org.cristalise.kernel.process.AbstractMain
 import org.cristalise.kernel.process.Gateway
 import org.cristalise.kernel.process.auth.Authenticator
 import org.cristalise.kernel.utils.Logger
 
+import groovy.transform.CompileStatic
 
 /**
  *
@@ -94,9 +93,13 @@ trait CristalTestSetup {
     }
 
     public Authenticator cristalSetup(int logLevel, String config, String connect) {
+        cristalInit(logLevel, config, connect)
+        return Gateway.connect()
+    }
+
+    public void cristalInit(int logLevel, String config, String connect) {
         String[] args = ['-logLevel', "$logLevel", '-config', config, '-connect', connect]
         Gateway.init(AbstractMain.readC2KArgs(args))
-        return Gateway.connect()
     }
 
     public void cristalCleanup() {
