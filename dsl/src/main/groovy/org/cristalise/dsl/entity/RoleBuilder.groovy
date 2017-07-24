@@ -20,9 +20,15 @@
  */
 package org.cristalise.dsl.entity
 
+import groovy.lang.Closure
 import groovy.transform.CompileStatic
 
+import java.util.Map
+
+import org.cristalise.kernel.entity.imports.ImportAgent
 import org.cristalise.kernel.entity.imports.ImportRole
+import org.cristalise.kernel.lookup.AgentPath
+import org.cristalise.kernel.lookup.DomainPath
 import org.cristalise.kernel.lookup.RolePath
 import org.cristalise.kernel.utils.Logger
 
@@ -33,26 +39,31 @@ import org.cristalise.kernel.utils.Logger
 @CompileStatic
 class RoleBuilder {
 
+    public static ArrayList<ImportRole> build(Closure cl) {
+        def roleDelegate = new RoleDelegate()
+
+        roleDelegate.processClosure(cl)
+
+        Logger.msg 5, "RoleBuilder.build() - Done"
+
+        return roleDelegate.roles
+    }
+
     public static List<RolePath> create(Closure cl) {
         return createRoles(build(cl))
     }
 
-    public static ArrayList<ImportRole> build(Closure cl) {
-        def rB = new RoleBuilder()
-
-        def rd = new RoleDelegate()
-        rd.processClosure(cl)
-
-        Logger.msg 5, "RoleBuilder.build() - Done"
-
-        return rd.roles
+    public static RolePath create(AgentPath builderAgent, ImportRole newRole) {
+        assert builderAgent && newRole
+        return (RolePath)newRole.create(builderAgent, true)
     }
 
     public static List<RolePath> createRoles(List<ImportRole> roles) {
         List<RolePath> rolePathes = []
-        roles.each { ImportRole role ->
-            rolePathes.add((RolePath)role.create(null, false))
-        }
+
+        //Creating roles does not require an Agent during bootstrap and import
+        roles.each { ImportRole newRole -> rolePathes.add((RolePath)newRole.create(null, false)) }
+
         return rolePathes
     }
 }
