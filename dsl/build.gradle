@@ -79,6 +79,8 @@ dependencies {
     testCompile group: 'junit',              name: 'junit',                      version: junitVer
     testCompile group: 'org.awaitility',     name: 'awaitility-groovy',          version: awaitilityVer
     testCompile group: 'org.spockframework', name: 'spock-core',                 version: spockVer
+    testCompile group: 'org.spockframework', name: 'spock-unitils',              version: spockVer
+    testCompile group: 'org.unitils',        name: 'unitils-core',               version: '3.4.6'
     testCompile group: 'org.mvel',           name: 'mvel2',                      version: mvel2Ver
     testCompile(group: 'com.athaydes',       name: 'spock-reports',              version: spockReportsVer) { exclude(module: '*') }
     testCompile group: 'org.slf4j',          name: 'slf4j-simple',               version: '1.7.13'
