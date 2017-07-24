@@ -86,7 +86,7 @@ class WFBuilderPropertySpecs extends Specification implements CristalTestSetup {
         wfBuilder.wf.search("workflow/domain/AndSplit").properties.booleanVal == true
     }
 
-    def 'Default RoutingScriptis added to Split if nothing specified'() {
+    def 'Default RoutingScript is added to Split if nothing specified'() {
         when: "Wf contains OrSplit"
         wfBuilder.build {
             OrSplit {}
