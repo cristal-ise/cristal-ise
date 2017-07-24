@@ -32,6 +32,7 @@ import org.cristalise.kernel.entity.imports.ImportRole
 import org.cristalise.kernel.lifecycle.instance.Workflow
 import org.cristalise.kernel.lookup.AgentPath
 import org.cristalise.kernel.lookup.ItemPath
+import org.cristalise.kernel.lookup.Path
 import org.cristalise.kernel.lookup.RolePath
 import org.cristalise.kernel.process.Gateway
 import org.cristalise.kernel.property.PropertyArrayList
@@ -46,11 +47,10 @@ class AgentBuilder {
 
     public AgentBuilder() {}
 
-    public static def create(Map<String, Object> attrs, Closure cl) {
+    public static AgentPath create(Map<String, Object> attrs, Closure cl) {
         assert attrs && attrs.agent && (attrs.agent instanceof AgentPath)
 
-        def item = build(attrs, cl)
-        return null
+        return create((AgentPath)attrs.agent, build(attrs, cl))
     }
 
     public static ImportAgent build(Map<String, Object> attrs, Closure cl) {
