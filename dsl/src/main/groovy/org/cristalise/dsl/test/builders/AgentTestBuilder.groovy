@@ -22,6 +22,8 @@ package org.cristalise.dsl.test.builders
 
 import groovy.transform.CompileStatic
 
+import java.util.ArrayList
+
 import org.cristalise.dsl.entity.AgentBuilder;
 import org.cristalise.kernel.entity.agent.Job
 import org.cristalise.kernel.entity.agent.JobList
@@ -117,5 +119,9 @@ class AgentTestBuilder extends AgentBuilder {
         Job j = itemProxy.getJobByTransitionName(actName, transName, newAgentPath)
         if (outcome) j.setOutcome(outcome)
         return newAgentProxy.execute(j)
+    }
+
+    public ArrayList<Job> getJobs(ItemPath itemPath) {
+        return Gateway.getProxyManager().getProxy(itemPath).getJobList(newAgentProxy)
     }
 }
