@@ -40,6 +40,7 @@ import org.jooq.DeleteQuery;
 import org.jooq.Field;
 import org.jooq.Operator;
 import org.jooq.Record;
+import org.jooq.Record2;
 import org.jooq.Result;
 import org.jooq.SelectConditionStep;
 import org.jooq.Table;
@@ -155,8 +156,8 @@ public class JooqRolePathHandler {
     }
 
     public List<Path> findByRegex(DSLContext context, String pattern) {
-        Result<Record> result = context
-                .select().from(ROLE_PATH_TABLE)
+        Result<Record2<String,Boolean>> result = context
+                .selectDistinct(PATH, JOBLIST).from(ROLE_PATH_TABLE)
                 .where(PATH.likeRegex(pattern))
                 .fetch();
 

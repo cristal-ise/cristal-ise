@@ -132,7 +132,22 @@ public class LookupRoleTests extends LookupTestBase {
     }
 
     @Test
-    public void addTwoAgentsToRole() throws Exception {
+    public void addTwoAgentsToRootRole() throws Exception {
+        lookup.addRole(jim, user);
+        lookup.addRole(tom, user);
+
+        assert lookup.hasRole(jim, user);
+        assert lookup.hasRole(tom, user);
+
+        compare(Arrays.asList(jim, tom),  lookup.getAgents(user));
+        compare(Arrays.asList(user), lookup.getRoles(jim));
+        compare(Arrays.asList(user), lookup.getRoles(tom));
+
+        assertReflectionEquals(user, lookup.getRolePath("User"));
+    }
+
+    @Test
+    public void addTwoAgentsToSubRole() throws Exception {
         RolePath internist = createUserRole("Internist", false);
 
         lookup.addRole(jim, internist);
@@ -185,5 +200,21 @@ public class LookupRoleTests extends LookupTestBase {
         lookup.delete(internist);
         assert ! lookup.exists(internist);
         compare(Arrays.asList(), lookup.getRoles(jim));
+    }
+
+    @Test
+    public void checkRoleHierarchy() throws Exception {
+        AgentPath sam = new AgentPath(new ItemPath(), "Sam");
+        lookup.add(sam);
+
+        RolePath internist = createUserRole("Internist", false);
+        lookup.addRole(sam, user);
+        lookup.addRole(jim, internist);
+        lookup.addRole(tom, internist);
+
+        compare(Arrays.asList(sam),       lookup.getAgents(user));
+        compare(Arrays.asList(jim,tom),   lookup.getAgents(internist));
+
+        compare(Arrays.asList(internist), lookup.getChildren(user));
     }
 }
