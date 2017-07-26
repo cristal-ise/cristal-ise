@@ -583,7 +583,6 @@ public class LDAPLookup implements LookupManager {
                 attrs.add(new LDAPAttribute("objectclass", "cristalcontext"));
             }
         }
-
         else if (path instanceof ItemPath) {
             ItemPath itemPath = (ItemPath) path;
             attrs.add(new LDAPAttribute("cn", itemPath.getUUID().toString()));
@@ -616,8 +615,7 @@ public class LDAPLookup implements LookupManager {
     // Creates a cristalRole
     // CristalRole is-a specialized CristalContext which contains multi-valued uniqueMember attribute pointing to cristalagents
     @Override
-    public RolePath createRole(RolePath rolePath)
-            throws ObjectAlreadyExistsException, ObjectCannotBeUpdated {
+    public RolePath createRole(RolePath rolePath) throws ObjectAlreadyExistsException, ObjectCannotBeUpdated {
         // create the role
         String roleDN = getFullDN(rolePath);
         LDAPEntry roleNode;
@@ -660,8 +658,7 @@ public class LDAPLookup implements LookupManager {
     }
 
     @Override
-    public void removeRole(AgentPath agent, RolePath role)
-            throws ObjectCannotBeUpdated, ObjectNotFoundException {
+    public void removeRole(AgentPath agent, RolePath role) throws ObjectCannotBeUpdated, ObjectNotFoundException {
         LDAPEntry roleEntry = LDAPLookupUtils.getEntry(mLDAPAuth.getAuthObject(), getFullDN(role));
         if (LDAPLookupUtils.existsAttributeValue(roleEntry, "uniqueMember", getFullDN(agent)))
             LDAPLookupUtils.removeAttributeValue(mLDAPAuth.getAuthObject(), roleEntry, "uniqueMember", getFullDN(agent));
@@ -800,7 +797,8 @@ public class LDAPLookup implements LookupManager {
 
     @Override
     public void setAgentPassword(AgentPath agent, String newPassword)
-            throws ObjectNotFoundException, ObjectCannotBeUpdated, NoSuchAlgorithmException {
+            throws ObjectNotFoundException, ObjectCannotBeUpdated, NoSuchAlgorithmException
+    {
         if (!newPassword.matches("^\\{[a-zA-Z0-5]*\\}")) newPassword = LDAPLookupUtils.generateUserPassword(newPassword);
         LDAPEntry agentEntry;
         try {
@@ -810,14 +808,16 @@ public class LDAPLookup implements LookupManager {
             throw new ObjectNotFoundException("Agent " + agent.getAgentName() + " does not exist");
         }
         LDAPLookupUtils.setAttributeValue(mLDAPAuth.getAuthObject(), agentEntry, "userPassword", newPassword);
-
     }
 
     @Override
-    public String getAgentName(AgentPath agentPath)
-            throws ObjectNotFoundException {
+    public String getAgentName(AgentPath agentPath) throws ObjectNotFoundException {
         LDAPEntry agentEntry = LDAPLookupUtils.getEntry(mLDAPAuth.getAuthObject(), getFullDN(agentPath));
         return LDAPLookupUtils.getFirstAttributeValue(agentEntry, "uid");
     }
 
+    @Override
+    public void setIOR(ItemPath item, String ior) throws ObjectNotFoundException, ObjectCannotBeUpdated {
+        throw new ObjectCannotBeUpdated("UNIMPLEMENTED");
+    }
 }
