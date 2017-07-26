@@ -29,6 +29,7 @@ import org.cristalise.kernel.common.ObjectCannotBeUpdated
 import org.cristalise.kernel.common.ObjectNotFoundException
 import org.cristalise.kernel.lookup.AgentPath
 import org.cristalise.kernel.lookup.DomainPath
+import org.cristalise.kernel.lookup.ItemPath
 import org.cristalise.kernel.lookup.LookupManager
 import org.cristalise.kernel.lookup.Path
 import org.cristalise.kernel.lookup.RolePath
@@ -154,5 +155,9 @@ class InMemoryLookupManager extends InMemoryLookup implements LookupManager {
     public void setHasJobList(RolePath role, boolean hasJobList) throws ObjectNotFoundException, ObjectCannotBeUpdated {
         Logger.msg(5, "InMemoryLookupManager.setHasJobList() - RolePath: $role, hasJobList: $hasJobList");
         ((RolePath)retrievePath(role.stringPath)).setHasJobList(hasJobList)
+    }
+
+    public void setIOR(ItemPath item, String ior) throws ObjectNotFoundException, ObjectCannotBeUpdated {
+        ((ItemPath)retrievePath(item.stringPath)).setIORString(ior)
     }
 }
