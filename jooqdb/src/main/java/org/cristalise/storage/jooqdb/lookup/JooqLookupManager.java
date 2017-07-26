@@ -95,6 +95,8 @@ public class JooqLookupManager implements LookupManager {
 
     @Override
     public boolean exists(Path path) {
+        if (path == null) return false;
+
         try {
             if      (path instanceof ItemPath)   return items  .exists(context, path.getUUID());
             else if (path instanceof AgentPath)  return items  .exists(context, path.getUUID());
@@ -261,9 +263,6 @@ public class JooqLookupManager implements LookupManager {
 
     @Override
     public Iterator<Path> getChildren(Path path) {
-        //after the path match words only
-        //String pattern = "^" + path.getStringPath() + "/\\w+$";
-
         //after the path match everything except '/'
         String pattern = "^" + path.getStringPath() + "/[^/]*$";
 
@@ -310,7 +309,8 @@ public class JooqLookupManager implements LookupManager {
 
     @Override
     public void addRole(AgentPath agent, RolePath role) throws ObjectCannotBeUpdated, ObjectNotFoundException {
-        if (!exists(role)) throw new ObjectNotFoundException("Role:"+role);
+        if (!exists(role))  throw new ObjectNotFoundException("Role:"+role);
+        if (!exists(agent)) throw new ObjectNotFoundException("Agent:"+agent);
 
         try {
             int rows = roles.insert(context, role, agent);
@@ -404,5 +404,20 @@ public class JooqLookupManager implements LookupManager {
     @Override
     public Iterator<Path> searchAliases(ItemPath itemPath) {
         return domains.find(context, itemPath).iterator();
+    }
+
+    @Override
+    public void setIOR(ItemPath item, String ior) throws ObjectNotFoundException, ObjectCannotBeUpdated {
+        if (!exists(item)) throw new ObjectNotFoundException("Item:"+item);
+
+        item.setIORString(ior);
+
+        try {
+            items.updateIOR(context, item, ior);
+        }
+        catch (Exception e) {
+            Logger.error(e);
+            throw new ObjectCannotBeUpdated("Item:" + item + " error:" + e.getMessage());
+        }
     }
 }

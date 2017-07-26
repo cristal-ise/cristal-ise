@@ -75,6 +75,14 @@ public class JooqItemHandler {
                 .execute();
     }
 
+    public int updateIOR(DSLContext context, ItemPath item, String ior) throws PersistencyException {
+        return context
+                .update(ITEM_TABLE)
+                .set(IOR, ior)
+                .where(UUID.equal(item.getUUID()))
+                .execute();
+    }
+
     public int update(DSLContext context, ItemPath path) throws PersistencyException {
         boolean isAgent = path instanceof AgentPath;
 
