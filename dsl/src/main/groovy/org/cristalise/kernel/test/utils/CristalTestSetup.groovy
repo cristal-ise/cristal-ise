@@ -21,6 +21,7 @@
 package org.cristalise.kernel.test.utils
 
 import org.cristalise.kernel.process.AbstractMain
+import org.cristalise.kernel.process.Bootstrap
 import org.cristalise.kernel.process.Gateway
 import org.cristalise.kernel.process.auth.Authenticator
 import org.cristalise.kernel.utils.Logger
@@ -86,7 +87,9 @@ trait CristalTestSetup {
         Authenticator auth = cristalSetup(logLevel, config, connect)
         Logger.initConsole("ItemServer");
 
-        Gateway.startServer( auth )
+        Gateway.startServer()
+        Bootstrap.run();
+
         waitBootstrapThread()
 
         return auth
