@@ -107,4 +107,24 @@ class ScriptExecutionSpecs extends Specification implements CristalTestSetup {
         then:
         result == 0
     }
+
+    def 'Script written in javascript can use function from included Script'() {
+        given:
+        ScriptBuilder.create("integTest", "Function", 0) {
+            javascript { "function func() { return 2; }" }
+        }
+        ScriptBuilder.create("integTest", "Modulo", 0) {
+            include("Function", 0)
+            output('java.lang.Integer')
+            javascript { "func() % 2;" }
+        }
+        Script script = LocalObjectLoader.getScript("Modulo", 0)
+
+        when:
+        def properties = new CastorHashMap()
+        def result = script.evaluate(null, properties, null, null)
+
+        then:
+        result == 0
+    }
 }
