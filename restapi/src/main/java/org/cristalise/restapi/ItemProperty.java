@@ -32,8 +32,9 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
 import org.cristalise.kernel.common.ObjectNotFoundException;
-import org.cristalise.kernel.persistency.ClusterStorage;
 import org.cristalise.kernel.property.Property;
+
+import static org.cristalise.kernel.persistency.ClusterType.PROPERTY;
 
 @Path("/item/{uuid}/property")
 public class ItemProperty extends ItemUtils {
@@ -72,7 +73,7 @@ public class ItemProperty extends ItemUtils {
         checkAuthCookie(authCookie);
         LinkedHashMap<String, Object> propDetails = new LinkedHashMap<String, Object>();
         try {
-            Property prop = (Property) getProxy(uuid).getObject(ClusterStorage.PROPERTY + "/" + name);
+            Property prop = (Property) getProxy(uuid).getObject(PROPERTY + "/" + name);
             propDetails.put("name", prop.getName());
             propDetails.put("value", prop.getValue());
             propDetails.put("readOnly", !prop.isMutable());

@@ -48,7 +48,6 @@ import org.cristalise.kernel.events.Event;
 import org.cristalise.kernel.lifecycle.instance.stateMachine.StateMachine;
 import org.cristalise.kernel.lookup.InvalidItemPathException;
 import org.cristalise.kernel.lookup.ItemPath;
-import org.cristalise.kernel.persistency.ClusterStorage;
 import org.cristalise.kernel.persistency.outcome.Outcome;
 import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.utils.CastorHashMap;
@@ -56,6 +55,8 @@ import org.cristalise.kernel.utils.KeyValuePair;
 import org.cristalise.kernel.utils.LocalObjectLoader;
 import org.cristalise.kernel.utils.Logger;
 import org.json.XML;
+
+import static org.cristalise.kernel.persistency.ClusterType.PROPERTY;
 
 public abstract class ItemUtils extends RestHandler {
 
@@ -68,7 +69,7 @@ public abstract class ItemUtils extends RestHandler {
 
     protected static LinkedHashMap<String, String> getPropertySummary(ItemProxy item) throws ObjectNotFoundException {
         LinkedHashMap<String, String> props = new LinkedHashMap<String, String>();
-        for (String propName : item.getContents(ClusterStorage.PROPERTY)) {
+        for (String propName : item.getContents(PROPERTY)) {
             if (!propName.equalsIgnoreCase("name"))
                 props.put(propName, item.getProperty(propName));
         }

@@ -20,19 +20,40 @@
  */
 package org.cristalise.restapi;
 
-import org.cristalise.kernel.common.*;
-import org.cristalise.kernel.entity.agent.Job;
-import org.cristalise.kernel.entity.proxy.AgentProxy;
-import org.cristalise.kernel.entity.proxy.ItemProxy;
-import org.cristalise.kernel.persistency.ClusterStorage;
-import org.cristalise.kernel.scripting.ScriptErrorException;
-import org.cristalise.kernel.utils.Logger;
-
-import javax.ws.rs.*;
-import javax.ws.rs.core.*;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
+
+import javax.ws.rs.Consumes;
+import javax.ws.rs.CookieParam;
+import javax.ws.rs.GET;
+import javax.ws.rs.OPTIONS;
+import javax.ws.rs.POST;
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
+import javax.ws.rs.core.Context;
+import javax.ws.rs.core.Cookie;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.UriInfo;
+
+import org.cristalise.kernel.common.AccessRightsException;
+import org.cristalise.kernel.common.InvalidCollectionModification;
+import org.cristalise.kernel.common.InvalidDataException;
+import org.cristalise.kernel.common.InvalidTransitionException;
+import org.cristalise.kernel.common.ObjectAlreadyExistsException;
+import org.cristalise.kernel.common.ObjectNotFoundException;
+import org.cristalise.kernel.common.PersistencyException;
+import org.cristalise.kernel.entity.agent.Job;
+import org.cristalise.kernel.entity.proxy.AgentProxy;
+import org.cristalise.kernel.entity.proxy.ItemProxy;
+import org.cristalise.kernel.scripting.ScriptErrorException;
+import org.cristalise.kernel.utils.Logger;
+
+import static org.cristalise.kernel.persistency.ClusterType.COLLECTION;
+import static org.cristalise.kernel.persistency.ClusterType.VIEWPOINT;
 
 @Path("/item/{uuid}")
 public class ItemRoot extends ItemUtils {
@@ -61,9 +82,9 @@ public class ItemRoot extends ItemUtils {
             throw ItemUtils.createWebAppException("No Properties found", Response.Status.BAD_REQUEST);
         }
 
-        itemSummary.put("data", enumerate(item, ClusterStorage.VIEWPOINT, "data", uri));
+        itemSummary.put("data", enumerate(item, VIEWPOINT.getName(), "data", uri));
 
-        itemSummary.put("collections", enumerate(item, ClusterStorage.COLLECTION, "collection", uri));
+        itemSummary.put("collections", enumerate(item, COLLECTION.getName(), "collection", uri));
         return toJSON(itemSummary);
     }
 

@@ -42,8 +42,9 @@ import org.cristalise.kernel.entity.proxy.AgentProxy;
 import org.cristalise.kernel.entity.proxy.ItemProxy;
 import org.cristalise.kernel.lookup.InvalidItemPathException;
 import org.cristalise.kernel.lookup.RolePath;
-import org.cristalise.kernel.persistency.ClusterStorage;
 import org.cristalise.kernel.process.Gateway;
+
+import static org.cristalise.kernel.persistency.ClusterType.JOB;
 
 @Path("/agent/{uuid}")
 public class AgentJobList extends RemoteMapAccess {
@@ -67,7 +68,7 @@ public class AgentJobList extends RemoteMapAccess {
                 Gateway.getProperties().getInt("REST.DefaultBatchSize", 20));
 
         // fetch this batch of events from the RemoteMap
-        LinkedHashMap<String, Object> jobs = super.list(item, ClusterStorage.JOB, start, batchSize, uri);
+        LinkedHashMap<String, Object> jobs = super.list(item, JOB.getName(), start, batchSize, uri);
 
         // replace Jobs with their JSON form. Leave any other object (like the nextBatch URI) as they are
         for (String key : jobs.keySet()) {
@@ -100,7 +101,7 @@ public class AgentJobList extends RemoteMapAccess {
         ItemProxy item = getProxy(uuid);
         if (!(item instanceof AgentProxy))
             throw ItemUtils.createWebAppException("UUID does not belong to an Agent", Response.Status.BAD_REQUEST);
-        Job job = (Job) get(item, ClusterStorage.JOB, jobId);
+        Job job = (Job) get(item, JOB.getName(), jobId);
         try {
             return toJSON(makeJobData(job, job.getItemProxy().getName(), uri));
         }

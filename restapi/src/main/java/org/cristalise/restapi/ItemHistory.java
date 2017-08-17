@@ -37,9 +37,11 @@ import javax.ws.rs.core.UriInfo;
 import org.cristalise.kernel.common.ObjectNotFoundException;
 import org.cristalise.kernel.entity.proxy.ItemProxy;
 import org.cristalise.kernel.events.Event;
-import org.cristalise.kernel.persistency.ClusterStorage;
 import org.cristalise.kernel.persistency.outcome.Outcome;
 import org.cristalise.kernel.process.Gateway;
+
+import static org.cristalise.kernel.persistency.ClusterType.HISTORY;
+import static org.cristalise.kernel.persistency.ClusterType.OUTCOME;
 
 @Path("/item/{uuid}/history")
 public class ItemHistory extends RemoteMapAccess {
@@ -59,7 +61,7 @@ public class ItemHistory extends RemoteMapAccess {
                 Gateway.getProperties().getInt("REST.DefaultBatchSize", 20));
 
         // fetch this batch of events from the RemoteMap
-        LinkedHashMap<String, Object> events = super.list(item, ClusterStorage.HISTORY, start, batchSize, uri);
+        LinkedHashMap<String, Object> events = super.list(item, HISTORY.getName(), start, batchSize, uri);
 
         // replace Events with their JSON form. Leave any other object (like the nextBatch URI) as they are
         for (String key : events.keySet()) {
@@ -81,21 +83,21 @@ public class ItemHistory extends RemoteMapAccess {
     {
         checkAuthCookie(authCookie);
         ItemProxy item = getProxy(uuid);
-        Event ev = (Event) get(item, ClusterStorage.HISTORY, eventId);
+        Event ev = (Event) get(item, HISTORY, eventId);
         return toJSON(makeEventData(ev, uri));
     }
 
     private Response getEventOutcome(String uuid, String eventId, Cookie authCookie, UriInfo uri, boolean json) {
         checkAuthCookie(authCookie);
         ItemProxy item = getProxy(uuid);
-        Event ev = (Event) get(item, ClusterStorage.HISTORY, eventId);
+        Event ev = (Event) get(item, HISTORY, eventId);
 
         if (ev.getSchemaName() == null || ev.getSchemaName().equals("")) {
             throw ItemUtils.createWebAppException("This event has no data", Response.Status.NOT_FOUND);
         }
 
         try {
-            Outcome oc = (Outcome) item.getObject(ClusterStorage.OUTCOME+"/"+ev.getSchemaName()+"/"+ev.getSchemaVersion()+"/"+ev.getID());
+            Outcome oc = (Outcome) item.getObject(OUTCOME+"/"+ev.getSchemaName()+"/"+ev.getSchemaVersion()+"/"+ev.getID());
             return getOutcomeResponse(oc, ev, json);
         }
         catch (ObjectNotFoundException e) {

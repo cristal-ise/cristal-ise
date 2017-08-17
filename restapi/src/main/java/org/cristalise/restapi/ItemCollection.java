@@ -33,7 +33,8 @@ import javax.ws.rs.core.UriInfo;
 
 import org.cristalise.kernel.common.ObjectNotFoundException;
 import org.cristalise.kernel.entity.proxy.ItemProxy;
-import org.cristalise.kernel.persistency.ClusterStorage;
+
+import static org.cristalise.kernel.persistency.ClusterType.COLLECTION;
 
 @Path("/item/{uuid}/collection")
 public class ItemCollection extends ItemUtils {
@@ -43,7 +44,7 @@ public class ItemCollection extends ItemUtils {
     public Response getCollections(@PathParam("uuid") String uuid, @CookieParam(COOKIENAME) Cookie authCookie, @Context UriInfo uri) {
         checkAuthCookie(authCookie);
         ItemProxy item = getProxy(uuid);
-        return toJSON(enumerate(item, ClusterStorage.COLLECTION, "collection", uri));
+        return toJSON(enumerate(item, COLLECTION.getName(), "collection", uri));
     }
 
     @GET
@@ -73,7 +74,7 @@ public class ItemCollection extends ItemUtils {
     {
         checkAuthCookie(authCookie);
         ItemProxy item = getProxy(uuid);
-        return toJSON(enumerate(item, ClusterStorage.COLLECTION + "/" + collName, "collection/" + collName + "/version", uri));
+        return toJSON(enumerate(item, COLLECTION + "/" + collName, "collection/" + collName + "/version", uri));
     }
 
     @GET

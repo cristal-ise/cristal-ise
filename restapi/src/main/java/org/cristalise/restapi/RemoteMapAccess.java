@@ -28,6 +28,7 @@ import javax.ws.rs.core.UriInfo;
 import org.cristalise.kernel.common.ObjectNotFoundException;
 import org.cristalise.kernel.entity.C2KLocalObject;
 import org.cristalise.kernel.entity.proxy.ItemProxy;
+import org.cristalise.kernel.persistency.ClusterType;
 import org.cristalise.kernel.persistency.RemoteMap;
 import org.cristalise.kernel.utils.Logger;
 
@@ -62,6 +63,10 @@ public class RemoteMapAccess extends ItemUtils {
         }
 
         return batch;
+    }
+
+    public C2KLocalObject get(ItemProxy item, ClusterType root, String id) {
+        return get(item, root.getName(), id);
     }
 
     public C2KLocalObject get(ItemProxy item, String root, String id) {

@@ -39,10 +39,13 @@ import org.cristalise.kernel.common.PersistencyException;
 import org.cristalise.kernel.entity.proxy.ItemProxy;
 import org.cristalise.kernel.events.Event;
 import org.cristalise.kernel.events.History;
-import org.cristalise.kernel.persistency.ClusterStorage;
 import org.cristalise.kernel.persistency.outcome.Outcome;
 import org.cristalise.kernel.persistency.outcome.Viewpoint;
 import org.cristalise.kernel.utils.Logger;
+
+import static org.cristalise.kernel.persistency.ClusterType.HISTORY;
+import static org.cristalise.kernel.persistency.ClusterType.OUTCOME;
+import static org.cristalise.kernel.persistency.ClusterType.VIEWPOINT;
 
 @Path("/item/{uuid}/data")
 public class ItemData extends ItemUtils {
@@ -55,7 +58,7 @@ public class ItemData extends ItemUtils {
     {
         checkAuthCookie(authCookie);
         ItemProxy item = ItemRoot.getProxy(uuid);
-        return toJSON(enumerate(item, ClusterStorage.VIEWPOINT, "data", uri));
+        return toJSON(enumerate(item, VIEWPOINT.getName(), "data", uri));
     }
 
     @GET
@@ -68,7 +71,7 @@ public class ItemData extends ItemUtils {
     {
         checkAuthCookie(authCookie);
         ItemProxy item = ItemRoot.getProxy(uuid);
-        return toJSON(enumerate(item, ClusterStorage.VIEWPOINT + "/" + schema, "data/" + schema, uri));
+        return toJSON(enumerate(item, VIEWPOINT + "/" + schema, "data/" + schema, uri));
     }
 
     private Response queryData(String uuid, String schema, String viewName, Cookie authCookie, UriInfo uri, boolean json) {
@@ -170,7 +173,7 @@ public class ItemData extends ItemUtils {
         ItemProxy item = ItemRoot.getProxy(uuid);
         History history;
         try {
-            history = (History) item.getObject(ClusterStorage.HISTORY);
+            history = (History) item.getObject(HISTORY);
             history.activate();
         }
         catch (ObjectNotFoundException e) {
@@ -204,7 +207,7 @@ public class ItemData extends ItemUtils {
         ItemProxy item = ItemRoot.getProxy(uuid);
         Event ev;
         try {
-            ev = (Event) item.getObject(ClusterStorage.HISTORY + "/" + eventId);
+            ev = (Event) item.getObject(HISTORY + "/" + eventId);
         }
         catch (ObjectNotFoundException e) {
             throw ItemUtils.createWebAppException("Event " + eventId + " was not found", Response.Status.NOT_FOUND);
@@ -214,7 +217,7 @@ public class ItemData extends ItemUtils {
         }
         Outcome oc;
         try {
-            oc = (Outcome) item.getObject(ClusterStorage.OUTCOME + "/" + schema + "/" + ev.getSchemaVersion() + "/" + eventId);
+            oc = (Outcome) item.getObject(OUTCOME + "/" + schema + "/" + ev.getSchemaVersion() + "/" + eventId);
         }
         catch (ObjectNotFoundException e) {
             throw ItemUtils.createWebAppException("Outcome " + eventId + " was not found", Response.Status.NOT_FOUND);
@@ -237,7 +240,7 @@ public class ItemData extends ItemUtils {
         ItemProxy item = ItemRoot.getProxy(uuid);
         Event ev;
         try {
-            ev = (Event) item.getObject(ClusterStorage.HISTORY + "/" + eventId);
+            ev = (Event) item.getObject(HISTORY + "/" + eventId);
         }
         catch (ObjectNotFoundException e) {
             throw ItemUtils.createWebAppException("Event " + eventId + " was not found", Response.Status.NOT_FOUND);

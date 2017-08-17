@@ -32,11 +32,12 @@ import org.cristalise.kernel.common.PersistencyException;
 import org.cristalise.kernel.entity.proxy.ItemProxy;
 import org.cristalise.kernel.lookup.DomainPath;
 import org.cristalise.kernel.lookup.Path;
-import org.cristalise.kernel.persistency.ClusterStorage;
 import org.cristalise.kernel.persistency.outcome.Viewpoint;
 import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.property.Property;
 import org.cristalise.kernel.utils.Logger;
+
+import static org.cristalise.kernel.persistency.ClusterType.VIEWPOINT;
 
 public class ResourceAccess extends ItemUtils {
 
@@ -65,7 +66,7 @@ public class ResourceAccess extends ItemUtils {
 
         try {
             ItemProxy item = Gateway.getProxyManager().getProxy(iter.next());
-            return toJSON(enumerate(item, ClusterStorage.VIEWPOINT + "/" + schemaName, "/" + uriBase + "/" + name, uri));
+            return toJSON(enumerate(item, VIEWPOINT + "/" + schemaName, "/" + uriBase + "/" + name, uri));
         }
         catch (ObjectNotFoundException e) {
             throw ItemUtils.createWebAppException(schemaName + " has no versions", Response.Status.NOT_FOUND);
