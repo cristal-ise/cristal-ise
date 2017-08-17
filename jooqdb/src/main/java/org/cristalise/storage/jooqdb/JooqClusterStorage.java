@@ -30,7 +30,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.cristalise.kernel.common.PersistencyException;
 import org.cristalise.kernel.entity.C2KLocalObject;
 import org.cristalise.kernel.lookup.ItemPath;
-import org.cristalise.kernel.persistency.ClusterStorage;
+import org.cristalise.kernel.persistency.ClusterType;
 import org.cristalise.kernel.persistency.TransactionalClusterStorage;
 import org.cristalise.kernel.persistency.outcome.Outcome;
 import org.cristalise.kernel.process.Gateway;
@@ -53,8 +53,8 @@ public class JooqClusterStorage extends TransactionalClusterStorage {
     protected DSLContext context;
     protected Boolean autoCommit;
 
-    HashMap<String, JooqHandler> jooqHandlers  = new HashMap<String, JooqHandler>();
-    List<JooqDomainHandler>      domainHandlers= new ArrayList<JooqDomainHandler>();
+    HashMap<ClusterType, JooqHandler> jooqHandlers   = new HashMap<ClusterType, JooqHandler>();
+    List<JooqDomainHandler>           domainHandlers = new ArrayList<JooqDomainHandler>();
 
     @Override
     public void open(Authenticator auth) throws PersistencyException {
@@ -71,15 +71,15 @@ public class JooqClusterStorage extends TransactionalClusterStorage {
     public void initialiseHandlers() throws PersistencyException {
         Logger.msg(1, "JooqClusterStorage.initialiseHandlers() - Starting with standard hadlers.");
 
-        jooqHandlers.put(ClusterStorage.PROPERTY,   new JooqItemPropertyHandler());
-        jooqHandlers.put(ClusterStorage.OUTCOME,    new JooqOutcomeHandler());
-        jooqHandlers.put(ClusterStorage.VIEWPOINT,  new JooqViewpointHandler());
-        jooqHandlers.put(ClusterStorage.LIFECYCLE,  new JooqLifecycleHandler());
-        jooqHandlers.put(ClusterStorage.COLLECTION, new JooqCollectionHadler());
-        jooqHandlers.put(ClusterStorage.HISTORY,    new JooqHistoryHandler());
-        jooqHandlers.put(ClusterStorage.JOB,        new JooqJobHandler());
+        jooqHandlers.put(ClusterType.PROPERTY,   new JooqItemPropertyHandler());
+        jooqHandlers.put(ClusterType.OUTCOME,    new JooqOutcomeHandler());
+        jooqHandlers.put(ClusterType.VIEWPOINT,  new JooqViewpointHandler());
+        jooqHandlers.put(ClusterType.LIFECYCLE,  new JooqLifecycleHandler());
+        jooqHandlers.put(ClusterType.COLLECTION, new JooqCollectionHadler());
+        jooqHandlers.put(ClusterType.HISTORY,    new JooqHistoryHandler());
+        jooqHandlers.put(ClusterType.JOB,        new JooqJobHandler());
 
-        for(JooqHandler handler: jooqHandlers.values()) handler.createTables(context);
+        for (JooqHandler handler: jooqHandlers.values()) handler.createTables(context);
 
         try {
             if(Gateway.getProperties().containsKey(JooqHandler.JOOQ_DOMAIN_HANDLERS)) {
@@ -98,7 +98,7 @@ public class JooqClusterStorage extends TransactionalClusterStorage {
             throw new PersistencyException(ex.getMessage());
         }
 
-        for(JooqDomainHandler handler: domainHandlers) handler.createTables(context);
+        for (JooqDomainHandler handler: domainHandlers) handler.createTables(context);
     }
 
     @Override
@@ -183,9 +183,9 @@ public class JooqClusterStorage extends TransactionalClusterStorage {
 
         UUID uuid = itemPath.getUUID();
 
-        String[] pathArray   = path.split("/");
-        String[] primaryKeys = Arrays.copyOfRange(pathArray, 1, pathArray.length);
-        String   cluster     = pathArray[0];
+        String[]    pathArray   = path.split("/");
+        String[]    primaryKeys = Arrays.copyOfRange(pathArray, 1, pathArray.length);
+        ClusterType cluster     = ClusterType.getValue(pathArray[0]);
 
         JooqHandler handler = jooqHandlers.get(cluster);
 
@@ -202,9 +202,9 @@ public class JooqClusterStorage extends TransactionalClusterStorage {
     public C2KLocalObject get(ItemPath itemPath, String path) throws PersistencyException {
         UUID uuid = itemPath.getUUID();
 
-        String[] pathArray   = path.split("/");
-        String[] primaryKeys = Arrays.copyOfRange(pathArray, 1, pathArray.length);
-        String   cluster     = pathArray[0];
+        String[]    pathArray   = path.split("/");
+        String[]    primaryKeys = Arrays.copyOfRange(pathArray, 1, pathArray.length);
+        ClusterType cluster     = ClusterType.getValue(pathArray[0]);
 
         JooqHandler handler = jooqHandlers.get(cluster);
 
@@ -230,7 +230,7 @@ public class JooqClusterStorage extends TransactionalClusterStorage {
     @Override
     public void put(ItemPath itemPath, C2KLocalObject obj, Object locker) throws PersistencyException {
         UUID uuid = itemPath.getUUID();
-        String cluster = obj.getClusterType();
+        ClusterType cluster = obj.getClusterType();
 
         JooqHandler handler = jooqHandlers.get(cluster);
 
@@ -241,7 +241,7 @@ public class JooqClusterStorage extends TransactionalClusterStorage {
         else
             throw new PersistencyException("Write is not supported for cluster:'"+cluster+"'");
 
-        if (ClusterStorage.OUTCOME.equals(cluster)) {
+        if (ClusterType.OUTCOME == cluster) {
             for (JooqDomainHandler domainHandler : domainHandlers) domainHandler.put(context, uuid, (Outcome)obj);
         }
     }
@@ -255,9 +255,9 @@ public class JooqClusterStorage extends TransactionalClusterStorage {
     public void delete(ItemPath itemPath, String path, Object locker) throws PersistencyException {
         UUID uuid = itemPath.getUUID();
 
-        String[] pathArray   = path.split("/");
-        String[] primaryKeys = Arrays.copyOfRange(pathArray, 1, pathArray.length);
-        String   cluster     = pathArray[0];
+        String[]    pathArray   = path.split("/");
+        String[]    primaryKeys = Arrays.copyOfRange(pathArray, 1, pathArray.length);
+        ClusterType cluster     = ClusterType.getValue(pathArray[0]);
 
         JooqHandler handler = jooqHandlers.get(cluster);
 
@@ -268,7 +268,7 @@ public class JooqClusterStorage extends TransactionalClusterStorage {
         else
             throw new PersistencyException("No handler found for cluster:'"+cluster+"'");
 
-        if (ClusterStorage.OUTCOME.equals(cluster)) {
+        if (ClusterType.OUTCOME == cluster) {
             for (JooqDomainHandler domainHandler : domainHandlers) domainHandler.delete(context, uuid, primaryKeys);
         }
     }

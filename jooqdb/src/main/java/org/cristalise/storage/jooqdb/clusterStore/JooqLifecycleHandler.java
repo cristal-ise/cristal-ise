@@ -34,6 +34,7 @@ import java.util.UUID;
 import org.cristalise.kernel.common.PersistencyException;
 import org.cristalise.kernel.entity.C2KLocalObject;
 import org.cristalise.kernel.persistency.ClusterStorage;
+import org.cristalise.kernel.persistency.ClusterType;
 import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.utils.Logger;
 import org.cristalise.storage.jooqdb.JooqHandler;
@@ -46,6 +47,8 @@ import org.jooq.Field;
 import org.jooq.Record;
 import org.jooq.Table;
 import org.jooq.exception.DataAccessException;
+
+import static org.cristalise.kernel.persistency.ClusterType.LIFECYCLE;
 
 public class JooqLifecycleHandler extends JooqHandler {
     static final Table<?> LIFECYCLE_TABLE = table(name("LIFECYCLE"));
@@ -138,7 +141,7 @@ public class JooqLifecycleHandler extends JooqHandler {
                     .where(getPKConditions(uuid, primaryKeys))
                     .fetchOne();
 
-            if(result != null) { String[] keys = new String[1]; keys[0] = ClusterStorage.LIFECYCLE; return keys;}
+            if(result != null) { String[] keys = new String[1]; keys[0] = LIFECYCLE.getName(); return keys;}
             else               return null;
         }
         catch ( DataAccessException e) {
