@@ -32,6 +32,7 @@ import org.cristalise.kernel.entity.proxy.MemberSubscription;
 import org.cristalise.kernel.entity.proxy.ProxyObserver;
 import org.cristalise.kernel.lifecycle.instance.stateMachine.StateMachine;
 import org.cristalise.kernel.persistency.ClusterStorage;
+import org.cristalise.kernel.persistency.ClusterType;
 import org.cristalise.kernel.process.AbstractMain;
 import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.process.StandardClient;
@@ -85,7 +86,7 @@ public class TriggerProcess extends StandardClient implements ProxyObserver<Job>
         Logger.msg(5, "TriggerProcess.startScheduler() - Retrieving initial list of Jobs.");
 
         //Subscribe to changes and fetch exiting Jobs from JobList of Agent
-        agent.subscribe(new MemberSubscription<Job>(this, ClusterStorage.JOB, true));
+        agent.subscribe(new MemberSubscription<Job>(this, ClusterType.JOB.getName(), true));
     }
 
     /**
