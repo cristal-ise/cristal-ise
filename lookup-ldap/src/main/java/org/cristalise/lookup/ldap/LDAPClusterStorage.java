@@ -29,6 +29,7 @@ import org.cristalise.kernel.entity.C2KLocalObject;
 import org.cristalise.kernel.lookup.ItemPath;
 import org.cristalise.kernel.lookup.Lookup;
 import org.cristalise.kernel.persistency.ClusterStorage;
+import org.cristalise.kernel.persistency.ClusterType;
 import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.process.auth.Authenticator;
 import org.cristalise.kernel.property.Property;
@@ -55,7 +56,7 @@ public class LDAPClusterStorage extends ClusterStorage {
     // introspection
     @Override
     public short queryClusterSupport(String clusterType) {
-        if (clusterType.equals(PROPERTY))
+        if (clusterType.equals(ClusterType.PROPERTY.getName()))
             return READWRITE;
         else
             return NONE;
@@ -78,12 +79,12 @@ public class LDAPClusterStorage extends ClusterStorage {
         StringTokenizer tok = new StringTokenizer(path, "/");
         int pathLength = tok.countTokens();
         if (pathLength != 2) throw new PersistencyException("Path length was invalid: " + path);
-        String type = tok.nextToken();
+        ClusterType type = ClusterType.getValue(tok.nextToken());
 
         String objName = tok.nextToken();
         C2KLocalObject newObj;
 
-        if (type.equals(PROPERTY)) {
+        if (type == ClusterType.PROPERTY) {
             try {
                 Property newProperty = ldapStore.getProperty(thisItem, objName);
                 newObj = newProperty;
@@ -104,9 +105,9 @@ public class LDAPClusterStorage extends ClusterStorage {
     public void put(ItemPath thisItem, C2KLocalObject obj) throws PersistencyException {
         Logger.msg(6, "LDAPClusterStorage.put() - " + thisItem + "/" + ClusterStorage.getPath(obj));
 
-        String type = obj.getClusterType();
+        ClusterType type = obj.getClusterType();
 
-        if (type.equals(PROPERTY)) {
+        if (type == ClusterType.PROPERTY) {
             try {
                 ldapStore.setProperty(thisItem, (Property) obj);
             }
@@ -125,9 +126,9 @@ public class LDAPClusterStorage extends ClusterStorage {
         StringTokenizer tok = new StringTokenizer(path, "/");
         int pathLength = tok.countTokens();
         if (pathLength != 2) throw new PersistencyException("Path length was invalid: " + path);
-        String type = tok.nextToken();
+        ClusterType type = ClusterType.getValue(tok.nextToken());
 
-        if (type.equals(PROPERTY)) {
+        if (type == ClusterType.PROPERTY) {
             try {
                 ldapStore.deleteProperty(thisItem, tok.nextToken());
             }
@@ -151,16 +152,16 @@ public class LDAPClusterStorage extends ClusterStorage {
         int pathLength = tok.countTokens();
         if (pathLength > 1) return new String[0];
 
-        String type = getClusterType(path);
+        ClusterType type = getClusterType(path);
 
         try {
-            if (type.equals(PROPERTY)) {
+            if (type == ClusterType.PROPERTY) {
                 return ldapStore.getPropertyNames(thisItem);
             }
             else if (type.equals("")) { // root query
                 String[] allClusters = new String[0];
                 ArrayList<String> clusterList = new ArrayList<String>();
-                if (ldapStore.hasProperties(thisItem)) clusterList.add(PROPERTY);
+                if (ldapStore.hasProperties(thisItem)) clusterList.add(ClusterType.class.getName());
                 allClusters = clusterList.toArray(allClusters);
                 return allClusters;
             }
