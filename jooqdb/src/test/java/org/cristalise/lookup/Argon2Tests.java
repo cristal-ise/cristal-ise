@@ -25,6 +25,7 @@ import org.cristalise.storage.jooqdb.auth.Argon2Password;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Test;
 
 public class Argon2Tests {
@@ -41,7 +42,7 @@ public class Argon2Tests {
         paswordHasher = new Argon2Password();
     }
 
-    @Test
+    @Test @Ignore
     public void checkPasswordHash() throws Exception {
         Assert.assertTrue( paswordHasher.checkPassword(paswordHasher.hashPassword(pwd), pwd) );
     }
