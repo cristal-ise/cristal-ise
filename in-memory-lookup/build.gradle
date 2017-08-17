@@ -5,7 +5,7 @@ apply plugin: 'idea'
 apply plugin: 'project-report'
 
 group = 'org.cristalise'
-version = '3.3-SNAPSHOT'
+version = '3.4.0-SNAPSHOT'
 
 description = ""
 
@@ -37,8 +37,8 @@ uploadArchives {
 }
 
 dependencies {
-    compile group: 'org.codehaus.groovy', name: 'groovy-all', version:'2.4.7'
-    compile group: 'org.cristalise', name: 'cristalise-kernel', version:'3.3-SNAPSHOT'
+    compile group: 'org.codehaus.groovy', name: 'groovy-all', version:'2.4.12'
+    compile group: 'org.cristalise', name: 'cristalise-kernel', version:'3.4.0-SNAPSHOT'
 
     testCompile group: 'commons-lang', name: 'commons-lang', version:'2.6'
     testCompile group: 'junit', name: 'junit', version:'4.12'
