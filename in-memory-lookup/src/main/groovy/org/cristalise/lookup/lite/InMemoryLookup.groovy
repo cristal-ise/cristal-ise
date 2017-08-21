@@ -31,6 +31,7 @@ import org.cristalise.kernel.lookup.Lookup
 import org.cristalise.kernel.lookup.Path
 import org.cristalise.kernel.lookup.RolePath
 import org.cristalise.kernel.persistency.ClusterStorage
+import org.cristalise.kernel.persistency.ClusterType
 import org.cristalise.kernel.process.auth.Authenticator
 import org.cristalise.kernel.property.Property
 import org.cristalise.kernel.property.PropertyDescriptionList
@@ -227,7 +228,7 @@ abstract class InMemoryLookup extends ClusterStorage implements Lookup {
         Logger.msg(5, "InMemoryLookup.checkItemProps(props) - ItemPath:$itemP # of props: $props.length");
 
         for(Property prop: props) {
-            Property p = (Property)propertyStore.get(itemP.itemPath, ClusterStorage.PROPERTY+"/"+prop.name)
+            Property p = (Property)propertyStore.get(itemP.itemPath, ""+ClusterType.PROPERTY+"/"+prop.name)
             if(!p || p.value != prop.value) return false
         }
         return true
