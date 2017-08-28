@@ -46,12 +46,32 @@ import org.jooq.impl.DefaultConnectionProvider;
 import org.jooq.impl.SQLDataType;
 
 public abstract class JooqHandler {
-    public static final String JOOQ_URI              = "JOOQ.URI";
-    public static final String JOOQ_USER             = "JOOQ.user";
-    public static final String JOOQ_PASSWORD         = "JOOQ.password";
-    public static final String JOOQ_DIALECT          = "JOOQ.dialect";
-    public static final String JOOQ_AUTOCOMMIT       = "JOOQ.autoCommit";
-    public static final String JOOQ_DOMAIN_HANDLERS  = "JOOQ.domainHandlers";
+    /**
+     * Defines the key (value:{@value}) to retrieve a string value to set JDBC URI
+     */
+    public static final String JOOQ_URI = "JOOQ.URI";
+    /**
+     * Defines the key (value:{@value}) to retrieve a string value to set the user
+     */
+    public static final String JOOQ_USER = "JOOQ.user";
+    /**
+     * Defines the key (value:{@value}) to retrieve a string value to set the password
+     */
+    public static final String JOOQ_PASSWORD = "JOOQ.password";
+    /**
+     * Defines the key (value:{@value}) to retrieve the database dialect. Default is 'POSTGRES'
+     */
+    public static final String JOOQ_DIALECT = "JOOQ.dialect";
+    /**
+     * Defines the key (value:{@value}) to retrieve a boolean value to set the JDBC connection 
+     * with autocommit or not. Default is 'false'
+     */
+    public static final String JOOQ_AUTOCOMMIT = "JOOQ.autoCommit";
+    /**
+     * Defines the key (value:{@value}) to retrieve the string value of the comma separated list of 
+     * fully qualified class names implementing the {@link JooqDomainHandler} interface.
+     */
+    public static final String JOOQ_DOMAIN_HANDLERS = "JOOQ.domainHandlers";
 
     public static final DataType<UUID>           UUID_TYPE      = SQLDataType.UUID;
     public static final DataType<String>         NAME_TYPE      = SQLDataType.VARCHAR.length(64);
@@ -129,6 +149,10 @@ public abstract class JooqHandler {
         for (Record rec : result) returnValue[i++] = rec.get(0).toString();
 
         return returnValue;
+    }
+
+    public boolean exists(DSLContext context, UUID uuid) throws PersistencyException {
+        return context.fetchExists( select().from(getTable()).where(getPKConditions(uuid)) );
     }
 
     public boolean exists(DSLContext context, UUID uuid, C2KLocalObject obj) throws PersistencyException {
