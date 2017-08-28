@@ -34,6 +34,7 @@ import org.cristalise.kernel.entity.proxy.MemberSubscription
 import org.cristalise.kernel.lookup.AgentPath
 import org.cristalise.kernel.lookup.ItemPath
 import org.cristalise.kernel.persistency.ClusterStorage
+import org.cristalise.kernel.persistency.ClusterType
 import org.cristalise.kernel.persistency.outcome.Outcome
 import org.cristalise.kernel.process.Gateway
 
@@ -72,7 +73,7 @@ class AgentTestBuilder extends AgentBuilder {
     public void setupJobList() {
         if(!newAgentProxy) newAgentProxy = Gateway.proxyManager.getAgentProxy(newAgentPath)
 
-        jobList = (JobList)newAgentProxy.getObject(ClusterStorage.JOB)
+        jobList = (JobList)newAgentProxy.getObject(ClusterType.JOB)
         jobList.activate()
     }
 
