@@ -24,6 +24,10 @@ import org.cristalise.kernel.common.PersistencyException;
 import org.cristalise.kernel.entity.C2KLocalObject;
 import org.cristalise.kernel.lookup.ItemPath;
 
+/**
+ * Use this class in clients for read only access to the database
+ *
+ */
 public class JooqClientReader extends JooqClusterStorage {
     @Override
     public short queryClusterSupport(String clusterType) {
