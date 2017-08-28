@@ -48,6 +48,9 @@ import org.jooq.DSLContext;
 import org.jooq.exception.DataAccessException;
 import org.jooq.impl.DefaultConnectionProvider;
 
+/**
+ * Implementation of the {@link TransactionalClusterStorage} based on {@linkplain http://www.jooq.org/}
+ */
 public class JooqClusterStorage extends TransactionalClusterStorage {
 
     protected DSLContext context;
@@ -67,6 +70,7 @@ public class JooqClusterStorage extends TransactionalClusterStorage {
 
     /**
      * 
+     * @throws PersistencyException
      */
     public void initialiseHandlers() throws PersistencyException {
         Logger.msg(1, "JooqClusterStorage.initialiseHandlers() - Starting with standard hadlers.");
@@ -152,7 +156,16 @@ public class JooqClusterStorage extends TransactionalClusterStorage {
     }
 
     @Override
-    public short queryClusterSupport(String clusterType) {
+    public short queryClusterSupport(String type) {
+        return queryClusterSupport(ClusterType.getValue(type));
+    }
+
+    @Override
+    public short queryClusterSupport(ClusterType type) {
+        if (type == ClusterType.PATH) {
+            return NONE;
+        }
+
         return READWRITE;
     }
 
@@ -178,8 +191,25 @@ public class JooqClusterStorage extends TransactionalClusterStorage {
     }
 
     @Override
+    public ClusterType[] getClusters(ItemPath itemPath) throws PersistencyException {
+        ArrayList<ClusterType> result = new ArrayList<ClusterType>();
+
+        for (ClusterType type:jooqHandlers.keySet()) {
+            if (jooqHandlers.get(type).exists(context, itemPath.getUUID())) result.add(type);
+        }
+
+        return result.toArray(new ClusterType[0]);
+    }
+
+    @Override
     public String[] getClusterContents(ItemPath itemPath, String path) throws PersistencyException {
-        if (StringUtils.isBlank(path)) return jooqHandlers.keySet().toArray(new String[0]);
+        if (StringUtils.isBlank(path)) {
+            ArrayList<String> result = new ArrayList<String>();
+
+            for (ClusterType k: getClusters(itemPath)) { result.add(k.toString()); }
+
+            return result.toArray(new String[0]);
+        }
 
         UUID uuid = itemPath.getUUID();
 

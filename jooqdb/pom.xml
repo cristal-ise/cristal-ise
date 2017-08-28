@@ -143,6 +143,9 @@
                 <version>2.11</version>
                 <configuration>
                     <header>HEADER.txt</header>
+                    <excludes>
+                        <exclude>src/test/data/**</exclude>
+                    </excludes>
                 </configuration>
                 <executions>
                     <execution>
