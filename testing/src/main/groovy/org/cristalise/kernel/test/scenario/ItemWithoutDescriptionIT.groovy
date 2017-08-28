@@ -49,7 +49,7 @@ class ItemWithoutDescriptionIT extends KernelScenarioTestBase {
 
     private ItemProxy createItem(String name) {
         Job j = executeDoneJob(serverItem, "CreateNewItem", KernelXMLUtility.getItemXML(name: name, workflow: 'NoWorkflow', initialPath: '/domain/itemTest'))
-        return Gateway.getProxyManager().getProxy( Gateway.getLookup().getItemPath(name) )
+        return Gateway.getProxyManager().getProxy( Gateway.getLookup().getItemPath(j.itemUUID) )
     }
 
     @Test
