@@ -63,7 +63,8 @@ public class JooqItemPropertyHandler extends JooqHandler {
 
     @Override
     protected Field<?> getNextPKField(String... primaryKeys) throws PersistencyException {
-        return NAME;
+        if (primaryKeys.length == 0) return NAME;
+        else                         return null;
     }
 
     @Override
@@ -71,7 +72,7 @@ public class JooqItemPropertyHandler extends JooqHandler {
         List<Condition> conditions = new ArrayList<>();
 
         switch (primaryKeys.length) {
-            case 0: 
+            case 0:
                 conditions.add(UUID.equal(uuid));
                 break;
             case 1:
@@ -148,10 +149,10 @@ public class JooqItemPropertyHandler extends JooqHandler {
                 select.addJoin(ITEM_PROPERTY_TABLE.as(p.getName()), JoinType.LEFT_OUTER_JOIN, firstJoinField.equal(currJoinField));
             }
 
-            Condition actualCondition = 
+            Condition actualCondition =
                     field(name(p.getName(), "NAME"),  String.class).equal(p.getName())
                     .and(
-                    field(name(p.getName(), "VALUE"), String.class).equal(p.getValue()));
+                            field(name(p.getName(), "VALUE"), String.class).equal(p.getValue()));
 
             select.addConditions(Operator.AND, actualCondition);
         }
@@ -170,12 +171,12 @@ public class JooqItemPropertyHandler extends JooqHandler {
     @Override
     public void createTables(DSLContext context) throws PersistencyException {
         context.createTableIfNotExists(ITEM_PROPERTY_TABLE)
-            .column(UUID,    UUID_TYPE.nullable(false))
-            .column(NAME,    NAME_TYPE.nullable(false))
-            .column(VALUE,   STRING_TYPE.nullable(true))
-            .column(MUTABLE, SQLDataType.BOOLEAN.nullable(false))
-            .constraints(
-                    constraint("PK_"+ITEM_PROPERTY_TABLE).primaryKey(UUID, NAME))
+        .column(UUID,    UUID_TYPE.nullable(false))
+        .column(NAME,    NAME_TYPE.nullable(false))
+        .column(VALUE,   STRING_TYPE.nullable(true))
+        .column(MUTABLE, SQLDataType.BOOLEAN.nullable(false))
+        .constraints(
+                constraint("PK_"+ITEM_PROPERTY_TABLE).primaryKey(UUID, NAME))
         .execute();
     }
 }
