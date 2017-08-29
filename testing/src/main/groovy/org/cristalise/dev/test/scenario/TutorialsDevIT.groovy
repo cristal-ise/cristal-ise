@@ -8,7 +8,7 @@ import org.junit.Test
 
 
 /**
- * 
+ *
  *
  */
 class TutorialsDevIT extends KernelScenarioTestBase {
@@ -20,10 +20,10 @@ class TutorialsDevIT extends KernelScenarioTestBase {
 
     ItemProxy patient
 
-	/**
-	 * 
-	 * @param actDefList
-	 */
+    /**
+     *
+     * @param actDefList
+     */
     private void setupPatient(Map<String, ActivityDef> actDefList) {
         def schema = Schema("$schemaName-$timeStamp", folder) {
             struct(name: schemaName, documentation: 'This is the Schema for Basic Tutorial') {
@@ -61,6 +61,8 @@ class TutorialsDevIT extends KernelScenarioTestBase {
         setupPatient()
 
         executeDoneJob(patient, elemActName)
+
+        agent.execute(patient, "Erase", new String[0])
     }
 
     @Test @Ignore("Query does not work with jooqdb backend")
