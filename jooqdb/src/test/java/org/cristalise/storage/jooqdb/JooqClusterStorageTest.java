@@ -35,6 +35,7 @@ import org.cristalise.kernel.lifecycle.instance.predefined.server.BulkImport;
 import org.cristalise.kernel.lookup.ItemPath;
 import org.cristalise.kernel.persistency.ClusterType;
 import org.cristalise.kernel.process.Gateway;
+import org.cristalise.kernel.utils.Logger;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -117,6 +118,7 @@ public class JooqClusterStorageTest {
                     fail("Test data does not contain ClusterType:"+typeName);
             }
         }
+        Logger.msg("-----------------------------------------------------------------------");
+        Gateway.getStorage().removeCluster(itemPath, "", null);
     }
-
 }

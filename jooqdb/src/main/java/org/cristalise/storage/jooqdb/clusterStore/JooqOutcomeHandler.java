@@ -64,7 +64,7 @@ public class JooqOutcomeHandler extends JooqHandler {
             case 0: return SCHEMA_NAME;
             case 1: return SCHEMA_VERSION;
             case 2: return EVENT_ID;
-            case 3: return EVENT_ID;
+            case 3: return null;
             default:
                 throw new PersistencyException("Invalid number of primary keys:"+Arrays.toString(primaryKeys));
         }
@@ -75,7 +75,7 @@ public class JooqOutcomeHandler extends JooqHandler {
         List<Condition> conditions = new ArrayList<>();
 
         switch (primaryKeys.length) {
-            case 0: 
+            case 0:
                 conditions.add(UUID.equal(uuid));
                 break;
             case 1:
@@ -108,12 +108,12 @@ public class JooqOutcomeHandler extends JooqHandler {
     public int insert(DSLContext context, UUID uuid, C2KLocalObject obj) {
         Outcome outcome = (Outcome)obj;
         return context
-                .insertInto(OUTCOME_TABLE) 
-                        .set(UUID,           uuid)
-                        .set(SCHEMA_NAME,    outcome.getSchema().getName())
-                        .set(SCHEMA_VERSION, outcome.getSchema().getVersion())
-                        .set(EVENT_ID,       outcome.getID())
-                        .set(XML,            outcome.getData())
+                .insertInto(OUTCOME_TABLE)
+                .set(UUID,           uuid)
+                .set(SCHEMA_NAME,    outcome.getSchema().getName())
+                .set(SCHEMA_VERSION, outcome.getSchema().getVersion())
+                .set(EVENT_ID,       outcome.getID())
+                .set(XML,            outcome.getData())
                 .execute();
     }
 
@@ -137,13 +137,13 @@ public class JooqOutcomeHandler extends JooqHandler {
     @Override
     public void createTables(DSLContext context) throws PersistencyException {
         context.createTableIfNotExists(OUTCOME_TABLE)
-            .column(UUID,           UUID_TYPE   .nullable(false))
-            .column(SCHEMA_NAME,    NAME_TYPE   .nullable(false))
-            .column(SCHEMA_VERSION, VERSION_TYPE.nullable(false))
-            .column(EVENT_ID,       ID_TYPE     .nullable(false))
-            .column(XML,            XML_TYPE    .nullable(false))
-            .constraints(
-                    constraint("PK_"+OUTCOME_TABLE).primaryKey(UUID, SCHEMA_NAME, SCHEMA_VERSION, EVENT_ID))
+        .column(UUID,           UUID_TYPE   .nullable(false))
+        .column(SCHEMA_NAME,    NAME_TYPE   .nullable(false))
+        .column(SCHEMA_VERSION, VERSION_TYPE.nullable(false))
+        .column(EVENT_ID,       ID_TYPE     .nullable(false))
+        .column(XML,            XML_TYPE    .nullable(false))
+        .constraints(
+                constraint("PK_"+OUTCOME_TABLE).primaryKey(UUID, SCHEMA_NAME, SCHEMA_VERSION, EVENT_ID))
         .execute();
     }
 }

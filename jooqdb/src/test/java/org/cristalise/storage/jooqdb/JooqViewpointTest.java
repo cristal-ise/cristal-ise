@@ -99,8 +99,8 @@ public class JooqViewpointTest extends JooqTestBase {
 
         String[] keys = jooq.getNextPrimaryKeys(context, uuid, "SchemaName2", "Name4");
 
-        Assert.assertEquals(1, keys.length);
-        Assert.assertEquals("Name4", keys[0]);
+        Assert.assertEquals(0, keys.length);
+        //Assert.assertEquals("Name4", keys[0]);
     }
 
     @Test
@@ -108,7 +108,7 @@ public class JooqViewpointTest extends JooqTestBase {
         assert jooq.put(context, uuid, new Viewpoint(new ItemPath(uuid), "SchemaName",  "Name2", 0, 1)) == 1;
         assert jooq.put(context, uuid, new Viewpoint(new ItemPath(uuid), "SchemaName2", "Name3", 0, 1)) == 1;
         assert jooq.put(context, uuid, new Viewpoint(new ItemPath(uuid), "SchemaName2", "Name4", 0, 1)) == 1;
-        
+
         UUID uuid2 = UUID.randomUUID();
         assert jooq.put(context, uuid2, new Viewpoint(new ItemPath(uuid2), "SchemaName",  "Name5", 0, 1)) == 1;
         assert jooq.put(context, uuid2, new Viewpoint(new ItemPath(uuid2), "SchemaName2", "Name6", 0, 1)) == 1;

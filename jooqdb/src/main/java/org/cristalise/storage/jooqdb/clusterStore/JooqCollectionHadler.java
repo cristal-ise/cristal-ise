@@ -66,7 +66,7 @@ public class JooqCollectionHadler extends JooqHandler {
         switch (primaryKeys.length) {
             case 0: return NAME;
             case 1: return VERSION;
-            case 2: return VERSION;
+            case 2: return null;
             default:
                 throw new PersistencyException("Invalid number of primary keys:"+Arrays.toString(primaryKeys));
         }
@@ -77,7 +77,7 @@ public class JooqCollectionHadler extends JooqHandler {
         List<Condition> conditions = new ArrayList<>();
 
         switch (primaryKeys.length) {
-            case 0: 
+            case 0:
                 conditions.add(UUID.equal(uuid));
                 break;
             case 1:
@@ -116,10 +116,10 @@ public class JooqCollectionHadler extends JooqHandler {
         try {
             return context
                     .insertInto(COLLECTION_TABLE)
-                        .set(UUID,    uuid)
-                        .set(NAME,    collection.getName())
-                        .set(VERSION, collection.getVersionName())
-                        .set(XML,     Gateway.getMarshaller().marshall(obj))
+                    .set(UUID,    uuid)
+                    .set(NAME,    collection.getName())
+                    .set(VERSION, collection.getVersionName())
+                    .set(XML,     Gateway.getMarshaller().marshall(obj))
                     .execute();
         }
         catch (MarshalException | ValidationException | DataAccessException | IOException | MappingException e) {
@@ -148,12 +148,12 @@ public class JooqCollectionHadler extends JooqHandler {
     @Override
     public void createTables(DSLContext context) throws PersistencyException {
         context.createTableIfNotExists(COLLECTION_TABLE)
-            .column(UUID,    UUID_TYPE.nullable(false))
-            .column(NAME,    NAME_TYPE.nullable(false))
-            .column(VERSION, NAME_TYPE.nullable(false))
-            .column(XML,     XML_TYPE.nullable(false))
-            .constraints(
-                    constraint("PK_"+COLLECTION_TABLE).primaryKey(UUID, NAME, VERSION))
+        .column(UUID,    UUID_TYPE.nullable(false))
+        .column(NAME,    NAME_TYPE.nullable(false))
+        .column(VERSION, NAME_TYPE.nullable(false))
+        .column(XML,     XML_TYPE.nullable(false))
+        .constraints(
+                constraint("PK_"+COLLECTION_TABLE).primaryKey(UUID, NAME, VERSION))
         .execute();
-  }
+    }
 }

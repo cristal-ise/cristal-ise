@@ -60,7 +60,7 @@ public class JooqViewpointHandler extends JooqHandler {
         switch (primaryKeys.length) {
             case 0: return SCHEMA_NAME;
             case 1: return NAME;
-            case 2: return NAME;
+            case 2: return null;
             default:
                 throw new PersistencyException("Invalid number of primary keys:"+Arrays.toString(primaryKeys));
         }
@@ -71,7 +71,7 @@ public class JooqViewpointHandler extends JooqHandler {
         List<Condition> conditions = new ArrayList<>();
 
         switch (primaryKeys.length) {
-            case 0: 
+            case 0:
                 conditions.add(UUID.equal(uuid));
                 break;
             case 1:
@@ -104,12 +104,12 @@ public class JooqViewpointHandler extends JooqHandler {
     public int insert(DSLContext context, UUID uuid, C2KLocalObject obj) throws PersistencyException {
         Viewpoint view = (Viewpoint)obj;
         return context
-                .insertInto(VIEWPOINT_TABLE) 
-                        .set(UUID,           uuid)
-                        .set(SCHEMA_NAME,    view.getSchemaName())
-                        .set(NAME,           view.getName())
-                        .set(SCHEMA_VERSION, view.getSchemaVersion())
-                        .set(EVENT_ID,       view.getEventId())
+                .insertInto(VIEWPOINT_TABLE)
+                .set(UUID,           uuid)
+                .set(SCHEMA_NAME,    view.getSchemaName())
+                .set(NAME,           view.getName())
+                .set(SCHEMA_VERSION, view.getSchemaVersion())
+                .set(EVENT_ID,       view.getEventId())
                 .execute();
     }
 
@@ -118,23 +118,23 @@ public class JooqViewpointHandler extends JooqHandler {
         Record result = fetchRecord(context, uuid, primaryKeys);
 
         if(result != null) return new Viewpoint(new ItemPath(uuid),
-                                                result.get(SCHEMA_NAME),
-                                                result.get(NAME),
-                                                result.get(SCHEMA_VERSION),
-                                                result.get(EVENT_ID));
+                result.get(SCHEMA_NAME),
+                result.get(NAME),
+                result.get(SCHEMA_VERSION),
+                result.get(EVENT_ID));
         else return null;
     }
 
     @Override
     public void createTables(DSLContext context) throws PersistencyException {
         context.createTableIfNotExists(VIEWPOINT_TABLE)
-            .column(UUID,           UUID_TYPE.nullable(false))
-            .column(SCHEMA_NAME,    NAME_TYPE.nullable(false))
-            .column(NAME,           NAME_TYPE.nullable(false))
-            .column(SCHEMA_VERSION, VERSION_TYPE.nullable(true))
-            .column(EVENT_ID,       ID_TYPE.nullable(true))
-            .constraints(
-                    constraint("PK_"+VIEWPOINT_TABLE).primaryKey(UUID, SCHEMA_NAME, NAME))
+        .column(UUID,           UUID_TYPE.nullable(false))
+        .column(SCHEMA_NAME,    NAME_TYPE.nullable(false))
+        .column(NAME,           NAME_TYPE.nullable(false))
+        .column(SCHEMA_VERSION, VERSION_TYPE.nullable(true))
+        .column(EVENT_ID,       ID_TYPE.nullable(true))
+        .constraints(
+                constraint("PK_"+VIEWPOINT_TABLE).primaryKey(UUID, SCHEMA_NAME, NAME))
         .execute();
     }
 }

@@ -68,7 +68,7 @@ public class JooqHistoryHandler extends JooqHandler {
     static final Field<String>    VIEW_NAME             = field(name("VIEW_NAME"),            String.class);
     static final Field<Timestamp> TIMESTAMP             = field(name("TIMESTAMP"),            Timestamp.class);
 
-//    static final Field<OffsetDateTime> TIMESTAMP = field(name("TIMESTAMP"), Timestamp.class);
+    //    static final Field<OffsetDateTime> TIMESTAMP = field(name("TIMESTAMP"), Timestamp.class);
 
     @Override
     protected Table<?> getTable() {
@@ -77,7 +77,8 @@ public class JooqHistoryHandler extends JooqHandler {
 
     @Override
     protected Field<?> getNextPKField(String... primaryKeys) throws PersistencyException {
-        return ID;
+        if (primaryKeys.length == 0) return ID;
+        else return null;
     }
 
     @Override
@@ -85,7 +86,7 @@ public class JooqHistoryHandler extends JooqHandler {
         List<Condition> conditions = new ArrayList<>();
 
         switch (primaryKeys.length) {
-            case 0: 
+            case 0:
                 conditions.add(UUID.equal(uuid));
                 break;
             case 1:
@@ -110,23 +111,23 @@ public class JooqHistoryHandler extends JooqHandler {
 
         return context
                 .insertInto(EVENT_TABLE)
-                    .set(UUID,                  uuid)
-                    .set(ID,                    event.getID())
-                    .set(AGENT_UUID,            event.getAgentPath().getUUID())
-                    .set(DELEGATE_UUID,         delegate == null ?  null : delegate.getUUID())
-                    .set(AGENT_ROLE,            event.getAgentRole())
-                    .set(SCHEMA_NAME,           event.getSchemaName())
-                    .set(SCHEMA_VERSION,        event.getSchemaVersion())
-                    .set(STATEMACHINE_NAME,     event.getStateMachineName())
-                    .set(STATEMACHINE_VERSION,  event.getStateMachineVersion())
-                    .set(STEP_NAME,             event.getStepName())
-                    .set(STEP_PATH,             event.getStepPath())
-                    .set(STEP_TYPE,             event.getStepType())
-                    .set(ORIGIN_STATE_ID,       event.getOriginState())
-                    .set(TARGET_STATE_ID,       event.getTargetState())
-                    .set(TRANSITION_ID,         event.getTransition())
-                    .set(VIEW_NAME,             event.getViewName())
-                    .set(TIMESTAMP,             DateUtility.toSqlTimestamp(event.getTimeStamp()))
+                .set(UUID,                  uuid)
+                .set(ID,                    event.getID())
+                .set(AGENT_UUID,            event.getAgentPath().getUUID())
+                .set(DELEGATE_UUID,         delegate == null ?  null : delegate.getUUID())
+                .set(AGENT_ROLE,            event.getAgentRole())
+                .set(SCHEMA_NAME,           event.getSchemaName())
+                .set(SCHEMA_VERSION,        event.getSchemaVersion())
+                .set(STATEMACHINE_NAME,     event.getStateMachineName())
+                .set(STATEMACHINE_VERSION,  event.getStateMachineVersion())
+                .set(STEP_NAME,             event.getStepName())
+                .set(STEP_PATH,             event.getStepPath())
+                .set(STEP_TYPE,             event.getStepType())
+                .set(ORIGIN_STATE_ID,       event.getOriginState())
+                .set(TARGET_STATE_ID,       event.getTargetState())
+                .set(TRANSITION_ID,         event.getTransition())
+                .set(VIEW_NAME,             event.getViewName())
+                .set(TIMESTAMP,             DateUtility.toSqlTimestamp(event.getTimeStamp()))
                 .execute();
     }
 
@@ -146,7 +147,7 @@ public class JooqHistoryHandler extends JooqHandler {
                         result.get(ID),
                         new ItemPath(uuid),
                         new AgentPath(agent),
-                        (delegate == null) ? null : new AgentPath(delegate),
+                        (delegate == null ? null : new AgentPath(delegate)),
                         result.get(AGENT_ROLE),
                         result.get(STEP_NAME),
                         result.get(STEP_PATH),
@@ -173,24 +174,24 @@ public class JooqHistoryHandler extends JooqHandler {
     @Override
     public void createTables(DSLContext context) {
         context.createTableIfNotExists(EVENT_TABLE)
-            .column(UUID,                 UUID_TYPE      .nullable(false))
-            .column(ID,                   ID_TYPE        .nullable(false))
-            .column(AGENT_UUID,           UUID_TYPE      .nullable(false))
-            .column(DELEGATE_UUID,        UUID_TYPE      .nullable(true))
-            .column(AGENT_ROLE,           NAME_TYPE      .nullable(true))
-            .column(SCHEMA_NAME,          NAME_TYPE      .nullable(true))
-            .column(SCHEMA_VERSION,       VERSION_TYPE   .nullable(true))
-            .column(STATEMACHINE_NAME,    NAME_TYPE      .nullable(false))
-            .column(STATEMACHINE_VERSION, VERSION_TYPE   .nullable(false))
-            .column(STEP_NAME,            NAME_TYPE      .nullable(false))
-            .column(STEP_PATH,            NAME_TYPE      .nullable(false))
-            .column(STEP_TYPE,            NAME_TYPE      .nullable(true))
-            .column(ORIGIN_STATE_ID,      ID_TYPE        .nullable(false))
-            .column(TARGET_STATE_ID,      ID_TYPE        .nullable(false))
-            .column(TRANSITION_ID,        ID_TYPE        .nullable(false))
-            .column(VIEW_NAME,            NAME_TYPE      .nullable(true))
-            .column(TIMESTAMP,            TIMESTAMP_TYPE .nullable(false))
-            .constraints(constraint("PK_"+EVENT_TABLE).primaryKey(UUID, ID))
+        .column(UUID,                 UUID_TYPE      .nullable(false))
+        .column(ID,                   ID_TYPE        .nullable(false))
+        .column(AGENT_UUID,           UUID_TYPE      .nullable(false))
+        .column(DELEGATE_UUID,        UUID_TYPE      .nullable(true))
+        .column(AGENT_ROLE,           NAME_TYPE      .nullable(true))
+        .column(SCHEMA_NAME,          NAME_TYPE      .nullable(true))
+        .column(SCHEMA_VERSION,       VERSION_TYPE   .nullable(true))
+        .column(STATEMACHINE_NAME,    NAME_TYPE      .nullable(false))
+        .column(STATEMACHINE_VERSION, VERSION_TYPE   .nullable(false))
+        .column(STEP_NAME,            NAME_TYPE      .nullable(false))
+        .column(STEP_PATH,            NAME_TYPE      .nullable(false))
+        .column(STEP_TYPE,            NAME_TYPE      .nullable(true))
+        .column(ORIGIN_STATE_ID,      ID_TYPE        .nullable(false))
+        .column(TARGET_STATE_ID,      ID_TYPE        .nullable(false))
+        .column(TRANSITION_ID,        ID_TYPE        .nullable(false))
+        .column(VIEW_NAME,            NAME_TYPE      .nullable(true))
+        .column(TIMESTAMP,            TIMESTAMP_TYPE .nullable(false))
+        .constraints(constraint("PK_"+EVENT_TABLE).primaryKey(UUID, ID))
         .execute();
     }
 }

@@ -20,6 +20,7 @@
  */
 package org.cristalise.storage.jooqdb.clusterStore;
 
+import static org.cristalise.kernel.persistency.ClusterType.LIFECYCLE;
 import static org.jooq.impl.DSL.constraint;
 import static org.jooq.impl.DSL.field;
 import static org.jooq.impl.DSL.name;
@@ -33,8 +34,6 @@ import java.util.UUID;
 
 import org.cristalise.kernel.common.PersistencyException;
 import org.cristalise.kernel.entity.C2KLocalObject;
-import org.cristalise.kernel.persistency.ClusterStorage;
-import org.cristalise.kernel.persistency.ClusterType;
 import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.utils.Logger;
 import org.cristalise.storage.jooqdb.JooqHandler;
@@ -47,8 +46,6 @@ import org.jooq.Field;
 import org.jooq.Record;
 import org.jooq.Table;
 import org.jooq.exception.DataAccessException;
-
-import static org.cristalise.kernel.persistency.ClusterType.LIFECYCLE;
 
 public class JooqLifecycleHandler extends JooqHandler {
     static final Table<?> LIFECYCLE_TABLE = table(name("LIFECYCLE"));
@@ -64,7 +61,8 @@ public class JooqLifecycleHandler extends JooqHandler {
 
     @Override
     protected Field<?> getNextPKField(String... primaryKeys) throws PersistencyException {
-        return null;
+        if (primaryKeys.length == 0) return NAME;
+        else                         return null;
     }
 
     @Override
@@ -72,11 +70,12 @@ public class JooqLifecycleHandler extends JooqHandler {
         List<Condition> conditions = new ArrayList<>();
 
         switch (primaryKeys.length) {
-            case 0: 
+            case 0:
                 conditions.add(UUID.equal(uuid));
                 break;
-            case 1: 
+            case 1:
                 conditions.add(UUID.equal(uuid));
+                conditions.add(NAME.equal(primaryKeys[0]));
                 break;
             default:
                 throw new PersistencyException("Invalid number of primary keys:"+Arrays.toString(primaryKeys));
@@ -89,9 +88,9 @@ public class JooqLifecycleHandler extends JooqHandler {
         try {
             return context
                     .update(LIFECYCLE_TABLE)
-                        .set(NAME, obj.getName())
-                        .set(XML,  Gateway.getMarshaller().marshall(obj))
-                        .where(UUID.equal(uuid))
+                    .set(NAME, obj.getName())
+                    .set(XML,  Gateway.getMarshaller().marshall(obj))
+                    .where(UUID.equal(uuid))
                     .execute();
         }
         catch (MarshalException | ValidationException | DataAccessException | IOException | MappingException e) {
@@ -105,12 +104,12 @@ public class JooqLifecycleHandler extends JooqHandler {
         try {
             return context
                     .insertInto(LIFECYCLE_TABLE)
-                        .set(UUID,  uuid)
-                        .set(NAME,  obj.getName())
-                        .set(XML,   Gateway.getMarshaller().marshall(obj))
+                    .set(UUID,  uuid)
+                    .set(NAME,  obj.getName())
+                    .set(XML,   Gateway.getMarshaller().marshall(obj))
                     .execute();
         }
-        catch (MarshalException | ValidationException | DataAccessException | IOException | MappingException e) {
+        catch (Throwable e) {
             Logger.error(e);
             throw new PersistencyException(e.getMessage());
         }
@@ -153,10 +152,10 @@ public class JooqLifecycleHandler extends JooqHandler {
     @Override
     public void createTables(DSLContext context) {
         context.createTableIfNotExists(LIFECYCLE_TABLE)
-            .column(UUID, UUID_TYPE.nullable(false))
-            .column(NAME, NAME_TYPE.nullable(false))
-            .column(XML,  XML_TYPE. nullable(false))
-            .constraints(constraint("PK_"+LIFECYCLE_TABLE).primaryKey(UUID))
+        .column(UUID, UUID_TYPE.nullable(false))
+        .column(NAME, NAME_TYPE.nullable(false))
+        .column(XML,  XML_TYPE. nullable(false))
+        .constraints(constraint("PK_"+LIFECYCLE_TABLE).primaryKey(UUID, NAME))
         .execute();
     }
 }

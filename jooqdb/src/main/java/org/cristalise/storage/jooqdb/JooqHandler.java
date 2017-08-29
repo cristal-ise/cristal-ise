@@ -141,7 +141,11 @@ public abstract class JooqHandler {
     }
 
     public String[] getNextPrimaryKeys(DSLContext context, UUID uuid, String... primaryKeys) throws PersistencyException {
-        Result<?> result = fetchDistinctResult(context, getNextPKField(primaryKeys), uuid, primaryKeys);
+        Field<?> field = getNextPKField(primaryKeys);
+        
+        if (field == null) return new String[0];
+
+        Result<?> result = fetchDistinctResult(context, field, uuid, primaryKeys);
 
         String[] returnValue = new String[result.size()];
 

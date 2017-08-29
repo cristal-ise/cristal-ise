@@ -49,7 +49,7 @@ import org.jooq.exception.DataAccessException;
 import org.jooq.impl.DefaultConnectionProvider;
 
 /**
- * Implementation of the {@link TransactionalClusterStorage} based on {@linkplain http://www.jooq.org/}
+ * Implementation of the {@link TransactionalClusterStorage} based on <a>http://www.jooq.org/</a>}
  */
 public class JooqClusterStorage extends TransactionalClusterStorage {
 
@@ -69,8 +69,9 @@ public class JooqClusterStorage extends TransactionalClusterStorage {
     }
 
     /**
+     * Initialise internal handlers for all ClusterTypes and all the DomainHandlers-
      * 
-     * @throws PersistencyException
+     * @throws PersistencyException Error during initialise ...
      */
     public void initialiseHandlers() throws PersistencyException {
         Logger.msg(1, "JooqClusterStorage.initialiseHandlers() - Starting with standard hadlers.");
@@ -86,20 +87,20 @@ public class JooqClusterStorage extends TransactionalClusterStorage {
         for (JooqHandler handler: jooqHandlers.values()) handler.createTables(context);
 
         try {
-            if(Gateway.getProperties().containsKey(JooqHandler.JOOQ_DOMAIN_HANDLERS)) {
-                for(String handlerClass: Gateway.getProperties().getString(JooqHandler.JOOQ_DOMAIN_HANDLERS, "").split(",")) {
-                    if (!handlerClass.contains(".")) handlerClass = "org.cristalise.storage."+handlerClass;
+            String handlers = Gateway.getProperties().getString(JooqHandler.JOOQ_DOMAIN_HANDLERS, "");
 
-                    Logger.msg(1, "JooqClusterStorage.initialiseHandlers() - Instantiate domain handler:"+handlerClass);
+            for(String handlerClass: StringUtils.split(handlers, ",")) {
+                if (!handlerClass.contains(".")) handlerClass = "org.cristalise.storage."+handlerClass;
 
-                    domainHandlers.add( (JooqDomainHandler) Class.forName(handlerClass).newInstance());
-                }
+                Logger.msg(1, "JooqClusterStorage.initialiseHandlers() - Instantiate domain handler:"+handlerClass);
+
+                domainHandlers.add( (JooqDomainHandler) Class.forName(handlerClass).newInstance());
             }
         }
         catch (InstantiationException | IllegalAccessException | ClassNotFoundException ex) {
             Logger.error("JooqClusterStorage could not instantiate domain handler");
             Logger.error(ex);
-            throw new PersistencyException(ex.getMessage());
+            throw new PersistencyException("JooqClusterStorage could not instantiate domain handler:"+ex.getMessage());
         }
 
         for (JooqDomainHandler handler: domainHandlers) handler.createTables(context);

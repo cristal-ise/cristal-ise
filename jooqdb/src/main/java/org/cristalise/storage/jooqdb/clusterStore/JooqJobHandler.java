@@ -71,7 +71,7 @@ public class JooqJobHandler extends JooqHandler {
     static final Field<String>    ACT_PROPERTIES    = field(name("ACT_PROPERTIES"),    String.class);
     static final Field<Timestamp> CREATION_TS       = field(name("CREATION_TS"),       Timestamp.class);
 
-//  static final Field<OffsetDateTime> CREATION_TS = field(name("CREATION_TS"), OffsetDateTime.class);
+    //  static final Field<OffsetDateTime> CREATION_TS = field(name("CREATION_TS"), OffsetDateTime.class);
 
     @Override
     protected Table<?> getTable() {
@@ -80,7 +80,8 @@ public class JooqJobHandler extends JooqHandler {
 
     @Override
     protected Field<?> getNextPKField(String... primaryKeys) throws PersistencyException {
-        return ID;
+        if (primaryKeys.length == 0) return ID;
+        else                         return null;
     }
 
     @Override
@@ -88,7 +89,7 @@ public class JooqJobHandler extends JooqHandler {
         List<Condition> conditions = new ArrayList<>();
 
         switch (primaryKeys.length) {
-            case 0: 
+            case 0:
                 conditions.add(UUID.equal(uuid));
                 break;
             case 1:
@@ -109,7 +110,7 @@ public class JooqJobHandler extends JooqHandler {
     @Override
     public int insert(DSLContext context, UUID uuid, C2KLocalObject obj) throws PersistencyException {
         Job job = (Job)obj;
-        
+
         String transXML, actPropsXML;
         try {
             transXML    = Gateway.getMarshaller().marshall(job.getTransition());
@@ -122,19 +123,19 @@ public class JooqJobHandler extends JooqHandler {
 
         return context
                 .insertInto(JOB_TABLE)
-                    .set(UUID,              uuid)
-                    .set(ID,                job.getId())
-                    .set(DELEGATE_UUID,     (job.getDelegatePath() == null) ? null: job.getDelegatePath().getUUID())
-                    .set(ITEM_UUID,         job.getItemPath().getUUID())
-                    .set(STEP_NAME,         job.getStepName())
-                    .set(STEP_PATH,         job.getStepPath())
-                    .set(STEP_TYPE,         job.getStepType())
-                    .set(TRANSITION,        transXML)
-                    .set(ORIGIN_STATE_NAME, job.getOriginStateName())
-                    .set(TARGET_STATE_NAME, job.getTargetStateName())
-                    .set(AGENT_ROLE,        job.getAgentRole())
-                    .set(ACT_PROPERTIES,    actPropsXML)
-                    .set(CREATION_TS,       DateUtility.toSqlTimestamp(job.getCreationDate()))
+                .set(UUID,              uuid)
+                .set(ID,                job.getId())
+                .set(DELEGATE_UUID,     (job.getDelegatePath() == null) ? null: job.getDelegatePath().getUUID())
+                .set(ITEM_UUID,         job.getItemPath().getUUID())
+                .set(STEP_NAME,         job.getStepName())
+                .set(STEP_PATH,         job.getStepPath())
+                .set(STEP_TYPE,         job.getStepType())
+                .set(TRANSITION,        transXML)
+                .set(ORIGIN_STATE_NAME, job.getOriginStateName())
+                .set(TARGET_STATE_NAME, job.getTargetStateName())
+                .set(AGENT_ROLE,        job.getAgentRole())
+                .set(ACT_PROPERTIES,    actPropsXML)
+                .set(CREATION_TS,       DateUtility.toSqlTimestamp(job.getCreationDate()))
                 .execute();
     }
 
@@ -164,11 +165,11 @@ public class JooqJobHandler extends JooqHandler {
                         result.get(AGENT_ROLE),
                         new AgentPath(result.get(UUID)),
                         (delegate == null) ? null : new AgentPath(delegate),
-                        actProps,
-                        ts);
+                                actProps,
+                                ts);
             }
-            catch (MarshalException | ValidationException | IllegalArgumentException | 
-                   IOException      | MappingException    | InvalidAgentPathException ex)
+            catch (MarshalException | ValidationException | IllegalArgumentException |
+                    IOException      | MappingException    | InvalidAgentPathException ex)
             {
                 Logger.error(ex);
                 throw new PersistencyException(ex.getMessage());
@@ -181,20 +182,20 @@ public class JooqJobHandler extends JooqHandler {
     @Override
     public void createTables(DSLContext context) {
         context.createTableIfNotExists(JOB_TABLE)
-            .column(UUID,               UUID_TYPE     .nullable(false))
-            .column(ID,                 ID_TYPE       .nullable(false))
-            .column(DELEGATE_UUID,      UUID_TYPE     .nullable(true))
-            .column(ITEM_UUID,          UUID_TYPE     .nullable(false))
-            .column(STEP_NAME,          NAME_TYPE     .nullable(false))
-            .column(STEP_PATH,          NAME_TYPE     .nullable(false))
-            .column(STEP_TYPE,          NAME_TYPE     .nullable(false))
-            .column(TRANSITION,         XML_TYPE      .nullable(false))
-            .column(ORIGIN_STATE_NAME,  NAME_TYPE     .nullable(false))
-            .column(TARGET_STATE_NAME,  NAME_TYPE     .nullable(false))
-            .column(AGENT_ROLE,         NAME_TYPE     .nullable(false))
-            .column(ACT_PROPERTIES,     XML_TYPE      .nullable(false))
-            .column(CREATION_TS,       TIMESTAMP_TYPE .nullable(false))
-            .constraints(constraint("PK_"+JOB_TABLE).primaryKey(UUID, ID))
+        .column(UUID,               UUID_TYPE     .nullable(false))
+        .column(ID,                 ID_TYPE       .nullable(false))
+        .column(DELEGATE_UUID,      UUID_TYPE     .nullable(true))
+        .column(ITEM_UUID,          UUID_TYPE     .nullable(false))
+        .column(STEP_NAME,          NAME_TYPE     .nullable(false))
+        .column(STEP_PATH,          NAME_TYPE     .nullable(false))
+        .column(STEP_TYPE,          NAME_TYPE     .nullable(false))
+        .column(TRANSITION,         XML_TYPE      .nullable(false))
+        .column(ORIGIN_STATE_NAME,  NAME_TYPE     .nullable(false))
+        .column(TARGET_STATE_NAME,  NAME_TYPE     .nullable(false))
+        .column(AGENT_ROLE,         NAME_TYPE     .nullable(false))
+        .column(ACT_PROPERTIES,     XML_TYPE      .nullable(false))
+        .column(CREATION_TS,       TIMESTAMP_TYPE .nullable(false))
+        .constraints(constraint("PK_"+JOB_TABLE).primaryKey(UUID, ID))
         .execute();
     }
 }

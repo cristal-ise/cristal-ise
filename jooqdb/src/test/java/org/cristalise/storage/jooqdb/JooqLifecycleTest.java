@@ -20,9 +20,12 @@
  */
 package org.cristalise.storage.jooqdb;
 
+import java.util.UUID;
+
 import org.cristalise.kernel.lifecycle.instance.CompositeActivity;
 import org.cristalise.kernel.lifecycle.instance.Workflow;
 import org.cristalise.kernel.lifecycle.instance.predefined.server.ServerPredefinedStepContainer;
+import org.cristalise.kernel.lookup.AgentPath;
 import org.cristalise.kernel.lookup.ItemPath;
 import org.cristalise.storage.jooqdb.clusterStore.JooqLifecycleHandler;
 import org.junit.Before;
@@ -42,7 +45,7 @@ public class JooqLifecycleTest extends JooqTestBase {
         jooq.createTables(context);
 
         wf = new Workflow(new CompositeActivity(), new ServerPredefinedStepContainer());
-        wf.initialise(new ItemPath(), null, null);
+        wf.initialise(new ItemPath(), new AgentPath(UUID.randomUUID(), "dummy"), null);
         assert jooq.put(context, uuid, wf) == 1;
     }
 

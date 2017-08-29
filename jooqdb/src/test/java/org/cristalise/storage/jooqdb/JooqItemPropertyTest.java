@@ -40,7 +40,7 @@ public class JooqItemPropertyTest extends JooqTestBase {
         Assert.assertEquals(expected.getName(),   actual.getName());
         Assert.assertEquals(expected.isMutable(), actual.isMutable());
         Assert.assertEquals(expected.getValue(),  actual.getValue());
-}
+    }
 
     @Before
     public void before() throws Exception {
@@ -101,8 +101,7 @@ public class JooqItemPropertyTest extends JooqTestBase {
 
         String[] keys = jooq.getNextPrimaryKeys(context, uuid, "zaza");
 
-        Assert.assertEquals(1, keys.length);
-        Assert.assertEquals("zaza", keys[0]);
+        Assert.assertEquals(0, keys.length);
     }
 
     @Test
@@ -120,7 +119,7 @@ public class JooqItemPropertyTest extends JooqTestBase {
         UUID uuid2 = UUID.randomUUID();
         assert jooq.put(context, uuid,  new Property("zaza", "value", false)) == 1;
         assert jooq.put(context, uuid2, new Property("mimi", "value", false)) == 1;
-        
+
         assert jooq.delete(context, uuid) == 2;
 
         String[] keys = jooq.getNextPrimaryKeys(context, uuid2);

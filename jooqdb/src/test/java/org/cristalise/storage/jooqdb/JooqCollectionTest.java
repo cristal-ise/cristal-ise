@@ -107,7 +107,6 @@ public class JooqCollectionTest extends JooqTestBase {
 
         String[] keys = jooq.getNextPrimaryKeys(context, uuid, "Test", "0");
 
-        Assert.assertEquals(1, keys.length);
-        Assert.assertEquals("0", keys[0]);
+        Assert.assertEquals(0, keys.length);
     }
 }
