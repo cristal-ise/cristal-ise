@@ -20,7 +20,6 @@
  */
 package org.cristalise.storage.jooqdb.clusterStore;
 
-import static org.cristalise.kernel.persistency.ClusterType.LIFECYCLE;
 import static org.jooq.impl.DSL.constraint;
 import static org.jooq.impl.DSL.field;
 import static org.jooq.impl.DSL.name;
@@ -130,23 +129,6 @@ public class JooqLifecycleHandler extends JooqHandler {
             }
         }
         return null;
-    }
-
-    @Override
-    public String[] getNextPrimaryKeys(DSLContext context, UUID uuid, String...primaryKeys) throws PersistencyException {
-        try {
-            Record result = context
-                    .select().from(LIFECYCLE_TABLE)
-                    .where(getPKConditions(uuid, primaryKeys))
-                    .fetchOne();
-
-            if(result != null) { String[] keys = new String[1]; keys[0] = LIFECYCLE.getName(); return keys;}
-            else               return null;
-        }
-        catch ( DataAccessException e) {
-            Logger.error(e);
-            throw new PersistencyException(e.getMessage());
-        }
     }
 
     @Override

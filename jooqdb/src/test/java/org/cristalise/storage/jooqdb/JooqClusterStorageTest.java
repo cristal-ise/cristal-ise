@@ -25,18 +25,19 @@ import static org.cristalise.kernel.persistency.ClusterType.LIFECYCLE;
 import static org.cristalise.kernel.persistency.ClusterType.OUTCOME;
 import static org.cristalise.kernel.persistency.ClusterType.PROPERTY;
 import static org.cristalise.kernel.persistency.ClusterType.VIEWPOINT;
-import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.fail;
+import static org.junit.Assert.assertThat;
 
+import java.util.Arrays;
 import java.util.Properties;
 
 import org.cristalise.kernel.lifecycle.instance.predefined.server.BulkImport;
 import org.cristalise.kernel.lookup.ItemPath;
-import org.cristalise.kernel.persistency.ClusterType;
 import org.cristalise.kernel.process.Gateway;
-import org.cristalise.kernel.utils.Logger;
+import org.hamcrest.collection.IsIterableContainingInAnyOrder;
+import org.junit.After;
 import org.junit.AfterClass;
+import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
@@ -60,7 +61,10 @@ public class JooqClusterStorageTest {
         Gateway.connect();
 
         itemPath = new ItemPath("fcecd4ad-40eb-421c-a648-edc1d74f339b");
+    }
 
+    @Before
+    public void importItem() throws Exception {
         BulkImport importer = new BulkImport();
         importer.initialise();
 
@@ -71,54 +75,78 @@ public class JooqClusterStorageTest {
         importer.importHistory  (itemPath, null);
     }
 
+    @After
+    public void deleteItem() throws Exception {
+        //NOTE: implicitly tests deleting full item data
+        Gateway.getStorage().removeCluster(itemPath, "", null);
+    }
+
     @AfterClass
     public static void afterClass() throws Exception {
         Gateway.close();
     }
 
     @Test
-    public void checkClusterStorage() throws Exception {
+    public void clusterTypesTest() throws Exception {
         String[] types = Gateway.getStorage().getClusterContents(itemPath, "");
 
-        assertEquals(5, types.length);
+        assertThat(Arrays.asList(types), IsIterableContainingInAnyOrder.containsInAnyOrder(
+                "Property", "LifeCycle", "Outcome", "ViewPoint", "AuditTrail"));
+    }
 
-        for (String typeName : types) {
-            String[] contents = Gateway.getStorage().getClusterContents(itemPath, typeName);
+    @Test
+    public void propertyClusterTest() throws Exception {
+        String[] contents = Gateway.getStorage().getClusterContents(itemPath, PROPERTY);
 
-            switch (ClusterType.getValue(typeName)) {
-                case PROPERTY:
-                    assertEquals(9, contents.length);
-                    assertNotNull( Gateway.getStorage().get(itemPath, PROPERTY+"/Name", null) );
-                    assertNotNull( Gateway.getStorage().get(itemPath, PROPERTY+"/Molecule", null) );
-                    break;
+        assertThat(Arrays.asList(contents), IsIterableContainingInAnyOrder.containsInAnyOrder(
+                "BatchResult", "Creator", "Molecule", "Name", "ProductionDate", "ProductionLine", "ProductionSite", "Status", "Type"));
 
-                case LIFECYCLE:
-                    assertEquals(1,  contents.length);
-                    assertNotNull( Gateway.getStorage().get(itemPath, LIFECYCLE+"/workflow", null) );
-                    break;
+        assertNotNull( Gateway.getStorage().get(itemPath, PROPERTY+"/Name", null) );
+        assertNotNull( Gateway.getStorage().get(itemPath, PROPERTY+"/Molecule", null) );
+    }
 
-                case OUTCOME:
-                    assertEquals(1, contents.length);
-                    assertEquals(10, Gateway.getStorage().getClusterContents(itemPath, OUTCOME+"/PredefinedStepOutcome/0").length);
-                    assertNotNull( Gateway.getStorage().get(itemPath, OUTCOME+"/PredefinedStepOutcome/0/0", null) );
-                    break;
+    @Test
+    public void lifeCycleClusterTest() throws Exception {
+        String[] contents = Gateway.getStorage().getClusterContents(itemPath, LIFECYCLE);
 
-                case VIEWPOINT:
-                    assertEquals(3, contents.length);
-                    assertNotNull( Gateway.getStorage().get(itemPath, VIEWPOINT+"/CommercialDataData/last", null) );
-                    break;
+        assertThat(Arrays.asList(contents), IsIterableContainingInAnyOrder.containsInAnyOrder("workflow"));
+        assertNotNull( Gateway.getStorage().get(itemPath, LIFECYCLE+"/workflow", null) );
+    }
 
-                case HISTORY:
-                    assertEquals(10, contents.length);
-                    assertNotNull( Gateway.getStorage().get(itemPath, HISTORY+"/0", null) );
-                    assertNotNull( Gateway.getStorage().get(itemPath, HISTORY+"/9", null) );
-                    break;
+    @Test
+    public void outcomeClusterTest() throws Exception {
+        String[] contents = Gateway.getStorage().getClusterContents(itemPath, OUTCOME);
 
-                default:
-                    fail("Test data does not contain ClusterType:"+typeName);
-            }
-        }
-        Logger.msg("-----------------------------------------------------------------------");
-        Gateway.getStorage().removeCluster(itemPath, "", null);
+        assertThat(Arrays.asList(contents), IsIterableContainingInAnyOrder.containsInAnyOrder("PredefinedStepOutcome"));
+
+        contents = Gateway.getStorage().getClusterContents(itemPath, OUTCOME+"/PredefinedStepOutcome/0");
+        assertThat(Arrays.asList(contents), IsIterableContainingInAnyOrder.containsInAnyOrder(
+                "1", "2", "3", "4", "5", "6", "7", "8", "9", "0"));
+
+        assertNotNull( Gateway.getStorage().get(itemPath, OUTCOME+"/PredefinedStepOutcome/0/0", null) );
+    }
+
+    @Test
+    public void viewPointClusterTest() throws Exception {
+        String[] contents = Gateway.getStorage().getClusterContents(itemPath, VIEWPOINT);
+
+        assertThat(Arrays.asList(contents), IsIterableContainingInAnyOrder.containsInAnyOrder(
+                "Dispensing2Data", "DispensingData", "CommercialDataData"));
+
+        contents = Gateway.getStorage().getClusterContents(itemPath, VIEWPOINT+"/Dispensing2Data");
+        assertThat(Arrays.asList(contents), IsIterableContainingInAnyOrder.containsInAnyOrder("last"));
+
+        assertNotNull( Gateway.getStorage().get(itemPath, VIEWPOINT+"/CommercialDataData/last", null) );
+    }
+
+    @Test
+    public void historyClusterTest() throws Exception {
+        String[] contents = Gateway.getStorage().getClusterContents(itemPath, HISTORY);
+
+        assertThat(Arrays.asList(contents), IsIterableContainingInAnyOrder.containsInAnyOrder(
+                "1", "2", "3", "4", "5", "6", "7", "8", "9", "0"));
+
+        assertNotNull( Gateway.getStorage().get(itemPath, HISTORY+"/0", null) );
+        assertNotNull( Gateway.getStorage().get(itemPath, HISTORY+"/9", null) );
     }
 }
