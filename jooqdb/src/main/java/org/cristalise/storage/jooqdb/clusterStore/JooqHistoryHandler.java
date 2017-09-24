@@ -36,7 +36,6 @@ import org.cristalise.kernel.common.PersistencyException;
 import org.cristalise.kernel.entity.C2KLocalObject;
 import org.cristalise.kernel.events.Event;
 import org.cristalise.kernel.lookup.AgentPath;
-import org.cristalise.kernel.lookup.InvalidAgentPathException;
 import org.cristalise.kernel.lookup.ItemPath;
 import org.cristalise.kernel.utils.DateUtility;
 import org.cristalise.kernel.utils.Logger;
@@ -68,7 +67,7 @@ public class JooqHistoryHandler extends JooqHandler {
     static final Field<String>    VIEW_NAME             = field(name("VIEW_NAME"),            String.class);
     static final Field<Timestamp> TIMESTAMP             = field(name("TIMESTAMP"),            Timestamp.class);
 
-    //    static final Field<OffsetDateTime> TIMESTAMP = field(name("TIMESTAMP"), Timestamp.class);
+    //static final Field<OffsetDateTime> TIMESTAMP = field(name("TIMESTAMP"), Timestamp.class);
 
     @Override
     protected Table<?> getTable() {
@@ -162,7 +161,7 @@ public class JooqHistoryHandler extends JooqHandler {
                         result.get(VIEW_NAME),
                         ts);
             }
-            catch (InvalidAgentPathException | IllegalArgumentException ex) {
+            catch (Exception ex) {
                 Logger.error(ex);
                 throw new PersistencyException(ex.getMessage());
             }

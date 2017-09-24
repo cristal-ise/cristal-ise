@@ -25,7 +25,6 @@ import static org.jooq.impl.DSL.field;
 import static org.jooq.impl.DSL.name;
 import static org.jooq.impl.DSL.table;
 
-import java.io.IOException;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -38,16 +37,12 @@ import org.cristalise.kernel.entity.C2KLocalObject;
 import org.cristalise.kernel.entity.agent.Job;
 import org.cristalise.kernel.lifecycle.instance.stateMachine.Transition;
 import org.cristalise.kernel.lookup.AgentPath;
-import org.cristalise.kernel.lookup.InvalidAgentPathException;
 import org.cristalise.kernel.lookup.ItemPath;
 import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.utils.CastorHashMap;
 import org.cristalise.kernel.utils.DateUtility;
 import org.cristalise.kernel.utils.Logger;
 import org.cristalise.storage.jooqdb.JooqHandler;
-import org.exolab.castor.mapping.MappingException;
-import org.exolab.castor.xml.MarshalException;
-import org.exolab.castor.xml.ValidationException;
 import org.jooq.Condition;
 import org.jooq.DSLContext;
 import org.jooq.Field;
@@ -116,7 +111,7 @@ public class JooqJobHandler extends JooqHandler {
             transXML    = Gateway.getMarshaller().marshall(job.getTransition());
             actPropsXML = Gateway.getMarshaller().marshall(job.getActProps());
         }
-        catch (MarshalException | ValidationException | IOException | MappingException ex) {
+        catch (Exception ex) {
             Logger.error(ex);
             throw new PersistencyException(ex.getMessage());
         }
@@ -168,9 +163,7 @@ public class JooqJobHandler extends JooqHandler {
                                 actProps,
                                 ts);
             }
-            catch (MarshalException | ValidationException | IllegalArgumentException |
-                    IOException      | MappingException    | InvalidAgentPathException ex)
-            {
+            catch (Exception ex) {
                 Logger.error(ex);
                 throw new PersistencyException(ex.getMessage());
             }

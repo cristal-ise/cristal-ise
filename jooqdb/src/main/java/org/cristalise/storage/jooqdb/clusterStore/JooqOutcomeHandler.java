@@ -30,8 +30,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 
-import org.cristalise.kernel.common.InvalidDataException;
-import org.cristalise.kernel.common.ObjectNotFoundException;
 import org.cristalise.kernel.common.PersistencyException;
 import org.cristalise.kernel.entity.C2KLocalObject;
 import org.cristalise.kernel.persistency.outcome.Outcome;
@@ -126,7 +124,7 @@ public class JooqOutcomeHandler extends JooqHandler {
                 String xml = result.get(XML);
                 return new Outcome(result.get(EVENT_ID), xml, LocalObjectLoader.getSchema(result.get(SCHEMA_NAME), result.get(SCHEMA_VERSION)));
             }
-            catch (InvalidDataException | ObjectNotFoundException e) {
+            catch (Exception e) {
                 Logger.error(e);
                 throw new PersistencyException(e.getMessage());
             }

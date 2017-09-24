@@ -25,7 +25,6 @@ import static org.jooq.impl.DSL.field;
 import static org.jooq.impl.DSL.name;
 import static org.jooq.impl.DSL.table;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -37,15 +36,11 @@ import org.cristalise.kernel.entity.C2KLocalObject;
 import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.utils.Logger;
 import org.cristalise.storage.jooqdb.JooqHandler;
-import org.exolab.castor.mapping.MappingException;
-import org.exolab.castor.xml.MarshalException;
-import org.exolab.castor.xml.ValidationException;
 import org.jooq.Condition;
 import org.jooq.DSLContext;
 import org.jooq.Field;
 import org.jooq.Record;
 import org.jooq.Table;
-import org.jooq.exception.DataAccessException;
 
 
 public class JooqCollectionHadler extends JooqHandler {
@@ -104,7 +99,7 @@ public class JooqCollectionHadler extends JooqHandler {
                     .where(getPKConditions(uuid, obj))
                     .execute();
         }
-        catch (MarshalException | ValidationException | DataAccessException | IOException | MappingException e) {
+        catch (Exception e) {
             Logger.error(e);
             throw new PersistencyException(e.getMessage());
         }
@@ -122,7 +117,7 @@ public class JooqCollectionHadler extends JooqHandler {
                     .set(XML,     Gateway.getMarshaller().marshall(obj))
                     .execute();
         }
-        catch (MarshalException | ValidationException | DataAccessException | IOException | MappingException e) {
+        catch (Exception e) {
             Logger.error(e);
             throw new PersistencyException(e.getMessage());
         }
@@ -137,7 +132,7 @@ public class JooqCollectionHadler extends JooqHandler {
                 String xml = result.get(XML);
                 return (C2KLocalObject)Gateway.getMarshaller().unmarshall(xml);
             }
-            catch (MarshalException | ValidationException | IOException | MappingException e) {
+            catch (Exception e) {
                 Logger.error(e);
                 throw new PersistencyException(e.getMessage());
             }

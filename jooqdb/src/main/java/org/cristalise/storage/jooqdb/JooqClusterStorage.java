@@ -45,7 +45,6 @@ import org.cristalise.storage.jooqdb.clusterStore.JooqLifecycleHandler;
 import org.cristalise.storage.jooqdb.clusterStore.JooqOutcomeHandler;
 import org.cristalise.storage.jooqdb.clusterStore.JooqViewpointHandler;
 import org.jooq.DSLContext;
-import org.jooq.exception.DataAccessException;
 import org.jooq.impl.DefaultConnectionProvider;
 
 /**
@@ -70,7 +69,7 @@ public class JooqClusterStorage extends TransactionalClusterStorage {
 
     /**
      * Initialise internal handlers for all ClusterTypes and all the DomainHandlers-
-     * 
+     *
      * @throws PersistencyException Error during initialise ...
      */
     public void initialiseHandlers() throws PersistencyException {
@@ -112,7 +111,7 @@ public class JooqClusterStorage extends TransactionalClusterStorage {
         try {
             context.close();
         }
-        catch (DataAccessException e) {
+        catch (Exception e) {
             Logger.error(e);
             throw new PersistencyException(e.getMessage());
         }
@@ -133,8 +132,8 @@ public class JooqClusterStorage extends TransactionalClusterStorage {
         Logger.msg(1, "JooqClusterStorage.commit()");
         try {
             ((DefaultConnectionProvider)context.configuration().connectionProvider()).commit();
-        } 
-        catch (DataAccessException e) {
+        }
+        catch (Exception e) {
             Logger.error(e);
             throw new PersistencyException(e.getMessage());
         }
@@ -151,7 +150,7 @@ public class JooqClusterStorage extends TransactionalClusterStorage {
         try {
             ((DefaultConnectionProvider)context.configuration().connectionProvider()).rollback();
         }
-        catch (DataAccessException e) {
+        catch (Exception e) {
             Logger.error(e);
         }
     }
