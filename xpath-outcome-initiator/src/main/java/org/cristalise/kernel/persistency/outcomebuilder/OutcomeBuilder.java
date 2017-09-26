@@ -42,8 +42,7 @@ import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 
 /**
- *  will load the outcome as instructed by other bits of the gui
- *  provides the 'save' button and creates the trees of objects to feed to the outcome form
+ *
  */
 public class OutcomeBuilder {
 
@@ -51,9 +50,10 @@ public class OutcomeBuilder {
     Document         outcomeDOM;
     OutcomeStructure documentRoot;
     DocumentBuilder  parser;
+
     boolean          readOnly;
-    boolean          useForm    = true;
-    boolean          unsaved    = false;
+    boolean          unsaved      = false;
+    String           selectedRoot = "Storage";
 
     protected HashMap<String, Class<?>> specialEditFields = new HashMap<String, Class<?>>();
 
@@ -77,13 +77,24 @@ public class OutcomeBuilder {
 
     public OutcomeBuilder(String schema, boolean readOnly) throws OutcomeException, InvalidSchemaException {
         this(readOnly);
-        this.setDescription(schema);
+        this.setSchema(schema);
     }
 
     public OutcomeBuilder(String schema, String outcome, boolean readOnly) throws OutcomeException, InvalidOutcomeException, InvalidSchemaException {
         this(readOnly);
-        this.setDescription(schema);
+        this.setSchema(schema);
         this.setOutcome(outcome);
+    }
+
+    public OutcomeBuilder(URL schemaURL, boolean readOnly) throws OutcomeException, InvalidSchemaException {
+        this(readOnly);
+        this.setSchema(schemaURL);
+    }
+
+    public OutcomeBuilder(URL schemaURL, URL outcomeURL, boolean readOnly) throws OutcomeException, InvalidSchemaException, InvalidOutcomeException {
+        this(readOnly);
+        this.setSchema(schemaURL);
+        this.setOutcome(outcomeURL);
     }
 
     // Parse from URLS
@@ -96,31 +107,8 @@ public class OutcomeBuilder {
         }
     }
 
-    public void setDescription(URL schemaURL) throws InvalidSchemaException {
-        Logger.msg(7, "OutcomeBulder.setDescription() - schemaURL:" + schemaURL.toString());
-        try {
-            setDescription(new InputSource(schemaURL.openStream()));
-        }
-        catch (IOException ex) {
-            throw new InvalidSchemaException("Error creating exolab schema object: " + ex);
-        }
-
-    }
-
-    public OutcomeBuilder(URL schemaURL, boolean readOnly) throws OutcomeException, InvalidSchemaException {
-        this(readOnly);
-        this.setDescription(schemaURL);
-    }
-
-    public OutcomeBuilder(URL schemaURL, URL outcomeURL, boolean readOnly) throws OutcomeException, InvalidSchemaException, InvalidOutcomeException {
-        this(readOnly);
-        this.setDescription(schemaURL);
-        this.setOutcome(outcomeURL);
-    }
-
     // Parse from Strings
     public void setOutcome(String outcome) throws InvalidOutcomeException {
-
         try {
             setOutcome(new InputSource(new StringReader(outcome)));
         }
@@ -129,11 +117,21 @@ public class OutcomeBuilder {
         }
     }
 
-    public void setDescription(String schema) throws InvalidSchemaException {
+    public void setSchema(URL schemaURL) throws InvalidSchemaException {
+        Logger.msg(7, "OutcomeBulder.setSchema() - schemaURL:" + schemaURL.toString());
+        try {
+            setSchema(new InputSource(schemaURL.openStream()));
+        }
+        catch (IOException ex) {
+            throw new InvalidSchemaException("Error creating exolab schema object: " + ex);
+        }
+    }
+
+    public void setSchema(String schema) throws InvalidSchemaException {
         if (schema == null) throw new InvalidSchemaException("Null schema supplied");
 
         try {
-            setDescription(new InputSource(new StringReader(schema)));
+            setSchema(new InputSource(new StringReader(schema)));
         }
         catch (Exception ex) {
             Logger.error(ex);
@@ -144,7 +142,7 @@ public class OutcomeBuilder {
         this.readOnly = readOnly;
     }
 
-    public void setDescription(InputSource schemaSource) throws InvalidSchemaException, IOException {
+    public void setSchema(InputSource schemaSource) throws InvalidSchemaException, IOException {
 
         SchemaReader mySchemaReader = new SchemaReader(schemaSource);
         this.schemaSOM = mySchemaReader.read();
@@ -161,7 +159,7 @@ public class OutcomeBuilder {
 
     public void initialise() throws OutcomeException, InvalidSchemaException {
         Element docElement;
-        Logger.msg(5, "Initialising..");
+        Logger.msg(5, "Initialising...");
 
         if (schemaSOM == null) throw new InvalidSchemaException("A valid schema has not been supplied.");
 
@@ -176,12 +174,7 @@ public class OutcomeBuilder {
 
         if (foundRoots.size() == 1)  rootElementDecl = foundRoots.values().iterator().next();
         else if (docElement != null) rootElementDecl = foundRoots.get(docElement.getTagName());
-        else { // choose root
-            //FIXME Choose the root element
-            //String[] rootArr = foundRoots.keySet().toArray(new String[0]);
-            String choice = "Choose the root element";
-            rootElementDecl = foundRoots.get(choice);
-        }
+        else                         rootElementDecl = foundRoots.get(selectedRoot);  //choose root
 
         if (rootElementDecl == null) throw new InvalidSchemaException("No root elements defined");
 
@@ -190,29 +183,31 @@ public class OutcomeBuilder {
         else
             documentRoot = new DataRecord(rootElementDecl, readOnly, false, specialEditFields);
 
-        Logger.msg(5, "Finished structure. Populating...");
-
-        //FIXME: refactor instantiating a new XML Document
-        //if (docElement == null) {
-        //    outcomeDOM = parser.newDocument();
-        //    docElement = documentRoot.initNew(outcomeDOM);
-        //    outcomeDOM.appendChild(docElement);
-        //}
-        //else
-        //    documentRoot.addInstance(docElement, outcomeDOM);
+        Logger.msg(5, "Finished structure!");
     }
 
-    public String getOutcome() {
-        if (useForm) {
-            documentRoot.validateStructure();
-            try {
-                return Outcome.serialize(outcomeDOM, false);
-            }
-            catch (InvalidDataException e) {}
-        }
-        else {
-            //return basicView.getText();
-        }
-        return "";
+    public void createNewOutcome() {
+        outcomeDOM = parser.newDocument();
+        outcomeDOM.appendChild( documentRoot.initNew(outcomeDOM) );
+    }
+
+    public void addInstance() throws OutcomeException {
+        Element docElement = (outcomeDOM == null) ? null : outcomeDOM.getDocumentElement();
+        documentRoot.addInstance(docElement, outcomeDOM);
+    }
+
+    public String getOutcome() throws InvalidDataException {
+        documentRoot.validateStructure();
+        return Outcome.serialize(outcomeDOM, false);
+    }
+
+    public String getSelectedRoot() {
+        return selectedRoot;
+    }
+
+    public void setSelectedRoot(String selectedRoot) {
+        this.selectedRoot = selectedRoot;
+
+        outcomeDOM = null;
     }
 }

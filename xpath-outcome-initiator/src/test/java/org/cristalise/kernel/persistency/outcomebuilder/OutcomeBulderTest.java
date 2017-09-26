@@ -23,18 +23,33 @@ package org.cristalise.kernel.persistency.outcomebuilder;
 import java.io.IOException;
 
 import org.cristalise.kernel.utils.FileStringUtility;
+import org.cristalise.kernel.utils.Logger;
 import org.junit.Test;
 
 public class OutcomeBulderTest {
 
     @Test
     public void test() throws Exception {
-        //OutcomeBuilder op = new OutcomeBuilder( getXSD("Module"), getXML("module"), true);
-        OutcomeBuilder op = new OutcomeBuilder( getXSD("PatientDetails"), true);
-        //OutcomeBuilder op = new OutcomeBuilder( getXSD("Item"), true);
-        //OutcomeBuilder op = new OutcomeBuilder( getXSD("PatientDetails"), true);
+        //OutcomeBuilder ob = new OutcomeBuilder( getXSD("Module"), getXML("module"), true);
+        //OutcomeBuilder ob = new OutcomeBuilder( getXSD("PatientDetails"), true);
+        //OutcomeBuilder ob = new OutcomeBuilder( getXSD("Item"), true);
+        //OutcomeBuilder ob = new OutcomeBuilder( getXSD("PatientDetails"), true);
+        OutcomeBuilder ob = new OutcomeBuilder( getXSD("Storage"), false);
 
-        op.initialise();
+        ob.setSelectedRoot("StorageDetails");
+        ob.initialise();
+        ob.createNewOutcome();
+        Logger.msg(ob.getOutcome());
+
+        ob.setSelectedRoot("StorageAmount");
+        ob.initialise();
+        ob.createNewOutcome();
+        Logger.msg(ob.getOutcome());
+
+        ob.setSelectedRoot("Storage");
+        ob.initialise();
+        ob.createNewOutcome();
+        Logger.msg(ob.getOutcome());
     }
 
     public String getXML(String name) throws IOException {

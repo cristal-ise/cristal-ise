@@ -71,7 +71,7 @@ public class ComboField extends StringField {
             selected = vals.findKey(text);
         }
         else
-            Logger.error("Illegal value for ComboField "+getName()+": "+text);
+            Logger.error("Illegal value for ComboField name:'"+getName()+"' value:'"+text+"'");
     }
 
     private void createLOV() {
@@ -118,12 +118,14 @@ public class ComboField extends StringField {
     private void populateLOVFromScript(String scriptName) {
         try {
             StringTokenizer tok = new StringTokenizer(scriptName, "_");
-            if (tok.countTokens() != 2)
-                throw new Exception("Invalid LOVScript name");
+
+            if (tok.countTokens() != 2) throw new Exception("Invalid LOVScript name");
+
             Script lovscript = LocalObjectLoader.getScript(tok.nextToken(), Integer.parseInt(tok.nextToken()));
             lovscript.setInputParamValue("LOV", vals);
             lovscript.execute();
-        } catch (Exception ex) {
+        }
+        catch (Exception ex) {
             Logger.error(ex);
         }
     }

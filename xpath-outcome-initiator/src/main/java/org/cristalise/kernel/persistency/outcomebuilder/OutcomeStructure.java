@@ -122,7 +122,6 @@ public abstract class OutcomeStructure {
      * createStructure() to find the corresponding OutcomeStructure then adds it to this structure.
      */
     public void enumerateElements(ContentModelGroup group) throws OutcomeException {
-
         // process base types first if complex type
         // HACK: castor does not include elements from basetype, so we do it manually. if they fix it, this will duplicate child elements.
         if (group instanceof ComplexType) {
@@ -140,9 +139,11 @@ public abstract class OutcomeStructure {
                     ModelGroup thisModel = (ModelGroup) thisGroup;
                     if (thisModel.hasReference()) thisGroup = thisModel.getReference();
                 }
+
+                // xs:sequences and xs:all is supported in data structures such as these
                 Order thisOrder = thisGroup.getOrder();
                 if (thisOrder == Order.sequence || thisOrder == Order.all) enumerateElements(thisGroup);
-                else // we only support sequences in data structures such as these
+                else
                     throw new StructuralException("The '" + thisGroup.getOrder() + "' group is not supported");
             }
             else if (thisParticle instanceof ElementDecl) {

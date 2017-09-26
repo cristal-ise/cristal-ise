@@ -1,0 +1,93 @@
+<?xml version='1.0' encoding='utf-8'?>
+<xs:schema xmlns:xs='http://www.w3.org/2001/XMLSchema'>
+    <xs:element name='StorageDetails'>
+        <xs:annotation>
+            <xs:documentation>The initial set of data to be captured for Storage</xs:documentation>
+        </xs:annotation>
+        <xs:complexType>
+            <xs:group ref="StorageDetailsGroup"/>
+        </xs:complexType>
+    </xs:element>
+
+    <xs:element name='StorageAmount'>
+        <xs:annotation>
+            <xs:documentation>The actual storage Amount and the signed Weight received from measure device</xs:documentation>
+        </xs:annotation>
+        <xs:complexType>
+            <xs:group ref="StorageAmountGroup"/>
+        </xs:complexType>
+    </xs:element>
+
+    <xs:element name='Storage'>
+        <xs:annotation>
+            <xs:documentation>Aggregated data of Storage</xs:documentation>
+        </xs:annotation>
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name='ID'     minOccurs='1' maxOccurs='1' type='xs:string'/>
+                <xs:element name='Name'   minOccurs='1' maxOccurs='1' type='xs:string'/>
+                <xs:element name="State"  minOccurs="1" maxOccurs="1" type="StorageState" default="READY"/>
+
+                <xs:group ref="StorageDetailsGroup"/>
+                <xs:group ref="StorageAmountGroup"/>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+
+    <xs:group name="StorageDetailsGroup">
+        <xs:sequence>
+            <xs:element name="Type"      minOccurs="1" maxOccurs="1" type="StorageType" default="BIN"/>
+            <xs:element name='Capacity'  minOccurs='1' maxOccurs='1' type="AmountType"/>
+            <xs:element name='Season'    minOccurs='0' maxOccurs='1' type='xs:string'/>
+            <xs:element name='Commodity' minOccurs='0' maxOccurs='1' type='xs:string'/>
+            <xs:element name='Grade'     minOccurs='0' maxOccurs='1' type='xs:string'/>
+
+            <xs:element name='Note'      minOccurs='0' maxOccurs='1' type='xs:string' />
+        </xs:sequence>
+    </xs:group>
+
+    <xs:group name="StorageAmountGroup">
+        <xs:sequence>
+            <xs:element name='Amount'         minOccurs='0' maxOccurs='1' type="AmountType"/>
+            <xs:element name='MeasuredWeight' minOccurs='0' maxOccurs='1' type="AmountType"/>
+        </xs:sequence>
+    </xs:group>
+
+    <xs:simpleType name="StorageType">
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="BIN" />
+            <xs:enumeration value="WAREHOUSE" />
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:simpleType name="StorageState">
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="READY" />
+            <xs:enumeration value="LOCKOUT" />
+            <xs:enumeration value="ERROR" />
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:complexType name="AmountType">
+        <xs:simpleContent>
+            <xs:extension base='xs:decimal'>
+                <xs:attribute name='unit' default='TONNE' use='optional' type="MassUnit" />
+            </xs:extension>
+        </xs:simpleContent>
+    </xs:complexType>
+
+    <xs:simpleType name="MassUnit">
+        <xs:restriction base='xs:string'>
+            <xs:enumeration value='KG'>
+                <xs:annotation>
+                    <xs:documentation>kg</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value='TONNE'>
+                <xs:annotation>
+                    <xs:documentation>t</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+        </xs:restriction>
+    </xs:simpleType>
+</xs:schema>
