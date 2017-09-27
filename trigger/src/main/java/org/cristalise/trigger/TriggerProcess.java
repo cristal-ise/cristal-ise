@@ -31,7 +31,6 @@ import org.cristalise.kernel.entity.agent.Job;
 import org.cristalise.kernel.entity.proxy.MemberSubscription;
 import org.cristalise.kernel.entity.proxy.ProxyObserver;
 import org.cristalise.kernel.lifecycle.instance.stateMachine.StateMachine;
-import org.cristalise.kernel.persistency.ClusterStorage;
 import org.cristalise.kernel.persistency.ClusterType;
 import org.cristalise.kernel.process.AbstractMain;
 import org.cristalise.kernel.process.Gateway;
@@ -48,7 +47,7 @@ import org.quartz.SchedulerFactory;
 import org.quartz.SimpleTrigger;
 
 /**
- * 
+ *
  */
 public class TriggerProcess extends StandardClient implements ProxyObserver<Job> {
 
@@ -57,8 +56,8 @@ public class TriggerProcess extends StandardClient implements ProxyObserver<Job>
     private Scheduler quartzScheduler = null;
 
     /**
-     * 
-     * @throws InvalidDataException Invalid data 
+     *
+     * @throws InvalidDataException Invalid data
      */
     public TriggerProcess() throws InvalidDataException {
         StateMachine sm = getRequiredStateMachine("Trigger", "trigger", "boot/SM/Trigger.xml");
@@ -74,7 +73,7 @@ public class TriggerProcess extends StandardClient implements ProxyObserver<Job>
     }
 
     /**
-     * 
+     *
      * @throws SchedulerException Scheduler error
      */
     public void initialise() throws SchedulerException {
@@ -90,7 +89,7 @@ public class TriggerProcess extends StandardClient implements ProxyObserver<Job>
     }
 
     /**
-     * 
+     *
      * @throws SchedulerException Scheduler error
      */
     public void shutdownScheduler() throws SchedulerException {
@@ -98,7 +97,7 @@ public class TriggerProcess extends StandardClient implements ProxyObserver<Job>
     }
 
     /**
-     * 
+     *
      * @param currentJob
      * @param jobID
      * @return JobDetail
@@ -113,8 +112,8 @@ public class TriggerProcess extends StandardClient implements ProxyObserver<Job>
     }
 
     /**
-     * 
-     * 
+     *
+     *
      * @param currentJob
      * @param jobID
      */
@@ -130,7 +129,7 @@ public class TriggerProcess extends StandardClient implements ProxyObserver<Job>
             SimpleTrigger trigger = (SimpleTrigger) newTrigger()
                     .withIdentity(jobID)
                     .startAt(DateBuilder.futureDate(duration, IntervalUnit.valueOf(unit.toUpperCase())))
-                    .forJob(jobID) 
+                    .forJob(jobID)
                     .build();
 
             JobDetail jobDetail = buildJobDetail(currentJob, jobID);
@@ -149,7 +148,7 @@ public class TriggerProcess extends StandardClient implements ProxyObserver<Job>
      * Receives Job from the AgentProxy. Reactivates thread if sleeping.
      */
     @Override
-	public void add(Job currentJob) {
+    public void add(Job currentJob) {
         String transName = currentJob.getTransition().getName();
         String jobID = Integer.toString(currentJob.getId());
 
@@ -162,12 +161,12 @@ public class TriggerProcess extends StandardClient implements ProxyObserver<Job>
                     buildTriggersAndScehduleJob(currentJob, jobID);
                 }
                 else {
-                    Logger.msg(7, "TriggerProcess.add() - disabled trans:"+transName+" job:"+jobID); 
+                    Logger.msg(7, "TriggerProcess.add() - disabled trans:"+transName+" job:"+jobID);
                     //TODO: Execute activity in the Workflow of the Agent to store this error and remove Job from list
                 }
             }
             else {
-                Logger.warning("TriggerProcess.add() - UKNOWN trans:"+transName+" job:"+jobID); 
+                Logger.warning("TriggerProcess.add() - UKNOWN trans:"+transName+" job:"+jobID);
                 //TODO: Execute activity in the Workflow of the Agent to store this error and probably remove Job from list
             }
         }
@@ -178,17 +177,17 @@ public class TriggerProcess extends StandardClient implements ProxyObserver<Job>
      */
     @Override
     public void control(String control, String msg) {
-        if (MemberSubscription.ERROR.equals(control)) { 
+        if (MemberSubscription.ERROR.equals(control)) {
             Logger.error("Error in job subscription: "+msg);
             //TODO: Execute activity in the Workflow of the Agent to store this error and probably remove Job from list
         }
     }
 
     /**
-    * Job removal notification from the AgentProxy.
-    */
+     * Job removal notification from the AgentProxy.
+     */
     @Override
-	public void remove(String id) {
+    public void remove(String id) {
         synchronized(quartzScheduler) {
             Logger.msg(7, "TriggerProcess.remove() - id:"+id);
             try {
@@ -207,8 +206,8 @@ public class TriggerProcess extends StandardClient implements ProxyObserver<Job>
             TriggerProcess proc = new TriggerProcess();
 
             proc.login( Gateway.getProperties().getString("Trigger.agent", "triggerAgent"),
-                        Gateway.getProperties().getString("Trigger.password"),
-                        Gateway.getProperties().getString("AuthResource", "Cristal"));
+                    Gateway.getProperties().getString("Trigger.password"),
+                    Gateway.getProperties().getString("AuthResource", "Cristal"));
 
             proc.initialise();
 
@@ -239,6 +238,6 @@ public class TriggerProcess extends StandardClient implements ProxyObserver<Job>
     }
 
     public static void shutdown() {
-//        active = false;
+        //        active = false;
     }
 }
