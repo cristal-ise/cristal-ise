@@ -50,7 +50,7 @@ public class StringField {
     Node       data;
     Structure  model;
     boolean    isValid  = true;
-    boolean    editable = true;
+    //    boolean    editable = true;
     String     name;
     SimpleType content;
     String     field;
@@ -58,26 +58,28 @@ public class StringField {
 
     public StringField() {}
 
-    public void setEditable(boolean editable) {
-        this.editable = editable;
-    }
+    //public void setEditable(boolean editable) {
+    //    this.editable = editable;
+    //}
 
     private static StringField getFieldForType(SimpleType type) {
         // handle lists special
-        if (type instanceof ListType)
-            return new ArrayField(type.getBuiltInBaseType());
+        if (type instanceof ListType) return new ArrayField(type.getBuiltInBaseType());
 
         // is a combobox
         if (type.hasFacet(Facet.ENUMERATION)) return new ComboField(type, null);
 
-        // find LOVscript TODO: Implement LOV
+        //Find script to populate list of values (LOVscript)
         Enumeration<Annotation> e = type.getAnnotations();
         while (e.hasMoreElements()) {
             Annotation note = e.nextElement();
+
             for (Enumeration<AppInfo> f = note.getAppInfo(); f.hasMoreElements();) {
                 AppInfo thisAppInfo = f.nextElement();
+
                 for (Enumeration<?> g = thisAppInfo.getObjects(); g.hasMoreElements();) {
                     AnyNode appInfoNode = (AnyNode) g.nextElement();
+
                     if (appInfoNode.getLocalName().equals("ScriptList") || appInfoNode.getLocalName().equals("LDAPList")) {
                         return new ComboField(type, appInfoNode);
                     }
@@ -135,7 +137,7 @@ public class StringField {
         this.model = model;
         this.content = model.getSimpleType();
         this.name = model.getName();
-        if (model.isFixed()) editable = false;
+        //if (model.isFixed()) editable = false;
         defaultValue = model.getDefaultValue();
     }
 
@@ -153,7 +155,7 @@ public class StringField {
 
         if (this.content == null) throw new StructuralException("No declared base type of element");
 
-        if (model.getFixedValue() != null) editable = false;
+        //if (model.getFixedValue() != null) editable = false;
     }
 
     public void setData(Attr newData) throws StructuralException {

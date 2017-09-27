@@ -47,16 +47,14 @@ public class DimensionTableModel {
     ArrayList<String> columnHeadings = new ArrayList<String>();
     ArrayList<Class<?>> columnClasses = new ArrayList<Class<?>>();
     ArrayList<Annotated> columnDecls = new ArrayList<Annotated>();
-    ArrayList<Boolean> colReadOnly = new ArrayList<Boolean>();
+    //    ArrayList<Boolean> colReadOnly = new ArrayList<Boolean>();
     ArrayList<String> colHelp = new ArrayList<String>();
     ArrayList<Object[]> rows = new ArrayList<Object[]>();
     ArrayList<Element> elements = new ArrayList<Element>();
-    boolean readOnly;
 
-    public DimensionTableModel(ElementDecl model, boolean readOnly) throws StructuralException {
+    public DimensionTableModel(ElementDecl model) throws StructuralException {
         XMLType modelContent = model.getType();
         this.model = model;
-        this.readOnly = readOnly;
         // use text node for simple types
         if (modelContent.isSimpleType()) {
             SimpleType elementType = (SimpleType)modelContent;
@@ -95,7 +93,6 @@ public class DimensionTableModel {
         columnHeadings.add(heading);
         columnDecls.add(decl);
         columnClasses.add(OutcomeStructure.getJavaClass(typeCode));
-        colReadOnly.add(readOnly);
 
         // read help
         String helpText;
@@ -225,11 +222,6 @@ public class DimensionTableModel {
         return columnHeadings.size();
     }
 
-    public boolean isCellEditable(int rowIndex, int columnIndex) {
-        boolean isReadOnly = readOnly || colReadOnly.get(columnIndex).booleanValue();
-        return !isReadOnly;
-    }
-
     public void setValueAt(Object aValue, int rowIndex, int columnIndex) {
         Object[] thisRow = rows.get(rowIndex);
         thisRow[columnIndex]=aValue;
@@ -262,12 +254,10 @@ public class DimensionTableModel {
     public Object setupDefaultElement(ElementDecl thisDecl, Element parent, Class<?> type) {
         Object newValue;
         String defaultValue = thisDecl.getFixedValue();
-        if (defaultValue == null)
-            defaultValue = thisDecl.getDefaultValue();
-        if (readOnly)
-            newValue = "";
-        else
-            newValue = OutcomeStructure.getTypedValue(defaultValue, type);
+
+        if (defaultValue == null) defaultValue = thisDecl.getDefaultValue();
+
+        newValue = OutcomeStructure.getTypedValue(defaultValue, type);
 
         Text newNode = parent.getOwnerDocument().createTextNode(newValue.toString());
         parent.appendChild(newNode);

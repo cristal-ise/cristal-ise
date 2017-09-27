@@ -37,18 +37,14 @@ public class AttributeList extends OutcomeStructure {
 
     ArrayList<StringField> attrSet = new ArrayList<StringField>();
 
-    public AttributeList(ElementDecl model, boolean readOnly) {
+    public AttributeList(ElementDecl model) {
         AttributeDecl thisDecl;
         this.model = model;
-        this.readOnly = readOnly;
 
         // simple types have no attributes
-        if (!model.getType().isComplexType()) {
-            return;
-        }
+        if (model.getType().isSimpleType()) return;
 
         ComplexType content = (ComplexType)model.getType();
-
 
         for (Enumeration<?> fields = content.getAttributeDecls(); fields.hasMoreElements();) {
             thisDecl = (AttributeDecl)fields.nextElement();
@@ -61,7 +57,7 @@ public class AttributeList extends OutcomeStructure {
             try {
                 StringField entry = StringField.getEditField(thisDecl);
                 attrSet.add(entry);
-                if (readOnly) entry.setEditable(false);
+                //if (readOnly) entry.setEditable(false);
             }
             catch (StructuralException e) {
                 Logger.error(e);
@@ -89,9 +85,11 @@ public class AttributeList extends OutcomeStructure {
     public String validateAttributes() {
         if (model.getType().isComplexType()) {
             ComplexType content = (ComplexType)model.getType();
+
             for (Enumeration<?> fields = content.getAttributeDecls(); fields.hasMoreElements();) {
                 AttributeDecl thisDecl = (AttributeDecl)fields.nextElement();
                 String attrVal = myElement.getAttribute(thisDecl.getName());
+
                 if (attrVal.length() == 0 && thisDecl.isOptional()) {
                     myElement.removeAttribute(thisDecl.getName());
                 }

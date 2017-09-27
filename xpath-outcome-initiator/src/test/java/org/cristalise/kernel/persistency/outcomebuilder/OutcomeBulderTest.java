@@ -30,17 +30,18 @@ public class OutcomeBulderTest {
 
     @Test
     public void test() throws Exception {
-        //OutcomeBuilder ob = new OutcomeBuilder( getXSD("Module"), getXML("module"), true);
-        //OutcomeBuilder ob = new OutcomeBuilder( getXSD("PatientDetails"), true);
-        //OutcomeBuilder ob = new OutcomeBuilder( getXSD("Item"), true);
-        //OutcomeBuilder ob = new OutcomeBuilder( getXSD("PatientDetails"), true);
-        OutcomeBuilder ob = new OutcomeBuilder( getXSD("Storage"), false);
+        //OutcomeBuilder ob = new OutcomeBuilder( getXSD("Module"), getXML("module"));
+        //OutcomeBuilder ob = new OutcomeBuilder( getXSD("PatientDetails"));
+        //OutcomeBuilder ob = new OutcomeBuilder( getXSD("Item"));
+        //OutcomeBuilder ob = new OutcomeBuilder( getXSD("PatientDetails"));
+        OutcomeBuilder ob = new OutcomeBuilder( getXSD("Storage"));
 
         ob.setSelectedRoot("StorageDetails");
         ob.initialise();
         ob.createNewOutcome();
         Logger.msg(ob.getOutcome());
 
+        /*
         ob.setSelectedRoot("StorageAmount");
         ob.initialise();
         ob.createNewOutcome();
@@ -50,6 +51,7 @@ public class OutcomeBulderTest {
         ob.initialise();
         ob.createNewOutcome();
         Logger.msg(ob.getOutcome());
+         */
     }
 
     public String getXML(String name) throws IOException {

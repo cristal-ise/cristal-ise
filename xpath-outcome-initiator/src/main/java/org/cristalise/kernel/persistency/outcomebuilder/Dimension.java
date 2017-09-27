@@ -37,15 +37,16 @@ public class Dimension extends OutcomeStructure {
     ArrayList<DimensionInstance> instances = new ArrayList<DimensionInstance>(); // stores DimensionInstances if tabs
     ArrayList<Element>           elements  = new ArrayList<Element>();           // stores current children
     short                        mode;
-    protected static final short TABLE     = 1;
-    protected static final short TABS      = 2;
 
-    public Dimension(ElementDecl model, boolean readOnly, HashMap<String, Class<?>> specialControls) {
-        super(model, readOnly, specialControls);
+    protected static final short TABLE = 1;
+    protected static final short TABS  = 2;
+
+    public Dimension(ElementDecl model, HashMap<String, Class<?>> specialControls) {
+        super(model, specialControls);
 
         // decide whether a table or tabs
         try {
-            tableModel = new DimensionTableModel(model, readOnly);
+            tableModel = new DimensionTableModel(model);
             Logger.msg(8, "DIM " + model.getName() + " - Will be a table");
 
             mode = TABLE;
@@ -91,7 +92,7 @@ public class Dimension extends OutcomeStructure {
     public DimensionInstance newInstance() {
         DimensionInstance newInstance = null;
         try {
-            newInstance = new DimensionInstance(model, readOnly, deferChild, specialEditFields);
+            newInstance = new DimensionInstance(model, deferChild, specialEditFields);
             instances.add(newInstance);
             newInstance.setTabNumber(instances.size());
             newInstance.setParent(this);

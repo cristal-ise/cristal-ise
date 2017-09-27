@@ -33,22 +33,21 @@ public class Field extends OutcomeStructure {
 
     StringField myElementPanel = null;
     AttributeList myAttributes;
-    boolean fixed;
     Text textNode;
 
-    public Field(ElementDecl model, boolean readOnly, HashMap<String, Class<?>> specialEditFields) {
-        super(model, readOnly, specialEditFields);
+    public Field(ElementDecl model, HashMap<String, Class<?>> specialEditFields) {
+        super(model, specialEditFields);
 
         try {
             myElementPanel = StringField.getEditField(model, specialEditFields);
-            Logger.msg(6, "Field type: "+myElementPanel.getClass().getName());
-            if (readOnly) myElementPanel.setEditable(false);
+            Logger.msg(6, "Field type: "+myElementPanel.getClass().getSimpleName());
+            //if (readOnly) myElementPanel.setEditable(false);
 
         } catch (StructuralException e) { // no base type for field - only attributes
             myElementPanel = null;
         }
 
-        myAttributes = new AttributeList(model, readOnly);
+        myAttributes = new AttributeList(model);
     }
 
     public AttributeList getAttributes() {
@@ -79,7 +78,8 @@ public class Field extends OutcomeStructure {
 
                 myElementPanel.setData(textNode);
             }
-        } catch (ClassCastException ex) {
+        }
+        catch (ClassCastException ex) {
             throw new StructuralException("First child node of Field " + this.getName() + " was not Text: "+myElement.getFirstChild().getNodeType());
         }
         myAttributes.setInstance(myElement);
@@ -91,17 +91,19 @@ public class Field extends OutcomeStructure {
     public String validateStructure() {
         myAttributes.validateAttributes();
         if (myElementPanel != null) myElementPanel.updateNode();
+
         Text contents = (Text)myElement.getFirstChild();
-        if (!myElement.hasAttributes() && model.getMinOccurs() < 1 &&
-                (contents == null || contents.getData().length() == 0))
-            // empty - should remove if optional
+
+        // empty - should remove if optional
+        if (!myElement.hasAttributes() && model.getMinOccurs() < 1 && (contents == null || contents.getData().length() == 0))
             myElement.getParentNode().removeChild(myElement);
+
         return null;
     }
 
     @Override
     public Element initNew(Document parent) {
-        Logger.msg(6, "Creating Field "+this.getName());
+        Logger.msg(6, "Creating Field '"+this.getName()+"'");
 
         // make a new Element
         myElement = parent.createElement(this.getName());
@@ -109,7 +111,7 @@ public class Field extends OutcomeStructure {
         // see if there is a default/fixed value
         if (myElementPanel != null) {
             // populate
-            String defaultVal = readOnly ? "" : getDefaultValue();
+            String defaultVal = getDefaultValue();
             textNode = parent.createTextNode(defaultVal);
             myElement.appendChild(textNode);
             myElementPanel.setData(textNode);

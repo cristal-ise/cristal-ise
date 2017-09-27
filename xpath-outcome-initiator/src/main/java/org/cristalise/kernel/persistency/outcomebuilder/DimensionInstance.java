@@ -32,8 +32,8 @@ public class DimensionInstance extends DataRecord {
     int tabNumber;
     String tabName = null;
 
-    public DimensionInstance(ElementDecl model, boolean readOnly, boolean deferred, HashMap<String, Class<?>> specialControls) throws OutcomeException {
-        super(model, readOnly, deferred, specialControls);
+    public DimensionInstance(ElementDecl model, boolean deferred, HashMap<String, Class<?>> specialControls) throws OutcomeException {
+        super(model, deferred, specialControls);
     }
 
     public void setTabNumber(int tabNumber) {

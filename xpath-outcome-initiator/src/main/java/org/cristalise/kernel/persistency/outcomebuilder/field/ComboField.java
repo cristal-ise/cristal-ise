@@ -141,13 +141,4 @@ public class ComboField extends StringField {
         super.setDecl(model);
         setDefaultValue(model.getDefaultValue());
     }
-
-    /**
-     *
-     */
-
-    @Override
-    public void setEditable(boolean editable) {
-        //comboField.setEditable(editable);
-    }
 }

@@ -26,6 +26,7 @@ import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.HashMap;
 
+import org.apache.commons.lang3.StringUtils;
 import org.cristalise.kernel.utils.Logger;
 import org.exolab.castor.types.AnyNode;
 import org.exolab.castor.xml.schema.Annotated;
@@ -49,30 +50,24 @@ public abstract class OutcomeStructure {
 
     ElementDecl model;
     Element     myElement  = null;
-    boolean     readOnly;
     String      help       = null;
     boolean     deferChild = false;
 
-    ArrayList<String>                 order         = new ArrayList<String>();
+    ArrayList<String>                 order = new ArrayList<String>();
     HashMap<String, Class<?>>         specialEditFields;
-    HashMap<String, OutcomeStructure> subStructure  = new HashMap<String, OutcomeStructure>();
+    HashMap<String, OutcomeStructure> subStructure = new HashMap<String, OutcomeStructure>();
 
     public OutcomeStructure() {}
 
-    public OutcomeStructure(ElementDecl model, boolean readOnly, HashMap<String, Class<?>> specialControls) {
+    public OutcomeStructure(ElementDecl model, HashMap<String, Class<?>> specialControls) {
         this.model = model;
-        this.readOnly = readOnly;
         this.specialEditFields = specialControls;
         subStructure = new HashMap<String, OutcomeStructure>();
-        Logger.msg(8, "Creating " + model.getName() + " structure as " +
-                this.getClass().getName().substring(this.getClass().getName().lastIndexOf('.') + 1));
+
+        Logger.msg(8, "Creating '" + model.getName() + "' structure as " + this.getClass().getSimpleName());
 
         String doc = extractHelp(model);
         if (doc.length() > 0) help = doc;
-    }
-
-    public boolean getReadOnly() {
-        return readOnly;
     }
 
     /**
@@ -84,7 +79,7 @@ public abstract class OutcomeStructure {
      * <li>Everything else is a DataRecord
      * </ol>
      */
-    public OutcomeStructure createStructure(ElementDecl model, boolean readOnly) throws OutcomeException {
+    public OutcomeStructure createStructure(ElementDecl model) throws OutcomeException {
         XMLType elementType = model.getType();
         ComplexType elementComplexType;
 
@@ -93,14 +88,16 @@ public abstract class OutcomeStructure {
         // if more than one can occur - dimension
         if (model.getMaxOccurs() > 1
                 || model.getMaxOccurs() == Particle.UNBOUNDED
-                || model.getMinOccurs() == 0)
-            return new Dimension(model, readOnly, specialEditFields);
+                || model.getMinOccurs() == 0
+                )
+            return new Dimension(model, specialEditFields);
 
         // must have a type from now on
         if (elementType == null)
             throw new StructuralException("Element " + model.getName() + " is elementary yet has no type.");
+
         // simple types will be fields
-        if (elementType instanceof SimpleType) return new Field(model, readOnly, specialEditFields);
+        if (elementType instanceof SimpleType) return new Field(model, specialEditFields);
 
         // otherwise is a complex type
         try {
@@ -111,10 +108,10 @@ public abstract class OutcomeStructure {
         }
 
         // when no element children - field
-        if (elementComplexType.getParticleCount() == 0) return new Field(model, readOnly, specialEditFields);
+        if (elementComplexType.getParticleCount() == 0) return new Field(model, specialEditFields);
 
         // everything else is a data record
-        return new DataRecord(model, readOnly, deferChild, specialEditFields);
+        return new DataRecord(model, deferChild, specialEditFields);
     }
 
     /**
@@ -126,8 +123,8 @@ public abstract class OutcomeStructure {
         // HACK: castor does not include elements from basetype, so we do it manually. if they fix it, this will duplicate child elements.
         if (group instanceof ComplexType) {
             XMLType base = ((ComplexType) group).getBaseType();
-            if (base instanceof ComplexType)
-                enumerateElements((ComplexType) base);
+
+            if (base instanceof ComplexType) enumerateElements((ComplexType) base);
         }
 
         for (Enumeration<?> elements = group.enumerate(); elements.hasMoreElements();) {
@@ -142,13 +139,14 @@ public abstract class OutcomeStructure {
 
                 // xs:sequences and xs:all is supported in data structures such as these
                 Order thisOrder = thisGroup.getOrder();
-                if (thisOrder == Order.sequence || thisOrder == Order.all) enumerateElements(thisGroup);
+                if (thisOrder == Order.sequence || thisOrder == Order.all)
+                    enumerateElements(thisGroup);
                 else
                     throw new StructuralException("The '" + thisGroup.getOrder() + "' group is not supported");
             }
             else if (thisParticle instanceof ElementDecl) {
                 ElementDecl thisElement = (ElementDecl) thisParticle;
-                addStructure(createStructure(thisElement, readOnly));
+                addStructure(createStructure(thisElement));
             }
             else throw new StructuralException("Particle " + thisParticle.getClass() + " not implemented");
         }
@@ -199,32 +197,32 @@ public abstract class OutcomeStructure {
     public static String extractHelp(Annotated model) {
         Enumeration<?> e = model.getAnnotations();
         StringBuffer doc = new StringBuffer();
+
         if (e.hasMoreElements()) { // look for HTML
             Annotation note = (Annotation) e.nextElement();
+
             for (Enumeration<?> g = note.getDocumentation(); g.hasMoreElements();) {
                 Documentation thisDoc = (Documentation) g.nextElement();
+
                 for (Enumeration<?> h = thisDoc.getObjects(); h.hasMoreElements();) {
                     AnyNode node = (AnyNode) h.nextElement();
                     String line = node.toString();
-                    if (line.length() == 0)
-                        line = node.getStringValue();
-                    if (line.length() > 0) {
-                        doc.append(line).append("\n");
-                    }
+
+                    if (line.length() == 0) line = node.getStringValue();
+                    if (line.length() > 0)  doc.append(line).append("\n");
                 }
             }
         }
-
         return doc.toString();
     }
+
     public static Class<?> getJavaClass(int typeCode) {
         switch (typeCode) {
-
             // boolean
             case SimpleTypesFactory.BOOLEAN_TYPE:
                 return Boolean.class;
 
-                // integers
+                // all types of integers
             case SimpleTypesFactory.INTEGER_TYPE:
             case SimpleTypesFactory.NON_POSITIVE_INTEGER_TYPE:
             case SimpleTypesFactory.NEGATIVE_INTEGER_TYPE:
@@ -239,7 +237,8 @@ public abstract class OutcomeStructure {
             case SimpleTypesFactory.BYTE_TYPE:
             case SimpleTypesFactory.UNSIGNED_BYTE_TYPE:
                 return BigInteger.class;
-                // floats
+
+                // all types of floats
             case SimpleTypesFactory.FLOAT_TYPE:
             case SimpleTypesFactory.DOUBLE_TYPE:
             case SimpleTypesFactory.DECIMAL_TYPE:
@@ -259,25 +258,23 @@ public abstract class OutcomeStructure {
 
     public static Object getTypedValue(String value, Class<?> type) {
         try {
-            if (type.equals(Boolean.class))
-                if (value == null || value.equals(""))
-                    return Boolean.FALSE;
-                else
-                    return Boolean.valueOf(value);
-            else if (type.equals(BigInteger.class))
-                if (value == null || value.equals(""))
-                    return new BigInteger("0");
-                else
-                    return new BigInteger(value);
-            else if (type.equals(BigDecimal.class))
-                if (value == null || value.equals(""))
-                    return new BigDecimal(0);
-                else
-                    return new BigDecimal(value);
+            if (type.equals(Boolean.class)) {
+                if (StringUtils.isBlank(value)) return Boolean.FALSE;
+                else                            return Boolean.valueOf(value);
+            }
+            else if (type.equals(BigInteger.class)) {
+                if (StringUtils.isBlank(value)) return new BigInteger("0");
+                else                            return new BigInteger(value);
+            }
+            else if (type.equals(BigDecimal.class)) {
+                if (StringUtils.isBlank(value)) return new BigDecimal(0);
+                else                            return new BigDecimal(value);
+            }
         }
         catch (Exception ex) {
             Logger.error("Cannot convert value '" + value + "' to a " + type.getName());
         }
+
         return value == null ? "" : value;
     }
 
@@ -297,5 +294,14 @@ public abstract class OutcomeStructure {
             if (((BigDecimal) value).floatValue() == 0.0) return true;
         }
         return false;
+    }
+
+
+    public boolean isOptional() {
+        return model.getMinOccurs() == 0;
+    }
+
+    public boolean isMandatory() {
+        return model.getMinOccurs() == 1 && model.getMaxOccurs() == 1;
     }
 }

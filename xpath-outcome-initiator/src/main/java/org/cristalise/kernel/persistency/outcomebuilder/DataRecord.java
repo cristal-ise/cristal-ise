@@ -35,18 +35,18 @@ public class DataRecord extends OutcomeStructure {
     boolean       deferred;
     Document      parentDoc;
 
-    public DataRecord(ElementDecl model, boolean readOnly, boolean deferred, HashMap<String, Class<?>> specialEditFields)
+    public DataRecord(ElementDecl model, boolean deferred, HashMap<String, Class<?>> specialEditFields)
             throws OutcomeException
     {
-        super(model, readOnly, specialEditFields);
+        super(model, specialEditFields);
         this.deferred = deferred;
-        if (!deferred) setupPanel();
+        if (!deferred) setup();
     }
 
     public synchronized void activate() {
         deferred = false;
         try {
-            setupPanel();
+            setup();
             if (myElement != null) populateInstance();
         }
         catch (OutcomeException ex) {
@@ -54,10 +54,9 @@ public class DataRecord extends OutcomeStructure {
         }
     }
 
-    private void setupPanel() throws OutcomeException {
-        // set up panel
+    private void setup() throws OutcomeException {
         // attributes at the top
-        myAttributes = new AttributeList(model, readOnly);
+        myAttributes = new AttributeList(model);
 
         ComplexType elementType;
         try {

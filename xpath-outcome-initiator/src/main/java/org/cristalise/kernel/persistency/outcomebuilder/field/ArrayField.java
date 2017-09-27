@@ -52,11 +52,4 @@ public class ArrayField extends StringField {
     public void setText(String text) {
         arrayModel.setData(text);
     }
-
-    @Override
-    public void setEditable(boolean editable) {
-        readOnly = !editable;
-        arrayModel.setReadOnly(!readOnly);
-    }
-
 }

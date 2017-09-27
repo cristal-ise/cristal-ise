@@ -32,15 +32,10 @@ public class ArrayTableModel {
     ArrayList<Object> contents = new ArrayList<Object>();
     Class<?> type;
     int numCols = 1;
-    boolean readOnly = false;
 
     public ArrayTableModel(SimpleType type) {
         super();
         this.type = OutcomeStructure.getJavaClass(type.getTypeCode());
-    }
-
-    public void setReadOnly(boolean readOnly) {
-        this.readOnly = readOnly;
     }
 
     public void setData(String data) {
@@ -96,11 +91,6 @@ public class ArrayTableModel {
         if (index >= contents.size())
             return null;
         return contents.get(arg1+(arg0 * numCols));
-    }
-
-    public boolean isCellEditable(int rowIndex, int columnIndex) {
-        if (columnIndex+(rowIndex*numCols) > contents.size()-1) return false;
-        return !readOnly;
     }
 
     public void setValueAt(Object aValue, int rowIndex, int columnIndex) {

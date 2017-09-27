@@ -51,7 +51,6 @@ public class OutcomeBuilder {
     OutcomeStructure documentRoot;
     DocumentBuilder  parser;
 
-    boolean          readOnly;
     boolean          unsaved      = false;
     String           selectedRoot = "Storage";
 
@@ -70,29 +69,24 @@ public class OutcomeBuilder {
         }
     }
 
-    public OutcomeBuilder(boolean readOnly) {
+    public OutcomeBuilder(String schema) throws OutcomeException, InvalidSchemaException {
         this();
-        setReadOnly(readOnly);
-    }
-
-    public OutcomeBuilder(String schema, boolean readOnly) throws OutcomeException, InvalidSchemaException {
-        this(readOnly);
         this.setSchema(schema);
     }
 
-    public OutcomeBuilder(String schema, String outcome, boolean readOnly) throws OutcomeException, InvalidOutcomeException, InvalidSchemaException {
-        this(readOnly);
+    public OutcomeBuilder(String schema, String outcome) throws OutcomeException, InvalidOutcomeException, InvalidSchemaException {
+        this();
         this.setSchema(schema);
         this.setOutcome(outcome);
     }
 
-    public OutcomeBuilder(URL schemaURL, boolean readOnly) throws OutcomeException, InvalidSchemaException {
-        this(readOnly);
+    public OutcomeBuilder(URL schemaURL) throws OutcomeException, InvalidSchemaException {
+        this();
         this.setSchema(schemaURL);
     }
 
-    public OutcomeBuilder(URL schemaURL, URL outcomeURL, boolean readOnly) throws OutcomeException, InvalidSchemaException, InvalidOutcomeException {
-        this(readOnly);
+    public OutcomeBuilder(URL schemaURL, URL outcomeURL) throws OutcomeException, InvalidSchemaException, InvalidOutcomeException {
+        this();
         this.setSchema(schemaURL);
         this.setOutcome(outcomeURL);
     }
@@ -138,10 +132,6 @@ public class OutcomeBuilder {
         }
     }
 
-    public void setReadOnly(boolean readOnly) {
-        this.readOnly = readOnly;
-    }
-
     public void setSchema(InputSource schemaSource) throws InvalidSchemaException, IOException {
 
         SchemaReader mySchemaReader = new SchemaReader(schemaSource);
@@ -179,9 +169,9 @@ public class OutcomeBuilder {
         if (rootElementDecl == null) throw new InvalidSchemaException("No root elements defined");
 
         if (rootElementDecl.getType().isSimpleType() || ((ComplexType) rootElementDecl.getType()).isSimpleContent())
-            documentRoot = new Field(rootElementDecl, readOnly, specialEditFields);
+            documentRoot = new Field(rootElementDecl, specialEditFields);
         else
-            documentRoot = new DataRecord(rootElementDecl, readOnly, false, specialEditFields);
+            documentRoot = new DataRecord(rootElementDecl, false, specialEditFields);
 
         Logger.msg(5, "Finished structure!");
     }
