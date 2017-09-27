@@ -20,6 +20,8 @@
  */
 package org.cristalise.restapi;
 
+import static org.cristalise.kernel.persistency.ClusterType.PROPERTY;
+
 import java.net.URI;
 import java.text.DateFormat;
 import java.text.ParseException;
@@ -33,6 +35,7 @@ import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 
+import org.apache.commons.lang3.StringUtils;
 import org.cristalise.kernel.collection.Aggregation;
 import org.cristalise.kernel.collection.AggregationMember;
 import org.cristalise.kernel.collection.Collection;
@@ -55,8 +58,6 @@ import org.cristalise.kernel.utils.KeyValuePair;
 import org.cristalise.kernel.utils.LocalObjectLoader;
 import org.cristalise.kernel.utils.Logger;
 import org.json.XML;
-
-import static org.cristalise.kernel.persistency.ClusterType.PROPERTY;
 
 public abstract class ItemUtils extends RestHandler {
 
@@ -177,9 +178,9 @@ public abstract class ItemUtils extends RestHandler {
 
     protected LinkedHashMap<String, Object> makeJobData(Job job, String itemName, UriInfo uri) {
         LinkedHashMap<String, Object> jobData = new LinkedHashMap<String, Object>();
+
         String agentName = job.getAgentName();
-        if (agentName != null && agentName.length() > 0)
-            jobData.put("agent", agentName);
+        if (StringUtils.isNotBlank(agentName)) jobData.put("agent", agentName);
         jobData.put("role", job.getAgentRole());
 
         //item data
@@ -284,9 +285,9 @@ public abstract class ItemUtils extends RestHandler {
 
     /**
      * Creates a WebApplicationException response from a simple text message. The status is set to INTERNAL_SERVER_ERROR
-     * 
+     *
      * @param msg text message
-     * @return WebApplicationException response 
+     * @return WebApplicationException response
      */
     public static WebApplicationException createWebAppException(String msg) {
         return createWebAppException(msg, Response.Status.INTERNAL_SERVER_ERROR);
@@ -294,10 +295,10 @@ public abstract class ItemUtils extends RestHandler {
 
     /**
      * Creates a WebApplicationException response from a simple text message and status
-     * 
+     *
      * @param msg text message
      * @param status HTTP status of the response
-     * @return WebApplicationException response 
+     * @return WebApplicationException response
      */
     public static WebApplicationException createWebAppException(String msg, Response.Status status) {
         return createWebAppException(msg, null, status);
@@ -305,11 +306,11 @@ public abstract class ItemUtils extends RestHandler {
 
     /**
      * Creates a WebApplicationException response from a simple text message, exception and status
-     * 
+     *
      * @param msg text message
      * @param ex exception
      * @param status HTTP status of the response
-     * @return WebApplicationException response 
+     * @return WebApplicationException response
      */
     public static WebApplicationException createWebAppException(String msg, Exception ex, Response.Status status) {
         Logger.debug(8, "ItemUtils.createWebAppException() - msg:"+ msg + "status:" + status);
@@ -317,7 +318,7 @@ public abstract class ItemUtils extends RestHandler {
         if (Gateway.getProperties().getBoolean("REST.Debug.errorsWithBody", false)) {
             StringBuffer sb = new StringBuffer(msg);
 
-            if(ex != null) sb.append(" - Exception:" + ex.getMessage()); 
+            if(ex != null) sb.append(" - Exception:" + ex.getMessage());
 
             return new WebApplicationException(sb.toString(), Response.status(status).entity(msg).build());
         }

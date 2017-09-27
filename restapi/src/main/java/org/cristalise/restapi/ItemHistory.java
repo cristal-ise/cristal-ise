@@ -20,6 +20,9 @@
  */
 package org.cristalise.restapi;
 
+import static org.cristalise.kernel.persistency.ClusterType.HISTORY;
+import static org.cristalise.kernel.persistency.ClusterType.OUTCOME;
+
 import java.util.LinkedHashMap;
 
 import javax.ws.rs.CookieParam;
@@ -40,19 +43,17 @@ import org.cristalise.kernel.events.Event;
 import org.cristalise.kernel.persistency.outcome.Outcome;
 import org.cristalise.kernel.process.Gateway;
 
-import static org.cristalise.kernel.persistency.ClusterType.HISTORY;
-import static org.cristalise.kernel.persistency.ClusterType.OUTCOME;
-
 @Path("/item/{uuid}/history")
 public class ItemHistory extends RemoteMapAccess {
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    public Response list( @PathParam("uuid") String uuid,
-                          @QueryParam("start") Integer start,
-                          @QueryParam("batch") Integer batchSize,
-                          @CookieParam(COOKIENAME) Cookie authCookie,
-                          @Context UriInfo uri)
+    public Response listEvents(
+            @PathParam("uuid")       String  uuid,
+            @QueryParam("start")     Integer start,
+            @QueryParam("batch")     Integer batchSize,
+            @CookieParam(COOKIENAME) Cookie  authCookie,
+            @Context UriInfo uri)
     {
         checkAuthCookie(authCookie);
         ItemProxy item = getProxy(uuid);
@@ -76,10 +77,11 @@ public class ItemHistory extends RemoteMapAccess {
     @GET
     @Path("{eventId}")
     @Produces(MediaType.APPLICATION_JSON)
-    public Response getEvent(@PathParam("uuid") String uuid, 
-                             @PathParam("eventId") String eventId,
-                             @CookieParam(COOKIENAME) Cookie authCookie,
-                             @Context UriInfo uri)
+    public Response getEvent(
+            @PathParam("uuid")       String  uuid,
+            @PathParam("eventId")    String  eventId,
+            @CookieParam(COOKIENAME) Cookie  authCookie,
+            @Context                 UriInfo uri)
     {
         checkAuthCookie(authCookie);
         ItemProxy item = getProxy(uuid);
@@ -108,10 +110,11 @@ public class ItemHistory extends RemoteMapAccess {
     @GET
     @Path("{eventId}/data")
     @Produces(MediaType.APPLICATION_JSON)
-    public Response getEventJSONOutcome(@PathParam("uuid") String uuid,
-                                        @PathParam("eventId") String eventId,
-                                        @CookieParam(COOKIENAME) Cookie authCookie,
-                                        @Context UriInfo uri)
+    public Response getEventJSONOutcome(
+            @PathParam("uuid")       String  uuid,
+            @PathParam("eventId")    String  eventId,
+            @CookieParam(COOKIENAME) Cookie  authCookie,
+            @Context                 UriInfo uri)
     {
         return getEventOutcome(uuid, eventId, authCookie, uri, true);
     }
@@ -119,10 +122,11 @@ public class ItemHistory extends RemoteMapAccess {
     @GET
     @Path("{eventId}/data")
     @Produces(MediaType.TEXT_XML)
-    public Response getEventXMLOutcome(@PathParam("uuid") String uuid,
-                                       @PathParam("eventId") String eventId,
-                                       @CookieParam(COOKIENAME) Cookie authCookie,
-                                       @Context UriInfo uri)
+    public Response getEventXMLOutcome(
+            @PathParam("uuid")       String  uuid,
+            @PathParam("eventId")    String  eventId,
+            @CookieParam(COOKIENAME) Cookie  authCookie,
+            @Context                 UriInfo uri)
     {
         return getEventOutcome(uuid, eventId, authCookie, uri, false);
     }

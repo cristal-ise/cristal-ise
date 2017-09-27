@@ -20,6 +20,8 @@
  */
 package org.cristalise.restapi;
 
+import static org.cristalise.kernel.persistency.ClusterType.JOB;
+
 import java.net.URI;
 import java.util.LinkedHashMap;
 
@@ -44,19 +46,18 @@ import org.cristalise.kernel.lookup.InvalidItemPathException;
 import org.cristalise.kernel.lookup.RolePath;
 import org.cristalise.kernel.process.Gateway;
 
-import static org.cristalise.kernel.persistency.ClusterType.JOB;
-
 @Path("/agent/{uuid}")
 public class AgentJobList extends RemoteMapAccess {
 
     @GET
     @Path("job")
     @Produces(MediaType.APPLICATION_JSON)
-    public Response list(@PathParam("uuid") String uuid,
-                         @DefaultValue("0") @QueryParam("start") Integer start,
-                         @QueryParam("batch") Integer batchSize, 
-                         @CookieParam(COOKIENAME) Cookie authCookie,
-                         @Context UriInfo uri)
+    public Response listJobs(
+            @PathParam("uuid")                      String  uuid,
+            @DefaultValue("0") @QueryParam("start") Integer start,
+            @QueryParam("batch")                    Integer batchSize,
+            @CookieParam(COOKIENAME)                Cookie  authCookie,
+            @Context                                UriInfo uri)
     {
         checkAuthCookie(authCookie);
         ItemProxy item = getProxy(uuid);
@@ -92,16 +93,20 @@ public class AgentJobList extends RemoteMapAccess {
     @GET
     @Path("job/{jobId}")
     @Produces(MediaType.APPLICATION_JSON)
-    public Response getEvent(@PathParam("uuid") String uuid, 
-                             @PathParam("jobId") String jobId, 
-                             @CookieParam(COOKIENAME) Cookie authCookie,
-                             @Context UriInfo uri)
+    public Response getJob(
+            @PathParam("uuid")       String  uuid,
+            @PathParam("jobId")      String  jobId,
+            @CookieParam(COOKIENAME) Cookie  authCookie,
+            @Context                 UriInfo uri)
     {
         checkAuthCookie(authCookie);
         ItemProxy item = getProxy(uuid);
+
         if (!(item instanceof AgentProxy))
             throw ItemUtils.createWebAppException("UUID does not belong to an Agent", Response.Status.BAD_REQUEST);
+
         Job job = (Job) get(item, JOB.getName(), jobId);
+
         try {
             return toJSON(makeJobData(job, job.getItemProxy().getName(), uri));
         }
@@ -116,20 +121,25 @@ public class AgentJobList extends RemoteMapAccess {
     @GET
     @Path("roles")
     @Produces(MediaType.APPLICATION_JSON)
-    public Response getRoles(@PathParam("uuid") String uuid,
-                             @CookieParam(COOKIENAME) Cookie authCookie,
-                             @Context UriInfo uri)
+    public Response getRoles(
+            @PathParam("uuid")       String  uuid,
+            @CookieParam(COOKIENAME) Cookie  authCookie,
+            @Context                 UriInfo uri)
     {
         checkAuthCookie(authCookie);
         ItemProxy item = getProxy(uuid);
+
         if (!(item instanceof AgentProxy))
             throw ItemUtils.createWebAppException("UUID does not belong to an Agent", Response.Status.BAD_REQUEST);
+
         AgentProxy agent = (AgentProxy) item;
         RolePath[] roles = Gateway.getLookup().getRoles(agent.getPath());
         LinkedHashMap<String, URI> roleData = new LinkedHashMap<String, URI>();
+
         for (RolePath role : roles) {
             roleData.put(role.getName(), uri.getBaseUriBuilder().path("role").path(role.getName()).build());
         }
+
         return toJSON(roleData);
     }
 }

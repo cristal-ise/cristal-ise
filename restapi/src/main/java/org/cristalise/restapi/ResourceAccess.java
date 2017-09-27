@@ -20,6 +20,8 @@
  */
 package org.cristalise.restapi;
 
+import static org.cristalise.kernel.persistency.ClusterType.VIEWPOINT;
+
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 
@@ -36,8 +38,6 @@ import org.cristalise.kernel.persistency.outcome.Viewpoint;
 import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.property.Property;
 import org.cristalise.kernel.utils.Logger;
-
-import static org.cristalise.kernel.persistency.ClusterType.VIEWPOINT;
 
 public class ResourceAccess extends ItemUtils {
 

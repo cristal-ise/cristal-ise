@@ -20,6 +20,9 @@
  */
 package org.cristalise.restapi;
 
+import static org.cristalise.kernel.persistency.ClusterType.COLLECTION;
+import static org.cristalise.kernel.persistency.ClusterType.VIEWPOINT;
+
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -27,7 +30,6 @@ import java.util.List;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.CookieParam;
 import javax.ws.rs.GET;
-import javax.ws.rs.OPTIONS;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
@@ -52,23 +54,27 @@ import org.cristalise.kernel.entity.proxy.ItemProxy;
 import org.cristalise.kernel.scripting.ScriptErrorException;
 import org.cristalise.kernel.utils.Logger;
 
-import static org.cristalise.kernel.persistency.ClusterType.COLLECTION;
-import static org.cristalise.kernel.persistency.ClusterType.VIEWPOINT;
-
 @Path("/item/{uuid}")
 public class ItemRoot extends ItemUtils {
 
     @GET
     @Path("name")
     @Produces(MediaType.TEXT_PLAIN)
-    public String getName(@PathParam("uuid") String uuid, @CookieParam(COOKIENAME) Cookie authCookie) {
+    public String getName(
+            @PathParam("uuid")       String uuid,
+            @CookieParam(COOKIENAME) Cookie authCookie)
+    {
         checkAuthCookie(authCookie);
         return getProxy(uuid).getName();
     }
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    public Response getItemSummary(@PathParam("uuid") String uuid, @CookieParam(COOKIENAME) Cookie authCookie, @Context UriInfo uri) {
+    public Response getItemSummary(
+            @PathParam("uuid")       String  uuid,
+            @CookieParam(COOKIENAME) Cookie  authCookie,
+            @Context                 UriInfo uri)
+    {
         checkAuthCookie(authCookie);
         ItemProxy item = getProxy(uuid);
 
@@ -88,13 +94,15 @@ public class ItemRoot extends ItemUtils {
         return toJSON(itemSummary);
     }
 
-    @OPTIONS
+    @GET
+    @Path("job")
     @Produces(MediaType.APPLICATION_JSON)
     public Response getJobs(
-            @PathParam("uuid") String uuid,
-            @QueryParam("agent") String agentName,
-            @CookieParam(COOKIENAME) Cookie authCookie,
-            @Context UriInfo uri) {
+            @PathParam("uuid")       String  uuid,
+            @QueryParam("agent")     String  agentName,
+            @CookieParam(COOKIENAME) Cookie  authCookie,
+            @Context                 UriInfo uri)
+    {
         ItemProxy item = getProxy(uuid);
         AgentProxy agent = getAgent(agentName, authCookie);
 
@@ -122,13 +130,13 @@ public class ItemRoot extends ItemUtils {
     @Produces(MediaType.TEXT_XML)
     @Path("{activityPath: .*}")
     public String requestTransition(
-            String postData, 
-            @PathParam("uuid") String uuid,
-            @PathParam("activityPath") String actPath,
-            @QueryParam("transition") String transition,
-            @QueryParam("agent") String agentName,
-            @CookieParam(COOKIENAME) Cookie authCookie,
-            @Context UriInfo uri)
+            String  postData,
+            @PathParam("uuid")          String  uuid,
+            @PathParam("activityPath")  String  actPath,
+            @QueryParam("transition")   String  transition,
+            @QueryParam("agent")        String  agentName,
+            @CookieParam(COOKIENAME)    Cookie  authCookie,
+            @Context                    UriInfo uri)
     {
         // if transition isn't used explicitly, look for a valueless parameter
         if (transition == null) {
@@ -177,9 +185,9 @@ public class ItemRoot extends ItemUtils {
             return agent.execute(thisJob);
         }
         catch (InvalidDataException | ScriptErrorException | ObjectAlreadyExistsException | InvalidCollectionModification e) { // problem
-                                                                                                                               // with
-                                                                                                                               // submitted
-                                                                                                                               // data
+            // with
+            // submitted
+            // data
             Logger.error(e);
             throw ItemUtils.createWebAppException(e.getMessage(), Response.Status.BAD_REQUEST);
         }
