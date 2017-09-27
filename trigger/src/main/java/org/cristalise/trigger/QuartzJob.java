@@ -20,13 +20,8 @@
  */
 package org.cristalise.trigger;
 
-import javax.xml.xpath.XPathExpressionException;
-
-import org.cristalise.kernel.common.InvalidDataException;
-import org.cristalise.kernel.common.ObjectNotFoundException;
 import org.cristalise.kernel.entity.agent.Job;
 import org.cristalise.kernel.entity.proxy.AgentProxy;
-import org.cristalise.kernel.persistency.outcome.Outcome;
 import org.cristalise.kernel.utils.Logger;
 import org.quartz.DisallowConcurrentExecution;
 import org.quartz.JobExecutionContext;
@@ -46,7 +41,7 @@ public class QuartzJob implements org.quartz.Job {
     private AgentProxy cristalAgent;
 
     /**
-     * 
+     *
      */
     @Override
     public void execute(JobExecutionContext context) throws JobExecutionException {
@@ -58,7 +53,6 @@ public class QuartzJob implements org.quartz.Job {
         context.getMergedJobDataMap();
 
         try {
-            setOutcome();
             cristalAgent.execute(cristalJob);
         }
         catch (Exception ex) {
@@ -66,25 +60,5 @@ public class QuartzJob implements org.quartz.Job {
             //TODO: Execute activity in the Workflow of the Agent to store this error and probably remove Job from list
             throw new JobExecutionException(ex);
         }
-    }
-
-    /**
-     * 
-     * @throws InvalidDataException data was invalid
-     * @throws ObjectNotFoundException data was not found
-     * @throws XPathExpressionException xpath was incorrect
-     */
-    public void setOutcome() throws InvalidDataException, ObjectNotFoundException, XPathExpressionException {
-        Outcome o = cristalJob.getOutcome();
-        String transName = cristalJob.getTransition().getName();
-
-        if(transName.equals("Timeout")) {
-            o.setFieldByXPath("/Timeout/Actions", "Executing key:"+cristalJob.getId());
-        }
-        else if(transName.equals("Warning")) {
-            o.setFieldByXPath("/Warning/Actions", "Executing key:"+cristalJob.getId());
-        }
-
-        cristalJob.setOutcome(o);
     }
 }
