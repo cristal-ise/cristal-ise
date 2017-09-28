@@ -21,20 +21,26 @@ The REST API used several CRISTAL properties (as provided in the clc or conf fil
 Some useful example curl commands:
 
 * *Get a login cookie and store it in the local file cookies.txt*
+
     `curl -c cookies.txt http://{host:port}/login?user={user}\&pass={pass}`
 
 * *Root listing of the item directory*
+
     `curl -b cookies.txt http://{host:port}/domain`
 
 * *List jobs available in the given item for the logged in user*
+
     `curl -b cookies.txt -X GET -D - http://pcuwe04:8081/item/{uuid}/job`
 
 * *Create a new Schema by executing the 'CreateNewSchema' activity of the CristalDev SchemaFactory item.*
+
     `curl -b cookies.txt -H "Content-Type: text/xml" -X POST -d '<NewDevObjectDef><ObjectName>SchemaFromRest</ObjectName><SubFolder/></NewDevObjectDef>' -D - http://pcuwe04:8081/item/{uuid of SchemaFactory}/workflow/domain/CreateNewSchema?done`
 
 * Use `Accept:text/xml` header to retrieve XML outcome
+
     `curl -H Accept:text/xml http://{host:port}/item/{uuid}/data/{schema}/last`
 
 * Use `Accept:application/json` header to retrieve JSON outcome
+
     `curl -H Accept:application/json http://{host:port}/item/{uuid}/data/{schema}/last` 
     * JSON or XML Accept header is also available for /item/{uuid}/history/{eventId}/data resources as well
