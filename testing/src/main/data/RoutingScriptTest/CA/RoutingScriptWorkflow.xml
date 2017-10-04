@@ -13,7 +13,7 @@
                 <OutEdgeId>36</OutEdgeId>
                 <Properties>
                     <KeyValuePair Key="LastNum" isAbstract="false" String="2" />
-                    <KeyValuePair Key="counter" isAbstract="false" String="activity//./ActCounter:/CounterSchema/counter" />
+                    <KeyValuePair Key="counter" isAbstract="false" String="activity//./ActCounter://counter" />
                     <KeyValuePair Key="RoutingScriptName"    isAbstract="false" String="@{LOOP_SCRIPT}" />
                     <KeyValuePair Key="RoutingScriptVersion" isAbstract="false" String="0" />
                     <KeyValuePair Key="RoutingExpr" isAbstract="false" String="" />

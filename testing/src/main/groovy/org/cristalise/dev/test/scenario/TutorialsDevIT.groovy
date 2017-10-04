@@ -1,10 +1,14 @@
 package org.cristalise.dev.test.scenario
 
+import org.cristalise.dsl.test.builders.AgentTestBuilder
 import org.cristalise.kernel.entity.proxy.ItemProxy
 import org.cristalise.kernel.lifecycle.ActivityDef
+import org.cristalise.kernel.lookup.RolePath
+import org.cristalise.kernel.process.Gateway
 import org.cristalise.kernel.test.KernelScenarioTestBase
-import org.junit.Ignore
 import org.junit.Test
+
+import spock.util.concurrent.PollingConditions
 
 
 /**
@@ -65,8 +69,8 @@ class TutorialsDevIT extends KernelScenarioTestBase {
         agent.execute(patient, "Erase", new String[0])
     }
 
-    @Test @Ignore("Query does not work with jooqdb backend")
-    public void extendedTutorialWithQuery() {
+    @Test
+    public void extendedTutorialWitAggregate() {
         Map<String, ActivityDef> actMap = [:]
 
         def urinalysisSchema =  Schema("UrinSample-$timeStamp", folder) {
@@ -94,28 +98,39 @@ class TutorialsDevIT extends KernelScenarioTestBase {
             }
         }
 
-        def aggregateQuery =  Query("AggregatePatientData-$timeStamp", folder) {
-            parameter(name: 'root',       type: 'java.lang.String')
-            parameter(name: 'uuid',       type: 'java.lang.String')
-            parameter(name: 'schemaName', type: 'java.lang.String')
-            parameter(name: 'postFix',    type: 'java.lang.String')
-            query(language: "existdb:xquery") {
-                new File('src/main/data/AggregatePatientData.xql').text
+        //def aggregateQuery =  Query("AggregatePatientData-$timeStamp", folder) {
+        //    parameter(name: 'root',       type: 'java.lang.String')
+        //    parameter(name: 'uuid',       type: 'java.lang.String')
+        //    parameter(name: 'schemaName', type: 'java.lang.String')
+        //    parameter(name: 'postFix',    type: 'java.lang.String')
+        //    query(language: "existdb:xquery") {
+        //        new File('src/main/data/AggregatePatientData.xql').text
+        //    }
+        //}
+
+        def aggregateScript =  Script("AggregatePatientData-$timeStamp", folder) {
+            output("error", "org.cristalise.kernel.scripting.ErrorInfo")
+            script(language: 'groovy') {
+                new File('src/main/data/AggregatePatientData.groovy').text
             }
         }
 
-        actMap['SetAggregated'] = ElementaryActivityDef("SetAggregated-$timeStamp", folder) {
+        actMap["SetAggregated-$timeStamp"] = ElementaryActivityDef("SetAggregated-$timeStamp", folder) {
             Property(postFix: timeStamp)
             Role("UserCode")
             Schema(aggregatedSchema)
-            Query(aggregateQuery)
+            Script(aggregateScript)
         }
+
+        def ucPath = Gateway.getLookup().getAgents(new RolePath("UserCode", false))[0]
+        def userCode = new AgentTestBuilder(ucPath)
 
         setupPatient(actMap)
 
         executeDoneJob(patient, elemActName)
         executeDoneJob(patient, 'SetUrinSample')
 
-        //TODO: Wait until notification is received abotu the execution of 'SetAggregated' Activity, and check the Outcome
+        PollingConditions pollingWait = new PollingConditions(timeout: 3, initialDelay: 0.2, factor: 1)
+        pollingWait.eventually { userCode.jobListContains([stepName: "SetAggregated-$timeStamp", agentRole: "UserCode", transitionName: "Proceed"]) }
     }
 }
