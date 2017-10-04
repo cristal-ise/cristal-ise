@@ -28,25 +28,36 @@ import org.apache.commons.lang3.StringUtils;
 import org.cristalise.kernel.common.InvalidDataException;
 import org.cristalise.kernel.entity.agent.Job;
 import org.cristalise.kernel.persistency.outcome.Outcome;
+import org.cristalise.kernel.persistency.outcome.OutcomeInitiator;
 import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.utils.Logger;
 import org.mvel2.templates.TemplateRuntime;
 
 /**
- * OutcomeInitiator implementation using on Activity Properties. It is based on the convention that the name 
- * of the Activity Property is a XPath expression. All Activity properties in the Job shall be resolved already, 
- * i.e. all the ActivityHelpers were executed when the Job was retrieved.
+ * OutcomeInitiator implementation using on Activity Properties. It is based on the convention that the name
+ * of the Activity Property is a XPath expression. All Activity properties in the Job shall be resolved already,
+ * i.e. all the DataHelpers were executed while the Job was created.
  */
 public class XPathOutcomeInitiator extends EmptyOutcomeInitiator {
 
-    private String propNamePattern = null;
+    /**
+     * Defines the then name of the CRISTAL Property (value={@value}) to override the default prefix ('/')
+     * used to identify Activity Properties that can be used by this {@link OutcomeInitiator} implementation
+     */
+    public static final String PROP_NAME_PREFIX_CONFIGKEY = "XPathOutcomeInitiator.PropertyNamePrefix";
+
+    private final String propNamePrefix;
 
     public XPathOutcomeInitiator() {
-        propNamePattern = Gateway.getProperties().getString("XPathOutcomeInitiator.PropertyNamePattern", "/");
+        propNamePrefix = Gateway.getProperties().getString(PROP_NAME_PREFIX_CONFIGKEY, "/");
+    }
+
+    public XPathOutcomeInitiator(String prefix) {
+        propNamePrefix = prefix;
     }
 
     /**
-     * 
+     *
      */
     @Override
     public String initOutcome(Job job) throws InvalidDataException {
@@ -55,22 +66,26 @@ public class XPathOutcomeInitiator extends EmptyOutcomeInitiator {
     }
 
     /**
-     * 
+     *
      */
     @Override
     public Outcome initOutcomeInstance(Job job) throws InvalidDataException {
-        Map<String, Object> matchedProps = job.matchActPropNames(propNamePattern);
-
+        //calls implementation of EmptyOutcomeInitiator
         Outcome xpathOutcome = super.initOutcomeInstance(job);
 
-        for(Map.Entry<String, Object> entry: matchedProps.entrySet()) {
-            Logger.msg(5, "XPathOutcomeInitiator.initOutcomeInstance() - Using Property name:"+entry.getKey()+" value:"+entry.getValue());
+        Map<String, Object> matchedProps = job.matchActPropNames(propNamePrefix);
 
+        for(Map.Entry<String, Object> entry: matchedProps.entrySet()) {
             try {
-                String xpath = entry.getKey();
+                String xpath;
                 String value = (String)entry.getValue();
 
-                if(StringUtils.isEmpty(value)) throw new InvalidDataException("Value is NULL/EMPTY for Property name '"+entry.getKey()+"'");
+                if ("/".equals(propNamePrefix)) xpath = entry.getKey();
+                else                            xpath = entry.getKey().substring(propNamePrefix.length());
+
+                Logger.msg(5, "XPathOutcomeInitiator.initOutcomeInstance() - Using Property xpath:"+xpath+" value:"+value);
+
+                if(StringUtils.isEmpty(value)) throw new InvalidDataException("Value is NULL/EMPTY for Property name:'"+xpath+"'");
 
                 value = (String) TemplateRuntime.eval(value, job.getActProps());
 
@@ -85,6 +100,7 @@ public class XPathOutcomeInitiator extends EmptyOutcomeInitiator {
             catch (XPathExpressionException e) {
                 Logger.msg(5,"XPathOutcomeInitiator - Invalid XPath:"+entry.getKey());
                 Logger.error(e);
+                throw new InvalidDataException(e.getMessage());
             }
         }
 

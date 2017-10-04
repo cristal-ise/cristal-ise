@@ -32,29 +32,14 @@ import org.cristalise.kernel.entity.agent.Job;
 import org.cristalise.kernel.persistency.outcomeinit.XPathOutcomeInitiator;
 import org.cristalise.kernel.utils.CastorHashMap;
 import org.cristalise.kernel.utils.Logger;
-import org.junit.Before;
 import org.junit.Test;
 
 /**
- * 
+ *
  */
 public class XPathOutcomeInitiatorTest extends OutcomeInitiatorTestBase {
 
-    XPathOutcomeInitiator xpathOI;
-
-    @Before
-    public void setUp() throws Exception {
-        xpathOI = new XPathOutcomeInitiator();
-    }
-
-    /**
-     * 
-     * @param type
-     * @param xpath
-     * @param value
-     * @throws Exception
-     */
-    private void checkUpdatedOutcome(String type, String xpath, String value) throws Exception {
+    private void checkUpdatedOutcome(String type, String xpath, String value, String prefix) throws Exception {
         String xsd      = new String(Files.readAllBytes(Paths.get(root+type+".xsd")));
         String expected = new String(Files.readAllBytes(Paths.get(root+type+"Updated.xml")));
 
@@ -62,13 +47,14 @@ public class XPathOutcomeInitiatorTest extends OutcomeInitiatorTestBase {
 
         Map<String, Object> resultMap = new HashMap<String, Object>();
         resultMap.put(xpath, value);
-        when(j.matchActPropNames("/")).thenReturn(resultMap);
+        when(j.matchActPropNames(prefix)).thenReturn(resultMap);
 
         CastorHashMap actProps = new CastorHashMap();
         actProps.put(xpath, value);
         actProps.put("IntValue", "123");
         when(j.getActProps()).thenReturn(actProps);
 
+        XPathOutcomeInitiator xpathOI = new XPathOutcomeInitiator(prefix);
         String actual = xpathOI.initOutcome(j);
 
         Logger.msg(actual);
@@ -78,17 +64,16 @@ public class XPathOutcomeInitiatorTest extends OutcomeInitiatorTestBase {
 
     @Test
     public void updateSingleElement() throws Exception {
-        checkUpdatedOutcome("IntegerField", "/IntegerField/counter", "123");
+        checkUpdatedOutcome("IntegerField", "xpath:/IntegerField/counter", "123", "xpath:");
     }
 
     @Test
     public void updateNodeElement() throws Exception {
-        checkUpdatedOutcome("StateMachine", "/StateMachine", "<State id='30' name='new' proceeds='false'/>");
+        checkUpdatedOutcome("StateMachine", "/StateMachine", "<State id='30' name='new' proceeds='false'/>", "/");
     }
 
     @Test
     public void updateSingleElementUsingMVEL() throws Exception {
-        checkUpdatedOutcome("IntegerField", "/IntegerField/counter", "@{IntValue}");
+        checkUpdatedOutcome("IntegerField", "xpath:/IntegerField/counter", "@{IntValue}", "xpath:");
     }
-
 }
