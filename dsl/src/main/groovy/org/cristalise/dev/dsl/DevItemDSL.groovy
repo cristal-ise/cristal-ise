@@ -21,37 +21,46 @@
 
 package org.cristalise.dev.dsl
 
-import groovy.transform.CompileStatic
-
 import org.cristalise.dsl.lifecycle.definition.CompActDefBuilder
 import org.cristalise.dsl.lifecycle.definition.ElemActDefBuilder
 import org.cristalise.dsl.persistency.outcome.SchemaBuilder
 import org.cristalise.dsl.querying.QueryBuilder
+import org.cristalise.dsl.scripting.ScriptBuilder
 import org.cristalise.kernel.entity.proxy.ItemProxy
 import org.cristalise.kernel.lifecycle.ActivityDef
 import org.cristalise.kernel.lifecycle.CompositeActivityDef
 import org.cristalise.kernel.persistency.outcome.Schema
 import org.cristalise.kernel.querying.Query
+import org.cristalise.kernel.scripting.Script
+
+import groovy.transform.CompileStatic
 
 
 /**
- * 
+ *
  */
 @CompileStatic
 class DevItemDSL extends DevItemUtility {
 
     public Schema Schema(String name, String folder, Closure cl) {
         createNewSchema(name, folder)
-        def schema = SchemaBuilder.build(name, 0, cl);
+        def schema = SchemaBuilder.build(name, 0, cl)
         editSchema(name, folder, schema.XSD)
         return schema
     }
 
     public Query Query(String name, String folder, Closure cl) {
         createNewQuery(name, folder)
-        def query = QueryBuilder.build("", name, 0, cl);
+        def query = QueryBuilder.build("", name, 0, cl)
         editQuery(name, folder, query.queryXML)
         return query
+    }
+
+    public Script Script(String name, String folder, Closure cl) {
+        createNewScript(name, folder)
+        def script = ScriptBuilder.build("", name, 0, cl)
+        editScript(name, folder, script.scriptXML)
+        return script.script
     }
 
     public ActivityDef ElementaryActivityDef(String actName, String folder, Closure cl) {

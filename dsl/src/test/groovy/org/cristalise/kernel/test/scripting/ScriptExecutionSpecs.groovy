@@ -25,7 +25,7 @@ class ScriptExecutionSpecs extends Specification implements CristalTestSetup {
 
         when:
         def properties = new CastorHashMap()
-        properties['counter'] = 3 
+        properties['counter'] = 3
         def result = script.evaluate(null, properties, null, null)
 
         then:
@@ -117,6 +117,26 @@ class ScriptExecutionSpecs extends Specification implements CristalTestSetup {
             include("Function", 0)
             output('java.lang.Integer')
             javascript { "func() % 2;" }
+        }
+        Script script = LocalObjectLoader.getScript("Modulo", 0)
+
+        when:
+        def properties = new CastorHashMap()
+        def result = script.evaluate(null, properties, null, null)
+
+        then:
+        result == 0
+    }
+
+    def 'Script written in groovy can use function from included Script'() {
+        given:
+        ScriptBuilder.create("integTest", "Function", 0) {
+            groovy { "def func() { 2 }" }
+        }
+        ScriptBuilder.create("integTest", "Modulo", 0) {
+            include("Function", 0)
+            output('java.lang.Integer')
+            groovy { "func() % 2;" }
         }
         Script script = LocalObjectLoader.getScript("Modulo", 0)
 

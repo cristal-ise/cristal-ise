@@ -22,7 +22,6 @@ package org.cristalise.dev.dsl
 
 import static org.cristalise.kernel.collection.BuiltInCollections.*
 import static org.cristalise.kernel.process.resource.BuiltInResources.*
-import groovy.transform.CompileStatic
 
 import org.cristalise.kernel.entity.agent.Job
 import org.cristalise.kernel.entity.proxy.AgentProxy
@@ -36,6 +35,8 @@ import org.cristalise.kernel.process.resource.DefaultResourceImportHandler
 import org.cristalise.kernel.property.PropertyDescriptionList
 import org.cristalise.kernel.test.utils.KernelXMLUtility
 import org.cristalise.kernel.utils.Logger
+
+import groovy.transform.CompileStatic
 
 /**
  * Utility class to implement ALL methods required to manage (create/edit)
@@ -55,47 +56,43 @@ class DevItemUtility {
     public String descItemFactoryName     = "/domain/desc/dev/DescriptionFactory"
     public String moduleFactoryName       = "/domain/desc/dev/ModuleFactory"
 
-//    public boolean checkOutcomeCount(ItemProxy proxy, String schemaName, int numberOfInstances) {
-//        return proxy.getContents("Outcome/$schemaName").length == numberOfInstances
-//    }
-
     /**
-     * 
+     *
      * @param proxy
      * @param expectedJobs
      */
     public void checkJobs(ItemProxy proxy, List<Map<String, Object>> expectedJobs) {
-        def jobs = proxy.getJobList(agent);
+        def jobs = proxy.getJobList(agent)
         println jobs
 
         assert expectedJobs && jobs && jobs.size() == expectedJobs.size()
 
-        expectedJobs.each { Map expectedJob -> 
+        expectedJobs.each { Map expectedJob ->
             assert expectedJob && expectedJob.stepName && expectedJob.agentRole != null && expectedJob.transitionName
 
             assert jobs.find { Job j ->
-                j.stepName == expectedJob.stepName && 
-                j.agentRole == expectedJob.agentRole &&
-                j.transition.name == expectedJob.transitionName
+                j.stepName == expectedJob.stepName &&
+                        j.agentRole == expectedJob.agentRole &&
+                        j.transition.name == expectedJob.transitionName
             }, "Cannot find Job: '${expectedJob.stepName}' , '${expectedJob.agentRole}' , '${expectedJob.transitionName}'"
         }
     }
 
     /**
-     * 
+     *
      * @param proxy
      * @param actName
      * @return
      */
     public Job getDoneJob(ItemProxy proxy, String actName) {
-        Logger.msg "DevItemUtility.getDoneJob() - proxy:$proxy.name actName:$actName"
+        Logger.msg("DevItemUtility.getDoneJob() - proxy:$proxy.name actName:$actName")
         Job j = proxy.getJobByName(actName, agent)
         assert j && j.getStepName() == actName && j.transition.name == "Done"
         return j
     }
 
     /**
-     * 
+     *
      * @param proxy
      * @param actName
      * @param outcomeXML
@@ -109,7 +106,7 @@ class DevItemUtility {
     }
 
     /**
-     * 
+     *
      * @param proxy
      * @param actName
      * @param outcome
@@ -125,7 +122,7 @@ class DevItemUtility {
     }
 
     /**
-     * 
+     *
      * @param factoryPath
      * @param factoryActName
      * @param name
@@ -135,12 +132,12 @@ class DevItemUtility {
     public void createNewItemByFactory(String factoryPath, String factoryActName, String name, String folder) {
         ItemProxy factory = agent.getItem(factoryPath)
         assert factory && factory.getName() == factoryPath.substring(factoryPath.lastIndexOf('/')+1)
-        
+
         createNewItemByFactory(factory, factoryActName, name, folder)
     }
 
     /**
-     * 
+     *
      * @param factory
      * @param factoryActName
      * @param name
@@ -152,7 +149,7 @@ class DevItemUtility {
     }
 
     /**
-     * 
+     *
      * @param type
      * @return
      */
@@ -170,9 +167,9 @@ class DevItemUtility {
     }
 
     /**
-     * 
+     *
      * @param type type of the resource @see DefaultResourceImportHandler
-     * @param factoryActName 
+     * @param factoryActName
      * @param name
      * @param folder
      * @return
@@ -190,7 +187,7 @@ class DevItemUtility {
     }
 
     /**
-     * 
+     *
      * @param type
      * @param editActiName
      * @param newVersionActName
@@ -214,7 +211,7 @@ class DevItemUtility {
     }
 
     /**
-     * 
+     *
      * @param name
      * @param folder
      */
@@ -223,7 +220,7 @@ class DevItemUtility {
     }
 
     /**
-     * 
+     *
      * @param name
      * @param folder
      */
@@ -232,7 +229,7 @@ class DevItemUtility {
     }
 
     /**
-     * 
+     *
      * @param name
      * @param folder
      */
@@ -241,7 +238,7 @@ class DevItemUtility {
     }
 
     /**
-     * 
+     *
      * @param name
      * @param folder
      */
@@ -250,7 +247,7 @@ class DevItemUtility {
     }
 
     /**
-     * 
+     *
      * @param name
      * @param folder
      */
@@ -259,7 +256,7 @@ class DevItemUtility {
     }
 
     /**
-     * 
+     *
      * @param name
      * @param folder
      * @param role
@@ -288,7 +285,7 @@ class DevItemUtility {
     }
 
     /**
-     * 
+     *
      * @param name
      * @param folder
      * @param eaDef
@@ -330,7 +327,7 @@ class DevItemUtility {
     }
 
     /**
-     * 
+     *
      * @param name
      * @param folder
      * @param xsd
@@ -340,7 +337,7 @@ class DevItemUtility {
     }
 
     /**
-     * 
+     *
      * @param name
      * @param folder
      * @param xsd
@@ -350,7 +347,7 @@ class DevItemUtility {
     }
 
     /**
-     * 
+     *
      * @param name
      * @param folder
      * @param xml
@@ -360,7 +357,7 @@ class DevItemUtility {
     }
 
     /**
-     * 
+     *
      * @param name
      * @param folder
      * @param caXML
@@ -371,12 +368,12 @@ class DevItemUtility {
 
         assert caDescItem.getCollection(ACTIVITY, 0).size()
         if(actCollSize) assert caDescItem.getCollection(ACTIVITY, 0).size() == actCollSize
-        
+
         return caDescItem
     }
 
     /**
-     * 
+     *
      * @param name
      * @param folder
      * @param activityName
@@ -388,8 +385,8 @@ class DevItemUtility {
     }
 
     /**
-     * 
-     * 
+     *
+     *
      * @param name
      * @param folder
      * @param caDef
@@ -400,7 +397,7 @@ class DevItemUtility {
     }
 
     /**
-     * 
+     *
      * @param name
      * @param folder
      * @return ItemProxy of newly created DescriptionItem
@@ -410,7 +407,7 @@ class DevItemUtility {
     }
 
     /**
-     * 
+     *
      * @param name
      * @param folder
      * @param propDesc
@@ -420,11 +417,11 @@ class DevItemUtility {
     public ItemProxy editDescriptionItem(String name, String folder, PropertyDescriptionList propDesc, String chooseWorkflowXML) {
         ItemProxy descriptionItem = agent.getItem("/$folder/$name")
         assert descriptionItem && descriptionItem.getName() == name
-        return editDescriptionItem(descriptionItem, propDesc, chooseWorkflowXML);
+        return editDescriptionItem(descriptionItem, propDesc, chooseWorkflowXML)
     }
 
     /**
-     * 
+     *
      * @param descriptionItem
      * @param propDesc
      * @param chooseWorkflowXML
@@ -438,7 +435,7 @@ class DevItemUtility {
     }
 
     /**
-     * 
+     *
      * @param name
      * @param folder
      * @param devObjectDefXML
@@ -451,7 +448,7 @@ class DevItemUtility {
     }
 
     /**
-     * 
+     *
      * @param descriptionItem
      * @param devObjectDefXML
      * @return
@@ -463,7 +460,7 @@ class DevItemUtility {
     }
 
     /**
-     * 
+     *
      * @param descriptionItem
      * @param propDesc
      * @param chooseWorkflowXML

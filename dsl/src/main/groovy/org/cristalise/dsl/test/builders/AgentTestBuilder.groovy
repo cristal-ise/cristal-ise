@@ -20,23 +20,18 @@
  */
 package org.cristalise.dsl.test.builders
 
-import groovy.transform.CompileStatic
-
-import java.util.ArrayList
-
-import org.cristalise.dsl.entity.AgentBuilder;
+import org.cristalise.dsl.entity.AgentBuilder
 import org.cristalise.kernel.entity.agent.Job
 import org.cristalise.kernel.entity.agent.JobList
-import org.cristalise.kernel.entity.imports.ImportAgent;
+import org.cristalise.kernel.entity.imports.ImportAgent
 import org.cristalise.kernel.entity.proxy.AgentProxy
 import org.cristalise.kernel.entity.proxy.ItemProxy
-import org.cristalise.kernel.entity.proxy.MemberSubscription
 import org.cristalise.kernel.lookup.AgentPath
 import org.cristalise.kernel.lookup.ItemPath
-import org.cristalise.kernel.persistency.ClusterStorage
-import org.cristalise.kernel.persistency.ClusterType
 import org.cristalise.kernel.persistency.outcome.Outcome
 import org.cristalise.kernel.process.Gateway
+
+import groovy.transform.CompileStatic
 
 
 /**
@@ -61,7 +56,7 @@ class AgentTestBuilder extends AgentBuilder {
 
     public AgentTestBuilder(AgentPath path) {
         newAgentPath = path
-//        initBuilderAgent()
+        //initBuilderAgent()
         setupJobList()
     }
 
@@ -73,7 +68,8 @@ class AgentTestBuilder extends AgentBuilder {
     public void setupJobList() {
         if(!newAgentProxy) newAgentProxy = Gateway.proxyManager.getAgentProxy(newAgentPath)
 
-        jobList = (JobList)newAgentProxy.getObject(ClusterType.JOB)
+        jobList = new JobList( newAgentPath, null)
+        //jobList = (JobList)newAgentProxy.getObject(ClusterType.JOB)
         jobList.activate()
     }
 
@@ -90,22 +86,24 @@ class AgentTestBuilder extends AgentBuilder {
         return new AgentTestBuilder(AgentBuilder.build(attrs, cl))
     }
 
+    public void jobListContains(Map<String, Object> expectedJob) {
+        assert expectedJob && jobList
+        assert jobList.values().find { Job j ->
+            j.stepName == expectedJob.stepName && j.agentRole == expectedJob.agentRole && j.transition.name == expectedJob.transitionName
+        }//, "Cannot find Job: ${expectedJob.stepName} , ${expectedJob.agentRole} , ${expectedJob.transitionName}"
+    }
+
     public void checkJobList(List<Map<String, Object>> expectedJobs) {
-        jobList.dump(0);
-
-        //check if both list are empty or null
-        if(!expectedJobs && !jobList) return 
-
         assert expectedJobs && jobList && jobList.size() == expectedJobs.size()
 
-        expectedJobs.each { Map jobMap -> 
+        expectedJobs.each { Map jobMap ->
             assert jobMap && jobMap.stepName && jobMap.agentRole && jobMap.transitionName
-//            assert jobMap && jobMap.stepName && jobMap.agentRole != null && jobMap.transitionName
-            
+            //assert jobMap && jobMap.stepName && jobMap.agentRole != null && jobMap.transitionName
+
             assert jobList.values().find {
-                ((Job) it).stepName == jobMap.stepName && 
-                ((Job) it).agentRole == jobMap.agentRole &&
-                ((Job) it).transition.name == jobMap.transitionName
+                ((Job) it).stepName == jobMap.stepName &&
+                        ((Job) it).agentRole == jobMap.agentRole &&
+                        ((Job) it).transition.name == jobMap.transitionName
             }, "Cannot find Job: ${jobMap.stepName} , ${jobMap.agentRole} , ${jobMap.transitionName}"
         }
     }

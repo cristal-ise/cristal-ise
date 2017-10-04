@@ -20,15 +20,10 @@
  */
 package org.cristalise.kernel.test.entity
 
-import org.cristalise.dsl.entity.RoleBuilder;
 import org.cristalise.dsl.lifecycle.stateMachine.StateMachineBuilder
-import org.cristalise.dsl.test.builders.AgentTestBuilder;
+import org.cristalise.dsl.test.builders.AgentTestBuilder
 import org.cristalise.dsl.test.builders.ItemTestBuilder
-import org.cristalise.kernel.entity.agent.Job
-import org.cristalise.kernel.entity.proxy.AgentProxy
-import org.cristalise.kernel.entity.proxy.ItemProxy;
-import org.cristalise.kernel.process.Gateway;
-import org.cristalise.kernel.test.utils.CristalTestSetup;
+import org.cristalise.kernel.test.utils.CristalTestSetup
 
 import spock.lang.Specification
 import spock.util.concurrent.PollingConditions
@@ -40,7 +35,7 @@ import spock.util.concurrent.PollingConditions
 class JoblistSpecs extends Specification implements CristalTestSetup {
 
     PollingConditions pollingWait = new PollingConditions(timeout: 2, initialDelay: 0.2, factor: 1)
-    
+
     AgentTestBuilder dummyAgentBuilder
     AgentTestBuilder timeoutAgentBuilder
 
@@ -52,7 +47,7 @@ class JoblistSpecs extends Specification implements CristalTestSetup {
     }
 
     def 'The persistent Joblist of Agent is automatically updated'() {
-        when: "the workflow of Item is initialised its first Activity is activated"
+        given: "the workflow of Item is initialised its first Activity is activated"
         dummyAgentBuilder = AgentTestBuilder.create(name: "dummyAgent") {
             Roles {
                 Role(name: 'toto', jobList: true)
@@ -67,27 +62,37 @@ class JoblistSpecs extends Specification implements CristalTestSetup {
             }
         }
 
-        then: "Agent gets 2 Jobs (Start, Complete) for the Activity it was assigned to"
-        pollingWait.eventually { dummyAgentBuilder.jobList }
-
-        dummyAgentBuilder.checkJobList([[stepName: "EA1", agentRole: "toto", transitionName: "Start"],
-                                        [stepName: "EA1", agentRole: "toto", transitionName: "Done" ]])
+        //"Agent gets 2 Jobs (Start, Complete) for the Activity it was assigned to"
+        pollingWait.eventually {
+            dummyAgentBuilder.checkJobList(
+                    [   [stepName: "EA1", agentRole: "toto", transitionName: "Start"],
+                        [stepName: "EA1", agentRole: "toto", transitionName: "Done" ]])
+        }
 
         when: "the Job associated with the Start Transition is executed"
         dummyAgentBuilder.executeJob(dummyItem.itemDomPath.itemPath, "EA1", "Start")
-        
-        then: "Agent gets two Jobs (Complete, Suspend) for the Activity it was assigned to"
-        pollingWait.eventually { dummyAgentBuilder.jobList && dummyAgentBuilder.jobList.size() == 2 }
 
-        dummyAgentBuilder.checkJobList([[stepName: "EA1", agentRole: "toto", transitionName: "Suspend" ],
-                                 [stepName: "EA1", agentRole: "toto", transitionName: "Complete"]])
+        then: "Agent gets two Jobs (Complete, Suspend) for the Activity it was assigned to"
+        pollingWait.eventually {
+            dummyAgentBuilder.checkJobList(
+                    [   [stepName: "EA1", agentRole: "toto", transitionName: "Suspend" ],
+                        [stepName: "EA1", agentRole: "toto", transitionName: "Complete"]])
+        }
+
+        when: "the Job associated with the Complete Transition is executed"
+        dummyAgentBuilder.executeJob(dummyItem.itemDomPath.itemPath, "EA1", "Complete")
+
+        then: "Agent gets the Proccess Job for the Activity it was assigned to"
+        pollingWait.eventually {
+            dummyAgentBuilder.checkJobList([[stepName: "EA1", agentRole: "toto", transitionName: "Proceed"]])
+        }
     }
 
     def 'StateMachine Transition can override Role specified in Actitiy'() {
-        when:
+        given:
         StateMachineBuilder.create("testing", "RoleOverrideSM", 0) {
             transition("Start", [origin:"Waiting", target:"Started"]) {
-                 property(reservation: "set")
+                property(reservation: "set")
             }
             transition("Complete", [origin:"Started", target:"Finished"]) {
                 property(reservation:"clear")
@@ -107,7 +112,7 @@ class JoblistSpecs extends Specification implements CristalTestSetup {
         }
 
         AgentTestBuilder dummyAgentBuilder = AgentTestBuilder.create(name: "dummy") {
-            Roles { 
+            Roles {
                 Role(name: 'toto')
             }
         }
@@ -128,15 +133,17 @@ class JoblistSpecs extends Specification implements CristalTestSetup {
             }
         }
 
-        then:
-        pollingWait.eventually { timeoutAgentBuilder.jobList }
-        timeoutAgentBuilder.checkJobList([[stepName: "EA1", agentRole: "Timeout", transitionName: "Timeout"]])
+        pollingWait.eventually {
+            timeoutAgentBuilder.checkJobList([[stepName: "EA1", agentRole: "Timeout", transitionName: "Timeout"]])
+        }
 
         when:
         dummyAgentBuilder.executeJob(dummyItemBuilder.itemDomPath.itemPath, 'EA1', 'Start')
 
         then:
-        pollingWait.eventually { timeoutAgentBuilder.jobList && timeoutAgentBuilder.jobList.size() == 1 }
-        timeoutAgentBuilder.checkJobList([[stepName: "EA1", agentRole: "Timeout", transitionName: "Timeout2"]])
+        pollingWait.eventually {
+            assert timeoutAgentBuilder.jobList && timeoutAgentBuilder.jobList.size() == 1
+            timeoutAgentBuilder.jobListContains([stepName: "EA1", agentRole: "Timeout", transitionName: "Timeout2"])
+        }
     }
 }
