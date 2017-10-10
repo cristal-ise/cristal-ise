@@ -87,7 +87,7 @@ public class XPathOutcomeInitiator extends EmptyOutcomeInitiator {
 
                 if(StringUtils.isEmpty(value)) throw new InvalidDataException("Value is NULL/EMPTY for Property name:'"+xpath+"'");
 
-                value = (String) TemplateRuntime.eval(value, job.getActProps());
+                value = evaluate(value, job);
 
                 if(value.startsWith("<") && value.endsWith(">")) {
                     Logger.msg(5, "XPathOutcomeInitiator.initOutcomeInstance() - Updating XML fregment with xpath:"+xpath);
@@ -106,4 +106,20 @@ public class XPathOutcomeInitiator extends EmptyOutcomeInitiator {
 
         return xpathOutcome;
     }
+
+    /**
+     * Evaluates the content of the provided value using an expression language.
+     * 
+     * The default implementation is using MVEL expression language. 
+     * 
+     * You could re-implement this method at upper classes to use your expression language.
+     * 
+     * @param value
+     * @param job
+     * @return
+     */
+	protected String evaluate(String value, Job job) {
+		value = (String) TemplateRuntime.eval(value, job.getActProps());
+		return value;
+	}
 }
