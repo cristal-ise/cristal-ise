@@ -52,7 +52,7 @@ public class DimensionTableModel {
     ArrayList<Object[]> rows = new ArrayList<Object[]>();
     ArrayList<Element> elements = new ArrayList<Element>();
 
-    public DimensionTableModel(ElementDecl model) throws StructuralException {
+    public DimensionTableModel(ElementDecl model) throws OutcomeBuilderException {
         XMLType modelContent = model.getType();
         this.model = model;
         // use text node for simple types
@@ -109,7 +109,7 @@ public class DimensionTableModel {
     }
 
 
-    public void enumerateElements(ContentModelGroup group) throws StructuralException {
+    public void enumerateElements(ContentModelGroup group) throws OutcomeBuilderException {
         for (Enumeration<?> childElements = group.enumerate(); childElements.hasMoreElements(); ) {
             Particle thisParticle = (Particle)childElements.nextElement();
             String extraHeader = "";
@@ -156,7 +156,7 @@ public class DimensionTableModel {
         }
     }
 
-    public void addInstance(Element myElement, int index) throws OutcomeException {
+    public void addInstance(Element myElement, int index) throws OutcomeBuilderException {
         if (index == -1) index = elements.size();
         Object[] newRow = new Object[columnHeadings.size()];
         for (int i=0; i<columnDecls.size(); i++) {

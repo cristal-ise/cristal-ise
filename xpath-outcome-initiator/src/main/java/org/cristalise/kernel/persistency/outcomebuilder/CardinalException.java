@@ -20,7 +20,7 @@
  */
 package org.cristalise.kernel.persistency.outcomebuilder;
 
-public class CardinalException extends OutcomeException {
+public class CardinalException extends OutcomeBuilderException {
 
     private static final long serialVersionUID = -499678556395394372L;
 

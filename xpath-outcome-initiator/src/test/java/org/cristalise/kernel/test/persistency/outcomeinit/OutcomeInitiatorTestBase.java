@@ -23,28 +23,21 @@ package org.cristalise.kernel.test.persistency.outcomeinit;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-import java.io.IOException;
-
 import org.cristalise.kernel.entity.agent.Job;
 import org.cristalise.kernel.persistency.outcome.Schema;
 import org.cristalise.kernel.persistency.outcomeinit.EmptyOutcomeInitiator;
+import org.cristalise.kernel.test.persistency.XMLUtils;
 import org.cristalise.kernel.utils.Logger;
 import org.junit.BeforeClass;
-import org.xml.sax.SAXException;
-import org.xmlunit.builder.DiffBuilder;
-import org.xmlunit.diff.DefaultNodeMatcher;
-import org.xmlunit.diff.Diff;
-import org.xmlunit.diff.ElementSelectors;
 
 /**
- * 
+ *
  */
-public class OutcomeInitiatorTestBase {
+public class OutcomeInitiatorTestBase extends XMLUtils {
 
-    public static final String root = "src/test/data/";
 
     /**
-     * Static JUNIT configuration method, configures XMLUnit 
+     * Static JUNIT configuration method, configures XMLUnit
      */
     @BeforeClass
     public static void setup() {
@@ -52,8 +45,8 @@ public class OutcomeInitiatorTestBase {
     }
 
     /**
-     * Mocking job 
-     * 
+     * Mocking job
+     *
      * @param xsd the Schema XML
      * @return the mock Job
      * @throws Exception every exception
@@ -63,8 +56,8 @@ public class OutcomeInitiatorTestBase {
     }
 
     /**
-     * Mocking job 
-     * 
+     * Mocking job
+     *
      * @param xsd the Schema XML
      * @param rootElement the name of the element to use for XML generation
      * @return the mock Job
@@ -79,26 +72,4 @@ public class OutcomeInitiatorTestBase {
         return j;
     }
 
-    /**
-     * Compares 2 XML string
-     * 
-     * @param expected the reference XML
-     * @param actual the xml under test
-     * @return whether the two XMLs are identical or not
-     * @throws SAXException every exception
-     * @throws IOException every exception
-     */
-    public boolean compareXML(String expected, String actual) throws SAXException, IOException {
-
-        Diff diffIdentical = DiffBuilder.compare(expected).withTest(actual)
-                .withNodeMatcher(new DefaultNodeMatcher(ElementSelectors.byNameAndAllAttributes))
-                .ignoreComments()
-                .ignoreWhitespace()
-                .checkForSimilar()
-                .build();
-
-        if(diffIdentical.hasDifferences()) Logger.warning(diffIdentical.toString());
-
-        return !diffIdentical.hasDifferences();
-    }
 }

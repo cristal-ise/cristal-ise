@@ -23,9 +23,8 @@ package org.cristalise.kernel.persistency.outcomebuilder.field;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.Enumeration;
-import java.util.HashMap;
 
-import org.cristalise.kernel.persistency.outcomebuilder.OutcomeException;
+import org.cristalise.kernel.persistency.outcomebuilder.InvalidOutcomeException;
 import org.cristalise.kernel.persistency.outcomebuilder.OutcomeStructure;
 import org.cristalise.kernel.persistency.outcomebuilder.StructuralException;
 import org.exolab.castor.types.AnyNode;
@@ -115,16 +114,14 @@ public class StringField {
         return newField;
     }
 
-    public static StringField getEditField(ElementDecl model, HashMap<String, Class<?>> specialControls) throws StructuralException {
+    public static StringField getEditField(ElementDecl model) throws StructuralException {
         try {
             XMLType baseType = model.getType();
-            while (!(baseType instanceof SimpleType))
-                baseType = baseType.getBaseType();
-            StringField newField;
-            if (specialControls.containsKey(model.getName()))
-                newField = (StringField) specialControls.get(model.getName()).newInstance();
-            else
-                newField = getFieldForType((SimpleType) baseType);
+
+            while (!(baseType instanceof SimpleType)) baseType = baseType.getBaseType();
+
+            StringField newField = getFieldForType((SimpleType) baseType);
+
             newField.setDecl(model);
             return newField;
         }
@@ -172,8 +169,8 @@ public class StringField {
         setText(contents);
     }
 
-    public void setData(String newData) throws OutcomeException {
-        if (data == null) throw new OutcomeException("No node exists");
+    public void setData(String newData) throws InvalidOutcomeException {
+        if (data == null) throw new InvalidOutcomeException("No node exists");
         setText(newData);
         updateNode();
 

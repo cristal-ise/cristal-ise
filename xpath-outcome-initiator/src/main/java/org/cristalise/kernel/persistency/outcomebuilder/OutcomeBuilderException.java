@@ -20,12 +20,14 @@
  */
 package org.cristalise.kernel.persistency.outcomebuilder;
 
-public class OutcomeException extends Exception {
+public abstract class OutcomeBuilderException extends Exception {
 
-    public OutcomeException() {
+    private static final long serialVersionUID = -591773309264082323L;
+
+    public OutcomeBuilderException() {
         super();
     }
-    public OutcomeException(String ex) {
+    public OutcomeBuilderException(String ex) {
         super(ex);
     }
 }

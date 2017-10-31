@@ -23,6 +23,7 @@ package org.cristalise.kernel.persistency.outcomebuilder;
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.Iterator;
+import java.util.Map;
 
 import org.cristalise.kernel.persistency.outcomebuilder.field.StringField;
 import org.cristalise.kernel.utils.Logger;
@@ -65,7 +66,7 @@ public class AttributeList extends OutcomeStructure {
         }
     }
 
-    public void setInstance(Element data) throws StructuralException {
+    public void setInstance(Element data) throws OutcomeBuilderException {
         this.myElement = data;
         for (StringField thisField : attrSet) {
             Logger.msg(8, "Populating Attribute "+thisField.getName());
@@ -77,8 +78,7 @@ public class AttributeList extends OutcomeStructure {
     }
 
     public Attr newAttribute(Element parent, AttributeDecl attr) {
-
-        parent.setAttribute(attr.getName(), attr.getFixedValue()!=null?attr.getFixedValue():attr.getDefaultValue());
+        parent.setAttribute(attr.getName(), attr.getFixedValue() != null?attr.getFixedValue() : attr.getDefaultValue());
         return parent.getAttributeNode(attr.getName());
     }
 
@@ -99,6 +99,8 @@ public class AttributeList extends OutcomeStructure {
     }
 
     public void initNew(Element parent) {
+        Logger.msg(5, "Creating AttributeList " + model.getName());
+
         AttributeDecl thisDecl;
         StringField thisField;
         Attr thisAttr;
@@ -115,21 +117,33 @@ public class AttributeList extends OutcomeStructure {
             // HACK: if we don't resolve the reference, the type will be null
             if (thisDecl.isReference()) thisDecl = thisDecl.getReference();
             thisAttr = newAttribute(myElement, thisDecl);
+
             // add into parent - fill in field
             try {
                 thisField.setData(thisAttr);
-            } catch (Exception ex) { } // impossible name mismatch
+            }
+            catch (Exception ex) {} // impossible name mismatch
         }
     }
 
     @Override
-    public void addInstance(Element myElement, Document parentDoc) throws OutcomeException {
+    public Element addRecord(Document rootDocument, String recordName, Map<String, String> record) {
+        return null;
+    }
+
+    @Override
+    public void addInstance(Element myElement, Document parentDoc) throws OutcomeBuilderException {
         // TODO Auto-generated method stub
     }
 
     @Override
     public Element initNew(Document parent) {
         // TODO Auto-generated method stub
+        return null;
+    }
+
+    @Override
+    public OutcomeStructure getChildModelElement(String name) {
         return null;
     }
 }

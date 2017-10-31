@@ -20,8 +20,6 @@
  */
 package org.cristalise.kernel.persistency.outcomebuilder;
 
-import java.util.HashMap;
-
 import org.exolab.castor.xml.schema.ElementDecl;
 
 
@@ -32,8 +30,8 @@ public class DimensionInstance extends DataRecord {
     int tabNumber;
     String tabName = null;
 
-    public DimensionInstance(ElementDecl model, boolean deferred, HashMap<String, Class<?>> specialControls) throws OutcomeException {
-        super(model, deferred, specialControls);
+    public DimensionInstance(ElementDecl model, boolean deferred) throws OutcomeBuilderException {
+        super(model, deferred);
     }
 
     public void setTabNumber(int tabNumber) {

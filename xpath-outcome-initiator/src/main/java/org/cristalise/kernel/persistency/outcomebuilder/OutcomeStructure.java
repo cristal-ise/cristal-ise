@@ -23,8 +23,10 @@ package org.cristalise.kernel.persistency.outcomebuilder;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Enumeration;
 import java.util.HashMap;
+import java.util.Map;
 
 import org.apache.commons.lang3.StringUtils;
 import org.cristalise.kernel.utils.Logger;
@@ -48,20 +50,19 @@ import org.w3c.dom.Element;
 // contains child outcome elements - creates new ones
 public abstract class OutcomeStructure {
 
-    ElementDecl model;
+    ElementDecl model      = null;
     Element     myElement  = null;
     String      help       = null;
     boolean     deferChild = false;
 
-    ArrayList<String>                 order = new ArrayList<String>();
+    ArrayList<String>                 subStructureOrder = new ArrayList<String>();
+    HashMap<String, OutcomeStructure> subStructure      = new HashMap<String, OutcomeStructure>();
     HashMap<String, Class<?>>         specialEditFields;
-    HashMap<String, OutcomeStructure> subStructure = new HashMap<String, OutcomeStructure>();
 
     public OutcomeStructure() {}
 
-    public OutcomeStructure(ElementDecl model, HashMap<String, Class<?>> specialControls) {
+    public OutcomeStructure(ElementDecl model) {
         this.model = model;
-        this.specialEditFields = specialControls;
         subStructure = new HashMap<String, OutcomeStructure>();
 
         Logger.msg(8, "Creating '" + model.getName() + "' structure as " + this.getClass().getSimpleName());
@@ -69,6 +70,30 @@ public abstract class OutcomeStructure {
         String doc = extractHelp(model);
         if (doc.length() > 0) help = doc;
     }
+
+
+    /**
+     * After schema processing, addInstance() propogates the XML instance document down the layout. Most OutcomeStructures will throw an
+     * exception if called more than once, except Dimension, which is the only Outcome Structure to support maxOccurs>1
+     */
+    public abstract void addInstance(Element myElement, Document parentDoc) throws OutcomeBuilderException;
+
+    /**
+     *
+     * @param parent
+     * @return
+     */
+    public abstract Element initNew(Document parent);
+
+    /**
+     *
+     * @param rootDocument
+     * @param recordName
+     * @param record
+     * @return
+     * @throws StructuralException
+     */
+    public abstract Element addRecord(Document rootDocument, String recordName, Map<String, String> record) throws OutcomeBuilderException;
 
     /**
      * Contains the rules for deciding which OutcomeStructure will represent a chosen Element Declaration. In this order
@@ -79,25 +104,22 @@ public abstract class OutcomeStructure {
      * <li>Everything else is a DataRecord
      * </ol>
      */
-    public OutcomeStructure createStructure(ElementDecl model) throws OutcomeException {
+    public OutcomeStructure createStructure(ElementDecl model) throws OutcomeBuilderException {
         XMLType elementType = model.getType();
         ComplexType elementComplexType;
 
         if (model.getMaxOccurs() == 0) return null;
 
         // if more than one can occur - dimension
-        if (model.getMaxOccurs() > 1
-                || model.getMaxOccurs() == Particle.UNBOUNDED
-                || model.getMinOccurs() == 0
-                )
-            return new Dimension(model, specialEditFields);
+        if (model.getMaxOccurs() > 1 || model.getMaxOccurs() == Particle.UNBOUNDED) // || model.getMinOccurs() == 0
+            return new Dimension(model);
 
         // must have a type from now on
         if (elementType == null)
             throw new StructuralException("Element " + model.getName() + " is elementary yet has no type.");
 
         // simple types will be fields
-        if (elementType instanceof SimpleType) return new Field(model, specialEditFields);
+        if (elementType instanceof SimpleType) return new Field(model);
 
         // otherwise is a complex type
         try {
@@ -108,17 +130,17 @@ public abstract class OutcomeStructure {
         }
 
         // when no element children - field
-        if (elementComplexType.getParticleCount() == 0) return new Field(model, specialEditFields);
+        if (elementComplexType.getParticleCount() == 0) return new Field(model);
 
         // everything else is a data record
-        return new DataRecord(model, deferChild, specialEditFields);
+        return new DataRecord(model, deferChild);
     }
 
     /**
      * Extracts child Element declarations from a content group and recursively from any group (not Element) of that group. calls
      * createStructure() to find the corresponding OutcomeStructure then adds it to this structure.
      */
-    public void enumerateElements(ContentModelGroup group) throws OutcomeException {
+    public void enumerateElements(ContentModelGroup group) throws OutcomeBuilderException {
         // process base types first if complex type
         // HACK: castor does not include elements from basetype, so we do it manually. if they fix it, this will duplicate child elements.
         if (group instanceof ComplexType) {
@@ -155,17 +177,15 @@ public abstract class OutcomeStructure {
     /**
      * Adds a generated OutcomeStructure as a child of this one. A separate structure as is often overridden.
      */
-    public void addStructure(OutcomeStructure newElement) throws OutcomeException {
+    public void addStructure(OutcomeStructure newElement) throws OutcomeBuilderException {
         if (newElement == null) return;
-        subStructure.put(newElement.getName(), newElement);
-        order.add(newElement.getName());
+
+        String elementName = newElement.getName();
+
+        subStructure.put(elementName, newElement);
+        subStructureOrder.add(elementName);
     }
 
-    /**
-     * After schema processing, addInstance() propogates the XML instance document down the layout. Most OutcomeStructures will throw an
-     * exception if called more than once, except Dimension, which is the only Outcome Structure to support maxOccurs>1
-     */
-    public abstract void addInstance(Element myElement, Document parentDoc) throws OutcomeException;
 
     public Element getElement() {
         return myElement;
@@ -192,7 +212,9 @@ public abstract class OutcomeStructure {
         return errors.toString();
     }
 
-    public abstract Element initNew(Document parent);
+    public OutcomeStructure getChildModelElement(String name) {
+        return subStructure.get(name);
+    }
 
     public static String extractHelp(Annotated model) {
         Enumeration<?> e = model.getAnnotations();
@@ -296,12 +318,22 @@ public abstract class OutcomeStructure {
         return false;
     }
 
-
     public boolean isOptional() {
         return model.getMinOccurs() == 0;
     }
 
     public boolean isMandatory() {
         return model.getMinOccurs() == 1 && model.getMaxOccurs() == 1;
+    }
+
+    public void putFields(Map<String, String> record) {
+        // TODO This method could be made abstract
+    }
+
+    public OutcomeStructure find(String[] names) {
+        OutcomeStructure child = getChildModelElement(names[0]);
+
+        if (names.length == 1) return child;
+        else                   return child.find(Arrays.copyOfRange(names, 1, names.length-1));
     }
 }

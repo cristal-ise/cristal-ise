@@ -20,7 +20,9 @@
  */
 package org.cristalise.kernel.persistency.outcomebuilder;
 
-public class StructuralException extends OutcomeException {
+public class StructuralException extends OutcomeBuilderException {
+
+    private static final long serialVersionUID = 2051572191743047462L;
 
     public StructuralException() {
         super();

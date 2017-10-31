@@ -20,7 +20,9 @@
  */
 package org.cristalise.kernel.persistency.outcomebuilder;
 
-public class InvalidOutcomeException extends OutcomeException {
+public class InvalidOutcomeException extends OutcomeBuilderException {
+
+    private static final long serialVersionUID = -8821305845664582480L;
 
     public InvalidOutcomeException() {
         super();

@@ -20,7 +20,7 @@
  */
 package org.cristalise.kernel.persistency.outcomebuilder;
 
-import java.util.HashMap;
+import java.util.Map;
 
 import org.cristalise.kernel.persistency.outcomebuilder.field.StringField;
 import org.cristalise.kernel.utils.Logger;
@@ -31,19 +31,20 @@ import org.w3c.dom.Text;
 
 public class Field extends OutcomeStructure {
 
-    StringField myElementPanel = null;
+    StringField   myElementPanel = null;
     AttributeList myAttributes;
-    Text textNode;
+    Text          textNode;
 
-    public Field(ElementDecl model, HashMap<String, Class<?>> specialEditFields) {
-        super(model, specialEditFields);
+    public Field(ElementDecl model) {
+        super(model);
 
         try {
-            myElementPanel = StringField.getEditField(model, specialEditFields);
+            myElementPanel = StringField.getEditField(model);
             Logger.msg(6, "Field type: "+myElementPanel.getClass().getSimpleName());
             //if (readOnly) myElementPanel.setEditable(false);
-
-        } catch (StructuralException e) { // no base type for field - only attributes
+        }
+        catch (StructuralException e) {
+            // no base type for field - only attributes
             myElementPanel = null;
         }
 
@@ -55,12 +56,12 @@ public class Field extends OutcomeStructure {
     }
 
     @Override
-    public void addStructure(OutcomeStructure newElement) throws StructuralException {
+    public void addStructure(OutcomeStructure newElement) throws OutcomeBuilderException {
         throw new StructuralException("Field "+model.getName()+" cannot have child structures");
     }
 
     @Override
-    public void addInstance(Element myElement, Document parentDoc) throws OutcomeException {
+    public void addInstance(Element myElement, Document parentDoc) throws OutcomeBuilderException {
         Logger.msg(6, "Accepting Field "+myElement.getTagName());
         if (this.myElement != null) throw new CardinalException("Field "+this.getName()+" cannot repeat");
         this.myElement = myElement;
@@ -90,6 +91,7 @@ public class Field extends OutcomeStructure {
     @Override
     public String validateStructure() {
         myAttributes.validateAttributes();
+
         if (myElementPanel != null) myElementPanel.updateNode();
 
         Text contents = (Text)myElement.getFirstChild();
@@ -123,10 +125,22 @@ public class Field extends OutcomeStructure {
         return myElement;
     }
 
+    @Override
+    public Element addRecord(Document rootDocument, String recordName, Map<String, String> record) {
+        return null;
+    }
+
     private String getDefaultValue() {
         String defaultValue = model.getFixedValue();
         if (defaultValue == null) defaultValue = model.getDefaultValue();
         if (defaultValue == null) defaultValue = myElementPanel.getDefaultValue();
+
         return defaultValue;
+    }
+
+    @Override
+    public OutcomeStructure getChildModelElement(String name) {
+        //TODO implement lookup in attributes
+        return null;
     }
 }

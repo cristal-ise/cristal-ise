@@ -1,0 +1,496 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<schema xmlns="http://www.w3.org/2001/XMLSchema">
+    <element name="SiteCharacteristicsData">
+        <complexType>
+            <sequence>
+                <element name="BuildingType">
+                    <complexType>
+                        <simpleContent>
+                            <extension base="string" />
+                        </simpleContent>
+                    </complexType>
+                </element>
+                <element name="BuildingTypeRemarks">
+                    <complexType>
+                        <simpleContent>
+                            <extension base="string" />
+                        </simpleContent>
+                    </complexType>
+                </element>
+                <element name="AHOwner">
+                    <complexType>
+                        <simpleContent>
+                            <extension base="string" />
+                        </simpleContent>
+                    </complexType>
+                </element>
+                <element name="AHManufacturer">
+                    <complexType>
+                        <simpleContent>
+                            <extension base="string" />
+                        </simpleContent>
+                    </complexType>
+                </element>
+                <element name="AHTreatmentUnit">
+                    <complexType>
+                        <simpleContent>
+                            <extension base="string" />
+                        </simpleContent>
+                    </complexType>
+                </element>
+                <element name="AHIncomingAirFlow">
+                    <complexType>
+                        <simpleContent>
+                            <extension base="string" />
+                        </simpleContent>
+                    </complexType>
+                </element>
+                <element name="AHAPUMainLocation">
+                    <complexType>
+                        <simpleContent>
+                            <extension base="string" />
+                        </simpleContent>
+                    </complexType>
+                </element>
+                <element name="AHExtractionUnits">
+                    <complexType>
+                        <simpleContent>
+                            <extension base="string" />
+                        </simpleContent>
+                    </complexType>
+                </element>
+                <element name="AHExtractedAirFlow">
+                    <complexType>
+                        <simpleContent>
+                            <extension base="string" />
+                        </simpleContent>
+                    </complexType>
+                </element>
+                <element name="AHExtractorsLocation">
+                    <complexType>
+                        <simpleContent>
+                            <extension base="string" />
+                        </simpleContent>
+                    </complexType>
+                </element>
+                <element name="AHSystemManufacturer">
+                    <complexType>
+                        <simpleContent>
+                            <extension base="string" />
+                        </simpleContent>
+                    </complexType>
+                </element>
+                <element name="AHRemarks">
+                    <complexType>
+                        <simpleContent>
+                            <extension base="string" />
+                        </simpleContent>
+                    </complexType>
+                </element>
+                <element name="ESTotalPower">
+                    <complexType>
+                        <simpleContent>
+                            <extension base="string" />
+                        </simpleContent>
+                    </complexType>
+                </element>
+                <element name="ESVoltage">
+                    <complexType>
+                        <simpleContent>
+                            <extension base="string" />
+                        </simpleContent>
+                    </complexType>
+                </element>
+                <element name="ESFrequency">
+                    <complexType>
+                        <simpleContent>
+                            <extension base="string" />
+                        </simpleContent>
+                    </complexType>
+                </element>
+                <element name="ESMaxMainsPower">
+                    <complexType>
+                        <simpleContent>
+                            <extension base="string" />
+                        </simpleContent>
+                    </complexType>
+                </element>
+                <element name="ESRemarks">
+                    <complexType>
+                        <simpleContent>
+                            <extension base="string" />
+                        </simpleContent>
+                    </complexType>
+                </element>
+                <element name="GSSManufacturer">
+                    <complexType>
+                        <simpleContent>
+                            <extension base="string" />
+                        </simpleContent>
+                    </complexType>
+                </element>
+                <element name="GSSGases">
+                    <complexType>
+                        <simpleContent>
+                            <extension base="string" />
+                        </simpleContent>
+                    </complexType>
+                </element>
+                <element name="GSSRemarks">
+                    <complexType>
+                        <simpleContent>
+                            <extension base="string" />
+                        </simpleContent>
+                    </complexType>
+                </element>
+                <element name="RPManufacturer">
+                    <complexType>
+                        <simpleContent>
+                            <extension base="string" />
+                        </simpleContent>
+                    </complexType>
+                </element>
+                <element name="RPBunkerProbes">
+                    <complexType>
+                        <simpleContent>
+                            <extension base="string" />
+                        </simpleContent>
+                    </complexType>
+                </element>
+                <element name="RPBunkerProbesType">
+                    <complexType>
+                        <simpleContent>
+                            <extension base="string" />
+                        </simpleContent>
+                    </complexType>
+                </element>
+                <element name="RPEnvProbes">
+                    <complexType>
+                        <simpleContent>
+                            <extension base="string" />
+                        </simpleContent>
+                    </complexType>
+                </element>
+                <element name="RPEnvProbesType">
+                    <complexType>
+                        <simpleContent>
+                            <extension base="string" />
+                        </simpleContent>
+                    </complexType>
+                </element>
+                <element name="RPMainVentStackProbes">
+                    <complexType>
+                        <simpleContent>
+                            <extension base="string" />
+                        </simpleContent>
+                    </complexType>
+                </element>
+                <element name="RPMainVentStackProbesType">
+                    <complexType>
+                        <simpleContent>
+                            <extension base="string" />
+                        </simpleContent>
+                    </complexType>
+                </element>
+                <element name="RPProbesVentDucts">
+                    <complexType>
+                        <simpleContent>
+                            <extension base="string" />
+                        </simpleContent>
+                    </complexType>
+                </element>
+                <element name="RPProbesVentDuctsType">
+                    <complexType>
+                        <simpleContent>
+                            <extension base="string" />
+                        </simpleContent>
+                    </complexType>
+                </element>
+                <element name="RPMonitoringSoftware">
+                    <complexType>
+                        <simpleContent>
+                            <extension base="string" />
+                        </simpleContent>
+                    </complexType>
+                </element>
+                <element name="RPRemarks">
+                    <complexType>
+                        <simpleContent>
+                            <extension base="string" />
+                        </simpleContent>
+                    </complexType>
+                </element>
+                <element name="ACSManufacturer">
+                    <complexType>
+                        <simpleContent>
+                            <extension base="string" />
+                        </simpleContent>
+                    </complexType>
+                </element>
+                <element name="ACSTotalStorageVol">
+                    <complexType>
+                        <simpleContent>
+                            <extension base="string" />
+                        </simpleContent>
+                    </complexType>
+                </element>
+                <element name="ACSNbTanks">
+                    <complexType>
+                        <simpleContent>
+                            <extension base="string" />
+                        </simpleContent>
+                    </complexType>
+                </element>
+                <element name="ACSMaxStoragePressure">
+                    <complexType>
+                        <simpleContent>
+                            <extension base="string" />
+                        </simpleContent>
+                    </complexType>
+                </element>
+                <element name="ACSNbCompressors">
+                    <complexType>
+                        <simpleContent>
+                            <extension base="string" />
+                        </simpleContent>
+                    </complexType>
+                </element>
+                <element name="ACSFlowRate">
+                    <complexType>
+                        <simpleContent>
+                            <extension base="string" />
+                        </simpleContent>
+                    </complexType>
+                </element>
+                <element name="ACSCompressorType">
+                    <complexType>
+                        <simpleContent>
+                            <extension base="string" />
+                        </simpleContent>
+                    </complexType>
+                </element>
+                <element name="ACSFilteringStation">
+                    <complexType>
+                        <simpleContent>
+                            <extension base="string" />
+                        </simpleContent>
+                    </complexType>
+                </element>
+                <element name="ACSRemarks">
+                    <complexType>
+                        <simpleContent>
+                            <extension base="string" />
+                        </simpleContent>
+                    </complexType>
+                </element>
+                <element name="Chillers" minOccurs="0" maxOccurs="3">
+                    <complexType>
+                        <sequence>
+                            <element name="Manufacturer">
+                                <complexType>
+                                    <simpleContent>
+                                        <extension base="string" />
+                                    </simpleContent>
+                                </complexType>
+                            </element>
+                            <element name="CoolingPower">
+                                <complexType>
+                                    <simpleContent>
+                                        <extension base="string" />
+                                    </simpleContent>
+                                </complexType>
+                            </element>
+                            <element name="Technology">
+                                <complexType>
+                                    <simpleContent>
+                                        <extension base="string" />
+                                    </simpleContent>
+                                </complexType>
+                            </element>
+                            <element name="IndependantCircuits">
+                                <complexType>
+                                    <simpleContent>
+                                        <extension base="string" />
+                                    </simpleContent>
+                                </complexType>
+                            </element>
+                            <element name="UsedFor">
+                                <complexType>
+                                    <simpleContent>
+                                        <extension base="string" />
+                                    </simpleContent>
+                                </complexType>
+                            </element>
+                            <element name="Remarks">
+                                <complexType>
+                                    <simpleContent>
+                                        <extension base="string" />
+                                    </simpleContent>
+                                </complexType>
+                            </element>
+                        </sequence>
+                    </complexType>
+                </element>
+                <element name="UPS" minOccurs="0" maxOccurs="3">
+                    <complexType>
+                        <sequence>
+                            <element name="Manufacturer">
+                                <complexType>
+                                    <simpleContent>
+                                        <extension base="string" />
+                                    </simpleContent>
+                                </complexType>
+                            </element>
+                            <element name="Power">
+                                <complexType>
+                                    <simpleContent>
+                                        <extension base="string" />
+                                    </simpleContent>
+                                </complexType>
+                            </element>
+                            <element name="Phases">
+                                <complexType>
+                                    <simpleContent>
+                                        <extension base="string" />
+                                    </simpleContent>
+                                </complexType>
+                            </element>
+                            <element name="TimeAutonomy">
+                                <complexType>
+                                    <simpleContent>
+                                        <extension base="string" />
+                                    </simpleContent>
+                                </complexType>
+                            </element>
+                            <element name="UsedFor">
+                                <complexType>
+                                    <simpleContent>
+                                        <extension base="string" />
+                                    </simpleContent>
+                                </complexType>
+                            </element>
+                            <element name="Remarks">
+                                <complexType>
+                                    <simpleContent>
+                                        <extension base="string" />
+                                    </simpleContent>
+                                </complexType>
+                            </element>
+                        </sequence>
+                    </complexType>
+                </element>
+                <element name="HotLabs" minOccurs="0" maxOccurs="8">
+                    <complexType>
+                        <sequence>
+                            <element name="Dedication">
+                                <complexType>
+                                    <simpleContent>
+                                        <extension base="string" />
+                                    </simpleContent>
+                                </complexType>
+                            </element>
+                            <element name="DedicationCleanGrade">
+                                <complexType>
+                                    <simpleContent>
+                                        <extension base="string" />
+                                    </simpleContent>
+                                </complexType>
+                            </element>
+                            <element name="Manufacturer">
+                                <complexType>
+                                    <simpleContent>
+                                        <extension base="string" />
+                                    </simpleContent>
+                                </complexType>
+                            </element>
+                            <element name="SynthesisHotCells">
+                                <complexType>
+                                    <simpleContent>
+                                        <extension base="string" />
+                                    </simpleContent>
+                                </complexType>
+                            </element>
+                            <element name="SynthesisCleanGrade">
+                                <complexType>
+                                    <simpleContent>
+                                        <extension base="string" />
+                                    </simpleContent>
+                                </complexType>
+                            </element>
+                            <element name="WasteCompartment">
+                                <complexType>
+                                    <simpleContent>
+                                        <extension base="string" />
+                                    </simpleContent>
+                                </complexType>
+                            </element>
+                            <element name="HPLCCompartment">
+                                <complexType>
+                                    <simpleContent>
+                                        <extension base="string" />
+                                    </simpleContent>
+                                </complexType>
+                            </element>
+                            <element name="DispensingHotCells">
+                                <complexType>
+                                    <simpleContent>
+                                        <extension base="string" />
+                                    </simpleContent>
+                                </complexType>
+                            </element>
+                            <element name="DispensingCleanGrade">
+                                <complexType>
+                                    <simpleContent>
+                                        <extension base="string" />
+                                    </simpleContent>
+                                </complexType>
+                            </element>
+                            <element name="Compartment">
+                                <complexType>
+                                    <simpleContent>
+                                        <extension base="string" />
+                                    </simpleContent>
+                                </complexType>
+                            </element>
+                            <element name="CompartmentCleanGrade">
+                                <complexType>
+                                    <simpleContent>
+                                        <extension base="string" />
+                                    </simpleContent>
+                                </complexType>
+                            </element>
+                            <element name="DispensingSystemType">
+                                <complexType>
+                                    <simpleContent>
+                                        <extension base="string" />
+                                    </simpleContent>
+                                </complexType>
+                            </element>
+                            <element name="Autoclave">
+                                <complexType>
+                                    <simpleContent>
+                                        <extension base="string" />
+                                    </simpleContent>
+                                </complexType>
+                            </element>
+                            <element name="Qualified">
+                                <complexType>
+                                    <simpleContent>
+                                        <extension base="string" />
+                                    </simpleContent>
+                                </complexType>
+                            </element>
+                            <element name="Remarks">
+                                <complexType>
+                                    <simpleContent>
+                                        <extension base="string" />
+                                    </simpleContent>
+                                </complexType>
+                            </element>
+                        </sequence>
+                    </complexType>
+                </element>
+            </sequence>
+        </complexType>
+    </element>
+</schema>

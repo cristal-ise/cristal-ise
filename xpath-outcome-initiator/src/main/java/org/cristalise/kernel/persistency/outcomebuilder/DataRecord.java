@@ -20,7 +20,7 @@
  */
 package org.cristalise.kernel.persistency.outcomebuilder;
 
-import java.util.HashMap;
+import java.util.Map;
 
 import org.cristalise.kernel.utils.Logger;
 import org.exolab.castor.xml.schema.ComplexType;
@@ -35,10 +35,10 @@ public class DataRecord extends OutcomeStructure {
     boolean       deferred;
     Document      parentDoc;
 
-    public DataRecord(ElementDecl model, boolean deferred, HashMap<String, Class<?>> specialEditFields)
-            throws OutcomeException
+    public DataRecord(ElementDecl model, boolean deferred)
+            throws OutcomeBuilderException
     {
-        super(model, specialEditFields);
+        super(model);
         this.deferred = deferred;
         if (!deferred) setup();
     }
@@ -49,12 +49,12 @@ public class DataRecord extends OutcomeStructure {
             setup();
             if (myElement != null) populateInstance();
         }
-        catch (OutcomeException ex) {
+        catch (OutcomeBuilderException ex) {
             Logger.error(ex);
         }
     }
 
-    private void setup() throws OutcomeException {
+    private void setup() throws OutcomeBuilderException {
         // attributes at the top
         myAttributes = new AttributeList(model);
 
@@ -67,18 +67,13 @@ public class DataRecord extends OutcomeStructure {
         }
 
         // loop through all schema sub-elements
-        try {
-            enumerateElements(elementType);
-        }
-        catch (OutcomeException e) {
-            throw new OutcomeException("Element " + model.getName() + " could not be created: " + e.getMessage());
-        }
+        enumerateElements(elementType);
     }
 
     @Override
-    public void addStructure(OutcomeStructure newElement) throws OutcomeException {
-        super.addStructure(newElement);
+    public void addStructure(OutcomeStructure newElement) throws OutcomeBuilderException {
         if (newElement == null) return;
+        super.addStructure(newElement);
 
         //FIXME: perhaps this is just a leftover from the GUI code
         if (newElement instanceof DataRecord) {
@@ -91,30 +86,34 @@ public class DataRecord extends OutcomeStructure {
     }
 
     @Override
-    public void addInstance(Element myElement, Document parentDoc) throws OutcomeException {
+    public void addInstance(Element myElement, Document parentDoc) throws OutcomeBuilderException {
         Logger.msg(8, "Accepting DR " + myElement.getTagName());
+
         if (this.myElement != null) throw new CardinalException("DataRecord " + this.getName() + " cannot repeat.");
+
         this.myElement = myElement;
         this.parentDoc = parentDoc;
 
-        if (!deferred)
-            populateInstance();
+        if (!deferred) populateInstance();
     }
 
-    public void populateInstance() throws OutcomeException {
+    public void populateInstance() throws StructuralException, OutcomeBuilderException {
         myAttributes.setInstance(myElement);
 
         NodeList childElements = myElement.getChildNodes();
 
         for (int i = 0; i < childElements.getLength(); i++) {
-            if (!(childElements.item(i) instanceof Element)) // ignore chardata here
-                continue;
+            // ignore chardata here
+            if (!(childElements.item(i) instanceof Element)) continue;
+
             Element thisElement = (Element) childElements.item(i);
 
             // find the child structure with this name
             OutcomeStructure thisStructure = subStructure.get(thisElement.getTagName());
+
             if (thisStructure == null)
                 throw new StructuralException("DR " + model.getName() + " not expecting " + thisElement.getTagName());
+
             thisStructure.addInstance(thisElement, parentDoc);
         }
 
@@ -133,6 +132,7 @@ public class DataRecord extends OutcomeStructure {
                 count = thisStructure.getElement() == null ? 0 : 1;
 
             int total = thisStructure.getModel().getMinOccurs();
+
             // if (total == 0) total++;
             for (int i = count; i < total; i++) {
                 myElement.appendChild(thisStructure.initNew(parentDoc));
@@ -142,23 +142,20 @@ public class DataRecord extends OutcomeStructure {
 
     @Override
     public Element initNew(Document parent) {
-        Logger.msg(6, "Creating DR " + model.getName());
+        Logger.msg(5, "Creating DR '" + model.getName()+"'");
         if (deferred) activate();
 
         // make a new Element
         myElement = parent.createElement(model.getName());
+
         // populate
-        for (Object name2 : order) {
-            String structureName = (String) name2;
+        for (String elementName : subStructureOrder) {
+            OutcomeStructure childStructure = subStructure.get(elementName);
 
-            OutcomeStructure thisStructure = subStructure.get(structureName);
+            if (childStructure instanceof Dimension) ((Dimension) childStructure).setParentElement(myElement);
 
-            if (thisStructure instanceof Dimension) ((Dimension) thisStructure).setParentElement(myElement);
-
-            int count = 0;
-            while (count < thisStructure.getModel().getMinOccurs()) {
-                myElement.appendChild(thisStructure.initNew(parent));
-                count++;
+            for (int i = 0; i < childStructure.getModel().getMinOccurs(); i++) {
+                myElement.appendChild(childStructure.initNew(parent));
             }
         }
 
@@ -166,5 +163,18 @@ public class DataRecord extends OutcomeStructure {
         myAttributes.initNew(myElement);
 
         return myElement;
+    }
+
+    @Override
+    public Element addRecord(Document rootDocument, String recordName, Map<String, String> record) throws OutcomeBuilderException {
+        OutcomeStructure childModel = getChildModelElement(recordName);
+
+        if (childModel == null) throw new StructuralException("DR "+model.getName()+"' does not have child '"+recordName+"'");
+
+        Element newElement = childModel.initNew(rootDocument);
+
+        myElement.appendChild(newElement);
+
+        return newElement;
     }
 }

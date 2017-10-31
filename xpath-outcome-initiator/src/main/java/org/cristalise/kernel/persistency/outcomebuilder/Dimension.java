@@ -21,8 +21,8 @@
 package org.cristalise.kernel.persistency.outcomebuilder;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.Iterator;
+import java.util.Map;
 
 import org.cristalise.kernel.utils.Logger;
 import org.exolab.castor.xml.schema.ElementDecl;
@@ -31,32 +31,31 @@ import org.w3c.dom.Element;
 
 public class Dimension extends OutcomeStructure {
 
+    enum Mode {TABLE, TABS};
+
     DimensionTableModel          tableModel;
     Element                      parent;
     DomKeyPushTable              table;
     ArrayList<DimensionInstance> instances = new ArrayList<DimensionInstance>(); // stores DimensionInstances if tabs
     ArrayList<Element>           elements  = new ArrayList<Element>();           // stores current children
-    short                        mode;
+    Mode                         mode;
 
-    protected static final short TABLE = 1;
-    protected static final short TABS  = 2;
-
-    public Dimension(ElementDecl model, HashMap<String, Class<?>> specialControls) {
-        super(model, specialControls);
+    public Dimension(ElementDecl model) {
+        super(model);
 
         // decide whether a table or tabs
         try {
             tableModel = new DimensionTableModel(model);
             Logger.msg(8, "DIM " + model.getName() + " - Will be a table");
 
-            mode = TABLE;
+            mode = Mode.TABLE;
 
             table = new DomKeyPushTable(tableModel, this);
         }
-        catch (StructuralException e) {
+        catch (OutcomeBuilderException e) {
             // use tabs
             Logger.msg(8, "DIM " + model.getName() + " - Will be tabs: " + e.getMessage());
-            mode = TABS;
+            mode = Mode.TABS;
         }
     }
 
@@ -65,22 +64,23 @@ public class Dimension extends OutcomeStructure {
     }
 
     @Override
-    public void addInstance(Element myElement, Document parentDoc) throws OutcomeException {
-        if (Logger.doLog(6))
-            Logger.msg(6, "DIM - adding instance " + (elements.size() + 1) + " for " + myElement.getTagName());
+    public void addInstance(Element myElement, Document parentDoc) throws OutcomeBuilderException {
+        Logger.msg(6, "DIM - adding instance " + (elements.size() + 1) + " for " + myElement.getTagName());
+
         if (parent == null) setParentElement((Element) myElement.getParentNode());
+
         // if table, pass to table model
-        if (mode == TABLE) {
+        if (mode == Mode.TABLE) {
             tableModel.addInstance(myElement, -1);
             elements.add(myElement);
         }
         else {
             DimensionInstance target;
             elements.add(myElement);
-            if (instances.size() < elements.size())
-                target = newInstance();
-            else
-                target = instances.get(elements.size() - 1);
+
+            if (instances.size() < elements.size()) target = newInstance();
+            else                                    target = instances.get(elements.size() - 1);
+
             target.addInstance(myElement, parentDoc);
         }
     }
@@ -92,13 +92,13 @@ public class Dimension extends OutcomeStructure {
     public DimensionInstance newInstance() {
         DimensionInstance newInstance = null;
         try {
-            newInstance = new DimensionInstance(model, deferChild, specialEditFields);
+            newInstance = new DimensionInstance(model, deferChild);
             instances.add(newInstance);
             newInstance.setTabNumber(instances.size());
             newInstance.setParent(this);
             deferChild = true;
         }
-        catch (OutcomeException e) {
+        catch (OutcomeBuilderException e) {
             // shouldn't happen, we've already done it once
             Logger.error(e);
         }
@@ -107,8 +107,9 @@ public class Dimension extends OutcomeStructure {
 
     @Override
     public String validateStructure() {
-        if (mode == TABLE)
+        if (mode == Mode.TABLE) {
             return table.validateStructure();
+        }
         else {
             StringBuffer errors = new StringBuffer();
             for (Iterator<DimensionInstance> iter = instances.iterator(); iter.hasNext();) {
@@ -121,30 +122,37 @@ public class Dimension extends OutcomeStructure {
 
     @Override
     public Element initNew(Document parent) {
+        Logger.msg(5, "Creating Dimension '" + model.getName()+"' as '" + mode.name() + "'");
+
         Element newElement;
 
-        if (mode == TABLE) {
+        if (mode == Mode.TABLE) {
             newElement = tableModel.initNew(parent, -1);
             elements.add(newElement);
             return newElement;
         }
         else {
             DimensionInstance newTab = null;
-            if (instances.size() < elements.size() + 1)
-                newTab = newInstance();
-            else
-                newTab = instances.get(elements.size() - 1);
+
+            if (instances.size() < elements.size() + 1)  newTab = newInstance();
+            else                                         newTab = instances.get(elements.size() - 1);
+
             newElement = newTab.initNew(parent);
             elements.add(newElement);
             return newElement;
         }
     }
 
-    public void addRow(int index) throws CardinalException {
+    @Override
+    public Element addRecord(Document rootDocument, String recordName, Map<String, String> record) {
+        return null;
+    }
+
+    public void addRow(int index) throws OutcomeBuilderException {
         if (elements.size() == model.getMaxOccurs())
             throw new CardinalException("Maximum size of table reached");
 
-        if (mode == TABLE) {
+        if (mode == Mode.TABLE) {
             Element newRow = tableModel.initNew(parent.getOwnerDocument(), index);
             elements.add(index, newRow);
             try {
@@ -154,7 +162,6 @@ public class Dimension extends OutcomeStructure {
             catch (IndexOutOfBoundsException ex) {
                 parent.appendChild(newRow);
             }
-
             // FIXME add row to table
             // table.setRowSelectionInterval(index, index);
         }
@@ -164,10 +171,10 @@ public class Dimension extends OutcomeStructure {
         }
     }
 
-    public void removeRow(int index) throws CardinalException {
+    public void removeRow(int index) throws OutcomeBuilderException {
         if (elements.size() <= model.getMinOccurs())
             throw new CardinalException("Minimum size of table reached");
-        if (mode == TABLE) {
+        if (mode == Mode.TABLE) {
             parent.removeChild(tableModel.removeRow(index));
             //int selectRow = index;
             //if (index >= tableModel.getRowCount()) selectRow--;

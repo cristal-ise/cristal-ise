@@ -21,21 +21,17 @@
 package org.cristalise.kernel.persistency.outcomebuilder;
 
 import java.io.IOException;
-import java.io.StringReader;
-import java.net.URL;
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.Map;
 
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.parsers.ParserConfigurationException;
-
+import org.apache.commons.lang3.StringUtils;
 import org.cristalise.kernel.common.InvalidDataException;
 import org.cristalise.kernel.persistency.outcome.Outcome;
+import org.cristalise.kernel.persistency.outcome.Schema;
 import org.cristalise.kernel.utils.Logger;
 import org.exolab.castor.xml.schema.ComplexType;
 import org.exolab.castor.xml.schema.ElementDecl;
-import org.exolab.castor.xml.schema.Schema;
-import org.exolab.castor.xml.schema.reader.SchemaReader;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.xml.sax.InputSource;
@@ -46,158 +42,103 @@ import org.xml.sax.SAXException;
  */
 public class OutcomeBuilder {
 
-    Schema           schemaSOM;
-    Document         outcomeDOM;
-    OutcomeStructure documentRoot;
-    DocumentBuilder  parser;
+    OutcomeStructure modelRoot;
+    Outcome          outcome;
 
-    boolean          unsaved      = false;
-    String           selectedRoot = "Storage";
+    public OutcomeBuilder(Schema schema) throws OutcomeBuilderException {
+        this("", schema);
+    }
 
-    protected HashMap<String, Class<?>> specialEditFields = new HashMap<String, Class<?>>();
-
-    public OutcomeBuilder() {
-        DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
-        dbf.setValidating(false);
-        dbf.setNamespaceAware(false);
-
+    public OutcomeBuilder(String root, Schema schema) throws OutcomeBuilderException {
         try {
-            parser = dbf.newDocumentBuilder();
+            Document document = Outcome.parse((InputSource)null);
+            initialise(schema.getSom(), document, root);
+            document.appendChild( modelRoot.initNew(document) );
+            outcome = new Outcome(-1, document, schema);
         }
-        catch (ParserConfigurationException e) {
+        catch (SAXException | IOException e) {
             Logger.error(e);
+            throw new InvalidSchemaException(e.getMessage());
         }
     }
 
-    public OutcomeBuilder(String schema) throws OutcomeException, InvalidSchemaException {
-        this();
-        this.setSchema(schema);
+    public OutcomeBuilder(Schema schema, String xml) throws OutcomeBuilderException {
+        this("", schema, xml);
     }
 
-    public OutcomeBuilder(String schema, String outcome) throws OutcomeException, InvalidOutcomeException, InvalidSchemaException {
-        this();
-        this.setSchema(schema);
-        this.setOutcome(outcome);
-    }
-
-    public OutcomeBuilder(URL schemaURL) throws OutcomeException, InvalidSchemaException {
-        this();
-        this.setSchema(schemaURL);
-    }
-
-    public OutcomeBuilder(URL schemaURL, URL outcomeURL) throws OutcomeException, InvalidSchemaException, InvalidOutcomeException {
-        this();
-        this.setSchema(schemaURL);
-        this.setOutcome(outcomeURL);
-    }
-
-    // Parse from URLS
-    public void setOutcome(URL outcomeURL) throws InvalidOutcomeException {
+    public OutcomeBuilder(String root, Schema schema, String xml) throws OutcomeBuilderException {
         try {
-            setOutcome(new InputSource(outcomeURL.openStream()));
+            outcome = new Outcome(xml, schema);
+            initialise(schema.getSom(), outcome.getDOM(), root);
+            modelRoot.addInstance(outcome.getDOM().getDocumentElement(), outcome.getDOM());
         }
-        catch (IOException ex) {
-            throw new InvalidOutcomeException("Error creating instance DOM tree: " + ex);
-        }
-    }
-
-    // Parse from Strings
-    public void setOutcome(String outcome) throws InvalidOutcomeException {
-        try {
-            setOutcome(new InputSource(new StringReader(outcome)));
-        }
-        catch (IOException ex) {
-            throw new InvalidOutcomeException("Error creating instance DOM tree: " + ex);
+        catch (InvalidDataException | OutcomeBuilderException e) {
+            Logger.error(e);
+            throw new InvalidOutcomeException();
         }
     }
 
-    public void setSchema(URL schemaURL) throws InvalidSchemaException {
-        Logger.msg(7, "OutcomeBulder.setSchema() - schemaURL:" + schemaURL.toString());
-        try {
-            setSchema(new InputSource(schemaURL.openStream()));
-        }
-        catch (IOException ex) {
-            throw new InvalidSchemaException("Error creating exolab schema object: " + ex);
-        }
-    }
-
-    public void setSchema(String schema) throws InvalidSchemaException {
-        if (schema == null) throw new InvalidSchemaException("Null schema supplied");
-
-        try {
-            setSchema(new InputSource(new StringReader(schema)));
-        }
-        catch (Exception ex) {
-            Logger.error(ex);
-        }
-    }
-
-    public void setSchema(InputSource schemaSource) throws InvalidSchemaException, IOException {
-
-        SchemaReader mySchemaReader = new SchemaReader(schemaSource);
-        this.schemaSOM = mySchemaReader.read();
-    }
-
-    public void setOutcome(InputSource outcomeSource) throws InvalidOutcomeException, IOException {
-        try {
-            outcomeDOM = parser.parse(outcomeSource);
-        }
-        catch (SAXException ex) {
-            throw new InvalidOutcomeException("Sax error parsing Outcome " + ex);
-        }
-    }
-
-    public void initialise() throws OutcomeException, InvalidSchemaException {
-        Element docElement;
+    public void initialise(org.exolab.castor.xml.schema.Schema som, Document document, String selectedRoot) throws OutcomeBuilderException {
         Logger.msg(5, "Initialising...");
 
-        if (schemaSOM == null) throw new InvalidSchemaException("A valid schema has not been supplied.");
+        if (som == null) throw new InvalidSchemaException("No valid schema was supplied.");
 
         // find the root element declaration in the schema - may need to look for annotation??
         ElementDecl rootElementDecl = null;
-        docElement = (outcomeDOM == null) ? null : outcomeDOM.getDocumentElement();
+        Element docElement = (document == null) ? null : document.getDocumentElement();
 
         HashMap<String, ElementDecl> foundRoots = new HashMap<String, ElementDecl>();
-        for (ElementDecl elementDecl : schemaSOM.getElementDecls()) foundRoots.put(elementDecl.getName(), elementDecl);
+        for (ElementDecl elementDecl : som.getElementDecls()) foundRoots.put(elementDecl.getName(), elementDecl);
 
         if (foundRoots.size() == 0) throw new InvalidSchemaException("No root elements defined");
 
-        if (foundRoots.size() == 1)  rootElementDecl = foundRoots.values().iterator().next();
-        else if (docElement != null) rootElementDecl = foundRoots.get(docElement.getTagName());
-        else                         rootElementDecl = foundRoots.get(selectedRoot);  //choose root
+        if (StringUtils.isNotBlank(selectedRoot)) rootElementDecl = foundRoots.get(selectedRoot);
+        else if (foundRoots.size() == 1)          rootElementDecl = foundRoots.values().iterator().next();
+        else if (docElement != null)              rootElementDecl = foundRoots.get(docElement.getTagName());
 
         if (rootElementDecl == null) throw new InvalidSchemaException("No root elements defined");
 
         if (rootElementDecl.getType().isSimpleType() || ((ComplexType) rootElementDecl.getType()).isSimpleContent())
-            documentRoot = new Field(rootElementDecl, specialEditFields);
-        else
-            documentRoot = new DataRecord(rootElementDecl, false, specialEditFields);
+            throw new InvalidSchemaException("Root element '"+rootElementDecl.getName()+"' shall not be simple type name");
+
+        modelRoot = new DataRecord(rootElementDecl, false);
 
         Logger.msg(5, "Finished structure!");
     }
 
-    public void createNewOutcome() {
-        outcomeDOM = parser.newDocument();
-        outcomeDOM.appendChild( documentRoot.initNew(outcomeDOM) );
+    public void addRecord(String path, Map<String, String> record) throws OutcomeBuilderException {
+        Logger.msg(5,"Add record to '"+path+"'");
+
+        String[] names = StringUtils.split(path, "/");
+
+        if (!modelRoot.getName().equals(names[0])) {
+            throw new StructuralException("path does not start with rootElement: '"+path+"' ?~ '"+modelRoot.getName()+"'");
+        }
+
+        if(names.length == 1) {
+            modelRoot.putFields(record);
+        }
+        else if(names.length == 2) {
+            modelRoot.addRecord(outcome.getDOM(), names[1], record);
+        }
+        else {
+            String recordName = names[names.length-1];
+
+            //Remove the first and the last entry
+            OutcomeStructure modelElement = modelRoot.find(Arrays.copyOfRange(names, 1, names.length-2));
+
+            if (modelElement == null) throw new StructuralException("Invalid path:'"+path+"'");
+
+            modelElement.addRecord(outcome.getDOM(), recordName, record);
+        }
     }
 
-    public void addInstance() throws OutcomeException {
-        Element docElement = (outcomeDOM == null) ? null : outcomeDOM.getDocumentElement();
-        documentRoot.addInstance(docElement, outcomeDOM);
+    public String getXml() throws InvalidDataException {
+        modelRoot.validateStructure();
+        return outcome.getData();
     }
 
-    public String getOutcome() throws InvalidDataException {
-        documentRoot.validateStructure();
-        return Outcome.serialize(outcomeDOM, false);
-    }
-
-    public String getSelectedRoot() {
-        return selectedRoot;
-    }
-
-    public void setSelectedRoot(String selectedRoot) {
-        this.selectedRoot = selectedRoot;
-
-        outcomeDOM = null;
+    public void putField(String name, String data) throws InvalidDataException {
+        outcome.setField(name, data);
     }
 }
