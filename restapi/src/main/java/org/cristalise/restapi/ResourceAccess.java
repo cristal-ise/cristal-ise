@@ -71,7 +71,6 @@ public class ResourceAccess extends ItemUtils {
         catch (ObjectNotFoundException e) {
             throw ItemUtils.createWebAppException(schemaName + " has no versions", Response.Status.NOT_FOUND);
         }
-
     }
 
     public Response getResource(String typeName, String schemaName, String name, Integer version) {

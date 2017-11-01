@@ -53,7 +53,7 @@ public class ItemHistory extends RemoteMapAccess {
             @QueryParam("start")     Integer start,
             @QueryParam("batch")     Integer batchSize,
             @CookieParam(COOKIENAME) Cookie  authCookie,
-            @Context UriInfo uri)
+            @Context                 UriInfo uri)
     {
         checkAuthCookie(authCookie);
         ItemProxy item = getProxy(uuid);

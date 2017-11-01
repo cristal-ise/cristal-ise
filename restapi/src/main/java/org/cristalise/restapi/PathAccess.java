@@ -84,14 +84,16 @@ public class PathAccess extends RestHandler {
         // If the domain path represents an item, redirect to it
         try {
             ItemPath item = domPath.getItemPath();
-            return Response.seeOther(uri.getBaseUriBuilder().path("item").path(item.getUUID().toString()).build()).build();
+            return Response.seeOther(ItemUtils.getItemURI(uri, item)).build();
         }
-
         catch (ObjectNotFoundException ex) {} // not an item
+
         LinkedHashMap<String, URI> childPathData = new LinkedHashMap<String, URI>();
         Iterator<org.cristalise.kernel.lookup.Path> childSearch;
-        if (search == null)
+
+        if (search == null) {
             childSearch = Gateway.getLookup().getChildren(domPath);
+        }
         else {
             String[] terms; // format: name,prop:val,prop:val
             terms = search.split(",");
@@ -100,8 +102,10 @@ public class PathAccess extends RestHandler {
             for (int i = 0; i < terms.length; i++) {
                 if (terms[i].contains(":")) { // assemble property if we have name:val
                     String[] nameval = terms[i].split(":");
+
                     if (nameval.length != 2)
                         throw ItemUtils.createWebAppException("Invalid search term: " + terms[i], Response.Status.BAD_REQUEST);
+                    
                     props[i] = new Property(nameval[0], nameval[1]);
                 }
                 else if (i == 0) { // first search term can imply Name if no propname given
@@ -119,8 +123,8 @@ public class PathAccess extends RestHandler {
             if (childSearch.hasNext()) childSearch.next();
             else                       break;
         }
-        // create list
 
+        // create list
         for (int i = 0; i < batchSize; i++) {
             if (childSearch.hasNext()) {
                 org.cristalise.kernel.lookup.Path nextPath = childSearch.next();
@@ -130,7 +134,8 @@ public class PathAccess extends RestHandler {
                     URI nextPathURI;
                     try {
                         ItemPath nextItem = nextDom.getItemPath();
-                        nextPathURI = uri.getBaseUriBuilder().path("item").path(nextItem.getUUID().toString()).build();
+                        //uri.getBaseUriBuilder().path("item").path(nextItem.getUUID().toString()).build();
+                        nextPathURI = ItemUtils.getItemURI(uri, nextItem.getUUID());
                     }
                     catch (ObjectNotFoundException ex) {
                         nextPathURI = uri.getAbsolutePathBuilder().path(nextDom.getName()).build();
@@ -139,7 +144,7 @@ public class PathAccess extends RestHandler {
                 }
                 else if (nextPath instanceof ItemPath) {
                     ItemPath itemPath = (ItemPath) nextPath;
-                    URI nextPathURI = uri.getBaseUriBuilder().path("item").path(itemPath.getUUID().toString()).build();
+
                     String itemName;
                     try {
                         itemName = Gateway.getProxyManager().getProxy(itemPath).getName();
@@ -147,16 +152,17 @@ public class PathAccess extends RestHandler {
                     catch (ObjectNotFoundException e) {
                         itemName = itemPath.getUUID().toString();
                     }
-                    childPathData.put(itemName, nextPathURI);
+                    childPathData.put(itemName, ItemUtils.getItemURI(uri, itemPath));
                 }
             }
             else // all done
                 break;
         }
         // if there are more, give a link
-        if (childSearch.hasNext())
+        if (childSearch.hasNext()) {
             childPathData.put("nextBatch", uri.getAbsolutePathBuilder().replaceQueryParam("start", start + batchSize)
                     .replaceQueryParam("batch", batchSize).build());
+        }
         return toJSON(childPathData);
     }
 }

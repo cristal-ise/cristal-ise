@@ -80,6 +80,7 @@ public class ItemRoot extends ItemUtils {
 
         LinkedHashMap<String, Object> itemSummary = new LinkedHashMap<String, Object>();
         itemSummary.put("name", item.getName());
+
         try {
             itemSummary.put("properties", getPropertySummary(item));
         }
@@ -88,9 +89,10 @@ public class ItemRoot extends ItemUtils {
             throw ItemUtils.createWebAppException("No Properties found", Response.Status.BAD_REQUEST);
         }
 
-        itemSummary.put("data", enumerate(item, VIEWPOINT.getName(), "data", uri));
-
+        itemSummary.put("data",        enumerate(item, VIEWPOINT.getName(), "data", uri));
         itemSummary.put("collections", enumerate(item, COLLECTION.getName(), "collection", uri));
+        itemSummary.put("history",     getItemURI(uri, item, "history"));
+
         return toJSON(itemSummary);
     }
 
@@ -122,7 +124,6 @@ public class ItemRoot extends ItemUtils {
         }
 
         return toJSON(jobListData);
-
     }
 
     @POST

@@ -30,9 +30,11 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.UUID;
 
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Response;
+import javax.ws.rs.core.UriBuilder;
 import javax.ws.rs.core.UriInfo;
 
 import org.apache.commons.lang3.StringUtils;
@@ -66,6 +68,30 @@ public abstract class ItemUtils extends RestHandler {
     public ItemUtils() {
         super();
         dateFormatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+    }
+
+    protected static URI getItemURI(UriInfo uri, ItemProxy item, String...path) {
+        return getItemURI(uri, item.getPath(), path);
+    }
+
+    protected static URI getItemURI(UriInfo uri, ItemPath item, String...path) {
+        return getItemURI(uri, item.getUUID(), path);
+    }
+
+    protected static URI getItemURI(UriInfo uri, UUID item, String...path) {
+        UriBuilder builder = uri.getBaseUriBuilder().path("item").path(item.toString());
+
+        for (String name: path) builder.path(name);
+
+        return builder.build();
+    }
+
+    protected static URI getItemURI(UriInfo uri, String...segments) {
+        UriBuilder builder = uri.getBaseUriBuilder().path("item");
+
+        for (String path: segments) builder.path(path);
+
+        return builder.build();
     }
 
     protected static LinkedHashMap<String, String> getPropertySummary(ItemProxy item) throws ObjectNotFoundException {
@@ -110,8 +136,7 @@ public abstract class ItemUtils extends RestHandler {
 
         LinkedHashMap<String, URI> childrenWithLinks = new LinkedHashMap<>();
         for (String child : children) {
-            childrenWithLinks.put(child, uri.getBaseUriBuilder().path("item").path(item.getPath().getUUID().toString()).
-                    path(uriPath).path(child).build());
+            childrenWithLinks.put(child, getItemURI(uri, item, uriPath, child));
         }
 
         return childrenWithLinks;
@@ -143,10 +168,11 @@ public abstract class ItemUtils extends RestHandler {
 
         if (ev.getSchemaName() != null && ev.getSchemaName().length()>0) { // add outcome info
             LinkedHashMap<String, Object> outcomeData = new LinkedHashMap<String, Object>();
-            outcomeData.put("name", ev.getViewName());
-            outcomeData.put("schema", ev.getSchemaName()+" v"+ev.getSchemaVersion());
-            outcomeData.put("schemaData", uri.getBaseUriBuilder().path("schema").path(ev.getSchemaName()).path(String.valueOf(ev.getSchemaVersion())).build());
-            outcomeData.put("data", uri.getBaseUriBuilder().path("item").path(ev.getItemUUID()).path("history").path(String.valueOf(ev.getID())).path("data").build());
+            outcomeData.put("name",       ev.getViewName());
+            outcomeData.put("schema",     ev.getSchemaName()+" v"+ev.getSchemaVersion());
+            outcomeData.put("schemaData", uri.getBaseUriBuilder().build("schema", ev.getSchemaName(), ev.getSchemaVersion()));
+            outcomeData.put("data",       getItemURI(uri, ev.getItemUUID(), "history", String.valueOf(ev.getID())));
+            
             eventData.put("outcome", outcomeData);
         }
 
@@ -186,7 +212,7 @@ public abstract class ItemUtils extends RestHandler {
         //item data
         LinkedHashMap<String, Object> itemData = new LinkedHashMap<String, Object>();
         itemData.put("name", itemName);
-        itemData.put("location", uri.getBaseUriBuilder().path("item").path(job.getItemUUID()).build());
+        itemData.put("location", getItemURI(uri, job.getItemUUID()));
         jobData.put("item", itemData);
 
         // activity data
@@ -249,9 +275,10 @@ public abstract class ItemUtils extends RestHandler {
         for (CollectionMember member : coll.getMembers().list) {
             LinkedHashMap<String, Object> thisMemberData = new LinkedHashMap<String, Object>();
             if (member.getItemPath() != null)
-                thisMemberData.put("item", uri.getBaseUriBuilder().path("item").path(member.getItemPath().getUUID().toString()).build());
+                thisMemberData.put("item", getItemURI(uri, member.getItemPath()));
             else
                 thisMemberData.put("item", "");
+
             addProps(thisMemberData, member.getProperties(), member.getClassProps(), coll instanceof Aggregation); // omit class props for dependencies
             if (member instanceof AggregationMember) {
                 AggregationMember aggMem = (AggregationMember)member;

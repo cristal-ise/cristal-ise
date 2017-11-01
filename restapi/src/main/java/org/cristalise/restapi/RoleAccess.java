@@ -47,10 +47,10 @@ public class RoleAccess extends RestHandler {
     public Response listRoles(@CookieParam(COOKIENAME) Cookie authCookie, @Context UriInfo uri) {
         checkAuthCookie(authCookie);
         LinkedHashMap<String, Object> roles = new LinkedHashMap<>();
-        Iterator<org.cristalise.kernel.lookup.Path> iter = Gateway.getLookup().search(new RolePath(), "*");
+        Iterator<org.cristalise.kernel.lookup.Path> iter = Gateway.getLookup().search(new RolePath(), "");
         while (iter.hasNext()) {
             RolePath role = (RolePath) iter.next();
-            roles.put(role.getName(), uri.getAbsolutePathBuilder().path(role.getName()));
+            roles.put(role.getName(), uri.getAbsolutePathBuilder().path(role.getName()).build());
         }
         return toJSON(roles);
     }
