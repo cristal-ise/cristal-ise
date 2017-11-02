@@ -40,11 +40,14 @@ import org.cristalise.kernel.lookup.RolePath;
 import org.cristalise.kernel.process.Gateway;
 
 @Path("/role")
-public class RoleAccess extends RestHandler {
+public class RoleAccess extends PathUtils {
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    public Response listRoles(@CookieParam(COOKIENAME) Cookie authCookie, @Context UriInfo uri) {
+    public Response listRoles(
+            @CookieParam(COOKIENAME) Cookie  authCookie,
+            @Context                 UriInfo uri) 
+    {
         checkAuthCookie(authCookie);
         LinkedHashMap<String, Object> roles = new LinkedHashMap<>();
         Iterator<org.cristalise.kernel.lookup.Path> iter = Gateway.getLookup().search(new RolePath(), "");

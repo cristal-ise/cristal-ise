@@ -22,9 +22,10 @@ package org.cristalise.restapi;
 
 import static org.cristalise.kernel.property.BuiltInItemProperties.NAME;
 
-import java.net.URI;
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
+import java.util.Map;
 
 import javax.ws.rs.CookieParam;
 import javax.ws.rs.DefaultValue;
@@ -44,19 +45,18 @@ import org.cristalise.kernel.lookup.DomainPath;
 import org.cristalise.kernel.lookup.ItemPath;
 import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.property.Property;
-import org.cristalise.kernel.utils.Logger;
 
 @Path("/domain")
-public class PathAccess extends RestHandler {
+public class PathAccess extends PathUtils {
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     public Response queryPath(
             @DefaultValue("0") @QueryParam("start") Integer start,
-            @QueryParam("batch") Integer batchSize,
-            @QueryParam("search") String search,
-            @CookieParam(COOKIENAME) Cookie authCookie,
-            @Context UriInfo uri)
+            @QueryParam("batch")                    Integer batchSize,
+            @QueryParam("search")                   String search,
+            @CookieParam(COOKIENAME)                Cookie authCookie,
+            @Context                                UriInfo uri)
     {
         return queryPath("/", start, batchSize, search, authCookie, uri);
     }
@@ -65,10 +65,10 @@ public class PathAccess extends RestHandler {
     @Path("{path: .*}")
     @Produces(MediaType.APPLICATION_JSON)
     public Response queryPath(
-            @PathParam("path") String path,
+            @PathParam("path")                      String path,
             @DefaultValue("0") @QueryParam("start") Integer start,
-            @QueryParam("batch") Integer batchSize,
-            @QueryParam("search") String search,
+            @QueryParam("batch")                    Integer batchSize,
+            @QueryParam("search")                   String search,
             @CookieParam(COOKIENAME) Cookie authCookie,
             @Context UriInfo uri)
     {
@@ -88,7 +88,6 @@ public class PathAccess extends RestHandler {
         }
         catch (ObjectNotFoundException ex) {} // not an item
 
-        LinkedHashMap<String, URI> childPathData = new LinkedHashMap<String, URI>();
         Iterator<org.cristalise.kernel.lookup.Path> childSearch;
 
         if (search == null) {
@@ -124,45 +123,25 @@ public class PathAccess extends RestHandler {
             else                       break;
         }
 
+        ArrayList<Map<String, Object>> pathDataArray = new ArrayList<>();
+
         // create list
         for (int i = 0; i < batchSize; i++) {
             if (childSearch.hasNext()) {
-                org.cristalise.kernel.lookup.Path nextPath = childSearch.next();
-                Logger.msg(nextPath.toString());
-                if (nextPath instanceof DomainPath) {
-                    DomainPath nextDom = (DomainPath) nextPath;
-                    URI nextPathURI;
-                    try {
-                        ItemPath nextItem = nextDom.getItemPath();
-                        //uri.getBaseUriBuilder().path("item").path(nextItem.getUUID().toString()).build();
-                        nextPathURI = ItemUtils.getItemURI(uri, nextItem.getUUID());
-                    }
-                    catch (ObjectNotFoundException ex) {
-                        nextPathURI = uri.getAbsolutePathBuilder().path(nextDom.getName()).build();
-                    }
-                    childPathData.put(nextDom.getName(), nextPathURI);
-                }
-                else if (nextPath instanceof ItemPath) {
-                    ItemPath itemPath = (ItemPath) nextPath;
-
-                    String itemName;
-                    try {
-                        itemName = Gateway.getProxyManager().getProxy(itemPath).getName();
-                    }
-                    catch (ObjectNotFoundException e) {
-                        itemName = itemPath.getUUID().toString();
-                    }
-                    childPathData.put(itemName, ItemUtils.getItemURI(uri, itemPath));
-                }
+                pathDataArray.add(makeLookupData(path, childSearch.next(), uri));
             }
             else // all done
                 break;
         }
+
         // if there are more, give a link
         if (childSearch.hasNext()) {
-            childPathData.put("nextBatch", uri.getAbsolutePathBuilder().replaceQueryParam("start", start + batchSize)
-                    .replaceQueryParam("batch", batchSize).build());
+            LinkedHashMap<String, Object> childPathData = new LinkedHashMap<>();
+
+            childPathData.put("nextBatch", 
+                    uri.getAbsolutePathBuilder().replaceQueryParam("start", start + batchSize).replaceQueryParam("batch", batchSize).build());
+            pathDataArray.add(childPathData);
         }
-        return toJSON(childPathData);
+        return toJSON(pathDataArray);
     }
 }
