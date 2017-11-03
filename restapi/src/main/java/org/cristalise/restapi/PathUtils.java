@@ -7,9 +7,12 @@ import java.util.UUID;
 
 import javax.ws.rs.core.UriInfo;
 
+import org.apache.commons.lang3.StringUtils;
 import org.cristalise.kernel.common.ObjectNotFoundException;
+import org.cristalise.kernel.lookup.AgentPath;
 import org.cristalise.kernel.lookup.DomainPath;
 import org.cristalise.kernel.lookup.ItemPath;
+import org.cristalise.kernel.lookup.RolePath;
 import org.cristalise.kernel.process.Gateway;
 
 public class PathUtils extends RestHandler {
@@ -20,10 +23,13 @@ public class PathUtils extends RestHandler {
 
     protected Map<String, Object> makeLookupData(String path, org.cristalise.kernel.lookup.Path nextPath, UriInfo uri) {
         String name = nextPath.getName();
+        String type = "n/a";
         URI nextPathURI = null;
         UUID uuid = null;
+        Boolean hasJoblist = null;
 
         if (nextPath instanceof DomainPath) {
+            type = "domain";
             DomainPath nextDom = (DomainPath) nextPath;
             try {
                 ItemPath nextItem = nextDom.getItemPath();
@@ -35,6 +41,9 @@ public class PathUtils extends RestHandler {
             }
         }
         else if (nextPath instanceof ItemPath) {
+            type = "item";
+            if (nextPath instanceof AgentPath) type = "agent";
+
             ItemPath itemPath = (ItemPath) nextPath;
             uuid = itemPath.getUUID();
 
@@ -46,17 +55,26 @@ public class PathUtils extends RestHandler {
             }
             nextPathURI = ItemUtils.getItemURI(uri, itemPath);
         }
-    
+        else if (nextPath instanceof RolePath) {
+            type = "role";
+            hasJoblist = ((RolePath) nextPath).hasJobList();
+
+            nextPathURI = uri.getAbsolutePathBuilder().path(nextPath.getName()).build();
+        }
+
         //Now the "json structure" can be created
         LinkedHashMap<String, Object> childPathData = new LinkedHashMap<>();
 
-        childPathData.put("name",   name);
-        childPathData.put("url",    nextPathURI);
+        childPathData.put("name", name);
+        childPathData.put("type", type);
+        childPathData.put("url",  nextPathURI);
 
-        if (uuid != null) childPathData.put("uuid", uuid);
+        if (path.equals("/") || StringUtils.isBlank(path)) childPathData.put("path", "/" + name);
+        else                                               childPathData.put("path", "/" + path + "/" + name);
 
-        if (path.equals("/")) childPathData.put("path", nextPath.getName());
-        else                  childPathData.put("path", path + "/" + nextPath.getName());
+        //optional fields
+        if (uuid      != null) childPathData.put("uuid", uuid);
+        if (hasJoblist!= null) childPathData.put("hasJoblist", hasJoblist);
 
         return childPathData;
     }

@@ -20,8 +20,11 @@
  */
 package org.cristalise.restapi;
 
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 
 import javax.ws.rs.CookieParam;
 import javax.ws.rs.GET;
@@ -48,20 +51,40 @@ public class RoleAccess extends PathUtils {
             @CookieParam(COOKIENAME) Cookie  authCookie,
             @Context                 UriInfo uri) 
     {
-        checkAuthCookie(authCookie);
-        LinkedHashMap<String, Object> roles = new LinkedHashMap<>();
-        Iterator<org.cristalise.kernel.lookup.Path> iter = Gateway.getLookup().search(new RolePath(), "");
-        while (iter.hasNext()) {
-            RolePath role = (RolePath) iter.next();
-            roles.put(role.getName(), uri.getAbsolutePathBuilder().path(role.getName()).build());
-        }
-        return toJSON(roles);
+        return listRoles("", authCookie, uri);
     }
 
     @GET
-    @Path("{role}")
+    @Path("{path: .*}")
     @Produces(MediaType.APPLICATION_JSON)
-    public Response getRole(@PathParam("role") String roleName, @CookieParam(COOKIENAME) Cookie authCookie, @Context UriInfo uri) {
+    public Response listRoles(
+            @PathParam("path")       String path,
+            @CookieParam(COOKIENAME) Cookie  authCookie,
+            @Context                 UriInfo uri) 
+    {
+        checkAuthCookie(authCookie);
+        ArrayList<Map<String, Object>> childRolesData = new ArrayList<>();
+
+        RolePath startRole = new RolePath(path);
+
+        Iterator<org.cristalise.kernel.lookup.Path> children = Gateway.getLookup().getChildren(startRole);
+        while (children.hasNext()) {
+            childRolesData.add(makeLookupData(path, children.next(), uri));
+        }
+        
+        childRolesData.addAll(getRoleAgentsData(path, startRole, uri));
+
+        return toJSON(childRolesData);
+    }
+
+    @GET
+    @Path("{role}/summary")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response getRoleSummary(
+            @PathParam("role")       String roleName, 
+            @CookieParam(COOKIENAME) Cookie authCookie, 
+            @Context                 UriInfo uri)
+    {
         checkAuthCookie(authCookie);
         RolePath role;
         try {
@@ -70,7 +93,9 @@ public class RoleAccess extends PathUtils {
         catch (ObjectNotFoundException e1) {
             throw ItemUtils.createWebAppException(e1.getMessage(), Response.Status.NOT_FOUND);
         }
+
         LinkedHashMap<String, Object> roleData = new LinkedHashMap<>();
+
         roleData.put("name", roleName);
         roleData.put("hasJobList", role.hasJobList());
         Iterator<org.cristalise.kernel.lookup.Path> childRoles = Gateway.getLookup().getChildren(role);
@@ -97,5 +122,24 @@ public class RoleAccess extends PathUtils {
             roleData.put("agents", agentData);
         }
         return toJSON(roleData);
+    }
+
+    protected List<Map<String, Object>> getRoleAgentsData(String path, RolePath role, UriInfo uri) {
+        ArrayList<Map<String, Object>> agentsData = new ArrayList<>();
+
+        AgentPath[] agents;
+        try {
+            agents = Gateway.getLookup().getAgents(role);
+
+            for (AgentPath agent : agents) {
+                agentsData.add(makeLookupData(path, agent, uri));
+            }
+
+            return agentsData;
+        }
+        catch (ObjectNotFoundException e) {
+            throw ItemUtils.createWebAppException(e.getMessage(), Response.Status.NOT_FOUND);
+        }
+
     }
 }
