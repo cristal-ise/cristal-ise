@@ -26,10 +26,12 @@ import java.net.URI;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 import javax.ws.rs.WebApplicationException;
@@ -94,11 +96,16 @@ public abstract class ItemUtils extends RestHandler {
         return builder.build();
     }
 
-    protected static LinkedHashMap<String, String> getPropertySummary(ItemProxy item) throws ObjectNotFoundException {
-        LinkedHashMap<String, String> props = new LinkedHashMap<String, String>();
+    protected static ArrayList<LinkedHashMap<String, String>> getPropertySummary(ItemProxy item) throws ObjectNotFoundException {
+        ArrayList<LinkedHashMap<String, String>> props = new ArrayList<>();
+
         for (String propName : item.getContents(PROPERTY)) {
-            if (!propName.equalsIgnoreCase("name"))
-                props.put(propName, item.getProperty(propName));
+            if (!propName.equalsIgnoreCase("name")) {
+                LinkedHashMap<String, String> prop = new LinkedHashMap<>();
+                prop.put("name", propName);
+                prop.put("value", item.getProperty(propName));
+                props.add(prop);
+            }
         }
         return props;
     }

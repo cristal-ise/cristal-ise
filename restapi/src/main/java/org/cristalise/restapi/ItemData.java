@@ -47,7 +47,7 @@ import static org.cristalise.kernel.persistency.ClusterType.HISTORY;
 import static org.cristalise.kernel.persistency.ClusterType.OUTCOME;
 import static org.cristalise.kernel.persistency.ClusterType.VIEWPOINT;
 
-@Path("/item/{uuid}/data")
+@Path("/item/{uuid}/viewpoint")
 public class ItemData extends ItemUtils {
 
     @GET
@@ -58,7 +58,7 @@ public class ItemData extends ItemUtils {
     {
         checkAuthCookie(authCookie);
         ItemProxy item = ItemRoot.getProxy(uuid);
-        return toJSON(enumerate(item, VIEWPOINT.getName(), "data", uri));
+        return toJSON(enumerate(item, VIEWPOINT.getName(), "viewpoint", uri));
     }
 
     @GET
@@ -71,7 +71,7 @@ public class ItemData extends ItemUtils {
     {
         checkAuthCookie(authCookie);
         ItemProxy item = ItemRoot.getProxy(uuid);
-        return toJSON(enumerate(item, VIEWPOINT + "/" + schema, "data/" + schema, uri));
+        return toJSON(enumerate(item, VIEWPOINT + "/" + schema, "viewpoint/" + schema, uri));
     }
 
     private Response queryData(String uuid, String schema, String viewName, Cookie authCookie, UriInfo uri, boolean json) {
