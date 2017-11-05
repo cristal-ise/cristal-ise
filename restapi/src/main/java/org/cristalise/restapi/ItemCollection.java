@@ -44,7 +44,7 @@ public class ItemCollection extends ItemUtils {
     public Response getCollections(@PathParam("uuid") String uuid, @CookieParam(COOKIENAME) Cookie authCookie, @Context UriInfo uri) {
         checkAuthCookie(authCookie);
         ItemProxy item = getProxy(uuid);
-        return toJSON(enumerate(item, COLLECTION.getName(), "collection", uri));
+        return toJSON(enumerate(item, COLLECTION, "collection", uri));
     }
 
     @GET

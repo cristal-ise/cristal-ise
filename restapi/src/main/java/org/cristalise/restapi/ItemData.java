@@ -58,7 +58,7 @@ public class ItemData extends ItemUtils {
     {
         checkAuthCookie(authCookie);
         ItemProxy item = ItemRoot.getProxy(uuid);
-        return toJSON(enumerate(item, VIEWPOINT.getName(), "viewpoint", uri));
+        return toJSON(enumerate(item, VIEWPOINT, "viewpoint", uri));
     }
 
     @GET

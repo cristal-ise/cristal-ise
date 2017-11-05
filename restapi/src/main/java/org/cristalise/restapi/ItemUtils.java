@@ -55,6 +55,7 @@ import org.cristalise.kernel.events.Event;
 import org.cristalise.kernel.lifecycle.instance.stateMachine.StateMachine;
 import org.cristalise.kernel.lookup.InvalidItemPathException;
 import org.cristalise.kernel.lookup.ItemPath;
+import org.cristalise.kernel.persistency.ClusterType;
 import org.cristalise.kernel.persistency.outcome.Outcome;
 import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.utils.CastorHashMap;
@@ -130,6 +131,10 @@ public abstract class ItemUtils extends RestHandler {
             throw ItemUtils.createWebAppException(e.getMessage(), Response.Status.NOT_FOUND); // Not found - the path doesn't exist
         }
         return item;
+    }
+
+    public LinkedHashMap<String, URI> enumerate(ItemProxy item, ClusterType cluster, String uriPath, UriInfo uri) {
+        return enumerate(item, cluster.getName(), uriPath, uri);
     }
 
     public LinkedHashMap<String, URI> enumerate(ItemProxy item, String dataPath, String uriPath, UriInfo uri) {
