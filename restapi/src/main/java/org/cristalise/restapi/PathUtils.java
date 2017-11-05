@@ -33,6 +33,7 @@ public class PathUtils extends RestHandler {
             DomainPath nextDom = (DomainPath) nextPath;
             try {
                 ItemPath nextItem = nextDom.getItemPath();
+                type = "item";
                 nextPathURI = ItemUtils.getItemURI(uri, nextItem.getUUID());
                 uuid = nextItem.getUUID();
             }
