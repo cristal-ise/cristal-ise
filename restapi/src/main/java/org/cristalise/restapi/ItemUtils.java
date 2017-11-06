@@ -133,46 +133,39 @@ public abstract class ItemUtils extends RestHandler {
         return item;
     }
 
-    public LinkedHashMap<String, URI> enumerate(ItemProxy item, ClusterType cluster, String uriPath, UriInfo uri) {
+    public ArrayList<LinkedHashMap<String, Object>> enumerate(ItemProxy item, ClusterType cluster, String uriPath, UriInfo uri) {
         return enumerate(item, cluster.getName(), uriPath, uri);
     }
 
-    public LinkedHashMap<String, URI> enumerate(ItemProxy item, String dataPath, String uriPath, UriInfo uri) {
-        String[] children;
+    public ArrayList<LinkedHashMap<String, Object>> enumerate(ItemProxy item, String dataPath, String uriPath, UriInfo uri) {
         try {
-            children = item.getContents(dataPath);
-        } catch (ObjectNotFoundException e) {
+            String[] children = item.getContents(dataPath);
+            ArrayList<LinkedHashMap<String, Object>> childrenData = new ArrayList<>();
+
+            for (String childName: children) {
+                LinkedHashMap<String, Object> childData = new LinkedHashMap<>();
+
+                childData.put("name", childName);
+                childData.put("url", getItemURI(uri, item, uriPath, childName));
+
+                childrenData.add(childData);
+            }
+
+            return childrenData;
+        }
+        catch (ObjectNotFoundException e) {
             Logger.error(e);
             throw ItemUtils.createWebAppException("Database Error");
         }
-
-        LinkedHashMap<String, URI> childrenWithLinks = new LinkedHashMap<>();
-
-        for (String child : children) {
-            childrenWithLinks.put(child, getItemURI(uri, item, uriPath, child));
-        }
-
-        return childrenWithLinks;
     }
 
-    protected ArrayList<HashMap<String, Object>> getAllViewpoints(ItemProxy item, UriInfo uri) {
-        ArrayList<HashMap<String, Object>> viewPoints = new ArrayList<>();
+    protected ArrayList<LinkedHashMap<String, Object>> getAllViewpoints(ItemProxy item, UriInfo uri) {
+        ArrayList<LinkedHashMap<String, Object>> viewPoints = enumerate(item, VIEWPOINT, "viewpoint", uri);
 
-        try {
-            for (String schema: item.getContents(VIEWPOINT)) {
-
-                for (String view: item.getContents(VIEWPOINT+"/"+schema)) {
-                    HashMap<String, Object> viewpoint = new HashMap<>();
-
-                    viewpoint.put("schemaName", schema);
-                    viewpoint.put("viewName", view);
-                    viewpoint.put("url", getItemURI(uri, item, "viewpoint", schema, view));
-
-                    viewPoints.add(viewpoint);
-                }
-            }
+        for(LinkedHashMap<String, Object> vp: viewPoints) {
+            String schema = vp.get("name").toString();
+            vp.put("views", enumerate(item, VIEWPOINT+"/"+schema, "viewpoint"+"/"+schema, uri));
         }
-        catch (ObjectNotFoundException e) {}
 
         return viewPoints;
     }
