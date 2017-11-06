@@ -160,14 +160,16 @@ public abstract class ItemUtils extends RestHandler {
 
         try {
             for (String schema: item.getContents(VIEWPOINT)) {
-                HashMap<String, Object> viewpoint = new HashMap<>();
-                
+
                 for (String view: item.getContents(VIEWPOINT+"/"+schema)) {
+                    HashMap<String, Object> viewpoint = new HashMap<>();
+
                     viewpoint.put("schemaName", schema);
                     viewpoint.put("viewName", view);
                     viewpoint.put("url", getItemURI(uri, item, "viewpoint", schema, view));
+
+                    viewPoints.add(viewpoint);
                 }
-                viewPoints.add(viewpoint);
             }
         }
         catch (ObjectNotFoundException e) {}
