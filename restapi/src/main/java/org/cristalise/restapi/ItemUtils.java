@@ -21,6 +21,7 @@
 package org.cristalise.restapi;
 
 import static org.cristalise.kernel.persistency.ClusterType.PROPERTY;
+import static org.cristalise.kernel.persistency.ClusterType.VIEWPOINT;
 
 import java.net.URI;
 import java.text.DateFormat;
@@ -29,9 +30,9 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.UUID;
 
 import javax.ws.rs.WebApplicationException;
@@ -48,7 +49,6 @@ import org.cristalise.kernel.collection.CollectionMember;
 import org.cristalise.kernel.collection.Dependency;
 import org.cristalise.kernel.common.InvalidDataException;
 import org.cristalise.kernel.common.ObjectNotFoundException;
-import org.cristalise.kernel.common.PersistencyException;
 import org.cristalise.kernel.entity.agent.Job;
 import org.cristalise.kernel.entity.proxy.ItemProxy;
 import org.cristalise.kernel.events.Event;
@@ -140,18 +140,39 @@ public abstract class ItemUtils extends RestHandler {
     public LinkedHashMap<String, URI> enumerate(ItemProxy item, String dataPath, String uriPath, UriInfo uri) {
         String[] children;
         try {
-            children = Gateway.getStorage().getClusterContents(item.getPath(), dataPath);
-        } catch (PersistencyException e) {
+            children = item.getContents(dataPath);
+        } catch (ObjectNotFoundException e) {
             Logger.error(e);
             throw ItemUtils.createWebAppException("Database Error");
         }
 
         LinkedHashMap<String, URI> childrenWithLinks = new LinkedHashMap<>();
+
         for (String child : children) {
             childrenWithLinks.put(child, getItemURI(uri, item, uriPath, child));
         }
 
         return childrenWithLinks;
+    }
+
+    protected ArrayList<HashMap<String, Object>> getAllViewpoints(ItemProxy item, UriInfo uri) {
+        ArrayList<HashMap<String, Object>> viewPoints = new ArrayList<>();
+
+        try {
+            for (String schema: item.getContents(VIEWPOINT)) {
+                HashMap<String, Object> viewpoint = new HashMap<>();
+                
+                for (String view: item.getContents(VIEWPOINT+"/"+schema)) {
+                    viewpoint.put("schemaName", schema);
+                    viewpoint.put("viewName", view);
+                    viewpoint.put("url", getItemURI(uri, item, "viewpoint", schema, view));
+                }
+                viewPoints.add(viewpoint);
+            }
+        }
+        catch (ObjectNotFoundException e) {}
+
+        return viewPoints;
     }
 
     protected Response getOutcomeResponse(Outcome oc, Event ev, boolean json) {
@@ -310,8 +331,9 @@ public abstract class ItemUtils extends RestHandler {
     private void addProps(LinkedHashMap<String, Object> collData, CastorHashMap props, String classProps, boolean includeClassProps) {
         List<String> propList = null;
         if (classProps != null) propList = Arrays.asList(classProps.split(","));
-        LinkedHashMap<String, Object> classPropData = new LinkedHashMap<String, Object>(),
-                propData = new LinkedHashMap<String, Object>();
+
+        LinkedHashMap<String, Object> classPropData = new LinkedHashMap<String, Object>(), propData = new LinkedHashMap<String, Object>();
+
         for (KeyValuePair prop : props.getKeyValuePairs()) {
             if (propList != null && propList.contains(prop.getKey()))  // is classProp
                 classPropData.put(prop.getKey(), prop.getValue());

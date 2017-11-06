@@ -90,7 +90,7 @@ public class ItemRoot extends ItemUtils {
             throw ItemUtils.createWebAppException("No Properties found", Response.Status.BAD_REQUEST);
         }
 
-        itemSummary.put("viewpoints",  enumerate(item, VIEWPOINT, "viewpoint", uri));
+        itemSummary.put("viewpoints",  getAllViewpoints(item, uri));
         itemSummary.put("collections", enumerate(item, COLLECTION, "collection", uri));
         itemSummary.put("history",     getItemURI(uri, item, "history"));
 
