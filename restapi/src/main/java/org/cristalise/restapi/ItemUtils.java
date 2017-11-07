@@ -100,12 +100,12 @@ public abstract class ItemUtils extends RestHandler {
         ArrayList<LinkedHashMap<String, String>> props = new ArrayList<>();
 
         for (String propName : item.getContents(PROPERTY)) {
-            if (!propName.equalsIgnoreCase("name")) {
-                LinkedHashMap<String, String> prop = new LinkedHashMap<>();
-                prop.put("name", propName);
-                prop.put("value", item.getProperty(propName));
-                props.add(prop);
-            }
+            LinkedHashMap<String, String> prop = new LinkedHashMap<>();
+
+            prop.put("name", propName);
+            prop.put("value", item.getProperty(propName));
+
+            props.add(prop);
         }
         return props;
     }

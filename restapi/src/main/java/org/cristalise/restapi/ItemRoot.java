@@ -81,6 +81,9 @@ public class ItemRoot extends ItemUtils {
         itemSummary.put("name", item.getName());
         itemSummary.put("uuid", uuid);
 
+        String type = item.getType();
+        if (type != null) itemSummary.put("type", type);
+
         try {
             itemSummary.put("properties", getPropertySummary(item));
         }
