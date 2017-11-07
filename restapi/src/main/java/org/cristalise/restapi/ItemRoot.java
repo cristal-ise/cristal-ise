@@ -21,7 +21,6 @@
 package org.cristalise.restapi;
 
 import static org.cristalise.kernel.persistency.ClusterType.COLLECTION;
-import static org.cristalise.kernel.persistency.ClusterType.VIEWPOINT;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
