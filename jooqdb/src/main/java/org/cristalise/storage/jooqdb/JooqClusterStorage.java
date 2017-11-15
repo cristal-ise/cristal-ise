@@ -55,8 +55,8 @@ public class JooqClusterStorage extends TransactionalClusterStorage {
     protected DSLContext context;
     protected Boolean autoCommit;
 
-    HashMap<ClusterType, JooqHandler> jooqHandlers   = new HashMap<ClusterType, JooqHandler>();
-    List<JooqDomainHandler>           domainHandlers = new ArrayList<JooqDomainHandler>();
+    protected HashMap<ClusterType, JooqHandler> jooqHandlers   = new HashMap<ClusterType, JooqHandler>();
+    protected List<JooqDomainHandler>           domainHandlers = new ArrayList<JooqDomainHandler>();
 
     @Override
     public void open(Authenticator auth) throws PersistencyException {
