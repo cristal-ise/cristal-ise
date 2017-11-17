@@ -74,7 +74,9 @@ public class CookieLogin extends RestHandler {
                 cookie = new NewCookie(COOKIENAME, encryptAuthData(agentData), "/", null, null, cookieLife, false);
             else
                 cookie = new NewCookie(COOKIENAME, encryptAuthData(agentData));
-            return Response.ok().cookie(cookie).build();
+
+            //FIXME: Perhaps Angular 4 bug. Return string is a json, so HttpClient will be able to process the response
+            return Response.ok("{\"login\":\"Success\"}").cookie(cookie).build();
         }
         catch (Exception e) {
             Logger.error(e);

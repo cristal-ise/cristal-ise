@@ -40,6 +40,7 @@ public class CORSResponseFilter implements ContainerResponseFilter {
 
         respHeaders.add("Access-Control-Allow-Headers", "X-Requested-With, Content-Type, X-Codingpedia");
         respHeaders.add("Access-Control-Allow-Origin",  Gateway.getProperties().getString("REST.corsAllowOrigin",  "*"));
+        respHeaders.add("Access-Control-Allow-Credentials", Gateway.getProperties().getString("REST.corsAllowCredentials",  "true"));
         respHeaders.add("Access-Control-Allow-Methods", Gateway.getProperties().getString("REST.corsAllowMethods", "GET, POST, OPTIONS"));
     }
 }
