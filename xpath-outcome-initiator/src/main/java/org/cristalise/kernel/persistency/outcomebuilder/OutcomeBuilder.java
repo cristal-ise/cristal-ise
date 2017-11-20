@@ -79,8 +79,6 @@ public class OutcomeBuilder {
     }
 
     public void initialise(org.exolab.castor.xml.schema.Schema som, Document document, String selectedRoot) throws OutcomeBuilderException {
-        Logger.msg(5, "Initialising...");
-
         if (som == null) throw new InvalidSchemaException("No valid schema was supplied.");
 
         // find the root element declaration in the schema - may need to look for annotation??
@@ -96,18 +94,23 @@ public class OutcomeBuilder {
         else if (foundRoots.size() == 1)          rootElementDecl = foundRoots.values().iterator().next();
         else if (docElement != null)              rootElementDecl = foundRoots.get(docElement.getTagName());
 
-        if (rootElementDecl == null) throw new InvalidSchemaException("No root elements defined");
+        if (rootElementDecl == null) throw new InvalidSchemaException("No root element defined");
 
-        if (rootElementDecl.getType().isSimpleType() || ((ComplexType) rootElementDecl.getType()).isSimpleContent())
-            throw new InvalidSchemaException("Root element '"+rootElementDecl.getName()+"' shall not be simple type name");
+        Logger.msg(5, "OutcomeBuilder.initialise() - selected root:" + rootElementDecl.getName());
 
-        modelRoot = new DataRecord(rootElementDecl, false);
+        if (rootElementDecl.getType().isSimpleType() || ((ComplexType) rootElementDecl.getType()).isSimpleContent()) {
+            //modelRoot = new Field(rootElementDecl); //Simpletype could work later
+            throw new InvalidSchemaException("Root element '"+rootElementDecl.getName()+"' shall not be simple type");
+        }
+        else {
+            modelRoot = new DataRecord(rootElementDecl, false);
+        }
 
-        Logger.msg(5, "Finished structure!");
+        Logger.msg(5, "OutcomeBuilder.initialise() - DONE");
     }
 
     public void addRecord(String path, Map<String, String> record) throws OutcomeBuilderException {
-        Logger.msg(5,"Add record to '"+path+"'");
+        Logger.msg(5,"OutcomeBuilder.addRecord() - path:'"+path+"'");
 
         String[] names = StringUtils.split(path, "/");
 
@@ -115,11 +118,13 @@ public class OutcomeBuilder {
             throw new StructuralException("path does not start with rootElement: '"+path+"' ?~ '"+modelRoot.getName()+"'");
         }
 
+        Element newElement = null;
+
         if(names.length == 1) {
-            modelRoot.putFields(record);
+            //updating the root, do nothing here, check setRecord() calls bellow
         }
         else if(names.length == 2) {
-            modelRoot.addRecord(outcome.getDOM(), names[1], record);
+            newElement = modelRoot.createElement(outcome.getDOM(), names[1]);
         }
         else {
             String recordName = names[names.length-1];
@@ -129,13 +134,27 @@ public class OutcomeBuilder {
 
             if (modelElement == null) throw new StructuralException("Invalid path:'"+path+"'");
 
-            modelElement.addRecord(outcome.getDOM(), recordName, record);
+            newElement = modelElement.createElement(outcome.getDOM(), recordName);
+        }
+
+        try {
+            if (newElement == null) outcome.setRecord(record);
+            else                    outcome.setRecord(newElement, record);
+        }
+        catch (InvalidDataException e) {
+            Logger.error(e);
+            throw new StructuralException(e);
         }
     }
 
     public String getXml() throws InvalidDataException {
-        modelRoot.validateStructure();
+        outcome.validateAndCheck();
         return outcome.getData();
+    }
+
+    public Outcome getOutcome() throws InvalidDataException {
+        outcome.validateAndCheck();
+        return outcome;
     }
 
     public void putField(String name, String data) throws InvalidDataException {

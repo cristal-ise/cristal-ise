@@ -26,7 +26,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Enumeration;
 import java.util.HashMap;
-import java.util.Map;
+import java.util.Map.Entry;
 
 import org.apache.commons.lang3.StringUtils;
 import org.cristalise.kernel.utils.Logger;
@@ -75,6 +75,10 @@ public abstract class OutcomeStructure {
     /**
      * After schema processing, addInstance() propogates the XML instance document down the layout. Most OutcomeStructures will throw an
      * exception if called more than once, except Dimension, which is the only Outcome Structure to support maxOccurs>1
+     *
+     * @param myElement
+     * @param parentDoc
+     * @throws OutcomeBuilderException
      */
     public abstract void addInstance(Element myElement, Document parentDoc) throws OutcomeBuilderException;
 
@@ -93,7 +97,7 @@ public abstract class OutcomeStructure {
      * @return
      * @throws StructuralException
      */
-    public abstract Element addRecord(Document rootDocument, String recordName, Map<String, String> record) throws OutcomeBuilderException;
+    public abstract Element createElement(Document rootDocument, String recordName) throws OutcomeBuilderException;
 
     /**
      * Contains the rules for deciding which OutcomeStructure will represent a chosen Element Declaration. In this order
@@ -206,9 +210,12 @@ public abstract class OutcomeStructure {
 
     public String validateStructure() {
         StringBuffer errors = new StringBuffer();
-        for (OutcomeStructure element : subStructure.values()) {
-            errors.append(element.validateStructure());
+
+        for (Entry<String, OutcomeStructure> element : subStructure.entrySet()) {
+            Logger.debug(5, "OutcomeStructure.validateStructure() - validating : " + element.getKey());
+            errors.append(element.getValue().validateStructure());
         }
+
         return errors.toString();
     }
 
@@ -324,10 +331,6 @@ public abstract class OutcomeStructure {
 
     public boolean isMandatory() {
         return model.getMinOccurs() == 1 && model.getMaxOccurs() == 1;
-    }
-
-    public void putFields(Map<String, String> record) {
-        // TODO This method could be made abstract
     }
 
     public OutcomeStructure find(String[] names) {

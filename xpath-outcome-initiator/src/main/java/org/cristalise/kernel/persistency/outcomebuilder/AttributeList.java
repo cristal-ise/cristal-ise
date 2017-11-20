@@ -23,7 +23,6 @@ package org.cristalise.kernel.persistency.outcomebuilder;
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.Iterator;
-import java.util.Map;
 
 import org.cristalise.kernel.persistency.outcomebuilder.field.StringField;
 import org.cristalise.kernel.utils.Logger;
@@ -127,9 +126,7 @@ public class AttributeList extends OutcomeStructure {
     }
 
     @Override
-    public Element addRecord(Document rootDocument, String recordName, Map<String, String> record) {
-        return null;
-    }
+    public Element createElement(Document rootDocument, String recordName) { return null; }
 
     @Override
     public void addInstance(Element myElement, Document parentDoc) throws OutcomeBuilderException {

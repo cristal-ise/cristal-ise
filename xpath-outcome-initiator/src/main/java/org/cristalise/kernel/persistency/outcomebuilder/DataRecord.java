@@ -20,8 +20,6 @@
  */
 package org.cristalise.kernel.persistency.outcomebuilder;
 
-import java.util.Map;
-
 import org.cristalise.kernel.utils.Logger;
 import org.exolab.castor.xml.schema.ComplexType;
 import org.exolab.castor.xml.schema.ElementDecl;
@@ -166,7 +164,7 @@ public class DataRecord extends OutcomeStructure {
     }
 
     @Override
-    public Element addRecord(Document rootDocument, String recordName, Map<String, String> record) throws OutcomeBuilderException {
+    public Element createElement(Document rootDocument, String recordName) throws OutcomeBuilderException {
         OutcomeStructure childModel = getChildModelElement(recordName);
 
         if (childModel == null) throw new StructuralException("DR "+model.getName()+"' does not have child '"+recordName+"'");

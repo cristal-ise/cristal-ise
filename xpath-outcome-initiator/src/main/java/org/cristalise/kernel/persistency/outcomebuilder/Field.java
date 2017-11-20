@@ -20,8 +20,6 @@
  */
 package org.cristalise.kernel.persistency.outcomebuilder;
 
-import java.util.Map;
-
 import org.cristalise.kernel.persistency.outcomebuilder.field.StringField;
 import org.cristalise.kernel.utils.Logger;
 import org.exolab.castor.xml.schema.ElementDecl;
@@ -126,9 +124,7 @@ public class Field extends OutcomeStructure {
     }
 
     @Override
-    public Element addRecord(Document rootDocument, String recordName, Map<String, String> record) {
-        return null;
-    }
+    public Element createElement(Document rootDocument, String recordName) { return null; }
 
     private String getDefaultValue() {
         String defaultValue = model.getFixedValue();

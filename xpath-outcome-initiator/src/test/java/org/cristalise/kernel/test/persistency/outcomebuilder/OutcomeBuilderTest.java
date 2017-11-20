@@ -27,9 +27,15 @@ import org.cristalise.kernel.persistency.outcome.Schema;
 import org.cristalise.kernel.persistency.outcomebuilder.OutcomeBuilder;
 import org.cristalise.kernel.test.persistency.XMLUtils;
 import org.cristalise.kernel.utils.Logger;
+import org.junit.Before;
 import org.junit.Test;
 
 public class OutcomeBuilderTest extends XMLUtils {
+
+    @Before
+    public void setUp() throws Exception {
+        Logger.addLogStream(System.out, 8);
+    }
 
     @Test
     public void multiRootXSDFile() throws Exception {
@@ -58,6 +64,7 @@ public class OutcomeBuilderTest extends XMLUtils {
         upsRecord.put("UsedFor",      "creation");
 
         ob.addRecord("/SiteCharacteristicsData/UPS", upsRecord);
+        //ob.addRecord("/SiteCharacteristicsData/UPS", upsRecord);
 
         Logger.msg(ob.getXml());
 

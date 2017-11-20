@@ -27,6 +27,11 @@ public abstract class OutcomeBuilderException extends Exception {
     public OutcomeBuilderException() {
         super();
     }
+
+    public OutcomeBuilderException(Exception e) {
+        super(e);
+    }
+
     public OutcomeBuilderException(String ex) {
         super(ex);
     }

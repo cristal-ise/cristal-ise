@@ -22,7 +22,6 @@ package org.cristalise.kernel.persistency.outcomebuilder;
 
 import java.util.ArrayList;
 import java.util.Iterator;
-import java.util.Map;
 
 import org.cristalise.kernel.utils.Logger;
 import org.exolab.castor.xml.schema.ElementDecl;
@@ -122,7 +121,7 @@ public class Dimension extends OutcomeStructure {
 
     @Override
     public Element initNew(Document parent) {
-        Logger.msg(5, "Creating Dimension '" + model.getName()+"' as '" + mode.name() + "'");
+        Logger.msg(5, "Dimension.initNew() - '" + model.getName()+"' as '" + mode.name() + "'");
 
         Element newElement;
 
@@ -144,9 +143,7 @@ public class Dimension extends OutcomeStructure {
     }
 
     @Override
-    public Element addRecord(Document rootDocument, String recordName, Map<String, String> record) {
-        return null;
-    }
+    public Element createElement(Document rootDocument, String recordName) { return null; }
 
     public void addRow(int index) throws OutcomeBuilderException {
         if (elements.size() == model.getMaxOccurs())
