@@ -66,10 +66,6 @@ public class RemoteMapAccess extends ItemUtils {
     }
 
     public C2KLocalObject get(ItemProxy item, ClusterType root, String id) {
-        return get(item, root.getName(), id);
-    }
-
-    public C2KLocalObject get(ItemProxy item, String root, String id) {
         RemoteMap<?> map;
         try {
             map = (RemoteMap<?>) item.getObject(root);

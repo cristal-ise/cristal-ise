@@ -23,6 +23,7 @@ package org.cristalise.restapi;
 import static org.cristalise.kernel.persistency.ClusterType.JOB;
 
 import java.net.URI;
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
 
 import javax.ws.rs.CookieParam;
@@ -69,21 +70,19 @@ public class AgentJobList extends RemoteMapAccess {
                 Gateway.getProperties().getInt("REST.DefaultBatchSize", 20));
 
         // fetch this batch of events from the RemoteMap
-        LinkedHashMap<String, Object> jobs = super.list(item, JOB, start, batchSize, uri);
+        LinkedHashMap<String, Object> batch = super.list(item, JOB, start, batchSize, uri);
+        ArrayList<LinkedHashMap<String, Object>> jobs = new ArrayList<>();
 
         // replace Jobs with their JSON form. Leave any other object (like the nextBatch URI) as they are
-        for (String key : jobs.keySet()) {
-            Object obj = jobs.get(key);
+        for (String key : batch.keySet()) {
+            Object obj = batch.get(key);
             if (obj instanceof Job) {
                 Job job = (Job) obj;
                 try {
-                    jobs.put(key, makeJobData(job, job.getItemProxy().getName(), uri));
+                    jobs.add(makeJobData(job, job.getItemProxy().getName(), uri));
                 }
-                catch (ObjectNotFoundException e) {
-                    jobs.put(key, "ERROR: Item " + job.getItemUUID() + " not found");
-                }
-                catch (InvalidItemPathException e) {
-                    jobs.put(key, "ERROR: Invalid Item UUID in Job:" + job.getItemUUID());
+                catch (ObjectNotFoundException | InvalidItemPathException e) {
+                    throw ItemUtils.createWebAppException("Item " + job.getItemUUID() + " in Job not found", Response.Status.NOT_FOUND);
                 }
             }
         }
@@ -105,7 +104,7 @@ public class AgentJobList extends RemoteMapAccess {
         if (!(item instanceof AgentProxy))
             throw ItemUtils.createWebAppException("UUID does not belong to an Agent", Response.Status.BAD_REQUEST);
 
-        Job job = (Job) get(item, JOB.getName(), jobId);
+        Job job = (Job) get(item, JOB, jobId);
 
         try {
             return toJSON(makeJobData(job, job.getItemProxy().getName(), uri));

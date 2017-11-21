@@ -48,7 +48,7 @@ import static org.cristalise.kernel.persistency.ClusterType.OUTCOME;
 import static org.cristalise.kernel.persistency.ClusterType.VIEWPOINT;
 
 @Path("/item/{uuid}/viewpoint")
-public class ItemData extends ItemUtils {
+public class ItemViewpoint extends ItemUtils {
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
