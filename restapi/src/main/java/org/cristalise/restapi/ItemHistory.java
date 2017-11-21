@@ -23,6 +23,7 @@ package org.cristalise.restapi;
 import static org.cristalise.kernel.persistency.ClusterType.HISTORY;
 import static org.cristalise.kernel.persistency.ClusterType.OUTCOME;
 
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
 
 import javax.ws.rs.CookieParam;
@@ -62,13 +63,15 @@ public class ItemHistory extends RemoteMapAccess {
                 Gateway.getProperties().getInt("REST.DefaultBatchSize", 20));
 
         // fetch this batch of events from the RemoteMap
-        LinkedHashMap<String, Object> events = super.list(item, HISTORY.getName(), start, batchSize, uri);
+        LinkedHashMap<String, Object> batch = super.list(item, HISTORY, start, batchSize, uri);
+
+        ArrayList<LinkedHashMap<String, Object>> events = new ArrayList<>();
 
         // replace Events with their JSON form. Leave any other object (like the nextBatch URI) as they are
-        for (String key : events.keySet()) {
-            Object obj = events.get(key);
+        for (String key : batch.keySet()) {
+            Object obj = batch.get(key);
             if (obj instanceof Event) {
-                events.put(key, makeEventData((Event) obj, uri));
+                events.add(makeEventData((Event) obj, uri));
             }
         }
         return toJSON(events);

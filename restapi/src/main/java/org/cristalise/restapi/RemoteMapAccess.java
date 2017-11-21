@@ -34,7 +34,7 @@ import org.cristalise.kernel.utils.Logger;
 
 public class RemoteMapAccess extends ItemUtils {
 
-    public LinkedHashMap<String, Object> list(ItemProxy item, String root, int start, int batchSize, UriInfo uri) {
+    public LinkedHashMap<String, Object> list(ItemProxy item, ClusterType root, int start, int batchSize, UriInfo uri) {
         RemoteMap<?> map;
         try {
             map = (RemoteMap<?>) item.getObject(root);
@@ -50,16 +50,16 @@ public class RemoteMapAccess extends ItemUtils {
         LinkedHashMap<String, Object> batch = new LinkedHashMap<String, Object>();
         int i = start;
         int last = map.getLastId();
+
         while (batch.size() < batchSize && i <= last) {
             Object obj = map.get(i);
             if (obj != null) batch.put(String.valueOf(i), obj);
             i++;
         }
+
         if (i < last) {
-            while (map.get(i) == null)
-                i++;
-            batch.put("nextBatch",
-                    uri.getAbsolutePathBuilder().replaceQueryParam("start", i).replaceQueryParam("batch", batchSize).build());
+            while (map.get(i) == null) i++;
+            batch.put("nextBatch", uri.getAbsolutePathBuilder().replaceQueryParam("start", i).replaceQueryParam("batch", batchSize).build());
         }
 
         return batch;
@@ -81,10 +81,10 @@ public class RemoteMapAccess extends ItemUtils {
         catch (ClassCastException e) {
             throw ItemUtils.createWebAppException("Object was not a RemoteMap: " + root, Response.Status.BAD_REQUEST);
         }
+
         if (id.equals("last")) id = String.valueOf(map.getLastId());
 
         if (map.containsKey(id)) return map.get(id);
-        else
-            throw ItemUtils.createWebAppException("Object was not found in " + root + " id:" + id, Response.Status.NOT_FOUND);
+        else throw ItemUtils.createWebAppException("Object was not found in " + root + " id:" + id, Response.Status.NOT_FOUND);
     }
 }

@@ -69,7 +69,7 @@ public class AgentJobList extends RemoteMapAccess {
                 Gateway.getProperties().getInt("REST.DefaultBatchSize", 20));
 
         // fetch this batch of events from the RemoteMap
-        LinkedHashMap<String, Object> jobs = super.list(item, JOB.getName(), start, batchSize, uri);
+        LinkedHashMap<String, Object> jobs = super.list(item, JOB, start, batchSize, uri);
 
         // replace Jobs with their JSON form. Leave any other object (like the nextBatch URI) as they are
         for (String key : jobs.keySet()) {
