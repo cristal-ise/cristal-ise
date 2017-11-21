@@ -72,26 +72,26 @@ public abstract class ItemUtils extends RestHandler {
         dateFormatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
     }
 
-    protected static URI getItemURI(UriInfo uri, ItemProxy item, String...path) {
+    protected static URI getItemURI(UriInfo uri, ItemProxy item, Object...path) {
         return getItemURI(uri, item.getPath(), path);
     }
 
-    protected static URI getItemURI(UriInfo uri, ItemPath item, String...path) {
+    protected static URI getItemURI(UriInfo uri, ItemPath item, Object...path) {
         return getItemURI(uri, item.getUUID(), path);
     }
 
-    protected static URI getItemURI(UriInfo uri, UUID item, String...path) {
+    protected static URI getItemURI(UriInfo uri, UUID item, Object...path) {
         UriBuilder builder = uri.getBaseUriBuilder().path("item").path(item.toString());
 
-        for (String name: path) builder.path(name);
+        for (Object name: path) builder.path(name.toString());
 
         return builder.build();
     }
 
-    protected static URI getItemURI(UriInfo uri, String...segments) {
+    protected static URI getItemURI(UriInfo uri, Object...segments) {
         UriBuilder builder = uri.getBaseUriBuilder().path("item");
 
-        for (String path: segments) builder.path(path);
+        for (Object path: segments) builder.path(path.toString());
 
         return builder.build();
     }
@@ -195,11 +195,12 @@ public abstract class ItemUtils extends RestHandler {
 
         if (ev.getSchemaName() != null && ev.getSchemaName().length()>0) { // add outcome info
             LinkedHashMap<String, Object> outcomeData = new LinkedHashMap<String, Object>();
-            outcomeData.put("name",       ev.getViewName());
-            outcomeData.put("schema",     ev.getSchemaName()+" v"+ev.getSchemaVersion());
-            outcomeData.put("schemaData", uri.getBaseUriBuilder().build("schema", ev.getSchemaName(), ev.getSchemaVersion()));
-            outcomeData.put("data",       getItemURI(uri, ev.getItemUUID(), "history", String.valueOf(ev.getID())));
-            
+            outcomeData.put("name",          ev.getViewName());
+            outcomeData.put("schema",        ev.getSchemaName());
+            outcomeData.put("schemaVersion", ev.getSchemaVersion());
+            //outcomeData.put("schemaData",    uri.getBaseUriBuilder().build("schema", ev.getSchemaName(), ev.getSchemaVersion()));
+            outcomeData.put("data",          getItemURI(uri, ev.getItemUUID(), "outcome", ev.getSchemaName(), ev.getSchemaVersion(), ev.getID()));
+
             eventData.put("outcome", outcomeData);
         }
 
@@ -217,8 +218,9 @@ public abstract class ItemUtils extends RestHandler {
             transData.put("name", sm.getTransition(ev.getTransition()).getName());
             transData.put("origin", sm.getState(ev.getOriginState()).getName());
             transData.put("target", sm.getState(ev.getTargetState()).getName());
-            transData.put("stateMachine", ev.getStateMachineName()+" v"+ev.getStateMachineVersion());
-            transData.put("stateMachineData", uri.getBaseUriBuilder().path("stateMachine").path(ev.getStateMachineName()).path(String.valueOf(ev.getStateMachineVersion())).build());
+            transData.put("stateMachine", ev.getStateMachineName());
+            transData.put("stateMachineVersion", ev.getStateMachineVersion());
+            //transData.put("stateMachineData", uri.getBaseUriBuilder().path("stateMachine").path(ev.getStateMachineName()).path(String.valueOf(ev.getStateMachineVersion())).build());
             eventData.put("transition", transData);
         } catch (ObjectNotFoundException e) {
             eventData.put("transition", "ERROR: State Machine "+ev.getStateMachineName()+" v"+ev.getStateMachineVersion()+" not found!");
