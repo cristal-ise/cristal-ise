@@ -45,7 +45,7 @@ import org.cristalise.kernel.persistency.outcome.Outcome;
 import org.cristalise.kernel.process.Gateway;
 
 @Path("/item/{uuid}/history")
-public class ItemHistory extends RemoteMapAccess {
+public class ItemHistory extends ItemUtils {
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
@@ -63,7 +63,7 @@ public class ItemHistory extends RemoteMapAccess {
                 Gateway.getProperties().getInt("REST.DefaultBatchSize", 20));
 
         // fetch this batch of events from the RemoteMap
-        LinkedHashMap<String, Object> batch = super.list(item, HISTORY, start, batchSize, uri);
+        LinkedHashMap<String, Object> batch = RemoteMapAccess.list(item, HISTORY, start, batchSize, uri);
 
         ArrayList<LinkedHashMap<String, Object>> events = new ArrayList<>();
 
@@ -88,14 +88,14 @@ public class ItemHistory extends RemoteMapAccess {
     {
         checkAuthCookie(authCookie);
         ItemProxy item = getProxy(uuid);
-        Event ev = (Event) get(item, HISTORY, eventId);
+        Event ev = (Event) RemoteMapAccess.get(item, HISTORY, eventId);
         return toJSON(makeEventData(ev, uri));
     }
 
     private Response getEventOutcome(String uuid, String eventId, Cookie authCookie, UriInfo uri, boolean json) {
         checkAuthCookie(authCookie);
         ItemProxy item = getProxy(uuid);
-        Event ev = (Event) get(item, HISTORY, eventId);
+        Event ev = (Event) RemoteMapAccess.get(item, HISTORY, eventId);
 
         if (ev.getSchemaName() == null || ev.getSchemaName().equals("")) {
             throw ItemUtils.createWebAppException("This event has no data", Response.Status.NOT_FOUND);

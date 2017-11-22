@@ -48,7 +48,7 @@ import org.cristalise.kernel.lookup.RolePath;
 import org.cristalise.kernel.process.Gateway;
 
 @Path("/agent/{uuid}")
-public class AgentJobList extends RemoteMapAccess {
+public class AgentJobList extends ItemUtils {
 
     @GET
     @Path("job")
@@ -70,7 +70,7 @@ public class AgentJobList extends RemoteMapAccess {
                 Gateway.getProperties().getInt("REST.DefaultBatchSize", 20));
 
         // fetch this batch of events from the RemoteMap
-        LinkedHashMap<String, Object> batch = super.list(item, JOB, start, batchSize, uri);
+        LinkedHashMap<String, Object> batch = RemoteMapAccess.list(item, JOB, start, batchSize, uri);
         ArrayList<LinkedHashMap<String, Object>> jobs = new ArrayList<>();
 
         // replace Jobs with their JSON form. Leave any other object (like the nextBatch URI) as they are
@@ -104,7 +104,7 @@ public class AgentJobList extends RemoteMapAccess {
         if (!(item instanceof AgentProxy))
             throw ItemUtils.createWebAppException("UUID does not belong to an Agent", Response.Status.BAD_REQUEST);
 
-        Job job = (Job) get(item, JOB, jobId);
+        Job job = (Job) RemoteMapAccess.get(item, JOB, jobId);
 
         try {
             return toJSON(makeJobData(job, job.getItemProxy().getName(), uri));

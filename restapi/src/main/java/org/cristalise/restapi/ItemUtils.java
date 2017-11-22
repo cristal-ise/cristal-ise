@@ -20,6 +20,7 @@
  */
 package org.cristalise.restapi;
 
+import static org.cristalise.kernel.persistency.ClusterType.HISTORY;
 import static org.cristalise.kernel.persistency.ClusterType.PROPERTY;
 import static org.cristalise.kernel.persistency.ClusterType.VIEWPOINT;
 
@@ -48,6 +49,7 @@ import org.cristalise.kernel.collection.CollectionMember;
 import org.cristalise.kernel.collection.Dependency;
 import org.cristalise.kernel.common.InvalidDataException;
 import org.cristalise.kernel.common.ObjectNotFoundException;
+import org.cristalise.kernel.common.PersistencyException;
 import org.cristalise.kernel.entity.agent.Job;
 import org.cristalise.kernel.entity.proxy.ItemProxy;
 import org.cristalise.kernel.events.Event;
@@ -56,6 +58,7 @@ import org.cristalise.kernel.lookup.InvalidItemPathException;
 import org.cristalise.kernel.lookup.ItemPath;
 import org.cristalise.kernel.persistency.ClusterType;
 import org.cristalise.kernel.persistency.outcome.Outcome;
+import org.cristalise.kernel.persistency.outcome.Viewpoint;
 import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.utils.CastorHashMap;
 import org.cristalise.kernel.utils.KeyValuePair;
@@ -132,6 +135,30 @@ public abstract class ItemUtils extends RestHandler {
         return item;
     }
 
+    public Response getViewpointOutcome(String uuid, String schema, String viewName, boolean json) {
+        ItemProxy item = ItemRoot.getProxy(uuid);
+        try {
+            Viewpoint view = item.getViewpoint(schema, viewName);
+            return getOutcomeResponse(view.getOutcome(), view.getEvent(), json);
+        }
+        catch (InvalidDataException | PersistencyException | ObjectNotFoundException e) {
+            Logger.error(e);
+            throw ItemUtils.createWebAppException(e.getMessage(), Response.Status.NOT_FOUND);
+        }
+    }
+
+    public Response getOutcome(String uuid, String schema, int version, int eventId, boolean json) {
+        ItemProxy item = ItemRoot.getProxy(uuid);
+        try {
+            Outcome outcome = item.getOutcome(schema, version, eventId);
+            return getOutcomeResponse(outcome, (Event)RemoteMapAccess.get(item, HISTORY, Integer.toString(eventId)), json);
+        }
+        catch (ObjectNotFoundException e) {
+            Logger.error(e);
+            throw ItemUtils.createWebAppException(e.getMessage(), Response.Status.NOT_FOUND);
+        }
+    }
+
     public ArrayList<LinkedHashMap<String, Object>> enumerate(ItemProxy item, ClusterType cluster, String uriPath, UriInfo uri) {
         return enumerate(item, cluster.getName(), uriPath, uri);
     }
@@ -169,21 +196,24 @@ public abstract class ItemUtils extends RestHandler {
         return viewPoints;
     }
 
-    protected Response getOutcomeResponse(Outcome oc, Event ev, boolean json) {
-        Date eventDate;
-        try {
-            eventDate = dateFormatter.parse(ev.getTimeString());
-        } catch (ParseException e) {
-            Logger.error(e);
-            throw ItemUtils.createWebAppException("Invalid timestamp in event "+ev.getID()+": "+ev.getTimeString());
-        }
-
+    protected Response getOutcomeResponse(Outcome oc, Date eventDate, boolean json) {
         String result;
 
         if(json) result = XML.toJSONObject(oc.getData()).toString();
         else     result = oc.getData();
 
         return Response.ok(result).lastModified(eventDate).build();
+    }
+
+    protected Response getOutcomeResponse(Outcome oc, Event ev, boolean json) {
+        try {
+            Date eventDate = dateFormatter.parse(ev.getTimeString());
+            return getOutcomeResponse(oc, eventDate, json);
+        }
+        catch (ParseException e) {
+            Logger.error(e);
+            throw ItemUtils.createWebAppException("Invalid timestamp in event "+ev.getID()+": "+ev.getTimeString());
+        }
     }
 
     protected LinkedHashMap<String, Object> makeEventData(Event ev, UriInfo uri) {

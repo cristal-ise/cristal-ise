@@ -32,9 +32,15 @@ import org.cristalise.kernel.persistency.ClusterType;
 import org.cristalise.kernel.persistency.RemoteMap;
 import org.cristalise.kernel.utils.Logger;
 
-public class RemoteMapAccess extends ItemUtils {
+/**
+ * 
+ *
+ */
+public class RemoteMapAccess {
 
-    public LinkedHashMap<String, Object> list(ItemProxy item, ClusterType root, int start, int batchSize, UriInfo uri) {
+    private RemoteMapAccess() {}
+
+    public static LinkedHashMap<String, Object> list(ItemProxy item, ClusterType root, int start, int batchSize, UriInfo uri) {
         RemoteMap<?> map;
         try {
             map = (RemoteMap<?>) item.getObject(root);
@@ -65,7 +71,7 @@ public class RemoteMapAccess extends ItemUtils {
         return batch;
     }
 
-    public C2KLocalObject get(ItemProxy item, ClusterType root, String id) {
+    public static C2KLocalObject get(ItemProxy item, ClusterType root, String id) {
         RemoteMap<?> map;
         try {
             map = (RemoteMap<?>) item.getObject(root);

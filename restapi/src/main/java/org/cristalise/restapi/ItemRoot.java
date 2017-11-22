@@ -23,8 +23,10 @@ package org.cristalise.restapi;
 import static org.cristalise.kernel.persistency.ClusterType.COLLECTION;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.CookieParam;
@@ -50,7 +52,13 @@ import org.cristalise.kernel.common.PersistencyException;
 import org.cristalise.kernel.entity.agent.Job;
 import org.cristalise.kernel.entity.proxy.AgentProxy;
 import org.cristalise.kernel.entity.proxy.ItemProxy;
+import org.cristalise.kernel.persistency.outcome.Outcome;
+import org.cristalise.kernel.persistency.outcome.Schema;
+import org.cristalise.kernel.scripting.Script;
 import org.cristalise.kernel.scripting.ScriptErrorException;
+import org.cristalise.kernel.scripting.ScriptingEngineException;
+import org.cristalise.kernel.utils.CastorHashMap;
+import org.cristalise.kernel.utils.LocalObjectLoader;
 import org.cristalise.kernel.utils.Logger;
 
 @Path("/item/{uuid}")
@@ -65,6 +73,63 @@ public class ItemRoot extends ItemUtils {
     {
         checkAuthCookie(authCookie);
         return getProxy(uuid).getName();
+    }
+
+    @GET
+    @Path("master")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response getMasterOutcome(
+            @PathParam("uuid")           String uuid,
+            @QueryParam("script")        String scriptName,
+            @QueryParam("scriptVersion") Integer scriptVersion,
+            @CookieParam(COOKIENAME) Cookie authCookie)
+    {
+        checkAuthCookie(authCookie);
+        ItemProxy item = getProxy(uuid);
+
+        String type = item.getType();
+
+        if (type == null) throw ItemUtils.createWebAppException("Type is null, cannot get MasterOutcome ", Response.Status.NOT_FOUND);
+
+        try {
+            String view = "last";
+            if (item.checkViewpoint(type, view)) {
+                return getViewpointOutcome(uuid, type, view, true);
+            }
+            else if (scriptName != null) {
+                //FIXME: version should be retrieved from the current item or the Module
+                int schemaVersion = 0;
+                if (scriptVersion == null) scriptVersion = 0;
+
+                final Schema schema = LocalObjectLoader.getSchema(type, schemaVersion);
+                final Script script = LocalObjectLoader.getScript(scriptName, scriptVersion);
+
+                Object scriptResult = script.evaluate(item.getPath(), new CastorHashMap(), null, null);
+                String xmlOutcome = null;
+
+                if (scriptResult instanceof String) {
+                    xmlOutcome = (String)scriptResult;
+                }
+                else if (scriptResult instanceof Map) {
+                    //the map shall have one Key only
+                    String key = ((Map<?,?>) scriptResult).keySet().toArray(new String[0])[0];
+                    xmlOutcome = (String)((Map<?,?>) scriptResult).get(key);
+                }
+                else
+                    throw ItemUtils.createWebAppException("Cannot handle result of script:" + scriptName, Response.Status.NOT_FOUND);
+
+                if (xmlOutcome != null)
+                    return getOutcomeResponse(new Outcome(xmlOutcome, schema), new Date(), true);
+                else
+                    throw ItemUtils.createWebAppException("Cannot handle result of script:" + scriptName, Response.Status.NOT_FOUND);
+            }
+            else
+                throw ItemUtils.createWebAppException("Cannot retrieve MasterOutcome", Response.Status.NOT_FOUND);
+        }
+        catch (ObjectNotFoundException | InvalidDataException | ScriptingEngineException e) {
+            Logger.error(e);
+            throw ItemUtils.createWebAppException("Error retrieving MasterOutcome:" + e.getMessage() , Response.Status.NOT_FOUND);
+        }
     }
 
     @GET
@@ -95,6 +160,7 @@ public class ItemRoot extends ItemUtils {
         itemSummary.put("viewpoints",  getAllViewpoints(item, uri));
         itemSummary.put("collections", enumerate(item, COLLECTION, "collection", uri));
         itemSummary.put("history",     getItemURI(uri, item, "history"));
+        itemSummary.put("outcome",     getItemURI(uri, item, "outcome"));
 
         return toJSON(itemSummary);
     }

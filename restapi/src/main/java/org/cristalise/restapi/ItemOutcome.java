@@ -20,7 +20,6 @@
  */
 package org.cristalise.restapi;
 
-import static org.cristalise.kernel.persistency.ClusterType.HISTORY;
 import static org.cristalise.kernel.persistency.ClusterType.OUTCOME;
 
 import javax.ws.rs.CookieParam;
@@ -34,14 +33,10 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 
-import org.cristalise.kernel.common.ObjectNotFoundException;
 import org.cristalise.kernel.entity.proxy.ItemProxy;
-import org.cristalise.kernel.events.Event;
-import org.cristalise.kernel.persistency.outcome.Outcome;
-import org.cristalise.kernel.utils.Logger;
 
 @Path("/item/{uuid}/outcome")
-public class ItemOutcome extends RemoteMapAccess {
+public class ItemOutcome extends ItemUtils {
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
@@ -81,32 +76,6 @@ public class ItemOutcome extends RemoteMapAccess {
         return toJSON(enumerate(item, OUTCOME+"/"+schema+"/"+version, "outcome/"+schema+"/"+version, uri));
     }
 
-    /**
-     * 
-     * @param uuid
-     * @param schema
-     * @param version
-     * @param eventId
-     * @param authCookie
-     * @param uri
-     * @param json
-     * @return
-     */
-    private Response queryData(String uuid, String schema, int version, int eventId, Cookie authCookie, UriInfo uri, boolean json) {
-        checkAuthCookie(authCookie);
-        ItemProxy item = ItemRoot.getProxy(uuid);
-        Outcome outcome;
-        try {
-            outcome = item.getOutcome(schema, version, eventId);
-        }
-        catch (ObjectNotFoundException e) {
-            Logger.error(e);
-            throw ItemUtils.createWebAppException(e.getMessage(), Response.Status.NOT_FOUND);
-        }
-
-        return getOutcomeResponse(outcome, (Event)get(item, HISTORY, Integer.toString(eventId)), json);
-    }
-
     @GET
     @Produces(MediaType.TEXT_XML)
     @Path("{schema}/{version}/{event}")
@@ -117,7 +86,8 @@ public class ItemOutcome extends RemoteMapAccess {
                                  @CookieParam(COOKIENAME) Cookie  authCookie,
                                  @Context                 UriInfo uri)
     {
-        return queryData(uuid, schema, version, event, authCookie, uri, false);
+        checkAuthCookie(authCookie);
+        return getOutcome(uuid, schema, version, event, false);
     }
 
     @GET
@@ -130,6 +100,7 @@ public class ItemOutcome extends RemoteMapAccess {
                                   @CookieParam(COOKIENAME) Cookie  authCookie,
                                   @Context                 UriInfo uri)
     {
-        return queryData(uuid, schema, version, event, authCookie, uri, true);
+        checkAuthCookie(authCookie);
+        return getOutcome(uuid, schema, version, event, true);
     }
 }

@@ -74,37 +74,6 @@ public class ItemViewpoint extends ItemUtils {
         return toJSON(enumerate(item, VIEWPOINT + "/" + schema, "viewpoint/" + schema, uri));
     }
 
-    private Response queryData(String uuid, String schema, String viewName, Cookie authCookie, UriInfo uri, boolean json) {
-        checkAuthCookie(authCookie);
-        ItemProxy item = ItemRoot.getProxy(uuid);
-        Viewpoint view;
-        try {
-            view = item.getViewpoint(schema, viewName);
-        }
-        catch (ObjectNotFoundException e) {
-            Logger.error(e);
-            throw ItemUtils.createWebAppException(e.getMessage(), Response.Status.NOT_FOUND);
-            // throw ItemUtils.createWebAppException("Database error loading view "+viewName+" of schema "+schema,
-            // Response.Status.NOT_FOUND);
-        }
-        Outcome oc;
-        try {
-            oc = view.getOutcome();
-        }
-        catch (ObjectNotFoundException | PersistencyException e) {
-            Logger.error(e);
-            throw ItemUtils.createWebAppException("Database error loading outcome for view " + viewName + " of schema " + schema);
-        }
-
-        try {
-            return getOutcomeResponse(oc, view.getEvent(), json);
-        }
-        catch (InvalidDataException | PersistencyException | ObjectNotFoundException e) {
-            Logger.error(e);
-            throw ItemUtils.createWebAppException("Database error loading event data for view " + viewName + " of schema " + schema);
-        }
-    }
-
     @GET
     @Produces(MediaType.TEXT_XML)
     @Path("{schema}/{viewName}")
@@ -114,7 +83,8 @@ public class ItemViewpoint extends ItemUtils {
                                  @CookieParam(COOKIENAME) Cookie authCookie,
                                  @Context UriInfo uri)
     {
-        return queryData(uuid, schema, viewName, authCookie, uri, false);
+        checkAuthCookie(authCookie);
+        return getViewpointOutcome(uuid, schema, viewName, false);
     }
 
     @GET
@@ -126,7 +96,8 @@ public class ItemViewpoint extends ItemUtils {
                                   @CookieParam(COOKIENAME) Cookie authCookie,
                                   @Context UriInfo uri)
     {
-        return queryData(uuid, schema, viewName, authCookie, uri, true);
+        checkAuthCookie(authCookie);
+        return getViewpointOutcome(uuid, schema, viewName, true);
     }
 
     @GET
