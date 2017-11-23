@@ -64,7 +64,7 @@ public abstract class OutcomeStructure {
         this.model = model;
         subStructure = new HashMap<String, OutcomeStructure>();
 
-        Logger.msg(8, "Creating '" + model.getName() + "' structure as " + this.getClass().getSimpleName());
+        Logger.msg(8, "OutcomeStructure() - Creating '" + model.getName() + "' structure as " + this.getClass().getSimpleName());
 
         String doc = extractHelp(model);
         if (doc.length() > 0) help = doc;

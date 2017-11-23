@@ -48,7 +48,7 @@ public class AttributeList extends OutcomeStructure {
 
         for (Enumeration<?> fields = content.getAttributeDecls(); fields.hasMoreElements();) {
             thisDecl = (AttributeDecl)fields.nextElement();
-            Logger.msg(8, "Includes Attribute "+thisDecl.getName());
+            Logger.msg(8, "AttributeList() - Includes Attribute "+thisDecl.getName());
 
             // read help
             help = OutcomeStructure.extractHelp(thisDecl);
@@ -68,7 +68,7 @@ public class AttributeList extends OutcomeStructure {
     public void setInstance(Element data) throws OutcomeBuilderException {
         this.myElement = data;
         for (StringField thisField : attrSet) {
-            Logger.msg(8, "Populating Attribute "+thisField.getName());
+            Logger.msg(8, "AttributeList.setInstance() - Populating Attribute "+thisField.getName());
             Attr thisAttr = myElement.getAttributeNode(thisField.getName());
             if (thisAttr == null)
                 thisAttr = newAttribute(myElement, (AttributeDecl)thisField.getModel());
@@ -98,7 +98,7 @@ public class AttributeList extends OutcomeStructure {
     }
 
     public void initNew(Element parent) {
-        Logger.msg(5, "Creating AttributeList " + model.getName());
+        Logger.msg(5, "AttributeList.initNew() - Creating " + model.getName());
 
         AttributeDecl thisDecl;
         StringField thisField;

@@ -78,7 +78,7 @@ public class DataRecord extends OutcomeStructure {
 
     @Override
     public void addInstance(Element myElement, Document parentDoc) throws OutcomeBuilderException {
-        Logger.msg(8, "Accepting DR " + myElement.getTagName());
+        Logger.msg(8, "DataRecord.addInstance() - name:" + myElement.getTagName());
 
         if (this.myElement != null) throw new CardinalException("DataRecord " + this.getName() + " cannot repeat.");
 

@@ -53,7 +53,7 @@ public class OutcomeBuilderTest extends XMLUtils {
 
     @Test
     public void addRecord() throws Exception {
-        OutcomeBuilder ob = new OutcomeBuilder(new Schema("Storage", 0, getXSD("SiteCharacteristicsData")));
+        OutcomeBuilder ob = new OutcomeBuilder(new Schema("SiteCharacteristicsData", 0, getXSD("SiteCharacteristicsData")));
 
         Map<String, String> upsRecord = new HashMap<String, String>();
         upsRecord.put("Manufacturer", "acme");
@@ -73,7 +73,7 @@ public class OutcomeBuilderTest extends XMLUtils {
 
     @Test
     public void exportViewTemplate() throws Exception {
-        OutcomeBuilder ob = new OutcomeBuilder(new Schema("Storage", 0, getXSD("SiteCharacteristicsData")));
+        OutcomeBuilder ob = new OutcomeBuilder(new Schema("SiteCharacteristicsData", 0, getXSD("SiteCharacteristicsData")), false);
 
         String template = ob.exportViewTemplate();
 

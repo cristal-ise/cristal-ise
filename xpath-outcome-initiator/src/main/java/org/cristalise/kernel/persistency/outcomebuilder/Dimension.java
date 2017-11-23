@@ -45,7 +45,7 @@ public class Dimension extends OutcomeStructure {
         // decide whether a table or tabs
         try {
             tableModel = new DimensionTableModel(model);
-            Logger.msg(8, "DIM " + model.getName() + " - Will be a table");
+            Logger.msg(8, "Dimension() - name:" + model.getName() + " mode:table");
 
             mode = Mode.TABLE;
 
@@ -53,7 +53,7 @@ public class Dimension extends OutcomeStructure {
         }
         catch (OutcomeBuilderException e) {
             // use tabs
-            Logger.msg(8, "DIM " + model.getName() + " - Will be tabs: " + e.getMessage());
+            Logger.msg(8, "Dimension() - name:" + model.getName() + " mode:tabs: " + e.getMessage());
             mode = Mode.TABS;
         }
     }
@@ -64,7 +64,7 @@ public class Dimension extends OutcomeStructure {
 
     @Override
     public void addInstance(Element myElement, Document parentDoc) throws OutcomeBuilderException {
-        Logger.msg(6, "DIM - adding instance " + (elements.size() + 1) + " for " + myElement.getTagName());
+        Logger.msg(6, "Dimension.addInstance() - adding instance " + (elements.size() + 1) + " for " + myElement.getTagName());
 
         if (parent == null) setParentElement((Element) myElement.getParentNode());
 

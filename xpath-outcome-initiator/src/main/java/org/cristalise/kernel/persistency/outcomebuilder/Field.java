@@ -38,8 +38,7 @@ public class Field extends OutcomeStructure {
 
         try {
             myFieldInstance = StringField.getEditField(model);
-            Logger.msg(6, "Field type: "+myFieldInstance.getClass().getSimpleName());
-            //if (readOnly) myElementPanel.setEditable(false);
+            Logger.msg(6, "Field() - name:" + model.getName() + " type: "+myFieldInstance.getClass().getSimpleName());
         }
         catch (StructuralException e) {
             // no base type for field - only attributes
@@ -60,13 +59,16 @@ public class Field extends OutcomeStructure {
 
     @Override
     public void addInstance(Element myElement, Document parentDoc) throws OutcomeBuilderException {
-        Logger.msg(6, "Accepting Field "+myElement.getTagName());
+        Logger.msg(6, "Field.addInstance() - field:"+myElement.getTagName());
+
         if (this.myElement != null) throw new CardinalException("Field "+this.getName()+" cannot repeat");
+
         this.myElement = myElement;
 
         try {
-            if (myFieldInstance == null)
+            if (myFieldInstance == null) {
                 Logger.error("Field should be empty. Discarding contents.");
+            }
             else {
                 if (myElement.hasChildNodes())
                     textNode = (Text)myElement.getFirstChild();
@@ -83,8 +85,6 @@ public class Field extends OutcomeStructure {
         }
         myAttributes.setInstance(myElement);
     }
-
-    // check if valid
 
     @Override
     public String validateStructure() {
@@ -103,7 +103,7 @@ public class Field extends OutcomeStructure {
 
     @Override
     public Element initNew(Document parent) {
-        Logger.msg(6, "Creating Field '"+this.getName()+"'");
+        Logger.msg(6, "Field.initiNew() - Creating '"+this.getName()+"'");
 
         // make a new Element
         myElement = parent.createElement(this.getName());

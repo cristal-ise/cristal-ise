@@ -59,7 +59,7 @@ public class DimensionTableModel {
         if (modelContent.isSimpleType()) {
             SimpleType elementType = (SimpleType)modelContent;
             SimpleType baseType = elementType.getBuiltInBaseType();
-            addColumn(model.getName(), baseType, baseType.getTypeCode(), new Boolean(model.getFixedValue() != null));
+            addColumn(model.getName(), baseType, baseType.getTypeCode());
         }
         else if (modelContent.isComplexType()) {  // if complex type, process child elements
             ComplexType elementType = (ComplexType)modelContent;
@@ -71,16 +71,18 @@ public class DimensionTableModel {
             }
             if (baseType != null) {
                 int typeCode = ((SimpleType)baseType).getTypeCode();
-                addColumn(model.getName(), baseType, typeCode, new Boolean(model.getFixedValue() != null));
+                addColumn(model.getName(), baseType, typeCode);
             }
             // process attributes
             for (Enumeration<?> e = elementType.getAttributeDecls(); e.hasMoreElements();) {
                 AttributeDecl thisAttr = (AttributeDecl)e.nextElement();
                 // HACK: if we don't resolve the reference, the type will be null
                 if (thisAttr.isReference()) thisAttr = thisAttr.getReference();
+
                 if (thisAttr.getSimpleType() == null)
                     throw new StructuralException("Attribute "+thisAttr.getName()+" in "+model.getName()+" has no type");
-                addColumn(thisAttr.getName(), thisAttr, thisAttr.getSimpleType().getTypeCode(), new Boolean(thisAttr.isFixed()));
+
+                addColumn(thisAttr.getName(), thisAttr, thisAttr.getSimpleType().getTypeCode());
             }
 
             // enumerate child elements
@@ -88,8 +90,9 @@ public class DimensionTableModel {
         }
     }
 
-    public synchronized void addColumn(String heading, Annotated decl, int typeCode, Boolean readOnly) {
-        Logger.msg(8, "Column "+heading+" contains "+decl.getClass().getName()+" readOnly="+readOnly.toString());
+    public synchronized void addColumn(String heading, Annotated decl, int typeCode) {
+        Logger.msg(8, "DimensionTableModel.addColumn() - Column "+heading+" contains "+decl.getClass().getSimpleName());
+
         columnHeadings.add(heading);
         columnDecls.add(decl);
         columnClasses.add(OutcomeStructure.getJavaClass(typeCode));
@@ -150,7 +153,7 @@ public class DimensionTableModel {
                 }
 
                 //add to list
-                addColumn(thisElement.getName()+extraHeader, thisElement, typeCode, new Boolean(thisElement.getFixedValue() != null));
+                addColumn(thisElement.getName()+extraHeader, thisElement, typeCode);
             }
             else throw new StructuralException("Particle "+thisParticle.getClass()+" not implemented");
         }

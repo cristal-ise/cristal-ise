@@ -46,15 +46,28 @@ public class OutcomeBuilder {
     Outcome          outcome;
 
     public OutcomeBuilder(Schema schema) throws OutcomeBuilderException {
-        this("", schema);
+        this("", schema, true);
+    }
+
+    public OutcomeBuilder(Schema schema, boolean initInstance) throws OutcomeBuilderException {
+        this("", schema, initInstance);
     }
 
     public OutcomeBuilder(String root, Schema schema) throws OutcomeBuilderException {
+        this(root, schema, true);
+    }
+
+    public OutcomeBuilder(String root, Schema schema, boolean initInstance ) throws OutcomeBuilderException {
         try {
-            Document document = Outcome.parse((InputSource)null);
-            initialise(schema.getSom(), document, root);
-            document.appendChild( modelRoot.initNew(document) );
-            outcome = new Outcome(-1, document, schema);
+            if (initInstance) {
+                Document document = Outcome.parse((InputSource)null);
+                initialise(schema.getSom(), document, root);
+                document.appendChild( modelRoot.initNew(document) );
+                outcome = new Outcome(-1, document, schema);
+            }
+            else {
+                initialise(schema.getSom(), null, root);
+            }
         }
         catch (SAXException | IOException e) {
             Logger.error(e);
@@ -62,20 +75,28 @@ public class OutcomeBuilder {
         }
     }
 
-    public OutcomeBuilder(Schema schema, String xml) throws OutcomeBuilderException {
+    public OutcomeBuilder(Schema schema, String xml) throws OutcomeBuilderException, InvalidDataException {
         this("", schema, xml);
     }
 
-    public OutcomeBuilder(String root, Schema schema, String xml) throws OutcomeBuilderException {
+    public OutcomeBuilder(String root, Schema schema, Outcome outcome) throws OutcomeBuilderException {
+        initialise(schema.getSom(), outcome.getDOM(), root);
+        modelRoot.addInstance(outcome.getDOM().getDocumentElement(), outcome.getDOM());
+    }
+
+    public OutcomeBuilder(String root, Schema schema, String xml) throws OutcomeBuilderException, InvalidDataException {
+        this(root, schema, new Outcome(xml, schema));
+        /*
         try {
             outcome = new Outcome(xml, schema);
             initialise(schema.getSom(), outcome.getDOM(), root);
             modelRoot.addInstance(outcome.getDOM().getDocumentElement(), outcome.getDOM());
         }
-        catch (InvalidDataException | OutcomeBuilderException e) {
+        catch (InvalidDataException e) {
             Logger.error(e);
             throw new InvalidOutcomeException();
         }
+         */
     }
 
     public void initialise(org.exolab.castor.xml.schema.Schema som, Document document, String selectedRoot) throws OutcomeBuilderException {
