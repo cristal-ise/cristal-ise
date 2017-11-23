@@ -71,6 +71,15 @@ public class OutcomeBuilderTest extends XMLUtils {
         assert XMLUtils.compareXML(getXML("siteCharacteristicsData_ups"), ob.getXml());
     }
 
+    @Test
+    public void exportViewTemplate() throws Exception {
+        OutcomeBuilder ob = new OutcomeBuilder(new Schema("Storage", 0, getXSD("SiteCharacteristicsData")));
+
+        String template = ob.exportViewTemplate();
+
+        assert template != null;
+    }
+
     private void checkEmptyOutcome(String type) throws Exception {
         String xsd      = getXSD(type);
         String expected = getXML(type);

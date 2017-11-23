@@ -30,8 +30,8 @@ public class DimensionInstance extends DataRecord {
     int tabNumber;
     String tabName = null;
 
-    public DimensionInstance(ElementDecl model, boolean deferred) throws OutcomeBuilderException {
-        super(model, deferred);
+    public DimensionInstance(ElementDecl model) throws OutcomeBuilderException {
+        super(model);
     }
 
     public void setTabNumber(int tabNumber) {

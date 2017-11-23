@@ -91,11 +91,10 @@ public class Dimension extends OutcomeStructure {
     public DimensionInstance newInstance() {
         DimensionInstance newInstance = null;
         try {
-            newInstance = new DimensionInstance(model, deferChild);
+            newInstance = new DimensionInstance(model);
             instances.add(newInstance);
             newInstance.setTabNumber(instances.size());
             newInstance.setParent(this);
-            deferChild = true;
         }
         catch (OutcomeBuilderException e) {
             // shouldn't happen, we've already done it once

@@ -53,7 +53,6 @@ public abstract class OutcomeStructure {
     ElementDecl model      = null;
     Element     myElement  = null;
     String      help       = null;
-    boolean     deferChild = false;
 
     ArrayList<String>                 subStructureOrder = new ArrayList<String>();
     HashMap<String, OutcomeStructure> subStructure      = new HashMap<String, OutcomeStructure>();
@@ -137,7 +136,7 @@ public abstract class OutcomeStructure {
         if (elementComplexType.getParticleCount() == 0) return new Field(model);
 
         // everything else is a data record
-        return new DataRecord(model, deferChild);
+        return new DataRecord(model);
     }
 
     /**

@@ -103,7 +103,7 @@ public class OutcomeBuilder {
             throw new InvalidSchemaException("Root element '"+rootElementDecl.getName()+"' shall not be simple type");
         }
         else {
-            modelRoot = new DataRecord(rootElementDecl, false);
+            modelRoot = new DataRecord(rootElementDecl);
         }
 
         Logger.msg(5, "OutcomeBuilder.initialise() - DONE");
@@ -159,5 +159,10 @@ public class OutcomeBuilder {
 
     public void putField(String name, String data) throws InvalidDataException {
         outcome.setField(name, data);
+    }
+
+    public String exportViewTemplate() {
+
+        return null;
     }
 }

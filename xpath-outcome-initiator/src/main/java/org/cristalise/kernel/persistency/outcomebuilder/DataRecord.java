@@ -30,19 +30,16 @@ import org.w3c.dom.NodeList;
 public class DataRecord extends OutcomeStructure {
 
     AttributeList myAttributes;
-    boolean       deferred;
     Document      parentDoc;
 
-    public DataRecord(ElementDecl model, boolean deferred)
+    public DataRecord(ElementDecl model)
             throws OutcomeBuilderException
     {
         super(model);
-        this.deferred = deferred;
-        if (!deferred) setup();
+        setup();
     }
 
     public synchronized void activate() {
-        deferred = false;
         try {
             setup();
             if (myElement != null) populateInstance();
@@ -76,10 +73,6 @@ public class DataRecord extends OutcomeStructure {
         //FIXME: perhaps this is just a leftover from the GUI code
         if (newElement instanceof DataRecord) {
             //DataRecord newRecord = (DataRecord) newElement;
-            deferChild = true;
-        }
-        else {
-            deferChild = false;
         }
     }
 
@@ -92,7 +85,7 @@ public class DataRecord extends OutcomeStructure {
         this.myElement = myElement;
         this.parentDoc = parentDoc;
 
-        if (!deferred) populateInstance();
+        populateInstance();
     }
 
     public void populateInstance() throws StructuralException, OutcomeBuilderException {
@@ -140,8 +133,7 @@ public class DataRecord extends OutcomeStructure {
 
     @Override
     public Element initNew(Document parent) {
-        Logger.msg(5, "Creating DR '" + model.getName()+"'");
-        if (deferred) activate();
+        Logger.msg(5, "DataRecord.initNew() - name:'" + model.getName()+"'");
 
         // make a new Element
         myElement = parent.createElement(model.getName());
