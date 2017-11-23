@@ -29,7 +29,7 @@ import org.w3c.dom.Text;
 
 public class Field extends OutcomeStructure {
 
-    StringField   myElementPanel = null;
+    StringField   myFieldInstance = null;
     AttributeList myAttributes;
     Text          textNode;
 
@@ -37,13 +37,13 @@ public class Field extends OutcomeStructure {
         super(model);
 
         try {
-            myElementPanel = StringField.getEditField(model);
-            Logger.msg(6, "Field type: "+myElementPanel.getClass().getSimpleName());
+            myFieldInstance = StringField.getEditField(model);
+            Logger.msg(6, "Field type: "+myFieldInstance.getClass().getSimpleName());
             //if (readOnly) myElementPanel.setEditable(false);
         }
         catch (StructuralException e) {
             // no base type for field - only attributes
-            myElementPanel = null;
+            myFieldInstance = null;
         }
 
         myAttributes = new AttributeList(model);
@@ -65,7 +65,7 @@ public class Field extends OutcomeStructure {
         this.myElement = myElement;
 
         try {
-            if (myElementPanel == null)
+            if (myFieldInstance == null)
                 Logger.error("Field should be empty. Discarding contents.");
             else {
                 if (myElement.hasChildNodes())
@@ -75,7 +75,7 @@ public class Field extends OutcomeStructure {
                     myElement.appendChild(textNode);
                 }
 
-                myElementPanel.setData(textNode);
+                myFieldInstance.setData(textNode);
             }
         }
         catch (ClassCastException ex) {
@@ -90,7 +90,7 @@ public class Field extends OutcomeStructure {
     public String validateStructure() {
         myAttributes.validateAttributes();
 
-        if (myElementPanel != null) myElementPanel.updateNode();
+        if (myFieldInstance != null) myFieldInstance.updateNode();
 
         Text contents = (Text)myElement.getFirstChild();
 
@@ -109,12 +109,12 @@ public class Field extends OutcomeStructure {
         myElement = parent.createElement(this.getName());
 
         // see if there is a default/fixed value
-        if (myElementPanel != null) {
+        if (myFieldInstance != null) {
             // populate
             String defaultVal = getDefaultValue();
             textNode = parent.createTextNode(defaultVal);
             myElement.appendChild(textNode);
-            myElementPanel.setData(textNode);
+            myFieldInstance.setData(textNode);
         }
 
         // set up attributes
@@ -129,7 +129,7 @@ public class Field extends OutcomeStructure {
     private String getDefaultValue() {
         String defaultValue = model.getFixedValue();
         if (defaultValue == null) defaultValue = model.getDefaultValue();
-        if (defaultValue == null) defaultValue = myElementPanel.getDefaultValue();
+        if (defaultValue == null) defaultValue = myFieldInstance.getDefaultValue();
 
         return defaultValue;
     }

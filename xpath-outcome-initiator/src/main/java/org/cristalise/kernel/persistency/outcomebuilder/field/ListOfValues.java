@@ -54,8 +54,7 @@ public class ListOfValues extends HashMap<String, Object> {
 
     public String findKey(String value) {
         for (String key : keySet()) {
-            if (get(key).equals(value))
-                return key;
+            if (get(key).equals(value)) return key;
         }
         return null;
     }

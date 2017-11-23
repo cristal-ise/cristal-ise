@@ -49,17 +49,12 @@ public class StringField {
     Node       data;
     Structure  model;
     boolean    isValid  = true;
-    //    boolean    editable = true;
     String     name;
     SimpleType content;
     String     field;
     String     defaultValue;
 
     public StringField() {}
-
-    //public void setEditable(boolean editable) {
-    //    this.editable = editable;
-    //}
 
     private static StringField getFieldForType(SimpleType type) {
         // handle lists special
@@ -134,7 +129,6 @@ public class StringField {
         this.model = model;
         this.content = model.getSimpleType();
         this.name = model.getName();
-        //if (model.isFixed()) editable = false;
         defaultValue = model.getDefaultValue();
     }
 
@@ -145,14 +139,10 @@ public class StringField {
         defaultValue = model.getDefaultValue();
 
         // derive base type
-        if (type.isSimpleType())
-            this.content = (SimpleType) type;
-        else
-            this.content = (SimpleType) (type.getBaseType());
+        if (type.isSimpleType()) this.content = (SimpleType) type;
+        else                     this.content = (SimpleType) (type.getBaseType());
 
         if (this.content == null) throw new StructuralException("No declared base type of element");
-
-        //if (model.getFixedValue() != null) editable = false;
     }
 
     public void setData(Attr newData) throws StructuralException {
@@ -194,12 +184,9 @@ public class StringField {
 
     public void updateNode() {
         if (data == null) return;
-        if (data instanceof Text) {
-            ((Text) data).setData(getText());
-        }
-        else { // attribute
-            ((Attr) data).setValue(getText());
-        }
+
+        if (data instanceof Text) ((Text) data).setData(getText());
+        else                      ((Attr) data).setValue(getText());
     }
 
     public String getText() {

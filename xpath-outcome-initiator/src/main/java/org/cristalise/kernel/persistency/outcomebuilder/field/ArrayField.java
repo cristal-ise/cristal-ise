@@ -26,28 +26,20 @@ public class ArrayField extends StringField {
 
     ArrayTableModel arrayModel;
 
-    boolean readOnly = false;
-
     public ArrayField(SimpleType type) {
         arrayModel = new ArrayTableModel(type);
     }
-    /**
-     *
-     */
+
     @Override
     public String getDefaultValue() {
         return "";
     }
-    /**
-     *
-     */
+
     @Override
     public String getText() {
         return arrayModel.getData();
     }
-    /**
-     *
-     */
+
     @Override
     public void setText(String text) {
         arrayModel.setData(text);

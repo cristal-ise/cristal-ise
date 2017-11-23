@@ -86,7 +86,7 @@ public class ComboField extends StringField {
         }
 
         // handle enumerations
-        // TODO: should be ANDed with above results
+        // TODO: should be merged with above results
         if (content.hasFacet(Facet.ENUMERATION)) {
             //ListOfValues andList = new ListOfValues();
             Enumeration<Facet> enums = content.getFacets(Facet.ENUMERATION);
