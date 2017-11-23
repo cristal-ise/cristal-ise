@@ -51,7 +51,7 @@ import org.jooq.DSLContext;
  */
 public class JooqLookupManager implements LookupManager {
 
-    private DSLContext context;
+    protected DSLContext context;
 
     private JooqItemHandler         items;
     private JooqDomainPathHandler   domains;
