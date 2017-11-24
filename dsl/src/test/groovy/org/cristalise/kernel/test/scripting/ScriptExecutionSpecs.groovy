@@ -30,6 +30,7 @@ class ScriptExecutionSpecs extends Specification implements CristalTestSetup {
 
         then:
         result == 1
+        result instanceof java.lang.Integer
     }
 
     def 'Script can declare named output value, which returned as a map'() {
