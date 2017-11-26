@@ -143,7 +143,11 @@
         </Item>
 
         <!-- QueryTest -->
-        <Resource name="TestQuery" version="0" type="query">boot/query/TestQuery.xml</Resource>
+        <QueryResource name="TestQuery" version="0"/>
+
+        <Agent name="mainUser" password="test">
+            <Role>User</Role>
+        </Agent>
 
     </Imports>
 </CristalModule>
