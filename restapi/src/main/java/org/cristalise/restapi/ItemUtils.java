@@ -36,6 +36,7 @@ import java.util.List;
 import java.util.UUID;
 
 import javax.ws.rs.WebApplicationException;
+import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriBuilder;
 import javax.ws.rs.core.UriInfo;
@@ -411,6 +412,26 @@ public abstract class ItemUtils extends RestHandler {
         }
         else {
             return new WebApplicationException(msg, status);
+        }
+    }
+
+    /**
+     * Check if the requested media type should be a JSON or XML
+     * 
+     * @param types the media types requested by the client
+     * @return true if the type is JSON, false if it is XML
+     */
+    public boolean produceJSON(List<MediaType> types) {
+        if(types.isEmpty() || types.contains(MediaType.APPLICATION_XML) || types.contains(MediaType.TEXT_XML)) {
+            return false;
+        }
+        else if (types.contains(MediaType.APPLICATION_JSON)) {
+            return true;
+        }
+        else {
+            throw ItemUtils.createWebAppException(
+                    "Supported media types: TEXT_XML, APPLICATION_XML, APPLICATION_JSON", 
+                    Response.Status.UNSUPPORTED_MEDIA_TYPE);
         }
     }
 }

@@ -22,6 +22,8 @@ package org.cristalise.restapi;
 
 import static org.cristalise.kernel.persistency.ClusterType.VIEWPOINT;
 
+import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 
@@ -30,20 +32,27 @@ import javax.ws.rs.core.UriInfo;
 
 import org.cristalise.kernel.common.InvalidDataException;
 import org.cristalise.kernel.common.ObjectNotFoundException;
-import org.cristalise.kernel.common.PersistencyException;
 import org.cristalise.kernel.entity.proxy.ItemProxy;
 import org.cristalise.kernel.lookup.DomainPath;
 import org.cristalise.kernel.lookup.Path;
-import org.cristalise.kernel.persistency.outcome.Viewpoint;
 import org.cristalise.kernel.process.Gateway;
+import org.cristalise.kernel.process.resource.BuiltInResources;
 import org.cristalise.kernel.property.Property;
+import org.cristalise.kernel.utils.DescriptionObject;
+import org.cristalise.kernel.utils.LocalObjectLoader;
 import org.cristalise.kernel.utils.Logger;
+import org.exolab.castor.mapping.MappingException;
+import org.exolab.castor.xml.MarshalException;
+import org.exolab.castor.xml.ValidationException;
+import org.json.XML;
+import org.python.antlr.PythonParser.continue_stmt_return;
 
 public class ResourceAccess extends ItemUtils {
 
-    public Response listAllResources(String typeName, UriInfo uri) {
+    public Response listAllResources(BuiltInResources resource, UriInfo uri) {
         LinkedHashMap<String, String> resourceNameData = new LinkedHashMap<>();
-        Iterator<org.cristalise.kernel.lookup.Path> iter = Gateway.getLookup().search(new DomainPath("/desc/" + typeName), new Property("Type", typeName));
+        Iterator<org.cristalise.kernel.lookup.Path> iter = Gateway.getLookup().search(
+                new DomainPath("/desc/" + resource.getSchemaName()), new Property("Type", resource.getSchemaName()));
 
         while (iter.hasNext()) {
             Path p = iter.next();
@@ -59,39 +68,89 @@ public class ResourceAccess extends ItemUtils {
         return toJSON(resourceNameData);
     }
 
-    public Response listResourceVersions(String typeName, String schemaName, String uriBase, String name, UriInfo uri) {
-        Iterator<org.cristalise.kernel.lookup.Path> iter = Gateway.getLookup().search(new DomainPath("/desc/" + typeName), name);
-        if (!iter.hasNext())
-            throw ItemUtils.createWebAppException(schemaName + " not found", Response.Status.NOT_FOUND);
+    public Response listResourceVersions(BuiltInResources resource, String name, UriInfo uri) {
+        String schemaName = resource.getSchemaName();
+
+        Iterator<org.cristalise.kernel.lookup.Path> iter = Gateway.getLookup().search(
+                new DomainPath("/desc/" + schemaName), name);
+        
+        if (!iter.hasNext()) throw ItemUtils.createWebAppException(schemaName + " not found", Response.Status.NOT_FOUND);
 
         try {
             ItemProxy item = Gateway.getProxyManager().getProxy(iter.next());
-            return toJSON(enumerate(item, VIEWPOINT + "/" + schemaName, "/" + uriBase + "/" + name, uri));
+            return toJSON(getResourceVersions(item, VIEWPOINT + "/" + schemaName, name, uri));
         }
         catch (ObjectNotFoundException e) {
             throw ItemUtils.createWebAppException(schemaName + " has no versions", Response.Status.NOT_FOUND);
         }
     }
 
-    public Response getResource(String typeName, String schemaName, String name, Integer version) {
-        Iterator<org.cristalise.kernel.lookup.Path> iter = Gateway.getLookup().search(new DomainPath("/desc/" + typeName), name);
-        if (!iter.hasNext())
-            throw ItemUtils.createWebAppException(schemaName + " not found", Response.Status.NOT_FOUND);
-
+    public ArrayList<LinkedHashMap<String, Object>> getResourceVersions(ItemProxy item, String clusterPath, String name, UriInfo uri) {
         try {
-            ItemProxy item = Gateway.getProxyManager().getProxy(iter.next());
-            Viewpoint view = item.getViewpoint(schemaName, String.valueOf(version));
-            return getOutcomeResponse(view.getOutcome(), view.getEvent(), false);
+            String[] children = item.getContents(clusterPath);
+            ArrayList<LinkedHashMap<String, Object>> childrenData = new ArrayList<>();
+
+            for (String childName: children) {
+                // exclude 
+                if (childName.equals("last")) continue;
+
+                LinkedHashMap<String, Object> childData = new LinkedHashMap<>();
+
+                childData.put("name", childName);
+                childData.put("url", uri.getAbsolutePathBuilder().path(childName).build());
+
+                childrenData.add(childData);
+            }
+
+            return childrenData;
         }
         catch (ObjectNotFoundException e) {
-            throw ItemUtils.createWebAppException(schemaName + " v" + version + " does not exist", Response.Status.NOT_FOUND);
-        }
-        catch (PersistencyException e) {
             Logger.error(e);
-            throw ItemUtils.createWebAppException("Database error");
+            throw ItemUtils.createWebAppException("Database Error");
+        }
+    }
+
+
+    public Response getResource(BuiltInResources resource, String name, Integer version, boolean json) {
+        try {
+            DescriptionObject obj;
+            switch (resource) {
+                case SCHEMA_RESOURCE:
+                    obj = LocalObjectLoader.getSchema(name,version);
+                    break;
+                case STATE_MACHINE_RESOURCE:
+                    obj = LocalObjectLoader.getStateMachine(name,version);
+                    break;
+                case SCRIPT_RESOURCE:
+                    obj = LocalObjectLoader.getScript(name,version);
+                    break;
+                case QUERY_RESOURCE:
+                    obj = LocalObjectLoader.getQuery(name,version);
+                    break;
+                case ELEM_ACT_DESC_RESOURCE:
+                    obj = LocalObjectLoader.getElemActDef(name,version);
+                    break;
+                case COMP_ACT_DESC_RESOURCE:
+                    obj = LocalObjectLoader.getCompActDef(name,version);
+                    break;
+                default:
+                    throw ItemUtils.createWebAppException(resource.name()+" "+name+" v"+version+" not handled", Response.Status.NOT_IMPLEMENTED);
+            }
+
+            String result = Gateway.getMarshaller().marshall(obj);
+
+            if(json) result = XML.toJSONObject(result).toString();
+
+            return Response.ok(result).build();
+        }
+        catch (ObjectNotFoundException e) {
+            throw ItemUtils.createWebAppException(resource.name()+" "+name+" v"+version+" does not exist", Response.Status.NOT_FOUND);
         }
         catch (InvalidDataException e) {
-            throw ItemUtils.createWebAppException(schemaName + " v" + version + " doesn't point to any data", Response.Status.NOT_FOUND);
+            throw ItemUtils.createWebAppException(resource.name()+" "+name+" v"+version+" doesn't point to any data", Response.Status.NOT_FOUND);
+        }
+        catch (MarshalException | ValidationException | IOException | MappingException e) {
+            throw ItemUtils.createWebAppException(resource.name()+" "+name+" v"+version+" xml convert problem", Response.Status.INTERNAL_SERVER_ERROR);
         }
     }
 }
