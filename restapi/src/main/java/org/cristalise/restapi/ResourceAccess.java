@@ -21,6 +21,8 @@
 package org.cristalise.restapi;
 
 import static org.cristalise.kernel.persistency.ClusterType.VIEWPOINT;
+import static org.cristalise.kernel.process.resource.BuiltInResources.COMP_ACT_DESC_RESOURCE;
+import static org.cristalise.kernel.process.resource.BuiltInResources.ELEM_ACT_DESC_RESOURCE;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -38,21 +40,35 @@ import org.cristalise.kernel.lookup.Path;
 import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.process.resource.BuiltInResources;
 import org.cristalise.kernel.property.Property;
-import org.cristalise.kernel.utils.DescriptionObject;
 import org.cristalise.kernel.utils.LocalObjectLoader;
 import org.cristalise.kernel.utils.Logger;
 import org.exolab.castor.mapping.MappingException;
 import org.exolab.castor.xml.MarshalException;
 import org.exolab.castor.xml.ValidationException;
 import org.json.XML;
-import org.python.antlr.PythonParser.continue_stmt_return;
 
 public class ResourceAccess extends ItemUtils {
 
     public Response listAllResources(BuiltInResources resource, UriInfo uri) {
+        String     type       = resource.getSchemaName();
+        DomainPath searchRoot = new DomainPath("/desc/" + type);
+
         LinkedHashMap<String, String> resourceNameData = new LinkedHashMap<>();
-        Iterator<org.cristalise.kernel.lookup.Path> iter = Gateway.getLookup().search(
-                new DomainPath("/desc/" + resource.getSchemaName()), new Property("Type", resource.getSchemaName()));
+        Iterator<org.cristalise.kernel.lookup.Path> iter;
+
+        if (resource == ELEM_ACT_DESC_RESOURCE) {
+            type = "ActivityDesc";
+            searchRoot = new DomainPath("/desc/" + type);
+            iter = Gateway.getLookup().search(searchRoot, new Property("Type", type), new Property("Complexity", "Elementary"));
+        }
+        else if (resource == COMP_ACT_DESC_RESOURCE) {
+            type = "ActivityDesc";
+            searchRoot = new DomainPath("/desc/" + type);
+            iter = Gateway.getLookup().search(searchRoot, new Property("Type", type), new Property("Complexity", "Composite"));
+        }
+        else {
+            iter = Gateway.getLookup().search(searchRoot, new Property("Type", type));
+        }
 
         while (iter.hasNext()) {
             Path p = iter.next();
@@ -69,19 +85,23 @@ public class ResourceAccess extends ItemUtils {
     }
 
     public Response listResourceVersions(BuiltInResources resource, String name, UriInfo uri) {
-        String schemaName = resource.getSchemaName();
+        String resourceSchemaName = resource.getSchemaName();
+
+        if (resource == ELEM_ACT_DESC_RESOURCE || resource == COMP_ACT_DESC_RESOURCE) resourceSchemaName = "ActivityDesc";
 
         Iterator<org.cristalise.kernel.lookup.Path> iter = Gateway.getLookup().search(
-                new DomainPath("/desc/" + schemaName), name);
-        
-        if (!iter.hasNext()) throw ItemUtils.createWebAppException(schemaName + " not found", Response.Status.NOT_FOUND);
+                new DomainPath("/desc/" + resourceSchemaName), name);
+
+        if (!iter.hasNext()) throw ItemUtils.createWebAppException(resourceSchemaName + " not found", Response.Status.NOT_FOUND);
 
         try {
+            if (resource == ELEM_ACT_DESC_RESOURCE || resource == COMP_ACT_DESC_RESOURCE) resourceSchemaName = resource.getSchemaName();
+
             ItemProxy item = Gateway.getProxyManager().getProxy(iter.next());
-            return toJSON(getResourceVersions(item, VIEWPOINT + "/" + schemaName, name, uri));
+            return toJSON(getResourceVersions(item, VIEWPOINT + "/" + resourceSchemaName, name, uri));
         }
         catch (ObjectNotFoundException e) {
-            throw ItemUtils.createWebAppException(schemaName + " has no versions", Response.Status.NOT_FOUND);
+            throw ItemUtils.createWebAppException(resourceSchemaName + " has no versions", Response.Status.NOT_FOUND);
         }
     }
 
@@ -91,7 +111,7 @@ public class ResourceAccess extends ItemUtils {
             ArrayList<LinkedHashMap<String, Object>> childrenData = new ArrayList<>();
 
             for (String childName: children) {
-                // exclude 
+                // exclude 'last' from result to contain versions only
                 if (childName.equals("last")) continue;
 
                 LinkedHashMap<String, Object> childData = new LinkedHashMap<>();
@@ -110,34 +130,31 @@ public class ResourceAccess extends ItemUtils {
         }
     }
 
-
     public Response getResource(BuiltInResources resource, String name, Integer version, boolean json) {
         try {
-            DescriptionObject obj;
+            String result;
             switch (resource) {
                 case SCHEMA_RESOURCE:
-                    obj = LocalObjectLoader.getSchema(name,version);
+                    result = LocalObjectLoader.getSchema(name,version).getSchemaData(); 
                     break;
                 case STATE_MACHINE_RESOURCE:
-                    obj = LocalObjectLoader.getStateMachine(name,version);
+                    result = Gateway.getMarshaller().marshall(LocalObjectLoader.getStateMachine(name,version));
                     break;
                 case SCRIPT_RESOURCE:
-                    obj = LocalObjectLoader.getScript(name,version);
+                    result = LocalObjectLoader.getScript(name,version).getScriptData();
                     break;
                 case QUERY_RESOURCE:
-                    obj = LocalObjectLoader.getQuery(name,version);
+                    result = LocalObjectLoader.getQuery(name,version).getQueryXML();
                     break;
                 case ELEM_ACT_DESC_RESOURCE:
-                    obj = LocalObjectLoader.getElemActDef(name,version);
+                    result = Gateway.getMarshaller().marshall(LocalObjectLoader.getElemActDef(name,version));
                     break;
                 case COMP_ACT_DESC_RESOURCE:
-                    obj = LocalObjectLoader.getCompActDef(name,version);
+                    result = Gateway.getMarshaller().marshall(LocalObjectLoader.getCompActDef(name,version));
                     break;
                 default:
                     throw ItemUtils.createWebAppException(resource.name()+" "+name+" v"+version+" not handled", Response.Status.NOT_IMPLEMENTED);
             }
-
-            String result = Gateway.getMarshaller().marshall(obj);
 
             if(json) result = XML.toJSONObject(result).toString();
 
