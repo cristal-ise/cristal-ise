@@ -135,6 +135,9 @@ public class JooqClusterStorageTest {
 
         contents = Gateway.getStorage().getClusterContents(itemPath, VIEWPOINT+"/Dispensing2Data");
         assertThat(Arrays.asList(contents), IsIterableContainingInAnyOrder.containsInAnyOrder("last"));
+        
+        contents = Gateway.getStorage().getClusterContents(itemPath, VIEWPOINT+"/DispensingData");
+        assertThat(Arrays.asList(contents), IsIterableContainingInAnyOrder.containsInAnyOrder("old", "last"));
 
         assertNotNull( Gateway.getStorage().get(itemPath, VIEWPOINT+"/CommercialDataData/last", null) );
     }
