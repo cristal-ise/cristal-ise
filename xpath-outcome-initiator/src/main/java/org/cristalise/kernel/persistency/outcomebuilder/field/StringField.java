@@ -20,6 +20,8 @@
  */
 package org.cristalise.kernel.persistency.outcomebuilder.field;
 
+import java.io.IOException;
+import java.io.Writer;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.Enumeration;
@@ -102,14 +104,16 @@ public class StringField {
         else                                             return new StringField();
     }
 
-    public static StringField getEditField(AttributeDecl model) throws StructuralException {
+    public static StringField getField(AttributeDecl model) throws StructuralException {
         if (model.isReference()) model = model.getReference();
+
         StringField newField = getFieldForType(model.getSimpleType());
         newField.setDecl(model);
+
         return newField;
     }
 
-    public static StringField getEditField(ElementDecl model) throws StructuralException {
+    public static StringField getField(ElementDecl model) throws StructuralException {
         try {
             XMLType baseType = model.getType();
 
@@ -195,5 +199,15 @@ public class StringField {
 
     public void setText(String text) {
         field = text;
+    }
+
+    public void exportViewTemplate(Writer template) throws IOException {}
+
+    public String getFormControlType() {
+        return "INPUT";
+    }
+
+    public String getFormControlInputType() {
+        return "text";
     }
 }

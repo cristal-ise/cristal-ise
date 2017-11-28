@@ -20,6 +20,8 @@
  */
 package org.cristalise.kernel.persistency.outcomebuilder;
 
+import java.io.IOException;
+import java.io.Writer;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.ArrayList;
@@ -97,6 +99,10 @@ public abstract class OutcomeStructure {
      * @throws StructuralException
      */
     public abstract Element createElement(Document rootDocument, String recordName) throws OutcomeBuilderException;
+
+    public abstract void exportViewTemplate(Writer template) throws IOException;
+
+    public abstract Object generateNgDynamicForms();
 
     /**
      * Contains the rules for deciding which OutcomeStructure will represent a chosen Element Declaration. In this order

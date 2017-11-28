@@ -20,6 +20,7 @@
  */
 package org.cristalise.kernel.persistency.outcomebuilder;
 
+import java.io.Writer;
 import java.util.ArrayList;
 import java.util.Iterator;
 
@@ -201,5 +202,19 @@ public class Dimension extends OutcomeStructure {
         public String validateStructure() {
             return null;
         }
+    }
+
+    @Override
+    public void exportViewTemplate(Writer template) {
+        if (mode == Mode.TABLE) {
+        }
+        else if (mode == Mode.TABS) {
+        }
+    }
+
+    @Override
+    public Object generateNgDynamicForms() {
+        // TODO Auto-generated method stub
+        return null;
     }
 }

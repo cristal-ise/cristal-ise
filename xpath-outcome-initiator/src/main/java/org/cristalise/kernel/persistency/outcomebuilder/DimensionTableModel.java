@@ -43,14 +43,14 @@ import org.w3c.dom.Text;
 
 public class DimensionTableModel {
 
-    ElementDecl model;
-    ArrayList<String> columnHeadings = new ArrayList<String>();
-    ArrayList<Class<?>> columnClasses = new ArrayList<Class<?>>();
-    ArrayList<Annotated> columnDecls = new ArrayList<Annotated>();
-    //    ArrayList<Boolean> colReadOnly = new ArrayList<Boolean>();
-    ArrayList<String> colHelp = new ArrayList<String>();
-    ArrayList<Object[]> rows = new ArrayList<Object[]>();
-    ArrayList<Element> elements = new ArrayList<Element>();
+    ElementDecl          model;
+    ArrayList<String>    columnHeadings = new ArrayList<String>();
+    ArrayList<Class<?>>  columnClasses  = new ArrayList<Class<?>>();
+    ArrayList<Annotated> columnDecls    = new ArrayList<Annotated>();
+    ArrayList<String>    colHelp        = new ArrayList<String>();
+
+    ArrayList<Object[]>  rows           = new ArrayList<Object[]>();
+    ArrayList<Element>   elements       = new ArrayList<Element>();
 
     public DimensionTableModel(ElementDecl model) throws OutcomeBuilderException {
         XMLType modelContent = model.getType();

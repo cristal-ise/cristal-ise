@@ -20,6 +20,7 @@
  */
 package org.cristalise.kernel.persistency.outcomebuilder;
 
+import java.io.Writer;
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.Iterator;
@@ -55,7 +56,7 @@ public class AttributeList extends OutcomeStructure {
 
             // Add entry
             try {
-                StringField entry = StringField.getEditField(thisDecl);
+                StringField entry = StringField.getField(thisDecl);
                 attrSet.add(entry);
                 //if (readOnly) entry.setEditable(false);
             }
@@ -141,6 +142,17 @@ public class AttributeList extends OutcomeStructure {
 
     @Override
     public OutcomeStructure getChildModelElement(String name) {
+        return null;
+    }
+
+    @Override
+    public void exportViewTemplate(Writer template) {
+        // TODO Auto-generated method stub
+    }
+
+    @Override
+    public Object generateNgDynamicForms() {
+        // TODO Auto-generated method stub
         return null;
     }
 }

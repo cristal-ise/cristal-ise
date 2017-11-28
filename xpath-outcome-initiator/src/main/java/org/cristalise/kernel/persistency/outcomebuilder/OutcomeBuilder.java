@@ -21,6 +21,8 @@
 package org.cristalise.kernel.persistency.outcomebuilder;
 
 import java.io.IOException;
+import java.io.StringWriter;
+import java.io.Writer;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
@@ -86,17 +88,6 @@ public class OutcomeBuilder {
 
     public OutcomeBuilder(String root, Schema schema, String xml) throws OutcomeBuilderException, InvalidDataException {
         this(root, schema, new Outcome(xml, schema));
-        /*
-        try {
-            outcome = new Outcome(xml, schema);
-            initialise(schema.getSom(), outcome.getDOM(), root);
-            modelRoot.addInstance(outcome.getDOM().getDocumentElement(), outcome.getDOM());
-        }
-        catch (InvalidDataException e) {
-            Logger.error(e);
-            throw new InvalidOutcomeException();
-        }
-         */
     }
 
     public void initialise(org.exolab.castor.xml.schema.Schema som, Document document, String selectedRoot) throws OutcomeBuilderException {
@@ -182,8 +173,20 @@ public class OutcomeBuilder {
         outcome.setField(name, data);
     }
 
-    public String exportViewTemplate() {
+    public String generateNgDynamicFormsJSON() {
+        return modelRoot.generateNgDynamicForms().toString();
+    }
 
-        return null;
+    public String exportViewTemplate() {
+        Writer template = new StringWriter();
+
+        try {
+            modelRoot.exportViewTemplate(template);
+        }
+        catch (IOException e) {
+            Logger.error(e);
+        }
+
+        return template.toString();
     }
 }

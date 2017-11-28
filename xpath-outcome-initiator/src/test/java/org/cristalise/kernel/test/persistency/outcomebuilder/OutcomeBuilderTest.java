@@ -23,6 +23,7 @@ package org.cristalise.kernel.test.persistency.outcomebuilder;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.apache.commons.lang3.StringUtils;
 import org.cristalise.kernel.persistency.outcome.Schema;
 import org.cristalise.kernel.persistency.outcomebuilder.OutcomeBuilder;
 import org.cristalise.kernel.test.persistency.XMLUtils;
@@ -77,7 +78,21 @@ public class OutcomeBuilderTest extends XMLUtils {
 
         String template = ob.exportViewTemplate();
 
-        assert template != null;
+        Logger.msg(template);
+
+        assert StringUtils.isNotBlank(template);
+    }
+
+    @Test
+    public void ngDynamicForms() throws Exception {
+
+        OutcomeBuilder ob = new OutcomeBuilder("StorageDetails", new Schema("StorageDetails", 0, getXSD("Storage")), false);
+
+        String template = ob.generateNgDynamicFormsJSON();
+
+        Logger.msg(template);
+
+        assert StringUtils.isNotBlank(template);
     }
 
     private void checkEmptyOutcome(String type) throws Exception {

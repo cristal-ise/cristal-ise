@@ -20,9 +20,13 @@
  */
 package org.cristalise.kernel.persistency.outcomebuilder;
 
+import java.io.IOException;
+import java.io.Writer;
+
 import org.cristalise.kernel.utils.Logger;
 import org.exolab.castor.xml.schema.ComplexType;
 import org.exolab.castor.xml.schema.ElementDecl;
+import org.json.JSONArray;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
@@ -166,5 +170,23 @@ public class DataRecord extends OutcomeStructure {
         myElement.appendChild(newElement);
 
         return newElement;
+    }
+
+    @Override
+    public void exportViewTemplate(Writer template) throws IOException {
+        template.write("<FieldSet name='" + model.getName() + "'>");
+
+        for (String elementName : subStructureOrder) subStructure.get(elementName).exportViewTemplate(template);
+
+        template.write("</DataRecord>");
+    }
+
+    @Override
+    public Object generateNgDynamicForms() {
+        JSONArray array = new JSONArray();
+
+        for (String elementName : subStructureOrder) array.put(subStructure.get(elementName).generateNgDynamicForms());
+
+        return array;
     }
 }

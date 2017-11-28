@@ -20,9 +20,14 @@
  */
 package org.cristalise.kernel.persistency.outcomebuilder;
 
+import java.io.IOException;
+import java.io.Writer;
+
+import org.apache.commons.lang3.StringUtils;
 import org.cristalise.kernel.persistency.outcomebuilder.field.StringField;
 import org.cristalise.kernel.utils.Logger;
 import org.exolab.castor.xml.schema.ElementDecl;
+import org.json.JSONObject;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Text;
@@ -37,7 +42,7 @@ public class Field extends OutcomeStructure {
         super(model);
 
         try {
-            myFieldInstance = StringField.getEditField(model);
+            myFieldInstance = StringField.getField(model);
             Logger.msg(6, "Field() - name:" + model.getName() + " type: "+myFieldInstance.getClass().getSimpleName());
         }
         catch (StructuralException e) {
@@ -138,5 +143,24 @@ public class Field extends OutcomeStructure {
     public OutcomeStructure getChildModelElement(String name) {
         //TODO implement lookup in attributes
         return null;
+    }
+
+    @Override
+    public void exportViewTemplate(Writer template) throws IOException {
+        String type = myFieldInstance.getClass().getSimpleName();
+        template.write("<Field name='"+model.getName()+"' type='"+type+"'/>");
+    }
+
+    @Override
+    public Object generateNgDynamicForms() {
+        JSONObject json = new JSONObject();
+
+        json.put("id", model.getName());
+        json.put("label", model.getName());
+        json.put("placeholder", StringUtils.join(StringUtils.splitByCharacterTypeCamelCase(model.getName()), " "));
+        json.put("type", myFieldInstance.getFormControlType());
+        json.put("inputType", myFieldInstance.getFormControlInputType());
+
+        return json;
     }
 }
