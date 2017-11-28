@@ -34,6 +34,14 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 
+import org.cristalise.kernel.common.InvalidDataException;
+import org.cristalise.kernel.common.ObjectNotFoundException;
+import org.cristalise.kernel.persistency.outcome.Schema;
+import org.cristalise.kernel.persistency.outcomebuilder.OutcomeBuilder;
+import org.cristalise.kernel.persistency.outcomebuilder.OutcomeBuilderException;
+import org.cristalise.kernel.utils.LocalObjectLoader;
+import org.cristalise.kernel.utils.Logger;
+
 @Path("/schema")
 public class SchemaAccess extends ResourceAccess {
 
@@ -56,6 +64,40 @@ public class SchemaAccess extends ResourceAccess {
     @Path("{name}/{version}")
     @Produces( {MediaType.TEXT_XML, MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON } )
     public Response getSchema(
+            @Context                 HttpHeaders headers,
+            @PathParam("name")       String      name, 
+            @PathParam("version")    Integer     version, 
+            @CookieParam(COOKIENAME) Cookie      authCookie)
+    {
+        checkAuthCookie(authCookie);
+        return getResource(SCHEMA_RESOURCE, name, version, produceJSON(headers.getAcceptableMediaTypes()));
+    }
+
+    @GET
+    @Path("{name}/{version}/formTemplate")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response getSchemaFormTemplate(
+            @Context                 HttpHeaders headers,
+            @PathParam("name")       String      name, 
+            @PathParam("version")    Integer     version, 
+            @CookieParam(COOKIENAME) Cookie      authCookie)
+    {
+        checkAuthCookie(authCookie);
+
+        try {
+            Schema schema = LocalObjectLoader.getSchema(name,version);
+            return Response.ok(new OutcomeBuilder(schema).generateNgDynamicFormsJSON()).build();
+        }
+        catch (ObjectNotFoundException | InvalidDataException | OutcomeBuilderException e) {
+            Logger.error(e);
+            throw ItemUtils.createWebAppException("Schema "+name+" v"+version+" doesn't point to any data", Response.Status.NOT_FOUND);
+        }
+    }
+
+    @GET
+    @Path("{name}/{version}/viewTemplate")
+    @Produces( {MediaType.TEXT_XML, MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON } )
+    public Response getSchemaViewTemplate(
             @Context                 HttpHeaders headers,
             @PathParam("name")       String      name, 
             @PathParam("version")    Integer     version, 

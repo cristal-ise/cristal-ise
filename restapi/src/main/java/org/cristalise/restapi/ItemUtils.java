@@ -256,9 +256,11 @@ public abstract class ItemUtils extends RestHandler {
             transData.put("stateMachineVersion", ev.getStateMachineVersion());
             //transData.put("stateMachineData", uri.getBaseUriBuilder().path("stateMachine").path(ev.getStateMachineName()).path(String.valueOf(ev.getStateMachineVersion())).build());
             eventData.put("transition", transData);
-        } catch (ObjectNotFoundException e) {
+        }
+        catch (ObjectNotFoundException e) {
             eventData.put("transition", "ERROR: State Machine "+ev.getStateMachineName()+" v"+ev.getStateMachineVersion()+" not found!");
-        } catch (InvalidDataException e) {
+        }
+        catch (InvalidDataException e) {
             eventData.put("transition", "ERROR: State Machine definition "+ev.getStateMachineName()+" v"+ev.getStateMachineVersion()+" not valid!");
         }
 
@@ -272,48 +274,85 @@ public abstract class ItemUtils extends RestHandler {
         if (StringUtils.isNotBlank(agentName)) jobData.put("agent", agentName);
         jobData.put("role", job.getAgentRole());
 
-        //item data
-        LinkedHashMap<String, Object> itemData = new LinkedHashMap<String, Object>();
-        itemData.put("name", itemName);
-        itemData.put("location", getItemURI(uri, job.getItemUUID()));
-        jobData.put("item", itemData);
+        jobData.put("item",       getJobItemData(job, itemName, uri));
+        jobData.put("activity",   getJobActivityData(job, itemName, uri));
+        jobData.put("transition", getJobTransitionData(job, itemName, uri));
 
-        // activity data
+        if (job.hasOutcome()) jobData.put("outcome", getJobOutcomeData(job, itemName, uri));
+
+        return jobData;
+    }
+
+    protected LinkedHashMap<String, Object> getJobItemData(Job job, String itemName, UriInfo uri) {
+        LinkedHashMap<String, Object> itemData = new LinkedHashMap<String, Object>();
+        itemData.put("uuid", job.getItemUUID());
+        itemData.put("name", itemName);
+        try {
+            String type = job.getItem().getType();
+            if (StringUtils.isNotBlank(type)) itemData.put("type", type);
+        }
+        catch (InvalidDataException e1) {}
+        itemData.put("url", getItemURI(uri, job.getItemUUID()));
+
+        return itemData;
+    }
+
+    protected LinkedHashMap<String, Object> getJobActivityData(Job job, String itemName, UriInfo uri) {
         LinkedHashMap<String, Object> activityData = new LinkedHashMap<String, Object>();
+
         activityData.put("name", job.getStepName());
         activityData.put("path", job.getStepPath());
         activityData.put("type", job.getStepType());
+        //activityData.put("version", job.getStepTypeVersion); //version is unavailable in Job
+
         LinkedHashMap<String, Object> activityPropData = new LinkedHashMap<String, Object>();
+
         for (KeyValuePair actProp : job.getKeyValuePairs()) {
             String key = actProp.getKey();
             String value = job.getActPropString(key);
-            if (value!=null && value.length()>0)
-                activityPropData.put(key, job.getActPropString(key));
+
+            if (StringUtils.isNotBlank(value)) activityPropData.put(key, value);
         }
         activityData.put("properties", activityPropData);
-        jobData.put("activity", activityData);
 
-        LinkedHashMap<String, Object> stateData = new LinkedHashMap<String, Object>();
-        stateData.put("name", job.getTransition().getName());
-        stateData.put("origin", job.getOriginStateName());
-        stateData.put("target", job.getTargetStateName());
-        stateData.put("stateMachine", job.getActPropString("StateMachineName")+" v"+job.getActPropString("StateMachineVersion"));
-        stateData.put("stateMachineData", uri.getBaseUriBuilder().path("stateMachine").path(job.getActPropString("StateMachineName")).path(job.getActPropString("StateMachineVersion")).build());
-        jobData.put("transition", stateData);
+        return activityData;
+    }
 
-        if (job.hasOutcome()) { // add outcome info
-            LinkedHashMap<String, Object> outcomeData = new LinkedHashMap<String, Object>();
-            try {
-                outcomeData.put("required", job.isOutcomeRequired());
-                outcomeData.put("schema", job.getSchema().getName()+" v"+job.getSchema().getVersion());
-                outcomeData.put("schemaData", uri.getBaseUriBuilder().path("schema").path(job.getSchema().getName()).path(String.valueOf(job.getSchema().getVersion())).build());
-                jobData.put("data", outcomeData);
-            } catch (InvalidDataException | ObjectNotFoundException e) {
-                Logger.error(e);
-                jobData.put("data", "Schema not found");
-            }
+    protected LinkedHashMap<String, Object> getJobTransitionData(Job job, String itemName, UriInfo uri) {
+        LinkedHashMap<String, Object> transitionData = new LinkedHashMap<String, Object>();
+
+        Object url = uri.getBaseUriBuilder()
+                .path("stateMachine")
+                .path(job.getActPropString("StateMachineName"))
+                .path(job.getActPropString("StateMachineVersion"))
+                .build();
+
+        transitionData.put("name",                job.getTransition().getName());
+        transitionData.put("id",                  Integer.valueOf(job.getTransition().getId()));
+        transitionData.put("origin",              job.getOriginStateName());
+        transitionData.put("target",              job.getTargetStateName());
+        transitionData.put("stateMachine",        job.getActPropString("StateMachineName"));
+        transitionData.put("stateMachineVersion", job.getActPropString("StateMachineVersion"));
+        transitionData.put("stateMachineUrl",     url);
+
+        return transitionData;
+    }
+
+    protected LinkedHashMap<String, Object> getJobOutcomeData(Job job, String itemName, UriInfo uri) {
+        LinkedHashMap<String, Object> outcomeData = new LinkedHashMap<String, Object>();
+
+        try {
+            outcomeData.put("required",      job.isOutcomeRequired());
+            outcomeData.put("schema",        job.getSchema().getName());
+            outcomeData.put("schemaVersion", job.getSchema().getVersion());
+            outcomeData.put("schemaUrl",     uri.getBaseUriBuilder().path("schema").path(job.getSchema().getName()).path(String.valueOf(job.getSchema().getVersion())).build());
         }
-        return jobData;
+        catch (InvalidDataException | ObjectNotFoundException e) {
+            Logger.error(e);
+            outcomeData.put("schema", "Schema not found");
+        }
+
+        return outcomeData;
     }
 
     protected LinkedHashMap<String, Object> makeCollectionData(Collection<?> coll, UriInfo uri) {
@@ -321,14 +360,13 @@ public abstract class ItemUtils extends RestHandler {
         collData.put("name", coll.getName());
         collData.put("version", coll.getVersionName());
         String collType = "Collection";
-        if (coll instanceof Aggregation) {
-            collType = "Aggregation";
-        }
-        else if (coll instanceof Dependency) {
-            collType = "Dependency";
-        }
+        
+        if      (coll instanceof Aggregation) collType = "Aggregation";
+        else if (coll instanceof Dependency)  collType = "Dependency";
+
         collData.put("type", collType);
         collData.put("isDescription", coll instanceof CollectionDescription);
+
         if (coll instanceof Dependency) {
             Dependency dep = (Dependency)coll;
             addProps(collData, dep.getProperties(), dep.getClassProps(), true); // include class props for dependencies here, not in member
