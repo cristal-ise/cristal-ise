@@ -38,6 +38,7 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Cookie;
+import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
@@ -52,8 +53,10 @@ import org.cristalise.kernel.common.PersistencyException;
 import org.cristalise.kernel.entity.agent.Job;
 import org.cristalise.kernel.entity.proxy.AgentProxy;
 import org.cristalise.kernel.entity.proxy.ItemProxy;
+import org.cristalise.kernel.lookup.AgentPath;
 import org.cristalise.kernel.persistency.outcome.Outcome;
 import org.cristalise.kernel.persistency.outcome.Schema;
+import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.scripting.Script;
 import org.cristalise.kernel.scripting.ScriptErrorException;
 import org.cristalise.kernel.scripting.ScriptingEngineException;
@@ -196,11 +199,12 @@ public class ItemRoot extends ItemUtils {
     }
 
     @POST
-    @Consumes(MediaType.TEXT_XML)
-    @Produces(MediaType.TEXT_XML)
+    @Consumes( {MediaType.TEXT_XML, MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON } )
+    @Produces( {MediaType.TEXT_XML, MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON } )
     @Path("{activityPath: .*}")
     public String requestTransition(
             String  postData,
+            @Context                    HttpHeaders headers,
             @PathParam("uuid")          String  uuid,
             @PathParam("activityPath")  String  actPath,
             @QueryParam("transition")   String  transition,
@@ -208,6 +212,8 @@ public class ItemRoot extends ItemUtils {
             @CookieParam(COOKIENAME)    Cookie  authCookie,
             @Context                    UriInfo uri)
     {
+        AgentPath agentPath = checkAuthCookie(authCookie);
+
         // if transition isn't used explicitly, look for a valueless parameter
         if (transition == null) {
             for (String key : uri.getQueryParameters().keySet()) {
@@ -217,12 +223,13 @@ public class ItemRoot extends ItemUtils {
                     break;
                 }
             }
-            if (transition == null) // default to Done
-                transition = "Done";
         }
+
+        if (transition == null) throw ItemUtils.createWebAppException("Must specify transition", Response.Status.BAD_REQUEST);
 
         // Find agent
         ItemProxy item = getProxy(uuid);
+        //AgentProxy agent = (AgentProxy)Gateway.getProxyManager().getProxy(agentPath);
         AgentProxy agent = getAgent(agentName, authCookie);
 
         // get all jobs for agent

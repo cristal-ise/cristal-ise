@@ -96,7 +96,7 @@ public class SchemaAccess extends ResourceAccess {
 
     @GET
     @Path("{name}/{version}/viewTemplate")
-    @Produces( {MediaType.TEXT_XML, MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON } )
+    @Produces(MediaType.APPLICATION_JSON)
     public Response getSchemaViewTemplate(
             @Context                 HttpHeaders headers,
             @PathParam("name")       String      name, 
@@ -104,6 +104,13 @@ public class SchemaAccess extends ResourceAccess {
             @CookieParam(COOKIENAME) Cookie      authCookie)
     {
         checkAuthCookie(authCookie);
-        return getResource(SCHEMA_RESOURCE, name, version, produceJSON(headers.getAcceptableMediaTypes()));
+        try {
+            Schema schema = LocalObjectLoader.getSchema(name,version);
+            return Response.ok(new OutcomeBuilder(schema).exportViewTemplate()).build();
+        }
+        catch (ObjectNotFoundException | InvalidDataException | OutcomeBuilderException e) {
+            Logger.error(e);
+            throw ItemUtils.createWebAppException("Schema "+name+" v"+version+" doesn't point to any data", Response.Status.NOT_FOUND);
+        }
     }
 }

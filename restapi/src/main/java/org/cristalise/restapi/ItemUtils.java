@@ -466,12 +466,8 @@ public abstract class ItemUtils extends RestHandler {
         if (types.isEmpty()) return false;
 
         for (MediaType t: types) {
-            if (t.isCompatible(APPLICATION_XML_TYPE) || t.isCompatible(TEXT_XML_TYPE)) {
-                return false;
-            }
-            else if (t.isCompatible(APPLICATION_JSON_TYPE)) {
-                return true;
-            }
+            if      (t.isCompatible(APPLICATION_XML_TYPE) || t.isCompatible(TEXT_XML_TYPE)) return false;
+            else if (t.isCompatible(APPLICATION_JSON_TYPE))                                 return true;
         }
         
         throw ItemUtils.createWebAppException(

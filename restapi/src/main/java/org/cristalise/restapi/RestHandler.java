@@ -115,13 +115,14 @@ public class RestHandler {
     }
 
     /**
-     * Authorization data is decrypted from the cookie
+     * Authorisation data is decrypted from the cookie
      * 
      * @param authCookie the cookie sent by the client
+     * @return AgentPath decrypted from the cookie
      */
-    public void checkAuthCookie(Cookie authCookie) {
-        if(authCookie == null) checkAuthData(null);
-        else                   checkAuthData(authCookie.getValue());
+    public AgentPath checkAuthCookie(Cookie authCookie) {
+        if(authCookie == null) return checkAuthData(null);
+        else                   return checkAuthData(authCookie.getValue());
     }
 
     /**
