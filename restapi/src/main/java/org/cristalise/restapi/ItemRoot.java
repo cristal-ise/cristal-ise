@@ -43,6 +43,7 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 
+import org.apache.commons.lang3.StringUtils;
 import org.cristalise.kernel.common.AccessRightsException;
 import org.cristalise.kernel.common.InvalidCollectionModification;
 import org.cristalise.kernel.common.InvalidDataException;
@@ -56,7 +57,6 @@ import org.cristalise.kernel.entity.proxy.ItemProxy;
 import org.cristalise.kernel.lookup.AgentPath;
 import org.cristalise.kernel.persistency.outcome.Outcome;
 import org.cristalise.kernel.persistency.outcome.Schema;
-import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.scripting.Script;
 import org.cristalise.kernel.scripting.ScriptErrorException;
 import org.cristalise.kernel.scripting.ScriptingEngineException;
@@ -172,30 +172,47 @@ public class ItemRoot extends ItemUtils {
     @Path("job")
     @Produces(MediaType.APPLICATION_JSON)
     public Response getJobs(
-            @PathParam("uuid")       String  uuid,
-            @QueryParam("agent")     String  agentName,
-            @CookieParam(COOKIENAME) Cookie  authCookie,
-            @Context                 UriInfo uri)
+            @PathParam("uuid")            String  uuid,
+            @QueryParam("agent")          String  agentName,
+            @QueryParam("activityName")   String  activityName,
+            @QueryParam("transitionName") String  transitionName,
+            @CookieParam(COOKIENAME)      Cookie  authCookie,
+            @Context                      UriInfo uri)
     {
+        checkAuthCookie(authCookie);
+
         ItemProxy item = getProxy(uuid);
         AgentProxy agent = getAgent(agentName, authCookie);
 
-        List<Job> jobList;
+        List<Job> jobList = null;
+        Job job = null;
         try {
-            jobList = item.getJobList(agent);
+            if (StringUtils.isNotBlank(activityName)) {
+                if (StringUtils.isNotBlank(transitionName)) job = item.getJobByTransitionName(activityName, transitionName, agent);
+                else                                        job = item.getJobByName(activityName, agent);
+            }
+            else
+                jobList = item.getJobList(agent);
         }
         catch (Exception e) {
             Logger.error(e);
             throw ItemUtils.createWebAppException("Error loading joblist");
         }
 
-        ArrayList<Object> jobListData = new ArrayList<Object>();
         String itemName = item.getName();
-        for (Job job : jobList) {
-            jobListData.add(makeJobData(job, itemName, uri));
-        }
+        if (jobList != null) {
+            ArrayList<Object> jobListData = new ArrayList<Object>();
 
-        return toJSON(jobListData);
+            for (Job j : jobList) jobListData.add(makeJobData(j, itemName, uri));
+
+            return toJSON(jobListData);
+        }
+        else if (job != null) {
+            return toJSON(makeJobData(job, itemName, uri));
+        }
+        else {
+            throw ItemUtils.createWebAppException("No job found for actName:" + activityName + " transName:" + transitionName, Response.Status.NOT_FOUND);
+        }
     }
 
     @POST
@@ -212,7 +229,8 @@ public class ItemRoot extends ItemUtils {
             @CookieParam(COOKIENAME)    Cookie  authCookie,
             @Context                    UriInfo uri)
     {
-        AgentPath agentPath = checkAuthCookie(authCookie);
+        checkAuthCookie(authCookie);
+        //AgentProxy agent = (AgentProxy)Gateway.getProxyManager().getProxy(checkAuthCookie(authCookie));
 
         // if transition isn't used explicitly, look for a valueless parameter
         if (transition == null) {
@@ -229,7 +247,6 @@ public class ItemRoot extends ItemUtils {
 
         // Find agent
         ItemProxy item = getProxy(uuid);
-        //AgentProxy agent = (AgentProxy)Gateway.getProxyManager().getProxy(agentPath);
         AgentProxy agent = getAgent(agentName, authCookie);
 
         // get all jobs for agent
