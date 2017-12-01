@@ -21,6 +21,7 @@
 package org.cristalise.kernel.persistency.outcomebuilder.field;
 
 import java.util.Enumeration;
+import java.util.Map.Entry;
 import java.util.StringTokenizer;
 
 import org.cristalise.kernel.persistency.outcomebuilder.StructuralException;
@@ -34,6 +35,8 @@ import org.exolab.castor.xml.schema.Documentation;
 import org.exolab.castor.xml.schema.ElementDecl;
 import org.exolab.castor.xml.schema.Facet;
 import org.exolab.castor.xml.schema.SimpleType;
+import org.json.JSONArray;
+import org.json.JSONObject;
 
 public class ComboField extends StringField {
 
@@ -141,4 +144,35 @@ public class ComboField extends StringField {
         super.setDecl(model);
         setDefaultValue(model.getDefaultValue());
     }
+
+    @Override
+    public String getNgDynamicFormsControlType() {
+        return "SELECT";
+    }
+
+    private JSONArray getNgDynamicFormsOptions() {
+        JSONArray options = new JSONArray();
+
+        for (Entry<String, Object> entry: vals.entrySet()) {
+            JSONObject option = new JSONObject();
+
+            option.put("label", entry.getKey());
+            option.put("value", entry.getValue());
+            option.put("disabled", false);
+
+            options.put(option);
+        }
+
+        return options;
+    }
+
+    @Override
+    public JSONObject generateNgDynamicForms() {
+        JSONObject select = getCommonFieldsNgDynamicForms();
+
+        select.put("options", getNgDynamicFormsOptions());
+
+        return select;
+    }
+
 }

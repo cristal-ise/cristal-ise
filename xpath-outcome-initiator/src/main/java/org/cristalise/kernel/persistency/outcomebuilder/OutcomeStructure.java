@@ -24,6 +24,9 @@ import java.io.IOException;
 import java.io.Writer;
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.time.LocalDate;
+import java.time.OffsetDateTime;
+import java.time.OffsetTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Enumeration;
@@ -283,6 +286,15 @@ public abstract class OutcomeStructure {
             case SimpleTypesFactory.HEXBINARY_TYPE:
                 return null;
                 //return ImageIcon.class;
+
+            case SimpleTypesFactory.DATE_TYPE:
+                return LocalDate.class;
+
+            case SimpleTypesFactory.TIME_TYPE:
+                return OffsetTime.class;
+
+            case SimpleTypesFactory.DATETIME_TYPE:
+                return OffsetDateTime.class;
 
                 // everything else is a string for now
             default:

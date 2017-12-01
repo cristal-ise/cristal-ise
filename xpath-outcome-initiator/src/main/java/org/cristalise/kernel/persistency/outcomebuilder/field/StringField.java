@@ -20,12 +20,14 @@
  */
 package org.cristalise.kernel.persistency.outcomebuilder.field;
 
-import java.io.IOException;
-import java.io.Writer;
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.time.LocalDate;
+import java.time.OffsetDateTime;
+import java.time.OffsetTime;
 import java.util.Enumeration;
 
+import org.apache.commons.lang3.StringUtils;
 import org.cristalise.kernel.persistency.outcomebuilder.InvalidOutcomeException;
 import org.cristalise.kernel.persistency.outcomebuilder.OutcomeStructure;
 import org.cristalise.kernel.persistency.outcomebuilder.StructuralException;
@@ -39,6 +41,7 @@ import org.exolab.castor.xml.schema.SimpleType;
 import org.exolab.castor.xml.schema.Structure;
 import org.exolab.castor.xml.schema.XMLType;
 import org.exolab.castor.xml.schema.simpletypes.ListType;
+import org.json.JSONObject;
 import org.w3c.dom.Attr;
 import org.w3c.dom.Node;
 import org.w3c.dom.Text;
@@ -96,12 +99,15 @@ public class StringField {
         Class<?> contentClass = OutcomeStructure.getJavaClass(type.getTypeCode());
 
         // disable list edits for the moment
-        if (contentClass.equals(Boolean.class))          return new BooleanField();
-        else if (contentClass.equals(BigInteger.class))  return new IntegerField();
-        else if (contentClass.equals(BigDecimal.class))  return new DecimalField();
+        if (contentClass.equals(Boolean.class))            return new BooleanField();
+        else if (contentClass.equals(BigInteger.class))    return new IntegerField();
+        else if (contentClass.equals(BigDecimal.class))    return new DecimalField();
+        else if (contentClass.equals(LocalDate.class))     return new DateField();
+        else if (contentClass.equals(OffsetTime.class))    return new TimeField();
+        else if (contentClass.equals(OffsetDateTime.class))return new DateTimeField();
         //else if (contentClass.equals(ImageIcon.class)) return new ImageEditField();
-        else if (length > 60)                            return new LongStringField();
-        else                                             return new StringField();
+        else if (length > 60)                              return new LongStringField();
+        else                                               return new StringField();
     }
 
     public static StringField getField(AttributeDecl model) throws StructuralException {
@@ -201,13 +207,33 @@ public class StringField {
         field = text;
     }
 
-    public void exportViewTemplate(Writer template) throws IOException {}
-
-    public String getFormControlType() {
+    public String getNgDynamicFormsControlType() {
         return "INPUT";
     }
 
-    public String getFormControlInputType() {
-        return "text";
+    public JSONObject getCommonFieldsNgDynamicForms() {
+        JSONObject field = new JSONObject();
+
+        // label could be specified in appInfo
+        String label = StringUtils.join(StringUtils.splitByCharacterTypeCamelCase(name), " ");
+
+        field.put("id",          name);
+        field.put("label",       label);
+        field.put("placeholder", label);
+        field.put("type",        getNgDynamicFormsControlType());
+        
+        String defVal = getDefaultValue();
+        
+        
+
+        return field;
+    }
+
+    public JSONObject generateNgDynamicForms() {
+        JSONObject input = getCommonFieldsNgDynamicForms();
+
+        input.put("inputType", "text");
+
+        return input;
     }
 }

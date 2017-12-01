@@ -22,26 +22,29 @@ package org.cristalise.kernel.persistency.outcomebuilder.field;
 
 import org.json.JSONObject;
 
-public class LongStringField extends StringField {
+public class DateTimeField extends StringField {
 
-    public LongStringField() {
+    public DateTimeField() {
         super();
     }
 
     @Override
+    public String getDefaultValue() {
+        return "01/01/1970";
+    }
+
+    @Override
     public String getNgDynamicFormsControlType() {
-        return "TEXTAREA";
+        return "DATEPICKER";
     }
 
     @Override
     public JSONObject generateNgDynamicForms() {
-        JSONObject textArea = getCommonFieldsNgDynamicForms();
+        JSONObject date = getCommonFieldsNgDynamicForms();
 
-        textArea.put("cols", 20);
-        textArea.put("rows", 5);
-        textArea.put("wrap", "soft");
-        textArea.put("autocomplete", "on");
+        date.put("format", "dd/mm/yy");
+        date.put("showTime", true);
 
-        return textArea;
+        return date;
     }
 }

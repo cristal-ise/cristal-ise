@@ -30,6 +30,7 @@ import org.cristalise.kernel.utils.Logger;
 import org.exolab.castor.xml.schema.AttributeDecl;
 import org.exolab.castor.xml.schema.ComplexType;
 import org.exolab.castor.xml.schema.ElementDecl;
+import org.json.JSONArray;
 import org.w3c.dom.Attr;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -151,8 +152,11 @@ public class AttributeList extends OutcomeStructure {
     }
 
     @Override
-    public Object generateNgDynamicForms() {
-        // TODO Auto-generated method stub
-        return null;
+    public JSONArray generateNgDynamicForms() {
+        JSONArray attrs = new JSONArray();
+
+        for (StringField attr: attrSet) attrs.put(attr.generateNgDynamicForms());
+
+        return attrs;
     }
 }

@@ -23,10 +23,12 @@ package org.cristalise.kernel.persistency.outcomebuilder;
 import java.io.IOException;
 import java.io.Writer;
 
+import org.apache.commons.lang3.StringUtils;
 import org.cristalise.kernel.utils.Logger;
 import org.exolab.castor.xml.schema.ComplexType;
 import org.exolab.castor.xml.schema.ElementDecl;
 import org.json.JSONArray;
+import org.json.JSONObject;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
@@ -183,10 +185,21 @@ public class DataRecord extends OutcomeStructure {
 
     @Override
     public Object generateNgDynamicForms() {
-        JSONArray array = new JSONArray();
+        JSONObject dr = new JSONObject();
+
+        String label = StringUtils.join(StringUtils.splitByCharacterTypeCamelCase(model.getName()), " ");
+
+        dr.put("type",  "GROUP");
+        dr.put("id",    model.getName());
+        dr.put("name",  model.getName());
+        dr.put("label", label);
+
+        JSONArray array = myAttributes.generateNgDynamicForms();
 
         for (String elementName : subStructureOrder) array.put(subStructure.get(elementName).generateNgDynamicForms());
 
-        return array;
+        dr.put("group", array);
+
+        return dr;
     }
 }

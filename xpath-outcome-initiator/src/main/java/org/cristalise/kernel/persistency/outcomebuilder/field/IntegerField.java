@@ -20,6 +20,8 @@
  */
 package org.cristalise.kernel.persistency.outcomebuilder.field;
 
+import org.json.JSONObject;
+
 public class IntegerField extends StringField {
 
     public IntegerField() {
@@ -29,5 +31,21 @@ public class IntegerField extends StringField {
     @Override
     public String getDefaultValue() {
         return "0";
+    }
+
+    @Override
+    public String getNgDynamicFormsControlType() {
+        return "INPUT";
+    }
+
+    @Override
+    public JSONObject generateNgDynamicForms() {
+        JSONObject inputInt = getCommonFieldsNgDynamicForms();
+
+        inputInt.put("inputType", "number");
+        inputInt.put("max", (String)null);
+        inputInt.put("min", (String)null);
+
+        return inputInt;
     }
 }

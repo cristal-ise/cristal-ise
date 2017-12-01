@@ -23,11 +23,9 @@ package org.cristalise.kernel.persistency.outcomebuilder;
 import java.io.IOException;
 import java.io.Writer;
 
-import org.apache.commons.lang3.StringUtils;
 import org.cristalise.kernel.persistency.outcomebuilder.field.StringField;
 import org.cristalise.kernel.utils.Logger;
 import org.exolab.castor.xml.schema.ElementDecl;
-import org.json.JSONObject;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Text;
@@ -153,14 +151,20 @@ public class Field extends OutcomeStructure {
 
     @Override
     public Object generateNgDynamicForms() {
-        JSONObject json = new JSONObject();
+        /*
+        JSONObject field = new JSONObject();
+        String label = StringUtils.join(StringUtils.splitByCharacterTypeCamelCase(model.getName()), " ");
+        String type = myFieldInstance.getFormControlType();
 
-        json.put("id", model.getName());
-        json.put("label", model.getName());
-        json.put("placeholder", StringUtils.join(StringUtils.splitByCharacterTypeCamelCase(model.getName()), " "));
-        json.put("type", myFieldInstance.getFormControlType());
-        json.put("inputType", myFieldInstance.getFormControlInputType());
+        field.put("id", model.getName());
+        field.put("label", label);
+        field.put("placeholder", label);
+        field.put("type", type);
+        field.put("inputType", .getFormControlInputType());
 
-        return json;
+        if (myFieldInstance instanceof ComboField) field.put("options", ((ComboField)myFieldInstance).getFormControlOptions());
+        */
+        
+        return myFieldInstance.generateNgDynamicForms();
     }
 }

@@ -86,7 +86,7 @@ public class OutcomeBuilderTest extends XMLUtils {
     @Test
     public void ngDynamicForms() throws Exception {
 
-        OutcomeBuilder ob = new OutcomeBuilder("StorageDetails", new Schema("StorageDetails", 0, getXSD("Storage")), false);
+        OutcomeBuilder ob = new OutcomeBuilder("PatientDetails", new Schema("PatientDetails", 0, getXSD("PatientDetails")), false);
 
         String template = ob.generateNgDynamicFormsJSON();
 

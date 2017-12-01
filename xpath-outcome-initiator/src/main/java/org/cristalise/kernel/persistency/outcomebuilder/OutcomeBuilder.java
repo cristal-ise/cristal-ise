@@ -34,6 +34,7 @@ import org.cristalise.kernel.persistency.outcome.Schema;
 import org.cristalise.kernel.utils.Logger;
 import org.exolab.castor.xml.schema.ComplexType;
 import org.exolab.castor.xml.schema.ElementDecl;
+import org.json.JSONArray;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.xml.sax.InputSource;
@@ -174,7 +175,9 @@ public class OutcomeBuilder {
     }
 
     public String generateNgDynamicFormsJSON() {
-        return modelRoot.generateNgDynamicForms().toString();
+        JSONArray array = new JSONArray();
+        array.put(modelRoot.generateNgDynamicForms());
+        return array.toString(2);
     }
 
     public String exportViewTemplate() {
