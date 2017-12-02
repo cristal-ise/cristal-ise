@@ -20,7 +20,7 @@
     http://www.fsf.org/licensing/licenses/lgpl.html
 
 -->
-<PatientDetails>
+<PatientDetails id="string">
   <InsuranceNumber>string</InsuranceNumber>
   <DateOfBirth>2008-09-29</DateOfBirth>
   <Gender>male</Gender>
