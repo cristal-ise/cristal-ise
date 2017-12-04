@@ -42,7 +42,7 @@ public class IntegerField extends StringField {
     public JSONObject generateNgDynamicForms() {
         JSONObject inputInt = getCommonFieldsNgDynamicForms();
 
-        inputInt.put("inputType", "number");
+        //inputInt.put("inputType", "number");
         inputInt.put("max", (String)null);
         inputInt.put("min", (String)null);
 

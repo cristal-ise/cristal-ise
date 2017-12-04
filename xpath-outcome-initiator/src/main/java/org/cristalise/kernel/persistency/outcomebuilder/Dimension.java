@@ -26,6 +26,7 @@ import java.util.Iterator;
 
 import org.cristalise.kernel.utils.Logger;
 import org.exolab.castor.xml.schema.ElementDecl;
+import org.json.JSONObject;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
@@ -214,6 +215,12 @@ public class Dimension extends OutcomeStructure {
 
     @Override
     public Object generateNgDynamicForms() {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    @Override
+    public JSONObject generateNgDynamicFormsCls() {
         // TODO Auto-generated method stub
         return null;
     }

@@ -188,6 +188,11 @@ public class StringField {
         return data;
     }
 
+    /**
+     * Returns the default value that is specific to the type, and required to create a valid xml.
+     * 
+     * @return zero length String
+     */
     public String getDefaultValue() {
         return "";
     }
@@ -214,17 +219,12 @@ public class StringField {
     public JSONObject getCommonFieldsNgDynamicForms() {
         JSONObject field = new JSONObject();
 
-        // label could be specified in appInfo
         String label = StringUtils.join(StringUtils.splitByCharacterTypeCamelCase(name), " ");
 
         field.put("id",          name);
         field.put("label",       label);
         field.put("placeholder", label);
         field.put("type",        getNgDynamicFormsControlType());
-        
-        String defVal = getDefaultValue();
-        
-        
 
         return field;
     }
@@ -232,7 +232,7 @@ public class StringField {
     public JSONObject generateNgDynamicForms() {
         JSONObject input = getCommonFieldsNgDynamicForms();
 
-        input.put("inputType", "text");
+        //input.put("inputType", "text");
 
         return input;
     }

@@ -23,9 +23,11 @@ package org.cristalise.kernel.persistency.outcomebuilder;
 import java.io.IOException;
 import java.io.Writer;
 
+import org.apache.commons.lang3.StringUtils;
 import org.cristalise.kernel.persistency.outcomebuilder.field.StringField;
 import org.cristalise.kernel.utils.Logger;
 import org.exolab.castor.xml.schema.ElementDecl;
+import org.json.JSONObject;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Text;
@@ -150,21 +152,32 @@ public class Field extends OutcomeStructure {
     }
 
     @Override
+    public JSONObject generateNgDynamicFormsCls() {
+        JSONObject fieldCls = new JSONObject();
+
+        JSONObject fieldElement = new JSONObject();
+        fieldElement.put("label", "ui-widget");
+
+        JSONObject fieldGrid = new JSONObject();
+        fieldGrid.put("container", "ui-g");
+        fieldGrid.put("label",     "ui-g-4");
+        fieldGrid.put("control",   "ui-g-8");
+
+        fieldCls.put("element", fieldElement);
+        fieldCls.put("grid", fieldGrid);
+        return fieldCls;
+    }
+
+    @Override
     public Object generateNgDynamicForms() {
-        /*
-        JSONObject field = new JSONObject();
-        String label = StringUtils.join(StringUtils.splitByCharacterTypeCamelCase(model.getName()), " ");
-        String type = myFieldInstance.getFormControlType();
+        String defVal = getDefaultValue();
 
-        field.put("id", model.getName());
-        field.put("label", label);
-        field.put("placeholder", label);
-        field.put("type", type);
-        field.put("inputType", .getFormControlInputType());
+        JSONObject fieldJson = myFieldInstance.generateNgDynamicForms();
+        fieldJson.put("cls", generateNgDynamicFormsCls());
 
-        if (myFieldInstance instanceof ComboField) field.put("options", ((ComboField)myFieldInstance).getFormControlOptions());
-        */
-        
-        return myFieldInstance.generateNgDynamicForms();
+        if (StringUtils.isNotBlank(defVal))
+            fieldJson.put("value", defVal);
+
+        return fieldJson;
     }
 }

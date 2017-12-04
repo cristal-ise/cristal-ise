@@ -31,6 +31,7 @@ import org.exolab.castor.xml.schema.AttributeDecl;
 import org.exolab.castor.xml.schema.ComplexType;
 import org.exolab.castor.xml.schema.ElementDecl;
 import org.json.JSONArray;
+import org.json.JSONObject;
 import org.w3c.dom.Attr;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -158,5 +159,9 @@ public class AttributeList extends OutcomeStructure {
         for (StringField attr: attrSet) attrs.put(attr.generateNgDynamicForms());
 
         return attrs;
+    }
+
+    public JSONObject generateNgDynamicFormsCls() {
+        return null;
     }
 }

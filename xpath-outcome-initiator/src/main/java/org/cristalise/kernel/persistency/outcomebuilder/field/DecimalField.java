@@ -42,7 +42,7 @@ public class DecimalField extends StringField {
     public JSONObject generateNgDynamicForms() {
         JSONObject inputReal = getCommonFieldsNgDynamicForms();
 
-        inputReal.put("inputType", "number");
+        //inputReal.put("inputType", "number");
         inputReal.put("max", (String)null);
         inputReal.put("min", (String)null);
 

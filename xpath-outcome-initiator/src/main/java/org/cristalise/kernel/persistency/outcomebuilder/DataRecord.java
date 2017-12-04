@@ -184,15 +184,28 @@ public class DataRecord extends OutcomeStructure {
     }
 
     @Override
+    public JSONObject generateNgDynamicFormsCls() {
+        JSONObject drCls = new JSONObject();
+        
+        JSONObject drGrid = new JSONObject();
+        drGrid.put("container", "ui-g");
+
+        drCls.put("grid", drGrid);
+        return drCls;
+    }
+
+    @Override
     public Object generateNgDynamicForms() {
         JSONObject dr = new JSONObject();
+        
+        dr.put("cls", generateNgDynamicFormsCls());
 
         String label = StringUtils.join(StringUtils.splitByCharacterTypeCamelCase(model.getName()), " ");
 
         dr.put("type",  "GROUP");
         dr.put("id",    model.getName());
         dr.put("name",  model.getName());
-        dr.put("label", label);
+        //dr.put("label", label);
 
         JSONArray array = myAttributes.generateNgDynamicForms();
 

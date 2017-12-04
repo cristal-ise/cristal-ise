@@ -49,6 +49,7 @@ import org.exolab.castor.xml.schema.Particle;
 import org.exolab.castor.xml.schema.SimpleType;
 import org.exolab.castor.xml.schema.SimpleTypesFactory;
 import org.exolab.castor.xml.schema.XMLType;
+import org.json.JSONObject;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
@@ -106,6 +107,7 @@ public abstract class OutcomeStructure {
     public abstract void exportViewTemplate(Writer template) throws IOException;
 
     public abstract Object generateNgDynamicForms();
+    public abstract JSONObject generateNgDynamicFormsCls();
 
     /**
      * Contains the rules for deciding which OutcomeStructure will represent a chosen Element Declaration. In this order
