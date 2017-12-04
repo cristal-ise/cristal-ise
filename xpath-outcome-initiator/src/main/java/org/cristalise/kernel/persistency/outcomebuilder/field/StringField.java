@@ -216,10 +216,28 @@ public class StringField {
         return "INPUT";
     }
 
+    public JSONObject generateNgDynamicFormsCls() {
+        JSONObject fieldCls = new JSONObject();
+
+        JSONObject fieldElement = new JSONObject();
+        fieldElement.put("label", "ui-widget");
+
+        JSONObject fieldGrid = new JSONObject();
+        fieldGrid.put("container", "ui-g");
+        fieldGrid.put("label",     "ui-g-4");
+        fieldGrid.put("control",   "ui-g-8");
+
+        fieldCls.put("element", fieldElement);
+        fieldCls.put("grid", fieldGrid);
+        return fieldCls;
+    }
+
     public JSONObject getCommonFieldsNgDynamicForms() {
         JSONObject field = new JSONObject();
 
         String label = StringUtils.join(StringUtils.splitByCharacterTypeCamelCase(name), " ");
+
+        field.put("cls", generateNgDynamicFormsCls());
 
         field.put("id",          name);
         field.put("label",       label);
@@ -232,7 +250,7 @@ public class StringField {
     public JSONObject generateNgDynamicForms() {
         JSONObject input = getCommonFieldsNgDynamicForms();
 
-        //input.put("inputType", "text");
+        input.put("inputType", "text");
 
         return input;
     }

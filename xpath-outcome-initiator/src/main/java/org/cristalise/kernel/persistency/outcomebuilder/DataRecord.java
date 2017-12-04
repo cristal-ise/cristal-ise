@@ -186,9 +186,9 @@ public class DataRecord extends OutcomeStructure {
     @Override
     public JSONObject generateNgDynamicFormsCls() {
         JSONObject drCls = new JSONObject();
-        
+
         JSONObject drGrid = new JSONObject();
-        drGrid.put("container", "ui-g");
+        drGrid.put("container", "ui-g-12");
 
         drCls.put("grid", drGrid);
         return drCls;

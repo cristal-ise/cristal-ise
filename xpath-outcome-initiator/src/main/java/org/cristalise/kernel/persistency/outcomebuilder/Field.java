@@ -153,19 +153,7 @@ public class Field extends OutcomeStructure {
 
     @Override
     public JSONObject generateNgDynamicFormsCls() {
-        JSONObject fieldCls = new JSONObject();
-
-        JSONObject fieldElement = new JSONObject();
-        fieldElement.put("label", "ui-widget");
-
-        JSONObject fieldGrid = new JSONObject();
-        fieldGrid.put("container", "ui-g");
-        fieldGrid.put("label",     "ui-g-4");
-        fieldGrid.put("control",   "ui-g-8");
-
-        fieldCls.put("element", fieldElement);
-        fieldCls.put("grid", fieldGrid);
-        return fieldCls;
+        return myFieldInstance.generateNgDynamicFormsCls();
     }
 
     @Override
@@ -173,7 +161,6 @@ public class Field extends OutcomeStructure {
         String defVal = getDefaultValue();
 
         JSONObject fieldJson = myFieldInstance.generateNgDynamicForms();
-        fieldJson.put("cls", generateNgDynamicFormsCls());
 
         if (StringUtils.isNotBlank(defVal))
             fieldJson.put("value", defVal);
