@@ -46,7 +46,7 @@ public class ComboField extends StringField {
 
     public ComboField(SimpleType type, AnyNode listNode) {
         super();
-        content = type;
+        contentType = type;
         this.listNode = listNode;
         createLOV();
     }
@@ -90,9 +90,9 @@ public class ComboField extends StringField {
 
         // handle enumerations
         // TODO: should be merged with above results
-        if (content.hasFacet(Facet.ENUMERATION)) {
+        if (contentType.hasFacet(Facet.ENUMERATION)) {
             //ListOfValues andList = new ListOfValues();
-            Enumeration<Facet> enums = content.getFacets(Facet.ENUMERATION);
+            Enumeration<Facet> enums = contentType.getFacets(Facet.ENUMERATION);
             //TODO: read default value if exists
 
             while (enums.hasMoreElements()) {
@@ -153,12 +153,19 @@ public class ComboField extends StringField {
     private JSONArray getNgDynamicFormsOptions() {
         JSONArray options = new JSONArray();
 
+        JSONObject emptyOption = new JSONObject();
+        emptyOption.put("label", "Select value");
+        //emptyOption.put("value", null);
+        //emptyOption.put("disabled", false);
+
+        options.put(emptyOption);
+
         for (Entry<String, Object> entry: vals.entrySet()) {
             JSONObject option = new JSONObject();
 
             option.put("label", entry.getKey());
             option.put("value", entry.getValue());
-            option.put("disabled", false);
+            //option.put("disabled", false);
 
             options.put(option);
         }

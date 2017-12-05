@@ -54,9 +54,10 @@ public class StringField {
     Node       data;
     Structure  model;
     boolean    isValid  = true;
+    boolean    isAttribute = false;
     String     name;
-    SimpleType content;
-    String     field;
+    SimpleType contentType;
+    String     text;
     String     defaultValue;
 
     public StringField() {}
@@ -135,24 +136,27 @@ public class StringField {
         }
     }
 
-    public void setDecl(AttributeDecl model) throws StructuralException {
-        this.model = model;
-        this.content = model.getSimpleType();
-        this.name = model.getName();
-        defaultValue = model.getDefaultValue();
+    public void setDecl(AttributeDecl attrModel) throws StructuralException {
+        this.model = attrModel;
+        this.name = attrModel.getName();
+        this.defaultValue = attrModel.getDefaultValue();
+        this.contentType = attrModel.getSimpleType();
+        this.isAttribute = true;
     }
 
-    public void setDecl(ElementDecl model) throws StructuralException {
-        this.model = model;
-        this.name = model.getName();
-        XMLType type = model.getType();
-        defaultValue = model.getDefaultValue();
+    public void setDecl(ElementDecl elementModel) throws StructuralException {
+        this.model = elementModel;
+        this.name = elementModel.getName();
+        this.defaultValue = elementModel.getDefaultValue();
+        this.isAttribute = false;
+
+        XMLType type = elementModel.getType();
 
         // derive base type
-        if (type.isSimpleType()) this.content = (SimpleType) type;
-        else                     this.content = (SimpleType) (type.getBaseType());
+        if (type.isSimpleType()) this.contentType = (SimpleType) type;
+        else                     this.contentType = (SimpleType) (type.getBaseType());
 
-        if (this.content == null) throw new StructuralException("No declared base type of element");
+        if (this.contentType == null) throw new StructuralException("No declared base type of element");
     }
 
     public void setData(Attr newData) throws StructuralException {
@@ -174,6 +178,11 @@ public class StringField {
         setText(newData);
         updateNode();
 
+    }
+
+    public boolean isOptional() {
+        if (isAttribute) return ((AttributeDecl)model).isOptional();
+        else             return ((ElementDecl)model).getMinOccurs() == 0;
     }
 
     public Structure getModel() {
@@ -205,11 +214,11 @@ public class StringField {
     }
 
     public String getText() {
-        return field;
+        return text;
     }
 
-    public void setText(String text) {
-        field = text;
+    public void setText(String value) {
+        text = value;
     }
 
     public String getNgDynamicFormsControlType() {
@@ -243,6 +252,7 @@ public class StringField {
         field.put("label",       label);
         field.put("placeholder", label);
         field.put("type",        getNgDynamicFormsControlType());
+        field.put("required",    !isOptional());
 
         return field;
     }

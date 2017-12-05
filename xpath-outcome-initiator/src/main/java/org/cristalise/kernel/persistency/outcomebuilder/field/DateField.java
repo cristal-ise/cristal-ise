@@ -20,9 +20,14 @@
  */
 package org.cristalise.kernel.persistency.outcomebuilder.field;
 
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+
 import org.json.JSONObject;
 
 public class DateField extends StringField {
+    public static final String dateFormat = "dd/MM/yyyy";
+    public static final String primeNGDateFormat = "dd/mm/yy";
 
     public DateField() {
         super();
@@ -30,7 +35,7 @@ public class DateField extends StringField {
 
     @Override
     public String getDefaultValue() {
-        return "01/01/1970";
+        return LocalDateTime.now().format(DateTimeFormatter.ofPattern(dateFormat));
     }
 
     @Override
@@ -42,7 +47,7 @@ public class DateField extends StringField {
     public JSONObject generateNgDynamicForms() {
         JSONObject date = getCommonFieldsNgDynamicForms();
 
-        date.put("format", "dd/mm/yy");
+        date.put("format", primeNGDateFormat);
 
         return date;
     }

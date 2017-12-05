@@ -348,10 +348,6 @@ public abstract class OutcomeStructure {
         return model.getMinOccurs() == 0;
     }
 
-    public boolean isMandatory() {
-        return model.getMinOccurs() == 1 && model.getMaxOccurs() == 1;
-    }
-
     public OutcomeStructure find(String[] names) {
         OutcomeStructure child = getChildModelElement(names[0]);
 

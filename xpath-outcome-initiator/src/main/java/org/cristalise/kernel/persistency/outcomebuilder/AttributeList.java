@@ -73,8 +73,9 @@ public class AttributeList extends OutcomeStructure {
         for (StringField thisField : attrSet) {
             Logger.msg(8, "AttributeList.setInstance() - Populating Attribute "+thisField.getName());
             Attr thisAttr = myElement.getAttributeNode(thisField.getName());
-            if (thisAttr == null)
-                thisAttr = newAttribute(myElement, (AttributeDecl)thisField.getModel());
+
+            if (thisAttr == null) thisAttr = newAttribute(myElement, (AttributeDecl)thisField.getModel());
+
             thisField.setData(thisAttr);
         }
     }
