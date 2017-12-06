@@ -26,8 +26,8 @@ import java.time.format.DateTimeFormatter;
 import org.json.JSONObject;
 
 public class DateField extends StringField {
-    public static final String dateFormat = "dd/MM/yyyy";
-    public static final String primeNGDateFormat = "dd/mm/yy";
+    public static final String javaTimeDateFormat = "yyyy-MM-dd";
+    public static final String primeNGDateFormat = "yy-mm-dd";
 
     public DateField() {
         super();
@@ -35,7 +35,7 @@ public class DateField extends StringField {
 
     @Override
     public String getDefaultValue() {
-        return LocalDateTime.now().format(DateTimeFormatter.ofPattern(dateFormat));
+        return LocalDateTime.now().format(DateTimeFormatter.ofPattern(javaTimeDateFormat));
     }
 
     @Override
