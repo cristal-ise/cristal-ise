@@ -86,7 +86,7 @@ public class SchemaAccess extends ResourceAccess {
 
         try {
             Schema schema = LocalObjectLoader.getSchema(name,version);
-            return Response.ok(new OutcomeBuilder(schema).generateNgDynamicFormsJSON()).build();
+            return Response.ok(new OutcomeBuilder(schema, false).generateNgDynamicForms()).build();
         }
         catch (ObjectNotFoundException | InvalidDataException | OutcomeBuilderException e) {
             Logger.error(e);
