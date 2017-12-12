@@ -54,15 +54,18 @@ import org.cristalise.kernel.common.PersistencyException;
 import org.cristalise.kernel.entity.agent.Job;
 import org.cristalise.kernel.entity.proxy.AgentProxy;
 import org.cristalise.kernel.entity.proxy.ItemProxy;
-import org.cristalise.kernel.lookup.AgentPath;
 import org.cristalise.kernel.persistency.outcome.Outcome;
 import org.cristalise.kernel.persistency.outcome.Schema;
+import org.cristalise.kernel.persistency.outcomebuilder.OutcomeBuilder;
+import org.cristalise.kernel.persistency.outcomebuilder.OutcomeBuilderException;
+import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.scripting.Script;
 import org.cristalise.kernel.scripting.ScriptErrorException;
 import org.cristalise.kernel.scripting.ScriptingEngineException;
 import org.cristalise.kernel.utils.CastorHashMap;
 import org.cristalise.kernel.utils.LocalObjectLoader;
 import org.cristalise.kernel.utils.Logger;
+import org.json.JSONObject;
 
 @Path("/item/{uuid}")
 public class ItemRoot extends ItemUtils {
@@ -219,18 +222,21 @@ public class ItemRoot extends ItemUtils {
     @Consumes( {MediaType.TEXT_XML, MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON } )
     @Produces( {MediaType.TEXT_XML, MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON } )
     @Path("{activityPath: .*}")
-    public String requestTransition(
-            String  postData,
+    public String requestTransition(    String      postData,
             @Context                    HttpHeaders headers,
-            @PathParam("uuid")          String  uuid,
-            @PathParam("activityPath")  String  actPath,
-            @QueryParam("transition")   String  transition,
-            @QueryParam("agent")        String  agentName,
-            @CookieParam(COOKIENAME)    Cookie  authCookie,
-            @Context                    UriInfo uri)
+            @PathParam("uuid")          String      uuid,
+            @PathParam("activityPath")  String      actPath,
+            @QueryParam("transition")   String      transition,
+            @CookieParam(COOKIENAME)    Cookie      authCookie,
+            @Context                    UriInfo     uri)
     {
-        checkAuthCookie(authCookie);
-        //AgentProxy agent = (AgentProxy)Gateway.getProxyManager().getProxy(checkAuthCookie(authCookie));
+        AgentProxy agent = null;
+        try {
+            agent = (AgentProxy)Gateway.getProxyManager().getProxy( checkAuthCookie(authCookie) );
+        }
+        catch (ObjectNotFoundException e1) {
+            throw ItemUtils.createWebAppException(e1.getMessage(), Response.Status.UNAUTHORIZED);
+        }
 
         // if transition isn't used explicitly, look for a valueless parameter
         if (transition == null) {
@@ -247,7 +253,6 @@ public class ItemRoot extends ItemUtils {
 
         // Find agent
         ItemProxy item = getProxy(uuid);
-        AgentProxy agent = getAgent(agentName, authCookie);
 
         // get all jobs for agent
         List<Job> jobList;
@@ -274,14 +279,20 @@ public class ItemRoot extends ItemUtils {
         try {
             // set outcome if required
             if (thisJob.hasOutcome()) {
-                thisJob.setOutcome(postData);
+                List<String> types = headers.getRequestHeader(HttpHeaders.CONTENT_TYPE);
+
+                if (types.contains(MediaType.APPLICATION_XML) || types.contains(MediaType.TEXT_XML)) {
+                    thisJob.setOutcome(postData);
+                }
+                else {
+                    OutcomeBuilder builder = new OutcomeBuilder(thisJob.getSchema());
+                    builder.addJsonInstance(new JSONObject(postData));
+                    thisJob.setOutcome(builder.getOutcome());
+                }
             }
             return agent.execute(thisJob);
         }
-        catch (InvalidDataException | ScriptErrorException | ObjectAlreadyExistsException | InvalidCollectionModification e) { // problem
-            // with
-            // submitted
-            // data
+        catch (OutcomeBuilderException | InvalidDataException | ScriptErrorException | ObjectAlreadyExistsException | InvalidCollectionModification e) {
             Logger.error(e);
             throw ItemUtils.createWebAppException(e.getMessage(), Response.Status.BAD_REQUEST);
         }
