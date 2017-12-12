@@ -20,17 +20,11 @@
  */
 package org.cristalise.kernel.test.persistency;
 
-import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.HashMap;
-import java.util.Map;
 
 import org.cristalise.kernel.utils.Logger;
-import org.mvel2.templates.CompiledTemplate;
-import org.mvel2.templates.TemplateCompiler;
-import org.mvel2.templates.TemplateRuntime;
 import org.xml.sax.SAXException;
 import org.xmlunit.builder.DiffBuilder;
 import org.xmlunit.diff.DefaultNodeMatcher;
@@ -39,18 +33,30 @@ import org.xmlunit.diff.ElementSelectors;
 
 public class XMLUtils {
 
-    public static final String root = "src/test/data/";
+    public static final String root = "src/test/data";
+
+    public static String getXML(String dir, String type) throws Exception {
+        return new String(Files.readAllBytes(Paths.get(dir+"/"+type+".xml")));
+    }
 
     public static String getXML(String type) throws Exception {
-        return new String(Files.readAllBytes(Paths.get(root+type+".xml")));
+        return getXML(root, type);
+    }
+
+    public static String getXSD(String dir, String type) throws Exception {
+        return new String(Files.readAllBytes(Paths.get(dir+"/"+type+".xsd")));
     }
 
     public static String getXSD(String type) throws Exception {
-        return new String(Files.readAllBytes(Paths.get(root+type+".xsd")));
+        return getXSD(root, type);
     }
 
-    public static String getJSON(String name) throws Exception {
-        return new String(Files.readAllBytes(Paths.get(root+name+".json")));
+    public static String getJSON(String dir, String name) throws Exception {
+        return new String(Files.readAllBytes(Paths.get(dir+"/"+name+".json")));
+    }
+
+    public static String getJSON(String type) throws Exception {
+        return getJSON(root, type);
     }
 
     /**

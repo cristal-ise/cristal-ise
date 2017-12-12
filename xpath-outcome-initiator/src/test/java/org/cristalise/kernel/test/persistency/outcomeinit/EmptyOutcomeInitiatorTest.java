@@ -49,8 +49,8 @@ public class EmptyOutcomeInitiatorTest extends OutcomeInitiatorTestBase {
      * @throws Exception
      */
     private void checkEmptyOutcome(String type) throws Exception {
-        String xsd      = new String(Files.readAllBytes(Paths.get(root+type+".xsd")));
-        String expected = new String(Files.readAllBytes(Paths.get(root+type+".xml")));
+        String xsd      = getXSD(type);
+        String expected = getXML(type);
 
         Job j = mockJob(xsd);
 

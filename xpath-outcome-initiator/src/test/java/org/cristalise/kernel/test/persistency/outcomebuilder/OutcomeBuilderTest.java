@@ -34,6 +34,8 @@ import org.junit.Test;
 
 public class OutcomeBuilderTest extends XMLUtils {
 
+    String dir = "src/test/data/outcomeBuilder";
+
     @Before
     public void setUp() throws Exception {
         Logger.addLogStream(System.out, 8);
@@ -41,7 +43,7 @@ public class OutcomeBuilderTest extends XMLUtils {
 
     @Test
     public void multiRootXSDFile() throws Exception {
-        Schema schema = new Schema("Storage", 0, getXSD("Storage"));
+        Schema schema = new Schema("Storage", 0, getXSD(dir, "Storage"));
 
         OutcomeBuilder ob = new OutcomeBuilder("StorageDetails", schema);
         Logger.msg(ob.getXml());
@@ -55,7 +57,7 @@ public class OutcomeBuilderTest extends XMLUtils {
 
     @Test
     public void addRecord() throws Exception {
-        OutcomeBuilder ob = new OutcomeBuilder(new Schema("SiteCharacteristicsData", 0, getXSD("SiteCharacteristicsData")));
+        OutcomeBuilder ob = new OutcomeBuilder(new Schema("SiteCharacteristicsData", 0, getXSD(dir, "SiteCharacteristicsData")));
 
         Map<String, String> upsRecord = new HashMap<String, String>();
         upsRecord.put("Manufacturer", "acme");
@@ -69,12 +71,12 @@ public class OutcomeBuilderTest extends XMLUtils {
 
         Logger.msg(ob.getXml());
 
-        assert XMLUtils.compareXML(getXML("siteCharacteristicsData_ups"), ob.getXml());
+        assert XMLUtils.compareXML(getXML(dir, "siteCharacteristicsData_ups"), ob.getXml());
     }
 
     @Test
     public void exportViewTemplate() throws Exception {
-        OutcomeBuilder ob = new OutcomeBuilder(new Schema("SiteCharacteristicsData", 0, getXSD("SiteCharacteristicsData")), false);
+        OutcomeBuilder ob = new OutcomeBuilder(new Schema("SiteCharacteristicsData", 0, getXSD(dir, "SiteCharacteristicsData")), false);
 
         String template = ob.exportViewTemplate();
 
@@ -84,8 +86,8 @@ public class OutcomeBuilderTest extends XMLUtils {
     }
 
     private void checkEmptyOutcome(String type) throws Exception {
-        String xsd      = getXSD(type);
-        String expected = getXML(type);
+        String xsd      = getXSD(dir, type);
+        String expected = getXML(dir, type);
 
         OutcomeBuilder actual = new OutcomeBuilder(new Schema(type, 0, xsd));
 
@@ -101,7 +103,7 @@ public class OutcomeBuilderTest extends XMLUtils {
 
     @Test
     public void stringField() throws Exception {
-        OutcomeBuilder actual = new OutcomeBuilder(new Schema("StringField", 0, getXSD("StringField")));
+        OutcomeBuilder actual = new OutcomeBuilder(new Schema("StringField", 0, getXSD(dir, "StringField")));
 
         actual.putField("characters", "string");
 
@@ -110,15 +112,15 @@ public class OutcomeBuilderTest extends XMLUtils {
         assert compareXML(getXML("StringField"), actual.getXml());
     }
 
-    @Test @Ignore("Excpected xml is wrong")
+    @Test //@Ignore("Excpected xml is wrong")
     public void stateMachine() throws Exception {
         checkEmptyOutcome("StateMachine");
     }
 
     @Test
     public void loadAndExportDefaultMachine() throws Exception {
-        String xsd      = getXSD("StateMachine");
-        String expected = getXML("StateMachine-Default");
+        String xsd      = getXSD(dir, "StateMachine");
+        String expected = getXML(dir, "StateMachine-Default");
 
         OutcomeBuilder actual = new OutcomeBuilder(new Schema("StateMachine", 0, xsd), expected);
 

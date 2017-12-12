@@ -23,8 +23,6 @@ package org.cristalise.kernel.test.persistency.outcomeinit;
 import static org.junit.Assert.fail;
 import static org.mockito.Mockito.when;
 
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -40,8 +38,8 @@ import org.junit.Test;
 public class XPathOutcomeInitiatorTest extends OutcomeInitiatorTestBase {
 
     private void checkUpdatedOutcome(String type, String xpath, String value, String prefix) throws Exception {
-        String xsd      = new String(Files.readAllBytes(Paths.get(root+type+".xsd")));
-        String expected = new String(Files.readAllBytes(Paths.get(root+type+"Updated.xml")));
+        String xsd      = getXSD(type);
+        String expected = getXML(type+"Updated");
 
         Job j = mockJob(xsd);
 

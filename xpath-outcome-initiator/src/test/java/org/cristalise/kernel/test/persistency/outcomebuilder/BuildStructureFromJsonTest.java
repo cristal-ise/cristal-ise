@@ -31,14 +31,16 @@ import org.junit.Test;
 
 public class BuildStructureFromJsonTest extends XMLUtils {
 
+    String dir = "src/test/data/outcomeBuilder";
+
     @Before
     public void setUp() throws Exception {
         Logger.addLogStream(System.out, 8);
     }
 
     private void checkJsonOutcome(String type) throws Exception {
-        OutcomeBuilder builder = new OutcomeBuilder(new Schema(type, 0, getXSD(type)), true);
-        String expected = getXML(type);
+        OutcomeBuilder builder = new OutcomeBuilder(new Schema(type, 0, getXSD(dir, type)), true);
+        String expected = getXML(dir, type);
         JSONObject expectedJson = XML.toJSONObject(expected);
 
         Logger.msg(expectedJson.toString());

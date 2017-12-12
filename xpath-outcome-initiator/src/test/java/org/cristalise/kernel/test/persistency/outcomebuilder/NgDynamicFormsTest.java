@@ -34,13 +34,13 @@ import org.cristalise.kernel.utils.Logger;
 import org.json.JSONArray;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.internal.runners.statements.Fail;
 import org.mvel2.templates.CompiledTemplate;
 import org.mvel2.templates.TemplateCompiler;
 import org.mvel2.templates.TemplateRuntime;
 
 public class NgDynamicFormsTest extends XMLUtils {
 
+    String dir = "src/test/data/outcomeBuilder";
 
     @Before
     public void setUp() throws Exception {
@@ -49,12 +49,12 @@ public class NgDynamicFormsTest extends XMLUtils {
 
     @Test
     public void ngForm_PatientDetails() throws Exception {
-        OutcomeBuilder builder = new OutcomeBuilder("PatientDetails", new Schema("PatientDetails", 0, getXSD("PatientDetails")), false);
+        OutcomeBuilder builder = new OutcomeBuilder("PatientDetails", new Schema("PatientDetails", 0, getXSD(dir, "PatientDetails")), false);
 
         // Update the JSON file (MVEL template) to set the current date
         Map<String, String> args = new HashMap<>();
         args.put("CURRENTDATE", LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd")));
-        CompiledTemplate expr = TemplateCompiler.compileTemplate(getJSON("PatientDetailsNGForms"));
+        CompiledTemplate expr = TemplateCompiler.compileTemplate(getJSON(dir, "PatientDetailsNGForms"));
         String expectedJson = (String)TemplateRuntime.execute(expr, args);
 
         JSONArray expected = new JSONArray(expectedJson);
@@ -67,7 +67,7 @@ public class NgDynamicFormsTest extends XMLUtils {
     
     @Test
     public void ngForm_Order() throws Exception {
-        OutcomeBuilder builder = new OutcomeBuilder("Storage", new Schema("Storage", 0, getXSD("Storage")), false);
+        OutcomeBuilder builder = new OutcomeBuilder("Storage", new Schema("Storage", 0, getXSD(dir, "Storage")), false);
         
         JSONArray actual   = builder.generateNgDynamicFormsJson();
 
