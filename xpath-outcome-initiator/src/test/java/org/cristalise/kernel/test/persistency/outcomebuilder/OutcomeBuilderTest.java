@@ -112,7 +112,7 @@ public class OutcomeBuilderTest extends XMLUtils {
         assert compareXML(getXML("StringField"), actual.getXml());
     }
 
-    @Test //@Ignore("Excpected xml is wrong")
+    @Test @Ignore("Excpected xml is wrong")
     public void stateMachine() throws Exception {
         checkEmptyOutcome("StateMachine");
     }

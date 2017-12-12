@@ -33,6 +33,7 @@ import org.cristalise.kernel.test.persistency.XMLUtils;
 import org.cristalise.kernel.utils.Logger;
 import org.json.JSONArray;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.mvel2.templates.CompiledTemplate;
 import org.mvel2.templates.TemplateCompiler;
@@ -65,7 +66,7 @@ public class NgDynamicFormsTest extends XMLUtils {
         assertJsonEquals(expected, actual);
     }
     
-    @Test
+    @Test @Ignore
     public void ngForm_Order() throws Exception {
         OutcomeBuilder builder = new OutcomeBuilder("Storage", new Schema("Storage", 0, getXSD(dir, "Storage")), false);
         

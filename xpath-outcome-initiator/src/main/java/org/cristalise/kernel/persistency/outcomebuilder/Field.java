@@ -50,7 +50,7 @@ public class Field extends OutcomeStructure {
         Logger.msg(8, "Field() - name:"+model.getName()+" optional:" + isOptional());
         
         // skipping optional fields
-        //if (isOptional()) return;
+        if (isOptional()) return;
 
         try {
             myFieldInstance = StringField.getField(model);

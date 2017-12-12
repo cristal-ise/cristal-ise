@@ -59,7 +59,7 @@ public class AttributeList extends OutcomeStructure {
             help = OutcomeStructure.extractHelp(thisDecl);
 
             //Skipping optional attributes
-            //if (thisDecl.isOptional()) continue;
+            if (thisDecl.isOptional()) continue;
 
             // Add entry
             try {
