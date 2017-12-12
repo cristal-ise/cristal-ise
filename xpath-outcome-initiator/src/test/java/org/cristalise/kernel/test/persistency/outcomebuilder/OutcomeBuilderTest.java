@@ -29,6 +29,7 @@ import org.cristalise.kernel.persistency.outcomebuilder.OutcomeBuilder;
 import org.cristalise.kernel.test.persistency.XMLUtils;
 import org.cristalise.kernel.utils.Logger;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
 public class OutcomeBuilderTest extends XMLUtils {
@@ -65,7 +66,6 @@ public class OutcomeBuilderTest extends XMLUtils {
         upsRecord.put("UsedFor",      "creation");
 
         ob.addRecord("/SiteCharacteristicsData/UPS", upsRecord);
-        //ob.addRecord("/SiteCharacteristicsData/UPS", upsRecord);
 
         Logger.msg(ob.getXml());
 
@@ -77,18 +77,6 @@ public class OutcomeBuilderTest extends XMLUtils {
         OutcomeBuilder ob = new OutcomeBuilder(new Schema("SiteCharacteristicsData", 0, getXSD("SiteCharacteristicsData")), false);
 
         String template = ob.exportViewTemplate();
-
-        Logger.msg(template);
-
-        assert StringUtils.isNotBlank(template);
-    }
-
-    @Test
-    public void ngDynamicForms() throws Exception {
-
-        OutcomeBuilder ob = new OutcomeBuilder("PatientDetails", new Schema("PatientDetails", 0, getXSD("PatientDetails")), false);
-
-        String template = ob.generateNgDynamicFormsJSON();
 
         Logger.msg(template);
 
@@ -120,5 +108,22 @@ public class OutcomeBuilderTest extends XMLUtils {
         Logger.msg(actual.getXml());
 
         assert compareXML(getXML("StringField"), actual.getXml());
+    }
+
+    @Test @Ignore("Excpected xml is wrong")
+    public void stateMachine() throws Exception {
+        checkEmptyOutcome("StateMachine");
+    }
+
+    @Test
+    public void loadAndExportDefaultMachine() throws Exception {
+        String xsd      = getXSD("StateMachine");
+        String expected = getXML("StateMachine-Default");
+
+        OutcomeBuilder actual = new OutcomeBuilder(new Schema("StateMachine", 0, xsd), expected);
+
+        Logger.msg(actual.getXml());
+
+        assert compareXML(expected, actual.getXml());
     }
 }

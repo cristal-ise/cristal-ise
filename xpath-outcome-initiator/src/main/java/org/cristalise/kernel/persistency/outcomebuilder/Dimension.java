@@ -143,9 +143,6 @@ public class Dimension extends OutcomeStructure {
         }
     }
 
-    @Override
-    public Element createElement(Document rootDocument, String recordName) { return null; }
-
     public void addRow(int index) throws OutcomeBuilderException {
         if (elements.size() == model.getMaxOccurs())
             throw new CardinalException("Maximum size of table reached");
@@ -223,5 +220,10 @@ public class Dimension extends OutcomeStructure {
     public JSONObject generateNgDynamicFormsCls() {
         // TODO Auto-generated method stub
         return null;
+    }
+
+    @Override
+    public void addJsonInstance(Element parent, String name, Object json) {
+        throw new UnsupportedOperationException();
     }
 }

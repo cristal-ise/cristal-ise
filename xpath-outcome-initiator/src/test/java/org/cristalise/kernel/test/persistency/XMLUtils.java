@@ -20,11 +20,17 @@
  */
 package org.cristalise.kernel.test.persistency;
 
+import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.HashMap;
+import java.util.Map;
 
 import org.cristalise.kernel.utils.Logger;
+import org.mvel2.templates.CompiledTemplate;
+import org.mvel2.templates.TemplateCompiler;
+import org.mvel2.templates.TemplateRuntime;
 import org.xml.sax.SAXException;
 import org.xmlunit.builder.DiffBuilder;
 import org.xmlunit.diff.DefaultNodeMatcher;
@@ -41,6 +47,10 @@ public class XMLUtils {
 
     public static String getXSD(String type) throws Exception {
         return new String(Files.readAllBytes(Paths.get(root+type+".xsd")));
+    }
+
+    public static String getJSON(String name) throws Exception {
+        return new String(Files.readAllBytes(Paths.get(root+name+".json")));
     }
 
     /**
@@ -65,6 +75,4 @@ public class XMLUtils {
 
         return !diffIdentical.hasDifferences();
     }
-
-
 }

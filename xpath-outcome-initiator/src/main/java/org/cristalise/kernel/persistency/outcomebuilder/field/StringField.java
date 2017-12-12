@@ -94,21 +94,19 @@ public class StringField {
         else if (type.getMinLength() != null) length = type.getMinLength().longValue();
 
         // find base type if derived
-        if (!(type.isBuiltInType())) type = type.getBuiltInBaseType();
+        if (!type.isBuiltInType()) type = type.getBuiltInBaseType();
 
-        // else derive the class
+        // derive the class from type
         Class<?> contentClass = OutcomeStructure.getJavaClass(type.getTypeCode());
 
-        // disable list edits for the moment
-        if (contentClass.equals(Boolean.class))            return new BooleanField();
-        else if (contentClass.equals(BigInteger.class))    return new IntegerField();
-        else if (contentClass.equals(BigDecimal.class))    return new DecimalField();
-        else if (contentClass.equals(LocalDate.class))     return new DateField();
-        else if (contentClass.equals(OffsetTime.class))    return new TimeField();
-        else if (contentClass.equals(OffsetDateTime.class))return new DateTimeField();
-        //else if (contentClass.equals(ImageIcon.class)) return new ImageEditField();
-        else if (length > 60)                              return new LongStringField();
-        else                                               return new StringField();
+        if      (contentClass.equals(Boolean.class))        return new BooleanField();
+        else if (contentClass.equals(BigInteger.class))     return new IntegerField();
+        else if (contentClass.equals(BigDecimal.class))     return new DecimalField();
+        else if (contentClass.equals(LocalDate.class))      return new DateField();
+        else if (contentClass.equals(OffsetTime.class))     return new TimeField();
+        else if (contentClass.equals(OffsetDateTime.class)) return new DateTimeField();
+        else if (length > 60)                               return new LongStringField();
+        else                                                return new StringField();
     }
 
     public static StringField getField(AttributeDecl model) throws StructuralException {
@@ -177,7 +175,6 @@ public class StringField {
         if (data == null) throw new InvalidOutcomeException("No node exists");
         setText(newData);
         updateNode();
-
     }
 
     public boolean isOptional() {

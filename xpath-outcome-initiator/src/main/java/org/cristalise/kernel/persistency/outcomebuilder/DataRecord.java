@@ -23,7 +23,6 @@ package org.cristalise.kernel.persistency.outcomebuilder;
 import java.io.IOException;
 import java.io.Writer;
 
-import org.apache.commons.lang3.StringUtils;
 import org.cristalise.kernel.utils.Logger;
 import org.exolab.castor.xml.schema.ComplexType;
 import org.exolab.castor.xml.schema.ElementDecl;
@@ -38,9 +37,7 @@ public class DataRecord extends OutcomeStructure {
     AttributeList myAttributes;
     Document      parentDoc;
 
-    public DataRecord(ElementDecl model)
-            throws OutcomeBuilderException
-    {
+    public DataRecord(ElementDecl model) throws OutcomeBuilderException {
         super(model);
         setup();
     }
@@ -83,66 +80,91 @@ public class DataRecord extends OutcomeStructure {
     }
 
     @Override
-    public void addInstance(Element myElement, Document parentDoc) throws OutcomeBuilderException {
-        Logger.msg(8, "DataRecord.addInstance() - name:" + myElement.getTagName());
+    public void addInstance(Element newElement, Document parentDoc) throws OutcomeBuilderException {
+        Logger.msg(8, "DataRecord.addInstance() - name:" + newElement.getTagName());
 
         if (this.myElement != null) throw new CardinalException("DataRecord " + this.getName() + " cannot repeat.");
 
-        this.myElement = myElement;
+        this.myElement = newElement;
         this.parentDoc = parentDoc;
 
         populateInstance();
     }
 
-    public void populateInstance() throws StructuralException, OutcomeBuilderException {
-        myAttributes.setInstance(myElement);
+    private void populateInstance() throws StructuralException, OutcomeBuilderException {
+        // First populate attributes
+        myAttributes.addInstance(myElement, parentDoc);
 
         NodeList childElements = myElement.getChildNodes();
 
         for (int i = 0; i < childElements.getLength(); i++) {
-            // ignore chardata here
+            // ignore any Node (e.g. Text) which are not Element type
             if (!(childElements.item(i) instanceof Element)) continue;
 
-            Element thisElement = (Element) childElements.item(i);
+            Element childElement = (Element) childElements.item(i);
 
             // find the child structure with this name
-            OutcomeStructure thisStructure = subStructure.get(thisElement.getTagName());
+            OutcomeStructure childStructure = subStructure.get(childElement.getTagName());
 
-            if (thisStructure == null)
-                throw new StructuralException("DR " + model.getName() + " not expecting " + thisElement.getTagName());
+            if (childStructure == null)
+                throw new StructuralException("DR " + model.getName() + " not expecting child element with name '" + childElement.getTagName() + "'");
 
-            thisStructure.addInstance(thisElement, parentDoc);
+            childStructure.addInstance(childElement, parentDoc);
         }
 
         // make sure any dimensions have the minimum
-        for (Object name2 : subStructure.keySet()) {
-            String structureName = (String) name2;
-            OutcomeStructure thisStructure = subStructure.get(structureName);
+        for (String structureName : subStructure.keySet()) {
+            OutcomeStructure childStructure = subStructure.get(structureName);
             int count = 0;
 
-            if (thisStructure instanceof Dimension) {
-                Dimension thisDimension = (Dimension) thisStructure;
-                thisDimension.setParentElement(myElement);
-                count = thisDimension.getChildCount();
+            if (childStructure instanceof Dimension) {
+                Dimension childDimension = (Dimension) childStructure;
+                childDimension.setParentElement(myElement);
+                count = childDimension.getChildCount();
             }
             else
-                count = thisStructure.getElement() == null ? 0 : 1;
+                count = childStructure.getElement() == null ? 0 : 1;
 
-            int total = thisStructure.getModel().getMinOccurs();
+            int total = childStructure.getModel().getMinOccurs();
 
-            // if (total == 0) total++;
             for (int i = count; i < total; i++) {
-                myElement.appendChild(thisStructure.initNew(parentDoc));
+                myElement.appendChild(childStructure.initNew(parentDoc));
             }
         }
     }
 
     @Override
-    public Element initNew(Document parent) {
-        Logger.msg(5, "DataRecord.initNew() - name:'" + model.getName()+"'");
+    public void addJsonInstance(Element parent, String name, Object json) throws OutcomeBuilderException {
+        Logger.msg(5, "DataRecord.addJsonInstance() - name:'" + name + "'");
+        JSONObject jsonObj = (JSONObject)json;
+
+        myElement = parent;
+
+        if (!name.equals(model.getName())) throw new InvalidOutcomeException("Missmatch in names:" + name + "!=" + model.getName());
+
+        for (String key: jsonObj.keySet()) {
+            if (myAttributes.hasAttributeDecl(key)) {
+                myAttributes.addJsonInstance(myElement, key, jsonObj.get(key));
+            }
+            else {
+                OutcomeStructure childStructure = subStructure.get(key);
+
+                if (childStructure == null) throw new InvalidOutcomeException("DataRecord '" + name + "' doesn not have a field " + key + "'");
+
+                childStructure.addJsonInstance(parent, key, jsonObj.get(key));
+            }
+        }
+    }
+
+    @Override
+    public Element initNew(Document rootDocument) {
+        Logger.msg(5, "DataRecord.initNew() - name:'" + model.getName() + "'");
 
         // make a new Element
-        myElement = parent.createElement(model.getName());
+        myElement = rootDocument.createElement(model.getName());
+
+        // set up attributes
+        myAttributes.initNew(myElement);
 
         // populate
         for (String elementName : subStructureOrder) {
@@ -151,27 +173,11 @@ public class DataRecord extends OutcomeStructure {
             if (childStructure instanceof Dimension) ((Dimension) childStructure).setParentElement(myElement);
 
             for (int i = 0; i < childStructure.getModel().getMinOccurs(); i++) {
-                myElement.appendChild(childStructure.initNew(parent));
+                myElement.appendChild(childStructure.initNew(rootDocument));
             }
         }
 
-        // set up attributes
-        myAttributes.initNew(myElement);
-
         return myElement;
-    }
-
-    @Override
-    public Element createElement(Document rootDocument, String recordName) throws OutcomeBuilderException {
-        OutcomeStructure childModel = getChildModelElement(recordName);
-
-        if (childModel == null) throw new StructuralException("DR "+model.getName()+"' does not have child '"+recordName+"'");
-
-        Element newElement = childModel.initNew(rootDocument);
-
-        myElement.appendChild(newElement);
-
-        return newElement;
     }
 
     @Override
@@ -200,11 +206,11 @@ public class DataRecord extends OutcomeStructure {
         
         dr.put("cls", generateNgDynamicFormsCls());
 
-        String label = StringUtils.join(StringUtils.splitByCharacterTypeCamelCase(model.getName()), " ");
-
         dr.put("type",  "GROUP");
         dr.put("id",    model.getName());
         dr.put("name",  model.getName());
+
+        //String label = StringUtils.join(StringUtils.splitByCharacterTypeCamelCase(model.getName()), " ");
         //dr.put("label", label);
 
         JSONArray array = myAttributes.generateNgDynamicForms();

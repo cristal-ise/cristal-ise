@@ -20,12 +20,27 @@
     http://www.fsf.org/licensing/licenses/lgpl.html
 
 -->
-<StateMachine initialState="string" name="string">
-  <State id="3" name="string" proceeds="false"/>
-  <State id="30" name="new" proceeds="false"/>
-  <Transition id="3" name="string" origin="3" target="3" enablingProperty="string" errorHandler="true" reinitializes="true" roleOverride="string" reservation="clear">
-    <Outcome name="string" version="string" required="true"/>
-    <Script name="string" version="string"/>
-    <Query name="string" version="string"/>
-  </Transition>
-</StateMachine>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+	<xs:element name="IntegerFieldWithUnit">
+		<xs:complexType>
+			<xs:sequence>
+				<xs:element minOccurs="1" maxOccurs="1" name="weight">
+					<xs:complexType>
+						<xs:simpleContent>
+							<xs:extension base='xs:integer'>
+								<xs:attribute name='unit' default='kg'>
+									<xs:simpleType>
+										<xs:restriction base='xs:string'>
+											<xs:enumeration value='g' />
+											<xs:enumeration value='kg' />
+										</xs:restriction>
+									</xs:simpleType>
+								</xs:attribute>
+							</xs:extension>
+						</xs:simpleContent>
+					</xs:complexType>
+				</xs:element>
+			</xs:sequence>
+		</xs:complexType>
+	</xs:element>
+</xs:schema>

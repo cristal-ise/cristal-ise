@@ -73,13 +73,13 @@ public abstract class OutcomeStructure {
         Logger.msg(8, "OutcomeStructure() - Creating '" + model.getName() + "' structure as " + this.getClass().getSimpleName());
 
         String doc = extractHelp(model);
-        if (doc.length() > 0) help = doc;
+        if (StringUtils.isNotBlank(doc)) help = doc;
     }
 
-
     /**
-     * After schema processing, addInstance() propogates the XML instance document down the layout. Most OutcomeStructures will throw an
-     * exception if called more than once, except Dimension, which is the only Outcome Structure to support maxOccurs>1
+     * After schema processing, addInstance() propagates the XML instance document down the layout. 
+     * Most OutcomeStructures will throw an exception if called more than once, except Dimension, which 
+     * is the only Outcome Structure to support maxOccurs>1
      *
      * @param myElement
      * @param parentDoc
@@ -92,27 +92,36 @@ public abstract class OutcomeStructure {
      * @param parent
      * @return
      */
-    public abstract Element initNew(Document parent);
-
-    /**
-     *
-     * @param rootDocument
-     * @param recordName
-     * @param record
-     * @return
-     * @throws StructuralException
-     */
-    public abstract Element createElement(Document rootDocument, String recordName) throws OutcomeBuilderException;
+    public abstract Element initNew(Document rootDocument);
 
     public abstract void exportViewTemplate(Writer template) throws IOException;
-
     public abstract Object generateNgDynamicForms();
     public abstract JSONObject generateNgDynamicFormsCls();
+    public abstract void addJsonInstance(Element parent, String name, Object json) throws OutcomeBuilderException;
+
+    /**
+     * 
+     * @param rootDocument
+     * @param recordName
+     * @return
+     * @throws OutcomeBuilderException
+     */
+    public Element createChildElement(Document rootDocument, String recordName) throws OutcomeBuilderException {
+        OutcomeStructure childModel = getChildModelElement(recordName);
+
+        if (childModel == null) throw new StructuralException("'"+model.getName()+"' does not have child '"+recordName+"'");
+
+        Element newElement = childModel.initNew(rootDocument);
+
+        myElement.appendChild(newElement);
+
+        return newElement;
+    }
 
     /**
      * Contains the rules for deciding which OutcomeStructure will represent a chosen Element Declaration. In this order
      * <ol>
-     * <li>if maxOccurs>1 then Dimension
+     * <li>if maxOccurs > 1 then Dimension
      * <li>SimpleTypes are Fields
      * <li>No element children is a Field
      * <li>Everything else is a DataRecord
@@ -120,7 +129,6 @@ public abstract class OutcomeStructure {
      */
     public OutcomeStructure createStructure(ElementDecl model) throws OutcomeBuilderException {
         XMLType elementType = model.getType();
-        ComplexType elementComplexType;
 
         if (model.getMaxOccurs() == 0) return null;
 
@@ -137,17 +145,17 @@ public abstract class OutcomeStructure {
 
         // otherwise is a complex type
         try {
-            elementComplexType = (ComplexType) elementType;
+            ComplexType elementComplexType = (ComplexType) elementType;
+
+            // when no element children - field
+            if (elementComplexType.getParticleCount() == 0) return new Field(model);
+
+            // everything else is a data record
+            return new DataRecord(model);
         }
         catch (ClassCastException e) {
             throw new StructuralException("Unknown XMLType for element " + model.getName());
         }
-
-        // when no element children - field
-        if (elementComplexType.getParticleCount() == 0) return new Field(model);
-
-        // everything else is a data record
-        return new DataRecord(model);
     }
 
     /**
@@ -184,7 +192,8 @@ public abstract class OutcomeStructure {
                 ElementDecl thisElement = (ElementDecl) thisParticle;
                 addStructure(createStructure(thisElement));
             }
-            else throw new StructuralException("Particle " + thisParticle.getClass() + " not implemented");
+            else 
+                throw new StructuralException("Particle " + thisParticle.getClass() + " not implemented");
         }
     }
 
@@ -199,7 +208,6 @@ public abstract class OutcomeStructure {
         subStructure.put(elementName, newElement);
         subStructureOrder.add(elementName);
     }
-
 
     public Element getElement() {
         return myElement;

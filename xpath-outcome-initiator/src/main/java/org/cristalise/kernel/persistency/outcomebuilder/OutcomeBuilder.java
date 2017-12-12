@@ -35,6 +35,7 @@ import org.cristalise.kernel.utils.Logger;
 import org.exolab.castor.xml.schema.ComplexType;
 import org.exolab.castor.xml.schema.ElementDecl;
 import org.json.JSONArray;
+import org.json.JSONObject;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.xml.sax.InputSource;
@@ -60,9 +61,9 @@ public class OutcomeBuilder {
         this(root, schema, true);
     }
 
-    public OutcomeBuilder(String root, Schema schema, boolean initInstance ) throws OutcomeBuilderException {
+    public OutcomeBuilder(String root, Schema schema, boolean initOutcome) throws OutcomeBuilderException {
         try {
-            if (initInstance) {
+            if (initOutcome) {
                 Document document = Outcome.parse((InputSource)null);
                 initialise(schema.getSom(), document, root);
                 document.appendChild( modelRoot.initNew(document) );
@@ -83,8 +84,9 @@ public class OutcomeBuilder {
     }
 
     public OutcomeBuilder(String root, Schema schema, Outcome outcome) throws OutcomeBuilderException {
+        this.outcome = outcome;
         initialise(schema.getSom(), outcome.getDOM(), root);
-        modelRoot.addInstance(outcome.getDOM().getDocumentElement(), outcome.getDOM());
+        addInstance(outcome);
     }
 
     public OutcomeBuilder(String root, Schema schema, String xml) throws OutcomeBuilderException, InvalidDataException {
@@ -122,6 +124,20 @@ public class OutcomeBuilder {
         Logger.msg(5, "OutcomeBuilder.initialise() - DONE");
     }
 
+    public void addInstance(Outcome outcome) throws OutcomeBuilderException {
+        modelRoot.addInstance(outcome.getDOM().getDocumentElement(), outcome.getDOM());
+    }
+
+    //convert Map<String, Object> to Map<String, String>
+    //json.toMap().entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, e -> e.getValue().toString()));
+    public void addJsonInstance(JSONObject json) throws OutcomeBuilderException {
+        String[] keys = json.keySet().toArray(new String[0]);
+
+        if (keys.length != 1) throw new InvalidOutcomeException("Outcome must have a single root (length = " + keys.length + ")");
+
+        modelRoot.addJsonInstance(outcome.getDOM().getDocumentElement(), keys[0], json.getJSONObject(keys[0]));
+    }
+
     public void addRecord(String path, Map<String, String> record) throws OutcomeBuilderException {
         Logger.msg(5,"OutcomeBuilder.addRecord() - path:'"+path+"'");
 
@@ -137,17 +153,17 @@ public class OutcomeBuilder {
             //updating the root, do nothing here, check setRecord() calls bellow
         }
         else if(names.length == 2) {
-            newElement = modelRoot.createElement(outcome.getDOM(), names[1]);
+            newElement = modelRoot.createChildElement(outcome.getDOM(), names[1]);
         }
         else {
             String recordName = names[names.length-1];
 
             //Remove the first and the last entry
-            OutcomeStructure modelElement = modelRoot.find(Arrays.copyOfRange(names, 1, names.length-2));
+            OutcomeStructure modelElement = modelRoot.find(Arrays.copyOfRange(names, 1, names.length-1));
 
             if (modelElement == null) throw new StructuralException("Invalid path:'"+path+"'");
 
-            newElement = modelElement.createElement(outcome.getDOM(), recordName);
+            newElement = modelElement.createChildElement(outcome.getDOM(), recordName);
         }
 
         try {
@@ -174,10 +190,14 @@ public class OutcomeBuilder {
         outcome.setField(name, data);
     }
 
-    public String generateNgDynamicFormsJSON() {
+    public String generateNgDynamicForms() {
+        return generateNgDynamicFormsJson().toString(2);
+    }
+
+    public JSONArray generateNgDynamicFormsJson() {
         JSONArray array = new JSONArray();
         array.put(modelRoot.generateNgDynamicForms());
-        return array.toString(2);
+        return array;
     }
 
     public String exportViewTemplate() {

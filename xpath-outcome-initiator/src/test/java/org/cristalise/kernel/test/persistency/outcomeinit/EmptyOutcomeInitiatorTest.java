@@ -20,8 +20,6 @@
  */
 package org.cristalise.kernel.test.persistency.outcomeinit;
 
-import static org.junit.Assert.fail;
-
 import java.nio.file.Files;
 import java.nio.file.Paths;
 
@@ -62,7 +60,7 @@ public class EmptyOutcomeInitiatorTest extends OutcomeInitiatorTestBase {
 
         Logger.msg(actual.getData());
 
-        if (!compareXML(expected, actual.getData())) fail("");
+        assert compareXML(expected, actual.getData());
     }
 
     @Test

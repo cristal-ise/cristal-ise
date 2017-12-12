@@ -22,11 +22,14 @@ package org.cristalise.kernel.persistency.outcomebuilder;
 
 import java.io.IOException;
 import java.io.Writer;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 
 import org.apache.commons.lang3.StringUtils;
 import org.cristalise.kernel.persistency.outcomebuilder.field.StringField;
 import org.cristalise.kernel.utils.Logger;
 import org.exolab.castor.xml.schema.ElementDecl;
+import org.json.JSONArray;
 import org.json.JSONObject;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -41,6 +44,14 @@ public class Field extends OutcomeStructure {
     public Field(ElementDecl model) {
         super(model);
 
+        // field can have attributes
+        myAttributes = new AttributeList(model);
+
+        Logger.msg(8, "Field() - name:"+model.getName()+" optional:" + isOptional());
+        
+        // skipping optional fields
+        //if (isOptional()) return;
+
         try {
             myFieldInstance = StringField.getField(model);
             Logger.msg(6, "Field() - name:" + model.getName() + " type: "+myFieldInstance.getClass().getSimpleName());
@@ -49,8 +60,6 @@ public class Field extends OutcomeStructure {
             // no base type for field - only attributes
             myFieldInstance = null;
         }
-
-        myAttributes = new AttributeList(model);
     }
 
     public AttributeList getAttributes() {
@@ -63,32 +72,93 @@ public class Field extends OutcomeStructure {
     }
 
     @Override
-    public void addInstance(Element myElement, Document parentDoc) throws OutcomeBuilderException {
-        Logger.msg(6, "Field.addInstance() - field:"+myElement.getTagName());
+    public void addInstance(Element newElement, Document parentDoc) throws OutcomeBuilderException {
+        Logger.msg(6, "Field.addInstance() - field:"+newElement.getTagName());
+
+        // Set attributes first
+        myAttributes.addInstance(newElement, parentDoc);
 
         if (this.myElement != null) throw new CardinalException("Field "+this.getName()+" cannot repeat");
 
-        this.myElement = myElement;
+        this.myElement = newElement;
 
         try {
             if (myFieldInstance == null) {
-                Logger.error("Field should be empty. Discarding contents.");
+                Logger.warning("Field.addInstance() - Field '"+newElement.getTagName()+"' should be empty. Discarding contents.");
             }
             else {
-                if (myElement.hasChildNodes())
-                    textNode = (Text)myElement.getFirstChild();
+                if (newElement.hasChildNodes())
+                    textNode = (Text)newElement.getFirstChild();
                 else {
                     textNode = parentDoc.createTextNode(getDefaultValue());
-                    myElement.appendChild(textNode);
+                    newElement.appendChild(textNode);
                 }
 
                 myFieldInstance.setData(textNode);
             }
         }
         catch (ClassCastException ex) {
-            throw new StructuralException("First child node of Field " + this.getName() + " was not Text: "+myElement.getFirstChild().getNodeType());
+            throw new StructuralException("First child node of Field " + this.getName() + " was not Text: "+newElement.getFirstChild().getNodeType());
         }
-        myAttributes.setInstance(myElement);
+    }
+
+    private void createOptinalElement(Element parent, String value) throws StructuralException {
+        myFieldInstance = StringField.getField(model);
+
+        myElement = parent.getOwnerDocument().createElement(model.getName());
+        parent.appendChild(myElement);
+
+        textNode = parent.getOwnerDocument().createTextNode(getDefaultValue());
+        myElement.appendChild(textNode);
+
+        textNode.setData(value);
+        myFieldInstance.setData(textNode);
+    }
+
+    private String getJsonValue(Object jsonValue) {
+        Logger.msg("+++ jsonValue:" +jsonValue + " class:" + jsonValue.getClass().getSimpleName());
+        if (jsonValue instanceof BigDecimal) {
+            BigDecimal decimalVal = (BigDecimal)jsonValue;
+            
+            decimalVal = decimalVal.setScale(2, RoundingMode.HALF_UP);
+            
+            return decimalVal.toString();
+        }
+        else
+            return jsonValue.toString();
+    }
+
+
+    @Override
+    public void addJsonInstance(Element parent, String name, Object json) throws OutcomeBuilderException {
+        Logger.msg(5, "Field.addJsonInstance() - name:'" + name + "'");
+
+        if (json instanceof JSONObject) {
+            JSONObject jsonObj = (JSONObject)json;
+
+            for (String key: jsonObj.keySet()) {
+                if (myAttributes.hasAttributeDecl(key)) {
+                    myAttributes.addJsonInstance(myElement, key, jsonObj.get(key));
+                }
+                else {
+                    if (key.equals("content")) {
+                        if (myFieldInstance == null) createOptinalElement(parent, getJsonValue(jsonObj.get(key)));
+                        else                         myFieldInstance.setData(getJsonValue(jsonObj.get(key).toString()));
+                    }
+                    else {
+                        // this should never happen
+                        throw new InvalidOutcomeException("JSON key '"+key +"' is not an attribute of Outcome field:"+name);
+                    }
+                }
+            }
+        }
+        else if (json instanceof JSONArray) {
+            throw new UnsupportedOperationException("Field name '" + name + "' contains an ARRAY");
+        }
+        else {
+            if (myFieldInstance == null) createOptinalElement(parent, getJsonValue(json));
+            else                         myFieldInstance.setData(getJsonValue(json));
+        }
     }
 
     @Override
@@ -107,17 +177,17 @@ public class Field extends OutcomeStructure {
     }
 
     @Override
-    public Element initNew(Document parent) {
+    public Element initNew(Document rootDocument) {
         Logger.msg(6, "Field.initiNew() - Creating '"+this.getName()+"'");
 
         // make a new Element
-        myElement = parent.createElement(this.getName());
+        myElement = rootDocument.createElement(this.getName());
 
         // see if there is a default/fixed value
         if (myFieldInstance != null) {
             // populate
             String defaultVal = getDefaultValue();
-            textNode = parent.createTextNode(defaultVal);
+            textNode = rootDocument.createTextNode(defaultVal);
             myElement.appendChild(textNode);
             myFieldInstance.setData(textNode);
         }
@@ -127,9 +197,6 @@ public class Field extends OutcomeStructure {
 
         return myElement;
     }
-
-    @Override
-    public Element createElement(Document rootDocument, String recordName) { return null; }
 
     private String getDefaultValue() {
         String defaultValue = model.getFixedValue();

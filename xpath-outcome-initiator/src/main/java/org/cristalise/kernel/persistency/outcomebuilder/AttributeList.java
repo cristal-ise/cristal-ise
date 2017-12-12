@@ -23,7 +23,7 @@ package org.cristalise.kernel.persistency.outcomebuilder;
 import java.io.Writer;
 import java.util.ArrayList;
 import java.util.Enumeration;
-import java.util.Iterator;
+import java.util.HashMap;
 
 import org.cristalise.kernel.persistency.outcomebuilder.field.StringField;
 import org.cristalise.kernel.utils.Logger;
@@ -38,7 +38,8 @@ import org.w3c.dom.Element;
 
 public class AttributeList extends OutcomeStructure {
 
-    ArrayList<StringField> attrSet = new ArrayList<StringField>();
+//    private ArrayList<StringField> attrSet = new ArrayList<StringField>();
+    private HashMap<String, StringField> attrMap = new HashMap<>();
 
     public AttributeList(ElementDecl model) {
         AttributeDecl thisDecl;
@@ -49,18 +50,21 @@ public class AttributeList extends OutcomeStructure {
 
         ComplexType content = (ComplexType)model.getType();
 
-        for (Enumeration<?> fields = content.getAttributeDecls(); fields.hasMoreElements();) {
+        for (Enumeration<AttributeDecl> fields = content.getAttributeDecls(); fields.hasMoreElements();) {
             thisDecl = (AttributeDecl)fields.nextElement();
-            Logger.msg(8, "AttributeList() - Includes Attribute "+thisDecl.getName());
 
-            // read help
+            Logger.msg(8, "AttributeList() - attribute:"+thisDecl.getName()+" optional:"+thisDecl.isOptional());
+
+            // FIXME: this will be overwritten by the help of next attributes
             help = OutcomeStructure.extractHelp(thisDecl);
+
+            //Skipping optional attributes
+            //if (thisDecl.isOptional()) continue;
 
             // Add entry
             try {
-                StringField entry = StringField.getField(thisDecl);
-                attrSet.add(entry);
-                //if (readOnly) entry.setEditable(false);
+                //attrSet.add( StringField.getField(thisDecl) );
+                attrMap.put(thisDecl.getName(), StringField.getField(thisDecl) );
             }
             catch (StructuralException e) {
                 Logger.error(e);
@@ -68,24 +72,21 @@ public class AttributeList extends OutcomeStructure {
         }
     }
 
-    public void setInstance(Element data) throws OutcomeBuilderException {
-        this.myElement = data;
-        for (StringField thisField : attrSet) {
+    @Override
+    public void addInstance(Element newElement, Document parentDoc) throws OutcomeBuilderException {
+        this.myElement = newElement;
+
+        for (StringField thisField : attrMap.values()) {
             Logger.msg(8, "AttributeList.setInstance() - Populating Attribute "+thisField.getName());
             Attr thisAttr = myElement.getAttributeNode(thisField.getName());
 
-            if (thisAttr == null) thisAttr = newAttribute(myElement, (AttributeDecl)thisField.getModel());
+            if (thisAttr == null) thisAttr = newAttribute((AttributeDecl)thisField.getModel());
 
             thisField.setData(thisAttr);
         }
     }
 
-    public Attr newAttribute(Element parent, AttributeDecl attr) {
-        parent.setAttribute(attr.getName(), attr.getFixedValue() != null?attr.getFixedValue() : attr.getDefaultValue());
-        return parent.getAttributeNode(attr.getName());
-    }
-
-    public String validateAttributes() {
+    public void validateAttributes() {
         if (model.getType().isComplexType()) {
             ComplexType content = (ComplexType)model.getType();
 
@@ -98,71 +99,101 @@ public class AttributeList extends OutcomeStructure {
                 }
             }
         }
-        return null;
     }
 
-    public void initNew(Element parent) {
-        Logger.msg(5, "AttributeList.initNew() - Creating " + model.getName());
+    private Attr newAttribute(AttributeDecl attr) {
+        myElement.setAttribute(attr.getName(), attr.getFixedValue() != null?attr.getFixedValue() : attr.getDefaultValue());
+        return myElement.getAttributeNode(attr.getName());
+    }
 
-        AttributeDecl thisDecl;
-        StringField thisField;
-        Attr thisAttr;
+    private Attr initNewAttribute(AttributeDecl attrDecl, boolean skipOptional) throws OutcomeBuilderException {
+        // Skip optional attributes
+        if (attrDecl.isOptional() && skipOptional) return null;
+
+        // HACK: if we don't resolve the reference, the type will be null
+        if (attrDecl.isReference()) attrDecl = attrDecl.getReference();
+
+        return newAttribute(attrDecl);
+    }
+
+    private Attr initNewAttribute(String attrName, boolean skipOptional) throws OutcomeBuilderException {
+        AttributeDecl attrDecl = ((ComplexType)model.getType()).getAttributeDecl(attrName);
+
+        if (attrDecl == null) throw new InvalidOutcomeException("Unknown attributeDecl:" + attrName);
+
+        return initNewAttribute( attrDecl, skipOptional);
+    }
+
+    /**
+     * Initialise a new set of attributes from the list of StringFields created during constructor. 
+     * Optional attributes are skipped.
+     * 
+     * @param parent
+     */
+    public void initNew(Element parent) {
+        Logger.msg(5, "AttributeList.initNew() - Creating attributes for " + model.getName());
+
         this.myElement = parent;
 
         if (model.getType().isSimpleType()) return; // no attributes in simple types
 
-        ComplexType content = (ComplexType)model.getType();
-
-        for (Iterator<StringField> e = attrSet.iterator(); e.hasNext();) {
-            thisField = e.next();
-
-            thisDecl = content.getAttributeDecl(thisField.getName());
-            // HACK: if we don't resolve the reference, the type will be null
-            if (thisDecl.isReference()) thisDecl = thisDecl.getReference();
-            thisAttr = newAttribute(myElement, thisDecl);
-
-            // add into parent - fill in field
+        for (StringField thisField: attrMap.values()) {
             try {
-                thisField.setData(thisAttr);
+                //create new, add into parent and fill in field
+                Attr attr = initNewAttribute(thisField.getName(), true);
+
+                //optional attribute is only created if skipOptional = false
+                if (attr != null) thisField.setData(attr);
             }
             catch (Exception ex) {} // impossible name mismatch
         }
     }
 
     @Override
-    public Element createElement(Document rootDocument, String recordName) { return null; }
-
-    @Override
-    public void addInstance(Element myElement, Document parentDoc) throws OutcomeBuilderException {
-        // TODO Auto-generated method stub
-    }
-
-    @Override
-    public Element initNew(Document parent) {
-        // TODO Auto-generated method stub
-        return null;
-    }
-
-    @Override
-    public OutcomeStructure getChildModelElement(String name) {
-        return null;
-    }
-
-    @Override
-    public void exportViewTemplate(Writer template) {
-        // TODO Auto-generated method stub
-    }
-
-    @Override
     public JSONArray generateNgDynamicForms() {
         JSONArray attrs = new JSONArray();
 
-        for (StringField attr: attrSet) attrs.put(attr.generateNgDynamicForms());
+        for (StringField attr: attrMap.values()) attrs.put(attr.generateNgDynamicForms());
 
         return attrs;
     }
-
-    public JSONObject generateNgDynamicFormsCls() {
-        return null;
+    
+    public boolean hasAttributeDecl(String name) {
+        return ((ComplexType)model.getType()).getAttributeDecl(name) != null;
     }
+
+    @Override
+    public void addJsonInstance(Element parent, String attrName, Object json) throws OutcomeBuilderException {
+        myElement = parent;
+
+        Logger.msg(5, "AttributeList.addJsonInstance() - name:'" + attrName + "'");
+
+        AttributeDecl attrDecl = ((ComplexType)model.getType()).getAttributeDecl(attrName);
+
+        if (attrDecl == null) throw new InvalidOutcomeException("Unknown attributeDecl:" + attrName);
+
+        Attr newAttr = initNewAttribute(attrDecl, false);
+        newAttr.setValue(json.toString());
+
+        StringField field = attrMap.get(attrName);
+
+        if (field == null) {
+            field = StringField.getField(attrDecl);
+            attrMap.put(attrName,  field);
+        }
+
+        field.setData(newAttr);
+    }
+
+    @Override
+    public Element initNew(Document parent) { return null; }
+
+    @Override
+    public OutcomeStructure getChildModelElement(String name) { return null; }
+
+    @Override
+    public void exportViewTemplate(Writer template) {}
+
+    public JSONObject generateNgDynamicFormsCls() { return null; }
+
 }
