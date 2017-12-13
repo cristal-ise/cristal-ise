@@ -66,7 +66,7 @@ public class NgDynamicFormsTest extends XMLUtils {
         assertJsonEquals(expected, actual);
     }
     
-    @Test @Ignore
+    @Test
     public void ngForm_Order() throws Exception {
         OutcomeBuilder builder = new OutcomeBuilder("Storage", new Schema("Storage", 0, getXSD(dir, "Storage")), false);
         
@@ -74,7 +74,9 @@ public class NgDynamicFormsTest extends XMLUtils {
 
         Logger.msg(actual.toString(2));
 
-        assert false;
+        JSONArray expected = new JSONArray(getJSON(dir, "StorageNGForms"));
+
+        assertJsonEquals(expected, actual);
     }
 
 }

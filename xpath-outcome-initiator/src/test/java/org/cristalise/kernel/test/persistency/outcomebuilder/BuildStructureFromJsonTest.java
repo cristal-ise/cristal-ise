@@ -27,6 +27,7 @@ import org.cristalise.kernel.utils.Logger;
 import org.json.JSONObject;
 import org.json.XML;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
 public class BuildStructureFromJsonTest extends XMLUtils {
@@ -58,7 +59,7 @@ public class BuildStructureFromJsonTest extends XMLUtils {
         checkJsonOutcome("IntegerFieldWithUnit");
     }
 
-    @Test
+    @Test @Ignore
     public void integerFieldOptional() throws Exception {
         checkJsonOutcome("IntegerFieldOptional");
     }
