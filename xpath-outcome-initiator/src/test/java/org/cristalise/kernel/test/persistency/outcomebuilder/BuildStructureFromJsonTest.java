@@ -59,7 +59,7 @@ public class BuildStructureFromJsonTest extends XMLUtils {
         checkJsonOutcome("IntegerFieldWithUnit");
     }
 
-    @Test @Ignore
+    @Test
     public void integerFieldOptional() throws Exception {
         checkJsonOutcome("IntegerFieldOptional");
     }

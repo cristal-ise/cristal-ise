@@ -32,7 +32,7 @@ import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 
-public class OutcomeBuilderTest extends XMLUtils {
+public class BuildEmptyOutcomeTest extends XMLUtils {
 
     String dir = "src/test/data/outcomeBuilder";
 
@@ -112,12 +112,12 @@ public class OutcomeBuilderTest extends XMLUtils {
         assert compareXML(getXML("StringField"), actual.getXml());
     }
 
-    @Test @Ignore("Excpected xml is wrong")
+    @Test
     public void stateMachine() throws Exception {
         checkEmptyOutcome("StateMachine");
     }
 
-    @Test @Ignore
+    @Test
     public void loadAndExportDefaultMachine() throws Exception {
         String xsd      = getXSD(dir, "StateMachine");
         String expected = getXML(dir, "StateMachine-Default");
