@@ -20,16 +20,15 @@
  */
 package org.cristalise.kernel.test.persistency.outcomebuilder;
 
+import org.apache.commons.lang3.StringUtils;
 import org.cristalise.kernel.persistency.outcome.Schema;
 import org.cristalise.kernel.persistency.outcomebuilder.OutcomeBuilder;
 import org.cristalise.kernel.test.persistency.XMLUtils;
 import org.cristalise.kernel.utils.Logger;
-import org.json.JSONObject;
-import org.json.XML;
 import org.junit.Before;
 import org.junit.Test;
 
-public class BuildStructureFromJsonTest extends XMLUtils {
+public class ViewTemplateTest extends XMLUtils {
 
     String dir = "src/test/data/outcomeBuilder";
 
@@ -38,48 +37,14 @@ public class BuildStructureFromJsonTest extends XMLUtils {
         Logger.addLogStream(System.out, 8);
     }
 
-    private void checkJsonOutcome(String type) throws Exception {
-        OutcomeBuilder builder = new OutcomeBuilder(new Schema(type, 0, getXSD(dir, type)), true);
-        String expected = getXML(dir, type);
-        JSONObject expectedJson = XML.toJSONObject(expected);
-
-        Logger.msg(expectedJson.toString());
-        Logger.msg(XML.toString(expectedJson));
-
-        builder.addJsonInstance(expectedJson);;
-
-        Logger.msg(builder.getXml());
-
-        assert compareXML(expected, builder.getXml());
-    }
-
     @Test
-    public void integerFieldWithUnit() throws Exception {
-        checkJsonOutcome("IntegerFieldWithUnit");
-    }
+    public void exportViewTemplate() throws Exception {
+        OutcomeBuilder ob = new OutcomeBuilder(new Schema("SiteCharacteristicsData", 0, getXSD(dir, "SiteCharacteristicsData")), false);
 
-    @Test
-    public void integerFieldOptional() throws Exception {
-        checkJsonOutcome("IntegerFieldOptional");
-    }
+        String template = ob.exportViewTemplate();
 
-    @Test
-    public void booleanField() throws Exception {
-        checkJsonOutcome("BooleanField");
-    }
+        Logger.msg(template);
 
-    @Test
-    public void rootWithAttr() throws Exception {
-        checkJsonOutcome("RootWithAttr");
-    }
-
-    @Test
-    public void rootWithOptionalAttr() throws Exception {
-        checkJsonOutcome("RootWithOptionalAttr");
-    }
-
-    @Test
-    public void patientDetails() throws Exception {
-        checkJsonOutcome("PatientDetails");
+        assert StringUtils.isNotBlank(template);
     }
 }

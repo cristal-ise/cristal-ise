@@ -24,12 +24,10 @@ import org.cristalise.kernel.persistency.outcome.Schema;
 import org.cristalise.kernel.persistency.outcomebuilder.OutcomeBuilder;
 import org.cristalise.kernel.test.persistency.XMLUtils;
 import org.cristalise.kernel.utils.Logger;
-import org.json.JSONObject;
-import org.json.XML;
 import org.junit.Before;
 import org.junit.Test;
 
-public class BuildStructureFromJsonTest extends XMLUtils {
+public class LoadOutcomeXMLTest extends XMLUtils {
 
     String dir = "src/test/data/outcomeBuilder";
 
@@ -38,48 +36,15 @@ public class BuildStructureFromJsonTest extends XMLUtils {
         Logger.addLogStream(System.out, 8);
     }
 
-    private void checkJsonOutcome(String type) throws Exception {
-        OutcomeBuilder builder = new OutcomeBuilder(new Schema(type, 0, getXSD(dir, type)), true);
-        String expected = getXML(dir, type);
-        JSONObject expectedJson = XML.toJSONObject(expected);
-
-        Logger.msg(expectedJson.toString());
-        Logger.msg(XML.toString(expectedJson));
-
-        builder.addJsonInstance(expectedJson);;
-
-        Logger.msg(builder.getXml());
-
-        assert compareXML(expected, builder.getXml());
-    }
-
     @Test
-    public void integerFieldWithUnit() throws Exception {
-        checkJsonOutcome("IntegerFieldWithUnit");
-    }
+    public void loadAndExportDefaultMachine() throws Exception {
+        String xsd      = getXSD(dir, "StateMachine");
+        String expected = getXML(dir, "StateMachine-Default");
 
-    @Test
-    public void integerFieldOptional() throws Exception {
-        checkJsonOutcome("IntegerFieldOptional");
-    }
+        OutcomeBuilder actual = new OutcomeBuilder(new Schema("StateMachine", 0, xsd), expected);
 
-    @Test
-    public void booleanField() throws Exception {
-        checkJsonOutcome("BooleanField");
-    }
+        Logger.msg(actual.getXml());
 
-    @Test
-    public void rootWithAttr() throws Exception {
-        checkJsonOutcome("RootWithAttr");
-    }
-
-    @Test
-    public void rootWithOptionalAttr() throws Exception {
-        checkJsonOutcome("RootWithOptionalAttr");
-    }
-
-    @Test
-    public void patientDetails() throws Exception {
-        checkJsonOutcome("PatientDetails");
+        assert compareXML(expected, actual.getXml());
     }
 }

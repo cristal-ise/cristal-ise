@@ -23,13 +23,11 @@ package org.cristalise.kernel.test.persistency.outcomebuilder;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.apache.commons.lang3.StringUtils;
 import org.cristalise.kernel.persistency.outcome.Schema;
 import org.cristalise.kernel.persistency.outcomebuilder.OutcomeBuilder;
 import org.cristalise.kernel.test.persistency.XMLUtils;
 import org.cristalise.kernel.utils.Logger;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 
 public class BuildEmptyOutcomeTest extends XMLUtils {
@@ -39,50 +37,6 @@ public class BuildEmptyOutcomeTest extends XMLUtils {
     @Before
     public void setUp() throws Exception {
         Logger.addLogStream(System.out, 8);
-    }
-
-    @Test
-    public void multiRootXSDFile() throws Exception {
-        Schema schema = new Schema("Storage", 0, getXSD(dir, "Storage"));
-
-        OutcomeBuilder ob = new OutcomeBuilder("StorageDetails", schema);
-        Logger.msg(ob.getXml());
-
-        ob = new OutcomeBuilder("StorageAmount", schema);
-        Logger.msg(ob.getXml());
-
-        ob = new OutcomeBuilder("Storage", schema);
-        Logger.msg(ob.getXml());
-    }
-
-    @Test
-    public void addRecord() throws Exception {
-        OutcomeBuilder ob = new OutcomeBuilder(new Schema("SiteCharacteristicsData", 0, getXSD(dir, "SiteCharacteristicsData")));
-
-        Map<String, String> upsRecord = new HashMap<String, String>();
-        upsRecord.put("Manufacturer", "acme");
-        upsRecord.put("Phases",       "final");
-        upsRecord.put("Power",        "super");
-        upsRecord.put("Remarks",      "irrelevant");
-        upsRecord.put("TimeAutonomy", "daily");
-        upsRecord.put("UsedFor",      "creation");
-
-        ob.addRecord("/SiteCharacteristicsData/UPS", upsRecord);
-
-        Logger.msg(ob.getXml());
-
-        assert XMLUtils.compareXML(getXML(dir, "siteCharacteristicsData_ups"), ob.getXml());
-    }
-
-    @Test
-    public void exportViewTemplate() throws Exception {
-        OutcomeBuilder ob = new OutcomeBuilder(new Schema("SiteCharacteristicsData", 0, getXSD(dir, "SiteCharacteristicsData")), false);
-
-        String template = ob.exportViewTemplate();
-
-        Logger.msg(template);
-
-        assert StringUtils.isNotBlank(template);
     }
 
     private void checkEmptyOutcome(String type) throws Exception {
@@ -102,7 +56,7 @@ public class BuildEmptyOutcomeTest extends XMLUtils {
     }
 
     @Test
-    public void stringField() throws Exception {
+    public void buildEmptyStringField_SetField() throws Exception {
         OutcomeBuilder actual = new OutcomeBuilder(new Schema("StringField", 0, getXSD(dir, "StringField")));
 
         actual.putField("characters", "string");
@@ -113,19 +67,41 @@ public class BuildEmptyOutcomeTest extends XMLUtils {
     }
 
     @Test
+    public void buildEmptySiteCharacteristicsData_AddOptionalUPSRecord() throws Exception {
+        OutcomeBuilder ob = new OutcomeBuilder(new Schema("SiteCharacteristicsData", 0, getXSD(dir, "SiteCharacteristicsData")));
+
+        Map<String, String> upsRecord = new HashMap<String, String>();
+        upsRecord.put("Manufacturer", "acme");
+        upsRecord.put("Phases",       "final");
+        upsRecord.put("Power",        "super");
+        upsRecord.put("Remarks",      "irrelevant");
+        upsRecord.put("TimeAutonomy", "daily");
+        upsRecord.put("UsedFor",      "creation");
+
+        ob.addRecord("/SiteCharacteristicsData/UPS", upsRecord);
+
+        Logger.msg(ob.getXml());
+
+        assert XMLUtils.compareXML(getXML(dir, "siteCharacteristicsData_ups"), ob.getXml());
+    }
+
+    @Test
     public void stateMachine() throws Exception {
         checkEmptyOutcome("StateMachine");
     }
 
     @Test
-    public void loadAndExportDefaultMachine() throws Exception {
-        String xsd      = getXSD(dir, "StateMachine");
-        String expected = getXML(dir, "StateMachine-Default");
+    public void multiRootXSDFile() throws Exception {
+        Schema schema = new Schema("Storage", 0, getXSD(dir, "Storage"));
 
-        OutcomeBuilder actual = new OutcomeBuilder(new Schema("StateMachine", 0, xsd), expected);
+        OutcomeBuilder ob = new OutcomeBuilder("StorageDetails", schema);
+        Logger.msg(ob.getXml());
 
-        Logger.msg(actual.getXml());
+        ob = new OutcomeBuilder("StorageAmount", schema);
+        Logger.msg(ob.getXml());
 
-        assert compareXML(expected, actual.getXml());
+        ob = new OutcomeBuilder("Storage", schema);
+        Logger.msg(ob.getXml());
     }
+
 }
