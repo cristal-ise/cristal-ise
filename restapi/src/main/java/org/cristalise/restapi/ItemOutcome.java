@@ -77,7 +77,7 @@ public class ItemOutcome extends ItemUtils {
     }
 
     @GET
-    @Produces(MediaType.TEXT_XML)
+    @Produces( {MediaType.TEXT_PLAIN, MediaType.TEXT_XML, MediaType.APPLICATION_XML})
     @Path("{schema}/{version}/{event}")
     public Response queryXMLData(@PathParam("uuid")       String  uuid,
                                  @PathParam("schema")     String  schema,
