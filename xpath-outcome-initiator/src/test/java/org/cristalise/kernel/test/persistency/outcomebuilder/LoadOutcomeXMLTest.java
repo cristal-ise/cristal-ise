@@ -36,15 +36,24 @@ public class LoadOutcomeXMLTest extends XMLUtils {
         Logger.addLogStream(System.out, 8);
     }
 
-    @Test
-    public void loadAndExportDefaultMachine() throws Exception {
-        String xsd      = getXSD(dir, "StateMachine");
-        String expected = getXML(dir, "StateMachine-Default");
+    private void loaExportCheck(String type, String name) throws Exception {
+        String xsd      = getXSD(dir, type);
+        String expected = getXML(dir, type+"-"+name);
 
-        OutcomeBuilder actual = new OutcomeBuilder(new Schema("StateMachine", 0, xsd), expected);
+        OutcomeBuilder actual = new OutcomeBuilder(new Schema(type, 0, xsd), expected);
 
         Logger.msg(actual.getXml());
 
         assert compareXML(expected, actual.getXml());
+    }
+
+    @Test
+    public void loadAndExportDefaultStateMachine() throws Exception {
+        loaExportCheck("StateMachine", "Default");
+    }
+
+    @Test
+    public void loadAndExportDevModule() throws Exception {
+        loaExportCheck("Module", "Dev");
     }
 }

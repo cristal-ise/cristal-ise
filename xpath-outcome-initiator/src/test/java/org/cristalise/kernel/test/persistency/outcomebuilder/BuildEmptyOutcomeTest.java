@@ -20,15 +20,26 @@
  */
 package org.cristalise.kernel.test.persistency.outcomebuilder;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.TreeMap;
+import java.util.stream.Stream;
 
+import org.apache.commons.lang3.StringUtils;
 import org.cristalise.kernel.persistency.outcome.Schema;
 import org.cristalise.kernel.persistency.outcomebuilder.OutcomeBuilder;
 import org.cristalise.kernel.test.persistency.XMLUtils;
 import org.cristalise.kernel.utils.Logger;
 import org.junit.Before;
 import org.junit.Test;
+import org.mvel2.templates.CompiledTemplate;
+import org.mvel2.templates.TemplateCompiler;
+import org.mvel2.templates.TemplateRuntime;
 
 public class BuildEmptyOutcomeTest extends XMLUtils {
 
@@ -56,6 +67,53 @@ public class BuildEmptyOutcomeTest extends XMLUtils {
     }
 
     @Test
+    public void integerFieldWithUnit() throws Exception {
+        checkEmptyOutcome("IntegerFieldWithUnit");
+    }
+
+    @Test
+    public void integerFieldOptional() throws Exception {
+        checkEmptyOutcome("IntegerFieldOptional");
+    }
+
+    @Test
+    public void rootWithAttr() throws Exception {
+        checkEmptyOutcome("RootWithAttr");
+    }
+
+    @Test
+    public void rootWithOptionalAttr() throws Exception {
+        checkEmptyOutcome("RootWithOptionalAttr");
+    }
+
+    @Test
+    public void patientDetails() throws Exception {
+        String type = "PatientDetails";
+        String xsd  = getXSD(dir, type);
+
+        Map<String, String> args = new HashMap<>();
+        args.put("CURRENTDATE", LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd")));
+        CompiledTemplate expr = TemplateCompiler.compileTemplate(getXML(dir, type));
+        String expected = (String)TemplateRuntime.execute(expr, args);
+
+        OutcomeBuilder actual = new OutcomeBuilder(new Schema(type, 0, xsd));
+
+        Logger.msg(actual.getXml());
+
+        assert compareXML(expected, actual.getXml());
+    }
+
+    @Test
+    public void stateMachine() throws Exception {
+        checkEmptyOutcome("StateMachine");
+    }
+
+    @Test
+    public void module() throws Exception {
+        checkEmptyOutcome("Module");
+    }
+
+    @Test
     public void buildEmptyStringField_SetField() throws Exception {
         OutcomeBuilder actual = new OutcomeBuilder(new Schema("StringField", 0, getXSD(dir, "StringField")));
 
@@ -64,30 +122,6 @@ public class BuildEmptyOutcomeTest extends XMLUtils {
         Logger.msg(actual.getXml());
 
         assert compareXML(getXML("StringField"), actual.getXml());
-    }
-
-    @Test
-    public void buildEmptySiteCharacteristicsData_AddOptionalUPSRecord() throws Exception {
-        OutcomeBuilder ob = new OutcomeBuilder(new Schema("SiteCharacteristicsData", 0, getXSD(dir, "SiteCharacteristicsData")));
-
-        Map<String, String> upsRecord = new HashMap<String, String>();
-        upsRecord.put("Manufacturer", "acme");
-        upsRecord.put("Phases",       "final");
-        upsRecord.put("Power",        "super");
-        upsRecord.put("Remarks",      "irrelevant");
-        upsRecord.put("TimeAutonomy", "daily");
-        upsRecord.put("UsedFor",      "creation");
-
-        ob.addRecord("/SiteCharacteristicsData/UPS", upsRecord);
-
-        Logger.msg(ob.getXml());
-
-        assert XMLUtils.compareXML(getXML(dir, "siteCharacteristicsData_ups"), ob.getXml());
-    }
-
-    @Test
-    public void stateMachine() throws Exception {
-        checkEmptyOutcome("StateMachine");
     }
 
     @Test
@@ -103,5 +137,4 @@ public class BuildEmptyOutcomeTest extends XMLUtils {
         ob = new OutcomeBuilder("Storage", schema);
         Logger.msg(ob.getXml());
     }
-
 }

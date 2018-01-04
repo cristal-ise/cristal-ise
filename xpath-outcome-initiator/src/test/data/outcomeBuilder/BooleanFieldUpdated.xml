@@ -20,5 +20,6 @@
     http://www.fsf.org/licensing/licenses/lgpl.html
 
 -->
-<IntegerField>
-</IntegerField>
+<BooleanField>
+  <flag>true</flag>
+</BooleanField>

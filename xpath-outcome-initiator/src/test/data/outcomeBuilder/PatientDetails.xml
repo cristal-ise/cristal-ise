@@ -20,9 +20,9 @@
     http://www.fsf.org/licensing/licenses/lgpl.html
 
 -->
-<PatientDetails id="string">
-  <InsuranceNumber>string</InsuranceNumber>
-  <DateOfBirth>2008-09-29</DateOfBirth>
+<PatientDetails id="">
+  <InsuranceNumber>123456789ABC</InsuranceNumber>
+  <DateOfBirth>@{CURRENTDATE}</DateOfBirth>
   <Gender>male</Gender>
-  <Weight unit="kg">1000.0</Weight>
+  <Weight>0.0</Weight>
 </PatientDetails>

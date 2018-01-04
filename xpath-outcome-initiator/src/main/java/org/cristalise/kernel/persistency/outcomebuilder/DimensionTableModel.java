@@ -99,16 +99,12 @@ public class DimensionTableModel {
 
         // read help
         String helpText;
-        if (decl instanceof SimpleType)
-            helpText = OutcomeStructure.extractHelp(model);
-        else
-            helpText = OutcomeStructure.extractHelp(decl);
+        if (decl instanceof SimpleType) helpText = OutcomeStructure.extractHelp(model);
+        else                            helpText = OutcomeStructure.extractHelp(decl);
 
-        if (helpText.length() == 0)
-            helpText = "<i>No help is available for this cell</i>";
+        if (helpText.length() == 0) helpText = "<i>No help is available for this cell</i>";
 
         colHelp.add(helpText);
-
     }
 
 
@@ -301,9 +297,13 @@ public class DimensionTableModel {
         if (index == -1) index = elements.size();
         Object[] newRow = new Object[columnHeadings.size()];
         Element myElement = parent.createElement(model.getName());
+
         for (int i=0; i<columnDecls.size(); i++) {
             if (columnDecls.get(i) instanceof ElementDecl) { // sub element
                 ElementDecl childElementDecl = (ElementDecl)columnDecls.get(i);
+
+                if (childElementDecl.getMinOccurs() == 0) continue;
+
                 Element childElement = parent.createElement(childElementDecl.getName());
                 Object newValue = setupDefaultElement(childElementDecl, childElement, columnClasses.get(i));
                 myElement.appendChild(childElement);
@@ -311,6 +311,9 @@ public class DimensionTableModel {
             }
             else if (columnDecls.get(i) instanceof AttributeDecl) { //attribute
                 AttributeDecl thisAttrDecl = (AttributeDecl)columnDecls.get(i);
+
+                if (thisAttrDecl.isOptional()) continue;
+
                 String newValue = thisAttrDecl.getFixedValue()!=null?thisAttrDecl.getFixedValue():thisAttrDecl.getDefaultValue();
                 newRow[i] = OutcomeStructure.getTypedValue(newValue, columnClasses.get(i));
                 myElement.setAttribute(thisAttrDecl.getName(), newRow[i].toString());

@@ -21,4 +21,5 @@
 
 -->
 <IntegerField>
+  <counter>123</counter>
 </IntegerField>

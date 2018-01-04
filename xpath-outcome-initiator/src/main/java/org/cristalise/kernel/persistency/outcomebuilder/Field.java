@@ -78,7 +78,7 @@ public class Field extends OutcomeStructure {
         // Set attributes first
         myAttributes.addInstance(newElement, parentDoc);
 
-        if (this.myElement != null) throw new CardinalException("Field "+this.getName()+" cannot repeat");
+        if (this.myElement != null) throw new CardinalException("Field '"+this.getName()+"' cannot repeat");
 
         this.myElement = newElement;
 

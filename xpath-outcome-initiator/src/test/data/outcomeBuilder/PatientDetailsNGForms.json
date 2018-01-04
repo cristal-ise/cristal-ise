@@ -78,6 +78,7 @@
       "label": "Gender",
       "placeholder": "Gender",
       "type": "SELECT",
+      "value": "male",
       "required": true
     },
     {

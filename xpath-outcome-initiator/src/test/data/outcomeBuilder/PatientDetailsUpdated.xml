@@ -20,5 +20,9 @@
     http://www.fsf.org/licensing/licenses/lgpl.html
 
 -->
-<IntegerField>
-</IntegerField>
+<PatientDetails id="string">
+  <InsuranceNumber>string</InsuranceNumber>
+  <DateOfBirth>2008-09-29</DateOfBirth>
+  <Gender>male</Gender>
+  <Weight unit="kg">1000.0</Weight>
+</PatientDetails>

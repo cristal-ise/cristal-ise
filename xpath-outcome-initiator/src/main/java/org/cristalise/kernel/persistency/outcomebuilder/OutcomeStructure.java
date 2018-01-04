@@ -52,6 +52,8 @@ import org.exolab.castor.xml.schema.XMLType;
 import org.json.JSONObject;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
 
 // contains child outcome elements - creates new ones
 public abstract class OutcomeStructure {
@@ -112,8 +114,31 @@ public abstract class OutcomeStructure {
         if (childModel == null) throw new StructuralException("'"+model.getName()+"' does not have child '"+recordName+"'");
 
         Element newElement = childModel.initNew(rootDocument);
+        Element refElement = null;
+        boolean cont = true;
 
-        myElement.appendChild(newElement);
+        // lets find out where to insert this new element
+        for(int i = 0; i < subStructureOrder.size() && cont; i++) {
+            if (recordName.equals(subStructureOrder.get(i))) {
+                cont = false;
+
+                if (i+1 < subStructureOrder.size()) {
+                    String refElementName = subStructureOrder.get(i+1);
+                    NodeList children = myElement.getChildNodes();
+
+                    for (int j = 0; j < children.getLength() && refElement == null; j++) {
+                        Node child = children.item(j);
+                        // ignore any Node (e.g. Text) which are not Element type
+                        if (child instanceof Element && child.getNodeName().equals(refElementName)) {
+                            refElement = (Element) child;
+                        }
+                    }
+                }
+            }
+        }
+
+        if (refElement == null) myElement.appendChild(newElement);
+        else                    myElement.insertBefore(newElement, refElement);
 
         return newElement;
     }

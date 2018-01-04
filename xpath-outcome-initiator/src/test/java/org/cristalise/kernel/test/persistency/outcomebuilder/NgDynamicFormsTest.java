@@ -33,7 +33,6 @@ import org.cristalise.kernel.test.persistency.XMLUtils;
 import org.cristalise.kernel.utils.Logger;
 import org.json.JSONArray;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.mvel2.templates.CompiledTemplate;
 import org.mvel2.templates.TemplateCompiler;

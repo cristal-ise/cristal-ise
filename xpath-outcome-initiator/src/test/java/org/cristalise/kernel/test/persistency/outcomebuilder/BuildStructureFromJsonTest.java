@@ -40,7 +40,7 @@ public class BuildStructureFromJsonTest extends XMLUtils {
 
     private void checkJsonOutcome(String type) throws Exception {
         OutcomeBuilder builder = new OutcomeBuilder(new Schema(type, 0, getXSD(dir, type)), true);
-        String expected = getXML(dir, type);
+        String expected = getXML(dir, type+"Updated");
         JSONObject expectedJson = XML.toJSONObject(expected);
 
         Logger.msg(expectedJson.toString());

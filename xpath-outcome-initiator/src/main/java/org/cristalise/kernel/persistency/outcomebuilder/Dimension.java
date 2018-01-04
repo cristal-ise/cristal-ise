@@ -36,7 +36,7 @@ public class Dimension extends OutcomeStructure {
 
     DimensionTableModel          tableModel;
     Element                      parent;
-    DomKeyPushTable              table;
+//    DomKeyPushTable              table;
     ArrayList<DimensionInstance> instances = new ArrayList<DimensionInstance>(); // stores DimensionInstances if tabs
     ArrayList<Element>           elements  = new ArrayList<Element>();           // stores current children
     Mode                         mode;
@@ -51,7 +51,7 @@ public class Dimension extends OutcomeStructure {
 
             mode = Mode.TABLE;
 
-            table = new DomKeyPushTable(tableModel, this);
+//            table = new DomKeyPushTable(tableModel, this);
         }
         catch (OutcomeBuilderException e) {
             // use tabs
@@ -108,7 +108,8 @@ public class Dimension extends OutcomeStructure {
     @Override
     public String validateStructure() {
         if (mode == Mode.TABLE) {
-            return table.validateStructure();
+//            return table.validateStructure();
+            return "";
         }
         else {
             StringBuffer errors = new StringBuffer();
@@ -142,7 +143,7 @@ public class Dimension extends OutcomeStructure {
             return newElement;
         }
     }
-
+/*
     public void addRow(int index) throws OutcomeBuilderException {
         if (elements.size() == model.getMaxOccurs())
             throw new CardinalException("Maximum size of table reached");
@@ -189,7 +190,6 @@ public class Dimension extends OutcomeStructure {
         }
         elements.remove(index);
     }
-
     private class DomKeyPushTable {
         Dimension dim;
 
@@ -201,7 +201,7 @@ public class Dimension extends OutcomeStructure {
             return null;
         }
     }
-
+*/
     @Override
     public void exportViewTemplate(Writer template) {
         if (mode == Mode.TABLE) {
