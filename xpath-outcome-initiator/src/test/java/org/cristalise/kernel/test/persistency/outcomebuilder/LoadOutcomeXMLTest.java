@@ -25,6 +25,7 @@ import org.cristalise.kernel.persistency.outcomebuilder.OutcomeBuilder;
 import org.cristalise.kernel.test.persistency.XMLUtils;
 import org.cristalise.kernel.utils.Logger;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
 public class LoadOutcomeXMLTest extends XMLUtils {
@@ -47,12 +48,12 @@ public class LoadOutcomeXMLTest extends XMLUtils {
         assert compareXML(expected, actual.getXml());
     }
 
-    @Test
+    @Test @Ignore
     public void loadAndExportDefaultStateMachine() throws Exception {
         loaExportCheck("StateMachine", "Default");
     }
 
-    @Test
+    @Test @Ignore
     public void loadAndExportDevModule() throws Exception {
         loaExportCheck("Module", "Dev");
     }
