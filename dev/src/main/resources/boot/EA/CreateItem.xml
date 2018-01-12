@@ -23,8 +23,7 @@
 <ActivityDef ID="-1" Name="CreateItem" Height="0" Width="0"
 	IsLayoutable="false" IsComposite="false">
 	<Properties>
-		<KeyValuePair Key="Description"
-			String="Create a new Item from this Description" />
+		<KeyValuePair Key="Description" String="Create a new Item from its Description" />
 		<KeyValuePair Key="Agent Name" String="" />
 		<KeyValuePair Key="Viewpoint" String="" />
 		<KeyValuePair Key="Breakpoint" Boolean="false" />
