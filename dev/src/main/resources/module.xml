@@ -40,6 +40,7 @@
     <Config name="OverrideScriptLang.ecmascript">rhino</Config>
     <Imports>
         <Resource name="NewDevObjectDef" version="0" type="OD">boot/OD/NewDevObjectDef.xsd</Resource>
+        <SchemaResource name="NewAgent" version="0"/>
         <Resource name="ChooseWorkflow" version="0" type="OD">boot/OD/ChooseWorkflow.xsd</Resource>
         <Resource name="NewCollection" version="0" type="OD">boot/OD/NewCollection.xsd</Resource>
         <Resource name="LocalObjectDefCreator" version="0" type="SC">boot/SC/LocalObjectDefCreator.xml</Resource>
@@ -54,6 +55,11 @@
         <Activity name="CreateItem" version="0" resource="boot/EA/CreateItem.xml">
             <Schema name="NewDevObjectDef" version="0" />
             <Script name="InstantiateItem" version="0" />
+        </Activity>
+        <ScriptResource name="InstantiateAgent" version="0"/>
+        <Activity name="CreateAgent" version="0">
+            <Schema name="NewAgent"         version="0" />
+            <Script name="InstantiateAgent" version="0" />
         </Activity>
         <Resource name="SetWorkflow" version="0" type="SC">boot/SC/SetWorkflow.xml</Resource>
         <Activity name="SetInstanceWorkflow" version="0" resource="boot/EA/SetInstanceWorkflow.xml">
@@ -86,7 +92,7 @@
         <Workflow name="StateMachineFactoryWf" version="0" resource="boot/CA/StateMachineFactoryWf.xml">
             <Activity name="CreateNewLocalObjectDef" version="0" />
         </Workflow>
-        <Workflow name="ItemDescriptionWf" version="0" resource="boot/CA/ItemDescriptionWf.xml" id="b9415b57-3a4a-4b31-825a-d307d1280ac0">
+        <Workflow name="ItemDescriptionWf" version="0" resource="boot/CA/ItemDescriptionWf.xml">
             <Activity name="EditPropertyDescription" version="0" />
             <Activity name="SetInstanceWorkflow" version="0" />
             <Activity name="CreateItem" version="0" />
@@ -100,6 +106,9 @@
         </Workflow>
         <Workflow name="ModuleFactory" version="0" resource="boot/CA/ModuleFactory.xml">
             <Activity name="CreateItem" version="0" />
+        </Workflow>
+        <Workflow name="AgentFactoryWf" version="0">
+            <Activity name="CreateAgent" version="0" />
         </Workflow>
         <Item name="ScriptFactory" initialPath="/desc/dev" workflow="ScriptFactoryWf">
             <Property name="LocalObjectType">Script</Property>
@@ -214,11 +223,11 @@
                 <DependencyMember itemPath="desc/dev/StateMachineFactory" />
             </Dependency>
         </Item>
-        <Item name="DescriptionFactory" initialPath="/desc/dev" workflow="ItemDescriptionFactoryWf" id="57d87f6d-a83e-42b9-a7c2-800778d5e4d5">
+        <Item name="DescriptionFactory" initialPath="/desc/dev" workflow="ItemDescriptionFactoryWf">
             <Property name="Type">Factory</Property>
             <Outcome viewname="last" schema="PropertyDescription" version="0">boot/property/DescProp.xml</Outcome>
             <Dependency name="workflow" isDescription="false">
-                <DependencyMember itemPath="b9415b57-3a4a-4b31-825a-d307d1280ac0">
+                <DependencyMember itemPath="/desc/ActivityDesc/dev/ItemDescriptionWf">
                     <MemberProperties>
                         <KeyValuePair Key="Version" String="0" />
                     </MemberProperties>
@@ -230,7 +239,7 @@
                 <CollectionProperties />
             </Dependency>
         </Item>
-        <Item name="ModuleFactory" initialPath="/desc/dev" workflow="ModuleFactory" id="ac4a49d0-a156-48ec-ae1a-c54b616899f1">
+        <Item name="ModuleFactory" initialPath="/desc/dev" workflow="ModuleFactory">
             <Property name="Type">Factory</Property>
             <Outcome viewname="last" schema="PropertyDescription" version="0">boot/property/ModuleProp.xml</Outcome>
             <Dependency name="workflow" isDescription="false">
@@ -243,6 +252,19 @@
             </Dependency>
             <Dependency name="contents" isDescription="true" />
         </Item>
+        <Item name="AgentFactory" initialPath="/desc/dev" workflow="AgentFactoryWf">
+            <Property name="Type">Factory</Property>
+            <Outcome viewname="last" schema="PropertyDescription" version="0">boot/property/AgentProp.xml</Outcome>
+            <Dependency name="workflow" isDescription="false">
+                <DependencyMember itemPath="/desc/ActivityDesc/kernel/ManageAgent">
+                    <MemberProperties>
+                        <KeyValuePair Key="Version" String="0" />
+                    </MemberProperties>
+                </DependencyMember>
+                <CollectionProperties />
+            </Dependency>
+        </Item>
+
         <Role jobList="false">User</Role>
         <Role jobList="false">User/SubUser</Role>
         <Agent name="dev" password="test">
