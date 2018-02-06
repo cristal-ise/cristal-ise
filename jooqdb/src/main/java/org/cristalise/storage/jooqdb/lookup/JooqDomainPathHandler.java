@@ -53,13 +53,13 @@ public class JooqDomainPathHandler {
 
     public void createTables(DSLContext context) throws PersistencyException {
         context.createTableIfNotExists(DOMAIN_PATH_TABLE)
-            .column(PATH,   JooqHandler.STRING_TYPE .nullable(false))
-            .column(TARGET, JooqHandler.UUID_TYPE   .nullable(true))
-            .constraints(
-                    constraint("PK_"+DOMAIN_PATH_TABLE).primaryKey(PATH),
-                    constraint("FK_"+DOMAIN_PATH_TABLE).foreignKey(TARGET).references(JooqItemHandler.ITEM_TABLE, JooqItemHandler.UUID)
-             )
-            .execute();
+        .column(PATH,   JooqHandler.STRING_TYPE .nullable(false))
+        .column(TARGET, JooqHandler.UUID_TYPE   .nullable(true))
+        .constraints(
+                constraint("PK_"+DOMAIN_PATH_TABLE).primaryKey(PATH),
+                constraint("FK_"+DOMAIN_PATH_TABLE).foreignKey(TARGET).references(JooqItemHandler.ITEM_TABLE, JooqItemHandler.UUID)
+                )
+        .execute();
     }
 
     private DomainPath getDomainPath(Record record) {
@@ -115,7 +115,7 @@ public class JooqDomainPathHandler {
         Logger.msg(8, "JooqDomainPathHandler.insert() - SQL:\n"+insertInto.toString());
 
         return insertInto.execute();
-   }
+    }
 
     public boolean exists(DSLContext context, DomainPath path) throws PersistencyException {
         return context.fetchExists( select().from(DOMAIN_PATH_TABLE).where(PATH.equal(path.getStringPath())) );
@@ -130,10 +130,26 @@ public class JooqDomainPathHandler {
         return getDomainPath(result);
     }
 
+    public int countByRegex(DSLContext context, String pattern) {
+        return context.selectCount().from(DOMAIN_PATH_TABLE).where(PATH.likeRegex(pattern)).fetchOne(0, int.class);
+    }
+
     public List<Path> findByRegex(DSLContext context, String pattern) {
         Result<Record> result = context
                 .select().from(DOMAIN_PATH_TABLE)
                 .where(PATH.likeRegex(pattern))
+                .fetch();
+
+        return getListOfPath(result);
+    }
+
+    public List<Path> findByRegex(DSLContext context, String pattern, int offset, int limit) {
+        Result<Record> result = context
+                .select().from(DOMAIN_PATH_TABLE)
+                .where(PATH.likeRegex(pattern))
+                .orderBy(PATH)
+                .limit(limit)
+                .offset(offset)
                 .fetch();
 
         return getListOfPath(result);
@@ -148,7 +164,7 @@ public class JooqDomainPathHandler {
         SelectConditionStep<?> select = context.select().from(DOMAIN_PATH_TABLE).where(PATH.like(pattern));
 
         if (uuids != null && uuids.size() != 0) select.and(TARGET.in(uuids));
-        
+
         Logger.msg(8, "JooqDomainPathHandler.find() - SQL:\n"+select);
 
         return getListOfPath(select.fetch());

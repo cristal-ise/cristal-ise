@@ -23,13 +23,16 @@ package org.cristalise.lookup;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 
+import org.apache.commons.lang3.StringUtils;
 import org.cristalise.kernel.lookup.AgentPath;
 import org.cristalise.kernel.lookup.DomainPath;
 import org.cristalise.kernel.lookup.ItemPath;
+import org.cristalise.kernel.lookup.Lookup.PagedResult;
 import org.cristalise.kernel.lookup.Path;
 import org.cristalise.kernel.lookup.RolePath;
 import org.junit.Before;
@@ -41,6 +44,7 @@ public class LookupSearchTests extends LookupTestBase {
     UUID uuid1 = new UUID(0,1);
     UUID uuid2 = new UUID(0,2);
 
+    @Override
     @Before
     public void setUp() throws Exception {
         super.setUp();
@@ -50,7 +54,7 @@ public class LookupSearchTests extends LookupTestBase {
         lookup.add( new AgentPath(uuid2, "John") );
         lookup.add( new DomainPath("empty/nothing") );
         lookup.add( new DomainPath("empty/something/uuid0", lookup.getItemPath(uuid0.toString())) );
-//        lookup.add( new DomainPath("empty.old/something/uuid1", lookup.getItemPath(uuid1.toString())) );
+        //lookup.add( new DomainPath("empty.old/something/uuid1", lookup.getItemPath(uuid1.toString())) );
         lookup.add( new RolePath(new RolePath(), "User") );
         lookup.add( new RolePath(new RolePath(), "User/SubUser") );
         lookup.add( new RolePath(new RolePath(), "User/SubUser/DummyUser") );
@@ -59,10 +63,10 @@ public class LookupSearchTests extends LookupTestBase {
 
     @Test
     public void search() throws Exception {
-        List<Path> expected = Arrays.asList(new DomainPath("empty"), 
-                                            new DomainPath("empty/nothing"), 
-                                            new DomainPath("empty/something"), 
-                                            new DomainPath("empty/something/uuid0", new ItemPath(uuid0)));
+        List<Path> expected = Arrays.asList(new DomainPath("empty"),
+                new DomainPath("empty/nothing"),
+                new DomainPath("empty/something"),
+                new DomainPath("empty/something/uuid0", new ItemPath(uuid0)));
 
         compare(expected, lookup.search(new DomainPath("empty"), ""));
 
@@ -76,7 +80,7 @@ public class LookupSearchTests extends LookupTestBase {
         ItemPath ip = lookup.getItemPath(uuid0.toString());
         lookup.add( new DomainPath("empty/something/uuid0prime", ip) );
 
-        compare(Arrays.asList(new DomainPath("empty/something/uuid0prime", ip),  new DomainPath("empty/something/uuid0", ip)), 
+        compare(Arrays.asList(new DomainPath("empty/something/uuid0prime", ip),  new DomainPath("empty/something/uuid0", ip)),
                 lookup.searchAliases(new ItemPath(uuid0)));
     }
 
@@ -86,14 +90,14 @@ public class LookupSearchTests extends LookupTestBase {
 
         compare(Arrays.asList(new DomainPath("empty"), new DomainPath("dummy")), lookup.getChildren(new DomainPath()) );
 
-        compare(Arrays.asList(new DomainPath("empty/nothing"),  new DomainPath("empty/something")), 
-            lookup.getChildren(new DomainPath("empty")));
+        compare(Arrays.asList(new DomainPath("empty/nothing"),  new DomainPath("empty/something")),
+                lookup.getChildren(new DomainPath("empty")));
     }
 
     @Test
     public void getChildren_RolePath() throws Exception {
         compare(Arrays.asList(new RolePath(new RolePath("User", false), "SubUser"),  new RolePath(new RolePath("User", false), "LowerUser")),
-            lookup.getChildren(new RolePath(new RolePath(), "User")));
+                lookup.getChildren(new RolePath(new RolePath(), "User")));
     }
 
     @Test
@@ -102,9 +106,9 @@ public class LookupSearchTests extends LookupTestBase {
         lookup.add( new DomainPath("empty/nothing.new/toto") );
 
         compare(Arrays.asList(new DomainPath("empty/nothing"),
-                              new DomainPath("empty/something"),
-                              new DomainPath("empty/nothing.old"), 
-                              new DomainPath("empty/nothing.new")), 
+                new DomainPath("empty/something"),
+                new DomainPath("empty/nothing.old"),
+                new DomainPath("empty/nothing.new")),
                 lookup.getChildren(new DomainPath("empty")));
     }
 
@@ -120,4 +124,59 @@ public class LookupSearchTests extends LookupTestBase {
         assertEquals("Jim",  lookup.getAgentName(new AgentPath(uuid1)));
         assertEquals("John", lookup.getAgentName(new AgentPath(uuid2)));
     }
+
+    @Test
+    public void getChildrenPaged_DomainPath() throws Exception {
+        for (int i = 0; i < 35; i++) lookup.add(new DomainPath("paged/child" + StringUtils.leftPad(""+i, 2, "0")) );
+
+        PagedResult actuals = null;
+        List<Path> expecteds = new ArrayList<>();
+
+        for (int i = 0; i < 3; i++) {
+            actuals = lookup.getChildren(new DomainPath("paged"), i*10, 10);
+
+            expecteds.clear();;
+            for (int j = 0; j < 10; j++) expecteds.add(new DomainPath("paged/child" + StringUtils.leftPad("" + (i*10 + j), 2, "0")));
+
+            compare(expecteds, actuals.rows.toArray(new DomainPath[0]));
+            assertEquals(35, actuals.maxRows);
+        }
+
+        actuals = lookup.getChildren(new DomainPath("paged"), 30, 10);
+
+        expecteds.clear();;
+        for (int j = 0; j < 5; j++) expecteds.add(new DomainPath("paged/child" + StringUtils.leftPad("" + (30 + j), 2)));
+
+        compare(expecteds, actuals.rows.toArray(new DomainPath[0]));
+        assertEquals(35, actuals.maxRows);
+    }
+
+    @Test
+    public void getChildrenPaged_RolePath() throws Exception {
+        RolePath paged = new RolePath(new RolePath(), "paged");
+        lookup.add(paged);
+        for (int i = 0; i < 35; i++) lookup.add(new RolePath(paged, "child" + StringUtils.leftPad(""+i, 2, "0")) );
+
+        PagedResult actuals = null;
+        List<Path> expecteds = new ArrayList<>();
+
+        for (int i = 0; i < 3; i++) {
+            actuals = lookup.getChildren(paged, i*10, 10);
+
+            expecteds.clear();;
+            for (int j = 0; j < 10; j++) expecteds.add(new RolePath("paged/child" + StringUtils.leftPad("" + (i*10 + j), 2, "0")));
+
+            compare(expecteds, actuals.rows.toArray(new RolePath[0]));
+            assertEquals(35, actuals.maxRows);
+        }
+
+        actuals = lookup.getChildren(paged, 30, 10);
+
+        expecteds.clear();;
+        for (int j = 0; j < 5; j++) expecteds.add(new RolePath("paged/child" + StringUtils.leftPad("" + (30 + j), 2)));
+
+        compare(expecteds, actuals.rows.toArray(new RolePath[0]));
+        assertEquals(35, actuals.maxRows);
+    }
+
 }

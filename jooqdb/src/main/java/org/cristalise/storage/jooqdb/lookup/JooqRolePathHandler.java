@@ -21,6 +21,7 @@
 package org.cristalise.storage.jooqdb.lookup;
 
 import static org.jooq.impl.DSL.constraint;
+import static org.jooq.impl.DSL.countDistinct;
 import static org.jooq.impl.DSL.field;
 import static org.jooq.impl.DSL.name;
 import static org.jooq.impl.DSL.select;
@@ -52,18 +53,18 @@ public class JooqRolePathHandler {
     static final Field<String>  PATH    = field(name("PATH"),    String.class);
     static final Field<Boolean> JOBLIST = field(name("JOBLIST"), Boolean.class);
     static final Field<UUID>    AGENT   = field(name("AGENT"),   UUID.class);
-    
+
     static final UUID NO_AGENT = new UUID(0,0);
 
     public void createTables(DSLContext context) throws PersistencyException {
         context.createTableIfNotExists(ROLE_PATH_TABLE)
-            .column(PATH,    JooqHandler.STRING_TYPE .nullable(false))
-            .column(AGENT,   JooqHandler.UUID_TYPE   .nullable(false))
-            .column(JOBLIST, SQLDataType.BOOLEAN     .nullable(false))
-            .constraints(
-                    constraint("PK_"+ROLE_PATH_TABLE).primaryKey(PATH, AGENT)
-//                    constraint("FK_"+ROLE_PATH_TABLE).foreignKey(AGENT).references(JooqItemHandler.ITEM_TABLE, JooqItemHandler.UUID)
-            )
+        .column(PATH,    JooqHandler.STRING_TYPE .nullable(false))
+        .column(AGENT,   JooqHandler.UUID_TYPE   .nullable(false))
+        .column(JOBLIST, SQLDataType.BOOLEAN     .nullable(false))
+        .constraints(
+                constraint("PK_"+ROLE_PATH_TABLE).primaryKey(PATH, AGENT)
+                //                    constraint("FK_"+ROLE_PATH_TABLE).foreignKey(AGENT).references(JooqItemHandler.ITEM_TABLE, JooqItemHandler.UUID)
+                )
         .execute();
     }
 
@@ -84,9 +85,9 @@ public class JooqRolePathHandler {
     public int update(DSLContext context, RolePath role) throws PersistencyException {
         return context
                 .update(ROLE_PATH_TABLE)
-                    .set(JOBLIST, role.hasJobList())
-                 .where(PATH.equal(role.getStringPath()))
-                   .and(AGENT.equal(NO_AGENT))
+                .set(JOBLIST, role.hasJobList())
+                .where(PATH.equal(role.getStringPath()))
+                .and(AGENT.equal(NO_AGENT))
                 .execute();
     }
 
@@ -105,9 +106,9 @@ public class JooqRolePathHandler {
 
         return context
                 .insertInto(ROLE_PATH_TABLE)
-                    .set(PATH,    role.getStringPath())
-                    .set(JOBLIST, role.hasJobList())
-                    .set(AGENT,   uuid)
+                .set(PATH,    role.getStringPath())
+                .set(JOBLIST, role.hasJobList())
+                .set(AGENT,   uuid)
                 .execute();
     }
 
@@ -122,7 +123,7 @@ public class JooqRolePathHandler {
         Record result = context
                 .select().from(ROLE_PATH_TABLE)
                 .where(PATH.equal(role.getStringPath()))
-                  .and(AGENT.equal(NO_AGENT))
+                .and(AGENT.equal(NO_AGENT))
                 .fetchOne();
 
         return getRolePath(result);
@@ -155,10 +156,30 @@ public class JooqRolePathHandler {
         return getLisOfPaths(result);
     }
 
+    public int countByRegex(DSLContext context, String pattern) {
+        return context
+                .select(countDistinct(PATH))
+                .from(ROLE_PATH_TABLE)
+                .where(PATH.likeRegex(pattern))
+                .fetchOne(0, int.class);
+    }
+
     public List<Path> findByRegex(DSLContext context, String pattern) {
         Result<Record2<String,Boolean>> result = context
                 .selectDistinct(PATH, JOBLIST).from(ROLE_PATH_TABLE)
                 .where(PATH.likeRegex(pattern))
+                .fetch();
+
+        return getLisOfPaths(result);
+    }
+
+    public List<Path> findByRegex(DSLContext context, String pattern, int offset, int limit) {
+        Result<Record2<String,Boolean>> result = context
+                .selectDistinct(PATH, JOBLIST).from(ROLE_PATH_TABLE)
+                .where(PATH.likeRegex(pattern))
+                .orderBy(PATH)
+                .limit(limit)
+                .offset(offset)
                 .fetch();
 
         return getLisOfPaths(result);

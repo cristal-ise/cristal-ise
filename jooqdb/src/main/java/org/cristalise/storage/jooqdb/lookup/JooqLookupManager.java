@@ -261,12 +261,16 @@ public class JooqLookupManager implements LookupManager {
         }
     }
 
+    private String getChildrenPattern(Path path) {
+        //after the path match everything except '/'
+        return "^" + path.getStringPath() + "/[^/]*$";
+    }
+
     @Override
     public Iterator<Path> getChildren(Path path) {
-        //after the path match everything except '/'
-        String pattern = "^" + path.getStringPath() + "/[^/]*$";
+        String pattern = getChildrenPattern(path);
 
-        Logger.msg(8, "JooqLookupManager.getChildren() - pattern:"+pattern);
+        Logger.msg(8, "JooqLookupManager.getChildren() - pattern:" + pattern);
 
         if      (path instanceof ItemPath) return new ArrayList<Path>().iterator(); //empty iterator
         else if (path instanceof RolePath) return roles  .findByRegex(context, pattern ).iterator();
@@ -274,11 +278,30 @@ public class JooqLookupManager implements LookupManager {
     }
 
     @Override
+    public PagedResult getChildren(Path path, int offset, int limit) {
+        String pattern = getChildrenPattern(path);
+
+        Logger.msg(8, "JooqLookupManager.getChildren() - pattern:%s offset:%d limit:%d", pattern, offset, limit);
+
+        if (path instanceof ItemPath) return new PagedResult();
+
+        int maxRows = 0;
+
+        if      (path instanceof RolePath)   maxRows = roles  .countByRegex(context, pattern);
+        else if (path instanceof DomainPath) maxRows = domains.countByRegex(context, pattern);
+
+        if (maxRows == 0) return new PagedResult();
+
+        if (path instanceof RolePath) return new PagedResult(maxRows, roles  .findByRegex(context, pattern, offset, limit));
+        else                          return new PagedResult(maxRows, domains.findByRegex(context, pattern, offset, limit));
+    }
+
+    @Override
     public Iterator<Path> search(Path start, Property... props) {
         if (!exists(start)) return new ArrayList<Path>().iterator(); //empty iterator
-        
+
         List<UUID> uuids = properties.findItems(context, props);
-        
+
         if(uuids == null || uuids.size() == 0) return new ArrayList<Path>().iterator(); //empty iterator
 
         return find(start, "", uuids).iterator();
@@ -300,9 +323,9 @@ public class JooqLookupManager implements LookupManager {
             role.getParent();
             roles.insert(context, role, null);
             return role;
-        } 
+        }
         catch (Throwable t) {
-            Logger.error(t); 
+            Logger.error(t);
             throw new ObjectCannotBeUpdated("Parent role for '"+role+"' does not exists");
         }
     }
@@ -363,8 +386,8 @@ public class JooqLookupManager implements LookupManager {
 
         try {
             int rows = roles.delete(context, role, agent);
-            
-            if (rows == 0) 
+
+            if (rows == 0)
                 throw new ObjectCannotBeUpdated("Role:"+role+" Agent:"+agent + " are not related.");
         }
         catch (Exception e) {
