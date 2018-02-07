@@ -22,10 +22,13 @@ package org.cristalise.lookup.ldap;
 
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Iterator;
 import java.util.Stack;
 import java.util.StringTokenizer;
 
+import org.apache.commons.collections4.IteratorUtils;
+import org.apache.commons.lang3.NotImplementedException;
 import org.cristalise.kernel.common.ObjectAlreadyExistsException;
 import org.cristalise.kernel.common.ObjectCannotBeUpdated;
 import org.cristalise.kernel.common.ObjectNotFoundException;
@@ -40,6 +43,7 @@ import org.cristalise.kernel.lookup.RolePath;
 import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.process.auth.Authenticator;
 import org.cristalise.kernel.property.Property;
+import org.cristalise.kernel.property.PropertyArrayList;
 import org.cristalise.kernel.property.PropertyDescription;
 import org.cristalise.kernel.property.PropertyDescriptionList;
 import org.cristalise.kernel.utils.Logger;
@@ -69,7 +73,7 @@ public class LDAPLookup implements LookupManager {
     private String mGlobalPath, mRootPath, mLocalPath, mRoleTypeRoot, mItemTypeRoot, mDomainTypeRoot;
 
     /**
-     * 
+     *
      */
     public LDAPLookup() {
         super();
@@ -77,7 +81,7 @@ public class LDAPLookup implements LookupManager {
 
     /**
      * Initializes the DN paths from the Root, global and local paths supplied by the LDAP properties.
-     * 
+     *
      * @param props
      */
     protected void initPaths(LDAPProperties props) {
@@ -197,7 +201,7 @@ public class LDAPLookup implements LookupManager {
 
     /**
      * Gets the property manager, that is used to read and write cristal properties to the LDAP store.
-     * 
+     *
      * @return Returns the global LDAPPropertyManager.
      */
     public LDAPPropertyManager getPropManager() {
@@ -218,7 +222,7 @@ public class LDAPLookup implements LookupManager {
 
     /**
      * Attempts to resolve the CORBA object for a Path, either directly or through an alias.
-     * 
+     *
      * @param path
      *            the path to resolve
      * @return the CORBA object
@@ -233,7 +237,7 @@ public class LDAPLookup implements LookupManager {
 
     /**
      * Attempts to resolve the CORBA object from the IOR attribute of a DN, either directly or through an alias
-     * 
+     *
      * @param dn
      *            The String dn
      * @throws ObjectNotFoundException
@@ -496,8 +500,8 @@ public class LDAPLookup implements LookupManager {
             thisPath = new AgentPath(entityKey, agentID);
         }
         else if (LDAPLookupUtils.existsAttributeValue(entry, "objectclass", "cristalrole")) { // cristalrole
-            thisPath = new RolePath(getPathComponents(dn.substring(0, dn.lastIndexOf(mRoleTypeRoot))), 
-                                    LDAPLookupUtils.getFirstAttributeValue(entry, "jobList").equals("TRUE"));
+            thisPath = new RolePath(getPathComponents(dn.substring(0, dn.lastIndexOf(mRoleTypeRoot))),
+                    LDAPLookupUtils.getFirstAttributeValue(entry, "jobList").equals("TRUE"));
         }
         else if (LDAPLookupUtils.existsAttributeValue(entry, "objectclass", "aliasObject") ||
                 (LDAPLookupUtils.existsAttributeValue(entry, "objectclass", "cristalcontext") && dn.endsWith(mDomainTypeRoot)))
@@ -819,5 +823,69 @@ public class LDAPLookup implements LookupManager {
     @Override
     public void setIOR(ItemPath item, String ior) throws ObjectNotFoundException, ObjectCannotBeUpdated {
         throw new ObjectCannotBeUpdated("UNIMPLEMENTED");
+    }
+
+
+
+
+
+    @Override
+    public PagedResult getChildren(Path path, int offset, int limit) {
+        if (ldapProps.mEnablePagingMethods) {
+            Logger.warning("LDAPLookup.getChildren() - Paging support is not implemented, original method is used");
+            return new PagedResult(-1, IteratorUtils.toList(getChildren(path)));
+        }
+
+        throw new NotImplementedException("Paging support is not implemented");
+    }
+
+    @Override
+    public PagedResult search(Path start, PropertyArrayList props, int offset, int limit) {
+        if (ldapProps.mEnablePagingMethods) {
+            Logger.warning("LDAPLookup.search() - Paging support is not implemented, original method is used");
+            return new PagedResult(-1, IteratorUtils.toList(search(start, props.list.toArray(new Property[0]))));
+        }
+
+        throw new NotImplementedException("Paging support is not implemented");
+    }
+
+    @Override
+    public PagedResult search(Path start, PropertyDescriptionList props, int offset, int limit) {
+        if (ldapProps.mEnablePagingMethods) {
+            Logger.warning("LDAPLookup.search() - Paging support is not implemented, original method is used");
+            return new PagedResult(-1, IteratorUtils.toList(search(start, props)));
+        }
+
+        throw new NotImplementedException("Paging support is not implemented");
+    }
+
+    @Override
+    public PagedResult searchAliases(ItemPath itemPath, int offset, int limit) {
+        if (ldapProps.mEnablePagingMethods) {
+            Logger.warning("LDAPLookup.searchAliases() - Paging support is not implemented, original method is used");
+            return new PagedResult(-1, IteratorUtils.toList(searchAliases(itemPath)));
+        }
+
+        throw new NotImplementedException("Paging support is not implemented");
+    }
+
+    @Override
+    public PagedResult getAgents(RolePath rolePath, int offset, int limit) throws ObjectNotFoundException {
+        if (ldapProps.mEnablePagingMethods) {
+            Logger.warning("LDAPLookup.getAgents() - Paging support is not implemented, original method is used");
+            return new PagedResult(-1, Arrays.asList(getAgents(rolePath)));
+        }
+
+        throw new NotImplementedException("Paging support is not implemented");
+    }
+
+    @Override
+    public PagedResult getRoles(AgentPath agentPath, int offset, int limit) throws ObjectNotFoundException {
+        if (ldapProps.mEnablePagingMethods) {
+            Logger.warning("LDAPLookup.getRoles() - Paging support is not implemented, original method is used");
+            return new PagedResult(-1, Arrays.asList(getRoles(agentPath)));
+        }
+
+        throw new NotImplementedException("Paging support is not implemented");
     }
 }
