@@ -180,11 +180,19 @@ public class JooqDomainPathHandler {
     }
 
     public List<Path> find(DSLContext context, ItemPath item) {
-        Result<Record> result = context
-                .select().from(DOMAIN_PATH_TABLE)
-                .where(TARGET.equal(item.getUUID()))
-                .fetch();
+        return find(context, item, -1, -1);
+    }
 
-        return getListOfPath(result);
+    public int countFind(DSLContext context, ItemPath item) {
+        return context.selectCount().from(DOMAIN_PATH_TABLE).where(TARGET.equal(item.getUUID())).fetchOne(0, int.class);
+    }
+
+    public List<Path> find(DSLContext context, ItemPath item, int offset, int limit) {
+        SelectConditionStep<?> select = context.select().from(DOMAIN_PATH_TABLE).where(TARGET.equal(item.getUUID()));
+
+        if (limit  > 0) select.limit(limit);
+        if (offset > 0) select.offset(offset);
+
+        return getListOfPath(select.fetch());
     }
 }

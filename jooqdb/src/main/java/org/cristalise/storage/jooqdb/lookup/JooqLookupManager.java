@@ -346,7 +346,7 @@ public class JooqLookupManager implements LookupManager {
 
             Logger.msg(8, "JooqLookupManager.search(props) - SQL(count):\n%s", selectCount);
 
-            maxRows = selectCount.fetchOne(0, int.class);;
+            maxRows = selectCount.fetchOne(0, int.class);
 
             if(maxRows == 0) return new PagedResult(0, new ArrayList<Path>());
         }
@@ -491,6 +491,13 @@ public class JooqLookupManager implements LookupManager {
     }
 
     @Override
+    public PagedResult searchAliases(ItemPath itemPath, int offset, int limit) {
+        return new PagedResult(
+                domains.countFind(context, itemPath),
+                domains.find(context, itemPath, offset, limit) );
+    }
+
+    @Override
     public void setIOR(ItemPath item, String ior) throws ObjectNotFoundException, ObjectCannotBeUpdated {
         if (!exists(item)) throw new ObjectNotFoundException("Item:"+item);
 
@@ -503,12 +510,6 @@ public class JooqLookupManager implements LookupManager {
             Logger.error(e);
             throw new ObjectCannotBeUpdated("Item:" + item + " error:" + e.getMessage());
         }
-    }
-
-    @Override
-    public PagedResult searchAliases(ItemPath itemPath, int offset, int limit) {
-        // TODO Auto-generated method stub
-        return null;
     }
 
     @Override

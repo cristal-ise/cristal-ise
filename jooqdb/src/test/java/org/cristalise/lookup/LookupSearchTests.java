@@ -179,4 +179,31 @@ public class LookupSearchTests extends LookupTestBase {
         assertEquals(35, actuals.maxRows);
     }
 
+    @Test
+    public void searchAliasesPaged() throws Exception {
+        ItemPath ip = new ItemPath(UUID.randomUUID());
+        lookup.add(ip);
+
+        List<Path> expecteds = new ArrayList<>();
+
+        for (int i = 0; i < 35; i++) {
+            DomainPath dp = new DomainPath("paged/child" + StringUtils.leftPad(""+i, 2, "0"), ip);
+            lookup.add(dp);
+            expecteds.add(dp);
+        }
+
+        PagedResult actuals = null;
+
+        for (int i = 0; i < 3; i++) {
+            actuals = lookup.searchAliases(ip, i*10, 10);
+
+            assertReflectionEquals(expecteds.subList(i*10, i*10+10), actuals.rows, LENIENT_ORDER);
+            assertEquals(35, actuals.maxRows);
+        }
+
+        actuals = lookup.searchAliases(ip, 30, 10);
+
+        assertReflectionEquals(expecteds.subList(30, 35), actuals.rows, LENIENT_ORDER);
+        assertEquals(35, actuals.maxRows);
+    }
 }
