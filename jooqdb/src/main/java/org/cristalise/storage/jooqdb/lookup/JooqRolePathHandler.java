@@ -48,11 +48,11 @@ import org.jooq.Table;
 import org.jooq.impl.SQLDataType;
 
 public class JooqRolePathHandler {
-    static final Table<?> ROLE_PATH_TABLE = table(name("ROLE_PATH"));
+    static public final Table<?> ROLE_PATH_TABLE = table(name("ROLE_PATH"));
 
-    static final Field<String>  PATH    = field(name("PATH"),    String.class);
-    static final Field<Boolean> JOBLIST = field(name("JOBLIST"), Boolean.class);
-    static final Field<UUID>    AGENT   = field(name("AGENT"),   UUID.class);
+    static public final Field<String>  PATH    = field(name("PATH"),    String.class);
+    static public final Field<Boolean> JOBLIST = field(name("JOBLIST"), Boolean.class);
+    static public final Field<UUID>    AGENT   = field(name("AGENT"),   UUID.class);
 
     static final UUID NO_AGENT = new UUID(0,0);
 
@@ -63,7 +63,7 @@ public class JooqRolePathHandler {
         .column(JOBLIST, SQLDataType.BOOLEAN     .nullable(false))
         .constraints(
                 constraint("PK_"+ROLE_PATH_TABLE).primaryKey(PATH, AGENT)
-                //                    constraint("FK_"+ROLE_PATH_TABLE).foreignKey(AGENT).references(JooqItemHandler.ITEM_TABLE, JooqItemHandler.UUID)
+                // constraint("FK_"+ROLE_PATH_TABLE).foreignKey(AGENT).references(JooqItemHandler.ITEM_TABLE, JooqItemHandler.UUID)
                 )
         .execute();
     }

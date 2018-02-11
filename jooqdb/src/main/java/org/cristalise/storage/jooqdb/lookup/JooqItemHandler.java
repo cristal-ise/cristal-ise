@@ -58,12 +58,12 @@ public class JooqItemHandler {
 
     public void createTables(DSLContext context) throws PersistencyException {
         context.createTableIfNotExists(ITEM_TABLE)
-            .column(UUID,     JooqHandler.UUID_TYPE    .nullable(false))
-            .column(IOR,      JooqHandler.STRING_TYPE  .nullable(true))
-            .column(IS_AGENT, SQLDataType.BOOLEAN      .nullable(false))
-            .column(PASSWORD, JooqHandler.STRING_TYPE  .nullable(true))
-            .constraints(
-                    constraint("PK_"+ITEM_TABLE).primaryKey(UUID))
+        .column(UUID,     JooqHandler.UUID_TYPE    .nullable(false))
+        .column(IOR,      JooqHandler.STRING_TYPE  .nullable(true))
+        .column(IS_AGENT, SQLDataType.BOOLEAN      .nullable(false))
+        .column(PASSWORD, JooqHandler.STRING_TYPE  .nullable(true))
+        .constraints(
+                constraint("PK_"+ITEM_TABLE).primaryKey(UUID))
         .execute();
     }
 
@@ -104,9 +104,9 @@ public class JooqItemHandler {
     public int insert(DSLContext context, AgentPath agentPath, JooqItemPropertyHandler properties) throws PersistencyException {
         int rows = context
                 .insertInto(ITEM_TABLE)
-                    .set(UUID,     agentPath.getUUID())
-                    .set(IOR,      agentPath.getIORString())
-                    .set(IS_AGENT, true)
+                .set(UUID,     agentPath.getUUID())
+                .set(IOR,      agentPath.getIORString())
+                .set(IS_AGENT, true)
                 .execute();
 
         if (rows != 1) throw new PersistencyException("Insert into ITEM table rows:"+rows);
@@ -124,9 +124,9 @@ public class JooqItemHandler {
     public int insert(DSLContext context, ItemPath path) throws PersistencyException {
         return context
                 .insertInto(ITEM_TABLE)
-                    .set(UUID,     path.getUUID())
-                    .set(IOR,      path.getIORString())
-                    .set(IS_AGENT, false)
+                .set(UUID,     path.getUUID())
+                .set(IOR,      path.getIORString())
+                .set(IS_AGENT, false)
                 .execute();
     }
 
@@ -152,16 +152,21 @@ public class JooqItemHandler {
         return result.get(PASSWORD);
     }
 
-    public ItemPath getItemPath(DSLContext context, JooqItemPropertyHandler properties, Record record) throws PersistencyException {
+    public static ItemPath getItemPath(DSLContext context, JooqItemPropertyHandler properties, Record record) throws PersistencyException {
         if(record != null) {
+            UUID    uuid    = record.get(UUID);
             boolean isAgent = record.get(IS_AGENT);
             String  ior     = record.get(IOR);
-            UUID    uuid    = record.get(UUID);
+
+            String nameProp = BuiltInItemProperties.NAME.toString();
 
             if(isAgent) {
-                Property prop = (Property)properties.fetch(context, uuid, "Name");
+                String name;
 
-                return new AgentPath(uuid, ior, prop.getValue());
+                if (record.field(nameProp) != null) name = record.get(nameProp, String.class);
+                else                                name = ((Property)properties.fetch(context, uuid, nameProp)).getValue();
+
+                return new AgentPath(uuid, ior, name);
             }
             else
                 return new ItemPath(uuid, ior);
@@ -176,7 +181,7 @@ public class JooqItemHandler {
                 .select().from(ITEM_TABLE)
                 .where(UUID.in(uuids))
                 .fetch();
-        
+
         List<Path> foundPathes = new ArrayList<>();
 
         for (Record record : result) foundPathes.add(getItemPath(context, properties, record));
