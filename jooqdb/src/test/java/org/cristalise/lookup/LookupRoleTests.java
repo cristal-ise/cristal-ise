@@ -24,13 +24,19 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 import static org.unitils.reflectionassert.ReflectionAssert.assertReflectionEquals;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
+import java.util.UUID;
 
+import org.apache.commons.lang3.StringUtils;
 import org.cristalise.kernel.common.ObjectAlreadyExistsException;
 import org.cristalise.kernel.common.ObjectCannotBeUpdated;
 import org.cristalise.kernel.common.ObjectNotFoundException;
 import org.cristalise.kernel.lookup.AgentPath;
 import org.cristalise.kernel.lookup.ItemPath;
+import org.cristalise.kernel.lookup.Lookup.PagedResult;
+import org.cristalise.kernel.lookup.Path;
 import org.cristalise.kernel.lookup.RolePath;
 import org.junit.Before;
 import org.junit.Test;
@@ -41,6 +47,7 @@ public class LookupRoleTests extends LookupTestBase {
     AgentPath jim = new AgentPath(new ItemPath(), "Jim");
     AgentPath tom = new AgentPath(new ItemPath(), "Tom");
 
+    @Override
     @Before
     public void setUp() throws Exception {
         super.setUp();
@@ -122,7 +129,7 @@ public class LookupRoleTests extends LookupTestBase {
 
         lookup.addRole(jim, internist);
         lookup.addRole(jim, cardiologist);
-        
+
         assert lookup.hasRole(jim, internist);
         assert lookup.hasRole(jim, cardiologist);
 
@@ -216,5 +223,62 @@ public class LookupRoleTests extends LookupTestBase {
         compare(Arrays.asList(jim,tom),   lookup.getAgents(internist));
 
         compare(Arrays.asList(internist), lookup.getChildren(user));
+    }
+
+    @Test
+    public void getAgentsPaged() throws Exception {
+        List<Path> expecteds = new ArrayList<>();
+        RolePath paged = new RolePath(new RolePath(), "paged");
+        lookup.add(paged);
+
+        for (int i = 0; i < 35; i++) {
+            AgentPath ap = new AgentPath(UUID.randomUUID(), "agent" + StringUtils.leftPad(""+i, 2, "0"));
+            lookup.add(ap);
+            lookup.addRole(ap, paged);
+            expecteds.add(ap);
+        }
+
+        PagedResult actuals = null;
+
+        for (int i = 0; i < 3; i++) {
+            actuals = lookup.getAgents(paged, i*10, 10);
+
+            assertReflectionEquals(expecteds.subList(i*10, i*10+10), actuals.rows);
+            assertEquals(expecteds.size(), actuals.maxRows);
+        }
+
+        actuals = lookup.getAgents(paged, 30, 10);
+
+        assertReflectionEquals(expecteds.subList(30, 35), actuals.rows);
+        assertEquals(expecteds.size(), actuals.maxRows);
+    }
+
+    @Test
+    public void addRolesOfAgentOaged() throws Exception {
+        AgentPath paged = new AgentPath(new ItemPath(), "paged");
+        lookup.add(paged);
+
+        List<Path> expecteds = new ArrayList<>();
+
+        for (int i = 0; i < 35; i++) {
+            RolePath rp = new RolePath(new RolePath(), "paged" + StringUtils.leftPad(""+i, 2, "0"));
+            lookup.add(rp);
+            lookup.addRole(paged, rp);
+            expecteds.add(rp);
+        }
+
+        PagedResult actuals = null;
+
+        for (int i = 0; i < 3; i++) {
+            actuals = lookup.getRoles(paged, i*10, 10);
+
+            assertReflectionEquals(expecteds.subList(i*10, i*10+10), actuals.rows);
+            assertEquals(expecteds.size(), actuals.maxRows);
+        }
+
+        actuals = lookup.getRoles(paged, 30, 10);
+
+        assertReflectionEquals(expecteds.subList(30, 35), actuals.rows);
+        assertEquals(expecteds.size(), actuals.maxRows);
     }
 }

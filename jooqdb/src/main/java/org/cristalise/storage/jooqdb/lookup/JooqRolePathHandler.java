@@ -44,15 +44,17 @@ import org.jooq.Record;
 import org.jooq.Record2;
 import org.jooq.Result;
 import org.jooq.SelectConditionStep;
+import org.jooq.SelectQuery;
 import org.jooq.Table;
+import org.jooq.impl.DSL;
 import org.jooq.impl.SQLDataType;
 
 public class JooqRolePathHandler {
-    static final Table<?> ROLE_PATH_TABLE = table(name("ROLE_PATH"));
+    static public final Table<?> ROLE_PATH_TABLE = table(name("ROLE_PATH"));
 
-    static final Field<String>  PATH    = field(name("PATH"),    String.class);
-    static final Field<Boolean> JOBLIST = field(name("JOBLIST"), Boolean.class);
-    static final Field<UUID>    AGENT   = field(name("AGENT"),   UUID.class);
+    static public final Field<String>  PATH    = field(name("PATH"),    String.class);
+    static public final Field<Boolean> JOBLIST = field(name("JOBLIST"), Boolean.class);
+    static public final Field<UUID>    AGENT   = field(name("AGENT"),   UUID.class);
 
     static final UUID NO_AGENT = new UUID(0,0);
 
@@ -63,7 +65,7 @@ public class JooqRolePathHandler {
         .column(JOBLIST, SQLDataType.BOOLEAN     .nullable(false))
         .constraints(
                 constraint("PK_"+ROLE_PATH_TABLE).primaryKey(PATH, AGENT)
-                //                    constraint("FK_"+ROLE_PATH_TABLE).foreignKey(AGENT).references(JooqItemHandler.ITEM_TABLE, JooqItemHandler.UUID)
+                // constraint("FK_"+ROLE_PATH_TABLE).foreignKey(AGENT).references(JooqItemHandler.ITEM_TABLE, JooqItemHandler.UUID)
                 )
         .execute();
     }
@@ -147,13 +149,34 @@ public class JooqRolePathHandler {
         return agents;
     }
 
-    public List<Path> findRolesOfAgent(DSLContext context, AgentPath agent) throws PersistencyException {
-        Result<Record> result = context
-                .select().from(ROLE_PATH_TABLE)
-                .where(AGENT.equal(agent.getUUID()))
-                .fetch();
+    private SelectQuery<?> getFindRolesOfAgentSelect(DSLContext context, AgentPath agent) {
+        SelectQuery<?> select = context.selectQuery();
 
-        return getLisOfPaths(result);
+        select.addFrom(ROLE_PATH_TABLE);
+        select.addConditions(AGENT.equal(agent.getUUID()));
+
+        return select;
+    }
+
+    public int countRolesOfAgent(DSLContext context, AgentPath agent) throws PersistencyException {
+        SelectQuery<?> selectCount = getFindRolesOfAgentSelect(context, agent);
+        selectCount.addSelect(DSL.count());
+        return selectCount.fetchOne(0, int.class);
+    }
+
+    public List<Path> findRolesOfAgent(DSLContext context, AgentPath agent) throws PersistencyException {
+        return findRolesOfAgent(context, agent, -1, -1);
+    }
+
+    public List<Path> findRolesOfAgent(DSLContext context, AgentPath agent, int offset, int limit) throws PersistencyException {
+        SelectQuery<?> select = getFindRolesOfAgentSelect(context, agent);
+
+        select.addSelect(ROLE_PATH_TABLE.fields());
+
+        if (limit  > 0) select.addLimit(limit);
+        if (offset > 0) select.addOffset(offset);
+
+        return getLisOfPaths(select.fetch());
     }
 
     public int countByRegex(DSLContext context, String pattern) {

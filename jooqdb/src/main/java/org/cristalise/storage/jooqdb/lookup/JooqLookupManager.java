@@ -22,8 +22,10 @@ package org.cristalise.storage.jooqdb.lookup;
 
 import static org.cristalise.storage.jooqdb.clusterStore.JooqItemPropertyHandler.ITEM_PROPERTY_TABLE;
 import static org.cristalise.storage.jooqdb.lookup.JooqDomainPathHandler.DOMAIN_PATH_TABLE;
-import static org.cristalise.storage.jooqdb.lookup.JooqDomainPathHandler.PATH;
 import static org.cristalise.storage.jooqdb.lookup.JooqDomainPathHandler.TARGET;
+import static org.cristalise.storage.jooqdb.lookup.JooqItemHandler.ITEM_TABLE;
+import static org.cristalise.storage.jooqdb.lookup.JooqRolePathHandler.AGENT;
+import static org.cristalise.storage.jooqdb.lookup.JooqRolePathHandler.ROLE_PATH_TABLE;
 import static org.jooq.impl.DSL.field;
 import static org.jooq.impl.DSL.name;
 
@@ -56,6 +58,8 @@ import org.jooq.DSLContext;
 import org.jooq.Field;
 import org.jooq.JoinType;
 import org.jooq.Operator;
+import org.jooq.Record;
+import org.jooq.Result;
 import org.jooq.SelectQuery;
 import org.jooq.impl.DSL;
 
@@ -323,7 +327,7 @@ public class JooqLookupManager implements LookupManager {
             select.addConditions(Operator.AND, field(name(p.getName(), "VALUE"), String.class).equal(p.getValue()));
         }
 
-        select.addConditions(Operator.AND, PATH.like(domains.getFindPattern(start, "")));
+        select.addConditions(Operator.AND, JooqDomainPathHandler.PATH.like(domains.getFindPattern(start, "")));
 
         return select;
     }
@@ -353,7 +357,7 @@ public class JooqLookupManager implements LookupManager {
 
         SelectQuery<?> select = getSearchSelect(start, props);
 
-        select.addSelect(PATH, TARGET);
+        select.addSelect(JooqDomainPathHandler.PATH, TARGET);
 
         if (limit  > 0) select.addLimit(limit);
         if (offset > 0) select.addOffset(offset);
@@ -406,16 +410,73 @@ public class JooqLookupManager implements LookupManager {
         }
     }
 
+    private SelectQuery<?> getGetAgentsSelect(RolePath role) {
+        SelectQuery<?> select = context.selectQuery();
+
+        select.addFrom(ROLE_PATH_TABLE.as("role"));
+
+        select.addJoin(ITEM_TABLE.as("item"),          JoinType.JOIN, AGENT.equal(field(name("item", "UUID"), UUID.class)));
+        select.addJoin(ITEM_PROPERTY_TABLE.as("prop"), JoinType.JOIN, AGENT.equal(field(name("prop", "UUID"), UUID.class)));
+
+        select.addConditions(Operator.AND, JooqRolePathHandler.PATH.equal(role.getStringPath()));
+        select.addConditions(Operator.AND, JooqItemPropertyHandler.NAME.equal("Name"));
+
+        return select;
+    }
+
     @Override
     public AgentPath[] getAgents(RolePath role) throws ObjectNotFoundException {
-        try {
-            List<UUID> uuids = roles.findAgents(context, role);
-            return items.fetchAll(context, uuids, properties).toArray(new AgentPath[0]);
+        return getAgents(role, -1, -1).rows.toArray(new AgentPath[0]);
+    }
+
+    @Override
+    public PagedResult getAgents(RolePath role, int offset, int limit) throws ObjectNotFoundException {
+        int maxRows = -1;
+
+        if (limit > 0) {
+            SelectQuery<?> selectCount = getGetAgentsSelect(role);
+            selectCount.addSelect(DSL.count());
+
+            Logger.msg(8, "JooqLookupManager.getAgents(props) - role:%s  SQL(count):\n%s", role, selectCount);
+
+            maxRows = selectCount.fetchOne(0, int.class);
         }
-        catch (PersistencyException e) {
-            Logger.error(e);
+
+        SelectQuery<?> select = getGetAgentsSelect(role);
+
+        select.addSelect(
+                field(name("item", "UUID"), UUID.class),
+                JooqItemHandler.IOR,
+                JooqItemHandler.IS_AGENT,
+                JooqItemPropertyHandler.VALUE.as("Name"));
+
+        select.addOrderBy(field(name("Name")));
+
+        if (limit  > 0) select.addLimit(limit);
+        if (offset > 0) select.addOffset(offset);
+
+        Logger.msg(8, "JooqLookupManager.getAgents() - role:%s  SQL:\n%s", role, select);
+
+        Result<?> result = select.fetch();
+
+        PagedResult pResult = new PagedResult();
+
+        if(result != null) {
+            pResult.maxRows = maxRows;
+
+            for (Record record: result) {
+                try {
+                    pResult.rows.add(JooqItemHandler.getItemPath(context, null, record));
+                }
+                catch (PersistencyException e) {
+                    // This shall never happen
+                    Logger.error(e);
+                    throw new ObjectNotFoundException(e.getMessage());
+                }
+            }
         }
-        return new AgentPath[0];
+
+        return pResult;
     }
 
     @Override
@@ -427,6 +488,19 @@ public class JooqLookupManager implements LookupManager {
             Logger.error(e);
         }
         return new RolePath[0];
+    }
+
+    @Override
+    public PagedResult getRoles(AgentPath agent, int offset, int limit) {
+        try {
+            return new PagedResult(
+                    roles.countRolesOfAgent(context, agent),
+                    roles.findRolesOfAgent(context, agent, offset, limit));
+        }
+        catch (PersistencyException e) {
+            Logger.error(e);
+        }
+        return new PagedResult();
     }
 
     @Override
@@ -510,17 +584,5 @@ public class JooqLookupManager implements LookupManager {
             Logger.error(e);
             throw new ObjectCannotBeUpdated("Item:" + item + " error:" + e.getMessage());
         }
-    }
-
-    @Override
-    public PagedResult getAgents(RolePath rolePath, int offset, int limit) throws ObjectNotFoundException {
-        // TODO Auto-generated method stub
-        return null;
-    }
-
-    @Override
-    public PagedResult getRoles(AgentPath agentPath, int offset, int limit) throws ObjectNotFoundException {
-        // TODO Auto-generated method stub
-        return null;
     }
 }

@@ -41,6 +41,21 @@ public class LookupTestBase {
 
     protected JooqLookupManager lookup;
 
+    void setUpH2(ObjectProperties c2kProps) {
+        c2kProps.put(JooqHandler.JOOQ_URI,      "jdbc:h2:mem:;MODE=PostgreSQL"); //Mode=MYSQL
+        c2kProps.put(JooqHandler.JOOQ_USER,     "sa");
+        c2kProps.put(JooqHandler.JOOQ_PASSWORD, "sa");
+        c2kProps.put(JooqHandler.JOOQ_DIALECT,  "H2");
+    }
+
+    void setUpPostgres(ObjectProperties c2kProps) {
+        c2kProps.put(JooqHandler.JOOQ_URI,        "jdbc:postgresql://localhost:5432/integtest");
+        c2kProps.put(JooqHandler.JOOQ_USER,       "postgres");
+        c2kProps.put(JooqHandler.JOOQ_PASSWORD,   "cristal");
+        c2kProps.put(JooqHandler.JOOQ_DIALECT,    "POSTGRES");
+        c2kProps.put(JooqHandler.JOOQ_AUTOCOMMIT, true);
+    }
+
     @Before
     public void setUp() throws Exception {
         Logger.addLogStream(System.out, 8);
@@ -49,16 +64,13 @@ public class LookupTestBase {
 
         ObjectProperties c2kProps = new ObjectProperties();
 
-        c2kProps.put(JooqHandler.JOOQ_URI,      "jdbc:h2:mem:");
-        c2kProps.put(JooqHandler.JOOQ_USER,     "sa");
-        c2kProps.put(JooqHandler.JOOQ_PASSWORD, "sa");
-        c2kProps.put(JooqHandler.JOOQ_DIALECT,  "H2");
+        setUpH2(c2kProps);
 
         Gateway.init(c2kProps);
 
         FieldUtils.writeDeclaredStaticField(Gateway.class, "mLookupManager", lookup, true);
         FieldUtils.writeDeclaredStaticField(Gateway.class, "mLookup",        lookup, true);
-        //        FieldUtils.writeDeclaredStaticField(Gateway.class, "mC2KProps",      c2kProps, true);
+        // FieldUtils.writeDeclaredStaticField(Gateway.class, "mC2KProps",      c2kProps, true);
 
         lookup.open(null);
         lookup.initializeDirectory();
