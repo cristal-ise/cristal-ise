@@ -58,7 +58,7 @@ public class LookupTestBase {
 
         FieldUtils.writeDeclaredStaticField(Gateway.class, "mLookupManager", lookup, true);
         FieldUtils.writeDeclaredStaticField(Gateway.class, "mLookup",        lookup, true);
-//        FieldUtils.writeDeclaredStaticField(Gateway.class, "mC2KProps",      c2kProps, true);
+        //        FieldUtils.writeDeclaredStaticField(Gateway.class, "mC2KProps",      c2kProps, true);
 
         lookup.open(null);
         lookup.initializeDirectory();
@@ -70,12 +70,15 @@ public class LookupTestBase {
         Logger.removeLogStream(System.out);
     }
 
-    public void compare( List<Path> expecteds, Iterator<Path> actualsIter) {
+    public void compare(List<Path> expecteds, Iterator<Path> actualsIter) {
         List<Path> actuals = new ArrayList<>();
         actualsIter.forEachRemaining(actuals::add);
         assertReflectionEquals(expecteds, actuals, LENIENT_ORDER);
     }
 
+    public void compare(List<Path> expecteds, List<Path> actuals) {
+        assertReflectionEquals(expecteds, actuals, LENIENT_ORDER);
+    }
     public void compare(List<Path> expecteds, Path...actuals) {
         assertReflectionEquals(expecteds, actuals, LENIENT_ORDER);
     }

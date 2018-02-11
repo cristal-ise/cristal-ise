@@ -22,6 +22,8 @@ package org.cristalise.lookup;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.unitils.reflectionassert.ReflectionAssert.assertReflectionEquals;
+import static org.unitils.reflectionassert.ReflectionComparatorMode.LENIENT_ORDER;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -127,55 +129,53 @@ public class LookupSearchTests extends LookupTestBase {
 
     @Test
     public void getChildrenPaged_DomainPath() throws Exception {
-        for (int i = 0; i < 35; i++) lookup.add(new DomainPath("paged/child" + StringUtils.leftPad(""+i, 2, "0")) );
+        List<Path> expecteds = new ArrayList<>();
+
+        for (int i = 0; i < 35; i++) {
+            DomainPath dp = new DomainPath("paged/child" + StringUtils.leftPad(""+i, 2, "0"));
+            lookup.add(dp);
+            expecteds.add(dp);
+        }
 
         PagedResult actuals = null;
-        List<Path> expecteds = new ArrayList<>();
 
         for (int i = 0; i < 3; i++) {
             actuals = lookup.getChildren(new DomainPath("paged"), i*10, 10);
 
-            expecteds.clear();;
-            for (int j = 0; j < 10; j++) expecteds.add(new DomainPath("paged/child" + StringUtils.leftPad("" + (i*10 + j), 2, "0")));
-
-            compare(expecteds, actuals.rows.toArray(new DomainPath[0]));
+            assertReflectionEquals(expecteds.subList(i*10, i*10+10), actuals.rows, LENIENT_ORDER);
             assertEquals(35, actuals.maxRows);
         }
 
         actuals = lookup.getChildren(new DomainPath("paged"), 30, 10);
 
-        expecteds.clear();;
-        for (int j = 0; j < 5; j++) expecteds.add(new DomainPath("paged/child" + StringUtils.leftPad("" + (30 + j), 2)));
-
-        compare(expecteds, actuals.rows.toArray(new DomainPath[0]));
+        assertReflectionEquals(expecteds.subList(30, 35), actuals.rows, LENIENT_ORDER);
         assertEquals(35, actuals.maxRows);
     }
 
     @Test
     public void getChildrenPaged_RolePath() throws Exception {
+        List<Path> expecteds = new ArrayList<>();
         RolePath paged = new RolePath(new RolePath(), "paged");
         lookup.add(paged);
-        for (int i = 0; i < 35; i++) lookup.add(new RolePath(paged, "child" + StringUtils.leftPad(""+i, 2, "0")) );
+
+        for (int i = 0; i < 35; i++) {
+            RolePath rp = new RolePath(paged, "child" + StringUtils.leftPad(""+i, 2, "0"));
+            lookup.add(rp);
+            expecteds.add(rp);
+        }
 
         PagedResult actuals = null;
-        List<Path> expecteds = new ArrayList<>();
 
         for (int i = 0; i < 3; i++) {
             actuals = lookup.getChildren(paged, i*10, 10);
 
-            expecteds.clear();;
-            for (int j = 0; j < 10; j++) expecteds.add(new RolePath("paged/child" + StringUtils.leftPad("" + (i*10 + j), 2, "0")));
-
-            compare(expecteds, actuals.rows.toArray(new RolePath[0]));
+            assertReflectionEquals(expecteds.subList(i*10, i*10+10), actuals.rows, LENIENT_ORDER);
             assertEquals(35, actuals.maxRows);
         }
 
         actuals = lookup.getChildren(paged, 30, 10);
 
-        expecteds.clear();;
-        for (int j = 0; j < 5; j++) expecteds.add(new RolePath("paged/child" + StringUtils.leftPad("" + (30 + j), 2)));
-
-        compare(expecteds, actuals.rows.toArray(new RolePath[0]));
+        assertReflectionEquals(expecteds.subList(30, 35), actuals.rows, LENIENT_ORDER);
         assertEquals(35, actuals.maxRows);
     }
 

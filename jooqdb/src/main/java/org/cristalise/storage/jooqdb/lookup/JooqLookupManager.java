@@ -20,8 +20,16 @@
  */
 package org.cristalise.storage.jooqdb.lookup;
 
+import static org.cristalise.storage.jooqdb.clusterStore.JooqItemPropertyHandler.ITEM_PROPERTY_TABLE;
+import static org.cristalise.storage.jooqdb.lookup.JooqDomainPathHandler.DOMAIN_PATH_TABLE;
+import static org.cristalise.storage.jooqdb.lookup.JooqDomainPathHandler.PATH;
+import static org.cristalise.storage.jooqdb.lookup.JooqDomainPathHandler.TARGET;
+import static org.jooq.impl.DSL.field;
+import static org.jooq.impl.DSL.name;
+
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 import java.util.UUID;
@@ -45,6 +53,11 @@ import org.cristalise.storage.jooqdb.JooqHandler;
 import org.cristalise.storage.jooqdb.auth.Argon2Password;
 import org.cristalise.storage.jooqdb.clusterStore.JooqItemPropertyHandler;
 import org.jooq.DSLContext;
+import org.jooq.Field;
+import org.jooq.JoinType;
+import org.jooq.Operator;
+import org.jooq.SelectQuery;
+import org.jooq.impl.DSL;
 
 /**
  *
@@ -296,19 +309,67 @@ public class JooqLookupManager implements LookupManager {
         else                          return new PagedResult(maxRows, domains.findByRegex(context, pattern, offset, limit));
     }
 
+    private SelectQuery<?> getSearchSelect(Path start, List<Property> props) {
+        SelectQuery<?> select = context.selectQuery();
+
+        select.addFrom(DOMAIN_PATH_TABLE);
+
+        for (Property p : props) {
+            Field<UUID> joinField = field(name(p.getName(), "UUID"), UUID.class);
+
+            select.addJoin(ITEM_PROPERTY_TABLE.as(p.getName()), JoinType.LEFT_OUTER_JOIN, TARGET.equal(joinField));
+
+            select.addConditions(Operator.AND, field(name(p.getName(), "NAME"),  String.class).equal(p.getName()));
+            select.addConditions(Operator.AND, field(name(p.getName(), "VALUE"), String.class).equal(p.getValue()));
+        }
+
+        select.addConditions(Operator.AND, PATH.like(domains.getFindPattern(start, "")));
+
+        return select;
+    }
+
     @Override
     public Iterator<Path> search(Path start, Property... props) {
-        if (!exists(start)) return new ArrayList<Path>().iterator(); //empty iterator
+        return search(start, Arrays.asList(props), 0, 0).rows.iterator();
+    }
 
-        List<UUID> uuids = properties.findItems(context, props);
+    @Override
+    public PagedResult search(Path start, List<Property> props, int offset, int limit) {
+        if (!exists(start)) return new PagedResult(0, new ArrayList<Path>());
 
-        if(uuids == null || uuids.size() == 0) return new ArrayList<Path>().iterator(); //empty iterator
+        int maxRows = -1;
 
-        return find(start, "", uuids).iterator();
+        // without limit no need to count the number of rows
+        if (limit > 0) {
+            SelectQuery<?> selectCount = getSearchSelect(start, props);
+            selectCount.addSelect(DSL.count());
+
+            Logger.msg(8, "JooqLookupManager.search(props) - SQL(count):\n%s", selectCount);
+
+            maxRows = selectCount.fetchOne(0, int.class);;
+
+            if(maxRows == 0) return new PagedResult(0, new ArrayList<Path>());
+        }
+
+        SelectQuery<?> select = getSearchSelect(start, props);
+
+        select.addSelect(PATH, TARGET);
+
+        if (limit  > 0) select.addLimit(limit);
+        if (offset > 0) select.addOffset(offset);
+
+        Logger.msg(8, "JooqLookupManager.search(props) - SQL:\n%s", select);
+
+        return new PagedResult(maxRows, domains.getListOfPath(select.fetch()));
     }
 
     @Override
     public Iterator<Path> search(Path start, PropertyDescriptionList props) {
+        return search(start, props, 0, 0).rows.iterator();
+    }
+
+    @Override
+    public PagedResult search(Path start, PropertyDescriptionList props, int offset, int limit) {
         //FIXME: UNIMPLEMENTED search(PropertyDescriptionList)
         throw new RuntimeException("InMemoryLookup.search(PropertyDescriptionList) - UNIMPLEMENTED start:"+start);
     }
@@ -442,5 +503,23 @@ public class JooqLookupManager implements LookupManager {
             Logger.error(e);
             throw new ObjectCannotBeUpdated("Item:" + item + " error:" + e.getMessage());
         }
+    }
+
+    @Override
+    public PagedResult searchAliases(ItemPath itemPath, int offset, int limit) {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    @Override
+    public PagedResult getAgents(RolePath rolePath, int offset, int limit) throws ObjectNotFoundException {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    @Override
+    public PagedResult getRoles(AgentPath agentPath, int offset, int limit) throws ObjectNotFoundException {
+        // TODO Auto-generated method stub
+        return null;
     }
 }

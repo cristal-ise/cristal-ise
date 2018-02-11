@@ -49,12 +49,12 @@ import org.jooq.Table;
 import org.jooq.impl.SQLDataType;
 
 public class JooqItemPropertyHandler extends JooqHandler {
-    static final Table<?> ITEM_PROPERTY_TABLE = table(name("ITEM_PROPERTY"));
+    static public final Table<?> ITEM_PROPERTY_TABLE = table(name("ITEM_PROPERTY"));
 
-    static final Field<UUID>    UUID    = field(name("UUID"),    UUID.class);
-    static final Field<String>  NAME    = field(name("NAME"),    String.class);
-    static final Field<String>  VALUE   = field(name("VALUE"),   String.class);
-    static final Field<Boolean> MUTABLE = field(name("MUTABLE"), Boolean.class);
+    static public final Field<UUID>    UUID    = field(name("UUID"),    UUID.class);
+    static public final Field<String>  NAME    = field(name("NAME"),    String.class);
+    static public final Field<String>  VALUE   = field(name("VALUE"),   String.class);
+    static public final Field<Boolean> MUTABLE = field(name("MUTABLE"), Boolean.class);
 
     @Override
     protected Table<?> getTable() {
@@ -130,6 +130,10 @@ public class JooqItemPropertyHandler extends JooqHandler {
     }
 
     public List<UUID> findItems(DSLContext context, Property...properties) {
+        return findItems(context, -1, -1, properties);
+    }
+
+    public List<UUID> findItems(DSLContext context, int offset, int limit, Property...properties) {
         Logger.msg(5, "JooqItemPropertyHandler.findItems() - properties:"+Arrays.toString(properties));
 
         SelectQuery<?> select = context.selectQuery();
@@ -151,11 +155,13 @@ public class JooqItemPropertyHandler extends JooqHandler {
 
             Condition actualCondition =
                     field(name(p.getName(), "NAME"),  String.class).equal(p.getName())
-                    .and(
-                            field(name(p.getName(), "VALUE"), String.class).equal(p.getValue()));
+                    .and(field(name(p.getName(), "VALUE"), String.class).equal(p.getValue()));
 
             select.addConditions(Operator.AND, actualCondition);
         }
+
+        if (limit > 0) select.addLimit(limit);
+        if (offset > 0) select.addOffset(offset);
 
         Logger.msg(8, "JooqItemPropertyHandler.findItems() - SQL:\n"+select);
 
