@@ -825,10 +825,6 @@ public class LDAPLookup implements LookupManager {
         throw new ObjectCannotBeUpdated("UNIMPLEMENTED");
     }
 
-
-
-
-
     @Override
     public PagedResult getChildren(Path path, int offset, int limit) {
         if (ldapProps.mEnablePagingMethods) {
