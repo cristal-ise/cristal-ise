@@ -18,9 +18,7 @@
  *
  * http://www.fsf.org/licensing/licenses/lgpl.html
  */
-package org.cristalise.lookup.lite;
-
-import groovy.transform.CompileStatic
+package org.cristalise.lookup.lite
 
 import org.cristalise.kernel.common.ObjectNotFoundException
 import org.cristalise.kernel.lookup.AgentPath
@@ -30,6 +28,7 @@ import org.cristalise.kernel.lookup.ItemPath
 import org.cristalise.kernel.lookup.Lookup
 import org.cristalise.kernel.lookup.Path
 import org.cristalise.kernel.lookup.RolePath
+import org.cristalise.kernel.lookup.Lookup.PagedResult
 import org.cristalise.kernel.persistency.ClusterStorage
 import org.cristalise.kernel.persistency.ClusterType
 import org.cristalise.kernel.process.auth.Authenticator
@@ -37,6 +36,8 @@ import org.cristalise.kernel.property.Property
 import org.cristalise.kernel.property.PropertyDescriptionList
 import org.cristalise.kernel.utils.Logger
 import org.cristalise.storage.MemoryOnlyClusterStorage
+
+import groovy.transform.CompileStatic
 
 
 @CompileStatic
@@ -51,13 +52,13 @@ abstract class InMemoryLookup extends ClusterStorage implements Lookup {
 
     //Maps String RolePath to List of String AgentPath
     protected Map<String,List<String>> agent2RolesCache = [:]
-    
+
     private Iterator<Path> getEmptyPathIter() {
         return new Iterator<Path>() {
-            public boolean hasNext() { return false; }
-            public Path next() { return null; }
-            public void remove() {}
-        };
+                    public boolean hasNext() { return false }
+                    public Path next() { return null }
+                    public void remove() {}
+                }
     }
 
     public void clear() {
@@ -69,8 +70,8 @@ abstract class InMemoryLookup extends ClusterStorage implements Lookup {
     }
 
     /**
-     * 
-     * 
+     *
+     *
      * @param key
      * @return
      */
@@ -78,14 +79,14 @@ abstract class InMemoryLookup extends ClusterStorage implements Lookup {
         Logger.msg(5, "InMemoryLookup.retrievePath() - key: $key")
 
         Path p = (Path) cache[key]
-        
+
         if(p) return p
         else throw new ObjectNotFoundException("$key does not exist")
     }
 
     /**
-     * Connect to the directory using the credentials supplied in the Authenticator. 
-     * 
+     * Connect to the directory using the credentials supplied in the Authenticator.
+     *
      * @param user The connected Authenticator. The Lookup implementation may use the AuthObject in this to communicate with the database.
      */
     @Override
@@ -99,14 +100,14 @@ abstract class InMemoryLookup extends ClusterStorage implements Lookup {
      */
     @Override
     public void close() {
-        Logger.msg(8, "InMemoryLookup.close() - Do nothing");
+        Logger.msg(8, "InMemoryLookup.close() - Do nothing")
         clear()
     }
 
     /**
-     * Fetch the correct subclass class of ItemPath for a particular Item, derived from its lookup entry. 
-     * This is used by the CORBA Server to make sure the correct Item subclass is used. 
-     * 
+     * Fetch the correct subclass class of ItemPath for a particular Item, derived from its lookup entry.
+     * This is used by the CORBA Server to make sure the correct Item subclass is used.
+     *
      * @param sysKey The system key of the Item
      * @return an ItemPath or AgentPath
      * @throws InvalidItemPathException When the system key is invalid/out-of-range
@@ -147,7 +148,7 @@ abstract class InMemoryLookup extends ClusterStorage implements Lookup {
 
     /**
      * Find the ItemPath for which a DomainPath is an alias.
-     * 
+     *
      * @param domainPath The path to resolve
      * @return The ItemPath it points to (should be an AgentPath if the path references an Agent)
      * @throws InvalidItemPathException
@@ -162,7 +163,7 @@ abstract class InMemoryLookup extends ClusterStorage implements Lookup {
 
     /**
      * Resolve a path to a CORBA Object Item or Agent
-     * 
+     *
      * @param path The path to be resolved
      * @return The CORBA Object
      * @throws ObjectNotFoundException When the Path doesn't exist, or doesn't have an IOR associated with it
@@ -175,7 +176,7 @@ abstract class InMemoryLookup extends ClusterStorage implements Lookup {
 
     /**
      * Checks if a particular Path exists in the directory
-     * 
+     *
      * @param path The path to check
      * @return boolean true if the path exists, false if it doesn't
      */
@@ -186,6 +187,12 @@ abstract class InMemoryLookup extends ClusterStorage implements Lookup {
     }
 
     @Override
+    public PagedResult getChildren(Path path, int offset, int limit) {
+        //cache.values().findAll { ((Path)it).stringPath =~ /^$path.stringPath\/\w+$/ }
+        return null
+    }
+
+    @Override
     public Iterator<Path> getChildren(Path path) {
         Logger.msg(5, "InMemoryLookup.getChildren() - Path: $path")
         return cache.values().findAll { ((Path)it).stringPath =~ /^$path.stringPath\/\w+$/ }.iterator()
@@ -193,19 +200,19 @@ abstract class InMemoryLookup extends ClusterStorage implements Lookup {
 
     @Override
     public Iterator<Path> search(Path start, String name) {
-        Logger.msg(5, "InMemoryLookup.search(name: $name) - start: $start");
+        Logger.msg(5, "InMemoryLookup.search(name: $name) - start: $start")
         def result = cache.values().findAll { ((Path)it).stringPath =~ /^$start.stringPath.*$name/ }
-        Logger.msg(5, "InMemoryLookup.search(name: $name) - returning ${result.size()} pathes");
+        Logger.msg(5, "InMemoryLookup.search(name: $name) - returning ${result.size()} pathes")
         return result.iterator()
     }
 
     @Override
     public Iterator<Path> search(Path start, Property... props) {
-        Logger.msg(5,"InMemoryLookup.search(props) - Start: $start, # of props: $props.length");
+        Logger.msg(5,"InMemoryLookup.search(props) - Start: $start, # of props: $props.length")
         String name = ""
 
         for(def prop in props) {
-            Logger.msg(5,"InMemoryLookup.search(props) - Property: ${prop.name} - ${prop.value}");
+            Logger.msg(5,"InMemoryLookup.search(props) - Property: ${prop.name} - ${prop.value}")
             if(prop.name == "Name") name = prop.value
         }
 
@@ -220,12 +227,12 @@ abstract class InMemoryLookup extends ClusterStorage implements Lookup {
 
             if(ip && checkItemProps(ip, props)) { result.add(p) }
         }
-        Logger.msg(5, "InMemoryLookup.search(props) - returning ${result.size()} pathes");
+        Logger.msg(5, "InMemoryLookup.search(props) - returning ${result.size()} pathes")
         return result.iterator()
     }
 
     private boolean checkItemProps(ItemPath itemP, Property... props) {
-        Logger.msg(5, "InMemoryLookup.checkItemProps(props) - ItemPath:$itemP # of props: $props.length");
+        Logger.msg(5, "InMemoryLookup.checkItemProps(props) - ItemPath:$itemP # of props: $props.length")
 
         for(Property prop: props) {
             Property p = (Property)propertyStore.get(itemP.itemPath, ""+ClusterType.PROPERTY+"/"+prop.name)
@@ -237,20 +244,20 @@ abstract class InMemoryLookup extends ClusterStorage implements Lookup {
     @Override
     public Iterator<Path> search(Path start, PropertyDescriptionList props) {
         // TODO: Implement search(Path,PropDescList)
-        throw new RuntimeException("InMemoryLookup.search() - UNIMPLEMENTED Start: $start, # of propDescList: $props.list.size - This implemetation ALWAYS returns empty result!");
+        throw new RuntimeException("InMemoryLookup.search() - UNIMPLEMENTED Start: $start, # of propDescList: $props.list.size - This implemetation ALWAYS returns empty result!")
         //return getEmptyPathIter();
     }
 
     @Override
     public Iterator<Path> searchAliases(ItemPath itemPath) {
         // TODO: Implement searchAliases
-        throw new RuntimeException("InMemoryLookup.searchAliases() - UNIMPLEMENTED ItemPath: $itemPath - This implemetation ALWAYS returns empty result!");
+        throw new RuntimeException("InMemoryLookup.searchAliases() - UNIMPLEMENTED ItemPath: $itemPath - This implemetation ALWAYS returns empty result!")
         //return getEmptyPathIter();
     }
 
     @Override
     public AgentPath[] getAgents(RolePath role) throws ObjectNotFoundException {
-        Logger.msg(5, "InMemoryLookup.getAgents() - RolePath: $role");
+        Logger.msg(5, "InMemoryLookup.getAgents() - RolePath: $role")
         List<String> agents = role2AgentsCache[retrievePath(role.stringPath).stringPath]
 
         if(agents) {
@@ -258,13 +265,13 @@ abstract class InMemoryLookup extends ClusterStorage implements Lookup {
             agents.eachWithIndex { key, i -> retVal[i] = (AgentPath) retrievePath(key) }
             return retVal
         }
-        
-        return new AgentPath[0];
+
+        return new AgentPath[0]
     }
 
     @Override
     public RolePath[] getRoles(AgentPath agent) {
-        Logger.msg(5,"InMemoryLookup.getRoles() - AgentPath: $agent");
+        Logger.msg(5,"InMemoryLookup.getRoles() - AgentPath: $agent")
 
         try {
             List roles = agent2RolesCache[retrievePath(agent.stringPath).stringPath]
@@ -277,12 +284,12 @@ abstract class InMemoryLookup extends ClusterStorage implements Lookup {
         }
         catch (Exception e) {}
 
-        return new RolePath[0];
+        return new RolePath[0]
     }
 
     @Override
     public boolean hasRole(AgentPath agent, RolePath role) {
-        Logger.msg(5, "InMemoryLookup.hasRole() - AgentPath: $agent, RolePath: $role");
+        Logger.msg(5, "InMemoryLookup.hasRole() - AgentPath: $agent, RolePath: $role")
         try {
             return agent2RolesCache[retrievePath(agent.stringPath).stringPath].contains(role.stringPath)
         }
@@ -293,8 +300,8 @@ abstract class InMemoryLookup extends ClusterStorage implements Lookup {
 
     @Override
     public String getAgentName(AgentPath agentPath) throws ObjectNotFoundException {
-        Logger.msg(5, "InMemoryLookup.getAgentName() - AgentPath: $agentPath");
+        Logger.msg(5, "InMemoryLookup.getAgentName() - AgentPath: $agentPath")
         AgentPath p = (AgentPath) retrievePath(agentPath.stringPath)
-        return p.agentName;
+        return p.agentName
     }
 }
