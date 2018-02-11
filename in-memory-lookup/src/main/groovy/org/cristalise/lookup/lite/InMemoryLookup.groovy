@@ -304,4 +304,34 @@ abstract class InMemoryLookup extends ClusterStorage implements Lookup {
         AgentPath p = (AgentPath) retrievePath(agentPath.stringPath)
         return p.agentName
     }
+
+    @Override
+    public PagedResult search(Path start, List<Property> props, int offset, int limit) {
+        // TODO Auto-generated method stub
+        return null
+    }
+
+    @Override
+    public PagedResult search(Path start, PropertyDescriptionList props, int offset, int limit) {
+        // TODO Auto-generated method stub
+        return null
+    }
+
+    @Override
+    public PagedResult searchAliases(ItemPath itemPath, int offset, int limit) {
+        // TODO Auto-generated method stub
+        return null
+    }
+
+    @Override
+    public PagedResult getAgents(RolePath rolePath, int offset, int limit) throws ObjectNotFoundException {
+        // TODO Auto-generated method stub
+        return null
+    }
+
+    @Override
+    public PagedResult getRoles(AgentPath agentPath, int offset, int limit) throws ObjectNotFoundException {
+        // TODO Auto-generated method stub
+        return null
+    }
 }
