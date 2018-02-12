@@ -254,7 +254,7 @@ public class LookupRoleTests extends LookupTestBase {
     }
 
     @Test
-    public void addRolesOfAgentOaged() throws Exception {
+    public void addRolesOfAgentPaged() throws Exception {
         AgentPath paged = new AgentPath(new ItemPath(), "paged");
         lookup.add(paged);
 
