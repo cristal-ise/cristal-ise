@@ -876,7 +876,7 @@ public class LDAPLookup implements LookupManager {
     }
 
     @Override
-    public PagedResult getRoles(AgentPath agentPath, int offset, int limit) throws ObjectNotFoundException {
+    public PagedResult getRoles(AgentPath agentPath, int offset, int limit) {
         if (ldapProps.mEnablePagingMethods) {
             Logger.warning("LDAPLookup.getRoles() - Paging support is not implemented, original method is used");
             return new PagedResult(-1, Arrays.asList(getRoles(agentPath)));
