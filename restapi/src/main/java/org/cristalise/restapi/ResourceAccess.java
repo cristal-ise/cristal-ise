@@ -116,7 +116,7 @@ public class ResourceAccess extends ItemUtils {
 
                 LinkedHashMap<String, Object> childData = new LinkedHashMap<>();
 
-                childData.put("name", childName);
+                childData.put("version", childName);
                 childData.put("url", uri.getAbsolutePathBuilder().path(childName).build());
 
                 childrenData.add(childData);

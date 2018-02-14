@@ -55,7 +55,7 @@ public class StateMachineAccess extends ResourceAccess {
     @GET
     @Path("{name}/{version}")
     @Produces( {MediaType.TEXT_XML, MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON } )
-    public Response getStateMachineData(
+    public Response getStateMachine(
             @Context                 HttpHeaders headers,
             @PathParam("name")       String      name, 
             @PathParam("version")    Integer     version, 

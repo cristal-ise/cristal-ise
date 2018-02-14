@@ -47,7 +47,7 @@ public class QueryAccess extends ResourceAccess {
     @GET
     @Path("{name}")
     @Produces(MediaType.APPLICATION_JSON)
-    public Response listStateMachineVersions(@PathParam("name") String name, @CookieParam(COOKIENAME) Cookie authCookie, @Context UriInfo uri) {
+    public Response listQueryVersions(@PathParam("name") String name, @CookieParam(COOKIENAME) Cookie authCookie, @Context UriInfo uri) {
         checkAuthCookie(authCookie);
         return listResourceVersions(QUERY_RESOURCE, name, uri);
     }
@@ -55,7 +55,7 @@ public class QueryAccess extends ResourceAccess {
     @GET
     @Path("{name}/{version}")
     @Produces( {MediaType.TEXT_XML, MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON } )
-    public Response getStateMachineData(
+    public Response getQuery(
             @Context                 HttpHeaders headers,
             @PathParam("name")       String      name, 
             @PathParam("version")    Integer     version, 
