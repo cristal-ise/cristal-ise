@@ -23,8 +23,8 @@ package org.cristalise.restapi;
 import static org.cristalise.kernel.property.BuiltInItemProperties.NAME;
 
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 
 import javax.ws.rs.CookieParam;
@@ -43,6 +43,7 @@ import javax.ws.rs.core.UriInfo;
 import org.cristalise.kernel.common.ObjectNotFoundException;
 import org.cristalise.kernel.lookup.DomainPath;
 import org.cristalise.kernel.lookup.ItemPath;
+import org.cristalise.kernel.lookup.Lookup.PagedResult;
 import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.property.Property;
 
@@ -69,8 +70,8 @@ public class PathAccess extends PathUtils {
             @DefaultValue("0") @QueryParam("start") Integer start,
             @QueryParam("batch")                    Integer batchSize,
             @QueryParam("search")                   String search,
-            @CookieParam(COOKIENAME) Cookie authCookie,
-            @Context UriInfo uri)
+            @CookieParam(COOKIENAME)                Cookie authCookie,
+            @Context                                UriInfo uri)
     {
         checkAuthCookie(authCookie);
         DomainPath domPath = new DomainPath(path);
@@ -88,60 +89,71 @@ public class PathAccess extends PathUtils {
         }
         catch (ObjectNotFoundException ex) {} // not an item
 
-        Iterator<org.cristalise.kernel.lookup.Path> childSearch;
+        PagedResult childSearch;
 
-        if (search == null) {
-            childSearch = Gateway.getLookup().getChildren(domPath);
-        }
-        else {
-            String[] terms; // format: name,prop:val,prop:val
-            terms = search.split(",");
-
-            Property[] props = new Property[terms.length];
-            for (int i = 0; i < terms.length; i++) {
-                if (terms[i].contains(":")) { // assemble property if we have name:val
-                    String[] nameval = terms[i].split(":");
-
-                    if (nameval.length != 2)
-                        throw ItemUtils.createWebAppException("Invalid search term: " + terms[i], Response.Status.BAD_REQUEST);
-                    
-                    props[i] = new Property(nameval[0], nameval[1]);
-                }
-                else if (i == 0) { // first search term can imply Name if no propname given
-                    props[i] = new Property(NAME, terms[i]);
-                }
-                else {
-                    throw ItemUtils.createWebAppException("Only the first search term may omit property name", Response.Status.BAD_REQUEST);
-                }
-            }
-            childSearch = Gateway.getLookup().search(domPath, props);
-        }
-
-        // skip to the start
-        for (int i = 0; i < start; i++) {
-            if (childSearch.hasNext()) childSearch.next();
-            else                       break;
-        }
+        if (search == null) childSearch = Gateway.getLookup().getChildren(domPath, start, batchSize);
+        else                childSearch = Gateway.getLookup().search(domPath, getPropertiesFromQParams(search), start, batchSize);
 
         ArrayList<Map<String, Object>> pathDataArray = new ArrayList<>();
+        
+        for (org.cristalise.kernel.lookup.Path p: childSearch.rows) {
+            pathDataArray.add(makeLookupData(path, p, uri));
+        }
 
-        // create list
-        for (int i = 0; i < batchSize; i++) {
-            if (childSearch.hasNext()) {
-                pathDataArray.add(makeLookupData(path, childSearch.next(), uri));
+        LinkedHashMap<String, Object> pagedReturnData = new LinkedHashMap<>();
+
+        pagedReturnData.put("start", start);
+        pagedReturnData.put("pageSize", batchSize);
+        pagedReturnData.put("totalRows", childSearch.maxRows);
+
+        if (start - batchSize >= 0) {
+            pagedReturnData.put("prevPage", 
+                    uri.getAbsolutePathBuilder()
+                    .replaceQueryParam("start", start - batchSize)
+                    .replaceQueryParam("batch", batchSize)
+                    .build());
+        }
+
+        if (start + batchSize < childSearch.maxRows) {
+            pagedReturnData.put("nextPage", 
+                    uri.getAbsolutePathBuilder()
+                    .replaceQueryParam("start", start + batchSize)
+                    .replaceQueryParam("batch", batchSize)
+                    .build());
+        }
+
+        pagedReturnData.put("rows", pathDataArray);
+
+        return toJSON(pagedReturnData);
+    }
+
+    /**
+     * Converts QueryParems to Item Properties
+     * 
+     * @param search the string to decompose in the format: name,prop:val,prop:val
+     * @return the decoded list of Item Properties
+     */
+    private List<Property> getPropertiesFromQParams(String search) {
+        String[] terms = search.split(",");
+
+        List<Property> props = new ArrayList<>();
+
+        for (int i = 0; i < terms.length; i++) {
+            if (terms[i].contains(":")) { // assemble property if we have name:val
+                String[] nameval = terms[i].split(":");
+
+                if (nameval.length != 2)
+                    throw ItemUtils.createWebAppException("Invalid search term: " + terms[i], Response.Status.BAD_REQUEST);
+
+                props.add(new Property(nameval[0], nameval[1]));
             }
-            else // all done
-                break;
+            else if (i == 0) { // first search term can imply Name if no propname given
+                props.add(new Property(NAME, terms[i]));
+            }
+            else {
+                throw ItemUtils.createWebAppException("Only the first search term may omit property name", Response.Status.BAD_REQUEST);
+            }
         }
-
-        // if there are more, give a link
-        if (childSearch.hasNext()) {
-            LinkedHashMap<String, Object> childPathData = new LinkedHashMap<>();
-
-            childPathData.put("nextBatch", 
-                    uri.getAbsolutePathBuilder().replaceQueryParam("start", start + batchSize).replaceQueryParam("batch", batchSize).build());
-            pathDataArray.add(childPathData);
-        }
-        return toJSON(pathDataArray);
+        return props;
     }
 }
