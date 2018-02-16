@@ -20,11 +20,7 @@
  */
 package org.cristalise.restapi;
 
-import static org.cristalise.kernel.property.BuiltInItemProperties.NAME;
-
 import java.util.ArrayList;
-import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
 
 import javax.ws.rs.CookieParam;
@@ -45,7 +41,6 @@ import org.cristalise.kernel.lookup.DomainPath;
 import org.cristalise.kernel.lookup.ItemPath;
 import org.cristalise.kernel.lookup.Lookup.PagedResult;
 import org.cristalise.kernel.process.Gateway;
-import org.cristalise.kernel.property.Property;
 
 @Path("/domain")
 public class PathAccess extends PathUtils {
@@ -95,65 +90,11 @@ public class PathAccess extends PathUtils {
         else                childSearch = Gateway.getLookup().search(domPath, getPropertiesFromQParams(search), start, batchSize);
 
         ArrayList<Map<String, Object>> pathDataArray = new ArrayList<>();
-        
+
         for (org.cristalise.kernel.lookup.Path p: childSearch.rows) {
             pathDataArray.add(makeLookupData(path, p, uri));
         }
 
-        LinkedHashMap<String, Object> pagedReturnData = new LinkedHashMap<>();
-
-        pagedReturnData.put("start", start);
-        pagedReturnData.put("pageSize", batchSize);
-        pagedReturnData.put("totalRows", childSearch.maxRows);
-
-        if (start - batchSize >= 0) {
-            pagedReturnData.put("prevPage", 
-                    uri.getAbsolutePathBuilder()
-                    .replaceQueryParam("start", start - batchSize)
-                    .replaceQueryParam("batch", batchSize)
-                    .build());
-        }
-
-        if (start + batchSize < childSearch.maxRows) {
-            pagedReturnData.put("nextPage", 
-                    uri.getAbsolutePathBuilder()
-                    .replaceQueryParam("start", start + batchSize)
-                    .replaceQueryParam("batch", batchSize)
-                    .build());
-        }
-
-        pagedReturnData.put("rows", pathDataArray);
-
-        return toJSON(pagedReturnData);
-    }
-
-    /**
-     * Converts QueryParems to Item Properties
-     * 
-     * @param search the string to decompose in the format: name,prop:val,prop:val
-     * @return the decoded list of Item Properties
-     */
-    private List<Property> getPropertiesFromQParams(String search) {
-        String[] terms = search.split(",");
-
-        List<Property> props = new ArrayList<>();
-
-        for (int i = 0; i < terms.length; i++) {
-            if (terms[i].contains(":")) { // assemble property if we have name:val
-                String[] nameval = terms[i].split(":");
-
-                if (nameval.length != 2)
-                    throw ItemUtils.createWebAppException("Invalid search term: " + terms[i], Response.Status.BAD_REQUEST);
-
-                props.add(new Property(nameval[0], nameval[1]));
-            }
-            else if (i == 0) { // first search term can imply Name if no propname given
-                props.add(new Property(NAME, terms[i]));
-            }
-            else {
-                throw ItemUtils.createWebAppException("Only the first search term may omit property name", Response.Status.BAD_REQUEST);
-            }
-        }
-        return props;
+        return toJSON(getPagedResult(uri, start, batchSize, childSearch.maxRows, pathDataArray));
     }
 }

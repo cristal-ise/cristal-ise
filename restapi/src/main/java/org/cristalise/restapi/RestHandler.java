@@ -20,10 +20,16 @@
  */
 package org.cristalise.restapi;
 
+import static org.cristalise.kernel.property.BuiltInItemProperties.NAME;
+
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.security.InvalidKeyException;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 
 import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
@@ -33,6 +39,7 @@ import javax.crypto.SecretKey;
 import javax.crypto.spec.IvParameterSpec;
 import javax.ws.rs.core.Cookie;
 import javax.ws.rs.core.Response;
+import javax.ws.rs.core.UriInfo;
 import javax.xml.bind.DatatypeConverter;
 
 import org.codehaus.jackson.map.ObjectMapper;
@@ -44,6 +51,7 @@ import org.cristalise.kernel.lookup.AgentPath;
 import org.cristalise.kernel.lookup.InvalidAgentPathException;
 import org.cristalise.kernel.lookup.ItemPath;
 import org.cristalise.kernel.process.Gateway;
+import org.cristalise.kernel.property.Property;
 import org.cristalise.kernel.utils.Logger;
 
 public class RestHandler {
@@ -187,6 +195,74 @@ public class RestHandler {
             Logger.error(e);
             throw ItemUtils.createWebAppException("Agent not found", e, Response.Status.NOT_FOUND);
         }
+    }
+
+    /**
+     * Constructs the Map containing all data describing a PagedResult. Normally this result is converted to JSON
+     * 
+     * @param uri The resource URI which is used to create pervPage and nextPage URL
+     * @param start the start index of the result set to be retrieved
+     * @param batchSize the size of the result set to be retrieved
+     * @param totalRows the total number of rows in the result set
+     * @param rows the actual rows
+     * @return the Map containing all data describing a PagedResult
+     */
+    public Map<String, Object> getPagedResult(UriInfo uri, int start, int batchSize, int totalRows, List<?> rows) {
+        LinkedHashMap<String, Object> pagedReturnData = new LinkedHashMap<>();
+
+        pagedReturnData.put("start", start);
+        pagedReturnData.put("pageSize", batchSize);
+        pagedReturnData.put("totalRows", totalRows);
+
+        if (start - batchSize >= 0) {
+            pagedReturnData.put("prevPage", 
+                    uri.getAbsolutePathBuilder()
+                    .replaceQueryParam("start", start - batchSize)
+                    .replaceQueryParam("batch", batchSize)
+                    .build());
+        }
+
+        if (start + batchSize < totalRows) {
+            pagedReturnData.put("nextPage", 
+                    uri.getAbsolutePathBuilder()
+                    .replaceQueryParam("start", start + batchSize)
+                    .replaceQueryParam("batch", batchSize)
+                    .build());
+        }
+
+        pagedReturnData.put("rows", rows);
+
+        return pagedReturnData;
+    }
+
+    /**
+     * Converts QueryParams to Item Properties
+     * 
+     * @param search the string to decompose in the format: name,prop:val,prop:val
+     * @return the decoded list of Item Properties
+     */
+    public List<Property> getPropertiesFromQParams(String search) {
+        String[] terms = search.split(",");
+    
+        List<Property> props = new ArrayList<>();
+    
+        for (int i = 0; i < terms.length; i++) {
+            if (terms[i].contains(":")) { // assemble property if we have name:val
+                String[] nameval = terms[i].split(":");
+    
+                if (nameval.length != 2)
+                    throw ItemUtils.createWebAppException("Invalid search term: " + terms[i], Response.Status.BAD_REQUEST);
+    
+                props.add(new Property(nameval[0], nameval[1]));
+            }
+            else if (i == 0) { // first search term can imply Name if no propname given
+                props.add(new Property(NAME, terms[i]));
+            }
+            else {
+                throw ItemUtils.createWebAppException("Only the first search term may omit property name", Response.Status.BAD_REQUEST);
+            }
+        }
+        return props;
     }
 
     public class AuthData {
