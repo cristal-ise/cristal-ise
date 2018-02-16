@@ -330,7 +330,7 @@ abstract class InMemoryLookup extends ClusterStorage implements Lookup {
     }
 
     @Override
-    public PagedResult getRoles(AgentPath agentPath, int offset, int limit) throws ObjectNotFoundException {
+    public PagedResult getRoles(AgentPath agentPath, int offset, int limit) {
         // TODO Auto-generated method stub
         return null
     }
