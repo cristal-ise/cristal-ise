@@ -37,6 +37,7 @@ import org.cristalise.kernel.common.InvalidDataException;
 import org.cristalise.kernel.common.ObjectNotFoundException;
 import org.cristalise.kernel.entity.proxy.ItemProxy;
 import org.cristalise.kernel.lookup.DomainPath;
+import org.cristalise.kernel.lookup.Lookup.PagedResult;
 import org.cristalise.kernel.lookup.Path;
 import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.process.resource.BuiltInResources;
@@ -50,31 +51,27 @@ import org.json.XML;
 
 public class ResourceAccess extends ItemUtils {
 
-    public Response listAllResources(BuiltInResources resource, UriInfo uri) {
+    public Response listAllResources(BuiltInResources resource, UriInfo uri, int start, int batchSize) {
         DomainPath searchRoot = new DomainPath(resource.getTypeRoot());
-        Property[] propArray;
-        ArrayList<Map<String, String>> resourceArray = new ArrayList<>();
-        Iterator<org.cristalise.kernel.lookup.Path> iter;
+        ArrayList<Property> props = new ArrayList<>();
 
         if (resource == ELEM_ACT_DESC_RESOURCE) {
-            propArray = new Property[2];
-            propArray[0] = new Property("Type", "ActivityDesc");
-            propArray[1] = new Property("Complexity", "Elementary");
+            props.add(new Property("Type", "ActivityDesc"));
+            props.add(new Property("Complexity", "Elementary"));
         }
         else if (resource == COMP_ACT_DESC_RESOURCE) {
-            propArray = new Property[2];
-            propArray[0] = new Property("Type", "ActivityDesc");
-            propArray[1] = new Property("Complexity", "Composite");
+            props.add(new Property("Type", "ActivityDesc"));
+            props.add(new Property("Complexity", "Composite"));
         }
         else {
-            propArray = new Property[1];
-            propArray[0] = new Property("Type", resource.getSchemaName());
+            props.add(new Property("Type", resource.getSchemaName()));
         }
 
-        iter = Gateway.getLookup().search(searchRoot, propArray);
+        PagedResult pr = Gateway.getLookup().search(searchRoot, props, start, batchSize);
 
-        while (iter.hasNext()) {
-            Path p = iter.next();
+        ArrayList<Map<String, String>> resourceArray = new ArrayList<>();
+
+        for (Path p: pr.rows) {
             LinkedHashMap<String, String> resourceNameData = new LinkedHashMap<>();
             try {
                 ItemProxy proxy = Gateway.getProxyManager().getProxy(p.getItemPath());
@@ -88,7 +85,8 @@ public class ResourceAccess extends ItemUtils {
                 resourceNameData.put("name", "Path not found for name:"+p.getName());
             }
         }
-        return toJSON(resourceArray);
+
+        return toJSON(getPagedResult(uri, start, batchSize, pr.maxRows, resourceArray));
     }
 
     public Response listResourceVersions(BuiltInResources resource, String name, UriInfo uri) {

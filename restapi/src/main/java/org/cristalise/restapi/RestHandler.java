@@ -214,7 +214,7 @@ public class RestHandler {
         pagedReturnData.put("pageSize", batchSize);
         pagedReturnData.put("totalRows", totalRows);
 
-        if (start - batchSize >= 0) {
+        if (batchSize > 0 && start - batchSize >= 0) {
             pagedReturnData.put("prevPage", 
                     uri.getAbsolutePathBuilder()
                     .replaceQueryParam("start", start - batchSize)
@@ -222,7 +222,7 @@ public class RestHandler {
                     .build());
         }
 
-        if (start + batchSize < totalRows) {
+        if (batchSize > 0 && start + batchSize < totalRows) {
             pagedReturnData.put("nextPage", 
                     uri.getAbsolutePathBuilder()
                     .replaceQueryParam("start", start + batchSize)
