@@ -28,6 +28,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
+import java.util.Map;
 
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
@@ -50,58 +51,61 @@ import org.json.XML;
 public class ResourceAccess extends ItemUtils {
 
     public Response listAllResources(BuiltInResources resource, UriInfo uri) {
-        String     type       = resource.getSchemaName();
-        DomainPath searchRoot = new DomainPath("/desc/" + type);
-
-        LinkedHashMap<String, String> resourceNameData = new LinkedHashMap<>();
+        DomainPath searchRoot = new DomainPath(resource.getTypeRoot());
+        Property[] propArray;
+        ArrayList<Map<String, String>> resourceArray = new ArrayList<>();
         Iterator<org.cristalise.kernel.lookup.Path> iter;
 
         if (resource == ELEM_ACT_DESC_RESOURCE) {
-            type = "ActivityDesc";
-            searchRoot = new DomainPath("/desc/" + type);
-            iter = Gateway.getLookup().search(searchRoot, new Property("Type", type), new Property("Complexity", "Elementary"));
+            propArray = new Property[2];
+            propArray[0] = new Property("Type", "ActivityDesc");
+            propArray[1] = new Property("Complexity", "Elementary");
         }
         else if (resource == COMP_ACT_DESC_RESOURCE) {
-            type = "ActivityDesc";
-            searchRoot = new DomainPath("/desc/" + type);
-            iter = Gateway.getLookup().search(searchRoot, new Property("Type", type), new Property("Complexity", "Composite"));
+            propArray = new Property[2];
+            propArray[0] = new Property("Type", "ActivityDesc");
+            propArray[1] = new Property("Complexity", "Composite");
         }
         else {
-            iter = Gateway.getLookup().search(searchRoot, new Property("Type", type));
+            propArray = new Property[1];
+            propArray[0] = new Property("Type", resource.getSchemaName());
         }
+
+        iter = Gateway.getLookup().search(searchRoot, propArray);
 
         while (iter.hasNext()) {
             Path p = iter.next();
+            LinkedHashMap<String, String> resourceNameData = new LinkedHashMap<>();
             try {
                 ItemProxy proxy = Gateway.getProxyManager().getProxy(p.getItemPath());
                 String name = proxy.getName();
-                resourceNameData.put(name, uri.getAbsolutePathBuilder().path(name).build().toString());
+                resourceNameData.put("name", name );
+                resourceNameData.put("url", uri.getAbsolutePathBuilder().path(name).build().toString());
+
+                resourceArray.add(resourceNameData);
             }
             catch (ObjectNotFoundException e) {
-                resourceNameData.put(p.getStringPath(), "Path not found");
+                resourceNameData.put("name", "Path not found for name:"+p.getName());
             }
         }
-        return toJSON(resourceNameData);
+        return toJSON(resourceArray);
     }
 
     public Response listResourceVersions(BuiltInResources resource, String name, UriInfo uri) {
-        String resourceSchemaName = resource.getSchemaName();
+        String resourceTypeName = resource.getSchemaName();
 
-        if (resource == ELEM_ACT_DESC_RESOURCE || resource == COMP_ACT_DESC_RESOURCE) resourceSchemaName = "ActivityDesc";
+        if (resource == ELEM_ACT_DESC_RESOURCE || resource == COMP_ACT_DESC_RESOURCE) resourceTypeName = "ActivityDesc";
 
-        Iterator<org.cristalise.kernel.lookup.Path> iter = Gateway.getLookup().search(
-                new DomainPath("/desc/" + resourceSchemaName), name);
+        Iterator<org.cristalise.kernel.lookup.Path> iter = Gateway.getLookup().search(new DomainPath("/desc/" + resourceTypeName), name);
 
-        if (!iter.hasNext()) throw ItemUtils.createWebAppException(resourceSchemaName + " not found", Response.Status.NOT_FOUND);
+        if (!iter.hasNext()) throw ItemUtils.createWebAppException(resourceTypeName + " not found", Response.Status.NOT_FOUND);
 
         try {
-            if (resource == ELEM_ACT_DESC_RESOURCE || resource == COMP_ACT_DESC_RESOURCE) resourceSchemaName = resource.getSchemaName();
-
             ItemProxy item = Gateway.getProxyManager().getProxy(iter.next());
-            return toJSON(getResourceVersions(item, VIEWPOINT + "/" + resourceSchemaName, name, uri));
+            return toJSON(getResourceVersions(item, VIEWPOINT + "/" + resource.getSchemaName(), name, uri));
         }
         catch (ObjectNotFoundException e) {
-            throw ItemUtils.createWebAppException(resourceSchemaName + " has no versions", Response.Status.NOT_FOUND);
+            throw ItemUtils.createWebAppException(resource.getSchemaName() + " has no versions", Response.Status.NOT_FOUND);
         }
     }
 
