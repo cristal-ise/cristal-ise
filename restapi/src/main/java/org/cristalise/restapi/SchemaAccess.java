@@ -50,6 +50,15 @@ public class SchemaAccess extends ResourceAccess {
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
+    /**
+     * Documentation of listAllSchemas
+     * 
+     * @param start
+     * @param batchSize
+     * @param authCookie
+     * @param uri
+     * @return
+     */
     public Response listAllSchemas(
             @DefaultValue("0") @QueryParam("start") Integer start,
             @QueryParam("batch")                    Integer batchSize,
@@ -66,7 +75,11 @@ public class SchemaAccess extends ResourceAccess {
     @GET
     @Path("{name}")
     @Produces(MediaType.APPLICATION_JSON)
-    public Response listSchemaVersions(@PathParam("name") String name, @CookieParam(COOKIENAME) Cookie authCookie, @Context UriInfo uri) {
+    public Response listSchemaVersions(
+            @PathParam("name")       String name, 
+            @CookieParam(COOKIENAME) Cookie authCookie, 
+            @Context                 UriInfo uri)
+    {
         checkAuthCookie(authCookie);
         return listResourceVersions(SCHEMA_RESOURCE, name, uri);
     }

@@ -46,7 +46,7 @@ public class StateMachineAccess extends ResourceAccess {
     public Response listAllStateMachines(
             @DefaultValue("0") @QueryParam("start") Integer start,
             @QueryParam("batch")                    Integer batchSize,
-            @CookieParam(COOKIENAME)                Cookie authCookie,
+            @CookieParam(COOKIENAME)                Cookie  authCookie,
             @Context                                UriInfo uri)
     {
         checkAuthCookie(authCookie);
@@ -59,7 +59,11 @@ public class StateMachineAccess extends ResourceAccess {
     @GET
     @Path("{name}")
     @Produces(MediaType.APPLICATION_JSON)
-    public Response listStateMachineVersions(@PathParam("name") String name, @CookieParam(COOKIENAME) Cookie authCookie, @Context UriInfo uri) {
+    public Response listStateMachineVersions(
+            @PathParam("name")       String  name,
+            @CookieParam(COOKIENAME) Cookie  authCookie,
+            @Context                 UriInfo uri)
+    {
         checkAuthCookie(authCookie);
         return listResourceVersions(STATE_MACHINE_RESOURCE, name, uri);
     }

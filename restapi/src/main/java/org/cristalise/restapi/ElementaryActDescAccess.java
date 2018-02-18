@@ -43,10 +43,10 @@ public class ElementaryActDescAccess extends ResourceAccess {
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    public Response listAllStateMachines(
+    public Response listAllElementaryActDescs(
             @DefaultValue("0") @QueryParam("start") Integer start,
             @QueryParam("batch")                    Integer batchSize,
-            @CookieParam(COOKIENAME)                Cookie authCookie,
+            @CookieParam(COOKIENAME)                Cookie  authCookie,
             @Context                                UriInfo uri)
     {
         checkAuthCookie(authCookie);
@@ -59,7 +59,11 @@ public class ElementaryActDescAccess extends ResourceAccess {
     @GET
     @Path("{name}")
     @Produces(MediaType.APPLICATION_JSON)
-    public Response listElementaryActDescVersions(@PathParam("name") String name, @CookieParam(COOKIENAME) Cookie authCookie, @Context UriInfo uri) {
+    public Response listElementaryActDescVersions(
+            @PathParam("name")        String  name,
+            @CookieParam(COOKIENAME)  Cookie  authCookie,
+            @Context                  UriInfo uri)
+    {
         checkAuthCookie(authCookie);
         return listResourceVersions(ELEM_ACT_DESC_RESOURCE, name, uri);
     }
