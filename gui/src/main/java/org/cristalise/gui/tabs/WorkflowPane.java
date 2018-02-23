@@ -19,6 +19,7 @@
  * http://www.fsf.org/licensing/licenses/lgpl.html
  */
 package org.cristalise.gui.tabs;
+
 import java.awt.Cursor;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -45,8 +46,8 @@ import org.cristalise.kernel.entity.proxy.ProxyObserver;
 import org.cristalise.kernel.graph.layout.DefaultGraphLayoutGenerator;
 import org.cristalise.kernel.graph.model.EdgeFactory;
 import org.cristalise.kernel.graph.model.VertexFactory;
+import org.cristalise.kernel.lifecycle.LifecycleVertexOutlineCreator;
 import org.cristalise.kernel.lifecycle.instance.CompositeActivity;
-import org.cristalise.kernel.lifecycle.instance.WfVertexOutlineCreator;
 import org.cristalise.kernel.lifecycle.instance.Workflow;
 import org.cristalise.kernel.persistency.ClusterStorage;
 import org.cristalise.kernel.process.Gateway;
@@ -55,168 +56,168 @@ import org.cristalise.kernel.utils.Logger;
 
 public class WorkflowPane extends ItemTabPane implements ProxyObserver<Workflow>
 {
-	// Only for the purpose of loading and saving
-	protected Workflow mWorkflow = null;
-	boolean init = false;
-	TransitionPanel transPanel;
-	protected JButton mLoadButton = new JButton(ImageLoader.findImage("graph/load.png"));
-	protected JButton mSaveButton = new JButton(ImageLoader.findImage("graph/save.png"));
-	protected JButton mLayoutButton = new JButton(ImageLoader.findImage("graph/autolayout.png"));
-	protected JButton mZoomOutButton = new JButton(ImageLoader.findImage("graph/zoomout.png"));
-	protected JButton[] mOtherToolBarButtons;
-	// Workflow factories
-	protected EdgeFactory mWfEdgeFactory;
-	protected VertexFactory mWfVertexFactory;
-	// Graph editor panel
-	protected EditorPanel mEditorPanel;
-	// Objects to view/modify the properties of the selected activity
-	protected VertexPropertyPanel mPropertyPanel;
-	protected JSplitPane mSplitPane;
+    // Only for the purpose of loading and saving
+    protected Workflow mWorkflow = null;
+    boolean init = false;
+    TransitionPanel transPanel;
+    protected JButton mLoadButton = new JButton(ImageLoader.findImage("graph/load.png"));
+    protected JButton mSaveButton = new JButton(ImageLoader.findImage("graph/save.png"));
+    protected JButton mLayoutButton = new JButton(ImageLoader.findImage("graph/autolayout.png"));
+    protected JButton mZoomOutButton = new JButton(ImageLoader.findImage("graph/zoomout.png"));
+    protected JButton[] mOtherToolBarButtons;
+    // Workflow factories
+    protected EdgeFactory mWfEdgeFactory;
+    protected VertexFactory mWfVertexFactory;
+    // Graph editor panel
+    protected EditorPanel mEditorPanel;
+    // Objects to view/modify the properties of the selected activity
+    protected VertexPropertyPanel mPropertyPanel;
+    protected JSplitPane mSplitPane;
 
-	// Graph editor panel
-	// Objects to view/modify the properties of the selected activity
-	public WorkflowPane()
-	{
-		super("Workflow", "Workflow Viewer");
-		// Workflow factories
-		mWfEdgeFactory = new WfEdgeFactory();
-		mWfVertexFactory = new WfVertexFactory();
-		mZoomOutButton.setToolTipText("Zoom Out");
-		mLayoutButton.setToolTipText("Auto Layout");
-		mLoadButton.setToolTipText("Load");
-		mSaveButton.setToolTipText("Save");
-		mOtherToolBarButtons = new JButton[] { mZoomOutButton, mLayoutButton, mLoadButton, mSaveButton };
+    // Graph editor panel
+    // Objects to view/modify the properties of the selected activity
+    public WorkflowPane()
+    {
+        super("Workflow", "Workflow Viewer");
+        // Workflow factories
+        mWfEdgeFactory = new WfEdgeFactory();
+        mWfVertexFactory = new WfVertexFactory();
+        mZoomOutButton.setToolTipText("Zoom Out");
+        mLayoutButton.setToolTipText("Auto Layout");
+        mLoadButton.setToolTipText("Load");
+        mSaveButton.setToolTipText("Save");
+        mOtherToolBarButtons = new JButton[] { mZoomOutButton, mLayoutButton, mLoadButton, mSaveButton };
 
-	}
+    }
 
-	protected void createListeners()
-	{
-		/**
-		 *
-		 */
-		mLoadButton.addActionListener(new ActionListener()
-		{
-			@Override
-			public void actionPerformed(ActionEvent ae)
-			{
-				loadWorkflow();
-			}
-		});
-		/**
-		 *
-		 */
-		mSaveButton.addActionListener(new ActionListener()
-		{
-			@Override
-			public void actionPerformed(ActionEvent ae)
-			{
-				setCursor(new Cursor(Cursor.WAIT_CURSOR));
-				saveWorkflow();
-				setCursor(new Cursor(Cursor.DEFAULT_CURSOR));
-			}
-		});
-		/**
-		 *
-		 */
-		mLayoutButton.addActionListener(new ActionListener()
-		{
-			@Override
-			public void actionPerformed(ActionEvent ae)
-			{
-				DefaultGraphLayoutGenerator.layoutGraph(mEditorPanel.mGraphModelManager.getModel());
-			}
-		});
-		/**
-		 *
-		 */
-		mZoomOutButton.addActionListener(new ActionListener()
-		{
-			@Override
-			public void actionPerformed(ActionEvent ae)
-			{
-				mEditorPanel.mGraphModelManager.zoomOut();
-			}
-		});
-	}
-	/**
-	 * Return a single ref on mEditorPanel
-	 *
-	 * @return EditorPanel
-	 */
-	public EditorPanel getEditorPanel()
-	{
-		if (mEditorPanel == null)
-			mEditorPanel =
-				new EditorPanel(
-					mWfEdgeFactory,
-					mWfVertexFactory,
-					new WfVertexOutlineCreator(),
-					true,
-					mOtherToolBarButtons,
-					new WfGraphPanel(new WfDirectedEdgeRenderer(), new WfVertexRenderer()));
-		return mEditorPanel;
-	}
-	public JSplitPane getJSplitPane()
-	{
-		if (mSplitPane == null)
-		{
-			mSplitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, getEditorPanel(), getPropertyPanel());
-			mSplitPane.setDividerSize(5);
-			if (mWorkflow!=null) {
-				CompositeActivity domain = (CompositeActivity) mWorkflow.search("workflow/domain");
-				int minWidth = domain.getChildrenGraphModel().getWidth()+20;
-				if (mSplitPane.getDividerLocation() < minWidth) mSplitPane.setDividerLocation(minWidth);
-			}
-		}
+    protected void createListeners()
+    {
+        /**
+         *
+         */
+        mLoadButton.addActionListener(new ActionListener()
+        {
+            @Override
+            public void actionPerformed(ActionEvent ae)
+            {
+                loadWorkflow();
+            }
+        });
+        /**
+         *
+         */
+        mSaveButton.addActionListener(new ActionListener()
+        {
+            @Override
+            public void actionPerformed(ActionEvent ae)
+            {
+                setCursor(new Cursor(Cursor.WAIT_CURSOR));
+                saveWorkflow();
+                setCursor(new Cursor(Cursor.DEFAULT_CURSOR));
+            }
+        });
+        /**
+         *
+         */
+        mLayoutButton.addActionListener(new ActionListener()
+        {
+            @Override
+            public void actionPerformed(ActionEvent ae)
+            {
+                DefaultGraphLayoutGenerator.layoutGraph(mEditorPanel.mGraphModelManager.getModel());
+            }
+        });
+        /**
+         *
+         */
+        mZoomOutButton.addActionListener(new ActionListener()
+        {
+            @Override
+            public void actionPerformed(ActionEvent ae)
+            {
+                mEditorPanel.mGraphModelManager.zoomOut();
+            }
+        });
+    }
+    /**
+     * Return a single ref on mEditorPanel
+     *
+     * @return EditorPanel
+     */
+    public EditorPanel getEditorPanel()
+    {
+        if (mEditorPanel == null)
+            mEditorPanel =
+            new EditorPanel(
+                    mWfEdgeFactory,
+                    mWfVertexFactory,
+                    new LifecycleVertexOutlineCreator(),
+                    true,
+                    mOtherToolBarButtons,
+                    new WfGraphPanel(new WfDirectedEdgeRenderer(), new WfVertexRenderer()));
+        return mEditorPanel;
+    }
+    public JSplitPane getJSplitPane()
+    {
+        if (mSplitPane == null)
+        {
+            mSplitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, getEditorPanel(), getPropertyPanel());
+            mSplitPane.setDividerSize(5);
+            if (mWorkflow!=null) {
+                CompositeActivity domain = (CompositeActivity) mWorkflow.search("workflow/domain");
+                int minWidth = domain.getChildrenGraphModel().getWidth()+20;
+                if (mSplitPane.getDividerLocation() < minWidth) mSplitPane.setDividerLocation(minWidth);
+            }
+        }
 
-		return mSplitPane;
-	}
-	@Override
-	public void add(Workflow contents)
-	{
-		mWorkflow = contents;
-		CompositeActivity domain = (CompositeActivity) mWorkflow.search("workflow/domain");
-		addActivity(domain);
-		if (mSplitPane != null) {
-			int minWidth = domain.getChildrenGraphModel().getWidth()+20;
-			if (mSplitPane.getDividerLocation() < minWidth) mSplitPane.setDividerLocation(minWidth);
-		}
-	}
-	@Override
-	public void remove(String id)
-	{
-	}
-	protected void addActivity(CompositeActivity cAct)
-	{
-		// Resolve any undefined references in the workflow
-		mEditorPanel.mGraphModelManager.replace(cAct.getChildrenGraphModel());
-		// Give the editor panel the edge and vertex types
-		mEditorPanel.updateVertexTypes(cAct.getWf().getVertexTypeNameAndConstructionInfo());
-		mEditorPanel.updateEdgeTypes(cAct.getWf().getEdgeTypeNameAndConstructionInfo());
-		mEditorPanel.enterSelectMode();
-		mWfVertexFactory.setCreationContext(cAct);
-	}
-	@Override
-	public void run()
-	{
+        return mSplitPane;
+    }
+    @Override
+    public void add(Workflow contents)
+    {
+        mWorkflow = contents;
+        CompositeActivity domain = (CompositeActivity) mWorkflow.search("workflow/domain");
+        addActivity(domain);
+        if (mSplitPane != null) {
+            int minWidth = domain.getChildrenGraphModel().getWidth()+20;
+            if (mSplitPane.getDividerLocation() < minWidth) mSplitPane.setDividerLocation(minWidth);
+        }
+    }
+    @Override
+    public void remove(String id)
+    {
+    }
+    protected void addActivity(CompositeActivity cAct)
+    {
+        // Resolve any undefined references in the workflow
+        mEditorPanel.mGraphModelManager.replace(cAct.getChildrenGraphModel());
+        // Give the editor panel the edge and vertex types
+        mEditorPanel.updateVertexTypes(cAct.getWf().getVertexTypeNameAndConstructionInfo());
+        mEditorPanel.updateEdgeTypes(cAct.getWf().getEdgeTypeNameAndConstructionInfo());
+        mEditorPanel.enterSelectMode();
+        mWfVertexFactory.setCreationContext(cAct);
+    }
+    @Override
+    public void run()
+    {
         Thread.currentThread().setName("Workflow Pane Builder");
-		if (!init)
-		{
-			createLayout();
-			createListeners();
-			mPropertyPanel.setGraphModelManager(mEditorPanel.mGraphModelManager);
+        if (!init)
+        {
+            createLayout();
+            createListeners();
+            mPropertyPanel.setGraphModelManager(mEditorPanel.mGraphModelManager);
             mEditorPanel.setEditable(MainFrame.isAdmin);
-			init = true;
-		}
-		sourceItem.getItem().subscribe(new MemberSubscription<Workflow>(this, ClusterStorage.LIFECYCLE, true));
-		transPanel.setItem(sourceItem.getItem());
-	}
-	@Override
-	public void reload()
-	{
-		Gateway.getStorage().clearCache(sourceItem.getItemPath(), ClusterStorage.LIFECYCLE);
-		initForItem(sourceItem);
-	}
+            init = true;
+        }
+        sourceItem.getItem().subscribe(new MemberSubscription<Workflow>(this, ClusterStorage.LIFECYCLE, true));
+        transPanel.setItem(sourceItem.getItem());
+    }
+    @Override
+    public void reload()
+    {
+        Gateway.getStorage().clearCache(sourceItem.getItemPath(), ClusterStorage.LIFECYCLE);
+        initForItem(sourceItem);
+    }
     protected void createLayout()
     {
         initPanel();
@@ -226,44 +227,44 @@ public class WorkflowPane extends ItemTabPane implements ProxyObserver<Workflow>
         add(wfPane);
         validate();
     }
-	protected void loadWorkflow()
-	{
-		File selectedFile = null;
-		int returnValue = MainFrame.xmlChooser.showOpenDialog(null);
-		switch (returnValue)
-		{
-			case JFileChooser.APPROVE_OPTION :
-				selectedFile = MainFrame.xmlChooser.getSelectedFile();
-				try
-				{
-					String newWf = FileStringUtility.file2String(selectedFile);
-					add((Workflow) Gateway.getMarshaller().unmarshall(newWf));
-				}
-				catch (Exception e)
-				{
-					e.printStackTrace();
-				}
-			case JFileChooser.CANCEL_OPTION :
-			case JFileChooser.ERROR_OPTION :
-			default :
-				}
-	}
-	protected void saveWorkflow()
-	{
-		try
-		{
-			CompositeActivity cact = (CompositeActivity)mWorkflow.getWf().search("workflow/domain");
+    protected void loadWorkflow()
+    {
+        File selectedFile = null;
+        int returnValue = MainFrame.xmlChooser.showOpenDialog(null);
+        switch (returnValue)
+        {
+            case JFileChooser.APPROVE_OPTION :
+                selectedFile = MainFrame.xmlChooser.getSelectedFile();
+                try
+                {
+                    String newWf = FileStringUtility.file2String(selectedFile);
+                    add((Workflow) Gateway.getMarshaller().unmarshall(newWf));
+                }
+                catch (Exception e)
+                {
+                    e.printStackTrace();
+                }
+            case JFileChooser.CANCEL_OPTION :
+            case JFileChooser.ERROR_OPTION :
+            default :
+        }
+    }
+    protected void saveWorkflow()
+    {
+        try
+        {
+            CompositeActivity cact = (CompositeActivity)mWorkflow.getWf().search("workflow/domain");
             MainFrame.userAgent.execute(
-            	sourceItem.getItem(),
-				"ReplaceDomainWorkflow",
-				new String[] { Gateway.getMarshaller().marshall(cact)});
+                    sourceItem.getItem(),
+                    "ReplaceDomainWorkflow",
+                    new String[] { Gateway.getMarshaller().marshall(cact)});
             mEditorPanel.mGraphPanel.setSelection(new Selection(null,null,0,0,0,0));
-		}
-		catch (Exception e)
-		{
-			Logger.error(e);
-		}
-	}
+        }
+        catch (Exception e)
+        {
+            Logger.error(e);
+        }
+    }
 
     public VertexPropertyPanel getPropertyPanel()
     {
@@ -277,30 +278,30 @@ public class WorkflowPane extends ItemTabPane implements ProxyObserver<Workflow>
         return mPropertyPanel;
     }
 
-	public void setNewPropertyPanel()
-	{
-		String wfPanelClass = Gateway.getProperties().getProperty("WfPropertyPanel");
-		if (wfPanelClass != null)
-		{
-			try
-			{
-				Class<?> panelClass = Class.forName(wfPanelClass);
-				mPropertyPanel = (VertexPropertyPanel) panelClass.newInstance();
-				return;
-			}
-			catch (Exception ex)
-			{
-				Logger.error("Could not load wf props panel:" + wfPanelClass);
-				Logger.error(ex);
-			}
-		}
-		mPropertyPanel = new VertexPropertyPanel(false);
-	}
+    public void setNewPropertyPanel()
+    {
+        String wfPanelClass = Gateway.getProperties().getProperty("WfPropertyPanel");
+        if (wfPanelClass != null)
+        {
+            try
+            {
+                Class<?> panelClass = Class.forName(wfPanelClass);
+                mPropertyPanel = (VertexPropertyPanel) panelClass.newInstance();
+                return;
+            }
+            catch (Exception ex)
+            {
+                Logger.error("Could not load wf props panel:" + wfPanelClass);
+                Logger.error(ex);
+            }
+        }
+        mPropertyPanel = new VertexPropertyPanel(false);
+    }
 
-	@Override
-	public void control(String control, String msg) {
-		// TODO Auto-generated method stub
-		
-	}
+    @Override
+    public void control(String control, String msg) {
+        // TODO Auto-generated method stub
+
+    }
 
 }

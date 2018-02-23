@@ -45,7 +45,7 @@ import org.cristalise.gui.tabs.outcome.OutcomeHandler;
 import org.cristalise.gui.tabs.outcome.OutcomeNotInitialisedException;
 import org.cristalise.kernel.graph.layout.DefaultGraphLayoutGenerator;
 import org.cristalise.kernel.lifecycle.CompositeActivityDef;
-import org.cristalise.kernel.lifecycle.WfVertexDefOutlineCreator;
+import org.cristalise.kernel.lifecycle.LifecycleVertexOutlineCreator;
 import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.process.resource.BuiltInResources;
 import org.cristalise.kernel.utils.FileStringUtility;
@@ -87,7 +87,7 @@ public class CompActDefOutcomeHandler
             new EditorPanel(
                 mWfEdgeDefFactory,
                 mWfVertexDefFactory,
-                new WfVertexDefOutlineCreator(),
+                new LifecycleVertexOutlineCreator(),
                 true,
                 mOtherToolBarButtons,
         		new WfDefGraphPanel(new WfDirectedEdgeDefRenderer(),
