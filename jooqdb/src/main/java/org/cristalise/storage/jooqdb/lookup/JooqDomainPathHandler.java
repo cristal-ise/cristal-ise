@@ -63,7 +63,10 @@ public class JooqDomainPathHandler {
     }
 
     private DomainPath getDomainPath(Record record) {
-        UUID uuid = record.get(TARGET);
+        UUID uuid;
+
+        if (record.get(TARGET.getName()) instanceof String) uuid = java.util.UUID.fromString(record.get(TARGET.getName(), String.class));
+        else                                                uuid = record.get(TARGET);
 
         if(uuid == null) return new DomainPath(record.get(PATH));
         else             return new DomainPath(record.get(PATH), new ItemPath(uuid));

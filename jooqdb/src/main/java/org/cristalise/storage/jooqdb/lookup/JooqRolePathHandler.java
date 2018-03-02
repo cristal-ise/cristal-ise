@@ -71,7 +71,7 @@ public class JooqRolePathHandler {
     }
 
     public static RolePath getRolePath(Record record) {
-        if (record != null) return new RolePath(record.get(PATH), record.get(JOBLIST));
+        if (record != null) return new RolePath(record.get(PATH), record.get(JOBLIST.getName(), Boolean.class));
         else                return null;
     }
 

@@ -154,8 +154,12 @@ public class JooqItemHandler {
 
     public static ItemPath getItemPath(DSLContext context, JooqItemPropertyHandler properties, Record record) throws PersistencyException {
         if(record != null) {
-            UUID    uuid    = record.get(UUID);
-            boolean isAgent = record.get(IS_AGENT);
+            UUID uuid;
+
+            if (record.get(UUID.getName()) instanceof String) uuid = java.util.UUID.fromString(record.get(UUID.getName(), String.class));
+            else                                              uuid = record.get(UUID);
+
+            boolean isAgent = record.get(IS_AGENT.getName(), Boolean.class);
             String  ior     = record.get(IOR);
 
             String nameProp = BuiltInItemProperties.NAME.toString();

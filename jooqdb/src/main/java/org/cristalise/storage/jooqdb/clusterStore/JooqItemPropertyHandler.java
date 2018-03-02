@@ -121,7 +121,7 @@ public class JooqItemPropertyHandler extends JooqHandler {
     public C2KLocalObject fetch(DSLContext context, UUID uuid, String...primaryKeys) throws PersistencyException {
         Record result = fetchRecord(context, uuid, primaryKeys);
 
-        if(result != null) return new Property(result.get(NAME), result.get(VALUE), result.get(MUTABLE));
+        if(result != null) return new Property(result.get(NAME), result.get(VALUE), result.get(MUTABLE.getName(), Boolean.class));
         else               return null;
     }
 

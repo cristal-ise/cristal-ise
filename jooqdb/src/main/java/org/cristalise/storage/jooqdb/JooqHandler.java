@@ -43,6 +43,7 @@ import org.jooq.Result;
 import org.jooq.SQLDialect;
 import org.jooq.Table;
 import org.jooq.impl.DefaultConnectionProvider;
+import org.jooq.impl.DefaultDataType;
 import org.jooq.impl.SQLDataType;
 
 public abstract class JooqHandler {
@@ -76,11 +77,12 @@ public abstract class JooqHandler {
     public static final DataType<UUID>           UUID_TYPE      = SQLDataType.UUID;
     public static final DataType<String>         NAME_TYPE      = SQLDataType.VARCHAR.length(64);
     public static final DataType<Integer>        VERSION_TYPE   = SQLDataType.INTEGER;
-    public static final DataType<String>         STRING_TYPE    = SQLDataType.VARCHAR.length(4096);
+    public static final DataType<String>         STRING_TYPE    = SQLDataType.VARCHAR.length(800);
     public static final DataType<Integer>        ID_TYPE        = SQLDataType.INTEGER;
     public static final DataType<Timestamp>      TIMESTAMP_TYPE = SQLDataType.TIMESTAMP;
 //    public static final DataType<OffsetDateTime> TIMESTAMP_TYPE = SQLDataType.TIMESTAMPWITHTIMEZONE;
     public static final DataType<String>         XML_TYPE       = SQLDataType.CLOB;
+//    public static final DataType<String>         XML_TYPE       = new DefaultDataType<String>(SQLDialect.MYSQL, SQLDataType.CLOB, "mediumtext", "char");
 
     public static DSLContext connect() throws PersistencyException {
         String uri  = Gateway.getProperties().getString(JooqHandler.JOOQ_URI);
