@@ -71,6 +71,7 @@ public class JooqRolePathHandler {
     }
 
     public static RolePath getRolePath(Record record) {
+        //Reading JOBLIST boolean is done this way because of a bug in jooq supporting MySQL: check issue #23
         if (record != null) return new RolePath(record.get(PATH), record.get(JOBLIST.getName(), Boolean.class));
         else                return null;
     }

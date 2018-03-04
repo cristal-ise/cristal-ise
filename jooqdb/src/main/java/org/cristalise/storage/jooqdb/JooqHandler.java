@@ -43,7 +43,6 @@ import org.jooq.Result;
 import org.jooq.SQLDialect;
 import org.jooq.Table;
 import org.jooq.impl.DefaultConnectionProvider;
-import org.jooq.impl.DefaultDataType;
 import org.jooq.impl.SQLDataType;
 
 public abstract class JooqHandler {
@@ -82,6 +81,7 @@ public abstract class JooqHandler {
     public static final DataType<Timestamp>      TIMESTAMP_TYPE = SQLDataType.TIMESTAMP;
 //    public static final DataType<OffsetDateTime> TIMESTAMP_TYPE = SQLDataType.TIMESTAMPWITHTIMEZONE;
     public static final DataType<String>         XML_TYPE       = SQLDataType.CLOB;
+// Use this declaration when generating MySQL tables: see issue #23
 //    public static final DataType<String>         XML_TYPE       = new DefaultDataType<String>(SQLDialect.MYSQL, SQLDataType.CLOB, "mediumtext", "char");
 
     public static DSLContext connect() throws PersistencyException {

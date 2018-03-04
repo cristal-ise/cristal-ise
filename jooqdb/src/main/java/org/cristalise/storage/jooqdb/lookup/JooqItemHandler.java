@@ -156,9 +156,11 @@ public class JooqItemHandler {
         if(record != null) {
             UUID uuid;
 
+            //Reading UUID is done this way because of a bug in jooq supporting MySQL: check issue #23
             if (record.get(UUID.getName()) instanceof String) uuid = java.util.UUID.fromString(record.get(UUID.getName(), String.class));
             else                                              uuid = record.get(UUID);
 
+            //Reading IS_AGENT boolean is done this way because of a bug in jooq supporting MySQL: check issue #23
             boolean isAgent = record.get(IS_AGENT.getName(), Boolean.class);
             String  ior     = record.get(IOR);
 

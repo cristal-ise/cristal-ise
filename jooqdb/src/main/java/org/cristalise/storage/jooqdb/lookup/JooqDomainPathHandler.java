@@ -65,6 +65,7 @@ public class JooqDomainPathHandler {
     private DomainPath getDomainPath(Record record) {
         UUID uuid;
 
+        //Reading TARGET (UUID) is done this way because of a bug in jooq supporting MySQL: check issue #23
         if (record.get(TARGET.getName()) instanceof String) uuid = java.util.UUID.fromString(record.get(TARGET.getName(), String.class));
         else                                                uuid = record.get(TARGET);
 
