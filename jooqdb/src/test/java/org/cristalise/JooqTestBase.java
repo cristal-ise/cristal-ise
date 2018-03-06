@@ -44,6 +44,14 @@ public class JooqTestBase {
 
     /**
      * 
+     * @param c2kProps
+     */
+    public static void setUpStorage(Properties c2kProps) {
+        setUpStorage(c2kProps, 0);
+    }
+
+    /**
+     * 
      * @param dbType
      * @return
      * @throws Exception
@@ -54,14 +62,6 @@ public class JooqTestBase {
         else if (dbType == 2) return initPostrgresContext();
         else if (dbType == 3) return initMySQLContext();
         else                  return initH2Context(null);
-    }
-
-    /**
-     * 
-     * @param c2kProps
-     */
-    public static void setUpStorage(Properties c2kProps) {
-        setUpStorage(c2kProps, 0);
     }
 
     /**
@@ -162,5 +162,4 @@ public class JooqTestBase {
 
         if (mode != null) c2kProps.put(JooqHandler.JOOQ_URI, "jdbc:h2:mem:;MODE=" + mode.name());
     }
-
 }

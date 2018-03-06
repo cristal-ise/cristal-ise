@@ -40,7 +40,7 @@ import org.cristalise.kernel.lookup.RolePath;
 import org.junit.Before;
 import org.junit.Test;
 
-public class LookupSearchTests extends LookupTestBase {
+public class LookupSearchTest extends LookupTestBase {
 
     UUID uuid0 = new UUID(0,0);
     UUID uuid1 = new UUID(0,1);

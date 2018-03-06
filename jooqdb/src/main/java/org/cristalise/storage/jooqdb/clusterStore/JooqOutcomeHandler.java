@@ -38,6 +38,7 @@ import org.cristalise.kernel.utils.Logger;
 import org.cristalise.storage.jooqdb.JooqHandler;
 import org.jooq.Condition;
 import org.jooq.DSLContext;
+import org.jooq.DataType;
 import org.jooq.Field;
 import org.jooq.Record;
 import org.jooq.Table;
@@ -134,12 +135,14 @@ public class JooqOutcomeHandler extends JooqHandler {
 
     @Override
     public void createTables(DSLContext context) throws PersistencyException {
+        DataType<String> xmlType = getXMLType(context);
+
         context.createTableIfNotExists(OUTCOME_TABLE)
         .column(UUID,           UUID_TYPE   .nullable(false))
         .column(SCHEMA_NAME,    NAME_TYPE   .nullable(false))
         .column(SCHEMA_VERSION, VERSION_TYPE.nullable(false))
         .column(EVENT_ID,       ID_TYPE     .nullable(false))
-        .column(XML,            XML_TYPE    .nullable(false))
+        .column(XML,            xmlType     .nullable(false))
         .constraints(
                 constraint("PK_"+OUTCOME_TABLE).primaryKey(UUID, SCHEMA_NAME, SCHEMA_VERSION, EVENT_ID))
         .execute();

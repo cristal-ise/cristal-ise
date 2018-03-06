@@ -107,7 +107,7 @@ public class JooqLookupManager implements LookupManager {
 
     @Override
     public void close() {
-        context.close();
+        if (context != null) context.close();
     }
 
     @Override

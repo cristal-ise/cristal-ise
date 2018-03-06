@@ -43,6 +43,7 @@ import org.jooq.Result;
 import org.jooq.SQLDialect;
 import org.jooq.Table;
 import org.jooq.impl.DefaultConnectionProvider;
+import org.jooq.impl.DefaultDataType;
 import org.jooq.impl.SQLDataType;
 
 public abstract class JooqHandler {
@@ -81,8 +82,8 @@ public abstract class JooqHandler {
     public static final DataType<Timestamp>      TIMESTAMP_TYPE = SQLDataType.TIMESTAMP;
 //    public static final DataType<OffsetDateTime> TIMESTAMP_TYPE = SQLDataType.TIMESTAMPWITHTIMEZONE;
     public static final DataType<String>         XML_TYPE       = SQLDataType.CLOB;
-// Use this declaration when generating MySQL tables: see issue #23
-//    public static final DataType<String>         XML_TYPE       = new DefaultDataType<String>(SQLDialect.MYSQL, SQLDataType.CLOB, "mediumtext", "char");
+    // Use this declaration when generating MySQL tables: see issue #23
+    public static final DataType<String>         XML_TYPE_MYSQL  = new DefaultDataType<String>(SQLDialect.MYSQL, SQLDataType.CLOB, "mediumtext", "char");
 
     public static DSLContext connect() throws PersistencyException {
         String uri  = Gateway.getProperties().getString(JooqHandler.JOOQ_URI);
@@ -163,6 +164,31 @@ public abstract class JooqHandler {
 
     public boolean exists(DSLContext context, UUID uuid, C2KLocalObject obj) throws PersistencyException {
         return context.fetchExists( select().from(getTable()).where(getPKConditions(uuid, obj)) );
+    }
+
+    /**
+     * Reads the record from the given field as UUID. 
+     * 
+     * @param record the record to read
+     * @param field the field to be read
+     * @return the UUID
+     */
+    protected UUID getUUID(Record record, Field<UUID> field) {
+        //There a bug in jooq supporting UUID with MySQL: check issue #23
+        if (record.get(field.getName()) instanceof String) return java.util.UUID.fromString(record.get(field.getName(), String.class));
+        else                                               return record.get(field);
+    }
+
+    /**
+     * Return the good XML type for the given dialect
+     * 
+     * @param context the context
+     * @return XML type 
+     */
+    protected DataType<String> getXMLType(DSLContext context) {
+        //There a bug in jooq supporting CLOB with MySQL: check issue #23
+        if (context.dialect().equals(SQLDialect.MYSQL)) return XML_TYPE_MYSQL;
+        else                                            return XML_TYPE;
     }
 
     abstract public void createTables(DSLContext context) throws PersistencyException;

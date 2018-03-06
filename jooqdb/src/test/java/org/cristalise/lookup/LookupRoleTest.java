@@ -41,7 +41,7 @@ import org.cristalise.kernel.lookup.RolePath;
 import org.junit.Before;
 import org.junit.Test;
 
-public class LookupRoleTests extends LookupTestBase {
+public class LookupRoleTest extends LookupTestBase {
 
     RolePath user = new RolePath( new RolePath(), "User");
     AgentPath jim = new AgentPath(new ItemPath(), "Jim");

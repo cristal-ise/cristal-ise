@@ -28,7 +28,7 @@ import org.junit.BeforeClass;
 import org.junit.Ignore;
 import org.junit.Test;
 
-public class Argon2Tests {
+public class Argon2Test {
     char[] pwd = "12345".toCharArray();
     Argon2Password paswordHasher;
 

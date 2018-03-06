@@ -20,9 +20,14 @@
  */
 package org.cristalise.storage.jooqdb;
 
+import static org.junit.Assert.assertThat;
+
+import java.util.Arrays;
+
 import org.cristalise.kernel.collection.Collection;
 import org.cristalise.kernel.collection.Dependency;
 import org.cristalise.storage.jooqdb.clusterStore.JooqCollectionHadler;
+import org.hamcrest.collection.IsIterableContainingInAnyOrder;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -83,9 +88,7 @@ public class JooqCollectionTest extends StorageTestBase {
 
         String[] keys = jooq.getNextPrimaryKeys(context, uuid);
 
-        Assert.assertEquals(2, keys.length);
-        Assert.assertEquals("Test1", keys[0]);
-        Assert.assertEquals("Test2", keys[1]);
+        assertThat(Arrays.asList(keys), IsIterableContainingInAnyOrder.containsInAnyOrder("Test1", "Test2"));
     }
 
     @Test
@@ -95,9 +98,7 @@ public class JooqCollectionTest extends StorageTestBase {
 
         String[] keys = jooq.getNextPrimaryKeys(context, uuid, "Test");
 
-        Assert.assertEquals(2, keys.length);
-        Assert.assertEquals("last", keys[0]);
-        Assert.assertEquals("0", keys[1]);
+        assertThat(Arrays.asList(keys), IsIterableContainingInAnyOrder.containsInAnyOrder("0", "last"));
     }
 
     @Test

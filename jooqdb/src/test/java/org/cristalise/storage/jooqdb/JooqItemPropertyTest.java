@@ -25,6 +25,7 @@ import java.util.UUID;
 
 import org.cristalise.kernel.property.Property;
 import org.cristalise.storage.jooqdb.clusterStore.JooqItemPropertyHandler;
+import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -51,6 +52,11 @@ public class JooqItemPropertyTest extends StorageTestBase {
 
         property = new Property("toto", "value", true);
         assert jooq.put(context, uuid, property) == 1;
+    }
+
+    @After
+    public void after() throws Exception {
+        jooq.delete(context, uuid);
     }
 
     @Test

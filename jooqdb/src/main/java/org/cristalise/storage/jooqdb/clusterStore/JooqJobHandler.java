@@ -45,6 +45,7 @@ import org.cristalise.kernel.utils.Logger;
 import org.cristalise.storage.jooqdb.JooqHandler;
 import org.jooq.Condition;
 import org.jooq.DSLContext;
+import org.jooq.DataType;
 import org.jooq.Field;
 import org.jooq.Record;
 import org.jooq.Table;
@@ -66,7 +67,7 @@ public class JooqJobHandler extends JooqHandler {
     static final Field<String>    ACT_PROPERTIES    = field(name("ACT_PROPERTIES"),    String.class);
     static final Field<Timestamp> CREATION_TS       = field(name("CREATION_TS"),       Timestamp.class);
 
-    //  static final Field<OffsetDateTime> CREATION_TS = field(name("CREATION_TS"), OffsetDateTime.class);
+    //static final Field<OffsetDateTime> CREATION_TS = field(name("CREATION_TS"), OffsetDateTime.class);
 
     @Override
     protected Table<?> getTable() {
@@ -143,14 +144,14 @@ public class JooqJobHandler extends JooqHandler {
                 Transition trans       = (Transition)   Gateway.getMarshaller().unmarshall(result.get(TRANSITION));
                 CastorHashMap actProps = (CastorHashMap)Gateway.getMarshaller().unmarshall(result.get(ACT_PROPERTIES));
 
-                UUID delegate = result.get(DELEGATE_UUID);
+                UUID delegate = getUUID(result, DELEGATE_UUID);
 
                 GTimeStamp ts = DateUtility.fromSqlTimestamp( result.get(CREATION_TS));
                 //GTimeStamp ts = DateUtility.fromOffsetDateTime( result.get(CREATION_TS));
 
                 return new Job(
                         result.get(ID),
-                        new ItemPath(result.get(ITEM_UUID)),
+                        new ItemPath(getUUID(result, ITEM_UUID)),
                         result.get(STEP_NAME),
                         result.get(STEP_PATH),
                         result.get(STEP_TYPE),
@@ -158,7 +159,7 @@ public class JooqJobHandler extends JooqHandler {
                         result.get(ORIGIN_STATE_NAME),
                         result.get(TARGET_STATE_NAME),
                         result.get(AGENT_ROLE),
-                        new AgentPath(result.get(UUID)),
+                        new AgentPath(getUUID(result, UUID)),
                         (delegate == null) ? null : new AgentPath(delegate),
                                 actProps,
                                 ts);
@@ -174,6 +175,8 @@ public class JooqJobHandler extends JooqHandler {
 
     @Override
     public void createTables(DSLContext context) {
+        DataType<String> xmlType = getXMLType(context);
+
         context.createTableIfNotExists(JOB_TABLE)
         .column(UUID,               UUID_TYPE     .nullable(false))
         .column(ID,                 ID_TYPE       .nullable(false))
@@ -182,12 +185,12 @@ public class JooqJobHandler extends JooqHandler {
         .column(STEP_NAME,          NAME_TYPE     .nullable(false))
         .column(STEP_PATH,          NAME_TYPE     .nullable(false))
         .column(STEP_TYPE,          NAME_TYPE     .nullable(false))
-        .column(TRANSITION,         XML_TYPE      .nullable(false))
+        .column(TRANSITION,         xmlType       .nullable(false))
         .column(ORIGIN_STATE_NAME,  NAME_TYPE     .nullable(false))
         .column(TARGET_STATE_NAME,  NAME_TYPE     .nullable(false))
         .column(AGENT_ROLE,         NAME_TYPE     .nullable(false))
-        .column(ACT_PROPERTIES,     XML_TYPE      .nullable(false))
-        .column(CREATION_TS,       TIMESTAMP_TYPE .nullable(false))
+        .column(ACT_PROPERTIES,     xmlType       .nullable(false))
+        .column(CREATION_TS,        TIMESTAMP_TYPE.nullable(false))
         .constraints(constraint("PK_"+JOB_TABLE).primaryKey(UUID, ID))
         .execute();
     }

@@ -62,7 +62,7 @@ public class LookupTestBase extends JooqTestBase {
 
     @After
     public void tearDown() {
-        lookup.close();
+        if (lookup != null) lookup.close();
         Logger.removeLogStream(System.out);
     }
 

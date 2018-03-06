@@ -37,14 +37,14 @@ import org.cristalise.kernel.lookup.RolePath;
 import org.junit.Test;
 
 
-public class LookupAddPathTests extends LookupTestBase {
+public class LookupAddPathTest extends LookupTestBase {
 
     UUID uuid0 = new UUID(0,0);
     SystemKey sysKey0 = new SystemKey(0,0);
 
     @Test
     public void addDeleteItemPath() throws Exception {
-        Path p = new ItemPath(uuid0.toString());
+        Path p = new ItemPath(uuid0);
         assertEquals("/entity/"+uuid0.toString(), p.getStringPath());
         lookup.add(p);
         assert lookup.exists(p);

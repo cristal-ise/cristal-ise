@@ -135,8 +135,8 @@ public class JooqHistoryHandler extends JooqHandler {
         Record result = fetchRecord(context, uuid, primaryKeys);
 
         if (result != null) {
-            UUID agent    = result.get(AGENT_UUID);
-            UUID delegate = result.get(DELEGATE_UUID);
+            UUID agent    = getUUID(result, AGENT_UUID);
+            UUID delegate = getUUID(result, DELEGATE_UUID);
 
             GTimeStamp ts = DateUtility.fromSqlTimestamp( result.get(TIMESTAMP));
             //GTimeStamp ts = DateUtility.fromOffsetDateTime( result.get(TIMESTAMP", OffsetDateTime.class)));

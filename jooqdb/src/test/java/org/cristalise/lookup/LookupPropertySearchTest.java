@@ -41,7 +41,7 @@ import org.jooq.DSLContext;
 import org.junit.Before;
 import org.junit.Test;
 
-public class LookupPropertySearchTests extends LookupTestBase {
+public class LookupPropertySearchTest extends LookupTestBase {
 
     UUID uuid0 = new UUID(0,0);
     UUID uuid1 = new UUID(0,1);
