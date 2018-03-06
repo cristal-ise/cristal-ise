@@ -38,7 +38,7 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
-public class JooqJobTest extends JooqTestBase {
+public class JooqJobTest extends StorageTestBase {
     Job job;
     JooqJobHandler jooq;
     CastorHashMap actProps;
@@ -82,7 +82,7 @@ public class JooqJobTest extends JooqTestBase {
 
     @Before
     public void before() throws Exception {
-        initH2();
+        context = initH2Context();
 
         actProps = new CastorHashMap();
         actProps.setBuiltInProperty(BuiltInVertexProperties.STATE_MACHINE_NAME, "Default");

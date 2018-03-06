@@ -31,6 +31,7 @@ import static org.junit.Assert.assertThat;
 import java.util.Arrays;
 import java.util.Properties;
 
+import org.cristalise.JooqTestBase;
 import org.cristalise.kernel.lifecycle.instance.predefined.server.BulkImport;
 import org.cristalise.kernel.lookup.ItemPath;
 import org.cristalise.kernel.process.Gateway;
@@ -41,7 +42,7 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-public class JooqClusterStorageTest {
+public class JooqClusterStorageTest extends JooqTestBase {
     static ItemPath itemPath;
 
     @BeforeClass
@@ -49,13 +50,9 @@ public class JooqClusterStorageTest {
         Properties props = new Properties();
 
         props.put("ClusterStorage", "org.cristalise.storage.jooqdb.JooqClusterStorage");
-
-        props.put(JooqHandler.JOOQ_URI,      "jdbc:h2:mem:");
-        props.put(JooqHandler.JOOQ_USER,     "sa");
-        props.put(JooqHandler.JOOQ_PASSWORD, "sa");
-        props.put(JooqHandler.JOOQ_DIALECT,  "H2");
-
         props.put("BulkImport.rootDirectory", "src/test/data");
+
+        setUpH2(props);
 
         Gateway.init(props);
         Gateway.connect();

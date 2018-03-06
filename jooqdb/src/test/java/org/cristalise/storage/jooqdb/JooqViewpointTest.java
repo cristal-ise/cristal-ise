@@ -29,7 +29,7 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
-public class JooqViewpointTest extends JooqTestBase {
+public class JooqViewpointTest extends StorageTestBase {
     Viewpoint            viewpoint;
     JooqViewpointHandler jooq;
 
@@ -44,7 +44,7 @@ public class JooqViewpointTest extends JooqTestBase {
 
     @Before
     public void before() throws Exception {
-        initH2();
+        context = initH2Context();
 
         jooq = new JooqViewpointHandler();
         jooq.createTables(context);

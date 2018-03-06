@@ -29,7 +29,7 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
-public class JooqItemPropertyTest extends JooqTestBase {
+public class JooqItemPropertyTest extends StorageTestBase {
 
     Property property;
     JooqItemPropertyHandler jooq;
@@ -44,7 +44,7 @@ public class JooqItemPropertyTest extends JooqTestBase {
 
     @Before
     public void before() throws Exception {
-        initH2();
+        context = initH2Context();
 
         jooq = new JooqItemPropertyHandler();
         jooq.createTables(context);

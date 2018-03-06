@@ -29,14 +29,14 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
-public class JooqOutcomeTest extends JooqTestBase {
+public class JooqOutcomeTest extends StorageTestBase {
 
     Outcome outcome;
     JooqOutcomeHandler jooq;
 
     @Before
     public void before() throws Exception {
-        initH2();
+        context = initH2Context();
 
         jooq = new JooqOutcomeHandler();
         jooq.createTables(context);

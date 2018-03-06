@@ -32,14 +32,14 @@ import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 
-public class JooqLifecycleTest extends JooqTestBase {
+public class JooqLifecycleTest extends StorageTestBase {
 
     Workflow wf;
     JooqLifecycleHandler jooq;
 
     @Before
     public void before() throws Exception {
-        initH2();
+        context = initH2Context();
 
         jooq = new JooqLifecycleHandler();
         jooq.createTables(context);

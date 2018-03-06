@@ -20,23 +20,19 @@
  */
 package org.cristalise.storage.jooqdb;
 
-import static org.jooq.impl.DSL.using;
-
-import java.sql.Connection;
-import java.sql.DriverManager;
 import java.util.Properties;
 import java.util.UUID;
 
+import org.cristalise.JooqTestBase;
 import org.cristalise.kernel.common.GTimeStamp;
 import org.cristalise.kernel.process.Gateway;
 import org.jooq.DSLContext;
-import org.jooq.SQLDialect;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.BeforeClass;
 
-public class JooqTestBase {
+public class StorageTestBase extends JooqTestBase {
     DSLContext context;
     UUID       uuid = UUID.randomUUID();
 
@@ -48,30 +44,6 @@ public class JooqTestBase {
     @AfterClass
     public static void afterClass() throws Exception {
         Gateway.close();
-    }
-
-    /**
-     * Use this if testing needs to be done with postgres. Makse sure that 'integtest' database is created.
-     * This is not the default setup because postgres cannot be run in travis as it has no in-memory/embedded mode.
-     * 
-     * @throws Exception throw anything that could happen
-     */
-    public void initPostrgres() throws Exception {
-        String userName = "postgres";
-        String password = "cristal";
-        String url      = "jdbc:postgresql://localhost:5432/integtest";
-
-        Connection conn = DriverManager.getConnection(url, userName, password);
-        context = using(conn, SQLDialect.POSTGRES);
-    }
-
-    public void initH2() throws Exception {
-        String userName = "sa";
-        String password = "sa";
-        String url      = "jdbc:h2:mem:";
-
-        Connection conn = DriverManager.getConnection(url, userName, password);
-        context = using(conn, SQLDialect.H2);
     }
 
     @After

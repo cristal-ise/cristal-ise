@@ -36,7 +36,7 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
-public class JooqHistoryTest extends JooqTestBase {
+public class JooqHistoryTest extends StorageTestBase {
     Event event;
     JooqHistoryHandler jooq;
 
@@ -110,7 +110,7 @@ public class JooqHistoryTest extends JooqTestBase {
 
     @Before
     public void before() throws Exception {
-        initH2();
+        context = initH2Context();
 
         jooq = new JooqHistoryHandler();
         jooq.createTables(context);

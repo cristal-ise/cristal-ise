@@ -27,13 +27,13 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
-public class JooqCollectionTest extends JooqTestBase {
+public class JooqCollectionTest extends StorageTestBase {
 
     JooqCollectionHadler jooq;
 
     @Before
     public void before() throws Exception {
-        initH2();
+        context = initH2Context();
 
         jooq = new JooqCollectionHadler();
         jooq.createTables(context);
