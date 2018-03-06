@@ -49,7 +49,7 @@ public class LookupTestBase extends JooqTestBase {
 
         ObjectProperties c2kProps = new ObjectProperties();
 
-        setUpH2(c2kProps, H2Modes.PostgreSQL);
+        setUpStorage(c2kProps);
 
         Gateway.init(c2kProps);
 

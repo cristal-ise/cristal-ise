@@ -36,7 +36,7 @@ public class JooqOutcomeTest extends StorageTestBase {
 
     @Before
     public void before() throws Exception {
-        context = initH2Context();
+        context = initJooqContext();
 
         jooq = new JooqOutcomeHandler();
         jooq.createTables(context);

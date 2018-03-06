@@ -39,7 +39,7 @@ public class JooqLifecycleTest extends StorageTestBase {
 
     @Before
     public void before() throws Exception {
-        context = initH2Context();
+        context = initJooqContext();
 
         jooq = new JooqLifecycleHandler();
         jooq.createTables(context);

@@ -33,7 +33,7 @@ public class JooqCollectionTest extends StorageTestBase {
 
     @Before
     public void before() throws Exception {
-        context = initH2Context();
+        context = initJooqContext();
 
         jooq = new JooqCollectionHadler();
         jooq.createTables(context);

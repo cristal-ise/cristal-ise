@@ -44,7 +44,7 @@ public class JooqViewpointTest extends StorageTestBase {
 
     @Before
     public void before() throws Exception {
-        context = initH2Context();
+        context = initJooqContext();
 
         jooq = new JooqViewpointHandler();
         jooq.createTables(context);

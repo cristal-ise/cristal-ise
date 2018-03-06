@@ -82,7 +82,7 @@ public class JooqJobTest extends StorageTestBase {
 
     @Before
     public void before() throws Exception {
-        context = initH2Context();
+        context = initJooqContext();
 
         actProps = new CastorHashMap();
         actProps.setBuiltInProperty(BuiltInVertexProperties.STATE_MACHINE_NAME, "Default");

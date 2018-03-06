@@ -110,7 +110,7 @@ public class JooqHistoryTest extends StorageTestBase {
 
     @Before
     public void before() throws Exception {
-        context = initH2Context();
+        context = initJooqContext();
 
         jooq = new JooqHistoryHandler();
         jooq.createTables(context);

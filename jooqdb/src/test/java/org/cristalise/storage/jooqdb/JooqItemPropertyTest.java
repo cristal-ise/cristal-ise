@@ -44,7 +44,7 @@ public class JooqItemPropertyTest extends StorageTestBase {
 
     @Before
     public void before() throws Exception {
-        context = initH2Context();
+        context = initJooqContext();
 
         jooq = new JooqItemPropertyHandler();
         jooq.createTables(context);

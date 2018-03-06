@@ -22,6 +22,7 @@ package org.cristalise.storage.jooqdb;
 
 import java.util.Properties;
 
+import org.cristalise.JooqTestBase;
 import org.cristalise.kernel.process.Gateway;
 import org.cristalise.storage.jooqdb.lookup.JooqLookupManager;
 import org.junit.AfterClass;
@@ -29,7 +30,7 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-public class JooqLookupManagerTest {
+public class JooqLookupManagerTest extends JooqTestBase {
 
     JooqLookupManager jooq;
 
@@ -37,10 +38,7 @@ public class JooqLookupManagerTest {
     public static void beforeClass() throws Exception {
         Properties props = new Properties();
         
-        props.put(JooqHandler.JOOQ_URI,      "jdbc:h2:mem:");
-        props.put(JooqHandler.JOOQ_USER,     "sa");
-        props.put(JooqHandler.JOOQ_PASSWORD, "sa");
-        props.put(JooqHandler.JOOQ_DIALECT,  "H2");
+        setUpStorage(props);
 
         Gateway.init(props);
     }
