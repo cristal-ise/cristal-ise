@@ -112,14 +112,14 @@ public class RestHandler {
     }
 
     public Response toJSON(Object data) {
-        String childPathDataJSON;
         try {
-            childPathDataJSON = mapper.writeValueAsString(data);
+            String json = mapper.writeValueAsString(data);
+            Logger.msg(8, json);
+            return Response.ok(json).build();
         } catch (IOException e) {
             Logger.error(e);
             throw ItemUtils.createWebAppException("Problem building response JSON: ", e, Response.Status.INTERNAL_SERVER_ERROR);
         }
-        return Response.ok(childPathDataJSON).build();
     }
 
     /**
