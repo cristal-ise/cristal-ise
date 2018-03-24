@@ -165,6 +165,7 @@ public class ItemRoot extends ItemUtils {
 
         itemSummary.put("viewpoints",  getAllViewpoints(item, uri));
         itemSummary.put("collections", enumerate(item, COLLECTION, "collection", uri));
+        itemSummary.put("workflow",    getItemURI(uri, item, "workflow"));
         itemSummary.put("history",     getItemURI(uri, item, "history"));
         itemSummary.put("outcome",     getItemURI(uri, item, "outcome"));
 
