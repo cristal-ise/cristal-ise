@@ -77,15 +77,16 @@ public class NodeItem extends Node implements Transferable {
 				this.type = "";
 			}
 	        String iconString = this.type;
-	        if (type.equals("ActivityDesc"))
+	        if ("ActivityDesc".equals(this.type)) {
 				try {
 					iconString = myItem.getProperty("Complexity")+iconString;
 				} catch (ObjectNotFoundException e) {
 					iconString = "error";
 				}
-	        iconString = iconString.toLowerCase();
-	        this.setIcon(iconString);
-		} catch (ObjectNotFoundException e1) {
+	        }
+	        if (iconString != null) this.setIcon(iconString.toLowerCase());
+		}
+		catch (ObjectNotFoundException e1) {
 			this.itemPath = null;
 			this.type="Error";
 			this.name="Entity not found";
