@@ -357,59 +357,76 @@ public abstract class ItemUtils extends RestHandler {
 
     protected LinkedHashMap<String, Object> makeCollectionData(Collection<?> coll, UriInfo uri) {
         LinkedHashMap<String, Object> collData = new LinkedHashMap<String, Object>();
+
         collData.put("name", coll.getName());
         collData.put("version", coll.getVersionName());
         String collType = "Collection";
-        
+
         if      (coll instanceof Aggregation) collType = "Aggregation";
         else if (coll instanceof Dependency)  collType = "Dependency";
 
         collData.put("type", collType);
         collData.put("isDescription", coll instanceof CollectionDescription);
 
+        // include class props for dependencies here, not in member
         if (coll instanceof Dependency) {
             Dependency dep = (Dependency)coll;
-            addProps(collData, dep.getProperties(), dep.getClassProps(), true); // include class props for dependencies here, not in member
+            addCollectionProps(collData, dep.getProperties(), dep.getClassProps(), true);
         }
 
-        LinkedHashMap<String, Object> memberData = new LinkedHashMap<String, Object>();
+        ArrayList<LinkedHashMap<String, Object>> members = new ArrayList<>();
+
         for (CollectionMember member : coll.getMembers().list) {
             LinkedHashMap<String, Object> thisMemberData = new LinkedHashMap<String, Object>();
-            if (member.getItemPath() != null)
-                thisMemberData.put("item", getItemURI(uri, member.getItemPath()));
-            else
-                thisMemberData.put("item", "");
 
-            addProps(thisMemberData, member.getProperties(), member.getClassProps(), coll instanceof Aggregation); // omit class props for dependencies
-            if (member instanceof AggregationMember) {
-                AggregationMember aggMem = (AggregationMember)member;
-                LinkedHashMap<String, Integer> geo = new LinkedHashMap<String, Integer>();
-                geo.put("x", aggMem.getCentrePoint().x);
-                geo.put("y", aggMem.getCentrePoint().y);
-                geo.put("w", aggMem.getWidth());
-                geo.put("h", aggMem.getHeight());
-                thisMemberData.put("geometry", geo);
+            thisMemberData.put("id", member.getID());
+
+            if (member.getItemPath() != null) {
+                thisMemberData.put("uuid", member.getItemPath().getUUID());
+                thisMemberData.put("url", getItemURI(uri, member.getItemPath()));
             }
-            memberData.put(String.valueOf(member.getID()), thisMemberData);
+
+            // omit class props for dependencies
+            addCollectionProps(thisMemberData, member.getProperties(), member.getClassProps(), coll instanceof Aggregation);
+
+            if (member instanceof AggregationMember) thisMemberData.put("geometry", makeGeoData((AggregationMember)member));
+
+            members.add(thisMemberData);
         }
-        collData.put("members", memberData);
+
+        collData.put("members", members);
         return collData;
     }
 
-    private void addProps(LinkedHashMap<String, Object> collData, CastorHashMap props, String classProps, boolean includeClassProps) {
-        List<String> propList = null;
-        if (classProps != null) propList = Arrays.asList(classProps.split(","));
+    private LinkedHashMap<String, Integer> makeGeoData(AggregationMember aggMem) {
+        LinkedHashMap<String, Integer> geo = new LinkedHashMap<String, Integer>();
 
-        LinkedHashMap<String, Object> classPropData = new LinkedHashMap<String, Object>(), propData = new LinkedHashMap<String, Object>();
+        geo.put("x",      aggMem.getCentrePoint().x);
+        geo.put("y",      aggMem.getCentrePoint().y);
+        geo.put("width",  aggMem.getWidth());
+        geo.put("heigth", aggMem.getHeight());
+
+        return geo;
+    }
+
+    private void addCollectionProps(LinkedHashMap<String, Object> collData, CastorHashMap props, String classProps, boolean includeClassProps) {
+        List<String> classPropList = null;
+        if (classProps != null) classPropList = Arrays.asList(classProps.split(","));
+
+        ArrayList<LinkedHashMap<String, Object>> classPropData = new ArrayList<>(), propData = new ArrayList<>();
 
         for (KeyValuePair prop : props.getKeyValuePairs()) {
-            if (propList != null && propList.contains(prop.getKey()))  // is classProp
-                classPropData.put(prop.getKey(), prop.getValue());
-            else
-                propData.put(prop.getKey(), prop.getValue());
+            LinkedHashMap<String, Object> propMap = new LinkedHashMap<>();
+
+            propMap.put("name",  prop.getKey());
+            propMap.put("value", prop.getValue());
+
+            if (classPropList != null && classPropList.contains(prop.getKey()))  classPropData.add(propMap);
+            else                                                                 propData.add(propMap);
         }
+
         if (classPropData.size() > 0 && includeClassProps) collData.put("classIdentifiers", classPropData);
-        if (propData.size() > 0) collData.put("properties", propData);
+        if (propData.size() > 0)                           collData.put("properties", propData);
     }
 
     /**

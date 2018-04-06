@@ -88,13 +88,11 @@ public class ItemCollection extends ItemUtils {
         checkAuthCookie(authCookie);
         ItemProxy item = getProxy(uuid);
         try {
-            return toJSON(makeCollectionData(item.getCollection(collName, collVersion.equals("last") ? null : Integer.valueOf(collVersion)),
-                    uri));
+            return toJSON(
+                    makeCollectionData(item.getCollection(collName, collVersion.equals("last") ? null : Integer.valueOf(collVersion)),uri)
+            );
         }
-        catch (ObjectNotFoundException e) {
-            throw ItemUtils.createWebAppException(e.getMessage(), Response.Status.NOT_FOUND);
-        }
-        catch (NumberFormatException e) {
+        catch (ObjectNotFoundException | NumberFormatException e ) {
             throw ItemUtils.createWebAppException(e.getMessage(), Response.Status.NOT_FOUND);
         }
     }
