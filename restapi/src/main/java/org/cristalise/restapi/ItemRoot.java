@@ -151,11 +151,15 @@ public class ItemRoot extends ItemUtils {
         LinkedHashMap<String, Object> itemSummary = new LinkedHashMap<String, Object>();
         itemSummary.put("name", item.getName());
         itemSummary.put("uuid", uuid);
-
-        String type = item.getType();
-        if (type != null) itemSummary.put("type", type);
+        itemSummary.put("hasMasterOutcome", false);
 
         try {
+            String type = item.getType();
+            if (type != null) {
+                itemSummary.put("type", type);
+                itemSummary.put("hasMasterOutcome", item.checkViewpoint(type, "last"));
+            }
+
             itemSummary.put("properties", getPropertySummary(item));
         }
         catch (ObjectNotFoundException e) {
