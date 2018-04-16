@@ -1,46 +1,71 @@
 apply plugin: 'groovy'
 apply plugin: 'maven'
+apply plugin: 'signing'
 apply plugin: 'eclipse'
 apply plugin: 'idea'
 apply plugin: 'project-report'
 
+buildscript {
+    repositories {
+        mavenCentral()
+    }
+    dependencies {
+        classpath "io.codearte.gradle.nexus:gradle-nexus-staging-plugin:0.6.1"
+    }
+}
+
+apply plugin: 'io.codearte.nexus-staging'
+
 group = 'org.cristalise'
 version = '3.4.0-SNAPSHOT'
-
-description = ""
+description = "CRISTAL-iSE in-memory implementation of Lookup interfaces for test purposes"
 
 sourceCompatibility = 1.8
 targetCompatibility = 1.8
 
+ext {
+    cristaliseVer   = '3.4.0-SNAPSHOT'
+    groovyVer       = '2.4.11'
+    commonsLangVer  = '2.6'
+    junitVer        = '4.11'
+}
+
+apply from: 'deploy.gradle'
+
 tasks.withType(JavaCompile) {
-	options.encoding = 'UTF-8'
+    options.encoding = 'UTF-8'
+}
+
+task javadocJar(type: Jar) {
+    classifier = 'javadoc'
+    from javadoc
+}
+
+task sourcesJar(type: Jar) {
+    classifier = 'sources'
+    from sourceSets.main.allSource
+}
+
+artifacts {
+    archives javadocJar, sourcesJar
+}
+
+task wrapper(type: Wrapper) {
+    gradleVersion = '3.4.1'
 }
 
 repositories {
     mavenLocal()
     jcenter()
     mavenCentral()
-}
-
-//TODO: This is not working yet
-uploadArchives {  
-    repositories {  
-        mavenDeployer {  
-            repository(url: 'https://oss.sonatype.org/service/local/staging/deploy/maven2') {  
-                authentication(userName: 'userName', password: 'password');  
-            }
-            snapshotRepository(url: 'https://oss.sonatype.org/content/repositories/snapshots') {
-                authentication(userName: 'userName', password: 'password');  
-            }  
-        }  
-    }  
+    maven { url 'https://oss.sonatype.org/content/repositories/snapshots' }
 }
 
 dependencies {
-    compile group: 'org.codehaus.groovy', name: 'groovy-all', version:'2.4.12'
-    compile group: 'org.cristalise', name: 'cristalise-kernel', version:'3.4.0-SNAPSHOT'
+    compile group: 'org.codehaus.groovy', name: 'groovy-all',        version: groovyVer'
+    compile group: 'org.cristalise',      name: 'cristalise-kernel', version: cristaliseVer
 
-    testCompile group: 'commons-lang', name: 'commons-lang', version:'2.6'
-    testCompile group: 'junit', name: 'junit', version:'4.12'
+    testCompile group: 'commons-lang', name: 'commons-lang', version: commonsLangVer
+    testCompile group: 'junit',        name: 'junit',        version: junitVer
 }
 
