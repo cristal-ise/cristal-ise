@@ -20,8 +20,10 @@
  */
 package org.cristalise.dsl.lifecycle.definition
 
+import groovy.lang.Closure
 import groovy.transform.CompileStatic
 
+import org.cristalise.kernel.lifecycle.ActivityDef
 import org.cristalise.kernel.lifecycle.CompositeActivityDef
 
  
@@ -30,6 +32,10 @@ import org.cristalise.kernel.lifecycle.CompositeActivityDef
  */
 @CompileStatic
 class CompActDefBuilder {
+
+    public static CompositeActivityDef build(String name, int version, Closure cl) {
+        return build([module: "", name: name, version: version] as LinkedHashMap, cl)
+    }
 
     public static CompositeActivityDef build(Map<String, Object> attrs,  @DelegatesTo(CompActDefDelegate) Closure cl) {
         def delegate = new CompActDefDelegate()

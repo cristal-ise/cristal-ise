@@ -105,6 +105,11 @@ class ScriptBuilder {
         return sb
     }
 
+    public static Script build(String name, int version, Closure cl) {
+        // FIXME: build method should return Script instead of ScriptBuilder
+        return build("", name, version, cl).script
+    }
+
     /**
      * Factory method to build a Script object
      * 
