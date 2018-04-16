@@ -54,7 +54,7 @@ uploadArchives {
                 }
                 ciManagement {
                     system 'Travis'
-                    url 'https://travis-ci.org/cristal-ise/dev'
+                    url 'https://travis-ci.org/cristal-ise/dsl'
                 }
                 scm {
                     developerConnection 'scm:https://github.com/cristal-ise/dsl.git'
@@ -62,7 +62,7 @@ uploadArchives {
                     tag 'master'
                 }
                 issueManagement {
-                    url 'https://github.com/cristal-ise/dev/issues'
+                    url 'https://github.com/cristal-ise/dsl/issues'
                     system 'GitHub'
                 }
             }
