@@ -35,6 +35,8 @@ class Field extends Attribute {
     Unit unit
 
     List<Attribute> attributes = []
+    
+    String documentation
 
     private String getMultiplicityVal(String m) {
         def dec = /^\d+$/

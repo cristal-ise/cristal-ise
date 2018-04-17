@@ -112,6 +112,8 @@ class SchemaDelegate {
         Logger.msg 1, "SchemaDelegate.buildField() - Field: $f.name"
 
         xsd.'xs:element'(name: f.name, type: (!f.values && !f.unit && !f.pattern ? f.type : ''), 'default': f.defaultVal, minOccurs: f.minOccurs, maxOccurs: f.maxOccurs) {
+            if(f.documentation) 'xs:annotation' { 'xs:documentation'(f.documentation) }
+
             if(f.unit) {
                 'xs:complexType' {
                     'xs:simpleContent' {
