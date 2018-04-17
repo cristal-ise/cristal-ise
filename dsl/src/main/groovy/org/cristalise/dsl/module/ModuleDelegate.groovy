@@ -20,9 +20,25 @@
  */
 package org.cristalise.dsl.module
 
-import groovy.transform.CompileStatic
+import java.io.BufferedWriter
+import java.io.File
+import java.io.FileWriter
 
+import org.cristalise.dsl.lifecycle.definition.CompActDefBuilder
+import org.cristalise.dsl.lifecycle.definition.ElemActDefBuilder
+import org.cristalise.dsl.persistency.outcome.SchemaBuilder
+import org.cristalise.dsl.scripting.ScriptBuilder
+import org.cristalise.dsl.querying.QueryBuilder
+import org.cristalise.kernel.lifecycle.ActivityDef
+import org.cristalise.kernel.lifecycle.CompositeActivityDef
+import org.cristalise.kernel.persistency.outcome.Schema
 import org.cristalise.kernel.process.module.Module
+import org.cristalise.kernel.querying.Query
+import org.cristalise.kernel.scripting.Script
+import org.cristalise.kernel.utils.LocalObjectLoader
+
+import groovy.lang.Closure
+import groovy.transform.CompileStatic
 
 
 /**
@@ -33,10 +49,67 @@ class ModuleDelegate {
     
     Module module = new Module()
     int version
-    
-    public ModuleDelegate(String n, int v) {
+
+    Writer imports
+
+    static final String exportRoot = "src/main/resources/boot"
+
+    public ModuleDelegate(String ns, String n, int v) {
+        module.ns = ns
         module.name = n
         version = v
+
+        imports = new PrintWriter(System.out)
+    }
+
+    public Schema Schema(String name, Integer version) {
+        return LocalObjectLoader.getSchema(name, version);
+    }
+
+    public Schema Schema(String name, Integer version, Closure cl) {
+        def schema = SchemaBuilder.build(name, version, cl)
+        schema.export(imports, new File(exportRoot))
+        return schema
+    }
+
+    public Query Query(String name, Integer version) {
+        return LocalObjectLoader.getQuery(name, version);
+    }
+
+    public Query Query(String name, Integer version, Closure cl) {
+        def query = QueryBuilder.build(this.module.name, name, version, cl)
+        query.export(imports, new File(exportRoot))
+        return query
+    }
+
+    public Script Script(String name, Integer version) {
+        return LocalObjectLoader.getScript(name, version);
+    }
+
+    public Script Script(String name, Integer version, Closure cl) {
+        def script = ScriptBuilder.build(name, version, cl)
+        script.export(imports, new File(exportRoot))
+        return script
+    }
+
+    public ActivityDef Activity(String name, Integer version) {
+        return LocalObjectLoader.getActDef(name, version);
+    }
+
+    public ActivityDef Activity(String name, Integer version, Closure cl) {
+        def eaDef = ElemActDefBuilder.build(name, version, cl)
+        eaDef.export(imports, new File(exportRoot))
+        return eaDef
+    }
+
+    public CompositeActivityDef Workflow(String name, Integer version) {
+        return LocalObjectLoader.getCompActDef(name, version);
+    }
+
+    public CompositeActivityDef Workflow(String name, Integer version, Closure cl) {
+        def caDef = CompActDefBuilder.build(name, version, cl)
+        caDef.export(imports, new File(exportRoot))
+        return caDef
     }
 
     public void processClosure(Closure cl) {
@@ -46,5 +119,7 @@ class ModuleDelegate {
         cl.delegate = this
         cl.resolveStrategy = Closure.DELEGATE_FIRST
         cl()
+
+        imports.close()
     }
 }
