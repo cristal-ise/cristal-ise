@@ -62,6 +62,13 @@ class ScriptDelegate {
         script('jython',  cl)
     }
 
+    def script(String lang, String fileName) {
+        xml.script(language: "$lang", name: "$name") {
+            def cdata = new File(fileName).text
+            mkp.yieldUnescaped("<![CDATA[ $cdata ]]>")
+        }
+    }
+
     def script(String lang, Closure cl) {
         xml.script(language: "$lang", name: "$name") {
             def cdata = cl()
