@@ -83,12 +83,7 @@ class CompActDefDelegate extends PropertyDelegate {
         compActDef.setStateMachine(LocalObjectLoader.getStateMachine(name, version))
     }
 
-    def ElemActDef(String actName, int actVer, Closure cl = null) {
-        ActivityDef eaDef = ElemActDefBuilder.build('name': (Object)actName, 'version': actVer, cl)
-        return ElemActDef(actName, eaDef)
-    }
-
-    def ElemActDef(String actName, ActivityDef actDef) {
+    private int addActDefToSequence(String actName, ActivityDef actDef) {
         def newActSlotDef = compActDef.addExistingActivityDef(actName, actDef, new GraphPoint())
 
         //Simple logic only to add sequential activities
@@ -98,5 +93,23 @@ class CompActDefDelegate extends PropertyDelegate {
         prevActSlotDef = newActSlotDef;
 
         return newActSlotDef.ID
+    }
+
+    def ElemActDef(String actName, int actVer, Closure cl = null) {
+        ActivityDef eaDef = ElemActDefBuilder.build('name': (Object)actName, 'version': actVer, cl)
+        return ElemActDef(actName, eaDef)
+    }
+
+    def ElemActDef(String actName, ActivityDef actDef) {
+        return addActDefToSequence(actName, actDef)
+    }
+
+    def CompActDef(String actName, int actVer, Closure cl = null) {
+        CompositeActivityDef caDef = CompActDefBuilder.build('name': (Object)actName, 'version': actVer, cl)
+        return CompActDef(actName, caDef)
+    }
+
+    def CompActDef(String actName, CompositeActivityDef actDef) {
+        return addActDefToSequence(actName, actDef)
     }
 }
