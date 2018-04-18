@@ -28,6 +28,14 @@ Some useful example curl commands:
 
     `curl -b cookies.txt http://{host:port}/domain`
 
+* *Listing of the item directory with offset*
+
+    `curl -b cookies.txt http://{host:port}/domain/<path>?start=<offset>`
+
+* *Search domain tree for a given name and type*
+
+    `curl -b cookies.txt http://{host:port}/domain/<path>?search=Name:<name>,Type:<type>`
+
 * *List jobs available in the given item for the logged in user*
 
     `curl -b cookies.txt -X GET -D - http://pcuwe04:8081/item/{uuid}/job`
