@@ -28,19 +28,19 @@ Some useful example curl commands:
 
     `curl -b cookies.txt http://{host:port}/domain`
 
-######Listing of the item directory with offset
+###### Listing of the item directory with offset
 
     `curl -b cookies.txt http://{host:port}/domain/<path>?start=<offset>`
 
-######Search domain tree for a given name and type
+###### Search domain tree for a given name and type
 
     `curl -b cookies.txt http://{host:port}/domain/<path>?search=Name:<name>,Type:<type>`
 
-######List jobs available in the given item for the logged in user
+###### List jobs available in the given item for the logged in user
 
     `curl -b cookies.txt -X GET -D - http://pcuwe04:8081/item/{uuid}/job`
 
-######Create a new Schema by executing the 'CreateNewSchema' activity of the CristalDev SchemaFactory item.
+###### Create a new Schema by executing the 'CreateNewSchema' activity of the CristalDev SchemaFactory item.
 
     `curl -b cookies.txt -H "Content-Type: text/xml" -X POST -d '<NewDevObjectDef><ObjectName>SchemaFromRest</ObjectName><SubFolder/></NewDevObjectDef>' -D - http://pcuwe04:8081/item/{uuid of SchemaFactory}/workflow/domain/CreateNewSchema?done`
 
