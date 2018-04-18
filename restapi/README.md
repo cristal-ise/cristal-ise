@@ -28,9 +28,9 @@ Some useful example curl commands:
 
     `curl -b cookies.txt http://{host:port}/domain`
 
-###### Listing of the item directory with offset
+###### Listing of the item directory with offset and batch
 
-    `curl -b cookies.txt http://{host:port}/domain/<path>?start=<offset>`
+    `curl -b cookies.txt http://{host:port}/domain/<path>?start=<offset>&batch=<limit>`
 
 ###### Search domain tree for a given name and type
 
