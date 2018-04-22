@@ -44,6 +44,7 @@ public class PathUtils extends RestHandler {
     protected Map<String, Object> makeLookupData(String path, org.cristalise.kernel.lookup.Path nextPath, UriInfo uri) {
         String name = nextPath.getName();
         String type = "n/a";
+        String domainPath = "";
         URI nextPathURI = null;
         UUID uuid = null;
         Boolean hasJoblist = null;
@@ -51,6 +52,7 @@ public class PathUtils extends RestHandler {
         if (nextPath instanceof DomainPath) {
             type = "domain";
             DomainPath nextDom = (DomainPath) nextPath;
+            domainPath = nextDom.getStringPath();
             try {
                 ItemPath nextItem = nextDom.getItemPath();
                 type = "item";
@@ -90,8 +92,13 @@ public class PathUtils extends RestHandler {
         childPathData.put("type", type);
         childPathData.put("url",  nextPathURI);
 
-        if (path.equals("/") || StringUtils.isBlank(path)) childPathData.put("path", "/" + name);
-        else                                               childPathData.put("path", "/" + path + "/" + name);
+        if (StringUtils.isNotBlank(domainPath)) {
+            childPathData.put("path", domainPath);
+        }
+        else {
+            if (path.equals("/") || StringUtils.isBlank(path)) childPathData.put("path", "/" + name);
+            else                                               childPathData.put("path", "/" + path + "/" + name);
+        }
 
         //optional fields
         if (uuid      != null) childPathData.put("uuid", uuid);
