@@ -28,6 +28,7 @@ import static org.cristalise.storage.jooqdb.lookup.JooqRolePathHandler.AGENT;
 import static org.cristalise.storage.jooqdb.lookup.JooqRolePathHandler.ROLE_PATH_TABLE;
 import static org.jooq.impl.DSL.field;
 import static org.jooq.impl.DSL.name;
+import static org.jooq.impl.DSL.upper;
 
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
@@ -324,7 +325,7 @@ public class JooqLookupManager implements LookupManager {
             select.addJoin(ITEM_PROPERTY_TABLE.as(p.getName()), JoinType.LEFT_OUTER_JOIN, TARGET.equal(joinField));
 
             select.addConditions(Operator.AND, field(name(p.getName(), "NAME"),  String.class).equal(p.getName()));
-            select.addConditions(Operator.AND, field(name(p.getName(), "VALUE"), String.class).equal(p.getValue()));
+            select.addConditions(Operator.AND, upper(field(name(p.getName(), "VALUE"), String.class)).like(upper(p.getValue())));
         }
 
         select.addConditions(Operator.AND, JooqDomainPathHandler.PATH.like(domains.getFindPattern(start, "")));
