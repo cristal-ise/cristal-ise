@@ -27,7 +27,7 @@ import org.cristalise.kernel.property.PropertyDescriptionList
 
 
 /**
- * Wrapper/Delegate class of CastorHashMap used in Lifecycle and Collection Properties
+ * Wrapper/Delegate class of CastorArrayList used in Items
  *
  */
 @CompileStatic
@@ -56,7 +56,14 @@ class PropertyDescriptionDelegate {
 
         if(attrs.isClassIdentifier == null) attrs.isClassIdentifier = false
         if(attrs.isMutable         == null) attrs.isMutable         = true
+        if(attrs.isTransitive      == null) attrs.isTransitive      = false
 
-        propDescList.add((String)attrs.name, (String)attrs.defaultValue, (boolean)attrs.isClassIdentifier, (boolean)attrs.isMutable)
+        propDescList.add(
+            (String)attrs.name, 
+            (String)attrs.defaultValue, 
+            (boolean)attrs.isClassIdentifier, 
+            (boolean)attrs.isMutable,
+            (boolean)attrs.isTransitive
+        )
     }
 }

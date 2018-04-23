@@ -36,7 +36,7 @@ class PropertyDescriptionBuilderSpecs extends Specification implements CristalTe
     def setup()   { loggerSetup()    }
     def cleanup() { cristalCleanup() }
 
-    def 'PropertyDescription can be created specifying the name only, creates a mutable Propoerty'() {
+    def 'PropertyDescription can be created specifying the name only, creates a mutable Property'() {
         when:
         PropertyDescriptionList propDescList = PropertyDescriptionBuilder.build { 
             PropertyDesc("Name")
@@ -49,6 +49,7 @@ class PropertyDescriptionBuilderSpecs extends Specification implements CristalTe
         propDescList.list[0].name == "Name"
         propDescList.list[0].isMutable
         propDescList.list[0].isClassIdentifier == false
+        propDescList.list[0].isTransitive() == false
         propDescList.list[0].defaultValue == null
     }
 
@@ -56,7 +57,7 @@ class PropertyDescriptionBuilderSpecs extends Specification implements CristalTe
         when:
         PropertyDescriptionList propDescList = PropertyDescriptionBuilder.build { 
             PropertyDesc("Name")
-            PropertyDesc(name: "Type", defaultValue: "ElemActDesc", isMutable: false, isClassIdentifier: true)
+            PropertyDesc(name: "Type", defaultValue: "ElemActDesc", isMutable: false, isClassIdentifier: false, isTransitive: true)
         }
 
         then:
@@ -65,7 +66,8 @@ class PropertyDescriptionBuilderSpecs extends Specification implements CristalTe
         propDescList.list[0].name == "Name"
         propDescList.list[1].name == "Type"
         propDescList.list[1].isMutable == false
-        propDescList.list[1].isClassIdentifier
+        propDescList.list[1].isClassIdentifier == false
+        propDescList.list[0].isTransitive()
         propDescList.list[1].defaultValue == "ElemActDesc"
     }
 
