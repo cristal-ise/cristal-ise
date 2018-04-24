@@ -75,7 +75,7 @@ public class PathAccess extends PathUtils {
 
         // Return 404 if the domain path doesn't exist
         if (!domPath.exists())
-            throw ItemUtils.createWebAppException("Domain path doesn't exis", Response.Status.NOT_FOUND);
+            throw ItemUtils.createWebAppException("Domain path does not exist", Response.Status.NOT_FOUND);
 
         // If the domain path represents an item, redirect to it
         try {
