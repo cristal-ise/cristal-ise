@@ -112,11 +112,10 @@ public class JooqItemHandler {
         if (rows != 1) throw new PersistencyException("Insert into ITEM table rows:"+rows);
 
         Property name = new Property(BuiltInItemProperties.NAME, agentPath.getAgentName(), true);
-        Property type = new Property(BuiltInItemProperties.TYPE, "Agent", false);
 
-        rows = properties.insert(context, agentPath.getUUID(), name, type);
+        rows = properties.insert(context, agentPath.getUUID(), name);
 
-        if (rows != 2) throw new PersistencyException("Insert into ITEM_PROPERTY table rows:"+rows);
+        if (rows != 1) throw new PersistencyException("Insert into ITEM_PROPERTY table rows:"+rows);
 
         return 1;
     }

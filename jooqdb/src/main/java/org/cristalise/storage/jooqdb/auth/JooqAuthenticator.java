@@ -26,9 +26,9 @@ import java.util.UUID;
 import org.cristalise.kernel.common.InvalidDataException;
 import org.cristalise.kernel.common.ObjectNotFoundException;
 import org.cristalise.kernel.common.PersistencyException;
+import org.cristalise.kernel.lookup.AgentPath;
+import org.cristalise.kernel.lookup.ItemPath;
 import org.cristalise.kernel.process.auth.Authenticator;
-import org.cristalise.kernel.property.BuiltInItemProperties;
-import org.cristalise.kernel.property.Property;
 import org.cristalise.kernel.utils.Logger;
 import org.cristalise.storage.jooqdb.JooqHandler;
 import org.cristalise.storage.jooqdb.clusterStore.JooqItemPropertyHandler;
@@ -64,17 +64,30 @@ public class JooqAuthenticator implements Authenticator {
         }
     }
 
+    private UUID getAgentUUID(String agentName) throws ObjectNotFoundException {
+        List<UUID> uuids = properties.findItemsByName(context, agentName);
+
+        if (uuids.size() == 0) throw new ObjectNotFoundException("Could not find agent name:"+agentName);
+        if (uuids.size() != 1) throw new ObjectNotFoundException("Ambiguous agent name:"+agentName);
+
+        try {
+            ItemPath item = items.fetch(context, uuids.get(0), properties);
+
+            if (item instanceof AgentPath) return item.getUUID();
+            else                           throw new ObjectNotFoundException("'"+agentName + " is not an Agent");
+        }
+        catch (PersistencyException e) {
+            throw new ObjectNotFoundException("Could not retrieve agentName:"+agentName + " error:"+e.getMessage());
+        }
+    }
+
     @Override
     public boolean authenticate(String agentName, String password, String resource) throws InvalidDataException, ObjectNotFoundException {
         if (context == null) if (!authenticate(resource)) return false;
 
-        List<UUID> uuids = properties.findItems(context, new Property(BuiltInItemProperties.NAME, agentName), new Property(BuiltInItemProperties.TYPE, "Agent"));
-
-        if (uuids.size() == 0) throw new ObjectNotFoundException("Cannot find agent:"+agentName);
-        if (uuids.size() != 1) throw new InvalidDataException("Umbiguous name for agent:"+agentName);
-
         try {
-            return paswordHasher.checkPassword(items.fetchPassword(context, uuids.get(0)), password.toCharArray());
+            String pwd = items.fetchPassword(context, getAgentUUID(agentName));
+            return paswordHasher.checkPassword(pwd, password.toCharArray());
         }
         catch (PersistencyException e) {
             Logger.error(e);
