@@ -233,9 +233,9 @@ class SchemaBuilderSpecs extends Specification implements CristalTestSetup {
                             </xs:complexType>
                           </xs:element>
                         </xs:schema>""")
-        }
-        
-        
+    }
+
+
     def 'Attribute CANNOT specify multiplicity other than 0..1 and 1..1'() {
         when: "attribute specifies multiplicity"
         SchemaTestBuilder.build('Test', 'TestData', 0) {
@@ -274,7 +274,8 @@ class SchemaBuilderSpecs extends Specification implements CristalTestSetup {
                             </xs:element>
                         </xs:schema>""")
     }
-    
+
+
     def 'Attribute can define the default value'() {
             expect:
             SchemaTestBuilder.build('Test', 'TestData', 0) {
@@ -598,4 +599,55 @@ class SchemaBuilderSpecs extends Specification implements CristalTestSetup {
                 </xs:schema>"""
         )
     }
+
+    
+    def 'Field can have attribute'() {
+        expect: "SOME TEXT"
+        SchemaTestBuilder.build('test', 'PatientDetails', 0) {
+            struct(name: 'PatientDetails', documentation: 'This is the Schema for Basic Tutorial') {
+                attribute(name: 'InsuranceNumber', type: 'string', default: '123456789ABC')
+                field(name: 'DateOfBirth',     type: 'date')
+                field(name: 'Gender',          type: 'string', values: ['male', 'female'])
+                field(name: 'Weight',          type: 'decimal') { attribute(name: 'unit', type: 'string', values: ['g', 'kg'], default: 'kg') }
+            }
+        }.compareXML(
+            """<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+                 <xs:element name="PatientDetails">
+                   <xs:annotation>
+                     <xs:documentation>This is the Schema for Basic Tutorial</xs:documentation>
+                   </xs:annotation>
+                   <xs:complexType>
+                   <xs:all minOccurs="0">
+                     <xs:element minOccurs="1" maxOccurs="1" name="DateOfBirth" type="xs:date"/>
+                     <xs:element minOccurs="1" maxOccurs="1" name="Gender">
+                       <xs:simpleType>
+                         <xs:restriction base="xs:string">
+                           <xs:enumeration value="male" />
+                           <xs:enumeration value="female" />
+                         </xs:restriction>
+                       </xs:simpleType>
+                     </xs:element>
+                     <xs:element name='Weight' minOccurs='1' maxOccurs='1'>
+                       <xs:complexType>
+                         <xs:simpleContent>
+                           <xs:extension base='xs:decimal'>
+                             <xs:attribute name='unit' default='kg'>
+                               <xs:simpleType>
+                                 <xs:restriction base='xs:string'>
+                                   <xs:enumeration value='g' />
+                                   <xs:enumeration value='kg' />
+                                 </xs:restriction>
+                               </xs:simpleType>
+                             </xs:attribute>
+                           </xs:extension>
+                         </xs:simpleContent>
+                       </xs:complexType>
+                     </xs:element>
+                   </xs:all>
+                   <xs:attribute name="InsuranceNumber" type="xs:string" default= "123456789ABC"/>
+                 </xs:complexType>
+               </xs:element>
+             </xs:schema>""")
+    }
+
 }

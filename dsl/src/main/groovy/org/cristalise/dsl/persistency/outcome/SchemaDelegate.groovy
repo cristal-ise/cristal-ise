@@ -88,7 +88,7 @@ class SchemaDelegate {
                             if(s.structs) s.structs.each { Struct s1 -> buildStruct(xsd, s1) }
                         }
                     }
-                } 
+                }
                 if(s.attributes) {
                     s.attributes.each { Attribute a -> buildAtribute(xsd, a) }
                 }
@@ -112,7 +112,7 @@ class SchemaDelegate {
     private void buildField(xsd, Field f) {
         Logger.msg 1, "SchemaDelegate.buildField() - Field: $f.name"
 
-        xsd.'xs:element'(name: f.name, type: (!f.values && !f.unit && !f.pattern ? f.type : ''), 'default': f.defaultVal, minOccurs: f.minOccurs, maxOccurs: f.maxOccurs) {
+        xsd.'xs:element'(name: f.name, type: (!f.values && !f.unit && !f.pattern && !f.attributes ? f.type : ''), 'default': f.defaultVal, minOccurs: f.minOccurs, maxOccurs: f.maxOccurs) {
             if(f.documentation || f.dynamicForms) {
                 'xs:annotation' {
                     if (f.documentation) 'xs:documentation'(f.documentation) 
@@ -125,6 +125,15 @@ class SchemaDelegate {
                         }
                     }
                  }
+            }
+            if(f.attributes) {
+                'xs:complexType' {
+                    'xs:simpleContent' {
+                        'xs:extension'(base: f.type) {
+                            f.attributes.each { Attribute a -> buildAtribute(xsd, a) }
+                        }
+                    }
+                }
             }
 
             if(f.unit) {
