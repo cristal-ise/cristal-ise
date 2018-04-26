@@ -70,7 +70,7 @@ class SchemaDelegate {
     private void buildStruct(xsd, Struct s) {
         Logger.msg 1, "SchemaDelegate.buildStruct() - Struct: $s.name"
 
-        xsd.'xs:element'(name: s.name) {
+        xsd.'xs:element'(name: s.name, minOccurs: s.minOccurs, maxOccurs: s.maxOccurs) {
 
             if(s.documentation) 'xs:annotation' { 'xs:documentation'(s.documentation) }
 

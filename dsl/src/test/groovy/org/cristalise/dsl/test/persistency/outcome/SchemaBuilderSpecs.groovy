@@ -518,13 +518,13 @@ class SchemaBuilderSpecs extends Specification implements CristalTestSetup {
         def phones = ['MOBILE', 'WORK', 'HOME', 'WORK_FAX', 'HOME_FAX', 'OTHER', 'CUSTOM']
     
         SchemaTestBuilder.build('test', 'Person', 0) {
-            struct(name: 'Person', documentation: 'Person data') {
+            struct(name: 'Person', documentation: 'Person data', useSequence: true) {
                 field(name: 'Title',     type: 'string', values: titles)
                 field(name: 'Name',      type: 'string')
                 field(name: 'State',  type: 'string', values: states) { dynamicForms (hidden: true) }
     
                 // next 3 structs were copied from contactMech
-                struct(name: 'Phone', documentation: 'Defines Phone entries', multiplicity: '0..*') {
+                struct(name: 'Phone', documentation: 'Defines Phone entries', multiplicity: '0..*', useSequence: true) {
                     field(name: 'Number',     type: 'string')
                     field(name: 'Type',       type: 'string', values: phones)
                     field(name: 'CustomType', type: 'string')
@@ -537,7 +537,7 @@ class SchemaBuilderSpecs extends Specification implements CristalTestSetup {
                       <xs:documentation>Person data</xs:documentation>
                     </xs:annotation>
                     <xs:complexType>
-                      <xs:all minOccurs='0'>
+                      <xs:sequence>
                         <xs:element name='Title' minOccurs='1' maxOccurs='1'>
                           <xs:simpleType>
                             <xs:restriction base='xs:string'>
@@ -568,12 +568,12 @@ class SchemaBuilderSpecs extends Specification implements CristalTestSetup {
                             </xs:restriction>
                           </xs:simpleType>
                         </xs:element>
-                        <xs:element name='Phone'>
+                        <xs:element name='Phone' minOccurs='0' maxOccurs='unbounded'>
                           <xs:annotation>
                             <xs:documentation>Defines Phone entries</xs:documentation>
                           </xs:annotation>
                           <xs:complexType>
-                            <xs:all minOccurs='0'>
+                            <xs:sequence>
                               <xs:element name='Number' type='xs:string' minOccurs='1' maxOccurs='1' />
                               <xs:element name='Type' minOccurs='1' maxOccurs='1'>
                                 <xs:simpleType>
@@ -589,10 +589,10 @@ class SchemaBuilderSpecs extends Specification implements CristalTestSetup {
                                 </xs:simpleType>
                               </xs:element>
                               <xs:element name='CustomType' type='xs:string' minOccurs='1' maxOccurs='1' />
-                            </xs:all>
+                            </xs:sequence>
                           </xs:complexType>
                         </xs:element>
-                      </xs:all>
+                      </xs:sequence>
                     </xs:complexType>
                   </xs:element>
                 </xs:schema>"""

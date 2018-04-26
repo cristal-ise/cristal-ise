@@ -43,6 +43,7 @@ class SchemaTestBuilder extends SchemaBuilder {
 
     public static SchemaTestBuilder build(String module, String name, int version, Closure cl) {
         def sb = SchemaBuilder.build(module, name, version, cl)
+        sb.schema.validate()
 
         return new SchemaTestBuilder(sb)
     }

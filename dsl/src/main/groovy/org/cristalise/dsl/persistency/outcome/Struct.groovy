@@ -20,7 +20,7 @@
  */
 package org.cristalise.dsl.persistency.outcome
 
-
+import org.cristalise.kernel.common.InvalidDataException
 
 /**
  *
@@ -38,6 +38,46 @@ class Struct {
     String minOccurs = null
     String maxOccurs = null
     
+    private String getMultiplicityVal(String m) {
+        def dec = /^\d+$/
+
+        switch(m) {
+            case "*"     : return 'unbounded'
+            case ~/$dec/ : return m
+            default      : throw new InvalidDataException("Invalid value for multiplicity : '$m'")
+        }
+    }
+
+    /**
+     * 
+     * @param m
+     * @return
+     */
     public void setMultiplicity(String m) {
+        if(!m) {
+            minOccurs = ''; maxOccurs = '';
+        }
+        else if(m.contains("..")) {
+            def vals = m.split(/\.\./)
+
+            def v = getMultiplicityVal(vals[0])
+
+            if(v) minOccurs = v
+            else  throw new InvalidDataException("Invalid value for multiplicity : '$m'")
+
+            v = getMultiplicityVal(vals[1])
+
+            if(v) maxOccurs = v
+            else  maxOccurs = ''
+        }
+        else {
+            def v = getMultiplicityVal(m)
+
+            if(!v) { minOccurs = '0' }
+            else   {
+                if (v == 'unbounded') { maxOccurs = v; maxOccurs = ''; }
+                else                  { minOccurs = v; maxOccurs = v; }
+            }
+        }
     }
 }
