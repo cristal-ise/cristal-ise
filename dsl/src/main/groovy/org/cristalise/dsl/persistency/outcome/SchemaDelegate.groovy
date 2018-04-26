@@ -115,8 +115,13 @@ class SchemaDelegate {
             if(f.documentation || f.appInfo) {
                 'xs:annotation' {
                     if (f.documentation) 'xs:documentation'(f.documentation) 
-                    if (f.appInfo) {
-                        'xs:appinfo' { hidden(f.appInfo.hidden) }
+                    if (f.dynamicForms) {
+                        'xs:appinfo' {
+                            dynamicForms {
+                                if (f.dynamicForms.hidden   != null) hidden(  f.dynamicForms.hidden)
+                                if (f.dynamicForms.required != null) required(f.dynamicForms.required)
+                            }
+                        }
                     }
                  }
             }

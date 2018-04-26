@@ -33,7 +33,7 @@ class Field extends Attribute {
     String maxOccurs = '1'
 
     Unit unit
-    AppInfo appInfo
+    DynamicForms dynamicForms
 
     List<Attribute> attributes = []
     

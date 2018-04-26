@@ -25,18 +25,8 @@ import org.cristalise.kernel.common.InvalidDataException
 import groovy.transform.CompileStatic;
 
 
-/**
- * Generates XSD annotation for appinfo:
- * <pre>
- * {@code
- * <xs:annotation>
- *   <xs:appinfo>
- *     <hidden>true</hidden>
- *   </xs:appinfo>
- * </xs:annotation>
- *}
- * </pre> */
 @CompileStatic
-class AppInfo {
-    boolean hidden = false
+class DynamicForms {
+    Boolean hidden = null
+    Boolean required = null
 }
