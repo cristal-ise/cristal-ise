@@ -14,6 +14,21 @@ class ScriptExecutionSpecs extends Specification implements CristalTestSetup {
     def setup()   { inMemoryServer(8) }
     def cleanup() { cristalCleanup() }
 
+    def 'Script can used without any input or output paramteres'() {
+        given:
+        ScriptBuilder.create("integTest", "Modulo", 0) {
+            groovy { "3 % 2;" }
+        }
+        Script script = LocalObjectLoader.getScript("Modulo", 0)
+
+        when:
+        def properties = new CastorHashMap()
+        def result = script.evaluate(null, properties, null, null)
+
+        then:
+        result == ""
+    }
+
     def 'Script can use input parameter and can return a value'() {
         given:
         ScriptBuilder.create("integTest", "Modulo", 0) {
