@@ -275,7 +275,6 @@ class SchemaBuilderSpecs extends Specification implements CristalTestSetup {
                         </xs:schema>""")
     }
     
-    
     def 'Attribute can define the default value'() {
             expect:
             SchemaTestBuilder.build('Test', 'TestData', 0) {
@@ -510,5 +509,93 @@ class SchemaBuilderSpecs extends Specification implements CristalTestSetup {
                  </xs:complexType>
                </xs:element>
              </xs:schema>""")
+    }
+
+    def 'Struct can define nested struct with multiplicity'() {
+        expect:
+        def titles = ['Mr','Mrs','Miss','Ms','Sir','Dr','dr']
+        def states = ['UNINITIALISED', 'ACTIVE', 'DEACTIVETED']
+        def phones = ['MOBILE', 'WORK', 'HOME', 'WORK_FAX', 'HOME_FAX', 'OTHER', 'CUSTOM']
+    
+        SchemaTestBuilder.build('test', 'Person', 0) {
+            struct(name: 'Person', documentation: 'Person data') {
+                field(name: 'Title',     type: 'string', values: titles)
+                field(name: 'Name',      type: 'string')
+                field(name: 'State',  type: 'string', values: states) { dynamicForms (hidden: true) }
+    
+                // next 3 structs were copied from contactMech
+                struct(name: 'Phone', documentation: 'Defines Phone entries', multiplicity: '0..*') {
+                    field(name: 'Number',     type: 'string')
+                    field(name: 'Type',       type: 'string', values: phones)
+                    field(name: 'CustomType', type: 'string')
+                }
+            }
+        }.compareXML(
+            """<xs:schema xmlns:xs='http://www.w3.org/2001/XMLSchema'>
+                  <xs:element name='Person'>
+                    <xs:annotation>
+                      <xs:documentation>Person data</xs:documentation>
+                    </xs:annotation>
+                    <xs:complexType>
+                      <xs:all minOccurs='0'>
+                        <xs:element name='Title' minOccurs='1' maxOccurs='1'>
+                          <xs:simpleType>
+                            <xs:restriction base='xs:string'>
+                              <xs:enumeration value='Mr' />
+                              <xs:enumeration value='Mrs' />
+                              <xs:enumeration value='Miss' />
+                              <xs:enumeration value='Ms' />
+                              <xs:enumeration value='Sir' />
+                              <xs:enumeration value='Dr' />
+                              <xs:enumeration value='dr' />
+                            </xs:restriction>
+                          </xs:simpleType>
+                        </xs:element>
+                        <xs:element name='Name' type='xs:string' minOccurs='1' maxOccurs='1' />
+                        <xs:element name='State' minOccurs='1' maxOccurs='1'>
+                          <xs:annotation>
+                            <xs:appinfo>
+                              <dynamicForms>
+                                <hidden>true</hidden>
+                              </dynamicForms>
+                            </xs:appinfo>
+                          </xs:annotation>
+                          <xs:simpleType>
+                            <xs:restriction base='xs:string'>
+                              <xs:enumeration value='UNINITIALISED' />
+                              <xs:enumeration value='ACTIVE' />
+                              <xs:enumeration value='DEACTIVETED' />
+                            </xs:restriction>
+                          </xs:simpleType>
+                        </xs:element>
+                        <xs:element name='Phone'>
+                          <xs:annotation>
+                            <xs:documentation>Defines Phone entries</xs:documentation>
+                          </xs:annotation>
+                          <xs:complexType>
+                            <xs:all minOccurs='0'>
+                              <xs:element name='Number' type='xs:string' minOccurs='1' maxOccurs='1' />
+                              <xs:element name='Type' minOccurs='1' maxOccurs='1'>
+                                <xs:simpleType>
+                                  <xs:restriction base='xs:string'>
+                                    <xs:enumeration value='MOBILE' />
+                                    <xs:enumeration value='WORK' />
+                                    <xs:enumeration value='HOME' />
+                                    <xs:enumeration value='WORK_FAX' />
+                                    <xs:enumeration value='HOME_FAX' />
+                                    <xs:enumeration value='OTHER' />
+                                    <xs:enumeration value='CUSTOM' />
+                                  </xs:restriction>
+                                </xs:simpleType>
+                              </xs:element>
+                              <xs:element name='CustomType' type='xs:string' minOccurs='1' maxOccurs='1' />
+                            </xs:all>
+                          </xs:complexType>
+                        </xs:element>
+                      </xs:all>
+                    </xs:complexType>
+                  </xs:element>
+                </xs:schema>"""
+        )
     }
 }

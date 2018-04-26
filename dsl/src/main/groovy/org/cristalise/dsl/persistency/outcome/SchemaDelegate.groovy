@@ -75,18 +75,19 @@ class SchemaDelegate {
             if(s.documentation) 'xs:annotation' { 'xs:documentation'(s.documentation) }
 
             'xs:complexType' {
-                if(s.fields) {
+                if(s.fields || s.structs) {
                     if(s.useSequence) {
                         'xs:sequence' {
-                            s.fields.each { Field f -> buildField(xsd, f) }
+                            if(s.fields)  s.fields.each  { Field f   -> buildField(xsd, f) }
+                            if(s.structs) s.structs.each { Struct s1 -> buildStruct(xsd, s1) }
                         }
                     }
                     else {
                         'xs:all'(minOccurs: '0') {
-                            s.fields.each { Field f -> buildField(xsd, f) }
+                            if(s.fields)  s.fields.each  { Field f   -> buildField(xsd, f) }
+                            if(s.structs) s.structs.each { Struct s1 -> buildStruct(xsd, s1) }
                         }
                     }
-
                 } 
                 if(s.attributes) {
                     s.attributes.each { Attribute a -> buildAtribute(xsd, a) }
@@ -112,7 +113,7 @@ class SchemaDelegate {
         Logger.msg 1, "SchemaDelegate.buildField() - Field: $f.name"
 
         xsd.'xs:element'(name: f.name, type: (!f.values && !f.unit && !f.pattern ? f.type : ''), 'default': f.defaultVal, minOccurs: f.minOccurs, maxOccurs: f.maxOccurs) {
-            if(f.documentation || f.appInfo) {
+            if(f.documentation || f.dynamicForms) {
                 'xs:annotation' {
                     if (f.documentation) 'xs:documentation'(f.documentation) 
                     if (f.dynamicForms) {

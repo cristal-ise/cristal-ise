@@ -36,6 +36,8 @@ class Attribute {
     String type = 'xs:string'
     String pattern
 
+    String documentation
+    
     List values
     def defaultVal
 

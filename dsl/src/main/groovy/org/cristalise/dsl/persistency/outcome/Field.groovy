@@ -36,8 +36,6 @@ class Field extends Attribute {
     DynamicForms dynamicForms
 
     List<Attribute> attributes = []
-    
-    String documentation
 
     private String getMultiplicityVal(String m) {
         def dec = /^\d+$/

@@ -30,6 +30,14 @@ class Struct {
     String documentation
     boolean useSequence = false
 
+    List<Struct> structs = []
+
     List<Field> fields = []
     List<Attribute> attributes = []
+
+    String minOccurs = null
+    String maxOccurs = null
+    
+    public void setMultiplicity(String m) {
+    }
 }
