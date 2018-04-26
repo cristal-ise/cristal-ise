@@ -191,7 +191,11 @@ public class OutcomeBuilder {
     }
 
     public String generateNgDynamicForms() {
-        return generateNgDynamicFormsJson().toString(2);
+        String json = generateNgDynamicFormsJson().toString(2);
+
+        Logger.msg(5, "OutcomeBuilder.generateNgDynamicForms() - json:%s", json);
+
+        return json;
     }
 
     public JSONArray generateNgDynamicFormsJson() {

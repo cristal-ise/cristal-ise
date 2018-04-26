@@ -32,6 +32,7 @@ import org.cristalise.kernel.persistency.outcomebuilder.InvalidOutcomeException;
 import org.cristalise.kernel.persistency.outcomebuilder.OutcomeStructure;
 import org.cristalise.kernel.persistency.outcomebuilder.StructuralException;
 import org.exolab.castor.types.AnyNode;
+import org.exolab.castor.xml.schema.Annotated;
 import org.exolab.castor.xml.schema.Annotation;
 import org.exolab.castor.xml.schema.AppInfo;
 import org.exolab.castor.xml.schema.AttributeDecl;
@@ -52,7 +53,7 @@ import org.w3c.dom.Text;
 public class StringField {
 
     Node       data;
-    Structure  model;
+    Annotated  model;
     boolean    isValid  = true;
     boolean    isAttribute = false;
     String     name;
@@ -238,6 +239,41 @@ public class StringField {
         return fieldCls;
     }
 
+    private void setAppInfoDynamicFormsJsonValue(AnyNode node, JSONObject json) {
+        String value = node.getStringValue().trim();
+
+        // handle Boolean only for the time being
+        json.put(node.getLocalName(), Boolean.parseBoolean(value));
+    }
+
+    private void readAppInfoDynamicForms(JSONObject json) {
+        Enumeration<Annotation> e = model.getAnnotations();
+        while (e.hasMoreElements()) {
+            Annotation note = e.nextElement();
+
+            for (Enumeration<AppInfo> f = note.getAppInfo(); f.hasMoreElements();) {
+                AppInfo thisAppInfo = f.nextElement();
+
+                for (Enumeration<?> g = thisAppInfo.getObjects(); g.hasMoreElements();) {
+                    AnyNode appInfoNode = (AnyNode) g.nextElement();
+
+                    // add all Elements of 'dynamicForms' to json
+                    if (appInfoNode.getNodeType() == AnyNode.ELEMENT && appInfoNode.getLocalName().equals("dynamicForms")) {
+                        AnyNode child = appInfoNode.getFirstChild(); //stupid API, there is no getChildren
+
+                        if (child != null) {
+                            if (child.getNodeType() == AnyNode.ELEMENT) setAppInfoDynamicFormsJsonValue(child, json);
+
+                            for (child = child.getNextSibling(); child != null; child = child.getNextSibling()) {
+                                if (child.getNodeType() == AnyNode.ELEMENT) setAppInfoDynamicFormsJsonValue(child, json);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
     public JSONObject getCommonFieldsNgDynamicForms() {
         JSONObject field = new JSONObject();
 
@@ -250,6 +286,8 @@ public class StringField {
         field.put("placeholder", label);
         field.put("type",        getNgDynamicFormsControlType());
         field.put("required",    !isOptional());
+
+        readAppInfoDynamicForms(field);
 
         return field;
     }
