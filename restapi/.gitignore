@@ -3,4 +3,5 @@
 /.settings
 /target
 /*.iml
-/hs_err_pid6211.log
+/hs_err_pid*.log
+
