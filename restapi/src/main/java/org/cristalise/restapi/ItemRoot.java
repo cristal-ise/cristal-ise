@@ -97,45 +97,78 @@ public class ItemRoot extends ItemUtils {
 
         if (type == null) throw ItemUtils.createWebAppException("Type is null, cannot get MasterOutcome ", Response.Status.NOT_FOUND);
 
+        //FIXME: version should be retrieved from the current item or the Module
+        String view = "last";
+        int schemaVersion = 0;
+        if (scriptVersion == null) scriptVersion = 0;
+
+        Script script = null;
+
         try {
-            String view = "last";
-            if (item.checkViewpoint(type, view)) {
+            if (scriptName != null) {
+                final Schema schema = LocalObjectLoader.getSchema(type, schemaVersion);
+                script = LocalObjectLoader.getScript(scriptName, scriptVersion);
+
+                return returnScriptResult(scriptName, item, schema, script);
+            }
+            else if ((script = getAggregateScript(type, scriptVersion)) != null) {
+                final Schema schema = LocalObjectLoader.getSchema(type, schemaVersion);
+
+                return returnScriptResult(scriptName, item, schema, script);
+            }
+            else if (item.checkViewpoint(type, view)) {
                 return getViewpointOutcome(uuid, type, view, true);
             }
-            else if (scriptName != null) {
-                //FIXME: version should be retrieved from the current item or the Module
-                int schemaVersion = 0;
-                if (scriptVersion == null) scriptVersion = 0;
-
-                final Schema schema = LocalObjectLoader.getSchema(type, schemaVersion);
-                final Script script = LocalObjectLoader.getScript(scriptName, scriptVersion);
-
-                Object scriptResult = script.evaluate(item.getPath(), new CastorHashMap(), null, null);
-                String xmlOutcome = null;
-
-                if (scriptResult instanceof String) {
-                    xmlOutcome = (String)scriptResult;
-                }
-                else if (scriptResult instanceof Map) {
-                    //the map shall have one Key only
-                    String key = ((Map<?,?>) scriptResult).keySet().toArray(new String[0])[0];
-                    xmlOutcome = (String)((Map<?,?>) scriptResult).get(key);
-                }
-                else
-                    throw ItemUtils.createWebAppException("Cannot handle result of script:" + scriptName, Response.Status.NOT_FOUND);
-
-                if (xmlOutcome != null)
-                    return getOutcomeResponse(new Outcome(xmlOutcome, schema), new Date(), true);
-                else
-                    throw ItemUtils.createWebAppException("Cannot handle result of script:" + scriptName, Response.Status.NOT_FOUND);
-            }
             else
-                throw ItemUtils.createWebAppException("Cannot retrieve MasterOutcome", Response.Status.NOT_FOUND);
+                throw ItemUtils.createWebAppException("No method available to retrieve MasterOutcome", Response.Status.NOT_FOUND);
         }
         catch (ObjectNotFoundException | InvalidDataException | ScriptingEngineException e) {
             Logger.error(e);
             throw ItemUtils.createWebAppException("Error retrieving MasterOutcome:" + e.getMessage() , Response.Status.NOT_FOUND);
         }
+    }
+
+    /**
+     * Returns the so called Aggregate Script which can be used to construct master outcome.
+     * The method is created to retrieve the script in the if statement
+     * 
+     * @param the value of Type Property of the Item
+     * @param scriptVersion the version of the script
+     * @return the script or null
+     */
+    private Script getAggregateScript(String type, Integer scriptVersion) {
+        String scriptName = type + Gateway.getProperties().getString("REST.MasterOutcome.postfix", "_Aggregate");
+
+        try {
+            return LocalObjectLoader.getScript(scriptName, scriptVersion);
+        }
+        catch (ObjectNotFoundException | InvalidDataException e1) {
+            Logger.msg(5, "ItemRoot.getAggregateScript() - Could not find Script name:%s", scriptName);
+        }
+        return null;
+    }
+
+    private Response returnScriptResult(String scriptName, ItemProxy item, final Schema schema, final Script script)
+            throws ScriptingEngineException, InvalidDataException
+    {
+        Object scriptResult = script.evaluate(item.getPath(), new CastorHashMap(), null, null);
+        String xmlOutcome = null;
+
+        if (scriptResult instanceof String) {
+            xmlOutcome = (String)scriptResult;
+        }
+        else if (scriptResult instanceof Map) {
+            //the map shall have one Key only
+            String key = ((Map<?,?>) scriptResult).keySet().toArray(new String[0])[0];
+            xmlOutcome = (String)((Map<?,?>) scriptResult).get(key);
+        }
+        else
+            throw ItemUtils.createWebAppException("Cannot handle result of script:" + scriptName, Response.Status.NOT_FOUND);
+
+        if (xmlOutcome != null)
+            return getOutcomeResponse(new Outcome(xmlOutcome, schema), new Date(), true);
+        else
+            throw ItemUtils.createWebAppException("Cannot handle result of script:" + scriptName, Response.Status.NOT_FOUND);
     }
 
     @GET
@@ -157,7 +190,7 @@ public class ItemRoot extends ItemUtils {
             String type = item.getType();
             if (type != null) {
                 itemSummary.put("type", type);
-                itemSummary.put("hasMasterOutcome", item.checkViewpoint(type, "last"));
+                itemSummary.put("hasMasterOutcome", (getAggregateScript(type, 0) != null || item.checkViewpoint(type, "last")));
             }
 
             itemSummary.put("properties", getPropertySummary(item));
