@@ -28,6 +28,7 @@ ext {
     groovyVer       = '2.4.11'
     commonsLangVer  = '2.6'
     xmlunitVer      = '2.3.0'
+    commonsCsvVer   = '1.5'
     junitVer        = '4.11'
     awaitilityVer   = '2.0.0'
     spockVer        = '1.1-groovy-2.4'
@@ -73,7 +74,8 @@ dependencies {
     compile group: 'org.codehaus.groovy', name: 'groovy-all',   version: groovyVer
     compile group: 'commons-lang',        name: 'commons-lang', version: commonsLangVer
     compile group: 'org.xmlunit',         name: 'xmlunit-core', version: xmlunitVer
-
+    compile group: 'org.apache.commons',  name: 'commons-csv',  version: commonsCsvVer
+    
     testCompile group: 'org.cristalise',     name: 'cristalise-inmemory-lookup', version: cristaliseVer
     testCompile group: 'com.h2database',     name: 'h2',                         version: h2Ver
     testCompile group: 'junit',              name: 'junit',                      version: junitVer
