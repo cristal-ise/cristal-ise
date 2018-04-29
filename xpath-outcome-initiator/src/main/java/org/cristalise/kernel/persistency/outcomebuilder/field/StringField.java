@@ -26,7 +26,11 @@ import java.time.LocalDate;
 import java.time.OffsetDateTime;
 import java.time.OffsetTime;
 import java.util.Enumeration;
+import java.util.Scanner;
 
+import javax.swing.text.Utilities;
+
+import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.cristalise.kernel.persistency.outcomebuilder.InvalidOutcomeException;
 import org.cristalise.kernel.persistency.outcomebuilder.OutcomeStructure;
@@ -240,10 +244,17 @@ public class StringField {
     }
 
     private void setAppInfoDynamicFormsJsonValue(AnyNode node, JSONObject json) {
+        String name  = node.getLocalName();
         String value = node.getStringValue().trim();
 
-        // handle Boolean only for the time being
-        json.put(node.getLocalName(), Boolean.parseBoolean(value));
+        Scanner scanner = new Scanner(value);
+
+        if      (scanner.hasNextBoolean())    json.put(name, scanner.nextBoolean());
+        else if (scanner.hasNextBigDecimal()) json.put(name, scanner.nextBigDecimal());
+        else if (scanner.hasNextBigInteger()) json.put(name, scanner.nextBigInteger());
+        else                                  json.put(name, value);
+
+        scanner.close();
     }
 
     private void readAppInfoDynamicForms(JSONObject json) {
@@ -277,17 +288,20 @@ public class StringField {
     public JSONObject getCommonFieldsNgDynamicForms() {
         JSONObject field = new JSONObject();
 
-        String label = StringUtils.join(StringUtils.splitByCharacterTypeCamelCase(name), " ");
-
         field.put("cls", generateNgDynamicFormsCls());
 
-        field.put("id",          name);
-        field.put("label",       label);
-        field.put("placeholder", label);
-        field.put("type",        getNgDynamicFormsControlType());
-        field.put("required",    !isOptional());
+        field.put("id",       name);
+        field.put("label",    name);
+        field.put("type",     getNgDynamicFormsControlType());
+        field.put("required", !isOptional());
 
         readAppInfoDynamicForms(field);
+
+        // appinfo/dynamicForms could have updated label, so do the CamelCase splitting now
+        String label = StringUtils.join(StringUtils.splitByCharacterTypeCamelCase((String)field.get("label")), " ");
+
+        field.put("label",       label);
+        field.put("placeholder", label);
 
         return field;
     }
