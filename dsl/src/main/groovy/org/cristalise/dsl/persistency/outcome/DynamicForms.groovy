@@ -29,4 +29,5 @@ import groovy.transform.CompileStatic;
 class DynamicForms {
     Boolean hidden = null
     Boolean required = null
+    String label = null
 }

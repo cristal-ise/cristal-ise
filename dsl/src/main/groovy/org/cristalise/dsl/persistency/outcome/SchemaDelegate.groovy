@@ -121,6 +121,7 @@ class SchemaDelegate {
                             dynamicForms {
                                 if (f.dynamicForms.hidden   != null) hidden(  f.dynamicForms.hidden)
                                 if (f.dynamicForms.required != null) required(f.dynamicForms.required)
+                                if (f.dynamicForms.label)            label(   f.dynamicForms.label)
                             }
                         }
                     }
