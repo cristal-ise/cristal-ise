@@ -54,6 +54,7 @@ import org.cristalise.kernel.common.PersistencyException;
 import org.cristalise.kernel.entity.agent.Job;
 import org.cristalise.kernel.entity.proxy.AgentProxy;
 import org.cristalise.kernel.entity.proxy.ItemProxy;
+import org.cristalise.kernel.lookup.Lookup.PagedResult;
 import org.cristalise.kernel.persistency.outcome.Outcome;
 import org.cristalise.kernel.persistency.outcome.Schema;
 import org.cristalise.kernel.persistency.outcomebuilder.OutcomeBuilder;
@@ -185,6 +186,15 @@ public class ItemRoot extends ItemUtils {
         itemSummary.put("name", item.getName());
         itemSummary.put("uuid", uuid);
         itemSummary.put("hasMasterOutcome", false);
+        
+        PagedResult result = Gateway.getLookup().searchAliases(item.getPath(), 0, 50);
+        ArrayList<Object> domainPathesData = new ArrayList<>();
+
+        for (org.cristalise.kernel.lookup.Path p: result.rows) {
+            domainPathesData.add(p.toString());
+        }
+
+        if (domainPathesData.size() != 0) itemSummary.put("domainPathes", domainPathesData);
 
         try {
             String type = item.getType();
@@ -317,6 +327,8 @@ public class ItemRoot extends ItemUtils {
         try {
             // set outcome if required
             if (thisJob.hasOutcome()) {
+                Logger.msg(5, "ItemRoot.requestTransition() postData:%s", postData);
+
                 List<String> types = headers.getRequestHeader(HttpHeaders.CONTENT_TYPE);
 
                 if (types.contains(MediaType.APPLICATION_XML) || types.contains(MediaType.TEXT_XML)) {
