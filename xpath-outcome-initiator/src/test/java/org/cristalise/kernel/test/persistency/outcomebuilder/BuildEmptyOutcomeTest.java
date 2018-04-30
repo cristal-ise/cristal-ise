@@ -20,17 +20,11 @@
  */
 package org.cristalise.kernel.test.persistency.outcomebuilder;
 
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.TreeMap;
-import java.util.stream.Stream;
 
-import org.apache.commons.lang3.StringUtils;
 import org.cristalise.kernel.persistency.outcome.Schema;
 import org.cristalise.kernel.persistency.outcomebuilder.OutcomeBuilder;
 import org.cristalise.kernel.test.persistency.XMLUtils;

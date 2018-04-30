@@ -103,9 +103,11 @@ public class Field extends OutcomeStructure {
     }
 
     private void createOptinalElement(Element parent, String value) throws StructuralException {
-        myFieldInstance = StringField.getField(model);
+        Logger.msg(5, "Field.createOptinalElement() - name: "+model.getName());
 
-        myElement = parent.getOwnerDocument().createElement(model.getName());
+        if (myFieldInstance == null) myFieldInstance = StringField.getField(model);
+
+        if (myElement == null) myElement = parent.getOwnerDocument().createElement(model.getName());
         parent.appendChild(myElement);
 
         textNode = parent.getOwnerDocument().createTextNode(getDefaultValue());
@@ -155,8 +157,8 @@ public class Field extends OutcomeStructure {
             throw new UnsupportedOperationException("Field name '" + name + "' contains an ARRAY");
         }
         else {
-            if (myFieldInstance == null) createOptinalElement(parent, getJsonValue(json));
-            else                         myFieldInstance.setData(getJsonValue(json));
+            if (myFieldInstance == null || myElement == null) createOptinalElement(parent, getJsonValue(json));
+            else                                              myFieldInstance.setData(getJsonValue(json));
         }
     }
 

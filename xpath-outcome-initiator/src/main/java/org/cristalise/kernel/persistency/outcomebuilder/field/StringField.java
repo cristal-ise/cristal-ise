@@ -28,9 +28,6 @@ import java.time.OffsetTime;
 import java.util.Enumeration;
 import java.util.Scanner;
 
-import javax.swing.text.Utilities;
-
-import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.cristalise.kernel.persistency.outcomebuilder.InvalidOutcomeException;
 import org.cristalise.kernel.persistency.outcomebuilder.OutcomeStructure;
@@ -177,7 +174,7 @@ public class StringField {
     }
 
     public void setData(String newData) throws InvalidOutcomeException {
-        if (data == null) throw new InvalidOutcomeException("No node exists");
+        if (data == null) throw new InvalidOutcomeException("TextNode for '"+name+ "' does not exists");
         setText(newData);
         updateNode();
     }

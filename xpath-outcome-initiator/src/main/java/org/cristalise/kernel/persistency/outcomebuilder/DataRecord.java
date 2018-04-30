@@ -142,17 +142,19 @@ public class DataRecord extends OutcomeStructure {
 
         if (!name.equals(model.getName())) throw new InvalidOutcomeException("Missmatch in names:" + name + "!=" + model.getName());
 
+        //attributes first, order is not important
         for (String key: jsonObj.keySet()) {
             if (myAttributes.hasAttributeDecl(key)) {
                 myAttributes.addJsonInstance(myElement, key, jsonObj.get(key));
             }
-            else {
-                OutcomeStructure childStructure = subStructure.get(key);
+        }
 
-                if (childStructure == null) throw new InvalidOutcomeException("DataRecord '" + name + "' doesn not have a field " + key + "'");
+        for (String elementName : subStructureOrder) {
+            OutcomeStructure childStructure = subStructure.get(elementName);
 
-                childStructure.addJsonInstance(parent, key, jsonObj.get(key));
-            }
+            if (childStructure == null) throw new InvalidOutcomeException("DataRecord '" + name + "' doesn not have a field " + elementName + "'");
+
+            childStructure.addJsonInstance(parent, elementName, jsonObj.get(elementName));
         }
     }
 
