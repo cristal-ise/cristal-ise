@@ -27,10 +27,7 @@ import org.cristalise.kernel.utils.Logger;
 import org.json.JSONObject;
 import org.json.XML;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
-
-import lombok.SneakyThrows;
 
 public class BuildStructureFromJsonTest extends XMLUtils {
 
@@ -41,48 +38,66 @@ public class BuildStructureFromJsonTest extends XMLUtils {
         Logger.addLogStream(System.out, 8);
     }
 
-    private void checkJsonOutcome(String type) throws Exception {
+    private void checkJson2XmlOutcome(String type) throws Exception {
+        JSONObject actualJson = new JSONObject(getJSON(dir, type));
+        String expected = getXML(dir, type);
+
+        Logger.msg(2, "Actual json:%s", actualJson.toString());
+        OutcomeBuilder builder = new OutcomeBuilder(new Schema(type, 0, getXSD(dir, type)), true);
+        builder.addJsonInstance(actualJson);;
+
+        Logger.msg(2, "Expected xml:%s", expected);
+        Logger.msg(2, "Actual xml:%s", builder.getXml());
+
+        assert compareXML(expected, builder.getXml());
+    }
+
+    private void checkXml2Json2XmlOutcome(String type) throws Exception {
         OutcomeBuilder builder = new OutcomeBuilder(new Schema(type, 0, getXSD(dir, type)), true);
         String expected = getXML(dir, type+"Updated");
-        JSONObject expectedJson = XML.toJSONObject(expected);
+        JSONObject actualJson = XML.toJSONObject(expected);
 
-        Logger.msg(expectedJson.toString());
-        Logger.msg(XML.toString(expectedJson));
+        Logger.msg(2, "Actual json:%s", actualJson.toString());
+        builder.addJsonInstance(actualJson);;
 
-        builder.addJsonInstance(expectedJson);;
-
-        Logger.msg(builder.getXml());
+        Logger.msg(2, "Expected xml:%s", expected);
+        Logger.msg(2, "Actual xml:%s", builder.getXml());
 
         assert compareXML(expected, builder.getXml());
     }
 
     @Test
     public void integerFieldWithUnit() throws Exception {
-        checkJsonOutcome("IntegerFieldWithUnit");
+        checkXml2Json2XmlOutcome("IntegerFieldWithUnit");
     }
 
-    @Test @Ignore
+    @Test
     public void integerFieldOptional() throws Exception {
-        checkJsonOutcome("IntegerFieldOptional");
+        checkXml2Json2XmlOutcome("IntegerFieldOptional");
     }
 
     @Test
     public void booleanField() throws Exception {
-        checkJsonOutcome("BooleanField");
+        checkXml2Json2XmlOutcome("BooleanField");
     }
 
     @Test
     public void rootWithAttr() throws Exception {
-        checkJsonOutcome("RootWithAttr");
+        checkXml2Json2XmlOutcome("RootWithAttr");
     }
 
     @Test
     public void rootWithOptionalAttr() throws Exception {
-        checkJsonOutcome("RootWithOptionalAttr");
+        checkXml2Json2XmlOutcome("RootWithOptionalAttr");
     }
 
     @Test
     public void patientDetails() throws Exception {
-        checkJsonOutcome("PatientDetails");
+        checkXml2Json2XmlOutcome("PatientDetails");
+    }
+
+    @Test
+    public void employee_ComplexType_sequence() throws Exception {
+        checkJson2XmlOutcome("Employee");
     }
 }
