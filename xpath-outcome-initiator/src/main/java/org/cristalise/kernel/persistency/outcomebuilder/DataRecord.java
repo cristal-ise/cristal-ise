@@ -154,7 +154,10 @@ public class DataRecord extends OutcomeStructure {
 
             if (childStructure == null) throw new InvalidOutcomeException("DataRecord '" + name + "' doesn not have a field " + elementName + "'");
 
-            childStructure.addJsonInstance(parent, elementName, jsonObj.get(elementName));
+            //Optional element might not be present in the json
+            if (jsonObj.has(elementName)) {
+                childStructure.addJsonInstance(parent, elementName, jsonObj.get(elementName));
+            }
         }
     }
 
