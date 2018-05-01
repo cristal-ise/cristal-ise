@@ -30,7 +30,7 @@ public class TimeField extends StringField {
 
     @Override
     public String getDefaultValue() {
-        return "12:00";
+        return "12:00:00";
     }
 
     @Override
