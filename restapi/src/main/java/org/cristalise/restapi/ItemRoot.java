@@ -361,5 +361,9 @@ public class ItemRoot extends ItemUtils {
             Logger.error(e);
             throw ItemUtils.createWebAppException(e.getMessage(), Response.Status.INTERNAL_SERVER_ERROR);
         }
+        catch (Exception e) { // any other failure
+            Logger.error(e);
+            throw ItemUtils.createWebAppException(e.getMessage(), Response.Status.INTERNAL_SERVER_ERROR);
+        }
     }
 }
