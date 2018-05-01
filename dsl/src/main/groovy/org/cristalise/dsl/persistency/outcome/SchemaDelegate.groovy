@@ -109,6 +109,16 @@ class SchemaDelegate {
         }
     }
 
+    private void setAppinfoDynamicForms(xsd, Field f) {
+        xsd.dynamicForms {
+            if (f.dynamicForms.hidden   != null) hidden(  f.dynamicForms.hidden)
+            if (f.dynamicForms.required != null) required(f.dynamicForms.required)
+            if (f.dynamicForms.disabled != null) disabled(f.dynamicForms.disabled)
+            if (f.dynamicForms.label)            label(   f.dynamicForms.label)
+            if (f.dynamicForms.type)             type(    f.dynamicForms.type)
+        }
+    }
+
     private void buildField(xsd, Field f) {
         Logger.msg 1, "SchemaDelegate.buildField() - Field: $f.name"
 
@@ -116,15 +126,7 @@ class SchemaDelegate {
             if(f.documentation || f.dynamicForms) {
                 'xs:annotation' {
                     if (f.documentation) 'xs:documentation'(f.documentation) 
-                    if (f.dynamicForms) {
-                        'xs:appinfo' {
-                            dynamicForms {
-                                if (f.dynamicForms.hidden   != null) hidden(  f.dynamicForms.hidden)
-                                if (f.dynamicForms.required != null) required(f.dynamicForms.required)
-                                if (f.dynamicForms.label)            label(   f.dynamicForms.label)
-                            }
-                        }
-                    }
+                    if (f.dynamicForms)  'xs:appinfo' { setAppinfoDynamicForms(xsd, f) }
                  }
             }
             if(f.attributes) {
