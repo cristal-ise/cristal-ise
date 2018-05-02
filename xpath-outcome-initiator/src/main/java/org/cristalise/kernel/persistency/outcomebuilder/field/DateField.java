@@ -20,10 +20,14 @@
  */
 package org.cristalise.kernel.persistency.outcomebuilder.field;
 
+import java.time.Instant;
 import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 
 import org.cristalise.kernel.persistency.outcomebuilder.InvalidOutcomeException;
+import org.cristalise.kernel.utils.Logger;
 import org.json.JSONObject;
 
 public class DateField extends StringField {
@@ -56,6 +60,26 @@ public class DateField extends StringField {
 
     @Override
     public void setValue(Object value) throws InvalidOutcomeException {
-        super.setData(value.toString());
+        Logger.msg(0, "DateField.setValue() - value=" + value + " class:" + value.getClass().getSimpleName());
+
+        if (value instanceof String) {
+            String sVal = (String) value;
+
+            try {
+                LocalDateTime ldt = null;
+
+                if      (sVal.endsWith("Z")) ldt = LocalDateTime.ofInstant(Instant.parse(sVal), ZoneOffset.UTC);
+                else if (sVal.contains("T")) ldt = LocalDateTime.parse(sVal);
+
+                if (ldt != null) setData(ldt.toLocalDate().toString());
+                else             setData(sVal);
+            }
+            catch (DateTimeParseException e) {
+                Logger.error(e);
+                throw new InvalidOutcomeException(e.getMessage());
+            }
+        }
+        else
+            setData(value.toString());
     }
 }

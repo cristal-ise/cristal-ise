@@ -1,0 +1,13 @@
+<?xml version='1.0' encoding='utf-8'?>
+<xs:schema xmlns:xs='http://www.w3.org/2001/XMLSchema'>
+  <xs:element name='Shift'>
+    <xs:complexType>
+      <xs:all minOccurs='0'>
+        <xs:element name='Name' type='xs:string' minOccurs='1' maxOccurs='1' />
+        <xs:element name='FromHour' type='xs:time' minOccurs='1' maxOccurs='1' />
+        <xs:element name='ThruHour' type='xs:time' minOccurs='1' maxOccurs='1' />
+        <xs:element name='ActualHours' type='xs:decimal' minOccurs='1' maxOccurs='1' />
+      </xs:all>
+    </xs:complexType>
+  </xs:element>
+</xs:schema>
