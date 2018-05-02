@@ -125,7 +125,7 @@ public class ItemRoot extends ItemUtils {
         }
         catch (ObjectNotFoundException | InvalidDataException | ScriptingEngineException e) {
             Logger.error(e);
-            throw ItemUtils.createWebAppException("Error retrieving MasterOutcome:" + e.getMessage() , Response.Status.NOT_FOUND);
+            throw ItemUtils.createWebAppException("Error retrieving MasterOutcome:" + e.getMessage() , e, Response.Status.NOT_FOUND);
         }
     }
 
@@ -207,7 +207,7 @@ public class ItemRoot extends ItemUtils {
         }
         catch (ObjectNotFoundException e) {
             Logger.error(e);
-            throw ItemUtils.createWebAppException("No Properties found", Response.Status.BAD_REQUEST);
+            throw ItemUtils.createWebAppException("No Properties found", e, Response.Status.BAD_REQUEST);
         }
 
         itemSummary.put("viewpoints",  getAllViewpoints(item, uri));
@@ -297,6 +297,7 @@ public class ItemRoot extends ItemUtils {
             }
         }
 
+        if (actPath == null) throw ItemUtils.createWebAppException("Must specify activity path", Response.Status.BAD_REQUEST);
         if (transition == null) throw ItemUtils.createWebAppException("Must specify transition", Response.Status.BAD_REQUEST);
 
         // Find agent
@@ -321,7 +322,7 @@ public class ItemRoot extends ItemUtils {
         }
 
         if (thisJob == null)
-            throw ItemUtils.createWebAppException("Job not found for agent", Response.Status.NOT_FOUND);
+            throw ItemUtils.createWebAppException("Job not found for actPath:"+actPath+" transition:"+transition, Response.Status.NOT_FOUND);
 
         // execute the requested job
         try {
@@ -344,22 +345,26 @@ public class ItemRoot extends ItemUtils {
         }
         catch (OutcomeBuilderException | InvalidDataException | ScriptErrorException | ObjectAlreadyExistsException | InvalidCollectionModification e) {
             Logger.error(e);
-            throw ItemUtils.createWebAppException(e.getMessage(), Response.Status.BAD_REQUEST);
+            throw ItemUtils.createWebAppException(e.getMessage(), e, Response.Status.BAD_REQUEST);
         }
         catch (AccessRightsException e) { // agent doesn't hold the right to execute
-            throw ItemUtils.createWebAppException(e.getMessage(), Response.Status.UNAUTHORIZED);
+            throw ItemUtils.createWebAppException(e.getMessage(), e, Response.Status.UNAUTHORIZED);
         }
         catch (ObjectNotFoundException e) { // workflow, schema, script etc not found.
             Logger.error(e);
-            throw ItemUtils.createWebAppException(e.getMessage(), Response.Status.NOT_FOUND);
+            throw ItemUtils.createWebAppException(e.getMessage(), e, Response.Status.NOT_FOUND);
         }
         catch (InvalidTransitionException e) { // activity has already changed state
             Logger.error(e);
-            throw ItemUtils.createWebAppException(e.getMessage(), Response.Status.CONFLICT);
+            throw ItemUtils.createWebAppException(e.getMessage(), e, Response.Status.CONFLICT);
         }
         catch (PersistencyException e) { // database failure
             Logger.error(e);
-            throw ItemUtils.createWebAppException(e.getMessage(), Response.Status.INTERNAL_SERVER_ERROR);
+            throw ItemUtils.createWebAppException(e.getMessage(), e, Response.Status.INTERNAL_SERVER_ERROR);
+        }
+        catch (Exception e) { // database failure
+            Logger.error(e);
+            throw ItemUtils.createWebAppException(e.getMessage(), e, Response.Status.INTERNAL_SERVER_ERROR);
         }
     }
 }
