@@ -42,8 +42,9 @@ public class TimeField extends StringField {
     public JSONObject generateNgDynamicForms() {
         JSONObject date = getCommonFieldsNgDynamicForms();
 
-        date.put("meridian", false);
+        //date.put("meridian", false);
         date.put("showSeconds", true);
+        getAdditionalConfigNgDynamicForms(date).put("utc", true);
 
         return date;
     }

@@ -253,6 +253,23 @@ public class StringField {
 
         scanner.close();
     }
+    
+    /**
+     * PrimeNG specific settings are stored in 'additional' JSONOBject of NgDynamicForms configs
+     * 
+     * @param field the actual config field 
+     * @return the 'additional' JSONOBject attached to the config field
+     */
+    protected JSONObject getAdditionalConfigNgDynamicForms(JSONObject field) {
+        if (field.has("additional")) {
+            return (JSONObject) field.get("additional");
+        }
+        else {
+            JSONObject additional = new JSONObject();
+            field.put("additional", additional);
+            return additional;
+        }
+    }
 
     private void readAppInfoDynamicForms(JSONObject json) {
         Enumeration<Annotation> e = model.getAnnotations();
