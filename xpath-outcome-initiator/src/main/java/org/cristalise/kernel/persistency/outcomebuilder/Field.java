@@ -22,8 +22,6 @@ package org.cristalise.kernel.persistency.outcomebuilder;
 
 import java.io.IOException;
 import java.io.Writer;
-import java.math.BigDecimal;
-import java.math.RoundingMode;
 
 import org.apache.commons.lang3.StringUtils;
 import org.cristalise.kernel.persistency.outcomebuilder.field.StringField;
@@ -102,32 +100,21 @@ public class Field extends OutcomeStructure {
         }
     }
 
-    private void createOptinalElement(Element parent, String value) throws StructuralException {
+    private void createOptinalElement(Element parent) throws StructuralException {
         Logger.msg(5, "Field.createOptinalElement() - name: "+model.getName());
 
         if (myFieldInstance == null) myFieldInstance = StringField.getField(model);
 
-        if (myElement == null) myElement = parent.getOwnerDocument().createElement(model.getName());
-        parent.appendChild(myElement);
-
-        textNode = parent.getOwnerDocument().createTextNode(getDefaultValue());
-        myElement.appendChild(textNode);
-
-        textNode.setData(value);
-        myFieldInstance.setData(textNode);
-    }
-
-    private String getJsonValue(Object jsonValue) {
-        Logger.msg("+++ jsonValue:" +jsonValue + " class:" + jsonValue.getClass().getSimpleName());
-        if (jsonValue instanceof BigDecimal) {
-            BigDecimal decimalVal = (BigDecimal)jsonValue;
-            
-            decimalVal = decimalVal.setScale(2, RoundingMode.HALF_UP);
-            
-            return decimalVal.toString();
+        if (myElement == null) {
+            myElement = parent.getOwnerDocument().createElement(model.getName());
+            parent.appendChild(myElement);
         }
-        else
-            return jsonValue.toString();
+
+        if (myFieldInstance.getData() == null) {
+            textNode = parent.getOwnerDocument().createTextNode(getDefaultValue());
+            myElement.appendChild(textNode);
+            myFieldInstance.setData(textNode);
+        }
     }
 
     @Override
@@ -142,9 +129,10 @@ public class Field extends OutcomeStructure {
                     myAttributes.addJsonInstance(myElement, key, jsonObj.get(key));
                 }
                 else {
+                    //'content' is the field name used by the org.json.XML to handle value of Element with attributes
                     if (key.equals("content")) {
-                        if (myFieldInstance == null) createOptinalElement(parent, getJsonValue(jsonObj.get(key)));
-                        else                         myFieldInstance.setData(getJsonValue(jsonObj.get(key).toString()));
+                        createOptinalElement(parent);
+                        myFieldInstance.setValue(jsonObj.get(key));
                     }
                     else {
                         // this should never happen
@@ -157,8 +145,9 @@ public class Field extends OutcomeStructure {
             throw new UnsupportedOperationException("Field name '" + name + "' contains an ARRAY");
         }
         else {
-            if (myFieldInstance == null || myElement == null) createOptinalElement(parent, getJsonValue(json));
-            else                                              myFieldInstance.setData(getJsonValue(json));
+            //json variable is not JSOObject nor JSONArray, so handle it as a value
+            createOptinalElement(parent);
+            myFieldInstance.setValue(json);
         }
     }
 

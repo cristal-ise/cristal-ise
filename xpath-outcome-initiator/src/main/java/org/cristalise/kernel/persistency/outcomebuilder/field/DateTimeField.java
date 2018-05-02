@@ -20,6 +20,7 @@
  */
 package org.cristalise.kernel.persistency.outcomebuilder.field;
 
+import org.cristalise.kernel.persistency.outcomebuilder.InvalidOutcomeException;
 import org.json.JSONObject;
 
 public class DateTimeField extends StringField {
@@ -46,5 +47,10 @@ public class DateTimeField extends StringField {
         date.put("showTime", true);
 
         return date;
+    }
+
+    @Override
+    public void setValue(Object value) throws InvalidOutcomeException {
+        super.setData(value.toString());
     }
 }

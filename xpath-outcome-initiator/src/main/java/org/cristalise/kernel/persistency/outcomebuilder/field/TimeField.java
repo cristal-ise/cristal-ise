@@ -20,6 +20,7 @@
  */
 package org.cristalise.kernel.persistency.outcomebuilder.field;
 
+import org.cristalise.kernel.persistency.outcomebuilder.InvalidOutcomeException;
 import org.json.JSONObject;
 
 public class TimeField extends StringField {
@@ -47,5 +48,10 @@ public class TimeField extends StringField {
         getAdditionalConfigNgDynamicForms(date).put("utc", true);
 
         return date;
+    }
+
+    @Override
+    public void setValue(Object value) throws InvalidOutcomeException {
+        super.setData(value.toString());
     }
 }

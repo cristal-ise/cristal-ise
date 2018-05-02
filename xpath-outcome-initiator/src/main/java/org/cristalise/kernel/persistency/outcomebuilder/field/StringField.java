@@ -179,6 +179,17 @@ public class StringField {
         updateNode();
     }
 
+    /**
+     * Overwrite this method to provide conversion code for each type
+     * 
+     * @param value the Object to be converted
+     * @throws InvalidOutcomeException
+     */
+    public void setValue(Object value) throws InvalidOutcomeException {
+        setData(value.toString());
+    }
+
+
     public boolean isOptional() {
         if (isAttribute) return ((AttributeDecl)model).isOptional();
         else             return ((ElementDecl)model).getMinOccurs() == 0;

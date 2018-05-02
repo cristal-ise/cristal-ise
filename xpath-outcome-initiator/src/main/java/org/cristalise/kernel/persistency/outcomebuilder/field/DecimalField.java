@@ -20,6 +20,10 @@
  */
 package org.cristalise.kernel.persistency.outcomebuilder.field;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
+
+import org.cristalise.kernel.persistency.outcomebuilder.InvalidOutcomeException;
 import org.json.JSONObject;
 
 public class DecimalField extends StringField {
@@ -47,5 +51,16 @@ public class DecimalField extends StringField {
         inputReal.put("min", (String)null);
 
         return inputReal;
+    }
+
+    @Override
+    public void setValue(Object value) throws InvalidOutcomeException {
+        if (value instanceof BigDecimal) {
+            BigDecimal decimalVal = (BigDecimal)value;
+            decimalVal = decimalVal.setScale(2, RoundingMode.HALF_UP);
+            super.setData(decimalVal.toString());
+        }
+
+        super.setData(value.toString());
     }
 }
