@@ -26,6 +26,7 @@ import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
+import java.time.temporal.ChronoUnit;
 import java.util.Map;
 
 import org.cristalise.kernel.persistency.outcomebuilder.InvalidOutcomeException;
@@ -72,8 +73,12 @@ public class TimeField extends StringField {
                 if      (sVal.endsWith("Z")) ldt = LocalDateTime.ofInstant(Instant.parse(sVal), ZoneOffset.UTC);
                 else if (sVal.contains("T")) ldt = LocalDateTime.parse(sVal);
 
-                if (ldt != null) setData(ldt.format(DateTimeFormatter.ISO_LOCAL_TIME));
-                else             setData(sVal);
+                if (ldt != null) {
+                    DateTimeFormatter dtf = DateTimeFormatter.ISO_LOCAL_TIME;
+                    setData(ldt.truncatedTo(ChronoUnit.SECONDS).format(dtf));
+                }
+                else
+                    setData(sVal);
             }
             catch (DateTimeParseException e) {
                 Logger.error(e);
