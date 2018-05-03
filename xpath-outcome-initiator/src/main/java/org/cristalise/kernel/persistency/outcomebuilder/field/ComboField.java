@@ -20,21 +20,14 @@
  */
 package org.cristalise.kernel.persistency.outcomebuilder.field;
 
-import java.util.Enumeration;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.StringTokenizer;
 
 import org.cristalise.kernel.persistency.outcomebuilder.StructuralException;
-import org.cristalise.kernel.scripting.Script;
-import org.cristalise.kernel.utils.LocalObjectLoader;
 import org.cristalise.kernel.utils.Logger;
 import org.exolab.castor.types.AnyNode;
-import org.exolab.castor.xml.schema.Annotation;
 import org.exolab.castor.xml.schema.AttributeDecl;
-import org.exolab.castor.xml.schema.Documentation;
 import org.exolab.castor.xml.schema.ElementDecl;
-import org.exolab.castor.xml.schema.Facet;
 import org.exolab.castor.xml.schema.SimpleType;
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -42,22 +35,19 @@ import org.json.JSONObject;
 public class ComboField extends StringField {
 
     ListOfValues vals;
-    AnyNode listNode;
     String selected;
 
     public ComboField(SimpleType type, AnyNode listNode) {
         super();
         contentType = type;
-        this.listNode = listNode;
-        createLOV();
+        vals = new ListOfValues();
+        vals.createLOV(type, listNode);
     }
 
     @Override
     public String getDefaultValue() {
-        if (vals.getDefaultKey() != null)
-            return vals.get(vals.getDefaultKey()).toString();
-        else
-            return "";
+        if (vals.getDefaultKey() != null) return vals.get(vals.getDefaultKey()).toString();
+        else                              return "";
     }
 
     public void setDefaultValue(String defaultVal) {
@@ -76,64 +66,6 @@ public class ComboField extends StringField {
         }
         else
             Logger.error("Illegal value for ComboField name:'"+getName()+"' value:'"+text+"'");
-    }
-
-    private void createLOV() {
-        vals = new ListOfValues();
-
-        if (listNode != null) { // schema instructions for list building
-            String lovType = listNode.getLocalName();
-            String param = listNode.getFirstChild().getStringValue();
-
-            if      (lovType.equals("scriptList")) populateLOVFromScript(param);
-            else if (lovType.equals("pathList"))   populateLOVFromLookup(param);
-            else if (lovType.equals("queryList"))  ; //populateLOVFromQuery(param);
-            else if (lovType.equals("valueList"))  ; //populateLOVFromValues(param);
-        }
-
-        // handle enumerations
-        // TODO: should be merged with above results
-        if (contentType.hasFacet(Facet.ENUMERATION)) {
-            //ListOfValues andList = new ListOfValues();
-            Enumeration<Facet> enums = contentType.getFacets(Facet.ENUMERATION);
-            //TODO: read default value if exists
-
-            while (enums.hasMoreElements()) {
-                Facet thisEnum = enums.nextElement();
-                String desc = thisEnum.getValue();
-                Enumeration<Annotation> annos = thisEnum.getAnnotations();
-
-                if (annos.hasMoreElements()) {
-                    Annotation thisAnno = annos.nextElement();
-                    Enumeration<Documentation> docs = thisAnno.getDocumentation();
-
-                    if (docs.hasMoreElements()) desc = docs.nextElement().getContent();
-                }
-                vals.put(desc, thisEnum.getValue(), false);
-            }
-        }
-    }
-
-    /**
-     * @param param
-     */
-    private void populateLOVFromLookup(String param) {
-        // TODO List of Values from Lookup properties, eg '/root/path;prop=val;prop=val'
-    }
-
-    private void populateLOVFromScript(String scriptName) {
-        try {
-            StringTokenizer tok = new StringTokenizer(scriptName, "_");
-
-            if (tok.countTokens() != 2) throw new Exception("Invalid LOVScript name");
-
-            Script lovscript = LocalObjectLoader.getScript(tok.nextToken(), Integer.parseInt(tok.nextToken()));
-            lovscript.setInputParamValue("LOV", vals);
-            lovscript.execute();
-        }
-        catch (Exception ex) {
-            Logger.error(ex);
-        }
     }
 
     @Override
@@ -159,8 +91,7 @@ public class ComboField extends StringField {
         JSONObject emptyOption = new JSONObject();
         emptyOption.put("label", "Select value");
         //emptyOption.put("value", null);
-        //emptyOption.put("disabled", false);
-
+ 
         options.put(emptyOption);
 
         for (Entry<String, Object> entry: vals.entrySet()) {
@@ -168,7 +99,6 @@ public class ComboField extends StringField {
 
             option.put("label", entry.getKey());
             option.put("value", entry.getValue());
-            //option.put("disabled", false);
 
             options.put(option);
         }
@@ -184,5 +114,4 @@ public class ComboField extends StringField {
 
         return select;
     }
-
 }

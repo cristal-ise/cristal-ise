@@ -25,9 +25,7 @@ import java.math.BigInteger;
 import java.time.LocalDate;
 import java.time.OffsetDateTime;
 import java.time.OffsetTime;
-import java.util.Arrays;
 import java.util.Enumeration;
-import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
 
@@ -65,13 +63,6 @@ public class StringField {
     String     text;
     String     defaultValue;
     
-    final static List<String> appInfoListNames;
-
-    static {
-        String[] names = {"scriptList", "pathList", "queryList", "valueList"};
-        appInfoListNames = Arrays.asList(names);
-    }
-
     public StringField() {}
 
     private static StringField getFieldForType(SimpleType type) {
@@ -92,7 +83,7 @@ public class StringField {
                 for (Enumeration<?> g = thisAppInfo.getObjects(); g.hasMoreElements();) {
                     AnyNode appInfoNode = (AnyNode) g.nextElement();
 
-                    if (appInfoListNames.contains(appInfoNode.getLocalName())) {
+                    if (ListOfValues.AppInfoListTags.valueOf(appInfoNode.getLocalName()) != null) {
                         return new ComboField(type, appInfoNode);
                     }
                 }
