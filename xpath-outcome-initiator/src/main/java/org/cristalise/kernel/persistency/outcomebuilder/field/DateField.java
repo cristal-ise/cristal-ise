@@ -25,6 +25,7 @@ import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
+import java.util.Map;
 
 import org.cristalise.kernel.persistency.outcomebuilder.InvalidOutcomeException;
 import org.cristalise.kernel.utils.Logger;
@@ -49,7 +50,7 @@ public class DateField extends StringField {
     }
 
     @Override
-    public JSONObject generateNgDynamicForms() {
+    public JSONObject generateNgDynamicForms(Map<String, Object> inputs) {
         JSONObject date = getCommonFieldsNgDynamicForms();
 
         date.put("format", primeNGDateFormat);

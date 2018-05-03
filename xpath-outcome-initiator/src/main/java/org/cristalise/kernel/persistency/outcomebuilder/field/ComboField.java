@@ -21,6 +21,7 @@
 package org.cristalise.kernel.persistency.outcomebuilder.field;
 
 import java.util.Enumeration;
+import java.util.Map;
 import java.util.Map.Entry;
 import java.util.StringTokenizer;
 
@@ -84,8 +85,10 @@ public class ComboField extends StringField {
             String lovType = listNode.getLocalName();
             String param = listNode.getFirstChild().getStringValue();
 
-            if (lovType.equals("ScriptList")) populateLOVFromScript(param);
-            if (lovType.equals("PathList"))   populateLOVFromLookup(param);
+            if      (lovType.equals("scriptList")) populateLOVFromScript(param);
+            else if (lovType.equals("pathList"))   populateLOVFromLookup(param);
+            else if (lovType.equals("queryList"))  ; //populateLOVFromQuery(param);
+            else if (lovType.equals("valueList"))  ; //populateLOVFromValues(param);
         }
 
         // handle enumerations
@@ -174,7 +177,7 @@ public class ComboField extends StringField {
     }
 
     @Override
-    public JSONObject generateNgDynamicForms() {
+    public JSONObject generateNgDynamicForms(Map<String, Object> inputs) {
         JSONObject select = getCommonFieldsNgDynamicForms();
 
         select.put("options", getNgDynamicFormsOptions());

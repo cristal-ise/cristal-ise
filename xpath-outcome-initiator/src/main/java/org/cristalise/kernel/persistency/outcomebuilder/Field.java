@@ -22,6 +22,7 @@ package org.cristalise.kernel.persistency.outcomebuilder;
 
 import java.io.IOException;
 import java.io.Writer;
+import java.util.Map;
 
 import org.apache.commons.lang3.StringUtils;
 import org.cristalise.kernel.persistency.outcomebuilder.field.StringField;
@@ -214,10 +215,10 @@ public class Field extends OutcomeStructure {
     }
 
     @Override
-    public Object generateNgDynamicForms() {
+    public Object generateNgDynamicForms(Map<String, Object> inputs) {
         String defVal = getDefaultValue();
 
-        JSONObject fieldJson = myFieldInstance.generateNgDynamicForms();
+        JSONObject fieldJson = myFieldInstance.generateNgDynamicForms(inputs);
 
         if (StringUtils.isNotBlank(defVal))
             fieldJson.put("value", defVal);

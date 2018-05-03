@@ -20,6 +20,8 @@
  */
 package org.cristalise.kernel.persistency.outcomebuilder.field;
 
+import java.util.Map;
+
 import org.json.JSONObject;
 
 public class IntegerField extends StringField {
@@ -39,7 +41,7 @@ public class IntegerField extends StringField {
     }
 
     @Override
-    public JSONObject generateNgDynamicForms() {
+    public JSONObject generateNgDynamicForms(Map<String, Object> inputs) {
         JSONObject inputInt = getCommonFieldsNgDynamicForms();
 
         //inputInt.put("inputType", "number");

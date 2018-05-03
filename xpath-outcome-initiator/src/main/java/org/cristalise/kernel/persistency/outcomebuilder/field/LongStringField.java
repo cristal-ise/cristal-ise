@@ -20,6 +20,8 @@
  */
 package org.cristalise.kernel.persistency.outcomebuilder.field;
 
+import java.util.Map;
+
 import org.json.JSONObject;
 
 public class LongStringField extends StringField {
@@ -34,7 +36,7 @@ public class LongStringField extends StringField {
     }
 
     @Override
-    public JSONObject generateNgDynamicForms() {
+    public JSONObject generateNgDynamicForms(Map<String, Object> inputs) {
         JSONObject textArea = getCommonFieldsNgDynamicForms();
 
         textArea.put("cols", 20);

@@ -190,17 +190,25 @@ public class OutcomeBuilder {
         outcome.setField(name, data);
     }
 
-    public String generateNgDynamicForms() {
-        String json = generateNgDynamicFormsJson().toString(2);
+    public String generateNgDynamicForms(Map<String, Object> inputs) {
+        String json = generateNgDynamicFormsJson(inputs).toString(2);
 
         Logger.msg(5, "OutcomeBuilder.generateNgDynamicForms() - json:%s", json);
 
         return json;
     }
 
+    public String generateNgDynamicForms() {
+        return generateNgDynamicForms(null);
+    }
+
     public JSONArray generateNgDynamicFormsJson() {
+        return generateNgDynamicFormsJson(null);
+    }
+
+    public JSONArray generateNgDynamicFormsJson(Map<String, Object> inputs) {
         JSONArray array = new JSONArray();
-        array.put(modelRoot.generateNgDynamicForms());
+        array.put(modelRoot.generateNgDynamicForms(inputs));
         return array;
     }
 

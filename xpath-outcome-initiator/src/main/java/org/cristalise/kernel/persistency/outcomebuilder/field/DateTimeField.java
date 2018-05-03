@@ -20,6 +20,8 @@
  */
 package org.cristalise.kernel.persistency.outcomebuilder.field;
 
+import java.util.Map;
+
 import org.cristalise.kernel.persistency.outcomebuilder.InvalidOutcomeException;
 import org.json.JSONObject;
 
@@ -40,7 +42,7 @@ public class DateTimeField extends StringField {
     }
 
     @Override
-    public JSONObject generateNgDynamicForms() {
+    public JSONObject generateNgDynamicForms(Map<String, Object> inputs) {
         JSONObject date = getCommonFieldsNgDynamicForms();
 
         date.put("format", "dd/mm/yy");

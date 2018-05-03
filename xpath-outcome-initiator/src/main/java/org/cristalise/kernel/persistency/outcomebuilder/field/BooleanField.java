@@ -31,6 +31,11 @@ public class BooleanField extends StringField {
     }
 
     @Override
+    public String getNgDynamicFormsControlType() {
+        return "CHECKBOX";
+    }
+
+    @Override
     public String getText() {
         return checkbox.toString();
     }

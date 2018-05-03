@@ -22,6 +22,7 @@ package org.cristalise.kernel.persistency.outcomebuilder.field;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.util.Map;
 
 import org.cristalise.kernel.persistency.outcomebuilder.InvalidOutcomeException;
 import org.json.JSONObject;
@@ -43,7 +44,7 @@ public class DecimalField extends StringField {
     }
 
     @Override
-    public JSONObject generateNgDynamicForms() {
+    public JSONObject generateNgDynamicForms(Map<String, Object> inputs) {
         JSONObject inputReal = getCommonFieldsNgDynamicForms();
 
         //inputReal.put("inputType", "number");

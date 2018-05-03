@@ -31,6 +31,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Enumeration;
 import java.util.HashMap;
+import java.util.Map;
 import java.util.Map.Entry;
 
 import org.apache.commons.lang3.StringUtils;
@@ -97,7 +98,7 @@ public abstract class OutcomeStructure {
     public abstract Element initNew(Document rootDocument);
 
     public abstract void exportViewTemplate(Writer template) throws IOException;
-    public abstract Object generateNgDynamicForms();
+    public abstract Object generateNgDynamicForms(Map<String, Object> inputs);
     public abstract JSONObject generateNgDynamicFormsCls();
     public abstract void addJsonInstance(Element parent, String name, Object json) throws OutcomeBuilderException;
 

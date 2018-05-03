@@ -23,8 +23,10 @@ package org.cristalise.kernel.persistency.outcomebuilder.field;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
+import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
+import java.util.Map;
 
 import org.cristalise.kernel.persistency.outcomebuilder.InvalidOutcomeException;
 import org.cristalise.kernel.utils.Logger;
@@ -47,7 +49,7 @@ public class TimeField extends StringField {
     }
 
     @Override
-    public JSONObject generateNgDynamicForms() {
+    public JSONObject generateNgDynamicForms(Map<String, Object> inputs) {
         JSONObject date = getCommonFieldsNgDynamicForms();
 
         //date.put("meridian", false);
@@ -70,13 +72,8 @@ public class TimeField extends StringField {
                 if      (sVal.endsWith("Z")) ldt = LocalDateTime.ofInstant(Instant.parse(sVal), ZoneOffset.UTC);
                 else if (sVal.contains("T")) ldt = LocalDateTime.parse(sVal);
 
-                if (ldt != null) {
-                    DateTimeFormatter dtf  = DateTimeFormatter.ofPattern("HH:mm:ss");
-                    setData(dtf.format(ldt.toLocalTime()));
-                }
-                else
-                    setData(sVal);
-
+                if (ldt != null) setData(ldt.format(DateTimeFormatter.ISO_LOCAL_TIME));
+                else             setData(sVal);
             }
             catch (DateTimeParseException e) {
                 Logger.error(e);

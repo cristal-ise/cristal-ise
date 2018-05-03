@@ -23,6 +23,7 @@ package org.cristalise.kernel.persistency.outcomebuilder;
 import java.io.Writer;
 import java.util.Enumeration;
 import java.util.HashMap;
+import java.util.Map;
 
 import org.cristalise.kernel.persistency.outcomebuilder.field.StringField;
 import org.cristalise.kernel.utils.Logger;
@@ -149,10 +150,10 @@ public class AttributeList extends OutcomeStructure {
     }
 
     @Override
-    public JSONArray generateNgDynamicForms() {
+    public JSONArray generateNgDynamicForms(Map<String, Object> inputs) {
         JSONArray attrs = new JSONArray();
 
-        for (StringField attr: attrMap.values()) attrs.put(attr.generateNgDynamicForms());
+        for (StringField attr: attrMap.values()) attrs.put(attr.generateNgDynamicForms(inputs));
 
         return attrs;
     }

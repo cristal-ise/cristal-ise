@@ -25,7 +25,10 @@ import java.math.BigInteger;
 import java.time.LocalDate;
 import java.time.OffsetDateTime;
 import java.time.OffsetTime;
+import java.util.Arrays;
 import java.util.Enumeration;
+import java.util.List;
+import java.util.Map;
 import java.util.Scanner;
 
 import org.apache.commons.lang3.StringUtils;
@@ -61,6 +64,13 @@ public class StringField {
     SimpleType contentType;
     String     text;
     String     defaultValue;
+    
+    final static List<String> appInfoListNames;
+
+    static {
+        String[] names = {"scriptList", "pathList", "queryList", "valueList"};
+        appInfoListNames = Arrays.asList(names);
+    }
 
     public StringField() {}
 
@@ -82,7 +92,7 @@ public class StringField {
                 for (Enumeration<?> g = thisAppInfo.getObjects(); g.hasMoreElements();) {
                     AnyNode appInfoNode = (AnyNode) g.nextElement();
 
-                    if (appInfoNode.getLocalName().equals("ScriptList") || appInfoNode.getLocalName().equals("LDAPList")) {
+                    if (appInfoListNames.contains(appInfoNode.getLocalName())) {
                         return new ComboField(type, appInfoNode);
                     }
                 }
@@ -331,7 +341,7 @@ public class StringField {
         return field;
     }
 
-    public JSONObject generateNgDynamicForms() {
+    public JSONObject generateNgDynamicForms(Map<String, Object> inputs) {
         JSONObject input = getCommonFieldsNgDynamicForms();
 
         input.put("inputType", "text");

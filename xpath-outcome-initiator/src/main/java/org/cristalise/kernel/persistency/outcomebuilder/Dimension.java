@@ -23,6 +23,7 @@ package org.cristalise.kernel.persistency.outcomebuilder;
 import java.io.Writer;
 import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.Map;
 
 import org.cristalise.kernel.utils.Logger;
 import org.exolab.castor.xml.schema.ElementDecl;
@@ -211,7 +212,7 @@ public class Dimension extends OutcomeStructure {
     }
 
     @Override
-    public Object generateNgDynamicForms() {
+    public Object generateNgDynamicForms(Map<String, Object> inputs) {
         // TODO Auto-generated method stub
         return null;
     }
