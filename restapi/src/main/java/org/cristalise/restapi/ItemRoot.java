@@ -27,6 +27,7 @@ import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.Semaphore;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.CookieParam;
@@ -70,6 +71,8 @@ import org.json.JSONObject;
 
 @Path("/item/{uuid}")
 public class ItemRoot extends ItemUtils {
+
+    static Semaphore mutex = new Semaphore(1);
 
     @GET
     @Path("name")
@@ -149,11 +152,35 @@ public class ItemRoot extends ItemUtils {
         return null;
     }
 
+    /**
+     * 
+     * @param scriptName
+     * @param item
+     * @param schema
+     * @param script
+     * @return
+     * @throws ScriptingEngineException
+     * @throws InvalidDataException
+     */
     private Response returnScriptResult(String scriptName, ItemProxy item, final Schema schema, final Script script)
             throws ScriptingEngineException, InvalidDataException
     {
-        Object scriptResult = script.evaluate(item.getPath(), new CastorHashMap(), null, null);
         String xmlOutcome = null;
+        Object scriptResult = null;
+        
+        try {
+            mutex.acquire();
+            scriptResult = script.evaluate(item.getPath(), new CastorHashMap(), null, null);
+        }
+        catch (ScriptingEngineException e) {
+            throw e;
+        }
+        catch (Exception e) {
+            throw new InvalidDataException(e.getMessage());
+        }
+        finally {
+            mutex.release();
+        }
 
         if (scriptResult instanceof String) {
             xmlOutcome = (String)scriptResult;
@@ -166,10 +193,10 @@ public class ItemRoot extends ItemUtils {
         else
             throw ItemUtils.createWebAppException("Cannot handle result of script:" + scriptName, Response.Status.NOT_FOUND);
 
-        if (xmlOutcome != null)
-            return getOutcomeResponse(new Outcome(xmlOutcome, schema), new Date(), true);
-        else
+        if (xmlOutcome == null)
             throw ItemUtils.createWebAppException("Cannot handle result of script:" + scriptName, Response.Status.NOT_FOUND);
+
+        return getOutcomeResponse(new Outcome(xmlOutcome, schema), new Date(), true);
     }
 
     @GET
