@@ -35,7 +35,8 @@
       "placeholder": "Insurance Number",
       "type": "INPUT",
       "value": "123456789ABC",
-      "required": true
+      "hidden": true,
+      "required": false
     },
     {
       "additional": {"utc": true},

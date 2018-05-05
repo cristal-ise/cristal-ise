@@ -65,15 +65,35 @@ public class StringField {
     
     public StringField() {}
 
-    private static StringField getFieldForType(SimpleType type) {
-        // handle lists special
-        if (type instanceof ListType) return new ArrayField(type.getBuiltInBaseType());
+    /**
+     * 
+     * @param model
+     * @return
+     */
+    public static SimpleType getFieldType(Annotated  model) {
+        if (model instanceof ElementDecl) {
+            XMLType baseType = ((ElementDecl)model).getType();
 
-        // is a combobox
-        if (type.hasFacet(Facet.ENUMERATION)) return new ComboField(type, null);
+            while (!(baseType instanceof SimpleType)) baseType = baseType.getBaseType();
 
-        //Find script to populate list of values (LOVscript)
-        Enumeration<Annotation> e = type.getAnnotations();
+            return (SimpleType)baseType;
+        }
+        else if (model instanceof AttributeDecl) {
+            return ((AttributeDecl)model).getSimpleType();
+        }
+
+        return null;
+    }
+    
+    /**
+     * Finds the named element in the AppInfo node
+     * 
+     * @param model the schema model to search
+     * @param name the name of the element in the AppInfo node
+     * @return the AnyNode with the given name otherwise null
+     */
+    private static AnyNode getAppInfoNode(Annotated  model, String name) {
+        Enumeration<Annotation> e = model.getAnnotations();
         while (e.hasMoreElements()) {
             Annotation note = e.nextElement();
 
@@ -83,12 +103,33 @@ public class StringField {
                 for (Enumeration<?> g = thisAppInfo.getObjects(); g.hasMoreElements();) {
                     AnyNode appInfoNode = (AnyNode) g.nextElement();
 
-                    if (ListOfValues.AppInfoListTags.valueOf(appInfoNode.getLocalName()) != null) {
-                        return new ComboField(type, appInfoNode);
+                    if (appInfoNode.getNodeType() == AnyNode.ELEMENT && name.equals(appInfoNode.getLocalName())) {
+                        return appInfoNode;
                     }
                 }
             }
         }
+
+        return null;
+    }
+
+    /**
+     * 
+     * @param model
+     * @return
+     */
+    private static StringField getFieldForType(Annotated  model) {
+        SimpleType type = getFieldType(model);
+
+        // handle lists special
+        if (type instanceof ListType) return new ArrayField(type.getBuiltInBaseType());
+
+        // is a combobox
+        if (type.hasFacet(Facet.ENUMERATION)) return new ComboField(type, null);
+
+        // is a combobox
+        AnyNode appInfoNode = getAppInfoNode(model, "listOfValues");
+        if (appInfoNode != null) return new ComboField(type, appInfoNode);
 
         // find info on length before we go to the base type
         long length = -1;
@@ -115,7 +156,7 @@ public class StringField {
     public static StringField getField(AttributeDecl model) throws StructuralException {
         if (model.isReference()) model = model.getReference();
 
-        StringField newField = getFieldForType(model.getSimpleType());
+        StringField newField = getFieldForType(model);
         newField.setDecl(model);
 
         return newField;
@@ -123,11 +164,7 @@ public class StringField {
 
     public static StringField getField(ElementDecl model) throws StructuralException {
         try {
-            XMLType baseType = model.getType();
-
-            while (!(baseType instanceof SimpleType)) baseType = baseType.getBaseType();
-
-            StringField newField = getFieldForType((SimpleType) baseType);
+            StringField newField = getFieldForType(model);
 
             newField.setDecl(model);
             return newField;
@@ -284,28 +321,15 @@ public class StringField {
     }
 
     private void readAppInfoDynamicForms(JSONObject json) {
-        Enumeration<Annotation> e = model.getAnnotations();
-        while (e.hasMoreElements()) {
-            Annotation note = e.nextElement();
+        AnyNode appInfoNode = getAppInfoNode(model, "dynamicForms");
+        if (appInfoNode != null) {
+            AnyNode child = appInfoNode.getFirstChild(); //stupid API, there is no getChildren
 
-            for (Enumeration<AppInfo> f = note.getAppInfo(); f.hasMoreElements();) {
-                AppInfo thisAppInfo = f.nextElement();
+            if (child != null) {
+                if (child.getNodeType() == AnyNode.ELEMENT) setAppInfoDynamicFormsJsonValue(child, json);
 
-                for (Enumeration<?> g = thisAppInfo.getObjects(); g.hasMoreElements();) {
-                    AnyNode appInfoNode = (AnyNode) g.nextElement();
-
-                    // add all Elements of 'dynamicForms' to json
-                    if (appInfoNode.getNodeType() == AnyNode.ELEMENT && appInfoNode.getLocalName().equals("dynamicForms")) {
-                        AnyNode child = appInfoNode.getFirstChild(); //stupid API, there is no getChildren
-
-                        if (child != null) {
-                            if (child.getNodeType() == AnyNode.ELEMENT) setAppInfoDynamicFormsJsonValue(child, json);
-
-                            for (child = child.getNextSibling(); child != null; child = child.getNextSibling()) {
-                                if (child.getNodeType() == AnyNode.ELEMENT) setAppInfoDynamicFormsJsonValue(child, json);
-                            }
-                        }
-                    }
+                for (child = child.getNextSibling(); child != null; child = child.getNextSibling()) {
+                    if (child.getNodeType() == AnyNode.ELEMENT) setAppInfoDynamicFormsJsonValue(child, json);
                 }
             }
         }

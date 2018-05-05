@@ -1,0 +1,53 @@
+<?xml version='1.0' encoding='utf-8'?>
+<xs:schema xmlns:xs='http://www.w3.org/2001/XMLSchema'>
+  <xs:element name='EmployeeShiftSchedule'>
+    <xs:annotation>
+      <xs:documentation>The actual shift assigned with employee</xs:documentation>
+    </xs:annotation>
+    <xs:complexType>
+      <xs:all minOccurs='0'>
+        <xs:element name='ShiftName' type='xs:string' minOccurs='1' maxOccurs='1'>
+          <xs:annotation>
+            <xs:appinfo>
+              <listOfValues>
+                <inputName>memberNames</inputName>
+              </listOfValues>
+            </xs:appinfo>
+          </xs:annotation>
+        </xs:element>
+        <xs:element name='FromDate' type='xs:date' minOccurs='1' maxOccurs='1' />
+        <xs:element name='ThruDate' type='xs:date' minOccurs='1' maxOccurs='1' />
+        <xs:element name='CollectionName' type='xs:string' minOccurs='1' maxOccurs='1'>
+          <xs:annotation>
+            <xs:appinfo>
+              <dynamicForms>
+                <hidden>true</hidden>
+                <required>false</required>
+              </dynamicForms>
+            </xs:appinfo>
+          </xs:annotation>
+        </xs:element>
+        <xs:element name='MemberUUID' type='xs:string' minOccurs='1' maxOccurs='1'>
+          <xs:annotation>
+            <xs:appinfo>
+              <dynamicForms>
+                <hidden>true</hidden>
+                <required>false</required>
+              </dynamicForms>
+            </xs:appinfo>
+          </xs:annotation>
+        </xs:element>
+        <xs:element name='MemberID' type='xs:integer' minOccurs='1' maxOccurs='1'>
+          <xs:annotation>
+            <xs:appinfo>
+              <dynamicForms>
+                <hidden>true</hidden>
+                <required>false</required>
+              </dynamicForms>
+            </xs:appinfo>
+          </xs:annotation>
+        </xs:element>
+      </xs:all>
+    </xs:complexType>
+  </xs:element>
+</xs:schema>

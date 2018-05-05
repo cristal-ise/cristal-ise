@@ -23,10 +23,9 @@ package org.cristalise.kernel.persistency.outcomebuilder.field;
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.HashMap;
-import java.util.StringTokenizer;
+import java.util.List;
+import java.util.Map;
 
-import org.cristalise.kernel.scripting.Script;
-import org.cristalise.kernel.utils.LocalObjectLoader;
 import org.cristalise.kernel.utils.Logger;
 import org.exolab.castor.types.AnyNode;
 import org.exolab.castor.xml.schema.Annotation;
@@ -40,11 +39,17 @@ public class ListOfValues extends HashMap<String, Object> {
 
     private static final long serialVersionUID = -2718359690741674876L;
 
+    SimpleType        contentType;
+    AnyNode           listNode;
     String            defaultKey  = null;
     ArrayList<String> orderedKeys = new ArrayList<String>();
 
-    public ListOfValues() {
+    public ListOfValues(SimpleType type, AnyNode list) {
         super();
+        contentType = type;
+        listNode = list;
+        
+        populateLovFromEnumeration();
     }
 
     public String put(String key, Object value, boolean isDefaultKey) {
@@ -76,17 +81,7 @@ public class ListOfValues extends HashMap<String, Object> {
         return get(defaultKey);
     }
 
-    protected void createLOV(SimpleType contentType, AnyNode listNode) {
-        if (listNode != null) { // schema instructions for list building
-            String lovType = listNode.getLocalName();
-            String param = listNode.getFirstChild().getStringValue();
-
-            if      (lovType.equals("scriptList")) populateLOVFromScript(param);
-            else if (lovType.equals("pathList"))   populateLOVFromLookup(param);
-            else if (lovType.equals("queryList"))  ; //populateLOVFromQuery(param);
-            else if (lovType.equals("valueList"))  ; //populateLOVFromValues(param);
-        }
-
+    private void populateLovFromEnumeration() {
         // handle enumerations
         // TODO: should be merged with above results
         if (contentType.hasFacet(Facet.ENUMERATION)) {
@@ -111,26 +106,75 @@ public class ListOfValues extends HashMap<String, Object> {
         }
     }
 
+    private void callLovPoupulate(AnyNode lovNode, Map<String, Object> inputs) {
+        String lovType = lovNode.getLocalName();
+
+        Logger.msg(5, "ListOfValues.callLovPoupulate() - lovType:"+lovType);
+
+        AnyNode param = lovNode.getFirstChild();
+
+        if      (lovType.equals("inputName"))     populateLOVFromInput(param, inputs);
+        else if (lovType.equals("propertyNames")) populateLOVFromLookup(param, inputs);
+        else if (lovType.equals("queryRef"))      populateLOVFromQuery(param, inputs);
+        else if (lovType.equals("scriptRef"))     populateLOVFromScript(param, inputs);
+        else assert false;
+    }
+
+    protected void createLOV(Map<String, Object> inputs) {
+        if (listNode != null) { // schema instructions for list building
+            AnyNode child = listNode.getFirstChild(); //stupid API, there is no getChildren
+
+            if (child != null) {
+                if (child.getNodeType() == AnyNode.ELEMENT) callLovPoupulate(child, inputs);
+
+                for (child = child.getNextSibling(); child != null; child = child.getNextSibling()) {
+                    if (child.getNodeType() == AnyNode.ELEMENT) callLovPoupulate(child, inputs);
+                }
+            }
+        }
+        // handle enumerations
+        // TODO: should be merged with above results
+        // check method populateLovFromEnumeration();
+    }
+
+    private void populateLOVFromInput(AnyNode param, Map<String, Object> inputs) {
+        assert param.getNodeType() == AnyNode.TEXT;
+        
+        @SuppressWarnings("unchecked")
+        List<String> values = (List<String>)inputs.get(param.getStringValue());
+        
+        assert values != null && values.size() > 0;
+        
+        for (String value : values) put(value, value, false);
+    }
+
     /**
      * @param param
      */
-    private void populateLOVFromLookup(String param) {
-        // TODO List of Values from Lookup properties, eg '/root/path;prop=val;prop=val'
+    private void populateLOVFromLookup(AnyNode param, Map<String, Object> inputs) {
+        assert false;
     }
 
-    private void populateLOVFromScript(String scriptName) {
+    private void populateLOVFromQuery(AnyNode scriptName, Map<String, Object> inputs) {
+        assert false;
+    }
+
+    private void populateLOVFromScript(AnyNode scriptName, Map<String, Object> inputs) {
+        assert false;
+        /*
         try {
             StringTokenizer tok = new StringTokenizer(scriptName, "_");
 
             if (tok.countTokens() != 2) throw new Exception("Invalid LOVScript name");
 
             Script lovscript = LocalObjectLoader.getScript(tok.nextToken(), Integer.parseInt(tok.nextToken()));
-            lovscript.setInputParamValue("LOV", null/*vals*/);
+            lovscript.setInputParamValue("LOV", vals);
             lovscript.execute();
         }
         catch (Exception ex) {
             Logger.error(ex);
         }
+        */
     }
 
 }

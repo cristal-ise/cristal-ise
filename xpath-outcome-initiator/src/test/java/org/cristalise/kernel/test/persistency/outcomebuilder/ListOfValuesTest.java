@@ -20,15 +20,23 @@
  */
 package org.cristalise.kernel.test.persistency.outcomebuilder;
 
+import static net.javacrumbs.jsonunit.JsonAssert.assertJsonEquals;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+
 import org.cristalise.kernel.persistency.outcome.Schema;
 import org.cristalise.kernel.persistency.outcomebuilder.OutcomeBuilder;
 import org.cristalise.kernel.test.persistency.XMLUtils;
 import org.cristalise.kernel.utils.Logger;
-import org.json.JSONObject;
+import org.json.JSONArray;
 import org.junit.Before;
 import org.junit.Test;
 
-public class FixDateTimeValueTest extends XMLUtils {
+public class ListOfValuesTest extends XMLUtils {
 
     String dir = "src/test/data/outcomeBuilder";
 
@@ -37,26 +45,24 @@ public class FixDateTimeValueTest extends XMLUtils {
         Logger.addLogStream(System.out, 8);
     }
 
-    private void checkJson2XmlOutcome(String type, String postFix) throws Exception {
-        JSONObject actualJson = new JSONObject(getJSON(dir, type+postFix));
-        String expected = getXML(dir, type);
-
-        Logger.msg(2, "Actual json\n-------------------:%s", actualJson.toString());
+    @Test
+    public void employeeShiftSchedule() throws Exception {
+        String type = "EmployeeShiftSchedule";
         OutcomeBuilder builder = new OutcomeBuilder(new Schema(type, 0, getXSD(dir, type)), true);
-        builder.addJsonInstance(actualJson);;
-        Logger.msg(2, "Expected xml\n-------------------:%s", expected);
-        Logger.msg(2, "Actual xml:%s", builder.getXml());
 
-        assert compareXML(expected, builder.getXml());
-    }
+        String[] names = {"AAA", "BBBB", "CCCCC"};
+        List<String> itemNames = new ArrayList<String>(Arrays.asList(names));
+        Collections.sort(itemNames);
 
-    @Test
-    public void employeeWrongDateFix() throws Exception {
-        checkJson2XmlOutcome("Employee", "WrongDate");
-    }
+        HashMap<String, Object> inputs = new HashMap<>();
+        inputs.put("memberNames", itemNames);
 
-    @Test
-    public void shiftWrongTimeFix() throws Exception {
-        checkJson2XmlOutcome("Shift", "WrongTime");
+        JSONArray actual   = builder.generateNgDynamicFormsJson(inputs);
+
+        Logger.msg(actual.toString(2));
+
+        JSONArray expected = new JSONArray(getJSON(dir, type));
+
+        assertJsonEquals(expected, actual);
     }
 }

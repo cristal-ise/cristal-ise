@@ -1,0 +1,126 @@
+[{
+  "name": "EmployeeShiftSchedule",
+  "cls": {"grid": {"container": "ui-g-12"}},
+  "id": "EmployeeShiftSchedule",
+  "type": "GROUP",
+  "group": [
+    {
+      "options": [
+        {"label": "Select value"},
+        {
+          "label": "AAA",
+          "value": "AAA"
+        },
+        {
+          "label": "CCCCC",
+          "value": "CCCCC"
+        },
+        {
+          "label": "BBBB",
+          "value": "BBBB"
+        }
+      ],
+
+      "cls": {
+        "grid": {
+          "container": "ui-g",
+          "control": "ui-g-8",
+          "label": "ui-g-4"
+        },
+        "element": {"label": "ui-widget"}
+      },
+      "id": "ShiftName",
+      "label": "Shift Name",
+      "placeholder": "Shift Name",
+      "type": "SELECT",
+      "required": true
+    },
+    {
+      "additional": {"utc": true},
+      "format": "yy-mm-dd",
+      "cls": {
+        "grid": {
+          "container": "ui-g",
+          "control": "ui-g-8",
+          "label": "ui-g-4"
+        },
+        "element": {"label": "ui-widget"}
+      },
+      "id": "FromDate",
+      "label": "From Date",
+      "placeholder": "From Date",
+      "type": "DATEPICKER",
+      "value": "2018-05-05",
+      "required": true
+    },
+    {
+      "additional": {"utc": true},
+      "format": "yy-mm-dd",
+      "cls": {
+        "grid": {
+          "container": "ui-g",
+          "control": "ui-g-8",
+          "label": "ui-g-4"
+        },
+        "element": {"label": "ui-widget"}
+      },
+      "id": "ThruDate",
+      "label": "Thru Date",
+      "placeholder": "Thru Date",
+      "type": "DATEPICKER",
+      "value": "2018-05-05",
+      "required": true
+    },
+    {
+      "hidden": true,
+      "inputType": "text",
+      "cls": {
+        "grid": {
+          "container": "ui-g",
+          "control": "ui-g-8",
+          "label": "ui-g-4"
+        },
+        "element": {"label": "ui-widget"}
+      },
+      "id": "CollectionName",
+      "label": "Collection Name",
+      "placeholder": "Collection Name",
+      "type": "INPUT",
+      "required": false
+    },
+    {
+      "hidden": true,
+      "inputType": "text",
+      "cls": {
+        "grid": {
+          "container": "ui-g",
+          "control": "ui-g-8",
+          "label": "ui-g-4"
+        },
+        "element": {"label": "ui-widget"}
+      },
+      "id": "MemberUUID",
+      "label": "Member UUID",
+      "placeholder": "Member UUID",
+      "type": "INPUT",
+      "required": false
+    },
+    {
+      "hidden": true,
+      "cls": {
+        "grid": {
+          "container": "ui-g",
+          "control": "ui-g-8",
+          "label": "ui-g-4"
+        },
+        "element": {"label": "ui-widget"}
+      },
+      "id": "MemberID",
+      "label": "Member ID",
+      "placeholder": "Member ID",
+      "type": "INPUT",
+      "value": "0",
+      "required": false
+    }
+  ]
+}]

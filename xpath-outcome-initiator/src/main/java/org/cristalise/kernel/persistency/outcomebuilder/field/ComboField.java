@@ -40,8 +40,7 @@ public class ComboField extends StringField {
     public ComboField(SimpleType type, AnyNode listNode) {
         super();
         contentType = type;
-        vals = new ListOfValues();
-        vals.createLOV(type, listNode);
+        vals = new ListOfValues(type, listNode);
     }
 
     @Override
@@ -108,6 +107,8 @@ public class ComboField extends StringField {
 
     @Override
     public JSONObject generateNgDynamicForms(Map<String, Object> inputs) {
+        vals.createLOV(inputs);
+
         JSONObject select = getCommonFieldsNgDynamicForms();
 
         select.put("options", getNgDynamicFormsOptions());
