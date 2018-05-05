@@ -118,7 +118,7 @@ public class ItemCollection extends ItemUtils {
         ItemProxy item = getProxy(uuid);
         try {
             Dependency dep = (Dependency) item.getCollection(collName);
-            List<String> itemNames = getItemNamesForType((String) dep.getProperties().get(TYPE));
+            List<String> itemNames = getItemNamesForType((String) dep.getProperties().get(TYPE.toString()));
 
             // this shall contain the SchemaName and version like this: Shift:0
             String[] schemaInfo = ((String) dep.getProperties().get("MemberUpdateSchema")).split(":");
