@@ -20,6 +20,12 @@
  */
 package org.cristalise.restapi;
 
+import static org.cristalise.kernel.persistency.ClusterType.COLLECTION;
+import static org.cristalise.kernel.property.BuiltInItemProperties.TYPE;
+
+import java.util.HashMap;
+import java.util.List;
+
 import javax.ws.rs.CookieParam;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
@@ -31,10 +37,12 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 
+import org.cristalise.kernel.collection.Dependency;
 import org.cristalise.kernel.common.ObjectNotFoundException;
 import org.cristalise.kernel.entity.proxy.ItemProxy;
-
-import static org.cristalise.kernel.persistency.ClusterType.COLLECTION;
+import org.cristalise.kernel.persistency.outcome.Schema;
+import org.cristalise.kernel.persistency.outcomebuilder.OutcomeBuilder;
+import org.cristalise.kernel.utils.LocalObjectLoader;
 
 @Path("/item/{uuid}/collection")
 public class ItemCollection extends ItemUtils {
@@ -94,6 +102,35 @@ public class ItemCollection extends ItemUtils {
         }
         catch (ObjectNotFoundException | NumberFormatException e ) {
             throw ItemUtils.createWebAppException(e.getMessage(), Response.Status.NOT_FOUND);
+        }
+    }
+
+    @GET
+    @Path("{name}/formTemplate")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response getCollectionUpdateFormTemplate(
+                        @PathParam("uuid") String uuid, 
+                        @PathParam("name") String collName, 
+                        @CookieParam(COOKIENAME) Cookie authCookie,
+                        @Context UriInfo uri)
+    {
+        checkAuthCookie(authCookie);
+        ItemProxy item = getProxy(uuid);
+        try {
+            Dependency dep = (Dependency) item.getCollection(collName);
+            List<String> itemNames = getItemNamesForType((String) dep.getProperties().get(TYPE));
+
+            // this shall contain the SchemaName and version like this: Shift:0
+            String[] schemaInfo = ((String) dep.getProperties().get("MemberUpdateSchema")).split(":");
+
+            HashMap<String, Object> inputs = new HashMap<>();
+            inputs.put("memberNames", itemNames);
+
+            Schema schema = LocalObjectLoader.getSchema(schemaInfo[0], Integer.valueOf(schemaInfo[1]));
+            return Response.ok(new OutcomeBuilder(schema, false).generateNgDynamicForms(inputs)).build();
+        }
+        catch (Exception e) {
+            throw ItemUtils.createWebAppException(e.getMessage(), e, Response.Status.NOT_FOUND);
         }
     }
 }

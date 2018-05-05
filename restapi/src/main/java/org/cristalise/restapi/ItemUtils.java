@@ -26,6 +26,7 @@ import static javax.ws.rs.core.MediaType.TEXT_XML_TYPE;
 import static org.cristalise.kernel.persistency.ClusterType.HISTORY;
 import static org.cristalise.kernel.persistency.ClusterType.PROPERTY;
 import static org.cristalise.kernel.persistency.ClusterType.VIEWPOINT;
+import static org.cristalise.kernel.property.BuiltInItemProperties.TYPE;
 
 import java.net.URI;
 import java.text.DateFormat;
@@ -33,6 +34,7 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -58,12 +60,15 @@ import org.cristalise.kernel.entity.agent.Job;
 import org.cristalise.kernel.entity.proxy.ItemProxy;
 import org.cristalise.kernel.events.Event;
 import org.cristalise.kernel.lifecycle.instance.stateMachine.StateMachine;
+import org.cristalise.kernel.lookup.DomainPath;
 import org.cristalise.kernel.lookup.InvalidItemPathException;
 import org.cristalise.kernel.lookup.ItemPath;
+import org.cristalise.kernel.lookup.Lookup.PagedResult;
 import org.cristalise.kernel.persistency.ClusterType;
 import org.cristalise.kernel.persistency.outcome.Outcome;
 import org.cristalise.kernel.persistency.outcome.Viewpoint;
 import org.cristalise.kernel.process.Gateway;
+import org.cristalise.kernel.property.Property;
 import org.cristalise.kernel.utils.CastorHashMap;
 import org.cristalise.kernel.utils.KeyValuePair;
 import org.cristalise.kernel.utils.LocalObjectLoader;
@@ -490,5 +495,23 @@ public abstract class ItemUtils extends RestHandler {
         throw ItemUtils.createWebAppException(
                     "Supported media types: TEXT_XML, APPLICATION_XML, APPLICATION_JSON", 
                     Response.Status.UNSUPPORTED_MEDIA_TYPE);
+    }
+
+    /**
+     * 
+     * @param type
+     * @return
+     */
+    public static List<String> getItemNamesForType(String type) {
+        Property[] props = {new Property(TYPE, type)};
+        PagedResult result = Gateway.getLookup().search(new DomainPath(""), Arrays.asList(props), 0, 1000);
+
+        ArrayList<String> names = new ArrayList<>();
+
+        for (org.cristalise.kernel.lookup.Path path: result.rows) names.add(path.getName());
+
+        Collections.sort(names);
+
+        return names;
     }
 }
