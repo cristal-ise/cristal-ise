@@ -21,8 +21,8 @@
 package org.cristalise.kernel.persistency.outcomebuilder.field;
 
 import java.time.Instant;
-import java.time.LocalDateTime;
 import java.time.ZoneOffset;
+import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.time.temporal.ChronoUnit;
@@ -54,7 +54,7 @@ public class TimeField extends StringField {
 
         //date.put("meridian", false);
         date.put("showSeconds", true);
-        getAdditionalConfigNgDynamicForms(date).put("utc", true);
+        getAdditionalConfigNgDynamicForms(date).put("utc", false);
 
         return date;
     }
@@ -67,14 +67,16 @@ public class TimeField extends StringField {
             String sVal = (String) value;
 
             try {
-                LocalDateTime ldt = null;
+                ZonedDateTime zdt = null;
 
-                if      (sVal.endsWith("Z")) ldt = LocalDateTime.ofInstant(Instant.parse(sVal), ZoneOffset.UTC);
-                else if (sVal.contains("T")) ldt = LocalDateTime.parse(sVal);
+                if      (sVal.endsWith("Z")) zdt = ZonedDateTime.ofInstant(Instant.parse(sVal), ZoneOffset.UTC);
+                else if (sVal.contains("T")) zdt = ZonedDateTime.parse(sVal);
 
-                if (ldt != null) {
+                if (zdt != null) {
+                    Logger.msg(8,"TimeField.setValue() - ZonedDateTime:%s", zdt);
+
                     DateTimeFormatter dtf = DateTimeFormatter.ISO_LOCAL_TIME;
-                    setData(ldt.truncatedTo(ChronoUnit.SECONDS).format(dtf));
+                    setData(zdt.truncatedTo(ChronoUnit.SECONDS).format(dtf));
                 }
                 else
                     setData(sVal);

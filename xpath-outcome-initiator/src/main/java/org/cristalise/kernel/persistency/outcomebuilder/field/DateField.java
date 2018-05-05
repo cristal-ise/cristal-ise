@@ -23,6 +23,7 @@ package org.cristalise.kernel.persistency.outcomebuilder.field;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
+import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.Map;
@@ -54,7 +55,7 @@ public class DateField extends StringField {
         JSONObject date = getCommonFieldsNgDynamicForms();
 
         date.put("format", primeNGDateFormat);
-        getAdditionalConfigNgDynamicForms(date).put("utc", true);
+        getAdditionalConfigNgDynamicForms(date).put("utc", false);
 
         return date;
     }
@@ -67,13 +68,18 @@ public class DateField extends StringField {
             String sVal = (String) value;
 
             try {
-                LocalDateTime ldt = null;
+                ZonedDateTime zdt = null;
 
-                if      (sVal.endsWith("Z")) ldt = LocalDateTime.ofInstant(Instant.parse(sVal), ZoneOffset.UTC);
-                else if (sVal.contains("T")) ldt = LocalDateTime.parse(sVal);
+                if      (sVal.endsWith("Z")) zdt = ZonedDateTime.ofInstant(Instant.parse(sVal), ZoneOffset.UTC);
+                else if (sVal.contains("T")) zdt = ZonedDateTime.parse(sVal);
 
-                if (ldt != null) setData(ldt.toLocalDate().toString());
-                else             setData(sVal);
+                if (zdt != null) {
+                    Logger.msg(8,"DateField.setValue() - ZonedDateTime:%s", zdt);
+
+                    setData(zdt.toLocalDate().toString());
+                }
+                else
+                    setData(sVal);
             }
             catch (DateTimeParseException e) {
                 Logger.error(e);
