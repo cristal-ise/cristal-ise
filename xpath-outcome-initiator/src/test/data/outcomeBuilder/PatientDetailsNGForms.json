@@ -39,7 +39,7 @@
       "required": false
     },
     {
-      "additional": {"utc": true},
+      "additional": {"utc": false},
       "format": "yy-mm-dd",
       "cls": {
         "grid": {

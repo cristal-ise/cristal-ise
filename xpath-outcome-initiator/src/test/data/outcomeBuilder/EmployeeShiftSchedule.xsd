@@ -37,8 +37,6 @@
             </xs:appinfo>
           </xs:annotation>
         </xs:element>
-        <xs:element name='FromDate' type='xs:date' minOccurs='1' maxOccurs='1' />
-        <xs:element name='ThruDate' type='xs:date' minOccurs='1' maxOccurs='1' />
         <xs:element name='CollectionName' type='xs:string' minOccurs='1' maxOccurs='1'>
           <xs:annotation>
             <xs:appinfo>

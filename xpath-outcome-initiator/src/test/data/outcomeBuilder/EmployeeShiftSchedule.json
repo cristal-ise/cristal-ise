@@ -36,42 +36,6 @@
       "required": true
     },
     {
-      "additional": {"utc": true},
-      "format": "yy-mm-dd",
-      "cls": {
-        "grid": {
-          "container": "ui-g",
-          "control": "ui-g-8",
-          "label": "ui-g-4"
-        },
-        "element": {"label": "ui-widget"}
-      },
-      "id": "FromDate",
-      "label": "From Date",
-      "placeholder": "From Date",
-      "type": "DATEPICKER",
-      "value": "2018-05-05",
-      "required": true
-    },
-    {
-      "additional": {"utc": true},
-      "format": "yy-mm-dd",
-      "cls": {
-        "grid": {
-          "container": "ui-g",
-          "control": "ui-g-8",
-          "label": "ui-g-4"
-        },
-        "element": {"label": "ui-widget"}
-      },
-      "id": "ThruDate",
-      "label": "Thru Date",
-      "placeholder": "Thru Date",
-      "type": "DATEPICKER",
-      "value": "2018-05-05",
-      "required": true
-    },
-    {
       "hidden": true,
       "inputType": "text",
       "cls": {
