@@ -36,10 +36,14 @@ public class ComboField extends StringField {
 
     ListOfValues vals;
     String selected;
+    
+    // when values are defined in schema enumeration, check the values against that list
+    boolean strictValueHandling;
 
     public ComboField(SimpleType type, AnyNode listNode) {
         super();
         contentType = type;
+        strictValueHandling = listNode == null;
         vals = new ListOfValues(type, listNode);
     }
 
@@ -55,16 +59,21 @@ public class ComboField extends StringField {
 
     @Override
     public String getText() {
-        return vals.get(selected).toString();
+        if (strictValueHandling) return vals.get(selected).toString();
+        else                     return selected;
     }
 
     @Override
     public void setText(String text) {
-        if (vals.containsValue(text)) {
-            selected = vals.findKey(text);
+        if (strictValueHandling) {
+            if (vals.containsValue(text)) {
+                selected = vals.findKey(text);
+            }
+            else
+                Logger.error("Illegal value for ComboField name:'"+getName()+"' value:'"+text+"'");
         }
         else
-            Logger.error("Illegal value for ComboField name:'"+getName()+"' value:'"+text+"'");
+            selected = text;
     }
 
     @Override

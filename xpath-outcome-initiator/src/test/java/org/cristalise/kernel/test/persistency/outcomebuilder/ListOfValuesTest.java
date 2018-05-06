@@ -33,6 +33,7 @@ import org.cristalise.kernel.persistency.outcomebuilder.OutcomeBuilder;
 import org.cristalise.kernel.test.persistency.XMLUtils;
 import org.cristalise.kernel.utils.Logger;
 import org.json.JSONArray;
+import org.json.JSONObject;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -64,5 +65,15 @@ public class ListOfValuesTest extends XMLUtils {
         JSONArray expected = new JSONArray(getJSON(dir, type));
 
         assertJsonEquals(expected, actual);
+    }
+
+    @Test
+    public void employeeShiftScheduleFromJson() throws Exception {
+        String type = "EmployeeShiftSchedule";
+        OutcomeBuilder builder = new OutcomeBuilder(new Schema(type, 0, getXSD(dir, type)), true);
+
+        builder.addJsonInstance(new JSONObject("{'EmployeeShiftSchedule': {'CollectionName': 'Shift','MemberID': '0','ShiftName': 'shift1','MemberUUID': null,}}"));
+        String actual = builder.getXml();
+        assert compareXML(getXML(dir, type), actual);
     }
 }
