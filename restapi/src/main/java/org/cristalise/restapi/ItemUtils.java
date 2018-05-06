@@ -26,7 +26,6 @@ import static javax.ws.rs.core.MediaType.TEXT_XML_TYPE;
 import static org.cristalise.kernel.persistency.ClusterType.HISTORY;
 import static org.cristalise.kernel.persistency.ClusterType.PROPERTY;
 import static org.cristalise.kernel.persistency.ClusterType.VIEWPOINT;
-import static org.cristalise.kernel.property.BuiltInItemProperties.TYPE;
 
 import java.net.URI;
 import java.text.DateFormat;
@@ -502,8 +501,7 @@ public abstract class ItemUtils extends RestHandler {
      * @param type
      * @return
      */
-    public static List<String> getItemNamesForType(String type) {
-        Property[] props = {new Property(TYPE, type)};
+    public static List<String> getItemNames(Property ...props) {
         PagedResult result = Gateway.getLookup().search(new DomainPath(""), Arrays.asList(props), 0, 1000);
 
         ArrayList<String> names = new ArrayList<>();
