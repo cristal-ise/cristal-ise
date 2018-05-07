@@ -41,6 +41,7 @@ import org.cristalise.kernel.entity.proxy.ItemProxy;
 import org.cristalise.kernel.persistency.outcome.Schema;
 import org.cristalise.kernel.persistency.outcomebuilder.OutcomeBuilder;
 import org.cristalise.kernel.utils.LocalObjectLoader;
+import org.cristalise.kernel.utils.Logger;
 
 @Path("/item/{uuid}/collection")
 public class ItemCollection extends ItemUtils {
@@ -127,6 +128,7 @@ public class ItemCollection extends ItemUtils {
             return Response.ok(new OutcomeBuilder(schema, false).generateNgDynamicForms(inputs)).build();
         }
         catch (Exception e) {
+            Logger.error(e);
             throw ItemUtils.createWebAppException(e.getMessage(), e, Response.Status.NOT_FOUND);
         }
     }
