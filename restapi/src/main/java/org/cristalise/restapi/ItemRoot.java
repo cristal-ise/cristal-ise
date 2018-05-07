@@ -221,7 +221,7 @@ public class ItemRoot extends ItemUtils {
             domainPathesData.add(p.toString());
         }
 
-        if (domainPathesData.size() != 0) itemSummary.put("domainPathes", domainPathesData);
+        if (domainPathesData.size() != 0) itemSummary.put("domainPaths", domainPathesData);
 
         try {
             String type = item.getType();
