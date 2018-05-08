@@ -113,11 +113,15 @@ public class ListOfValues extends HashMap<String, Object> {
 
         AnyNode param = lovNode.getFirstChild();
 
-        if      (lovType.equals("inputName"))     populateLOVFromInput(param, inputs);
-        else if (lovType.equals("propertyNames")) populateLOVFromLookup(param, inputs);
-        else if (lovType.equals("queryRef"))      populateLOVFromQuery(param, inputs);
-        else if (lovType.equals("scriptRef"))     populateLOVFromScript(param, inputs);
-        else assert false;
+        switch (AppInfoListTags.valueOf(lovType)) {
+            case inputName:     populateLOVFromInput(param, inputs); break;
+            case propertyNames: populateLOVFromLookup(param, inputs); break;
+            case queryRef:      populateLOVFromQuery(param, inputs); break; 
+            case scriptRef:     populateLOVFromScript(param, inputs); break;
+
+            default:
+                Logger.warning("ListOfValues.callLovPoupulate() - unhadled type:"+lovType);
+        }
     }
 
     protected void createLOV(Map<String, Object> inputs) {
@@ -137,15 +141,31 @@ public class ListOfValues extends HashMap<String, Object> {
         // check method populateLovFromEnumeration();
     }
 
-    private void populateLOVFromInput(AnyNode param, Map<String, Object> inputs) {
-        assert param.getNodeType() == AnyNode.TEXT;
-        
-        @SuppressWarnings("unchecked")
-        List<String> values = (List<String>)inputs.get(param.getStringValue());
-        
-        assert values != null && values.size() > 0;
-        
-        for (String value : values) put(value, value, false);
+    private void populateLOVFromInput(AnyNode paramNode, Map<String, Object> inputs) {
+        if (paramNode.getNodeType() != AnyNode.TEXT) {
+            Logger.warning("ListOfValues.populateLOVFromInput() - paramNode is not a TEXT");
+            return;
+        }
+
+        String key = paramNode.getStringValue();
+
+        if (inputs.containsKey(key)) {
+            try {
+                @SuppressWarnings("unchecked")
+                List<String> values = (List<String>)inputs.get(key);
+
+                if (values.size() > 0) {
+                    for (String value : values) put(value, value, false);
+                }
+                else 
+                    Logger.warning("ListOfValues.populateLOVFromInput() - NO Inputs were found for param:"+key);
+            }
+            catch (Exception e) {
+                Logger.error(e);
+            }
+        }
+        else 
+            Logger.warning("ListOfValues.populateLOVFromInput() - NO Inputs were found for param:"+key);
     }
 
     /**
