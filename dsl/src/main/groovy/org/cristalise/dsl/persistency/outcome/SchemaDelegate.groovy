@@ -111,11 +111,21 @@ class SchemaDelegate {
 
     private void setAppinfoDynamicForms(xsd, Field f) {
         xsd.dynamicForms {
-            if (f.dynamicForms.hidden   != null) hidden(  f.dynamicForms.hidden)
-            if (f.dynamicForms.required != null) required(f.dynamicForms.required)
-            if (f.dynamicForms.disabled != null) disabled(f.dynamicForms.disabled)
-            if (f.dynamicForms.label)            label(   f.dynamicForms.label)
-            if (f.dynamicForms.type)             type(    f.dynamicForms.type)
+            if (f.dynamicForms.hidden   != null) hidden(   f.dynamicForms.hidden)
+            if (f.dynamicForms.required != null) required( f.dynamicForms.required)
+            if (f.dynamicForms.disabled != null) disabled( f.dynamicForms.disabled)
+            if (f.dynamicForms.label)            label(    f.dynamicForms.label)
+            if (f.dynamicForms.type)             type(     f.dynamicForms.type)
+            if (f.dynamicForms.inputType)        inputType(f.dynamicForms.inputType)
+        }
+    }
+
+    private void setAppinfoListOfValues(xsd, Field f) {
+        xsd.listOfValues {
+            if (f.listOfValues.scriptRef)     scriptRef(    f.listOfValues.scriptRef)
+            if (f.listOfValues.queryRef)      queryRef(     f.listOfValues.queryRef)
+            if (f.listOfValues.propertyNames) propertyNames(f.listOfValues.propertyNames)
+            if (f.listOfValues.inputName)     inputName(    f.listOfValues.inputName)
         }
     }
 
@@ -123,10 +133,15 @@ class SchemaDelegate {
         Logger.msg 1, "SchemaDelegate.buildField() - Field: $f.name"
 
         xsd.'xs:element'(name: f.name, type: (!f.values && !f.unit && !f.pattern && !f.attributes ? f.type : ''), 'default': f.defaultVal, minOccurs: f.minOccurs, maxOccurs: f.maxOccurs) {
-            if(f.documentation || f.dynamicForms) {
+            if(f.documentation || f.dynamicForms || f.listOfValues) {
                 'xs:annotation' {
                     if (f.documentation) 'xs:documentation'(f.documentation) 
-                    if (f.dynamicForms)  'xs:appinfo' { setAppinfoDynamicForms(xsd, f) }
+                    if (f.dynamicForms || f.listOfValues) {
+                        'xs:appinfo' {
+                            if (f.dynamicForms) setAppinfoDynamicForms(xsd, f)
+                            if (f.listOfValues) setAppinfoListOfValues(xsd, f)
+                        }
+                    }
                  }
             }
             if(f.attributes) {

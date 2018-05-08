@@ -34,6 +34,7 @@ class Field extends Attribute {
 
     Unit unit
     DynamicForms dynamicForms
+    ListOfValues listOfValues
 
     List<Attribute> attributes = []
 

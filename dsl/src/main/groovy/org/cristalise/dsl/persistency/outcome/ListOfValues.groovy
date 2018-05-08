@@ -26,11 +26,21 @@ import groovy.transform.CompileStatic;
 
 
 @CompileStatic
-class DynamicForms {
-    Boolean hidden = null
-    Boolean required = null
-    Boolean disabled = null
-    String label = null
-    String type = null
-    String inputType = null
+class ListOfValues {
+    /**
+     * Defines the Script name and version, e.g. GetShiftNames:0'
+     */
+    String scriptRef = null
+    /**
+     * Defines the Query name and version, e.g. GetShiftNames:0'
+     */
+    String queryRef = null
+    /**
+     * Comma separated list of ItemProperty names
+     */
+    String propertyNames = null
+    /**
+     * The name if the input variable
+     */
+    String inputName = null
 }
