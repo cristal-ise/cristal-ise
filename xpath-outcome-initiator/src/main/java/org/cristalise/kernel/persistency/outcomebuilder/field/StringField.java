@@ -359,7 +359,8 @@ public class StringField {
     public JSONObject generateNgDynamicForms(Map<String, Object> inputs) {
         JSONObject input = getCommonFieldsNgDynamicForms();
 
-        input.put("inputType", "text");
+        // AppInfo could set the 'inputType' to password already
+        if (!input.has("inputType")) input.put("inputType", "text");
 
         return input;
     }
