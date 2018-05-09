@@ -149,12 +149,12 @@ public class ListOfValues extends HashMap<String, Object> {
 
         String key = paramNode.getStringValue();
 
-        if (inputs.containsKey(key)) {
+        if (inputs != null && inputs.containsKey(key)) {
             try {
                 @SuppressWarnings("unchecked")
                 List<String> values = (List<String>)inputs.get(key);
 
-                if (values.size() > 0) {
+                if (values != null && values.size() > 0) {
                     for (String value : values) put(value, value, false);
                 }
                 else 
@@ -165,7 +165,7 @@ public class ListOfValues extends HashMap<String, Object> {
             }
         }
         else 
-            Logger.warning("ListOfValues.populateLOVFromInput() - NO Inputs were found for param:"+key);
+            Logger.warning("ListOfValues.populateLOVFromInput() - NO Inputs were found param:"+key);
     }
 
     /**
