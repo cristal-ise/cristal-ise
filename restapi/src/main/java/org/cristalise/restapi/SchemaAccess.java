@@ -114,7 +114,11 @@ public class SchemaAccess extends ResourceAccess {
         }
         catch (ObjectNotFoundException | InvalidDataException | OutcomeBuilderException e) {
             Logger.error(e);
-            throw ItemUtils.createWebAppException("Schema "+name+" v"+version+" doesn't point to any data", Response.Status.NOT_FOUND);
+            throw ItemUtils.createWebAppException("Schema "+name+" v"+version+" doesn't point to any data", e, Response.Status.NOT_FOUND);
+        }
+        catch(Exception e) {
+            Logger.error(e);
+            throw ItemUtils.createWebAppException("Schema "+name+" v"+version, e, Response.Status.INTERNAL_SERVER_ERROR);
         }
     }
 
