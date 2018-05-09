@@ -65,48 +65,55 @@ public class RestHandler {
 
     public static final String COOKIENAME = "cauth";
 
+    static {
+        try {
+            try {
+                initKeys(256);
+            }
+            catch (InvalidKeyException ex) {
+                if (Gateway.getProperties().getBoolean("REST.allowWeakKey", false) == false) {
+                    Logger.error(ex);
+                    Logger.die("Weak cookie crypto not allowed, and unlimited strength crypto not installed.");
+                }
+                Logger.msg("Unlimited crypto not installed. Trying 128-bit key.");
+                initKeys(128);
+            }
+        }
+        catch (Exception e) {
+            Logger.error(e);
+            Logger.die("Error initializing cookie encryption");
+        }
+    }
+
     public RestHandler() {
         mapper = new ObjectMapper();
         requireLogin = Gateway.getProperties().getBoolean("REST.requireLoginCookie", true);
-
-        if (cookieKey == null) 
-            try {
-                try {
-                    initKeys(256);
-                } catch (InvalidKeyException ex) {
-                    if (Gateway.getProperties().getBoolean("REST.allowWeakKey", false) == false) {
-                        Logger.error(ex);
-                        Logger.die("Weak cookie crypto not allowed, and unlimited strength crypto not installed.");
-                    }
-                    Logger.msg("Unlimited crypto not installed. Trying 128-bit key.");
-                    initKeys(128);
-                }
-            } catch (Exception e) {
-                Logger.error(e);
-                throw ItemUtils.createWebAppException("Error initializing cookie encryption", e, Response.Status.INTERNAL_SERVER_ERROR);
-            } 
     }
 
     private static void initKeys(int keySize) throws Exception {
         KeyGenerator kgen = KeyGenerator.getInstance("AES");
         kgen.init(keySize);
         cookieKey = kgen.generateKey();
-        System.out.println("Cookie key: "+DatatypeConverter.printBase64Binary(cookieKey.getEncoded()));
+
+        System.out.println("RestHandler.initKeys() - Cookie key: "+DatatypeConverter.printBase64Binary(cookieKey.getEncoded()));
+
         encryptCipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
         encryptCipher.init(Cipher.ENCRYPT_MODE, cookieKey);
+
         decryptCipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
         decryptCipher.init(Cipher.DECRYPT_MODE, cookieKey, new IvParameterSpec(encryptCipher.getIV()));
     }
 
-    private AuthData decryptAuthData(String authData)
+    private synchronized AuthData decryptAuthData(String authData)
             throws InvalidAgentPathException, IllegalBlockSizeException, BadPaddingException, InvalidDataException
     {
         byte[] bytes = DatatypeConverter.parseBase64Binary(authData);
         return new AuthData(decryptCipher.doFinal(bytes));
     }
 
-    protected String encryptAuthData(AuthData auth)
-            throws IllegalBlockSizeException, BadPaddingException {
+    protected synchronized String encryptAuthData(AuthData auth)
+            throws IllegalBlockSizeException, BadPaddingException
+    {
         byte[] bytes = encryptCipher.doFinal(auth.getBytes());
         return DatatypeConverter.printBase64Binary(bytes);
     }
