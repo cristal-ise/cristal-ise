@@ -20,15 +20,12 @@
  */
 package org.cristalise.dsl.module
 
-import java.io.BufferedWriter
-import java.io.File
-import java.io.FileWriter
-
+import org.codehaus.groovy.control.CompilerConfiguration
 import org.cristalise.dsl.lifecycle.definition.CompActDefBuilder
 import org.cristalise.dsl.lifecycle.definition.ElemActDefBuilder
 import org.cristalise.dsl.persistency.outcome.SchemaBuilder
-import org.cristalise.dsl.scripting.ScriptBuilder
 import org.cristalise.dsl.querying.QueryBuilder
+import org.cristalise.dsl.scripting.ScriptBuilder
 import org.cristalise.kernel.lifecycle.ActivityDef
 import org.cristalise.kernel.lifecycle.CompositeActivityDef
 import org.cristalise.kernel.persistency.outcome.Schema
@@ -37,7 +34,6 @@ import org.cristalise.kernel.querying.Query
 import org.cristalise.kernel.scripting.Script
 import org.cristalise.kernel.utils.LocalObjectLoader
 
-import groovy.lang.Closure
 import groovy.transform.CompileStatic
 
 
@@ -51,6 +47,8 @@ class ModuleDelegate {
     int version
 
     Writer imports
+    
+    Binding bindings = new Binding()
 
     static final String exportRoot = "src/main/resources/boot"
 
@@ -61,6 +59,19 @@ class ModuleDelegate {
 
         imports = new PrintWriter(System.out)
     }
+
+    public include(String scriptFile) {
+        CompilerConfiguration cc = new CompilerConfiguration();
+        cc.setScriptBaseClass(DelegatingScript.class.getName());
+        
+        GroovyShell shell = new GroovyShell(this.class.classLoader, bindings, cc);
+        DelegatingScript script = (DelegatingScript)shell.parse(new File(scriptFile))
+
+        script.setDelegate(this);
+        script.run();
+    }
+
+
 
     public Schema Schema(String name, Integer version) {
         return LocalObjectLoader.getSchema(name, version);
