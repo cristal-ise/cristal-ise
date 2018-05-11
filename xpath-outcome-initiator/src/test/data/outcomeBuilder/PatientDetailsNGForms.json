@@ -39,7 +39,12 @@
       "required": false
     },
     {
-      "additional": {"utc": false},
+      "additional": {
+        "showButtonBar": true,
+        "yearRange": "1990:2050",
+        "yearNavigator": true,
+        "monthNavigator": true
+      },
       "format": "yy-mm-dd",
       "cls": {
         "grid": {
