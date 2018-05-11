@@ -55,7 +55,12 @@ public class DateField extends StringField {
         JSONObject date = getCommonFieldsNgDynamicForms();
 
         date.put("format", primeNGDateFormat);
-        getAdditionalConfigNgDynamicForms(date).put("utc", false);
+
+        JSONObject additional = getAdditionalConfigNgDynamicForms(date);
+        additional.put("yearRange", "1990:2030");
+        additional.put("yearNavigator", true);
+        additional.put("monthNavigator", true);
+        additional.put("showButtonBar", true);
 
         return date;
     }

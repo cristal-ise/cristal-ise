@@ -40,7 +40,9 @@ public class TimeField extends StringField {
 
     @Override
     public String getDefaultValue() {
-        return "12:00:00";
+        //return DateTimeFormatter.ISO_DATE_TIME.format(LocalDateTime.of ( LocalDate.now(), LocalTime.of (12, 0, 0) ));
+        //return "12:00:00";
+        return "";
     }
 
     @Override
@@ -52,9 +54,7 @@ public class TimeField extends StringField {
     public JSONObject generateNgDynamicForms(Map<String, Object> inputs) {
         JSONObject date = getCommonFieldsNgDynamicForms();
 
-        //date.put("meridian", false);
         date.put("showSeconds", true);
-        getAdditionalConfigNgDynamicForms(date).put("utc", false);
 
         return date;
     }

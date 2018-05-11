@@ -33,7 +33,8 @@ public class DateTimeField extends StringField {
 
     @Override
     public String getDefaultValue() {
-        return "01/01/1970";
+        return "";
+        //return "01/01/1970";
     }
 
     @Override
@@ -47,6 +48,11 @@ public class DateTimeField extends StringField {
 
         date.put("format", "dd/mm/yy");
         date.put("showTime", true);
+
+        JSONObject additional = getAdditionalConfigNgDynamicForms(date);
+        additional.put("yearNavigator", true);
+        additional.put("monthNavigator", true);
+        additional.put("showButtonBar", true);
 
         return date;
     }
