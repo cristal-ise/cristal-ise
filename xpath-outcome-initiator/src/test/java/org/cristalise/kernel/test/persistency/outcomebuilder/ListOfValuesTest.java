@@ -68,6 +68,20 @@ public class ListOfValuesTest extends XMLUtils {
     }
 
     @Test
+    public void employeeShiftSchedule_emptyInputs() throws Exception {
+        String type = "EmployeeShiftSchedule";
+        OutcomeBuilder builder = new OutcomeBuilder(new Schema(type, 0, getXSD(dir, type)), true);
+
+        JSONArray actual   = builder.generateNgDynamicFormsJson();
+
+        Logger.msg(actual.toString(2));
+
+        JSONArray expected = new JSONArray(getJSON(dir, type+"_emptyInputs"));
+
+        assertJsonEquals(expected, actual);
+    }
+
+    @Test
     public void employeeShiftScheduleFromJson() throws Exception {
         String type = "EmployeeShiftSchedule";
         OutcomeBuilder builder = new OutcomeBuilder(new Schema(type, 0, getXSD(dir, type)), true);

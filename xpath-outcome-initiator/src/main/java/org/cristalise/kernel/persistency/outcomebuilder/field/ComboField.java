@@ -96,19 +96,20 @@ public class ComboField extends StringField {
     private JSONArray getNgDynamicFormsOptions() {
         JSONArray options = new JSONArray();
 
-        JSONObject emptyOption = new JSONObject();
-        emptyOption.put("label", "Select value");
-        //emptyOption.put("value", null);
- 
-        options.put(emptyOption);
+        if (vals.size() != 0) {
+            JSONObject emptyOption = new JSONObject();
+            emptyOption.put("label", "Select value");
 
-        for (Entry<String, Object> entry: vals.entrySet()) {
-            JSONObject option = new JSONObject();
+            options.put(emptyOption);
 
-            option.put("label", entry.getKey());
-            option.put("value", entry.getValue());
+            for (Entry<String, Object> entry: vals.entrySet()) {
+                JSONObject option = new JSONObject();
 
-            options.put(option);
+                option.put("label", entry.getKey());
+                option.put("value", entry.getValue());
+
+                options.put(option);
+            }
         }
 
         return options;
@@ -120,7 +121,10 @@ public class ComboField extends StringField {
 
         JSONObject select = getCommonFieldsNgDynamicForms();
 
-        select.put("options", getNgDynamicFormsOptions());
+        JSONArray options = getNgDynamicFormsOptions();
+
+        if (options.length() != 0) select.put("options", options);
+        else                       select.put("type", "INPUT"); // overwrite type if no values were given
 
         return select;
     }
