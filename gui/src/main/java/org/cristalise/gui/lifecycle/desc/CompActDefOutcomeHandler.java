@@ -282,7 +282,7 @@ public class CompActDefOutcomeHandler
         }
 
         BufferedWriter imports = new BufferedWriter(new FileWriter(new File(parentDir, mCompActDef.getActName() + "Imports.xml")));
-        mCompActDef.export(imports, targetFile.getParentFile());
+        mCompActDef.export(imports, targetFile.getParentFile(), false);
         imports.close();
     }
 }
