@@ -5,6 +5,7 @@
   "type": "GROUP",
   "group": [
     {
+      "disabled": true,
       "cls": {
         "grid": {
           "container": "ui-g",

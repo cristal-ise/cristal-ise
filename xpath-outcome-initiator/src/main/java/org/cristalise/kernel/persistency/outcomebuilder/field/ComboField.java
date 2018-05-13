@@ -123,8 +123,13 @@ public class ComboField extends StringField {
 
         JSONArray options = getNgDynamicFormsOptions();
 
-        if (options.length() != 0) select.put("options", options);
-        else                       select.put("type", "INPUT"); // overwrite type if no values were given
+        if (options.length() != 0) {
+            select.put("options", options);
+        }
+        else{
+            select.put("type", "INPUT"); // overwrite type if no values were given
+            select.put("disabled", true); // also disable it, as it is very likely an error
+        }
 
         return select;
     }
