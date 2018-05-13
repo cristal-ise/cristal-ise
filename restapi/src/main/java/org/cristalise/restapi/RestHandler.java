@@ -24,7 +24,9 @@ import static org.cristalise.kernel.property.BuiltInItemProperties.NAME;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.LinkedHashMap;
@@ -35,6 +37,7 @@ import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
 import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.KeyGenerator;
+import javax.crypto.NoSuchPaddingException;
 import javax.crypto.SecretKey;
 import javax.crypto.spec.IvParameterSpec;
 import javax.ws.rs.core.Cookie;
@@ -90,12 +93,14 @@ public class RestHandler {
         requireLogin = Gateway.getProperties().getBoolean("REST.requireLoginCookie", true);
     }
 
-    private static void initKeys(int keySize) throws Exception {
+    private static void initKeys(int keySize) 
+            throws NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException, InvalidAlgorithmParameterException
+    {
         KeyGenerator kgen = KeyGenerator.getInstance("AES");
         kgen.init(keySize);
         cookieKey = kgen.generateKey();
 
-        System.out.println("RestHandler.initKeys() - Cookie key: "+DatatypeConverter.printBase64Binary(cookieKey.getEncoded()));
+        //System.out.println("RestHandler.initKeys() - Cookie key: "+DatatypeConverter.printBase64Binary(cookieKey.getEncoded()));
 
         encryptCipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
         encryptCipher.init(Cipher.ENCRYPT_MODE, cookieKey);
@@ -153,11 +158,13 @@ public class RestHandler {
             throw ItemUtils.createWebAppException("Missing authentication data", Response.Status.UNAUTHORIZED);
 
         try {
+            Logger.debug(0, "authData:"+authData);
             AuthData data = decryptAuthData(authData);
             return data.agent;
         } catch (InvalidAgentPathException | InvalidDataException e) {
             throw ItemUtils.createWebAppException("Invalid agent or login data", e, Response.Status.UNAUTHORIZED);
         } catch (Exception e) {
+            Logger.error("authData:"+authData);
             Logger.error(e);
             throw ItemUtils.createWebAppException("Error reading authentication data", e, Response.Status.UNAUTHORIZED);
         }
@@ -272,6 +279,10 @@ public class RestHandler {
         return props;
     }
 
+    /**
+     * Handles encoding/decoding of agent and timestamp data
+     *
+     */
     public class AuthData {
         AgentPath agent;
         Date timestamp;
