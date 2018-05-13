@@ -79,7 +79,7 @@ class ModuleDelegate {
 
     public Schema Schema(String name, Integer version, Closure cl) {
         def schema = SchemaBuilder.build(name, version, cl)
-        schema.export(imports, new File(exportRoot))
+        schema.export(imports, new File(exportRoot), true)
         return schema
     }
 
@@ -89,7 +89,7 @@ class ModuleDelegate {
 
     public Query Query(String name, Integer version, Closure cl) {
         def query = QueryBuilder.build(this.module.name, name, version, cl)
-        query.export(imports, new File(exportRoot))
+        query.export(imports, new File(exportRoot), true)
         return query
     }
 
@@ -99,7 +99,7 @@ class ModuleDelegate {
 
     public Script Script(String name, Integer version, Closure cl) {
         def script = ScriptBuilder.build(name, version, cl)
-        script.export(imports, new File(exportRoot))
+        script.export(imports, new File(exportRoot), true)
         return script
     }
 
@@ -109,7 +109,7 @@ class ModuleDelegate {
 
     public ActivityDef Activity(String name, Integer version, Closure cl) {
         def eaDef = ElemActDefBuilder.build(name, version, cl)
-        eaDef.export(imports, new File(exportRoot))
+        eaDef.export(imports, new File(exportRoot), true)
         return eaDef
     }
 
@@ -119,7 +119,7 @@ class ModuleDelegate {
 
     public CompositeActivityDef Workflow(String name, Integer version, Closure cl) {
         def caDef = CompActDefBuilder.build(name, version, cl)
-        caDef.export(imports, new File(exportRoot))
+        caDef.export(imports, new File(exportRoot), true)
         return caDef
     }
 
