@@ -227,7 +227,11 @@ public class ItemRoot extends ItemUtils {
             String type = item.getType();
             if (type != null) {
                 itemSummary.put("type", type);
-                itemSummary.put("hasMasterOutcome", (getAggregateScript(type, 0) != null || item.checkViewpoint(type, "last")));
+
+                if (getAggregateScript(type, 0) != null || item.checkViewpoint(type, "last")) {
+                    itemSummary.put("hasMasterOutcome", true);
+                    itemSummary.put("master", getItemURI(uri, item, "master"));
+                }
             }
 
             itemSummary.put("properties", getPropertySummary(item));
