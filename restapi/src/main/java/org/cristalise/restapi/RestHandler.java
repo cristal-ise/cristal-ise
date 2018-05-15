@@ -158,7 +158,6 @@ public class RestHandler {
             throw ItemUtils.createWebAppException("Missing authentication data", Response.Status.UNAUTHORIZED);
 
         try {
-            Logger.debug(0, "authData:"+authData);
             AuthData data = decryptAuthData(authData);
             return data.agent;
         } catch (InvalidAgentPathException | InvalidDataException e) {
