@@ -44,6 +44,7 @@ public class RemoteMapAccess {
         RemoteMap<?> map;
         try {
             map = (RemoteMap<?>) item.getObject(root);
+            map.activate();
         }
         catch (ObjectNotFoundException e) {
             Logger.error(e);
