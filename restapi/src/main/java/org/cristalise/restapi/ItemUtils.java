@@ -147,11 +147,11 @@ public abstract class ItemUtils extends RestHandler {
         ItemProxy item = ItemRoot.getProxy(uuid);
         try {
             Viewpoint view = item.getViewpoint(schema, viewName);
-            return getOutcomeResponse(view.getOutcome(), view.getEvent(), json);
+            return getOutcomeResponse(view.getOutcome(), json);
         }
-        catch (InvalidDataException | PersistencyException | ObjectNotFoundException e) {
+        catch (PersistencyException | ObjectNotFoundException e) {
             Logger.error(e);
-            throw ItemUtils.createWebAppException(e.getMessage(), Response.Status.NOT_FOUND);
+            throw ItemUtils.createWebAppException(e.getMessage(), e, Response.Status.NOT_FOUND);
         }
     }
 
@@ -204,6 +204,35 @@ public abstract class ItemUtils extends RestHandler {
         return viewPoints;
     }
 
+    /**
+     * Creates Response with without any specific header.
+     * 
+     * @param oc the Outcome to convert
+     * @param json produce json or xml
+     * @return the ws Response
+     */
+    protected Response getOutcomeResponse(Outcome oc, boolean json) {
+        String result;
+
+        if(json) result = XML.toJSONObject(oc.getData()).toString();
+        else     result = oc.getData();
+        
+        //Perhaps header 'Cache-Control: no-cache' should be used.
+//        CacheControl cc = new CacheControl();
+//        cc.setMaxAge(300);
+//        cc.setPrivate(true);
+//        cc.setNoStore(true);
+
+        return Response.ok(result)./*cacheControl(cc).*/build();
+    }
+
+    /**
+     * Creates Response with header 'Last-Modified: <evnt date>'
+     * 
+     * @param oc the Outcome to convert
+     * @param json produce json or xml
+     * @return the ws Response
+     */
     protected Response getOutcomeResponse(Outcome oc, Date eventDate, boolean json) {
         String result;
 
