@@ -64,12 +64,17 @@ public class CookieLogin extends RestHandler {
             throw ItemUtils.createWebAppException("Agent '" + user + "' not found", Response.Status.NOT_FOUND);
         }
 
+        return getCookieResponse(agentPath);
+    }
+
+    private synchronized Response getCookieResponse(AgentPath agentPath) {
         // create and set cookie
         AuthData agentData = new AuthData(agentPath);
         try {
             NewCookie cookie;
 
             int cookieLife = Gateway.getProperties().getInt("REST.loginCookieLife", 0);
+
             if (cookieLife > 0)
                 cookie = new NewCookie(COOKIENAME, encryptAuthData(agentData), "/", null, null, cookieLife, false);
             else

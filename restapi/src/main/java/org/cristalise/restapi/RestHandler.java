@@ -57,7 +57,7 @@ import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.property.Property;
 import org.cristalise.kernel.utils.Logger;
 
-public class RestHandler {
+abstract public class RestHandler {
 
     private ObjectMapper mapper;
     private boolean requireLogin = true;
@@ -100,7 +100,7 @@ public class RestHandler {
         kgen.init(keySize);
         cookieKey = kgen.generateKey();
 
-        //System.out.println("RestHandler.initKeys() - Cookie key: "+DatatypeConverter.printBase64Binary(cookieKey.getEncoded()));
+        System.out.println("RestHandler.initKeys() - Cookie key: "+DatatypeConverter.printBase64Binary(cookieKey.getEncoded()));
 
         encryptCipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
         encryptCipher.init(Cipher.ENCRYPT_MODE, cookieKey);
@@ -140,7 +140,7 @@ public class RestHandler {
      * @param authCookie the cookie sent by the client
      * @return AgentPath decrypted from the cookie
      */
-    public AgentPath checkAuthCookie(Cookie authCookie) {
+    public synchronized AgentPath checkAuthCookie(Cookie authCookie) {
         if(authCookie == null) return checkAuthData(null);
         else                   return checkAuthData(authCookie.getValue());
     }
@@ -151,7 +151,7 @@ public class RestHandler {
      * @param authData authorisation data normally taken from cookie or token
      * @return AgentPath created from the decrypted autData
      */
-    public AgentPath checkAuthData(String authData) {
+    private AgentPath checkAuthData(String authData) {
         if (!requireLogin) return null;
 
         if (authData == null)
