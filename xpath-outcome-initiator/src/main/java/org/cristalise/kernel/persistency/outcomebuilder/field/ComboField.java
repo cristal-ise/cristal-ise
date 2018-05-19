@@ -21,7 +21,6 @@
 package org.cristalise.kernel.persistency.outcomebuilder.field;
 
 import java.util.Map;
-import java.util.Map.Entry;
 
 import org.cristalise.kernel.persistency.outcomebuilder.StructuralException;
 import org.cristalise.kernel.utils.Logger;
@@ -102,11 +101,12 @@ public class ComboField extends StringField {
 
             options.put(emptyOption);
 
-            for (Entry<String, Object> entry: vals.entrySet()) {
+            ;
+            for (String entry: vals.orderedKeys) {
                 JSONObject option = new JSONObject();
 
-                option.put("label", entry.getKey());
-                option.put("value", entry.getValue());
+                option.put("label", entry);
+                option.put("value", vals.get(entry));
 
                 options.put(option);
             }
@@ -125,6 +125,9 @@ public class ComboField extends StringField {
 
         if (options.length() != 0) {
             select.put("options", options);
+            select.put("filterable", true);
+            JSONObject additional = getAdditionalConfigNgDynamicForms(select);
+            additional.put("filterBy", "label");
         }
         else{
             select.put("type", "INPUT"); // overwrite type if no values were given
