@@ -48,7 +48,7 @@ public class ListOfValues extends HashMap<String, Object> {
         super();
         contentType = type;
         listNode = list;
-        
+
         populateLovFromEnumeration();
     }
 
@@ -106,10 +106,10 @@ public class ListOfValues extends HashMap<String, Object> {
         }
     }
 
-    private void callLovPoupulate(AnyNode lovNode, Map<String, Object> inputs) {
+    private void callLovPopulate(AnyNode lovNode, Map<String, Object> inputs) {
         String lovType = lovNode.getLocalName();
 
-        Logger.msg(5, "ListOfValues.callLovPoupulate() - lovType:"+lovType);
+        Logger.msg(5, "ListOfValues.callLovPopulate() - lovType:"+lovType);
 
         AnyNode param = lovNode.getFirstChild();
 
@@ -120,7 +120,7 @@ public class ListOfValues extends HashMap<String, Object> {
             case scriptRef:     populateLOVFromScript(param, inputs); break;
 
             default:
-                Logger.warning("ListOfValues.callLovPoupulate() - unhadled type:"+lovType);
+                Logger.warning("ListOfValues.callLovPoupulate() - unhandled type:"+lovType);
         }
     }
 
@@ -129,10 +129,10 @@ public class ListOfValues extends HashMap<String, Object> {
             AnyNode child = listNode.getFirstChild(); //stupid API, there is no getChildren
 
             if (child != null) {
-                if (child.getNodeType() == AnyNode.ELEMENT) callLovPoupulate(child, inputs);
+                if (child.getNodeType() == AnyNode.ELEMENT) callLovPopulate(child, inputs);
 
                 for (child = child.getNextSibling(); child != null; child = child.getNextSibling()) {
-                    if (child.getNodeType() == AnyNode.ELEMENT) callLovPoupulate(child, inputs);
+                    if (child.getNodeType() == AnyNode.ELEMENT) callLovPopulate(child, inputs);
                 }
             }
         }
