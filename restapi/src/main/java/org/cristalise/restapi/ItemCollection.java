@@ -23,6 +23,7 @@ package org.cristalise.restapi;
 import static org.cristalise.kernel.persistency.ClusterType.COLLECTION;
 
 import java.util.HashMap;
+import java.util.List;
 
 import javax.ws.rs.CookieParam;
 import javax.ws.rs.GET;
@@ -117,9 +118,13 @@ public class ItemCollection extends ItemUtils {
         ItemProxy item = getProxy(uuid);
         try {
             Dependency dep = (Dependency) item.getCollection(collName);
+            
+            List<String> names = getItemNames(dep.getClassProperties());
+
+            if (names.size() == 0)  throw ItemUtils.createWebAppException("No Item was found", Response.Status.NO_CONTENT);
 
             HashMap<String, Object> inputs = new HashMap<>();
-            inputs.put("memberNames", getItemNames(dep.getClassProperties()));
+            inputs.put("memberNames", names);
 
             // this shall contain the SchemaName and version like this: Shift:0
             String[] schemaInfo = ((String) dep.getProperties().get("MemberUpdateSchema")).split(":");
