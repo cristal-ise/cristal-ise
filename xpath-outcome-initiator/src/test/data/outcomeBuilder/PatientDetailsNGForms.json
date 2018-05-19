@@ -62,16 +62,18 @@
       "required": true
     },
     {
+      "filterable": true,
+      "additional": {"filterBy": "label"},
       "options": [
         {"label": "Select value"},
+        {
+          "label": "male",
+          "value": "male"
+        },
         {
           "label": "female",
           "value": "female"
         },
-        {
-          "label": "male",
-          "value": "male"
-        }
       ],
       "cls": {
         "grid": {

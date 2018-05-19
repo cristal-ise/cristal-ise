@@ -5,6 +5,8 @@
   "type": "GROUP",
   "group": [
     {
+      "filterable": true,
+      "additional": {"filterBy": "label"},
       "options": [
         {"label": "Select value"},
         {
@@ -12,13 +14,13 @@
           "value": "AAA"
         },
         {
+          "label": "BBBB",
+          "value": "BBBB"
+        },
+        {
           "label": "CCCCC",
           "value": "CCCCC"
         },
-        {
-          "label": "BBBB",
-          "value": "BBBB"
-        }
       ],
 
       "cls": {

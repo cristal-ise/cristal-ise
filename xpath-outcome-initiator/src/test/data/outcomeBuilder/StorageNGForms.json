@@ -37,6 +37,8 @@
       "required": true
     },
     {
+      "filterable": true,
+      "additional": {"filterBy": "label"},
       "options": [
         {"label": "Select value"},
         {
@@ -68,15 +70,17 @@
       "required": true
     },
     {
+      "filterable": true,
+      "additional": {"filterBy": "label"},
       "options": [
         {"label": "Select value"},
         {
-          "label": "WAREHOUSE",
-          "value": "WAREHOUSE"
-        },
-        {
           "label": "BIN",
           "value": "BIN"
+        },
+        {
+          "label": "WAREHOUSE",
+          "value": "WAREHOUSE"
         }
       ],
       "cls": {
