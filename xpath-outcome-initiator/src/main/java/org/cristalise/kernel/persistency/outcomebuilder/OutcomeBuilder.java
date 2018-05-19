@@ -182,7 +182,11 @@ public class OutcomeBuilder {
     }
 
     public Outcome getOutcome() throws InvalidDataException {
-        outcome.validateAndCheck();
+        return getOutcome(true);
+    }
+
+    public Outcome getOutcome(boolean check) throws InvalidDataException {
+        if (check) outcome.validateAndCheck();
         return outcome;
     }
 
