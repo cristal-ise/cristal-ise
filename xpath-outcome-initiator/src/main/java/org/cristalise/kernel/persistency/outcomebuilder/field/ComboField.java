@@ -59,7 +59,7 @@ public class ComboField extends StringField {
 
     @Override
     public String getText() {
-        if (strictValueHandling) return vals.get(selected).toString();
+        if (strictValueHandling) return selected != null ? vals.get(selected).toString() : "";
         else                     return selected;
     }
 
