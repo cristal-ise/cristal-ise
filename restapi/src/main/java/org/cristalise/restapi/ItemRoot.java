@@ -369,7 +369,8 @@ public class ItemRoot extends ItemUtils {
                 else {
                     OutcomeBuilder builder = new OutcomeBuilder(thisJob.getSchema());
                     builder.addJsonInstance(new JSONObject(postData));
-                    thisJob.setOutcome(builder.getOutcome());
+                    //Outcome can be invalid at this point, because Script/Query can be executed later
+                    thisJob.setOutcome(builder.getOutcome(false)); 
                 }
             }
             return agent.execute(thisJob);
