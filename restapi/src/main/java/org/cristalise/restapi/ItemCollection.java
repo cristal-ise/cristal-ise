@@ -30,6 +30,7 @@ import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
+import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Cookie;
 import javax.ws.rs.core.MediaType;
@@ -121,7 +122,7 @@ public class ItemCollection extends ItemUtils {
             
             List<String> names = getItemNames(dep.getClassProperties());
 
-            if (names.size() == 0)  throw ItemUtils.createWebAppException("No Item was found", Response.Status.NO_CONTENT);
+            if (names.size() == 0)  throw ItemUtils.createWebAppException("No Item was found", Response.Status.NOT_FOUND);
 
             HashMap<String, Object> inputs = new HashMap<>();
             inputs.put("memberNames", names);
@@ -131,6 +132,9 @@ public class ItemCollection extends ItemUtils {
 
             Schema schema = LocalObjectLoader.getSchema(schemaInfo[0], Integer.valueOf(schemaInfo[1]));
             return Response.ok(new OutcomeBuilder(schema, false).generateNgDynamicForms(inputs)).build();
+        }
+        catch (WebApplicationException e) {
+            throw e;
         }
         catch (Exception e) {
             Logger.error(e);
