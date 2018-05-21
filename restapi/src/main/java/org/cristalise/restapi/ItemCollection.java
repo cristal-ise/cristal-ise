@@ -42,6 +42,7 @@ import org.cristalise.kernel.common.ObjectNotFoundException;
 import org.cristalise.kernel.entity.proxy.ItemProxy;
 import org.cristalise.kernel.persistency.outcome.Schema;
 import org.cristalise.kernel.persistency.outcomebuilder.OutcomeBuilder;
+import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.utils.LocalObjectLoader;
 import org.cristalise.kernel.utils.Logger;
 
@@ -122,7 +123,9 @@ public class ItemCollection extends ItemUtils {
             
             List<String> names = getItemNames(dep.getClassProperties());
 
-            if (names.size() == 0)  throw ItemUtils.createWebAppException("No Item was found", Response.Status.NOT_FOUND);
+            if (Gateway.getProperties().getBoolean("REST.CollectionForm.checkInputs", false)) {
+                if (names.size() == 0)  throw ItemUtils.createWebAppException("No Item was found", Response.Status.NOT_FOUND);
+            }
 
             HashMap<String, Object> inputs = new HashMap<>();
             inputs.put("memberNames", names);
