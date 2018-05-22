@@ -119,8 +119,8 @@ abstract public class RestHandler {
             try {
                 return new AuthData(decryptCipher.doFinal(bytes));
             }
-            catch (final BadPaddingException e) {
-                Logger.error("BadPaddingException " + cntRetries);
+            catch (final Exception e) {
+                Logger.error("Exception caught in decryptAuthData: #" + cntRetries + ": " + e);
                 if (cntRetries == 5) {
                     throw e;
                 }
@@ -175,6 +175,8 @@ abstract public class RestHandler {
             return data.agent;
         } catch (InvalidAgentPathException | InvalidDataException e) {
             throw ItemUtils.createWebAppException("Invalid agent or login data", e, Response.Status.UNAUTHORIZED);
+            Logger.error("authData:"+authData);
+            Logger.error(e);
         } catch (Exception e) {
             Logger.error("authData:"+authData);
             Logger.error(e);
