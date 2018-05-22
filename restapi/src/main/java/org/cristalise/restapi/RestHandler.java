@@ -114,7 +114,19 @@ abstract public class RestHandler {
             throws InvalidAgentPathException, IllegalBlockSizeException, BadPaddingException, InvalidDataException
     {
         byte[] bytes = DatatypeConverter.parseBase64Binary(authData);
-        return new AuthData(decryptCipher.doFinal(bytes));
+
+        for (int cntRetries = 1; ; cntRetries++) {
+            try {
+                return new AuthData(decryptCipher.doFinal(bytes));
+            }
+            catch (final BadPaddingException e) {
+                Logger.error("BadPaddingException " + cntRetries);
+                if (cntRetries == 5) {
+                    throw e;
+                }
+                Logger.error(e);
+            }
+        }
     }
 
     protected synchronized String encryptAuthData(AuthData auth)
