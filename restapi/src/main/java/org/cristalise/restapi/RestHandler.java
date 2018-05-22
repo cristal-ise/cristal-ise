@@ -174,9 +174,9 @@ abstract public class RestHandler {
             AuthData data = decryptAuthData(authData);
             return data.agent;
         } catch (InvalidAgentPathException | InvalidDataException e) {
-            throw ItemUtils.createWebAppException("Invalid agent or login data", e, Response.Status.UNAUTHORIZED);
             Logger.error("authData:"+authData);
             Logger.error(e);
+            throw ItemUtils.createWebAppException("Invalid agent or login data", e, Response.Status.UNAUTHORIZED);
         } catch (Exception e) {
             Logger.error("authData:"+authData);
             Logger.error(e);
