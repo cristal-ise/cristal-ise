@@ -329,51 +329,24 @@ public class ItemRoot extends ItemUtils {
         }
 
         if (actPath == null) throw ItemUtils.createWebAppException("Must specify activity path", Response.Status.BAD_REQUEST);
-        if (transition == null) throw ItemUtils.createWebAppException("Must specify transition", Response.Status.BAD_REQUEST);
 
         // Find agent
         ItemProxy item = getProxy(uuid);
 
-        // get all jobs for agent
-        List<Job> jobList;
         try {
-            jobList = item.getJobList(agent);
-        }
-        catch (Exception e) {
-            Logger.error(e);
-            throw ItemUtils.createWebAppException("Error loading joblist");
-        }
+            List<String> types = headers.getRequestHeader(HttpHeaders.CONTENT_TYPE);
 
-        // find the requested job by path and transition
-        Job thisJob = null;
-        for (Job job : jobList) {
-            if (job.getStepPath().equals(actPath) && job.getTransition().getName().equalsIgnoreCase(transition)) {
-                thisJob = job;
+            Logger.msg(5, "ItemRoot.requestTransition() postData:%s", postData);
+
+            if (actPath.startsWith("workflow/predefined")) {
+                return executePredefinedStep(item, postData, types, actPath, agent);
             }
-        }
+            else {
+                if (transition == null)
+                    throw ItemUtils.createWebAppException("Must specify transition", Response.Status.BAD_REQUEST);
 
-        if (thisJob == null)
-            throw ItemUtils.createWebAppException("Job not found for actPath:"+actPath+" transition:"+transition, Response.Status.NOT_FOUND);
-
-        // execute the requested job
-        try {
-            // set outcome if required
-            if (thisJob.hasOutcome()) {
-                Logger.msg(5, "ItemRoot.requestTransition() postData:%s", postData);
-
-                List<String> types = headers.getRequestHeader(HttpHeaders.CONTENT_TYPE);
-
-                if (types.contains(MediaType.APPLICATION_XML) || types.contains(MediaType.TEXT_XML)) {
-                    thisJob.setOutcome(postData);
-                }
-                else {
-                    OutcomeBuilder builder = new OutcomeBuilder(thisJob.getSchema());
-                    builder.addJsonInstance(new JSONObject(postData));
-                    //Outcome can be invalid at this point, because Script/Query can be executed later
-                    thisJob.setOutcome(builder.getOutcome(false)); 
-                }
+                return executeJob(item, postData, types, actPath, transition, agent);
             }
-            return agent.execute(thisJob);
         }
         catch (OutcomeBuilderException | InvalidDataException | ScriptErrorException | ObjectAlreadyExistsException | InvalidCollectionModification e) {
             Logger.error(e);
@@ -398,5 +371,79 @@ public class ItemRoot extends ItemUtils {
             Logger.error(e);
             throw ItemUtils.createWebAppException(e.getMessage(), Response.Status.INTERNAL_SERVER_ERROR);
         }
+    }
+
+    /**
+     * 
+     * @param item
+     * @param postData
+     * @param types
+     * @param actPath
+     * @param agent
+     * @return
+     * @throws ObjectNotFoundException
+     * @throws InvalidDataException
+     * @throws OutcomeBuilderException
+     * @throws AccessRightsException
+     * @throws InvalidTransitionException
+     * @throws PersistencyException
+     * @throws ObjectAlreadyExistsException
+     * @throws InvalidCollectionModification
+     */
+    private String executePredefinedStep(ItemProxy item, String postData, List<String> types, String actPath, AgentProxy agent) 
+            throws ObjectNotFoundException, InvalidDataException, OutcomeBuilderException, AccessRightsException, 
+                   InvalidTransitionException, PersistencyException, ObjectAlreadyExistsException, InvalidCollectionModification
+    {
+        if (types.contains(MediaType.APPLICATION_JSON)) {
+            OutcomeBuilder builder = new OutcomeBuilder(LocalObjectLoader.getSchema("PredefinesStepOutcome", 0));
+            builder.addJsonInstance(new JSONObject(postData));
+            //Outcome can be invalid at this point, because Script/Query can be executed later
+            postData = builder.getOutcome(false).getData();
+        }
+
+        return agent.execute(item, actPath, postData);
+    }
+
+    /**
+     * 
+     * @param item
+     * @param postData
+     * @param types
+     * @param actPath
+     * @param transition
+     * @param agent
+     * @return
+     * @throws AccessRightsException
+     * @throws ObjectNotFoundException
+     * @throws PersistencyException
+     * @throws InvalidDataException
+     * @throws OutcomeBuilderException
+     * @throws InvalidTransitionException
+     * @throws ObjectAlreadyExistsException
+     * @throws InvalidCollectionModification
+     * @throws ScriptErrorException
+     */
+    private String executeJob(ItemProxy item, String postData, List<String> types, String actPath, String transition, AgentProxy agent)
+            throws AccessRightsException, ObjectNotFoundException, PersistencyException, InvalidDataException, OutcomeBuilderException,
+                   InvalidTransitionException, ObjectAlreadyExistsException, InvalidCollectionModification, ScriptErrorException 
+    {
+        Job thisJob = item.getJobByTransitionName(actPath, transition, agent);
+
+        if (thisJob == null)
+            throw ItemUtils.createWebAppException("Job not found for actPath:"+actPath+" transition:"+transition, Response.Status.NOT_FOUND);
+
+        // set outcome if required
+        if (thisJob.hasOutcome()) {
+            if (types.contains(MediaType.APPLICATION_XML) || types.contains(MediaType.TEXT_XML)) {
+                thisJob.setOutcome(postData);
+            }
+            else {
+                OutcomeBuilder builder = new OutcomeBuilder(thisJob.getSchema());
+                builder.addJsonInstance(new JSONObject(postData));
+                //Outcome can be invalid at this point, because Script/Query can be executed later
+                thisJob.setOutcome(builder.getOutcome(false)); 
+            }
+        }
+        return agent.execute(thisJob);
     }
 }
