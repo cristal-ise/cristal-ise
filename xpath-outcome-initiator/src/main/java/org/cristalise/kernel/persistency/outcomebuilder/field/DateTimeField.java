@@ -47,13 +47,13 @@ public class DateTimeField extends StringField {
         JSONObject date = getCommonFieldsNgDynamicForms();
 
         date.put("format", "dd/mm/yy");
-        date.put("showTime", true);
 
         JSONObject additional = getAdditionalConfigNgDynamicForms(date);
         additional.put("yearRange", "1990:2050");
         additional.put("yearNavigator", true);
         additional.put("monthNavigator", true);
         additional.put("showButtonBar", true);
+        additional.put("showTime", true);
 
         return date;
     }
