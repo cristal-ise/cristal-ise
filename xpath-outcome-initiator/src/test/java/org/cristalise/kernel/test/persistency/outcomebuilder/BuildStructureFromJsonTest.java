@@ -77,6 +77,22 @@ public class BuildStructureFromJsonTest extends XMLUtils {
     }
 
     @Test
+    public void integerFieldOptional_empty() throws Exception {
+        OutcomeBuilder builder = new OutcomeBuilder(new Schema("IntegerFieldOptional", 0, getXSD(dir, "IntegerFieldOptional")), true);
+        String expected = getXML(dir, "IntegerFieldOptional");
+
+        JSONObject actualJson = new JSONObject(getJSON(dir, "IntegerFieldOptional"));
+
+        Logger.msg(2, "Actual json:%s", actualJson.toString());
+        builder.addJsonInstance(actualJson);;
+
+        Logger.msg(2, "Expected xml:%s", expected);
+        Logger.msg(2, "Actual xml:%s", builder.getXml());
+
+        assert compareXML(expected, builder.getXml());
+    }
+
+    @Test
     public void booleanField() throws Exception {
         checkXml2Json2XmlOutcome("BooleanField");
     }

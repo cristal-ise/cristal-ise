@@ -132,8 +132,7 @@ public class Field extends OutcomeStructure {
                 else {
                     //'content' is the field name used by the org.json.XML to handle value of Element with attributes
                     if (key.equals("content")) {
-                        createOptinalElement(parent);
-                        myFieldInstance.setValue(jsonObj.get(key));
+                        setJsonValue(parent, jsonObj.get(key));
                     }
                     else {
                         // this should never happen
@@ -147,8 +146,17 @@ public class Field extends OutcomeStructure {
         }
         else {
             //json variable is not JSOObject nor JSONArray, so handle it as a value
+            setJsonValue(parent, json);
+        }
+    }
+
+    private void setJsonValue (Element parent, Object val) throws StructuralException, InvalidOutcomeException {
+        if (isOptional() && (val == null || StringUtils.isBlank(val.toString()))) {
+            Logger.msg(8, "Field.addJsonInstance() - skipping empty optional element:"+getName());
+        }
+        else {
             createOptinalElement(parent);
-            myFieldInstance.setValue(json);
+            myFieldInstance.setValue(val);
         }
     }
 
