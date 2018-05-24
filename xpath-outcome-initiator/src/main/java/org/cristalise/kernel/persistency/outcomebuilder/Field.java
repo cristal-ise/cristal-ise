@@ -151,7 +151,7 @@ public class Field extends OutcomeStructure {
     }
 
     private void setJsonValue (Element parent, Object val) throws StructuralException, InvalidOutcomeException {
-        if (isOptional() && (val == null || StringUtils.isBlank(val.toString()))) {
+        if (isOptional() && (val == null || StringUtils.isBlank(val.toString()) || "null".equals(val) || JSONObject.NULL.equals(val))) {
             Logger.msg(8, "Field.addJsonInstance() - skipping empty optional element:"+getName());
         }
         else {
