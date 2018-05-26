@@ -25,21 +25,21 @@
     <element name="SiteCharacteristicsData">
         <complexType>
             <sequence>
-                <element name="BuildingType">
+                <element name="BuildingType" minOccurs='0' maxOccurs='1'>
                     <complexType>
                         <simpleContent>
                             <extension base="string" />
                         </simpleContent>
                     </complexType>
                 </element>
-                <element name="BuildingTypeRemarks">
+                <element name="BuildingTypeRemarks" minOccurs='0' maxOccurs='1'>
                     <complexType>
                         <simpleContent>
                             <extension base="string" />
                         </simpleContent>
                     </complexType>
                 </element>
-                <element name="AHOwner">
+                <element name="AHOwner" minOccurs='0' maxOccurs='1'>
                     <complexType>
                         <simpleContent>
                             <extension base="string" />

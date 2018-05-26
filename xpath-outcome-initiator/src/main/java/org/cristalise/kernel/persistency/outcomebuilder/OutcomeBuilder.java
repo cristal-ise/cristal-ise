@@ -83,6 +83,10 @@ public class OutcomeBuilder {
         this("", schema, xml);
     }
 
+    public OutcomeBuilder(Schema schema, Outcome outcome) throws OutcomeBuilderException, InvalidDataException {
+        this("", schema, outcome);
+    }
+
     public OutcomeBuilder(String root, Schema schema, Outcome outcome) throws OutcomeBuilderException {
         this.outcome = outcome;
         initialise(schema.getSom(), outcome.getDOM(), root);
@@ -138,6 +142,57 @@ public class OutcomeBuilder {
         modelRoot.addJsonInstance(outcome.getDOM().getDocumentElement(), keys[0], json.getJSONObject(keys[0]));
     }
 
+    /**
+     * 
+     * @param path
+     * @param value
+     * @throws OutcomeBuilderException
+     */
+    public void addfield(String path, String data) throws OutcomeBuilderException {
+        Logger.msg(5,"OutcomeBuilder.addfield() - path:'"+path+"'");
+        
+        String[] names = StringUtils.split(path, "/");
+
+        Element newElement = null;
+        String fieldName = null;
+
+        if(names.length == 1) {
+            //updating a filed in the root
+            fieldName = names[0];
+            modelRoot.createChildElement(outcome.getDOM(), fieldName);
+        }
+        else if(names.length == 2) {
+            //updating a filed in the root
+            fieldName = names[1];
+            modelRoot.createChildElement(outcome.getDOM(), fieldName);
+        }
+        else {
+            fieldName = names[names.length-1];
+
+            //Remove the first and the last entry
+            OutcomeStructure modelElement = modelRoot.find(Arrays.copyOfRange(names, 1, names.length-1));
+
+            if (modelElement == null) throw new StructuralException("Invalid path:'"+path+"'");
+
+            newElement = modelElement.createChildElement(outcome.getDOM(), fieldName);
+        }
+
+        try {
+            if (newElement == null) outcome.setField(fieldName, data);
+            else                    outcome.setField(newElement, fieldName, data);
+        }
+        catch (InvalidDataException e) {
+            Logger.error(e);
+            throw new StructuralException(e);
+        }
+    }
+
+    /**
+     * 
+     * @param path
+     * @param record
+     * @throws OutcomeBuilderException
+     */
     public void addRecord(String path, Map<String, String> record) throws OutcomeBuilderException {
         Logger.msg(5,"OutcomeBuilder.addRecord() - path:'"+path+"'");
 
@@ -177,7 +232,11 @@ public class OutcomeBuilder {
     }
 
     public String getXml() throws InvalidDataException {
-        outcome.validateAndCheck();
+        return getXml(true);
+    }
+
+    public String getXml(boolean check) throws InvalidDataException {
+        if (check) outcome.validateAndCheck();
         return outcome.getData();
     }
 

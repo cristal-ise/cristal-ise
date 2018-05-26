@@ -65,7 +65,6 @@ public abstract class OutcomeStructure {
 
     ArrayList<String>                 subStructureOrder = new ArrayList<String>();
     HashMap<String, OutcomeStructure> subStructure      = new HashMap<String, OutcomeStructure>();
-    HashMap<String, Class<?>>         specialEditFields;
 
     public OutcomeStructure() {}
 
@@ -119,12 +118,13 @@ public abstract class OutcomeStructure {
         boolean cont = true;
 
         // lets find out where to insert this new element
-        for(int i = 0; i < subStructureOrder.size() && cont; i++) {
+        for (int i = 0; i < subStructureOrder.size()-1 && cont; i++) {
             if (recordName.equals(subStructureOrder.get(i))) {
                 cont = false;
 
-                if (i+1 < subStructureOrder.size()) {
-                    String refElementName = subStructureOrder.get(i+1);
+                for (int k = i+1; k < subStructureOrder.size() && refElement == null; k++) {
+
+                    String refElementName = subStructureOrder.get(k);
                     NodeList children = myElement.getChildNodes();
 
                     for (int j = 0; j < children.getLength() && refElement == null; j++) {

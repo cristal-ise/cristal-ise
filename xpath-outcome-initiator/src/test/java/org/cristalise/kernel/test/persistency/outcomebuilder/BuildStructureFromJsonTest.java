@@ -27,10 +27,7 @@ import org.cristalise.kernel.utils.Logger;
 import org.json.JSONObject;
 import org.json.XML;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
-
-import lombok.SneakyThrows;
 
 public class BuildStructureFromJsonTest extends XMLUtils {
 
@@ -79,7 +76,7 @@ public class BuildStructureFromJsonTest extends XMLUtils {
         checkXml2Json2XmlOutcome("IntegerFieldOptional");
     }
 
-    @Test @Ignore
+    @Test
     public void integerFieldOptional_empty() throws Exception {
         OutcomeBuilder builder = new OutcomeBuilder(new Schema("IntegerFieldOptional", 0, getXSD(dir, "IntegerFieldOptional")), true);
         String expected = getXML(dir, "IntegerFieldOptional");

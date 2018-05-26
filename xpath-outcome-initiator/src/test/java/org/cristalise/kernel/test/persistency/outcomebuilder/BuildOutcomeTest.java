@@ -33,6 +33,7 @@ import org.cristalise.kernel.persistency.outcomebuilder.OutcomeBuilder;
 import org.cristalise.kernel.test.persistency.XMLUtils;
 import org.cristalise.kernel.utils.Logger;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
 public class BuildOutcomeTest extends XMLUtils {
@@ -105,12 +106,17 @@ public class BuildOutcomeTest extends XMLUtils {
 
         ob.addRecord("/SiteCharacteristicsData/UPS", upsRecord);
 
+        //Test the order of adding fields and the use of xpath or just a simple name
+        ob.addfield("/SiteCharacteristicsData/BuildingType", "semi-detached");
+        ob.addfield("/SiteCharacteristicsData/AHOwner",      "mine");
+        ob.addfield("BuildingTypeRemarks",                   "awsome");
+
         Logger.msg(ob.getXml());
 
         assert XMLUtils.compareXML(getXML(dir, "siteCharacteristicsData_ups"), ob.getXml());
     }
 
-    @Test
+    @Test @Ignore
     public void buildSiteCharacteristicsData_FromCSV() throws Exception {
         OutcomeBuilder ob = new OutcomeBuilder(new Schema("SiteCharacteristicsData", 0, getXSD(dir, "SiteCharacteristicsData")));
 
