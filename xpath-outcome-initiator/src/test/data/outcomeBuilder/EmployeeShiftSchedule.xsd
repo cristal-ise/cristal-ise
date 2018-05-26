@@ -41,9 +41,11 @@
           <xs:annotation>
             <xs:appinfo>
               <dynamicForms>
-                <hidden>true</hidden>
                 <required>false</required>
               </dynamicForms>
+              <listOfValues>
+                <values>Billing,Shipping,Head Office</values>
+              </listOfValues>
             </xs:appinfo>
           </xs:annotation>
         </xs:element>

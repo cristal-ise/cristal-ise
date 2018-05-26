@@ -101,7 +101,6 @@ public class ComboField extends StringField {
 
             options.put(emptyOption);
 
-            ;
             for (String entry: vals.orderedKeys) {
                 JSONObject option = new JSONObject();
 
@@ -125,9 +124,16 @@ public class ComboField extends StringField {
 
         if (options.length() != 0) {
             select.put("options", options);
-            select.put("filterable", true);
+
             JSONObject additional = getAdditionalConfigNgDynamicForms(select);
-            additional.put("filterBy", "label");
+ 
+            if (vals.editable) {
+                additional.put("editable", true);
+            }
+            else {
+                select.put("filterable", true);
+                additional.put("filterBy", "label");
+            }
         }
         else{
             select.put("type", "INPUT"); // overwrite type if no values were given

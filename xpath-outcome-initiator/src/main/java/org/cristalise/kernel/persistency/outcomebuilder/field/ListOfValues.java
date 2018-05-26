@@ -35,7 +35,7 @@ import org.exolab.castor.xml.schema.SimpleType;
 
 public class ListOfValues extends HashMap<String, Object> {
     
-    public enum AppInfoListTags {scriptRef, propertyNames, queryRef, inputName};
+    public enum AppInfoListTags {scriptRef, propertyNames, queryRef, inputName, values};
 
     private static final long serialVersionUID = -2718359690741674876L;
 
@@ -43,6 +43,8 @@ public class ListOfValues extends HashMap<String, Object> {
     AnyNode           listNode;
     String            defaultKey  = null;
     ArrayList<String> orderedKeys = new ArrayList<String>();
+
+    boolean editable = false;
 
     public ListOfValues(SimpleType type, AnyNode list) {
         super();
@@ -118,6 +120,7 @@ public class ListOfValues extends HashMap<String, Object> {
             case propertyNames: populateLOVFromLookup(param, inputs); break;
             case queryRef:      populateLOVFromQuery(param, inputs); break; 
             case scriptRef:     populateLOVFromScript(param, inputs); break;
+            case values:        populateLOVFromValues(param); break;
 
             default:
                 Logger.warning("ListOfValues.callLovPoupulate() - unhandled type:"+lovType);
@@ -168,9 +171,17 @@ public class ListOfValues extends HashMap<String, Object> {
             Logger.warning("ListOfValues.populateLOVFromInput() - NO Inputs were found param:"+key);
     }
 
-    /**
-     * @param param
-     */
+    private void populateLOVFromValues(AnyNode paramNode) {
+        if (paramNode.getNodeType() != AnyNode.TEXT) {
+            Logger.warning("ListOfValues.populateLOVFromValues() - paramNode is not a TEXT");
+            return;
+        }
+
+        for (String value: paramNode.getStringValue().split(",")) put(value, value, false);
+
+        editable = true;
+    }
+
     private void populateLOVFromLookup(AnyNode param, Map<String, Object> inputs) {
         assert false;
     }

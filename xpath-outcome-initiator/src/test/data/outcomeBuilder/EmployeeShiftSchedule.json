@@ -38,8 +38,24 @@
       "required": true
     },
     {
-      "hidden": true,
-      "inputType": "text",
+      "additional": {
+        "editable": true,
+      },
+      "options": [
+        {"label": "Select value"},
+        {
+          "label": "Billing",
+          "value": "Billing"
+        },
+        {
+          "label": "Shipping",
+          "value": "Shipping"
+        },
+        {
+          "label": "Head Office",
+          "value": "Head Office"
+        }
+      ],
       "cls": {
         "grid": {
           "container": "ui-g",
@@ -51,7 +67,7 @@
       "id": "CollectionName",
       "label": "Collection Name",
       "placeholder": "Collection Name",
-      "type": "INPUT",
+      "type": "SELECT",
       "required": false
     },
     {

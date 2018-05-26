@@ -58,7 +58,7 @@ public class ListOfValuesTest extends XMLUtils {
         HashMap<String, Object> inputs = new HashMap<>();
         inputs.put("memberNames", itemNames);
 
-        JSONArray actual   = builder.generateNgDynamicFormsJson(inputs);
+        JSONArray actual = builder.generateNgDynamicFormsJson(inputs);
 
         Logger.msg(actual.toString(2));
 
