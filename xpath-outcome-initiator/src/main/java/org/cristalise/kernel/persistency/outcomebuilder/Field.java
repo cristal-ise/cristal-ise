@@ -151,6 +151,11 @@ public class Field extends OutcomeStructure {
     }
 
     private void setJsonValue (Element parent, Object val) throws StructuralException, InvalidOutcomeException {
+        createOptinalElement(parent);
+        myFieldInstance.setValue(val);
+
+        //FIXME: this code should be used after individual fields can be added to the Outcome
+        /*
         if (isOptional() && (val == null || StringUtils.isBlank(val.toString()) || "null".equals(val) || JSONObject.NULL.equals(val))) {
             Logger.msg(8, "Field.addJsonInstance() - skipping empty optional element:"+getName());
         }
@@ -158,6 +163,7 @@ public class Field extends OutcomeStructure {
             createOptinalElement(parent);
             myFieldInstance.setValue(val);
         }
+        */
     }
 
     @Override
