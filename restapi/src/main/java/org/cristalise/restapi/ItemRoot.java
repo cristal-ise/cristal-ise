@@ -317,17 +317,6 @@ public class ItemRoot extends ItemUtils {
             throw ItemUtils.createWebAppException(e1.getMessage(), Response.Status.UNAUTHORIZED);
         }
 
-        // if transition isn't used explicitly, look for a valueless parameter
-        if (transition == null) {
-            for (String key : uri.getQueryParameters().keySet()) {
-                List<String> vals = uri.getQueryParameters().get(key);
-                if (vals.size() == 1 && vals.get(0).length() == 0) {
-                    transition = key;
-                    break;
-                }
-            }
-        }
-
         if (actPath == null) throw ItemUtils.createWebAppException("Must specify activity path", Response.Status.BAD_REQUEST);
 
         // Find agent
@@ -342,8 +331,7 @@ public class ItemRoot extends ItemUtils {
                 return executePredefinedStep(item, postData, types, actPath, agent);
             }
             else {
-                if (transition == null)
-                    throw ItemUtils.createWebAppException("Must specify transition", Response.Status.BAD_REQUEST);
+                transition = extractAndCcheckTransitionName(transition, uri);
 
                 return executeJob(item, postData, types, actPath, transition, agent);
             }
@@ -445,5 +433,92 @@ public class ItemRoot extends ItemUtils {
             }
         }
         return agent.execute(thisJob);
+    }
+
+    @GET
+    @Produces(MediaType.APPLICATION_JSON)
+    @Path("job/formTemplate/{activityPath: .*}")
+    public Response getJobFormTemplate(
+            @Context                    HttpHeaders headers,
+            @PathParam("uuid")          String      uuid,
+            @PathParam("activityPath")  String      actPath,
+            @QueryParam("transition")   String      transition,
+            @CookieParam(COOKIENAME)    Cookie      authCookie,
+            @Context                    UriInfo     uri)
+    {
+        AgentProxy agent = null;
+        try {
+            agent = (AgentProxy)Gateway.getProxyManager().getProxy( checkAuthCookie(authCookie) );
+        }
+        catch (ObjectNotFoundException e1) {
+            throw ItemUtils.createWebAppException(e1.getMessage(), Response.Status.UNAUTHORIZED);
+        }
+
+        if (actPath == null) throw ItemUtils.createWebAppException("Must specify activity path", Response.Status.BAD_REQUEST);
+
+        // Find agent
+        ItemProxy item = getProxy(uuid);
+
+        try {
+            if (actPath.startsWith("workflow/predefined")) {
+                throw ItemUtils.createWebAppException("Unimplemented", Response.Status.BAD_REQUEST);
+            }
+            else {
+                transition = extractAndCcheckTransitionName(transition, uri);
+
+                Job thisJob = item.getJobByTransitionName(actPath, transition, agent);
+
+                if (thisJob == null)
+                    throw ItemUtils.createWebAppException("Job not found for actPath:"+actPath+" transition:"+transition, Response.Status.NOT_FOUND);
+
+                // set outcome if required
+                if (thisJob.hasOutcome()) {
+                    return Response.ok(new OutcomeBuilder(thisJob.getSchema(), false).generateNgDynamicForms(thisJob.getActProps())).build();
+                }
+                else {
+                    Logger.msg(5, "ItemRoot.getJobFormTemplate() - no outcome needed for job:%s", thisJob);
+                    return Response.noContent().build();
+                }
+            }
+        }
+        catch (OutcomeBuilderException | InvalidDataException  e) {
+            Logger.error(e);
+            throw ItemUtils.createWebAppException(e.getMessage(), e, Response.Status.BAD_REQUEST);
+        }
+        catch (AccessRightsException e) { // agent doesn't hold the right to execute
+            throw ItemUtils.createWebAppException(e.getMessage(), e, Response.Status.UNAUTHORIZED);
+        }
+        catch (ObjectNotFoundException e) { // workflow, schema, script etc not found.
+            Logger.error(e);
+            throw ItemUtils.createWebAppException(e.getMessage(), e, Response.Status.NOT_FOUND);
+        }
+        catch (PersistencyException e) { // database failure
+            Logger.error(e);
+            throw ItemUtils.createWebAppException(e.getMessage(), e, Response.Status.INTERNAL_SERVER_ERROR);
+        }
+        catch (Exception e) { // any other failure
+            Logger.error(e);
+            throw ItemUtils.createWebAppException(e.getMessage(), Response.Status.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    /**
+     * If transition isn't specified explicitly, look for a valueless query parameter
+     * 
+     * @param transName the name of the transition, can be null
+     * @param uri the uri of the request
+     * @return the transName if it was not blank or the name of first valueless query parameter
+     * @throws WebApplicationException if no transition name can be extracted
+     */
+    private String extractAndCcheckTransitionName(String transName, UriInfo uri) {
+        if (StringUtils.isNotBlank(transName)) return transName;
+
+        for (String key: uri.getQueryParameters().keySet()) {
+            List<String> qparams = uri.getQueryParameters().get(key);
+
+            if (qparams.size() == 1 && qparams.get(0).length() == 0) return key;
+        }
+
+        throw ItemUtils.createWebAppException("Must specify transition name", Response.Status.BAD_REQUEST);
     }
 }
