@@ -126,6 +126,7 @@ class SchemaDelegate {
             if (f.listOfValues.queryRef)      queryRef(     f.listOfValues.queryRef)
             if (f.listOfValues.propertyNames) propertyNames(f.listOfValues.propertyNames)
             if (f.listOfValues.inputName)     inputName(    f.listOfValues.inputName)
+            if (f.listOfValues.values)        values(       f.listOfValues.values.join(','))
         }
     }
 

@@ -40,7 +40,11 @@ class ListOfValues {
      */
     String propertyNames = null
     /**
-     * The name if the input variable
+     * The name of the input variable
      */
     String inputName = null
+    /**
+     * Use these values as option
+     */
+    List<String> values = null
 }
