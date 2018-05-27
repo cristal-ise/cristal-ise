@@ -26,6 +26,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.commons.lang3.StringUtils;
 import org.cristalise.kernel.utils.Logger;
 import org.exolab.castor.types.AnyNode;
 import org.exolab.castor.xml.schema.Annotation;
@@ -56,7 +57,9 @@ public class ListOfValues extends HashMap<String, Object> {
 
     public String put(String key, Object value, boolean isDefaultKey) {
         if (isDefaultKey) defaultKey = key;
-        orderedKeys.add(key);
+
+        if (!orderedKeys.contains(key)) orderedKeys.add(key);
+
         return (String) super.put(key, value);
     }
 
@@ -154,14 +157,27 @@ public class ListOfValues extends HashMap<String, Object> {
 
         if (inputs != null && inputs.containsKey(key)) {
             try {
-                @SuppressWarnings("unchecked")
-                List<String> values = (List<String>)inputs.get(key);
+                if (inputs.get(key) instanceof List) {
+                    @SuppressWarnings("unchecked")
+                    List<String> values = (List<String>)inputs.get(key);
 
-                if (values != null && values.size() > 0) {
-                    for (String value : values) put(value, value, false);
+                    if (values != null && values.size() > 0) {
+                        clear();
+                        for (String value : values) put(value, value, false);
+                    }
+                    else 
+                        Logger.warning("ListOfValues.populateLOVFromInput() - NO Inputs were found for param:"+key);
                 }
-                else 
-                    Logger.warning("ListOfValues.populateLOVFromInput() - NO Inputs were found for param:"+key);
+                else if(inputs.get(key) instanceof String) {
+                    String values = (String)inputs.get(key);
+                    
+                    if (StringUtils.isNotBlank(values)) {
+                        clear();
+                        for(String value: values.split(",")) put(value, value, false);
+                    }
+                    else 
+                        Logger.warning("ListOfValues.populateLOVFromInput() - NO Inputs were found for param:"+key);
+                }
             }
             catch (Exception e) {
                 Logger.error(e);

@@ -125,11 +125,8 @@ public class StringField {
         if (type instanceof ListType) return new ArrayField(type.getBuiltInBaseType());
 
         // is a combobox
-        if (type.hasFacet(Facet.ENUMERATION)) return new ComboField(type, null);
-
-        // is a combobox
         AnyNode appInfoNode = getAppInfoNode(model, "listOfValues");
-        if (appInfoNode != null) return new ComboField(type, appInfoNode);
+        if (type.hasFacet(Facet.ENUMERATION) || appInfoNode != null) return new ComboField(type, appInfoNode);
 
         // find info on length before we go to the base type
         long length = -1;

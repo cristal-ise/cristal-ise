@@ -101,13 +101,15 @@ public class ComboField extends StringField {
 
             options.put(emptyOption);
 
-            for (String entry: vals.orderedKeys) {
-                JSONObject option = new JSONObject();
+            for (String key: vals.orderedKeys) {
+                if (vals.get(key) != null) {
+                    JSONObject option = new JSONObject();
 
-                option.put("label", entry);
-                option.put("value", vals.get(entry));
+                    option.put("label", key);
+                    option.put("value", vals.get(key));
 
-                options.put(option);
+                    options.put(option);
+                }
             }
         }
 
