@@ -360,7 +360,7 @@ public class StringField {
         String label = StringUtils.join(StringUtils.splitByCharacterTypeCamelCase((String)field.get("label")), " ");
 
         field.put("label",       label);
-        field.put("placeholder", label);
+        field.put("placeholder", StringUtils.join(StringUtils.splitByCharacterTypeCamelCase(name), " "));
 
         return field;
     }
