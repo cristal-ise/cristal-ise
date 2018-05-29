@@ -6,6 +6,7 @@
   "group": [
     {
       "filterable": true,
+      "validators": {"required": null},
       "additional": {"filterBy": "label"},
       "options": [
         {"label": "Select value"},
@@ -20,9 +21,8 @@
         {
           "label": "CCCCC",
           "value": "CCCCC"
-        },
+        }
       ],
-
       "cls": {
         "grid": {
           "container": "ui-g",
@@ -32,15 +32,14 @@
         "element": {"label": "ui-widget"}
       },
       "id": "ShiftName",
-      "label": "Shift Name",
-      "placeholder": "Shift Name",
+      "label": "Shift Name   *",
+      "placeholder": "Shift Name   *",
       "type": "SELECT",
       "required": true
     },
     {
-      "additional": {
-        "editable": true,
-      },
+      "validators": {"required": null},
+      "additional": {"editable": true},
       "options": [
         {"label": "Select value"},
         {
@@ -65,13 +64,14 @@
         "element": {"label": "ui-widget"}
       },
       "id": "CollectionName",
-      "label": "Collection Name",
-      "placeholder": "Collection Name",
+      "label": "Collection Name   *",
+      "placeholder": "Collection Name   *",
       "type": "SELECT",
       "required": false
     },
     {
       "hidden": true,
+      "validators": {"required": null},
       "inputType": "text",
       "cls": {
         "grid": {
@@ -82,13 +82,14 @@
         "element": {"label": "ui-widget"}
       },
       "id": "MemberUUID",
-      "label": "Member UUID",
-      "placeholder": "Member UUID",
+      "label": "Member UUID   *",
+      "placeholder": "Member UUID   *",
       "type": "INPUT",
       "required": false
     },
     {
       "hidden": true,
+      "validators": {"required": null},
       "cls": {
         "grid": {
           "container": "ui-g",
@@ -98,8 +99,8 @@
         "element": {"label": "ui-widget"}
       },
       "id": "MemberID",
-      "label": "Member ID",
-      "placeholder": "Member ID",
+      "label": "Member ID   *",
+      "placeholder": "Member ID   *",
       "type": "INPUT",
       "value": "0",
       "required": false

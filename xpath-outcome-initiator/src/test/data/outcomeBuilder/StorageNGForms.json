@@ -5,6 +5,7 @@
   "type": "GROUP",
   "group": [
     {
+      "validators": {"required": null},
       "inputType": "text",
       "cls": {
         "grid": {
@@ -15,12 +16,13 @@
         "element": {"label": "ui-widget"}
       },
       "id": "ID",
-      "label": "ID",
-      "placeholder": "ID",
+      "label": "ID   *",
+      "placeholder": "ID   *",
       "type": "INPUT",
       "required": true
     },
     {
+      "validators": {"required": null},
       "inputType": "text",
       "cls": {
         "grid": {
@@ -31,13 +33,14 @@
         "element": {"label": "ui-widget"}
       },
       "id": "Name",
-      "label": "Name",
-      "placeholder": "Name",
+      "label": "Name   *",
+      "placeholder": "Name   *",
       "type": "INPUT",
       "required": true
     },
     {
       "filterable": true,
+      "validators": {"required": null},
       "additional": {"filterBy": "label"},
       "options": [
         {"label": "Select value"},
@@ -63,14 +66,15 @@
         "element": {"label": "ui-widget"}
       },
       "id": "State",
-      "label": "State",
-      "placeholder": "State",
+      "label": "State   *",
+      "placeholder": "State   *",
       "type": "SELECT",
       "value": "READY",
       "required": true
     },
     {
       "filterable": true,
+      "validators": {"required": null},
       "additional": {"filterBy": "label"},
       "options": [
         {"label": "Select value"},
@@ -92,13 +96,14 @@
         "element": {"label": "ui-widget"}
       },
       "id": "Type",
-      "label": "Type",
-      "placeholder": "Type",
+      "label": "Type   *",
+      "placeholder": "Type   *",
       "type": "SELECT",
       "value": "BIN",
       "required": true
     },
     {
+      "validators": {"required": null},
       "cls": {
         "grid": {
           "container": "ui-g",
@@ -108,8 +113,8 @@
         "element": {"label": "ui-widget"}
       },
       "id": "Capacity",
-      "label": "Capacity",
-      "placeholder": "Capacity",
+      "label": "Capacity   *",
+      "placeholder": "Capacity   *",
       "type": "INPUT",
       "value": "0.0",
       "required": true

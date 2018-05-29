@@ -5,6 +5,7 @@
   "type": "GROUP",
   "group": [
     {
+      "validators": {"required": null},
       "inputType": "text",
       "cls": {
         "grid": {
@@ -15,12 +16,14 @@
         "element": {"label": "ui-widget"}
       },
       "id": "id",
-      "label": "id",
-      "placeholder": "id",
+      "label": "id   *",
+      "placeholder": "id   *",
       "type": "INPUT",
       "required": true
     },
     {
+      "hidden": true,
+      "validators": {"required": null},
       "inputType": "text",
       "cls": {
         "grid": {
@@ -31,14 +34,14 @@
         "element": {"label": "ui-widget"}
       },
       "id": "InsuranceNumber",
-      "label": "Insurance Number",
-      "placeholder": "Insurance Number",
+      "label": "Insurance Number   *",
+      "placeholder": "Insurance Number   *",
       "type": "INPUT",
       "value": "123456789ABC",
-      "hidden": true,
       "required": false
     },
     {
+      "validators": {"required": null},
       "additional": {
         "showButtonBar": true,
         "yearRange": "1990:2050",
@@ -55,14 +58,14 @@
         "element": {"label": "ui-widget"}
       },
       "id": "DateOfBirth",
-      "label": "Date Of Birth",
-      "placeholder": "Date Of Birth",
+      "label": "Date Of Birth   *",
+      "placeholder": "Date Of Birth   *",
       "type": "DATEPICKER",
-      "value": "@{CURRENTDATE}",
       "required": true
     },
     {
       "filterable": true,
+      "validators": {"required": null},
       "additional": {"filterBy": "label"},
       "options": [
         {"label": "Select value"},
@@ -73,7 +76,7 @@
         {
           "label": "female",
           "value": "female"
-        },
+        }
       ],
       "cls": {
         "grid": {
@@ -84,13 +87,14 @@
         "element": {"label": "ui-widget"}
       },
       "id": "Gender",
-      "label": "Gender",
-      "placeholder": "Gender",
+      "label": "Gender   *",
+      "placeholder": "Gender   *",
       "type": "SELECT",
       "value": "male",
       "required": true
     },
     {
+      "validators": {"required": null},
       "cls": {
         "grid": {
           "container": "ui-g",
@@ -100,8 +104,8 @@
         "element": {"label": "ui-widget"}
       },
       "id": "Weight",
-      "label": "Weight",
-      "placeholder": "Weight",
+      "label": "Weight   *",
+      "placeholder": "Weight   *",
       "type": "INPUT",
       "value": "0.0",
       "required": true

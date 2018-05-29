@@ -81,7 +81,7 @@ public class BuildEmptyOutcomeTest extends XMLUtils {
         checkEmptyOutcome("RootWithOptionalAttr");
     }
 
-    @Test
+    @Test @Ignore
     public void patientDetails() throws Exception {
         String type = "PatientDetails";
         String xsd  = getXSD(dir, type);
