@@ -340,7 +340,7 @@ public class StringField {
         field.put("id",       name);
         field.put("label",    name);
         field.put("type",     getNgDynamicFormsControlType());
-//        field.put("required", !isOptional());
+        field.put("required", !isOptional());
 
         if (!isOptional()) {
             field.put("label", name + " *");
