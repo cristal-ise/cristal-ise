@@ -21,10 +21,8 @@
 package org.cristalise.kernel.persistency.outcomebuilder.field;
 
 import java.time.Instant;
-import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
-import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.Map;
 
@@ -42,7 +40,8 @@ public class DateField extends StringField {
 
     @Override
     public String getDefaultValue() {
-        return LocalDateTime.now().format(DateTimeFormatter.ofPattern(javaTimeDateFormat));
+        return "";
+        //return LocalDateTime.now().format(DateTimeFormatter.ofPattern(javaTimeDateFormat));
     }
 
     @Override
