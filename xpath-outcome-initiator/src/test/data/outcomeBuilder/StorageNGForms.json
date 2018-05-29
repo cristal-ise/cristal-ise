@@ -17,7 +17,7 @@
       },
       "id": "ID",
       "label": "ID   *",
-      "placeholder": "ID   *",
+      "placeholder": "ID",
       "type": "INPUT",
       "required": true
     },
@@ -34,7 +34,7 @@
       },
       "id": "Name",
       "label": "Name   *",
-      "placeholder": "Name   *",
+      "placeholder": "Name",
       "type": "INPUT",
       "required": true
     },
@@ -67,7 +67,7 @@
       },
       "id": "State",
       "label": "State   *",
-      "placeholder": "State   *",
+      "placeholder": "State",
       "type": "SELECT",
       "value": "READY",
       "required": true
@@ -97,7 +97,7 @@
       },
       "id": "Type",
       "label": "Type   *",
-      "placeholder": "Type   *",
+      "placeholder": "Type",
       "type": "SELECT",
       "value": "BIN",
       "required": true
@@ -114,7 +114,7 @@
       },
       "id": "Capacity",
       "label": "Capacity   *",
-      "placeholder": "Capacity   *",
+      "placeholder": "Capacity",
       "type": "INPUT",
       "value": "0.0",
       "required": true

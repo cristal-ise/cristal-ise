@@ -17,7 +17,7 @@
       },
       "id": "ShiftName",
       "label": "Shift Name   *",
-      "placeholder": "Shift Name   *",
+      "placeholder": "Shift Name",
       "type": "INPUT",
       "required": true
     },
@@ -49,7 +49,7 @@
       },
       "id": "CollectionName",
       "label": "Collection Name   *",
-      "placeholder": "Collection Name   *",
+      "placeholder": "Collection Name",
       "type": "SELECT",
       "required": false
     },
@@ -67,7 +67,7 @@
       },
       "id": "MemberUUID",
       "label": "Member UUID   *",
-      "placeholder": "Member UUID   *",
+      "placeholder": "Member UUID",
       "type": "INPUT",
       "required": false
     },
@@ -84,7 +84,7 @@
       },
       "id": "MemberID",
       "label": "Member ID   *",
-      "placeholder": "Member ID   *",
+      "placeholder": "Member ID",
       "type": "INPUT",
       "value": "0",
       "required": false
