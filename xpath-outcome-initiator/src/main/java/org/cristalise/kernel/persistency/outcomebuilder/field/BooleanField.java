@@ -20,7 +20,10 @@
  */
 package org.cristalise.kernel.persistency.outcomebuilder.field;
 
+import java.util.Map;
+
 import org.cristalise.kernel.utils.Logger;
+import org.json.JSONObject;
 
 public class BooleanField extends StringField {
 
@@ -38,6 +41,16 @@ public class BooleanField extends StringField {
     @Override
     public String getText() {
         return checkbox.toString();
+    }
+
+    @Override
+    public JSONObject generateNgDynamicForms(Map<String, Object> inputs) {
+        JSONObject bool = getCommonFieldsNgDynamicForms();
+
+        bool.put("onLabel", "Yes");
+        bool.put("offLabel", "No");
+
+        return bool;
     }
 
     @Override
