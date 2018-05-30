@@ -23,7 +23,6 @@
     },
     {
       "hidden": true,
-      "validators": {"required": null},
       "inputType": "text",
       "cls": {
         "grid": {
@@ -34,7 +33,7 @@
         "element": {"label": "ui-widget"}
       },
       "id": "InsuranceNumber",
-      "label": "Insurance Number *",
+      "label": "Insurance Number",
       "placeholder": "Insurance Number",
       "type": "INPUT",
       "value": "123456789ABC",

@@ -47,7 +47,7 @@
         "element": {"label": "ui-widget"}
       },
       "id": "CollectionName",
-      "label": "Collection Name *",
+      "label": "Collection Name",
       "placeholder": "Collection Name",
       "type": "SELECT",
       "required": false
@@ -64,7 +64,7 @@
         "element": {"label": "ui-widget"}
       },
       "id": "MemberUUID",
-      "label": "Member UUID *",
+      "label": "Member UUID",
       "placeholder": "Member UUID",
       "type": "INPUT",
       "required": false
@@ -80,7 +80,7 @@
         "element": {"label": "ui-widget"}
       },
       "id": "MemberID",
-      "label": "Member ID *",
+      "label": "Member ID",
       "placeholder": "Member ID",
       "type": "INPUT",
       "value": "0",

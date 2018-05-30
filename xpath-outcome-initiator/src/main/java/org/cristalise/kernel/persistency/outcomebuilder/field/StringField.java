@@ -359,7 +359,7 @@ public class StringField {
         
         boolean required = (Boolean)field.get("required");
 
-        field.put("label",       label + (required ? "" : " *"));
+        field.put("label",       label + (required ? " *": ""));
         field.put("placeholder", label);
 
         // appinfo/dynamicForms could have updated required, so remove any validator or errorMessages
