@@ -99,12 +99,15 @@ class SchemaDelegate {
     private void buildAtribute(xsd, Attribute a) {
         Logger.msg 1, "SchemaDelegate.buildAtribute() - attribute: $a.name"
 
-        xsd.'xs:attribute'(name: a.name, type: (!a.values && !a.pattern ? a.type : ''), 'default': a.defaultVal, 'use': (a?.required ? "required": "")) {
+        xsd.'xs:attribute'(name: a.name, type: (!a.values && !a.pattern && !a.range ? a.type : ''), 'default': a.defaultVal, 'use': (a?.required ? "required": "")) {
             if(a.values) {
                 buildRestriction(xsd, a.type, a.values)
             }
             else if(a.pattern) {
                 buildRestriction(xsd, a.type, a.pattern)
+            }
+            else if(a.range) {
+                buildRestriction(xsd, a.type, a.range)
             }
         }
     }
@@ -133,7 +136,7 @@ class SchemaDelegate {
     private void buildField(xsd, Field f) {
         Logger.msg 1, "SchemaDelegate.buildField() - Field: $f.name"
 
-        xsd.'xs:element'(name: f.name, type: (!f.values && !f.unit && !f.pattern && !f.attributes ? f.type : ''), 'default': f.defaultVal, minOccurs: f.minOccurs, maxOccurs: f.maxOccurs) {
+        xsd.'xs:element'(name: f.name, type: (!f.values && !f.unit && !f.pattern && !f.range && !f.attributes ? f.type : ''), 'default': f.defaultVal, minOccurs: f.minOccurs, maxOccurs: f.maxOccurs) {
             if(f.documentation || f.dynamicForms || f.listOfValues) {
                 'xs:annotation' {
                     if (f.documentation) 'xs:documentation'(f.documentation) 
@@ -174,6 +177,9 @@ class SchemaDelegate {
             else if(f.pattern) {
                 buildRestriction(xsd, f.type, f.pattern)
             }
+            else if(f.range) {
+                buildRestriction(xsd, f.type, f.range)
+            }
         }
     }
 
@@ -199,5 +205,19 @@ class SchemaDelegate {
                 'xs:pattern'(value: pattern)
             }
         }
+    }
+
+    private void buildRestriction(xsd, String type, Map range) {
+        Logger.msg 1, "SchemaDelegate.buildRestriction() - type:$type, range: $range"
+        
+                xsd.'xs:simpleType' {
+                    'xs:restriction'(base: type) {
+                        if (range.minInclusive != null) 'xs:minInclusive'(value: range.minInclusive)
+                        if (range.minExclusive != null) 'xs:minExclusive'(value: range.minExclusive)
+                        if (range.maxInclusive != null) 'xs:maxInclusive'(value: range.maxInclusive)
+                        if (range.maxExclusive != null) 'xs:maxExclusive'(value: range.maxExclusive)
+                    }
+                }
+        
     }
 }

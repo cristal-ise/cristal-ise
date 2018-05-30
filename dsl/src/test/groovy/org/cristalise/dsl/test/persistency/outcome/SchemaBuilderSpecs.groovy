@@ -235,6 +235,54 @@ class SchemaBuilderSpecs extends Specification implements CristalTestSetup {
                         </xs:schema>""")
     }
 
+    def 'Attribute can specify range'() {
+        expect:
+        SchemaTestBuilder.build('Test', 'TestData', 0) {
+            struct(name: 'TestData') {
+                attribute(name:'inclusiveInt', type:'integer', range:'[0..10]')
+                attribute(name:'exclusiveInt', type:'integer', range:'(0..10)')
+                attribute(name:'inclusiveDec', type:'decimal', range:'[0.1..0.11]')
+                attribute(name:'exclusiveDec', type:'decimal', range:'(0.1..0.11)')
+            }
+        }.compareXML("""<xs:schema xmlns:xs='http://www.w3.org/2001/XMLSchema'>
+                          <xs:element name='TestData'>
+                            <xs:complexType>
+                              <xs:attribute name="inclusiveInt">
+                                <xs:simpleType>
+                                  <xs:restriction base="xs:integer">
+                                    <xs:minInclusive value="0"/>
+                                    <xs:maxInclusive value="10"/>
+                                  </xs:restriction>
+                                </xs:simpleType>
+                              </xs:attribute>
+                              <xs:attribute name="exclusiveInt">
+                                <xs:simpleType>
+                                  <xs:restriction base="xs:integer">
+                                    <xs:minExclusive value="0"/>
+                                    <xs:maxExclusive value="10"/>
+                                  </xs:restriction>
+                                </xs:simpleType>
+                              </xs:attribute>
+                              <xs:attribute name="inclusiveDec">
+                                <xs:simpleType>
+                                  <xs:restriction base="xs:decimal">
+                                    <xs:minInclusive value="0.1"/>
+                                    <xs:maxInclusive value="0.11"/>
+                                  </xs:restriction>
+                                </xs:simpleType>
+                              </xs:attribute>
+                              <xs:attribute name="exclusiveDec">
+                                <xs:simpleType>
+                                  <xs:restriction base="xs:decimal">
+                                    <xs:minExclusive value="0.1"/>
+                                    <xs:maxExclusive value="0.11"/>
+                                  </xs:restriction>
+                                </xs:simpleType>
+                              </xs:attribute>
+                            </xs:complexType>
+                          </xs:element>
+                        </xs:schema>""")
+    }
 
     def 'Attribute CANNOT specify multiplicity other than 0..1 and 1..1'() {
         when: "attribute specifies multiplicity"
@@ -279,7 +327,6 @@ class SchemaBuilderSpecs extends Specification implements CristalTestSetup {
         expect:
         SchemaTestBuilder.build('Test', 'TestData', 0) {
             struct(name: 'TestData') {
-                field(name:'default')
                 field(name:'inclusiveInt', type:'integer', range:'[0..10]')
                 field(name:'exclusiveInt', type:'integer', range:'(0..10)')
                 field(name:'inclusiveDec', type:'decimal', range:'[0.1..0.11]')
@@ -302,6 +349,22 @@ class SchemaBuilderSpecs extends Specification implements CristalTestSetup {
                                     <xs:restriction base="xs:integer">
                                       <xs:minExclusive value="0"/>
                                       <xs:maxExclusive value="10"/>
+                                    </xs:restriction>
+                                  </xs:simpleType>
+                                </xs:element>
+                                <xs:element name="inclusiveDec" minOccurs="1" maxOccurs="1">
+                                  <xs:simpleType>
+                                    <xs:restriction base="xs:decimal">
+                                      <xs:minInclusive value="0.1"/>
+                                      <xs:maxInclusive value="0.11"/>
+                                    </xs:restriction>
+                                  </xs:simpleType>
+                                </xs:element>
+                                <xs:element name="exclusiveDec" minOccurs="1" maxOccurs="1">
+                                  <xs:simpleType>
+                                    <xs:restriction base="xs:decimal">
+                                      <xs:minExclusive value="0.1"/>
+                                      <xs:maxExclusive value="0.11"/>
                                     </xs:restriction>
                                   </xs:simpleType>
                                 </xs:element>
