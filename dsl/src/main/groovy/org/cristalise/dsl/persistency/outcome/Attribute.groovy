@@ -37,8 +37,10 @@ class Attribute {
     String pattern
 
     String documentation
-    
+
     List values
+    //Range
+    BigDecimal minExclusive = null, minInclusive= null, maxExclusive= null, maxInclusive= null
     def defaultVal
 
     boolean required = false
@@ -74,5 +76,19 @@ class Attribute {
             else if(m == "0..1") required = false
             else                 throw new InvalidDataException("Invalid value for attribute multiplicity : '$m'")
         }
+    }
+
+    /**
+     * Inclusive uses [], exclusive uses ()
+     * 
+     * @param r the string form of the range, e.g. [0..10]
+     */
+    public void setRange(String r) {
+        if(r && r.contains("..")) {
+            def min, max = r.split(/\.\./)
+            
+            
+        }
+
     }
 }

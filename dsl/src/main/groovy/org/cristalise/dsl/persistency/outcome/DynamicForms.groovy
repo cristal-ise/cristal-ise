@@ -33,4 +33,6 @@ class DynamicForms {
     String label = null
     String type = null
     String inputType = null
+    Integer min = null
+    Integer max = null
 }
