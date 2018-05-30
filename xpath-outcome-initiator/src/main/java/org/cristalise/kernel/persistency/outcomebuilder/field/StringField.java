@@ -342,9 +342,7 @@ public class StringField {
         field.put("type",     getNgDynamicFormsControlType());
         field.put("required", !isOptional());
 
-        if (!isOptional()) {
-            field.put("label", name + " *");
-
+        if ( ! isOptional() &&  ! "|CollectionName|MemberUUID|MemberID|".contains("|" + name + "|")) {
             JSONObject validators = new JSONObject();
             validators.put("required", JSONObject.NULL);
             field.put("validators", validators);
@@ -359,8 +357,8 @@ public class StringField {
         // appinfo/dynamicForms could have updated label, so do the CamelCase splitting now
         String label = StringUtils.join(StringUtils.splitByCharacterTypeCamelCase((String)field.get("label")), " ");
 
-        field.put("label",       label);
-        field.put("placeholder", StringUtils.join(StringUtils.splitByCharacterTypeCamelCase(name), " "));
+        field.put("label",       label + (isOptional() ? "" : " *"));
+        field.put("placeholder", label);
 
         return field;
     }
