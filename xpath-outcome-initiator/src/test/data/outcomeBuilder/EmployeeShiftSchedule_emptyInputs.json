@@ -22,7 +22,6 @@
       "required": true
     },
     {
-      "validators": {"required": null},
       "additional": {"editable": true},
       "options": [
         {"label": "Select value"},
@@ -55,7 +54,6 @@
     },
     {
       "hidden": true,
-      "validators": {"required": null},
       "inputType": "text",
       "cls": {
         "grid": {
@@ -73,7 +71,6 @@
     },
     {
       "hidden": true,
-      "validators": {"required": null},
       "cls": {
         "grid": {
           "container": "ui-g",
