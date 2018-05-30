@@ -16,7 +16,7 @@
         "element": {"label": "ui-widget"}
       },
       "id": "id",
-      "label": "id   *",
+      "label": "id *",
       "placeholder": "id",
       "type": "INPUT",
       "required": true
@@ -34,7 +34,7 @@
         "element": {"label": "ui-widget"}
       },
       "id": "InsuranceNumber",
-      "label": "Insurance Number   *",
+      "label": "Insurance Number *",
       "placeholder": "Insurance Number",
       "type": "INPUT",
       "value": "123456789ABC",
@@ -58,7 +58,7 @@
         "element": {"label": "ui-widget"}
       },
       "id": "DateOfBirth",
-      "label": "Date Of Birth   *",
+      "label": "Date Of Birth *",
       "placeholder": "Date Of Birth",
       "type": "DATEPICKER",
       "required": true
@@ -87,7 +87,7 @@
         "element": {"label": "ui-widget"}
       },
       "id": "Gender",
-      "label": "Gender   *",
+      "label": "Gender *",
       "placeholder": "Gender",
       "type": "SELECT",
       "value": "male",
@@ -104,7 +104,7 @@
         "element": {"label": "ui-widget"}
       },
       "id": "Weight",
-      "label": "Weight   *",
+      "label": "Weight *",
       "placeholder": "Weight",
       "type": "INPUT",
       "value": "0.0",
