@@ -69,6 +69,7 @@ import org.cristalise.kernel.persistency.outcome.Viewpoint;
 import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.property.Property;
 import org.cristalise.kernel.utils.CastorHashMap;
+import org.cristalise.kernel.utils.DateUtility;
 import org.cristalise.kernel.utils.KeyValuePair;
 import org.cristalise.kernel.utils.LocalObjectLoader;
 import org.cristalise.kernel.utils.Logger;
@@ -256,7 +257,7 @@ public abstract class ItemUtils extends RestHandler {
     protected LinkedHashMap<String, Object> makeEventData(Event ev, UriInfo uri) {
         LinkedHashMap<String, Object> eventData = new LinkedHashMap<String, Object>();
         eventData.put("id", ev.getID());
-        eventData.put("timestamp", ev.getTimeString());
+        eventData.put("timestamp", DateUtility.timeStampToUtcString(ev.getTimeStamp()));
         eventData.put("agent", ev.getAgentPath().getAgentName());
         eventData.put("role", ev.getAgentRole());
 
