@@ -63,7 +63,7 @@ public class JooqHistoryTest extends StorageTestBase {
         if (expected.getDelegatePath() != null)
             Assert.assertEquals(expected.getDelegatePath(), actual.getDelegatePath());
 
-        compareTimestramps(expected.getTimeStamp(), actual.getTimeStamp());
+        compareTimestramps(actual.getTimeStamp(), expected.getTimeStamp());
     }
 
     private Event createEvent(UUID itemUUID, int id) throws InvalidItemPathException {

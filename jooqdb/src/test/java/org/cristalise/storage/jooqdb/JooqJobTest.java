@@ -60,7 +60,7 @@ public class JooqJobTest extends StorageTestBase {
         if (expected.getDelegatePath() != null)
             Assert.assertEquals(expected.getDelegatePath(), actual.getDelegatePath());
 
-        compareTimestramps(expected.getCreationDate(), actual.getCreationDate());
+        compareTimestramps(actual.getCreationDate(), expected.getCreationDate());
     }
 
     private Job createJob(UUID itemUUID, int id) throws InvalidItemPathException {

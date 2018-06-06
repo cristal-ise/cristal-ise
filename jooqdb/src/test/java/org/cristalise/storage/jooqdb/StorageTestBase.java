@@ -52,6 +52,8 @@ public class StorageTestBase extends JooqTestBase {
     }
 
     public static void compareTimestramps(GTimeStamp actual, GTimeStamp expected) {
+        expected.mHour = expected.mHour - expected.mTimeOffset / 3600000;
+
         Assert.assertNotNull(actual);
         Assert.assertEquals(expected.mYear,       actual.mYear);
         Assert.assertEquals(expected.mMonth,      actual.mMonth);
