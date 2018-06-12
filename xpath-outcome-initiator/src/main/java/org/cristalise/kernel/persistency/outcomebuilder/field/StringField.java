@@ -352,6 +352,7 @@ public class StringField {
             //field.put("errorMessages", errorMessages);
         }
 
+        //This can overwrite values set earlier, for example 'type' can be changed from INPUT to RATING
         readAppInfoDynamicForms(field);
 
         // appinfo/dynamicForms could have updated label, so do the CamelCase splitting now
