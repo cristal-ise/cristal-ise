@@ -132,10 +132,9 @@ public class ComboField extends StringField {
             if (vals.editable) {
                 additional.put("editable", true);
             }
-            else {
-                select.put("filterable", true);
-                additional.put("filterBy", "label");
-            }
+
+            select.put("filterable", true);
+            additional.put("filterBy", "label");
         }
         else{
             select.put("type", "INPUT"); // overwrite type if no values were given
