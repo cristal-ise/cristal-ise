@@ -47,6 +47,11 @@ public class IntegerField extends StringField {
         //inputInt.put("inputType", "number");
         inputInt.put("max", (String)null);
         inputInt.put("min", (String)null);
+        
+        if (inputInt.getString("type").equals("RATING")) {
+            // disable cancel icon for RATING
+            getAdditionalConfigNgDynamicForms(inputInt).put("cancel", false);
+        }
 
         return inputInt;
     }
