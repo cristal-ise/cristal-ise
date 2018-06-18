@@ -22,7 +22,11 @@
       "required": true
     },
     {
-      "additional": {"editable": true},
+      "filterable": true,
+      "additional": {
+        "editable": true,
+        "filterBy": "label"
+      },
       "options": [
         {"label": "Select value"},
         {
