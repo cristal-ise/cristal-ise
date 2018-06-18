@@ -27,7 +27,7 @@
     <groupId>org.cristalise</groupId>
     <artifactId>cristalise-restapi</artifactId>
     <packaging>jar</packaging>
-    <version>3.4.0-SNAPSHOT</version>
+    <version>3.4.0</version>
     <description>CRISTAL-iSE REST API Module</description>
     <url>https://github.com/cristal-ise/xpath-outcomeinit</url>
     <licenses>
