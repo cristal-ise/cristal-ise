@@ -3,7 +3,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>org.cristalise</groupId>
     <artifactId>cristalise-wrapper</artifactId>
-    <version>3.4.0-SNAPSHOT</version>
+    <version>3.4.0</version>
     <name>cristalise-wrapper</name>
     <description>CRISTAL Service wrapper module</description>
     <developers>
