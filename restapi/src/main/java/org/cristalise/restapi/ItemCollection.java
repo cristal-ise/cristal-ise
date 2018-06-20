@@ -42,7 +42,6 @@ import javax.ws.rs.core.UriInfo;
 import org.cristalise.kernel.collection.Dependency;
 import org.cristalise.kernel.common.ObjectNotFoundException;
 import org.cristalise.kernel.entity.proxy.ItemProxy;
-import org.cristalise.kernel.persistency.outcome.Outcome;
 import org.cristalise.kernel.persistency.outcome.Schema;
 import org.cristalise.kernel.persistency.outcomebuilder.OutcomeBuilder;
 import org.cristalise.kernel.process.Gateway;
@@ -132,7 +131,6 @@ public class ItemCollection extends ItemUtils {
             if (null != lovProp) {
                 String[] lovInfo = lovProp.split(":");
                 if ("ScriptRef" .equals( lovInfo[0] )) {
-                    // TODO invoke script
                     Script script = LocalObjectLoader.getScript(lovInfo[1], Integer.valueOf(lovInfo[2]));
                     Map<? extends String, ? extends Object> result = (Map<? extends String, ? extends Object>) executeScript(item, script);
                     result.remove(null);
