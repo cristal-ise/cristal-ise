@@ -153,24 +153,15 @@ public class ItemRoot extends ItemUtils {
     }
 
     /**
-     * 
-     * @param scriptName
-     * @param item
-     * @param schema
-     * @param script
-     * @return
-     * @throws ScriptingEngineException
-     * @throws InvalidDataException
+     * @see org.cristalise.restapi.ItemUtils#returnScriptResult(java.lang.String, org.cristalise.kernel.entity.proxy.ItemProxy, org.cristalise.kernel.persistency.outcome.Schema, org.cristalise.kernel.scripting.Script)
      */
-    private Response returnScriptResult(String scriptName, ItemProxy item, final Schema schema, final Script script)
+    @Override
+    protected Response returnScriptResult(String scriptName, ItemProxy item, final Schema schema, final Script script)
             throws ScriptingEngineException, InvalidDataException
     {
-        String xmlOutcome = null;
-        Object scriptResult = null;
-        
         try {
             mutex.acquire();
-            scriptResult = script.evaluate(item.getPath(), new CastorHashMap(), null, null);
+            return super.returnScriptResult(scriptName, item, schema, script);
         }
         catch (ScriptingEngineException e) {
             throw e;
@@ -181,22 +172,6 @@ public class ItemRoot extends ItemUtils {
         finally {
             mutex.release();
         }
-
-        if (scriptResult instanceof String) {
-            xmlOutcome = (String)scriptResult;
-        }
-        else if (scriptResult instanceof Map) {
-            //the map shall have one Key only
-            String key = ((Map<?,?>) scriptResult).keySet().toArray(new String[0])[0];
-            xmlOutcome = (String)((Map<?,?>) scriptResult).get(key);
-        }
-        else
-            throw ItemUtils.createWebAppException("Cannot handle result of script:" + scriptName, Response.Status.NOT_FOUND);
-
-        if (xmlOutcome == null)
-            throw ItemUtils.createWebAppException("Cannot handle result of script:" + scriptName, Response.Status.NOT_FOUND);
-
-        return getOutcomeResponse(new Outcome(xmlOutcome, schema), new Date(), true);
     }
 
     @GET
