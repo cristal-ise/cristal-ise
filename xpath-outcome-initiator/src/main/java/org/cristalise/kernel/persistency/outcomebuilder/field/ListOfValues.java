@@ -124,7 +124,6 @@ public class ListOfValues extends HashMap<String, Object> {
             case queryRef:      populateLOVFromQuery(param, inputs); break; 
             case scriptRef:     populateLOVFromScript(param, inputs); break;
             case values:        populateLOVFromValues(param); break;
-            //TODO: For Rae - Fullname can be get here ... a new AppInfoTag
 
             default:
                 Logger.warning("ListOfValues.callLovPoupulate() - unhandled type:"+lovType);
