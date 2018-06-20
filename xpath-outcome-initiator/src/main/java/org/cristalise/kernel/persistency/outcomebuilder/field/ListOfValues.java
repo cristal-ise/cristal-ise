@@ -124,6 +124,7 @@ public class ListOfValues extends HashMap<String, Object> {
             case queryRef:      populateLOVFromQuery(param, inputs); break; 
             case scriptRef:     populateLOVFromScript(param, inputs); break;
             case values:        populateLOVFromValues(param); break;
+            //TODO: For Rae - Fullname can be get here ... a new AppInfoTag
 
             default:
                 Logger.warning("ListOfValues.callLovPoupulate() - unhandled type:"+lovType);
@@ -157,19 +158,20 @@ public class ListOfValues extends HashMap<String, Object> {
 
         if (inputs != null && inputs.containsKey(key)) {
             try {
-                if (inputs.get(key) instanceof List) {
+                Object val = inputs.get(key);
+                if (val instanceof List) {
                     @SuppressWarnings("unchecked")
-                    List<String> values = (List<String>)inputs.get(key);
+                    List<String> values = (List<String>)val;
 
-                    if (values != null && values.size() > 0) {
+                    if (values.size() > 0) {
                         clear();
                         for (String value : values) put(value, value, false);
                     }
                     else 
                         Logger.warning("ListOfValues.populateLOVFromInput() - NO Inputs were found for param:"+key);
                 }
-                else if(inputs.get(key) instanceof String) {
-                    String values = (String)inputs.get(key);
+                else if(val instanceof String) {
+                    String values = (String)val;
                     
                     if (StringUtils.isNotBlank(values)) {
                         clear();
@@ -178,6 +180,18 @@ public class ListOfValues extends HashMap<String, Object> {
                     else 
                         Logger.warning("ListOfValues.populateLOVFromInput() - NO Inputs were found for param:"+key);
                 }
+                else if(val instanceof Map) {
+                    @SuppressWarnings("unchecked")
+                    Map<String, Object> values = (Map<String, Object>)val;
+
+                    if ( ! values.isEmpty() ) {
+                        clear();
+                        extractValues(values);
+                    }
+                    else {
+                        Logger.warning("ListOfValues.populateLOVFromInput() - NO Inputs were found for param:"+key);
+                    }
+                }
             }
             catch (Exception e) {
                 Logger.error(e);
@@ -185,6 +199,21 @@ public class ListOfValues extends HashMap<String, Object> {
         }
         else 
             Logger.warning("ListOfValues.populateLOVFromInput() - NO Inputs were found param:"+key);
+    }
+    
+    /**
+     * 
+     * @param values
+     */
+    @SuppressWarnings("unchecked")
+    private void extractValues(Map<String, Object> values) {
+        for (Map.Entry<String, Object> entry : values.entrySet()) {
+            if (entry.getValue() instanceof Map){
+                extractValues((Map<String, Object>) entry.getValue());
+            } else {
+                put(entry.getValue().toString(), entry.getKey(), false);
+            }
+        }
     }
 
     private void populateLOVFromValues(AnyNode paramNode) {
@@ -207,7 +236,7 @@ public class ListOfValues extends HashMap<String, Object> {
     }
 
     private void populateLOVFromScript(AnyNode scriptName, Map<String, Object> inputs) {
-        assert false;
+        put("key", "value", false);
         /*
         try {
             StringTokenizer tok = new StringTokenizer(scriptName, "_");
