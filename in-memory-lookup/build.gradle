@@ -17,15 +17,15 @@ buildscript {
 apply plugin: 'io.codearte.nexus-staging'
 
 group = 'org.cristalise'
-version = '3.4.0-SNAPSHOT'
+version = '3.5.0-SNAPSHOT'
 description = "CRISTAL-iSE in-memory implementation of Lookup interfaces for test purposes"
 
 sourceCompatibility = 1.8
 targetCompatibility = 1.8
 
 ext {
-    cristaliseVer   = '3.4.0-SNAPSHOT'
-    groovyVer       = '2.4.11'
+    cristaliseVer   = '3.5.0-SNAPSHOT'
+    groovyVer       = '2.4.12'
     commonsLangVer  = '2.6'
     junitVer        = '4.11'
 }
