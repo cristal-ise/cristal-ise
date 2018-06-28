@@ -36,4 +36,5 @@ class DynamicForms {
     String inputType = null
     Integer min = null
     Integer max = null
+    //Integer stepMinute = null
 }

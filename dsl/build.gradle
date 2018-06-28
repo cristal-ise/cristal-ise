@@ -10,21 +10,21 @@ buildscript {
         mavenCentral()
     }
     dependencies {
-        classpath "io.codearte.gradle.nexus:gradle-nexus-staging-plugin:0.6.1"
+        classpath "io.codearte.gradle.nexus:gradle-nexus-staging-plugin:0.11.0"
     }
 }
 
 apply plugin: 'io.codearte.nexus-staging'
 
 group       = 'org.cristalise'
-version     = '3.4.0'
+version     = '3.5.0-SNAPSHOT'
 description = 'CRISTAL-iSE Domain Specific Language module for bootstrapping and funtional testing'
 
 sourceCompatibility = 1.8
 targetCompatibility = 1.8
 
 ext {
-    cristaliseVer   = '3.4.0'
+    cristaliseVer   = '3.5.0-SNAPSHOT'
     groovyVer       = '2.4.11'
     commonsLangVer  = '2.6'
     xmlunitVer      = '2.3.0'
@@ -58,7 +58,7 @@ artifacts {
 }
 
 task wrapper(type: Wrapper) {
-    gradleVersion = '3.4.1'
+    gradleVersion = '4.2.1'
 }
 
 repositories {

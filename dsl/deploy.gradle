@@ -5,9 +5,9 @@ install {
 }
 
 signing {
-    if (!version.endsWith('SNAPSHOT') && gradle.taskGraph.hasTask('uploadArchives')) {
-        sign configurations.archives
-    }
+    //if (!version.endsWith('SNAPSHOT') && gradle.taskGraph.hasTask('uploadArchives')) {
+    //    sign configurations.archives
+    //}
 }
 
 uploadArchives {
