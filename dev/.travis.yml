@@ -2,6 +2,8 @@ language: java
 jdk: oraclejdk8
 branches:
   only:
+  - release
+  - develop
   - master
 cache:
   directories:
