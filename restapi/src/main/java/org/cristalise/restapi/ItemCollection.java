@@ -24,6 +24,8 @@ import static org.cristalise.kernel.persistency.ClusterType.COLLECTION;
 
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
 
 import javax.ws.rs.CookieParam;
 import javax.ws.rs.GET;
@@ -43,6 +45,7 @@ import org.cristalise.kernel.entity.proxy.ItemProxy;
 import org.cristalise.kernel.persistency.outcome.Schema;
 import org.cristalise.kernel.persistency.outcomebuilder.OutcomeBuilder;
 import org.cristalise.kernel.process.Gateway;
+import org.cristalise.kernel.scripting.Script;
 import org.cristalise.kernel.utils.LocalObjectLoader;
 import org.cristalise.kernel.utils.Logger;
 
@@ -107,6 +110,7 @@ public class ItemCollection extends ItemUtils {
         }
     }
 
+    @SuppressWarnings("unchecked")
     @GET
     @Path("{name}/formTemplate")
     @Produces(MediaType.APPLICATION_JSON)
@@ -121,14 +125,29 @@ public class ItemCollection extends ItemUtils {
         try {
             Dependency dep = (Dependency) item.getCollection(collName);
             
-            List<String> names = getItemNames(dep.getClassProperties());
+            HashMap<String, Object> inputs = new HashMap<>();
 
-            if (Gateway.getProperties().getBoolean("REST.CollectionForm.checkInputs", false)) {
-                if (names.size() == 0)  throw ItemUtils.createWebAppException("No Item was found", Response.Status.NOT_FOUND);
+            String lovProp = (String) dep.getProperties().get("ListOfValues");
+            if (null != lovProp) {
+                String[] lovInfo = lovProp.split(":");
+                if ("ScriptRef" .equals( lovInfo[0] )) {
+                    Script script = LocalObjectLoader.getScript(lovInfo[1], Integer.valueOf(lovInfo[2]));
+                    Map<? extends String, ? extends Object> result = (Map<? extends String, ? extends Object>) executeScript(item, script);
+                    result.remove(null);
+                    Map<String, Object> valuesToCaptions = new TreeMap<String, Object>(result);
+                    inputs.put("memberNames", valuesToCaptions); // Put the new member here e.g.ListOfValues
+                }
             }
 
-            HashMap<String, Object> inputs = new HashMap<>();
-            inputs.put("memberNames", names);
+            if (inputs.isEmpty()) {
+                List<String> names = getItemNames(dep.getClassProperties());
+
+                if (Gateway.getProperties().getBoolean("REST.CollectionForm.checkInputs", false)) {
+                    if (names.size() == 0)  throw ItemUtils.createWebAppException("No Item was found", Response.Status.NOT_FOUND);
+                }
+
+                inputs.put("memberNames", names); // Put the new member here e.g.ListOfValues
+            }
 
             // this shall contain the SchemaName and version like this: Shift:0
             String[] schemaInfo = ((String) dep.getProperties().get("MemberUpdateSchema")).split(":");

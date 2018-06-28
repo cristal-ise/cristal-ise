@@ -37,6 +37,7 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 import javax.ws.rs.WebApplicationException;
@@ -65,9 +66,12 @@ import org.cristalise.kernel.lookup.ItemPath;
 import org.cristalise.kernel.lookup.Lookup.PagedResult;
 import org.cristalise.kernel.persistency.ClusterType;
 import org.cristalise.kernel.persistency.outcome.Outcome;
+import org.cristalise.kernel.persistency.outcome.Schema;
 import org.cristalise.kernel.persistency.outcome.Viewpoint;
 import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.property.Property;
+import org.cristalise.kernel.scripting.Script;
+import org.cristalise.kernel.scripting.ScriptingEngineException;
 import org.cristalise.kernel.utils.CastorHashMap;
 import org.cristalise.kernel.utils.DateUtility;
 import org.cristalise.kernel.utils.KeyValuePair;
@@ -542,4 +546,62 @@ public abstract class ItemUtils extends RestHandler {
 
         return names;
     }
+
+    /**
+     * 
+     * @param scriptName
+     * @param item
+     * @param schema
+     * @param script
+     * @return
+     * @throws ScriptingEngineException
+     * @throws InvalidDataException
+     */
+    protected Response returnScriptResult(String scriptName, ItemProxy item, final Schema schema, final Script script)
+            throws ScriptingEngineException, InvalidDataException
+    {
+        String xmlOutcome = null;
+        Object scriptResult = executeScript(item, script);
+
+        if (scriptResult instanceof String) {
+            xmlOutcome = (String)scriptResult;
+        }
+        else if (scriptResult instanceof Map) {
+            //the map shall have one Key only
+            String key = ((Map<?,?>) scriptResult).keySet().toArray(new String[0])[0];
+            xmlOutcome = (String)((Map<?,?>) scriptResult).get(key);
+        }
+        else
+            throw ItemUtils.createWebAppException("Cannot handle result of script:" + scriptName, Response.Status.NOT_FOUND);
+
+        if (xmlOutcome == null)
+            throw ItemUtils.createWebAppException("Cannot handle result of script:" + scriptName, Response.Status.NOT_FOUND);
+
+        return getOutcomeResponse(new Outcome(xmlOutcome, schema), new Date(), true);
+    }
+    
+    /**
+     * 
+     * @param item
+     * @param script
+     * @return
+     * @throws ScriptingEngineException
+     * @throws InvalidDataException
+     */
+    protected Object executeScript(ItemProxy item, final Script script)
+            throws ScriptingEngineException, InvalidDataException {
+        
+        Object scriptResult = null;
+        try {
+            scriptResult = script.evaluate(item.getPath(), new CastorHashMap(), null, null);
+        }
+        catch (ScriptingEngineException e) {
+            throw e;
+        }
+        catch (Exception e) {
+            throw new InvalidDataException(e.getMessage());
+        }
+        return scriptResult;
+    }
+
 }
