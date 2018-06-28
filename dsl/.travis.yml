@@ -3,6 +3,8 @@ jdk: oraclejdk8
 branches:
   only:
   - master
+  - release
+  - develop
 cache:
   directories:
   - "$HOME/.m2"
