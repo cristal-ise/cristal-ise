@@ -27,6 +27,12 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.lang3.StringUtils;
+import org.cristalise.kernel.common.InvalidDataException;
+import org.cristalise.kernel.common.ObjectNotFoundException;
+import org.cristalise.kernel.scripting.Script;
+import org.cristalise.kernel.scripting.ScriptingEngineException;
+import org.cristalise.kernel.utils.CastorHashMap;
+import org.cristalise.kernel.utils.LocalObjectLoader;
 import org.cristalise.kernel.utils.Logger;
 import org.exolab.castor.types.AnyNode;
 import org.exolab.castor.xml.schema.Annotation;
@@ -230,26 +236,33 @@ public class ListOfValues extends HashMap<String, Object> {
         assert false;
     }
 
-    private void populateLOVFromQuery(AnyNode scriptName, Map<String, Object> inputs) {
+    private void populateLOVFromQuery(AnyNode queryRef, Map<String, Object> inputs) {
         assert false;
     }
 
-    private void populateLOVFromScript(AnyNode scriptName, Map<String, Object> inputs) {
-        put("key", "value", false);
-        /*
+    private void populateLOVFromScript(AnyNode scriptRefNode, Map<String, Object> inputs) {
+        if (scriptRefNode.getNodeType() != AnyNode.TEXT) {
+            Logger.warning("ListOfValues.populateLOVFromScript() - AnyNode is not a TEXT");
+            return;
+        }
+
+        String[] scriptRefTokens = scriptRefNode.getStringValue().split(":");
+
         try {
-            StringTokenizer tok = new StringTokenizer(scriptName, "_");
+            Script script = LocalObjectLoader.getScript(scriptRefTokens[0], Integer.valueOf(scriptRefTokens[1]));
 
-            if (tok.countTokens() != 2) throw new Exception("Invalid LOVScript name");
+            @SuppressWarnings("unchecked")
+            //TODO: set input parameters in the CastorHashMap
+            Map<? extends String, ? extends Object> result = (Map<? extends String, ? extends Object>) 
+                        script.evaluate(null, new CastorHashMap(), null, null);
 
-            Script lovscript = LocalObjectLoader.getScript(tok.nextToken(), Integer.parseInt(tok.nextToken()));
-            lovscript.setInputParamValue("LOV", vals);
-            lovscript.execute();
+            for (java.util.Map.Entry<? extends String, ? extends Object> entry: result.entrySet()) {
+                put(entry.getKey(), entry.getValue());
+            }
         }
-        catch (Exception ex) {
-            Logger.error(ex);
+        catch (NumberFormatException | ObjectNotFoundException | InvalidDataException | ScriptingEngineException e) {
+            Logger.error(e);
         }
-        */
     }
 
 }
