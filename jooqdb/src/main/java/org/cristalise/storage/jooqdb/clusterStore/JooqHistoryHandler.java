@@ -183,7 +183,7 @@ public class JooqHistoryHandler extends JooqHandler {
         .column(STATEMACHINE_NAME,    NAME_TYPE      .nullable(false))
         .column(STATEMACHINE_VERSION, VERSION_TYPE   .nullable(false))
         .column(STEP_NAME,            NAME_TYPE      .nullable(false))
-        .column(STEP_PATH,            NAME_TYPE      .nullable(false))
+        .column(STEP_PATH,            STRING_TYPE    .nullable(false))
         .column(STEP_TYPE,            NAME_TYPE      .nullable(true))
         .column(ORIGIN_STATE_ID,      ID_TYPE        .nullable(false))
         .column(TARGET_STATE_ID,      ID_TYPE        .nullable(false))
