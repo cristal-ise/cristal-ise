@@ -25,7 +25,7 @@ targetCompatibility = 1.8
 
 ext {
     cristaliseVer   = '3.5.0-SNAPSHOT'
-    groovyVer       = '2.4.11'
+    groovyVer       = '2.4.12'
     commonsLangVer  = '2.6'
     xmlunitVer      = '2.3.0'
     commonsCsvVer   = '1.5'
