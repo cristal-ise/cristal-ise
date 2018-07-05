@@ -191,7 +191,7 @@ public class ListOfValues extends HashMap<String, Object> {
 
                     if ( ! values.isEmpty() ) {
                         clear();
-                        extractValues(values);
+                        extractValues(values, true);
                     }
                     else {
                         Logger.warning("ListOfValues.populateLOVFromInput() - NO Inputs were found for param:"+key);
@@ -211,12 +211,17 @@ public class ListOfValues extends HashMap<String, Object> {
      * @param values
      */
     @SuppressWarnings("unchecked")
-    private void extractValues(Map<String, Object> values) {
+    private void extractValues(Map<String, Object> values, boolean switchKeyAndValue) {
         for (Map.Entry<String, Object> entry : values.entrySet()) {
-            if (entry.getValue() instanceof Map){
-                extractValues((Map<String, Object>) entry.getValue());
-            } else {
-                put(entry.getValue().toString(), entry.getKey(), false);
+            if (entry.getValue() instanceof Map) {
+                extractValues((Map<String, Object>) entry.getValue(), switchKeyAndValue);
+            }else {
+                if (switchKeyAndValue) {
+                    put(entry.getValue().toString(), entry.getKey(), false);
+                }
+                else {
+                    put(entry.getKey(), entry.getValue().toString(), false);
+                }
             }
         }
     }
@@ -240,6 +245,7 @@ public class ListOfValues extends HashMap<String, Object> {
         assert false;
     }
 
+    @SuppressWarnings("unchecked")
     private void populateLOVFromScript(AnyNode scriptRefNode, Map<String, Object> inputs) {
         if (scriptRefNode.getNodeType() != AnyNode.TEXT) {
             Logger.warning("ListOfValues.populateLOVFromScript() - AnyNode is not a TEXT");
@@ -247,18 +253,19 @@ public class ListOfValues extends HashMap<String, Object> {
         }
 
         String[] scriptRefTokens = scriptRefNode.getStringValue().split(":");
-
+        
         try {
+            if (scriptRefTokens.length != 2) {
+                Logger.error("populateLOVFromScript; Invalid LOVScript name: " + scriptRefNode.getStringValue());
+                throw new InvalidDataException("Invalid LOVScript name");
+            }
             Script script = LocalObjectLoader.getScript(scriptRefTokens[0], Integer.valueOf(scriptRefTokens[1]));
 
-            @SuppressWarnings("unchecked")
             //TODO: set input parameters in the CastorHashMap
             Map<? extends String, ? extends Object> result = (Map<? extends String, ? extends Object>) 
                         script.evaluate(null, new CastorHashMap(), null, null);
 
-            for (java.util.Map.Entry<? extends String, ? extends Object> entry: result.entrySet()) {
-                put(entry.getKey(), entry.getValue());
-            }
+            extractValues((Map<String, Object>) result, false);
         }
         catch (NumberFormatException | ObjectNotFoundException | InvalidDataException | ScriptingEngineException e) {
             Logger.error(e);
