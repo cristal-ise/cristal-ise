@@ -14,7 +14,7 @@ class ScriptExecutionSpecs extends Specification implements CristalTestSetup {
     def setup()   { inMemoryServer(8) }
     def cleanup() { cristalCleanup() }
 
-    def 'Script can used without any input or output paramteres'() {
+    def 'Script can be used without any input or output paramteres'() {
         given:
         ScriptBuilder.create("integTest", "Modulo", 0) {
             groovy { "3 % 2;" }
@@ -46,6 +46,43 @@ class ScriptExecutionSpecs extends Specification implements CristalTestSetup {
         then:
         result == 1
         result instanceof java.lang.Integer
+    }
+
+    def 'Script assign return value to named parameter for single output and type matched even if Script does not assign the variable'() {
+        given:
+        ScriptBuilder.create("integTest", "Modulo", 0) {
+            input("counter", "java.lang.Integer")
+            output('mod', 'java.lang.Integer')
+            groovy { "counter % 2;" }
+        }
+        Script script = LocalObjectLoader.getScript("Modulo", 0)
+
+        when:
+        def properties = new CastorHashMap()
+        properties['counter'] = 3
+        def result = script.evaluate(null, properties, null, null)
+
+        then:
+        result instanceof Map
+        result.mod == 1
+    }
+
+    def 'Type of Script return value must match declared type'() {
+        given:
+        ScriptBuilder.create("integTest", "Modulo", 0) {
+            input("counter", "java.lang.Integer")
+            output('java.lang.String')
+            groovy { "counter % 2;" }
+        }
+        Script script = LocalObjectLoader.getScript("Modulo", 0)
+
+        when:
+        def properties = new CastorHashMap()
+        properties['counter'] = 3
+        def result = script.evaluate(null, properties, null, null)
+
+        then:
+        thrown ScriptingEngineException
     }
 
     def 'Script can declare named output value, which returned as a map'() {
