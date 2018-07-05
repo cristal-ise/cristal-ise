@@ -62,7 +62,7 @@ repositories {
 }
 
 dependencies {
-    compile group: 'org.codehaus.groovy', name: 'groovy-all',        version: groovyVer'
+    compile group: 'org.codehaus.groovy', name: 'groovy-all',        version: groovyVer
     compile group: 'org.cristalise',      name: 'cristalise-kernel', version: cristaliseVer
 
     testCompile group: 'commons-lang', name: 'commons-lang', version: commonsLangVer
