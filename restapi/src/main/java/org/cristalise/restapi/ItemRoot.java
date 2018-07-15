@@ -56,7 +56,6 @@ import org.cristalise.kernel.entity.agent.Job;
 import org.cristalise.kernel.entity.proxy.AgentProxy;
 import org.cristalise.kernel.entity.proxy.ItemProxy;
 import org.cristalise.kernel.lookup.ItemPath;
-import org.cristalise.kernel.lookup.Lookup.PagedResult;
 import org.cristalise.kernel.persistency.outcome.Schema;
 import org.cristalise.kernel.persistency.outcomebuilder.OutcomeBuilder;
 import org.cristalise.kernel.persistency.outcomebuilder.OutcomeBuilderException;
@@ -85,6 +84,25 @@ public class ItemRoot extends ItemUtils {
 
         if (StringUtils.isBlank(name)) throw ItemUtils.createWebAppException("Cannot resolve UUID", Response.Status.NOT_FOUND);
         return name;
+    }
+
+    @GET
+    @Path("aliases")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response getAliases(
+            @PathParam("uuid")       String uuid,
+            @CookieParam(COOKIENAME) Cookie authCookie)
+    {
+        checkAuthCookie(authCookie);
+        LinkedHashMap<String, Object> itemAliases = new LinkedHashMap<String, Object>();
+
+        //Add name, and domainPathes
+        makeItemDomainPathsData(new ItemPath(UUID.fromString(uuid)), itemAliases);
+
+        if (StringUtils.isBlank((String)itemAliases.get("name")))
+            throw ItemUtils.createWebAppException("Cannot resolve UUID", Response.Status.NOT_FOUND);
+
+        return toJSON(itemAliases);
     }
 
     @GET
@@ -187,18 +205,13 @@ public class ItemRoot extends ItemUtils {
         ItemProxy item = getProxy(uuid);
 
         LinkedHashMap<String, Object> itemSummary = new LinkedHashMap<String, Object>();
-        itemSummary.put("name", item.getName());
+
+        //Add name, and domainPaths
+        makeItemDomainPathsData(item.getPath(), itemSummary);
+
         itemSummary.put("uuid", uuid);
         itemSummary.put("hasMasterOutcome", false);
-        
-        PagedResult result = Gateway.getLookup().searchAliases(item.getPath(), 0, 50);
-        ArrayList<Object> domainPathesData = new ArrayList<>();
 
-        for (org.cristalise.kernel.lookup.Path p: result.rows) {
-            domainPathesData.add(p.toString());
-        }
-
-        if (domainPathesData.size() != 0) itemSummary.put("domainPaths", domainPathesData);
 
         try {
             String type = item.getType();
@@ -226,6 +239,7 @@ public class ItemRoot extends ItemUtils {
 
         return toJSON(itemSummary);
     }
+
 
     @GET
     @Path("job")
