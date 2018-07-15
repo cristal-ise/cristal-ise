@@ -23,10 +23,9 @@ package org.cristalise.restapi;
 import static org.cristalise.kernel.persistency.ClusterType.COLLECTION;
 
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
+import java.util.UUID;
 import java.util.concurrent.Semaphore;
 
 import javax.ws.rs.Consumes;
@@ -37,6 +36,7 @@ import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
+import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Cookie;
 import javax.ws.rs.core.HttpHeaders;
@@ -55,8 +55,8 @@ import org.cristalise.kernel.common.PersistencyException;
 import org.cristalise.kernel.entity.agent.Job;
 import org.cristalise.kernel.entity.proxy.AgentProxy;
 import org.cristalise.kernel.entity.proxy.ItemProxy;
+import org.cristalise.kernel.lookup.ItemPath;
 import org.cristalise.kernel.lookup.Lookup.PagedResult;
-import org.cristalise.kernel.persistency.outcome.Outcome;
 import org.cristalise.kernel.persistency.outcome.Schema;
 import org.cristalise.kernel.persistency.outcomebuilder.OutcomeBuilder;
 import org.cristalise.kernel.persistency.outcomebuilder.OutcomeBuilderException;
@@ -64,7 +64,6 @@ import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.scripting.Script;
 import org.cristalise.kernel.scripting.ScriptErrorException;
 import org.cristalise.kernel.scripting.ScriptingEngineException;
-import org.cristalise.kernel.utils.CastorHashMap;
 import org.cristalise.kernel.utils.LocalObjectLoader;
 import org.cristalise.kernel.utils.Logger;
 import org.json.JSONObject;
@@ -82,7 +81,10 @@ public class ItemRoot extends ItemUtils {
             @CookieParam(COOKIENAME) Cookie authCookie)
     {
         checkAuthCookie(authCookie);
-        return getProxy(uuid).getName();
+        String name = getItemName(new ItemPath(UUID.fromString(uuid)));
+
+        if (StringUtils.isBlank(name)) throw ItemUtils.createWebAppException("Cannot resolve UUID", Response.Status.NOT_FOUND);
+        return name;
     }
 
     @GET

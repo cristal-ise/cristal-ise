@@ -393,6 +393,13 @@ public abstract class ItemUtils extends RestHandler {
         return outcomeData;
     }
 
+    protected String getItemName(ItemPath ip) {
+        PagedResult result = Gateway.getLookup().searchAliases(ip, 0, 50);
+
+        if (result.rows.size() > 0) return ((DomainPath)result.rows.get(0)).getName();
+        else                        return "";
+    }
+
     protected LinkedHashMap<String, Object> makeCollectionData(Collection<?> coll, UriInfo uri) {
         LinkedHashMap<String, Object> collData = new LinkedHashMap<String, Object>();
 
@@ -420,6 +427,7 @@ public abstract class ItemUtils extends RestHandler {
             thisMemberData.put("id", member.getID());
 
             if (member.getItemPath() != null) {
+                thisMemberData.put("name", getItemName(member.getItemPath()));
                 thisMemberData.put("uuid", member.getItemPath().getUUID());
                 thisMemberData.put("url", getItemURI(uri, member.getItemPath()));
             }
