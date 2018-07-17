@@ -80,6 +80,7 @@ public class DateField extends StringField {
                 if (zdt != null) {
                     Logger.msg(8,"DateField.setValue() - ZonedDateTime:%s", zdt);
 
+                    // now the local date can be extracted
                     setData(zdt.toLocalDate().toString());
                 }
                 else

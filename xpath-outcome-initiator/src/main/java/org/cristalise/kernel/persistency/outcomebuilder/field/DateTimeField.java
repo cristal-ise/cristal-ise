@@ -25,34 +25,17 @@ import java.util.Map;
 import org.cristalise.kernel.persistency.outcomebuilder.InvalidOutcomeException;
 import org.json.JSONObject;
 
-public class DateTimeField extends StringField {
+public class DateTimeField extends DateField {
 
     public DateTimeField() {
         super();
     }
 
     @Override
-    public String getDefaultValue() {
-        return "";
-        //return "01/01/1970";
-    }
-
-    @Override
-    public String getNgDynamicFormsControlType() {
-        return "DATEPICKER";
-    }
-
-    @Override
     public JSONObject generateNgDynamicForms(Map<String, Object> inputs) {
-        JSONObject date = getCommonFieldsNgDynamicForms();
-
-        date.put("format", "dd/mm/yy");
+        JSONObject date = super.generateNgDynamicForms(inputs);
 
         JSONObject additional = getAdditionalConfigNgDynamicForms(date);
-        additional.put("yearRange", "1990:2050");
-        additional.put("yearNavigator", true);
-        additional.put("monthNavigator", true);
-        additional.put("showButtonBar", true);
         additional.put("showTime", true);
 
         return date;
