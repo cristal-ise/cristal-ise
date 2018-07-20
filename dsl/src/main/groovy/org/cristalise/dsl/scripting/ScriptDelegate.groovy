@@ -80,6 +80,10 @@ class ScriptDelegate {
         xml.include(name: "$name", version: "$version")
     }
 
+    def include(org.cristalise.kernel.scripting.Script aScript) {
+        include(aScript.name, aScript.version)
+    }
+
     def output(String type) {
         xml.output(type: "$type")
     }
