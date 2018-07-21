@@ -33,6 +33,7 @@ import org.cristalise.kernel.test.persistency.XMLUtils;
 import org.cristalise.kernel.utils.Logger;
 import org.json.JSONArray;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.mvel2.templates.CompiledTemplate;
 import org.mvel2.templates.TemplateCompiler;
@@ -78,4 +79,17 @@ public class NgDynamicFormsTest extends XMLUtils {
         assertJsonEquals(expected, actual);
     }
 
+    @Test @Ignore("Unimplemented: cannot generate json form for Table")
+    public void ngForm_Table() throws Exception {
+        OutcomeBuilder builder = new OutcomeBuilder("Table", new Schema("Table", 0, getXSD(dir, "Table")), false);
+
+        JSONArray actual   = builder.generateNgDynamicFormsJson();
+
+        Logger.msg(actual.toString(2));
+
+        JSONArray expected = new JSONArray(getJSON(dir, "TableNGForms"));
+
+        assertJsonEquals(expected, actual);
+        
+    }
 }

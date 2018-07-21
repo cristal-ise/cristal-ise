@@ -53,8 +53,12 @@ public class BuildStructureFromJsonTest extends XMLUtils {
     }
 
     private void checkXml2Json2XmlOutcome(String type) throws Exception {
+        checkXml2Json2XmlOutcome(type, "Updated");
+    }
+
+    private void checkXml2Json2XmlOutcome(String type, String postFix) throws Exception {
         OutcomeBuilder builder = new OutcomeBuilder(new Schema(type, 0, getXSD(dir, type)), true);
-        String expected = getXML(dir, type+"Updated");
+        String expected = getXML(dir, type+postFix);
         JSONObject actualJson = XML.toJSONObject(expected);
 
         Logger.msg(2, "Actual json:%s", actualJson.toString());
@@ -115,5 +119,10 @@ public class BuildStructureFromJsonTest extends XMLUtils {
     @Test
     public void employee_ComplexType_sequence() throws Exception {
         checkJson2XmlOutcome("Employee");
+    }
+
+    @Test
+    public void stateMachine_withTable() throws Exception {
+        checkXml2Json2XmlOutcome("StateMachine");
     }
 }

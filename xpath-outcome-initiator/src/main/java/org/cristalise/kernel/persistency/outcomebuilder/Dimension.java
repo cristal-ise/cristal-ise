@@ -27,6 +27,7 @@ import java.util.Map;
 
 import org.cristalise.kernel.utils.Logger;
 import org.exolab.castor.xml.schema.ElementDecl;
+import org.json.JSONArray;
 import org.json.JSONObject;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -125,13 +126,12 @@ public class Dimension extends OutcomeStructure {
     @Override
     public Element initNew(Document parent) {
         Logger.msg(5, "Dimension.initNew() - '" + model.getName()+"' as '" + mode.name() + "'");
-
+        
         Element newElement;
 
         if (mode == Mode.TABLE) {
             newElement = tableModel.initNew(parent, -1);
             elements.add(newElement);
-            return newElement;
         }
         else {
             DimensionInstance newTab = null;
@@ -141,8 +141,8 @@ public class Dimension extends OutcomeStructure {
 
             newElement = newTab.initNew(parent);
             elements.add(newElement);
-            return newElement;
         }
+        return newElement;
     }
 /*
     public void addRow(int index) throws OutcomeBuilderException {
@@ -224,7 +224,32 @@ public class Dimension extends OutcomeStructure {
     }
 
     @Override
-    public void addJsonInstance(Element parent, String name, Object json) {
-        throw new UnsupportedOperationException();
+    public void addJsonInstance(Element parent, String name, Object json) throws OutcomeBuilderException {
+        Logger.msg(5, "DataRecord.addJsonInstance() - name:'" + name + "'");
+
+        if (myElement == null) myElement = parent;
+
+        if (!name.equals(model.getName())) throw new InvalidOutcomeException("Missmatch in names:" + name + "!=" + model.getName());
+
+        if (mode == Mode.TABLE) {
+            JSONArray jsonArray = (JSONArray)json;
+            int i = 0;
+            for (Object element : jsonArray) {
+                JSONObject jsonObj = (JSONObject)element;
+
+                if (tableModel.getRowCount() < i+1) {
+                    Element newElement = tableModel.initNew(parent.getOwnerDocument(), i);
+                    parent.appendChild(newElement);
+    
+                    elements.add(newElement);
+                }
+
+                for (String key: jsonObj.keySet()) tableModel.setValueAt(jsonObj.get(key), i, key);
+
+                i++;
+            }
+        }
+        else
+            throw new UnsupportedOperationException("Dimension cannot process TABS yet");
     }
 }

@@ -69,10 +69,12 @@ public class DimensionTableModel {
             while (!(baseType instanceof SimpleType) && baseType != null) {
                 baseType = baseType.getBaseType();
             }
+
             if (baseType != null) {
                 int typeCode = ((SimpleType)baseType).getTypeCode();
                 addColumn(model.getName(), baseType, typeCode);
             }
+
             // process attributes
             for (Enumeration<?> e = elementType.getAttributeDecls(); e.hasMoreElements();) {
                 AttributeDecl thisAttr = (AttributeDecl)e.nextElement();
@@ -112,9 +114,11 @@ public class DimensionTableModel {
         for (Enumeration<?> childElements = group.enumerate(); childElements.hasMoreElements(); ) {
             Particle thisParticle = (Particle)childElements.nextElement();
             String extraHeader = "";
+
             if (thisParticle instanceof Group) {
                 Group thisGroup = (Group)thisParticle;
                 Order order = thisGroup.getOrder();
+
                 if (order == Order.sequence || order == Order.all)
                     enumerateElements(thisGroup);
                 else // we only support sequences in data structures such as these
@@ -221,6 +225,10 @@ public class DimensionTableModel {
         return columnHeadings.size();
     }
 
+    public void setValueAt(Object aValue, int rowIndex, String columnName) {
+        setValueAt(aValue, rowIndex, columnHeadings.lastIndexOf(columnName));
+    }
+
     public void setValueAt(Object aValue, int rowIndex, int columnIndex) {
         Object[] thisRow = rows.get(rowIndex);
         thisRow[columnIndex]=aValue;
@@ -275,6 +283,7 @@ public class DimensionTableModel {
         Object[] thisRow = rows.get(rowIndex);
         if (!(getColumnClass(columnIndex).equals(thisRow[columnIndex].getClass())))
             Logger.warning(thisRow[columnIndex]+" should be "+getColumnClass(columnIndex)+" is a "+thisRow[columnIndex].getClass().getName());
+
         return thisRow[columnIndex];
     }
 
