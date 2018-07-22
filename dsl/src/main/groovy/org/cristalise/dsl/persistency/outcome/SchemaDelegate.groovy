@@ -123,6 +123,7 @@ class SchemaDelegate {
             if (f.dynamicForms.inputType)        inputType(f.dynamicForms.inputType)
             if (f.dynamicForms.min != null)      min(      f.dynamicForms.min)
             if (f.dynamicForms.max != null)      max(      f.dynamicForms.max)
+            if (f.dynamicForms.value != null)    value(    f.dynamicForms.value)
         }
     }
 
