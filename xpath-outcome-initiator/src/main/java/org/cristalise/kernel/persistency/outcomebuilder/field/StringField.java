@@ -251,6 +251,16 @@ public class StringField {
         return "";
     }
 
+    /**
+     * check if the vlue contains a template/pattern that can be interpreted by the given Field instance
+     * 
+     * @param template
+     * @return
+     */
+    public String getValue(String valueTemplate) {
+        return valueTemplate;
+    }
+
     public void updateNode() {
         if (data == null) return;
 
@@ -289,6 +299,8 @@ public class StringField {
     private void setAppInfoDynamicFormsJsonValue(AnyNode node, JSONObject json) {
         String name  = node.getLocalName();
         String value = node.getStringValue().trim();
+
+        if (name.equals("value")) value = getValue(value);
 
         Scanner scanner = new Scanner(value);
 

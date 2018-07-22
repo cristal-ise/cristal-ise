@@ -39,8 +39,15 @@
                         </xs:appinfo>
                     </xs:annotation>
                 </xs:element>
-
-                <xs:element minOccurs="1" maxOccurs="1" name="DateOfBirth" type="xs:date" />
+                <xs:element minOccurs="1" maxOccurs="1" name="DateOfBirth" type="xs:date">
+                    <xs:annotation>
+                        <xs:appinfo>
+                            <dynamicForms>
+                                <value>now</value>
+                            </dynamicForms>
+                        </xs:appinfo>
+                    </xs:annotation>
+                </xs:element>
                 <xs:element minOccurs="1" maxOccurs="1" name="Gender" default="male">
                     <xs:simpleType>
                         <xs:restriction base="xs:string">

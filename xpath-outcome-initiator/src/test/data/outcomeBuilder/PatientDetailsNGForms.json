@@ -60,6 +60,7 @@
       "label": "Date Of Birth *",
       "placeholder": "Date Of Birth",
       "type": "DATEPICKER",
+      "value": "@{CURRENTDATE}",
       "required": true
     },
     {

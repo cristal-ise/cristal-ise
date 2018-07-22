@@ -20,6 +20,8 @@
  */
 package org.cristalise.kernel.persistency.outcomebuilder.field;
 
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Map;
 
 import org.cristalise.kernel.persistency.outcomebuilder.InvalidOutcomeException;
@@ -29,6 +31,14 @@ public class DateTimeField extends DateField {
 
     public DateTimeField() {
         super();
+    }
+
+    @Override
+    public String getValue(String valueTemplate) {
+        if (valueTemplate.equals("now"))
+            return LocalDateTime.now().format(DateTimeFormatter.ISO_INSTANT);
+        else
+            return valueTemplate;
     }
 
     @Override
