@@ -284,6 +284,53 @@ class SchemaBuilderSpecs extends Specification implements CristalTestSetup {
                         </xs:schema>""")
     }
 
+    def 'Attribute can specify minInclusive/maxInclusive/minExclusive/maxExclusive restrictions'() {
+        expect:
+        SchemaTestBuilder.build('Test', 'TestData', 0) {
+            struct(name: 'TestData') {
+                attribute(name:'inclusive', type:'integer', minInclusive:0, maxInclusive: 10)
+                attribute(name:'exclusive', type:'integer', minExclusive:0, maxExclusive: 10)
+                attribute(name:'minExclusive', type:'integer', minExclusive:0)
+                attribute(name:'maxInclusive', type:'integer', maxInclusive: 10)
+            }
+        }.compareXML("""<xs:schema xmlns:xs='http://www.w3.org/2001/XMLSchema'>
+                          <xs:element name='TestData'>
+                            <xs:complexType>
+                              <xs:attribute name="inclusive">
+                                <xs:simpleType>
+                                  <xs:restriction base="xs:integer">
+                                    <xs:minInclusive value="0"/>
+                                    <xs:maxInclusive value="10"/>
+                                  </xs:restriction>
+                                </xs:simpleType>
+                              </xs:attribute>
+                              <xs:attribute name="exclusive">
+                                <xs:simpleType>
+                                  <xs:restriction base="xs:integer">
+                                    <xs:minExclusive value="0"/>
+                                    <xs:maxExclusive value="10"/>
+                                  </xs:restriction>
+                                </xs:simpleType>
+                              </xs:attribute>
+                              <xs:attribute name="minExclusive">
+                                <xs:simpleType>
+                                  <xs:restriction base="xs:integer">
+                                    <xs:minExclusive value="0"/>
+                                  </xs:restriction>
+                                </xs:simpleType>
+                              </xs:attribute>
+                              <xs:attribute name="maxInclusive">
+                                <xs:simpleType>
+                                  <xs:restriction base="xs:integer">
+                                    <xs:maxInclusive value="10"/>
+                                  </xs:restriction>
+                                </xs:simpleType>
+                              </xs:attribute>
+                            </xs:complexType>
+                          </xs:element>
+                        </xs:schema>""")
+    }
+
     def 'Attribute CANNOT specify multiplicity other than 0..1 and 1..1'() {
         when: "attribute specifies multiplicity"
         SchemaTestBuilder.build('Test', 'TestData', 0) {
@@ -373,6 +420,56 @@ class SchemaBuilderSpecs extends Specification implements CristalTestSetup {
                           </xs:element>
                         </xs:schema>""")
     }
+
+    def 'Field can specify minInclusive/maxInclusive/minExclusive/maxExclusive restrictions'() {
+        expect:
+        SchemaTestBuilder.build('Test', 'TestData', 0) {
+            struct(name: 'TestData') {
+                field(name:'inclusive', type:'integer', minInclusive:0, maxInclusive: 10)
+                field(name:'exclusive', type:'integer', minExclusive:0, maxExclusive: 10)
+                field(name:'minExclusive', type:'integer', minExclusive:0)
+                field(name:'maxInclusive', type:'integer', maxInclusive: 10)
+            }
+        }.compareXML("""<xs:schema xmlns:xs='http://www.w3.org/2001/XMLSchema'>
+                          <xs:element name='TestData'>
+                            <xs:complexType>
+                              <xs:all minOccurs='0'>
+                                <xs:element name="inclusive" minOccurs="1" maxOccurs="1">
+                                  <xs:simpleType>
+                                    <xs:restriction base="xs:integer">
+                                      <xs:minInclusive value="0"/>
+                                      <xs:maxInclusive value="10"/>
+                                    </xs:restriction>
+                                  </xs:simpleType>
+                                </xs:element>
+                                <xs:element name="exclusive" minOccurs="1" maxOccurs="1">
+                                  <xs:simpleType>
+                                    <xs:restriction base="xs:integer">
+                                      <xs:minExclusive value="0"/>
+                                      <xs:maxExclusive value="10"/>
+                                    </xs:restriction>
+                                  </xs:simpleType>
+                                </xs:element>
+                                <xs:element name="minExclusive" minOccurs="1" maxOccurs="1">
+                                  <xs:simpleType>
+                                    <xs:restriction base="xs:integer">
+                                      <xs:minExclusive value="0"/>
+                                    </xs:restriction>
+                                  </xs:simpleType>
+                                </xs:element>
+                                <xs:element name="maxInclusive" minOccurs="1" maxOccurs="1">
+                                  <xs:simpleType>
+                                    <xs:restriction base="xs:integer">
+                                      <xs:maxInclusive value="10"/>
+                                    </xs:restriction>
+                                  </xs:simpleType>
+                                </xs:element>
+                              </xs:all>
+                            </xs:complexType>
+                          </xs:element>
+                        </xs:schema>""")
+    }
+
 
     def 'Attribute can define the default value'() {
             expect:

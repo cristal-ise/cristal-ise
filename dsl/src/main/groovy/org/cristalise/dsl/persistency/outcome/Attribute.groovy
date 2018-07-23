@@ -39,8 +39,8 @@ class Attribute {
     String documentation
 
     List values
-    Map<String, BigDecimal> range = [:]
-    //BigDecimal minExclusive = null, minInclusive= null, maxExclusive= null, maxInclusive= null
+    BigDecimal minExclusive = null, minInclusive= null, maxExclusive= null, maxInclusive= null
+
     def defaultVal
 
     boolean required = false
@@ -93,12 +93,12 @@ class Attribute {
             def maxTypeChar = vals[1].getAt(vals[1].length()-1)
             def maxValString = vals[1].substring(0, vals[1].length()-1)
             
-            if (     minTypeChar == '[') range.minInclusive = new BigDecimal(minValString)
-            else if (minTypeChar == '(') range.minExclusive = new BigDecimal(minValString)
+            if (     minTypeChar == '[') minInclusive = new BigDecimal(minValString)
+            else if (minTypeChar == '(') minExclusive = new BigDecimal(minValString)
 
-            if (     maxTypeChar == ']') range.maxInclusive = new BigDecimal(maxValString)
-            else if (maxTypeChar == ')') range.maxExclusive = new BigDecimal(maxValString)
+            if (     maxTypeChar == ']') maxInclusive = new BigDecimal(maxValString)
+            else if (maxTypeChar == ')') maxExclusive = new BigDecimal(maxValString)
         }
-
+        else throw new UnsupportedOperationException("Range must be in the format of '[0..123)")
     }
 }
