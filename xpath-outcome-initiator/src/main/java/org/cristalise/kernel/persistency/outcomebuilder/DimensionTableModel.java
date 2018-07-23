@@ -226,7 +226,9 @@ public class DimensionTableModel {
     }
 
     public void setValueAt(Object aValue, int rowIndex, String columnName) {
-        setValueAt(aValue, rowIndex, columnHeadings.lastIndexOf(columnName));
+        int idx = columnHeadings.lastIndexOf(columnName);
+        if (idx == -1) throw new UnsupportedOperationException("ColumnName "+columnName+" not found in "+model.getName());
+        setValueAt(aValue, rowIndex, idx);
     }
 
     public void setValueAt(Object aValue, int rowIndex, int columnIndex) {

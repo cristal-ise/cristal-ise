@@ -36,7 +36,7 @@ public class DateTimeField extends DateField {
     @Override
     public String getValue(String valueTemplate) {
         if (valueTemplate.equals("now"))
-            return LocalDateTime.now().format(DateTimeFormatter.ISO_INSTANT);
+            return LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME);
         else
             return valueTemplate;
     }
