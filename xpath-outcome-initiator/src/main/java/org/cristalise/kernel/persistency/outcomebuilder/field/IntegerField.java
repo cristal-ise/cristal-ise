@@ -24,7 +24,7 @@ import java.util.Map;
 
 import org.json.JSONObject;
 
-public class IntegerField extends StringField {
+public class IntegerField extends NumberField {
 
     public IntegerField() {
         super();
@@ -33,11 +33,6 @@ public class IntegerField extends StringField {
     @Override
     public String getDefaultValue() {
         return "0";
-    }
-
-    @Override
-    public String getNgDynamicFormsControlType() {
-        return "INPUT";
     }
 
     @Override

@@ -92,11 +92,17 @@
 
     <xs:complexType name="AmountType">
         <xs:simpleContent>
-            <xs:extension base='xs:decimal'>
+            <xs:extension base='RestrictedAmount'>
                 <xs:attribute name='unit' default='TONNE' use='optional' type="MassUnit" />
             </xs:extension>
         </xs:simpleContent>
     </xs:complexType>
+
+    <xs:simpleType name="RestrictedAmount">
+        <xs:restriction base="xs:decimal">
+            <xs:minInclusive value="0" />
+        </xs:restriction>
+    </xs:simpleType>
 
     <xs:simpleType name="MassUnit">
         <xs:restriction base='xs:string'>

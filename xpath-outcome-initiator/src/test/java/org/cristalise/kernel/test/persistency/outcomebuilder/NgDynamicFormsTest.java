@@ -67,7 +67,7 @@ public class NgDynamicFormsTest extends XMLUtils {
     }
     
     @Test
-    public void ngForm_Order() throws Exception {
+    public void ngForm_Storage() throws Exception {
         OutcomeBuilder builder = new OutcomeBuilder("Storage", new Schema("Storage", 0, getXSD(dir, "Storage")), false);
 
         JSONArray actual   = builder.generateNgDynamicFormsJson();

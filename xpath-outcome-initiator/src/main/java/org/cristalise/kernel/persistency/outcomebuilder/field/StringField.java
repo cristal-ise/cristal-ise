@@ -224,10 +224,20 @@ public class StringField {
         setData(value.toString());
     }
 
-
     public boolean isOptional() {
         if (isAttribute) return ((AttributeDecl)model).isOptional();
         else             return ((ElementDecl)model).getMinOccurs() == 0;
+    }
+
+    public boolean hasValidator() {
+        return  contentType.hasFacet(Facet.MIN_EXCLUSIVE)
+             || contentType.hasFacet(Facet.MAX_EXCLUSIVE)
+             || contentType.hasFacet(Facet.MIN_INCLUSIVE)
+             || contentType.hasFacet(Facet.MAX_INCLUSIVE)
+             || contentType.hasFacet(Facet.PATTERN)
+             || contentType.hasFacet(Facet.MIN_LENGTH)
+             || contentType.hasFacet(Facet.MAX_LENGTH)
+             || contentType.hasFacet(Facet.LENGTH);
     }
 
     public Structure getModel() {
@@ -278,6 +288,9 @@ public class StringField {
 
     public String getNgDynamicFormsControlType() {
         return "INPUT";
+    }
+
+    public void setNgDynamicFormsValidators(JSONObject validators) {
     }
 
     public JSONObject generateNgDynamicFormsCls() {
@@ -354,10 +367,12 @@ public class StringField {
         field.put("type",     getNgDynamicFormsControlType());
         field.put("required", !isOptional());
 
-        if ( ! isOptional() ) {
+        if ( ! isOptional() || hasValidator()) {
             JSONObject validators = new JSONObject();
-            validators.put("required", JSONObject.NULL);
             field.put("validators", validators);
+
+            if (!isOptional()) validators.put("required", JSONObject.NULL);
+            if (hasValidator()) setNgDynamicFormsValidators(validators);;
 
             //JSONObject errorMessages = new JSONObject();
             //errorMessages.put("required", name + " is required");

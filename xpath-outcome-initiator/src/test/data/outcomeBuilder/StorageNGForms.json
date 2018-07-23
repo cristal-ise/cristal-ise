@@ -103,7 +103,10 @@
       "required": true
     },
     {
-      "validators": {"required": null},
+      "validators": {
+        "min": 0,
+        "required": null
+      },
       "cls": {
         "grid": {
           "container": "ui-g",

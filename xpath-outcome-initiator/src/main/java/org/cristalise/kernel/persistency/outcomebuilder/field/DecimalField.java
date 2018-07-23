@@ -27,7 +27,7 @@ import java.util.Map;
 import org.cristalise.kernel.persistency.outcomebuilder.InvalidOutcomeException;
 import org.json.JSONObject;
 
-public class DecimalField extends StringField {
+public class DecimalField extends NumberField {
 
     public DecimalField() {
         super();
@@ -36,11 +36,6 @@ public class DecimalField extends StringField {
     @Override
     public String getDefaultValue() {
         return "0.0";
-    }
-
-    @Override
-    public String getNgDynamicFormsControlType() {
-        return "INPUT";
     }
 
     @Override
