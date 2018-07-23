@@ -352,12 +352,10 @@ public abstract class OutcomeStructure {
                 if (StringUtils.isBlank(value)) return new BigDecimal(0);
                 else                            return new BigDecimal(value);
             }
-            else {
-                throw new UnsupportedOperationException("Cannot handle type "+type.getSimpleName());
-            }
         }
         catch (Exception ex) {
-            Logger.error("Cannot convert value '" + value + "' to a " + type.getName());
+            if (Logger.doLog(6)) Logger.error(ex);
+            Logger.warning("Cannot convert value '" + value + "' to a " + type.getName());
         }
 
         return value == null ? "" : value;

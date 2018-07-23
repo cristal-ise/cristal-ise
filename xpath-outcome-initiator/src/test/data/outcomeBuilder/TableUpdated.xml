@@ -20,22 +20,12 @@
     http://www.fsf.org/licensing/licenses/lgpl.html
 
 -->
-<xs:schema xmlns:xs='http://www.w3.org/2001/XMLSchema'>
-  <xs:element name='Table'>
-    <xs:complexType>
-      <xs:sequence>
-        <xs:element name='Row' minOccurs='0' maxOccurs='unbounded'>
-          <xs:complexType>
-            <xs:sequence>
-              <xs:element name='Product'          type='xs:string'  minOccurs='1' maxOccurs='1' />
-              <xs:element name='RequiredQuantity' type='xs:decimal' minOccurs='1' maxOccurs='1' />
-              <xs:element name='PickedQuantity'   type='xs:decimal' minOccurs='1' maxOccurs='1' />
-              <xs:element name='MissingQuantity'  type='xs:decimal' minOccurs='1' maxOccurs='1' />
-              <xs:element name='ETA'              type='xs:date'    minOccurs='0' maxOccurs='1' />
-            </xs:sequence>
-          </xs:complexType>
-        </xs:element>
-      </xs:sequence>
-    </xs:complexType>
-  </xs:element>
-</xs:schema>
+<Table>
+    <Row>
+        <Product>BR1189</Product>
+        <RequiredQuantity>6</RequiredQuantity>
+        <PickedQuantity>0</PickedQuantity>
+        <MissingQuantity>6</MissingQuantity>
+        <ETA>2008-11-08</ETA>
+    </Row>
+</Table>

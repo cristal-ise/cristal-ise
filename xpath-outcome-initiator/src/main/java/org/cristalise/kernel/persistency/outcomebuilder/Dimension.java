@@ -225,7 +225,7 @@ public class Dimension extends OutcomeStructure {
 
     @Override
     public void addJsonInstance(Element parent, String name, Object json) throws OutcomeBuilderException {
-        Logger.msg(5, "DataRecord.addJsonInstance() - name:'" + name + "'");
+        Logger.msg(5, "Dimension.addJsonInstance() - name:'" + name + "', mode:"+mode);
 
         if (myElement == null) myElement = parent;
 
@@ -244,7 +244,10 @@ public class Dimension extends OutcomeStructure {
                     elements.add(newElement);
                 }
 
-                for (String key: jsonObj.keySet()) tableModel.setValueAt(jsonObj.get(key), i, key);
+                for (String key: jsonObj.keySet()) {
+                    Object value = jsonObj.get(key);
+                    tableModel.setValueAt(value, i, key);
+                }
 
                 i++;
             }

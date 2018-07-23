@@ -38,9 +38,9 @@ public class BuildStructureFromJsonTest extends XMLUtils {
         Logger.addLogStream(System.out, 8);
     }
 
-    private void checkJson2XmlOutcome(String type) throws Exception {
-        JSONObject actualJson = new JSONObject(getJSON(dir, type));
-        String expected = getXML(dir, type);
+    private void checkJson2XmlOutcome(String type, String postfix) throws Exception {
+        JSONObject actualJson = new JSONObject(getJSON(dir, type+postfix));
+        String expected = getXML(dir, type+postfix);
 
         Logger.msg(2, "Actual json:%s", actualJson.toString());
         OutcomeBuilder builder = new OutcomeBuilder(new Schema(type, 0, getXSD(dir, type)), true);
@@ -50,10 +50,6 @@ public class BuildStructureFromJsonTest extends XMLUtils {
         Logger.msg(2, "Actual xml:%s", builder.getXml());
 
         assert compareXML(expected, builder.getXml());
-    }
-
-    private void checkXml2Json2XmlOutcome(String type) throws Exception {
-        checkXml2Json2XmlOutcome(type, "Updated");
     }
 
     private void checkXml2Json2XmlOutcome(String type, String postFix) throws Exception {
@@ -72,12 +68,12 @@ public class BuildStructureFromJsonTest extends XMLUtils {
 
     @Test
     public void integerFieldWithUnit() throws Exception {
-        checkXml2Json2XmlOutcome("IntegerFieldWithUnit");
+        checkXml2Json2XmlOutcome("IntegerFieldWithUnit", "Updated");
     }
 
     @Test
     public void integerFieldOptional() throws Exception {
-        checkXml2Json2XmlOutcome("IntegerFieldOptional");
+        checkXml2Json2XmlOutcome("IntegerFieldOptional", "Updated");
     }
 
     @Test
@@ -98,31 +94,37 @@ public class BuildStructureFromJsonTest extends XMLUtils {
 
     @Test
     public void booleanField() throws Exception {
-        checkXml2Json2XmlOutcome("BooleanField");
+        checkXml2Json2XmlOutcome("BooleanField", "Updated");
     }
 
     @Test
     public void rootWithAttr() throws Exception {
-        checkXml2Json2XmlOutcome("RootWithAttr");
+        checkXml2Json2XmlOutcome("RootWithAttr", "Updated");
     }
 
     @Test
     public void rootWithOptionalAttr() throws Exception {
-        checkXml2Json2XmlOutcome("RootWithOptionalAttr");
+        checkXml2Json2XmlOutcome("RootWithOptionalAttr", "Updated");
     }
 
     @Test
     public void patientDetails() throws Exception {
-        checkXml2Json2XmlOutcome("PatientDetails");
+        checkXml2Json2XmlOutcome("PatientDetails", "Updated");
     }
 
     @Test
     public void employee_ComplexType_sequence() throws Exception {
-        checkJson2XmlOutcome("Employee");
+        checkJson2XmlOutcome("Employee", "");
     }
 
     @Test
-    public void stateMachine_withTable() throws Exception {
-        checkXml2Json2XmlOutcome("StateMachine");
+    public void table_stateMachine_optionalAttribute() throws Exception {
+        checkXml2Json2XmlOutcome("StateMachine", "Updated");
+    }
+
+    @Test
+    public void table_optionalField() throws Exception {
+        checkJson2XmlOutcome("Table", "");
+        checkJson2XmlOutcome("Table", "Updated");
     }
 }

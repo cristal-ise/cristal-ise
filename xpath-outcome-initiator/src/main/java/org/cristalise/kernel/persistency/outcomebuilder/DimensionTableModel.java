@@ -164,8 +164,8 @@ public class DimensionTableModel {
         Object[] newRow = new Object[columnHeadings.size()];
         for (int i=0; i<columnDecls.size(); i++) {
             if (columnDecls.get(i) instanceof ElementDecl) { // sub element - get the node from it
-                ElementDecl thisElementDecl = (ElementDecl)columnDecls.get(i);
-                NodeList childElements = myElement.getElementsByTagName(thisElementDecl.getName());
+                ElementDecl columnElementDecl = (ElementDecl)columnDecls.get(i);
+                NodeList childElements = myElement.getElementsByTagName(columnElementDecl.getName());
                 switch (childElements.getLength()) {
                     case 1: // element exists - read the contents
                         Element childElement = (Element)childElements.item(0);
@@ -174,19 +174,19 @@ public class DimensionTableModel {
                             if (thisNode.getNodeType() == Node.TEXT_NODE)
                                 newRow[i] = OutcomeStructure.getTypedValue(((Text)thisNode).getData(), columnClasses.get(i));
                             else
-                                throw new StructuralException("First child of Field " + thisElementDecl.getName() + " was not Text. (NodeType:"+thisNode.getNodeType()+")");
+                                throw new StructuralException("First child of Field " + columnElementDecl.getName() + " was not Text. (NodeType:"+thisNode.getNodeType()+")");
                         }
                         else { // create text node
-                            newRow[i] = this.setupDefaultElement(thisElementDecl, childElement, columnClasses.get(i));
+                            newRow[i] = this.setupDefaultElement(columnElementDecl, childElement, columnClasses.get(i));
                         }
                         break;
                     case 0: // element is missing - create it
-                        Element newElement = myElement.getOwnerDocument().createElement(thisElementDecl.getName());
+                        Element newElement = myElement.getOwnerDocument().createElement(columnElementDecl.getName());
                         myElement.appendChild(newElement); //TODO: not in the right place in sequence. should insert it
-                        newRow[i] = setupDefaultElement(thisElementDecl, newElement, columnClasses.get(i));
+                        newRow[i] = setupDefaultElement(columnElementDecl, newElement, columnClasses.get(i));
                         break;
                     default:
-                        throw new CardinalException("Element "+thisElementDecl.getName()+" appeared more than once.");
+                        throw new CardinalException("Element "+columnElementDecl.getName()+" appeared more than once.");
                 }
             }
             else if (columnDecls.get(i) instanceof AttributeDecl) { //attribute
@@ -199,6 +199,7 @@ public class DimensionTableModel {
                     thisNode = myElement.getOwnerDocument().createTextNode("");
                     myElement.appendChild(thisNode);
                 }
+                
                 if (thisNode.getNodeType() == Node.TEXT_NODE || thisNode.getNodeType() == Node.CDATA_SECTION_NODE)
                     newRow[i] = OutcomeStructure.getTypedValue(((Text)thisNode).getData(), columnClasses.get(i));
                 else
@@ -226,31 +227,63 @@ public class DimensionTableModel {
     }
 
     public void setValueAt(Object aValue, int rowIndex, String columnName) {
+        Logger.msg(5, "DimensionTableModel.setValueAt() - columnName:%s", columnName);
+
         int idx = columnHeadings.lastIndexOf(columnName);
+
         if (idx == -1) throw new UnsupportedOperationException("ColumnName "+columnName+" not found in "+model.getName());
+
         setValueAt(aValue, rowIndex, idx);
     }
 
     public void setValueAt(Object aValue, int rowIndex, int columnIndex) {
         Object[] thisRow = rows.get(rowIndex);
         thisRow[columnIndex]=aValue;
-        Element myElement = elements.get(rowIndex);
+        Element rowElement = elements.get(rowIndex);
         // update node
         if (columnDecls.get(columnIndex) instanceof ElementDecl) { // sub element
-            ElementDecl thisDecl = (ElementDecl)columnDecls.get(columnIndex);
-            NodeList childElements = myElement.getElementsByTagName(thisDecl.getName());
-            // depend on one element with a Text child - this should have been enforced on init.
-            Text childNode = (Text)(childElements.item(0).getFirstChild());
-            childNode.setData(aValue.toString());
+            ElementDecl columnDecl = (ElementDecl)columnDecls.get(columnIndex);
+            NodeList elements = rowElement.getElementsByTagName(columnDecl.getName());
+
+            Element columnElement = null;
+
+            //Create the optional element if the new value is not null
+            if (elements.item(0) == null && aValue != null && !"null".equals(aValue.toString())) {
+                Logger.msg(5, "DimensionTableModel.setValueAt() - Creating columnElement:%s", columnDecl.getName());
+
+                columnElement = rowElement.getOwnerDocument().createElement(columnDecl.getName());
+                setupDefaultElement(columnDecl, columnElement, columnClasses.get(columnIndex));
+                rowElement.appendChild(columnElement);
+            }
+            else {
+                columnElement = (Element) elements.item(0);
+            }
+
+            if (aValue != null && !"null".equals(aValue.toString())) {
+                Text textNode = (Text)columnElement.getFirstChild();
+                textNode.setData(aValue.toString());
+            }
+            else if (columnElement != null) {
+                if (columnDecl.getMinOccurs() == 0) {
+                    Logger.msg(5, "DimensionTableModel.setValueAt() - Removing columnElement:%s", columnDecl.getName());
+                    rowElement.removeChild(columnElement);
+                }
+                else {
+                    Logger.msg(5, "DimensionTableModel.setValueAt() - Setting columnElement:%s to default value", columnDecl.getName());
+                    setupDefaultElement(columnDecl, columnElement, columnClasses.get(columnIndex));
+                }
+            }
         }
         else if (columnDecls.get(columnIndex) instanceof AttributeDecl) { //attribute
             AttributeDecl thisDecl = (AttributeDecl) columnDecls.get(columnIndex);
-            myElement.setAttribute(thisDecl.getName(), aValue.toString());
+
+            rowElement.setAttribute(thisDecl.getName(), aValue.toString());
         }
         else { // first child node
-            Text textNode = (Text)myElement.getFirstChild();
+            Text textNode = (Text)rowElement.getFirstChild();
             textNode.setData(aValue.toString());
         }
+        rows.get(rowIndex)[columnIndex] = aValue;
     }
 
     public Element removeRow(int rowIndex) {
@@ -305,29 +338,31 @@ public class DimensionTableModel {
     }
 
     public Element initNew(Document parent, int index) {
+        Logger.msg(2, "DimensionTableModel.initNew() - name:%s index:%d", model.getName(), index);
+
         if (index == -1) index = elements.size();
         Object[] newRow = new Object[columnHeadings.size()];
         Element myElement = parent.createElement(model.getName());
 
         for (int i=0; i<columnDecls.size(); i++) {
             if (columnDecls.get(i) instanceof ElementDecl) { // sub element
-                ElementDecl childElementDecl = (ElementDecl)columnDecls.get(i);
+                ElementDecl columnElementDecl = (ElementDecl)columnDecls.get(i);
 
-                if (childElementDecl.getMinOccurs() == 0) continue;
+                if (columnElementDecl.getMinOccurs() == 0) continue;
 
-                Element childElement = parent.createElement(childElementDecl.getName());
-                Object newValue = setupDefaultElement(childElementDecl, childElement, columnClasses.get(i));
-                myElement.appendChild(childElement);
+                Element columnElement = parent.createElement(columnElementDecl.getName());
+                Object newValue = setupDefaultElement(columnElementDecl, columnElement, columnClasses.get(i));
+                myElement.appendChild(columnElement);
                 newRow[i] = newValue;
             }
             else if (columnDecls.get(i) instanceof AttributeDecl) { //attribute
-                AttributeDecl thisAttrDecl = (AttributeDecl)columnDecls.get(i);
+                AttributeDecl columnAttrDecl = (AttributeDecl)columnDecls.get(i);
 
-                if (thisAttrDecl.isOptional()) continue;
+                if (columnAttrDecl.isOptional()) continue;
 
-                String newValue = thisAttrDecl.getFixedValue()!=null?thisAttrDecl.getFixedValue():thisAttrDecl.getDefaultValue();
+                String newValue = columnAttrDecl.getFixedValue() != null ? columnAttrDecl.getFixedValue() : columnAttrDecl.getDefaultValue();
                 newRow[i] = OutcomeStructure.getTypedValue(newValue, columnClasses.get(i));
-                myElement.setAttribute(thisAttrDecl.getName(), newRow[i].toString());
+                myElement.setAttribute(columnAttrDecl.getName(), newRow[i].toString());
             }
             else { // first child node
                 newRow[i] = setupDefaultElement(model, myElement, columnClasses.get(i));
