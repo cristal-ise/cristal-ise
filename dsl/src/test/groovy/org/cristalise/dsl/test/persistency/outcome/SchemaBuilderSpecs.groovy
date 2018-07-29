@@ -359,9 +359,9 @@ class SchemaBuilderSpecs extends Specification implements CristalTestSetup {
                                 <xs:complexType>
                                     <xs:all minOccurs='0'>
                                         <xs:element name='default'     type='xs:string' minOccurs='1' maxOccurs='1' />
-                                        <xs:element name='many'        type='xs:string' minOccurs='0' />
+                                        <xs:element name='many'        type='xs:string' minOccurs='0' maxOccurs='unbounded' />
                                         <xs:element name='fivehundred' type='xs:string' minOccurs='500' maxOccurs='500' />
-                                        <xs:element name='zeroToMany'  type='xs:string' minOccurs='0' />
+                                        <xs:element name='zeroToMany'  type='xs:string' minOccurs='0' maxOccurs='unbounded' />
                                         <xs:element name='oneToFive'   type='xs:string' minOccurs='1' maxOccurs='5' />
                                         <xs:element name='reset'       type='xs:string' />
                                     </xs:all>
@@ -707,7 +707,7 @@ class SchemaBuilderSpecs extends Specification implements CristalTestSetup {
              </xs:schema>""")
     }
 
-    def 'Struct can define nested struct with multiplicity'() {
+    def 'Structure can define nested Structure with multiplicity'() {
         expect:
         def titles = ['Mr','Mrs','Miss','Ms','Sir','Dr','dr']
         def states = ['UNINITIALISED', 'ACTIVE', 'DEACTIVETED']
@@ -715,8 +715,8 @@ class SchemaBuilderSpecs extends Specification implements CristalTestSetup {
     
         SchemaTestBuilder.build('test', 'Person', 0) {
             struct(name: 'Person', documentation: 'Person data', useSequence: true) {
-                field(name: 'Title',     type: 'string', values: titles)
-                field(name: 'Name',      type: 'string')
+                field(name: 'Title',  type: 'string', values: titles)
+                field(name: 'Name',   type: 'string')
                 field(name: 'State',  type: 'string', values: states) { dynamicForms (hidden: true) }
     
                 // next 3 structs were copied from contactMech
@@ -801,9 +801,11 @@ class SchemaBuilderSpecs extends Specification implements CristalTestSetup {
         SchemaTestBuilder.build('test', 'PatientDetails', 0) {
             struct(name: 'PatientDetails', documentation: 'This is the Schema for Basic Tutorial') {
                 attribute(name: 'InsuranceNumber', type: 'string', default: '123456789ABC')
-                field(name: 'DateOfBirth',     type: 'date')
-                field(name: 'Gender',          type: 'string', values: ['male', 'female'])
-                field(name: 'Weight',          type: 'decimal') { attribute(name: 'unit', type: 'string', values: ['g', 'kg'], default: 'kg') }
+                field(name: 'DateOfBirth', type: 'date')
+                field(name: 'Gender',      type: 'string', values: ['male', 'female'])
+                field(name: 'Weight',      type: 'decimal') { 
+                    attribute(name: 'unit', type: 'string', values: ['g', 'kg'], default: 'kg')
+                }
             }
         }.compareXML(
             """<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">

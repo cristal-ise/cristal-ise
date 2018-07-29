@@ -68,12 +68,12 @@ class Field extends Attribute {
             v = getMultiplicityVal(vals[1])
 
             if(v) maxOccurs = v
-            else  maxOccurs = ''
+            else  maxOccurs = 'unbounded'
         }
         else {
             def v = getMultiplicityVal(m)
 
-            if(!v) { minOccurs = '0'; maxOccurs = ''; }
+            if(!v) { minOccurs = '0'; maxOccurs = 'unbounded'; }
             else   { minOccurs = v;   maxOccurs = v; }
         }
     }
