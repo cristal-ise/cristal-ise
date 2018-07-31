@@ -519,6 +519,8 @@ public abstract class ItemUtils extends RestHandler {
         }
     }
 
+    
+    
     /**
      * Check if the requested media type should be a JSON or XML
      * 
@@ -532,7 +534,7 @@ public abstract class ItemUtils extends RestHandler {
             if      (t.isCompatible(APPLICATION_XML_TYPE) || t.isCompatible(TEXT_XML_TYPE)) return false;
             else if (t.isCompatible(APPLICATION_JSON_TYPE))                                 return true;
         }
-        
+
         throw ItemUtils.createWebAppException(
                     "Supported media types: TEXT_XML, APPLICATION_XML, APPLICATION_JSON", 
                     Response.Status.UNSUPPORTED_MEDIA_TYPE);
@@ -561,11 +563,12 @@ public abstract class ItemUtils extends RestHandler {
      * @param item
      * @param schema
      * @param script
+     * @param jsonFlag whether the response is a JSON or XML
      * @return
      * @throws ScriptingEngineException
      * @throws InvalidDataException
      */
-    protected Response returnScriptResult(String scriptName, ItemProxy item, final Schema schema, final Script script)
+    protected Response returnScriptResult(String scriptName, ItemProxy item, final Schema schema, final Script script, boolean jsonFlag)
             throws ScriptingEngineException, InvalidDataException
     {
         String xmlOutcome = null;
@@ -585,9 +588,10 @@ public abstract class ItemUtils extends RestHandler {
         if (xmlOutcome == null)
             throw ItemUtils.createWebAppException("Cannot handle result of script:" + scriptName, Response.Status.NOT_FOUND);
 
-        return getOutcomeResponse(new Outcome(xmlOutcome, schema), new Date(), true);
+        if (schema != null) return getOutcomeResponse(new Outcome(xmlOutcome, schema), new Date(), jsonFlag);
+        else                return Response.ok(XML.toJSONObject(xmlOutcome).toString()).build();
     }
-    
+
     /**
      * 
      * @param item
@@ -631,5 +635,4 @@ public abstract class ItemUtils extends RestHandler {
             jsonRoot.put("domainPaths", domainPathesData);
         }
     }
-
 }

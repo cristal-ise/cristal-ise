@@ -60,12 +60,14 @@ import org.cristalise.kernel.persistency.outcome.Schema;
 import org.cristalise.kernel.persistency.outcomebuilder.OutcomeBuilder;
 import org.cristalise.kernel.persistency.outcomebuilder.OutcomeBuilderException;
 import org.cristalise.kernel.process.Gateway;
+import org.cristalise.kernel.querying.Query;
 import org.cristalise.kernel.scripting.Script;
 import org.cristalise.kernel.scripting.ScriptErrorException;
 import org.cristalise.kernel.scripting.ScriptingEngineException;
 import org.cristalise.kernel.utils.LocalObjectLoader;
 import org.cristalise.kernel.utils.Logger;
 import org.json.JSONObject;
+import org.json.XML;
 
 @Path("/item/{uuid}")
 public class ItemRoot extends ItemUtils {
@@ -107,12 +109,13 @@ public class ItemRoot extends ItemUtils {
 
     @GET
     @Path("master")
-    @Produces(MediaType.APPLICATION_JSON)
+    @Produces( {MediaType.TEXT_XML, MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON } )
     public Response getMasterOutcome(
-            @PathParam("uuid")           String uuid,
-            @QueryParam("script")        String scriptName,
-            @QueryParam("scriptVersion") Integer scriptVersion,
-            @CookieParam(COOKIENAME) Cookie authCookie)
+            @Context                     HttpHeaders headers,
+            @PathParam("uuid")           String      uuid,
+            @QueryParam("script")        String      scriptName,
+            @QueryParam("scriptVersion") Integer     scriptVersion,
+            @CookieParam(COOKIENAME)     Cookie      authCookie)
     {
         checkAuthCookie(authCookie);
         ItemProxy item = getProxy(uuid);
@@ -133,12 +136,12 @@ public class ItemRoot extends ItemUtils {
                 final Schema schema = LocalObjectLoader.getSchema(type, schemaVersion);
                 script = LocalObjectLoader.getScript(scriptName, scriptVersion);
 
-                return returnScriptResult(scriptName, item, schema, script);
+                return returnScriptResult(scriptName, item, schema, script, produceJSON(headers.getAcceptableMediaTypes()));
             }
             else if ((script = getAggregateScript(type, scriptVersion)) != null) {
                 final Schema schema = LocalObjectLoader.getSchema(type, schemaVersion);
 
-                return returnScriptResult(scriptName, item, schema, script);
+                return returnScriptResult(scriptName, item, schema, script, produceJSON(headers.getAcceptableMediaTypes()));
             }
             else if (item.checkViewpoint(type, view)) {
                 return getViewpointOutcome(uuid, type, view, true);
@@ -150,6 +153,79 @@ public class ItemRoot extends ItemUtils {
             Logger.error(e);
             throw ItemUtils.createWebAppException("Error retrieving MasterOutcome:" + e.getMessage() , e, Response.Status.NOT_FOUND);
         }
+    }
+
+    @GET
+    @Path("scriptResult")
+    @Produces( {MediaType.TEXT_XML, MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON } )
+    public Response getScriptResult(
+            @Context                 HttpHeaders headers,
+            @PathParam("uuid")       String      uuid,
+            @QueryParam("script")    String      scriptName,
+            @QueryParam("version")   Integer     scriptVersion,
+            @CookieParam(COOKIENAME) Cookie      authCookie)
+    {
+        checkAuthCookie(authCookie);
+        ItemProxy item = getProxy(uuid);
+
+        //FIXME: version should be retrieved from the current item or the Module
+        //String view = "last";
+        if (scriptVersion == null) scriptVersion = 0;
+
+        Script script = null;
+
+        try {
+            if (scriptName != null) {
+                script = LocalObjectLoader.getScript(scriptName, scriptVersion);
+                return returnScriptResult(scriptName, item, null, script, produceJSON(headers.getAcceptableMediaTypes()));
+            }
+            else
+                throw ItemUtils.createWebAppException("Name or UUID of Script was missing", Response.Status.NOT_FOUND);
+        }
+        catch (Exception e) {
+            Logger.error(e);
+            throw ItemUtils.createWebAppException("Error executing Script:" + e.getMessage() , e, Response.Status.NOT_FOUND);
+        }
+    }
+
+    @GET
+    @Path("queryResult")
+    @Produces( {MediaType.TEXT_XML, MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON } )
+    public Response getQueryResult(
+            @Context                 HttpHeaders headers,
+            @PathParam("uuid")       String      uuid,
+            @QueryParam("query")     String      queryName,
+            @QueryParam("version")   Integer     queryVersion,
+            @CookieParam(COOKIENAME) Cookie      authCookie)
+    {
+        checkAuthCookie(authCookie);
+        ItemProxy item = getProxy(uuid);
+
+        //FIXME: version should be retrieved from the current item or the Module
+        //String view = "last";
+        if (queryVersion == null) queryVersion = 0;
+
+        Query query = null;
+
+        try {
+            if (queryName != null) {
+                query = LocalObjectLoader.getQuery(queryName, queryVersion);
+                return returnQueryResult(queryName, item, null, query, produceJSON(headers.getAcceptableMediaTypes()));
+            }
+            else
+                throw ItemUtils.createWebAppException("Name or UUID of Query was missing", Response.Status.NOT_FOUND);
+        }
+        catch (Exception e) {
+            Logger.error(e);
+            throw ItemUtils.createWebAppException("Error executing Query:" + e.getMessage() , e, Response.Status.NOT_FOUND);
+        }
+    }
+
+    private Response returnQueryResult(String queryName, ItemProxy item, Object object, Query query, boolean jsonFlag) throws PersistencyException {
+        String xmlResult = item.executeQuery(query);
+
+        if (jsonFlag) return Response.ok(XML.toJSONObject(xmlResult).toString()).build();
+        else          return Response.ok(xmlResult).build();
     }
 
     /**
@@ -176,12 +252,12 @@ public class ItemRoot extends ItemUtils {
      * @see org.cristalise.restapi.ItemUtils#returnScriptResult(java.lang.String, org.cristalise.kernel.entity.proxy.ItemProxy, org.cristalise.kernel.persistency.outcome.Schema, org.cristalise.kernel.scripting.Script)
      */
     @Override
-    protected Response returnScriptResult(String scriptName, ItemProxy item, final Schema schema, final Script script)
+    protected Response returnScriptResult(String scriptName, ItemProxy item, final Schema schema, final Script script, boolean jsonFlag)
             throws ScriptingEngineException, InvalidDataException
     {
         try {
             mutex.acquire();
-            return super.returnScriptResult(scriptName, item, schema, script);
+            return super.returnScriptResult(scriptName, item, schema, script, jsonFlag);
         }
         catch (ScriptingEngineException e) {
             throw e;
