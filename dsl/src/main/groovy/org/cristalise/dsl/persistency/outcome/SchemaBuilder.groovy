@@ -22,6 +22,7 @@ package org.cristalise.dsl.persistency.outcome
 
 import groovy.transform.CompileStatic
 
+import org.cristalise.kernel.common.InvalidDataException
 import org.cristalise.kernel.lookup.DomainPath
 import org.cristalise.kernel.persistency.outcome.Outcome
 import org.cristalise.kernel.persistency.outcome.Schema
@@ -139,7 +140,9 @@ class SchemaBuilder {
         Logger.msg 5, "SchemaBuilder - generated xsd:\n" + schemaD.xsdString
 
         sb.schema = new Schema(sb.name, sb.version, schemaD.xsdString)
-        sb.schema.validate()
+        String errors = sb.schema.validate()
+
+        if (errors) throw new InvalidDataException(errors)
     }
 
     /**

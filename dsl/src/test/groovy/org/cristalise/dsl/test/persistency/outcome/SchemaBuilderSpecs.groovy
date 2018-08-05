@@ -125,6 +125,26 @@ class SchemaBuilderSpecs extends Specification implements CristalTestSetup {
     }
 
 
+    def 'Structure can define anyField with defaults minOccurs=0 and processContents=lax'() {
+        expect:
+        SchemaTestBuilder.build('Test', 'TestData', 0) {
+            struct(name: 'TestData', useSequence: true) {
+                field(name:'stringField1')
+                anyField()
+            }
+        }.compareXML("""<xs:schema xmlns:xs='http://www.w3.org/2001/XMLSchema'>
+                          <xs:element name='TestData'>
+                            <xs:complexType>
+                              <xs:sequence>
+                                <xs:element name='stringField1' type='xs:string' minOccurs='1' maxOccurs='1' />
+                                <xs:any minOccurs='0' processContents='lax'/>
+                              </xs:sequence>
+                            </xs:complexType>
+                          </xs:element>
+                        </xs:schema>""")
+    }
+
+
     def 'Structure can define an unordered set of Fields xs:all which default type is string and multiplicity is 1'() {
         expect:
         SchemaTestBuilder.build('Test', 'TestData', 0) {

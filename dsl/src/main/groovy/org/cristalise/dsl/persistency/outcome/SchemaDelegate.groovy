@@ -75,17 +75,19 @@ class SchemaDelegate {
             if(s.documentation) 'xs:annotation' { 'xs:documentation'(s.documentation) }
 
             'xs:complexType' {
-                if(s.fields || s.structs) {
+                if(s.fields || s.structs || s.anyField) {
                     if(s.useSequence) {
                         'xs:sequence' {
                             if(s.fields)  s.fields.each  { Field f   -> buildField(xsd, f) }
                             if(s.structs) s.structs.each { Struct s1 -> buildStruct(xsd, s1) }
+                            if(s.anyField) buildAnyField(xsd, s.anyField)
                         }
                     }
                     else {
                         'xs:all'(minOccurs: '0') {
                             if(s.fields)  s.fields.each  { Field f   -> buildField(xsd, f) }
                             if(s.structs) s.structs.each { Struct s1 -> buildStruct(xsd, s1) }
+                            if(s.anyField) buildAnyField(xsd, s.anyField)
                         }
                     }
                 }
@@ -203,6 +205,13 @@ class SchemaDelegate {
                 buildRangeRestriction(xsd, f.type, f)
             }
         }
+    }
+
+
+    private void buildAnyField(xsd, AnyField any) {
+        Logger.msg 1, "SchemaDelegate.buildAnyField()"
+        
+        xsd.'xs:any'(minOccurs: any.minOccurs, maxOccurs: any.maxOccurs, processContents: any.processContents)
     }
 
 

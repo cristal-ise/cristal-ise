@@ -20,25 +20,19 @@
  */
 package org.cristalise.dsl.persistency.outcome
 
+import java.util.List;
+
 import org.cristalise.kernel.common.InvalidDataException
 
-/**
- *
- */
-class Struct {
-    String name
-    String documentation
-    boolean useSequence = false
+import groovy.transform.CompileStatic;
 
-    List<Struct> structs = []
 
-    List<Field> fields = []
-    List<Attribute> attributes = []
-    AnyField anyField = null
+@CompileStatic
+class AnyField {
+    String minOccurs = '0'
+    String maxOccurs = ''
+    String processContents = 'lax'
 
-    String minOccurs = null
-    String maxOccurs = null
-    
     private String getMultiplicityVal(String m) {
         def dec = /^\d+$/
 
@@ -56,7 +50,7 @@ class Struct {
      */
     public void setMultiplicity(String m) {
         if(!m) {
-            minOccurs = ''; maxOccurs = '';
+            //nothing to do
         }
         else if(m.contains("..")) {
             def vals = m.split(/\.\./)
@@ -64,21 +58,26 @@ class Struct {
             def v = getMultiplicityVal(vals[0])
 
             if(v) minOccurs = v
-            else  throw new InvalidDataException("Invalid value for multiplicity : '$m'")
+            else  throw new InvalidDataException("Invalid value for multiplicity(minOccurs) : '$m'")
 
             v = getMultiplicityVal(vals[1])
 
             if(v) maxOccurs = v
-            else  maxOccurs = ''
+            else  throw new InvalidDataException("Invalid value for multiplicity(maxOccurs) : '$m'")
         }
         else {
             def v = getMultiplicityVal(m)
 
-            if(!v) { minOccurs = '0' }
-            else   {
-                if (v == 'unbounded') { maxOccurs = v; maxOccurs = ''; }
-                else                  { minOccurs = v; maxOccurs = v; }
-            }
+            if(v) { minOccurs = v;  maxOccurs = v; }
         }
+    }
+
+    public void setProcessContents(String p) {
+        if (!p) return //use defaul calue
+
+        def values = ['strict', 'lax', 'skip']
+
+        if (values.contains(p)) processContents = p
+        else                    throw new InvalidDataException("Invalid processContents:'$p' - valid values: $values")
     }
 }
