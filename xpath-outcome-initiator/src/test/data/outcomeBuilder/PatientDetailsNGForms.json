@@ -42,10 +42,7 @@
     {
       "validators": {"required": null},
       "additional": {
-        "showButtonBar": true,
-        "yearRange": "1990:2050",
-        "yearNavigator": true,
-        "monthNavigator": true
+        "showButtonBar": true
       },
       "format": "yy-mm-dd",
       "cls": {
