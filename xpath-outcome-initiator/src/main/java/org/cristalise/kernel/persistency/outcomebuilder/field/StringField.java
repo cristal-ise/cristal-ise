@@ -384,7 +384,8 @@ public class StringField {
 
         // appinfo/dynamicForms could have updated label, so do the CamelCase splitting now
         String label = StringUtils.join(StringUtils.splitByCharacterTypeCamelCase((String)field.get("label")), " ");
-        
+        label.replaceAll(" *", " ");
+ 
         boolean required = (Boolean)field.get("required");
 
         field.put("label",       label + (required ? " *": ""));
