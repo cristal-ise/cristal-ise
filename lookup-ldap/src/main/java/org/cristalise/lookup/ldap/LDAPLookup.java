@@ -803,6 +803,15 @@ public class LDAPLookup implements LookupManager {
     public void setAgentPassword(AgentPath agent, String newPassword)
             throws ObjectNotFoundException, ObjectCannotBeUpdated, NoSuchAlgorithmException
     {
+        setAgentPassword(agent, newPassword, false);
+    }
+
+    @Override
+    public void setAgentPassword(AgentPath agent, String newPassword, boolean temporary)
+            throws ObjectNotFoundException, ObjectCannotBeUpdated, NoSuchAlgorithmException
+    {
+        if (temporary) Logger.warning("LDAPLookup.setAgentPassword() - Does NOT support temporary passords!");
+
         if (!newPassword.matches("^\\{[a-zA-Z0-5]*\\}")) newPassword = LDAPLookupUtils.generateUserPassword(newPassword);
         LDAPEntry agentEntry;
         try {
