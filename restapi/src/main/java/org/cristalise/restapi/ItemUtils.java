@@ -527,7 +527,7 @@ public abstract class ItemUtils extends RestHandler {
      * @param types the media types requested by the client
      * @return true if the type is JSON, false if it is XML
      */
-    public boolean produceJSON(List<MediaType> types) {
+    public static boolean produceJSON(List<MediaType> types) {
         if (types.isEmpty()) return false;
 
         for (MediaType t: types) {
