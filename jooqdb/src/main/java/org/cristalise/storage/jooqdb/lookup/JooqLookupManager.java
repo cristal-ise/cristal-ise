@@ -449,6 +449,7 @@ public class JooqLookupManager implements LookupManager {
                 field(name("item", "UUID"), UUID.class),
                 JooqItemHandler.IOR,
                 JooqItemHandler.IS_AGENT,
+                JooqItemHandler.PASSWORD_TEMPORARY,
                 JooqItemPropertyHandler.VALUE.as("Name"));
 
         select.addOrderBy(field(name("Name")));
@@ -533,10 +534,15 @@ public class JooqLookupManager implements LookupManager {
 
     @Override
     public void setAgentPassword(AgentPath agent, String newPassword) throws ObjectNotFoundException, ObjectCannotBeUpdated, NoSuchAlgorithmException {
+        setAgentPassword(agent, newPassword, false);
+    }
+
+    @Override
+    public void setAgentPassword(AgentPath agent, String newPassword, boolean temporal) throws ObjectNotFoundException, ObjectCannotBeUpdated, NoSuchAlgorithmException {
         if (!exists(agent)) throw new ObjectNotFoundException("Agent:"+agent);
 
         try {
-            int rows = items.updatePassword(context, agent, passwordHasher.hashPassword(newPassword.toCharArray()));
+            int rows = items.updatePassword(context, agent, passwordHasher.hashPassword(newPassword.toCharArray()), temporal);
             if (rows != 1) throw new ObjectCannotBeUpdated("Agent:"+agent);
         }
         catch (Exception e) {
