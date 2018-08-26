@@ -449,7 +449,7 @@ public class JooqLookupManager implements LookupManager {
                 field(name("item", "UUID"), UUID.class),
                 JooqItemHandler.IOR,
                 JooqItemHandler.IS_AGENT,
-                JooqItemHandler.PASSWORD_TEMPORARY,
+                JooqItemHandler.IS_PASSWORD_TEMPORARY,
                 JooqItemPropertyHandler.VALUE.as("Name"));
 
         select.addOrderBy(field(name("Name")));
