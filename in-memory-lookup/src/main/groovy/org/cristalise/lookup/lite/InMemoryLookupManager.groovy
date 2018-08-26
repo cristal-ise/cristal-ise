@@ -147,6 +147,11 @@ class InMemoryLookupManager extends InMemoryLookup implements LookupManager {
 
     @Override
     public void setAgentPassword(AgentPath agent, String newPassword) throws ObjectNotFoundException, ObjectCannotBeUpdated, NoSuchAlgorithmException {
+        setAgentPassword(agent, newPassword, false)
+    }
+
+    @Override
+    public void setAgentPassword(AgentPath agent, String newPassword, boolean temporary) throws ObjectNotFoundException, ObjectCannotBeUpdated, NoSuchAlgorithmException {
         ((AgentPath)retrievePath(agent.stringPath))
         Logger.msg(5, "InMemoryLookupManager.setAgentPassword() - AgentPath: $agent NOTHING DONE");
     }
