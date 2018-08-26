@@ -538,11 +538,11 @@ public class JooqLookupManager implements LookupManager {
     }
 
     @Override
-    public void setAgentPassword(AgentPath agent, String newPassword, boolean temporal) throws ObjectNotFoundException, ObjectCannotBeUpdated, NoSuchAlgorithmException {
+    public void setAgentPassword(AgentPath agent, String newPassword, boolean temporary) throws ObjectNotFoundException, ObjectCannotBeUpdated, NoSuchAlgorithmException {
         if (!exists(agent)) throw new ObjectNotFoundException("Agent:"+agent);
 
         try {
-            int rows = items.updatePassword(context, agent, passwordHasher.hashPassword(newPassword.toCharArray()), temporal);
+            int rows = items.updatePassword(context, agent, passwordHasher.hashPassword(newPassword.toCharArray()), temporary);
             if (rows != 1) throw new ObjectCannotBeUpdated("Agent:"+agent);
         }
         catch (Exception e) {
