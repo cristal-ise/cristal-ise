@@ -48,6 +48,7 @@ import org.cristalise.kernel.lookup.ItemPath;
 import org.cristalise.kernel.lookup.LookupManager;
 import org.cristalise.kernel.lookup.Path;
 import org.cristalise.kernel.lookup.RolePath;
+import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.process.auth.Authenticator;
 import org.cristalise.kernel.property.Property;
 import org.cristalise.kernel.property.PropertyDescriptionList;
@@ -449,8 +450,10 @@ public class JooqLookupManager implements LookupManager {
                 field(name("item", "UUID"), UUID.class),
                 JooqItemHandler.IOR,
                 JooqItemHandler.IS_AGENT,
-                JooqItemHandler.IS_PASSWORD_TEMPORARY,
                 JooqItemPropertyHandler.VALUE.as("Name"));
+
+        if (Gateway.getProperties().getBoolean("JOOQ.TemporaryPwdFieldImplemented", true)) 
+            select.addSelect(JooqItemHandler.IS_PASSWORD_TEMPORARY);
 
         select.addOrderBy(field(name("Name")));
 
