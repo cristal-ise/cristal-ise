@@ -291,6 +291,10 @@ public class StringField {
     }
 
     public void setNgDynamicFormsValidators(JSONObject validators) {
+        if (contentType.hasFacet(Facet.PATTERN)) {
+            Facet pattern = contentType.getFacet(Facet.PATTERN);
+            validators.put(pattern.getName(), pattern.getValue());
+        }
     }
 
     public JSONObject generateNgDynamicFormsCls() {
