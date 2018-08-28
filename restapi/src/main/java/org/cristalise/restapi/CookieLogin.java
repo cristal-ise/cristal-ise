@@ -25,23 +25,28 @@ import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Context;
+import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.NewCookie;
 import javax.ws.rs.core.Response;
-import javax.ws.rs.core.UriInfo;
 
 import org.cristalise.kernel.common.InvalidDataException;
 import org.cristalise.kernel.common.ObjectNotFoundException;
 import org.cristalise.kernel.lookup.AgentPath;
 import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.utils.Logger;
+import org.json.XML;
 
 @Path("login")
 public class CookieLogin extends RestHandler {
 
     @GET
-    @Produces(MediaType.TEXT_PLAIN)
-    public Response login(@QueryParam("user") String user, @QueryParam("pass") String pass, @Context UriInfo uri) {
+    @Produces( {MediaType.TEXT_XML, MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON } )
+    public Response login(
+            @Context            HttpHeaders headers,
+            @QueryParam("user") String      user, 
+            @QueryParam("pass") String      pass)
+    {
         try {
             if (!Gateway.getAuthenticator().authenticate(user, pass, null))
                 throw ItemUtils.createWebAppException("Bad username/password", Response.Status.UNAUTHORIZED);
@@ -64,10 +69,10 @@ public class CookieLogin extends RestHandler {
             throw ItemUtils.createWebAppException("Agent '" + user + "' not found", Response.Status.NOT_FOUND);
         }
 
-        return getCookieResponse(agentPath);
+        return getCookieResponse(agentPath, ItemUtils.produceJSON(headers.getAcceptableMediaTypes()));
     }
 
-    private synchronized Response getCookieResponse(AgentPath agentPath) {
+    private synchronized Response getCookieResponse(AgentPath agentPath, boolean produceJSON) {
         // create and set cookie
         AuthData agentData = new AuthData(agentPath);
         try {
@@ -79,9 +84,12 @@ public class CookieLogin extends RestHandler {
                 cookie = new NewCookie(COOKIENAME, encryptAuthData(agentData), "/", null, null, cookieLife, false);
             else
                 cookie = new NewCookie(COOKIENAME, encryptAuthData(agentData));
+            
+            String result = "<Login result='Success' temporaryPassword='"+agentPath.isPasswordTemporary()+"' />";
+            if(produceJSON) result = XML.toJSONObject(result).toString();
 
             //FIXME: Perhaps Angular 4 bug. Return string is a json, so HttpClient will be able to process the response
-            return Response.ok("{\"login\":\"Success\"}").cookie(cookie).build();
+            return Response.ok(result).build();
         }
         catch (Exception e) {
             Logger.error(e);
