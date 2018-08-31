@@ -42,6 +42,7 @@ import org.cristalise.storage.jooqdb.clusterStore.JooqHistoryHandler;
 import org.cristalise.storage.jooqdb.clusterStore.JooqItemPropertyHandler;
 import org.cristalise.storage.jooqdb.clusterStore.JooqJobHandler;
 import org.cristalise.storage.jooqdb.clusterStore.JooqLifecycleHandler;
+import org.cristalise.storage.jooqdb.clusterStore.JooqOutcomeAttachmentHandler;
 import org.cristalise.storage.jooqdb.clusterStore.JooqOutcomeHandler;
 import org.cristalise.storage.jooqdb.clusterStore.JooqViewpointHandler;
 import org.jooq.DSLContext;
@@ -82,6 +83,7 @@ public class JooqClusterStorage extends TransactionalClusterStorage {
         jooqHandlers.put(ClusterType.COLLECTION, new JooqCollectionHadler());
         jooqHandlers.put(ClusterType.HISTORY,    new JooqHistoryHandler());
         jooqHandlers.put(ClusterType.JOB,        new JooqJobHandler());
+        jooqHandlers.put(ClusterType.ATTACHMENT, new JooqOutcomeAttachmentHandler());
 
         for (JooqHandler handler: jooqHandlers.values()) handler.createTables(context);
 
