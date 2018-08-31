@@ -83,7 +83,7 @@ public class JooqClusterStorage extends TransactionalClusterStorage {
         jooqHandlers.put(ClusterType.COLLECTION, new JooqCollectionHadler());
         jooqHandlers.put(ClusterType.HISTORY,    new JooqHistoryHandler());
         jooqHandlers.put(ClusterType.JOB,        new JooqJobHandler());
-        jooqHandlers.put(ClusterType.ATTACHMENT,        new JooqOutcomeAttachmentHandler());
+        jooqHandlers.put(ClusterType.ATTACHMENT, new JooqOutcomeAttachmentHandler());
 
         for (JooqHandler handler: jooqHandlers.values()) handler.createTables(context);
 
