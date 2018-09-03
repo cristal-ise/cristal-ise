@@ -428,6 +428,83 @@ public class ItemRoot extends ItemUtils {
         }
     }
 
+
+    /**
+     * Method for handling binary uplaod POST methods
+     * 
+     * @param postData
+     * @param headers
+     * @param uuid
+     * @param actPath
+     * @param transition
+     * @param authCookie
+     * @param uri
+     * @return
+     */
+    @POST
+    @Consumes( {MediaType.TEXT_XML, MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON , MediaType.MULTIPART_FORM_DATA} )
+    @Produces( {MediaType.TEXT_XML, MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON , MediaType.MULTIPART_FORM_DATA} )
+    @Path("{binaryUploadPath: .*}")
+    public String requestBinaryTransition(    String      postData,
+            @Context                    HttpHeaders headers,
+            @PathParam("uuid")          String      uuid,
+            @PathParam("binaryUploadPath")  String      actPath,
+            @QueryParam("transition")   String      transition,
+            @CookieParam(COOKIENAME)    Cookie      authCookie,
+            @Context                    UriInfo     uri)
+    {
+        AgentProxy agent = null;
+        try {
+            agent = (AgentProxy)Gateway.getProxyManager().getProxy( checkAuthCookie(authCookie) );
+        }
+        catch (ObjectNotFoundException e1) {
+            throw ItemUtils.createWebAppException(e1.getMessage(), Response.Status.UNAUTHORIZED);
+        }
+
+        if (actPath == null) throw ItemUtils.createWebAppException("Must specify activity path", Response.Status.BAD_REQUEST);
+
+        // Find agent
+        ItemProxy item = getProxy(uuid);
+
+        try {
+            List<String> types = headers.getRequestHeader(HttpHeaders.CONTENT_TYPE);
+
+            Logger.msg(5, "ItemRoot.requestTransition() postData:%s", postData);
+
+            if (actPath.startsWith("workflow/predefined")) {
+                return executePredefinedStep(item, postData, types, actPath, agent);
+            }
+            else {
+                transition = extractAndCcheckTransitionName(transition, uri);
+
+                return executeJob(item, postData, types, actPath, transition, agent);
+            }
+        }
+        catch (OutcomeBuilderException | InvalidDataException | ScriptErrorException | ObjectAlreadyExistsException | InvalidCollectionModification e) {
+            Logger.error(e);
+            throw ItemUtils.createWebAppException(e.getMessage(), e, Response.Status.BAD_REQUEST);
+        }
+        catch (AccessRightsException e) { // agent doesn't hold the right to execute
+            throw ItemUtils.createWebAppException(e.getMessage(), e, Response.Status.UNAUTHORIZED);
+        }
+        catch (ObjectNotFoundException e) { // workflow, schema, script etc not found.
+            Logger.error(e);
+            throw ItemUtils.createWebAppException(e.getMessage(), e, Response.Status.NOT_FOUND);
+        }
+        catch (InvalidTransitionException e) { // activity has already changed state
+            Logger.error(e);
+            throw ItemUtils.createWebAppException(e.getMessage(), e, Response.Status.CONFLICT);
+        }
+        catch (PersistencyException e) { // database failure
+            Logger.error(e);
+            throw ItemUtils.createWebAppException(e.getMessage(), e, Response.Status.INTERNAL_SERVER_ERROR);
+        }
+        catch (Exception e) { // any other failure
+            Logger.error(e);
+            throw ItemUtils.createWebAppException(e.getMessage(), Response.Status.INTERNAL_SERVER_ERROR);
+        }
+    }
+    
     /**
      * 
      * @param item
