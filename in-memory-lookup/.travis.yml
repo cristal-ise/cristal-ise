@@ -1,5 +1,10 @@
 language: java
 jdk: oraclejdk8
+branches:
+    only:
+    - master
+    - release
+    - develop
 before_install:
   - echo $GPG_SECRET_KEYS | base64 --decode | $GPG_EXECUTABLE --import
   - echo $GPG_OWNERTRUST | base64 --decode | $GPG_EXECUTABLE --import-ownertrust
@@ -17,11 +22,6 @@ deploy:
   file:
   skip_cleanup: true
   on:
-    branches:
-      only:
-      - master
-      - release
-      - develop
     repo: cristal-ise/in-memory-lookup
   name: cristalise-inmemory-lookup-$project_version
 cache:
