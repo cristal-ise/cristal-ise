@@ -251,9 +251,9 @@
                 <gpg.executable>gpg</gpg.executable>
                 <gpg.keyname>${env.GPG_KEYNAME}</gpg.keyname>
                 <gpg.passphrase>${env.GPG_PASSPHRASE}</gpg.passphrase>
-                <gpg.defaultKeyring>false</gpg.defaultKeyring>
-                <gpg.publicKeyring>${env.GPG_DIR}/pubring.gpg</gpg.publicKeyring>
-                <gpg.secretKeyring>${env.GPG_DIR}/secring.gpg</gpg.secretKeyring>
+                <!--<gpg.defaultKeyring>false</gpg.defaultKeyring>-->
+                <!--<gpg.publicKeyring>${env.GPG_DIR}/pubring.gpg</gpg.publicKeyring>-->
+                <!--<gpg.secretKeyring>${env.GPG_DIR}/secring.gpg</gpg.secretKeyring>-->
             </properties>
             <activation>
                 <property>
@@ -266,7 +266,7 @@
                     <plugin>
                         <groupId>org.apache.maven.plugins</groupId>
                         <artifactId>maven-gpg-plugin</artifactId>
-                        <version>1.5</version>
+                        <version>1.6</version>
                         <executions>
                             <execution>
                                 <id>sign-artifacts</id>
