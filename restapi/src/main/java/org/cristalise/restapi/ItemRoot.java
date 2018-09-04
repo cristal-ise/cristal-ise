@@ -22,6 +22,8 @@ package org.cristalise.restapi;
 
 import static org.cristalise.kernel.persistency.ClusterType.COLLECTION;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -44,6 +46,7 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.cristalise.kernel.common.AccessRightsException;
 import org.cristalise.kernel.common.InvalidCollectionModification;
@@ -56,6 +59,7 @@ import org.cristalise.kernel.entity.agent.Job;
 import org.cristalise.kernel.entity.proxy.AgentProxy;
 import org.cristalise.kernel.entity.proxy.ItemProxy;
 import org.cristalise.kernel.lookup.ItemPath;
+import org.cristalise.kernel.persistency.outcome.OutcomeAttachment;
 import org.cristalise.kernel.persistency.outcome.Schema;
 import org.cristalise.kernel.persistency.outcomebuilder.OutcomeBuilder;
 import org.cristalise.kernel.persistency.outcomebuilder.OutcomeBuilderException;
@@ -66,6 +70,7 @@ import org.cristalise.kernel.scripting.ScriptErrorException;
 import org.cristalise.kernel.scripting.ScriptingEngineException;
 import org.cristalise.kernel.utils.LocalObjectLoader;
 import org.cristalise.kernel.utils.Logger;
+import org.glassfish.jersey.media.multipart.FormDataParam;
 import org.json.JSONObject;
 import org.json.XML;
 
@@ -442,10 +447,11 @@ public class ItemRoot extends ItemUtils {
      * @return
      */
     @POST
-    @Consumes( {MediaType.TEXT_XML, MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON , MediaType.MULTIPART_FORM_DATA} )
-    @Produces( {MediaType.TEXT_XML, MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON , MediaType.MULTIPART_FORM_DATA} )
+    @Consumes( MediaType.MULTIPART_FORM_DATA )
+    @Produces( MediaType.MULTIPART_FORM_DATA)
     @Path("{binaryUploadPath: .*}")
     public String requestBinaryTransition(    String      postData,
+            @FormDataParam ("file") InputStream file,
             @Context                    HttpHeaders headers,
             @PathParam("uuid")          String      uuid,
             @PathParam("binaryUploadPath")  String      actPath,
@@ -462,6 +468,8 @@ public class ItemRoot extends ItemUtils {
         }
 
         if (actPath == null) throw ItemUtils.createWebAppException("Must specify activity path", Response.Status.BAD_REQUEST);
+        
+        if (file == null) throw ItemUtils.createWebAppException("Must provide a file to upload", Response.Status.BAD_REQUEST);
 
         // Find agent
         ItemProxy item = getProxy(uuid);
@@ -477,7 +485,7 @@ public class ItemRoot extends ItemUtils {
             else {
                 transition = extractAndCcheckTransitionName(transition, uri);
 
-                return executeJob(item, postData, types, actPath, transition, agent);
+                return executeUploadJob(item, file, postData, types, actPath, transition, agent);
             }
         }
         catch (OutcomeBuilderException | InvalidDataException | ScriptErrorException | ObjectAlreadyExistsException | InvalidCollectionModification e) {
@@ -534,6 +542,49 @@ public class ItemRoot extends ItemUtils {
         }
 
         return agent.execute(item, actPath, postData);
+    }
+    
+    
+    /**
+     * 
+     * @param item
+     * @param file
+     * @param postData
+     * @param types
+     * @param actPath
+     * @param transition
+     * @param agent
+     * @return
+     * @throws AccessRightsException
+     * @throws ObjectNotFoundException
+     * @throws PersistencyException
+     * @throws InvalidDataException
+     * @throws OutcomeBuilderException
+     * @throws InvalidTransitionException
+     * @throws ObjectAlreadyExistsException
+     * @throws InvalidCollectionModification
+     * @throws ScriptErrorException
+     * @throws IOException
+     */
+    private String executeUploadJob(ItemProxy item, InputStream file, String postData, List<String> types, String actPath, String transition, AgentProxy agent)
+            throws AccessRightsException, ObjectNotFoundException, PersistencyException, InvalidDataException, OutcomeBuilderException,
+                   InvalidTransitionException, ObjectAlreadyExistsException, InvalidCollectionModification, ScriptErrorException, IOException
+    {
+        Job thisJob = item.getJobByTransitionName(actPath, transition, agent);
+        
+        byte[] binaryData = IOUtils.toByteArray(file);
+
+        if (thisJob == null)
+            throw ItemUtils.createWebAppException("Job not found for actPath:"+actPath+" transition:"+transition, Response.Status.NOT_FOUND);
+
+        // set outcome if required
+        if (thisJob.hasOutcome()) {
+            OutcomeAttachment outcomeAttachment =
+                    new OutcomeAttachment(item.getPath(), thisJob.getSchema().getName(), thisJob.getSchema().getVersion(), -1, MediaType.APPLICATION_OCTET_STREAM, binaryData); 
+            
+            thisJob.setAttachment(outcomeAttachment);       
+        }
+        return agent.execute(thisJob);
     }
 
     /**
