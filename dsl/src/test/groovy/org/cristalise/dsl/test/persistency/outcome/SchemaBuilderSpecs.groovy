@@ -366,7 +366,7 @@ class SchemaBuilderSpecs extends Specification implements CristalTestSetup {
     def 'Field can specify multiplicity'() {
         expect:
         SchemaTestBuilder.build('Test', 'TestData', 0) {
-            struct(name: 'TestData') {
+            struct(name: 'TestData', useSequence: true) {
                 field(name:'default')
                 field(name:'many',        multiplicity:'*')
                 field(name:'fivehundred', multiplicity:'500')
@@ -377,14 +377,14 @@ class SchemaBuilderSpecs extends Specification implements CristalTestSetup {
         }.compareXML("""<xs:schema xmlns:xs='http://www.w3.org/2001/XMLSchema'>
                             <xs:element name='TestData'>
                                 <xs:complexType>
-                                    <xs:all minOccurs='0'>
+                                    <xs:sequence>
                                         <xs:element name='default'     type='xs:string' minOccurs='1' maxOccurs='1' />
                                         <xs:element name='many'        type='xs:string' minOccurs='0' maxOccurs='unbounded' />
                                         <xs:element name='fivehundred' type='xs:string' minOccurs='500' maxOccurs='500' />
                                         <xs:element name='zeroToMany'  type='xs:string' minOccurs='0' maxOccurs='unbounded' />
                                         <xs:element name='oneToFive'   type='xs:string' minOccurs='1' maxOccurs='5' />
                                         <xs:element name='reset'       type='xs:string' />
-                                    </xs:all>
+                                    </xs:sequence>
                                 </xs:complexType>
                             </xs:element>
                         </xs:schema>""")
