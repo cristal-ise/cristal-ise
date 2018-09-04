@@ -89,7 +89,7 @@ public class CookieLogin extends RestHandler {
             if(produceJSON) result = XML.toJSONObject(result).toString();
 
             //FIXME: Perhaps Angular 4 bug. Return string is a json, so HttpClient will be able to process the response
-            return Response.ok(result).build();
+            return Response.ok(result).cookie(cookie).build();
         }
         catch (Exception e) {
             Logger.error(e);
