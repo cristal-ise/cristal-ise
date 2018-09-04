@@ -13,6 +13,10 @@
             <id>ossrh</id>
             <activation>
                 <activeByDefault>true</activeByDefault>
+                <property>
+                    <name>performRelease</name>
+                    <value>true</value>
+                </property>
             </activation>
             <properties>
                 <gpg.executable>${env.GPG_EXECUTABLE}</gpg.executable>
