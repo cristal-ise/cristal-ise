@@ -57,6 +57,11 @@ public class BuildEmptyOutcomeTest extends XMLUtils {
     }
 
     @Test
+    public void anyField() throws Exception {
+        checkEmptyOutcome("AnyField");
+    }
+
+    @Test
     public void booleanField() throws Exception {
         checkEmptyOutcome("BooleanField");
     }

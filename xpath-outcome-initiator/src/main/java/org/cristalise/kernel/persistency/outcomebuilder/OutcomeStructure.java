@@ -49,6 +49,7 @@ import org.exolab.castor.xml.schema.Order;
 import org.exolab.castor.xml.schema.Particle;
 import org.exolab.castor.xml.schema.SimpleType;
 import org.exolab.castor.xml.schema.SimpleTypesFactory;
+import org.exolab.castor.xml.schema.Wildcard;
 import org.exolab.castor.xml.schema.XMLType;
 import org.json.JSONObject;
 import org.w3c.dom.Document;
@@ -218,8 +219,13 @@ public abstract class OutcomeStructure {
                 ElementDecl thisElement = (ElementDecl) thisParticle;
                 addStructure(createStructure(thisElement));
             }
-            else 
-                throw new StructuralException("Particle " + thisParticle.getClass() + " not implemented");
+            else if (thisParticle instanceof Wildcard) {
+                //do nothing
+                Logger.msg(5, "OutcomeStructure.enumerateElements() - group has Wildcard representing xs:any");
+            }
+            else {
+                throw new StructuralException("Cannot process Particle '" + thisParticle.getClass() + "' : Not implemented");
+            }
         }
     }
 
