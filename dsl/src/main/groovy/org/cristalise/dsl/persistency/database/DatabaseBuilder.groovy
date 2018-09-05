@@ -22,7 +22,6 @@ package org.cristalise.dsl.persistency.database
 
 import groovy.transform.CompileStatic
 import org.cristalise.kernel.common.InvalidDataException
-import org.cristalise.kernel.persistency.database.Database
 import org.cristalise.kernel.utils.Logger
 
 /**
@@ -75,7 +74,6 @@ class DatabaseBuilder {
         Logger.msg 5, "DatabaseBuilder.loadDB() - From file:$dbUpdateFile"
 
         database = new Database(name, version, new File(dbCreateFile).text, new File(dbInsertFile).text, new File(dbSelectFile).text, new File(dbUpdateFile).text)
-        database.validate()
 
         return this
     }

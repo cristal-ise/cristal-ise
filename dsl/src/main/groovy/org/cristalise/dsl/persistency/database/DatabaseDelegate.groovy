@@ -23,9 +23,7 @@ package org.cristalise.dsl.persistency.database
 import org.codehaus.groovy.runtime.StringBufferWriter
 import org.cristalise.dsl.persistency.outcome.Struct
 import org.cristalise.kernel.common.InvalidDataException
-import org.cristalise.kernel.persistency.database.DatabaseType
 import org.cristalise.kernel.utils.Logger
-
 /**
  *
  */
