@@ -203,9 +203,9 @@ class DatabaseDelegate {
 
             w.append("def insertQueryResult = dsl.insertQuery(${name})\n")
             fields.each {
-                w.append("        insertQuery.addValue(${it.toUpperCase()}, outcome.getField('${it}'))\n")
+                w.append("insertQueryResult.addValue(${it.toUpperCase()}, outcome.getField('${it}'))\n")
             }
-            w.append("        insertQuery.execute()\n\n")
+            w.append("insertQuery.execute()\n\n")
             w.append("insertQueryResult")
 
         } else if (type == DatabaseType.SELECT) { //select query content
@@ -227,7 +227,7 @@ class DatabaseDelegate {
             w.append("def updateQueryResult = dsl.updateQuery(${name})\n")
             fields.each {
                 if (!(it in primaryKeys)) {
-                    w.append("        updateQuery.addValue(${it.toUpperCase()}, outcome.getField('${it}'))\n")
+                    w.append("updateQueryResult.addValue(${it.toUpperCase()}, outcome.getField('${it}'))\n")
                 }
             }
             if (primaryKeys) {
@@ -237,9 +237,9 @@ class DatabaseDelegate {
                         conditions.add("${it.toUpperCase()}.equal(outcome.getField('${it}'))")
                     }
                 }
-                w.append("        updateQuery.addConditions(${conditions.join(",")})\n")
+                w.append("updateQuery.addConditions(${conditions.join(",")})\n")
             }
-            w.append("        updateQuery.execute()\n\n")
+            w.append("updateQuery.execute()\n\n")
             w.append("updateQueryResult")
         }
 
