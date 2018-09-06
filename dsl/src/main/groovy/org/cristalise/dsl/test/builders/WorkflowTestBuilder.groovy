@@ -233,7 +233,7 @@ class WorkflowTestBuilder extends WorkflowBuilder {
         if(act instanceof CompositeActivity) transID = getTransID(caSM, trans)
         else                                 transID = getTransID(eaSM, trans)
 
-        wf.requestAction(agentPath, null, act.path, itemPath, transID, requestData)
+        wf.requestAction(agentPath, null, act.path, itemPath, transID, requestData, "", "".bytes)
     }
 
     /**
