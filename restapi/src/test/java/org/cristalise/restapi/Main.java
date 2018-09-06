@@ -34,6 +34,7 @@ import org.cristalise.kernel.process.resource.BadArgumentsException;
 import org.cristalise.kernel.utils.Logger;
 import org.glassfish.grizzly.http.server.HttpServer;
 import org.glassfish.jersey.grizzly2.httpserver.GrizzlyHttpServerFactory;
+import org.glassfish.jersey.media.multipart.MultiPartFeature;
 import org.glassfish.jersey.server.ResourceConfig;
 
 /**
@@ -75,6 +76,8 @@ public class Main extends StandardClient {
             throw new BadArgumentsException("Please specify REST.URI on which to listen in config.");
 
         final ResourceConfig rc = new ResourceConfig().packages("org.cristalise.restapi");
+        
+       rc.register(MultiPartFeature.class);
 
         if (Gateway.getProperties().getBoolean("REST.addCorsHeaders", false)) rc.register(CORSResponseFilter.class);
 
