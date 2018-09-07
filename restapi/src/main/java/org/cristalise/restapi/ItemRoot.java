@@ -449,7 +449,7 @@ public class ItemRoot extends ItemUtils {
     @POST
     @Consumes( MediaType.MULTIPART_FORM_DATA )
     @Produces( MediaType.MULTIPART_FORM_DATA)
-    @Path("{binaryUploadPath: .*}")
+    @Path("upload/{binaryUploadPath: .*}")
     public String requestBinaryTransition(    String      postData,
             @FormDataParam ("file") InputStream file,
             @Context                    HttpHeaders headers,
