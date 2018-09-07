@@ -67,7 +67,7 @@ class PropertyDescriptionBuilderSpecs extends Specification implements CristalTe
         propDescList.list[1].name == "Type"
         propDescList.list[1].isMutable == false
         propDescList.list[1].isClassIdentifier == false
-        propDescList.list[0].isTransitive()
+        propDescList.list[1].transitive == true
         propDescList.list[1].defaultValue == "ElemActDesc"
     }
 
