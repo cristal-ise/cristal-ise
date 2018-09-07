@@ -29,20 +29,9 @@ import org.cristalise.kernel.utils.Logger
  */
 class DatabaseDelegate {
 
-    String importLines = "import org.cristalise.storage.jooqdb.JooqHandler\nimport static org.jooq.impl.DSL.*\n\n"
-    String dslLine = "def dsl = JooqHandler.connect()\n"
-    String outcomeLine = "def outcome = job.getOutcome()\n"
-    String commentLine = "//--------------------------------------------------\n" +
-            "// item, agent and job are injected by the Script class\n" +
-            "// automatically so these declaration are only needed\n" +
-            "// to write the script with code completion.\n" +
-            "// COMMENT OUT before you run the module generators\n" +
-            "//--------------------------------------------------\n" +
-            "// ItemProxy item\n" +
-            "// AgentProxy agent\n" +
-            "// Job job\n" +
-            "//--------------------------------------------------\n"
-    def primaryKeys = ["Name", "ID"]
+    String importLines = "import static org.jooq.impl.DSL.*\nimport java.sql.Date\nimport java.sql.Timestamp\n\n"
+    String commentLine = "//Script to be executed by domain handler class.\n\n"
+    String uuidField = "UUID"
     String dbCreateString
     String dbInsertString
     String dbSelectString
@@ -81,8 +70,6 @@ class DatabaseDelegate {
         def writer = new StringBufferWriter(dbBuffer)
         writer.append(importLines)
         writer.append(commentLine)
-        writer.append(dslLine)
-        writer.append(outcomeLine)
         writer.append(table)
 
         def fields = buildFields(writer, s)
@@ -109,6 +96,8 @@ class DatabaseDelegate {
 
         def jqFields = new ArrayList()
         if (s.fields || s.structs || s.anyField) {
+            w.append("def ${uuidField} = field(name('${uuidField}'), UUID.class)\n")
+            jqFields.add(uuidField)
             s.fields.each {
                 def fieldName = "${it.name}".toUpperCase()
                 def type = getJooqFieldTye(it.type)
@@ -181,66 +170,44 @@ class DatabaseDelegate {
 
         def w = new StringBufferWriter(new StringBuffer(commonLines + "\n"))
 
-        def keys = new ArrayList()
-        for (String s : primaryKeys) {
-            if (s in fields) {
-                keys.add(s.toUpperCase())
-            }
-        }
-
         if (type == DatabaseType.CREATE) { // create table content
 
             w.append("dsl.createTableIfNotExists(${name})\n")
             fields.each {
                 w.append("        .column(${it.toUpperCase()})\n")
             }
-            if (keys) {
-                w.append("        .constraints(constraint('PK_' + ${name}).primaryKey(${keys.join(",")}))\n")
-            }
+            w.append("        .constraints(constraint('PK_' + ${name}).primaryKey(${uuidField}))\n")
             w.append("        .execute()\n")
 
         } else if (type == DatabaseType.INSERT) { // insert query content
 
             w.append("def insertQueryResult = dsl.insertQuery(${name})\n")
             fields.each {
-                w.append("insertQueryResult.addValue(${it.toUpperCase()}, outcome.getField('${it}'))\n")
+                if (it == uuidField){
+                    w.append("insertQueryResult.addValue(${it.toUpperCase()}, uuid)\n")
+                }else {
+                    w.append("insertQueryResult.addValue(${it.toUpperCase()}, outcome.getField('${it}'))\n")
+                }
             }
-            w.append("insertQuery.execute()\n\n")
-            w.append("insertQueryResult")
+            w.append("def result = insertQueryResult.execute()\n\n")
+            w.append("result")
 
         } else if (type == DatabaseType.SELECT) { //select query content
             w.append("def selectQueryResult = dsl.select()\n")
             w.append("        .from(${name})\n")
-            for (int i = 0; i < primaryKeys.size(); i++) {
-                String f = primaryKeys[i]
-                if (f in fields) {
-                    if (i == 0) {
-                        w.append("        .where(${f.toUpperCase()}.equal(outcome.getField('${f}')))\n")
-                    } else {
-                        w.append("        .or(${f.toUpperCase()}.equal(outcome.getField('${f}')))\n")
-                    }
-                }
-            }
+            w.append("        .where(${uuidField}.equal(uuid))\n")
             w.append("        .fetchOne()\n\n")
             w.append("selectQueryResult")
         } else if (type == DatabaseType.UPDATE) { // update query content
             w.append("def updateQueryResult = dsl.updateQuery(${name})\n")
             fields.each {
-                if (!(it in primaryKeys)) {
+                if (it != uuidField) {
                     w.append("updateQueryResult.addValue(${it.toUpperCase()}, outcome.getField('${it}'))\n")
                 }
             }
-            if (primaryKeys) {
-                def conditions = new ArrayList()
-                primaryKeys.each {
-                    if (it in fields) {
-                        conditions.add("${it.toUpperCase()}.equal(outcome.getField('${it}'))")
-                    }
-                }
-                w.append("updateQuery.addConditions(${conditions.join(",")})\n")
-            }
-            w.append("updateQuery.execute()\n\n")
-            w.append("updateQueryResult")
+            w.append("updateQueryResult.addConditions(${uuidField}.equal(uuid))\n")
+            w.append("def result = updateQueryResult.execute()\n\n")
+            w.append("result")
         }
 
         return w.toString()
