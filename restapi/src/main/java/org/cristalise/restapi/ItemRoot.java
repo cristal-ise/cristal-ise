@@ -399,8 +399,13 @@ public class ItemRoot extends ItemUtils {
             }
             else {
                 transition = extractAndCcheckTransitionName(transition, uri);
-
-                return executeJob(item, postData, types, actPath, transition, agent);
+                String execJob = executeJob(item, postData, types, actPath, transition, agent);
+                if (types.contains(MediaType.APPLICATION_XML) || types.contains(MediaType.TEXT_XML)) {
+                	return execJob;
+                } else {
+                	return XML.toJSONObject(execJob).toString();
+                }
+                
             }
         }
         catch (OutcomeBuilderException | InvalidDataException | ScriptErrorException | ObjectAlreadyExistsException | InvalidCollectionModification e) {
