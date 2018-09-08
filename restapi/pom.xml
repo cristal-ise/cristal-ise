@@ -208,17 +208,13 @@
             <groupId>org.glassfish.jersey.core</groupId>
             <artifactId>jersey-common</artifactId>
         </dependency>
-        <!-- https://mvnrepository.com/artifact/org.glassfish.jersey.core/jersey-server -->
         <dependency>
             <groupId>org.glassfish.jersey.core</groupId>
             <artifactId>jersey-server</artifactId>
-            <version>2.26</version>
         </dependency>
-        <!-- https://mvnrepository.com/artifact/org.glassfish.jersey.media/jersey-media-multipart -->
         <dependency>
             <groupId>org.glassfish.jersey.media</groupId>
             <artifactId>jersey-media-multipart</artifactId>
-            <version>2.26</version>
         </dependency>        
         <dependency>
             <groupId>org.cristalise</groupId>
@@ -234,6 +230,16 @@
             <groupId>org.json</groupId>
             <artifactId>json</artifactId>
             <version>20171018</version>
+        </dependency>
+        <dependency>
+            <groupId>com.microsoft.sqlserver</groupId>
+            <artifactId>mssql-jdbc</artifactId>
+            <version>6.4.0.jre8</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.tika</groupId>
+            <artifactId>tika-parsers</artifactId>
+            <version>1.18</version>
         </dependency>
 
         <dependency>
@@ -257,17 +263,6 @@
             <artifactId>groovy-all</artifactId>
             <version>2.4.12</version>
             <scope>test</scope>
-        </dependency>
-        <!-- https://mvnrepository.com/artifact/com.microsoft.sqlserver/mssql-jdbc -->
-        <dependency>
-            <groupId>com.microsoft.sqlserver</groupId>
-            <artifactId>mssql-jdbc</artifactId>
-            <version>6.4.0.jre8</version>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.tika</groupId>
-            <artifactId>tika-parsers</artifactId>
-            <version>1.18</version>
         </dependency>
     </dependencies>
 
