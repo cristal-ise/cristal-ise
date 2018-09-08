@@ -23,6 +23,7 @@ package org.cristalise.restapi;
 import static javax.ws.rs.core.MediaType.APPLICATION_JSON_TYPE;
 import static javax.ws.rs.core.MediaType.APPLICATION_XML_TYPE;
 import static javax.ws.rs.core.MediaType.TEXT_XML_TYPE;
+import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.ATTACHMENT_MIME_TYPES;
 import static org.cristalise.kernel.persistency.ClusterType.HISTORY;
 import static org.cristalise.kernel.persistency.ClusterType.PROPERTY;
 import static org.cristalise.kernel.persistency.ClusterType.VIEWPOINT;
@@ -59,6 +60,7 @@ import org.cristalise.kernel.common.PersistencyException;
 import org.cristalise.kernel.entity.agent.Job;
 import org.cristalise.kernel.entity.proxy.ItemProxy;
 import org.cristalise.kernel.events.Event;
+import org.cristalise.kernel.graph.model.BuiltInVertexProperties;
 import org.cristalise.kernel.lifecycle.instance.stateMachine.StateMachine;
 import org.cristalise.kernel.lookup.DomainPath;
 import org.cristalise.kernel.lookup.InvalidItemPathException;
@@ -317,6 +319,9 @@ public abstract class ItemUtils extends RestHandler {
         jobData.put("transition", getJobTransitionData(job, itemName, uri));
 
         if (job.hasOutcome()) jobData.put("outcome", getJobOutcomeData(job, itemName, uri));
+
+        String attachmentType = job.getActPropString(ATTACHMENT_MIME_TYPES);
+        if (StringUtils.isNotBlank(attachmentType)) jobData.put("attachmentMimeTypes", attachmentType);
 
         return jobData;
     }
