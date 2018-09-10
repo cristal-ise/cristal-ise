@@ -36,6 +36,7 @@ class DatabaseDelegate {
     String dbInsertString
     String dbSelectString
     String dbUpdateString
+    String dbScriptsString
 
     /**
      *
@@ -83,6 +84,8 @@ class DatabaseDelegate {
         dbSelectString = buildScriptContent(tableName, commonLines, fields, DatabaseType.SELECT)
         // construct update query
         dbUpdateString = buildScriptContent(tableName, commonLines, fields, DatabaseType.UPDATE)
+        // consturct item scripts
+        dbScriptsString = getDomainScript(name)
     }
 
     /**
@@ -211,6 +214,42 @@ class DatabaseDelegate {
         }
 
         return w.toString()
+    }
+
+    /**
+     * Creates the script items for the domain.
+     * @param name
+     * @return
+     */
+    private String getDomainScript(String name){
+        String itemNameCreate = name + DatabaseType.CREATE.getValue()
+        String itemNameInsert = name + DatabaseType.INSERT.getValue()
+        String itemNameUpdate = name + DatabaseType.UPDATE.getValue()
+        String itemNameSelect = name + DatabaseType.SELECT.getValue()
+        StringBufferWriter sbw = new StringBufferWriter(new StringBuffer())
+                .append("Script('${itemNameCreate}', 0) {\n")
+                .append("    input('dsl', 'org.jooq.DSLContext')\n")
+                .append("    script('groovy', 'src/main/script/DB/${itemNameCreate}.groovy')\n")
+                .append("}\n\n")
+                .append("Script('${itemNameInsert}', 0) {\n")
+                .append("    input('dsl', 'org.jooq.DSLContext')\n")
+                .append("    input('outcome', 'org.cristalise.kernel.persistency.outcome.Outcome')\n")
+                .append("    input('uuid', 'java.lang.String')\n")
+                .append("    output('result', 'java.lang.Integer')\n")
+                .append("    script('groovy', 'src/main/script/DB/${itemNameInsert}.groovy')\n")
+                .append("}\n\n")
+                .append("Script('${itemNameUpdate}', 0) {\n")
+                .append("    input('dsl', 'org.jooq.DSLContext')\n")
+                .append("    input('outcome', 'org.cristalise.kernel.persistency.outcome.Outcome')\n")
+                .append("    input('uuid', 'java.lang.String')\n")
+                .append("    output('result', 'java.lang.Integer')\n")
+                .append("    script('groovy', 'src/main/script/DB/${itemNameUpdate}.groovy')\n")
+                .append("}\n\n")
+                .append("Script('${itemNameSelect}', 0) {\n")
+                .append("    input('dsl', 'org.jooq.DSLContext')\n")
+                .append("    output('selectQueryResult', 'org.jooq.Record')\n")
+                .append("    script('groovy', 'src/main/script/DB/${itemNameSelect}.groovy')\n")
+                .append("}\n\n")
     }
 
 }
