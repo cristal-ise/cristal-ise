@@ -68,6 +68,7 @@ import org.cristalise.kernel.querying.Query;
 import org.cristalise.kernel.scripting.Script;
 import org.cristalise.kernel.scripting.ScriptErrorException;
 import org.cristalise.kernel.scripting.ScriptingEngineException;
+import org.cristalise.kernel.utils.CastorHashMap;
 import org.cristalise.kernel.utils.LocalObjectLoader;
 import org.cristalise.kernel.utils.Logger;
 import org.glassfish.jersey.media.multipart.FormDataParam;
@@ -141,12 +142,12 @@ public class ItemRoot extends ItemUtils {
                 final Schema schema = LocalObjectLoader.getSchema(type, schemaVersion);
                 script = LocalObjectLoader.getScript(scriptName, scriptVersion);
 
-                return returnScriptResult(scriptName, item, schema, script, produceJSON(headers.getAcceptableMediaTypes()));
+                return returnScriptResult(scriptName, item, schema, script, null, produceJSON(headers.getAcceptableMediaTypes()));
             }
             else if ((script = getAggregateScript(type, scriptVersion)) != null) {
                 final Schema schema = LocalObjectLoader.getSchema(type, schemaVersion);
 
-                return returnScriptResult(scriptName, item, schema, script, produceJSON(headers.getAcceptableMediaTypes()));
+                return returnScriptResult(scriptName, item, schema, script, null, produceJSON(headers.getAcceptableMediaTypes()));
             }
             else if (item.checkViewpoint(type, view)) {
                 return getViewpointOutcome(uuid, type, view, true);
@@ -168,6 +169,7 @@ public class ItemRoot extends ItemUtils {
             @PathParam("uuid")       String      uuid,
             @QueryParam("script")    String      scriptName,
             @QueryParam("version")   Integer     scriptVersion,
+            @QueryParam("inputs")    String      inputJson,
             @CookieParam(COOKIENAME) Cookie      authCookie)
     {
         checkAuthCookie(authCookie);
@@ -178,11 +180,15 @@ public class ItemRoot extends ItemUtils {
         if (scriptVersion == null) scriptVersion = 0;
 
         Script script = null;
-
         try {
             if (scriptName != null) {
                 script = LocalObjectLoader.getScript(scriptName, scriptVersion);
-                return returnScriptResult(scriptName, item, null, script, produceJSON(headers.getAcceptableMediaTypes()));
+
+                JSONObject json = new JSONObject(inputJson);
+                CastorHashMap inputs = new CastorHashMap();
+                for (String key: json.keySet()) inputs.put(key, json.get(key));
+
+                return returnScriptResult(scriptName, item, null, script, inputs, produceJSON(headers.getAcceptableMediaTypes()));
             }
             else
                 throw ItemUtils.createWebAppException("Name or UUID of Script was missing", Response.Status.NOT_FOUND);
@@ -257,12 +263,12 @@ public class ItemRoot extends ItemUtils {
      * @see org.cristalise.restapi.ItemUtils#returnScriptResult(java.lang.String, org.cristalise.kernel.entity.proxy.ItemProxy, org.cristalise.kernel.persistency.outcome.Schema, org.cristalise.kernel.scripting.Script)
      */
     @Override
-    protected Response returnScriptResult(String scriptName, ItemProxy item, final Schema schema, final Script script, boolean jsonFlag)
+    protected Response returnScriptResult(String scriptName, ItemProxy item, final Schema schema, final Script script, CastorHashMap inputs, boolean jsonFlag)
             throws ScriptingEngineException, InvalidDataException
     {
         try {
             mutex.acquire();
-            return super.returnScriptResult(scriptName, item, schema, script, jsonFlag);
+            return super.returnScriptResult(scriptName, item, schema, script, inputs, jsonFlag);
         }
         catch (ScriptingEngineException e) {
             throw e;

@@ -34,7 +34,6 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 
 import org.cristalise.kernel.entity.proxy.ItemProxy;
-import org.cristalise.kernel.persistency.ClusterType;
 
 @Path("/item/{uuid}/attachment")
 public class ItemOutcomeAttachment extends ItemUtils {

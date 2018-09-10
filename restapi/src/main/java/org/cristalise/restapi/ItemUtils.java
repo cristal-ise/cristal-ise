@@ -60,7 +60,6 @@ import org.cristalise.kernel.common.PersistencyException;
 import org.cristalise.kernel.entity.agent.Job;
 import org.cristalise.kernel.entity.proxy.ItemProxy;
 import org.cristalise.kernel.events.Event;
-import org.cristalise.kernel.graph.model.BuiltInVertexProperties;
 import org.cristalise.kernel.lifecycle.instance.stateMachine.StateMachine;
 import org.cristalise.kernel.lookup.DomainPath;
 import org.cristalise.kernel.lookup.InvalidItemPathException;
@@ -573,11 +572,11 @@ public abstract class ItemUtils extends RestHandler {
      * @throws ScriptingEngineException
      * @throws InvalidDataException
      */
-    protected Response returnScriptResult(String scriptName, ItemProxy item, final Schema schema, final Script script, boolean jsonFlag)
+    protected Response returnScriptResult(String scriptName, ItemProxy item, final Schema schema, final Script script, CastorHashMap inputs, boolean jsonFlag)
             throws ScriptingEngineException, InvalidDataException
     {
         String xmlOutcome = null;
-        Object scriptResult = executeScript(item, script);
+        Object scriptResult = executeScript(item, script, inputs);
 
         if (scriptResult instanceof String) {
             xmlOutcome = (String)scriptResult;
@@ -605,12 +604,12 @@ public abstract class ItemUtils extends RestHandler {
      * @throws ScriptingEngineException
      * @throws InvalidDataException
      */
-    protected Object executeScript(ItemProxy item, final Script script)
+    protected Object executeScript(ItemProxy item, final Script script, CastorHashMap inputs)
             throws ScriptingEngineException, InvalidDataException {
         
         Object scriptResult = null;
         try {
-            scriptResult = script.evaluate(item.getPath(), new CastorHashMap(), null, null);
+            scriptResult = script.evaluate(item.getPath(), inputs, null, null);
         }
         catch (ScriptingEngineException e) {
             throw e;
