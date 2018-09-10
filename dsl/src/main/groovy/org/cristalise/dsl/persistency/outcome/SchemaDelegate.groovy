@@ -142,11 +142,13 @@ class SchemaDelegate {
 
     private void setAppinfoListOfValues(xsd, Field f) {
         xsd.listOfValues {
-            if (f.listOfValues.scriptRef)     scriptRef(    f.listOfValues.scriptRef)
-            if (f.listOfValues.queryRef)      queryRef(     f.listOfValues.queryRef)
-            if (f.listOfValues.propertyNames) propertyNames(f.listOfValues.propertyNames)
-            if (f.listOfValues.inputName)     inputName(    f.listOfValues.inputName)
-            if (f.listOfValues.values)        values(       f.listOfValues.values.join(','))
+            if (f.listOfValues.scriptRef)       scriptRef(      f.listOfValues.scriptRef)
+            if (f.listOfValues.queryRef)        queryRef(       f.listOfValues.queryRef)
+            if (f.listOfValues.updateScriptRef) updateScriptRef(f.listOfValues.updateScriptRef)
+            if (f.listOfValues.updateQuerytRef) updateQuerytRef(f.listOfValues.updateQuerytRef)
+            if (f.listOfValues.propertyNames)   propertyNames(  f.listOfValues.propertyNames)
+            if (f.listOfValues.inputName)       inputName(      f.listOfValues.inputName)
+            if (f.listOfValues.values)          values(         f.listOfValues.values.join(','))
         }
     }
 

@@ -28,13 +28,25 @@ import groovy.transform.CompileStatic;
 @CompileStatic
 class ListOfValues {
     /**
-     * Defines the Script name and version, e.g. GetShiftNames:0'
+     * Defines the Script name and version (e.g. GetShiftNames:0') which is executed when
+     * the XML Schema is converted to form meta-data
      */
     String scriptRef = null
     /**
-     * Defines the Query name and version, e.g. GetShiftNames:0'
+     * Defines the Query name and version (e.g. GetShiftNames:0) which is executed while
+     * the XML Schema is converted to form meta-data
      */
     String queryRef = null
+    /**
+     * Defines the Script name and version (e.g. GetShiftNames:0) which is executed when
+     * the from generated from the XML Schema has to be updated
+     */
+    String updateScriptRef = null
+    /**
+     * Defines the Query name and version (e.g. GetShiftNames:0) which is executed when
+     * the from generated from the XML Schema has to be updated
+     */
+    String updateQuerytRef = null
     /**
      * Comma separated list of ItemProperty names
      */
