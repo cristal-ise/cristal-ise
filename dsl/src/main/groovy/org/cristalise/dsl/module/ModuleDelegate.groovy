@@ -20,9 +20,12 @@
  */
 package org.cristalise.dsl.module
 
+import groovy.transform.CompileStatic
 import org.codehaus.groovy.control.CompilerConfiguration
 import org.cristalise.dsl.lifecycle.definition.CompActDefBuilder
 import org.cristalise.dsl.lifecycle.definition.ElemActDefBuilder
+import org.cristalise.dsl.persistency.database.Database
+import org.cristalise.dsl.persistency.database.DatabaseBuilder
 import org.cristalise.dsl.persistency.outcome.SchemaBuilder
 import org.cristalise.dsl.querying.QueryBuilder
 import org.cristalise.dsl.scripting.ScriptBuilder
@@ -33,10 +36,6 @@ import org.cristalise.kernel.process.module.Module
 import org.cristalise.kernel.querying.Query
 import org.cristalise.kernel.scripting.Script
 import org.cristalise.kernel.utils.LocalObjectLoader
-
-import groovy.transform.CompileStatic
-
-
 /**
  *
  */
@@ -51,6 +50,8 @@ class ModuleDelegate {
     Binding bindings = new Binding()
 
     static final String exportRoot = "src/main/resources/boot"
+    static final String exportDBRoot = "src/main/script/"
+
 
     public ModuleDelegate(String ns, String n, int v) {
         module.ns = ns
@@ -81,6 +82,12 @@ class ModuleDelegate {
         def schema = SchemaBuilder.build(name, version, cl)
         schema.export(imports, new File(exportRoot), true)
         return schema
+    }
+
+    public Database Database(String name, Integer version, Closure cl) {
+        def database = DatabaseBuilder.build(name, version, cl)
+        database.export(new File(exportDBRoot))
+        return database
     }
 
     public Query Query(String name, Integer version) {

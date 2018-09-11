@@ -37,4 +37,15 @@ class DynamicForms {
     Integer min = null
     Integer max = null
     String value = null
+
+    /**
+     * Defines the Script name and version (e.g. GetShiftNames:0) which is executed when
+     * the from generated from the XML Schema has to be updated
+     */
+    String updateScriptRef = null
+    /**
+     * Defines the Query name and version (e.g. GetShiftNames:0) which is executed when
+     * the from generated from the XML Schema has to be updated
+     */
+    String updateQuerytRef = null
 }

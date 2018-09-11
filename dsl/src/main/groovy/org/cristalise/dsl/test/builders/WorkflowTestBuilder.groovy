@@ -21,15 +21,9 @@
 package org.cristalise.dsl.test.builders
 
 import groovy.transform.CompileStatic
-
 import org.cristalise.dsl.lifecycle.instance.WorkflowBuilder
 import org.cristalise.kernel.graph.model.DirectedEdge
-import org.cristalise.kernel.lifecycle.instance.Activity
-import org.cristalise.kernel.lifecycle.instance.CompositeActivity
-import org.cristalise.kernel.lifecycle.instance.Join
-import org.cristalise.kernel.lifecycle.instance.Split
-import org.cristalise.kernel.lifecycle.instance.WfVertex
-import org.cristalise.kernel.lifecycle.instance.Workflow
+import org.cristalise.kernel.lifecycle.instance.*
 import org.cristalise.kernel.lifecycle.instance.stateMachine.StateMachine
 import org.cristalise.kernel.lifecycle.instance.stateMachine.Transition
 import org.cristalise.kernel.lookup.AgentPath
@@ -37,7 +31,6 @@ import org.cristalise.kernel.lookup.ItemPath
 import org.cristalise.kernel.persistency.outcome.Outcome
 import org.cristalise.kernel.process.Gateway
 import org.cristalise.kernel.utils.Logger
-
 
 /**
  *
@@ -227,11 +220,11 @@ class WorkflowTestBuilder extends WorkflowBuilder {
 
         int transID = -1
         String requestData = null
-        
-        if(outcome != null) requestData = outcome.getData()
 
-        if(act instanceof CompositeActivity) transID = getTransID(caSM, trans)
-        else                                 transID = getTransID(eaSM, trans)
+        if (outcome != null) requestData = outcome.getData()
+
+        if (act instanceof CompositeActivity) transID = getTransID(caSM, trans)
+        else transID = getTransID(eaSM, trans)
 
         wf.requestAction(agentPath, null, act.path, itemPath, transID, requestData, "", "".bytes)
     }
