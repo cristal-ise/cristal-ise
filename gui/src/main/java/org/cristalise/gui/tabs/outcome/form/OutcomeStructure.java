@@ -45,6 +45,7 @@ import org.exolab.castor.xml.schema.Order;
 import org.exolab.castor.xml.schema.Particle;
 import org.exolab.castor.xml.schema.SimpleType;
 import org.exolab.castor.xml.schema.SimpleTypesFactory;
+import org.exolab.castor.xml.schema.Wildcard;
 import org.exolab.castor.xml.schema.XMLType;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -151,6 +152,10 @@ public abstract class OutcomeStructure extends JPanel {
             else if (thisParticle instanceof ElementDecl) {
                 ElementDecl thisElement = (ElementDecl)thisParticle;
                 addStructure(createStructure(thisElement, readOnly));
+            }
+            else if (thisParticle instanceof Wildcard) {
+                //do nothing
+                Logger.msg(5, "OutcomeStructure.enumerateElements() - group has Wildcard representing xs:any");
             }
             else throw new StructuralException("Particle " + thisParticle.getClass() + " not implemented");
         }
