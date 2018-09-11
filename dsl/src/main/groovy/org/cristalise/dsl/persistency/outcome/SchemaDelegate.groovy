@@ -137,16 +137,19 @@ class SchemaDelegate {
             if (f.dynamicForms.min != null)      min(      f.dynamicForms.min)
             if (f.dynamicForms.max != null)      max(      f.dynamicForms.max)
             if (f.dynamicForms.value != null)    value(    f.dynamicForms.value)
+
+            if (f.dynamicForms.updateScriptRef != null) updateScriptRef(f.dynamicForms.updateScriptRef)
+            if (f.dynamicForms.updateQuerytRef != null) updateQuerytRef(f.dynamicForms.updateQuerytRef)
         }
     }
 
     private void setAppinfoListOfValues(xsd, Field f) {
         xsd.listOfValues {
-            if (f.listOfValues.scriptRef)     scriptRef(    f.listOfValues.scriptRef)
-            if (f.listOfValues.queryRef)      queryRef(     f.listOfValues.queryRef)
-            if (f.listOfValues.propertyNames) propertyNames(f.listOfValues.propertyNames)
-            if (f.listOfValues.inputName)     inputName(    f.listOfValues.inputName)
-            if (f.listOfValues.values)        values(       f.listOfValues.values.join(','))
+            if (f.listOfValues.scriptRef)       scriptRef(      f.listOfValues.scriptRef)
+            if (f.listOfValues.queryRef)        queryRef(       f.listOfValues.queryRef)
+            if (f.listOfValues.propertyNames)   propertyNames(  f.listOfValues.propertyNames)
+            if (f.listOfValues.inputName)       inputName(      f.listOfValues.inputName)
+            if (f.listOfValues.values)          values(         f.listOfValues.values.join(','))
         }
     }
 
