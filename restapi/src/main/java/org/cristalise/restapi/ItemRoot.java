@@ -142,12 +142,12 @@ public class ItemRoot extends ItemUtils {
                 final Schema schema = LocalObjectLoader.getSchema(type, schemaVersion);
                 script = LocalObjectLoader.getScript(scriptName, scriptVersion);
 
-                return returnScriptResult(scriptName, item, schema, script, null, produceJSON(headers.getAcceptableMediaTypes()));
+                return returnScriptResult(scriptName, item, schema, script, new CastorHashMap(), produceJSON(headers.getAcceptableMediaTypes()));
             }
             else if ((script = getAggregateScript(type, scriptVersion)) != null) {
                 final Schema schema = LocalObjectLoader.getSchema(type, schemaVersion);
 
-                return returnScriptResult(scriptName, item, schema, script, null, produceJSON(headers.getAcceptableMediaTypes()));
+                return returnScriptResult(scriptName, item, schema, script, new CastorHashMap(), produceJSON(headers.getAcceptableMediaTypes()));
             }
             else if (item.checkViewpoint(type, view)) {
                 return getViewpointOutcome(uuid, type, view, true);
