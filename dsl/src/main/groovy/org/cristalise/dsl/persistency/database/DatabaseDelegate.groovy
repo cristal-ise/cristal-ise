@@ -192,6 +192,13 @@ class DatabaseDelegate {
                     w.append("insertQueryResult.addValue(${it.toUpperCase()}, outcome.getField('${it}'))\n")
                 }
             }
+            w.append("insertQueryResult.onDuplicateKeyUpdate(true)\n")
+            w.append("insertQueryResult.onConflict(${uuidField})\n")
+            fields.each {
+                if (it != uuidField){
+                    w.append("insertQueryResult.addValueForUpdate(${it.toUpperCase()}, outcome.getField('${it}'))\n")
+                }
+            }
             w.append("def result = insertQueryResult.execute()\n\n")
             w.append("result")
 
