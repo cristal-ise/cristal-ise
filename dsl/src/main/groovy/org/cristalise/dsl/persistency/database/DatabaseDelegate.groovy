@@ -36,6 +36,7 @@ class DatabaseDelegate {
     String dbInsertString
     String dbSelectString
     String dbUpdateString
+    String dbScriptsString
 
     /**
      *
@@ -83,6 +84,8 @@ class DatabaseDelegate {
         dbSelectString = buildScriptContent(tableName, commonLines, fields, DatabaseType.SELECT)
         // construct update query
         dbUpdateString = buildScriptContent(tableName, commonLines, fields, DatabaseType.UPDATE)
+        // consturct item scripts
+        dbScriptsString = getDomainScript(name)
     }
 
     /**
@@ -189,15 +192,22 @@ class DatabaseDelegate {
                     w.append("insertQueryResult.addValue(${it.toUpperCase()}, outcome.getField('${it}'))\n")
                 }
             }
+            w.append("insertQueryResult.onDuplicateKeyUpdate(true)\n")
+            w.append("insertQueryResult.onConflict(${uuidField})\n")
+            fields.each {
+                if (it != uuidField){
+                    w.append("insertQueryResult.addValueForUpdate(${it.toUpperCase()}, outcome.getField('${it}'))\n")
+                }
+            }
             w.append("def result = insertQueryResult.execute()\n\n")
             w.append("result")
 
         } else if (type == DatabaseType.SELECT) { //select query content
-            w.append("def selectQueryResult = dsl.select()\n")
+            w.append("def result = dsl.select()\n")
             w.append("        .from(${name})\n")
             w.append("        .where(${uuidField}.equal(uuid))\n")
             w.append("        .fetchOne()\n\n")
-            w.append("selectQueryResult")
+            w.append("result")
         } else if (type == DatabaseType.UPDATE) { // update query content
             w.append("def updateQueryResult = dsl.updateQuery(${name})\n")
             fields.each {
@@ -211,6 +221,42 @@ class DatabaseDelegate {
         }
 
         return w.toString()
+    }
+
+    /**
+     * Creates the script items for the domain.
+     * @param name
+     * @return
+     */
+    private String getDomainScript(String name){
+        String itemNameCreate = name + DatabaseType.CREATE.getValue()
+        String itemNameInsert = name + DatabaseType.INSERT.getValue()
+        String itemNameUpdate = name + DatabaseType.UPDATE.getValue()
+        String itemNameSelect = name + DatabaseType.SELECT.getValue()
+        StringBufferWriter sbw = new StringBufferWriter(new StringBuffer())
+                .append("Script('${itemNameCreate}', 0) {\n")
+                .append("    input('dsl', 'org.jooq.DSLContext')\n")
+                .append("    script('groovy', 'src/main/script/DB/${itemNameCreate}.groovy')\n")
+                .append("}\n\n")
+                .append("Script('${itemNameInsert}', 0) {\n")
+                .append("    input('dsl', 'org.jooq.DSLContext')\n")
+                .append("    input('outcome', 'org.cristalise.kernel.persistency.outcome.Outcome')\n")
+                .append("    input('uuid', 'java.util.UUID')\n")
+                .append("    output('result', 'java.lang.Integer')\n")
+                .append("    script('groovy', 'src/main/script/DB/${itemNameInsert}.groovy')\n")
+                .append("}\n\n")
+                .append("Script('${itemNameUpdate}', 0) {\n")
+                .append("    input('dsl', 'org.jooq.DSLContext')\n")
+                .append("    input('outcome', 'org.cristalise.kernel.persistency.outcome.Outcome')\n")
+                .append("    input('uuid', 'java.util.UUID')\n")
+                .append("    output('result', 'java.lang.Integer')\n")
+                .append("    script('groovy', 'src/main/script/DB/${itemNameUpdate}.groovy')\n")
+                .append("}\n\n")
+                .append("Script('${itemNameSelect}', 0) {\n")
+                .append("    input('dsl', 'org.jooq.DSLContext')\n")
+                .append("    output('result', 'org.jooq.Record')\n")
+                .append("    script('groovy', 'src/main/script/DB/${itemNameSelect}.groovy')\n")
+                .append("}\n\n")
     }
 
 }
