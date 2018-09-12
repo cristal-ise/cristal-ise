@@ -196,11 +196,11 @@ class DatabaseDelegate {
             w.append("result")
 
         } else if (type == DatabaseType.SELECT) { //select query content
-            w.append("def selectQueryResult = dsl.select()\n")
+            w.append("def result = dsl.select()\n")
             w.append("        .from(${name})\n")
             w.append("        .where(${uuidField}.equal(uuid))\n")
             w.append("        .fetchOne()\n\n")
-            w.append("selectQueryResult")
+            w.append("result")
         } else if (type == DatabaseType.UPDATE) { // update query content
             w.append("def updateQueryResult = dsl.updateQuery(${name})\n")
             fields.each {
@@ -234,20 +234,20 @@ class DatabaseDelegate {
                 .append("Script('${itemNameInsert}', 0) {\n")
                 .append("    input('dsl', 'org.jooq.DSLContext')\n")
                 .append("    input('outcome', 'org.cristalise.kernel.persistency.outcome.Outcome')\n")
-                .append("    input('uuid', 'java.lang.String')\n")
+                .append("    input('uuid', 'java.util.UUID')\n")
                 .append("    output('result', 'java.lang.Integer')\n")
                 .append("    script('groovy', 'src/main/script/DB/${itemNameInsert}.groovy')\n")
                 .append("}\n\n")
                 .append("Script('${itemNameUpdate}', 0) {\n")
                 .append("    input('dsl', 'org.jooq.DSLContext')\n")
                 .append("    input('outcome', 'org.cristalise.kernel.persistency.outcome.Outcome')\n")
-                .append("    input('uuid', 'java.lang.String')\n")
+                .append("    input('uuid', 'java.util.UUID')\n")
                 .append("    output('result', 'java.lang.Integer')\n")
                 .append("    script('groovy', 'src/main/script/DB/${itemNameUpdate}.groovy')\n")
                 .append("}\n\n")
                 .append("Script('${itemNameSelect}', 0) {\n")
                 .append("    input('dsl', 'org.jooq.DSLContext')\n")
-                .append("    output('selectQueryResult', 'org.jooq.Record')\n")
+                .append("    output('result', 'org.jooq.Record')\n")
                 .append("    script('groovy', 'src/main/script/DB/${itemNameSelect}.groovy')\n")
                 .append("}\n\n")
     }
