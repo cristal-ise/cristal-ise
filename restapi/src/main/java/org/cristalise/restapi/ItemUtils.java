@@ -23,6 +23,10 @@ package org.cristalise.restapi;
 import static javax.ws.rs.core.MediaType.APPLICATION_JSON_TYPE;
 import static javax.ws.rs.core.MediaType.APPLICATION_XML_TYPE;
 import static javax.ws.rs.core.MediaType.TEXT_XML_TYPE;
+import static javax.ws.rs.core.Response.Status.BAD_REQUEST;
+import static javax.ws.rs.core.Response.Status.INTERNAL_SERVER_ERROR;
+import static javax.ws.rs.core.Response.Status.NOT_FOUND;
+import static javax.ws.rs.core.Response.Status.UNSUPPORTED_MEDIA_TYPE;
 import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.ATTACHMENT_MIME_TYPES;
 import static org.cristalise.kernel.persistency.ClusterType.HISTORY;
 import static org.cristalise.kernel.persistency.ClusterType.PROPERTY;
@@ -44,6 +48,7 @@ import java.util.UUID;
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+//import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriBuilder;
 import javax.ws.rs.core.UriInfo;
 
@@ -54,10 +59,15 @@ import org.cristalise.kernel.collection.Collection;
 import org.cristalise.kernel.collection.CollectionDescription;
 import org.cristalise.kernel.collection.CollectionMember;
 import org.cristalise.kernel.collection.Dependency;
+import org.cristalise.kernel.common.AccessRightsException;
+import org.cristalise.kernel.common.InvalidCollectionModification;
 import org.cristalise.kernel.common.InvalidDataException;
+import org.cristalise.kernel.common.InvalidTransitionException;
+import org.cristalise.kernel.common.ObjectAlreadyExistsException;
 import org.cristalise.kernel.common.ObjectNotFoundException;
 import org.cristalise.kernel.common.PersistencyException;
 import org.cristalise.kernel.entity.agent.Job;
+import org.cristalise.kernel.entity.proxy.AgentProxy;
 import org.cristalise.kernel.entity.proxy.ItemProxy;
 import org.cristalise.kernel.events.Event;
 import org.cristalise.kernel.lifecycle.instance.stateMachine.StateMachine;
@@ -69,15 +79,19 @@ import org.cristalise.kernel.persistency.ClusterType;
 import org.cristalise.kernel.persistency.outcome.Outcome;
 import org.cristalise.kernel.persistency.outcome.Schema;
 import org.cristalise.kernel.persistency.outcome.Viewpoint;
+import org.cristalise.kernel.persistency.outcomebuilder.OutcomeBuilder;
+import org.cristalise.kernel.persistency.outcomebuilder.OutcomeBuilderException;
 import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.property.Property;
 import org.cristalise.kernel.scripting.Script;
+import org.cristalise.kernel.scripting.ScriptErrorException;
 import org.cristalise.kernel.scripting.ScriptingEngineException;
 import org.cristalise.kernel.utils.CastorHashMap;
 import org.cristalise.kernel.utils.DateUtility;
 import org.cristalise.kernel.utils.KeyValuePair;
 import org.cristalise.kernel.utils.LocalObjectLoader;
 import org.cristalise.kernel.utils.Logger;
+import org.json.JSONObject;
 import org.json.XML;
 
 public abstract class ItemUtils extends RestHandler {
@@ -134,17 +148,17 @@ public abstract class ItemUtils extends RestHandler {
             itemPath = Gateway.getLookup().getItemPath(uuid);
         } catch (InvalidItemPathException e) {
             Logger.error(e);
-            throw ItemUtils.createWebAppException(e.getMessage(), Response.Status.BAD_REQUEST); // Bad Request - the UUID wasn't valid
+            throw ItemUtils.createWebAppException(e.getMessage(), BAD_REQUEST); // Bad Request - the UUID wasn't valid
         } catch (ObjectNotFoundException e) {
             Logger.error(e);
-            throw ItemUtils.createWebAppException(e.getMessage(), Response.Status.NOT_FOUND); // UUID isn't used in this server
+            throw ItemUtils.createWebAppException(e.getMessage(), NOT_FOUND); // UUID isn't used in this server
         }
 
         try {
             item = Gateway.getProxyManager().getProxy(itemPath);
         } catch (ObjectNotFoundException e) {
             Logger.error(e);
-            throw ItemUtils.createWebAppException(e.getMessage(), Response.Status.NOT_FOUND); // Not found - the path doesn't exist
+            throw ItemUtils.createWebAppException(e.getMessage(), NOT_FOUND); // Not found - the path doesn't exist
         }
         return item;
     }
@@ -157,7 +171,7 @@ public abstract class ItemUtils extends RestHandler {
         }
         catch (PersistencyException | ObjectNotFoundException e) {
             Logger.error(e);
-            throw ItemUtils.createWebAppException(e.getMessage(), e, Response.Status.NOT_FOUND);
+            throw ItemUtils.createWebAppException(e.getMessage(), e, NOT_FOUND);
         }
     }
 
@@ -169,7 +183,7 @@ public abstract class ItemUtils extends RestHandler {
         }
         catch (ObjectNotFoundException e) {
             Logger.error(e);
-            throw ItemUtils.createWebAppException(e.getMessage(), Response.Status.NOT_FOUND);
+            throw ItemUtils.createWebAppException(e.getMessage(), NOT_FOUND);
         }
     }
 
@@ -486,7 +500,7 @@ public abstract class ItemUtils extends RestHandler {
      * @return WebApplicationException response
      */
     public static WebApplicationException createWebAppException(String msg) {
-        return createWebAppException(msg, Response.Status.INTERNAL_SERVER_ERROR);
+        return createWebAppException(msg, INTERNAL_SERVER_ERROR);
     }
 
     /**
@@ -541,7 +555,7 @@ public abstract class ItemUtils extends RestHandler {
 
         throw ItemUtils.createWebAppException(
                     "Supported media types: TEXT_XML, APPLICATION_XML, APPLICATION_JSON", 
-                    Response.Status.UNSUPPORTED_MEDIA_TYPE);
+                    UNSUPPORTED_MEDIA_TYPE);
     }
 
     /**
@@ -587,10 +601,10 @@ public abstract class ItemUtils extends RestHandler {
             xmlOutcome = (String)((Map<?,?>) scriptResult).get(key);
         }
         else
-            throw ItemUtils.createWebAppException("Cannot handle result of script:" + scriptName, Response.Status.NOT_FOUND);
+            throw ItemUtils.createWebAppException("Cannot handle result of script:" + scriptName, NOT_FOUND);
 
         if (xmlOutcome == null)
-            throw ItemUtils.createWebAppException("Cannot handle result of script:" + scriptName, Response.Status.NOT_FOUND);
+            throw ItemUtils.createWebAppException("Cannot handle result of script:" + scriptName, NOT_FOUND);
 
         if (schema != null) return getOutcomeResponse(new Outcome(xmlOutcome, schema), new Date(), jsonFlag);
         else                return Response.ok(XML.toJSONObject(xmlOutcome).toString()).build();
@@ -638,5 +652,80 @@ public abstract class ItemUtils extends RestHandler {
             jsonRoot.put("name", ((DomainPath)result.rows.get(0)).getName());
             jsonRoot.put("domainPaths", domainPathesData);
         }
+    }
+
+    /**
+     * 
+     * @param item
+     * @param postData
+     * @param types
+     * @param actPath
+     * @param agent
+     * @return
+     * @throws ObjectNotFoundException
+     * @throws InvalidDataException
+     * @throws OutcomeBuilderException
+     * @throws AccessRightsException
+     * @throws InvalidTransitionException
+     * @throws PersistencyException
+     * @throws ObjectAlreadyExistsException
+     * @throws InvalidCollectionModification
+     */
+    protected String executePredefinedStep(ItemProxy item, String postData, List<String> types, String actPath, AgentProxy agent)
+            throws ObjectNotFoundException, InvalidDataException, OutcomeBuilderException, AccessRightsException,
+            InvalidTransitionException, PersistencyException, ObjectAlreadyExistsException, InvalidCollectionModification
+    {
+        if (types.contains(MediaType.APPLICATION_JSON)) {
+            OutcomeBuilder builder = new OutcomeBuilder(LocalObjectLoader.getSchema("PredefinesStepOutcome", 0));
+            builder.addJsonInstance(new JSONObject(postData));
+            // Outcome can be invalid at this point, because Script/Query can be executed later
+            postData = builder.getOutcome(false).getData();
+        }
+
+        return agent.execute(item, actPath, postData);
+    }
+
+    /**
+     * 
+     * @param item
+     * @param postData
+     * @param types
+     * @param actPath
+     * @param transition
+     * @param agent
+     * @return
+     * @throws AccessRightsException
+     * @throws ObjectNotFoundException
+     * @throws PersistencyException
+     * @throws InvalidDataException
+     * @throws OutcomeBuilderException
+     * @throws InvalidTransitionException
+     * @throws ObjectAlreadyExistsException
+     * @throws InvalidCollectionModification
+     * @throws ScriptErrorException
+     */
+    protected String executeJob(ItemProxy item, String postData, List<String> types, String actPath, String transition, AgentProxy agent)
+            throws AccessRightsException, ObjectNotFoundException, PersistencyException, InvalidDataException, OutcomeBuilderException,
+            InvalidTransitionException, ObjectAlreadyExistsException, InvalidCollectionModification, ScriptErrorException
+    {
+        Job thisJob = item.getJobByTransitionName(actPath, transition, agent);
+
+        if (thisJob == null)
+            throw ItemUtils.createWebAppException("Job not found for actPath:" + actPath + " transition:" + transition,
+                    NOT_FOUND);
+
+        // set outcome if required
+        if (thisJob.hasOutcome()) {
+            if (types.contains(MediaType.APPLICATION_XML) || types.contains(MediaType.TEXT_XML)) {
+                thisJob.setOutcome(postData);
+            }
+            else {
+                OutcomeBuilder builder = new OutcomeBuilder(thisJob.getSchema());
+                builder.addJsonInstance(new JSONObject(postData));
+                // Outcome can be invalid at this point, because Script/Query can be executed later
+                thisJob.setOutcome(builder.getOutcome(false));
+            }
+        }
+        return agent.execute(thisJob);
     }
 }

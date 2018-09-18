@@ -527,38 +527,6 @@ public class ItemRoot extends ItemUtils {
     /**
      * 
      * @param item
-     * @param postData
-     * @param types
-     * @param actPath
-     * @param agent
-     * @return
-     * @throws ObjectNotFoundException
-     * @throws InvalidDataException
-     * @throws OutcomeBuilderException
-     * @throws AccessRightsException
-     * @throws InvalidTransitionException
-     * @throws PersistencyException
-     * @throws ObjectAlreadyExistsException
-     * @throws InvalidCollectionModification
-     */
-    private String executePredefinedStep(ItemProxy item, String postData, List<String> types, String actPath, AgentProxy agent) 
-            throws ObjectNotFoundException, InvalidDataException, OutcomeBuilderException, AccessRightsException, 
-                   InvalidTransitionException, PersistencyException, ObjectAlreadyExistsException, InvalidCollectionModification
-    {
-        if (types.contains(MediaType.APPLICATION_JSON)) {
-            OutcomeBuilder builder = new OutcomeBuilder(LocalObjectLoader.getSchema("PredefinesStepOutcome", 0));
-            builder.addJsonInstance(new JSONObject(postData));
-            //Outcome can be invalid at this point, because Script/Query can be executed later
-            postData = builder.getOutcome(false).getData();
-        }
-
-        return agent.execute(item, actPath, postData);
-    }
-    
-    
-    /**
-     * 
-     * @param item
      * @param file
      * @param postData
      * @param types
@@ -594,49 +562,6 @@ public class ItemRoot extends ItemUtils {
                     new OutcomeAttachment(item.getPath(), thisJob.getSchema().getName(), thisJob.getSchema().getVersion(), -1, MediaType.APPLICATION_OCTET_STREAM, binaryData); 
             
             thisJob.setAttachment(outcomeAttachment);       
-        }
-        return agent.execute(thisJob);
-    }
-
-    /**
-     * 
-     * @param item
-     * @param postData
-     * @param types
-     * @param actPath
-     * @param transition
-     * @param agent
-     * @return
-     * @throws AccessRightsException
-     * @throws ObjectNotFoundException
-     * @throws PersistencyException
-     * @throws InvalidDataException
-     * @throws OutcomeBuilderException
-     * @throws InvalidTransitionException
-     * @throws ObjectAlreadyExistsException
-     * @throws InvalidCollectionModification
-     * @throws ScriptErrorException
-     */
-    private String executeJob(ItemProxy item, String postData, List<String> types, String actPath, String transition, AgentProxy agent)
-            throws AccessRightsException, ObjectNotFoundException, PersistencyException, InvalidDataException, OutcomeBuilderException,
-                   InvalidTransitionException, ObjectAlreadyExistsException, InvalidCollectionModification, ScriptErrorException 
-    {
-        Job thisJob = item.getJobByTransitionName(actPath, transition, agent);
-
-        if (thisJob == null)
-            throw ItemUtils.createWebAppException("Job not found for actPath:"+actPath+" transition:"+transition, Response.Status.NOT_FOUND);
-
-        // set outcome if required
-        if (thisJob.hasOutcome()) {
-            if (types.contains(MediaType.APPLICATION_XML) || types.contains(MediaType.TEXT_XML)) {
-                thisJob.setOutcome(postData);
-            }
-            else {
-                OutcomeBuilder builder = new OutcomeBuilder(thisJob.getSchema());
-                builder.addJsonInstance(new JSONObject(postData));
-                //Outcome can be invalid at this point, because Script/Query can be executed later
-                thisJob.setOutcome(builder.getOutcome(false)); 
-            }
         }
         return agent.execute(thisJob);
     }
