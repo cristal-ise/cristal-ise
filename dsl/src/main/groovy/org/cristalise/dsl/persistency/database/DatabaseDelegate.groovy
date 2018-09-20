@@ -36,6 +36,7 @@ class DatabaseDelegate {
     String dbInsertString
     String dbSelectString
     String dbUpdateString
+    String dbDeleteString
     String dbScriptsString
 
     /**
@@ -84,6 +85,8 @@ class DatabaseDelegate {
         dbSelectString = buildScriptContent(tableName, commonLines, fields, DatabaseType.SELECT)
         // construct update query
         dbUpdateString = buildScriptContent(tableName, commonLines, fields, DatabaseType.UPDATE)
+        // construct delete query
+        dbDeleteString = buildScriptContent(tableName, commonLines, fields, DatabaseType.DELETE)
         // consturct item scripts
         dbScriptsString = getDomainScript(name)
     }
@@ -218,6 +221,11 @@ class DatabaseDelegate {
             w.append("updateQueryResult.addConditions(${uuidField}.equal(uuid))\n")
             w.append("def result = updateQueryResult.execute()\n\n")
             w.append("result")
+        } else if (type == DatabaseType.DELETE) {
+            w.append("def result = dsl.delete(${name})\n")
+            w.append("        .where(${uuidField}.equal(uuid))\n")
+            w.append("        .execute()\n\n")
+            w.append("result")
         }
 
         return w.toString()
@@ -233,6 +241,7 @@ class DatabaseDelegate {
         String itemNameInsert = name + DatabaseType.INSERT.getValue()
         String itemNameUpdate = name + DatabaseType.UPDATE.getValue()
         String itemNameSelect = name + DatabaseType.SELECT.getValue()
+        String itemNameDelete = name + DatabaseType.DELETE.getValue()
         StringBufferWriter sbw = new StringBufferWriter(new StringBuffer())
                 .append("Script('${itemNameCreate}', 0) {\n")
                 .append("    input('dsl', 'org.jooq.DSLContext')\n")
@@ -254,8 +263,15 @@ class DatabaseDelegate {
                 .append("}\n\n")
                 .append("Script('${itemNameSelect}', 0) {\n")
                 .append("    input('dsl', 'org.jooq.DSLContext')\n")
+                .append("    input('uuid', 'java.util.UUID')\n")
                 .append("    output('result', 'org.jooq.Record')\n")
                 .append("    script('groovy', 'src/main/script/DB/${itemNameSelect}.groovy')\n")
+                .append("}\n\n")
+                .append("Script('${itemNameDelete}', 0) {\n")
+                .append("    input('dsl', 'org.jooq.DSLContext')\n")
+                .append("    input('uuid', 'java.util.UUID')\n")
+                .append("    output('result', 'java.lang.Integer')\n")
+                .append("    script('groovy', 'src/main/script/DB/${itemNameDelete}.groovy')\n")
                 .append("}\n\n")
     }
 
