@@ -67,15 +67,16 @@ class DatabaseBuilder {
      * @param dbUpdateFile
      * @return
      */
-    public DatabaseBuilder loadDB(String dbCreateFile, String dbInsertFile, String dbSelectFile, String dbUpdateFile, String dbScriptFile) {
+    public DatabaseBuilder loadDB(String dbCreateFile, String dbInsertFile, String dbSelectFile, String dbUpdateFile, String dbDeleteFile, String dbScriptFile) {
         Logger.msg 5, "DatabaseBuilder.loadDB() - From file:$dbCreateFile"
         Logger.msg 5, "DatabaseBuilder.loadDB() - From file:$dbInsertFile"
         Logger.msg 5, "DatabaseBuilder.loadDB() - From file:$dbSelectFile"
         Logger.msg 5, "DatabaseBuilder.loadDB() - From file:$dbUpdateFile"
+        Logger.msg 5, "DatabaseBuilder.loadDB() - From file:$dbDeleteFile"
         Logger.msg 5, "DatabaseBuilder.loadDB() - From file:$dbScriptFile"
 
         database = new Database(name, version, new File(dbCreateFile).text, new File(dbInsertFile).text,
-                new File(dbSelectFile).text, new File(dbUpdateFile).text, new File(dbScriptFile).text)
+                new File(dbSelectFile).text, new File(dbUpdateFile).text, new File(dbDeleteFile).text, new File(dbScriptFile).text)
 
         return this
     }
@@ -115,9 +116,10 @@ class DatabaseBuilder {
             Logger.msg 5, "DatabaseBuilder - generated database insert:\n" + dbDelegate.dbInsertString
             Logger.msg 5, "DatabaseBuilder - generated database select:\n" + dbDelegate.dbSelectString
             Logger.msg 5, "DatabaseBuilder - generated database update:\n" + dbDelegate.dbUpdateString
+            Logger.msg 5, "DatabaseBuilder - generated database delete:\n" + dbDelegate.dbDeleteString
 
             db.database = new Database(db.name, db.version, dbDelegate.dbCreateString, dbDelegate.dbInsertString,
-                    dbDelegate.dbSelectString, dbDelegate.dbUpdateString, dbDelegate.dbScriptsString)
+                    dbDelegate.dbSelectString, dbDelegate.dbUpdateString, dbDelegate.dbDeleteString, dbDelegate.dbScriptsString)
         } catch (Exception e) {
             throw new InvalidDataException(e.getMessage())
         }
@@ -136,8 +138,8 @@ class DatabaseBuilder {
      * @return
      */
     public static DatabaseBuilder build(String module, String name, int version, String dbCreateFile, String dbInsertFile,
-                                        String dbSelectFile, String dbUpdateFile, String dbScriptFile) {
+                                        String dbSelectFile, String dbUpdateFile, String dbDeleteFile, String dbScriptFile) {
         def sb = new DatabaseBuilder(module, name, version)
-        return sb.loadDB(dbCreateFile, dbInsertFile, dbSelectFile, dbUpdateFile, dbScriptFile)
+        return sb.loadDB(dbCreateFile, dbInsertFile, dbSelectFile, dbUpdateFile, dbDeleteFile, dbScriptFile)
     }
 }

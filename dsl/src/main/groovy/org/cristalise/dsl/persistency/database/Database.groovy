@@ -32,6 +32,7 @@ class Database {
     private final String insertScriptData
     private final String selectScriptData
     private final String updateScriptData
+    private final String deleteScriptData
     private final String itemScriptsData
 
     private String name
@@ -47,9 +48,11 @@ class Database {
      * @param insertScriptData
      * @param selectScriptData
      * @param updateScriptData
+     * @param deleteScriptData
      * @param itemScriptsData
      */
-    Database(String name, int version, ItemPath itemPath, String createScriptData, String insertScriptData, String selectScriptData, String updateScriptData, String itemScriptsData) {
+    Database(String name, int version, ItemPath itemPath, String createScriptData, String insertScriptData,
+             String selectScriptData, String updateScriptData, String deleteScriptData, String itemScriptsData) {
         super()
         this.name = name
         this.version = version
@@ -58,6 +61,7 @@ class Database {
         this.insertScriptData = insertScriptData
         this.selectScriptData = selectScriptData
         this.updateScriptData = updateScriptData
+        this.deleteScriptData = deleteScriptData
         this.itemScriptsData = itemScriptsData
     }
 
@@ -69,9 +73,11 @@ class Database {
      * @param insertScriptData
      * @param selectScriptData
      * @param updateScriptData
+     * @param deleteScriptData
      * @param itemScriptsData
      */
-    Database(String name, int version, String createScriptData, String insertScriptData, String selectScriptData, String updateScriptData, String itemScriptsData) {
+    Database(String name, int version, String createScriptData, String insertScriptData, String selectScriptData,
+             String updateScriptData, String deleteScriptData, String itemScriptsData) {
         super()
         this.name = name
         this.version = version
@@ -79,6 +85,7 @@ class Database {
         this.insertScriptData = insertScriptData
         this.selectScriptData = selectScriptData
         this.updateScriptData = updateScriptData
+        this.deleteScriptData = deleteScriptData
         this.itemScriptsData = itemScriptsData
         this.itemPath = null
     }
@@ -90,13 +97,16 @@ class Database {
      * @param insertScriptData
      * @param selectScriptData
      * @param updateScriptData
+     * @param deleteScriptData
      * @param itemScriptsData
      */
-    Database(String createScriptData, String insertScriptData, String selectScriptData, String updateScriptData, String itemScriptsData) {
+    Database(String createScriptData, String insertScriptData, String selectScriptData, String updateScriptData,
+             String deleteScriptData, String itemScriptsData) {
         this.createScriptData = createScriptData
         this.insertScriptData = insertScriptData
         this.selectScriptData = selectScriptData
         this.updateScriptData = updateScriptData
+        this.deleteScriptData = deleteScriptData
         this.itemScriptsData = itemScriptsData
         name = "Database"
         version = 0
@@ -125,12 +135,14 @@ class Database {
         String insertFileName = getName() + DatabaseType.INSERT.getValue() + ".groovy"
         String selectFileName = getName() + DatabaseType.SELECT.getValue() + ".groovy"
         String updateFileName = getName() + DatabaseType.UPDATE.getValue() + ".groovy"
+        String deleteFileName = getName() + DatabaseType.DELETE.getValue() + ".groovy"
         String scriptFileName = getName() + DatabaseType.SCRIPT.getValue() + ".groovy"
 
         FileStringUtility.string2File(new File(new File(dir, scriptDir), createFileName), createScriptData)
         FileStringUtility.string2File(new File(new File(dir, scriptDir), insertFileName), insertScriptData)
         FileStringUtility.string2File(new File(new File(dir, scriptDir), selectFileName), selectScriptData)
         FileStringUtility.string2File(new File(new File(dir, scriptDir), updateFileName), updateScriptData)
+        FileStringUtility.string2File(new File(new File(dir, scriptDir), deleteFileName), deleteScriptData)
         FileStringUtility.string2File(new File(new File(dir, scriptDir), scriptFileName), itemScriptsData)
     }
 

@@ -26,6 +26,7 @@ enum DatabaseType {
     SELECT("_DBSelect"),
     UPDATE("_DBUpdate"),
     INSERT("_DBInsert"),
+    DELETE("_DBDelete"),
     SCRIPT("_DBScripts")
 
     private final String value
