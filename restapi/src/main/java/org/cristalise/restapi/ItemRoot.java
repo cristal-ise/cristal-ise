@@ -175,14 +175,15 @@ public class ItemRoot extends ItemUtils {
         checkAuthCookie(authCookie);
         ItemProxy item = getProxy(uuid);
 
-        //FIXME: version should be retrieved from the current item or the Module
-        //String view = "last";
+        // FIXME: version should be retrieved from the current item or the Module
+        // String view = "last";
         if (scriptVersion == null) scriptVersion = 0;
 
         Script script = null;
-        try {
-            if (scriptName != null) {
+        if (scriptName != null) {
+            try {
                 script = LocalObjectLoader.getScript(scriptName, scriptVersion);
+                if (inputJson == null) inputJson = "{}";
 
                 JSONObject json = new JSONObject(inputJson);
                 CastorHashMap inputs = new CastorHashMap();
@@ -190,13 +191,13 @@ public class ItemRoot extends ItemUtils {
 
                 return returnScriptResult(scriptName, item, null, script, inputs, produceJSON(headers.getAcceptableMediaTypes()));
             }
-            else
-                throw ItemUtils.createWebAppException("Name or UUID of Script was missing", Response.Status.NOT_FOUND);
+            catch (Exception e) {
+                Logger.error(e);
+                throw ItemUtils.createWebAppException("Error executing Script:" + e.getMessage(), e, Response.Status.NOT_FOUND);
+            }
         }
-        catch (Exception e) {
-            Logger.error(e);
-            throw ItemUtils.createWebAppException("Error executing Script:" + e.getMessage() , e, Response.Status.NOT_FOUND);
-        }
+        else
+            throw ItemUtils.createWebAppException("Name or UUID of Script was missing", Response.Status.NOT_FOUND);
     }
 
     @GET
