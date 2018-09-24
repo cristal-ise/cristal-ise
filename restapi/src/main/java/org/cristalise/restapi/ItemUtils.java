@@ -607,7 +607,10 @@ public abstract class ItemUtils extends RestHandler {
             throw ItemUtils.createWebAppException("Cannot handle result of script:" + scriptName, NOT_FOUND);
 
         if (schema != null) return getOutcomeResponse(new Outcome(xmlOutcome, schema), new Date(), jsonFlag);
-        else                return Response.ok(XML.toJSONObject(xmlOutcome).toString()).build();
+        else {
+            if (jsonFlag) return Response.ok(XML.toJSONObject(xmlOutcome).toString()).build();
+            else          return Response.ok((xmlOutcome)).build();
+        }
     }
 
     /**
