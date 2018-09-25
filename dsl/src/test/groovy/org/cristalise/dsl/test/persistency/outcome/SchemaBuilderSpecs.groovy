@@ -683,7 +683,7 @@ class SchemaBuilderSpecs extends Specification implements CristalTestSetup {
         SchemaTestBuilder.build('test', 'PatientDetails', 0) {
             struct(name: 'PatientDetails', documentation: 'This is the Schema for Basic Tutorial') {
                 attribute(name: 'InsuranceNumber', type: 'string', default: '123456789ABC')
-                field(name: 'DateOfBirth',     type: 'date')
+                field(name: 'DateOfBirth',     type: 'date') {dynamicForms(updateScriptRef : "Script:0")}
                 field(name: 'Gender',          type: 'string', values: ['male', 'female'])
                 field(name: 'Weight',          type: 'decimal') { unit(values: ['g', 'kg'], default: 'kg') }
             }
@@ -695,8 +695,18 @@ class SchemaBuilderSpecs extends Specification implements CristalTestSetup {
                    </xs:annotation>
                    <xs:complexType>
                    <xs:all minOccurs="0">
-                     <xs:element minOccurs="1" maxOccurs="1" name="DateOfBirth" type="xs:date"/>
-                     <xs:element minOccurs="1" maxOccurs="1" name="Gender">
+                   <xs:element name='DateOfBirth' type='xs:date' minOccurs='1' maxOccurs='1'>
+                     <xs:annotation>
+                       <xs:appinfo>
+                         <dynamicForms>
+                           <additional>
+                             <updateScriptRef>Script:0</updateScriptRef>
+                           </additional>
+                         </dynamicForms>
+                       </xs:appinfo>
+                     </xs:annotation>
+                    </xs:element>
+                    <xs:element minOccurs="1" maxOccurs="1" name="Gender">
                        <xs:simpleType>
                          <xs:restriction base="xs:string">
                            <xs:enumeration value="male" />
