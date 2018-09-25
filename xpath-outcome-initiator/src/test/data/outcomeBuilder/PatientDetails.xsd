@@ -44,6 +44,9 @@
                         <xs:appinfo>
                             <dynamicForms>
                                 <value>now</value>
+                                <additional>
+                                    <updateScriptRef>Script:0</updateScriptRef>
+                                </additional>
                             </dynamicForms>
                         </xs:appinfo>
                     </xs:annotation>

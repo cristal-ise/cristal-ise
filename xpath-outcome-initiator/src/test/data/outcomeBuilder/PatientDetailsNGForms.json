@@ -42,7 +42,8 @@
     {
       "validators": {"required": null},
       "additional": {
-        "showButtonBar": true
+        "showButtonBar": true,
+        "updateScriptRef":"Script:0"
       },
       "format": "yy-mm-dd",
       "cls": {

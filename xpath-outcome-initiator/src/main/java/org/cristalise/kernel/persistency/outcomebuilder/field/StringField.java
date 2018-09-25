@@ -45,6 +45,7 @@ import org.exolab.castor.xml.schema.Structure;
 import org.exolab.castor.xml.schema.XMLType;
 import org.exolab.castor.xml.schema.simpletypes.ListType;
 import org.json.JSONObject;
+import org.json.XML;
 import org.w3c.dom.Attr;
 import org.w3c.dom.Node;
 import org.w3c.dom.Text;
@@ -262,7 +263,7 @@ public class StringField {
     }
 
     /**
-     * check if the vlue contains a template/pattern that can be interpreted by the given Field instance
+     * check if the value contains a template/pattern that can be interpreted by the given Field instance
      * 
      * @param template
      * @return
@@ -315,18 +316,24 @@ public class StringField {
 
     private void setAppInfoDynamicFormsJsonValue(AnyNode node, JSONObject json) {
         String name  = node.getLocalName();
-        String value = node.getStringValue().trim();
 
-        if (name.equals("value")) value = getValue(value);
+        if (name.equals("additional")) {
+            json.put("additional", XML.toJSONObject(node.toString()).getJSONObject("additional"));
+        }
+        else {
+            String value = node.getStringValue().trim();
 
-        Scanner scanner = new Scanner(value);
+            if (name.equals("value")) value = getValue(value);
 
-        if      (scanner.hasNextBoolean())    json.put(name, scanner.nextBoolean());
-        else if (scanner.hasNextBigDecimal()) json.put(name, scanner.nextBigDecimal());
-        else if (scanner.hasNextBigInteger()) json.put(name, scanner.nextBigInteger());
-        else                                  json.put(name, value);
+            Scanner scanner = new Scanner(value);
 
-        scanner.close();
+            if      (scanner.hasNextBoolean())    json.put(name, scanner.nextBoolean());
+            else if (scanner.hasNextBigDecimal()) json.put(name, scanner.nextBigDecimal());
+            else if (scanner.hasNextBigInteger()) json.put(name, scanner.nextBigInteger());
+            else                                  json.put(name, value);
+
+            scanner.close();
+        }
     }
     
     /**
