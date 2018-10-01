@@ -24,6 +24,7 @@ enum DatabaseType {
 
     CREATE("_DBCreate"),
     SELECT("_DBSelect"),
+	SELECT_ALL("_DBSelectAll"),
     UPDATE("_DBUpdate"),
     INSERT("_DBInsert"),
     DELETE("_DBDelete"),

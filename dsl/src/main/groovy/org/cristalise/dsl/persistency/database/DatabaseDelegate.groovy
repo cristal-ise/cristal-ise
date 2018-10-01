@@ -211,6 +211,12 @@ class DatabaseDelegate {
             w.append("        .where(${uuidField}.equal(uuid))\n")
             w.append("        .fetchOne()\n\n")
             w.append("result")
+        } else if (type == DatabaseType.SELECT_ALL) { //select query content
+            w.append("def result = dsl.select()\n")
+            w.append("        .from(${name})\n")
+            w.append("        .where(${uuidField}.equal(uuid))\n")
+            w.append("        .fetch()\n\n")
+            w.append("result")
         } else if (type == DatabaseType.UPDATE) { // update query content
             w.append("def updateQueryResult = dsl.updateQuery(${name})\n")
             fields.each {

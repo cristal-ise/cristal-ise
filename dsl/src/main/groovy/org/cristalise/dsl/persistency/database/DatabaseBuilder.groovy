@@ -67,7 +67,9 @@ class DatabaseBuilder {
      * @param dbUpdateFile
      * @return
      */
-    public DatabaseBuilder loadDB(String dbCreateFile, String dbInsertFile, String dbSelectFile, String dbUpdateFile, String dbDeleteFile, String dbScriptFile) {
+    public DatabaseBuilder loadDB(String dbCreateFile, String dbInsertFile, String dbSelectFile, 
+		String dbSelectAllFile, String dbUpdateFile, String dbDeleteFile, String dbScriptFile) {
+		
         Logger.msg 5, "DatabaseBuilder.loadDB() - From file:$dbCreateFile"
         Logger.msg 5, "DatabaseBuilder.loadDB() - From file:$dbInsertFile"
         Logger.msg 5, "DatabaseBuilder.loadDB() - From file:$dbSelectFile"
@@ -76,8 +78,8 @@ class DatabaseBuilder {
         Logger.msg 5, "DatabaseBuilder.loadDB() - From file:$dbScriptFile"
 
         database = new Database(name, version, new File(dbCreateFile).text, new File(dbInsertFile).text,
-                new File(dbSelectFile).text, new File(dbUpdateFile).text, new File(dbDeleteFile).text, new File(dbScriptFile).text)
-
+                new File(dbSelectFile).text, new File(dbSelectFile).text,  new File(dbUpdateFile).text, 
+				new File(dbDeleteFile).text, new File(dbScriptFile).text)
         return this
     }
 
