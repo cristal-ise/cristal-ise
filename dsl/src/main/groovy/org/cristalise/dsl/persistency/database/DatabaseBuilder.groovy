@@ -121,7 +121,7 @@ class DatabaseBuilder {
             Logger.msg 5, "DatabaseBuilder - generated database delete:\n" + dbDelegate.dbDeleteString
 
             db.database = new Database(db.name, db.version, dbDelegate.dbCreateString, dbDelegate.dbInsertString,
-                    dbDelegate.dbSelectString, dbDelegate.dbUpdateString, dbDelegate.dbDeleteString, dbDelegate.dbScriptsString)
+                    dbDelegate.dbSelectString, dbDelegate.dbSelectAllString, dbDelegate.dbUpdateString, dbDelegate.dbDeleteString, dbDelegate.dbScriptsString)
         } catch (Exception e) {
             throw new InvalidDataException(e.getMessage())
         }
@@ -140,8 +140,8 @@ class DatabaseBuilder {
      * @return
      */
     public static DatabaseBuilder build(String module, String name, int version, String dbCreateFile, String dbInsertFile,
-                                        String dbSelectFile, String dbUpdateFile, String dbDeleteFile, String dbScriptFile) {
+                                        String dbSelectFile, String dbSelectAllFile, String dbUpdateFile, String dbDeleteFile, String dbScriptFile) {
         def sb = new DatabaseBuilder(module, name, version)
-        return sb.loadDB(dbCreateFile, dbInsertFile, dbSelectFile, dbUpdateFile, dbDeleteFile, dbScriptFile)
+        return sb.loadDB(dbCreateFile, dbInsertFile, dbSelectFile, dbSelectAllFile, dbUpdateFile, dbDeleteFile, dbScriptFile)
     }
 }

@@ -35,6 +35,7 @@ class DatabaseDelegate {
     String dbCreateString
     String dbInsertString
     String dbSelectString
+	String dbSelectAllString
     String dbUpdateString
     String dbDeleteString
     String dbScriptsString
@@ -83,6 +84,8 @@ class DatabaseDelegate {
         dbInsertString = buildScriptContent(tableName, commonLines, fields, DatabaseType.INSERT)
         // construct select query
         dbSelectString = buildScriptContent(tableName, commonLines, fields, DatabaseType.SELECT)
+		// construct select query
+		dbSelectAllString = buildScriptContent(tableName, commonLines, fields, DatabaseType.SELECT)
         // construct update query
         dbUpdateString = buildScriptContent(tableName, commonLines, fields, DatabaseType.UPDATE)
         // construct delete query
