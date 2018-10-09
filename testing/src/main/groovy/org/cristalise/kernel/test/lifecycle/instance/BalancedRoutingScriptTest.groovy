@@ -19,7 +19,7 @@ class BalancedRoutingScriptTest implements CristalTestSetup {
 
     @Before
     public void setup() {
-        inMemoryServer()
+        inMemoryServer('src/main/bin/inMemoryServer.conf', 'src/main/bin/inMemory.clc', 8)
         wfBuilder = new WorkflowTestBuilder()
     }
 

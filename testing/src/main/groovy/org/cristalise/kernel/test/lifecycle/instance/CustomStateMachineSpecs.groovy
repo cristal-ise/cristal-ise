@@ -36,7 +36,7 @@ class CustomStateMachineSpecs extends Specification implements CristalTestSetup 
     WorkflowTestBuilder wfBuilder
 
     def setup() {
-        inMemoryServer()
+        inMemoryServer('src/main/bin/inMemoryServer.conf', 'src/main/bin/inMemory.clc', 8)
         wfBuilder = new WorkflowTestBuilder()
     }
 

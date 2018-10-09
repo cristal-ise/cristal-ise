@@ -41,7 +41,7 @@ class AdvancementCalculatorTest implements CristalTestSetup {
     
     @Before
     public void setup() {
-        inMemorySetup()
+        inMemorySetup('src/main/bin/inMemoryServer.conf', 'src/main/bin/inMemory.clc', 8)
         wfBuilder = new WorkflowTestBuilder()
     }
 

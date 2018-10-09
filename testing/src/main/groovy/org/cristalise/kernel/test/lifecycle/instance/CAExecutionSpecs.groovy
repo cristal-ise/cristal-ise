@@ -16,7 +16,7 @@ class CAExecutionSpecs extends Specification implements CristalTestSetup {
     WorkflowTestBuilder util
 
     def setup() {
-        inMemoryServer()
+        inMemoryServer('src/main/bin/inMemoryServer.conf', 'src/main/bin/inMemory.clc', 8)
 
         util = new WorkflowTestBuilder()
     }
