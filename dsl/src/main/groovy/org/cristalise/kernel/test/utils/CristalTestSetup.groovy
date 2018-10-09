@@ -73,9 +73,17 @@ trait CristalTestSetup {
         Logger.removeLogStream(System.out);
     }
 
+    public void inMemorySetup(String conf, String clc,int logLevel) {
+        cristalSetup(logLevel, conf, clc)
+    }
+
     public void inMemorySetup(int logLevel = defaultLogLevel) {
         cristalSetup(logLevel, 'src/test/conf/testServer.conf', 'src/test/conf/testInMemory.clc')
         //FieldUtils.writeDeclaredStaticField(Gateway.class, "mLookupManager", Gateway.getLookup(), true)
+    }
+
+    public void inMemoryServer(String conf, String clc,int logLevel) {
+        serverSetup(logLevel, conf, clc)
     }
 
     public void inMemoryServer(int logLevel = defaultLogLevel) {
@@ -101,8 +109,8 @@ trait CristalTestSetup {
     }
 
     public void cristalInit(int logLevel, String config, String connect) {
-        String[] args = ['-logLevel', "$logLevel", '-config', config, '-connect', connect]
-        Gateway.init(AbstractMain.readC2KArgs(args))
+        Gateway.init(AbstractMain.readPropertyFiles(config, connect, null))
+        loggerSetup(logLevel)
     }
 
     public void cristalCleanup() {
