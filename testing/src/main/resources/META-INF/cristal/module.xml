@@ -9,7 +9,7 @@
     <Config name="Module.dev.debug">true</Config>
     <Config name="OutcomeInit.Query">org.cristalise.kernel.persistency.outcome.QueryOutcomeInitiator</Config>
     <Imports>
-        <Workflow name="TestSchemaFactoryWf" resource="boot/CA/TestSchemaFactoryWf.xml">
+        <Workflow name="TestSchemaFactoryWf" version="0" resource="boot/CA/TestSchemaFactoryWf.xml">
             <StateMachine name="CompositeActivity" version="0"/>
             <Activity name="EditPropertyDescription" version="0"/>
             <Activity name="EditDefinition" version="0"/>
@@ -78,13 +78,13 @@
             <Schema name="XPathOutcomeInitTest_Details" version="0"/>
         </Activity>
 
-        <Workflow name="XPathOutcomeInitTest_DetailsLifecycle" resource="boot/CA/XPathOutcomeInitTest_DetailsLifecycle.xml">
+        <Workflow name="XPathOutcomeInitTest_DetailsLifecycle" version="0" resource="boot/CA/XPathOutcomeInitTest_DetailsLifecycle.xml">
             <Activity name="MoveLatestVersionToLast"         version="0"/>
             <Activity name="AssignNewVersionFromLast"        version="0"/>
             <Activity name="XPathOutcomeInitTest_SetDetails" version="0"/>
         </Workflow>
 
-        <Workflow name="XPathOutcomeInitTest_FactoryLifecycle" resource="boot/CA/XPathOutcomeInitTest_FactoryLifecycle.xml">
+        <Workflow name="XPathOutcomeInitTest_FactoryLifecycle" version="0" resource="boot/CA/XPathOutcomeInitTest_FactoryLifecycle.xml">
             <StateMachine name="CompositeActivity"   version="0"/>
             <Activity name="CreateItem"              version="0"/>
             <Activity name="EditPropertyDescription" version="0"/>
@@ -105,7 +105,7 @@
             </Dependency>
         </Item>
 
-        <Workflow name="XPathOutcomeInitTest_ManageCADef" resource="boot/CA/XPathOutcomeInitTest_ManageCADef.xml">
+        <Workflow name="XPathOutcomeInitTest_ManageCADef" version="0" resource="boot/CA/XPathOutcomeInitTest_ManageCADef.xml">
             <StateMachine name="CompositeActivity" version="0"/>
             <Activity name="MoveLatestVersionToLast" version="0"/>
             <Activity name="EditDefinition" version="0"/>
