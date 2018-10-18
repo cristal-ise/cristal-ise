@@ -20,7 +20,6 @@
  */
 package org.cristalise.dsl.module
 
-import groovy.transform.CompileStatic
 import org.codehaus.groovy.control.CompilerConfiguration
 import org.cristalise.dsl.lifecycle.definition.CompActDefBuilder
 import org.cristalise.dsl.lifecycle.definition.ElemActDefBuilder
@@ -31,11 +30,14 @@ import org.cristalise.dsl.querying.QueryBuilder
 import org.cristalise.dsl.scripting.ScriptBuilder
 import org.cristalise.kernel.lifecycle.ActivityDef
 import org.cristalise.kernel.lifecycle.CompositeActivityDef
+import org.cristalise.kernel.lifecycle.instance.stateMachine.StateMachine
 import org.cristalise.kernel.persistency.outcome.Schema
 import org.cristalise.kernel.process.module.Module
 import org.cristalise.kernel.querying.Query
 import org.cristalise.kernel.scripting.Script
 import org.cristalise.kernel.utils.LocalObjectLoader
+
+import groovy.transform.CompileStatic
 /**
  *
  */
@@ -108,6 +110,10 @@ class ModuleDelegate {
         def script = ScriptBuilder.build(name, version, cl)
         script.export(imports, new File(exportRoot), true)
         return script
+    }
+
+    public StateMachine StateMachine(String name, Integer version) {
+        return LocalObjectLoader.getStateMachine(name, version);
     }
 
     public ActivityDef Activity(String name, Integer version) {

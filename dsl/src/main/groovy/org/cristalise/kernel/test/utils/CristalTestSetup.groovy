@@ -111,8 +111,8 @@ trait CristalTestSetup {
     }
 
     public void cristalInit(int logLevel, String config, String connect) {
-        Gateway.init(AbstractMain.readPropertyFiles(config, connect, null))
         loggerSetup(logLevel)
+        Gateway.init(AbstractMain.readPropertyFiles(config, connect, null))
     }
 
     public void cristalCleanup() {
