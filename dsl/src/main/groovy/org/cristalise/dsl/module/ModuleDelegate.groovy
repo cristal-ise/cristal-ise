@@ -2,24 +2,26 @@
  * This file is part of the CRISTAL-iSE kernel.
  * Copyright (c) 2001-2015 The CRISTAL Consortium. All rights reserved.
  *
- * This library is free software; you can redistribute it and/or modify it
+ * This library is free software you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as published
- * by the Free Software Foundation; either version 3 of the License, or (at
+ * by the Free Software Foundation either version 3 of the License, or (at
  * your option) any later version.
  *
  * This library is distributed in the hope that it will be useful, but WITHOUT
- * ANY WARRANTY; with out even the implied warranty of MERCHANTABILITY or
+ * ANY WARRANTY with out even the implied warranty of MERCHANTABILITY or
  * FITNESS FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public
  * License for more details.
  *
  * You should have received a copy of the GNU Lesser General Public License
- * along with this library; if not, write to the Free Software Foundation,
+ * along with this library if not, write to the Free Software Foundation,
  * Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA.
  *
  * http://www.fsf.org/licensing/licenses/lgpl.html
  */
 package org.cristalise.dsl.module
 
+import groovy.transform.CompileStatic
+import groovy.xml.XmlUtil
 import org.codehaus.groovy.control.CompilerConfiguration
 import org.cristalise.dsl.lifecycle.definition.CompActDefBuilder
 import org.cristalise.dsl.lifecycle.definition.ElemActDefBuilder
@@ -30,30 +32,42 @@ import org.cristalise.dsl.querying.QueryBuilder
 import org.cristalise.dsl.scripting.ScriptBuilder
 import org.cristalise.kernel.lifecycle.ActivityDef
 import org.cristalise.kernel.lifecycle.CompositeActivityDef
-import org.cristalise.kernel.lifecycle.instance.stateMachine.StateMachine
 import org.cristalise.kernel.persistency.outcome.Schema
-import org.cristalise.kernel.process.module.Module
+import org.cristalise.kernel.process.AbstractMain
+import org.cristalise.kernel.process.Gateway
+import org.cristalise.kernel.process.module.*
 import org.cristalise.kernel.querying.Query
 import org.cristalise.kernel.scripting.Script
+import org.cristalise.kernel.utils.DescriptionObject
+import org.cristalise.kernel.utils.FileStringUtility
 import org.cristalise.kernel.utils.LocalObjectLoader
 
-import groovy.transform.CompileStatic
 /**
  *
  */
 @CompileStatic
 class ModuleDelegate {
-    
-    Module module = new Module()
-    int version
 
+    Module module = new Module()
+
+    /**
+     * Collects the generated resources.
+     * Used by the {updateAndGenerateResource} method.
+     */
+    List<? extends DescriptionObject> resources
+
+    int version
     Writer imports
-    
+
     Binding bindings = new Binding()
 
+    static final String moduleXmlRoot = "src/main/resources"
     static final String exportRoot = "src/main/resources/boot"
     static final String exportDBRoot = "src/main/script/"
-
+    static String moduleXml = 'module.xml'
+    static String config = 'src/main/config/client.conf'
+    static String connect = 'src/main/config/local.clc'
+    static int logLevel = 5
 
     public ModuleDelegate(String ns, String n, int v) {
         module.ns = ns
@@ -61,28 +75,31 @@ class ModuleDelegate {
         version = v
 
         imports = new PrintWriter(System.out)
+        resources = new ArrayList<>()
+
+        Gateway.init(AbstractMain.readC2KArgs(['-logLevel', "$logLevel", '-config', config, '-connect', connect] as String[]))
+        module = (Module) Gateway.getMarshaller().unmarshall(new File(moduleXmlRoot + "/${moduleXml}").text)
     }
 
     public include(String scriptFile) {
-        CompilerConfiguration cc = new CompilerConfiguration();
-        cc.setScriptBaseClass(DelegatingScript.class.getName());
-        
-        GroovyShell shell = new GroovyShell(this.class.classLoader, bindings, cc);
-        DelegatingScript script = (DelegatingScript)shell.parse(new File(scriptFile))
+        CompilerConfiguration cc = new CompilerConfiguration()
+        cc.setScriptBaseClass(DelegatingScript.class.getName())
 
-        script.setDelegate(this);
-        script.run();
+        GroovyShell shell = new GroovyShell(this.class.classLoader, bindings, cc)
+        DelegatingScript script = (DelegatingScript) shell.parse(new File(scriptFile))
+
+        script.setDelegate(this)
+        script.run()
     }
 
-
-
     public Schema Schema(String name, Integer version) {
-        return LocalObjectLoader.getSchema(name, version);
+        return LocalObjectLoader.getSchema(name, version)
     }
 
     public Schema Schema(String name, Integer version, Closure cl) {
         def schema = SchemaBuilder.build(name, version, cl)
         schema.export(imports, new File(exportRoot), true)
+        resources.add(schema)
         return schema
     }
 
@@ -93,41 +110,40 @@ class ModuleDelegate {
     }
 
     public Query Query(String name, Integer version) {
-        return LocalObjectLoader.getQuery(name, version);
+        return LocalObjectLoader.getQuery(name, version)
     }
 
     public Query Query(String name, Integer version, Closure cl) {
         def query = QueryBuilder.build(this.module.name, name, version, cl)
         query.export(imports, new File(exportRoot), true)
+        resources.add(query)
         return query
     }
 
     public Script Script(String name, Integer version) {
-        return LocalObjectLoader.getScript(name, version);
+        return LocalObjectLoader.getScript(name, version)
     }
 
     public Script Script(String name, Integer version, Closure cl) {
         def script = ScriptBuilder.build(name, version, cl)
         script.export(imports, new File(exportRoot), true)
+        resources.add(script)
         return script
     }
 
-    public StateMachine StateMachine(String name, Integer version) {
-        return LocalObjectLoader.getStateMachine(name, version);
-    }
-
     public ActivityDef Activity(String name, Integer version) {
-        return LocalObjectLoader.getActDef(name, version);
+        return LocalObjectLoader.getActDef(name, version)
     }
 
     public ActivityDef Activity(String name, Integer version, Closure cl) {
         def eaDef = ElemActDefBuilder.build(name, version, cl)
         eaDef.export(imports, new File(exportRoot), true)
+        resources.add(eaDef)
         return eaDef
     }
 
     public CompositeActivityDef Workflow(String name, Integer version) {
-        return LocalObjectLoader.getCompActDef(name, version);
+        return LocalObjectLoader.getCompActDef(name, version)
     }
 
     public CompositeActivityDef Workflow(String name, Integer version, Closure cl) {
@@ -145,5 +161,121 @@ class ModuleDelegate {
         cl()
 
         imports.close()
+
+        updateAndGenerateResource()
     }
+
+    /**
+     * Updates the the resources in the module.xml.
+     * It compares the 'newResources' with the module's resources collection, if not found then it will be added.
+     * The resource will be updated if it is existing but elements are the not same with the one in the module's resources.
+     */
+    private void updateAndGenerateResource() {
+
+        resources.each { dObj ->
+            boolean isExist = false
+            int indexVal = module.imports.list.size() != 0 ? module.imports.list.size() + 1 : 0
+
+            if (dObj instanceof ActivityDef) { // Validate if the activity is existing and has been updated.  If not existing it will be added, if updated it will update the details.
+
+                ActivityDef obj = ActivityDef.cast(dObj)
+                module.imports.list.find {
+                    if (it instanceof ModuleActivity) {
+                        indexVal = module.imports.list.indexOf(it)
+                        ModuleActivity importVal = ModuleActivity.cast(it)
+                        if (importVal.name == obj.name) {
+                            module.imports.list.remove(indexVal)
+                            isExist = true
+                        } else {
+                            return
+                        }
+                    }
+                }
+
+                ModuleActivity activity = new ModuleActivity()
+                activity.setVersion(obj.version)
+                activity.setName(obj.name)
+                if (obj.script) {
+                    activity.setScript(new ModuleDescRef(obj.script.name, null, obj.script.version))
+                }
+                if (obj.schema) {
+                    activity.setSchema(new ModuleDescRef(obj.schema.name, null, obj.schema.version))
+                }
+                if (obj.query) {
+                    activity.setQuery(new ModuleDescRef(obj.query.name, null, obj.query.version))
+                }
+
+                if (isExist) {
+                    module.imports.list.add(indexVal, activity)
+                } else {
+                    module.imports.list.add(activity)
+                }
+
+
+            } else if (dObj instanceof Script) {
+                // Validate if the Script is existing or not.  If not it will be added to the module's resources.
+
+                Script obj = Script.cast(dObj)
+                module.imports.list.find {
+                    if (it instanceof ModuleScript) {
+                        ModuleScript script = ModuleScript.cast(it)
+                        if (script.name == obj.name) {
+                            isExist = true
+                        }
+                    }
+                }
+
+                if (!isExist) {
+                    ModuleScript script = new ModuleScript()
+                    script.setVersion(obj.version)
+                    script.setName(obj.name)
+                    module.imports.list.add(script)
+                }
+
+            } else if (dObj instanceof Schema) {
+                // Validate if the Script is existing or not.  If not it will be added to the module's resources.
+
+                Schema obj = Schema.cast(dObj)
+                module.imports.list.find {
+                    if (it instanceof ModuleSchema) {
+                        ModuleSchema schema = ModuleSchema.cast(it)
+                        if (schema.name == obj.name) {
+                            isExist = true
+                        }
+                    }
+                }
+
+                if (!isExist) {
+                    ModuleSchema schema = new ModuleSchema()
+                    schema.setVersion(obj.version)
+                    schema.setName(obj.name)
+                    module.imports.list.add(schema)
+                }
+
+            } else if (dObj instanceof Query) {
+                // Validate if the Script is existing or not.  If not it will be added to the module's resources.
+
+                Query obj = Query.cast(dObj)
+                module.imports.list.find {
+                    if (it instanceof ModuleQuery) {
+                        ModuleQuery query = ModuleQuery.cast(it)
+                        if (query.name == obj.name) {
+                            isExist = true
+                        }
+                    }
+                }
+
+                if (!isExist) {
+                    ModuleQuery query = new ModuleQuery()
+                    query.setVersion(obj.version)
+                    query.setName(obj.name)
+                    module.imports.list.add(query)
+                }
+            }
+        }
+
+        FileStringUtility.string2File(new File(new File(moduleXmlRoot), moduleXml), XmlUtil.serialize(Gateway.getMarshaller().marshall(module)))
+
+    }
+
 }
