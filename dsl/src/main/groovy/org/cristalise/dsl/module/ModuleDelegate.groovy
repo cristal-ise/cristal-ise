@@ -33,7 +33,6 @@ import org.cristalise.dsl.scripting.ScriptBuilder
 import org.cristalise.kernel.lifecycle.ActivityDef
 import org.cristalise.kernel.lifecycle.CompositeActivityDef
 import org.cristalise.kernel.persistency.outcome.Schema
-import org.cristalise.kernel.process.AbstractMain
 import org.cristalise.kernel.process.Gateway
 import org.cristalise.kernel.process.module.*
 import org.cristalise.kernel.querying.Query
@@ -65,9 +64,6 @@ class ModuleDelegate {
     static final String exportRoot = "src/main/resources/boot"
     static final String exportDBRoot = "src/main/script/"
     static String moduleXml = 'module.xml'
-    static String config = 'src/main/config/client.conf'
-    static String connect = 'src/main/config/local.clc'
-    static int logLevel = 5
 
     public ModuleDelegate(String ns, String n, int v) {
         module.ns = ns
@@ -77,7 +73,6 @@ class ModuleDelegate {
         imports = new PrintWriter(System.out)
         resources = new ArrayList<>()
 
-        Gateway.init(AbstractMain.readC2KArgs(['-logLevel', "$logLevel", '-config', config, '-connect', connect] as String[]))
         module = (Module) Gateway.getMarshaller().unmarshall(new File(moduleXmlRoot + "/${moduleXml}").text)
     }
 
@@ -176,7 +171,8 @@ class ModuleDelegate {
             boolean isExist = false
             int indexVal = module.imports.list.size() != 0 ? module.imports.list.size() + 1 : 0
 
-            if (dObj instanceof ActivityDef) { // Validate if the activity is existing and has been updated.  If not existing it will be added, if updated it will update the details.
+            if (dObj instanceof ActivityDef) {
+                // Validate if the activity is existing and has been updated.  If not existing it will be added, if updated it will update the details.
 
                 ActivityDef obj = ActivityDef.cast(dObj)
                 module.imports.list.find {
