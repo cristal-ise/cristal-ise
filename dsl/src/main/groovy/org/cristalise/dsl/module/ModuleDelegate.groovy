@@ -23,18 +23,25 @@ package org.cristalise.dsl.module
 import groovy.transform.CompileStatic
 import groovy.xml.XmlUtil
 import org.codehaus.groovy.control.CompilerConfiguration
+import org.cristalise.dsl.entity.AgentBuilder
+import org.cristalise.dsl.entity.ItemBuilder
 import org.cristalise.dsl.lifecycle.definition.CompActDefBuilder
 import org.cristalise.dsl.lifecycle.definition.ElemActDefBuilder
 import org.cristalise.dsl.persistency.database.Database
 import org.cristalise.dsl.persistency.database.DatabaseBuilder
 import org.cristalise.dsl.persistency.outcome.SchemaBuilder
+import org.cristalise.dsl.property.PropertyDescriptionBuilder
 import org.cristalise.dsl.querying.QueryBuilder
 import org.cristalise.dsl.scripting.ScriptBuilder
+import org.cristalise.kernel.entity.Agent
+import org.cristalise.kernel.entity.imports.ImportAgent
+import org.cristalise.kernel.entity.imports.ImportItem
 import org.cristalise.kernel.lifecycle.ActivityDef
 import org.cristalise.kernel.lifecycle.CompositeActivityDef
 import org.cristalise.kernel.persistency.outcome.Schema
 import org.cristalise.kernel.process.Gateway
 import org.cristalise.kernel.process.module.*
+import org.cristalise.kernel.property.PropertyDescriptionList
 import org.cristalise.kernel.querying.Query
 import org.cristalise.kernel.scripting.Script
 import org.cristalise.kernel.utils.DescriptionObject
@@ -54,6 +61,8 @@ class ModuleDelegate {
      * Used by the {updateAndGenerateResource} method.
      */
     List<? extends DescriptionObject> resources
+    List<? extends ImportAgent> agents
+    List<? extends ImportItem> items
 
     int version
     Writer imports
@@ -62,6 +71,7 @@ class ModuleDelegate {
 
     static final String moduleXmlRoot = "src/main/resources"
     static final String exportRoot = "src/main/resources/boot"
+    static final String propertyRoot = "${exportRoot}/property"
     static final String exportDBRoot = "src/main/script/"
     static String moduleXml = 'module.xml'
 
@@ -72,6 +82,8 @@ class ModuleDelegate {
 
         imports = new PrintWriter(System.out)
         resources = new ArrayList<>()
+        agents = new ArrayList<>()
+        items = new ArrayList<>()
 
         module = (Module) Gateway.getMarshaller().unmarshall(new File(moduleXmlRoot + "/${moduleXml}").text)
     }
@@ -141,10 +153,52 @@ class ModuleDelegate {
         return LocalObjectLoader.getCompActDef(name, version)
     }
 
+    /**
+     * Enable export if workflow needs to be generated.
+     * e.g. caDef.export(imports, new File(exportRoot), true)
+     * @param name
+     * @param version
+     * @param cl
+     * @return
+     */
     public CompositeActivityDef Workflow(String name, Integer version, Closure cl) {
         def caDef = CompActDefBuilder.build(name, version, cl)
-        caDef.export(imports, new File(exportRoot), true)
+        resources.add(caDef)
         return caDef
+    }
+
+    /**
+     * Generates xml files for the define property description values.
+     * @param cl
+     */
+    public void PropertyDescriptionList(Closure cl) {
+        def propDescList = PropertyDescriptionBuilder.build(cl)
+        def type = propDescList.list.find{
+            it.isClassIdentifier && it.name == 'Type'
+        }
+        FileStringUtility.string2File(new File(new File(propertyRoot), "${type.defaultValue}.xml"), XmlUtil.serialize(Gateway.getMarshaller().marshall(propDescList)))
+    }
+
+    /**
+     * Generate agent and add to module.xml.
+     * @param name
+     * @param password
+     * @param cl
+     */
+    public void Agent(Map args, Closure cl) {
+        def agent = AgentBuilder.build((String) args.name, (String) args.password, cl)
+        agents.add(agent)
+    }
+
+    /**
+     * Collects items define in the groovy scripts and add to module.xml
+     * or update the definition it is already existing.
+     * @param args
+     * @param cl
+     */
+    public void Item(Map args, Closure cl) {
+        def item = ItemBuilder.build((String) args.name, (String) args.folder, cl)
+        items.add(item)
     }
 
     public void processClosure(Closure cl) {
@@ -171,7 +225,39 @@ class ModuleDelegate {
             boolean isExist = false
             int indexVal = module.imports.list.size() != 0 ? module.imports.list.size() + 1 : 0
 
-            if (dObj instanceof ActivityDef) {
+            if (dObj instanceof CompositeActivityDef) {
+                CompositeActivityDef obj = CompositeActivityDef.cast(dObj)
+                module.imports.list.find {
+                    if (it instanceof ModuleWorkflow) {
+                        indexVal = module.imports.list.indexOf(it)
+                        ModuleWorkflow importVal = ModuleWorkflow.cast(it)
+                        if (importVal.name == obj.name) {
+                            module.imports.list.remove(indexVal)
+                            isExist = true
+                        } else {
+                            return
+                        }
+                    }
+                }
+
+                ModuleWorkflow workflow = new ModuleWorkflow()
+                workflow.setVersion(obj.version)
+                workflow.setName(obj.name)
+
+                if (obj.refChildActDef){
+                    obj.refChildActDef.each {
+                        ActivityDef act = ActivityDef.cast(it)
+                        workflow.activities.add(new ModuleDescRef(act.name, act.itemID, act.version))
+                    }
+                }
+
+                if (isExist) {
+                    module.imports.list.add(indexVal, workflow)
+                } else {
+                    module.imports.list.add(workflow)
+                }
+
+            } else if (dObj instanceof ActivityDef) {
                 // Validate if the activity is existing and has been updated.  If not existing it will be added, if updated it will update the details.
 
                 ActivityDef obj = ActivityDef.cast(dObj)
