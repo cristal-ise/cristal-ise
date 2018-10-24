@@ -25,6 +25,7 @@ import groovy.xml.XmlUtil
 import org.codehaus.groovy.control.CompilerConfiguration
 import org.cristalise.dsl.entity.AgentBuilder
 import org.cristalise.dsl.entity.ItemBuilder
+import org.cristalise.dsl.entity.RoleBuilder
 import org.cristalise.dsl.lifecycle.definition.CompActDefBuilder
 import org.cristalise.dsl.lifecycle.definition.ElemActDefBuilder
 import org.cristalise.dsl.persistency.database.Database
@@ -33,15 +34,14 @@ import org.cristalise.dsl.persistency.outcome.SchemaBuilder
 import org.cristalise.dsl.property.PropertyDescriptionBuilder
 import org.cristalise.dsl.querying.QueryBuilder
 import org.cristalise.dsl.scripting.ScriptBuilder
-import org.cristalise.kernel.entity.Agent
 import org.cristalise.kernel.entity.imports.ImportAgent
 import org.cristalise.kernel.entity.imports.ImportItem
+import org.cristalise.kernel.entity.imports.ImportRole
 import org.cristalise.kernel.lifecycle.ActivityDef
 import org.cristalise.kernel.lifecycle.CompositeActivityDef
 import org.cristalise.kernel.persistency.outcome.Schema
 import org.cristalise.kernel.process.Gateway
 import org.cristalise.kernel.process.module.*
-import org.cristalise.kernel.property.PropertyDescriptionList
 import org.cristalise.kernel.querying.Query
 import org.cristalise.kernel.scripting.Script
 import org.cristalise.kernel.utils.DescriptionObject
@@ -61,8 +61,10 @@ class ModuleDelegate {
      * Used by the {updateAndGenerateResource} method.
      */
     List<? extends DescriptionObject> resources
-    List<? extends ImportAgent> agents
-    List<? extends ImportItem> items
+    Set<ImportAgent> agents
+    Set<ImportItem> items
+    Set<ImportRole> roles
+    Set<ModuleConfig> configs
 
     int version
     Writer imports
@@ -82,8 +84,10 @@ class ModuleDelegate {
 
         imports = new PrintWriter(System.out)
         resources = new ArrayList<>()
-        agents = new ArrayList<>()
-        items = new ArrayList<>()
+        agents = new HashSet<>()
+        items = new HashSet<>()
+        roles = new HashSet<>()
+        configs = new HashSet<>()
 
         module = (Module) Gateway.getMarshaller().unmarshall(new File(moduleXmlRoot + "/${moduleXml}").text)
     }
@@ -187,6 +191,10 @@ class ModuleDelegate {
      */
     public void Agent(Map args, Closure cl) {
         def agent = AgentBuilder.build((String) args.name, (String) args.password, cl)
+        agent.setProperties(null)
+        agent.roles.each {
+            it.jobList = null
+        }
         agents.add(agent)
     }
 
@@ -197,8 +205,70 @@ class ModuleDelegate {
      * @param cl
      */
     public void Item(Map args, Closure cl) {
-        def item = ItemBuilder.build((String) args.name, (String) args.folder, cl)
+        def item = ItemBuilder.build((String) args.name, (String) args.folder, (String) args.workflow, cl)
+        item.properties.removeAll{
+            it.value == args.name
+        }
         items.add(item)
+    }
+
+    /**
+     * Process define roles and include/update on module.xml.
+     * @param cl
+     */
+    public void Roles(Closure cl) {
+        def importRoles = RoleBuilder.build(cl)
+        roles.addAll(importRoles)
+    }
+
+    /**
+     * Process define config and include/update on module.xml.
+     * @param attr
+     */
+    public void Config(Map attr){
+        configs.add(new ModuleConfig((String) attr.name, (String) attr.value, (String) attr.target ? (String) attr.target : null))
+    }
+
+    /**
+     * rocess define info and include/update on module.xml.
+     * @param attr
+     */
+    public void Info(Map attr, Closure<String[]> cl) {
+        assert attr
+
+        if (!module.info){
+            module.info = new ModuleInfo()
+        }
+
+        if (attr.description) {
+            module.info.desc = (String) attr.description
+        }
+
+        if (attr.version) {
+            module.info.version = (String) attr.version
+        }
+
+        if (attr.kernel) {
+            module.info.kernelVersion = (String) attr.kernel
+        }
+
+        if (cl){
+            def dependencies = cl()
+            if (dependencies) {
+                module.info.dependency.addAll(dependencies)
+            }
+        }
+
+    }
+
+    /**
+     * Sets the module's resourceUrl value.
+     * @param url
+     * @return
+     */
+    public Url(String url){
+        assert url
+        module.resURL = url
     }
 
     public void processClosure(Closure cl) {
@@ -222,23 +292,9 @@ class ModuleDelegate {
     private void updateAndGenerateResource() {
 
         resources.each { dObj ->
-            boolean isExist = false
-            int indexVal = module.imports.list.size() != 0 ? module.imports.list.size() + 1 : 0
 
             if (dObj instanceof CompositeActivityDef) {
                 CompositeActivityDef obj = CompositeActivityDef.cast(dObj)
-                module.imports.list.find {
-                    if (it instanceof ModuleWorkflow) {
-                        indexVal = module.imports.list.indexOf(it)
-                        ModuleWorkflow importVal = ModuleWorkflow.cast(it)
-                        if (importVal.name == obj.name) {
-                            module.imports.list.remove(indexVal)
-                            isExist = true
-                        } else {
-                            return
-                        }
-                    }
-                }
 
                 ModuleWorkflow workflow = new ModuleWorkflow()
                 workflow.setVersion(obj.version)
@@ -250,8 +306,9 @@ class ModuleDelegate {
                         workflow.activities.add(new ModuleDescRef(act.name, act.itemID, act.version))
                     }
                 }
+                int indexVal = findResource(workflow, true)
 
-                if (isExist) {
+                if (indexVal > -1) {
                     module.imports.list.add(indexVal, workflow)
                 } else {
                     module.imports.list.add(workflow)
@@ -261,19 +318,6 @@ class ModuleDelegate {
                 // Validate if the activity is existing and has been updated.  If not existing it will be added, if updated it will update the details.
 
                 ActivityDef obj = ActivityDef.cast(dObj)
-                module.imports.list.find {
-                    if (it instanceof ModuleActivity) {
-                        indexVal = module.imports.list.indexOf(it)
-                        ModuleActivity importVal = ModuleActivity.cast(it)
-                        if (importVal.name == obj.name) {
-                            module.imports.list.remove(indexVal)
-                            isExist = true
-                        } else {
-                            return
-                        }
-                    }
-                }
-
                 ModuleActivity activity = new ModuleActivity()
                 activity.setVersion(obj.version)
                 activity.setName(obj.name)
@@ -287,7 +331,9 @@ class ModuleDelegate {
                     activity.setQuery(new ModuleDescRef(obj.query.name, null, obj.query.version))
                 }
 
-                if (isExist) {
+                int indexVal = findResource(activity, true)
+
+                if (indexVal > -1) {
                     module.imports.list.add(indexVal, activity)
                 } else {
                     module.imports.list.add(activity)
@@ -298,19 +344,13 @@ class ModuleDelegate {
                 // Validate if the Script is existing or not.  If not it will be added to the module's resources.
 
                 Script obj = Script.cast(dObj)
-                module.imports.list.find {
-                    if (it instanceof ModuleScript) {
-                        ModuleScript script = ModuleScript.cast(it)
-                        if (script.name == obj.name) {
-                            isExist = true
-                        }
-                    }
-                }
+                ModuleScript script = new ModuleScript()
+                script.setVersion(obj.version)
+                script.setName(obj.name)
 
-                if (!isExist) {
-                    ModuleScript script = new ModuleScript()
-                    script.setVersion(obj.version)
-                    script.setName(obj.name)
+                int indexVal = findResource(script, false)
+
+                if (indexVal == -1) {
                     module.imports.list.add(script)
                 }
 
@@ -318,19 +358,13 @@ class ModuleDelegate {
                 // Validate if the Script is existing or not.  If not it will be added to the module's resources.
 
                 Schema obj = Schema.cast(dObj)
-                module.imports.list.find {
-                    if (it instanceof ModuleSchema) {
-                        ModuleSchema schema = ModuleSchema.cast(it)
-                        if (schema.name == obj.name) {
-                            isExist = true
-                        }
-                    }
-                }
+                ModuleSchema schema = new ModuleSchema()
+                schema.setVersion(obj.version)
+                schema.setName(obj.name)
 
-                if (!isExist) {
-                    ModuleSchema schema = new ModuleSchema()
-                    schema.setVersion(obj.version)
-                    schema.setName(obj.name)
+                int indexVal = findResource(schema, false)
+
+                if (indexVal == -1) {
                     module.imports.list.add(schema)
                 }
 
@@ -338,25 +372,113 @@ class ModuleDelegate {
                 // Validate if the Script is existing or not.  If not it will be added to the module's resources.
 
                 Query obj = Query.cast(dObj)
-                module.imports.list.find {
-                    if (it instanceof ModuleQuery) {
-                        ModuleQuery query = ModuleQuery.cast(it)
-                        if (query.name == obj.name) {
-                            isExist = true
-                        }
-                    }
-                }
+                ModuleQuery query = new ModuleQuery()
+                query.setVersion(obj.version)
+                query.setName(obj.name)
 
-                if (!isExist) {
-                    ModuleQuery query = new ModuleQuery()
-                    query.setVersion(obj.version)
-                    query.setName(obj.name)
+                int indexVal = findResource(query, false)
+                if (indexVal == -1) {
                     module.imports.list.add(query)
                 }
+
             }
         }
 
+        agents.each { itAgent ->
+            ImportAgent agent = ImportAgent.cast(itAgent)
+            int index = findResource(agent, true)
+            if (index > -1) {
+                module.imports.list.add(index, agent)
+            } else {
+                module.imports.list.add(agent)
+            }
+        }
+
+        items.each { itItem ->
+            ImportItem item = ImportItem.cast(itItem)
+            int index = findResource(item, true)
+
+            if (index > -1) {
+                module.imports.list.add(index, item)
+            } else {
+                module.imports.list.add(item)
+            }
+        }
+
+        roles.each { itRole ->
+            ImportRole role = ImportRole.cast(itRole)
+            int index = findResource(role, true)
+
+            if (index > -1) {
+                module.imports.list.add(index, role)
+            } else {
+                module.imports.list.add(role)
+            }
+        }
+
+        configs.each { config ->
+            int index = -1
+            module.config.find{
+                if (it.name == config.name){
+                    index = module.config.indexOf(it)
+                    module.config.remove(index)
+                } else {
+                    return
+                }
+            }
+
+            if (index > -1) {
+                module.config.add(index, config)
+            } else {
+                module.config.add(config)
+            }
+        }
+
+
         FileStringUtility.string2File(new File(new File(moduleXmlRoot), moduleXml), XmlUtil.serialize(Gateway.getMarshaller().marshall(module)))
+
+    }
+
+    /**
+     * Finds the resource if the it's existing in the module imports.
+     * @param moduleImport
+     * @param remove
+     * @return
+     */
+    private int findResource(ModuleImport moduleImport, boolean remove){
+        int indexVal = -1
+        boolean isValidInstance = false
+        module.imports.list.find{
+            if (it instanceof ImportAgent) {
+                isValidInstance = true
+            } else if (it instanceof ImportItem) {
+                isValidInstance = true
+            } else if (it instanceof ModuleActivity) {
+                isValidInstance = true
+            } else if (it instanceof ModuleSchema) {
+                isValidInstance = true
+            } else if (it instanceof ModuleScript) {
+                isValidInstance = true
+            } else if (it instanceof ModuleQuery) {
+                isValidInstance = true
+            } else if (it instanceof ModuleWorkflow) {
+                isValidInstance = true
+            } else if (it instanceof ImportRole) {
+                isValidInstance = true
+            } else if (it instanceof ModuleConfig) {
+                isValidInstance = true
+            } else {
+                return
+            }
+
+            if (isValidInstance && it.name == moduleImport.name) {
+                indexVal = module.imports.list.indexOf(it)
+                if (remove) {
+                    module.imports.list.remove(indexVal)
+                }
+            }
+        }
+        return indexVal
 
     }
 

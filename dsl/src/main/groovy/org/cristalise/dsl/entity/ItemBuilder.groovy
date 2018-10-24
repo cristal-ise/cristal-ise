@@ -39,13 +39,13 @@ class ItemBuilder {
 
     public static ImportItem build(Map<String, Object> attrs, Closure cl) {
         assert attrs, "ItemBuilder build() cannot work with empty attributes (Map)"
-        return build((String)attrs.name, (String)attrs.folder, cl)
+        return build((String)attrs.name, (String)attrs.folder, (String)attrs.workflow, cl)
     }
 
-    public static ImportItem build(String name, String folder, Closure cl) {
+    public static ImportItem build(String name, String folder, String workflow, Closure cl) {
         if(!name || !folder) throw new InvalidDataException("")
 
-        def itemD = new ItemDelegate(name, folder)
+        def itemD = new ItemDelegate(name, folder, workflow)
 
         itemD.processClosure(cl)
 

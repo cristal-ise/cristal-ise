@@ -21,11 +21,9 @@
 package org.cristalise.dsl.entity
 
 import groovy.transform.CompileStatic
-
 import org.cristalise.dsl.lifecycle.instance.WorkflowBuilder
-import org.cristalise.kernel.entity.imports.ImportItem;
-import org.cristalise.kernel.lifecycle.instance.Workflow
-
+import org.cristalise.kernel.entity.imports.ImportItem
+import org.cristalise.kernel.entity.imports.ImportOutcome
 
 /**
  *
@@ -34,10 +32,12 @@ import org.cristalise.kernel.lifecycle.instance.Workflow
 class ItemDelegate extends PropertyDelegate {
 
     public ImportItem newItem = new ImportItem()
+    List<ImportOutcome> outcomes = new ArrayList<>()
 
-    public ItemDelegate(String name, String folder) {
+    public ItemDelegate(String name, String folder, String workflow) {
         newItem.name = name
         newItem.initialPath = folder
+        newItem.workflow = workflow
     }
 
     public void processClosure(Closure cl) {
@@ -50,9 +50,21 @@ class ItemDelegate extends PropertyDelegate {
         cl()
 
         if (itemProps) newItem.properties = itemProps.list
+
+        if (outcomes) newItem.outcomes = ArrayList.cast(outcomes)
     }
 
     def Workflow(Closure cl) {
         newItem.wf = new WorkflowBuilder().build(cl)
+    }
+
+    public void Outcome(Map attr) {
+        assert attr
+        assert attr.schema
+        assert attr.version
+        assert attr.viewname
+        assert attr.path
+
+        outcomes.add(new ImportOutcome((String) attr.schema, attr.version as Integer, (String) attr.viewname, (String) attr.path))
     }
 }
