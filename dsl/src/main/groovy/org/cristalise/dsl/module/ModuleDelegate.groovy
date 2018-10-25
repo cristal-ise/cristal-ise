@@ -212,7 +212,7 @@ class ModuleDelegate {
     }
 
     /**
-     * Generate agent and add to module.xml.
+     * Collects agent and add to module.xml, or update the definition it is already existing.
      * @param name
      * @param password
      * @param cl
@@ -241,7 +241,7 @@ class ModuleDelegate {
     }
 
     /**
-     * Process define roles and include/update on module.xml.
+     * Collects define roles and add/update on module.xml.
      * @param cl
      */
     public void Roles(Closure cl) {
@@ -250,7 +250,7 @@ class ModuleDelegate {
     }
 
     /**
-     * Process define config and include/update on module.xml.
+     * Collects define config and add/update on module.xml.
      * @param attr
      */
     public void Config(Map attr){
@@ -258,7 +258,7 @@ class ModuleDelegate {
     }
 
     /**
-     * rocess define info and include/update on module.xml.
+     * Collects define info and add/update on module.xml.
      * @param attr
      */
     public void Info(Map attr, Closure<String[]> cl) {
@@ -302,8 +302,8 @@ class ModuleDelegate {
 
     /**
      * Updates the the resources in the module.xml.
-     * It compares the 'newResources' with the module's resources collection, if not found then it will be added.
-     * The resource will be updated if it is existing but elements are the not same with the one in the module's resources.
+     * It compares the {@value #resources} with the {@value Module#imports} collection, if not found then it will be added.
+     * The resource will be updated if it is existing but elements are the not same with the one in the module's imports.
      */
     private void updateAndGenerateResource() {
         resources.each { dObj ->
@@ -443,36 +443,7 @@ class ModuleDelegate {
     private int findResource(ModuleImport moduleImport, boolean remove){
         int indexVal = -1
         module.imports.list.find {
-            /* 
-             * WHY THIS? if needed replace it with something more clever, e.g. add the accepted classes to a static array
-             * 
-            boolean isValidInstance = false
-            if (it instanceof ImportAgent) {
-                isValidInstance = true
-            } else if (it instanceof ImportItem) {
-                isValidInstance = true
-            } else if (it instanceof ModuleActivity) {
-                isValidInstance = true
-            } else if (it instanceof ModuleSchema) {
-                isValidInstance = true
-            } else if (it instanceof ModuleScript) {
-                isValidInstance = true
-            } else if (it instanceof ModuleQuery) {
-                isValidInstance = true
-            } else if (it instanceof ModuleWorkflow) {
-                isValidInstance = true
-            } else if (it instanceof ImportRole) {
-                isValidInstance = true
-            } else if (it instanceof ModuleConfig) {
-                isValidInstance = true
-            } else if (it instanceof ModuleStateMachine) {
-                isValidInstance = true
-            } else {
-                return
-            }
-            */
-
-            if (/*isValidInstance && */it.name == moduleImport.name) {
+            if (it.name == moduleImport.name) {
                 indexVal = module.imports.list.indexOf(it)
                 if (remove) {
                     module.imports.list.remove(indexVal)
