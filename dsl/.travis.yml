@@ -7,7 +7,7 @@ before_install:
 install:
   mvn --settings .maven.xml install -DskipTests=true -Dgpg.skip -Dmaven.javadoc.skip=true -B -V
 script:
-  - if [ $TRAVIS_BRANCH == 'develop' || $TRAVIS_BRANCH == 'master' ]; then mvn clean deploy --settings .maven.xml -DskipTests=true -B -U -Prelease fi
+  - if [ "$TRAVIS_PULL_REQUEST" == "false" ] && [[ "$TRAVIS_BRANCH" == "develop" || "$TRAVIS_BRANCH" == "master" ]]; then mvn clean deploy --settings .maven.xml -DskipTests=true -B -U -Prelease; fi
 before_deploy:
   - mvn help:evaluate -N -Dexpression=project.version|grep -v '\['
   - export project_version=$(mvn help:evaluate -N -Dexpression=project.version|grep -v '\[')
