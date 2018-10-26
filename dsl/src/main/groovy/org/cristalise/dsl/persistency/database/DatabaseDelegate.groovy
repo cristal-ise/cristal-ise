@@ -35,6 +35,7 @@ class DatabaseDelegate {
     String dbCreateString
     String dbInsertString
     String dbSelectString
+	String dbSelectAllString
     String dbUpdateString
     String dbDeleteString
     String dbScriptsString
@@ -83,6 +84,8 @@ class DatabaseDelegate {
         dbInsertString = buildScriptContent(tableName, commonLines, fields, DatabaseType.INSERT)
         // construct select query
         dbSelectString = buildScriptContent(tableName, commonLines, fields, DatabaseType.SELECT)
+		// construct select query
+		dbSelectAllString = buildScriptContent(tableName, commonLines, fields, DatabaseType.SELECT)
         // construct update query
         dbUpdateString = buildScriptContent(tableName, commonLines, fields, DatabaseType.UPDATE)
         // construct delete query
@@ -210,6 +213,12 @@ class DatabaseDelegate {
             w.append("        .from(${name})\n")
             w.append("        .where(${uuidField}.equal(uuid))\n")
             w.append("        .fetchOne()\n\n")
+            w.append("result")
+        } else if (type == DatabaseType.SELECT_ALL) { //select query content
+            w.append("def result = dsl.select()\n")
+            w.append("        .from(${name})\n")
+            w.append("        .where(${uuidField}.equal(uuid))\n")
+            w.append("        .fetch()\n\n")
             w.append("result")
         } else if (type == DatabaseType.UPDATE) { // update query content
             w.append("def updateQueryResult = dsl.updateQuery(${name})\n")

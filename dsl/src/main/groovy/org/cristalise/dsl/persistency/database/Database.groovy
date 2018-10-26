@@ -31,6 +31,7 @@ class Database {
     private final String createScriptData
     private final String insertScriptData
     private final String selectScriptData
+	private final String selectAllScriptData
     private final String updateScriptData
     private final String deleteScriptData
     private final String itemScriptsData
@@ -52,7 +53,7 @@ class Database {
      * @param itemScriptsData
      */
     Database(String name, int version, ItemPath itemPath, String createScriptData, String insertScriptData,
-             String selectScriptData, String updateScriptData, String deleteScriptData, String itemScriptsData) {
+             String selectScriptData, String selectAllScriptData, String updateScriptData, String deleteScriptData, String itemScriptsData) {
         super()
         this.name = name
         this.version = version
@@ -60,6 +61,7 @@ class Database {
         this.createScriptData = createScriptData
         this.insertScriptData = insertScriptData
         this.selectScriptData = selectScriptData
+		this.selectAllScriptData = selectAllScriptData
         this.updateScriptData = updateScriptData
         this.deleteScriptData = deleteScriptData
         this.itemScriptsData = itemScriptsData
@@ -77,13 +79,14 @@ class Database {
      * @param itemScriptsData
      */
     Database(String name, int version, String createScriptData, String insertScriptData, String selectScriptData,
-             String updateScriptData, String deleteScriptData, String itemScriptsData) {
+		 	 String selectAllScriptData, String updateScriptData, String deleteScriptData, String itemScriptsData) {
         super()
         this.name = name
         this.version = version
         this.createScriptData = createScriptData
         this.insertScriptData = insertScriptData
         this.selectScriptData = selectScriptData
+		this.selectAllScriptData = selectAllScriptData
         this.updateScriptData = updateScriptData
         this.deleteScriptData = deleteScriptData
         this.itemScriptsData = itemScriptsData
@@ -100,11 +103,12 @@ class Database {
      * @param deleteScriptData
      * @param itemScriptsData
      */
-    Database(String createScriptData, String insertScriptData, String selectScriptData, String updateScriptData,
-             String deleteScriptData, String itemScriptsData) {
+    Database(String createScriptData, String insertScriptData, String selectScriptData, String selectAllScriptData,
+		 	 String updateScriptData, String deleteScriptData, String itemScriptsData) {
         this.createScriptData = createScriptData
         this.insertScriptData = insertScriptData
         this.selectScriptData = selectScriptData
+		this.selectAllScriptData = selectAllScriptData
         this.updateScriptData = updateScriptData
         this.deleteScriptData = deleteScriptData
         this.itemScriptsData = itemScriptsData
