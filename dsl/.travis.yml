@@ -1,21 +1,22 @@
 language: java
 jdk: oraclejdk8
 before_install:
-- echo $GPG_SECRET_KEYS | base64 --decode | $GPG_EXECUTABLE --import
-- echo $GPG_OWNERTRUST | base64 --decode | $GPG_EXECUTABLE --import-ownertrust
+  - echo $GPG_SECRET_KEYS | base64 --decode | $GPG_EXECUTABLE --import
+  - echo $GPG_OWNERTRUST | base64 --decode | $GPG_EXECUTABLE --import-ownertrust
+  - echo $TRAVIS_BRANCH
 install:
   mvn --settings .maven.xml install -DskipTests=true -Dgpg.skip -Dmaven.javadoc.skip=true -B -V
 script:
-  mvn clean deploy --settings .maven.xml -DskipTests=true -B -U -Prelease
+  - 'if [ "${TRAVIS_PULL_REQUEST}" == "false" ] && [ [ "${TRAVIS_BRANCH}" == "develop" || "${TRAVIS_BRANCH}" == "master" ] ]; then mvn clean deploy --settings .maven.xml -DskipTests=true -B -U -Prelease; fi'
 before_deploy:
-- mvn help:evaluate -N -Dexpression=project.version|grep -v '\['
-- export project_version=$(mvn help:evaluate -N -Dexpression=project.version|grep -v '\[')
+  - mvn help:evaluate -N -Dexpression=project.version|grep -v '\['
+  - export project_version=$(mvn help:evaluate -N -Dexpression=project.version|grep -v '\[')
 deploy:
   provider: releases
   api_key:
     secure: mCDjpGoj1iIN6jS/y0PBhzOY8TzvFUoL1EFwQIzXLg0JdpaJhj3FktJCWO3eP4nTgNeLDDb56QZFr3iU3ScCo6mQS/qUT6uVbp1D4c53j/RKfO7PI8qCAJ7BKqToozIWvpXKJJP50kkfGVOfzdflJlLagLE51HE+qCyTNXL6vRXpmlaSjjCcDw9jboPhb3fPtw6ToWp2kWiVTTt4EXy9+uywQLZMfE0FQ96npvQLzKhceXpFRRUdzlrRq7pmL5gECpwjOWShDRFTZx0JlF+zi5TPc3cTLyVEwEXd7O4kOzo9gjO68bG7i+kMKsQr0XW9IUSpMpvHDZR0oYz2UlIbFWB2olv2FHHdWNcedAju+0VrS8WvxlzK3r7ApWnn6aZzT95CCIxcZAvZPBtHtryhVcbX78aOpYPqmr33qmnxqtYILz0EvHNNSyeAZ9ls3uMyaLIrVrlemx2vjQr1Tkjo7S+lfcrptw++s27k/VrPEY+eS7Ly6cv1Yn0v2HXHvR7OUXnWWqqQR5xd2meVQ2YT0Blq/gt+USTi51fbLwIIK0r4ayohCiYzeSVa1OAfzQZcdDQRASL8D9zp3EqwQxE6X6WmYXq0Vyjc6XPZdPgTmXg3vKzkWLWn0ZZ+SNMZGJgYfHYqfwDqH12Dkgh1Fd0ODtyayHU01uZIPTHI/FHAnLo=
   file:
-  - dsl/target/cristalise-dsl-$project_version.jar
+    - dsl/target/cristalise-dsl-$project_version.jar
   skip_cleanup: true
   on:
     all_branches: true
@@ -24,4 +25,4 @@ deploy:
   name: cristalise-dsl-$project_version
 cache:
   directories:
-  - ~/.m2/repository
+    - ~/.m2/repository
