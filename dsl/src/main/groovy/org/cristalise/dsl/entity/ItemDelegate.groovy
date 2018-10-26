@@ -21,9 +21,16 @@
 package org.cristalise.dsl.entity
 
 import groovy.transform.CompileStatic
+import org.apache.commons.lang3.StringUtils
+import org.cristalise.dsl.collection.DependencyBuilder
 import org.cristalise.dsl.lifecycle.instance.WorkflowBuilder
+import org.cristalise.kernel.collection.Dependency
+import org.cristalise.kernel.collection.DependencyMember
+import org.cristalise.kernel.entity.imports.ImportDependency
+import org.cristalise.kernel.entity.imports.ImportDependencyMember
 import org.cristalise.kernel.entity.imports.ImportItem
 import org.cristalise.kernel.entity.imports.ImportOutcome
+import org.cristalise.kernel.lookup.ItemPath
 
 /**
  *
@@ -66,5 +73,29 @@ class ItemDelegate extends PropertyDelegate {
         assert attr.path
 
         outcomes.add(new ImportOutcome((String) attr.schema, attr.version as Integer, (String) attr.viewname, (String) attr.path))
+    }
+
+    public void Dependency(String name, Closure cl) {
+        assert name
+        assert cl
+
+        def builder = DependencyBuilder.build(name, cl)
+        Dependency dependency = builder.dependency
+
+        assert  dependency
+
+        ImportDependency idep = new ImportDependency(dependency.name)
+        idep.version = dependency.version
+        idep.isDescription = dependency.properties.get('isDescription')
+
+        dependency.members.list.each { mem ->
+            DependencyMember member = DependencyMember.cast(mem)
+            ImportDependencyMember imem = new ImportDependencyMember()
+            imem.props = member.properties
+            imem.itemPath = member.itemPath
+            idep.dependencyMemberList << imem
+        }
+
+        newItem.dependencyList.add(idep)
     }
 }

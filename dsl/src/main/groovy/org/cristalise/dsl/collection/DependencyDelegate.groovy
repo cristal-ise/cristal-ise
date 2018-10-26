@@ -52,7 +52,7 @@ class DependencyDelegate {
     public void Member(Map attrs, Closure cl = null) {
         assert attrs && attrs.itemPath
 
-        def member = dependency.addMember(new ItemPath((String)attrs.itemPath))
+        def member = dependency.addMember(new ItemPath((String)attrs.itemPath, true))
 
         if(cl) {
             DependencyMemberDelegate delegate = new DependencyMemberDelegate()
