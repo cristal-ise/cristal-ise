@@ -3,10 +3,10 @@ jdk: oraclejdk8
 before_install:
 - echo $GPG_SECRET_KEYS | base64 --decode | $GPG_EXECUTABLE --import
 - echo $GPG_OWNERTRUST | base64 --decode | $GPG_EXECUTABLE --import-ownertrust
+- echo $TRAVIS_BRANCH
 install:
   mvn --settings .maven.xml install -DskipTests=true -Dgpg.skip -Dmaven.javadoc.skip=true -B -V
 script:
-  - echo $TRAVIS_BRANCH
   mvn clean deploy --settings .maven.xml -DskipTests=true -B -U -P$TRAVIS_BRANCH
 before_deploy:
 - mvn help:evaluate -N -Dexpression=project.version|grep -v '\['
