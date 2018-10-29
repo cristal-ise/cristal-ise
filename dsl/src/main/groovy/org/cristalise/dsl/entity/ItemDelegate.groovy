@@ -85,9 +85,6 @@ class ItemDelegate extends PropertyDelegate {
         assert  dependency
 
         ImportDependency idep = new ImportDependency(dependency.name)
-        idep.version = dependency.version
-        idep.isDescription = dependency.properties.get('isDescription')
-
         dependency.members.list.each { mem ->
             DependencyMember member = DependencyMember.cast(mem)
             ImportDependencyMember imem = new ImportDependencyMember()
