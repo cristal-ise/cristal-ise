@@ -23,6 +23,8 @@ package org.cristalise.restapi;
 import static org.cristalise.kernel.property.BuiltInItemProperties.NAME;
 
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.net.URLDecoder;
 import java.nio.ByteBuffer;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
@@ -277,11 +279,18 @@ abstract public class RestHandler {
         for (int i = 0; i < terms.length; i++) {
             if (terms[i].contains(":")) { // assemble property if we have name:val
                 String[] nameval = terms[i].split(":");
+                String value = nameval[1];
     
                 if (nameval.length != 2)
                     throw ItemUtils.createWebAppException("Invalid search term: " + terms[i], Response.Status.BAD_REQUEST);
     
-                props.add(new Property(nameval[0], nameval[1]));
+                try {
+                    value = URLDecoder.decode(nameval[1], "UTF-8");
+                } catch (UnsupportedEncodingException e) {
+                    e.printStackTrace();
+                }
+                
+                props.add(new Property(nameval[0], value));
             }
             else if (i == 0) { // first search term can imply Name if no propname given
                 props.add(new Property(NAME, terms[i]));
