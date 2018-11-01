@@ -271,8 +271,10 @@ public class JooqLookupManager implements LookupManager {
         if (!exists(agentPath)) throw new ObjectNotFoundException("Path does not exist:"+agentPath);
 
         try {
-            AgentPath ap = (AgentPath)items.fetch(context, agentPath.getUUID(), properties);
-            return ap.getAgentName();
+            ItemPath ip = items.fetch(context, agentPath.getUUID(), properties);
+            
+            if (ip instanceof AgentPath) return ((AgentPath)ip).getAgentName();
+            else                         throw new ObjectNotFoundException("Path is not an agent:"+agentPath);
         }
         catch (PersistencyException e) {
             Logger.error(e);

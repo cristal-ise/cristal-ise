@@ -31,6 +31,7 @@ import java.util.List;
 import java.util.UUID;
 
 import org.apache.commons.lang3.StringUtils;
+import org.cristalise.kernel.common.ObjectNotFoundException;
 import org.cristalise.kernel.lookup.AgentPath;
 import org.cristalise.kernel.lookup.DomainPath;
 import org.cristalise.kernel.lookup.ItemPath;
@@ -125,6 +126,20 @@ public class LookupSearchTest extends LookupTestBase {
     public void getAgentName() throws Exception {
         assertEquals("Jim",  lookup.getAgentName(new AgentPath(uuid1)));
         assertEquals("John", lookup.getAgentName(new AgentPath(uuid2)));
+
+        try {
+            lookup.getAgentName(new AgentPath(uuid0));
+        }
+        catch (ObjectNotFoundException e) {
+            assert e.getMessage().contains("Path is not an agent");
+        }
+
+        try {
+            lookup.getAgentName(new AgentPath());
+        }
+        catch (ObjectNotFoundException e) {
+            assert e.getMessage().contains("Path does not exist");
+        }
     }
 
     @Test
