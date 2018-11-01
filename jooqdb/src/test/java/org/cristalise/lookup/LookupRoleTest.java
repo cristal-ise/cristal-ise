@@ -43,7 +43,7 @@ import org.junit.Test;
 
 public class LookupRoleTest extends LookupTestBase {
 
-    RolePath user = new RolePath( new RolePath(), "User");
+    RolePath user = new RolePath( new RolePath(), "User", Arrays.asList("permission1", "permission2"));
     AgentPath jim = new AgentPath(new ItemPath(), "Jim");
     AgentPath tom = new AgentPath(new ItemPath(), "Tom");
 

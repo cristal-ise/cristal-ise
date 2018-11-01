@@ -70,17 +70,25 @@ public class JooqRolePathHandler {
         .execute();
     }
 
-    public static RolePath getRolePath(Record record) {
+    public static RolePath getRolePath(Record record, List<String> permissions) {
         //Reading JOBLIST boolean is done this way because of a bug in jooq supporting MySQL: check issue #23
-        if (record != null) return new RolePath(record.get(PATH), record.get(JOBLIST.getName(), Boolean.class));
+        if (record != null) return new RolePath(record.get(PATH), record.get(JOBLIST.getName(), Boolean.class), permissions);
         else                return null;
     }
 
     public static List<Path> getLisOfPaths(Result<?> result) {
+        return getLisOfPaths(result, null, null);
+    }
+
+    public static List<Path> getLisOfPaths(Result<?> result, DSLContext context, JooqPermissionHandler permissions) {
         ArrayList<Path> roles = new ArrayList<>();
 
         if(result != null) {
-            for (Record record: result) roles.add(getRolePath(record));
+            for (Record record: result) {
+                List<String> p = new ArrayList<>();
+                if (context != null) p = permissions.fetch(context, record.get(PATH));
+                roles.add(getRolePath(record, p));
+            }
         }
         return roles;
     }
@@ -129,7 +137,7 @@ public class JooqRolePathHandler {
                 .and(AGENT.equal(NO_AGENT))
                 .fetchOne();
 
-        return getRolePath(result);
+        return getRolePath(result, null);
     }
 
     public List<UUID> findAgents(DSLContext context, RolePath role) throws PersistencyException {
@@ -165,11 +173,11 @@ public class JooqRolePathHandler {
         return selectCount.fetchOne(0, int.class);
     }
 
-    public List<Path> findRolesOfAgent(DSLContext context, AgentPath agent) throws PersistencyException {
-        return findRolesOfAgent(context, agent, -1, -1);
+    public List<Path> findRolesOfAgent(DSLContext context, AgentPath agent, JooqPermissionHandler permissions) throws PersistencyException {
+        return findRolesOfAgent(context, agent, -1, -1, permissions);
     }
 
-    public List<Path> findRolesOfAgent(DSLContext context, AgentPath agent, int offset, int limit) throws PersistencyException {
+    public List<Path> findRolesOfAgent(DSLContext context, AgentPath agent, int offset, int limit, JooqPermissionHandler permissions) throws PersistencyException {
         SelectQuery<?> select = getFindRolesOfAgentSelect(context, agent);
 
         select.addSelect(ROLE_PATH_TABLE.fields());
@@ -177,7 +185,7 @@ public class JooqRolePathHandler {
         if (limit  > 0) select.addLimit(limit);
         if (offset > 0) select.addOffset(offset);
 
-        return getLisOfPaths(select.fetch());
+        return getLisOfPaths(select.fetch(), context, permissions);
     }
 
     public int countByRegex(DSLContext context, String pattern) {
