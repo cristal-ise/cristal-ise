@@ -50,6 +50,8 @@ import org.cristalise.kernel.utils.LocalObjectLoader
 import groovy.transform.CompileStatic
 import groovy.xml.XmlUtil
 
+import java.util.concurrent.CopyOnWriteArrayList
+
 /**
  *
  */
@@ -68,6 +70,7 @@ class ModuleDelegate {
     Set<ImportItem> items
     Set<ImportRole> roles
     Set<ModuleConfig> configs
+    List<ModuleImport> moduleImports
 
     Writer imports
 
@@ -82,6 +85,7 @@ class ModuleDelegate {
 
     public ModuleDelegate(String ns, String n, int v) {
         resources = new ArrayList<>()
+        moduleImports = new CopyOnWriteArrayList<>()
 
         if (moduleXMLFile.exists()) {
             module = (Module) Gateway.getMarshaller().unmarshall(moduleXMLFile.text)
@@ -306,6 +310,8 @@ class ModuleDelegate {
      * The resource will be updated if it is existing but elements are the not same with the one in the module's imports.
      */
     private void updateAndGenerateResource() {
+        moduleImports.clear()
+        moduleImports.addAll(module.imports.list)
         resources.each { dObj ->
 
             if (dObj instanceof CompositeActivityDef) {
@@ -323,8 +329,8 @@ class ModuleDelegate {
                 }
                 int indexVal = findResource(workflow, true)
 
-                if (indexVal > -1) module.imports.list.add(indexVal, workflow)
-                else               module.imports.list.add(workflow)
+                if (indexVal > -1) moduleImports.add(indexVal, workflow)
+                else               moduleImports.add(workflow)
             }
             else if (dObj instanceof ActivityDef) {
                 // Validate if the activity is existing and has been updated.  If not existing it will be added, if updated it will update the details.
@@ -340,8 +346,8 @@ class ModuleDelegate {
 
                 int indexVal = findResource(activity, true)
 
-                if (indexVal > -1) module.imports.list.add(indexVal, activity)
-                else               module.imports.list.add(activity)
+                if (indexVal > -1) moduleImports.add(indexVal, activity)
+                else               moduleImports.add(activity)
             }
             else if (dObj instanceof Script) {
                 // Validate if the Script is existing or not.  If not it will be added to the module's resources.
@@ -353,7 +359,7 @@ class ModuleDelegate {
 
                 int indexVal = findResource(script, false)
 
-                if (indexVal == -1) module.imports.list.add(script)
+                if (indexVal == -1) moduleImports.add(script)
             }
             else if (dObj instanceof Schema) {
                 // Validate if the Script is existing or not.  If not it will be added to the module's resources.
@@ -365,7 +371,7 @@ class ModuleDelegate {
 
                 int indexVal = findResource(schema, false)
 
-                if (indexVal == -1) module.imports.list.add(schema)
+                if (indexVal == -1) moduleImports.add(schema)
             }
             else if (dObj instanceof Query) {
                 // Validate if the Script is existing or not.  If not it will be added to the module's resources.
@@ -376,7 +382,7 @@ class ModuleDelegate {
                 query.setName(obj.name)
 
                 int indexVal = findResource(query, false)
-                if (indexVal == -1) module.imports.list.add(query)
+                if (indexVal == -1) moduleImports.add(query)
             }
             else if (dObj instanceof StateMachine) {
                 // Validate if the StateMachine is existing or not.  If not it will be added to the module's resources.
@@ -387,7 +393,7 @@ class ModuleDelegate {
                 sm.setName(obj.name)
 
                 int indexVal = findResource(sm, false)
-                if (indexVal == -1) module.imports.list.add(sm)
+                if (indexVal == -1) moduleImports.add(sm)
             }
         }
 
@@ -395,24 +401,24 @@ class ModuleDelegate {
             ImportAgent agent = ImportAgent.cast(itAgent)
             int index = findResource(agent, true)
             
-            if (index > -1) module.imports.list.add(index, agent)
-            else            module.imports.list.add(agent)
+            if (index > -1) moduleImports.add(index, agent)
+            else            moduleImports.add(agent)
         }
 
         items.each { itItem ->
             ImportItem item = ImportItem.cast(itItem)
             int index = findResource(item, true)
 
-            if (index > -1) module.imports.list.add(index, item)
-            else            module.imports.list.add(item)
+            if (index > -1) moduleImports.add(index, item)
+            else            moduleImports.add(item)
         }
 
         roles.each { itRole ->
             ImportRole role = ImportRole.cast(itRole)
             int index = findResource(role, true)
 
-            if (index > -1) module.imports.list.add(index, role)
-            else            module.imports.list.add(role)
+            if (index > -1) moduleImports.add(index, role)
+            else            moduleImports.add(role)
         }
 
         configs.each { itConfig ->
@@ -431,6 +437,9 @@ class ModuleDelegate {
             else            module.config.add(itConfig)
         }
 
+        module.imports.list.clear()
+        module.imports.list.addAll(moduleImports)
+
         if (moduleXMLFile.exists()) FileStringUtility.string2File(moduleXMLFile, XmlUtil.serialize(Gateway.getMarshaller().marshall(module)))
     }
 
@@ -442,11 +451,11 @@ class ModuleDelegate {
      */
     private int findResource(ModuleImport moduleImport, boolean remove){
         int indexVal = -1
-        module.imports.list.find {
+        moduleImports.findAll {
             if (it.name == moduleImport.name) {
-                indexVal = module.imports.list.indexOf(it)
+                indexVal = moduleImports.indexOf(it)
                 if (remove) {
-                    module.imports.list.remove(indexVal)
+                    moduleImports.remove(indexVal)
                 }
             }
         }
