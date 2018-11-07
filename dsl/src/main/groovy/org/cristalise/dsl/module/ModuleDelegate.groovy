@@ -20,6 +20,7 @@
  */
 package org.cristalise.dsl.module
 
+import org.apache.commons.lang3.StringUtils
 import org.codehaus.groovy.control.CompilerConfiguration
 import org.cristalise.dsl.entity.AgentBuilder
 import org.cristalise.dsl.entity.ItemBuilder
@@ -80,6 +81,7 @@ class ModuleDelegate {
     static final String MODULE_EXPORT_ROOT   = "$MODULE_RESOURCE_ROOT/boot"
     static final String PROPERTY_ROOT        = "${MODULE_EXPORT_ROOT}/property"
     static final String EXPORT_DB_ROOT       = "src/main/script/"
+    static final String[] ATTRS_TO_REPLACE   = ["isAbstract=\"false\""]
 
     File moduleXMLFile = new File("$MODULE_RESOURCE_ROOT/module.xml")
 
@@ -440,7 +442,20 @@ class ModuleDelegate {
         module.imports.list.clear()
         module.imports.list.addAll(moduleImports)
 
-        if (moduleXMLFile.exists()) FileStringUtility.string2File(moduleXMLFile, XmlUtil.serialize(Gateway.getMarshaller().marshall(module)))
+
+        if (moduleXMLFile.exists()) FileStringUtility.string2File(moduleXMLFile, XmlUtil.serialize(removeAttrs()))
+    }
+
+    /**
+     * Removes attributes that will not be needed in module.xml.
+     * @return
+     */
+    private String removeAttrs() {
+        String moduleContent = Gateway.getMarshaller().marshall(module)
+        ATTRS_TO_REPLACE.each {
+            moduleContent = moduleContent.replaceAll((String)it, StringUtils.EMPTY)
+        }
+        return moduleContent
     }
 
     /**

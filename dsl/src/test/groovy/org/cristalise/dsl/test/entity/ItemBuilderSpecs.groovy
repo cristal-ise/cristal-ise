@@ -83,4 +83,42 @@ class ItemBuilderSpecs extends Specification implements CristalTestSetup {
 
         item.properties.size == 1
     }
+
+    def 'ItemBuilder with Outcome'() {
+        when:
+        def item = ItemBuilder.build(name: "testItem", folder: "test") {
+            Outcome(schema: "PropertyDescription", version: "0", viewname: "last", path: "boot/property/Test.xml")
+        }
+
+        then:
+        item.outcomes.size == 1
+        item.outcomes.get(0).schema == "PropertyDescription"
+        item.outcomes.get(0).version == 0
+        item.outcomes.get(0).viewname == "last"
+        item.outcomes.get(0).path == "boot/property/Test.xml"
+
+    }
+
+    def 'ItemBuilder with Dependency'() {
+        when:
+        def item = ItemBuilder.build(name: "testItem", folder: "test") {
+            Dependency('workflow') {
+                Properties {
+                    Property("isDescription": false)
+                }
+                Member(itemPath: "/desc/ActivityDesc/domain/TestWorkflow") {
+                    Property("Version": 0)
+                }
+            }
+        }
+
+        then:
+        item.dependencyList.size == 1
+        item.dependencyList.get(0).name == "workflow"
+        item.dependencyList.get(0).dependencyMemberList.size == 1
+        item.dependencyList.get(0).dependencyMemberList.get(0).itemPath == "/desc/ActivityDesc/domain/TestWorkflow"
+        item.dependencyList.get(0).dependencyMemberList.get(0).props.size() == 2
+        item.dependencyList.get(0).dependencyMemberList.get(0).props.get("isDescription") == false
+        item.dependencyList.get(0).dependencyMemberList.get(0).props.get("Version") == 0
+    }
 }
