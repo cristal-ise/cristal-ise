@@ -2,35 +2,51 @@ package org.cristalise.dsl.test.module
 
 import org.cristalise.dsl.module.ModuleBuilder
 import org.cristalise.kernel.test.utils.CristalTestSetup
+
 import spock.lang.Specification
 
 class ModuleBuilderSpecs extends Specification implements CristalTestSetup {
 
-    def setup() { inMemorySetup() }
+    def setup() { inMemoryServer() }
 
     def cleanup() { cristalCleanup() }
 
     def 'Module can reference existing resources'() {
         when:
         def module = ModuleBuilder.build('ttt', 'integtest', 0) {
+            Info(description: 'Test Cristal module', version: '1.0') {}
+            Url('cristal/resources/')
+            Config(name: 'Module.debug', value: false)
+
             Script('ServerNewEntity', 0)
             Schema('Item', 0)
             StateMachine('Default', 0)
             Activity('EditDefinition', 0)
             Workflow('ManageScript', 0)
-            Item(name: "ScriptFactory", folder: "/", workflow: "ScriptFactoryWorkflow") {}
+
+            Item(name: "ScriptFactory", folder: "/", workflow: "ScriptFactoryWorkflow") {
+                Property("Type": "Factory")
+                Outcome(schema: "PropertyDescription", version: "0", viewname: "last", path: "boot/property/SCProp.xml")
+                Dependency("workflow'") {
+                    Properties {
+                        Property("isDescription": false)
+                    }
+                    Member(itemPath: "/desc/ActivityDesc/kernel/ManageSchema") {
+                        Property("Version": 0)
+                    }
+                }
+            }
+
             Agent(name: 'Test', password: 'Test') {
                 Roles {
                     Role(name: 'Admin')
                     Role(name: 'Abort')
                 }
             }
+
             Roles {
                 Role(name: 'Abort', jobList: false)
             }
-            Config(name: 'Module.debug', value: false)
-            Info(description: 'Test Cristal module', version: '1.0') {}
-            Url('cristal/resources/')
         }
 
         then:
