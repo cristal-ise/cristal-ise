@@ -20,6 +20,8 @@
  */
 package org.cristalise.dsl.module
 
+import java.util.concurrent.CopyOnWriteArrayList
+
 import org.apache.commons.lang3.StringUtils
 import org.codehaus.groovy.control.CompilerConfiguration
 import org.cristalise.dsl.entity.AgentBuilder
@@ -47,11 +49,10 @@ import org.cristalise.kernel.scripting.Script
 import org.cristalise.kernel.utils.DescriptionObject
 import org.cristalise.kernel.utils.FileStringUtility
 import org.cristalise.kernel.utils.LocalObjectLoader
+import org.cristalise.kernel.utils.Logger
 
 import groovy.transform.CompileStatic
 import groovy.xml.XmlUtil
-
-import java.util.concurrent.CopyOnWriteArrayList
 
 /**
  *
@@ -314,115 +315,32 @@ class ModuleDelegate {
     private void updateAndGenerateResource() {
         moduleImports.clear()
         moduleImports.addAll(module.imports.list)
-        resources.each { dObj ->
 
-            if (dObj instanceof CompositeActivityDef) {
-                CompositeActivityDef obj = CompositeActivityDef.cast(dObj)
-
-                ModuleWorkflow workflow = new ModuleWorkflow()
-                workflow.setVersion(obj.version)
-                workflow.setName(obj.name)
-
-                if (obj.refChildActDef) {
-                    obj.refChildActDef.each {
-                        ActivityDef act = ActivityDef.cast(it)
-                        workflow.activities.add(new ModuleDescRef(act.name, act.itemID, act.version))
-                    }
-                }
-                int indexVal = findResource(workflow, true)
-
-                if (indexVal > -1) moduleImports.add(indexVal, workflow)
-                else               moduleImports.add(workflow)
-            }
-            else if (dObj instanceof ActivityDef) {
-                // Validate if the activity is existing and has been updated.  If not existing it will be added, if updated it will update the details.
-
-                ActivityDef obj = ActivityDef.cast(dObj)
-                ModuleActivity activity = new ModuleActivity()
-                activity.setVersion(obj.version)
-                activity.setName(obj.name)
-
-                if (obj.script) activity.setScript(new ModuleDescRef(obj.script.name, null, obj.script.version))
-                if (obj.schema) activity.setSchema(new ModuleDescRef(obj.schema.name, null, obj.schema.version))
-                if (obj.query)  activity.setQuery( new ModuleDescRef(obj.query.name,  null, obj.query.version))
-
-                int indexVal = findResource(activity, true)
-
-                if (indexVal > -1) moduleImports.add(indexVal, activity)
-                else               moduleImports.add(activity)
-            }
-            else if (dObj instanceof Script) {
-                // Validate if the Script is existing or not.  If not it will be added to the module's resources.
-
-                Script obj = Script.cast(dObj)
-                ModuleScript script = new ModuleScript()
-                script.setVersion(obj.version)
-                script.setName(obj.name)
-
-                int indexVal = findResource(script, false)
-
-                if (indexVal == -1) moduleImports.add(script)
-            }
-            else if (dObj instanceof Schema) {
-                // Validate if the Script is existing or not.  If not it will be added to the module's resources.
-
-                Schema obj = Schema.cast(dObj)
-                ModuleSchema schema = new ModuleSchema()
-                schema.setVersion(obj.version)
-                schema.setName(obj.name)
-
-                int indexVal = findResource(schema, false)
-
-                if (indexVal == -1) moduleImports.add(schema)
-            }
-            else if (dObj instanceof Query) {
-                // Validate if the Script is existing or not.  If not it will be added to the module's resources.
-
-                Query obj = Query.cast(dObj)
-                ModuleQuery query = new ModuleQuery()
-                query.setVersion(obj.version)
-                query.setName(obj.name)
-
-                int indexVal = findResource(query, false)
-                if (indexVal == -1) moduleImports.add(query)
-            }
-            else if (dObj instanceof StateMachine) {
-                // Validate if the StateMachine is existing or not.  If not it will be added to the module's resources.
-
-                StateMachine obj = StateMachine.cast(dObj)
-                ModuleStateMachine sm = new ModuleStateMachine()
-                sm.setVersion(obj.version)
-                sm.setName(obj.name)
-
-                int indexVal = findResource(sm, false)
-                if (indexVal == -1) moduleImports.add(sm)
-            }
+        resources.each { resource ->
+            if      (resource instanceof CompositeActivityDef) addCompositeActivityDef(CompositeActivityDef.cast(resource))
+            else if (resource instanceof ActivityDef)          addActivityDef(ActivityDef.cast(resource))
+            else if (resource instanceof Script)               addScript(Script.cast(resource))
+            else if (resource instanceof Schema)               addSchema(Schema.cast(resource))
+            else if (resource instanceof Query)                addQuery(Query.cast(resource))
+            else if (resource instanceof StateMachine)         addStateMachine(StateMachine.cast(resource))
         }
 
-        agents.each { itAgent ->
-            ImportAgent agent = ImportAgent.cast(itAgent)
-            int index = findResource(agent, true)
-            
-            if (index > -1) moduleImports.add(index, agent)
-            else            moduleImports.add(agent)
-        }
+        agents.each { findAndUpdateResource(it, true) }
+        items.each  { findAndUpdateResource(it, true) }
+        roles.each  { findAndUpdateResource(it, true) }
 
-        items.each { itItem ->
-            ImportItem item = ImportItem.cast(itItem)
-            int index = findResource(item, true)
+        addConfigs()
 
-            if (index > -1) moduleImports.add(index, item)
-            else            moduleImports.add(item)
-        }
+        module.imports.list.clear()
+        module.imports.list.addAll(moduleImports)
 
-        roles.each { itRole ->
-            ImportRole role = ImportRole.cast(itRole)
-            int index = findResource(role, true)
+        if (moduleXMLFile.exists()) FileStringUtility.string2File(moduleXMLFile, XmlUtil.serialize(removeAttrs()))
+    }
 
-            if (index > -1) moduleImports.add(index, role)
-            else            moduleImports.add(role)
-        }
-
+    /**
+     * 
+     */
+    private void addConfigs() {
         configs.each { itConfig ->
             int index = -1
             module.config.find {
@@ -438,23 +356,113 @@ class ModuleDelegate {
             if (index > -1) module.config.add(index, itConfig)
             else            module.config.add(itConfig)
         }
+    }
 
-        module.imports.list.clear()
-        module.imports.list.addAll(moduleImports)
+    /**
+     * Validate if the StateMachine is existing or not.  If not it will be added to the module's resources.
+     * 
+     * @param sm 
+     */
+    private void addStateMachine(StateMachine sm) {
+        ModuleStateMachine moduleSm = new ModuleStateMachine()
 
+        moduleSm.setVersion(sm.version)
+        moduleSm.setName(sm.name)
 
-        if (moduleXMLFile.exists()) FileStringUtility.string2File(moduleXMLFile, XmlUtil.serialize(removeAttrs()))
+        findAndUpdateResource(moduleSm, false)
+    }
+
+    /**
+     * Validate if the Query is existing or not.  If not it will be added to the module's resources.
+     * 
+     * @param obj
+     */
+    private void addQuery(Query query) {
+        ModuleQuery moduleQuery = new ModuleQuery()
+
+        moduleQuery.setVersion(query.version)
+        moduleQuery.setName(query.name)
+
+        findAndUpdateResource(moduleQuery, false)
+    }
+
+    /**
+     * Validate if the Schema is existing or not.  If not it will be added to the module's resources.
+     * 
+     * @param obj
+     */
+    private void addSchema(Schema schema) {
+        ModuleSchema moduleSchema = new ModuleSchema()
+
+        moduleSchema.setVersion(schema.version)
+        moduleSchema.setName(schema.name)
+
+        findAndUpdateResource(moduleSchema, false)
+    }
+
+    /**
+     * Validate if the Script is existing or not.  If not it will be added to the module's resources.
+     * 
+     * @param obj
+     */
+    private void addScript(Script script) {
+        ModuleScript moduleScript = new ModuleScript()
+
+        moduleScript.setVersion(script.version)
+        moduleScript.setName(script.name)
+
+        findAndUpdateResource(moduleScript, false)
+    }
+
+    /**
+     * Validate if the activity is existing and has been updated.  If not existing it will be added, if updated it will update the details.
+     * 
+     * @param obj
+     */
+    private void addActivityDef(ActivityDef actDef) {
+        ModuleActivity moduleAct = new ModuleActivity()
+
+        moduleAct.setVersion(actDef.version)
+        moduleAct.setName(actDef.name)
+
+        if (actDef.script) moduleAct.setScript(new ModuleDescRef(actDef.script.name, null, actDef.script.version))
+        if (actDef.schema) moduleAct.setSchema(new ModuleDescRef(actDef.schema.name, null, actDef.schema.version))
+        if (actDef.query)  moduleAct.setQuery( new ModuleDescRef(actDef.query.name,  null, actDef.query.version))
+
+        findAndUpdateResource(moduleAct, true)
+    }
+
+    /**
+     * 
+     * @param caDef
+     */
+    private void addCompositeActivityDef(CompositeActivityDef caDef) {
+        ModuleWorkflow moduleWf = new ModuleWorkflow()
+        moduleWf.setVersion(caDef.version)
+        moduleWf.setName(caDef.name)
+
+        if (caDef.refChildActDef) {
+            caDef.refChildActDef.each {
+                ActivityDef act = ActivityDef.cast(it)
+                moduleWf.activities.add(new ModuleDescRef(act.name, act.itemID, act.version))
+            }
+        }
+
+        findAndUpdateResource(moduleWf, true)
     }
 
     /**
      * Removes attributes that will not be needed in module.xml.
+     * 
      * @return
      */
     private String removeAttrs() {
         String moduleContent = Gateway.getMarshaller().marshall(module)
+
         ATTRS_TO_REPLACE.each {
             moduleContent = moduleContent.replaceAll((String)it, StringUtils.EMPTY)
         }
+
         return moduleContent
     }
 
@@ -462,19 +470,18 @@ class ModuleDelegate {
      * Finds the resource if the it's existing in the module imports.
      * @param moduleImport
      * @param remove
-     * @return
      */
-    private int findResource(ModuleImport moduleImport, boolean remove){
-        int indexVal = -1
-        moduleImports.findAll {
-            if (it.name == moduleImport.name) {
-                indexVal = moduleImports.indexOf(it)
-                if (remove) {
-                    moduleImports.remove(indexVal)
-                }
-            }
-        }
-        return indexVal
-    }
+    private void findAndUpdateResource(ModuleImport moduleImport, boolean remove) {
+        Logger.msg 0, "ModuleDelegate.findAndUpdateResource() - $moduleImport.name"
 
+        int indexVal =  moduleImports.findIndexOf{ ModuleImport mi -> mi.name == moduleImport.name }
+
+        if (indexVal > -1 && remove) {
+             moduleImports.remove(indexVal)
+             moduleImports.add(indexVal, moduleImport)
+        }
+        else if (indexVal == -1) {
+            moduleImports.add(moduleImport)
+        }
+    }
 }
