@@ -20,11 +20,12 @@
  */
 package org.cristalise.dsl.collection
 
-import groovy.transform.CompileStatic
-
 import org.cristalise.dsl.property.PropertyBuilder
 import org.cristalise.kernel.collection.Dependency
-import org.cristalise.kernel.lookup.ItemPath
+import org.cristalise.kernel.lookup.DomainPath
+import org.cristalise.kernel.process.Gateway
+
+import groovy.transform.CompileStatic
 
 
 /**
@@ -52,7 +53,7 @@ class DependencyDelegate {
     public void Member(Map attrs, Closure cl = null) {
         assert attrs && attrs.itemPath
 
-        def member = dependency.addMember(new ItemPath((String)attrs.itemPath, true))
+        def member = dependency.addMember(Gateway.getLookup().resolvePath(new DomainPath((String)attrs.itemPath)))
 
         if(cl) {
             DependencyMemberDelegate delegate = new DependencyMemberDelegate()
