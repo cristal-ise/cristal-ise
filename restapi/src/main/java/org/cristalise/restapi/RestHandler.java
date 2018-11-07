@@ -287,8 +287,8 @@ abstract public class RestHandler {
                 try {
                     value = URLDecoder.decode(nameval[1], "UTF-8");
                 } catch (UnsupportedEncodingException e) {
-                    Logger.error("Error decoding search word");
                     Logger.error(e);
+                    throw ItemUtils.createWebAppException("Error decoding search value: " + nameval[1], Response.Status.BAD_REQUEST);
                 }
                 
                 props.add(new Property(nameval[0], value));
