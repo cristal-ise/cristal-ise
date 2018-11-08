@@ -35,6 +35,7 @@ abstract class ModuleScriptBase extends Script {
         if (!connect || !config) throw new InvalidDataException("Missing connect '"+connect+"' or config '"+config+"' files")
 
         Gateway.init(AbstractMain.readPropertyFiles(config, connect, null))
+        Gateway.connect()
     }
 
     public void Module(Map args, Closure cl) {
