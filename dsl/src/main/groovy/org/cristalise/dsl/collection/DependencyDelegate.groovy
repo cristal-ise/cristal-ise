@@ -23,9 +23,11 @@ package org.cristalise.dsl.collection
 import org.cristalise.dsl.property.PropertyBuilder
 import org.cristalise.kernel.collection.Dependency
 import org.cristalise.kernel.lookup.DomainPath
+import org.cristalise.kernel.lookup.ItemPath
 import org.cristalise.kernel.process.Gateway
 
 import groovy.transform.CompileStatic
+import org.cristalise.kernel.utils.Logger
 
 
 /**
@@ -34,6 +36,8 @@ import groovy.transform.CompileStatic
  */
 @CompileStatic
 class DependencyDelegate {
+
+    static String WF_PATH_PATTERN = '/desc/ActivityDesc/'
     Dependency dependency
 
     public DependencyDelegate(String n) {
@@ -53,7 +57,19 @@ class DependencyDelegate {
     public void Member(Map attrs, Closure cl = null) {
         assert attrs && attrs.itemPath
 
-        def member = dependency.addMember(Gateway.getLookup().resolvePath(new DomainPath((String)attrs.itemPath)))
+        ItemPath itemPath = new ItemPath()
+        String iPathStr = (String)attrs.itemPath
+
+        try{
+            itemPath = Gateway.getLookup().resolvePath(new DomainPath(iPathStr))
+        } catch (Exception e) {
+            Logger.error("Unable to find the domain path. ${e.localizedMessage}")
+        }
+
+        if (iPathStr.indexOf(WF_PATH_PATTERN) == 0)
+            itemPath.path[0] = iPathStr
+
+        def member = dependency.addMember(itemPath)
 
         if(cl) {
             DependencyMemberDelegate delegate = new DependencyMemberDelegate()

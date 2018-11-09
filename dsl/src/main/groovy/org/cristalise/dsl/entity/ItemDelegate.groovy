@@ -30,7 +30,6 @@ import org.cristalise.kernel.entity.imports.ImportDependency
 import org.cristalise.kernel.entity.imports.ImportDependencyMember
 import org.cristalise.kernel.entity.imports.ImportItem
 import org.cristalise.kernel.entity.imports.ImportOutcome
-import org.cristalise.kernel.lookup.ItemPath
 
 /**
  *
@@ -38,6 +37,8 @@ import org.cristalise.kernel.lookup.ItemPath
 @CompileStatic
 class ItemDelegate extends PropertyDelegate {
 
+    static String WF_PATH_PATTERN = '/desc/ActivityDesc/'
+    static String ENTITY_PATTERN = '/entity/'
     public ImportItem newItem = new ImportItem()
     List<ImportOutcome> outcomes = new ArrayList<>()
 
@@ -82,14 +83,16 @@ class ItemDelegate extends PropertyDelegate {
         def builder = DependencyBuilder.build(name, cl)
         Dependency dependency = builder.dependency
 
-        assert  dependency
+        assert dependency
 
         ImportDependency idep = new ImportDependency(dependency.name)
         dependency.members.list.each { mem ->
             DependencyMember member = DependencyMember.cast(mem)
-            ImportDependencyMember imem = new ImportDependencyMember()
+            String itemPath = member.itemPath.stringPath
+            if (itemPath.contains(WF_PATH_PATTERN) && itemPath.indexOf(ENTITY_PATTERN) == 0)
+                itemPath = itemPath.replaceFirst(ENTITY_PATTERN, StringUtils.EMPTY)
+            ImportDependencyMember imem = new ImportDependencyMember(itemPath)
             imem.props = member.properties
-            imem.itemPath = member.itemPath
             idep.dependencyMemberList << imem
         }
 
