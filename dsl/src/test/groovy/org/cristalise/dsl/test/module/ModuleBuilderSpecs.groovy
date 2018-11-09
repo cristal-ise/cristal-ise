@@ -7,23 +7,64 @@ import spock.lang.Specification
 
 class ModuleBuilderSpecs extends Specification implements CristalTestSetup {
 
-    def setup() { inMemoryServer() }
+    def setupSpec()   { inMemoryServer() }
+    def cleanupSpec() { cristalCleanup() }
 
-    def cleanup() { cristalCleanup() }
-
-    def 'Module can reference existing resources'() {
+    def 'Module can define Info, Url and Configs'() {
         when:
         def module = ModuleBuilder.build('ttt', 'integtest', 0) {
             Info(description: 'Test Cristal module', version: '1.0') {}
             Url('cristal/resources/')
             Config(name: 'Module.debug', value: false)
+            Config(name: 'OverrideScriptLang.javascript', value: 'rhino')
+        }
 
+        then:
+        module != null
+        module.getImports().list.size() == 0
+        module.getConfig().size() == 2
+        module.getInfo() != null
+        module.resURL != null
+
+        module.config[0].name == 'Module.debug'
+        module.config[0].value == 'false'
+        module.config[1].name == 'OverrideScriptLang.javascript'
+        module.config[1].value == 'rhino'
+        module.info.desc == 'Test Cristal module'
+        module.resURL == 'cristal/resources/'
+    }
+
+    def 'Module can reference existing resources'() {
+        when:
+        def module = ModuleBuilder.build('ttt', 'integtest', 0) {
             Script('ServerNewEntity', 0)
             Schema('Item', 0)
             StateMachine('Default', 0)
             Activity('EditDefinition', 0)
             Workflow('ManageScript', 0)
+        }
 
+        then:
+        module != null
+        module.getImports().list.size() == 5
+
+        module.getImports().findImport('ServerNewEntity')
+        module.getImports().findImport('Item')
+        module.getImports().findImport('Default')
+        module.getImports().findImport('EditDefinition')
+        module.getImports().findImport('ManageScript')
+
+        //the order is important
+        module.getImports().list[0].name == 'ServerNewEntity'
+        module.getImports().list[1].name == 'Item'
+        module.getImports().list[2].name == 'Default'
+        module.getImports().list[3].name == 'EditDefinition'
+        module.getImports().list[4].name == 'ManageScript'
+    }
+
+    def 'Module can create new Item, Agent and Role'() {
+        when:
+        def module = ModuleBuilder.build('ttt', 'integtest', 0) {
             Item(name: "ScriptFactory", folder: "/", workflow: "ScriptFactoryWorkflow") {
                 Property("Type": "Factory")
                 Outcome(schema: "PropertyDescription", version: "0", viewname: "last", path: "boot/property/SCProp.xml")
@@ -51,35 +92,15 @@ class ModuleBuilderSpecs extends Specification implements CristalTestSetup {
 
         then:
         module != null
-        module.getImports().list.size() == 8
-        module.getConfig().size() == 1
-        module.getInfo() != null
-        module.resURL != null
-
-        module.getImports().findImport('ServerNewEntity')
-        module.getImports().findImport('Item')
-        module.getImports().findImport('Default')
-        module.getImports().findImport('EditDefinition')
-        module.getImports().findImport('ManageScript')
+        module.getImports().list.size() == 3
+        
         module.getImports().findImport('Test')
         module.getImports().findImport('Abort')
         module.getImports().findImport('ScriptFactory')
 
-        module.config.get(0).name == "Module.debug"
-        module.config.get(0).value == "false"
-
         //the order is important
-        module.getImports().list[0].name == 'ServerNewEntity'
-        module.getImports().list[1].name == 'Item'
-        module.getImports().list[2].name == 'Default'
-        module.getImports().list[3].name == 'EditDefinition'
-        module.getImports().list[4].name == 'ManageScript'
-        module.getImports().list[5].name == 'Test'
-        module.getImports().list[6].name == 'ScriptFactory'
-        module.getImports().list[7].name == 'Abort'
-
-        module.getConfig().get(0).name == 'Module.debug'
-        module.info.desc == 'Test Cristal module'
-        module.resURL == 'cristal/resources/'
+        module.getImports().list[0].name == 'Test'
+        module.getImports().list[1].name == 'ScriptFactory'
+        module.getImports().list[2].name == 'Abort'
     }
 }
