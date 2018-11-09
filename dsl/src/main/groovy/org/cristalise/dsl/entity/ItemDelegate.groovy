@@ -30,6 +30,7 @@ import org.cristalise.kernel.entity.imports.ImportDependency
 import org.cristalise.kernel.entity.imports.ImportDependencyMember
 import org.cristalise.kernel.entity.imports.ImportItem
 import org.cristalise.kernel.entity.imports.ImportOutcome
+import org.cristalise.kernel.process.resource.BuiltInResources
 
 /**
  *
@@ -37,7 +38,6 @@ import org.cristalise.kernel.entity.imports.ImportOutcome
 @CompileStatic
 class ItemDelegate extends PropertyDelegate {
 
-    static String WF_PATH_PATTERN = '/desc/ActivityDesc/'
     static String ENTITY_PATTERN = '/entity/'
     public ImportItem newItem = new ImportItem()
     List<ImportOutcome> outcomes = new ArrayList<>()
@@ -89,7 +89,7 @@ class ItemDelegate extends PropertyDelegate {
         dependency.members.list.each { mem ->
             DependencyMember member = DependencyMember.cast(mem)
             String itemPath = member.itemPath.stringPath
-            if (itemPath.contains(WF_PATH_PATTERN) && itemPath.indexOf(ENTITY_PATTERN) == 0)
+            if (itemPath.contains(BuiltInResources.COMP_ACT_DESC_RESOURCE.typeRoot) && itemPath.startsWith(ENTITY_PATTERN))
                 itemPath = itemPath.replaceFirst(ENTITY_PATTERN, StringUtils.EMPTY)
             ImportDependencyMember imem = new ImportDependencyMember(itemPath)
             imem.props = member.properties

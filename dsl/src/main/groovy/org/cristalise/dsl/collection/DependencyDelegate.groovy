@@ -27,6 +27,7 @@ import org.cristalise.kernel.lookup.ItemPath
 import org.cristalise.kernel.process.Gateway
 
 import groovy.transform.CompileStatic
+import org.cristalise.kernel.process.resource.BuiltInResources
 import org.cristalise.kernel.utils.Logger
 
 
@@ -37,7 +38,6 @@ import org.cristalise.kernel.utils.Logger
 @CompileStatic
 class DependencyDelegate {
 
-    static String WF_PATH_PATTERN = '/desc/ActivityDesc/'
     Dependency dependency
 
     public DependencyDelegate(String n) {
@@ -60,13 +60,13 @@ class DependencyDelegate {
         ItemPath itemPath = new ItemPath()
         String iPathStr = (String)attrs.itemPath
 
-        try{
+        try {
             itemPath = Gateway.getLookup().resolvePath(new DomainPath(iPathStr))
         } catch (Exception e) {
             Logger.error("Unable to find the domain path. ${e.localizedMessage}")
         }
 
-        if (iPathStr.indexOf(WF_PATH_PATTERN) == 0)
+        if (iPathStr.startsWith(BuiltInResources.COMP_ACT_DESC_RESOURCE.typeRoot))
             itemPath.path[0] = iPathStr
 
         def member = dependency.addMember(itemPath)
