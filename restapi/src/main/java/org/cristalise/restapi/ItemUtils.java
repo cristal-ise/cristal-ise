@@ -96,6 +96,8 @@ import org.json.XML;
 
 public abstract class ItemUtils extends RestHandler {
 
+    protected static final String PREDEFINED_PATH = "workflow/predefined/";
+
     final DateFormat dateFormatter;
 
     public ItemUtils() {
@@ -678,6 +680,10 @@ public abstract class ItemUtils extends RestHandler {
             throws ObjectNotFoundException, InvalidDataException, OutcomeBuilderException, AccessRightsException,
             InvalidTransitionException, PersistencyException, ObjectAlreadyExistsException, InvalidCollectionModification
     {
+        if ( ! actPath.startsWith(PREDEFINED_PATH) ) {
+            throw new InvalidParameterException("Predefined Step path should start with " + PREDEFINED_PATH);
+        }
+
         if (types.contains(MediaType.APPLICATION_JSON)) {
             OutcomeBuilder builder = new OutcomeBuilder(LocalObjectLoader.getSchema("PredefinesStepOutcome", 0));
             builder.addJsonInstance(new JSONObject(postData));
@@ -685,7 +691,7 @@ public abstract class ItemUtils extends RestHandler {
             postData = builder.getOutcome(false).getData();
         }
 
-        return agent.execute(item, actPath, postData);
+        return agent.execute(item, actPath.substring(PREDEFINED_PATH.length()), postData);
     }
 
     /**

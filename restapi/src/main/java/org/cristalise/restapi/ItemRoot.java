@@ -406,7 +406,7 @@ public class ItemRoot extends ItemUtils {
 
             Logger.msg(5, "ItemRoot.requestTransition() postData:%s", postData);
 
-            if (actPath.startsWith("workflow/predefined")) {
+            if (actPath.startsWith(PREDEFINED_PATH)) {
                 return executePredefinedStep(item, postData, types, actPath, agent);
             }
             else {
@@ -491,7 +491,7 @@ public class ItemRoot extends ItemUtils {
 
             Logger.msg(5, "ItemRoot.requestTransition() postData:%s", postData);
 
-            if (actPath.startsWith("workflow/predefined")) {
+            if (actPath.startsWith(PREDEFINED_PATH)) {
                 return executePredefinedStep(item, postData, types, actPath, agent);
             }
             else {
