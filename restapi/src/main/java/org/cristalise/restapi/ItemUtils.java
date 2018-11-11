@@ -681,7 +681,7 @@ public abstract class ItemUtils extends RestHandler {
             InvalidTransitionException, PersistencyException, ObjectAlreadyExistsException, InvalidCollectionModification
     {
         if ( ! actPath.startsWith(PREDEFINED_PATH) ) {
-            throw new InvalidParameterException("Predefined Step path should start with " + PREDEFINED_PATH);
+            throw new InvalidDataException("Predefined Step path should start with " + PREDEFINED_PATH);
         }
 
         if (types.contains(MediaType.APPLICATION_JSON)) {
