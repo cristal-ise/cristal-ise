@@ -20,24 +20,25 @@
  */
 package org.cristalise.dsl.module
 
-import java.util.concurrent.CopyOnWriteArrayList
+import static org.unitils.reflectionassert.ReflectionComparatorFactory.createRefectionComparator;
+import static org.unitils.reflectionassert.ReflectionAssert.assertReflectionEquals;
+import static org.unitils.reflectionassert.ReflectionComparatorMode.IGNORE_DEFAULTS;
+import static org.unitils.reflectionassert.ReflectionComparatorMode.LENIENT_ORDER;
 
-import org.apache.commons.lang3.StringUtils
 import org.codehaus.groovy.control.CompilerConfiguration
 import org.cristalise.dsl.entity.AgentBuilder
 import org.cristalise.dsl.entity.ItemBuilder
 import org.cristalise.dsl.entity.RoleBuilder
 import org.cristalise.dsl.lifecycle.definition.CompActDefBuilder
 import org.cristalise.dsl.lifecycle.definition.ElemActDefBuilder
+import org.cristalise.dsl.lifecycle.stateMachine.StateMachineBuilder
 import org.cristalise.dsl.persistency.database.Database
 import org.cristalise.dsl.persistency.database.DatabaseBuilder
 import org.cristalise.dsl.persistency.outcome.SchemaBuilder
 import org.cristalise.dsl.property.PropertyDescriptionBuilder
 import org.cristalise.dsl.querying.QueryBuilder
 import org.cristalise.dsl.scripting.ScriptBuilder
-import org.cristalise.kernel.entity.imports.ImportAgent
-import org.cristalise.kernel.entity.imports.ImportItem
-import org.cristalise.kernel.entity.imports.ImportRole
+import org.cristalise.kernel.common.InvalidDataException
 import org.cristalise.kernel.lifecycle.ActivityDef
 import org.cristalise.kernel.lifecycle.CompositeActivityDef
 import org.cristalise.kernel.lifecycle.instance.stateMachine.StateMachine
@@ -46,10 +47,12 @@ import org.cristalise.kernel.process.Gateway
 import org.cristalise.kernel.process.module.*
 import org.cristalise.kernel.querying.Query
 import org.cristalise.kernel.scripting.Script
-import org.cristalise.kernel.utils.DescriptionObject
 import org.cristalise.kernel.utils.FileStringUtility
 import org.cristalise.kernel.utils.LocalObjectLoader
 import org.cristalise.kernel.utils.Logger
+import org.unitils.reflectionassert.ReflectionComparator
+import org.unitils.reflectionassert.difference.Difference
+import org.unitils.reflectionassert.report.impl.DefaultDifferenceReport
 
 import groovy.transform.CompileStatic
 import groovy.xml.XmlUtil
@@ -61,18 +64,7 @@ import groovy.xml.XmlUtil
 class ModuleDelegate {
 
     Module module = null
-
-    /**
-     * Collects the generated resources.
-     * Used by the {updateAndGenerateResource} method.
-     */
-    List<? extends DescriptionObject> resources
-
-    Set<ImportAgent> agents
-    Set<ImportItem> items
-    Set<ImportRole> roles
-    Set<ModuleConfig> configs
-    List<ModuleImport> moduleImports
+    Module newModule = null
 
     Writer imports
 
@@ -82,33 +74,23 @@ class ModuleDelegate {
     static final String MODULE_EXPORT_ROOT   = "$MODULE_RESOURCE_ROOT/boot"
     static final String PROPERTY_ROOT        = "${MODULE_EXPORT_ROOT}/property"
     static final String EXPORT_DB_ROOT       = "src/main/script/"
-    static final String[] ATTRS_TO_REPLACE   = ["isAbstract=\"false\""]
 
     File moduleXMLFile = new File("$MODULE_RESOURCE_ROOT/module.xml")
 
     public ModuleDelegate(String ns, String n, int v) {
-        resources = new ArrayList<>()
-        moduleImports = new CopyOnWriteArrayList<>()
+        newModule = new Module()
+        newModule.info = new ModuleInfo()
+        newModule.ns = ns
+        newModule.name = n
+        newModule.info.version = Integer.toString(v)
 
         if (moduleXMLFile.exists()) {
             module = (Module) Gateway.getMarshaller().unmarshall(moduleXMLFile.text)
             assert module.ns == ns
             assert module.name == n
         }
-        else {
-            module = new Module()
-            module.ns = ns
-            module.name = n
-        }
-
-        if (module.info == null) module.info = new ModuleInfo()
-        module.info.version = Integer.toString(v)
 
         imports = new PrintWriter(System.out)
-        agents = new HashSet<>()
-        items = new HashSet<>()
-        roles = new HashSet<>()
-        configs = new HashSet<>()
     }
 
     public include(String scriptFile) {
@@ -124,14 +106,14 @@ class ModuleDelegate {
 
     public Schema Schema(String name, Integer version) {
         def schema = LocalObjectLoader.getSchema(name, version)
-        resources.add(schema)
+        addSchema(schema)
         return schema
     }
 
     public Schema Schema(String name, Integer version, Closure cl) {
         def schema = SchemaBuilder.build(name, version, cl)
         schema.export(imports, new File(MODULE_EXPORT_ROOT), true)
-        resources.add(schema)
+        addSchema(schema)
         return schema
     }
 
@@ -143,52 +125,59 @@ class ModuleDelegate {
 
     public Query Query(String name, Integer version) {
         def query = LocalObjectLoader.getQuery(name, version)
-        resources.add(query)
+        addQuery(query)
         return query
     }
 
     public Query Query(String name, Integer version, Closure cl) {
-        def query = QueryBuilder.build(this.module.name, name, version, cl)
+        def query = QueryBuilder.build(newModule.name, name, version, cl)
         query.export(imports, new File(MODULE_EXPORT_ROOT), true)
-        resources.add(query)
+        addQuery(query)
         return query
     }
 
     public Script Script(String name, Integer version) {
         def script = LocalObjectLoader.getScript(name, version)
-        resources.add(script)
+        addScript(script)
         return script
     }
 
     public Script Script(String name, Integer version, Closure cl) {
         def script = ScriptBuilder.build(name, version, cl)
         script.export(imports, new File(MODULE_EXPORT_ROOT), true)
-        resources.add(script)
+        addScript(script)
         return script
     }
 
     public StateMachine StateMachine(String name, Integer version) {
         def sm = LocalObjectLoader.getStateMachine(name, version)
-        resources.add(sm)
+        addStateMachine(sm)
+        return sm
+    }
+
+    public StateMachine StateMachine(String name, Integer version, Closure cl) {
+        def sm = StateMachineBuilder.build("", name, version, cl).sm
+        sm.export(imports, new File(MODULE_EXPORT_ROOT), true)
+        addStateMachine(sm)
         return sm
     }
 
     public ActivityDef Activity(String name, Integer version) {
         def eaDef = LocalObjectLoader.getActDef(name, version)
-        resources.add(eaDef)
+        addActivityDef(eaDef)
         return eaDef
     }
 
     public ActivityDef Activity(String name, Integer version, Closure cl) {
         def eaDef = ElemActDefBuilder.build(name, version, cl)
         eaDef.export(imports, new File(MODULE_EXPORT_ROOT), true)
-        resources.add(eaDef)
+        addActivityDef(eaDef)
         return eaDef
     }
 
     public CompositeActivityDef Workflow(String name, Integer version) {
         def caDef = LocalObjectLoader.getCompActDef(name, version)
-        resources.add(caDef)
+        addCompositeActivityDef(caDef)
         return caDef
     }
 
@@ -202,7 +191,7 @@ class ModuleDelegate {
      */
     public CompositeActivityDef Workflow(String name, Integer version, Closure cl) {
         def caDef = CompActDefBuilder.build(name, version, cl)
-        resources.add(caDef)
+        addCompositeActivityDef(caDef)
         return caDef
     }
 
@@ -212,9 +201,8 @@ class ModuleDelegate {
      */
     public void PropertyDescriptionList(Closure cl) {
         def propDescList = PropertyDescriptionBuilder.build(cl)
-        def type = propDescList.list.find {
-            it.isClassIdentifier && it.name == 'Type'
-        }
+        def type = propDescList.list.find { it.isClassIdentifier && it.name == 'Type' }
+
         FileStringUtility.string2File(new File(new File(PROPERTY_ROOT), "${type.defaultValue}.xml"), XmlUtil.serialize(Gateway.getMarshaller().marshall(propDescList)))
     }
 
@@ -226,11 +214,9 @@ class ModuleDelegate {
      */
     public void Agent(Map args, Closure cl) {
         def agent = AgentBuilder.build((String) args.name, (String) args.password, cl)
-        agent.setProperties(null)
-        agent.roles.each {
-            it.jobList = null
-        }
-        agents.add(agent)
+        agent.roles.each { it.jobList = null }
+
+        updateImports(agent)
     }
 
     /**
@@ -241,10 +227,10 @@ class ModuleDelegate {
      */
     public void Item(Map args, Closure cl) {
         def item = ItemBuilder.build((String) args.name, (String) args.folder, (String) args.workflow, cl)
-        item.properties.removeAll{
-            it.value == args.name
-        }
-        items.add(item)
+
+        item.properties.removeAll { it.value == args.name }
+
+        updateImports(item)
     }
 
     /**
@@ -253,15 +239,16 @@ class ModuleDelegate {
      */
     public void Roles(Closure cl) {
         def importRoles = RoleBuilder.build(cl)
-        roles.addAll(importRoles)
+        importRoles.each {         updateImports(it) }
     }
 
     /**
      * Collects define config and add/update on module.xml.
      * @param attr
      */
-    public void Config(Map attr){
-        configs.add(new ModuleConfig((String) attr.name, (String) attr.value, (String) attr.target ? (String) attr.target : null))
+    public void Config(Map attr) {
+        def config = new ModuleConfig((String) attr.name, (String) attr.value, (String) attr.target ? (String) attr.target : null)
+        newModule.config.add(config)
     }
 
     /**
@@ -271,16 +258,16 @@ class ModuleDelegate {
     public void Info(Map attr, Closure<String[]> cl) {
         assert attr
 
-        if (!module.info) module.info = new ModuleInfo()
+        if (!newModule.info) newModule.info = new ModuleInfo()
 
-        if (attr.description) module.info.desc          = (String) attr.description
-        if (attr.version)     module.info.version       = (String) attr.version
-        if (attr.kernel)      module.info.kernelVersion = (String) attr.kernel
+        if (attr.description) newModule.info.desc          = (String) attr.description
+        if (attr.version)     newModule.info.version       = (String) attr.version
+        if (attr.kernel)      newModule.info.kernelVersion = (String) attr.kernel
 
         if (cl) {
             def dependencies = cl()
 
-            if (dependencies) module.info.dependency.addAll(dependencies)
+            if (dependencies) newModule.info.dependency.addAll(dependencies)
         }
     }
 
@@ -291,70 +278,28 @@ class ModuleDelegate {
      */
     public Url(String url){
         assert url
-        module.resURL = url
+        newModule.resURL = url
     }
 
     public void processClosure(Closure cl) {
         assert cl
-        assert module.name
+        assert newModule.name
 
         cl.delegate = this
         cl.resolveStrategy = Closure.DELEGATE_FIRST
         cl()
 
         imports.close()
+        
+        if (module) {
+            ReflectionComparator reflectionComparator = createRefectionComparator(LENIENT_ORDER, IGNORE_DEFAULTS);
+            Difference difference = reflectionComparator.getDifference(module, newModule);
 
-        updateAndGenerateResource()
-    }
+            if (difference != null) Logger.msg 0, new DefaultDifferenceReport().createReport(difference);
+    
+            assertReflectionEquals(module, newModule, LENIENT_ORDER, IGNORE_DEFAULTS);
 
-    /**
-     * Updates the the resources in the module.xml.
-     * It compares the {@value #resources} with the {@value Module#imports} collection, if not found then it will be added.
-     * The resource will be updated if it is existing but elements are the not same with the one in the module's imports.
-     */
-    private void updateAndGenerateResource() {
-        moduleImports.clear()
-        moduleImports.addAll(module.imports.list)
-
-        resources.each { resource ->
-            if      (resource instanceof CompositeActivityDef) addCompositeActivityDef(CompositeActivityDef.cast(resource))
-            else if (resource instanceof ActivityDef)          addActivityDef(ActivityDef.cast(resource))
-            else if (resource instanceof Script)               addScript(Script.cast(resource))
-            else if (resource instanceof Schema)               addSchema(Schema.cast(resource))
-            else if (resource instanceof Query)                addQuery(Query.cast(resource))
-            else if (resource instanceof StateMachine)         addStateMachine(StateMachine.cast(resource))
-        }
-
-        agents.each { findAndUpdateResource(it, true) }
-        items.each  { findAndUpdateResource(it, true) }
-        roles.each  { findAndUpdateResource(it, true) }
-
-        addConfigs()
-
-        module.imports.list.clear()
-        module.imports.list.addAll(moduleImports)
-
-        if (moduleXMLFile.exists()) FileStringUtility.string2File(moduleXMLFile, XmlUtil.serialize(removeAttrs()))
-    }
-
-    /**
-     * 
-     */
-    private void addConfigs() {
-        configs.each { itConfig ->
-            int index = -1
-            module.config.find {
-                if (it.name == itConfig.name) {
-                    index = module.config.indexOf(it)
-                    module.config.remove(index)
-                }
-                else {
-                    return
-                }
-            }
-
-            if (index > -1) module.config.add(index, itConfig)
-            else            module.config.add(itConfig)
+            FileStringUtility.string2File(moduleXMLFile, XmlUtil.serialize(Gateway.getMarshaller().marshall(newModule)))
         }
     }
 
@@ -369,7 +314,7 @@ class ModuleDelegate {
         moduleSm.setVersion(sm.version)
         moduleSm.setName(sm.name)
 
-        findAndUpdateResource(moduleSm, false)
+        updateImports(moduleSm)
     }
 
     /**
@@ -383,7 +328,7 @@ class ModuleDelegate {
         moduleQuery.setVersion(query.version)
         moduleQuery.setName(query.name)
 
-        findAndUpdateResource(moduleQuery, false)
+        updateImports(moduleQuery)
     }
 
     /**
@@ -397,7 +342,7 @@ class ModuleDelegate {
         moduleSchema.setVersion(schema.version)
         moduleSchema.setName(schema.name)
 
-        findAndUpdateResource(moduleSchema, false)
+        updateImports(moduleSchema)
     }
 
     /**
@@ -411,7 +356,7 @@ class ModuleDelegate {
         moduleScript.setVersion(script.version)
         moduleScript.setName(script.name)
 
-        findAndUpdateResource(moduleScript, false)
+        updateImports(moduleScript)
     }
 
     /**
@@ -425,11 +370,12 @@ class ModuleDelegate {
         moduleAct.setVersion(actDef.version)
         moduleAct.setName(actDef.name)
 
-        if (actDef.script) moduleAct.setScript(new ModuleDescRef(actDef.script.name, null, actDef.script.version))
-        if (actDef.schema) moduleAct.setSchema(new ModuleDescRef(actDef.schema.name, null, actDef.schema.version))
-        if (actDef.query)  moduleAct.setQuery( new ModuleDescRef(actDef.query.name,  null, actDef.query.version))
+        if (actDef.stateMachine) moduleAct.setStateMachine( new ModuleDescRef(actDef.stateMachine.name, null, actDef.stateMachine.version))
+        if (actDef.script)       moduleAct.setScript(       new ModuleDescRef(actDef.script.name,       null, actDef.script.version))
+        if (actDef.schema)       moduleAct.setSchema(       new ModuleDescRef(actDef.schema.name,       null, actDef.schema.version))
+        if (actDef.query)        moduleAct.setQuery(        new ModuleDescRef(actDef.query.name,        null, actDef.query.version))
 
-        findAndUpdateResource(moduleAct, true)
+        updateImports(moduleAct)
     }
 
     /**
@@ -448,40 +394,16 @@ class ModuleDelegate {
             }
         }
 
-        findAndUpdateResource(moduleWf, true)
+        updateImports(moduleWf)
     }
+    
+    private void updateImports(ModuleImport mImport) {
+        int index = newModule.imports.list.findIndexOf { ModuleImport mi -> (mi.name == mImport.name) && (mi.getClass() == mImport.getClass()) }
 
-    /**
-     * Removes attributes that will not be needed in module.xml.
-     * 
-     * @return
-     */
-    private String removeAttrs() {
-        String moduleContent = Gateway.getMarshaller().marshall(module)
+        if (index > -1) 
+            throw new InvalidDataException("Cannot update xisting import:$mImport.name, class:${mImport.getClass().getSimpleName()}")
 
-        ATTRS_TO_REPLACE.each {
-            moduleContent = moduleContent.replaceAll((String)it, StringUtils.EMPTY)
-        }
-
-        return moduleContent
-    }
-
-    /**
-     * Finds the resource if the it's existing in the module imports.
-     * @param moduleImport
-     * @param remove
-     */
-    private void findAndUpdateResource(ModuleImport moduleImport, boolean remove) {
-        Logger.msg 0, "ModuleDelegate.findAndUpdateResource() - $moduleImport.name"
-
-        int indexVal =  moduleImports.findIndexOf{ ModuleImport mi -> mi.name == moduleImport.name }
-
-        if (indexVal > -1 && remove) {
-             moduleImports.remove(indexVal)
-             moduleImports.add(indexVal, moduleImport)
-        }
-        else if (indexVal == -1) {
-            moduleImports.add(moduleImport)
-        }
+        if (index > -1) newModule.imports.list.set(index, mImport)
+        else            newModule.imports.list.add(mImport)
     }
 }

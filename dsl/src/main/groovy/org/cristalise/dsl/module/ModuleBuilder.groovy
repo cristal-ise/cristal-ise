@@ -37,7 +37,7 @@ class ModuleBuilder {
 
         if(cl) md.processClosure(cl)
 
-        return md.module
+        return md.newModule
     }
 
     public static Path create(String ns, String name, int version, Closure cl) {
