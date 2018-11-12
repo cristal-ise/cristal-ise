@@ -377,7 +377,7 @@ public class ItemRoot extends ItemUtils {
     }
 
     @POST
-    @Consumes( {MediaType.TEXT_XML, MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON } )
+    @Consumes( {MediaType.TEXT_PLAIN, MediaType.TEXT_XML, MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON } )
     @Produces( {MediaType.TEXT_XML, MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON } )
     @Path("{activityPath: .*}")
     public String requestTransition(    String      postData,
@@ -406,7 +406,7 @@ public class ItemRoot extends ItemUtils {
 
             Logger.msg(5, "ItemRoot.requestTransition() postData:%s", postData);
 
-            if (actPath.startsWith("workflow/predefined")) {
+            if (actPath.startsWith(PREDEFINED_PATH)) {
                 return executePredefinedStep(item, postData, types, actPath, agent);
             }
             else {
@@ -491,7 +491,7 @@ public class ItemRoot extends ItemUtils {
 
             Logger.msg(5, "ItemRoot.requestTransition() postData:%s", postData);
 
-            if (actPath.startsWith("workflow/predefined")) {
+            if (actPath.startsWith(PREDEFINED_PATH)) {
                 return executePredefinedStep(item, postData, types, actPath, agent);
             }
             else {
@@ -592,7 +592,7 @@ public class ItemRoot extends ItemUtils {
         ItemProxy item = getProxy(uuid);
 
         try {
-            if (actPath.startsWith("workflow/predefined")) {
+            if (actPath.startsWith(PREDEFINED_PATH)) {
                 throw ItemUtils.createWebAppException("Unimplemented", Response.Status.BAD_REQUEST);
             }
             else {
