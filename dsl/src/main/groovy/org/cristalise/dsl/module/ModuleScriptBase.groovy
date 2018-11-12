@@ -8,7 +8,7 @@ import org.cristalise.kernel.utils.Logger
 import groovy.transform.CompileStatic
 
 @CompileStatic
-abstract class ModuleScriptBase extends Script {
+abstract class ModuleScriptBase extends DelegatingScript {
 
     private static final String defaultConnect = 'local.clc'
     private static final String defaultConfig  = 'client.conf'
