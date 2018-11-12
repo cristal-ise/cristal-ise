@@ -50,5 +50,7 @@ class CollectionBuilderSpecs extends Specification implements CristalTestSetup {
         builder.dependency.members.list.size() == 1
 
         builder.dependency.members.list[0].properties.size() == 2
+        builder.dependency.members.list[0].properties['version'] == 0
+        builder.dependency.members.list[0].properties['toto'] == true
     }
 }
