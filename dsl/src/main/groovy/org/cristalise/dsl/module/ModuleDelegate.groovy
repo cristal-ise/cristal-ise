@@ -45,9 +45,6 @@ import org.cristalise.kernel.scripting.Script
 import org.cristalise.kernel.utils.FileStringUtility
 import org.cristalise.kernel.utils.LocalObjectLoader
 import org.cristalise.kernel.utils.Logger
-import org.unitils.reflectionassert.ReflectionComparator
-import org.unitils.reflectionassert.difference.Difference
-import org.unitils.reflectionassert.report.impl.DefaultDifferenceReport
 
 import groovy.transform.CompileStatic
 import groovy.xml.XmlUtil
