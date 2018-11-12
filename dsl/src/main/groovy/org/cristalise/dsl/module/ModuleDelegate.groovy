@@ -20,11 +20,6 @@
  */
 package org.cristalise.dsl.module
 
-import static org.unitils.reflectionassert.ReflectionComparatorFactory.createRefectionComparator;
-import static org.unitils.reflectionassert.ReflectionAssert.assertReflectionEquals;
-import static org.unitils.reflectionassert.ReflectionComparatorMode.IGNORE_DEFAULTS;
-import static org.unitils.reflectionassert.ReflectionComparatorMode.LENIENT_ORDER;
-
 import org.codehaus.groovy.control.CompilerConfiguration
 import org.cristalise.dsl.entity.AgentBuilder
 import org.cristalise.dsl.entity.ItemBuilder
@@ -68,7 +63,7 @@ class ModuleDelegate {
 
     Writer imports
 
-    Binding bindings = new Binding()
+    Binding bindings
 
     static final String MODULE_RESOURCE_ROOT = "src/main/resources"
     static final String MODULE_EXPORT_ROOT   = "$MODULE_RESOURCE_ROOT/boot"
@@ -77,7 +72,10 @@ class ModuleDelegate {
 
     File moduleXMLFile = new File("$MODULE_RESOURCE_ROOT/module.xml")
 
-    public ModuleDelegate(String ns, String n, int v) {
+    public ModuleDelegate(String ns, String n, int v, Binding b = null) {
+        if (b) bindings = b
+        else   bindings = new Binding()
+
         newModule = new Module()
         newModule.info = new ModuleInfo()
         newModule.ns = ns
@@ -290,15 +288,8 @@ class ModuleDelegate {
         cl()
 
         imports.close()
-        
+
         if (module) {
-            ReflectionComparator reflectionComparator = createRefectionComparator(LENIENT_ORDER, IGNORE_DEFAULTS);
-            Difference difference = reflectionComparator.getDifference(module, newModule);
-
-            if (difference != null) Logger.msg 0, new DefaultDifferenceReport().createReport(difference);
-    
-            assertReflectionEquals(module, newModule, LENIENT_ORDER, IGNORE_DEFAULTS);
-
             FileStringUtility.string2File(moduleXMLFile, XmlUtil.serialize(Gateway.getMarshaller().marshall(newModule)))
         }
     }
@@ -398,10 +389,16 @@ class ModuleDelegate {
     }
     
     private void updateImports(ModuleImport mImport) {
-        int index = newModule.imports.list.findIndexOf { ModuleImport mi -> (mi.name == mImport.name) && (mi.getClass() == mImport.getClass()) }
+        int index = newModule.imports.list.findIndexOf { 
+            ModuleImport mi -> (mi.name == mImport.name) && (mi.getClass() == mImport.getClass())
+        }
 
-        if (index > -1) 
-            throw new InvalidDataException("Cannot update xisting import:$mImport.name, class:${mImport.getClass().getSimpleName()}")
+        if (index > -1) {
+            def msg = "Cannot update existing import:$mImport.name, class:${mImport.getClass().getSimpleName()}"
+
+            if (Gateway.properties.getBoolean('DSL.ModuleImport.strictUpdate', true)) throw new InvalidDataException(msg)
+            else                                                                      Logger.warning(msg)
+        }
 
         if (index > -1) newModule.imports.list.set(index, mImport)
         else            newModule.imports.list.add(mImport)
