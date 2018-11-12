@@ -5,7 +5,6 @@ import org.cristalise.kernel.process.AbstractMain
 import org.cristalise.kernel.process.Gateway
 import org.cristalise.kernel.utils.Logger
 
-import groovy.transform.CompileDynamic
 import groovy.transform.CompileStatic
 
 @CompileStatic
@@ -41,7 +40,9 @@ abstract class ModuleScriptBase extends Script {
     public void Module(Map args, Closure cl) {
         init()
 
-        ModuleBuilder.build((String)args.ns, (String)args.name, (Integer)args.version, cl)
+        ModuleDelegate md = new ModuleDelegate((String)args.ns, (String)args.name, (Integer)args.version, this.binding)
+
+        if(cl) md.processClosure(cl)
 
         Gateway.close()
     }
