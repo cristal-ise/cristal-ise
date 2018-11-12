@@ -60,10 +60,13 @@ class DependencyDelegate {
         ItemPath itemPath = new ItemPath()
         String iPathStr = (String)attrs.itemPath
 
+        assert iPathStr
+
         try {
             itemPath = Gateway.getLookup().resolvePath(new DomainPath(iPathStr))
-        } catch (Exception e) {
-            Logger.error("Unable to find the domain path. ${e.localizedMessage}")
+        }
+        catch (Exception e) {
+            Logger.warning "Unable to find the domain path. ${e.localizedMessage}"
         }
 
         if (iPathStr.startsWith(BuiltInResources.COMP_ACT_DESC_RESOURCE.typeRoot))
