@@ -20,17 +20,12 @@
  */
 package org.cristalise.dsl.entity
 
-import groovy.lang.Closure
-import groovy.transform.CompileStatic
-
-import java.util.Map
-
-import org.cristalise.kernel.entity.imports.ImportAgent
 import org.cristalise.kernel.entity.imports.ImportRole
 import org.cristalise.kernel.lookup.AgentPath
-import org.cristalise.kernel.lookup.DomainPath
 import org.cristalise.kernel.lookup.RolePath
 import org.cristalise.kernel.utils.Logger
+
+import groovy.transform.CompileStatic
 
 
 /**
