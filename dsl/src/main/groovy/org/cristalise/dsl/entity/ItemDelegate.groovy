@@ -30,6 +30,7 @@ import org.cristalise.kernel.entity.imports.ImportDependency
 import org.cristalise.kernel.entity.imports.ImportDependencyMember
 import org.cristalise.kernel.entity.imports.ImportItem
 import org.cristalise.kernel.entity.imports.ImportOutcome
+import org.cristalise.kernel.lifecycle.CompositeActivityDef
 import org.cristalise.kernel.process.resource.BuiltInResources
 
 /**
@@ -46,6 +47,12 @@ class ItemDelegate extends PropertyDelegate {
         newItem.name = name
         newItem.initialPath = folder
         newItem.workflow = workflow
+    }
+
+    public ItemDelegate(String name, String folder, CompositeActivityDef workflow) {
+        newItem.name = name
+        newItem.initialPath = folder
+        newItem.compActDef = workflow
     }
 
     public void processClosure(Closure cl) {
