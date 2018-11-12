@@ -20,13 +20,13 @@
  */
 package org.cristalise.dsl.entity
 
-import groovy.transform.CompileStatic
-
 import org.cristalise.kernel.common.InvalidDataException
 import org.cristalise.kernel.entity.imports.ImportItem
+import org.cristalise.kernel.lifecycle.CompositeActivityDef
 import org.cristalise.kernel.lookup.AgentPath
 import org.cristalise.kernel.lookup.DomainPath;
-import org.cristalise.kernel.lookup.ItemPath
+
+import groovy.transform.CompileStatic
 
 
 /**
@@ -42,10 +42,11 @@ class ItemBuilder {
         return build((String)attrs.name, (String)attrs.folder, (String)attrs.workflow, cl)
     }
 
-    public static ImportItem build(String name, String folder, String workflow, Closure cl) {
+    public static ImportItem build(String name, String folder, Object workflow, Closure cl) {
         if(!name || !folder) throw new InvalidDataException("")
 
-        def itemD = new ItemDelegate(name, folder, workflow)
+        def itemD = workflow instanceof String ? 
+            new ItemDelegate(name, folder, (String)workflow) : new ItemDelegate(name, folder, (CompositeActivityDef)workflow)
 
         itemD.processClosure(cl)
 

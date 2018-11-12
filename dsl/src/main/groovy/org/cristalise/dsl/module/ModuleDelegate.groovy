@@ -42,6 +42,7 @@ import org.cristalise.kernel.process.Gateway
 import org.cristalise.kernel.process.module.*
 import org.cristalise.kernel.querying.Query
 import org.cristalise.kernel.scripting.Script
+import org.cristalise.kernel.test.utils.KernelXMLUtility
 import org.cristalise.kernel.utils.FileStringUtility
 import org.cristalise.kernel.utils.LocalObjectLoader
 import org.cristalise.kernel.utils.Logger
@@ -221,7 +222,7 @@ class ModuleDelegate {
      * @param cl
      */
     public void Item(Map args, Closure cl) {
-        def item = ItemBuilder.build((String) args.name, (String) args.folder, (String) args.workflow, cl)
+        def item = ItemBuilder.build((String) args.name, (String) args.folder, args.workflow, cl)
 
         item.properties.removeAll { it.value == args.name }
 
@@ -284,11 +285,16 @@ class ModuleDelegate {
         cl.resolveStrategy = Closure.DELEGATE_FIRST
         cl()
 
-        imports.close()
-
         if (module) {
-            FileStringUtility.string2File(moduleXMLFile, XmlUtil.serialize(Gateway.getMarshaller().marshall(newModule)))
+            def oldModuleXML = XmlUtil.serialize(Gateway.getMarshaller().marshall(module))
+            def newModuleXML = XmlUtil.serialize(Gateway.getMarshaller().marshall(newModule))
+
+            KernelXMLUtility.compareXML(oldModuleXML, newModuleXML)
+
+            FileStringUtility.string2File(moduleXMLFile, newModuleXML)
         }
+
+        imports.close()
     }
 
     /**
@@ -358,10 +364,14 @@ class ModuleDelegate {
         moduleAct.setVersion(actDef.version)
         moduleAct.setName(actDef.name)
 
-        if (actDef.stateMachine) moduleAct.setStateMachine( new ModuleDescRef(actDef.stateMachine.name, null, actDef.stateMachine.version))
         if (actDef.script)       moduleAct.setScript(       new ModuleDescRef(actDef.script.name,       null, actDef.script.version))
         if (actDef.schema)       moduleAct.setSchema(       new ModuleDescRef(actDef.schema.name,       null, actDef.schema.version))
         if (actDef.query)        moduleAct.setQuery(        new ModuleDescRef(actDef.query.name,        null, actDef.query.version))
+
+        //Do not add 'Default' StateMachine
+        if (actDef.stateMachine && actDef.stateMachine.name != 'Default') {
+            moduleAct.setStateMachine( new ModuleDescRef(actDef.stateMachine.name, null, actDef.stateMachine.version))
+        }
 
         updateImports(moduleAct)
     }
@@ -380,6 +390,11 @@ class ModuleDelegate {
                 ActivityDef act = ActivityDef.cast(it)
                 moduleWf.activities.add(new ModuleDescRef(act.name, act.itemID, act.version))
             }
+        }
+
+        //Do not add 'CompositeActivity' StateMachine
+        if (caDef.stateMachine && caDef.stateMachine.name != 'CompositeActivity') {
+            moduleWf.setStateMachine( new ModuleDescRef(caDef.stateMachine.name, null, caDef.stateMachine.version))
         }
 
         updateImports(moduleWf)

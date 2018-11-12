@@ -20,7 +20,6 @@
  */
 package org.cristalise.dsl.entity
 
-import groovy.transform.CompileStatic
 import org.apache.commons.lang3.StringUtils
 import org.cristalise.dsl.collection.DependencyBuilder
 import org.cristalise.dsl.lifecycle.instance.WorkflowBuilder
@@ -32,6 +31,8 @@ import org.cristalise.kernel.entity.imports.ImportItem
 import org.cristalise.kernel.entity.imports.ImportOutcome
 import org.cristalise.kernel.lifecycle.CompositeActivityDef
 import org.cristalise.kernel.process.resource.BuiltInResources
+
+import groovy.transform.CompileStatic
 
 /**
  *
@@ -49,10 +50,10 @@ class ItemDelegate extends PropertyDelegate {
         newItem.workflow = workflow
     }
 
-    public ItemDelegate(String name, String folder, CompositeActivityDef workflow) {
+    public ItemDelegate(String name, String folder, CompositeActivityDef caDef) {
         newItem.name = name
         newItem.initialPath = folder
-        newItem.compActDef = workflow
+        newItem.workflow = caDef.getName()
     }
 
     public void processClosure(Closure cl) {

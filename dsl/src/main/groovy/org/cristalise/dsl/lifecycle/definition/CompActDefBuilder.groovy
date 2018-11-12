@@ -20,11 +20,9 @@
  */
 package org.cristalise.dsl.lifecycle.definition
 
-import groovy.lang.Closure
-import groovy.transform.CompileStatic
-
-import org.cristalise.kernel.lifecycle.ActivityDef
 import org.cristalise.kernel.lifecycle.CompositeActivityDef
+
+import groovy.transform.CompileStatic
 
  
 /**
