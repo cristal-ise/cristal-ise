@@ -99,8 +99,8 @@ class ModuleBuilderSpecs extends Specification implements CristalTestSetup {
         module.getImports().findImport('ScriptFactory')
 
         //the order is important
-        module.getImports().list[0].name == 'Test'
-        module.getImports().list[1].name == 'ScriptFactory'
+        module.getImports().list[0].name == 'ScriptFactory'
+        module.getImports().list[1].name == 'Test'
         module.getImports().list[2].name == 'Abort'
     }
 }
