@@ -20,14 +20,15 @@
  */
 package org.cristalise.kernel.test.utils;
 
-import groovy.xml.MarkupBuilder
-
 import org.cristalise.kernel.utils.Logger
+import org.custommonkey.xmlunit.Difference
 import org.xml.sax.SAXException
 import org.xmlunit.builder.DiffBuilder
 import org.xmlunit.diff.DefaultNodeMatcher
 import org.xmlunit.diff.Diff
 import org.xmlunit.diff.ElementSelectors
+
+import groovy.xml.MarkupBuilder
 
 
 
@@ -247,19 +248,23 @@ class KernelXMLUtility {
      * @throws IOException
      */
     public static boolean compareXML(String expected, String actual) throws SAXException, IOException {
-        Diff diffIdentical = DiffBuilder.compare(expected).withTest(actual)
+        Diff diff = DiffBuilder.compare(expected).withTest(actual)
                 .withNodeMatcher(new DefaultNodeMatcher(ElementSelectors.byNameAndAllAttributes))
                 .ignoreComments()
                 .ignoreWhitespace()
                 .checkForSimilar()
                 .build();
 
-        if(diffIdentical.hasDifferences()) {
+        if(diff.hasDifferences()) {
             Logger.warning("Actual:\n $actual");
             Logger.warning("Expected:\n $expected");
-            Logger.warning(diffIdentical.toString());
+
+            Iterator<Difference> allDiffs = diff.getDifferences().iterator();
+            int i = 1;
+
+            while (allDiffs.hasNext()) { Logger.warning("#" + i++ + ":" + allDiffs.next().toString()); }
         }
 
-        return !diffIdentical.hasDifferences();
+        return !diff.hasDifferences();
     }
 }
