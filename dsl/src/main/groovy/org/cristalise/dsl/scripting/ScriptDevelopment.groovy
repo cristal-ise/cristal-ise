@@ -11,7 +11,7 @@ import org.cristalise.kernel.utils.Logger
 import groovy.transform.CompileStatic
 
 @CompileStatic
-abstract class ScriptDevelopment extends DelegatingScript {
+abstract class ScriptDevelopment extends Script {
 
     private static final String defaultConnect = 'local.clc'
     private static final String defaultConfig  = 'client.conf'
@@ -37,47 +37,51 @@ abstract class ScriptDevelopment extends DelegatingScript {
         if (configDir) {
             config  = config  ?: "$configDir/$defaultConfig"
             connect = connect ?: "$configDir/$defaultConnect"
-
-            Logger.msg(5, 'ScriptDevelopment - config:%s, connect:%s', config, connect)
         }
 
-        if (!connect || !config) throw new InvalidDataException("Missing connect '"+connect+"' or config '"+config+"' files")
+        if (!connect  || !config) throw new InvalidDataException("Missing connect '"+connect+"' or config '"+config+"' files")
+        if (!itemPath)            throw new InvalidDataException("Missing itemPath '"+itemPath)
+
+        Logger.msg(5, '++++++ ScriptDevelopment - config:%s, connect:%s, itemPath:%s, activityName:%s', config, connect, itemPath, activityName)
 
         Gateway.init(AbstractMain.readPropertyFiles(config, connect, null))
 
         //These are the default binding variables created by the Script class
         AgentProxy agent = Gateway.connect(user, pwd)
         ItemProxy  item  = agent.getItem(itemPath)
-        Job        job   = item.getJobByTransitionName(activityName, transitionName, agent)
 
-        assert job
+        binding.setProperty('agent', agent)
+        binding.setProperty('item',  item)
 
-        binding.setVariable('agent', agent)
-        binding.setVariable('item',  item)
-        binding.setVariable('job',   job)
+        //e.g. aggregate script do not require a job
+        if (activityName) {
+            Job job = item.getJobByTransitionName(activityName, transitionName, agent)
+            assert job
+            binding.setProperty('job',   job)
+        }
     }
 
     /**
      * Method called by the groovy script framework automatically
      */
-    def run() {
+    def WriteScriptHere(String path, String actName = null, Closure cl) {
         try {
+            itemPath = path
+            activityName = actName
+
             init()
 
             // Run actually script code.
-            final result = runCode()
+            cl.delegate = this
+            final result = cl()
 
             Logger.msg(5, "ScriptDevelopment - script returned: %s", result)
+        }
+        catch(Exception e) {
+            Logger.error(e)
         }
         finally {
             Gateway.close()
         }
     }
-
-    /**
-     * Abstract method as placeholder for the actual script code to run.
-     *  
-     * @return
-     */
-    abstract def runCode()
 }
