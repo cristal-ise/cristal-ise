@@ -285,18 +285,13 @@ class ModuleDelegate {
         cl.resolveStrategy = Closure.DELEGATE_FIRST
         cl()
 
-        if (module) {
+        if (module && Gateway.properties.getBoolean('DSL.GenerateModuleXml', true)) {
+            def oldModuleXML = XmlUtil.serialize(Gateway.getMarshaller().marshall(module))
+            def newModuleXML = XmlUtil.serialize(Gateway.getMarshaller().marshall(newModule))
 
-            if (Gateway.properties.getBoolean('DSL.GenerateModuleXml', true)) {
+            KernelXMLUtility.compareXML(oldModuleXML, newModuleXML)
 
-                def oldModuleXML = XmlUtil.serialize(Gateway.getMarshaller().marshall(module))
-                def newModuleXML = XmlUtil.serialize(Gateway.getMarshaller().marshall(newModule))
-
-                KernelXMLUtility.compareXML(oldModuleXML, newModuleXML)
-
-                FileStringUtility.string2File(moduleXMLFile, newModuleXML)
-
-            }
+            FileStringUtility.string2File(moduleXMLFile, newModuleXML)
         }
 
         imports.close()
