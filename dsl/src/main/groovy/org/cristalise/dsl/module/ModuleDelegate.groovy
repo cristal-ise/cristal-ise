@@ -405,7 +405,7 @@ class ModuleDelegate {
             ModuleImport mi -> (mi.name == mImport.name) && (mi.getClass() == mImport.getClass())
         }
 
-        if (index > -1) {
+        if (index > -1 && Gateway.properties.getBoolean('DSL.GenerateModuleXml', true)) {
             def msg = "Cannot update existing import:$mImport.name, class:${mImport.getClass().getSimpleName()}"
 
             if (Gateway.properties.getBoolean('DSL.ModuleImport.strictUpdate', true)) throw new InvalidDataException(msg)
