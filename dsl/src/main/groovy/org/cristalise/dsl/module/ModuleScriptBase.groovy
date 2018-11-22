@@ -19,7 +19,7 @@ abstract class ModuleScriptBase extends DelegatingScript {
 
     Integer logLevel = 0
 
-    private void init() {
+    public void init() {
         Logger.addLogStream(System.out, logLevel)
 
         if (configDir && (connect || config)) throw new InvalidDataException('Specify only configDir or connect/config')
