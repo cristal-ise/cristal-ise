@@ -39,13 +39,13 @@ class ItemBuilder {
 
     public static ImportItem build(Map<String, Object> attrs, Closure cl) {
         assert attrs, "ItemBuilder build() cannot work with empty attributes (Map)"
-        return build((String)attrs.name, (String)attrs.folder, (String)attrs.workflow, cl)
+        return build((String)attrs.name, (String)attrs.folder, attrs.workflow as String, cl)
     }
 
     public static ImportItem build(String name, String folder, Object workflow, Closure cl) {
         if(!name || !folder) throw new InvalidDataException("")
 
-        def itemD = workflow instanceof String ? 
+        def itemD = (workflow == null || workflow instanceof String) ? 
             new ItemDelegate(name, folder, (String)workflow) : new ItemDelegate(name, folder, (CompositeActivityDef)workflow)
 
         itemD.processClosure(cl)
@@ -64,40 +64,5 @@ class ItemBuilder {
         assert agent
 
         return (DomainPath)item.create(agent, true)
-        /*
-        DomainPath context = new DomainPath(new DomainPath(folder), name);
-
-        if (context.exists()) throw new ObjectAlreadyExistsException("The path $context exists already.");
-
-        Logger.msg(3, "ItemBuilder.create() - Creating CORBA Object");
-        CorbaServer factory = Gateway.getCorbaServer();
-        if (factory == null) throw new CannotManageException("This process cannot create new Items");
-        ItemPath newItemPath = new ItemPath();
-        TraceableEntity newItem = factory.createItem(newItemPath);
-
-        Logger.msg(3, "ItemBuilder.create() - Adding entity '$newItemPath' to lookup");
-        Gateway.getLookupManager().add(newItemPath);
-
-        Logger.msg(3, "ItemBuilder.create() - Initializing entity");
-        try {
-            newItem.initialise(
-                agent.getSystemKey(),
-                Gateway.getMarshaller().marshall(props),
-                wf == null ? null : Gateway.getMarshaller().marshall(wf.search("workflow/domain")),
-                null);
-        }
-        catch (Exception ex) {
-            Logger.error(ex)
-            Gateway.getLookupManager().delete(newItemPath);
-            throw new InvalidDataException("Problem initializing new Item '"+name+"'. See log: "+ex.getMessage());
-        }
-
-        // add its domain path
-        Logger.msg(3, "ItemBuilder.create() - Creating context '$context'");
-        context.setItemPath(newItemPath);
-        Gateway.getLookupManager().add(context);
-        
-        return newItemPath
-        */
     }
 }
