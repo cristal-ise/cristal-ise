@@ -227,6 +227,7 @@
             <version>${commons-csv.version}</version>
             <scope>compile</scope>
         </dependency>
+
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
@@ -274,24 +275,6 @@
             <artifactId>cristalise-inmemory-lookup</artifactId>
             <version>${cristalise.version}</version>
             <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.cristalise</groupId>
-            <artifactId>cristalise-xpath-outcomeinit</artifactId>
-            <version>${cristalise.version}</version>
-            <scope>compile</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.cristalise</groupId>
-            <artifactId>cristalise-restapi</artifactId>
-            <version>${cristalise.version}</version>
-            <scope>compile</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.cristalise</groupId>
-            <artifactId>cristalise-trigger</artifactId>
-            <version>${cristalise.version}</version>
-            <scope>compile</scope>
         </dependency>
         <dependency>
             <groupId>org.mvel</groupId>
