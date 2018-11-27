@@ -112,6 +112,8 @@ class SchemaDelegate {
     private void buildAtribute(xsd, Attribute a) {
         Logger.msg 1, "SchemaDelegate.buildAtribute() - attribute: $a.name"
 
+        if (a.documentation) throw new InvalidDataException('Atttrbute cannotnot define documentation')
+
         xsd.'xs:attribute'(name: a.name, type: attributeType(a), 'default': a.defaultVal, 'use': (a?.required ? "required": "")) {
             if(a.values) {
                 buildRestriction(xsd, a.type, a.values)

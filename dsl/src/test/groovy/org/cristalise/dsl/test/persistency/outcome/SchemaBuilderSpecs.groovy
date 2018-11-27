@@ -362,7 +362,20 @@ class SchemaBuilderSpecs extends Specification implements CristalTestSetup {
         then: "InvalidDataException is thrown"
         thrown(InvalidDataException)
     }
+
+    def 'Attribute CANNOT specify documentation'() {
+        when: "attribute specifies multiplicity"
+        SchemaTestBuilder.build('Test', 'TestData', 0) {
+            struct(name: 'TestData') {
+                attribute(name: 'attr1', documentation: 'docs')
+            }
+        }
+
+        then: "InvalidDataException is thrown"
+        thrown(InvalidDataException)
+    }
  
+
     def 'Field can specify multiplicity'() {
         expect:
         SchemaTestBuilder.build('Test', 'TestData', 0) {
@@ -619,6 +632,28 @@ class SchemaBuilderSpecs extends Specification implements CristalTestSetup {
     }
 
 
+    def 'Field can have documentation'() {
+        expect:
+        SchemaTestBuilder.build('Test', 'TestData', 0) {
+            struct(name: 'TestData') {
+                field(name: 'Field', documentation: 'Field has Documentation')
+            }
+        }.compareXML("""<xs:schema xmlns:xs='http://www.w3.org/2001/XMLSchema'>
+                          <xs:element name='TestData'>
+                            <xs:complexType>
+                              <xs:all minOccurs='0'>
+                                <xs:element name='Field' type='xs:string' minOccurs='1' maxOccurs='1'>
+                                  <xs:annotation>
+                                    <xs:documentation>Field has Documentation</xs:documentation>
+                                  </xs:annotation>
+                                </xs:element>
+                              </xs:all>
+                            </xs:complexType>
+                          </xs:element>
+                        </xs:schema>""")
+    }
+
+    
     def 'Field can have Unit which is added as attribute of type string'() {
         expect:
         SchemaTestBuilder.build('Test', 'TestData', 0) {
@@ -683,7 +718,7 @@ class SchemaBuilderSpecs extends Specification implements CristalTestSetup {
         SchemaTestBuilder.build('test', 'PatientDetails', 0) {
             struct(name: 'PatientDetails', documentation: 'This is the Schema for Basic Tutorial') {
                 attribute(name: 'InsuranceNumber', type: 'string', default: '123456789ABC')
-                field(name: 'DateOfBirth',     type: 'date') {dynamicForms(updateScriptRef : "Script:0")}
+                field(name: 'DateOfBirth',     type: 'date', documentation: 'DateOfBirth docs') {dynamicForms(updateScriptRef : "Script:0")}
                 field(name: 'Gender',          type: 'string', values: ['male', 'female'])
                 field(name: 'Weight',          type: 'decimal') { unit(values: ['g', 'kg'], default: 'kg') }
             }
@@ -697,6 +732,7 @@ class SchemaBuilderSpecs extends Specification implements CristalTestSetup {
                    <xs:all minOccurs="0">
                    <xs:element name='DateOfBirth' type='xs:date' minOccurs='1' maxOccurs='1'>
                      <xs:annotation>
+                       <xs:documentation>DateOfBirth docs</xs:documentation>
                        <xs:appinfo>
                          <dynamicForms>
                            <additional>
