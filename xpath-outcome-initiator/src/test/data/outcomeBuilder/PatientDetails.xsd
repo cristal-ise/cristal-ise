@@ -31,6 +31,7 @@
             <xs:sequence>
                 <xs:element minOccurs="1" maxOccurs="1" name="InsuranceNumber" type="xs:string" default="123456789ABC">
                     <xs:annotation>
+                        <xs:documentation>Insurance Number Documentation</xs:documentation>
                         <xs:appinfo>
                             <dynamicForms>
                                 <hidden>true</hidden>

@@ -228,8 +228,8 @@ public class Field extends OutcomeStructure {
 
         JSONObject fieldJson = myFieldInstance.generateNgDynamicForms(inputs);
 
-        if (StringUtils.isNotBlank(defVal))
-            fieldJson.put("value", defVal);
+        if (StringUtils.isNotBlank(defVal)) fieldJson.put("value", defVal);
+        if (StringUtils.isNotBlank(help))   myFieldInstance.getAdditionalConfigNgDynamicForms(fieldJson).put("tooltip", help.trim());
 
         return fieldJson;
     }

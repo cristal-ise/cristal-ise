@@ -90,6 +90,5 @@ public class NgDynamicFormsTest extends XMLUtils {
         JSONArray expected = new JSONArray(getJSON(dir, "TableNGForms"));
 
         assertJsonEquals(expected, actual);
-        
     }
 }

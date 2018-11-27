@@ -342,7 +342,7 @@ public class StringField {
      * @param field the actual config field 
      * @return the 'additional' JSONOBject attached to the config field
      */
-    protected JSONObject getAdditionalConfigNgDynamicForms(JSONObject field) {
+    public JSONObject getAdditionalConfigNgDynamicForms(JSONObject field) {
         if (field.has("additional")) {
             return (JSONObject) field.get("additional");
         }

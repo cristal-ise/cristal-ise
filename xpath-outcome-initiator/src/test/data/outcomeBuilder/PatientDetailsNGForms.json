@@ -23,6 +23,7 @@
     },
     {
       "hidden": true,
+      "additional": {"tooltip": "Insurance Number Documentation"},
       "inputType": "text",
       "cls": {
         "grid": {
