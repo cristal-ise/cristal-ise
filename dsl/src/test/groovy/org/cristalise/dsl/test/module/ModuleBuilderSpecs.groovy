@@ -1,6 +1,7 @@
 package org.cristalise.dsl.test.module
 
 import org.cristalise.dsl.module.ModuleBuilder
+import org.cristalise.kernel.entity.imports.ImportItem
 import org.cristalise.kernel.test.utils.CristalTestSetup
 
 import spock.lang.Specification
@@ -69,10 +70,12 @@ class ModuleBuilderSpecs extends Specification implements CristalTestSetup {
                 Property("Type": "Factory")
                 Outcome(schema: "PropertyDescription", version: "0", viewname: "last", path: "boot/property/SCProp.xml")
                 Dependency("workflow'") {
-                    Properties {
-                        Property("isDescription": false)
-                    }
                     Member(itemPath: "/desc/ActivityDesc/kernel/ManageSchema") {
+                        Property("Version": 0)
+                    }
+                }
+                DependencyDescription('MasterOutcome') {
+                    Member(itemPath: '/desc/ActivityDesc/kernel/ManageSchema') {
                         Property("Version": 0)
                     }
                 }
@@ -102,5 +105,15 @@ class ModuleBuilderSpecs extends Specification implements CristalTestSetup {
         module.getImports().list[0].name == 'ScriptFactory'
         module.getImports().list[1].name == 'Test'
         module.getImports().list[2].name == 'Abort'
+
+        def item = (ImportItem)module.getImports().list[0]
+        item.dependencyList.size() == 2
+        item.dependencyList[0].name == 'workflow\''
+        item.dependencyList[0].isDescription == false
+        item.dependencyList[0].dependencyMemberList[0].itemPath == '/desc/ActivityDesc/kernel/ManageSchema'
+
+        item.dependencyList[1].name == 'MasterOutcome'
+        item.dependencyList[1].isDescription == true
+        item.dependencyList[1].dependencyMemberList[0].itemPath == '/desc/ActivityDesc/kernel/ManageSchema'
     }
 }

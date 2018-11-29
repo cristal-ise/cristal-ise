@@ -24,6 +24,7 @@ import org.apache.commons.lang3.StringUtils
 import org.cristalise.dsl.collection.DependencyBuilder
 import org.cristalise.dsl.lifecycle.instance.WorkflowBuilder
 import org.cristalise.kernel.collection.Dependency
+import org.cristalise.kernel.collection.DependencyDescription
 import org.cristalise.kernel.collection.DependencyMember
 import org.cristalise.kernel.entity.imports.ImportDependency
 import org.cristalise.kernel.entity.imports.ImportDependencyMember
@@ -84,21 +85,29 @@ class ItemDelegate extends PropertyDelegate {
         outcomes.add(new ImportOutcome((String) attr.schema, attr.version as Integer, (String) attr.viewname, (String) attr.path))
     }
 
-    public void Dependency(String name, Closure cl) {
+    public void DependencyDescription(String name, Closure cl) {
+        Dependency(name, true, cl)
+    }
+
+    public void Dependency(String name, boolean isDescription = false, Closure cl) {
         assert name
         assert cl
 
-        def builder = DependencyBuilder.build(name, cl)
+        def builder = DependencyBuilder.build(name, isDescription, cl)
         Dependency dependency = builder.dependency
 
         assert dependency
 
         ImportDependency idep = new ImportDependency(dependency.name)
+        idep.isDescription = dependency instanceof DependencyDescription
+
         dependency.members.list.each { mem ->
             DependencyMember member = DependencyMember.cast(mem)
             String itemPath = member.itemPath.stringPath
+
             if (itemPath.contains(BuiltInResources.COMP_ACT_DESC_RESOURCE.typeRoot) && itemPath.startsWith(ENTITY_PATTERN))
                 itemPath = itemPath.replaceFirst(ENTITY_PATTERN, StringUtils.EMPTY)
+
             ImportDependencyMember imem = new ImportDependencyMember(itemPath)
             imem.props = member.properties
             idep.dependencyMemberList << imem

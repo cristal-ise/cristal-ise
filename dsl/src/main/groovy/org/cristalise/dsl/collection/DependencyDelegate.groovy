@@ -22,6 +22,7 @@ package org.cristalise.dsl.collection
 
 import org.cristalise.dsl.property.PropertyBuilder
 import org.cristalise.kernel.collection.Dependency
+import org.cristalise.kernel.collection.DependencyDescription
 import org.cristalise.kernel.lookup.DomainPath
 import org.cristalise.kernel.lookup.ItemPath
 import org.cristalise.kernel.process.Gateway
@@ -37,11 +38,10 @@ import org.cristalise.kernel.utils.Logger
  */
 @CompileStatic
 class DependencyDelegate {
-
     Dependency dependency
 
-    public DependencyDelegate(String n) {
-        dependency = new Dependency(n)
+    public DependencyDelegate(String n, boolean isDescription) {
+        dependency = isDescription ? new DependencyDescription(n) : new Dependency(n)
     }
 
     public void  processClosure(Closure cl) {

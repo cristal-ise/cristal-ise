@@ -36,8 +36,8 @@ class DependencyBuilder {
         dependency = d
     }
 
-    public static DependencyBuilder build(String n, Closure cl) {
-        def delegate = new DependencyDelegate(n)
+    public static DependencyBuilder build(String n, boolean isDescrption = false, Closure cl) {
+        def delegate = new DependencyDelegate(n, isDescrption)
 
         delegate.processClosure(cl)
 
