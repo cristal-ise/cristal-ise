@@ -34,6 +34,7 @@ import org.cristalise.dsl.property.PropertyDescriptionBuilder
 import org.cristalise.dsl.querying.QueryBuilder
 import org.cristalise.dsl.scripting.ScriptBuilder
 import org.cristalise.kernel.common.InvalidDataException
+import org.cristalise.kernel.entity.imports.ImportItem
 import org.cristalise.kernel.lifecycle.ActivityDef
 import org.cristalise.kernel.lifecycle.CompositeActivityDef
 import org.cristalise.kernel.lifecycle.instance.stateMachine.StateMachine
@@ -221,12 +222,14 @@ class ModuleDelegate {
      * @param args
      * @param cl
      */
-    public void Item(Map args, Closure cl) {
+    public ImportItem Item(Map args, Closure cl) {
         def item = ItemBuilder.build((String) args.name, (String) args.folder, args.workflow, cl)
 
         item.properties.removeAll { it.value == args.name }
 
         updateImports(item)
+
+        return item
     }
 
     /**
