@@ -100,6 +100,10 @@ class CompActDefDelegate extends PropertyDelegate {
         return ElemActDef(actName, eaDef)
     }
 
+    def ElemActDef(ActivityDef actDef) {
+        return addActDefToSequence(actDef.actName, actDef)
+    }
+
     def ElemActDef(String actName, ActivityDef actDef) {
         return addActDefToSequence(actName, actDef)
     }
@@ -107,6 +111,10 @@ class CompActDefDelegate extends PropertyDelegate {
     def CompActDef(String actName, int actVer, Closure cl = null) {
         CompositeActivityDef caDef = CompActDefBuilder.build('name': (Object)actName, 'version': actVer, cl)
         return CompActDef(actName, caDef)
+    }
+
+    def CompActDef(CompositeActivityDef actDef) {
+        return addActDefToSequence(actDef.actName, actDef)
     }
 
     def CompActDef(String actName, CompositeActivityDef actDef) {
