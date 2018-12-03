@@ -49,8 +49,6 @@ class CompActDefDelegate extends PropertyDelegate {
     public Map<String, WfVertexDef> vertexDefCache = [:]
 
     public Map<String, WfVertexDef> processClosure(String name, int version, Closure cl) {
-        assert cl, "CompActDefDelegate only works with a valid Closure"
-
         compActDef = new CompositeActivityDef()
         compActDef.name = name
         compActDef.version = version
@@ -59,17 +57,18 @@ class CompActDefDelegate extends PropertyDelegate {
     }
 
     public Map<String, WfVertexDef> processClosure(CompositeActivityDef caDef, Closure cl) {
-        assert cl, "CompActDefDelegate only works with a valid Closure"
         assert caDef
 
         compActDef = caDef
 
-        cl.delegate = this
-        cl.resolveStrategy = Closure.DELEGATE_FIRST
-        cl()
-
-        props.each { k, v ->
-            compActDef.properties.put(k, v, props.getAbstract().contains(k))
+        if (cl) {
+            cl.delegate = this
+            cl.resolveStrategy = Closure.DELEGATE_FIRST
+            cl()
+    
+            props.each { k, v ->
+                compActDef.properties.put(k, v, props.getAbstract().contains(k))
+            }
         }
 
         return vertexDefCache
