@@ -27,8 +27,6 @@ import org.cristalise.dsl.entity.RoleBuilder
 import org.cristalise.dsl.lifecycle.definition.CompActDefBuilder
 import org.cristalise.dsl.lifecycle.definition.ElemActDefBuilder
 import org.cristalise.dsl.lifecycle.stateMachine.StateMachineBuilder
-import org.cristalise.dsl.persistency.database.Database
-import org.cristalise.dsl.persistency.database.DatabaseBuilder
 import org.cristalise.dsl.persistency.outcome.SchemaBuilder
 import org.cristalise.dsl.property.PropertyDescriptionBuilder
 import org.cristalise.dsl.querying.QueryBuilder
@@ -67,7 +65,6 @@ class ModuleDelegate {
     static final String MODULE_RESOURCE_ROOT = "src/main/resources"
     static final String MODULE_EXPORT_ROOT   = "$MODULE_RESOURCE_ROOT/boot"
     static final String PROPERTY_ROOT        = "${MODULE_EXPORT_ROOT}/property"
-    static final String EXPORT_DB_ROOT       = "src/main/script/"
 
     File moduleXMLFile = new File("$MODULE_RESOURCE_ROOT/module.xml")
 
@@ -112,12 +109,6 @@ class ModuleDelegate {
         schema.export(imports, new File(MODULE_EXPORT_ROOT), true)
         addSchema(schema)
         return schema
-    }
-
-    public Database Database(String name, Integer version, Closure cl) {
-        def database = DatabaseBuilder.build(name, version, cl)
-        database.export(new File(EXPORT_DB_ROOT))
-        return database
     }
 
     public Query Query(String name, Integer version) {
