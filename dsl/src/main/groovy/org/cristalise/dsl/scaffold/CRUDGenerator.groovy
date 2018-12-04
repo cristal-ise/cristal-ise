@@ -22,8 +22,8 @@ class CRUDGenerator {
         generateDSL(new File(workflowDir, "${vars.item}_Workflow_0.xml"),   'item_workflow_xml.tmpl', vars)
 
         if (generateStateWf) {
-            generateDSL(new File(moduleDir,   "State.groovy"),         'state_groovy.tmpl', vars)
-            generateDSL(new File(workflowDir, "State_Workflow_0.xml"), 'state_workflow_xml.tmpl', vars)
+            generateDSL(new File(moduleDir,   "State.groovy"),       'state_groovy.tmpl', vars)
+            generateDSL(new File(workflowDir, "State_Manage_0.xml"), 'state_manage_xml.tmpl', vars)
         }
     }
 
