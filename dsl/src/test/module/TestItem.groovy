@@ -20,13 +20,13 @@ def TestItemDetails = Schema('TestItem_Details', 0) {
 def TestItemUpdateAct = Activity('TestItem_Update', 0) {
     Property('OutcomeInit': 'Empty')
     Schema(TestItemDetails)
-    //Script("Entity_ChangeName", 0)
+    //Script('Entity_ChangeName', 0)
 }
 
-def TestItemAggregateScript = Script("TestItem_Aggregate", 0) {
-    input("item", "org.cristalise.kernel.entity.proxy.ItemProxy")
-    output("TestItemXML", "java.lang.String")
-    script('groovy', moduleDir+"/script/TestItem_Aggregate.groovy")
+def TestItemAggregateScript = Script('TestItem_Aggregate', 0) {
+    input('item', 'org.cristalise.kernel.entity.proxy.ItemProxy')
+    output('TestItemXML', 'java.lang.String')
+    script('groovy', moduleDir+'/script/TestItem_Aggregate.groovy')
 }
 
 Activity('TestItem_Aggregate', 0) {
@@ -48,12 +48,12 @@ def TestItemPropDesc = PropertyDescriptionList {
     PropertyDesc(name: 'State', isMutable: true,  isClassIdentifier: true, defaultValue: 'ACTIVE')
 }
 
-Item(name: "(TestItemFactory", folder: "/", workflow: "TestItemFactory_Workflow") {
-    Property("Type": "Factory")
-    Outcome(schema: "PropertyDescription", version: "0", viewname: "last", path: "boot/property/TestItem.xml")
+Item(name: '(TestItemFactory', folder: '/', workflow: 'TestItemFactory_Workflow') {
+    Property('Type': 'Factory')
+    Outcome(schema: 'PropertyDescription', version: '0', viewname: 'last', path: 'boot/property/TestItem.xml')
     Dependency("workflow'") {
-        Member(itemPath: "/desc/ActivityDesc/testns/TestItem_Workflow") {
-            Property("Version": 0)
+        Member(itemPath: '/desc/ActivityDesc/testns/TestItem_Workflow') {
+            Property('Version': 0)
         }
     }
 }
