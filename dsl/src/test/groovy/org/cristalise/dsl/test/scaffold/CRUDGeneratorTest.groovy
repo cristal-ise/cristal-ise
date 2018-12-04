@@ -9,5 +9,7 @@ class CRUDGeneratorTest {
     void generateTestItem( ) {
         def vars = [rootDir: 'src/test', moduleName: 'Test Module', moduleNs: 'testns', moduleVersion: 0, item: 'TestItem']
         new CRUDGenerator().generate(vars, true, true)
+        
+        
     }
 }
