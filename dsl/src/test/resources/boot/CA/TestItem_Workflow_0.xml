@@ -1,7 +1,7 @@
-<CompositeActivityDef ID="-1" Name="@{item}Workflow" Height="0" Width="0" IsLayoutable="false" IsComposite="true">
+<CompositeActivityDef ID="-1" Name="TestItemWorkflow" Height="0" Width="0" IsLayoutable="false" IsComposite="true">
     <childrenGraphModel>
         <GraphModelCastorData StartVertexId="11" NextId="15">
-            <ActivitySlotDef ID="5" Name="@{item}_Update" Height="60" Width="130" IsLayoutable="true" IsComposite="false">
+            <ActivitySlotDef ID="5" Name="TestItem_Update" Height="60" Width="130" IsLayoutable="true" IsComposite="false">
                 <CentrePoint x="99" y="176" />
                 <OutlinePoint x="34" y="146" />
                 <OutlinePoint x="164" y="146" />
@@ -14,7 +14,7 @@
                     <KeyValuePair Key="Name" isAbstract="false" String="Update" />
                     <KeyValuePair Key="Agent Role" isAbstract="false" String="" />
                 </Properties>
-                <activityDef>@{item}_Update</activityDef>
+                <activityDef>TestItem_Update</activityDef>
             </ActivitySlotDef>
             <LoopDef ID="2" Name="" Height="24" Width="60" IsLayoutable="true" IsComposite="false" isNext="0">
                 <CentrePoint x="173" y="238" />
@@ -58,7 +58,6 @@
                     <KeyValuePair Key="Type" isAbstract="false" String="Join" />
                 </Properties>
             </JoinDef>
-            @if{useState}
             <ActivitySlotDef ID="10" Name="State_Manage" Height="60" Width="130" IsLayoutable="true" IsComposite="true">
                 <CentrePoint x="278" y="175" />
                 <OutlinePoint x="213" y="145" />
@@ -73,7 +72,6 @@
                 </Properties>
                 <activityDef>State_Manage</activityDef>
             </ActivitySlotDef>
-            @end{}
             <JoinDef ID="0" Name="" Height="24" Width="60" IsLayoutable="true" IsComposite="false">
                 <CentrePoint x="173" y="113" />
                 <OutlinePoint x="143" y="101" />

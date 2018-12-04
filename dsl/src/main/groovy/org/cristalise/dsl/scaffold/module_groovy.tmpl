@@ -1,0 +1,27 @@
+@BaseScript(org.cristalise.dsl.module.ModuleScriptBase)
+import groovy.transform.BaseScript
+import groovy.transform.SourceURI
+
+@SourceURI
+URI scriptUri
+
+setModuletDir scriptUri
+
+setConfig  '@{rootDir}/conf/client.conf'
+setConnect '@{rootDir}/conf/server.clc'
+
+setResourceRoot '@{rootDir}/resources'
+
+Module(ns: '@{moduleNs}', name: '@{moduleName}', version: @{moduleVersion}) {
+
+    Info(description: '3ATech cristal module', version: '@{moduleVersion}'){
+        // provide dependencies here. e.g. dependencies: ['dependency1', 'dependency1' ... ]
+    }
+
+    Url('ch/icube/aaa/resources/')
+
+    Config(name: 'Module.debug', value: true)
+
+    include(moduleDir+'/State.groovy')
+    include(moduleDir+'/@{item}.groovy')
+}

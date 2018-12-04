@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="UTF-8"?><AllProperties>
+  <PropertyDescription Name="Name" IsClassIdentifier="false" IsMutable="true" Transitive="false"/>
+  <PropertyDescription Name="Type" IsClassIdentifier="true" DefaultValue="TestItem" IsMutable="false" Transitive="true"/>
+  <PropertyDescription Name="State" IsClassIdentifier="true" DefaultValue="ACTIVE" IsMutable="true" Transitive="true"/>
+</AllProperties>
