@@ -22,55 +22,26 @@ package org.cristalise.kernel.persistency.outcomeinit;
 
 /*
  * Copied from project org.apache.xmlbeans version 3.0.1
- * 
+ *
  * TODO:
-*  Comment on enumerations?
-*  Comment on facets?
-*  Have a verbose option?
-*  Have a sample data option, would create valid instance with sample data?
-*  Add the pattern facet; this is tricky, considering the relationship with length
-*/
-
-import org.apache.xmlbeans.SchemaType;
-import org.apache.xmlbeans.XmlCursor;
-import org.apache.xmlbeans.SchemaParticle;
-import org.apache.xmlbeans.SchemaLocalElement;
-import org.apache.xmlbeans.SchemaProperty;
-import org.apache.xmlbeans.GDuration;
-import org.apache.xmlbeans.GDurationBuilder;
-import org.apache.xmlbeans.GDate;
-import org.apache.xmlbeans.GDateBuilder;
-import org.apache.xmlbeans.XmlAnySimpleType;
-import org.apache.xmlbeans.SimpleValue;
-import org.apache.xmlbeans.XmlOptions;
-import org.apache.xmlbeans.XmlObject;
-import org.apache.xmlbeans.XmlInteger;
-import org.apache.xmlbeans.XmlDate;
-import org.apache.xmlbeans.XmlDateTime;
-import org.apache.xmlbeans.XmlTime;
-import org.apache.xmlbeans.XmlGYear;
-import org.apache.xmlbeans.XmlGYearMonth;
-import org.apache.xmlbeans.XmlGMonth;
-import org.apache.xmlbeans.XmlGMonthDay;
-import org.apache.xmlbeans.XmlGDay;
-import org.apache.xmlbeans.XmlDecimal;
-import org.apache.xmlbeans.XmlDuration;
-import org.apache.xmlbeans.soap.SchemaWSDLArrayType;
-import org.apache.xmlbeans.soap.SOAPArrayType;
-import org.apache.xmlbeans.impl.util.Base64;
-import org.apache.xmlbeans.impl.util.HexBin;
+ *  Comment on enumerations?
+ *  Comment on facets?
+ *  Have a verbose option?
+ *  Have a sample data option, would create valid instance with sample data?
+ *  Add the pattern facet; this is tricky, considering the relationship with length
+ */
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.Random;
-import java.util.Set;
-import java.util.HashSet;
-import java.util.Arrays;
+import java.util.*;
 
 import javax.xml.namespace.QName;
+
+import org.apache.xmlbeans.*;
+import org.apache.xmlbeans.impl.util.Base64;
+import org.apache.xmlbeans.impl.util.HexBin;
+import org.apache.xmlbeans.soap.SOAPArrayType;
+import org.apache.xmlbeans.soap.SchemaWSDLArrayType;
 
 public class SampleXmlUtil
 {
@@ -119,7 +90,7 @@ public class SampleXmlUtil
             return;
 
         _typeStack.add( stype );
-        
+
         try
         {
             if (stype.isSimpleType() || stype.isURType())
@@ -127,11 +98,11 @@ public class SampleXmlUtil
                 processSimpleType(stype, xmlc);
                 return;
             }
-            
+
             // complex Type
             // <theElement>^</theElement>
             processAttributes(stype, xmlc);
-            
+
             // <theElement attri1="string">^</theElement>
             switch (stype.getContentType())
             {
@@ -140,10 +111,10 @@ public class SampleXmlUtil
                     // noop
                     break;
                 case SchemaType.SIMPLE_CONTENT :
-                    {
-                        processSimpleType(stype, xmlc);
-                    }
-                    break;
+                {
+                    processSimpleType(stype, xmlc);
+                }
+                break;
                 case SchemaType.MIXED_CONTENT :
                     xmlc.insertChars(pick(WORDS) + " ");
                     if (stype.getContentModel() != null)
@@ -171,15 +142,15 @@ public class SampleXmlUtil
         String sample = sampleDataForSimpleType(stype);
         xmlc.insertChars(sample);
     }
-    
+
     private String sampleDataForSimpleType(SchemaType sType)
     {
         if (XmlObject.type.equals(sType))
             return "anyType";
-        
+
         if (XmlAnySimpleType.type.equals(sType))
             return "anySimpleType";
-        
+
         if (sType.getSimpleVariety() == SchemaType.LIST)
         {
             SchemaType itemType = sType.getListItemType();
@@ -192,9 +163,9 @@ public class SampleXmlUtil
                 sb.append(' ');
                 sb.append(sampleDataForSimpleType(itemType));
             }
-            return sb.toString(); 
+            return sb.toString();
         }
-        
+
         if (sType.getSimpleVariety() == SchemaType.UNION)
         {
             SchemaType[] possibleTypes = sType.getUnionConstituentTypes();
@@ -202,26 +173,26 @@ public class SampleXmlUtil
                 return "";
             return sampleDataForSimpleType(possibleTypes[pick(possibleTypes.length)]);
         }
-        
+
         XmlAnySimpleType[] enumValues = sType.getEnumerationValues();
         if (enumValues != null && enumValues.length > 0)
         {
             return enumValues[pick(enumValues.length)].getStringValue();
         }
-        
+
         switch (sType.getPrimitiveType().getBuiltinTypeCode())
         {
             default:
             case SchemaType.BTC_NOT_BUILTIN:
                 return "";
-            
+
             case SchemaType.BTC_ANY_TYPE:
             case SchemaType.BTC_ANY_SIMPLE:
                 return "anything";
-                
+
             case SchemaType.BTC_BOOLEAN:
                 return pick(2) == 0 ? "true" : "false";
-                
+
             case SchemaType.BTC_BASE_64_BINARY:
             {
                 String result = null;
@@ -231,82 +202,82 @@ public class SampleXmlUtil
                 {  /* Can't possibly happen */ }
                 return result;
             }
-                
+
             case SchemaType.BTC_HEX_BINARY:
                 return HexBin.encode(formatToLength(pick(WORDS), sType));
-                
+
             case SchemaType.BTC_ANY_URI:
                 return formatToLength("http://www." + pick(DNS1) + "." + pick(DNS2) + "/" + pick(WORDS) + "/" + pick(WORDS), sType);
-                
+
             case SchemaType.BTC_QNAME:
                 return formatToLength("qname", sType);
-                
+
             case SchemaType.BTC_NOTATION:
                 return formatToLength("notation", sType);
-                
+
             case SchemaType.BTC_FLOAT:
-                return "1.5E2";
+                return "0.0";
             case SchemaType.BTC_DOUBLE:
-                return "1.051732E7";
+                return "0.0";
             case SchemaType.BTC_DECIMAL:
                 switch (closestBuiltin(sType).getBuiltinTypeCode())
                 {
                     case SchemaType.BTC_SHORT:
-                        return formatDecimal("1", sType);
+                        return formatDecimal("0", sType);
                     case SchemaType.BTC_UNSIGNED_SHORT:
-                        return formatDecimal("5", sType);
+                        return formatDecimal("0", sType);
                     case SchemaType.BTC_BYTE:
-                        return formatDecimal("2", sType);
+                        return formatDecimal("0", sType);
                     case SchemaType.BTC_UNSIGNED_BYTE:
-                        return formatDecimal("6", sType);
+                        return formatDecimal("0", sType);
                     case SchemaType.BTC_INT:
-                        return formatDecimal("3", sType);
+                        return formatDecimal("0", sType);
                     case SchemaType.BTC_UNSIGNED_INT:
-                        return formatDecimal("7", sType);
+                        return formatDecimal("0", sType);
                     case SchemaType.BTC_LONG:
-                        return formatDecimal("10", sType);
+                        return formatDecimal("Ol", sType);
                     case SchemaType.BTC_UNSIGNED_LONG:
-                        return formatDecimal("11", sType);
+                        return formatDecimal("0l", sType);
                     case SchemaType.BTC_INTEGER:
-                        return formatDecimal("100", sType);
+                        return formatDecimal("0", sType);
                     case SchemaType.BTC_NON_POSITIVE_INTEGER:
-                        return formatDecimal("-200", sType);
+                        return formatDecimal("0", sType);
                     case SchemaType.BTC_NEGATIVE_INTEGER:
-                        return formatDecimal("-201", sType);
+                        return formatDecimal("-1", sType);
                     case SchemaType.BTC_NON_NEGATIVE_INTEGER:
-                        return formatDecimal("200", sType);
+                        return formatDecimal("0", sType);
                     case SchemaType.BTC_POSITIVE_INTEGER:
-                        return formatDecimal("201", sType);
+                        return formatDecimal("0", sType);
                     default:
                     case SchemaType.BTC_DECIMAL:
-                        return formatDecimal("1000.00", sType);
+                        return formatDecimal("0.00", sType);
                 }
-                
+
             case SchemaType.BTC_STRING:
+            {
+                String result;
+                switch (closestBuiltin(sType).getBuiltinTypeCode())
                 {
-                    String result;
-                    switch (closestBuiltin(sType).getBuiltinTypeCode())
-                    {
-                        case SchemaType.BTC_STRING:
-                        case SchemaType.BTC_NORMALIZED_STRING:
-                            result = "string";
-                            break;
-                            
-                        case SchemaType.BTC_TOKEN:
-                            result = "token";
-                            break;
-                            
-                        default:
-                            result = "string";
-                            break;
-                    }
-                        
-                    return formatToLength(result, sType);
+                    case SchemaType.BTC_STRING:
+                    case SchemaType.BTC_NORMALIZED_STRING:
+                        result = "";
+                        break;
+
+                    case SchemaType.BTC_TOKEN:
+                        result = "token";
+                        break;
+
+                    default:
+                        result = "";
+                        break;
                 }
+
+                return formatToLength(result, sType);
+            }
 
             case SchemaType.BTC_DURATION:
                 return formatDuration(sType);
-                
+
             case SchemaType.BTC_DATE_TIME:
             case SchemaType.BTC_TIME:
             case SchemaType.BTC_DATE:
@@ -318,54 +289,54 @@ public class SampleXmlUtil
                 return formatDate(sType);
         }
     }
-    
+
     // a bit from the Aenid
     public static final String[] WORDS = new String[]
-    {
-    "ipsa", "iovis", "rapidum", "iaculata", "e", "nubibus", "ignem",
-    "disiecitque", "rates", "evertitque", "aequora", "ventis",
-    "illum", "exspirantem", "transfixo", "pectore", "flammas",
-    "turbine", "corripuit", "scopuloque", "infixit", "acuto",
-    "ast", "ego", "quae", "divum", "incedo", "regina", "iovisque",
-    "et", "soror", "et", "coniunx", "una", "cum", "gente", "tot", "annos",
-    "bella", "gero", "et", "quisquam", "numen", "iunonis", "adorat",
-    "praeterea", "aut", "supplex", "aris", "imponet", "honorem",
-    "talia", "flammato", "secum", "dea", "corde", "volutans",
-    "nimborum", "in", "patriam", "loca", "feta", "furentibus", "austris",
-    "aeoliam", "venit", "hic", "vasto", "rex", "aeolus", "antro",
-    "luctantis", "ventos", "tempestatesque", "sonoras",
-    "imperio", "premit", "ac", "vinclis", "et", "carcere", "frenat",
-    "illi", "indignantes", "magno", "cum", "murmure", "montis",
-    "circum", "claustra", "fremunt", "celsa", "sedet", "aeolus", "arce",
-    "sceptra", "tenens", "mollitque", "animos", "et", "temperat", "iras",
-    "ni", "faciat", "maria", "ac", "terras", "caelumque", "profundum",
-    "quippe", "ferant", "rapidi", "secum", "verrantque", "per", "auras",
-    "sed", "pater", "omnipotens", "speluncis", "abdidit", "atris",
-    "hoc", "metuens", "molemque", "et", "montis", "insuper", "altos",
-    "imposuit", "regemque", "dedit", "qui", "foedere", "certo",
-    "et", "premere", "et", "laxas", "sciret", "dare", "iussus", "habenas",
-    };
-    
-    
-    
+            {
+                    "ipsa", "iovis", "rapidum", "iaculata", "e", "nubibus", "ignem",
+                    "disiecitque", "rates", "evertitque", "aequora", "ventis",
+                    "illum", "exspirantem", "transfixo", "pectore", "flammas",
+                    "turbine", "corripuit", "scopuloque", "infixit", "acuto",
+                    "ast", "ego", "quae", "divum", "incedo", "regina", "iovisque",
+                    "et", "soror", "et", "coniunx", "una", "cum", "gente", "tot", "annos",
+                    "bella", "gero", "et", "quisquam", "numen", "iunonis", "adorat",
+                    "praeterea", "aut", "supplex", "aris", "imponet", "honorem",
+                    "talia", "flammato", "secum", "dea", "corde", "volutans",
+                    "nimborum", "in", "patriam", "loca", "feta", "furentibus", "austris",
+                    "aeoliam", "venit", "hic", "vasto", "rex", "aeolus", "antro",
+                    "luctantis", "ventos", "tempestatesque", "sonoras",
+                    "imperio", "premit", "ac", "vinclis", "et", "carcere", "frenat",
+                    "illi", "indignantes", "magno", "cum", "murmure", "montis",
+                    "circum", "claustra", "fremunt", "celsa", "sedet", "aeolus", "arce",
+                    "sceptra", "tenens", "mollitque", "animos", "et", "temperat", "iras",
+                    "ni", "faciat", "maria", "ac", "terras", "caelumque", "profundum",
+                    "quippe", "ferant", "rapidi", "secum", "verrantque", "per", "auras",
+                    "sed", "pater", "omnipotens", "speluncis", "abdidit", "atris",
+                    "hoc", "metuens", "molemque", "et", "montis", "insuper", "altos",
+                    "imposuit", "regemque", "dedit", "qui", "foedere", "certo",
+                    "et", "premere", "et", "laxas", "sciret", "dare", "iussus", "habenas",
+            };
+
+
+
     private static final String[] DNS1 = new String[] { "corp", "your", "my", "sample", "company", "test", "any" };
     private static final String[] DNS2 = new String[] { "com", "org", "com", "gov", "org", "com", "org", "com", "edu" };
-                                                       
+
     private int pick(int n)
     {
         return _picker.nextInt(n);
     }
-    
+
     private String pick(String[] a)
     {
         return a[pick(a.length)];
     }
-    
+
     private String pick(String[] a, int count)
     {
         if (count <= 0)
             return "";
-            
+
         int i = pick(a.length);
         StringBuffer sb = new StringBuffer(a[i]);
         while (count-- > 0)
@@ -378,7 +349,7 @@ public class SampleXmlUtil
         }
         return sb.toString();
     }
-    
+
     private String pickDigits(int digits)
     {
         StringBuffer sb = new StringBuffer();
@@ -573,7 +544,7 @@ public class SampleXmlUtil
     private String formatDuration(SchemaType sType)
     {
         XmlDuration d =
-            (XmlDuration) sType.getFacet(SchemaType.FACET_MIN_INCLUSIVE);
+                (XmlDuration) sType.getFacet(SchemaType.FACET_MIN_INCLUSIVE);
         GDuration minInclusive = null;
         if (d != null)
             minInclusive = d.getGDurationValue();
@@ -971,19 +942,19 @@ public class SampleXmlUtil
     {
         int minOccurs = sp.getIntMinOccurs();
         int maxOccurs = sp.getIntMaxOccurs();
-        
+
         if (minOccurs == maxOccurs)
             return minOccurs;
-        
+
         int result = minOccurs;
         if (result == 0 && _nElements < MAX_ELEMENTS)
             result = 1;
-        
+
         if (sp.getParticleType() != SchemaParticle.ELEMENT)
             return result;
-        
+
         // it probably only makes sense to put comments in front of individual elements that repeat
-        
+
         if (sp.getMaxOccurs() == null)
         {
             // xmlc.insertComment("The next " + getItemNameOrType(sp, xmlc) + " may be repeated " + minOccurs + " or more times");
@@ -1054,7 +1025,7 @@ public class SampleXmlUtil
             }
         }
     }
-    
+
     private static final String formatQName(XmlCursor xmlc, QName qName)
     {
         XmlCursor parent = xmlc.newCursor();
@@ -1068,13 +1039,13 @@ public class SampleXmlUtil
             name = prefix + ":" + qName.getLocalPart();
         return name;
     }
-    
-    private static final QName HREF = new QName("href"); 
-    private static final QName ID = new QName("id"); 
-    private static final QName XSI_TYPE = new QName("http://www.w3.org/2001/XMLSchema-instance", "type"); 
+
+    private static final QName HREF = new QName("href");
+    private static final QName ID = new QName("id");
+    private static final QName XSI_TYPE = new QName("http://www.w3.org/2001/XMLSchema-instance", "type");
     private static final QName ENC_ARRAYTYPE = new QName("http://schemas.xmlsoap.org/soap/encoding/", "arrayType");
     private static final QName ENC_OFFSET = new QName("http://schemas.xmlsoap.org/soap/encoding/", "offset");
-    
+
     private static final Set SKIPPED_SOAP_ATTRS = new HashSet(Arrays.asList(new QName[] { HREF, ID, ENC_OFFSET}));
     private void processAttributes(SchemaType stype, XmlCursor xmlc)
     {
@@ -1086,7 +1057,7 @@ public class SampleXmlUtil
                 xmlc.insertAttributeWithValue(XSI_TYPE, formatQName(xmlc, typeName));
             }
         }
-        
+
         SchemaProperty[] attrProps = stype.getAttributeProperties();
         for (int i = 0; i < attrProps.length; i++)
         {
@@ -1105,7 +1076,7 @@ public class SampleXmlUtil
             }
             String defaultValue = attr.getDefaultText();
             xmlc.insertAttributeWithValue(attr.getName(), defaultValue == null ?
-                sampleDataForSimpleType(attr.getType()) : defaultValue);
+                    sampleDataForSimpleType(attr.getType()) : defaultValue);
         }
     }
 
@@ -1153,7 +1124,7 @@ public class SampleXmlUtil
     /**
      * This method will get the base type for the schema type
      */
-    
+
     private static QName getClosestName(SchemaType sType)
     {
         while (sType.getName() == null)
