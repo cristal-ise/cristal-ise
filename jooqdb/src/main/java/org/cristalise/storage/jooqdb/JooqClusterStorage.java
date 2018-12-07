@@ -270,12 +270,18 @@ public class JooqClusterStorage extends TransactionalClusterStorage {
             Logger.msg(5, "JooqClusterStorage.put() - uuid:"+uuid+" cluster:"+cluster+" path:"+obj.getClusterPath());
             handler.put(context, uuid, obj);
         }
-        else
-            throw new PersistencyException("Write is not supported for cluster:'"+cluster+"'");
-
-        if (ClusterType.OUTCOME == cluster) {
-            for (JooqDomainHandler domainHandler : domainHandlers) domainHandler.put(context, uuid, (Outcome)obj);
+        else {
+        	throw new PersistencyException("Write is not supported for cluster:'"+cluster+"'");
         }
+           
+        for (JooqDomainHandler domainHandler : domainHandlers) {
+        	if (ClusterType.OUTCOME == cluster) {
+        		domainHandler.put(context, uuid, (Outcome)obj);	
+        	} else if (Gateway.getProperties().getBoolean("DomainHandler.enableFullTrigger", false)) {
+        		domainHandler.put(context, uuid, obj);
+        	} 
+        }
+        
     }
 
     @Override
