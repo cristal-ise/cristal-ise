@@ -235,9 +235,9 @@ public class SampleXmlUtil
                     case SchemaType.BTC_UNSIGNED_INT:
                         return formatDecimal("0", sType);
                     case SchemaType.BTC_LONG:
-                        return formatDecimal("Ol", sType);
+                        return formatDecimal("0", sType);
                     case SchemaType.BTC_UNSIGNED_LONG:
-                        return formatDecimal("0l", sType);
+                        return formatDecimal("0", sType);
                     case SchemaType.BTC_INTEGER:
                         return formatDecimal("0", sType);
                     case SchemaType.BTC_NON_POSITIVE_INTEGER:
