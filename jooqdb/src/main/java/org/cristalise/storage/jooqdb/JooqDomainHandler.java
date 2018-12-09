@@ -58,7 +58,6 @@ public interface JooqDomainHandler {
      * 
      * @param context The configured DSLContext of jooq
      * @param uuid the Item's UUID
-     * @param outcome the Outcome object being stored
      * @param obj Object that is being stored
      * @return the number of rows created/updated
      * @throws PersistencyException throw this exception in case of any error that requires to abort a transaction
