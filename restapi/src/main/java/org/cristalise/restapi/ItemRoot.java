@@ -78,7 +78,7 @@ import com.google.common.collect.ImmutableMap;
 @Path("/item/{uuid}")
 public class ItemRoot extends ItemUtils {
 	
-	private ScriptAccess scriptAccess = new ScriptAccess();
+	private ScriptUtils scriptUtils = new ScriptUtils();
 
     @GET
     @Path("name")
@@ -142,12 +142,12 @@ public class ItemRoot extends ItemUtils {
                 final Schema schema = LocalObjectLoader.getSchema(type, schemaVersion);
                 script = LocalObjectLoader.getScript(scriptName, scriptVersion);
 
-                return scriptAccess.returnScriptResult(scriptName, item, schema, script, new CastorHashMap(), produceJSON(headers.getAcceptableMediaTypes()));
+                return scriptUtils.returnScriptResult(scriptName, item, schema, script, new CastorHashMap(), produceJSON(headers.getAcceptableMediaTypes()));
             }
             else if ((script = getAggregateScript(type, scriptVersion)) != null) {
                 final Schema schema = LocalObjectLoader.getSchema(type, schemaVersion);
 
-                return scriptAccess.returnScriptResult(scriptName, item, schema, script, new CastorHashMap(), produceJSON(headers.getAcceptableMediaTypes()));
+                return scriptUtils.returnScriptResult(scriptName, item, schema, script, new CastorHashMap(), produceJSON(headers.getAcceptableMediaTypes()));
             }
             else if (item.checkViewpoint(type, view)) {
                 return getViewpointOutcome(uuid, type, view, true);
@@ -175,7 +175,7 @@ public class ItemRoot extends ItemUtils {
         checkAuthCookie(authCookie);
         ItemProxy item = getProxy(uuid);
 
-        return scriptAccess.executeScript(headers, item, scriptName, scriptVersion, inputJson, ImmutableMap.of());
+        return scriptUtils.executeScript(headers, item, scriptName, scriptVersion, inputJson, ImmutableMap.of());
     }
 
     @GET
