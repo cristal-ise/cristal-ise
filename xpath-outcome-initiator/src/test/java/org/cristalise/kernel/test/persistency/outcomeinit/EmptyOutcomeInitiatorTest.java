@@ -20,9 +20,6 @@
  */
 package org.cristalise.kernel.test.persistency.outcomeinit;
 
-import java.nio.file.Files;
-import java.nio.file.Paths;
-
 import org.cristalise.kernel.entity.agent.Job;
 import org.cristalise.kernel.persistency.outcome.Outcome;
 import org.cristalise.kernel.persistency.outcomeinit.EmptyOutcomeInitiator;
@@ -78,6 +75,7 @@ public class EmptyOutcomeInitiatorTest extends OutcomeInitiatorTestBase {
         checkEmptyOutcome("DateTimeField");
     }
 
+    @Test
     public void generateStringXML() throws Exception {
         checkEmptyOutcome("StringField");
     }

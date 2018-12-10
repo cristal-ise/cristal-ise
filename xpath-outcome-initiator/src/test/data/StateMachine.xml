@@ -20,11 +20,11 @@
     http://www.fsf.org/licensing/licenses/lgpl.html
 
 -->
-<StateMachine initialState="string" name="string">
-  <State id="3" name="string" proceeds="false"/>
-  <Transition id="3" name="string" origin="3" target="3" enablingProperty="string" errorHandler="true" reinitializes="true" roleOverride="string" reservation="clear">
-    <Outcome name="string" version="string" required="true"/>
-    <Script name="string" version="string"/>
-    <Query name="string" version="string"/>
+<StateMachine initialState="" name="">
+  <State id="0" name="" proceeds="false"/>
+  <Transition enablingProperty="" errorHandler="false" id="0" name="" origin="0" reinitializes="false" reservation="set" roleOverride="" target="0">
+    <Outcome name="" required="false" version=""/>
+    <Script name="" version=""/>
+    <Query name="" version=""/>
   </Transition>
 </StateMachine>

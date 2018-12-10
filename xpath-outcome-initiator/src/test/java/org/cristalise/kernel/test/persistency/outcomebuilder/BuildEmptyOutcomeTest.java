@@ -117,7 +117,7 @@ public class BuildEmptyOutcomeTest extends XMLUtils {
     public void buildEmptyStringField_SetField() throws Exception {
         OutcomeBuilder actual = new OutcomeBuilder(new Schema("StringField", 0, getXSD(dir, "StringField")));
 
-        actual.putField("characters", "string");
+        actual.putField("characters", "");
 
         Logger.msg(actual.getXml());
 

@@ -37,21 +37,28 @@ import java.util.*;
 
 import javax.xml.namespace.QName;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.xmlbeans.*;
 import org.apache.xmlbeans.impl.util.Base64;
 import org.apache.xmlbeans.impl.util.HexBin;
 import org.apache.xmlbeans.soap.SOAPArrayType;
 import org.apache.xmlbeans.soap.SchemaWSDLArrayType;
+import org.cristalise.kernel.process.Gateway;
 
 public class SampleXmlUtil
 {
     private boolean _soapEnc;
     private static final int MAX_ELEMENTS = 1000;
     private int _nElements;
-
+    private static final String SIMPLE_TYPE_DEFAULT_VALUES = "SimpleType.DefaultValues";
+    private static final String DEFAULT_VALUE_SEPARATOR = ",";
+    private static final String MAP_VALUE_SEPARATOR = ":";
+    private Map<String, String> simpleTypeDefaults = new HashMap<>();
     private SampleXmlUtil(boolean soapEnc)
     {
         _soapEnc = soapEnc;
+        String propertyValues = Gateway.getProperties().getString(SIMPLE_TYPE_DEFAULT_VALUES, "");
+        simpleTypeDefaults = loadMapValues(propertyValues);
     }
 
     public static String createSampleForType(SchemaType sType)
@@ -145,150 +152,150 @@ public class SampleXmlUtil
 
     private String sampleDataForSimpleType(SchemaType sType)
     {
-        if (XmlObject.type.equals(sType))
-            return "anyType";
+    if (XmlObject.type.equals(sType))
+        return "anyType";
 
-        if (XmlAnySimpleType.type.equals(sType))
-            return "anySimpleType";
+    if (XmlAnySimpleType.type.equals(sType))
+        return "anySimpleType";
 
-        if (sType.getSimpleVariety() == SchemaType.LIST)
+    if (sType.getSimpleVariety() == SchemaType.LIST)
+    {
+        SchemaType itemType = sType.getListItemType();
+        StringBuffer sb = new StringBuffer();
+        int length = pickLength(sType);
+        if (length > 0)
+            sb.append(sampleDataForSimpleType(itemType));
+        for (int i = 1; i < length; i += 1)
         {
-            SchemaType itemType = sType.getListItemType();
-            StringBuffer sb = new StringBuffer();
-            int length = pickLength(sType);
-            if (length > 0)
-                sb.append(sampleDataForSimpleType(itemType));
-            for (int i = 1; i < length; i += 1)
-            {
-                sb.append(' ');
-                sb.append(sampleDataForSimpleType(itemType));
-            }
-            return sb.toString();
+            sb.append(' ');
+            sb.append(sampleDataForSimpleType(itemType));
         }
-
-        if (sType.getSimpleVariety() == SchemaType.UNION)
-        {
-            SchemaType[] possibleTypes = sType.getUnionConstituentTypes();
-            if (possibleTypes.length == 0)
-                return "";
-            return sampleDataForSimpleType(possibleTypes[pick(possibleTypes.length)]);
-        }
-
-        XmlAnySimpleType[] enumValues = sType.getEnumerationValues();
-        if (enumValues != null && enumValues.length > 0)
-        {
-            return enumValues[pick(enumValues.length)].getStringValue();
-        }
-
-        switch (sType.getPrimitiveType().getBuiltinTypeCode())
-        {
-            default:
-            case SchemaType.BTC_NOT_BUILTIN:
-                return "";
-
-            case SchemaType.BTC_ANY_TYPE:
-            case SchemaType.BTC_ANY_SIMPLE:
-                return "anything";
-
-            case SchemaType.BTC_BOOLEAN:
-                return pick(2) == 0 ? "true" : "false";
-
-            case SchemaType.BTC_BASE_64_BINARY:
-            {
-                String result = null;
-                try
-                {   result = new String(Base64.encode(formatToLength(pick(WORDS), sType).getBytes("utf-8"))); }
-                catch (java.io.UnsupportedEncodingException e)
-                {  /* Can't possibly happen */ }
-                return result;
-            }
-
-            case SchemaType.BTC_HEX_BINARY:
-                return HexBin.encode(formatToLength(pick(WORDS), sType));
-
-            case SchemaType.BTC_ANY_URI:
-                return formatToLength("http://www." + pick(DNS1) + "." + pick(DNS2) + "/" + pick(WORDS) + "/" + pick(WORDS), sType);
-
-            case SchemaType.BTC_QNAME:
-                return formatToLength("qname", sType);
-
-            case SchemaType.BTC_NOTATION:
-                return formatToLength("notation", sType);
-
-            case SchemaType.BTC_FLOAT:
-                return "0.0";
-            case SchemaType.BTC_DOUBLE:
-                return "0.0";
-            case SchemaType.BTC_DECIMAL:
-                switch (closestBuiltin(sType).getBuiltinTypeCode())
-                {
-                    case SchemaType.BTC_SHORT:
-                        return formatDecimal("0", sType);
-                    case SchemaType.BTC_UNSIGNED_SHORT:
-                        return formatDecimal("0", sType);
-                    case SchemaType.BTC_BYTE:
-                        return formatDecimal("0", sType);
-                    case SchemaType.BTC_UNSIGNED_BYTE:
-                        return formatDecimal("0", sType);
-                    case SchemaType.BTC_INT:
-                        return formatDecimal("0", sType);
-                    case SchemaType.BTC_UNSIGNED_INT:
-                        return formatDecimal("0", sType);
-                    case SchemaType.BTC_LONG:
-                        return formatDecimal("0", sType);
-                    case SchemaType.BTC_UNSIGNED_LONG:
-                        return formatDecimal("0", sType);
-                    case SchemaType.BTC_INTEGER:
-                        return formatDecimal("0", sType);
-                    case SchemaType.BTC_NON_POSITIVE_INTEGER:
-                        return formatDecimal("0", sType);
-                    case SchemaType.BTC_NEGATIVE_INTEGER:
-                        return formatDecimal("-1", sType);
-                    case SchemaType.BTC_NON_NEGATIVE_INTEGER:
-                        return formatDecimal("0", sType);
-                    case SchemaType.BTC_POSITIVE_INTEGER:
-                        return formatDecimal("0", sType);
-                    default:
-                    case SchemaType.BTC_DECIMAL:
-                        return formatDecimal("0.00", sType);
-                }
-
-            case SchemaType.BTC_STRING:
-            {
-                String result;
-                switch (closestBuiltin(sType).getBuiltinTypeCode())
-                {
-                    case SchemaType.BTC_STRING:
-                    case SchemaType.BTC_NORMALIZED_STRING:
-                        result = "";
-                        break;
-
-                    case SchemaType.BTC_TOKEN:
-                        result = "token";
-                        break;
-
-                    default:
-                        result = "";
-                        break;
-                }
-
-                return formatToLength(result, sType);
-            }
-
-            case SchemaType.BTC_DURATION:
-                return formatDuration(sType);
-
-            case SchemaType.BTC_DATE_TIME:
-            case SchemaType.BTC_TIME:
-            case SchemaType.BTC_DATE:
-            case SchemaType.BTC_G_YEAR_MONTH:
-            case SchemaType.BTC_G_YEAR:
-            case SchemaType.BTC_G_MONTH_DAY:
-            case SchemaType.BTC_G_DAY:
-            case SchemaType.BTC_G_MONTH:
-                return formatDate(sType);
-        }
+        return sb.toString();
     }
+
+    if (sType.getSimpleVariety() == SchemaType.UNION)
+    {
+        SchemaType[] possibleTypes = sType.getUnionConstituentTypes();
+        if (possibleTypes.length == 0)
+            return "";
+        return sampleDataForSimpleType(possibleTypes[pick(possibleTypes.length)]);
+    }
+
+    XmlAnySimpleType[] enumValues = sType.getEnumerationValues();
+    if (enumValues != null && enumValues.length > 0)
+    {
+        return enumValues[pick(enumValues.length)].getStringValue();
+    }
+
+    switch (sType.getPrimitiveType().getBuiltinTypeCode())
+    {
+        default:
+        case SchemaType.BTC_NOT_BUILTIN:
+            return "";
+
+        case SchemaType.BTC_ANY_TYPE:
+        case SchemaType.BTC_ANY_SIMPLE:
+            return "anything";
+
+        case SchemaType.BTC_BOOLEAN:
+            return findValue(SchemaType.BTC_BOOLEAN);
+
+        case SchemaType.BTC_BASE_64_BINARY:
+        {
+            String result = null;
+            try
+            {   result = new String(Base64.encode(formatToLength(pick(WORDS), sType).getBytes("utf-8"))); }
+            catch (java.io.UnsupportedEncodingException e)
+            {  /* Can't possibly happen */ }
+            return result;
+        }
+
+        case SchemaType.BTC_HEX_BINARY:
+            return HexBin.encode(formatToLength(pick(WORDS), sType));
+
+        case SchemaType.BTC_ANY_URI:
+            return formatToLength("http://www." + pick(DNS1) + "." + pick(DNS2) + "/" + pick(WORDS) + "/" + pick(WORDS), sType);
+
+        case SchemaType.BTC_QNAME:
+            return formatToLength("qname", sType);
+
+        case SchemaType.BTC_NOTATION:
+            return formatToLength("notation", sType);
+
+        case SchemaType.BTC_FLOAT:
+            return findValue(SchemaType.BTC_FLOAT);
+        case SchemaType.BTC_DOUBLE:
+            return findValue(SchemaType.BTC_DOUBLE);
+        case SchemaType.BTC_DECIMAL:
+            switch (closestBuiltin(sType).getBuiltinTypeCode())
+            {
+                case SchemaType.BTC_SHORT:
+                    return formatDecimal(findValue(SchemaType.BTC_SHORT), sType);
+                case SchemaType.BTC_UNSIGNED_SHORT:
+                    return formatDecimal("0", sType);
+                case SchemaType.BTC_BYTE:
+                    return formatDecimal(findValue(SchemaType.BTC_BYTE), sType);
+                case SchemaType.BTC_UNSIGNED_BYTE:
+                    return formatDecimal("0", sType);
+                case SchemaType.BTC_INT:
+                    return formatDecimal(findValue(SchemaType.BTC_INT), sType);
+                case SchemaType.BTC_UNSIGNED_INT:
+                    return formatDecimal("0", sType);
+                case SchemaType.BTC_LONG:
+                    return formatDecimal(findValue(SchemaType.BTC_LONG), sType);
+                case SchemaType.BTC_UNSIGNED_LONG:
+                    return formatDecimal("0", sType);
+                case SchemaType.BTC_INTEGER:
+                    return formatDecimal(findValue(SchemaType.BTC_INTEGER), sType);
+                case SchemaType.BTC_NON_POSITIVE_INTEGER:
+                    return formatDecimal("0", sType);
+                case SchemaType.BTC_NEGATIVE_INTEGER:
+                    return formatDecimal("-1", sType);
+                case SchemaType.BTC_NON_NEGATIVE_INTEGER:
+                    return formatDecimal("0", sType);
+                case SchemaType.BTC_POSITIVE_INTEGER:
+                    return formatDecimal("0", sType);
+                default:
+                case SchemaType.BTC_DECIMAL:
+                    return formatDecimal(findValue(SchemaType.BTC_DECIMAL), sType);
+            }
+
+        case SchemaType.BTC_STRING:
+        {
+            String result;
+            switch (closestBuiltin(sType).getBuiltinTypeCode())
+            {
+                case SchemaType.BTC_STRING:
+                case SchemaType.BTC_NORMALIZED_STRING:
+                    result = findValue(SchemaType.BTC_STRING);
+                    break;
+
+                case SchemaType.BTC_TOKEN:
+                    result = "token";
+                    break;
+
+                default:
+                    result = "";
+                    break;
+            }
+
+            return formatToLength(result, sType);
+        }
+
+        case SchemaType.BTC_DURATION:
+            return formatDuration(sType);
+
+        case SchemaType.BTC_DATE_TIME:
+        case SchemaType.BTC_TIME:
+        case SchemaType.BTC_DATE:
+        case SchemaType.BTC_G_YEAR_MONTH:
+        case SchemaType.BTC_G_YEAR:
+        case SchemaType.BTC_G_MONTH_DAY:
+        case SchemaType.BTC_G_DAY:
+        case SchemaType.BTC_G_MONTH:
+            return formatDate(sType);
+    }
+}
 
     // a bit from the Aenid
     public static final String[] WORDS = new String[]
@@ -1164,4 +1171,51 @@ public class SampleXmlUtil
     }
 
     private ArrayList _typeStack = new ArrayList();
+
+    /**
+     * Loads the configured default values for simple types.
+     * @param propertyValues
+     * @return
+     */
+    private Map<String, String> loadMapValues(String propertyValues) {
+        Map<String, String> defaultTypes = new HashMap<>();
+        if (StringUtils.isNotEmpty(propertyValues)){
+            String[] rawValues = StringUtils.split(propertyValues, DEFAULT_VALUE_SEPARATOR);
+            for(String s: rawValues){
+                String[] valuePair = StringUtils.split(s, MAP_VALUE_SEPARATOR);
+                defaultTypes.put(valuePair[0], valuePair.length == 1 ? "" : valuePair[1]);
+            }
+        }
+        return defaultTypes;
+    }
+
+    /**
+     * Finds the value for the given type using the type code.
+     * @param code
+     * @return
+     */
+    private String findValue(int code) {
+        String keyStr = String.valueOf(code);
+        if (simpleTypeDefaults.containsKey(keyStr)) {
+            return simpleTypeDefaults.get(keyStr);
+        } else {
+            switch (code) {
+                case SchemaType.BTC_BOOLEAN:
+                    return "false";
+                case SchemaType.BTC_SHORT:
+                case SchemaType.BTC_BYTE:
+                case SchemaType.BTC_INT:
+                case SchemaType.BTC_INTEGER:
+                case SchemaType.BTC_LONG:
+                    return "0";
+                case SchemaType.BTC_DOUBLE:
+                case SchemaType.BTC_FLOAT:
+                case SchemaType.BTC_DECIMAL:
+                    return "0.0";
+                case SchemaType.BTC_STRING:
+                default:
+                    return StringUtils.EMPTY;
+            }
+        }
+    }
 }
