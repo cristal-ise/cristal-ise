@@ -39,7 +39,7 @@ class RoleDelegate {
         cl()
     }
 
-    public void Role(Map<String, Object> attrs) {
+    public void Role(Map<String, Object> attrs, Closure cl = null) {
         assert attrs && attrs.name
 
         if(!attrs.jobList) attrs.jobList = false
@@ -49,5 +49,17 @@ class RoleDelegate {
         role.jobList = attrs.jobList
 
         roles.add(role)
+
+        if (cl) cl()
+    }
+    
+    public void Permission(String p) {
+        roles[roles.size-1].permissions.add(p)
+    }
+
+    public void Permission(Map<String, String>  args) {
+        assert args.domain && args.actions && args.targets, 'domain:actions:targets triplet must be set' 
+
+        roles[roles.size-1].permissions.add("${args.domain}:${args.actions}:${args.targets}".toString())
     }
 }
