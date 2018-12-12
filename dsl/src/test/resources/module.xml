@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?><CristalModule ns="testns" name="Test Module">
+  <Info>
+    <Description>3ATech cristal module</Description>
+    <Version>0</Version>
+  </Info>
+  <ResourceURL>ch/icube/aaa/resources/</ResourceURL>
+  <Config name="Module.debug">true</Config>
+  <Imports>
+    <Activity name="State_Activate" version="0"/>
+    <Activity name="State_Deactivate" version="0"/>
+    <Workflow name="State_Manage" version="0">
+      <Activity name="State_Activate" version="0"/>
+      <Activity name="State_Deactivate" version="0"/>
+    </Workflow>
+    <SchemaResource name="TestItem" version="0"/>
+    <SchemaResource name="TestItem_Details" version="0"/>
+    <Activity name="TestItem_Update" version="0">
+      <Schema name="TestItem_Details" version="0"/>
+    </Activity>
+    <ScriptResource name="TestItem_Aggregate" version="0"/>
+    <Activity name="TestItem_Aggregate" version="0">
+      <Schema name="TestItem" version="0"/>
+      <Script name="TestItem_Aggregate" version="0"/>
+    </Activity>
+    <Workflow name="TestItem_Workflow" version="0">
+      <Activity name="TestItem_Update" version="0"/>
+      <Activity name="StateManage" version="0"/>
+    </Workflow>
+    <Item name="(TestItemFactory" initialPath="/" workflow="TestItemFactory_Workflow">
+      <Property name="Type" mutable="true">Factory</Property>
+      <Outcome viewname="last" schema="PropertyDescription" version="0">boot/property/TestItem.xml</Outcome>
+      <Dependency name="workflow'" isDescription="false">
+        <DependencyMember itemPath="/desc/ActivityDesc/testns/TestItem_Workflow">
+          <MemberProperties>
+            <KeyValuePair Key="Version" isAbstract="false" Integer="0"/>
+          </MemberProperties>
+        </DependencyMember>
+        <CollectionProperties/>
+      </Dependency>
+    </Item>
+  </Imports>
+</CristalModule>

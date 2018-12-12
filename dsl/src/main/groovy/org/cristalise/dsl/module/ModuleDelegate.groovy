@@ -301,7 +301,7 @@ class ModuleDelegate {
         cl.resolveStrategy = Closure.DELEGATE_FIRST
         cl()
 
-        if (module && Gateway.properties.getBoolean('DSL.GenerateModuleXml', true)) {
+        if (Gateway.properties.getBoolean('DSL.GenerateModuleXml', true)) {
             def oldModuleXML = XmlUtil.serialize(Gateway.getMarshaller().marshall(module))
             def newModuleXML = XmlUtil.serialize(Gateway.getMarshaller().marshall(newModule))
 
