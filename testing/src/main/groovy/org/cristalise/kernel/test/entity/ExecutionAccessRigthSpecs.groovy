@@ -44,7 +44,7 @@ import spock.util.concurrent.PollingConditions
 @UnitilsSupport
 class ExecutionAccessRigthSpecs extends Specification implements CristalTestSetup {
 
-    def setup()   { inMemoryServer() }
+    def setup()   { inMemoryServer('src/main/bin/inMemoryServer.conf', 'src/main/bin/inMemory.clc', 8) }
     def cleanup() { cristalCleanup() }
 
     def 'Job is only given to the Agent with the proper Role'() {

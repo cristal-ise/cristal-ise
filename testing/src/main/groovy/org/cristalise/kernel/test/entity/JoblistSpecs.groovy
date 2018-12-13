@@ -39,7 +39,7 @@ class JoblistSpecs extends Specification implements CristalTestSetup {
     AgentTestBuilder dummyAgentBuilder
     AgentTestBuilder timeoutAgentBuilder
 
-    def setup()   { inMemoryServer() }
+    def setup()   { inMemoryServer('src/main/bin/inMemoryServer.conf', 'src/main/bin/inMemory.clc', 8) }
     def cleanup() {
         if(dummyAgentBuilder) dummyAgentBuilder.jobList.deactivate()
         if(timeoutAgentBuilder) timeoutAgentBuilder.jobList.deactivate()

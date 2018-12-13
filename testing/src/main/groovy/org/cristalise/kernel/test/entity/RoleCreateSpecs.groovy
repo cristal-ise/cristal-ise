@@ -34,7 +34,7 @@ import spock.lang.Specification
 class RoleCreateSpecs extends Specification implements CristalTestSetup {
 
     
-    def setup()   { inMemoryServer()    }
+    def setup()   { inMemoryServer('src/main/bin/inMemoryServer.conf', 'src/main/bin/inMemory.clc', 8) }
     def cleanup() { cristalCleanup() }
 
     def "Parent Role must exists"() {
