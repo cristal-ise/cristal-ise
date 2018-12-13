@@ -28,7 +28,6 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.UUID;
-import java.util.concurrent.Semaphore;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.CookieParam;
@@ -72,13 +71,14 @@ import org.cristalise.kernel.utils.CastorHashMap;
 import org.cristalise.kernel.utils.LocalObjectLoader;
 import org.cristalise.kernel.utils.Logger;
 import org.glassfish.jersey.media.multipart.FormDataParam;
-import org.json.JSONObject;
 import org.json.XML;
+
+import com.google.common.collect.ImmutableMap;
 
 @Path("/item/{uuid}")
 public class ItemRoot extends ItemUtils {
-
-    static Semaphore mutex = new Semaphore(1);
+	
+	private ScriptUtils scriptUtils = new ScriptUtils();
 
     @GET
     @Path("name")
@@ -142,12 +142,12 @@ public class ItemRoot extends ItemUtils {
                 final Schema schema = LocalObjectLoader.getSchema(type, schemaVersion);
                 script = LocalObjectLoader.getScript(scriptName, scriptVersion);
 
-                return returnScriptResult(scriptName, item, schema, script, new CastorHashMap(), produceJSON(headers.getAcceptableMediaTypes()));
+                return scriptUtils.returnScriptResult(scriptName, item, schema, script, new CastorHashMap(), produceJSON(headers.getAcceptableMediaTypes()));
             }
             else if ((script = getAggregateScript(type, scriptVersion)) != null) {
                 final Schema schema = LocalObjectLoader.getSchema(type, schemaVersion);
 
-                return returnScriptResult(scriptName, item, schema, script, new CastorHashMap(), produceJSON(headers.getAcceptableMediaTypes()));
+                return scriptUtils.returnScriptResult(scriptName, item, schema, script, new CastorHashMap(), produceJSON(headers.getAcceptableMediaTypes()));
             }
             else if (item.checkViewpoint(type, view)) {
                 return getViewpointOutcome(uuid, type, view, true);
@@ -175,29 +175,7 @@ public class ItemRoot extends ItemUtils {
         checkAuthCookie(authCookie);
         ItemProxy item = getProxy(uuid);
 
-        // FIXME: version should be retrieved from the current item or the Module
-        // String view = "last";
-        if (scriptVersion == null) scriptVersion = 0;
-
-        Script script = null;
-        if (scriptName != null) {
-            try {
-                script = LocalObjectLoader.getScript(scriptName, scriptVersion);
-                if (inputJson == null) inputJson = "{}";
-
-                JSONObject json = new JSONObject(inputJson);
-                CastorHashMap inputs = new CastorHashMap();
-                for (String key: json.keySet()) inputs.put(key, json.get(key));
-
-                return returnScriptResult(scriptName, item, null, script, inputs, produceJSON(headers.getAcceptableMediaTypes()));
-            }
-            catch (Exception e) {
-                Logger.error(e);
-                throw ItemUtils.createWebAppException("Error executing Script:" + e.getMessage(), e, Response.Status.NOT_FOUND);
-            }
-        }
-        else
-            throw ItemUtils.createWebAppException("Name or UUID of Script was missing", Response.Status.NOT_FOUND);
+        return scriptUtils.executeScript(headers, item, scriptName, scriptVersion, inputJson, ImmutableMap.of());
     }
 
     @GET
@@ -258,28 +236,6 @@ public class ItemRoot extends ItemUtils {
             Logger.msg(5, "ItemRoot.getAggregateScript() - Could not find Script name:%s", scriptName);
         }
         return null;
-    }
-
-    /**
-     * @see org.cristalise.restapi.ItemUtils#returnScriptResult(java.lang.String, org.cristalise.kernel.entity.proxy.ItemProxy, org.cristalise.kernel.persistency.outcome.Schema, org.cristalise.kernel.scripting.Script)
-     */
-    @Override
-    protected Response returnScriptResult(String scriptName, ItemProxy item, final Schema schema, final Script script, CastorHashMap inputs, boolean jsonFlag)
-            throws ScriptingEngineException, InvalidDataException
-    {
-        try {
-            mutex.acquire();
-            return super.returnScriptResult(scriptName, item, schema, script, inputs, jsonFlag);
-        }
-        catch (ScriptingEngineException e) {
-            throw e;
-        }
-        catch (Exception e) {
-            throw new InvalidDataException(e.getMessage());
-        }
-        finally {
-            mutex.release();
-        }
     }
 
     @GET

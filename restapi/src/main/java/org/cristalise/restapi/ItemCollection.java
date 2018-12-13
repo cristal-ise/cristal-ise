@@ -51,6 +51,8 @@ import org.cristalise.kernel.utils.Logger;
 
 @Path("/item/{uuid}/collection")
 public class ItemCollection extends ItemUtils {
+	
+	private ScriptUtils scriptUtils = new ScriptUtils();
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
@@ -132,7 +134,7 @@ public class ItemCollection extends ItemUtils {
                 String[] lovInfo = lovProp.split(":");
                 if ("ScriptRef" .equals( lovInfo[0] )) {
                     Script script = LocalObjectLoader.getScript(lovInfo[1], Integer.valueOf(lovInfo[2]));
-                    Map<? extends String, ? extends Object> result = (Map<? extends String, ? extends Object>) executeScript(item, script, null);
+                    Map<? extends String, ? extends Object> result = (Map<? extends String, ? extends Object>) scriptUtils.executeScript(item, script, null);
                     result.remove(null);
                     Map<String, Object> valuesToCaptions = new TreeMap<String, Object>(result);
                     inputs.put("memberNames", valuesToCaptions); // Put the new member here e.g.ListOfValues

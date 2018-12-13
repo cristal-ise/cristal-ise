@@ -36,11 +36,19 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 
+import org.cristalise.kernel.common.PersistencyException;
 import org.cristalise.kernel.process.Gateway;
+import org.cristalise.storage.jooqdb.JooqHandler;
+import org.jooq.DSLContext;
+import org.jooq.exception.DataAccessException;
+
+import com.google.common.collect.ImmutableMap;
 
 @Path("/script")
 public class ScriptAccess extends ResourceAccess {
 
+    private ScriptUtils scriptUtils = new ScriptUtils();
+    
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     public Response listAllScripts(
@@ -80,4 +88,25 @@ public class ScriptAccess extends ResourceAccess {
         checkAuthCookie(authCookie);
         return getResource(SCRIPT_RESOURCE, name, version, produceJSON(headers.getAcceptableMediaTypes()));
     }
+    
+    @GET
+    @Path("scriptResult")
+    @Produces( {MediaType.TEXT_XML, MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON } )
+    public Response getScriptResult(
+            @Context                 HttpHeaders headers,
+            @QueryParam("script")    String      scriptName,
+            @QueryParam("version")   Integer     scriptVersion,
+            @QueryParam("inputs")    String      inputJson,
+            @CookieParam(COOKIENAME) Cookie      authCookie)
+    {
+        checkAuthCookie(authCookie);
+        
+        try (DSLContext context = JooqHandler.connect()) {
+            return scriptUtils.executeScript(headers, null, scriptName, scriptVersion, inputJson,
+            		ImmutableMap.of("dsl", context));
+        } catch (DataAccessException | PersistencyException e) {
+            throw ItemUtils.createWebAppException("Error connecting to database, please contact support", e, Response.Status.NOT_FOUND);
+		}
+    }
+
 }

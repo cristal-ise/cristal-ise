@@ -526,9 +526,11 @@ public abstract class ItemUtils extends RestHandler {
      */
     public static WebApplicationException createWebAppException(String msg, Exception ex, Response.Status status) {
         Logger.debug(8, "ItemUtils.createWebAppException() - msg:"+ msg + " status:" + status);
+        Logger.error(ex);
 
         if (Gateway.getProperties().getBoolean("REST.Debug.errorsWithBody", false)) {
-            StringBuffer sb = new StringBuffer(msg);
+            StringBuffer sb = new StringBuffer("[errorMessage]");
+            sb.append(msg).append("[/errorMessage]");
 
             if(ex != null) sb.append(" - Exception:" + ex.getMessage());
 
@@ -575,68 +577,6 @@ public abstract class ItemUtils extends RestHandler {
         Collections.sort(names);
 
         return names;
-    }
-
-    /**
-     * 
-     * @param scriptName
-     * @param item
-     * @param schema
-     * @param script
-     * @param jsonFlag whether the response is a JSON or XML
-     * @return
-     * @throws ScriptingEngineException
-     * @throws InvalidDataException
-     */
-    protected Response returnScriptResult(String scriptName, ItemProxy item, final Schema schema, final Script script, CastorHashMap inputs, boolean jsonFlag)
-            throws ScriptingEngineException, InvalidDataException
-    {
-        String xmlOutcome = null;
-        Object scriptResult = executeScript(item, script, inputs);
-
-        if (scriptResult instanceof String) {
-            xmlOutcome = (String)scriptResult;
-        }
-        else if (scriptResult instanceof Map) {
-            //the map shall have one Key only
-            String key = ((Map<?,?>) scriptResult).keySet().toArray(new String[0])[0];
-            xmlOutcome = (String)((Map<?,?>) scriptResult).get(key);
-        }
-        else
-            throw ItemUtils.createWebAppException("Cannot handle result of script:" + scriptName, NOT_FOUND);
-
-        if (xmlOutcome == null)
-            throw ItemUtils.createWebAppException("Cannot handle result of script:" + scriptName, NOT_FOUND);
-
-        if (schema != null) return getOutcomeResponse(new Outcome(xmlOutcome, schema), new Date(), jsonFlag);
-        else {
-            if (jsonFlag) return Response.ok(XML.toJSONObject(xmlOutcome).toString()).build();
-            else          return Response.ok((xmlOutcome)).build();
-        }
-    }
-
-    /**
-     * 
-     * @param item
-     * @param script
-     * @return
-     * @throws ScriptingEngineException
-     * @throws InvalidDataException
-     */
-    protected Object executeScript(ItemProxy item, final Script script, CastorHashMap inputs)
-            throws ScriptingEngineException, InvalidDataException {
-        
-        Object scriptResult = null;
-        try {
-            scriptResult = script.evaluate(item.getPath(), inputs, null, null);
-        }
-        catch (ScriptingEngineException e) {
-            throw e;
-        }
-        catch (Exception e) {
-            throw new InvalidDataException(e.getMessage());
-        }
-        return scriptResult;
     }
 
     /**
