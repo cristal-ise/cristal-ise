@@ -21,11 +21,15 @@
 
 package org.cristalise.dev.dsl
 
+import org.cristalise.dsl.entity.AgentBuilder
+import org.cristalise.dsl.entity.ItemBuilder
 import org.cristalise.dsl.lifecycle.definition.CompActDefBuilder
 import org.cristalise.dsl.lifecycle.definition.ElemActDefBuilder
 import org.cristalise.dsl.persistency.outcome.SchemaBuilder
 import org.cristalise.dsl.querying.QueryBuilder
 import org.cristalise.dsl.scripting.ScriptBuilder
+import org.cristalise.kernel.entity.imports.ImportAgent
+import org.cristalise.kernel.entity.imports.ImportItem
 import org.cristalise.kernel.entity.proxy.ItemProxy
 import org.cristalise.kernel.lifecycle.ActivityDef
 import org.cristalise.kernel.lifecycle.CompositeActivityDef
@@ -41,6 +45,18 @@ import groovy.transform.CompileStatic
  */
 @CompileStatic
 class DevItemDSL extends DevItemUtility {
+    
+    public ImportAgent Agent(String name, Closure cl) {
+        def newAgent = AgentBuilder.build(name, "pwd", cl)
+        agent.execute(agent.getItem('/servers/localhost'), 'CreateNewAgent', agent.marshall(newAgent))
+        return newAgent
+    }
+
+    public ImportItem Item(Map<String, Object> attrs, Closure cl) {
+        def newItem = ItemBuilder.build(attrs, cl)
+        agent.execute(agent.getItem('/servers/localhost'), 'CreateNewItem', agent.marshall(newItem))
+        return newItem
+    }
 
     public Schema Schema(String name, String folder, Closure cl) {
         createNewSchema(name, folder)
