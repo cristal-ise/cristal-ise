@@ -51,17 +51,22 @@ class ExecutionAccessRigthSpecs extends Specification implements CristalTestSetu
         when: ""
         AgentTestBuilder  oper1 = AgentTestBuilder.create(name: "oper1") {
             Roles {
-                Role(name: 'oper')
+                Role(name: 'oper') {
+                    Permission('*')
+                }
             }
         }
 
         AgentTestBuilder  clerk1 = AgentTestBuilder.create(name: "clerk1") {
             Roles {
-                Role(name: 'clerk')
+                Role(name: 'clerk') {
+                    Permission('*')
+                }
             }
         }
 
         ItemTestBuilder dummyItem = ItemTestBuilder.create(name: "dummyItem", folder: "testing") {
+            Property(Type: 'test')
             Workflow {
                 EA('EA1') {
                     Property('Agent Role': "oper")
@@ -89,6 +94,7 @@ class ExecutionAccessRigthSpecs extends Specification implements CristalTestSetu
         }
 
         ItemTestBuilder dummyItem = ItemTestBuilder.create(name: "dummyItem", folder: "testing") {
+            Property(Type: 'test')
             Workflow {
                 EA('EA1') {
                     Property('Agent Role': "oper, clerk")
@@ -119,6 +125,7 @@ class ExecutionAccessRigthSpecs extends Specification implements CristalTestSetu
 
         and: "ElemAct is assogned to Role 'minion'"
         ItemTestBuilder dummyItem = ItemTestBuilder.create(name: "dummyItem", folder: "testing") {
+            Property(Type: 'test')
             Workflow {
                 EA('EA1') {
                     Property('Agent Role': "minion")
