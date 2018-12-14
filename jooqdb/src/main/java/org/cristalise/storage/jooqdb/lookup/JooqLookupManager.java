@@ -37,6 +37,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.UUID;
 
+import org.apache.commons.lang3.StringUtils;
 import org.cristalise.kernel.common.ObjectAlreadyExistsException;
 import org.cristalise.kernel.common.ObjectCannotBeUpdated;
 import org.cristalise.kernel.common.ObjectNotFoundException;
@@ -610,7 +611,16 @@ public class JooqLookupManager implements LookupManager {
     }
 
     @Override
-    public void setPermission(RolePath role, List<String> permissions) throws ObjectNotFoundException, ObjectCannotBeUpdated {
+    public void setPermission(RolePath role, String permission) throws ObjectNotFoundException, ObjectCannotBeUpdated {
+        ArrayList<String> permissions = new ArrayList<>();
+
+        if (StringUtils.isNotBlank(permission)) permissions.add(permission);
+
+        setPermissions(role, permissions);
+    }
+
+    @Override
+    public void setPermissions(RolePath role, List<String> permissions) throws ObjectNotFoundException, ObjectCannotBeUpdated {
         if (!exists(role)) throw new ObjectNotFoundException("Role:"+role);
 
         role.setPermissions(permissions);
