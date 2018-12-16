@@ -526,7 +526,7 @@ public abstract class ItemUtils extends RestHandler {
      */
     public static WebApplicationException createWebAppException(String msg, Exception ex, Response.Status status) {
         Logger.debug(8, "ItemUtils.createWebAppException() - msg:"+ msg + " status:" + status);
-        Logger.error(ex);
+        if (ex != null) { Logger.error(ex); }
 
         if (Gateway.getProperties().getBoolean("REST.Debug.errorsWithBody", false)) {
             StringBuffer sb = new StringBuffer("[errorMessage]");
