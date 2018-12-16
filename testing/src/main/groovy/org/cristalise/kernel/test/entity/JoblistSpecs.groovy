@@ -50,11 +50,12 @@ class JoblistSpecs extends Specification implements CristalTestSetup {
         given: "the workflow of Item is initialised its first Activity is activated"
         dummyAgentBuilder = AgentTestBuilder.create(name: "dummyAgent") {
             Roles {
-                Role(name: 'toto', jobList: true)
+                Role(name: 'toto', jobList: true) { Permission('*') }
             }
         }
 
         ItemTestBuilder dummyItem = ItemTestBuilder.create(name: "dummyItem", folder: "testing") {
+            Property(Type: 'test')
             Workflow {
                 EA('EA1') {
                     Property('Agent Role': "toto")
@@ -113,17 +114,18 @@ class JoblistSpecs extends Specification implements CristalTestSetup {
 
         AgentTestBuilder dummyAgentBuilder = AgentTestBuilder.create(name: "dummy") {
             Roles {
-                Role(name: 'toto')
+                Role(name: 'toto') { Permission('*') }
             }
         }
 
         AgentTestBuilder timeoutAgentBuilder = AgentTestBuilder.create(name: "TimeoutManager") {
             Roles {
-                Role(name: 'Timeout', jobList: true)
+                Role(name: 'Timeout', jobList: true) { Permission('*') }
             }
         }
 
         ItemTestBuilder dummyItemBuilder = ItemTestBuilder.create(name: "dummyItem", folder: "testing") {
+            Property(Type: 'test')
             Workflow {
                 EA('EA1') {
                     Property('Agent Role'    : "toto")

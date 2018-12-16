@@ -83,13 +83,13 @@ class ExecutionAccessRigthSpecs extends Specification implements CristalTestSetu
         when: ""
         AgentTestBuilder  oper1 = AgentTestBuilder.create(name: "oper1") {
             Roles {
-                Role(name: 'oper')
+                Role(name: 'oper') { Permission('*') }
             }
         }
 
         AgentTestBuilder  clerk1 = AgentTestBuilder.create(name: "clerk1") {
             Roles {
-                Role(name: 'clerk')
+                Role(name: 'clerk') { Permission('*') }
             }
         }
 
@@ -113,13 +113,13 @@ class ExecutionAccessRigthSpecs extends Specification implements CristalTestSetu
         when: "Agent 'boss' has a Role of 'boss' and Agent 'minion1' has a Role of 'minion'"
         AgentTestBuilder  boss1 = AgentTestBuilder.create(name: "boss1") {
             Roles {
-                Role(name: 'boss')
+                Role(name: 'boss') { Permission('*') }
             }
         }
 
         AgentTestBuilder  minion1 = AgentTestBuilder.create(name: "minion1") {
             Roles {
-                Role(name: 'boss/minion')
+                Role(name: 'boss/minion') { Permission('*') }
             }
         }
 
