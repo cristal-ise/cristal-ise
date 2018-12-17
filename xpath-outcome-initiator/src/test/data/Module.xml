@@ -20,89 +20,89 @@
     http://www.fsf.org/licensing/licenses/lgpl.html
 
 -->
-<CristalModule name="string" ns="string">
+<CristalModule name="" ns="">
   <Info>
-    <Description>string</Description>
-    <Version>string</Version>
+    <Description/>
+    <Version/>
     <!--Optional:-->
-    <KernelVersion>string</KernelVersion>
+    <KernelVersion/>
     <!--Zero or more repetitions:-->
-    <Dependency>string</Dependency>
+    <Dependency/>
   </Info>
   <!--Optional:-->
-  <ResourceURL>string</ResourceURL>
+  <ResourceURL/>
   <!--Zero or more repetitions:-->
-  <Config name="string" target="server">string</Config>
+  <Config name="" target="server"/>
   <!--Zero or more repetitions:-->
-  <Script event="install" target="client" lang="string">string</Script>
+  <Script event="install" lang="" target="client"/>
   <!--Optional:-->
   <Imports>
     <!--You have a CHOICE of the next 6 items at this level-->
     <!--Optional:-->
-    <Resource name="string" version="100" id="string" type="string">string</Resource>
+    <Resource id="" name="" type="" version="0"/>
     <!--Optional:-->
-    <Activity name="string" version="100" id="string" resource="string">
+    <Activity id="" name="" resource="" version="0">
       <!--Zero or more repetitions:-->
-      <StateMachine uuid="stringstringstringstringstringstring" name="string" version="3"/>
+      <StateMachine name="" uuid="" version="0"/>
       <!--Zero or more repetitions:-->
-      <Schema uuid="stringstringstringstringstringstring" name="string" version="3"/>
+      <Schema name="" uuid="" version="0"/>
       <!--Zero or more repetitions:-->
-      <Script uuid="stringstringstringstringstringstring" name="string" version="3"/>
+      <Script name="" uuid="" version="0"/>
     </Activity>
     <!--Optional:-->
-    <Workflow name="string" version="100" id="string" resource="string">
+    <Workflow id="" name="" resource="" version="0">
       <!--Zero or more repetitions:-->
-      <StateMachine uuid="stringstringstringstringstringstring" name="string" version="3"/>
+      <StateMachine name="" uuid="" version="0"/>
       <!--Zero or more repetitions:-->
-      <Schema uuid="stringstringstringstringstringstring" name="string" version="3"/>
+      <Schema name="" uuid="" version="0"/>
       <!--Zero or more repetitions:-->
-      <Script uuid="stringstringstringstringstringstring" name="string" version="3"/>
+      <Script name="" uuid="" version="0"/>
       <!--Zero or more repetitions:-->
-      <Activity uuid="stringstringstringstringstringstring" name="string" version="3"/>
+      <Activity name="" uuid="" version="0"/>
     </Workflow>
     <!--Optional:-->
-    <Item name="string" id="string" workflow="string" workflowVer="3" initialPath="string">
+    <Item id="" initialPath="" name="" workflow="" workflowVer="0">
       <!--Zero or more repetitions:-->
-      <Property name="string" mutable="true">string</Property>
+      <Property mutable="true" name=""/>
       <!--Zero or more repetitions:-->
-      <Outcome schema="string" version="string" viewname="string">string</Outcome>
+      <Outcome schema="" version="" viewname=""/>
       <!--Zero or more repetitions:-->
-      <Dependency name="string" version="100" isDescription="false" itemDescriptionPath="string" itemDescriptionVersion="string">
+      <Dependency isDescription="false" itemDescriptionPath="" itemDescriptionVersion="" name="" version="0">
         <!--Zero or more repetitions:-->
-        <DependencyMember itemPath="string">
+        <DependencyMember itemPath="">
           <!--Optional:-->
           <MemberProperties>
             <!--Zero or more repetitions:-->
-            <KeyValuePair Key="string" Boolean="true" String="string" Integer="3" Float="1.051732E7"/>
+            <KeyValuePair Boolean="false" Float="0.0" Integer="0" Key="" String=""/>
           </MemberProperties>
         </DependencyMember>
         <!--Optional:-->
         <CollectionProperties>
           <!--Zero or more repetitions:-->
-          <KeyValuePair Key="string" Boolean="true" String="string" Integer="3" Float="1.051732E7"/>
+          <KeyValuePair Boolean="false" Float="0.0" Integer="0" Key="" String=""/>
         </CollectionProperties>
       </Dependency>
       <!--Zero or more repetitions:-->
-      <Aggregation name="string" version="100" isDescription="true">
+      <Aggregation isDescription="false" name="" version="0">
         <!--Zero or more repetitions:-->
-        <AggregationMember slotNo="3" itemDescriptionPath="string" itemDescriptionVersion="string" itemPath="string">
-          <Geometry x="3" y="3" width="3" height="3"/>
+        <AggregationMember itemDescriptionPath="" itemDescriptionVersion="" itemPath="" slotNo="0">
+          <Geometry height="0" width="0" x="0" y="0"/>
           <!--Optional:-->
           <MemberProperties>
             <!--Zero or more repetitions:-->
-            <KeyValuePair Key="string" Boolean="true" String="string" Integer="3" Float="1.051732E7"/>
+            <KeyValuePair Boolean="false" Float="0.0" Integer="0" Key="" String=""/>
           </MemberProperties>
         </AggregationMember>
       </Aggregation>
     </Item>
     <!--Optional:-->
-    <Role jobList="false">string</Role>
+    <Role jobList="false"/>
     <!--Optional:-->
-    <Agent name="string" password="string">
+    <Agent name="" password="">
       <!--Zero or more repetitions:-->
-      <Role>string</Role>
+      <Role/>
       <!--Zero or more repetitions:-->
-      <Property name="string" mutable="true">string</Property>
+      <Property mutable="true" name=""/>
     </Agent>
   </Imports>
 </CristalModule>

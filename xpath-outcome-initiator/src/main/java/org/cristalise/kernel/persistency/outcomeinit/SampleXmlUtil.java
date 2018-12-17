@@ -266,8 +266,10 @@ public class SampleXmlUtil
             switch (closestBuiltin(sType).getBuiltinTypeCode())
             {
                 case SchemaType.BTC_STRING:
-                case SchemaType.BTC_NORMALIZED_STRING:
                     result = findValue(SchemaType.BTC_STRING);
+                    break;
+                case SchemaType.BTC_NORMALIZED_STRING:
+                    result = "string";
                     break;
 
                 case SchemaType.BTC_TOKEN:
@@ -1177,11 +1179,14 @@ public class SampleXmlUtil
      * @param propertyValues
      * @return
      */
-    private Map<String, String> loadMapValues(String propertyValues) {
+    private Map<String, String> loadMapValues(String propertyValues)
+    {
         Map<String, String> defaultTypes = new HashMap<>();
-        if (StringUtils.isNotEmpty(propertyValues)){
+        if (StringUtils.isNotEmpty(propertyValues))
+        {
             String[] rawValues = StringUtils.split(propertyValues, DEFAULT_VALUE_SEPARATOR);
-            for(String s: rawValues){
+            for(String s: rawValues)
+            {
                 String[] valuePair = StringUtils.split(s, MAP_VALUE_SEPARATOR);
                 defaultTypes.put(valuePair[0], valuePair.length == 1 ? "" : valuePair[1]);
             }
@@ -1194,12 +1199,16 @@ public class SampleXmlUtil
      * @param code
      * @return
      */
-    private String findValue(int code) {
+    private String findValue(int code)
+    {
         String keyStr = String.valueOf(code);
-        if (simpleTypeDefaults.containsKey(keyStr)) {
+        if (simpleTypeDefaults.containsKey(keyStr))
+        {
             return simpleTypeDefaults.get(keyStr);
-        } else {
-            switch (code) {
+        } else
+        {
+            switch (code)
+            {
                 case SchemaType.BTC_BOOLEAN:
                     return "false";
                 case SchemaType.BTC_SHORT:
