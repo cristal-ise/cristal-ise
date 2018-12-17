@@ -20,6 +20,7 @@
  */
 package org.cristalise.storage.jooqdb.lookup;
 
+import static org.jooq.impl.DSL.constraint;
 import static org.jooq.impl.DSL.field;
 import static org.jooq.impl.DSL.name;
 import static org.jooq.impl.DSL.select;
@@ -47,7 +48,7 @@ public class JooqPermissionHandler {
         context.createTableIfNotExists(ROLE_PERMISSION_TABLE)
         .column(ROLE_PATH,  JooqHandler.STRING_TYPE .nullable(false))
         .column(PERMISSION, JooqHandler.STRING_TYPE .nullable(true))
-        //.constraints(constraint("PK_"+ROLE_PERMISSION_TABLE).primaryKey(ROLE_PATH))
+        .constraints(constraint("PK_"+ROLE_PERMISSION_TABLE).primaryKey(ROLE_PATH, PERMISSION))
         .execute();
     }
 
