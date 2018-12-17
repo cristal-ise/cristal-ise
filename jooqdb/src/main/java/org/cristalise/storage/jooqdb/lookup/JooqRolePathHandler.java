@@ -76,11 +76,11 @@ public class JooqRolePathHandler {
         else                return null;
     }
 
-    public static List<Path> getLisOfPaths(Result<?> result) {
-        return getLisOfPaths(result, null, null);
+    public static List<Path> getListOfPaths(Result<?> result) {
+        return getListOfPaths(result, null, null);
     }
 
-    public static List<Path> getLisOfPaths(Result<?> result, DSLContext context, JooqPermissionHandler permissions) {
+    public static List<Path> getListOfPaths(Result<?> result, DSLContext context, JooqPermissionHandler permissions) {
         ArrayList<Path> roles = new ArrayList<>();
 
         if(result != null) {
@@ -185,7 +185,7 @@ public class JooqRolePathHandler {
         if (limit  > 0) select.addLimit(limit);
         if (offset > 0) select.addOffset(offset);
 
-        return getLisOfPaths(select.fetch(), context, permissions);
+        return getListOfPaths(select.fetch(), context, permissions);
     }
 
     public int countByRegex(DSLContext context, String pattern) {
@@ -202,7 +202,7 @@ public class JooqRolePathHandler {
                 .where(PATH.likeRegex(pattern))
                 .fetch();
 
-        return getLisOfPaths(result);
+        return getListOfPaths(result);
     }
 
     public List<Path> findByRegex(DSLContext context, String pattern, int offset, int limit) {
@@ -214,7 +214,7 @@ public class JooqRolePathHandler {
                 .offset(offset)
                 .fetch();
 
-        return getLisOfPaths(result);
+        return getListOfPaths(result);
     }
 
     public List<Path> find(DSLContext context, RolePath startPath, String name, List<UUID> uuids) {
@@ -228,6 +228,6 @@ public class JooqRolePathHandler {
 
         if (uuids != null && uuids.size() != 0) select.and(AGENT.in(uuids));
 
-        return getLisOfPaths(select.fetch());
+        return getListOfPaths(select.fetch());
     }
 }
