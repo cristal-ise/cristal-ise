@@ -23,6 +23,7 @@ package org.cristalise.dev.dsl
 
 import org.cristalise.dsl.entity.AgentBuilder
 import org.cristalise.dsl.entity.ItemBuilder
+import org.cristalise.dsl.entity.RoleBuilder
 import org.cristalise.dsl.lifecycle.definition.CompActDefBuilder
 import org.cristalise.dsl.lifecycle.definition.ElemActDefBuilder
 import org.cristalise.dsl.persistency.outcome.SchemaBuilder
@@ -30,6 +31,7 @@ import org.cristalise.dsl.querying.QueryBuilder
 import org.cristalise.dsl.scripting.ScriptBuilder
 import org.cristalise.kernel.entity.imports.ImportAgent
 import org.cristalise.kernel.entity.imports.ImportItem
+import org.cristalise.kernel.entity.imports.ImportRole
 import org.cristalise.kernel.entity.proxy.ItemProxy
 import org.cristalise.kernel.lifecycle.ActivityDef
 import org.cristalise.kernel.lifecycle.CompositeActivityDef
@@ -46,6 +48,16 @@ import groovy.transform.CompileStatic
 @CompileStatic
 class DevItemDSL extends DevItemUtility {
     
+    public List<ImportRole> Role(String name, Closure cl) {
+        def newRoles = RoleBuilder.build(cl)
+        
+        newRoles.each { role ->
+            agent.execute(agent.getItem('/servers/localhost'), 'CreateNewRole', agent.marshall(role))
+        }
+
+        return newRoles
+    }
+
     public ImportAgent Agent(String name, Closure cl) {
         def newAgent = AgentBuilder.build(name, "pwd", cl)
         agent.execute(agent.getItem('/servers/localhost'), 'CreateNewAgent', agent.marshall(newAgent))
