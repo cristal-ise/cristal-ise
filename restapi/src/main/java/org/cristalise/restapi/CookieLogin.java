@@ -34,6 +34,7 @@ import org.cristalise.kernel.common.InvalidDataException;
 import org.cristalise.kernel.common.ObjectNotFoundException;
 import org.cristalise.kernel.lookup.AgentPath;
 import org.cristalise.kernel.process.Gateway;
+import org.cristalise.kernel.security.SecurityManager;
 import org.cristalise.kernel.utils.Logger;
 import org.json.XML;
 
@@ -48,8 +49,15 @@ public class CookieLogin extends RestHandler {
             @QueryParam("pass") String      pass)
     {
         try {
-            if (!Gateway.getAuthenticator().authenticate(user, pass, null))
+            SecurityManager secMan = Gateway.getSecurityManager();
+
+            if (secMan != null) {
+                if (!secMan.shiroAuthenticate(user, pass)) 
+                    throw ItemUtils.createWebAppException("Bad username/password", Response.Status.UNAUTHORIZED);
+            }
+            else if (!Gateway.getAuthenticator().authenticate(user, pass, null)) {
                 throw ItemUtils.createWebAppException("Bad username/password", Response.Status.UNAUTHORIZED);
+            }
         }
         catch (InvalidDataException e) {
             Logger.error(e);
