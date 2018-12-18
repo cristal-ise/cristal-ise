@@ -20,42 +20,45 @@
  */
 package org.cristalise.restapi;
 
-import javax.ws.rs.GET;
-import javax.ws.rs.Path;
-import javax.ws.rs.Produces;
-import javax.ws.rs.QueryParam;
+import java.util.Base64;
+
+import javax.ws.rs.*;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.NewCookie;
 import javax.ws.rs.core.Response;
 
+import org.apache.commons.lang3.StringUtils;
 import org.cristalise.kernel.common.InvalidDataException;
 import org.cristalise.kernel.common.ObjectNotFoundException;
 import org.cristalise.kernel.lookup.AgentPath;
 import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.utils.Logger;
+import org.json.JSONObject;
 import org.json.XML;
 
 @Path("login")
 public class CookieLogin extends RestHandler {
 
     @GET
-    @Produces( {MediaType.TEXT_XML, MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON } )
+    @Produces({MediaType.TEXT_XML, MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON})
     public Response login(
-            @Context            HttpHeaders headers,
-            @QueryParam("user") String      user, 
-            @QueryParam("pass") String      pass)
+            @Context HttpHeaders headers,
+            @QueryParam("user") String user,
+            @QueryParam("pass") String pass) {
+        return processLogin(user, pass, headers);
+    }
+
+    private Response processLogin(String user, String pass, HttpHeaders headers)
     {
         try {
             if (!Gateway.getAuthenticator().authenticate(user, pass, null))
                 throw ItemUtils.createWebAppException("Bad username/password", Response.Status.UNAUTHORIZED);
-        }
-        catch (InvalidDataException e) {
+        } catch (InvalidDataException e) {
             Logger.error(e);
             throw ItemUtils.createWebAppException("Problem logging in");
-        }
-        catch (ObjectNotFoundException e1) {
+        } catch (ObjectNotFoundException e1) {
             Logger.msg(5, "CookieLogin.login() - Bad username/password");
             throw ItemUtils.createWebAppException("Bad username/password", Response.Status.UNAUTHORIZED);
         }
@@ -63,8 +66,7 @@ public class CookieLogin extends RestHandler {
         AgentPath agentPath;
         try {
             agentPath = Gateway.getLookup().getAgentPath(user);
-        }
-        catch (ObjectNotFoundException e) {
+        } catch (ObjectNotFoundException e) {
             Logger.error(e);
             throw ItemUtils.createWebAppException("Agent '" + user + "' not found", Response.Status.NOT_FOUND);
         }
@@ -75,7 +77,8 @@ public class CookieLogin extends RestHandler {
     private synchronized Response getCookieResponse(AgentPath agentPath, boolean produceJSON) {
         // create and set cookie
         AuthData agentData = new AuthData(agentPath);
-        try {
+        try
+        {
             NewCookie cookie;
 
             int cookieLife = Gateway.getProperties().getInt("REST.loginCookieLife", 0);
@@ -84,16 +87,63 @@ public class CookieLogin extends RestHandler {
                 cookie = new NewCookie(COOKIENAME, encryptAuthData(agentData), "/", null, null, cookieLife, false);
             else
                 cookie = new NewCookie(COOKIENAME, encryptAuthData(agentData));
-            
-            String result = "<Login result='Success' temporaryPassword='"+agentPath.isPasswordTemporary()+"' />";
-            if(produceJSON) result = XML.toJSONObject(result).toString();
+
+            String result = "<Login result='Success' temporaryPassword='" + agentPath.isPasswordTemporary() + "' />";
+            if (produceJSON) result = XML.toJSONObject(result).toString();
 
             //FIXME: Perhaps Angular 4 bug. Return string is a json, so HttpClient will be able to process the response
             return Response.ok(result).cookie(cookie).build();
         }
-        catch (Exception e) {
+        catch (Exception e)
+        {
             Logger.error(e);
             throw ItemUtils.createWebAppException("Error creating cookie");
         }
     }
+
+    @POST
+    @Consumes( {MediaType.TEXT_PLAIN, MediaType.TEXT_XML, MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON } )
+    @Produces( {MediaType.TEXT_XML, MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON} )
+    public Response postLogin(String postData, @Context HttpHeaders headers)
+    {
+        String user;
+        String pass;
+
+        try
+        {
+            if (StringUtils.isEmpty(postData))
+            {
+                throw new Exception("Authentication data is null or empty");
+            }
+
+            JSONObject authData = new JSONObject(postData);
+            user = decode(authData.getString(USERNAME));
+            pass = decode(authData.getString(PASSWORD));
+
+            if (StringUtils.isEmpty(user) || StringUtils.isEmpty(pass))
+            {
+                throw new Exception("Invalid username or password");
+            }
+
+        }
+        catch (Exception e)
+        {
+            Logger.error(e);
+            throw ItemUtils.createWebAppException("Problem logging in", Response.Status.BAD_REQUEST);
+        }
+
+        return processLogin(user, pass, headers);
+    }
+
+    /**
+     * Decodes the base64 encoded string.
+     * @param encodedStr
+     * @return
+     */
+    private String decode(String encodedStr)
+    {
+        byte[] decodedData = Base64.getDecoder().decode(encodedStr);
+        return new String(decodedData);
+    }
+
 }
