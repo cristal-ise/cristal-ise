@@ -146,7 +146,7 @@
         <QueryResource name="TestQuery" version="0"/>
 
         <Agent name="mainUser" password="test">
-            <Role name="User"/>
+            <Role>User</Role>
         </Agent>
 
     </Imports>
