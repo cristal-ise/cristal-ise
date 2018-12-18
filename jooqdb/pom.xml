@@ -26,7 +26,7 @@
     <name>CRISTAL-iSE JOOQ Storage</name>
     <groupId>org.cristalise</groupId>
     <artifactId>cristalise-jooqdb</artifactId>
-    <version>3.5.0-SNAPSHOT</version>
+    <version>3.6.0-SNAPSHOT</version>
     <description>CRISTAL-iSE JOOQ Storage Module</description>
     <url>https://github.com/cristal-ise/jooqdb</url>
     <licenses>
@@ -186,7 +186,7 @@
         <dependency>
             <groupId>org.cristalise</groupId>
             <artifactId>cristalise-kernel</artifactId>
-                <version>3.5.0-SNAPSHOT</version>
+                <version>3.6.0-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>mysql</groupId>
