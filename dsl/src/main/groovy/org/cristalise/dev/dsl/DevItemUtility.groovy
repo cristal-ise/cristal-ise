@@ -280,7 +280,7 @@ class DevItemUtility {
 
         if(schemaName && !schemaName.startsWith("-")) {
             assert eaDescItem.getViewpoint(resHandler.name, "0")
-            assert eaDescItem.getCollection(SCHEMA, 0).size() == 1
+            assert eaDescItem.getCollection(SCHEMA, (Integer)0).size() == 1
         }
     }
 
@@ -320,10 +320,10 @@ class DevItemUtility {
 
         assert eaDescItem.getViewpoint(resHandler.name, "0")
 
-        if(eaDef.schema)       assert eaDescItem.getCollection(SCHEMA,        0).size() == 1
-        if(eaDef.script)       assert eaDescItem.getCollection(SCRIPT,        0).size() == 1
-        if(eaDef.query)        assert eaDescItem.getCollection(QUERY,         0).size() == 1
-        if(eaDef.stateMachine) assert eaDescItem.getCollection(STATE_MACHINE, 0).size() == 1
+        if(eaDef.schema)       assert eaDescItem.getCollection(SCHEMA,        (Integer)0).size() == 1
+        if(eaDef.script)       assert eaDescItem.getCollection(SCRIPT,        (Integer)0).size() == 1
+        if(eaDef.query)        assert eaDescItem.getCollection(QUERY,         (Integer)0).size() == 1
+        if(eaDef.stateMachine) assert eaDescItem.getCollection(STATE_MACHINE, (Integer)0).size() == 1
     }
 
     /**
@@ -366,8 +366,8 @@ class DevItemUtility {
     public ItemProxy editCompActDesc(String name, String folder, String caXML, int actCollSize = 0) {
         def caDescItem = editDevItem(COMP_ACT_DESC_RESOURCE, "EditDefinition", "AssignNewActivityVersionFromLast", name, folder, caXML)
 
-        assert caDescItem.getCollection(ACTIVITY, 0).size()
-        if(actCollSize) assert caDescItem.getCollection(ACTIVITY, 0).size() == actCollSize
+        assert caDescItem.getCollection(ACTIVITY, (Integer)0).size()
+        if(actCollSize) assert caDescItem.getCollection(ACTIVITY, (Integer)0).size() == actCollSize
 
         return caDescItem
     }
