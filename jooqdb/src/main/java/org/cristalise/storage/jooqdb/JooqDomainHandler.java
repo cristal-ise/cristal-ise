@@ -23,6 +23,7 @@ package org.cristalise.storage.jooqdb;
 import java.util.UUID;
 
 import org.cristalise.kernel.common.PersistencyException;
+import org.cristalise.kernel.entity.C2KLocalObject;
 import org.cristalise.kernel.persistency.outcome.Outcome;
 import org.jooq.DSLContext;
 
@@ -51,6 +52,17 @@ public interface JooqDomainHandler {
      * @throws PersistencyException throw this exception in case of any error that requires to abort a transaction
      */
     public int put(DSLContext context, UUID uuid, Outcome outcome) throws PersistencyException;
+    
+    /**
+     * This method is called each time anything but an Outcome is stored.
+     * 
+     * @param context The configured DSLContext of jooq
+     * @param uuid the Item's UUID
+     * @param obj Object that is being stored
+     * @return the number of rows created/updated
+     * @throws PersistencyException throw this exception in case of any error that requires to abort a transaction
+     */
+    public int put(DSLContext context, UUID uuid, C2KLocalObject obj) throws PersistencyException;
 
     /**
      * This method is called each time an Outcome is deleted.
