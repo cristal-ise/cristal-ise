@@ -162,8 +162,7 @@ public class CookieLogin extends RestHandler {
      */
     private String decode(String encodedStr)
     {
-        byte[] decodedData = Base64.getDecoder().decode(encodedStr);
-        return new String(decodedData);
+        return new String(Base64.getDecoder().decode(encodedStr));
     }
 
 }
