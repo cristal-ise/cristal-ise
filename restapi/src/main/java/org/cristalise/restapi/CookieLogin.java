@@ -50,6 +50,13 @@ public class CookieLogin extends RestHandler {
         return processLogin(user, pass, headers);
     }
 
+    /**
+     * Validates the provided user and pass and execute authentication.
+     * @param user
+     * @param pass
+     * @param headers
+     * @return
+     */
     private Response processLogin(String user, String pass, HttpHeaders headers)
     {
         try {
@@ -74,6 +81,13 @@ public class CookieLogin extends RestHandler {
         return getCookieResponse(agentPath, ItemUtils.produceJSON(headers.getAcceptableMediaTypes()));
     }
 
+    /**
+     * Builds the appropriate response object based on the result of
+     * the user and pass validation and authentication.
+     * @param agentPath
+     * @param produceJSON
+     * @return
+     */
     private synchronized Response getCookieResponse(AgentPath agentPath, boolean produceJSON) {
         // create and set cookie
         AuthData agentData = new AuthData(agentPath);
@@ -101,6 +115,12 @@ public class CookieLogin extends RestHandler {
         }
     }
 
+    /**
+     * Login using the encoded credentials and {@link POST} method.
+     * @param postData
+     * @param headers
+     * @return
+     */
     @POST
     @Consumes( {MediaType.TEXT_PLAIN, MediaType.TEXT_XML, MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON } )
     @Produces( {MediaType.TEXT_XML, MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON} )
