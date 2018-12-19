@@ -34,7 +34,6 @@ import org.cristalise.kernel.common.InvalidDataException;
 import org.cristalise.kernel.common.ObjectNotFoundException;
 import org.cristalise.kernel.lookup.AgentPath;
 import org.cristalise.kernel.process.Gateway;
-import org.cristalise.kernel.security.SecurityManager;
 import org.cristalise.kernel.utils.Logger;
 import org.json.XML;
 
@@ -49,15 +48,8 @@ public class CookieLogin extends RestHandler {
             @QueryParam("pass") String      pass)
     {
         try {
-            SecurityManager secMan = Gateway.getSecurityManager();
-
-            if (secMan != null) {
-                if (!secMan.shiroAuthenticate(user, pass)) 
-                    throw ItemUtils.createWebAppException("Bad username/password", Response.Status.UNAUTHORIZED);
-            }
-            else if (!Gateway.getAuthenticator().authenticate(user, pass, null)) {
-                throw ItemUtils.createWebAppException("Bad username/password", Response.Status.UNAUTHORIZED);
-            }
+            AgentPath agentPath = Gateway.getSecurityManager().authenticate(user, pass, null).getPath();
+            return getCookieResponse(agentPath, ItemUtils.produceJSON(headers.getAcceptableMediaTypes()));
         }
         catch (InvalidDataException e) {
             Logger.error(e);
@@ -67,17 +59,6 @@ public class CookieLogin extends RestHandler {
             Logger.msg(5, "CookieLogin.login() - Bad username/password");
             throw ItemUtils.createWebAppException("Bad username/password", Response.Status.UNAUTHORIZED);
         }
-
-        AgentPath agentPath;
-        try {
-            agentPath = Gateway.getLookup().getAgentPath(user);
-        }
-        catch (ObjectNotFoundException e) {
-            Logger.error(e);
-            throw ItemUtils.createWebAppException("Agent '" + user + "' not found", Response.Status.NOT_FOUND);
-        }
-
-        return getCookieResponse(agentPath, ItemUtils.produceJSON(headers.getAcceptableMediaTypes()));
     }
 
     private synchronized Response getCookieResponse(AgentPath agentPath, boolean produceJSON) {
