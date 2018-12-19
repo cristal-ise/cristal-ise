@@ -51,7 +51,7 @@ public interface JooqDomainHandler {
      * @return the number of rows created/updated
      * @throws PersistencyException throw this exception in case of any error that requires to abort a transaction
      */
-    public int put(DSLContext context, UUID uuid, Outcome outcome) throws PersistencyException;
+    public int put(DSLContext context, UUID uuid, Outcome outcome, Object locker) throws PersistencyException;
     
     /**
      * This method is called each time anything but an Outcome is stored.
