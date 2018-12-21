@@ -35,9 +35,13 @@ import org.cristalise.kernel.entity.imports.ImportRole
 import org.cristalise.kernel.entity.proxy.ItemProxy
 import org.cristalise.kernel.lifecycle.ActivityDef
 import org.cristalise.kernel.lifecycle.CompositeActivityDef
+import org.cristalise.kernel.lifecycle.instance.predefined.ReplaceDomainWorkflow
+import org.cristalise.kernel.lifecycle.instance.predefined.server.CreateNewAgent
+import org.cristalise.kernel.lifecycle.instance.predefined.server.CreateNewItem
 import org.cristalise.kernel.persistency.outcome.Schema
 import org.cristalise.kernel.querying.Query
 import org.cristalise.kernel.scripting.Script
+import org.cristalise.kernel.utils.Logger
 
 import groovy.transform.CompileStatic
 
@@ -60,13 +64,20 @@ class DevItemDSL extends DevItemUtility {
 
     public ImportAgent Agent(String name, Closure cl) {
         def newAgent = AgentBuilder.build(name, "pwd", cl)
-        agent.execute(agent.getItem('/servers/localhost'), 'CreateNewAgent', agent.marshall(newAgent))
+        agent.execute(agent.getItem('/servers/localhost'), CreateNewAgent.class, agent.marshall(newAgent))
         return newAgent
     }
 
     public ImportItem Item(Map<String, Object> attrs, Closure cl) {
         def newItem = ItemBuilder.build(attrs, cl)
-        agent.execute(agent.getItem('/servers/localhost'), 'CreateNewItem', agent.marshall(newItem))
+        agent.execute(agent.getItem('/servers/localhost'), CreateNewItem.class, agent.marshall(newItem))
+
+        assert newItem.wf
+        newItem.wf.initialise(newItem.itemPath, agent.getPath(), null) //this throws an exception, but it still works
+
+        def newItemProxy = agent.getItem("${attrs.folder}/${attrs.name}")
+        agent.execute(newItemProxy, ReplaceDomainWorkflow.class, agent.marshall(newItem.wf.search("workflow/domain")));
+
         return newItem
     }
 
