@@ -23,6 +23,10 @@ Some useful example curl commands:
 ###### Get a login cookie and store it in the local file cookies.txt
 
     `curl -c cookies.txt http://{host:port}/login?user={user}\&pass={pass}`
+    
+###### Get a login cookie using POST method and store it in the local file cookies.txt (username and password must be Base64 encoded)
+    
+    `curl -c cookies.txt -H 'Content-Type: application/json' -d '{"username":"{Base64 encoded username}","password":"{Base64 encoded password}"}' http://{host:port}/api/login`
 
 ###### Root listing of the item directory
 

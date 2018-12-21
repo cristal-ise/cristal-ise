@@ -70,6 +70,8 @@ abstract public class RestHandler {
     private static Cipher decryptCipher;
 
     public static final String COOKIENAME = "cauth";
+    public static final String USERNAME = "username";
+    public static final String PASSWORD = "password";
 
     static {
         try {
