@@ -47,11 +47,11 @@ public interface JooqDomainHandler {
      * 
      * @param context The configured DSLContext of jooq
      * @param uuid the Item's UUID
-     * @param outcome the Outcome object beeing stored
+     * @param schemaName the schema name of the item
      * @return the number of rows created/updated
      * @throws PersistencyException throw this exception in case of any error that requires to abort a transaction
      */
-    public int put(DSLContext context, UUID uuid, Outcome outcome, Object locker) throws PersistencyException;
+    public int put(DSLContext context, UUID uuid, String schemaName, Object locker, Boolean isInsert) throws PersistencyException;
     
     /**
      * This method is called each time anything but an Outcome is stored.
