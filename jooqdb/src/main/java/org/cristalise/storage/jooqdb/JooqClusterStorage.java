@@ -277,7 +277,7 @@ public class JooqClusterStorage extends TransactionalClusterStorage {
         for (JooqDomainHandler domainHandler : domainHandlers) {
         	if (ClusterType.OUTCOME == cluster) {
         	    String schemaName = ((Outcome) obj).getSchema().getName();
-        		domainHandler.put(context, uuid, schemaName, locker, true);
+        		domainHandler.put(context, uuid, schemaName, locker);
         	} else if (Gateway.getProperties().getBoolean("DomainHandler.enableFullTrigger", false)) {
         		domainHandler.put(context, uuid, obj, locker);
         	} 
