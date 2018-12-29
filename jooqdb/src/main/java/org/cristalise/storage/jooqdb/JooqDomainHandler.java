@@ -24,12 +24,11 @@ import java.util.UUID;
 
 import org.cristalise.kernel.common.PersistencyException;
 import org.cristalise.kernel.entity.C2KLocalObject;
-import org.cristalise.kernel.persistency.outcome.Outcome;
 import org.jooq.DSLContext;
 
 /**
- * Provides mechanism to update application(domain) specific table(s) during the transaction
- * of storing an Outcome. 
+ * Provides mechanism to update application(domain) specific table(s) during the transaction.
+ * @since 3.6.0
  */
 public interface JooqDomainHandler {
     
@@ -43,35 +42,26 @@ public interface JooqDomainHandler {
     public void createTables(DSLContext context) throws PersistencyException;
 
     /**
-     * This method is called each time an Outcome is stored.
-     * 
-     * @param context The configured DSLContext of jooq
-     * @param uuid the Item's UUID
-     * @param schemaName the schema name of the item
-     * @return the number of rows created/updated
-     * @throws PersistencyException throw this exception in case of any error that requires to abort a transaction
-     */
-    public int put(DSLContext context, UUID uuid, String schemaName, Object locker) throws PersistencyException;
-    
-    /**
-     * This method is called each time anything but an Outcome is stored.
+     * This method is called each time a C2KLocalObject is stored.
      * 
      * @param context The configured DSLContext of jooq
      * @param uuid the Item's UUID
      * @param obj Object that is being stored
+     * @param locker transaction key
      * @return the number of rows created/updated
      * @throws PersistencyException throw this exception in case of any error that requires to abort a transaction
      */
     public int put(DSLContext context, UUID uuid, C2KLocalObject obj, Object locker) throws PersistencyException;
 
     /**
-     * This method is called each time an Outcome is deleted.
+     * This method is called each time a C2KLocalObject is deleted.
      * 
      * @param context The configured DSLContext of jooq
      * @param uuid the Item's UUID
+     * @param locker transaction key
      * @param primaryKeys the identifiers of the Outcome withing the Item
      * @return the number of rows deleted
      * @throws PersistencyException throw this exception in case of any error that requires to abort a transaction
      */
-    public int delete(DSLContext context, UUID uuid, String...primaryKeys) throws PersistencyException;
+    public int delete(DSLContext context, UUID uuid, Object locker, String...primaryKeys) throws PersistencyException;
 }

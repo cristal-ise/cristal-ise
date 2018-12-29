@@ -32,7 +32,6 @@ import org.cristalise.kernel.entity.C2KLocalObject;
 import org.cristalise.kernel.lookup.ItemPath;
 import org.cristalise.kernel.persistency.ClusterType;
 import org.cristalise.kernel.persistency.TransactionalClusterStorage;
-import org.cristalise.kernel.persistency.outcome.Outcome;
 import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.process.auth.Authenticator;
 import org.cristalise.kernel.querying.Query;
@@ -271,18 +270,11 @@ public class JooqClusterStorage extends TransactionalClusterStorage {
             handler.put(context, uuid, obj);
         }
         else {
-        	throw new PersistencyException("Write is not supported for cluster:'"+cluster+"'");
+            throw new PersistencyException("Write is not supported for cluster:'"+cluster+"'");
         }
-           
-        for (JooqDomainHandler domainHandler : domainHandlers) {
-        	if (ClusterType.OUTCOME == cluster) {
-        	    String schemaName = ((Outcome) obj).getSchema().getName();
-        		domainHandler.put(context, uuid, schemaName, locker);
-        	} else if (Gateway.getProperties().getBoolean("DomainHandler.enableFullTrigger", false)) {
-        		domainHandler.put(context, uuid, obj, locker);
-        	} 
-        }
-        
+
+        // Trigger all registered handlers to update domain specific tables
+        for (JooqDomainHandler domainHandler : domainHandlers) domainHandler.put(context, uuid, obj, locker);
     }
 
     @Override
@@ -304,11 +296,11 @@ public class JooqClusterStorage extends TransactionalClusterStorage {
             Logger.msg(5, "JooqClusterStorage.delete() - uuid:"+uuid+" cluster:"+cluster+" primaryKeys"+Arrays.toString(primaryKeys));
             handler.delete(context, uuid, primaryKeys);
         }
-        else
+        else {
             throw new PersistencyException("No handler found for cluster:'"+cluster+"'");
-
-        if (ClusterType.OUTCOME == cluster) {
-            for (JooqDomainHandler domainHandler : domainHandlers) domainHandler.delete(context, uuid, primaryKeys);
         }
+
+        // Trigger all registered handlers to update domain specific tables
+        for (JooqDomainHandler domainHandler : domainHandlers) domainHandler.delete(context, uuid, locker, primaryKeys);
     }
 }
