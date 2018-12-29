@@ -58,10 +58,10 @@ public class LookupSearchTest extends LookupTestBase {
         lookup.add( new DomainPath("empty/nothing") );
         lookup.add( new DomainPath("empty/something/uuid0", lookup.getItemPath(uuid0.toString())) );
         //lookup.add( new DomainPath("empty.old/something/uuid1", lookup.getItemPath(uuid1.toString())) );
-        lookup.add( new RolePath(new RolePath(), "User") );
-        lookup.add( new RolePath(new RolePath(), "User/SubUser") );
-        lookup.add( new RolePath(new RolePath(), "User/SubUser/DummyUser") );
-        lookup.add( new RolePath(new RolePath(), "User/LowerUser") );
+        lookup.add( new RolePath(new RolePath(),               "User") );
+        lookup.add( new RolePath(new RolePath("User"),         "SubUser") );
+        lookup.add( new RolePath(new RolePath("User/SubUser"), "DummyUser") );
+        lookup.add( new RolePath(new RolePath("User"),         "LowerUser") );
     }
 
     @Test
