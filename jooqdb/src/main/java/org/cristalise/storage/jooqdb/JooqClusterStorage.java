@@ -20,6 +20,10 @@
  */
 package org.cristalise.storage.jooqdb;
 
+import static org.cristalise.storage.jooqdb.JooqHandler.JOOQ_DOMAIN_HANDLERS;
+import static org.cristalise.storage.jooqdb.JooqHandler.JOOQ_AUTOCOMMIT;
+import static org.cristalise.storage.jooqdb.JooqHandler.JOOQ_DISABLE_DOMAIN_CREATE;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -62,7 +66,7 @@ public class JooqClusterStorage extends TransactionalClusterStorage {
     public void open(Authenticator auth) throws PersistencyException {
         context = JooqHandler.connect();
 
-        autoCommit = Gateway.getProperties().getBoolean(JooqHandler.JOOQ_AUTOCOMMIT, false);
+        autoCommit = Gateway.getProperties().getBoolean(JOOQ_AUTOCOMMIT, false);
 
         initialiseHandlers();
     }
@@ -87,7 +91,7 @@ public class JooqClusterStorage extends TransactionalClusterStorage {
         for (JooqHandler handler: jooqHandlers.values()) handler.createTables(context);
 
         try {
-            String handlers = Gateway.getProperties().getString(JooqHandler.JOOQ_DOMAIN_HANDLERS, "");
+            String handlers = Gateway.getProperties().getString(JOOQ_DOMAIN_HANDLERS, "");
 
             for(String handlerClass: StringUtils.split(handlers, ",")) {
                 if (!handlerClass.contains(".")) handlerClass = "org.cristalise.storage."+handlerClass;
@@ -103,7 +107,9 @@ public class JooqClusterStorage extends TransactionalClusterStorage {
             throw new PersistencyException("JooqClusterStorage could not instantiate domain handler:"+ex.getMessage());
         }
 
-        for (JooqDomainHandler handler: domainHandlers) handler.createTables(context);
+        if (! Gateway.getProperties().getBoolean(JOOQ_DISABLE_DOMAIN_CREATE, false)) {
+            for (JooqDomainHandler handler: domainHandlers) handler.createTables(context);
+        }
     }
 
     @Override
