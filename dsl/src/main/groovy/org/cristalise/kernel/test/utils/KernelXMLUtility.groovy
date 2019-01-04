@@ -54,7 +54,7 @@ class KernelXMLUtility {
 
         if(!params.jobList) { params.jobList = 'false'}
 
-        xml.Role(jobList:params.jobList, params.name);
+        xml.Role(name:params.name, jobList:params.jobList);
 
         return writer.toString()
     }
@@ -78,7 +78,7 @@ class KernelXMLUtility {
         assert params.Role, "Role must be set"
 
         xml.Agent(name:"$params.name", password:"$params.password") {
-            Role(params.Role)
+            Role(name: params.Role)
             Property(name:"Name", "$params.name")
             Property(name:"Type", 'Agent')
         }
