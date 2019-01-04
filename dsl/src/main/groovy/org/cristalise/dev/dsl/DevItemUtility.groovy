@@ -65,17 +65,14 @@ class DevItemUtility {
      */
     public static void checkJobs(ItemProxy item, AgentPath agent, List<Map<String, Object>> expectedJobs) {
         def jobs = item.getJobList(agent)
-        //println jobs
 
         assert jobs.size() == expectedJobs.size()
 
         expectedJobs.each { Map expectedJob ->
-            assert expectedJob && expectedJob.stepName && /*expectedJob.agentRole != null &&*/ expectedJob.transitionName
+            assert expectedJob && expectedJob.stepName &&  expectedJob.transitionName
 
             assert jobs.find { Job j ->
-                j.stepName == expectedJob.stepName &&
-                        //j.agentRole == expectedJob.agentRole &&
-                        j.transition.name == expectedJob.transitionName
+                j.stepName == expectedJob.stepName && j.transition.name == expectedJob.transitionName
             }, "Cannot find Job: '${expectedJob.stepName}' , '${expectedJob.agentRole}' , '${expectedJob.transitionName}'"
         }
     }

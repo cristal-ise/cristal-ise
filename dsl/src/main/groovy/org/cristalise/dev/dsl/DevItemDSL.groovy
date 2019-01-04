@@ -38,10 +38,10 @@ import org.cristalise.kernel.lifecycle.CompositeActivityDef
 import org.cristalise.kernel.lifecycle.instance.predefined.ReplaceDomainWorkflow
 import org.cristalise.kernel.lifecycle.instance.predefined.server.CreateNewAgent
 import org.cristalise.kernel.lifecycle.instance.predefined.server.CreateNewItem
+import org.cristalise.kernel.lifecycle.instance.predefined.server.CreateNewRole
 import org.cristalise.kernel.persistency.outcome.Schema
 import org.cristalise.kernel.querying.Query
 import org.cristalise.kernel.scripting.Script
-import org.cristalise.kernel.utils.Logger
 
 import groovy.transform.CompileStatic
 
@@ -56,7 +56,7 @@ class DevItemDSL extends DevItemUtility {
         def newRoles = RoleBuilder.build(cl)
         
         newRoles.each { role ->
-            agent.execute(agent.getItem('/servers/localhost'), 'CreateNewRole', agent.marshall(role))
+            agent.execute(agent.getItem('/servers/localhost'), CreateNewRole.class, agent.marshall(role))
         }
 
         return newRoles
@@ -73,7 +73,7 @@ class DevItemDSL extends DevItemUtility {
         agent.execute(agent.getItem('/servers/localhost'), CreateNewItem.class, agent.marshall(newItem))
 
         assert newItem.wf
-        newItem.wf.initialise(newItem.itemPath, agent.getPath(), null) //this throws an exception, but it still works
+        newItem.wf.initialise(newItem.itemPath, agent.getPath(), null)
 
         def newItemProxy = agent.getItem("${attrs.folder}/${attrs.name}")
         agent.execute(newItemProxy, ReplaceDomainWorkflow.class, agent.marshall(newItem.wf.search("workflow/domain")));
