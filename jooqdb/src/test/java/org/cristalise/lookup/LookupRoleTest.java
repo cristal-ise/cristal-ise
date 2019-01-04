@@ -74,7 +74,7 @@ public class LookupRoleTest extends LookupTestBase {
 
     @Test
     public void createRole() throws Exception {
-        createUserRole("Internist", false, "patient:xray:lung");
+        createUserRole("Internist", false, "patient:xray:lung,kidney", "pervention:bloodTests");
         createUserRole("Cardiologist", true, "patient:xray:heart");
     }
 
