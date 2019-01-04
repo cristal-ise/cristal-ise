@@ -20,6 +20,10 @@
  */
 package org.cristalise.storage.jooqdb;
 
+import static org.cristalise.storage.jooqdb.JooqHandler.JOOQ_DOMAIN_HANDLERS;
+import static org.cristalise.storage.jooqdb.JooqHandler.JOOQ_AUTOCOMMIT;
+import static org.cristalise.storage.jooqdb.JooqHandler.JOOQ_DISABLE_DOMAIN_CREATE;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -32,7 +36,6 @@ import org.cristalise.kernel.entity.C2KLocalObject;
 import org.cristalise.kernel.lookup.ItemPath;
 import org.cristalise.kernel.persistency.ClusterType;
 import org.cristalise.kernel.persistency.TransactionalClusterStorage;
-import org.cristalise.kernel.persistency.outcome.Outcome;
 import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.process.auth.Authenticator;
 import org.cristalise.kernel.querying.Query;
@@ -63,7 +66,7 @@ public class JooqClusterStorage extends TransactionalClusterStorage {
     public void open(Authenticator auth) throws PersistencyException {
         context = JooqHandler.connect();
 
-        autoCommit = Gateway.getProperties().getBoolean(JooqHandler.JOOQ_AUTOCOMMIT, false);
+        autoCommit = Gateway.getProperties().getBoolean(JOOQ_AUTOCOMMIT, false);
 
         initialiseHandlers();
     }
@@ -88,7 +91,7 @@ public class JooqClusterStorage extends TransactionalClusterStorage {
         for (JooqHandler handler: jooqHandlers.values()) handler.createTables(context);
 
         try {
-            String handlers = Gateway.getProperties().getString(JooqHandler.JOOQ_DOMAIN_HANDLERS, "");
+            String handlers = Gateway.getProperties().getString(JOOQ_DOMAIN_HANDLERS, "");
 
             for(String handlerClass: StringUtils.split(handlers, ",")) {
                 if (!handlerClass.contains(".")) handlerClass = "org.cristalise.storage."+handlerClass;
@@ -104,7 +107,9 @@ public class JooqClusterStorage extends TransactionalClusterStorage {
             throw new PersistencyException("JooqClusterStorage could not instantiate domain handler:"+ex.getMessage());
         }
 
-        for (JooqDomainHandler handler: domainHandlers) handler.createTables(context);
+        if (! Gateway.getProperties().getBoolean(JOOQ_DISABLE_DOMAIN_CREATE, false)) {
+            for (JooqDomainHandler handler: domainHandlers) handler.createTables(context);
+        }
     }
 
     @Override
@@ -271,17 +276,11 @@ public class JooqClusterStorage extends TransactionalClusterStorage {
             handler.put(context, uuid, obj);
         }
         else {
-        	throw new PersistencyException("Write is not supported for cluster:'"+cluster+"'");
+            throw new PersistencyException("Write is not supported for cluster:'"+cluster+"'");
         }
-           
-        for (JooqDomainHandler domainHandler : domainHandlers) {
-        	if (ClusterType.OUTCOME == cluster) {
-        		domainHandler.put(context, uuid, (Outcome)obj);	
-        	} else if (Gateway.getProperties().getBoolean("DomainHandler.enableFullTrigger", false)) {
-        		domainHandler.put(context, uuid, obj);
-        	} 
-        }
-        
+
+        // Trigger all registered handlers to update domain specific tables
+        for (JooqDomainHandler domainHandler : domainHandlers) domainHandler.put(context, uuid, obj, locker);
     }
 
     @Override
@@ -303,11 +302,11 @@ public class JooqClusterStorage extends TransactionalClusterStorage {
             Logger.msg(5, "JooqClusterStorage.delete() - uuid:"+uuid+" cluster:"+cluster+" primaryKeys"+Arrays.toString(primaryKeys));
             handler.delete(context, uuid, primaryKeys);
         }
-        else
+        else {
             throw new PersistencyException("No handler found for cluster:'"+cluster+"'");
-
-        if (ClusterType.OUTCOME == cluster) {
-            for (JooqDomainHandler domainHandler : domainHandlers) domainHandler.delete(context, uuid, primaryKeys);
         }
+
+        // Trigger all registered handlers to update domain specific tables
+        for (JooqDomainHandler domainHandler : domainHandlers) domainHandler.delete(context, uuid, locker, primaryKeys);
     }
 }

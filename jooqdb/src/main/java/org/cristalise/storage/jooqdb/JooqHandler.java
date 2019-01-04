@@ -73,6 +73,11 @@ public abstract class JooqHandler {
      * fully qualified class names implementing the {@link JooqDomainHandler} interface.
      */
     public static final String JOOQ_DOMAIN_HANDLERS = "JOOQ.domainHandlers";
+    /**
+     * Defines the key (value:{@value}) to retrieve the boolean value to disable the invocation of
+     * {@link JooqDomainHandler#createTables(DSLContext)}. Default is 'false'
+     */
+    public static final String JOOQ_DISABLE_DOMAIN_CREATE = "JOOQ.disableDomainCreateTables";
 
     public static final DataType<UUID>           UUID_TYPE      = SQLDataType.UUID;
     public static final DataType<String>         NAME_TYPE      = SQLDataType.VARCHAR.length(64);
