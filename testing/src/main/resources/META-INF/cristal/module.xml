@@ -157,7 +157,7 @@
         </Agent>
 
         <Agent name="mainUser" password="test">
-            <Role>User</Role>
+            <Role name='User'/>
         </Agent>
 
     </Imports>
