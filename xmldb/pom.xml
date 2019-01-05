@@ -26,7 +26,7 @@
     <name>cristalise-xmldb</name>
     <groupId>org.cristalise</groupId>
     <artifactId>cristalise-xmldb</artifactId>
-    <version>3.6.0-SNAPSHOT</version>
+    <version>4.0.0-SNAPSHOT</version>
     <description>CRISTAL eXist-db Storage Module</description>
     <url>https://github.com/cristal-ise/xmldb</url>
     <licenses>
@@ -197,7 +197,7 @@
         <dependency>
             <groupId>org.cristalise</groupId>
             <artifactId>cristalise-kernel</artifactId>
-                <version>3.6.0-SNAPSHOT</version>
+                <version>4.0.0-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>org.exist-db</groupId>
