@@ -145,8 +145,19 @@
         <!-- QueryTest -->
         <QueryResource name="TestQuery" version="0"/>
 
+        <Role name="User" jobList="false">
+            <Permission>p1</Permission>
+            <Permission>p2</Permission>
+        </Role>
+        <Role name="User/SubUser" jobList="false"/>
+
+        <Agent name="user" password="test">
+            <Role name="Admin"/>
+            <Role name="User/SubUser"/>
+        </Agent>
+
         <Agent name="mainUser" password="test">
-            <Role>User</Role>
+            <Role name='User'/>
         </Agent>
 
     </Imports>

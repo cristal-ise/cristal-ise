@@ -66,4 +66,21 @@ class RoleCreateSpecs extends Specification implements CristalTestSetup {
         Gateway.lookup.getRolePath("Clerk").hasJobList() == false
         Gateway.lookup.getRolePath("SubClerk").hasJobList() == true
     }
+
+    def "Creating Role with Permissions"() {
+        when:
+        def roles = RoleBuilder.create {
+            Role(name: 'QA') {
+                Permission('BatchFactory:Create:*')
+                Permission(domain: 'Batch', actions: 'Review', targets: '*')
+            }
+        }
+
+        then:
+        Gateway.getLookup().exists(roles[0])
+        def rp = Gateway.lookup.getRolePath("QA")
+        rp.hasJobList() == false
+        rp.permissions[0] == 'BatchFactory:Create:*'
+        rp.permissions[1] == 'Batch:Review:*'
+    }
 }

@@ -52,3 +52,8 @@ JOOQ.user=postgres
 JOOQ.password=cristal
 JOOQ.dialect=POSTGRES
 JOOQ.autoCommit=true
+//JOOQ.TemporaryPwdFieldImplemented=false
+
+Authenticator = Shiro
+// set the default string value for EmptyOutcomeInitiator
+SimpleType.DefaultValues = 12:string
