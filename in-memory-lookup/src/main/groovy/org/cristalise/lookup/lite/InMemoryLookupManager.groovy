@@ -23,6 +23,7 @@ package org.cristalise.lookup.lite
 import groovy.transform.CompileStatic
 
 import java.security.NoSuchAlgorithmException
+import java.util.List
 
 import org.cristalise.kernel.common.ObjectAlreadyExistsException
 import org.cristalise.kernel.common.ObjectCannotBeUpdated
@@ -162,7 +163,18 @@ class InMemoryLookupManager extends InMemoryLookup implements LookupManager {
         ((RolePath)retrievePath(role.stringPath)).setHasJobList(hasJobList)
     }
 
+    @Override
     public void setIOR(ItemPath item, String ior) throws ObjectNotFoundException, ObjectCannotBeUpdated {
         ((ItemPath)retrievePath(item.stringPath)).setIORString(ior)
+    }
+    
+    @Override
+    public void setPermission(RolePath role, String permission) throws ObjectNotFoundException, ObjectCannotBeUpdated {
+        setPermissions(role, [permission])
+    }
+    
+    @Override
+    public void setPermissions(RolePath role, List<String> permissions) throws ObjectNotFoundException, ObjectCannotBeUpdated {
+        ((RolePath)retrievePath(role.stringPath)).setPermissions(permissions)
     }
 }
