@@ -28,6 +28,7 @@ import org.cristalise.kernel.entity.proxy.AgentProxy
 import org.cristalise.kernel.entity.proxy.ItemProxy
 import org.cristalise.kernel.lifecycle.ActivityDef
 import org.cristalise.kernel.lifecycle.CompositeActivityDef
+import org.cristalise.kernel.lookup.AgentPath
 import org.cristalise.kernel.persistency.outcome.Outcome
 import org.cristalise.kernel.process.Gateway
 import org.cristalise.kernel.process.resource.BuiltInResources
@@ -57,25 +58,32 @@ class DevItemUtility {
     public String moduleFactoryName       = "/domain/desc/dev/ModuleFactory"
 
     /**
-     *
-     * @param proxy
+     * 
+     * @param item
+     * @param agent
      * @param expectedJobs
      */
-    public void checkJobs(ItemProxy proxy, List<Map<String, Object>> expectedJobs) {
-        def jobs = proxy.getJobList(agent)
-        println jobs
+    public static void checkJobs(ItemProxy item, AgentPath agent, List<Map<String, Object>> expectedJobs) {
+        def jobs = item.getJobList(agent)
 
-        assert expectedJobs && jobs && jobs.size() == expectedJobs.size()
+        assert jobs.size() == expectedJobs.size()
 
         expectedJobs.each { Map expectedJob ->
-            assert expectedJob && expectedJob.stepName && expectedJob.agentRole != null && expectedJob.transitionName
+            assert expectedJob && expectedJob.stepName &&  expectedJob.transitionName
 
             assert jobs.find { Job j ->
-                j.stepName == expectedJob.stepName &&
-                        j.agentRole == expectedJob.agentRole &&
-                        j.transition.name == expectedJob.transitionName
+                j.stepName == expectedJob.stepName && j.transition.name == expectedJob.transitionName
             }, "Cannot find Job: '${expectedJob.stepName}' , '${expectedJob.agentRole}' , '${expectedJob.transitionName}'"
         }
+    }
+
+    /**
+     * 
+     * @param item
+     * @param expectedJobs
+     */
+    public void checkJobs(ItemProxy item, List<Map<String, Object>> expectedJobs) {
+        checkJobs(item, agent.getPath(), expectedJobs)
     }
 
     /**
