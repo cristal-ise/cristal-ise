@@ -43,7 +43,7 @@ import org.junit.Test;
 
 public class LookupRoleTest extends LookupTestBase {
 
-    RolePath user = new RolePath( new RolePath(), "User");
+    RolePath user = new RolePath( new RolePath(), "User", Arrays.asList("itemType1:enable,disable", "itemType2:update"));
     AgentPath jim = new AgentPath(new ItemPath(), "Jim");
     AgentPath tom = new AgentPath(new ItemPath(), "Tom");
 
@@ -57,26 +57,25 @@ public class LookupRoleTest extends LookupTestBase {
         lookup.add(tom);
     }
 
-    public void checkRolePath(RolePath parent, RolePath role, String name, boolean hasJobList) throws Exception {
-        assert lookup.exists(role);
-        assertEquals(name, role.getName());
-        assertEquals(parent.getStringPath()+"/"+name, role.getStringPath());
+    public void checkRolePath(RolePath parent, RolePath expectedRole, String name) throws Exception {
+        assert lookup.exists(expectedRole);
+        assertEquals(name, expectedRole.getName());
+        assertEquals(parent.getStringPath()+"/"+name, expectedRole.getStringPath());
 
-        RolePath r = lookup.getRolePath(name);
-        assertReflectionEquals(role, r);
-        assert r.hasJobList() == hasJobList;
+        RolePath actualRole = lookup.getRolePath(name);
+        assertReflectionEquals(expectedRole, actualRole);
     }
 
-    public RolePath createUserRole(String name, boolean hasJobList) throws Exception {
-        RolePath role = lookup.createRole(new RolePath(user, name, hasJobList));
-        checkRolePath(user, role, name, hasJobList);
+    public RolePath createUserRole(String name, boolean hasJobList, String...permission) throws Exception {
+        RolePath role = lookup.createRole(new RolePath(user, name, hasJobList, Arrays.asList(permission)));
+        checkRolePath(user, role, name);
         return role;
     }
 
     @Test
     public void createRole() throws Exception {
-        createUserRole("Internist", false);
-        createUserRole("Cardiologist", true);
+        createUserRole("Internist", false, "patient:xray:lung,kidney", "pervention:bloodTests");
+        createUserRole("Cardiologist", true, "patient:xray:heart");
     }
 
     @Test

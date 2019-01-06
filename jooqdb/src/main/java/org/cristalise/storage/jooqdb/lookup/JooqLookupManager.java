@@ -37,6 +37,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.UUID;
 
+import org.apache.commons.lang3.StringUtils;
 import org.cristalise.kernel.common.ObjectAlreadyExistsException;
 import org.cristalise.kernel.common.ObjectCannotBeUpdated;
 import org.cristalise.kernel.common.ObjectNotFoundException;
@@ -75,6 +76,7 @@ public class JooqLookupManager implements LookupManager {
     private JooqItemHandler         items;
     private JooqDomainPathHandler   domains;
     private JooqRolePathHandler     roles;
+    private JooqPermissionHandler   permissions;
     private JooqItemPropertyHandler properties;
 
     private Argon2Password passwordHasher;
@@ -84,15 +86,17 @@ public class JooqLookupManager implements LookupManager {
         try {
             context = JooqHandler.connect();
 
-            items      = new JooqItemHandler();
-            domains    = new JooqDomainPathHandler();
-            roles      = new JooqRolePathHandler();
-            properties = new JooqItemPropertyHandler();
+            items       = new JooqItemHandler();
+            domains     = new JooqDomainPathHandler();
+            roles       = new JooqRolePathHandler();
+            permissions = new JooqPermissionHandler();
+            properties  = new JooqItemPropertyHandler();
 
-            items     .createTables(context);
-            domains   .createTables(context);
-            roles     .createTables(context);
-            properties.createTables(context);
+            items      .createTables(context);
+            domains    .createTables(context);
+            roles      .createTables(context);
+            permissions.createTables(context);
+            properties .createTables(context);
 
             passwordHasher = new Argon2Password();
         }
@@ -166,7 +170,10 @@ public class JooqLookupManager implements LookupManager {
             if      (path instanceof ItemPath)   rows = items  .delete(context, path.getUUID());
             else if (path instanceof AgentPath)  rows = items  .delete(context, path.getUUID());
             else if (path instanceof DomainPath) rows = domains.delete(context, path.getStringPath());
-            else if (path instanceof RolePath)   rows = roles  .delete(context, (RolePath)path, null);
+            else if (path instanceof RolePath)   {
+                permissions.delete(context, path.getStringPath());
+                rows = roles.delete(context, (RolePath)path, null);
+            }
 
             if (rows == 0)
                 throw new ObjectCannotBeUpdated("JOOQLookupManager must delete some records:"+rows);
@@ -210,6 +217,7 @@ public class JooqLookupManager implements LookupManager {
 
         if      (start instanceof DomainPath) return domains.find(context, (DomainPath)start, name, uuids);
         else if (start instanceof RolePath)   return roles  .find(context, (RolePath)start,   name, uuids);
+        //TODO implement permssion fetech for roles
 
         return new ArrayList<Path>();
     }
@@ -245,8 +253,11 @@ public class JooqLookupManager implements LookupManager {
 
         if      (result == null || result.size() == 0) throw new ObjectNotFoundException("Role '"+roleName+"' does not exist");
         else if (result.size() > 1)                    throw new ObjectNotFoundException("Unbiguos roleName:'"+roleName+"'");
+        
+        RolePath role = (RolePath)result.get(0);
+        role.setPermissions(permissions.fetch(context, role.getStringPath()));
 
-        return (RolePath)result.get(0);
+        return role;
     }
 
     @Override
@@ -391,6 +402,7 @@ public class JooqLookupManager implements LookupManager {
         try {
             role.getParent();
             roles.insert(context, role, null);
+            permissions.insert(context, role.getStringPath(), role.getPermissions());
             return role;
         }
         catch (Throwable t) {
@@ -489,7 +501,7 @@ public class JooqLookupManager implements LookupManager {
     @Override
     public RolePath[] getRoles(AgentPath agent) {
         try {
-            return roles.findRolesOfAgent(context, agent).toArray(new RolePath[0]);
+            return roles.findRolesOfAgent(context, agent, permissions).toArray(new RolePath[0]);
         }
         catch (PersistencyException e) {
             Logger.error(e);
@@ -502,7 +514,7 @@ public class JooqLookupManager implements LookupManager {
         try {
             return new PagedResult(
                     roles.countRolesOfAgent(context, agent),
-                    roles.findRolesOfAgent(context, agent, offset, limit));
+                    roles.findRolesOfAgent(context, agent, offset, limit, permissions));
         }
         catch (PersistencyException e) {
             Logger.error(e);
@@ -595,6 +607,32 @@ public class JooqLookupManager implements LookupManager {
         catch (Exception e) {
             Logger.error(e);
             throw new ObjectCannotBeUpdated("Item:" + item + " error:" + e.getMessage());
+        }
+    }
+
+    @Override
+    public void setPermission(RolePath role, String permission) throws ObjectNotFoundException, ObjectCannotBeUpdated {
+        ArrayList<String> permissions = new ArrayList<>();
+
+        if (StringUtils.isNotBlank(permission)) permissions.add(permission);
+
+        setPermissions(role, permissions);
+    }
+
+    @Override
+    public void setPermissions(RolePath role, List<String> permissions) throws ObjectNotFoundException, ObjectCannotBeUpdated {
+        if (!exists(role)) throw new ObjectNotFoundException("Role:"+role);
+
+        role.setPermissions(permissions);
+
+        try {
+            if (this.permissions.exists(context, role.getStringPath())) this.permissions.delete(context, role.getStringPath());
+
+            this.permissions.insert(context, role.getStringPath(), role.getPermissions());
+        }
+        catch (Exception e) {
+            Logger.error(e);
+            throw new ObjectCannotBeUpdated("Role:"+role + " error:" + e.getMessage());
         }
     }
 }
