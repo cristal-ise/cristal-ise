@@ -893,4 +893,14 @@ public class LDAPLookup implements LookupManager {
 
         throw new NotImplementedException("Paging support is not implemented");
     }
+
+    @Override
+    public void setPermission(RolePath role, String permission) throws ObjectNotFoundException, ObjectCannotBeUpdated {
+        throw new NotImplementedException("Permission support is not implemented");
+    }
+
+    @Override
+    public void setPermissions(RolePath role, List<String> permissions) throws ObjectNotFoundException, ObjectCannotBeUpdated {
+        throw new NotImplementedException("Permission support is not implemented");
+    }
 }
