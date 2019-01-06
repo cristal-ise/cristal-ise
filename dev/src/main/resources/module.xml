@@ -264,15 +264,5 @@
                 <CollectionProperties />
             </Dependency>
         </Item>
-
-        <Role jobList="false">User</Role>
-        <Role jobList="false">User/SubUser</Role>
-        <Agent name="dev" password="test">
-            <Role>Admin</Role>
-        </Agent>
-        <Agent name="user" password="test">
-            <Role>User/SubUser</Role>
-            <Role>Admin</Role>
-        </Agent>
     </Imports>
 </CristalModule>
