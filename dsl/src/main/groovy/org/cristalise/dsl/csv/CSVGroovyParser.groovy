@@ -39,8 +39,20 @@ class CSVGroovyParser {
         int idx = 0;
 
         for(CSVRecord record : parser) {
-            if( parser.headerMap == null) block(record, idx++)
-            else                          block(record.toMap(), idx++)
+            if( parser.headerMap == null) {
+                block(record, idx++)
+            }
+            else {
+                //copy the record into a LinkedHashMap which keeps the order of fields
+                def newMapRecord = [:] //uses LinkedHashMap
+                def oldMapRecord = record.toMap() //uses HashMap
+
+                for (String key: parser.headerMap.keySet()) {
+                    newMapRecord[key] = oldMapRecord[key]
+                }
+
+                block(newMapRecord, idx++)
+            }
         }
 
         parser.close()

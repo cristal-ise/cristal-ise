@@ -28,6 +28,7 @@ import org.cristalise.kernel.entity.proxy.AgentProxy
 import org.cristalise.kernel.entity.proxy.ItemProxy
 import org.cristalise.kernel.lifecycle.ActivityDef
 import org.cristalise.kernel.lifecycle.CompositeActivityDef
+import org.cristalise.kernel.lookup.AgentPath
 import org.cristalise.kernel.persistency.outcome.Outcome
 import org.cristalise.kernel.process.Gateway
 import org.cristalise.kernel.process.resource.BuiltInResources
@@ -57,25 +58,32 @@ class DevItemUtility {
     public String moduleFactoryName       = "/domain/desc/dev/ModuleFactory"
 
     /**
-     *
-     * @param proxy
+     * 
+     * @param item
+     * @param agent
      * @param expectedJobs
      */
-    public void checkJobs(ItemProxy proxy, List<Map<String, Object>> expectedJobs) {
-        def jobs = proxy.getJobList(agent)
-        println jobs
+    public static void checkJobs(ItemProxy item, AgentPath agent, List<Map<String, Object>> expectedJobs) {
+        def jobs = item.getJobList(agent)
 
-        assert expectedJobs && jobs && jobs.size() == expectedJobs.size()
+        assert jobs.size() == expectedJobs.size()
 
         expectedJobs.each { Map expectedJob ->
-            assert expectedJob && expectedJob.stepName && expectedJob.agentRole != null && expectedJob.transitionName
+            assert expectedJob && expectedJob.stepName &&  expectedJob.transitionName
 
             assert jobs.find { Job j ->
-                j.stepName == expectedJob.stepName &&
-                        j.agentRole == expectedJob.agentRole &&
-                        j.transition.name == expectedJob.transitionName
+                j.stepName == expectedJob.stepName && j.transition.name == expectedJob.transitionName
             }, "Cannot find Job: '${expectedJob.stepName}' , '${expectedJob.agentRole}' , '${expectedJob.transitionName}'"
         }
+    }
+
+    /**
+     * 
+     * @param item
+     * @param expectedJobs
+     */
+    public void checkJobs(ItemProxy item, List<Map<String, Object>> expectedJobs) {
+        checkJobs(item, agent.getPath(), expectedJobs)
     }
 
     /**
@@ -280,7 +288,7 @@ class DevItemUtility {
 
         if(schemaName && !schemaName.startsWith("-")) {
             assert eaDescItem.getViewpoint(resHandler.name, "0")
-            assert eaDescItem.getCollection(SCHEMA, 0).size() == 1
+            assert eaDescItem.getCollection(SCHEMA, (Integer)0).size() == 1
         }
     }
 
@@ -320,10 +328,10 @@ class DevItemUtility {
 
         assert eaDescItem.getViewpoint(resHandler.name, "0")
 
-        if(eaDef.schema)       assert eaDescItem.getCollection(SCHEMA,        0).size() == 1
-        if(eaDef.script)       assert eaDescItem.getCollection(SCRIPT,        0).size() == 1
-        if(eaDef.query)        assert eaDescItem.getCollection(QUERY,         0).size() == 1
-        if(eaDef.stateMachine) assert eaDescItem.getCollection(STATE_MACHINE, 0).size() == 1
+        if(eaDef.schema)       assert eaDescItem.getCollection(SCHEMA,        (Integer)0).size() == 1
+        if(eaDef.script)       assert eaDescItem.getCollection(SCRIPT,        (Integer)0).size() == 1
+        if(eaDef.query)        assert eaDescItem.getCollection(QUERY,         (Integer)0).size() == 1
+        if(eaDef.stateMachine) assert eaDescItem.getCollection(STATE_MACHINE, (Integer)0).size() == 1
     }
 
     /**
@@ -366,8 +374,8 @@ class DevItemUtility {
     public ItemProxy editCompActDesc(String name, String folder, String caXML, int actCollSize = 0) {
         def caDescItem = editDevItem(COMP_ACT_DESC_RESOURCE, "EditDefinition", "AssignNewActivityVersionFromLast", name, folder, caXML)
 
-        assert caDescItem.getCollection(ACTIVITY, 0).size()
-        if(actCollSize) assert caDescItem.getCollection(ACTIVITY, 0).size() == actCollSize
+        assert caDescItem.getCollection(ACTIVITY, (Integer)0).size()
+        if(actCollSize) assert caDescItem.getCollection(ACTIVITY, (Integer)0).size() == actCollSize
 
         return caDescItem
     }
