@@ -26,7 +26,7 @@ def state = item.getProperty('State')
 Outcome details = null
 
 if (item.checkViewpoint(detailsSchema, 'last')) {
-    details = item.getViewpoint(detailsSchema, 'last').getOutcome()
+    details = item.getOutcome(item.getViewpoint(detailsSchema, 'last'))
 }
 
 def writer = new StringWriter()
