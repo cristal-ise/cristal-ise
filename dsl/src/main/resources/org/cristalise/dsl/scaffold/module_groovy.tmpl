@@ -14,11 +14,11 @@ setResourceRoot '@{rootDir}/resources'
 
 Module(ns: '@{moduleNs}', name: '@{moduleName}', version: @{moduleVersion}) {
 
-    Info(description: '3ATech cristal module', version: '@{moduleVersion}'){
+    Info(description: '@{moduleName} CRISTAL-iSE module', version: '@{moduleVersion}'){
         // provide dependencies here. e.g. dependencies: ['dependency1', 'dependency1' ... ]
     }
 
-    Url('ch/icube/aaa/resources/')
+    Url('@{resourcePackage}/resources/')
 
     Config(name: 'Module.debug', value: true)
 

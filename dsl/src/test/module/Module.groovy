@@ -12,13 +12,13 @@ setConnect 'src/test/conf/server.clc'
 
 setResourceRoot 'src/test/resources'
 
-Module(ns: 'testns', name: 'Test Module', version: 0) {
+Module(ns: 'testns', name: 'DSL Test', version: 0) {
 
-    Info(description: '3ATech cristal module', version: '0'){
+    Info(description: 'DSL Test CRISTAL-iSE module', version: '0'){
         // provide dependencies here. e.g. dependencies: ['dependency1', 'dependency1' ... ]
     }
 
-    Url('ch/icube/aaa/resources/')
+    Url('org.cristalise.test/resources/')
 
     Config(name: 'Module.debug', value: true)
 

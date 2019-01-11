@@ -1,9 +1,9 @@
-<?xml version="1.0" encoding="UTF-8"?><CristalModule ns="testns" name="Test Module">
+<?xml version="1.0" encoding="UTF-8"?><CristalModule ns="testns" name="DSL Test">
   <Info>
-    <Description>3ATech cristal module</Description>
+    <Description>DSL Test CRISTAL-iSE module</Description>
     <Version>0</Version>
   </Info>
-  <ResourceURL>ch/icube/aaa/resources/</ResourceURL>
+  <ResourceURL>org.cristalise.test/resources/</ResourceURL>
   <Config name="Module.debug">true</Config>
   <Imports>
     <Activity name="State_Activate" version="0"/>
