@@ -8,7 +8,11 @@ import spock.lang.Specification
 
 class ModuleBuilderSpecs extends Specification implements CristalTestSetup {
 
-    def setupSpec()   { inMemoryServer() }
+    def setupSpec() {
+        def props = new Properties()
+        props.put('DSL.GenerateModuleXml', false)
+        inMemoryServer(8, props, false)
+    }
     def cleanupSpec() { cristalCleanup() }
 
     def 'Module can define Info, Url and Configs'() {
