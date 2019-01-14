@@ -61,28 +61,15 @@ public class CookieLogin extends RestHandler {
      */
     private Response processLogin(String user, String pass, HttpHeaders headers) {
         try {
-            if (!Gateway.getAuthenticator().authenticate(user, pass, null))
-                throw ItemUtils.createWebAppException("Bad username/password", Response.Status.UNAUTHORIZED);
+            AgentPath agentPath = Gateway.getSecurityManager().authenticate(user, pass, null).getPath();
+            return getCookieResponse(agentPath, ItemUtils.produceJSON(headers.getAcceptableMediaTypes()));
         }
-        catch (InvalidDataException e) {
-            Logger.error(e);
-            throw ItemUtils.createWebAppException("Problem logging in");
-        }
-        catch (ObjectNotFoundException e1) {
+        catch (ObjectNotFoundException | InvalidDataException ex) {
+            //NOTE: Enable this log for testing security problems only, but always remove it when merged
+            //Logger.error(ex);
             Logger.msg(5, "CookieLogin.login() - Bad username/password");
             throw ItemUtils.createWebAppException("Bad username/password", Response.Status.UNAUTHORIZED);
         }
-
-        AgentPath agentPath;
-        try {
-            agentPath = Gateway.getLookup().getAgentPath(user);
-        }
-        catch (ObjectNotFoundException e) {
-            Logger.error(e);
-            throw ItemUtils.createWebAppException("Agent '" + user + "' not found", Response.Status.NOT_FOUND);
-        }
-
-        return getCookieResponse(agentPath, ItemUtils.produceJSON(headers.getAcceptableMediaTypes()));
     }
 
     /**
