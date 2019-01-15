@@ -32,9 +32,9 @@
   <!--Optional:-->
   <ResourceURL/>
   <!--Zero or more repetitions:-->
-  <Config name="" target="server"/>
+  <Config name="" target="client"/>
   <!--Zero or more repetitions:-->
-  <Script event="install" lang="" target="client"/>
+  <Script event="startup" lang="" target="client"/>
   <!--Optional:-->
   <Imports>
     <!--You have a CHOICE of the next 6 items at this level-->

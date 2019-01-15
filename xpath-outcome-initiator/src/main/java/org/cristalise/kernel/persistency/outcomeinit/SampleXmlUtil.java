@@ -184,7 +184,7 @@ public class SampleXmlUtil
     XmlAnySimpleType[] enumValues = sType.getEnumerationValues();
     if (enumValues != null && enumValues.length > 0)
     {
-        return enumValues[pick(enumValues.length)].getStringValue();
+        return enumValues[0].getStringValue();
     }
 
     switch (sType.getPrimitiveType().getBuiltinTypeCode())

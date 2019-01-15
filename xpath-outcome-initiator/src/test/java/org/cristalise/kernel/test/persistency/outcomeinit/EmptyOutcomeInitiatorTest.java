@@ -106,6 +106,11 @@ public class EmptyOutcomeInitiatorTest extends OutcomeInitiatorTestBase {
     }
 
     @Test
+    public void generateEnumXML() throws Exception {
+        checkEmptyOutcome("EnumFields");
+    }
+
+    @Test
     public void generateModuleXML() throws Exception {
         checkEmptyOutcome("Module");
     }
