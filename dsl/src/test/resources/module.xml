@@ -18,6 +18,7 @@
       <Schema name="TestItem_Details" version="0"/>
     </Activity>
     <ScriptResource name="TestItem_Aggregate" version="0"/>
+    <ScriptResource name="TestItem_QueryList" version="0"/>
     <Activity name="TestItem_Aggregate" version="0">
       <Schema name="TestItem" version="0"/>
       <Script name="TestItem_Aggregate" version="0"/>

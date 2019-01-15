@@ -29,6 +29,12 @@ def @{item}AggregateScript = Script('@{item}_Aggregate', 0) {
     script('groovy', moduleDir+'/script/@{item}_Aggregate.groovy')
 }
 
+def @{item}QueryListScript = Script('@{item}_QueryList', 0) {
+    input('item', 'org.cristalise.kernel.entity.proxy.ItemProxy')
+    output('@{item}Map', 'java.util.Map')
+    script('groovy', moduleDir+'/script/@{item}_QueryList.groovy')
+}
+
 Activity('@{item}_Aggregate', 0) {
     Property('OutcomeInit': 'Empty')
     Property('Agent Role': 'UserCode')
