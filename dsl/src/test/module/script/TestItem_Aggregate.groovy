@@ -13,7 +13,7 @@ import groovy.xml.MarkupBuilder
 // Job job
 //--------------------------------------------------
 
-def detailsSchema = '@{item}_Details'
+def detailsSchema = 'TestItem_Details'
 
 def name  = item.getName()
 def id    = item.getProperty('ID')
@@ -22,13 +22,13 @@ def state = item.getProperty('State')
 Outcome details = null
 
 if (item.checkViewpoint(detailsSchema, 'last')) {
-    details = item.getViewpoint(detailsSchema, 'last').getOutcome()
+    details = item.getOutcome(item.getViewpoint(detailsSchema, 'last'))
 }
 
 def writer = new StringWriter()
 def xml = new MarkupBuilder(writer)
 
-xml.@{item} {
+xml.TestItem {
     Name(  name  )
     ID(    id    )
     State( state )
@@ -37,4 +37,4 @@ xml.@{item} {
 }
 
 //check if this variable was defined as output
-@{item}XML = writer.toString()
+TestItemXML = writer.toString()

@@ -1,0 +1,59 @@
+/**
+ * @{item} Item
+ */
+def @{item} = Schema('@{item}', 0) {
+    struct(name:' @{item}', documentation: '@{item} aggregated data') {
+        field(name: 'Name',        type: 'string')
+        field(name: 'ID',          type: 'string')
+        field(name: 'State',       type: 'string', values: states)
+        field(name: 'Description', type: 'string')
+    }
+}
+
+def @{item}Details = Schema('@{item}_Details', 0) {
+    struct(name: '@{item}_Details') {
+        field(name: 'Name',        type: 'string')
+        field(name: 'Description', type: 'string')
+    }
+}
+
+def @{item}UpdateAct = Activity('@{item}_Update', 0) {
+    Property('OutcomeInit': 'Empty')
+    Schema(@{item}Details)
+    //Script('Entity_ChangeName', 0)
+}
+
+def @{item}AggregateScript = Script('@{item}_Aggregate', 0) {
+    input('item', 'org.cristalise.kernel.entity.proxy.ItemProxy')
+    output('@{item}XML', 'java.lang.String')
+    script('groovy', moduleDir+'/script/@{item}_Aggregate.groovy')
+}
+
+Activity('@{item}_Aggregate', 0) {
+    Property('OutcomeInit': 'Empty')
+    Property('Agent Role': 'UserCode')
+
+    Schema(@{item})
+    Script(@{item}AggregateScript)
+}
+
+def @{item}Wf = Workflow('@{item}_Workflow', 0) {
+    ElemActDef(@{item}UpdateAct)
+    ElemActDef('StateManage', 0)
+}
+
+def @{item}PropDesc = PropertyDescriptionList {
+    PropertyDesc(name: 'Name',  isMutable: true,  isClassIdentifier: false)
+    PropertyDesc(name: 'Type',  isMutable: false, isClassIdentifier: true, defaultValue: '@{item}')
+    PropertyDesc(name: 'State', isMutable: true,  isClassIdentifier: true, defaultValue: 'ACTIVE')
+}
+
+Item(name: '(@{item}Factory', folder: '/', workflow: '@{item}Factory_Workflow') {
+    Property('Type': 'Factory')
+    Outcome(schema: 'PropertyDescription', version: '0', viewname: 'last', path: 'boot/property/@{item}.xml')
+    Dependency("workflow'") {
+        Member(itemPath: '/desc/ActivityDesc/@{moduleNs}/@{item}_Workflow') {
+            Property('Version': 0)
+        }
+    }
+}

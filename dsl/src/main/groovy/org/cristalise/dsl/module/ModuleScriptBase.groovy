@@ -1,11 +1,15 @@
 package org.cristalise.dsl.module
 
+import java.nio.file.Path
+import java.nio.file.Paths
+
 import org.cristalise.kernel.common.InvalidDataException
 import org.cristalise.kernel.process.AbstractMain
 import org.cristalise.kernel.process.Gateway
 import org.cristalise.kernel.utils.Logger
 
 import groovy.transform.CompileStatic
+import groovy.transform.SourceURI
 
 @CompileStatic
 abstract class ModuleScriptBase extends DelegatingScript {
@@ -17,7 +21,16 @@ abstract class ModuleScriptBase extends DelegatingScript {
     String connect = null
     String config = null
 
+    String resourceRoot = null
+    String exportRoot = null
+
+    String moduletDir = 'src/main/module'
+    
     Integer logLevel = 0
+    
+    def setModuletDir(URI uri) {
+        moduletDir = Paths.get(uri).parent.toString()
+    }
 
     public void init() {
         Logger.addLogStream(System.out, logLevel)
@@ -37,10 +50,18 @@ abstract class ModuleScriptBase extends DelegatingScript {
         Gateway.connect()
     }
 
-    public void Module(Map args, Closure cl) {
+    public void Module(Map args, Closure cl) {        
         init()
 
-        ModuleDelegate md = new ModuleDelegate((String)args.ns, (String)args.name, (Integer)args.version, this.binding)
+        ModuleDelegate md = new ModuleDelegate(
+            (String)args.ns, 
+            (String)args.name, 
+            (Integer)args.version,
+            resourceRoot,
+            exportRoot,
+            moduletDir,
+            this.binding
+        )
 
         if(cl) md.processClosure(cl)
 

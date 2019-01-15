@@ -20,6 +20,7 @@
  */
 package org.cristalise.kernel.test.utils
 
+import java.util.Properties
 import org.cristalise.kernel.process.AbstractMain
 import org.cristalise.kernel.process.Bootstrap
 import org.cristalise.kernel.process.Gateway
@@ -82,17 +83,17 @@ trait CristalTestSetup {
         //FieldUtils.writeDeclaredStaticField(Gateway.class, "mLookupManager", Gateway.getLookup(), true)
     }
 
-    public void inMemoryServer(String conf, String clc, int logLevel, boolean skipBootstrap = false) {
-        serverSetup(logLevel, conf, clc, skipBootstrap)
+    public void inMemoryServer(String conf, String clc, int logLevel, Properties testProps = null, boolean skipBootstrap = false) {
+        serverSetup(logLevel, conf, clc, testProps, skipBootstrap)
     }
 
-    public void inMemoryServer(int logLevel = defaultLogLevel, boolean skipBootstrap = false) {
-        serverSetup(logLevel, 'src/test/conf/testServer.conf', 'src/test/conf/testInMemory.clc', skipBootstrap)
+    public void inMemoryServer(int logLevel = defaultLogLevel, Properties testProps = null, boolean skipBootstrap = false) {
+        serverSetup(logLevel, 'src/test/conf/testServer.conf', 'src/test/conf/testInMemory.clc', testProps, skipBootstrap)
         //Thread.sleep(2000)
     }
 
-    public Authenticator serverSetup(int logLevel, String config, String connect, boolean skipBootstrap = false) {
-        Authenticator auth = cristalSetup(logLevel, config, connect)
+    public Authenticator serverSetup(int logLevel, String config, String connect, Properties testProps = null, boolean skipBootstrap = false) {
+        Authenticator auth = cristalSetup(logLevel, config, connect, testProps)
         Logger.initConsole("ItemServer");
 
         Gateway.startServer()
@@ -105,14 +106,14 @@ trait CristalTestSetup {
         return auth
     }
 
-    public Authenticator cristalSetup(int logLevel, String config, String connect) {
-        cristalInit(logLevel, config, connect)
+    public Authenticator cristalSetup(int logLevel, String config, String connect, Properties testProps = null) {
+        cristalInit(logLevel, config, connect, testProps)
         return Gateway.connect()
     }
 
-    public void cristalInit(int logLevel, String config, String connect) {
+    public void cristalInit(int logLevel, String config, String connect, Properties testProps = null) {
         loggerSetup(logLevel)
-        Gateway.init(AbstractMain.readPropertyFiles(config, connect, null))
+        Gateway.init(AbstractMain.readPropertyFiles(config, connect, testProps))
     }
 
     public void cristalCleanup() {

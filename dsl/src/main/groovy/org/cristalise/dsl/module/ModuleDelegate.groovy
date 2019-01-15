@@ -20,6 +20,8 @@
  */
 package org.cristalise.dsl.module
 
+import static org.cristalise.kernel.process.resource.BuiltInResources.PROPERTY_DESC_RESOURCE
+
 import org.codehaus.groovy.control.CompilerConfiguration
 import org.cristalise.dsl.entity.AgentBuilder
 import org.cristalise.dsl.entity.ItemBuilder
@@ -39,6 +41,7 @@ import org.cristalise.kernel.lifecycle.instance.stateMachine.StateMachine
 import org.cristalise.kernel.persistency.outcome.Schema
 import org.cristalise.kernel.process.Gateway
 import org.cristalise.kernel.process.module.*
+import org.cristalise.kernel.process.resource.BuiltInResources
 import org.cristalise.kernel.querying.Query
 import org.cristalise.kernel.scripting.Script
 import org.cristalise.kernel.test.utils.KernelXMLUtility
@@ -62,11 +65,24 @@ class ModuleDelegate {
 
     Binding bindings
 
-    static final String MODULE_RESOURCE_ROOT = "src/main/resources"
-    static final String MODULE_EXPORT_ROOT   = "$MODULE_RESOURCE_ROOT/boot"
-    static final String PROPERTY_ROOT        = "${MODULE_EXPORT_ROOT}/property"
 
-    File moduleXMLFile = new File("$MODULE_RESOURCE_ROOT/module.xml")
+    String resourceRoot = 'src/main/resources'
+    String exportRoot   = 'src/main/script/'
+    String moduleDir    = 'src/main/script/'
+
+    private String resourceBoot = null
+    private File moduleXMLFile = null
+
+    public ModuleDelegate(String ns, String n, int v, String resRoot, String expRoot, String modDir, Binding b = null) {
+        this(ns, n, v, b)
+
+        if (resRoot) resourceRoot = resRoot
+        if (expRoot) exportRoot   = expRoot
+        if (modDir)  moduleDir    = modDir
+
+        resourceBoot = "$resourceRoot/boot"
+        moduleXMLFile = new File("$resourceRoot/module.xml")
+   }
 
     public ModuleDelegate(String ns, String n, int v, Binding b = null) {
         if (b) bindings = b
@@ -77,6 +93,9 @@ class ModuleDelegate {
         newModule.ns = ns
         newModule.name = n
         newModule.info.version = Integer.toString(v)
+
+        resourceBoot = "$resourceRoot/boot"
+        moduleXMLFile = new File("$resourceRoot/module.xml")
 
         if (moduleXMLFile.exists()) {
             module = (Module) Gateway.getMarshaller().unmarshall(moduleXMLFile.text)
@@ -106,7 +125,7 @@ class ModuleDelegate {
 
     public Schema Schema(String name, Integer version, Closure cl) {
         def schema = SchemaBuilder.build(name, version, cl)
-        schema.export(imports, new File(MODULE_EXPORT_ROOT), true)
+        schema.export(imports, new File(resourceBoot), true)
         addSchema(schema)
         return schema
     }
@@ -119,7 +138,7 @@ class ModuleDelegate {
 
     public Query Query(String name, Integer version, Closure cl) {
         def query = QueryBuilder.build(newModule.name, name, version, cl)
-        query.export(imports, new File(MODULE_EXPORT_ROOT), true)
+        query.export(imports, new File(resourceBoot), true)
         addQuery(query)
         return query
     }
@@ -132,7 +151,7 @@ class ModuleDelegate {
 
     public Script Script(String name, Integer version, Closure cl) {
         def script = ScriptBuilder.build(name, version, cl)
-        script.export(imports, new File(MODULE_EXPORT_ROOT), true)
+        script.export(imports, new File(resourceBoot), true)
         addScript(script)
         return script
     }
@@ -145,7 +164,7 @@ class ModuleDelegate {
 
     public StateMachine StateMachine(String name, Integer version, Closure cl) {
         def sm = StateMachineBuilder.build("", name, version, cl).sm
-        sm.export(imports, new File(MODULE_EXPORT_ROOT), true)
+        sm.export(imports, new File(resourceBoot), true)
         addStateMachine(sm)
         return sm
     }
@@ -158,7 +177,7 @@ class ModuleDelegate {
 
     public ActivityDef Activity(String name, Integer version, Closure cl) {
         def eaDef = ElemActDefBuilder.build(name, version, cl)
-        eaDef.export(imports, new File(MODULE_EXPORT_ROOT), true)
+        eaDef.export(imports, new File(resourceBoot), true)
         addActivityDef(eaDef)
         return eaDef
     }
@@ -191,7 +210,10 @@ class ModuleDelegate {
         def propDescList = PropertyDescriptionBuilder.build(cl)
         def type = propDescList.list.find { it.isClassIdentifier && it.name == 'Type' }
 
-        FileStringUtility.string2File(new File(new File(PROPERTY_ROOT), "${type.defaultValue}.xml"), XmlUtil.serialize(Gateway.getMarshaller().marshall(propDescList)))
+        FileStringUtility.string2File(
+            new File(new File(resourceBoot+"/"+PROPERTY_DESC_RESOURCE.typeCode), "${type.defaultValue}.xml"), 
+            XmlUtil.serialize(Gateway.getMarshaller().marshall(propDescList))
+        )
     }
 
     /**
@@ -279,7 +301,7 @@ class ModuleDelegate {
         cl.resolveStrategy = Closure.DELEGATE_FIRST
         cl()
 
-        if (module && Gateway.properties.getBoolean('DSL.GenerateModuleXml', true)) {
+        if (Gateway.properties.getBoolean('DSL.GenerateModuleXml', true)) {
             def oldModuleXML = XmlUtil.serialize(Gateway.getMarshaller().marshall(module))
             def newModuleXML = XmlUtil.serialize(Gateway.getMarshaller().marshall(newModule))
 

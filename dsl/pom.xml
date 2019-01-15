@@ -82,7 +82,7 @@
         <groovy-eclipse-compiler.version>2.9.2-01</groovy-eclipse-compiler.version>
         <groovy-eclipse-batch.version>2.4.3-01</groovy-eclipse-batch.version>
         <maven-release-plugin.version>2.4.1</maven-release-plugin.version>
-        <maven-surefire-plugin.version>2.6</maven-surefire-plugin.version>
+        <maven-surefire-plugin.version>2.22.1</maven-surefire-plugin.version>
         <maven-javadoc-plugin.version>2.10.4</maven-javadoc-plugin.version>
         <maven-source-plugin.version>3.0.1</maven-source-plugin.version>
         <nexus-staging-maven-plugin.version>1.6.8</nexus-staging-maven-plugin.version>
@@ -99,7 +99,7 @@
         <commons-csv.version>1.5</commons-csv.version>
         <spock.version>1.2-groovy-2.4</spock.version>
         <unitils-core.version>3.4.6</unitils-core.version>
-        <mvel2.version>2.2.8.Final</mvel2.version>
+        <mvel2.version>2.4.3.Final</mvel2.version>
         <spock-reports.version>1.6.1</spock-reports.version>
         <slf4j-simple.version>1.7.13</slf4j-simple.version>
     </properties>
@@ -168,6 +168,7 @@
                     <includes>
                         <include>**/*Specs.*</include>
                         <include>**/*Tests.*</include>
+                        <include>**/*Test.*</include>
                     </includes>
                 </configuration>
             </plugin>
@@ -243,6 +244,11 @@
             <version>${commons-csv.version}</version>
             <scope>compile</scope>
         </dependency>
+        <dependency>
+            <groupId>org.mvel</groupId>
+            <artifactId>mvel2</artifactId>
+            <version>${mvel2.version}</version>
+        </dependency>
 
         <dependency>
             <groupId>junit</groupId>
@@ -290,12 +296,6 @@
             <groupId>org.cristalise</groupId>
             <artifactId>cristalise-inmemory-lookup</artifactId>
             <version>${cristalise.version}</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.mvel</groupId>
-            <artifactId>mvel2</artifactId>
-            <version>${mvel2.version}</version>
             <scope>test</scope>
         </dependency>
         <dependency>
