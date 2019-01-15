@@ -17,10 +17,10 @@ import org.cristalise.kernel.property.Property
 def properties = [new Property('Type', 'TestItem'), new Property('State', 'ACTIVE')]
 
 def result = Gateway.getLookup().search(new DomainPath(), properties, 0, 100)
-def TestItemMap = [];
+TestItemMap = [];
 
 for (DomainPath dp: result.rows) {
-    map.put(dp.name, dp.itemPath.UUID)
+    TestItemMap.put(dp.name, dp.itemPath.UUID)
 }
 
 return TestItemMap
