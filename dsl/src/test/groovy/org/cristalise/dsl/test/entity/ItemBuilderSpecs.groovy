@@ -72,8 +72,7 @@ class ItemBuilderSpecs extends Specification implements CristalTestSetup {
         item.properties[2].value   == "kovax"
         item.properties[2].mutable == true
 
-        item.wf
-        item.wf.search("workflow/domain")
+        !item.wf
     }
 
     def 'Item is built with empty domain Workflow'() {
