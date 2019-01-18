@@ -43,7 +43,7 @@ class ItemBuilderSpecs extends Specification implements CristalTestSetup {
         thrown InvalidDataException
     }
 
-    def 'ItemBuilder with empty Workflow adds Name to Properties'() {
+    def 'Item is built without workflow adds Name to Properties'() {
         when:
         def item = ItemBuilder.build(name: "dummy", folder: "testing") {}
 
@@ -53,7 +53,7 @@ class ItemBuilderSpecs extends Specification implements CristalTestSetup {
         item.properties[0].value == "dummy"
     }
 
-    def 'ItemBuilder with empty Workflow can have user defined Properties'() {
+    def 'Item is built without workflow can have user defined Properties'() {
         when:
         def item = ItemBuilder.build(name: "userDefinedProps", folder: "testing") {
             InmutableProperty("Brain": "kovax")
@@ -71,9 +71,12 @@ class ItemBuilderSpecs extends Specification implements CristalTestSetup {
         item.properties[2].name    == "Pinky"
         item.properties[2].value   == "kovax"
         item.properties[2].mutable == true
+
+        item.wf
+        item.wf.search("workflow/domain")
     }
 
-    def 'ItemBuilder builds domain Workflow'() {
+    def 'Item is built with empty domain Workflow'() {
         when:
         def item = ItemBuilder.build(name: "myFisrtItem", folder: "testing") { Workflow {} }
 
@@ -84,7 +87,7 @@ class ItemBuilderSpecs extends Specification implements CristalTestSetup {
         item.properties.size == 1
     }
 
-    def 'ItemBuilder with Outcome'() {
+    def 'Item is built without workflow and a single Outcome'() {
         when:
         def item = ItemBuilder.build(name: "testItem", folder: "test") {
             Outcome(schema: "PropertyDescription", version: "0", viewname: "last", path: "boot/property/Test.xml")
@@ -96,16 +99,12 @@ class ItemBuilderSpecs extends Specification implements CristalTestSetup {
         item.outcomes.get(0).version == 0
         item.outcomes.get(0).viewname == "last"
         item.outcomes.get(0).path == "boot/property/Test.xml"
-
     }
 
-    def 'ItemBuilder with Dependency'() {
+    def 'Item is built without workflow and a Dependency to another Item'() {
         when:
         def item = ItemBuilder.build(name: "testItem", folder: "test") {
             Dependency('workflow') {
-                Properties {
-                    Property("isDescription": false)
-                }
                 Member(itemPath: "/desc/ActivityDesc/domain/TestWorkflow") {
                     Property("Version": 0)
                 }
@@ -118,12 +117,11 @@ class ItemBuilderSpecs extends Specification implements CristalTestSetup {
         item.dependencyList.get(0).isDescription == false
         item.dependencyList.get(0).dependencyMemberList.size == 1
         item.dependencyList.get(0).dependencyMemberList.get(0).itemPath == "/desc/ActivityDesc/domain/TestWorkflow"
-        item.dependencyList.get(0).dependencyMemberList.get(0).props.size() == 2
-        item.dependencyList.get(0).dependencyMemberList.get(0).props.get("isDescription") == false
+        item.dependencyList.get(0).dependencyMemberList.get(0).props.size() == 1
         item.dependencyList.get(0).dependencyMemberList.get(0).props.get("Version") == 0
     }
 
-    def 'ItemBuilder with DependencyDescription'() {
+    def 'Item is built without workflow and a DependencyDescription to another Item'() {
         when:
         def item = ItemBuilder.build(name: "testItem", folder: "test") {
             DependencyDescription('workflow') {
