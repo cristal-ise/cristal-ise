@@ -32,7 +32,11 @@ import org.cristalise.kernel.property.PropertyDescriptionList
 class PropertyDescriptionBuilder {
 
     public static PropertyDescriptionList build(Closure cl) {
-        def pdd = new PropertyDescriptionDelegate()
+        return build(null, null, cl)
+    }
+
+    public static PropertyDescriptionList build(String name, Integer version, Closure cl) {
+        def pdd = new PropertyDescriptionDelegate(name, version)
         pdd.processClosure(cl)
         return pdd.propDescList
     }

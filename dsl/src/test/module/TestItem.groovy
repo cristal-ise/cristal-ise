@@ -48,13 +48,13 @@ def TestItemWf = Workflow('TestItem_Workflow', 0) {
     ElemActDef('StateManage', 0)
 }
 
-def TestItemPropDesc = PropertyDescriptionList {
+def TestItemPropDesc = PropertyDescriptionList('TestItem', 0) {
     PropertyDesc(name: 'Name',  isMutable: true,  isClassIdentifier: false)
     PropertyDesc(name: 'Type',  isMutable: false, isClassIdentifier: true, defaultValue: 'TestItem')
     PropertyDesc(name: 'State', isMutable: true,  isClassIdentifier: true, defaultValue: 'ACTIVE')
 }
 
-Item(name: '(TestItemFactory', folder: '/', workflow: 'TestItemFactory_Workflow') {
+Item(name: 'TestItemFactory', folder: '/', workflow: 'TestItemFactory_Workflow') {
     Property('Type': 'Factory')
     Outcome(schema: 'PropertyDescription', version: '0', viewname: 'last', path: 'boot/property/TestItem.xml')
     Dependency("workflow'") {
