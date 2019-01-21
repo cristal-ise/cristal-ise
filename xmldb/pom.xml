@@ -1,0 +1,306 @@
+<!--
+
+    This file is part of the CRISTAL-iSE eXist-DB storage plugin.
+    Copyright (c) 2001-2016 The CRISTAL Consortium. All rights reserved.
+
+    This library is free software; you can redistribute it and/or modify it
+    under the terms of the GNU Lesser General Public License as published
+    by the Free Software Foundation; either version 3 of the License, or (at
+    your option) any later version.
+
+    This library is distributed in the hope that it will be useful, but WITHOUT
+    ANY WARRANTY; with out even the implied warranty of MERCHANTABILITY or
+    FITNESS FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public
+    License for more details.
+
+    You should have received a copy of the GNU Lesser General Public License
+    along with this library; if not, write to the Free Software Foundation,
+    Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA.
+
+    http://www.fsf.org/licensing/licenses/lgpl.html
+
+-->
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <name>cristalise-xmldb</name>
+    <groupId>org.cristalise</groupId>
+    <artifactId>cristalise-xmldb</artifactId>
+    <version>4.0.0-SNAPSHOT</version>
+    <description>CRISTAL eXist-db Storage Module</description>
+    <url>https://github.com/cristal-ise/xmldb</url>
+    <licenses>
+        <license>
+            <name>GNU Library or Lesser General Public License v3 (LGPL3)</name>
+            <url>http://www.gnu.org/licenses/lgpl.html</url>
+        </license>
+    </licenses>
+    <developers>
+        <developer>
+            <name>Andrew Branson</name>
+            <email>andrew.branson@cern.ch</email>
+            <organization>UWE CCCS</organization>
+            <organizationUrl>http://www.cccs.uwe.ac.uk/et/research/cccs</organizationUrl>
+            <roles>
+                <role>CEO</role>
+            </roles>
+        </developer>
+        <developer>
+            <name>Jetendr Shamdasani</name>
+            <email>jetendr.shamdasani@cern.ch</email>
+            <organization>UWE CCCS</organization>
+            <organizationUrl>http://www.cccs.uwe.ac.uk/et/research/cccs</organizationUrl>
+            <roles>
+                <role>CEO</role>
+            </roles>
+        </developer>
+        <developer>
+            <name>Zsolt Kovács</name>
+            <email>zs.myth@gmail.com</email>
+            <organization>UWE CCCS</organization>
+            <organizationUrl>http://www.cccs.uwe.ac.uk/et/research/cccs</organizationUrl>
+            <roles>
+                <role>Pinky/Brain</role>
+            </roles>
+        </developer>
+    </developers>
+    <issueManagement>
+        <url>https://github.com/cristal-ise/xmldb/issues</url>
+        <system>GitHub</system>
+    </issueManagement>
+    <organization>
+        <name>CRISTAL-iSE</name>
+        <url>http://cristal-ise.github.io/</url>
+    </organization>
+    <ciManagement>
+        <system>Travis</system>
+        <url>https://travis-ci.org/cristal-ise/xmldb</url>
+    </ciManagement>
+    <scm>
+        <developerConnection>scm:https://github.com/cristal-ise/xmldb.git</developerConnection>
+        <url>https://github.com/cristal-ise/xmldb</url>
+        <tag>master</tag>
+    </scm>
+    <mailingLists>
+        <mailingList>
+            <name>User List</name>
+            <post>cristal-users@cern.ch</post>
+            <subscribe>cristal-users-subscribe@cern.ch</subscribe>
+            <unsubscribe>cristal-users-unsubscribe@cern.ch</unsubscribe>
+            <archive>https://groups.cern.ch/group/cristal-users/default.aspx</archive>
+        </mailingList>
+    </mailingLists>
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <additionalparam>-Xdoclint:none</additionalparam>
+    </properties>
+    <build>
+        <resources>
+            <resource>
+                <directory>src/main/resources</directory>
+                <targetPath>META-INF/cristal</targetPath>
+                <filtering>true</filtering>
+                <includes>
+                    <include>module.xml</include>
+                </includes>
+            </resource>
+            <resource>
+                <directory>src/main/resources</directory>
+                <targetPath>org/cristalise/storage/xmldb/resources</targetPath>
+                <excludes>
+                    <exclude>module.xml</exclude>
+                </excludes>
+            </resource>
+        </resources>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.5</version>
+                <configuration>
+                    <source>1.8</source>
+                    <target>1.8</target>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-source-plugin</artifactId>
+                <version>2.2.1</version>
+                <executions>
+                    <execution>
+                        <id>attach-sources</id>
+                        <phase>verify</phase>
+                        <goals>
+                            <goal>jar-no-fork</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-javadoc-plugin</artifactId>
+                <version>2.9.1</version>
+                <configuration>
+                    <additionalparam>-Xdoclint:none</additionalparam>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>attach-javadocs</id>
+                        <goals>
+                            <goal>jar</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-release-plugin</artifactId>
+                <version>2.4.1</version>
+            </plugin>
+            <plugin>
+                <groupId>com.mycila</groupId>
+                <artifactId>license-maven-plugin</artifactId>
+                <version>2.11</version>
+                <configuration>
+                    <header>HEADER.txt</header>
+                </configuration>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>check</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+    
+    <repositories>
+        <repository>
+            <id>exist</id>
+            <url>https://raw.github.com/eXist-db/mvn-repo/master/</url>
+        </repository>
+    </repositories>
+
+    <distributionManagement>
+        <snapshotRepository>
+            <id>ossrh</id>
+            <url>https://oss.sonatype.org/content/repositories/snapshots</url>
+        </snapshotRepository>
+        <repository>
+            <id>ossrh</id>
+            <url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
+        </repository>
+    </distributionManagement>
+
+    <dependencies>
+        <dependency>
+            <groupId>org.cristalise</groupId>
+            <artifactId>cristalise-kernel</artifactId>
+                <version>4.0.0-SNAPSHOT</version>
+        </dependency>
+        <dependency>
+            <groupId>org.exist-db</groupId>
+            <artifactId>existdb-core</artifactId>
+            <version>2.2</version>
+            <exclusions>
+                <exclusion>
+                    <artifactId>commons-codec</artifactId>
+                    <groupId>commons-codec</groupId>
+                </exclusion>
+                <exclusion>
+                    <artifactId>commons-pool</artifactId>
+                    <groupId>commons-pool</groupId>
+                </exclusion>
+                <exclusion>
+                    <artifactId>jing</artifactId>
+                    <groupId>com.thaiopensource</groupId>
+                </exclusion>
+                <exclusion>
+                    <artifactId>Saxon-HE</artifactId>
+                    <groupId>net.sf.saxon</groupId>
+                </exclusion>
+                <exclusion>
+                    <artifactId>antlr</artifactId>
+                    <groupId>antlr</groupId>
+                </exclusion>
+                <exclusion>
+                    <artifactId>gnu-crypto</artifactId>
+                    <groupId>gnu-crypto</groupId>
+                </exclusion>
+                <exclusion>
+                    <artifactId>xmlrpc-server</artifactId>
+                    <groupId>org.apache.xmlrpc</groupId>
+                </exclusion>
+                <exclusion>
+                    <artifactId>excalibur-cli</artifactId>
+                    <groupId>excalibur-cli</groupId>
+                </exclusion>
+                <exclusion>
+                    <artifactId>pkg-repo</artifactId>
+                    <groupId>org.expath</groupId>
+                </exclusion>
+                <exclusion>
+                    <artifactId>quartz</artifactId>
+                    <groupId>org.quartz-scheduler</groupId>
+                </exclusion>
+                <exclusion>
+                    <artifactId>junit</artifactId>
+                    <groupId>junit</groupId>
+                </exclusion>
+                <exclusion>
+                    <artifactId>xercesImpl</artifactId>
+                    <groupId>xerces</groupId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+    </dependencies>
+    <profiles>
+        <profile>
+            <id>ossrh</id>
+            <properties>
+                <gpg.executable>gpg</gpg.executable>
+                <gpg.keyname>${env.GPG_KEYNAME}</gpg.keyname>
+                <gpg.passphrase>${env.GPG_PASSPHRASE}</gpg.passphrase>
+                <gpg.defaultKeyring>false</gpg.defaultKeyring>
+                <gpg.publicKeyring>${env.GPG_DIR}/pubring.gpg</gpg.publicKeyring>
+                <gpg.secretKeyring>${env.GPG_DIR}/secring.gpg</gpg.secretKeyring>
+            </properties>
+            <activation>
+                <property>
+                    <name>performRelease</name>
+                    <value>true</value>
+                </property>
+            </activation>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-gpg-plugin</artifactId>
+                        <version>1.5</version>
+                        <executions>
+                            <execution>
+                                <id>sign-artifacts</id>
+                                <phase>verify</phase>
+                                <goals>
+                                    <goal>sign</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                    <plugin>
+                        <groupId>org.sonatype.plugins</groupId>
+                        <artifactId>nexus-staging-maven-plugin</artifactId>
+                        <version>1.6.7</version>
+                        <extensions>true</extensions>
+                        <configuration>
+                            <serverId>ossrh</serverId>
+                            <nexusUrl>https://oss.sonatype.org/</nexusUrl>
+                            <autoReleaseAfterClose>true</autoReleaseAfterClose>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
+</project>
