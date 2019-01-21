@@ -33,7 +33,17 @@ import org.cristalise.kernel.property.PropertyDescriptionList
 @CompileStatic
 class PropertyDescriptionDelegate {
 
-    public PropertyDescriptionList propDescList = new PropertyDescriptionList()
+    public PropertyDescriptionList propDescList
+
+    public PropertyDescriptionDelegate() {
+        propDescList = new PropertyDescriptionList()
+    }
+
+    public PropertyDescriptionDelegate(String n, Integer v) {
+        this()
+        propDescList.name = n
+        propDescList.version = v
+    }
 
     public void processClosure(Closure cl) {
         assert cl, "PropertyDescriptionDelegate only works with a valid Closure"

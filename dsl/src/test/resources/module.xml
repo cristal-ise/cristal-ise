@@ -27,7 +27,8 @@
       <Activity name="TestItem_Update" version="0"/>
       <Activity name="StateManage" version="0"/>
     </Workflow>
-    <Item name="(TestItemFactory" initialPath="/" workflow="TestItemFactory_Workflow">
+    <PropertyDescriptionResource name="TestItem" version="0"/>
+    <Item name="TestItemFactory" initialPath="/" workflow="TestItemFactory_Workflow">
       <Property name="Type" mutable="true">Factory</Property>
       <Outcome viewname="last" schema="PropertyDescription" version="0">boot/property/TestItem.xml</Outcome>
       <Dependency name="workflow'" isDescription="false">
