@@ -39,6 +39,7 @@ import org.cristalise.kernel.lifecycle.instance.stateMachine.StateMachine
 import org.cristalise.kernel.persistency.outcome.Schema
 import org.cristalise.kernel.process.Gateway
 import org.cristalise.kernel.process.module.*
+import org.cristalise.kernel.property.PropertyDescriptionList
 import org.cristalise.kernel.querying.Query
 import org.cristalise.kernel.scripting.Script
 import org.cristalise.kernel.test.utils.KernelXMLUtility
@@ -192,6 +193,14 @@ class ModuleDelegate {
         def type = propDescList.list.find { it.isClassIdentifier && it.name == 'Type' }
 
         FileStringUtility.string2File(new File(new File(PROPERTY_ROOT), "${type.defaultValue}.xml"), XmlUtil.serialize(Gateway.getMarshaller().marshall(propDescList)))
+    }
+
+    public PropertyDescriptionList PropertyDescriptionList(String name, Integer version, Closure cl) {
+        def propDescList = PropertyDescriptionBuilder.build(name, version, cl)
+        propDescList.export(imports, new File(resourceBoot), true)
+        addPropertyDescriptionList(propDescList)
+
+        return propDescList
     }
 
     /**
@@ -358,9 +367,9 @@ class ModuleDelegate {
         moduleAct.setVersion(actDef.version)
         moduleAct.setName(actDef.name)
 
-        if (actDef.script)       moduleAct.setScript(       new ModuleDescRef(actDef.script.name,       null, actDef.script.version))
-        if (actDef.schema)       moduleAct.setSchema(       new ModuleDescRef(actDef.schema.name,       null, actDef.schema.version))
-        if (actDef.query)        moduleAct.setQuery(        new ModuleDescRef(actDef.query.name,        null, actDef.query.version))
+        if (actDef.script) moduleAct.setScript(new ModuleDescRef(actDef.script.name,       null, actDef.script.version))
+        if (actDef.schema) moduleAct.setSchema(new ModuleDescRef(actDef.schema.name,       null, actDef.schema.version))
+        if (actDef.query)  moduleAct.setQuery( new ModuleDescRef(actDef.query.name,        null, actDef.query.version))
 
         //Do not add 'Default' StateMachine
         if (actDef.stateMachine && actDef.stateMachine.name != 'Default') {
@@ -393,7 +402,15 @@ class ModuleDelegate {
 
         updateImports(moduleWf)
     }
-    
+
+    private void addPropertyDescriptionList(PropertyDescriptionList pdl) {
+        def modulePropDesc = new ModulePropertyDescription()
+        modulePropDesc.setVersion(pdl.version)
+        modulePropDesc.setName(pdl.name)
+
+        updateImports(modulePropDesc)
+    }
+
     private void updateImports(ModuleImport mImport) {
         int index = newModule.imports.list.findIndexOf { 
             ModuleImport mi -> (mi.name == mImport.name) && (mi.getClass() == mImport.getClass())
