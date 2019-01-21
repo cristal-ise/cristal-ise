@@ -1,0 +1,28 @@
+language: java
+jdk: oraclejdk8
+before_install:
+  - echo $GPG_SECRET_KEYS | base64 --decode | $GPG_EXECUTABLE --import
+  - echo $GPG_OWNERTRUST | base64 --decode | $GPG_EXECUTABLE --import-ownertrust
+  - echo $TRAVIS_BRANCH
+install:
+  mvn --settings .maven.xml install -DskipTests=true -Dgpg.skip -Dmaven.javadoc.skip=true -B -V
+script:
+  - if [ "$TRAVIS_PULL_REQUEST" == "false" ] && [[ "$TRAVIS_BRANCH" == "develop" || "$TRAVIS_BRANCH" == "master" ]]; then mvn clean deploy --settings .maven.xml -DskipTests=true -B -U -Prelease; fi
+before_deploy:
+  - mvn help:evaluate -N -Dexpression=project.version|grep -v '\['
+  - export project_version=$(mvn help:evaluate -N -Dexpression=project.version|grep -v '\[')
+deploy:
+  provider: releases
+  api_key:
+    secure: SEAK/xxe/STGWuMgj2Oa5U1UJTGWugeMds/YLbs4+CpChfK+UXjiuepEFlAWoGXPpOGr3XgoysC7yu65Llc7thUpfFqr3ysEuSdgURcXPUqkSHMVhBm7N8CHUlWaWTk59+8mL/2TuAEsNK3K3X6kD7q4Sb7rP45m92+rYThK93joZffDQPKqpvbb4XY6Bas5/9nij74q1dW28U0pxnfF0srnzyJjBzw0s/nLSTBRVfCkW4WjPQzetCLfmC/8/IkgQnBIl3UyMdP/XYpRcTbOwAmo4ytGBgCyGt0XvxsrNAEpwXz5hqNX2BQEefwk1VvfIwuBZiOn++Px4+a5iXOvHi9s5iDiZ59xIFhSpLrzQY+zfQSR1nlIz7L4mgsiUeVKygfgO5bqv3B0hL53G35K3VgByp6H9RAFHpnKz9xlfHDUadfOxBM9F1tbwLKqfghTfPuYSafm56jqOBYgJ1zHTMyr4t3GQ/9sjtw/m1dWGMbExM5V/RQt2ZPc5r1JSiNRqfFgEwFX9OO/YaFoTlvN4HiXa1ESmS7Bh2qnlXSrFSK53fx4SKq7yf49RjAAUjX11BHFlXxwf0ZOZ4rNG/NKXkEM7WJypqX4vo9FV4piH3AS5PmKbgdzAn0fjKsQT0GtFNwgSvxSMrLahv1zsHDD3wW6xu0Yxq0kT046X2eVkqw=
+  file:
+  - in-memory-lookup/target/cristalise-inmemory-lookup-$project_version.jar
+  skip_cleanup: true
+  on:
+    all_branches: true
+    condition: $TRAVIS_BRANCH =~ ^master|release|develop$
+    repo: cristal-ise/in-memory-lookup
+  name: cristalise-inmemory-lookup-$project_version
+cache:
+  directories:
+  - ~/.m2/repository
