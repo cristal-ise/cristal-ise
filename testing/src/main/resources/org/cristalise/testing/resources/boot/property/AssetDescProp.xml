@@ -1,0 +1,4 @@
+<AllProperties>
+    <PropertyDescription Name="Name" IsClassIdentifier="false" IsMutable="true"   DefaultValue=""/>
+    <PropertyDescription Name="Type" IsClassIdentifier="true"  IsMutable="false"  DefaultValue="AssetDescription"/>
+</AllProperties>

@@ -1,0 +1,5 @@
+<AllProperties>
+    <PropertyDescription Name="Name"       IsClassIdentifier="false" DefaultValue=""             IsMutable="false" />
+    <PropertyDescription Name="Complexity" IsClassIdentifier="true"  DefaultValue="Composite"    IsMutable="false" />
+    <PropertyDescription Name="Type"       IsClassIdentifier="true"  DefaultValue="ActivityDesc" IsMutable="false" />
+</AllProperties>

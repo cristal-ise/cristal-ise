@@ -1,0 +1,10 @@
+/target
+/build
+/.classpath
+/.project
+/.settings
+/.gradle
+/.groovy
+/bin/
+/cristal.preferences
+/cristalise-testing.iml
