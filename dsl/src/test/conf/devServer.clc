@@ -1,0 +1,23 @@
+Name=Cristal Development Server
+
+// TCP server ports
+ItemServer.name=localhost
+ItemServer.iiop=1505
+ItemServer.Proxy.port=1555
+
+Authenticator = org.cristalise.lookup.ldap.LDAPAuthManager
+Lookup        = org.cristalise.lookup.ldap.LDAPLookup
+
+// LDAP Lookup config
+LDAP.GlobalPath=o=cern,c=ch
+LDAP.RootPath=cn=cristal
+LDAP.LocalPath=cn=dev
+LDAP.port=389
+LDAP.host=localhost
+LDAP.user=cn=admin,o=cern,c=ch
+LDAP.password=cristal
+
+XMLDB.URI=xmldb:exist://localhost:8080/exist/xmlrpc/db
+XMLDB.root=dev
+XMLDB.user=admin
+XMLDB.password=admin
