@@ -1,0 +1,356 @@
+<!--
+
+    This file is part of the CRISTAL-iSE Development Module.
+    Copyright (c) 2001-2017 The CRISTAL Consortium. All rights reserved.
+
+    This library is free software; you can redistribute it and/or modify it
+    under the terms of the GNU Lesser General Public License as published
+    by the Free Software Foundation; either version 3 of the License, or (at
+    your option) any later version.
+
+    This library is distributed in the hope that it will be useful, but WITHOUT
+    ANY WARRANTY; with out even the implied warranty of MERCHANTABILITY or
+    FITNESS FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public
+    License for more details.
+
+    You should have received a copy of the GNU Lesser General Public License
+    along with this library; if not, write to the Free Software Foundation,
+    Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA.
+
+    http://www.fsf.org/licensing/licenses/lgpl.html
+
+-->
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <name>CRISTAL-iSE Development</name>
+    <groupId>org.cristalise</groupId>
+    <artifactId>cristalise-dev</artifactId>
+    <version>4.0.0-SNAPSHOT</version>
+    <description>CRISTAL-iSE Development Module</description>
+    <url>https://github.com/cristal-ise/dev</url>
+    <licenses>
+        <license>
+            <name>GNU Library or Lesser General Public License v3 (LGPL3)</name>
+            <url>http://www.gnu.org/licenses/lgpl.html</url>
+        </license>
+    </licenses>
+    <developers>
+        <developer>
+            <name>Andrew Branson</name>
+            <email>andrew.branson@cern.ch</email>
+            <organization>UWE CCCS</organization>
+            <organizationUrl>http://www.cccs.uwe.ac.uk/et/research/cccs</organizationUrl>
+            <roles>
+                <role>ex-CEO</role>
+            </roles>
+        </developer>
+        <developer>
+            <name>Jetendr Shamdasani</name>
+            <email>jetendr.shamdasani@cern.ch</email>
+            <organization>UWE CCCS</organization>
+            <organizationUrl>http://www.cccs.uwe.ac.uk/et/research/cccs</organizationUrl>
+            <roles>
+                <role>ex-CEO</role>
+            </roles>
+        </developer>
+        <developer>
+            <name>Zsolt Kovács</name>
+            <email>zs.myth@gmail.com</email>
+            <organization>UWE CCCS</organization>
+            <organizationUrl>http://www.cccs.uwe.ac.uk/et/research/cccs</organizationUrl>
+            <roles>
+                <role>Pinky/Brain/CTO</role>
+            </roles>
+        </developer>
+    </developers>
+    <issueManagement>
+        <url>https://github.com/cristal-ise/dev/issues</url>
+        <system>GitHub</system>
+    </issueManagement>
+    <organization>
+        <name>CRISTAL-iSE</name>
+        <url>http://cristal-ise.github.io/</url>
+    </organization>
+    <ciManagement>
+        <system>Jenkins</system>
+        <url>https://travis-ci.org/cristal-ise/dev</url>
+    </ciManagement>
+    <scm>
+        <developerConnection>scm:https://github.com/cristal-ise/dev.git</developerConnection>
+        <url>https://github.com/cristal-ise/dev</url>
+        <tag>master</tag>
+    </scm>
+    <mailingLists>
+        <mailingList>
+            <name>User List</name>
+            <post>cristal-users@cern.ch</post>
+            <subscribe>cristal-users-subscribe@cern.ch</subscribe>
+            <unsubscribe>cristal-users-unsubscribe@cern.ch</unsubscribe>
+            <archive>https://groups.cern.ch/group/cristal-users/default.aspx</archive>
+        </mailingList>
+    </mailingLists>
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <additionalparam>-Xdoclint:none</additionalparam>
+    </properties>
+
+    <build>
+        <resources>
+            <resource>
+                <directory>src/main/resources</directory>
+                <targetPath>META-INF/cristal</targetPath>
+                <filtering>true</filtering>
+                <includes>
+                    <include>module.xml</include>
+                </includes>
+            </resource>
+            <resource>
+                <directory>src/main/resources</directory>
+                <targetPath>org/cristalise/dev/resources</targetPath>
+                <excludes>
+                    <exclude>module.xml</exclude>
+                </excludes>
+            </resource>
+        </resources>
+        <plugins>
+            <plugin>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.5</version>
+                <configuration>
+                    <source>1.8</source>
+                    <target>1.8</target>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-source-plugin</artifactId>
+                <version>2.1.2</version>
+                <executions>
+                    <execution>
+                        <id>attach-sources</id>
+                        <phase>verify</phase>
+                        <goals>
+                            <goal>jar-no-fork</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-release-plugin</artifactId>
+                <version>2.4.1</version>
+            </plugin>
+            <plugin>
+                <groupId>com.mycila</groupId>
+                <artifactId>license-maven-plugin</artifactId>
+                <version>2.3</version>
+                <configuration>
+                    <header>HEADER.txt</header>
+                </configuration>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>check</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>appassembler-maven-plugin</artifactId>
+                <version>1.8</version>
+                <configuration>
+                    <repositoryLayout>flat</repositoryLayout>
+                    <configurationDirectory>conf</configurationDirectory>
+                    <copyConfigurationDirectory>true</copyConfigurationDirectory>
+                    <useTimestampInSnapshotFileName>false</useTimestampInSnapshotFileName>
+                    <includeConfigurationDirectoryInClasspath>true</includeConfigurationDirectoryInClasspath>
+                    <assembleDirectory>${project.build.directory}/dist</assembleDirectory>
+                    <showConsoleWindow>true</showConsoleWindow>
+                    <repositoryName>lib</repositoryName>
+                    <defaultJvmSettings>
+                        <maxMemorySize>1024M</maxMemorySize>
+                    </defaultJvmSettings>
+                    <programs>
+                        <program>
+                            <mainClass>org.cristalise.kernel.process.StandardServer</mainClass>
+                            <id>cristalise-server</id>
+                            <commandLineArguments>
+                                <commandLineArgument>-logLevel</commandLineArgument>
+                                <commandLineArgument>0</commandLineArgument>
+                                <commandLineArgument>-logFile</commandLineArgument>
+                                <commandLineArgument>@BASEDIR@/server.log</commandLineArgument>
+                                <commandLineArgument>-config</commandLineArgument>
+                                <commandLineArgument>@BASEDIR@/conf/server.conf</commandLineArgument>
+                                <commandLineArgument>-connect</commandLineArgument>
+                                <commandLineArgument>@BASEDIR@/conf/local.clc</commandLineArgument>
+                            </commandLineArguments>
+                        </program>
+                        <program>
+                            <mainClass>org.cristalise.gui.Main</mainClass>
+                            <id>cristalise-gui</id>
+                            <commandLineArguments>
+                                <commandLineArgument>-logLevel</commandLineArgument>
+                                <commandLineArgument>0</commandLineArgument>
+                                <commandLineArgument>-logFile</commandLineArgument>
+                                <commandLineArgument>@BASEDIR@/gui.log</commandLineArgument>
+                                <commandLineArgument>-config</commandLineArgument>
+                                <commandLineArgument>@BASEDIR@/conf/client.conf</commandLineArgument>
+                                <commandLineArgument>-connect</commandLineArgument>
+                                <commandLineArgument>@BASEDIR@/conf/local.clc</commandLineArgument>
+                            </commandLineArguments>
+                        </program>
+                        <program>
+                            <mainClass>org.cristalise.kernel.process.UserCodeProcess</mainClass>
+                            <id>cristalise-usercode</id>
+                            <commandLineArguments>
+                                <commandLineArgument>-logLevel</commandLineArgument>
+                                <commandLineArgument>0</commandLineArgument>
+                                <commandLineArgument>-logFile</commandLineArgument>
+                                <commandLineArgument>@BASEDIR@/usercode.log</commandLineArgument>
+                                <commandLineArgument>-config</commandLineArgument>
+                                <commandLineArgument>@BASEDIR@/conf/client.conf</commandLineArgument>
+                                <commandLineArgument>-connect</commandLineArgument>
+                                <commandLineArgument>@BASEDIR@/conf/local.clc</commandLineArgument>
+                            </commandLineArguments>
+                        </program>
+                    </programs>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>generate-distribution</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>assemble</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.codehaus.gmavenplus</groupId>
+                <artifactId>gmavenplus-plugin</artifactId>
+                <version>1.5</version>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>testCompile</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>2.18.1</version>
+                <configuration>
+                    <useFile>false</useFile>
+                    <includes>
+                        <include>**/*Spec.java</include>
+                    </includes>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+
+    <distributionManagement>
+        <snapshotRepository>
+            <id>ossrh</id>
+            <url>https://oss.sonatype.org/content/repositories/snapshots</url>
+        </snapshotRepository>
+        <repository>
+            <id>ossrh</id>
+            <url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
+        </repository>
+    </distributionManagement>
+
+    <dependencies>
+        <dependency>
+            <groupId>org.cristalise</groupId>
+            <artifactId>cristalise-kernel</artifactId>
+            <version>4.0.0-SNAPSHOT</version>
+        </dependency>
+        <dependency>
+            <groupId>org.cristalise</groupId>
+            <artifactId>cristalise-gui</artifactId>
+            <version>4.0.0-SNAPSHOT</version>
+        </dependency>
+        <dependency>
+            <groupId>org.cristalise</groupId>
+            <artifactId>cristalise-jooqdb</artifactId>
+            <version>4.0.0-SNAPSHOT</version>
+        </dependency>
+        <dependency>
+            <groupId>org.mozilla</groupId>
+            <artifactId>rhino</artifactId>
+            <version>[1.7.7,)</version>
+            <scope>runtime</scope>
+        </dependency>
+        <dependency>
+            <groupId>de.christophkraemer</groupId>
+            <artifactId>rhino-script-engine</artifactId>
+            <version>1.1.1</version>
+            <scope>runtime</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.spockframework</groupId>
+            <artifactId>spock-core</artifactId>
+            <version>1.1-groovy-2.4-rc-3</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.codehaus.groovy</groupId>
+            <artifactId>groovy-all</artifactId>
+            <version>2.4.15</version>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+
+    <profiles>
+        <profile>
+            <id>ossrh</id>
+            <properties>
+                <gpg.executable>gpg</gpg.executable>
+                <gpg.keyname>${env.GPG_KEYNAME}</gpg.keyname>
+                <gpg.passphrase>${env.GPG_PASSPHRASE}</gpg.passphrase>
+                <gpg.defaultKeyring>false</gpg.defaultKeyring>
+                <gpg.publicKeyring>${env.GPG_DIR}/pubring.gpg</gpg.publicKeyring>
+                <gpg.secretKeyring>${env.GPG_DIR}/secring.gpg</gpg.secretKeyring>
+            </properties>
+            <activation>
+                <property>
+                    <name>performRelease</name>
+                    <value>true</value>
+                </property>
+            </activation>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-gpg-plugin</artifactId>
+                        <version>1.5</version>
+                        <executions>
+                            <execution>
+                                <id>sign-artifacts</id>
+                                <phase>verify</phase>
+                                <goals>
+                                    <goal>sign</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                    <plugin>
+                        <groupId>org.sonatype.plugins</groupId>
+                        <artifactId>nexus-staging-maven-plugin</artifactId>
+                        <version>1.6.2</version>
+                        <extensions>true</extensions>
+                        <configuration>
+                            <serverId>ossrh</serverId>
+                            <nexusUrl>https://oss.sonatype.org/</nexusUrl>
+                            <autoReleaseAfterClose>true</autoReleaseAfterClose>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
+</project>

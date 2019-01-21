@@ -1,0 +1,49 @@
+attributetype ( 1.3.6.1.4.1.96.64.10.1 NAME 'intsyskey'
+	EQUALITY integerMatch  
+	SYNTAX 1.3.6.1.4.1.1466.115.121.1.27 )
+	
+attributetype ( 1.3.6.1.4.1.96.64.10.6 NAME 'ior'
+	EQUALITY caseIgnoreMatch   
+	SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 
+	SINGLE-VALUE  )				
+
+attributetype (	1.3.6.1.4.1.96.64.10.7 NAME 'cristalprop'
+	EQUALITY caseIgnoreMatch   
+	SUBSTR caseIgnoreSubstringsMatch
+	SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 )				
+
+objectclass ( 1.3.6.1.4.1.96.64.10.10 NAME 'cristalentity' SUP top STRUCTURAL
+	MUST ( cn $ objectclass )
+	MAY ( intsyskey $ ior $ cristalprop ) )	
+	
+objectclass ( 1.3.6.1.4.1.96.64.10.13 NAME 'cristalcontext' SUP  top STRUCTURAL
+	MUST ( cn $ objectclass )
+	MAY ( intsyskey ) )				
+
+objectclass ( 1.3.6.1.4.1.96.64.10.15 NAME 'aliasObject' SUP alias STRUCTURAL
+	MUST ( cn $ objectclass $ aliasedObjectName ) )
+	
+# agent 	
+attributetype ( 1.3.6.1.4.1.96.64.10.8 NAME 'jobList'
+	EQUALITY booleanMatch   
+	SYNTAX 1.3.6.1.4.1.1466.115.121.1.7 )	
+	
+  # uid must store userName if agent (for authentication to work)
+objectclass ( 1.3.6.1.4.1.96.64.10.14 NAME 'cristalagent' SUP cristalentity STRUCTURAL		
+	MUST ( userPassword $ uid ) )
+	
+objectclass ( 1.3.6.1.4.1.96.64.10.16 NAME 'cristalrole' SUP top STRUCTURAL
+	MUST ( cn  $ objectclass ) 
+	MAY ( jobList $ uniqueMember ) )
+	
+# old
+
+attributetype ( 1.3.6.1.4.1.96.64.10.2 NAME 'propval'
+	EQUALITY caseIgnoreMatch   
+	SYNTAX 1.3.6.1.4.1.1466.115.121.1.15  
+	SINGLE-VALUE )	
+	
+objectclass ( 1.3.6.1.4.1.96.64.10.11 NAME 'cristalproperty' SUP top STRUCTURAL
+	MUST ( cn $ objectclass )
+	MAY ( propval ) )		
+
