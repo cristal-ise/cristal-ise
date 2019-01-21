@@ -1,0 +1,9 @@
+<CristalModule ns="cristal-wrapper" name="cristal-wrapper">
+	<Info>
+		<Description>CRISTAL Module</Description>
+		<Version>3.0-SNAPSHOT</Version>
+	</Info>
+	<ResourceURL>org/cristalise/wrapper/resources/</ResourceURL>
+    <Config name="Module.debug">true</Config>
+	<Imports/>
+</CristalModule>
