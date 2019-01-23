@@ -1,0 +1,58 @@
+<!--
+
+    This file is part of the CRISTAL-iSE Trigger module.
+    Copyright (c) 2001-2016 The CRISTAL Consortium. All rights reserved.
+
+    This library is free software; you can redistribute it and/or modify it
+    under the terms of the GNU Lesser General Public License as published
+    by the Free Software Foundation; either version 3 of the License, or (at
+    your option) any later version.
+
+    This library is distributed in the hope that it will be useful, but WITHOUT
+    ANY WARRANTY; with out even the implied warranty of MERCHANTABILITY or
+    FITNESS FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public
+    License for more details.
+
+    You should have received a copy of the GNU Lesser General Public License
+    along with this library; if not, write to the Free Software Foundation,
+    Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA.
+
+    http://www.fsf.org/licensing/licenses/lgpl.html
+
+-->
+<StateMachine name="TriggerStateMachine" initialState="0">
+    <State id="0" name="Waiting"   proceeds="false" />
+    <State id="1" name="Finished"  proceeds="true" />
+    <State id="2" name="Started"   proceeds="false" />
+    <State id="3" name="Paused"    proceeds="false" />
+    <State id="4" name="Suspended" proceeds="false" />
+    <Transition id="0" name="Done" origin="0" target="1" reinitializes="false">
+        <Outcome name="${SchemaType}" version="${SchemaVersion}" required="true" />
+        <Script  name="${ScriptName}" version="${ScriptVersion}" />
+        <Query   name="${QueryName}"  version="${QueryVersion}" />
+    </Transition>
+    <Transition id="1" name="Start" origin="0" target="2" reinitializes="false" reservation="set" />
+    <Transition id="2" name="Complete" origin="2" target="1" reinitializes="false" reservation="clear">
+        <Outcome name="${SchemaType}" version="${SchemaVersion}" required="true" />
+        <Script  name="${ScriptName}" version="${ScriptVersion}" />
+        <Query   name="${QueryName}"  version="${QueryVersion}" />
+    </Transition>
+    <Transition id="3" name="Warning" origin="2" target="2" enablingProperty="WarningOn" reinitializes="false" roleOverride="TriggerAdmin"
+        reservation="preserve">
+        <Outcome name="${WarningSchemaType}" version="${WarningSchemaVersion}" required="true" />
+        <Script  name="${WarningScriptName}" version="${WarningScriptVersion}" />
+        <Query   name="${WarningQueryName}"  version="${WarningQueryVersion}" />
+    </Transition>
+    <Transition id="4" name="Timeout" origin="2" target="3" enablingProperty="TimeoutOn" reinitializes="false" roleOverride="TriggerAdmin">
+        <Outcome name="${TimeoutSchemaType}" version="${TimeoutSchemaVersion}" required="true" />
+        <Script  name="${TimeoutScriptName}" version="${TimeoutScriptVersion}" />
+        <Query   name="${TimeoutQueryName}"  version="${TimeoutQueryVersion}" />
+    </Transition>
+    <Transition id="5" name="Resolve"   origin="3" target="2" reinitializes="false" roleOverride="Admin" reservation="clear" />
+    <Transition id="6" name="Interrupt" origin="3" target="1" reinitializes="false" roleOverride="Admin" reservation="clear" />
+    <Transition id="7" name="Suspend"   origin="2" target="4" reinitializes="false">
+        <Outcome name="Errors" version="0" required="true" />
+    </Transition>
+    <Transition id="8" name="Resume"  origin="4" target="2" reinitializes="false" roleOverride="Admin" reservation="preserve" />
+    <Transition id="9" name="Proceed" origin="1" target="1" reinitializes="false" />
+</StateMachine>
