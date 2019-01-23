@@ -1,0 +1,27 @@
+// Cristal Connect Local Centre example file
+// Copy this and change things
+
+// This name appears on the login box
+Name=Example Cristal Server
+Logo=http://path.to/image
+
+// Item server network config
+ItemServer.name=HOSTNAME
+ItemServer.iiop=1500
+ItemServer.Proxy.port=1553
+ItemServer.Console.port=8080
+
+// LDAP config
+LDAP.GlobalPath=LDAPROOTPATH
+LDAP.RootPath=cn=cristal
+LDAP.LocalPath=cn=dev
+LDAP.port=389
+LDAP.host=LDAPHOSTNAME
+LDAP.user=LDAPROOTUSER
+LDAP.password=LDAPPASSWORD
+
+// XMLDB config
+XMLDB.URI=xmldb:exist://EXISTHOSTNAME:8080/exist/xmlrpc/db
+XMLDB.root=dev
+XMLDB.user=EXISTROOTUSER
+XMLDB.password=EXISTPASSWORD
