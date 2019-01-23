@@ -1,0 +1,11 @@
+<ActivityDef Height="0" ID="-1" IsComposite="false" IsLayoutable="false" Name="ActCounter" Width="0">
+	<Properties>
+		<KeyValuePair Key="OutcomeInit" String="" isAbstract="false"/>
+		<KeyValuePair Key="Description" String="" isAbstract="false"/>
+		<KeyValuePair Key="Agent Role" String="" isAbstract="false"/>
+		<KeyValuePair Key="Viewpoint" String="" isAbstract="false"/>
+		<KeyValuePair Key="Agent Name" String="" isAbstract="false"/>
+		<KeyValuePair Integer="0" Key="Version" isAbstract="false"/>
+		<KeyValuePair Boolean="false" Key="Breakpoint" isAbstract="false"/>
+	</Properties>
+</ActivityDef>
