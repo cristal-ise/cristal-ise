@@ -1,0 +1,10 @@
+{
+    "Employee": {
+        "DateOfHire":"2018-03-31T00:00:00.000Z",
+        "FullName":"Zsolt Kovacs",
+        "Title":"Mr",
+        "TaxID":"APEH123",
+        "JobTitle":"CTOish",
+        "Name":"kovax"
+    }
+}

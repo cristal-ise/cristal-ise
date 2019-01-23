@@ -1,0 +1,8 @@
+{
+  "Shift": {
+    "Name": "toto",
+    "FromHour": "2018-05-02T12:00:01.269Z",
+    "ThruHour": "14:00:00",
+    "ActualHours": "2.0"
+  }
+}

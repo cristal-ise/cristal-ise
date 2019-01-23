@@ -1,0 +1,222 @@
+[{
+  "name": "Storage",
+  "cls": {"grid": {"container": "ui-g-12"}},
+  "id": "Storage",
+  "type": "GROUP",
+  "group": [
+    {
+      "validators": {"required": null},
+      "inputType": "text",
+      "cls": {
+        "grid": {
+          "container": "ui-g",
+          "control": "ui-g-8",
+          "label": "ui-g-4"
+        },
+        "element": {"label": "ui-widget"}
+      },
+      "id": "ID",
+      "label": "ID *",
+      "placeholder": "ID",
+      "type": "INPUT",
+      "required": true
+    },
+    {
+      "validators": {"required": null},
+      "inputType": "text",
+      "cls": {
+        "grid": {
+          "container": "ui-g",
+          "control": "ui-g-8",
+          "label": "ui-g-4"
+        },
+        "element": {"label": "ui-widget"}
+      },
+      "id": "Name",
+      "label": "Name *",
+      "placeholder": "Name",
+      "type": "INPUT",
+      "required": true
+    },
+    {
+      "filterable": true,
+      "validators": {"required": null},
+      "additional": {"filterBy": "label"},
+      "options": [
+        {"label": "Select value"},
+        {
+          "label": "READY",
+          "value": "READY"
+        },
+        {
+          "label": "LOCKOUT",
+          "value": "LOCKOUT"
+        },
+        {
+          "label": "ERROR",
+          "value": "ERROR"
+        }
+      ],
+      "cls": {
+        "grid": {
+          "container": "ui-g",
+          "control": "ui-g-8",
+          "label": "ui-g-4"
+        },
+        "element": {"label": "ui-widget"}
+      },
+      "id": "State",
+      "label": "State *",
+      "placeholder": "State",
+      "type": "SELECT",
+      "value": "READY",
+      "required": true
+    },
+    {
+      "filterable": true,
+      "validators": {"required": null},
+      "additional": {"filterBy": "label"},
+      "options": [
+        {"label": "Select value"},
+        {
+          "label": "BIN",
+          "value": "BIN"
+        },
+        {
+          "label": "WAREHOUSE",
+          "value": "WAREHOUSE"
+        }
+      ],
+      "cls": {
+        "grid": {
+          "container": "ui-g",
+          "control": "ui-g-8",
+          "label": "ui-g-4"
+        },
+        "element": {"label": "ui-widget"}
+      },
+      "id": "Type",
+      "label": "Type *",
+      "placeholder": "Type",
+      "type": "SELECT",
+      "value": "BIN",
+      "required": true
+    },
+    {
+      "validators": {
+        "min": 0,
+        "required": null
+      },
+      "cls": {
+        "grid": {
+          "container": "ui-g",
+          "control": "ui-g-8",
+          "label": "ui-g-4"
+        },
+        "element": {"label": "ui-widget"}
+      },
+      "id": "Capacity",
+      "label": "Capacity *",
+      "placeholder": "Capacity",
+      "type": "INPUT",
+      "value": "0.0",
+      "required": true
+    },
+    {
+      "inputType": "text",
+      "cls": {
+        "grid": {
+          "container": "ui-g",
+          "control": "ui-g-8",
+          "label": "ui-g-4"
+        },
+        "element": {"label": "ui-widget"}
+      },
+      "id": "Season",
+      "label": "Season",
+      "placeholder": "Season",
+      "type": "INPUT",
+      "required": false
+    },
+    {
+      "inputType": "text",
+      "cls": {
+        "grid": {
+          "container": "ui-g",
+          "control": "ui-g-8",
+          "label": "ui-g-4"
+        },
+        "element": {"label": "ui-widget"}
+      },
+      "id": "Commodity",
+      "label": "Commodity",
+      "placeholder": "Commodity",
+      "type": "INPUT",
+      "required": false
+    },
+    {
+      "inputType": "text",
+      "cls": {
+        "grid": {
+          "container": "ui-g",
+          "control": "ui-g-8",
+          "label": "ui-g-4"
+        },
+        "element": {"label": "ui-widget"}
+      },
+      "id": "Grade",
+      "label": "Grade",
+      "placeholder": "Grade",
+      "type": "INPUT",
+      "required": false
+    },
+    {
+      "inputType": "text",
+      "cls": {
+        "grid": {
+          "container": "ui-g",
+          "control": "ui-g-8",
+          "label": "ui-g-4"
+        },
+        "element": {"label": "ui-widget"}
+      },
+      "id": "Note",
+      "label": "Note",
+      "placeholder": "Note",
+      "type": "INPUT",
+      "required": false
+    },
+    {
+      "cls": {
+        "grid": {
+          "container": "ui-g",
+          "control": "ui-g-8",
+          "label": "ui-g-4"
+        },
+        "element": {"label": "ui-widget"}
+      },
+      "id": "Amount",
+      "label": "Amount",
+      "placeholder": "Amount",
+      "type": "INPUT",
+      "value": "0.0",
+      "required": false
+    },
+    {
+      "cls": {
+        "grid": {
+          "container": "ui-g",
+          "control": "ui-g-8",
+          "label": "ui-g-4"
+        },
+        "element": {"label": "ui-widget"}
+      },
+      "id": "MeasuredWeight",
+      "label": "Measured Weight",
+      "placeholder": "Measured Weight",
+      "type": "INPUT",
+      "value": "0.0",
+      "required": false
+    }
+  ]
+}]
