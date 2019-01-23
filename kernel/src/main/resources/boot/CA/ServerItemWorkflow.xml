@@ -1,0 +1,360 @@
+<!--
+
+    This file is part of the CRISTAL-iSE kernel.
+    Copyright (c) 2001-2015 The CRISTAL Consortium. All rights reserved.
+
+    This library is free software; you can redistribute it and/or modify it
+    under the terms of the GNU Lesser General Public License as published
+    by the Free Software Foundation; either version 3 of the License, or (at
+    your option) any later version.
+
+    This library is distributed in the hope that it will be useful, but WITHOUT
+    ANY WARRANTY; with out even the implied warranty of MERCHANTABILITY or
+    FITNESS FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public
+    License for more details.
+
+    You should have received a copy of the GNU Lesser General Public License
+    along with this library; if not, write to the Free Software Foundation,
+    Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA.
+
+    http://www.fsf.org/licensing/licenses/lgpl.html
+
+-->
+<CompositeActivityDef ID="-1" Name="ServerItemWorkflow"
+	Height="0" Width="0" IsLayoutable="false" IsComposite="true">
+	<childrenGraphModel>
+		<GraphModelCastorData StartVertexId="4" NextId="29">
+			<LoopDef ID="25" Name="" Height="24" Width="60" IsLayoutable="true"
+				IsComposite="false" isNext="0">
+				<CentrePoint x="540" y="287" />
+				<OutlinePoint x="510" y="275" />
+				<OutlinePoint x="570" y="275" />
+				<OutlinePoint x="570" y="299" />
+				<OutlinePoint x="510" y="299" />
+				<InEdgeId>27</InEdgeId>
+				<OutEdgeId>26</OutEdgeId>
+				<OutEdgeId>28</OutEdgeId>
+				<Properties>
+					<KeyValuePair Key="LastNum" isAbstract="false" String="2" />
+					<KeyValuePair Key="RoutingScriptName" isAbstract="false"
+						String="javascript:true;" />
+					<KeyValuePair Key="RoutingScriptVersion" isAbstract="false"
+						String="" />
+				</Properties>
+			</LoopDef>
+			<JoinDef ID="22" Name="" Height="24" Width="60" IsLayoutable="true"
+				IsComposite="false">
+				<CentrePoint x="540" y="75" />
+				<OutlinePoint x="510" y="63" />
+				<OutlinePoint x="570" y="63" />
+				<OutlinePoint x="570" y="87" />
+				<OutlinePoint x="510" y="87" />
+				<InEdgeId>23</InEdgeId>
+				<InEdgeId>28</InEdgeId>
+				<OutEdgeId>24</OutEdgeId>
+				<Properties>
+					<KeyValuePair Key="Type" isAbstract="false" String="Join" />
+				</Properties>
+			</JoinDef>
+			<ActivitySlotDef ID="21" Name="CreateNewRole slot"
+				Height="60" Width="130" IsLayoutable="true" IsComposite="false">
+				<CentrePoint x="670" y="181" />
+				<OutlinePoint x="605" y="151" />
+				<OutlinePoint x="735" y="151" />
+				<OutlinePoint x="735" y="211" />
+				<OutlinePoint x="605" y="211" />
+				<InEdgeId>24</InEdgeId>
+				<OutEdgeId>27</OutEdgeId>
+				<Properties>
+					<KeyValuePair Key="Name" isAbstract="false" String="CreateNewRole" />
+					<KeyValuePair Key="Version" isAbstract="false"
+						Integer="0" />
+				</Properties>
+				<activityDef>CreateNewRole</activityDef>
+			</ActivitySlotDef>
+			<JoinDef ID="9" Name="" Height="24" Width="60" IsLayoutable="true"
+				IsComposite="false">
+				<CentrePoint x="427" y="355" />
+				<OutlinePoint x="397" y="343" />
+				<OutlinePoint x="457" y="343" />
+				<OutlinePoint x="457" y="367" />
+				<OutlinePoint x="397" y="367" />
+				<InEdgeId>16</InEdgeId>
+				<InEdgeId>17</InEdgeId>
+				<InEdgeId>26</InEdgeId>
+				<Properties>
+					<KeyValuePair Key="Type" isAbstract="false" String="Join" />
+				</Properties>
+			</JoinDef>
+			<LoopDef ID="8" Name="" Height="24" Width="60" IsLayoutable="true"
+				IsComposite="false" isNext="0">
+				<CentrePoint x="428" y="284" />
+				<OutlinePoint x="398" y="272" />
+				<OutlinePoint x="458" y="272" />
+				<OutlinePoint x="458" y="296" />
+				<OutlinePoint x="398" y="296" />
+				<InEdgeId>15</InEdgeId>
+				<OutEdgeId>16</OutEdgeId>
+				<OutEdgeId>19</OutEdgeId>
+				<Properties>
+					<KeyValuePair Key="LastNum" isAbstract="false" String="2" />
+					<KeyValuePair Key="RoutingScriptName" isAbstract="false"
+						String="javascript:true;" />
+					<KeyValuePair Key="RoutingScriptVersion" isAbstract="false"
+						String="" />
+				</Properties>
+			</LoopDef>
+			<LoopDef ID="7" Name="" Height="24" Width="60" IsLayoutable="true"
+				IsComposite="false" isNext="0">
+				<CentrePoint x="239" y="284" />
+				<OutlinePoint x="209" y="272" />
+				<OutlinePoint x="269" y="272" />
+				<OutlinePoint x="269" y="296" />
+				<OutlinePoint x="209" y="296" />
+				<InEdgeId>14</InEdgeId>
+				<OutEdgeId>17</OutEdgeId>
+				<OutEdgeId>18</OutEdgeId>
+				<Properties>
+					<KeyValuePair Key="LastNum" isAbstract="false" String="2" />
+					<KeyValuePair Key="RoutingScriptName" isAbstract="false"
+						String="javascript:true;" />
+					<KeyValuePair Key="RoutingScriptVersion" isAbstract="false"
+						String="" />
+				</Properties>
+			</LoopDef>
+			<JoinDef ID="6" Name="" Height="24" Width="60" IsLayoutable="true"
+				IsComposite="false">
+				<CentrePoint x="428" y="73" />
+				<OutlinePoint x="398" y="61" />
+				<OutlinePoint x="458" y="61" />
+				<OutlinePoint x="458" y="85" />
+				<OutlinePoint x="398" y="85" />
+				<InEdgeId>11</InEdgeId>
+				<InEdgeId>19</InEdgeId>
+				<OutEdgeId>13</OutEdgeId>
+				<Properties>
+					<KeyValuePair Key="Type" isAbstract="false" String="Join" />
+				</Properties>
+			</JoinDef>
+			<JoinDef ID="5" Name="" Height="24" Width="60" IsLayoutable="true"
+				IsComposite="false">
+				<CentrePoint x="239" y="78" />
+				<OutlinePoint x="209" y="66" />
+				<OutlinePoint x="269" y="66" />
+				<OutlinePoint x="269" y="90" />
+				<OutlinePoint x="209" y="90" />
+				<InEdgeId>10</InEdgeId>
+				<InEdgeId>18</InEdgeId>
+				<OutEdgeId>12</OutEdgeId>
+				<Properties>
+					<KeyValuePair Key="Type" isAbstract="false" String="Join" />
+				</Properties>
+			</JoinDef>
+			<AndSplitDef ID="4" Name="" Height="24" Width="60"
+				IsLayoutable="true" IsComposite="false">
+				<CentrePoint x="428" y="18" />
+				<OutlinePoint x="398" y="6" />
+				<OutlinePoint x="458" y="6" />
+				<OutlinePoint x="458" y="30" />
+				<OutlinePoint x="398" y="30" />
+				<OutEdgeId>10</OutEdgeId>
+				<OutEdgeId>11</OutEdgeId>
+				<OutEdgeId>23</OutEdgeId>
+				<Properties>
+					<KeyValuePair Key="RoutingScriptName" isAbstract="false"
+						String="" />
+					<KeyValuePair Key="RoutingScriptVersion" isAbstract="false"
+						String="" />
+				</Properties>
+			</AndSplitDef>
+			<ActivitySlotDef ID="2" Name="CreateNewAgent_"
+				Height="60" Width="130" IsLayoutable="true" IsComposite="false">
+				<CentrePoint x="346" y="184" />
+				<OutlinePoint x="281" y="154" />
+				<OutlinePoint x="411" y="154" />
+				<OutlinePoint x="411" y="214" />
+				<OutlinePoint x="281" y="214" />
+				<InEdgeId>13</InEdgeId>
+				<OutEdgeId>15</OutEdgeId>
+				<Properties>
+					<KeyValuePair Key="Prefill Version" isAbstract="false"
+						String="-1" />
+					<KeyValuePair Key="Name" isAbstract="false" String="CreateNewAgent" />
+					<KeyValuePair Key="Prefill" isAbstract="false"
+						Boolean="false" />
+					<KeyValuePair Key="Version" isAbstract="false"
+						Integer="0" />
+				</Properties>
+				<activityDef>CreateNewAgent</activityDef>
+			</ActivitySlotDef>
+			<ActivitySlotDef ID="0" Name="CreateNewItem_" Height="60"
+				Width="130" IsLayoutable="true" IsComposite="false">
+				<CentrePoint x="143" y="183" />
+				<OutlinePoint x="78" y="153" />
+				<OutlinePoint x="208" y="153" />
+				<OutlinePoint x="208" y="213" />
+				<OutlinePoint x="78" y="213" />
+				<InEdgeId>12</InEdgeId>
+				<OutEdgeId>14</OutEdgeId>
+				<Properties>
+					<KeyValuePair Key="Prefill Version" isAbstract="false"
+						String="-1" />
+					<KeyValuePair Key="Name" isAbstract="false" String="CreateNewItem" />
+					<KeyValuePair Key="Prefill" isAbstract="false"
+						Boolean="false" />
+					<KeyValuePair Key="Version" isAbstract="false"
+						Integer="0" />
+				</Properties>
+				<activityDef>CreateNewItem</activityDef>
+			</ActivitySlotDef>
+			<NextDef ID="28" OriginVertexId="25" TerminusVertexId="22">
+				<OriginPoint x="540" y="287" />
+				<TerminusPoint x="540" y="75" />
+				<Properties>
+					<KeyValuePair Key="Alias" isAbstract="false" String="true" />
+					<KeyValuePair Key="Type" isAbstract="false" String="Straight" />
+				</Properties>
+			</NextDef>
+			<NextDef ID="27" OriginVertexId="21" TerminusVertexId="25">
+				<OriginPoint x="670" y="181" />
+				<TerminusPoint x="540" y="287" />
+				<Properties />
+			</NextDef>
+			<NextDef ID="26" OriginVertexId="25" TerminusVertexId="9">
+				<OriginPoint x="540" y="287" />
+				<TerminusPoint x="427" y="355" />
+				<Properties>
+					<KeyValuePair Key="Alias" isAbstract="false" String="false" />
+				</Properties>
+			</NextDef>
+			<NextDef ID="24" OriginVertexId="22" TerminusVertexId="21">
+				<OriginPoint x="540" y="75" />
+				<TerminusPoint x="670" y="181" />
+				<Properties />
+			</NextDef>
+			<NextDef ID="23" OriginVertexId="4" TerminusVertexId="22">
+				<OriginPoint x="428" y="18" />
+				<TerminusPoint x="540" y="75" />
+				<Properties />
+			</NextDef>
+			<NextDef ID="19" OriginVertexId="8" TerminusVertexId="6">
+				<OriginPoint x="428" y="284" />
+				<TerminusPoint x="428" y="73" />
+				<Properties>
+					<KeyValuePair Key="Alias" isAbstract="false" String="true" />
+					<KeyValuePair Key="Type" isAbstract="false" String="Straight" />
+				</Properties>
+			</NextDef>
+			<NextDef ID="18" OriginVertexId="7" TerminusVertexId="5">
+				<OriginPoint x="239" y="284" />
+				<TerminusPoint x="239" y="78" />
+				<Properties>
+					<KeyValuePair Key="Alias" isAbstract="false" String="true" />
+					<KeyValuePair Key="Type" isAbstract="false" String="Straight" />
+				</Properties>
+			</NextDef>
+			<NextDef ID="17" OriginVertexId="7" TerminusVertexId="9">
+				<OriginPoint x="239" y="284" />
+				<TerminusPoint x="427" y="355" />
+				<Properties>
+					<KeyValuePair Key="Alias" isAbstract="false" String="false" />
+					<KeyValuePair Key="Type" isAbstract="false" String="Straight" />
+				</Properties>
+			</NextDef>
+			<NextDef ID="16" OriginVertexId="8" TerminusVertexId="9">
+				<OriginPoint x="428" y="284" />
+				<TerminusPoint x="427" y="355" />
+				<Properties>
+					<KeyValuePair Key="Alias" isAbstract="false" String="false" />
+					<KeyValuePair Key="Type" isAbstract="false" String="Straight" />
+				</Properties>
+			</NextDef>
+			<NextDef ID="15" OriginVertexId="2" TerminusVertexId="8">
+				<OriginPoint x="346" y="184" />
+				<TerminusPoint x="428" y="284" />
+				<Properties>
+					<KeyValuePair Key="Type" isAbstract="false" String="Straight" />
+				</Properties>
+			</NextDef>
+			<NextDef ID="14" OriginVertexId="0" TerminusVertexId="7">
+				<OriginPoint x="143" y="183" />
+				<TerminusPoint x="239" y="284" />
+				<Properties>
+					<KeyValuePair Key="Type" isAbstract="false" String="Straight" />
+				</Properties>
+			</NextDef>
+			<NextDef ID="13" OriginVertexId="6" TerminusVertexId="2">
+				<OriginPoint x="428" y="73" />
+				<TerminusPoint x="346" y="184" />
+				<Properties>
+					<KeyValuePair Key="Type" isAbstract="false" String="Straight" />
+				</Properties>
+			</NextDef>
+			<NextDef ID="12" OriginVertexId="5" TerminusVertexId="0">
+				<OriginPoint x="239" y="78" />
+				<TerminusPoint x="143" y="183" />
+				<Properties>
+					<KeyValuePair Key="Type" isAbstract="false" String="Straight" />
+				</Properties>
+			</NextDef>
+			<NextDef ID="11" OriginVertexId="4" TerminusVertexId="6">
+				<OriginPoint x="428" y="18" />
+				<TerminusPoint x="428" y="73" />
+				<Properties>
+					<KeyValuePair Key="Type" isAbstract="false" String="Straight" />
+				</Properties>
+			</NextDef>
+			<NextDef ID="10" OriginVertexId="4" TerminusVertexId="5">
+				<OriginPoint x="428" y="18" />
+				<TerminusPoint x="239" y="78" />
+				<Properties>
+					<KeyValuePair Key="Type" isAbstract="false" String="Straight" />
+				</Properties>
+			</NextDef>
+		</GraphModelCastorData>
+	</childrenGraphModel>
+	<Properties>
+		<KeyValuePair Key="OutcomeInit" isAbstract="false"
+			String="" />
+		<KeyValuePair Key="ScriptVersion" isAbstract="false"
+			String="" />
+		<KeyValuePair Key="Mail Message" isAbstract="false"
+			String="" />
+		<KeyValuePair Key="Timeout Activated" isAbstract="false"
+			Boolean="false" />
+		<KeyValuePair Key="Breakpoint" isAbstract="false"
+			Boolean="false" />
+		<KeyValuePair Key="StateMachineVersion" isAbstract="false"
+			Integer="0" />
+		<KeyValuePair Key="Agent Role" isAbstract="false" String="" />
+		<KeyValuePair Key="Show time" isAbstract="false" Boolean="true" />
+		<KeyValuePair Key="Maximum Time" isAbstract="false"
+			Integer="0" />
+		<KeyValuePair Key="Time Out Action" isAbstract="false"
+			Integer="2" />
+		<KeyValuePair Key="Description" isAbstract="false"
+			String="" />
+		<KeyValuePair Key="Ignorable" isAbstract="false" Boolean="false" />
+		<KeyValuePair Key="Viewpoint" isAbstract="false" String="" />
+		<KeyValuePair Key="Agent Name" isAbstract="false" String="" />
+		<KeyValuePair Key="Skippable" isAbstract="false" Boolean="false" />
+		<KeyValuePair Key="SchemaVersion" isAbstract="false"
+			String="" />
+		<KeyValuePair Key="ScriptName" isAbstract="false" String="" />
+		<KeyValuePair Key="Mail event" isAbstract="false" String="" />
+		<KeyValuePair Key="Has Timeout" isAbstract="false"
+			Boolean="false" />
+		<KeyValuePair Key="Repeatable" isAbstract="false"
+			Boolean="false" />
+		<KeyValuePair Key="Autostart" isAbstract="false" Boolean="true" />
+		<KeyValuePair Key="Maximum Time Unit" isAbstract="false"
+			Integer="3" />
+		<KeyValuePair Key="StateMachineName" isAbstract="false"
+			String="CompositeActivity" />
+		<KeyValuePair Key="Expected Time Unit" isAbstract="false"
+			Integer="3" />
+		<KeyValuePair Key="Expected Time" isAbstract="false"
+			Integer="0" />
+		<KeyValuePair Key="SchemaType" isAbstract="false" String="" />
+	</Properties>
+</CompositeActivityDef>
