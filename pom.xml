@@ -34,9 +34,8 @@
     <modules>
         <module>kernel</module>
         <module>jooqdb</module>
-<!--
         <module>in-memory-lookup</module>
-        <module>xmld</module>
+        <module>xmldb</module>
         <module>lookup-ldap</module>
         <module>xpath-outcome-initiator</module>
         <module>trigger</module>
@@ -48,7 +47,6 @@
         <module>service</module>
         <module>js-rhino</module>
         <module>module-archetype</module>
--->
     </modules>
 
     <description>Cristal-ise is a description-driven software platform originally developed to track the construction of
