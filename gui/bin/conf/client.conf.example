@@ -1,0 +1,3 @@
+LocalCentre=dev
+ClusterStorage=LDAPClientReader,ProxyLoader
+EnableItemErase=true
