@@ -23,11 +23,16 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
     <modelVersion>4.0.0</modelVersion>
-    <name>CRISTAL-iSE Restapi</name>
-    <groupId>org.cristalise</groupId>
+    
+    <parent>
+        <groupId>org.cristalise</groupId>
+        <artifactId>cristalise</artifactId>
+        <version>4.0.0-SNAPSHOT</version>
+    </parent>
+
     <artifactId>cristalise-restapi</artifactId>
+    <name>CRISTAL-iSE Restapi</name>
     <packaging>jar</packaging>
-    <version>4.0.0-SNAPSHOT</version>
     <description>CRISTAL-iSE REST API Module</description>
     <url>https://github.com/cristal-ise/xpath-outcomeinit</url>
     <licenses>
