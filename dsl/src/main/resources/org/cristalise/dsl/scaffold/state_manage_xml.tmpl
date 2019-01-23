@@ -1,0 +1,115 @@
+<CompositeActivityDef ID="-1" Name="State_Manage" Height="0" Width="0" IsLayoutable="false" IsComposite="true">
+    <childrenGraphModel>
+        <GraphModelCastorData StartVertexId="26" NextId="36">
+            <LoopDef ID="27" Name="" Height="24" Width="60" IsLayoutable="true" IsComposite="false" isNext="0">
+                <CentrePoint x="252" y="320" />
+                <OutlinePoint x="222" y="308" />
+                <OutlinePoint x="282" y="308" />
+                <OutlinePoint x="282" y="332" />
+                <OutlinePoint x="222" y="332" />
+                <InEdgeId>35</InEdgeId>
+                <OutEdgeId>29</OutEdgeId>
+                <OutEdgeId>32</OutEdgeId>
+                <Properties>
+                    <KeyValuePair Key="RoutingExpr" isAbstract="false" String="" />
+                    <KeyValuePair Key="RoutingScriptVersion" isAbstract="false" String="" />
+                    <KeyValuePair Key="LastNum" isAbstract="false" String="2" />
+                    <KeyValuePair Key="RoutingScriptName" isAbstract="false" String="javascript:true;" />
+                </Properties>
+            </LoopDef>
+            <ActivitySlotDef ID="5" Name="State_Activate" Height="60" Width="130" IsLayoutable="true" IsComposite="false">
+                <CentrePoint x="141" y="242" />
+                <OutlinePoint x="76" y="212" />
+                <OutlinePoint x="206" y="212" />
+                <OutlinePoint x="206" y="272" />
+                <OutlinePoint x="76" y="272" />
+                <InEdgeId>34</InEdgeId>
+                <OutEdgeId>35</OutEdgeId>
+                <Properties>
+                    <KeyValuePair Key="Version" isAbstract="false" Integer="0" />
+                    <KeyValuePair Key="Name" isAbstract="false" String="Activate" />
+                </Properties>
+                <activityDef>State_Activate</activityDef>
+            </ActivitySlotDef>
+            <JoinDef ID="26" Name="" Height="24" Width="60" IsLayoutable="true" IsComposite="false">
+                <CentrePoint x="253" y="73" />
+                <OutlinePoint x="223" y="61" />
+                <OutlinePoint x="283" y="61" />
+                <OutlinePoint x="283" y="85" />
+                <OutlinePoint x="223" y="85" />
+                <InEdgeId>29</InEdgeId>
+                <OutEdgeId>33</OutEdgeId>
+                <Properties>
+                    <KeyValuePair Key="Type" isAbstract="false" String="Join" />
+                </Properties>
+            </JoinDef>
+            <ActivitySlotDef ID="13" Name="State_Deactivate" Height="60" Width="130" IsLayoutable="true" IsComposite="false">
+                <CentrePoint x="140" y="159" />
+                <OutlinePoint x="75" y="129" />
+                <OutlinePoint x="205" y="129" />
+                <OutlinePoint x="205" y="189" />
+                <OutlinePoint x="75" y="189" />
+                <InEdgeId>33</InEdgeId>
+                <OutEdgeId>34</OutEdgeId>
+                <Properties>
+                    <KeyValuePair Key="Version" isAbstract="false" Integer="0" />
+                    <KeyValuePair Key="Name" isAbstract="false" String="Deactivate" />
+                </Properties>
+                <activityDef>State_Deactivate</activityDef>
+            </ActivitySlotDef>
+            <JoinDef ID="31" Name="" Height="24" Width="60" IsLayoutable="true" IsComposite="false">
+                <CentrePoint x="195" y="393" />
+                <OutlinePoint x="165" y="381" />
+                <OutlinePoint x="225" y="381" />
+                <OutlinePoint x="225" y="405" />
+                <OutlinePoint x="165" y="405" />
+                <InEdgeId>32</InEdgeId>
+                <Properties>
+                    <KeyValuePair Key="Type" isAbstract="false" String="Join" />
+                </Properties>
+            </JoinDef>
+            <NextDef ID="35" OriginVertexId="5" TerminusVertexId="27">
+                <OriginPoint x="141" y="242" />
+                <TerminusPoint x="252" y="320" />
+                <Properties />
+            </NextDef>
+            <NextDef ID="34" OriginVertexId="13" TerminusVertexId="5">
+                <OriginPoint x="140" y="159" />
+                <TerminusPoint x="141" y="242" />
+                <Properties />
+            </NextDef>
+            <NextDef ID="33" OriginVertexId="26" TerminusVertexId="13">
+                <OriginPoint x="253" y="73" />
+                <TerminusPoint x="140" y="159" />
+                <Properties />
+            </NextDef>
+            <NextDef ID="32" OriginVertexId="27" TerminusVertexId="31">
+                <OriginPoint x="252" y="320" />
+                <TerminusPoint x="195" y="393" />
+                <Properties>
+                    <KeyValuePair Key="Alias" isAbstract="false" String="false" />
+                </Properties>
+            </NextDef>
+            <NextDef ID="29" OriginVertexId="27" TerminusVertexId="26">
+                <OriginPoint x="252" y="320" />
+                <TerminusPoint x="253" y="73" />
+                <Properties>
+                    <KeyValuePair Key="Alias" isAbstract="false" String="true" />
+                </Properties>
+            </NextDef>
+        </GraphModelCastorData>
+    </childrenGraphModel>
+    <Properties>
+        <KeyValuePair Key="Breakpoint" isAbstract="false" Boolean="false" />
+        <KeyValuePair Key="OutcomeInit" isAbstract="false" String="" />
+        <KeyValuePair Key="StateMachineVersion" isAbstract="false" String="0" />
+        <KeyValuePair Key="Description" isAbstract="false" String="" />
+        <KeyValuePair Key="Abortable" isAbstract="false" Boolean="false" />
+        <KeyValuePair Key="RepeatWhen" isAbstract="false" Boolean="false" />
+        <KeyValuePair Key="Viewpoint" isAbstract="false" String="" />
+        <KeyValuePair Key="Show time" isAbstract="false" Boolean="true" />
+        <KeyValuePair Key="Agent Name" isAbstract="false" String="" />
+        <KeyValuePair Key="StateMachineName" isAbstract="false" String="CompositeActivity" />
+        <KeyValuePair Key="Agent Role" isAbstract="false" String="" />
+    </Properties>
+</CompositeActivityDef>
