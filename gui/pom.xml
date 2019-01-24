@@ -1,6 +1,6 @@
 <!--
 
-    This file is part of the CRISTAL-iSE default user interface.
+    This file is part of the CRISTAL-iSE eXist-DB storage plugin.
     Copyright (c) 2001-2016 The CRISTAL Consortium. All rights reserved.
 
     This library is free software; you can redistribute it and/or modify it
@@ -20,9 +20,11 @@
     http://www.fsf.org/licensing/licenses/lgpl.html
 
 -->
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
-    
+
     <parent>
         <groupId>org.cristalise</groupId>
         <artifactId>cristalise</artifactId>
@@ -30,7 +32,6 @@
     </parent>
 
     <artifactId>cristalise-gui</artifactId>
-    <version>${revision}</version>
     <name>cristalise-gui</name>
     <description>CRISTAL-iSE default/administration GUI</description>
     <url>https://github.com/cristal-ise/gui</url>
@@ -134,7 +135,6 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-source-plugin</artifactId>
-                <version>2.1.2</version>
                 <executions>
                     <execution>
                         <id>attach-sources</id>
@@ -177,13 +177,6 @@
             <plugin>
                 <groupId>com.mycila</groupId>
                 <artifactId>license-maven-plugin</artifactId>
-                <version>2.3</version>
-                <configuration>
-                    <header>HEADER.txt</header>
-                    <excludes>
-                        <exclude>bin/**</exclude>
-                    </excludes>
-                </configuration>
                 <executions>
                     <execution>
                         <goals>

@@ -1,7 +1,7 @@
 <!--
 
-    This file is part of the CRISTAL-iSE jOOQ Cluster Storage Module.
-    Copyright (c) 2001-2017 The CRISTAL Consortium. All rights reserved.
+    This file is part of the CRISTAL-iSE eXist-DB storage plugin.
+    Copyright (c) 2001-2016 The CRISTAL Consortium. All rights reserved.
 
     This library is free software; you can redistribute it and/or modify it
     under the terms of the GNU Lesser General Public License as published
@@ -20,18 +20,18 @@
     http://www.fsf.org/licensing/licenses/lgpl.html
 
 -->
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
     <parent>
         <groupId>org.cristalise</groupId>
         <artifactId>cristalise</artifactId>
-	<version>${revision}</version>
+        <version>${revision}</version>
     </parent>
 
     <artifactId>cristalise-jooqdb</artifactId>
-    <version>${revision}</version>
     <name>CRISTAL-iSE JOOQ Storage</name>
     <description>CRISTAL-iSE JOOQ Storage Module</description>
     <url>https://github.com/cristal-ise/jooqdb</url>
@@ -102,7 +102,7 @@
             </resource>
         </resources>
         <plugins>
-           <plugin>
+            <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
                 <version>3.5</version>
@@ -114,7 +114,6 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-source-plugin</artifactId>
-                <version>2.2.1</version>
                 <executions>
                     <execution>
                         <id>attach-sources</id>
@@ -146,13 +145,6 @@
             <plugin>
                 <groupId>com.mycila</groupId>
                 <artifactId>license-maven-plugin</artifactId>
-                <version>2.11</version>
-                <configuration>
-                    <header>HEADER.txt</header>
-                    <excludes>
-                        <exclude>src/test/data/**</exclude>
-                    </excludes>
-                </configuration>
                 <executions>
                     <execution>
                         <goals>
@@ -163,12 +155,12 @@
             </plugin>
         </plugins>
     </build>
-    
+
     <dependencies>
         <dependency>
             <groupId>org.cristalise</groupId>
             <artifactId>cristalise-kernel</artifactId>
-	    <version>${revision}</version>
+            <version>${revision}</version>
         </dependency>
         <dependency>
             <groupId>mysql</groupId>

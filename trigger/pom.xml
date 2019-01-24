@@ -1,6 +1,6 @@
 <!--
 
-    This file is part of the CRISTAL-iSE Trigger module.
+    This file is part of the CRISTAL-iSE eXist-DB storage plugin.
     Copyright (c) 2001-2016 The CRISTAL Consortium. All rights reserved.
 
     This library is free software; you can redistribute it and/or modify it
@@ -20,10 +20,11 @@
     http://www.fsf.org/licensing/licenses/lgpl.html
 
 -->
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
-    
+
     <parent>
         <groupId>org.cristalise</groupId>
         <artifactId>cristalise</artifactId>
@@ -31,7 +32,6 @@
     </parent>
 
     <artifactId>cristalise-trigger</artifactId>
-    <version>${revision}</version>
     <name>CRISTAL-iSE Trigger</name>
     <description>CRISTAL-iSE Trigger Module</description>
     <url>https://github.com/cristal-ise/xpath-outcomeinit</url>
@@ -114,7 +114,6 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-source-plugin</artifactId>
-                <version>2.2.1</version>
                 <executions>
                     <execution>
                         <id>attach-sources</id>
@@ -146,7 +145,6 @@
             <plugin>
                 <groupId>com.mycila</groupId>
                 <artifactId>license-maven-plugin</artifactId>
-                <version>2.11</version>
                 <configuration>
                     <header>HEADER.txt</header>
                 </configuration>
@@ -193,7 +191,6 @@
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-simple</artifactId>
-            <version>1.7.13</version>
         </dependency>
         <dependency>
             <groupId>org.projectlombok</groupId>
