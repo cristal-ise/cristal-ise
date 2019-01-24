@@ -27,11 +27,12 @@
     
     <parent>
         <groupId>org.cristalise</groupId>
-        <artifactId>cristalise</artifactId>
-        <version>4.0.0-SNAPSHOT</version>
+	<artifactId>cristalise</artifactId>
+	<version>${revision}</version>
     </parent>
 
 	<artifactId>cristalise-ldap</artifactId>
+        <version>${revision}</version>
 	<name>CristalLDAP</name>
 	<description>CRISTAL LDAP Lookup, Authentication and Property Storage Module</description>
 	<url>https://github.com/cristal-ise/lookup-ldap</url>
@@ -167,7 +168,7 @@
 			<dependency>
 				<groupId>org.cristalise</groupId>
 				<artifactId>cristalise-kernel</artifactId>
-				<version>4.0.0-SNAPSHOT</version>
+				<version>${revision}</version>
 			</dependency>
 			<dependency>
 				<groupId>com.novell.ldap</groupId>

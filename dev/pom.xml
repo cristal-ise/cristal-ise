@@ -27,10 +27,11 @@
     <parent>
         <groupId>org.cristalise</groupId>
         <artifactId>cristalise</artifactId>
-        <version>4.0.0-SNAPSHOT</version>
+        <version>${revision}</version>
     </parent>
 
     <artifactId>cristalise-dev</artifactId>
+    <version>${revision}</version>
     <name>CRISTAL-iSE Development</name>
     <description>CRISTAL-iSE Development Module</description>
     <url>https://github.com/cristal-ise/dev</url>
@@ -261,17 +262,17 @@
         <dependency>
             <groupId>org.cristalise</groupId>
             <artifactId>cristalise-kernel</artifactId>
-            <version>4.0.0-SNAPSHOT</version>
+            <version>${revision}</version>
         </dependency>
         <dependency>
             <groupId>org.cristalise</groupId>
             <artifactId>cristalise-gui</artifactId>
-            <version>4.0.0-SNAPSHOT</version>
+            <version>${revision}</version>
         </dependency>
         <dependency>
             <groupId>org.cristalise</groupId>
             <artifactId>cristalise-jooqdb</artifactId>
-            <version>4.0.0-SNAPSHOT</version>
+            <version>${revision}</version>
         </dependency>
         <dependency>
             <groupId>org.mozilla</groupId>
