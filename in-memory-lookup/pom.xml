@@ -1,7 +1,7 @@
 <!--
 
-    This file is part of the CRISTAL-iSE jOOQ Cluster Storage Module.
-    Copyright (c) 2001-2017 The CRISTAL Consortium. All rights reserved.
+    This file is part of the CRISTAL-iSE eXist-DB storage plugin.
+    Copyright (c) 2001-2016 The CRISTAL Consortium. All rights reserved.
 
     This library is free software; you can redistribute it and/or modify it
     under the terms of the GNU Lesser General Public License as published
@@ -20,13 +20,19 @@
     http://www.fsf.org/licensing/licenses/lgpl.html
 
 -->
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
-    <name>CRISTAL-iSE In-Memory Lookup</name>
-    <groupId>org.cristalise</groupId>
+
+    <parent>
+        <groupId>org.cristalise</groupId>
+        <artifactId>cristalise</artifactId>
+        <version>${revision}</version>
+    </parent>
+
     <artifactId>cristalise-inmemory-lookup</artifactId>
-    <version>4.0.0-SNAPSHOT</version>
+    <name>CRISTAL-iSE In-Memory Lookup</name>
     <description>CRISTAL-iSE in-memory implementation of Lookup interfaces for test purposes</description>
     <url>https://github.com/cristal-ise/in-memory-lookup</url>
     <licenses>
@@ -89,7 +95,6 @@
         <source.version>1.8</source.version>
         <target.version>1.8</target.version>
         <additionalparam>-Xdoclint:none</additionalparam>
-        <cristalise.version>4.0.0-SNAPSHOT</cristalise.version>
         <groovy-all.version>2.4.15</groovy-all.version>
         <commons-lang.version>2.6</commons-lang.version>
         <junit.version>4.11</junit.version>
@@ -178,35 +183,11 @@
         </plugins>
     </build>
 
-    <repositories>
-        <repository>
-            <id>snapshots-repo</id>
-            <url>https://oss.sonatype.org/content/repositories/snapshots</url>
-            <releases>
-                <enabled>false</enabled>
-            </releases>
-            <snapshots>
-                <enabled>true</enabled>
-            </snapshots>
-        </repository>
-    </repositories>
-
-    <distributionManagement>
-        <snapshotRepository>
-            <id>ossrh</id>
-            <url>https://oss.sonatype.org/content/repositories/snapshots</url>
-        </snapshotRepository>
-        <repository>
-            <id>ossrh</id>
-            <url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
-        </repository>
-    </distributionManagement>
-
     <dependencies>
         <dependency>
             <groupId>org.cristalise</groupId>
             <artifactId>cristalise-kernel</artifactId>
-            <version>${cristalise.version}</version>
+            <version>${revision}</version>
             <scope>compile</scope>
         </dependency>
         <dependency>
