@@ -75,23 +75,6 @@
                 </configuration>
             </plugin>
             <plugin>
-                <!-- if including source jars, use the no-fork goals otherwise 
-                    both the Groovy sources and Java stub sources will get included in your jar -->
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-source-plugin</artifactId>
-                <!-- source plugin \>= 2.1 is required to use the no-fork 
-                    goals -->
-                <executions>
-                    <execution>
-                        <id>attach-sources</id>
-                        <goals>
-                            <goal>jar-no-fork</goal>
-                            <goal>test-jar-no-fork</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
-            <plugin>
                 <artifactId>maven-surefire-plugin</artifactId>
                 <version>2.6</version>
                 <configuration>

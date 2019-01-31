@@ -88,8 +88,6 @@
         <groovy-eclipse-batch.version>2.4.3-01</groovy-eclipse-batch.version>
         <maven-release-plugin.version>2.4.1</maven-release-plugin.version>
         <maven-surefire-plugin.version>2.6</maven-surefire-plugin.version>
-        <maven-javadoc-plugin.version>2.10.4</maven-javadoc-plugin.version>
-        <maven-source-plugin.version>3.0.1</maven-source-plugin.version>
         <nexus-staging-maven-plugin.version>1.6.8</nexus-staging-maven-plugin.version>
         <maven-gpg-plugin.version>1.6</maven-gpg-plugin.version>
         <source.version>1.8</source.version>
@@ -98,6 +96,7 @@
         <groovy-all.version>2.4.15</groovy-all.version>
         <commons-lang.version>2.6</commons-lang.version>
         <junit.version>4.11</junit.version>
+        <maven.deploy.skip>false</maven.deploy.skip>
     </properties>
     <build>
         <plugins>
@@ -229,21 +228,6 @@
                             <nexusUrl>https://oss.sonatype.org/</nexusUrl>
                             <autoReleaseAfterClose>true</autoReleaseAfterClose>
                         </configuration>
-                    </plugin>
-                    <plugin>
-                        <groupId>org.apache.maven.plugins</groupId>
-                        <artifactId>maven-source-plugin</artifactId>
-                        <version>${maven-source-plugin.version}</version>
-                        <executions>
-                            <execution>
-                                <id>attach-sources</id>
-                                <phase>verify</phase>
-                                <goals>
-                                    <goal>jar-no-fork</goal>
-                                    <goal>test-jar-no-fork</goal>
-                                </goals>
-                            </execution>
-                        </executions>
                     </plugin>
                     <plugin>
                         <groupId>org.apache.maven.plugins</groupId>
