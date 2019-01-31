@@ -32,11 +32,15 @@
     </parent>
 
     <artifactId>cristalise-testing</artifactId>
+    <name>CRISTAL-iSE Testing Module</name>
+    <description>CRISTAL-iSE Testing Module</description>
+
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <additionalparam>-Xdoclint:none</additionalparam>
         <groovy.version>2.4.15</groovy.version>
+        <maven.deploy.skip>true</maven.deploy.skip>
     </properties>
 
     <build>

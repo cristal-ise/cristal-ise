@@ -43,20 +43,22 @@
         <module>restapi</module>
         <module>dev</module>
         <module>dsl</module>
+<!--
         <module>testing</module>
-        <module>service</module>
+-->      
+	<module>service</module>
         <module>js-rhino</module>
         <module>module-archetype</module>
     </modules>
 
     <properties>
-        <revision>4.0.0-RC1</revision>
+        <revision>4.0.0-RC2</revision>
         <productionMode>false</productionMode>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 	<additionalparam>-Xdoclint:none</additionalparam>
 	<maven.deploy.skip>true</maven.deploy.skip>
-	</properties>
+    </properties>
 
     <description>Cristal-ise is a description-driven software platform originally developed to track the construction of
         the CMS ECAL detector of the LHC at CERN. This is its core library, known as the kernel, which manages
@@ -116,7 +118,7 @@
                 <version>1.1.0</version>
                 <configuration>
                     <updatePomFile>true</updatePomFile>
-                    <flattenMode>defaults</flattenMode>
+                    <flattenMode>ossrh</flattenMode>
                 </configuration>
                 <executions>
                     <execution>
@@ -235,6 +237,20 @@
 	
 	<profile>
             <id>release</id>
+            <modules>
+                <module>kernel</module>
+                <module>jooqdb</module>
+                <module>in-memory-lookup</module>
+                <module>xmldb</module>
+                <module>lookup-ldap</module>
+                <module>xpath-outcome-initiator</module>
+                <module>trigger</module>
+                <module>gui</module>
+                <module>restapi</module>
+                <module>dev</module>
+                <module>dsl</module>
+            </modules>
+
             <build>
                 <plugins>
                     <plugin>
