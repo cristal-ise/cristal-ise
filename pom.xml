@@ -43,8 +43,10 @@
         <module>restapi</module>
         <module>dev</module>
         <module>dsl</module>
+<!--
         <module>testing</module>
-        <module>service</module>
+-->      
+	<module>service</module>
         <module>js-rhino</module>
         <module>module-archetype</module>
     </modules>
@@ -54,7 +56,8 @@
         <productionMode>false</productionMode>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-        <additionalparam>-Xdoclint:none</additionalparam>
+	<additionalparam>-Xdoclint:none</additionalparam>
+	<maven.deploy.skip>true</maven.deploy.skip>
     </properties>
 
     <description>Cristal-ise is a description-driven software platform originally developed to track the construction of
@@ -95,7 +98,7 @@
         <url>https://travis-ci.org/cristal-ise/cristal-ise</url>
     </ciManagement>
     <scm>
-        <developerConnection>scm:https://github.com/cristal-ise/cristal-ise.git</developerConnection>
+        <developerConnection>scm:git:https://github.com/cristal-ise/cristal-ise.git</developerConnection>
         <url>https://github.com/cristal-ise/cristal-ise</url>
         <tag>master</tag>
     </scm>
@@ -115,7 +118,7 @@
                 <version>1.1.0</version>
                 <configuration>
                     <updatePomFile>true</updatePomFile>
-                    <flattenMode>resolveCiFriendliesOnly</flattenMode>
+                    <flattenMode>ossrh</flattenMode>
                 </configuration>
                 <executions>
                     <execution>
@@ -159,12 +162,6 @@
                     <version>3.0.2</version>
                 </plugin>
 	 
-		<plugin>
-                    <groupId>org.apache.maven.plugins</groupId>
-                    <artifactId>maven-source-plugin</artifactId>
-                    <version>3.0.1</version>
-                </plugin>
-
             <plugin>
                 <groupId>com.mycila</groupId>
                 <artifactId>license-maven-plugin</artifactId>
@@ -189,24 +186,76 @@
     </build>
 
     <profiles>
-        <profile>
-            <id>ossrh</id>
-            <properties>
-                <gpg.executable>gpg</gpg.executable>
-                <gpg.keyname>${env.GPG_KEYNAME}</gpg.keyname>
-                <gpg.passphrase>${env.GPG_PASSPHRASE}</gpg.passphrase>
-                <gpg.defaultKeyring>false</gpg.defaultKeyring>
-                <gpg.publicKeyring>${env.GPG_DIR}/pubring.gpg</gpg.publicKeyring>
-                <gpg.secretKeyring>${env.GPG_DIR}/secring.gpg</gpg.secretKeyring>
-            </properties>
-            <activation>
-                <property>
-                    <name>performRelease</name>
-                    <value>true</value>
-                </property>
-            </activation>
+	<profile>
+            <id>release</id>
+            <modules>
+                <module>kernel</module>
+                <module>jooqdb</module>
+                <module>in-memory-lookup</module>
+                <module>xmldb</module>
+                <module>lookup-ldap</module>
+                <module>xpath-outcome-initiator</module>
+                <module>trigger</module>
+                <module>gui</module>
+                <module>restapi</module>
+                <module>dev</module>
+                <module>dsl</module>
+            </modules>
+
             <build>
                 <plugins>
+                    <plugin>
+                        <groupId>org.sonatype.plugins</groupId>
+                        <artifactId>nexus-staging-maven-plugin</artifactId>
+                        <version>1.6.7</version>
+                        <extensions>true</extensions>
+                        <configuration>
+                            <serverId>ossrh</serverId>
+                            <nexusUrl>https://oss.sonatype.org/</nexusUrl>
+                            <autoReleaseAfterClose>true</autoReleaseAfterClose>
+                        </configuration>
+                    </plugin>
+
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-source-plugin</artifactId>
+                        <version>3.0.1</version>
+                        <executions>
+                            <execution>
+                                <id>attach-sources</id>
+                                <phase>verify</phase>
+                                <goals>
+                                    <goal>jar-no-fork</goal>
+                                    <goal>test-jar-no-fork</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+               
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-javadoc-plugin</artifactId>
+                        <version>2.9.1</version>
+                        <configuration>
+                            <additionalparam>-Xdoclint:none</additionalparam>
+                        </configuration>
+                        <executions>
+                            <execution>
+                                <id>attach-javadocs</id>
+                                <goals>
+                                    <goal>jar</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+
+<!--
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-release-plugin</artifactId>
+                        <version>${maven-release-plugin.version}</version>
+                    </plugin>
+-->
                     <plugin>
                         <groupId>org.apache.maven.plugins</groupId>
                         <artifactId>maven-gpg-plugin</artifactId>
@@ -220,17 +269,6 @@
                                 </goals>
                             </execution>
                         </executions>
-                    </plugin>
-                    <plugin>
-                        <groupId>org.sonatype.plugins</groupId>
-                        <artifactId>nexus-staging-maven-plugin</artifactId>
-                        <version>1.6.2</version>
-                        <extensions>true</extensions>
-                        <configuration>
-                            <serverId>ossrh</serverId>
-                            <nexusUrl>https://oss.sonatype.org/</nexusUrl>
-                            <autoReleaseAfterClose>true</autoReleaseAfterClose>
-                        </configuration>
                     </plugin>
                 </plugins>
             </build>
@@ -247,6 +285,7 @@
             <url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
         </repository>
     </distributionManagement>
+<!--
     <repositories>
         <repository>
             <id>snapshots-repo</id>
@@ -259,7 +298,7 @@
             </snapshots>
         </repository>
     </repositories>
-
+-->
     <dependencyManagement>
         <dependencies>
             <dependency>
