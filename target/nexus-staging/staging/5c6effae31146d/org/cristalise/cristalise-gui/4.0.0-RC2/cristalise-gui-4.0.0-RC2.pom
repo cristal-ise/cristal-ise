@@ -1,0 +1,141 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+
+    This file is part of the CRISTAL-iSE eXist-DB storage plugin.
+    Copyright (c) 2001-2016 The CRISTAL Consortium. All rights reserved.
+
+    This library is free software; you can redistribute it and/or modify it
+    under the terms of the GNU Lesser General Public License as published
+    by the Free Software Foundation; either version 3 of the License, or (at
+    your option) any later version.
+
+    This library is distributed in the hope that it will be useful, but WITHOUT
+    ANY WARRANTY; with out even the implied warranty of MERCHANTABILITY or
+    FITNESS FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public
+    License for more details.
+
+    You should have received a copy of the GNU Lesser General Public License
+    along with this library; if not, write to the Free Software Foundation,
+    Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA.
+
+    http://www.fsf.org/licensing/licenses/lgpl.html
+
+-->
+<project xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd" xmlns="http://maven.apache.org/POM/4.0.0"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>org.cristalise</groupId>
+  <artifactId>cristalise-gui</artifactId>
+  <version>4.0.0-RC2</version>
+  <name>cristalise-gui</name>
+  <description>CRISTAL-iSE default/administration GUI</description>
+  <url>https://github.com/cristal-ise/gui</url>
+  <licenses>
+    <license>
+      <name>GNU Library or Lesser General Public License v3 (LGPL3)</name>
+      <url>http://www.gnu.org/licenses/lgpl.html</url>
+    </license>
+  </licenses>
+  <developers>
+    <developer>
+      <name>Andrew Branson</name>
+      <email>andrew.branson@cern.ch</email>
+      <organization>UWE CCCS</organization>
+      <organizationUrl>http://www.cccs.uwe.ac.uk/et/research/cccs</organizationUrl>
+      <roles>
+        <role>CEO</role>
+      </roles>
+    </developer>
+    <developer>
+      <name>Jetendr Shamdasani</name>
+      <email>jetendr.shamdasani@cern.ch</email>
+      <organization>UWE CCCS</organization>
+      <organizationUrl>http://www.cccs.uwe.ac.uk/et/research/cccs</organizationUrl>
+      <roles>
+        <role>CEO</role>
+      </roles>
+    </developer>
+    <developer>
+      <name>Zsolt Kovács</name>
+      <email>zs.myth@gmail.com</email>
+      <organization>UWE CCCS</organization>
+      <organizationUrl>http://www.cccs.uwe.ac.uk/et/research/cccs</organizationUrl>
+      <roles>
+        <role>Pinky/Brain</role>
+      </roles>
+    </developer>
+  </developers>
+  <scm>
+    <developerConnection>scm:https://github.com/cristal-ise/gui.git</developerConnection>
+    <tag>master</tag>
+    <url>https://github.com/cristal-ise/gui</url>
+  </scm>
+  <dependencies>
+    <dependency>
+      <groupId>org.cristalise</groupId>
+      <artifactId>cristalise-kernel</artifactId>
+      <version>4.0.0-RC2</version>
+      <scope>compile</scope>
+    </dependency>
+    <dependency>
+      <groupId>com.fifesoft</groupId>
+      <artifactId>rsyntaxtextarea</artifactId>
+      <version>2.5.8</version>
+      <scope>compile</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.codehaus.castor</groupId>
+      <artifactId>castor-xml-schema</artifactId>
+      <version>1.4.1</version>
+      <scope>compile</scope>
+      <exclusions>
+        <exclusion>
+          <artifactId>stax</artifactId>
+          <groupId>stax</groupId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+    <dependency>
+      <groupId>org.codehaus.castor</groupId>
+      <artifactId>castor-xml</artifactId>
+      <version>1.4.1</version>
+      <scope>compile</scope>
+      <exclusions>
+        <exclusion>
+          <artifactId>stax</artifactId>
+          <groupId>stax</groupId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+    <dependency>
+      <groupId>org.python</groupId>
+      <artifactId>jython</artifactId>
+      <version>2.5.3</version>
+      <scope>runtime</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.shiro</groupId>
+      <artifactId>shiro-core</artifactId>
+      <version>1.4.0</version>
+      <scope>compile</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-simple</artifactId>
+      <version>1.6.1</version>
+      <scope>compile</scope>
+    </dependency>
+    <dependency>
+      <groupId>xmlunit</groupId>
+      <artifactId>xmlunit</artifactId>
+      <version>1.5</version>
+      <scope>compile</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.projectlombok</groupId>
+      <artifactId>lombok</artifactId>
+      <version>1.18.4</version>
+      <scope>provided</scope>
+    </dependency>
+  </dependencies>
+</project>
