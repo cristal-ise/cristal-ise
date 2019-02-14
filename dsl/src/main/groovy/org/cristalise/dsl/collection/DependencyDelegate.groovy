@@ -29,6 +29,7 @@ import org.cristalise.kernel.process.Gateway
 
 import groovy.transform.CompileStatic
 import org.cristalise.kernel.process.resource.BuiltInResources
+import org.cristalise.kernel.property.PropertyDescriptionList
 import org.cristalise.kernel.utils.Logger
 
 
@@ -57,8 +58,16 @@ class DependencyDelegate {
     public void Member(Map attrs, Closure cl = null) {
         assert attrs && attrs.itemPath
 
+        String iPathStr
         ItemPath itemPath = new ItemPath()
-        String iPathStr = (String)attrs.itemPath
+
+        if (attrs.itemPath instanceof PropertyDescriptionList) {
+            def propDesc = (PropertyDescriptionList)attrs.itemPath
+            //FIXME module namespace is hardcoded
+            iPathStr = "/desc/Property/testns/${propDesc.name}"
+        }
+        else 
+            iPathStr = (String)attrs.itemPath
 
         assert iPathStr
 
@@ -69,8 +78,8 @@ class DependencyDelegate {
             Logger.warning "Unable to find the domain path. ${e.localizedMessage}"
         }
 
-        if (iPathStr.startsWith(BuiltInResources.COMP_ACT_DESC_RESOURCE.typeRoot))
-            itemPath.path[0] = iPathStr
+        //NOTE: this is a kind of hack so the DSL 
+        if (!ItemPath.isUUID(iPathStr)) itemPath.path[0] = iPathStr
 
         def member = dependency.addMember(itemPath)
 

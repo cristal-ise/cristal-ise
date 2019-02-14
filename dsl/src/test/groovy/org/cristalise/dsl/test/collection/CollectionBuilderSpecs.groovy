@@ -22,7 +22,6 @@ package org.cristalise.dsl.test.collection
 
 import org.cristalise.dsl.collection.DependencyBuilder
 import org.cristalise.kernel.test.utils.CristalTestSetup;
-
 import spock.lang.Specification
 
 
@@ -48,7 +47,9 @@ class CollectionBuilderSpecs extends Specification implements CristalTestSetup {
         then:
         builder.dependency.properties.size() == 1
         builder.dependency.members.list.size() == 1
-
+        builder.dependency.members.list[0].childUUID
+//        builder.dependency.members.list[0].childUUID == 'b9415b57-3a4a-4b31-825a-d307d1280ac0'
+        
         builder.dependency.members.list[0].properties.size() == 2
         builder.dependency.members.list[0].properties['version'] == 0
         builder.dependency.members.list[0].properties['toto'] == true

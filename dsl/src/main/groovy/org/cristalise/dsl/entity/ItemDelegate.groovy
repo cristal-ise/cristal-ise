@@ -31,6 +31,7 @@ import org.cristalise.kernel.entity.imports.ImportDependencyMember
 import org.cristalise.kernel.entity.imports.ImportItem
 import org.cristalise.kernel.entity.imports.ImportOutcome
 import org.cristalise.kernel.lifecycle.CompositeActivityDef
+import org.cristalise.kernel.lookup.ItemPath
 import org.cristalise.kernel.process.resource.BuiltInResources
 
 import groovy.transform.CompileStatic
@@ -105,12 +106,17 @@ class ItemDelegate extends PropertyDelegate {
             DependencyMember member = DependencyMember.cast(mem)
             String itemPath = member.itemPath.stringPath
 
-            if (itemPath.contains(BuiltInResources.COMP_ACT_DESC_RESOURCE.typeRoot) && itemPath.startsWith(ENTITY_PATTERN))
+            //
+            if (itemPath.startsWith(ENTITY_PATTERN) && !ItemPath.isUUID(itemPath))
                 itemPath = itemPath.replaceFirst(ENTITY_PATTERN, StringUtils.EMPTY)
 
             ImportDependencyMember imem = new ImportDependencyMember(itemPath)
             imem.props = member.properties
             idep.dependencyMemberList << imem
+        }
+        
+        if (dependency.getProperties().size() > 0) {
+          idep.props = dependency.getProperties()
         }
 
         newItem.dependencyList.add(idep)
