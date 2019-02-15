@@ -34,6 +34,7 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Cookie;
+import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
@@ -50,20 +51,25 @@ public class ItemHistory extends ItemUtils {
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     public Response listEvents(
-            @PathParam("uuid")       String  uuid,
-            @QueryParam("start")     Integer start,
-            @QueryParam("batch")     Integer batchSize,
-            @CookieParam(COOKIENAME) Cookie  authCookie,
-            @Context                 UriInfo uri)
+            @PathParam("uuid")        String  uuid,
+            @QueryParam("start")      Integer start,
+            @QueryParam("batch")      Integer batchSize,
+            @QueryParam("descending") Boolean descending,
+            @CookieParam(COOKIENAME)  Cookie  authCookie,
+            @Context                  UriInfo uri)
     {
         checkAuthCookie(authCookie);
         ItemProxy item = getProxy(uuid);
+
         if (start == null) start = 0;
-        if (batchSize == null) batchSize = Gateway.getProperties().getInt("REST.Event.DefaultBatchSize",
-                Gateway.getProperties().getInt("REST.DefaultBatchSize", 20));
+        descending = descending != null;
+
+        if (batchSize == null) {
+            batchSize = Gateway.getProperties().getInt("REST.Event.DefaultBatchSize", Gateway.getProperties().getInt("REST.DefaultBatchSize", 20));
+        }
 
         // fetch this batch of events from the RemoteMap
-        LinkedHashMap<String, Object> batch = RemoteMapAccess.list(item, HISTORY, start, batchSize, uri);
+        LinkedHashMap<String, Object> batch = RemoteMapAccess.list(item, HISTORY, start, batchSize, descending, uri);
 
         ArrayList<LinkedHashMap<String, Object>> events = new ArrayList<>();
 
@@ -92,6 +98,15 @@ public class ItemHistory extends ItemUtils {
         return toJSON(makeEventData(ev, uri));
     }
 
+    /**
+     * 
+     * @param uuid
+     * @param eventId
+     * @param authCookie
+     * @param uri
+     * @param json
+     * @return
+     */
     private Response getEventOutcome(String uuid, String eventId, Cookie authCookie, UriInfo uri, boolean json) {
         checkAuthCookie(authCookie);
         ItemProxy item = getProxy(uuid);
@@ -112,25 +127,14 @@ public class ItemHistory extends ItemUtils {
 
     @GET
     @Path("{eventId}/data")
-    @Produces(MediaType.APPLICATION_JSON)
-    public Response getEventJSONOutcome(
-            @PathParam("uuid")       String  uuid,
-            @PathParam("eventId")    String  eventId,
-            @CookieParam(COOKIENAME) Cookie  authCookie,
-            @Context                 UriInfo uri)
+    @Produces( {MediaType.TEXT_XML, MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON } )
+    public Response getEventOutcome(
+            @Context                 HttpHeaders headers,
+            @PathParam("uuid")       String      uuid,
+            @PathParam("eventId")    String      eventId,
+            @CookieParam(COOKIENAME) Cookie      authCookie,
+            @Context                 UriInfo     uri)
     {
-        return getEventOutcome(uuid, eventId, authCookie, uri, true);
-    }
-
-    @GET
-    @Path("{eventId}/data")
-    @Produces(MediaType.TEXT_XML)
-    public Response getEventXMLOutcome(
-            @PathParam("uuid")       String  uuid,
-            @PathParam("eventId")    String  eventId,
-            @CookieParam(COOKIENAME) Cookie  authCookie,
-            @Context                 UriInfo uri)
-    {
-        return getEventOutcome(uuid, eventId, authCookie, uri, false);
+        return getEventOutcome(uuid, eventId, authCookie, uri, produceJSON(headers.getAcceptableMediaTypes()));
     }
 }
