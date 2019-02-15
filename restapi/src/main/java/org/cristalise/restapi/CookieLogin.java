@@ -34,6 +34,7 @@ import org.cristalise.kernel.common.InvalidDataException;
 import org.cristalise.kernel.common.ObjectNotFoundException;
 import org.cristalise.kernel.lookup.AgentPath;
 import org.cristalise.kernel.process.Gateway;
+import org.cristalise.kernel.security.SecurityManager;
 import org.cristalise.kernel.utils.Logger;
 import org.json.JSONObject;
 import org.json.XML;
@@ -67,8 +68,12 @@ public class CookieLogin extends RestHandler {
         catch (ObjectNotFoundException | InvalidDataException ex) {
             //NOTE: Enable this log for testing security problems only, but always remove it when merged
             //Logger.error(ex);
-            Logger.msg(5, "CookieLogin.login() - Bad username/password");
-            throw ItemUtils.createWebAppException("Bad username/password", Response.Status.UNAUTHORIZED);
+            String msg = SecurityManager.decodePublicSecurityMessage(ex);
+
+            if (StringUtils.isBlank(msg)) msg = "Bad username/password";
+
+            Logger.msg(5, "CookieLogin.login() - %s", msg);
+            throw ItemUtils.createWebAppException(msg, Response.Status.UNAUTHORIZED);
         }
     }
 
