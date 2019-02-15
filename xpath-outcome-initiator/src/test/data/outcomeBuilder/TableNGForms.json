@@ -1,7 +1,51 @@
 [{
-  "name": "Table",
+  "name": "Details",
   "cls": {"grid": {"container": "ui-g-12"}},
-  "id": "Table",
+  "id": "Details",
   "type": "GROUP",
-  "group": [null]
+  "group": [
+    {
+      "name": "Table",
+      "id": "Table",
+      "type": "TABLE",
+      "columns": [
+        {
+          "hidden": false,
+          "id": "Product",
+          "label": "Product",
+          "required": true,
+          "type": "INPUT"
+        },
+        {
+          "hidden": false,
+          "id": "RequiredQuantity",
+          "label": "RequiredQuantity",
+          "required": true,
+          "type": "INPUT"
+        },
+        {
+          "hidden": false,
+          "id": "PickedQuantity",
+          "label": "PickedQuantity",
+          "required": true,
+          "type": "INPUT"
+        },
+        {
+          "hidden": false,
+          "id": "MissingQuantity",
+          "label": "MissingQuantity",
+          "required": true,
+          "type": "INPUT"
+        },
+        {
+          "hidden": false,
+          "id": "ETA",
+          "label": "ETA",
+          "required": false,
+          "type": "DATEPICKER"
+        }
+      ],
+      "rows": []
+    }
+  ]
 }]

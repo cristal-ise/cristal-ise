@@ -253,17 +253,19 @@ public class ListOfValues extends HashMap<String, Object> {
         }
 
         String[] scriptRefTokens = scriptRefNode.getStringValue().split(":");
-        
+
         try {
             if (scriptRefTokens.length != 2) {
                 Logger.error("populateLOVFromScript; Invalid LOVScript name: " + scriptRefNode.getStringValue());
                 throw new InvalidDataException("Invalid LOVScript name");
             }
+
             Script script = LocalObjectLoader.getScript(scriptRefTokens[0], Integer.valueOf(scriptRefTokens[1]));
 
-            //TODO: set input parameters in the CastorHashMap
-            Map<? extends String, ? extends Object> result = (Map<? extends String, ? extends Object>) 
-                        script.evaluate(null, new CastorHashMap(), null, null);
+            CastorHashMap chm = new CastorHashMap();
+            if (inputs != null) chm.putAll(inputs);
+            Map<? extends String, ? extends Object> result = 
+                (Map<? extends String, ? extends Object>) script.evaluate(chm);
 
             extractValues((Map<String, Object>) result, false);
         }
@@ -271,5 +273,4 @@ public class ListOfValues extends HashMap<String, Object> {
             Logger.error(e);
         }
     }
-
 }
