@@ -136,10 +136,6 @@ public class ComboField extends StringField {
             select.put("filterable", true);
             additional.put("filterBy", "label");
         }
-        else{
-            select.put("type", "INPUT"); // overwrite type if no values were given
-            select.put("disabled", true); // also disable it, as it is very likely an error
-        }
 
         return select;
     }
