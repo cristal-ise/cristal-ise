@@ -64,4 +64,20 @@ public interface JooqDomainHandler {
      * @throws PersistencyException throw this exception in case of any error that requires to abort a transaction
      */
     public int delete(DSLContext context, UUID uuid, Object locker, String...primaryKeys) throws PersistencyException;
+
+    /**
+     * Called each time the cristal-ise transaction is comitted
+     * 
+     * @param context The configured DSLContext of jooq
+     * @param locker transaction key
+     */
+    public void commit(DSLContext context, Object locker);
+
+    /**
+     * Called each time the cristal-ise transaction is aborted
+     * 
+     * @param context The configured DSLContext of jooq
+     * @param locker transaction key
+     */
+    public void abort(DSLContext context, Object locker);
 }

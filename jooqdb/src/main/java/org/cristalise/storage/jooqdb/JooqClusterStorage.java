@@ -131,6 +131,8 @@ public class JooqClusterStorage extends TransactionalClusterStorage {
 
     @Override
     public void commit(Object locker) throws PersistencyException {
+        for (JooqDomainHandler domainHandler : domainHandlers) domainHandler.commit(context, locker);
+
         if (autoCommit) {
             Logger.msg(1, "JooqClusterStorage.commit(DISABLED) - autoCommit:"+autoCommit);
             return;
@@ -148,6 +150,8 @@ public class JooqClusterStorage extends TransactionalClusterStorage {
 
     @Override
     public void abort(Object locker) {
+        for (JooqDomainHandler domainHandler : domainHandlers) domainHandler.abort(context, locker);
+
         if (autoCommit) {
             Logger.msg(1, "JooqClusterStorage.abort(DISABLED) - autoCommit:"+autoCommit);
             return;

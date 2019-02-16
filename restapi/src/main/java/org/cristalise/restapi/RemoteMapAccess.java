@@ -40,7 +40,7 @@ public class RemoteMapAccess {
 
     private RemoteMapAccess() {}
 
-    public static LinkedHashMap<String, Object> list(ItemProxy item, ClusterType root, int start, int batchSize, UriInfo uri) {
+    public static LinkedHashMap<String, Object> list(ItemProxy item, ClusterType root, int start, int batchSize, Boolean descending, UriInfo uri) {
         RemoteMap<?> map;
         try {
             map = (RemoteMap<?>) item.getObject(root);
@@ -55,18 +55,37 @@ public class RemoteMapAccess {
         }
 
         LinkedHashMap<String, Object> batch = new LinkedHashMap<String, Object>();
-        int i = start;
         int last = map.getLastId();
 
-        while (batch.size() < batchSize && i <= last) {
-            Object obj = map.get(i);
-            if (obj != null) batch.put(String.valueOf(i), obj);
-            i++;
-        }
+        if (descending) {
+            int i = last-start;
 
-        if (i < last) {
-            while (map.get(i) == null) i++;
-            batch.put("nextBatch", uri.getAbsolutePathBuilder().replaceQueryParam("start", i).replaceQueryParam("batch", batchSize).build());
+            while (i >= 0 && batch.size() < batchSize) {
+                Object obj = map.get(i);
+                if (obj != null) batch.put(String.valueOf(i), obj);
+                i--;
+            }
+
+            //'nextBatch' is not returned to the client, check ItemHistory.listEvents()
+            //while (i >= 0 && map.get(i) == null) i--;
+            //if (i >= 0) {
+            //    batch.put("nextBatch", uri.getAbsolutePathBuilder().replaceQueryParam("start", i).replaceQueryParam("batch", batchSize).build());
+            //}
+        }
+        else {
+            int i = start;
+
+            while (i <= last && batch.size() < batchSize) {
+                Object obj = map.get(i);
+                if (obj != null) batch.put(String.valueOf(i), obj);
+                i++;
+            }
+
+            //'nextBatch' is not returned to the client, check ItemHistory.listEvents()
+            //while (i <= last && map.get(i) == null) i++;
+            //if (i <= last) {
+            //    batch.put("nextBatch", uri.getAbsolutePathBuilder().replaceQueryParam("start", i).replaceQueryParam("batch", batchSize).build());
+            //}
         }
 
         return batch;
