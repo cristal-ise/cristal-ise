@@ -22,7 +22,7 @@ package org.cristalise.kernel.persistency.outcomebuilder;
 
 import java.util.ArrayList;
 import java.util.Enumeration;
-
+import java.util.HashMap;
 import org.cristalise.kernel.utils.Logger;
 import org.exolab.castor.xml.schema.Annotated;
 import org.exolab.castor.xml.schema.AttributeDecl;
@@ -48,6 +48,8 @@ public class DimensionTableModel {
     ArrayList<Class<?>>  columnClasses  = new ArrayList<Class<?>>();
     ArrayList<Annotated> columnDecls    = new ArrayList<Annotated>();
     ArrayList<String>    colHelp        = new ArrayList<String>();
+
+    HashMap<String, Field> columns = new HashMap<String, Field>();
 
     ArrayList<Object[]>  rows           = new ArrayList<Object[]>();
     ArrayList<Element>   elements       = new ArrayList<Element>();
@@ -96,8 +98,10 @@ public class DimensionTableModel {
         Logger.msg(8, "DimensionTableModel.addColumn() - Column "+heading+" contains "+decl.getClass().getSimpleName());
 
         columnHeadings.add(heading);
-        columnDecls.add(decl);
         columnClasses.add(OutcomeStructure.getJavaClass(typeCode));
+        columnDecls.add(decl);
+
+        if (decl instanceof ElementDecl) columns.put(heading, new Field((ElementDecl)decl));
 
         // read help
         String helpText;

@@ -1,7 +1,99 @@
 [{
-  "name": "Table",
+  "name": "Details",
   "cls": {"grid": {"container": "ui-g-12"}},
-  "id": "Table",
+  "id": "Details",
   "type": "GROUP",
-  "group": [null]
+  "group": [{
+    "columns": [
+      {
+        "additional": {"showButtonBar": true},
+        "format": "yy-mm-dd",
+        "cls": {
+          "grid": {
+            "container": "ui-g",
+            "control": "ui-g-8",
+            "label": "ui-g-4"
+          },
+          "element": {"label": "ui-widget"}
+        },
+        "id": "ETA",
+        "label": "ETA",
+        "placeholder": "ETA",
+        "type": "DATEPICKER",
+        "required": false
+      },
+      {
+        "validators": {"required": null},
+        "cls": {
+          "grid": {
+            "container": "ui-g",
+            "control": "ui-g-8",
+            "label": "ui-g-4"
+          },
+          "element": {"label": "ui-widget"}
+        },
+        "id": "RequiredQuantity",
+        "label": "Required Quantity *",
+        "placeholder": "Required Quantity",
+        "type": "INPUT",
+        "value": "0.0",
+        "required": true
+      },
+      {
+        "validators": {"required": null},
+        "cls": {
+          "grid": {
+            "container": "ui-g",
+            "control": "ui-g-8",
+            "label": "ui-g-4"
+          },
+          "element": {"label": "ui-widget"}
+        },
+        "id": "PickedQuantity",
+        "label": "Picked Quantity *",
+        "placeholder": "Picked Quantity",
+        "type": "INPUT",
+        "value": "0.0",
+        "required": true
+      },
+      {
+        "validators": {"required": null},
+        "cls": {
+          "grid": {
+            "container": "ui-g",
+            "control": "ui-g-8",
+            "label": "ui-g-4"
+          },
+          "element": {"label": "ui-widget"}
+        },
+        "id": "MissingQuantity",
+        "label": "Missing Quantity *",
+        "placeholder": "Missing Quantity",
+        "type": "INPUT",
+        "value": "0.0",
+        "required": true
+      },
+      {
+        "validators": {"required": null},
+        "inputType": "text",
+        "cls": {
+          "grid": {
+            "container": "ui-g",
+            "control": "ui-g-8",
+            "label": "ui-g-4"
+          },
+          "element": {"label": "ui-widget"}
+        },
+        "id": "Product",
+        "label": "Product *",
+        "placeholder": "Product",
+        "type": "INPUT",
+        "required": true
+      }
+    ],
+    "name": "Table",
+    "id": "Table",
+    "type": "TABLE",
+    "rows": []
+  }]
 }]

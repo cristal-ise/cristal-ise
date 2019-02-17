@@ -1,6 +1,6 @@
 {
-    "Table": {
-        "Row": [
+    "Details": {
+        "Table": [
             {
                 "ETA": null,
                 "MissingQuantity": 6,
@@ -8,6 +8,13 @@
                 "Product": "BR1189",
                 "RequiredQuantity": 6
             },
+            {
+                "ETA": "2019-01-01",
+                "MissingQuantity": 7,
+                "PickedQuantity": "1",
+                "Product": "BR1190",
+                "RequiredQuantity":7
+            }
         ]
     }
 }

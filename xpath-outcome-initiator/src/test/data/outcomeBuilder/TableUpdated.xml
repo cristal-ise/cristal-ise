@@ -20,12 +20,12 @@
     http://www.fsf.org/licensing/licenses/lgpl.html
 
 -->
-<Table>
-    <Row>
+<Details>
+    <Table>
         <Product>BR1189</Product>
         <RequiredQuantity>6</RequiredQuantity>
         <PickedQuantity>0</PickedQuantity>
         <MissingQuantity>6</MissingQuantity>
         <ETA>2008-11-08</ETA>
-    </Row>
-</Table>
+    </Table>
+</Details>

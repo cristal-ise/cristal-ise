@@ -24,6 +24,7 @@ import java.io.Writer;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import org.cristalise.kernel.utils.Logger;
 import org.exolab.castor.xml.schema.ElementDecl;
@@ -57,7 +58,7 @@ public class Dimension extends OutcomeStructure {
         }
         catch (OutcomeBuilderException e) {
             // use tabs
-            Logger.msg(8, "Dimension() - name:" + model.getName() + " mode:tabs: " + e.getMessage());
+            Logger.msg(8, "Dimension() - name:" + model.getName() + " mode:tabs  ex:" + e.getMessage());
             mode = Mode.TABS;
         }
     }
@@ -213,7 +214,23 @@ public class Dimension extends OutcomeStructure {
 
     @Override
     public Object generateNgDynamicForms(Map<String, Object> inputs) {
-        // TODO Auto-generated method stub
+        if (mode == Mode.TABLE) {
+            JSONObject table = new JSONObject();
+            table.put("type",  "TABLE");
+            table.put("id",    model.getName());
+            table.put("name",  model.getName());
+
+            JSONArray columns = new JSONArray();
+            table.put("columns",  columns);
+            for (Entry<String, Field> entry: tableModel.columns.entrySet()) {
+                columns.put(entry.getValue().generateNgDynamicForms(inputs));
+            }
+
+            JSONArray rows = new JSONArray();
+            table.put("rows",  rows);
+
+            return table;
+        }
         return null;
     }
 
