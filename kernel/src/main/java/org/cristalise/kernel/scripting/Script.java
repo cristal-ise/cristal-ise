@@ -104,6 +104,9 @@ public class Script implements DescriptionObject {
      */
     Map<String, Parameter> mAllInputParams = new HashMap<String, Parameter>();
 
+    /**
+     * Included Scripts which were declared in the XML
+     */
     ArrayList<Script> mIncludes = new ArrayList<Script>();
 
     @Setter(AccessLevel.NONE) @Getter(AccessLevel.NONE)
@@ -115,17 +118,43 @@ public class Script implements DescriptionObject {
     @Setter(AccessLevel.NONE) @Getter(AccessLevel.NONE)
     boolean isActExecEnvironment = false;
 
+    @Setter(AccessLevel.NONE) @Getter(AccessLevel.NONE)
+    boolean lateBindIncluded = false;
+
     /**
      * Constructor for castor unmarshall
      */
     public Script() {}
 
     /**
-     * For testing. Parses a given script xml, instead of loading it from Items.
+     * Parses a given script xml, instead of loading it from Items.
+     * 
+     * @param name the name of the Script
+     * @param version the version of the Script
+     * @param path the Itempath if the Script (can be null)
+     * @param xml the marshalled Script
+     * @throws ScriptParsingException there was an error parsing the xml
+     * @throws ParameterException there was an error parsing the parameters
      */
     public Script(String name, Integer version, ItemPath path, String xml) throws ScriptParsingException, ParameterException {
+        this(name, version, path, xml, false);
+    }
+
+    /**
+     * Parses a given script xml, instead of loading it from Items.
+     * 
+     * @param name the name of the Script
+     * @param version the version of the Script
+     * @param path the Itempath if the Script (can be null)
+     * @param xml the marshalled Script
+     * @param lateBind do not try to resolve the Items of the included scripts during the XML parse
+     * @throws ScriptParsingException there was an error parsing the xml
+     * @throws ParameterException there was an error parsing the parameters
+     */
+    public Script(String name, Integer version, ItemPath path, String xml, boolean lateBind) throws ScriptParsingException, ParameterException {
         mName = name; mVersion = version; mItemPath = path;
         mScriptXML = xml;
+        lateBindIncluded = lateBind;
         parseScriptXML(xml);
     }
 
@@ -353,7 +382,12 @@ public class Script implements DescriptionObject {
             String includeVersion =  include.getAttribute("version");
 
             try {
-                Script includedScript = LocalObjectLoader.getScript(includeName, Integer.parseInt(includeVersion));
+                Script includedScript = null;
+                Integer includedVer = Integer.parseInt(includeVersion);
+
+                if (lateBindIncluded) includedScript = new Script(includeName, includedVer, null, null);
+                else                  includedScript = LocalObjectLoader.getScript(includeName, includedVer);
+
                 includedScript.setContext(context);
                 mIncludes.add(includedScript);
 
@@ -372,6 +406,7 @@ public class Script implements DescriptionObject {
         Element scriptElem = (Element)scriptList.item(0);
 
         if (!scriptElem.hasAttribute("language")) throw new ScriptParsingException("Script data incomplete, must specify scripting language");
+        String         mScriptXML  = "";
 
         Logger.msg(6, "Script.parseScriptTag() - Script Language: " + scriptElem.getAttribute("language"));
 
@@ -507,6 +542,17 @@ public class Script implements DescriptionObject {
     }
 
     /**
+     * Use this when a Script is executed without an Item or Transaction context
+     * 
+     * @param inputProps the inputs of the script
+     * @return the result of the execution
+     * @throws ScriptingEngineException something went wrong during the execution
+     */
+    public Object evaluate(CastorHashMap inputProps) throws ScriptingEngineException {
+       return evaluate(null, inputProps, null, false, null);
+    }
+
+    /**
      * 
      * @param itemPath
      * @param inputProps
@@ -523,7 +569,7 @@ public class Script implements DescriptionObject {
      * Reads and evaluates input properties, set input parameters from those properties and executes the Script
      * 
      * @param itemPath the Item context
-     * @param inputProps imput properties
+     * @param inputProps input properties
      * @param actContext activity path
      * @param locker transaction locker
      * @return the values returned by the Script
@@ -532,7 +578,8 @@ public class Script implements DescriptionObject {
             throws ScriptingEngineException
     {
         try {
-            ItemProxy item = Gateway.getProxyManager().getProxy(itemPath);
+            //it is possible to execute a script outside of the context of an Item
+            ItemProxy item = itemPath == null ? null : Gateway.getProxyManager().getProxy(itemPath);
 
             if (actExecEnv) setActExecEnvironment(item, (AgentProxy)inputProps.get("agent"), (Job)inputProps.get("job"));
 
@@ -542,7 +589,8 @@ public class Script implements DescriptionObject {
                 }
             }
 
-            item.setTransactionKey(locker);
+            //server side scripts are always executed with an Item context
+            if (item != null) item.setTransactionKey(locker);
 
             if (getAllInputParams().containsKey("item") && getAllInputParams().get("item") != null) {
                 setInputParamValue("item", item);
@@ -575,7 +623,8 @@ public class Script implements DescriptionObject {
 
 
    /**
-     * Executes the script with the submitted parameters. All declared input parametes should have been set first.
+     * Executes the script with the submitted parameters. All declared input parameters should have been set first.
+     * It executes the included scripts first because they might set input parameters, for the actual Script
      *
      * @return The return value depends on the way the output type was declared in the script xml.
      * <ul><li>If there was no output class declared then null is returned
@@ -587,7 +636,6 @@ public class Script implements DescriptionObject {
      * @throws ScriptingEngineException - input parameters weren't set, there was an error executing the script, or the output was invalid
      */
     public Object execute() throws ScriptingEngineException {
-        //TODO: Split Script.execute() to several logically independent methods to make it easier to maintain
         executeIncludedScripts();
 
         StringBuffer missingParams = new StringBuffer();
@@ -656,7 +704,6 @@ public class Script implements DescriptionObject {
 
             // set current context to the included script before executing it? (issue #124)
             importScript.setContext(context);
-            // execute the included scripts first, they might set input parameters
             Object output = importScript.execute();
 
             if (output != null && output instanceof Map) {

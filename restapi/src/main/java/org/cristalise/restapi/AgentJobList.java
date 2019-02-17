@@ -57,11 +57,13 @@ public class AgentJobList extends ItemUtils {
             @PathParam("uuid")                      String  uuid,
             @DefaultValue("0") @QueryParam("start") Integer start,
             @QueryParam("batch")                    Integer batchSize,
+            @QueryParam("descending")               Boolean descending,
             @CookieParam(COOKIENAME)                Cookie  authCookie,
             @Context                                UriInfo uri)
     {
         checkAuthCookie(authCookie);
         ItemProxy item = getProxy(uuid);
+        descending = descending != null;
 
         if (!(item instanceof AgentProxy))
             throw ItemUtils.createWebAppException("UUID does not belong to an Agent", Response.Status.BAD_REQUEST);
@@ -70,7 +72,7 @@ public class AgentJobList extends ItemUtils {
                 Gateway.getProperties().getInt("REST.DefaultBatchSize", 20));
 
         // fetch this batch of events from the RemoteMap
-        LinkedHashMap<String, Object> batch = RemoteMapAccess.list(item, JOB, start, batchSize, uri);
+        LinkedHashMap<String, Object> batch = RemoteMapAccess.list(item, JOB, start, batchSize, descending, uri);
         ArrayList<LinkedHashMap<String, Object>> jobs = new ArrayList<>();
 
         // replace Jobs with their JSON form. Leave any other object (like the nextBatch URI) as they are
