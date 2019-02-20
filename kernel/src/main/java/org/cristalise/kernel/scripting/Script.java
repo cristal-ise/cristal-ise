@@ -293,9 +293,13 @@ public class Script implements DescriptionObject {
 
         mLanguage = requestedLang;
 
-        context = new SimpleScriptContext();
-        context.setBindings(engine.createBindings(), ScriptContext.ENGINE_SCOPE);
-        engine.setContext(context);
+        createEmptyContext();
+    }
+
+    private void createEmptyContext() {
+      context = new SimpleScriptContext();
+      context.setBindings(engine.createBindings(), ScriptContext.ENGINE_SCOPE);
+      engine.setContext(context);
     }
 
     /**
@@ -581,6 +585,8 @@ public class Script implements DescriptionObject {
             //it is possible to execute a script outside of the context of an Item
             ItemProxy item = itemPath == null ? null : Gateway.getProxyManager().getProxy(itemPath);
 
+            createEmptyContext();
+            
             if (actExecEnv) setActExecEnvironment(item, (AgentProxy)inputProps.get("agent"), (Job)inputProps.get("job"));
 
             for (String inputParamName: getAllInputParams().keySet()) {
