@@ -37,7 +37,7 @@ class DependencyBuilder {
     }
 
     public static DependencyBuilder build(String name, boolean isDescrption = false, Closure cl) {
-        return build("", name, cl)
+        return build("", name, isDescrption, cl)
     }
 
     public static DependencyBuilder build(String ns, String name, boolean isDescrption = false, Closure cl) {
