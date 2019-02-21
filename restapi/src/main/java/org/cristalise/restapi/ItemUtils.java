@@ -99,7 +99,7 @@ public abstract class ItemUtils extends RestHandler {
     public ItemUtils() {
         super();
         dateFormatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-        defaultLogLevel = Gateway.getProperties().getInt("LOGGER.defaultLevel", 8);
+        defaultLogLevel = Gateway.getProperties().getInt("LOGGER.defaultLevel", 9);
     }
 
     protected static URI getItemURI(UriInfo uri, ItemProxy item, Object...path) {
