@@ -714,7 +714,7 @@ class SchemaBuilderSpecs extends Specification implements CristalTestSetup {
 
 
     def 'Complex example using PatientDetails from Basic Tutorial'() {
-        expect: "SOME TEXT"
+        expect:
         SchemaTestBuilder.build('test', 'PatientDetails', 0) {
             struct(name: 'PatientDetails', documentation: 'This is the Schema for Basic Tutorial') {
                 attribute(name: 'InsuranceNumber', type: 'string', default: '123456789ABC')
@@ -863,7 +863,7 @@ class SchemaBuilderSpecs extends Specification implements CristalTestSetup {
 
     
     def 'Field can have attribute'() {
-        expect: "SOME TEXT"
+        expect:
         SchemaTestBuilder.build('test', 'PatientDetails', 0) {
             struct(name: 'PatientDetails', documentation: 'This is the Schema for Basic Tutorial') {
                 attribute(name: 'InsuranceNumber', type: 'string', default: '123456789ABC')
