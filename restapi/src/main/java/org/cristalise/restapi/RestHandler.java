@@ -97,7 +97,7 @@ abstract public class RestHandler {
     public RestHandler() {
         mapper = new ObjectMapper();
         requireLogin = Gateway.getProperties().getBoolean("REST.requireLoginCookie", true);
-        defaultLogLevel = Gateway.getProperties().getInt("LOGGER.defaultLevel", 8);
+        defaultLogLevel = Gateway.getProperties().getInt("LOGGER.defaultLevel", 9);
     }
 
     private static void initKeys(int keySize) 
