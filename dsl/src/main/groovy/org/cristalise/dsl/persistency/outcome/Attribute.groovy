@@ -45,6 +45,9 @@ class Attribute {
 
     boolean required = false
 
+    Integer precision = null //mapped to xs:totalDigits
+    Integer scale = null     //mapped to xs:fractionDigits
+
     /**
      * Checks if the type is acceptable
      * 
