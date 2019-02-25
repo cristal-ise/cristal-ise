@@ -26,7 +26,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>org.cristalise</groupId>
   <artifactId>cristalise-dsl</artifactId>
-  <version>4.0.0-RC2</version>
+  <version>4.0.0-SNAPSHOT</version>
   <name>CRISTAL-iSE Domain Specific Language</name>
   <description>CRISTAL-iSE Domain Specific Language module for bootstrapping and funtional testing</description>
   <url>https://github.com/cristal-ise/dsl</url>
@@ -56,7 +56,7 @@
     <dependency>
       <groupId>org.cristalise</groupId>
       <artifactId>cristalise-dev</artifactId>
-      <version>4.0.0-RC2</version>
+      <version>4.0.0-SNAPSHOT</version>
       <scope>compile</scope>
     </dependency>
     <dependency>
