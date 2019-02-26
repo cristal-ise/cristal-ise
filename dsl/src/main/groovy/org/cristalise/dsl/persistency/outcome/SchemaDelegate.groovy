@@ -110,7 +110,7 @@ class SchemaDelegate {
      * is either specified in the 'type' attribute or in the restriction as 'base'
      * 
      * @param f the actual field to check
-     * @return the type if the field has nor restriction otherwise an empty string
+     * @return the type if the field has no restriction, otherwise an empty string
      */
     private String fieldType(Field f) {
         if (hasRestrictions(f) || f.attributes || f.unit) return ''
@@ -122,7 +122,7 @@ class SchemaDelegate {
      * is either specified in the 'type' attribute or in the restriction as 'base'
      * 
      * @param a the attribute to check
-     * @return the type if the attribute has nor restriction otherwise an empty string
+     * @return the type if the attribute has no restriction, otherwise an empty string
      */
     private String attributeType(Attribute a) {
         if (hasRestrictions(a)) return ''
@@ -173,7 +173,7 @@ class SchemaDelegate {
         Logger.msg 1, "SchemaDelegate.buildField() - Field: $f.name"
 
         //TODO: implement support for this combination - see issue 129
-        if (f.attributes && f.unit && hasRestrictions(f)) 
+        if (((f.attributes || f.unit) && hasRestrictions(f)) || (f.attributes && f.unit))
             throw new InvalidDataException('Field cannot have attributes, unit and restrictions at the same time')
 
         xsd.'xs:element'(name: f.name, type: fieldType(f), 'default': f.defaultVal, minOccurs: f.minOccurs, maxOccurs: f.maxOccurs) {
