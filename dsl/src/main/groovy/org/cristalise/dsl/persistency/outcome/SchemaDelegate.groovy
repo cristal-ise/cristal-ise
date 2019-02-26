@@ -102,7 +102,7 @@ class SchemaDelegate {
     }
 
     private boolean hasRestrictions(Attribute a) {
-        return a.values || a.pattern || hasRangeConstraints(a) || a.precision != null || a.scale != null
+        return a.values || a.pattern || hasRangeConstraints(a) || a.totalDigits != null || a.fractionDigits != null
     }
 
     /**
@@ -136,7 +136,7 @@ class SchemaDelegate {
 
         xsd.'xs:attribute'(name: a.name, type: attributeType(a), 'default': a.defaultVal, 'use': (a?.required ? "required": "")) {
             if(hasRestrictions(a)) {
-                buildRestriction(xsd, a.type, a.values, a.pattern, a, a.precision, a.scale )
+                buildRestriction(xsd, a.type, a.values, a.pattern, a, a.totalDigits, a.fractionDigits )
             }
         }
     }
@@ -212,7 +212,7 @@ class SchemaDelegate {
                 }
             }
             else if(hasRestrictions(f)) {
-                buildRestriction(xsd, f.type, f.values, f.pattern, f, f.precision, f.scale)
+                buildRestriction(xsd, f.type, f.values, f.pattern, f, f.totalDigits, f.fractionDigits)
             }
         }
     }
@@ -224,7 +224,7 @@ class SchemaDelegate {
         xsd.'xs:any'(minOccurs: any.minOccurs, maxOccurs: any.maxOccurs, processContents: any.processContents)
     }
 
-    private void buildRestriction(xsd, String type, List values, String pattern, Attribute a, Integer precision, Integer scale) {
+    private void buildRestriction(xsd, String type, List values, String pattern, Attribute a, Integer totalDigits, Integer fractionDigits) {
         Logger.msg 1, "SchemaDelegate.buildRestriction() - type:$type"
 
         xsd.'xs:simpleType' {
@@ -238,8 +238,8 @@ class SchemaDelegate {
                 if (a && a.maxInclusive != null) 'xs:maxInclusive'(value: a.maxInclusive)
                 if (a && a.maxExclusive != null) 'xs:maxExclusive'(value: a.maxExclusive)
 
-                if (precision != null) 'xs:totalDigits'(value: precision)
-                if (scale != null)     'xs:fractionDigits'(value: scale)
+                if (totalDigits    != null) 'xs:totalDigits'(value: totalDigits)
+                if (fractionDigits != null) 'xs:fractionDigits'(value: fractionDigits)
              }
         }
     }

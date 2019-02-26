@@ -608,11 +608,11 @@ class SchemaBuilderSpecs extends Specification implements CristalTestSetup {
     }
 
 
-    def 'Attribute value of decimal type can be restricted by precision and scale'() {
+    def 'Attribute value of decimal type can be restricted by totalDigits and fractionDigits'() {
         expect:
         SchemaTestBuilder.build('Test', 'TestData', 0) {
             struct(name: 'TestData') {
-                attribute(name: 'efficiency', type: 'decimal', precision: 2, scale: 2)
+                attribute(name: 'efficiency', type: 'decimal', totalDigits: 3, fractionDigits: 2)
             }
         }.compareXML("""<xs:schema xmlns:xs='http://www.w3.org/2001/XMLSchema'>
                           <xs:element name='TestData'>
@@ -620,7 +620,7 @@ class SchemaBuilderSpecs extends Specification implements CristalTestSetup {
                               <xs:attribute name="efficiency">
                                 <xs:simpleType>
                                   <xs:restriction base="xs:decimal">
-                                    <xs:totalDigits value="2"/>
+                                    <xs:totalDigits value="3"/>
                                     <xs:fractionDigits value="2"/>
                                   </xs:restriction>
                                 </xs:simpleType>
@@ -654,11 +654,11 @@ class SchemaBuilderSpecs extends Specification implements CristalTestSetup {
     }
 
 
-    def 'Field value of decimal type can be restricted by precision and scale'() {
+    def 'Field value of decimal type can be restricted by totalDigits and fractionDigits'() {
         expect:
         SchemaTestBuilder.build('Test', 'TestData', 0) {
             struct(name: 'TestData') {
-                field(name: 'efficiency', type: 'decimal', precision: 2, scale: 2)
+                field(name: 'efficiency', type: 'decimal', totalDigits: 3, fractionDigits: 2)
             }
         }.compareXML("""<xs:schema xmlns:xs='http://www.w3.org/2001/XMLSchema'>
                           <xs:element name='TestData'>
@@ -667,7 +667,7 @@ class SchemaBuilderSpecs extends Specification implements CristalTestSetup {
                                 <xs:element minOccurs="1" maxOccurs="1" name="efficiency">
                                   <xs:simpleType>
                                     <xs:restriction base="xs:decimal">
-                                      <xs:totalDigits value="2"/>
+                                      <xs:totalDigits value="3"/>
                                       <xs:fractionDigits value="2"/>
                                     </xs:restriction>
                                   </xs:simpleType>
