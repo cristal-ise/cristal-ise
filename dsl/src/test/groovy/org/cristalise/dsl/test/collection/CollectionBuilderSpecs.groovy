@@ -21,6 +21,7 @@
 package org.cristalise.dsl.test.collection
 
 import org.cristalise.dsl.collection.DependencyBuilder
+import org.cristalise.kernel.property.PropertyDescriptionList
 import org.cristalise.kernel.test.utils.CristalTestSetup;
 import spock.lang.Specification
 
@@ -33,13 +34,13 @@ class CollectionBuilderSpecs extends Specification implements CristalTestSetup {
     def setup()   { loggerSetup()    }
     def cleanup() { cristalCleanup() }
 
-    def 'Build Dependency'() {
+    def 'Build Dependency adding member with UUID'() {
         when:
         def builder = DependencyBuilder.build("depend") {
             Properties {
                 Property("toto": true)
             }
-            Member(itemPath: "/entity/b9415b57-3a4a-4b31-825a-d307d1280ac0") { 
+            Member(itemPath: "b9415b57-3a4a-4b31-825a-d307d1280ac0") { 
                 Property("version": 0)
             }
         }
@@ -48,8 +49,31 @@ class CollectionBuilderSpecs extends Specification implements CristalTestSetup {
         builder.dependency.properties.size() == 1
         builder.dependency.members.list.size() == 1
         builder.dependency.members.list[0].childUUID
-//        builder.dependency.members.list[0].childUUID == 'b9415b57-3a4a-4b31-825a-d307d1280ac0'
-        
+        builder.dependency.members.list[0].childUUID == 'b9415b57-3a4a-4b31-825a-d307d1280ac0'
+
+        builder.dependency.members.list[0].properties.size() == 2
+        builder.dependency.members.list[0].properties['version'] == 0
+        builder.dependency.members.list[0].properties['toto'] == true
+    }
+
+    def 'Build Dependency adding member with PropertyDescription'() {
+        when:
+        def pdl = new PropertyDescriptionList('TestPDL', 0)
+        def builder = DependencyBuilder.build('testns', 'depend') {
+            Properties {
+                Property("toto": true)
+            }
+            Member(pdl) { 
+                Property("version": 0)
+            }
+        }
+
+        then:
+        builder.dependency.properties.size() == 1
+        builder.dependency.members.list.size() == 1
+        builder.dependency.members.list[0].itemPath
+        builder.dependency.members.list[0].itemPath.path[0] == '/desc/PropertyDesc/testns/TestPDL'
+
         builder.dependency.members.list[0].properties.size() == 2
         builder.dependency.members.list[0].properties['version'] == 0
         builder.dependency.members.list[0].properties['toto'] == true

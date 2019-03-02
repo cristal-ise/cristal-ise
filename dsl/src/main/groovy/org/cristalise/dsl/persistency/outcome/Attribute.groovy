@@ -45,6 +45,9 @@ class Attribute {
 
     boolean required = false
 
+    Integer totalDigits = null //precision:
+    Integer fractionDigits = null //scale:
+
     /**
      * Checks if the type is acceptable
      * 

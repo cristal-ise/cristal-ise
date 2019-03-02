@@ -23,15 +23,16 @@ package org.cristalise.dsl.collection
 import org.cristalise.dsl.property.PropertyBuilder
 import org.cristalise.kernel.collection.Dependency
 import org.cristalise.kernel.collection.DependencyDescription
+import org.cristalise.kernel.common.ObjectNotFoundException
 import org.cristalise.kernel.lookup.DomainPath
 import org.cristalise.kernel.lookup.ItemPath
+import org.cristalise.kernel.lookup.Path
 import org.cristalise.kernel.process.Gateway
-
-import groovy.transform.CompileStatic
 import org.cristalise.kernel.process.resource.BuiltInResources
 import org.cristalise.kernel.property.PropertyDescriptionList
 import org.cristalise.kernel.utils.Logger
 
+import groovy.transform.CompileStatic
 
 /**
  * 
@@ -40,9 +41,15 @@ import org.cristalise.kernel.utils.Logger
 @CompileStatic
 class DependencyDelegate {
     Dependency dependency
+    String moduleNs
 
-    public DependencyDelegate(String n, boolean isDescription) {
-        dependency = isDescription ? new DependencyDescription(n) : new Dependency(n)
+    public DependencyDelegate(String name, boolean isDescription) {
+        this(null, name, isDescription)
+    }
+
+    public DependencyDelegate(String ns, String name, boolean isDescription) {
+        moduleNs = ns
+        dependency = isDescription ? new DependencyDescription(name) : new Dependency(name)
     }
 
     public void  processClosure(Closure cl) {
@@ -55,38 +62,52 @@ class DependencyDelegate {
         dependency.properties = PropertyBuilder.build(cl)
     }
 
+    public void Member(PropertyDescriptionList props, Closure cl = null) {
+        Member(moduleNs: moduleNs, itemPath: props, cl)
+    }
+
     public void Member(Map attrs, Closure cl = null) {
         assert attrs && attrs.itemPath
 
         String iPathStr
-        ItemPath itemPath = new ItemPath()
 
         if (attrs.itemPath instanceof PropertyDescriptionList) {
             def propDesc = (PropertyDescriptionList)attrs.itemPath
-            //FIXME module namespace is hardcoded
-            iPathStr = "/desc/Property/testns/${propDesc.name}"
+            def typeRoot = BuiltInResources.PROPERTY_DESC_RESOURCE.getTypeRoot()
+
+            moduleNs = moduleNs ?: (String)attrs.moduleNs
+
+            assert moduleNs, "'moduleNs' variable shall not be blank"
+
+            iPathStr = "$typeRoot/$moduleNs/${propDesc.name}"
         }
         else 
             iPathStr = (String)attrs.itemPath
 
-        assert iPathStr
+        assert iPathStr, "'itemPath' variable shall not be blank"
 
-        try {
-            itemPath = Gateway.getLookup().resolvePath(new DomainPath(iPathStr))
-        }
-        catch (Exception e) {
-            Logger.warning "Unable to find the domain path. ${e.localizedMessage}"
-        }
+        if (checkItemExists(iPathStr))
+            Logger.msg 5, "Unable to resolve the Item for '$iPathStr' - perhaps Item was not created yet"
 
-        //NOTE: this is a kind of hack so the DSL 
-        if (!ItemPath.isUUID(iPathStr)) itemPath.path[0] = iPathStr
-
+        //HACK: iPathStr is very likely contains a domainPath. itemPath is created 'manually' because of addMember()
+        ItemPath itemPath = new ItemPath()
+        itemPath.path[0] = iPathStr
         def member = dependency.addMember(itemPath)
 
-        if(cl) {
+        if (cl) {
             DependencyMemberDelegate delegate = new DependencyMemberDelegate()
             delegate.processClosure(cl)
             member.properties << delegate.props
         }
+    }
+
+    private boolean checkItemExists(String pathString) {
+        Path path
+
+        if (ItemPath.isUUID(pathString)) path = new ItemPath(pathString);
+        else                             path = new DomainPath(pathString)
+            
+        if (Gateway.getLookup()) return Gateway.getLookup().exists(path)
+        else                     return false
     }
 }

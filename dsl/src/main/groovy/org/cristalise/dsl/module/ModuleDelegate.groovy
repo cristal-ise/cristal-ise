@@ -82,7 +82,7 @@ class ModuleDelegate {
 
         resourceBoot = "$resourceRoot/boot"
         moduleXMLFile = new File("$resourceRoot/module.xml")
-   }
+    }
 
     public ModuleDelegate(String ns, String n, int v, Binding b = null) {
         if (b) bindings = b
