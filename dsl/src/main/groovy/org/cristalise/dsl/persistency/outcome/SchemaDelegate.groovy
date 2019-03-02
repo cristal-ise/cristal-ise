@@ -69,7 +69,6 @@ class SchemaDelegate {
 
     private void buildStruct(xsd, Struct s) {
         Logger.msg 1, "SchemaDelegate.buildStruct() - Struct: $s.name"
-
         xsd.'xs:element'(name: s.name, minOccurs: s.minOccurs, maxOccurs: s.maxOccurs) {
 
             if(s.documentation) 'xs:annotation' { 'xs:documentation'(s.documentation) }
@@ -97,16 +96,37 @@ class SchemaDelegate {
             }
         }
     }
-    
+
     private boolean hasRangeConstraints(Attribute a) {
         return a.minInclusive != null || a.maxInclusive != null || a.minExclusive != null || a.maxExclusive != null
     }
 
+    private boolean hasRestrictions(Attribute a) {
+        return a.values || a.pattern || hasRangeConstraints(a) || a.totalDigits != null || a.fractionDigits != null
+    }
+
+    /**
+     * Checks whether the field has a restriction/attributes/unit or not, because the type of the element 
+     * is either specified in the 'type' attribute or in the restriction as 'base'
+     * 
+     * @param f the actual field to check
+     * @return the type if the field has no restriction, otherwise an empty string
+     */
+    private String fieldType(Field f) {
+        if (hasRestrictions(f) || f.attributes || f.unit) return ''
+        else                                              return f.type
+    }
+
+    /**
+     * Checks whether the attribute has a restriction or not, because the type of the attribute
+     * is either specified in the 'type' attribute or in the restriction as 'base'
+     * 
+     * @param a the attribute to check
+     * @return the type if the attribute has no restriction, otherwise an empty string
+     */
     private String attributeType(Attribute a) {
-        if (!a.values && !a.pattern && !hasRangeConstraints(a)) 
-            return a.type 
-        else 
-            return ''
+        if (hasRestrictions(a)) return ''
+        else                    return a.type 
     }
  
     private void buildAtribute(xsd, Attribute a) {
@@ -115,14 +135,8 @@ class SchemaDelegate {
         if (a.documentation) throw new InvalidDataException('Atttrbute cannotnot define documentation')
 
         xsd.'xs:attribute'(name: a.name, type: attributeType(a), 'default': a.defaultVal, 'use': (a?.required ? "required": "")) {
-            if(a.values) {
-                buildRestriction(xsd, a.type, a.values)
-            }
-            else if(a.pattern) {
-                buildRestriction(xsd, a.type, a.pattern)
-            }
-            else if(hasRangeConstraints(a)) {
-                buildRangeRestriction(xsd, a.type, a)
+            if(hasRestrictions(a)) {
+                buildRestriction(xsd, a.type, a.values, a.pattern, a, a.totalDigits, a.fractionDigits )
             }
         }
     }
@@ -155,15 +169,12 @@ class SchemaDelegate {
         }
     }
 
-    private String fieldType(Field f) {
-        if (!f.values && !f.unit && !f.pattern && !hasRangeConstraints(f) && !f.attributes)
-            return f.type
-        else
-            return ''
-    }
-
     private void buildField(xsd, Field f) {
         Logger.msg 1, "SchemaDelegate.buildField() - Field: $f.name"
+
+        //TODO: implement support for this combination - see issue 129
+        if (((f.attributes || f.unit) && hasRestrictions(f)) || (f.attributes && f.unit))
+            throw new InvalidDataException('Field cannot have attributes, unit and restrictions at the same time')
 
         xsd.'xs:element'(name: f.name, type: fieldType(f), 'default': f.defaultVal, minOccurs: f.minOccurs, maxOccurs: f.maxOccurs) {
             if(f.documentation || f.dynamicForms || f.listOfValues) {
@@ -177,6 +188,7 @@ class SchemaDelegate {
                     }
                 }
             }
+
             if(f.attributes) {
                 'xs:complexType' {
                     'xs:simpleContent' {
@@ -186,28 +198,21 @@ class SchemaDelegate {
                     }
                 }
             }
-
-            if(f.unit) {
+            else if(f.unit) {
                 'xs:complexType' {
                     'xs:simpleContent' {
                         'xs:extension'(base: f.type) {
                             'xs:attribute'(name:"unit", type: (!f.unit.values ? 'xs:string' : ''), 'default': f.unit.defaultVal, 'use': (f.unit.defaultVal ? "optional": "required")) {
                                 if(f.unit.values) {
-                                    buildRestriction(xsd, 'xs:string', f.unit.values)
+                                    buildRestriction(xsd, 'xs:string', f.unit.values, null, null, null, null)
                                 }
                             }
                         }
                     }
                 }
             }
-            else if(f.values) {
-                buildRestriction(xsd, f.type, f.values)
-            }
-            else if(f.pattern) {
-                buildRestriction(xsd, f.type, f.pattern)
-            }
-            else if(hasRangeConstraints(f)) {
-                buildRangeRestriction(xsd, f.type, f)
+            else if(hasRestrictions(f)) {
+                buildRestriction(xsd, f.type, f.values, f.pattern, f, f.totalDigits, f.fractionDigits)
             }
         }
     }
@@ -219,40 +224,23 @@ class SchemaDelegate {
         xsd.'xs:any'(minOccurs: any.minOccurs, maxOccurs: any.maxOccurs, processContents: any.processContents)
     }
 
-
-    private void buildRestriction(xsd, String type, List values) {
-        Logger.msg 1, "SchemaDelegate.buildRestriction() - type:$type, values: $values"
-
-        xsd.'xs:simpleType' {
-            'xs:restriction'(base: type) {
-                values.each {
-                    'xs:enumeration'(value: it)
-                }
-            }
-        }
-    }
-
-
-    private void buildRestriction(xsd, String type, String pattern) {
-        Logger.msg 1, "SchemaDelegate.buildRestriction() - type:$type, pattern: $pattern"
+    private void buildRestriction(xsd, String type, List values, String pattern, Attribute a, Integer totalDigits, Integer fractionDigits) {
+        Logger.msg 1, "SchemaDelegate.buildRestriction() - type:$type"
 
         xsd.'xs:simpleType' {
             'xs:restriction'(base: type) {
-                'xs:pattern'(value: pattern)
-            }
-        }
-    }
+                if (values) values.each { 'xs:enumeration'(value: it) }
 
-    private void buildRangeRestriction(xsd, String type, Attribute a) {
-        Logger.msg 1, "SchemaDelegate.buildRangeRestriction() - type:$type"
-        
-        xsd.'xs:simpleType' {
-            'xs:restriction'(base: type) {
-                if (a.minInclusive != null) 'xs:minInclusive'(value: a.minInclusive)
-                if (a.minExclusive != null) 'xs:minExclusive'(value: a.minExclusive)
-                if (a.maxInclusive != null) 'xs:maxInclusive'(value: a.maxInclusive)
-                if (a.maxExclusive != null) 'xs:maxExclusive'(value: a.maxExclusive)
-            }
+                if (pattern != null) 'xs:pattern'(value: pattern)
+
+                if (a && a.minInclusive != null) 'xs:minInclusive'(value: a.minInclusive)
+                if (a && a.minExclusive != null) 'xs:minExclusive'(value: a.minExclusive)
+                if (a && a.maxInclusive != null) 'xs:maxInclusive'(value: a.maxInclusive)
+                if (a && a.maxExclusive != null) 'xs:maxExclusive'(value: a.maxExclusive)
+
+                if (totalDigits    != null) 'xs:totalDigits'(value: totalDigits)
+                if (fractionDigits != null) 'xs:fractionDigits'(value: fractionDigits)
+             }
         }
     }
 }
