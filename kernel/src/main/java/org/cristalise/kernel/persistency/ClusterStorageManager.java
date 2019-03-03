@@ -512,4 +512,22 @@ public class ClusterStorageManager {
             thisStore.abort(locker);
         }
     }
+
+    public void postConnect() {
+        for (TransactionalClusterStorage thisStore : transactionalStores) {
+            thisStore.postConnect();
+        }
+    }
+
+    public void postBoostrap() {
+        for (TransactionalClusterStorage thisStore : transactionalStores) {
+            thisStore.postBoostrap();
+        }
+    }
+
+    public void postStartServer() {
+        for (TransactionalClusterStorage thisStore : transactionalStores) {
+            thisStore.postStartServer();
+        }
+    }
 }

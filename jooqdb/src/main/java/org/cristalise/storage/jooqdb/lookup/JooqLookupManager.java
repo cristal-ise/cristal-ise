@@ -635,4 +635,12 @@ public class JooqLookupManager implements LookupManager {
             throw new ObjectCannotBeUpdated("Role:"+role + " error:" + e.getMessage());
         }
     }
+
+    @Override
+    public void postStartServer() {
+    }
+
+    @Override
+    public void postBoostrap() {
+    }
 }

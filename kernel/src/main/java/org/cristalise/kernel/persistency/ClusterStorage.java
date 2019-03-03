@@ -174,6 +174,24 @@ public abstract class ClusterStorage {
     public abstract void close() throws PersistencyException;
 
     /**
+     * Informs the ClusterSorage that the Boostrap process has finished. It enables the implementation
+     * to perform domain specific tasks
+     */
+    public abstract void postBoostrap();
+
+    /**
+     * Informs the ClusterSorage that the start server process has finished. It enables the implementation
+     * to perform domain specific tasks
+     */
+    public abstract void postStartServer();
+
+    /**
+     * Informs the ClusterSorage that connect was done. It enables the implementation
+     * to perform domain specific tasks
+     */
+    public abstract void postConnect();
+
+    /**
      * Declares whether or not this ClusterStorage can read or write a
      * particular CRISTAL local object type.
      * 

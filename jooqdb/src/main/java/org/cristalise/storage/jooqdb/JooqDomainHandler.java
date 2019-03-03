@@ -80,4 +80,25 @@ public interface JooqDomainHandler {
      * @param locker transaction key
      */
     public void abort(DSLContext context, Object locker);
+
+    /**
+     * Called the cristal-ise bootstrap has finished
+     * 
+     * @param context The configured DSLContext of jooq
+     */
+    public void postBoostrap(DSLContext context);
+
+    /**
+     * Called the cristal-ise start server has finished
+     * 
+     * @param context The configured DSLContext of jooq
+     */
+    public void postStartServer(DSLContext context);
+
+    /**
+     * Called the cristal-ise connect has finished
+     * 
+     * @param context The configured DSLContext of jooq
+     */
+    public void postConnect(DSLContext context);
 }
