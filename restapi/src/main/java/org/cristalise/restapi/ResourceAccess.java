@@ -158,7 +158,7 @@ public class ResourceAccess extends ItemUtils {
                     throw ItemUtils.createWebAppException(resource.name()+" "+name+" v"+version+" not handled", Response.Status.NOT_IMPLEMENTED);
             }
 
-            if(json) result = XML.toJSONObject(result).toString();
+            if(json) result = XML.toJSONObject(result, true).toString();
 
             return Response.ok(result).build();
         }

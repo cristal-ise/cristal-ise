@@ -214,7 +214,7 @@ public class ItemRoot extends ItemUtils {
     private Response returnQueryResult(String queryName, ItemProxy item, Object object, Query query, boolean jsonFlag) throws PersistencyException {
         String xmlResult = item.executeQuery(query);
 
-        if (jsonFlag) return Response.ok(XML.toJSONObject(xmlResult).toString()).build();
+        if (jsonFlag) return Response.ok(XML.toJSONObject(xmlResult, true).toString()).build();
         else          return Response.ok(xmlResult).build();
     }
 
@@ -371,7 +371,7 @@ public class ItemRoot extends ItemUtils {
                 if (types.contains(MediaType.APPLICATION_XML) || types.contains(MediaType.TEXT_XML)) {
                 	return execJob;
                 } else {
-                	return XML.toJSONObject(execJob).toString();
+                	return XML.toJSONObject(execJob, true).toString();
                 }
                 
             }
