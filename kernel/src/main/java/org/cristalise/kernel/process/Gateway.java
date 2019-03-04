@@ -339,8 +339,8 @@ public class Gateway
     /**
      * Get the Authenticator instance
      * 
-     * @return tha Authenticator
-     * @throws InvalidDataExceptionin case of ClassNotFoundException or InstantiationException or IllegalAccessException
+     * @return the Authenticator
+     * @throws InvalidDataException in case of ClassNotFoundException or InstantiationException or IllegalAccessException
      * @deprecated use {{@link #getSecurityManager()}} instead if you need to authenticate
      */
     @Deprecated
