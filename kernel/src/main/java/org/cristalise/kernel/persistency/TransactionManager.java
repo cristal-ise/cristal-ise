@@ -419,21 +419,21 @@ public class TransactionManager {
     /**
      * Propagate Gateway connect has finished hook to the storages
      */
-    public void postConnect() {
+    public void postConnect() throws PersistencyException {
         storage.postConnect();
     }
 
     /**
      * Propagate Bootstrap has finished hook to the storages
      */
-    public void postBoostrap() {
+    public void postBoostrap() throws PersistencyException{
         storage.postBoostrap();
     }
 
     /**
      * Propagate start server has finished hook to the storages
      */
-    public void postStartServer() {
+    public void postStartServer() throws PersistencyException {
         storage.postStartServer();
     }
 }

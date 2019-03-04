@@ -513,19 +513,19 @@ public class ClusterStorageManager {
         }
     }
 
-    public void postConnect() {
+    public void postConnect() throws PersistencyException {
         for (TransactionalClusterStorage thisStore : transactionalStores) {
             thisStore.postConnect();
         }
     }
 
-    public void postBoostrap() {
+    public void postBoostrap() throws PersistencyException {
         for (TransactionalClusterStorage thisStore : transactionalStores) {
             thisStore.postBoostrap();
         }
     }
 
-    public void postStartServer() {
+    public void postStartServer() throws PersistencyException{
         for (TransactionalClusterStorage thisStore : transactionalStores) {
             thisStore.postStartServer();
         }

@@ -125,17 +125,17 @@ public class JooqClusterStorage extends TransactionalClusterStorage {
     }
 
     @Override
-    public void postBoostrap() {
+    public void postBoostrap() throws PersistencyException {
         for (JooqDomainHandler domainHandler : domainHandlers) domainHandler.postBoostrap(context);
     }
 
     @Override
-    public void postStartServer() {
+    public void postStartServer() throws PersistencyException {
         for (JooqDomainHandler domainHandler : domainHandlers) domainHandler.postStartServer(context);
     }
 
     @Override
-    public void postConnect() {
+    public void postConnect() throws PersistencyException {
         for (JooqDomainHandler domainHandler : domainHandlers) domainHandler.postConnect(context);
     }
 
