@@ -337,10 +337,13 @@ public class Gateway
     }
 
     /**
+     * Get the Authenticator instance
      * 
-     * @return
-     * @throws InvalidDataException
+     * @return the Authenticator
+     * @throws InvalidDataException in case of ClassNotFoundException or InstantiationException or IllegalAccessException
+     * @deprecated use {{@link #getSecurityManager()}} instead if you need to authenticate
      */
+    @Deprecated
     static public Authenticator getAuthenticator() throws InvalidDataException {
         try {
             return (Authenticator)mC2KProps.getInstance("Authenticator");

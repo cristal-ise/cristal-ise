@@ -66,8 +66,12 @@ public class SetAgentPassword extends PredefinedStep {
             }
             else {
                 //Enforce identity check
-                if (!Gateway.getAuthenticator().authenticate(agent.getAgentName(), params[0], null))
+                try {
+                    Gateway.getSecurityManager().authenticate(agent.getAgentName(), params[0], null);
+                }
+                catch (Exception e) {
                     throw new AccessRightsException("Authentication failed");
+                }
 
                 newPwd = params[1];
                 params[0] = "REDACTED"; // censor password from outcome
