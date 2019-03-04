@@ -530,19 +530,19 @@ public class Gateway
     /**
      * Run the different kind of Boostrap processes
      * 
-     * @throws Exception anyting could happen
+     * @throws Exception anything could happen
      */
     public static void runBoostrap() throws Exception {
         if (Gateway.getProperties().containsKey(AbstractMain.MAIN_ARG_SKIPBOOTSTRAP)) {
             //minimum initialisation only
             Bootstrap.init();
+
+            if (mLookupManager != null) mLookupManager.postBoostrap();
+            mStorage.postBoostrap();
         }
         else {
-            //initialisation and complete checking bootstrap & module items
+            //creates a new thread to run initialisation and complete checking bootstrap & module items
             Bootstrap.run();
         }
-
-        if (mLookupManager != null) mLookupManager.postBoostrap();
-        mStorage.postBoostrap();
     }
 }
