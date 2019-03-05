@@ -84,6 +84,7 @@ public class Script implements DescriptionObject {
     private static final String PARAMETER_AGENT = "agent";
     private static final String PARAMETER_JOB = "job";
     private static final String PARAMETER_LOCKER = "locker";
+    private static final String SYSTEM_USER = "system";
     
     String         mScript     = "";
     CompiledScript mCompScript = null;
@@ -612,7 +613,7 @@ public class Script implements DescriptionObject {
                 Bindings bindings = context.getBindings(ScriptContext.ENGINE_SCOPE);
                 if ( ! bindings.containsKey(PARAMETER_AGENT) || bindings.get(PARAMETER_AGENT) == null ) {
                     // only if parameter binding not yet set
-                    setInputParamValue(PARAMETER_AGENT, Gateway.getProxyManager().getProxy(Gateway.getLookup().getAgentPath("system")));
+                    setInputParamValue(PARAMETER_AGENT, Gateway.getProxyManager().getProxy(Gateway.getLookup().getAgentPath(SYSTEM_USER)));
                 }
             }
 
