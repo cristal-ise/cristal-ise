@@ -611,7 +611,7 @@ public class Script implements DescriptionObject {
                 // if input parameter defined and class set
                 Bindings bindings = context.getBindings(ScriptContext.ENGINE_SCOPE);
                 if ( ! bindings.containsKey(PARAMETER_AGENT) || bindings.get(PARAMETER_AGENT) == null ) {
-                    // if not yet set
+                    // only if parameter binding not yet set
                     setInputParamValue(PARAMETER_AGENT, Gateway.getProxyManager().getProxy(Gateway.getLookup().getAgentPath("system")));
                 }
             }
