@@ -218,9 +218,9 @@ public class AgentProxy extends ItemProxy {
         Script script = job.getScript();
 
         CastorHashMap params = new CastorHashMap();
-        params.put("item", item);
-        params.put("agent", this);
-        params.put("job", job);
+        params.put(Script.PARAMETER_ITEM,  item);
+        params.put(Script.PARAMETER_AGENT, this);
+        params.put(Script.PARAMETER_JOB,   job);
 
         Object returnVal = script.evaluate(item.getPath(), params, job.getStepPath(), true, null);
 
