@@ -39,7 +39,7 @@ public class JooqTestBase {
      * @throws Exception
      */
     public static DSLContext initJooqContext() throws Exception {
-        return initJooqContext(1);
+        return initJooqContext(3);
     }
 
     /**
@@ -47,7 +47,7 @@ public class JooqTestBase {
      * @param c2kProps
      */
     public static void setUpStorage(Properties c2kProps) {
-        setUpStorage(c2kProps, 1);
+        setUpStorage(c2kProps, 3);
     }
 
     /**
