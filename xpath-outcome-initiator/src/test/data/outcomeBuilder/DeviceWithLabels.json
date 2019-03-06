@@ -1,0 +1,8 @@
+{
+    "DeviceWithLabels": {
+        "Name": "dsd",
+        "DeviceType": "WeldingMachine",
+        "Site": "Site1",
+        "DeviceLabel": [],
+    }
+}
