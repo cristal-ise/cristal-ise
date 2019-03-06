@@ -135,18 +135,18 @@ public class DataRecord extends OutcomeStructure {
     }
 
     @Override
-    public void addJsonInstance(Element parent, String name, Object json) throws OutcomeBuilderException {
+    public void addJsonInstance(OutcomeStructure parentStruct, Element parentElement, String name, Object json) throws OutcomeBuilderException {
         Logger.msg(5, "DataRecord.addJsonInstance() - name:'" + name + "'");
         JSONObject jsonObj = (JSONObject)json;
 
-        myElement = parent;
+//        myElement = parentElement;
 
         if (!name.equals(model.getName())) throw new InvalidOutcomeException("Missmatch in names:" + name + "!=" + model.getName());
 
         //attributes first, order is not important
         for (String key: jsonObj.keySet()) {
             if (myAttributes.hasAttributeDecl(key)) {
-                myAttributes.addJsonInstance(myElement, key, jsonObj.get(key));
+                myAttributes.addJsonInstance(this, myElement, key, jsonObj.get(key));
             }
         }
 
@@ -157,7 +157,7 @@ public class DataRecord extends OutcomeStructure {
 
             //Optional element might not be present in the json
             if (jsonObj.has(elementName)) {
-                childStructure.addJsonInstance(parent, elementName, jsonObj.get(elementName));
+                childStructure.addJsonInstance(this, myElement, elementName, jsonObj.get(elementName));
             }
         }
     }

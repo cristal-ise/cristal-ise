@@ -139,7 +139,7 @@ public class OutcomeBuilder {
 
         if (keys.length != 1) throw new InvalidOutcomeException("Outcome must have a single root (length = " + keys.length + ")");
 
-        modelRoot.addJsonInstance(outcome.getDOM().getDocumentElement(), keys[0], json.getJSONObject(keys[0]));
+        modelRoot.addJsonInstance(null, outcome.getDOM().getDocumentElement(), keys[0], json.getJSONObject(keys[0]));
     }
 
     /**
