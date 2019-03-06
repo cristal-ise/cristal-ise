@@ -2,14 +2,14 @@
   <xs:element name="DeviceWithLabels">
     <xs:complexType>
       <xs:sequence>
-        <xs:element maxOccurs="1"         minOccurs="1" name="Name"        type="xs:string"/>
-        <xs:element maxOccurs="1"         minOccurs="0" name="DeviceType"  type="xs:string"/>
-        <xs:element maxOccurs="1"         minOccurs="1" name="Site"        type="xs:string"/>
-        <xs:element maxOccurs="unbounded" minOccurs="0" name="DeviceLabel">
+        <xs:element minOccurs="1" maxOccurs="1"         name="Name"        type="xs:string"/>
+        <xs:element minOccurs="0" maxOccurs="1"         name="DeviceType"  type="xs:string"/>
+        <xs:element minOccurs="1" maxOccurs="1"         name="Site"        type="xs:string"/>
+        <xs:element minOccurs="0" maxOccurs="unbounded" name="DeviceLabel">
           <xs:complexType>
             <xs:sequence>
-              <xs:element maxOccurs="1" minOccurs="1" name="Label" type="xs:string"/>
-              <xs:element maxOccurs="1" minOccurs="1" name="Value" type="xs:string"/>
+              <xs:element minOccurs="1" maxOccurs="1" name="Label" type="xs:string"/>
+              <xs:element minOccurs="1" maxOccurs="1" name="Value" type="xs:string"/>
             </xs:sequence>
           </xs:complexType>
         </xs:element>
