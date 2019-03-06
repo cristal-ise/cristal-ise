@@ -129,7 +129,7 @@ public class BuildStructureFromJsonTest extends XMLUtils {
     }
 
     @Test
-    public void table_andFields_sequence() throws Exception {
+    public void sequence_mandatoryField_optionalField_mandatoryField() throws Exception {
         checkJson2XmlOutcome("DeviceWithLabels", "");
     }
 }
