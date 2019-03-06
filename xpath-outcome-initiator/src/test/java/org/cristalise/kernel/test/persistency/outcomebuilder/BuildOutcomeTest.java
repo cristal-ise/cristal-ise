@@ -107,9 +107,9 @@ public class BuildOutcomeTest extends XMLUtils {
         ob.addRecord("/SiteCharacteristicsData/UPS", upsRecord);
 
         //Test the order of adding fields and the use of xpath or just a simple name
-        ob.addfield("/SiteCharacteristicsData/BuildingType", "semi-detached");
-        ob.addfield("/SiteCharacteristicsData/AHOwner",      "mine");
-        ob.addfield("BuildingTypeRemarks",                   "awsome");
+        ob.addField("/SiteCharacteristicsData/BuildingType", "semi-detached");
+        ob.addField("/SiteCharacteristicsData/AHOwner",      "mine");
+        ob.addField("BuildingTypeRemarks",                   "awsome");
 
         Logger.msg(ob.getXml());
 

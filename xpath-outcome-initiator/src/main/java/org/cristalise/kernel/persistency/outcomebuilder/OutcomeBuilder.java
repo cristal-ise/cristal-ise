@@ -145,10 +145,22 @@ public class OutcomeBuilder {
     /**
      * 
      * @param path
+     * @param data
+     * @throws OutcomeBuilderException
+     * @Deprecated incorrect method name, use the camel case version
+     */
+    @Deprecated
+    public void addfield(String path, String data) throws OutcomeBuilderException {
+        addField(path, data);
+    }
+
+    /**
+     * 
+     * @param path
      * @param value
      * @throws OutcomeBuilderException
      */
-    public void addfield(String path, String data) throws OutcomeBuilderException {
+    public void addField(String path, String data) throws OutcomeBuilderException {
         Logger.msg(5,"OutcomeBuilder.addfield() - path:'"+path+"'");
         
         String[] names = StringUtils.split(path, "/");
