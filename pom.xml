@@ -161,26 +161,38 @@
                     <artifactId>maven-jar-plugin</artifactId>
                     <version>3.0.2</version>
                 </plugin>
-	 
-            <plugin>
-                <groupId>com.mycila</groupId>
-                <artifactId>license-maven-plugin</artifactId>
-                <version>2.3</version>
-                <configuration>
-                    <header>HEADER.txt</header>
-                    <excludes>
-                        <exclude>pom.xml</exclude>
-                        <exclude>src/main/resources/textFiles/**</exclude>
-                        <exclude>src/test/data/**</exclude>
-                        <exclude>bin/**</exclude>
-                        <exclude>src/main/resources/boot/allbootitems.txt</exclude>
-			<exclude>.flattened-pom.xml</exclude>
-                    </excludes>
-                    <mapping>
+                <plugin>
+                    <groupId>com.mycila</groupId>
+                    <artifactId>license-maven-plugin</artifactId>
+                    <version>2.3</version>
+                    <configuration>
+                        <header>HEADER.txt</header>
+                        <excludes>
+                            <exclude>pom.xml</exclude>
+                            <exclude>src/main/resources/textFiles/**</exclude>
+                            <exclude>src/test/data/**</exclude>
+                            <exclude>bin/**</exclude>
+                            <exclude>src/main/resources/boot/allbootitems.txt</exclude>
+    			            <exclude>.flattened-pom.xml</exclude>
+                        </excludes>
+                        <mapping>
                             <idl>JAVADOC_STYLE</idl>
-                    </mapping>
-	    </configuration>
-            </plugin>
+                        </mapping>
+            	    </configuration>
+                </plugin>
+                <plugin>
+                    <artifactId>maven-surefire-plugin</artifactId>
+                    <version>2.22.1</version>
+                    <configuration>
+                        <redirectTestOutputToFile>true</redirectTestOutputToFile>
+                        <includes>
+                            <include>**/*Spec.*</include>
+                            <include>**/*Test.*</include>
+                            <include>**/*Specs.*</include>
+                            <include>**/*Tests.*</include>
+                        </includes>
+                    </configuration>
+                </plugin>
             </plugins>
         </pluginManagement>
     </build>
