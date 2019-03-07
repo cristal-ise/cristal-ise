@@ -80,6 +80,19 @@ import lombok.experimental.Accessors;
 @Accessors(prefix = "m") @Getter @Setter
 public class Script implements DescriptionObject {
 
+    public static final String PARAMETER_AGENT   = "agent";
+    public static final String PARAMETER_DB      = "db";
+    public static final String PARAMETER_ITEM    = "item";
+    public static final String PARAMETER_JOB     = "job";
+    public static final String PARAMETER_LOCKER  = "locker";
+    public static final String PARAMETER_LOOKUP  = "lookup";
+    public static final String PARAMETER_OUTPUT  = "output";
+    public static final String PARAMETER_ORB     = "orb";
+    public static final String PARAMETER_PROXY   = "proxy";
+    public static final String PARAMETER_STORAGE = "storage";
+
+    public static final String SYSTEM_USER       = "system";
+    
     String         mScript     = "";
     CompiledScript mCompScript = null;
     String         mScriptXML  = "";
@@ -185,8 +198,8 @@ public class Script implements DescriptionObject {
     public Script(String lang, String name, String expr, AgentProxy agent) throws ScriptingEngineException {
         this(lang, expr, Object.class);
         mName = name;
-        addInputParam("agent", AgentProxy.class);
-        setInputParamValue("agent", agent);
+        addInputParam(PARAMETER_AGENT, AgentProxy.class);
+        setInputParamValue(PARAMETER_AGENT, agent, true);
     }
 
     /**
@@ -211,13 +224,15 @@ public class Script implements DescriptionObject {
     public Script(String lang, AgentProxy agent, PrintStream out) throws Exception {
         setScriptEngine(lang);
         Bindings beans = context.getBindings(ScriptContext.ENGINE_SCOPE);
-        beans.put("storage", Gateway.getStorage());
-        beans.put("db", Gateway.getStorage().getDb());
-        beans.put("proxy", Gateway.getProxyManager());
-        beans.put("lookup", Gateway.getLookup());
-        beans.put("orb", Gateway.getORB());
-        beans.put("agent", agent);
-        beans.put("output", out);
+
+        beans.put(PARAMETER_STORAGE, Gateway.getStorage());
+        beans.put(PARAMETER_DB, Gateway.getStorage().getDb());
+        beans.put(PARAMETER_PROXY, Gateway.getProxyManager());
+        beans.put(PARAMETER_LOOKUP, Gateway.getLookup());
+        beans.put(PARAMETER_ORB, Gateway.getORB());
+        beans.put(PARAMETER_AGENT, agent);
+        beans.put(PARAMETER_OUTPUT, out);
+
         PrintWriter output = new PrintWriter(out);
         context.setWriter(output);
         context.setErrorWriter(output);
@@ -252,23 +267,23 @@ public class Script implements DescriptionObject {
         isActExecEnvironment = true;
 
         // set environment - this needs to be well documented for script developers
-        if (!mInputParams.containsKey("item")) {
+        if (!mInputParams.containsKey(PARAMETER_ITEM)) {
             Logger.warning("Item param not declared in Script "+getName()+" v"+getVersion());
-            addInputParam("item", ItemProxy.class);
+            addInputParam(PARAMETER_ITEM, ItemProxy.class);
         }
-        setInputParamValue("item", object);
+        setInputParamValue(PARAMETER_ITEM, object, true);
 
-        if (!mInputParams.containsKey("agent")) {
+        if (!mInputParams.containsKey(PARAMETER_AGENT)) {
             Logger.warning("Agent param not declared in Script "+getName()+" v"+getVersion());
-            addInputParam("agent", AgentProxy.class);
+            addInputParam(PARAMETER_AGENT, AgentProxy.class);
         }
-        setInputParamValue("agent", subject);
+        setInputParamValue(PARAMETER_AGENT, subject, true);
 
-        if (!mInputParams.containsKey("job")) {
+        if (!mInputParams.containsKey(PARAMETER_JOB)) {
             Logger.warning("Job param not declared in Script "+getName()+" v"+getVersion());
-            addInputParam("job", Job.class);
+            addInputParam(PARAMETER_JOB, Job.class);
         }
-        setInputParamValue("job", job);
+        setInputParamValue(PARAMETER_JOB, job, true);
 
         if (!mOutputParams.containsKey("errors")) {
             Logger.warning("Errors output not declared in Script "+getName()+" v"+getVersion());
@@ -410,7 +425,6 @@ public class Script implements DescriptionObject {
         Element scriptElem = (Element)scriptList.item(0);
 
         if (!scriptElem.hasAttribute("language")) throw new ScriptParsingException("Script data incomplete, must specify scripting language");
-        String         mScriptXML  = "";
 
         Logger.msg(6, "Script.parseScriptTag() - Script Language: " + scriptElem.getAttribute("language"));
 
@@ -516,6 +530,7 @@ public class Script implements DescriptionObject {
 
     /**
      * Submits an input parameter to the script. Must be declared by name and type in the script XML.
+     * The value will be overwritten even if it was set before.
      *
      * @param name - input parameter name from the script xml
      * @param value - object to use for this parameter
@@ -523,9 +538,22 @@ public class Script implements DescriptionObject {
      * @throws ParameterException - name not found or wrong type
      */
     public boolean setInputParamValue(String name, Object value) throws ParameterException {
+        return setInputParamValue(name, value, true);
+    }
+
+    /**
+     * Submits an input parameter to the script. Must be declared by name and type in the script XML.
+     *
+     * @param name - input parameter name from the script xml
+     * @param value - object to use for this parameter
+     * @param overwrite - if the value should be overwritten even if it was set before
+     * @return if the input parameter was used or not
+     * @throws ParameterException - name not found or wrong type
+     */
+    public boolean setInputParamValue(String name, Object value, boolean overwrite) throws ParameterException {
         Parameter param = mInputParams.get(name);
         boolean wasUsed = false;
-        
+
         if (!mAllInputParams.containsKey(name)) return false;
 
         if (param != null) { // param is in this script
@@ -533,17 +561,25 @@ public class Script implements DescriptionObject {
                 throw new ParameterException( "Parameter "+name+" in script "+mName+" v"+mVersion+" is wrong type \n"+
                         "Required: "+param.getType().toString()+"\n"+"Supplied: "+value.getClass().toString());
             }
-            context.getBindings(ScriptContext.ENGINE_SCOPE).put(name, value);
-            Logger.msg(7, "Script.setInputParamValue() - " + name + ": " + value);
-            param.setInitialised(true);
-            wasUsed = true;
+
+            Bindings bindings = context.getBindings(ScriptContext.ENGINE_SCOPE);
+
+            if (overwrite || ! bindings.containsKey(name) || bindings.get(name) == null) {
+                bindings.put(name, value);
+
+                Logger.msg(7, "Script.setInputParamValue() - " + name + ": " + value);
+
+                param.setInitialised(true);
+                wasUsed = true;
+            }
         }
 
         // pass param down to child scripts
-        for (Script importScript : mIncludes) wasUsed |= importScript.setInputParamValue(name, value);
+        for (Script importScript : mIncludes) wasUsed |= importScript.setInputParamValue(name, value, overwrite);
 
         return wasUsed;
     }
+
 
     /**
      * Use this when a Script is executed without an Item or Transaction context
@@ -587,31 +623,30 @@ public class Script implements DescriptionObject {
 
             createEmptyContext();
             
-            if (actExecEnv) setActExecEnvironment(item, (AgentProxy)inputProps.get("agent"), (Job)inputProps.get("job"));
+            if (actExecEnv) setActExecEnvironment(item, (AgentProxy)inputProps.get(PARAMETER_AGENT), (Job)inputProps.get(PARAMETER_JOB));
 
             for (String inputParamName: getAllInputParams().keySet()) {
                 if (inputProps.containsKey(inputParamName)) {
-                    setInputParamValue(inputParamName, inputProps.evaluateProperty(itemPath, inputParamName, actContext, locker));
+                    setInputParamValue(inputParamName, inputProps.evaluateProperty(itemPath, inputParamName, actContext, locker), true);
                 }
             }
 
             //server side scripts are always executed with an Item context
             if (item != null) item.setTransactionKey(locker);
 
-            if (getAllInputParams().containsKey("item") && getAllInputParams().get("item") != null) {
-                setInputParamValue("item", item);
+            if (getAllInputParams().containsKey(PARAMETER_ITEM) && getAllInputParams().get(PARAMETER_ITEM) != null) {
+                setInputParamValue(PARAMETER_ITEM, item, true);
             }
 
-            if (getAllInputParams().containsKey("agent") && getAllInputParams().get("agent") != null) {
-                setInputParamValue("agent", Gateway.getProxyManager().getProxy(Gateway.getLookup().getAgentPath("system")));
+            //Set agent to be 'system' only if it was not set already
+            if (getAllInputParams().containsKey(PARAMETER_AGENT) && getAllInputParams().get(PARAMETER_AGENT) != null) {
+                ItemProxy systemAgent = Gateway.getProxyManager().getProxy(Gateway.getLookup().getAgentPath(SYSTEM_USER));
+                setInputParamValue(PARAMETER_AGENT, systemAgent, false);
             }
 
-            if (getAllInputParams().containsKey("locker") && getAllInputParams().get("locker") != null) {
-                setInputParamValue("locker", locker);
+            if (getAllInputParams().containsKey(PARAMETER_LOCKER) && getAllInputParams().get(PARAMETER_LOCKER) != null) {
+                setInputParamValue(PARAMETER_LOCKER, locker, true);
             }
-
-            if (getAllInputParams().containsKey("locker") && getAllInputParams().get("locker") != null)
-                setInputParamValue("locker", locker);
 
             Object retVal = execute();
 
@@ -698,9 +733,9 @@ public class Script implements DescriptionObject {
             if (isActExecEnvironment) {
                 try {
                     importScript.setActExecEnvironment(
-                             (ItemProxy)context.getAttribute("item"),
-                            (AgentProxy)context.getAttribute("agent"), 
-                                   (Job)context.getAttribute("job"));
+                             (ItemProxy)context.getAttribute(PARAMETER_ITEM),
+                            (AgentProxy)context.getAttribute(PARAMETER_AGENT), 
+                                   (Job)context.getAttribute(PARAMETER_JOB));
                 }
                 catch (InvalidDataException e) {
                     Logger.error(e);
@@ -717,7 +752,7 @@ public class Script implements DescriptionObject {
                     if (mInputParams.containsKey(outputKey)) {
                         try {
                             Logger.msg(5, "Script.executeIncludedScripts() - setting inputs for parameter:"+outputKey);
-                            setInputParamValue(outputKey, outputValue);
+                            setInputParamValue(outputKey, outputValue, true);
                         }
                         catch (ParameterException e) {
                             Logger.error(e);
