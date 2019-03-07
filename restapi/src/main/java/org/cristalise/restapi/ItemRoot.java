@@ -558,10 +558,16 @@ public class ItemRoot extends ItemUtils {
 
                 if (thisJob == null)
                     throw ItemUtils.createWebAppException("Job not found for actPath:"+actPath+" transition:"+transition, Response.Status.NOT_FOUND);
+                
+                CastorHashMap inputs = (CastorHashMap) thisJob.getActProps().clone();
+
+                inputs.put(Script.PARAMETER_AGENT, agent);
+                inputs.put(Script.PARAMETER_ITEM, item);
+                inputs.put(Script.PARAMETER_JOB, thisJob);
 
                 // set outcome if required
                 if (thisJob.hasOutcome()) {
-                    return Response.ok(new OutcomeBuilder(thisJob.getSchema(), false).generateNgDynamicForms(thisJob.getActProps())).build();
+                    return Response.ok(new OutcomeBuilder(thisJob.getSchema(), false).generateNgDynamicForms(inputs)).build();
                 }
                 else {
                     Logger.msg(5, "ItemRoot.getJobFormTemplate() - no outcome needed for job:%s", thisJob);
