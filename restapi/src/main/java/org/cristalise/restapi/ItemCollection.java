@@ -39,8 +39,10 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 
+import org.apache.commons.lang3.StringUtils;
 import org.cristalise.kernel.collection.Dependency;
 import org.cristalise.kernel.common.ObjectNotFoundException;
+import org.cristalise.kernel.entity.proxy.AgentProxy;
 import org.cristalise.kernel.entity.proxy.ItemProxy;
 import org.cristalise.kernel.persistency.outcome.Schema;
 import org.cristalise.kernel.persistency.outcomebuilder.OutcomeBuilder;
@@ -122,7 +124,14 @@ public class ItemCollection extends ItemUtils {
                         @CookieParam(COOKIENAME) Cookie authCookie,
                         @Context UriInfo uri)
     {
-        checkAuthCookie(authCookie);
+        AgentProxy agent = null;
+        try {
+            agent = (AgentProxy)Gateway.getProxyManager().getProxy( checkAuthCookie(authCookie) );
+        }
+        catch (ObjectNotFoundException e1) {
+            throw ItemUtils.createWebAppException(e1.getMessage(), Response.Status.UNAUTHORIZED);
+        }
+
         ItemProxy item = getProxy(uuid);
         try {
             Dependency dep = (Dependency) item.getCollection(collName);
@@ -130,9 +139,10 @@ public class ItemCollection extends ItemUtils {
             HashMap<String, Object> inputs = new HashMap<>();
 
             String lovProp = (String) dep.getProperties().get("ListOfValues");
-            if (null != lovProp) {
+
+            if (StringUtils.isNotBlank(lovProp)) {
                 String[] lovInfo = lovProp.split(":");
-                if ("ScriptRef" .equals( lovInfo[0] )) {
+                if ("ScriptRef".equals( lovInfo[0] )) {
                     Script script = LocalObjectLoader.getScript(lovInfo[1], Integer.valueOf(lovInfo[2]));
                     Map<? extends String, ? extends Object> result = (Map<? extends String, ? extends Object>) scriptUtils.executeScript(item, script, null);
                     result.remove(null);
@@ -150,6 +160,10 @@ public class ItemCollection extends ItemUtils {
 
                 inputs.put("memberNames", names); // Put the new member here e.g.ListOfValues
             }
+
+            inputs.put(Script.PARAMETER_AGENT, agent);
+            inputs.put(Script.PARAMETER_ITEM, item);
+            //inputs.put(Script.PARAMETER_JOB, thisJob); //this service could be given the stepPath to calculate the job
 
             // this shall contain the SchemaName and version like this: Shift:0
             String[] schemaInfo = ((String) dep.getProperties().get("MemberUpdateSchema")).split(":");
