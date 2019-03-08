@@ -112,6 +112,10 @@ public class JooqClusterStorage extends TransactionalClusterStorage {
         }
     }
 
+    public void dropHandlers() throws PersistencyException {
+        for (JooqHandler handler: jooqHandlers.values()) handler.dropTables(context);
+    }
+
     @Override
     public void close() throws PersistencyException {
         Logger.msg(1, "JooqClusterStorage.close()");

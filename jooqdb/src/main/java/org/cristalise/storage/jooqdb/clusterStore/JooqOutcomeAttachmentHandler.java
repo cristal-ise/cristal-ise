@@ -25,7 +25,6 @@ import static org.jooq.impl.DSL.field;
 import static org.jooq.impl.DSL.name;
 import static org.jooq.impl.DSL.table;
 
-import java.sql.Blob;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -33,8 +32,6 @@ import java.util.UUID;
 
 import org.cristalise.kernel.common.PersistencyException;
 import org.cristalise.kernel.entity.C2KLocalObject;
-import org.cristalise.kernel.lookup.ItemPath;
-import org.cristalise.kernel.persistency.outcome.Outcome;
 import org.cristalise.kernel.persistency.outcome.OutcomeAttachment;
 import org.cristalise.kernel.persistency.outcome.Schema;
 import org.cristalise.kernel.utils.LocalObjectLoader;
@@ -42,7 +39,6 @@ import org.cristalise.kernel.utils.Logger;
 import org.cristalise.storage.jooqdb.JooqHandler;
 import org.jooq.Condition;
 import org.jooq.DSLContext;
-import org.jooq.DataType;
 import org.jooq.Field;
 import org.jooq.Record;
 import org.jooq.Table;
@@ -150,5 +146,10 @@ public class JooqOutcomeAttachmentHandler extends JooqHandler {
         .constraints(
                 constraint("PK_"+OUTCOME_ATTACHMENT_TABLE).primaryKey(UUID, SCHEMA_NAME, SCHEMA_VERSION, EVENT_ID))
         .execute();
+    }
+
+    @Override
+    public void dropTables(DSLContext context) throws PersistencyException {
+        context.dropTableIfExists(OUTCOME_ATTACHMENT_TABLE).execute();
     }
 }

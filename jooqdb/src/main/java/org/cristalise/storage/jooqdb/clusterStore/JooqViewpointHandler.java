@@ -137,4 +137,9 @@ public class JooqViewpointHandler extends JooqHandler {
                 constraint("PK_"+VIEWPOINT_TABLE).primaryKey(UUID, SCHEMA_NAME, NAME))
         .execute();
     }
+
+    @Override
+    public void dropTables(DSLContext context) throws PersistencyException {
+        context.dropTableIfExists(VIEWPOINT_TABLE).execute();
+    }
 }

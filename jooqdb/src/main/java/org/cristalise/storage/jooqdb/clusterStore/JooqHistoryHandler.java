@@ -193,4 +193,9 @@ public class JooqHistoryHandler extends JooqHandler {
         .constraints(constraint("PK_"+EVENT_TABLE).primaryKey(UUID, ID))
         .execute();
     }
+
+    @Override
+    public void dropTables(DSLContext context) throws PersistencyException {
+        context.dropTableIfExists(EVENT_TABLE).execute();
+    }
 }

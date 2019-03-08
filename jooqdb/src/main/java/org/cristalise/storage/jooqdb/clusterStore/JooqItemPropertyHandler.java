@@ -186,4 +186,9 @@ public class JooqItemPropertyHandler extends JooqHandler {
                 constraint("PK_"+ITEM_PROPERTY_TABLE).primaryKey(UUID, NAME))
         .execute();
     }
+
+    @Override
+    public void dropTables(DSLContext context) throws PersistencyException {
+        context.dropTableIfExists(ITEM_PROPERTY_TABLE).execute();
+    }
 }
