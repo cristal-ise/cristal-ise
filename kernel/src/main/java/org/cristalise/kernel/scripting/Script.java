@@ -564,7 +564,8 @@ public class Script implements DescriptionObject {
 
             Bindings bindings = context.getBindings(ScriptContext.ENGINE_SCOPE);
 
-            if (overwrite || ! bindings.containsKey(name) || bindings.get(name) == null) {
+            if (       ! bindings.containsKey(name) || bindings.get(name) == null
+                    || ( overwrite && value != null ) {
                 bindings.put(name, value);
 
                 Logger.msg(7, "Script.setInputParamValue() - " + name + ": " + value);
