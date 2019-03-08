@@ -530,7 +530,7 @@ public class Script implements DescriptionObject {
 
     /**
      * Submits an input parameter to the script. Must be declared by name and type in the script XML.
-     * The value will be overwritten even if it was set before.
+     * The value will be \ritten even if it was set before.
      *
      * @param name - input parameter name from the script xml
      * @param value - object to use for this parameter
@@ -565,7 +565,7 @@ public class Script implements DescriptionObject {
             Bindings bindings = context.getBindings(ScriptContext.ENGINE_SCOPE);
 
             if (       ! bindings.containsKey(name) || bindings.get(name) == null
-                    || ( overwrite && value != null ) {
+                    || ( overwrite && value != null ) ) {
                 bindings.put(name, value);
 
                 Logger.msg(7, "Script.setInputParamValue() - " + name + ": " + value);
