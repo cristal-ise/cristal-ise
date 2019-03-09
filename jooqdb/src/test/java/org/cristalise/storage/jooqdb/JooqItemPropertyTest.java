@@ -57,6 +57,8 @@ public class JooqItemPropertyTest extends StorageTestBase {
     @After
     public void after() throws Exception {
         jooq.delete(context, uuid);
+
+        if (dbType > 1) jooq.dropTables(context);
     }
 
     @Test

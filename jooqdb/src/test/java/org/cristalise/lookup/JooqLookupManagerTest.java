@@ -18,7 +18,7 @@
  *
  * http://www.fsf.org/licensing/licenses/lgpl.html
  */
-package org.cristalise.storage.jooqdb;
+package org.cristalise.lookup;
 
 import java.util.Properties;
 

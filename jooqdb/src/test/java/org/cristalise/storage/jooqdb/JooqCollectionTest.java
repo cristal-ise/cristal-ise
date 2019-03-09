@@ -28,6 +28,7 @@ import org.cristalise.kernel.collection.Collection;
 import org.cristalise.kernel.collection.Dependency;
 import org.cristalise.storage.jooqdb.clusterStore.JooqCollectionHadler;
 import org.hamcrest.collection.IsIterableContainingInAnyOrder;
+import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -42,6 +43,13 @@ public class JooqCollectionTest extends StorageTestBase {
 
         jooq = new JooqCollectionHadler();
         jooq.createTables(context);
+    }
+
+    @After
+    public void after() throws Exception {
+        context.close();
+        
+        if (dbType > 1) jooq.dropTables(context);
     }
 
     private void compareCollections(Collection<?> expected, Collection<?> actual) {

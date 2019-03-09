@@ -25,6 +25,7 @@ import java.util.UUID;
 import org.cristalise.kernel.lookup.ItemPath;
 import org.cristalise.kernel.persistency.outcome.Viewpoint;
 import org.cristalise.storage.jooqdb.clusterStore.JooqViewpointHandler;
+import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -32,15 +33,6 @@ import org.junit.Test;
 public class JooqViewpointTest extends StorageTestBase {
     Viewpoint            viewpoint;
     JooqViewpointHandler jooq;
-
-    private void compareViewpoints(Viewpoint actual, Viewpoint expected) {
-        assert actual != null;
-        assert actual.getItemPath().getStringPath().equals(expected.getItemPath().getStringPath());
-        assert actual.getName().equals(expected.getName());
-        assert actual.getSchemaName().equals(expected.getSchemaName());
-        assert actual.getSchemaVersion() == expected.getSchemaVersion();
-        assert actual.getEventId() == expected.getEventId();
-    }
 
     @Before
     public void before() throws Exception {
@@ -51,6 +43,23 @@ public class JooqViewpointTest extends StorageTestBase {
 
         viewpoint = new Viewpoint(new ItemPath(uuid), "SchemaName", "Name", 0, 1);
         assert jooq.put(context, uuid, viewpoint) == 1;
+    }
+
+    @After
+    public void after() throws Exception {
+        jooq.delete(context, uuid);
+        context.close();
+
+        if (dbType > 1) jooq.dropTables(context);
+    }
+
+    private void compareViewpoints(Viewpoint actual, Viewpoint expected) {
+        assert actual != null;
+        assert actual.getItemPath().getStringPath().equals(expected.getItemPath().getStringPath());
+        assert actual.getName().equals(expected.getName());
+        assert actual.getSchemaName().equals(expected.getSchemaName());
+        assert actual.getSchemaVersion() == expected.getSchemaVersion();
+        assert actual.getEventId() == expected.getEventId();
     }
 
     @Test

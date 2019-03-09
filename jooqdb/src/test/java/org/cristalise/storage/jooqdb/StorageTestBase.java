@@ -48,11 +48,6 @@ public class StorageTestBase extends JooqTestBase {
         Gateway.close();
     }
 
-    @After
-    public void after() throws Exception {
-        context.close();
-    }
-
     public static void compareTimestramps(GTimeStamp actual, GTimeStamp expected) {
         expected.mHour = expected.mHour - expected.mTimeOffset / 3600000;
 

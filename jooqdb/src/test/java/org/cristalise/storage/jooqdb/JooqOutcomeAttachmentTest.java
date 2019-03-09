@@ -27,6 +27,7 @@ import org.cristalise.kernel.lookup.ItemPath;
 import org.cristalise.kernel.persistency.outcome.OutcomeAttachment;
 import org.cristalise.kernel.persistency.outcome.Schema;
 import org.cristalise.storage.jooqdb.clusterStore.JooqOutcomeAttachmentHandler;
+import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -54,6 +55,14 @@ public class JooqOutcomeAttachmentTest extends StorageTestBase {
        
         outcome = new OutcomeAttachment(item, schema.getName(), schema.getVersion(), 0, null, binaryData);
         assert jooqHandler.put(context, uuid, outcome) == 1;
+    }
+
+    @After
+    public void after() throws Exception {
+        jooqHandler.delete(context, uuid);
+        context.close();
+
+        if (dbType > 1) jooqHandler.dropTables(context);
     }
 
     @Test

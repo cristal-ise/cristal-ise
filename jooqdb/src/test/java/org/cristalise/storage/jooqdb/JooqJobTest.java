@@ -34,6 +34,7 @@ import org.cristalise.kernel.utils.CastorHashMap;
 import org.cristalise.kernel.utils.DateUtility;
 import org.cristalise.storage.jooqdb.clusterStore.JooqJobHandler;
 import org.hamcrest.collection.IsIterableContainingInAnyOrder;
+import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -42,6 +43,28 @@ public class JooqJobTest extends StorageTestBase {
     Job job;
     JooqJobHandler jooq;
     CastorHashMap actProps;
+
+    @Before
+    public void before() throws Exception {
+        context = initJooqContext();
+
+        actProps = new CastorHashMap();
+        actProps.setBuiltInProperty(BuiltInVertexProperties.STATE_MACHINE_NAME, "Default");
+        actProps.setBuiltInProperty(BuiltInVertexProperties.STATE_MACHINE_VERSION, "0");
+
+        jooq = new JooqJobHandler();
+        jooq.createTables(context);
+
+        job = createJob(uuid, 0);
+        assert jooq.put(context, uuid, job) == 1;
+    }
+
+    @After
+    public void after() throws Exception {
+        jooq.delete(context, uuid);
+
+        if (dbType > 1) jooq.dropTables(context);
+    }
 
     private void compareJobs(Job actual, Job expected) throws Exception {
         Assert.assertNotNull(actual);
@@ -78,21 +101,6 @@ public class JooqJobTest extends StorageTestBase {
                 null,
                 actProps, 
                 DateUtility.getNow());
-    }
-
-    @Before
-    public void before() throws Exception {
-        context = initJooqContext();
-
-        actProps = new CastorHashMap();
-        actProps.setBuiltInProperty(BuiltInVertexProperties.STATE_MACHINE_NAME, "Default");
-        actProps.setBuiltInProperty(BuiltInVertexProperties.STATE_MACHINE_VERSION, "0");
-
-        jooq = new JooqJobHandler();
-        jooq.createTables(context);
-
-        job = createJob(uuid, 0);
-        assert jooq.put(context, uuid, job) == 1;
     }
 
     @Test

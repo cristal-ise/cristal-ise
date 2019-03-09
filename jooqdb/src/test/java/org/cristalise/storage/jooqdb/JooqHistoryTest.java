@@ -32,6 +32,7 @@ import org.cristalise.kernel.utils.DateUtility;
 import org.cristalise.kernel.utils.Logger;
 import org.cristalise.storage.jooqdb.clusterStore.JooqHistoryHandler;
 import org.hamcrest.collection.IsIterableContainingInAnyOrder;
+import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -39,6 +40,24 @@ import org.junit.Test;
 public class JooqHistoryTest extends StorageTestBase {
     Event event;
     JooqHistoryHandler jooq;
+
+    @Before
+    public void before() throws Exception {
+        context = initJooqContext();
+
+        jooq = new JooqHistoryHandler();
+        jooq.createTables(context);
+
+        event = createEvent(uuid, 0);
+        assert jooq.put(context, uuid, event) == 1;
+    }
+
+    @After
+    public void after() throws Exception {
+        context.close();
+        
+        if (dbType > 1) jooq.dropTables(context);
+    }
 
     private void compareEvents(Event actual, Event expected) {
         Assert.assertNotNull(actual);
@@ -106,17 +125,6 @@ public class JooqHistoryTest extends StorageTestBase {
                 0, //schemaVersion
                 null, //viewName
                 DateUtility.getNow());
-    }
-
-    @Before
-    public void before() throws Exception {
-        context = initJooqContext();
-
-        jooq = new JooqHistoryHandler();
-        jooq.createTables(context);
-
-        event = createEvent(uuid, 0);
-        assert jooq.put(context, uuid, event) == 1;
     }
 
     @Test
