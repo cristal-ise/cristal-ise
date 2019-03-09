@@ -32,6 +32,8 @@ import org.jooq.SQLDialect;
 
 public class JooqTestBase {
     public enum H2Modes {PostgreSQL, MYSQL}
+    
+    public static int dbType = 0;
 
     /**
      * 
@@ -56,7 +58,9 @@ public class JooqTestBase {
      * @return
      * @throws Exception
      */
-    public static DSLContext initJooqContext(int dbType) throws Exception {
+    public static DSLContext initJooqContext(int type) throws Exception {
+        dbType = type;
+
         if      (dbType == 0) return initH2Context(H2Modes.PostgreSQL);
         else if (dbType == 1) return initH2Context(H2Modes.MYSQL);
         else if (dbType == 2) return initPostrgresContext();
@@ -69,7 +73,9 @@ public class JooqTestBase {
      * @param c2kProps
      * @param dbType
      */
-    public static void setUpStorage(Properties c2kProps, int dbType) {
+    public static void setUpStorage(Properties c2kProps, int type) {
+        dbType = type;
+
         if      (dbType == 0) setUpH2(c2kProps, H2Modes.PostgreSQL);
         else if (dbType == 1) setUpH2(c2kProps, H2Modes.MYSQL);
         else if (dbType == 2) setUpPostgres(c2kProps);

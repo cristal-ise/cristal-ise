@@ -26,6 +26,7 @@ import java.util.UUID;
 import org.cristalise.JooqTestBase;
 import org.cristalise.kernel.common.GTimeStamp;
 import org.cristalise.kernel.process.Gateway;
+import org.cristalise.kernel.utils.Logger;
 import org.jooq.DSLContext;
 import org.junit.After;
 import org.junit.AfterClass;
@@ -38,6 +39,7 @@ public class StorageTestBase extends JooqTestBase {
 
     @BeforeClass
     public static void beforeClass() throws Exception {
+        Logger.addLogStream(System.out, 8);
         Gateway.init(new Properties());
     }
 

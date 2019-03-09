@@ -61,9 +61,11 @@ public class LookupTestBase extends JooqTestBase {
     }
 
     @After
-    public void tearDown() {
+    public void tearDown() throws Exception {
         if (lookup != null) lookup.close();
         Logger.removeLogStream(System.out);
+        
+        if (dbType > 1) lookup.dropHandlers();
     }
 
     public void compare(List<Path> expecteds, Iterator<Path> actualsIter) {
