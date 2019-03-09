@@ -50,7 +50,7 @@ public class JooqOutcomeAttachmentHandler extends JooqHandler {
     static final Field<String>  SCHEMA_NAME     = field(name("SCHEMA_NAME"),    String.class);
     static final Field<Integer> SCHEMA_VERSION  = field(name("SCHEMA_VERSION"), Integer.class);
     static final Field<Integer> EVENT_ID        = field(name("EVENT_ID"),       Integer.class);
-    static final Field<byte[]> ATTACHMENT = field(name("ATTACHMENT"),             byte[].class);
+    static final Field<byte[]>  ATTACHMENT      = field(name("ATTACHMENT"),     byte[].class);
 
     @Override
     protected Table<?> getTable() {
@@ -142,7 +142,7 @@ public class JooqOutcomeAttachmentHandler extends JooqHandler {
         .column(SCHEMA_NAME,    NAME_TYPE   .nullable(false))
         .column(SCHEMA_VERSION, VERSION_TYPE.nullable(false))
         .column(EVENT_ID,       ID_TYPE     .nullable(false))
-        .column(ATTACHMENT,   ATTACHMENT_TYPE.nullable(false))
+        .column(ATTACHMENT,     ATTACHMENT_TYPE.nullable(false))
         .constraints(
                 constraint("PK_"+OUTCOME_ATTACHMENT_TABLE).primaryKey(UUID, SCHEMA_NAME, SCHEMA_VERSION, EVENT_ID))
         .execute();

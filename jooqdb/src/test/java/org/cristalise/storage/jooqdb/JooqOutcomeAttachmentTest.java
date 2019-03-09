@@ -23,9 +23,7 @@ package org.cristalise.storage.jooqdb;
 import java.util.Arrays;
 import java.util.UUID;
 
-import org.apache.commons.lang3.ArrayUtils;
 import org.cristalise.kernel.lookup.ItemPath;
-import org.cristalise.kernel.persistency.outcome.Outcome;
 import org.cristalise.kernel.persistency.outcome.OutcomeAttachment;
 import org.cristalise.kernel.persistency.outcome.Schema;
 import org.cristalise.storage.jooqdb.clusterStore.JooqOutcomeAttachmentHandler;

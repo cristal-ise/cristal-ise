@@ -89,7 +89,7 @@ public abstract class JooqHandler {
     public static final DataType<String>         XML_TYPE       = SQLDataType.CLOB;
     // Use this declaration when generating MySQL tables: see issue #23
     public static final DataType<String>         XML_TYPE_MYSQL  = new DefaultDataType<String>(SQLDialect.MYSQL, SQLDataType.CLOB, "mediumtext", "char");
-    public static final DataType<byte[]> ATTACHMENT_TYPE = SQLDataType.BLOB;
+    public static final DataType<byte[]>         ATTACHMENT_TYPE = SQLDataType.BLOB;
     
     public static DSLContext connect() throws PersistencyException {
         String uri  = Gateway.getProperties().getString(JooqHandler.JOOQ_URI);
