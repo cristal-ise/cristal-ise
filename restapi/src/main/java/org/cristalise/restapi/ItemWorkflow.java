@@ -149,7 +149,7 @@ public class ItemWorkflow extends ItemUtils {
             Workflow wf = getProxy(uuid).getWorkflow();
 
             if (produceJSON(headers.getAcceptableMediaTypes())) {
-                if (gantt == null) return Response.ok(XML.toJSONObject(Gateway.getMarshaller().marshall(wf))).build();
+                if (gantt == null) return Response.ok(XML.toJSONObject(Gateway.getMarshaller().marshall(wf), true)).build();
                 else               return toJSON(getGanttObject(wf));
             }
             else {

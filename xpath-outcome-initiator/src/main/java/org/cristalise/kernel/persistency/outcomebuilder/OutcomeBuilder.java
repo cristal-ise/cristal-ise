@@ -139,7 +139,19 @@ public class OutcomeBuilder {
 
         if (keys.length != 1) throw new InvalidOutcomeException("Outcome must have a single root (length = " + keys.length + ")");
 
-        modelRoot.addJsonInstance(outcome.getDOM().getDocumentElement(), keys[0], json.getJSONObject(keys[0]));
+        modelRoot.addJsonInstance(null, outcome.getDOM().getDocumentElement(), keys[0], json.getJSONObject(keys[0]));
+    }
+
+    /**
+     * 
+     * @param path
+     * @param data
+     * @throws OutcomeBuilderException
+     * @Deprecated incorrect method name, use the camel case version
+     */
+    @Deprecated
+    public void addfield(String path, String data) throws OutcomeBuilderException {
+        addField(path, data);
     }
 
     /**
@@ -148,7 +160,7 @@ public class OutcomeBuilder {
      * @param value
      * @throws OutcomeBuilderException
      */
-    public void addfield(String path, String data) throws OutcomeBuilderException {
+    public void addField(String path, String data) throws OutcomeBuilderException {
         Logger.msg(5,"OutcomeBuilder.addfield() - path:'"+path+"'");
         
         String[] names = StringUtils.split(path, "/");

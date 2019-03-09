@@ -60,7 +60,8 @@
       "placeholder": "Date Of Birth",
       "type": "DATEPICKER",
       "value": "@{CURRENTDATE}",
-      "required": true
+      "required": true,
+      "mask": "99/99/9999"
     },
     {
       "filterable": true,
@@ -107,7 +108,8 @@
       "placeholder": "Weight",
       "type": "INPUT",
       "value": "0.0",
-      "required": true
+      "required": true,
+      "mask": "99,99"
     }
   ]
 }]

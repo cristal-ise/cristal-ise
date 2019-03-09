@@ -163,8 +163,8 @@ public class AttributeList extends OutcomeStructure {
     }
 
     @Override
-    public void addJsonInstance(Element parent, String attrName, Object json) throws OutcomeBuilderException {
-        myElement = parent;
+    public void addJsonInstance(OutcomeStructure parentStruct, Element parentElement, String attrName, Object json) throws OutcomeBuilderException {
+        myElement = parentElement;
 
         Logger.msg(5, "AttributeList.addJsonInstance() - name:'" + attrName + "'");
 

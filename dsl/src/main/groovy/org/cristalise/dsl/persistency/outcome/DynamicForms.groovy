@@ -37,6 +37,7 @@ class DynamicForms {
     Integer min = null
     Integer max = null
     String value = null
+    String mask = null
 
     /**
      * Defines the Script name and version (e.g. GetShiftNames:0) which is executed when

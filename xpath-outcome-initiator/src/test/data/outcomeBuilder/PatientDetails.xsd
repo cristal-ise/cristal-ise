@@ -45,6 +45,7 @@
                         <xs:appinfo>
                             <dynamicForms>
                                 <value>now</value>
+	                            <mask>99/99/9999</mask>
                                 <additional>
                                     <updateScriptRef>Script:0</updateScriptRef>
                                 </additional>
@@ -61,6 +62,13 @@
                     </xs:simpleType>
                 </xs:element>
                 <xs:element name='Weight' minOccurs='1' maxOccurs='1'>
+                    <xs:annotation>
+                        <xs:appinfo>
+                            <dynamicForms>
+	                            <mask>99,99</mask>
+                            </dynamicForms>
+                        </xs:appinfo>
+                    </xs:annotation>
                     <xs:complexType>
                         <xs:simpleContent>
                             <xs:extension base='xs:decimal'>

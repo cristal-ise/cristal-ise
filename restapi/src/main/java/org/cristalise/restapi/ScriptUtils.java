@@ -158,7 +158,7 @@ public class ScriptUtils extends ItemUtils {
 
         if (schema != null) return getOutcomeResponse(new Outcome(xmlOutcome, schema), new Date(), jsonFlag);
         else {
-            if (jsonFlag) return Response.ok(XML.toJSONObject(xmlOutcome).toString()).build();
+            if (jsonFlag) return Response.ok(XML.toJSONObject(xmlOutcome, true).toString()).build();
             else          return Response.ok((xmlOutcome)).build();
         }
     }

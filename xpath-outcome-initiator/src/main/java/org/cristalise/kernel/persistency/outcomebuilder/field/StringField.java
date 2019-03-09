@@ -318,21 +318,26 @@ public class StringField {
         String name  = node.getLocalName();
 
         if (name.equals("additional")) {
-            json.put("additional", XML.toJSONObject(node.toString()).getJSONObject("additional"));
+            json.put("additional", XML.toJSONObject(node.toString(), true).getJSONObject("additional"));
         }
         else {
             String value = node.getStringValue().trim();
-
             if (name.equals("value")) value = getValue(value);
 
-            Scanner scanner = new Scanner(value);
+            //mask migth contain string which will be recognized by Scanner a numeric type. furthermore it is locale specific
+            if (name.equals("mask")) {
+                json.put(name, value);
+            }
+            else {
+                Scanner scanner = new Scanner(value);
 
-            if      (scanner.hasNextBoolean())    json.put(name, scanner.nextBoolean());
-            else if (scanner.hasNextBigDecimal()) json.put(name, scanner.nextBigDecimal());
-            else if (scanner.hasNextBigInteger()) json.put(name, scanner.nextBigInteger());
-            else                                  json.put(name, value);
+                if      (scanner.hasNextBoolean())    json.put(name, scanner.nextBoolean());
+                else if (scanner.hasNextBigDecimal()) json.put(name, scanner.nextBigDecimal());
+                else if (scanner.hasNextBigInteger()) json.put(name, scanner.nextBigInteger());
+                else                                  json.put(name, value);
 
-            scanner.close();
+                scanner.close();
+            }
         }
     }
     
