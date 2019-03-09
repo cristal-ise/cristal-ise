@@ -111,10 +111,10 @@ public class JooqLookupManager implements LookupManager {
     }
 
     public void dropHandlers() throws PersistencyException {
-        domains    .dropTables(context);
-        roles      .dropTables(context);
-        permissions.dropTables(context);
         properties .dropTables(context);
+        permissions.dropTables(context);
+        roles      .dropTables(context);
+        domains    .dropTables(context);
         items      .dropTables(context);
     }
 

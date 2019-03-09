@@ -35,23 +35,32 @@ import org.cristalise.kernel.utils.Logger;
 import org.cristalise.kernel.utils.ObjectProperties;
 import org.cristalise.storage.jooqdb.lookup.JooqLookupManager;
 import org.junit.After;
+import org.junit.AfterClass;
 import org.junit.Before;
+import org.junit.BeforeClass;
 
 public class LookupTestBase extends JooqTestBase {
 
+    static ObjectProperties c2kProps;
     protected JooqLookupManager lookup;
 
-    @Before
-    public void setUp() throws Exception {
+    @BeforeClass
+    public static void beforeClass() throws Exception {
         Logger.addLogStream(System.out, 8);
-
-        lookup = new JooqLookupManager();
-
-        ObjectProperties c2kProps = new ObjectProperties();
-
+        c2kProps = new ObjectProperties();
         setUpStorage(c2kProps);
 
         Gateway.init(c2kProps);
+    }
+    
+    @AfterClass
+    public static void afterClass() throws Exception {
+        Gateway.close();
+    }
+
+    @Before
+    public void setUp() throws Exception {
+        lookup = new JooqLookupManager();
 
         FieldUtils.writeDeclaredStaticField(Gateway.class, "mLookupManager", lookup, true);
         FieldUtils.writeDeclaredStaticField(Gateway.class, "mLookup",        lookup, true);
@@ -63,8 +72,7 @@ public class LookupTestBase extends JooqTestBase {
     @After
     public void tearDown() throws Exception {
         if (lookup != null) lookup.close();
-        Logger.removeLogStream(System.out);
-        
+
         if (dbType > 1) lookup.dropHandlers();
     }
 
