@@ -33,7 +33,7 @@ import org.jooq.SQLDialect;
 public class JooqTestBase {
     public enum H2Modes {PostgreSQL, MYSQL}
     
-    public static int dbType = 0;
+    public static int dbType = -1;
 
     /**
      * 
@@ -41,7 +41,7 @@ public class JooqTestBase {
      * @throws Exception
      */
     public static DSLContext initJooqContext() throws Exception {
-        return initJooqContext(3);
+        return initJooqContext(0);
     }
 
     /**
@@ -49,7 +49,7 @@ public class JooqTestBase {
      * @param c2kProps
      */
     public static void setUpStorage(Properties c2kProps) {
-        setUpStorage(c2kProps, 3);
+        setUpStorage(c2kProps, 0);
     }
 
     /**
