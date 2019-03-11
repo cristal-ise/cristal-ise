@@ -30,7 +30,14 @@ import org.cristalise.storage.jooqdb.JooqHandler;
 import org.jooq.DSLContext;
 import org.jooq.SQLDialect;
 
-public class JooqTestBase {
+/**
+ * This class configures all jooqdb tests
+ */
+public class JooqTestConfigurationBase {
+    
+    /**
+     * Specifies the supported DB configuration modes
+     */
     public enum DBModes {
         /**
          * Run tests using in-memory H2 configured with PostgreSQL compability mode
@@ -55,17 +62,18 @@ public class JooqTestBase {
         /**
          * Run tests using in-memory H2
          */
-        
-        /**
-         * Run tests using in-memory H2
-         */
         H2
     }
 
     /**
-     * Sets the database mode to run all the jooqdb test. For travis runs it should be set to H2
+     * Sets the database mode to run all jooqdb tests. For travis runs it should be set to H2
      */
-    public static DBModes dbType = DBModes.H2;
+    public static DBModes dbType = DBModes.MYSQL;
+
+    /**
+     * Sets the database name used to run all jooqdb tests
+     */
+    public static String dbName = "integtest";
 
     /**
      * 
@@ -105,7 +113,7 @@ public class JooqTestBase {
     private static DSLContext initPostrgresContext() throws Exception {
         String userName = "postgres";
         String password = "cristal";
-        String url      = "jdbc:postgresql://localhost:5432/integtest";
+        String url      = "jdbc:postgresql://localhost:5432/" + dbName;
 
         Connection conn = DriverManager.getConnection(url, userName, password);
         return using(conn, SQLDialect.POSTGRES);
@@ -116,7 +124,7 @@ public class JooqTestBase {
      * @param c2kProps
      */
     private static void setUpPostgres(Properties c2kProps) {
-        c2kProps.put(JooqHandler.JOOQ_URI,        "jdbc:postgresql://localhost:5432/integtest");
+        c2kProps.put(JooqHandler.JOOQ_URI,        "jdbc:postgresql://localhost:5432/" + dbName);
         c2kProps.put(JooqHandler.JOOQ_USER,       "postgres");
         c2kProps.put(JooqHandler.JOOQ_PASSWORD,   "cristal");
         c2kProps.put(JooqHandler.JOOQ_DIALECT,    SQLDialect.POSTGRES.toString());
@@ -132,7 +140,7 @@ public class JooqTestBase {
     private static DSLContext initMySQLContext() throws Exception {
         String userName = "root";
         String password = "cristal";
-        String url      = "jdbc:mysql://localhost:3306/integtest";
+        String url      = "jdbc:mysql://localhost:3306/" + dbName;
 
         Connection conn = DriverManager.getConnection(url, userName, password);
         return using(conn, SQLDialect.MYSQL);
@@ -143,7 +151,7 @@ public class JooqTestBase {
      * @param c2kProps
      */
     private static void setUpMySQL(Properties c2kProps) {
-        c2kProps.put(JooqHandler.JOOQ_URI,        "jdbc:mysql://localhost:3306/integtest");
+        c2kProps.put(JooqHandler.JOOQ_URI,        "jdbc:mysql://localhost:3306/" + dbName);
         c2kProps.put(JooqHandler.JOOQ_USER,       "root");
         c2kProps.put(JooqHandler.JOOQ_PASSWORD,   "cristal");
         c2kProps.put(JooqHandler.JOOQ_DIALECT,    SQLDialect.MYSQL.toString());
@@ -173,10 +181,10 @@ public class JooqTestBase {
      * @param mode
      */
     private static void setUpH2(Properties c2kProps, String mode) {
-        c2kProps.put(JooqHandler.JOOQ_URI,      "jdbc:h2:mem:");
-        c2kProps.put(JooqHandler.JOOQ_USER,     "sa");
-        c2kProps.put(JooqHandler.JOOQ_PASSWORD, "sa");
-        c2kProps.put(JooqHandler.JOOQ_DIALECT,  SQLDialect.H2.toString());
+        c2kProps.put(JooqHandler.JOOQ_URI,        "jdbc:h2:mem:");
+        c2kProps.put(JooqHandler.JOOQ_USER,       "sa");
+        c2kProps.put(JooqHandler.JOOQ_PASSWORD,   "sa");
+        c2kProps.put(JooqHandler.JOOQ_DIALECT,    SQLDialect.H2.toString());
         c2kProps.put(JooqHandler.JOOQ_AUTOCOMMIT, true);
 
         if (mode != null) c2kProps.put(JooqHandler.JOOQ_URI, "jdbc:h2:mem:;MODE=" + mode);

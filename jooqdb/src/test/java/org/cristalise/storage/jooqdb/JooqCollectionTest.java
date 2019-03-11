@@ -20,8 +20,8 @@
  */
 package org.cristalise.storage.jooqdb;
 
-import static org.cristalise.JooqTestBase.DBModes.MYSQL;
-import static org.cristalise.JooqTestBase.DBModes.PostgreSQL;
+import static org.cristalise.JooqTestConfigurationBase.DBModes.MYSQL;
+import static org.cristalise.JooqTestConfigurationBase.DBModes.PostgreSQL;
 import static org.junit.Assert.assertThat;
 
 import java.util.Arrays;

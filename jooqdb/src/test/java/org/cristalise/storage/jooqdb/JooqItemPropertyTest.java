@@ -20,8 +20,8 @@
  */
 package org.cristalise.storage.jooqdb;
 
-import static org.cristalise.JooqTestBase.DBModes.MYSQL;
-import static org.cristalise.JooqTestBase.DBModes.PostgreSQL;
+import static org.cristalise.JooqTestConfigurationBase.DBModes.MYSQL;
+import static org.cristalise.JooqTestConfigurationBase.DBModes.PostgreSQL;
 
 import java.util.List;
 import java.util.UUID;

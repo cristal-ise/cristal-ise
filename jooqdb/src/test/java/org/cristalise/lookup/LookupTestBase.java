@@ -20,8 +20,8 @@
  */
 package org.cristalise.lookup;
 
-import static org.cristalise.JooqTestBase.DBModes.MYSQL;
-import static org.cristalise.JooqTestBase.DBModes.PostgreSQL;
+import static org.cristalise.JooqTestConfigurationBase.DBModes.MYSQL;
+import static org.cristalise.JooqTestConfigurationBase.DBModes.PostgreSQL;
 import static org.unitils.reflectionassert.ReflectionAssert.assertReflectionEquals;
 import static org.unitils.reflectionassert.ReflectionComparatorMode.LENIENT_ORDER;
 
@@ -30,7 +30,7 @@ import java.util.Iterator;
 import java.util.List;
 
 import org.apache.commons.lang3.reflect.FieldUtils;
-import org.cristalise.JooqTestBase;
+import org.cristalise.JooqTestConfigurationBase;
 import org.cristalise.kernel.lookup.Path;
 import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.utils.Logger;
@@ -41,7 +41,7 @@ import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 
-public class LookupTestBase extends JooqTestBase {
+public class LookupTestBase extends JooqTestConfigurationBase {
 
     static ObjectProperties c2kProps;
     protected JooqLookupManager lookup;

@@ -22,7 +22,7 @@ package org.cristalise.lookup;
 
 import java.util.Properties;
 
-import org.cristalise.JooqTestBase;
+import org.cristalise.JooqTestConfigurationBase;
 import org.cristalise.kernel.process.Gateway;
 import org.cristalise.storage.jooqdb.lookup.JooqLookupManager;
 import org.junit.AfterClass;
@@ -30,7 +30,7 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-public class JooqLookupManagerTest extends JooqTestBase {
+public class JooqLookupManagerTest extends JooqTestConfigurationBase {
 
     JooqLookupManager jooq;
 
