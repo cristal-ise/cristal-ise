@@ -20,6 +20,9 @@
  */
 package org.cristalise.storage.jooqdb;
 
+import static org.cristalise.JooqTestBase.DBModes.MYSQL;
+import static org.cristalise.JooqTestBase.DBModes.PostgreSQL;
+
 import java.util.UUID;
 
 import org.cristalise.kernel.lookup.ItemPath;
@@ -50,7 +53,7 @@ public class JooqViewpointTest extends StorageTestBase {
         jooq.delete(context, uuid);
         context.close();
 
-        if (dbType > 1) jooq.dropTables(context);
+        if (dbType == MYSQL || dbType == PostgreSQL) jooq.dropTables(context);
     }
 
     private void compareViewpoints(Viewpoint actual, Viewpoint expected) {

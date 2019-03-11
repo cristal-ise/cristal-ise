@@ -20,6 +20,9 @@
  */
 package org.cristalise.storage.jooqdb;
 
+import static org.cristalise.JooqTestBase.DBModes.MYSQL;
+import static org.cristalise.JooqTestBase.DBModes.PostgreSQL;
+
 import java.util.Arrays;
 import java.util.UUID;
 
@@ -62,7 +65,7 @@ public class JooqOutcomeAttachmentTest extends StorageTestBase {
         jooqHandler.delete(context, uuid);
         context.close();
 
-        if (dbType > 1) jooqHandler.dropTables(context);
+        if (dbType == MYSQL || dbType == PostgreSQL) jooqHandler.dropTables(context);
     }
 
     @Test

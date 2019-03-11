@@ -20,6 +20,9 @@
  */
 package org.cristalise.storage.jooqdb;
 
+import static org.cristalise.JooqTestBase.DBModes.MYSQL;
+import static org.cristalise.JooqTestBase.DBModes.PostgreSQL;
+
 import java.util.Arrays;
 import java.util.UUID;
 
@@ -63,7 +66,7 @@ public class JooqJobTest extends StorageTestBase {
     public void after() throws Exception {
         jooq.delete(context, uuid);
 
-        if (dbType > 1) jooq.dropTables(context);
+        if (dbType == MYSQL || dbType == PostgreSQL) jooq.dropTables(context);
     }
 
     private void compareJobs(Job actual, Job expected) throws Exception {

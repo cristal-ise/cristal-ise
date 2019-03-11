@@ -20,6 +20,9 @@
  */
 package org.cristalise.storage.jooqdb;
 
+import static org.cristalise.JooqTestBase.DBModes.MYSQL;
+import static org.cristalise.JooqTestBase.DBModes.PostgreSQL;
+
 import java.util.Arrays;
 import java.util.UUID;
 
@@ -56,7 +59,7 @@ public class JooqHistoryTest extends StorageTestBase {
     public void after() throws Exception {
         context.close();
         
-        if (dbType > 1) jooq.dropTables(context);
+        if (dbType == MYSQL || dbType == PostgreSQL) jooq.dropTables(context);
     }
 
     private void compareEvents(Event actual, Event expected) {

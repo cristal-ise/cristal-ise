@@ -20,6 +20,8 @@
  */
 package org.cristalise.storage.jooqdb;
 
+import static org.cristalise.JooqTestBase.DBModes.MYSQL;
+import static org.cristalise.JooqTestBase.DBModes.PostgreSQL;
 import static org.junit.Assert.assertThat;
 
 import java.util.Arrays;
@@ -48,8 +50,8 @@ public class JooqCollectionTest extends StorageTestBase {
     @After
     public void after() throws Exception {
         context.close();
-        
-        if (dbType > 1) jooq.dropTables(context);
+
+        if (dbType == MYSQL || dbType == PostgreSQL) jooq.dropTables(context);
     }
 
     private void compareCollections(Collection<?> expected, Collection<?> actual) {

@@ -31,9 +31,41 @@ import org.jooq.DSLContext;
 import org.jooq.SQLDialect;
 
 public class JooqTestBase {
-    public enum H2Modes {PostgreSQL, MYSQL}
-    
-    public static int dbType = -1;
+    public enum DBModes {
+        /**
+         * Run tests using in-memory H2 configured with PostgreSQL compability mode
+         */
+        H2_PostgreSQL,
+        
+        /**
+         * Run tests using in-memory H2 configured with MYSQL compability mode
+         */
+        H2_MYSQL, 
+        
+        /**
+         * Run tests using PostgreSQL integtest database
+         */
+        PostgreSQL,
+        
+        /**
+         * Run tests using MYSQL integtest database
+         */
+        MYSQL,
+
+        /**
+         * Run tests using in-memory H2
+         */
+        
+        /**
+         * Run tests using in-memory H2
+         */
+        H2
+    }
+
+    /**
+     * Sets the database mode to run all the jooqdb test. For travis runs it should be set to H2
+     */
+    public static DBModes dbType = DBModes.H2;
 
     /**
      * 
@@ -41,7 +73,13 @@ public class JooqTestBase {
      * @throws Exception
      */
     public static DSLContext initJooqContext() throws Exception {
-        return initJooqContext(0);
+        switch (dbType) {
+            case H2_PostgreSQL: return initH2Context("PostgreSQL");
+            case H2_MYSQL:      return initH2Context("MYSQL");
+            case PostgreSQL:    return initPostrgresContext();
+            case MYSQL:         return initMySQLContext();
+            default:            return initH2Context(null);
+        }
     }
 
     /**
@@ -49,38 +87,13 @@ public class JooqTestBase {
      * @param c2kProps
      */
     public static void setUpStorage(Properties c2kProps) {
-        setUpStorage(c2kProps, 0);
-    }
-
-    /**
-     * 
-     * @param dbType
-     * @return
-     * @throws Exception
-     */
-    public static DSLContext initJooqContext(int type) throws Exception {
-        dbType = type;
-
-        if      (dbType == 0) return initH2Context(H2Modes.PostgreSQL);
-        else if (dbType == 1) return initH2Context(H2Modes.MYSQL);
-        else if (dbType == 2) return initPostrgresContext();
-        else if (dbType == 3) return initMySQLContext();
-        else                  return initH2Context(null);
-    }
-
-    /**
-     * 
-     * @param c2kProps
-     * @param dbType
-     */
-    public static void setUpStorage(Properties c2kProps, int type) {
-        dbType = type;
-
-        if      (dbType == 0) setUpH2(c2kProps, H2Modes.PostgreSQL);
-        else if (dbType == 1) setUpH2(c2kProps, H2Modes.MYSQL);
-        else if (dbType == 2) setUpPostgres(c2kProps);
-        else if (dbType == 3) setUpMySQL(c2kProps);
-        else                  setUpH2(c2kProps, null);
+        switch (dbType) {
+            case H2_PostgreSQL: setUpH2(c2kProps, "PostgreSQL"); break;
+            case H2_MYSQL:      setUpH2(c2kProps, "MYSQL");      break;
+            case PostgreSQL:    setUpPostgres(c2kProps);         break;
+            case MYSQL:         setUpMySQL(c2kProps);            break;
+            default:            setUpH2(c2kProps, null);         break;
+        }
     }
 
     /**
@@ -143,12 +156,12 @@ public class JooqTestBase {
      * @return
      * @throws Exception
      */
-    private static DSLContext initH2Context(H2Modes mode) throws Exception {
+    private static DSLContext initH2Context(String mode) throws Exception {
         String userName = "sa";
         String password = "sa";
         String url      = "jdbc:h2:mem:";
 
-        if (mode != null) url += ";MODE=" + mode.name(); 
+        if (mode != null) url += ";MODE=" + mode; 
 
         Connection conn = DriverManager.getConnection(url, userName, password);
         return using(conn, SQLDialect.H2);
@@ -159,13 +172,13 @@ public class JooqTestBase {
      * @param c2kProps
      * @param mode
      */
-    private static void setUpH2(Properties c2kProps, H2Modes mode) {
+    private static void setUpH2(Properties c2kProps, String mode) {
         c2kProps.put(JooqHandler.JOOQ_URI,      "jdbc:h2:mem:");
         c2kProps.put(JooqHandler.JOOQ_USER,     "sa");
         c2kProps.put(JooqHandler.JOOQ_PASSWORD, "sa");
         c2kProps.put(JooqHandler.JOOQ_DIALECT,  SQLDialect.H2.toString());
         c2kProps.put(JooqHandler.JOOQ_AUTOCOMMIT, true);
 
-        if (mode != null) c2kProps.put(JooqHandler.JOOQ_URI, "jdbc:h2:mem:;MODE=" + mode.name());
+        if (mode != null) c2kProps.put(JooqHandler.JOOQ_URI, "jdbc:h2:mem:;MODE=" + mode);
     }
 }
