@@ -385,6 +385,7 @@ public class JooqLookupManager implements LookupManager {
         SelectQuery<?> select = getSearchSelect(start, props);
 
         select.addSelect(JooqDomainPathHandler.PATH, TARGET);
+        select.addOrderBy(JooqDomainPathHandler.PATH);
 
         if (limit  > 0) select.addLimit(limit);
         if (offset > 0) select.addOffset(offset);
