@@ -22,7 +22,9 @@ package org.cristalise.kernel.lookup;
 
 import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
 
 import org.apache.commons.lang3.StringUtils;
 import org.cristalise.kernel.common.ObjectNotFoundException;
@@ -31,7 +33,7 @@ import org.cristalise.kernel.process.Gateway;
 
 public class RolePath extends Path {
     private boolean hasJobList = false;
-    private List<String> permissions = new ArrayList<>();
+    private Set<String> permissions = new LinkedHashSet<>();
 
     public RolePath() {
         super();
@@ -47,7 +49,7 @@ public class RolePath extends Path {
 
     public RolePath(RolePath parent, String roleName, List<String> permissions) {
         super(parent, roleName);
-        this.permissions = permissions;
+        setPermissions(permissions);
     }
 
     public RolePath(String path, boolean jobList) {
@@ -58,7 +60,7 @@ public class RolePath extends Path {
     public RolePath(String path, boolean jobList, List<String> permissions) {
         super(path);
         this.hasJobList = jobList;
-        this.permissions = permissions;
+        setPermissions(permissions);
     }
 
     public RolePath(String[] path, boolean jobList) {
@@ -68,7 +70,7 @@ public class RolePath extends Path {
     public RolePath(String[] path, boolean jobList, List<String> permissions) {
         super(path);
         this.hasJobList = jobList;
-        this.permissions = permissions;
+        setPermissions(permissions);
     }
 
     public RolePath(RolePath parent, String roleName, boolean jobList) {
@@ -79,7 +81,7 @@ public class RolePath extends Path {
     public RolePath(RolePath parent, String roleName, boolean jobList, List<String> permissions) {
         this(parent, roleName);
         this.hasJobList = jobList;
-        this.permissions = permissions;
+        setPermissions(permissions);
     }
 
     public RolePath getParent() throws ObjectNotFoundException {
@@ -103,11 +105,12 @@ public class RolePath extends Path {
     }
 
     public List<String> getPermissions() {
-        return permissions;
+        return new ArrayList<String>(this.permissions);
     }
 
     public void setPermissions(List<String> permissions) {
-        this.permissions = permissions;
+        this.permissions.clear();
+        this.permissions.addAll(permissions);
     }
 
     public Iterator<Path> getChildren() {
