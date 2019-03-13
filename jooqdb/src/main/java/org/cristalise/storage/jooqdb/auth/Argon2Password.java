@@ -20,6 +20,10 @@
  */
 package org.cristalise.storage.jooqdb.auth;
 
+import static de.mkammerer.argon2.Argon2Factory.Argon2Types.ARGON2d;
+import static de.mkammerer.argon2.Argon2Factory.Argon2Types.ARGON2i;
+import static de.mkammerer.argon2.Argon2Factory.Argon2Types.ARGON2id;
+
 import de.mkammerer.argon2.Argon2;
 import de.mkammerer.argon2.Argon2Constants;
 import de.mkammerer.argon2.Argon2Factory;
@@ -27,22 +31,24 @@ import de.mkammerer.argon2.Argon2Factory.Argon2Types;
 
 public class Argon2Password {
 
-    private Argon2 argon2 = null;
+    /**
+     * Argon2 instance used only for hashing
+     */
+    private final Argon2 argon2;
 
-    private final Argon2Types type;
-    private final int         saltLenght;
-    private final int         hashLenght;
-    
+    private final int saltLenght;
+    private final int hashLenght;
+
     private final int iterations;
     private final int memory;
     private final int parallelism;
 
     public Argon2Password() {
-        type       = Argon2Types.ARGON2i;
+        //TODO make argon2 setup configurable
         saltLenght = Argon2Constants.DEFAULT_SALT_LENGTH;
         hashLenght = Argon2Constants.DEFAULT_HASH_LENGTH;
 
-        argon2 = Argon2Factory.create(type, saltLenght, hashLenght);
+        argon2 = Argon2Factory.create(ARGON2id, saltLenght, hashLenght);
 
         iterations = 2;
         memory = 65536;
@@ -54,10 +60,16 @@ public class Argon2Password {
      * 
      * @param hash the hashed password retrieved from database
      * @param password the password string
-     * @return true, if the verification was successfull otherwise false
+     * @return true, if the verification was successful otherwise false
      */
     public boolean checkPassword(final String hash, final char[] password) {
-        return argon2.verify(hash, password);
+        Argon2Types type = null;
+
+        if      (hash.startsWith("$argon2i$")) type = ARGON2i;
+        else if (hash.startsWith("$argon2d$")) type = ARGON2d;
+        else                                   type = ARGON2id;
+
+        return Argon2Factory.create(type, saltLenght, hashLenght).verify(hash, password);
     }
 
     /**
