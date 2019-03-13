@@ -79,18 +79,17 @@ public abstract class JooqHandler {
      */
     public static final String JOOQ_DISABLE_DOMAIN_CREATE = "JOOQ.disableDomainCreateTables";
 
-    public static final DataType<UUID>           UUID_TYPE         = SQLDataType.UUID;
-    public static final DataType<String>         NAME_TYPE         = SQLDataType.VARCHAR.length(64);
-    public static final DataType<Integer>        VERSION_TYPE      = SQLDataType.INTEGER;
-    public static final DataType<String>         SHORT_STRING_TYPE = SQLDataType.VARCHAR.length(256);
-    public static final DataType<String>         STRING_TYPE       = SQLDataType.VARCHAR.length(800);
-    public static final DataType<Integer>        ID_TYPE           = SQLDataType.INTEGER;
-    public static final DataType<Timestamp>      TIMESTAMP_TYPE    = SQLDataType.TIMESTAMP;
-//  public static final DataType<OffsetDateTime> TIMESTAMP_TYPE    = SQLDataType.TIMESTAMPWITHTIMEZONE;
-    public static final DataType<String>         XML_TYPE          = SQLDataType.CLOB;
+    public static final DataType<UUID>           UUID_TYPE       = SQLDataType.UUID;
+    public static final DataType<String>         NAME_TYPE       = SQLDataType.VARCHAR.length(64);
+    public static final DataType<Integer>        VERSION_TYPE    = SQLDataType.INTEGER;
+    public static final DataType<String>         STRING_TYPE     = SQLDataType.VARCHAR.length(800);
+    public static final DataType<Integer>        ID_TYPE         = SQLDataType.INTEGER;
+    public static final DataType<Timestamp>      TIMESTAMP_TYPE  = SQLDataType.TIMESTAMP;
+//  public static final DataType<OffsetDateTime> TIMESTAMP_TYPE  = SQLDataType.TIMESTAMPWITHTIMEZONE;
+    public static final DataType<String>         XML_TYPE        = SQLDataType.CLOB;
     // Use this declaration when generating MySQL tables: see issue #23
-    public static final DataType<String>         XML_TYPE_MYSQL    = new DefaultDataType<String>(SQLDialect.MYSQL, SQLDataType.CLOB, "mediumtext", "char");
-    public static final DataType<byte[]> ATTACHMENT_TYPE           = SQLDataType.BLOB;
+    public static final DataType<String>         XML_TYPE_MYSQL  = new DefaultDataType<String>(SQLDialect.MYSQL, SQLDataType.CLOB, "mediumtext", "char");
+    public static final DataType<byte[]>         ATTACHMENT_TYPE = SQLDataType.BLOB;
 
     public static DSLContext connect() throws PersistencyException {
         String uri  = Gateway.getProperties().getString(JooqHandler.JOOQ_URI);
