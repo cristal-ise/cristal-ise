@@ -261,7 +261,7 @@ abstract public class Collection<E extends CollectionMember> implements C2KLocal
     /**
      * Helper method to find all the members for the given item.
      * 
-     * @param childPath the UUID of the item in the slots,
+     * @param childPath the UUID of the item in the slots
      * @return the list of members found for the given item
      * @throws ObjectNotFoundException there is not member found for the given input parameters
      */
@@ -272,10 +272,10 @@ abstract public class Collection<E extends CollectionMember> implements C2KLocal
     /**
      * Helper method to find all the members with the combination of the input parameters.
      * 
-     * @param slotID the id of the slot (aka memberID). When it is set to -1, only the chilPath is used for search
-     * @param childPath the UUID of the item in the slots, When it is set to null, only the sloiID is for the search
+     * @param slotID The id of the slot (aka memberID). When it is set to -1, only the chilPath is used for searching.
+     * @param childPath The UUID of the item in the slots. When it is set to null, only the slotID is used for searching.
      * @return the list of members found for the combination of the input parameters
-     * @throws ObjectNotFoundException there is not member found for the given input parameters
+     * @throws ObjectNotFoundException if no member was found for the given input parameters
      */
     public List<E> resolveMembers(int slotID, ItemPath childPath) throws ObjectNotFoundException {
         ArrayList<E> members = new ArrayList<>();
@@ -296,7 +296,7 @@ abstract public class Collection<E extends CollectionMember> implements C2KLocal
             }
         }
 
-        if (members.size() == 0)
+        if (members.isEmpty())
             throw new ObjectNotFoundException("Could not find " + childPath + " in collection " + getName());
 
         return members;
