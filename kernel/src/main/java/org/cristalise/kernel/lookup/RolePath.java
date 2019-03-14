@@ -140,10 +140,6 @@ public class RolePath extends Path {
         this.permissions.addAll(newPermissions);
     }
 
-    public void addPermission(String newPermission) {
-        this.permissions.add(newPermission);
-    }
-
     public Iterator<Path> getChildren() {
         return Gateway.getLookup().getChildren(this);
     }
