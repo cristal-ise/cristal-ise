@@ -20,7 +20,6 @@
  */
 package org.cristalise.storage.jooqdb.lookup;
 
-import static org.jooq.impl.DSL.constraint;
 import static org.jooq.impl.DSL.field;
 import static org.jooq.impl.DSL.name;
 import static org.jooq.impl.DSL.select;
@@ -62,13 +61,17 @@ public class JooqPermissionHandler {
     public int insert(DSLContext context, String role, List<String> permissions) {
         InsertQuery<?> insertInto = context.insertQuery(ROLE_PERMISSION_TABLE);
 
-        for (String permission: permissions) {
-            insertInto.addValue(ROLE_PATH, role);
-            insertInto.addValue(PERMISSION, permission);
-            insertInto.newRecord();
-        }
+        if (permissions.size() > 0) {
+            for (String permission: permissions) {
+                insertInto.addValue(ROLE_PATH, role);
+                insertInto.addValue(PERMISSION, permission);
+                insertInto.newRecord();
+            }
 
-        return insertInto.execute();
+            return insertInto.execute();
+        }
+        else 
+            return 0;
     }
 
     public List<String> fetch(DSLContext context, String role) {

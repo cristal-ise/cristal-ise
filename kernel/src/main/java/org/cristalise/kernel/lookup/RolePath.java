@@ -33,6 +33,8 @@ import org.cristalise.kernel.process.Gateway;
 
 public class RolePath extends Path {
     private boolean hasJobList = false;
+    
+    //LinkedHashSet is used to make permissions string unique and to keep its original order
     private Set<String> permissions = new LinkedHashSet<>();
 
     public RolePath() {
@@ -47,9 +49,13 @@ public class RolePath extends Path {
         super(parent, roleName);
     }
 
-    public RolePath(RolePath parent, String roleName, List<String> permissions) {
-        super(parent, roleName);
-        setPermissions(permissions);
+    public RolePath(RolePath parent, String roleName, Set<String> newPermissions) {
+        this(parent, roleName);
+        setPermissions(newPermissions);
+    }
+
+    public RolePath(RolePath parent, String roleName, List<String> newPermissions) {
+        this(parent, roleName, new LinkedHashSet<>(newPermissions));
     }
 
     public RolePath(String path, boolean jobList) {
@@ -57,20 +63,28 @@ public class RolePath extends Path {
         this.hasJobList = jobList;
     }
 
-    public RolePath(String path, boolean jobList, List<String> permissions) {
-        super(path);
-        this.hasJobList = jobList;
-        setPermissions(permissions);
+    public RolePath(String path, boolean jobList, Set<String> newPermissions) {
+        this(path, jobList);
+        setPermissions(newPermissions);
+    }
+    
+    public RolePath(String path, boolean jobList, List<String> newPermissions) {
+        this(path, jobList, new LinkedHashSet<>(newPermissions));
     }
 
     public RolePath(String[] path, boolean jobList) {
         super(path);
         this.hasJobList = jobList;
     }
-    public RolePath(String[] path, boolean jobList, List<String> permissions) {
-        super(path);
-        this.hasJobList = jobList;
-        setPermissions(permissions);
+
+    public RolePath(String[] path, boolean jobList, Set<String> newPermissions) {
+        this(path, jobList);
+        setPermissions(newPermissions);
+    }
+
+    public RolePath(String[] path, boolean jobList, List<String> newPermissions) {
+        this(path, jobList);
+        setPermissions(newPermissions);
     }
 
     public RolePath(RolePath parent, String roleName, boolean jobList) {
@@ -78,10 +92,14 @@ public class RolePath extends Path {
         this.hasJobList = jobList;
     }
 
-    public RolePath(RolePath parent, String roleName, boolean jobList, List<String> permissions) {
-        this(parent, roleName);
-        this.hasJobList = jobList;
-        setPermissions(permissions);
+    public RolePath(RolePath parent, String roleName, boolean jobList, Set<String> newPermissions) {
+        this(parent, roleName, jobList);
+        setPermissions(newPermissions);
+    }
+
+    public RolePath(RolePath parent, String roleName, boolean jobList, List<String> newPermissions) {
+        this(parent, roleName, jobList);
+        setPermissions(newPermissions);
     }
 
     public RolePath getParent() throws ObjectNotFoundException {
@@ -104,13 +122,26 @@ public class RolePath extends Path {
         this.hasJobList = hasJobList;
     }
 
-    public List<String> getPermissions() {
-        return new ArrayList<String>(this.permissions);
+    public Set<String> getPermissions() {
+        return this.permissions;
     }
 
-    public void setPermissions(List<String> permissions) {
+    public List<String> getPermissionsList() {
+        return new ArrayList<>(permissions);
+    }
+
+    public void setPermissions(List<String> newPermissions) {
         this.permissions.clear();
-        this.permissions.addAll(permissions);
+        this.permissions.addAll(newPermissions);
+    }
+
+    public void setPermissions(Set<String> newPermissions) {
+        this.permissions.clear();
+        this.permissions.addAll(newPermissions);
+    }
+
+    public void addPermission(String newPermission) {
+        this.permissions.add(newPermission);
     }
 
     public Iterator<Path> getChildren() {
