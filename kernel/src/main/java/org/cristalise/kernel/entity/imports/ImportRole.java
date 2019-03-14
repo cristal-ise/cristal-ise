@@ -92,7 +92,7 @@ public class ImportRole extends ModuleImport {
 
         ir.setName(rp.getName());
         ir.jobList = rp.hasJobList();
-        ir.permissions = (ArrayList<String>) rp.getPermissions();
+        ir.permissions = (ArrayList<String>) rp.getPermissionsList();
 
         return ir;
     }
