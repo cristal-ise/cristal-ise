@@ -113,6 +113,16 @@ public class LDAPLookup implements LookupManager {
 
     }
 
+    @Override
+    public void postStartServer() {
+        //INIMPLEMENTED
+    }
+
+    @Override
+    public void postBoostrap() {
+        //INIMPLEMENTED
+    }
+
     private void migrateOldRoles() {
         // search the mDomainPath tree uniqueMember=userDN
         // filter = objectclass=cristalrole AND uniqueMember=userDN

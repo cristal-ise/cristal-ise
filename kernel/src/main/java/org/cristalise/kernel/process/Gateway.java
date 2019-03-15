@@ -207,6 +207,9 @@ public class Gateway
             mCorbaServer = new CorbaServer();
 
             Logger.msg("Gateway.startServer() - Server '"+serverName+"' STARTED.");
+
+            if (mLookupManager != null) mLookupManager.postStartServer();
+            mStorage.postStartServer();
         }
         catch (Exception ex) {
             Logger.error(ex);
@@ -262,6 +265,8 @@ public class Gateway
 
         Logger.msg("Gateway.connect(system) - DONE.");
 
+        mStorage.postConnect();
+
         return mSecurityManager.getAuth();
     }
 
@@ -313,6 +318,8 @@ public class Gateway
         mModules.runScripts("startup");
 
         Logger.msg("Gateway.connect(agent) - DONE.");
+
+        mStorage.postConnect();
 
         return agent;
     }
@@ -523,4 +530,22 @@ public class Gateway
         return handler;
     }
 
+    /**
+     * Run the different kind of Boostrap processes
+     * 
+     * @throws Exception anything could happen
+     */
+    public static void runBoostrap() throws Exception {
+        if (Gateway.getProperties().containsKey(AbstractMain.MAIN_ARG_SKIPBOOTSTRAP)) {
+            //minimum initialisation only
+            Bootstrap.init();
+
+            if (mLookupManager != null) mLookupManager.postBoostrap();
+            mStorage.postBoostrap();
+        }
+        else {
+            //creates a new thread to run initialisation and complete checking bootstrap & module items
+            Bootstrap.run();
+        }
+    }
 }
