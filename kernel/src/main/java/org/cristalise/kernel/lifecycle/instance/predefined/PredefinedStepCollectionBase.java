@@ -175,7 +175,7 @@ public abstract class PredefinedStepCollectionBase extends PredefinedStep {
      * @throws ObjectNotFoundException
      */
     protected DependencyMember getDependencyMember() throws InvalidDataException, ObjectNotFoundException {
-        List<CollectionMember> memberList = collection.resolveMembers(slotID, childPath);
+        List<? extends CollectionMember> memberList = collection.resolveMembers(slotID, childPath);
 
         if (memberList.size() != 1)
             throw new InvalidDataException(collectionName + "contains more the one member for slotID:"+slotID+" memberId:"+childPath);
