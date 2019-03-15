@@ -154,7 +154,9 @@ class SchemaDelegate {
             if (f.dynamicForms.max != null)      max(      f.dynamicForms.max)
             if (f.dynamicForms.value != null)    value(    f.dynamicForms.value)
             if (f.dynamicForms.mask != null)     mask(     f.dynamicForms.mask)
-                    
+            if (f.dynamicForms.pattern != null)  pattern(  f.dynamicForms.pattern)
+            if (f.dynamicForms.errmsg != null)   errmsg(   f.dynamicForms.errmsg)
+                        
             if (f.dynamicForms.updateScriptRef != null) additional{ updateScriptRef(f.dynamicForms.updateScriptRef) }
             if (f.dynamicForms.updateQuerytRef != null) additional{ updateQuerytRef(f.dynamicForms.updateQuerytRef) }
         }

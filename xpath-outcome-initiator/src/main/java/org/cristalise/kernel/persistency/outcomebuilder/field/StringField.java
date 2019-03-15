@@ -383,20 +383,32 @@ public class StringField {
         field.put("type",     getNgDynamicFormsControlType());
         field.put("required", !isOptional());
 
+        //This can overwrite values set earlier, for example 'type' can be changed from INPUT to RATING
+        readAppInfoDynamicForms(field);
+        
         if ( ! isOptional() || hasValidator()) {
             JSONObject validators = new JSONObject();
             field.put("validators", validators);
 
+            JSONObject errorMessages = new JSONObject();
+            field.put("errorMessages", errorMessages);
+
             if (!isOptional()) validators.put("required", JSONObject.NULL);
-            if (hasValidator()) setNgDynamicFormsValidators(validators);;
-
-            //JSONObject errorMessages = new JSONObject();
-            //errorMessages.put("required", name + " is required");
-            //field.put("errorMessages", errorMessages);
+            //if (hasValidator()) setNgDynamicFormsValidators(validators);
+            
+            if (field.has("pattern")) {
+                
+                String pattern = (String) field.get("pattern");
+                
+                if (pattern != null) {
+                    validators.put("pattern", pattern);
+                }    
+                
+                if (field.has("errmsg")) {
+                    errorMessages.put("pattern", field.get("errmsg"));
+                }            
+            }      
         }
-
-        //This can overwrite values set earlier, for example 'type' can be changed from INPUT to RATING
-        readAppInfoDynamicForms(field);
 
         // appinfo/dynamicForms could have updated label, so do the CamelCase splitting now
         String label = StringUtils.join(StringUtils.splitByCharacterTypeCamelCase((String)field.get("label")), " ");
