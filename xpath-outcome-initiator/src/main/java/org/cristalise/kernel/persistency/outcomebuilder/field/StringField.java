@@ -386,29 +386,27 @@ public class StringField {
         //This can overwrite values set earlier, for example 'type' can be changed from INPUT to RATING
         readAppInfoDynamicForms(field);
         
-        if ( ! isOptional() || hasValidator()) {
-            JSONObject validators = new JSONObject();
-            field.put("validators", validators);
+        JSONObject validators = new JSONObject();
+        field.put("validators", validators);
 
-            JSONObject errorMessages = new JSONObject();
-            field.put("errorMessages", errorMessages);
+        JSONObject errorMessages = new JSONObject();
+        field.put("errorMessages", errorMessages);
 
-            if (!isOptional()) validators.put("required", JSONObject.NULL);
-            //if (hasValidator()) setNgDynamicFormsValidators(validators);
-            
-            if (field.has("pattern")) {
-                
-                String pattern = (String) field.get("pattern");
-                
-                if (pattern != null) {
-                    validators.put("pattern", pattern);
-                }    
-                
-                if (field.has("errmsg")) {
-                    errorMessages.put("pattern", field.get("errmsg"));
-                }            
-            }      
-        }
+        if (!isOptional()) validators.put("required", JSONObject.NULL);
+        //if (hasValidator()) setNgDynamicFormsValidators(validators);
+
+        if (field.has("pattern")) {
+
+            String pattern = (String) field.get("pattern");
+
+            if (pattern != null) {
+                validators.put("pattern", pattern);
+            }    
+
+            if (field.has("errmsg")) {
+                errorMessages.put("pattern", field.get("errmsg"));
+            }            
+        }      
 
         // appinfo/dynamicForms could have updated label, so do the CamelCase splitting now
         String label = StringUtils.join(StringUtils.splitByCharacterTypeCamelCase((String)field.get("label")), " ");
@@ -419,8 +417,8 @@ public class StringField {
         field.put("label",       label + (required ? " *": ""));
         field.put("placeholder", label);
 
-        // appinfo/dynamicForms could have updated required, so remove any validator or errorMessages
-        if ( ! required ) {
+        // if validators has no elements then remove it and the error messages.
+        if ( field.getJSONObject("validators").length() == 0){
             field.remove("validators");
             field.remove("errorMessages");
         }

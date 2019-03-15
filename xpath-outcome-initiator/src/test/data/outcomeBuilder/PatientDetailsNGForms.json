@@ -6,6 +6,7 @@
   "group": [
     {
       "validators": {"required": null},
+      "errorMessages": {},
       "inputType": "text",
       "cls": {
         "grid": {
@@ -22,6 +23,8 @@
       "required": true
     },
     {
+      "validators": {"required": null},
+      "errorMessages": {},
       "hidden": true,
       "additional": {"tooltip": "Insurance Number Documentation"},
       "inputType": "text",
@@ -42,6 +45,7 @@
     },
     {
       "validators": {"required": null},
+      "errorMessages": {},
       "additional": {
         "showButtonBar": true,
         "updateScriptRef":"Script:0"
@@ -66,6 +70,7 @@
     {
       "filterable": true,
       "validators": {"required": null},
+      "errorMessages": {},
       "additional": {"filterBy": "label"},
       "options": [
         {"label": "Select value"},
@@ -95,6 +100,7 @@
     },
     {
       "validators": {"required": null},
+      "errorMessages": {},
       "cls": {
         "grid": {
           "container": "ui-g",
