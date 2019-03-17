@@ -24,7 +24,6 @@
       },
       {
         "validators": {"required": null},
-        "errorMessages": {},
         "cls": {
           "grid": {
             "container": "ui-g",
@@ -42,7 +41,6 @@
       },
       {
         "validators": {"required": null},
-        "errorMessages": {},
         "cls": {
           "grid": {
             "container": "ui-g",
@@ -60,7 +58,6 @@
       },
       {
         "validators": {"required": null},
-        "errorMessages": {},
         "cls": {
           "grid": {
             "container": "ui-g",
@@ -79,8 +76,6 @@
       {
         "errorMessages": {"pattern": "Trailing spaces or contains only spaces"},
         "validators": {"pattern": "^[a-zA-Z]+.*\\S+$", "required": null},
-        "pattern": "^[a-zA-Z]+.*\\S+$",
-        "errmsg": "Trailing spaces or contains only spaces",
         "inputType": "text",
         "cls": {
           "grid": {

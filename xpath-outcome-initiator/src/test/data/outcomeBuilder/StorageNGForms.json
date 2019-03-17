@@ -6,7 +6,6 @@
   "group": [
     {
       "validators": {"required": null},
-      "errorMessages": {},
       "inputType": "text",
       "cls": {
         "grid": {
@@ -24,7 +23,6 @@
     },
     {
       "validators": {"required": null},
-      "errorMessages": {},
       "inputType": "text",
       "cls": {
         "grid": {
@@ -42,7 +40,6 @@
     },
     {
       "filterable": true,
-      "errorMessages": {},
       "validators": {"required": null},
       "additional": {"filterBy": "label"},
       "options": [
@@ -78,7 +75,6 @@
     {
       "filterable": true,
       "validators": {"required": null},
-      "errorMessages": {},
       "additional": {"filterBy": "label"},
       "options": [
         {"label": "Select value"},
@@ -108,10 +104,9 @@
     },
     {
       "validators": {
-        "min": 1,
+        "min": 0,
         "required": null
       },
-      "errorMessages": {},
       "cls": {
         "grid": {
           "container": "ui-g",
@@ -192,6 +187,7 @@
       "required": false
     },
     {
+      "validators": {"min": 0},
       "cls": {
         "grid": {
           "container": "ui-g",
@@ -208,6 +204,7 @@
       "required": false
     },
     {
+      "validators": {"min": 0},
       "cls": {
         "grid": {
           "container": "ui-g",
