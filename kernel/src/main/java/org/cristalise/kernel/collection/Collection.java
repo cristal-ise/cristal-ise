@@ -259,19 +259,29 @@ abstract public class Collection<E extends CollectionMember> implements C2KLocal
     }
 
     /**
-     * Helper method to find all the members with the combination of the input parameters.
+     * Helper method to find all the members for the given item.
      * 
-     * @param slotID the id of the slot
      * @param childPath the UUID of the item in the slots
-     * @return the list of members 
+     * @return the list of members found for the given item
      * @throws ObjectNotFoundException there is not member found for the given input parameters
      */
-    public List<CollectionMember> resolveMembers(int slotID, ItemPath childPath) throws ObjectNotFoundException {
-        // check the slot is there if it's given by id
-        ArrayList<CollectionMember> members = new ArrayList<>();
+    public List<E> resolveMembers(ItemPath childPath) throws ObjectNotFoundException {
+        return resolveMembers(-1, childPath);
+    }
 
-        if (slotID > -1) {
-            CollectionMember slot = getMember(slotID);
+    /**
+     * Helper method to find all the members with the combination of the input parameters.
+     * 
+     * @param slotID The id of the slot (aka memberID). When it is set to -1, only the chilPath is used for searching.
+     * @param childPath The UUID of the item in the slots. When it is set to null, only the slotID is used for searching.
+     * @return the list of members found for the combination of the input parameters
+     * @throws ObjectNotFoundException if no member was found for the given input parameters
+     */
+    public List<E> resolveMembers(int slotID, ItemPath childPath) throws ObjectNotFoundException {
+        ArrayList<E> members = new ArrayList<>();
+
+        if (slotID > -1) { // find the member for the given ID
+            E slot = getMember(slotID);
 
             // if both parameters are supplied, check the given item is actually in that slot
             if (slot != null && childPath != null && !slot.getItemPath().equals(childPath)) {
@@ -280,15 +290,15 @@ abstract public class Collection<E extends CollectionMember> implements C2KLocal
 
             members.add(slot);
         }
-        else { // find the slots from entity key
-            for (CollectionMember member: getMembers().list) {
+        else { // find the members from entity key (UUID)
+            for (E member: getMembers().list) {
                 if (member.getItemPath().equals(childPath)) members.add(member);
             }
-
-            throw new ObjectNotFoundException("Could not find " + childPath + " in collection " + getName());
         }
+
+        if (members.isEmpty())
+            throw new ObjectNotFoundException("Could not find " + childPath + " in collection " + getName());
 
         return members;
     }
-
 }

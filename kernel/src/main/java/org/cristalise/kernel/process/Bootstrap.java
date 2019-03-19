@@ -92,11 +92,11 @@ public class Bootstrap
     }
     
     /**
-     * Initilaise Bootstrap
+     * Initialise Bootstrap
      * 
      * @throws Exception in case of any error
      */
-    public static void init() throws Exception {
+    static void init() throws Exception {
         getPredefSM();
 
         // check for system agents
@@ -109,7 +109,7 @@ public class Bootstrap
     /**
      * Run everything without timing-out the service wrapper
      */
-    public static void run() throws Exception {
+    static void run() throws Exception {
         init();
 
         new Thread(new Runnable() {
@@ -144,6 +144,9 @@ public class Bootstrap
                     if (!shutdown) {
                         Logger.msg("Bootstrap.run() - Bootstrapper complete");
                         Gateway.getModuleManager().runScripts("initialized");
+
+                        if (Gateway.getLookupManager() != null) Gateway.getLookupManager().postBoostrap();
+                        Gateway.getStorage().postBoostrap();
                     }
                 }
                 catch (Throwable e) {

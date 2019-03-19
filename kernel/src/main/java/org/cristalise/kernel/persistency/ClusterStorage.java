@@ -168,10 +168,33 @@ public abstract class ClusterStorage {
      * this method returns, so the process can exit. No further gets or puts
      * should follow.
      * 
-     * @throws PersistencyException
-     *             If closing failed
+     * @throws PersistencyException If closing failed
      */
     public abstract void close() throws PersistencyException;
+
+    /**
+     * Informs the ClusterSorage that the Boostrap process has finished. It enables the implementation
+     * to perform domain specific tasks
+     * 
+     * @throws PersistencyException Database error
+     */
+    public abstract void postBoostrap() throws PersistencyException;
+
+    /**
+     * Informs the ClusterSorage that the start server process has finished. It enables the implementation
+     * to perform domain specific tasks
+     * 
+     * @throws PersistencyException Database error
+     */
+    public abstract void postStartServer() throws PersistencyException;
+
+    /**
+     * Informs the ClusterSorage that connect was done. It enables the implementation
+     * to perform domain specific tasks
+     * 
+     * @throws PersistencyException Database error
+     */
+    public abstract void postConnect() throws PersistencyException;
 
     /**
      * Declares whether or not this ClusterStorage can read or write a

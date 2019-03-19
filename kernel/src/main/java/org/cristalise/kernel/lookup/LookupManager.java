@@ -149,4 +149,14 @@ public interface LookupManager extends Lookup {
      * @throws ObjectCannotBeUpdated there was a problem updating the permissions
      */
     public void setPermissions(RolePath role, List<String> permissions) throws ObjectNotFoundException, ObjectCannotBeUpdated;
+
+    /**
+     * 
+     */
+    public void postStartServer();
+
+    /**
+     * 
+     */
+    public void postBoostrap();
 }

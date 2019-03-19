@@ -155,7 +155,7 @@ public class Dependency extends Collection<DependencyMember> {
     public void updateMember(ItemPath childPath, int memberID, CastorHashMap memberNewProps)
             throws ObjectNotFoundException, InvalidDataException, InvalidCollectionModification
     {
-        List<CollectionMember> members = resolveMembers(memberID, childPath);
+        List<? extends CollectionMember> members = resolveMembers(memberID, childPath);
 
         if (members.size() != 1) throw new InvalidDataException("Child item '"+childPath+"' apperars more them once in collection " + mName);
 
