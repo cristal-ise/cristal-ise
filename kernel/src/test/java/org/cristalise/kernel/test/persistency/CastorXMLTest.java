@@ -193,7 +193,7 @@ public class CastorXMLTest {
         assertEquals(role.getStringPath(), rolePrime.getStringPath());
         assertEquals(role.hasJobList(),    rolePrime.hasJobList());
 
-        assertThat(role.getPermissions(), IsIterableContainingInAnyOrder.containsInAnyOrder(rolePrime.getPermissions().toArray()));
+        assertThat(role.getPermissionsList(), IsIterableContainingInAnyOrder.containsInAnyOrder(rolePrime.getPermissions().toArray()));
 
         Logger.msg(marshaller.marshall(rolePrime));
     }

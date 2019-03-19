@@ -57,7 +57,7 @@ public class ImportRole extends ModuleImport {
             newRolePath.getParent();
 
             Gateway.getLookupManager().createRole(newRolePath);
-            Gateway.getLookupManager().setPermissions(newRolePath, newRolePath.getPermissions());
+            Gateway.getLookupManager().setPermissions(newRolePath, newRolePath.getPermissionsList());
         }
         return newRolePath;
     }
@@ -79,7 +79,7 @@ public class ImportRole extends ModuleImport {
             throw new ObjectNotFoundException("Role '" + rolePath.getName() + "' does NOT exists.");
 
         Gateway.getLookupManager().setHasJobList(rolePath, (jobList == null) ? false : jobList);
-        Gateway.getLookupManager().setPermissions(rolePath, permissions);
+        Gateway.getLookupManager().setPermissions(rolePath, rolePath.getPermissionsList());
     }
 
     /**
@@ -92,7 +92,7 @@ public class ImportRole extends ModuleImport {
 
         ir.setName(rp.getName());
         ir.jobList = rp.hasJobList();
-        ir.permissions = (ArrayList<String>) rp.getPermissions();
+        ir.permissions = (ArrayList<String>) rp.getPermissionsList();
 
         return ir;
     }
