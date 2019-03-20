@@ -108,9 +108,12 @@ public abstract class JooqHandler {
      * Defines the key (value:{@value}) to retrieve the integer value for VARCHAR size of PASSWORD_TYPE type declaration
      * {@link JooqDomainHandler#createTables(DSLContext)}. Default is '800'
      * 
-     * <p>It is used for these columns: ITEM.PASSWORD
+     * <p>It is used for these columns:
+     * <pre>
+     *   - ITEM.PASSWORD
+     * </pre>
      */
-    public static final String JOOQ_PASSWORD_TYPE_LENGHT = "JOOQ.PASSWORD_TYPE.length";
+    public static final String JOOQ_PASSWORD_TYPE_LENGHT = "JOOQ.PasswordType.length";
     /**
      * Defines the key (value:{@value}) to retrieve the integer value for VARCHAR size of STRING_TYPE type declaration
      * {@link JooqDomainHandler#createTables(DSLContext)}. Default is '800'
@@ -124,7 +127,7 @@ public abstract class JooqHandler {
      *   - ROLE_PERMISSION.ROLE_PATH
      * </pre>
      */
-    public static final String JOOQ_STRING_TYPE_LENGHT = "JOOQ.STRING_TYPE.length";
+    public static final String JOOQ_STRING_TYPE_LENGHT = "JOOQ.StringType.length";
     /**
      * Defines the key (value:{@value}) to retrieve the integer value for VARCHAR size of TEXT_TYPE type declaration
      * {@link JooqDomainHandler#createTables(DSLContext)}. Default is '800'
@@ -135,7 +138,7 @@ public abstract class JooqHandler {
      *   - ROLE_PERMISSION.PERMISSION
      * </pre>
      */
-    public static final String JOOQ_TEXT_TYPE_LENGHT = "JOOQ.TEXT_TYPE.length";
+    public static final String JOOQ_TEXT_TYPE_LENGHT = "JOOQ.TextType.length";
 
     public static final DataType<UUID>           UUID_TYPE       = SQLDataType.UUID;
     public static final DataType<String>         NAME_TYPE       = SQLDataType.VARCHAR.length(Gateway.getProperties().getInt(JOOQ_NAME_TYPE_LENGHT, 64));
