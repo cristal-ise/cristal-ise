@@ -142,11 +142,11 @@ public class JooqOutcomeAttachmentHandler extends JooqHandler {
 
 
         context.createTableIfNotExists(OUTCOME_ATTACHMENT_TABLE)
-        .column(UUID,           UUID_TYPE   .nullable(false))
-        .column(SCHEMA_NAME,    NAME_TYPE   .nullable(false))
-        .column(SCHEMA_VERSION, VERSION_TYPE.nullable(false))
-        .column(EVENT_ID,       ID_TYPE     .nullable(false))
-        .column(ATTACHMENT,   ATTACHMENT_TYPE.nullable(false))
+        .column(UUID,           UUID_TYPE       .nullable(false))
+        .column(SCHEMA_NAME,    NAME_TYPE       .nullable(false))
+        .column(SCHEMA_VERSION, VERSION_TYPE    .nullable(false))
+        .column(EVENT_ID,       ID_TYPE         .nullable(false))
+        .column(ATTACHMENT,     ATTACHMENT_TYPE.nullable(false))
         .constraints(
                 constraint("PK_"+OUTCOME_ATTACHMENT_TABLE).primaryKey(UUID, SCHEMA_NAME, SCHEMA_VERSION, EVENT_ID))
         .execute();
