@@ -63,7 +63,11 @@ public class StringField {
     SimpleType contentType;
     String     text;
     String     defaultValue;
-    
+
+    //Filed for validation
+    String pattern;
+    String errmsg;
+
     public StringField() {}
 
     /**
@@ -235,10 +239,10 @@ public class StringField {
              || contentType.hasFacet(Facet.MAX_EXCLUSIVE)
              || contentType.hasFacet(Facet.MIN_INCLUSIVE)
              || contentType.hasFacet(Facet.MAX_INCLUSIVE)
-             || contentType.hasFacet(Facet.PATTERN)
              || contentType.hasFacet(Facet.MIN_LENGTH)
              || contentType.hasFacet(Facet.MAX_LENGTH)
-             || contentType.hasFacet(Facet.LENGTH);
+             || contentType.hasFacet(Facet.LENGTH)
+             || StringUtils.isNoneBlank(pattern);
     }
 
     public Structure getModel() {
@@ -292,9 +296,27 @@ public class StringField {
     }
 
     public void setNgDynamicFormsValidators(JSONObject validators) {
-        if (contentType.hasFacet(Facet.PATTERN)) {
-            Facet pattern = contentType.getFacet(Facet.PATTERN);
-            validators.put(pattern.getName(), pattern.getValue());
+        if (StringUtils.isNotBlank(pattern)) {
+            validators.put("pattern", pattern);
+        }
+        else if(contentType.hasFacet(Facet.MIN_LENGTH)) {
+            Facet minLength = contentType.getFacet(Facet.MIN_LENGTH);
+            validators.put(minLength.getName(), minLength.getValue());
+        }
+        else if(contentType.hasFacet(Facet.MAX_LENGTH)) {
+            Facet maxLength = contentType.getFacet(Facet.MAX_LENGTH);
+            validators.put(maxLength.getName(), maxLength.getValue());
+        }
+        else if(contentType.hasFacet(Facet.LENGTH)) {
+            Facet length = contentType.getFacet(Facet.LENGTH);
+            validators.put("minLength", length.getValue());
+            validators.put("maxLength", length.getValue());
+        }
+    }
+
+    public void setNgDynamicFormsErrorMessages(JSONObject errorMessages) {
+        if (StringUtils.isNotBlank(errmsg)) {
+            errorMessages.put("pattern", errmsg);
         }
     }
 
@@ -318,14 +340,21 @@ public class StringField {
         String name  = node.getLocalName();
 
         if (name.equals("additional")) {
+            //simply convert the xml to json
             json.put("additional", XML.toJSONObject(node.toString(), true).getJSONObject("additional"));
         }
         else {
             String value = node.getStringValue().trim();
             if (name.equals("value")) value = getValue(value);
 
-            //mask migth contain string which will be recognized by Scanner a numeric type. furthermore it is locale specific
-            if (name.equals("mask")) {
+            if (name.equals("pattern")) {
+                pattern = value;
+            }
+            else if (name.equals("errmsg")) {
+                errmsg = value;
+            }
+            else if (name.equals("mask")) {
+                //mask migth contain string which will be recognized by Scanner a numeric type. furthermore it is locale specific
                 json.put(name, value);
             }
             else {
@@ -383,33 +412,37 @@ public class StringField {
         field.put("type",     getNgDynamicFormsControlType());
         field.put("required", !isOptional());
 
-        if ( ! isOptional() || hasValidator()) {
-            JSONObject validators = new JSONObject();
-            field.put("validators", validators);
-
-            if (!isOptional()) validators.put("required", JSONObject.NULL);
-            if (hasValidator()) setNgDynamicFormsValidators(validators);;
-
-            //JSONObject errorMessages = new JSONObject();
-            //errorMessages.put("required", name + " is required");
-            //field.put("errorMessages", errorMessages);
-        }
-
         //This can overwrite values set earlier, for example 'type' can be changed from INPUT to RATING
         readAppInfoDynamicForms(field);
+        
+        JSONObject validators = new JSONObject();
+        field.put("validators", validators);
+
+        JSONObject errorMessages = new JSONObject();
+        field.put("errorMessages", errorMessages);
+
+        boolean required = field.getBoolean("required");
+
+        if (!isOptional() && required) validators.put("required", JSONObject.NULL);
+
+        if (hasValidator()) {
+            setNgDynamicFormsValidators(validators);
+            setNgDynamicFormsErrorMessages(errorMessages);
+        }
 
         // appinfo/dynamicForms could have updated label, so do the CamelCase splitting now
         String label = StringUtils.join(StringUtils.splitByCharacterTypeCamelCase((String)field.get("label")), " ");
         label.replaceAll(" *", " ");
  
-        boolean required = (Boolean)field.get("required");
-
         field.put("label",       label + (required ? " *": ""));
         field.put("placeholder", label);
 
-        // appinfo/dynamicForms could have updated required, so remove any validator or errorMessages
-        if ( ! required ) {
+        // if validators has no elements then remove it.
+        if (field.getJSONObject("validators").length() == 0) {
             field.remove("validators");
+        }
+        // if errorMessages has no elements then remove it.
+        if (field.getJSONObject("errorMessages").length() == 0) {
             field.remove("errorMessages");
         }
 

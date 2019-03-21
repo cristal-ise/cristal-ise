@@ -59,7 +59,7 @@ public class TransactionManager {
     }
 
     /**
-     * Closing will abort all all transactions
+     * Closing will abort all transactions
      */
     public void close() {
         if (pendingTransactions.size() != 0) {
@@ -342,7 +342,6 @@ public class TransactionManager {
         if (itemPath == null)  storage.clearCache();
         else if (path == null) storage.clearCache(itemPath);
         else                   storage.clearCache(itemPath, path);
-
     }
 
     public void dumpPendingTransactions(int logLevel) {
@@ -417,4 +416,24 @@ public class TransactionManager {
         }
     }
 
+    /**
+     * Propagate Gateway connect has finished hook to the storages
+     */
+    public void postConnect() throws PersistencyException {
+        storage.postConnect();
+    }
+
+    /**
+     * Propagate Bootstrap has finished hook to the storages
+     */
+    public void postBoostrap() throws PersistencyException{
+        storage.postBoostrap();
+    }
+
+    /**
+     * Propagate start server has finished hook to the storages
+     */
+    public void postStartServer() throws PersistencyException {
+        storage.postStartServer();
+    }
 }

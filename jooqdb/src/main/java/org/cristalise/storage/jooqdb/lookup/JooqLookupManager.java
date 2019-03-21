@@ -415,7 +415,7 @@ public class JooqLookupManager implements LookupManager {
         try {
             role.getParent();
             roles.insert(context, role, null);
-            permissions.insert(context, role.getStringPath(), role.getPermissions());
+            permissions.insert(context, role.getStringPath(), role.getPermissionsList());
             return role;
         }
         catch (Throwable t) {
@@ -629,6 +629,7 @@ public class JooqLookupManager implements LookupManager {
 
         if (StringUtils.isNotBlank(permission)) permissions.add(permission);
 
+        //empty permission list shall clear the permissions of Role
         setPermissions(role, permissions);
     }
 
@@ -639,13 +640,22 @@ public class JooqLookupManager implements LookupManager {
         role.setPermissions(permissions);
 
         try {
+            //empty permission list shall clear the permissions of Role
             if (this.permissions.exists(context, role.getStringPath())) this.permissions.delete(context, role.getStringPath());
 
-            this.permissions.insert(context, role.getStringPath(), role.getPermissions());
+            this.permissions.insert(context, role.getStringPath(), role.getPermissionsList());
         }
         catch (Exception e) {
             Logger.error(e);
             throw new ObjectCannotBeUpdated("Role:"+role + " error:" + e.getMessage());
         }
+    }
+
+    @Override
+    public void postStartServer() {
+    }
+
+    @Override
+    public void postBoostrap() {
     }
 }

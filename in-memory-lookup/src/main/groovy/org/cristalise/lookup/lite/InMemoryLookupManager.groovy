@@ -177,4 +177,16 @@ class InMemoryLookupManager extends InMemoryLookup implements LookupManager {
     public void setPermissions(RolePath role, List<String> permissions) throws ObjectNotFoundException, ObjectCannotBeUpdated {
         ((RolePath)retrievePath(role.stringPath)).setPermissions(permissions)
     }
+
+    @Override
+    public void postStartServer() {
+        // TODO Auto-generated method stub
+        
+    }
+
+    @Override
+    public void postBoostrap() {
+        // TODO Auto-generated method stub
+        
+    }
 }
