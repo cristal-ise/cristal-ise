@@ -45,8 +45,8 @@ public class JooqPermissionHandler {
 
     public void createTables(DSLContext context) throws PersistencyException {
         context.createTableIfNotExists(ROLE_PERMISSION_TABLE)
-        .column(ROLE_PATH,  JooqHandler.STRING_TYPE .nullable(false))
-        .column(PERMISSION, JooqHandler.STRING_TYPE .nullable(true))
+        .column(ROLE_PATH,  JooqHandler.STRING_TYPE.nullable(false))
+        .column(PERMISSION, JooqHandler.TEXT_TYPE  .nullable(true))
         .execute();
     }
 
