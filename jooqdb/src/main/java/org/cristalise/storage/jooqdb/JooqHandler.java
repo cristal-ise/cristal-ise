@@ -170,10 +170,11 @@ public abstract class JooqHandler {
         Logger.msg(1, "JooqHandler.open() - uri:'"+uri+"' user:'"+user+"' dialect:'"+dialect+"'");
 
         try {
-            DSLContext context = using(DriverManager.getConnection(uri, user, pwd), dialect);
+            DSLContext context = using(uri, user, pwd);
+
+            context.configuration().set(dialect);
 
             boolean autoCommit = Gateway.getProperties().getBoolean(JooqHandler.JOOQ_AUTOCOMMIT, false);
-
             ((DefaultConnectionProvider)context.configuration().connectionProvider()).setAutoCommit(autoCommit);
 
             return context;
