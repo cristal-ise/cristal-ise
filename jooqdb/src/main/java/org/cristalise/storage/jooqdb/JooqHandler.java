@@ -23,7 +23,6 @@ package org.cristalise.storage.jooqdb;
 import static org.jooq.impl.DSL.select;
 import static org.jooq.impl.DSL.using;
 
-import java.sql.DriverManager;
 import java.sql.Timestamp;
 import java.util.Arrays;
 import java.util.List;
