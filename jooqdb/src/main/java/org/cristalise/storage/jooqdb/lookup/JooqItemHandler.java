@@ -63,10 +63,10 @@ public class JooqItemHandler {
     public void createTables(DSLContext context) throws PersistencyException {
         context.createTableIfNotExists(ITEM_TABLE)
         .column(UUID,                  JooqHandler.UUID_TYPE    .nullable(false))
-        .column(IOR,                   JooqHandler.STRING_TYPE  .nullable(true))
+        .column(IOR,                   JooqHandler.IOR_TYPE     .nullable(true))
         .column(IS_AGENT,              SQLDataType.BOOLEAN      .nullable(false))
         .column(IS_PASSWORD_TEMPORARY, SQLDataType.BOOLEAN      .nullable(true))
-        .column(PASSWORD,              JooqHandler.STRING_TYPE  .nullable(true))
+        .column(PASSWORD,              JooqHandler.PASSWORD_TYPE.nullable(true))
         .constraints(
                 constraint("PK_"+ITEM_TABLE).primaryKey(UUID))
         .execute();
@@ -185,9 +185,18 @@ public class JooqItemHandler {
             if(isAgent) {
                 String name;
 
-                if (record.field(nameProp) != null) name = record.get(nameProp, String.class);
-                else                                name = ((Property)properties.fetch(context, uuid, nameProp)).getValue();
-
+                if (record.field(nameProp) != null) {
+                    name = record.get(nameProp, String.class);
+                } else {
+                    Property nameProperty = (Property) properties.fetch(context, uuid, nameProp);
+                    if (nameProperty == null) {
+                        return null;
+                    }
+                    name = nameProperty.getValue();
+                }
+                if (name == null) {
+                    return null;
+                }
                 return new AgentPath(uuid, ior, name, isTempPwd != null ? isTempPwd : false);
             }
             else

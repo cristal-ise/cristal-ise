@@ -22,6 +22,7 @@ package org.cristalise.kernel.persistency.outcomebuilder.field;
 
 import java.math.BigDecimal;
 import java.util.Enumeration;
+import java.util.Map;
 
 import org.exolab.castor.xml.schema.Facet;
 import org.json.JSONObject;
@@ -42,6 +43,15 @@ public abstract class NumberField extends StringField {
         }
 
         return null;
+    }
+
+    @Override
+    public JSONObject generateNgDynamicForms(Map<String, Object> inputs) {
+        JSONObject inputReal = getCommonFieldsNgDynamicForms();
+
+        //inputReal.put("inputType", "number");
+
+        return inputReal;
     }
 
     @Override

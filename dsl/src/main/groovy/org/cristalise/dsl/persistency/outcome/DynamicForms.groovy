@@ -38,7 +38,9 @@ class DynamicForms {
     Integer max = null
     String value = null
     String mask = null
-
+    String pattern = null
+    String errmsg = null
+    
     /**
      * Defines the Script name and version (e.g. GetShiftNames:0) which is executed when
      * the from generated from the XML Schema has to be updated

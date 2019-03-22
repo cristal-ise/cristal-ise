@@ -53,6 +53,21 @@ public class LDAPClusterStorage extends ClusterStorage {
     public void close() throws PersistencyException {
     }
 
+    @Override
+    public void postBoostrap() {
+        //nothing to be done
+    }
+
+    @Override
+    public void postStartServer() {
+        //nothing to be done
+    }
+
+    @Override
+    public void postConnect() {
+        //nothing to be done
+    }
+
     // introspection
     @Override
     public short queryClusterSupport(String clusterType) {
