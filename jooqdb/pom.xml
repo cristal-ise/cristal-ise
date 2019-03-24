@@ -157,6 +157,11 @@
             <artifactId>argon2-jvm</artifactId>
             <version>2.2</version>
         </dependency>
+        <dependency>
+            <groupId>com.zaxxer</groupId>
+            <artifactId>HikariCP</artifactId>
+            <version>3.3.1</version>
+        </dependency>
 
         <dependency>
             <groupId>com.h2database</groupId>

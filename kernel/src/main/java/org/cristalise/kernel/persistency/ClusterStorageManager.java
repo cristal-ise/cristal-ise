@@ -507,7 +507,7 @@ public class ClusterStorageManager {
         }
     }
 
-    public void abort(Object locker) {
+    public void abort(Object locker) throws PersistencyException {
         for (TransactionalClusterStorage thisStore : transactionalStores) {
             thisStore.abort(locker);
         }
