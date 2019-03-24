@@ -63,6 +63,7 @@ public class LookupTestBase extends JooqTestBase {
     @After
     public void tearDown() {
         if (lookup != null) lookup.close();
+        Gateway.close();
         Logger.removeLogStream(System.out);
     }
 

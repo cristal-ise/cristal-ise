@@ -23,7 +23,6 @@ package org.cristalise.storage.jooqdb;
 import static org.jooq.impl.DSL.select;
 import static org.jooq.impl.DSL.using;
 
-import java.sql.DriverManager;
 import java.sql.Timestamp;
 import java.util.Arrays;
 import java.util.List;
@@ -141,6 +140,7 @@ public abstract class JooqHandler {
     public static final String JOOQ_TEXT_TYPE_LENGHT = "JOOQ.TextType.length";
 
     public static final DataType<UUID>           UUID_TYPE       = SQLDataType.UUID;
+
     public static final DataType<String>         NAME_TYPE       = SQLDataType.VARCHAR.length(Gateway.getProperties().getInt(JOOQ_NAME_TYPE_LENGHT, 64));
     public static final DataType<Integer>        VERSION_TYPE    = SQLDataType.INTEGER;
     public static final DataType<String>         PASSWORD_TYPE   = SQLDataType.VARCHAR.length(Gateway.getProperties().getInt(JOOQ_PASSWORD_TYPE_LENGHT, 800));
@@ -169,10 +169,11 @@ public abstract class JooqHandler {
         Logger.msg(1, "JooqHandler.open() - uri:'"+uri+"' user:'"+user+"' dialect:'"+dialect+"'");
 
         try {
-            DSLContext context = using(DriverManager.getConnection(uri, user, pwd), dialect);
+            DSLContext context = using(uri, user, pwd);
+
+            context.configuration().set(dialect);
 
             boolean autoCommit = Gateway.getProperties().getBoolean(JooqHandler.JOOQ_AUTOCOMMIT, false);
-
             ((DefaultConnectionProvider)context.configuration().connectionProvider()).setAutoCommit(autoCommit);
 
             return context;
@@ -268,4 +269,14 @@ public abstract class JooqHandler {
     abstract public int insert(DSLContext context, UUID uuid, C2KLocalObject obj) throws PersistencyException;
 
     abstract public C2KLocalObject fetch(DSLContext context, UUID uuid, String...primaryKeys) throws PersistencyException;
+
+    public static void logConnectionCount(String text, DSLContext context) {
+        if (context.dialect().equals(SQLDialect.POSTGRES)) {
+            Record rec = context.fetchOne("SELECT sum(numbackends) FROM pg_stat_database;");
+            Logger.msg("%s ------- Number of POSTGRES connections:%d", text, rec.get(0, Integer.class));
+        }
+        else {
+            Logger.warning("%s ------- Printing number of connections not supported for dialect:%s", text, context.dialect());
+        }
+    }
 }

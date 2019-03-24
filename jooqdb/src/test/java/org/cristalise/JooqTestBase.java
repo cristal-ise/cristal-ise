@@ -100,7 +100,7 @@ public class JooqTestBase {
         c2kProps.put(JooqHandler.JOOQ_URI,        "jdbc:postgresql://localhost:5432/integtest");
         c2kProps.put(JooqHandler.JOOQ_USER,       "postgres");
         c2kProps.put(JooqHandler.JOOQ_PASSWORD,   "cristal");
-        c2kProps.put(JooqHandler.JOOQ_DIALECT,    SQLDialect.POSTGRES);
+        c2kProps.put(JooqHandler.JOOQ_DIALECT,    SQLDialect.POSTGRES.toString());
         c2kProps.put(JooqHandler.JOOQ_AUTOCOMMIT, true);
     }
 
@@ -127,7 +127,7 @@ public class JooqTestBase {
         c2kProps.put(JooqHandler.JOOQ_URI,        "jdbc:mysql://localhost:3306/integtest");
         c2kProps.put(JooqHandler.JOOQ_USER,       "root");
         c2kProps.put(JooqHandler.JOOQ_PASSWORD,   "cristal");
-        c2kProps.put(JooqHandler.JOOQ_DIALECT,    SQLDialect.MYSQL);
+        c2kProps.put(JooqHandler.JOOQ_DIALECT,    SQLDialect.MYSQL.toString());
         c2kProps.put(JooqHandler.JOOQ_AUTOCOMMIT, true);
     }
 
@@ -157,7 +157,7 @@ public class JooqTestBase {
         c2kProps.put(JooqHandler.JOOQ_URI,      "jdbc:h2:mem:");
         c2kProps.put(JooqHandler.JOOQ_USER,     "sa");
         c2kProps.put(JooqHandler.JOOQ_PASSWORD, "sa");
-        c2kProps.put(JooqHandler.JOOQ_DIALECT,  SQLDialect.H2);
+        c2kProps.put(JooqHandler.JOOQ_DIALECT,  SQLDialect.H2.toString());
         c2kProps.put(JooqHandler.JOOQ_AUTOCOMMIT, true);
 
         if (mode != null) c2kProps.put(JooqHandler.JOOQ_URI, "jdbc:h2:mem:;MODE=" + mode.name());
