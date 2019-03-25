@@ -74,8 +74,9 @@ public class LookupTestBase extends JooqTestConfigurationBase {
     @After
     public void tearDown() throws Exception {
         if (lookup != null) lookup.close();
-
         if (dbType == MYSQL || dbType == PostgreSQL) lookup.dropHandlers();
+        Gateway.close();
+        Logger.removeLogStream(System.out);
     }
 
     public void compare(List<Path> expecteds, Iterator<Path> actualsIter) {

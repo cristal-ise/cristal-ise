@@ -189,9 +189,18 @@ public class JooqItemHandler {
             if(isAgent) {
                 String name;
 
-                if (record.field(nameProp) != null) name = record.get(nameProp, String.class);
-                else                                name = ((Property)properties.fetch(context, uuid, nameProp)).getValue();
-
+                if (record.field(nameProp) != null) {
+                    name = record.get(nameProp, String.class);
+                } else {
+                    Property nameProperty = (Property) properties.fetch(context, uuid, nameProp);
+                    if (nameProperty == null) {
+                        return null;
+                    }
+                    name = nameProperty.getValue();
+                }
+                if (name == null) {
+                    return null;
+                }
                 return new AgentPath(uuid, ior, name, isTempPwd != null ? isTempPwd : false);
             }
             else

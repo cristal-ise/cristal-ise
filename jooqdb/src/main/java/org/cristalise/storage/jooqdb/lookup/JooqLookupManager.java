@@ -132,16 +132,21 @@ public class JooqLookupManager implements LookupManager {
     public boolean exists(Path path) {
         if (path == null) return false;
 
+        boolean exists = false;
+
         try {
-            if      (path instanceof ItemPath)   return items  .exists(context, path.getUUID());
-            else if (path instanceof AgentPath)  return items  .exists(context, path.getUUID());
-            else if (path instanceof DomainPath) return domains.exists(context, (DomainPath)path);
-            else if (path instanceof RolePath)   return roles  .exists(context, (RolePath)path, null);
+            if      (path instanceof ItemPath)   exists = items  .exists(context, path.getUUID());
+            else if (path instanceof AgentPath)  exists = items  .exists(context, path.getUUID());
+            else if (path instanceof DomainPath) exists = domains.exists(context, (DomainPath)path);
+            else if (path instanceof RolePath)   exists = roles  .exists(context, (RolePath)path, null);
         }
         catch (PersistencyException e) {
             Logger.error(e);
         }
-        return false;
+
+        if (Logger.doLog(5)) JooqHandler.logConnectionCount("JooqLookupManager.exists()", context);
+
+        return exists;
     }
 
     @Override
@@ -162,6 +167,8 @@ public class JooqLookupManager implements LookupManager {
                 throw new ObjectCannotBeUpdated("JOOQLookupManager must insert some records:"+rows);
             else
                 Logger.msg(8, "JooqLookupManager.add() - path:"+newPath+" rows inserted:"+rows);
+
+            if (Logger.doLog(5)) JooqHandler.logConnectionCount("JooqLookupManager.add()", context);
         }
         catch (PersistencyException e) {
             Logger.error(e);
@@ -229,7 +236,6 @@ public class JooqLookupManager implements LookupManager {
 
         if      (start instanceof DomainPath) return domains.find(context, (DomainPath)start, name, uuids);
         else if (start instanceof RolePath)   return roles  .find(context, (RolePath)start,   name, uuids);
-        //TODO implement permssion fetech for roles
 
         return new ArrayList<Path>();
     }
@@ -316,9 +322,15 @@ public class JooqLookupManager implements LookupManager {
 
         Logger.msg(8, "JooqLookupManager.getChildren() - pattern:" + pattern);
 
-        if      (path instanceof ItemPath) return new ArrayList<Path>().iterator(); //empty iterator
-        else if (path instanceof RolePath) return roles  .findByRegex(context, pattern ).iterator();
-        else                               return domains.findByRegex(context, pattern ).iterator();
+        Iterator<Path> iter = null;
+
+        if      (path instanceof RolePath)   iter = roles  .findByRegex(context, pattern ).iterator();
+        else if (path instanceof DomainPath) iter = domains.findByRegex(context, pattern ).iterator();
+
+        if (Logger.doLog(5)) JooqHandler.logConnectionCount("JooqLookupManager.getChildren()", context);
+
+        if (iter == null) return new ArrayList<Path>().iterator(); //empty iterator
+        else              return iter;
     }
 
     @Override
@@ -336,8 +348,15 @@ public class JooqLookupManager implements LookupManager {
 
         if (maxRows == 0) return new PagedResult();
 
-        if (path instanceof RolePath) return new PagedResult(maxRows, roles  .findByRegex(context, pattern, offset, limit));
-        else                          return new PagedResult(maxRows, domains.findByRegex(context, pattern, offset, limit));
+        List<Path> pathes = null;
+
+        if      (path instanceof RolePath)   pathes = roles  .findByRegex(context, pattern, offset, limit);
+        else if (path instanceof DomainPath) pathes = domains.findByRegex(context, pattern, offset, limit);
+
+        if (Logger.doLog(5)) JooqHandler.logConnectionCount("JooqLookupManager.getChildren()", context);
+
+        if (pathes == null) return new PagedResult(); 
+        else                return new PagedResult(maxRows, pathes);
     }
 
     private SelectQuery<?> getSearchSelect(Path start, List<Property> props) {
