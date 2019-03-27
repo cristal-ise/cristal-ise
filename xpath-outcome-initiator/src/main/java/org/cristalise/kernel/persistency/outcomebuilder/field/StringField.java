@@ -25,7 +25,6 @@ import java.math.BigInteger;
 import java.time.LocalDate;
 import java.time.OffsetDateTime;
 import java.time.OffsetTime;
-import java.util.Collection;
 import java.util.Enumeration;
 import java.util.Map;
 import java.util.Scanner;
@@ -34,7 +33,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.cristalise.kernel.persistency.outcomebuilder.InvalidOutcomeException;
 import org.cristalise.kernel.persistency.outcomebuilder.OutcomeStructure;
 import org.cristalise.kernel.persistency.outcomebuilder.StructuralException;
-import org.cristalise.kernel.utils.Logger;
 import org.exolab.castor.types.AnyNode;
 import org.exolab.castor.xml.schema.Annotated;
 import org.exolab.castor.xml.schema.Annotation;
@@ -42,7 +40,6 @@ import org.exolab.castor.xml.schema.AppInfo;
 import org.exolab.castor.xml.schema.AttributeDecl;
 import org.exolab.castor.xml.schema.ElementDecl;
 import org.exolab.castor.xml.schema.Facet;
-import org.exolab.castor.xml.schema.Schema;
 import org.exolab.castor.xml.schema.SimpleType;
 import org.exolab.castor.xml.schema.Structure;
 import org.exolab.castor.xml.schema.XMLType;
@@ -162,7 +159,7 @@ public class StringField {
 
     public static StringField getField(AttributeDecl model) throws StructuralException {
         if (model.isReference()) model = model.getReference();
-        
+
         StringField newField = getFieldForType(model);
         newField.setDecl(model);
 
@@ -194,10 +191,7 @@ public class StringField {
         this.name = elementModel.getName();
         this.defaultValue = elementModel.getDefaultValue();
         this.isAttribute = false;
-        
-        Logger.msg(8, "--> name: " + this.name);
-        Logger.msg(8, "--> defaultValue: " + this.defaultValue);
-        
+                
         XMLType type = elementModel.getType();
 
         // derive base type
@@ -346,7 +340,7 @@ public class StringField {
 
     private void setAppInfoDynamicFormsJsonValue(AnyNode node, JSONObject json) {
         String name  = node.getLocalName();
-        
+
         if (name.equals("additional")) {
             //simply convert the xml to json
             json.put("additional", XML.toJSONObject(node.toString(), true).getJSONObject("additional"));
@@ -400,7 +394,6 @@ public class StringField {
 
     private void readAppInfoDynamicForms(JSONObject json) {
         AnyNode appInfoNode = getAppInfoNode(model, "dynamicForms");
-        Logger.msg(8, "==> json: " + json);
 
         if (appInfoNode != null) {
             AnyNode child = appInfoNode.getFirstChild(); //stupid API, there is no getChildren
@@ -446,7 +439,7 @@ public class StringField {
         // appinfo/dynamicForms could have updated label, so do the CamelCase splitting now
         String label = StringUtils.join(StringUtils.splitByCharacterTypeCamelCase((String)field.get("label")), " ");
         label.replaceAll(" *", " ");
-   
+
         field.put("label",       label + (required ? " *": ""));
 
         try {
