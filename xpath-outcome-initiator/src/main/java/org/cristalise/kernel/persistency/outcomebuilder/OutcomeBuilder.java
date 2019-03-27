@@ -284,7 +284,6 @@ public class OutcomeBuilder {
     public JSONArray generateNgDynamicFormsJson(Map<String, Object> inputs) {
         JSONArray array = new JSONArray();
         array.put(modelRoot.generateNgDynamicForms(inputs));
-        Logger.msg(8, "==> array: " + array);
         return array;
     }
 
