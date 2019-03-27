@@ -191,7 +191,7 @@ public class StringField {
         this.name = elementModel.getName();
         this.defaultValue = elementModel.getDefaultValue();
         this.isAttribute = false;
-                
+
         XMLType type = elementModel.getType();
 
         // derive base type
@@ -394,7 +394,6 @@ public class StringField {
 
     private void readAppInfoDynamicForms(JSONObject json) {
         AnyNode appInfoNode = getAppInfoNode(model, "dynamicForms");
-
         if (appInfoNode != null) {
             AnyNode child = appInfoNode.getFirstChild(); //stupid API, there is no getChildren
 
@@ -439,7 +438,6 @@ public class StringField {
         // appinfo/dynamicForms could have updated label, so do the CamelCase splitting now
         String label = StringUtils.join(StringUtils.splitByCharacterTypeCamelCase((String)field.get("label")), " ");
         label.replaceAll(" *", " ");
-
         field.put("label",       label + (required ? " *": ""));
 
         try {
