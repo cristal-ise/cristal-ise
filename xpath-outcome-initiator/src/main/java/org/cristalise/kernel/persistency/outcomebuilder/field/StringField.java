@@ -440,13 +440,7 @@ public class StringField {
         label.replaceAll(" *", " ");
         field.put("label",       label + (required ? " *": ""));
 
-        try {
-        	placeholder = field.getString("placeholder");
-        }
-        catch (JSONException e) {
-        	// nothing to do, stays null
-        }
-        placeholder = placeholder == null || placeholder.isEmpty() ? label : placeholder;
+        placeholder = field.has("placeholder") ? field.getString("placeholder") : label;
         field.put("placeholder", placeholder);
 
         // if validators has no elements then remove it.

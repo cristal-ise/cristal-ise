@@ -36,6 +36,7 @@
                             <dynamicForms>
                                 <hidden>true</hidden>
                                 <required>false</required>
+                                <placeholder>10</placeholder>
                             </dynamicForms>
                         </xs:appinfo>
                     </xs:annotation>
@@ -46,6 +47,7 @@
                             <dynamicForms>
                                 <value>now</value>
 	                            <mask>99/99/9999</mask>
+                                <placeholder>99/99/9999</placeholder>
                                 <additional>
                                     <updateScriptRef>Script:0</updateScriptRef>
                                 </additional>
@@ -66,6 +68,7 @@
                         <xs:appinfo>
                             <dynamicForms>
 	                            <mask>99,99</mask>
+                                <placeholder>99,99</placeholder>
                             </dynamicForms>
                         </xs:appinfo>
                     </xs:annotation>
