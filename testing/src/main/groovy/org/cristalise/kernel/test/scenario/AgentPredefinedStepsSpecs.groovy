@@ -91,11 +91,12 @@ class AgentPredefinedStepsSpecs extends Specification implements CristalTestSetu
         when:
         String[] params = [ 'test', timeStamp ]
         def triggerAgent = Gateway.getProxyManager().getAgentProxy( Gateway.getLookup().getAgentPath('triggerAgent') )
+        assert ! triggerAgent.getPath().isPasswordTemporary()
         agent.execute(triggerAgent, SetAgentPassword.class, params)
 
         then:
-        Gateway.getSecurityManager().authenticate('triggerAgent', timeStamp, null)
-        true
+        Gateway.getLookup().getAgentPath('triggerAgent').isPasswordTemporary()
+        Gateway.getSecurityManager().authenticate('triggerAgent', timeStamp, null).getPath().isPasswordTemporary()
     }
 
 //    def 'SetAgentPassword can be called by agent to change its own password'() {
