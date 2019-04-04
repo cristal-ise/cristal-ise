@@ -32,6 +32,7 @@ class DynamicForms {
     Boolean disabled = null
     Boolean multiple = null
     String label = null
+    String placeholder = null
     String type = null
     String inputType = null
     Integer min = null

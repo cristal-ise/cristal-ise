@@ -28,8 +28,9 @@ class SplitExecutionSpecs extends Specification implements CristalTestSetup {
         given: "Wf = first-OrSplit(script:1)((left)(right))-last"
         util.buildAndInitWf() {
             ElemAct("first")
-            OrSplit(javascript: 1) {
+            OrSplit(javascript: "1,3") {
                 Block { ElemAct("left")  }
+                Block { ElemAct("middle")  }
                 Block { ElemAct("right") }
             }
             ElemAct("last")
@@ -39,25 +40,37 @@ class SplitExecutionSpecs extends Specification implements CristalTestSetup {
         util.requestAction("first", "Done")
 
         then: "EA(left) is enabled but EA(right) is disabled"
-        util.checkActStatus("left",  [state: "Waiting", active: true])
-        util.checkActStatus("right", [state: "Waiting", active: false])
-        util.checkActStatus("last",  [state: "Waiting", active: false])
+        util.checkActStatus("left",   [state: "Waiting", active: true])
+        util.checkActStatus("middle", [state: "Waiting", active: false])
+        util.checkActStatus("right",  [state: "Waiting", active: true])
+        util.checkActStatus("last",   [state: "Waiting", active: false])
 
         when: "requesting EA(left) Done transition"
         util.requestAction("left", "Done")
 
         then: "EA(left) is Finished but EA(right) is disabled"
-        util.checkActStatus("left",  [state: "Finished", active: false])
-        util.checkActStatus("right", [state: "Waiting",  active: false])
-        util.checkActStatus("last",  [state: "Waiting",  active: true])
+        util.checkActStatus("left",   [state: "Finished", active: false])
+        util.checkActStatus("middle", [state: "Waiting",  active: false])
+        util.checkActStatus("right",  [state: "Waiting",  active: true])
+        util.checkActStatus("last",   [state: "Waiting",  active: false])
         
+        when: "requesting EA(right) Done transition"
+        util.requestAction("right", "Done")
+
+        then: "EA(left) is Finished but EA(right) is disabled"
+        util.checkActStatus("left",   [state: "Finished", active: false])
+        util.checkActStatus("middle", [state: "Waiting",  active: false])
+        util.checkActStatus("right",  [state: "Finished", active: false])
+        util.checkActStatus("last",   [state: "Waiting",  active: true])
+
         when: "requesting EA(last) Done transition"
         util.requestAction("last", "Done")
 
         then: "EA(last) is Finished and disabled"
-        util.checkActStatus("left",  [state: "Finished", active: false])
-        util.checkActStatus("right", [state: "Waiting",  active: false])
-        util.checkActStatus("last",  [state: "Finished", active: true])
+        util.checkActStatus("left",   [state: "Finished", active: false])
+        util.checkActStatus("middle", [state: "Waiting",  active: false])
+        util.checkActStatus("right",  [state: "Finished", active: false])
+        util.checkActStatus("last",   [state: "Finished", active: true])
     }
 
 
