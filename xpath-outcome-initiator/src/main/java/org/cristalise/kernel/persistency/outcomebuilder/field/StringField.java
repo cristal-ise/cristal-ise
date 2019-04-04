@@ -25,6 +25,7 @@ import java.math.BigInteger;
 import java.time.LocalDate;
 import java.time.OffsetDateTime;
 import java.time.OffsetTime;
+import java.util.Arrays;
 import java.util.Enumeration;
 import java.util.Map;
 import java.util.Scanner;
@@ -65,7 +66,6 @@ public class StringField {
     String     defaultValue;
 
     //Filed for validation
-    String placeholder = null;
     String pattern;
     String errmsg;
 
@@ -339,6 +339,7 @@ public class StringField {
 
     private void setAppInfoDynamicFormsJsonValue(AnyNode node, JSONObject json) {
         String name  = node.getLocalName();
+        String[] stringFields = {"mask", "placeholder"};
 
         if (name.equals("additional")) {
             //simply convert the xml to json
@@ -354,11 +355,8 @@ public class StringField {
             else if (name.equals("errmsg")) {
                 errmsg = value;
             }
-            else if (name.equals("placeholder")) {
-            	placeholder = value;
-            }
-            else if (name.equals("mask")) {
-                //mask might contain string which will be recognized by Scanner a numeric type. furthermore it is locale specific
+            else if (Arrays.asList(stringFields).contains(name)) {
+                //these field might contain string which will be recognized by Scanner a numeric type. (Scanner is locale specific as well)
                 json.put(name, value);
             }
             else {
@@ -437,10 +435,10 @@ public class StringField {
         // appinfo/dynamicForms could have updated label, so do the CamelCase splitting now
         String label = StringUtils.join(StringUtils.splitByCharacterTypeCamelCase((String)field.get("label")), " ");
         label.replaceAll(" *", " ");
-        field.put("label",       label + (required ? " *": ""));
+        field.put("label", label + (required ? " *": ""));
 
-        placeholder = field.has("placeholder") ? field.getString("placeholder") : label;
-        field.put("placeholder", placeholder);
+        //Put label as placholder if it was not specified in the Schema
+        if (! field.has("placeholder")) field.put("placeholder", label);
 
         // if validators has no elements then remove it.
         if (field.getJSONObject("validators").length() == 0) {
