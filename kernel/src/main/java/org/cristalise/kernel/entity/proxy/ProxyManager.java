@@ -216,7 +216,8 @@ public class ProxyManager {
 
 
     /**
-     * Called by the other GetProxy methods. Fills in either the IOR or the SystemKey
+     * Called by the other GetProxy methods to either load the find the proxy in the cache
+     * or create it from the ItemPath.
      * 
      * @param ior
      * @param itemPath
@@ -228,22 +229,34 @@ public class ProxyManager {
             ItemProxy newProxy;
             // return it if it exists
             newProxy = proxyPool.get(itemPath);
+
+            // create a new one
             if (newProxy == null) {
-                // create a new one
                 newProxy = createProxy(ior, itemPath);
                 proxyPool.put(itemPath, newProxy);
             }
+
             return newProxy;
         }
     }
 
     public ItemProxy getProxy( Path path ) throws ObjectNotFoundException {
-        ItemPath itemPath;
-        if (path instanceof ItemPath) itemPath = (ItemPath)path;
-        else itemPath = path.getItemPath();
-        Logger.msg(8,"ProxyManager::getProxy(" + path.toString() + ")");
-        return getProxy( itemPath.getIOR(), itemPath );
+        ItemPath itemPath = null;
 
+        Logger.msg(8,"ProxyManager.getProxy(" + path.toString() + ")");
+
+        if (path instanceof ItemPath) {
+            itemPath = (ItemPath)path;
+        }
+        else if (path instanceof DomainPath) {
+            //issue #165: reset target to enforce to read target from Lookup
+            ((DomainPath) path).setTargetUUID(null);
+            itemPath = path.getItemPath();
+        }
+
+        if (itemPath == null) throw new ObjectNotFoundException("Cannot use RolePath");
+
+        return getProxy( itemPath.getIOR(), itemPath );
     }
 
     public AgentProxy getAgentProxy( String agentName ) throws ObjectNotFoundException {
