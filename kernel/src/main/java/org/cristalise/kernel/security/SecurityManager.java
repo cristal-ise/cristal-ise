@@ -185,7 +185,7 @@ public class SecurityManager {
             }
             catch (Exception ex) {
               //NOTE: Enable this log for testing security problems only, but always remove it when merged
-              Logger.error(ex);
+              //Logger.error(ex);
 
               String publicMsg = decodePublicSecurityMessage(ex);
 
