@@ -32,6 +32,7 @@ import org.cristalise.kernel.common.InvalidDataException;
 import org.cristalise.kernel.common.ObjectNotFoundException;
 import org.cristalise.kernel.lookup.AgentPath;
 import org.cristalise.kernel.lookup.DomainPath;
+import org.cristalise.kernel.lookup.InvalidItemPathException;
 import org.cristalise.kernel.lookup.ItemPath;
 import org.cristalise.kernel.lookup.Path;
 import org.cristalise.kernel.persistency.ClusterType;
@@ -246,7 +247,13 @@ public class ProxyManager {
         Logger.msg(8,"ProxyManager.getProxy(" + path.toString() + ")");
 
         if (path instanceof ItemPath) {
-            itemPath = (ItemPath)path;
+            try {
+                //issue #165: get ItemPath from Lookup to ensure it is a correct class
+                itemPath = Gateway.getLookup().getItemPath(((ItemPath)path).getUUID().toString());
+            }
+            catch (InvalidItemPathException e) {
+                throw new ObjectNotFoundException(e.getMessage());
+            }
         }
         else if (path instanceof DomainPath) {
             //issue #165: reset target to enforce to read target from Lookup
