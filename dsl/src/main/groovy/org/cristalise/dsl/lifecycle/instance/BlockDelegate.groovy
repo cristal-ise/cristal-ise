@@ -20,6 +20,7 @@
  */
 package org.cristalise.dsl.lifecycle.instance
 
+import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.ROUTING_EXPR
 import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.ROUTING_SCRIPT_NAME
 import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.ROUTING_SCRIPT_VERSION
 
@@ -99,7 +100,7 @@ public class BlockDelegate {
      * @param aSplit
      */
     protected void setSplitProperties(WfVertex aSplit) {
-        if(properties.containsKey('RoutingScriptName')) return
+        if(properties.containsKey(ROUTING_SCRIPT_NAME.name) || properties.containsKey(ROUTING_EXPR.name)) return
 
         if(properties.javascript) {
             setRoutingScript(aSplit, (String)"javascript:\"${properties.javascript}\";", '');
