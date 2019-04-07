@@ -20,6 +20,9 @@
  */
 package org.cristalise.dsl.lifecycle.instance
 
+import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.ROUTING_SCRIPT_NAME
+import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.ROUTING_SCRIPT_VERSION
+
 import groovy.transform.CompileStatic
 
 import org.cristalise.kernel.common.InvalidDataException
@@ -123,8 +126,8 @@ public class BlockDelegate {
 
         Logger.msg 5, "BlockDelegate.setRoutingScript() - splitName: $aSplit.name, name: '$name' version: '$version'"
 
-        aSplit.getProperties().put('RoutingScriptName',    name,    false);
-        aSplit.getProperties().put('RoutingScriptVersion', version, false)
+        aSplit.getProperties().setBuiltInProperty(ROUTING_SCRIPT_NAME,    name,    false);
+        aSplit.getProperties().setBuiltInProperty(ROUTING_SCRIPT_VERSION, version, false)
     }
 
     /**

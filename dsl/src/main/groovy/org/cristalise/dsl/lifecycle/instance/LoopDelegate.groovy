@@ -22,13 +22,15 @@
  */
 package org.cristalise.dsl.lifecycle.instance
 
-import groovy.transform.CompileStatic
+import static org.cristalise.kernel.graph.model.BuiltInEdgeProperties.ALIAS
 
 import org.cristalise.kernel.lifecycle.instance.Next
 import org.cristalise.kernel.lifecycle.instance.Split
 import org.cristalise.kernel.lifecycle.instance.WfVertex
 import org.cristalise.kernel.lifecycle.instance.WfVertex.Types
 import org.cristalise.kernel.utils.Logger
+
+import groovy.transform.CompileStatic
 
 
 /**
@@ -85,10 +87,10 @@ class LoopDelegate extends BlockDelegate {
         }
 
         Next n = ((Split)split).addNext(joinFirst)
-        n.getProperties().put("Alias", 'true')
+        n.getProperties().setBuiltInProperty(ALIAS, 'true')
 
         n = ((Split)split).addNext(joinLast)
-        n.getProperties().put("Alias", 'false')
+        n.getProperties().setBuiltInProperty(ALIAS, 'false')
 
         setSplitProperties(split)
         setVertexProperties(split);
