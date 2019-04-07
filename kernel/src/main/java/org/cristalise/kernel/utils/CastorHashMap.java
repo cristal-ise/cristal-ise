@@ -27,6 +27,7 @@ import java.util.Iterator;
 import org.cristalise.kernel.common.InvalidDataException;
 import org.cristalise.kernel.common.ObjectNotFoundException;
 import org.cristalise.kernel.common.PersistencyException;
+import org.cristalise.kernel.graph.model.BuiltInEdgeProperties;
 import org.cristalise.kernel.graph.model.BuiltInVertexProperties;
 import org.cristalise.kernel.lifecycle.routingHelpers.DataHelperUtility;
 import org.cristalise.kernel.lookup.ItemPath;
@@ -54,11 +55,12 @@ public class CastorHashMap extends HashMap<String, Object> {
         KeyValuePair[] keyValuePairs = new KeyValuePair[numKeys];
         Iterator<String> keyIter = keySet().iterator();
 
-        for (i = 0; i < numKeys; i++)
+        for (i = 0; i < numKeys; i++) {
             if (keyIter.hasNext()) {
                 String name = keyIter.next();
                 keyValuePairs[i] = new KeyValuePair(name, get(name), abstractPropNames.contains(name));
             }
+        }
 
         return keyValuePairs;
     }
@@ -96,11 +98,19 @@ public class CastorHashMap extends HashMap<String, Object> {
         return isAbstract(prop.getName());
     }
 
+    public boolean isAbstract(BuiltInEdgeProperties prop) {
+        return isAbstract(prop.getName());
+    }
+
     public boolean isAbstract(String propName) {
         return abstractPropNames.contains(propName);
     }
 
     public Object getBuiltInProperty(BuiltInVertexProperties prop) {
+        return get(prop.getName());
+    }
+
+    public Object getBuiltInProperty(BuiltInEdgeProperties prop) {
         return get(prop.getName());
     }
 
@@ -112,6 +122,14 @@ public class CastorHashMap extends HashMap<String, Object> {
         put(prop.getName(), value, isAbstract);
     }
 
+    public void setBuiltInProperty(BuiltInEdgeProperties prop, Object value) {
+        setBuiltInProperty(prop, value, false);
+    }
+
+    public void setBuiltInProperty(BuiltInEdgeProperties prop, Object value, boolean isAbstract) {
+        put(prop.getName(), value, isAbstract);
+    }
+
     public void put(String key, Object value, boolean isAbstract) {
         super.put(key, value);
 
@@ -120,13 +138,13 @@ public class CastorHashMap extends HashMap<String, Object> {
     }
 
     public Object evaluateProperty(ItemPath itemPath, String propName, String actContext, Object locker) throws InvalidDataException, PersistencyException, ObjectNotFoundException {
-        //DataHelper can only be used when ItemPath is not null
+        //DataHelper can only be used when ItemPath is NOT null
         if (itemPath != null) return DataHelperUtility.evaluateValue(itemPath, get(propName), actContext, locker);
         else                  return get(propName);
     }
 
     /**
-     * Merging existing entries with these new ones. New velues overwrite existing ones
+     * Merging existing entries with these new ones. New values overwrite existing ones
      * 
      * @param newProps the properties to be merged
      */
