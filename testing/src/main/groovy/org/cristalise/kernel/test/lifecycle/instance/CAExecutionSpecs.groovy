@@ -35,7 +35,7 @@ class CAExecutionSpecs extends Specification implements CristalTestSetup {
 
         then: "ElemAct state is Finished"
         util.checkActStatus('rootCA', [state: "Started",  active: true])
-        util.checkActStatus('first',   [state: "Finished", active: true])
+        util.checkActStatus('first',  [state: "Finished", active: false])
     }
 
     def 'Execute ElemAct using Start/Complete transition'() {
@@ -54,7 +54,7 @@ class CAExecutionSpecs extends Specification implements CristalTestSetup {
 
         then: "ElemAct state is Finished"
         util.checkActStatus('rootCA', [state: "Started",  active: true])
-        util.checkActStatus('first',   [state: "Finished", active: true])
+        util.checkActStatus('first',  [state: "Finished", active: false])
     }
 
     def 'Execute sequence of ElemActs using Done transition'() {
@@ -75,7 +75,7 @@ class CAExecutionSpecs extends Specification implements CristalTestSetup {
         then: "first ElemAct state is Finished and second is Finished"
         util.checkActStatus('rootCA', [state: "Started",  active: true])
         util.checkActStatus('first',  [state: "Finished", active: false])
-        util.checkActStatus('second', [state: "Finished", active: true])
+        util.checkActStatus('second', [state: "Finished", active: false])
     }
 
     def 'CompAct is automatically finihed when all Activities in sequence are finished'() {
@@ -101,7 +101,7 @@ class CAExecutionSpecs extends Specification implements CristalTestSetup {
 
         then: "ElemAct and CompAct state is Finished"
         util.checkActStatus('rootCA', [state: "Started",  active: true])
-        util.checkActStatus('ca',     [state: "Finished", active: true])
+        util.checkActStatus('ca',     [state: "Finished", active: false])
         util.checkActStatus('first',  [state: "Finished", active: false])
         util.checkActStatus('second', [state: "Finished", active: false])
     }
@@ -135,7 +135,7 @@ class CAExecutionSpecs extends Specification implements CristalTestSetup {
 
         then: "ElemAct and CompAct state is Finished"
         util.checkActStatus('rootCA', [state: "Started",  active: true])
-        util.checkActStatus('ca',     [state: "Finished", active: true])
+        util.checkActStatus('ca',     [state: "Finished", active: false])
         util.checkActStatus('left',   [state: "Finished", active: false])
         util.checkActStatus('right',  [state: "Finished", active: false])
     }
@@ -155,8 +155,27 @@ class CAExecutionSpecs extends Specification implements CristalTestSetup {
 
         then: "ElemAct 'one' and CompAct state is Finished"
         util.checkActStatus('rootCA', [state: "Started",  active: true])
-        util.checkActStatus('ca',     [state: "Finished", active: false])
         util.checkActStatus('one',    [state: "Finished", active: false])
+        util.checkActStatus('ca',     [state: "Finished", active: false])
+    }
+
+    def 'CompAct with infinitive Loop never finishes'() {
+        given: "Workflow contaning CompAct containig 1 ElemAct in Loop"
+        util.buildAndInitWf {
+            CompAct('ca') {
+                Loop { //by default the DSL creates infinitive Loop 
+                    ElemAct('one')
+                }
+            }
+        }
+
+        when: "requesting one ElemAct Done transition"
+        util.requestAction('one', "Done")
+
+        then: "ElemAct 'one' and CompAct are still active"
+        util.checkActStatus('rootCA', [state: "Started", active: true])
+        util.checkActStatus('one',    [state: "Waiting", active: true])
+        util.checkActStatus('ca',     [state: "Started", active: true])
     }
 
     def 'Empty Wf cannot be executed'() {
@@ -222,8 +241,8 @@ class CAExecutionSpecs extends Specification implements CristalTestSetup {
         util.requestAction('ca', "Complete")
 
         then: "CompAct is finished, child is inactive but Waiting"
-        util.checkActStatus('ca',   [state: "Finished", active: true])
-        util.checkActStatus('first',   [state: "Waiting", active: false])
+        util.checkActStatus('ca',    [state: "Finished", active: false])
+        util.checkActStatus('first', [state: "Waiting",  active: false])
     }
 
     def 'Cannot Complete Root Compact without finishing all CompActs'() {
