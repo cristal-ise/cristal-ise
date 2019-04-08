@@ -57,7 +57,7 @@ class SplitExecutionSpecs extends Specification implements CristalTestSetup {
         then: "EA(last) is Finished and disabled"
         util.checkActStatus("left",  [state: "Finished", active: false])
         util.checkActStatus("right", [state: "Waiting",  active: false])
-        util.checkActStatus("last",  [state: "Finished", active: true])
+        util.checkActStatus("last",  [state: "Finished", active: false])
     }
 
 
@@ -111,7 +111,7 @@ class SplitExecutionSpecs extends Specification implements CristalTestSetup {
         util.checkActStatus("first", [state: "Finished", active: false])
         util.checkActStatus("left",  [state: "Finished", active: false])
         util.checkActStatus("right", [state: "Finished", active: false])
-        util.checkActStatus("last",  [state: "Finished", active: true])
+        util.checkActStatus("last",  [state: "Finished", active: false])
     }
 
 
