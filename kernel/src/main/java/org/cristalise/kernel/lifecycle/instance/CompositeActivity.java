@@ -25,6 +25,7 @@ import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.REPEAT_W
 import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.STATE_MACHINE_NAME;
 
 import java.util.ArrayList;
+import java.util.List;
 
 import org.cristalise.kernel.common.AccessRightsException;
 import org.cristalise.kernel.common.CannotManageException;
@@ -39,6 +40,8 @@ import org.cristalise.kernel.entity.agent.Job;
 import org.cristalise.kernel.graph.model.GraphModel;
 import org.cristalise.kernel.graph.model.GraphPoint;
 import org.cristalise.kernel.graph.model.GraphableVertex;
+import org.cristalise.kernel.graph.model.Vertex;
+import org.cristalise.kernel.graph.traversal.GraphTraversal;
 import org.cristalise.kernel.lifecycle.LifecycleVertexOutlineCreator;
 import org.cristalise.kernel.lifecycle.instance.stateMachine.State;
 import org.cristalise.kernel.lifecycle.instance.stateMachine.Transition;
@@ -268,7 +271,7 @@ public class CompositeActivity extends Activity {
 
     @Override
     public void runNext(AgentPath agent, ItemPath itemPath, Object locker) throws InvalidDataException  {
-        if (!getStateMachine().getState(state).isFinished()) {
+        if (!isFinished()) {
             Transition trans = null;
             try {
                 for (Transition possTran : getStateMachine().getPossibleTransitions(this, agent).keySet()) {
@@ -348,12 +351,14 @@ public class CompositeActivity extends Activity {
     {
         ArrayList<Job> jobs = new ArrayList<Job>();
 
-        if (recurse)
-            for (int i = 0; i < getChildren().length; i++)
+        if (recurse) {
+            for (int i = 0; i < getChildren().length; i++) {
                 if (getChildren()[i] instanceof Activity) {
                     Activity child = (Activity) getChildren()[i];
                     jobs.addAll(child.calculateAllJobs(agent, itemPath, recurse));
                 }
+            }
+        }
 
         jobs.addAll(super.calculateAllJobs(agent, itemPath, recurse));
 
@@ -375,6 +380,7 @@ public class CompositeActivity extends Activity {
 
             if (getChildrenGraphModel().getOutEdges(vertex).length == 0) endingAct++;
         }
+
         if (endingAct > 1) return false;
 
         return true;
@@ -450,5 +456,16 @@ public class CompositeActivity extends Activity {
             if (element instanceof CompositeActivity) ((CompositeActivity) element).refreshJobs(itemPath);
             else if (element instanceof Activity)     ((Activity)          element).pushJobsToAgents(itemPath);
         }
+    }
+
+    public List<Activity> getPossbileActs(WfVertex fromVertex, int direction) throws InvalidDataException {
+        List<Activity> nextActs = new ArrayList<>();
+
+        for (Vertex v: GraphTraversal.getTraversal(getChildrenGraphModel(), fromVertex, direction, false)) {
+            if(v instanceof Activity && !((Activity)v).isFinished()) 
+                nextActs.add((Activity)v);
+        }
+
+        return nextActs;
     }
 }

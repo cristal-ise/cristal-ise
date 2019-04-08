@@ -28,9 +28,7 @@ import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.VIEW_POI
 import static org.cristalise.kernel.property.BuiltInItemProperties.NAME;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Iterator;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
@@ -64,8 +62,8 @@ import org.cristalise.kernel.lookup.ItemPath;
 import org.cristalise.kernel.lookup.Path;
 import org.cristalise.kernel.lookup.RolePath;
 import org.cristalise.kernel.persistency.ClusterType;
-import org.cristalise.kernel.persistency.outcome.OutcomeAttachment;
 import org.cristalise.kernel.persistency.outcome.Outcome;
+import org.cristalise.kernel.persistency.outcome.OutcomeAttachment;
 import org.cristalise.kernel.persistency.outcome.Schema;
 import org.cristalise.kernel.persistency.outcome.Viewpoint;
 import org.cristalise.kernel.process.Gateway;
@@ -363,7 +361,7 @@ public class Activity extends WfVertex {
             return false;
         }
         else if (nbOutEdges == 0) {
-            if (!((CompositeActivity) getParent()).hasGoodNumberOfActivity()) {
+            if (!getParentCA().hasGoodNumberOfActivity()) {
                 mErrors.add("too many endpoints");
                 return false;
             }
@@ -385,6 +383,11 @@ public class Activity extends WfVertex {
         return loop2;
     }
 
+    private CompositeActivity getParentCA() {
+        if (getParent() != null) return (CompositeActivity) getParent();
+        else                     return null;
+    }
+
     /**
      * sets the next activity available if possible
      */
@@ -392,42 +395,57 @@ public class Activity extends WfVertex {
     public void runNext(AgentPath agent, ItemPath itemPath, Object locker) throws InvalidDataException {
         setActive(false);
 
-        try {
-            Vertex[] outVertices = getOutGraphables();
-            Vertex[] outVertices2 = getOutGraphables();
-            boolean hasNoNext = false;
-            boolean out = false;
+        Vertex[] outVertices = getOutGraphables();
 
-            while (!out) {
-                if (outVertices2.length > 0) {
-                    if (outVertices2[0] instanceof Join) outVertices2 = ((WfVertex) outVertices2[0]).getOutGraphables();
-                    else                                 out = true;
-                }
-                else {
-                    hasNoNext = true;
-                    out = true;
-                }
-            }
+        //run next vertex if any, so state/status of activities is updated
+        if (outVertices.length > 0) ((WfVertex) getOutGraphables()[0]).run(agent, itemPath, locker);
 
-            if (Logger.doLog(8)) Logger.msg("Activity.next(parent:" + getParent().getName()+") - " + Arrays.toString(outVertices) + " " + Arrays.toString(outVertices2));
+        //compute now if the CA can be finished or not
+        calculateParentFinsihable(agent, itemPath, locker, outVertices);
+    }
 
-            if (hasNoNext) {
-                if (getParent() != null && getParent().getName().equals("domain")) {
-                    // workflow finished
-                    setActive(true);
-                }
-                else {
-                    CompositeActivity parent = (CompositeActivity) getParent();
-                    if (parent != null) parent.runNext(agent, itemPath, locker);
-                }
+    /**
+     * Calculate if the CompositeActivity (parent) can be finished automatically or not
+     */
+    private void calculateParentFinsihable(AgentPath agent, ItemPath itemPath, Object locker, Vertex[] outVertices)
+            throws InvalidDataException 
+    {
+        WfVertex outVertex = null;
+        boolean cont = outVertices.length > 0;
+
+        //Find the 'last' Join of the output of the Activity
+        while (cont) {
+            outVertex = (WfVertex)outVertices[0];
+
+            if (outVertex instanceof Join) {
+                outVertices = outVertex.getOutGraphables();
+                cont = outVertices.length > 0;
             }
             else {
-                ((WfVertex) outVertices[0]).run(agent, itemPath, locker);
+                cont = false;
             }
         }
-        catch (InvalidDataException s) {
-            setActive(true);
-            throw s;
+
+        boolean hasNoNext = false;
+        //parent is never null, because we do not call runNext() for the top level workflow (see bellow)
+        CompositeActivity parent = getParentCA(); 
+
+        //Calculate if there is still an Activity to be executed
+        if (outVertex instanceof Join) {
+            hasNoNext = parent.getPossbileActs(outVertex, GraphTraversal.kUp).size() == 0;
+        }
+        else if (outVertex instanceof Loop) {
+            hasNoNext = parent.getPossbileActs(outVertex, GraphTraversal.kDown).size() == 0;
+        }
+        else if (outVertex == null) {
+            hasNoNext = true;
+        }
+
+        if (hasNoNext) {
+            // do not call runNext() for the top level compAct (i.e. workflow is never finished)
+            if (! parent.getName().equals("domain")) { 
+                parent.runNext(agent, itemPath, locker);
+            }
         }
     }
 
