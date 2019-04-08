@@ -74,7 +74,8 @@ public class GraphTraversal
                 boolean skipBackLink = false;
                 if ( ignoreBackLinks &&
                     ((vertex.isJoin() && direction == kUp) ||
-                    (vertex.isLoop() && direction == kDown))) {
+                    (vertex.isLoop() && direction == kDown)))
+                {
                     Vertex[] following = getTraversal(graphModel, children[i], direction, false);
                     for (Vertex element : following) {
                         if (element == vertex) {

@@ -102,9 +102,8 @@ public abstract class GraphableVertex extends Vertex {
     }
 
     public Vertex[] getOutGraphables() {
-        if (parent == null)
-            return new Vertex[0]; // none if no parent
-        return parent.mChildrenGraphModel.getOutVertices(this);
+        if (parent == null) return new Vertex[0]; // none if no parent
+        else                return parent.mChildrenGraphModel.getOutVertices(this);
     }
 
     public DirectedEdge[] getOutEdges() {

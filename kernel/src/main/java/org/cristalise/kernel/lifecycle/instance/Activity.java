@@ -30,6 +30,7 @@ import static org.cristalise.kernel.property.BuiltInItemProperties.NAME;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
@@ -51,6 +52,7 @@ import org.cristalise.kernel.common.PersistencyException;
 import org.cristalise.kernel.entity.agent.Job;
 import org.cristalise.kernel.events.History;
 import org.cristalise.kernel.graph.model.Vertex;
+import org.cristalise.kernel.graph.traversal.GraphTraversal;
 import org.cristalise.kernel.lifecycle.WfCastorHashMap;
 import org.cristalise.kernel.lifecycle.instance.predefined.WriteProperty;
 import org.cristalise.kernel.lifecycle.instance.stateMachine.State;
@@ -461,19 +463,18 @@ public class Activity extends WfVertex {
     }
 
     /**
-     * called by precedent Activity runNext() for setting the activity able to
-     * be executed
+     * called by precedent Activity runNext() for setting the activity able to be executed
      */
     @Override
     public void run(AgentPath agent, ItemPath itemPath, Object locker) throws InvalidDataException {
-        Logger.msg(8, "Activity.run() path:" + getPath() + " state:" + getState());
+        Logger.msg(8, "Activity.run() path:" + getPath() + " state:" + getStateName());
 
-        if (!getActive()) setActive(true);
-        boolean finished = getStateMachine().getState(getState()).isFinished();
-        if (finished) {
+        if (isFinished()) {
             runNext(agent, itemPath, locker);
         }
         else {
+            if (!getActive()) setActive(true);
+
             DateUtility.setToNow(mStateDate);
             pushJobsToAgents(itemPath);
         }
