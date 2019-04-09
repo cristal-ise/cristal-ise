@@ -400,14 +400,22 @@ public class Activity extends WfVertex {
         //run next vertex if any, so state/status of activities is updated
         if (outVertices.length > 0) ((WfVertex) getOutGraphables()[0]).run(agent, itemPath, locker);
 
+        //parent is never null, because we do not call runNext() for the top level workflow (see bellow)
+        CompositeActivity parent = getParentCA(); 
+
         //compute now if the CA can be finished or not
-        calculateParentFinsihable(agent, itemPath, locker, outVertices);
+        if (checkParentFinishable(parent, outVertices)) {
+            // do not call runNext() for the top level compAct (i.e. workflow is never finished)
+            if (! parent.getName().equals("domain")) {
+                parent.runNext(agent, itemPath, locker);
+            }
+        }
     }
 
     /**
      * Calculate if the CompositeActivity (parent) can be finished automatically or not
      */
-    private void calculateParentFinsihable(AgentPath agent, ItemPath itemPath, Object locker, Vertex[] outVertices)
+    private boolean checkParentFinishable(CompositeActivity parent, Vertex[] outVertices)
             throws InvalidDataException 
     {
         WfVertex outVertex = null;
@@ -427,8 +435,6 @@ public class Activity extends WfVertex {
         }
 
         boolean hasNoNext = false;
-        //parent is never null, because we do not call runNext() for the top level workflow (see bellow)
-        CompositeActivity parent = getParentCA(); 
 
         //Calculate if there is still an Activity to be executed
         if (outVertex instanceof Join) {
@@ -441,12 +447,7 @@ public class Activity extends WfVertex {
             hasNoNext = true;
         }
 
-        if (hasNoNext) {
-            // do not call runNext() for the top level compAct (i.e. workflow is never finished)
-            if (! parent.getName().equals("domain")) { 
-                parent.runNext(agent, itemPath, locker);
-            }
-        }
+        return hasNoNext;
     }
 
     /**
