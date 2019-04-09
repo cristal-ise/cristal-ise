@@ -148,6 +148,7 @@ class SchemaDelegate {
             if (f.dynamicForms.disabled != null) disabled( f.dynamicForms.disabled)
             if (f.dynamicForms.multiple != null) multiple( f.dynamicForms.multiple)
             if (f.dynamicForms.label)            label(    f.dynamicForms.label)
+            if (f.dynamicForms.placeholder)      placeholder( f.dynamicForms.placeholder)
             if (f.dynamicForms.type)             type(     f.dynamicForms.type)
             if (f.dynamicForms.inputType)        inputType(f.dynamicForms.inputType)
             if (f.dynamicForms.min != null)      min(      f.dynamicForms.min)
