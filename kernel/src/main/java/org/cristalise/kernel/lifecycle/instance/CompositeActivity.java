@@ -462,8 +462,11 @@ public class CompositeActivity extends Activity {
         List<Activity> nextActs = new ArrayList<>();
 
         for (Vertex v: GraphTraversal.getTraversal(getChildrenGraphModel(), fromVertex, direction, false)) {
-            if(v instanceof Activity && !((Activity)v).isFinished()) 
-                nextActs.add((Activity)v);
+            if(v instanceof Activity) {
+                Activity act = (Activity)v;
+
+                if (!act.isFinished() && act.active) nextActs.add(act);
+            }
         }
 
         return nextActs;
