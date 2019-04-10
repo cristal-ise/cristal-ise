@@ -20,6 +20,7 @@
  */
 package org.cristalise.kernel.lifecycle.instance;
 
+import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.PRAIRING_ID;
 import java.util.Vector;
 
 import org.cristalise.kernel.common.InvalidDataException;
@@ -46,10 +47,17 @@ public class Join extends WfVertex {
      * @throws InvalidDataException
      */
     private boolean hasPrevActiveActs() throws InvalidDataException {
-        for (Vertex v : GraphTraversal.getTraversal(getParent().getChildrenGraphModel(), this, GraphTraversal.kUp, true)) {
-            if (v instanceof Activity && ((Activity) v).active) return true;
+        String pairingID = (String) getBuiltInProperty(PRAIRING_ID);
+        if (pairingID != null) {
+            
+            return false;
         }
-        return false;
+        else {
+            for (Vertex v : GraphTraversal.getTraversal(getParent().getChildrenGraphModel(), this, GraphTraversal.kUp, true)) {
+                if (v instanceof Activity && ((Activity) v).active) return true;
+            }
+            return false;
+        }
     }
 
     @Override

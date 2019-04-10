@@ -74,7 +74,7 @@ public class GraphTraversal
                 boolean skipBackLink = false;
                 if ( ignoreBackLinks &&
                     ((vertex.isJoin() && direction == kUp) ||
-                    (vertex.isLoop() && direction == kDown)))
+                     (vertex.isLoop() && direction == kDown)))
                 {
                     Vertex[] following = getTraversal(graphModel, children[i], direction, false);
                     for (Vertex element : following) {
@@ -86,6 +86,52 @@ public class GraphTraversal
                 }
                 if (!skipBackLink)
                     visitVertex(children[i], graphModel, path, direction, tag, ignoreBackLinks);
+            }
+        }
+    }
+
+
+
+    public static Vertex[] getTraversal(GraphModel graphModel, Vertex startVertex, Vertex endVertex, int direction, boolean ignoreBackLinks) {
+        Vector<Vertex> path = new Vector<Vertex>(10, 10);
+
+        graphModel.clearTags(startVertex);
+        visitVertex(startVertex, endVertex, graphModel, path, direction, startVertex, ignoreBackLinks);
+
+        return path.toArray(new Vertex[path.size()]);
+    }
+
+    private static void visitVertex(Vertex startVertex, Vertex endVertex, GraphModel graphModel, Vector<Vertex> path, int direction, Object tag, boolean ignoreBackLinks) {
+        Vertex[] children = null;
+
+        if(direction == kDown) {
+            children = graphModel.getOutVertices(startVertex);
+        }
+        else {
+            children = graphModel.getInVertices(startVertex);
+        }
+
+        startVertex.setTag(tag);
+        path.add(startVertex);
+
+        for(int i=0; i<children.length; i++) {
+            if(!(children[i].hasTag(tag))) {
+                boolean skipBackLink = false;
+
+                if ( ignoreBackLinks &&
+                    ((startVertex.isJoin() && direction == kUp) ||
+                     (startVertex.isLoop() && direction == kDown)))
+                {
+                    Vertex[] following = getTraversal(graphModel, children[i], endVertex, direction, false);
+                    for (Vertex element : following) {
+                        if (element == startVertex) {
+                            skipBackLink = true;
+                            break;
+                        }
+                    }
+                }
+
+                if (!skipBackLink) visitVertex(children[i], endVertex, graphModel, path, direction, tag, ignoreBackLinks);
             }
         }
     }
