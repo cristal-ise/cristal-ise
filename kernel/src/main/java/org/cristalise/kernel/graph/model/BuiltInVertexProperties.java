@@ -148,7 +148,7 @@ public enum BuiltInVertexProperties {
      *
      * Can be null or undefined.
      */
-    PRAIRING_ID(""),
+    PRAIRING_ID("PairingID"),
 
     /**
      * String property. It contains either the name or the UUID of the PropertyDescription Item.

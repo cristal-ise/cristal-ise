@@ -21,8 +21,9 @@
 package org.cristalise.kernel.graph.traversal;
 
 
+import java.util.LinkedHashSet;
+import java.util.Set;
 import java.util.Vector;
-
 import org.cristalise.kernel.graph.model.GraphModel;
 import org.cristalise.kernel.graph.model.Vertex;
 
@@ -93,7 +94,7 @@ public class GraphTraversal
 
 
     public static Vertex[] getTraversal(GraphModel graphModel, Vertex startVertex, Vertex endVertex, int direction, boolean ignoreBackLinks) {
-        Vector<Vertex> path = new Vector<Vertex>(10, 10);
+        Set<Vertex> path = new LinkedHashSet<>();
 
         graphModel.clearTags(startVertex);
         visitVertex(startVertex, endVertex, graphModel, path, direction, startVertex, ignoreBackLinks);
@@ -101,28 +102,25 @@ public class GraphTraversal
         return path.toArray(new Vertex[path.size()]);
     }
 
-    private static void visitVertex(Vertex startVertex, Vertex endVertex, GraphModel graphModel, Vector<Vertex> path, int direction, Object tag, boolean ignoreBackLinks) {
-        Vertex[] children = null;
+    private static void visitVertex(Vertex startVertex, Vertex endVertex, GraphModel graphModel, Set<Vertex> path, int direction, Object tag, boolean ignoreBackLinks) {
+        Vertex[] siblings = null;
 
-        if(direction == kDown) {
-            children = graphModel.getOutVertices(startVertex);
-        }
-        else {
-            children = graphModel.getInVertices(startVertex);
-        }
+        if(direction == kDown) siblings = graphModel.getOutVertices(startVertex);
+        else                   siblings = graphModel.getInVertices(startVertex);
 
         startVertex.setTag(tag);
         path.add(startVertex);
 
-        for(int i=0; i<children.length; i++) {
-            if(!(children[i].hasTag(tag))) {
+        for(int i = 0; i < siblings.length; i++) {
+            //visit until it is tagged or we found the endVertex
+            if(! siblings[i].hasTag(tag) && ! siblings[i].equals(endVertex)) {
                 boolean skipBackLink = false;
 
                 if ( ignoreBackLinks &&
                     ((startVertex.isJoin() && direction == kUp) ||
                      (startVertex.isLoop() && direction == kDown)))
                 {
-                    Vertex[] following = getTraversal(graphModel, children[i], endVertex, direction, false);
+                    Vertex[] following = getTraversal(graphModel, siblings[i], endVertex, direction, false);
                     for (Vertex element : following) {
                         if (element == startVertex) {
                             skipBackLink = true;
@@ -131,8 +129,11 @@ public class GraphTraversal
                     }
                 }
 
-                if (!skipBackLink) visitVertex(children[i], endVertex, graphModel, path, direction, tag, ignoreBackLinks);
+                if (!skipBackLink) visitVertex(siblings[i], endVertex, graphModel, path, direction, tag, ignoreBackLinks);
             }
+
+            //add endVertex to the result
+            if (siblings[i].equals(endVertex)) path.add(endVertex);
         }
     }
 }
