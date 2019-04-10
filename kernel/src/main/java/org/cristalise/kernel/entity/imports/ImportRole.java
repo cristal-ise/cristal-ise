@@ -37,6 +37,7 @@ public class ImportRole extends ModuleImport {
 
     public Boolean jobList;
     public ArrayList<String> permissions = new ArrayList<>();
+    private String predefinedStepsPermissions = "*:CreateItemFromDescription,AddDomainPath,AddMemberToCollection,RemoveSlotFromCollection,SetAgentRoles,Erase,RemoveAgent,CreateNewAgent,CreateNewRole,RemoveRole:*";
 
     public ImportRole() {}
 
@@ -45,6 +46,7 @@ public class ImportRole extends ModuleImport {
             throws ObjectAlreadyExistsException, ObjectCannotBeUpdated, CannotManageException, ObjectNotFoundException
     {
         RolePath newRolePath = new RolePath(name.split("/"), (jobList == null) ? false : jobList, permissions);
+        newRolePath.getPermissionsList().add(predefinedStepsPermissions);
 
         if (Gateway.getLookup().exists(newRolePath)) {
             //If jobList is null it means it was NOT set in the module.xml, therefore existing Role cannot be updated
@@ -74,6 +76,7 @@ public class ImportRole extends ModuleImport {
             throws ObjectAlreadyExistsException, ObjectCannotBeUpdated, CannotManageException, ObjectNotFoundException
     {
         RolePath rolePath = new RolePath(name.split("/"), (jobList == null) ? false : jobList, permissions);
+        rolePath.getPermissionsList().add(predefinedStepsPermissions);
 
         if (!Gateway.getLookup().exists(rolePath)) 
             throw new ObjectNotFoundException("Role '" + rolePath.getName() + "' does NOT exists.");

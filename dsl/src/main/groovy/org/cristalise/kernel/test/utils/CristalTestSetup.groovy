@@ -20,21 +20,18 @@
  */
 package org.cristalise.kernel.test.utils
 
-import java.util.Properties
+import groovy.transform.CompileStatic
 import org.cristalise.kernel.process.AbstractMain
-import org.cristalise.kernel.process.Bootstrap
 import org.cristalise.kernel.process.Gateway
 import org.cristalise.kernel.process.auth.Authenticator
 import org.cristalise.kernel.utils.Logger
-
-import groovy.transform.CompileStatic
-
 /**
  *
  */
 @CompileStatic
 trait CristalTestSetup {
     final int defaultLogLevel = 8
+    final String predefinedStepsPermissions = "*:CreateItemFromDescription,AddDomainPath,AddMemberToCollection,RemoveSlotFromCollection,SetAgentRoles,Erase,RemoveAgent,CreateNewAgent,CreateNewRole,RemoveRole:*"
 
     private void waitBootstrapThread() {
         //Give some time the Bootstrapper to start so this check will not fail because it was executed prematurely

@@ -20,12 +20,9 @@
  */
 package org.cristalise.dsl.test.entity
 
-import org.cristalise.dsl.entity.RoleBuilder;
-import org.cristalise.kernel.test.utils.CristalTestSetup;
-
+import org.cristalise.dsl.entity.RoleBuilder
+import org.cristalise.kernel.test.utils.CristalTestSetup
 import spock.lang.Specification
-
-
 /**
  *
  */
@@ -40,9 +37,13 @@ class RoleBuilderSpecs extends Specification implements CristalTestSetup {
             Role(name: 'User')
         }
 
+        roles[0].permissions << predefinedStepsPermissions
+
         then:
         roles[0].name == "User"
         roles[0].jobList == false
+        roles[0].permissions.size() > 0
+        roles[0].permissions[0] == predefinedStepsPermissions
     }
 
     def "Build a list of Roles"() {
@@ -51,13 +52,17 @@ class RoleBuilderSpecs extends Specification implements CristalTestSetup {
             Role(name: 'User')
             Role(name: 'User/SubUser', jobList: true)
         }
+        roles[0].permissions << predefinedStepsPermissions
+        roles[1].permissions << predefinedStepsPermissions
 
         then:
         roles[0].name == "User"
         roles[0].jobList == false
+        roles[0].permissions[0] == predefinedStepsPermissions
         
         roles[1].name == "User/SubUser"
         roles[1].jobList == true
+        roles[1].permissions[0] == predefinedStepsPermissions
     }
 
     def "Build Role with Permissions"() {
@@ -70,13 +75,18 @@ class RoleBuilderSpecs extends Specification implements CristalTestSetup {
             Role(name: 'User')
         }
 
+        roles[0].permissions << predefinedStepsPermissions
+        roles[1].permissions << predefinedStepsPermissions
+
         then:
         roles[0].name == "QA"
         roles[0].jobList == false
         roles[0].permissions[0] == 'BatchFactory:Create:*'
         roles[0].permissions[1] == 'Batch:Review:*'
+        roles[0].permissions[2] == predefinedStepsPermissions
         roles[1].name == "User"
-        roles[1].permissions.size == 0
+        roles[1].permissions.size > 0
+        roles[1].permissions[0] == predefinedStepsPermissions
     }
 
 }
