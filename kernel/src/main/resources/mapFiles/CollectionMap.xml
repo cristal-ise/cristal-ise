@@ -34,7 +34,11 @@
 
     <class name="org.cristalise.kernel.collection.DependencyMember">
         <map-to xml="DependencyMember"/>
-        <field name="ID" type="integer" direct="false">
+        <field name="mId" 
+               type="integer"
+               get-method="getID"
+               set-method="setID"
+               direct="false">
             <bind-xml name="ID" node="attribute"/>
         </field>
         <field name="mItemPath"
