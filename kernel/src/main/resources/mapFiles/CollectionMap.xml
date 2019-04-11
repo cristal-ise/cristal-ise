@@ -44,6 +44,13 @@
                set-method="setChildUUID">
             <bind-xml name="ChildUUID" node="attribute"/>
         </field>
+        <field name="mClassProps"
+               type="string"
+               direct="false"
+               get-method="getClassProps"
+               set-method="setClassProps">
+            <bind-xml name="ClassProps" node="attribute"/>
+        </field>
         <field name="mProperties" 
                type="org.cristalise.kernel.utils.KeyValuePair"
                collection="array"
