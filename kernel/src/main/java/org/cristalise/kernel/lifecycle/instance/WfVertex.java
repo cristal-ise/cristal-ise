@@ -20,7 +20,7 @@
  */
 package org.cristalise.kernel.lifecycle.instance;
 
-import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.PRAIRING_ID;
+import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.PAIRING_ID;
 import org.apache.commons.lang3.StringUtils;
 import org.cristalise.kernel.common.InvalidDataException;
 import org.cristalise.kernel.common.ObjectNotFoundException;
@@ -154,7 +154,7 @@ public abstract class WfVertex extends GraphableVertex {
         if (StringUtils.isBlank(pairingID)) return null;
 
         for (GraphableVertex vertex: getParent().getLayoutableChildren()) {
-            if (pairingID.equals(vertex.getBuiltInProperty(PRAIRING_ID)) && !vertex.equals(this)) {
+            if (pairingID.equals(vertex.getBuiltInProperty(PAIRING_ID)) && !vertex.equals(this)) {
                 return vertex;
             }
         }

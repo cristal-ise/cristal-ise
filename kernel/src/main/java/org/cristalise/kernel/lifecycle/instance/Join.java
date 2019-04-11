@@ -20,7 +20,7 @@
  */
 package org.cristalise.kernel.lifecycle.instance;
 
-import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.PRAIRING_ID;
+import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.PAIRING_ID;
 import java.util.Arrays;
 import java.util.Vector;
 import org.apache.commons.lang3.StringUtils;
@@ -49,7 +49,7 @@ public class Join extends WfVertex {
      * @throws InvalidDataException
      */
     private boolean hasPrevActiveActs() throws InvalidDataException {
-        String pairingID = (String) getBuiltInProperty(PRAIRING_ID);
+        String pairingID = (String) getBuiltInProperty(PAIRING_ID);
         
         Vertex[] vertices;
 

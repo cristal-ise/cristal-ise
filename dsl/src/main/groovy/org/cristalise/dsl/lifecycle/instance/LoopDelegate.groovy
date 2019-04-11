@@ -23,7 +23,6 @@
 package org.cristalise.dsl.lifecycle.instance
 
 import static org.cristalise.kernel.graph.model.BuiltInEdgeProperties.ALIAS
-import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.PRAIRING_ID
 
 import org.cristalise.kernel.lifecycle.instance.Next
 import org.cristalise.kernel.lifecycle.instance.Split
@@ -75,9 +74,9 @@ class LoopDelegate extends BlockDelegate {
         def joinLast   = parentCABlock.createVertex(Types.Join, "${joinName}_last")
 
         //NOTE: require more analysis to know if setting PairingID is needed for Loops
-        //split.setBuiltInProperty(PRAIRING_ID, name)
-        //joinFirst.setBuiltInProperty(PRAIRING_ID, name)
-        //joinLast.setBuiltInProperty(PRAIRING_ID, name)
+        //split.setBuiltInProperty(PAIRING_ID, name)
+        //joinFirst.setBuiltInProperty(PAIRING_ID, name)
+        //joinLast.setBuiltInProperty(PAIRING_ID, name)
 
         cl.delegate = this
         cl.resolveStrategy = Closure.DELEGATE_FIRST

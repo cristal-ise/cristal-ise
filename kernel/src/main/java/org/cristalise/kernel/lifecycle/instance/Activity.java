@@ -438,10 +438,10 @@ public class Activity extends WfVertex {
 
         //Calculate if there is still an Activity to be executed
         if (outVertex instanceof Join) {
-            hasNoNext = parent.getPossbileActs(outVertex, GraphTraversal.kUp).size() == 0;
+            hasNoNext = parent.getPossibleActs(outVertex, GraphTraversal.kUp).size() == 0;
         }
         else if (outVertex instanceof Loop) {
-            hasNoNext = parent.getPossbileActs(outVertex, GraphTraversal.kDown).size() == 0;
+            hasNoNext = parent.getPossibleActs(outVertex, GraphTraversal.kDown).size() == 0;
         }
         else if (outVertex == null) {
             hasNoNext = true;

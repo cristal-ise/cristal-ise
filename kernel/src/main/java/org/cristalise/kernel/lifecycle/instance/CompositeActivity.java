@@ -458,7 +458,7 @@ public class CompositeActivity extends Activity {
         }
     }
 
-    public List<Activity> getPossbileActs(WfVertex fromVertex, int direction) throws InvalidDataException {
+    public List<Activity> getPossibleActs(WfVertex fromVertex, int direction) throws InvalidDataException {
         List<Activity> nextActs = new ArrayList<>();
 
         for (Vertex v: GraphTraversal.getTraversal(getChildrenGraphModel(), fromVertex, direction, false)) {
