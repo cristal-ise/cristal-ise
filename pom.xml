@@ -349,6 +349,11 @@
                 <artifactId>slf4j-simple</artifactId>
                 <version>1.6.1</version>
             </dependency>
+            <dependency>
+                <groupId>org.reflections</groupId>
+                <artifactId>reflections</artifactId>
+                <version>0.9.11</version>
+            </dependency>
         </dependencies>
     </dependencyManagement>
 

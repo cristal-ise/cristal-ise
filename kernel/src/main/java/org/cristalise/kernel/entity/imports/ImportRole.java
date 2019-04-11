@@ -21,23 +21,28 @@
 package org.cristalise.kernel.entity.imports;
 
 import java.util.ArrayList;
-
+import java.util.List;
+import java.util.Set;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.shiro.util.CollectionUtils;
 import org.cristalise.kernel.common.CannotManageException;
 import org.cristalise.kernel.common.ObjectAlreadyExistsException;
 import org.cristalise.kernel.common.ObjectCannotBeUpdated;
 import org.cristalise.kernel.common.ObjectNotFoundException;
+import org.cristalise.kernel.lifecycle.instance.predefined.PredefinedStep;
 import org.cristalise.kernel.lookup.AgentPath;
 import org.cristalise.kernel.lookup.Path;
 import org.cristalise.kernel.lookup.RolePath;
 import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.process.module.ModuleImport;
 import org.cristalise.kernel.utils.Logger;
+import org.reflections.Reflections;
 
 public class ImportRole extends ModuleImport {
 
     public Boolean jobList;
     public ArrayList<String> permissions = new ArrayList<>();
-    private String predefinedStepsPermissions = "*:CreateItemFromDescription,AddDomainPath,AddMemberToCollection,RemoveSlotFromCollection,SetAgentRoles,Erase,RemoveAgent,CreateNewAgent,CreateNewRole,RemoveRole:*";
+    private final String predefinedStepsPackage = "org.cristalise.kernel.lifecycle.instance.predefined";
 
     public ImportRole() {}
 
@@ -46,8 +51,13 @@ public class ImportRole extends ModuleImport {
             throws ObjectAlreadyExistsException, ObjectCannotBeUpdated, CannotManageException, ObjectNotFoundException
     {
         RolePath newRolePath = new RolePath(name.split("/"), (jobList == null) ? false : jobList, permissions);
-        if (!"Admin".equals(name))
-            newRolePath.getPermissions().add(predefinedStepsPermissions);
+
+        if (!"Admin".equals(name)) {
+            String steps = getPredefinedSteps();
+            if (StringUtils.isNotEmpty(steps)) {
+                newRolePath.getPermissions().add(steps);
+            }
+        }
 
         if (Gateway.getLookup().exists(newRolePath)) {
             //If jobList is null it means it was NOT set in the module.xml, therefore existing Role cannot be updated
@@ -66,21 +76,26 @@ public class ImportRole extends ModuleImport {
     }
 
     /**
-     * 
+     *
      * @param agentPath
      * @throws ObjectAlreadyExistsException
      * @throws ObjectCannotBeUpdated
      * @throws CannotManageException
      * @throws ObjectNotFoundException
      */
-    public void update(AgentPath agentPath) 
+    public void update(AgentPath agentPath)
             throws ObjectAlreadyExistsException, ObjectCannotBeUpdated, CannotManageException, ObjectNotFoundException
     {
         RolePath rolePath = new RolePath(name.split("/"), (jobList == null) ? false : jobList, permissions);
-        if (!"Admin".equals(name))
-            rolePath.getPermissions().add(predefinedStepsPermissions);
 
-        if (!Gateway.getLookup().exists(rolePath)) 
+        if (!"Admin".equals(name)) {
+          String steps = getPredefinedSteps();
+          if (StringUtils.isNotEmpty(steps)) {
+            rolePath.getPermissions().add(steps);
+          }
+        }
+
+        if (!Gateway.getLookup().exists(rolePath))
             throw new ObjectNotFoundException("Role '" + rolePath.getName() + "' does NOT exists.");
 
         Gateway.getLookupManager().setHasJobList(rolePath, (jobList == null) ? false : jobList);
@@ -88,7 +103,7 @@ public class ImportRole extends ModuleImport {
     }
 
     /**
-     * 
+     *
      * @param rp
      * @return
      */
@@ -100,5 +115,27 @@ public class ImportRole extends ModuleImport {
         ir.permissions = (ArrayList<String>) rp.getPermissionsList();
 
         return ir;
+    }
+
+    /**
+     * Scan the Cristal's predefined steps package and get all
+     * the steps' names.
+     * @return
+     */
+    private String getPredefinedSteps() {
+        List<String> stepNames = new ArrayList<>();
+        Reflections reflections = new Reflections(predefinedStepsPackage);
+        Set<Class<? extends PredefinedStep>> classes = reflections.getSubTypesOf(PredefinedStep.class);
+
+        for (Class<? extends PredefinedStep> clazz : classes) {
+            String clazzName = clazz.getSimpleName();
+            if (!"PredefinedStepCollectionBase".equals(clazzName))
+                stepNames.add(clazz.getSimpleName());
+        }
+
+        if (!CollectionUtils.isEmpty(stepNames))
+            return "*:" + String.join(",",stepNames) + ":*";
+
+        return StringUtils.EMPTY;
     }
 }
