@@ -45,7 +45,7 @@ public class DependencyMember implements CollectionMember {
     private ItemProxy     mItem       = null;
     private int           mId         = -1;
     private CastorHashMap mProperties = null;
-    private String        mClassProps;
+    private String        mClassProps = "";
 
     public DependencyMember() {
         mProperties = new CastorHashMap();
