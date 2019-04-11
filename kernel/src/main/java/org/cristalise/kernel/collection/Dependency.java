@@ -160,9 +160,6 @@ public class Dependency extends Collection<DependencyMember> {
         if (members.size() != 1) throw new InvalidDataException("Child item '"+childPath+"' apperars more them once in collection " + mName);
 
         DependencyMember member = (DependencyMember) members.get(0);
-        if(member.getClassProps() == null){
-            member.setClassProps(mClassProps);
-        }
         member.updateProperties(memberNewProps);
     }
 
