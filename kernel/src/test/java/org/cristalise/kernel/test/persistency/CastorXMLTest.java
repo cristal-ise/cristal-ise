@@ -33,6 +33,7 @@ import java.util.Arrays;
 import java.util.Properties;
 import java.util.UUID;
 
+import org.cristalise.kernel.collection.Dependency;
 import org.cristalise.kernel.common.GTimeStamp;
 import org.cristalise.kernel.entity.agent.Job;
 import org.cristalise.kernel.graph.model.GraphPoint;
@@ -252,5 +253,22 @@ public class CastorXMLTest {
         PropertyDescriptionList pdlPrime = (PropertyDescriptionList) marshaller.unmarshall(marshaller.marshall(pdl));
 
         assertReflectionEquals(pdl, pdlPrime, LENIENT_ORDER);
+    }
+    
+    @Test
+    public void testCastorDependency() throws Exception {
+        CastorXMLUtility marshaller = Gateway.getMarshaller();
+
+        //THIS is not the correct way of creating a new Dependency, it is used here to make testing possible
+        Dependency dep = new Dependency("TestDep");
+        dep.addMember(new ItemPath());
+        dep.setClassProps("Type,State");
+        dep.getMember(0).setClassProps("Type,State");
+        dep.getCounter(); //counter is not persistent but calculated from the IDs of its members
+
+        Dependency depPrime = (Dependency) marshaller.unmarshall(marshaller.marshall(dep));
+        depPrime.getCounter();
+
+        assertReflectionEquals(dep, depPrime);
     }
 }
