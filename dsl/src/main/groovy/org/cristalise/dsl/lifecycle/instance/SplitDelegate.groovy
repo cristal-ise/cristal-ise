@@ -78,9 +78,9 @@ class SplitDelegate extends BlockDelegate {
 
         def aSplit = parentCABlock.createVertex(type, name)
         def aJoin  = parentCABlock.createVertex(Types.Join, joinName)
-		
-		aSplit.setBuiltInProperty(PRAIRING_ID, name)
-		aJoin.setBuiltInProperty(PRAIRING_ID, name)
+
+        aSplit.setBuiltInProperty(PRAIRING_ID, name)
+        aJoin.setBuiltInProperty(PRAIRING_ID, name)
 
         cl.delegate = this
         cl.resolveStrategy = Closure.DELEGATE_FIRST
