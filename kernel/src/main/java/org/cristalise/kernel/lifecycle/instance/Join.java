@@ -69,7 +69,11 @@ public class Join extends WfVertex {
         }
 
         for (Vertex v : vertices) {
-            if (v instanceof Activity && ((Activity) v).active) return true;
+            if(v instanceof Activity) {
+                Activity act = (Activity)v;
+
+                if (!act.isFinished() && act.active) return true;
+            }
         }
 
         return false;
