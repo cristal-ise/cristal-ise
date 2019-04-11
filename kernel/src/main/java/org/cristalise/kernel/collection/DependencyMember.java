@@ -104,14 +104,14 @@ public class DependencyMember implements CollectionMember {
                 String aClassProp = sub.nextToken();
                 try {
                     String memberValue = (String) getProperties().get(aClassProp);
-                    Property ItemProperty = (Property) Gateway.getStorage().get(itemPath, ClusterType.PROPERTY + "/" + aClassProp, null);
+                    Property itemProperty = (Property) Gateway.getStorage().get(itemPath, ClusterType.PROPERTY + "/" + aClassProp, null);
 
-                    if (ItemProperty == null)
+                    if (itemProperty == null)
                         throw new InvalidCollectionModification("Property " + aClassProp + " does not exist for item " + itemPath);
 
-                    if (!ItemProperty.getValue().equalsIgnoreCase(memberValue))
+                    if (!itemProperty.getValue().equalsIgnoreCase(memberValue))
                         throw new InvalidCollectionModification("DependencyMember::checkProperty() Values of mandatory prop " + aClassProp
-                                + " do not match " + ItemProperty.getValue() + "!=" + memberValue);
+                                + " do not match " + itemProperty.getValue() + "!=" + memberValue);
                 }
                 catch (Exception ex) {
                     Logger.error(ex);
