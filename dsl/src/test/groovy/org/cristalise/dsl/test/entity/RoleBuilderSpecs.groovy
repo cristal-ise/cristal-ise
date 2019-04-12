@@ -97,7 +97,11 @@ class RoleBuilderSpecs extends Specification implements CristalTestSetup {
         roles[0].name == "Engineer"
         roles[0].jobList == false
         roles[0].permissions[0] == "*:" + PREDEFINED_STEPS + ":*"
-        roles[0].getPredefinedSteps().containsAll(PREDEFINED_STEPS.tokenize(','))
+        def defaultList = PREDEFINED_STEPS.tokenize(',')
+        def scannedSteps = roles[0].getPredefinedSteps()
+        def commonSteps = scannedSteps.intersect(defaultList)
+        defaultList.size() == scannedSteps.size()
+        commonSteps.size() == defaultList.size()
     }
 
 }
