@@ -28,6 +28,14 @@ import spock.lang.Specification
  */
 class RoleBuilderSpecs extends Specification implements CristalTestSetup {
 
+    final String PREDEFINED_STEPS = "UpdateRole,AddNewCollectionDescription," +
+            "AddMemberToCollection,CreateNewRole,WriteViewpoint,Erase,SetAgentPassword,RemoveAgent," +
+            "CreateNewItem,AssignItemToSlot,UpdateDependencyMember,ClearSlot,BulkImport," +
+            "ReplaceDomainWorkflow,RemoveViewpoint,WriteProperty,Import,AddDomainContext," +
+            "RemoveSlotFromCollection,RemoveDomainContext,CreateItemFromDescription,AddC2KObject," +
+            "AddDomainPath,RemoveRole,CreateAgentFromDescription,CreateNewAgent,SetAgentRoles," +
+            "RemoveDomainPath,AddNewSlot,ChangeName,RemoveC2KObject,CreateNewCollectionVersion"
+
     def setup()   { loggerSetup()    }
     def cleanup() { cristalCleanup() }
 
@@ -37,13 +45,10 @@ class RoleBuilderSpecs extends Specification implements CristalTestSetup {
             Role(name: 'User')
         }
 
-        roles[0].permissions << predefinedStepsPermissions
-
         then:
         roles[0].name == "User"
         roles[0].jobList == false
-        roles[0].permissions.size() > 0
-        roles[0].permissions[0] == predefinedStepsPermissions
+        roles[0].permissions.size() == 0
     }
 
     def "Build a list of Roles"() {
@@ -52,17 +57,13 @@ class RoleBuilderSpecs extends Specification implements CristalTestSetup {
             Role(name: 'User')
             Role(name: 'User/SubUser', jobList: true)
         }
-        roles[0].permissions << predefinedStepsPermissions
-        roles[1].permissions << predefinedStepsPermissions
 
         then:
         roles[0].name == "User"
         roles[0].jobList == false
-        roles[0].permissions[0] == predefinedStepsPermissions
         
         roles[1].name == "User/SubUser"
         roles[1].jobList == true
-        roles[1].permissions[0] == predefinedStepsPermissions
     }
 
     def "Build Role with Permissions"() {
@@ -75,18 +76,28 @@ class RoleBuilderSpecs extends Specification implements CristalTestSetup {
             Role(name: 'User')
         }
 
-        roles[0].permissions << predefinedStepsPermissions
-        roles[1].permissions << predefinedStepsPermissions
-
         then:
         roles[0].name == "QA"
         roles[0].jobList == false
         roles[0].permissions[0] == 'BatchFactory:Create:*'
         roles[0].permissions[1] == 'Batch:Review:*'
-        roles[0].permissions[2] == predefinedStepsPermissions
         roles[1].name == "User"
-        roles[1].permissions.size > 0
-        roles[1].permissions[0] == predefinedStepsPermissions
+        roles[1].permissions.size == 0
+    }
+
+    def "Create Role with predefined steps permissions"() {
+        when:
+        def roles = RoleBuilder.build {
+            Role(name: 'Engineer'){
+                Permission("*:" + PREDEFINED_STEPS + ":*")
+            }
+        }
+
+        then:
+        roles[0].name == "Engineer"
+        roles[0].jobList == false
+        roles[0].permissions[0] == "*:" + PREDEFINED_STEPS + ":*"
+        roles[0].getPredefinedSteps().containsAll(PREDEFINED_STEPS.tokenize(','))
     }
 
 }

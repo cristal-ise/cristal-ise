@@ -31,7 +31,6 @@ import org.cristalise.kernel.utils.Logger
 @CompileStatic
 trait CristalTestSetup {
     final int defaultLogLevel = 8
-    final String predefinedStepsPermissions = "*:CreateItemFromDescription,AddDomainPath,AddMemberToCollection,RemoveSlotFromCollection,SetAgentRoles,Erase,RemoveAgent,CreateNewAgent,CreateNewRole,RemoveRole:*"
 
     private void waitBootstrapThread() {
         //Give some time the Bootstrapper to start so this check will not fail because it was executed prematurely

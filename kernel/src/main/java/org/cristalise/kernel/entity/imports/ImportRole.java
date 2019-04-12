@@ -53,7 +53,7 @@ public class ImportRole extends ModuleImport {
         RolePath newRolePath = new RolePath(name.split("/"), (jobList == null) ? false : jobList, permissions);
 
         if (!"Admin".equals(name)) {
-            String steps = getPredefinedSteps();
+            String steps = getStringPredefinedSteps();
             if (StringUtils.isNotEmpty(steps)) {
                 newRolePath.getPermissions().add(steps);
             }
@@ -89,7 +89,7 @@ public class ImportRole extends ModuleImport {
         RolePath rolePath = new RolePath(name.split("/"), (jobList == null) ? false : jobList, permissions);
 
         if (!"Admin".equals(name)) {
-          String steps = getPredefinedSteps();
+          String steps = getStringPredefinedSteps();
           if (StringUtils.isNotEmpty(steps)) {
             rolePath.getPermissions().add(steps);
           }
@@ -122,7 +122,7 @@ public class ImportRole extends ModuleImport {
      * the steps' names.
      * @return
      */
-    private String getPredefinedSteps() {
+    public List<String> getPredefinedSteps() {
         List<String> stepNames = new ArrayList<>();
         Reflections reflections = new Reflections(predefinedStepsPackage);
         Set<Class<? extends PredefinedStep>> classes = reflections.getSubTypesOf(PredefinedStep.class);
@@ -132,9 +132,17 @@ public class ImportRole extends ModuleImport {
             if (!"PredefinedStepCollectionBase".equals(clazzName))
                 stepNames.add(clazz.getSimpleName());
         }
+        return stepNames;
+    }
 
-        if (!CollectionUtils.isEmpty(stepNames))
-            return "*:" + String.join(",",stepNames) + ":*";
+    /**
+     * Gets the predefined steps and convert to comma separated permissions.
+     * @return
+     */
+    private String getStringPredefinedSteps() {
+        List<String> steps = getPredefinedSteps();
+        if (!CollectionUtils.isEmpty(steps))
+            return "*:" + String.join(",",steps) + ":*";
 
         return StringUtils.EMPTY;
     }
