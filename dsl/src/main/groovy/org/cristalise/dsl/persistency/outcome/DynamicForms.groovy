@@ -27,20 +27,21 @@ import groovy.transform.CompileStatic;
 
 @CompileStatic
 class DynamicForms {
-    Boolean hidden = null
-    Boolean required = null
     Boolean disabled = null
-    Boolean multiple = null
-    String label = null
-    String placeholder = null
-    String type = null
-    String inputType = null
-    Integer min = null
-    Integer max = null
-    String value = null
-    String mask = null
-    String pattern = null
     String errmsg = null
+    Boolean hidden = null
+    String inputType = null
+    String label = null
+    String mask = null
+    Integer max = null
+    Integer min = null
+    Boolean multiple = null
+    String pattern = null
+    String placeholder = null
+    Boolean required = null
+    Boolean showSeconds = null
+    String type = null
+    String value = null
     
     /**
      * Defines the Script name and version (e.g. GetShiftNames:0) which is executed when

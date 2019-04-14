@@ -20,6 +20,7 @@
  */
 package org.cristalise.kernel.persistency.outcomebuilder.field;
 
+import static org.cristalise.kernel.persistency.outcomebuilder.field.NgDynamicFormFieldProperties.*;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Map;
@@ -45,6 +46,10 @@ public class DateTimeField extends DateField {
     public JSONObject generateNgDynamicForms(Map<String, Object> inputs) {
         JSONObject date = super.generateNgDynamicForms(inputs);
 
+        if (inputs.containsKey(SHOW_SECONDS)) {
+          date.put(SHOW_SECONDS, inputs.get(SHOW_SECONDS));
+        }
+        
         JSONObject additional = getAdditionalConfigNgDynamicForms(date);
         additional.put("showTime", true);
 

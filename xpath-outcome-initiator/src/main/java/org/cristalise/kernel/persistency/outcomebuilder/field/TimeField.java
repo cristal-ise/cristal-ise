@@ -20,6 +20,7 @@
  */
 package org.cristalise.kernel.persistency.outcomebuilder.field;
 
+import static org.cristalise.kernel.persistency.outcomebuilder.field.NgDynamicFormFieldProperties.*;
 import java.time.Instant;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
@@ -27,7 +28,6 @@ import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.time.temporal.ChronoUnit;
 import java.util.Map;
-
 import org.cristalise.kernel.persistency.outcomebuilder.InvalidOutcomeException;
 import org.cristalise.kernel.utils.Logger;
 import org.json.JSONObject;
@@ -55,10 +55,16 @@ public class TimeField extends StringField {
         JSONObject time = getCommonFieldsNgDynamicForms();
 
         time.put("format", "hh:MM");
+        
+        if (inputs.containsKey(SHOW_SECONDS)) {
+          time.put(SHOW_SECONDS, inputs.get(SHOW_SECONDS));
+        }
+        
         JSONObject additional = getAdditionalConfigNgDynamicForms(time);
 
         additional.put("icon", "fa-clock-o");
         additional.put("stepMinute", 5); //TODO: refactor to be read from appInfo/dynamicForms element
+        
 
         return time;
     }
