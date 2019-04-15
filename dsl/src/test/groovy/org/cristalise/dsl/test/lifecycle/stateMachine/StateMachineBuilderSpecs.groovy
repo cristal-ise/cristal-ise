@@ -190,7 +190,7 @@ class StateMachineBuilderSpecs extends Specification implements CristalTestSetup
                 outcome(name:"\${SchemaType}", version:"\${SchemaVersion}")
                 script( name:"\${ScriptName}", version:"\${ScriptVersion}")
             }
-            transition("Skip", [origin: "Waiting", target: "Finished"]) {
+            transition("Skip", [origin: "Waiting", target: "Skipped"]) {
                 property(reservation: "clear")
                 property(enabledProp: "Skippable")
                 outcome(name:'Errors', version: "0")
@@ -210,7 +210,7 @@ class StateMachineBuilderSpecs extends Specification implements CristalTestSetup
             }
 
             initialState("Waiting")
-            finishingState("Finished")
+            finishingState('Finished', 'Skipped')
         }
 
         then:
@@ -218,7 +218,9 @@ class StateMachineBuilderSpecs extends Specification implements CristalTestSetup
         builder.sm.getTransitions().find { it.name == "Start" }.originState.name == "Waiting"
         builder.sm.getTransitions().find { it.name == "Start" }.targetState.name == "Started"
         builder.sm.getTransitions().find { it.name == "Skip"  }.originState.name == "Waiting"
-        builder.sm.getTransitions().find { it.name == "Skip"  }.targetState.name == "Finished"
+        builder.sm.getTransitions().find { it.name == "Skip"  }.targetState.name == "Skipped"
+        builder.sm.getState("Finished").isFinished()
+        builder.sm.getState("Skipped").isFinished()
     }
 
     @Ignore("deprecated")

@@ -49,7 +49,7 @@ public class XOrSplit extends Split {
         }
 
         if (nextsToFollow.size() != 1)
-            throw new InvalidDataException("not good number of active next");
+            throw new InvalidDataException("not good number of active next! (id:"+getID()+")");
 
         followNext((Next)nextsToFollow.get(0), agent, itemPath, locker);
     }

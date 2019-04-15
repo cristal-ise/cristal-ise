@@ -20,6 +20,7 @@
  */
 package org.cristalise.kernel.lifecycle;
 
+import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.PAIRING_ID;
 import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.ROUTING_EXPR;
 import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.ROUTING_SCRIPT_NAME;
 import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.ROUTING_SCRIPT_VERSION;
@@ -40,6 +41,7 @@ public class AndSplitDef extends WfVertexDef {
     public AndSplitDef() {
         mErrors = new Vector<String>(0, 1);
 
+        setBuiltInProperty(PAIRING_ID, "");
         setBuiltInProperty(ROUTING_SCRIPT_NAME, "");
         setBuiltInProperty(ROUTING_SCRIPT_VERSION, "");
         setBuiltInProperty(ROUTING_EXPR, "");
