@@ -56,15 +56,13 @@ public class TimeField extends StringField {
 
         time.put("format", "hh:MM");
         
-        if (inputs.containsKey(SHOW_SECONDS)) {
-          time.put(SHOW_SECONDS, inputs.get(SHOW_SECONDS));
-        }
-        
         JSONObject additional = getAdditionalConfigNgDynamicForms(time);
 
         additional.put("icon", "fa-clock-o");
         additional.put("stepMinute", 5); //TODO: refactor to be read from appInfo/dynamicForms element
-        
+        if (inputs.containsKey(SHOW_SECONDS)) {
+          additional.put(SHOW_SECONDS, inputs.get(SHOW_SECONDS));
+        }
 
         return time;
     }

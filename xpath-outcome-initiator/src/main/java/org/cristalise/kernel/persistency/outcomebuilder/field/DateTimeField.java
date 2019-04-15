@@ -46,13 +46,13 @@ public class DateTimeField extends DateField {
     public JSONObject generateNgDynamicForms(Map<String, Object> inputs) {
         JSONObject date = super.generateNgDynamicForms(inputs);
 
-        if (inputs.containsKey(SHOW_SECONDS)) {
-          date.put(SHOW_SECONDS, inputs.get(SHOW_SECONDS));
-        }
-        
         JSONObject additional = getAdditionalConfigNgDynamicForms(date);
         additional.put("showTime", true);
-
+        additional.put("hideOnDateTimeSelect", true);
+        if (inputs.containsKey(SHOW_SECONDS)) {
+          additional.put(SHOW_SECONDS, inputs.get(SHOW_SECONDS));
+        }
+        
         return date;
     }
 
