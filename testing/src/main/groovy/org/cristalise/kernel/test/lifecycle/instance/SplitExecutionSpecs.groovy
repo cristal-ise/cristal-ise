@@ -28,8 +28,9 @@ class SplitExecutionSpecs extends Specification implements CristalTestSetup {
         given: "Wf = first-OrSplit(script:1)((left)(right))-last"
         util.buildAndInitWf() {
             ElemAct("first")
-            OrSplit(javascript: 1) {
+            OrSplit(javascript: "1,3") {
                 Block { ElemAct("left")  }
+                Block { ElemAct("middle")  }
                 Block { ElemAct("right") }
             }
             ElemAct("last")
@@ -39,25 +40,37 @@ class SplitExecutionSpecs extends Specification implements CristalTestSetup {
         util.requestAction("first", "Done")
 
         then: "EA(left) is enabled but EA(right) is disabled"
-        util.checkActStatus("left",  [state: "Waiting", active: true])
-        util.checkActStatus("right", [state: "Waiting", active: false])
-        util.checkActStatus("last",  [state: "Waiting", active: false])
+        util.checkActStatus("left",   [state: "Waiting", active: true])
+        util.checkActStatus("middle", [state: "Waiting", active: false])
+        util.checkActStatus("right",  [state: "Waiting", active: true])
+        util.checkActStatus("last",   [state: "Waiting", active: false])
 
         when: "requesting EA(left) Done transition"
         util.requestAction("left", "Done")
 
         then: "EA(left) is Finished but EA(right) is disabled"
-        util.checkActStatus("left",  [state: "Finished", active: false])
-        util.checkActStatus("right", [state: "Waiting",  active: false])
-        util.checkActStatus("last",  [state: "Waiting",  active: true])
+        util.checkActStatus("left",   [state: "Finished", active: false])
+        util.checkActStatus("middle", [state: "Waiting",  active: false])
+        util.checkActStatus("right",  [state: "Waiting",  active: true])
+        util.checkActStatus("last",   [state: "Waiting",  active: false])
         
+        when: "requesting EA(right) Done transition"
+        util.requestAction("right", "Done")
+
+        then: "EA(left) is Finished but EA(right) is disabled"
+        util.checkActStatus("left",   [state: "Finished", active: false])
+        util.checkActStatus("middle", [state: "Waiting",  active: false])
+        util.checkActStatus("right",  [state: "Finished", active: false])
+        util.checkActStatus("last",   [state: "Waiting",  active: true])
+
         when: "requesting EA(last) Done transition"
         util.requestAction("last", "Done")
 
         then: "EA(last) is Finished and disabled"
-        util.checkActStatus("left",  [state: "Finished", active: false])
-        util.checkActStatus("right", [state: "Waiting",  active: false])
-        util.checkActStatus("last",  [state: "Finished", active: true])
+        util.checkActStatus("left",   [state: "Finished", active: false])
+        util.checkActStatus("middle", [state: "Waiting",  active: false])
+        util.checkActStatus("right",  [state: "Finished", active: false])
+        util.checkActStatus("last",   [state: "Finished", active: false])
     }
 
 
@@ -111,11 +124,10 @@ class SplitExecutionSpecs extends Specification implements CristalTestSetup {
         util.checkActStatus("first", [state: "Finished", active: false])
         util.checkActStatus("left",  [state: "Finished", active: false])
         util.checkActStatus("right", [state: "Finished", active: false])
-        util.checkActStatus("last",  [state: "Finished", active: true])
+        util.checkActStatus("last",  [state: "Finished", active: false])
     }
 
-
-    def 'XOrSplit enforces one and only branch to be executed'() {
+    def 'XOrSplit enforces one and only one branch to be executed'() {
         given: "Wf = first-AndSplit((left)(right))-last "
         util.buildAndInitWf() {
             ElemAct("first")
@@ -165,5 +177,227 @@ class SplitExecutionSpecs extends Specification implements CristalTestSetup {
         util.checkActStatus("right2", [state: "Waiting",  active: true])
         util.checkActStatus("right1", [state: "Waiting",  active: true])
         util.checkActStatus("last",   [state: "Waiting",  active: false])
+    }
+
+    def 'AndSplit followed by OrSplit shall not break split execution rules'() {
+        given:
+        util.buildAndInitWf() {
+            ElemAct("first")
+            AndSplit {
+                Block { ElemAct("left")  }
+                Block { ElemAct("right") }
+            }
+            OrSplit(javascript: 1) {
+                Block { ElemAct("left_or")  }
+                Block { ElemAct("right_or") }
+            }
+            ElemAct("last")
+        }
+
+        util.checkActStatus("first",    [state: "Waiting", active: true])
+        util.checkActStatus("left",     [state: "Waiting", active: false])
+        util.checkActStatus("right",    [state: "Waiting", active: false])
+        util.checkActStatus("left_or",  [state: "Waiting", active: false])
+        util.checkActStatus("right_or", [state: "Waiting", active: false])
+        util.checkActStatus("last",     [state: "Waiting", active: false])
+
+        when: "requesting ElemAct(first) Done transition"
+        util.requestAction("first", "Done")
+
+        then: "ElemAct(first) state is Finished and EA(left) and EA(right) are enabled"
+        util.checkActStatus("first",    [state: "Finished", active: false])
+        util.checkActStatus("left",     [state: "Waiting",  active: true])
+        util.checkActStatus("right",    [state: "Waiting",  active: true])
+        util.checkActStatus("left_or",  [state: "Waiting",  active: false])
+        util.checkActStatus("right_or", [state: "Waiting",  active: false])
+        util.checkActStatus("last",     [state: "Waiting",  active: false])
+
+        when: "requesting ElemAct(left) Done transition"
+        util.requestAction("left", "Done")
+
+        then: "ElemAct(left) state is Finished"
+        util.checkActStatus("first",    [state: "Finished", active: false])
+        util.checkActStatus("left",     [state: "Finished", active: false])
+        util.checkActStatus("right",    [state: "Waiting",  active: true])
+        util.checkActStatus("left_or",  [state: "Waiting",  active: false])
+        util.checkActStatus("right_or", [state: "Waiting",  active: false])
+        util.checkActStatus("last",     [state: "Waiting",  active: false])
+
+        when: "requesting ElemAct(right) Done transition"
+        util.requestAction("right", "Done")
+
+        then: "ElemAct(right) state is Finished"
+        util.checkActStatus("first",    [state: "Finished", active: false])
+        util.checkActStatus("left",     [state: "Finished", active: false])
+        util.checkActStatus("right",    [state: "Finished", active: false])
+        util.checkActStatus("left_or",  [state: "Waiting",  active: true])
+        util.checkActStatus("right_or", [state: "Waiting",  active: false])
+        util.checkActStatus("last",     [state: "Waiting",  active: false])
+
+        when: "requesting ElemAct(left_or) Done transition"
+        util.requestAction("left_or", "Done")
+
+        then: "ElemAct(left_or) state is Finished ) and EA(last) are enabled"
+        util.checkActStatus("first",    [state: "Finished", active: false])
+        util.checkActStatus("left",     [state: "Finished", active: false])
+        util.checkActStatus("right",    [state: "Finished", active: false])
+        util.checkActStatus("left_or",  [state: "Finished", active: false])
+        util.checkActStatus("right_or", [state: "Waiting",  active: false])
+        util.checkActStatus("last",     [state: "Waiting",  active: true])
+    }
+
+    def 'AndSplit followed by Loop shall not break split execution rules'() {
+        given:
+        util.buildAndInitWf() {
+            ElemAct("first")
+            AndSplit {
+                Block { ElemAct("left")  }
+                Block { ElemAct("right") }
+            }
+            Loop(RoutingScriptName: 'javascript:\"false\";') { //loop shall finish automatically
+                ElemAct('one')
+            }
+            ElemAct("last")
+        }
+
+        util.checkActStatus("first", [state: "Waiting", active: true])
+        util.checkActStatus("left",  [state: "Waiting", active: false])
+        util.checkActStatus("right", [state: "Waiting", active: false])
+        util.checkActStatus("one",   [state: "Waiting", active: false])
+        util.checkActStatus("last",  [state: "Waiting", active: false])
+
+        when: "requesting ElemAct(first) Done transition"
+        util.requestAction("first", "Done")
+
+        then: "ElemAct(first) state is Finished and EA(left) and EA(right) are enabled"
+        util.checkActStatus("first", [state: "Finished", active: false])
+        util.checkActStatus("left",  [state: "Waiting",  active: true])
+        util.checkActStatus("right", [state: "Waiting",  active: true])
+        util.checkActStatus("one",   [state: "Waiting",  active: false])
+        util.checkActStatus("last",  [state: "Waiting",  active: false])
+
+        when: "requesting ElemAct(left) Done transition"
+        util.requestAction("left", "Done")
+
+        then: "ElemAct(left) state is Finished"
+        util.checkActStatus("first", [state: "Finished", active: false])
+        util.checkActStatus("left",  [state: "Finished", active: false])
+        util.checkActStatus("right", [state: "Waiting",  active: true])
+        util.checkActStatus("one",   [state: "Waiting",  active: false])
+        util.checkActStatus("last",  [state: "Waiting",  active: false])
+
+        when: "requesting ElemAct(right) Done transition"
+        util.requestAction("right", "Done")
+
+        then: "ElemAct(right) state is Finished"
+        util.checkActStatus("first", [state: "Finished", active: false])
+        util.checkActStatus("left",  [state: "Finished", active: false])
+        util.checkActStatus("right", [state: "Finished", active: false])
+        util.checkActStatus("one",   [state: "Waiting",  active: true])
+        util.checkActStatus("last",  [state: "Waiting",  active: false])
+
+        when: "requesting ElemAct(one) Done transition"
+        util.requestAction("one", "Done")
+
+        then: "ElemAct(one) state is Finished and EA(last) are enabled"
+        util.checkActStatus("first", [state: "Finished", active: false])
+        util.checkActStatus("left",  [state: "Finished", active: false])
+        util.checkActStatus("right", [state: "Finished", active: false])
+        util.checkActStatus("one",   [state: "Finished", active: false])
+        util.checkActStatus("last",  [state: "Waiting",  active: true])
+    }
+
+    def 'Loop containing an AndSplit shall not break split execution rules'() {
+        given:
+        util.buildAndInitWf() {
+            ElemAct("first")
+            Loop(RoutingScriptName: 'javascript:\"false\";') { //loop shall finish automatically
+                AndSplit {
+                    Block { ElemAct("left")  }
+                    Block { ElemAct("right") }
+                }
+            }
+            ElemAct("last")
+        }
+
+        util.checkActStatus("first", [state: "Waiting", active: true])
+        util.checkActStatus("left",  [state: "Waiting", active: false])
+        util.checkActStatus("right", [state: "Waiting", active: false])
+        util.checkActStatus("last",  [state: "Waiting", active: false])
+
+        when: "requesting ElemAct(first) Done transition"
+        util.requestAction("first", "Done")
+
+        then: "ElemAct(first) state is Finished and EA(left) and EA(right) are enabled"
+        util.checkActStatus("first", [state: "Finished", active: false])
+        util.checkActStatus("left",  [state: "Waiting",  active: true])
+        util.checkActStatus("right", [state: "Waiting",  active: true])
+        util.checkActStatus("last",  [state: "Waiting",  active: false])
+
+        when: "requesting ElemAct(left) Done transition"
+        util.requestAction("left", "Done")
+
+        then: "ElemAct(left) state is Finished and EA(right) are enabled"
+        util.checkActStatus("first", [state: "Finished", active: false])
+        util.checkActStatus("left",  [state: "Finished", active: false])
+        util.checkActStatus("right", [state: "Waiting",  active: true])
+        util.checkActStatus("last",  [state: "Waiting",  active: false])
+
+        when: "requesting ElemAct(right) Done transition"
+        util.requestAction("right", "Done")
+
+        then: "ElemAct(right) state is Finished  and EA(last) are enabled"
+        util.checkActStatus("first", [state: "Finished", active: false])
+        util.checkActStatus("left",  [state: "Finished", active: false])
+        util.checkActStatus("right", [state: "Finished", active: false])
+        util.checkActStatus("last",  [state: "Waiting",  active: true])
+    }
+
+    def 'AndSplit containing Loops shall not break split execution rules'() {
+        given: 
+        util.buildAndInitWf() {
+            ElemAct("first")
+            AndSplit {
+               Loop(RoutingScriptName: 'javascript:\"false\";') { //loop shall finish automatically
+                   ElemAct("left")
+               }
+               Loop(RoutingScriptName: 'javascript:\"false\";') { //loop shall finish automatically
+                   ElemAct("right")
+               }
+            }
+            ElemAct("last")
+        }
+
+        util.checkActStatus("first", [state: "Waiting", active: true])
+        util.checkActStatus("left",  [state: "Waiting", active: false])
+        util.checkActStatus("right", [state: "Waiting", active: false])
+        util.checkActStatus("last",  [state: "Waiting", active: false])
+
+        when: "requesting ElemAct(first) Done transition"
+        util.requestAction("first", "Done")
+
+        then: "ElemAct(first) state is Finished and EA(left) and EA(right) are enabled"
+        util.checkActStatus("first", [state: "Finished", active: false])
+        util.checkActStatus("left",  [state: "Waiting",  active: true])
+        util.checkActStatus("right", [state: "Waiting",  active: true])
+        util.checkActStatus("last",  [state: "Waiting",  active: false])
+
+        when: "requesting ElemAct(left) Done transition"
+        util.requestAction("left", "Done")
+
+        then: "ElemAct(left) state is Finished and EA(right) are enabled"
+        util.checkActStatus("first", [state: "Finished", active: false])
+        util.checkActStatus("left",  [state: "Finished", active: false])
+        util.checkActStatus("right", [state: "Waiting",  active: true])
+        util.checkActStatus("last",  [state: "Waiting",  active: false])
+
+        when: "requesting ElemAct(right) Done transition"
+        util.requestAction("right", "Done")
+
+        then: "ElemAct(right) state is Finished  and EA(last) are enabled"
+        util.checkActStatus("first", [state: "Finished", active: false])
+        util.checkActStatus("left",  [state: "Finished", active: false])
+        util.checkActStatus("right", [state: "Finished", active: false])
+        util.checkActStatus("last",  [state: "Waiting",  active: true])
     }
 }

@@ -287,7 +287,8 @@ public class JooqLookupManager implements LookupManager {
 
             if (dp.getTarget() == null) throw new InvalidItemPathException("DomainPath has no target:"+domainPath);
 
-            return dp.getTarget();
+            //issue #165: using items.fetch() ensures that Path is either ItemPath or AgentPath
+            return items.fetch(context, dp.getTarget().getUUID(), properties);
         }
         catch (PersistencyException e) {
             Logger.error(e);
