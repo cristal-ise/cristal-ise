@@ -60,8 +60,9 @@ public class TimeField extends StringField {
 
         additional.put("icon", "fa-clock-o");
         additional.put("stepMinute", 5); //TODO: refactor to be read from appInfo/dynamicForms element
-        if (inputs.containsKey(SHOW_SECONDS)) {
-          additional.put(SHOW_SECONDS, inputs.get(SHOW_SECONDS));
+
+        if (inputs != null && inputs.containsKey(SHOW_SECONDS)) {
+            additional.put(SHOW_SECONDS, inputs.get(SHOW_SECONDS));
         }
 
         return time;
