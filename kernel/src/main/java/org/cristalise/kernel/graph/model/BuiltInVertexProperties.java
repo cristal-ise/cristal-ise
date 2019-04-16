@@ -144,6 +144,13 @@ public enum BuiltInVertexProperties {
     OUTCOME_INIT("OutcomeInit"),
 
     /**
+     * String property. It is used to find the Split-Join pairs to calculate if all the branches were finished.
+     *
+     * Can be null or undefined.
+     */
+    PAIRING_ID("PairingID"),
+
+    /**
      * String property. It contains either the name or the UUID of the PropertyDescription Item.
      *
      * Can be null or undefined.

@@ -23,6 +23,9 @@ package org.cristalise.dsl.lifecycle.instance
 
 import groovy.transform.CompileStatic
 
+import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.PAIRING_ID
+
+import org.cristalise.kernel.graph.model.BuiltInVertexProperties
 import org.cristalise.kernel.lifecycle.instance.Next
 import org.cristalise.kernel.lifecycle.instance.WfVertex
 import org.cristalise.kernel.lifecycle.instance.WfVertex.Types
@@ -75,6 +78,9 @@ class SplitDelegate extends BlockDelegate {
 
         def aSplit = parentCABlock.createVertex(type, name)
         def aJoin  = parentCABlock.createVertex(Types.Join, joinName)
+
+        aSplit.setBuiltInProperty(PAIRING_ID, name)
+        aJoin.setBuiltInProperty(PAIRING_ID, name)
 
         cl.delegate = this
         cl.resolveStrategy = Closure.DELEGATE_FIRST

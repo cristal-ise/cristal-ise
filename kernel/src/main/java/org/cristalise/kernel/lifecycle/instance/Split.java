@@ -241,7 +241,9 @@ public abstract class Split extends WfVertex {
         if (test == null) return false;
 
         for (String element : list) {
-            if (test.equals(element)) return true;
+            for (String value: test.split("\\|")) {
+                if (value.equals(element)) return true;
+            }
         }
 
         return false;
