@@ -173,12 +173,12 @@
                             <exclude>src/test/data/**</exclude>
                             <exclude>bin/**</exclude>
                             <exclude>src/main/resources/boot/allbootitems.txt</exclude>
-    			            <exclude>.flattened-pom.xml</exclude>
+                            <exclude>.flattened-pom.xml</exclude>
                         </excludes>
                         <mapping>
                             <idl>JAVADOC_STYLE</idl>
                         </mapping>
-            	    </configuration>
+	                </configuration>
                 </plugin>
                 <plugin>
                     <artifactId>maven-surefire-plugin</artifactId>
@@ -186,10 +186,10 @@
                     <configuration>
                         <redirectTestOutputToFile>true</redirectTestOutputToFile>
                         <includes>
-                            <include>**/*Spec.*</include>
-                            <include>**/*Test.*</include>
                             <include>**/*Specs.*</include>
+                            <include>**/*Spec.*</include>
                             <include>**/*Tests.*</include>
+                            <include>**/*Test.*</include>
                         </includes>
                     </configuration>
                 </plugin>

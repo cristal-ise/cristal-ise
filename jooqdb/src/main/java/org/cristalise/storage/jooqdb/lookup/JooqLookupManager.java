@@ -86,17 +86,7 @@ public class JooqLookupManager implements LookupManager {
         try {
             context = JooqHandler.connect();
 
-            items       = new JooqItemHandler();
-            domains     = new JooqDomainPathHandler();
-            roles       = new JooqRolePathHandler();
-            permissions = new JooqPermissionHandler();
-            properties  = new JooqItemPropertyHandler();
-
-            items      .createTables(context);
-            domains    .createTables(context);
-            roles      .createTables(context);
-            permissions.createTables(context);
-            properties .createTables(context);
+            initialiseHandlers();
 
             passwordHasher = new Argon2Password();
         }
@@ -104,6 +94,28 @@ public class JooqLookupManager implements LookupManager {
             Logger.error(ex);
             throw new IllegalArgumentException(ex.getMessage());
         }
+    }
+
+    public void initialiseHandlers() throws PersistencyException {
+        items       = new JooqItemHandler();
+        domains     = new JooqDomainPathHandler();
+        roles       = new JooqRolePathHandler();
+        permissions = new JooqPermissionHandler();
+        properties  = new JooqItemPropertyHandler();
+
+        items      .createTables(context);
+        domains    .createTables(context);
+        roles      .createTables(context);
+        permissions.createTables(context);
+        properties .createTables(context);
+    }
+
+    public void dropHandlers() throws PersistencyException {
+        properties .dropTables(context);
+        permissions.dropTables(context);
+        roles      .dropTables(context);
+        domains    .dropTables(context);
+        items      .dropTables(context);
     }
 
     @Override
@@ -393,6 +405,7 @@ public class JooqLookupManager implements LookupManager {
         SelectQuery<?> select = getSearchSelect(start, props);
 
         select.addSelect(JooqDomainPathHandler.PATH, TARGET);
+        select.addOrderBy(JooqDomainPathHandler.PATH);
 
         if (limit  > 0) select.addLimit(limit);
         if (offset > 0) select.addOffset(offset);
