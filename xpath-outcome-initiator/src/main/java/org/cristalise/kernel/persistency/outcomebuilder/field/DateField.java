@@ -29,12 +29,14 @@ import java.time.format.DateTimeParseException;
 import java.util.Map;
 
 import org.cristalise.kernel.persistency.outcomebuilder.InvalidOutcomeException;
+import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.utils.Logger;
 import org.json.JSONObject;
 
 public class DateField extends StringField {
     public static final String javaTimeDateFormat = "yyyy-MM-dd";
     public static final String primeNGDateFormat = "yy-mm-dd";
+    private static final String defaultDateFormatKey = "Webui.format.date.default";
 
     public DateField() {
         super();
@@ -62,11 +64,16 @@ public class DateField extends StringField {
     public JSONObject generateNgDynamicForms(Map<String, Object> inputs) {
         JSONObject date = getCommonFieldsNgDynamicForms();
 
-        date.put("format", primeNGDateFormat);
+        String defaultDateFormat = Gateway.getProperties().getString(defaultDateFormatKey);
+        if ( defaultDateFormat != null ) {
+            date.put("format", defaultDateFormat);
+        } else {
+            date.put("format", primeNGDateFormat);
+        }
 
         JSONObject additional = getAdditionalConfigNgDynamicForms(date);
         additional.put("showButtonBar", true);
-
+        
         return date;
     }
 
