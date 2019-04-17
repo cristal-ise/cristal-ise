@@ -21,7 +21,7 @@
 package org.cristalise.kernel.entity.imports;
 
 import java.util.ArrayList;
-
+import org.apache.commons.collections4.CollectionUtils;
 import org.cristalise.kernel.common.CannotManageException;
 import org.cristalise.kernel.common.ObjectAlreadyExistsException;
 import org.cristalise.kernel.common.ObjectCannotBeUpdated;
@@ -79,7 +79,8 @@ public class ImportRole extends ModuleImport {
             throw new ObjectNotFoundException("Role '" + rolePath.getName() + "' does NOT exists.");
 
         Gateway.getLookupManager().setHasJobList(rolePath, (jobList == null) ? false : jobList);
-        Gateway.getLookupManager().setPermissions(rolePath, rolePath.getPermissionsList());
+        if (CollectionUtils.isNotEmpty(rolePath.getPermissionsList()))
+            Gateway.getLookupManager().setPermissions(rolePath, rolePath.getPermissionsList());
     }
 
     /**
