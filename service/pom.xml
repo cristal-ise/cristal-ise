@@ -195,7 +195,7 @@
         <dependency>
             <groupId>org.cristalise</groupId>
             <artifactId>cristalise-kernel</artifactId>
-            <version>3.4.0</version>
+            <version>${revision}</version>
         </dependency>
         <dependency>
             <groupId>tanukisoft</groupId>
