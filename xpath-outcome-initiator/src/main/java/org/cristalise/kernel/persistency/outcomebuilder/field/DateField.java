@@ -36,7 +36,7 @@ import org.json.JSONObject;
 public class DateField extends StringField {
     public static final String javaTimeDateFormat = "yyyy-MM-dd";
     public static final String primeNGDateFormat = "yy-mm-dd";
-    private static final String defaultDateFormatKey = "Webui.format.date.default";
+    private static final String webuiDateFormatKey = "Webui.format.date.default";
 
     public DateField() {
         super();
@@ -64,12 +64,7 @@ public class DateField extends StringField {
     public JSONObject generateNgDynamicForms(Map<String, Object> inputs) {
         JSONObject date = getCommonFieldsNgDynamicForms();
 
-        String defaultDateFormat = Gateway.getProperties().getString(defaultDateFormatKey);
-        if ( defaultDateFormat != null ) {
-            date.put("format", defaultDateFormat);
-        } else {
-            date.put("format", primeNGDateFormat);
-        }
+        date.put("format", Gateway.getProperties().getString(webuiDateFormatKey, primeNGDateFormat));
 
         JSONObject additional = getAdditionalConfigNgDynamicForms(date);
         additional.put("showButtonBar", true);
