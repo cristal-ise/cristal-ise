@@ -28,6 +28,8 @@ import static javax.ws.rs.core.Response.Status.INTERNAL_SERVER_ERROR;
 import static javax.ws.rs.core.Response.Status.NOT_FOUND;
 import static javax.ws.rs.core.Response.Status.UNSUPPORTED_MEDIA_TYPE;
 import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.ATTACHMENT_MIME_TYPES;
+import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.STATE_MACHINE_NAME;
+import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.STATE_MACHINE_VERSION;
 import static org.cristalise.kernel.persistency.ClusterType.HISTORY;
 import static org.cristalise.kernel.persistency.ClusterType.PROPERTY;
 import static org.cristalise.kernel.persistency.ClusterType.VIEWPOINT;
@@ -44,11 +46,13 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriBuilder;
 import javax.ws.rs.core.UriInfo;
+
 import org.apache.commons.lang3.StringUtils;
 import org.cristalise.kernel.collection.Aggregation;
 import org.cristalise.kernel.collection.AggregationMember;
@@ -378,16 +382,16 @@ public abstract class ItemUtils extends RestHandler {
 
         Object url = uri.getBaseUriBuilder()
                 .path("stateMachine")
-                .path(job.getActPropString("StateMachineName"))
-                .path(job.getActPropString("StateMachineVersion"))
+                .path(job.getActPropString(STATE_MACHINE_NAME))
+                .path(job.getActPropString(STATE_MACHINE_VERSION))
                 .build();
 
         transitionData.put("name",                job.getTransition().getName());
         transitionData.put("id",                  Integer.valueOf(job.getTransition().getId()));
         transitionData.put("origin",              job.getOriginStateName());
         transitionData.put("target",              job.getTargetStateName());
-        transitionData.put("stateMachine",        job.getActPropString("StateMachineName"));
-        transitionData.put("stateMachineVersion", job.getActPropString("StateMachineVersion"));
+        transitionData.put("stateMachine",        job.getActPropString(STATE_MACHINE_NAME));
+        transitionData.put("stateMachineVersion", job.getActPropString(STATE_MACHINE_VERSION));
         transitionData.put("stateMachineUrl",     url);
 
         return transitionData;
