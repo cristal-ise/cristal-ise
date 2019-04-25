@@ -22,6 +22,7 @@ package org.cristalise.kernel.lifecycle.instance.predefined;
 
 import static org.cristalise.kernel.persistency.ClusterType.COLLECTION;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -80,7 +81,7 @@ public class UpdateCollectionsFromDescription extends PredefinedStep {
         }
 
         PropertyArrayList newItemProps = new PropertyArrayList();
-        List<String> currentCollNames = Arrays.asList(Gateway.getStorage().getClusterContents(item, COLLECTION));
+        List<String> currentCollNames = new ArrayList<>(Arrays.asList(Gateway.getStorage().getClusterContents(item, COLLECTION)));
 
         //Loop through desc collection names and create new ones
         for (String collName :  Gateway.getStorage().getClusterContents(descItemPath, COLLECTION, locker)) {
