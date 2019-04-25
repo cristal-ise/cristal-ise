@@ -366,4 +366,19 @@ public class StateMachine implements DescriptionObject {
                     + "/>\n");
         }
     }
+
+    public static String getDefaultStateMachine(String type) {
+        if      ("Elementary".equals(type)) {
+            return Gateway.getProperties().getString("StateMachine.Elementary.default", "Default");
+        }
+        else if ("Composite".equals(type))  {
+            return Gateway.getProperties().getString("StateMachine.Composite.default",  "CompositeActivity");
+        }
+        else if ("Predefined".equals(type))  {
+            return Gateway.getProperties().getString("StateMachine.Predefined.default", "PredefinedStep");
+        }
+        else {
+            throw new UnsupportedOperationException("Keyword '"+type+"' is not supported");
+        }
+    }
 }
