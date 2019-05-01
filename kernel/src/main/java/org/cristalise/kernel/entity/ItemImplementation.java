@@ -147,7 +147,7 @@ public class ItemImplementation implements ItemOperations {
         }
 
         // Store an "Constructor" event and the outcome containing the "Constructor"
-        if (StringUtils.isNotBlank(initViewpointString))
+        if (StringUtils.isNotBlank(initViewpointString)) {
             try {
                 Viewpoint vp = (Viewpoint)Gateway.getMarshaller().unmarshall(initViewpointString);
                 Schema schema = LocalObjectLoader.getSchema(vp.getSchemaName(), vp.getSchemaVersion());
@@ -169,9 +169,10 @@ public class ItemImplementation implements ItemOperations {
                 mStorage.abort(locker);
                 throw new PersistencyException("Error storing 'Constructor event and outcome:" + ex.getMessage());
             }
+        }
 
         // init collections
-        if (initCollsString != null && initCollsString.length() > 0 && !initCollsString.equals("<NULL/>")) {
+        if (StringUtils.isNotBlank(initCollsString) && !initCollsString.equals("<NULL/>")) {
             try {
                 CollectionArrayList colls = (CollectionArrayList) Gateway.getMarshaller().unmarshall(initCollsString);
                 for (Collection<?> thisColl : colls.list) {
@@ -189,7 +190,7 @@ public class ItemImplementation implements ItemOperations {
         // create wf
         Workflow lc = null;
         try {
-            if (initWfString == null || initWfString.length() == 0 || initWfString.equals("<NULL/>")) {
+            if (StringUtils.isBlank(initWfString) || initWfString.equals("<NULL/>")) {
                 lc = new Workflow(new CompositeActivity(), getNewPredefStepContainer());
             }
             else{
