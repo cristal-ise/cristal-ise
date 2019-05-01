@@ -20,9 +20,12 @@
  */
 package org.cristalise.kernel.lifecycle.instance;
 
+import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.PAIRING_ID;
+import java.util.Arrays;
 import java.util.Vector;
-
+import org.apache.commons.lang3.StringUtils;
 import org.cristalise.kernel.common.InvalidDataException;
+import org.cristalise.kernel.graph.model.GraphableVertex;
 import org.cristalise.kernel.graph.model.Vertex;
 import org.cristalise.kernel.graph.traversal.GraphTraversal;
 import org.cristalise.kernel.lookup.AgentPath;
@@ -46,9 +49,33 @@ public class Join extends WfVertex {
      * @throws InvalidDataException
      */
     private boolean hasPrevActiveActs() throws InvalidDataException {
-        for (Vertex v : GraphTraversal.getTraversal(getParent().getChildrenGraphModel(), this, GraphTraversal.kUp, true)) {
-            if (v instanceof Activity && ((Activity) v).active) return true;
+        String pairingID = (String) getBuiltInProperty(PAIRING_ID);
+        
+        Vertex[] vertices;
+
+        if (StringUtils.isNotBlank(pairingID)) {
+            GraphableVertex endVertex = findPair(pairingID);
+
+            if (endVertex == null) throw new InvalidDataException("Could not find pair for Join using PairingID:"+pairingID);
+
+            vertices = GraphTraversal.getTraversal(getParent().getChildrenGraphModel(), this, endVertex, GraphTraversal.kUp, true);
+
+            Logger.msg(8, "Join.hasPrevActiveActs(id:"+getID()+") - vertices[PairingID:"+pairingID+"]=%s", Arrays.toString(vertices));
         }
+        else {
+            vertices = GraphTraversal.getTraversal(getParent().getChildrenGraphModel(), this, GraphTraversal.kUp, true);
+
+            Logger.msg(8, "Join.hasPrevActiveActs(id:"+getID()+") - vertices=%s", Arrays.toString(vertices));
+        }
+
+        for (Vertex v : vertices) {
+            if(v instanceof Activity) {
+                Activity act = (Activity)v;
+
+                if (!act.isFinished() && act.active) return true;
+            }
+        }
+
         return false;
     }
 

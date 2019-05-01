@@ -73,4 +73,80 @@ class SchemaBuilderDynymicFormsSpecs extends Specification implements CristalTes
                  </xs:element>
                </xs:schema>""")
     }
+    
+    def 'Field can specify dynamicForms.placeHolder'() {
+        expect:
+        SchemaTestBuilder.build('test', 'PatientDetails', 0) {
+            struct(name: 'PatientDetails') {
+                field(name: 'Weight',      type: 'decimal') {dynamicForms(placeholder : '999.99')}
+                field(name: 'DateOfBirth', type: 'date')    {dynamicForms(placeholder : '99/99/9999')}
+            }
+        }.compareXML(
+            """<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+                 <xs:element name="PatientDetails">
+                   <xs:complexType>
+                     <xs:all minOccurs="0">
+                       <xs:element name='Weight' type='xs:decimal' minOccurs='1' maxOccurs='1'>
+                         <xs:annotation>
+                           <xs:appinfo>
+                             <dynamicForms>
+                               <placeholder>999.99</placeholder>
+                             </dynamicForms>
+                           </xs:appinfo>
+                         </xs:annotation>
+                       </xs:element>
+                       <xs:element name='DateOfBirth' type='xs:date' minOccurs='1' maxOccurs='1'>
+                         <xs:annotation>
+                           <xs:appinfo>
+                             <dynamicForms>
+                               <placeholder>99/99/9999</placeholder>
+                             </dynamicForms>
+                           </xs:appinfo>
+                         </xs:annotation>
+                       </xs:element>
+                     </xs:all>
+                   </xs:complexType>
+                 </xs:element>
+               </xs:schema>""")
+    }
+
+    def 'Field can specify dynamicForms.showSeconds'() {
+        expect:
+        SchemaTestBuilder.build('test', 'Employee', 0) {
+            struct(name: 'Employee') {
+                field(name: 'startOfShift',         type: 'time') {dynamicForms(showSeconds : true)}
+                field(name: 'startOfShiftNoSecods', type: 'time')
+                field(name: 'signatureTS',          type: 'dateTime') {dynamicForms(showSeconds : true)}
+                field(name: 'signatureTSNoSeconds', type: 'dateTime')
+            }
+        }.compareXML(
+            """<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+                 <xs:element name="Employee">
+                   <xs:complexType>
+                     <xs:all minOccurs="0">
+                       <xs:element name='startOfShift' type='xs:time' minOccurs='1' maxOccurs='1'>
+                         <xs:annotation>
+                           <xs:appinfo>
+                             <dynamicForms>
+                               <showSeconds>true</showSeconds>
+                             </dynamicForms>
+                           </xs:appinfo>
+                         </xs:annotation>
+                       </xs:element>
+                       <xs:element name='startOfShiftNoSecods' type='xs:time' minOccurs='1' maxOccurs='1' />
+                       <xs:element name='signatureTS' type='xs:dateTime' minOccurs='1' maxOccurs='1'>
+                         <xs:annotation>
+                           <xs:appinfo>
+                             <dynamicForms>
+                               <showSeconds>true</showSeconds>
+                             </dynamicForms>
+                           </xs:appinfo>
+                         </xs:annotation>
+                       </xs:element>
+                       <xs:element name='signatureTSNoSeconds' type='xs:dateTime' minOccurs='1' maxOccurs='1' />
+                     </xs:all>
+                   </xs:complexType>
+                 </xs:element>
+               </xs:schema>""")
+    }
 }

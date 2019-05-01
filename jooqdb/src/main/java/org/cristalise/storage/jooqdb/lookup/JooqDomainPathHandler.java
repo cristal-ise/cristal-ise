@@ -62,6 +62,10 @@ public class JooqDomainPathHandler {
         .execute();
     }
 
+    public void dropTables(DSLContext context) throws PersistencyException {
+        context.dropTableIfExists(DOMAIN_PATH_TABLE).execute();
+    }
+
     private DomainPath getDomainPath(Record record) {
         UUID uuid;
 

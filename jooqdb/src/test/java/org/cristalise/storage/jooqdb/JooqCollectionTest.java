@@ -20,6 +20,8 @@
  */
 package org.cristalise.storage.jooqdb;
 
+import static org.cristalise.JooqTestConfigurationBase.DBModes.MYSQL;
+import static org.cristalise.JooqTestConfigurationBase.DBModes.PostgreSQL;
 import static org.junit.Assert.assertThat;
 
 import java.util.Arrays;
@@ -28,6 +30,7 @@ import org.cristalise.kernel.collection.Collection;
 import org.cristalise.kernel.collection.Dependency;
 import org.cristalise.storage.jooqdb.clusterStore.JooqCollectionHadler;
 import org.hamcrest.collection.IsIterableContainingInAnyOrder;
+import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -42,6 +45,13 @@ public class JooqCollectionTest extends StorageTestBase {
 
         jooq = new JooqCollectionHadler();
         jooq.createTables(context);
+    }
+
+    @After
+    public void after() throws Exception {
+        context.close();
+
+        if (dbType == MYSQL || dbType == PostgreSQL) jooq.dropTables(context);
     }
 
     private void compareCollections(Collection<?> expected, Collection<?> actual) {

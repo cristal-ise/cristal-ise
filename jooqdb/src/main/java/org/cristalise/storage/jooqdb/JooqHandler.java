@@ -264,6 +264,8 @@ public abstract class JooqHandler {
 
     abstract public void createTables(DSLContext context) throws PersistencyException;
 
+    abstract public void dropTables(DSLContext context) throws PersistencyException;
+
     abstract public int update(DSLContext context, UUID uuid, C2KLocalObject obj) throws PersistencyException;
 
     abstract public int insert(DSLContext context, UUID uuid, C2KLocalObject obj) throws PersistencyException;

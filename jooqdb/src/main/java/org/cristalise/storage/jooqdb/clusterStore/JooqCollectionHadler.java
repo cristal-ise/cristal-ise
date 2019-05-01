@@ -154,4 +154,9 @@ public class JooqCollectionHadler extends JooqHandler {
                 constraint("PK_"+COLLECTION_TABLE).primaryKey(UUID, NAME, VERSION))
         .execute();
     }
+
+    @Override
+    public void dropTables(DSLContext context) throws PersistencyException {
+        context.dropTableIfExists(COLLECTION_TABLE).execute();
+    }
 }
