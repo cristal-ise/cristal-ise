@@ -357,18 +357,35 @@ public class AgentProxy extends ItemProxy {
     }
 
     /**
+     * Execution without any parameters using Class of predefined step instead of string literal. 
+     * There are steps which can be executed without any parameters
      * 
-     * @param item
-     * @param predefStep
-     * @param param
-     * @return
-     * @throws AccessRightsException
-     * @throws InvalidDataException
-     * @throws InvalidTransitionException
-     * @throws ObjectNotFoundException
-     * @throws PersistencyException
-     * @throws ObjectAlreadyExistsException
-     * @throws InvalidCollectionModification
+     * @see #execute(ItemProxy, String)
+     */
+    public String execute(ItemProxy item, Class<?> predefStep)
+            throws AccessRightsException, InvalidDataException, InvalidTransitionException, ObjectNotFoundException,
+            PersistencyException, ObjectAlreadyExistsException,InvalidCollectionModification
+    {
+        return execute(item, predefStep.getSimpleName());
+    }
+
+    /**
+     * Execution without any parameters. There are steps which can be executed without any parameters
+     * 
+     * @see #execute(ItemProxy, String, String[])
+     */
+    public String execute(ItemProxy item, String predefStep)
+            throws AccessRightsException, InvalidDataException, InvalidTransitionException, ObjectNotFoundException,
+            PersistencyException, ObjectAlreadyExistsException,InvalidCollectionModification
+    {
+        return execute(item, predefStep, new String[0]);
+    }
+
+    /**
+     * Single parameter execution using Class of predefined step instead of string literal. 
+     * Wraps parameters up in a PredefinedStepOutcome if the schema of the requested step is such.
+     *
+     * @see #execute(ItemProxy, String, String)
      */
     public String execute(ItemProxy item, Class<?> predefStep, String param)
             throws AccessRightsException, InvalidDataException, InvalidTransitionException, ObjectNotFoundException,
