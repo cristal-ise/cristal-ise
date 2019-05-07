@@ -24,6 +24,7 @@ import java.math.BigDecimal;
 import java.util.Enumeration;
 import java.util.Map;
 
+import org.apache.commons.lang3.StringUtils;
 import org.exolab.castor.xml.schema.Facet;
 import org.json.JSONObject;
 
@@ -71,5 +72,9 @@ public abstract class NumberField extends StringField {
 
             if (maxValue != null) validators.put("max", maxValue);
         }
+
+        if (StringUtils.isNotBlank(pattern)) {
+            validators.put("pattern", pattern);
+        } 
     }
 }
