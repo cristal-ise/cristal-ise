@@ -52,12 +52,12 @@
     </modules>
 
     <properties>
-        <revision>4.1.0-SNAPSHOT</revision>
+        <revision>4.2.0-SNAPSHOT</revision>
         <productionMode>false</productionMode>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-	<additionalparam>-Xdoclint:none</additionalparam>
-	<maven.deploy.skip>true</maven.deploy.skip>
+        <additionalparam>-Xdoclint:none</additionalparam>
+        <maven.deploy.skip>true</maven.deploy.skip>
     </properties>
 
     <description>Cristal-ise is a description-driven software platform originally developed to track the construction of
@@ -178,7 +178,7 @@
                         <mapping>
                             <idl>JAVADOC_STYLE</idl>
                         </mapping>
-	                </configuration>
+                    </configuration>
                 </plugin>
                 <plugin>
                     <artifactId>maven-surefire-plugin</artifactId>
