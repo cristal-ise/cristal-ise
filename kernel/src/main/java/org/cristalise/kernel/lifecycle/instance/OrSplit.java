@@ -36,12 +36,13 @@ public class OrSplit extends Split {
 
     @Override
     public void runNext(AgentPath agent, ItemPath itemPath, Object locker) throws InvalidDataException {
+        int id = getID();
         String[] nextsTab = calculateNexts(itemPath, locker);
 
         int active = 0;
         DirectedEdge[] outEdges = getOutEdges();
         for (String thisNext : nextsTab) {
-            Logger.msg(7, "OrSplit.runNext() - Finding edge with %s '%s'", ALIAS, thisNext);
+            Logger.msg(7, "OrSplit.runNext(id: %d) - Finding edge with %s '%s'", id, ALIAS, thisNext);
 
             if (thisNext != null) {
                 for (DirectedEdge outEdge : outEdges) {
@@ -55,7 +56,7 @@ public class OrSplit extends Split {
                             Logger.error(e);
                             throw new InvalidDataException("Error enabling next " + thisNext);
                         }
-                        Logger.msg(7, "OrSplit.runNext() - Running " + nextEdge.getBuiltInProperty(ALIAS));
+                        Logger.msg(7, "OrSplit.runNext(id: %d) - Running %s", id, nextEdge.getBuiltInProperty(ALIAS));
                         active++;
                     }
                 }
@@ -64,7 +65,7 @@ public class OrSplit extends Split {
 
         // if no active nexts throw exception
         if (active == 0)
-            throw new InvalidDataException("No edges found, no next vertex activated!");
+            throw new InvalidDataException("No edges found, no next vertex activated! (id: " + id + ")");
     }
 
 }
