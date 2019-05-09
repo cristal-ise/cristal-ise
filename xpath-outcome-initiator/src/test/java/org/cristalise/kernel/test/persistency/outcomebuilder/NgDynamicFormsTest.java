@@ -38,6 +38,8 @@ import org.mvel2.templates.CompiledTemplate;
 import org.mvel2.templates.TemplateCompiler;
 import org.mvel2.templates.TemplateRuntime;
 
+import lombok.experimental.var;
+
 public class NgDynamicFormsTest extends XMLUtils {
 
     String dir = "src/test/data/outcomeBuilder";
@@ -100,6 +102,20 @@ public class NgDynamicFormsTest extends XMLUtils {
         Logger.msg(actual.toString(2));
 
         JSONArray expected = new JSONArray(getJSON(dir, "ShowSeconds"));
+
+        assertJsonEquals(expected, actual);
+    }
+
+    @Test
+    public void ngForm_TotalFractionDigits() throws Exception {
+        var testName = "TotalFractionDigits";
+        OutcomeBuilder builder = new OutcomeBuilder("TestData", new Schema(testName, 0, getXSD(dir, testName)), false);
+
+        JSONArray actual = builder.generateNgDynamicFormsJson();
+
+        Logger.msg(actual.toString(2));
+
+        JSONArray expected = new JSONArray(getJSON(dir, testName));
 
         assertJsonEquals(expected, actual);
     }

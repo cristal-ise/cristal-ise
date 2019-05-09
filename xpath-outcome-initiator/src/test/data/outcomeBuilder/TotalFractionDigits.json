@@ -1,0 +1,23 @@
+[{
+  "name": "TestData",
+  "cls": {"grid": {"container": "ui-g-12"}},
+  "id": "TestData",
+  "type": "GROUP",
+  "group": [{
+    "validators": {"required": null},
+    "cls": {
+      "grid": {
+        "container": "ui-g",
+        "control": "ui-g-8",
+        "label": "ui-g-4"
+      },
+      "element": {"label": "ui-widget"}
+    },
+    "id": "efficiency",
+    "label": "efficiency *",
+    "placeholder": "efficiency",
+    "type": "INPUT",
+    "value": "0.0",
+    "required": true
+  }]
+}]
