@@ -4,7 +4,7 @@
   "id": "TestData",
   "type": "GROUP",
   "group": [{
-    "validators": {"required": null},
+    "validators": {"required": null, "pattern": "^\\d{0,1}\\.?\\d{0,2}$"},
     "cls": {
       "grid": {
         "container": "ui-g",

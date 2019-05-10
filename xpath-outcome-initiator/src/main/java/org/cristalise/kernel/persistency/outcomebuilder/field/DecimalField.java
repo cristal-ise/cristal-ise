@@ -22,8 +22,11 @@ package org.cristalise.kernel.persistency.outcomebuilder.field;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-
+import org.apache.commons.lang3.StringUtils;
 import org.cristalise.kernel.persistency.outcomebuilder.InvalidOutcomeException;
+import org.cristalise.kernel.utils.Logger;
+import org.exolab.castor.xml.schema.Facet;
+import org.json.JSONObject;
 
 public class DecimalField extends NumberField {
 
@@ -45,5 +48,30 @@ public class DecimalField extends NumberField {
         }
 
         super.setData(value.toString());
+    }
+    
+    @Override
+    public void setNgDynamicFormsValidators(JSONObject validators) {
+        Logger.msg("***************setNgDynamicFormsValidators***************");
+        super.setNgDynamicFormsValidators(validators);
+        Logger.msg("***************" + name + " PATTERN START***************");
+
+        if (StringUtils.isNotBlank(pattern)) {
+            validators.put("pattern", pattern);
+        } else if (contentType.hasFacet(Facet.TOTALDIGITS) || contentType.hasFacet(Facet.FRACTIONDIGITS)) {
+            String pattern = buildPatternFromRestrictions();
+            validators.put("pattern", pattern);
+        }
+        
+        Logger.msg("***************" + name + " PATTERN END***************");
+    }
+
+    private String buildPatternFromRestrictions() {
+      BigDecimal totalDigits = getRangeValue(Facet.TOTALDIGITS);
+      BigDecimal fractionDigits = getRangeValue(Facet.FRACTIONDIGITS);
+      String naturalNumbers = totalDigits.subtract(fractionDigits).toPlainString();
+      String decimals = fractionDigits.equals(BigDecimal.ZERO) ? "" : fractionDigits.toPlainString();
+      
+      return "^\\\\d{0," + naturalNumbers + "}\\\\.?\\\\d{0," + decimals + "}$";
     }
 }
