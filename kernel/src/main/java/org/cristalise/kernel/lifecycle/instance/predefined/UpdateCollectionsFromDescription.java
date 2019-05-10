@@ -43,11 +43,12 @@ import org.cristalise.kernel.lookup.ItemPath;
 import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.property.Property;
 import org.cristalise.kernel.property.PropertyArrayList;
+import org.cristalise.kernel.property.PropertyUtility;
 import org.cristalise.kernel.utils.Logger;
 
 public class UpdateCollectionsFromDescription extends PredefinedStep {
 
-    public static final String description = "";
+    public static final String description = "Updates the Collections of the Item from its description";
 
     public UpdateCollectionsFromDescription() {
         super();
@@ -98,10 +99,10 @@ public class UpdateCollectionsFromDescription extends PredefinedStep {
 
         //instantiating Dependency of Factory creates new Item Property
         for (Property p: newItemProps.list) {
-            WriteProperty.write(item, p.getName(), p.getValue(), locker);
+            PropertyUtility.writeProperty(item, p.getName(), p.getValue(), locker);
         }
 
-        //remove remaining collection for crurrent list
+        //remove remaining collection from current list
         for (String collName: currentCollNames) {
             Gateway.getStorage().remove(item, COLLECTION + "/" + collName, locker);
         }

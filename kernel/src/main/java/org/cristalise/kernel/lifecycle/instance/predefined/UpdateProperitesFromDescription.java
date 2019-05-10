@@ -1,0 +1,140 @@
+/**
+ * This file is part of the CRISTAL-iSE kernel.
+ * Copyright (c) 2001-2015 The CRISTAL Consortium. All rights reserved.
+ *
+ * This library is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU Lesser General Public License as published
+ * by the Free Software Foundation; either version 3 of the License, or (at
+ * your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; with out even the implied warranty of MERCHANTABILITY or
+ * FITNESS FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public
+ * License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this library; if not, write to the Free Software Foundation,
+ * Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA.
+ *
+ * http://www.fsf.org/licensing/licenses/lgpl.html
+ */
+package org.cristalise.kernel.lifecycle.instance.predefined;
+
+import org.apache.commons.lang3.StringUtils;
+import org.cristalise.kernel.common.AccessRightsException;
+import org.cristalise.kernel.common.CannotManageException;
+import org.cristalise.kernel.common.InvalidCollectionModification;
+import org.cristalise.kernel.common.InvalidDataException;
+import org.cristalise.kernel.common.ObjectAlreadyExistsException;
+import org.cristalise.kernel.common.ObjectCannotBeUpdated;
+import org.cristalise.kernel.common.ObjectNotFoundException;
+import org.cristalise.kernel.common.PersistencyException;
+import org.cristalise.kernel.lookup.AgentPath;
+import org.cristalise.kernel.lookup.DomainPath;
+import org.cristalise.kernel.lookup.InvalidItemPathException;
+import org.cristalise.kernel.lookup.ItemPath;
+import org.cristalise.kernel.persistency.ClusterType;
+import org.cristalise.kernel.process.Gateway;
+import org.cristalise.kernel.property.Property;
+import org.cristalise.kernel.property.PropertyArrayList;
+import org.cristalise.kernel.property.PropertyDescriptionList;
+import org.cristalise.kernel.property.PropertyUtility;
+import org.cristalise.kernel.utils.Logger;
+
+public class UpdateProperitesFromDescription extends PredefinedStep {
+
+    public static final String description = "Updates the Properties of the Item from its description";
+
+    public UpdateProperitesFromDescription() {
+        super();
+    }
+
+    protected String runActivityLogic(AgentPath agent, ItemPath item, int transitionID, String requestData, Object locker)
+            throws  InvalidDataException,
+                    InvalidCollectionModification,
+                    ObjectAlreadyExistsException,
+                    ObjectCannotBeUpdated,
+                    ObjectNotFoundException,
+                    PersistencyException,
+                    CannotManageException,
+                    AccessRightsException
+    {
+        String[] inputs = getDataList(requestData);
+
+        String descPath = inputs[0]; //i.e. domainPath of FactoryItem
+        String descVer  = inputs[1];
+        PropertyArrayList initProps = inputs.length == 3 && StringUtils.isNotBlank(inputs[2]) ? unmarshallInitProperties(inputs[2]) : new PropertyArrayList();
+
+        PropertyDescriptionList propDesc = getPropertyDesc(descPath, descVer, locker);
+
+        //Delete or update existing Properties
+        for (String existingPropName: Gateway.getStorage().getClusterContents(item, ClusterType.PROPERTY)) {
+            if (propDesc.definesProperty(existingPropName)) {
+                Property existingProp = PropertyUtility.getProperty(item, existingPropName, locker);
+
+                if (existingProp.isMutable()) {
+                    //Update existing mutable Property if initial Property list contains it
+                    Property initProp = initProps.get(existingPropName);
+
+                    if (initProp != null) {
+                        existingProp.setValue(initProp.getValue());
+                        Gateway.getStorage().put(item, existingProp, locker);
+                    }
+                }
+                else {
+                    //update existing immutable Property if its default value was changed
+                    String defaultValue = PropertyUtility.getValue(propDesc.list, existingPropName);
+
+                    if (StringUtils.isNotBlank(defaultValue) && !defaultValue.equals(existingProp.getValue())) {
+                        existingProp.setValue(defaultValue);
+                        Gateway.getStorage().put(item, existingProp, locker);
+                    }
+                }
+            }
+            else  {
+                //Delete Property as it does not exist in definition
+                Gateway.getStorage().remove(item, ClusterType.PROPERTY + "/" + existingPropName, locker);
+            }
+        }
+
+        //Add new properties
+        for (Property newProp: propDesc.instantiate(initProps).list) {
+            if (!PropertyUtility.propertyExists(item, newProp.getName(), locker)) {
+                Gateway.getStorage().put(item, newProp, locker);
+            }
+        }
+
+        return requestData;
+    }
+
+    private PropertyDescriptionList getPropertyDesc(String descPath, String descVer, Object locker) throws ObjectNotFoundException, InvalidDataException {
+        ItemPath descItemPath;
+
+        try {
+            descItemPath = Gateway.getLookup().resolvePath(new DomainPath(descPath));
+        }
+        catch (InvalidItemPathException e) {
+            Logger.error(e);
+            throw new InvalidDataException(e.getMessage());
+        }
+
+        return PropertyUtility.getPropertyDescriptionOutcome(descItemPath, descVer, locker);
+    }
+
+    /**
+     * Unmarshalls initial Properties
+     *
+     * @param initPropString
+     * @return unmarshalled initial PropertyArrayList
+     * @throws InvalidDataException
+     */
+    protected PropertyArrayList unmarshallInitProperties(String initPropString) throws InvalidDataException {
+        try {
+            return (PropertyArrayList) Gateway.getMarshaller().unmarshall(initPropString);
+        }
+        catch (Exception e) {
+            Logger.error(e);
+            throw new InvalidDataException("Initial property parameter was not a marshalled PropertyArrayList: " + initPropString);
+        }
+    }
+}

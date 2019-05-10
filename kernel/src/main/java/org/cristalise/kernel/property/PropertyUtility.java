@@ -27,6 +27,7 @@ import static org.cristalise.kernel.property.BuiltInItemProperties.TYPE;
 import java.util.ArrayList;
 import java.util.Iterator;
 import org.apache.commons.lang3.StringUtils;
+import org.cristalise.kernel.common.ObjectCannotBeUpdated;
 import org.cristalise.kernel.common.ObjectNotFoundException;
 import org.cristalise.kernel.common.PersistencyException;
 import org.cristalise.kernel.lookup.ItemPath;
@@ -37,6 +38,9 @@ import org.cristalise.kernel.utils.CastorHashMap;
 import org.cristalise.kernel.utils.LocalObjectLoader;
 import org.cristalise.kernel.utils.Logger;
 
+/**
+ * Utility class to handle operations of ItemProperties and their description
+ */
 public class PropertyUtility {
     static public String getValue(ArrayList<PropertyDescription> pdlist, String name) {
         for (PropertyDescription pd : pdlist) {
@@ -92,6 +96,16 @@ public class PropertyUtility {
         return names.toString();
     }
 
+    /**
+     * Reads the PropertyDescriptionList either from a built-in type of Item using LocalObjectLoader 
+     * or from the 'last' Viewpoint of the 'PropertyDescription' Outcome in the Item (very likely a Factory Item).
+     * 
+     * @param itemPath the Item containing the PropertyDescriptionList
+     * @param descVer the version of the PropertyDescriptionList
+     * @param locker transaction key
+     * @return the PropertyDescriptionList
+     * @throws ObjectNotFoundException PropertyDescriptionList cannot be retrieved
+     */
     static public PropertyDescriptionList getPropertyDescriptionOutcome(ItemPath itemPath, String descVer, Object locker) throws ObjectNotFoundException {
         try {
             //the type of the Item is a PropertyDesc
@@ -103,6 +117,7 @@ public class PropertyUtility {
                 return LocalObjectLoader.getPropertyDescriptionList(name, version);
             }
             else  {
+                //the type of the Item is very likely a Factory
                 Outcome outc = (Outcome) Gateway.getStorage().get(itemPath, VIEWPOINT+"/PropertyDescription/"+descVer+"/data", locker);
                 return (PropertyDescriptionList) Gateway.getMarshaller().unmarshall(outc.getData());
             }
@@ -156,5 +171,18 @@ public class PropertyUtility {
             if (pd.isTransitive()) props.put(pd.getName(), pd.getDefaultValue());
         }
         return props;
+    }
+
+    public static void writeProperty(ItemPath item, String name, String value, Object locker)
+            throws PersistencyException, ObjectCannotBeUpdated, ObjectNotFoundException
+    {
+        Property prop = (Property) Gateway.getStorage().get(item, ClusterType.PROPERTY + "/" + name, locker);
+    
+        if (!prop.isMutable() && !value.equals(prop.getValue()))
+            throw new ObjectCannotBeUpdated("WriteProperty: Property '" + name + "' is not mutable.");
+    
+        prop.setValue(value);
+    
+        Gateway.getStorage().put(item, prop, locker);
     }
 }

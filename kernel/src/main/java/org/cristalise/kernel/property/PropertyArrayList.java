@@ -44,8 +44,25 @@ public class PropertyArrayList extends CastorArrayList<Property> {
 
     public void put(Property p) {
         //TODO: this shall be based on the contains() of the list
+        if (list.contains(p)) {
+            
+        }
         remove(p);
         list.add(p);
+    }
+
+    public boolean contains(String name) {
+        for (Property p : list) {
+            if (p.getName().equals(p.getName())) return true;
+        }
+        return false;
+    }
+
+    public Property get(String name) {
+        for (Property p : list) {
+            if (p.getName().equals(p.getName())) return p;
+        }
+        return null;
     }
 
     /**
