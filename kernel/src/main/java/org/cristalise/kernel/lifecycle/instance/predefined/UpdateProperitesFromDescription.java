@@ -41,6 +41,10 @@ import org.cristalise.kernel.property.PropertyDescriptionList;
 import org.cristalise.kernel.property.PropertyUtility;
 import org.cristalise.kernel.utils.Logger;
 
+
+/**
+ * {@value #description}
+ */
 public class UpdateProperitesFromDescription extends PredefinedStep {
 
     public static final String description = "Updates the Properties of the Item from its description";
@@ -49,6 +53,9 @@ public class UpdateProperitesFromDescription extends PredefinedStep {
         super();
     }
 
+    /**
+     * 
+     */
     protected String runActivityLogic(AgentPath agent, ItemPath item, int transitionID, String requestData, Object locker)
             throws  InvalidDataException,
                     InvalidCollectionModification,
@@ -72,6 +79,7 @@ public class UpdateProperitesFromDescription extends PredefinedStep {
             if (propDesc.definesProperty(existingPropName)) {
                 Property existingProp = PropertyUtility.getProperty(item, existingPropName, locker);
 
+                //TODO: cover the case when the mutable flag was changed
                 if (existingProp.isMutable()) {
                     //Update existing mutable Property if initial Property list contains it
                     Property initProp = initProps.get(existingPropName);
@@ -107,6 +115,15 @@ public class UpdateProperitesFromDescription extends PredefinedStep {
         return requestData;
     }
 
+    /**
+     * 
+     * @param descPath
+     * @param descVer
+     * @param locker
+     * @return
+     * @throws ObjectNotFoundException
+     * @throws InvalidDataException
+     */
     private PropertyDescriptionList getPropertyDesc(String descPath, String descVer, Object locker) throws ObjectNotFoundException, InvalidDataException {
         ItemPath descItemPath;
 

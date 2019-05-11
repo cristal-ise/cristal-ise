@@ -46,6 +46,9 @@ import org.cristalise.kernel.property.PropertyArrayList;
 import org.cristalise.kernel.property.PropertyUtility;
 import org.cristalise.kernel.utils.Logger;
 
+/**
+ * {@value #description}
+ */
 public class UpdateCollectionsFromDescription extends PredefinedStep {
 
     public static final String description = "Updates the Collections of the Item from its description";
@@ -54,6 +57,9 @@ public class UpdateCollectionsFromDescription extends PredefinedStep {
         super();
     }
 
+    /**
+     * 
+     */
     protected String runActivityLogic(AgentPath agent, ItemPath item, int transitionID, String requestData, Object locker)
             throws  InvalidDataException,
                     InvalidCollectionModification,
@@ -84,7 +90,7 @@ public class UpdateCollectionsFromDescription extends PredefinedStep {
         PropertyArrayList newItemProps = new PropertyArrayList();
         List<String> currentCollNames = new ArrayList<>(Arrays.asList(Gateway.getStorage().getClusterContents(item, COLLECTION)));
 
-        //Loop through desc collection names and create new ones
+        //Loop through collection desc names and create new ones
         for (String collName :  Gateway.getStorage().getClusterContents(descItemPath, COLLECTION, locker)) {
             if (! currentCollNames.contains(collName)) {
                 Collection<?> newColl = CreateItemFromDescription.instantiateCollection(collName, descItemPath, descVer, newItemProps, locker);
