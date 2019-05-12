@@ -3,21 +3,40 @@
   "cls": {"grid": {"container": "ui-g-12"}},
   "id": "TestData",
   "type": "GROUP",
-  "group": [{
-    "validators": {"required": null, "pattern": "^\\d{0,1}\\.?\\d{0,2}$"},
-    "cls": {
-      "grid": {
-        "container": "ui-g",
-        "control": "ui-g-8",
-        "label": "ui-g-4"
+  "group": [
+    {
+      "validators": {"required": null, "pattern": "^\\d+\\.?\\d{0,2}$"},
+      "cls": {
+        "grid": {
+          "container": "ui-g",
+          "control": "ui-g-8",
+          "label": "ui-g-4"
+        },
+        "element": {"label": "ui-widget"}
       },
-      "element": {"label": "ui-widget"}
+      "id": "efficiencyFraction",
+      "label": "efficiency Fraction *",
+      "placeholder": "efficiency Fraction",
+      "type": "INPUT",
+      "value": "0.0",
+      "required": true
     },
-    "id": "efficiency",
-    "label": "efficiency *",
-    "placeholder": "efficiency",
-    "type": "INPUT",
-    "value": "0.0",
-    "required": true
-  }]
+    {
+      "validators": {"required": null, "pattern": "^\\d{0,3}\\.?\\d{0,2}$"},
+      "cls": {
+        "grid": {
+          "container": "ui-g",
+          "control": "ui-g-8",
+          "label": "ui-g-4"
+        },
+        "element": {"label": "ui-widget"}
+      },
+      "id": "efficiency",
+      "label": "efficiency *",
+      "placeholder": "efficiency",
+      "type": "INPUT",
+      "value": "0.0",
+      "required": true
+    }
+  ]
 }]

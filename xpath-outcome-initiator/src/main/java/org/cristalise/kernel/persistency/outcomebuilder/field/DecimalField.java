@@ -22,9 +22,11 @@ package org.cristalise.kernel.persistency.outcomebuilder.field;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.text.DecimalFormatSymbols;
+import java.util.Locale;
+
 import org.apache.commons.lang3.StringUtils;
 import org.cristalise.kernel.persistency.outcomebuilder.InvalidOutcomeException;
-import org.cristalise.kernel.utils.Logger;
 import org.exolab.castor.xml.schema.Facet;
 import org.json.JSONObject;
 
@@ -49,29 +51,47 @@ public class DecimalField extends NumberField {
 
         super.setData(value.toString());
     }
-    
+
     @Override
     public void setNgDynamicFormsValidators(JSONObject validators) {
-        Logger.msg("***************setNgDynamicFormsValidators***************");
+        //WE shouzld be using locale sepcific separators
+        //char separator = new DecimalFormatSymbols(Locale.getDefault(Locale.Category.FORMAT)).getDecimalSeparator();
+        char separator = '.';
+
         super.setNgDynamicFormsValidators(validators);
-        Logger.msg("***************" + name + " PATTERN START***************");
 
         if (StringUtils.isNotBlank(pattern)) {
             validators.put("pattern", pattern);
-        } else if (contentType.hasFacet(Facet.TOTALDIGITS) || contentType.hasFacet(Facet.FRACTIONDIGITS)) {
-            String pattern = buildPatternFromRestrictions();
-            validators.put("pattern", pattern);
         }
-        
-        Logger.msg("***************" + name + " PATTERN END***************");
-    }
+        else {
+            Integer totalDigits = null;
+            Integer fractionDigits = null;
 
-    private String buildPatternFromRestrictions() {
-      BigDecimal totalDigits = getRangeValue(Facet.TOTALDIGITS);
-      BigDecimal fractionDigits = getRangeValue(Facet.FRACTIONDIGITS);
-      String naturalNumbers = totalDigits.subtract(fractionDigits).toPlainString();
-      String decimals = fractionDigits.equals(BigDecimal.ZERO) ? "" : fractionDigits.toPlainString();
-      
-      return "^\\\\d{0," + naturalNumbers + "}\\\\.?\\\\d{0," + decimals + "}$";
+            if(contentType.hasFacet(Facet.TOTALDIGITS)) {
+                Facet f = contentType.getFacet(Facet.TOTALDIGITS);
+                totalDigits = Integer.valueOf(f.getValue());
+            }
+
+            if(contentType.hasFacet(Facet.FRACTIONDIGITS)) {
+                Facet f = contentType.getFacet(Facet.FRACTIONDIGITS);
+                fractionDigits = Integer.valueOf(f.getValue());
+            }
+
+            if (totalDigits == null && fractionDigits == null) {
+                //
+                //validators.put("pattern", "^\\d+\\"+separator+"?\\d+$");
+            }
+            else if (totalDigits != null) {
+                if (fractionDigits == null) {
+                    //perhaps is it possible to generate the regex using 'or'
+                    throw new IllegalArgumentException("totlaDigits must be used together with fractionDigits");
+                }
+
+                validators.put("pattern", "^\\d{0," + (totalDigits - fractionDigits) + "}\\"+separator+"?\\d{0," + fractionDigits + "}$");
+            }
+            else {
+                validators.put("pattern", "^\\d+\\"+separator+"?\\d{0," + fractionDigits + "}$");
+            }
+        }
     }
 }

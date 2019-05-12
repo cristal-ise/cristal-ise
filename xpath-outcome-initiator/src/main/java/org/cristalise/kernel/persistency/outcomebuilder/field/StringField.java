@@ -243,7 +243,9 @@ public class StringField {
              || contentType.hasFacet(Facet.MIN_LENGTH)
              || contentType.hasFacet(Facet.MAX_LENGTH)
              || contentType.hasFacet(Facet.LENGTH)
-             || StringUtils.isNoneBlank(pattern);
+             || contentType.hasFacet(Facet.TOTALDIGITS)
+             || contentType.hasFacet(Facet.FRACTIONDIGITS)
+             || StringUtils.isNotBlank(pattern);
     }
 
     public Structure getModel() {

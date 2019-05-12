@@ -25,10 +25,17 @@
   <xs:element name='TestData'>
     <xs:complexType>
       <xs:all minOccurs='0'>
+        <xs:element minOccurs="1" maxOccurs="1" name="efficiencyFraction">
+          <xs:simpleType>
+            <xs:restriction base="xs:decimal">
+              <xs:fractionDigits value="2" />
+            </xs:restriction>
+          </xs:simpleType>
+        </xs:element>
         <xs:element minOccurs="1" maxOccurs="1" name="efficiency">
           <xs:simpleType>
             <xs:restriction base="xs:decimal">
-              <xs:totalDigits value="3" />
+              <xs:totalDigits value="5" />
               <xs:fractionDigits value="2" />
             </xs:restriction>
           </xs:simpleType>
