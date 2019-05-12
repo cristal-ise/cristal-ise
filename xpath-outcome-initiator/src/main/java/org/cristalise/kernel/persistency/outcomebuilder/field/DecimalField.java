@@ -54,7 +54,7 @@ public class DecimalField extends NumberField {
 
     @Override
     public void setNgDynamicFormsValidators(JSONObject validators) {
-        //WE shouzld be using locale sepcific separators
+        //locale specific separators could be used, but it should be beased on the locale of the browser
         //char separator = new DecimalFormatSymbols(Locale.getDefault(Locale.Category.FORMAT)).getDecimalSeparator();
         char separator = '.';
 
@@ -78,7 +78,7 @@ public class DecimalField extends NumberField {
             }
 
             if (totalDigits == null && fractionDigits == null) {
-                //
+                //default validator for any decimal field
                 //validators.put("pattern", "^\\d+\\"+separator+"?\\d+$");
             }
             else if (totalDigits != null) {
