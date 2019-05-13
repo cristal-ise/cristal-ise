@@ -23,6 +23,7 @@ package org.cristalise.kernel.lifecycle.instance.predefined;
 import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.MEMBER_REMOVE_SCRIPT;
 
 import org.cristalise.kernel.collection.Dependency;
+import org.cristalise.kernel.collection.DependencyMember;
 import org.cristalise.kernel.common.InvalidCollectionModification;
 import org.cristalise.kernel.common.InvalidDataException;
 import org.cristalise.kernel.common.ObjectNotFoundException;
@@ -49,13 +50,21 @@ public class RemoveSlotFromCollection extends PredefinedStepCollectionBase {
     {
         unpackParamsAndGetCollection(item, requestData, locker);
 
+        if (slotID == -1 ) throw new InvalidDataException("Must give slot number to remove member");
+
         if (collection instanceof Dependency && ((Dependency)collection).containsBuiltInProperty(MEMBER_REMOVE_SCRIPT)) {
+            Dependency dep = (Dependency) collection;
+            DependencyMember member = dep.getMember( slotID );
+
             CastorHashMap scriptProps = new CastorHashMap();
             scriptProps.put("collection", collection);
             scriptProps.put("slotID", slotID);
+            scriptProps.put("member", member);
 
-            evaluateScript(item, (String)((Dependency)collection).getBuiltInProperty(MEMBER_REMOVE_SCRIPT), scriptProps, locker);
+            evaluateScript(item, (String) dep.getBuiltInProperty(MEMBER_REMOVE_SCRIPT), scriptProps, locker);
         }
+        else
+            throw new InvalidCollectionModification("Currently RemoveSlotFromCollection only supports Dependency");
 
         // Remove the slot
         collection.removeMember(slotID);
