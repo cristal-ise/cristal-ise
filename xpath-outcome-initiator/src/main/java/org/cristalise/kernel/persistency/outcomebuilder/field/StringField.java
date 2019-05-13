@@ -42,6 +42,7 @@ import org.exolab.castor.xml.schema.AttributeDecl;
 import org.exolab.castor.xml.schema.ElementDecl;
 import org.exolab.castor.xml.schema.Facet;
 import org.exolab.castor.xml.schema.SimpleType;
+import org.exolab.castor.xml.schema.SimpleTypesFactory;
 import org.exolab.castor.xml.schema.Structure;
 import org.exolab.castor.xml.schema.XMLType;
 import org.exolab.castor.xml.schema.simpletypes.ListType;
@@ -245,6 +246,7 @@ public class StringField {
              || contentType.hasFacet(Facet.LENGTH)
              || contentType.hasFacet(Facet.TOTALDIGITS)
              || contentType.hasFacet(Facet.FRACTIONDIGITS)
+             || getFieldType(model).getTypeCode() == SimpleTypesFactory.DECIMAL_TYPE //always generated for decimal field
              || StringUtils.isNotBlank(pattern);
     }
 
