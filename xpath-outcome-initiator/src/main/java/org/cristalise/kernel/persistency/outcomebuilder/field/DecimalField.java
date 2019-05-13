@@ -22,11 +22,10 @@ package org.cristalise.kernel.persistency.outcomebuilder.field;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.text.DecimalFormatSymbols;
-import java.util.Locale;
 
 import org.apache.commons.lang3.StringUtils;
 import org.cristalise.kernel.persistency.outcomebuilder.InvalidOutcomeException;
+import org.cristalise.kernel.process.Gateway;
 import org.exolab.castor.xml.schema.Facet;
 import org.json.JSONObject;
 
@@ -54,9 +53,9 @@ public class DecimalField extends NumberField {
 
     @Override
     public void setNgDynamicFormsValidators(JSONObject validators) {
-        //locale specific separators could be used, but it should be beased on the locale of the browser
+        //locale specific separators could be used, but it should be based on the locale of the browser
         //char separator = new DecimalFormatSymbols(Locale.getDefault(Locale.Category.FORMAT)).getDecimalSeparator();
-        char separator = '.';
+        char separator = Gateway.getProperties().getString("Webui.decimal.separator", ".").charAt(0);
 
         super.setNgDynamicFormsValidators(validators);
 
@@ -79,18 +78,17 @@ public class DecimalField extends NumberField {
 
             if (totalDigits == null && fractionDigits == null) {
                 //default validator for any decimal field
-                //validators.put("pattern", "^\\d+\\"+separator+"?\\d+$");
+                validators.put("pattern", "^\\d+\\" + separator + "?\\d+$");
             }
             else if (totalDigits != null) {
                 if (fractionDigits == null) {
-                    //perhaps is it possible to generate the regex using 'or'
-                    throw new IllegalArgumentException("totlaDigits must be used together with fractionDigits");
+                    validators.put("pattern", "^\\d{0," + totalDigits + "}$");
                 }
-
-                validators.put("pattern", "^\\d{0," + (totalDigits - fractionDigits) + "}\\"+separator+"?\\d{0," + fractionDigits + "}$");
+                else
+                    validators.put("pattern", "^\\d{0," + (totalDigits - fractionDigits) + "}\\" + separator + "?\\d{0," + fractionDigits + "}$");
             }
             else {
-                validators.put("pattern", "^\\d+\\"+separator+"?\\d{0," + fractionDigits + "}$");
+                validators.put("pattern", "^\\d+\\" + separator + "?\\d{0," + fractionDigits + "}$");
             }
         }
     }

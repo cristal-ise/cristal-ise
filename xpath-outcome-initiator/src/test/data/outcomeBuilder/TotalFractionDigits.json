@@ -5,6 +5,23 @@
   "type": "GROUP",
   "group": [
     {
+      "validators": {"required": null, "pattern": "^\\d+\\.?\\d+$"},
+      "cls": {
+        "grid": {
+          "container": "ui-g",
+          "control": "ui-g-8",
+          "label": "ui-g-4"
+        },
+        "element": {"label": "ui-widget"}
+      },
+      "id": "efficiency",
+      "label": "efficiency *",
+      "placeholder": "efficiency",
+      "type": "INPUT",
+      "value": "0.0",
+      "required": true
+    },
+    {
       "validators": {"required": null, "pattern": "^\\d+\\.?\\d{0,2}$"},
       "cls": {
         "grid": {
@@ -22,6 +39,23 @@
       "required": true
     },
     {
+      "validators": {"required": null, "pattern": "^\\d{0,5}$"},
+      "cls": {
+        "grid": {
+          "container": "ui-g",
+          "control": "ui-g-8",
+          "label": "ui-g-4"
+        },
+        "element": {"label": "ui-widget"}
+      },
+      "id": "efficiencyTotal",
+      "label": "efficiency Total *",
+      "placeholder": "efficiency Total",
+      "type": "INPUT",
+      "value": "0.0",
+      "required": true
+    },
+    {
       "validators": {"required": null, "pattern": "^\\d{0,3}\\.?\\d{0,2}$"},
       "cls": {
         "grid": {
@@ -31,9 +65,9 @@
         },
         "element": {"label": "ui-widget"}
       },
-      "id": "efficiency",
-      "label": "efficiency *",
-      "placeholder": "efficiency",
+      "id": "efficiencyBoth",
+      "label": "efficiency Both *",
+      "placeholder": "efficiency Both",
       "type": "INPUT",
       "value": "0.0",
       "required": true
