@@ -52,7 +52,10 @@ public class RemoveSlotFromCollection extends PredefinedStepCollectionBase {
 
         if (slotID == -1 ) throw new InvalidDataException("Must give slot number to remove member");
 
-        if (collection instanceof Dependency && ((Dependency)collection).containsBuiltInProperty(MEMBER_REMOVE_SCRIPT)) {
+        if (collection instanceof Dependency)
+            throw new InvalidCollectionModification("Currently RemoveSlotFromCollection only supports Dependency");
+
+        if (((Dependency)collection).containsBuiltInProperty(MEMBER_REMOVE_SCRIPT)) {
             Dependency dep = (Dependency) collection;
             DependencyMember member = dep.getMember( slotID );
 
@@ -63,8 +66,6 @@ public class RemoveSlotFromCollection extends PredefinedStepCollectionBase {
 
             evaluateScript(item, (String) dep.getBuiltInProperty(MEMBER_REMOVE_SCRIPT), scriptProps, locker);
         }
-        else
-            throw new InvalidCollectionModification("Currently RemoveSlotFromCollection only supports Dependency");
 
         // Remove the slot
         collection.removeMember(slotID);
@@ -72,6 +73,5 @@ public class RemoveSlotFromCollection extends PredefinedStepCollectionBase {
         Gateway.getStorage().put(item, collection, locker);
 
         return requestData;
-
     }
 }
