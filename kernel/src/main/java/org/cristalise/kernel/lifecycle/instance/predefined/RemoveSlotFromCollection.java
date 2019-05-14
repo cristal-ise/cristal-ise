@@ -34,7 +34,7 @@ import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.utils.CastorHashMap;
 
 /**
- * Params: 0 - collection name 1 - slot number OR if -1: 2 - target entity key
+ * {@value #description} - Params: 0 - collection name, 1 - slot id
  */
 public class RemoveSlotFromCollection extends PredefinedStepCollectionBase {
     
@@ -50,15 +50,11 @@ public class RemoveSlotFromCollection extends PredefinedStepCollectionBase {
     {
         unpackParamsAndGetCollection(item, requestData, locker);
 
-        if (slotID == -1 ) throw new InvalidDataException("Must give slot number to remove member");
+        if (slotID == -1) throw new InvalidDataException(item + " must give slot id to remove member");
 
-        if (!(collection instanceof Dependency)) {
-            throw new InvalidCollectionModification("Currently RemoveSlotFromCollection only supports Dependency");
-        }
-
-        if (((Dependency)collection).containsBuiltInProperty(MEMBER_REMOVE_SCRIPT)) {
+        if (collection instanceof Dependency && ((Dependency)collection).containsBuiltInProperty(MEMBER_REMOVE_SCRIPT)) {
             Dependency dep = (Dependency) collection;
-            DependencyMember member = dep.getMember( slotID );
+            DependencyMember member = dep.getMember(slotID);
 
             CastorHashMap scriptProps = new CastorHashMap();
             scriptProps.put("collection", collection);
