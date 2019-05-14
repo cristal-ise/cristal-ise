@@ -52,8 +52,9 @@ public class RemoveSlotFromCollection extends PredefinedStepCollectionBase {
 
         if (slotID == -1 ) throw new InvalidDataException("Must give slot number to remove member");
 
-        if (collection instanceof Dependency)
+        if (!(collection instanceof Dependency)) {
             throw new InvalidCollectionModification("Currently RemoveSlotFromCollection only supports Dependency");
+        }
 
         if (((Dependency)collection).containsBuiltInProperty(MEMBER_REMOVE_SCRIPT)) {
             Dependency dep = (Dependency) collection;
