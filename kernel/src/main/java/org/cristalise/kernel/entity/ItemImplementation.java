@@ -382,7 +382,16 @@ public class ItemImplementation implements ItemOperations {
 
             if (secMan.isShiroEnabled()) {
                 for (Job j: jobs) {
-                    if (secMan.checkPermissions(agent, (Activity) wf.search(j.getStepPath()), mItemPath)) jobBag.list.add(j);
+                    Activity act =  (Activity) wf.search(j.getStepPath());
+                    if (secMan.checkPermissions(agent, act, mItemPath)) {
+                        try {
+                            //Throws AccessRightsException if Job requires specific Role that agent does not have
+                            j.getTransition().getPerformingRole(act, agent);
+                            jobBag.list.add(j);
+                        }
+                        catch (AccessRightsException e) {
+                        }
+                    }
                 }
             }
             else
