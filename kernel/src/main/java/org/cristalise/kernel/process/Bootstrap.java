@@ -25,12 +25,12 @@ import static org.cristalise.kernel.property.BuiltInItemProperties.MODULE;
 import static org.cristalise.kernel.property.BuiltInItemProperties.NAME;
 import static org.cristalise.kernel.property.BuiltInItemProperties.TYPE;
 import static org.cristalise.kernel.security.BuiltInAuthc.ADMIN_ROLE;
+import static org.cristalise.kernel.security.BuiltInAuthc.SYSTEM_AGENT;
 import java.net.InetAddress;
 import java.util.HashMap;
 import java.util.Set;
 import java.util.StringTokenizer;
 import java.util.UUID;
-
 import org.apache.commons.lang3.StringUtils;
 import org.cristalise.kernel.collection.Collection;
 import org.cristalise.kernel.collection.CollectionArrayList;
@@ -137,7 +137,7 @@ public class Bootstrap
                     }
 
                     if (!shutdown) {
-                        Gateway.getModuleManager().setUser(systemAgents.get("system"));
+                        Gateway.getModuleManager().setUser(systemAgents.get(SYSTEM_AGENT.getName()));
                         Gateway.getModuleManager().registerModules();
                     }
 
@@ -368,7 +368,7 @@ public class Bootstrap
         History hist = new History( item.getPath(), item);
         String viewName = String.valueOf(version);
 
-        int eventID = hist.addEvent( systemAgents.get("system").getPath(), null,
+        int eventID = hist.addEvent( systemAgents.get(SYSTEM_AGENT.getName()).getPath(), null,
                 ADMIN_ROLE.getName(), "Bootstrap", "Bootstrap", "Bootstrap",
                 newOutcome.getSchema(), getPredefSM(), PredefinedStep.DONE, viewName
                 ).getID();
@@ -462,7 +462,7 @@ public class Bootstrap
         newDomPath.setItemPath(itemPath);
         lookupManager.add(newDomPath);
         ItemProxy newItemProxy = Gateway.getProxyManager().getProxy(itemPath);
-        newItemProxy.initialise( systemAgents.get("system").getPath(), props, ca, null);
+        newItemProxy.initialise( systemAgents.get(SYSTEM_AGENT.getName()).getPath(), props, ca, null);
         return newItemProxy;
     }
 
@@ -528,7 +528,7 @@ public class Bootstrap
         Gateway.getLookupManager().setPermission(adminRole, "*");
 
         // check for import Agent
-        AgentProxy system = checkAgent("system", null, adminRole, new UUID(0, 1).toString());
+        AgentProxy system = checkAgent(SYSTEM_AGENT.getName(), null, adminRole, new UUID(0, 1).toString());
         ScriptConsole.setUser(system);
 
         String ucRole = Gateway.getProperties().getString("UserCode.roleOverride", UserCodeProcess.DEFAULT_ROLE);
@@ -574,7 +574,7 @@ public class Bootstrap
     public static void initServerItemWf() throws Exception {
         CompositeActivityDef serverWfCa = (CompositeActivityDef)LocalObjectLoader.getActDef("ServerItemWorkflow", 0);
         Workflow wf = new Workflow((CompositeActivity)serverWfCa.instantiate(), new ServerPredefinedStepContainer());
-        wf.initialise(thisServerPath.getItemPath(), systemAgents.get("system").getPath(), null);
+        wf.initialise(thisServerPath.getItemPath(), systemAgents.get(SYSTEM_AGENT.getName()).getPath(), null);
         Gateway.getStorage().put(thisServerPath.getItemPath(), wf, null);
     }
 }

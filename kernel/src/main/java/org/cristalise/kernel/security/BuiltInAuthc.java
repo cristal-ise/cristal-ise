@@ -5,7 +5,15 @@ import lombok.Getter;
 @Getter
 public enum BuiltInAuthc {
 
-    ADMIN_ROLE("Admin"), SYSTEM_AGENT("system");
+    /**
+     * 
+     */
+    ADMIN_ROLE("Admin"), 
+
+    /**
+     * 
+     */
+    SYSTEM_AGENT("system");
     
     private String name;
 
