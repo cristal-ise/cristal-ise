@@ -42,8 +42,11 @@ public class Erase extends PredefinedStep {
 
     public Erase() {
         super();
-        String extraRoles = Gateway.getProperties().getString("PredefinedStep.Erase.roles");
-        getProperties().put(AGENT_ROLE.getName(), ADMIN_ROLE.getName() + (extraRoles != null ? ","+extraRoles : ""));
+
+        if (Gateway.getProperties().getBoolean("PredefinedStep.AgentRole.enableAdmin", false)) {
+            String extraRoles = Gateway.getProperties().getString("PredefinedStep.Erase.roles");
+            getProperties().put(AGENT_ROLE.getName(), ADMIN_ROLE.getName() + (extraRoles != null ? ","+extraRoles : ""));
+        }
     }
 
     /**

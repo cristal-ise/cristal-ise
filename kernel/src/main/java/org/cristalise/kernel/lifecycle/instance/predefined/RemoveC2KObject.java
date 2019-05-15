@@ -33,7 +33,9 @@ import org.cristalise.kernel.utils.Logger;
 public class RemoveC2KObject extends PredefinedStep {
     public RemoveC2KObject() {
         super();
-        getProperties().put(AGENT_ROLE.getName(), ADMIN_ROLE.getName());
+        if (Gateway.getProperties().getBoolean("PredefinedStep.AgentRole.enableAdmin", false)) {
+            getProperties().put(AGENT_ROLE.getName(), ADMIN_ROLE.getName());
+        }
     }
 
     // requestdata is xmlstring

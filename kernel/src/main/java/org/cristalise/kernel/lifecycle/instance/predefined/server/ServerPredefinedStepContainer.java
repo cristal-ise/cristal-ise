@@ -25,6 +25,7 @@ import static org.cristalise.kernel.security.BuiltInAuthc.ADMIN_ROLE;
 import org.cristalise.kernel.graph.model.GraphPoint;
 import org.cristalise.kernel.lifecycle.instance.predefined.PredefinedStep;
 import org.cristalise.kernel.lifecycle.instance.predefined.PredefinedStepContainer;
+import org.cristalise.kernel.process.Gateway;
 
 public class ServerPredefinedStepContainer extends PredefinedStepContainer {
 
@@ -45,7 +46,9 @@ public class ServerPredefinedStepContainer extends PredefinedStepContainer {
         act.setName(alias);
         act.setType(alias);
         act.getProperties().put("Description", Description);
-        act.getProperties().put(AGENT_ROLE.getName(), ADMIN_ROLE.getName());
+        if (Gateway.getProperties().getBoolean("PredefinedStep.AgentRole.enableAdmin", false)) {
+            act.getProperties().put(AGENT_ROLE.getName(), ADMIN_ROLE.getName());
+        }
         act.setCentrePoint(new GraphPoint());
         act.setIsPredefined(true);
         addChild(act, new GraphPoint(100, 75 * ++num));
