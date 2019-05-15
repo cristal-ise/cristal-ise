@@ -169,9 +169,9 @@ public class Transition {
             RolePath matchingRole = agent.getFirstMatchingRole(roles);
 
             if (matchingRole != null) 
-              return matchingRole.getName();
+                return matchingRole.getName();
             else if (agent.hasRole(ADMIN_ROLE.getName())) 
-              return ADMIN_ROLE.getName();
+                return ADMIN_ROLE.getName();
             else
                 throw new AccessRightsException("Agent '" + agent.getAgentName() + "' does not hold a suitable role '" + act.getCurrentAgentRole() + "' for the activity " + act.getName());
         }
