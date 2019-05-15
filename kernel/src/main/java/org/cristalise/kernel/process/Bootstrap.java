@@ -24,7 +24,7 @@ import static org.cristalise.kernel.property.BuiltInItemProperties.KERNEL_VERSIO
 import static org.cristalise.kernel.property.BuiltInItemProperties.MODULE;
 import static org.cristalise.kernel.property.BuiltInItemProperties.NAME;
 import static org.cristalise.kernel.property.BuiltInItemProperties.TYPE;
-
+import static org.cristalise.kernel.security.BuiltInAuthc.ADMIN_ROLE;
 import java.net.InetAddress;
 import java.util.HashMap;
 import java.util.Set;
@@ -369,7 +369,7 @@ public class Bootstrap
         String viewName = String.valueOf(version);
 
         int eventID = hist.addEvent( systemAgents.get("system").getPath(), null,
-                "Admin", "Bootstrap", "Bootstrap", "Bootstrap",
+                ADMIN_ROLE.getName(), "Bootstrap", "Bootstrap", "Bootstrap",
                 newOutcome.getSchema(), getPredefSM(), PredefinedStep.DONE, viewName
                 ).getID();
 
@@ -523,7 +523,7 @@ public class Bootstrap
         if (!rootRole.exists()) Gateway.getLookupManager().createRole(rootRole);
 
         // check for admin role
-        RolePath adminRole = new RolePath(rootRole, "Admin", false);
+        RolePath adminRole = new RolePath(rootRole, ADMIN_ROLE.getName(), false);
         if (!adminRole.exists()) Gateway.getLookupManager().createRole(adminRole);
         Gateway.getLookupManager().setPermission(adminRole, "*");
 

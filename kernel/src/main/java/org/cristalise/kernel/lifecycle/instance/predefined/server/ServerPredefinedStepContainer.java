@@ -20,6 +20,8 @@
  */
 package org.cristalise.kernel.lifecycle.instance.predefined.server;
 
+import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.AGENT_ROLE;
+import static org.cristalise.kernel.security.BuiltInAuthc.ADMIN_ROLE;
 import org.cristalise.kernel.graph.model.GraphPoint;
 import org.cristalise.kernel.lifecycle.instance.predefined.PredefinedStep;
 import org.cristalise.kernel.lifecycle.instance.predefined.PredefinedStepContainer;
@@ -43,7 +45,7 @@ public class ServerPredefinedStepContainer extends PredefinedStepContainer {
         act.setName(alias);
         act.setType(alias);
         act.getProperties().put("Description", Description);
-        act.getProperties().put("Agent Role", "Admin");
+        act.getProperties().put(AGENT_ROLE.getName(), ADMIN_ROLE.getName());
         act.setCentrePoint(new GraphPoint());
         act.setIsPredefined(true);
         addChild(act, new GraphPoint(100, 75 * ++num));
