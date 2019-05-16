@@ -94,7 +94,7 @@
       "required": true
     },
     {
-      "validators": {"required": null},
+      "validators": {"required": null, "pattern": "^\\d+\\.?\\d+$"},
       "cls": {
         "grid": {
           "container": "ui-g",
