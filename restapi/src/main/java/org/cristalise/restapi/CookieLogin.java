@@ -88,14 +88,7 @@ public class CookieLogin extends RestHandler {
         // create and set cookie
         AuthData agentData = new AuthData(agentPath);
         try {
-            NewCookie cookie;
-
-            int cookieLife = Gateway.getProperties().getInt("REST.loginCookieLife", 0);
-
-            if (cookieLife > 0)
-                cookie = new NewCookie(COOKIENAME, encryptAuthData(agentData), "/", null, null, cookieLife, false);
-            else
-                cookie = new NewCookie(COOKIENAME, encryptAuthData(agentData));
+            NewCookie cookie = new NewCookie(COOKIENAME, encryptAuthData(agentData));
             
             //Issue #143: Read 'password temporary flag' from Lookup, because agentPath is taken from AgentProxy which could be cached
             boolean tempPwd = Gateway.getLookup().getAgentPath(agentPath.getAgentName()).isPasswordTemporary();
