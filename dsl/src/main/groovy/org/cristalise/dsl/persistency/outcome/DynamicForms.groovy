@@ -42,6 +42,7 @@ class DynamicForms {
     Boolean showSeconds = null
     String type = null
     String value = null
+    String oos = null
     
     /**
      * Defines the Script name and version (e.g. GetShiftNames:0) which is executed when
