@@ -158,10 +158,18 @@ class SchemaDelegate {
             if (f.dynamicForms.pattern != null)     pattern(     f.dynamicForms.pattern)
             if (f.dynamicForms.errmsg != null)      errmsg(      f.dynamicForms.errmsg)
             if (f.dynamicForms.showSeconds != null) showSeconds( f.dynamicForms.showSeconds)
-            
-            if (f.dynamicForms.updateScriptRef != null) additional{ updateScriptRef(f.dynamicForms.updateScriptRef) }
-            if (f.dynamicForms.updateQuerytRef != null) additional{ updateQuerytRef(f.dynamicForms.updateQuerytRef) }
-            if (f.dynamicForms.oos != null) additional{ oos(f.dynamicForms.oos) }
+            if ((f.dynamicForms.updateScriptRef != null) || (f.dynamicForms.updateQuerytRef != null) || (f.dynamicForms.oos != null)) {
+                additional {
+                    if (f.dynamicForms.updateScriptRef != null) updateScriptRef(f.dynamicForms.updateScriptRef)
+                    if (f.dynamicForms.updateQuerytRef != null) updateQuerytRef(f.dynamicForms.updateQuerytRef)
+                    if (f.dynamicForms.oos != null) {
+                        oos {
+                            if (f.dynamicForms.oos.pattern != null) pattern(f.dynamicForms.oos.pattern)
+                            if (f.dynamicForms.oos.message != null) message(f.dynamicForms.oos.message)
+                        }
+                    }
+                }
+            }
         }
     }
 
