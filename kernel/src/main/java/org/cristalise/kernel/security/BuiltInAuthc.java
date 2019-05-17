@@ -26,12 +26,12 @@ import lombok.Getter;
 public enum BuiltInAuthc {
 
     /**
-     * 
+     * Built in Admin role
      */
     ADMIN_ROLE("Admin"), 
 
     /**
-     * 
+     * Built in 'system' agent
      */
     SYSTEM_AGENT("system");
     
