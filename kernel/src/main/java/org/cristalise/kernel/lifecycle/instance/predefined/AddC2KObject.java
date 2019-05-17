@@ -35,7 +35,9 @@ public class AddC2KObject extends PredefinedStep {
 
     public AddC2KObject() {
         super();
-        getProperties().put(AGENT_ROLE.getName(), ADMIN_ROLE.getName());
+        if (Gateway.getProperties().getBoolean("PredefinedStep.AgentRole.enableAdmin", false)) {
+            getProperties().put(AGENT_ROLE.getName(), ADMIN_ROLE.getName());
+        }
     }
 
     // requestdata is xmlstring
