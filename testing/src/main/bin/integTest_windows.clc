@@ -55,5 +55,7 @@ JOOQ.autoCommit=true
 //JOOQ.TemporaryPwdFieldImplemented=false
 
 Authenticator = Shiro
+Shiro.iniFile = src/main/bin/shiro.ini
+
 // set the default string value for EmptyOutcomeInitiator
 SimpleType.DefaultValues = 12:string
