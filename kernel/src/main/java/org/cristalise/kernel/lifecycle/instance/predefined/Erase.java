@@ -20,9 +20,8 @@
  */
 package org.cristalise.kernel.lifecycle.instance.predefined;
 
-import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.AGENT_ROLE;
-import static org.cristalise.kernel.security.BuiltInAuthc.ADMIN_ROLE;
 import java.util.Iterator;
+
 import org.cristalise.kernel.common.CannotManageException;
 import org.cristalise.kernel.common.InvalidDataException;
 import org.cristalise.kernel.common.ObjectCannotBeUpdated;
@@ -42,11 +41,7 @@ public class Erase extends PredefinedStep {
 
     public Erase() {
         super();
-
-        if (Gateway.getProperties().getBoolean("PredefinedStep.AgentRole.enableAdmin", false)) {
-            String extraRoles = Gateway.getProperties().getString("PredefinedStep.Erase.roles");
-            getProperties().put(AGENT_ROLE.getName(), ADMIN_ROLE.getName() + (extraRoles != null ? ","+extraRoles : ""));
-        }
+        addAdminAgentRole();
     }
 
     /**

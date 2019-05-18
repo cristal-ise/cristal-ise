@@ -36,9 +36,7 @@ import org.cristalise.kernel.utils.Logger;
 public class ReplaceDomainWorkflow extends PredefinedStep {
     public ReplaceDomainWorkflow() {
         super();
-        if (Gateway.getProperties().getBoolean("PredefinedStep.AgentRole.enableAdmin", false)) {
-            getProperties().put(AGENT_ROLE.getName(), ADMIN_ROLE.getName());
-        }
+        addAdminAgentRole();
     }
 
     @Override

@@ -385,17 +385,18 @@ public class ItemImplementation implements ItemOperations {
                     Activity act =  (Activity) wf.search(j.getStepPath());
                     if (secMan.checkPermissions(agent, act, mItemPath)) {
                         try {
-                            //Throws AccessRightsException if Job requires specific Role that agent does not have
                             j.getTransition().getPerformingRole(act, agent);
                             jobBag.list.add(j);
                         }
                         catch (AccessRightsException e) {
+                            //AccessRightsException is thrown if Job requires specific Role that agent does not have
                         }
                     }
                 }
             }
-            else
+            else {
                 jobBag.list = jobs;
+            }
 
             Logger.msg(1, "ItemImplementation::queryLifeCycle(" + mItemPath + ") - Returning " + jobBag.list.size() + " jobs.");
 

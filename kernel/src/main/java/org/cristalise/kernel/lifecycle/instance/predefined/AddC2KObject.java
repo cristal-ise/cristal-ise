@@ -20,9 +20,8 @@
  */
 package org.cristalise.kernel.lifecycle.instance.predefined;
 
-import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.AGENT_ROLE;
-import static org.cristalise.kernel.security.BuiltInAuthc.ADMIN_ROLE;
 import java.util.Arrays;
+
 import org.cristalise.kernel.common.InvalidDataException;
 import org.cristalise.kernel.common.PersistencyException;
 import org.cristalise.kernel.entity.C2KLocalObject;
@@ -35,9 +34,7 @@ public class AddC2KObject extends PredefinedStep {
 
     public AddC2KObject() {
         super();
-        if (Gateway.getProperties().getBoolean("PredefinedStep.AgentRole.enableAdmin", false)) {
-            getProperties().put(AGENT_ROLE.getName(), ADMIN_ROLE.getName());
-        }
+        addAdminAgentRole();
     }
 
     // requestdata is xmlstring
