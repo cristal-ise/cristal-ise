@@ -57,4 +57,14 @@ public class WriteProperty extends PredefinedStep {
 
         return requestData;
     }
+
+    /**
+     * @deprecated use PropertyUtility.writeProperty() instead
+     */
+    @Deprecated
+    public static void write(ItemPath item, String name, String value, Object locker)
+            throws PersistencyException, ObjectCannotBeUpdated, ObjectNotFoundException 
+    {
+        PropertyUtility.writeProperty(item, name, value, locker);
+    }
 }
