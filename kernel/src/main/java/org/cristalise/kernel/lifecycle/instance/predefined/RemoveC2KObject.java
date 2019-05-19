@@ -32,7 +32,6 @@ import org.cristalise.kernel.utils.Logger;
 public class RemoveC2KObject extends PredefinedStep {
     public RemoveC2KObject() {
         super();
-        addAdminAgentRole();
     }
 
     // requestdata is xmlstring

@@ -41,7 +41,6 @@ public class Erase extends PredefinedStep {
 
     public Erase() {
         super();
-        addAdminAgentRole();
     }
 
     /**

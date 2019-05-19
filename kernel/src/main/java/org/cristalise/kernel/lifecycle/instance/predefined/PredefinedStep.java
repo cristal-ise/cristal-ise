@@ -72,6 +72,8 @@ public abstract class PredefinedStep extends Activity {
         setBuiltInProperty(STATE_MACHINE_NAME, "PredefinedStep");
         setBuiltInProperty(SCHEMA_NAME, "PredefinedStepOutcome");
         setBuiltInProperty(SCHEMA_VERSION, "0");
+
+        addAdminAgentRole();
     }
 
     @Override
@@ -207,7 +209,7 @@ public abstract class PredefinedStep extends Activity {
         return null;
     }
 
-    public void addAdminAgentRole() {
+    protected void addAdminAgentRole() {
         if (Gateway.getProperties().getBoolean("PredefinedStep.AgentRole.enableAdmin", false)) {
             String extraRoles = Gateway.getProperties().getString("PredefinedStep."+ this.getClass().getSimpleName() +".roles");
             getProperties().setBuiltInProperty(AGENT_ROLE, ADMIN_ROLE.getName() + (StringUtils.isNotBlank(extraRoles) ? ","+extraRoles : ""));

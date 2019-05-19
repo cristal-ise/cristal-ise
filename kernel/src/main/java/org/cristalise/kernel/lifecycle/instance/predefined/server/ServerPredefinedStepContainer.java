@@ -45,7 +45,6 @@ public class ServerPredefinedStepContainer extends PredefinedStepContainer {
         act.setName(alias);
         act.setType(alias);
         act.getProperties().setBuiltInProperty(DESCRIPTION, Description);
-        act.addAdminAgentRole();
         act.setCentrePoint(new GraphPoint());
         act.setIsPredefined(true);
         addChild(act, new GraphPoint(100, 75 * ++num));

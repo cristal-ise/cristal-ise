@@ -20,9 +20,8 @@
  */
 package org.cristalise.kernel.lifecycle.instance.predefined;
 
-import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.AGENT_ROLE;
-import static org.cristalise.kernel.security.BuiltInAuthc.ADMIN_ROLE;
 import java.util.Arrays;
+
 import org.cristalise.kernel.common.InvalidDataException;
 import org.cristalise.kernel.common.PersistencyException;
 import org.cristalise.kernel.graph.model.GraphPoint;
@@ -36,7 +35,6 @@ import org.cristalise.kernel.utils.Logger;
 public class ReplaceDomainWorkflow extends PredefinedStep {
     public ReplaceDomainWorkflow() {
         super();
-        addAdminAgentRole();
     }
 
     @Override

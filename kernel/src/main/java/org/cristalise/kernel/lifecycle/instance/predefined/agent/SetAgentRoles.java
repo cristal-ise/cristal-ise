@@ -37,7 +37,6 @@ public class SetAgentRoles extends PredefinedStep {
 
     public SetAgentRoles() {
         super();
-        addAdminAgentRole();
     }
 
     @Override
