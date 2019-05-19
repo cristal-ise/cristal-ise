@@ -43,13 +43,13 @@ public class PropertyArrayList extends CastorArrayList<Property> {
     }
 
     public void put(Property p) {
-        if (list.contains(p)) remove(p);
+        if (contains(p.getName())) remove(p);
         list.add(p);
     }
 
     public boolean contains(String name) {
         for (Property p : list) {
-            if (p.getName().equals(p.getName())) return true;
+            if (p.getName().equals(name)) return true;
         }
         return false;
     }
