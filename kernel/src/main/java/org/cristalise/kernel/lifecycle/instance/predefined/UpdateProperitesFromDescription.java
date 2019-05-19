@@ -72,14 +72,14 @@ public class UpdateProperitesFromDescription extends PredefinedStep {
         String descVer  = inputs[1];
         PropertyArrayList initProps = inputs.length == 3 && StringUtils.isNotBlank(inputs[2]) ? unmarshallInitProperties(inputs[2]) : new PropertyArrayList();
 
-        PropertyDescriptionList propDesc = getPropertyDesc(descPath, descVer, locker);
+        PropertyDescriptionList newPropDesc = getPropertyDesc(descPath, descVer, locker);
 
         //Delete or update existing Properties
         for (String existingPropName: Gateway.getStorage().getClusterContents(item, ClusterType.PROPERTY)) {
-            if (propDesc.definesProperty(existingPropName)) {
+            if (newPropDesc.definesProperty(existingPropName)) {
                 Property existingProp = PropertyUtility.getProperty(item, existingPropName, locker);
 
-                //TODO: cover the case when the mutable flag was changed
+                //TODO: cover the cases when the mutable flag was changed
                 if (existingProp.isMutable()) {
                     //Update existing mutable Property if initial Property list contains it
                     Property initProp = initProps.get(existingPropName);
@@ -91,7 +91,7 @@ public class UpdateProperitesFromDescription extends PredefinedStep {
                 }
                 else {
                     //update existing immutable Property if its default value was changed
-                    String defaultValue = PropertyUtility.getValue(propDesc.list, existingPropName);
+                    String defaultValue = PropertyUtility.getDefaultValue(newPropDesc.list, existingPropName);
 
                     if (StringUtils.isNotBlank(defaultValue) && !defaultValue.equals(existingProp.getValue())) {
                         existingProp.setValue(defaultValue);
@@ -106,7 +106,7 @@ public class UpdateProperitesFromDescription extends PredefinedStep {
         }
 
         //Add new properties
-        for (Property newProp: propDesc.instantiate(initProps).list) {
+        for (Property newProp: newPropDesc.instantiate(initProps).list) {
             if (!PropertyUtility.propertyExists(item, newProp.getName(), locker)) {
                 Gateway.getStorage().put(item, newProp, locker);
             }

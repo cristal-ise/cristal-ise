@@ -43,11 +43,7 @@ public class PropertyArrayList extends CastorArrayList<Property> {
     }
 
     public void put(Property p) {
-        //TODO: this shall be based on the contains() of the list
-        if (list.contains(p)) {
-            
-        }
-        remove(p);
+        if (list.contains(p)) remove(p);
         list.add(p);
     }
 

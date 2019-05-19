@@ -42,13 +42,40 @@ import org.cristalise.kernel.utils.Logger;
  * Utility class to handle operations of ItemProperties and their description
  */
 public class PropertyUtility {
+    
+    /**
+     * Reads the default value of the Property
+     * 
+     * @param pdlist the list of Properties to search
+     * @param name name of the Property to search for
+     * @return the defeult value of the property. Can be null.
+     * @deprecated badly named method, use getDefaultValue() instead
+     */
     static public String getValue(ArrayList<PropertyDescription> pdlist, String name) {
+        return getDefaultValue(pdlist, name);
+    }
+
+    /**
+     * Reads the default value of the Property
+     * 
+     * @param pdlist the list of Properties to search
+     * @param name name of the Property to search for
+     * @return the defeult value of the property. Can be null.
+     */
+    static public String getDefaultValue(ArrayList<PropertyDescription> pdlist, String name) {
         for (PropertyDescription pd : pdlist) {
             if (name.equalsIgnoreCase(pd.getName())) return pd.getDefaultValue();
         }
         return null;
     }
 
+    /**
+     * 
+     * @param itemPath
+     * @param propName
+     * @param locker
+     * @return
+     */
     public static boolean propertyExists(ItemPath itemPath, String propName, Object locker) {
         try {
             String[] contents = Gateway.getStorage().getClusterContents(itemPath, ClusterType.PROPERTY);
@@ -61,10 +88,26 @@ public class PropertyUtility {
         return false;
     }
 
+    /**
+     * 
+     * @param itemPath
+     * @param prop
+     * @param locker
+     * @return
+     * @throws ObjectNotFoundException
+     */
     public static Property getProperty(ItemPath itemPath, BuiltInItemProperties prop, Object locker) throws ObjectNotFoundException {
         return getProperty(itemPath, prop.getName(), locker);
     }
 
+    /**
+     * 
+     * @param itemPath
+     * @param propName
+     * @param locker
+     * @return
+     * @throws ObjectNotFoundException
+     */
     public static Property getProperty(ItemPath itemPath, String propName, Object locker) throws ObjectNotFoundException {
         try {
             return (Property)Gateway.getStorage().get(itemPath, ClusterType.PROPERTY+"/"+propName, locker);
@@ -75,6 +118,11 @@ public class PropertyUtility {
         return null;
     }
 
+    /**
+     * 
+     * @param pdlist
+     * @return
+     */
     static public String getNames(ArrayList<PropertyDescription> pdlist) {
         StringBuffer names = new StringBuffer();
 
@@ -84,6 +132,11 @@ public class PropertyUtility {
         return names.toString();
     }
 
+    /**
+     * 
+     * @param pdlist
+     * @return
+     */
     static public String getClassIdNames(ArrayList<PropertyDescription> pdlist) {
         StringBuffer names = new StringBuffer();
 
@@ -128,6 +181,16 @@ public class PropertyUtility {
         }
     }
 
+    /**
+     * 
+     * @param itemPath
+     * @param descVer
+     * @param schema
+     * @param locker
+     * @return
+     * @throws PersistencyException
+     * @throws ObjectNotFoundException
+     */
     private static int getVersionID(ItemPath itemPath, String descVer, String schema, Object locker)
         throws PersistencyException, ObjectNotFoundException
     {
@@ -173,16 +236,30 @@ public class PropertyUtility {
         return props;
     }
 
+    /**
+     * Updates (writes) the value of an exitng Property
+     * 
+     * @param item the Path (UUID) of actual Item
+     * @param name the name of the Property to write
+     * @param value the value of the Property
+     * @param locker transaction key
+     * @throws PersistencyException something went wrong updating the database
+     * @throws ObjectCannotBeUpdated the Property is immutable
+     * @throws ObjectNotFoundException there is no Property with the given name
+     */
     public static void writeProperty(ItemPath item, String name, String value, Object locker)
             throws PersistencyException, ObjectCannotBeUpdated, ObjectNotFoundException
     {
         Property prop = (Property) Gateway.getStorage().get(item, ClusterType.PROPERTY + "/" + name, locker);
-    
-        if (!prop.isMutable() && !value.equals(prop.getValue()))
+
+        if (!prop.isMutable())
             throw new ObjectCannotBeUpdated("WriteProperty: Property '" + name + "' is not mutable.");
-    
-        prop.setValue(value);
-    
-        Gateway.getStorage().put(item, prop, locker);
+
+        //only update if the value was changed
+        if (!value.equals(prop.getValue())) {
+            prop.setValue(value);
+
+            Gateway.getStorage().put(item, prop, locker);
+        }
     }
 }
