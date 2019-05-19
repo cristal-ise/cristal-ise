@@ -40,6 +40,7 @@ class DynamicForms {
     String placeholder = null
     Boolean required = null
     Boolean showSeconds = null
+    Boolean hideOnDateTimeSelect = null
     String type = null
     String value = null
     
