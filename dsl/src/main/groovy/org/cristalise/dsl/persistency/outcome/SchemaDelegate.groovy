@@ -172,7 +172,9 @@ class SchemaDelegate {
             if (f.dynamicForms.pattern != null)     pattern(     f.dynamicForms.pattern)
             if (f.dynamicForms.errmsg != null)      errmsg(      f.dynamicForms.errmsg)
             if (f.dynamicForms.showSeconds != null) showSeconds( f.dynamicForms.showSeconds)
-            if ((f.dynamicForms.updateScriptRef != null) || (f.dynamicForms.updateQuerytRef != null) || (f.dynamicForms.outOfSpecs != null)) {
+            if (f.dynamicForms.precision)           precision(   f.dynamicForms.precision)
+            if (f.dynamicForms.scale)               scale(       f.dynamicForms.scale)
+            if (f.hasAdditional()) {
                 additional {
                     if (f.dynamicForms.updateScriptRef != null) updateScriptRef(f.dynamicForms.updateScriptRef)
                     if (f.dynamicForms.updateQuerytRef != null) updateQuerytRef(f.dynamicForms.updateQuerytRef)

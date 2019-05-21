@@ -42,10 +42,14 @@ class DynamicForms {
     Boolean showSeconds = null
     String type = null
     String value = null
+    
+    /**
+     * Defines a pattern and message that is used by the UI to show a warning message
+     */
     OutOfSpecs outOfSpecs = null
 
     /**
-     * Sets the width of the form (DynamicForms)
+     * Sets the width of the form
      */
     String width = null
 
@@ -59,4 +63,13 @@ class DynamicForms {
      * the from generated from the XML Schema has to be updated
      */
     String updateQuerytRef = null
+
+    /**
+     * Number of digits that are present in the number. Possible value are: <P, <=P, P, >=P, >P
+     */
+    String precision = null
+    /**
+     * Number of decimal places that are present in the number.Possible value are: <S, <=S, S, >=S, >S
+     */
+    String scale = null
 }

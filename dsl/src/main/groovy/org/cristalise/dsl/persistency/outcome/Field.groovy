@@ -94,4 +94,12 @@ class Field extends Attribute {
 
         unit = u
     }
+
+    /**
+     * 
+     * @return
+     */
+    public boolean hasAdditional() {
+        return dynamicForms.updateScriptRef || dynamicForms.updateQuerytRef || dynamicForms.outOfSpecs;
+    }
 }
