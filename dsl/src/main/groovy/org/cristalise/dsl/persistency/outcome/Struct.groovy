@@ -39,6 +39,8 @@ class Struct {
     String minOccurs = null
     String maxOccurs = null
     
+    DynamicForms dynamicForms
+
     private String getMultiplicityVal(String m) {
         def dec = /^\d+$/
 
