@@ -26,37 +26,7 @@ import groovy.transform.CompileStatic;
 
 
 @CompileStatic
-class DynamicForms {
-    Boolean disabled = null
-    String errmsg = null
-    Boolean hidden = null
-    String inputType = null
-    String label = null
-    String mask = null
-    Integer max = null
-    Integer min = null
-    Boolean multiple = null
+class OutOfSpecs {
     String pattern = null
-    String placeholder = null
-    Boolean required = null
-    Boolean showSeconds = null
-    String type = null
-    String value = null
-    OutOfSpecs outOfSpecs = null
-
-    /**
-     * Sets the width of the form (DynamicForms)
-     */
-    String width = null
-
-    /**
-     * Defines the Script name and version (e.g. GetShiftNames:0) which is executed when
-     * the from generated from the XML Schema has to be updated
-     */
-    String updateScriptRef = null
-    /**
-     * Defines the Query name and version (e.g. GetShiftNames:0) which is executed when
-     * the from generated from the XML Schema has to be updated
-     */
-    String updateQuerytRef = null
+    String message = null
 }
