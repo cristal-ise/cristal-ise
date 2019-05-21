@@ -26,7 +26,7 @@ import groovy.transform.CompileStatic;
 
 
 @CompileStatic
-class OutOfScpecification {
+class OutOfSpecs {
     String pattern = null
     String message = null
 }
