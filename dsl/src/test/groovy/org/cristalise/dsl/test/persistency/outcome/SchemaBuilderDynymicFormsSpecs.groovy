@@ -153,56 +153,20 @@ class SchemaBuilderDynymicFormsSpecs extends Specification implements CristalTes
     def 'Field can specify dynamicForms.width'() {
         expect:
         SchemaTestBuilder.build('test', 'Form', 0) {
-            struct(name: 'Form', width: '100%') {
-                field(name: 'Field1', type: 'string')
-                field(name: 'Field2', type: 'string')
-                field(name: 'Field3', type: 'string')
+            struct(name: 'Form') {
+                dynamicForms(width: '100%')
             }
         }.compareXML(
             """<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
                   <xs:element name="Form">
                     <xs:annotation>
-                      <xs:documentation>Defines Dynamic Forms Configurable Widths</xs:documentation>
                       <xs:appinfo>
-                        <formProperties>
+                        <dynamicForms>
                           <width>100%</width>
-                        </formProperties>
+                        </dynamicForms>
                       </xs:appinfo>
                     </xs:annotation>
-                    <xs:complexType>
-                      <xs:all minOccurs='0'>
-                        <xs:element name='Field1' type='xs:string' minOccurs='0' maxOccurs='1'>
-                          <xs:annotation>
-                            <xs:appinfo>
-                              <dynamicForms>
-                                <hidden>true</hidden>
-                                <required>false</required>
-                              </dynamicForms>
-                            </xs:appinfo>
-                          </xs:annotation>
-                        </xs:element>
-                        <xs:element name='Field2' type='xs:string' minOccurs='1' maxOccurs='1'>
-                          <xs:annotation>
-                            <xs:appinfo>
-                              <dynamicForms>
-                                <additional>
-                                  <updateScriptRef>UpdateScript</updateScriptRef>
-                                </additional>
-                              </dynamicForms>
-                            </xs:appinfo>
-                          </xs:annotation>
-                        </xs:element>
-                        <xs:element name='Field3' type='xs:date' minOccurs='1' maxOccurs='1'>
-                          <xs:annotation>
-                            <xs:appinfo>
-                              <dynamicForms>
-                                <required>true</required>
-                              </dynamicForms>
-                            </xs:appinfo>
-                          </xs:annotation>
-                        </xs:element>
-                      </xs:all>
-                    </xs:complexType>
+                    <xs:complexType/>
                   </xs:element>
                 </xs:schema>""")
     }

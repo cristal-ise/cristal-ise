@@ -71,17 +71,19 @@ class SchemaDelegate {
         Logger.msg 1, "SchemaDelegate.buildStruct() - Struct: $s.name"
         xsd.'xs:element'(name: s.name, minOccurs: s.minOccurs, maxOccurs: s.maxOccurs) {
 
-            if(s.documentation) 'xs:annotation' { 
-                'xs:documentation'(s.documentation)
-                if(s.width) {
-                    'xs:appinfo' {
-                        xsd.formProperties {
-                            width(s.width)
+            if(s.documentation || s.dynamicForms) {
+                'xs:annotation' { 
+                    if (s.documentation) 'xs:documentation'(s.documentation)
+                    if (s.dynamicForms) {
+                        'xs:appinfo' {
+                            dynamicForms {
+                                if (s.dynamicForms.width) width(s.dynamicForms.width)
+                            }
                         }
                     }
                 }
             }
-            
+
             'xs:complexType' {
                 if(s.fields || s.structs || s.anyField) {
                     if(s.useSequence) {

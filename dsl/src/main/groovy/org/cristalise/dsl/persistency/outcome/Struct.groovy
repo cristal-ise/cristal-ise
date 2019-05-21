@@ -28,7 +28,6 @@ import org.cristalise.kernel.common.InvalidDataException
 class Struct {
     String name
     String documentation
-    String width
     boolean useSequence = false
 
     List<Struct> structs = []
@@ -40,6 +39,8 @@ class Struct {
     String minOccurs = null
     String maxOccurs = null
     
+    DynamicForms dynamicForms
+
     private String getMultiplicityVal(String m) {
         def dec = /^\d+$/
 
