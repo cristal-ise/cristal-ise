@@ -22,13 +22,18 @@ package org.cristalise.kernel.persistency.outcomebuilder;
 
 import java.io.IOException;
 import java.io.Writer;
+import java.util.Enumeration;
+import java.util.Iterator;
 import java.util.Map;
 
 import org.cristalise.kernel.utils.Logger;
+import org.exolab.castor.xml.schema.Annotation;
+import org.exolab.castor.xml.schema.AppInfo;
 import org.exolab.castor.xml.schema.ComplexType;
 import org.exolab.castor.xml.schema.ElementDecl;
 import org.json.JSONArray;
 import org.json.JSONObject;
+import org.json.XML;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
@@ -209,13 +214,17 @@ public class DataRecord extends OutcomeStructure {
     @Override
     public Object generateNgDynamicForms(Map<String, Object> inputs) {
         JSONObject dr = new JSONObject();
-        
+        String formWidth = getFormWidth(model);
+             
         dr.put("cls", generateNgDynamicFormsCls());
-
         dr.put("type",  "GROUP");
         dr.put("id",    model.getName());
         dr.put("name",  model.getName());
-
+        
+        if (formWidth != null) {
+            dr.put("width", formWidth);
+        }
+        
         //String label = StringUtils.join(StringUtils.splitByCharacterTypeCamelCase(model.getName()), " ");
         //dr.put("label", label);
 
@@ -226,5 +235,31 @@ public class DataRecord extends OutcomeStructure {
         dr.put("group", array);
 
         return dr;
+    }
+    
+    private String getFormWidth(ElementDecl model) {
+        ElementDecl modelElementDecls = model.getSchema().getElementDecls().iterator().next();
+        
+        String width = null;
+        
+        try {
+            Enumeration<Annotation> modelAnnotations = modelElementDecls.getAnnotations();  
+            Enumeration<AppInfo> appInfo = modelAnnotations.nextElement().getAppInfo();
+            Enumeration<Object> appInfoObjects = appInfo.nextElement().getObjects();
+            
+            while (appInfoObjects != null && appInfoObjects.hasMoreElements()) {
+                String appInfoStr = appInfoObjects.nextElement().toString();
+                JSONObject appInfoJSON = XML.toJSONObject(appInfoStr);
+                
+                if (appInfoJSON.has("formProperties")) {
+                    width = appInfoJSON.getJSONObject("formProperties").getString("width");
+                    break;
+                }
+            }
+        } catch (Exception e) {
+            Logger.msg(8, "The form did not define any objects in appinfo. This is not an error. " + e);
+        }
+        
+        return width;
     }
 }

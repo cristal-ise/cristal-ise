@@ -28,6 +28,7 @@ import org.cristalise.kernel.common.InvalidDataException
 class Struct {
     String name
     String documentation
+    String width
     boolean useSequence = false
 
     List<Struct> structs = []
