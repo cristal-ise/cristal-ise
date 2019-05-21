@@ -150,11 +150,12 @@ class SchemaBuilderDynymicFormsSpecs extends Specification implements CristalTes
                </xs:schema>""")
     }
     
-    def 'Field can specify dynamicForms.width'() {
+    def 'Struct can specify dynamicForms.width'() {
         expect:
         SchemaTestBuilder.build('test', 'Form', 0) {
             struct(name: 'Form') {
                 dynamicForms(width: '100%')
+                field(name:'stringField1')
             }
         }.compareXML(
             """<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
@@ -166,7 +167,11 @@ class SchemaBuilderDynymicFormsSpecs extends Specification implements CristalTes
                         </dynamicForms>
                       </xs:appinfo>
                     </xs:annotation>
-                    <xs:complexType/>
+                    <xs:complexType>
+                      <xs:all minOccurs='0'>
+                        <xs:element name='stringField1' type='xs:string' minOccurs='1' maxOccurs='1' />
+                      </xs:all>
+                    </xs:complexType>
                   </xs:element>
                 </xs:schema>""")
     }
