@@ -73,7 +73,9 @@ class SchemaDelegate {
 
             if(s.documentation || s.dynamicForms) {
                 'xs:annotation' { 
-                    if (s.documentation) 'xs:documentation'(s.documentation)
+                    if (s.documentation) {
+                        'xs:documentation'(s.documentation)
+                    }
                     if (s.dynamicForms) {
                         'xs:appinfo' {
                             dynamicForms {
@@ -85,24 +87,24 @@ class SchemaDelegate {
             }
 
             'xs:complexType' {
-                if(s.fields || s.structs || s.anyField) {
-                    if(s.useSequence) {
+                if (s.fields || s.structs || s.anyField) {
+                    if (s.useSequence) {
                         'xs:sequence' {
-                            if(s.fields)  s.fields.each  { Field f   -> buildField(xsd, f) }
-                            if(s.structs) s.structs.each { Struct s1 -> buildStruct(xsd, s1) }
-                            if(s.anyField) buildAnyField(xsd, s.anyField)
+                            if (s.fields)  s.fields.each  { Field f   -> buildField(xsd, f) }
+                            if (s.structs) s.structs.each { Struct s1 -> buildStruct(xsd, s1) }
+                            if (s.anyField) buildAnyField(xsd, s.anyField)
                         }
                     }
                     else {
                         'xs:all'(minOccurs: '0') {
-                            if(s.fields)  s.fields.each  { Field f   -> buildField(xsd, f) }
-                            if(s.structs) s.structs.each { Struct s1 -> buildStruct(xsd, s1) }
-                            if(s.anyField) buildAnyField(xsd, s.anyField)
+                            if (s.fields)  s.fields.each  { Field f   -> buildField(xsd, f) }
+                            if (s.structs) s.structs.each { Struct s1 -> buildStruct(xsd, s1) }
+                            if (s.anyField) buildAnyField(xsd, s.anyField)
                         }
                     }
                 }
-                
-                if(s.attributes) {
+
+                if (s.attributes) {
                     s.attributes.each { Attribute a -> buildAtribute(xsd, a) }
                 }
             }
