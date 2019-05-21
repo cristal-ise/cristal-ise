@@ -149,13 +149,19 @@ class SchemaBuilderDynymicFormsSpecs extends Specification implements CristalTes
                  </xs:element>
                </xs:schema>""")
     }
-    
+
     def 'Field can specify dynamicForms.outOfSpecs'() {
         expect:
         SchemaTestBuilder.build('test', 'PatientDetails', 0) {
             struct(name: 'PatientDetails') {
-                field(name: 'Weight',      type: 'decimal') { dynamicForms ({outOfSpecs (pattern: '^[0-9]{1,4}$', message: 'Value out of specification, has to be <= 9999')})}
-                field(name: 'DateOfBirth', type: 'date')    {dynamicForms(placeholder : '99/99/9999')}
+                field(name: 'Weight',      type: 'decimal') {
+                    dynamicForms {
+                        outOfSpecs (pattern: '^[0-9]{1,4}$', message: 'Value out of specification, has to be <= 9999')
+                    }
+                }
+                field(name: 'DateOfBirth', type: 'date') {
+                    dynamicForms(placeholder : '99/99/9999')
+                }
             }
         }.compareXML(
             '''<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
