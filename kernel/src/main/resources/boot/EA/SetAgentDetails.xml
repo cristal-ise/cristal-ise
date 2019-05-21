@@ -25,6 +25,6 @@
         <KeyValuePair Key="Description" String="Sets the basic fields for a user profile"/>
         <KeyValuePair Key="SchemaType" String="AgentDetails"/>
         <KeyValuePair Key="SchemaVersion" String="0"/>
-        <KeyValuePair Key="Agent Role" String="Admin"/>
+        <KeyValuePair Key="Agent Role" String=""/>
     </Properties>
 </ActivityDef>

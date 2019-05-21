@@ -31,7 +31,7 @@
 		<KeyValuePair Key="SchemaVersion" String=""/>
 		<KeyValuePair Key="Show time" Boolean="true"/>
 		<KeyValuePair Key="Viewpoint" String=""/>
-		<KeyValuePair Key="Agent Role" String="Admin"/>
+		<KeyValuePair Key="Agent Role" String=""/>
 		<KeyValuePair Key="SchemaType" String=""/>
 		<KeyValuePair Key="ScriptName" String="CreateNewNumberedVersionFromLast"/>
 		<KeyValuePair Key="Ignorable" Boolean="false"/>
