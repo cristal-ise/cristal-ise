@@ -104,6 +104,12 @@
         "element": {"label": "ui-widget"}
       },
       "id": "Weight",
+      "additional": {
+        "outOfSpecs": {
+          "pattern": "^[0-9]{1,4}$",
+          "message": "Value out of specification, has to be <= 9999"
+        }
+      },
       "label": "Weight *",
       "placeholder": "99,99",
       "type": "INPUT",

@@ -1,0 +1,8 @@
+[{
+  "name": "Form",
+  "width": "100%",
+  "cls": {"grid": {"container": "ui-g-12"}},
+  "id": "Form",
+  "type": "GROUP",
+  "group": []
+}]

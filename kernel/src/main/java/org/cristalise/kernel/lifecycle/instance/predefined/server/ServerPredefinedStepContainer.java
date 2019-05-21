@@ -20,6 +20,8 @@
  */
 package org.cristalise.kernel.lifecycle.instance.predefined.server;
 
+import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.DESCRIPTION;
+
 import org.cristalise.kernel.graph.model.GraphPoint;
 import org.cristalise.kernel.lifecycle.instance.predefined.PredefinedStep;
 import org.cristalise.kernel.lifecycle.instance.predefined.PredefinedStepContainer;
@@ -42,8 +44,7 @@ public class ServerPredefinedStepContainer extends PredefinedStepContainer {
     public void serverPredInit(String alias, String Description, PredefinedStep act) {
         act.setName(alias);
         act.setType(alias);
-        act.getProperties().put("Description", Description);
-        act.getProperties().put("Agent Role", "Admin");
+        act.getProperties().setBuiltInProperty(DESCRIPTION, Description);
         act.setCentrePoint(new GraphPoint());
         act.setIsPredefined(true);
         addChild(act, new GraphPoint(100, 75 * ++num));

@@ -51,7 +51,7 @@ class SchemaDelegate {
 
     public String buildXSD(Struct s) {
         if(!s) throw new InvalidDataException("Schema cannot be built from empty declaration")
-        
+
         def writer = new StringWriter()
         def xsd = new MarkupBuilder(writer)
 
@@ -60,8 +60,8 @@ class SchemaDelegate {
 
         xsd.mkp.xmlDeclaration(version: "1.0", encoding: "utf-8")
 
-        xsd.'xs:schema'('xmlns:xs': 'http://www.w3.org/2001/XMLSchema') {
-            buildStruct(xsd,s)
+        xsd.'xs:schema'('xmlns:xs': 'http://www.w3.org/2001/XMLSchema') { 
+            buildStruct(xsd,s) 
         }
 
         return writer.toString()
@@ -71,26 +71,40 @@ class SchemaDelegate {
         Logger.msg 1, "SchemaDelegate.buildStruct() - Struct: $s.name"
         xsd.'xs:element'(name: s.name, minOccurs: s.minOccurs, maxOccurs: s.maxOccurs) {
 
-            if(s.documentation) 'xs:annotation' { 'xs:documentation'(s.documentation) }
+            if(s.documentation || s.dynamicForms) {
+                'xs:annotation' { 
+                    if (s.documentation) {
+                        'xs:documentation'(s.documentation)
+                    }
+                    if (s.dynamicForms) {
+                        'xs:appinfo' {
+                            dynamicForms {
+                                if (s.dynamicForms.width) width(s.dynamicForms.width)
+                            }
+                        }
+                    }
+                }
+            }
 
             'xs:complexType' {
-                if(s.fields || s.structs || s.anyField) {
-                    if(s.useSequence) {
+                if (s.fields || s.structs || s.anyField) {
+                    if (s.useSequence) {
                         'xs:sequence' {
-                            if(s.fields)  s.fields.each  { Field f   -> buildField(xsd, f) }
-                            if(s.structs) s.structs.each { Struct s1 -> buildStruct(xsd, s1) }
-                            if(s.anyField) buildAnyField(xsd, s.anyField)
+                            if (s.fields)  s.fields.each  { Field f   -> buildField(xsd, f) }
+                            if (s.structs) s.structs.each { Struct s1 -> buildStruct(xsd, s1) }
+                            if (s.anyField) buildAnyField(xsd, s.anyField)
                         }
                     }
                     else {
                         'xs:all'(minOccurs: '0') {
-                            if(s.fields)  s.fields.each  { Field f   -> buildField(xsd, f) }
-                            if(s.structs) s.structs.each { Struct s1 -> buildStruct(xsd, s1) }
-                            if(s.anyField) buildAnyField(xsd, s.anyField)
+                            if (s.fields)  s.fields.each  { Field f   -> buildField(xsd, f) }
+                            if (s.structs) s.structs.each { Struct s1 -> buildStruct(xsd, s1) }
+                            if (s.anyField) buildAnyField(xsd, s.anyField)
                         }
                     }
                 }
-                if(s.attributes) {
+
+                if (s.attributes) {
                     s.attributes.each { Attribute a -> buildAtribute(xsd, a) }
                 }
             }
@@ -126,9 +140,9 @@ class SchemaDelegate {
      */
     private String attributeType(Attribute a) {
         if (hasRestrictions(a)) return ''
-        else                    return a.type 
+        else                    return a.type
     }
- 
+
     private void buildAtribute(xsd, Attribute a) {
         Logger.msg 1, "SchemaDelegate.buildAtribute() - attribute: $a.name"
 
@@ -158,9 +172,18 @@ class SchemaDelegate {
             if (f.dynamicForms.pattern != null)     pattern(     f.dynamicForms.pattern)
             if (f.dynamicForms.errmsg != null)      errmsg(      f.dynamicForms.errmsg)
             if (f.dynamicForms.showSeconds != null) showSeconds( f.dynamicForms.showSeconds)
-            
-            if (f.dynamicForms.updateScriptRef != null) additional{ updateScriptRef(f.dynamicForms.updateScriptRef) }
-            if (f.dynamicForms.updateQuerytRef != null) additional{ updateQuerytRef(f.dynamicForms.updateQuerytRef) }
+            if ((f.dynamicForms.updateScriptRef != null) || (f.dynamicForms.updateQuerytRef != null) || (f.dynamicForms.outOfSpecs != null)) {
+                additional {
+                    if (f.dynamicForms.updateScriptRef != null) updateScriptRef(f.dynamicForms.updateScriptRef)
+                    if (f.dynamicForms.updateQuerytRef != null) updateQuerytRef(f.dynamicForms.updateQuerytRef)
+                    if (f.dynamicForms.outOfSpecs != null) {
+                        outOfSpecs {
+                            if (f.dynamicForms.outOfSpecs.pattern != null) pattern(f.dynamicForms.outOfSpecs.pattern)
+                            if (f.dynamicForms.outOfSpecs.message != null) message(f.dynamicForms.outOfSpecs.message)
+                        }
+                    }
+                }
+            }
         }
     }
 
@@ -184,7 +207,7 @@ class SchemaDelegate {
         xsd.'xs:element'(name: f.name, type: fieldType(f), 'default': f.defaultVal, minOccurs: f.minOccurs, maxOccurs: f.maxOccurs) {
             if(f.documentation || f.dynamicForms || f.listOfValues) {
                 'xs:annotation' {
-                    if (f.documentation) 'xs:documentation'(f.documentation) 
+                    if (f.documentation) 'xs:documentation'(f.documentation)
                     if (f.dynamicForms || f.listOfValues) {
                         'xs:appinfo' {
                             if (f.dynamicForms) setAppinfoDynamicForms(xsd, f)
@@ -225,7 +248,7 @@ class SchemaDelegate {
 
     private void buildAnyField(xsd, AnyField any) {
         Logger.msg 1, "SchemaDelegate.buildAnyField()"
-        
+
         xsd.'xs:any'(minOccurs: any.minOccurs, maxOccurs: any.maxOccurs, processContents: any.processContents)
     }
 
@@ -245,7 +268,7 @@ class SchemaDelegate {
 
                 if (totalDigits    != null) 'xs:totalDigits'(value: totalDigits)
                 if (fractionDigits != null) 'xs:fractionDigits'(value: fractionDigits)
-             }
+            }
         }
     }
 }

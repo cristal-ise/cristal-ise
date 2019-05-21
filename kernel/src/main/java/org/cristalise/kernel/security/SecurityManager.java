@@ -20,6 +20,7 @@
  */
 package org.cristalise.kernel.security;
 
+import static org.cristalise.kernel.security.BuiltInAuthc.SYSTEM_AGENT;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shiro.SecurityUtils;
 import org.apache.shiro.authc.UsernamePasswordToken;
@@ -41,6 +42,7 @@ import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.process.auth.Authenticator;
 import org.cristalise.kernel.property.BuiltInItemProperties;
 import org.cristalise.kernel.utils.Logger;
+
 import lombok.Getter;
 
 public class SecurityManager {
@@ -73,7 +75,7 @@ public class SecurityManager {
      */
     public void authenticate() throws InvalidDataException, ObjectNotFoundException {
         if (!shiroEnabled) {
-            if (!auth.authenticate("system")) throw new InvalidDataException("Server authentication failed");
+            if (!auth.authenticate(SYSTEM_AGENT.getName())) throw new InvalidDataException("Server authentication failed");
         }
         //NOTE: the else case is not required because shiro cannot authentcate users without a password, and the current
         //setup does not allow us to create the 'system' Agent with password. Also the original auth.authenticate("system") 
@@ -124,16 +126,21 @@ public class SecurityManager {
     }
 
     /**
-     * 
+     * Loads shiro.ini file from a file or from the classpath (default)
+     * TODO: replace the use of IniSecurityManagerFactory with shiro Environment initialization
      */
     public void setupShiro() {
-        //TODO: replace this with shiro Environment initialization
-        Factory<org.apache.shiro.mgt.SecurityManager> factory = new IniSecurityManagerFactory("classpath:shiro.ini");
+        String shiroIni = Gateway.getProperties().getString("Shiro.iniFile");
+
+        if (StringUtils.isBlank(shiroIni)) shiroIni = "classpath:shiro.ini";
+        else                               shiroIni = "file:" + shiroIni;
+
+        Factory<org.apache.shiro.mgt.SecurityManager> factory = new IniSecurityManagerFactory(shiroIni);
 
         org.apache.shiro.mgt.SecurityManager securityManager = factory.getInstance();
         SecurityUtils.setSecurityManager(securityManager);
 
-        Logger.msg(2, "SecurityManager.setupShiro() - Done");
+        Logger.msg(2, "SecurityManager.setupShiro("+shiroIni+") - Done");
 
         shiroEnabled = true;
     }
