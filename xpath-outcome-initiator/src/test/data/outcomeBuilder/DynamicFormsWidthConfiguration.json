@@ -1,62 +1,8 @@
 [{
   "name": "Form",
-  "width": "80%",
+  "width": "100%",
   "cls": {"grid": {"container": "ui-g-12"}},
   "id": "Form",
   "type": "GROUP",
-  "group": [
-    {
-      "hidden": true,
-      "inputType": "text",
-      "cls": {
-        "grid": {
-          "container": "ui-g",
-          "control": "ui-g-8",
-          "label": "ui-g-4"
-        },
-        "element": {"label": "ui-widget"}
-      },
-      "id": "Field1",
-      "label": "Field 1",
-      "placeholder": "Field 1",
-      "type": "INPUT",
-      "required": false
-    },
-    {
-      "validators": {"required": null},
-      "additional": {"updateScriptRef": "UpdateScript"},
-      "inputType": "text",
-      "cls": {
-        "grid": {
-          "container": "ui-g",
-          "control": "ui-g-8",
-          "label": "ui-g-4"
-        },
-        "element": {"label": "ui-widget"}
-      },
-      "id": "Field2",
-      "label": "Field 2 *",
-      "placeholder": "Field 2",
-      "type": "INPUT",
-      "required": true
-    },
-    {
-      "validators": {"required": null},
-      "additional": {"showButtonBar": true},
-      "format": "yy-mm-dd",
-      "cls": {
-        "grid": {
-          "container": "ui-g",
-          "control": "ui-g-8",
-          "label": "ui-g-4"
-        },
-        "element": {"label": "ui-widget"}
-      },
-      "id": "Field3",
-      "label": "Field 3 *",
-      "placeholder": "Field 3",
-      "type": "DATEPICKER",
-      "required": true
-    }
-  ]
+  "group": []
 }]
