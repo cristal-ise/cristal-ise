@@ -36,6 +36,10 @@ public abstract class NumberField extends StringField {
      */
     String precision;
     
+    public NumberField() {
+        super();
+    }
+
     public NumberField(List<String> strFields, List<String> excFields) {
         super(strFields, excFields);
     }
@@ -86,5 +90,10 @@ public abstract class NumberField extends StringField {
         if (StringUtils.isNotBlank(pattern)) {
             validators.put("pattern", pattern);
         } 
+    }
+
+    @Override
+    public boolean hasValidator() {
+        return super.hasValidator() || StringUtils.isNotBlank(precision);
     }
 }

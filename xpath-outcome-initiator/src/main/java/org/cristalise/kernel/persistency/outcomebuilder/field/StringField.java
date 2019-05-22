@@ -66,8 +66,14 @@ public class StringField extends StructureWithAppInfo {
     String     text;
     String     defaultValue;
 
-    //Filed for validation
+    /**
+     * Javascript regexp pattern to validate field value in DynamicForms. It is either provided in the AppInfo.pattern field 
+     * or it is computed from data available in XSD restrictions or in various AppInfo fields (check subclasses)
+     */
     String pattern;
+    /**
+     * Error message to show to the user for validation errors
+     */
     String errmsg;
 
     public StringField() {

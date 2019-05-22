@@ -23,6 +23,7 @@ package org.cristalise.kernel.persistency.outcomebuilder.field;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.Arrays;
+import java.util.regex.PatternSyntaxException;
 
 import org.apache.commons.lang3.StringUtils;
 import org.cristalise.kernel.persistency.outcomebuilder.InvalidOutcomeException;
@@ -72,45 +73,107 @@ public class DecimalField extends NumberField {
         }
     }
 
+    /**
+     * Compute validation regex pattern in this order of precedence:
+     * <pre>
+     * 1. use pattern as is if available
+     * 2. generate pattern from precision and scale if available
+     * 3. generate pattern from totalDigits and fractionDigits if available
+     * 4. set default pattern
+     * </pre>
+     */
     @Override
     public void setNgDynamicFormsValidators(JSONObject validators) {
-        //locale specific separators could be used, but it should be based on the locale of the browser
-        //char separator = new DecimalFormatSymbols(Locale.getDefault(Locale.Category.FORMAT)).getDecimalSeparator();
-        char separator = Gateway.getProperties().getString("Webui.decimal.separator", ".").charAt(0);
-
         super.setNgDynamicFormsValidators(validators);
 
         if (StringUtils.isNotBlank(pattern)) {
             validators.put("pattern", pattern);
         }
+        else if (StringUtils.isNotBlank(precision) || StringUtils.isNotBlank(scale)) {
+            validators.put("pattern", generatePrecisionScalePattern());
+        }
         else {
-            Integer totalDigits = null;
-            Integer fractionDigits = null;
+            //this case also generates the default pattern
+            validators.put("pattern", generateTotalFractionDigitsPattern());
+        }
+    }
 
-            if(contentType.hasFacet(Facet.TOTALDIGITS)) {
-                Facet f = contentType.getFacet(Facet.TOTALDIGITS);
-                totalDigits = Integer.valueOf(f.getValue());
-            }
+    private String generatePattern(Integer precisionNumber, boolean precisionSmaller, Integer scaleNumber, boolean scaleSmaller) {
+        //locale specific separators could be used, but it should be based on the locale of the browser
+        //char separator = new DecimalFormatSymbols(Locale.getDefault(Locale.Category.FORMAT)).getDecimalSeparator();
+        char separator = Gateway.getProperties().getString("Webui.decimal.separator", ".").charAt(0);
 
-            if(contentType.hasFacet(Facet.FRACTIONDIGITS)) {
-                Facet f = contentType.getFacet(Facet.FRACTIONDIGITS);
-                fractionDigits = Integer.valueOf(f.getValue());
-            }
-
-            if (totalDigits == null && fractionDigits == null) {
-                //default validator for any decimal field
-                validators.put("pattern", "^\\d+\\" + separator + "?\\d+$");
-            }
-            else if (totalDigits != null) {
-                if (fractionDigits == null) {
-                    validators.put("pattern", "^\\d{0," + totalDigits + "}$");
-                }
-                else
-                    validators.put("pattern", "^\\d{0," + (totalDigits - fractionDigits) + "}\\" + separator + "?\\d{0," + fractionDigits + "}$");
+        if (precisionNumber == null && scaleNumber == null) {
+            //default validator for any decimal field
+            return "^\\d+\\" + separator + "?\\d+$";
+        }
+        else if (precisionNumber != null) {
+            if (scaleNumber == null) {
+                if (precisionSmaller) return "^\\d{0," + precisionNumber + "}$";
+                else                  return "^\\d{" + precisionNumber + "}$";
             }
             else {
-                validators.put("pattern", "^\\d+\\" + separator + "?\\d{0," + fractionDigits + "}$");
+                if (precisionSmaller && scaleSmaller)
+                    return "^\\d{0," + (precisionNumber - scaleNumber) + "}\\" + separator + "?\\d{0," + scaleNumber + "}$";
+                else if (!precisionSmaller && !scaleSmaller)
+                    return "^\\d{" + (precisionNumber - scaleNumber) + "}\\" + separator + "?\\d{" + scaleNumber + "}$";
             }
         }
+        else {
+            return "^\\d+\\" + separator + "?\\d{0," + scaleNumber + "}$";
+        }
+
+        throw new PatternSyntaxException("Cannot generate regexp from the inputs", "unknows", -1);
+    }
+
+    private String generatePrecisionScalePattern() {
+        Integer precisionNumber = null;
+        boolean precisionSmaller = false;
+        Integer scaleNumber = null;
+        boolean scaleSmaller = false;
+
+        if (StringUtils.isNotBlank(precision)) {
+            if (StringUtils.isNumeric(precision))  {
+                precisionNumber = Integer.parseInt(precision);
+            }
+            else if (precision.startsWith("<="))  {
+                precisionNumber = Integer.parseInt(precision.substring(2));
+                precisionSmaller = true;
+            }
+        }
+
+        if (StringUtils.isNotBlank(scale)) {
+            if (StringUtils.isNumeric(scale))  {
+                scaleNumber = Integer.parseInt(scale);
+            }
+            else if (scale.startsWith("<="))  {
+                scaleNumber = Integer.parseInt(scale.substring(2));
+                scaleSmaller = true;
+            }
+        }
+
+        return generatePattern(precisionNumber, precisionSmaller, scaleNumber, scaleSmaller);
+    }
+
+    private String generateTotalFractionDigitsPattern() {
+        Integer totalDigits = null;
+        Integer fractionDigits = null;
+
+        if(contentType.hasFacet(Facet.TOTALDIGITS)) {
+            Facet f = contentType.getFacet(Facet.TOTALDIGITS);
+            totalDigits = Integer.valueOf(f.getValue());
+        }
+
+        if(contentType.hasFacet(Facet.FRACTIONDIGITS)) {
+            Facet f = contentType.getFacet(Facet.FRACTIONDIGITS);
+            fractionDigits = Integer.valueOf(f.getValue());
+        }
+
+        return generatePattern(totalDigits, true, fractionDigits, true);
+    }
+
+    @Override
+    public boolean hasValidator() {
+        return super.hasValidator() || StringUtils.isNotBlank(scale);
     }
 }

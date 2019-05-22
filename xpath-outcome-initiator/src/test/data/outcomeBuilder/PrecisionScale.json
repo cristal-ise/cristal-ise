@@ -5,7 +5,7 @@
   "type": "GROUP",
   "group": [
     {
-      "validators": {"required": null, "pattern": "^\\d(3)\\.?\\d(2)$"},
+      "validators": {"required": null, "pattern": "^\\d{3}\\.?\\d{2}$"},
       "cls": {
         "grid": {
           "container": "ui-g",
