@@ -227,7 +227,7 @@ class SchemaBuilderDynymicFormsSpecs extends Specification implements CristalTes
         expect:
         SchemaTestBuilder.build('test', 'PatientDetails', 0) {
             struct(name: 'PatientDetails') {
-                field(name: 'Weight', type: 'decimal') { dynamicForms(precision: '5', scale: '2') }
+                field(name: 'Weight', type: 'decimal') { dynamicForms(precision: '5-', scale: '2') }
             }
         }.compareXML(
             """<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
@@ -238,7 +238,7 @@ class SchemaBuilderDynymicFormsSpecs extends Specification implements CristalTes
                          <xs:annotation>
                            <xs:appinfo>
                              <dynamicForms>
-                               <precision>5</precision>
+                               <precision>5-</precision>
                                <scale>2</scale>
                              </dynamicForms>
                            </xs:appinfo>

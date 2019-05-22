@@ -115,6 +115,8 @@ public class DecimalField extends NumberField {
             else {
                 if (precisionSmaller && scaleSmaller)
                     return "^\\d{0," + (precisionNumber - scaleNumber) + "}\\" + separator + "?\\d{0," + scaleNumber + "}$";
+                else if (precisionSmaller && !scaleSmaller)
+                    return "^\\d{0," + (precisionNumber - scaleNumber) + "}\\" + separator + "?\\d{" + scaleNumber + "}$";
                 else if (!precisionSmaller && !scaleSmaller)
                     return "^\\d{" + (precisionNumber - scaleNumber) + "}\\" + separator + "?\\d{" + scaleNumber + "}$";
             }
@@ -136,8 +138,8 @@ public class DecimalField extends NumberField {
             if (StringUtils.isNumeric(precision))  {
                 precisionNumber = Integer.parseInt(precision);
             }
-            else if (precision.startsWith("<="))  {
-                precisionNumber = Integer.parseInt(precision.substring(2));
+            else if (precision.endsWith("-"))  {
+                precisionNumber = Integer.parseInt(precision.substring(0, precision.indexOf("-")));
                 precisionSmaller = true;
             }
         }
@@ -146,8 +148,8 @@ public class DecimalField extends NumberField {
             if (StringUtils.isNumeric(scale))  {
                 scaleNumber = Integer.parseInt(scale);
             }
-            else if (scale.startsWith("<="))  {
-                scaleNumber = Integer.parseInt(scale.substring(2));
+            else if (scale.endsWith("-"))  {
+                scaleNumber = Integer.parseInt(scale.substring(0, precision.indexOf("-")));
                 scaleSmaller = true;
             }
         }
