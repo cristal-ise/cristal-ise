@@ -1,0 +1,25 @@
+[{
+  "name": "PatientDetails",
+  "cls": {"grid": {"container": "ui-g-12"}},
+  "id": "PatientDetails",
+  "type": "GROUP",
+  "group": [
+    {
+      "validators": {"required": null, "pattern": "^\\d(3)\\.?\\d(2)$"},
+      "cls": {
+        "grid": {
+          "container": "ui-g",
+          "control": "ui-g-8",
+          "label": "ui-g-4"
+        },
+        "element": {"label": "ui-widget"}
+      },
+      "id": "Weight",
+      "label": "Weight *",
+      "placeholder": "Weight",
+      "type": "INPUT",
+      "value": "0.0",
+      "required": true
+    }
+  ]
+}]

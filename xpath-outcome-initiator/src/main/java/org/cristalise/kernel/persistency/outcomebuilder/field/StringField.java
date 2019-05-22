@@ -25,14 +25,15 @@ import java.math.BigInteger;
 import java.time.LocalDate;
 import java.time.OffsetDateTime;
 import java.time.OffsetTime;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
-import java.util.Scanner;
 
 import org.apache.commons.lang3.StringUtils;
-import org.cristalise.kernel.persistency.outcomebuilder.StructureWithAppInfo;
 import org.cristalise.kernel.persistency.outcomebuilder.InvalidOutcomeException;
 import org.cristalise.kernel.persistency.outcomebuilder.OutcomeStructure;
 import org.cristalise.kernel.persistency.outcomebuilder.StructuralException;
+import org.cristalise.kernel.persistency.outcomebuilder.StructureWithAppInfo;
 import org.exolab.castor.types.AnyNode;
 import org.exolab.castor.xml.schema.Annotated;
 import org.exolab.castor.xml.schema.AttributeDecl;
@@ -44,7 +45,6 @@ import org.exolab.castor.xml.schema.Structure;
 import org.exolab.castor.xml.schema.XMLType;
 import org.exolab.castor.xml.schema.simpletypes.ListType;
 import org.json.JSONObject;
-import org.json.XML;
 import org.w3c.dom.Attr;
 import org.w3c.dom.Node;
 import org.w3c.dom.Text;
@@ -53,6 +53,9 @@ import org.w3c.dom.Text;
  * Superclass for the entry field for Field and AttributeList.
  */
 public class StringField extends StructureWithAppInfo {
+
+    private static final String[] strFields = {"mask", "placeholder"};
+    private static final String[] excFields = {"pattern", "errmsg"};
 
     Node       data;
     Annotated  model;
@@ -68,9 +71,12 @@ public class StringField extends StructureWithAppInfo {
     String errmsg;
 
     public StringField() {
-        super("mask", "placeholder");
+        this(Arrays.asList(strFields), Arrays.asList(excFields));
     }
 
+    public StringField(List<String> strFields, List<String> excFields) {
+        super(strFields, excFields);
+    }
 
     /**
      * 
@@ -243,16 +249,6 @@ public class StringField extends StructureWithAppInfo {
         return "";
     }
 
-    /**
-     * check if the value contains a template/pattern that can be interpreted by the given Field instance
-     * 
-     * @param template
-     * @return
-     */
-    public String getValue(String valueTemplate) {
-        return valueTemplate;
-    }
-
     public void updateNode() {
         if (data == null) return;
 
@@ -312,39 +308,14 @@ public class StringField extends StructureWithAppInfo {
         fieldCls.put("grid", fieldGrid);
         return fieldCls;
     }
-
+    
     @Override
-    protected void setAppInfoDynamicFormsJsonValue(AnyNode node, JSONObject json) {
-        String name  = node.getLocalName();
-
-        if (name.equals("additional")) {
-            //simply convert the xml to json
-            json.put("additional", XML.toJSONObject(node.toString(), true).getJSONObject("additional"));
+    protected void setAppInfoDynamicFormsExceptionValue(String name, String value) {
+        if (name.equals("pattern")) {
+            pattern = value;
         }
-        else {
-            String value = node.getStringValue().trim();
-            if (name.equals("value")) value = getValue(value);
-
-            if (name.equals("pattern")) {
-                pattern = value;
-            }
-            else if (name.equals("errmsg")) {
-                errmsg = value;
-            }
-            else if (stringFields.contains(name)) {
-                //these field might contain string which will be recognized by Scanner a numeric type. (Scanner is locale specific as well)
-                json.put(name, value);
-            }
-            else {
-                Scanner scanner = new Scanner(value);
-
-                if      (scanner.hasNextBoolean())    json.put(name, scanner.nextBoolean());
-                else if (scanner.hasNextBigDecimal()) json.put(name, scanner.nextBigDecimal());
-                else if (scanner.hasNextBigInteger()) json.put(name, scanner.nextBigInteger());
-                else                                  json.put(name, value);
-
-                scanner.close();
-            }
+        else if (name.equals("errmsg")) {
+            errmsg = value;
         }
     }
     

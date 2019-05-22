@@ -22,6 +22,7 @@ package org.cristalise.kernel.persistency.outcomebuilder.field;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.util.Arrays;
 
 import org.apache.commons.lang3.StringUtils;
 import org.cristalise.kernel.persistency.outcomebuilder.InvalidOutcomeException;
@@ -31,9 +32,17 @@ import org.json.JSONObject;
 
 public class DecimalField extends NumberField {
 
+    private static final String[] strFields = {"mask", "placeholder"};
+    private static final String[] excFields = {"pattern", "errmsg", "precision", "scale"};
+
     public DecimalField() {
-        super();
+        super(Arrays.asList(strFields), Arrays.asList(excFields));
     }
+
+    /**
+     * precision is defined in NumberField
+     */
+    String scale;
 
     @Override
     public String getDefaultValue() {
@@ -49,6 +58,18 @@ public class DecimalField extends NumberField {
         }
 
         super.setData(value.toString());
+    }
+
+    @Override
+    protected void setAppInfoDynamicFormsExceptionValue(String name, String value) {
+        super.setAppInfoDynamicFormsExceptionValue(name, value);
+
+        if (name.equals("precision")) {
+            precision = value;
+        }
+        else if (name.equals("scale")) {
+            scale = value;
+        }
     }
 
     @Override

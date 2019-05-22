@@ -40,10 +40,38 @@ public class StructureWithAppInfo {
      */
     protected List<String> stringFields;
 
-    public StructureWithAppInfo(String...fields) {
-        stringFields = new ArrayList<String>();
+    /**
+     * List of field names which are processed individually by the specific subclasses
+     */
+    protected List<String> exceptionFields;
 
-        for (String f: fields) stringFields.add(f);
+    public StructureWithAppInfo() {
+        stringFields = new ArrayList<String>();
+        exceptionFields = new ArrayList<String>();
+    }
+
+    public StructureWithAppInfo(List<String> strFields, List<String> excFields) {
+        stringFields = new ArrayList<String>(strFields);
+        exceptionFields = new ArrayList<String>(excFields);
+    }
+
+    /**
+     * Check if the value contains a template/pattern that can be interpreted by the given Field instance
+     * 
+     * @param valueTemplate
+     * @return
+     */
+    public String getValue(String valueTemplate) {
+        return valueTemplate;
+    }
+
+    /**
+     * To be overridden by subclasses to handle data locally available in AppInfo.DynamicForms
+     * 
+     * @param name the name of the field
+     * @param value the value of the field
+     */
+    protected void setAppInfoDynamicFormsExceptionValue(String name, String value) {
     }
 
     /**
@@ -60,9 +88,13 @@ public class StructureWithAppInfo {
         }
         else {
             String value = node.getStringValue().trim();
+            if (name.equals("value")) value = getValue(value);
 
             if (stringFields.contains(name)) {
                 json.put(name, value);
+            }
+            else if (exceptionFields.contains(name)) {
+                setAppInfoDynamicFormsExceptionValue(name, value);
             }
             else {
                 Scanner scanner = new Scanner(value);

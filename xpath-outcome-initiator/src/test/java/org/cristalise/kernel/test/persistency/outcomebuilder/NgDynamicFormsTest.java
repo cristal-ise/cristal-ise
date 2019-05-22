@@ -132,4 +132,18 @@ public class NgDynamicFormsTest extends XMLUtils {
 
         assertJsonEquals(expected, actual);
     }
+
+    @Test
+    public void ngForm_PrecisionScale() throws Exception {
+        String testName = "PrecisionScale";
+        OutcomeBuilder builder = new OutcomeBuilder("PatientDetails", new Schema(testName, 0, getXSD(dir, testName)), false);
+
+        JSONArray actual = builder.generateNgDynamicFormsJson();
+
+        Logger.msg(actual.toString(2));
+
+        JSONArray expected = new JSONArray(getJSON(dir, testName));
+
+        assertJsonEquals(expected, actual);
+    }
 }

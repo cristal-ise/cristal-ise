@@ -22,6 +22,7 @@ package org.cristalise.kernel.persistency.outcomebuilder.field;
 
 import java.math.BigDecimal;
 import java.util.Enumeration;
+import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.lang3.StringUtils;
@@ -29,6 +30,15 @@ import org.exolab.castor.xml.schema.Facet;
 import org.json.JSONObject;
 
 public abstract class NumberField extends StringField {
+    
+    /**
+     * For integers or decimals
+     */
+    String precision;
+    
+    public NumberField(List<String> strFields, List<String> excFields) {
+        super(strFields, excFields);
+    }
 
     @Override
     public String getNgDynamicFormsControlType() {
