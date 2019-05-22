@@ -28,5 +28,18 @@ import groovy.transform.CompileStatic;
 @CompileStatic
 class OutOfSpecs {
     String pattern = null
+    String expression = null
     String message = null
+
+    public void setPattern(String p) {
+        if (pattern && expression) throw new InvalidDataException("Do not use pattern and expression at the same time")
+
+        pattern = p
+    }
+
+    public void setExpression(String e) {
+        if (pattern && expression) throw new InvalidDataException("Do not use pattern and expression at the same time")
+
+        expression = e
+    }
 }

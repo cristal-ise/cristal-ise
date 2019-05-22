@@ -178,8 +178,11 @@ class SchemaDelegate {
                     if (f.dynamicForms.updateQuerytRef != null) updateQuerytRef(f.dynamicForms.updateQuerytRef)
                     if (f.dynamicForms.outOfSpecs != null) {
                         outOfSpecs {
-                            if (f.dynamicForms.outOfSpecs.pattern != null) pattern(f.dynamicForms.outOfSpecs.pattern)
-                            if (f.dynamicForms.outOfSpecs.message != null) message(f.dynamicForms.outOfSpecs.message)
+                            if (f.dynamicForms.outOfSpecs.pattern != null)    pattern(f.dynamicForms.outOfSpecs.pattern)
+                            if (f.dynamicForms.outOfSpecs.message != null)    message(f.dynamicForms.outOfSpecs.message)
+                            if (f.dynamicForms.outOfSpecs.expression != null) expression {
+                                mkp.yieldUnescaped("<![CDATA[ ${f.dynamicForms.outOfSpecs.expression}]]>")
+                            }
                         }
                     }
                 }
