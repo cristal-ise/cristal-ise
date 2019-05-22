@@ -29,7 +29,7 @@ import java.util.Map;
 import java.util.Scanner;
 
 import org.apache.commons.lang3.StringUtils;
-import org.cristalise.kernel.persistency.outcomebuilder.AppInfoUtils;
+import org.cristalise.kernel.persistency.outcomebuilder.StructureWithAppInfo;
 import org.cristalise.kernel.persistency.outcomebuilder.InvalidOutcomeException;
 import org.cristalise.kernel.persistency.outcomebuilder.OutcomeStructure;
 import org.cristalise.kernel.persistency.outcomebuilder.StructuralException;
@@ -52,7 +52,7 @@ import org.w3c.dom.Text;
 /**
  * Superclass for the entry field for Field and AttributeList.
  */
-public class StringField extends AppInfoUtils {
+public class StringField extends StructureWithAppInfo {
 
     Node       data;
     Annotated  model;
@@ -104,7 +104,7 @@ public class StringField extends AppInfoUtils {
         if (type instanceof ListType) return new ArrayField(type.getBuiltInBaseType());
 
         // is a combobox
-        AnyNode appInfoNode = AppInfoUtils.getAppInfoNode(model, "listOfValues");
+        AnyNode appInfoNode = StructureWithAppInfo.getAppInfoNode(model, "listOfValues");
         if (type.hasFacet(Facet.ENUMERATION) || appInfoNode != null) return new ComboField(type, appInfoNode);
 
         // find info on length before we go to the base type

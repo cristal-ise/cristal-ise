@@ -32,7 +32,7 @@ import org.exolab.castor.xml.schema.AppInfo;
 import org.json.JSONObject;
 import org.json.XML;
 
-public class AppInfoUtils {
+public class StructureWithAppInfo {
 
     /**
      * List of field names might contain string which will be recognized by Scanner a numeric type. 
@@ -40,7 +40,7 @@ public class AppInfoUtils {
      */
     protected List<String> stringFields;
 
-    public AppInfoUtils(String...fields) {
+    public StructureWithAppInfo(String...fields) {
         stringFields = new ArrayList<String>();
 
         for (String f: fields) stringFields.add(f);

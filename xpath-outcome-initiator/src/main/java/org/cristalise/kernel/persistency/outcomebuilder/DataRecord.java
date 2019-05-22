@@ -222,7 +222,7 @@ public class DataRecord extends OutcomeStructure {
 
         for (String elementName : subStructureOrder) array.put(subStructure.get(elementName).generateNgDynamicForms(inputs));
 
-        AppInfoUtils appInfoer = new AppInfoUtils();
+        StructureWithAppInfo appInfoer = new StructureWithAppInfo();
 
         //This call could overwrite values set earlier
         appInfoer.readAppInfoDynamicForms(model, dr);
