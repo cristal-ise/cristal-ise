@@ -39,6 +39,7 @@ class SchemaDelegate {
         Logger.msg 1, "Schema(start) ---------------------------------------"
 
         def objBuilder = new ObjectGraphBuilder()
+        objBuilder.setChildPropertySetter(new DSLPropertySetter())
         objBuilder.classLoader = this.class.classLoader
         objBuilder.classNameResolver = 'org.cristalise.dsl.persistency.outcome'
 
@@ -67,7 +68,7 @@ class SchemaDelegate {
         return writer.toString()
     }
 
-    private void buildStruct(xsd, Struct s) {
+    private void buildStruct(MarkupBuilder xsd, Struct s) {
         Logger.msg 1, "SchemaDelegate.buildStruct() - Struct: $s.name"
         xsd.'xs:element'(name: s.name, minOccurs: s.minOccurs, maxOccurs: s.maxOccurs) {
 
@@ -87,18 +88,22 @@ class SchemaDelegate {
             }
 
             'xs:complexType' {
-                if (s.fields || s.structs || s.anyField) {
+                if (s.orderOfElements || s.anyField) {
                     if (s.useSequence) {
                         'xs:sequence' {
-                            if (s.fields)  s.fields.each  { Field f   -> buildField(xsd, f) }
-                            if (s.structs) s.structs.each { Struct s1 -> buildStruct(xsd, s1) }
+                            s.orderOfElements.each { String name ->
+                                if (s.fields.containsKey(name))  buildField(xsd, s.fields[name])
+                                if (s.structs.containsKey(name)) buildStruct(xsd, s.structs[name])
+                            }
                             if (s.anyField) buildAnyField(xsd, s.anyField)
                         }
                     }
                     else {
                         'xs:all'(minOccurs: '0') {
-                            if (s.fields)  s.fields.each  { Field f   -> buildField(xsd, f) }
-                            if (s.structs) s.structs.each { Struct s1 -> buildStruct(xsd, s1) }
+                            s.orderOfElements.each { String name ->
+                                if (s.fields.containsKey(name))  buildField(xsd, s.fields[name])
+                                if (s.structs.containsKey(name)) buildStruct(xsd, s.structs[name])
+                            }
                             if (s.anyField) buildAnyField(xsd, s.anyField)
                         }
                     }
@@ -143,7 +148,7 @@ class SchemaDelegate {
         else                    return a.type
     }
 
-    private void buildAtribute(xsd, Attribute a) {
+    private void buildAtribute(MarkupBuilder xsd, Attribute a) {
         Logger.msg 1, "SchemaDelegate.buildAtribute() - attribute: $a.name"
 
         if (a.documentation) throw new InvalidDataException('Atttrbute cannotnot define documentation')
@@ -200,7 +205,7 @@ class SchemaDelegate {
         }
     }
 
-    private void buildField(xsd, Field f) {
+    private void buildField(MarkupBuilder xsd, Field f) {
         Logger.msg 1, "SchemaDelegate.buildField() - Field: $f.name"
 
         //TODO: implement support for this combination - see issue 129
@@ -249,13 +254,13 @@ class SchemaDelegate {
     }
 
 
-    private void buildAnyField(xsd, AnyField any) {
+    private void buildAnyField(MarkupBuilder xsd, AnyField any) {
         Logger.msg 1, "SchemaDelegate.buildAnyField()"
 
         xsd.'xs:any'(minOccurs: any.minOccurs, maxOccurs: any.maxOccurs, processContents: any.processContents)
     }
 
-    private void buildRestriction(xsd, String type, List values, String pattern, Attribute a, Integer totalDigits, Integer fractionDigits) {
+    private void buildRestriction(MarkupBuilder xsd, String type, List values, String pattern, Attribute a, Integer totalDigits, Integer fractionDigits) {
         Logger.msg 1, "SchemaDelegate.buildRestriction() - type:$type"
 
         xsd.'xs:simpleType' {
