@@ -31,7 +31,7 @@ import groovy.transform.CompileStatic;
  * the form therefore it can be submitted.
  */
 @CompileStatic
-class OutOfSpecs {
+class Warning {
     /**
      * Javascript regex pattern to validate the value of the field in the from
      */
