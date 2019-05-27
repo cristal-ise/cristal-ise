@@ -150,17 +150,19 @@ class SchemaBuilderDynymicFormsSpecs extends Specification implements CristalTes
                </xs:schema>""")
     }
 
-    def 'Field can specify dynamicForms.outOfSpecs'() {
+    def 'Field can specify dynamicForms.warning using pattern or expression'() {
         expect:
         SchemaTestBuilder.build('test', 'PatientDetails', 0) {
             struct(name: 'PatientDetails') {
                 field(name: 'Weight',      type: 'decimal') {
                     dynamicForms {
-                        outOfSpecs (pattern: '^[0-9]{1,4}$', message: 'Value out of specification, has to be <= 9999')
+                        warning (pattern: '^[0-9]{1,4}$', message: 'Value out of specification, has to be <= 9999')
                     }
                 }
                 field(name: 'DateOfBirth', type: 'date') {
-                    dynamicForms(placeholder : '99/99/9999')
+                    dynamicForms {
+                        warning (expression: "var m = moment('2015-11-32', 'YYYY-MM-DD'); m.isValid();", message: 'Date is invalid')
+                    }
                 }
             }
         }.compareXML(
@@ -173,10 +175,10 @@ class SchemaBuilderDynymicFormsSpecs extends Specification implements CristalTes
                            <xs:appinfo>
                              <dynamicForms>
                                <additional>
-                                 <outOfSpecs>
+                                 <warning>
                                    <pattern>^[0-9]{1,4}$</pattern>
                                    <message>Value out of specification, has to be &lt;= 9999</message>
-                                 </outOfSpecs>
+                                 </warning>
                                </additional>
                              </dynamicForms>
                            </xs:appinfo>
@@ -186,7 +188,12 @@ class SchemaBuilderDynymicFormsSpecs extends Specification implements CristalTes
                          <xs:annotation>
                            <xs:appinfo>
                              <dynamicForms>
-                               <placeholder>99/99/9999</placeholder>
+                               <additional>
+                                 <warning>
+                                   <message>Date is invalid</message>
+                                   <expression><![CDATA[ var m = moment('2015-11-32', 'YYYY-MM-DD'); m.isValid();]]></expression>
+                                 </warning>
+                               </additional>
                              </dynamicForms>
                            </xs:appinfo>
                          </xs:annotation>
