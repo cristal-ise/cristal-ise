@@ -25,8 +25,35 @@ import org.cristalise.kernel.common.InvalidDataException
 import groovy.transform.CompileStatic;
 
 
+/**
+ * Provides mechanism to specify validation Warning. It behaves like any validation rule 
+ * (evaluated by the form and when fails it shows a message), except it does NOT invalidate 
+ * the form therefore it can be submitted.
+ */
 @CompileStatic
-class OutOfSpecs {
+class Warning {
+    /**
+     * Javascript regex pattern to validate the value of the field in the from
+     */
     String pattern = null
+    /**
+     * Javascript expression (code fragment) to validate the value of the field in the form
+     */
+    String expression = null
+    /**
+     * Message to show to the user for the validation warning 
+     */
     String message = null
+
+    public void setPattern(String p) {
+        if (pattern && expression) throw new InvalidDataException("Do not use pattern and expression at the same time")
+
+        pattern = p
+    }
+
+    public void setExpression(String e) {
+        if (pattern && expression) throw new InvalidDataException("Do not use pattern and expression at the same time")
+
+        expression = e
+    }
 }

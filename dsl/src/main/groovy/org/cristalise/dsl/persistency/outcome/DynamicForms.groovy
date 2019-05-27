@@ -42,7 +42,11 @@ class DynamicForms {
     Boolean showSeconds = null
     String type = null
     String value = null
-    OutOfSpecs outOfSpecs = null
+
+    /**
+     * Provided validation rule and message to set a warning on the given field
+     */
+    Warning warning = null
 
     /**
      * Sets the width of the form (DynamicForms)

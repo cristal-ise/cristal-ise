@@ -177,14 +177,17 @@ class SchemaDelegate {
             if (f.dynamicForms.pattern != null)     pattern(     f.dynamicForms.pattern)
             if (f.dynamicForms.errmsg != null)      errmsg(      f.dynamicForms.errmsg)
             if (f.dynamicForms.showSeconds != null) showSeconds( f.dynamicForms.showSeconds)
-            if ((f.dynamicForms.updateScriptRef != null) || (f.dynamicForms.updateQuerytRef != null) || (f.dynamicForms.outOfSpecs != null)) {
+            if ((f.dynamicForms.updateScriptRef != null) || (f.dynamicForms.updateQuerytRef != null) || (f.dynamicForms.warning != null)) {
                 additional {
                     if (f.dynamicForms.updateScriptRef != null) updateScriptRef(f.dynamicForms.updateScriptRef)
                     if (f.dynamicForms.updateQuerytRef != null) updateQuerytRef(f.dynamicForms.updateQuerytRef)
-                    if (f.dynamicForms.outOfSpecs != null) {
-                        outOfSpecs {
-                            if (f.dynamicForms.outOfSpecs.pattern != null) pattern(f.dynamicForms.outOfSpecs.pattern)
-                            if (f.dynamicForms.outOfSpecs.message != null) message(f.dynamicForms.outOfSpecs.message)
+                    if (f.dynamicForms.warning != null) {
+                        warning {
+                            if (f.dynamicForms.warning.pattern != null)    pattern(f.dynamicForms.warning.pattern)
+                            if (f.dynamicForms.warning.message != null)    message(f.dynamicForms.warning.message)
+                            if (f.dynamicForms.warning.expression != null) expression {
+                                mkp.yieldUnescaped("<![CDATA[ ${f.dynamicForms.warning.expression}]]>")
+                            }
                         }
                     }
                 }
