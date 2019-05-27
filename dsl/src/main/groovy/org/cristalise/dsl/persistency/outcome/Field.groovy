@@ -100,6 +100,6 @@ class Field extends Attribute {
      * @return
      */
     public boolean hasAdditional() {
-        return dynamicForms.updateScriptRef || dynamicForms.updateQuerytRef || dynamicForms.outOfSpecs;
+        return dynamicForms.updateScriptRef || dynamicForms.updateQuerytRef || dynamicForms.warning;
     }
 }
