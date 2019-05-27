@@ -31,6 +31,15 @@
             </xs:appinfo>
           </xs:annotation>
         </xs:element>
+        <xs:element name='WeightScaleMinus' type='xs:decimal' minOccurs='1' maxOccurs='1'>
+          <xs:annotation>
+            <xs:appinfo>
+              <dynamicForms>
+                <scale>2-</scale>
+              </dynamicForms>
+            </xs:appinfo>
+          </xs:annotation>
+        </xs:element>
       </xs:all>
     </xs:complexType>
   </xs:element>

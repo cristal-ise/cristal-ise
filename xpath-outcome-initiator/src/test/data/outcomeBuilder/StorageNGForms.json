@@ -105,7 +105,7 @@
     {
       "validators": {
         "min": 0,
-        "pattern": "^\\d+\\.?\\d+$",
+        "pattern": "^-?\\d+\\.?\\d*$",
         "required": null
       },
       "cls": {
@@ -190,7 +190,7 @@
     {
       "validators": {
         "min": 0,
-        "pattern": "^\\d+\\.?\\d+$"
+        "pattern": "^-?\\d+\\.?\\d*$"
       },
       "cls": {
         "grid": {
@@ -210,7 +210,7 @@
     {
       "validators": {
         "min": 0,
-        "pattern": "^\\d+\\.?\\d+$"
+        "pattern": "^-?\\d+\\.?\\d*$"
       },
       "cls": {
         "grid": {

@@ -5,7 +5,7 @@
   "type": "GROUP",
   "group": [
     {
-      "validators": {"required": null, "pattern": "^\\d+\\.?\\d+$"},
+      "validators": {"required": null, "pattern": "^-?\\d+\\.?\\d*$"},
       "cls": {
         "grid": {
           "container": "ui-g",
@@ -22,7 +22,7 @@
       "required": true
     },
     {
-      "validators": {"required": null, "pattern": "^\\d+\\.?\\d{0,2}$"},
+      "validators": {"required": null, "pattern": "^-?\\d+\\.?\\d{0,2}$"},
       "cls": {
         "grid": {
           "container": "ui-g",
@@ -39,7 +39,7 @@
       "required": true
     },
     {
-      "validators": {"required": null, "pattern": "^\\d{0,5}$"},
+      "validators": {"required": null, "pattern": "^-?\\d{0,5}$"},
       "cls": {
         "grid": {
           "container": "ui-g",
@@ -56,7 +56,7 @@
       "required": true
     },
     {
-      "validators": {"required": null, "pattern": "^\\d{0,3}\\.?\\d{0,2}$"},
+      "validators": {"required": null, "pattern": "^-?\\d{0,5}\\.?\\d{0,2}$"},
       "cls": {
         "grid": {
           "container": "ui-g",

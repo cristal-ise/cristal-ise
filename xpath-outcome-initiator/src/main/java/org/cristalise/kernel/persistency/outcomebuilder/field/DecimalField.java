@@ -105,24 +105,34 @@ public class DecimalField extends NumberField {
 
         if (precisionNumber == null && scaleNumber == null) {
             //default validator for any decimal field
-            return "^\\d+\\" + separator + "?\\d+$";
+            return "^-?\\d+\\" + separator + "?\\d*$";
         }
         else if (precisionNumber != null) {
             if (scaleNumber == null) {
-                if (precisionSmaller) return "^\\d{0," + precisionNumber + "}$";
-                else                  return "^\\d{" + precisionNumber + "}$";
+                if (precisionSmaller) return "^-?\\d{0," + precisionNumber + "}$";
+                else                  return "^-?\\d{" + precisionNumber + "}$";
             }
             else {
-                if (precisionSmaller && scaleSmaller)
-                    return "^\\d{0," + (precisionNumber - scaleNumber) + "}\\" + separator + "?\\d{0," + scaleNumber + "}$";
-                else if (precisionSmaller && !scaleSmaller)
-                    return "^\\d{0," + (precisionNumber - scaleNumber) + "}\\" + separator + "?\\d{" + scaleNumber + "}$";
-                else if (!precisionSmaller && !scaleSmaller)
-                    return "^\\d{" + (precisionNumber - scaleNumber) + "}\\" + separator + "?\\d{" + scaleNumber + "}$";
+                if (precisionSmaller && scaleSmaller) {
+                    // It is not simple (impossible?) to write regexp that accepts 1234.5 and 123.45, 
+                    // but not 1234.56 - this should be covered with validation code/expression.
+                    return "^-?\\d{0," + precisionNumber + "}\\" + separator + "?\\d{0," + scaleNumber + "}$";
+                }
+                else if (precisionSmaller && !scaleSmaller) {
+                    return "^-?\\d{0," + (precisionNumber - scaleNumber) + "}\\" + separator + "\\d{" + scaleNumber + "}$";
+                }
+                else if (!precisionSmaller && !scaleSmaller) {
+                    return "^-?\\d{" + (precisionNumber - scaleNumber) + "}\\" + separator + "\\d{" + scaleNumber + "}$";
+                }
             }
         }
         else {
-            return "^\\d+\\" + separator + "?\\d{0," + scaleNumber + "}$";
+            if (scaleSmaller) {
+                return "^-?\\d+\\" + separator + "?\\d{0," + scaleNumber + "}$";
+            }
+            else {
+                return "^-?\\d+\\" + separator + "\\d{" + scaleNumber + "}$";
+            }
         }
 
         throw new PatternSyntaxException("Cannot generate regexp from the inputs", "unknows", -1);
@@ -149,7 +159,7 @@ public class DecimalField extends NumberField {
                 scaleNumber = Integer.parseInt(scale);
             }
             else if (scale.endsWith("-"))  {
-                scaleNumber = Integer.parseInt(scale.substring(0, precision.indexOf("-")));
+                scaleNumber = Integer.parseInt(scale.substring(0, scale.indexOf("-")));
                 scaleSmaller = true;
             }
         }

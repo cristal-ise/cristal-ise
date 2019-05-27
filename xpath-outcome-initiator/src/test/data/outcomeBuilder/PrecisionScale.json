@@ -5,7 +5,7 @@
   "type": "GROUP",
   "group": [
     {
-      "validators": {"required": null, "pattern": "^\\d{3}\\.?\\d{2}$"},
+      "validators": {"required": null, "pattern": "^-?\\d{3}\\.\\d{2}$"},
       "cls": {
         "grid": {
           "container": "ui-g",
@@ -22,7 +22,7 @@
       "required": true
     },
     {
-      "validators": {"required": null, "pattern": "^\\d{0,3}\\.?\\d{2}$"},
+      "validators": {"required": null, "pattern": "^-?\\d{0,3}\\.\\d{2}$"},
       "cls": {
         "grid": {
           "container": "ui-g",
@@ -39,7 +39,7 @@
       "required": true
     },
     {
-      "validators": {"required": null, "pattern": "^\\d+\\.?\\d{0,2}$"},
+      "validators": {"required": null, "pattern": "^-?\\d+\\.\\d{2}$"},
       "cls": {
         "grid": {
           "container": "ui-g",
@@ -54,7 +54,23 @@
       "type": "INPUT",
       "value": "0.0",
       "required": true
+    },
+    {
+      "validators": {"required": null, "pattern": "^-?\\d+\\.?\\d{0,2}$"},
+      "cls": {
+        "grid": {
+          "container": "ui-g",
+          "control": "ui-g-8",
+          "label": "ui-g-4"
+        },
+        "element": {"label": "ui-widget"}
+      },
+      "id": "WeightScaleMinus",
+      "label": "Weight Scale Minus *",
+      "placeholder": "Weight Scale Minus",
+      "type": "INPUT",
+      "value": "0.0",
+      "required": true
     }
-    
   ]
 }]
