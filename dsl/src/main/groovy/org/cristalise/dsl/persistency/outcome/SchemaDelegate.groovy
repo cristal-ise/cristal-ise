@@ -81,6 +81,7 @@ class SchemaDelegate {
                         'xs:appinfo' {
                             dynamicForms {
                                 if (s.dynamicForms.width) width(s.dynamicForms.width)
+                                if (s.dynamicForms.label) label(s.dynamicForms.label)
                             }
                         }
                     }
