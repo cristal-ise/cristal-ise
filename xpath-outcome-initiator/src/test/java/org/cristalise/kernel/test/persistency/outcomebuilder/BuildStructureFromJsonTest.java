@@ -132,4 +132,9 @@ public class BuildStructureFromJsonTest extends XMLUtils {
     public void sequence_mandatoryField_optionalField_mandatoryField() throws Exception {
         checkJson2XmlOutcome("DeviceWithLabels", "");
     }
+
+    @Test
+    public void field_contains_array_value() throws Exception {
+        checkJson2XmlOutcome("EmployeeWithSkills", "");
+    }
 }
