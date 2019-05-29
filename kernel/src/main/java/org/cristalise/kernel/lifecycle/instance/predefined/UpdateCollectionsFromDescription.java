@@ -29,21 +29,16 @@ import java.util.List;
 import java.util.Map;
 
 import org.cristalise.kernel.collection.Collection;
-import org.cristalise.kernel.collection.CollectionDescription;
-import org.cristalise.kernel.collection.CollectionMember;
 import org.cristalise.kernel.collection.Dependency;
-import org.cristalise.kernel.collection.DependencyMember;
+import org.cristalise.kernel.collection.DependencyDescription;
 import org.cristalise.kernel.common.AccessRightsException;
 import org.cristalise.kernel.common.CannotManageException;
 import org.cristalise.kernel.common.InvalidCollectionModification;
 import org.cristalise.kernel.common.InvalidDataException;
-import org.cristalise.kernel.common.InvalidTransitionException;
 import org.cristalise.kernel.common.ObjectAlreadyExistsException;
 import org.cristalise.kernel.common.ObjectCannotBeUpdated;
 import org.cristalise.kernel.common.ObjectNotFoundException;
 import org.cristalise.kernel.common.PersistencyException;
-import org.cristalise.kernel.entity.proxy.AgentProxy;
-import org.cristalise.kernel.entity.proxy.ItemProxy;
 import org.cristalise.kernel.lifecycle.instance.predefined.item.CreateItemFromDescription;
 import org.cristalise.kernel.lookup.AgentPath;
 import org.cristalise.kernel.lookup.DomainPath;
@@ -52,6 +47,7 @@ import org.cristalise.kernel.lookup.ItemPath;
 import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.property.Property;
 import org.cristalise.kernel.property.PropertyArrayList;
+import org.cristalise.kernel.property.PropertyDescription;
 import org.cristalise.kernel.property.PropertyDescriptionList;
 import org.cristalise.kernel.property.PropertyUtility;
 import org.cristalise.kernel.utils.Logger;
@@ -82,12 +78,11 @@ public class UpdateCollectionsFromDescription extends PredefinedStep {
     {
         String[] inputs = getDataList(requestData);
 
-        //implement checking of valid inputs
-        
+        //FIXME: check if inputs are valid
         String descPath = inputs[0]; //i.e. domainPath of FactoryItem
         String descVer  = inputs[1];
 
-        ItemPath descItemPath; // employee factory
+        ItemPath descItemPath; // very likely the factory item
 
         try {
             descItemPath = Gateway.getLookup().resolvePath(new DomainPath(descPath));
@@ -109,40 +104,10 @@ public class UpdateCollectionsFromDescription extends PredefinedStep {
             }
             else {
                 currentCollNames.remove(collName);
-                
-                //update collection properties
-                Map<String, Object> itemCollProps = new HashMap<>(); // place holder for all properties from the factory
-               
-                @SuppressWarnings("unchecked")
-                Collection<? extends CollectionMember> collOfDesc = (Collection<? extends CollectionMember>)
-                        Gateway.getStorage().get(descItemPath, COLLECTION + "/" + collName + "/" + descVer, locker);
-                
-                itemCollProps.putAll(((Dependency) collOfDesc).getProperties());
-   
-                PropertyDescriptionList itemPropertyList = PropertyUtility.getPropertyDescriptionOutcome(collOfDesc.getMembers().list.get(0).getItemPath(), descVer, locker);
-                
-                if(!itemPropertyList.list.isEmpty()){
-                    itemPropertyList.list.forEach(props -> {
-                        if(props.getIsClassIdentifier()){
-                            itemCollProps.put(props.getName(), props.getDefaultValue());
-                        }
-                        if(props.isTransitive()){
-                            itemCollProps.put(props.getName(), props.getDefaultValue());    
-                        }
-                    });
-                }
-                
-                @SuppressWarnings("unchecked")
-                Collection<? extends CollectionMember> itemColl = (Collection<? extends CollectionMember>)
-                        Gateway.getStorage().get(item, COLLECTION + "/" + collName + "/" + descVer, locker);
- 
-                for(Map.Entry<String, Object> props : ((Dependency) itemColl).getProperties().entrySet()){
-                    if(!itemCollProps.containsKey(props.getKey())){
-                        ((Dependency) itemColl).getProperties().remove(props.getKey()); // remove property if not exist from the current list
-                    } else {
-                        // if exists, do update the values if needed
-                    }
-                }
+
+                //FIXME: Check if current collection is a Dependency, properties are only available in Dependency and DependencyDescription
+                Dependency itemColl = updateDependencyCollectionProperties(item, descItemPath, descVer, collName, locker);
+
                 Gateway.getStorage().put(item, itemColl, locker);
             }
         }
@@ -158,5 +123,41 @@ public class UpdateCollectionsFromDescription extends PredefinedStep {
         }
 
         return requestData;
+    }
+
+    private Dependency updateDependencyCollectionProperties(ItemPath item, ItemPath descItemPath, String descVer, String collName, Object locker)
+            throws PersistencyException, ObjectNotFoundException
+    {
+        Map<String, Object> itemCollProps = new HashMap<>(); // place holder for all properties from the factory
+
+        DependencyDescription collOfDesc = (DependencyDescription)
+                Gateway.getStorage().get(descItemPath, COLLECTION + "/" + collName + "/" + descVer, locker);
+
+        itemCollProps.putAll(collOfDesc.getProperties());
+
+        //DependencyDescription shall have one member only
+        PropertyDescriptionList itemPropertyList = PropertyUtility.getPropertyDescriptionOutcome(collOfDesc.getMembers().list.get(0).getItemPath(), descVer, locker);
+
+        for (PropertyDescription prop: itemPropertyList.list) {
+            if(prop.getIsClassIdentifier() || prop.isTransitive()){
+                itemCollProps.put(prop.getName(), prop.getDefaultValue());
+            }
+        }
+
+        Dependency itemColl = (Dependency) Gateway.getStorage().get(item, COLLECTION + "/" + collName + "/" + descVer, locker);
+ 
+        for (Map.Entry<String, Object> props : itemColl.getProperties().entrySet()) {
+            if(! itemCollProps.containsKey(props.getKey())) {
+                // remove property if not exist from the current list
+                itemColl.getProperties().remove(props.getKey()); 
+            } else {
+                // if exists, update the default values if needed
+            }
+        }
+
+        //TODO: add new properties to collection
+        //TODO: update member properties
+
+        return itemColl;
     }
 }
