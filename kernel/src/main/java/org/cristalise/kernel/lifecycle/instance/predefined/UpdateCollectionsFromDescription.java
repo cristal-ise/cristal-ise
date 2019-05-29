@@ -110,8 +110,8 @@ public class UpdateCollectionsFromDescription extends PredefinedStep {
             else {
                 currentCollNames.remove(collName);
                 
-                //update collection properties if needed
-                Map<String, Object> itemCollProps = new HashMap<>();
+                //update collection properties
+                Map<String, Object> itemCollProps = new HashMap<>(); // place holder for all properties from the factory
                
                 @SuppressWarnings("unchecked")
                 Collection<? extends CollectionMember> collOfDesc = (Collection<? extends CollectionMember>)
@@ -138,9 +138,9 @@ public class UpdateCollectionsFromDescription extends PredefinedStep {
  
                 for(Map.Entry<String, Object> props : ((Dependency) itemColl).getProperties().entrySet()){
                     if(!itemCollProps.containsKey(props.getKey())){
-                        ((Dependency) itemColl).getProperties().remove(props.getKey());
+                        ((Dependency) itemColl).getProperties().remove(props.getKey()); // remove property if not exist from the current list
                     } else {
-                        // do update the values if needed
+                        // if exists, do update the values if needed
                     }
                 }
                 Gateway.getStorage().put(item, itemColl, locker);
