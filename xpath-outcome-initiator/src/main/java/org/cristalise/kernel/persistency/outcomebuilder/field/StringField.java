@@ -61,7 +61,8 @@ public class StringField extends AppInfoUtils {
     SimpleType contentType;
     String     text;
     String     defaultValue;
-
+    String     ngcontainer;
+    
     //Filed for validation
     String pattern;
     String errmsg;
@@ -300,7 +301,7 @@ public class StringField extends AppInfoUtils {
         fieldElement.put("label", "ui-widget");
 
         JSONObject fieldGrid = new JSONObject();
-        fieldGrid.put("container", "ui-g");
+        fieldGrid.put("container", ngcontainer!=null? ngcontainer : "ui-g");
         fieldGrid.put("label",     "ui-g-4");
         fieldGrid.put("control",   "ui-g-8");
 
@@ -312,7 +313,6 @@ public class StringField extends AppInfoUtils {
     @Override
     protected void setAppInfoDynamicFormsJsonValue(AnyNode node, JSONObject json) {
         String name  = node.getLocalName();
-
         if (name.equals("additional")) {
             //simply convert the xml to json
             json.put("additional", XML.toJSONObject(node.toString(), true).getJSONObject("additional"));
@@ -326,6 +326,9 @@ public class StringField extends AppInfoUtils {
             }
             else if (name.equals("errmsg")) {
                 errmsg = value;
+            }
+            else if (name.equals("container")) {
+                ngcontainer = value;
             }
             else if (stringFields.contains(name)) {
                 //these field might contain string which will be recognized by Scanner a numeric type. (Scanner is locale specific as well)
@@ -363,9 +366,7 @@ public class StringField extends AppInfoUtils {
 
     public JSONObject getCommonFieldsNgDynamicForms() {
         JSONObject field = new JSONObject();
-
-        field.put("cls", generateNgDynamicFormsCls());
-
+        
         field.put("id",       name);
         field.put("label",    name);
         field.put("type",     getNgDynamicFormsControlType());
@@ -373,6 +374,8 @@ public class StringField extends AppInfoUtils {
 
         //This can overwrite values set earlier, for example 'type' can be changed from INPUT to RATING
         readAppInfoDynamicForms(model, field);
+
+        field.put("cls", generateNgDynamicFormsCls());
 
         JSONObject validators = new JSONObject();
         field.put("validators", validators);
