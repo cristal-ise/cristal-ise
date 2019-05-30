@@ -229,4 +229,30 @@ class SchemaBuilderDynymicFormsSpecs extends Specification implements CristalTes
                   </xs:element>
                 </xs:schema>""")
     }
+    
+    def 'Struct can specify dynamicForms.label'() {
+        expect:
+        SchemaTestBuilder.build('test', 'Form', 0) {
+            struct(name: 'Form') {
+                dynamicForms(label: 'FormLabel')
+                field(name:'stringField1')
+            }
+        }.compareXML(
+            """<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+                  <xs:element name="Form">
+                    <xs:annotation>
+                      <xs:appinfo>
+                        <dynamicForms>
+                          <label>FormLabel</label>
+                        </dynamicForms>
+                      </xs:appinfo>
+                    </xs:annotation>
+                    <xs:complexType>
+                      <xs:all minOccurs='0'>
+                        <xs:element name='stringField1' type='xs:string' minOccurs='1' maxOccurs='1' />
+                      </xs:all>
+                    </xs:complexType>
+                  </xs:element>
+                </xs:schema>""")
+    }
 }

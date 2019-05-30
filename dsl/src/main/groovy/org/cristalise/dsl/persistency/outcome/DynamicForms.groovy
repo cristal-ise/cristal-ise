@@ -52,7 +52,6 @@ class DynamicForms {
      * Sets the width of the form (DynamicForms)
      */
     String width = null
-    String testLabel = null
 
     /**
      * Defines the Script name and version (e.g. GetShiftNames:0) which is executed when
