@@ -155,8 +155,19 @@ public class UpdateCollectionsFromDescription extends PredefinedStep {
             }
         }
 
-        //TODO: add new properties to collection
-        //TODO: update member properties
+        // Iterate over itemCollProps to add new properties to collection or update member collection props
+        for (Map.Entry<String, Object> props : itemCollProps.entrySet()) {
+            if(! itemColl.getProperties().containsKey(props.getKey())) {
+                // add property if not exist from the current list
+                itemColl.getProperties().put(props.getKey(),props.getValue()); 
+            } else {
+                // update property
+                if(props.getValue()!=null && !itemColl.getProperties().get(props.getKey()).toString().equals(props.getValue().toString())){
+                    itemColl.getProperties().remove(props.getKey());
+                    itemColl.getProperties().put(props.getKey(), props.getValue());
+                }
+            }
+        }
 
         return itemColl;
     }
