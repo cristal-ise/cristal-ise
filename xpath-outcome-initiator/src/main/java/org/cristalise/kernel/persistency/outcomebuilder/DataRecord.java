@@ -209,9 +209,8 @@ public class DataRecord extends OutcomeStructure {
     @Override
     public Object generateNgDynamicForms(Map<String, Object> inputs) {
         JSONObject dr = new JSONObject();
-        
-        dr.put("cls", generateNgDynamicFormsCls());
 
+        dr.put("cls", generateNgDynamicFormsCls());
         dr.put("type",  "GROUP");
         dr.put("id",    model.getName());
         dr.put("name",  model.getName());
@@ -222,6 +221,11 @@ public class DataRecord extends OutcomeStructure {
         JSONArray array = myAttributes.generateNgDynamicForms(inputs);
 
         for (String elementName : subStructureOrder) array.put(subStructure.get(elementName).generateNgDynamicForms(inputs));
+
+        AppInfoUtils appInfoer = new AppInfoUtils();
+
+        //This call could overwrite values set earlier
+        appInfoer.readAppInfoDynamicForms(model, dr);
 
         dr.put("group", array);
 

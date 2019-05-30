@@ -20,6 +20,7 @@
  */
 package org.cristalise.kernel.security;
 
+import static org.cristalise.kernel.security.BuiltInAuthc.SYSTEM_AGENT;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shiro.SecurityUtils;
 import org.apache.shiro.authc.UsernamePasswordToken;
@@ -74,7 +75,7 @@ public class SecurityManager {
      */
     public void authenticate() throws InvalidDataException, ObjectNotFoundException {
         if (!shiroEnabled) {
-            if (!auth.authenticate("system")) throw new InvalidDataException("Server authentication failed");
+            if (!auth.authenticate(SYSTEM_AGENT.getName())) throw new InvalidDataException("Server authentication failed");
         }
         //NOTE: the else case is not required because shiro cannot authentcate users without a password, and the current
         //setup does not allow us to create the 'system' Agent with password. Also the original auth.authenticate("system") 
