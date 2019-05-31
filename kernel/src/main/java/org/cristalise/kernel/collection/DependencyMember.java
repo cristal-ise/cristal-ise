@@ -179,7 +179,20 @@ public class DependencyMember implements CollectionMember {
             throw new InvalidDataException(e.getMessage());
         }
     }
-    
+
+    public void updateFromPropertieDescription(CastorHashMap propDesc, DependencyMember newMember) 
+            throws ObjectNotFoundException, InvalidCollectionModification
+    {
+        for(String key: propDesc.keySet()) {
+            if (mProperties.containsKey(key)) {
+                //TODO
+            }
+            else {
+                mProperties.put(key, "TODO");
+            }
+        }
+    }
+
     /**
      * Only update existing properties otherwise throw an exception
      * 
@@ -189,13 +202,16 @@ public class DependencyMember implements CollectionMember {
      */
     public void updateProperties(CastorHashMap newProps) throws ObjectNotFoundException, InvalidCollectionModification {
         for (Entry<String, Object> newProp: newProps.entrySet()) {
-            if (mClassProps.contains(newProp.getKey()))
+            if (mClassProps.contains(newProp.getKey())) {
                 throw new InvalidCollectionModification("Dependency cannot change classProperties:"+mClassProps);
+            }
 
-            if (getProperties().containsKey(newProp.getKey())) getProperties().put(newProp.getKey(), newProp.getValue());
-            else
+            if (getProperties().containsKey(newProp.getKey())) {
+                getProperties().put(newProp.getKey(), newProp.getValue());
+            }
+            else {
                 throw new ObjectNotFoundException("Property "+newProp.getKey()+" does not exists for slotID:" + getID());
+            }
         }
-        
     }
 }

@@ -22,6 +22,7 @@ package org.cristalise.kernel.lifecycle.instance.predefined;
 
 import static org.cristalise.kernel.persistency.ClusterType.COLLECTION;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -31,6 +32,7 @@ import java.util.Map;
 import org.cristalise.kernel.collection.Collection;
 import org.cristalise.kernel.collection.Dependency;
 import org.cristalise.kernel.collection.DependencyDescription;
+import org.cristalise.kernel.collection.DependencyMember;
 import org.cristalise.kernel.common.AccessRightsException;
 import org.cristalise.kernel.common.CannotManageException;
 import org.cristalise.kernel.common.InvalidCollectionModification;
@@ -50,7 +52,11 @@ import org.cristalise.kernel.property.PropertyArrayList;
 import org.cristalise.kernel.property.PropertyDescription;
 import org.cristalise.kernel.property.PropertyDescriptionList;
 import org.cristalise.kernel.property.PropertyUtility;
+import org.cristalise.kernel.utils.CastorHashMap;
 import org.cristalise.kernel.utils.Logger;
+import org.exolab.castor.mapping.MappingException;
+import org.exolab.castor.xml.MarshalException;
+import org.exolab.castor.xml.ValidationException;
 
 /**
  * {@value #description}
@@ -82,6 +88,17 @@ public class UpdateCollectionsFromDescription extends PredefinedStep {
         String descPath = inputs[0]; //i.e. domainPath of FactoryItem
         String descVer  = inputs[1];
 
+        Collection<DependencyMember> newMembers = null; //inputs[2]
+
+        try {
+            if (inputs.length == 3) //optional
+                newMembers = (Collection<DependencyMember>)Gateway.getMarshaller().unmarshall(inputs[2]);
+        }
+        catch (MarshalException | ValidationException | IOException | MappingException e) {
+            Logger.error(e);
+            throw new InvalidDataException(e.getMessage());
+        }
+
         ItemPath descItemPath; // very likely the factory item
 
         try {
@@ -108,6 +125,11 @@ public class UpdateCollectionsFromDescription extends PredefinedStep {
                 //FIXME: Check if current collection is a Dependency, properties are only available in Dependency and DependencyDescription
                 Dependency itemColl = updateDependencyCollectionProperties(item, descItemPath, descVer, collName, locker);
 
+                for (DependencyMember member: itemColl.getMembers().list) {
+                    DependencyMember newMember = null; //find member in newMembers (can be null)
+                    member.updateFromPropertieDescription(itemColl.getProperties(), newMember);
+                }
+
                 Gateway.getStorage().put(item, itemColl, locker);
             }
         }
@@ -128,45 +150,35 @@ public class UpdateCollectionsFromDescription extends PredefinedStep {
     private Dependency updateDependencyCollectionProperties(ItemPath item, ItemPath descItemPath, String descVer, String collName, Object locker)
             throws PersistencyException, ObjectNotFoundException
     {
-        Map<String, Object> itemCollProps = new HashMap<>(); // place holder for all properties from the factory
+        Map<String, Object> newCollProps = new HashMap<>(); // place holder for all properties from the factory
 
         DependencyDescription collOfDesc = (DependencyDescription)
                 Gateway.getStorage().get(descItemPath, COLLECTION + "/" + collName + "/" + descVer, locker);
 
-        itemCollProps.putAll(collOfDesc.getProperties());
+        newCollProps.putAll(collOfDesc.getProperties());
 
-        //DependencyDescription shall have one member only
-        PropertyDescriptionList itemPropertyList = PropertyUtility.getPropertyDescriptionOutcome(collOfDesc.getMembers().list.get(0).getItemPath(), descVer, locker);
+        // DependencyDescription shall have one member only
+        PropertyDescriptionList itemPropertyList = PropertyUtility.getPropertyDescriptionOutcome(
+                collOfDesc.getMembers().list.get(0).getItemPath(), descVer, locker);
 
         for (PropertyDescription prop: itemPropertyList.list) {
             if(prop.getIsClassIdentifier() || prop.isTransitive()){
-                itemCollProps.put(prop.getName(), prop.getDefaultValue());
+                newCollProps.put(prop.getName(), prop.getDefaultValue());
             }
         }
 
         Dependency itemColl = (Dependency) Gateway.getStorage().get(item, COLLECTION + "/" + collName + "/" + descVer, locker);
  
+        // Iterate over collection properties to remove property if not exist
         for (Map.Entry<String, Object> props : itemColl.getProperties().entrySet()) {
-            if(! itemCollProps.containsKey(props.getKey())) {
-                // remove property if not exist from the current list
-                itemColl.getProperties().remove(props.getKey()); 
-            } else {
-                // if exists, update the default values if needed
+            if(! newCollProps.containsKey(props.getKey())) {
+                itemColl.getProperties().remove(props.getKey());
             }
         }
 
-        // Iterate over itemCollProps to add new properties to collection or update member collection props
-        for (Map.Entry<String, Object> props : itemCollProps.entrySet()) {
-            if(! itemColl.getProperties().containsKey(props.getKey())) {
-                // add property if not exist from the current list
-                itemColl.getProperties().put(props.getKey(),props.getValue()); 
-            } else {
-                // update property
-                if(props.getValue()!=null && !itemColl.getProperties().get(props.getKey()).toString().equals(props.getValue().toString())){
-                    itemColl.getProperties().remove(props.getKey());
-                    itemColl.getProperties().put(props.getKey(), props.getValue());
-                }
-            }
+        // Iterate over newCollProps to add or update properties
+        for (Map.Entry<String, Object> propDef : newCollProps.entrySet()) {
+            itemColl.getProperties().put(propDef.getKey(), propDef.getValue());
         }
 
         return itemColl;
