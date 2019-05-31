@@ -29,7 +29,7 @@ public class CookieLogout extends RestHandler   {
 
         try {
             AgentProxy agent = Gateway.getProxyManager().getAgentProxy(ap);
-            agent.execute(agent, Logout.class, "");
+            agent.execute(agent, Logout.class);
         }
         catch (Exception e) {
             Logger.error(e);

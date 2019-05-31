@@ -154,7 +154,7 @@ public abstract class PredefinedStep extends Activity {
                     AccessRightsException;
 
     // generic bundling of parameters
-    static public String bundleData(String[] data) {
+    static public String bundleData(String...data) {
         try {
             DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
             DocumentBuilder builder = factory.newDocumentBuilder();

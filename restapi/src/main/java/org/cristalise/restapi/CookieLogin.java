@@ -22,7 +22,12 @@ package org.cristalise.restapi;
 
 import java.util.Base64;
 
-import javax.ws.rs.*;
+import javax.ws.rs.Consumes;
+import javax.ws.rs.GET;
+import javax.ws.rs.POST;
+import javax.ws.rs.Path;
+import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
@@ -30,8 +35,9 @@ import javax.ws.rs.core.NewCookie;
 import javax.ws.rs.core.Response;
 
 import org.apache.commons.lang3.StringUtils;
-import org.cristalise.kernel.common.InvalidDataException;
-import org.cristalise.kernel.common.ObjectNotFoundException;
+import org.cristalise.kernel.entity.proxy.AgentProxy;
+import org.cristalise.kernel.lifecycle.instance.predefined.PredefinedStep;
+import org.cristalise.kernel.lifecycle.instance.predefined.agent.Login;
 import org.cristalise.kernel.lookup.AgentPath;
 import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.security.SecurityManager;
@@ -62,10 +68,11 @@ public class CookieLogin extends RestHandler {
      */
     private Response processLogin(String user, String pass, HttpHeaders headers) {
         try {
-            AgentPath agentPath = Gateway.getSecurityManager().authenticate(user, pass, null).getPath();
-            return getCookieResponse(agentPath, ItemUtils.produceJSON(headers.getAcceptableMediaTypes()));
+            AgentProxy agent = Gateway.getProxyManager().getAgentProxy(user);
+            agent.execute(agent, Login.class, PredefinedStep.bundleData(user, pass));
+            return getCookieResponse(agent.getPath(), ItemUtils.produceJSON(headers.getAcceptableMediaTypes()));
         }
-        catch (ObjectNotFoundException | InvalidDataException ex) {
+        catch (Exception ex) {
             //NOTE: Enable this log for testing security problems only, but always remove it when merged
             //Logger.error(ex);
             String msg = SecurityManager.decodePublicSecurityMessage(ex);

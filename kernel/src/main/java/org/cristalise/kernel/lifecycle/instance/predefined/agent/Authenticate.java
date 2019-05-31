@@ -20,30 +20,36 @@
  */
 package org.cristalise.kernel.lifecycle.instance.predefined.agent;
 
-import org.cristalise.kernel.common.CannotManageException;
 import org.cristalise.kernel.common.InvalidDataException;
-import org.cristalise.kernel.common.ObjectCannotBeUpdated;
 import org.cristalise.kernel.common.ObjectNotFoundException;
-import org.cristalise.kernel.common.PersistencyException;
+import org.cristalise.kernel.lifecycle.instance.predefined.PredefinedStep;
 import org.cristalise.kernel.lookup.AgentPath;
 import org.cristalise.kernel.lookup.ItemPath;
+import org.cristalise.kernel.process.Gateway;
+import org.cristalise.kernel.utils.Logger;
 
 /**
  * 
  */
-public class Login extends Authenticate {
-
-    public static final String description = "Autehnticates the given user and records the Login event in the system";
-
-    public Login() {
+public abstract class Authenticate extends PredefinedStep {
+    public Authenticate() {
         super();
     }
 
-    @Override
-    protected String runActivityLogic(AgentPath agent, ItemPath itemPath, int transitionID, String requestData, Object locker)
-            throws InvalidDataException, ObjectNotFoundException, ObjectCannotBeUpdated, CannotManageException, PersistencyException
+    protected String authenticate(AgentPath agent, ItemPath itemPath, String requestData, Object locker) 
+            throws InvalidDataException, ObjectNotFoundException
     {
-        return authenticate(agent, itemPath, requestData, locker);
-    }
+        Logger.msg(1, "PredefinedStep.Authenticate() - Starting.");
 
+        String[] params = getDataList(requestData);
+
+        if (params.length != 2 || params.length != 3) 
+            throw new InvalidDataException("PredefinedStep.Authenticate() -  Invalid number of parameters (2 <= length= "+params.length+" <= 3)");
+
+        Gateway.getSecurityManager().authenticate(params[0], params[1], null, false);
+
+        params[0] = "REDACTED"; // censor password from outcome
+
+        return bundleData(params);
+    }
 }

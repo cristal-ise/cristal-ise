@@ -32,5 +32,6 @@ public class AgentPredefinedStepContainer extends PredefinedStepContainer {
         predInit(SetAgentRoles.class, "Sets the roles of the Agent", new SetAgentRoles());
         predInit(Login.class, Login.description, new Login());
         predInit(Logout.class, Logout.description, new Logout());
+        predInit(Sign.class, Sign.description, new Sign());
     }
 }
