@@ -30,6 +30,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.cristalise.kernel.collection.Collection;
+import org.cristalise.kernel.collection.CollectionMemberList;
 import org.cristalise.kernel.collection.Dependency;
 import org.cristalise.kernel.collection.DependencyDescription;
 import org.cristalise.kernel.collection.DependencyMember;
@@ -88,11 +89,11 @@ public class UpdateCollectionsFromDescription extends PredefinedStep {
         String descPath = inputs[0]; //i.e. domainPath of FactoryItem
         String descVer  = inputs[1];
 
-        Collection<DependencyMember> newMembers = null; //inputs[2]
+        CollectionMemberList<DependencyMember> newMembers = null; //inputs[2]
 
         try {
             if (inputs.length == 3) //optional
-                newMembers = (Collection<DependencyMember>)Gateway.getMarshaller().unmarshall(inputs[2]);
+                newMembers = (CollectionMemberList<DependencyMember>)Gateway.getMarshaller().unmarshall(inputs[2]);
         }
         catch (MarshalException | ValidationException | IOException | MappingException e) {
             Logger.error(e);
@@ -126,8 +127,13 @@ public class UpdateCollectionsFromDescription extends PredefinedStep {
                 Dependency itemColl = updateDependencyCollectionProperties(item, descItemPath, descVer, collName, locker);
 
                 for (DependencyMember member: itemColl.getMembers().list) {
-                    DependencyMember newMember = null; //find member in newMembers (can be null)
-                    member.updateFromPropertieDescription(itemColl.getProperties(), newMember);
+                    member.updateFromPropertieDescription(
+                            itemColl.getProperties(), 
+                            newMembers.list.stream()
+                                .filter(newMember -> member.getItemPath().equals(newMember.getItemPath()))
+                                .findAny()
+                                .orElse(null)
+                            );
                 }
 
                 Gateway.getStorage().put(item, itemColl, locker);
