@@ -180,16 +180,33 @@ public class DependencyMember implements CollectionMember {
         }
     }
 
+    /**
+     * 
+     * @param propDesc
+     * @param newMember
+     * @throws ObjectNotFoundException
+     * @throws InvalidCollectionModification
+     */
     public void updateFromPropertieDescription(CastorHashMap propDesc, DependencyMember newMember) 
             throws ObjectNotFoundException, InvalidCollectionModification
     {
         for(String key: propDesc.keySet()) {
+            Object newValue = newMember != null ? newMember.mProperties.get(key) : null;
+
             if (mProperties.containsKey(key)) {
-                //TODO
+                // Update if there is a newValue
+                if (newValue != null) mProperties.put(key, newValue);
             }
             else {
-                mProperties.put(key, "TODO");
+                // TODO: Add only classPropse - IMPORTANT: Check collection handling prdefined steps if that is correct
+                // Create using newValue or the default value from propDesc
+                mProperties.put(key, newValue != null ? newValue : propDesc.get(key));
             }
+        }
+
+        // Remove properties which are not in propDesc
+        for (String key: mProperties.keySet()) {
+            if (! propDesc.containsKey(key)) mProperties.remove(key);
         }
     }
 
