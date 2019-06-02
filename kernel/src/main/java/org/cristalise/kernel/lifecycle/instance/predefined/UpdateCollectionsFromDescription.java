@@ -53,7 +53,6 @@ import org.cristalise.kernel.property.PropertyArrayList;
 import org.cristalise.kernel.property.PropertyDescription;
 import org.cristalise.kernel.property.PropertyDescriptionList;
 import org.cristalise.kernel.property.PropertyUtility;
-import org.cristalise.kernel.utils.CastorHashMap;
 import org.cristalise.kernel.utils.Logger;
 import org.exolab.castor.mapping.MappingException;
 import org.exolab.castor.xml.MarshalException;
@@ -85,15 +84,17 @@ public class UpdateCollectionsFromDescription extends PredefinedStep {
     {
         String[] inputs = getDataList(requestData);
 
-        //FIXME: check if inputs are valid
+        if (inputs.length != 2 && inputs.length != 3) throw new InvalidDataException("Invalid nunber of inputs:" + Arrays.toString(inputs));
+
         String descPath = inputs[0]; //i.e. domainPath of FactoryItem
         String descVer  = inputs[1];
 
         CollectionMemberList<DependencyMember> newMembers = null; //inputs[2]
 
         try {
-            if (inputs.length == 3) //optional
+            if (inputs.length == 3) { //optional parameter
                 newMembers = (CollectionMemberList<DependencyMember>)Gateway.getMarshaller().unmarshall(inputs[2]);
+            }
         }
         catch (MarshalException | ValidationException | IOException | MappingException e) {
             Logger.error(e);
@@ -124,17 +125,9 @@ public class UpdateCollectionsFromDescription extends PredefinedStep {
                 currentCollNames.remove(collName);
 
                 //FIXME: Check if current collection is a Dependency, properties are only available in Dependency and DependencyDescription
-                Dependency itemColl = updateDependencyCollectionProperties(item, descItemPath, descVer, collName, locker);
+                Dependency itemColl = updateDependencyProperties(item, descItemPath, descVer, collName, locker);
 
-                for (DependencyMember member: itemColl.getMembers().list) {
-                    member.updateFromPropertieDescription(
-                            itemColl.getProperties(), 
-                            newMembers.list.stream()
-                                .filter(newMember -> member.getItemPath().equals(newMember.getItemPath()))
-                                .findAny()
-                                .orElse(null)
-                            );
-                }
+                updateDependencyMembers(itemColl, newMembers);
 
                 Gateway.getStorage().put(item, itemColl, locker);
             }
@@ -153,7 +146,39 @@ public class UpdateCollectionsFromDescription extends PredefinedStep {
         return requestData;
     }
 
-    private Dependency updateDependencyCollectionProperties(ItemPath item, ItemPath descItemPath, String descVer, String collName, Object locker)
+    /**
+     * 
+     * @param newMembers
+     * @param itemColl
+     * @throws ObjectNotFoundException
+     * @throws InvalidCollectionModification
+     */
+    private static void updateDependencyMembers(Dependency itemColl, CollectionMemberList<DependencyMember> newMembers)
+            throws ObjectNotFoundException, InvalidCollectionModification
+    {
+        for (DependencyMember member: itemColl.getMembers().list) {
+            member.updatePropertieFromDescription(
+                    itemColl.getProperties(), 
+                    newMembers.list.stream()
+                        .filter(newMember -> member.getItemPath().equals(newMember.getItemPath()))
+                        .findAny()
+                        .orElse(null)
+                    );
+        }
+    }
+
+    /**
+     * 
+     * @param item
+     * @param descItemPath
+     * @param descVer
+     * @param collName
+     * @param locker
+     * @return
+     * @throws PersistencyException
+     * @throws ObjectNotFoundException
+     */
+    private static Dependency updateDependencyProperties(ItemPath item, ItemPath descItemPath, String descVer, String collName, Object locker)
             throws PersistencyException, ObjectNotFoundException
     {
         Map<String, Object> newCollProps = new HashMap<>(); // place holder for all properties from the factory

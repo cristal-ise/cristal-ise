@@ -187,20 +187,32 @@ public class DependencyMember implements CollectionMember {
      * @throws ObjectNotFoundException
      * @throws InvalidCollectionModification
      */
-    public void updateFromPropertieDescription(CastorHashMap propDesc, DependencyMember newMember) 
+    public void updatePropertieFromDescription(CastorHashMap propDesc, DependencyMember newMember) 
             throws ObjectNotFoundException, InvalidCollectionModification
     {
         for(String key: propDesc.keySet()) {
             Object newValue = newMember != null ? newMember.mProperties.get(key) : null;
+            Object newDefaultValue = propDesc.get(key);
 
             if (mProperties.containsKey(key)) {
-                // Update if there is a newValue
-                if (newValue != null) mProperties.put(key, newValue);
+                if (mClassProps.contains(key)) {
+                    // Update default value of Class Identifier
+                    mProperties.put(key, newDefaultValue);
+                }
+                else {
+                    // Update if there is a newValue
+                    if (newValue != null) mProperties.put(key, newValue);
+                }
             }
             else {
-                // TODO: Add only classPropse - IMPORTANT: Check collection handling prdefined steps if that is correct
-                // Create using newValue or the default value from propDesc
-                mProperties.put(key, newValue != null ? newValue : propDesc.get(key));
+                if (mClassProps.contains(key)) {
+                    // Add Class Identifier
+                    mProperties.put(key, newDefaultValue);
+                }
+                else {
+                    // Add using newValue or the default value from propDesc
+                    mProperties.put(key, newValue != null ? newValue : newDefaultValue);
+                }
             }
         }
 
@@ -213,7 +225,7 @@ public class DependencyMember implements CollectionMember {
     /**
      * Only update existing properties otherwise throw an exception
      * 
-     * @param newProps the new properties 
+     * @param newProps the new properties
      * @throws ObjectNotFoundException property does not exists for member
      * @throws InvalidCollectionModification cannot update class properties
      */
