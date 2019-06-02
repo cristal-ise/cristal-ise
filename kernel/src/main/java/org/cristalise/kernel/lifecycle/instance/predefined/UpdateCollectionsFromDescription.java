@@ -89,6 +89,7 @@ public class UpdateCollectionsFromDescription extends PredefinedStep {
         String descPath = inputs[0]; //i.e. domainPath of FactoryItem
         String descVer  = inputs[1];
 
+        //use this 3rd parameter to update the members that cannot be calculate from the description
         CollectionMemberList<DependencyMember> newMembers = null; //inputs[2]
 
         try {
