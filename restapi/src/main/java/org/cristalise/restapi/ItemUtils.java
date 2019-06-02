@@ -232,8 +232,8 @@ public abstract class ItemUtils extends RestHandler {
      */
     protected Response getOutcomeResponse(Outcome oc, boolean json) {
         String result;
-
-        if(json) result = XML.toJSONObject(oc.getData(), true).toString();
+        
+        if(json) result = XML.toJSONObject(oc.getData()).toString();
         else     result = oc.getData();
         
         //Perhaps header 'Cache-Control: no-cache' should be used.
@@ -241,7 +241,6 @@ public abstract class ItemUtils extends RestHandler {
 //        cc.setMaxAge(300);
 //        cc.setPrivate(true);
 //        cc.setNoStore(true);
-
         return Response.ok(result)./*cacheControl(cc).*/build();
     }
 
@@ -255,7 +254,7 @@ public abstract class ItemUtils extends RestHandler {
     protected Response getOutcomeResponse(Outcome oc, Date eventDate, boolean json) {
         String result;
 
-        if(json) result = XML.toJSONObject(oc.getData(), true).toString();
+        if(json) result = XML.toJSONObject(oc.getData()).toString();
         else     result = oc.getData();
 
         return Response.ok(result).lastModified(eventDate).build();

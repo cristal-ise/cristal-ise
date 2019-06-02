@@ -39,6 +39,7 @@ class SchemaDelegate {
         Logger.msg 1, "Schema(start) ---------------------------------------"
 
         def objBuilder = new ObjectGraphBuilder()
+        objBuilder.setChildPropertySetter(new DSLPropertySetter())
         objBuilder.classLoader = this.class.classLoader
         objBuilder.classNameResolver = 'org.cristalise.dsl.persistency.outcome'
 
@@ -51,7 +52,7 @@ class SchemaDelegate {
 
     public String buildXSD(Struct s) {
         if(!s) throw new InvalidDataException("Schema cannot be built from empty declaration")
-        
+
         def writer = new StringWriter()
         def xsd = new MarkupBuilder(writer)
 
@@ -60,37 +61,55 @@ class SchemaDelegate {
 
         xsd.mkp.xmlDeclaration(version: "1.0", encoding: "utf-8")
 
-        xsd.'xs:schema'('xmlns:xs': 'http://www.w3.org/2001/XMLSchema') {
-            buildStruct(xsd,s)
+        xsd.'xs:schema'('xmlns:xs': 'http://www.w3.org/2001/XMLSchema') { 
+            buildStruct(xsd,s) 
         }
 
         return writer.toString()
     }
 
-    private void buildStruct(xsd, Struct s) {
+    private void buildStruct(MarkupBuilder xsd, Struct s) {
         Logger.msg 1, "SchemaDelegate.buildStruct() - Struct: $s.name"
         xsd.'xs:element'(name: s.name, minOccurs: s.minOccurs, maxOccurs: s.maxOccurs) {
 
-            if(s.documentation) 'xs:annotation' { 'xs:documentation'(s.documentation) }
+            if(s.documentation || s.dynamicForms) {
+                'xs:annotation' { 
+                    if (s.documentation) {
+                        'xs:documentation'(s.documentation)
+                    }
+                    if (s.dynamicForms) {
+                        'xs:appinfo' {
+                            dynamicForms {
+                                if (s.dynamicForms.width) width(s.dynamicForms.width)
+                            }
+                        }
+                    }
+                }
+            }
 
             'xs:complexType' {
-                if(s.fields || s.structs || s.anyField) {
-                    if(s.useSequence) {
+                if (s.orderOfElements || s.anyField) {
+                    if (s.useSequence) {
                         'xs:sequence' {
-                            if(s.fields)  s.fields.each  { Field f   -> buildField(xsd, f) }
-                            if(s.structs) s.structs.each { Struct s1 -> buildStruct(xsd, s1) }
-                            if(s.anyField) buildAnyField(xsd, s.anyField)
+                            s.orderOfElements.each { String name ->
+                                if (s.fields.containsKey(name))  buildField(xsd, s.fields[name])
+                                if (s.structs.containsKey(name)) buildStruct(xsd, s.structs[name])
+                            }
+                            if (s.anyField) buildAnyField(xsd, s.anyField)
                         }
                     }
                     else {
                         'xs:all'(minOccurs: '0') {
-                            if(s.fields)  s.fields.each  { Field f   -> buildField(xsd, f) }
-                            if(s.structs) s.structs.each { Struct s1 -> buildStruct(xsd, s1) }
-                            if(s.anyField) buildAnyField(xsd, s.anyField)
+                            s.orderOfElements.each { String name ->
+                                if (s.fields.containsKey(name))  buildField(xsd, s.fields[name])
+                                if (s.structs.containsKey(name)) buildStruct(xsd, s.structs[name])
+                            }
+                            if (s.anyField) buildAnyField(xsd, s.anyField)
                         }
                     }
                 }
-                if(s.attributes) {
+
+                if (s.attributes) {
                     s.attributes.each { Attribute a -> buildAtribute(xsd, a) }
                 }
             }
@@ -126,10 +145,10 @@ class SchemaDelegate {
      */
     private String attributeType(Attribute a) {
         if (hasRestrictions(a)) return ''
-        else                    return a.type 
+        else                    return a.type
     }
- 
-    private void buildAtribute(xsd, Attribute a) {
+
+    private void buildAtribute(MarkupBuilder xsd, Attribute a) {
         Logger.msg 1, "SchemaDelegate.buildAtribute() - attribute: $a.name"
 
         if (a.documentation) throw new InvalidDataException('Atttrbute cannotnot define documentation')
@@ -160,8 +179,21 @@ class SchemaDelegate {
             if (f.dynamicForms.showSeconds != null)          showSeconds(          f.dynamicForms.showSeconds)
             if (f.dynamicForms.hideOnDateTimeSelect != null) hideOnDateTimeSelect( f.dynamicForms.hideOnDateTimeSelect)
             
-            if (f.dynamicForms.updateScriptRef != null) additional{ updateScriptRef(f.dynamicForms.updateScriptRef) }
-            if (f.dynamicForms.updateQuerytRef != null) additional{ updateQuerytRef(f.dynamicForms.updateQuerytRef) }
+            if ((f.dynamicForms.updateScriptRef != null) || (f.dynamicForms.updateQuerytRef != null) || (f.dynamicForms.warning != null)) {
+                additional {
+                    if (f.dynamicForms.updateScriptRef != null) updateScriptRef(f.dynamicForms.updateScriptRef)
+                    if (f.dynamicForms.updateQuerytRef != null) updateQuerytRef(f.dynamicForms.updateQuerytRef)
+                    if (f.dynamicForms.warning != null) {
+                        warning {
+                            if (f.dynamicForms.warning.pattern != null)    pattern(f.dynamicForms.warning.pattern)
+                            if (f.dynamicForms.warning.message != null)    message(f.dynamicForms.warning.message)
+                            if (f.dynamicForms.warning.expression != null) expression {
+                                mkp.yieldUnescaped("<![CDATA[ ${f.dynamicForms.warning.expression}]]>")
+                            }
+                        }
+                    }
+                }
+            }
         }
     }
 
@@ -175,7 +207,7 @@ class SchemaDelegate {
         }
     }
 
-    private void buildField(xsd, Field f) {
+    private void buildField(MarkupBuilder xsd, Field f) {
         Logger.msg 1, "SchemaDelegate.buildField() - Field: $f.name"
 
         //TODO: implement support for this combination - see issue 129
@@ -185,7 +217,7 @@ class SchemaDelegate {
         xsd.'xs:element'(name: f.name, type: fieldType(f), 'default': f.defaultVal, minOccurs: f.minOccurs, maxOccurs: f.maxOccurs) {
             if(f.documentation || f.dynamicForms || f.listOfValues) {
                 'xs:annotation' {
-                    if (f.documentation) 'xs:documentation'(f.documentation) 
+                    if (f.documentation) 'xs:documentation'(f.documentation)
                     if (f.dynamicForms || f.listOfValues) {
                         'xs:appinfo' {
                             if (f.dynamicForms) setAppinfoDynamicForms(xsd, f)
@@ -224,13 +256,13 @@ class SchemaDelegate {
     }
 
 
-    private void buildAnyField(xsd, AnyField any) {
+    private void buildAnyField(MarkupBuilder xsd, AnyField any) {
         Logger.msg 1, "SchemaDelegate.buildAnyField()"
-        
+
         xsd.'xs:any'(minOccurs: any.minOccurs, maxOccurs: any.maxOccurs, processContents: any.processContents)
     }
 
-    private void buildRestriction(xsd, String type, List values, String pattern, Attribute a, Integer totalDigits, Integer fractionDigits) {
+    private void buildRestriction(MarkupBuilder xsd, String type, List values, String pattern, Attribute a, Integer totalDigits, Integer fractionDigits) {
         Logger.msg 1, "SchemaDelegate.buildRestriction() - type:$type"
 
         xsd.'xs:simpleType' {
@@ -246,7 +278,7 @@ class SchemaDelegate {
 
                 if (totalDigits    != null) 'xs:totalDigits'(value: totalDigits)
                 if (fractionDigits != null) 'xs:fractionDigits'(value: fractionDigits)
-             }
+            }
         }
     }
 }

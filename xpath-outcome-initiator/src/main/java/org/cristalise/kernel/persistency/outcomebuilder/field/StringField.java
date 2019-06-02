@@ -25,19 +25,16 @@ import java.math.BigInteger;
 import java.time.LocalDate;
 import java.time.OffsetDateTime;
 import java.time.OffsetTime;
-import java.util.Arrays;
-import java.util.Enumeration;
 import java.util.Map;
 import java.util.Scanner;
 
 import org.apache.commons.lang3.StringUtils;
+import org.cristalise.kernel.persistency.outcomebuilder.AppInfoUtils;
 import org.cristalise.kernel.persistency.outcomebuilder.InvalidOutcomeException;
 import org.cristalise.kernel.persistency.outcomebuilder.OutcomeStructure;
 import org.cristalise.kernel.persistency.outcomebuilder.StructuralException;
 import org.exolab.castor.types.AnyNode;
 import org.exolab.castor.xml.schema.Annotated;
-import org.exolab.castor.xml.schema.Annotation;
-import org.exolab.castor.xml.schema.AppInfo;
 import org.exolab.castor.xml.schema.AttributeDecl;
 import org.exolab.castor.xml.schema.ElementDecl;
 import org.exolab.castor.xml.schema.Facet;
@@ -54,7 +51,7 @@ import org.w3c.dom.Text;
 /**
  * Superclass for the entry field for Field and AttributeList.
  */
-public class StringField {
+public class StringField extends AppInfoUtils {
 
     Node       data;
     Annotated  model;
@@ -69,7 +66,10 @@ public class StringField {
     String pattern;
     String errmsg;
 
-    public StringField() {}
+    public StringField() {
+        super("mask", "placeholder");
+    }
+
 
     /**
      * 
@@ -90,34 +90,6 @@ public class StringField {
 
         return null;
     }
-    
-    /**
-     * Finds the named element in the AppInfo node
-     * 
-     * @param model the schema model to search
-     * @param name the name of the element in the AppInfo node
-     * @return the AnyNode with the given name otherwise null
-     */
-    private static AnyNode getAppInfoNode(Annotated  model, String name) {
-        Enumeration<Annotation> e = model.getAnnotations();
-        while (e.hasMoreElements()) {
-            Annotation note = e.nextElement();
-
-            for (Enumeration<AppInfo> f = note.getAppInfo(); f.hasMoreElements();) {
-                AppInfo thisAppInfo = f.nextElement();
-
-                for (Enumeration<?> g = thisAppInfo.getObjects(); g.hasMoreElements();) {
-                    AnyNode appInfoNode = (AnyNode) g.nextElement();
-
-                    if (appInfoNode.getNodeType() == AnyNode.ELEMENT && name.equals(appInfoNode.getLocalName())) {
-                        return appInfoNode;
-                    }
-                }
-            }
-        }
-
-        return null;
-    }
 
     /**
      * 
@@ -131,7 +103,7 @@ public class StringField {
         if (type instanceof ListType) return new ArrayField(type.getBuiltInBaseType());
 
         // is a combobox
-        AnyNode appInfoNode = getAppInfoNode(model, "listOfValues");
+        AnyNode appInfoNode = AppInfoUtils.getAppInfoNode(model, "listOfValues");
         if (type.hasFacet(Facet.ENUMERATION) || appInfoNode != null) return new ComboField(type, appInfoNode);
 
         // find info on length before we go to the base type
@@ -337,9 +309,9 @@ public class StringField {
         return fieldCls;
     }
 
-    private void setAppInfoDynamicFormsJsonValue(AnyNode node, JSONObject json) {
+    @Override
+    protected void setAppInfoDynamicFormsJsonValue(AnyNode node, JSONObject json) {
         String name  = node.getLocalName();
-        String[] stringFields = {"mask", "placeholder"};
 
         if (name.equals("additional")) {
             //simply convert the xml to json
@@ -355,7 +327,7 @@ public class StringField {
             else if (name.equals("errmsg")) {
                 errmsg = value;
             }
-            else if (Arrays.asList(stringFields).contains(name)) {
+            else if (stringFields.contains(name)) {
                 //these field might contain string which will be recognized by Scanner a numeric type. (Scanner is locale specific as well)
                 json.put(name, value);
             }
@@ -389,21 +361,6 @@ public class StringField {
         }
     }
 
-    private void readAppInfoDynamicForms(JSONObject json) {
-        AnyNode appInfoNode = getAppInfoNode(model, "dynamicForms");
-        if (appInfoNode != null) {
-            AnyNode child = appInfoNode.getFirstChild(); //stupid API, there is no getChildren
-
-            if (child != null) {
-                if (child.getNodeType() == AnyNode.ELEMENT) setAppInfoDynamicFormsJsonValue(child, json);
-
-                for (child = child.getNextSibling(); child != null; child = child.getNextSibling()) {
-                    if (child.getNodeType() == AnyNode.ELEMENT) setAppInfoDynamicFormsJsonValue(child, json);
-                }
-            }
-        }
-    }
-
     public JSONObject getCommonFieldsNgDynamicForms() {
         JSONObject field = new JSONObject();
 
@@ -415,8 +372,8 @@ public class StringField {
         field.put("required", !isOptional());
 
         //This can overwrite values set earlier, for example 'type' can be changed from INPUT to RATING
-        readAppInfoDynamicForms(field);
-        
+        readAppInfoDynamicForms(model, field);
+
         JSONObject validators = new JSONObject();
         field.put("validators", validators);
 

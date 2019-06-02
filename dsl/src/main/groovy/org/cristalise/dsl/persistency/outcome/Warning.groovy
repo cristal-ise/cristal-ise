@@ -25,43 +25,35 @@ import org.cristalise.kernel.common.InvalidDataException
 import groovy.transform.CompileStatic;
 
 
+/**
+ * Provides mechanism to specify validation Warning. It behaves like any validation rule 
+ * (evaluated by the form and when fails it shows a message), except it does NOT invalidate 
+ * the form therefore it can be submitted.
+ */
 @CompileStatic
-class DynamicForms {
-    Boolean disabled = null
-    String errmsg = null
-    Boolean hidden = null
-    String inputType = null
-    String label = null
-    String mask = null
-    Integer max = null
-    Integer min = null
-    Boolean multiple = null
+class Warning {
+    /**
+     * Javascript regex pattern to validate the value of the field in the from
+     */
     String pattern = null
-    String placeholder = null
-    Boolean required = null
-    Boolean showSeconds = null
-    Boolean hideOnDateTimeSelect = null
-    String type = null
-    String value = null
+    /**
+     * Javascript expression (code fragment) to validate the value of the field in the form
+     */
+    String expression = null
+    /**
+     * Message to show to the user for the validation warning 
+     */
+    String message = null
 
-    /**
-     * Provided validation rule and message to set a warning on the given field
-     */
-    Warning warning = null
+    public void setPattern(String p) {
+        if (pattern && expression) throw new InvalidDataException("Do not use pattern and expression at the same time")
 
-    /**
-     * Sets the width of the form (DynamicForms)
-     */
-    String width = null
+        pattern = p
+    }
 
-    /**
-     * Defines the Script name and version (e.g. GetShiftNames:0) which is executed when
-     * the from generated from the XML Schema has to be updated
-     */
-    String updateScriptRef = null
-    /**
-     * Defines the Query name and version (e.g. GetShiftNames:0) which is executed when
-     * the from generated from the XML Schema has to be updated
-     */
-    String updateQuerytRef = null
+    public void setExpression(String e) {
+        if (pattern && expression) throw new InvalidDataException("Do not use pattern and expression at the same time")
+
+        expression = e
+    }
 }
