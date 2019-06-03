@@ -128,11 +128,9 @@ public class UpdateCollectionsFromDescription extends PredefinedStep {
 
                 //FIXME: Check if current collection is a Dependency, properties are only available in Dependency and DependencyDescription
                 Dependency itemColl = updateDependencyProperties(item, descItemPath, descVer, collName, locker);
+             
+                updateDependencyMembers(itemColl, newMembers);
                 
-                if(newMembers != null){ // added a null check, data coming from optional param value
-                    updateDependencyMembers(itemColl, newMembers);
-                }
-               
                 Gateway.getStorage().put(item, itemColl, locker);
             }
         }
@@ -161,13 +159,20 @@ public class UpdateCollectionsFromDescription extends PredefinedStep {
             throws ObjectNotFoundException, InvalidCollectionModification
     {
         for (DependencyMember member: itemColl.getMembers().list) {
-            member.updatePropertieFromDescription(
-                    itemColl.getProperties(), 
-                    newMembers.list.stream()
-                        .filter(newMember -> member.getItemPath().equals(newMember.getItemPath()))
-                        .findAny()
-                        .orElse(null)
-                    );
+            if(newMembers != null){
+                member.updatePropertieFromDescription(
+                        itemColl.getProperties(), 
+                        newMembers.list.stream()
+                            .filter(newMember -> member.getItemPath().equals(newMember.getItemPath()))
+                            .findAny()
+                            .orElse(null)
+                        );
+            } else {
+                member.updatePropertieFromDescription(
+                        itemColl.getProperties(), null
+                        );
+            }
+           
         }
     }
 
@@ -203,15 +208,8 @@ public class UpdateCollectionsFromDescription extends PredefinedStep {
         }
 
         Dependency itemColl = (Dependency) Gateway.getStorage().get(item, COLLECTION + "/" + collName + "/" + descVer, locker);
-         
-        // Iterate over collection properties to remove property if not exist
-        /*for (Map.Entry<String, Object> props : itemColl.getProperties().entrySet()) {
-            if(! newCollProps.containsKey(props.getKey())) {
-                itemColl.getProperties().remove(props.getKey());
-            }
-        }*/ // this part causes EXCEPTION:java.util.ConcurrentModificationException change to use iterator
-        Iterator<String> iterator =  itemColl.getProperties().keySet().iterator();
 
+        Iterator<String> iterator =  itemColl.getProperties().keySet().iterator();
         while (iterator.hasNext()) {
             String keyStr = iterator.next();
             if(! newCollProps.containsKey(keyStr)) {

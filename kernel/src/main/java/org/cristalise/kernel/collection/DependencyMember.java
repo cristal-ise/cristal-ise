@@ -20,6 +20,7 @@
  */
 package org.cristalise.kernel.collection;
 
+import java.util.Iterator;
 import java.util.StringTokenizer;
 import java.util.Map.Entry;
 
@@ -216,10 +217,15 @@ public class DependencyMember implements CollectionMember {
             }
         }
 
-        // Remove properties which are not in propDesc
-        for (String key: mProperties.keySet()) {
-            if (! propDesc.containsKey(key)) mProperties.remove(key);
+        Iterator<String> iterator =  mProperties.keySet().iterator();
+
+        while (iterator.hasNext()) {
+            String key = iterator.next();
+            if(! propDesc.containsKey(key)) {
+                iterator.remove();
+            }
         }
+        
     }
 
     /**
