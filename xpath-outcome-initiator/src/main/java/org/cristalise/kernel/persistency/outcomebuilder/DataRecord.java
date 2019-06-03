@@ -200,8 +200,15 @@ public class DataRecord extends OutcomeStructure {
         JSONObject drCls = new JSONObject();
 
         JSONObject drGrid = new JSONObject();
-        drGrid.put("container", "ui-g-12");
-
+        
+        AppInfoUtils appInfoer = new AppInfoUtils();
+        appInfoer.readAppInfoDynamicForms(model, drGrid, true);
+        
+        // Set default value when container does is not defined
+        if (!drGrid.has("container")) {            
+            drGrid.put("container", "ui-g-12");
+        }
+        
         drCls.put("grid", drGrid);
         return drCls;
     }
@@ -225,7 +232,7 @@ public class DataRecord extends OutcomeStructure {
         AppInfoUtils appInfoer = new AppInfoUtils();
 
         //This call could overwrite values set earlier
-        appInfoer.readAppInfoDynamicForms(model, dr);
+        appInfoer.readAppInfoDynamicForms(model, dr, false);
 
         dr.put("group", array);
 

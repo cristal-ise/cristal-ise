@@ -204,11 +204,11 @@ class SchemaBuilderDynymicFormsSpecs extends Specification implements CristalTes
                </xs:schema>''')
     }
     
-    def 'Struct can specify dynamicForms.width'() {
+    def 'Struct can specify dynamicForms properties in appInfo'() {
         expect:
-        SchemaTestBuilder.build('test', 'Form', 0) {
+        SchemaTestBuilder.build('test', 'FormAppInfo', 0) {
             struct(name: 'Form') {
-                dynamicForms(width: '100%')
+                dynamicForms(width: '100%', label: 'testLabel', container: 'ui-g-12')
                 field(name:'stringField1')
             }
         }.compareXML(
@@ -218,6 +218,8 @@ class SchemaBuilderDynymicFormsSpecs extends Specification implements CristalTes
                       <xs:appinfo>
                         <dynamicForms>
                           <width>100%</width>
+                          <label>testLabel</label>
+                          <container>ui-g-12</container>
                         </dynamicForms>
                       </xs:appinfo>
                     </xs:annotation>
@@ -230,26 +232,28 @@ class SchemaBuilderDynymicFormsSpecs extends Specification implements CristalTes
                 </xs:schema>""")
     }
     
-    def 'Struct can specify dynamicForms.label'() {
+    def 'Field can specify dynamicForms grid properties'() {
         expect:
-        SchemaTestBuilder.build('test', 'Form', 0) {
-            struct(name: 'Form') {
-                dynamicForms(label: 'FormLabel')
-                field(name:'stringField1')
+        SchemaTestBuilder.build('test', 'FormGrid', 0) {
+            struct(name: 'testForm') {
+                field(name:'testField', type: 'string', multiplicity: '0..1') {dynamicForms(container: 'ui-g-12', control: 'ui-g-10', labelGrid: 'ui-g-2')}
             }
         }.compareXML(
             """<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
-                  <xs:element name="Form">
-                    <xs:annotation>
-                      <xs:appinfo>
-                        <dynamicForms>
-                          <label>FormLabel</label>
-                        </dynamicForms>
-                      </xs:appinfo>
-                    </xs:annotation>
+                  <xs:element name='testForm'>
                     <xs:complexType>
                       <xs:all minOccurs='0'>
-                        <xs:element name='stringField1' type='xs:string' minOccurs='1' maxOccurs='1' />
+                        <xs:element name='testField' type='xs:string' minOccurs='0' maxOccurs='1'>
+                          <xs:annotation>
+                            <xs:appinfo>
+                              <dynamicForms>
+                                <container>ui-g-12</container>
+                                <control>ui-g-10</control>
+                                <labelGrid>ui-g-2</labelGrid>
+                              </dynamicForms>
+                            </xs:appinfo>
+                          </xs:annotation>
+                        </xs:element>
                       </xs:all>
                     </xs:complexType>
                   </xs:element>
