@@ -26,6 +26,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -127,9 +128,11 @@ public class UpdateCollectionsFromDescription extends PredefinedStep {
 
                 //FIXME: Check if current collection is a Dependency, properties are only available in Dependency and DependencyDescription
                 Dependency itemColl = updateDependencyProperties(item, descItemPath, descVer, collName, locker);
-
-                updateDependencyMembers(itemColl, newMembers);
-
+                
+                if(newMembers != null){ // added a null check, data coming from optional param value
+                    updateDependencyMembers(itemColl, newMembers);
+                }
+               
                 Gateway.getStorage().put(item, itemColl, locker);
             }
         }
@@ -200,14 +203,22 @@ public class UpdateCollectionsFromDescription extends PredefinedStep {
         }
 
         Dependency itemColl = (Dependency) Gateway.getStorage().get(item, COLLECTION + "/" + collName + "/" + descVer, locker);
- 
+         
         // Iterate over collection properties to remove property if not exist
-        for (Map.Entry<String, Object> props : itemColl.getProperties().entrySet()) {
+        /*for (Map.Entry<String, Object> props : itemColl.getProperties().entrySet()) {
             if(! newCollProps.containsKey(props.getKey())) {
                 itemColl.getProperties().remove(props.getKey());
             }
-        }
+        }*/ // this part causes EXCEPTION:java.util.ConcurrentModificationException change to use iterator
+        Iterator<String> iterator =  itemColl.getProperties().keySet().iterator();
 
+        while (iterator.hasNext()) {
+            String keyStr = iterator.next();
+            if(! newCollProps.containsKey(keyStr)) {
+                iterator.remove();
+            }
+        }
+        
         // Iterate over newCollProps to add or update properties
         for (Map.Entry<String, Object> propDef : newCollProps.entrySet()) {
             itemColl.getProperties().put(propDef.getKey(), propDef.getValue());
