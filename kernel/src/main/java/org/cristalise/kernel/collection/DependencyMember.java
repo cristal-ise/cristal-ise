@@ -217,15 +217,15 @@ public class DependencyMember implements CollectionMember {
             }
         }
 
-        Iterator<String> iterator =  mProperties.keySet().iterator();
+        Iterator<String> propsNames =  mProperties.keySet().iterator();
 
-        while (iterator.hasNext()) {
-            String key = iterator.next();
+        while (propsNames.hasNext()) {
+            String key = propsNames.next();
+
             if(! propDesc.containsKey(key)) {
-                iterator.remove();
+                propsNames.remove();
             }
         }
-        
     }
 
     /**

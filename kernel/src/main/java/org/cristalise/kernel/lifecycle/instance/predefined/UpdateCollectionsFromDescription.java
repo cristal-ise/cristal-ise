@@ -128,9 +128,9 @@ public class UpdateCollectionsFromDescription extends PredefinedStep {
 
                 //FIXME: Check if current collection is a Dependency, properties are only available in Dependency and DependencyDescription
                 Dependency itemColl = updateDependencyProperties(item, descItemPath, descVer, collName, locker);
-             
+
                 updateDependencyMembers(itemColl, newMembers);
-                
+
                 Gateway.getStorage().put(item, itemColl, locker);
             }
         }
@@ -158,21 +158,17 @@ public class UpdateCollectionsFromDescription extends PredefinedStep {
     private static void updateDependencyMembers(Dependency itemColl, CollectionMemberList<DependencyMember> newMembers)
             throws ObjectNotFoundException, InvalidCollectionModification
     {
-        for (DependencyMember member: itemColl.getMembers().list) {
-            if(newMembers != null){
-                member.updatePropertieFromDescription(
-                        itemColl.getProperties(), 
-                        newMembers.list.stream()
-                            .filter(newMember -> member.getItemPath().equals(newMember.getItemPath()))
-                            .findAny()
-                            .orElse(null)
-                        );
-            } else {
-                member.updatePropertieFromDescription(
-                        itemColl.getProperties(), null
-                        );
+        for (DependencyMember currentMember: itemColl.getMembers().list) {
+            DependencyMember newMember = null;
+
+            if(newMembers != null) {
+                newMember = newMembers.list.stream()
+                    .filter(aMember -> currentMember.getItemPath().equals(aMember.getItemPath()))
+                    .findAny()
+                    .orElse(null);
             }
-           
+
+            currentMember.updatePropertieFromDescription(itemColl.getProperties(), newMember);
         }
     }
 
