@@ -23,7 +23,11 @@
         "required": false
       },
       {
-        "validators": {"required": null, "pattern": "^-?\\d+\\.?\\d*$"},
+        "errorMessages": {"pattern": "Invalid decimal number"},
+        "validators": {
+          "pattern": "^-?\\d+\\.?\\d*$",
+          "required": null
+        },
         "cls": {
           "grid": {
             "container": "ui-g",
@@ -40,7 +44,11 @@
         "required": true
       },
       {
-        "validators": {"required": null, "pattern": "^-?\\d+\\.?\\d*$"},
+        "errorMessages": {"pattern": "Invalid decimal number"},
+        "validators": {
+          "pattern": "^-?\\d+\\.?\\d*$",
+          "required": null
+        },
         "cls": {
           "grid": {
             "container": "ui-g",
@@ -57,7 +65,11 @@
         "required": true
       },
       {
-        "validators": {"required": null, "pattern": "^-?\\d+\\.?\\d*$"},
+        "errorMessages": {"pattern": "Invalid decimal number"},
+        "validators": {
+          "pattern": "^-?\\d+\\.?\\d*$",
+          "required": null
+        },
         "cls": {
           "grid": {
             "container": "ui-g",
@@ -75,7 +87,10 @@
       },
       {
         "errorMessages": {"pattern": "Trailing spaces or contains only spaces"},
-        "validators": {"pattern": "^[a-zA-Z]+.*\\S+$", "required": null},
+        "validators": {
+          "pattern": "^[a-zA-Z]+.*\\S+$",
+          "required": null
+        },
         "inputType": "text",
         "cls": {
           "grid": {

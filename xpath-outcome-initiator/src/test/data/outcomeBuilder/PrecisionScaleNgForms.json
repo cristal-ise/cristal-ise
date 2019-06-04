@@ -5,7 +5,11 @@
   "type": "GROUP",
   "group": [
     {
-      "validators": {"required": null, "pattern": "^-?\\d{3}\\.\\d{2}$"},
+      "errorMessages": {"pattern": "Use exactly 5 digits with exactly 2 decimal places"},
+      "validators": {
+        "pattern": "^-?\\d{3}\\.\\d{2}$",
+        "required": null
+      },
       "cls": {
         "grid": {
           "container": "ui-g",
@@ -22,7 +26,11 @@
       "required": true
     },
     {
-      "validators": {"required": null, "pattern": "^-?\\d{0,3}\\.\\d{2}$"},
+      "errorMessages": {"pattern": "Use max 5 digits with exactly 2 decimal places"},
+      "validators": {
+        "pattern": "^-?\\d{0,3}\\.\\d{2}$",
+        "required": null
+      },
       "cls": {
         "grid": {
           "container": "ui-g",
@@ -39,7 +47,11 @@
       "required": true
     },
     {
-      "validators": {"required": null, "pattern": "^-?\\d+\\.\\d{2}$"},
+      "errorMessages": {"pattern": "Ivalid decimal number"},
+      "validators": {
+        "pattern": "^-?\\d+\\.\\d{2}$",
+        "required": null
+      },
       "cls": {
         "grid": {
           "container": "ui-g",
@@ -56,7 +68,11 @@
       "required": true
     },
     {
-      "validators": {"required": null, "pattern": "^-?\\d+\\.?\\d{0,2}$"},
+      "errorMessages": {"pattern": "Ivalid decimal number"},
+      "validators": {
+        "pattern": "^-?\\d+\\.?\\d{0,2}$",
+        "required": null
+      },
       "cls": {
         "grid": {
           "container": "ui-g",

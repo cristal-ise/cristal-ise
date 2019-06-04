@@ -29,6 +29,7 @@ import java.util.Map;
 
 import org.cristalise.kernel.persistency.outcome.Schema;
 import org.cristalise.kernel.persistency.outcomebuilder.OutcomeBuilder;
+import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.test.persistency.XMLUtils;
 import org.cristalise.kernel.utils.Logger;
 import org.json.JSONArray;
@@ -128,7 +129,7 @@ public class NgDynamicFormsTest extends XMLUtils {
 
         Logger.msg(actual.toString(2));
 
-        JSONArray expected = new JSONArray(getJSON(dir, testName));
+        JSONArray expected = new JSONArray(getJSON(dir, testName+"NgForms"));
 
         assertJsonEquals(expected, actual);
     }
@@ -142,7 +143,7 @@ public class NgDynamicFormsTest extends XMLUtils {
 
         Logger.msg(actual.toString(2));
 
-        JSONArray expected = new JSONArray(getJSON(dir, testName));
+        JSONArray expected = new JSONArray(getJSON(dir, testName+"NgForms"));
 
         assertJsonEquals(expected, actual);
     }

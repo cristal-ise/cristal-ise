@@ -103,6 +103,7 @@
       "required": true
     },
     {
+      "errorMessages": {"pattern": "Invalid decimal number"},
       "validators": {
         "min": 0,
         "pattern": "^-?\\d+\\.?\\d*$",
@@ -188,6 +189,7 @@
       "required": false
     },
     {
+      "errorMessages": {"pattern": "Invalid decimal number"},
       "validators": {
         "min": 0,
         "pattern": "^-?\\d+\\.?\\d*$"
@@ -208,6 +210,7 @@
       "required": false
     },
     {
+      "errorMessages": {"pattern": "Invalid decimal number"},
       "validators": {
         "min": 0,
         "pattern": "^-?\\d+\\.?\\d*$"

@@ -104,33 +104,49 @@ public class DecimalField extends NumberField {
         char separator = Gateway.getProperties().getString("Webui.decimal.separator", ".").charAt(0);
 
         if (precisionNumber == null && scaleNumber == null) {
-            //default validator for any decimal field
-            return "^-?\\d+\\" + separator + "?\\d*$";
+            if (Gateway.getProperties().getBoolean("Webui.decimal.generateDefaultPattern", true)) {
+                //default validator for any decimal field
+                if (StringUtils.isBlank(errmsg)) errmsg = "Invalid decimal number";
+                return "^-?\\d+\\" + separator + "?\\d*$";
+            }
         }
         else if (precisionNumber != null) {
             if (scaleNumber == null) {
-                if (precisionSmaller) return "^-?\\d{0," + precisionNumber + "}$";
-                else                  return "^-?\\d{" + precisionNumber + "}$";
+                if (precisionSmaller) {
+                    if (StringUtils.isBlank(errmsg)) errmsg = "Use max "+precisionNumber+" digits";
+                    return "^-?\\d{0," + precisionNumber + "}$";
+                }
+                else {
+                    if (StringUtils.isBlank(errmsg)) errmsg = "Use exactly "+precisionNumber+" digits";
+                    return "^-?\\d{" + precisionNumber + "}$";
+                }
             }
             else {
                 if (precisionSmaller && scaleSmaller) {
                     // It is not simple (impossible?) to write regexp that accepts 1234.5 and 123.45, 
                     // but not 1234.56 - this should be covered with validation code/expression.
+                    if (StringUtils.isBlank(errmsg)) errmsg = "Use max "+precisionNumber+" digits with max "+scaleNumber+" decimal places";
                     return "^-?\\d{0," + precisionNumber + "}\\" + separator + "?\\d{0," + scaleNumber + "}$";
                 }
                 else if (precisionSmaller && !scaleSmaller) {
+                    if (StringUtils.isBlank(errmsg)) errmsg = "Use max "+precisionNumber+" digits with exactly "+scaleNumber+" decimal places";
                     return "^-?\\d{0," + (precisionNumber - scaleNumber) + "}\\" + separator + "\\d{" + scaleNumber + "}$";
                 }
                 else if (!precisionSmaller && !scaleSmaller) {
+                    if (StringUtils.isBlank(errmsg)) errmsg = "Use exactly "+precisionNumber+" digits with exactly "+scaleNumber+" decimal places";
                     return "^-?\\d{" + (precisionNumber - scaleNumber) + "}\\" + separator + "\\d{" + scaleNumber + "}$";
                 }
             }
         }
         else {
+            if (StringUtils.isBlank(errmsg)) errmsg = "Ivalid decimal number";
+
             if (scaleSmaller) {
+                if (StringUtils.isBlank(errmsg)) errmsg = "Use max "+precisionNumber+" decimal places";
                 return "^-?\\d+\\" + separator + "?\\d{0," + scaleNumber + "}$";
             }
             else {
+                if (StringUtils.isBlank(errmsg)) errmsg = "Use exactly "+precisionNumber+" decimal places";
                 return "^-?\\d+\\" + separator + "\\d{" + scaleNumber + "}$";
             }
         }
