@@ -52,7 +52,6 @@ import org.cristalise.kernel.events.History;
 import org.cristalise.kernel.graph.model.Vertex;
 import org.cristalise.kernel.graph.traversal.GraphTraversal;
 import org.cristalise.kernel.lifecycle.WfCastorHashMap;
-import org.cristalise.kernel.lifecycle.instance.predefined.WriteProperty;
 import org.cristalise.kernel.lifecycle.instance.stateMachine.State;
 import org.cristalise.kernel.lifecycle.instance.stateMachine.StateMachine;
 import org.cristalise.kernel.lifecycle.instance.stateMachine.Transition;
@@ -68,6 +67,7 @@ import org.cristalise.kernel.persistency.outcome.Schema;
 import org.cristalise.kernel.persistency.outcome.Viewpoint;
 import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.property.Property;
+import org.cristalise.kernel.property.PropertyUtility;
 import org.cristalise.kernel.utils.DateUtility;
 import org.cristalise.kernel.utils.LocalObjectLoader;
 import org.cristalise.kernel.utils.Logger;
@@ -308,7 +308,7 @@ public class Activity extends WfVertex {
 
                     if(StringUtils.isNotBlank(propValue)) {
                         Logger.msg(5, "Activity.updateItemProperties() - propName:"+propName+" propValue:"+propValue);
-                        WriteProperty.write(itemPath, propName, propValue, locker);
+                        PropertyUtility.writeProperty(itemPath, propName, propValue, locker);
                     }
                 }
                 else {
