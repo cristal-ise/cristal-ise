@@ -58,6 +58,7 @@ public abstract class PredefinedStepContainer extends CompositeActivity {
         predInit(Erase.class.getSimpleName(), Erase.description, new Erase());
 
         predInit(UpdateCollectionsFromDescription.class.getSimpleName(), UpdateCollectionsFromDescription.description, new UpdateCollectionsFromDescription());
+        predInit(UpdateProperitesFromDescription.class.getSimpleName(),  UpdateProperitesFromDescription.description,  new UpdateProperitesFromDescription());
     }
 
     public void predInit(Class<?> clazz, String description, PredefinedStep act) {

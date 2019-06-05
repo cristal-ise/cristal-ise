@@ -118,7 +118,7 @@ public class PropertyDescriptionList extends CastorArrayList<PropertyDescription
      * @throws InvalidDataException data was inconsistent
      */
     public PropertyArrayList instantiate(PropertyArrayList initProps) throws InvalidDataException {
-        HashMap<String, String> validatedInitProps = new HashMap<String, String>();
+        HashMap<String, String> validatedInitProps = new HashMap<>();
 
         for (Property initProp : initProps.list) {
             if (!definesProperty(initProp.getName()))
@@ -129,16 +129,15 @@ public class PropertyDescriptionList extends CastorArrayList<PropertyDescription
 
         PropertyArrayList propInst = new PropertyArrayList();
 
-        for (int i = 0; i < list.size(); i++) {
-            PropertyDescription pd = list.get(i);
-
+        for (PropertyDescription pd: list) {
             String propName = pd.getName();
             String propVal = pd.getDefaultValue();
 
             if (validatedInitProps.containsKey(propName)) propVal = validatedInitProps.get(propName);
 
-            propInst.list.add( new Property(propName, propVal, pd.getIsMutable()));
+            propInst.list.add(new Property(propName, propVal, pd.getIsMutable()));
         }
+
         return propInst;
     }
 
