@@ -114,10 +114,10 @@ class SchemaBuilderDynymicFormsSpecs extends Specification implements CristalTes
         expect:
         SchemaTestBuilder.build('test', 'Employee', 0) {
             struct(name: 'Employee') {
-                field(name: 'startOfShift',         type: 'time') {dynamicForms(showSeconds : true)}
-                field(name: 'startOfShiftNoSecods', type: 'time')
-                field(name: 'signatureTS',          type: 'dateTime') {dynamicForms(showSeconds : true)}
-                field(name: 'signatureTSNoSeconds', type: 'dateTime')
+                field(name: 'startOfShift',          type: 'time') {dynamicForms(showSeconds: true, hideOnDateTimeSelect: true)}
+                field(name: 'startOfShiftNoSeconds', type: 'time')
+                field(name: 'signatureTS',           type: 'dateTime') {dynamicForms(showSeconds: true, hideOnDateTimeSelect: true)}
+                field(name: 'signatureTSNoSeconds',  type: 'dateTime')
             }
         }.compareXML(
             """<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
@@ -129,16 +129,18 @@ class SchemaBuilderDynymicFormsSpecs extends Specification implements CristalTes
                            <xs:appinfo>
                              <dynamicForms>
                                <showSeconds>true</showSeconds>
+                               <hideOnDateTimeSelect>true</hideOnDateTimeSelect>
                              </dynamicForms>
                            </xs:appinfo>
                          </xs:annotation>
                        </xs:element>
-                       <xs:element name='startOfShiftNoSecods' type='xs:time' minOccurs='1' maxOccurs='1' />
+                       <xs:element name='startOfShiftNoSeconds' type='xs:time' minOccurs='1' maxOccurs='1' />
                        <xs:element name='signatureTS' type='xs:dateTime' minOccurs='1' maxOccurs='1'>
                          <xs:annotation>
                            <xs:appinfo>
                              <dynamicForms>
                                <showSeconds>true</showSeconds>
+                               <hideOnDateTimeSelect>true</hideOnDateTimeSelect>
                              </dynamicForms>
                            </xs:appinfo>
                          </xs:annotation>
