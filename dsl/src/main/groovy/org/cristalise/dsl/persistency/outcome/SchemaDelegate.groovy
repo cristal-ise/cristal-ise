@@ -162,21 +162,23 @@ class SchemaDelegate {
 
     private void setAppinfoDynamicForms(xsd, Field f) {
         xsd.dynamicForms {
-            if (f.dynamicForms.hidden   != null)    hidden(      f.dynamicForms.hidden)
-            if (f.dynamicForms.required != null)    required(    f.dynamicForms.required)
-            if (f.dynamicForms.disabled != null)    disabled(    f.dynamicForms.disabled)
-            if (f.dynamicForms.multiple != null)    multiple(    f.dynamicForms.multiple)
-            if (f.dynamicForms.label)               label(       f.dynamicForms.label)
-            if (f.dynamicForms.placeholder)         placeholder( f.dynamicForms.placeholder)
-            if (f.dynamicForms.type)                type(        f.dynamicForms.type)
-            if (f.dynamicForms.inputType)           inputType(   f.dynamicForms.inputType)
-            if (f.dynamicForms.min != null)         min(         f.dynamicForms.min)
-            if (f.dynamicForms.max != null)         max(         f.dynamicForms.max)
-            if (f.dynamicForms.value != null)       value(       f.dynamicForms.value)
-            if (f.dynamicForms.mask != null)        mask(        f.dynamicForms.mask)
-            if (f.dynamicForms.pattern != null)     pattern(     f.dynamicForms.pattern)
-            if (f.dynamicForms.errmsg != null)      errmsg(      f.dynamicForms.errmsg)
-            if (f.dynamicForms.showSeconds != null) showSeconds( f.dynamicForms.showSeconds)
+            if (f.dynamicForms.hidden   != null)             hidden(               f.dynamicForms.hidden)
+            if (f.dynamicForms.required != null)             required(             f.dynamicForms.required)
+            if (f.dynamicForms.disabled != null)             disabled(             f.dynamicForms.disabled)
+            if (f.dynamicForms.multiple != null)             multiple(             f.dynamicForms.multiple)
+            if (f.dynamicForms.label)                        label(                f.dynamicForms.label)
+            if (f.dynamicForms.placeholder)                  placeholder(          f.dynamicForms.placeholder)
+            if (f.dynamicForms.type)                         type(                 f.dynamicForms.type)
+            if (f.dynamicForms.inputType)                    inputType(            f.dynamicForms.inputType)
+            if (f.dynamicForms.min != null)                  min(                  f.dynamicForms.min)
+            if (f.dynamicForms.max != null)                  max(                  f.dynamicForms.max)
+            if (f.dynamicForms.value != null)                value(                f.dynamicForms.value)
+            if (f.dynamicForms.mask != null)                 mask(                 f.dynamicForms.mask)
+            if (f.dynamicForms.pattern != null)              pattern(              f.dynamicForms.pattern)
+            if (f.dynamicForms.errmsg != null)               errmsg(               f.dynamicForms.errmsg)
+            if (f.dynamicForms.showSeconds != null)          showSeconds(          f.dynamicForms.showSeconds)
+            if (f.dynamicForms.hideOnDateTimeSelect != null) hideOnDateTimeSelect( f.dynamicForms.hideOnDateTimeSelect)
+            
             if ((f.dynamicForms.updateScriptRef != null) || (f.dynamicForms.updateQuerytRef != null) || (f.dynamicForms.warning != null)) {
                 additional {
                     if (f.dynamicForms.updateScriptRef != null) updateScriptRef(f.dynamicForms.updateScriptRef)
