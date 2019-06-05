@@ -48,7 +48,7 @@ public abstract class Authenticate extends PredefinedStep {
 
         Gateway.getSecurityManager().authenticate(params[0], params[1], null, false);
 
-        params[0] = "REDACTED"; // censor password from outcome
+        params[1] = "REDACTED"; // censor password from outcome
 
         return bundleData(params);
     }
