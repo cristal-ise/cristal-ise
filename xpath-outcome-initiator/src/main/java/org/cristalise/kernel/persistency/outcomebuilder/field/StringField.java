@@ -305,8 +305,15 @@ public class StringField extends AppInfoUtils {
 
         JSONObject fieldGrid = new JSONObject();
         fieldGrid.put("container", StringUtils.isNotBlank(container) ? container : "ui-g");
-        fieldGrid.put("label",     StringUtils.isNotBlank(labelGrid) ? labelGrid : "ui-g-4");
-        fieldGrid.put("control",   StringUtils.isNotBlank(control) ? control : "ui-g-8");
+        
+        // If either the control or the label is not defined, both are put to their default values
+        if (!StringUtils.isNotBlank(labelGrid) || !StringUtils.isNotBlank(control)) {
+           labelGrid = "ui-g-4";
+           control = "ui-g-8";
+        }
+        
+        fieldGrid.put("label",     labelGrid);
+        fieldGrid.put("control",   control);
 
         fieldCls.put("element", fieldElement);
         fieldCls.put("grid", fieldGrid);
