@@ -200,21 +200,25 @@ public class DataRecord extends OutcomeStructure {
     public JSONObject generateNgDynamicFormsCls() {
         JSONObject drCls = new JSONObject();
         JSONObject drGrid = new JSONObject();
-        JSONObject drClass = new JSONObject();
-        
-        drClass.put("label", "formGroupLabel");
-        drClass.put("container", "formGroupContainer");
         
         AppInfoUtils appInfoer = new AppInfoUtils();
         appInfoer.readAppInfoDynamicForms(model, drGrid, true);
         
         // Set default value when container is not defined
-        if (!drGrid.has("container")) {            
+        if (!drGrid.has("container")) {
             drGrid.put("container", "ui-g-12");
         }
-        
+
         drCls.put("grid", drGrid);
-        drCls.put("element", drClass);
+
+        if (!isRootElement)  {
+            JSONObject drClass = new JSONObject();
+
+            drClass.put("label", "formGroupLabel");
+            drClass.put("container", "formGroupContainer");
+
+            drCls.put("element", drClass);
+        }
         return drCls;
     }
 
