@@ -177,7 +177,7 @@ class SchemaDelegate {
             if (f.dynamicForms.pattern != null)     pattern(     f.dynamicForms.pattern)
             if (f.dynamicForms.errmsg != null)      errmsg(      f.dynamicForms.errmsg)
             if (f.dynamicForms.showSeconds != null) showSeconds( f.dynamicForms.showSeconds)
-            if (f.dynamicForms.ngcontainer != null) ngcontainer( f.dynamicForms.ngcontainer)
+            if (f.dynamicForms.grid != null)        ngcontainer( f.dynamicForms.grid)
             if ((f.dynamicForms.updateScriptRef != null) || (f.dynamicForms.updateQuerytRef != null) || (f.dynamicForms.warning != null)) {
                 additional {
                     if (f.dynamicForms.updateScriptRef != null) updateScriptRef(f.dynamicForms.updateScriptRef)

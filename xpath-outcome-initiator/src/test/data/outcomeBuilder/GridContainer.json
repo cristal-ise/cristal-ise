@@ -1,0 +1,25 @@
+[{
+  "name": "Employee",
+  "cls": {"grid": {"container": "ui-g-12"}},
+  "id": "Employee",
+  "type": "GROUP",
+  "group": [
+    {
+      "validators": {"required": null},
+      "inputType": "text",
+      "cls": {
+        "grid": {
+          "container": "ui-custom",
+          "control": "ui-g-8",
+          "label": "ui-g-4"
+        },
+        "element": {"label": "ui-widget"}
+      },
+      "id": "field",
+      "label": "field *",
+      "placeholder": "field",
+      "type": "INPUT",
+      "required": true
+    }
+  ]
+}]

@@ -118,4 +118,19 @@ public class NgDynamicFormsTest extends XMLUtils {
     
           assertJsonEquals(expected, actual);
     }
+
+    @Test
+    public void ngForm_CustomGrid() throws Exception {
+          OutcomeBuilder builder = new OutcomeBuilder("Employee", new Schema("GridContainer", 0, getXSD(dir, "GridContainer")), false);
+    
+          JSONArray actual = builder.generateNgDynamicFormsJson();
+    
+          Logger.msg(actual.toString(2));
+    
+          JSONArray expected = new JSONArray(getJSON(dir, "GridContainer"));
+          
+          Logger.msg(expected.toString(2));
+    
+          assertJsonEquals(expected, actual);
+    }
 }

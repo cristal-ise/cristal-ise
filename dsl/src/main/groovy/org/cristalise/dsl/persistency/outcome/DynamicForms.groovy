@@ -42,7 +42,7 @@ class DynamicForms {
     Boolean showSeconds = null
     String type = null
     String value = null
-    String ngcontainer = null
+    String grid = null
     
     /**
      * Provided validation rule and message to set a warning on the given field

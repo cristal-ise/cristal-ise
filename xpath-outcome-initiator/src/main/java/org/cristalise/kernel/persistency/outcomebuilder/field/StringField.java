@@ -61,7 +61,7 @@ public class StringField extends AppInfoUtils {
     SimpleType contentType;
     String     text;
     String     defaultValue;
-    String     ngcontainer;
+    String     grid;
     
     //Filed for validation
     String pattern;
@@ -301,7 +301,7 @@ public class StringField extends AppInfoUtils {
         fieldElement.put("label", "ui-widget");
 
         JSONObject fieldGrid = new JSONObject();
-        fieldGrid.put("container", ngcontainer!=null? ngcontainer : "ui-g");
+        fieldGrid.put("container", StringUtils.isNotBlank(grid) ? grid : "ui-g");
         fieldGrid.put("label",     "ui-g-4");
         fieldGrid.put("control",   "ui-g-8");
 
@@ -327,8 +327,8 @@ public class StringField extends AppInfoUtils {
             else if (name.equals("errmsg")) {
                 errmsg = value;
             }
-            else if (name.equals("container")) {
-                ngcontainer = value;
+            else if (name.equals("grid")) {
+                grid = value;
             }
             else if (stringFields.contains(name)) {
                 //these field might contain string which will be recognized by Scanner a numeric type. (Scanner is locale specific as well)
