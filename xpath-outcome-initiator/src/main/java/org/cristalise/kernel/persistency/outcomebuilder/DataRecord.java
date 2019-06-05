@@ -231,17 +231,16 @@ public class DataRecord extends OutcomeStructure {
 
         for (String elementName : subStructureOrder) array.put(subStructure.get(elementName).generateNgDynamicForms(inputs));
 
+        if (!isRootElement && !dr.has("label")) {
+            String label = StringUtils.join(StringUtils.splitByCharacterTypeCamelCase(model.getName()), " ");
+            dr.put("label", label);      
+        }
+
         AppInfoUtils appInfoer = new AppInfoUtils();
 
         //This call could overwrite values set earlier
         appInfoer.readAppInfoDynamicForms(model, dr, false);
-        
-        // TODO:FIXME Use implement the isRoot check
-        if (!dr.has("label")) {
-            String label = StringUtils.join(StringUtils.splitByCharacterTypeCamelCase(model.getName()), " ");
-            dr.put("label", label);      
-        }
-        
+
         dr.put("group", array);
 
         return dr;
