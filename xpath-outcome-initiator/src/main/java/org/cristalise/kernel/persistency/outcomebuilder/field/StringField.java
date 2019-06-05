@@ -61,7 +61,11 @@ public class StringField extends AppInfoUtils {
     SimpleType contentType;
     String     text;
     String     defaultValue;
-
+    
+    String     container;
+    String     control;
+    String     labelGrid;
+    
     //Filed for validation
     String pattern;
     String errmsg;
@@ -300,9 +304,16 @@ public class StringField extends AppInfoUtils {
         fieldElement.put("label", "ui-widget");
 
         JSONObject fieldGrid = new JSONObject();
-        fieldGrid.put("container", "ui-g");
-        fieldGrid.put("label",     "ui-g-4");
-        fieldGrid.put("control",   "ui-g-8");
+        fieldGrid.put("container", StringUtils.isNotBlank(container) ? container : "ui-g");
+        
+        // If either the control or the label is not defined, both are put to their default values
+        if (!StringUtils.isNotBlank(labelGrid) || !StringUtils.isNotBlank(control)) {
+           labelGrid = "ui-g-4";
+           control = "ui-g-8";
+        }
+        
+        fieldGrid.put("label",     labelGrid);
+        fieldGrid.put("control",   control);
 
         fieldCls.put("element", fieldElement);
         fieldCls.put("grid", fieldGrid);
@@ -310,36 +321,45 @@ public class StringField extends AppInfoUtils {
     }
 
     @Override
-    protected void setAppInfoDynamicFormsJsonValue(AnyNode node, JSONObject json) {
+    protected void setAppInfoDynamicFormsJsonValue(AnyNode node, JSONObject json, Boolean formGridCls) {
         String name  = node.getLocalName();
-
         if (name.equals("additional")) {
             //simply convert the xml to json
             json.put("additional", XML.toJSONObject(node.toString(), true).getJSONObject("additional"));
         }
         else {
             String value = node.getStringValue().trim();
-            if (name.equals("value")) value = getValue(value);
-
-            if (name.equals("pattern")) {
-                pattern = value;
-            }
-            else if (name.equals("errmsg")) {
-                errmsg = value;
-            }
-            else if (stringFields.contains(name)) {
-                //these field might contain string which will be recognized by Scanner a numeric type. (Scanner is locale specific as well)
-                json.put(name, value);
-            }
-            else {
-                Scanner scanner = new Scanner(value);
-
-                if      (scanner.hasNextBoolean())    json.put(name, scanner.nextBoolean());
-                else if (scanner.hasNextBigDecimal()) json.put(name, scanner.nextBigDecimal());
-                else if (scanner.hasNextBigInteger()) json.put(name, scanner.nextBigInteger());
-                else                                  json.put(name, value);
-
-                scanner.close();
+            value = name.equals("value") ? getValue(value) : value;
+            
+            switch (name) {
+                case "pattern":
+                    pattern = value;
+                    break;
+                case "errmsg":
+                    errmsg = value;
+                    break;
+                case "container":
+                    container = value;
+                    break;
+                case "control":
+                    control = value;
+                    break;
+                case "labelGrid":
+                    labelGrid = value;
+                    break;
+                default:
+                    if (stringFields.contains(name)) {
+                        json.put(name, value);
+                    } else {
+                      Scanner scanner = new Scanner(value);
+                      
+                      if      (scanner.hasNextBoolean())    json.put(name, scanner.nextBoolean());
+                      else if (scanner.hasNextBigDecimal()) json.put(name, scanner.nextBigDecimal());
+                      else if (scanner.hasNextBigInteger()) json.put(name, scanner.nextBigInteger());
+                      else                                  json.put(name, value);
+                        
+                      scanner.close();
+                    }
             }
         }
     }
@@ -363,16 +383,16 @@ public class StringField extends AppInfoUtils {
 
     public JSONObject getCommonFieldsNgDynamicForms() {
         JSONObject field = new JSONObject();
-
-        field.put("cls", generateNgDynamicFormsCls());
-
+        
         field.put("id",       name);
         field.put("label",    name);
         field.put("type",     getNgDynamicFormsControlType());
         field.put("required", !isOptional());
 
         //This can overwrite values set earlier, for example 'type' can be changed from INPUT to RATING
-        readAppInfoDynamicForms(model, field);
+        readAppInfoDynamicForms(model, field, false);
+
+        field.put("cls", generateNgDynamicFormsCls());
 
         JSONObject validators = new JSONObject();
         field.put("validators", validators);
