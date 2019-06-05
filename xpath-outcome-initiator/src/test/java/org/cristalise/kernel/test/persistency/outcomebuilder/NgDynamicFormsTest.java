@@ -29,7 +29,6 @@ import java.util.Map;
 
 import org.cristalise.kernel.persistency.outcome.Schema;
 import org.cristalise.kernel.persistency.outcomebuilder.OutcomeBuilder;
-import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.test.persistency.XMLUtils;
 import org.cristalise.kernel.utils.Logger;
 import org.json.JSONArray;
@@ -107,17 +106,17 @@ public class NgDynamicFormsTest extends XMLUtils {
     
     @Test
     public void ngForm_CustomWidth() throws Exception {
-          OutcomeBuilder builder = new OutcomeBuilder("Form", new Schema("DynamicFormsWidthConfiguration", 0, getXSD(dir, "DynamicFormsWidthConfiguration")), false);
-    
-          JSONArray actual = builder.generateNgDynamicFormsJson();
-    
-          Logger.msg(actual.toString(2));
-    
-          JSONArray expected = new JSONArray(getJSON(dir, "DynamicFormsWidthConfiguration"));
-          
-          Logger.msg(expected.toString(2));
-    
-          assertJsonEquals(expected, actual);
+        OutcomeBuilder builder = new OutcomeBuilder("Form", new Schema("DynamicFormsWidthConfiguration", 0, getXSD(dir, "DynamicFormsWidthConfiguration")), false);
+
+        JSONArray actual = builder.generateNgDynamicFormsJson();
+
+        Logger.msg(actual.toString(2));
+
+        JSONArray expected = new JSONArray(getJSON(dir, "DynamicFormsWidthConfiguration"));
+
+        Logger.msg(expected.toString(2));
+
+        assertJsonEquals(expected, actual);
     }
 
     @Test
