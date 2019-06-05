@@ -32,6 +32,7 @@ import org.cristalise.kernel.lookup.ItemPath;
 import org.cristalise.kernel.lookup.Lookup.PagedResult;
 import org.cristalise.kernel.lookup.Path;
 import org.cristalise.kernel.process.Gateway;
+import org.cristalise.kernel.property.PropertyUtility;
 import org.cristalise.kernel.utils.Logger;
 
 public class ChangeName extends PredefinedStep {
@@ -95,7 +96,7 @@ public class ChangeName extends PredefinedStep {
         }
 
         try {
-            WriteProperty.write(item, "Name", newName, locker);
+            PropertyUtility.writeProperty(item, "Name", newName, locker);
         }
         catch (Exception e) {
             Logger.error(e);
