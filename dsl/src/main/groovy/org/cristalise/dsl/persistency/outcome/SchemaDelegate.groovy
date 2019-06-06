@@ -183,8 +183,10 @@ class SchemaDelegate {
             if (f.dynamicForms.control != null)              control(     f.dynamicForms.control)
             if (f.dynamicForms.labelGrid != null)            labelGrid(   f.dynamicForms.labelGrid)
             if (f.dynamicForms.hideOnDateTimeSelect != null) hideOnDateTimeSelect( f.dynamicForms.hideOnDateTimeSelect)
-            
-            if ((f.dynamicForms.updateScriptRef != null) || (f.dynamicForms.updateQuerytRef != null) || (f.dynamicForms.warning != null)) {
+            if (f.dynamicForms.precision)                    precision(   f.dynamicForms.precision)
+            if (f.dynamicForms.scale)                        scale(       f.dynamicForms.scale)
+
+            if (f.hasAdditional()) {
                 additional {
                     if (f.dynamicForms.updateScriptRef != null) updateScriptRef(f.dynamicForms.updateScriptRef)
                     if (f.dynamicForms.updateQuerytRef != null) updateQuerytRef(f.dynamicForms.updateQuerytRef)

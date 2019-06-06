@@ -106,17 +106,45 @@ public class NgDynamicFormsTest extends XMLUtils {
     
     @Test
     public void ngForm_CustomWidth() throws Exception {
-          OutcomeBuilder builder = new OutcomeBuilder("Form", new Schema("DynamicFormsWidthConfiguration", 0, getXSD(dir, "DynamicFormsWidthConfiguration")), false);
-    
-          JSONArray actual = builder.generateNgDynamicFormsJson();
-    
-          Logger.msg(actual.toString(2));
-    
-          JSONArray expected = new JSONArray(getJSON(dir, "DynamicFormsWidthConfiguration"));
-          
-          Logger.msg(expected.toString(2));
-    
-          assertJsonEquals(expected, actual);
+        OutcomeBuilder builder = new OutcomeBuilder("Form", new Schema("DynamicFormsWidthConfiguration", 0, getXSD(dir, "DynamicFormsWidthConfiguration")), false);
+
+        JSONArray actual = builder.generateNgDynamicFormsJson();
+
+        Logger.msg(actual.toString(2));
+
+        JSONArray expected = new JSONArray(getJSON(dir, "DynamicFormsWidthConfiguration"));
+
+        Logger.msg(expected.toString(2));
+
+        assertJsonEquals(expected, actual);
+    }
+
+    @Test
+    public void ngForm_TotalFractionDigits() throws Exception {
+        String testName = "TotalFractionDigits";
+        OutcomeBuilder builder = new OutcomeBuilder("TestData", new Schema(testName, 0, getXSD(dir, testName)), false);
+
+        JSONArray actual = builder.generateNgDynamicFormsJson();
+
+        Logger.msg(actual.toString(2));
+
+        JSONArray expected = new JSONArray(getJSON(dir, testName+"NgForms"));
+
+        assertJsonEquals(expected, actual);
+    }
+
+    @Test
+    public void ngForm_PrecisionScale() throws Exception {
+        String testName = "PrecisionScale";
+        OutcomeBuilder builder = new OutcomeBuilder("PatientDetails", new Schema(testName, 0, getXSD(dir, testName)), false);
+
+        JSONArray actual = builder.generateNgDynamicFormsJson();
+
+        Logger.msg(actual.toString(2));
+
+        JSONArray expected = new JSONArray(getJSON(dir, testName+"NgForms"));
+
+        assertJsonEquals(expected, actual);
     }
     
     @Test

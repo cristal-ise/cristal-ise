@@ -20,6 +20,8 @@
  */
 package org.cristalise.dsl.persistency.outcome
 
+import java.util.regex.Pattern
+
 import org.cristalise.kernel.common.InvalidDataException
 
 import groovy.transform.CompileStatic;
@@ -58,7 +60,7 @@ class DynamicForms {
     Warning warning = null
 
     /**
-     * Sets the width of the form (DynamicForms)
+     * Sets the width of the form
      */
     String width = null
 
@@ -72,4 +74,31 @@ class DynamicForms {
      * the from generated from the XML Schema has to be updated
      */
     String updateQuerytRef = null
+
+    /**
+     * Number of digits that are present in the number. Possible value are: P, P-
+     */
+    String precision = null
+    /**
+     * Number of decimal places that are present in the number.Possible value are: S, S-
+     */
+    String scale = null
+
+    /**
+     * 
+     * @param p
+     */
+    public void setPrecision(String p) {
+        if (!(p ==~ /^\d+[-]?$/)) throw new InvalidDataException("Invalid precision value ("+p+"). Value should be '5' or '5-'")
+        precision = p
+    }
+
+    /**
+     * 
+     * @param s
+     */
+    public void setScale(String s) {
+        if (!(s ==~ /^\d+[-]?$/)) throw new InvalidDataException("Invalid scale value ("+s+"). Value should be '5' or '5-'")
+        scale = s
+    }
 }

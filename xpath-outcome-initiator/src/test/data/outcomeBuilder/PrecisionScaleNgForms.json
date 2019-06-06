@@ -1,0 +1,92 @@
+[{
+  "name": "PatientDetails",
+  "cls": {"grid": {"container": "ui-g-12"}},
+  "id": "PatientDetails",
+  "type": "GROUP",
+  "group": [
+    {
+      "errorMessages": {"pattern": "Use exactly 5 digits with exactly 2 decimal places"},
+      "validators": {
+        "pattern": "^-?\\d{3}\\.\\d{2}$",
+        "required": null
+      },
+      "cls": {
+        "grid": {
+          "container": "ui-g",
+          "control": "ui-g-8",
+          "label": "ui-g-4"
+        },
+        "element": {"label": "ui-widget"}
+      },
+      "id": "Weight",
+      "label": "Weight *",
+      "placeholder": "Weight",
+      "type": "INPUT",
+      "value": "0.0",
+      "required": true
+    },
+    {
+      "errorMessages": {"pattern": "Use max 5 digits with exactly 2 decimal places"},
+      "validators": {
+        "pattern": "^-?\\d{0,3}\\.\\d{2}$",
+        "required": null
+      },
+      "cls": {
+        "grid": {
+          "container": "ui-g",
+          "control": "ui-g-8",
+          "label": "ui-g-4"
+        },
+        "element": {"label": "ui-widget"}
+      },
+      "id": "WeightMinus",
+      "label": "Weight Minus *",
+      "placeholder": "Weight Minus",
+      "type": "INPUT",
+      "value": "0.0",
+      "required": true
+    },
+    {
+      "errorMessages": {"pattern": "Use exactly 2 decimal places"},
+      "validators": {
+        "pattern": "^-?\\d+\\.\\d{2}$",
+        "required": null
+      },
+      "cls": {
+        "grid": {
+          "container": "ui-g",
+          "control": "ui-g-8",
+          "label": "ui-g-4"
+        },
+        "element": {"label": "ui-widget"}
+      },
+      "id": "WeightScale",
+      "label": "Weight Scale *",
+      "placeholder": "Weight Scale",
+      "type": "INPUT",
+      "value": "0.0",
+      "required": true
+    },
+    {
+      "errorMessages": {"pattern": "Use max 2 decimal places"},
+      "validators": {
+        "pattern": "^-?\\d+\\.?\\d{0,2}$",
+        "required": null
+      },
+      "cls": {
+        "grid": {
+          "container": "ui-g",
+          "control": "ui-g-8",
+          "label": "ui-g-4"
+        },
+        "element": {"label": "ui-widget"}
+      },
+      "id": "WeightScaleMinus",
+      "label": "Weight Scale Minus *",
+      "placeholder": "Weight Scale Minus",
+      "type": "INPUT",
+      "value": "0.0",
+      "required": true
+    }
+  ]
+}]
