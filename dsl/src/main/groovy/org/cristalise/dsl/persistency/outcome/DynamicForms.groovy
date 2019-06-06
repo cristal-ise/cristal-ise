@@ -42,9 +42,18 @@ class DynamicForms {
     String placeholder = null
     Boolean required = null
     Boolean showSeconds = null
+    Boolean hideOnDateTimeSelect = null
     String type = null
     String value = null
-
+    
+    
+    /**
+     * Sets the grid properties of the base form or of the field
+     */
+    String container = null
+    String control = null
+    String labelGrid = null
+    
     /**
      * Provided validation rule and message to set a warning on the given field
      */

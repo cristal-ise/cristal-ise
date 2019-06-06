@@ -30,16 +30,18 @@
             <xs:appinfo>
               <dynamicForms>
                 <showSeconds>true</showSeconds>
+                <hideOnDateTimeSelect>true</hideOnDateTimeSelect>
               </dynamicForms>
             </xs:appinfo>
           </xs:annotation>
         </xs:element>
-        <xs:element name='startOfShiftNoSecods' type='xs:time' minOccurs='1' maxOccurs='1' />
+        <xs:element name='startOfShiftNoSeconds' type='xs:time' minOccurs='1' maxOccurs='1' />
         <xs:element name='signatureTS' type='xs:dateTime' minOccurs='1' maxOccurs='1'>
           <xs:annotation>
             <xs:appinfo>
               <dynamicForms>
                 <showSeconds>true</showSeconds>
+                <hideOnDateTimeSelect>true</hideOnDateTimeSelect>
               </dynamicForms>
             </xs:appinfo>
           </xs:annotation>

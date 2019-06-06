@@ -55,7 +55,7 @@ import org.w3c.dom.Text;
 public class StringField extends StructureWithAppInfo {
 
     private static final String[] strFields = {"mask", "placeholder"};
-    private static final String[] excFields = {"pattern", "errmsg"};
+    private static final String[] excFields = {"pattern", "errmsg","container", "control", "labelGrid"};
 
     Node       data;
     Annotated  model;
@@ -65,7 +65,11 @@ public class StringField extends StructureWithAppInfo {
     SimpleType contentType;
     String     text;
     String     defaultValue;
-
+    
+    String     container;
+    String     control;
+    String     labelGrid;
+    
     /**
      * Javascript regexp pattern to validate field value in DynamicForms. It is either provided in the AppInfo.pattern field 
      * or it is computed from data available in XSD restrictions or in various AppInfo fields (check subclasses)
@@ -306,9 +310,16 @@ public class StringField extends StructureWithAppInfo {
         fieldElement.put("label", "ui-widget");
 
         JSONObject fieldGrid = new JSONObject();
-        fieldGrid.put("container", "ui-g");
-        fieldGrid.put("label",     "ui-g-4");
-        fieldGrid.put("control",   "ui-g-8");
+        fieldGrid.put("container", StringUtils.isNotBlank(container) ? container : "ui-g");
+        
+        // If either the control or the label is not defined, both are put to their default values
+        if (!StringUtils.isNotBlank(labelGrid) || !StringUtils.isNotBlank(control)) {
+           labelGrid = "ui-g-4";
+           control = "ui-g-8";
+        }
+        
+        fieldGrid.put("label",     labelGrid);
+        fieldGrid.put("control",   control);
 
         fieldCls.put("element", fieldElement);
         fieldCls.put("grid", fieldGrid);
@@ -322,6 +333,15 @@ public class StringField extends StructureWithAppInfo {
         }
         else if (name.equals("errmsg")) {
             errmsg = value;
+        }
+        else if (name.equals("container")) {
+            container = value;
+        }
+        else if (name.equals("control")) {
+            control = value;
+        }
+        else if (name.equals("labelGrid")) {
+            labelGrid = value;
         }
     }
     
@@ -344,16 +364,16 @@ public class StringField extends StructureWithAppInfo {
 
     public JSONObject getCommonFieldsNgDynamicForms() {
         JSONObject field = new JSONObject();
-
-        field.put("cls", generateNgDynamicFormsCls());
-
+        
         field.put("id",       name);
         field.put("label",    name);
         field.put("type",     getNgDynamicFormsControlType());
         field.put("required", !isOptional());
 
         //This can overwrite values set earlier, for example 'type' can be changed from INPUT to RATING
-        readAppInfoDynamicForms(model, field);
+        readAppInfoDynamicForms(model, field, false);
+
+        field.put("cls", generateNgDynamicFormsCls());
 
         JSONObject validators = new JSONObject();
         field.put("validators", validators);

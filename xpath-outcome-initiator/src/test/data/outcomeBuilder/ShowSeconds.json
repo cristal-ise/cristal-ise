@@ -6,6 +6,7 @@
   "group": [
     {
       "showSeconds": true,
+      "hideOnDateTimeSelect": true,
       "validators": {"required": null},
       "additional": {
         "stepMinute": 5,
@@ -41,17 +42,17 @@
         },
         "element": {"label": "ui-widget"}
       },
-      "id": "startOfShiftNoSecods",
-      "label": "start Of Shift No Secods *",
-      "placeholder": "start Of Shift No Secods",
+      "id": "startOfShiftNoSeconds",
+      "label": "start Of Shift No Seconds *",
+      "placeholder": "start Of Shift No Seconds",
       "type": "TIMEPICKER",
       "required": true
     },
     {
       "showSeconds": true,
+      "hideOnDateTimeSelect": true,
       "validators": {"required": null},
       "additional": {
-        "hideOnDateTimeSelect": true,
         "showButtonBar": true,
         "showTime": true
       },
@@ -73,7 +74,6 @@
     {
       "validators": {"required": null},
       "additional": {
-        "hideOnDateTimeSelect": true,
         "showButtonBar": true,
         "showTime": true
       },
