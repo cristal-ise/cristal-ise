@@ -86,16 +86,17 @@ public class DecimalField extends NumberField {
     public void setNgDynamicFormsValidators(JSONObject validators) {
         super.setNgDynamicFormsValidators(validators);
 
-        if (StringUtils.isNotBlank(pattern)) {
-            validators.put("pattern", pattern);
+        if (StringUtils.isBlank(pattern)) {
+            if (StringUtils.isNotBlank(precision) || StringUtils.isNotBlank(scale)) {
+                pattern = generatePrecisionScalePattern();
+            }
+            else {
+                //this case also generates the default pattern
+                pattern = generateTotalFractionDigitsPattern();
+            }
         }
-        else if (StringUtils.isNotBlank(precision) || StringUtils.isNotBlank(scale)) {
-            validators.put("pattern", generatePrecisionScalePattern());
-        }
-        else {
-            //this case also generates the default pattern
-            validators.put("pattern", generateTotalFractionDigitsPattern());
-        }
+
+        if (StringUtils.isNotBlank(pattern)) validators.put("pattern", pattern);
     }
 
     private String generatePattern(Integer precisionNumber, boolean precisionSmaller, Integer scaleNumber, boolean scaleSmaller) {
@@ -109,6 +110,8 @@ public class DecimalField extends NumberField {
                 if (StringUtils.isBlank(errmsg)) errmsg = "Invalid decimal number";
                 return "^-?\\d+\\" + separator + "?\\d*$";
             }
+            else
+                return null;
         }
         else if (precisionNumber != null) {
             if (scaleNumber == null) {

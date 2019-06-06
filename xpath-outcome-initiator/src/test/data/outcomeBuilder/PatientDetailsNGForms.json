@@ -63,7 +63,7 @@
       "label": "Date Of Birth *",
       "placeholder": "99/99/9999",
       "type": "DATEPICKER",
-      "value": "2019-06-04",
+      "value": "@{CURRENTDATE}",
       "required": true,
       "mask": "99/99/9999"
     },
@@ -98,11 +98,7 @@
       "required": true
     },
     {
-      "errorMessages": {"pattern": "Invalid decimal number"},
-      "validators": {
-        "pattern": "^-?\\d+\\.?\\d*$",
-        "required": null
-      },
+      "validators": {"required": null},
       "additional": {"warning": {
         "pattern": "^[0-9]{1,4}$",
         "message": "Value out of specification, has to be <= 9999"

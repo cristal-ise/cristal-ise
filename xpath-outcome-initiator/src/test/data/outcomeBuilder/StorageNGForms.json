@@ -103,10 +103,8 @@
       "required": true
     },
     {
-      "errorMessages": {"pattern": "Invalid decimal number"},
       "validators": {
         "min": 0,
-        "pattern": "^-?\\d+\\.?\\d*$",
         "required": null
       },
       "cls": {
@@ -189,10 +187,8 @@
       "required": false
     },
     {
-      "errorMessages": {"pattern": "Invalid decimal number"},
       "validators": {
-        "min": 0,
-        "pattern": "^-?\\d+\\.?\\d*$"
+        "min": 0
       },
       "cls": {
         "grid": {
@@ -210,10 +206,8 @@
       "required": false
     },
     {
-      "errorMessages": {"pattern": "Invalid decimal number"},
       "validators": {
-        "min": 0,
-        "pattern": "^-?\\d+\\.?\\d*$"
+        "min": 0
       },
       "cls": {
         "grid": {
