@@ -282,15 +282,18 @@ public class StringField extends StructureWithAppInfo {
         if (StringUtils.isNotBlank(pattern)) {
             validators.put("pattern", pattern);
         }
-        else if(contentType.hasFacet(Facet.MIN_LENGTH)) {
+
+        if(contentType.hasFacet(Facet.MIN_LENGTH)) {
             Facet minLength = contentType.getFacet(Facet.MIN_LENGTH);
             validators.put(minLength.getName(), minLength.getValue());
         }
-        else if(contentType.hasFacet(Facet.MAX_LENGTH)) {
+
+        if(contentType.hasFacet(Facet.MAX_LENGTH)) {
             Facet maxLength = contentType.getFacet(Facet.MAX_LENGTH);
             validators.put(maxLength.getName(), maxLength.getValue());
         }
-        else if(contentType.hasFacet(Facet.LENGTH)) {
+
+        if(contentType.hasFacet(Facet.LENGTH)) {
             Facet length = contentType.getFacet(Facet.LENGTH);
             validators.put("minLength", length.getValue());
             validators.put("maxLength", length.getValue());

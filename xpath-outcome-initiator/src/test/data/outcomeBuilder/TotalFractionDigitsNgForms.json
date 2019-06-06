@@ -22,7 +22,7 @@
       "required": true
     },
     {
-      "errorMessages": {"pattern": "Ivalid decimal number"},
+      "errorMessages": {"pattern": "Use max 2 decimal places"},
       "validators": {
         "pattern": "^-?\\d+\\.?\\d{0,2}$",
         "required": null

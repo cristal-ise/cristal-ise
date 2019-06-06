@@ -84,19 +84,16 @@ public class DecimalField extends NumberField {
      */
     @Override
     public void setNgDynamicFormsValidators(JSONObject validators) {
-        super.setNgDynamicFormsValidators(validators);
-
         if (StringUtils.isBlank(pattern)) {
             if (StringUtils.isNotBlank(precision) || StringUtils.isNotBlank(scale)) {
                 pattern = generatePrecisionScalePattern();
             }
             else {
-                //this case also generates the default pattern
                 pattern = generateTotalFractionDigitsPattern();
             }
         }
 
-        if (StringUtils.isNotBlank(pattern)) validators.put("pattern", pattern);
+        super.setNgDynamicFormsValidators(validators);
     }
 
     private String generatePattern(Integer precisionNumber, boolean precisionSmaller, Integer scaleNumber, boolean scaleSmaller) {
@@ -142,14 +139,12 @@ public class DecimalField extends NumberField {
             }
         }
         else {
-            if (StringUtils.isBlank(errmsg)) errmsg = "Ivalid decimal number";
-
             if (scaleSmaller) {
-                if (StringUtils.isBlank(errmsg)) errmsg = "Use max "+precisionNumber+" decimal places";
+                if (StringUtils.isBlank(errmsg)) errmsg = "Use max "+scaleNumber+" decimal places";
                 return "^-?\\d+\\" + separator + "?\\d{0," + scaleNumber + "}$";
             }
             else {
-                if (StringUtils.isBlank(errmsg)) errmsg = "Use exactly "+precisionNumber+" decimal places";
+                if (StringUtils.isBlank(errmsg)) errmsg = "Use exactly "+scaleNumber+" decimal places";
                 return "^-?\\d+\\" + separator + "\\d{" + scaleNumber + "}$";
             }
         }
