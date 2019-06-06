@@ -28,6 +28,7 @@ import java.util.regex.PatternSyntaxException;
 import org.apache.commons.lang3.StringUtils;
 import org.cristalise.kernel.persistency.outcomebuilder.InvalidOutcomeException;
 import org.cristalise.kernel.process.Gateway;
+import org.cristalise.kernel.utils.Logger;
 import org.exolab.castor.xml.schema.Facet;
 import org.json.JSONObject;
 
@@ -104,7 +105,7 @@ public class DecimalField extends NumberField {
         char separator = Gateway.getProperties().getString("Webui.decimal.separator", ".").charAt(0);
 
         if (precisionNumber == null && scaleNumber == null) {
-            if (Gateway.getProperties().getBoolean("Webui.decimal.generateDefaultPattern", true)) {
+            if (Gateway.getProperties().getBoolean("Webui.decimal.generateDefaultPattern", false)) {
                 //default validator for any decimal field
                 if (StringUtils.isBlank(errmsg)) errmsg = "Invalid decimal number";
                 return "^-?\\d+\\" + separator + "?\\d*$";
