@@ -31,11 +31,11 @@ import org.cristalise.kernel.lookup.ItemPath;
 import org.cristalise.kernel.utils.Logger;
 
 /**
- * 
+ * {@value #description}
  */
 public class Logout extends PredefinedStep {
 
-    public static final String description = "Records the Logout event in the system";
+    public static final String description = "Records the Logout event in the history";
 
     public Logout() {
         super();

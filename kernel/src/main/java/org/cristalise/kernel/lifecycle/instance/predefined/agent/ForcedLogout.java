@@ -20,33 +20,34 @@
  */
 package org.cristalise.kernel.lifecycle.instance.predefined.agent;
 
-import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.SCHEMA_NAME;
-
 import org.cristalise.kernel.common.CannotManageException;
 import org.cristalise.kernel.common.InvalidDataException;
 import org.cristalise.kernel.common.ObjectCannotBeUpdated;
 import org.cristalise.kernel.common.ObjectNotFoundException;
 import org.cristalise.kernel.common.PersistencyException;
+import org.cristalise.kernel.lifecycle.instance.predefined.PredefinedStep;
 import org.cristalise.kernel.lookup.AgentPath;
 import org.cristalise.kernel.lookup.ItemPath;
+import org.cristalise.kernel.utils.Logger;
 
 /**
  * {@value #description}
  */
-public class Sign extends Authenticate {
+public class ForcedLogout extends PredefinedStep {
 
-    public static final String description = "Autehnticates the given user and records the Sign event in the system";
+    public static final String description = "Records the ForcedLogout event in the history associated with window/tab close actions in the UI";
 
-    public Sign() {
+    public ForcedLogout() {
         super();
-        setBuiltInProperty(SCHEMA_NAME, "SimpleElectonicSignature");
     }
 
     @Override
     protected String runActivityLogic(AgentPath agent, ItemPath itemPath, int transitionID, String requestData, Object locker)
             throws InvalidDataException, ObjectNotFoundException, ObjectCannotBeUpdated, CannotManageException, PersistencyException
     {
-        
-        return authenticate(agent, itemPath, requestData, locker);
+        Logger.msg(1, "ForcedLogout.request() - Starting.");
+
+        return requestData;
     }
+
 }

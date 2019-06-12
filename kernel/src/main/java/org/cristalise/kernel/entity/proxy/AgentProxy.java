@@ -313,7 +313,7 @@ public class AgentProxy extends ItemProxy {
      * @throws ObjectAlreadyExistsException
      * @throws InvalidCollectionModification
      */
-    public String execute(ItemProxy item, Class<?> predefStep, String[] params)
+    public String execute(ItemProxy item, Class<?> predefStep, String...params)
             throws AccessRightsException, InvalidDataException, InvalidTransitionException, ObjectNotFoundException,
             PersistencyException, ObjectAlreadyExistsException, InvalidCollectionModification
     {
@@ -325,7 +325,8 @@ public class AgentProxy extends ItemProxy {
      *
      * @param item The item on which to execute the step
      * @param predefStep The step name to run
-     * @param params An array of parameters to pass to the step. See each step's documentation for its required parameters
+     * @param params An array of parameters to pass to the step. See each step's documentation 
+     *               for its required parameters
      *
      * @return The outcome after processing. May have been altered by the step.
      *
@@ -337,7 +338,7 @@ public class AgentProxy extends ItemProxy {
      * @throws ObjectAlreadyExistsException Thrown by steps that create additional object
      * @throws InvalidCollectionModification Thrown by steps that create/modify collections
      */
-    public String execute(ItemProxy item, String predefStep, String[] params)
+    public String execute(ItemProxy item, String predefStep, String...params)
             throws AccessRightsException, InvalidDataException, InvalidTransitionException, ObjectNotFoundException,
             PersistencyException, ObjectAlreadyExistsException, InvalidCollectionModification
     {

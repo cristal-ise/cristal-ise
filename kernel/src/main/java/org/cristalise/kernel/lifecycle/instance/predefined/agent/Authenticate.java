@@ -43,8 +43,8 @@ public abstract class Authenticate extends PredefinedStep {
 
         String[] params = getDataList(requestData);
 
-        if (params.length != 2 || params.length != 3) 
-            throw new InvalidDataException("PredefinedStep.Authenticate() -  Invalid number of parameters (2 <= length= "+params.length+" <= 3)");
+        if (params.length < 2 || params.length > 3) 
+            throw new InvalidDataException("PredefinedStep.Authenticate() -  Invalid number of parameters (2 <= length="+params.length+" <= 3)");
 
         Gateway.getSecurityManager().authenticate(params[0], params[1], null, false);
 

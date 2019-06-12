@@ -29,11 +29,11 @@ import org.cristalise.kernel.lookup.AgentPath;
 import org.cristalise.kernel.lookup.ItemPath;
 
 /**
- * 
+ * {@value #description}
  */
 public class Login extends Authenticate {
 
-    public static final String description = "Autehnticates the given user and records the Login event in the system";
+    public static final String description = "Autehnticates the given user and records the Login event in the history";
 
     public Login() {
         super();
@@ -45,5 +45,4 @@ public class Login extends Authenticate {
     {
         return authenticate(agent, itemPath, requestData, locker);
     }
-
 }

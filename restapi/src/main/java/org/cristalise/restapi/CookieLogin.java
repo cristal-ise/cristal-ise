@@ -21,7 +21,6 @@
 package org.cristalise.restapi;
 
 import java.util.Base64;
-
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
@@ -33,10 +32,8 @@ import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.NewCookie;
 import javax.ws.rs.core.Response;
-
 import org.apache.commons.lang3.StringUtils;
 import org.cristalise.kernel.entity.proxy.AgentProxy;
-import org.cristalise.kernel.lifecycle.instance.predefined.PredefinedStep;
 import org.cristalise.kernel.lifecycle.instance.predefined.agent.Login;
 import org.cristalise.kernel.lookup.AgentPath;
 import org.cristalise.kernel.process.Gateway;
@@ -69,7 +66,7 @@ public class CookieLogin extends RestHandler {
     private Response processLogin(String user, String pass, HttpHeaders headers) {
         try {
             AgentProxy agent = Gateway.getProxyManager().getAgentProxy(user);
-            agent.execute(agent, Login.class, PredefinedStep.bundleData(user, pass));
+            agent.execute(agent, Login.class, user, pass);
             return getCookieResponse(agent.getPath(), ItemUtils.produceJSON(headers.getAcceptableMediaTypes()));
         }
         catch (Exception ex) {

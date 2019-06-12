@@ -31,7 +31,9 @@ public class AgentPredefinedStepContainer extends PredefinedStepContainer {
         predInit(SetAgentPassword.class, "Changes the Agent's password", new SetAgentPassword());
         predInit(SetAgentRoles.class, "Sets the roles of the Agent", new SetAgentRoles());
         predInit(Login.class, Login.description, new Login());
+        predInit(LoginTimeout.class, LoginTimeout.description, new LoginTimeout());
         predInit(Logout.class, Logout.description, new Logout());
+        predInit(ForcedLogout.class, ForcedLogout.description, new ForcedLogout());
         predInit(Sign.class, Sign.description, new Sign());
     }
 }
