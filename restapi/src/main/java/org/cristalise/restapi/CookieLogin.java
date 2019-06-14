@@ -64,8 +64,12 @@ public class CookieLogin extends RestHandler {
      * @return
      */
     private Response processLogin(String user, String pass, HttpHeaders headers) {
+        
         try {
             AgentProxy agent = Gateway.getProxyManager().getAgentProxy(user);
+
+            Logger.msg(5, "CookieLogin() - agent:'%s'", agent.getName());
+
             agent.execute(agent, Login.class, user, pass);
             return getCookieResponse(agent.getPath(), ItemUtils.produceJSON(headers.getAcceptableMediaTypes()));
         }
@@ -76,7 +80,7 @@ public class CookieLogin extends RestHandler {
 
             if (StringUtils.isBlank(msg)) msg = "Bad username/password";
 
-            Logger.msg(5, "CookieLogin.login() - %s", msg);
+            Logger.msg(5, "CookieLogin() - error:%s", msg);
             throw ItemUtils.createWebAppException(msg, Response.Status.UNAUTHORIZED);
         }
     }

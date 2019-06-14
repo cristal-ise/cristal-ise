@@ -51,7 +51,7 @@ public class CookieLogout extends RestHandler   {
     {
         AgentPath ap = checkAuthCookie(authCookie);
 
-        Logger.msg("Logout =================== %s", ap.getAgentName());
+        Logger.msg(5, "CookieLogout() - agent:'%s' reason:'%s'", ap.getAgentName(), reason);
 
         try {
             AgentProxy agent = Gateway.getProxyManager().getAgentProxy(ap);
