@@ -101,7 +101,7 @@ public class CookieLogin extends RestHandler {
             //Issue #143: Read 'password temporary flag' from Lookup, because agentPath is taken from AgentProxy which could be cached
             boolean tempPwd = Gateway.getLookup().getAgentPath(agentPath.getAgentName()).isPasswordTemporary();
 
-            String result = "<Login result='Success' temporaryPassword='" + tempPwd + "' />";
+            String result = "<Login result='Success' temporaryPassword='" + tempPwd + "' uuid='" + agentPath.getUUID() + "' />";
             if (produceJSON) result = XML.toJSONObject(result, true).toString();
 
             // FIXME: Perhaps Angular 4 bug. Return string is a json, so HttpClient will be able to process the response
