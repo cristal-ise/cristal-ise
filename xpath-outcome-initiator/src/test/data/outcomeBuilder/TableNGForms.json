@@ -75,7 +75,10 @@
       },
       {
         "errorMessages": {"pattern": "Trailing spaces or contains only spaces"},
-        "validators": {"pattern": "^[a-zA-Z]+.*\\S+$", "required": null},
+        "validators": {
+          "pattern": "^[a-zA-Z]+.*\\S+$",
+          "required": null
+        },
         "inputType": "text",
         "cls": {
           "grid": {

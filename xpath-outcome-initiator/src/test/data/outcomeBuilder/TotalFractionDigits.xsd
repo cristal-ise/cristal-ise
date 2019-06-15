@@ -21,32 +21,33 @@
     http://www.fsf.org/licensing/licenses/lgpl.html
 
 -->
-<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
-  <xs:element name="Employee">
+<xs:schema xmlns:xs='http://www.w3.org/2001/XMLSchema'>
+  <xs:element name='TestData'>
     <xs:complexType>
-      <xs:all minOccurs="0">
-        <xs:element name='startOfShift' type='xs:time' minOccurs='1' maxOccurs='1'>
-          <xs:annotation>
-            <xs:appinfo>
-              <dynamicForms>
-                <showSeconds>true</showSeconds>
-                <hideOnDateTimeSelect>true</hideOnDateTimeSelect>
-              </dynamicForms>
-            </xs:appinfo>
-          </xs:annotation>
+      <xs:all minOccurs='0'>
+        <xs:element minOccurs="1" maxOccurs="1" name="efficiency" type="xs:decimal"/>
+        <xs:element minOccurs="1" maxOccurs="1" name="efficiencyFraction">
+          <xs:simpleType>
+            <xs:restriction base="xs:decimal">
+              <xs:fractionDigits value="2" />
+            </xs:restriction>
+          </xs:simpleType>
         </xs:element>
-        <xs:element name='startOfShiftNoSeconds' type='xs:time' minOccurs='1' maxOccurs='1' />
-        <xs:element name='signatureTS' type='xs:dateTime' minOccurs='1' maxOccurs='1'>
-          <xs:annotation>
-            <xs:appinfo>
-              <dynamicForms>
-                <showSeconds>true</showSeconds>
-                <hideOnDateTimeSelect>true</hideOnDateTimeSelect>
-              </dynamicForms>
-            </xs:appinfo>
-          </xs:annotation>
+        <xs:element minOccurs="1" maxOccurs="1" name="efficiencyTotal">
+          <xs:simpleType>
+            <xs:restriction base="xs:decimal">
+              <xs:totalDigits value="5" />
+            </xs:restriction>
+          </xs:simpleType>
         </xs:element>
-        <xs:element name='signatureTSNoSeconds' type='xs:dateTime' minOccurs='1' maxOccurs='1' />
+        <xs:element minOccurs="1" maxOccurs="1" name="efficiencyBoth">
+          <xs:simpleType>
+            <xs:restriction base="xs:decimal">
+              <xs:totalDigits value="5" />
+              <xs:fractionDigits value="2" />
+            </xs:restriction>
+          </xs:simpleType>
+        </xs:element>
       </xs:all>
     </xs:complexType>
   </xs:element>

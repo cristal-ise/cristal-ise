@@ -32,7 +32,7 @@ import org.exolab.castor.xml.schema.AppInfo;
 import org.json.JSONObject;
 import org.json.XML;
 
-public class AppInfoUtils {
+public class StructureWithAppInfo {
 
     /**
      * List of field names might contain string which will be recognized by Scanner a numeric type. 
@@ -40,10 +40,38 @@ public class AppInfoUtils {
      */
     protected List<String> stringFields;
 
-    public AppInfoUtils(String...fields) {
-        stringFields = new ArrayList<String>();
+    /**
+     * List of field names which are processed individually by the specific subclasses
+     */
+    protected List<String> exceptionFields;
 
-        for (String f: fields) stringFields.add(f);
+    public StructureWithAppInfo() {
+        stringFields = new ArrayList<String>();
+        exceptionFields = new ArrayList<String>();
+    }
+
+    public StructureWithAppInfo(List<String> strFields, List<String> excFields) {
+        stringFields = new ArrayList<String>(strFields);
+        exceptionFields = new ArrayList<String>(excFields);
+    }
+
+    /**
+     * Check if the value contains a template/pattern that can be interpreted by the given Field instance
+     * 
+     * @param valueTemplate
+     * @return
+     */
+    public String getValue(String valueTemplate) {
+        return valueTemplate;
+    }
+
+    /**
+     * To be overridden by subclasses to handle data locally available in AppInfo.DynamicForms
+     * 
+     * @param name the name of the field
+     * @param value the value of the field
+     */
+    protected void setAppInfoDynamicFormsExceptionValue(String name, String value) {
     }
 
     /**
@@ -51,7 +79,7 @@ public class AppInfoUtils {
      * @param node
      * @param json
      */
-    protected void setAppInfoDynamicFormsJsonValue(AnyNode node, JSONObject json) {
+    protected void setAppInfoDynamicFormsJsonValue(AnyNode node, JSONObject json, Boolean formGridCls) {
         String name  = node.getLocalName();
 
         if (name.equals("additional")) {
@@ -60,9 +88,19 @@ public class AppInfoUtils {
         }
         else {
             String value = node.getStringValue().trim();
+            if (name.equals("value")) value = getValue(value);
 
             if (stringFields.contains(name)) {
                 json.put(name, value);
+            } else if (formGridCls) {
+                if (!name.equals("container")) {
+                    return;
+                }
+                
+                json.put(name, value);                    
+            }
+            else if (exceptionFields.contains(name)) {
+                setAppInfoDynamicFormsExceptionValue(name, value);
             }
             else {
                 Scanner scanner = new Scanner(value);
@@ -70,12 +108,14 @@ public class AppInfoUtils {
                 if      (scanner.hasNextBoolean())    json.put(name, scanner.nextBoolean());
                 else if (scanner.hasNextBigDecimal()) json.put(name, scanner.nextBigDecimal());
                 else if (scanner.hasNextBigInteger()) json.put(name, scanner.nextBigInteger());
+                else if (name.equals("container"))    scanner.close();
                 else                                  json.put(name, value);
 
                 scanner.close();
             }
         }
     }
+    
 
     /**
      * Finds the named element in the AppInfo node
@@ -111,17 +151,17 @@ public class AppInfoUtils {
      * @param aModel
      * @param json
      */
-    public void readAppInfoDynamicForms(Annotated aModel, JSONObject json) {
+    public void readAppInfoDynamicForms(Annotated aModel, JSONObject json, Boolean formGridCls) {
         AnyNode appInfoNode = getAppInfoNode(aModel, "dynamicForms");
 
         if (appInfoNode != null) {
             AnyNode child = appInfoNode.getFirstChild(); //stupid API, there is no getChildren
 
             if (child != null) {
-                if (child.getNodeType() == AnyNode.ELEMENT) setAppInfoDynamicFormsJsonValue(child, json);
+                if (child.getNodeType() == AnyNode.ELEMENT) setAppInfoDynamicFormsJsonValue(child, json, formGridCls);
 
                 for (child = child.getNextSibling(); child != null; child = child.getNextSibling()) {
-                    if (child.getNodeType() == AnyNode.ELEMENT) setAppInfoDynamicFormsJsonValue(child, json);
+                    if (child.getNodeType() == AnyNode.ELEMENT) setAppInfoDynamicFormsJsonValue(child, json, formGridCls);
                 }
             }
         }

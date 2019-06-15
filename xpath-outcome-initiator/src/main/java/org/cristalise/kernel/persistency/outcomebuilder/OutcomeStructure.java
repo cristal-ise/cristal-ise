@@ -60,6 +60,8 @@ import org.w3c.dom.NodeList;
 // contains child outcome elements - creates new ones
 public abstract class OutcomeStructure {
 
+    boolean isRootElement = false;
+
     ElementDecl model      = null;
     Element     myElement  = null;
     String      help       = null;
@@ -395,5 +397,13 @@ public abstract class OutcomeStructure {
 
         if (names.length == 1) return child;
         else                   return child.find(Arrays.copyOfRange(names, 1, names.length-1));
+    }
+
+    public boolean isRootElement() {
+        return isRootElement;
+    }
+
+    public void setRootElementFlag(boolean isRootElement) {
+        this.isRootElement = isRootElement;
     }
 }
