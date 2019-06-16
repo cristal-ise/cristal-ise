@@ -46,7 +46,6 @@ public class Sign extends Authenticate {
     protected String runActivityLogic(AgentPath agent, ItemPath itemPath, int transitionID, String requestData, Object locker)
             throws InvalidDataException, ObjectNotFoundException, ObjectCannotBeUpdated, CannotManageException, PersistencyException
     {
-        
         return authenticate(agent, itemPath, requestData, locker);
     }
 }

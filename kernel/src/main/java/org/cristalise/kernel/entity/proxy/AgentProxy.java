@@ -20,6 +20,8 @@
  */
 package org.cristalise.kernel.entity.proxy;
 
+import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.SIMPLE_ELECTRONIC_SIGNATURE;
+
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Date;
@@ -164,9 +166,6 @@ public class AgentProxy extends ItemProxy {
         if (job.hasScript()) {
             Logger.msg(3, "AgentProxy.execute(job) - executing script");
             try {
-                // #196: Outcome can be invalid at this point, because Script will be executed later
-                //if (job.hasOutcome() && job.isOutcomeSet()) job.getOutcome().validateAndCheck();
-
                 // load script
                 ErrorInfo scriptErrors = callScript(item, job);
                 String errorString = scriptErrors.toString();
@@ -190,18 +189,20 @@ public class AgentProxy extends ItemProxy {
         else if (job.hasQuery() &&  !"Query".equals(job.getActProp(BuiltInVertexProperties.OUTCOME_INIT))) {
             Logger.msg(3, "AgentProxy.execute(job) - executing query (OutcomeInit != Query)");
 
-            // #196: Outcome can be invalid at this point, because Query will be executed later
-            //if (job.hasOutcome() && job.isOutcomeSet()) job.getOutcome().validateAndCheck();
-
             job.setOutcome(item.executeQuery(job.getQuery()));
         }
 
+        // #196: Outcome is validated after script execution, becuase client(e.g. webui) 
+        // can submit an incomplete outcome which is made complete by the script
         if (job.hasOutcome() && job.isOutcomeSet()) job.getOutcome().validateAndCheck();
 
         job.setAgentPath(mAgentPath);
 
-        Logger.msg(3, "AgentProxy.execute(job) - submitting job to item proxy");
+        if ((boolean)job.getActProp(SIMPLE_ELECTRONIC_SIGNATURE)) {
+            executeSimpleElectonicSignature(job);
+        }
 
+        Logger.msg(3, "AgentProxy.execute(job) - submitting job to item proxy");
         String result = item.requestAction(job);
 
         if (Logger.doLog(3)) {
@@ -211,6 +212,13 @@ public class AgentProxy extends ItemProxy {
         }
 
         return result;
+    }
+
+    private void executeSimpleElectonicSignature(Job job)
+            throws AccessRightsException, InvalidDataException, InvalidTransitionException, ObjectNotFoundException,
+            PersistencyException, ObjectAlreadyExistsException, ScriptErrorException, InvalidCollectionModification
+    {
+        // execute(this, Sign.class);
     }
 
     @SuppressWarnings("rawtypes")

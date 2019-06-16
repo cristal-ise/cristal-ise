@@ -40,7 +40,7 @@ class Struct {
 
     String minOccurs = null
     String maxOccurs = null
-    
+
     DynamicForms dynamicForms
 
     private String getMultiplicityVal(String m) {
@@ -60,7 +60,7 @@ class Struct {
      */
     public void setMultiplicity(String m) {
         if(!m) {
-            minOccurs = ''; maxOccurs = '';
+            minOccurs = '1'; maxOccurs = '1';
         }
         else if(m.contains("..")) {
             def vals = m.split(/\.\./)
