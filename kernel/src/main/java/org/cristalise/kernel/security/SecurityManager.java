@@ -21,9 +21,13 @@
 package org.cristalise.kernel.security;
 
 import static org.cristalise.kernel.security.BuiltInAuthc.SYSTEM_AGENT;
+
+import java.io.IOException;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shiro.SecurityUtils;
 import org.apache.shiro.authc.UsernamePasswordToken;
+import org.apache.shiro.config.Ini;
 import org.apache.shiro.config.IniSecurityManagerFactory;
 import org.apache.shiro.subject.PrincipalCollection;
 import org.apache.shiro.subject.SimplePrincipalCollection;
@@ -41,6 +45,7 @@ import org.cristalise.kernel.lookup.ItemPath;
 import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.process.auth.Authenticator;
 import org.cristalise.kernel.property.BuiltInItemProperties;
+import org.cristalise.kernel.utils.FileStringUtility;
 import org.cristalise.kernel.utils.Logger;
 
 import lombok.Getter;
@@ -94,6 +99,22 @@ public class SecurityManager {
     public AgentProxy authenticate(String agentName, String agentPassword, String resource)
             throws InvalidDataException, ObjectNotFoundException
     {
+        return authenticate(agentName, agentPassword, resource, true);
+    }
+
+    /**
+     * 
+     * @param agentName
+     * @param agentPassword
+     * @param resource 
+     * @param isClient ItemProxy should only be used in the client processes
+     * @return AgentProxy of the user or returns null isClient is true
+     * @throws InvalidDataException
+     * @throws ObjectNotFoundException
+     */
+    public AgentProxy authenticate(String agentName, String agentPassword, String resource, boolean isClient)
+            throws InvalidDataException, ObjectNotFoundException
+    {
         if (shiroEnabled) {
             if (!shiroAuthenticate(agentName, agentPassword)) throw new InvalidDataException("Login failed");
         }
@@ -102,8 +123,8 @@ public class SecurityManager {
         }
 
         // It can be invoked before ProxyManager and Lookup is initialised
-        if (Gateway.getProxyManager() != null) return Gateway.getProxyManager().getAgentProxy(agentName);
-        else                                   return null;
+        if (isClient && Gateway.getProxyManager() != null) return Gateway.getProxyManager().getAgentProxy(agentName);
+        else                                               return null;
     }
 
     /**
@@ -135,7 +156,19 @@ public class SecurityManager {
         if (StringUtils.isBlank(shiroIni)) shiroIni = "classpath:shiro.ini";
         else                               shiroIni = "file:" + shiroIni;
 
-        Factory<org.apache.shiro.mgt.SecurityManager> factory = new IniSecurityManagerFactory(shiroIni);
+        Ini sIni = Ini.fromResourcePath(shiroIni);
+
+//        if (! sIni.containsKey("ds.password")) {
+//            try {
+//                String pwd = FileStringUtility.file2String(sIni.getSectionProperty("ds", "passwordFile"));
+//                sIni.setSectionProperty("ds", "password", pwd);
+//                pwd = "";
+//            }
+//            catch (IOException e) {
+//            }
+//        }
+        
+        Factory<org.apache.shiro.mgt.SecurityManager> factory = new IniSecurityManagerFactory(sIni);
 
         org.apache.shiro.mgt.SecurityManager securityManager = factory.getInstance();
         SecurityUtils.setSecurityManager(securityManager);

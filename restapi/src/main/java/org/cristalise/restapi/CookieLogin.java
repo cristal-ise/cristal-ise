@@ -21,17 +21,20 @@
 package org.cristalise.restapi;
 
 import java.util.Base64;
-
-import javax.ws.rs.*;
+import javax.ws.rs.Consumes;
+import javax.ws.rs.GET;
+import javax.ws.rs.POST;
+import javax.ws.rs.Path;
+import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.NewCookie;
 import javax.ws.rs.core.Response;
-
 import org.apache.commons.lang3.StringUtils;
-import org.cristalise.kernel.common.InvalidDataException;
-import org.cristalise.kernel.common.ObjectNotFoundException;
+import org.cristalise.kernel.entity.proxy.AgentProxy;
+import org.cristalise.kernel.lifecycle.instance.predefined.agent.Login;
 import org.cristalise.kernel.lookup.AgentPath;
 import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.security.SecurityManager;
@@ -61,18 +64,23 @@ public class CookieLogin extends RestHandler {
      * @return
      */
     private Response processLogin(String user, String pass, HttpHeaders headers) {
+        
         try {
-            AgentPath agentPath = Gateway.getSecurityManager().authenticate(user, pass, null).getPath();
-            return getCookieResponse(agentPath, ItemUtils.produceJSON(headers.getAcceptableMediaTypes()));
+            AgentProxy agent = Gateway.getProxyManager().getAgentProxy(user);
+
+            Logger.msg(5, "CookieLogin() - agent:'%s'", agent.getName());
+
+            agent.execute(agent, Login.class, user, pass);
+            return getCookieResponse(agent.getPath(), ItemUtils.produceJSON(headers.getAcceptableMediaTypes()));
         }
-        catch (ObjectNotFoundException | InvalidDataException ex) {
+        catch (Exception ex) {
             //NOTE: Enable this log for testing security problems only, but always remove it when merged
             //Logger.error(ex);
             String msg = SecurityManager.decodePublicSecurityMessage(ex);
 
             if (StringUtils.isBlank(msg)) msg = "Bad username/password";
 
-            Logger.msg(5, "CookieLogin.login() - %s", msg);
+            Logger.msg(5, "CookieLogin() - error:%s", msg);
             throw ItemUtils.createWebAppException(msg, Response.Status.UNAUTHORIZED);
         }
     }
@@ -93,7 +101,7 @@ public class CookieLogin extends RestHandler {
             //Issue #143: Read 'password temporary flag' from Lookup, because agentPath is taken from AgentProxy which could be cached
             boolean tempPwd = Gateway.getLookup().getAgentPath(agentPath.getAgentName()).isPasswordTemporary();
 
-            String result = "<Login result='Success' temporaryPassword='" + tempPwd + "' />";
+            String result = "<Login result='Success' temporaryPassword='" + tempPwd + "' uuid='" + agentPath.getUUID() + "' />";
             if (produceJSON) result = XML.toJSONObject(result, true).toString();
 
             // FIXME: Perhaps Angular 4 bug. Return string is a json, so HttpClient will be able to process the response

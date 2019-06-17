@@ -20,20 +20,29 @@
  */
 package org.cristalise.kernel.lifecycle.instance.predefined.agent;
 
-import org.cristalise.kernel.lifecycle.instance.predefined.PredefinedStepContainer;
+import org.cristalise.kernel.common.CannotManageException;
+import org.cristalise.kernel.common.InvalidDataException;
+import org.cristalise.kernel.common.ObjectCannotBeUpdated;
+import org.cristalise.kernel.common.ObjectNotFoundException;
+import org.cristalise.kernel.common.PersistencyException;
+import org.cristalise.kernel.lookup.AgentPath;
+import org.cristalise.kernel.lookup.ItemPath;
 
-public class AgentPredefinedStepContainer extends PredefinedStepContainer {
+/**
+ * {@value #description}
+ */
+public class Login extends Authenticate {
+
+    public static final String description = "Autehnticates the given user and records the Login event in the history";
+
+    public Login() {
+        super();
+    }
 
     @Override
-    public void createChildren() {
-        super.createChildren();
-        predInit(RemoveAgent.class, "Deletes the Agent", new RemoveAgent());
-        predInit(SetAgentPassword.class, "Changes the Agent's password", new SetAgentPassword());
-        predInit(SetAgentRoles.class, "Sets the roles of the Agent", new SetAgentRoles());
-        predInit(Login.class, Login.description, new Login());
-        predInit(LoginTimeout.class, LoginTimeout.description, new LoginTimeout());
-        predInit(Logout.class, Logout.description, new Logout());
-        predInit(ForcedLogout.class, ForcedLogout.description, new ForcedLogout());
-        predInit(Sign.class, Sign.description, new Sign());
+    protected String runActivityLogic(AgentPath agent, ItemPath itemPath, int transitionID, String requestData, Object locker)
+            throws InvalidDataException, ObjectNotFoundException, ObjectCannotBeUpdated, CannotManageException, PersistencyException
+    {
+        return authenticate(agent, itemPath, requestData, locker);
     }
 }

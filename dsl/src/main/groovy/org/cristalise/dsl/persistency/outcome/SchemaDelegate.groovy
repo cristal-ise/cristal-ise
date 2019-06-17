@@ -93,37 +93,46 @@ class SchemaDelegate {
                 if (s.orderOfElements || s.anyField) {
                     if (s.useSequence) {
                         'xs:sequence' {
-                            s.orderOfElements.each { String name ->
-                                if (s.fields.containsKey(name))  buildField(xsd, s.fields[name])
-                                if (s.structs.containsKey(name)) buildStruct(xsd, s.structs[name])
-                            }
-                            if (s.anyField) buildAnyField(xsd, s.anyField)
+                            this.buildStructElements(xsd, s)
                         }
                     }
                     else {
                         'xs:all'(minOccurs: '0') {
-                            s.orderOfElements.each { String name ->
-                                if (s.fields.containsKey(name))  buildField(xsd, s.fields[name])
-                                if (s.structs.containsKey(name)) buildStruct(xsd, s.structs[name])
-                            }
-                            if (s.anyField) buildAnyField(xsd, s.anyField)
+                            this.buildStructElements(xsd, s)
                         }
                     }
                 }
 
                 if (s.attributes) {
-                    s.attributes.each { Attribute a -> buildAtribute(xsd, a) }
+                    s.attributes.each { Attribute a -> this.buildAtribute(xsd, a) }
                 }
             }
         }
     }
+    
+    private void buildStructElements(MarkupBuilder xsd, Struct s) {
+        s.orderOfElements.each { String name ->
+            if (s.fields.containsKey(name))  this.buildField(xsd, s.fields[name])
+            if (s.structs.containsKey(name)) this.buildStruct(xsd, s.structs[name])
+        }
+        if (s.anyField) this.buildAnyField(xsd, s.anyField)
+    }
+
 
     private boolean hasRangeConstraints(Attribute a) {
         return a.minInclusive != null || a.maxInclusive != null || a.minExclusive != null || a.maxExclusive != null
     }
 
+    private boolean hasLengthConstraints(Attribute a) {
+        return a.length != null || a.maxLength != null || a.minLength != null
+    }
+
+    private boolean hasNumericConstraints(Attribute a) {
+        return a.totalDigits != null || a.fractionDigits != null
+    }
+
     private boolean hasRestrictions(Attribute a) {
-        return a.values || a.pattern || hasRangeConstraints(a) || a.totalDigits != null || a.fractionDigits != null
+        return a.values || a.pattern || hasRangeConstraints(a) || hasNumericConstraints(a) || hasLengthConstraints(a)
     }
 
     /**
@@ -157,7 +166,7 @@ class SchemaDelegate {
 
         xsd.'xs:attribute'(name: a.name, type: attributeType(a), 'default': a.defaultVal, 'use': (a?.required ? "required": "")) {
             if(hasRestrictions(a)) {
-                buildRestriction(xsd, a.type, a.values, a.pattern, a, a.totalDigits, a.fractionDigits )
+                buildRestriction(xsd, a)
             }
         }
     }
@@ -227,8 +236,8 @@ class SchemaDelegate {
                     if (f.documentation) 'xs:documentation'(f.documentation)
                     if (f.dynamicForms || f.listOfValues) {
                         'xs:appinfo' {
-                            if (f.dynamicForms) setAppinfoDynamicForms(xsd, f)
-                            if (f.listOfValues) setAppinfoListOfValues(xsd, f)
+                            if (f.dynamicForms) this.setAppinfoDynamicForms(xsd, f)
+                            if (f.listOfValues) this.setAppinfoListOfValues(xsd, f)
                         }
                     }
                 }
@@ -238,7 +247,7 @@ class SchemaDelegate {
                 'xs:complexType' {
                     'xs:simpleContent' {
                         'xs:extension'(base: f.type) {
-                            f.attributes.each { Attribute a -> buildAtribute(xsd, a) }
+                            f.attributes.each { Attribute a -> this.buildAtribute(xsd, a) }
                         }
                     }
                 }
@@ -249,7 +258,11 @@ class SchemaDelegate {
                         'xs:extension'(base: f.type) {
                             'xs:attribute'(name:"unit", type: (!f.unit.values ? 'xs:string' : ''), 'default': f.unit.defaultVal, 'use': (f.unit.defaultVal ? "optional": "required")) {
                                 if(f.unit.values) {
-                                    buildRestriction(xsd, 'xs:string', f.unit.values, null, null, null, null)
+                                    'xs:simpleType' {
+                                        'xs:restriction'(base: 'xs:string') {
+                                            f.unit.values.each { 'xs:enumeration'(value: it) }
+                                        }
+                                    }
                                 }
                             }
                         }
@@ -257,11 +270,10 @@ class SchemaDelegate {
                 }
             }
             else if(hasRestrictions(f)) {
-                buildRestriction(xsd, f.type, f.values, f.pattern, f, f.totalDigits, f.fractionDigits)
+                buildRestriction(xsd, f)
             }
         }
     }
-
 
     private void buildAnyField(MarkupBuilder xsd, AnyField any) {
         Logger.msg 1, "SchemaDelegate.buildAnyField()"
@@ -269,22 +281,26 @@ class SchemaDelegate {
         xsd.'xs:any'(minOccurs: any.minOccurs, maxOccurs: any.maxOccurs, processContents: any.processContents)
     }
 
-    private void buildRestriction(MarkupBuilder xsd, String type, List values, String pattern, Attribute a, Integer totalDigits, Integer fractionDigits) {
-        Logger.msg 1, "SchemaDelegate.buildRestriction() - type:$type"
+    private void buildRestriction(MarkupBuilder xsd, Attribute fieldOrAttr) {
+        Logger.msg 1, "SchemaDelegate.buildRestriction() - type:$fieldOrAttr.type"
 
         xsd.'xs:simpleType' {
-            'xs:restriction'(base: type) {
-                if (values) values.each { 'xs:enumeration'(value: it) }
+            'xs:restriction'(base: fieldOrAttr.type) {
+                if (fieldOrAttr.values) fieldOrAttr.values.each { 'xs:enumeration'(value: it) }
 
-                if (pattern != null) 'xs:pattern'(value: pattern)
+                if (fieldOrAttr.pattern != null) 'xs:pattern'(value: fieldOrAttr.pattern)
 
-                if (a && a.minInclusive != null) 'xs:minInclusive'(value: a.minInclusive)
-                if (a && a.minExclusive != null) 'xs:minExclusive'(value: a.minExclusive)
-                if (a && a.maxInclusive != null) 'xs:maxInclusive'(value: a.maxInclusive)
-                if (a && a.maxExclusive != null) 'xs:maxExclusive'(value: a.maxExclusive)
+                if (fieldOrAttr.minInclusive != null) 'xs:minInclusive'(value: fieldOrAttr.minInclusive)
+                if (fieldOrAttr.minExclusive != null) 'xs:minExclusive'(value: fieldOrAttr.minExclusive)
+                if (fieldOrAttr.maxInclusive != null) 'xs:maxInclusive'(value: fieldOrAttr.maxInclusive)
+                if (fieldOrAttr.maxExclusive != null) 'xs:maxExclusive'(value: fieldOrAttr.maxExclusive)
 
-                if (totalDigits    != null) 'xs:totalDigits'(value: totalDigits)
-                if (fractionDigits != null) 'xs:fractionDigits'(value: fractionDigits)
+                if (fieldOrAttr.totalDigits    != null) 'xs:totalDigits'(value: fieldOrAttr.totalDigits)
+                if (fieldOrAttr.fractionDigits != null) 'xs:fractionDigits'(value: fieldOrAttr.fractionDigits)
+
+                if (fieldOrAttr.length    != null) 'xs:length'(value: fieldOrAttr.length)
+                if (fieldOrAttr.minLength != null) 'xs:minLength'(value: fieldOrAttr.minLength)
+                if (fieldOrAttr.maxLength != null) 'xs:maxLength'(value: fieldOrAttr.maxLength)
             }
         }
     }
