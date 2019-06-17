@@ -1,0 +1,88 @@
+[{
+  "name": "TestData",
+  "cls": {"grid": {"container": "ui-g-12"}},
+  "id": "TestData",
+  "type": "GROUP",
+  "group": [
+    {
+      "validators": {"required": null},
+      "cls": {
+        "grid": {
+          "container": "ui-g",
+          "control": "ui-g-8",
+          "label": "ui-g-4"
+        },
+        "element": {"label": "ui-widget"}
+      },
+      "id": "efficiency",
+      "label": "efficiency *",
+      "placeholder": "efficiency",
+      "type": "INPUT",
+      "value": "0.0",
+      "required": true
+    },
+    {
+      "errorMessages": {"pattern": "Use max 2 decimal places"},
+      "validators": {
+        "pattern": "^-?\\d+\\.?\\d{0,2}$",
+        "required": null
+      },
+      "cls": {
+        "grid": {
+          "container": "ui-g",
+          "control": "ui-g-8",
+          "label": "ui-g-4"
+        },
+        "element": {"label": "ui-widget"}
+      },
+      "id": "efficiencyFraction",
+      "label": "efficiency Fraction *",
+      "placeholder": "efficiency Fraction",
+      "type": "INPUT",
+      "value": "0.0",
+      "required": true
+    },
+    {
+      "errorMessages": {"pattern": "Use max 5 digits"},
+      "validators": {
+        "pattern": "^-?\\d{0,5}$",
+        "required": null
+      },
+      "cls": {
+        "grid": {
+          "container": "ui-g",
+          "control": "ui-g-8",
+          "label": "ui-g-4"
+        },
+        "element": {"label": "ui-widget"}
+      },
+      "id": "efficiencyTotal",
+      "label": "efficiency Total *",
+      "placeholder": "efficiency Total",
+      "type": "INPUT",
+      "value": "0.0",
+      "required": true
+    },
+    {
+      "errorMessages": {"pattern": "Use max 5 digits with max 2 decimal places"},
+      "validators": {
+        "pattern": "^-?\\d{0,5}\\.?\\d{0,2}$",
+        "required": null
+      },
+      "cls": {
+        "grid": {
+          "container": "ui-g",
+          "control": "ui-g-8",
+          "label": "ui-g-4"
+        },
+        "element": {"label": "ui-widget"}
+      },
+      "id": "efficiencyBoth",
+      "label": "efficiency Both *",
+      "placeholder": "efficiency Both",
+      "type": "INPUT",
+      "value": "0.0",
+      "required": true
+    }
+  ]
+}]

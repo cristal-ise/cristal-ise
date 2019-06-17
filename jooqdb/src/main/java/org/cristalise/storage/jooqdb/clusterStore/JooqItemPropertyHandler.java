@@ -180,10 +180,15 @@ public class JooqItemPropertyHandler extends JooqHandler {
         context.createTableIfNotExists(ITEM_PROPERTY_TABLE)
         .column(UUID,    UUID_TYPE.nullable(false))
         .column(NAME,    NAME_TYPE.nullable(false))
-        .column(VALUE,   STRING_TYPE.nullable(true))
+        .column(VALUE,   TEXT_TYPE.nullable(true))
         .column(MUTABLE, SQLDataType.BOOLEAN.nullable(false))
         .constraints(
                 constraint("PK_"+ITEM_PROPERTY_TABLE).primaryKey(UUID, NAME))
         .execute();
+    }
+
+    @Override
+    public void dropTables(DSLContext context) throws PersistencyException {
+        context.dropTableIfExists(ITEM_PROPERTY_TABLE).execute();
     }
 }

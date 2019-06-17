@@ -39,6 +39,7 @@ class SchemaDelegate {
         Logger.msg 1, "Schema(start) ---------------------------------------"
 
         def objBuilder = new ObjectGraphBuilder()
+        objBuilder.setChildPropertySetter(new DSLPropertySetter())
         objBuilder.classLoader = this.class.classLoader
         objBuilder.classNameResolver = 'org.cristalise.dsl.persistency.outcome'
 
@@ -51,7 +52,7 @@ class SchemaDelegate {
 
     public String buildXSD(Struct s) {
         if(!s) throw new InvalidDataException("Schema cannot be built from empty declaration")
-        
+
         def writer = new StringWriter()
         def xsd = new MarkupBuilder(writer)
 
@@ -60,88 +61,155 @@ class SchemaDelegate {
 
         xsd.mkp.xmlDeclaration(version: "1.0", encoding: "utf-8")
 
-        xsd.'xs:schema'('xmlns:xs': 'http://www.w3.org/2001/XMLSchema') {
-            buildStruct(xsd,s)
+        xsd.'xs:schema'('xmlns:xs': 'http://www.w3.org/2001/XMLSchema') { 
+            buildStruct(xsd,s) 
         }
 
         return writer.toString()
     }
 
-    private void buildStruct(xsd, Struct s) {
+    private void buildStruct(MarkupBuilder xsd, Struct s) {
         Logger.msg 1, "SchemaDelegate.buildStruct() - Struct: $s.name"
-
         xsd.'xs:element'(name: s.name, minOccurs: s.minOccurs, maxOccurs: s.maxOccurs) {
 
-            if(s.documentation) 'xs:annotation' { 'xs:documentation'(s.documentation) }
+            if(s.documentation || s.dynamicForms) {
+                'xs:annotation' { 
+                    if (s.documentation) {
+                        'xs:documentation'(s.documentation)
+                    }
+                    if (s.dynamicForms) {
+                        'xs:appinfo' {
+                            dynamicForms {
+                                if (s.dynamicForms.width)     width(     s.dynamicForms.width)
+                                if (s.dynamicForms.label)     label(     s.dynamicForms.label)
+                                if (s.dynamicForms.container) container( s.dynamicForms.container)
+                            }
+                        }
+                    }
+                }
+            }
 
             'xs:complexType' {
-                if(s.fields || s.structs || s.anyField) {
-                    if(s.useSequence) {
+                if (s.orderOfElements || s.anyField) {
+                    if (s.useSequence) {
                         'xs:sequence' {
-                            if(s.fields)  s.fields.each  { Field f   -> buildField(xsd, f) }
-                            if(s.structs) s.structs.each { Struct s1 -> buildStruct(xsd, s1) }
-                            if(s.anyField) buildAnyField(xsd, s.anyField)
+                            this.buildStructElements(xsd, s)
                         }
                     }
                     else {
                         'xs:all'(minOccurs: '0') {
-                            if(s.fields)  s.fields.each  { Field f   -> buildField(xsd, f) }
-                            if(s.structs) s.structs.each { Struct s1 -> buildStruct(xsd, s1) }
-                            if(s.anyField) buildAnyField(xsd, s.anyField)
+                            this.buildStructElements(xsd, s)
                         }
                     }
                 }
-                if(s.attributes) {
-                    s.attributes.each { Attribute a -> buildAtribute(xsd, a) }
+
+                if (s.attributes) {
+                    s.attributes.each { Attribute a -> this.buildAtribute(xsd, a) }
                 }
             }
         }
     }
     
+    private void buildStructElements(MarkupBuilder xsd, Struct s) {
+        s.orderOfElements.each { String name ->
+            if (s.fields.containsKey(name))  this.buildField(xsd, s.fields[name])
+            if (s.structs.containsKey(name)) this.buildStruct(xsd, s.structs[name])
+        }
+        if (s.anyField) this.buildAnyField(xsd, s.anyField)
+    }
+
+
     private boolean hasRangeConstraints(Attribute a) {
         return a.minInclusive != null || a.maxInclusive != null || a.minExclusive != null || a.maxExclusive != null
     }
 
-    private String attributeType(Attribute a) {
-        if (!a.values && !a.pattern && !hasRangeConstraints(a)) 
-            return a.type 
-        else 
-            return ''
+    private boolean hasLengthConstraints(Attribute a) {
+        return a.length != null || a.maxLength != null || a.minLength != null
     }
- 
-    private void buildAtribute(xsd, Attribute a) {
+
+    private boolean hasNumericConstraints(Attribute a) {
+        return a.totalDigits != null || a.fractionDigits != null
+    }
+
+    private boolean hasRestrictions(Attribute a) {
+        return a.values || a.pattern || hasRangeConstraints(a) || hasNumericConstraints(a) || hasLengthConstraints(a)
+    }
+
+    /**
+     * Checks whether the field has a restriction/attributes/unit or not, because the type of the element 
+     * is either specified in the 'type' attribute or in the restriction as 'base'
+     * 
+     * @param f the actual field to check
+     * @return the type if the field has no restriction, otherwise an empty string
+     */
+    private String fieldType(Field f) {
+        if (hasRestrictions(f) || f.attributes || f.unit) return ''
+        else                                              return f.type
+    }
+
+    /**
+     * Checks whether the attribute has a restriction or not, because the type of the attribute
+     * is either specified in the 'type' attribute or in the restriction as 'base'
+     * 
+     * @param a the attribute to check
+     * @return the type if the attribute has no restriction, otherwise an empty string
+     */
+    private String attributeType(Attribute a) {
+        if (hasRestrictions(a)) return ''
+        else                    return a.type
+    }
+
+    private void buildAtribute(MarkupBuilder xsd, Attribute a) {
         Logger.msg 1, "SchemaDelegate.buildAtribute() - attribute: $a.name"
 
         if (a.documentation) throw new InvalidDataException('Atttrbute cannotnot define documentation')
 
         xsd.'xs:attribute'(name: a.name, type: attributeType(a), 'default': a.defaultVal, 'use': (a?.required ? "required": "")) {
-            if(a.values) {
-                buildRestriction(xsd, a.type, a.values)
-            }
-            else if(a.pattern) {
-                buildRestriction(xsd, a.type, a.pattern)
-            }
-            else if(hasRangeConstraints(a)) {
-                buildRangeRestriction(xsd, a.type, a)
+            if(hasRestrictions(a)) {
+                buildRestriction(xsd, a)
             }
         }
     }
 
     private void setAppinfoDynamicForms(xsd, Field f) {
         xsd.dynamicForms {
-            if (f.dynamicForms.hidden   != null) hidden(   f.dynamicForms.hidden)
-            if (f.dynamicForms.required != null) required( f.dynamicForms.required)
-            if (f.dynamicForms.disabled != null) disabled( f.dynamicForms.disabled)
-            if (f.dynamicForms.multiple != null) multiple( f.dynamicForms.multiple)
-            if (f.dynamicForms.label)            label(    f.dynamicForms.label)
-            if (f.dynamicForms.type)             type(     f.dynamicForms.type)
-            if (f.dynamicForms.inputType)        inputType(f.dynamicForms.inputType)
-            if (f.dynamicForms.min != null)      min(      f.dynamicForms.min)
-            if (f.dynamicForms.max != null)      max(      f.dynamicForms.max)
-            if (f.dynamicForms.value != null)    value(    f.dynamicForms.value)
+            if (f.dynamicForms.hidden   != null)             hidden(      f.dynamicForms.hidden)
+            if (f.dynamicForms.required != null)             required(    f.dynamicForms.required)
+            if (f.dynamicForms.disabled != null)             disabled(    f.dynamicForms.disabled)
+            if (f.dynamicForms.multiple != null)             multiple(    f.dynamicForms.multiple)
+            if (f.dynamicForms.label)                        label(       f.dynamicForms.label)
+            if (f.dynamicForms.placeholder)                  placeholder( f.dynamicForms.placeholder)
+            if (f.dynamicForms.type)                         type(        f.dynamicForms.type)
+            if (f.dynamicForms.inputType)                    inputType(   f.dynamicForms.inputType)
+            if (f.dynamicForms.min != null)                  min(         f.dynamicForms.min)
+            if (f.dynamicForms.max != null)                  max(         f.dynamicForms.max)
+            if (f.dynamicForms.value != null)                value(       f.dynamicForms.value)
+            if (f.dynamicForms.mask != null)                 mask(        f.dynamicForms.mask)
+            if (f.dynamicForms.pattern != null)              pattern(     f.dynamicForms.pattern)
+            if (f.dynamicForms.errmsg != null)               errmsg(      f.dynamicForms.errmsg)
+            if (f.dynamicForms.showSeconds != null)          showSeconds( f.dynamicForms.showSeconds)
+            if (f.dynamicForms.container != null)            container(   f.dynamicForms.container)
+            if (f.dynamicForms.control != null)              control(     f.dynamicForms.control)
+            if (f.dynamicForms.labelGrid != null)            labelGrid(   f.dynamicForms.labelGrid)
+            if (f.dynamicForms.hideOnDateTimeSelect != null) hideOnDateTimeSelect( f.dynamicForms.hideOnDateTimeSelect)
+            if (f.dynamicForms.precision)                    precision(   f.dynamicForms.precision)
+            if (f.dynamicForms.scale)                        scale(       f.dynamicForms.scale)
 
-            if (f.dynamicForms.updateScriptRef != null) additional{ updateScriptRef(f.dynamicForms.updateScriptRef) }
-            if (f.dynamicForms.updateQuerytRef != null) additional{ updateQuerytRef(f.dynamicForms.updateQuerytRef) }
+            if (f.hasAdditional()) {
+                additional {
+                    if (f.dynamicForms.updateScriptRef != null) updateScriptRef(f.dynamicForms.updateScriptRef)
+                    if (f.dynamicForms.updateQuerytRef != null) updateQuerytRef(f.dynamicForms.updateQuerytRef)
+                    if (f.dynamicForms.warning != null) {
+                        warning {
+                            if (f.dynamicForms.warning.pattern != null)    pattern(f.dynamicForms.warning.pattern)
+                            if (f.dynamicForms.warning.message != null)    message(f.dynamicForms.warning.message)
+                            if (f.dynamicForms.warning.expression != null) expression {
+                                mkp.yieldUnescaped("<![CDATA[ ${f.dynamicForms.warning.expression}]]>")
+                            }
+                        }
+                    }
+                }
+            }
         }
     }
 
@@ -155,103 +223,84 @@ class SchemaDelegate {
         }
     }
 
-    private String fieldType(Field f) {
-        if (!f.values && !f.unit && !f.pattern && !hasRangeConstraints(f) && !f.attributes)
-            return f.type
-        else
-            return ''
-    }
-
-    private void buildField(xsd, Field f) {
+    private void buildField(MarkupBuilder xsd, Field f) {
         Logger.msg 1, "SchemaDelegate.buildField() - Field: $f.name"
+
+        //TODO: implement support for this combination - see issue 129
+        if (((f.attributes || f.unit) && hasRestrictions(f)) || (f.attributes && f.unit))
+            throw new InvalidDataException('Field cannot have attributes, unit and restrictions at the same time')
 
         xsd.'xs:element'(name: f.name, type: fieldType(f), 'default': f.defaultVal, minOccurs: f.minOccurs, maxOccurs: f.maxOccurs) {
             if(f.documentation || f.dynamicForms || f.listOfValues) {
                 'xs:annotation' {
-                    if (f.documentation) 'xs:documentation'(f.documentation) 
+                    if (f.documentation) 'xs:documentation'(f.documentation)
                     if (f.dynamicForms || f.listOfValues) {
                         'xs:appinfo' {
-                            if (f.dynamicForms) setAppinfoDynamicForms(xsd, f)
-                            if (f.listOfValues) setAppinfoListOfValues(xsd, f)
-                        }
-                    }
-                }
-            }
-            if(f.attributes) {
-                'xs:complexType' {
-                    'xs:simpleContent' {
-                        'xs:extension'(base: f.type) {
-                            f.attributes.each { Attribute a -> buildAtribute(xsd, a) }
+                            if (f.dynamicForms) this.setAppinfoDynamicForms(xsd, f)
+                            if (f.listOfValues) this.setAppinfoListOfValues(xsd, f)
                         }
                     }
                 }
             }
 
-            if(f.unit) {
+            if(f.attributes) {
+                'xs:complexType' {
+                    'xs:simpleContent' {
+                        'xs:extension'(base: f.type) {
+                            f.attributes.each { Attribute a -> this.buildAtribute(xsd, a) }
+                        }
+                    }
+                }
+            }
+            else if(f.unit) {
                 'xs:complexType' {
                     'xs:simpleContent' {
                         'xs:extension'(base: f.type) {
                             'xs:attribute'(name:"unit", type: (!f.unit.values ? 'xs:string' : ''), 'default': f.unit.defaultVal, 'use': (f.unit.defaultVal ? "optional": "required")) {
                                 if(f.unit.values) {
-                                    buildRestriction(xsd, 'xs:string', f.unit.values)
+                                    'xs:simpleType' {
+                                        'xs:restriction'(base: 'xs:string') {
+                                            f.unit.values.each { 'xs:enumeration'(value: it) }
+                                        }
+                                    }
                                 }
                             }
                         }
                     }
                 }
             }
-            else if(f.values) {
-                buildRestriction(xsd, f.type, f.values)
-            }
-            else if(f.pattern) {
-                buildRestriction(xsd, f.type, f.pattern)
-            }
-            else if(hasRangeConstraints(f)) {
-                buildRangeRestriction(xsd, f.type, f)
+            else if(hasRestrictions(f)) {
+                buildRestriction(xsd, f)
             }
         }
     }
 
-
-    private void buildAnyField(xsd, AnyField any) {
+    private void buildAnyField(MarkupBuilder xsd, AnyField any) {
         Logger.msg 1, "SchemaDelegate.buildAnyField()"
-        
+
         xsd.'xs:any'(minOccurs: any.minOccurs, maxOccurs: any.maxOccurs, processContents: any.processContents)
     }
 
-
-    private void buildRestriction(xsd, String type, List values) {
-        Logger.msg 1, "SchemaDelegate.buildRestriction() - type:$type, values: $values"
-
-        xsd.'xs:simpleType' {
-            'xs:restriction'(base: type) {
-                values.each {
-                    'xs:enumeration'(value: it)
-                }
-            }
-        }
-    }
-
-
-    private void buildRestriction(xsd, String type, String pattern) {
-        Logger.msg 1, "SchemaDelegate.buildRestriction() - type:$type, pattern: $pattern"
+    private void buildRestriction(MarkupBuilder xsd, Attribute fieldOrAttr) {
+        Logger.msg 1, "SchemaDelegate.buildRestriction() - type:$fieldOrAttr.type"
 
         xsd.'xs:simpleType' {
-            'xs:restriction'(base: type) {
-                'xs:pattern'(value: pattern)
-            }
-        }
-    }
+            'xs:restriction'(base: fieldOrAttr.type) {
+                if (fieldOrAttr.values) fieldOrAttr.values.each { 'xs:enumeration'(value: it) }
 
-    private void buildRangeRestriction(xsd, String type, Attribute a) {
-        Logger.msg 1, "SchemaDelegate.buildRangeRestriction() - type:$type"
-        
-        xsd.'xs:simpleType' {
-            'xs:restriction'(base: type) {
-                if (a.minInclusive != null) 'xs:minInclusive'(value: a.minInclusive)
-                if (a.minExclusive != null) 'xs:minExclusive'(value: a.minExclusive)
-                if (a.maxInclusive != null) 'xs:maxInclusive'(value: a.maxInclusive)
-                if (a.maxExclusive != null) 'xs:maxExclusive'(value: a.maxExclusive)
+                if (fieldOrAttr.pattern != null) 'xs:pattern'(value: fieldOrAttr.pattern)
+
+                if (fieldOrAttr.minInclusive != null) 'xs:minInclusive'(value: fieldOrAttr.minInclusive)
+                if (fieldOrAttr.minExclusive != null) 'xs:minExclusive'(value: fieldOrAttr.minExclusive)
+                if (fieldOrAttr.maxInclusive != null) 'xs:maxInclusive'(value: fieldOrAttr.maxInclusive)
+                if (fieldOrAttr.maxExclusive != null) 'xs:maxExclusive'(value: fieldOrAttr.maxExclusive)
+
+                if (fieldOrAttr.totalDigits    != null) 'xs:totalDigits'(value: fieldOrAttr.totalDigits)
+                if (fieldOrAttr.fractionDigits != null) 'xs:fractionDigits'(value: fieldOrAttr.fractionDigits)
+
+                if (fieldOrAttr.length    != null) 'xs:length'(value: fieldOrAttr.length)
+                if (fieldOrAttr.minLength != null) 'xs:minLength'(value: fieldOrAttr.minLength)
+                if (fieldOrAttr.maxLength != null) 'xs:maxLength'(value: fieldOrAttr.maxLength)
             }
         }
     }

@@ -102,11 +102,10 @@ public class ScriptAccess extends ResourceAccess {
         checkAuthCookie(authCookie);
         
         try (DSLContext context = JooqHandler.connect()) {
-            return scriptUtils.executeScript(headers, null, scriptName, scriptVersion, inputJson,
-            		ImmutableMap.of("dsl", context));
+            return scriptUtils.executeScript(headers, null, scriptName, scriptVersion, inputJson, ImmutableMap.of("dsl", context));
         } catch (DataAccessException | PersistencyException e) {
             throw ItemUtils.createWebAppException("Error connecting to database, please contact support", e, Response.Status.NOT_FOUND);
-		}
+        }
     }
 
 }

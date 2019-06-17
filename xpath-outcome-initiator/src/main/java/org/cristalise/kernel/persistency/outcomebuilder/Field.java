@@ -101,25 +101,25 @@ public class Field extends OutcomeStructure {
         }
     }
 
-    private void createOptinalElement(Element parent) throws StructuralException {
-        Logger.msg(5, "Field.createOptinalElement() - name: "+model.getName());
-
-        if (myFieldInstance == null) myFieldInstance = StringField.getField(model);
-
-        if (myElement == null) {
-            myElement = parent.getOwnerDocument().createElement(model.getName());
-            parent.appendChild(myElement);
-        }
-
-        if (myFieldInstance.getData() == null) {
-            textNode = parent.getOwnerDocument().createTextNode(getDefaultValue());
-            myElement.appendChild(textNode);
-            myFieldInstance.setData(textNode);
-        }
-    }
+//    private void createOptinalElement(Element parent) throws StructuralException {
+//        Logger.msg(5, "Field.createOptinalElement() - name: "+model.getName());
+//
+//        if (myFieldInstance == null) myFieldInstance = StringField.getField(model);
+//
+//        if (myElement == null) {
+//            myElement = parent.getOwnerDocument().createElement(model.getName());
+//            parent.appendChild(myElement);
+//        }
+//
+//        if (myFieldInstance.getData() == null) {
+//            textNode = parent.getOwnerDocument().createTextNode(getDefaultValue());
+//            myElement.appendChild(textNode);
+//            myFieldInstance.setData(textNode);
+//        }
+//    }
 
     @Override
-    public void addJsonInstance(Element parent, String name, Object json) throws OutcomeBuilderException {
+    public void addJsonInstance(OutcomeStructure parentStruct, Element parentElement, String name, Object json) throws OutcomeBuilderException {
         Logger.msg(5, "Field.addJsonInstance() - name:'" + name + "'");
 
         if (json instanceof JSONObject) {
@@ -127,12 +127,12 @@ public class Field extends OutcomeStructure {
 
             for (String key: jsonObj.keySet()) {
                 if (myAttributes.hasAttributeDecl(key)) {
-                    myAttributes.addJsonInstance(myElement, key, jsonObj.get(key));
+                    myAttributes.addJsonInstance(this, myElement, key, jsonObj.get(key));
                 }
                 else {
                     //'content' is the field name used by the org.json.XML to handle value of Element with attributes
                     if (key.equals("content")) {
-                        setJsonValue(parent, jsonObj.get(key));
+                        setJsonValue(parentStruct, parentElement, name, jsonObj.get(key));
                     }
                     else {
                         // this should never happen
@@ -142,20 +142,25 @@ public class Field extends OutcomeStructure {
             }
         }
         else if (json instanceof JSONArray) {
-            throw new UnsupportedOperationException("Field name '" + name + "' contains an ARRAY");
+            Logger.warning("Field.addJsonInstance() - Field name '" + name + "' contains an ARRAY. Parsing ARRAY to String");
+            setJsonValue(parentStruct, parentElement, name, json.toString());
         }
         else {
             //json variable is not JSOObject nor JSONArray, so handle it as a value
-            setJsonValue(parent, json);
+            setJsonValue(parentStruct, parentElement, name, json);
         }
     }
 
-    private void setJsonValue (Element parent, Object val) throws StructuralException, InvalidOutcomeException {
-        if (isOptional() && (val == null || StringUtils.isBlank(val.toString()) || "null".equals(val) || JSONObject.NULL.equals(val))) {
+    public boolean isNullJsonValue(Object val) {
+        return val == null || StringUtils.isBlank(val.toString()) || "null".equals(val.toString()) || JSONObject.NULL.equals(val);
+    }
+
+    private void setJsonValue (OutcomeStructure parentStruct, Element parentElement, String name, Object val) throws OutcomeBuilderException {
+        if (isOptional() && isNullJsonValue(val)) {
             Logger.msg(8, "Field.addJsonInstance() - skipping empty optional element:"+getName());
         }
         else {
-            createOptinalElement(parent);
+            if (isOptional()) parentStruct.createChildElement(parentElement.getOwnerDocument(), name);
             myFieldInstance.setValue(val);
         }
     }

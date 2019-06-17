@@ -183,7 +183,7 @@ public class JooqJobHandler extends JooqHandler {
         .column(DELEGATE_UUID,      UUID_TYPE     .nullable(true))
         .column(ITEM_UUID,          UUID_TYPE     .nullable(false))
         .column(STEP_NAME,          NAME_TYPE     .nullable(false))
-        .column(STEP_PATH,          NAME_TYPE     .nullable(false))
+        .column(STEP_PATH,          STRING_TYPE   .nullable(false))
         .column(STEP_TYPE,          NAME_TYPE     .nullable(false))
         .column(TRANSITION,         xmlType       .nullable(false))
         .column(ORIGIN_STATE_NAME,  NAME_TYPE     .nullable(false))
@@ -193,5 +193,10 @@ public class JooqJobHandler extends JooqHandler {
         .column(CREATION_TS,        TIMESTAMP_TYPE.nullable(false))
         .constraints(constraint("PK_"+JOB_TABLE).primaryKey(UUID, ID))
         .execute();
+    }
+
+    @Override
+    public void dropTables(DSLContext context) throws PersistencyException {
+        context.dropTableIfExists(JOB_TABLE).execute();
     }
 }

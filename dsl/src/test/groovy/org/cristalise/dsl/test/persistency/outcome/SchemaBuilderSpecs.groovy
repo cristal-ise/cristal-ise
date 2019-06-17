@@ -608,6 +608,28 @@ class SchemaBuilderSpecs extends Specification implements CristalTestSetup {
     }
 
 
+    def 'Attribute value of decimal type can be restricted by totalDigits and fractionDigits'() {
+        expect:
+        SchemaTestBuilder.build('Test', 'TestData', 0) {
+            struct(name: 'TestData') {
+                attribute(name: 'efficiency', type: 'decimal', totalDigits: 3, fractionDigits: 2)
+            }
+        }.compareXML("""<xs:schema xmlns:xs='http://www.w3.org/2001/XMLSchema'>
+                          <xs:element name='TestData'>
+                            <xs:complexType>
+                              <xs:attribute name="efficiency">
+                                <xs:simpleType>
+                                  <xs:restriction base="xs:decimal">
+                                    <xs:totalDigits value="3"/>
+                                    <xs:fractionDigits value="2"/>
+                                  </xs:restriction>
+                                </xs:simpleType>
+                              </xs:attribute>
+                            </xs:complexType>
+                          </xs:element>
+                        </xs:schema>""")
+    }
+
     def 'Field value can be restricted by reqex pattern'() {
         expect:
         SchemaTestBuilder.build('Test', 'TestData', 0) {
@@ -622,6 +644,31 @@ class SchemaBuilderSpecs extends Specification implements CristalTestSetup {
                                   <xs:simpleType>
                                     <xs:restriction base="xs:string">
                                       <xs:pattern value="male|female"/>
+                                    </xs:restriction>
+                                  </xs:simpleType>
+                                </xs:element>
+                              </xs:all>
+                            </xs:complexType>
+                          </xs:element>
+                        </xs:schema>""")
+    }
+
+
+    def 'Field value of decimal type can be restricted by totalDigits and fractionDigits'() {
+        expect:
+        SchemaTestBuilder.build('Test', 'TestData', 0) {
+            struct(name: 'TestData') {
+                field(name: 'efficiency', type: 'decimal', totalDigits: 3, fractionDigits: 2)
+            }
+        }.compareXML("""<xs:schema xmlns:xs='http://www.w3.org/2001/XMLSchema'>
+                          <xs:element name='TestData'>
+                            <xs:complexType>
+                              <xs:all minOccurs='0'>
+                                <xs:element minOccurs="1" maxOccurs="1" name="efficiency">
+                                  <xs:simpleType>
+                                    <xs:restriction base="xs:decimal">
+                                      <xs:totalDigits value="3"/>
+                                      <xs:fractionDigits value="2"/>
                                     </xs:restriction>
                                   </xs:simpleType>
                                 </xs:element>
@@ -714,7 +761,7 @@ class SchemaBuilderSpecs extends Specification implements CristalTestSetup {
 
 
     def 'Complex example using PatientDetails from Basic Tutorial'() {
-        expect: "SOME TEXT"
+        expect:
         SchemaTestBuilder.build('test', 'PatientDetails', 0) {
             struct(name: 'PatientDetails', documentation: 'This is the Schema for Basic Tutorial') {
                 attribute(name: 'InsuranceNumber', type: 'string', default: '123456789ABC')
@@ -863,7 +910,7 @@ class SchemaBuilderSpecs extends Specification implements CristalTestSetup {
 
     
     def 'Field can have attribute'() {
-        expect: "SOME TEXT"
+        expect:
         SchemaTestBuilder.build('test', 'PatientDetails', 0) {
             struct(name: 'PatientDetails', documentation: 'This is the Schema for Basic Tutorial') {
                 attribute(name: 'InsuranceNumber', type: 'string', default: '123456789ABC')
@@ -913,4 +960,45 @@ class SchemaBuilderSpecs extends Specification implements CristalTestSetup {
              </xs:schema>""")
     }
 
+    def 'Structure definition keeps the order of fields and structs'() {
+        expect:
+        SchemaTestBuilder.build('Test', 'TestData', 0) {
+            struct(name: 'TestData') { 
+                field(name:'stringField1')
+                struct(name: 'TestData1') { 
+                    field(name:'stringField1')
+                }
+                field(name:'stringField2')
+                struct(name: 'TestData2') { 
+                    field(name:'stringField1')
+                }
+                field(name:'stringField3')
+            }
+        }.compareXML("""<?xml version='1.0' encoding='utf-8'?>
+                        <xs:schema xmlns:xs='http://www.w3.org/2001/XMLSchema'>
+                          <xs:element name='TestData'>
+                            <xs:complexType>
+                              <xs:all minOccurs='0'>
+                                <xs:element name='stringField1' type='xs:string' minOccurs='1' maxOccurs='1' />
+                                <xs:element name='TestData1'>
+                                  <xs:complexType>
+                                    <xs:all minOccurs='0'>
+                                      <xs:element name='stringField1' type='xs:string' minOccurs='1' maxOccurs='1' />
+                                    </xs:all>
+                                  </xs:complexType>
+                                </xs:element>
+                                <xs:element name='stringField2' type='xs:string' minOccurs='1' maxOccurs='1' />
+                                <xs:element name='TestData2'>
+                                  <xs:complexType>
+                                    <xs:all minOccurs='0'>
+                                      <xs:element name='stringField1' type='xs:string' minOccurs='1' maxOccurs='1' />
+                                    </xs:all>
+                                  </xs:complexType>
+                                </xs:element>
+                                <xs:element name='stringField3' type='xs:string' minOccurs='1' maxOccurs='1' />
+                              </xs:all>
+                            </xs:complexType>
+                          </xs:element>
+                        </xs:schema>""")
+    }
 }

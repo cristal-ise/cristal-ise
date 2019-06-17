@@ -70,6 +70,10 @@ public class JooqRolePathHandler {
         .execute();
     }
 
+    public void dropTables(DSLContext context) throws PersistencyException {
+        context.dropTableIfExists(ROLE_PATH_TABLE).execute();
+    }
+
     public static RolePath getRolePath(Record record, List<String> permissions) {
         //Reading JOBLIST boolean is done this way because of a bug in jooq supporting MySQL: check issue #23
         if (record != null) return new RolePath(record.get(PATH), record.get(JOBLIST.getName(), Boolean.class), permissions);

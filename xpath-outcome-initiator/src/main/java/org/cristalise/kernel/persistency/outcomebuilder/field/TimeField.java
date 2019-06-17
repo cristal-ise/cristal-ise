@@ -55,6 +55,7 @@ public class TimeField extends StringField {
         JSONObject time = getCommonFieldsNgDynamicForms();
 
         time.put("format", "hh:MM");
+        
         JSONObject additional = getAdditionalConfigNgDynamicForms(time);
 
         additional.put("icon", "fa-clock-o");

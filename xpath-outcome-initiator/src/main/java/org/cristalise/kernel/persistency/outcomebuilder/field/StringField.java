@@ -25,27 +25,26 @@ import java.math.BigInteger;
 import java.time.LocalDate;
 import java.time.OffsetDateTime;
 import java.time.OffsetTime;
-import java.util.Enumeration;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
-import java.util.Scanner;
 
 import org.apache.commons.lang3.StringUtils;
 import org.cristalise.kernel.persistency.outcomebuilder.InvalidOutcomeException;
 import org.cristalise.kernel.persistency.outcomebuilder.OutcomeStructure;
 import org.cristalise.kernel.persistency.outcomebuilder.StructuralException;
+import org.cristalise.kernel.persistency.outcomebuilder.StructureWithAppInfo;
 import org.exolab.castor.types.AnyNode;
 import org.exolab.castor.xml.schema.Annotated;
-import org.exolab.castor.xml.schema.Annotation;
-import org.exolab.castor.xml.schema.AppInfo;
 import org.exolab.castor.xml.schema.AttributeDecl;
 import org.exolab.castor.xml.schema.ElementDecl;
 import org.exolab.castor.xml.schema.Facet;
 import org.exolab.castor.xml.schema.SimpleType;
+import org.exolab.castor.xml.schema.SimpleTypesFactory;
 import org.exolab.castor.xml.schema.Structure;
 import org.exolab.castor.xml.schema.XMLType;
 import org.exolab.castor.xml.schema.simpletypes.ListType;
 import org.json.JSONObject;
-import org.json.XML;
 import org.w3c.dom.Attr;
 import org.w3c.dom.Node;
 import org.w3c.dom.Text;
@@ -53,7 +52,10 @@ import org.w3c.dom.Text;
 /**
  * Superclass for the entry field for Field and AttributeList.
  */
-public class StringField {
+public class StringField extends StructureWithAppInfo {
+
+    private static final String[] strFields = {"mask", "placeholder"};
+    private static final String[] excFields = {"pattern", "errmsg","container", "control", "labelGrid"};
 
     Node       data;
     Annotated  model;
@@ -64,7 +66,27 @@ public class StringField {
     String     text;
     String     defaultValue;
     
-    public StringField() {}
+    String     container;
+    String     control;
+    String     labelGrid;
+    
+    /**
+     * Javascript regexp pattern to validate field value in DynamicForms. It is either provided in the AppInfo.pattern field 
+     * or it is computed from data available in XSD restrictions or in various AppInfo fields (check subclasses)
+     */
+    String pattern;
+    /**
+     * Error message to show to the user for validation errors
+     */
+    String errmsg;
+
+    public StringField() {
+        this(Arrays.asList(strFields), Arrays.asList(excFields));
+    }
+
+    public StringField(List<String> strFields, List<String> excFields) {
+        super(strFields, excFields);
+    }
 
     /**
      * 
@@ -85,34 +107,6 @@ public class StringField {
 
         return null;
     }
-    
-    /**
-     * Finds the named element in the AppInfo node
-     * 
-     * @param model the schema model to search
-     * @param name the name of the element in the AppInfo node
-     * @return the AnyNode with the given name otherwise null
-     */
-    private static AnyNode getAppInfoNode(Annotated  model, String name) {
-        Enumeration<Annotation> e = model.getAnnotations();
-        while (e.hasMoreElements()) {
-            Annotation note = e.nextElement();
-
-            for (Enumeration<AppInfo> f = note.getAppInfo(); f.hasMoreElements();) {
-                AppInfo thisAppInfo = f.nextElement();
-
-                for (Enumeration<?> g = thisAppInfo.getObjects(); g.hasMoreElements();) {
-                    AnyNode appInfoNode = (AnyNode) g.nextElement();
-
-                    if (appInfoNode.getNodeType() == AnyNode.ELEMENT && name.equals(appInfoNode.getLocalName())) {
-                        return appInfoNode;
-                    }
-                }
-            }
-        }
-
-        return null;
-    }
 
     /**
      * 
@@ -126,7 +120,7 @@ public class StringField {
         if (type instanceof ListType) return new ArrayField(type.getBuiltInBaseType());
 
         // is a combobox
-        AnyNode appInfoNode = getAppInfoNode(model, "listOfValues");
+        AnyNode appInfoNode = StructureWithAppInfo.getAppInfoNode(model, "listOfValues");
         if (type.hasFacet(Facet.ENUMERATION) || appInfoNode != null) return new ComboField(type, appInfoNode);
 
         // find info on length before we go to the base type
@@ -235,10 +229,13 @@ public class StringField {
              || contentType.hasFacet(Facet.MAX_EXCLUSIVE)
              || contentType.hasFacet(Facet.MIN_INCLUSIVE)
              || contentType.hasFacet(Facet.MAX_INCLUSIVE)
-             || contentType.hasFacet(Facet.PATTERN)
              || contentType.hasFacet(Facet.MIN_LENGTH)
              || contentType.hasFacet(Facet.MAX_LENGTH)
-             || contentType.hasFacet(Facet.LENGTH);
+             || contentType.hasFacet(Facet.LENGTH)
+             || contentType.hasFacet(Facet.TOTALDIGITS)
+             || contentType.hasFacet(Facet.FRACTIONDIGITS)
+             || getFieldType(model).getTypeCode() == SimpleTypesFactory.DECIMAL_TYPE //always generated for decimal field
+             || StringUtils.isNotBlank(pattern);
     }
 
     public Structure getModel() {
@@ -262,16 +259,6 @@ public class StringField {
         return "";
     }
 
-    /**
-     * check if the value contains a template/pattern that can be interpreted by the given Field instance
-     * 
-     * @param template
-     * @return
-     */
-    public String getValue(String valueTemplate) {
-        return valueTemplate;
-    }
-
     public void updateNode() {
         if (data == null) return;
 
@@ -292,9 +279,30 @@ public class StringField {
     }
 
     public void setNgDynamicFormsValidators(JSONObject validators) {
-        if (contentType.hasFacet(Facet.PATTERN)) {
-            Facet pattern = contentType.getFacet(Facet.PATTERN);
-            validators.put(pattern.getName(), pattern.getValue());
+        if (StringUtils.isNotBlank(pattern)) {
+            validators.put("pattern", pattern);
+        }
+
+        if(contentType.hasFacet(Facet.MIN_LENGTH)) {
+            Facet minLength = contentType.getFacet(Facet.MIN_LENGTH);
+            validators.put(minLength.getName(), minLength.getValue());
+        }
+
+        if(contentType.hasFacet(Facet.MAX_LENGTH)) {
+            Facet maxLength = contentType.getFacet(Facet.MAX_LENGTH);
+            validators.put(maxLength.getName(), maxLength.getValue());
+        }
+
+        if(contentType.hasFacet(Facet.LENGTH)) {
+            Facet length = contentType.getFacet(Facet.LENGTH);
+            validators.put("minLength", length.getValue());
+            validators.put("maxLength", length.getValue());
+        }
+    }
+
+    public void setNgDynamicFormsErrorMessages(JSONObject errorMessages) {
+        if (StringUtils.isNotBlank(errmsg)) {
+            errorMessages.put("pattern", errmsg);
         }
     }
 
@@ -305,34 +313,38 @@ public class StringField {
         fieldElement.put("label", "ui-widget");
 
         JSONObject fieldGrid = new JSONObject();
-        fieldGrid.put("container", "ui-g");
-        fieldGrid.put("label",     "ui-g-4");
-        fieldGrid.put("control",   "ui-g-8");
+        fieldGrid.put("container", StringUtils.isNotBlank(container) ? container : "ui-g");
+        
+        // If either the control or the label is not defined, both are put to their default values
+        if (!StringUtils.isNotBlank(labelGrid) || !StringUtils.isNotBlank(control)) {
+           labelGrid = "ui-g-4";
+           control = "ui-g-8";
+        }
+        
+        fieldGrid.put("label",     labelGrid);
+        fieldGrid.put("control",   control);
 
         fieldCls.put("element", fieldElement);
         fieldCls.put("grid", fieldGrid);
         return fieldCls;
     }
-
-    private void setAppInfoDynamicFormsJsonValue(AnyNode node, JSONObject json) {
-        String name  = node.getLocalName();
-
-        if (name.equals("additional")) {
-            json.put("additional", XML.toJSONObject(node.toString()).getJSONObject("additional"));
+    
+    @Override
+    protected void setAppInfoDynamicFormsExceptionValue(String name, String value) {
+        if (name.equals("pattern")) {
+            pattern = value;
         }
-        else {
-            String value = node.getStringValue().trim();
-
-            if (name.equals("value")) value = getValue(value);
-
-            Scanner scanner = new Scanner(value);
-
-            if      (scanner.hasNextBoolean())    json.put(name, scanner.nextBoolean());
-            else if (scanner.hasNextBigDecimal()) json.put(name, scanner.nextBigDecimal());
-            else if (scanner.hasNextBigInteger()) json.put(name, scanner.nextBigInteger());
-            else                                  json.put(name, value);
-
-            scanner.close();
+        else if (name.equals("errmsg")) {
+            errmsg = value;
+        }
+        else if (name.equals("container")) {
+            container = value;
+        }
+        else if (name.equals("control")) {
+            control = value;
+        }
+        else if (name.equals("labelGrid")) {
+            labelGrid = value;
         }
     }
     
@@ -353,58 +365,48 @@ public class StringField {
         }
     }
 
-    private void readAppInfoDynamicForms(JSONObject json) {
-        AnyNode appInfoNode = getAppInfoNode(model, "dynamicForms");
-        if (appInfoNode != null) {
-            AnyNode child = appInfoNode.getFirstChild(); //stupid API, there is no getChildren
-
-            if (child != null) {
-                if (child.getNodeType() == AnyNode.ELEMENT) setAppInfoDynamicFormsJsonValue(child, json);
-
-                for (child = child.getNextSibling(); child != null; child = child.getNextSibling()) {
-                    if (child.getNodeType() == AnyNode.ELEMENT) setAppInfoDynamicFormsJsonValue(child, json);
-                }
-            }
-        }
-    }
-
     public JSONObject getCommonFieldsNgDynamicForms() {
         JSONObject field = new JSONObject();
-
-        field.put("cls", generateNgDynamicFormsCls());
-
+        
         field.put("id",       name);
         field.put("label",    name);
         field.put("type",     getNgDynamicFormsControlType());
         field.put("required", !isOptional());
 
-        if ( ! isOptional() || hasValidator()) {
-            JSONObject validators = new JSONObject();
-            field.put("validators", validators);
-
-            if (!isOptional()) validators.put("required", JSONObject.NULL);
-            if (hasValidator()) setNgDynamicFormsValidators(validators);;
-
-            //JSONObject errorMessages = new JSONObject();
-            //errorMessages.put("required", name + " is required");
-            //field.put("errorMessages", errorMessages);
-        }
-
         //This can overwrite values set earlier, for example 'type' can be changed from INPUT to RATING
-        readAppInfoDynamicForms(field);
+        readAppInfoDynamicForms(model, field, false);
+
+        field.put("cls", generateNgDynamicFormsCls());
+
+        JSONObject validators = new JSONObject();
+        field.put("validators", validators);
+
+        JSONObject errorMessages = new JSONObject();
+        field.put("errorMessages", errorMessages);
+
+        boolean required = field.getBoolean("required");
+
+        if (!isOptional() && required) validators.put("required", JSONObject.NULL);
+
+        if (hasValidator()) {
+            setNgDynamicFormsValidators(validators);
+            setNgDynamicFormsErrorMessages(errorMessages);
+        }
 
         // appinfo/dynamicForms could have updated label, so do the CamelCase splitting now
         String label = StringUtils.join(StringUtils.splitByCharacterTypeCamelCase((String)field.get("label")), " ");
         label.replaceAll(" *", " ");
- 
-        boolean required = (Boolean)field.get("required");
+        field.put("label", label + (required ? " *": ""));
 
-        field.put("label",       label + (required ? " *": ""));
-        field.put("placeholder", label);
+        //Put label as placholder if it was not specified in the Schema
+        if (! field.has("placeholder")) field.put("placeholder", label);
 
-        // appinfo/dynamicForms could have updated required, so remove any validator or errorMessages
-        if ( ! required ) {
+        // if validators has no elements then remove it.
+        if (field.getJSONObject("validators").length() == 0) {
             field.remove("validators");
+        }
+        // if errorMessages has no elements then remove it.
+        if (field.getJSONObject("errorMessages").length() == 0) {
             field.remove("errorMessages");
         }
 

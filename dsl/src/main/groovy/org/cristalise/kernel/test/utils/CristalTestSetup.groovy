@@ -99,7 +99,7 @@ trait CristalTestSetup {
         Gateway.startServer()
 
         if (!skipBootstrap) {
-            Bootstrap.run();
+            Gateway.runBoostrap();
             waitBootstrapThread()
         }
 

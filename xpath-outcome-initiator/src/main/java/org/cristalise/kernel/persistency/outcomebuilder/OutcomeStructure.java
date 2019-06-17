@@ -60,6 +60,8 @@ import org.w3c.dom.NodeList;
 // contains child outcome elements - creates new ones
 public abstract class OutcomeStructure {
 
+    boolean isRootElement = false;
+
     ElementDecl model      = null;
     Element     myElement  = null;
     String      help       = null;
@@ -100,7 +102,8 @@ public abstract class OutcomeStructure {
     public abstract void exportViewTemplate(Writer template) throws IOException;
     public abstract Object generateNgDynamicForms(Map<String, Object> inputs);
     public abstract JSONObject generateNgDynamicFormsCls();
-    public abstract void addJsonInstance(Element parent, String name, Object json) throws OutcomeBuilderException;
+    public abstract void addJsonInstance(OutcomeStructure parentStruct, Element parentElement, String name, Object json) 
+            throws OutcomeBuilderException;
 
     /**
      * 
@@ -394,5 +397,13 @@ public abstract class OutcomeStructure {
 
         if (names.length == 1) return child;
         else                   return child.find(Arrays.copyOfRange(names, 1, names.length-1));
+    }
+
+    public boolean isRootElement() {
+        return isRootElement;
+    }
+
+    public void setRootElementFlag(boolean isRootElement) {
+        this.isRootElement = isRootElement;
     }
 }

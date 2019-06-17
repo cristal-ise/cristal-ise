@@ -36,6 +36,7 @@
                             <dynamicForms>
                                 <hidden>true</hidden>
                                 <required>false</required>
+                                <placeholder>Insurance ID</placeholder>
                             </dynamicForms>
                         </xs:appinfo>
                     </xs:annotation>
@@ -45,8 +46,14 @@
                         <xs:appinfo>
                             <dynamicForms>
                                 <value>now</value>
+	                            <mask>99/99/9999</mask>
+                                <placeholder>99/99/9999</placeholder>
                                 <additional>
-                                    <updateScriptRef>Script:0</updateScriptRef>
+                                  <updateScriptRef>Script:0</updateScriptRef>
+                                  <warning>
+                                    <message>Date is invalid</message>
+                                    <expression><![CDATA[ var m = moment('2015-11-32', 'YYYY-MM-DD'); m.isValid();]]></expression>
+                                  </warning>
                                 </additional>
                             </dynamicForms>
                         </xs:appinfo>
@@ -61,6 +68,20 @@
                     </xs:simpleType>
                 </xs:element>
                 <xs:element name='Weight' minOccurs='1' maxOccurs='1'>
+                    <xs:annotation>
+                        <xs:appinfo>
+                            <dynamicForms>
+	                            <mask>99,99</mask>
+                                <placeholder>99,99</placeholder>
+                                <additional>
+                                  <warning>
+                                    <pattern>^[0-9]{1,4}$</pattern>
+                                    <message>Value out of specification, has to be &lt;= 9999</message>
+                                  </warning>
+                                </additional>
+                            </dynamicForms>
+                        </xs:appinfo>
+                    </xs:annotation>
                     <xs:complexType>
                         <xs:simpleContent>
                             <xs:extension base='xs:decimal'>

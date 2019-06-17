@@ -1,0 +1,94 @@
+<?xml version='1.0' encoding='utf-8'?>
+<xs:schema xmlns:xs='http://www.w3.org/2001/XMLSchema'>
+  <xs:element name='SimpleElectonicSignature'>
+    <xs:annotation>
+      <xs:documentation>Minimum form to provide electronic signature</xs:documentation>
+    </xs:annotation>
+    <xs:complexType>
+      <xs:all minOccurs='0'>
+        <xs:element name='AgentName' type='xs:string' minOccurs='1' maxOccurs='1' />
+        <xs:element name='Password' type='xs:string' minOccurs='1' maxOccurs='1'>
+          <xs:annotation>
+            <xs:appinfo>
+              <dynamicForms>
+                <inputType>password</inputType>
+              </dynamicForms>
+            </xs:appinfo>
+          </xs:annotation>
+        </xs:element>
+        <xs:element name='Context' minOccurs='1' maxOccurs='1'>
+          <xs:annotation>
+            <xs:documentation>The context of Item and Actitiy of the Electronic Signature</xs:documentation>
+          </xs:annotation>
+          <xs:complexType>
+            <xs:all minOccurs='0'>
+              <xs:element name='ItemPath' type='xs:string' minOccurs='1' maxOccurs='1'>
+                <xs:annotation>
+                  <xs:appinfo>
+                    <dynamicForms>
+                      <hidden>true</hidden>
+                    </dynamicForms>
+                  </xs:appinfo>
+                </xs:annotation>
+              </xs:element>
+              <xs:element name='SchemaName' type='xs:string' minOccurs='1' maxOccurs='1'>
+                <xs:annotation>
+                  <xs:appinfo>
+                    <dynamicForms>
+                      <hidden>true</hidden>
+                    </dynamicForms>
+                  </xs:appinfo>
+                </xs:annotation>
+              </xs:element>
+              <xs:element name='SchemaVersion' type='xs:string' minOccurs='1' maxOccurs='1'>
+                <xs:annotation>
+                  <xs:appinfo>
+                    <dynamicForms>
+                      <hidden>true</hidden>
+                    </dynamicForms>
+                  </xs:appinfo>
+                </xs:annotation>
+              </xs:element>
+              <xs:element name='Viewpoint' type='xs:string' minOccurs='1' maxOccurs='1'>
+                <xs:annotation>
+                  <xs:appinfo>
+                    <dynamicForms>
+                      <hidden>true</hidden>
+                    </dynamicForms>
+                  </xs:appinfo>
+                </xs:annotation>
+              </xs:element>
+              <xs:element name='ActivityType' type='xs:string' minOccurs='1' maxOccurs='1'>
+                <xs:annotation>
+                  <xs:appinfo>
+                    <dynamicForms>
+                      <hidden>true</hidden>
+                    </dynamicForms>
+                  </xs:appinfo>
+                </xs:annotation>
+              </xs:element>
+              <xs:element name='ActivityName' type='xs:string' minOccurs='1' maxOccurs='1'>
+                <xs:annotation>
+                  <xs:appinfo>
+                    <dynamicForms>
+                      <hidden>true</hidden>
+                    </dynamicForms>
+                  </xs:appinfo>
+                </xs:annotation>
+              </xs:element>
+              <xs:element name='StepPath' type='xs:string' minOccurs='1' maxOccurs='1'>
+                <xs:annotation>
+                  <xs:appinfo>
+                    <dynamicForms>
+                      <hidden>true</hidden>
+                    </dynamicForms>
+                  </xs:appinfo>
+                </xs:annotation>
+              </xs:element>
+            </xs:all>
+          </xs:complexType>
+        </xs:element>
+      </xs:all>
+    </xs:complexType>
+  </xs:element>
+</xs:schema>

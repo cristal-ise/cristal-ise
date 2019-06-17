@@ -20,8 +20,8 @@
  */
 package org.cristalise.kernel.lifecycle.instance.predefined.agent;
 
+import static org.cristalise.kernel.security.BuiltInAuthc.ADMIN_ROLE;
 import java.security.NoSuchAlgorithmException;
-
 import org.cristalise.kernel.common.AccessRightsException;
 import org.cristalise.kernel.common.CannotManageException;
 import org.cristalise.kernel.common.InvalidDataException;
@@ -56,7 +56,7 @@ public class SetAgentPassword extends PredefinedStep {
             AgentPath targetAgent = new AgentPath(item);
             String newPwd;
 
-            if (!targetAgent.equals(agent) && !agent.hasRole("Admin"))
+            if (!targetAgent.equals(agent) && !agent.hasRole(ADMIN_ROLE.getName()))
                 throw new AccessRightsException("Agent passwords may only be set by those Agents or by an Administrator");
 
             if (params.length == 1) {
@@ -66,8 +66,12 @@ public class SetAgentPassword extends PredefinedStep {
             }
             else {
                 //Enforce identity check
-                if (!Gateway.getAuthenticator().authenticate(agent.getAgentName(), params[0], null))
+                try {
+                    Gateway.getSecurityManager().authenticate(agent.getAgentName(), params[0], null);
+                }
+                catch (Exception e) {
                     throw new AccessRightsException("Authentication failed");
+                }
 
                 newPwd = params[1];
                 params[0] = "REDACTED"; // censor password from outcome

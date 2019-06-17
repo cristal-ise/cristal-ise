@@ -80,4 +80,28 @@ public interface JooqDomainHandler {
      * @param locker transaction key
      */
     public void abort(DSLContext context, Object locker);
+
+    /**
+     * Called when the cristal-ise bootstrap has finished
+     * 
+     * @param context The configured DSLContext of jooq
+     * @throws PersistencyException Database error
+     */
+    public void postBoostrap(DSLContext context) throws PersistencyException;
+
+    /**
+     * Called when the cristal-ise start server has finished
+     * 
+     * @param context The configured DSLContext of jooq
+     * @throws PersistencyException Database error
+     */
+    public void postStartServer(DSLContext context) throws PersistencyException;
+
+    /**
+     * Called when the cristal-ise connect has finished
+     * 
+     * @param context The configured DSLContext of jooq
+     * @throws PersistencyException Database error
+     */
+    public void postConnect(DSLContext context) throws PersistencyException;
 }

@@ -20,6 +20,9 @@
  */
 package org.cristalise.storage.jooqdb;
 
+import static org.cristalise.JooqTestConfigurationBase.DBModes.MYSQL;
+import static org.cristalise.JooqTestConfigurationBase.DBModes.PostgreSQL;
+
 import java.util.UUID;
 
 import org.cristalise.kernel.lifecycle.instance.CompositeActivity;
@@ -28,6 +31,7 @@ import org.cristalise.kernel.lifecycle.instance.predefined.server.ServerPredefin
 import org.cristalise.kernel.lookup.AgentPath;
 import org.cristalise.kernel.lookup.ItemPath;
 import org.cristalise.storage.jooqdb.clusterStore.JooqLifecycleHandler;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -47,6 +51,13 @@ public class JooqLifecycleTest extends StorageTestBase {
         wf = new Workflow(new CompositeActivity(), new ServerPredefinedStepContainer());
         wf.initialise(new ItemPath(), new AgentPath(UUID.randomUUID(), "dummy"), null);
         assert jooq.put(context, uuid, wf) == 1;
+    }
+
+    @After
+    public void after() throws Exception {
+        jooq.delete(context, uuid);
+
+        if (dbType == MYSQL || dbType == PostgreSQL) jooq.dropTables(context);
     }
 
     @Test @Ignore

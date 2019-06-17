@@ -232,7 +232,7 @@ public abstract class ItemUtils extends RestHandler {
      */
     protected Response getOutcomeResponse(Outcome oc, boolean json) {
         String result;
-
+        
         if(json) result = XML.toJSONObject(oc.getData()).toString();
         else     result = oc.getData();
         
@@ -241,7 +241,6 @@ public abstract class ItemUtils extends RestHandler {
 //        cc.setMaxAge(300);
 //        cc.setPrivate(true);
 //        cc.setNoStore(true);
-
         return Response.ok(result)./*cacheControl(cc).*/build();
     }
 

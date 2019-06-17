@@ -86,17 +86,7 @@ public class JooqLookupManager implements LookupManager {
         try {
             context = JooqHandler.connect();
 
-            items       = new JooqItemHandler();
-            domains     = new JooqDomainPathHandler();
-            roles       = new JooqRolePathHandler();
-            permissions = new JooqPermissionHandler();
-            properties  = new JooqItemPropertyHandler();
-
-            items      .createTables(context);
-            domains    .createTables(context);
-            roles      .createTables(context);
-            permissions.createTables(context);
-            properties .createTables(context);
+            initialiseHandlers();
 
             passwordHasher = new Argon2Password();
         }
@@ -104,6 +94,28 @@ public class JooqLookupManager implements LookupManager {
             Logger.error(ex);
             throw new IllegalArgumentException(ex.getMessage());
         }
+    }
+
+    public void initialiseHandlers() throws PersistencyException {
+        items       = new JooqItemHandler();
+        domains     = new JooqDomainPathHandler();
+        roles       = new JooqRolePathHandler();
+        permissions = new JooqPermissionHandler();
+        properties  = new JooqItemPropertyHandler();
+
+        items      .createTables(context);
+        domains    .createTables(context);
+        roles      .createTables(context);
+        permissions.createTables(context);
+        properties .createTables(context);
+    }
+
+    public void dropHandlers() throws PersistencyException {
+        properties .dropTables(context);
+        permissions.dropTables(context);
+        roles      .dropTables(context);
+        domains    .dropTables(context);
+        items      .dropTables(context);
     }
 
     @Override
@@ -120,16 +132,21 @@ public class JooqLookupManager implements LookupManager {
     public boolean exists(Path path) {
         if (path == null) return false;
 
+        boolean exists = false;
+
         try {
-            if      (path instanceof ItemPath)   return items  .exists(context, path.getUUID());
-            else if (path instanceof AgentPath)  return items  .exists(context, path.getUUID());
-            else if (path instanceof DomainPath) return domains.exists(context, (DomainPath)path);
-            else if (path instanceof RolePath)   return roles  .exists(context, (RolePath)path, null);
+            if      (path instanceof ItemPath)   exists = items  .exists(context, path.getUUID());
+            else if (path instanceof AgentPath)  exists = items  .exists(context, path.getUUID());
+            else if (path instanceof DomainPath) exists = domains.exists(context, (DomainPath)path);
+            else if (path instanceof RolePath)   exists = roles  .exists(context, (RolePath)path, null);
         }
         catch (PersistencyException e) {
             Logger.error(e);
         }
-        return false;
+
+        if (Logger.doLog(5)) JooqHandler.logConnectionCount("JooqLookupManager.exists()", context);
+
+        return exists;
     }
 
     @Override
@@ -150,6 +167,8 @@ public class JooqLookupManager implements LookupManager {
                 throw new ObjectCannotBeUpdated("JOOQLookupManager must insert some records:"+rows);
             else
                 Logger.msg(8, "JooqLookupManager.add() - path:"+newPath+" rows inserted:"+rows);
+
+            if (Logger.doLog(5)) JooqHandler.logConnectionCount("JooqLookupManager.add()", context);
         }
         catch (PersistencyException e) {
             Logger.error(e);
@@ -217,7 +236,6 @@ public class JooqLookupManager implements LookupManager {
 
         if      (start instanceof DomainPath) return domains.find(context, (DomainPath)start, name, uuids);
         else if (start instanceof RolePath)   return roles  .find(context, (RolePath)start,   name, uuids);
-        //TODO implement permssion fetech for roles
 
         return new ArrayList<Path>();
     }
@@ -269,7 +287,8 @@ public class JooqLookupManager implements LookupManager {
 
             if (dp.getTarget() == null) throw new InvalidItemPathException("DomainPath has no target:"+domainPath);
 
-            return dp.getTarget();
+            //issue #165: using items.fetch() ensures that Path is either ItemPath or AgentPath
+            return items.fetch(context, dp.getTarget().getUUID(), properties);
         }
         catch (PersistencyException e) {
             Logger.error(e);
@@ -304,9 +323,15 @@ public class JooqLookupManager implements LookupManager {
 
         Logger.msg(8, "JooqLookupManager.getChildren() - pattern:" + pattern);
 
-        if      (path instanceof ItemPath) return new ArrayList<Path>().iterator(); //empty iterator
-        else if (path instanceof RolePath) return roles  .findByRegex(context, pattern ).iterator();
-        else                               return domains.findByRegex(context, pattern ).iterator();
+        Iterator<Path> iter = null;
+
+        if      (path instanceof RolePath)   iter = roles  .findByRegex(context, pattern ).iterator();
+        else if (path instanceof DomainPath) iter = domains.findByRegex(context, pattern ).iterator();
+
+        if (Logger.doLog(5)) JooqHandler.logConnectionCount("JooqLookupManager.getChildren()", context);
+
+        if (iter == null) return new ArrayList<Path>().iterator(); //empty iterator
+        else              return iter;
     }
 
     @Override
@@ -324,8 +349,15 @@ public class JooqLookupManager implements LookupManager {
 
         if (maxRows == 0) return new PagedResult();
 
-        if (path instanceof RolePath) return new PagedResult(maxRows, roles  .findByRegex(context, pattern, offset, limit));
-        else                          return new PagedResult(maxRows, domains.findByRegex(context, pattern, offset, limit));
+        List<Path> pathes = null;
+
+        if      (path instanceof RolePath)   pathes = roles  .findByRegex(context, pattern, offset, limit);
+        else if (path instanceof DomainPath) pathes = domains.findByRegex(context, pattern, offset, limit);
+
+        if (Logger.doLog(5)) JooqHandler.logConnectionCount("JooqLookupManager.getChildren()", context);
+
+        if (pathes == null) return new PagedResult(); 
+        else                return new PagedResult(maxRows, pathes);
     }
 
     private SelectQuery<?> getSearchSelect(Path start, List<Property> props) {
@@ -373,6 +405,7 @@ public class JooqLookupManager implements LookupManager {
         SelectQuery<?> select = getSearchSelect(start, props);
 
         select.addSelect(JooqDomainPathHandler.PATH, TARGET);
+        select.addOrderBy(JooqDomainPathHandler.PATH);
 
         if (limit  > 0) select.addLimit(limit);
         if (offset > 0) select.addOffset(offset);
@@ -402,7 +435,7 @@ public class JooqLookupManager implements LookupManager {
         try {
             role.getParent();
             roles.insert(context, role, null);
-            permissions.insert(context, role.getStringPath(), role.getPermissions());
+            permissions.insert(context, role.getStringPath(), role.getPermissionsList());
             return role;
         }
         catch (Throwable t) {
@@ -616,6 +649,7 @@ public class JooqLookupManager implements LookupManager {
 
         if (StringUtils.isNotBlank(permission)) permissions.add(permission);
 
+        //empty permission list shall clear the permissions of Role
         setPermissions(role, permissions);
     }
 
@@ -626,13 +660,22 @@ public class JooqLookupManager implements LookupManager {
         role.setPermissions(permissions);
 
         try {
+            //empty permission list shall clear the permissions of Role
             if (this.permissions.exists(context, role.getStringPath())) this.permissions.delete(context, role.getStringPath());
 
-            this.permissions.insert(context, role.getStringPath(), role.getPermissions());
+            this.permissions.insert(context, role.getStringPath(), role.getPermissionsList());
         }
         catch (Exception e) {
             Logger.error(e);
             throw new ObjectCannotBeUpdated("Role:"+role + " error:" + e.getMessage());
         }
+    }
+
+    @Override
+    public void postStartServer() {
+    }
+
+    @Override
+    public void postBoostrap() {
     }
 }

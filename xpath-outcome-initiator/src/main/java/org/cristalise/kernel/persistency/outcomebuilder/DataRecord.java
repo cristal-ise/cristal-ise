@@ -24,6 +24,7 @@ import java.io.IOException;
 import java.io.Writer;
 import java.util.Map;
 
+import org.apache.commons.lang3.StringUtils;
 import org.cristalise.kernel.utils.Logger;
 import org.exolab.castor.xml.schema.ComplexType;
 import org.exolab.castor.xml.schema.ElementDecl;
@@ -135,18 +136,18 @@ public class DataRecord extends OutcomeStructure {
     }
 
     @Override
-    public void addJsonInstance(Element parent, String name, Object json) throws OutcomeBuilderException {
+    public void addJsonInstance(OutcomeStructure parentStruct, Element parentElement, String name, Object json) throws OutcomeBuilderException {
         Logger.msg(5, "DataRecord.addJsonInstance() - name:'" + name + "'");
         JSONObject jsonObj = (JSONObject)json;
 
-        myElement = parent;
+//        myElement = parentElement;
 
         if (!name.equals(model.getName())) throw new InvalidOutcomeException("Missmatch in names:" + name + "!=" + model.getName());
 
         //attributes first, order is not important
         for (String key: jsonObj.keySet()) {
             if (myAttributes.hasAttributeDecl(key)) {
-                myAttributes.addJsonInstance(myElement, key, jsonObj.get(key));
+                myAttributes.addJsonInstance(this, myElement, key, jsonObj.get(key));
             }
         }
 
@@ -157,7 +158,7 @@ public class DataRecord extends OutcomeStructure {
 
             //Optional element might not be present in the json
             if (jsonObj.has(elementName)) {
-                childStructure.addJsonInstance(parent, elementName, jsonObj.get(elementName));
+                childStructure.addJsonInstance(this, myElement, elementName, jsonObj.get(elementName));
             }
         }
     }
@@ -198,11 +199,26 @@ public class DataRecord extends OutcomeStructure {
     @Override
     public JSONObject generateNgDynamicFormsCls() {
         JSONObject drCls = new JSONObject();
-
         JSONObject drGrid = new JSONObject();
-        drGrid.put("container", "ui-g-12");
+        
+        StructureWithAppInfo appInfoer = new StructureWithAppInfo();
+        appInfoer.readAppInfoDynamicForms(model, drGrid, true);
+        
+        // Set default value when container is not defined
+        if (!drGrid.has("container")) {
+            drGrid.put("container", "ui-g-12");
+        }
 
         drCls.put("grid", drGrid);
+
+        if (!isRootElement)  {
+            JSONObject drClass = new JSONObject();
+
+            drClass.put("label", "formGroupLabel");
+            drClass.put("container", "formGroupContainer");
+
+            drCls.put("element", drClass);
+        }
         return drCls;
     }
 
@@ -211,17 +227,23 @@ public class DataRecord extends OutcomeStructure {
         JSONObject dr = new JSONObject();
         
         dr.put("cls", generateNgDynamicFormsCls());
-
         dr.put("type",  "GROUP");
         dr.put("id",    model.getName());
         dr.put("name",  model.getName());
 
-        //String label = StringUtils.join(StringUtils.splitByCharacterTypeCamelCase(model.getName()), " ");
-        //dr.put("label", label);
-
         JSONArray array = myAttributes.generateNgDynamicForms(inputs);
 
         for (String elementName : subStructureOrder) array.put(subStructure.get(elementName).generateNgDynamicForms(inputs));
+
+        if (!isRootElement && !dr.has("label")) {
+            String label = StringUtils.join(StringUtils.splitByCharacterTypeCamelCase(model.getName()), " ");
+            dr.put("label", label);
+        }
+
+        StructureWithAppInfo appInfoer = new StructureWithAppInfo();
+
+        //This call could overwrite values set earlier
+        appInfoer.readAppInfoDynamicForms(model, dr, false);
 
         dr.put("group", array);
 

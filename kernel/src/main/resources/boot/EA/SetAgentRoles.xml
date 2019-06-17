@@ -25,6 +25,6 @@
         <KeyValuePair Key="Description" String="Sets the roles of an Agent to the list provided"/>
         <KeyValuePair Key="SchemaType" String="PredefinedStepOutcome"/>
         <KeyValuePair Key="SchemaVersion" String="0"/>
-        <KeyValuePair Key="Agent Role" String="Admin"/>
+        <KeyValuePair Key="Agent Role" String=""/>
     </Properties>
 </ActivityDef>

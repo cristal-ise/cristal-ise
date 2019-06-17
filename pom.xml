@@ -52,12 +52,12 @@
     </modules>
 
     <properties>
-        <revision>4.0.0-SNAPSHOT</revision>
+        <revision>4.3.0-SNAPSHOT</revision>
         <productionMode>false</productionMode>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-	<additionalparam>-Xdoclint:none</additionalparam>
-	<maven.deploy.skip>true</maven.deploy.skip>
+        <additionalparam>-Xdoclint:none</additionalparam>
+        <maven.deploy.skip>true</maven.deploy.skip>
     </properties>
 
     <description>Cristal-ise is a description-driven software platform originally developed to track the construction of
@@ -161,26 +161,38 @@
                     <artifactId>maven-jar-plugin</artifactId>
                     <version>3.0.2</version>
                 </plugin>
-	 
-            <plugin>
-                <groupId>com.mycila</groupId>
-                <artifactId>license-maven-plugin</artifactId>
-                <version>2.3</version>
-                <configuration>
-                    <header>HEADER.txt</header>
-                    <excludes>
-                        <exclude>pom.xml</exclude>
-                        <exclude>src/main/resources/textFiles/**</exclude>
-                        <exclude>src/test/data/**</exclude>
-                        <exclude>bin/**</exclude>
-                        <exclude>src/main/resources/boot/allbootitems.txt</exclude>
-			<exclude>.flattened-pom.xml</exclude>
-                    </excludes>
-                    <mapping>
+                <plugin>
+                    <groupId>com.mycila</groupId>
+                    <artifactId>license-maven-plugin</artifactId>
+                    <version>2.3</version>
+                    <configuration>
+                        <header>HEADER.txt</header>
+                        <excludes>
+                            <exclude>pom.xml</exclude>
+                            <exclude>src/main/resources/textFiles/**</exclude>
+                            <exclude>src/test/data/**</exclude>
+                            <exclude>bin/**</exclude>
+                            <exclude>src/main/resources/boot/allbootitems.txt</exclude>
+                            <exclude>.flattened-pom.xml</exclude>
+                        </excludes>
+                        <mapping>
                             <idl>JAVADOC_STYLE</idl>
-                    </mapping>
-	    </configuration>
-            </plugin>
+                        </mapping>
+                    </configuration>
+                </plugin>
+                <plugin>
+                    <artifactId>maven-surefire-plugin</artifactId>
+                    <version>2.22.1</version>
+                    <configuration>
+                        <redirectTestOutputToFile>true</redirectTestOutputToFile>
+                        <includes>
+                            <include>**/*Specs.*</include>
+                            <include>**/*Spec.*</include>
+                            <include>**/*Tests.*</include>
+                            <include>**/*Test.*</include>
+                        </includes>
+                    </configuration>
+                </plugin>
             </plugins>
         </pluginManagement>
     </build>
@@ -337,6 +349,11 @@
                 <artifactId>slf4j-simple</artifactId>
                 <version>1.6.1</version>
             </dependency>
+            <dependency>
+               <groupId>org.codehaus.groovy</groupId>
+               <artifactId>groovy-all</artifactId>
+               <version>2.4.16</version>
+           </dependency>
         </dependencies>
     </dependencyManagement>
 
@@ -407,12 +424,6 @@
                     <groupId>groovy-all</groupId>
                 </exclusion>
             </exclusions>
-        </dependency>
-        <dependency>
-            <groupId>org.codehaus.groovy</groupId>
-            <artifactId>groovy-all</artifactId>
-            <version>2.4.15</version>
-            <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.xmlunit</groupId>

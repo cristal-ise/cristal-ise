@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?><CristalModule ns="kernel" name="cristal-ise kernel">
+  <Info>
+    <Version>0</Version>
+  </Info>
+  <Imports>
+    <SchemaResource name="SimpleElectonicSignature" version="0"/>
+  </Imports>
+</CristalModule>

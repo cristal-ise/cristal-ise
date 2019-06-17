@@ -241,7 +241,7 @@ public class Dimension extends OutcomeStructure {
     }
 
     @Override
-    public void addJsonInstance(Element parent, String name, Object json) throws OutcomeBuilderException {
+    public void addJsonInstance(OutcomeStructure parentStruct, Element parentElement, String name, Object json) throws OutcomeBuilderException {
         Logger.msg(5, "Dimension.addJsonInstance() - name:'" + name + "', mode:"+mode);
 
         if (myElement == null) myElement = parent;

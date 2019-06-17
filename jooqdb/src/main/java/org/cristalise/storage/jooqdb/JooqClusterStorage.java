@@ -112,6 +112,10 @@ public class JooqClusterStorage extends TransactionalClusterStorage {
         }
     }
 
+    public void dropHandlers() throws PersistencyException {
+        for (JooqHandler handler: jooqHandlers.values()) handler.dropTables(context);
+    }
+
     @Override
     public void close() throws PersistencyException {
         Logger.msg(1, "JooqClusterStorage.close()");
@@ -125,8 +129,25 @@ public class JooqClusterStorage extends TransactionalClusterStorage {
     }
 
     @Override
+    public void postBoostrap() throws PersistencyException {
+        for (JooqDomainHandler domainHandler : domainHandlers) domainHandler.postBoostrap(context);
+    }
+
+    @Override
+    public void postStartServer() throws PersistencyException {
+        for (JooqDomainHandler domainHandler : domainHandlers) domainHandler.postStartServer(context);
+    }
+
+    @Override
+    public void postConnect() throws PersistencyException {
+        for (JooqDomainHandler domainHandler : domainHandlers) domainHandler.postConnect(context);
+    }
+
+    @Override
     public void begin(Object locker) {
         Logger.msg(8, "JooqClusterStorage.begin() - Nothing DONE.");
+
+        if (Logger.doLog(5)) JooqHandler.logConnectionCount("JooqClusterStorage.begin()", context);
     }
 
     @Override
@@ -141,6 +162,8 @@ public class JooqClusterStorage extends TransactionalClusterStorage {
         Logger.msg(1, "JooqClusterStorage.commit()");
         try {
             ((DefaultConnectionProvider)context.configuration().connectionProvider()).commit();
+
+            if (Logger.doLog(5)) JooqHandler.logConnectionCount("JooqClusterStorage.commit()", context);
         }
         catch (Exception e) {
             Logger.error(e);

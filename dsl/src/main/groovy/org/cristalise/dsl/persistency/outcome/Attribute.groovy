@@ -40,10 +40,14 @@ class Attribute {
 
     List values
     BigDecimal minExclusive = null, minInclusive= null, maxExclusive= null, maxInclusive= null
+    BigInteger length = null, minLength = null, maxLength = null
 
     def defaultVal
 
     boolean required = false
+
+    Integer totalDigits = null //precision:
+    Integer fractionDigits = null //scale:
 
     /**
      * Checks if the type is acceptable

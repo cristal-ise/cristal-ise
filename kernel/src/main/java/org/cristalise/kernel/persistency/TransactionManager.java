@@ -59,7 +59,7 @@ public class TransactionManager {
     }
 
     /**
-     * Closing will abort all all transactions
+     * Closing will abort all transactions
      */
     public void close() {
         if (pendingTransactions.size() != 0) {
@@ -89,7 +89,20 @@ public class TransactionManager {
      * @throws PersistencyException
      */
     public String[] getClusterContents(ItemPath itemPath, ClusterType type) throws PersistencyException {
-        return getClusterContents(itemPath, type.getName());
+        return getClusterContents(itemPath, type, null);
+    }
+
+    /**
+     * Retrieves the ids of the root level of a cluster
+     * 
+     * @param itemPath the item 
+     * @param type the type of the cluster
+     * @param locker the transaction key
+     * @return array of ids
+     * @throws PersistencyException
+     */
+    public String[] getClusterContents(ItemPath itemPath, ClusterType type, Object locker) throws PersistencyException {
+        return getClusterContents(itemPath, type.getName(), locker);
     }
 
     /**
@@ -110,7 +123,7 @@ public class TransactionManager {
      * 
      * @param itemPath the item 
      * @param path the cluster path
-     * @param locker the transaction kez
+     * @param locker the transaction key
      * @return array of ids
      * @throws PersistencyException
      */
@@ -342,7 +355,6 @@ public class TransactionManager {
         if (itemPath == null)  storage.clearCache();
         else if (path == null) storage.clearCache(itemPath);
         else                   storage.clearCache(itemPath, path);
-
     }
 
     public void dumpPendingTransactions(int logLevel) {
@@ -417,4 +429,24 @@ public class TransactionManager {
         }
     }
 
+    /**
+     * Propagate Gateway connect has finished hook to the storages
+     */
+    public void postConnect() throws PersistencyException {
+        storage.postConnect();
+    }
+
+    /**
+     * Propagate Bootstrap has finished hook to the storages
+     */
+    public void postBoostrap() throws PersistencyException{
+        storage.postBoostrap();
+    }
+
+    /**
+     * Propagate start server has finished hook to the storages
+     */
+    public void postStartServer() throws PersistencyException {
+        storage.postStartServer();
+    }
 }
