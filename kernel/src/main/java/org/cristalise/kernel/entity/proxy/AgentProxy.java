@@ -198,7 +198,7 @@ public class AgentProxy extends ItemProxy {
 
         job.setAgentPath(mAgentPath);
 
-        if ((boolean)job.getActProp(SIMPLE_ELECTRONIC_SIGNATURE)) {
+        if ((boolean)job.getActProp(SIMPLE_ELECTRONIC_SIGNATURE, false)) {
             executeSimpleElectonicSignature(job);
         }
 
