@@ -208,6 +208,7 @@ class SchemaDelegate {
                             }
                         }
                     }
+                    if (f.dynamicForms.updateFields !=null) updateFields(f.dynamicForms.updateFields.join(','))
                 }
             }
         }
