@@ -20,8 +20,11 @@
  */
 package org.cristalise.kernel.lifecycle.instance.predefined.agent;
 
+import org.cristalise.kernel.common.CannotManageException;
 import org.cristalise.kernel.common.InvalidDataException;
+import org.cristalise.kernel.common.ObjectCannotBeUpdated;
 import org.cristalise.kernel.common.ObjectNotFoundException;
+import org.cristalise.kernel.common.PersistencyException;
 import org.cristalise.kernel.lifecycle.instance.predefined.PredefinedStep;
 import org.cristalise.kernel.lookup.AgentPath;
 import org.cristalise.kernel.lookup.ItemPath;
@@ -31,9 +34,18 @@ import org.cristalise.kernel.utils.Logger;
 /**
  * 
  */
-public abstract class Authenticate extends PredefinedStep {
+public class Authenticate extends PredefinedStep {
+    public static final String description = "Records the Login event in the history. Login is assocated with user sessions with tokens validity";
+
     public Authenticate() {
         super();
+    }
+
+    @Override
+    protected String runActivityLogic(AgentPath agent, ItemPath itemPath, int transitionID, String requestData, Object locker)
+            throws InvalidDataException, ObjectNotFoundException, ObjectCannotBeUpdated, CannotManageException, PersistencyException
+    {
+        return authenticate(agent, itemPath, requestData, locker);
     }
 
     protected String authenticate(AgentPath agent, ItemPath itemPath, String requestData, Object locker) 
@@ -52,4 +64,5 @@ public abstract class Authenticate extends PredefinedStep {
 
         return bundleData(params);
     }
+
 }
