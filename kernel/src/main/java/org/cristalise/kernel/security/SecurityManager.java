@@ -21,9 +21,6 @@
 package org.cristalise.kernel.security;
 
 import static org.cristalise.kernel.security.BuiltInAuthc.SYSTEM_AGENT;
-
-import java.io.IOException;
-
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shiro.SecurityUtils;
 import org.apache.shiro.authc.UsernamePasswordToken;
@@ -45,9 +42,7 @@ import org.cristalise.kernel.lookup.ItemPath;
 import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.process.auth.Authenticator;
 import org.cristalise.kernel.property.BuiltInItemProperties;
-import org.cristalise.kernel.utils.FileStringUtility;
 import org.cristalise.kernel.utils.Logger;
-
 import lombok.Getter;
 
 public class SecurityManager {
