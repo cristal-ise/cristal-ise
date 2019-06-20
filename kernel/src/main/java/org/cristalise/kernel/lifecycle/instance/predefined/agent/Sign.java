@@ -36,7 +36,7 @@ import org.cristalise.kernel.persistency.outcome.Outcome;
  */
 public class Sign extends Authenticate {
 
-    public static final String description = "Autehnticates the given user and records the Sign event in the system";
+    public static final String description = "Autehnticates the given user and records the Sign event in the system togther with the execution context";
 
     public Sign() {
         super();
