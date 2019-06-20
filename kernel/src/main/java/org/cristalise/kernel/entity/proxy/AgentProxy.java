@@ -42,6 +42,7 @@ import org.cristalise.kernel.entity.C2KLocalObject;
 import org.cristalise.kernel.entity.agent.Job;
 import org.cristalise.kernel.graph.model.BuiltInVertexProperties;
 import org.cristalise.kernel.lifecycle.instance.predefined.PredefinedStep;
+import org.cristalise.kernel.lifecycle.instance.predefined.agent.Sign;
 import org.cristalise.kernel.lookup.AgentPath;
 import org.cristalise.kernel.lookup.DomainPath;
 import org.cristalise.kernel.lookup.InvalidItemPathException;
@@ -218,7 +219,22 @@ public class AgentProxy extends ItemProxy {
             throws AccessRightsException, InvalidDataException, InvalidTransitionException, ObjectNotFoundException,
             PersistencyException, ObjectAlreadyExistsException, ScriptErrorException, InvalidCollectionModification
     {
-        // execute(this, Sign.class);
+        StringBuffer xml = new StringBuffer("<SimpleElectonicSignature>");
+        xml.append("<AgentName>").append(mAgentName)                           .append("</AgentName>");
+        xml.append("<Password>") .append(job.getOutcome().getField("Password")).append("</Password>");
+
+        xml.append("<ExecutionContext>");
+        xml.append("<ItemPath>")     .append(job.getItemUUID())           .append("</ItemPath>");
+        xml.append("<SchemaName>")   .append(job.getSchema().getName())   .append("</SchemaName>");
+        xml.append("<SchemaVersion>").append(job.getSchema().getVersion()).append("</SchemaVersion>");
+        xml.append("<ActivityType>") .append(job.getStepType())           .append("</ActivityType>");
+        xml.append("<ActivityName>") .append(job.getStepName())           .append("</ActivityName>");
+        xml.append("<StepPath>")     .append(job.getStepPath())           .append("</StepPath>");
+        xml.append("</ExecutionContext>");
+
+        xml.append("</SimpleElectonicSignature>");
+
+        execute(this, Sign.class, xml.toString());
     }
 
     @SuppressWarnings("rawtypes")

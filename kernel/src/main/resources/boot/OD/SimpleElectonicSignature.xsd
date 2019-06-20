@@ -38,7 +38,7 @@
             </xs:appinfo>
           </xs:annotation>
         </xs:element>
-        <xs:element name='Context' minOccurs='1' maxOccurs='1'>
+        <xs:element name='ExecutionContext' minOccurs='1' maxOccurs='1'>
           <xs:annotation>
             <xs:documentation>The context of Item and Actitiy of the Electronic Signature</xs:documentation>
           </xs:annotation>
@@ -63,15 +63,6 @@
                 </xs:annotation>
               </xs:element>
               <xs:element name='SchemaVersion' type='xs:string' minOccurs='1' maxOccurs='1'>
-                <xs:annotation>
-                  <xs:appinfo>
-                    <dynamicForms>
-                      <hidden>true</hidden>
-                    </dynamicForms>
-                  </xs:appinfo>
-                </xs:annotation>
-              </xs:element>
-              <xs:element name='Viewpoint' type='xs:string' minOccurs='1' maxOccurs='1'>
                 <xs:annotation>
                   <xs:appinfo>
                     <dynamicForms>

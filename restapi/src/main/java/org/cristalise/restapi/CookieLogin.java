@@ -64,13 +64,12 @@ public class CookieLogin extends RestHandler {
      * @return
      */
     private Response processLogin(String user, String pass, HttpHeaders headers) {
-        
         try {
-            AgentProxy agent = Gateway.getProxyManager().getAgentProxy(user);
+            Logger.msg(5, "CookieLogin() - agent:'%s'", user);
 
-            Logger.msg(5, "CookieLogin() - agent:'%s'", agent.getName());
+            AgentProxy agent = Gateway.getSecurityManager().authenticate(user, pass, null);
+            agent.execute(agent, Login.class);
 
-            agent.execute(agent, Login.class, user, pass);
             return getCookieResponse(agent.getPath(), ItemUtils.produceJSON(headers.getAcceptableMediaTypes()));
         }
         catch (Exception ex) {
