@@ -29,6 +29,7 @@ import org.cristalise.kernel.common.ObjectNotFoundException;
 import org.cristalise.kernel.common.PersistencyException;
 import org.cristalise.kernel.lookup.AgentPath;
 import org.cristalise.kernel.lookup.ItemPath;
+import org.cristalise.kernel.persistency.outcome.Outcome;
 
 /**
  * {@value #description}
@@ -46,6 +47,10 @@ public class Sign extends Authenticate {
     protected String runActivityLogic(AgentPath agent, ItemPath itemPath, int transitionID, String requestData, Object locker)
             throws InvalidDataException, ObjectNotFoundException, ObjectCannotBeUpdated, CannotManageException, PersistencyException
     {
-        return authenticate(agent, itemPath, requestData, locker);
+        Outcome req = new Outcome(requestData);
+        authenticate(agent, itemPath, bundleData(req.getField("AgentName"), req.getField("Password")), locker);
+        req.setField("Password", "REDACTED");
+
+        return req.getData();
     }
 }
