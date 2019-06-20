@@ -1,5 +1,6 @@
 {
     "Details": {
+        "Name": "Name1",
         "Table": [
             {
                 "ETA": null,
@@ -15,6 +16,7 @@
                 "Product": "BR1190",
                 "RequiredQuantity":7
             }
-        ]
+        ],
+        "Comment": "Clever"
     }
 }
