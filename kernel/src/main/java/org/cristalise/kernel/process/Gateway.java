@@ -215,8 +215,8 @@ public class Gateway
             mStorage.postStartServer();
         }
         catch (Exception ex) {
-            log.error("", ex);
-            Logger.die("Exception starting server components. Shutting down.");
+            log.error("Exception starting server components. Shutting down.", ex);
+            AbstractMain.shutdown(1);
         }
     }
 
@@ -475,7 +475,6 @@ public class Gateway
     }
 
     static public void dumpC2KProps(int logLevel) {
-        if (!Logger.doLog(logLevel)) return;
         mC2KProps.dumpProps(logLevel);
     }
 
