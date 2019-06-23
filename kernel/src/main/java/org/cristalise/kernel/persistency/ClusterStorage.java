@@ -28,7 +28,8 @@ import org.cristalise.kernel.entity.C2KLocalObject;
 import org.cristalise.kernel.lookup.ItemPath;
 import org.cristalise.kernel.process.auth.Authenticator;
 import org.cristalise.kernel.querying.Query;
-import org.cristalise.kernel.utils.Logger;
+
+import lombok.extern.slf4j.Slf4j;
 
 
 /**
@@ -54,6 +55,7 @@ import org.cristalise.kernel.utils.Logger;
  * cluster does not exist, get should return null, and delete should return with
  * no action.
  */
+@Slf4j
 public abstract class ClusterStorage {
     /**
      * Constant to return from {@link #queryClusterSupport(String)} for Cluster
@@ -255,7 +257,7 @@ public abstract class ClusterStorage {
             return ClusterType.getValue(path.substring(start, end));
         }
         catch (Exception ex) {
-            Logger.error(ex);
+            log.error("", ex);
             return ClusterType.ROOT;
         }
     }
@@ -360,8 +362,10 @@ public abstract class ClusterStorage {
         for (String content : contents) {
             ClusterType type = ClusterType.getValue(content);
 
-            if (type != null)         types.add(type);
-            else if (Logger.doLog(8)) Logger.warning("ClusterStorage.getClusters() - Cannot convert content '"+content+"' to ClusterType");
+            if (type != null) 
+                types.add(type);
+            else 
+                throw new PersistencyException("Cannot convert content '"+content+"' to ClusterType");
         }
 
         return types.toArray(new ClusterType[0]);

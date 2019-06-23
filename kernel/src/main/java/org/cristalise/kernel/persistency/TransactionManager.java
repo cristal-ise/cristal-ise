@@ -33,11 +33,13 @@ import org.cristalise.kernel.entity.agent.JobList;
 import org.cristalise.kernel.events.History;
 import org.cristalise.kernel.lookup.AgentPath;
 import org.cristalise.kernel.lookup.ItemPath;
+import org.cristalise.kernel.process.AbstractMain;
 import org.cristalise.kernel.process.auth.Authenticator;
 import org.cristalise.kernel.querying.Query;
-import org.cristalise.kernel.utils.Logger;
 
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 public class TransactionManager {
 
     HashMap<ItemPath, Object> locks;
@@ -63,10 +65,11 @@ public class TransactionManager {
      */
     public void close() {
         if (pendingTransactions.size() != 0) {
-            Logger.error("There were pending transactions on shutdown. All changes were lost.");
+            log.error("There were pending transactions on shutdown. All changes were lost.");
             dumpPendingTransactions(0);
         }
-        Logger.msg("Transaction Manager: Closing storages");
+
+        log.info("Transaction Manager: Closing storages");
         storage.close();
     }
 
@@ -315,21 +318,23 @@ public class TransactionManager {
             
             if (exceptions.size() > 0) { // oh dear
                 storage.abort(locker);
-                Logger.error("TransactionManager.commit() - Problems during transaction commit of locker "+locker.toString()+". Database may be in an inconsistent state.");
+                log.error("TransactionManager.commit() - Problems during transaction commit of locker "+locker.toString()+". Database may be in an inconsistent state.");
                 for (TransactionEntry entry : exceptions.keySet()) {
                     Exception ex = exceptions.get(entry);
-                    Logger.msg(entry.toString());
-                    Logger.error(ex);
+                    log.info(entry.toString());
+                    log.error("", ex);
                 }
                 dumpPendingTransactions(0);
-                Logger.die("Database failure during commit");
+                log.error("Database failure during commit");
+                AbstractMain.shutdown(1);
             }
             try {
                 storage.commit(locker);
             }
             catch (PersistencyException e) {
                 storage.abort(locker);
-                Logger.die("Transactional database failure");
+                log.error("Transactional database failure");
+                AbstractMain.shutdown(1);
             }
         }
     }
@@ -358,31 +363,32 @@ public class TransactionManager {
     }
 
     public void dumpPendingTransactions(int logLevel) {
-        if(!Logger.doLog(logLevel)) return;
+        log.error("Transaction dump. Locked Items:");
 
-        Logger.msg(logLevel, "================");
-        Logger.msg(logLevel, "Transaction dump");
-        Logger.msg(logLevel, "Locked Items:");
-        
-        if (locks.size() == 0)
-            Logger.msg(logLevel, "  None");
-        else
+        if (locks.size() == 0) {
+            log.error("  None");
+        }
+        else {
             for (ItemPath thisPath : locks.keySet()) {
                 Object locker = locks.get(thisPath);
-                Logger.msg(logLevel, "  "+thisPath+" locked by "+locker);
+                log.error("  "+thisPath+" locked by "+locker);
             }
+        }
 
-        Logger.msg(logLevel, "Open transactions:");
-        if (pendingTransactions.size() == 0)
-            Logger.msg(logLevel, "  None");
-        else
+        log.error("Open transactions:");
+        if (pendingTransactions.size() == 0) {
+            log.error("  None");
+        }
+        else {
             for (Object thisLocker : pendingTransactions.keySet()) {
-                Logger.msg(logLevel, "  Transaction owner:"+thisLocker);
+                log.error("  Transaction owner:"+thisLocker);
+
                 ArrayList<TransactionEntry> entries = pendingTransactions.get(thisLocker);
                 for (TransactionEntry thisEntry : entries) {
-                    Logger.msg(logLevel, "    "+thisEntry.toString());
+                    log.error("    "+thisEntry.toString());
                 }
             }
+        }
     }
 
     /**
