@@ -4,10 +4,10 @@
         "Table": [
             {
                 "ETA": null,
-                "MissingQuantity": 6,
                 "PickedQuantity": "0",
                 "Product": "BR1189",
-                "RequiredQuantity": 6
+                "RequiredQuantity": 6,
+                "MissingQuantity": 6
             },
             {
                 "ETA": "2019-01-01",
