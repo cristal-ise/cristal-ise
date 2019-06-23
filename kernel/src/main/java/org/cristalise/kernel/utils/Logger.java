@@ -58,11 +58,9 @@ public class Logger {
      * @param args - Arguments referenced by the format specifiers in the message string
      */
     static private void printMessage(String message, int msgLogLevel, Object...args) {
-        if (doLog(msgLogLevel)) {
-            if (msgLogLevel <= 2) log.info(replaceMsgPlacholders(message), args);
-            else if (msgLogLevel >= 8) log.trace(replaceMsgPlacholders(message), args);
-            else log.debug(replaceMsgPlacholders(message), args);
-        }
+        if (msgLogLevel <= 2)      log.info (replaceMsgPlaceholders(message), args);
+        else if (msgLogLevel >= 8) log.trace(replaceMsgPlaceholders(message), args);
+        else                       log.debug(replaceMsgPlaceholders(message), args);
     }
 
     /**
@@ -98,7 +96,7 @@ public class Logger {
      * @param args - Arguments referenced by the format specifiers in the msg string
      */
     static public void debug(int level, String msg, Object...args) {
-        log.debug(replaceMsgPlacholders(msg), args);
+        log.debug(replaceMsgPlaceholders(msg), args);
     }
 
     /**
@@ -130,10 +128,10 @@ public class Logger {
      * @param args - Arguments referenced by the format specifiers in the msg string
      */
     static public void error(String msg, Object...args) {
-        log.error(replaceMsgPlacholders(msg), args);
+        log.error(replaceMsgPlaceholders(msg), args);
     }
 
-    private static String replaceMsgPlacholders(String msg) {
+    private static String replaceMsgPlaceholders(String msg) {
         if (msg.contains("%s")) msg = msg.replaceAll("%s", "{}");
         if (msg.contains("%d")) msg = msg.replaceAll("%d", "{}");
 
@@ -156,7 +154,7 @@ public class Logger {
      * @param args - Arguments referenced by the format specifiers in the msg string
      */
     static public void warning(String msg, Object...args) {
-        log.warn(replaceMsgPlacholders(msg), args);
+        log.warn(replaceMsgPlaceholders(msg), args);
     }
 
     /**
@@ -166,7 +164,7 @@ public class Logger {
      * @param args - Arguments referenced by the format specifiers in the msg string
      */
     static public void die(String msg, Object...args) {
-        log.error(replaceMsgPlacholders(msg), args);
+        log.error(replaceMsgPlaceholders(msg), args);
         AbstractMain.shutdown(1);
     }
 
