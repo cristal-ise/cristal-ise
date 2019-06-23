@@ -25,6 +25,9 @@ import java.util.Enumeration;
 import java.util.Properties;
 import java.util.StringTokenizer;
 
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
 public class ObjectProperties extends Properties {
 
     private static final long serialVersionUID = 8214748637885650335L;
@@ -105,7 +108,7 @@ public class ObjectProperties extends Properties {
         if (wValue instanceof String) {
             return Boolean.parseBoolean((String) wValue);
         }
-        Logger.error("getBoolean(): unable to retrieve a int value for [" + aPropertyName + "]. Returning default value [" + defaultValue
+        log.error("getBoolean(): unable to retrieve a int value for [" + aPropertyName + "]. Returning default value [" + defaultValue
                 + "]. object found=" + wValue);
 
         return defaultValue;
@@ -144,7 +147,7 @@ public class ObjectProperties extends Properties {
             }
             catch (NumberFormatException ex) {}
         }
-        Logger.error("getInt(): unable to retrieve a int value for [" + aPropertyName + "]. Returning default value [" + defaultValue
+        log.error("getInt(): unable to retrieve a int value for [" + aPropertyName + "]. Returning default value [" + defaultValue
                 + "]. object found=" + wValue);
         return defaultValue;
     }
@@ -161,24 +164,23 @@ public class ObjectProperties extends Properties {
     }
 
     public void dumpProps(int logLevel) {
-        Logger.msg(logLevel, "Properties:");
         for (Enumeration<?> e = propertyNames(); e.hasMoreElements();) {
             String name = (String) e.nextElement();
             Object value = getObject(name);
-            if (value == null)
-                Logger.msg("    " + name + ": null");
-            else
-                Logger.msg("    " + name + " (" + getObject(name).getClass().getSimpleName() + "): '" + getObject(name).toString() + "'");
+
+            if (value == null) log.info("{}: 'null'", name);
+            else               log.info("{}: ({}):'{}'", name, getObject(name).getClass().getSimpleName(), getObject(name).toString());
         }
     }
 
-    public Object getInstance(String propName, Object defaultVal)
-            throws InstantiationException, IllegalAccessException, ClassNotFoundException {
+    public Object getInstance(String propName, Object defaultVal) throws InstantiationException, IllegalAccessException, ClassNotFoundException {
         Object prop = getObject(propName, defaultVal);
+
         if (prop == null || prop.equals(""))
             throw new InstantiationException("Property '" + propName + "' was not defined. Cannot instantiate.");
         if (prop instanceof String)
             return Class.forName(((String) prop).trim()).newInstance();
+
         return prop;
     }
 
