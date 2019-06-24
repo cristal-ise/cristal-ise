@@ -89,7 +89,20 @@ public class TransactionManager {
      * @throws PersistencyException
      */
     public String[] getClusterContents(ItemPath itemPath, ClusterType type) throws PersistencyException {
-        return getClusterContents(itemPath, type.getName());
+        return getClusterContents(itemPath, type, null);
+    }
+
+    /**
+     * Retrieves the ids of the root level of a cluster
+     * 
+     * @param itemPath the item 
+     * @param type the type of the cluster
+     * @param locker the transaction key
+     * @return array of ids
+     * @throws PersistencyException
+     */
+    public String[] getClusterContents(ItemPath itemPath, ClusterType type, Object locker) throws PersistencyException {
+        return getClusterContents(itemPath, type.getName(), locker);
     }
 
     /**
@@ -110,7 +123,7 @@ public class TransactionManager {
      * 
      * @param itemPath the item 
      * @param path the cluster path
-     * @param locker the transaction kez
+     * @param locker the transaction key
      * @return array of ids
      * @throws PersistencyException
      */

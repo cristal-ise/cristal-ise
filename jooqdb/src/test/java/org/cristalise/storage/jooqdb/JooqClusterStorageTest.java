@@ -31,7 +31,7 @@ import static org.junit.Assert.assertThat;
 import java.util.Arrays;
 import java.util.Properties;
 
-import org.cristalise.JooqTestBase;
+import org.cristalise.JooqTestConfigurationBase;
 import org.cristalise.kernel.lifecycle.instance.predefined.server.BulkImport;
 import org.cristalise.kernel.lookup.ItemPath;
 import org.cristalise.kernel.process.Gateway;
@@ -42,7 +42,7 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-public class JooqClusterStorageTest extends JooqTestBase {
+public class JooqClusterStorageTest extends JooqTestConfigurationBase {
     static ItemPath itemPath;
 
     @BeforeClass

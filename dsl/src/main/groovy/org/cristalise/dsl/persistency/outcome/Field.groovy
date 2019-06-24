@@ -78,20 +78,18 @@ class Field extends Attribute {
         }
     }
 
-    /**
-     * 
-     * @param vals
-     * @return
-    void setValues(List vals) {
-        if(unit) throw new InvalidDataException("UNIMPLEMENTED: Cannot use unit and values together")
-
-        values = vals
-    }
-     */
-
     def setUnit(Unit u) {
         if(values) throw new InvalidDataException("UNIMPLEMENTED: Cannot use unit and values together")
+        if(attributes) throw new InvalidDataException("UNIMPLEMENTED: Cannot use unit and attributes together")
 
         unit = u
+    }
+
+    /**
+     * 
+     * @return
+     */
+    public boolean hasAdditional() {
+        return dynamicForms.updateScriptRef || dynamicForms.updateQuerytRef || dynamicForms.warning || dynamicForms.updateFields;
     }
 }

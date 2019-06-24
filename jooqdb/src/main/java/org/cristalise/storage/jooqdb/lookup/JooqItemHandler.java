@@ -72,6 +72,10 @@ public class JooqItemHandler {
         .execute();
     }
 
+    public void dropTables(DSLContext context) throws PersistencyException {
+        context.dropTableIfExists(ITEM_TABLE).execute();
+    }
+
     public int updatePassword(DSLContext context, AgentPath agent, String password, boolean temporary) throws PersistencyException {
         UpdateSetMoreStep<?> update = context
                 .update(ITEM_TABLE)

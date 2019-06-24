@@ -32,6 +32,7 @@ import org.cristalise.kernel.common.InvalidDataException;
 import org.cristalise.kernel.common.ObjectNotFoundException;
 import org.cristalise.kernel.lookup.AgentPath;
 import org.cristalise.kernel.lookup.DomainPath;
+import org.cristalise.kernel.lookup.InvalidItemPathException;
 import org.cristalise.kernel.lookup.ItemPath;
 import org.cristalise.kernel.lookup.Path;
 import org.cristalise.kernel.persistency.ClusterType;
@@ -216,7 +217,8 @@ public class ProxyManager {
 
 
     /**
-     * Called by the other GetProxy methods. Fills in either the IOR or the SystemKey
+     * Called by the other GetProxy methods to either load the find the proxy in the cache
+     * or create it from the ItemPath.
      * 
      * @param ior
      * @param itemPath
@@ -228,22 +230,40 @@ public class ProxyManager {
             ItemProxy newProxy;
             // return it if it exists
             newProxy = proxyPool.get(itemPath);
+
+            // create a new one
             if (newProxy == null) {
-                // create a new one
                 newProxy = createProxy(ior, itemPath);
                 proxyPool.put(itemPath, newProxy);
             }
+
             return newProxy;
         }
     }
 
     public ItemProxy getProxy( Path path ) throws ObjectNotFoundException {
-        ItemPath itemPath;
-        if (path instanceof ItemPath) itemPath = (ItemPath)path;
-        else itemPath = path.getItemPath();
-        Logger.msg(8,"ProxyManager::getProxy(" + path.toString() + ")");
-        return getProxy( itemPath.getIOR(), itemPath );
+        ItemPath itemPath = null;
 
+        Logger.msg(8,"ProxyManager.getProxy(" + path.toString() + ")");
+
+        if (path instanceof ItemPath) {
+            try {
+                //issue #165: get ItemPath from Lookup to ensure it is a correct class
+                itemPath = Gateway.getLookup().getItemPath(((ItemPath)path).getUUID().toString());
+            }
+            catch (InvalidItemPathException e) {
+                throw new ObjectNotFoundException(e.getMessage());
+            }
+        }
+        else if (path instanceof DomainPath) {
+            //issue #165: reset target to enforce to read target from Lookup
+            ((DomainPath) path).setTargetUUID(null);
+            itemPath = path.getItemPath();
+        }
+
+        if (itemPath == null) throw new ObjectNotFoundException("Cannot use RolePath");
+
+        return getProxy( itemPath.getIOR(), itemPath );
     }
 
     public AgentProxy getAgentProxy( String agentName ) throws ObjectNotFoundException {

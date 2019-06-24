@@ -54,6 +54,11 @@ class WorkflowTestBuilder extends WorkflowBuilder {
 
         itemPath  = new ItemPath()
         agentPath = new AgentPath(new ItemPath(), "WorkflowTestBuilder")
+
+        if(Gateway.getCorbaServer() != null) {
+            Gateway.getLookupManager().add(itemPath)
+            Gateway.getLookupManager().add(agentPath)
+        }
     }
 
     /**
@@ -85,8 +90,8 @@ class WorkflowTestBuilder extends WorkflowBuilder {
      */
     public static void checkActStatus(Activity act, Map status) {
         assert act
-        assert act.getStateName() == "$status.state", "Activity '$act.name' state '${act.getStateName()}' is NOT correct"
-        assert act.getActive() == status.active, "Activity '$act.name' shall ${(status.active) ? '' : 'NOT '}be active"
+        assert act.getStateName() == "$status.state", "Activity '$act.name' shall be in '$status.state' state NOT in '${act.getStateName()}'"
+        assert act.getActive()    == status.active,   "Activity '$act.name' shall ${(status.active) ? '' : 'NOT '}be active"
     }
 
     /**

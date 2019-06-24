@@ -1,100 +1,140 @@
+
 [{
   "name": "Details",
   "cls": {"grid": {"container": "ui-g-12"}},
   "id": "Details",
   "type": "GROUP",
-  "group": [{
-    "columns": [
-      {
-        "additional": {"showButtonBar": true},
-        "format": "yy-mm-dd",
-        "cls": {
-          "grid": {
-            "container": "ui-g",
-            "control": "ui-g-8",
-            "label": "ui-g-4"
-          },
-          "element": {"label": "ui-widget"}
+  "group": [
+    {
+      "validators": {"required": null},
+      "inputType": "text",
+      "id": "Name",
+      "label": "Name *",
+      "cls": {
+        "grid": {
+          "container": "ui-g",
+          "control": "ui-g-8",
+          "label": "ui-g-4"
         },
-        "id": "ETA",
-        "label": "ETA",
-        "placeholder": "ETA",
-        "type": "DATEPICKER",
-        "required": false
+        "element": {"label": "ui-widget"}
       },
-      {
-        "validators": {"required": null},
-        "cls": {
-          "grid": {
-            "container": "ui-g",
-            "control": "ui-g-8",
-            "label": "ui-g-4"
+      "placeholder": "Name",
+      "type": "INPUT",
+      "required": true
+    },
+    {
+      "columns": [
+        {
+          "additional": {"showButtonBar": true},
+          "format": "yy-mm-dd",
+          "id": "ETA",
+          "label": "ETA",
+          "cls": {
+            "grid": {
+              "container": "ui-g",
+              "control": "ui-g-8",
+              "label": "ui-g-4"
+            },
+            "element": {"label": "ui-widget"}
           },
-          "element": {"label": "ui-widget"}
+          "placeholder": "ETA",
+          "type": "DATEPICKER",
+          "required": false
         },
-        "id": "RequiredQuantity",
-        "label": "Required Quantity *",
-        "placeholder": "Required Quantity",
-        "type": "INPUT",
-        "value": "0.0",
-        "required": true
+        {
+          "validators": {"required": null},
+          "id": "RequiredQuantity",
+          "label": "Required Quantity *",
+          "cls": {
+            "grid": {
+              "container": "ui-g",
+              "control": "ui-g-8",
+              "label": "ui-g-4"
+            },
+            "element": {"label": "ui-widget"}
+          },
+          "placeholder": "Required Quantity",
+          "type": "INPUT",
+          "value": "0.0",
+          "required": true
+        },
+        {
+          "validators": {"required": null},
+          "id": "PickedQuantity",
+          "label": "Picked Quantity *",
+          "cls": {
+            "grid": {
+              "container": "ui-g",
+              "control": "ui-g-8",
+              "label": "ui-g-4"
+            },
+            "element": {"label": "ui-widget"}
+          },
+          "placeholder": "Picked Quantity",
+          "type": "INPUT",
+          "value": "0.0",
+          "required": true
+        },
+        {
+          "validators": {"required": null},
+          "id": "MissingQuantity",
+          "label": "Missing Quantity *",
+          "cls": {
+            "grid": {
+              "container": "ui-g",
+              "control": "ui-g-8",
+              "label": "ui-g-4"
+            },
+            "element": {"label": "ui-widget"}
+          },
+          "placeholder": "Missing Quantity",
+          "type": "INPUT",
+          "value": "0.0",
+          "required": true
+        },
+        {
+          "errorMessages": {"pattern": "Trailing spaces or contains only spaces"},
+          "validators": {
+            "pattern": "^[a-zA-Z]+.*\\S+$",
+            "required": null
+          },
+          "inputType": "text",
+          "id": "Product",
+          "label": "Product *",
+          "cls": {
+            "grid": {
+              "container": "ui-g",
+              "control": "ui-g-8",
+              "label": "ui-g-4"
+            },
+            "element": {"label": "ui-widget"}
+          },
+          "placeholder": "Product",
+          "type": "INPUT",
+          "required": true
+        }
+      ],
+      "name": "Table",
+      "id": "Table",
+      "type": "TABLE",
+      "rows": []
+    },
+    {
+      "validators": {"required": null},
+      "inputType": "text",
+      "id": "Comment",
+      "label": "Comment *",
+      "cls": {
+        "grid": {
+          "container": "ui-g",
+          "control": "ui-g-8",
+          "label": "ui-g-4"
+        },
+        "element": {"label": "ui-widget"}
       },
-      {
-        "validators": {"required": null},
-        "cls": {
-          "grid": {
-            "container": "ui-g",
-            "control": "ui-g-8",
-            "label": "ui-g-4"
-          },
-          "element": {"label": "ui-widget"}
-        },
-        "id": "PickedQuantity",
-        "label": "Picked Quantity *",
-        "placeholder": "Picked Quantity",
-        "type": "INPUT",
-        "value": "0.0",
-        "required": true
-      },
-      {
-        "validators": {"required": null},
-        "cls": {
-          "grid": {
-            "container": "ui-g",
-            "control": "ui-g-8",
-            "label": "ui-g-4"
-          },
-          "element": {"label": "ui-widget"}
-        },
-        "id": "MissingQuantity",
-        "label": "Missing Quantity *",
-        "placeholder": "Missing Quantity",
-        "type": "INPUT",
-        "value": "0.0",
-        "required": true
-      },
-      {
-        "errorMessages": {"pattern": "Trailing spaces or contains only spaces"},
-        "validators": {"pattern": "^[a-zA-Z]+.*\\S+$", "required": null},
-        "inputType": "text",
-        "cls": {
-          "grid": {
-            "container": "ui-g",
-            "control": "ui-g-8",
-            "label": "ui-g-4"
-          },
-          "element": {"label": "ui-widget"}
-        },
-        "id": "Product",
-        "label": "Product *",
-        "placeholder": "Product",
-        "type": "INPUT",
-        "required": true
-      }
-    ],
-    "name": "Table",
-    "id": "Table",
-    "type": "TABLE",
-    "rows": []
-  }]
+      "placeholder": "Comment",
+      "type": "INPUT",
+      "required": true
+    }
+  ]
 }]

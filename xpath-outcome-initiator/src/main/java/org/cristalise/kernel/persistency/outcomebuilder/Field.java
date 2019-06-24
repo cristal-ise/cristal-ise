@@ -142,7 +142,8 @@ public class Field extends OutcomeStructure {
             }
         }
         else if (json instanceof JSONArray) {
-            throw new UnsupportedOperationException("Field name '" + name + "' contains an ARRAY");
+            Logger.warning("Field.addJsonInstance() - Field name '" + name + "' contains an ARRAY. Parsing ARRAY to String");
+            setJsonValue(parentStruct, parentElement, name, json.toString());
         }
         else {
             //json variable is not JSOObject nor JSONArray, so handle it as a value

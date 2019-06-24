@@ -95,7 +95,7 @@ public class ItemProxy
      * @param itemPath
      */
     protected ItemProxy( org.omg.CORBA.Object  ior, ItemPath itemPath) {
-        Logger.msg(8, "ItemProxy::initialise() - path:" +itemPath);
+        Logger.msg(8, "ItemProxy() - path:" +itemPath);
 
         mIOR            = ior;
         mItemPath       = itemPath;

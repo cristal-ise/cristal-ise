@@ -44,7 +44,11 @@
       "validators": {"required": null},
       "additional": {
         "showButtonBar": true,
-        "updateScriptRef":"Script:0"
+        "warning": {
+          "expression": "var m = moment('2015-11-32', 'YYYY-MM-DD'); m.isValid();",
+          "message": "Date is invalid"
+        },
+        "updateScriptRef": "Script:0"
       },
       "format": "yy-mm-dd",
       "cls": {
@@ -95,6 +99,10 @@
     },
     {
       "validators": {"required": null},
+      "additional": {"warning": {
+        "pattern": "^[0-9]{1,4}$",
+        "message": "Value out of specification, has to be <= 9999"
+      }},
       "cls": {
         "grid": {
           "container": "ui-g",

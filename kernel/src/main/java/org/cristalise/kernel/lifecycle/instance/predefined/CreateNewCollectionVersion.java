@@ -91,13 +91,8 @@ public class CreateNewCollectionVersion extends PredefinedStep {
         Gateway.getStorage().clearCache(item, ClusterType.COLLECTION+"/"+collName+"/last");
 
         // Set the version & store it
-        try {
-            coll.setVersion(newVersion);
-            Gateway.getStorage().put(item, coll, locker);
-        }
-        catch (PersistencyException e) {
-            throw new PersistencyException("CreateNewCollectionVersion: Error saving new collection '"+collName+"': "+e.getMessage());
-        }
+        coll.setVersion(newVersion);
+        Gateway.getStorage().put(item, coll, locker);
 
         return requestData;
     }
