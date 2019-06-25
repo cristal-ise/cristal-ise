@@ -22,10 +22,8 @@ package org.cristalise.kernel.entity.imports;
 
 import static org.cristalise.kernel.property.BuiltInItemProperties.NAME;
 import static org.cristalise.kernel.property.BuiltInItemProperties.TYPE;
-
 import java.util.ArrayList;
 import java.util.List;
-
 import org.apache.commons.lang3.StringUtils;
 import org.cristalise.kernel.common.CannotManageException;
 import org.cristalise.kernel.common.ObjectAlreadyExistsException;
@@ -42,12 +40,11 @@ import org.cristalise.kernel.process.module.ModuleImport;
 import org.cristalise.kernel.property.Property;
 import org.cristalise.kernel.property.PropertyArrayList;
 import org.cristalise.kernel.utils.LocalObjectLoader;
-import org.cristalise.kernel.utils.Logger;
-
 import lombok.Getter;
 import lombok.Setter;
+import lombok.extern.slf4j.Slf4j;
 
-@Getter @Setter
+@Getter @Setter @Slf4j
 public class ImportAgent extends ModuleImport {
 
     private String                password;
@@ -86,7 +83,7 @@ public class ImportAgent extends ModuleImport {
                     null, "", "");
         }
         catch (Exception ex) {
-            Logger.error(ex);
+            log.error("Error initialising new agent name:{}", name, ex);
             Gateway.getLookupManager().delete(newAgent);
             throw new CannotManageException("Error initialising new agent name:"+name);
         }
