@@ -21,20 +21,14 @@
 package org.cristalise.dsl.test.entity
 
 import org.cristalise.dsl.entity.RoleBuilder
+import org.cristalise.kernel.lifecycle.instance.predefined.agent.Login
+import org.cristalise.kernel.lifecycle.instance.predefined.agent.Logout
 import org.cristalise.kernel.test.utils.CristalTestSetup
 import spock.lang.Specification
 /**
  *
  */
 class RoleBuilderSpecs extends Specification implements CristalTestSetup {
-
-    final String PREDEFINED_STEPS = "UpdateRole,AddNewCollectionDescription," +
-            "AddMemberToCollection,CreateNewRole,WriteViewpoint,Erase,SetAgentPassword,RemoveAgent," +
-            "CreateNewItem,AssignItemToSlot,UpdateDependencyMember,ClearSlot,BulkImport," +
-            "ReplaceDomainWorkflow,RemoveViewpoint,WriteProperty,Import,AddDomainContext," +
-            "RemoveSlotFromCollection,RemoveDomainContext,CreateItemFromDescription,AddC2KObject," +
-            "AddDomainPath,RemoveRole,CreateAgentFromDescription,CreateNewAgent,SetAgentRoles," +
-            "RemoveDomainPath,AddNewSlot,ChangeName,RemoveC2KObject,CreateNewCollectionVersion"
 
     def setup()   { loggerSetup()    }
     def cleanup() { cristalCleanup() }
@@ -75,33 +69,20 @@ class RoleBuilderSpecs extends Specification implements CristalTestSetup {
             }
             Role(name: 'User')
         }
+        def steps = roles[1].getPredefinedStepNames()
 
         then:
         roles[0].name == "QA"
         roles[0].jobList == false
+        roles[0].permissions.size() == 2
         roles[0].permissions[0] == 'BatchFactory:Create:*'
         roles[0].permissions[1] == 'Batch:Review:*'
         roles[1].name == "User"
         roles[1].permissions.size == 0
+
+        println steps
+        steps.size() == 41
+        steps.contains(Login.class.getSimpleName())
+        steps.contains(Logout.class.getSimpleName())
     }
-
-    def "Create Role with predefined steps permissions"() {
-        when:
-        def roles = RoleBuilder.build {
-            Role(name: 'Engineer'){
-                Permission("*:" + PREDEFINED_STEPS + ":*")
-            }
-        }
-
-        then:
-        roles[0].name == "Engineer"
-        roles[0].jobList == false
-        roles[0].permissions[0] == "*:" + PREDEFINED_STEPS + ":*"
-        def defaultList = PREDEFINED_STEPS.tokenize(',')
-        def scannedSteps = roles[0].getPredefinedSteps()
-        def commonSteps = scannedSteps.intersect(defaultList)
-        defaultList.size() == scannedSteps.size()
-        commonSteps.size() == defaultList.size()
-    }
-
 }

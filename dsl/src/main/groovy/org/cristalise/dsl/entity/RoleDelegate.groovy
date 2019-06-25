@@ -52,14 +52,14 @@ class RoleDelegate {
 
         if (cl) cl()
     }
-    
+
     public void Permission(String p) {
         roles[roles.size-1].permissions.add(p)
     }
 
     public void Permission(Map<String, String>  args) {
-        assert args.domain && args.actions && args.targets, 'domain:actions:targets triplet must be set' 
+        assert args.domain && args.actions && args.targets, 'domain:actions:targets triplet must be set'
 
-        roles[roles.size-1].permissions.add("${args.domain}:${args.actions}:${args.targets}".toString())
+        Permission("${args.domain}:${args.actions}:${args.targets}".toString())
     }
 }

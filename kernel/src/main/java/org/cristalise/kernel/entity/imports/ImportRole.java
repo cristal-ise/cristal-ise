@@ -20,7 +20,9 @@
  */
 package org.cristalise.kernel.entity.imports;
 
+import static org.cristalise.kernel.security.BuiltInAuthc.ADMIN_ROLE;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import org.apache.commons.lang3.StringUtils;
@@ -30,6 +32,7 @@ import org.cristalise.kernel.common.ObjectAlreadyExistsException;
 import org.cristalise.kernel.common.ObjectCannotBeUpdated;
 import org.cristalise.kernel.common.ObjectNotFoundException;
 import org.cristalise.kernel.lifecycle.instance.predefined.PredefinedStep;
+import org.cristalise.kernel.lifecycle.instance.predefined.item.CreateItemFromDescription;
 import org.cristalise.kernel.lookup.AgentPath;
 import org.cristalise.kernel.lookup.Path;
 import org.cristalise.kernel.lookup.RolePath;
@@ -50,14 +53,9 @@ public class ImportRole extends ModuleImport {
     public Path create(AgentPath agentPath, boolean reset)
             throws ObjectAlreadyExistsException, ObjectCannotBeUpdated, CannotManageException, ObjectNotFoundException
     {
-        RolePath newRolePath = new RolePath(name.split("/"), (jobList == null) ? false : jobList, permissions);
+        addPredefinedStepsPermission();
 
-        if (!"Admin".equals(name)) {
-            String steps = getStringPredefinedSteps();
-            if (StringUtils.isNotEmpty(steps)) {
-                newRolePath.getPermissions().add(steps);
-            }
-        }
+        RolePath newRolePath = new RolePath(name.split("/"), (jobList == null) ? false : jobList, permissions);
 
         if (Gateway.getLookup().exists(newRolePath)) {
             //If jobList is null it means it was NOT set in the module.xml, therefore existing Role cannot be updated
@@ -72,6 +70,7 @@ public class ImportRole extends ModuleImport {
             Gateway.getLookupManager().createRole(newRolePath);
             Gateway.getLookupManager().setPermissions(newRolePath, newRolePath.getPermissionsList());
         }
+
         return newRolePath;
     }
 
@@ -86,14 +85,9 @@ public class ImportRole extends ModuleImport {
     public void update(AgentPath agentPath)
             throws ObjectAlreadyExistsException, ObjectCannotBeUpdated, CannotManageException, ObjectNotFoundException
     {
-        RolePath rolePath = new RolePath(name.split("/"), (jobList == null) ? false : jobList, permissions);
+        addPredefinedStepsPermission();
 
-        if (!"Admin".equals(name)) {
-          String steps = getStringPredefinedSteps();
-          if (StringUtils.isNotEmpty(steps)) {
-            rolePath.getPermissions().add(steps);
-          }
-        }
+        RolePath rolePath = new RolePath(name.split("/"), (jobList == null) ? false : jobList, permissions);
 
         if (!Gateway.getLookup().exists(rolePath))
             throw new ObjectNotFoundException("Role '" + rolePath.getName() + "' does NOT exists.");
@@ -118,31 +112,61 @@ public class ImportRole extends ModuleImport {
     }
 
     /**
-     * Scan the Cristal's predefined steps package and get all
-     * the steps' names.
-     * @return
+     * Adds the permission string for all predefined steps if it does not exists already
      */
-    public List<String> getPredefinedSteps() {
-        List<String> stepNames = new ArrayList<>();
+    public void addPredefinedStepsPermission() {
+        boolean addFlag = true;
+
+        for (String actualPermission: permissions) {
+            if (actualPermission.contains(CreateItemFromDescription.class.getSimpleName())) addFlag = false;
+        }
+
+        if (addFlag && permissions.size() != 0) {
+            String steps = getPredefinedStepsPermissionString();
+
+            if (StringUtils.isNotBlank(steps)) {
+                Logger.msg(8, "ImportRole.addPredefinedStepsPermission() - '%s' has permissions %s", name, steps);
+                permissions.add(steps);
+            }
+        }
+    }
+
+    /**
+     * Scan the Cristal's predefined steps packages to get names of all the predefined steps.
+     * 
+     * @return list of strings of the predefined steps class Simple name
+     */
+    public List<String> getPredefinedStepNames() {
+        ArrayList<String> stepNames = new ArrayList<String>();
+
         Reflections reflections = new Reflections(predefinedStepsPackage);
         Set<Class<? extends PredefinedStep>> classes = reflections.getSubTypesOf(PredefinedStep.class);
 
         for (Class<? extends PredefinedStep> clazz : classes) {
             String clazzName = clazz.getSimpleName();
-            if (!"PredefinedStepCollectionBase".equals(clazzName))
-                stepNames.add(clazz.getSimpleName());
+
+            if (!"PredefinedStepCollectionBase".equals(clazzName)) stepNames.add(clazz.getSimpleName());
         }
+
+        //The list is sorted for easier maintenance and testing
+        Collections.sort(stepNames);
+
         return stepNames;
     }
 
     /**
-     * Gets the predefined steps and convert to comma separated permissions.
+     * Gets the predefined steps and convert to comma separated permission string.
      * @return
      */
-    private String getStringPredefinedSteps() {
-        List<String> steps = getPredefinedSteps();
-        if (!CollectionUtils.isEmpty(steps))
-            return "*:" + String.join(",",steps) + ":*";
+    public String getPredefinedStepsPermissionString() {
+        if (!ADMIN_ROLE.getName().equals(name)) {
+            List<String> steps = getPredefinedStepNames();
+
+            if (!CollectionUtils.isEmpty(steps)) return "*:" + String.join(",", steps) + ":*";
+        }
+        else {
+            Logger.msg(5, "ImportRole.getPredefinedStepsPermissionString() - '%s' role does not require permissions for predefined steps", name);
+        }
 
         return StringUtils.EMPTY;
     }
