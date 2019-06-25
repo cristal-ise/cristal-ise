@@ -52,7 +52,8 @@ import org.cristalise.kernel.property.PropertyArrayList;
 import org.cristalise.kernel.utils.CastorHashMap;
 import org.cristalise.kernel.utils.KeyValuePair;
 import org.cristalise.kernel.utils.LocalObjectLoader;
-import org.cristalise.kernel.utils.Logger;
+
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * A Collection implementation that contains a variable number of members of the
@@ -63,6 +64,7 @@ import org.cristalise.kernel.utils.Logger;
  * <p>ClassProps are stored at the collection level and duplicated in each slot.
  * Slots may still have their own individual properties annotating their link.
  */
+@Slf4j
 public class Dependency extends Collection<DependencyMember> {
 
     protected CastorHashMap mProperties = new CastorHashMap();
@@ -177,7 +179,7 @@ public class Dependency extends Collection<DependencyMember> {
         DependencyMember depMember = createMember(itemPath);
         mMembers.list.add(depMember);
 
-        Logger.msg(8, "Dependency.addMember(" + itemPath + ") added to children with slotId:"+depMember.getID());
+        log.trace("addMember(" + itemPath + ") added to children with slotId:"+depMember.getID());
         return depMember;
     }
 
@@ -240,7 +242,7 @@ public class Dependency extends Collection<DependencyMember> {
     {
         DependencyMember depMember = createMember(itemPath, props);
         mMembers.list.add(depMember);
-        Logger.msg(8, "Dependency.addMember(" + itemPath + ") added to children with slotId:"+depMember.getID());
+        log.trace("addMember(" + itemPath + ") added to children with slotId:"+depMember.getID());
         return depMember;
     }
 
@@ -258,7 +260,7 @@ public class Dependency extends Collection<DependencyMember> {
         if (itemPath == null)
             throw new InvalidCollectionModification("Cannot add empty slot to Dependency collection");
 
-        boolean checkUniqueness = Gateway.getProperties().getBoolean("Dependency.checkMemberUniqueness", true);
+        boolean checkUniqueness = Gateway.getProperties().getBoolean("checkMemberUniqueness", true);
 
         if (checkUniqueness && contains(itemPath))
             throw new ObjectAlreadyExistsException("Item "+itemPath+" already exists in Dependency "+getName());
@@ -303,7 +305,7 @@ public class Dependency extends Collection<DependencyMember> {
      * @param props the current list of ItemProperties
      */
     public void addToItemProperties(PropertyArrayList props) throws InvalidDataException, ObjectNotFoundException {
-        Logger.msg(2, "Dependency.addToItemProperties("+getName()+") - Starting ...");
+        log.info("addToItemProperties("+getName()+") - Starting ...");
 
         //convert to BuiltInCollections
         BuiltInCollections builtInColl = BuiltInCollections.getValue(getName());
@@ -321,7 +323,7 @@ public class Dependency extends Collection<DependencyMember> {
             //  - or this is not a BuiltInCollection
             if (convertToItemPropertyByScript(props, member) || builtInColl == null) continue;
 
-            Logger.msg(5, "Dependency.addToItemProperties() - BuiltIn Dependency:"+getName()+" memberUUID:"+memberUUID);
+            log.debug("addToItemProperties() - BuiltIn Dependency:"+getName()+" memberUUID:"+memberUUID);
             //LocalObjectLoader checks if data is valid and loads object to cache
             switch (builtInColl) {
                 //***************************************************************************************************
@@ -341,21 +343,21 @@ public class Dependency extends Collection<DependencyMember> {
                     break;
                 //***************************************************************************************************
                 case STATE_MACHINE:
-                    if (Gateway.getProperties().getBoolean("Dependency.addStateMachineURN", false) ) {
+                    if (Gateway.getProperties().getBoolean("addStateMachineURN", false) ) {
                         LocalObjectLoader.getStateMachine(memberUUID, memberVer);
                         props.put(new Property(STATE_MACHINE_URN, memberUUID+":"+memberVer));
                     }
                     break;
                 //***************************************************************************************************
                 case WORKFLOW:
-                    if (Gateway.getProperties().getBoolean("Dependency.addWorkflowURN", false) ) {
+                    if (Gateway.getProperties().getBoolean("addWorkflowURN", false) ) {
                         LocalObjectLoader.getCompActDef(memberUUID, memberVer);
                         props.put(new Property(WORKFLOW_URN, memberUUID+":"+memberVer));
                     }
                     break;
                 //***************************************************************************************************
                 default:
-                    Logger.msg(8, "Dependency.addToItemProperties() - Cannot handle BuiltIn Dependency:"+getName());
+                    log.trace("addToItemProperties() - Cannot handle BuiltIn Dependency:"+getName());
                     break;
             }
         }
@@ -371,7 +373,7 @@ public class Dependency extends Collection<DependencyMember> {
      * @throws ObjectNotFoundException
      */
     private boolean convertToItemPropertyByScript(PropertyArrayList props, DependencyMember member)  throws InvalidDataException, ObjectNotFoundException {
-        Logger.msg(5, "Dependency.convertToItemPropertyByScript() - Dependency:"+getName()+" memberUUID:"+member.getChildUUID());
+        log.debug("convertToItemPropertyByScript() - Dependency:"+getName()+" memberUUID:"+member.getChildUUID());
 
         String scriptName = (String)member.getBuiltInProperty(SCRIPT_NAME);
 
@@ -392,7 +394,7 @@ public class Dependency extends Collection<DependencyMember> {
      * @throws ObjectNotFoundException objects were not found while reading the properties
      */
     public void addToVertexProperties(CastorHashMap props) throws InvalidDataException, ObjectNotFoundException {
-        Logger.msg(2, "Dependency.addToVertexProperties("+getName()+") - Starting ...");
+        log.info("addToVertexProperties("+getName()+") - Starting ...");
 
         BuiltInCollections builtInColl = BuiltInCollections.getValue(getName());
 
@@ -409,7 +411,7 @@ public class Dependency extends Collection<DependencyMember> {
             //  - or this is not a BuiltInCollection
             if (convertToVertextPropsByScript(props, member) || builtInColl == null) continue;
 
-            Logger.msg(5, "Dependency.addToVertexProperties() - Dependency:"+getName()+" memberUUID:"+memberUUID);
+            log.debug("addToVertexProperties() - Dependency:"+getName()+" memberUUID:"+memberUUID);
             //LocalObjectLoader checks if data is valid and loads object to cache
             switch (builtInColl) {
                 //***************************************************************************************************
@@ -422,7 +424,7 @@ public class Dependency extends Collection<DependencyMember> {
                     catch (ObjectNotFoundException e) {
                         //Schema dependency could be defined in Properties
                         if(props.containsKey(SCHEMA_NAME.getName())) {
-                            Logger.msg(8, "Dependency.addToVertexProperties() - BACKWARD COMPABILITY: Dependency '"+getName()+"' is defined in Properties");
+                            log.trace("addToVertexProperties() - BACKWARD COMPABILITY: Dependency '"+getName()+"' is defined in Properties");
                             String uuid = LocalObjectLoader.getSchema(props).getItemPath().getUUID().toString();
                             props.setBuiltInProperty(SCHEMA_NAME, uuid);
                         }
@@ -438,7 +440,7 @@ public class Dependency extends Collection<DependencyMember> {
                     catch (ObjectNotFoundException e) {
                         //Backward compability: Script dependency could be defined in Properties
                         if(props.containsKey(SCRIPT_NAME.getName())) {
-                            Logger.msg(8, "Dependency.addToVertexProperties() - BACKWARD COMPABILITY: Dependency '"+getName()+"' is defined in Properties");
+                            log.trace("addToVertexProperties() - BACKWARD COMPABILITY: Dependency '"+getName()+"' is defined in Properties");
                             String uuid = LocalObjectLoader.getScript(props).getItemPath().getUUID().toString();
                             props.setBuiltInProperty(SCRIPT_NAME, uuid);
                         }
@@ -454,7 +456,7 @@ public class Dependency extends Collection<DependencyMember> {
                     catch (ObjectNotFoundException e) {
                         //Backward compability: Query dependency could be defined in Properties
                         if(props.containsKey(QUERY_NAME.getName())) {
-                            Logger.msg(8, "Dependency.addToVertexProperties() - BACKWARD COMPABILITY: Dependency '"+getName()+"' is defined in Properties");
+                            log.trace("addToVertexProperties() - BACKWARD COMPABILITY: Dependency '"+getName()+"' is defined in Properties");
                             String uuid = LocalObjectLoader.getQuery(props).getItemPath().getUUID().toString();
                             props.setBuiltInProperty(QUERY_NAME, uuid);
                         }
@@ -469,7 +471,7 @@ public class Dependency extends Collection<DependencyMember> {
                     }
                     catch (ObjectNotFoundException e) {
                         if(props.containsKey(STATE_MACHINE_NAME.getName())) {
-                            Logger.msg(8, "Dependency.addToVertexProperties() -  BACKWARD COMPABILITY: Dependency '"+getName()+"' is defined in Properties");
+                            log.trace("addToVertexProperties() -  BACKWARD COMPABILITY: Dependency '"+getName()+"' is defined in Properties");
                             String uuid = LocalObjectLoader.getStateMachine(props).getItemPath().getUUID().toString();
                             props.setBuiltInProperty(STATE_MACHINE_NAME, uuid);
                         }
@@ -481,20 +483,19 @@ public class Dependency extends Collection<DependencyMember> {
                     CastorHashMap chm = null;
 
                     if(props.containsKey(ACTIVITY_DEF_URN.getName())) {
-                        chm = (CastorHashMap)props.getBuiltInProperty(ACTIVITY_DEF_URN);
                     }
                     else {
                         chm = new CastorHashMap();
                         props.setBuiltInProperty(ACTIVITY_DEF_URN, chm);
                     }
 
-                    Logger.msg(8, "Dependency.addToVertexProperties("+getName()+") - actDef:"+actDef.getActName());
+                    log.trace("addToVertexProperties("+getName()+") - actDef:"+actDef.getActName());
 
                     chm.put(actDef.getActName(), memberUUID+"~"+memberVer);
                     break;
                 //***************************************************************************************************
                 default:
-                    Logger.msg(8, "Dependency.addToVertexProperties() - Cannot handle BuiltIn Dependency:"+getName());
+                    log.trace("addToVertexProperties() - Cannot handle BuiltIn Dependency:"+getName());
                     break;
             }
         }
@@ -510,7 +511,7 @@ public class Dependency extends Collection<DependencyMember> {
      * @throws ObjectNotFoundException
      */
     private boolean convertToVertextPropsByScript(CastorHashMap props, DependencyMember member) throws InvalidDataException, ObjectNotFoundException {
-        Logger.msg(5, "Dependency.convertToVertextPropsByScript() - Dependency:"+getName()+" memberUUID:"+member.getChildUUID());
+        log.debug("convertToVertextPropsByScript() - Dependency:"+getName()+" memberUUID:"+member.getChildUUID());
 
         String scriptName = (String)member.getBuiltInProperty(SCRIPT_NAME);
 

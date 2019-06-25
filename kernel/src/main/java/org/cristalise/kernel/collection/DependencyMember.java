@@ -21,8 +21,8 @@
 package org.cristalise.kernel.collection;
 
 import java.util.Iterator;
-import java.util.StringTokenizer;
 import java.util.Map.Entry;
+import java.util.StringTokenizer;
 
 import org.cristalise.kernel.common.InvalidCollectionModification;
 import org.cristalise.kernel.common.InvalidDataException;
@@ -39,8 +39,10 @@ import org.cristalise.kernel.scripting.ScriptingEngineException;
 import org.cristalise.kernel.utils.CastorHashMap;
 import org.cristalise.kernel.utils.KeyValuePair;
 import org.cristalise.kernel.utils.LocalObjectLoader;
-import org.cristalise.kernel.utils.Logger;
 
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
 public class DependencyMember implements CollectionMember {
     private ItemPath      mItemPath   = null;
     private ItemProxy     mItem       = null;
@@ -111,11 +113,11 @@ public class DependencyMember implements CollectionMember {
                         throw new InvalidCollectionModification("Property " + aClassProp + " does not exist for item " + itemPath);
 
                     if (!itemProperty.getValue().equalsIgnoreCase(memberValue))
-                        throw new InvalidCollectionModification("DependencyMember::checkProperty() Values of mandatory prop " + aClassProp
+                        throw new InvalidCollectionModification("checkProperty() Values of mandatory prop " + aClassProp
                                 + " do not match " + itemProperty.getValue() + "!=" + memberValue);
                 }
                 catch (Exception ex) {
-                    Logger.error(ex);
+                    log.error("", ex);
                     throw new InvalidCollectionModification("Error checking properties");
                 }
             }
@@ -163,7 +165,7 @@ public class DependencyMember implements CollectionMember {
      * @throws ObjectNotFoundException
      */
     protected Object evaluateScript() throws InvalidDataException, ObjectNotFoundException {
-        Logger.msg(5, "DependencyMember.evaluateScript() - memberUUID:" + getChildUUID());
+        log.debug("evaluateScript() - memberUUID:" + getChildUUID());
         Script script = LocalObjectLoader.getScript(getProperties());
 
         try {
@@ -176,7 +178,7 @@ public class DependencyMember implements CollectionMember {
             return script.evaluate(getItemPath(), getProperties(), null, null);
         }
         catch (ScriptingEngineException e) {
-            Logger.error(e);
+            log.error("", e);
             throw new InvalidDataException(e.getMessage());
         }
     }
