@@ -44,11 +44,13 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriBuilder;
 import javax.ws.rs.core.UriInfo;
+
 import org.apache.commons.lang3.StringUtils;
 import org.cristalise.kernel.collection.Aggregation;
 import org.cristalise.kernel.collection.AggregationMember;
@@ -84,22 +86,21 @@ import org.cristalise.kernel.utils.CastorHashMap;
 import org.cristalise.kernel.utils.DateUtility;
 import org.cristalise.kernel.utils.KeyValuePair;
 import org.cristalise.kernel.utils.LocalObjectLoader;
-import org.cristalise.kernel.utils.Logger;
 import org.json.JSONObject;
 import org.json.XML;
 
-//import javax.ws.rs.core.Response;
+import lombok.extern.slf4j.Slf4j;
 
+
+@Slf4j
 public abstract class ItemUtils extends RestHandler {
 
     protected static final String PREDEFINED_PATH = "workflow/predefined/";
-    private static int defaultLogLevel;
     final DateFormat dateFormatter;
 
     public ItemUtils() {
         super();
         dateFormatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-        defaultLogLevel = Gateway.getProperties().getInt("LOGGER.defaultLevel", 9);
     }
 
     protected static URI getItemURI(UriInfo uri, ItemProxy item, Object...path) {
@@ -146,18 +147,18 @@ public abstract class ItemUtils extends RestHandler {
         try {
             itemPath = Gateway.getLookup().getItemPath(uuid);
         } catch (InvalidItemPathException e) {
-            Logger.error(e);
-            throw ItemUtils.createWebAppException(e.getMessage(), BAD_REQUEST); // Bad Request - the UUID wasn't valid
+            log.error("the UUID wasn't valid", e);
+            throw ItemUtils.createWebAppException(e.getMessage(), BAD_REQUEST);
         } catch (ObjectNotFoundException e) {
-            Logger.error(e);
-            throw ItemUtils.createWebAppException(e.getMessage(), NOT_FOUND); // UUID isn't used in this server
+            log.error(" UUID isn't used in this server", e);
+            throw ItemUtils.createWebAppException(e.getMessage(), NOT_FOUND);
         }
 
         try {
             item = Gateway.getProxyManager().getProxy(itemPath);
         } catch (ObjectNotFoundException e) {
-            Logger.error(e);
-            throw ItemUtils.createWebAppException(e.getMessage(), NOT_FOUND); // Not found - the path doesn't exist
+            log.error("the path doesn't exist", e);
+            throw ItemUtils.createWebAppException(e.getMessage(), NOT_FOUND);
         }
         return item;
     }
@@ -169,7 +170,7 @@ public abstract class ItemUtils extends RestHandler {
             return getOutcomeResponse(view.getOutcome(), json);
         }
         catch (PersistencyException | ObjectNotFoundException e) {
-            Logger.error(e);
+            log.error("getViewpointOutcome", e);
             throw ItemUtils.createWebAppException(e.getMessage(), e, NOT_FOUND);
         }
     }
@@ -181,7 +182,7 @@ public abstract class ItemUtils extends RestHandler {
             return getOutcomeResponse(outcome, (Event)RemoteMapAccess.get(item, HISTORY, Integer.toString(eventId)), json);
         }
         catch (ObjectNotFoundException e) {
-            Logger.error(e);
+            log.error("getOutcome", e);
             throw ItemUtils.createWebAppException(e.getMessage(), NOT_FOUND);
         }
     }
@@ -207,7 +208,7 @@ public abstract class ItemUtils extends RestHandler {
             return childrenData;
         }
         catch (ObjectNotFoundException e) {
-            Logger.error(e);
+            log.error("enumerate", e);
             throw ItemUtils.createWebAppException("Database Error");
         }
     }
@@ -266,7 +267,7 @@ public abstract class ItemUtils extends RestHandler {
             return getOutcomeResponse(oc, eventDate, json);
         }
         catch (ParseException e) {
-            Logger.error(e);
+            log.error("Invalid timestamp in event "+ev.getID()+": "+ev.getTimeString(), e);
             throw ItemUtils.createWebAppException("Invalid timestamp in event "+ev.getID()+": "+ev.getTimeString());
         }
     }
@@ -402,7 +403,7 @@ public abstract class ItemUtils extends RestHandler {
             outcomeData.put("schemaUrl",     uri.getBaseUriBuilder().path("schema").path(job.getSchema().getName()).path(String.valueOf(job.getSchema().getVersion())).build());
         }
         catch (InvalidDataException | ObjectNotFoundException e) {
-            Logger.error(e);
+            log.error("Schema not found", e);
             outcomeData.put("schema", "Schema not found");
         }
 
@@ -521,8 +522,8 @@ public abstract class ItemUtils extends RestHandler {
      * @return WebApplicationException response
      */
     public static WebApplicationException createWebAppException(String msg, Exception ex, Response.Status status) {
-        Logger.debug(8, "ItemUtils.createWebAppException() - msg:"+ msg + " status:" + status);
-        if (ex != null && Logger.doLog(defaultLogLevel)) Logger.error(ex);
+        log.debug("createWebAppException() - msg:{} status:{}", msg, status);
+        if (ex != null) log.trace("", ex);
 
         if (Gateway.getProperties().getBoolean("REST.Debug.errorsWithBody", false)) {
             StringBuffer sb = new StringBuffer("[errorMessage]");

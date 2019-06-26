@@ -43,9 +43,10 @@ import org.cristalise.kernel.persistency.outcomebuilder.OutcomeBuilder;
 import org.cristalise.kernel.persistency.outcomebuilder.OutcomeBuilderException;
 import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.utils.LocalObjectLoader;
-import org.cristalise.kernel.utils.Logger;
 
-@Path("/schema")
+import lombok.extern.slf4j.Slf4j;
+
+@Path("/schema") @Slf4j
 public class SchemaAccess extends ResourceAccess {
 
     @GET
@@ -113,11 +114,11 @@ public class SchemaAccess extends ResourceAccess {
             return Response.ok(new OutcomeBuilder(schema, false).generateNgDynamicForms()).build();
         }
         catch (ObjectNotFoundException | InvalidDataException | OutcomeBuilderException e) {
-            Logger.error(e);
+            log.error("Schema "+name+" v"+version+" doesn't point to any data", e);
             throw ItemUtils.createWebAppException("Schema "+name+" v"+version+" doesn't point to any data", e, Response.Status.NOT_FOUND);
         }
         catch(Exception e) {
-            Logger.error(e);
+            log.error("Schema "+name+" v"+version, e);
             throw ItemUtils.createWebAppException("Schema "+name+" v"+version, e, Response.Status.INTERNAL_SERVER_ERROR);
         }
     }
@@ -137,7 +138,7 @@ public class SchemaAccess extends ResourceAccess {
             return Response.ok(new OutcomeBuilder(schema).exportViewTemplate()).build();
         }
         catch (ObjectNotFoundException | InvalidDataException | OutcomeBuilderException e) {
-            Logger.error(e);
+            log.error("Schema "+name+" v"+version+" doesn't point to any data", e);
             throw ItemUtils.createWebAppException("Schema "+name+" v"+version+" doesn't point to any data", Response.Status.NOT_FOUND);
         }
     }

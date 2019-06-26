@@ -43,12 +43,14 @@ import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.process.resource.BuiltInResources;
 import org.cristalise.kernel.property.Property;
 import org.cristalise.kernel.utils.LocalObjectLoader;
-import org.cristalise.kernel.utils.Logger;
 import org.exolab.castor.mapping.MappingException;
 import org.exolab.castor.xml.MarshalException;
 import org.exolab.castor.xml.ValidationException;
 import org.json.XML;
 
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
 public class ResourceAccess extends ItemUtils {
 
     public Response listAllResources(BuiltInResources resource, UriInfo uri, int start, int batchSize) {
@@ -127,7 +129,7 @@ public class ResourceAccess extends ItemUtils {
             return childrenData;
         }
         catch (ObjectNotFoundException e) {
-            Logger.error(e);
+            log.error("Database error", e);
             throw ItemUtils.createWebAppException("Database Error");
         }
     }

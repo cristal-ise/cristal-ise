@@ -37,9 +37,10 @@ import org.cristalise.kernel.lifecycle.instance.predefined.agent.LoginTimeout;
 import org.cristalise.kernel.lifecycle.instance.predefined.agent.Logout;
 import org.cristalise.kernel.lookup.AgentPath;
 import org.cristalise.kernel.process.Gateway;
-import org.cristalise.kernel.utils.Logger;
 
-@Path("logout")
+import lombok.extern.slf4j.Slf4j;
+
+@Path("logout") @Slf4j
 public class CookieLogout extends RestHandler   {
 
     @GET
@@ -51,7 +52,7 @@ public class CookieLogout extends RestHandler   {
     {
         AgentPath ap = checkAuthCookie(authCookie);
 
-        Logger.msg(5, "CookieLogout() - agent:'%s' reason:'%s'", ap.getAgentName(), reason);
+        log.debug("agent:'{}' reason:'{}'", ap.getAgentName(), reason);
 
         try {
             AgentProxy agent = Gateway.getProxyManager().getAgentProxy(ap);
@@ -61,7 +62,7 @@ public class CookieLogout extends RestHandler   {
             else                                   agent.execute(agent, Logout.class);
         }
         catch (Exception e) {
-            Logger.error(e);
+            log.error("Problem logging out", e);
             throw ItemUtils.createWebAppException("Problem logging out", Response.Status.INTERNAL_SERVER_ERROR);
         }
 

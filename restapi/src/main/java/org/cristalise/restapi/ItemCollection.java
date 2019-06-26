@@ -49,9 +49,10 @@ import org.cristalise.kernel.persistency.outcomebuilder.OutcomeBuilder;
 import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.scripting.Script;
 import org.cristalise.kernel.utils.LocalObjectLoader;
-import org.cristalise.kernel.utils.Logger;
 
-@Path("/item/{uuid}/collection")
+import lombok.extern.slf4j.Slf4j;
+
+@Path("/item/{uuid}/collection") @Slf4j
 public class ItemCollection extends ItemUtils {
 	
 	private ScriptUtils scriptUtils = new ScriptUtils();
@@ -175,7 +176,7 @@ public class ItemCollection extends ItemUtils {
             throw e;
         }
         catch (Exception e) {
-            Logger.error(e);
+            log.error("", e);
             throw ItemUtils.createWebAppException(e.getMessage(), e, Response.Status.NOT_FOUND);
         }
     }

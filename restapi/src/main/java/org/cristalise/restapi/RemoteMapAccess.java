@@ -30,12 +30,14 @@ import org.cristalise.kernel.entity.C2KLocalObject;
 import org.cristalise.kernel.entity.proxy.ItemProxy;
 import org.cristalise.kernel.persistency.ClusterType;
 import org.cristalise.kernel.persistency.RemoteMap;
-import org.cristalise.kernel.utils.Logger;
+
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * 
  *
  */
+@Slf4j
 public class RemoteMapAccess {
 
     private RemoteMapAccess() {}
@@ -47,7 +49,7 @@ public class RemoteMapAccess {
             map.activate();
         }
         catch (ObjectNotFoundException e) {
-            Logger.error(e);
+            log.error("Could not access item history", e);
             throw ItemUtils.createWebAppException("Could not access item history");
         }
         catch (ClassCastException e) {
@@ -97,7 +99,7 @@ public class RemoteMapAccess {
             map = (RemoteMap<?>) item.getObject(root);
         }
         catch (ObjectNotFoundException e) {
-            Logger.error(e);
+            log.error("", e);
             throw ItemUtils.createWebAppException(e.getMessage(), Response.Status.NOT_FOUND);
         }
         catch (ClassCastException e) {

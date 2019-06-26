@@ -38,10 +38,12 @@ import org.cristalise.kernel.scripting.Script;
 import org.cristalise.kernel.scripting.ScriptingEngineException;
 import org.cristalise.kernel.utils.CastorHashMap;
 import org.cristalise.kernel.utils.LocalObjectLoader;
-import org.cristalise.kernel.utils.Logger;
 import org.json.JSONObject;
 import org.json.XML;
 
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
 public class ScriptUtils extends ItemUtils {
     
     static Semaphore mutex = new Semaphore(1);
@@ -98,7 +100,7 @@ public class ScriptUtils extends ItemUtils {
                 return returnScriptResult(scriptName, item, null, script, inputs, produceJSON(headers.getAcceptableMediaTypes()));
             }
             catch (Exception e) {
-                Logger.error(e);
+                log.error("Error executing script, please contact support", e);
                 throw ItemUtils.createWebAppException("Error executing script, please contact support", e, Response.Status.NOT_FOUND);
             }
         }

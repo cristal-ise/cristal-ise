@@ -69,13 +69,14 @@ import org.cristalise.kernel.scripting.ScriptErrorException;
 import org.cristalise.kernel.scripting.ScriptingEngineException;
 import org.cristalise.kernel.utils.CastorHashMap;
 import org.cristalise.kernel.utils.LocalObjectLoader;
-import org.cristalise.kernel.utils.Logger;
 import org.glassfish.jersey.media.multipart.FormDataParam;
 import org.json.XML;
 
 import com.google.common.collect.ImmutableMap;
 
-@Path("/item/{uuid}")
+import lombok.extern.slf4j.Slf4j;
+
+@Path("/item/{uuid}") @Slf4j
 public class ItemRoot extends ItemUtils {
 	
 	private ScriptUtils scriptUtils = new ScriptUtils();
@@ -156,7 +157,7 @@ public class ItemRoot extends ItemUtils {
                 throw ItemUtils.createWebAppException("No method available to retrieve MasterOutcome", Response.Status.NOT_FOUND);
         }
         catch (ObjectNotFoundException | InvalidDataException | ScriptingEngineException e) {
-            Logger.error(e);
+            log.error("Error retrieving MasterOutcome", e);
             throw ItemUtils.createWebAppException("Error retrieving MasterOutcome:" + e.getMessage() , e, Response.Status.NOT_FOUND);
         }
     }
@@ -206,7 +207,7 @@ public class ItemRoot extends ItemUtils {
                 throw ItemUtils.createWebAppException("Name or UUID of Query was missing", Response.Status.NOT_FOUND);
         }
         catch (Exception e) {
-            Logger.error(e);
+            log.error("Error executing Query", e);
             throw ItemUtils.createWebAppException("Error executing Query:" + e.getMessage() , e, Response.Status.NOT_FOUND);
         }
     }
@@ -233,7 +234,7 @@ public class ItemRoot extends ItemUtils {
             return LocalObjectLoader.getScript(scriptName, scriptVersion);
         }
         catch (ObjectNotFoundException | InvalidDataException e1) {
-            Logger.msg(5, "ItemRoot.getAggregateScript() - Could not find Script name:%s", scriptName);
+            log.debug("getAggregateScript() - Could not find Script name:{}", scriptName);
         }
         return null;
     }
@@ -271,7 +272,7 @@ public class ItemRoot extends ItemUtils {
             itemSummary.put("properties", getPropertySummary(item));
         }
         catch (ObjectNotFoundException e) {
-            Logger.error(e);
+            log.error("No Properties found", e);
             throw ItemUtils.createWebAppException("No Properties found", e, Response.Status.BAD_REQUEST);
         }
 
@@ -312,7 +313,7 @@ public class ItemRoot extends ItemUtils {
                 jobList = item.getJobList(agent);
         }
         catch (Exception e) {
-            Logger.error(e);
+            log.error("Error loading joblist", e);
             throw ItemUtils.createWebAppException("Error loading joblist");
         }
 
@@ -360,7 +361,7 @@ public class ItemRoot extends ItemUtils {
         try {
             List<String> types = headers.getRequestHeader(HttpHeaders.CONTENT_TYPE);
 
-            Logger.msg(5, "ItemRoot.requestTransition() postData:%s", postData);
+            log.debug("requestTransition() postData:{}", postData);
 
             if (actPath.startsWith(PREDEFINED_PATH)) {
                 return executePredefinedStep(item, postData, types, actPath, agent);
@@ -377,26 +378,26 @@ public class ItemRoot extends ItemUtils {
             }
         }
         catch (OutcomeBuilderException | InvalidDataException | ScriptErrorException | ObjectAlreadyExistsException | InvalidCollectionModification e) {
-            Logger.error(e);
+            log.error("", e);
             throw ItemUtils.createWebAppException(e.getMessage(), e, Response.Status.BAD_REQUEST);
         }
         catch (AccessRightsException e) { // agent doesn't hold the right to execute
             throw ItemUtils.createWebAppException(e.getMessage(), e, Response.Status.UNAUTHORIZED);
         }
         catch (ObjectNotFoundException e) { // workflow, schema, script etc not found.
-            Logger.error(e);
+            log.error("workflow, schema, script etc not found", e);
             throw ItemUtils.createWebAppException(e.getMessage(), e, Response.Status.NOT_FOUND);
         }
         catch (InvalidTransitionException e) { // activity has already changed state
-            Logger.error(e);
+            log.error("activity has already changed state", e);
             throw ItemUtils.createWebAppException(e.getMessage(), e, Response.Status.CONFLICT);
         }
         catch (PersistencyException e) { // database failure
-            Logger.error(e);
+            log.error("database failure", e);
             throw ItemUtils.createWebAppException(e.getMessage(), e, Response.Status.INTERNAL_SERVER_ERROR);
         }
         catch (Exception e) { // any other failure
-            Logger.error(e);
+            log.error("any other failure", e);
             throw ItemUtils.createWebAppException(e.getMessage(), Response.Status.INTERNAL_SERVER_ERROR);
         }
     }
@@ -445,7 +446,7 @@ public class ItemRoot extends ItemUtils {
         try {
             List<String> types = headers.getRequestHeader(HttpHeaders.CONTENT_TYPE);
 
-            Logger.msg(5, "ItemRoot.requestTransition() postData:%s", postData);
+            log.debug("requestTransition() postData:{}", postData);
 
             if (actPath.startsWith(PREDEFINED_PATH)) {
                 return executePredefinedStep(item, postData, types, actPath, agent);
@@ -457,26 +458,26 @@ public class ItemRoot extends ItemUtils {
             }
         }
         catch (OutcomeBuilderException | InvalidDataException | ScriptErrorException | ObjectAlreadyExistsException | InvalidCollectionModification e) {
-            Logger.error(e);
+            log.error("", e);
             throw ItemUtils.createWebAppException(e.getMessage(), e, Response.Status.BAD_REQUEST);
         }
         catch (AccessRightsException e) { // agent doesn't hold the right to execute
             throw ItemUtils.createWebAppException(e.getMessage(), e, Response.Status.UNAUTHORIZED);
         }
         catch (ObjectNotFoundException e) { // workflow, schema, script etc not found.
-            Logger.error(e);
+            log.error("workflow, schema, script etc not found", e);
             throw ItemUtils.createWebAppException(e.getMessage(), e, Response.Status.NOT_FOUND);
         }
         catch (InvalidTransitionException e) { // activity has already changed state
-            Logger.error(e);
+            log.error("activity has already changed state", e);
             throw ItemUtils.createWebAppException(e.getMessage(), e, Response.Status.CONFLICT);
         }
         catch (PersistencyException e) { // database failure
-            Logger.error(e);
+            log.error("database failure", e);
             throw ItemUtils.createWebAppException(e.getMessage(), e, Response.Status.INTERNAL_SERVER_ERROR);
         }
         catch (Exception e) { // any other failure
-            Logger.error(e);
+            log.error("any other failure", e);
             throw ItemUtils.createWebAppException(e.getMessage(), Response.Status.INTERNAL_SERVER_ERROR);
         }
     }
@@ -570,28 +571,28 @@ public class ItemRoot extends ItemUtils {
                     return Response.ok(new OutcomeBuilder(thisJob.getSchema(), false).generateNgDynamicForms(inputs)).build();
                 }
                 else {
-                    Logger.msg(5, "ItemRoot.getJobFormTemplate() - no outcome needed for job:%s", thisJob);
+                    log.debug("getJobFormTemplate() - no outcome needed for job:{}", thisJob);
                     return Response.noContent().build();
                 }
             }
         }
         catch (OutcomeBuilderException | InvalidDataException  e) {
-            Logger.error(e);
+            log.error("", e);
             throw ItemUtils.createWebAppException(e.getMessage(), e, Response.Status.BAD_REQUEST);
         }
         catch (AccessRightsException e) { // agent doesn't hold the right to execute
             throw ItemUtils.createWebAppException(e.getMessage(), e, Response.Status.UNAUTHORIZED);
         }
         catch (ObjectNotFoundException e) { // workflow, schema, script etc not found.
-            Logger.error(e);
+            log.error(" workflow, schema, script etc not found", e);
             throw ItemUtils.createWebAppException(e.getMessage(), e, Response.Status.NOT_FOUND);
         }
         catch (PersistencyException e) { // database failure
-            Logger.error(e);
+            log.error("database failure", e);
             throw ItemUtils.createWebAppException(e.getMessage(), e, Response.Status.INTERNAL_SERVER_ERROR);
         }
         catch (Exception e) { // any other failure
-            Logger.error(e);
+            log.error("any other failure", e);
             throw ItemUtils.createWebAppException(e.getMessage(), Response.Status.INTERNAL_SERVER_ERROR);
         }
     }

@@ -54,17 +54,19 @@ import org.cristalise.kernel.entity.proxy.AgentProxy;
 import org.cristalise.kernel.lookup.AgentPath;
 import org.cristalise.kernel.lookup.InvalidAgentPathException;
 import org.cristalise.kernel.lookup.ItemPath;
+import org.cristalise.kernel.process.AbstractMain;
 import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.property.Property;
-import org.cristalise.kernel.utils.Logger;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
 abstract public class RestHandler {
 
     private ObjectMapper mapper;
     private boolean requireLogin = true;
-    private int defaultLogLevel;
 
     private static SecretKey cookieKey;
     private static Cipher encryptCipher;
@@ -81,23 +83,22 @@ abstract public class RestHandler {
             }
             catch (InvalidKeyException ex) {
                 if (Gateway.getProperties().getBoolean("REST.allowWeakKey", false) == false) {
-                    Logger.error(ex);
-                    Logger.die("Weak cookie crypto not allowed, and unlimited strength crypto not installed.");
+                    log.error("Weak cookie crypto not allowed, and unlimited strength crypto not installed.", ex);
+                    AbstractMain.shutdown(1);
                 }
-                Logger.msg("Unlimited crypto not installed. Trying 128-bit key.");
+                log.warn("Unlimited crypto not installed. Trying 128-bit key.");
                 initKeys(128);
             }
         }
         catch (Exception e) {
-            Logger.error(e);
-            Logger.die("Error initializing cookie encryption");
+            log.error("Error initializing cookie encryption", e);
+            AbstractMain.shutdown(1);
         }
     }
 
     public RestHandler() {
         mapper = new ObjectMapper();
         requireLogin = Gateway.getProperties().getBoolean("REST.requireLoginCookie", true);
-        defaultLogLevel = Gateway.getProperties().getInt("LOGGER.defaultLevel", 9);
     }
 
     private static void initKeys(int keySize) 
@@ -107,7 +108,7 @@ abstract public class RestHandler {
         kgen.init(keySize);
         cookieKey = kgen.generateKey();
 
-        System.out.println("RestHandler.initKeys() - Cookie key: "+DatatypeConverter.printBase64Binary(cookieKey.getEncoded()));
+        System.out.println("initKeys() - Cookie key: "+DatatypeConverter.printBase64Binary(cookieKey.getEncoded()));
 
         encryptCipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
         encryptCipher.init(Cipher.ENCRYPT_MODE, cookieKey);
@@ -123,14 +124,16 @@ abstract public class RestHandler {
 
         for (int cntRetries = 1; ; cntRetries++) {
             try {
-                return new AuthData(decryptCipher.doFinal(bytes));
+                byte[] decrypted = decryptCipher.doFinal(bytes);
+                return new AuthData(decrypted);
             }
             catch (final Exception e) {
-                Logger.error("Exception caught in decryptAuthData: #" + cntRetries + ": " + e.getMessage());
-                if (Logger.doLog(defaultLogLevel)) Logger.error(e);
-                if (cntRetries == 5) {
+                log.trace("Exception caught in decryptAuthData: #{}", cntRetries , e);
+
+                // try to decrypt 5 times before throwing an exception
+                if (cntRetries == 5) 
+                    log.error("Faild to decrypting AuthData ({}th try)", cntRetries , e);
                     throw e;
-                }
             }
         }
     }
@@ -145,10 +148,11 @@ abstract public class RestHandler {
     public Response toJSON(Object data) {
         try {
             String json = mapper.writeValueAsString(data);
-            Logger.msg(8, json);
+            log.debug("JSON response:{}", json);
             return Response.ok(json).build();
-        } catch (IOException e) {
-            Logger.error(e);
+        }
+        catch (IOException e) {
+            log.error("Problem building response JSON", e);
             throw ItemUtils.createWebAppException("Problem building response JSON: ", e, Response.Status.INTERNAL_SERVER_ERROR);
         }
     }
@@ -179,13 +183,15 @@ abstract public class RestHandler {
         try {
             AuthData data = decryptAuthData(authData);
             return data.agent;
-        } catch (InvalidAgentPathException | InvalidDataException e) {
-            Logger.error(e.getMessage() + " - authData:"+authData);
-            if (Logger.doLog(defaultLogLevel)) Logger.error(e);
+        }
+        catch (InvalidAgentPathException | InvalidDataException e) {
+            log.debug("Invalid agent or login data",  e);
+
             throw ItemUtils.createWebAppException("Invalid agent or login data", e, Response.Status.UNAUTHORIZED);
-        } catch (Exception e) {
-            Logger.error(e.getMessage() + " - authData:"+authData);
-            if (Logger.doLog(defaultLogLevel)) Logger.error(e);
+        }
+        catch (Exception e) {
+            log.debug("Error reading authentication data:{}", authData, e);
+
             throw ItemUtils.createWebAppException("Error reading authentication data", e, Response.Status.UNAUTHORIZED);
         }
     }
@@ -226,7 +232,7 @@ abstract public class RestHandler {
             return (AgentProxy)Gateway.getProxyManager().getProxy(agentPath);
         }
         catch (ObjectNotFoundException e) {
-            Logger.error(e);
+            log.error("Agent not found", e);
             throw ItemUtils.createWebAppException("Agent not found", e, Response.Status.NOT_FOUND);
         }
     }
@@ -290,8 +296,10 @@ abstract public class RestHandler {
     
                 try {
                     value = URLDecoder.decode(nameval[1], "UTF-8");
-                } catch (UnsupportedEncodingException e) {
-                    Logger.error(e);
+                }
+                catch (UnsupportedEncodingException e) {
+                    log.error("Error decoding search value: " + nameval[1], e);
+
                     throw ItemUtils.createWebAppException("Error decoding search value: " + nameval[1], Response.Status.BAD_REQUEST);
                 }
                 

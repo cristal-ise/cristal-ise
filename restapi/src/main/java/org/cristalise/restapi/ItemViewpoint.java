@@ -20,6 +20,10 @@
  */
 package org.cristalise.restapi;
 
+import static org.cristalise.kernel.persistency.ClusterType.HISTORY;
+import static org.cristalise.kernel.persistency.ClusterType.OUTCOME;
+import static org.cristalise.kernel.persistency.ClusterType.VIEWPOINT;
+
 import java.util.LinkedHashMap;
 
 import javax.ws.rs.CookieParam;
@@ -41,13 +45,10 @@ import org.cristalise.kernel.events.Event;
 import org.cristalise.kernel.events.History;
 import org.cristalise.kernel.persistency.outcome.Outcome;
 import org.cristalise.kernel.persistency.outcome.Viewpoint;
-import org.cristalise.kernel.utils.Logger;
 
-import static org.cristalise.kernel.persistency.ClusterType.HISTORY;
-import static org.cristalise.kernel.persistency.ClusterType.OUTCOME;
-import static org.cristalise.kernel.persistency.ClusterType.VIEWPOINT;
+import lombok.extern.slf4j.Slf4j;
 
-@Path("/item/{uuid}/viewpoint")
+@Path("/item/{uuid}/viewpoint") @Slf4j
 public class ItemViewpoint extends ItemUtils {
 
     @GET
@@ -116,7 +117,7 @@ public class ItemViewpoint extends ItemUtils {
             view = item.getViewpoint(schema, viewName);
         }
         catch (ObjectNotFoundException e) {
-            Logger.error(e);
+            log.error("Database error loading view " + viewName + " of schema " + schema, e);
             throw ItemUtils.createWebAppException("Database error loading view " + viewName + " of schema " + schema);
         }
         Event ev;
@@ -124,7 +125,7 @@ public class ItemViewpoint extends ItemUtils {
             ev = view.getEvent();
         }
         catch (InvalidDataException | PersistencyException | ObjectNotFoundException e) {
-            Logger.error(e);
+            log.error("Database error loading event data for view " + viewName + " of schema " + schema, e);
             throw ItemUtils.createWebAppException("Database error loading event data for view " + viewName + " of schema " + schema);
         }
 
