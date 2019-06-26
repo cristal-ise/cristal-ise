@@ -340,7 +340,7 @@ public class JooqLookupManager implements LookupManager {
     public PagedResult getChildren(Path path, int offset, int limit) {
         String pattern = getChildrenPattern(path);
 
-        log.debug("getChildren() - pattern:%s offset:%d limit:%d", pattern, offset, limit);
+        log.debug("getChildren() - pattern:%s offset:{} limit:{}", pattern, offset, limit);
 
         if (path instanceof ItemPath) return new PagedResult();
 
