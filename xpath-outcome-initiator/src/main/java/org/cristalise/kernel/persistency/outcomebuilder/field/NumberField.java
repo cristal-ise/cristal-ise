@@ -22,12 +22,27 @@ package org.cristalise.kernel.persistency.outcomebuilder.field;
 
 import java.math.BigDecimal;
 import java.util.Enumeration;
+import java.util.List;
 import java.util.Map;
 
+import org.apache.commons.lang3.StringUtils;
 import org.exolab.castor.xml.schema.Facet;
 import org.json.JSONObject;
 
 public abstract class NumberField extends StringField {
+    
+    /**
+     * For integers or decimals
+     */
+    String precision;
+    
+    public NumberField() {
+        super();
+    }
+
+    public NumberField(List<String> strFields, List<String> excFields) {
+        super(strFields, excFields);
+    }
 
     @Override
     public String getNgDynamicFormsControlType() {
@@ -71,5 +86,14 @@ public abstract class NumberField extends StringField {
 
             if (maxValue != null) validators.put("max", maxValue);
         }
+
+        if (StringUtils.isNotBlank(pattern)) {
+            validators.put("pattern", pattern);
+        } 
+    }
+
+    @Override
+    public boolean hasValidator() {
+        return super.hasValidator() || StringUtils.isNotBlank(precision);
     }
 }

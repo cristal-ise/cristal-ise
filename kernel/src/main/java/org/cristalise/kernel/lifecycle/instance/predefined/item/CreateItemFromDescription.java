@@ -314,24 +314,47 @@ public class CreateItemFromDescription extends PredefinedStep {
         String[] collNames = Gateway.getStorage().getClusterContents(descItemPath, COLLECTION);
 
         for (String collName : collNames) {
-            @SuppressWarnings("unchecked")
-            Collection<? extends CollectionMember> thisCol = (Collection<? extends CollectionMember>)
-                    Gateway.getStorage().get(descItemPath, COLLECTION + "/" + collName + "/" + descVer, locker);
-
-            if (thisCol instanceof CollectionDescription) {
-                Logger.msg(5,"CreateItemFromDescription - Instantiating CollectionDescription:"+ collName);
-                CollectionDescription<?> thisDesc = (CollectionDescription<?>) thisCol;
-                colls.put(thisDesc.newInstance());
-            }
-            else if(thisCol instanceof Dependency) {
-                Logger.msg(5,"CreateItemFromDescription - Instantiating Dependency:"+ collName);
-                ((Dependency) thisCol).addToItemProperties(newProps);
-            }
-            else {
-                Logger.warning("CreateItemFromDescription - CANNOT instantiate collection:"+ collName + " class:"+thisCol.getClass().getName());
-            }
+            Collection<?> newColl = instantiateCollection(collName, descItemPath, descVer, newProps, locker);
+            if (newColl != null) colls.put(newColl);
         }
         return colls;
+    }
+
+    /**
+     * 
+     * @param collName
+     * @param descItemPath
+     * @param descVer
+     * @param newProps
+     * @param locker
+     * @return
+     * @throws PersistencyException
+     * @throws ObjectNotFoundException
+     * @throws InvalidDataException
+     */
+    public static Collection<?> instantiateCollection(String collName, ItemPath descItemPath, String descVer, PropertyArrayList newProps, Object locker) 
+            throws PersistencyException, ObjectNotFoundException, InvalidDataException
+    {
+        @SuppressWarnings("unchecked")
+        Collection<? extends CollectionMember> collOfDesc = (Collection<? extends CollectionMember>)
+                Gateway.getStorage().get(descItemPath, COLLECTION + "/" + collName + "/" + descVer, locker);
+
+        Collection<?> newColl = null;
+
+        if (collOfDesc instanceof CollectionDescription) {
+            Logger.msg(5,"CreateItemFromDescription - Instantiating CollectionDescription:"+ collName);
+            CollectionDescription<?> collDesc = (CollectionDescription<?>) collOfDesc;
+            newColl = collDesc.newInstance();
+        }
+        else if(collOfDesc instanceof Dependency) {
+            Logger.msg(5,"CreateItemFromDescription - Instantiating Dependency:"+ collName);
+            ((Dependency) collOfDesc).addToItemProperties(newProps);
+        }
+        else {
+            throw new InvalidDataException("CANNOT instantiate collection:"+ collName + " class:"+collOfDesc.getClass().getName());
+        }
+
+        return newColl;
     }
 
     /**

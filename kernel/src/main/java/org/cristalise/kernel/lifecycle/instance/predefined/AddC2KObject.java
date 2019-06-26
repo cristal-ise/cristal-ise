@@ -34,7 +34,6 @@ public class AddC2KObject extends PredefinedStep {
 
     public AddC2KObject() {
         super();
-        getProperties().put("Agent Role", "Admin");
     }
 
     // requestdata is xmlstring

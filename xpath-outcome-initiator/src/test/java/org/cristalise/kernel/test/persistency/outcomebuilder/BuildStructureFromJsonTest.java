@@ -47,7 +47,7 @@ public class BuildStructureFromJsonTest extends XMLUtils {
         builder.addJsonInstance(actualJson);
 
         Logger.msg(2, "Expected xml:%s", expected);
-        Logger.msg(2, "Actual xml:%s", builder.getXml());
+        Logger.msg(2, "Actual xml:%s", builder.getXml(false));
 
         assert compareXML(expected, builder.getXml());
     }
@@ -131,5 +131,10 @@ public class BuildStructureFromJsonTest extends XMLUtils {
     @Test
     public void sequence_mandatoryField_optionalField_mandatoryField() throws Exception {
         checkJson2XmlOutcome("DeviceWithLabels", "");
+    }
+
+    @Test
+    public void field_contains_array_value() throws Exception {
+        checkJson2XmlOutcome("EmployeeWithSkills", "");
     }
 }

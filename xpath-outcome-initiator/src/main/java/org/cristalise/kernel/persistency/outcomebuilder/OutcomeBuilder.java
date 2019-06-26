@@ -123,6 +123,7 @@ public class OutcomeBuilder {
         }
         else {
             modelRoot = new DataRecord(rootElementDecl);
+            modelRoot.setRootElementFlag(true);
         }
 
         Logger.msg(5, "OutcomeBuilder.initialise() - DONE");

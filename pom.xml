@@ -52,12 +52,12 @@
     </modules>
 
     <properties>
-        <revision>4.1.0-SNAPSHOT</revision>
+        <revision>4.3.0-SNAPSHOT</revision>
         <productionMode>false</productionMode>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-	<additionalparam>-Xdoclint:none</additionalparam>
-	<maven.deploy.skip>true</maven.deploy.skip>
+        <additionalparam>-Xdoclint:none</additionalparam>
+        <maven.deploy.skip>true</maven.deploy.skip>
     </properties>
 
     <description>Cristal-ise is a description-driven software platform originally developed to track the construction of
@@ -178,7 +178,7 @@
                         <mapping>
                             <idl>JAVADOC_STYLE</idl>
                         </mapping>
-	                </configuration>
+                    </configuration>
                 </plugin>
                 <plugin>
                     <artifactId>maven-surefire-plugin</artifactId>
@@ -349,6 +349,11 @@
                 <artifactId>slf4j-simple</artifactId>
                 <version>1.6.1</version>
             </dependency>
+            <dependency>
+               <groupId>org.codehaus.groovy</groupId>
+               <artifactId>groovy-all</artifactId>
+               <version>2.4.16</version>
+           </dependency>
         </dependencies>
     </dependencyManagement>
 
@@ -419,12 +424,6 @@
                     <groupId>groovy-all</groupId>
                 </exclusion>
             </exclusions>
-        </dependency>
-        <dependency>
-            <groupId>org.codehaus.groovy</groupId>
-            <artifactId>groovy-all</artifactId>
-            <version>2.4.15</version>
-            <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.xmlunit</groupId>

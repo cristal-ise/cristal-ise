@@ -30,15 +30,19 @@ class Struct {
     String documentation
     boolean useSequence = false
 
-    List<Struct> structs = []
+    List<String> orderOfElements = []
 
-    List<Field> fields = []
+    Map<String, Struct> structs = [:]
+    Map<String, Field> fields = [:]
+
     List<Attribute> attributes = []
     AnyField anyField = null
 
     String minOccurs = null
     String maxOccurs = null
-    
+
+    DynamicForms dynamicForms
+
     private String getMultiplicityVal(String m) {
         def dec = /^\d+$/
 
@@ -56,7 +60,7 @@ class Struct {
      */
     public void setMultiplicity(String m) {
         if(!m) {
-            minOccurs = ''; maxOccurs = '';
+            minOccurs = '1'; maxOccurs = '1';
         }
         else if(m.contains("..")) {
             def vals = m.split(/\.\./)

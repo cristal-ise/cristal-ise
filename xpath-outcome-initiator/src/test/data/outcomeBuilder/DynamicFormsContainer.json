@@ -1,0 +1,28 @@
+[{
+	"name": "Form",
+	"cls": {
+		"grid": {
+			"container": "ui-g-6"
+		}
+	},
+	"id": "Form",
+	"type": "GROUP",
+	"group": [{
+		"inputType": "text",
+		"id": "testField",
+		"label": "test Field",
+		"cls": {
+			"grid": {
+				"container": "ui-g",
+				"control": "ui-g-8",
+				"label": "ui-g-4"
+			},
+			"element": {
+				"label": "ui-widget"
+			}
+		},
+		"placeholder": "test Field",
+		"type": "INPUT",
+		"required": false
+	}]
+}]
