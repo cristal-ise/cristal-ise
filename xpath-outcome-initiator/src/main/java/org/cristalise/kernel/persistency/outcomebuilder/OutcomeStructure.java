@@ -106,24 +106,38 @@ public abstract class OutcomeStructure {
             throws OutcomeBuilderException;
 
     /**
+     * Create the named child element from the xsd model and adds it to the document
      * 
-     * @param rootDocument
-     * @param recordName
-     * @return
-     * @throws OutcomeBuilderException
+     * @param rootDocument the root of the dom
+     * @param name the name of the elements to be added
+     * @return the newly create element
+     * @throws OutcomeBuilderException no element exists in the xsd model
      */
-    public Element createChildElement(Document rootDocument, String recordName) throws OutcomeBuilderException {
-        OutcomeStructure childModel = getChildModelElement(recordName);
+    public Element createChildElement(Document rootDocument, String name) throws OutcomeBuilderException {
+        OutcomeStructure childModel = getChildModelElement(name);
 
-        if (childModel == null) throw new StructuralException("'"+model.getName()+"' does not have child '"+recordName+"'");
+        if (childModel == null) throw new StructuralException("'"+model.getName()+"' does not have child '"+name+"'");
 
         Element newElement = childModel.initNew(rootDocument);
+
+        addChildElement(name, newElement);
+
+        return newElement;
+    }
+
+    /**
+     * Adds the child element az the correct position using the expected sequence of elements (subStructureOrder)
+     * 
+     * @param name the name of the elements to be added
+     * @param newElement the new xml element to be added
+     */
+    public void addChildElement(String name, Element newElement) {
         Element refElement = null;
         boolean cont = true;
 
         // lets find out where to insert this new element
         for (int i = 0; i < subStructureOrder.size()-1 && cont; i++) {
-            if (recordName.equals(subStructureOrder.get(i))) {
+            if (name.equals(subStructureOrder.get(i))) {
                 cont = false;
 
                 for (int k = i+1; k < subStructureOrder.size() && refElement == null; k++) {
@@ -144,8 +158,6 @@ public abstract class OutcomeStructure {
 
         if (refElement == null) myElement.appendChild(newElement);
         else                    myElement.insertBefore(newElement, refElement);
-
-        return newElement;
     }
 
     /**
