@@ -365,7 +365,8 @@ public abstract class ClusterStorage {
             if (type != null) 
                 types.add(type);
             else 
-                throw new PersistencyException("Cannot convert content '"+content+"' to ClusterType");
+                log.warn("Cannot convert content '{}' to ClusterType", content);
+                //throw new PersistencyException("Cannot convert content '"+content+"' to ClusterType");
         }
 
         return types.toArray(new ClusterType[0]);
