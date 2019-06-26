@@ -35,7 +35,6 @@ import org.cristalise.kernel.common.PersistencyException;
 import org.cristalise.kernel.lookup.DomainPath;
 import org.cristalise.kernel.lookup.ItemPath;
 import org.cristalise.kernel.lookup.Path;
-import org.cristalise.kernel.utils.Logger;
 import org.cristalise.storage.jooqdb.JooqHandler;
 import org.jooq.DSLContext;
 import org.jooq.Field;
@@ -45,6 +44,9 @@ import org.jooq.Result;
 import org.jooq.SelectConditionStep;
 import org.jooq.Table;
 
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
 public class JooqDomainPathHandler {
     static public final Table<?> DOMAIN_PATH_TABLE = table(name("DOMAIN_PATH"));
 
@@ -120,7 +122,7 @@ public class JooqDomainPathHandler {
             }
         }
 
-        Logger.msg(8, "JooqDomainPathHandler.insert() - SQL:\n"+insertInto.toString());
+        log.debug("JooqDomainPathHandler.insert() - SQL:\n"+insertInto.toString());
 
         return insertInto.execute();
     }
@@ -182,7 +184,7 @@ public class JooqDomainPathHandler {
 
         if (uuids != null && uuids.size() != 0) select.and(TARGET.in(uuids));
 
-        Logger.msg(8, "JooqDomainPathHandler.find() - SQL:\n" + select);
+        log.debug("JooqDomainPathHandler.find() - SQL:\n" + select);
 
         return getListOfPath(select.fetch());
     }
