@@ -6,6 +6,7 @@
   "type": "GROUP",
   "group": [
     {
+      "autoComplete": "off",
       "validators": {"required": null},
       "inputType": "text",
       "id": "Name",
@@ -25,6 +26,7 @@
     {
       "columns": [
         {
+          "autoComplete": "off",
           "additional": {"showButtonBar": true},
           "format": "yy-mm-dd",
           "id": "ETA",
@@ -42,6 +44,7 @@
           "required": false
         },
         {
+          "autoComplete": "off",
           "validators": {"required": null},
           "id": "RequiredQuantity",
           "label": "Required Quantity *",
@@ -59,6 +62,7 @@
           "required": true
         },
         {
+          "autoComplete": "off",
           "validators": {"required": null},
           "id": "PickedQuantity",
           "label": "Picked Quantity *",
@@ -76,6 +80,7 @@
           "required": true
         },
         {
+          "autoComplete": "off",
           "validators": {"required": null},
           "id": "MissingQuantity",
           "label": "Missing Quantity *",
@@ -93,6 +98,7 @@
           "required": true
         },
         {
+          "autoComplete": "off",
           "errorMessages": {"pattern": "Trailing spaces or contains only spaces"},
           "validators": {
             "pattern": "^[a-zA-Z]+.*\\S+$",
@@ -120,6 +126,7 @@
       "rows": []
     },
     {
+      "autoComplete": "off",
       "validators": {"required": null},
       "inputType": "text",
       "id": "Comment",

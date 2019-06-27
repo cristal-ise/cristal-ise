@@ -191,4 +191,17 @@ public class NgDynamicFormsTest extends XMLUtils {
     
           assertJsonEquals(expected, actual);
     }
+    
+    @Test
+    public void ngForm_AutoComplete() throws Exception {
+        OutcomeBuilder builder = new OutcomeBuilder("PatientDetails", new Schema("AutoComplete", 0, getXSD(dir, "AutoComplete")), false);
+
+        JSONArray actual = builder.generateNgDynamicFormsJson();
+
+        Logger.msg(actual.toString(2));
+
+        JSONArray expected = new JSONArray(getJSON(dir, "AutoComplete"));
+
+        assertJsonEquals(expected, actual);
+    }
 }

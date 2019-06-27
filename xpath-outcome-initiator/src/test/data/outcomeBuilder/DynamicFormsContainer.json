@@ -8,6 +8,7 @@
 	"id": "Form",
 	"type": "GROUP",
 	"group": [{
+    	"autoComplete": "off",
 		"inputType": "text",
 		"id": "testField",
 		"label": "test Field",

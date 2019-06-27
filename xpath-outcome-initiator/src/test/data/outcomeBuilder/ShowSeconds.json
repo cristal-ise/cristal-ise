@@ -5,14 +5,17 @@
   "type": "GROUP",
   "group": [
     {
-      "showSeconds": true,
+      "autoComplete": "off",
       "hideOnDateTimeSelect": true,
+      "showSeconds": true,
       "validators": {"required": null},
       "additional": {
         "stepMinute": 5,
         "icon": "fa-clock-o"
       },
       "format": "hh:MM",
+      "id": "startOfShift",
+      "label": "start Of Shift *",
       "cls": {
         "grid": {
           "container": "ui-g",
@@ -21,19 +24,20 @@
         },
         "element": {"label": "ui-widget"}
       },
-      "id": "startOfShift",
-      "label": "start Of Shift *",
       "placeholder": "start Of Shift",
       "type": "TIMEPICKER",
       "required": true
     },
     {
+      "autoComplete": "off",
       "validators": {"required": null},
       "additional": {
         "stepMinute": 5,
         "icon": "fa-clock-o"
       },
       "format": "hh:MM",
+      "id": "startOfShiftNoSeconds",
+      "label": "start Of Shift No Seconds *",
       "cls": {
         "grid": {
           "container": "ui-g",
@@ -42,21 +46,22 @@
         },
         "element": {"label": "ui-widget"}
       },
-      "id": "startOfShiftNoSeconds",
-      "label": "start Of Shift No Seconds *",
       "placeholder": "start Of Shift No Seconds",
       "type": "TIMEPICKER",
       "required": true
     },
     {
-      "showSeconds": true,
+      "autoComplete": "off",
       "hideOnDateTimeSelect": true,
+      "showSeconds": true,
       "validators": {"required": null},
       "additional": {
         "showButtonBar": true,
         "showTime": true
       },
       "format": "yy-mm-dd",
+      "id": "signatureTS",
+      "label": "signature TS *",
       "cls": {
         "grid": {
           "container": "ui-g",
@@ -65,19 +70,20 @@
         },
         "element": {"label": "ui-widget"}
       },
-      "id": "signatureTS",
-      "label": "signature TS *",
       "placeholder": "signature TS",
       "type": "DATEPICKER",
       "required": true
     },
     {
+      "autoComplete": "off",
       "validators": {"required": null},
       "additional": {
         "showButtonBar": true,
         "showTime": true
       },
       "format": "yy-mm-dd",
+      "id": "signatureTSNoSeconds",
+      "label": "signature TS No Seconds *",
       "cls": {
         "grid": {
           "container": "ui-g",
@@ -86,8 +92,6 @@
         },
         "element": {"label": "ui-widget"}
       },
-      "id": "signatureTSNoSeconds",
-      "label": "signature TS No Seconds *",
       "placeholder": "signature TS No Seconds",
       "type": "DATEPICKER",
       "required": true

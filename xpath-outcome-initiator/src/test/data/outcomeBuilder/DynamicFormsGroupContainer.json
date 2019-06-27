@@ -5,6 +5,7 @@
   "type": "GROUP",
   "group": [
     {
+      "autoComplete": "off",
       "inputType": "text",
       "id": "testField",
       "label": "test Field",
@@ -33,6 +34,7 @@
       "label": "test Form Group",
       "type": "GROUP",
       "group": [{
+        "autoComplete": "off",
         "inputType": "text",
         "id": "testField2",
         "label": "test Field 2",
@@ -75,8 +77,15 @@
     },
     {
       "name": "testFormGroup",
-      "cls": {"grid": {"container": "ui-g-6"}},
+      "cls": {
+        "grid": {"container": "ui-g-6"},
+        "element": {
+          "container": "formGroupContainer",
+          "label": "formGroupLabel"
+        }
+      },
       "id": "testFormGroup",
+      "label": "test Form Group",
       "type": "GROUP",
       "group": [{
         "inputType": "text",

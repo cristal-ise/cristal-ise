@@ -5,8 +5,11 @@
   "type": "GROUP",
   "group": [
     {
+      "autoComplete": "off",
       "validators": {"required": null},
       "inputType": "text",
+      "id": "id",
+      "label": "id *",
       "cls": {
         "grid": {
           "container": "ui-g",
@@ -15,16 +18,18 @@
         },
         "element": {"label": "ui-widget"}
       },
-      "id": "id",
-      "label": "id *",
       "placeholder": "id",
       "type": "INPUT",
       "required": true
     },
     {
+      "autoComplete": "off",
       "hidden": true,
       "additional": {"tooltip": "Insurance Number Documentation"},
       "inputType": "text",
+      "id": "InsuranceNumber",
+      "label": "Insurance Number",
+      "placeholder": "Insurance ID",
       "cls": {
         "grid": {
           "container": "ui-g",
@@ -33,14 +38,12 @@
         },
         "element": {"label": "ui-widget"}
       },
-      "id": "InsuranceNumber",
-      "label": "Insurance Number",
-      "placeholder": "Insurance ID",
       "type": "INPUT",
       "value": "123456789ABC",
       "required": false
     },
     {
+      "autoComplete": "off",
       "validators": {"required": null},
       "additional": {
         "showButtonBar": true,
@@ -51,6 +54,9 @@
         "updateScriptRef": "Script:0"
       },
       "format": "yy-mm-dd",
+      "id": "DateOfBirth",
+      "label": "Date Of Birth *",
+      "placeholder": "99/99/9999",
       "cls": {
         "grid": {
           "container": "ui-g",
@@ -59,15 +65,13 @@
         },
         "element": {"label": "ui-widget"}
       },
-      "id": "DateOfBirth",
-      "label": "Date Of Birth *",
-      "placeholder": "99/99/9999",
       "type": "DATEPICKER",
-      "value": "@{CURRENTDATE}",
+      "value": "2019-06-27",
       "required": true,
       "mask": "99/99/9999"
     },
     {
+      "autoComplete": "off",
       "filterable": true,
       "validators": {"required": null},
       "additional": {"filterBy": "label"},
@@ -82,6 +86,8 @@
           "value": "female"
         }
       ],
+      "id": "Gender",
+      "label": "Gender *",
       "cls": {
         "grid": {
           "container": "ui-g",
@@ -90,19 +96,21 @@
         },
         "element": {"label": "ui-widget"}
       },
-      "id": "Gender",
-      "label": "Gender *",
       "placeholder": "Gender",
       "type": "SELECT",
       "value": "male",
       "required": true
     },
     {
+      "autoComplete": "off",
       "validators": {"required": null},
       "additional": {"warning": {
         "pattern": "^[0-9]{1,4}$",
         "message": "Value out of specification, has to be <= 9999"
       }},
+      "id": "Weight",
+      "label": "Weight *",
+      "placeholder": "99,99",
       "cls": {
         "grid": {
           "container": "ui-g",
@@ -111,9 +119,6 @@
         },
         "element": {"label": "ui-widget"}
       },
-      "id": "Weight",
-      "label": "Weight *",
-      "placeholder": "99,99",
       "type": "INPUT",
       "value": "0.0",
       "required": true,
