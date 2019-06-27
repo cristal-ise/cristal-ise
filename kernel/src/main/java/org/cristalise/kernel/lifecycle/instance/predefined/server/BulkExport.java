@@ -88,7 +88,10 @@ public class BulkExport extends PredefinedStep{
             
             String [] clusterContents =  Gateway.getStorage().getClusterContents(item, "");
             for(String str : clusterContents){
-                ClusterType type = ClusterType.valueOf(str);
+                if(str.equals("AuditTrail")){
+                    str = "HISTORY";
+                }
+                ClusterType type = ClusterType.valueOf(str.toUpperCase());
                 switch (type) {
                     case PATH:       exportPath(item, sublocker);       break;
                     case PROPERTY:   exportProperty(item, sublocker);   break;
@@ -143,10 +146,19 @@ public class BulkExport extends PredefinedStep{
      
      
      public void exportOutcome(ItemPath item, Object locker) throws PersistencyException, ObjectNotFoundException {
-        String[] objList  = Gateway.getStorage().getClusterContents(item, OUTCOME + "/", null);
-         for(String obj : objList){
-             C2KLocalObject c2KLocalObj = Gateway.getStorage().get(item, OUTCOME + "/" +obj,  null);
-             exportCluster.put(item,c2KLocalObj);
+        String[] schemas  = Gateway.getStorage().getClusterContents(item, OUTCOME + "/", null);
+         for(String schema : schemas){
+             String[] versions  = Gateway.getStorage().getClusterContents(item, OUTCOME +"/"+schema,  null);
+             
+             for(String version : versions){
+                 String[] events  = Gateway.getStorage().getClusterContents(item, OUTCOME +"/"+schema+"/"+version,  null);
+                 
+                 for (String event : events) {
+                     C2KLocalObject c2KLocalObj = Gateway.getStorage().get(item, OUTCOME+"/"+schema+"/"+version+"/"+event,  null);
+                     exportCluster.put(item,c2KLocalObj);
+                 }
+             }
+             
          }
       } 
       
@@ -154,8 +166,11 @@ public class BulkExport extends PredefinedStep{
      public void exportViewPoint(ItemPath item, Object locker) throws PersistencyException, ObjectNotFoundException {
          String[] objList  = Gateway.getStorage().getClusterContents(item, VIEWPOINT + "/", null);
           for(String obj : objList){
-              C2KLocalObject c2KLocalObj = Gateway.getStorage().get(item, VIEWPOINT + "/" +obj,  null);
-              exportCluster.put(item,c2KLocalObj);
+              String [] subList =  Gateway.getStorage().getClusterContents(item, VIEWPOINT + "/" +obj,  null);
+              for (String subStr : subList){
+                  C2KLocalObject c2KLocalObj = Gateway.getStorage().get(item, VIEWPOINT + "/" +obj + "/" +subStr,  null);
+                  exportCluster.put(item,c2KLocalObj); 
+              }
           }
        } 
      
