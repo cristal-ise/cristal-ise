@@ -5,7 +5,6 @@
   "type": "GROUP",
   "group": [
     {
-      "autoComplete": "off",
       "hideOnDateTimeSelect": true,
       "showSeconds": true,
       "validators": {"required": null},
@@ -29,7 +28,6 @@
       "required": true
     },
     {
-      "autoComplete": "off",
       "validators": {"required": null},
       "additional": {
         "stepMinute": 5,
@@ -51,7 +49,6 @@
       "required": true
     },
     {
-      "autoComplete": "off",
       "hideOnDateTimeSelect": true,
       "showSeconds": true,
       "validators": {"required": null},
@@ -75,7 +72,6 @@
       "required": true
     },
     {
-      "autoComplete": "off",
       "validators": {"required": null},
       "additional": {
         "showButtonBar": true,

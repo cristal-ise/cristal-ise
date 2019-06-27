@@ -5,7 +5,6 @@
   "type": "GROUP",
   "group": [
     {
-      "autoComplete": "off",
       "validators": {"required": null},
       "inputType": "text",
       "id": "ID",
@@ -23,7 +22,6 @@
       "required": true
     },
     {
-      "autoComplete": "off",
       "validators": {"required": null},
       "inputType": "text",
       "id": "Name",
@@ -41,7 +39,6 @@
       "required": true
     },
     {
-      "autoComplete": "off",
       "filterable": true,
       "validators": {"required": null},
       "additional": {"filterBy": "label"},
@@ -76,7 +73,6 @@
       "required": true
     },
     {
-      "autoComplete": "off",
       "filterable": true,
       "validators": {"required": null},
       "additional": {"filterBy": "label"},
@@ -107,7 +103,6 @@
       "required": true
     },
     {
-      "autoComplete": "off",
       "validators": {
         "min": 0,
         "required": null
@@ -128,7 +123,6 @@
       "required": true
     },
     {
-      "autoComplete": "off",
       "inputType": "text",
       "id": "Season",
       "label": "Season",
@@ -145,7 +139,6 @@
       "required": false
     },
     {
-      "autoComplete": "off",
       "inputType": "text",
       "id": "Commodity",
       "label": "Commodity",
@@ -162,7 +155,6 @@
       "required": false
     },
     {
-      "autoComplete": "off",
       "inputType": "text",
       "id": "Grade",
       "label": "Grade",
@@ -179,7 +171,6 @@
       "required": false
     },
     {
-      "autoComplete": "off",
       "inputType": "text",
       "id": "Note",
       "label": "Note",
@@ -196,7 +187,6 @@
       "required": false
     },
     {
-      "autoComplete": "off",
       "validators": {"min": 0},
       "id": "Amount",
       "label": "Amount",
@@ -214,7 +204,6 @@
       "required": false
     },
     {
-      "autoComplete": "off",
       "validators": {"min": 0},
       "id": "MeasuredWeight",
       "label": "Measured Weight",

@@ -5,7 +5,6 @@
   "type": "GROUP",
   "group": [
     {
-      "autoComplete": "off",
       "validators": {"required": null},
       "id": "efficiency",
       "label": "efficiency *",
@@ -23,7 +22,6 @@
       "required": true
     },
     {
-      "autoComplete": "off",
       "errorMessages": {"pattern": "Use max 2 decimal places"},
       "validators": {
         "pattern": "^-?\\d+\\.?\\d{0,2}$",
@@ -45,7 +43,6 @@
       "required": true
     },
     {
-      "autoComplete": "off",
       "errorMessages": {"pattern": "Use max 5 digits"},
       "validators": {
         "pattern": "^-?\\d{0,5}$",
@@ -67,7 +64,6 @@
       "required": true
     },
     {
-      "autoComplete": "off",
       "errorMessages": {"pattern": "Use max 5 digits with max 2 decimal places"},
       "validators": {
         "pattern": "^-?\\d{0,5}\\.?\\d{0,2}$",
