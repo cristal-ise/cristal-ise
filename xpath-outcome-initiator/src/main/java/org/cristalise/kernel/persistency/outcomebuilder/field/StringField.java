@@ -400,6 +400,9 @@ public class StringField extends StructureWithAppInfo {
 
         //Put label as placholder if it was not specified in the Schema
         if (! field.has("placeholder")) field.put("placeholder", label);
+        
+        //Set default value of autoComplete to 'off' if it was not specified in the Schema
+        if (! field.has("autoComplete")) field.put("autoComplete", "off");
 
         // if validators has no elements then remove it.
         if (field.getJSONObject("validators").length() == 0) {
