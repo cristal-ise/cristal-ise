@@ -5,7 +5,6 @@
   "type": "GROUP",
   "group": [
     {
-      "autoComplete": "off",
       "inputType": "text",
       "id": "testField",
       "label": "test Field",
@@ -34,7 +33,6 @@
       "label": "test Form Group",
       "type": "GROUP",
       "group": [{
-        "autoComplete": "off",
         "inputType": "text",
         "id": "testField2",
         "label": "test Field 2",

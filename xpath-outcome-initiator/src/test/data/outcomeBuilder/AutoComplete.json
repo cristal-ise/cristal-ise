@@ -20,5 +20,23 @@
     "type": "INPUT",
     "value": "0.0",
     "required": true
+  },
+  {
+    "autoComplete": "off",
+    "validators": {"required": null},
+    "id": "Height",
+    "label": "Height *",
+    "cls": {
+      "grid": {
+        "container": "ui-g",
+        "control": "ui-g-8",
+        "label": "ui-g-4"
+      },
+      "element": {"label": "ui-widget"}
+    },
+    "placeholder": "Height",
+    "type": "INPUT",
+    "value": "0.0",
+    "required": true
   }]
 }]

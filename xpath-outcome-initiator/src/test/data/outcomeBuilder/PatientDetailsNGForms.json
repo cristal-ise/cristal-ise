@@ -5,7 +5,6 @@
   "type": "GROUP",
   "group": [
     {
-      "autoComplete": "off",
       "validators": {"required": null},
       "inputType": "text",
       "id": "id",
@@ -23,7 +22,6 @@
       "required": true
     },
     {
-      "autoComplete": "off",
       "hidden": true,
       "additional": {"tooltip": "Insurance Number Documentation"},
       "inputType": "text",
@@ -43,7 +41,6 @@
       "required": false
     },
     {
-      "autoComplete": "off",
       "validators": {"required": null},
       "additional": {
         "showButtonBar": true,
@@ -71,7 +68,6 @@
       "mask": "99/99/9999"
     },
     {
-      "autoComplete": "off",
       "filterable": true,
       "validators": {"required": null},
       "additional": {"filterBy": "label"},
@@ -102,7 +98,6 @@
       "required": true
     },
     {
-      "autoComplete": "off",
       "validators": {"required": null},
       "additional": {"warning": {
         "pattern": "^[0-9]{1,4}$",
