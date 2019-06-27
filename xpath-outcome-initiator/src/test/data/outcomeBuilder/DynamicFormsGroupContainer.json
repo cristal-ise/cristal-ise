@@ -78,11 +78,7 @@
     {
       "name": "testFormGroup",
       "cls": {
-        "grid": {"container": "ui-g-6"},
-        "element": {
-          "container": "formGroupContainer",
-          "label": "formGroupLabel"
-        }
+        "grid": {"container": "ui-g-6"}
       },
       "id": "testFormGroup",
       "label": "test Form Group",

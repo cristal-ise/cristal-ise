@@ -66,7 +66,7 @@
         "element": {"label": "ui-widget"}
       },
       "type": "DATEPICKER",
-      "value": "2019-06-27",
+      "value": "@{CURRENTDATE}",
       "required": true,
       "mask": "99/99/9999"
     },
