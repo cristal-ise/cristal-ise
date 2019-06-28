@@ -34,6 +34,7 @@ import org.cristalise.kernel.persistency.outcomebuilder.InvalidOutcomeException;
 import org.cristalise.kernel.persistency.outcomebuilder.OutcomeStructure;
 import org.cristalise.kernel.persistency.outcomebuilder.StructuralException;
 import org.cristalise.kernel.persistency.outcomebuilder.StructureWithAppInfo;
+import org.cristalise.kernel.process.Gateway;
 import org.exolab.castor.types.AnyNode;
 import org.exolab.castor.xml.schema.Annotated;
 import org.exolab.castor.xml.schema.AttributeDecl;
@@ -400,6 +401,13 @@ public class StringField extends StructureWithAppInfo {
 
         //Put label as placholder if it was not specified in the Schema
         if (! field.has("placeholder")) field.put("placeholder", label);
+
+        String defaultAutoComplete = Gateway.getProperties().getString("Webui.autoComplete.default", "off");
+
+        // autoComplete=on by default in NgDyanmicForms so no need to set
+        if (! field.has("autoComplete") && defaultAutoComplete.equals("off") ) {
+            field.put("autoComplete", defaultAutoComplete);
+        }
 
         // if validators has no elements then remove it.
         if (field.getJSONObject("validators").length() == 0) {
