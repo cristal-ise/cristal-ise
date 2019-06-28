@@ -184,10 +184,12 @@ public class DimensionTableModel {
                             newRow[i] = this.setupDefaultElement(columnElementDecl, childElement, columnClasses.get(i));
                         }
                         break;
-                    case 0: // element is missing - create it
-                        Element newElement = myElement.getOwnerDocument().createElement(columnElementDecl.getName());
-                        myElement.appendChild(newElement); //TODO: not in the right place in sequence. should insert it
-                        newRow[i] = setupDefaultElement(columnElementDecl, newElement, columnClasses.get(i));
+                    case 0: // element is missing - if mandatory create it
+                        if (columnElementDecl.getMinOccurs() != 0) {
+                            Element newElement = myElement.getOwnerDocument().createElement(columnElementDecl.getName());
+                            myElement.appendChild(newElement); //TODO: not in the right place in sequence. should insert it
+                            newRow[i] = setupDefaultElement(columnElementDecl, newElement, columnClasses.get(i));
+                        }
                         break;
                     default:
                         throw new CardinalException("Element "+columnElementDecl.getName()+" appeared more than once.");
