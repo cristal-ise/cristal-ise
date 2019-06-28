@@ -27,7 +27,9 @@ import org.cristalise.kernel.common.InvalidDataException;
 import org.cristalise.kernel.lookup.ItemPath;
 import org.cristalise.kernel.persistency.outcome.Schema;
 import org.cristalise.kernel.process.resource.BuiltInResources;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 public class SchemaCache extends DescriptionObjectCache<Schema> {
 
     @Override
@@ -48,7 +50,7 @@ public class SchemaCache extends DescriptionObjectCache<Schema> {
             return thisSchema;
         }
         catch (Exception ex) {
-            Logger.error(ex);
+            log.error("Could not parse Schema '" + name + "' v" + version, ex);
             throw new InvalidDataException("Could not parse Schema '" + name + "' v" + version + ": " + ex.getMessage());
         }
     }
