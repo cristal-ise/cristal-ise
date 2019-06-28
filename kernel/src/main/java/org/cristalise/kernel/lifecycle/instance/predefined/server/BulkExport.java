@@ -101,6 +101,7 @@ public class BulkExport extends PredefinedStep{
                     case OUTCOME:    exportOutcome(item, sublocker);    break;
                     case COLLECTION: exportCollection(item, sublocker); break;
                     case JOB:        exportJob(item, sublocker);        break;
+                    case ATTACHMENT: exportAttachment(item, sublocker); break;
                     default:
                         break;
                 }
@@ -191,6 +192,14 @@ public class BulkExport extends PredefinedStep{
              exportCluster.put(item,c2KLocalObj);
          }
       }
+     
+     public void exportAttachment(ItemPath item, Object locker) throws PersistencyException, ObjectNotFoundException {
+         String[] objList  = Gateway.getStorage().getClusterContents(item, ATTACHMENT + "/", null);
+          for(String obj : objList){
+              C2KLocalObject c2KLocalObj = Gateway.getStorage().get(item, ATTACHMENT + "/" +obj,  null);
+              exportCluster.put(item,c2KLocalObj);
+          }
+       }
      
     
     
