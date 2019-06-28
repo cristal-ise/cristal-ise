@@ -483,6 +483,7 @@ public class Dependency extends Collection<DependencyMember> {
                     CastorHashMap chm = null;
 
                     if(props.containsKey(ACTIVITY_DEF_URN.getName())) {
+                        chm = (CastorHashMap)props.getBuiltInProperty(ACTIVITY_DEF_URN);
                     }
                     else {
                         chm = new CastorHashMap();
