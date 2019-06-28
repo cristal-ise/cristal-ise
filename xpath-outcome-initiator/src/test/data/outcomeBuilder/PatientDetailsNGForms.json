@@ -7,6 +7,8 @@
     {
       "validators": {"required": null},
       "inputType": "text",
+      "id": "id",
+      "label": "id *",
       "cls": {
         "grid": {
           "container": "ui-g",
@@ -15,8 +17,6 @@
         },
         "element": {"label": "ui-widget"}
       },
-      "id": "id",
-      "label": "id *",
       "placeholder": "id",
       "type": "INPUT",
       "required": true
@@ -25,6 +25,9 @@
       "hidden": true,
       "additional": {"tooltip": "Insurance Number Documentation"},
       "inputType": "text",
+      "id": "InsuranceNumber",
+      "label": "Insurance Number",
+      "placeholder": "Insurance ID",
       "cls": {
         "grid": {
           "container": "ui-g",
@@ -33,9 +36,6 @@
         },
         "element": {"label": "ui-widget"}
       },
-      "id": "InsuranceNumber",
-      "label": "Insurance Number",
-      "placeholder": "Insurance ID",
       "type": "INPUT",
       "value": "123456789ABC",
       "required": false
@@ -51,6 +51,9 @@
         "updateScriptRef": "Script:0"
       },
       "format": "yy-mm-dd",
+      "id": "DateOfBirth",
+      "label": "Date Of Birth *",
+      "placeholder": "99/99/9999",
       "cls": {
         "grid": {
           "container": "ui-g",
@@ -59,9 +62,6 @@
         },
         "element": {"label": "ui-widget"}
       },
-      "id": "DateOfBirth",
-      "label": "Date Of Birth *",
-      "placeholder": "99/99/9999",
       "type": "DATEPICKER",
       "value": "@{CURRENTDATE}",
       "required": true,
@@ -82,6 +82,8 @@
           "value": "female"
         }
       ],
+      "id": "Gender",
+      "label": "Gender *",
       "cls": {
         "grid": {
           "container": "ui-g",
@@ -90,8 +92,6 @@
         },
         "element": {"label": "ui-widget"}
       },
-      "id": "Gender",
-      "label": "Gender *",
       "placeholder": "Gender",
       "type": "SELECT",
       "value": "male",
@@ -103,6 +103,9 @@
         "pattern": "^[0-9]{1,4}$",
         "message": "Value out of specification, has to be <= 9999"
       }},
+      "id": "Weight",
+      "label": "Weight *",
+      "placeholder": "99,99",
       "cls": {
         "grid": {
           "container": "ui-g",
@@ -111,9 +114,6 @@
         },
         "element": {"label": "ui-widget"}
       },
-      "id": "Weight",
-      "label": "Weight *",
-      "placeholder": "99,99",
       "type": "INPUT",
       "value": "0.0",
       "required": true,
