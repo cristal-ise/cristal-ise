@@ -131,16 +131,14 @@ public class BuildOutcomeTest extends XMLUtils {
     @Test
     public void buildTable_ScientificData() throws Exception {
       String expected = getXML(dir, "ScientificData");
-
-      Outcome actual = new Outcome(expected);
       Schema xsd = new Schema("ScientificData", 0, getXSD(dir, "ScientificData"));
 
-      assert compareXML(expected, actual.getData());
+      Outcome actual = new Outcome(expected, xsd);
 
       // bug #239
       OutcomeBuilder ob = new OutcomeBuilder(xsd, actual);
 
-      Logger.msg(actual.getData());
+      Logger.msg(ob.getXml(false)); //at this point the XML is not inline with the XSD, but that acceptable for this test
 
       assert compareXML(expected, actual.getData());
     }
