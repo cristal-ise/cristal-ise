@@ -38,6 +38,7 @@ class DynamicForms {
     Integer max = null
     Integer min = null
     Boolean multiple = null
+	String autoComplete = null
     String pattern = null
     String placeholder = null
     Boolean required = null
