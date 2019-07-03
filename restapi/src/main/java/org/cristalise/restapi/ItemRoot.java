@@ -180,7 +180,7 @@ public class ItemRoot extends ItemUtils {
 
     @POST
     @Path("scriptResult")
-    @Consumes( {MediaType.TEXT_XML, MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON } )
+    @Consumes( {MediaType.TEXT_XML, MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON, MediaType.TEXT_PLAIN } )
     @Produces({ MediaType.TEXT_XML, MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON })
     public Response getScriptResultPost(
             String postData,
