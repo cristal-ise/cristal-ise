@@ -2,8 +2,8 @@ Cristal-iSE Documentation
 -------------------------
 
 * [Getting started](Getting-Started) - Installing and running a CRISTAL-iSE server and Swing UI client.
-1. [Key Features](Key-Features) - Short summary of key features of CRISTAL-iSE.
-1. Documentation
+* [Key Features](Key-Features) - Short summary of key features of CRISTAL-iSE.
+* Documentation
    * [Introduction](Introduction) - What is CRISTAL-iSE and what does it do?
    * [Technical Introduction](Technical-Introduction) - Gentle technical introduction to Description-Driven Framework
    * [The CRISTAL-iSE Client API|API](API) - How to design Items and develop client processes
