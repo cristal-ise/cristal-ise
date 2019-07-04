@@ -1,5 +1,27 @@
 site_name: Cristal-ise
 nav:
     - Home: index.md
-    - About: about.md
+    - Getting started: Getting-started.md 
+    - Key features:
+        - Cope with Change: Cope-with-Change
+        - Evolve Code with Data: Evolve-Code-with-Data
+        - Built-in Provenance: Built-in-Provenance
+        - Universal Data Catalogue: Universal-Data-Catalogue
+        - Process Description: Process-Description
+        - Built-in Security: Built-in-Security
+        - Immutable BOs: Immutable-BOs
+    - Documentation:
+        - Introduction: Introduction
+        - Technical Introduction: Technical-Introduction
+        - Client API: API
+        - Developer Guide: Developer-Guide
+        - DSL: Domain-Specific-Language-(DSL)
+        - JavaDoc: cristalise-kernel
+    - Tutorials:
+        - Basic ( Create Patient ): Basic-Tutorial
+        - Adv ( Patient Tracking ): tutorial-PatientTracking
+    - Selected papers: Selected-papers
+    - Maven Deploy Travis: Maven-Deploy-Travis
+    - Maven Deploy Travis GPG2: Maven-Deploy-Travis-GPG2
+
 theme: readthedocs
