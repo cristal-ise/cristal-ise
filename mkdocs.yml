@@ -1,4 +1,6 @@
-site_name: Cristal-ise
+site_name: Cristal-ISE
+repo_url: https://github.com/cristal-ise/cristal-ise/tree/cristalise-docs
+edit_uri: cristalise-docs/docs/
 nav:
     - Home: index.md
     - Getting started: Getting-started.md 
