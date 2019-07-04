@@ -1,0 +1,3 @@
+Outcomes are pieces of XML that were produced by an Agent during the execution of an Activity, and stored in the Item, along with an Event that details the conditions (audit data) of the execution. Their structure is defined by an [[XMLSchema]], stored and versioned in an Schema Item (also called as OutcomeDescription). The schema name and version are usually given by the '*SchemaType*' and '*SchemaVersion*' properties of the Activity, though with the new [[StateMachine]] object in the 3.0 kernel, this behaviour is definable. Each Outcome is associated with the Event that it was generated with, and shares its ID with it. They are stored in the item under the path /Outcome/SchemaName/SchemaVersion/EventID
+
+'Current' versions of Outcomes are pointed to by Viewpoints.
