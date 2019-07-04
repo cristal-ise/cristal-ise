@@ -27,9 +27,11 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Properties;
 
 import org.cristalise.kernel.persistency.outcome.Schema;
 import org.cristalise.kernel.persistency.outcomebuilder.OutcomeBuilder;
+import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.test.persistency.XMLUtils;
 import org.cristalise.kernel.utils.Logger;
 import org.json.JSONArray;
@@ -44,6 +46,10 @@ public class ListOfValuesTest extends XMLUtils {
     @Before
     public void setUp() throws Exception {
         Logger.addLogStream(System.out, 8);
+        Properties props = new Properties();
+        props.put("Webui.autoComplete.default", "on");
+        props.put("Authenticator", "Shiro");
+        Gateway.init(props);
     }
 
     @Test
