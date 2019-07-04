@@ -1,5 +1,5 @@
 Cristal-iSE Documentation
--------------------------
+==========================
 
 * [[Getting started]] - Installing and running a CRISTAL-iSE server and Swing UI client.
 * [[Key Features]] - Short summary of key features of CRISTAL-iSE.

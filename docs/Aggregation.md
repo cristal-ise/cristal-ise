@@ -1,1 +1,0 @@
-An Aggregation is a [[Collection]] that contains a fixed number of members, which are individually typed. They contain geometry information to lay them out in two dimensional space. They are useful for defining composition of a real world object, and were used to define the structure of the CMS ECAL detector of the CERN LHC.

@@ -1,2 +1,0 @@
-## ProxyMessageListener
-To receive ALL ProxyMessages of ALL items, implement ProxyMessageListener and configure the implementing class in the ProxyMessageListener key of the Gateway config (see [[CRISTAL System Properties]]).
