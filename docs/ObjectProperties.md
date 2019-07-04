@@ -1,0 +1,3 @@
+ObjectProperties is an extension of the Java Properties class that can store other data types than String. It contains utility methods for getting integers and booleans either as objects or conversion from Strings. It can also instantiate new objects from class name strings, or pass the object directly if the property already contains it.
+
+In CRISTAL, the Gateway must be initialized with a  [[Configuration Properties|CRISTALProperties]] set. If the AbstractMain class is used, as is the case for CRISTAL processes launches from a command-line, then these properties are assembled from configuration files, command-line parameters and module parameters as described in [[BootSequence]]

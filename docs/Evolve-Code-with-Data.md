@@ -1,0 +1,8 @@
+### Code and Data Evolves together
+_Unified versioning mechanism reduces DevOps effort to support **Continuous Delivery**_
+
+CRISTAL-iSE is the only software development framework which was fully designed to handle complete evolution of data (shema) and code (services) together from design to production and maintenance. In this view only Microsevices architecture has similar scope, although Microsevices architecture does not cover data evolution, it only covers service (code) evolution.
+
+Normally development frameworks handle the evolution of the code, have powerful tools to manage database schema and object-relational mapping, BUT it is 'only' available for the development phase. The propagation of changes from development to production is done by the Software Development Life-Cycle through the various stages of testing and deployment. The current trends in DevOps and Continuous Delivery efforts are designed to close the gap between development and operation. Their primary focus is to improve, automate and integrate the development, test and deployment processes.
+
+On the other hand CRISTAL-iSE has a completely 'opposite' approach. Rather then tuning the delivery process it promotes specific design approach and architecture style. Its design is very similar to Domain-Driven Design using CQRS with Event Sourcing and its architecture style has a lot in common with Microservices. This approach we call Description-Driven and it is the key to create a system which can cater for data and process changes.
