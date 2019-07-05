@@ -1,6 +1,6 @@
 # The CRISTAL-ISE Client API
 
-CRISTAL-ISE is a system that manages [[description-driven|Description-driven Systems]] objects, known as [[Item]]s. These are objects that gain all of their application-specific behaviour through configuration, rather than compiled code. This configuration data, known as '[[Descriptions|Description]]' comprises of DAG-oriented [[workflow|Workflow]] definitions, [[XML Schemas|OutcomeDescriptions]] and [[script|Script]] fragments, which interact to provide the full lifecycle of the Item they are describing. In CRISTAL, the description data is also stored in other Items, which are also described using the same mechanism. This means that CRISTAL can store previous versions of descriptions, so that previous states of the system are preserved, and full provenance of both the application and its data are completely preserved.
+CRISTAL-ISE is a system that manages [[description-driven|Description-driven Systems]] objects, known as [Item](Item)s. These are objects that gain all of their application-specific behaviour through configuration, rather than compiled code. This configuration data, known as '[[Descriptions](Description)' comprises of DAG-oriented [workflow](Workflow) definitions, [XML Schemas](OutcomeDescriptions) and [script](Script) fragments, which interact to provide the full lifecycle of the Item they are describing. In CRISTAL, the description data is also stored in other Items, which are also described using the same mechanism. This means that CRISTAL can store previous versions of descriptions, so that previous states of the system are preserved, and full provenance of both the application and its data are completely preserved.
 
 CRISTAL-ISE allows for three types of process:
 
@@ -10,86 +10,86 @@ CRISTAL-ISE allows for three types of process:
 
 When we refer to the 'CRISTAL-ISE API' this refers to the client functionality, as the server code should not be modified by end users or developers. As an expansion of the above, client functionality breaks down into five areas:
 
-1. [[Authentication]]
-1. [[Item directory browsing and resolution|ResolvingEntities]]
-1. [[Item data access|QueryingEntityData]]
-1. [[Obtaining and Executing Jobs to submit new Outcomes|JobExecution]]
-1. [[Changing the state of an Item during execution|InteractingWithPredefinedSteps]]
+1. [Authentication](Authentication)
+1. [Item directory browsing and resolution](ResolvingEntities)
+1. [Item data access](QueryingEntityData)
+1. [Obtaining and Executing Jobs to submit new Outcomes](JobExecution)
+1. [Changing the state of an Item during execution](InteractingWithPredefinedSteps)
 
 # CRISTAL Process Structure
 
 This section details the objects that are created during CRISTAL process creation, and how to interact with them.
 
-## [[Gateway]]
+## Gateway
 
 _Singletons that CRISTAL processes use to find and communicate with Items_
 
-1.  [[Properties|ObjectProperties]] - Cristal process configuration properties. Origin, usage and standard sets.
-1.  [[Lookup]] - Item and Agent Directory. Paths and resolution.
-1.  [[TransactionManager|ClusterStorageManager#TransactionManager]] - Persistency of Cristal local objects.
-1.  [[ProxyManager]] - Client proxies to cristal Items and Agents.
-1.  [[ModuleManager]] - Loads, imports and initializes CRISTAL modules, which supply additional functionality through bundled Items.
-1.  [[ResourceLoader]] - loads Java resources from the kernel or Module jars.
-1.  [[CastorXMLUtility]] - Mapping between Cristal local objects and Schema described XML fragments using the kernel mapfiles.
+1.  [Properties](ObjectProperties) - Cristal process configuration properties. Origin, usage and standard sets.
+1.  [Lookup] - Item and Agent Directory. Paths and resolution.
+1.  [TransactionManager](ClusterStorageManager#TransactionManager) - Persistency of Cristal local objects.
+1.  [ProxyManager] - Client proxies to cristal Items and Agents.
+1.  [ModuleManager] - Loads, imports and initializes CRISTAL modules, which supply additional functionality through bundled Items.
+1.  [ResourceLoader] - loads Java resources from the kernel or Module jars.
+1.  [CastorXMLUtility] - Mapping between Cristal local objects and Schema described XML fragments using the kernel mapfiles.
 
 _Server only singletons_
 
-1. [[LookupManager]] - writes to the Item and Agent directory.
-1. [[ProxyServer]] - manages client Item subscriptions, and informs them of changes to Items.
-1. [[CorbaServer]] - creates and manages Item objects as they are invoked over CORBA.
+1. [LookupManager] - writes to the Item and Agent directory.
+1. [ProxyServer] - manages client Item subscriptions, and informs them of changes to Items.
+1. [CorbaServer] - creates and manages Item objects as they are invoked over CORBA.
 
 ## Modules
 
 _Bundles of Items that add functionality to a kernel instance_
 
-1. [[ModuleStructure]] - the file format and structure of a module.
-1. [[ModuleXML]] - structure and syntax of the module xml specification.
-1. [[ModuleItem]] - representation of a module as a Cristal Item.
+1. [ModuleStructure] - the file format and structure of a module.
+1. [ModuleXML] - structure and syntax of the module xml specification.
+1. [ModuleItem] - representation of a module as a Cristal Item.
 
-## [[Bootstrap]]
+## Bootstrap
 
 _Read the Items of the modules and instantiate or update them to initialize the application_
 
-1. [[Boot-Sequence-of-Server]] - sequence of events involved in starting a CRISTAL server process
+1. [Boot-Sequence-of-Server] - sequence of events involved in starting a CRISTAL server process
 
 # CRISTAL-iSE Building Blocks
 
 ## Properties
 _The venerable key-value pair is used heavily to achieve flexibility_
 
-1. [[PropertyDescription]] - Properties that describe Item 'types' 
-1. [[Property]] - Properties of Item itself
-1. [[VertexProperty]] - Properties used in activities and collections
+1. [PropertyDescription] - Properties that describe Item 'types' 
+1. [Property] - Properties of Item itself
+1. [VertexProperty] - Properties used in activities and collections
 
-## [[LifeCycle|Workflow]]
+## [LifeCycle](Workflow)
 _LifeCycle defines and execute the business logic implemented by the Item_
 
-1. [[PredefinedStep]] - built-in activities that execute code on the server to modify the fundamental aspects of the Item
-1. [[Activity]] - represents a task that needs to be done by an Agent
-1. [[State-Machine]] - defines the possible transition available to execute an Activity
-1. [[Job]] -  represents a possible transition by a particular Agent of an Activity
+1. [PredefinedStep] - built-in activities that execute code on the server to modify the fundamental aspects of the Item
+1. [Activity] - represents a task that needs to be done by an Agent
+1. [State-Machine] - defines the possible transition available to execute an Activity
+1. [Job] -  represents a possible transition by a particular Agent of an Activity
 
-## [[Collections|Collection]]
+## Collections|Collection
 _Collections declare relationships between Items_
 
-1. [[Dependency]] - Most basic collection type to reference Items
-1. [[Aggregation]] - Composition a fixed number of Item, which are individually typed
-1. [[CollectionDescription]] - Defines collection instances to be created (Dependency/Aggregation)
+1. [Dependency] - Most basic collection type to reference Items
+1. [Aggregation] - Composition a fixed number of Item, which are individually typed
+1. [CollectionDescription] - Defines collection instances to be created (Dependency/Aggregation)
 
 ## Scripting
 _Interacting with Items in activity, routing and instantiation scripts_
 
-1. [[Script]]
-1. [[Instantiation Script]]
+1. [Script]
+1. [Instantiation Script]
 
-## [[Proxies]]
+## Proxies
 _Proxies client-side representation of Items and Agent, they are the primary tool for application developers._
 
-1. [[ItemProxy]] - Wrapper of the communication with [[Item]].
-1. [[AgentProxy]] - Subclass of ItemProxy, has utility methods for [[Job Execution|JobExecution]].
-1. [[Caching|Proxies#caching]] - ItemProxy caches data loaded from the Item to reduce communication.
+1. [ItemProxy] - Wrapper of the communication with [Item].
+1. [AgentProxy] - Subclass of ItemProxy, has utility methods for [Job Execution](JobExecution).
+1. [Caching](Proxies#caching) - ItemProxy caches data loaded from the Item to reduce communication.
 
 ## Graph
 _Library to support graph representation within the framework_
 
-1. [[Renderer]] - Renders the graph on Graphics2D canvas of AWT so it can be shown as PNG or SVG
+1. [Renderer] - Renders the graph on Graphics2D canvas of AWT so it can be shown as PNG or SVG
