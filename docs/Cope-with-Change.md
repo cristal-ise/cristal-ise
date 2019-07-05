@@ -1,7 +1,7 @@
 Designed to Cope with Change
 ----------------------------
 
-_Implement business functionality gradually without the need of reimplementing the full system_
+Implement business functionality gradually without the need of reimplementing the full system
 
 The idea of Description-Driven Framework was originated from [CRISTAL](http://proj-cristal.web.cern.ch/proj-cristal/), a system which was developed at CERN to manage the construction of the CMS/ECAL detector. Due to the scientific nature and the extended time-scale of the construction (5+ years), the users (physicists/engineers) wanted to gradually define and evolve detector elements, their data structures, construction steps and scientific calculations in order to produce the best possible device. In order to meet these requirements the team had to develop a system which could **cope with change** by design. Such a unique constraint has inspired the research and development teams at UWE/CERN to design and develop a so-called Description-Driven System in which all logic and data structures have “descriptions” which can be modified and versioned to reflect changes required by physicists.
 

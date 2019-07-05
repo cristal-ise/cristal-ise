@@ -25,8 +25,8 @@ If you want to read more about these concepts, please read the [[Technical Intro
 
 These are the steps to create all the Items required for this tutorial
 
-1. [Create `PatientDetails` OutcomeDesc Item](Create-PatientDetails)
-1. [Create `SetPatientDetails` Activity Description Item](Create-SetPatientDetails)
-1. [Create `PatientLifecycle` CompositeActivity Description Item](Create-PatientLifecycle)
-1. [Create `PatientDescription` Description Item](Create-PatientDescription)
-1. [Create `Patient` Item](Create-Patient)
+1. [Create `PatientDetails` OutcomeDesc Item](../Create-PatientDetails)
+1. [Create `SetPatientDetails` Activity Description Item](../Create-SetPatientDetails)
+1. [Create `PatientLifecycle` CompositeActivity Description Item](../Create-PatientLifecycle)
+1. [Create `PatientDescription` Description Item](../Create-PatientDescription)
+1. [Create `Patient` Item](../Create-Patient)

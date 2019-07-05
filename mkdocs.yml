@@ -5,25 +5,25 @@ nav:
     - Home: index.md
     - Getting started: Getting-Started.md 
     - Key features:
-        - Cope with Change: Cope-with-Change
-        - Evolve Code with Data: Evolve-Code-with-Data
-        - Built-in Provenance: Built-in-Provenance
-        - Universal Data Catalogue: Universal-Data-Catalogue
-        - Process Description: Process-Description
-        - Built-in Security: Built-in-Security
-        - Immutable BOs: Immutable-BOs
+        - Cope with Change: Cope-with-Change.md
+        - Evolve Code with Data: Evolve-Code-with-Data.md
+        - Built-in Provenance: Built-in-Provenance.md
+        - Universal Data Catalogue: Universal-Data-Catalogue.md
+        - Process Description: Process-Description.md
+        - Built-in Security: Built-in-Security.md
+        - Immutable BOs: Immutable-BOs.md
     - Documentation:
-        - Introduction: Introduction
-        - Technical Introduction: Technical-Introduction
-        - Client API: API
-        - Developer Guide: Developer-Guide
-        - DSL: Domain-Specific-Language-(DSL)
-        - JavaDoc: cristalise-kernel
+        - Introduction: Introduction.md
+        - Technical Introduction: Technical-Introduction.md
+        - Client API: API.md
+        - Developer Guide: Developer-Guide.md
+        - DSL: Domain-Specific-Language-(DSL).md
+        - JavaDoc: http://javadoc.io/doc/org.cristalise/cristalise-kernel
     - Tutorials:
-        - Basic ( Create Patient ): Basic-Tutorial
-        - Adv ( Patient Tracking ): tutorial-PatientTracking
-    - Selected papers: Selected-papers
-    - Maven Deploy Travis: Maven-Deploy-Travis
-    - Maven Deploy Travis GPG2: Maven-Deploy-Travis-GPG2
+        - Basic ( Create Patient ): Basic-Tutorial.md
+        - Adv ( Patient Tracking ): tutorial-PatientTracking.md
+    - Selected papers: Selected-papers.md
+    - Maven Deploy Travis: Maven-Deploy-Travis.md
+    - Maven Deploy Travis GPG2: Maven-Deploy-Travis-GPG2.md
 
 theme: readthedocs
