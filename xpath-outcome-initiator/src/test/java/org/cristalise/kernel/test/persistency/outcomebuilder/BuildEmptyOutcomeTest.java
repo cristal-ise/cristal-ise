@@ -24,9 +24,10 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.Map;
-
+import java.util.Properties;
 import org.cristalise.kernel.persistency.outcome.Schema;
 import org.cristalise.kernel.persistency.outcomebuilder.OutcomeBuilder;
+import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.test.persistency.XMLUtils;
 import org.cristalise.kernel.utils.Logger;
 import org.junit.Before;
@@ -43,6 +44,12 @@ public class BuildEmptyOutcomeTest extends XMLUtils {
     @Before
     public void setUp() throws Exception {
         Logger.addLogStream(System.out, 8);
+        Properties props = new Properties();
+        props.put("Webui.inputField.boolean.defaultValue", "false");
+        props.put("Webui.inputField.decimal.defaultValue", "0.0");
+        props.put("Webui.inputField.integer.defaultValue", "0");
+        props.put("Authenticator", "Shiro");
+        Gateway.init(props);
     }
 
     private void checkEmptyOutcome(String type) throws Exception {

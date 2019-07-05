@@ -49,6 +49,9 @@ public class NgDynamicFormsTest extends XMLUtils {
         Properties props = new Properties();
         props.put("Webui.autoComplete.default", "on");
         props.put("Authenticator", "Shiro");
+        props.put("Webui.inputField.boolean.defaultValue", "false");
+        props.put("Webui.inputField.decimal.defaultValue", "0.0");
+        props.put("Webui.inputField.integer.defaultValue", "0");
         Gateway.init(props);
     }
 

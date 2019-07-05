@@ -47,7 +47,7 @@ public class DecimalField extends NumberField {
 
     @Override
     public String getDefaultValue() {
-        return Gateway.getProperties().getString("Webui.inputField.decilmal.defaultValue", "");
+        return Gateway.getProperties().getString("Webui.inputField.decimal.defaultValue", "");
     }
 
     @Override
