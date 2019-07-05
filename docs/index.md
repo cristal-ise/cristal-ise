@@ -3,6 +3,7 @@ Cristal-iSE Documentation
 
 * [Getting started](Getting-Started) - Installing and running a CRISTAL-iSE server and Swing UI client.
 * [Key Features](Key-Features) - Short summary of key features of CRISTAL-iSE.
+
 Documentation
 ----------------
   - [Introduction](Introduction) - What is CRISTAL-iSE and what does it do?
@@ -11,6 +12,7 @@ Documentation
   - [Developer Guide](Developer-Guide) - The documents to understand internal working
   - [Domain Specific Language (DSL)](Domain-Specific-Language-(DSL)) - Eases the management of cristal-ise XML resources
   - [JavaDoc](http://javadoc.io/doc/org.cristalise/cristalise-kernel) - The Javadoc API of the latest release
+  
 Tutorials
 -----------------
   - Basic: [Create Patient](Basic-Tutorial) - Creating a basic Item Description and instantiating Items with it
