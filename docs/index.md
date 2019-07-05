@@ -17,6 +17,9 @@ Tutorials
 -----------------
   - Basic: [Create Patient](Basic-Tutorial) - Creating a basic Item Description and instantiating Items with it
   - Advanced: [Patient Tracking](/cristal-ise/tutorial-PatientTracking/wiki/Home) - A walkthrough of the design and implementation of a set of Item Descriptions for use in a healthcare application
+  
+Others
+--------------
 * [Selected papers](Selected-papers) - Key academic published papers about CRISTAL-iSE and its uses
 * [Maven Deploy Travis](Maven-Deploy-Travis) - How to deploy to Maven Central (sonatype) using Travis
 * [Reference](Reference)
