@@ -4,4 +4,4 @@ mkdocs:
   configuration: docs/mkdocs.yml
 python:
    install:
-      - requirements: docs/requirements/local-docs-build.txt
+      - requirements: requirements/local-docs-build.txt
