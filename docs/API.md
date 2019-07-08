@@ -61,7 +61,7 @@ _The venerable key-value pair is used heavily to achieve flexibility_
 1. [Property] - Properties of Item itself
 1. [VertexProperty] - Properties used in activities and collections
 
-## [LifeCycle](Workflow)
+## [LifeCycle](../Workflow)
 _LifeCycle defines and execute the business logic implemented by the Item_
 
 1. [PredefinedStep] - built-in activities that execute code on the server to modify the fundamental aspects of the Item

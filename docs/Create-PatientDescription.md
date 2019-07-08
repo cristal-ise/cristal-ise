@@ -25,5 +25,5 @@
     1. Push `Done` button
 
 - **Next:** [Create `Kovax` Patient Item](../Create-Patient)
-- **Prev:** [Create `PatientLifecycle` CompositeActivity Description Item](Create-PatientLifecycle)
+- **Prev:** [Create `PatientLifecycle` CompositeActivity Description Item](../Create-PatientLifecycle)
 - **Top:**  [Main page](../Basic-Tutorial)
