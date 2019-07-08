@@ -16,7 +16,7 @@ Documentation
 Tutorials
 -----------------
   - Basic: [Create Patient](Basic-Tutorial) - Creating a basic Item Description and instantiating Items with it
-  - Advanced: [Patient Tracking](/cristal-ise/tutorial-PatientTracking/wiki/Home) - A walkthrough of the design and implementation of a set of Item Descriptions for use in a healthcare application
+  - Advanced: [Patient Tracking](tutorial-PatientTracking) - A walkthrough of the design and implementation of a set of Item Descriptions for use in a healthcare application
   
 Others
 --------------
