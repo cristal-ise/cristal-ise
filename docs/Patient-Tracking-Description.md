@@ -49,4 +49,4 @@ Protocol is full description of the collection of Checkups that the given organi
 - *SpecialistType* - A defintions to describe who can carry out a given step in the Protocol
 - *EquipmentType* - A defintions to describe the piece of hardware/software which is used during carry a step in the Protocol
 
-Next: [Cristalised](Patient-Tracking-Cristalised)
+Next: [Cristalised](../Patient-Tracking-Cristalised)

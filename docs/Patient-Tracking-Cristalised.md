@@ -25,4 +25,4 @@ Protocol is mapped to a *Workflow Definition*. Each Checkup is described by an *
 - SpecialistType - Mapped to an *Agent Definition*, which capture the Name Property like Opthometrist, can be instantiated as user Agent with a Role like Opthometrist
 - EquipmentType - Mapped to an *Agent Definition*
 
-Next: [Implementation](Patient-Tracking-Implementation)
+Next: [Implementation](../Patient-Tracking-Implementation)

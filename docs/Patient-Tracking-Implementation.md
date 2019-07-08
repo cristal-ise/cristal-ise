@@ -86,4 +86,4 @@ For the sake of simplicity the same Schema is assigned to all Activities and all
 1. Open /tutorial/Joe Item
    - `Excecute Urinalysis Synopsis:Perfect`
 
-Next: [Modularization](Patient-Tracking-Modularization)
+Next: [Modularization](../Patient-Tracking-Modularization)
