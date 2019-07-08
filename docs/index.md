@@ -1,8 +1,8 @@
 Cristal-iSE Documentation
 -------------------------
 
-* [Getting started](Getting-Started) - Installing and running a CRISTAL-iSE server and Swing UI client.
-* [Key Features](Key-Features) - Short summary of key features of CRISTAL-iSE.
+### [Getting started](Getting-Started) - Installing and running a CRISTAL-iSE server and Swing UI client.
+### [Key Features](Key-Features) - Short summary of key features of CRISTAL-iSE.
 
 Documentation
 ----------------
