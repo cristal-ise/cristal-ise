@@ -1,6 +1,6 @@
 version: 2
 formats: all
-sphinx:
+mkdocs:
   configuration: docs/mkdocs.yml
 python:
    install:
