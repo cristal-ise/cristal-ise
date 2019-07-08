@@ -1,11 +1,11 @@
 Welcome to the advanced Patient Tracking tutorial of cristal-ise!
 ----------------------------------------------------------------
 
-To get started first you need to [install](/cristal-ise/kernel/wiki/Getting-Started) 5 modules: kernel, ldap, xmldb, gui and dev
+To get started first you need to [install](../Getting-Started) 5 modules: kernel, ldap, xmldb, gui and dev
 
 Purpose
 -------
-This is an advanced tutorial for developers and architects. It is expected that you are familiar with the concepts of 'Description-Driven Approach'. It is advisable to read the [Key features](/cristal-ise/kernel/wiki/Key+Features), [Introduction](/cristal-ise/kernel/wiki/Introduction) and [Technical Introduction](/cristal-ise/kernel/wiki/Technical-Introduction) of cristalise-kernel. Additionally papers listed in [Further Reading section](/cristal-ise/kernel/wiki/Technical-Introduction#further-reading) could be read before attempting the tutorial. Prior knowledge of Java, XML and XSD is required.
+This is an advanced tutorial for developers and architects. It is expected that you are familiar with the concepts of 'Description-Driven Approach'. It is advisable to read the [Key features](../Key-Features), [Introduction](../Introduction) and [Technical Introduction](../Technical-Introduction) of cristalise-kernel. Additionally papers listed in [Further Reading section](/cristal-ise/kernel/wiki/Technical-Introduction#further-reading) could be read before attempting the tutorial. Prior knowledge of Java, XML and XSD is required.
 
 This tutorial has 4 sections: 
 -----------------------------

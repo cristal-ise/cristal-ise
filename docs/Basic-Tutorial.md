@@ -9,11 +9,11 @@ This tutorial helps you to start using CRISTAL-iSE as quickly as possible. It wi
 
 ## Prerequisites
 
-To get started first you need to follow the [Getting Started](/cristal-ise/kernel/wiki/Getting-Started) document to install a CRISTAL-iSE server with these 5 modules: kernel, ldap, xmldb, gui and dev
+To get started first you need to follow the [Getting Started](../Getting-Started) document to install a CRISTAL-iSE server with these 5 modules: kernel, ldap, xmldb, gui and dev
 
 ## Description-Driven building blocks
 
-In a development environment like Rails, which is based on the Model-View-Controller paradigm, you create a class to store your model data, which will create the corresponding database table, view and controller. In CRISTAL-iSE this is done rather differently, because it is based on the [Description-driven approach](Description-driven+Systems). 
+In a development environment like Rails, which is based on the Model-View-Controller paradigm, you create a class to store your model data, which will create the corresponding database table, view and controller. In CRISTAL-iSE this is done rather differently, because it is based on the [Description-driven approach](../Description-driven-Systems). 
 
 In CRISTAL-iSE everything is orchestrated by a [[Workflow]] which defines the business process (also called as LifeCycle), which is the list of operations of your business object, in this case the Patient. A single operations or command on that object (Patient), is represented by an [[Activity]]. That Activity provides the so called [[Outcome]], an XML document, which is the (sub)set of business data to be collected for the business object (Patient). All these are grouped together by the [[Item]] to manage Activity execution and data collection consistently. 
 
