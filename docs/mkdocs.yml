@@ -4,7 +4,7 @@ edit_uri: edit/cristalise-docs/docs
 nav:
     - Home: index.md
     - Getting started: Getting-Started.md 
-    - Key features: 
+    - Key features:
         - Cope with Change: Cope-with-Change.md
         - Evolve Code with Data: Evolve-Code-with-Data.md
         - Built-in Provenance: Built-in-Provenance.md
