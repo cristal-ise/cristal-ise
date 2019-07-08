@@ -15,5 +15,5 @@
     1. Type `1970.01.01` into input field `DateOfBirth`
     1. Push `Done` button
 
-- **Prev:** [Create `PatientDescription` Description Item](Create-PatientDescription)
-- **Top:**  [Main page](Basic-Tutorial)
+- **Prev:** [Create `PatientDescription` Description Item](../Create-PatientDescription)
+- **Top:**  [Main page](../Basic-Tutorial)

@@ -25,5 +25,5 @@
     1. You can view it as View 0 of the 'Schema' outcome in the Data Viewer tab.![PatientDetails](PatientDetails_DataViewer.png)
 
 
-- **Next:** [Create `SetPatientDetails` Activity Description Item](Create-SetPatientDetails)
-- **Top:**  [Main page](Basic-Tutorial)
+- **Next:** [Create `SetPatientDetails` Activity Description Item](../Create-SetPatientDetails)
+- **Top:**  [Main page](../Basic-Tutorial)

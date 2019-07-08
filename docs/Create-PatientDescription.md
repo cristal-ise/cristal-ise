@@ -24,6 +24,6 @@
     1. Type `0` into input field `WorkflowDefinitionVersion`
     1. Push `Done` button
 
-- **Next:** [Create `Kovax` Patient Item](Create-Patient)
+- **Next:** [Create `Kovax` Patient Item](../Create-Patient)
 - **Prev:** [Create `PatientLifecycle` CompositeActivity Description Item](Create-PatientLifecycle)
-- **Top:**  [Main page](Basic-Tutorial)
+- **Top:**  [Main page](../Basic-Tutorial)

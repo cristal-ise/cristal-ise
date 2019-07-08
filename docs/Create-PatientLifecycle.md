@@ -27,6 +27,6 @@
 	1. Select `Data Viewer` tab
 	1. Select `Outcome type = CompositeActivityDef` and check (last, 0) properties of Event 3. The main section shall show the layout of your newly created workflow ![PatientLifecycle](PatientLifecycle_DataViewer.png)
 
-- **Next:** [Create `PatientDescription` Description Item](Create-PatientDescription)
-- **Prev:** [Create `SetPatientDetails` Activity Description Item](Create-SetPatientDetails)
-- **Top:**  [Main page](Basic-Tutorial)
+- **Next:** [Create `PatientDescription` Description Item](../Create-PatientDescription)
+- **Prev:** [Create `SetPatientDetails` Activity Description Item](../Create-SetPatientDetails)
+- **Top:**  [Main page](../Basic-Tutorial)

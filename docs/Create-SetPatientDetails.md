@@ -22,5 +22,5 @@
 	1. Select `Outcome Type = ElementaryActivityDef` and check (last, 0) properties of Event 3. You should also see the Propeties of the Avtivity you have set earlier ![SetPatientDetails](SetPatientDetails_DataViewer.png)
 
 - **Next:** [Create `PatientLifecycle` CompositeActivity Description Item](Create-PatientLifecycle)
-- **Prev:** [Create `PatientDetails` OutcomeDesc Item](Create-PatientDetails)
-- **Top:**  [Main page](Basic-Tutorial)
+- **Prev:** [Create `PatientDetails` OutcomeDesc Item](../Create-PatientDetails)
+- **Top:**  [Main page](../Basic-Tutorial)
