@@ -1,7 +1,7 @@
 version: 2
 formats: all
 sphinx:
-  configuration: docs/mkdocs
+  configuration: docs/mkdocs.yml
 python:
    install:
       - requirements: requirements/local-docs-build.txt
