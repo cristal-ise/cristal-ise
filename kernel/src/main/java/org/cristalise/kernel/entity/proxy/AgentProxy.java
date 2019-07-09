@@ -214,13 +214,13 @@ public class AgentProxy extends ItemProxy {
         return result;
     }
 
-    private void executeSimpleElectonicSignature(Job job)
+    public void executeSimpleElectonicSignature(Job job)
             throws AccessRightsException, InvalidDataException, InvalidTransitionException, ObjectNotFoundException,
             PersistencyException, ObjectAlreadyExistsException, ScriptErrorException, InvalidCollectionModification
     {
         StringBuffer xml = new StringBuffer("<SimpleElectonicSignature>");
-        xml.append("<AgentName>").append(mAgentName)                           .append("</AgentName>");
-        xml.append("<Password>") .append(job.getOutcome().getField("Password")).append("</Password>");
+        xml.append("<AgentName>").append(job.getOutcome().getField("AgentName")).append("</AgentName>");
+        xml.append("<Password>") .append(job.getOutcome().getField("Password")) .append("</Password>");
 
         xml.append("<ExecutionContext>");
         xml.append("<ItemPath>")     .append(job.getItemUUID())           .append("</ItemPath>");
