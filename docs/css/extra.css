@@ -1,0 +1,8 @@
+.caption-text {
+        color: #3a7ca8 !important;
+        line-height: 32px;
+        font-weight: bold;
+        text-transform: uppercase;
+        font-size: 85%;
+        white-space: nowrap;
+}

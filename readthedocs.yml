@@ -1,7 +1,5 @@
 version: 2
 formats: all
 mkdocs:
-  configuration: docs/mkdocs.yml
-python:
-   install:
-      - requirements: requirements/local-docs-build.txt
+  configuration: mkdocs.yml
+

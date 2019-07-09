@@ -1,10 +1,23 @@
 site_name: Cristal-ISE
 repo_url: https://github.com/cristal-ise/cristal-ise
 edit_uri: edit/cristalise-docs/docs
+
+theme:
+    name: readthedocs
+    highlightjs: true
+    hljs_languages:
+        - yaml
+        - django
+
+extra_css:
+    - css/extra.css
+
 nav:
-    - Home: index.md
-    - Getting started: Getting-Started.md 
-    - Key features: 
+    - Overview:
+        - Cristal-iSE Documentation: Cristal-iSE-Documentation.md
+        - Getting started: Getting-Started.md 
+    - Features: 
+        - Key Features: Key-Features.md
         - Cope with Change: Cope-with-Change.md
         - Evolve Code with Data: Evolve-Code-with-Data.md
         - Built-in Provenance: Built-in-Provenance.md
@@ -12,7 +25,7 @@ nav:
         - Process Description: Process-Description.md
         - Built-in Security: Built-in-Security.md
         - Immutable BOs: Immutable-BOs.md
-    - Documentation:
+    - Technical Documentation:
         - Introduction: Introduction.md
         - Technical Introduction: Technical-Introduction.md
         - Client API: API.md
@@ -22,8 +35,9 @@ nav:
     - Tutorials:
         - Basic ( Create Patient ): Basic-Tutorial.md
         - Adv ( Patient Tracking ): tutorial-PatientTracking.md
-    - Selected papers: Selected-papers.md
-    - Maven Deploy Travis: Maven-Deploy-Travis.md
-    - Maven Deploy Travis GPG2: Maven-Deploy-Travis-GPG2.md
+    - Others:        
+        - Selected papers: Selected-papers.md
+        - Maven Deploy Travis: Maven-Deploy-Travis.md
+        - Maven Deploy Travis GPG2: Maven-Deploy-Travis-GPG2.md
+        - Glossary: Glossary.md
 
-theme: readthedocs
