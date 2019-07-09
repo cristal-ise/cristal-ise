@@ -51,9 +51,9 @@ class PropertyDelegate {
         assert attrs, "Property must have the name and value pair set"
 
         attrs.each { k, v ->
-            Logger.msg 8, "PropertyDelegate.Property() - adding name/Value: $k/$v"
+            Logger.msg 0, "PropertyDelegate.Property() - adding name/Value: $k/$v"
 
-            props.put(k, v, false)
+            updateProps(k, v, false)
         }
     }
 
@@ -63,7 +63,20 @@ class PropertyDelegate {
         attrs.each { k, v ->
             Logger.msg 8, "PropertyDelegate.AbstractProperty() - adding name/Value: $k/$v"
 
-            props.put(k, v, true)
+            updateProps(k, v, true)
         }
+    }
+
+    /**
+     * Ensures that GString value is resolved
+     * 
+     * @param key
+     * @param value
+     */
+    private void updateProps(String key, String value, Boolean isAbstract) {
+        props.put(
+            (key   instanceof String) ? (String)key   : key,
+            (value instanceof String) ? (String)value : value,
+            isAbstract)
     }
 }
