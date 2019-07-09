@@ -9,6 +9,7 @@
 ***
 [`ItemImplementation.delegatedAction()`](https://github.com/cristal-ise/kernel/blob/196706c46e7b76c1cb24d4f87b523760c071c042/src/main/java/org/cristalise/kernel/entity/ItemImplementation.java#L226) is invoked for all actions and predefined steps <br/>
 The original idea behind `delegated` was that if an authorized agent goes on vacation, he delegates his duties to someone else.
+
    1. get the Workflow of the item
    1. [`Workflow.requestAction()`](https://github.com/cristal-ise/kernel/blob/618fe12abc80e1db5482843d78c590966608665c/src/main/java/org/cristalise/kernel/lifecycle/instance/Workflow.java#L128)
       1. find the Activity (vertex)
@@ -47,6 +48,7 @@ The original idea behind `delegated` was that if an authorized agent goes on vac
 # The get() implementation
 For example, if a `DomainHandler` executes a script (for example aggregate script) which reads a viewpoint (details schema):
 [`Script.evaluate()`](https://github.com/cristal-ise/kernel/blob/56e221a176dd9c9330bb286b41aba10494353662/src/main/java/org/cristalise/kernel/scripting/Script.java#L510)
+
    * get the ItemProxy
    * set the **`locker`** as a **`transactionKey`** on the `ItemProxy`
    * `execute()`
