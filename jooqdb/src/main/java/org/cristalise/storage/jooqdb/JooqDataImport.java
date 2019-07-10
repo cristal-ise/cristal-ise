@@ -62,7 +62,7 @@ public class JooqDataImport extends JooqHandler{
           
          context.loadInto(OUTCOME_TABLE)
            .onDuplicateKeyUpdate()
-           .commitAfter(50)
+           .commitAfter(1000) 
            .loadCSV(inputStream)
            .fields(UUID, SCHEMA_NAME, SCHEMA_VERSION,EVENT_ID,XML)
            .execute(); 

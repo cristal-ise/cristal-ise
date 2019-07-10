@@ -21,10 +21,12 @@
 package org.cristalise.storage.jooqdb;
 
 import static org.jooq.impl.DSL.field;
+import static org.jooq.impl.DSL.name;
 
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
@@ -42,13 +44,22 @@ import org.jooq.Schema;
 import org.jooq.SelectWhereStep;
 import org.jooq.Table;
 
+public class JooqDataExport extends JooqHandler {
 
-public class JooqDataExport extends JooqHandler{
+    static final String           PUBLIC_SCHEMA = "public";
     
-    public static final String PUBLIC_SCHEMA        = "public";
-    static final Field<UUID>  UUID                  = field("UUID", UUID.class);
-    static final Field<Integer> EVENT_ID            = field("EVENT_ID", Integer.class);
-    
+
+    static final String EVENT_TABLE      = "EVENT";
+    static final String ITEM_TABLE       = "ITEM";
+    static final String OUTCOME_TABLE    = "OUTCOME";
+    static final String PROPERTY_TABLE   = "ITEM_PROPERTY";
+    static final String ATTACHMENT_TABLE = "ATTACHMENT";
+    static final String JOB_TABLE        = "JOB";
+    static final String COLLECTION_TABLE = "COLLECTION";
+    static final String VIEWPOINT_TABLE  = "VIEWPOINT";
+
+    private static final String EXPORTED_DIR = "src/test/exportedData/";
+
     /**
      * 
      * @param context
@@ -58,50 +69,78 @@ public class JooqDataExport extends JooqHandler{
      * @param last
      * @return
      * @throws InvalidItemPathException
-     * @throws ObjectNotFoundException 
+     * @throws ObjectNotFoundException
+     * @throws IOException
      */
-    @SuppressWarnings("unchecked")
-    public String exportDataByItem (DSLContext context, ItemPath item, String tableName, int index, int last) throws ObjectNotFoundException{
-        Schema schema =  getPublicSchema(context);
-        String csvData = "";
+    @SuppressWarnings({ "resource" })
+    public void exportDataByLastSyncDate(DSLContext context, LocalDate lastSyncDate) throws ObjectNotFoundException, IOException {
+        Schema schema = getPublicSchema(context);
+        if (!Objects.isNull(schema)) {
+            exportDataByEvent(context, schema, lastSyncDate);
+            exportDataByItem(context, schema, lastSyncDate);
         
-        if (!Objects.isNull(item)){
-            throw new ObjectNotFoundException("No Item found");
         }
-        
-        UUID itemUuid = item.getUUID();
-        
-        // TO DO: fetch data for specific item
-        return csvData;
+        else {
+            throw new ObjectNotFoundException("No Schema found");
+        }
+    }
+    /**
+     * 
+     * @param context
+     * @param schema
+     * @param lastSyncDate
+     * @throws IOException
+     */
+    public void exportDataByEvent(DSLContext context, Schema schema, LocalDate lastSyncDate) throws IOException{
+        FileWriter writer = new FileWriter(new File(EXPORTED_DIR + "/" + EVENT_TABLE + ".csv"));
+        Table<?> EXPORT_TABLE = schema.getTable(EVENT_TABLE).as("E");
+        Field<LocalDate> TIMESTAMP     = EXPORT_TABLE.field(name("TIMESTAMP"), LocalDate.class);
+        context.selectFrom(EXPORT_TABLE).where(TIMESTAMP.between(lastSyncDate, LocalDate.now())).fetchLazy().formatCSV(writer);
     }
     
+    public void exportDataByItem(DSLContext context, Schema schema, LocalDate lastSyncDate) throws IOException{
+        FileWriter writer = new FileWriter(new File(EXPORTED_DIR + "/" + ITEM_TABLE + ".csv"));
+        
+        Table<?> EXPORT_TABLE = schema.getTable(ITEM_TABLE);
+        Field<UUID> EXPORT_UUID     = EXPORT_TABLE.field(name("UUID"), UUID.class);
+        
+        Table<?> EVENT = schema.getTable(EVENT_TABLE);
+        Field<LocalDate> TIMESTAMP     = EVENT.field(name("TIMESTAMP"), LocalDate.class);
+        Field<UUID> EVENT_UUID     = EVENT.field(name("UUID"), UUID.class);
+       
+        context.select().
+        from(EXPORT_TABLE).
+        where(EXPORT_UUID.in(context.selectDistinct(EVENT_UUID).
+                from(EVENT).
+                where(TIMESTAMP.between(lastSyncDate, LocalDate.now())))).fetchLazy().formatCSV(writer);
+                
+    }
     /**
      * 
      * @param context
      * @param tableName
      * @return
      * @throws ObjectNotFoundException
-     * @throws IOException 
+     * @throws IOException
      */
     @SuppressWarnings("resource")
-    public void exportData(DSLContext context, String tableName, File file) throws ObjectNotFoundException, IOException{
+    public void exportData(DSLContext context, String tableName, File file) throws ObjectNotFoundException, IOException {
         FileWriter writer = new FileWriter(file);
-        Schema schema =  getPublicSchema(context);
-        String csvData = "";
-        if(!Objects.isNull(schema)){
+        Schema schema = getPublicSchema(context);
+        if (!Objects.isNull(schema)) {
             final Table<?> EXPORT_TABLE = schema.getTable(tableName.toUpperCase());
             context.selectFrom(EXPORT_TABLE).fetchLazy().formatCSV(writer);
-        } else {
+        }
+        else {
             throw new ObjectNotFoundException("No Schema found");
-        } 
-        
-    }
-    
-    public Schema getPublicSchema(DSLContext context){
-        return context.meta().getSchemas().stream().filter( s -> s.getName().equals(PUBLIC_SCHEMA)).findFirst().get();
+        }
+
     }
 
-    
+    public Schema getPublicSchema(DSLContext context) {
+        return context.meta().getSchemas().stream().filter(s -> s.getName().equals(PUBLIC_SCHEMA)).findFirst().get();
+    }
+
     @Override
     protected Table<?> getTable() {
         // TODO Auto-generated method stub
@@ -123,13 +162,13 @@ public class JooqDataExport extends JooqHandler{
     @Override
     public void createTables(DSLContext context) throws PersistencyException {
         // TODO Auto-generated method stub
-        
+
     }
 
     @Override
     public void dropTables(DSLContext context) throws PersistencyException {
         // TODO Auto-generated method stub
-        
+
     }
 
     @Override
@@ -150,7 +189,4 @@ public class JooqDataExport extends JooqHandler{
         return null;
     }
 
-    
-    
 }
-
