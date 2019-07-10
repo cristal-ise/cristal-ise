@@ -11,7 +11,7 @@ Modules specify the following:
    * Schemas
    * Scripts
    * State Machines
-   * Custom resources defined as [[ResourceImportHandler]] implementations in other modules
+   * Custom resources defined as [ResourceImportHandler](../ResourceImportHandler) implementations in other modules
  * Full Item 
  * Roles and Agents
 
@@ -43,7 +43,7 @@ The info tag contains module metadata
 
     <Config name="ResourceImportHandler.DEMO" target="server">org.cristalise.demo.DemoImportHandler</Config>
 > Any CRISTAL properties to configure this module, or the kernel's use of it. These values are the first loaded, so any properties defined in config files or on the command-line (i.e. passed directly to Gateway.init()) will override them. The target attribute is optional, and declares whether the property should be included in only server or client processes, and omitted from the other.
-This particular example defines a [[ResourceImportHandler]], which can then be used to import custom resources in the <Imports> section. The portion of the property name after the dot, 'DEMO' defines the type attribute values that will use this handler.
+This particular example defines a [ResourceImportHandler](../ResourceImportHandler), which can then be used to import custom resources in the <Imports> section. The portion of the property name after the dot, 'DEMO' defines the type attribute values that will use this handler.
 
     <Script target="server|client|both" lang="javascript" event="startup|initialized|shutdown">doStuff()</Script>
 > Script logic can be provided in the module to run at various points of the server lifecycle to initialize module components. The lang attribute specifies the scripting engine to use. The target attribute states whether the script should run on server or client processes, or both. Currently supported execution points are:
@@ -80,7 +80,7 @@ All Items to be imported as part of this module are defined here.
 #### Collection definition
 
             <Dependency name="workflow" version="0" isDescription="false" itemDescriptionPath="/desc/dev/CompositeActivityFactory" itemDescriptionVersion="0">
-> This is the definition of a [[Dependency]] [[Collection]] named 'workflow' with a snapshot version '0'. It will be able to contain instances of the Item located at /dev/CompositeActivityFactory (which is the CristaliseDev workflow factory), complying with version 0 of its property description. This means it will reference CompositeActivityDef items. 
+> This is the definition of a [Dependency](../Dependency) [Collection](../Collection) named 'workflow' with a snapshot version '0'. It will be able to contain instances of the Item located at /dev/CompositeActivityFactory (which is the CristaliseDev workflow factory), complying with version 0 of its property description. This means it will reference CompositeActivityDef items. 
 
                 <DependencyMember itemPath="b9415b57-3a4a-4b31-825a-d307d1280ac0">
 > The Dependency will be initialized with one member, referenced by UUID here. It may instead referencea DomainPath.
@@ -96,7 +96,7 @@ All Items to be imported as part of this module are defined here.
             </Dependency>
 
             <Aggregation name="layout" version="0" isDescription="true">
-> This defines an [[Aggregation]] [[CollectionDescription]] called 'layout' with snapshot version '0'. Note that Aggregations do not permit collection-level typing.
+> This defines an [Aggregation](../Aggregation) [CollectionDescription](../CollectionDescription) called 'layout' with snapshot version '0'. Note that Aggregations do not permit collection-level typing.
 
                 <AggregationMember slotNo="0" itemPath="/desc/ItemDesc/ChildItemDesc">
 > A member referencing an Item description that defines children that will fit in this slot. ItemDescriptionPath and Version may be defined here if required, as in Dependency collections but at the member level

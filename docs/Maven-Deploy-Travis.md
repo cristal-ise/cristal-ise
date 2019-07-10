@@ -1,17 +1,17 @@
 ## Guide to deploy to Maven Central (sonatype) using Travis
 _Our guide is based on this existing template, we reused the deploy.sh script, maven settings.xml and the travis.yml file entirely:_
 
-_https://github.com/making/travis-ci-maven-deploy-skelton_
+_[https://github.com/making/travis-ci-maven-deploy-skelton](https://github.com/making/travis-ci-maven-deploy-skelton)_
 
 ### Steps to follow
 1. Create a JIRA Account at sonatype.org and create a new OOSRH ticket
   
-    These steps are explained in this guide: http://central.sonatype.org/pages/ossrh-guide.html.
+    These steps are explained in this guide: [http://central.sonatype.org/pages/ossrh-guide.html](http://central.sonatype.org/pages/ossrh-guide.html).
     In the ticket explain that you want to be able to administrate the existing `org.cristalise` groupdId.
 
 1. Generate Pretty Good Privacy (PGP) keys
 
-    These steps are explained in this guide: http://central.sonatype.org/pages/working-with-pgp-signatures.html.
+    These steps are explained in this guide: [http://central.sonatype.org/pages/working-with-pgp-signatures.html](http://central.sonatype.org/pages/working-with-pgp-signatures.html).
     Use `gpg --list-secret-keys` to find the keyid or keyname. In the guide such keyid is `C6EED57A` and this 
     is what you need to find in your gpg database, and use for `GPG_KEYNAME` environment variable bellow.
 
@@ -33,7 +33,7 @@ _https://github.com/making/travis-ci-maven-deploy-skelton_
 
 1. Edit the `pom.xml` file of the project
 
-   Check this guide: http://central.sonatype.org/pages/requirements.html. The best is to copy it from one of our 
+   Check this guide: [http://central.sonatype.org/pages/requirements.html](http://central.sonatype.org/pages/requirements.html). The best is to copy it from one of our 
    existing project. Check also the **maven pom example** provided in the original template we 
    [used](https://github.com/making/travis-ci-maven-deploy-skelton). 
 
@@ -46,7 +46,7 @@ _https://github.com/making/travis-ci-maven-deploy-skelton_
 
 1. Create the secure environment variables in Travis
 
-    It can be done using the settings pages of travis, e.g. https://travis-ci.org/cristal-ise/jooqdb/settings, or
+    It can be done using the settings pages of travis, e.g. [https://travis-ci.org/cristal-ise/jooqdb/settings](https://travis-ci.org/cristal-ise/jooqdb/settings), or
     use the following commands bellow:
     ```
     $ travis login
@@ -65,4 +65,4 @@ _https://github.com/making/travis-ci-maven-deploy-skelton_
 
 1. Add, commit and push all changes to github. 
 
-   Check travis run here: https://travis-ci.org/cristal-ise/
+   Check travis run here: [https://travis-ci.org/cristal-ise/](https://travis-ci.org/cristal-ise/)

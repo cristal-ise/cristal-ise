@@ -4,7 +4,7 @@ It is possible to start a StandardServer with options to reset [CORBA IORs](http
 * Migrating or recovering the server to a new host
 * Recreate test or development server from backup
 
-Use the following command (check [[Command line Arguments]] for further details):
+Use the following command (check [Command line Arguments](../Command-line-Arguments) for further details):
 
 `java -classpath <...> org.cristalise.kernel.process.StandardServer -logLevel 8 -config src/main/bin/server.conf -connect src/main/bin/integTest.clc -resetIOR`
 

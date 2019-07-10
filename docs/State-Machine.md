@@ -8,10 +8,10 @@ In CRISTAL 3.x, the hard-coded State Machine of CRISTAL 2.x was replaced with a 
   * Indicate how it may change the Agent reservation: Set, clear or preserve
   * Specify a Script that must be run during the Transition.
   * Specify a Query that must be executed during the Transition.
-  * Specify that an Outcome may be supplied, referencing its [[XMLSchema]].
+  * Specify that an Outcome may be supplied, referencing its [XMLSchema](../XMLSchema).
   * Indicate that the Outcome is required.
 
-Values for these properties can be explicit, or reference Activity properties like this: `${SchemaType}`. The referenced properties may also invoke [[data helpers|DataHelper]] to reference other Item data.
+Values for these properties can be explicit, or reference Activity properties like this: `${SchemaType}`. The referenced properties may also invoke [data helpers](../DataHelper) to reference other Item data.
 
 
 ### State Machine Definitions provided by CRISTAL-iSE Kernel
@@ -22,9 +22,9 @@ Three state machines are bundled with the kernel:
 ![DefaultStateMachine](https://www.plantuml.com/plantuml/img/NP51ImCn48NlyolUMLZ1Qm_IedWIArRm81wokzCsi9aioQIm_zvPirRRNF9ctkJD1rbdTKbB6EZpvWlDFJwSLoy7McuqrjlDCzolghYmdhpuVEGUApn6OLf6hxs76CQ1zTBVbJooz3y3YwQ_th_5vhznBe7f77cL_vfYnzmJILI6otYv8-3PPqNSupqvoSOS1PqJ7Ds9iItQHKk4dQQoLtb6hUKlc9ML0S5DQ1aZftrCmTQt4vnCsFJ12r8SvgTjKNZ5c3XpEd7As1nO5BLsCyijMIvcO5gRiZ_u1W00)
 
 
-- **PredefinedStep** - a dummy state machine for [[PredefinedStep]]s. Features just one state, Available, and one transition, Done, which loops on it, allowing an Outcome of PredefinedStepOutcome v0.
+- **PredefinedStep** - a dummy state machine for [PredefinedStep](../PredefinedStep)s. Features just one state, Available, and one transition, Done, which loops on it, allowing an Outcome of PredefinedStepOutcome v0.
 
-- **CompositeActivity** - a state machine for [[CompositeActivities|CompositeActivity]]. Can be Waiting, Started or Finished. Transitions are Start, Complete or Loop (which reinitialized the activity, and run with the 'RepeatWhen' activity property). No outcome. 
+- **CompositeActivity** - a state machine for [CompositeActivities](../CompositeActivity). Can be Waiting, Started or Finished. Transitions are Start, Complete or Loop (which reinitialized the activity, and run with the 'RepeatWhen' activity property). No outcome. 
 
 Each Activity sub-class specifies which state machine it uses by default with the getDefaultSMName method. They may all be overridden with the StateMachineName and StateMachineVersion Activity properties.
 
@@ -44,7 +44,7 @@ Activities can have their own state machines defined. Each state machine contain
 * _String_ **Name** - Transition name. Human readable.
 * _int_ **origin** - The state id where this transition is available.
 * _int_ **target** - The state in which activities will end up when executing this transition.
-* _String_ **enablingProperty** - the activity property that enables this state change. Should either contain a boolean value, or reference a [[DataHelper]] that will supply one. The Transition is disabled if this property is undefined.
+* _String_ **enablingProperty** - the activity property that enables this state change. Should either contain a boolean value, or reference a [DataHelper](../DataHelper) that will supply one. The Transition is disabled if this property is undefined.
 * _boolean_ **reinitializes** - indicates whether this transition reinitializes the state of the activity. This applies to composite activities, which will reset their child workflow on execution. Used for looping.
 * _String_ **roleOverride** - overrides the activity defined agent role for this transition. The value may explicitly name a role, or invoke a DataHelper to give one.
 * _String_ **reservation** - defines the change to the activity's ownership caused by this transition. Can be:

@@ -17,4 +17,4 @@ Some systems designed for data storage, such as the OpenLDAP directory server, c
 
 Descriptions, in the context of description-driven systems, are data which define the **processes** and **data structures** of an application, which are **stored**, **modified** and **managed** from within that application. As a result, entire domain applications may be stored as data, blurring the line between model and implementation.
 
-In CRISTAL, descriptions are stored as XML in Documents called [[Outcome]]s. This XML may be serialized Java objects, but examples also include [[XMLSchemas]] and Scripts.
+In CRISTAL, descriptions are stored as XML in Documents called [Outcome](../Outcome)s. This XML may be serialized Java objects, but examples also include [XMLSchemas](../XMLSchemas) and Scripts.

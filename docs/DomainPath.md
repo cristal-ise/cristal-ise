@@ -7,10 +7,10 @@ There are some structures in the domain tree which hard-coded by the kernel and 
 | Path | Contents |
 |------|----------|
 | /desc / | Root folder of Description Items |
-| /desc/ActivityDesc | Folder of [[Activity]] and [[CompositeActivity]] description Items |
-| /desc/OutcomeDesc | Folder of [[XMLSchema]] Items |
-| /desc/Script | Folder of [[Script]] Items |
-| /desc/Query | Folder of [[Query]] Items |
-| /desc/StateMachine | Folder of [[StateMachine]] Items |
-| /desc/modules | Folder of [[Module]] Items, created to represent each registered module in the server |
-| /servers | Folder of [[Server Items|ServerItem]], representing kernel Server instances. |
+| /desc/ActivityDesc | Folder of [Activity](../Activity) and [CompositeActivity](../CompositeActivity) description Items |
+| /desc/OutcomeDesc | Folder of [XMLSchema](../XMLSchema) Items |
+| /desc/Script | Folder of [Script](../Script) Items |
+| /desc/Query | Folder of [Query](../Query) Items |
+| /desc/StateMachine | Folder of [StateMachine](../StateMachine) Items |
+| /desc/modules | Folder of [Module](../Module) Items, created to represent each registered module in the server |
+| /servers | Folder of [Server Items](../ServerItem), representing kernel Server instances. |

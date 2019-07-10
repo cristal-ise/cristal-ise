@@ -1,6 +1,6 @@
 ### Sequence of actions using the Cristalise GUI to create `PatientDetails` OutcomeDesc (Schema) 
 
-1. Create an XSD in a text editor containing 3 elements - eg: [[PatientDetailsXSD]]
+1. Create an XSD in a text editor containing 3 elements - eg: [PatientDetailsXSD](../PatientDetailsXSD)
     - InsuranceNumber of type string
     - Gender of type string
     - DateOfBirth of type string
@@ -15,7 +15,7 @@
 1. Use `PatientDetails` Item to execute `EditDefinition` Activity ![PatientDetails](PatientDetails_EditDefinition.png)
     1. Select `/desc/OutcomeDesc/tutorial/PatientDetails` in the tree browser
     1. Right-click on the icon and select Activity `EditDefinition`
-    1. Copy the content of [[PatientDetailsXSD]] to the textbox
+    1. Copy the content of [PatientDetailsXSD](../PatientDetailsXSD) to the textbox
     1. Push `Done` button 
 
 1. Create the version 0 of the Schema ![PatientDetails](PatientDetails_AssignNewSchemaVersionFromLast.png)

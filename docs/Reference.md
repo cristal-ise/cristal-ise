@@ -1,2 +1,2 @@
-   * [[Workflows]]
-   * [[Events]]
+   * [Workflows](../Workflows)
+   * [Events](../Events)

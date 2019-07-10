@@ -14,7 +14,7 @@ extra_css:
 
 nav:
     - Overview:
-        - Cristal-iSE Documentation: Cristal-iSE-Documentation.md
+        - Cristal-iSE Documentation: index.md
         - Getting started: Getting-Started.md 
     - Features: 
         - Key Features: Key-Features.md
@@ -33,8 +33,13 @@ nav:
         - DSL: Domain-Specific-Language-(DSL).md
         - JavaDoc: http://javadoc.io/doc/org.cristalise/cristalise-kernel
     - Tutorials:
-        - Basic ( Create Patient ): Basic-Tutorial.md
-        - Adv ( Patient Tracking ): tutorial-PatientTracking.md
+        - Basic (Create Patient): Basic-Tutorial.md
+        - Create PatientDetails: Create-PatientDetails.md
+        - Create SetPatientDetails: Create-SetPatientDetails.md
+        - Create PatientLifecycle: Create-PatientLifecycle.md
+        - Create PatientDescription: Create-PatientDescription.md
+        - Create Patient: Create-Patient.md
+        - Advance ( Patient Tracking ): tutorial-PatientTracking.md
     - Others:        
         - Selected papers: Selected-papers.md
         - Maven Deploy Travis: Maven-Deploy-Travis.md

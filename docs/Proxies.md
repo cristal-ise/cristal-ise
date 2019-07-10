@@ -10,7 +10,7 @@ Proxies provide:
 
 ### Caching
 
-Caching is totally transparent for the user. Cache consistency is maintained by the 'Proxy Subscription' described bellow, and can be disabled setting `Storage.disableCache=true` in the [[configuration properties|CRISTALProperties]]
+Caching is totally transparent for the user. Cache consistency is maintained by the 'Proxy Subscription' described bellow, and can be disabled setting `Storage.disableCache=true` in the [configuration properties](../CRISTALProperties)
 
 ## Proxy Subscription
 

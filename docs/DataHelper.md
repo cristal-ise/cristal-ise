@@ -4,8 +4,8 @@ In Activities and other script supporting workflow vertices, these URLs are stor
 
 Supported data helpers as of CRISTAL kernel 3.2:
 
-* [[Viewpoint]]: viewpoint//schema/viewName:XPath
-* [[Property]]: property//propertyName
-* [[Activity]]: activity//pathToActivity:XPath - activity path may be relative.
+* [Viewpoint](../Viewpoint): viewpoint//schema/viewName:XPath
+* [Property](../Property): property//propertyName
+* [Activity](../Activity): activity//pathToActivity:XPath - activity path may be relative.
 
 As many state machine parameters may be delegated to activity properties, data helpers may also be used in those cases.

@@ -1,4 +1,4 @@
-An Event is a record of a [[change of state|StateMachine]] of an [[Activity]] in the [[Workflow]] of an [[Item]]. Some Events may have [[Outcome]] data associated with them, usually associated with state transitions that complete the activity, but this is configurable.
+An Event is a record of a [change of state](../StateMachine) of an [Activity](../Activity) in the [Workflow](../Workflow) of an [Item](../Item). Some Events may have [Outcome](../Outcome) data associated with them, usually associated with state transitions that complete the activity, but this is configurable.
 
 Event data includes the following:
 

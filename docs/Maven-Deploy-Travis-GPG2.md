@@ -1,15 +1,15 @@
 ## Guide to deploy to Maven Central (sonatype) using Travis
-_This guide uses GPG2 encryption.  Please see https://www.gnupg.org/documentation/index.html._
+_This guide uses GPG2 encryption.  Please see [https://www.gnupg.org/documentation/index.html](https://www.gnupg.org/documentation/index.html)._
 
 ### Steps to follow
 1. Create a JIRA Account at sonatype.org and create a new OOSRH ticket
   
-    These steps are explained in this guide: http://central.sonatype.org/pages/ossrh-guide.html.
+    These steps are explained in this guide: [http://central.sonatype.org/pages/ossrh-guide.html](http://central.sonatype.org/pages/ossrh-guide.html).
     In the ticket explain that you want to be able to administrate the existing `org.cristalise` groupdId.
 
 1. Generate Pretty Good Privacy (PGP) keys
 
-    These steps are explained in this guide: http://central.sonatype.org/pages/working-with-pgp-signatures.html.
+    These steps are explained in this guide: [http://central.sonatype.org/pages/working-with-pgp-signatures.html](http://central.sonatype.org/pages/working-with-pgp-signatures.html).
     Use `gpg --list-secret-keys` to find the keyid or keyname. In the guide such keyid is `C6EED57A` and this 
     is what you need to find in your gpg database, and use for `GPG_KEYNAME` environment variable bellow.
     
@@ -29,7 +29,7 @@ _This guide uses GPG2 encryption.  Please see https://www.gnupg.org/documentatio
 1. Install Travis Client
 
     [Ruby](https://www.ruby-lang.org/en/downloads/) installed on your system is required to use the Travis client.
-    Guide and packages are available here https://rubygems.org/pages/download.
+    Guide and packages are available here [https://rubygems.org/pages/download](https://rubygems.org/pages/download).
 
     `gem install travis` to install the client.
 
@@ -44,7 +44,7 @@ _This guide uses GPG2 encryption.  Please see https://www.gnupg.org/documentatio
     * nexus-staging-maven-plugin - To release to Maven central.
     * maven-gpg-plugin - To sign the artifacts.
 
-    See https://github.com/cristal-ise/in-memory-lookup/blob/develop/pom.xml for complete details.
+    See [https://github.com/cristal-ise/in-memory-lookup/blob/develop/pom.xml](https://github.com/cristal-ise/in-memory-lookup/blob/develop/pom.xml) for complete details.
 
     Modify the maven settings file (**`.maven.xml`**) that will be distributed together with the project.  This file will 
     also be used by Travis CI.
@@ -83,7 +83,7 @@ _This guide uses GPG2 encryption.  Please see https://www.gnupg.org/documentatio
 
 1. Add the environment variables on Travis CI project.
     
-    Go the settings of the Travis CI project e.g. https://travis-ci.org/<repository>/<project>/settings and the following 
+    Go the settings of the Travis CI project e.g. https://travis-ci.org/<'repository'>/<'project'>/settings and the following 
     environment variables:
 
     * **GPG_EXECUTABLE** - the value must be `gpg`.
@@ -93,7 +93,7 @@ _This guide uses GPG2 encryption.  Please see https://www.gnupg.org/documentatio
     * **SONATYPE_USERNAME** - the username used in creating OSSRH ticket.
     * **SONATYPE_PASSWORD** - the password used in creating OSSRH ticket.
 
-    *Alternatively, you can generate access token from your profile on Nexus Repository Manager https://oss.sonatype.org and 
+    *Alternatively, you can generate access token from your profile on Nexus Repository Manager [https://oss.sonatype.org](https://oss.sonatype.org) and 
     use it for SONATYPE_USERNAME and SONATYPE_PASSWORD. To access your profile on Nexus just use the username and password 
     from OSSRH Jira account then go to profile.*
 
@@ -106,7 +106,7 @@ _This guide uses GPG2 encryption.  Please see https://www.gnupg.org/documentatio
           - mvn help:evaluate -N -Dexpression=project.version|grep -v '\['
           - export project_version=$(mvn help:evaluate -N -Dexpression=project.version|grep -v '\[')
 
-     Additional details here http://maven.apache.org/plugins/maven-help-plugin/evaluate-mojo.html
+     Additional details here [http://maven.apache.org/plugins/maven-help-plugin/evaluate-mojo.html](http://maven.apache.org/plugins/maven-help-plugin/evaluate-mojo.html)
 
     *Deploy part: Execute `travis setup releases` on the project's root directory. It will ask for GitHub 
      username and password.  This will create the deploy part in `.yml` file.  For details about api_key see 
@@ -117,7 +117,7 @@ _This guide uses GPG2 encryption.  Please see https://www.gnupg.org/documentatio
           api_key:
              secure: **** (some long encrypted key)
           file:
-             - <project>/target/<name>-$project_version.jar
+             - <'project'>/target/<'name'>-$project_version.jar
           skip_cleanup: true
           on:
              repo: *** repository
@@ -146,10 +146,10 @@ _This guide uses GPG2 encryption.  Please see https://www.gnupg.org/documentatio
            all_branches: true
            condition: $TRAVIS_BRANCH =~ ^master|release|develop$
 
-    For complete file example see https://github.com/cristal-ise/in-memory-lookup/blob/develop/.travis.yml.
+    For complete file example see [https://github.com/cristal-ise/in-memory-lookup/blob/develop/.travis.yml](https://github.com/cristal-ise/in-memory-lookup/blob/develop/.travis.yml).
 
 1. Add, commit and push all changes to github. 
     
-    Check travis run here: https://travis-ci.org/cristal-ise/
+    Check travis run here: [https://travis-ci.org/cristal-ise/](https://travis-ci.org/cristal-ise/)
     
-    Check the uploaded artifact here: https://oss.sonatype.org/#nexus-search;quick~cristalise
+    Check the uploaded artifact here: [https://oss.sonatype.org/#nexus-search;quick~cristalise](https://oss.sonatype.org/#nexus-search;quick~cristalise)

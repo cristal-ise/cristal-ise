@@ -1,10 +1,10 @@
-CRISTAL [[Agent]]s need to authenticate with CRISTAL to receive jobs from the system and execute them. An Agent may be a human user interacting with a graphical interface, an instrument submitting measurements over a network protocol, or a software agent generating analyses of existing data. Authentication is performed in the CRISTAL client API using a connect() method of the Gateway. For client processes, a username and password is passed to this method. CRISTAL stores Agent entities in the LDAP directory as LDAP users, so the Gateway attempts to connect to the LDAP server as the given user. If successful, the method returns an [[AgentProxy]] object for that user.
+CRISTAL [Agent](../Agent)s need to authenticate with CRISTAL to receive jobs from the system and execute them. An Agent may be a human user interacting with a graphical interface, an instrument submitting measurements over a network protocol, or a software agent generating analyses of existing data. Authentication is performed in the CRISTAL client API using a connect() method of the Gateway. For client processes, a username and password is passed to this method. CRISTAL stores Agent entities in the LDAP directory as LDAP users, so the Gateway attempts to connect to the LDAP server as the given user. If successful, the method returns an [AgentProxy](../AgentProxy) object for that user.
 
 For server processes, the connect() method that takes no arguments which attempts to authenticate against the directory using superuser credentials already supplied in the CRISTAL properties. This gives the server process write access to the directory, and the ability to write data for any user. Client processes should never normally have direct write access to any of the data stores of CRISTAL, especially not when a server process is running.
 
 ## Connecting to CRISTAL from a Java
 
-To use CRISTAL from a Java program, the [[Gateway]] class must be initialized with a set of [[properties|CRISTAL_Properties]], then passed credentials to authenticate.
+To use CRISTAL from a Java program, the [Gateway](../Gateway) class must be initialized with a set of [properties](../CRISTAL_Properties), then passed credentials to authenticate.
 
 ```java
 Properties props = new Properties(propsFile);
@@ -36,7 +36,7 @@ Gateway.close();
 
 source:/src/main/java/com/c2kernel/process/AbstractMain.java
 
-A [[command-line|Command-line_Arguments]] parser exists in CRISTAL to initialize the CRISTAL Properties object by merging a connection-specific config file (called a 'CRISTAL Local Centre' file, or CLC) with client/server specific config. It also provides logging options. It can be used by either extending the StandardClient class, or by accessing AbstractMain.readC2KArgs directly.
+A [command-line](../Command-line_Arguments) parser exists in CRISTAL to initialize the CRISTAL Properties object by merging a connection-specific config file (called a 'CRISTAL Local Centre' file, or CLC) with client/server specific config. It also provides logging options. It can be used by either extending the StandardClient class, or by accessing AbstractMain.readC2KArgs directly.
 
 In your main():
 

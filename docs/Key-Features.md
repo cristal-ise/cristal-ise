@@ -6,10 +6,10 @@ _Implement business functionality gradually without the need of reimplementing t
 ### [Code and Data Evolves together](../Evolve-Code-with-Data)
 _Unified versioning mechanism reduces DevOps effort to support **Continuous Delivery**_
 
-### Built-in Provenance
+### [Built-in Provenance](../Built-in-Provenance)
 _All operations are fully audited, which means rich data is available for business analytics_
 
-### Universal Data Catalogue
+### [Universal Data Catalogue](../Universal-Data-Catalogue)
 _Manage and evolve your business data, assets and their structures on the fly and query them_
 
 ### [Lightweight Process Description and Execution](../Process-Description)

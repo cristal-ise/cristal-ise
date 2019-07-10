@@ -4,7 +4,7 @@ These are the parameters supported by the [`AbstractMain.readC2KArgs()`](../blob
 * *-logFile <path>*: Redirects the system console to a file
 * *-config <file>*: File to read process-specific [CRISTAL-iSE Properties](../CRISTAL-System-Properties) from.
 * *-connect <file>*: File to read centre-specific [CRISTAL-iSE Properties](../CRISTAL-System-Properties) from that will override the -config properties.
-* *-resetIOR*: Launch the server in [[Reset IORs]] mode
+* *-resetIOR*: Launch the server in [Reset IORs](../Reset-IORs) mode
 * *-skipBootstrap*: **ONLY FOR DEVELOPMENT!** Launch the server without reading bootstrap files (module.xml)
 
 As of 3.0, all command-line parameters are added to the [CRISTAL-iSE Properties](../CRISTAL-System-Properties), so may be used to override config file settings.

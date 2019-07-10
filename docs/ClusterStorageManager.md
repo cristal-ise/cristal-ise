@@ -1,4 +1,4 @@
-The Cluster Storage Manager handles CRISTAL object persistency. Class names implementing the [[ClusterStorage]] interface are supplied via system properties, and are instantiated at startup. All objects are loaded through this, even on CRISTAL clients: CORBA calls to load data from remote server Items are wrapped up behind storage manager calls, so that remote database reading storages may be used instead if available
+The Cluster Storage Manager handles CRISTAL object persistency. Class names implementing the [ClusterStorage](../ClusterStorage) interface are supplied via system properties, and are instantiated at startup. All objects are loaded through this, even on CRISTAL clients: CORBA calls to load data from remote server Items are wrapped up behind storage manager calls, so that remote database reading storages may be used instead if available
 
 ## TransactionManager
 
