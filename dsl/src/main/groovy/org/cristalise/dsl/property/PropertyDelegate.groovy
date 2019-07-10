@@ -53,7 +53,7 @@ class PropertyDelegate {
         attrs.each { k, v ->
             Logger.msg 0, "PropertyDelegate.Property() - adding name/Value: $k/$v"
 
-            updateProps(k, v, false)
+            props.put(k, (v instanceof String) ? (String)v : v, false)
         }
     }
 
@@ -63,17 +63,7 @@ class PropertyDelegate {
         attrs.each { k, v ->
             Logger.msg 8, "PropertyDelegate.AbstractProperty() - adding name/Value: $k/$v"
 
-            updateProps(k, v, true)
+            props.put(k, (v instanceof String) ? (String)v : v, true)
         }
-    }
-
-    /**
-     * Ensures that GString value is resolved
-     * 
-     * @param key
-     * @param value
-     */
-    private void updateProps(String key, Object value, Boolean isAbstract) {
-        props.put( key, (value instanceof String) ? (String)value : value, isAbstract)
     }
 }
