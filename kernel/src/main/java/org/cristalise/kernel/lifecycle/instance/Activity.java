@@ -464,11 +464,15 @@ public class Activity extends WfVertex {
      */
     @Override
     public void reinit(int idLoop) throws InvalidDataException {
-        Vertex[] outVertices = getOutGraphables();
+        Logger.msg(8, "Activity.reinit(id:%s, idLoop:%d) - parent:%s act:%s", getID(), idLoop, getParent().getName(), getPath());
+
         setState(getStateMachine().getInitialState().getId());
+
+        Vertex[] outVertices = getOutGraphables();
+
+        //NOTE: strange condition, activity can have zero or one outVertex and its id cannot be the loopId
         if (outVertices.length > 0 && idLoop != getID()) {
-            WfVertex nextAct = (WfVertex) outVertices[0];
-            nextAct.reinit(idLoop);
+            ((WfVertex) outVertices[0]).reinit(idLoop);
         }
     }
 
