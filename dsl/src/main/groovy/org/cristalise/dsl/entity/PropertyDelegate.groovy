@@ -56,7 +56,7 @@ class PropertyDelegate {
 
             Logger.msg 5, "InmutableProperty - name/Value: $k/$v"
 
-            if(v instanceof String) updateProps(k, v, false)
+            if(v instanceof String) itemProps.put(new Property(k, (String)v, false))
             else                    throw new InvalidDataException("Property '$k' value must be String")
         }
     }
@@ -71,24 +71,8 @@ class PropertyDelegate {
         attrs.each { k, v ->
             Logger.msg 0, "Property - name/value: $k/$v"
 
-            if(v instanceof String) updateProps(k, v, true)
+            if(v instanceof String) itemProps.put(new Property(k, (String)v, true))
             else                    throw new InvalidDataException("EntityProperty '$k' value must be String")
         }
-    }
-
-    /**
-     * Ensures that GString value is resolved
-     * 
-     * @param key
-     * @param value
-     * @param mutable
-     */
-    private void updateProps(String key, String value, Boolean mutable) {
-        itemProps.put(
-            new Property(
-                (key   instanceof String) ? (String)key   : key,
-                (value instanceof String) ? (String)value : value,
-                mutable)
-            )
     }
 }
