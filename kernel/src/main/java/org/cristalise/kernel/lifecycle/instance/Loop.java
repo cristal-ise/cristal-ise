@@ -20,6 +20,8 @@
  */
 package org.cristalise.kernel.lifecycle.instance;
 
+import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.PAIRING_ID;
+import org.apache.commons.lang3.StringUtils;
 import org.cristalise.kernel.common.InvalidDataException;
 import org.cristalise.kernel.graph.model.Vertex;
 import org.cristalise.kernel.graph.traversal.GraphTraversal;
@@ -41,24 +43,34 @@ public class Loop extends XOrSplit {
     @Override
     public void followNext(Next activeNext, AgentPath agent, ItemPath itemPath, Object locker) throws InvalidDataException {
         WfVertex v = activeNext.getTerminusVertex();
-        if (!isInPrev(v))
-            v.run(agent, itemPath, locker);
-        else {
-            v.reinit(getID());
-            v.run(agent, itemPath, locker);
+
+        String myPairingID = (String) getBuiltInProperty(PAIRING_ID);
+
+        if (StringUtils.isNotBlank(myPairingID)) {
+            String otherPairingID = "";
+
+            if (v.getProperties().containsKey(PAIRING_ID.getName()))
+                otherPairingID = (String) v.getBuiltInProperty(PAIRING_ID);
+
+            //loop shall trigger reinit for its 'body' only (see issue #251)
+            if (myPairingID.equals(otherPairingID)) v.reinit(getID());
         }
+        else {
+            //Backward compatibility for workflows without paring id (see issue #251)
+            if (isInPrev(v)) v.reinit(getID());
+        }
+
+        v.run(agent, itemPath, locker);
     }
 
     @Override
     public void reinit(int idLoop) throws InvalidDataException {
-        Logger.msg(8, "Loop.reinit(parent:" + getParent().getName()+")");
-        if (idLoop == getID())
-            return;
-        else {
-            Vertex[] outVertices = getOutGraphables();
-            for (int j = 0; j < outVertices.length; j++) {
-                if (!isInPrev(outVertices[j]))
-                    ((WfVertex) outVertices[j]).reinit(idLoop);
+        //continue if the reinit was NOT started by this loop 
+        if (idLoop != getID()) {
+            Logger.msg(8, "Loop.reinit(id:%s, idLoop:%d) - parent:%s", getID(), idLoop, getParent().getName());
+
+            for (Vertex outVertex: getOutGraphables()) {
+                if (!isInPrev(outVertex)) ((WfVertex) outVertex).reinit(idLoop);
             }
         }
     }
