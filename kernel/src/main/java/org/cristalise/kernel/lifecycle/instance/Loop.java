@@ -44,16 +44,16 @@ public class Loop extends XOrSplit {
     public void followNext(Next activeNext, AgentPath agent, ItemPath itemPath, Object locker) throws InvalidDataException {
         WfVertex v = activeNext.getTerminusVertex();
 
-        String myPairingID = (String) getBuiltInProperty(PAIRING_ID);
+        String loopPairingID = (String) getBuiltInProperty(PAIRING_ID);
 
-        if (StringUtils.isNotBlank(myPairingID)) {
+        if (StringUtils.isNotBlank(loopPairingID)) {
             String otherPairingID = "";
 
             if (v.getProperties().containsKey(PAIRING_ID.getName()))
                 otherPairingID = (String) v.getBuiltInProperty(PAIRING_ID);
 
             //loop shall trigger reinit for its 'body' only (see issue #251)
-            if (myPairingID.equals(otherPairingID)) v.reinit(getID());
+            if (loopPairingID.equals(otherPairingID)) v.reinit(getID());
         }
         else {
             //Backward compatibility for workflows without paring id (see issue #251)
