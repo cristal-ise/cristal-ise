@@ -51,10 +51,25 @@ public class Join extends WfVertex {
      */
     private boolean hasPrevActiveActs() throws InvalidDataException {
         String pairingID = (String) getBuiltInProperty(PAIRING_ID);
-        
-        Vertex[] vertices;
+        boolean findPair = false;
 
         if (StringUtils.isNotBlank(pairingID)) {
+            findPair = true;
+
+            for (Vertex outVertex: getOutGraphables()) {
+                String otherPairingID = (String) ((GraphableVertex)outVertex).getBuiltInProperty(PAIRING_ID);
+
+                // the pairingID was added to pair with the loop (see issue #251), so do not it use for this calculation
+                if (pairingID.equals(otherPairingID) && outVertex instanceof Loop) {
+                    findPair = false;
+                    break;
+                }
+            }
+        }
+
+        Vertex[] vertices;
+
+        if (findPair) {
             GraphableVertex endVertex = findPair(pairingID);
 
             if (endVertex == null) throw new InvalidDataException("Could not find pair for Join using PairingID:"+pairingID);
