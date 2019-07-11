@@ -44,16 +44,11 @@ public class Loop extends XOrSplit {
     public void followNext(Next activeNext, AgentPath agent, ItemPath itemPath, Object locker) throws InvalidDataException {
         WfVertex v = activeNext.getTerminusVertex();
 
-        String loopPairingID = (String) getBuiltInProperty(PAIRING_ID);
+        Boolean isMyPair = isMyPair(v);
 
-        if (StringUtils.isNotBlank(loopPairingID)) {
-            String otherPairingID = "";
-
-            if (v.getProperties().containsKey(PAIRING_ID.getName()))
-                otherPairingID = (String) v.getBuiltInProperty(PAIRING_ID);
-
+        if (isMyPair != null) {
             //loop shall trigger reinit for its 'body' only (see issue #251)
-            if (loopPairingID.equals(otherPairingID)) v.reinit(getID());
+            if (isMyPair) v.reinit(getID());
         }
         else {
             //Backward compatibility for workflows without paring id (see issue #251)
@@ -65,13 +60,26 @@ public class Loop extends XOrSplit {
 
     @Override
     public void reinit(int idLoop) throws InvalidDataException {
-        //continue if the reinit was NOT started by this loop 
+        //propagate if the reinit was NOT started by this loop 
         if (idLoop != getID()) {
             Logger.msg(8, "Loop.reinit(id:%s, idLoop:%d) - parent:%s", getID(), idLoop, getParent().getName());
 
             for (Vertex outVertex: getOutGraphables()) {
-                if (!isInPrev(outVertex)) ((WfVertex) outVertex).reinit(idLoop);
+                WfVertex v = (WfVertex)outVertex;
+                Boolean isMyPair = isMyPair(v);
+
+                if (isMyPair != null) {
+                    //loop shall propagate reinit outside of its 'body' (see issue #251)
+                    if (!isMyPair) v.reinit(idLoop);
+                }
+                else {
+                    //Backward compatibility for workflows without paring id (see issue #251)
+                    if (!isInPrev(v)) v.reinit(idLoop);
+                }
             }
+        }
+        else {
+            Logger.msg(8, "Loop.reinit(id:%s, idLoop:%d) - STOPPED!", getID(), idLoop);
         }
     }
 
