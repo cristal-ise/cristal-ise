@@ -41,9 +41,7 @@ public class XOrSplit extends Split {
 
         ArrayList<DirectedEdge> nextsToFollow = new ArrayList<DirectedEdge>();
 
-        DirectedEdge[] outEdges = getOutEdges();
-
-        for (DirectedEdge outEdge : outEdges) {
+        for (DirectedEdge outEdge : getOutEdges()) {
             if (isInTable((String)((Next)outEdge).getBuiltInProperty(ALIAS), nextsTab))
                 nextsToFollow.add(outEdge);
         }
