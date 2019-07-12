@@ -42,8 +42,7 @@ import org.jooq.Table;
 
 public class JooqDataExport extends JooqHandler {
 
-    static final String           PUBLIC_SCHEMA = "public";
-    
+    static final String PUBLIC_SCHEMA = "public";
 
     static final String EVENT_TABLE      = "EVENT";
     static final String ITEM_TABLE       = "ITEM";
@@ -55,7 +54,7 @@ public class JooqDataExport extends JooqHandler {
     static final String VIEWPOINT_TABLE  = "VIEWPOINT";
     static final String LIFECYCLE_TABLE  = "LIFECYCLE";
 
-    private static final String EXPORTED_DIR = "src/test/exportedData/";
+    private static final String EXPORTED_DIR = "src/test/exportedData/"; // temp folder
 
     /**
      * 
@@ -70,23 +69,25 @@ public class JooqDataExport extends JooqHandler {
      * @throws IOException
      */
     @SuppressWarnings({ "resource" })
-    public void exportDataByLastSyncDate(DSLContext context, LocalDateTime lastSyncDate) throws ObjectNotFoundException, IOException {
+    public void exportDataByLastSyncDate(DSLContext context, LocalDateTime lastSyncDate, LocalDateTime syncDate)
+            throws ObjectNotFoundException, IOException {
         Schema schema = getPublicSchema(context);
         if (!Objects.isNull(schema)) {
-            exportDataByEvent(context, schema, lastSyncDate);
-            exportDataByItem(context, schema, lastSyncDate);
-            exportDataByProperty(context, schema, lastSyncDate);
-            exportDataByLifeCycle(context, schema, lastSyncDate);
-            exportDataByJob(context, schema, lastSyncDate);
-            exportDataByOutcome(context, schema, lastSyncDate);
-            exportDataByViewpoint(context, schema, lastSyncDate);
-            exportDataByCollection(context, schema, lastSyncDate);
-        
+            exportDataByEvent(context, schema, lastSyncDate, syncDate);
+            exportDataByItem(context, schema, lastSyncDate, syncDate);
+            exportDataByProperty(context, schema, lastSyncDate, syncDate);
+            exportDataByLifeCycle(context, schema, lastSyncDate, syncDate);
+            exportDataByJob(context, schema, lastSyncDate, syncDate);
+            exportDataByOutcome(context, schema, lastSyncDate, syncDate);
+            exportDataByViewpoint(context, schema, lastSyncDate, syncDate);
+            exportDataByCollection(context, schema, lastSyncDate, syncDate);
+
         }
         else {
             throw new ObjectNotFoundException("No Schema found");
         }
     }
+
     /**
      * 
      * @param context
@@ -94,77 +95,74 @@ public class JooqDataExport extends JooqHandler {
      * @param lastSyncDate
      * @throws IOException
      */
-    public void exportDataByEvent(DSLContext context, Schema schema, LocalDateTime lastSyncDate) throws IOException{
+    public void exportDataByEvent(DSLContext context, Schema schema, LocalDateTime lastSyncDate, LocalDateTime syncDate)
+            throws IOException {
         FileWriter writer = new FileWriter(new File(EXPORTED_DIR + "/" + EVENT_TABLE + ".csv"));
         Table<?> EXPORT_TABLE = schema.getTable(EVENT_TABLE).as("E");
-        Field<LocalDateTime> TIMESTAMP     = EXPORT_TABLE.field(name("TIMESTAMP"), LocalDateTime.class);
-        context.selectFrom(EXPORT_TABLE).where(TIMESTAMP.between(lastSyncDate, LocalDateTime.now())).fetchLazy().formatCSV(writer);
+        Field<LocalDateTime> TIMESTAMP = EXPORT_TABLE.field(name("TIMESTAMP"), LocalDateTime.class);
+        context.selectFrom(EXPORT_TABLE)
+            .where(TIMESTAMP.between(lastSyncDate, syncDate))
+            .fetchLazy()   
+            .formatCSV(writer);
     }
 
-    public void exportDataByItem(DSLContext context, Schema schema, LocalDateTime lastSyncDate) throws IOException{ 
-        exportDataProcess(context, schema, lastSyncDate, ITEM_TABLE);       
+    public void exportDataByItem(DSLContext context, Schema schema, LocalDateTime lastSyncDate, LocalDateTime syncDate) throws IOException {
+        exportDataProcess(context, schema, lastSyncDate, syncDate, ITEM_TABLE);
     }
-    
-    public void exportDataByProperty(DSLContext context, Schema schema, LocalDateTime lastSyncDate) throws IOException{
-        exportDataProcess(context, schema, lastSyncDate, PROPERTY_TABLE);        
+
+    public void exportDataByProperty(DSLContext context, Schema schema, LocalDateTime lastSyncDate, LocalDateTime syncDate)
+            throws IOException {
+        exportDataProcess(context, schema, lastSyncDate, syncDate, PROPERTY_TABLE);
     }
-    
-    public void exportDataByLifeCycle(DSLContext context, Schema schema, LocalDateTime lastSyncDate) throws IOException{
-        exportDataProcess(context, schema, lastSyncDate, LIFECYCLE_TABLE);            
+
+    public void exportDataByLifeCycle(DSLContext context, Schema schema, LocalDateTime lastSyncDate, LocalDateTime syncDate)
+            throws IOException {
+        exportDataProcess(context, schema, lastSyncDate, syncDate, LIFECYCLE_TABLE);
     }
-    
-    
-    public void exportDataByJob(DSLContext context, Schema schema, LocalDateTime lastSyncDate) throws IOException{
-        exportDataProcess(context, schema, lastSyncDate, JOB_TABLE);            
+
+    public void exportDataByJob(DSLContext context, Schema schema, LocalDateTime lastSyncDate, LocalDateTime syncDate) throws IOException {
+        exportDataProcess(context, schema, lastSyncDate, syncDate, JOB_TABLE);
     }
-    
-    public void exportDataByCollection(DSLContext context, Schema schema, LocalDateTime lastSyncDate) throws IOException{
-        exportDataProcess(context, schema, lastSyncDate, COLLECTION_TABLE);
+
+    public void exportDataByCollection(DSLContext context, Schema schema, LocalDateTime lastSyncDate, LocalDateTime syncDate)
+            throws IOException {
+        exportDataProcess(context, schema, lastSyncDate, syncDate, COLLECTION_TABLE);
     }
-    
-    public void exportDataByOutcome(DSLContext context, Schema schema, LocalDateTime lastSyncDate) throws IOException{
+
+    public void exportDataByOutcome(DSLContext context, Schema schema, LocalDateTime lastSyncDate, LocalDateTime syncDate)
+            throws IOException {
         FileWriter writer = new FileWriter(new File(EXPORTED_DIR + "/" + OUTCOME_TABLE + ".csv"));
-        
+
         Table<?> EXPORT_TABLE = schema.getTable(OUTCOME_TABLE);
-        Field<UUID> EXPORT_UUID     = EXPORT_TABLE.field(name("UUID"), UUID.class);
-        Field<UUID> EXPORT_EVENTID     = EXPORT_TABLE.field(name("EVENT_ID"), UUID.class);
-        
+        Field<UUID> EXPORT_UUID = EXPORT_TABLE.field(name("UUID"), UUID.class);
+        Field<UUID> EXPORT_EVENTID = EXPORT_TABLE.field(name("EVENT_ID"), UUID.class);
+
         Table<?> EVENT = schema.getTable(EVENT_TABLE);
-        Field<LocalDateTime> TIMESTAMP     = EVENT.field(name("TIMESTAMP"), LocalDateTime.class);
-        Field<UUID> EVENT_UUID     = EVENT.field(name("UUID"), UUID.class);
-        Field<UUID> EVENT_ID     = EVENT.field(name("ID"), UUID.class);
-       
-         context.select().
-         from(EXPORT_TABLE).
-         join(EVENT).on(EXPORT_UUID.equal(EVENT_UUID), 
-                EXPORT_EVENTID.equal(EVENT_ID)).
-         where(TIMESTAMP.between(lastSyncDate, LocalDateTime.now())).
-         fetchLazy().
-         formatCSV(writer);
+        Field<LocalDateTime> TIMESTAMP = EVENT.field(name("TIMESTAMP"), LocalDateTime.class);
+        Field<UUID> EVENT_UUID = EVENT.field(name("UUID"), UUID.class);
+        Field<UUID> EVENT_ID = EVENT.field(name("ID"), UUID.class);
+
+        context.select().from(EXPORT_TABLE).join(EVENT).on(EXPORT_UUID.equal(EVENT_UUID),
+                EXPORT_EVENTID.equal(EVENT_ID)).where(TIMESTAMP.between(lastSyncDate, syncDate)).fetchLazy().formatCSV(writer);
     }
-    
-    public void exportDataByViewpoint(DSLContext context, Schema schema, LocalDateTime lastSyncDate) throws IOException{
+
+    public void exportDataByViewpoint(DSLContext context, Schema schema, LocalDateTime lastSyncDate, LocalDateTime syncDate)
+            throws IOException {
         FileWriter writer = new FileWriter(new File(EXPORTED_DIR + "/" + VIEWPOINT_TABLE + ".csv"));
-        
+
         Table<?> EXPORT_TABLE = schema.getTable(VIEWPOINT_TABLE);
-        Field<UUID> EXPORT_UUID     = EXPORT_TABLE.field(name("UUID"), UUID.class);
-        Field<UUID> EXPORT_EVENTID     = EXPORT_TABLE.field(name("EVENT_ID"), UUID.class);
-        
+        Field<UUID> EXPORT_UUID = EXPORT_TABLE.field(name("UUID"), UUID.class);
+        Field<UUID> EXPORT_EVENTID = EXPORT_TABLE.field(name("EVENT_ID"), UUID.class);
+
         Table<?> EVENT = schema.getTable(EVENT_TABLE);
-        Field<LocalDateTime> TIMESTAMP     = EVENT.field(name("TIMESTAMP"), LocalDateTime.class);
-        Field<UUID> EVENT_UUID     = EVENT.field(name("UUID"), UUID.class);
-        Field<UUID> EVENT_ID     = EVENT.field(name("ID"), UUID.class);
-       
-         context.select().
-         from(EXPORT_TABLE).
-         join(EVENT).on(EXPORT_UUID.equal(EVENT_UUID), 
-                EXPORT_EVENTID.equal(EVENT_ID)).
-         where(TIMESTAMP.between(lastSyncDate, LocalDateTime.now())).
-         fetchLazy().
-         formatCSV(writer);
+        Field<LocalDateTime> TIMESTAMP = EVENT.field(name("TIMESTAMP"), LocalDateTime.class);
+        Field<UUID> EVENT_UUID = EVENT.field(name("UUID"), UUID.class);
+        Field<UUID> EVENT_ID = EVENT.field(name("ID"), UUID.class);
+
+        context.select().from(EXPORT_TABLE).join(EVENT).on(EXPORT_UUID.equal(EVENT_UUID),
+                EXPORT_EVENTID.equal(EVENT_ID)).where(TIMESTAMP.between(lastSyncDate, syncDate)).fetchLazy().formatCSV(writer);
     }
-    
-    
+
     /**
      * 
      * @param context
@@ -186,30 +184,29 @@ public class JooqDataExport extends JooqHandler {
         }
 
     }
-    
+
     /**
-     *     
+     * 
      * @param context
      * @param schema
      * @param lastSyncDate
      * @param tableName
      * @throws IOException
      */
-    private void exportDataProcess(DSLContext context, Schema schema, LocalDateTime lastSyncDate, String tableName) throws IOException {
+    private void exportDataProcess(DSLContext context, Schema schema, LocalDateTime lastSyncDate, LocalDateTime syncDate, String tableName)
+            throws IOException {
         FileWriter writer = new FileWriter(new File(EXPORTED_DIR + "/" + tableName + ".csv"));
-        
+
         Table<?> EXPORT_TABLE = schema.getTable(tableName);
-        Field<UUID> EXPORT_UUID     = EXPORT_TABLE.field(name("UUID"), UUID.class);
-        
+        Field<UUID> EXPORT_UUID = EXPORT_TABLE.field(name("UUID"), UUID.class);
+
         Table<?> EVENT = schema.getTable(EVENT_TABLE);
-        Field<LocalDateTime> TIMESTAMP     = EVENT.field(name("TIMESTAMP"), LocalDateTime.class);
-        Field<UUID> EVENT_UUID     = EVENT.field(name("UUID"), UUID.class);
-       
-        context.select().
-        from(EXPORT_TABLE).
-        where(EXPORT_UUID.in(context.selectDistinct(EVENT_UUID).
-                from(EVENT).
-                where(TIMESTAMP.between(lastSyncDate, LocalDateTime.now())))).fetchLazy().formatCSV(writer);
+        Field<LocalDateTime> TIMESTAMP = EVENT.field(name("TIMESTAMP"), LocalDateTime.class);
+        Field<UUID> EVENT_UUID = EVENT.field(name("UUID"), UUID.class);
+
+        context.select().from(EXPORT_TABLE)
+                .where(EXPORT_UUID.in(context.selectDistinct(EVENT_UUID).from(EVENT).where(TIMESTAMP.between(lastSyncDate, syncDate))))
+                .fetchLazy().formatCSV(writer);
     }
 
     public Schema getPublicSchema(DSLContext context) {
