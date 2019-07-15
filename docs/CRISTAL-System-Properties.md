@@ -28,8 +28,8 @@ These properties configure a server or client with particular parameters for a c
 
 These properties configure server or client processes. Some are included in module definitions.
 
-| Property | Server / Process type | Description | Example value |
-|----------|-----------------------|-------------|---------------|
+| Property | Process type | Description | Example value |
+|----------|--------------|-------------|---------------|
 | ClusterStorage | All | Ordered list of implementation of the ClusterStorage interface that Cristal will use for storage of item local objects. Precedence is left to right. If package name is not supplied, org.cristalise.storage is implied | LDAPClusterStorage, XMLClusterStorage |
 | LocalCentre (not used in 3.0) | All | The centre to connect to/start as. Avoids having to specify the clc file in the arguments. | MyCentre | 
 | XMLStorage.root | Server | If using XMLClusterStorage, this defined the root directory of XML file storage | /var/lib/cristal/db | 
@@ -52,8 +52,8 @@ These properties configure server or client processes. Some are included in modu
 
 These properties enable integration of module extensions into the kernel.
 
-| Property | Server / Process type | Description | Example value |
-|----------|-----------------------|-------------|---------------|
+| Property | Process type | Description | Example value |
+|----------|--------------|-------------|---------------|
 | OutcomeInit.&lt;name&gt; | Agent | Specifies an OutcomeInitiator implementation to use to create new empty outcomes. Will be invoked from Job.getOutcome() for Activities with an 'OutcomeInit' property set to the given name | Class name |
 | Module.debug | Server | Attempts to assign cristal-dev workflows to module resources as they are imported, so they can be edited. | Boolean |
 | Module.reset<br>Module.&lt;namespace&gt;.reset | Server | Instructs the module manager not to preserve any modified module resources for either this module or all modules. If false, then resources will not be updated if the current version was modified by someone other than the bootstrapper | Boolean |
