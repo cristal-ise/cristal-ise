@@ -45,13 +45,31 @@ import org.jooq.Table;
 
 public class JooqDataImport extends JooqHandler{
     
+    public String path;
+    
+    static final String EVENT      = "EVENT";
+    static final String ITEM       = "ITEM";
+    static final String OUTCOME    = "OUTCOME";
+    static final String PROPERTY   = "ITEM_PROPERTY";
+    static final String ATTACHMENT = "ATTACHMENT";
+    static final String JOB        = "JOB";
+    static final String COLLECTION = "COLLECTION";
+    static final String VIEWPOINT  = "VIEWPOINT";
+    static final String LIFECYCLE  = "LIFECYCLE";
+    
+    public  JooqDataImport(String path) {
+        // TODO Auto-generated constructor stub
+        this.path = path;
+    }
     
     @SuppressWarnings({ "deprecation", "unchecked", "rawtypes" })
-    public void importOutcomeData(DSLContext context,  File file) throws IOException, ObjectNotFoundException {  
+    public void importOutcomeData(DSLContext context) throws IOException, ObjectNotFoundException { 
+        
+      File file = new File (this.path + "/"+OUTCOME+".csv");
         
       Schema schema =  getPublicSchema(context);
       if(!Objects.isNull(schema)){
-          Table<?> OUTCOME_TABLE = schema.getTable("OUTCOME");
+          Table<?> OUTCOME_TABLE = schema.getTable(OUTCOME);
           final Field<UUID>    UUID            = field(name("UUID"),           UUID.class);
           final Field<String>  SCHEMA_NAME     = field(name("SCHEMA_NAME"),    String.class);
           final Field<Integer> SCHEMA_VERSION  = field(name("SCHEMA_VERSION"), Integer.class);
@@ -62,7 +80,6 @@ public class JooqDataImport extends JooqHandler{
           
          context.loadInto(OUTCOME_TABLE)
            .onDuplicateKeyUpdate()
-           .commitAfter(1000) 
            .loadCSV(inputStream)
            .fields(UUID, SCHEMA_NAME, SCHEMA_VERSION,EVENT_ID,XML)
            .execute(); 
@@ -73,11 +90,13 @@ public class JooqDataImport extends JooqHandler{
     
     
     @SuppressWarnings({ "deprecation", "unchecked", "rawtypes" })
-    public void importCollectionData(DSLContext context, File file) throws IOException, ObjectNotFoundException {  
+    public void importCollectionData(DSLContext context) throws IOException, ObjectNotFoundException {  
+        
+      File file = new File (this.path + "/"+COLLECTION+".csv");  
         
       Schema schema =  getPublicSchema(context);
       if(!Objects.isNull(schema)){
-          final Table<?> COLLECTION_TABLE = schema.getTable("COLLECTION");
+          final Table<?> COLLECTION_TABLE = schema.getTable(COLLECTION);
           final Field<UUID>   UUID    = field(name("UUID"),    UUID.class);
           final Field<String> NAME    = field(name("NAME"),    String.class);
           final Field<String> VERSION = field(name("VERSION"), String.class);
@@ -88,7 +107,6 @@ public class JooqDataImport extends JooqHandler{
           
          context.loadInto(COLLECTION_TABLE)
            .onDuplicateKeyUpdate()
-           .commitAfter(50)
            .loadCSV(inputStream)
            .fields(UUID, NAME, VERSION,XML)
            .execute(); 
@@ -99,11 +117,13 @@ public class JooqDataImport extends JooqHandler{
     
     
     @SuppressWarnings({ "deprecation", "unchecked", "rawtypes" })
-    public void importPropertyData(DSLContext context, File file) throws IOException, ObjectNotFoundException {  
+    public void importPropertyData(DSLContext context) throws IOException, ObjectNotFoundException {
+        
+      File file = new File (this.path + "/"+PROPERTY+".csv");  
         
       Schema schema =  getPublicSchema(context);
       if(!Objects.isNull(schema)){
-          final Table<?> ITEM_PROPERTY_TABLE = schema.getTable("ITEM_PROPERTY");
+          final Table<?> ITEM_PROPERTY_TABLE = schema.getTable(PROPERTY);
 
           final Field<UUID>    UUID    = field(name("UUID"),    UUID.class);
           final Field<String>  NAME    = field(name("NAME"),    String.class);
@@ -115,7 +135,6 @@ public class JooqDataImport extends JooqHandler{
           
          context.loadInto(ITEM_PROPERTY_TABLE)
            .onDuplicateKeyUpdate()
-           .commitAfter(50)
            .loadCSV(inputStream)
            .fields(UUID, NAME, VALUE, MUTABLE)
            .execute(); 
@@ -126,11 +145,13 @@ public class JooqDataImport extends JooqHandler{
     
     
     @SuppressWarnings({ "deprecation", "unchecked", "rawtypes" })
-    public void importJobData(DSLContext context, File file) throws IOException, ObjectNotFoundException {  
+    public void importJobData(DSLContext context) throws IOException, ObjectNotFoundException {
+        
+      File file = new File (this.path + "/"+JOB+".csv");
         
       Schema schema =  getPublicSchema(context);
       if(!Objects.isNull(schema)){
-          final Table<?> JOB_TABLE = schema.getTable("JOB");
+          final Table<?> JOB_TABLE = schema.getTable(JOB);
 
           final Field<UUID>      UUID              = field(name("UUID"),              UUID.class);
           final Field<Integer>   ID                = field(name("ID"),                Integer.class);
@@ -150,7 +171,6 @@ public class JooqDataImport extends JooqHandler{
           
          context.loadInto(JOB_TABLE)
            .onDuplicateKeyUpdate()
-           .commitAfter(50)
            .loadCSV(inputStream)
            .fields(UUID, ID, DELEGATE_UUID, ITEM_UUID, STEP_NAME, STEP_PATH, STEP_TYPE, TRANSITION, 
                    ORIGIN_STATE_NAME, TARGET_STATE_NAME, AGENT_ROLE, ACT_PROPERTIES, CREATION_TS)
@@ -161,11 +181,12 @@ public class JooqDataImport extends JooqHandler{
     }
     
     @SuppressWarnings({ "deprecation", "unchecked", "rawtypes" })
-    public void importLifeCycleData(DSLContext context, File file) throws IOException, ObjectNotFoundException {  
-        
+    public void importLifeCycleData(DSLContext context) throws IOException, ObjectNotFoundException {  
+      
+      File file = new File (this.path + "/"+LIFECYCLE+".csv");   
       Schema schema =  getPublicSchema(context);
       if(!Objects.isNull(schema)){
-          final Table<?> LIFECYCLE_TABLE = schema.getTable("LIFECYCLE");
+          final Table<?> LIFECYCLE_TABLE = schema.getTable(LIFECYCLE);
 
           final Field<UUID>   UUID = field(name("UUID"), UUID.class);
           final Field<String> NAME = field(name("NAME"), String.class);
@@ -175,7 +196,6 @@ public class JooqDataImport extends JooqHandler{
           
          context.loadInto(LIFECYCLE_TABLE)
            .onDuplicateKeyUpdate()
-           .commitAfter(50)
            .loadCSV(inputStream)
            .fields(UUID, NAME, XML)
            .execute(); 
@@ -185,11 +205,12 @@ public class JooqDataImport extends JooqHandler{
     }
     
     @SuppressWarnings({ "deprecation", "unchecked", "rawtypes" })
-    public void importAttachmentData(DSLContext context, File file) throws IOException, ObjectNotFoundException {  
+    public void importAttachmentData(DSLContext context) throws IOException, ObjectNotFoundException {
         
+      File file = new File (this.path + "/"+ATTACHMENT+".csv");  
       Schema schema =  getPublicSchema(context);
       if(!Objects.isNull(schema)){
-          Table<?> OUTCOME_ATTACHMENT_TABLE = schema.getTable("ATTACHMENT");
+          Table<?> OUTCOME_ATTACHMENT_TABLE = schema.getTable(ATTACHMENT);
           final Field<UUID>    UUID            = field(name("UUID"),           UUID.class);
           final Field<String>  SCHEMA_NAME     = field(name("SCHEMA_NAME"),    String.class);
           final Field<Integer> SCHEMA_VERSION  = field(name("SCHEMA_VERSION"), Integer.class);
@@ -200,7 +221,6 @@ public class JooqDataImport extends JooqHandler{
           
          context.loadInto(OUTCOME_ATTACHMENT_TABLE)
            .onDuplicateKeyUpdate()
-           .commitAfter(50)
            .loadCSV(inputStream)
            .fields(UUID, SCHEMA_NAME, SCHEMA_VERSION,EVENT_ID,ATTACHMENT)
            .execute(); 
@@ -210,11 +230,12 @@ public class JooqDataImport extends JooqHandler{
     }
     
     @SuppressWarnings({ "deprecation", "unchecked", "rawtypes" })
-    public void importViewPointData(DSLContext context, File file) throws IOException, ObjectNotFoundException {  
+    public void importViewPointData(DSLContext context) throws IOException, ObjectNotFoundException {
         
+      File file = new File (this.path + "/"+VIEWPOINT+".csv");  
       Schema schema =  getPublicSchema(context);
       if(!Objects.isNull(schema)){
-          final Table<?> VIEWPOINT_TABLE = schema.getTable("VIEWPOINT");
+          final Table<?> VIEWPOINT_TABLE = schema.getTable(VIEWPOINT);
 
           final Field<UUID>    UUID            = field(name("UUID"),           UUID.class);
           final Field<String>  SCHEMA_NAME     = field(name("SCHEMA_NAME"),    String.class);
@@ -226,7 +247,6 @@ public class JooqDataImport extends JooqHandler{
           
          context.loadInto(VIEWPOINT_TABLE)
            .onDuplicateKeyUpdate()
-           .commitAfter(50)
            .loadCSV(inputStream)
            .fields(UUID, SCHEMA_NAME, NAME,SCHEMA_VERSION,EVENT_ID)
            .execute(); 
@@ -237,11 +257,12 @@ public class JooqDataImport extends JooqHandler{
     
     
     @SuppressWarnings({ "deprecation", "unchecked", "rawtypes" })
-    public void importHistoryData(DSLContext context, File file) throws IOException, ObjectNotFoundException {  
+    public void importHistoryData(DSLContext context) throws IOException, ObjectNotFoundException {
         
+      File file = new File (this.path + "/"+EVENT+".csv");  
       Schema schema =  getPublicSchema(context);
       if(!Objects.isNull(schema)){
-          final Table<?> EVENT_TABLE = schema.getTable("EVENT");
+          final Table<?> EVENT_TABLE = schema.getTable(EVENT);
 
           final Field<UUID>      UUID                  = field(name("UUID"),                 UUID.class);
           final Field<Integer>   ID                    = field(name("ID"),                   Integer.class);
@@ -265,7 +286,6 @@ public class JooqDataImport extends JooqHandler{
           
          context.loadInto(EVENT_TABLE)
            .onDuplicateKeyUpdate()
-           .commitAfter(50)
            .loadCSV(inputStream)
            .fields(UUID, ID, AGENT_UUID,DELEGATE_UUID,AGENT_ROLE,SCHEMA_NAME,SCHEMA_VERSION,STATEMACHINE_NAME, STATEMACHINE_VERSION,
                    STEP_NAME,STEP_PATH,STEP_TYPE, ORIGIN_STATE_ID, TARGET_STATE_ID,TRANSITION_ID,VIEW_NAME,TIMESTAMP)
@@ -276,11 +296,12 @@ public class JooqDataImport extends JooqHandler{
     }
     
     @SuppressWarnings({ "deprecation", "unchecked", "rawtypes" })
-    public void importItem(DSLContext context, File file) throws IOException, ObjectNotFoundException {  
+    public void importItem(DSLContext context) throws IOException, ObjectNotFoundException {
         
+      File file = new File (this.path + "/"+ITEM+".csv");     
       Schema schema =  getPublicSchema(context);
       if(!Objects.isNull(schema)){
-          final Table<?> ITEM_TABLE = schema.getTable("ITEM");
+          final Table<?> ITEM_TABLE = schema.getTable(ITEM);
 
           final Field<UUID>      UUID                  = field(name("UUID"),                 UUID.class);
           final Field<String>    IOR                   = field(name("IOR"),                  String.class);
@@ -293,7 +314,6 @@ public class JooqDataImport extends JooqHandler{
           
          context.loadInto(ITEM_TABLE)
            .onDuplicateKeyUpdate()
-           .commitAfter(50)
            .loadCSV(inputStream)
            .fields(UUID, IOR, IS_AGENT, IS_PASSWORD_TEMPORARY, PASSWORD)
            .execute(); 

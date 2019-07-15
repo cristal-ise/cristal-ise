@@ -34,6 +34,7 @@ import org.cristalise.kernel.common.ObjectNotFoundException;
 import org.cristalise.kernel.common.PersistencyException;
 import org.cristalise.kernel.entity.C2KLocalObject;
 import org.cristalise.kernel.lookup.InvalidItemPathException;
+import org.cristalise.kernel.utils.FileStringUtility;
 import org.jooq.Condition;
 import org.jooq.DSLContext;
 import org.jooq.Field;
@@ -76,6 +77,7 @@ public class JooqDataExport extends JooqHandler {
             exportDataByEvent(context, schema, lastSyncDate, syncDate);
             exportDataByItem(context, schema, lastSyncDate, syncDate);
             exportDataByProperty(context, schema, lastSyncDate, syncDate);
+            exportDataByAttachment(context, schema, lastSyncDate, syncDate);
             exportDataByLifeCycle(context, schema, lastSyncDate, syncDate);
             exportDataByJob(context, schema, lastSyncDate, syncDate);
             exportDataByOutcome(context, schema, lastSyncDate, syncDate);
@@ -97,6 +99,7 @@ public class JooqDataExport extends JooqHandler {
      */
     public void exportDataByEvent(DSLContext context, Schema schema, LocalDateTime lastSyncDate, LocalDateTime syncDate)
             throws IOException {
+        FileStringUtility.createNewDir(EXPORTED_DIR);
         FileWriter writer = new FileWriter(new File(EXPORTED_DIR + "/" + EVENT_TABLE + ".csv"));
         Table<?> EXPORT_TABLE = schema.getTable(EVENT_TABLE).as("E");
         Field<LocalDateTime> TIMESTAMP = EXPORT_TABLE.field(name("TIMESTAMP"), LocalDateTime.class);
@@ -128,29 +131,31 @@ public class JooqDataExport extends JooqHandler {
             throws IOException {
         exportDataProcess(context, schema, lastSyncDate, syncDate, COLLECTION_TABLE);
     }
-
+    
+    
+    
     public void exportDataByOutcome(DSLContext context, Schema schema, LocalDateTime lastSyncDate, LocalDateTime syncDate)
             throws IOException {
-        FileWriter writer = new FileWriter(new File(EXPORTED_DIR + "/" + OUTCOME_TABLE + ".csv"));
-
-        Table<?> EXPORT_TABLE = schema.getTable(OUTCOME_TABLE);
-        Field<UUID> EXPORT_UUID = EXPORT_TABLE.field(name("UUID"), UUID.class);
-        Field<UUID> EXPORT_EVENTID = EXPORT_TABLE.field(name("EVENT_ID"), UUID.class);
-
-        Table<?> EVENT = schema.getTable(EVENT_TABLE);
-        Field<LocalDateTime> TIMESTAMP = EVENT.field(name("TIMESTAMP"), LocalDateTime.class);
-        Field<UUID> EVENT_UUID = EVENT.field(name("UUID"), UUID.class);
-        Field<UUID> EVENT_ID = EVENT.field(name("ID"), UUID.class);
-
-        context.select().from(EXPORT_TABLE).join(EVENT).on(EXPORT_UUID.equal(EVENT_UUID),
-                EXPORT_EVENTID.equal(EVENT_ID)).where(TIMESTAMP.between(lastSyncDate, syncDate)).fetchLazy().formatCSV(writer);
+        exportDataProcessWithJoin(context, schema, lastSyncDate, syncDate, OUTCOME_TABLE);
     }
 
     public void exportDataByViewpoint(DSLContext context, Schema schema, LocalDateTime lastSyncDate, LocalDateTime syncDate)
             throws IOException {
-        FileWriter writer = new FileWriter(new File(EXPORTED_DIR + "/" + VIEWPOINT_TABLE + ".csv"));
+        exportDataProcessWithJoin(context, schema, lastSyncDate, syncDate, VIEWPOINT_TABLE);
+       
+    }
+    public void exportDataByAttachment(DSLContext context, Schema schema, LocalDateTime lastSyncDate, LocalDateTime syncDate)
+            throws IOException {
+        exportDataProcessWithJoin(context, schema, lastSyncDate, syncDate, ATTACHMENT_TABLE);
+        
+    }
+    
+    
+    public void exportDataProcessWithJoin(DSLContext context, Schema schema, LocalDateTime lastSyncDate, LocalDateTime syncDate, String tableName) throws IOException{
+        FileStringUtility.createNewDir(EXPORTED_DIR);
+        FileWriter writer = new FileWriter(new File(EXPORTED_DIR + "/" + tableName + ".csv"));
 
-        Table<?> EXPORT_TABLE = schema.getTable(VIEWPOINT_TABLE);
+        Table<?> EXPORT_TABLE = schema.getTable(tableName);
         Field<UUID> EXPORT_UUID = EXPORT_TABLE.field(name("UUID"), UUID.class);
         Field<UUID> EXPORT_EVENTID = EXPORT_TABLE.field(name("EVENT_ID"), UUID.class);
 
