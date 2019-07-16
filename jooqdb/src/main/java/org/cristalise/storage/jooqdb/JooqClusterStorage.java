@@ -110,6 +110,7 @@ public class JooqClusterStorage extends TransactionalClusterStorage {
     }
 
     public void dropHandlers() throws PersistencyException {
+        DSLContext context = JooqHandler.connect();
         for (JooqHandler handler: jooqHandlers.values()) handler.dropTables(context);
     }
 
@@ -142,6 +143,14 @@ public class JooqClusterStorage extends TransactionalClusterStorage {
 
     @Override
     public void begin(Object locker) {
+        DSLContext context =null;
+        try {
+            context = JooqHandler.connect();
+        }
+        catch (PersistencyException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
         Logger.msg(8, "JooqClusterStorage.begin() - Nothing DONE.");
 
         if (Logger.doLog(5)) JooqHandler.logConnectionCount("JooqClusterStorage.begin()", context);
