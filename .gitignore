@@ -5,3 +5,5 @@ target/
 .settings/
 .recommenders/
 /.metadata/
+.idea
+*.iml

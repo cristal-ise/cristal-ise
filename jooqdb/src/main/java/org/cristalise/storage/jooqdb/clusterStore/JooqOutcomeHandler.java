@@ -147,4 +147,9 @@ public class JooqOutcomeHandler extends JooqHandler {
                 constraint("PK_"+OUTCOME_TABLE).primaryKey(UUID, SCHEMA_NAME, SCHEMA_VERSION, EVENT_ID))
         .execute();
     }
+
+    @Override
+    public void dropTables(DSLContext context) throws PersistencyException {
+        context.dropTableIfExists(OUTCOME_TABLE).execute();
+    }
 }

@@ -20,71 +20,68 @@
  */
 package org.cristalise.kernel.lifecycle;
 
+import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.PAIRING_ID;
 import org.cristalise.kernel.common.InvalidDataException;
 import org.cristalise.kernel.common.ObjectNotFoundException;
 import org.cristalise.kernel.lifecycle.instance.Join;
 import org.cristalise.kernel.lifecycle.instance.WfVertex;
 
-/**
- * @version $Revision: 1.18 $ $Date: 2005/09/29 10:18:31 $
- * @author $Author: abranson $
- */
-public class JoinDef extends WfVertexDef
-{
-	/**
-	 * @see java.lang.Object#Object()
-	 */
-	public JoinDef()
-	{
-	}
-	/**
-	 * @see org.cristalise.kernel.lifecycle.WfVertexDef#verify()
-	 */
-	@Override
-	public boolean verify()
-	{
-		mErrors.removeAllElements();
-		int nbOutEdges = getOutEdges().length;
-		int nbInEdges = getInEdges().length;
-		String type = (String) getProperties().get("Type");
+public class JoinDef extends WfVertexDef {
+    /**
+     * @see java.lang.Object#Object()
+     */
+    public JoinDef() {
+        setBuiltInProperty(PAIRING_ID, "");
+    }
+
+    /**
+     * @see org.cristalise.kernel.lifecycle.WfVertexDef#verify()
+     */
+    @Override
+    public boolean verify()
+    {
+        mErrors.removeAllElements();
+        int nbOutEdges = getOutEdges().length;
+        int nbInEdges = getInEdges().length;
+        String type = (String) getProperties().get("Type");
         if (nbInEdges < 1)
         {
             mErrors.add("not enough previous");
             return false;
         }
         if (type != null && type.equals("Route"))
-		{
-			if (nbInEdges > 1)
-			{
-				mErrors.add("Bad nb of previous");
-				return false;
-			}
-		}
-		if (nbOutEdges > 1)
-		{
-			mErrors.add("too many next");
-			return false;
-		}
-		if (nbOutEdges == 0)
-		{
-			if (!((CompositeActivityDef) getParent()).hasGoodNumberOfActivity())
-			{
-				mErrors.add("too many endpoints");
-				return false;
-			}
-		}
-		return true;
-	}
-	@Override
-	public boolean isJoin()
-	{
-		return true;
-	}
+        {
+            if (nbInEdges > 1)
+            {
+                mErrors.add("Bad nb of previous");
+                return false;
+            }
+        }
+        if (nbOutEdges > 1)
+        {
+            mErrors.add("too many next");
+            return false;
+        }
+        if (nbOutEdges == 0)
+        {
+            if (!((CompositeActivityDef) getParent()).hasGoodNumberOfActivity())
+            {
+                mErrors.add("too many endpoints");
+                return false;
+            }
+        }
+        return true;
+    }
+    @Override
+    public boolean isJoin()
+    {
+        return true;
+    }
 
-	@Override
-	public WfVertex instantiate() throws InvalidDataException, ObjectNotFoundException {
-		Join newJoin = new Join();
-		configureInstance(newJoin);
-		return newJoin;
-	}
+    @Override
+    public WfVertex instantiate() throws InvalidDataException, ObjectNotFoundException {
+        Join newJoin = new Join();
+        configureInstance(newJoin);
+        return newJoin;
+    }
 }

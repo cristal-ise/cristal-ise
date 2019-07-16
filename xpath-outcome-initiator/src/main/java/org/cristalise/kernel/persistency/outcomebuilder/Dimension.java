@@ -256,8 +256,7 @@ public class Dimension extends OutcomeStructure {
 
                 if (tableModel.getRowCount() < i+1) {
                     Element newElement = tableModel.initNew(parent.getOwnerDocument(), i);
-                    parent.appendChild(newElement);
-    
+                    parentStruct.addChildElement(name, newElement);
                     elements.add(newElement);
                 }
 

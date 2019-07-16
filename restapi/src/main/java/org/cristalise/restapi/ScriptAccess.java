@@ -22,9 +22,11 @@ package org.cristalise.restapi;
 
 import static org.cristalise.kernel.process.resource.BuiltInResources.SCRIPT_RESOURCE;
 
+import javax.ws.rs.Consumes;
 import javax.ws.rs.CookieParam;
 import javax.ws.rs.DefaultValue;
 import javax.ws.rs.GET;
+import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
@@ -102,11 +104,30 @@ public class ScriptAccess extends ResourceAccess {
         checkAuthCookie(authCookie);
         
         try (DSLContext context = JooqHandler.connect()) {
-            return scriptUtils.executeScript(headers, null, scriptName, scriptVersion, inputJson,
-            		ImmutableMap.of("dsl", context));
+            return scriptUtils.executeScript(headers, null, scriptName, scriptVersion, inputJson, ImmutableMap.of("dsl", context));
         } catch (DataAccessException | PersistencyException e) {
             throw ItemUtils.createWebAppException("Error connecting to database, please contact support", e, Response.Status.NOT_FOUND);
-		}
+        }
+    }
+
+    @POST
+    @Path("scriptResult")
+    @Consumes( {MediaType.TEXT_XML, MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON } )
+    @Produces({ MediaType.TEXT_XML, MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON })
+    public Response getScriptResultPost(
+            String postData,
+            @Context                 HttpHeaders headers,
+            @QueryParam("script")    String      scriptName,
+            @QueryParam("version")   Integer     scriptVersion,
+            @CookieParam(COOKIENAME) Cookie      authCookie)
+    {
+        checkAuthCookie(authCookie);
+        
+        try (DSLContext context = JooqHandler.connect()) {
+            return scriptUtils.executeScript(headers, null, scriptName, scriptVersion, postData, ImmutableMap.of("dsl", context));
+        } catch (DataAccessException | PersistencyException e) {
+            throw ItemUtils.createWebAppException("Error connecting to database, please contact support", e, Response.Status.NOT_FOUND);
+        }
     }
 
 }

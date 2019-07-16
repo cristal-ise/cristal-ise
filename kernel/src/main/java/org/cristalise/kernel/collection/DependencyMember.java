@@ -20,6 +20,7 @@
  */
 package org.cristalise.kernel.collection;
 
+import java.util.Iterator;
 import java.util.StringTokenizer;
 import java.util.Map.Entry;
 
@@ -45,7 +46,7 @@ public class DependencyMember implements CollectionMember {
     private ItemProxy     mItem       = null;
     private int           mId         = -1;
     private CastorHashMap mProperties = null;
-    private String        mClassProps;
+    private String        mClassProps = "";
 
     public DependencyMember() {
         mProperties = new CastorHashMap();
@@ -104,14 +105,14 @@ public class DependencyMember implements CollectionMember {
                 String aClassProp = sub.nextToken();
                 try {
                     String memberValue = (String) getProperties().get(aClassProp);
-                    Property ItemProperty = (Property) Gateway.getStorage().get(itemPath, ClusterType.PROPERTY + "/" + aClassProp, null);
+                    Property itemProperty = (Property) Gateway.getStorage().get(itemPath, ClusterType.PROPERTY + "/" + aClassProp, null);
 
-                    if (ItemProperty == null)
+                    if (itemProperty == null)
                         throw new InvalidCollectionModification("Property " + aClassProp + " does not exist for item " + itemPath);
 
-                    if (!ItemProperty.getValue().equalsIgnoreCase(memberValue))
+                    if (!itemProperty.getValue().equalsIgnoreCase(memberValue))
                         throw new InvalidCollectionModification("DependencyMember::checkProperty() Values of mandatory prop " + aClassProp
-                                + " do not match " + ItemProperty.getValue() + "!=" + memberValue);
+                                + " do not match " + itemProperty.getValue() + "!=" + memberValue);
                 }
                 catch (Exception ex) {
                     Logger.error(ex);
@@ -179,23 +180,73 @@ public class DependencyMember implements CollectionMember {
             throw new InvalidDataException(e.getMessage());
         }
     }
-    
+
+    /**
+     * 
+     * @param propDesc
+     * @param newMember
+     * @throws ObjectNotFoundException
+     * @throws InvalidCollectionModification
+     */
+    public void updatePropertieFromDescription(CastorHashMap propDesc, DependencyMember newMember) 
+            throws ObjectNotFoundException, InvalidCollectionModification
+    {
+        for(String key: propDesc.keySet()) {
+            Object newValue = newMember != null ? newMember.mProperties.get(key) : null;
+            Object newDefaultValue = propDesc.get(key);
+
+            if (mProperties.containsKey(key)) {
+                if (mClassProps.contains(key)) {
+                    // Update default value of Class Identifier
+                    mProperties.put(key, newDefaultValue);
+                }
+                else {
+                    // Update if there is a newValue
+                    if (newValue != null) mProperties.put(key, newValue);
+                }
+            }
+            else {
+                if (mClassProps.contains(key)) {
+                    // Add Class Identifier
+                    mProperties.put(key, newDefaultValue);
+                }
+                else {
+                    // Add using newValue or the default value from propDesc
+                    mProperties.put(key, newValue != null ? newValue : newDefaultValue);
+                }
+            }
+        }
+
+        Iterator<String> propsNames =  mProperties.keySet().iterator();
+
+        while (propsNames.hasNext()) {
+            String key = propsNames.next();
+
+            if(! propDesc.containsKey(key)) {
+                propsNames.remove();
+            }
+        }
+    }
+
     /**
      * Only update existing properties otherwise throw an exception
      * 
-     * @param newProps the new properties 
+     * @param newProps the new properties
      * @throws ObjectNotFoundException property does not exists for member
      * @throws InvalidCollectionModification cannot update class properties
      */
     public void updateProperties(CastorHashMap newProps) throws ObjectNotFoundException, InvalidCollectionModification {
         for (Entry<String, Object> newProp: newProps.entrySet()) {
-            if (mClassProps.contains(newProp.getKey()))
+            if (mClassProps.contains(newProp.getKey())) {
                 throw new InvalidCollectionModification("Dependency cannot change classProperties:"+mClassProps);
+            }
 
-            if (getProperties().containsKey(newProp.getKey())) getProperties().put(newProp.getKey(), newProp.getValue());
-            else
+            if (getProperties().containsKey(newProp.getKey())) {
+                getProperties().put(newProp.getKey(), newProp.getValue());
+            }
+            else {
                 throw new ObjectNotFoundException("Property "+newProp.getKey()+" does not exists for slotID:" + getID());
+            }
         }
-        
     }
 }

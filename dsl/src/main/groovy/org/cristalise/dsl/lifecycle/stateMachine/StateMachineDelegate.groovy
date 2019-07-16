@@ -107,10 +107,12 @@ class StateMachineDelegate {
         sm.initialState = stateCache[stateName]
     }
 
-    public void finishingState(String stateName) {
-        Logger.msg 5, "StateMachineDelegate.finishingState() - stateName: $stateName"
-        assert stateCache && stateCache[stateName]
+    public void finishingState(String...stateNames) {
+        Logger.msg 5, "StateMachineDelegate.finishingState() - states: $stateNames"
 
-        stateCache[stateName].finished = true
+        for (s in stateNames) {
+            assert stateCache && stateCache[s]
+            stateCache[s].finished = true
+        }
     }
 }

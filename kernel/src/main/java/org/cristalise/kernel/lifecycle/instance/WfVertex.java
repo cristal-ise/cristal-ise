@@ -20,6 +20,8 @@
  */
 package org.cristalise.kernel.lifecycle.instance;
 
+import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.PAIRING_ID;
+import org.apache.commons.lang3.StringUtils;
 import org.cristalise.kernel.common.InvalidDataException;
 import org.cristalise.kernel.common.ObjectNotFoundException;
 import org.cristalise.kernel.common.PersistencyException;
@@ -140,6 +142,55 @@ public abstract class WfVertex extends GraphableVertex {
      */
     public Workflow getWf() {
         return ((CompositeActivity)getParent()).getWf();
+    }
+
+    /**
+     * Find the vertex with the same PairingID property
+     * 
+     * @param pairingID the value of the PairingID property
+     * @return the vertex or null if nothing was found
+     */
+    protected GraphableVertex findPair(String pairingID) {
+        if (StringUtils.isBlank(pairingID)) return null;
+
+        for (GraphableVertex vertex: getParent().getLayoutableChildren()) {
+            if (pairingID.equals(vertex.getBuiltInProperty(PAIRING_ID)) && !vertex.equals(this)) {
+                return vertex;
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Checks if the vertex has a pairing id or not and if it has one compares it with the other vertex pairing id
+     * 
+     * @param otherVertex the other vertex to check for pairing
+     * @return null if vertex has no PAIRING_ID otherwise compare the pairing ids
+     */
+    protected Boolean isMyPair(WfVertex otherVertex) {
+        String loopPairingID = (String) getBuiltInProperty(PAIRING_ID);
+
+        if (StringUtils.isNotBlank(loopPairingID)) {
+            return loopPairingID.equals(getOtherPairingID(otherVertex));
+        }
+        else {
+            return null;
+        }
+    }
+
+    /**
+     * Retrieve the PairingID of the other vertex
+     * 
+     * @param otherVertex the other vertex 
+     * @return empty string or the value of the PairingID property
+     */
+    protected String getOtherPairingID(WfVertex otherVertex) {
+        if (otherVertex.getProperties().containsKey(PAIRING_ID.getName())) {
+            return (String) otherVertex.getBuiltInProperty(PAIRING_ID);
+        }
+        else {
+            return "";
+        }
     }
 }
 

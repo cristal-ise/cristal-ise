@@ -28,7 +28,6 @@ import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.VIEW_POI
 import static org.cristalise.kernel.property.BuiltInItemProperties.NAME;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
@@ -51,8 +50,8 @@ import org.cristalise.kernel.common.PersistencyException;
 import org.cristalise.kernel.entity.agent.Job;
 import org.cristalise.kernel.events.History;
 import org.cristalise.kernel.graph.model.Vertex;
+import org.cristalise.kernel.graph.traversal.GraphTraversal;
 import org.cristalise.kernel.lifecycle.WfCastorHashMap;
-import org.cristalise.kernel.lifecycle.instance.predefined.WriteProperty;
 import org.cristalise.kernel.lifecycle.instance.stateMachine.State;
 import org.cristalise.kernel.lifecycle.instance.stateMachine.StateMachine;
 import org.cristalise.kernel.lifecycle.instance.stateMachine.Transition;
@@ -62,12 +61,13 @@ import org.cristalise.kernel.lookup.ItemPath;
 import org.cristalise.kernel.lookup.Path;
 import org.cristalise.kernel.lookup.RolePath;
 import org.cristalise.kernel.persistency.ClusterType;
-import org.cristalise.kernel.persistency.outcome.OutcomeAttachment;
 import org.cristalise.kernel.persistency.outcome.Outcome;
+import org.cristalise.kernel.persistency.outcome.OutcomeAttachment;
 import org.cristalise.kernel.persistency.outcome.Schema;
 import org.cristalise.kernel.persistency.outcome.Viewpoint;
 import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.property.Property;
+import org.cristalise.kernel.property.PropertyUtility;
 import org.cristalise.kernel.utils.DateUtility;
 import org.cristalise.kernel.utils.LocalObjectLoader;
 import org.cristalise.kernel.utils.Logger;
@@ -308,7 +308,7 @@ public class Activity extends WfVertex {
 
                     if(StringUtils.isNotBlank(propValue)) {
                         Logger.msg(5, "Activity.updateItemProperties() - propName:"+propName+" propValue:"+propValue);
-                        WriteProperty.write(itemPath, propName, propValue, locker);
+                        PropertyUtility.writeProperty(itemPath, propName, propValue, locker);
                     }
                 }
                 else {
@@ -361,7 +361,7 @@ public class Activity extends WfVertex {
             return false;
         }
         else if (nbOutEdges == 0) {
-            if (!((CompositeActivity) getParent()).hasGoodNumberOfActivity()) {
+            if (!getParentCA().hasGoodNumberOfActivity()) {
                 mErrors.add("too many endpoints");
                 return false;
             }
@@ -383,6 +383,11 @@ public class Activity extends WfVertex {
         return loop2;
     }
 
+    private CompositeActivity getParentCA() {
+        if (getParent() != null) return (CompositeActivity) getParent();
+        else                     return null;
+    }
+
     /**
      * sets the next activity available if possible
      */
@@ -390,43 +395,59 @@ public class Activity extends WfVertex {
     public void runNext(AgentPath agent, ItemPath itemPath, Object locker) throws InvalidDataException {
         setActive(false);
 
-        try {
-            Vertex[] outVertices = getOutGraphables();
-            Vertex[] outVertices2 = getOutGraphables();
-            boolean hasNoNext = false;
-            boolean out = false;
+        Vertex[] outVertices = getOutGraphables();
 
-            while (!out) {
-                if (outVertices2.length > 0) {
-                    if (outVertices2[0] instanceof Join) outVertices2 = ((WfVertex) outVertices2[0]).getOutGraphables();
-                    else                                 out = true;
-                }
-                else {
-                    hasNoNext = true;
-                    out = true;
-                }
+        //run next vertex if any, so state/status of activities is updated
+        if (outVertices.length > 0) ((WfVertex) getOutGraphables()[0]).run(agent, itemPath, locker);
+
+        //parent is never null, because we do not call runNext() for the top level workflow (see bellow)
+        CompositeActivity parent = getParentCA(); 
+
+        //compute now if the CA can be finished or not
+        if (checkParentFinishable(parent, outVertices)) {
+            // do not call runNext() for the top level compAct (i.e. workflow is never finished)
+            if (! parent.getName().equals("domain")) {
+                parent.runNext(agent, itemPath, locker);
             }
+        }
+    }
 
-            if (Logger.doLog(8)) Logger.msg("Activity.next(parent:" + getParent().getName()+") - " + Arrays.toString(outVertices) + " " + Arrays.toString(outVertices2));
+    /**
+     * Calculate if the CompositeActivity (parent) can be finished automatically or not
+     */
+    private boolean checkParentFinishable(CompositeActivity parent, Vertex[] outVertices)
+            throws InvalidDataException 
+    {
+        WfVertex outVertex = null;
+        boolean cont = outVertices.length > 0;
 
-            if (hasNoNext) {
-                if (getParent() != null && getParent().getName().equals("domain")) {
-                    // workflow finished
-                    setActive(true);
-                }
-                else {
-                    CompositeActivity parent = (CompositeActivity) getParent();
-                    if (parent != null) parent.runNext(agent, itemPath, locker);
-                }
+        //Find the 'last' Join of the output of the Activity
+        while (cont) {
+            outVertex = (WfVertex)outVertices[0];
+
+            if (outVertex instanceof Join) {
+                outVertices = outVertex.getOutGraphables();
+                cont = outVertices.length > 0;
             }
             else {
-                ((WfVertex) outVertices[0]).run(agent, itemPath, locker);
+                cont = false;
             }
         }
-        catch (InvalidDataException s) {
-            setActive(true);
-            throw s;
+
+        boolean hasNoNext = false;
+
+        //Calculate if there is still an Activity to be executed
+        if (outVertex instanceof Join) {
+            hasNoNext = parent.getPossibleActs(outVertex, GraphTraversal.kUp).size() == 0;
         }
+        else if (outVertex instanceof Loop) {
+            hasNoNext = parent.getPossibleActs(outVertex, GraphTraversal.kDown).size() == 0;
+        }
+        else if (outVertex == null) {
+            hasNoNext = true;
+        }
+
+        return hasNoNext;
     }
 
     /**
@@ -443,11 +464,15 @@ public class Activity extends WfVertex {
      */
     @Override
     public void reinit(int idLoop) throws InvalidDataException {
-        Vertex[] outVertices = getOutGraphables();
+        Logger.msg(8, "Activity.reinit(id:%s, idLoop:%d) - parent:%s act:%s", getID(), idLoop, getParent().getName(), getPath());
+
         setState(getStateMachine().getInitialState().getId());
+
+        Vertex[] outVertices = getOutGraphables();
+
+        //NOTE: strange condition, activity can have zero or one outVertex and its id cannot be the loopId
         if (outVertices.length > 0 && idLoop != getID()) {
-            WfVertex nextAct = (WfVertex) outVertices[0];
-            nextAct.reinit(idLoop);
+            ((WfVertex) outVertices[0]).reinit(idLoop);
         }
     }
 
@@ -461,19 +486,18 @@ public class Activity extends WfVertex {
     }
 
     /**
-     * called by precedent Activity runNext() for setting the activity able to
-     * be executed
+     * called by precedent Activity runNext() for setting the activity able to be executed
      */
     @Override
     public void run(AgentPath agent, ItemPath itemPath, Object locker) throws InvalidDataException {
-        Logger.msg(8, "Activity.run() path:" + getPath() + " state:" + getState());
+        Logger.msg(8, "Activity.run() path:" + getPath() + " state:" + getStateName());
 
-        if (!getActive()) setActive(true);
-        boolean finished = getStateMachine().getState(getState()).isFinished();
-        if (finished) {
+        if (isFinished()) {
             runNext(agent, itemPath, locker);
         }
         else {
+            if (!getActive()) setActive(true);
+
             DateUtility.setToNow(mStateDate);
             pushJobsToAgents(itemPath);
         }

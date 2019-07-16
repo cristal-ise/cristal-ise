@@ -37,7 +37,6 @@ import org.cristalise.kernel.utils.Logger;
 public class RemoveRole extends PredefinedStep {
     public RemoveRole() {
         super();
-        getProperties().put("Agent Role", "Admin");
     }
 
     @Override

@@ -50,6 +50,10 @@ public class JooqPermissionHandler {
         .execute();
     }
 
+    public void dropTables(DSLContext context) throws PersistencyException {
+        context.dropTableIfExists(ROLE_PERMISSION_TABLE).execute();
+    }
+
     public boolean exists(DSLContext context, String role) {
         return context.fetchExists( select().from(ROLE_PERMISSION_TABLE).where(ROLE_PATH.equal(role)) );
     }

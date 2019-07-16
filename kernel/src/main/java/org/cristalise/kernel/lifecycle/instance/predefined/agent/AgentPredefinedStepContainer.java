@@ -27,8 +27,14 @@ public class AgentPredefinedStepContainer extends PredefinedStepContainer {
     @Override
     public void createChildren() {
         super.createChildren();
-        predInit("RemoveAgent", "Deletes the Agent", new RemoveAgent());
-        predInit("SetAgentPassword", "Changes the Agent's password", new SetAgentPassword());
-        predInit("SetAgentRoles", "Sets the roles of the Agent", new SetAgentRoles());
+        predInit(RemoveAgent.class, "Deletes the Agent", new RemoveAgent());
+        predInit(SetAgentPassword.class, "Changes the Agent's password", new SetAgentPassword());
+        predInit(SetAgentRoles.class, "Sets the roles of the Agent", new SetAgentRoles());
+        predInit(Authenticate.class, Authenticate.description, new Authenticate());
+        predInit(Login.class, Login.description, new Login());
+        predInit(LoginTimeout.class, LoginTimeout.description, new LoginTimeout());
+        predInit(Logout.class, Logout.description, new Logout());
+        predInit(ForcedLogout.class, ForcedLogout.description, new ForcedLogout());
+        predInit(Sign.class, Sign.description, new Sign());
     }
 }

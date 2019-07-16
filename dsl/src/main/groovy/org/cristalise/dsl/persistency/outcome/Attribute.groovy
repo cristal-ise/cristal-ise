@@ -40,6 +40,7 @@ class Attribute {
 
     List values
     BigDecimal minExclusive = null, minInclusive= null, maxExclusive= null, maxInclusive= null
+    BigInteger length = null, minLength = null, maxLength = null
 
     def defaultVal
 

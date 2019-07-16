@@ -21,6 +21,7 @@
 
 -->
 <Details>
+    <Name>Name1</Name>
     <Table>
         <Product>BR1189</Product>
         <RequiredQuantity>6</RequiredQuantity>
@@ -34,4 +35,5 @@
         <MissingQuantity>7</MissingQuantity>
         <ETA>2019-01-01</ETA>
     </Table>
+    <Comment>Clever</Comment>
 </Details>

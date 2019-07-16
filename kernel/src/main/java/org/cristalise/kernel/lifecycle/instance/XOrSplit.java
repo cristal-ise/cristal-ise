@@ -41,15 +41,13 @@ public class XOrSplit extends Split {
 
         ArrayList<DirectedEdge> nextsToFollow = new ArrayList<DirectedEdge>();
 
-        DirectedEdge[] outEdges = getOutEdges();
-
-        for (DirectedEdge outEdge : outEdges) {
+        for (DirectedEdge outEdge : getOutEdges()) {
             if (isInTable((String)((Next)outEdge).getBuiltInProperty(ALIAS), nextsTab))
                 nextsToFollow.add(outEdge);
         }
 
         if (nextsToFollow.size() != 1)
-            throw new InvalidDataException("not good number of active next");
+            throw new InvalidDataException("not good number of active next! (id:"+getID()+")");
 
         followNext((Next)nextsToFollow.get(0), agent, itemPath, locker);
     }

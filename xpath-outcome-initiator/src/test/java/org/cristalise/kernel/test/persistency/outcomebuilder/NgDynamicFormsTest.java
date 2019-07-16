@@ -26,9 +26,10 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.Map;
-
+import java.util.Properties;
 import org.cristalise.kernel.persistency.outcome.Schema;
 import org.cristalise.kernel.persistency.outcomebuilder.OutcomeBuilder;
+import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.test.persistency.XMLUtils;
 import org.cristalise.kernel.utils.Logger;
 import org.json.JSONArray;
@@ -45,6 +46,10 @@ public class NgDynamicFormsTest extends XMLUtils {
     @Before
     public void setUp() throws Exception {
         Logger.addLogStream(System.out, 8);
+        Properties props = new Properties();
+        props.put("Webui.autoComplete.default", "on");
+        props.put("Authenticator", "Shiro");
+        Gateway.init(props);
     }
 
     @Test
@@ -78,7 +83,7 @@ public class NgDynamicFormsTest extends XMLUtils {
         assertJsonEquals(expected, actual);
     }
 
-    @Test //@Ignore("Unimplemented: cannot generate json form for Table")
+    @Test
     public void ngForm_Table() throws Exception {
         OutcomeBuilder builder = new OutcomeBuilder("Details", new Schema("Table", 0, getXSD(dir, "Table")), false);
 
@@ -87,6 +92,122 @@ public class NgDynamicFormsTest extends XMLUtils {
         Logger.msg(actual.toString(2));
 
         JSONArray expected = new JSONArray(getJSON(dir, "TableNGForms"));
+
+        assertJsonEquals(expected, actual);
+    }
+
+    @Test
+    public void ngForm_ShowSeconds() throws Exception {
+        OutcomeBuilder builder = new OutcomeBuilder("Employee", new Schema("ShowSeconds", 0, getXSD(dir, "ShowSeconds")), false);
+
+        JSONArray actual = builder.generateNgDynamicFormsJson();
+
+        Logger.msg(actual.toString(2));
+
+        JSONArray expected = new JSONArray(getJSON(dir, "ShowSeconds"));
+
+        assertJsonEquals(expected, actual);
+    }
+    
+    @Test
+    public void ngForm_CustomWidth() throws Exception {
+        OutcomeBuilder builder = new OutcomeBuilder("Form", new Schema("DynamicFormsWidthConfiguration", 0, getXSD(dir, "DynamicFormsWidthConfiguration")), false);
+
+        JSONArray actual = builder.generateNgDynamicFormsJson();
+
+        Logger.msg(actual.toString(2));
+
+        JSONArray expected = new JSONArray(getJSON(dir, "DynamicFormsWidthConfiguration"));
+
+        Logger.msg(expected.toString(2));
+
+        assertJsonEquals(expected, actual);
+    }
+
+    @Test
+    public void ngForm_TotalFractionDigits() throws Exception {
+        String testName = "TotalFractionDigits";
+        OutcomeBuilder builder = new OutcomeBuilder("TestData", new Schema(testName, 0, getXSD(dir, testName)), false);
+
+        JSONArray actual = builder.generateNgDynamicFormsJson();
+
+        Logger.msg(actual.toString(2));
+
+        JSONArray expected = new JSONArray(getJSON(dir, testName+"NgForms"));
+
+        assertJsonEquals(expected, actual);
+    }
+
+    @Test
+    public void ngForm_PrecisionScale() throws Exception {
+        String testName = "PrecisionScale";
+        OutcomeBuilder builder = new OutcomeBuilder("PatientDetails", new Schema(testName, 0, getXSD(dir, testName)), false);
+
+        JSONArray actual = builder.generateNgDynamicFormsJson();
+
+        Logger.msg(actual.toString(2));
+
+        JSONArray expected = new JSONArray(getJSON(dir, testName+"NgForms"));
+
+        assertJsonEquals(expected, actual);
+    }
+    
+    @Test
+    public void ngForm_Label() throws Exception {
+          OutcomeBuilder builder = new OutcomeBuilder("Form", new Schema("DynamicFormsGroupLabel", 0, getXSD(dir, "DynamicFormsGroupLabel")), false);
+    
+          JSONArray actual = builder.generateNgDynamicFormsJson();
+    
+          Logger.msg(actual.toString(2));
+    
+          JSONArray expected = new JSONArray(getJSON(dir, "DynamicFormsGroupLabel"));
+          
+          Logger.msg(expected.toString(2));
+    
+          assertJsonEquals(expected, actual);
+    }
+    
+    @Test
+    public void ngForm_FormContainer() throws Exception {
+          OutcomeBuilder builder = new OutcomeBuilder("Form", new Schema("DynamicFormsContainer", 0, getXSD(dir, "DynamicFormsContainer")), false);
+    
+          JSONArray actual = builder.generateNgDynamicFormsJson();
+    
+          Logger.msg(actual.toString(2));
+    
+          JSONArray expected = new JSONArray(getJSON(dir, "DynamicFormsContainer"));
+          
+          Logger.msg(expected.toString(2));
+    
+          assertJsonEquals(expected, actual);
+    }
+    
+    @Test
+    public void ngForm_FormGroupContainer() throws Exception {
+          OutcomeBuilder builder = new OutcomeBuilder("Form", new Schema("DynamicFormsGroupContainer", 0, getXSD(dir, "DynamicFormsGroupContainer")), false);
+    
+          JSONArray actual = builder.generateNgDynamicFormsJson();
+    
+          Logger.msg(actual.toString(2));
+    
+          JSONArray expected = new JSONArray(getJSON(dir, "DynamicFormsGroupContainer"));
+          
+          Logger.msg(expected.toString(2));
+    
+          assertJsonEquals(expected, actual);
+    }
+
+    @Test
+    public void ngForm_AutoComplete() throws Exception {
+        Gateway.getProperties().remove("Webui.autoComplete.default");
+
+        OutcomeBuilder builder = new OutcomeBuilder("PatientDetails", new Schema("AutoComplete", 0, getXSD(dir, "AutoComplete")), false);
+
+        JSONArray actual = builder.generateNgDynamicFormsJson();
+
+        Logger.msg(actual.toString(2));
+
+        JSONArray expected = new JSONArray(getJSON(dir, "AutoComplete"));
 
         assertJsonEquals(expected, actual);
     }

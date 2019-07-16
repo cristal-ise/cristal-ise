@@ -159,7 +159,7 @@ public class CompActDelegate extends BlockDelegate {
 
 
     private CompActDelegate connectTo (Map<String, String> vMap, boolean connectFlag) {
-        //Unfortunately multiple assigment syntax does not work with CompiletStatic
+        //Unfortunately multiple assignment syntax does not work with CompiletStatic
         //def (String vName, Types vType) = decodeBuilderMap(vMap)
         def tempList = decodeBuilderMap(vMap)
         String vName = tempList[0]

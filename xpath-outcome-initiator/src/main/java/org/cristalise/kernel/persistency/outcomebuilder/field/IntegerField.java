@@ -20,14 +20,18 @@
  */
 package org.cristalise.kernel.persistency.outcomebuilder.field;
 
+import java.util.Arrays;
 import java.util.Map;
 
 import org.json.JSONObject;
 
 public class IntegerField extends NumberField {
 
+    private static final String[] strFields = {"mask", "placeholder"};
+    private static final String[] excFields = {"pattern", "errmsg", "precision"};
+
     public IntegerField() {
-        super();
+        super(Arrays.asList(strFields), Arrays.asList(excFields));
     }
 
     @Override

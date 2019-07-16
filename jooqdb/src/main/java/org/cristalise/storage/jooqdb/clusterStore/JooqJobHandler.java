@@ -194,4 +194,9 @@ public class JooqJobHandler extends JooqHandler {
         .constraints(constraint("PK_"+JOB_TABLE).primaryKey(UUID, ID))
         .execute();
     }
+
+    @Override
+    public void dropTables(DSLContext context) throws PersistencyException {
+        context.dropTableIfExists(JOB_TABLE).execute();
+    }
 }

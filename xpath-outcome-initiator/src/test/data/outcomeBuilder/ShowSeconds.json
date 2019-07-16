@@ -1,0 +1,96 @@
+[{
+  "name": "Employee",
+  "cls": {"grid": {"container": "ui-g-12"}},
+  "id": "Employee",
+  "type": "GROUP",
+  "group": [
+    {
+      "hideOnDateTimeSelect": true,
+      "showSeconds": true,
+      "validators": {"required": null},
+      "additional": {
+        "stepMinute": 5,
+        "icon": "fa-clock-o"
+      },
+      "format": "hh:MM",
+      "id": "startOfShift",
+      "label": "start Of Shift *",
+      "cls": {
+        "grid": {
+          "container": "ui-g",
+          "control": "ui-g-8",
+          "label": "ui-g-4"
+        },
+        "element": {"label": "ui-widget"}
+      },
+      "placeholder": "start Of Shift",
+      "type": "TIMEPICKER",
+      "required": true
+    },
+    {
+      "validators": {"required": null},
+      "additional": {
+        "stepMinute": 5,
+        "icon": "fa-clock-o"
+      },
+      "format": "hh:MM",
+      "id": "startOfShiftNoSeconds",
+      "label": "start Of Shift No Seconds *",
+      "cls": {
+        "grid": {
+          "container": "ui-g",
+          "control": "ui-g-8",
+          "label": "ui-g-4"
+        },
+        "element": {"label": "ui-widget"}
+      },
+      "placeholder": "start Of Shift No Seconds",
+      "type": "TIMEPICKER",
+      "required": true
+    },
+    {
+      "hideOnDateTimeSelect": true,
+      "showSeconds": true,
+      "validators": {"required": null},
+      "additional": {
+        "showButtonBar": true,
+        "showTime": true
+      },
+      "format": "yy-mm-dd",
+      "id": "signatureTS",
+      "label": "signature TS *",
+      "cls": {
+        "grid": {
+          "container": "ui-g",
+          "control": "ui-g-8",
+          "label": "ui-g-4"
+        },
+        "element": {"label": "ui-widget"}
+      },
+      "placeholder": "signature TS",
+      "type": "DATEPICKER",
+      "required": true
+    },
+    {
+      "validators": {"required": null},
+      "additional": {
+        "showButtonBar": true,
+        "showTime": true
+      },
+      "format": "yy-mm-dd",
+      "id": "signatureTSNoSeconds",
+      "label": "signature TS No Seconds *",
+      "cls": {
+        "grid": {
+          "container": "ui-g",
+          "control": "ui-g-8",
+          "label": "ui-g-4"
+        },
+        "element": {"label": "ui-widget"}
+      },
+      "placeholder": "signature TS No Seconds",
+      "type": "DATEPICKER",
+      "required": true
+    }
+  ]
+}]

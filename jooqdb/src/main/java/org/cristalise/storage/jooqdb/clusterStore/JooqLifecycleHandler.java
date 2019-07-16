@@ -138,4 +138,9 @@ public class JooqLifecycleHandler extends JooqHandler {
         .constraints(constraint("PK_"+LIFECYCLE_TABLE).primaryKey(UUID, NAME))
         .execute();
     }
+
+    @Override
+    public void dropTables(DSLContext context) throws PersistencyException {
+        context.dropTableIfExists(LIFECYCLE_TABLE).execute();
+    }
 }
