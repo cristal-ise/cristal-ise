@@ -176,6 +176,7 @@ public abstract class JooqHandler {
         config.setJdbcUrl(uri);
         config.setUsername(user);
         config.setPassword(pwd);
+        config.setAutoCommit(autoCommit);
         config.addDataSourceProperty( "cachePrepStmts",        true);
         config.addDataSourceProperty( "prepStmtCacheSize",     "250");
         config.addDataSourceProperty( "prepStmtCacheSqlLimit", "2048");

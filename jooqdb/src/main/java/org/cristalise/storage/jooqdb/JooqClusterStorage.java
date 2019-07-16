@@ -169,7 +169,7 @@ public class JooqClusterStorage extends TransactionalClusterStorage {
 
         Logger.msg(1, "JooqClusterStorage.commit()");
         try {
-            ((DefaultConnectionProvider)context.configuration().connectionProvider()).commit();
+            ((DataSourceConnectionProvider)context.configuration().connectionProvider()).dataSource().getConnection().commit();
 
             if (Logger.doLog(5)) JooqHandler.logConnectionCount("JooqClusterStorage.commit()", context);
         }
