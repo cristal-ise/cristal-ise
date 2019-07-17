@@ -49,6 +49,7 @@ import org.cristalise.storage.jooqdb.clusterStore.JooqOutcomeAttachmentHandler;
 import org.cristalise.storage.jooqdb.clusterStore.JooqOutcomeHandler;
 import org.cristalise.storage.jooqdb.clusterStore.JooqViewpointHandler;
 import org.jooq.DSLContext;
+import org.jooq.impl.DataSourceConnectionProvider;
 import org.jooq.impl.DefaultConnectionProvider;
 
 /**
