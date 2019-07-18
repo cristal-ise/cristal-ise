@@ -28,6 +28,7 @@ import java.util.Map;
 import java.util.stream.Stream;
 
 import org.apache.commons.lang3.StringUtils;
+import org.cristalise.kernel.persistency.outcome.Outcome;
 import org.cristalise.kernel.persistency.outcome.Schema;
 import org.cristalise.kernel.persistency.outcomebuilder.OutcomeBuilder;
 import org.cristalise.kernel.test.persistency.XMLUtils;
@@ -125,5 +126,20 @@ public class BuildOutcomeTest extends XMLUtils {
         Logger.msg(ob.getXml());
 
         assert XMLUtils.compareXML(getXML(dir, "siteCharacteristicsData_csv"), ob.getXml());
+    }
+
+    @Test
+    public void buildTable_ScientificData() throws Exception {
+      String expected = getXML(dir, "ScientificData");
+      Schema xsd = new Schema("ScientificData", 0, getXSD(dir, "ScientificData"));
+
+      Outcome actual = new Outcome(expected, xsd);
+
+      // bug #239
+      OutcomeBuilder ob = new OutcomeBuilder(xsd, actual);
+
+      Logger.msg(ob.getXml(false)); //at this point the XML is not inline with the XSD, but that acceptable for this test
+
+      assert compareXML(expected, actual.getData());
     }
 }

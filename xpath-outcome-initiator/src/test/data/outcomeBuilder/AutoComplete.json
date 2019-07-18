@@ -1,0 +1,42 @@
+[{
+  "name": "PatientDetails",
+  "cls": {"grid": {"container": "ui-g-12"}},
+  "id": "PatientDetails",
+  "type": "GROUP",
+  "group": [{
+    "autoComplete": "on",
+    "validators": {"required": null},
+    "id": "Weight",
+    "label": "Weight *",
+    "cls": {
+      "grid": {
+        "container": "ui-g",
+        "control": "ui-g-8",
+        "label": "ui-g-4"
+      },
+      "element": {"label": "ui-widget"}
+    },
+    "placeholder": "Weight",
+    "type": "INPUT",
+    "value": "0.0",
+    "required": true
+  },
+  {
+    "autoComplete": "off",
+    "validators": {"required": null},
+    "id": "Height",
+    "label": "Height *",
+    "cls": {
+      "grid": {
+        "container": "ui-g",
+        "control": "ui-g-8",
+        "label": "ui-g-4"
+      },
+      "element": {"label": "ui-widget"}
+    },
+    "placeholder": "Height",
+    "type": "INPUT",
+    "value": "0.0",
+    "required": true
+  }]
+}]

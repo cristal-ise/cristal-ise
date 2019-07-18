@@ -41,9 +41,11 @@ import org.jooq.Record;
 import org.jooq.Result;
 import org.jooq.SQLDialect;
 import org.jooq.Table;
-import org.jooq.impl.DefaultConnectionProvider;
 import org.jooq.impl.DefaultDataType;
 import org.jooq.impl.SQLDataType;
+
+import com.zaxxer.hikari.HikariConfig;
+import com.zaxxer.hikari.HikariDataSource;
 
 public abstract class JooqHandler {
     /**
@@ -155,28 +157,38 @@ public abstract class JooqHandler {
     public static final DataType<String>         XML_TYPE_MYSQL  = new DefaultDataType<String>(SQLDialect.MYSQL, SQLDataType.CLOB, "mediumtext", "char");
     public static final DataType<byte[]>         ATTACHMENT_TYPE = SQLDataType.BLOB;
 
-    public static DSLContext connect() throws PersistencyException {
-        String uri  = Gateway.getProperties().getString(JooqHandler.JOOQ_URI);
-        String user = Gateway.getProperties().getString(JooqHandler.JOOQ_USER); 
-        String pwd  = Gateway.getProperties().getString(JooqHandler.JOOQ_PASSWORD);
 
+    public static final String     uri        = Gateway.getProperties().getString(JooqHandler.JOOQ_URI);
+    public static final String     user       = Gateway.getProperties().getString(JooqHandler.JOOQ_USER); 
+    public static final String     pwd        = Gateway.getProperties().getString(JooqHandler.JOOQ_PASSWORD);
+    public static final Boolean    autoCommit = Gateway.getProperties().getBoolean(JooqHandler.JOOQ_AUTOCOMMIT, false);
+    public static final SQLDialect dialect    = SQLDialect.valueOf(Gateway.getProperties().getString(JooqHandler.JOOQ_DIALECT, "POSTGRES"));
+
+    private static HikariDataSource ds;
+ 
+    static {
         if (StringUtils.isAnyBlank(uri, user, pwd)) {
             throw new IllegalArgumentException("JOOQ (uri, user, password) config values must not be blank");
         }
 
-        SQLDialect dialect = SQLDialect.valueOf(Gateway.getProperties().getString(JooqHandler.JOOQ_DIALECT, "POSTGRES"));
+        HikariConfig config = new HikariConfig();
 
+        config.setJdbcUrl(uri);
+        config.setUsername(user);
+        config.setPassword(pwd);
+        config.setAutoCommit(autoCommit);
+        config.addDataSourceProperty( "cachePrepStmts",        true);
+        config.addDataSourceProperty( "prepStmtCacheSize",     "250");
+        config.addDataSourceProperty( "prepStmtCacheSqlLimit", "2048");
+        config.addDataSourceProperty( "autoCommit",             autoCommit);
+
+        ds = new HikariDataSource(config);
+    }
+
+    public static DSLContext connect() throws PersistencyException {
         Logger.msg(1, "JooqHandler.open() - uri:'"+uri+"' user:'"+user+"' dialect:'"+dialect+"'");
-
         try {
-            DSLContext context = using(uri, user, pwd);
-
-            context.configuration().set(dialect);
-
-            boolean autoCommit = Gateway.getProperties().getBoolean(JooqHandler.JOOQ_AUTOCOMMIT, false);
-            ((DefaultConnectionProvider)context.configuration().connectionProvider()).setAutoCommit(autoCommit);
-
-            return context;
+            return using(ds, dialect);
         }
         catch (Exception ex) {
             Logger.error("JooqHandler could not connect to URI '"+uri+"' with user '"+user+"'");

@@ -30,7 +30,7 @@ public abstract class TransactionalClusterStorage extends ClusterStorage {
 
 	public abstract void commit(Object locker) throws PersistencyException;
 	
-	public abstract void abort(Object locker);
+	public abstract void abort(Object locker) throws PersistencyException;
 
 	public abstract void put(ItemPath itemPath, C2KLocalObject obj, Object locker) throws PersistencyException;
 

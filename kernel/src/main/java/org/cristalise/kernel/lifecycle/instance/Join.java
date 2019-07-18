@@ -23,6 +23,7 @@ package org.cristalise.kernel.lifecycle.instance;
 import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.PAIRING_ID;
 import java.util.Arrays;
 import java.util.Vector;
+import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.cristalise.kernel.common.InvalidDataException;
 import org.cristalise.kernel.graph.model.GraphableVertex;
@@ -50,10 +51,25 @@ public class Join extends WfVertex {
      */
     private boolean hasPrevActiveActs() throws InvalidDataException {
         String pairingID = (String) getBuiltInProperty(PAIRING_ID);
-        
-        Vertex[] vertices;
+        boolean findPair = false;
 
         if (StringUtils.isNotBlank(pairingID)) {
+            findPair = true;
+
+            for (Vertex outVertex: getOutGraphables()) {
+                String otherPairingID = (String) ((GraphableVertex)outVertex).getBuiltInProperty(PAIRING_ID);
+
+                // the pairingID was added to pair with the loop (see issue #251), so do not it use for this calculation
+                if (pairingID.equals(otherPairingID) && outVertex instanceof Loop) {
+                    findPair = false;
+                    break;
+                }
+            }
+        }
+
+        Vertex[] vertices;
+
+        if (findPair) {
             GraphableVertex endVertex = findPair(pairingID);
 
             if (endVertex == null) throw new InvalidDataException("Could not find pair for Join using PairingID:"+pairingID);
@@ -83,10 +99,8 @@ public class Join extends WfVertex {
     public void runNext(AgentPath agent, ItemPath item, Object locker) throws InvalidDataException {
         if (!hasPrevActiveActs()) {
             Vertex[] outVertices = getOutGraphables();
-            if (outVertices.length > 0) {
-                WfVertex nextAct = (WfVertex) outVertices[0];
-                nextAct.run(agent, item, locker);
-            }
+
+            if (ArrayUtils.isNotEmpty(outVertices)) ((WfVertex) outVertices[0]).run(agent, item, locker);
         }
     }
 
@@ -101,7 +115,8 @@ public class Join extends WfVertex {
 
     @Override
     public void reinit(int idLoop) throws InvalidDataException {
-        Logger.msg(8, "Join.reinit(parent:" + getParent().getName()+")");
+        Logger.msg(8, "Join.reinit(id:%s, idLoop:%d) - parent:%s", getID(), idLoop, getParent().getName());
+
         Vertex[] outVertices = getOutGraphables();
         if (outVertices.length == 1) {
             WfVertex nextAct = (WfVertex) outVertices[0];

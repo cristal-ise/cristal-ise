@@ -291,8 +291,9 @@ public class TransactionManager {
      * Writes all pending changes to the backends.
      * 
      * @param locker transaction locker
+     * @throws PersistencyException 
      */
-    public void commit(Object locker) {
+    public void commit(Object locker) throws PersistencyException {
         synchronized(locks) {
             ArrayList<TransactionEntry> lockerTransactions = pendingTransactions.get(locker);
             HashMap<TransactionEntry, Exception> exceptions = new HashMap<TransactionEntry, Exception>();
@@ -312,7 +313,7 @@ public class TransactionManager {
                 }
             }
             pendingTransactions.remove(locker);
-            
+
             if (exceptions.size() > 0) { // oh dear
                 storage.abort(locker);
                 Logger.error("TransactionManager.commit() - Problems during transaction commit of locker "+locker.toString()+". Database may be in an inconsistent state.");
@@ -324,6 +325,7 @@ public class TransactionManager {
                 dumpPendingTransactions(0);
                 Logger.die("Database failure during commit");
             }
+
             try {
                 storage.commit(locker);
             }

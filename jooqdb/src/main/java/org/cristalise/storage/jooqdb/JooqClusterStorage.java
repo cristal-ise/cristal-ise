@@ -20,9 +20,9 @@
  */
 package org.cristalise.storage.jooqdb;
 
-import static org.cristalise.storage.jooqdb.JooqHandler.JOOQ_DOMAIN_HANDLERS;
 import static org.cristalise.storage.jooqdb.JooqHandler.JOOQ_AUTOCOMMIT;
 import static org.cristalise.storage.jooqdb.JooqHandler.JOOQ_DISABLE_DOMAIN_CREATE;
+import static org.cristalise.storage.jooqdb.JooqHandler.JOOQ_DOMAIN_HANDLERS;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -49,6 +49,7 @@ import org.cristalise.storage.jooqdb.clusterStore.JooqOutcomeAttachmentHandler;
 import org.cristalise.storage.jooqdb.clusterStore.JooqOutcomeHandler;
 import org.cristalise.storage.jooqdb.clusterStore.JooqViewpointHandler;
 import org.jooq.DSLContext;
+import org.jooq.impl.DataSourceConnectionProvider;
 import org.jooq.impl.DefaultConnectionProvider;
 
 /**
@@ -56,18 +57,13 @@ import org.jooq.impl.DefaultConnectionProvider;
  */
 public class JooqClusterStorage extends TransactionalClusterStorage {
 
-    protected DSLContext context;
-    protected Boolean autoCommit;
+    protected Boolean autoCommit = Gateway.getProperties().getBoolean(JOOQ_AUTOCOMMIT, false);
 
     protected HashMap<ClusterType, JooqHandler> jooqHandlers   = new HashMap<ClusterType, JooqHandler>();
     protected List<JooqDomainHandler>           domainHandlers = new ArrayList<JooqDomainHandler>();
 
     @Override
     public void open(Authenticator auth) throws PersistencyException {
-        context = JooqHandler.connect();
-
-        autoCommit = Gateway.getProperties().getBoolean(JOOQ_AUTOCOMMIT, false);
-
         initialiseHandlers();
     }
 
@@ -87,6 +83,8 @@ public class JooqClusterStorage extends TransactionalClusterStorage {
         jooqHandlers.put(ClusterType.HISTORY,    new JooqHistoryHandler());
         jooqHandlers.put(ClusterType.JOB,        new JooqJobHandler());
         jooqHandlers.put(ClusterType.ATTACHMENT, new JooqOutcomeAttachmentHandler());
+
+        DSLContext context = JooqHandler.connect();
 
         for (JooqHandler handler: jooqHandlers.values()) handler.createTables(context);
 
@@ -113,6 +111,7 @@ public class JooqClusterStorage extends TransactionalClusterStorage {
     }
 
     public void dropHandlers() throws PersistencyException {
+        DSLContext context = JooqHandler.connect();
         for (JooqHandler handler: jooqHandlers.values()) handler.dropTables(context);
     }
 
@@ -120,7 +119,7 @@ public class JooqClusterStorage extends TransactionalClusterStorage {
     public void close() throws PersistencyException {
         Logger.msg(1, "JooqClusterStorage.close()");
         try {
-            context.close();
+            JooqHandler.connect().close();
         }
         catch (Exception e) {
             Logger.error(e);
@@ -130,21 +129,29 @@ public class JooqClusterStorage extends TransactionalClusterStorage {
 
     @Override
     public void postBoostrap() throws PersistencyException {
-        for (JooqDomainHandler domainHandler : domainHandlers) domainHandler.postBoostrap(context);
+        for (JooqDomainHandler domainHandler : domainHandlers) domainHandler.postBoostrap(JooqHandler.connect());
     }
 
     @Override
     public void postStartServer() throws PersistencyException {
-        for (JooqDomainHandler domainHandler : domainHandlers) domainHandler.postStartServer(context);
+        for (JooqDomainHandler domainHandler : domainHandlers) domainHandler.postStartServer(JooqHandler.connect());
     }
 
     @Override
     public void postConnect() throws PersistencyException {
-        for (JooqDomainHandler domainHandler : domainHandlers) domainHandler.postConnect(context);
+        for (JooqDomainHandler domainHandler : domainHandlers) domainHandler.postConnect(JooqHandler.connect());
     }
 
     @Override
     public void begin(Object locker) {
+        DSLContext context =null;
+        try {
+            context = JooqHandler.connect();
+        }
+        catch (PersistencyException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
         Logger.msg(8, "JooqClusterStorage.begin() - Nothing DONE.");
 
         if (Logger.doLog(5)) JooqHandler.logConnectionCount("JooqClusterStorage.begin()", context);
@@ -152,6 +159,8 @@ public class JooqClusterStorage extends TransactionalClusterStorage {
 
     @Override
     public void commit(Object locker) throws PersistencyException {
+        DSLContext context = JooqHandler.connect();
+
         for (JooqDomainHandler domainHandler : domainHandlers) domainHandler.commit(context, locker);
 
         if (autoCommit) {
@@ -161,7 +170,7 @@ public class JooqClusterStorage extends TransactionalClusterStorage {
 
         Logger.msg(1, "JooqClusterStorage.commit()");
         try {
-            ((DefaultConnectionProvider)context.configuration().connectionProvider()).commit();
+            ((DataSourceConnectionProvider)context.configuration().connectionProvider()).dataSource().getConnection().commit();
 
             if (Logger.doLog(5)) JooqHandler.logConnectionCount("JooqClusterStorage.commit()", context);
         }
@@ -172,7 +181,9 @@ public class JooqClusterStorage extends TransactionalClusterStorage {
     }
 
     @Override
-    public void abort(Object locker) {
+    public void abort(Object locker) throws PersistencyException {
+        DSLContext context = JooqHandler.connect();
+
         for (JooqDomainHandler domainHandler : domainHandlers) domainHandler.abort(context, locker);
 
         if (autoCommit) {
@@ -206,17 +217,17 @@ public class JooqClusterStorage extends TransactionalClusterStorage {
     @Override
     public boolean checkQuerySupport(String language) {
         String lang = language.trim().toUpperCase();
-        return "SQL".equals(lang) || ("SQL:"+context.dialect()).equals(lang);
+        return "SQL".equals(lang) || ("SQL:"+JooqHandler.dialect).equals(lang);
     }
 
     @Override
     public String getName() {
-        return "JOOQ:"+context.dialect()+" ClusterStorage";
+        return "JOOQ:"+JooqHandler.dialect+" ClusterStorage";
     }
 
     @Override
     public String getId() {
-        return "JOOQ:"+context.dialect();
+        return "JOOQ:"+JooqHandler.dialect;
     }
 
     @Override
@@ -229,7 +240,7 @@ public class JooqClusterStorage extends TransactionalClusterStorage {
         ArrayList<ClusterType> result = new ArrayList<ClusterType>();
 
         for (ClusterType type:jooqHandlers.keySet()) {
-            if (jooqHandlers.get(type).exists(context, itemPath.getUUID())) result.add(type);
+            if (jooqHandlers.get(type).exists(JooqHandler.connect(), itemPath.getUUID())) result.add(type);
         }
 
         return result.toArray(new ClusterType[0]);
@@ -256,7 +267,7 @@ public class JooqClusterStorage extends TransactionalClusterStorage {
         if (handler != null) {
             Logger.msg(5, "JooqClusterStorage.getClusterContents() - uuid:"+uuid+" cluster:"+cluster+" primaryKeys"+Arrays.toString(primaryKeys));
 
-            return handler.getNextPrimaryKeys(context, uuid, primaryKeys);
+            return handler.getNextPrimaryKeys(JooqHandler.connect(), uuid, primaryKeys);
         }
         else
             throw new PersistencyException("No handler found for cluster:'"+cluster+"'");
@@ -275,7 +286,7 @@ public class JooqClusterStorage extends TransactionalClusterStorage {
         if (handler != null) {
             Logger.msg(5, "JooqClusterStorage.get() - uuid:"+uuid+" cluster:"+cluster+" primaryKeys:"+Arrays.toString(primaryKeys));
 
-            C2KLocalObject obj = handler.fetch(context, uuid, primaryKeys);
+            C2KLocalObject obj = handler.fetch(JooqHandler.connect(), uuid, primaryKeys);
 
             if (obj == null && Logger.doLog(8)) {
                 Logger.warning(("JooqClusterStorage.get() - Could NOT fetch '"+itemPath+"/"+path+"'"));
@@ -300,14 +311,14 @@ public class JooqClusterStorage extends TransactionalClusterStorage {
 
         if (handler != null) {
             Logger.msg(5, "JooqClusterStorage.put() - uuid:"+uuid+" cluster:"+cluster+" path:"+obj.getClusterPath());
-            handler.put(context, uuid, obj);
+            handler.put(JooqHandler.connect(), uuid, obj);
         }
         else {
             throw new PersistencyException("Write is not supported for cluster:'"+cluster+"'");
         }
 
         // Trigger all registered handlers to update domain specific tables
-        for (JooqDomainHandler domainHandler : domainHandlers) domainHandler.put(context, uuid, obj, locker);
+        for (JooqDomainHandler domainHandler : domainHandlers) domainHandler.put(JooqHandler.connect(), uuid, obj, locker);
     }
 
     @Override
@@ -323,6 +334,7 @@ public class JooqClusterStorage extends TransactionalClusterStorage {
         String[]    primaryKeys = Arrays.copyOfRange(pathArray, 1, pathArray.length);
         ClusterType cluster     = ClusterType.getValue(pathArray[0]);
 
+        DSLContext context  = JooqHandler.connect();
         JooqHandler handler = jooqHandlers.get(cluster);
 
         if (handler != null) {
