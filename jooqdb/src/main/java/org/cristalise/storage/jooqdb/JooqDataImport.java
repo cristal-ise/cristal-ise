@@ -80,6 +80,7 @@ public class JooqDataImport extends JooqHandler{
           
          context.loadInto(OUTCOME_TABLE)
            .onDuplicateKeyUpdate()
+           .commitAfter(100)
            .loadCSV(inputStream)
            .fields(UUID, SCHEMA_NAME, SCHEMA_VERSION,EVENT_ID,XML)
            .execute(); 
@@ -107,6 +108,7 @@ public class JooqDataImport extends JooqHandler{
           
          context.loadInto(COLLECTION_TABLE)
            .onDuplicateKeyUpdate()
+           .commitAfter(100)
            .loadCSV(inputStream)
            .fields(UUID, NAME, VERSION,XML)
            .execute(); 
@@ -135,6 +137,7 @@ public class JooqDataImport extends JooqHandler{
           
          context.loadInto(ITEM_PROPERTY_TABLE)
            .onDuplicateKeyUpdate()
+           .commitAfter(100)
            .loadCSV(inputStream)
            .fields(UUID, NAME, VALUE, MUTABLE)
            .execute(); 
@@ -171,6 +174,7 @@ public class JooqDataImport extends JooqHandler{
           
          context.loadInto(JOB_TABLE)
            .onDuplicateKeyUpdate()
+           .commitAfter(100)
            .loadCSV(inputStream)
            .fields(UUID, ID, DELEGATE_UUID, ITEM_UUID, STEP_NAME, STEP_PATH, STEP_TYPE, TRANSITION, 
                    ORIGIN_STATE_NAME, TARGET_STATE_NAME, AGENT_ROLE, ACT_PROPERTIES, CREATION_TS)
@@ -196,6 +200,7 @@ public class JooqDataImport extends JooqHandler{
           
          context.loadInto(LIFECYCLE_TABLE)
            .onDuplicateKeyUpdate()
+           .commitAfter(100)
            .loadCSV(inputStream)
            .fields(UUID, NAME, XML)
            .execute(); 
@@ -221,6 +226,7 @@ public class JooqDataImport extends JooqHandler{
           
          context.loadInto(OUTCOME_ATTACHMENT_TABLE)
            .onDuplicateKeyUpdate()
+           .commitAfter(100)
            .loadCSV(inputStream)
            .fields(UUID, SCHEMA_NAME, SCHEMA_VERSION,EVENT_ID,ATTACHMENT)
            .execute(); 
@@ -247,6 +253,7 @@ public class JooqDataImport extends JooqHandler{
           
          context.loadInto(VIEWPOINT_TABLE)
            .onDuplicateKeyUpdate()
+           .commitAfter(100)
            .loadCSV(inputStream)
            .fields(UUID, SCHEMA_NAME, NAME,SCHEMA_VERSION,EVENT_ID)
            .execute(); 
@@ -286,6 +293,7 @@ public class JooqDataImport extends JooqHandler{
           
          context.loadInto(EVENT_TABLE)
            .onDuplicateKeyUpdate()
+           .commitAfter(100)
            .loadCSV(inputStream)
            .fields(UUID, ID, AGENT_UUID,DELEGATE_UUID,AGENT_ROLE,SCHEMA_NAME,SCHEMA_VERSION,STATEMACHINE_NAME, STATEMACHINE_VERSION,
                    STEP_NAME,STEP_PATH,STEP_TYPE, ORIGIN_STATE_ID, TARGET_STATE_ID,TRANSITION_ID,VIEW_NAME,TIMESTAMP)
@@ -314,6 +322,7 @@ public class JooqDataImport extends JooqHandler{
           
          context.loadInto(ITEM_TABLE)
            .onDuplicateKeyUpdate()
+           .commitAfter(100)
            .loadCSV(inputStream)
            .fields(UUID, IOR, IS_AGENT, IS_PASSWORD_TEMPORARY, PASSWORD)
            .execute(); 
