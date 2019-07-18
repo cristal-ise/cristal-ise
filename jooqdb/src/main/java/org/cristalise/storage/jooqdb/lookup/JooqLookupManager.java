@@ -138,9 +138,9 @@ public class JooqLookupManager implements LookupManager {
     @Override
     public void close() {
         try {
-            JooqHandler.connect().close();
+            context.close();
         }
-        catch (DataAccessException | PersistencyException e) {
+        catch (DataAccessException e) {
             Logger.error(e);
         }
     }
