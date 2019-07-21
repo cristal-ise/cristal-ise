@@ -8,6 +8,7 @@ import org.cristalise.kernel.entity.proxy.AgentProxy
 import org.cristalise.kernel.entity.proxy.ItemProxy
 import org.cristalise.kernel.lifecycle.instance.predefined.agent.SetAgentPassword
 import org.cristalise.kernel.lifecycle.instance.predefined.agent.SetAgentRoles
+import org.cristalise.kernel.lifecycle.instance.predefined.agent.Sign
 import org.cristalise.kernel.lifecycle.instance.predefined.server.CreateNewAgent
 import org.cristalise.kernel.lifecycle.instance.predefined.server.CreateNewRole
 import org.cristalise.kernel.lookup.RolePath
@@ -51,7 +52,7 @@ class AgentPredefinedStepsSpecs extends Specification implements CristalTestSetu
     private AgentProxy createAgent(String name, String role) {
         def importRole = new ImportRole()
         importRole.name = role
-        importRole.jobList = false
+        //importRole.jobList = false
 
         def importAgent = new ImportAgent()
         importAgent.name = name
@@ -102,4 +103,32 @@ class AgentPredefinedStepsSpecs extends Specification implements CristalTestSetu
 //    def 'SetAgentPassword can be called by agent to change its own password'() {
 //    }
 
+    def 'Sign can be used to create a SimpleElectronicSignature record'() {
+        given:
+        String role = "TestRole-$timeStamp()"
+        String name = "TestAgent-$timeStamp()"
+
+        createRole(role)
+        AgentProxy newAgent = createAgent(name, role)
+
+        when:
+        StringBuffer xml = new StringBuffer("<SimpleElectonicSignature>");
+        xml.append("<AgentName>").append(name)      .append("</AgentName>");
+        xml.append("<Password>") .append("dummepwd").append("</Password>");
+
+        xml.append("<ExecutionContext>");
+        xml.append("<ItemPath>")     .append("ItemPath")     .append("</ItemPath>");
+        xml.append("<SchemaName>")   .append("SchemaName")   .append("</SchemaName>");
+        xml.append("<SchemaVersion>").append("SchemaVersion").append("</SchemaVersion>");
+        xml.append("<ActivityType>") .append("ActivityType") .append("</ActivityType>");
+        xml.append("<ActivityName>") .append("ActivityName") .append("</ActivityName>");
+        xml.append("<StepPath>")     .append("StepPath")     .append("</StepPath>");
+        xml.append("</ExecutionContext>");
+
+        xml.append("</SimpleElectonicSignature>");
+        agent.execute(newAgent, Sign.class, xml.toString());
+
+        then:
+        newAgent.getViewpoint('SimpleElectonicSignature', 'last')
+    }
 }
