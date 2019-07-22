@@ -31,11 +31,8 @@ import org.cristalise.kernel.process.StandardClient;
 import org.cristalise.kernel.utils.Logger;
 
 
-
 /**
  *
- * @version $Revision: 1.15 $ $Date: 2004/10/26 11:33:56 $
- * @author  $Author: abranson $
  */
 public class Main extends StandardClient
 {
@@ -43,33 +40,34 @@ public class Main extends StandardClient
     {
         try
         {
-        	if (args[args.length-1].equals("-connect")) { // prompt for connect file
-        		    JFileChooser clcChooser = new JFileChooser();
-        		    clcChooser.setDialogTitle("Please choose a CRISTAL connect file.");
-        		    clcChooser.addChoosableFileFilter(
-        	            new javax.swing.filechooser.FileFilter() {
-        	                @Override
-        					public String getDescription() {
-        	                    return "CRISTAL Connect Files";
-        	                }
-        	                @Override
-        					public boolean accept(File f) {
-        	                    if (f.isDirectory() || (f.isFile() && f.getName().endsWith(".clc"))) {
-        	                        return true;
-        	                    }
-        	                    return false;
-        	                }
-        	            });
-        		    int returnVal = clcChooser.showOpenDialog(null);
-        	        if (returnVal == JFileChooser.APPROVE_OPTION) {
-        	            File targetFile = clcChooser.getSelectedFile();
-        	            args = Arrays.copyOf(args, args.length+1);
-        	            args[args.length-1] = targetFile.getCanonicalPath();
-        	        }
-        	            
-        	}
-        	Gateway.init(readC2KArgs(args));
+            if (args[args.length-1].equals("-connect")) { // prompt for connect file
+                    JFileChooser clcChooser = new JFileChooser();
+                    clcChooser.setDialogTitle("Please choose a CRISTAL connect file.");
+                    clcChooser.addChoosableFileFilter(
+                        new javax.swing.filechooser.FileFilter() {
+                            @Override
+                            public String getDescription() {
+                                return "CRISTAL Connect Files";
+                            }
+                            @Override
+                            public boolean accept(File f) {
+                                if (f.isDirectory() || (f.isFile() && f.getName().endsWith(".clc"))) {
+                                    return true;
+                                }
+                                return false;
+                            }
+                        });
+                    int returnVal = clcChooser.showOpenDialog(null);
+                    if (returnVal == JFileChooser.APPROVE_OPTION) {
+                        File targetFile = clcChooser.getSelectedFile();
+                        args = Arrays.copyOf(args, args.length+1);
+                        args[args.length-1] = targetFile.getCanonicalPath();
+                    }
+                        
+            }
+            Gateway.init(readC2KArgs(args));
             Logger.initConsole("GUI");
+            Gateway.connect();
             MainFrame client = new MainFrame();
             client.showLogin();
 
@@ -84,7 +82,7 @@ public class Main extends StandardClient
             }
             catch(Exception ex1)
             {
-            	ex1.printStackTrace();
+                ex1.printStackTrace();
             }
         }
     }
