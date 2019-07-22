@@ -1,7 +1,5 @@
 package org.cristalise.kernel.test.scenario;
 
-import static org.junit.Assert.*
-
 import org.cristalise.kernel.entity.imports.ImportAgent
 import org.cristalise.kernel.entity.imports.ImportRole
 import org.cristalise.kernel.entity.proxy.AgentProxy
@@ -22,7 +20,6 @@ import spock.lang.Specification
 /**
  * 
  */
-//@TypeChecked
 class AgentPredefinedStepsSpecs extends Specification implements CristalTestSetup {
 
     AgentProxy agent
@@ -52,7 +49,6 @@ class AgentPredefinedStepsSpecs extends Specification implements CristalTestSetu
     private AgentProxy createAgent(String name, String role) {
         def importRole = new ImportRole()
         importRole.name = role
-        //importRole.jobList = false
 
         def importAgent = new ImportAgent()
         importAgent.name = name
@@ -70,7 +66,7 @@ class AgentPredefinedStepsSpecs extends Specification implements CristalTestSetu
         String name = "TestAgent-$timeStamp()"
 
         createRole(role)
-        AgentProxy newAgent = createAgent(name, role)
+        def newAgent = createAgent(name, role)
 
         when:
         String[] params = [ role ];
@@ -88,20 +84,25 @@ class AgentPredefinedStepsSpecs extends Specification implements CristalTestSetu
         newAgent.getRoles().length == 0
     }
 
-    def 'SetAgentPassword can be called by admin to change password for any agent'() {
-        when:
+    def 'SetAgentPassword can be called by admin or by the agent itself'() {
+        when: 'Admin changes the password of triggerAgent'
         String[] params = [ 'test', timeStamp ]
         def triggerAgent = Gateway.getProxyManager().getAgentProxy( Gateway.getLookup().getAgentPath('triggerAgent') )
         assert ! triggerAgent.getPath().isPasswordTemporary()
         agent.execute(triggerAgent, SetAgentPassword.class, params)
 
-        then:
+        then: 'The password becomes temporary'
         Gateway.getLookup().getAgentPath('triggerAgent').isPasswordTemporary()
-        Gateway.getSecurityManager().authenticate('triggerAgent', timeStamp, null).getPath().isPasswordTemporary()
-    }
+        Gateway.getSecurityManager().authenticate('triggerAgent', timeStamp, null)
 
-//    def 'SetAgentPassword can be called by agent to change its own password'() {
-//    }
+        when: 'triggerAgent changes its own the password'
+        params = [ timeStamp, 'test' ]
+        triggerAgent.execute(triggerAgent, SetAgentPassword.class, params)
+
+        then: 'The password is NOT temporary anymore'
+        ! Gateway.getLookup().getAgentPath('triggerAgent').isPasswordTemporary()
+        Gateway.getSecurityManager().authenticate('triggerAgent', 'test', null)
+    }
 
     def 'Sign can be used to create a SimpleElectronicSignature record'() {
         given:
