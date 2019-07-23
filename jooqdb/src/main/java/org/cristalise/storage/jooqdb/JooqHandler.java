@@ -177,6 +177,11 @@ public abstract class JooqHandler {
         config.setUsername(user);
         config.setPassword(pwd);
         config.setAutoCommit(autoCommit);
+        config.setMaximumPoolSize(50);
+        config.setMaxLifetime(60000);
+        config.setMinimumIdle(10);
+        config.setIdleTimeout(30000);
+        //config.setLeakDetectionThreshold(30000); // enable to see connection leak warning
         config.addDataSourceProperty( "cachePrepStmts",        true);
         config.addDataSourceProperty( "prepStmtCacheSize",     "250");
         config.addDataSourceProperty( "prepStmtCacheSqlLimit", "2048");
