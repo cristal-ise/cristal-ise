@@ -49,6 +49,7 @@ import org.cristalise.storage.jooqdb.clusterStore.JooqOutcomeAttachmentHandler;
 import org.cristalise.storage.jooqdb.clusterStore.JooqOutcomeHandler;
 import org.cristalise.storage.jooqdb.clusterStore.JooqViewpointHandler;
 import org.jooq.DSLContext;
+import org.jooq.impl.DSL;
 import org.jooq.impl.DataSourceConnectionProvider;
 import org.jooq.impl.DefaultConnectionProvider;
 
@@ -86,7 +87,9 @@ public class JooqClusterStorage extends TransactionalClusterStorage {
 
         DSLContext context = JooqHandler.connect();
 
-        for (JooqHandler handler: jooqHandlers.values()) handler.createTables(context);
+        context.transaction(nested -> {
+            for (JooqHandler handler: jooqHandlers.values()) handler.createTables(DSL.using(nested));
+        });
 
         try {
             String handlers = Gateway.getProperties().getString(JOOQ_DOMAIN_HANDLERS, "");
@@ -106,7 +109,9 @@ public class JooqClusterStorage extends TransactionalClusterStorage {
         }
 
         if (! Gateway.getProperties().getBoolean(JOOQ_DISABLE_DOMAIN_CREATE, false)) {
-            for (JooqDomainHandler handler: domainHandlers) handler.createTables(context);
+            context.transaction(nested -> {
+                for (JooqDomainHandler handler: domainHandlers) handler.createTables(DSL.using(nested));
+            });
         }
     }
 
@@ -144,17 +149,14 @@ public class JooqClusterStorage extends TransactionalClusterStorage {
 
     @Override
     public void begin(Object locker) {
-        DSLContext context =null;
         try {
-            context = JooqHandler.connect();
+            DSLContext context = JooqHandler.connect();
+
+            if (Logger.doLog(5)) JooqHandler.logConnectionCount("JooqClusterStorage.begin()", context);
         }
         catch (PersistencyException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
+            Logger.error(e);
         }
-        Logger.msg(8, "JooqClusterStorage.begin() - Nothing DONE.");
-
-        if (Logger.doLog(5)) JooqHandler.logConnectionCount("JooqClusterStorage.begin()", context);
     }
 
     @Override

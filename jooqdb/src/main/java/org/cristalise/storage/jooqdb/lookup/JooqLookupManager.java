@@ -57,6 +57,7 @@ import org.cristalise.kernel.utils.Logger;
 import org.cristalise.storage.jooqdb.JooqHandler;
 import org.cristalise.storage.jooqdb.auth.Argon2Password;
 import org.cristalise.storage.jooqdb.clusterStore.JooqItemPropertyHandler;
+import org.jooq.Configuration;
 import org.jooq.DSLContext;
 import org.jooq.Field;
 import org.jooq.JoinType;
@@ -83,19 +84,19 @@ public class JooqLookupManager implements LookupManager {
     @Override
     public void open(Authenticator auth) {
         try {
-            DSLContext context = JooqHandler.connect();
-
             items       = new JooqItemHandler();
             domains     = new JooqDomainPathHandler();
             roles       = new JooqRolePathHandler();
             permissions = new JooqPermissionHandler();
             properties  = new JooqItemPropertyHandler();
 
-            items      .createTables(context);
-            domains    .createTables(context);
-            roles      .createTables(context);
-            permissions.createTables(context);
-            properties .createTables(context);
+            JooqHandler.connect().transaction(nested -> {
+                items      .createTables(DSL.using(nested));
+                domains    .createTables(DSL.using(nested));
+                roles      .createTables(DSL.using(nested));
+                permissions.createTables(DSL.using(nested));
+                properties .createTables(DSL.using(nested));
+            });
 
             passwordHasher = new Argon2Password();
         }
@@ -105,20 +106,6 @@ public class JooqLookupManager implements LookupManager {
         }
     }
 
-   /* public void initialiseHandlers() throws PersistencyException {
-        items       = new JooqItemHandler();
-        domains     = new JooqDomainPathHandler();
-        roles       = new JooqRolePathHandler();
-        permissions = new JooqPermissionHandler();
-        properties  = new JooqItemPropertyHandler();
-
-        items      .createTables(context);
-        domains    .createTables(context);
-        roles      .createTables(context);
-        permissions.createTables(context);
-        properties .createTables(context);
-    }
-  */
     public void dropHandlers() throws PersistencyException {
         
         DSLContext context = JooqHandler.connect();
