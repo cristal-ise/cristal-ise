@@ -24,6 +24,7 @@ import static org.cristalise.storage.jooqdb.JooqHandler.JOOQ_AUTOCOMMIT;
 import static org.cristalise.storage.jooqdb.JooqHandler.JOOQ_DISABLE_DOMAIN_CREATE;
 import static org.cristalise.storage.jooqdb.JooqHandler.JOOQ_DOMAIN_HANDLERS;
 
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -52,6 +53,9 @@ import org.jooq.DSLContext;
 import org.jooq.impl.DSL;
 import org.jooq.impl.DataSourceConnectionProvider;
 import org.jooq.impl.DefaultConnectionProvider;
+
+import com.zaxxer.hikari.HikariConfig;
+import com.zaxxer.hikari.HikariDataSource;
 
 /**
  * Implementation of the {@link TransactionalClusterStorage} based on <a>http://www.jooq.org/</a>}
@@ -135,6 +139,23 @@ public class JooqClusterStorage extends TransactionalClusterStorage {
     @Override
     public void postBoostrap() throws PersistencyException {
         for (JooqDomainHandler domainHandler : domainHandlers) domainHandler.postBoostrap(JooqHandler.connect());
+        
+        if(Gateway.getProperties().containsKey(JOOQ_AUTOCOMMIT)){
+            Gateway.getProperties().put(JOOQ_AUTOCOMMIT, false);
+            try {
+                HikariConfig config = new HikariConfig();
+                JooqHandler.ds.copyStateTo(config);
+                config.setAutoCommit(false);
+                HikariDataSource newDs = new HikariDataSource(config);    
+                JooqHandler.ds.close();
+                JooqHandler.ds = newDs;
+                JooqHandler.ds.getConnection(); // start the datasource
+            }
+            catch (SQLException e) {
+                Logger.error(e);
+                throw new PersistencyException(e.getMessage());
+            }
+        }
     }
 
     @Override
