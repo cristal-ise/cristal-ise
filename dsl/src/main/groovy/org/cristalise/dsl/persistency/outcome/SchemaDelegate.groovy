@@ -185,6 +185,7 @@ class SchemaDelegate {
             if (f.dynamicForms.max != null)                  max(         f.dynamicForms.max)
             if (f.dynamicForms.value != null)                value(       f.dynamicForms.value)
             if (f.dynamicForms.mask != null)                 mask(        f.dynamicForms.mask)
+            if (f.dynamicForms.autoComplete != null)         autoComplete(f.dynamicForms.autoComplete)
             if (f.dynamicForms.pattern != null)              pattern(     f.dynamicForms.pattern)
             if (f.dynamicForms.errmsg != null)               errmsg(      f.dynamicForms.errmsg)
             if (f.dynamicForms.showSeconds != null)          showSeconds( f.dynamicForms.showSeconds)
@@ -208,6 +209,7 @@ class SchemaDelegate {
                             }
                         }
                     }
+                    if (f.dynamicForms.updateFields !=null) updateFields(f.dynamicForms.updateFields.join(','))
                 }
             }
         }

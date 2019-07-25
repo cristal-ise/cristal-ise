@@ -1,0 +1,28 @@
+<?xml version='1.0' encoding='utf-8'?>
+<xs:schema xmlns:xs='http://www.w3.org/2001/XMLSchema'>
+  <xs:element name='ScientificData'>
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element name='ListOfVials' minOccurs='0' maxOccurs='unbounded'>
+          <xs:complexType>
+            <xs:all minOccurs='0'>
+              <xs:element name='Vial' type='xs:string' minOccurs='0' maxOccurs='1'/>
+              <xs:element name='Time' type='xs:dateTime' minOccurs='0' maxOccurs='1'/>
+              <xs:element name='Time_UTC' type='xs:dateTime' minOccurs='0' maxOccurs='1'/>
+              <xs:element name='Activity' type='xs:integer' minOccurs='0' maxOccurs='1'/>
+              <xs:element name='Volume' type='xs:decimal' minOccurs='0' maxOccurs='1'/>
+              <xs:element name='VolumicActivity' type='xs:integer' minOccurs='0' maxOccurs='1'/>
+              <xs:element name='Destination' type='xs:string' minOccurs='0' maxOccurs='1'/>
+              <xs:element name='Country' type='xs:string' minOccurs='0' maxOccurs='1'/>
+              <xs:element name='OrderedActivityMbqTinj' type='xs:integer' minOccurs='0' maxOccurs='1'/>
+              <xs:element name='RealMbqTinj' type='xs:integer' minOccurs='0' maxOccurs='1'/>
+              <xs:element name='Deviation' type='xs:decimal' minOccurs='0' maxOccurs='1'/>
+              <xs:element name='Doses' type='xs:integer' minOccurs='0' maxOccurs='1'/>
+              <xs:element name='Carrier' type='xs:string' minOccurs='0' maxOccurs='1'/>
+            </xs:all>
+          </xs:complexType>
+        </xs:element>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+</xs:schema>

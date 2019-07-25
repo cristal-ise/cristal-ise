@@ -1,6 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
 <!--
 
-    This file is part of the CRISTAL-iSE Trigger module.
+    This file is part of the CRISTAL-iSE XPath Outcome Initiator module.
     Copyright (c) 2001-2016 The CRISTAL Consortium. All rights reserved.
 
     This library is free software; you can redistribute it and/or modify it
@@ -20,21 +21,21 @@
     http://www.fsf.org/licensing/licenses/lgpl.html
 
 -->
-<CristalModule ns="trigger" name="CristaliseTrigger">
-    <Info>
-        <Description>CRISTAL-iSE Trigger Module</Description>
-        <Version>${version}</Version>
-        <KernelVersion>3.3</KernelVersion>
-    </Info>
-    <ResourceURL>org/cristalise/trigger/resources/</ResourceURL>
-    <Imports>
-        <Resource name="TriggerStateMachine" version="0" type="SM">boot/SM/Trigger.xml</Resource>
-
-        <Role name="TriggerAdmin" jobList="true">
-            <Permission>*:SetAgentPassword:*</Permission>
-        </Role>
-        <Agent name="triggerAgent" password="test">
-            <Role name="TriggerAdmin"/>
-        </Agent>
-    </Imports>
-</CristalModule>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+	<xs:element name="PatientDetails">
+		<xs:complexType>
+			<xs:all minOccurs="0">
+				<xs:element name='Weight' type='xs:decimal' minOccurs='1' maxOccurs='1'>
+					<xs:annotation>
+						<xs:appinfo>
+							<dynamicForms>
+								<autoComplete>on</autoComplete>
+							</dynamicForms>
+						</xs:appinfo>
+					</xs:annotation>
+				</xs:element>
+				<xs:element name='Height' type='xs:decimal' minOccurs='1' maxOccurs='1' />
+			</xs:all>
+		</xs:complexType>
+	</xs:element>
+</xs:schema>
