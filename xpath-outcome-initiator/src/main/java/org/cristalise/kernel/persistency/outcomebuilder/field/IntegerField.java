@@ -37,7 +37,7 @@ public class IntegerField extends NumberField {
 
     @Override
     public String getDefaultValue() {
-        return Gateway.getProperties().getString("Webui.inputField.integer.defaultValue", "");
+        return Gateway.getProperties().getString("Webui.inputField.integer.defaultValue", "0");
     }
 
     @Override

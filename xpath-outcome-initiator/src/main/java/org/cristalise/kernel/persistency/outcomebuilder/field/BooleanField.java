@@ -67,6 +67,6 @@ public class BooleanField extends StringField {
 
     @Override
     public String getDefaultValue() {
-        return Gateway.getProperties().getString("Webui.inputField.boolean.defaultValue", "");
+        return Gateway.getProperties().getString("Webui.inputField.boolean.defaultValue", "false");
     }
 }
