@@ -20,10 +20,10 @@
  */
 package org.cristalise.dsl.property
 
-import groovy.transform.CompileStatic
-
+import org.apache.commons.lang3.StringUtils
 import org.cristalise.kernel.utils.CastorHashMap
 import org.cristalise.kernel.utils.Logger
+import groovy.transform.CompileStatic
 
 
 /**
@@ -44,26 +44,26 @@ class PropertyDelegate {
     }
 
     public void Property(String name) {
-        Property((name): "")
+        Property((name): (Object)"")
     }
 
-    public void Property(Map<String, String> attrs) {
+    public void Property(Map<String, Object> attrs) {
         assert attrs, "Property must have the name and value pair set"
 
         attrs.each { k, v ->
-            Logger.msg 8, "PropertyDelegate.Property() - adding name/Value: $k/$v"
+            Logger.msg 0, "PropertyDelegate.Property() - adding name/Value: $k/$v"
 
-            props.put(k, v, false)
+            props.put(k, (v instanceof String) ? (String)v : v, false)
         }
     }
 
-    public void AbstractProperty(Map<String, String> attrs) {
+    public void AbstractProperty(Map<String, Object> attrs) {
         assert attrs, "AbstractProperty must have the name and value pair set"
 
         attrs.each { k, v ->
             Logger.msg 8, "PropertyDelegate.AbstractProperty() - adding name/Value: $k/$v"
 
-            props.put(k, v, true)
+            props.put(k, (v instanceof String) ? (String)v : v, true)
         }
     }
 }
