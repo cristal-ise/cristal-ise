@@ -45,6 +45,11 @@ public class StructureWithAppInfo {
      */
     protected List<String> exceptionFields;
 
+    /**
+     * 
+     */
+    protected JSONObject additional = null;
+
     public StructureWithAppInfo() {
         stringFields = new ArrayList<String>();
         exceptionFields = new ArrayList<String>();
@@ -83,8 +88,8 @@ public class StructureWithAppInfo {
         String name  = node.getLocalName();
 
         if (name.equals("additional")) {
-            //simply convert the xml to json
-            json.put("additional", XML.toJSONObject(node.toString(), true).getJSONObject("additional"));
+            //simply convert the xml to json and store it
+            additional = XML.toJSONObject(node.toString(), false).getJSONObject("additional");
         }
         else {
             String value = node.getStringValue().trim();
@@ -92,12 +97,10 @@ public class StructureWithAppInfo {
 
             if (stringFields.contains(name)) {
                 json.put(name, value);
-            } else if (formGridCls) {
-                if (!name.equals("container")) {
-                    return;
-                }
-                
-                json.put(name, value);                    
+            }
+            else if (formGridCls) {
+                if (name.equals("container")) json.put(name, value);
+                else                          return;
             }
             else if (exceptionFields.contains(name)) {
                 setAppInfoDynamicFormsExceptionValue(name, value);
@@ -108,14 +111,12 @@ public class StructureWithAppInfo {
                 if      (scanner.hasNextBoolean())    json.put(name, scanner.nextBoolean());
                 else if (scanner.hasNextBigDecimal()) json.put(name, scanner.nextBigDecimal());
                 else if (scanner.hasNextBigInteger()) json.put(name, scanner.nextBigInteger());
-                else if (name.equals("container"))    scanner.close();
-                else                                  json.put(name, value);
+                else if (!name.equals("container"))   json.put(name, value);
 
                 scanner.close();
             }
         }
     }
-    
 
     /**
      * Finds the named element in the AppInfo node
