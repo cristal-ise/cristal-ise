@@ -366,10 +366,11 @@ class SchemaBuilderDynymicFormsSpecs extends Specification implements CristalTes
                          <xs:annotation>
                            <xs:appinfo>
                              <dynamicForms>
-                                <additional>
-                                  <editable>true</editable>
-                                  <updateScriptRef>Script:0</updateScriptRef>
-                                </additional>
+                               <autoComplete>on</autoComplete>
+                               <additional>
+                                 <editable>true</editable>
+                                 <updateScriptRef>Script:0</updateScriptRef>
+                               </additional>
                              </dynamicForms>
                            </xs:appinfo>
                          </xs:annotation>

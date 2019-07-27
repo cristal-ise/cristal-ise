@@ -199,7 +199,7 @@ class SchemaDelegate {
             if (f.hasAdditional()) {
                 additional {
                     if (f.dynamicForms.additional) {
-                        //implement here
+                        f.dynamicForms.additional.fields.each { key, value -> "$key"(value) }
                     }
                     if (f.dynamicForms.updateScriptRef != null) updateScriptRef(f.dynamicForms.updateScriptRef)
                     if (f.dynamicForms.updateQuerytRef != null) updateQuerytRef(f.dynamicForms.updateQuerytRef)
