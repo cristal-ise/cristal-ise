@@ -30,7 +30,9 @@
     <Imports>
         <Resource name="TriggerStateMachine" version="0" type="SM">boot/SM/Trigger.xml</Resource>
 
-        <Role name="TriggerAdmin" jobList="true"/>
+        <Role name="TriggerAdmin" jobList="true">
+            <Permission>*:SetAgentPassword:*</Permission>
+        </Role>
         <Agent name="triggerAgent" password="test">
             <Role name="TriggerAdmin"/>
         </Agent>

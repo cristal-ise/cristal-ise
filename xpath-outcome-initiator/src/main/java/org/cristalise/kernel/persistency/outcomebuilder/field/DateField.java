@@ -44,7 +44,7 @@ public class DateField extends StringField {
 
     @Override
     public String getDefaultValue() {
-        return "";
+        return Gateway.getProperties().getString("Webui.inputField.date.defaultValue", "");
     }
 
     @Override

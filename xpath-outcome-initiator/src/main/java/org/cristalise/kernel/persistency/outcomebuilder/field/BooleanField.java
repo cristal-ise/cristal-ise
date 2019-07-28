@@ -22,6 +22,7 @@ package org.cristalise.kernel.persistency.outcomebuilder.field;
 
 import java.util.Map;
 
+import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.utils.Logger;
 import org.json.JSONObject;
 
@@ -66,6 +67,6 @@ public class BooleanField extends StringField {
 
     @Override
     public String getDefaultValue() {
-        return "false";
+        return Gateway.getProperties().getString("Webui.inputField.boolean.defaultValue", "false");
     }
 }
