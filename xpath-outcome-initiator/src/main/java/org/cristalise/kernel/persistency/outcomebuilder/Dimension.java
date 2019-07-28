@@ -26,13 +26,15 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import org.cristalise.kernel.utils.Logger;
 import org.exolab.castor.xml.schema.ElementDecl;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
 public class Dimension extends OutcomeStructure {
 
     enum Mode {TABLE, TABS};
@@ -50,7 +52,7 @@ public class Dimension extends OutcomeStructure {
         // decide whether a table or tabs
         try {
             tableModel = new DimensionTableModel(model);
-            Logger.msg(8, "Dimension() - name:" + model.getName() + " mode:table");
+            log.debug("name:" + model.getName() + " mode:table");
 
             mode = Mode.TABLE;
 
@@ -58,7 +60,7 @@ public class Dimension extends OutcomeStructure {
         }
         catch (OutcomeBuilderException e) {
             // use tabs
-            Logger.msg(8, "Dimension() - name:" + model.getName() + " mode:tabs  ex:" + e.getMessage());
+            log.debug("name:" + model.getName() + " mode:tabs  ex:" + e.getMessage());
             mode = Mode.TABS;
         }
     }
@@ -69,7 +71,7 @@ public class Dimension extends OutcomeStructure {
 
     @Override
     public void addInstance(Element myElement, Document parentDoc) throws OutcomeBuilderException {
-        Logger.msg(6, "Dimension.addInstance() - adding instance " + (elements.size() + 1) + " for " + myElement.getTagName());
+        log.debug("addInstance() - adding instance " + (elements.size() + 1) + " for " + myElement.getTagName());
 
         if (parent == null) setParentElement((Element) myElement.getParentNode());
 
@@ -103,7 +105,7 @@ public class Dimension extends OutcomeStructure {
         }
         catch (OutcomeBuilderException e) {
             // shouldn't happen, we've already done it once
-            Logger.error(e);
+            log.error("", e);
         }
         return newInstance;
     }
@@ -126,7 +128,7 @@ public class Dimension extends OutcomeStructure {
 
     @Override
     public Element initNew(Document parent) {
-        Logger.msg(5, "Dimension.initNew() - '" + model.getName()+"' as '" + mode.name() + "'");
+        log.debug("initNew() - '" + model.getName()+"' as '" + mode.name() + "'");
         
         Element newElement;
 
@@ -242,7 +244,7 @@ public class Dimension extends OutcomeStructure {
 
     @Override
     public void addJsonInstance(OutcomeStructure parentStruct, Element parentElement, String name, Object json) throws OutcomeBuilderException {
-        Logger.msg(5, "Dimension.addJsonInstance() - name:'" + name + "', mode:"+mode);
+        log.debug("addJsonInstance() - name:'" + name + "', mode:"+mode);
 
         if (myElement == null) myElement = parent;
 
