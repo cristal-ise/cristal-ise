@@ -257,7 +257,7 @@ public class StringField extends StructureWithAppInfo {
      * @return zero length String
      */
     public String getDefaultValue() {
-        return "";
+        return Gateway.getProperties().getString("Webui.inputField.string.defaultValue", "");
     }
 
     public void updateNode() {
