@@ -68,7 +68,7 @@ public class JooqClusterStorage extends TransactionalClusterStorage {
 
     protected HashMap<ClusterType, JooqHandler> jooqHandlers   = new HashMap<ClusterType, JooqHandler>();
     protected List<JooqDomainHandler>           domainHandlers = new ArrayList<JooqDomainHandler>();
-    protected ConcurrentHashMap contextMap = new ConcurrentHashMap(); 
+    protected ConcurrentHashMap<Object, DSLContext> contextMap = new ConcurrentHashMap<Object, DSLContext>(); 
 
     @Override
     public void open(Authenticator auth) throws PersistencyException {
@@ -187,7 +187,7 @@ public class JooqClusterStorage extends TransactionalClusterStorage {
     @Override
     public void commit(Object locker) throws PersistencyException {
         DSLContext context = null;
-      
+     
         if(!Objects.isNull(locker) && !contextMap.isEmpty()){
             context = contextMap.get(locker) == null ? JooqHandler.connect() : (DSLContext) contextMap.get(locker);
         } else {
@@ -196,14 +196,14 @@ public class JooqClusterStorage extends TransactionalClusterStorage {
 
         for (JooqDomainHandler domainHandler : domainHandlers) domainHandler.commit(context, locker);
 
-       /* if (autoCommit) {
+        if (autoCommit) {
             Logger.msg(1, "JooqClusterStorage.commit(DISABLED) - autoCommit:"+autoCommit);
             return;
-        }*/
+        }
 
         Logger.msg(1, "JooqClusterStorage.commit()");
         try {
-            ((DataSourceConnectionProvider)context.configuration().connectionProvider()).dataSource().getConnection().commit();
+            ((DataSourceConnectionProvider)context.configuration().connectionProvider()).acquire().commit();
 
             if (Logger.doLog(5)) JooqHandler.logConnectionCount("JooqClusterStorage.commit()", context);
         }

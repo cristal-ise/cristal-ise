@@ -168,17 +168,30 @@ public class JooqLookupManager implements LookupManager {
             DSLContext context = JooqHandler.connect();
 
             int rows = 0;
-
-            if      (newPath instanceof AgentPath)  rows = items  .insert(context, (AgentPath) newPath, properties);
+          
+            context.transaction(nested -> {
+                if  (newPath instanceof AgentPath){
+                    items.insert(DSL.using(nested), (AgentPath) newPath, properties);
+                } else if  (newPath instanceof ItemPath)  {
+                    items.insert(DSL.using(nested), (ItemPath) newPath);  
+                } else if (newPath instanceof DomainPath){
+                    domains.insert(DSL.using(nested), (DomainPath)newPath);
+                } else if (newPath instanceof RolePath) {
+                    createRole((RolePath) newPath);
+                }
+                
+            });
+            
+           /* if      (newPath instanceof AgentPath)  rows = items  .insert(context, (AgentPath) newPath, properties);
             else if (newPath instanceof ItemPath)   rows = items  .insert(context, (ItemPath)  newPath);
             else if (newPath instanceof DomainPath) rows = domains.insert(context, (DomainPath)newPath);
             else if (newPath instanceof RolePath)   rows = (createRole((RolePath) newPath) != null) ? 1 : 0;
-
-            if (rows == 0)
+*/
+           /* if (rows == 0)
                 throw new ObjectCannotBeUpdated("JOOQLookupManager must insert some records:"+rows);
             else
-                Logger.msg(8, "JooqLookupManager.add() - path:"+newPath+" rows inserted:"+rows);
-
+                Logger.msg(8, "JooqLookupManager.add() - path:"+newPath+" rows inserted:"+rows);*/
+            
             if (Logger.doLog(5)) JooqHandler.logConnectionCount("JooqLookupManager.add()", context);
         }
         catch (PersistencyException e) {
