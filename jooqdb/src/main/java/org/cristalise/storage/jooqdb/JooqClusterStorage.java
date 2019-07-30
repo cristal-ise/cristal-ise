@@ -34,6 +34,7 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.commons.lang3.StringUtils;
+import org.cristalise.kernel.common.ObjectNotFoundException;
 import org.cristalise.kernel.common.PersistencyException;
 import org.cristalise.kernel.entity.C2KLocalObject;
 import org.cristalise.kernel.lookup.ItemPath;
@@ -64,7 +65,7 @@ import com.zaxxer.hikari.HikariDataSource;
  */
 public class JooqClusterStorage extends TransactionalClusterStorage {
 
-    protected Boolean autoCommit = Gateway.getProperties().getBoolean(JOOQ_AUTOCOMMIT, false);
+    protected Boolean autoCommit = Gateway.getProperties().getBoolean(JOOQ_AUTOCOMMIT, false); // runt
 
     protected HashMap<ClusterType, JooqHandler> jooqHandlers   = new HashMap<ClusterType, JooqHandler>();
     protected List<JooqDomainHandler>           domainHandlers = new ArrayList<JooqDomainHandler>();
@@ -168,6 +169,9 @@ public class JooqClusterStorage extends TransactionalClusterStorage {
 
     @Override
     public void postConnect() throws PersistencyException {
+        if(Gateway.getProperties().containsKey(JOOQ_AUTOCOMMIT)){
+            Gateway.getProperties().put(JOOQ_AUTOCOMMIT, true);
+        }
         for (JooqDomainHandler domainHandler : domainHandlers) domainHandler.postConnect(JooqHandler.connect());
     }
 
@@ -187,13 +191,17 @@ public class JooqClusterStorage extends TransactionalClusterStorage {
     @Override
     public void commit(Object locker) throws PersistencyException {
         DSLContext context = null;
-     
-        if(!Objects.isNull(locker) && !contextMap.isEmpty()){
+        
+        if(Objects.isNull(locker)){
+            throw new PersistencyException("Locker Object not found");
+        }
+        
+        if(!contextMap.isEmpty()){
             context = contextMap.get(locker) == null ? JooqHandler.connect() : (DSLContext) contextMap.get(locker);
         } else {
             context =  JooqHandler.connect();
         }
-
+    
         for (JooqDomainHandler domainHandler : domainHandlers) domainHandler.commit(context, locker);
 
         if (autoCommit) {
@@ -216,6 +224,10 @@ public class JooqClusterStorage extends TransactionalClusterStorage {
     @Override
     public void abort(Object locker) throws PersistencyException {
         DSLContext context = null;
+        
+        if(Objects.isNull(locker)){
+            throw new PersistencyException("Locker Object not found");
+        }
         
         if(contextMap.contains(locker)){
             context = (DSLContext) contextMap.get(locker);
