@@ -366,6 +366,21 @@ public class StringField extends StructureWithAppInfo {
         }
     }
 
+    /**
+     * 
+     * @param field
+     */
+    public void updateWithAdditional(JSONObject field) {
+        if (additional != null) {
+            JSONObject fieldAdditional = getAdditionalConfigNgDynamicForms(field);
+            for (String key: additional.keySet()) fieldAdditional.put(key, additional.get(key));
+        }
+    }
+
+    /**
+     * 
+     * @return
+     */
     public JSONObject getCommonFieldsNgDynamicForms() {
         JSONObject field = new JSONObject();
         
