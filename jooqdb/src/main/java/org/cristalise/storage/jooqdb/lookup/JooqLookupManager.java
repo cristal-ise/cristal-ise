@@ -182,7 +182,7 @@ public class JooqLookupManager implements LookupManager {
                 } else if (newPath instanceof DomainPath){
                     rows = domains.insert(DSL.using(nested), (DomainPath)newPath);
                 } else if (newPath instanceof RolePath) {
-                    rows = (createRole(DSL.using(nested),(RolePath)newPath) != null) ? 1 : 0;
+                    rows = (createRole((RolePath)newPath) != null) ? 1 : 0;
                 }
                 
                 if(rows == 0){
@@ -587,31 +587,6 @@ public class JooqLookupManager implements LookupManager {
         }
     }
     
-    /* 
-     * added this new method with DSL context parameter included
-     */
-    public RolePath createRole( DSLContext context, RolePath role) throws ObjectAlreadyExistsException, ObjectCannotBeUpdated {
-        Logger.msg(5, "JooqLookupManager.createRole() - role:"+role);
-
-        // if(exists(role)) throw new ObjectAlreadyExistsException("Role:"+role);
-
-        try {
-             role.getParent();
-             roles.insert(context, role, null);
-             permissions.insert(context, role.getStringPath(), role.getPermissionsList());
-             return role;
-        }
-        catch (Exception e) {
-            Logger.error(e);
-            throw new ObjectCannotBeUpdated("Parent role for '"+role+"' does not exists");
-        }
-    }
-    
-    
-    
-    
-    
-
     @Override
     public void addRole(AgentPath agent, RolePath role) throws ObjectCannotBeUpdated, ObjectNotFoundException {
         if (!exists(role))  throw new ObjectNotFoundException("Role:"+role);

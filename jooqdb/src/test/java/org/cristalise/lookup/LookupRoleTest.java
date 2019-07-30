@@ -38,6 +38,7 @@ import org.cristalise.kernel.lookup.ItemPath;
 import org.cristalise.kernel.lookup.Lookup.PagedResult;
 import org.cristalise.kernel.lookup.Path;
 import org.cristalise.kernel.lookup.RolePath;
+import org.jooq.exception.DataAccessException;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -88,14 +89,11 @@ public class LookupRoleTest extends LookupTestBase {
         catch (ObjectAlreadyExistsException e) {}
     }
 
-    @Test
-    public void getParent_ObjectNotFoundException() {
+    @Test(expected=DataAccessException.class)
+    public void getParent_ObjectNotFoundException() throws ObjectNotFoundException, DataAccessException {
         RolePath rp = new RolePath("Clerk/Secretary".split("/"), false);
-        try {
-            rp.getParent();
-            fail("Should throw ObjectNotFoundException");
-        }
-        catch (ObjectNotFoundException e) {}
+        rp.getParent();
+        
     }
 
     @Test
