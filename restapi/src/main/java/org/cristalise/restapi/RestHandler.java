@@ -337,6 +337,7 @@ abstract public class RestHandler {
             if (StringUtils.isNotBlank(roleWithoutTimeout)) {
                 for(RolePath role: roles) {
                     if (role.getName().equals(roleWithoutTimeout)) {
+                        Logger.msg(8, "AuthData - cookie timeout is disabled for the current user:%s", this.agent.getName());
                         userNoTimeout = true;
                     }
                 }
