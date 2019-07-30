@@ -166,11 +166,6 @@ public class JooqClusterStorage extends TransactionalClusterStorage {
     public void postConnect() throws PersistencyException {
         if(Gateway.getProperties().containsKey(JOOQ_AUTOCOMMIT)){
             Gateway.getProperties().put(JOOQ_AUTOCOMMIT, true);
-            HikariConfig config = new HikariConfig();
-            JooqHandler.ds.copyStateTo(config);
-            config.addDataSourceProperty( "autoCommit",true);
-            HikariDataSource newDs = new HikariDataSource(config);    
-            JooqHandler.ds = newDs;
         }
         for (JooqDomainHandler domainHandler : domainHandlers) domainHandler.postConnect(JooqHandler.connect());
     }
