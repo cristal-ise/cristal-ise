@@ -47,6 +47,7 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 import javax.xml.bind.DatatypeConverter;
 
+import org.apache.commons.lang3.StringUtils;
 import org.cristalise.kernel.common.InvalidDataException;
 import org.cristalise.kernel.common.ObjectNotFoundException;
 import org.cristalise.kernel.common.SystemKey;
@@ -60,7 +61,6 @@ import org.cristalise.kernel.property.Property;
 import org.cristalise.kernel.utils.Logger;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.microsoft.sqlserver.jdbc.StringUtils;
 
 abstract public class RestHandler {
 
@@ -330,21 +330,20 @@ abstract public class RestHandler {
             int cookieLife = Gateway.getProperties().getInt("REST.loginCookieLife", 0);
             
             RolePath[] roles = this.agent.getRoles();
-            String roleWithoutTimeout = Gateway.getProperties().getString("REST.role.without.timeout", null);
-            boolean userProd = false;
-            
-            if (!StringUtils.isEmpty(roleWithoutTimeout)) {
+            String roleWithoutTimeout = Gateway.getProperties().getString("REST.role.withoutTimeout");
+
+            boolean userNoTimeout = false;
+
+            if (StringUtils.isNotBlank(roleWithoutTimeout)) {
                 for(RolePath role: roles) {
                     if (role.getName().equals(roleWithoutTimeout)) {
-                        userProd = true;
+                        userNoTimeout = true;
                     }
                 }
             }
 
-            if (!userProd) {
-                if (cookieLife > 0 && (new Date().getTime() - timestamp.getTime()) / 1000 > cookieLife) {
-                    throw new InvalidDataException("Cookie too old");
-                }   
+            if (!userNoTimeout && cookieLife > 0 && (new Date().getTime() - timestamp.getTime()) / 1000 > cookieLife) {
+                throw new InvalidDataException("Cookie too old");
             }
         }
 
