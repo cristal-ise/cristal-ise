@@ -65,7 +65,7 @@ import com.zaxxer.hikari.HikariDataSource;
  */
 public class JooqClusterStorage extends TransactionalClusterStorage {
 
-    protected Boolean autoCommit = Gateway.getProperties().getBoolean(JOOQ_AUTOCOMMIT, false); // runt
+    protected Boolean autoCommit = Gateway.getProperties().getBoolean(JOOQ_AUTOCOMMIT, false);
 
     protected HashMap<ClusterType, JooqHandler> jooqHandlers   = new HashMap<ClusterType, JooqHandler>();
     protected List<JooqDomainHandler>           domainHandlers = new ArrayList<JooqDomainHandler>();
@@ -187,11 +187,8 @@ public class JooqClusterStorage extends TransactionalClusterStorage {
     public void commit(Object locker) throws PersistencyException {
         DSLContext context = null;
         
-        if(Objects.isNull(locker)){
-            throw new PersistencyException("Locker Object not found");
-        }
-        
-        if(!contextMap.isEmpty()){
+        autoCommit =  Gateway.getProperties().getBoolean(JOOQ_AUTOCOMMIT);
+        if(!Objects.isNull(locker) && !contextMap.isEmpty()){
             context = contextMap.get(locker) == null ? JooqHandler.connect() : (DSLContext) contextMap.get(locker);
         } else {
             context =  JooqHandler.connect();
@@ -238,7 +235,7 @@ public class JooqClusterStorage extends TransactionalClusterStorage {
 
         Logger.msg(1, "JooqClusterStorage.abort()");
         try {
-            ((DefaultConnectionProvider)context.configuration().connectionProvider()).rollback();
+            ((DataSourceConnectionProvider)context.configuration().connectionProvider()).acquire().rollback();
         }
         catch (Exception e) {
             Logger.error(e);
@@ -368,6 +365,7 @@ public class JooqClusterStorage extends TransactionalClusterStorage {
         if (handler != null) {
             Logger.msg(5, "JooqClusterStorage.put() - uuid:"+uuid+" cluster:"+cluster+" path:"+obj.getClusterPath());
             handler.put(dsl, uuid, obj);
+            
         }
         else {
             throw new PersistencyException("Write is not supported for cluster:'"+cluster+"'");
