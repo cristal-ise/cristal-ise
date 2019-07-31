@@ -1,6 +1,6 @@
 package org.cristalise.dsl.persistency.outcome;
 
-public class Model {
+public class Reference {
     /**
      * It holds information about the referenced Item type, which is either
      * <ul>
@@ -8,5 +8,5 @@ public class Model {
      *   <li>Reference of the PropertyDescriptionList object representing the referenced Item type
      * </ul>
      */
-    def referencedItemType
+    def itemType
 }

@@ -139,7 +139,7 @@ class SchemaDelegate {
     }
 
     private boolean hasAppinfoNodes(Field f) {
-        return f.dynamicForms || f.listOfValues || f.model
+        return f.dynamicForms || f.listOfValues || f.reference
     }
 
     /**
@@ -235,24 +235,24 @@ class SchemaDelegate {
         }
     }
 
-    private void setAppinfoModel(xsd, Field f) {
-        xsd.model {
-            if (f.model.referencedItemType) {
+    private void setAppinfoReference(xsd, Field f) {
+        xsd.reference {
+            if (f.reference.itemType) {
                 def itemRef = ""
 
-                if (f.model.referencedItemType instanceof String)  {
-                    itemRef = f.model.referencedItemType
+                if (f.reference.itemType instanceof String)  {
+                    itemRef = f.reference.itemType
                 }
-                else if (f.model.referencedItemType instanceof PropertyDescriptionList) {
-                    def propDesc = (PropertyDescriptionList) f.model.referencedItemType
+                else if (f.reference.itemType instanceof PropertyDescriptionList) {
+                    def propDesc = (PropertyDescriptionList) f.reference.itemType
                     itemRef = PropertyUtility.getDefaultValue(propDesc.list, BuiltInItemProperties.TYPE.getName())
 
                     if (!itemRef) throw new InvalidDataException("Property called '${BuiltInItemProperties.TYPE}' is missing")
                 }
                 else
-                    throw new InvalidDataException("referencedItemType must be a String or PropertyDescriptionList")
+                    throw new InvalidDataException("itemType must be a String or PropertyDescriptionList")
 
-                referencedItemType(itemRef)
+                itemType(itemRef)
             }
         }
             
@@ -273,7 +273,7 @@ class SchemaDelegate {
                         'xs:appinfo' {
                             if (f.dynamicForms) this.setAppinfoDynamicForms(xsd, f)
                             if (f.listOfValues) this.setAppinfoListOfValues(xsd, f)
-                            if (f.model)        this.setAppinfoModel(xsd, f)
+                            if (f.reference)    this.setAppinfoReference(xsd, f)
                         }
                     }
                 }

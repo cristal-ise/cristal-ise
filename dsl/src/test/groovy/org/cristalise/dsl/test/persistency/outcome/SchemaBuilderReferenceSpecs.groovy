@@ -31,7 +31,7 @@ import spock.lang.Specification
 /**
  *
  */
-class SchemaBuilderModelSpecs extends Specification implements CristalTestSetup {
+class SchemaBuilderReferenceSpecs extends Specification implements CristalTestSetup {
 
     def setup()   { loggerSetup()    }
     def cleanup() { cristalCleanup() }
@@ -41,7 +41,7 @@ class SchemaBuilderModelSpecs extends Specification implements CristalTestSetup 
         expect:
         SchemaTestBuilder.build('Test', 'TestData', 0) {
             struct(name: 'TestData', useSequence: true) {
-                field(name: 'ItemRef') { model(referencedItemType: 'UnitTest') }
+                field(name: 'ItemRef') { reference(itemType: 'UnitTest') }
             }
         }.compareXML(
             """<xs:schema xmlns:xs='http://www.w3.org/2001/XMLSchema'>
@@ -51,9 +51,9 @@ class SchemaBuilderModelSpecs extends Specification implements CristalTestSetup 
                        <xs:element name='ItemRef' type='xs:string' minOccurs='1' maxOccurs='1'>
                          <xs:annotation>
                            <xs:appinfo>
-                             <model>
-                               <referencedItemType>UnitTest</referencedItemType>
-                             </model>
+                             <reference>
+                               <itemType>UnitTest</itemType>
+                             </reference>
                            </xs:appinfo>
                          </xs:annotation>
                        </xs:element>
@@ -71,7 +71,7 @@ class SchemaBuilderModelSpecs extends Specification implements CristalTestSetup 
 
         def schema = SchemaTestBuilder.build('Test', 'TestData', 0) {
             struct(name: 'TestData', useSequence: true) {
-                field(name: 'ItemRef') { model(referencedItemType: unitTestPropDesc) }
+                field(name: 'ItemRef') { reference(itemType: unitTestPropDesc) }
             }
         }
 
@@ -84,9 +84,9 @@ class SchemaBuilderModelSpecs extends Specification implements CristalTestSetup 
                        <xs:element name='ItemRef' type='xs:string' minOccurs='1' maxOccurs='1'>
                          <xs:annotation>
                            <xs:appinfo>
-                             <model>
-                               <referencedItemType>UnitTest</referencedItemType>
-                             </model>
+                             <reference>
+                               <itemType>UnitTest</itemType>
+                             </reference>
                            </xs:appinfo>
                          </xs:annotation>
                        </xs:element>
