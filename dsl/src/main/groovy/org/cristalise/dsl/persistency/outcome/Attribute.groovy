@@ -48,6 +48,8 @@ class Attribute {
 
     Integer totalDigits = null //precision:
     Integer fractionDigits = null //scale:
+    
+    Model model = null
 
     /**
      * Checks if the type is acceptable

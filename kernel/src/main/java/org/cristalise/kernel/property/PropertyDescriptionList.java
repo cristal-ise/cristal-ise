@@ -103,6 +103,10 @@ public class PropertyDescriptionList extends CastorArrayList<PropertyDescription
         add(name, value, isClassId, isMutable, false);
     }
 
+    public void add(String name, String value) {
+        add(name, value, false, true, false);
+    }
+
     public boolean definesProperty(String name) {
         for (PropertyDescription element : list) {
             if (element.getName().equals(name)) return true;
