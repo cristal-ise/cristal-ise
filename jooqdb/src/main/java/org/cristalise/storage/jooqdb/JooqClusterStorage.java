@@ -65,7 +65,7 @@ import com.zaxxer.hikari.HikariDataSource;
  */
 public class JooqClusterStorage extends TransactionalClusterStorage {
 
-    protected Boolean autoCommit = Gateway.getProperties().getBoolean(JOOQ_AUTOCOMMIT, false); // runt
+    protected Boolean autoCommit = Gateway.getProperties().getBoolean(JOOQ_AUTOCOMMIT, false);
 
     protected HashMap<ClusterType, JooqHandler> jooqHandlers   = new HashMap<ClusterType, JooqHandler>();
     protected List<JooqDomainHandler>           domainHandlers = new ArrayList<JooqDomainHandler>();
@@ -187,11 +187,8 @@ public class JooqClusterStorage extends TransactionalClusterStorage {
     public void commit(Object locker) throws PersistencyException {
         DSLContext context = null;
         
-        if(Objects.isNull(locker)){
-            throw new PersistencyException("Locker Object not found");
-        }
-        
-        if(!contextMap.isEmpty()){
+        autoCommit =  Gateway.getProperties().getBoolean(JOOQ_AUTOCOMMIT);
+        if(!Objects.isNull(locker) && !contextMap.isEmpty()){
             context = contextMap.get(locker) == null ? JooqHandler.connect() : (DSLContext) contextMap.get(locker);
         } else {
             context =  JooqHandler.connect();
@@ -238,7 +235,7 @@ public class JooqClusterStorage extends TransactionalClusterStorage {
 
         Logger.msg(1, "JooqClusterStorage.abort()");
         try {
-            ((DefaultConnectionProvider)context.configuration().connectionProvider()).rollback();
+            ((DataSourceConnectionProvider)context.configuration().connectionProvider()).acquire().rollback();
         }
         catch (Exception e) {
             Logger.error(e);
@@ -367,14 +364,19 @@ public class JooqClusterStorage extends TransactionalClusterStorage {
 
         if (handler != null) {
             Logger.msg(5, "JooqClusterStorage.put() - uuid:"+uuid+" cluster:"+cluster+" path:"+obj.getClusterPath());
-            handler.put(dsl, uuid, obj);
+            
+            dsl.transaction(d -> {
+                handler.put(DSL.using(d), uuid, obj);
+            });  
         }
         else {
             throw new PersistencyException("Write is not supported for cluster:'"+cluster+"'");
         }
-
         // Trigger all registered handlers to update domain specific tables
-        for (JooqDomainHandler domainHandler : domainHandlers) domainHandler.put(dsl, uuid, obj, locker);
+        dsl.transaction(nested -> {
+            for (JooqDomainHandler domainHandler : domainHandlers) domainHandler.put(DSL.using(nested), uuid, obj, locker);
+        });
+        
     }
 
     @Override
@@ -390,18 +392,29 @@ public class JooqClusterStorage extends TransactionalClusterStorage {
         String[]    primaryKeys = Arrays.copyOfRange(pathArray, 1, pathArray.length);
         ClusterType cluster     = ClusterType.getValue(pathArray[0]);
 
-        DSLContext context  = JooqHandler.connect();
+        DSLContext context  = null;
         JooqHandler handler = jooqHandlers.get(cluster);
+        
+        if(!Objects.isNull(locker) && !contextMap.isEmpty()){
+            context = contextMap.get(locker) == null ? JooqHandler.connect() : (DSLContext) contextMap.get(locker);
+        } else {
+            context = JooqHandler.connect();
+        }
 
         if (handler != null) {
             Logger.msg(5, "JooqClusterStorage.delete() - uuid:"+uuid+" cluster:"+cluster+" primaryKeys"+Arrays.toString(primaryKeys));
-            handler.delete(context, uuid, primaryKeys);
+            context.transaction(d -> {
+                handler.delete(DSL.using(d), uuid, primaryKeys);
+            });
         }
         else {
             throw new PersistencyException("No handler found for cluster:'"+cluster+"'");
         }
 
         // Trigger all registered handlers to update domain specific tables
-        for (JooqDomainHandler domainHandler : domainHandlers) domainHandler.delete(context, uuid, locker, primaryKeys);
+        context.transaction(nested -> {
+            for (JooqDomainHandler domainHandler : domainHandlers) domainHandler.delete(DSL.using(nested), uuid, locker, primaryKeys);
+        });
+       
     }
 }
