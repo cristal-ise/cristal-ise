@@ -20,10 +20,13 @@
  */
 package org.cristalise.dsl.persistency.outcome
 
-import groovy.xml.MarkupBuilder
-
 import org.cristalise.kernel.common.InvalidDataException
+import org.cristalise.kernel.property.BuiltInItemProperties
+import org.cristalise.kernel.property.PropertyDescriptionList
+import org.cristalise.kernel.property.PropertyUtility
 import org.cristalise.kernel.utils.Logger
+
+import groovy.xml.MarkupBuilder
 
 
 /**
@@ -135,6 +138,10 @@ class SchemaDelegate {
         return a.values || a.pattern || hasRangeConstraints(a) || hasNumericConstraints(a) || hasLengthConstraints(a)
     }
 
+    private boolean hasAppinfoNodes(Field f) {
+        return f.dynamicForms || f.listOfValues || f.reference
+    }
+
     /**
      * Checks whether the field has a restriction/attributes/unit or not, because the type of the element 
      * is either specified in the 'type' attribute or in the restriction as 'base'
@@ -228,6 +235,29 @@ class SchemaDelegate {
         }
     }
 
+    private void setAppinfoReference(xsd, Field f) {
+        xsd.reference {
+            if (f.reference.itemType) {
+                def itemRef = ""
+
+                if (f.reference.itemType instanceof String)  {
+                    itemRef = f.reference.itemType
+                }
+                else if (f.reference.itemType instanceof PropertyDescriptionList) {
+                    def propDesc = (PropertyDescriptionList) f.reference.itemType
+                    itemRef = PropertyUtility.getDefaultValue(propDesc.list, BuiltInItemProperties.TYPE.getName())
+
+                    if (!itemRef) throw new InvalidDataException("Property called '${BuiltInItemProperties.TYPE}' is missing")
+                }
+                else
+                    throw new InvalidDataException("itemType must be a String or PropertyDescriptionList")
+
+                itemType(itemRef)
+            }
+        }
+            
+    }
+        
     private void buildField(MarkupBuilder xsd, Field f) {
         Logger.msg 1, "SchemaDelegate.buildField() - Field: $f.name"
 
@@ -236,13 +266,14 @@ class SchemaDelegate {
             throw new InvalidDataException('Field cannot have attributes, unit and restrictions at the same time')
 
         xsd.'xs:element'(name: f.name, type: fieldType(f), 'default': f.defaultVal, minOccurs: f.minOccurs, maxOccurs: f.maxOccurs) {
-            if(f.documentation || f.dynamicForms || f.listOfValues) {
+            if(f.documentation || this.hasAppinfoNodes(f)) {
                 'xs:annotation' {
                     if (f.documentation) 'xs:documentation'(f.documentation)
-                    if (f.dynamicForms || f.listOfValues) {
+                    if (this.hasAppinfoNodes(f)) {
                         'xs:appinfo' {
                             if (f.dynamicForms) this.setAppinfoDynamicForms(xsd, f)
                             if (f.listOfValues) this.setAppinfoListOfValues(xsd, f)
+                            if (f.reference)    this.setAppinfoReference(xsd, f)
                         }
                     }
                 }
