@@ -142,7 +142,9 @@ public class JooqClusterStorage extends TransactionalClusterStorage {
 
     @Override
     public void postBoostrap() throws PersistencyException {
-        for (JooqDomainHandler domainHandler : domainHandlers) domainHandler.postBoostrap(JooqHandler.connect());
+        JooqHandler.connect().transaction(nested ->{
+            for (JooqDomainHandler domainHandler : domainHandlers) domainHandler.postBoostrap(DSL.using(nested));
+        });
         
         if(Gateway.getProperties().containsKey(JOOQ_AUTOCOMMIT)){
 
@@ -159,7 +161,9 @@ public class JooqClusterStorage extends TransactionalClusterStorage {
 
     @Override
     public void postStartServer() throws PersistencyException {
-        for (JooqDomainHandler domainHandler : domainHandlers) domainHandler.postStartServer(JooqHandler.connect());
+        JooqHandler.connect().transaction(nested ->{
+            for (JooqDomainHandler domainHandler : domainHandlers) domainHandler.postStartServer(DSL.using(nested));
+        });
     }
 
     @Override
@@ -167,7 +171,10 @@ public class JooqClusterStorage extends TransactionalClusterStorage {
         if(Gateway.getProperties().containsKey(JOOQ_AUTOCOMMIT)){
             Gateway.getProperties().put(JOOQ_AUTOCOMMIT, true);
         }
-        for (JooqDomainHandler domainHandler : domainHandlers) domainHandler.postConnect(JooqHandler.connect());
+        JooqHandler.connect().transaction(nested ->{
+            for (JooqDomainHandler domainHandler : domainHandlers) domainHandler.postConnect(DSL.using(nested));
+        });
+        
     }
 
     @Override
@@ -193,9 +200,10 @@ public class JooqClusterStorage extends TransactionalClusterStorage {
         } else {
             context =  JooqHandler.connect();
         }
-    
-        for (JooqDomainHandler domainHandler : domainHandlers) domainHandler.commit(context, locker);
-
+        context.transaction(nested -> {
+            for (JooqDomainHandler domainHandler : domainHandlers) domainHandler.commit(DSL.using(nested), locker);
+        });
+      
         if (autoCommit) {
             Logger.msg(1, "JooqClusterStorage.commit(DISABLED) - autoCommit:"+autoCommit);
             return;
@@ -280,9 +288,7 @@ public class JooqClusterStorage extends TransactionalClusterStorage {
     @Override
     public ClusterType[] getClusters(ItemPath itemPath) throws PersistencyException {
         ArrayList<ClusterType> result = new ArrayList<ClusterType>();
-        
-        
-
+ 
         for (ClusterType type:jooqHandlers.keySet()) {
             if (jooqHandlers.get(type).exists(JooqHandler.connect(), itemPath.getUUID())) result.add(type);
         }
