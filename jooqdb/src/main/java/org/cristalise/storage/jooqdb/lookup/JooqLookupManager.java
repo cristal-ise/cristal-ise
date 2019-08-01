@@ -246,18 +246,7 @@ public class JooqLookupManager implements LookupManager {
 
         try {
             DSLContext context = JooqHandler.connect();
-            List<ItemPath> itemPaths = new ArrayList<ItemPath>();
-            
-            context.transaction(nested -> {
-                itemPaths.add(items.fetch(DSL.using(nested), ip.getUUID(), properties));
-            }); 
-            
-            if(itemPaths.size() > 0){
-                return itemPaths.get(0);
-            } else {
-                throw new PersistencyException("Error finding ItemPath");
-            }
-           
+            return items.fetch(context, ip.getUUID(), properties);
         }
         catch (PersistencyException e) {
             Logger.error(e);
@@ -313,18 +302,13 @@ public class JooqLookupManager implements LookupManager {
     @Override
     public AgentPath getAgentPath(String agentName) throws ObjectNotFoundException {
         try {
-            List<UUID> uuids  = new ArrayList<>();
-            List<AgentPath> agentPaths = new ArrayList<>();
-            
-            JooqHandler.connect().transaction(nested ->{
-                uuids.addAll(properties.findItemsByName(DSL.using(nested), agentName));
-                
-                if (uuids.size() == 0) throw new ObjectNotFoundException("Could not find agent:"+agentName);
-                
-                agentPaths.add((AgentPath) items.fetch(DSL.using(nested), uuids.get(0), properties));
-            });
+            DSLContext context = JooqHandler.connect();
 
-            return agentPaths.get(0);
+            List<UUID> uuids = properties.findItemsByName(context, agentName);
+
+            if (uuids.size() == 0) throw new ObjectNotFoundException("Could not find agent:"+agentName);
+
+            return (AgentPath) items.fetch(context, uuids.get(0), properties);
         }
         catch (PersistencyException e) {
             throw new ObjectNotFoundException("Could not retrieve agentName:"+agentName + " error:"+e.getMessage());
@@ -337,38 +321,23 @@ public class JooqLookupManager implements LookupManager {
         uuids.add(JooqRolePathHandler.NO_AGENT);
 
         DSLContext context;
-        
-        List<Path> result = new ArrayList<>();
-        List<String> permissionList = new ArrayList<>();
-        List<RolePath> roleList = new ArrayList<>();
-        
         try {
             context = JooqHandler.connect();
-            context.transaction(nested -> {
-                result.addAll(roles.find(DSL.using(nested), "%/"+roleName, uuids));
-                
-                if      (result.isEmpty() || result.size() == 0) throw new ObjectNotFoundException("Role '"+roleName+"' does not exist");
-                else if (result.size() > 1)                    throw new ObjectNotFoundException("Unbiguos roleName:'"+roleName+"'");
-                
-                RolePath role = (RolePath)result.get(0);
-                
-                permissionList.addAll(permissions.fetch(DSL.using(nested), role.getStringPath()));
-                
-                role.setPermissions(permissionList);
-                
-                roleList.add(role);
-                
-            });
+            List<Path> result = roles.find(context, "%/"+roleName, uuids);
+
+            if      (result == null || result.size() == 0) throw new ObjectNotFoundException("Role '"+roleName+"' does not exist");
+            else if (result.size() > 1)                    throw new ObjectNotFoundException("Unbiguos roleName:'"+roleName+"'");
             
-            return roleList.get(0);
+            RolePath role = (RolePath)result.get(0);
+            role.setPermissions(permissions.fetch(context, role.getStringPath()));
+
+            return role;
         }
         catch (PersistencyException e) {
             throw new ObjectNotFoundException(e.getMessage());
         }
     }
     
-    
-
     @Override
     public ItemPath resolvePath(DomainPath domainPath) throws InvalidItemPathException, ObjectNotFoundException {
         if (!exists(domainPath)) throw new ObjectNotFoundException("Path does not exist:"+domainPath);
@@ -417,22 +386,10 @@ public class JooqLookupManager implements LookupManager {
         Logger.msg(8, "JooqLookupManager.getChildren() - pattern:" + pattern);
         try {
             DSLContext context = JooqHandler.connect();
-            List<Path> paths = new ArrayList<>();
-            if      (path instanceof ItemPath) {
-                return new ArrayList<Path>().iterator(); //empty iterator
-            } else {
-                
-                context.transaction(nested -> {
-                    if (path instanceof RolePath){
-                        paths.addAll(roles  .findByRegex(DSL.using(nested), pattern ));
-                    } else {
-                        paths.addAll( domains.findByRegex(DSL.using(nested), pattern ));
-                    }
-                });
-               
-                return paths.iterator();
-            }
-        
+
+            if      (path instanceof ItemPath) return new ArrayList<Path>().iterator(); //empty iterator
+            else if (path instanceof RolePath) return roles  .findByRegex(context, pattern ).iterator();
+            else                               return domains.findByRegex(context, pattern ).iterator();
         }
         catch (Exception e) {
             Logger.error(e);
@@ -447,46 +404,31 @@ public class JooqLookupManager implements LookupManager {
         Logger.msg(8, "JooqLookupManager.getChildren() - pattern:%s offset:%d limit:%d", pattern, offset, limit);
 
         if (path instanceof ItemPath) return new PagedResult();
+
         int maxRows = 0;
-        List<Integer> rowList = new ArrayList();
 
         DSLContext context;
         try {
             context = JooqHandler.connect();
-            context.transaction(nested -> {
-                if (path instanceof RolePath) {
-                    rowList.add(roles.countByRegex(context, pattern));
-                }
-                else if (path instanceof DomainPath) {
-                    rowList.add(domains.countByRegex(context, pattern));
-                }
-                
-            });
         }
         catch (PersistencyException e) {
             Logger.error(e);
             return new PagedResult();
         }
 
-        if(rowList.size() > 0){
-            maxRows = rowList.get(0);
-        }
+        if      (path instanceof RolePath)   maxRows = roles  .countByRegex(context, pattern);
+        else if (path instanceof DomainPath) maxRows = domains.countByRegex(context, pattern);
 
         if (maxRows == 0) return new PagedResult();
 
-        List<Path> pathes = new ArrayList<Path>();
-        context.transaction(nested -> {
-            if(path instanceof RolePath) {
-                pathes.addAll(roles.findByRegex(context, pattern, offset, limit));
-            } else if (path instanceof DomainPath){
-                pathes.addAll(domains.findByRegex(context, pattern, offset, limit));
-            }
-        });
-        
+        List<Path> pathes = null;
+
+        if      (path instanceof RolePath)   pathes = roles  .findByRegex(context, pattern, offset, limit);
+        else if (path instanceof DomainPath) pathes = domains.findByRegex(context, pattern, offset, limit);
 
         if (Logger.doLog(5)) JooqHandler.logConnectionCount("JooqLookupManager.getChildren()", context);
 
-        if (pathes.isEmpty()) return new PagedResult(); 
+        if (pathes == null) return new PagedResult(); 
         else                return new PagedResult(maxRows, pathes);
     }
 
@@ -594,9 +536,11 @@ public class JooqLookupManager implements LookupManager {
 
         try {
             DSLContext context = JooqHandler.connect();
-
-            int rows = roles.insert(context, role, agent);
-            if (rows != 1) throw new ObjectCannotBeUpdated("Updated rows must be 1 but it was '"+rows+"'");
+            context.transaction(nested -> {
+                int rows = roles.insert(DSL.using(nested), role, agent);
+                if (rows != 1) throw new ObjectCannotBeUpdated("Updated rows must be 1 but it was '"+rows+"'");
+            });
+          
         }
         catch (Exception e) {
             Logger.error(e);
@@ -730,10 +674,12 @@ public class JooqLookupManager implements LookupManager {
 
         try {
             DSLContext context = JooqHandler.connect();
-            int rows = roles.delete(context, role, agent);
-
-            if (rows == 0)
-                throw new ObjectCannotBeUpdated("Role:"+role+" Agent:"+agent + " are not related.");
+            context.transaction(nested -> {
+                int rows = roles.delete(DSL.using(nested), role, agent);
+                if (rows == 0)
+                    throw new ObjectCannotBeUpdated("Role:"+role+" Agent:"+agent + " are not related.");
+            });
+          
         }
         catch (Exception e) {
             throw new ObjectCannotBeUpdated("Role:"+role+" Agent:"+agent + " error:" + e.getMessage());
@@ -751,9 +697,10 @@ public class JooqLookupManager implements LookupManager {
 
         try {
             DSLContext context = JooqHandler.connect();
-
-            int rows = items.updatePassword(context, agent, passwordHasher.hashPassword(newPassword.toCharArray()), temporary);
-            if (rows != 1) throw new ObjectCannotBeUpdated("Agent:"+agent);
+            context.transaction(nested ->{
+                int rows = items.updatePassword(DSL.using(nested), agent, passwordHasher.hashPassword(newPassword.toCharArray()), temporary);
+                if (rows != 1) throw new ObjectCannotBeUpdated("Agent:"+agent);
+            });  
         }
         catch (Exception e) {
             Logger.error(e);
@@ -769,7 +716,10 @@ public class JooqLookupManager implements LookupManager {
 
         try {
             DSLContext context = JooqHandler.connect();
-            roles.update(context, role);
+            context.transaction(nested -> {
+                roles.update(DSL.using(nested), role);
+            });
+            
         }
         catch (Exception e) {
             Logger.error(e);
@@ -811,7 +761,9 @@ public class JooqLookupManager implements LookupManager {
 
         try {
             DSLContext context = JooqHandler.connect();
-            items.updateIOR(context, item, ior);
+            context.transaction(nested -> {
+                items.updateIOR(DSL.using(nested), item, ior);
+            }); 
         }
         catch (Exception e) {
             Logger.error(e);
@@ -837,11 +789,13 @@ public class JooqLookupManager implements LookupManager {
 
         try {
             DSLContext context = JooqHandler.connect();
-
-            //empty permission list shall clear the permissions of Role
-            if (this.permissions.exists(context, role.getStringPath())) this.permissions.delete(context, role.getStringPath());
-
-            this.permissions.insert(context, role.getStringPath(), role.getPermissionsList());
+            context.transaction(nested ->{
+              //empty permission list shall clear the permissions of Role
+                if (this.permissions.exists(DSL.using(nested),role.getStringPath())) {
+                    this.permissions.delete(context, role.getStringPath());
+                }
+                this.permissions.insert(context, role.getStringPath(), role.getPermissionsList());
+            });
         }
         catch (Exception e) {
             Logger.error(e);

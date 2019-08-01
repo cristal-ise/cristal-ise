@@ -89,11 +89,14 @@ public class LookupRoleTest extends LookupTestBase {
         catch (ObjectAlreadyExistsException e) {}
     }
 
-    @Test(expected=DataAccessException.class)
-    public void getParent_ObjectNotFoundException() throws ObjectNotFoundException, DataAccessException {
+    @Test
+    public void getParent_ObjectNotFoundException() {
         RolePath rp = new RolePath("Clerk/Secretary".split("/"), false);
-        rp.getParent();
-        
+        try {
+            rp.getParent();
+            fail("Should throw ObjectNotFoundException");
+        }
+        catch (ObjectNotFoundException e) {}
     }
 
     @Test
