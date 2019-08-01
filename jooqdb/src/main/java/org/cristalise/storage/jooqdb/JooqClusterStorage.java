@@ -24,7 +24,6 @@ import static org.cristalise.storage.jooqdb.JooqHandler.JOOQ_AUTOCOMMIT;
 import static org.cristalise.storage.jooqdb.JooqHandler.JOOQ_DISABLE_DOMAIN_CREATE;
 import static org.cristalise.storage.jooqdb.JooqHandler.JOOQ_DOMAIN_HANDLERS;
 
-import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -34,7 +33,6 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.commons.lang3.StringUtils;
-import org.cristalise.kernel.common.ObjectNotFoundException;
 import org.cristalise.kernel.common.PersistencyException;
 import org.cristalise.kernel.entity.C2KLocalObject;
 import org.cristalise.kernel.lookup.ItemPath;
@@ -55,7 +53,6 @@ import org.cristalise.storage.jooqdb.clusterStore.JooqViewpointHandler;
 import org.jooq.DSLContext;
 import org.jooq.impl.DSL;
 import org.jooq.impl.DataSourceConnectionProvider;
-import org.jooq.impl.DefaultConnectionProvider;
 
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
@@ -125,7 +122,10 @@ public class JooqClusterStorage extends TransactionalClusterStorage {
 
     public void dropHandlers() throws PersistencyException {
         DSLContext context = JooqHandler.connect();
-        for (JooqHandler handler: jooqHandlers.values()) handler.dropTables(context);
+        context.transaction(nested -> {
+            for (JooqHandler handler: jooqHandlers.values()) handler.dropTables(DSL.using(nested));
+        });
+        
     }
 
     @Override
@@ -181,8 +181,11 @@ public class JooqClusterStorage extends TransactionalClusterStorage {
     public void begin(Object locker) {
         try {
             DSLContext context = JooqHandler.connect();
-            contextMap.put(locker, context);
-
+            
+            if(!Objects.isNull(locker)){
+                contextMap.put(locker, context);
+            }
+            
             if (Logger.doLog(5)) JooqHandler.logConnectionCount("JooqClusterStorage.begin()", context);
         }
         catch (PersistencyException e) {
@@ -190,16 +193,19 @@ public class JooqClusterStorage extends TransactionalClusterStorage {
         }
     }
 
+    @SuppressWarnings("resource")
     @Override
     public void commit(Object locker) throws PersistencyException {
         DSLContext context = null;
         
         autoCommit =  Gateway.getProperties().getBoolean(JOOQ_AUTOCOMMIT);
-        if(!Objects.isNull(locker) && !contextMap.isEmpty()){
-            context = contextMap.get(locker) == null ? JooqHandler.connect() : (DSLContext) contextMap.get(locker);
-        } else {
-            context =  JooqHandler.connect();
+        
+        if(!autoCommit && contextMap.get(locker) == null){
+            throw new PersistencyException("JooqClusterStorage.commit(DISABLED) - Unable to get connection");
         }
+        
+        context = (contextMap.get(locker)) == null ? JooqHandler.connect() : (DSLContext) contextMap.get(locker);
+      
         context.transaction(nested -> {
             for (JooqDomainHandler domainHandler : domainHandlers) domainHandler.commit(DSL.using(nested), locker);
         });
@@ -208,7 +214,7 @@ public class JooqClusterStorage extends TransactionalClusterStorage {
             Logger.msg(1, "JooqClusterStorage.commit(DISABLED) - autoCommit:"+autoCommit);
             return;
         }
-
+        
         Logger.msg(1, "JooqClusterStorage.commit()");
         try {
             ((DataSourceConnectionProvider)context.configuration().connectionProvider()).acquire().commit();
@@ -221,21 +227,22 @@ public class JooqClusterStorage extends TransactionalClusterStorage {
         }
     }
 
+    @SuppressWarnings("resource")
     @Override
     public void abort(Object locker) throws PersistencyException {
         DSLContext context = null;
         
-        if(Objects.isNull(locker)){
-            throw new PersistencyException("Locker Object not found");
+        autoCommit =  Gateway.getProperties().getBoolean(JOOQ_AUTOCOMMIT);
+        if(!autoCommit && contextMap.get(locker) == null){
+            throw new PersistencyException("JooqClusterStorage.commit(DISABLED) - Unable to get connection");
         }
         
-        if(contextMap.contains(locker)){
-            context = (DSLContext) contextMap.get(locker);
-        } else {
-            context  = JooqHandler.connect(); 
-        }
-        for (JooqDomainHandler domainHandler : domainHandlers) domainHandler.abort(context, locker);
-
+        context = (contextMap.get(locker)) == null ? JooqHandler.connect() : (DSLContext) contextMap.get(locker);
+        
+        context.transaction(nested -> {
+            for (JooqDomainHandler domainHandler : domainHandlers) domainHandler.abort(DSL.using(nested), locker);
+        });
+        
         if (autoCommit) {
             Logger.msg(1, "JooqClusterStorage.abort(DISABLED) - autoCommit:"+autoCommit);
             return;
@@ -352,6 +359,7 @@ public class JooqClusterStorage extends TransactionalClusterStorage {
         put(itemPath, obj, null);
     }
 
+    @SuppressWarnings("resource")
     @Override
     public void put(ItemPath itemPath, C2KLocalObject obj, Object locker) throws PersistencyException {
         UUID uuid = itemPath.getUUID();
@@ -359,27 +367,26 @@ public class JooqClusterStorage extends TransactionalClusterStorage {
 
         JooqHandler handler = jooqHandlers.get(cluster);
         
-         DSLContext dsl =  null;
+         DSLContext context =  null;
          
-         if(!Objects.isNull(locker) && !contextMap.isEmpty()){
-             dsl = contextMap.get(locker) == null ? JooqHandler.connect() : (DSLContext) contextMap.get(locker);
+         if(Objects.isNull(locker) || contextMap.get(locker) == null ){
+             context = JooqHandler.connect();
          } else {
-             dsl = JooqHandler.connect();
+             context =  (DSLContext) contextMap.get(locker);
          }
         
-
         if (handler != null) {
             Logger.msg(5, "JooqClusterStorage.put() - uuid:"+uuid+" cluster:"+cluster+" path:"+obj.getClusterPath());
             
-            dsl.transaction(d -> {
-                handler.put(DSL.using(d), uuid, obj);
+            context.transaction(nested -> {
+                handler.put(DSL.using(nested), uuid, obj);
             });  
         }
         else {
             throw new PersistencyException("Write is not supported for cluster:'"+cluster+"'");
         }
         // Trigger all registered handlers to update domain specific tables
-        dsl.transaction(nested -> {
+        context.transaction(nested -> {
             for (JooqDomainHandler domainHandler : domainHandlers) domainHandler.put(DSL.using(nested), uuid, obj, locker);
         });
         
@@ -390,6 +397,7 @@ public class JooqClusterStorage extends TransactionalClusterStorage {
         delete(itemPath, path, null);
     }
 
+    @SuppressWarnings("resource")
     @Override
     public void delete(ItemPath itemPath, String path, Object locker) throws PersistencyException {
         UUID uuid = itemPath.getUUID();
@@ -401,16 +409,16 @@ public class JooqClusterStorage extends TransactionalClusterStorage {
         DSLContext context  = null;
         JooqHandler handler = jooqHandlers.get(cluster);
         
-        if(!Objects.isNull(locker) && !contextMap.isEmpty()){
-            context = contextMap.get(locker) == null ? JooqHandler.connect() : (DSLContext) contextMap.get(locker);
-        } else {
+        if(Objects.isNull(locker) || contextMap.get(locker) == null ){
             context = JooqHandler.connect();
+        } else {
+            context =  (DSLContext) contextMap.get(locker);
         }
-
+        
         if (handler != null) {
             Logger.msg(5, "JooqClusterStorage.delete() - uuid:"+uuid+" cluster:"+cluster+" primaryKeys"+Arrays.toString(primaryKeys));
-            context.transaction(d -> {
-                handler.delete(DSL.using(d), uuid, primaryKeys);
+            context.transaction(nested -> {
+                handler.delete(DSL.using(nested), uuid, primaryKeys);
             });
         }
         else {
