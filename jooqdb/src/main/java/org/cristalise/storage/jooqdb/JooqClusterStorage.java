@@ -67,7 +67,9 @@ public class JooqClusterStorage extends TransactionalClusterStorage {
 
     protected HashMap<ClusterType, JooqHandler> jooqHandlers   = new HashMap<ClusterType, JooqHandler>();
     protected List<JooqDomainHandler>           domainHandlers = new ArrayList<JooqDomainHandler>();
-    protected ConcurrentHashMap<Object, DSLContext> contextMap = new ConcurrentHashMap<Object, DSLContext>(); 
+    protected ConcurrentHashMap<Object, DSLContext> contextMap = new ConcurrentHashMap<Object, DSLContext>();
+    
+    protected HashMap<String, Boolean> autoCommitState = new HashMap<String, Boolean>();
 
     @Override
     public void open(Authenticator auth) throws PersistencyException {
@@ -151,17 +153,17 @@ public class JooqClusterStorage extends TransactionalClusterStorage {
             for (JooqDomainHandler domainHandler : domainHandlers) domainHandler.postBoostrap(DSL.using(nested));
         });
         
-        if(Gateway.getProperties().containsKey(JOOQ_AUTOCOMMIT)){
-
-            Gateway.getProperties().put(JOOQ_AUTOCOMMIT, false);
-            HikariConfig config = new HikariConfig();
-            JooqHandler.ds.copyStateTo(config);
-            config.setAutoCommit(false);
-            config.addDataSourceProperty( "autoCommit",false);
-            HikariDataSource newDs = new HikariDataSource(config);    
-            JooqHandler.ds = newDs;
-           
-        }
+        // set back the original auto commit from the property
+        boolean isAutoCommit = autoCommitState.get(JOOQ_AUTOCOMMIT);
+        Gateway.getProperties().put(JOOQ_AUTOCOMMIT, isAutoCommit);
+        
+        // needs to set
+        HikariConfig config = new HikariConfig();
+        JooqHandler.ds.copyStateTo(config);
+        config.setAutoCommit(false);
+        config.addDataSourceProperty("autoCommit",false);
+        HikariDataSource newDs = new HikariDataSource(config);    
+        JooqHandler.ds = newDs;
     }
 
     @Override
@@ -173,9 +175,15 @@ public class JooqClusterStorage extends TransactionalClusterStorage {
 
     @Override
     public void postConnect() throws PersistencyException {
-        if(Gateway.getProperties().containsKey(JOOQ_AUTOCOMMIT)){
+        boolean isAutoCommit = Gateway.getProperties().getBoolean(JOOQ_AUTOCOMMIT);
+        
+        autoCommitState.put(JOOQ_AUTOCOMMIT, isAutoCommit);
+        
+        // if auto commit is false in the property, set it to true 
+        if(!isAutoCommit){
             Gateway.getProperties().put(JOOQ_AUTOCOMMIT, true);
         }
+        
         JooqHandler.connect().transaction(nested ->{
             for (JooqDomainHandler domainHandler : domainHandlers) domainHandler.postConnect(DSL.using(nested));
         });
