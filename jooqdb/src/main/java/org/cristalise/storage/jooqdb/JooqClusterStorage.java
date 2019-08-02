@@ -56,6 +56,7 @@ import org.jooq.impl.DataSourceConnectionProvider;
 
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
+import com.zaxxer.hikari.HikariPoolMXBean;
 
 /**
  * Implementation of the {@link TransactionalClusterStorage} based on <a>http://www.jooq.org/</a>}
@@ -132,7 +133,11 @@ public class JooqClusterStorage extends TransactionalClusterStorage {
     public void close() throws PersistencyException {
         Logger.msg(1, "JooqClusterStorage.close()");
         try {
-            JooqHandler.connect().close();
+            HikariPoolMXBean poolBean = JooqHandler.ds.getHikariPoolMXBean();
+            while (poolBean.getActiveConnections() > 0) {
+              poolBean.softEvictConnections();
+            }
+            JooqHandler.ds.close();
         }
         catch (Exception e) {
             Logger.error(e);
