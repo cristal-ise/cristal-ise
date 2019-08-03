@@ -1,0 +1,47 @@
+[{
+  "name": "Additional",
+  "cls": {"grid": {"container": "ui-g-12"}},
+  "id": "Additional",
+  "type": "GROUP",
+  "group": [{
+    "filterable": true,
+    "validators": {"required": null},
+    "additional": {
+      "editable": false,
+      "something": "toto",
+      "filterBy": "label"
+    },
+    "options": [
+      {"label": "Select value"},
+      {
+        "label": "v1",
+        "value": "v1"
+      },
+      {
+        "label": "v2",
+        "value": "v2"
+      },
+      {
+        "label": "v3",
+        "value": "v3"
+      },
+      {
+        "label": "v4",
+        "value": "v4"
+      }
+    ],
+    "id": "ComboField",
+    "label": "Combo Field *",
+    "cls": {
+      "grid": {
+        "container": "ui-g",
+        "control": "ui-g-8",
+        "label": "ui-g-4"
+      },
+      "element": {"label": "ui-widget"}
+    },
+    "placeholder": "Combo Field",
+    "type": "SELECT",
+    "required": true
+  }]
+}]

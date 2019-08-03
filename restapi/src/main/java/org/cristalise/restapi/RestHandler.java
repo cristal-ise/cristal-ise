@@ -47,6 +47,7 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 import javax.xml.bind.DatatypeConverter;
 
+import org.apache.commons.lang3.StringUtils;
 import org.cristalise.kernel.common.InvalidDataException;
 import org.cristalise.kernel.common.ObjectNotFoundException;
 import org.cristalise.kernel.common.SystemKey;
@@ -54,6 +55,7 @@ import org.cristalise.kernel.entity.proxy.AgentProxy;
 import org.cristalise.kernel.lookup.AgentPath;
 import org.cristalise.kernel.lookup.InvalidAgentPathException;
 import org.cristalise.kernel.lookup.ItemPath;
+import org.cristalise.kernel.lookup.RolePath;
 import org.cristalise.kernel.process.AbstractMain;
 import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.property.Property;
@@ -334,8 +336,22 @@ abstract public class RestHandler {
             agent = new AgentPath(new ItemPath(sysKey));
             timestamp = new Date(buf.getLong());
             int cookieLife = Gateway.getProperties().getInt("REST.loginCookieLife", 0);
+            
+            RolePath[] roles = this.agent.getRoles();
+            String roleWithoutTimeout = Gateway.getProperties().getString("REST.role.withoutTimeout");
 
-            if (cookieLife > 0 && (new Date().getTime() - timestamp.getTime()) / 1000 > cookieLife) {
+            boolean userNoTimeout = false;
+
+            if (StringUtils.isNotBlank(roleWithoutTimeout)) {
+                for(RolePath role: roles) {
+                    if (role.getName().equals(roleWithoutTimeout)) {
+                        log.trace("AuthData - cookie timeout is disabled for the current user:{}", this.agent.getName());
+                        userNoTimeout = true;
+                    }
+                }
+            }
+
+            if (!userNoTimeout && cookieLife > 0 && (new Date().getTime() - timestamp.getTime()) / 1000 > cookieLife) {
                 throw new InvalidDataException("Cookie too old");
             }
         }
