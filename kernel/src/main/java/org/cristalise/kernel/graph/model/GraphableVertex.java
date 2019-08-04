@@ -286,6 +286,13 @@ public abstract class GraphableVertex extends Vertex {
         return mProperties.get(prop.getName());
     }
 
+    public Object getBuiltInProperty(BuiltInVertexProperties prop, Object defaultVal) {
+        Object val = getBuiltInProperty(prop);
+
+        if (val == null) return defaultVal;
+        else             return val;
+    }
+
     public void setBuiltInProperty(BuiltInVertexProperties prop, Object val) {
         mProperties.put(prop.getName(), val);
     }

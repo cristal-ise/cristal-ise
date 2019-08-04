@@ -18,9 +18,9 @@ def level = ['OFF', 'ERROR', 'WARN', 'INFO', 'DEBUG', 'TRACE', 'ALL']
 
 Schema('LoggerConfig', 0) {
     struct(name: 'LoggerConfig', useSequence: true) {
-        field(name:'Root', type: 'string', values: level)
+        field(name:'Root', type: 'string', values: level, multiplicity: '0..1')
         struct(name: 'Logger', multiplicity: '0..*', useSequence: true) {
-            field(name:'Class', type: 'string')
+            field(name:'Name', type: 'string')
             field(name:'Level', type: 'string', values: level)
         }
     }

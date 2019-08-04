@@ -283,7 +283,7 @@ public class SecurityManager {
      * @throws AccessRightsException 
      */
     private String getWildcardPermissionAction(Activity act) throws AccessRightsException {
-        String action = (String) act.getBuiltInProperty(BuiltInVertexProperties.SECURITY_ACTION);
+        String action = (String) act.getBuiltInProperty(BuiltInVertexProperties.SECURITY_ACTION, "");
 
         if (StringUtils.isBlank(action)) action = act.getName();
         if (StringUtils.isBlank(action)) throw new AccessRightsException("Action was blank - Specify 'SecurityAction' or 'Name' ActivityProperties");
