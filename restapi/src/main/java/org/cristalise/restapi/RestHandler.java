@@ -20,6 +20,10 @@
  */
 package org.cristalise.restapi;
 
+import static javax.ws.rs.core.MediaType.APPLICATION_JSON_TYPE;
+import static javax.ws.rs.core.MediaType.APPLICATION_XML_TYPE;
+import static javax.ws.rs.core.MediaType.TEXT_XML_TYPE;
+import static javax.ws.rs.core.Response.Status.UNSUPPORTED_MEDIA_TYPE;
 import static org.cristalise.kernel.property.BuiltInItemProperties.NAME;
 
 import java.io.IOException;
@@ -43,6 +47,7 @@ import javax.crypto.NoSuchPaddingException;
 import javax.crypto.SecretKey;
 import javax.crypto.spec.IvParameterSpec;
 import javax.ws.rs.core.Cookie;
+import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 import javax.xml.bind.DatatypeConverter;
@@ -117,6 +122,25 @@ abstract public class RestHandler {
 
         decryptCipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
         decryptCipher.init(Cipher.DECRYPT_MODE, cookieKey, new IvParameterSpec(encryptCipher.getIV()));
+    }
+
+    /**
+     * Check if the requested media type should be a JSON or XML
+     * 
+     * @param types the media types requested by the client
+     * @return true if the type is JSON, false if it is XML
+     */
+    public static boolean produceJSON(List<MediaType> types) {
+        if (types.isEmpty()) return false;
+    
+        for (MediaType t: types) {
+            if      (t.isCompatible(APPLICATION_XML_TYPE) || t.isCompatible(TEXT_XML_TYPE)) return false;
+            else if (t.isCompatible(APPLICATION_JSON_TYPE))                                 return true;
+        }
+    
+        throw ItemUtils.createWebAppException(
+                    "Supported media types: TEXT_XML, APPLICATION_XML, APPLICATION_JSON", 
+                    UNSUPPORTED_MEDIA_TYPE);
     }
 
     private synchronized AuthData decryptAuthData(String authData)

@@ -20,13 +20,9 @@
  */
 package org.cristalise.restapi;
 
-import static javax.ws.rs.core.MediaType.APPLICATION_JSON_TYPE;
-import static javax.ws.rs.core.MediaType.APPLICATION_XML_TYPE;
-import static javax.ws.rs.core.MediaType.TEXT_XML_TYPE;
 import static javax.ws.rs.core.Response.Status.BAD_REQUEST;
 import static javax.ws.rs.core.Response.Status.INTERNAL_SERVER_ERROR;
 import static javax.ws.rs.core.Response.Status.NOT_FOUND;
-import static javax.ws.rs.core.Response.Status.UNSUPPORTED_MEDIA_TYPE;
 import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.ATTACHMENT_MIME_TYPES;
 import static org.cristalise.kernel.persistency.ClusterType.HISTORY;
 import static org.cristalise.kernel.persistency.ClusterType.PROPERTY;
@@ -540,25 +536,6 @@ public abstract class ItemUtils extends RestHandler {
 
     
     
-    /**
-     * Check if the requested media type should be a JSON or XML
-     * 
-     * @param types the media types requested by the client
-     * @return true if the type is JSON, false if it is XML
-     */
-    public static boolean produceJSON(List<MediaType> types) {
-        if (types.isEmpty()) return false;
-
-        for (MediaType t: types) {
-            if      (t.isCompatible(APPLICATION_XML_TYPE) || t.isCompatible(TEXT_XML_TYPE)) return false;
-            else if (t.isCompatible(APPLICATION_JSON_TYPE))                                 return true;
-        }
-
-        throw ItemUtils.createWebAppException(
-                    "Supported media types: TEXT_XML, APPLICATION_XML, APPLICATION_JSON", 
-                    UNSUPPORTED_MEDIA_TYPE);
-    }
-
     /**
      * 
      * @param type
