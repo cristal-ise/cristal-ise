@@ -340,7 +340,7 @@ public class JooqLookupManager implements LookupManager {
     public PagedResult getChildren(Path path, int offset, int limit) {
         String pattern = getChildrenPattern(path);
 
-        log.debug("getChildren() - pattern:%s offset:{} limit:{}", pattern, offset, limit);
+        log.debug("getChildren() - pattern:{} offset:{} limit:{}", pattern, offset, limit);
 
         if (path instanceof ItemPath) return new PagedResult();
 
@@ -397,7 +397,7 @@ public class JooqLookupManager implements LookupManager {
             SelectQuery<?> selectCount = getSearchSelect(start, props);
             selectCount.addSelect(DSL.count());
 
-            log.debug("search(props) - SQL(count):\n%s", selectCount);
+            log.debug("search(props) - SQL(count):\n{}", selectCount);
 
             maxRows = selectCount.fetchOne(0, int.class);
 
@@ -412,7 +412,7 @@ public class JooqLookupManager implements LookupManager {
         if (limit  > 0) select.addLimit(limit);
         if (offset > 0) select.addOffset(offset);
 
-        log.debug("search(props) - SQL:\n%s", select);
+        log.debug("search(props) - SQL:\n{}", select);
 
         return new PagedResult(maxRows, domains.getListOfPath(select.fetch()));
     }
@@ -488,7 +488,7 @@ public class JooqLookupManager implements LookupManager {
             SelectQuery<?> selectCount = getGetAgentsSelect(role);
             selectCount.addSelect(DSL.count());
 
-            log.debug("getAgents(props) - role:%s  SQL(count):\n%s", role, selectCount);
+            log.debug("getAgents(props) - role:{}  SQL(count):\n{}", role, selectCount);
 
             maxRows = selectCount.fetchOne(0, int.class);
         }
@@ -509,7 +509,7 @@ public class JooqLookupManager implements LookupManager {
         if (limit  > 0) select.addLimit(limit);
         if (offset > 0) select.addOffset(offset);
 
-        log.debug("getAgents() - role:%s  SQL:\n%s", role, select);
+        log.debug("getAgents() - role:{}  SQL:\n{}", role, select);
 
         Result<?> result = select.fetch();
 
