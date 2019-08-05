@@ -106,14 +106,13 @@ abstract public class RestHandler {
 
     private static void initKeys(int keySize) 
             throws NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException, InvalidAlgorithmParameterException
-    {
-        KeyGenerator kgen = KeyGenerator.getInstance("AES");
+    {   
+        Provider provider  = Security.getProvider("SunJCE");
+        KeyGenerator kgen = KeyGenerator.getInstance("AES", provider);
         kgen.init(keySize);
         cookieKey = kgen.generateKey();
 
         System.out.println("RestHandler.initKeys() - Cookie key: "+DatatypeConverter.printBase64Binary(cookieKey.getEncoded()));
-        
-        Provider provider  = Security.getProvider("SunJCE");
 
         encryptCipher = Cipher.getInstance("AES/CBC/PKCS5Padding",provider);
         encryptCipher.init(Cipher.ENCRYPT_MODE, cookieKey);
