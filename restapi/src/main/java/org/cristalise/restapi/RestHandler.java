@@ -115,7 +115,7 @@ abstract public class RestHandler {
         
         Provider provider  = Security.getProvider("SunJCE");
 
-        encryptCipher = Cipher.getInstance("AES/CBC/PKCS5Padding",provider);
+        encryptCipher = Cipher.getInstance("AES/CBC/PKCS5Padding", provider);
         encryptCipher.init(Cipher.ENCRYPT_MODE, cookieKey);
         decryptCipher = Cipher.getInstance("AES/CBC/PKCS5Padding", provider); 
         decryptCipher.init(Cipher.DECRYPT_MODE, cookieKey, new IvParameterSpec(encryptCipher.getIV()));
