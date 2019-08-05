@@ -99,7 +99,7 @@ public class ScriptUtils extends ItemUtils {
             }
             catch (Exception e) {
                 Logger.error(e);
-                throw ItemUtils.createWebAppException("Error executing script, please contact support", e, Response.Status.NOT_FOUND);
+                throw ItemUtils.createWebAppException(e.getMessage(), e, Response.Status.NOT_FOUND);
             }
         }
         else {
