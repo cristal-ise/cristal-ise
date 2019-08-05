@@ -99,7 +99,12 @@ public class ScriptUtils extends ItemUtils {
             }
             catch (Exception e) {
                 Logger.error(e);
-                throw ItemUtils.createWebAppException(e.getMessage(), e, Response.Status.NOT_FOUND);
+                if (e.getMessage().contains("[errorMessage]")) {
+                    throw ItemUtils.createWebAppException(e.getMessage(), e, Response.Status.NOT_FOUND);
+                } else {
+                    // Throw the generic exception when error message is not defined in the script.
+                    throw ItemUtils.createWebAppException("Error executing script, please contact support", e, Response.Status.NOT_FOUND);
+                }
             }
         }
         else {
