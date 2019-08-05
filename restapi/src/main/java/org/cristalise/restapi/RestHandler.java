@@ -29,6 +29,8 @@ import java.nio.ByteBuffer;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
+import java.security.Provider;
+import java.security.Security;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.LinkedHashMap;
@@ -110,11 +112,12 @@ abstract public class RestHandler {
         cookieKey = kgen.generateKey();
 
         System.out.println("RestHandler.initKeys() - Cookie key: "+DatatypeConverter.printBase64Binary(cookieKey.getEncoded()));
+        
+        Provider provider  = Security.getProvider("SunJCE");
 
-        encryptCipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
+        encryptCipher = Cipher.getInstance("AES/CBC/PKCS5Padding",provider);
         encryptCipher.init(Cipher.ENCRYPT_MODE, cookieKey);
-
-        decryptCipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
+        decryptCipher = Cipher.getInstance("AES/CBC/PKCS5Padding", provider); 
         decryptCipher.init(Cipher.DECRYPT_MODE, cookieKey, new IvParameterSpec(encryptCipher.getIV()));
     }
 
