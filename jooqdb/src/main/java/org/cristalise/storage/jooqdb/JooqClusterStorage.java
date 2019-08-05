@@ -153,15 +153,21 @@ public class JooqClusterStorage extends TransactionalClusterStorage {
             for (JooqDomainHandler domainHandler : domainHandlers) domainHandler.postBoostrap(DSL.using(nested));
         });
         
-        // set back the original auto commit from the property
-        boolean isAutoCommit = autoCommitState.get(JOOQ_AUTOCOMMIT);
-        Gateway.getProperties().put(JOOQ_AUTOCOMMIT, isAutoCommit);
         
-        // needs to set
+        HikariDataSource oldDs = JooqHandler.ds;
+        HikariPoolMXBean poolBean = oldDs.getHikariPoolMXBean();
+        while (poolBean.getActiveConnections() > 0) {
+          poolBean.softEvictConnections();
+        }
+        oldDs.close();
+        
+        boolean jooqHandlerAutocommit = JooqHandler.autoCommit;
+        
         HikariConfig config = new HikariConfig();
         JooqHandler.ds.copyStateTo(config);
-        config.setAutoCommit(false);
-        config.addDataSourceProperty("autoCommit",false);
+        //set autocommit based on the property
+        config.setAutoCommit(jooqHandlerAutocommit);
+        config.addDataSourceProperty("autoCommit",jooqHandlerAutocommit);
         HikariDataSource newDs = new HikariDataSource(config);    
         JooqHandler.ds = newDs;
     }
@@ -175,16 +181,17 @@ public class JooqClusterStorage extends TransactionalClusterStorage {
 
     @Override
     public void postConnect() throws PersistencyException {
-        boolean isAutoCommit = Gateway.getProperties().getBoolean(JOOQ_AUTOCOMMIT);
-        
-        autoCommitState.put(JOOQ_AUTOCOMMIT, isAutoCommit);
-        
-        // if auto commit is false in the property, set it to true 
-        if(!isAutoCommit){
-            Gateway.getProperties().put(JOOQ_AUTOCOMMIT, true);
+        // if autocommit is true, no need to set the datasource's autocommit
+        if(!JooqHandler.autoCommit){
+            HikariConfig config = new HikariConfig();
+            JooqHandler.ds.copyStateTo(config);
+            config.setAutoCommit(true);
+            config.addDataSourceProperty("autoCommit",true);
+            HikariDataSource newDs = new HikariDataSource(config);    
+            JooqHandler.ds = newDs;
         }
         
-        JooqHandler.connect().transaction(nested ->{
+        JooqHandler.connect().transaction(nested -> {
             for (JooqDomainHandler domainHandler : domainHandlers) domainHandler.postConnect(DSL.using(nested));
         });
         
@@ -211,7 +218,7 @@ public class JooqClusterStorage extends TransactionalClusterStorage {
     public void commit(Object locker) throws PersistencyException {
         DSLContext context = null;
         
-        autoCommit =  Gateway.getProperties().getBoolean(JOOQ_AUTOCOMMIT);
+        autoCommit =  JooqHandler.ds.isAutoCommit();
         
         if(!autoCommit && contextMap.get(locker) == null){
             throw new PersistencyException("JooqClusterStorage.commit(DISABLED) - Unable to get connection");
@@ -245,7 +252,7 @@ public class JooqClusterStorage extends TransactionalClusterStorage {
     public void abort(Object locker) throws PersistencyException {
         DSLContext context = null;
         
-        autoCommit =  Gateway.getProperties().getBoolean(JOOQ_AUTOCOMMIT);
+        autoCommit =  JooqHandler.ds.isAutoCommit();
         if(!autoCommit && contextMap.get(locker) == null){
             throw new PersistencyException("JooqClusterStorage.commit(DISABLED) - Unable to get connection");
         }
