@@ -1,0 +1,1 @@
+Query is a new building block of Items, it handles (store, execute) a versioned query associated with an Activity. A Query is implemented in the language supported by the backend, it is executed by the database server and it returns an XML document (Outcome). It can be used to initialise an Outcome (QueryOutcomeInitiator) or can be automatically executed like a Script.

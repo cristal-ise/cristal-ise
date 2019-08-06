@@ -38,7 +38,6 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.UUID;
 
 import javax.ws.rs.WebApplicationException;
@@ -551,26 +550,6 @@ public abstract class ItemUtils extends RestHandler {
         Collections.sort(names);
 
         return names;
-    }
-
-    /**
-     * 
-     * @param ip
-     * @param jsonRoot
-     */
-    protected void makeItemDomainPathsData(ItemPath ip, Map<String, Object> jsonRoot) {
-        PagedResult result = Gateway.getLookup().searchAliases(ip, 0, 50);
-
-        ArrayList<Object> domainPathesData = new ArrayList<>();
-    
-        for (org.cristalise.kernel.lookup.Path p: result.rows) {
-            domainPathesData.add(p.toString());
-        }
-
-        if (domainPathesData.size() != 0) {
-            jsonRoot.put("name", ((DomainPath)result.rows.get(0)).getName());
-            jsonRoot.put("domainPaths", domainPathesData);
-        }
     }
 
     /**

@@ -1,0 +1,3 @@
+**WARNING: This page has been copied raw from the CRISTAL 2.x wiki for the purposes of preservation, so may be out-of-date, links may be broken, and the formatting is probably rubbish.**
+
+An Item that stores and versions an XML marshalled (source:src/main/resources/mapFiles/LifeCycleMap.xml) ElementaryActivityDef object (source:src/main/java/com/c2kernel/lifecycle/ActivityDef.java) as an outcome. This Item will be referenced by a CompositeActivityDef, and when that is included in the workflow definition of an Item Description, will contribute an Activity (source:src/main/java/com/c2kernel/lifecycle/instance/Activity.java) to Items instantiated from that Item Description
