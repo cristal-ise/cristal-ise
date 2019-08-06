@@ -1,0 +1,1 @@
+An Item that stores and versions an [XMLSchema](../XMLSchema). The schema is used to validate outcomes of activities that use that schema version. To simplify management of schemas and their versions, the schemas have no namespace and so cannot co-exist.
