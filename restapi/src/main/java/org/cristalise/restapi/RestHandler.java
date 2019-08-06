@@ -47,8 +47,11 @@ import org.cristalise.kernel.common.ObjectNotFoundException;
 import org.cristalise.kernel.common.SystemKey;
 import org.cristalise.kernel.entity.proxy.AgentProxy;
 import org.cristalise.kernel.lookup.AgentPath;
+import org.cristalise.kernel.lookup.DomainPath;
 import org.cristalise.kernel.lookup.InvalidAgentPathException;
 import org.cristalise.kernel.lookup.ItemPath;
+import org.cristalise.kernel.lookup.Lookup.PagedResult;
+import org.cristalise.kernel.lookup.Path;
 import org.cristalise.kernel.lookup.RolePath;
 import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.property.Property;
@@ -129,7 +132,8 @@ abstract public class RestHandler {
             String json = mapper.writeValueAsString(data);
             Logger.msg(8, json);
             return Response.ok(json).build();
-        } catch (IOException e) {
+        } 
+        catch (IOException e) {
             Logger.error(e);
             throw ItemUtils.createWebAppException("Problem building response JSON: ", e, Response.Status.INTERNAL_SERVER_ERROR);
         }
@@ -287,6 +291,32 @@ abstract public class RestHandler {
             }
         }
         return props;
+    }
+
+    /**
+     * 
+     * @param ip
+     */
+    protected  Map<String, Object> makeItemDomainPathsData(ItemPath ip) {
+        PagedResult result = Gateway.getLookup().searchAliases(ip, 0, 50);
+
+        Map<String, Object> returnVal = new LinkedHashMap<String, Object>();
+        ArrayList<Object> domainPathesData = new ArrayList<>();
+
+        for (Path p: result.rows) domainPathesData.add(p.getStringPath());
+
+        if (domainPathesData.size() != 0) {
+            returnVal.put("uuid", ip.getUUID().toString());
+            returnVal.put("name", ((DomainPath)result.rows.get(0)).getName());
+            returnVal.put("domainPaths", domainPathesData);
+        }
+        else if (ip instanceof AgentPath) {
+            returnVal.put("uuid", ip.getUUID().toString());
+            returnVal.put("name", ((AgentPath)ip).getAgentName());
+            returnVal.put("error", "Agent has no aliases");
+        }
+
+        return returnVal;
     }
 
     /**
