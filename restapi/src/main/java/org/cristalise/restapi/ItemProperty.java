@@ -32,6 +32,7 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
 import org.cristalise.kernel.common.ObjectNotFoundException;
+import org.cristalise.kernel.lookup.InvalidItemPathException;
 import org.cristalise.kernel.property.Property;
 
 import static org.cristalise.kernel.persistency.ClusterType.PROPERTY;
@@ -42,12 +43,13 @@ public class ItemProperty extends ItemUtils {
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     public Response listProperties(@PathParam("uuid") String uuid, @CookieParam(COOKIENAME) Cookie authCookie) {
-        checkAuthCookie(authCookie);
+        AuthData authData = checkAuthCookie(authCookie);
         try {
-            return toJSON(getPropertySummary(getProxy(uuid)));
+            return toJSON(getPropertySummary(getProxy(uuid)))
+                    .cookie(checkAndCreateNewCookie( authData)).build();
         }
-        catch (ObjectNotFoundException e) {
-            throw ItemUtils.createWebAppException(e.getMessage(), Response.Status.NOT_FOUND);
+        catch (Exception e) {
+            throw new WebAppExceptionBuilder().exception(e).newCookie(checkAndCreateNewCookie( authData )).build();
         }
     }
 
@@ -56,12 +58,12 @@ public class ItemProperty extends ItemUtils {
     @Produces(MediaType.TEXT_PLAIN)
     public String getProperty(@PathParam("uuid") String uuid, @PathParam("name") String name,
             @CookieParam(COOKIENAME) Cookie authCookie) {
-        checkAuthCookie(authCookie);
+        AuthData authData = checkAuthCookie(authCookie);
         try {
             return getProxy(uuid).getProperty(name);
         }
-        catch (ObjectNotFoundException e) {
-            throw ItemUtils.createWebAppException(e.getMessage(), Response.Status.NOT_FOUND);
+        catch (InvalidItemPathException | ObjectNotFoundException e) {
+            throw new WebAppExceptionBuilder().exception(e).newCookie(checkAndCreateNewCookie( authData )).build();
         }
     }
 
@@ -70,17 +72,19 @@ public class ItemProperty extends ItemUtils {
     @Produces(MediaType.APPLICATION_JSON)
     public Response getPropertyDetails(@PathParam("uuid") String uuid, @PathParam("name") String name,
             @CookieParam(COOKIENAME) Cookie authCookie) {
-        checkAuthCookie(authCookie);
+        AuthData authData = checkAuthCookie(authCookie);
         LinkedHashMap<String, Object> propDetails = new LinkedHashMap<String, Object>();
+
         try {
             Property prop = (Property) getProxy(uuid).getObject(PROPERTY + "/" + name);
             propDetails.put("name", prop.getName());
             propDetails.put("value", prop.getValue());
             propDetails.put("readOnly", !prop.isMutable());
+
+            return toJSON(propDetails).cookie(checkAndCreateNewCookie( authData)).build();
         }
-        catch (ObjectNotFoundException e) {
-            throw ItemUtils.createWebAppException(e.getMessage(), Response.Status.NOT_FOUND);
+        catch (Exception e) {
+            throw new WebAppExceptionBuilder().exception(e).newCookie(checkAndCreateNewCookie( authData )).build();
         }
-        return toJSON(propDetails);
     }
 }

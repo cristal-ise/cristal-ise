@@ -44,11 +44,8 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
-import javax.ws.rs.WebApplicationException;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.UriBuilder;
-import javax.ws.rs.core.UriInfo;
+import javax.ws.rs.core.*;
+
 import org.apache.commons.lang3.StringUtils;
 import org.cristalise.kernel.collection.Aggregation;
 import org.cristalise.kernel.collection.AggregationMember;
@@ -140,57 +137,51 @@ public abstract class ItemUtils extends RestHandler {
         return props;
     }
 
-    protected static ItemProxy getProxy(String uuid) {
+    protected static ItemProxy getProxy(String uuid) throws InvalidItemPathException, ObjectNotFoundException {
         ItemProxy item;
         ItemPath itemPath;
-        try {
-            itemPath = Gateway.getLookup().getItemPath(uuid);
-        } catch (InvalidItemPathException e) {
-            Logger.error(e);
-            throw ItemUtils.createWebAppException(e.getMessage(), BAD_REQUEST); // Bad Request - the UUID wasn't valid
-        } catch (ObjectNotFoundException e) {
-            Logger.error(e);
-            throw ItemUtils.createWebAppException(e.getMessage(), NOT_FOUND); // UUID isn't used in this server
-        }
 
-        try {
-            item = Gateway.getProxyManager().getProxy(itemPath);
-        } catch (ObjectNotFoundException e) {
-            Logger.error(e);
-            throw ItemUtils.createWebAppException(e.getMessage(), NOT_FOUND); // Not found - the path doesn't exist
-        }
+        itemPath = Gateway.getLookup().getItemPath(uuid);
+        item = Gateway.getProxyManager().getProxy(itemPath);
+
         return item;
     }
 
-    public Response getViewpointOutcome(String uuid, String schema, String viewName, boolean json) {
+    public Response.ResponseBuilder getViewpointOutcome(String uuid, String schema, String viewName, boolean json)
+            throws InvalidItemPathException, ObjectNotFoundException, Exception
+    {
         ItemProxy item = ItemRoot.getProxy(uuid);
         try {
             Viewpoint view = item.getViewpoint(schema, viewName);
             return getOutcomeResponse(view.getOutcome(), json);
         }
         catch (PersistencyException | ObjectNotFoundException e) {
-            Logger.error(e);
-            throw ItemUtils.createWebAppException(e.getMessage(), e, NOT_FOUND);
+            throw e;
         }
     }
 
-    public Response getOutcome(String uuid, String schema, int version, int eventId, boolean json) {
+    public Response.ResponseBuilder getOutcome(String uuid, String schema, int version, int eventId, boolean json)
+            throws InvalidItemPathException, ObjectNotFoundException, ClassCastException, Exception {
         ItemProxy item = ItemRoot.getProxy(uuid);
+
         try {
             Outcome outcome = item.getOutcome(schema, version, eventId);
-            return getOutcomeResponse(outcome, (Event)RemoteMapAccess.get(item, HISTORY, Integer.toString(eventId)), json);
+            return getOutcomeResponse(outcome,(Event)RemoteMapAccess.get(item, HISTORY, Integer.toString(eventId)), json);
         }
-        catch (ObjectNotFoundException e) {
-            Logger.error(e);
-            throw ItemUtils.createWebAppException(e.getMessage(), NOT_FOUND);
+        catch (Exception e) {
+            throw e;
         }
     }
 
-    public ArrayList<LinkedHashMap<String, Object>> enumerate(ItemProxy item, ClusterType cluster, String uriPath, UriInfo uri) {
+    public ArrayList<LinkedHashMap<String, Object>> enumerate(ItemProxy item, ClusterType cluster, String uriPath, UriInfo uri)
+            throws Exception
+    {
         return enumerate(item, cluster.getName(), uriPath, uri);
     }
 
-    public ArrayList<LinkedHashMap<String, Object>> enumerate(ItemProxy item, String dataPath, String uriPath, UriInfo uri) {
+    public ArrayList<LinkedHashMap<String, Object>> enumerate(ItemProxy item, String dataPath, String uriPath, UriInfo uri)
+            throws Exception
+    {
         try {
             String[] children = item.getContents(dataPath);
             ArrayList<LinkedHashMap<String, Object>> childrenData = new ArrayList<>();
@@ -208,11 +199,11 @@ public abstract class ItemUtils extends RestHandler {
         }
         catch (ObjectNotFoundException e) {
             Logger.error(e);
-            throw ItemUtils.createWebAppException("Database Error");
+            throw new Exception("Database Error");
         }
     }
 
-    protected ArrayList<LinkedHashMap<String, Object>> getAllViewpoints(ItemProxy item, UriInfo uri) {
+    protected ArrayList<LinkedHashMap<String, Object>> getAllViewpoints(ItemProxy item, UriInfo uri) throws Exception {
         ArrayList<LinkedHashMap<String, Object>> viewPoints = enumerate(item, VIEWPOINT, "viewpoint", uri);
 
         for(LinkedHashMap<String, Object> vp: viewPoints) {
@@ -230,7 +221,7 @@ public abstract class ItemUtils extends RestHandler {
      * @param json produce json or xml
      * @return the ws Response
      */
-    protected Response getOutcomeResponse(Outcome oc, boolean json) {
+    protected Response.ResponseBuilder getOutcomeResponse(Outcome oc, boolean json) {
         String result;
         
         if(json) result = XML.toJSONObject(oc.getData()).toString();
@@ -241,7 +232,7 @@ public abstract class ItemUtils extends RestHandler {
 //        cc.setMaxAge(300);
 //        cc.setPrivate(true);
 //        cc.setNoStore(true);
-        return Response.ok(result)./*cacheControl(cc).*/build();
+        return Response.ok(result)/*cacheControl(cc).*/;
     }
 
     /**
@@ -251,23 +242,24 @@ public abstract class ItemUtils extends RestHandler {
      * @param json produce json or xml
      * @return the ws Response
      */
-    protected Response getOutcomeResponse(Outcome oc, Date eventDate, boolean json) {
+    protected Response.ResponseBuilder getOutcomeResponse(Outcome oc, Date eventDate, boolean json) {
         String result;
 
         if(json) result = XML.toJSONObject(oc.getData()).toString();
         else     result = oc.getData();
 
-        return Response.ok(result).lastModified(eventDate).build();
+        return Response.ok(result).lastModified(eventDate);
     }
 
-    protected Response getOutcomeResponse(Outcome oc, Event ev, boolean json) {
+    protected Response.ResponseBuilder getOutcomeResponse(Outcome oc, Event ev, boolean json) throws Exception {
+
         try {
             Date eventDate = dateFormatter.parse(ev.getTimeString());
             return getOutcomeResponse(oc, eventDate, json);
         }
         catch (ParseException e) {
             Logger.error(e);
-            throw ItemUtils.createWebAppException("Invalid timestamp in event "+ev.getID()+": "+ev.getTimeString());
+            throw new Exception("Invalid timestamp in event "+ev.getID()+": "+ev.getTimeString());
         }
     }
 
@@ -490,54 +482,6 @@ public abstract class ItemUtils extends RestHandler {
         if (classPropData.size() > 0 && includeClassProps) collData.put("classIdentifiers", classPropData);
         if (propData.size() > 0)                           collData.put("properties", propData);
     }
-
-    /**
-     * Creates a WebApplicationException response from a simple text message. The status is set to INTERNAL_SERVER_ERROR
-     *
-     * @param msg text message
-     * @return WebApplicationException response
-     */
-    public static WebApplicationException createWebAppException(String msg) {
-        return createWebAppException(msg, INTERNAL_SERVER_ERROR);
-    }
-
-    /**
-     * Creates a WebApplicationException response from a simple text message and status
-     *
-     * @param msg text message
-     * @param status HTTP status of the response
-     * @return WebApplicationException response
-     */
-    public static WebApplicationException createWebAppException(String msg, Response.Status status) {
-        return createWebAppException(msg, null, status);
-    }
-
-    /**
-     * Creates a WebApplicationException response from a simple text message, exception and status
-     *
-     * @param msg text message
-     * @param ex exception
-     * @param status HTTP status of the response
-     * @return WebApplicationException response
-     */
-    public static WebApplicationException createWebAppException(String msg, Exception ex, Response.Status status) {
-        Logger.debug(8, "ItemUtils.createWebAppException() - msg:"+ msg + " status:" + status);
-        if (ex != null && Logger.doLog(defaultLogLevel)) Logger.error(ex);
-
-        if (Gateway.getProperties().getBoolean("REST.Debug.errorsWithBody", false)) {
-            StringBuffer sb = new StringBuffer("[errorMessage]");
-            sb.append(msg).append("[/errorMessage]");
-
-            if(ex != null) sb.append(" - Exception:" + ex.getMessage());
-
-            return new WebApplicationException(sb.toString(), Response.status(status).entity(msg).build());
-        }
-        else {
-            return new WebApplicationException(msg, status);
-        }
-    }
-
-    
     
     /**
      * Check if the requested media type should be a JSON or XML
@@ -545,7 +489,7 @@ public abstract class ItemUtils extends RestHandler {
      * @param types the media types requested by the client
      * @return true if the type is JSON, false if it is XML
      */
-    public static boolean produceJSON(List<MediaType> types) {
+    public static boolean produceJSON(List<MediaType> types) throws UnsupportedOperationException {
         if (types.isEmpty()) return false;
 
         for (MediaType t: types) {
@@ -553,14 +497,12 @@ public abstract class ItemUtils extends RestHandler {
             else if (t.isCompatible(APPLICATION_JSON_TYPE))                                 return true;
         }
 
-        throw ItemUtils.createWebAppException(
-                    "Supported media types: TEXT_XML, APPLICATION_XML, APPLICATION_JSON", 
-                    UNSUPPORTED_MEDIA_TYPE);
+        throw new UnsupportedOperationException("Supported media types: TEXT_XML, APPLICATION_XML, APPLICATION_JSON");
     }
 
     /**
      * 
-     * @param type
+     * @param props
      * @return
      */
     public static List<String> getItemNames(Property ...props) {
@@ -655,9 +597,9 @@ public abstract class ItemUtils extends RestHandler {
     {
         Job thisJob = item.getJobByTransitionName(actPath, transition, agent);
 
-        if (thisJob == null)
-            throw ItemUtils.createWebAppException("Job not found for actPath:" + actPath + " transition:" + transition,
-                    NOT_FOUND);
+        if (thisJob == null) {
+            throw new ObjectNotFoundException( "Job not found for actPath:" + actPath + " transition:" + transition );
+        }
 
         // set outcome if required
         if (thisJob.hasOutcome()) {

@@ -31,13 +31,9 @@ import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
-import javax.ws.rs.core.Context;
-import javax.ws.rs.core.Cookie;
-import javax.ws.rs.core.HttpHeaders;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.UriInfo;
+import javax.ws.rs.core.*;
 
+import org.cristalise.kernel.common.ObjectNotFoundException;
 import org.cristalise.kernel.common.PersistencyException;
 import org.cristalise.kernel.process.Gateway;
 import org.cristalise.storage.jooqdb.JooqHandler;
@@ -59,11 +55,15 @@ public class ScriptAccess extends ResourceAccess {
             @CookieParam(COOKIENAME)                Cookie  authCookie,
             @Context                                UriInfo uri)
     {
-        checkAuthCookie(authCookie);
+        AuthData authData = checkAuthCookie(authCookie);
 
         if (batchSize == null) batchSize = Gateway.getProperties().getInt("REST.DefaultBatchSize", 75);
 
-        return listAllResources(SCRIPT_RESOURCE, uri, start, batchSize);
+        try {
+            return listAllResources(SCRIPT_RESOURCE, uri, start, batchSize).cookie(checkAndCreateNewCookie( authData )).build();
+        } catch ( Exception e ) {
+            throw new WebAppExceptionBuilder().exception(e).newCookie(checkAndCreateNewCookie( authData )).build();
+        }
     }
 
     @GET
@@ -74,8 +74,13 @@ public class ScriptAccess extends ResourceAccess {
             @CookieParam(COOKIENAME) Cookie  authCookie, 
             @Context                 UriInfo uri)
     {
-        checkAuthCookie(authCookie);
-        return listResourceVersions(SCRIPT_RESOURCE, name, uri);
+        AuthData authData = checkAuthCookie(authCookie);
+
+        try {
+            return listResourceVersions(SCRIPT_RESOURCE, name, uri).cookie(checkAndCreateNewCookie( authData )).build();
+        } catch ( Exception e ) {
+            throw new WebAppExceptionBuilder().exception(e).newCookie(checkAndCreateNewCookie( authData )).build();
+        }
     }
 
     @GET
@@ -87,8 +92,14 @@ public class ScriptAccess extends ResourceAccess {
             @PathParam("version")    Integer     version, 
             @CookieParam(COOKIENAME) Cookie      authCookie)
     {
-        checkAuthCookie(authCookie);
-        return getResource(SCRIPT_RESOURCE, name, version, produceJSON(headers.getAcceptableMediaTypes()));
+        AuthData authData = checkAuthCookie(authCookie);
+
+        try {
+            return getResource(SCRIPT_RESOURCE, name, version, produceJSON(headers.getAcceptableMediaTypes()))
+                    .cookie(checkAndCreateNewCookie( authData )).build();
+        } catch ( Exception e ) {
+            throw new WebAppExceptionBuilder().exception(e).newCookie(checkAndCreateNewCookie( authData )).build();
+        }
     }
     
     @GET
@@ -101,12 +112,16 @@ public class ScriptAccess extends ResourceAccess {
             @QueryParam("inputs")    String      inputJson,
             @CookieParam(COOKIENAME) Cookie      authCookie)
     {
-        checkAuthCookie(authCookie);
+        AuthData authData = checkAuthCookie(authCookie);
         
         try (DSLContext context = JooqHandler.connect()) {
-            return scriptUtils.executeScript(headers, null, scriptName, scriptVersion, inputJson, ImmutableMap.of("dsl", context));
+            return scriptUtils.executeScript(headers, null, scriptName, scriptVersion, inputJson, ImmutableMap.of("dsl", context))
+                    .cookie(checkAndCreateNewCookie(authData)).build();
+        } catch ( ObjectNotFoundException | UnsupportedOperationException e ) {
+            throw new WebAppExceptionBuilder().exception(e).newCookie(checkAndCreateNewCookie(authData)).build();
         } catch (DataAccessException | PersistencyException e) {
-            throw ItemUtils.createWebAppException("Error connecting to database, please contact support", e, Response.Status.NOT_FOUND);
+            throw new WebAppExceptionBuilder("Error connecting to database, please contact support", e,
+                    Response.Status.NOT_FOUND, checkAndCreateNewCookie(authData)).build();
         }
     }
 
@@ -121,12 +136,17 @@ public class ScriptAccess extends ResourceAccess {
             @QueryParam("version")   Integer     scriptVersion,
             @CookieParam(COOKIENAME) Cookie      authCookie)
     {
-        checkAuthCookie(authCookie);
+        AuthData authData = checkAuthCookie(authCookie);
         
         try (DSLContext context = JooqHandler.connect()) {
-            return scriptUtils.executeScript(headers, null, scriptName, scriptVersion, postData, ImmutableMap.of("dsl", context));
+            NewCookie newCookie = checkAndCreateNewCookie( authData );
+            return scriptUtils.executeScript(headers, null, scriptName, scriptVersion, postData, ImmutableMap.of("dsl", context))
+                    .cookie(newCookie).build();
+        } catch ( ObjectNotFoundException | UnsupportedOperationException e ) {
+            throw new WebAppExceptionBuilder().exception(e).newCookie(checkAndCreateNewCookie(authData)).build();
         } catch (DataAccessException | PersistencyException e) {
-            throw ItemUtils.createWebAppException("Error connecting to database, please contact support", e, Response.Status.NOT_FOUND);
+            throw new WebAppExceptionBuilder("Error connecting to database, please contact support", e,
+                    Response.Status.NOT_FOUND, checkAndCreateNewCookie(authData)).build();
         }
     }
 

@@ -49,11 +49,11 @@ public class CookieLogout extends RestHandler   {
             @QueryParam("reason")    String      reason,
             @CookieParam(COOKIENAME) Cookie      authCookie)
     {
-        AgentPath ap = checkAuthCookie(authCookie);
-
-        Logger.msg(5, "CookieLogout() - agent:'%s' reason:'%s'", ap.getAgentName(), reason);
-
         try {
+            AgentPath ap = getAgentPath(authCookie);
+
+            Logger.msg(5, "CookieLogout() - agent:'%s' reason:'%s'", ap.getAgentName(), reason);
+
             AgentProxy agent = Gateway.getProxyManager().getAgentProxy(ap);
 
             if      ("timeout".equals(reason))     agent.execute(agent, LoginTimeout.class);
@@ -62,7 +62,9 @@ public class CookieLogout extends RestHandler   {
         }
         catch (Exception e) {
             Logger.error(e);
-            throw ItemUtils.createWebAppException("Problem logging out", Response.Status.INTERNAL_SERVER_ERROR);
+            throw new WebAppExceptionBuilder()
+                    .message( "Problem logging out" )
+                    .status( Response.Status.INTERNAL_SERVER_ERROR ).build();
         }
 
         return Response.ok().build();

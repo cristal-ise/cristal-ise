@@ -30,11 +30,7 @@ import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
-import javax.ws.rs.core.Context;
-import javax.ws.rs.core.Cookie;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.UriInfo;
+import javax.ws.rs.core.*;
 
 import org.cristalise.kernel.common.ObjectNotFoundException;
 import org.cristalise.kernel.lookup.DomainPath;
@@ -68,33 +64,38 @@ public class PathAccess extends PathUtils {
             @CookieParam(COOKIENAME)                Cookie authCookie,
             @Context                                UriInfo uri)
     {
-        checkAuthCookie(authCookie);
+        AuthData authData = checkAuthCookie(authCookie);
         DomainPath domPath = new DomainPath(path);
         if (batchSize == null) batchSize = Gateway.getProperties().getInt("REST.Path.DefaultBatchSize",
                 Gateway.getProperties().getInt("REST.DefaultBatchSize", 75));
 
         // Return 404 if the domain path doesn't exist
-        if (!domPath.exists())
-            throw ItemUtils.createWebAppException("Domain path does not exist", Response.Status.NOT_FOUND);
+        if (!domPath.exists()) {
+            throw new WebAppExceptionBuilder().message("Domain path does not exist")
+                    .status(Response.Status.NOT_FOUND).newCookie(checkAndCreateNewCookie( authData )).build();
+        }
 
         // If the domain path represents an item, redirect to it
         try {
             ItemPath item = domPath.getItemPath();
-            return Response.seeOther(ItemUtils.getItemURI(uri, item)).build();
+            return Response.seeOther(ItemUtils.getItemURI(uri, item)).cookie(checkAndCreateNewCookie( authData )).build();
         }
         catch (ObjectNotFoundException ex) {} // not an item
 
         PagedResult childSearch;
+        try {
+            if (search == null) childSearch = Gateway.getLookup().getChildren(domPath, start, batchSize);
+            else                childSearch = Gateway.getLookup().search(domPath, getPropertiesFromQParams(search), start, batchSize);
 
-        if (search == null) childSearch = Gateway.getLookup().getChildren(domPath, start, batchSize);
-        else                childSearch = Gateway.getLookup().search(domPath, getPropertiesFromQParams(search), start, batchSize);
+            ArrayList<Map<String, Object>> pathDataArray = new ArrayList<>();
 
-        ArrayList<Map<String, Object>> pathDataArray = new ArrayList<>();
+            for (org.cristalise.kernel.lookup.Path p: childSearch.rows) {
+                pathDataArray.add(makeLookupData(path, p, uri));
+            }
 
-        for (org.cristalise.kernel.lookup.Path p: childSearch.rows) {
-            pathDataArray.add(makeLookupData(path, p, uri));
+            return toJSON(getPagedResult(uri, start, batchSize, childSearch.maxRows, pathDataArray)).cookie(checkAndCreateNewCookie( authData )).build();
+        } catch ( Exception e ) {
+            throw new WebAppExceptionBuilder().exception(e).newCookie(checkAndCreateNewCookie( authData )).build();
         }
-
-        return toJSON(getPagedResult(uri, start, batchSize, childSearch.maxRows, pathDataArray));
     }
 }
