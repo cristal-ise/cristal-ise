@@ -26,9 +26,7 @@ import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import java.nio.ByteBuffer;
-import java.security.InvalidAlgorithmParameterException;
-import java.security.InvalidKeyException;
-import java.security.NoSuchAlgorithmException;
+import java.security.Key;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.LinkedHashMap;
@@ -36,12 +34,7 @@ import java.util.List;
 import java.util.Map;
 
 import javax.crypto.BadPaddingException;
-import javax.crypto.Cipher;
 import javax.crypto.IllegalBlockSizeException;
-import javax.crypto.KeyGenerator;
-import javax.crypto.NoSuchPaddingException;
-import javax.crypto.SecretKey;
-import javax.crypto.spec.IvParameterSpec;
 import javax.ws.rs.core.Cookie;
 import javax.ws.rs.core.NewCookie;
 import javax.ws.rs.core.Response;
@@ -49,13 +42,17 @@ import javax.ws.rs.core.UriInfo;
 import javax.xml.bind.DatatypeConverter;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.shiro.crypto.AesCipherService;
 import org.cristalise.kernel.common.InvalidDataException;
 import org.cristalise.kernel.common.ObjectNotFoundException;
 import org.cristalise.kernel.common.SystemKey;
 import org.cristalise.kernel.entity.proxy.AgentProxy;
 import org.cristalise.kernel.lookup.AgentPath;
+import org.cristalise.kernel.lookup.DomainPath;
 import org.cristalise.kernel.lookup.InvalidAgentPathException;
 import org.cristalise.kernel.lookup.ItemPath;
+import org.cristalise.kernel.lookup.Lookup.PagedResult;
+import org.cristalise.kernel.lookup.Path;
 import org.cristalise.kernel.lookup.RolePath;
 import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.property.Property;
@@ -69,32 +66,18 @@ abstract public class RestHandler {
     private boolean requireLogin = true;
     private int defaultLogLevel;
 
-    private static SecretKey cookieKey;
-    private static Cipher encryptCipher;
-    private static Cipher decryptCipher;
+    private static Key cookieKey;
+    private static AesCipherService aesCipherService;
 
     public static final String COOKIENAME = "cauth";
     public static final String USERNAME = "username";
     public static final String PASSWORD = "password";
 
     static {
-        try {
-            try {
-                initKeys(256);
-            }
-            catch (InvalidKeyException ex) {
-                if (Gateway.getProperties().getBoolean("REST.allowWeakKey", false) == false) {
-                    Logger.error(ex);
-                    Logger.die("Weak cookie crypto not allowed, and unlimited strength crypto not installed.");
-                }
-                Logger.msg("Unlimited crypto not installed. Trying 128-bit key.");
-                initKeys(128);
-            }
-        }
-        catch (Exception e) {
-            Logger.error(e);
-            Logger.die("Error initializing cookie encryption");
-        }
+        int keySize = Gateway.getProperties().getBoolean("REST.allowWeakKey", false) ? 128 : 256;
+
+        aesCipherService = new AesCipherService();
+        cookieKey = aesCipherService.generateNewKey(keySize);
     }
 
     public RestHandler() {
@@ -103,30 +86,23 @@ abstract public class RestHandler {
         defaultLogLevel = Gateway.getProperties().getInt("LOGGER.defaultLevel", 9);
     }
 
-    private static void initKeys(int keySize) 
-            throws NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException, InvalidAlgorithmParameterException
-    {
-        KeyGenerator kgen = KeyGenerator.getInstance("AES");
-        kgen.init(keySize);
-        cookieKey = kgen.generateKey();
-
-        System.out.println("RestHandler.initKeys() - Cookie key: "+DatatypeConverter.printBase64Binary(cookieKey.getEncoded()));
-
-        encryptCipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
-        encryptCipher.init(Cipher.ENCRYPT_MODE, cookieKey);
-
-        decryptCipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
-        decryptCipher.init(Cipher.DECRYPT_MODE, cookieKey, new IvParameterSpec(encryptCipher.getIV()));
-    }
-
-    private synchronized AuthData decryptAuthData(String authData)
+    /**
+     * 
+     * @param authData
+     * @return
+     * @throws InvalidAgentPathException
+     * @throws IllegalBlockSizeException
+     * @throws BadPaddingException
+     * @throws InvalidDataException
+     */
+    protected synchronized AuthData decryptAuthData(String authData)
             throws InvalidAgentPathException, IllegalBlockSizeException, BadPaddingException, InvalidDataException
     {
         byte[] bytes = DatatypeConverter.parseBase64Binary(authData);
 
         for (int cntRetries = 1; ; cntRetries++) {
             try {
-                return new AuthData(decryptCipher.doFinal(bytes));
+                return new AuthData(aesCipherService.decrypt(bytes, cookieKey.getEncoded()).getBytes());
             }
             catch (final Exception e) {
                 Logger.error("Exception caught in decryptAuthData: #" + cntRetries + ": " + e.getMessage());
@@ -138,10 +114,17 @@ abstract public class RestHandler {
         }
     }
 
+    /**
+     * 
+     * @param auth
+     * @return
+     * @throws IllegalBlockSizeException
+     * @throws BadPaddingException
+     */
     protected synchronized String encryptAuthData(AuthData auth)
             throws IllegalBlockSizeException, BadPaddingException
     {
-        byte[] bytes = encryptCipher.doFinal(auth.getBytes());
+        byte[] bytes = aesCipherService.encrypt(auth.getBytes(), cookieKey.getEncoded()).getBytes();
         return DatatypeConverter.printBase64Binary(bytes);
     }
 
@@ -395,6 +378,32 @@ abstract public class RestHandler {
         }
 
         return userNoTimeout;
+    }
+
+    /**
+     * 
+     * @param ip
+     */
+    protected  Map<String, Object> makeItemDomainPathsData(ItemPath ip) {
+        PagedResult result = Gateway.getLookup().searchAliases(ip, 0, 50);
+
+        Map<String, Object> returnVal = new LinkedHashMap<String, Object>();
+        ArrayList<Object> domainPathesData = new ArrayList<>();
+
+        for (Path p: result.rows) domainPathesData.add(p.getStringPath());
+
+        if (domainPathesData.size() != 0) {
+            returnVal.put("uuid", ip.getUUID().toString());
+            returnVal.put("name", ((DomainPath)result.rows.get(0)).getName());
+            returnVal.put("domainPaths", domainPathesData);
+        }
+        else if (ip instanceof AgentPath) {
+            returnVal.put("uuid", ip.getUUID().toString());
+            returnVal.put("name", ((AgentPath)ip).getAgentName());
+            returnVal.put("error", "Agent has no aliases");
+        }
+
+        return returnVal;
     }
 
     /**

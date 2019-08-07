@@ -159,7 +159,7 @@ public class WebAppExceptionBuilder {
             message = "Application process failed";
         }
 
-        Logger.debug(8, "ItemUtils.createWebAppException() - msg:"+ message + " status:" + status);
+        Logger.debug(8, "WebAppExceptionBuilder.build() - msg:"+ message + " status:" + status);
         int defaultLogLevel = Gateway.getProperties().getInt("LOGGER.defaultLevel", 9);
         if (exception != null && Logger.doLog(defaultLogLevel)) {
             Logger.error(exception);

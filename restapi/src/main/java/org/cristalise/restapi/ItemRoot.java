@@ -25,8 +25,8 @@ import static org.cristalise.kernel.persistency.ClusterType.COLLECTION;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
-import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 import javax.ws.rs.Consumes;
@@ -104,10 +104,9 @@ public class ItemRoot extends ItemUtils {
             @CookieParam(COOKIENAME) Cookie authCookie)
     {
         AuthData authData = checkAuthCookie(authCookie);
-        LinkedHashMap<String, Object> itemAliases = new LinkedHashMap<String, Object>();
 
         //Add name, and domainPathes
-        makeItemDomainPathsData(new ItemPath(UUID.fromString(uuid)), itemAliases);
+        Map<String, Object> itemAliases = makeItemDomainPathsData(new ItemPath(UUID.fromString(uuid)));
 
         if (StringUtils.isBlank((String)itemAliases.get("name"))) {
             throw new WebAppExceptionBuilder()
@@ -330,10 +329,8 @@ public class ItemRoot extends ItemUtils {
             throw new WebAppExceptionBuilder().exception(e).newCookie(checkAndCreateNewCookie( authData )).build();
         }
 
-        LinkedHashMap<String, Object> itemSummary = new LinkedHashMap<String, Object>();
-
         //Add name, and domainPaths
-        makeItemDomainPathsData(item.getPath(), itemSummary);
+        Map<String, Object> itemSummary = makeItemDomainPathsData(item.getPath());
 
         itemSummary.put("uuid", uuid);
         itemSummary.put("hasMasterOutcome", false);
@@ -684,7 +681,7 @@ public class ItemRoot extends ItemUtils {
      * @param transName the name of the transition, can be null
      * @param uri the uri of the request
      * @return the transName if it was not blank or the name of first valueless query parameter
-     * @throws WebApplicationException if no transition name can be extracted
+     * @throws InvalidDataException if no transition name can be extracted
      */
     private String extractAndCheckTransitionName(String transName, UriInfo uri) throws InvalidDataException {
         if (StringUtils.isNotBlank(transName)) return transName;

@@ -1,0 +1,48 @@
+site_name: Cristal-ISE
+repo_url: https://github.com/cristal-ise/cristal-ise
+edit_uri: edit/cristalise-docs/docs
+
+theme:
+    name: readthedocs
+    highlightjs: true
+    hljs_languages:
+        - yaml
+        - django
+
+extra_css:
+    - css/extra.css
+
+nav:
+    - Overview:
+        - Cristal-iSE Documentation: index.md
+        - Getting started: Getting-Started.md 
+    - Features: 
+        - Key Features: Key-Features.md
+        - Cope with Change: Cope-with-Change.md
+        - Evolve Code with Data: Evolve-Code-with-Data.md
+        - Built-in Provenance: Built-in-Provenance.md
+        - Universal Data Catalogue: Universal-Data-Catalogue.md
+        - Process Description: Process-Description.md
+        - Built-in Security: Built-in-Security.md
+        - Immutable BOs: Immutable-BOs.md
+    - Technical Documentation:
+        - Introduction: Introduction.md
+        - Technical Introduction: Technical-Introduction.md
+        - Client API: API.md
+        - Developer Guide: Developer-Guide.md
+        - DSL: Domain-Specific-Language-(DSL).md
+        - JavaDoc: http://javadoc.io/doc/org.cristalise/cristalise-kernel
+    - Tutorials:
+        - Basic (Create Patient): Basic-Tutorial.md
+        - Create PatientDetails: Create-PatientDetails.md
+        - Create SetPatientDetails: Create-SetPatientDetails.md
+        - Create PatientLifecycle: Create-PatientLifecycle.md
+        - Create PatientDescription: Create-PatientDescription.md
+        - Create Patient: Create-Patient.md
+        - Advance ( Patient Tracking ): tutorial-PatientTracking.md
+    - Others:        
+        - Selected papers: Selected-papers.md
+        - Maven Deploy Travis: Maven-Deploy-Travis.md
+        - Maven Deploy Travis GPG2: Maven-Deploy-Travis-GPG2.md
+        - Glossary: Glossary.md
+

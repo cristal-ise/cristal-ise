@@ -99,7 +99,12 @@ public class ScriptUtils extends ItemUtils {
                 throw e;
             } catch (Exception e) {
                 Logger.error(e);
-                throw new ObjectNotFoundException( "Error executing script, please contact support" );
+                if (e.getMessage().contains("[errorMessage]")) {
+                    throw new ObjectNotFoundException( e.getMessage() );
+                } else {
+                    // Throw the generic exception when error message is not defined in the script.
+                    throw new ObjectNotFoundException( "Error executing script, please contact support" );
+                }
             }
         }
         else {
@@ -133,6 +138,7 @@ public class ScriptUtils extends ItemUtils {
      * @param script
      * @param jsonFlag whether the response is a JSON or XML
      * @return
+     * @throws ObjectNotFoundException
      * @throws ScriptingEngineException
      * @throws InvalidDataException
      */
