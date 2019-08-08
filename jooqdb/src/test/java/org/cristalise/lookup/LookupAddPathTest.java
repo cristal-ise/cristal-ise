@@ -67,7 +67,6 @@ public class LookupAddPathTest extends LookupTestBase {
     @Test
     public void addDeleteDomainPath() throws Exception {
         Path p = new DomainPath("empty/toto");
-        if(lookup.exists(p)) lookup.delete(p);
         assertEquals("/domain/empty/toto", p.getStringPath());
         lookup.add(p);
         assert lookup.exists(p);
