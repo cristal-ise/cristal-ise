@@ -21,6 +21,7 @@
 package org.cristalise.restapi;
 
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 import javax.ws.rs.CookieParam;
@@ -38,9 +39,14 @@ import javax.ws.rs.core.UriInfo;
 
 import org.cristalise.kernel.common.ObjectNotFoundException;
 import org.cristalise.kernel.lookup.DomainPath;
+import org.cristalise.kernel.lookup.InvalidItemPathException;
 import org.cristalise.kernel.lookup.ItemPath;
 import org.cristalise.kernel.lookup.Lookup.PagedResult;
 import org.cristalise.kernel.process.Gateway;
+import org.cristalise.kernel.utils.Logger;
+
+import com.github.openjson.JSONArray;
+import com.github.openjson.JSONException;
 
 @Path("/domain")
 public class PathAccess extends PathUtils {
@@ -73,28 +79,59 @@ public class PathAccess extends PathUtils {
         if (batchSize == null) batchSize = Gateway.getProperties().getInt("REST.Path.DefaultBatchSize",
                 Gateway.getProperties().getInt("REST.DefaultBatchSize", 75));
 
-        // Return 404 if the domain path doesn't exist
-        if (!domPath.exists())
-            throw ItemUtils.createWebAppException("Domain path does not exist", Response.Status.NOT_FOUND);
-
-        // If the domain path represents an item, redirect to it
-        try {
-            ItemPath item = domPath.getItemPath();
-            return Response.seeOther(ItemUtils.getItemURI(uri, item)).build();
+        if (path.equals("aliases") && search != null && search.startsWith("[") && search.endsWith("]")) {
+            return getAliases(search);
         }
-        catch (ObjectNotFoundException ex) {} // not an item
+        else {
+            // Return 404 if the domain path doesn't exist
+            if (!domPath.exists())
+                throw ItemUtils.createWebAppException("Domain path does not exist", Response.Status.NOT_FOUND);
 
-        PagedResult childSearch;
+            // If the domain path represents an item, redirect to it
+            try {
+                ItemPath item = domPath.getItemPath();
+                return Response.seeOther(ItemUtils.getItemURI(uri, item)).build();
+            }
+            catch (ObjectNotFoundException ex) {} // not an item
 
-        if (search == null) childSearch = Gateway.getLookup().getChildren(domPath, start, batchSize);
-        else                childSearch = Gateway.getLookup().search(domPath, getPropertiesFromQParams(search), start, batchSize);
+            PagedResult childSearch;
 
-        ArrayList<Map<String, Object>> pathDataArray = new ArrayList<>();
+            if (search == null) childSearch = Gateway.getLookup().getChildren(domPath, start, batchSize);
+            else                childSearch = Gateway.getLookup().search(domPath, getPropertiesFromQParams(search), start, batchSize);
 
-        for (org.cristalise.kernel.lookup.Path p: childSearch.rows) {
-            pathDataArray.add(makeLookupData(path, p, uri));
+            ArrayList<Map<String, Object>> pathDataArray = new ArrayList<>();
+
+            for (org.cristalise.kernel.lookup.Path p: childSearch.rows) {
+                pathDataArray.add(makeLookupData(path, p, uri));
+            }
+
+            return toJSON(getPagedResult(uri, start, batchSize, childSearch.maxRows, pathDataArray));
         }
 
-        return toJSON(getPagedResult(uri, start, batchSize, childSearch.maxRows, pathDataArray));
+    }
+
+    private Response getAliases(String uuids) {
+        Logger.msg(5, "PathAccess.getAliases() - uuids:%s", uuids);
+
+        JSONArray uuidsArray = new JSONArray(uuids);
+        ArrayList<Object> returnVal = new ArrayList<>();
+
+        for (int i = 0; i < uuidsArray.length(); i++) {
+            String uuid = uuidsArray.getString(i);
+            try {
+                Map<String, Object> itemAliases = makeItemDomainPathsData(Gateway.getLookup().getItemPath(uuid));
+                returnVal.add(itemAliases);
+            }
+            catch (InvalidItemPathException | ObjectNotFoundException | JSONException e) {
+                //Logger.error(e);
+
+                Map<String, Object> error = new LinkedHashMap<String, Object>();
+                error.put("uuid", uuid);
+                error.put("error", e.getMessage());
+                returnVal.add(error);
+            }
+        }
+
+        return toJSON(returnVal);
     }
 }

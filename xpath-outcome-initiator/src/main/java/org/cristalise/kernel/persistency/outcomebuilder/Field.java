@@ -236,6 +236,9 @@ public class Field extends OutcomeStructure {
         if (StringUtils.isNotBlank(defVal)) fieldJson.put("value", defVal);
         if (StringUtils.isNotBlank(help))   myFieldInstance.getAdditionalConfigNgDynamicForms(fieldJson).put("tooltip", help.trim());
 
+        // dynamicForms.additional fields provided in the schema can overwrite default values (check ListOfValues.editable)
+        myFieldInstance.updateWithAdditional(fieldJson);
+
         return fieldJson;
     }
 }
