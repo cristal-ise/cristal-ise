@@ -1,0 +1,50 @@
+<ScientificData>
+	<ListOfVials>
+		<Vial>V1</Vial>
+		<Time>2009-04-05T00:58:00</Time>
+		<Time_UTC />
+		<Activity>100</Activity>
+		<Volume>3.02</Volume>
+		<VolumicActivity>101</VolumicActivity>
+		<Destination>D1</Destination>
+	</ListOfVials>
+	<ListOfVials>
+		<Vial>V2</Vial>
+		<Time>2019-04-05T00:59:00</Time>
+		<Time_UTC />
+		<Activity>200</Activity>
+		<Volume>5.02</Volume>
+		<VolumicActivity>201</VolumicActivity>
+		<Destination>D2</Destination>
+	</ListOfVials>
+	<ListOfVials>
+		<Vial>V3</Vial>
+		<Time>2009-04-05T01:08:00</Time>
+		<Time_UTC />
+		<Activity>300</Activity>
+		<Volume>23.45</Volume>
+		<VolumicActivity>301</VolumicActivity>
+		<Destination>D3</Destination>
+		<Country>Netherlands</Country>
+		<OrderedActivityMbqTinj>7400</OrderedActivityMbqTinj>
+		<RealMbqTinj>6999</RealMbqTinj>
+		<Deviation>1.23456789</Deviation>
+		<Doses>1</Doses>
+		<Carrier>1234</Carrier>
+	</ListOfVials>
+	<ListOfVials>
+		<Vial>V4</Vial>
+		<Time>2009-04-05T01:11:00</Time>
+		<Time_UTC />
+		<Activity>400</Activity>
+		<Volume>23.48</Volume>
+		<VolumicActivity>401</VolumicActivity>
+		<Destination>D3</Destination>
+		<Country>Netherlands</Country>
+		<OrderedActivityMbqTinj>7400</OrderedActivityMbqTinj>
+		<RealMbqTinj>6999</RealMbqTinj>
+		<Deviation>1.98765432</Deviation>
+		<Doses>1</Doses>
+		<Carrier>1234</Carrier>
+	</ListOfVials>
+</ScientificData>

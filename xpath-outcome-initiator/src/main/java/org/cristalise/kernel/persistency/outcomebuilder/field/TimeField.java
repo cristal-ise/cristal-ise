@@ -29,6 +29,7 @@ import java.time.temporal.ChronoUnit;
 import java.util.Map;
 
 import org.cristalise.kernel.persistency.outcomebuilder.InvalidOutcomeException;
+import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.utils.Logger;
 import org.json.JSONObject;
 
@@ -42,7 +43,7 @@ public class TimeField extends StringField {
     public String getDefaultValue() {
         //return DateTimeFormatter.ISO_DATE_TIME.format(LocalDateTime.of ( LocalDate.now(), LocalTime.of (12, 0, 0) ));
         //return "12:00:00";
-        return "";
+        return Gateway.getProperties().getString("Webui.inputField.time.defaultValue", "");
     }
 
     @Override

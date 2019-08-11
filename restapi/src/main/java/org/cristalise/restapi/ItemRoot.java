@@ -25,8 +25,8 @@ import static org.cristalise.kernel.persistency.ClusterType.COLLECTION;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
-import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 import javax.ws.rs.Consumes;
@@ -102,10 +102,9 @@ public class ItemRoot extends ItemUtils {
             @CookieParam(COOKIENAME) Cookie authCookie)
     {
         checkAuthCookie(authCookie);
-        LinkedHashMap<String, Object> itemAliases = new LinkedHashMap<String, Object>();
 
         //Add name, and domainPathes
-        makeItemDomainPathsData(new ItemPath(UUID.fromString(uuid)), itemAliases);
+        Map<String, Object> itemAliases = makeItemDomainPathsData(new ItemPath(UUID.fromString(uuid)));
 
         if (StringUtils.isBlank((String)itemAliases.get("name")))
             throw ItemUtils.createWebAppException("Cannot resolve UUID", Response.Status.NOT_FOUND);
@@ -178,6 +177,24 @@ public class ItemRoot extends ItemUtils {
         return scriptUtils.executeScript(headers, item, scriptName, scriptVersion, inputJson, ImmutableMap.of());
     }
 
+    @POST
+    @Path("scriptResult")
+    @Consumes( {MediaType.TEXT_XML, MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON, MediaType.TEXT_PLAIN } )
+    @Produces({ MediaType.TEXT_XML, MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON })
+    public Response getScriptResultPost(
+            String postData,
+            @Context                 HttpHeaders headers,
+            @PathParam("uuid")       String      uuid,
+            @QueryParam("script")    String      scriptName,
+            @QueryParam("version")   Integer     scriptVersion,
+            @CookieParam(COOKIENAME) Cookie      authCookie)
+    {
+        checkAuthCookie(authCookie);
+        ItemProxy item = getProxy(uuid);
+
+        return scriptUtils.executeScript(headers, item, scriptName, scriptVersion, postData, ImmutableMap.of());
+    }
+
     @GET
     @Path("queryResult")
     @Produces( {MediaType.TEXT_XML, MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON } )
@@ -248,10 +265,8 @@ public class ItemRoot extends ItemUtils {
         checkAuthCookie(authCookie);
         ItemProxy item = getProxy(uuid);
 
-        LinkedHashMap<String, Object> itemSummary = new LinkedHashMap<String, Object>();
-
         //Add name, and domainPaths
-        makeItemDomainPathsData(item.getPath(), itemSummary);
+        Map<String, Object> itemSummary = makeItemDomainPathsData(item.getPath());
 
         itemSummary.put("uuid", uuid);
         itemSummary.put("hasMasterOutcome", false);

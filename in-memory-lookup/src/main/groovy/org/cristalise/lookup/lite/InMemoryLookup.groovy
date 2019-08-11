@@ -171,7 +171,7 @@ abstract class InMemoryLookup extends ClusterStorage implements Lookup {
     @Override
     public String getIOR(Path path) throws ObjectNotFoundException {
         Logger.msg(5, "InMemoryLookup.getIOR() - Path: $path")
-        return retrievePath(path.stringPath).IOR.toString()
+        return ((ItemPath)retrievePath(path.stringPath)).getIORString()
     }
 
     /**

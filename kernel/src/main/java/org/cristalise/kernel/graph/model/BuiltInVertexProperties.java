@@ -234,6 +234,11 @@ public enum BuiltInVertexProperties {
     SECURITY_ACTION("SecurityAction"),
 
     /**
+     * 
+     */
+    SIMPLE_ELECTRONIC_SIGNATURE("SimpleElectonicSignature"),
+
+    /**
      * String property. Either the name of the Schema or the UUID of the Schema Item associated with Activities.
      *
      * Can be null or undefined.

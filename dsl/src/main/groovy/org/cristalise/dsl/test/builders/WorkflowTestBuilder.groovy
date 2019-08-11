@@ -54,6 +54,11 @@ class WorkflowTestBuilder extends WorkflowBuilder {
 
         itemPath  = new ItemPath()
         agentPath = new AgentPath(new ItemPath(), "WorkflowTestBuilder")
+
+        if(Gateway.getCorbaServer() != null) {
+            Gateway.getLookupManager().add(itemPath)
+            Gateway.getLookupManager().add(agentPath)
+        }
     }
 
     /**

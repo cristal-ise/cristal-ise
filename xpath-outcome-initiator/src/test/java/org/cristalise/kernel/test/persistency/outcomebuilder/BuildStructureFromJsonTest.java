@@ -47,7 +47,7 @@ public class BuildStructureFromJsonTest extends XMLUtils {
         builder.addJsonInstance(actualJson);
 
         Logger.msg(2, "Expected xml:%s", expected);
-        Logger.msg(2, "Actual xml:%s", builder.getXml());
+        Logger.msg(2, "Actual xml:%s", builder.getXml(false));
 
         assert compareXML(expected, builder.getXml());
     }

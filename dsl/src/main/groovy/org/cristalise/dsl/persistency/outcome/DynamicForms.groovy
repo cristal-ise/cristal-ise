@@ -38,6 +38,7 @@ class DynamicForms {
     Integer max = null
     Integer min = null
     Boolean multiple = null
+	String autoComplete = null
     String pattern = null
     String placeholder = null
     Boolean required = null
@@ -45,7 +46,10 @@ class DynamicForms {
     Boolean hideOnDateTimeSelect = null
     String type = null
     String value = null
-    
+    /**
+     * List all fields that will be updated once the current field is updated.
+     */
+    List<String> updateFields = null
     
     /**
      * Sets the grid properties of the base form or of the field
@@ -63,6 +67,11 @@ class DynamicForms {
      * Sets the width of the form
      */
     String width = null
+
+    /**
+     * 
+     */
+    Additional additional = null
 
     /**
      * Defines the Script name and version (e.g. GetShiftNames:0) which is executed when

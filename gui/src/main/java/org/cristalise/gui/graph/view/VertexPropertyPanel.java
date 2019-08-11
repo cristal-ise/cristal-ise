@@ -28,7 +28,6 @@ import java.awt.event.ActionListener;
 import java.lang.reflect.Constructor;
 import java.util.Observable;
 import java.util.Observer;
-
 import javax.swing.Box;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
@@ -40,7 +39,7 @@ import javax.swing.JScrollPane;
 import javax.swing.JTextField;
 import javax.swing.event.TableModelEvent;
 import javax.swing.event.TableModelListener;
-
+import org.apache.commons.lang3.StringUtils;
 import org.cristalise.gui.MainFrame;
 import org.cristalise.gui.graph.event.SelectionChangedEvent;
 import org.cristalise.gui.tabs.ItemTabPane;
@@ -52,15 +51,6 @@ import org.cristalise.kernel.graph.model.GraphableVertex;
 import org.cristalise.kernel.graph.model.Vertex;
 import org.cristalise.kernel.utils.CastorHashMap;
 
-
-/**************************************************************************
- *
- * $Revision: 1.4 $
- * $Date: 2005/09/09 12:19:28 $
- *
- * Copyright (C) 2003 CERN - European Organization for Nuclear Research
- * All rights reserved.
- **************************************************************************/
 
 public class VertexPropertyPanel extends JPanel implements Observer, TableModelListener, ActionListener {
 
@@ -133,12 +123,18 @@ public class VertexPropertyPanel extends JPanel implements Observer, TableModelL
     }
 
     public void setVertex(Vertex vert) {
-        if (vert.getName().equals("domain"))
+        String vertName = vert.getName();
+
+        if ("domain".equals(vertName)) {
             selObjName.setText("Domain Workflow");
-        else
-            selObjName.setText(vert.getName());
-        String className = vert.getClass().getName();
-        selObjClass.setText(className.substring(className.lastIndexOf('.')+1));
+        }
+        else {
+            if (StringUtils.isNotBlank(vertName)) selObjName.setText(vertName+" - ID:"+vert.getID());
+            else                                  selObjName.setText("ID:"+vert.getID());
+        }
+
+        selObjClass.setText(vert.getClass().getSimpleName());
+
         if (mSelPanel != null) mSelPanel.select(vert);
         if (vert instanceof GraphableVertex) {
             mPropertyModel.setMap(((GraphableVertex)vert).getProperties());
@@ -148,9 +144,13 @@ public class VertexPropertyPanel extends JPanel implements Observer, TableModelL
     }
 
     public void setEdge(DirectedEdge edge) {
-        selObjName.setText(edge.getName());
-        String className = edge.getClass().getName();
-        selObjClass.setText(className.substring(className.lastIndexOf('.')+1));
+        String edgeName = edge.getName();
+
+        if (StringUtils.isNotBlank(edgeName)) selObjName.setText(edgeName+" - ID:"+edge.getID());
+        else                                  selObjName.setText("ID:"+edge.getID());
+
+        selObjClass.setText(edge.getClass().getSimpleName());
+
         if (edge instanceof GraphableEdge) {
             mPropertyModel.setMap(((GraphableEdge)edge).getProperties());
             addPropButton.setEnabled(isEditable);
@@ -226,10 +226,10 @@ public class VertexPropertyPanel extends JPanel implements Observer, TableModelL
         newPropBox.add(Box.createHorizontalGlue());
         newPropAbstract = new JCheckBox();
     	if (useAbstract) {
-            	newPropBox.add(newPropAbstract);
-            	newPropBox.add(Box.createHorizontalStrut(1));
-            	newPropBox.add(new JLabel("Abstract"));
-            	newPropBox.add(Box.createHorizontalStrut(1));
+                newPropBox.add(newPropAbstract);
+                newPropBox.add(Box.createHorizontalStrut(1));
+                newPropBox.add(new JLabel("Abstract"));
+                newPropBox.add(Box.createHorizontalStrut(1));
     	}
         addPropButton = new JButton("Add");
         addPropButton.setMargin(new Insets(0, 0, 0, 0));

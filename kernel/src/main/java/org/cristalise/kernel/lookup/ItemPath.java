@@ -119,7 +119,9 @@ public class ItemPath extends Path {
                 return null;
             }
         }
-        return Gateway.getORB().string_to_object(mIOR);
+
+        if (mIOR == null) return null;
+        else              return Gateway.getORB().string_to_object(mIOR);
     }
 
     @Override

@@ -10,6 +10,8 @@
         "pattern": "^-?\\d{3}\\.\\d{2}$",
         "required": null
       },
+      "id": "Weight",
+      "label": "Weight *",
       "cls": {
         "grid": {
           "container": "ui-g",
@@ -18,8 +20,6 @@
         },
         "element": {"label": "ui-widget"}
       },
-      "id": "Weight",
-      "label": "Weight *",
       "placeholder": "Weight",
       "type": "INPUT",
       "value": "0.0",
@@ -31,6 +31,8 @@
         "pattern": "^-?\\d{0,3}\\.\\d{2}$",
         "required": null
       },
+      "id": "WeightMinus",
+      "label": "Weight Minus *",
       "cls": {
         "grid": {
           "container": "ui-g",
@@ -39,8 +41,6 @@
         },
         "element": {"label": "ui-widget"}
       },
-      "id": "WeightMinus",
-      "label": "Weight Minus *",
       "placeholder": "Weight Minus",
       "type": "INPUT",
       "value": "0.0",
@@ -52,6 +52,8 @@
         "pattern": "^-?\\d+\\.\\d{2}$",
         "required": null
       },
+      "id": "WeightScale",
+      "label": "Weight Scale *",
       "cls": {
         "grid": {
           "container": "ui-g",
@@ -60,8 +62,6 @@
         },
         "element": {"label": "ui-widget"}
       },
-      "id": "WeightScale",
-      "label": "Weight Scale *",
       "placeholder": "Weight Scale",
       "type": "INPUT",
       "value": "0.0",
@@ -73,6 +73,8 @@
         "pattern": "^-?\\d+\\.?\\d{0,2}$",
         "required": null
       },
+      "id": "WeightScaleMinus",
+      "label": "Weight Scale Minus *",
       "cls": {
         "grid": {
           "container": "ui-g",
@@ -81,8 +83,6 @@
         },
         "element": {"label": "ui-widget"}
       },
-      "id": "WeightScaleMinus",
-      "label": "Weight Scale Minus *",
       "placeholder": "Weight Scale Minus",
       "type": "INPUT",
       "value": "0.0",
