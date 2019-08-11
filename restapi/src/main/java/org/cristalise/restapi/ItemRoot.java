@@ -137,19 +137,21 @@ public class ItemRoot extends ItemUtils {
         Script script = null;
 
         try {
-            if (scriptName != null) {
+            boolean jsonFlag = produceJSON(headers.getAcceptableMediaTypes());
+
+            if (StringUtils.isNotBlank(scriptName)) {
                 final Schema schema = LocalObjectLoader.getSchema(type, schemaVersion);
                 script = LocalObjectLoader.getScript(scriptName, scriptVersion);
 
-                return scriptUtils.returnScriptResult(scriptName, item, schema, script, new CastorHashMap(), produceJSON(headers.getAcceptableMediaTypes()));
+                return scriptUtils.returnScriptResult(scriptName, item, schema, script, new CastorHashMap(), jsonFlag);
             }
             else if ((script = getAggregateScript(type, scriptVersion)) != null) {
                 final Schema schema = LocalObjectLoader.getSchema(type, schemaVersion);
 
-                return scriptUtils.returnScriptResult(scriptName, item, schema, script, new CastorHashMap(), produceJSON(headers.getAcceptableMediaTypes()));
+                return scriptUtils.returnScriptResult(scriptName, item, schema, script, new CastorHashMap(), jsonFlag);
             }
             else if (item.checkViewpoint(type, view)) {
-                return getViewpointOutcome(uuid, type, view, true);
+                return getViewpointOutcome(uuid, type, view, jsonFlag);
             }
             else
                 throw ItemUtils.createWebAppException("No method available to retrieve MasterOutcome", Response.Status.NOT_FOUND);
