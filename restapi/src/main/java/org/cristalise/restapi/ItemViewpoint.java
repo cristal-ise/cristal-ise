@@ -109,7 +109,7 @@ public class ItemViewpoint extends ItemUtils {
 
         try {
             return getViewpointOutcome(uuid, schema, viewName, true).cookie(checkAndCreateNewCookie( authData )).build();
-        } catch ( Exception e ) {
+        } catch ( PersistencyException | InvalidItemPathException | ObjectNotFoundException e ) {
             throw new WebAppExceptionBuilder().exception(e).newCookie(checkAndCreateNewCookie( authData )).build();
         }
     }

@@ -174,7 +174,7 @@ public class ItemRoot extends ItemUtils {
             else if (item.checkViewpoint(type, view)) {
                 try {
                     return getViewpointOutcome(uuid, type, view, true).cookie(checkAndCreateNewCookie(authData)).build();
-                } catch ( Exception e ) {
+                } catch ( InvalidItemPathException | ObjectNotFoundException | PersistencyException e ) {
                     throw new WebAppExceptionBuilder().exception(e).newCookie(checkAndCreateNewCookie(authData)).build();
                 }
             }

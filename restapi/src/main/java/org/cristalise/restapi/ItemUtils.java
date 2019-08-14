@@ -147,7 +147,7 @@ public abstract class ItemUtils extends RestHandler {
     }
 
     public Response.ResponseBuilder getViewpointOutcome(String uuid, String schema, String viewName, boolean json)
-            throws InvalidItemPathException, ObjectNotFoundException, Exception
+            throws InvalidItemPathException, ObjectNotFoundException, PersistencyException
     {
         ItemProxy item = ItemRoot.getProxy(uuid);
         try {
