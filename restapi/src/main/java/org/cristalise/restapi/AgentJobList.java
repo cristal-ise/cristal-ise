@@ -57,15 +57,8 @@ public class AgentJobList extends ItemUtils {
             @CookieParam(COOKIENAME)                Cookie  authCookie,
             @Context                                UriInfo uri)
     {
-        AuthData authData = checkAuthCookie(authCookie);
-
-        ItemProxy item;
-        try {
-            item = getProxy(uuid);
-        } catch (InvalidItemPathException | ObjectNotFoundException e) {
-            throw new WebAppExceptionBuilder().exception(e).newCookie(checkAndCreateNewCookie( authData )).build();
-        }
-
+        NewCookie cookie = checkAndCreateNewCookie(checkAuthCookie(authCookie));
+        ItemProxy item  = getProxy(uuid, cookie);
 
         descending = descending != null;
 
@@ -73,7 +66,7 @@ public class AgentJobList extends ItemUtils {
             throw new WebAppExceptionBuilder()
                     .message("UUID does not belong to an Agent")
                     .status(Response.Status.BAD_REQUEST)
-                    .newCookie(checkAndCreateNewCookie( authData ))
+                    .newCookie(cookie)
                     .build();
         }
 
@@ -87,7 +80,7 @@ public class AgentJobList extends ItemUtils {
         try {
             batch = RemoteMapAccess.list(item, JOB, start, batchSize, descending, uri);
         } catch (ClassCastException | ObjectNotFoundException e) {
-            throw new WebAppExceptionBuilder().exception(e).newCookie(checkAndCreateNewCookie( authData )).build();
+            throw new WebAppExceptionBuilder().exception(e).newCookie(cookie).build();
         }
 
         ArrayList<LinkedHashMap<String, Object>> jobs = new ArrayList<>();
@@ -104,16 +97,12 @@ public class AgentJobList extends ItemUtils {
                     throw new WebAppExceptionBuilder()
                             .message( "Item " + job.getItemUUID() + " in Job not found" )
                             .status( Response.Status.NOT_FOUND )
-                            .newCookie( checkAndCreateNewCookie( authData ) ).build();
+                            .newCookie(cookie).build();
                 }
             }
         }
 
-        try {
-            return toJSON(jobs).cookie(checkAndCreateNewCookie( authData )).build();
-        } catch ( Exception e ) {
-            throw new WebAppExceptionBuilder().exception(e).newCookie(checkAndCreateNewCookie( authData )).build();
-        }
+        return toJSON(jobs, cookie).build();
     }
 
     @GET
@@ -125,43 +114,22 @@ public class AgentJobList extends ItemUtils {
             @CookieParam(COOKIENAME) Cookie  authCookie,
             @Context                 UriInfo uri)
     {
-        AuthData authData = checkAuthCookie(authCookie);
-
-        ItemProxy item;
-        try {
-            item = getProxy(uuid);
-        } catch (InvalidItemPathException | ObjectNotFoundException e) {
-            throw new WebAppExceptionBuilder().exception(e).newCookie(checkAndCreateNewCookie( authData )).build();
-        }
+        NewCookie cookie = checkAndCreateNewCookie(checkAuthCookie(authCookie));
+        ItemProxy item = getProxy(uuid, cookie);
 
         if (!(item instanceof AgentProxy)) {
-            NewCookie newCookie = checkAndCreateNewCookie( authData );
             throw new WebAppExceptionBuilder()
                     .message( "UUID does not belong to an Agent")
-                    .status( Response.Status.BAD_REQUEST )
-                    .newCookie( newCookie ).build();
+                    .status(Response.Status.BAD_REQUEST)
+                    .newCookie(cookie).build();
         }
 
-        Job job;
         try {
-            job = (Job) RemoteMapAccess.get(item, JOB, jobId);
-        } catch ( ObjectNotFoundException | ClassCastException e ) {
-            throw new WebAppExceptionBuilder().exception(e).newCookie(checkAndCreateNewCookie( authData )).build();
+            Job job = (Job) RemoteMapAccess.get(item, JOB, jobId);
+            return toJSON(makeJobData(job, item.getName(), uri), cookie).build();
         }
-
-        //TODO: Add cookie for status:500
-        try {
-            return toJSON(makeJobData(job, job.getItemProxy().getName(), uri)).cookie(checkAndCreateNewCookie( authData )).build();
-        } catch (ObjectNotFoundException e) {
-            throw new WebAppExceptionBuilder()
-                    .message("Item " + job.getItemUUID() + " in Job not found")
-                    .newCookie(checkAndCreateNewCookie( authData )).build();
-        } catch (InvalidItemPathException e) {
-            throw new WebAppExceptionBuilder()
-                    .message("Invalid Item UUID in Job " + job.getItemUUID() + " in Job not found")
-                    .newCookie(checkAndCreateNewCookie( authData )).build();
-        } catch ( Exception e ) {
-            throw new WebAppExceptionBuilder().exception(e).newCookie(checkAndCreateNewCookie( authData )).build();
+        catch ( ObjectNotFoundException | ClassCastException e ) {
+            throw new WebAppExceptionBuilder().exception(e).newCookie(cookie).build();
         }
     }
 
@@ -173,22 +141,15 @@ public class AgentJobList extends ItemUtils {
             @CookieParam(COOKIENAME) Cookie  authCookie,
             @Context                 UriInfo uri)
     {
-        AuthData authData = checkAuthCookie(authCookie);
-
-        ItemProxy item;
-        try {
-            item = getProxy(uuid);
-        } catch (InvalidItemPathException | ObjectNotFoundException e) {
-            throw new WebAppExceptionBuilder().exception(e).newCookie(checkAndCreateNewCookie( authData )).build();
-        }
+        NewCookie cookie = checkAndCreateNewCookie(checkAuthCookie(authCookie));
+        ItemProxy item  = getProxy(uuid, cookie);
 
         if (!(item instanceof AgentProxy)) {
             throw new WebAppExceptionBuilder()
                     .message( "UUID does not belong to an Agent")
                     .status( Response.Status.BAD_REQUEST )
-                    .newCookie( checkAndCreateNewCookie( authData ) ).build();
+                    .newCookie(cookie).build();
         }
-
 
         AgentProxy agent = (AgentProxy) item;
         RolePath[] roles = Gateway.getLookup().getRoles(agent.getPath());
@@ -198,10 +159,6 @@ public class AgentJobList extends ItemUtils {
             roleData.put(role.getName(), uri.getBaseUriBuilder().path("role").path(role.getName()).build());
         }
 
-        try {
-            return toJSON(roleData).cookie(checkAndCreateNewCookie( authData )).build();
-        } catch ( Exception e ) {
-            throw new WebAppExceptionBuilder().exception(e).newCookie(checkAndCreateNewCookie( authData )).build();
-        }
+        return toJSON(roleData, cookie).build();
     }
 }

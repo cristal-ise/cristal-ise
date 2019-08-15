@@ -28,7 +28,11 @@ import javax.ws.rs.CookieParam;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
-import javax.ws.rs.core.*;
+import javax.ws.rs.core.Context;
+import javax.ws.rs.core.Cookie;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.UriInfo;
 
 @Path("/")
 public class RootAccess extends RestHandler {
@@ -39,7 +43,6 @@ public class RootAccess extends RestHandler {
             @CookieParam(COOKIENAME)  Cookie authCookie,
             @Context                  UriInfo uri)
     {
-        AuthData authData = checkAuthCookie( authCookie );
         ArrayList<Map<String, Object>> resourceRoots = new ArrayList<>();
 
         resourceRoots.add(getRootData(uri, "domain"));
@@ -53,11 +56,7 @@ public class RootAccess extends RestHandler {
 //        resourceRoots.add(getRootData(uri, "item"));
 //        resourceRoots.add(getRootData(uri, "agent"));
 
-        try {
-            return toJSON(resourceRoots).cookie(checkAndCreateNewCookie( authData )).build();
-        } catch ( Exception e ) {
-            throw new WebAppExceptionBuilder().exception(e).newCookie(checkAndCreateNewCookie( authData )).build();
-        }
+        return toJSON(resourceRoots, null).build();
     }
 
     private Map<String, Object> getRootData(UriInfo uri, String name) {

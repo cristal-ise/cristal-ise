@@ -70,23 +70,20 @@ public class PathAccess extends PathUtils {
             @CookieParam(COOKIENAME)                Cookie authCookie,
             @Context                                UriInfo uri)
     {
-        AuthData authData = checkAuthCookie(authCookie);
+        NewCookie cookie = checkAndCreateNewCookie(checkAuthCookie(authCookie));
         DomainPath domPath = new DomainPath(path);
+
         if (batchSize == null) batchSize = Gateway.getProperties().getInt("REST.Path.DefaultBatchSize",
                 Gateway.getProperties().getInt("REST.DefaultBatchSize", 75));
 
         if (path.equals("aliases") && search != null && search.startsWith("[") && search.endsWith("]")) {
-            try {
-                return getAliases(search).cookie( checkAndCreateNewCookie( authData ) ).build();
-            } catch ( Exception e ) {
-                throw new WebAppExceptionBuilder().exception(e).newCookie( checkAndCreateNewCookie( authData ) ).build();
-            }
+            return getAliases(search, cookie).build();
         }
         else {
             // Return 404 if the domain path doesn't exist
             if (!domPath.exists()) {
                 throw new WebAppExceptionBuilder().message("Domain path does not exist")
-                        .status(Response.Status.NOT_FOUND).newCookie( checkAndCreateNewCookie( authData ) ).build();
+                        .status(Response.Status.NOT_FOUND).newCookie(cookie).build();
             }
 
             // If the domain path represents an item, redirect to it
@@ -98,25 +95,20 @@ public class PathAccess extends PathUtils {
 
             PagedResult childSearch;
 
-            try {
-                if (search == null) childSearch = Gateway.getLookup().getChildren(domPath, start, batchSize);
-                else                childSearch = Gateway.getLookup().search(domPath, getPropertiesFromQParams(search), start, batchSize);
+            if (search == null) childSearch = Gateway.getLookup().getChildren(domPath, start, batchSize);
+            else                childSearch = Gateway.getLookup().search(domPath, getPropertiesFromQParams(search), start, batchSize);
 
-                ArrayList<Map<String, Object>> pathDataArray = new ArrayList<>();
+            ArrayList<Map<String, Object>> pathDataArray = new ArrayList<>();
 
-                for (org.cristalise.kernel.lookup.Path p: childSearch.rows) {
+            for (org.cristalise.kernel.lookup.Path p: childSearch.rows) {
                     pathDataArray.add(makeLookupData(path, p, uri));
-                }
-
-                return toJSON(getPagedResult(uri, start, batchSize, childSearch.maxRows, pathDataArray))
-                        .cookie(checkAndCreateNewCookie( authData )).build();
-            } catch ( Exception e ) {
-                throw new WebAppExceptionBuilder().exception(e).newCookie( checkAndCreateNewCookie( authData ) ).build();
             }
+
+            return toJSON(getPagedResult(uri, start, batchSize, childSearch.maxRows, pathDataArray), cookie).build();
         }
     }
 
-    private Response.ResponseBuilder getAliases(String uuids) throws Exception {
+    private Response.ResponseBuilder getAliases(String uuids, NewCookie cookie) {
         Logger.msg(5, "PathAccess.getAliases() - uuids:%s", uuids);
 
         JSONArray uuidsArray = new JSONArray(uuids);
@@ -138,6 +130,6 @@ public class PathAccess extends PathUtils {
             }
         }
 
-        return toJSON(returnVal);
+        return toJSON(returnVal, cookie);
     }
 }

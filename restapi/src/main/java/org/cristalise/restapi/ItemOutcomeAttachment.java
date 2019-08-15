@@ -40,15 +40,10 @@ public class ItemOutcomeAttachment extends ItemUtils {
                                       @CookieParam(COOKIENAME) Cookie authCookie,
                                       @Context                 UriInfo uri)
     {
-        AuthData authData = checkAuthCookie(authCookie);
+        NewCookie cookie = checkAndCreateNewCookie(checkAuthCookie(authCookie));
+        ItemProxy item = getProxy(uuid, cookie);
 
-        try {
-            ItemProxy item = getProxy(uuid);
-            return toJSON(enumerate(item, ATTACHMENT, "attachment", uri))
-                    .cookie(checkAndCreateNewCookie( authData )).build();
-        } catch (Exception e) {
-            throw new WebAppExceptionBuilder().exception(e).newCookie(checkAndCreateNewCookie( authData )).build();
-        }
+        return toJSON(enumerate(item, ATTACHMENT, "attachment", uri, cookie), cookie).build();
     }
 
     @GET
@@ -59,16 +54,10 @@ public class ItemOutcomeAttachment extends ItemUtils {
                                        @CookieParam(COOKIENAME) Cookie  authCookie,
                                        @Context                 UriInfo uri)
     {
-        AuthData authData = checkAuthCookie(authCookie);
+        NewCookie cookie = checkAndCreateNewCookie(checkAuthCookie(authCookie));
+        ItemProxy item = getProxy(uuid, cookie);
 
-        try {
-            ItemProxy item = getProxy(uuid);
-
-            return toJSON(enumerate(item, ATTACHMENT + "/" + schema, "attachment/" + schema, uri))
-                    .cookie(checkAndCreateNewCookie( authData )).build();
-        } catch (Exception e) {
-            throw new WebAppExceptionBuilder().exception(e).newCookie(checkAndCreateNewCookie( authData )).build();
-        }
+        return toJSON(enumerate(item, ATTACHMENT + "/" + schema, "attachment/" + schema, uri, cookie), cookie).build();
     }
 
     @GET
@@ -80,16 +69,10 @@ public class ItemOutcomeAttachment extends ItemUtils {
                                      @CookieParam(COOKIENAME) Cookie  authCookie,
                                      @Context                 UriInfo uri)
     {
-        AuthData authData = checkAuthCookie(authCookie);
+        NewCookie cookie = checkAndCreateNewCookie(checkAuthCookie(authCookie));
+        ItemProxy item = getProxy(uuid, cookie);
 
-        try {
-            ItemProxy item = getProxy(uuid);
-            return toJSON(
-                    enumerate(item, ATTACHMENT+"/"+schema+"/"+version, "attachment/"+schema+"/"+version, uri)
-            ).cookie(checkAndCreateNewCookie( authData )).build();
-        } catch (Exception e) {
-            throw new WebAppExceptionBuilder().exception(e).newCookie(checkAndCreateNewCookie( authData )).build();
-        }
+        return toJSON(enumerate(item, ATTACHMENT+"/"+schema+"/"+version, "attachment/"+schema+"/"+version, uri, cookie), cookie).build();
     }
 
     @GET
@@ -102,13 +85,9 @@ public class ItemOutcomeAttachment extends ItemUtils {
                                  @CookieParam(COOKIENAME) Cookie  authCookie,
                                  @Context                 UriInfo uri)
     {
-        AuthData authData = checkAuthCookie(authCookie);
+        NewCookie cookie = checkAndCreateNewCookie(checkAuthCookie(authCookie));
 
-        try {
-            return getOutcome(uuid, schema, version, event, false).cookie(checkAndCreateNewCookie( authData )).build();
-        } catch ( Exception e ) {
-            throw new WebAppExceptionBuilder().exception(e).newCookie(checkAndCreateNewCookie( authData )).build();
-        }
+        return getOutcome(uuid, schema, version, event, false, cookie).build();
     }
 
     @GET
@@ -121,13 +100,8 @@ public class ItemOutcomeAttachment extends ItemUtils {
                                   @CookieParam(COOKIENAME) Cookie  authCookie,
                                   @Context                 UriInfo uri)
     {
-        AuthData authData = checkAuthCookie(authCookie);
+        NewCookie cookie = checkAndCreateNewCookie(checkAuthCookie(authCookie));
 
-        try {
-            return getOutcome(uuid, schema, version, event, true)
-                    .cookie(checkAndCreateNewCookie( authData )).build();
-        } catch ( Exception e ) {
-            throw new WebAppExceptionBuilder().exception(e).newCookie(checkAndCreateNewCookie( authData )).build();
-        }
+        return getOutcome(uuid, schema, version, event, true, cookie).build();
     }
 }

@@ -48,11 +48,9 @@ public class StateMachineAccess extends ResourceAccess {
 
         if (batchSize == null) batchSize = Gateway.getProperties().getInt("REST.DefaultBatchSize", 75);
 
-        try {
-            return listAllResources(STATE_MACHINE_RESOURCE, uri, start, batchSize).cookie(checkAndCreateNewCookie( authData )).build();
-        } catch ( Exception e ) {
-            throw new WebAppExceptionBuilder().exception(e).newCookie(checkAndCreateNewCookie( authData )).build();
-        }
+        NewCookie cookie = checkAndCreateNewCookie(authData);
+
+        return listAllResources(STATE_MACHINE_RESOURCE, uri, start, batchSize, cookie).build();
     }
 
     @GET
@@ -64,12 +62,9 @@ public class StateMachineAccess extends ResourceAccess {
             @Context                 UriInfo uri)
     {
         AuthData authData = checkAuthCookie(authCookie);
+        NewCookie cookie = checkAndCreateNewCookie(authData);
 
-        try {
-            return listResourceVersions(STATE_MACHINE_RESOURCE, name, uri).cookie(checkAndCreateNewCookie( authData)).build();
-        } catch ( Exception e ) {
-            throw new WebAppExceptionBuilder().exception(e).newCookie(checkAndCreateNewCookie( authData )).build();
-        }
+        return listResourceVersions(STATE_MACHINE_RESOURCE, name, uri, cookie).build();
     }
 
     @GET
@@ -82,12 +77,8 @@ public class StateMachineAccess extends ResourceAccess {
             @CookieParam(COOKIENAME) Cookie      authCookie)
     {
         AuthData authData = checkAuthCookie(authCookie);
+        NewCookie cookie = checkAndCreateNewCookie(authData);
 
-        try {
-            return getResource(STATE_MACHINE_RESOURCE, name, version, produceJSON(headers.getAcceptableMediaTypes()))
-                    .cookie(checkAndCreateNewCookie( authCookie )).build();
-        } catch ( Exception e ) {
-            throw new WebAppExceptionBuilder().exception(e).newCookie(checkAndCreateNewCookie( authData )).build();
-        }
+        return getResource(STATE_MACHINE_RESOURCE, name, version, produceJSON(headers.getAcceptableMediaTypes()), cookie).build();
     }
 }

@@ -38,6 +38,7 @@ import javax.crypto.IllegalBlockSizeException;
 import javax.ws.rs.core.Cookie;
 import javax.ws.rs.core.NewCookie;
 import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
 import javax.ws.rs.core.UriInfo;
 import javax.xml.bind.DatatypeConverter;
 
@@ -128,14 +129,15 @@ abstract public class RestHandler {
         return DatatypeConverter.printBase64Binary(bytes);
     }
 
-    public Response.ResponseBuilder toJSON(Object data) throws Exception {
+    public Response.ResponseBuilder toJSON(Object data, NewCookie cookie) {
         try {
             String json = mapper.writeValueAsString(data);
             Logger.msg(8, json);
-            return Response.ok(json);
-        } catch (IOException e) {
-            Logger.error(e);
-            throw new Exception( "Problem building response JSON" );
+            if (cookie != null) return Response.ok(json).cookie(cookie);
+            else                return Response.ok(json);
+        }
+        catch (IOException e) {
+            throw new WebAppExceptionBuilder("Problem building response JSON", e, Response.Status.INTERNAL_SERVER_ERROR, cookie).build();
         }
     }
 
@@ -169,7 +171,6 @@ abstract public class RestHandler {
         return checkAndCreateNewCookie( checkAuthCookie( authCookie) );
     }
 
-
     public NewCookie createNewCookie(AgentPath agentPath) {
         AuthData agentData = new AuthData(agentPath);
         return createNewCookie( agentData );
@@ -177,13 +178,11 @@ abstract public class RestHandler {
 
     public NewCookie createNewCookie(AuthData authData) {
         try {
-            NewCookie cookie = new NewCookie(COOKIENAME, encryptAuthData(authData), "/",
-                                            null, null, -1, false);
+            NewCookie cookie = new NewCookie(COOKIENAME, encryptAuthData(authData), "/", null, null, -1, false);
             return  cookie;
         } catch (IllegalBlockSizeException | BadPaddingException e) {
             Logger.error(e);
-            throw new WebAppExceptionBuilder("Problem building response JSON: ", e,
-                    Response.Status.INTERNAL_SERVER_ERROR, null).build();
+            throw new WebAppExceptionBuilder("Problem building response JSON: ", e, Response.Status.INTERNAL_SERVER_ERROR, null).build();
         }
     }
 
@@ -249,7 +248,7 @@ abstract public class RestHandler {
      * @param authCookie the cookie sent by the client
      * @returnAgentProxy
      */
-    public AgentProxy getAgent(String agentName, Cookie authCookie) throws ObjectNotFoundException, Exception {
+    public AgentProxy getAgent(String agentName, Cookie authCookie) throws ObjectNotFoundException {
         if(authCookie == null) return getAgent(agentName, (String)null);
         else                   return getAgent(agentName, authCookie.getValue());
     }
@@ -262,18 +261,19 @@ abstract public class RestHandler {
      * @param authData authorisation data (from cookie or token)
      * @return AgentProxy
      */
-    public AgentProxy getAgent(String agentName, String authData) throws ObjectNotFoundException, Exception {
+    public AgentProxy getAgent(String agentName, String authData) throws ObjectNotFoundException {
         AgentPath agentPath;
         AuthData agentAuthData = checkAuthData(authData);
         try {
             if(agentAuthData == null ) {
-                if (agentName != null && !"".equals(agentName)) {
+                if (StringUtils.isNoneBlank(agentName)) {
                     agentPath = Gateway.getLookup().getAgentPath(agentName);
                 }
                 else {
-                    throw new Exception("Agent is empty");
+                    throw new ObjectNotFoundException("AgentName is empty");
                 }
-            } else {
+            }
+            else {
                 agentPath = agentAuthData.agent;
             }
 
@@ -329,7 +329,7 @@ abstract public class RestHandler {
      * @param search the string to decompose in the format: name,prop:val,prop:val
      * @return the decoded list of Item Properties
      */
-    public List<Property> getPropertiesFromQParams(String search) throws InvalidDataException {
+    public List<Property> getPropertiesFromQParams(String search) {
         String[] terms = search.split(",");
     
         List<Property> props = new ArrayList<>();
@@ -340,14 +340,14 @@ abstract public class RestHandler {
                 String value = nameval[1];
     
                 if (nameval.length != 2) {
-                    throw new InvalidDataException("Invalid search term: " + terms[i]);
+                    throw new WebAppExceptionBuilder().message("Invalid search term: " + terms[i]).status(Status.BAD_REQUEST).build();
                 }
     
                 try {
                     value = URLDecoder.decode(nameval[1], "UTF-8");
                 } catch (UnsupportedEncodingException e) {
                     Logger.error(e);
-                    throw new InvalidDataException("Error decoding search value: " + nameval[1]);
+                    throw new WebAppExceptionBuilder().message("Error decoding search value: " + nameval[1]).status(Status.BAD_REQUEST).build();
                 }
                 
                 props.add(new Property(nameval[0], value));
@@ -356,7 +356,7 @@ abstract public class RestHandler {
                 props.add(new Property(NAME, terms[i]));
             }
             else {
-                throw new InvalidDataException("Only the first search term may omit property name");
+                throw new WebAppExceptionBuilder().message("Only the first search term may omit property name").status(Status.BAD_REQUEST).build();
             }
         }
         return props;

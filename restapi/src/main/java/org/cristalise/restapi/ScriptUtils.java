@@ -83,11 +83,9 @@ public class ScriptUtils extends ItemUtils {
         if (scriptName != null) {
             try {
                 script = LocalObjectLoader.getScript(scriptName, scriptVersion);
-                
-                JSONObject json = 
-                        new JSONObject(
-                                inputJson == null ? "{}" : URLDecoder.decode(inputJson, "UTF-8"));
-                
+
+                JSONObject json =  new JSONObject(inputJson == null ? "{}" : URLDecoder.decode(inputJson, "UTF-8"));
+
                 CastorHashMap inputs = new CastorHashMap();
                 for (String key: json.keySet()) {
                     inputs.put(key, json.get(key));
@@ -95,9 +93,11 @@ public class ScriptUtils extends ItemUtils {
                 inputs.putAll(additionalInputs);
                 
                 return returnScriptResult(scriptName, item, null, script, inputs, produceJSON(headers.getAcceptableMediaTypes()));
-            } catch ( UnsupportedOperationException e ) {
+            }
+            catch ( UnsupportedOperationException e ) {
                 throw e;
-            } catch (Exception e) {
+            }
+            catch (Exception e) {
                 Logger.error(e);
                 if (e.getMessage().contains("[errorMessage]")) {
                     throw new ObjectNotFoundException( e.getMessage() );
@@ -166,7 +166,7 @@ public class ScriptUtils extends ItemUtils {
         }
 
 
-        if (schema != null) return getOutcomeResponse(new Outcome(xmlOutcome, schema), new Date(), jsonFlag);
+        if (schema != null) return getOutcomeResponse(new Outcome(xmlOutcome, schema), new Date(), jsonFlag, null);
         else {
             if (jsonFlag) return Response.ok(XML.toJSONObject(xmlOutcome, true).toString());
             else          return Response.ok((xmlOutcome));

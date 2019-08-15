@@ -20,6 +20,9 @@
  */
 package org.cristalise.restapi;
 
+import static org.cristalise.kernel.persistency.ClusterType.HISTORY;
+import static org.cristalise.kernel.persistency.ClusterType.OUTCOME;
+
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 
@@ -29,17 +32,19 @@ import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
-import javax.ws.rs.core.*;
+import javax.ws.rs.core.Context;
+import javax.ws.rs.core.Cookie;
+import javax.ws.rs.core.HttpHeaders;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.NewCookie;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.UriInfo;
 
 import org.cristalise.kernel.common.ObjectNotFoundException;
 import org.cristalise.kernel.entity.proxy.ItemProxy;
 import org.cristalise.kernel.events.Event;
-import org.cristalise.kernel.lookup.InvalidItemPathException;
 import org.cristalise.kernel.persistency.outcome.Outcome;
 import org.cristalise.kernel.process.Gateway;
-import org.cristalise.kernel.utils.Logger;
-
-import static org.cristalise.kernel.persistency.ClusterType.*;
 
 @Path("/item/{uuid}/history")
 public class ItemHistory extends ItemUtils {
@@ -54,15 +59,8 @@ public class ItemHistory extends ItemUtils {
             @CookieParam(COOKIENAME)  Cookie  authCookie,
             @Context                  UriInfo uri)
     {
-        AuthData authData = checkAuthCookie(authCookie);
-
-        ItemProxy item;
-        try {
-            item = getProxy(uuid);
-        } catch (InvalidItemPathException | ObjectNotFoundException e) {
-            throw new WebAppExceptionBuilder().exception(e)
-                        .newCookie(checkAndCreateNewCookie( authData )).build();
-        }
+        NewCookie cookie = checkAndCreateNewCookie(checkAuthCookie(authCookie));
+        ItemProxy item = getProxy(uuid, cookie);
 
         if (start == null) start = 0;
         descending = descending != null;
@@ -75,9 +73,9 @@ public class ItemHistory extends ItemUtils {
         LinkedHashMap<String, Object> batch;
         try {
             batch = RemoteMapAccess.list(item, HISTORY, start, batchSize, descending, uri);
-        } catch (ClassCastException | ObjectNotFoundException e) {
-            throw new WebAppExceptionBuilder().exception(e)
-                    .newCookie(checkAndCreateNewCookie( authData )).build();
+        } 
+        catch (ClassCastException | ObjectNotFoundException e) {
+            throw new WebAppExceptionBuilder().exception(e).newCookie(cookie).build();
         }
 
         ArrayList<LinkedHashMap<String, Object>> events = new ArrayList<>();
@@ -90,11 +88,7 @@ public class ItemHistory extends ItemUtils {
             }
         }
 
-        try {
-            return toJSON(events).cookie(checkAndCreateNewCookie( authData )).build();
-        } catch ( Exception e ) {
-            throw new WebAppExceptionBuilder().exception(e).newCookie(checkAndCreateNewCookie( authData )).build();
-        }
+        return toJSON(events, cookie).build();
     }
 
     @GET
@@ -106,15 +100,16 @@ public class ItemHistory extends ItemUtils {
             @CookieParam(COOKIENAME) Cookie  authCookie,
             @Context                 UriInfo uri)
     {
-        AuthData authData = checkAuthCookie(authCookie);
+        NewCookie cookie = checkAndCreateNewCookie(checkAuthCookie(authCookie));
+        ItemProxy item = getProxy(uuid, cookie);
 
         try {
-            ItemProxy item = getProxy(uuid);
             Event ev = (Event) RemoteMapAccess.get(item, HISTORY, eventId);
 
-            return toJSON(makeEventData(ev, uri)).cookie(checkAndCreateNewCookie( authData )).build();
-        } catch (Exception e) {
-            throw new WebAppExceptionBuilder().exception(e).newCookie(checkAndCreateNewCookie( authData )).build();
+            return toJSON(makeEventData(ev, uri), cookie).build();
+        }
+        catch (ObjectNotFoundException e) {
+            throw new WebAppExceptionBuilder().exception(e).newCookie(cookie).build();
         }
     }
 
@@ -126,25 +121,19 @@ public class ItemHistory extends ItemUtils {
      * @param json
      * @return
      */
-    private Response.ResponseBuilder getEventOutcome(String uuid, String eventId, UriInfo uri, boolean json)
-            throws ObjectNotFoundException, InvalidItemPathException, ClassCastException, Exception {
-        ItemProxy item = getProxy(uuid);
-        Event ev = (Event) RemoteMapAccess.get(item, HISTORY, eventId);
-
-
-        if (ev.getSchemaName() == null || ev.getSchemaName().equals("")) {
-            throw new ObjectNotFoundException( "This event has no data" );
-        }
-
+    private Response.ResponseBuilder getEventOutcome(ItemProxy item, String eventId, UriInfo uri, boolean json, NewCookie cookie) {
         try {
+            Event ev = (Event) RemoteMapAccess.get(item, HISTORY, eventId);
+    
+            if (ev.getSchemaName() == null || ev.getSchemaName().equals("")) {
+                throw new ObjectNotFoundException( "This event has no data" );
+            }
+    
             Outcome oc = (Outcome) item.getObject(OUTCOME+"/"+ev.getSchemaName()+"/"+ev.getSchemaVersion()+"/"+ev.getID());
-            return getOutcomeResponse(oc, ev, json);
+            return getOutcomeResponse(oc, ev, json, cookie);
         }
         catch (ObjectNotFoundException e) {
-            Logger.error(e);
-            throw new ObjectNotFoundException( "Referenced data not" );
-        } catch ( Exception e ) {
-            throw e;
+            throw new WebAppExceptionBuilder().exception(e).newCookie(cookie).build();
         }
     }
 
@@ -158,12 +147,9 @@ public class ItemHistory extends ItemUtils {
             @CookieParam(COOKIENAME) Cookie      authCookie,
             @Context                 UriInfo     uri)
     {
-        AuthData authData = checkAuthCookie(authCookie);
-        try {
-            return getEventOutcome(uuid, eventId, uri, produceJSON(headers.getAcceptableMediaTypes()))
-                    .cookie(checkAndCreateNewCookie( authData )).build();
-        } catch ( Exception e ) {
-            throw new WebAppExceptionBuilder().exception(e).newCookie(checkAndCreateNewCookie( authData )).build();
-        }
+        NewCookie cookie = checkAndCreateNewCookie(checkAuthCookie(authCookie));
+        ItemProxy item = getProxy(uuid, cookie);
+
+        return getEventOutcome(item, eventId, uri, produceJSON(headers.getAcceptableMediaTypes()), cookie).build();
     }
 }

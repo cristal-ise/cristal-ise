@@ -45,14 +45,11 @@ public class QueryAccess extends ResourceAccess {
             @Context                                UriInfo uri)
     {
         AuthData authData = checkAuthCookie(authCookie);
+        NewCookie cookie = checkAndCreateNewCookie(authData);
 
         if (batchSize == null) batchSize = Gateway.getProperties().getInt("REST.DefaultBatchSize", 75);
 
-        try {
-            return listAllResources(QUERY_RESOURCE, uri, start, batchSize).cookie(checkAndCreateNewCookie(authData)).build();
-        } catch ( Exception e ) {
-            throw new WebAppExceptionBuilder().exception(e).newCookie(checkAndCreateNewCookie( authData )).build();
-        }
+        return listAllResources(QUERY_RESOURCE, uri, start, batchSize, cookie).build();
     }
 
     @GET
@@ -64,12 +61,9 @@ public class QueryAccess extends ResourceAccess {
             @Context                  UriInfo uri)
     {
         AuthData authData = checkAuthCookie(authCookie);
+        NewCookie cookie = checkAndCreateNewCookie(authData);
 
-        try {
-            return listResourceVersions(QUERY_RESOURCE, name, uri).cookie(checkAndCreateNewCookie(authData)).build();
-        } catch ( Exception e ) {
-            throw new WebAppExceptionBuilder().exception(e).newCookie(checkAndCreateNewCookie(authData)).build();
-        }
+        return listResourceVersions(QUERY_RESOURCE, name, uri, cookie).build();
     }
 
     @GET
@@ -82,12 +76,8 @@ public class QueryAccess extends ResourceAccess {
             @CookieParam(COOKIENAME) Cookie      authCookie)
     {
         AuthData authData = checkAuthCookie(authCookie);
+        NewCookie cookie = checkAndCreateNewCookie(authData);
 
-        try {
-            return getResource(QUERY_RESOURCE, name, version, produceJSON(headers.getAcceptableMediaTypes()))
-                    .cookie(checkAndCreateNewCookie(authData)).build();
-        } catch ( Exception e ) {
-            throw new WebAppExceptionBuilder().exception(e).newCookie(checkAndCreateNewCookie(authData)).build();
-        }
+        return getResource(QUERY_RESOURCE, name, version, produceJSON(headers.getAcceptableMediaTypes()), cookie).build();
     }
 }

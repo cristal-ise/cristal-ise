@@ -29,7 +29,13 @@ import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
-import javax.ws.rs.core.*;
+import javax.ws.rs.core.Context;
+import javax.ws.rs.core.Cookie;
+import javax.ws.rs.core.HttpHeaders;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.NewCookie;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.UriInfo;
 
 import org.cristalise.kernel.common.InvalidDataException;
 import org.cristalise.kernel.common.ObjectNotFoundException;
@@ -38,7 +44,6 @@ import org.cristalise.kernel.persistency.outcomebuilder.OutcomeBuilder;
 import org.cristalise.kernel.persistency.outcomebuilder.OutcomeBuilderException;
 import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.utils.LocalObjectLoader;
-import org.cristalise.kernel.utils.Logger;
 
 @Path("/schema")
 public class SchemaAccess extends ResourceAccess {
@@ -61,16 +66,11 @@ public class SchemaAccess extends ResourceAccess {
             @Context                                UriInfo uri)
     {
         AuthData authData = checkAuthCookie(authCookie);
+        NewCookie cookie = checkAndCreateNewCookie( authData );
 
         if (batchSize == null) batchSize = Gateway.getProperties().getInt("REST.DefaultBatchSize", 75);
 
-        NewCookie newCookie = checkAndCreateNewCookie( authData );
-
-        try {
-            return listAllResources(SCHEMA_RESOURCE, uri, start, batchSize).cookie(newCookie).build();
-        } catch ( Exception e ) {
-            throw new WebAppExceptionBuilder().exception(e).newCookie(checkAndCreateNewCookie( authData )).build();
-        }
+        return listAllResources(SCHEMA_RESOURCE, uri, start, batchSize, cookie).build();
     }
 
     @GET
@@ -82,12 +82,9 @@ public class SchemaAccess extends ResourceAccess {
             @Context                 UriInfo uri)
     {
         AuthData authData = checkAuthCookie(authCookie);
+        NewCookie cookie = checkAndCreateNewCookie( authData );
 
-        try {
-            return listResourceVersions(SCHEMA_RESOURCE, name, uri).cookie(checkAndCreateNewCookie( authCookie )).build();
-        } catch ( Exception e ) {
-            throw new WebAppExceptionBuilder().exception(e).newCookie(checkAndCreateNewCookie( authData )).build();
-        }
+        return listResourceVersions(SCHEMA_RESOURCE, name, uri, cookie).build();
     }
 
     @GET
@@ -100,13 +97,9 @@ public class SchemaAccess extends ResourceAccess {
             @CookieParam(COOKIENAME) Cookie      authCookie)
     {
         AuthData authData = checkAuthCookie(authCookie);
+        NewCookie cookie = checkAndCreateNewCookie( authData );
 
-        try {
-            return getResource(SCHEMA_RESOURCE, name, version, produceJSON(headers.getAcceptableMediaTypes()))
-                    .cookie(checkAndCreateNewCookie( authData )).build();
-        } catch ( Exception e ) {
-            throw new WebAppExceptionBuilder().exception(e).newCookie(checkAndCreateNewCookie( authData )).build();
-        }
+        return getResource(SCHEMA_RESOURCE, name, version, produceJSON(headers.getAcceptableMediaTypes()), cookie).build();
     }
 
     @GET
@@ -119,20 +112,15 @@ public class SchemaAccess extends ResourceAccess {
             @CookieParam(COOKIENAME) Cookie      authCookie)
     {
         AuthData authData = checkAuthCookie( authCookie );
+        NewCookie cookie = checkAndCreateNewCookie( authData );
 
         try {
             Schema schema = LocalObjectLoader.getSchema(name,version);
-            return Response.ok(new OutcomeBuilder(schema, false).generateNgDynamicForms()).cookie(checkAndCreateNewCookie( authData )).build();
+            return Response.ok(new OutcomeBuilder(schema, false).generateNgDynamicForms()).cookie(cookie).build();
         }
         catch (ObjectNotFoundException | InvalidDataException | OutcomeBuilderException e) {
-            Logger.error(e);
             throw new WebAppExceptionBuilder().message("Schema "+name+" v"+version+" doesn't point to any data")
-                    .status(Response.Status.NOT_FOUND).newCookie(checkAndCreateNewCookie( authData )).build();
-        }
-        catch(Exception e) {
-            Logger.error(e);
-            throw new WebAppExceptionBuilder().message("Schema "+name+" v"+version)
-                    .status(Response.Status.INTERNAL_SERVER_ERROR).newCookie(checkAndCreateNewCookie( authData )).build();
+                    .status(Response.Status.NOT_FOUND).newCookie(cookie).build();
         }
     }
 
@@ -146,14 +134,15 @@ public class SchemaAccess extends ResourceAccess {
             @CookieParam(COOKIENAME) Cookie      authCookie)
     {
         AuthData authData = checkAuthCookie(authCookie);
+        NewCookie cookie = checkAndCreateNewCookie( authData );
+
         try {
             Schema schema = LocalObjectLoader.getSchema(name,version);
-            return Response.ok(new OutcomeBuilder(schema).exportViewTemplate()).cookie(checkAndCreateNewCookie( authData )).build();
+            return Response.ok(new OutcomeBuilder(schema).exportViewTemplate()).cookie(cookie).build();
         }
         catch (ObjectNotFoundException | InvalidDataException | OutcomeBuilderException e) {
-            Logger.error(e);
             throw new WebAppExceptionBuilder().message("Schema "+name+" v"+version+" doesn't point to any data")
-                    .status(Response.Status.NOT_FOUND).newCookie(checkAndCreateNewCookie( authData )).build();
+                    .status(Response.Status.NOT_FOUND).newCookie(cookie).build();
         }
     }
 }

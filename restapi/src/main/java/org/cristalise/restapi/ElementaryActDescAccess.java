@@ -45,14 +45,11 @@ public class ElementaryActDescAccess extends ResourceAccess {
             @Context                                UriInfo uri)
     {
         AuthData authData = checkAuthCookie(authCookie);
+        NewCookie cookie = checkAndCreateNewCookie(authData);
 
         if (batchSize == null) batchSize = Gateway.getProperties().getInt("REST.DefaultBatchSize", 75);
 
-        try {
-            return listAllResources(ELEM_ACT_DESC_RESOURCE, uri, start ,batchSize).cookie(checkAndCreateNewCookie( authData )).build();
-        } catch ( Exception e ) {
-            throw new WebAppExceptionBuilder().exception(e).newCookie(checkAndCreateNewCookie( authData )).build();
-        }
+        return listAllResources(ELEM_ACT_DESC_RESOURCE, uri, start ,batchSize, cookie).build();
     }
 
     @GET
@@ -63,11 +60,10 @@ public class ElementaryActDescAccess extends ResourceAccess {
             @CookieParam(COOKIENAME)  Cookie  authCookie,
             @Context                  UriInfo uri)
     {
-        try {
-            return listResourceVersions(ELEM_ACT_DESC_RESOURCE, name, uri).cookie(checkAndCreateNewCookie( authCookie )).build();
-        } catch ( Exception e ) {
-            throw new WebAppExceptionBuilder().exception(e).newCookie(checkAndCreateNewCookie( authCookie )).build();
-        }
+        AuthData authData = checkAuthCookie(authCookie);
+        NewCookie cookie = checkAndCreateNewCookie(authData);
+
+        return listResourceVersions(ELEM_ACT_DESC_RESOURCE, name, uri, cookie).build();
     }
 
     @GET
@@ -79,11 +75,9 @@ public class ElementaryActDescAccess extends ResourceAccess {
             @PathParam("version")    Integer     version, 
             @CookieParam(COOKIENAME) Cookie      authCookie)
     {
-        try {
-            return getResource(ELEM_ACT_DESC_RESOURCE, name, version, produceJSON(headers.getAcceptableMediaTypes()))
-                    .cookie(checkAndCreateNewCookie( authCookie )).build();
-        } catch ( Exception e ) {
-            throw new WebAppExceptionBuilder().exception(e).newCookie(checkAndCreateNewCookie( authCookie )).build();
-        }
+        AuthData authData = checkAuthCookie(authCookie);
+        NewCookie cookie = checkAndCreateNewCookie(authData);
+
+        return getResource(ELEM_ACT_DESC_RESOURCE, name, version, produceJSON(headers.getAcceptableMediaTypes()), cookie).build();
     }
 }

@@ -20,6 +20,8 @@
  */
 package org.cristalise.restapi;
 
+import org.apache.commons.lang3.NotImplementedException;
+import org.apache.commons.lang3.StringUtils;
 import org.cristalise.kernel.common.*;
 import org.cristalise.kernel.lookup.InvalidItemPathException;
 import org.cristalise.kernel.persistency.outcomebuilder.OutcomeBuilderException;
@@ -50,62 +52,75 @@ public class WebAppExceptionBuilder {
     /**
      * Creates a WebApplicationException Builder from a simple text message, exception and status
      *
-     * @param message text message
-     * @param exception exception
-     * @param status HTTP status of the response
-     * @param newCookie cookie will be added to the response
+     * @param msg text message
+     * @param ex exception
+     * @param code HTTP status of the response
+     * @param cookie cookie will be added to the response
      * @return WebApplicationException Builder
      */
-    public WebAppExceptionBuilder(String message, Exception exception, Response.Status status, NewCookie newCookie) {
-        this.message = message;
-        this.exception = exception;
-        this.status = status;
-        this.newCookie = newCookie;
+    public WebAppExceptionBuilder(String msg, Exception ex, Response.Status code, NewCookie cookie) {
+        if (ex != null) this.exception(ex);
+        if (StringUtils.isNotBlank(msg)) this.message = msg;
+        if (code != null) this.status = code;
+        this.newCookie = cookie;
     }
 
     /**
      * Creates a WebApplicationException Builder
      *
-     * @param exception
+     * @param ex
      * @return
      */
-    public WebAppExceptionBuilder exception(Exception exception) {
-        this.exception = exception;
-        this.message = exception.getMessage();
+    public WebAppExceptionBuilder exception(Exception ex) {
+        this.exception = ex;
+        if (StringUtils.isBlank(this.message)) this.message = ex.getMessage();
 
-        if ( exception instanceof OutcomeBuilderException ||
-             exception instanceof ObjectAlreadyExistsException ||
-             exception instanceof InvalidDataException ||
-             exception instanceof ScriptErrorException ||
-             exception instanceof ScriptingEngineException ||
-             exception instanceof InvalidItemPathException ||
-             exception instanceof ClassCastException ||
-             exception instanceof InvalidCollectionModification ) {
+        Logger.debug(8, "WebAppExceptionBuilder.exception() - excpetion:'%s'", ex.getClass().getSimpleName());
+
+        if (ex instanceof OutcomeBuilderException ||
+            ex instanceof ObjectAlreadyExistsException ||
+            ex instanceof InvalidDataException ||
+            ex instanceof ScriptErrorException ||
+            ex instanceof ScriptingEngineException ||
+            ex instanceof InvalidItemPathException ||
+            ex instanceof ClassCastException ||
+            ex instanceof InvalidCollectionModification)
+        {
             this.status = Response.Status.BAD_REQUEST;
-        } else if ( exception instanceof UnsupportedOperationException ) {
+        }
+        else if (ex instanceof UnsupportedOperationException) {
             this.status = Response.Status.UNSUPPORTED_MEDIA_TYPE;
-        } else if ( exception instanceof AccessRightsException ) {
+        }
+        else if (ex instanceof AccessRightsException) {
             this.status = Response.Status.UNAUTHORIZED;
-        } else if ( exception instanceof ObjectNotFoundException ) {
+        }
+        else if (ex instanceof ObjectNotFoundException) {
             this.status = Response.Status.NOT_FOUND;
-        } else if ( exception instanceof InvalidTransitionException ) {
+        }
+        else if (ex instanceof InvalidTransitionException) {
             this.status = Response.Status.CONFLICT;
-        } else if ( exception instanceof PersistencyException ||
-                    exception instanceof MarshalException ||
-                    exception instanceof ValidationException ||
-                    exception instanceof IOException ||
-                    exception instanceof MappingException ) {
+        }
+        else if (ex instanceof NotImplementedException) {
+            this.status = Response.Status.NOT_IMPLEMENTED;
+        }
+        else if (ex instanceof PersistencyException ||
+                 ex instanceof MarshalException ||
+                 ex instanceof ValidationException ||
+                 ex instanceof IOException ||
+                 ex instanceof MappingException)
+        {
             this.status = Response.Status.INTERNAL_SERVER_ERROR;
-        } else if ( exception instanceof WebApplicationException ) {
-            Response response = ((WebApplicationException) exception).getResponse();
-            int statusCode = response.getStatus();
-            this.exception = null;
-            this.message = response.getEntity().toString();
-            this.status = Response.Status.fromStatusCode(statusCode);
-        } else {
-            Logger.error(exception);
+        }
+        else if (ex instanceof WebApplicationException) {
+            Logger.debug(5, "WebAppExceptionBuilder.exception() - DO NOTHING with WebApplicationException: %s", this.message);
+
+//            Response response = ((WebApplicationException) ex).getResponse();
+//            this.status = Response.Status.fromStatusCode(response.getStatus());
+//            this.message = response.getEntity().toString();
+        }
+        else {
+            Logger.debug(5, "WebAppExceptionBuilder.exception() - Mapping excpetion '%s' to INTERNAL_SERVER_ERROR", ex.getClass().getSimpleName());
             this.status = Response.Status.INTERNAL_SERVER_ERROR;
-            this.exception = null;
         }
 
         return this;
@@ -149,42 +164,34 @@ public class WebAppExceptionBuilder {
      *
      * @return WebApplicationException Response
      */
-    public WebApplicationException build () {
+    public WebApplicationException build() {
+        // recapturing WebApplicationException, which mean everything is setup already
+        if (exception != null && exception instanceof WebApplicationException) return (WebApplicationException)exception;
 
-        if ( status == null ) {
-            status = Response.Status.INTERNAL_SERVER_ERROR;
-        }
+        if (status == null) status = Response.Status.INTERNAL_SERVER_ERROR;
 
-        if ( message == null || message.equals("") ) {
-            message = "Application process failed";
-        }
+        if (StringUtils.isBlank(message)) message = "Application process failed";
 
         Logger.debug(8, "WebAppExceptionBuilder.build() - msg:"+ message + " status:" + status);
+
         int defaultLogLevel = Gateway.getProperties().getInt("LOGGER.defaultLevel", 9);
-        if (exception != null && Logger.doLog(defaultLogLevel)) {
-            Logger.error(exception);
-        }
+        if (exception != null && Logger.doLog(defaultLogLevel)) Logger.error(exception);
 
         Response.ResponseBuilder responseBuilder;
-        if ( newCookie != null && status != Response.Status.UNAUTHORIZED) {
-            responseBuilder = Response.status(status).cookie(newCookie);
-        } else {
-            responseBuilder = Response.status(status);
-        }
+
+        if (newCookie != null && status != Response.Status.UNAUTHORIZED) responseBuilder = Response.status(status).cookie(newCookie);
+        else                                                             responseBuilder = Response.status(status);
 
         if (Gateway.getProperties().getBoolean("REST.Debug.errorsWithBody", false)) {
             StringBuffer sb = new StringBuffer("[errorMessage]");
             sb.append(message).append("[/errorMessage]");
 
-            if(exception != null) {
-                sb.append(" - Exception:" + exception.getMessage());
-            }
+            if(exception != null) sb.append(" - Exception:" + exception.getMessage());
 
             return new WebApplicationException(sb.toString(), responseBuilder.entity(message).build());
         }
         else {
-            return new WebApplicationException(message, responseBuilder.build() );
+            return new WebApplicationException(message, responseBuilder.build());
         }
     }
-
 }

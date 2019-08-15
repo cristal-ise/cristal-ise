@@ -23,10 +23,6 @@ package org.cristalise.restapi;
 import static javax.ws.rs.core.MediaType.APPLICATION_JSON_TYPE;
 import static javax.ws.rs.core.MediaType.APPLICATION_XML_TYPE;
 import static javax.ws.rs.core.MediaType.TEXT_XML_TYPE;
-import static javax.ws.rs.core.Response.Status.BAD_REQUEST;
-import static javax.ws.rs.core.Response.Status.INTERNAL_SERVER_ERROR;
-import static javax.ws.rs.core.Response.Status.NOT_FOUND;
-import static javax.ws.rs.core.Response.Status.UNSUPPORTED_MEDIA_TYPE;
 import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.ATTACHMENT_MIME_TYPES;
 import static org.cristalise.kernel.persistency.ClusterType.HISTORY;
 import static org.cristalise.kernel.persistency.ClusterType.PROPERTY;
@@ -43,7 +39,13 @@ import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.UUID;
-import javax.ws.rs.core.*;
+
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.NewCookie;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
+import javax.ws.rs.core.UriBuilder;
+import javax.ws.rs.core.UriInfo;
 
 import org.apache.commons.lang3.StringUtils;
 import org.cristalise.kernel.collection.Aggregation;
@@ -89,13 +91,11 @@ import org.json.XML;
 public abstract class ItemUtils extends RestHandler {
 
     protected static final String PREDEFINED_PATH = "workflow/predefined/";
-    private static int defaultLogLevel;
     final DateFormat dateFormatter;
 
     public ItemUtils() {
         super();
         dateFormatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-        defaultLogLevel = Gateway.getProperties().getInt("LOGGER.defaultLevel", 9);
     }
 
     protected static URI getItemURI(UriInfo uri, ItemProxy item, Object...path) {
@@ -136,51 +136,47 @@ public abstract class ItemUtils extends RestHandler {
         return props;
     }
 
-    protected static ItemProxy getProxy(String uuid) throws InvalidItemPathException, ObjectNotFoundException {
-        ItemProxy item;
-        ItemPath itemPath;
+    //protected ItemProxy getProxy(String uuid) { return getProxy(uuid, null); }
 
-        itemPath = Gateway.getLookup().getItemPath(uuid);
-        item = Gateway.getProxyManager().getProxy(itemPath);
-
-        return item;
+    protected ItemProxy getProxy(String uuid, NewCookie cookie) {
+        try {
+            ItemPath itemPath = Gateway.getLookup().getItemPath(uuid);
+            return Gateway.getProxyManager().getProxy(itemPath);
+        }
+        catch(InvalidItemPathException | ObjectNotFoundException e) {
+            throw new WebAppExceptionBuilder().exception(e).newCookie(cookie).build();
+        }
     }
 
-    public Response.ResponseBuilder getViewpointOutcome(String uuid, String schema, String viewName, boolean json)
-            throws InvalidItemPathException, ObjectNotFoundException, PersistencyException
-    {
-        ItemProxy item = ItemRoot.getProxy(uuid);
+    public Response.ResponseBuilder getViewpointOutcome(String uuid, String schema, String viewName, boolean json, NewCookie cookie) {
+        ItemProxy item = getProxy(uuid, null);
+
         try {
             Viewpoint view = item.getViewpoint(schema, viewName);
-            return getOutcomeResponse(view.getOutcome(), json);
+            return getOutcomeResponse(view.getOutcome(), json, cookie);
         }
-        catch (PersistencyException | ObjectNotFoundException e) {
-            throw e;
+        catch (ObjectNotFoundException | PersistencyException e) {
+            throw new WebAppExceptionBuilder().exception(e).newCookie(cookie).build();
         }
     }
 
-    public Response.ResponseBuilder getOutcome(String uuid, String schema, int version, int eventId, boolean json)
-            throws InvalidItemPathException, ObjectNotFoundException, ClassCastException, Exception {
-        ItemProxy item = ItemRoot.getProxy(uuid);
+    public Response.ResponseBuilder getOutcome(String uuid, String schema, int version, int eventId, boolean json, NewCookie cookie) {
+        ItemProxy item = getProxy(uuid, null);
 
         try {
             Outcome outcome = item.getOutcome(schema, version, eventId);
-            return getOutcomeResponse(outcome,(Event)RemoteMapAccess.get(item, HISTORY, Integer.toString(eventId)), json);
+            return getOutcomeResponse(outcome,(Event)RemoteMapAccess.get(item, HISTORY, Integer.toString(eventId)), json, cookie);
         }
-        catch (Exception e) {
-            throw e;
+        catch (ObjectNotFoundException e) {
+            throw new WebAppExceptionBuilder().exception(e).newCookie(cookie).build();
         }
     }
 
-    public ArrayList<LinkedHashMap<String, Object>> enumerate(ItemProxy item, ClusterType cluster, String uriPath, UriInfo uri)
-            throws Exception
-    {
-        return enumerate(item, cluster.getName(), uriPath, uri);
+    public ArrayList<LinkedHashMap<String, Object>> enumerate(ItemProxy item, ClusterType cluster, String uriPath, UriInfo uri, NewCookie cookie) {
+        return enumerate(item, cluster.getName(), uriPath, uri, cookie);
     }
 
-    public ArrayList<LinkedHashMap<String, Object>> enumerate(ItemProxy item, String dataPath, String uriPath, UriInfo uri)
-            throws Exception
-    {
+    public ArrayList<LinkedHashMap<String, Object>> enumerate(ItemProxy item, String dataPath, String uriPath, UriInfo uri, NewCookie cookie) {
         try {
             String[] children = item.getContents(dataPath);
             ArrayList<LinkedHashMap<String, Object>> childrenData = new ArrayList<>();
@@ -197,17 +193,16 @@ public abstract class ItemUtils extends RestHandler {
             return childrenData;
         }
         catch (ObjectNotFoundException e) {
-            Logger.error(e);
-            throw new Exception("Database Error");
+            throw new WebAppExceptionBuilder().exception(e).newCookie(cookie).build();
         }
     }
 
-    protected ArrayList<LinkedHashMap<String, Object>> getAllViewpoints(ItemProxy item, UriInfo uri) throws Exception {
-        ArrayList<LinkedHashMap<String, Object>> viewPoints = enumerate(item, VIEWPOINT, "viewpoint", uri);
+    protected ArrayList<LinkedHashMap<String, Object>> getAllViewpoints(ItemProxy item, UriInfo uri, NewCookie cookie) throws Exception {
+        ArrayList<LinkedHashMap<String, Object>> viewPoints = enumerate(item, VIEWPOINT, "viewpoint", uri, cookie);
 
         for(LinkedHashMap<String, Object> vp: viewPoints) {
             String schema = vp.get("name").toString();
-            vp.put("views", enumerate(item, VIEWPOINT+"/"+schema, "viewpoint"+"/"+schema, uri));
+            vp.put("views", enumerate(item, VIEWPOINT+"/"+schema, "viewpoint"+"/"+schema, uri, cookie));
         }
 
         return viewPoints;
@@ -220,18 +215,22 @@ public abstract class ItemUtils extends RestHandler {
      * @param json produce json or xml
      * @return the ws ResponseBuilder
      */
-    protected Response.ResponseBuilder getOutcomeResponse(Outcome oc, boolean json) {
+    protected Response.ResponseBuilder getOutcomeResponse(Outcome oc, boolean json, NewCookie cookie) {
         String result;
-        
+
         if(json) result = XML.toJSONObject(oc.getData()).toString();
         else     result = oc.getData();
-        
+
         //Perhaps header 'Cache-Control: no-cache' should be used.
 //        CacheControl cc = new CacheControl();
 //        cc.setMaxAge(300);
 //        cc.setPrivate(true);
 //        cc.setNoStore(true);
-        return Response.ok(result)/*cacheControl(cc).*/;
+
+        Response.ResponseBuilder r = Response.ok(result)/*cacheControl(cc).*/;
+
+        if (cookie != null) return r.cookie(cookie);
+        else                return r;
     }
 
     /**
@@ -241,24 +240,27 @@ public abstract class ItemUtils extends RestHandler {
      * @param json produce json or xml
      * @return the ws ResponseBuilder
      */
-    protected Response.ResponseBuilder getOutcomeResponse(Outcome oc, Date eventDate, boolean json) {
+    protected Response.ResponseBuilder getOutcomeResponse(Outcome oc, Date eventDate, boolean json, NewCookie cookie) {
         String result;
 
         if(json) result = XML.toJSONObject(oc.getData()).toString();
         else     result = oc.getData();
+        
+        Response.ResponseBuilder r = Response.ok(result).lastModified(eventDate);
 
-        return Response.ok(result).lastModified(eventDate);
+        if (cookie != null) return r.cookie(cookie);
+        else                return r;
     }
 
-    protected Response.ResponseBuilder getOutcomeResponse(Outcome oc, Event ev, boolean json) throws Exception {
-
+    protected Response.ResponseBuilder getOutcomeResponse(Outcome oc, Event ev, boolean json, NewCookie cookie) {
         try {
             Date eventDate = dateFormatter.parse(ev.getTimeString());
-            return getOutcomeResponse(oc, eventDate, json);
+            return getOutcomeResponse(oc, eventDate, json, cookie);
         }
         catch (ParseException e) {
             Logger.error(e);
-            throw new Exception("Invalid timestamp in event "+ev.getID()+": "+ev.getTimeString());
+            throw new WebAppExceptionBuilder("Invalid timestamp in event "+ev.getID()+": "+ev.getTimeString(), e, 
+                    Status.INTERNAL_SERVER_ERROR, null).build();
         }
     }
 

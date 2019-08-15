@@ -57,7 +57,7 @@ public class ItemWorkflow extends ItemUtils {
         if (parent == null) {
             aTask.put("id",    uuid);
             aTask.put("type", "project");
-            aTask.put("text",  getProxy(uuid).getName());
+            aTask.put("text",  getProxy(uuid, null).getName());
             aTask.put("open",  true);
 
             aTask.put("duration", "");
@@ -90,7 +90,7 @@ public class ItemWorkflow extends ItemUtils {
     }
 
     //FIXME: use Script or injected implementation (each gantt utility can have different json representation)
-    private Map<String, Object> getGanttObject(Workflow wf) throws Exception {
+    private Map<String, Object> getGanttObject(Workflow wf) throws InvalidItemPathException, ObjectNotFoundException {
         CompositeActivity domain = (CompositeActivity) wf.search("workflow/domain");
 
         LinkedHashMap<String, Object> ganttObject = new LinkedHashMap<String, Object>();
@@ -142,34 +142,30 @@ public class ItemWorkflow extends ItemUtils {
             @CookieParam(COOKIENAME) Cookie  authCookie,
             @Context                 UriInfo uri)
     {
-        AuthData authData = checkAuthCookie(authCookie);
+        NewCookie cookie = checkAndCreateNewCookie(checkAuthCookie(authCookie));
 
         try {
-            Workflow wf = getProxy(uuid).getWorkflow();
+            Workflow wf = getProxy(uuid, cookie).getWorkflow();
 
             if (produceJSON(headers.getAcceptableMediaTypes())) {
                 if (gantt == null) {
-                    return Response.ok(XML.toJSONObject(Gateway.getMarshaller().marshall(wf), true)).cookie(checkAndCreateNewCookie( authData )).build();
+                    return Response.ok(XML.toJSONObject(Gateway.getMarshaller().marshall(wf), true)).cookie(cookie).build();
                 }
                 else {
-                    return toJSON(getGanttObject(wf)).cookie(checkAndCreateNewCookie( authData )).build();
+                    return toJSON(getGanttObject(wf), cookie).build();
                 }
             }
             else {
                 if (gantt == null) {
-                    return Response.ok(Gateway.getMarshaller().marshall(wf)).cookie(checkAndCreateNewCookie( authData )).build();
+                    return Response.ok(Gateway.getMarshaller().marshall(wf)).cookie(cookie).build();
                 }
                 else {
                     throw new WebAppExceptionBuilder().message("Cannot product Gantt in XML format")
-                            .status(Response.Status.BAD_REQUEST).newCookie(checkAndCreateNewCookie( authData )).build();
+                            .status(Response.Status.BAD_REQUEST).newCookie(cookie).build();
                 }
             }
-        } catch ( UnsupportedOperationException e ) {
-            throw new WebAppExceptionBuilder().exception(e).newCookie(checkAndCreateNewCookie(authData)).build();
         } catch (Exception e) {
-            Logger.error(e);
-            throw new WebAppExceptionBuilder().message(e.getMessage())
-                    .status(Response.Status.NOT_FOUND).newCookie(checkAndCreateNewCookie( authData )).build();
-        }
+            throw new WebAppExceptionBuilder().exception(e).newCookie(cookie).build();
+        } 
     }
 }
