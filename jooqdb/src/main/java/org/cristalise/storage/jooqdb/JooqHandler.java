@@ -164,7 +164,7 @@ public abstract class JooqHandler {
     public static final Boolean    autoCommit = Gateway.getProperties().getBoolean(JooqHandler.JOOQ_AUTOCOMMIT, false);
     public static final SQLDialect dialect    = SQLDialect.valueOf(Gateway.getProperties().getString(JooqHandler.JOOQ_DIALECT, "POSTGRES"));
 
-   public static HikariDataSource ds;
+    public static HikariDataSource ds;
  
     static {
         if (StringUtils.isAnyBlank(uri, user, pwd)) {
