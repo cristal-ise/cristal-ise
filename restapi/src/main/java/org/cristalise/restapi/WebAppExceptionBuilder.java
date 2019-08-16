@@ -174,7 +174,7 @@ public class WebAppExceptionBuilder {
 
         Logger.debug(8, "WebAppExceptionBuilder.build() - msg:"+ message + " status:" + status);
 
-        int defaultLogLevel = Gateway.getProperties().getInt("LOGGER.defaultLevel", 9);
+        int defaultLogLevel = Gateway.getProperties().getInt("LOGGER.defaultLevel", 8);
         if (exception != null && Logger.doLog(defaultLogLevel)) Logger.error(exception);
 
         Response.ResponseBuilder responseBuilder;
