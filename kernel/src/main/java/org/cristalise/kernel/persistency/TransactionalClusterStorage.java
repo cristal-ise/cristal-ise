@@ -26,7 +26,7 @@ import org.cristalise.kernel.lookup.ItemPath;
 
 public abstract class TransactionalClusterStorage extends ClusterStorage {
 
-	public abstract void begin(Object locker);
+	public abstract void begin(Object locker) throws PersistencyException;
 
 	public abstract void commit(Object locker) throws PersistencyException;
 	

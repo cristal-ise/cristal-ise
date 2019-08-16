@@ -27,7 +27,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Objects;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -188,22 +187,16 @@ public class JooqClusterStorage extends TransactionalClusterStorage {
     }
 
     @Override
-    public void begin(Object locker) {
+    public void begin(Object locker)  throws PersistencyException {
         if (!JooqHandler.autoCommit && locker == null) {
-            Logger.error("JooqClusterStorage.begin() - locker cannot be null when autoCommit is false");
-            return;
+            throw new PersistencyException("locker cannot be null when autoCommit is false");
         }
 
-        try {
-            DSLContext context = JooqHandler.connect();
+        DSLContext context = JooqHandler.connect();
 
-            if (!JooqHandler.autoCommit) contextMap.put(locker, context);
+        if (!JooqHandler.autoCommit) contextMap.put(locker, context);
 
-            if (Logger.doLog(5)) JooqHandler.logConnectionCount("JooqClusterStorage.begin()", context);
-        }
-        catch (PersistencyException e) {
-            Logger.error(e);
-        }
+        if (Logger.doLog(5)) JooqHandler.logConnectionCount("JooqClusterStorage.begin()", context);
     }
 
     private DSLContext retrieveContext(Object locker) throws PersistencyException {
