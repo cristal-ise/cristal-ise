@@ -103,6 +103,6 @@ public class LookupAddPathTest extends LookupTestBase {
     @Test(expected=ObjectCannotBeUpdated.class)
     public void deleteDomainPath_ObjectIsNotALeafError() throws Exception {
         lookup.add(new DomainPath("empty/toto"));
-        lookup.delete(new DomainPath("toto"));
+        lookup.delete(new DomainPath("empty"));
     }
 }
