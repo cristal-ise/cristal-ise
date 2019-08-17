@@ -20,14 +20,14 @@
  */
 package org.cristalise.storage.jooqdb;
 
+import static org.jooq.SQLDialect.MYSQL;
+import static org.jooq.SQLDialect.POSTGRES;
 import static org.jooq.impl.DSL.select;
 import static org.jooq.impl.DSL.using;
-
 import java.sql.Timestamp;
 import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
-
 import org.apache.commons.lang3.StringUtils;
 import org.cristalise.kernel.common.PersistencyException;
 import org.cristalise.kernel.entity.C2KLocalObject;
@@ -43,7 +43,6 @@ import org.jooq.SQLDialect;
 import org.jooq.Table;
 import org.jooq.impl.DefaultDataType;
 import org.jooq.impl.SQLDataType;
-
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 
@@ -173,6 +172,9 @@ public abstract class JooqHandler {
 
         HikariConfig config = new HikariConfig();
 
+        config.setPoolName("CRISTAL-iSE-HikariCP");
+        config.setRegisterMbeans(true);
+
         config.setJdbcUrl(uri);
         config.setUsername(user);
         config.setPassword(pwd);
@@ -188,10 +190,11 @@ public abstract class JooqHandler {
         config.addDataSourceProperty( "autoCommit",             autoCommit);
 
         ds = new HikariDataSource(config);
+
+        Logger.msg(8, "JooqHandler.static() - uri:'"+uri+"' user:'"+user+"' dialect:'"+dialect+"'");
     }
 
     public static DSLContext connect() throws PersistencyException {
-        Logger.msg(1, "JooqHandler.open() - uri:'"+uri+"' user:'"+user+"' dialect:'"+dialect+"'");
         try {
             return using(ds, dialect);
         }
@@ -290,9 +293,13 @@ public abstract class JooqHandler {
     abstract public C2KLocalObject fetch(DSLContext context, UUID uuid, String...primaryKeys) throws PersistencyException;
 
     public static void logConnectionCount(String text, DSLContext context) {
-        if (context.dialect().equals(SQLDialect.POSTGRES)) {
+        if (context.dialect().equals(POSTGRES)) {
             Record rec = context.fetchOne("SELECT sum(numbackends) FROM pg_stat_database;");
             Logger.msg("%s ------- Number of POSTGRES connections:%d", text, rec.get(0, Integer.class));
+        }
+        else if (context.dialect().equals(MYSQL)) {
+            Record rec = context.fetchOne("SHOW STATUS WHERE `variable_name` = 'Threads_connected';");
+            Logger.msg("%s ------- Number of MSQL connections:%s", text, rec.get(1, String.class));
         }
         else {
             Logger.warning("%s ------- Printing number of connections not supported for dialect:%s", text, context.dialect());
