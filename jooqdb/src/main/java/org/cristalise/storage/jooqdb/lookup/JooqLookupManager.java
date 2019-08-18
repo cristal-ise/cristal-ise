@@ -57,7 +57,6 @@ import org.cristalise.kernel.utils.Logger;
 import org.cristalise.storage.jooqdb.JooqHandler;
 import org.cristalise.storage.jooqdb.auth.Argon2Password;
 import org.cristalise.storage.jooqdb.clusterStore.JooqItemPropertyHandler;
-import org.jooq.Configuration;
 import org.jooq.DSLContext;
 import org.jooq.Field;
 import org.jooq.JoinType;
@@ -137,18 +136,15 @@ public class JooqLookupManager implements LookupManager {
         if (path == null) return false;
 
         List<Boolean> itemExists = new ArrayList<>();
-        try{
+
+        try {
            JooqHandler.connect().transaction(nested -> {
                 boolean isExist = false;
-                if (path instanceof ItemPath) {
-                    isExist =  items.exists(DSL.using(nested), path.getUUID());
-                } else if  (path instanceof AgentPath) {
-                    isExist =  items.exists(DSL.using(nested), path.getUUID());
-                } else if (path instanceof DomainPath) {
-                    isExist =  domains.exists(DSL.using(nested), (DomainPath)path);
-                } else if (path instanceof RolePath) {
-                    isExist = roles.exists(DSL.using(nested), (RolePath)path,null);
-                }
+
+                if      (path instanceof ItemPath)   isExist = items.exists(DSL.using(nested), path.getUUID());
+                else if (path instanceof AgentPath)  isExist = items.exists(DSL.using(nested), path.getUUID());
+                else if (path instanceof DomainPath) isExist = domains.exists(DSL.using(nested), (DomainPath)path);
+                else if (path instanceof RolePath)   isExist = roles.exists(DSL.using(nested), (RolePath)path,null);
 
                 if (isExist) itemExists.add(isExist);
 

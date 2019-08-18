@@ -24,6 +24,8 @@ import static org.jooq.SQLDialect.MYSQL;
 import static org.jooq.SQLDialect.POSTGRES;
 import static org.jooq.impl.DSL.select;
 import static org.jooq.impl.DSL.using;
+
+import java.sql.Connection;
 import java.sql.Timestamp;
 import java.util.Arrays;
 import java.util.List;
@@ -197,6 +199,17 @@ public abstract class JooqHandler {
     public static DSLContext connect() throws PersistencyException {
         try {
             return using(ds, dialect);
+        }
+        catch (Exception ex) {
+            Logger.error("JooqHandler could not connect to URI '"+uri+"' with user '"+user+"'");
+            Logger.error(ex);
+            throw new PersistencyException(ex.getMessage());
+        }
+    }
+
+    public static DSLContext connect(Connection conn) throws PersistencyException {
+        try {
+            return using(conn);
         }
         catch (Exception ex) {
             Logger.error("JooqHandler could not connect to URI '"+uri+"' with user '"+user+"'");
