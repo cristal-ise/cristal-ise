@@ -63,7 +63,6 @@ public class JooqClusterStorage extends TransactionalClusterStorage {
 
     protected HashMap<ClusterType, JooqHandler>     jooqHandlers   = new HashMap<ClusterType, JooqHandler>();
     protected List<JooqDomainHandler>               domainHandlers = new ArrayList<JooqDomainHandler>();
-    //protected ConcurrentHashMap<Object, DSLContext> contextMap     = new ConcurrentHashMap<Object, DSLContext>();
     protected ConcurrentHashMap<Object, Connection> connectionMap  = new ConcurrentHashMap<Object, Connection>();
 
     @Override
