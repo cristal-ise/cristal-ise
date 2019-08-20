@@ -20,14 +20,16 @@
  */
 package org.cristalise.storage.jooqdb;
 
+import static org.jooq.SQLDialect.MYSQL;
+import static org.jooq.SQLDialect.POSTGRES;
 import static org.jooq.impl.DSL.select;
 import static org.jooq.impl.DSL.using;
 
+import java.sql.Connection;
 import java.sql.Timestamp;
 import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
-
 import org.apache.commons.lang3.StringUtils;
 import org.cristalise.kernel.common.PersistencyException;
 import org.cristalise.kernel.entity.C2KLocalObject;
@@ -40,9 +42,10 @@ import org.jooq.Record;
 import org.jooq.Result;
 import org.jooq.SQLDialect;
 import org.jooq.Table;
-import org.jooq.impl.DefaultConnectionProvider;
 import org.jooq.impl.DefaultDataType;
 import org.jooq.impl.SQLDataType;
+import com.zaxxer.hikari.HikariConfig;
+import com.zaxxer.hikari.HikariDataSource;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -157,28 +160,57 @@ public abstract class JooqHandler {
     public static final DataType<String>         XML_TYPE_MYSQL  = new DefaultDataType<String>(SQLDialect.MYSQL, SQLDataType.CLOB, "mediumtext", "char");
     public static final DataType<byte[]>         ATTACHMENT_TYPE = SQLDataType.BLOB;
 
-    public static DSLContext connect() throws PersistencyException {
-        String uri  = Gateway.getProperties().getString(JooqHandler.JOOQ_URI);
-        String user = Gateway.getProperties().getString(JooqHandler.JOOQ_USER); 
-        String pwd  = Gateway.getProperties().getString(JooqHandler.JOOQ_PASSWORD);
 
+    public static final String     uri        = Gateway.getProperties().getString(JooqHandler.JOOQ_URI);
+    public static final String     user       = Gateway.getProperties().getString(JooqHandler.JOOQ_USER); 
+    public static final String     pwd        = Gateway.getProperties().getString(JooqHandler.JOOQ_PASSWORD);
+    public static final Boolean    autoCommit = Gateway.getProperties().getBoolean(JooqHandler.JOOQ_AUTOCOMMIT, false);
+    public static final SQLDialect dialect    = SQLDialect.valueOf(Gateway.getProperties().getString(JooqHandler.JOOQ_DIALECT, "POSTGRES"));
+
+    public static HikariDataSource ds;
+ 
+    static {
         if (StringUtils.isAnyBlank(uri, user, pwd)) {
             throw new IllegalArgumentException("JOOQ (uri, user, password) config values must not be blank");
         }
 
-        SQLDialect dialect = SQLDialect.valueOf(Gateway.getProperties().getString(JooqHandler.JOOQ_DIALECT, "POSTGRES"));
+        HikariConfig config = new HikariConfig();
 
-        log.info("JooqHandler.open() - uri:'"+uri+"' user:'"+user+"' dialect:'"+dialect+"'");
+        config.setPoolName("CRISTAL-iSE-HikariCP");
+        config.setRegisterMbeans(true);
 
+        config.setJdbcUrl(uri);
+        config.setUsername(user);
+        config.setPassword(pwd);
+        config.setAutoCommit(autoCommit);
+        config.setMaximumPoolSize(50);
+        config.setMaxLifetime(60000);
+        config.setMinimumIdle(10);
+        config.setIdleTimeout(30000);
+        //config.setLeakDetectionThreshold(30000); // enable to see connection leak warning
+        config.addDataSourceProperty( "cachePrepStmts",        true);
+        config.addDataSourceProperty( "prepStmtCacheSize",     "250");
+        config.addDataSourceProperty( "prepStmtCacheSqlLimit", "2048");
+        config.addDataSourceProperty( "autoCommit",             autoCommit);
+
+        ds = new HikariDataSource(config);
+
+        log.info("static() - uri:'"+uri+"' user:'"+user+"' dialect:'"+dialect+"'");
+    }
+
+    public static DSLContext connect() throws PersistencyException {
+      try {
+          return using(ds, dialect);
+      }
+      catch (Exception ex) {
+          log.error("JooqHandler could not connect to URI '"+uri+"' with user '"+user+"'", ex);
+          throw new PersistencyException(ex.getMessage());
+      }
+  }
+
+    public static DSLContext connect(Connection conn) throws PersistencyException {
         try {
-            DSLContext context = using(uri, user, pwd);
-
-            context.configuration().set(dialect);
-
-            boolean autoCommit = Gateway.getProperties().getBoolean(JooqHandler.JOOQ_AUTOCOMMIT, false);
-            ((DefaultConnectionProvider)context.configuration().connectionProvider()).setAutoCommit(autoCommit);
-
-            return context;
+            return using(conn);
         }
         catch (Exception ex) {
             log.error("JooqHandler could not connect to URI '"+uri+"' with user '"+user+"'", ex);
@@ -276,12 +308,12 @@ public abstract class JooqHandler {
     public static void logConnectionCount(String text, DSLContext context) {
         if (!log.isTraceEnabled()) return;
 
-        if (context.dialect().equals(SQLDialect.POSTGRES)) {
+        if (context.dialect().equals(POSTGRES)) {
             Record rec = context.fetchOne("SELECT sum(numbackends) FROM pg_stat_database;");
             log.trace("{} Number of POSTGRES connections:{}", text, rec.get(0, Integer.class));
         }
-        else if (context.dialect().equals(SQLDialect.MYSQL)) {
-            Record rec = context.fetchOne("show status where `variable_name` = 'Threads_connected';");
+        else if (context.dialect().equals(MYSQL)) {
+            Record rec = context.fetchOne("SHOW STATUS WHERE `variable_name` = 'Threads_connected';");
             log.trace("{} Number of MYSQL connections:{}", text, rec.get(1, Integer.class));
         }
         else {

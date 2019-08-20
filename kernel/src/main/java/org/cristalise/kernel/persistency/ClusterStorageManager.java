@@ -484,7 +484,7 @@ public class ClusterStorageManager {
         }
     }
 
-    public void begin(Object locker) {
+    public void begin(Object locker)  throws PersistencyException {
         for (TransactionalClusterStorage thisStore : transactionalStores) {
             thisStore.begin(locker);
         }
@@ -496,7 +496,7 @@ public class ClusterStorageManager {
         }
     }
 
-    public void abort(Object locker) {
+    public void abort(Object locker) throws PersistencyException {
         for (TransactionalClusterStorage thisStore : transactionalStores) {
             thisStore.abort(locker);
         }
