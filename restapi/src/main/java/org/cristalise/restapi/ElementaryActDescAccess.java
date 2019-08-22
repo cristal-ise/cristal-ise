@@ -29,12 +29,7 @@ import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
-import javax.ws.rs.core.Context;
-import javax.ws.rs.core.Cookie;
-import javax.ws.rs.core.HttpHeaders;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.UriInfo;
+import javax.ws.rs.core.*;
 
 import org.cristalise.kernel.process.Gateway;
 
@@ -49,11 +44,12 @@ public class ElementaryActDescAccess extends ResourceAccess {
             @CookieParam(COOKIENAME)                Cookie  authCookie,
             @Context                                UriInfo uri)
     {
-        checkAuthCookie(authCookie);
+        AuthData authData = checkAuthCookie(authCookie);
+        NewCookie cookie = checkAndCreateNewCookie(authData);
 
         if (batchSize == null) batchSize = Gateway.getProperties().getInt("REST.DefaultBatchSize", 75);
 
-        return listAllResources(ELEM_ACT_DESC_RESOURCE, uri, start ,batchSize);
+        return listAllResources(ELEM_ACT_DESC_RESOURCE, uri, start ,batchSize, cookie).build();
     }
 
     @GET
@@ -64,8 +60,10 @@ public class ElementaryActDescAccess extends ResourceAccess {
             @CookieParam(COOKIENAME)  Cookie  authCookie,
             @Context                  UriInfo uri)
     {
-        checkAuthCookie(authCookie);
-        return listResourceVersions(ELEM_ACT_DESC_RESOURCE, name, uri);
+        AuthData authData = checkAuthCookie(authCookie);
+        NewCookie cookie = checkAndCreateNewCookie(authData);
+
+        return listResourceVersions(ELEM_ACT_DESC_RESOURCE, name, uri, cookie).build();
     }
 
     @GET
@@ -77,7 +75,9 @@ public class ElementaryActDescAccess extends ResourceAccess {
             @PathParam("version")    Integer     version, 
             @CookieParam(COOKIENAME) Cookie      authCookie)
     {
-        checkAuthCookie(authCookie);
-        return getResource(ELEM_ACT_DESC_RESOURCE, name, version, produceJSON(headers.getAcceptableMediaTypes()));
+        AuthData authData = checkAuthCookie(authCookie);
+        NewCookie cookie = checkAndCreateNewCookie(authData);
+
+        return getResource(ELEM_ACT_DESC_RESOURCE, name, version, produceJSON(headers.getAcceptableMediaTypes()), cookie).build();
     }
 }

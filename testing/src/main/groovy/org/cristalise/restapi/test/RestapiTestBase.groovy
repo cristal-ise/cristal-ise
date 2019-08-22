@@ -42,6 +42,7 @@ class RestapiTestBase {
             .when()
                 .get(apiUri+"/login")
             .then()
+                .cookie('cauth')
                 .statusCode(STATUS_OK)
                 .extract().response()
 

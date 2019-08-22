@@ -22,7 +22,6 @@ package org.cristalise.restapi;
 
 import java.util.LinkedHashMap;
 
-import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 
 import org.cristalise.kernel.common.ObjectNotFoundException;
@@ -30,7 +29,6 @@ import org.cristalise.kernel.entity.C2KLocalObject;
 import org.cristalise.kernel.entity.proxy.ItemProxy;
 import org.cristalise.kernel.persistency.ClusterType;
 import org.cristalise.kernel.persistency.RemoteMap;
-import org.cristalise.kernel.utils.Logger;
 
 /**
  * 
@@ -40,18 +38,20 @@ public class RemoteMapAccess {
 
     private RemoteMapAccess() {}
 
-    public static LinkedHashMap<String, Object> list(ItemProxy item, ClusterType root, int start, int batchSize, Boolean descending, UriInfo uri) {
+    public static LinkedHashMap<String, Object> list(ItemProxy item, ClusterType root, int start,
+                                                     int batchSize, Boolean descending, UriInfo uri)
+            throws ObjectNotFoundException, ClassCastException
+    {
         RemoteMap<?> map;
         try {
             map = (RemoteMap<?>) item.getObject(root);
             map.activate();
         }
         catch (ObjectNotFoundException e) {
-            Logger.error(e);
-            throw ItemUtils.createWebAppException("Could not access item history");
+            throw new ObjectNotFoundException("Could not access item history");
         }
         catch (ClassCastException e) {
-            throw ItemUtils.createWebAppException("Object was not a RemoteMap: " + root, Response.Status.BAD_REQUEST);
+            throw new ClassCastException("Object was not a RemoteMap: " + root);
         }
 
         LinkedHashMap<String, Object> batch = new LinkedHashMap<String, Object>();
@@ -91,22 +91,24 @@ public class RemoteMapAccess {
         return batch;
     }
 
-    public static C2KLocalObject get(ItemProxy item, ClusterType root, String id) {
+    public static C2KLocalObject get(ItemProxy item, ClusterType root, String id) throws ObjectNotFoundException, ClassCastException {
         RemoteMap<?> map;
         try {
             map = (RemoteMap<?>) item.getObject(root);
         }
         catch (ObjectNotFoundException e) {
-            Logger.error(e);
-            throw ItemUtils.createWebAppException(e.getMessage(), Response.Status.NOT_FOUND);
+            throw e;
         }
         catch (ClassCastException e) {
-            throw ItemUtils.createWebAppException("Object was not a RemoteMap: " + root, Response.Status.BAD_REQUEST);
+            throw new ClassCastException("Object was not a RemoteMap: " + root);
         }
 
         if (id.equals("last")) id = String.valueOf(map.getLastId());
 
-        if (map.containsKey(id)) return map.get(id);
-        else throw ItemUtils.createWebAppException("Object was not found in " + root + " id:" + id, Response.Status.NOT_FOUND);
+        if (map.containsKey(id)) {
+            return map.get(id);
+        } else {
+            throw new ObjectNotFoundException("Object was not found in " + root + " id:" + id);
+        }
     }
 }

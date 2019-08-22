@@ -31,11 +31,7 @@ import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
-import javax.ws.rs.core.Context;
-import javax.ws.rs.core.Cookie;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.UriInfo;
+import javax.ws.rs.core.*;
 
 import org.cristalise.kernel.common.ObjectNotFoundException;
 import org.cristalise.kernel.lookup.DomainPath;
@@ -74,18 +70,21 @@ public class PathAccess extends PathUtils {
             @CookieParam(COOKIENAME)                Cookie authCookie,
             @Context                                UriInfo uri)
     {
-        checkAuthCookie(authCookie);
+        NewCookie cookie = checkAndCreateNewCookie(checkAuthCookie(authCookie));
         DomainPath domPath = new DomainPath(path);
+
         if (batchSize == null) batchSize = Gateway.getProperties().getInt("REST.Path.DefaultBatchSize",
                 Gateway.getProperties().getInt("REST.DefaultBatchSize", 75));
 
         if (path.equals("aliases") && search != null && search.startsWith("[") && search.endsWith("]")) {
-            return getAliases(search);
+            return getAliases(search, cookie).build();
         }
         else {
             // Return 404 if the domain path doesn't exist
-            if (!domPath.exists())
-                throw ItemUtils.createWebAppException("Domain path does not exist", Response.Status.NOT_FOUND);
+            if (!domPath.exists()) {
+                throw new WebAppExceptionBuilder().message("Domain path does not exist")
+                        .status(Response.Status.NOT_FOUND).newCookie(cookie).build();
+            }
 
             // If the domain path represents an item, redirect to it
             try {
@@ -102,15 +101,14 @@ public class PathAccess extends PathUtils {
             ArrayList<Map<String, Object>> pathDataArray = new ArrayList<>();
 
             for (org.cristalise.kernel.lookup.Path p: childSearch.rows) {
-                pathDataArray.add(makeLookupData(path, p, uri));
+                    pathDataArray.add(makeLookupData(path, p, uri));
             }
 
-            return toJSON(getPagedResult(uri, start, batchSize, childSearch.maxRows, pathDataArray));
+            return toJSON(getPagedResult(uri, start, batchSize, childSearch.maxRows, pathDataArray), cookie).build();
         }
-
     }
 
-    private Response getAliases(String uuids) {
+    private Response.ResponseBuilder getAliases(String uuids, NewCookie cookie) {
         Logger.msg(5, "PathAccess.getAliases() - uuids:%s", uuids);
 
         JSONArray uuidsArray = new JSONArray(uuids);
@@ -132,6 +130,6 @@ public class PathAccess extends PathUtils {
             }
         }
 
-        return toJSON(returnVal);
+        return toJSON(returnVal, cookie);
     }
 }
