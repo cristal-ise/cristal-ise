@@ -33,6 +33,7 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Cookie;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.NewCookie;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 
@@ -49,11 +50,12 @@ public class CompositeActDescAccess extends ResourceAccess {
             @CookieParam(COOKIENAME)                Cookie  authCookie, 
             @Context                                UriInfo uri)
     {
-        checkAuthCookie(authCookie);
+        AuthData authData = checkAuthCookie(authCookie);
+        NewCookie cookie = checkAndCreateNewCookie(authData);
 
         if (batchSize == null) batchSize = Gateway.getProperties().getInt("REST.DefaultBatchSize", 75);
 
-        return listAllResources(COMP_ACT_DESC_RESOURCE, uri, start, batchSize);
+        return listAllResources(COMP_ACT_DESC_RESOURCE, uri, start, batchSize, cookie).build();
     }
 
     @GET
@@ -64,8 +66,10 @@ public class CompositeActDescAccess extends ResourceAccess {
             @CookieParam(COOKIENAME) Cookie  authCookie, 
             @Context                 UriInfo uri)
     {
-        checkAuthCookie(authCookie);
-        return listResourceVersions(COMP_ACT_DESC_RESOURCE, name, uri);
+        AuthData authData = checkAuthCookie(authCookie);
+        NewCookie cookie = checkAndCreateNewCookie(authData);
+        
+        return listResourceVersions(COMP_ACT_DESC_RESOURCE, name, uri, cookie).build();
     }
 
     @GET
@@ -77,7 +81,9 @@ public class CompositeActDescAccess extends ResourceAccess {
             @PathParam("version")    Integer     version, 
             @CookieParam(COOKIENAME) Cookie      authCookie)
     {
-        checkAuthCookie(authCookie);
-        return getResource(COMP_ACT_DESC_RESOURCE, name, version, produceJSON(headers.getAcceptableMediaTypes()));
+        AuthData authData = checkAuthCookie(authCookie);
+        NewCookie cookie = checkAndCreateNewCookie(authData);
+
+        return getResource(COMP_ACT_DESC_RESOURCE, name, version, produceJSON(headers.getAcceptableMediaTypes()), cookie).build();
     }
 }
