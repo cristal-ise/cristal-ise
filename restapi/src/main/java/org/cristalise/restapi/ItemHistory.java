@@ -36,6 +36,7 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Cookie;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.NewCookie;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 
@@ -58,8 +59,8 @@ public class ItemHistory extends ItemUtils {
             @CookieParam(COOKIENAME)  Cookie  authCookie,
             @Context                  UriInfo uri)
     {
-        checkAuthCookie(authCookie);
-        ItemProxy item = getProxy(uuid);
+        NewCookie cookie = checkAndCreateNewCookie(checkAuthCookie(authCookie));
+        ItemProxy item = getProxy(uuid, cookie);
 
         if (start == null) start = 0;
         descending = descending != null;
@@ -69,7 +70,13 @@ public class ItemHistory extends ItemUtils {
         }
 
         // fetch this batch of events from the RemoteMap
-        LinkedHashMap<String, Object> batch = RemoteMapAccess.list(item, HISTORY, start, batchSize, descending, uri);
+        LinkedHashMap<String, Object> batch;
+        try {
+            batch = RemoteMapAccess.list(item, HISTORY, start, batchSize, descending, uri);
+        } 
+        catch (ClassCastException | ObjectNotFoundException e) {
+            throw new WebAppExceptionBuilder().exception(e).newCookie(cookie).build();
+        }
 
         ArrayList<LinkedHashMap<String, Object>> events = new ArrayList<>();
 
@@ -80,7 +87,8 @@ public class ItemHistory extends ItemUtils {
                 events.add(makeEventData((Event) obj, uri));
             }
         }
-        return toJSON(events);
+
+        return toJSON(events, cookie).build();
     }
 
     @GET
@@ -92,36 +100,40 @@ public class ItemHistory extends ItemUtils {
             @CookieParam(COOKIENAME) Cookie  authCookie,
             @Context                 UriInfo uri)
     {
-        checkAuthCookie(authCookie);
-        ItemProxy item = getProxy(uuid);
-        Event ev = (Event) RemoteMapAccess.get(item, HISTORY, eventId);
-        return toJSON(makeEventData(ev, uri));
+        NewCookie cookie = checkAndCreateNewCookie(checkAuthCookie(authCookie));
+        ItemProxy item = getProxy(uuid, cookie);
+
+        try {
+            Event ev = (Event) RemoteMapAccess.get(item, HISTORY, eventId);
+
+            return toJSON(makeEventData(ev, uri), cookie).build();
+        }
+        catch (ObjectNotFoundException e) {
+            throw new WebAppExceptionBuilder().exception(e).newCookie(cookie).build();
+        }
     }
 
     /**
      * 
      * @param uuid
      * @param eventId
-     * @param authCookie
      * @param uri
      * @param json
      * @return
      */
-    private Response getEventOutcome(String uuid, String eventId, Cookie authCookie, UriInfo uri, boolean json) {
-        checkAuthCookie(authCookie);
-        ItemProxy item = getProxy(uuid);
-        Event ev = (Event) RemoteMapAccess.get(item, HISTORY, eventId);
-
-        if (ev.getSchemaName() == null || ev.getSchemaName().equals("")) {
-            throw ItemUtils.createWebAppException("This event has no data", Response.Status.NOT_FOUND);
-        }
-
+    private Response.ResponseBuilder getEventOutcome(ItemProxy item, String eventId, UriInfo uri, boolean json, NewCookie cookie) {
         try {
+            Event ev = (Event) RemoteMapAccess.get(item, HISTORY, eventId);
+    
+            if (ev.getSchemaName() == null || ev.getSchemaName().equals("")) {
+                throw new ObjectNotFoundException( "This event has no data" );
+            }
+    
             Outcome oc = (Outcome) item.getObject(OUTCOME+"/"+ev.getSchemaName()+"/"+ev.getSchemaVersion()+"/"+ev.getID());
-            return getOutcomeResponse(oc, ev, json);
+            return getOutcomeResponse(oc, ev, json, cookie);
         }
         catch (ObjectNotFoundException e) {
-            throw ItemUtils.createWebAppException("Referenced data not found", Response.Status.NOT_FOUND);
+            throw new WebAppExceptionBuilder().exception(e).newCookie(cookie).build();
         }
     }
 
@@ -135,6 +147,9 @@ public class ItemHistory extends ItemUtils {
             @CookieParam(COOKIENAME) Cookie      authCookie,
             @Context                 UriInfo     uri)
     {
-        return getEventOutcome(uuid, eventId, authCookie, uri, produceJSON(headers.getAcceptableMediaTypes()));
+        NewCookie cookie = checkAndCreateNewCookie(checkAuthCookie(authCookie));
+        ItemProxy item = getProxy(uuid, cookie);
+
+        return getEventOutcome(item, eventId, uri, produceJSON(headers.getAcceptableMediaTypes()), cookie).build();
     }
 }

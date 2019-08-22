@@ -20,9 +20,9 @@
  */
 package org.cristalise.restapi;
 
-import static javax.ws.rs.core.Response.Status.BAD_REQUEST;
-import static javax.ws.rs.core.Response.Status.INTERNAL_SERVER_ERROR;
-import static javax.ws.rs.core.Response.Status.NOT_FOUND;
+import static javax.ws.rs.core.MediaType.APPLICATION_JSON_TYPE;
+import static javax.ws.rs.core.MediaType.APPLICATION_XML_TYPE;
+import static javax.ws.rs.core.MediaType.TEXT_XML_TYPE;
 import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.ATTACHMENT_MIME_TYPES;
 import static org.cristalise.kernel.persistency.ClusterType.HISTORY;
 import static org.cristalise.kernel.persistency.ClusterType.PROPERTY;
@@ -40,9 +40,10 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.UUID;
 
-import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.NewCookie;
 import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
 import javax.ws.rs.core.UriBuilder;
 import javax.ws.rs.core.UriInfo;
 
@@ -136,57 +137,47 @@ public abstract class ItemUtils extends RestHandler {
         return props;
     }
 
-    protected static ItemProxy getProxy(String uuid) {
-        ItemProxy item;
-        ItemPath itemPath;
-        try {
-            itemPath = Gateway.getLookup().getItemPath(uuid);
-        } catch (InvalidItemPathException e) {
-            log.error("the UUID wasn't valid", e);
-            throw ItemUtils.createWebAppException(e.getMessage(), BAD_REQUEST);
-        } catch (ObjectNotFoundException e) {
-            log.error(" UUID isn't used in this server", e);
-            throw ItemUtils.createWebAppException(e.getMessage(), NOT_FOUND);
-        }
+    //protected ItemProxy getProxy(String uuid) { return getProxy(uuid, null); }
 
+    protected ItemProxy getProxy(String uuid, NewCookie cookie) {
         try {
-            item = Gateway.getProxyManager().getProxy(itemPath);
-        } catch (ObjectNotFoundException e) {
-            log.error("the path doesn't exist", e);
-            throw ItemUtils.createWebAppException(e.getMessage(), NOT_FOUND);
+            ItemPath itemPath = Gateway.getLookup().getItemPath(uuid);
+            return Gateway.getProxyManager().getProxy(itemPath);
         }
-        return item;
+        catch(InvalidItemPathException | ObjectNotFoundException e) {
+            throw new WebAppExceptionBuilder().exception(e).newCookie(cookie).build();
+        }
     }
 
-    public Response getViewpointOutcome(String uuid, String schema, String viewName, boolean json) {
-        ItemProxy item = ItemRoot.getProxy(uuid);
+    public Response.ResponseBuilder getViewpointOutcome(String uuid, String schema, String viewName, boolean json, NewCookie cookie) {
+        ItemProxy item = getProxy(uuid, null);
+
         try {
             Viewpoint view = item.getViewpoint(schema, viewName);
-            return getOutcomeResponse(view.getOutcome(), json);
+            return getOutcomeResponse(view.getOutcome(), json, cookie);
         }
-        catch (PersistencyException | ObjectNotFoundException e) {
-            log.error("getViewpointOutcome", e);
-            throw ItemUtils.createWebAppException(e.getMessage(), e, NOT_FOUND);
+        catch (ObjectNotFoundException | PersistencyException e) {
+            throw new WebAppExceptionBuilder().exception(e).newCookie(cookie).build();
         }
     }
 
-    public Response getOutcome(String uuid, String schema, int version, int eventId, boolean json) {
-        ItemProxy item = ItemRoot.getProxy(uuid);
+    public Response.ResponseBuilder getOutcome(String uuid, String schema, int version, int eventId, boolean json, NewCookie cookie) {
+        ItemProxy item = getProxy(uuid, null);
+
         try {
             Outcome outcome = item.getOutcome(schema, version, eventId);
-            return getOutcomeResponse(outcome, (Event)RemoteMapAccess.get(item, HISTORY, Integer.toString(eventId)), json);
+            return getOutcomeResponse(outcome,(Event)RemoteMapAccess.get(item, HISTORY, Integer.toString(eventId)), json, cookie);
         }
         catch (ObjectNotFoundException e) {
-            log.error("getOutcome", e);
-            throw ItemUtils.createWebAppException(e.getMessage(), NOT_FOUND);
+            throw new WebAppExceptionBuilder().exception(e).newCookie(cookie).build();
         }
     }
 
-    public ArrayList<LinkedHashMap<String, Object>> enumerate(ItemProxy item, ClusterType cluster, String uriPath, UriInfo uri) {
-        return enumerate(item, cluster.getName(), uriPath, uri);
+    public ArrayList<LinkedHashMap<String, Object>> enumerate(ItemProxy item, ClusterType cluster, String uriPath, UriInfo uri, NewCookie cookie) {
+        return enumerate(item, cluster.getName(), uriPath, uri, cookie);
     }
 
-    public ArrayList<LinkedHashMap<String, Object>> enumerate(ItemProxy item, String dataPath, String uriPath, UriInfo uri) {
+    public ArrayList<LinkedHashMap<String, Object>> enumerate(ItemProxy item, String dataPath, String uriPath, UriInfo uri, NewCookie cookie) {
         try {
             String[] children = item.getContents(dataPath);
             ArrayList<LinkedHashMap<String, Object>> childrenData = new ArrayList<>();
@@ -203,17 +194,16 @@ public abstract class ItemUtils extends RestHandler {
             return childrenData;
         }
         catch (ObjectNotFoundException e) {
-            log.error("enumerate", e);
-            throw ItemUtils.createWebAppException("Database Error");
+            throw new WebAppExceptionBuilder().exception(e).newCookie(cookie).build();
         }
     }
 
-    protected ArrayList<LinkedHashMap<String, Object>> getAllViewpoints(ItemProxy item, UriInfo uri) {
-        ArrayList<LinkedHashMap<String, Object>> viewPoints = enumerate(item, VIEWPOINT, "viewpoint", uri);
+    protected ArrayList<LinkedHashMap<String, Object>> getAllViewpoints(ItemProxy item, UriInfo uri, NewCookie cookie) throws Exception {
+        ArrayList<LinkedHashMap<String, Object>> viewPoints = enumerate(item, VIEWPOINT, "viewpoint", uri, cookie);
 
         for(LinkedHashMap<String, Object> vp: viewPoints) {
             String schema = vp.get("name").toString();
-            vp.put("views", enumerate(item, VIEWPOINT+"/"+schema, "viewpoint"+"/"+schema, uri));
+            vp.put("views", enumerate(item, VIEWPOINT+"/"+schema, "viewpoint"+"/"+schema, uri, cookie));
         }
 
         return viewPoints;
@@ -224,20 +214,24 @@ public abstract class ItemUtils extends RestHandler {
      * 
      * @param oc the Outcome to convert
      * @param json produce json or xml
-     * @return the ws Response
+     * @return the ws ResponseBuilder
      */
-    protected Response getOutcomeResponse(Outcome oc, boolean json) {
+    protected Response.ResponseBuilder getOutcomeResponse(Outcome oc, boolean json, NewCookie cookie) {
         String result;
-        
+
         if(json) result = XML.toJSONObject(oc.getData()).toString();
         else     result = oc.getData();
-        
+
         //Perhaps header 'Cache-Control: no-cache' should be used.
 //        CacheControl cc = new CacheControl();
 //        cc.setMaxAge(300);
 //        cc.setPrivate(true);
 //        cc.setNoStore(true);
-        return Response.ok(result)./*cacheControl(cc).*/build();
+
+        Response.ResponseBuilder r = Response.ok(result)/*cacheControl(cc).*/;
+
+        if (cookie != null) return r.cookie(cookie);
+        else                return r;
     }
 
     /**
@@ -245,25 +239,29 @@ public abstract class ItemUtils extends RestHandler {
      * 
      * @param oc the Outcome to convert
      * @param json produce json or xml
-     * @return the ws Response
+     * @return the ws ResponseBuilder
      */
-    protected Response getOutcomeResponse(Outcome oc, Date eventDate, boolean json) {
+    protected Response.ResponseBuilder getOutcomeResponse(Outcome oc, Date eventDate, boolean json, NewCookie cookie) {
         String result;
 
         if(json) result = XML.toJSONObject(oc.getData()).toString();
         else     result = oc.getData();
+        
+        Response.ResponseBuilder r = Response.ok(result).lastModified(eventDate);
 
-        return Response.ok(result).lastModified(eventDate).build();
+        if (cookie != null) return r.cookie(cookie);
+        else                return r;
     }
 
-    protected Response getOutcomeResponse(Outcome oc, Event ev, boolean json) {
+    protected Response.ResponseBuilder getOutcomeResponse(Outcome oc, Event ev, boolean json, NewCookie cookie) {
         try {
             Date eventDate = dateFormatter.parse(ev.getTimeString());
-            return getOutcomeResponse(oc, eventDate, json);
+            return getOutcomeResponse(oc, eventDate, json, cookie);
         }
         catch (ParseException e) {
             log.error("Invalid timestamp in event "+ev.getID()+": "+ev.getTimeString(), e);
-            throw ItemUtils.createWebAppException("Invalid timestamp in event "+ev.getID()+": "+ev.getTimeString());
+            throw new WebAppExceptionBuilder("Invalid timestamp in event "+ev.getID()+": "+ev.getTimeString(), e, 
+                    Status.INTERNAL_SERVER_ERROR, null).build();
         }
     }
 
@@ -488,56 +486,25 @@ public abstract class ItemUtils extends RestHandler {
     }
 
     /**
-     * Creates a WebApplicationException response from a simple text message. The status is set to INTERNAL_SERVER_ERROR
-     *
-     * @param msg text message
-     * @return WebApplicationException response
+     * Check if the requested media type should be a JSON or XML
+     * 
+     * @param types the media types requested by the client
+     * @return true if the type is JSON, false if it is XML
      */
-    public static WebApplicationException createWebAppException(String msg) {
-        return createWebAppException(msg, INTERNAL_SERVER_ERROR);
-    }
+    public static boolean produceJSON(List<MediaType> types) throws UnsupportedOperationException {
+        if (types.isEmpty()) return false;
 
-    /**
-     * Creates a WebApplicationException response from a simple text message and status
-     *
-     * @param msg text message
-     * @param status HTTP status of the response
-     * @return WebApplicationException response
-     */
-    public static WebApplicationException createWebAppException(String msg, Response.Status status) {
-        return createWebAppException(msg, null, status);
-    }
-
-    /**
-     * Creates a WebApplicationException response from a simple text message, exception and status
-     *
-     * @param msg text message
-     * @param ex exception
-     * @param status HTTP status of the response
-     * @return WebApplicationException response
-     */
-    public static WebApplicationException createWebAppException(String msg, Exception ex, Response.Status status) {
-        log.debug("createWebAppException() - msg:{} status:{}", msg, status);
-        if (ex != null) log.trace("", ex);
-
-        if (Gateway.getProperties().getBoolean("REST.Debug.errorsWithBody", false)) {
-            StringBuffer sb = new StringBuffer("[errorMessage]");
-            sb.append(msg).append("[/errorMessage]");
-
-            if(ex != null) sb.append(" - Exception:" + ex.getMessage());
-
-            return new WebApplicationException(sb.toString(), Response.status(status).entity(msg).build());
+        for (MediaType t: types) {
+            if      (t.isCompatible(APPLICATION_XML_TYPE) || t.isCompatible(TEXT_XML_TYPE)) return false;
+            else if (t.isCompatible(APPLICATION_JSON_TYPE))                                 return true;
         }
-        else {
-            return new WebApplicationException(msg, status);
-        }
+
+        throw new UnsupportedOperationException("Supported media types: TEXT_XML, APPLICATION_XML, APPLICATION_JSON");
     }
 
-    
-    
     /**
      * 
-     * @param type
+     * @param props
      * @return
      */
     public static List<String> getItemNames(Property ...props) {
@@ -612,9 +579,9 @@ public abstract class ItemUtils extends RestHandler {
     {
         Job thisJob = item.getJobByTransitionName(actPath, transition, agent);
 
-        if (thisJob == null)
-            throw ItemUtils.createWebAppException("Job not found for actPath:" + actPath + " transition:" + transition,
-                    NOT_FOUND);
+        if (thisJob == null) {
+            throw new ObjectNotFoundException( "Job not found for actPath:" + actPath + " transition:" + transition );
+        }
 
         // set outcome if required
         if (thisJob.hasOutcome()) {

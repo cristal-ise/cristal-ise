@@ -33,18 +33,15 @@ import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
-import javax.ws.rs.core.Context;
-import javax.ws.rs.core.Cookie;
-import javax.ws.rs.core.HttpHeaders;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.UriInfo;
+import javax.ws.rs.core.*;
 
+import org.cristalise.kernel.common.ObjectNotFoundException;
 import org.cristalise.kernel.graph.model.Vertex;
 import org.cristalise.kernel.lifecycle.instance.Activity;
 import org.cristalise.kernel.lifecycle.instance.CompositeActivity;
 import org.cristalise.kernel.lifecycle.instance.Next;
 import org.cristalise.kernel.lifecycle.instance.Workflow;
+import org.cristalise.kernel.lookup.InvalidItemPathException;
 import org.cristalise.kernel.process.Gateway;
 import org.json.XML;
 
@@ -53,13 +50,15 @@ import lombok.extern.slf4j.Slf4j;
 @Path("/item/{uuid}/workflow") @Slf4j
 public class ItemWorkflow extends ItemUtils {
     
-    private Map<String, Object> getGanttTask(String uuid, String parent, Activity act) {
+    private Map<String, Object> getGanttTask(String uuid, String parent, Activity act)
+            throws InvalidItemPathException, ObjectNotFoundException
+    {
         LinkedHashMap<String, Object> aTask = new LinkedHashMap<String, Object>();
 
         if (parent == null) {
             aTask.put("id",    uuid);
             aTask.put("type", "project");
-            aTask.put("text",  getProxy(uuid).getName());
+            aTask.put("text",  getProxy(uuid, null).getName());
             aTask.put("open",  true);
 
             aTask.put("duration", "");
@@ -92,7 +91,7 @@ public class ItemWorkflow extends ItemUtils {
     }
 
     //FIXME: use Script or injected implementation (each gantt utility can have different json representation)
-    private Map<String, Object> getGanttObject(Workflow wf) throws Exception {
+    private Map<String, Object> getGanttObject(Workflow wf) throws InvalidItemPathException, ObjectNotFoundException {
         CompositeActivity domain = (CompositeActivity) wf.search("workflow/domain");
 
         LinkedHashMap<String, Object> ganttObject = new LinkedHashMap<String, Object>();
@@ -144,22 +143,30 @@ public class ItemWorkflow extends ItemUtils {
             @CookieParam(COOKIENAME) Cookie  authCookie,
             @Context                 UriInfo uri)
     {
-        checkAuthCookie(authCookie);
+        NewCookie cookie = checkAndCreateNewCookie(checkAuthCookie(authCookie));
 
         try {
-            Workflow wf = getProxy(uuid).getWorkflow();
+            Workflow wf = getProxy(uuid, cookie).getWorkflow();
 
             if (produceJSON(headers.getAcceptableMediaTypes())) {
-                if (gantt == null) return Response.ok(XML.toJSONObject(Gateway.getMarshaller().marshall(wf), true)).build();
-                else               return toJSON(getGanttObject(wf));
+                if (gantt == null) {
+                    return Response.ok(XML.toJSONObject(Gateway.getMarshaller().marshall(wf), true)).cookie(cookie).build();
+                }
+                else {
+                    return toJSON(getGanttObject(wf), cookie).build();
+                }
             }
             else {
-                if (gantt == null) return Response.ok(Gateway.getMarshaller().marshall(wf)).build();
-                else               throw ItemUtils.createWebAppException("Cannot product Gantt in XML format", Response.Status.BAD_REQUEST);
+                if (gantt == null) {
+                    return Response.ok(Gateway.getMarshaller().marshall(wf)).cookie(cookie).build();
+                }
+                else {
+                    throw new WebAppExceptionBuilder().message("Cannot product Gantt in XML format")
+                            .status(Response.Status.BAD_REQUEST).newCookie(cookie).build();
+                }
             }
-        }
-        catch (Exception e) {
-            throw ItemUtils.createWebAppException(e.getMessage(), Response.Status.NOT_FOUND);
-        }
+        } catch (Exception e) {
+            throw new WebAppExceptionBuilder().exception(e).newCookie(cookie).build();
+        } 
     }
 }

@@ -30,7 +30,9 @@ import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
+import javax.ws.rs.core.NewCookie;
 import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
 import javax.ws.rs.core.UriInfo;
 
 import org.cristalise.kernel.common.InvalidDataException;
@@ -48,12 +50,9 @@ import org.exolab.castor.xml.MarshalException;
 import org.exolab.castor.xml.ValidationException;
 import org.json.XML;
 
-import lombok.extern.slf4j.Slf4j;
-
-@Slf4j
 public class ResourceAccess extends ItemUtils {
 
-    public Response listAllResources(BuiltInResources resource, UriInfo uri, int start, int batchSize) {
+    public Response.ResponseBuilder listAllResources(BuiltInResources resource, UriInfo uri, int start, int batchSize, NewCookie cookie) {
         DomainPath searchRoot = new DomainPath(resource.getTypeRoot());
         ArrayList<Property> props = new ArrayList<>();
 
@@ -88,28 +87,30 @@ public class ResourceAccess extends ItemUtils {
             }
         }
 
-        return toJSON(getPagedResult(uri, start, batchSize, pr.maxRows, resourceArray));
+        return toJSON(getPagedResult(uri, start, batchSize, pr.maxRows, resourceArray), cookie);
     }
 
-    public Response listResourceVersions(BuiltInResources resource, String name, UriInfo uri) {
+    public Response.ResponseBuilder listResourceVersions(BuiltInResources resource, String name, UriInfo uri, NewCookie cookie) {
         String resourceTypeName = resource.getSchemaName();
 
         if (resource == ELEM_ACT_DESC_RESOURCE || resource == COMP_ACT_DESC_RESOURCE) resourceTypeName = "ActivityDesc";
 
         Iterator<org.cristalise.kernel.lookup.Path> iter = Gateway.getLookup().search(new DomainPath("/desc/" + resourceTypeName), name);
 
-        if (!iter.hasNext()) throw ItemUtils.createWebAppException(resourceTypeName + " not found", Response.Status.NOT_FOUND);
+        if (!iter.hasNext()) {
+            throw new WebAppExceptionBuilder().message(resourceTypeName + " not found").status(Status.NOT_FOUND).build();
+        }
 
         try {
             ItemProxy item = Gateway.getProxyManager().getProxy(iter.next());
-            return toJSON(getResourceVersions(item, VIEWPOINT + "/" + resource.getSchemaName(), name, uri));
+            return toJSON(getResourceVersions(item, VIEWPOINT + "/" + resource.getSchemaName(), name, uri, cookie), cookie);
         }
         catch (ObjectNotFoundException e) {
-            throw ItemUtils.createWebAppException(resource.getSchemaName() + " has no versions", Response.Status.NOT_FOUND);
+            throw new WebAppExceptionBuilder().message(resourceTypeName + " has no versions").status(Status.NOT_FOUND).newCookie(cookie).build();
         }
     }
 
-    public ArrayList<LinkedHashMap<String, Object>> getResourceVersions(ItemProxy item, String clusterPath, String name, UriInfo uri) {
+    public ArrayList<LinkedHashMap<String, Object>> getResourceVersions(ItemProxy item, String clusterPath, String name, UriInfo uri, NewCookie cookie) {
         try {
             String[] children = item.getContents(clusterPath);
             ArrayList<LinkedHashMap<String, Object>> childrenData = new ArrayList<>();
@@ -129,12 +130,11 @@ public class ResourceAccess extends ItemUtils {
             return childrenData;
         }
         catch (ObjectNotFoundException e) {
-            log.error("Database error", e);
-            throw ItemUtils.createWebAppException("Database Error");
+            throw new WebAppExceptionBuilder().exception(e).newCookie(cookie).build();
         }
     }
 
-    public Response getResource(BuiltInResources resource, String name, Integer version, boolean json) {
+    public Response.ResponseBuilder getResource(BuiltInResources resource, String name, Integer version, boolean json, NewCookie cookie) {
         try {
             String result;
             switch (resource) {
@@ -157,21 +157,24 @@ public class ResourceAccess extends ItemUtils {
                     result = Gateway.getMarshaller().marshall(LocalObjectLoader.getCompActDef(name,version));
                     break;
                 default:
-                    throw ItemUtils.createWebAppException(resource.name()+" "+name+" v"+version+" not handled", Response.Status.NOT_IMPLEMENTED);
+                    throw new WebAppExceptionBuilder()
+                        .message(resource.name()+" "+name+" v"+version+" not handle")
+                        .status(Status.BAD_REQUEST)
+                        .build();
             }
 
             if(json) result = XML.toJSONObject(result, true).toString();
 
-            return Response.ok(result).build();
+            return Response.ok(result);
         }
         catch (ObjectNotFoundException e) {
-            throw ItemUtils.createWebAppException(resource.name()+" "+name+" v"+version+" does not exist", Response.Status.NOT_FOUND);
+            throw new WebAppExceptionBuilder(resource.name()+" "+name+" v"+version+" does not exist", e, Status.NOT_FOUND, cookie).build();
         }
         catch (InvalidDataException e) {
-            throw ItemUtils.createWebAppException(resource.name()+" "+name+" v"+version+" doesn't point to any data", Response.Status.NOT_FOUND);
+            throw new WebAppExceptionBuilder(resource.name()+" "+name+" v"+version+" does not point to any data", e, Status.NOT_FOUND, cookie).build();
         }
         catch (MarshalException | ValidationException | IOException | MappingException e) {
-            throw ItemUtils.createWebAppException(resource.name()+" "+name+" v"+version+" xml convert problem", Response.Status.INTERNAL_SERVER_ERROR);
+            throw new WebAppExceptionBuilder(resource.name()+" "+name+" v"+version+" xml convert problem", e, Status.INTERNAL_SERVER_ERROR, cookie).build();
         }
     }
 }

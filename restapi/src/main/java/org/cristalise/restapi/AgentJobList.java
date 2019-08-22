@@ -33,11 +33,7 @@ import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
-import javax.ws.rs.core.Context;
-import javax.ws.rs.core.Cookie;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.UriInfo;
+import javax.ws.rs.core.*;
 
 import org.cristalise.kernel.common.ObjectNotFoundException;
 import org.cristalise.kernel.entity.agent.Job;
@@ -61,18 +57,32 @@ public class AgentJobList extends ItemUtils {
             @CookieParam(COOKIENAME)                Cookie  authCookie,
             @Context                                UriInfo uri)
     {
-        checkAuthCookie(authCookie);
-        ItemProxy item = getProxy(uuid);
+        NewCookie cookie = checkAndCreateNewCookie(checkAuthCookie(authCookie));
+        ItemProxy item  = getProxy(uuid, cookie);
+
         descending = descending != null;
 
-        if (!(item instanceof AgentProxy))
-            throw ItemUtils.createWebAppException("UUID does not belong to an Agent", Response.Status.BAD_REQUEST);
+        if (!(item instanceof AgentProxy)) {
+            throw new WebAppExceptionBuilder()
+                    .message("UUID does not belong to an Agent")
+                    .status(Response.Status.BAD_REQUEST)
+                    .newCookie(cookie)
+                    .build();
+        }
 
-        if (batchSize == null) batchSize = Gateway.getProperties().getInt("REST.Job.DefaultBatchSize",
-                Gateway.getProperties().getInt("REST.DefaultBatchSize", 20));
+        if (batchSize == null) {
+            batchSize = Gateway.getProperties().getInt("REST.Job.DefaultBatchSize",
+                    Gateway.getProperties().getInt("REST.DefaultBatchSize", 20));
+        }
 
         // fetch this batch of events from the RemoteMap
-        LinkedHashMap<String, Object> batch = RemoteMapAccess.list(item, JOB, start, batchSize, descending, uri);
+        LinkedHashMap<String, Object> batch;
+        try {
+            batch = RemoteMapAccess.list(item, JOB, start, batchSize, descending, uri);
+        } catch (ClassCastException | ObjectNotFoundException e) {
+            throw new WebAppExceptionBuilder().exception(e).newCookie(cookie).build();
+        }
+
         ArrayList<LinkedHashMap<String, Object>> jobs = new ArrayList<>();
 
         // replace Jobs with their JSON form. Leave any other object (like the nextBatch URI) as they are
@@ -84,11 +94,15 @@ public class AgentJobList extends ItemUtils {
                     jobs.add(makeJobData(job, job.getItemProxy().getName(), uri));
                 }
                 catch (ObjectNotFoundException | InvalidItemPathException e) {
-                    throw ItemUtils.createWebAppException("Item " + job.getItemUUID() + " in Job not found", Response.Status.NOT_FOUND);
+                    throw new WebAppExceptionBuilder()
+                            .message( "Item " + job.getItemUUID() + " in Job not found" )
+                            .status( Response.Status.NOT_FOUND )
+                            .newCookie(cookie).build();
                 }
             }
         }
-        return toJSON(jobs);
+
+        return toJSON(jobs, cookie).build();
     }
 
     @GET
@@ -100,22 +114,22 @@ public class AgentJobList extends ItemUtils {
             @CookieParam(COOKIENAME) Cookie  authCookie,
             @Context                 UriInfo uri)
     {
-        checkAuthCookie(authCookie);
-        ItemProxy item = getProxy(uuid);
+        NewCookie cookie = checkAndCreateNewCookie(checkAuthCookie(authCookie));
+        ItemProxy item = getProxy(uuid, cookie);
 
-        if (!(item instanceof AgentProxy))
-            throw ItemUtils.createWebAppException("UUID does not belong to an Agent", Response.Status.BAD_REQUEST);
-
-        Job job = (Job) RemoteMapAccess.get(item, JOB, jobId);
+        if (!(item instanceof AgentProxy)) {
+            throw new WebAppExceptionBuilder()
+                    .message( "UUID does not belong to an Agent")
+                    .status(Response.Status.BAD_REQUEST)
+                    .newCookie(cookie).build();
+        }
 
         try {
-            return toJSON(makeJobData(job, job.getItemProxy().getName(), uri));
+            Job job = (Job) RemoteMapAccess.get(item, JOB, jobId);
+            return toJSON(makeJobData(job, item.getName(), uri), cookie).build();
         }
-        catch (ObjectNotFoundException e) {
-            throw ItemUtils.createWebAppException("Item " + job.getItemUUID() + " in Job not found");
-        }
-        catch (InvalidItemPathException e) {
-            throw ItemUtils.createWebAppException("Invalid Item UUID in Job " + job.getItemUUID() + " in Job not found");
+        catch ( ObjectNotFoundException | ClassCastException e ) {
+            throw new WebAppExceptionBuilder().exception(e).newCookie(cookie).build();
         }
     }
 
@@ -127,11 +141,15 @@ public class AgentJobList extends ItemUtils {
             @CookieParam(COOKIENAME) Cookie  authCookie,
             @Context                 UriInfo uri)
     {
-        checkAuthCookie(authCookie);
-        ItemProxy item = getProxy(uuid);
+        NewCookie cookie = checkAndCreateNewCookie(checkAuthCookie(authCookie));
+        ItemProxy item  = getProxy(uuid, cookie);
 
-        if (!(item instanceof AgentProxy))
-            throw ItemUtils.createWebAppException("UUID does not belong to an Agent", Response.Status.BAD_REQUEST);
+        if (!(item instanceof AgentProxy)) {
+            throw new WebAppExceptionBuilder()
+                    .message( "UUID does not belong to an Agent")
+                    .status( Response.Status.BAD_REQUEST )
+                    .newCookie(cookie).build();
+        }
 
         AgentProxy agent = (AgentProxy) item;
         RolePath[] roles = Gateway.getLookup().getRoles(agent.getPath());
@@ -141,6 +159,6 @@ public class AgentJobList extends ItemUtils {
             roleData.put(role.getName(), uri.getBaseUriBuilder().path("role").path(role.getName()).build());
         }
 
-        return toJSON(roleData);
+        return toJSON(roleData, cookie).build();
     }
 }
