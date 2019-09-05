@@ -46,10 +46,11 @@ class ItemDelegate extends PropertyDelegate {
     public ImportItem newItem = new ImportItem()
     List<ImportOutcome> outcomes = new ArrayList<>()
 
-    public ItemDelegate(String name, String folder, String workflow) {
+    public ItemDelegate(String name, String folder, String workflow, Integer workflowVer = null) {
         newItem.name = name
         newItem.initialPath = folder
         newItem.workflow = workflow
+        newItem.workflowVer = workflowVer
     }
 
     public ItemDelegate(String name, String folder, CompositeActivityDef caDef) {

@@ -70,7 +70,7 @@ class ModuleBuilderSpecs extends Specification implements CristalTestSetup {
     def 'Module can create new Item, Agent and Role'() {
         when:
         def module = ModuleBuilder.build('ttt', 'integtest', 0) {
-            Item(name: "ScriptFactory", folder: "/", workflow: "ScriptFactoryWorkflow") {
+            Item(name: "ScriptFactory", folder: "/", workflow: "ScriptFactoryWorkflow", workflowVer: 0) {
                 Property("Type": "Factory")
                 Outcome(schema: "PropertyDescription", version: "0", viewname: "last", path: "boot/property/SCProp.xml")
                 Dependency("workflow'") {
@@ -111,6 +111,8 @@ class ModuleBuilderSpecs extends Specification implements CristalTestSetup {
         module.getImports().list[2].name == 'Abort'
 
         def item = (ImportItem)module.getImports().list[0]
+        item.workflow == 'ScriptFactoryWorkflow'
+        item.workflowVer == 0
         item.dependencyList.size() == 2
         item.dependencyList[0].name == 'workflow\''
         item.dependencyList[0].isDescription == false
