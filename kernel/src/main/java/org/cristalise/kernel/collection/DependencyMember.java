@@ -20,6 +20,7 @@
  */
 package org.cristalise.kernel.collection;
 
+import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.SCRIPT_NAME;
 import java.util.Iterator;
 import java.util.StringTokenizer;
 import java.util.Map.Entry;
@@ -34,6 +35,7 @@ import org.cristalise.kernel.lookup.ItemPath;
 import org.cristalise.kernel.persistency.ClusterType;
 import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.property.Property;
+import org.cristalise.kernel.property.PropertyArrayList;
 import org.cristalise.kernel.scripting.Script;
 import org.cristalise.kernel.scripting.ScriptingEngineException;
 import org.cristalise.kernel.utils.CastorHashMap;
@@ -249,4 +251,33 @@ public class DependencyMember implements CollectionMember {
             }
         }
     }
+
+    /**
+     * Executes Script if it was defined in the Member properties
+     * 
+     * @param props the current list of ItemProperties
+     * @param member the current DependencyMember
+     * @return true when Script was executed
+     * @throws InvalidDataException
+     * @throws ObjectNotFoundException
+     */
+    public boolean convertToItemPropertyByScript(PropertyArrayList props)  throws InvalidDataException, ObjectNotFoundException {
+        Logger.msg(5, "DependencyMember.convertToItemPropertyByScript() - memberUUID:"+getChildUUID());
+
+        String scriptName = (String)getBuiltInProperty(SCRIPT_NAME);
+
+        if (scriptName != null && scriptName.length() > 0) {
+            Object result = evaluateScript();
+
+            if (result != null && result instanceof PropertyArrayList) {
+                props.merge((PropertyArrayList)result);
+                return true;
+            }
+            else {
+                throw new InvalidDataException("Script '" + scriptName + "' returned null or the wrong type");
+            }
+        }
+        return false;
+    }
+
 }
