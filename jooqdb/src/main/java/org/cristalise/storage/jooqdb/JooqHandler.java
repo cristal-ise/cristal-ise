@@ -25,6 +25,7 @@ import static org.jooq.SQLDialect.POSTGRES;
 import static org.jooq.impl.DSL.select;
 import static org.jooq.impl.DSL.using;
 
+import com.zaxxer.hikari.HikariPoolMXBean;
 import java.sql.Connection;
 import java.sql.Timestamp;
 import java.util.Arrays;
@@ -165,18 +166,15 @@ public abstract class JooqHandler {
     public static final Boolean    autoCommit = Gateway.getProperties().getBoolean(JooqHandler.JOOQ_AUTOCOMMIT, false);
     public static final SQLDialect dialect    = SQLDialect.valueOf(Gateway.getProperties().getString(JooqHandler.JOOQ_DIALECT, "POSTGRES"));
 
-    public static HikariDataSource ds;
- 
-    static {
-        if (StringUtils.isAnyBlank(uri, user, pwd)) {
+    private static HikariDataSource ds = null;
+    private static HikariConfig config;
+
+    public static synchronized HikariDataSource getDataSource(){
+        if (StringUtils.isAnyBlank(uri, user, pwd))
             throw new IllegalArgumentException("JOOQ (uri, user, password) config values must not be blank");
-        }
-
-        HikariConfig config = new HikariConfig();
-
+        config = new HikariConfig();
         config.setPoolName("CRISTAL-iSE-HikariCP");
         config.setRegisterMbeans(true);
-
         config.setJdbcUrl(uri);
         config.setUsername(user);
         config.setPassword(pwd);
@@ -191,14 +189,50 @@ public abstract class JooqHandler {
         config.addDataSourceProperty( "prepStmtCacheSqlLimit", "2048");
         config.addDataSourceProperty( "autoCommit",             autoCommit);
 
-        ds = new HikariDataSource(config);
-
         Logger.msg(8, "JooqHandler.static() - uri:'"+uri+"' user:'"+user+"' dialect:'"+dialect+"'");
+
+        if (ds == null){
+            config.setAutoCommit(autoCommit);
+            ds = new HikariDataSource(config);
+            Logger.msg(3, "JooqHandler.getDataSource() create datasource %s", ds);
+        }
+        return ds;
+    }
+
+    public static synchronized void recreateDataSource(boolean forcedAutoCommit) throws PersistencyException {
+        if (ds == null)
+            throw new PersistencyException("Cannot recreate a null data source");
+        Logger.msg(3, "JooqHandler.recreateDataSource() autocomit=%b", forcedAutoCommit);
+        HikariConfig config = new HikariConfig();
+        ds.copyStateTo(config);
+        config.setAutoCommit(forcedAutoCommit);
+        config.addDataSourceProperty("autoCommit", forcedAutoCommit);
+        closeDataSource();
+        HikariDataSource newDs = new HikariDataSource(config);
+        ds = newDs;
+    }
+
+    public static synchronized void closeDataSource() throws PersistencyException {
+        try {
+            if (ds != null){
+                HikariPoolMXBean poolBean = ds.getHikariPoolMXBean();
+                Logger.msg(3, "JooqHandler.closeDataSource() active connections=%d", poolBean.getActiveConnections());
+                while (poolBean.getActiveConnections() > 0) {
+                    poolBean.softEvictConnections();
+                }
+                ds.close();
+                ds = null;
+            }
+        }
+        catch (Exception e) {
+            Logger.error(e);
+            throw new PersistencyException(e.getMessage());
+        }
     }
 
     public static DSLContext connect() throws PersistencyException {
         try {
-            return using(ds, dialect);
+            return using(getDataSource(), dialect);
         }
         catch (Exception ex) {
             Logger.error("JooqHandler could not connect to URI '"+uri+"' with user '"+user+"'");
