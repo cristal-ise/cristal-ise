@@ -125,6 +125,10 @@
                     <excludes>
                         <exclude>*pom*.xml</exclude>
                         <exclude>**/logback*.xml</exclude>
+                        <exclude>**/src/test/data/**</exclude>
+                        <exclude>**/*LICENSE</exclude>
+                        <exclude>**/README</exclude>
+                        <exclude>**/*.gpg.enc</exclude>
                     </excludes>
                 </configuration>
                 <executions>
