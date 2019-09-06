@@ -140,6 +140,30 @@ class CAExecutionSpecs extends Specification implements CristalTestSetup {
         util.checkActStatus('right',  [state: "Finished", active: false])
     }
 
+    def 'CompAct is automatically finihed when all Activities in AndSplit with Loos are finished'() {
+        given: "Workflow contaning CompAct containig 2 ElemAct in AndSplit"
+        util.buildAndInitWf {
+            CompAct('ca') {
+                AndSplit {
+                    Loop(RoutingScriptName: 'javascript:\"false\";') { 
+                        ElemAct('left')
+                    }
+                    Loop(RoutingScriptName: 'javascript:\"false\";') { 
+                        ElemAct('right')
+                    }
+                }
+            }
+            ElemAct('last') 
+        }
+        when: "requesting left ElemAct Done transition"
+        util.requestAction('left', "Done")
+
+        then: "ElemAct 'left' ..."
+        util.checkActStatus('left',   [state: "Finished", active: false])
+        util.checkActStatus('right',  [state: "Waiting", active: true])
+        util.checkActStatus('last',   [state: "Waiting", active: false])
+    }
+
     def 'CompAct is automatically finihed when all Activities in Loop are finished'() {
         given: "Workflow contaning CompAct containig 1 ElemAct in Loop"
         util.buildAndInitWf {
