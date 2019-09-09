@@ -30,6 +30,8 @@ import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.SCRIPT_V
 import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.STATE_MACHINE_NAME;
 import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.STATE_MACHINE_VERSION;
 import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.VERSION;
+import static org.cristalise.kernel.property.BuiltInItemProperties.AGGREGATE_SCRIPT_URN;
+import static org.cristalise.kernel.property.BuiltInItemProperties.MASTER_SCHEMA_URN;
 import static org.cristalise.kernel.property.BuiltInItemProperties.QUERY_URN;
 import static org.cristalise.kernel.property.BuiltInItemProperties.SCHEMA_URN;
 import static org.cristalise.kernel.property.BuiltInItemProperties.SCRIPT_URN;
@@ -38,6 +40,7 @@ import static org.cristalise.kernel.property.BuiltInItemProperties.WORKFLOW_URN;
 
 import java.util.ArrayList;
 import java.util.List;
+
 import org.apache.commons.lang3.StringUtils;
 import org.cristalise.kernel.common.InvalidCollectionModification;
 import org.cristalise.kernel.common.InvalidDataException;
@@ -307,10 +310,11 @@ public class Dependency extends Collection<DependencyMember> {
     public void addToItemProperties(PropertyArrayList props) throws InvalidDataException, ObjectNotFoundException {
         Logger.msg(2, "Dependency.addToItemProperties("+getName()+") - Starting ...");
 
-        if (convertToItemPropertyByScript(props)) return;
-
         //convert to BuiltInCollections
         BuiltInCollections builtInColl = BuiltInCollections.getValue(getName());
+
+        //Do not process this member further if Script has done the job already or this is not a BuiltInCollection
+        if (convertToItemPropertyByScript(props) || builtInColl == null) return;
 
         for (DependencyMember member : getMembers().list) {
             String memberUUID = member.getChildUUID();
@@ -326,6 +330,16 @@ public class Dependency extends Collection<DependencyMember> {
             Logger.msg(5, "Dependency.addToItemProperties() - BuiltIn Dependency:"+getName()+" memberUUID:"+memberUUID);
             //LocalObjectLoader checks if data is valid and loads object to cache
             switch (builtInColl) {
+                //***************************************************************************************************
+                case AGGREGATE_SCRIPT:
+                    LocalObjectLoader.getSchema(memberUUID, memberVer);
+                    props.put(new Property(AGGREGATE_SCRIPT_URN, memberUUID+":"+memberVer));
+                    break;
+                //***************************************************************************************************
+                case MASTER_SCHEMA:
+                    LocalObjectLoader.getSchema(memberUUID, memberVer);
+                    props.put(new Property(MASTER_SCHEMA_URN, memberUUID+":"+memberVer));
+                    break;
                 //***************************************************************************************************
                 case SCHEMA:
                     LocalObjectLoader.getSchema(memberUUID, memberVer);
