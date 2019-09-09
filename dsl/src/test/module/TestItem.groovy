@@ -1,3 +1,6 @@
+import static org.cristalise.kernel.collection.BuiltInCollections.MASTER_SCHEMA
+import static org.cristalise.kernel.collection.BuiltInCollections.AGGREGATE_SCRIPT
+
 /**
  * TestItem Item
  */
@@ -59,6 +62,18 @@ Item(name: 'TestItemFactory', folder: '/', workflow: 'TestItemFactory_Workflow',
     Outcome(schema: 'PropertyDescription', version: '0', viewname: 'last', path: 'boot/property/TestItem.xml')
     Dependency("workflow'") {
         Member(itemPath: '/desc/ActivityDesc/testns/TestItem_Workflow') {
+            Property('Version': 0)
+        }
+    }
+
+    Dependency(MASTER_SCHEMA) {
+        Member(itemPath: '/desc/Schema/testns/TestItem') {
+            Property('Version': 0)
+        }
+    }
+
+    Dependency(AGGREGATE_SCRIPT) {
+        Member(itemPath: '/desc/Script/testns/TestItem_Aggregate') {
             Property('Version': 0)
         }
     }

@@ -1,3 +1,6 @@
+import static org.cristalise.kernel.collection.BuiltInCollections.MASTER_SCHEMA
+import static org.cristalise.kernel.collection.BuiltInCollections.AGGREGATE_SCRIPT
+
 /**
  * @{item} Item
  */
@@ -54,11 +57,23 @@ def @{item}PropDesc = PropertyDescriptionList('@{item}', 0) {
     PropertyDesc(name: 'State', isMutable: true,  isClassIdentifier: true, defaultValue: 'ACTIVE')
 }
 
-Item(name: '@{item}Factory', folder: '/', workflow: '@{item}Factory_Workflow') {
+Item(name: '@{item}Factory', folder: '/', workflow: '@{item}Factory_Workflow', workflowVer: 0) {
     Property('Type': 'Factory')
     Outcome(schema: 'PropertyDescription', version: '0', viewname: 'last', path: 'boot/property/@{item}.xml')
     Dependency("workflow'") {
         Member(itemPath: '/desc/ActivityDesc/@{moduleNs}/@{item}_Workflow') {
+            Property('Version': 0)
+        }
+    }
+
+    Dependency(MASTER_SCHEMA) {
+        Member(itemPath: '/desc/Schema/@{moduleNs}/@{item}') {
+            Property('Version': 0)
+        }
+    }
+
+    Dependency(AGGREGATE_SCRIPT) {
+        Member(itemPath: '/desc/Script/@{moduleNs}/@{item}_Aggregate') {
             Property('Version': 0)
         }
     }

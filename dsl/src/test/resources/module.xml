@@ -39,6 +39,22 @@
         </DependencyMember>
         <CollectionProperties/>
       </Dependency>
+      <Dependency name="MasterSchema" isDescription="false">
+        <DependencyMember itemPath="/desc/Schema/testns/TestItem">
+          <MemberProperties>
+            <KeyValuePair Key="Version" isAbstract="false" Integer="0"/>
+          </MemberProperties>
+        </DependencyMember>
+        <CollectionProperties/>
+      </Dependency>
+      <Dependency name="AggregateScript" isDescription="false">
+        <DependencyMember itemPath="/desc/Script/testns/TestItem_Aggregate">
+          <MemberProperties>
+            <KeyValuePair Key="Version" isAbstract="false" Integer="0"/>
+          </MemberProperties>
+        </DependencyMember>
+        <CollectionProperties/>
+      </Dependency>
     </Item>
   </Imports>
 </CristalModule>
