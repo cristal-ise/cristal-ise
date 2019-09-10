@@ -470,11 +470,12 @@ public class CompositeActivity extends Activity {
             //If we are checking up we need to check that the AndSplit is finished
               for (Vertex v1 : GraphTraversal.getTraversal(getChildrenGraphModel(), v, direction, true)) {
                   if (v1 instanceof AndSplit) {
-                    for (Vertex v2 : GraphTraversal
-                        .getTraversal(getChildrenGraphModel(), v, GraphTraversal.kDown, true)) {
-                      Activity act = (Activity) v2;
-                      if (!act.isFinished() && act.active)
-                        nextActs.add(act);
+                    for (Vertex v2 : GraphTraversal.getTraversal(getChildrenGraphModel(), v, GraphTraversal.kDown, true)) {
+                        if (v2 instanceof Activity) {
+                            Activity act = (Activity) v2;
+                            if (!act.isFinished() && act.active)
+                                nextActs.add(act);
+                        }
                     }
                   }
               }

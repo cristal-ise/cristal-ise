@@ -176,22 +176,17 @@ class CAExecutionSpecs extends Specification implements CristalTestSetup {
         when: "requesting 'right' ElemAct Done transition"
         util.requestAction('right', "Done")
 
-        then: "ElemAct 'left' and right should be FInished and inactive, ElemAct 'last' should be Waiting and active"
+        then: "ElemAct 'left' and right should be Finished and inactive, ElemAct 'last' should be Waiting and active"
         util.checkActStatus('left',   [state: "Finished", active: false])
         util.checkActStatus('right',  [state: "Finished", active: false])
         util.checkActStatus('last',   [state: "Waiting", active: true])
 
         //Print images of workflow to debug easily
         GraphModel wfGraphModel = wf.search("workflow/domain").getChildrenGraphModel()
-        println Gateway.getMarshaller().marshall(wfGraphModel)
-        DefaultGraphLayoutGenerator.layoutGraph(wfGraphModel)
-        BufferedImage imgWf = new LifecycleRenderer(wfGraphModel, false).getWorkFlowModelImage(1920, 1080)
-        ImageIO.write(imgWf, "png", new File("target/workflowTest.png"))
+        util.saveWorkflowPngImage(wfGraphModel, "target/workflowTest.png", true)
 
         GraphModel caGraphModel = wf.search("workflow/domain/ca").getChildrenGraphModel()
-        DefaultGraphLayoutGenerator.layoutGraph(caGraphModel)
-        BufferedImage imgCa = new LifecycleRenderer(caGraphModel, false).getWorkFlowModelImage(1920, 1080)
-        ImageIO.write(imgCa, "png", new File("target/CATest.png"))
+        util.saveWorkflowPngImage(caGraphModel, "target/caTest.png", true)
     }
 
     def 'CompAct is automatically finished when all Activities in Loop are finished'() {
