@@ -461,12 +461,24 @@ public class CompositeActivity extends Activity {
     public List<Activity> getPossibleActs(WfVertex fromVertex, int direction) throws InvalidDataException {
         List<Activity> nextActs = new ArrayList<>();
 
-        for (Vertex v: GraphTraversal.getTraversal(getChildrenGraphModel(), fromVertex, direction, false)) {
-            if(v instanceof Activity) {
-                Activity act = (Activity)v;
-
-                if (!act.isFinished() && act.active) nextActs.add(act);
-            }
+        for (Vertex v : GraphTraversal.getTraversal(getChildrenGraphModel(), fromVertex, direction, false)) {
+            if (v instanceof Activity) {
+                Activity act = (Activity) v;
+                if (!act.isFinished() && act.active)
+                  nextActs.add(act);
+            } else if (nextActs.size() == 0 && direction == GraphTraversal.kUp) {
+            //If we are checking up we need to check that the AndSplit is finished
+              for (Vertex v1 : GraphTraversal.getTraversal(getChildrenGraphModel(), v, direction, true)) {
+                  if (v1 instanceof AndSplit) {
+                    for (Vertex v2 : GraphTraversal
+                        .getTraversal(getChildrenGraphModel(), v, GraphTraversal.kDown, true)) {
+                      Activity act = (Activity) v2;
+                      if (!act.isFinished() && act.active)
+                        nextActs.add(act);
+                    }
+                  }
+              }
+          }
         }
 
         return nextActs;

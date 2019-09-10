@@ -24,6 +24,7 @@ import groovy.transform.CompileStatic
 
 import org.cristalise.kernel.common.InvalidDataException
 import org.cristalise.kernel.graph.model.GraphPoint
+import org.cristalise.kernel.lifecycle.LifecycleVertexOutlineCreator
 import org.cristalise.kernel.lifecycle.instance.CompositeActivity
 import org.cristalise.kernel.lifecycle.instance.Next
 import org.cristalise.kernel.lifecycle.instance.WfVertex
@@ -61,7 +62,8 @@ public class CompActDelegate extends BlockDelegate {
     public WfVertex createVertex(Types t, String name) {
         assert currentCA
         WfVertex v = currentCA.newChild(t, name, firstFlag, (GraphPoint)null)
-
+        LifecycleVertexOutlineCreator lifecycleVertexOutlineCreator = new LifecycleVertexOutlineCreator();
+        lifecycleVertexOutlineCreator.setOutline(v)
         Logger.msg 1, "CA.createVertex(path: $currentCA.path) - type: '$t'; id: '$v.ID'; name: '$name;' path: '$v.path'"
 
         firstFlag = false

@@ -441,7 +441,12 @@ public class Activity extends WfVertex {
             hasNoNext = parent.getPossibleActs(outVertex, GraphTraversal.kUp).size() == 0;
         }
         else if (outVertex instanceof Loop) {
-            hasNoNext = parent.getPossibleActs(outVertex, GraphTraversal.kDown).size() == 0;
+            //Check upper AndSplit first
+            hasNoNext = parent.getPossibleActs(outVertex, GraphTraversal.kUp).size() == 0;
+            if(hasNoNext){
+                //If no upper AndSplit check what is down
+                hasNoNext = parent.getPossibleActs(outVertex, GraphTraversal.kDown).size() == 0;
+            }
         }
         else if (outVertex == null) {
             hasNoNext = true;
