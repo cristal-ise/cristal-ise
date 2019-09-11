@@ -89,13 +89,15 @@ public class JooqLookupManager implements LookupManager {
             permissions = new JooqPermissionHandler();
             properties  = new JooqItemPropertyHandler();
 
-            JooqHandler.connect().transaction(nested -> {
-                items      .createTables(DSL.using(nested));
-                domains    .createTables(DSL.using(nested));
-                roles      .createTables(DSL.using(nested));
-                permissions.createTables(DSL.using(nested));
-                properties .createTables(DSL.using(nested));
-            });
+            if (! JooqHandler.readOnlyDataSource) {
+                JooqHandler.connect().transaction(nested -> {
+                    items.createTables(DSL.using(nested));
+                    domains.createTables(DSL.using(nested));
+                    roles.createTables(DSL.using(nested));
+                    permissions.createTables(DSL.using(nested));
+                    properties.createTables(DSL.using(nested));
+                });
+            }
 
             passwordHasher = new Argon2Password();
         }
@@ -766,7 +768,7 @@ public class JooqLookupManager implements LookupManager {
 
         //empty permission list shall clear the permissions of Role
         setPermissions(role, permissions);
-    }
+    }>
 
     @Override
     public void setPermissions(RolePath role, List<String> permissions) throws ObjectNotFoundException, ObjectCannotBeUpdated {
@@ -779,9 +781,9 @@ public class JooqLookupManager implements LookupManager {
             context.transaction(nested ->{
               //empty permission list shall clear the permissions of Role
                 if (this.permissions.exists(DSL.using(nested),role.getStringPath())) {
-                    this.permissions.delete(context, role.getStringPath());
+                    this.permissions.delete(DSL.using(nested), role.getStringPath());
                 }
-                this.permissions.insert(context, role.getStringPath(), role.getPermissionsList());
+                this.permissions.insert(DSL.using(nested), role.getStringPath(), role.getPermissionsList());
             });
         }
         catch (Exception e) {
