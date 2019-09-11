@@ -511,8 +511,7 @@ public class ClusterStorageManager {
             thisStore.commit(locker);
         }
         if(locker != null){
-            messageSet = proxyMessagesMap.get(locker);
-            proxyMessagesMap.remove(locker);
+            messageSet = proxyMessagesMap.remove(locker);
             if (messageSet != null){
                for (ProxyMessage message: messageSet){
                     Gateway.getProxyServer().sendProxyEvent(message);
