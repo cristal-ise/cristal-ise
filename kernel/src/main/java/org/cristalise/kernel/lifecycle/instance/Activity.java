@@ -429,12 +429,14 @@ public class Activity extends WfVertex {
                 outVertices = outVertex.getOutGraphables();
                 cont = outVertices.length > 0;
             }
-            else if(outVertex instanceof Loop && outVertex.getBuiltInProperty(PAIRING_ID) != null){
-              //Find the out Join which has not the same pairing id as the Loop
-              outVertices = outVertex.getOutGraphables();
-              String pairingId = (String) outVertex.getBuiltInProperty(PAIRING_ID);
-              outVertices = Arrays.stream(outVertices).filter(v -> ((WfVertex) v).getBuiltInProperty(PAIRING_ID) != pairingId).toArray(Vertex[]::new);
-              cont = outVertices.length > 0;
+            else if(outVertex instanceof Loop){
+                String loopPairingId = (String) outVertex.getBuiltInProperty(PAIRING_ID);
+                if(loopPairingId != null && StringUtils.isNotBlank(loopPairingId)){
+                    //Find the out Join which has not the same pairing id as the Loop
+                    outVertices = outVertex.getOutGraphables();
+                    outVertices = Arrays.stream(outVertices).filter(v -> !loopPairingId.equals(((WfVertex) v).getBuiltInProperty(PAIRING_ID))).toArray(Vertex[]::new);
+                    cont = outVertices.length > 0;
+                } else { cont = false; }
             }
             else {
                 cont = false;
