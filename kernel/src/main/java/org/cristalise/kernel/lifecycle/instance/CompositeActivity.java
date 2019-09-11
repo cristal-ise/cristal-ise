@@ -428,7 +428,7 @@ public class CompositeActivity extends Activity {
         Transition trans = getStateMachine().getTransition(transitionID);
 
         if (trans.isFinishing() && hasActive()) {
-            if ((Boolean)getBuiltInProperty(ABORTABLE)) 
+            if ((Boolean)getBuiltInProperty(ABORTABLE))
                 abort();
             else
                 throw new InvalidTransitionException("Attempted to finish '"+getPath()+"' it had active children but was not Abortable");
@@ -466,20 +466,7 @@ public class CompositeActivity extends Activity {
                 Activity act = (Activity) v;
                 if (!act.isFinished() && act.active)
                   nextActs.add(act);
-            } else if (nextActs.size() == 0 && direction == GraphTraversal.kUp) {
-            //If we are checking up we need to check that the AndSplit is finished
-              for (Vertex v1 : GraphTraversal.getTraversal(getChildrenGraphModel(), v, direction, true)) {
-                  if (v1 instanceof AndSplit) {
-                    for (Vertex v2 : GraphTraversal.getTraversal(getChildrenGraphModel(), v, GraphTraversal.kDown, true)) {
-                        if (v2 instanceof Activity) {
-                            Activity act = (Activity) v2;
-                            if (!act.isFinished() && act.active)
-                                nextActs.add(act);
-                        }
-                    }
-                  }
-              }
-          }
+            }
         }
 
         return nextActs;
