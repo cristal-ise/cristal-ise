@@ -72,6 +72,11 @@ public abstract class JooqHandler {
      */
     public static final String JOOQ_AUTOCOMMIT = "JOOQ.autoCommit";
     /**
+     * Defines the key (value:{@value}) to retrieve a boolean value to tell the data source to
+     * create read only connections. Default is 'false'
+     */
+    public static final String JOOQ_READONLYDATASOURCE = "JOOQ.readOnlyDataSource";
+    /**
      * Defines the key (value:{@value}) to retrieve the string value of the comma separated list of 
      * fully qualified class names implementing the {@link JooqDomainHandler} interface.
      */
@@ -160,38 +165,41 @@ public abstract class JooqHandler {
     public static final DataType<byte[]>         ATTACHMENT_TYPE = SQLDataType.BLOB;
 
 
-    public static final String     uri        = Gateway.getProperties().getString(JooqHandler.JOOQ_URI);
-    public static final String     user       = Gateway.getProperties().getString(JooqHandler.JOOQ_USER); 
-    public static final String     pwd        = Gateway.getProperties().getString(JooqHandler.JOOQ_PASSWORD);
-    public static final Boolean    autoCommit = Gateway.getProperties().getBoolean(JooqHandler.JOOQ_AUTOCOMMIT, false);
-    public static final SQLDialect dialect    = SQLDialect.valueOf(Gateway.getProperties().getString(JooqHandler.JOOQ_DIALECT, "POSTGRES"));
+    public static final String     uri                = Gateway.getProperties().getString(JooqHandler.JOOQ_URI);
+    public static final String     user               = Gateway.getProperties().getString(JooqHandler.JOOQ_USER);
+    public static final String     pwd                = Gateway.getProperties().getString(JooqHandler.JOOQ_PASSWORD);
+    public static final Boolean    autoCommit         = Gateway.getProperties().getBoolean(JooqHandler.JOOQ_AUTOCOMMIT, false);
+
+    public static final Boolean    readOnlyDataSource = Gateway.getProperties().getBoolean(JooqHandler.JOOQ_READONLYDATASOURCE, false);
+    public static final SQLDialect dialect            = SQLDialect.valueOf(Gateway.getProperties().getString(JooqHandler.JOOQ_DIALECT, "POSTGRES"));
 
     private static HikariDataSource ds = null;
     private static HikariConfig config;
 
     public static synchronized HikariDataSource getDataSource(){
-        if (StringUtils.isAnyBlank(uri, user, pwd))
-            throw new IllegalArgumentException("JOOQ (uri, user, password) config values must not be blank");
-        config = new HikariConfig();
-        config.setPoolName("CRISTAL-iSE-HikariCP");
-        config.setRegisterMbeans(true);
-        config.setJdbcUrl(uri);
-        config.setUsername(user);
-        config.setPassword(pwd);
-        config.setAutoCommit(autoCommit);
-        config.setMaximumPoolSize(50);
-        config.setMaxLifetime(60000);
-        config.setMinimumIdle(10);
-        config.setIdleTimeout(30000);
-        //config.setLeakDetectionThreshold(30000); // enable to see connection leak warning
-        config.addDataSourceProperty( "cachePrepStmts",        true);
-        config.addDataSourceProperty( "prepStmtCacheSize",     "250");
-        config.addDataSourceProperty( "prepStmtCacheSqlLimit", "2048");
-        config.addDataSourceProperty( "autoCommit",             autoCommit);
-
-        Logger.msg(8, "JooqHandler.static() - uri:'"+uri+"' user:'"+user+"' dialect:'"+dialect+"'");
-
         if (ds == null){
+            if (StringUtils.isAnyBlank(uri, user, pwd))
+                throw new IllegalArgumentException("JOOQ (uri, user, password) config values must not be blank");
+            config = new HikariConfig();
+            config.setPoolName("CRISTAL-iSE-HikariCP");
+            config.setRegisterMbeans(true);
+            config.setJdbcUrl(uri);
+            config.setUsername(user);
+            config.setPassword(pwd);
+            config.setAutoCommit(autoCommit);
+            config.setReadOnly(readOnlyDataSource);
+            config.setMaximumPoolSize(50);
+            config.setMaxLifetime(60000);
+            config.setMinimumIdle(10);
+            config.setIdleTimeout(30000);
+            //config.setLeakDetectionThreshold(30000); // enable to see connection leak warning
+            config.addDataSourceProperty( "cachePrepStmts",        true);
+            config.addDataSourceProperty( "prepStmtCacheSize",     "250");
+            config.addDataSourceProperty( "prepStmtCacheSqlLimit", "2048");
+            config.addDataSourceProperty( "autoCommit",             autoCommit);
+
+            Logger.msg(8, "JooqHandler.static() - uri:'"+uri+"' user:'"+user+"' dialect:'"+dialect+"'");
+
             config.setAutoCommit(autoCommit);
             ds = new HikariDataSource(config);
             Logger.msg(3, "JooqHandler.getDataSource() create datasource %s", ds);
@@ -202,7 +210,7 @@ public abstract class JooqHandler {
     public static synchronized void recreateDataSource(boolean forcedAutoCommit) throws PersistencyException {
         if (ds == null)
             throw new PersistencyException("Cannot recreate a null data source");
-        Logger.msg(3, "JooqHandler.recreateDataSource() autocomit=%b", forcedAutoCommit);
+        Logger.msg(3, "JooqHandler.recreateDataSource() autocommit=%b", forcedAutoCommit);
         HikariConfig config = new HikariConfig();
         ds.copyStateTo(config);
         config.setAutoCommit(forcedAutoCommit);

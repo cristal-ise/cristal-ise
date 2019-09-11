@@ -87,17 +87,29 @@ public class JooqClusterStorage extends TransactionalClusterStorage {
 
         DSLContext context = JooqHandler.connect();
 
-        context.transaction(nested -> {
-            for (JooqHandler handler: jooqHandlers.values()) handler.createTables(DSL.using(nested));
-        });
+        if (!JooqHandler.readOnlyDataSource) {
+            context.transaction(nested -> {
+                for (JooqHandler handler : jooqHandlers.values())
+                    handler.createTables(DSL.using(nested));
+            });
+            initialiseDomainHandlers(context);
+        }
+    }
 
+    /**
+     * Initialise internal domain havdlers handlers
+     *
+     * @throws PersistencyException Error during initialise ...
+     */
+    private void initialiseDomainHandlers(DSLContext context) throws PersistencyException {
         try {
             String handlers = Gateway.getProperties().getString(JOOQ_DOMAIN_HANDLERS, "");
 
             for(String handlerClass: StringUtils.split(handlers, ",")) {
                 if (!handlerClass.contains(".")) handlerClass = "org.cristalise.storage."+handlerClass;
 
-                Logger.msg(1, "JooqClusterStorage.initialiseHandlers() - Instantiate domain handler:"+handlerClass);
+                Logger
+                    .msg(1, "JooqClusterStorage.initialiseHandlers() - Instantiate domain handler:"+handlerClass);
 
                 domainHandlers.add( (JooqDomainHandler) Class.forName(handlerClass).newInstance());
             }
@@ -135,9 +147,9 @@ public class JooqClusterStorage extends TransactionalClusterStorage {
             for (JooqDomainHandler domainHandler : domainHandlers) domainHandler.postBoostrap(DSL.using(nested));
         });
 
-        // after the the bootstrap the DataSOurce needs to be reset to its original config
-        if (!JooqHandler.autoCommit) {
-            //Create a new data source with original autocommit setting
+        // after the the bootstrap the DataSource needs to be reset to its original config
+        if (!JooqHandler.readOnlyDataSource && !JooqHandler.autoCommit) {
+            //Restore data source with original auto-commit setting
             JooqHandler.recreateDataSource(JooqHandler.autoCommit);
         }
     }
@@ -152,7 +164,7 @@ public class JooqClusterStorage extends TransactionalClusterStorage {
     @Override
     public void postConnect() throws PersistencyException {
         // the DataSource need to be set to autocommit for the the bootstrap to work
-        if (!JooqHandler.autoCommit) {
+        if (!JooqHandler.readOnlyDataSource && !JooqHandler.autoCommit) {
             //recreate a new DS with auto-commit forced to true
             JooqHandler.recreateDataSource(true);
         }
