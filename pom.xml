@@ -172,6 +172,10 @@
                             <exclude>bin/**</exclude>
                             <exclude>src/main/resources/boot/allbootitems.txt</exclude>
                             <exclude>.flattened-pom.xml</exclude>
+                            <exclude>**/LICENCE</exclude>
+                            <exclude>**/README</exclude>
+                            <exclude>.gpg.enc</exclude>
+                            <exclude>.example</exclude>
                         </excludes>
                         <mapping>
                             <idl>JAVADOC_STYLE</idl>

@@ -22,6 +22,8 @@ package org.cristalise.lookup;
 
 import static org.cristalise.JooqTestConfigurationBase.DBModes.MYSQL;
 import static org.cristalise.JooqTestConfigurationBase.DBModes.PostgreSQL;
+import static org.cristalise.JooqTestConfigurationBase.DBModes.H2_PostgreSQL;
+import static org.cristalise.JooqTestConfigurationBase.DBModes.H2_MYSQL;
 import static org.unitils.reflectionassert.ReflectionAssert.assertReflectionEquals;
 import static org.unitils.reflectionassert.ReflectionComparatorMode.LENIENT_ORDER;
 
@@ -74,7 +76,7 @@ public class LookupTestBase extends JooqTestConfigurationBase {
     @After
     public void tearDown() throws Exception {
         if (lookup != null) lookup.close();
-        if (dbType == MYSQL || dbType == PostgreSQL) lookup.dropHandlers();
+        if (dbType == MYSQL || dbType == PostgreSQL || dbType == H2_PostgreSQL || dbType == H2_MYSQL) lookup.dropHandlers();
     }
 
     public void compare(List<Path> expecteds, Iterator<Path> actualsIter) {
