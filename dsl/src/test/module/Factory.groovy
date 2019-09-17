@@ -24,6 +24,6 @@ def createItem = Activity('Factory_CreateItem', 0) {
     Script(instantiateItem)
 }
 
-Workflow('FactoryLifecycle', 0) {
+Workflow('Factory_Workflow', 0) {
     ElemActDef(createItem)
 }

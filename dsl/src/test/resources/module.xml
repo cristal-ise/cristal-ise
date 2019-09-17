@@ -19,7 +19,7 @@
       <Schema name="Factory_NewInstanceDetails" version="0"/>
       <Script name="Factory_InstantiateItem" version="0"/>
     </Activity>
-    <Workflow name="FactoryLifecycle" version="0">
+    <Workflow name="Factory_Workflow" version="0">
       <Activity name="Factory_CreateItem" version="0"/>
     </Workflow>
     <SchemaResource name="TestItem" version="0"/>

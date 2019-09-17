@@ -23,5 +23,6 @@ Module(ns: '@{moduleNs}', name: '@{moduleName}', version: @{moduleVersion}) {
     Config(name: 'Module.debug', value: true)
 
     include(moduleDir+'/State.groovy')
+    include(moduleDir+'/Factory.groovy')
     include(moduleDir+'/@{item}.groovy')
 }
