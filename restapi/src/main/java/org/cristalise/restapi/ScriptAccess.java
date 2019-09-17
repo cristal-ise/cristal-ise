@@ -33,6 +33,7 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.*;
 
+import org.cristalise.kernel.common.InvalidDataException;
 import org.cristalise.kernel.common.ObjectNotFoundException;
 import org.cristalise.kernel.common.PersistencyException;
 import org.cristalise.kernel.process.Gateway;
@@ -136,9 +137,11 @@ public class ScriptAccess extends ResourceAccess {
      */
     private Response handleScriptExecution(HttpHeaders headers, String scriptName, Integer scriptVersion, String inputJson, NewCookie cookie) {
         try (DSLContext context = JooqHandler.connect()) {
-            return scriptUtils.executeScript(headers, null, scriptName, scriptVersion, inputJson, ImmutableMap.of("dsl", context)).cookie(cookie).build();
+            return scriptUtils
+                    .executeScript(headers, null, scriptName, scriptVersion, inputJson, ImmutableMap.of("dsl", context))
+                    .cookie(cookie).build();
         }
-        catch (ObjectNotFoundException | UnsupportedOperationException e) {
+        catch (ObjectNotFoundException | UnsupportedOperationException | InvalidDataException e) {
             throw new WebAppExceptionBuilder().exception(e).newCookie(cookie).build();
         }
         catch (DataAccessException | PersistencyException e) {

@@ -33,6 +33,7 @@ import org.cristalise.kernel.common.ObjectNotFoundException;
 import org.cristalise.kernel.entity.proxy.ItemProxy;
 import org.cristalise.kernel.persistency.outcome.Outcome;
 import org.cristalise.kernel.persistency.outcome.Schema;
+import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.scripting.Script;
 import org.cristalise.kernel.scripting.ScriptingEngineException;
 import org.cristalise.kernel.utils.CastorHashMap;
@@ -74,10 +75,17 @@ public class ScriptUtils extends ItemUtils {
     }
 
     public Response.ResponseBuilder executeScript(HttpHeaders headers, ItemProxy item, String scriptName, Integer scriptVersion,
-            String inputJson, Map<String, Object> additionalInputs) throws ObjectNotFoundException, UnsupportedOperationException {
-        // FIXME: version should be retrieved from the current item or the Module
-        // String view = "last";
-        if (scriptVersion == null) scriptVersion = 0;
+            String inputJson, Map<String, Object> additionalInputs) throws InvalidDataException, ObjectNotFoundException, UnsupportedOperationException
+    {
+        if (scriptVersion == null) {
+            if ( Gateway.getProperties().getBoolean("Module.Versioning.strict", true)) {
+                throw new InvalidDataException("Version for Script '" + scriptName + "' cannot be null");
+            }
+            else {
+                Logger.warning("ScriptUtils.executeScript() - Version for Script '%s' was null, using version 0 as default", scriptName);
+                scriptVersion = 0;
+            }
+        }
 
         Script script = null;
         if (scriptName != null) {
