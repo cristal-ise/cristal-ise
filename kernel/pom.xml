@@ -367,6 +367,23 @@
             <plugin>
                 <groupId>com.mycila</groupId>
                 <artifactId>license-maven-plugin</artifactId>
+                <configuration>
+                    <excludes>
+                        <exclude>pom.xml</exclude>
+                        <exclude>**/src/main/resources/textFiles/**</exclude>
+                        <exclude>**/src/test/resources/**</exclude>
+                        <exclude>**/src/test/data/**</exclude>
+                        <exclude>bin/**</exclude>
+                        <exclude>src/main/resources/boot/allbootitems.txt</exclude>
+                        <exclude>.flattened-pom.xml</exclude>
+                        <exclude>**/*LICENSE</exclude>
+                        <exclude>**/*README</exclude>
+                        <exclude>**/*.gpg.enc</exclude>
+                        <exclude>**/*.example</exclude>
+                        <exclude>**/*.workflow</exclude>
+                        <exclude>**/*index</exclude>
+                    </excludes>
+                </configuration>
                 <executions>
                     <execution>
                         <goals>

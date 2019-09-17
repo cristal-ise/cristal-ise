@@ -23,7 +23,6 @@ package org.cristalise.lookup;
 import org.cristalise.kernel.lookup.AgentPath;
 import org.cristalise.kernel.lookup.ItemPath;
 import org.cristalise.kernel.process.Gateway;
-import org.cristalise.kernel.utils.Logger;
 import org.cristalise.kernel.utils.ObjectProperties;
 import org.cristalise.storage.jooqdb.JooqHandler;
 import org.cristalise.storage.jooqdb.auth.JooqAuthenticator;
@@ -40,8 +39,6 @@ public class AuthenticatorTest {
 
     @Before
     public void setUp() throws Exception {
-        Logger.addLogStream(System.out, 8);
-
         ObjectProperties c2kProps = new ObjectProperties();
 
         c2kProps.put(JooqHandler.JOOQ_URI,      "jdbc:h2:mem:");
@@ -61,7 +58,6 @@ public class AuthenticatorTest {
     public void tearDown() {
         auth.disconnect();
         lookup.close();
-        Logger.removeLogStream(System.out);
     }
 
     @Test @Ignore

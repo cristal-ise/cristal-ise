@@ -42,7 +42,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class TransactionManager {
 
-    HashMap<ItemPath, Object> locks;
+    private HashMap<ItemPath, Object> locks;
     HashMap<Object, ArrayList<TransactionEntry>> pendingTransactions;
     ClusterStorageManager storage;
 
@@ -299,43 +299,32 @@ public class TransactionManager {
     public void commit(Object locker) throws PersistencyException {
         synchronized(locks) {
             ArrayList<TransactionEntry> lockerTransactions = pendingTransactions.get(locker);
-            HashMap<TransactionEntry, Exception> exceptions = new HashMap<TransactionEntry, Exception>();
             // quit if no transactions are present;
-            if (lockerTransactions == null) return;
-            storage.begin(locker);
-
-            for (TransactionEntry thisEntry : lockerTransactions) {
-                try {
-                    if (thisEntry.obj == null) storage.remove(thisEntry.itemPath, thisEntry.path, locker);
-                    else                       storage.put(thisEntry.itemPath, thisEntry.obj, locker);
-
-                    locks.remove(thisEntry.itemPath);
-                }
-                catch (Exception e) {
-                    exceptions.put(thisEntry, e);
-                }
-            }
-            pendingTransactions.remove(locker);
-
-            if (exceptions.size() > 0) { // oh dear
-                storage.abort(locker);
-                log.error("TransactionManager.commit() - Problems during transaction commit of locker "+locker.toString()+". Database may be in an inconsistent state.");
-                for (TransactionEntry entry : exceptions.keySet()) {
-                    Exception ex = exceptions.get(entry);
-                    log.info(entry.toString());
-                    log.error("", ex);
-                }
-                dumpPendingTransactions(0);
-                log.error("Database failure during commit");
-                AbstractMain.shutdown(1);
-            }
+            if (lockerTransactions == null)
+                return;
 
             try {
+                storage.begin(locker);
+
+                for (TransactionEntry thisEntry : lockerTransactions) {
+                    if (thisEntry.obj == null)
+                        storage.remove(thisEntry.itemPath, thisEntry.path, locker);
+                    else
+                        storage.put(thisEntry.itemPath, thisEntry.obj, locker);
+                }
+
                 storage.commit(locker);
+
+                for (TransactionEntry thisEntry : lockerTransactions) {
+                    locks.remove(thisEntry.itemPath);
+                }
+
+                pendingTransactions.remove(locker);
             }
-            catch (PersistencyException e) {
+            catch (Exception e) {
                 storage.abort(locker);
-                log.error("Transactional database failure");
+                log.error("commit() - Problems during transaction commit of locker "+locker.toString()+". Database may be in an inconsistent state.");
+                dumpPendingTransactions(0);
                 AbstractMain.shutdown(1);
             }
         }

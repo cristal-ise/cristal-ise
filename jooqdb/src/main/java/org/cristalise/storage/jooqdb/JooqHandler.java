@@ -25,6 +25,10 @@ import static org.jooq.SQLDialect.POSTGRES;
 import static org.jooq.impl.DSL.select;
 import static org.jooq.impl.DSL.using;
 
+import com.zaxxer.hikari.HikariPoolMXBean;
+
+import lombok.extern.slf4j.Slf4j;
+
 import java.sql.Connection;
 import java.sql.Timestamp;
 import java.util.Arrays;
@@ -46,8 +50,6 @@ import org.jooq.impl.DefaultDataType;
 import org.jooq.impl.SQLDataType;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
-
-import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public abstract class JooqHandler {
@@ -72,6 +74,11 @@ public abstract class JooqHandler {
      * with autocommit or not. Default is 'false'
      */
     public static final String JOOQ_AUTOCOMMIT = "JOOQ.autoCommit";
+    /**
+     * Defines the key (value:{@value}) to retrieve a boolean value to tell the data source to
+     * create read only connections. Default is 'false'
+     */
+    public static final String JOOQ_READONLYDATASOURCE = "JOOQ.readOnlyDataSource";
     /**
      * Defines the key (value:{@value}) to retrieve the string value of the comma separated list of 
      * fully qualified class names implementing the {@link JooqDomainHandler} interface.
@@ -161,52 +168,93 @@ public abstract class JooqHandler {
     public static final DataType<byte[]>         ATTACHMENT_TYPE = SQLDataType.BLOB;
 
 
-    public static final String     uri        = Gateway.getProperties().getString(JooqHandler.JOOQ_URI);
-    public static final String     user       = Gateway.getProperties().getString(JooqHandler.JOOQ_USER); 
-    public static final String     pwd        = Gateway.getProperties().getString(JooqHandler.JOOQ_PASSWORD);
-    public static final Boolean    autoCommit = Gateway.getProperties().getBoolean(JooqHandler.JOOQ_AUTOCOMMIT, false);
-    public static final SQLDialect dialect    = SQLDialect.valueOf(Gateway.getProperties().getString(JooqHandler.JOOQ_DIALECT, "POSTGRES"));
+    public static final String     uri                = Gateway.getProperties().getString(JooqHandler.JOOQ_URI);
+    public static final String     user               = Gateway.getProperties().getString(JooqHandler.JOOQ_USER);
+    public static final String     pwd                = Gateway.getProperties().getString(JooqHandler.JOOQ_PASSWORD);
+    public static final Boolean    autoCommit         = Gateway.getProperties().getBoolean(JooqHandler.JOOQ_AUTOCOMMIT, false);
 
-    public static HikariDataSource ds;
- 
-    static {
-        if (StringUtils.isAnyBlank(uri, user, pwd)) {
-            throw new IllegalArgumentException("JOOQ (uri, user, password) config values must not be blank");
+    public static final Boolean    readOnlyDataSource = Gateway.getProperties().getBoolean(JooqHandler.JOOQ_READONLYDATASOURCE, false);
+    public static final SQLDialect dialect            = SQLDialect.valueOf(Gateway.getProperties().getString(JooqHandler.JOOQ_DIALECT, "POSTGRES"));
+
+    private static HikariDataSource ds = null;
+    private static HikariConfig config;
+
+    public static synchronized HikariDataSource getDataSource() {
+        if (ds == null) {
+            if (StringUtils.isAnyBlank(uri, user, pwd))
+                throw new IllegalArgumentException("JOOQ (uri, user, password) config values must not be blank");
+
+            config = new HikariConfig();
+            config.setPoolName("CRISTAL-iSE-HikariCP");
+            config.setRegisterMbeans(true);
+            config.setJdbcUrl(uri);
+            config.setUsername(user);
+            config.setPassword(pwd);
+            config.setAutoCommit(autoCommit);
+            config.setReadOnly(readOnlyDataSource);
+            config.setMaximumPoolSize(50);
+            config.setMaxLifetime(60000);
+            config.setMinimumIdle(10);
+            config.setIdleTimeout(30000);
+            //config.setLeakDetectionThreshold(30000); // enable to see connection leak warning
+            config.addDataSourceProperty( "cachePrepStmts",        true);
+            config.addDataSourceProperty( "prepStmtCacheSize",     "250");
+            config.addDataSourceProperty( "prepStmtCacheSqlLimit", "2048");
+            config.addDataSourceProperty( "autoCommit",             autoCommit);
+
+            log.info("getDataSource() - uri:'{}' user:'{}' dialect:'{}'", uri, user, dialect);
+
+            config.setAutoCommit(autoCommit);
+            ds = new HikariDataSource(config);
+
+            log.info("getDataSource() create datasource {}", ds);
         }
+        return ds;
+    }
+
+    public static synchronized void recreateDataSource(boolean forcedAutoCommit) throws PersistencyException {
+        if (ds == null)
+            throw new PersistencyException("Cannot recreate a null data source");
+
+        log.info("recreateDataSource() autocommit={}", forcedAutoCommit);
 
         HikariConfig config = new HikariConfig();
+        ds.copyStateTo(config);
+        config.setAutoCommit(forcedAutoCommit);
+        config.addDataSourceProperty("autoCommit", forcedAutoCommit);
+        closeDataSource();
+        HikariDataSource newDs = new HikariDataSource(config);
+        ds = newDs;
+    }
 
-        config.setPoolName("CRISTAL-iSE-HikariCP");
-        config.setRegisterMbeans(true);
+    public static synchronized void closeDataSource() throws PersistencyException {
+        try {
+            if (ds != null){
+                HikariPoolMXBean poolBean = ds.getHikariPoolMXBean();
+                log.debug("closeDataSource() active connections={}", poolBean.getActiveConnections());
 
-        config.setJdbcUrl(uri);
-        config.setUsername(user);
-        config.setPassword(pwd);
-        config.setAutoCommit(autoCommit);
-        config.setMaximumPoolSize(50);
-        config.setMaxLifetime(60000);
-        config.setMinimumIdle(10);
-        config.setIdleTimeout(30000);
-        //config.setLeakDetectionThreshold(30000); // enable to see connection leak warning
-        config.addDataSourceProperty( "cachePrepStmts",        true);
-        config.addDataSourceProperty( "prepStmtCacheSize",     "250");
-        config.addDataSourceProperty( "prepStmtCacheSqlLimit", "2048");
-        config.addDataSourceProperty( "autoCommit",             autoCommit);
-
-        ds = new HikariDataSource(config);
-
-        log.info("static() - uri:'"+uri+"' user:'"+user+"' dialect:'"+dialect+"'");
+                while (poolBean.getActiveConnections() > 0) {
+                    poolBean.softEvictConnections();
+                }
+                ds.close();
+                ds = null;
+            }
+        }
+        catch (Exception e) {
+            log.error("", e);
+            throw new PersistencyException(e.getMessage());
+        }
     }
 
     public static DSLContext connect() throws PersistencyException {
-      try {
-          return using(ds, dialect);
-      }
-      catch (Exception ex) {
-          log.error("JooqHandler could not connect to URI '"+uri+"' with user '"+user+"'", ex);
-          throw new PersistencyException(ex.getMessage());
-      }
-  }
+        try {
+            return using(getDataSource(), dialect);
+        }
+        catch (Exception ex) {
+            log.error("JooqHandler could not connect to URI '"+uri+"' with user '"+user+"'", ex);
+            throw new PersistencyException(ex.getMessage());
+        }
+    }
 
     public static DSLContext connect(Connection conn) throws PersistencyException {
         try {
@@ -306,18 +354,16 @@ public abstract class JooqHandler {
     abstract public C2KLocalObject fetch(DSLContext context, UUID uuid, String...primaryKeys) throws PersistencyException;
 
     public static void logConnectionCount(String text, DSLContext context) {
-        if (!log.isTraceEnabled()) return;
-
         if (context.dialect().equals(POSTGRES)) {
             Record rec = context.fetchOne("SELECT sum(numbackends) FROM pg_stat_database;");
-            log.trace("{} Number of POSTGRES connections:{}", text, rec.get(0, Integer.class));
+            log.trace("{} ------- Number of POSTGRES connections:{}", text, rec.get(0, Integer.class));
         }
         else if (context.dialect().equals(MYSQL)) {
             Record rec = context.fetchOne("SHOW STATUS WHERE `variable_name` = 'Threads_connected';");
-            log.trace("{} Number of MYSQL connections:{}", text, rec.get(1, Integer.class));
+            log.trace("{} ------- Number of MSQL connections:{}", text, rec.get(1, String.class));
         }
         else {
-            log.trace("{} Printing number of connections not supported for dialect:{}", text, context.dialect());
+            log.trace("{} ------- Printing number of connections not supported for dialect:{}", text, context.dialect());
         }
     }
 }

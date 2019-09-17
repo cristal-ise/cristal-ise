@@ -124,6 +124,13 @@
                 <artifactId>license-maven-plugin</artifactId>
                 <configuration>
                     <header>HEADER.txt</header>
+                    <excludes>
+                        <exclude>pom.xml</exclude>
+                        <exclude>.flattened-pom.xml</exclude>
+                        <exclude>**/*LICENSE</exclude>
+                        <exclude>**/*.gpg.enc</exclude>
+                        <exclude>**/src/test/bin/**</exclude>
+                    </excludes>
                 </configuration>
                 <executions>
                     <execution>

@@ -30,7 +30,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
-
 import org.apache.commons.lang3.StringUtils;
 import org.cristalise.kernel.common.PersistencyException;
 import org.cristalise.kernel.entity.C2KLocalObject;
@@ -50,10 +49,6 @@ import org.cristalise.storage.jooqdb.clusterStore.JooqOutcomeHandler;
 import org.cristalise.storage.jooqdb.clusterStore.JooqViewpointHandler;
 import org.jooq.DSLContext;
 import org.jooq.impl.DSL;
-
-import com.zaxxer.hikari.HikariConfig;
-import com.zaxxer.hikari.HikariDataSource;
-import com.zaxxer.hikari.HikariPoolMXBean;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -91,10 +86,21 @@ public class JooqClusterStorage extends TransactionalClusterStorage {
 
         DSLContext context = JooqHandler.connect();
 
-        context.transaction(nested -> {
-            for (JooqHandler handler: jooqHandlers.values()) handler.createTables(DSL.using(nested));
-        });
+        if (!JooqHandler.readOnlyDataSource) {
+            context.transaction(nested -> {
+                for (JooqHandler handler : jooqHandlers.values())
+                    handler.createTables(DSL.using(nested));
+            });
+            initialiseDomainHandlers(context);
+        }
+    }
 
+    /**
+     * Initialise internal domain havdlers handlers
+     *
+     * @throws PersistencyException Error during initialise ...
+     */
+    private void initialiseDomainHandlers(DSLContext context) throws PersistencyException {
         try {
             String handlers = Gateway.getProperties().getString(JOOQ_DOMAIN_HANDLERS, "");
 
@@ -123,32 +129,13 @@ public class JooqClusterStorage extends TransactionalClusterStorage {
         context.transaction(nested -> {
             for (JooqHandler handler: jooqHandlers.values()) handler.dropTables(DSL.using(nested));
         });
-        
-    }
-    
-    private void recreateDS(boolean autoCommit) {
-        HikariConfig config = new HikariConfig();
-        JooqHandler.ds.copyStateTo(config);
-        config.setAutoCommit(autoCommit);
-        config.addDataSourceProperty("autoCommit", autoCommit);
-        HikariDataSource newDs = new HikariDataSource(config);
-        JooqHandler.ds = newDs;
+
     }
 
     @Override
     public void close() throws PersistencyException {
         log.info("close()");
-        try {
-            HikariPoolMXBean poolBean = JooqHandler.ds.getHikariPoolMXBean();
-            while (poolBean.getActiveConnections() > 0) {
-              poolBean.softEvictConnections();
-            }
-            JooqHandler.ds.close();
-        }
-        catch (Exception e) {
-            log.error("", e);
-            throw new PersistencyException(e.getMessage());
-        }
+        JooqHandler.closeDataSource();
     }
 
     @Override
@@ -157,11 +144,10 @@ public class JooqClusterStorage extends TransactionalClusterStorage {
             for (JooqDomainHandler domainHandler : domainHandlers) domainHandler.postBoostrap(DSL.using(nested));
         });
 
-        // after the the bootstrap the DataSOurce needs to be reset to its original config
-        if (!JooqHandler.autoCommit) {
-            //Close current DS and create a new one
-            close();
-            recreateDS(JooqHandler.autoCommit);
+        // after the the bootstrap the DataSource needs to be reset to its original config
+        if (!JooqHandler.readOnlyDataSource && !JooqHandler.autoCommit) {
+            //Restore data source with original auto-commit setting
+            JooqHandler.recreateDataSource(JooqHandler.autoCommit);
         }
     }
 
@@ -175,37 +161,36 @@ public class JooqClusterStorage extends TransactionalClusterStorage {
     @Override
     public void postConnect() throws PersistencyException {
         // the DataSource need to be set to autocommit for the the bootstrap to work
-        if (!JooqHandler.autoCommit) {
-            //Close current DS and create a new one
-            close();
-            recreateDS(true);
+        if (!JooqHandler.readOnlyDataSource && !JooqHandler.autoCommit) {
+            //recreate a new DS with auto-commit forced to true
+            JooqHandler.recreateDataSource(true);
         }
 
         JooqHandler.connect().transaction(nested -> {
             for (JooqDomainHandler domainHandler : domainHandlers) domainHandler.postConnect(DSL.using(nested));
         });
-        
+
     }
 
     @Override
     public void begin(Object locker)  throws PersistencyException {
-        if (!JooqHandler.ds.isAutoCommit() && locker == null) {
+        if (!JooqHandler.getDataSource().isAutoCommit() && locker == null) {
             throw new PersistencyException("locker cannot be null when autoCommit is false");
         }
-
         Connection conn = JooqHandler.connect().configuration().connectionProvider().acquire();
 
-        if (!JooqHandler.ds.isAutoCommit()) connectionMap.put(locker, conn);
+        if (locker != null) connectionMap.put(locker, conn);
+        else                log.warn("begin() called with a null locker");
     }
 
     private DSLContext retrieveContext(Object locker) throws PersistencyException {
-        if (JooqHandler.ds.isAutoCommit()) return JooqHandler.connect();
-        else                               return JooqHandler.connect(connectionMap.get(locker));
+        if (JooqHandler.getDataSource().isAutoCommit()) return JooqHandler.connect();
+        else return JooqHandler.connect(connectionMap.get(locker));
     }
 
     @Override
     public void commit(Object locker) throws PersistencyException {
-        if (!JooqHandler.ds.isAutoCommit() && locker == null) {
+        if (!JooqHandler.getDataSource().isAutoCommit() && locker == null) {
             throw new PersistencyException("locker cannot be null when autoCommit is false");
         }
 
@@ -213,17 +198,19 @@ public class JooqClusterStorage extends TransactionalClusterStorage {
 
         for (JooqDomainHandler domainHandler : domainHandlers) domainHandler.commit(context, locker);
 
-        if (JooqHandler.ds.isAutoCommit()) {
-            log.info("commit() - DISABLED autoCommit:"+JooqHandler.ds.isAutoCommit());
+        if (locker == null) {
+            log.warn("commit() Cannot retrieve connection because locker is null");
             return;
         }
 
-        log.info("commit() - autoCommit:"+JooqHandler.ds.isAutoCommit());
+        log.info("commit()");
 
         try {
-          Connection conn = connectionMap.remove(locker);
-          conn.commit();
-          conn.close();
+            Connection conn = connectionMap.remove(locker);
+            if (!JooqHandler.getDataSource().isAutoCommit()) {
+              conn.commit();
+            }
+            conn.close();
         }
         catch (Exception e) {
             log.error("", e);
@@ -233,7 +220,7 @@ public class JooqClusterStorage extends TransactionalClusterStorage {
 
     @Override
     public void abort(Object locker) throws PersistencyException {
-        if (!JooqHandler.ds.isAutoCommit() && locker == null) {
+        if (!JooqHandler.getDataSource().isAutoCommit() && locker == null) {
             throw new PersistencyException("locker cannot be null when autoCommit is false");
         }
 
@@ -241,16 +228,17 @@ public class JooqClusterStorage extends TransactionalClusterStorage {
 
         for (JooqDomainHandler domainHandler : domainHandlers) domainHandler.abort(context, locker);
 
-        if (JooqHandler.ds.isAutoCommit()) {
-            log.info("abort() - DISABLED autoCommit:"+JooqHandler.ds.isAutoCommit());
+        if (locker == null) {
+            log.warn("abort() Cannot retrieve connection because locker is null");
             return;
         }
 
-        log.info("abort() - autoCommit:"+JooqHandler.ds.isAutoCommit());
-
+        log.info("abort()");
         try {
             Connection conn = connectionMap.remove(locker);
-            conn.rollback();
+            if (!JooqHandler.getDataSource().isAutoCommit()) {
+                conn.rollback();
+            }
             conn.close();
         }
         catch (Exception e) {
@@ -297,7 +285,7 @@ public class JooqClusterStorage extends TransactionalClusterStorage {
     @Override
     public ClusterType[] getClusters(ItemPath itemPath) throws PersistencyException {
         ArrayList<ClusterType> result = new ArrayList<ClusterType>();
- 
+
         for (ClusterType type:jooqHandlers.keySet()) {
             if (jooqHandlers.get(type).exists(JooqHandler.connect(), itemPath.getUUID())) result.add(type);
         }
@@ -348,7 +336,7 @@ public class JooqClusterStorage extends TransactionalClusterStorage {
             C2KLocalObject obj = handler.fetch(JooqHandler.connect(), uuid, primaryKeys);
 
             if (obj == null) {
-                log.trace(("get() - Could NOT fetch '"+itemPath+"/"+path+"'"));
+                log.trace(("JooqClusterStorage.get() - Could NOT fetch '"+itemPath+"/"+path+"'"));
             }
             return obj;
         }
@@ -363,7 +351,7 @@ public class JooqClusterStorage extends TransactionalClusterStorage {
 
     @Override
     public void put(ItemPath itemPath, C2KLocalObject obj, Object locker) throws PersistencyException {
-        if (!JooqHandler.ds.isAutoCommit() && locker == null) {
+        if (!JooqHandler.getDataSource().isAutoCommit() && locker == null) {
             throw new PersistencyException("locker cannot be null when autoCommit is false");
         }
 
@@ -373,7 +361,6 @@ public class JooqClusterStorage extends TransactionalClusterStorage {
         JooqHandler handler = jooqHandlers.get(cluster);
 
         DSLContext context = retrieveContext(locker);
-
         JooqHandler.logConnectionCount("JooqClusterStorage.put(before)", context);
 
         if (handler != null) {
@@ -386,6 +373,8 @@ public class JooqClusterStorage extends TransactionalClusterStorage {
         }
         // Trigger all registered handlers to update domain specific tables
         for (JooqDomainHandler domainHandler : domainHandlers) domainHandler.put(context, uuid, obj, locker);
+
+        JooqHandler.logConnectionCount("JooqClusterStorage.put(after) ", context);
     }
 
     @Override
@@ -395,7 +384,7 @@ public class JooqClusterStorage extends TransactionalClusterStorage {
 
     @Override
     public void delete(ItemPath itemPath, String path, Object locker) throws PersistencyException {
-        if (!JooqHandler.ds.isAutoCommit() && locker == null) {
+        if (!JooqHandler.getDataSource().isAutoCommit() && locker == null) {
             throw new PersistencyException("locker cannot be null when autoCommit is false");
         }
 
@@ -419,6 +408,6 @@ public class JooqClusterStorage extends TransactionalClusterStorage {
 
         // Trigger all registered handlers to update domain specific tables
         for (JooqDomainHandler domainHandler : domainHandlers) domainHandler.delete(context, uuid, locker, primaryKeys);
-       
+
     }
 }

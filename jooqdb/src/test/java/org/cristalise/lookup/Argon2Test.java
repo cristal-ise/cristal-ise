@@ -20,7 +20,6 @@
  */
 package org.cristalise.lookup;
 
-import org.cristalise.kernel.utils.Logger;
 import org.cristalise.storage.jooqdb.auth.Argon2Password;
 import org.junit.Assert;
 import org.junit.Before;
@@ -28,13 +27,15 @@ import org.junit.BeforeClass;
 import org.junit.Ignore;
 import org.junit.Test;
 
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
 public class Argon2Test {
     char[] pwd = "12345".toCharArray();
     Argon2Password paswordHasher;
 
     @BeforeClass
-    public static void bwforeClass() {
-        Logger.addLogStream(System.out, 8);
+    public static void beforeClass() {
     }
 
     @Before
@@ -52,8 +53,8 @@ public class Argon2Test {
         String hash1 = paswordHasher.hashPassword(pwd);
         String hash2 = paswordHasher.hashPassword(pwd);
 
-        Logger.msg("hash1: "+hash1);
-        Logger.msg("hash2: "+hash2);
+        log.info("hash1: "+hash1);
+        log.info("hash2: "+hash2);
 
         Assert.assertNotEquals(hash1, hash2);
         //Assert.assertTrue(paswordHasher.checkPassword(hash1, pwd));
