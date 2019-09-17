@@ -23,5 +23,6 @@ Module(ns: 'testns', name: 'DSL Test', version: 0) {
     Config(name: 'Module.debug', value: true)
 
     include(moduleDir+'/State.groovy')
+    include(moduleDir+'/Factory.groovy')
     include(moduleDir+'/TestItem.groovy')
 }

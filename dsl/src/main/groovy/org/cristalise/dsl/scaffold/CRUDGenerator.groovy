@@ -17,6 +17,7 @@ import groovy.transform.CompileStatic
  * - ${root}/module/${item}.groovy
  * - ${root}/module/State.groovy (optional)
  * - ${root}/module/script/Factory_InstantiateItem.groovy
+ * - ${root}/module/script/Entity_ChangeName.groovy
  * - ${root}/module/script/${item}_Aggregate.groovy
  * - ${root}/module/resources/CA/Factory_Workflow_0,xml
  * - ${root}/module/resources/CA/${item}_Workflow_0,xml
@@ -51,6 +52,7 @@ class CRUDGenerator {
 
         generateDSL(new File(moduleDir,   'Factory.groovy'),                 'factory_groovy.tmpl',                 vars)
         generateDSL(new File(scriptDir,   'Factory_InstantiateItem.groovy'), 'factory_instantiateItem_groovy.tmpl', vars)
+        generateDSL(new File(scriptDir,   'Entity_ChangeName.groovy'),       'entity_changeName_groovy.tmpl', vars)
         generateDSL(new File(workflowDir, 'Factory_Workflow_0.xml'),         'factory_workflow_xml.tmpl',           vars)
         generateDSL(new File(moduleDir,   "${vars.item}.groovy"),            'item_groovy.tmpl',                    vars)
         generateDSL(new File(scriptDir,   "${vars.item}_Aggregate.groovy"),  'item_aggregate_groovy.tmpl',          vars)

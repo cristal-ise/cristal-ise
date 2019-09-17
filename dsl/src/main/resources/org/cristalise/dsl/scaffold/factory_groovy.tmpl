@@ -10,11 +10,11 @@ def newInstanceDetails = Schema('Factory_NewInstanceDetails', 0) {
 }
 
 def instantiateItem = Script("Factory_InstantiateItem", 0) {
-    script('groovy', 'src/main/script/SC/Factory_InstantiateItem.groovy')
+    script('groovy', moduleDir+'/script/Factory_InstantiateItem.groovy')
 }
 
 changeName = Script("Entity_ChangeName", 0) {
-    script('groovy', 'src/main/script/SC/Entity_ChangeName.groovy')
+    script('groovy', moduleDir+'/script/Entity_ChangeName.groovy')
 }
 
 def createItem = Activity('Factory_CreateItem', 0) {

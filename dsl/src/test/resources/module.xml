@@ -12,6 +12,16 @@
       <Activity name="State_Activate" version="0"/>
       <Activity name="State_Deactivate" version="0"/>
     </Workflow>
+    <SchemaResource name="Factory_NewInstanceDetails" version="0"/>
+    <ScriptResource name="Factory_InstantiateItem" version="0"/>
+    <ScriptResource name="Entity_ChangeName" version="0"/>
+    <Activity name="Factory_CreateItem" version="0">
+      <Schema name="Factory_NewInstanceDetails" version="0"/>
+      <Script name="Factory_InstantiateItem" version="0"/>
+    </Activity>
+    <Workflow name="FactoryLifecycle" version="0">
+      <Activity name="Factory_CreateItem" version="0"/>
+    </Workflow>
     <SchemaResource name="TestItem" version="0"/>
     <SchemaResource name="TestItem_Details" version="0"/>
     <Activity name="TestItem_Update" version="0">
