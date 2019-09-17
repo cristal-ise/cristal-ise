@@ -25,11 +25,12 @@
     </Activity>
     <Workflow name="TestItem_Workflow" version="0">
       <Activity name="TestItem_Update" version="0"/>
-      <Activity name="StateManage" version="0"/>
+      <Activity name="State_Manage" version="0"/>
     </Workflow>
     <PropertyDescriptionResource name="TestItem" version="0"/>
-    <Item name="TestItemFactory" initialPath="/" workflow="TestItemFactory_Workflow" workflowVer="0">
+    <Item name="TestItemFactory" initialPath="/" workflow="Factory_Workflow" workflowVer="0">
       <Property name="Type" mutable="true">Factory</Property>
+      <Property name="UpdateSchema" mutable="true">TestItem_Details:0</Property>
       <Outcome viewname="last" schema="PropertyDescription" version="0">boot/property/TestItem.xml</Outcome>
       <Dependency name="workflow'" isDescription="false">
         <DependencyMember itemPath="/desc/ActivityDesc/testns/TestItem_Workflow">

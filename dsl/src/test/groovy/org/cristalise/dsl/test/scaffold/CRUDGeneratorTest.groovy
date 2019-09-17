@@ -2,8 +2,12 @@ package org.cristalise.dsl.test.scaffold
 
 import org.codehaus.groovy.control.CompilerConfiguration
 import org.cristalise.dsl.scaffold.CRUDGenerator
+import org.cristalise.kernel.utils.Logger
 import org.junit.Test
 
+import groovy.transform.CompileStatic
+
+@CompileStatic
 class CRUDGeneratorTest {
 
     @Test
@@ -14,7 +18,8 @@ class CRUDGeneratorTest {
             moduleNs:        'testns', 
             moduleVersion:   0,
             resourcePackage: 'org.cristalise.test',
-            item:            'TestItem'
+            item:            'TestItem',
+            useConstructor:  false
         ]
 
         new CRUDGenerator().generate(inputs, true, true)
@@ -23,7 +28,7 @@ class CRUDGeneratorTest {
         cc.setScriptBaseClass(DelegatingScript.class.getName())
 
         GroovyShell shell = new GroovyShell(this.class.classLoader, new Binding(), cc)
-        DelegatingScript script = (DelegatingScript) shell.parse(new File(inputs.rootDir+'/module/Module.groovy'))
+        DelegatingScript script = (DelegatingScript) shell.parse(new File((String)inputs.rootDir+'/module/Module.groovy'))
 
         script.setDelegate(this)
         script.run()

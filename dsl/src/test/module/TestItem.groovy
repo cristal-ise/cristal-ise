@@ -1,5 +1,6 @@
-import static org.cristalise.kernel.collection.BuiltInCollections.MASTER_SCHEMA
 import static org.cristalise.kernel.collection.BuiltInCollections.AGGREGATE_SCRIPT
+import static org.cristalise.kernel.collection.BuiltInCollections.MASTER_SCHEMA
+import static org.cristalise.kernel.collection.BuiltInCollections.SCHEMA_INITIALISE
 
 /**
  * TestItem Item
@@ -48,7 +49,7 @@ Activity('TestItem_Aggregate', 0) {
 
 def TestItemWf = Workflow('TestItem_Workflow', 0) {
     ElemActDef(TestItemUpdateAct)
-    ElemActDef('StateManage', 0)
+    CompActDef('State_Manage', 0)
 }
 
 def TestItemPropDesc = PropertyDescriptionList('TestItem', 0) {
@@ -57,14 +58,22 @@ def TestItemPropDesc = PropertyDescriptionList('TestItem', 0) {
     PropertyDesc(name: 'State', isMutable: true,  isClassIdentifier: true, defaultValue: 'ACTIVE')
 }
 
-Item(name: 'TestItemFactory', folder: '/', workflow: 'TestItemFactory_Workflow', workflowVer: 0) {
+Item(name: 'TestItemFactory', folder: '/', workflow: 'Factory_Workflow', workflowVer: 0) {
     Property('Type': 'Factory')
+
+
+    Property('UpdateSchema': 'TestItem_Details:0')
+
+
     Outcome(schema: 'PropertyDescription', version: '0', viewname: 'last', path: 'boot/property/TestItem.xml')
+
     Dependency("workflow'") {
         Member(itemPath: '/desc/ActivityDesc/testns/TestItem_Workflow') {
             Property('Version': 0)
         }
     }
+
+
 
     Dependency(MASTER_SCHEMA) {
         Member(itemPath: '/desc/Schema/testns/TestItem') {
