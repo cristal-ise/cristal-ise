@@ -21,7 +21,10 @@
 package org.cristalise.restapi;
 
 import static org.cristalise.kernel.persistency.ClusterType.COLLECTION;
-
+import static org.cristalise.kernel.property.BuiltInItemProperties.AGGREGATE_SCRIPT_URN;
+import static org.cristalise.kernel.property.BuiltInItemProperties.MASTER_SCHEMA_URN;
+import static org.cristalise.kernel.property.BuiltInItemProperties.SCHEMA_URN;
+import static org.cristalise.kernel.property.BuiltInItemProperties.SCRIPT_URN;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
@@ -136,36 +139,17 @@ public class ItemRoot extends ItemUtils {
         NewCookie cookie = checkAndCreateNewCookie(checkAuthCookie(authCookie));
         ItemProxy item = getProxy(uuid, cookie);
 
-        String type = item.getType();
-        if (type == null) {
-            throw new WebAppExceptionBuilder()
-                    .message("Type is null, cannot get MasterOutcome")
-                    .status(Response.Status.NOT_FOUND)
-                    .newCookie(cookie).build();
-        }
+        Schema masterSchema = getMasterSchema(item, cookie);
+        Script aggrScript = getAggregateScript(item, scriptName, scriptVersion);
 
-        //FIXME: version should be retrieved from the current item or the Module
-        String view = "last";
-        int schemaVersion = 0;
-        if (scriptVersion == null) scriptVersion = 0;
-
-        Script script = null;
         try {
             boolean jsonFlag = produceJSON(headers.getAcceptableMediaTypes());
 
-            if (scriptName != null) {
-                final Schema schema = LocalObjectLoader.getSchema(type, schemaVersion);
-                script = LocalObjectLoader.getScript(scriptName, scriptVersion);
-
-                return scriptUtils.returnScriptResult(scriptName, item, schema, script, new CastorHashMap(), jsonFlag).cookie(cookie).build();
+            if (aggrScript != null) {
+                return scriptUtils.returnScriptResult(scriptName, item, masterSchema, aggrScript, new CastorHashMap(), jsonFlag).cookie(cookie).build();
             }
-            else if ((script = getAggregateScript(type, scriptVersion)) != null) {
-                final Schema schema = LocalObjectLoader.getSchema(type, schemaVersion);
-
-                return scriptUtils.returnScriptResult(scriptName, item, schema, script, new CastorHashMap(), jsonFlag).cookie(cookie).build();
-            }
-            else if (item.checkViewpoint(type, view)) {
-                return getViewpointOutcome(uuid, type, view, true, cookie).build();
+            else if (item.checkViewpoint(item.getType(), "last")) {
+                return getViewpointOutcome(uuid, item.getType(), "last", true, cookie).build();
             }
             else {
                 throw new WebAppExceptionBuilder()
@@ -199,9 +183,11 @@ public class ItemRoot extends ItemUtils {
         ItemProxy item = getProxy(uuid, cookie);
 
         try {
-            return scriptUtils.executeScript(headers, item, scriptName, scriptVersion, inputJson, ImmutableMap.of())
+            return scriptUtils
+                    .executeScript(headers, item, scriptName, scriptVersion, inputJson, ImmutableMap.of())
                     .cookie(cookie).build();
-        } catch (ObjectNotFoundException | UnsupportedOperationException e) {
+        }
+        catch (ObjectNotFoundException | UnsupportedOperationException | InvalidDataException e) {
             throw new WebAppExceptionBuilder().exception(e).newCookie(cookie).build();
         }
     }
@@ -222,9 +208,11 @@ public class ItemRoot extends ItemUtils {
         ItemProxy item = getProxy(uuid, cookie);
 
         try {
-            return scriptUtils.executeScript(headers, item, scriptName, scriptVersion, postData, ImmutableMap.of())
+            return scriptUtils
+                    .executeScript(headers, item, scriptName, scriptVersion, postData, ImmutableMap.of())
                     .cookie(cookie).build();
-        } catch (ObjectNotFoundException | UnsupportedOperationException e) {
+        }
+        catch (ObjectNotFoundException | UnsupportedOperationException | InvalidDataException e) {
             throw new WebAppExceptionBuilder().exception(e).newCookie(cookie).build();
         }
     }
@@ -274,15 +262,56 @@ public class ItemRoot extends ItemUtils {
     }
 
     /**
-     * Returns the so called Aggregate Script which can be used to construct master outcome.
-     * The method is created to retrieve the script in the if statement
+     * Returns the so called Master Schema which can be used to construct master outcome.
      * 
-     * @param type value of Type Property of the Item
-     * @param scriptVersion the version of the script
+     * @param item the actual item
+     * @return the schema
+     */
+    private Schema getMasterSchema(ItemProxy item, NewCookie cookie) {
+        String schemaName = item.getType();
+        Integer schemaVersion = 0;
+
+        String masterSchemaUrn = item.getProperty(MASTER_SCHEMA_URN, null);
+        if (StringUtils.isBlank(masterSchemaUrn)) masterSchemaUrn = item.getProperty(SCHEMA_URN, null);
+
+        if (StringUtils.isNotBlank(masterSchemaUrn)) {
+            schemaName = masterSchemaUrn.split(":")[0];
+            schemaVersion = Integer.valueOf(masterSchemaUrn.split(":")[1]);
+        }
+
+        try {
+            return LocalObjectLoader.getSchema(schemaName, schemaVersion);
+        }
+        catch (ObjectNotFoundException | InvalidDataException e) {
+            throw new WebAppExceptionBuilder()
+                  .message("Cannot get MasterOutcome SchemaName:'"+schemaName+"' SchemaVersion:'"+schemaVersion + "' error:" + e.getMessage())
+                  .status(Response.Status.NOT_FOUND)
+                  .newCookie(cookie)
+                  .build();
+        }
+    }
+
+    /**
+     * Returns the so called Aggregate Script which can be used to construct master outcome.
+     * 
+     * @param item the actual Item
+     * @param scriptName the name of the script received in the rest call (can be null)
+     * @param scriptVersion the version of the script received in the rest call (can be null)
      * @return the script or null
      */
-    private Script getAggregateScript(String type, Integer scriptVersion) {
-        String scriptName = type + Gateway.getProperties().getString("REST.MasterOutcome.postfix", "_Aggregate");
+    private Script getAggregateScript(ItemProxy item, String scriptName, Integer scriptVersion) {
+        String aggregateScriptUrn = item.getProperty(AGGREGATE_SCRIPT_URN, null);
+        if (StringUtils.isBlank(aggregateScriptUrn)) aggregateScriptUrn = item.getProperty(SCRIPT_URN, null);
+
+        if (StringUtils.isBlank(scriptName)) {
+            if (StringUtils.isBlank(aggregateScriptUrn)) scriptName = item.getType() + "_Aggregate";
+            else                                         scriptName = aggregateScriptUrn.split(":")[0];
+        }
+
+        if (scriptVersion == null) {
+            if (StringUtils.isBlank(aggregateScriptUrn)) scriptVersion = 0;
+            else                                         scriptVersion = Integer.valueOf(aggregateScriptUrn.split(":")[1]);
+        }
 
         try {
             return LocalObjectLoader.getScript(scriptName, scriptVersion);
@@ -314,7 +343,7 @@ public class ItemRoot extends ItemUtils {
             if (type != null) {
                 itemSummary.put("type", type);
 
-                if (getAggregateScript(type, 0) != null || item.checkViewpoint(type, "last")) {
+                if (getAggregateScript(item, null, 0) != null || item.checkViewpoint(type, "last")) {
                     itemSummary.put("hasMasterOutcome", true);
                     itemSummary.put("master", getItemURI(uri, item, "master"));
                 }
