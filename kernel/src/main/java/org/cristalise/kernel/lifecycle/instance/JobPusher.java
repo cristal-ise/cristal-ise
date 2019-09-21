@@ -28,8 +28,10 @@ import org.cristalise.kernel.lookup.AgentPath;
 import org.cristalise.kernel.lookup.ItemPath;
 import org.cristalise.kernel.lookup.RolePath;
 import org.cristalise.kernel.process.Gateway;
-import org.cristalise.kernel.utils.Logger;
 
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
 final class JobPusher extends Thread {
     private final Activity activity;
     private final RolePath myRole;
@@ -46,11 +48,11 @@ final class JobPusher extends Thread {
         String tName = "Agent job pusher for "+itemPath+":"+activity.getPath()+" to role "+myRole;
         Thread.currentThread().setName(tName);
 
-        Logger.msg(7, "JobPusher.run() - Started:"+tName);
+        log.trace("run() - Started:"+tName);
 
         try {
             for (AgentPath nextAgent: Gateway.getLookup().getAgents(myRole)) {
-                Logger.msg(7, "JobPusher.run() - Calculating jobs for agent:" + nextAgent);
+                log.trace("run() - Calculating jobs for agent:" + nextAgent);
 
                 try {
                     // get joblist for agent
@@ -60,18 +62,17 @@ final class JobPusher extends Thread {
                     String stringJobs = Gateway.getMarshaller().marshall(jobList);
                     Agent thisAgent = AgentHelper.narrow( nextAgent.getIOR() );
 
-                    Logger.msg(7, "JobPusher.run() - Calling refreshJobList() with "+jobList.list.size()+" jobs for agent "+nextAgent+" from "+activity.getPath());
+                    log.trace("run() - Calling refreshJobList() with "+jobList.list.size()+" jobs for agent "+nextAgent+" from "+activity.getPath());
                     thisAgent.refreshJobList(itemPath.getSystemKey(), activity.getPath(), stringJobs);
                 }
                 catch (Exception ex) {
-                    Logger.error("JobPusher.run() - Agent "+nextAgent+" of role "+myRole+" could not be found to be informed of a change in "+itemPath);
-                    Logger.error(ex);
+                    log.error("run() - Agent "+nextAgent+" of role "+myRole+" could not be found to be informed of a change in "+itemPath, ex);
                 }
             }
         }
         catch (ObjectNotFoundException e) {
-            Logger.warning("JobPusher cannot push jobs, it did not find any agents for role:"+myRole);
+            log.warn("Cannot push jobs, it did not find any agents for role:"+myRole);
         }
-        Logger.msg(7, "JobPusher.run() - FINISHED:"+tName);
+        log.trace("run() - FINISHED:"+tName);
     }
 }

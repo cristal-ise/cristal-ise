@@ -26,8 +26,10 @@ import org.cristalise.kernel.common.InvalidDataException;
 import org.cristalise.kernel.graph.model.DirectedEdge;
 import org.cristalise.kernel.lookup.AgentPath;
 import org.cristalise.kernel.lookup.ItemPath;
-import org.cristalise.kernel.utils.Logger;
 
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
 public class OrSplit extends Split {
 
     public OrSplit() {
@@ -42,7 +44,7 @@ public class OrSplit extends Split {
         int active = 0;
         DirectedEdge[] outEdges = getOutEdges();
         for (String thisNext : nextsTab) {
-            Logger.msg(7, "OrSplit.runNext(id: %d) - Finding edge with %s '%s'", id, ALIAS, thisNext);
+            log.debug("runNext(id: %d) - Finding edge with %s '%s'", id, ALIAS, thisNext);
 
             if (thisNext != null) {
                 for (DirectedEdge outEdge : outEdges) {
@@ -53,10 +55,10 @@ public class OrSplit extends Split {
                             term.run(agent, itemPath, locker);
                         }
                         catch (InvalidDataException e) {
-                            Logger.error(e);
+                            log.error("", e);
                             throw new InvalidDataException("Error enabling next " + thisNext);
                         }
-                        Logger.msg(7, "OrSplit.runNext(id: %d) - Running %s", id, nextEdge.getBuiltInProperty(ALIAS));
+                        log.debug("runNext(id: %d) - Running %s", id, nextEdge.getBuiltInProperty(ALIAS));
                         active++;
                     }
                 }
