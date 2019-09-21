@@ -36,13 +36,14 @@ import org.cristalise.kernel.persistency.outcome.Outcome;
 import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.process.auth.Authenticator;
 import org.cristalise.kernel.querying.Query;
-import org.cristalise.kernel.utils.Logger;
 
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * Used by proxies to load clusters by queryData from the Entity.
  * Last client storage - only used if not cached elsewhere
  */
+@Slf4j
 public class ProxyLoader extends ClusterStorage {
     HashMap<ItemPath, Item> entities = new HashMap<ItemPath, Item>();
     Lookup lookup;
@@ -73,7 +74,7 @@ public class ProxyLoader extends ClusterStorage {
 
     @Override
     public boolean checkQuerySupport(String language) {
-        Logger.warning("ProxyLoader DOES NOT Support any query");
+        log.warn("ProxyLoader DOES NOT Support any query");
         return false;
     }
 
@@ -109,7 +110,7 @@ public class ProxyLoader extends ClusterStorage {
             // fetch the xml from the item
             String queryData = thisEntity.queryData(path);
 
-            if (Logger.doLog(8)) Logger.msg("ProxyLoader.get() - "+thisItem+" : "+path+" = "+queryData);
+            log.trace("get() - {} : {} = {}", thisItem, path, queryData);
 
             if (queryData != null) {
                 if (type == ClusterType.OUTCOME) return new Outcome(path, queryData);
@@ -120,7 +121,7 @@ public class ProxyLoader extends ClusterStorage {
             return null;
         }
         catch (Exception e) {
-            Logger.error(e);
+            log.error("", e);
             throw new PersistencyException(e.getMessage());
         }
         return null;
@@ -158,7 +159,7 @@ public class ProxyLoader extends ClusterStorage {
             return result;
         }
         catch (Exception e) {
-            Logger.error(e);
+            log.error("", e);
             throw new PersistencyException(e.getMessage());
         }
     }
@@ -166,12 +167,12 @@ public class ProxyLoader extends ClusterStorage {
     private Item getIOR(ItemPath thisPath) throws PersistencyException {
         // check the cache
         if (entities.containsKey(thisPath)) {
-            Logger.msg(8, "ProxyLoader.getIOR() - "+thisPath+" cached.");
+            log.trace("getIOR() - "+thisPath+" cached.");
             return entities.get(thisPath);
         }
 
         try {
-            Logger.msg(8, "ProxyLoader.getIOR() - Resolving "+thisPath+".");
+            log.trace("getIOR() - Resolving "+thisPath+".");
             org.omg.CORBA.Object ior = thisPath.getIOR();
 
             Item thisItem = null;
@@ -187,7 +188,7 @@ public class ProxyLoader extends ClusterStorage {
                 }
             }
 
-            Logger.msg(8, "ProxyLoader.getIOR() - Found "+thisItem+".");
+            log.trace("getIOR() - Found "+thisItem+".");
             entities.put(thisPath, thisItem);
             return thisItem;
         }
