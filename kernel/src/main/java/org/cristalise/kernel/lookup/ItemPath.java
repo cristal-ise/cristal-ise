@@ -28,11 +28,13 @@ import org.cristalise.kernel.common.ObjectNotFoundException;
 import org.cristalise.kernel.common.SystemKey;
 import org.cristalise.kernel.persistency.ClusterType;
 import org.cristalise.kernel.process.Gateway;
-import org.cristalise.kernel.utils.Logger;
+
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * Extends Path to enforce SystemKey structure and support UUID form
  */
+@Slf4j
 public class ItemPath extends Path {
 
     protected String mIOR;
@@ -115,7 +117,7 @@ public class ItemPath extends Path {
                 mIOR = Gateway.getLookup().getIOR(this);
             }
             catch (ObjectNotFoundException ex) {
-                Logger.warning(ex.getMessage());
+                log.warn(ex.getMessage());
                 return null;
             }
         }
