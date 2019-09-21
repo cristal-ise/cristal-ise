@@ -28,8 +28,10 @@ import org.cristalise.kernel.common.InvalidDataException;
 import org.cristalise.kernel.lifecycle.instance.Activity;
 import org.cristalise.kernel.utils.CastorHashMap;
 import org.cristalise.kernel.utils.KeyValuePair;
-import org.cristalise.kernel.utils.Logger;
 
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
 public abstract class GraphableVertex extends Vertex {
 
     private CastorHashMap mProperties = null;
@@ -308,12 +310,12 @@ public abstract class GraphableVertex extends Vertex {
                     else if (newProps.containsKey(thisAct.getTypeName())) value = newProps.get(thisAct.getTypeName());
 
                     if (value != null) {
-                        Logger.msg(5, "GraphableVertex.updatePropertiesFromCollection(" + vertexProp + ") - UPDATING typeName:"
+                        log.debug("updatePropertiesFromCollection(" + vertexProp + ") - UPDATING typeName:"
                                 + thisAct.getTypeName() + " id:" + thisAct.getID());
                         mProperties.setBuiltInProperty(ACTIVITY_DEF_URN, value);
                     }
                     else
-                        Logger.msg(5, "GraphableVertex.updatePropertiesFromCollection(" + vertexProp + ") - SKIPPING typeName:"
+                        log.debug("updatePropertiesFromCollection(" + vertexProp + ") - SKIPPING typeName:"
                                 + thisAct.getTypeName() + " id:" + thisAct.getID());
                 }
                 break;
@@ -325,13 +327,13 @@ public abstract class GraphableVertex extends Vertex {
 
     public void updatePropertiesFromCollection(int slotID, CastorHashMap newProps) throws InvalidDataException {
         if (getID() == slotID) {
-            Logger.msg(5, "GraphableVertex.updatePropertiesFromCollection(slotID:" + slotID + ") - MERGING properties for name:" + getName()
+            log.debug("updatePropertiesFromCollection(slotID:" + slotID + ") - MERGING properties for name:" + getName()
             + " id:" + getID());
             newProps.dump(5);
             mProperties.merge(newProps);
         }
         else
-            Logger.msg(5, "GraphableVertex.updatePropertiesFromCollection(slotID:" + slotID + ") - SKIPPING name:" + getName() + " id:"
+            log.debug("updatePropertiesFromCollection(slotID:" + slotID + ") - SKIPPING name:" + getName() + " id:"
                     + getID());
     }
 }
