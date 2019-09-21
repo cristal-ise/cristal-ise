@@ -37,7 +37,6 @@ import javax.script.ScriptEngine;
 import org.cristalise.kernel.entity.proxy.AgentProxy;
 import org.cristalise.kernel.process.AbstractMain;
 import org.cristalise.kernel.process.Gateway;
-import org.cristalise.kernel.utils.Logger;
 import org.cristalise.kernel.utils.server.SocketHandler;
 import lombok.extern.slf4j.Slf4j;
 
@@ -128,7 +127,6 @@ public class ScriptConsole implements SocketHandler {
         if (closingSocket == null)
             return;
         try {
-            Logger.removeLogStream(output);
             closingSocket.shutdownInput();
             closingSocket.shutdownOutput();
             closingSocket.close();
@@ -165,7 +163,6 @@ public class ScriptConsole implements SocketHandler {
         // get system objects
         try {
             //FIXME remove this when Logger class is completly phased out
-            Logger.addLogStream(output, 0);
             Script context;
             try {
                 context = new Script("javascript", agent, output);
