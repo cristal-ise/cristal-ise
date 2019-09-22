@@ -359,7 +359,7 @@ public class Gateway
             return (Authenticator)mC2KProps.getInstance("Authenticator");
         }
         catch (ClassNotFoundException | InstantiationException | IllegalAccessException ex) {
-            Logger.error(ex);
+            log.error("Authenticator "+mC2KProps.getString("Authenticator")+" could not be instantiated", ex);
             throw new InvalidDataException("Authenticator "+mC2KProps.getString("Authenticator")+" could not be instantiated");
         } 
     }
