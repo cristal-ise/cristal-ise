@@ -60,11 +60,13 @@ import org.cristalise.kernel.property.PropertyDescriptionList;
 import org.cristalise.kernel.property.PropertyUtility;
 import org.cristalise.kernel.utils.CastorXMLUtility;
 import org.cristalise.kernel.utils.LocalObjectLoader;
-import org.cristalise.kernel.utils.Logger;
 import org.exolab.castor.mapping.MappingException;
 import org.exolab.castor.xml.MarshalException;
 import org.exolab.castor.xml.ValidationException;
 
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
 public class CreateItemFromDescription extends PredefinedStep {
 
     public CreateItemFromDescription() {
@@ -103,19 +105,16 @@ public class CreateItemFromDescription extends PredefinedStep {
         PropertyArrayList initProps = input.length > 3 && StringUtils.isNotBlank(input[3]) ? unmarshallInitProperties(input[3]) : new PropertyArrayList();
         String            outcome   = input.length > 4 && StringUtils.isNotBlank(input[4]) ? input[4] : "";
 
-        Logger.msg(1, "CreateItemFromDescription - name:" + newName);
-
         // check if the path is already taken
         DomainPath context = new DomainPath(new DomainPath(domPath), newName);
 
         if (context.exists()) throw new ObjectAlreadyExistsException("The path " + context + " exists already.");
 
         // generate new item path with random uuid
-        Logger.msg(6, "CreateItemFromDescription - Requesting new item path");
         ItemPath newItemPath = new ItemPath();
 
         // create the Item object
-        Logger.msg(3, "CreateItemFromDescription - Creating Item");
+        log.info("Creating Item name:{} uuid:{}", newName, newItemPath);
         CorbaServer factory = Gateway.getCorbaServer();
 
         if (factory == null) throw new CannotManageException("This process cannot create new Items");
@@ -165,7 +164,7 @@ public class CreateItemFromDescription extends PredefinedStep {
                    ObjectNotFoundException
     {
         // initialise it with its properties and workflow
-        Logger.msg(3, "CreateItemFromDescription.initialiseItem() - Initializing Item:" + newName);
+        log.info("initialiseItem() - Initializing Item:" + newName);
 
         try {
             PropertyArrayList   newProps     = instantiateProperties (descItemPath, descVer, initProps, newName, agent, locker);
@@ -183,18 +182,18 @@ public class CreateItemFromDescription extends PredefinedStep {
                                 (outcome != null) ? outcome: "");
         }
         catch (MarshalException | ValidationException | AccessRightsException | IOException | MappingException | InvalidCollectionModification e) {
-            Logger.error(e);
+            log.error("", e);
             Gateway.getLookupManager().delete(newItemPath);
             throw new InvalidDataException("CreateItemFromDescription: Problem initializing new Item. See log: " + e.getMessage());
         }
         catch (InvalidDataException | ObjectNotFoundException | PersistencyException e) {
-            Logger.error(e);
+            log.error("", e);
             Gateway.getLookupManager().delete(newItemPath);
             throw e;
         }
 
         // add its domain path
-        Logger.msg(3, "CreateItemFromDescription - Creating " + context);
+        log.info("Creating " + context);
         context.setItemPath(newItemPath);
         Gateway.getLookupManager().add(context);
     }
@@ -211,7 +210,7 @@ public class CreateItemFromDescription extends PredefinedStep {
             return (PropertyArrayList) Gateway.getMarshaller().unmarshall(initPropString);
         }
         catch (Exception e) {
-            Logger.error(e);
+            log.error("", e);
             throw new InvalidDataException("Initial property parameter was not a marshalled PropertyArrayList: " + initPropString);
         }
     }
@@ -290,7 +289,7 @@ public class CreateItemFromDescription extends PredefinedStep {
             throw new InvalidDataException("Invalid workflow version number: " + wfVerObj.toString());
         }
         catch (ClassCastException ex) {
-            Logger.error(ex);
+            log.error("Activity def '" + wfDefName + "' was not Composite", ex);
             throw new InvalidDataException("Activity def '" + wfDefName + "' was not Composite");
         }
     }
@@ -342,12 +341,12 @@ public class CreateItemFromDescription extends PredefinedStep {
         Collection<?> newColl = null;
 
         if (collOfDesc instanceof CollectionDescription) {
-            Logger.msg(5,"CreateItemFromDescription - Instantiating CollectionDescription:"+ collName);
+            log.info("Instantiating CollectionDescription:"+ collName);
             CollectionDescription<?> collDesc = (CollectionDescription<?>) collOfDesc;
             newColl = collDesc.newInstance();
         }
         else if(collOfDesc instanceof Dependency) {
-            Logger.msg(5,"CreateItemFromDescription - Instantiating Dependency:"+ collName);
+            log.info("Instantiating Dependency:"+ collName);
             ((Dependency) collOfDesc).addToItemProperties(newProps);
         }
         else {
