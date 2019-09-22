@@ -36,8 +36,10 @@ import org.cristalise.kernel.lookup.InvalidItemPathException;
 import org.cristalise.kernel.lookup.ItemPath;
 import org.cristalise.kernel.persistency.ClusterType;
 import org.cristalise.kernel.process.Gateway;
-import org.cristalise.kernel.utils.Logger;
 
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
 public class AssignItemToSlot extends PredefinedStep {
 
     public AssignItemToSlot() {
@@ -65,8 +67,7 @@ public class AssignItemToSlot extends PredefinedStep {
         // extract parameters
         String[] params = getDataList(requestData);
 
-        if (Logger.doLog(3))
-            Logger.msg(3, "AssignItemToSlot: called by " + agent + " on " + item + " with parameters " + Arrays.toString(params));
+        log.debug("Called by {} on {} with parameters {}", agent.getAgentName(), item, (Object)params);
 
         try {
             collName = params[0];
@@ -79,7 +80,7 @@ public class AssignItemToSlot extends PredefinedStep {
             }
         }
         catch (Exception e) {
-            Logger.error(e);
+            log.error("Invalid parameters " + Arrays.toString(params), e);
             throw new InvalidDataException("AssignItemToSlot: Invalid parameters " + Arrays.toString(params));
         }
 
@@ -89,8 +90,8 @@ public class AssignItemToSlot extends PredefinedStep {
             collObj = Gateway.getStorage().get(item, ClusterType.COLLECTION + "/" + collName + "/last", locker);
         }
         catch (PersistencyException ex) {
-            Logger.error(ex);
-            throw new PersistencyException("AssignItemToSlot: Error loading collection '\"+collName+\"': " + ex.getMessage());
+            log.error("Error loading collection '"+collName+"'", ex);
+            throw new PersistencyException("AssignItemToSlot: Error loading collection '"+collName+"': " + ex.getMessage());
         }
         if (!(collObj instanceof Aggregation))
             throw new InvalidDataException("AssignItemToSlot: AssignItemToSlot operates on Aggregation collections only.");
