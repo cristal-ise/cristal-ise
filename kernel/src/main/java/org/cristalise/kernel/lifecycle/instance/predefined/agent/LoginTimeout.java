@@ -28,7 +28,6 @@ import org.cristalise.kernel.common.PersistencyException;
 import org.cristalise.kernel.lifecycle.instance.predefined.PredefinedStep;
 import org.cristalise.kernel.lookup.AgentPath;
 import org.cristalise.kernel.lookup.ItemPath;
-import org.cristalise.kernel.utils.Logger;
 
 /**
  * {@value #description}
@@ -45,8 +44,6 @@ public class LoginTimeout extends PredefinedStep {
     protected String runActivityLogic(AgentPath agent, ItemPath itemPath, int transitionID, String requestData, Object locker)
             throws InvalidDataException, ObjectNotFoundException, ObjectCannotBeUpdated, CannotManageException, PersistencyException
     {
-        Logger.msg(1, "LoginTimeout.request() - Starting.");
-
         return requestData;
     }
 

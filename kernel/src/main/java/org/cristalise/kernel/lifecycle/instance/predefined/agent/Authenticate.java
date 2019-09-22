@@ -29,11 +29,10 @@ import org.cristalise.kernel.lifecycle.instance.predefined.PredefinedStep;
 import org.cristalise.kernel.lookup.AgentPath;
 import org.cristalise.kernel.lookup.ItemPath;
 import org.cristalise.kernel.process.Gateway;
-import org.cristalise.kernel.utils.Logger;
 
-/**
- * 
- */
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
 public class Authenticate extends PredefinedStep {
     public static final String description = "Records the Login event in the history. Login is assocated with user sessions with tokens validity";
 
@@ -51,7 +50,7 @@ public class Authenticate extends PredefinedStep {
     protected String authenticate(AgentPath agent, ItemPath itemPath, String requestData, Object locker) 
             throws InvalidDataException, ObjectNotFoundException
     {
-        Logger.msg(1, "PredefinedStep.Authenticate() - Starting.");
+        log.info("authenticate() - Starting.");
 
         String[] params = getDataList(requestData);
 

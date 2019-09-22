@@ -31,8 +31,10 @@ import org.cristalise.kernel.lookup.InvalidItemPathException;
 import org.cristalise.kernel.lookup.ItemPath;
 import org.cristalise.kernel.lookup.RolePath;
 import org.cristalise.kernel.process.Gateway;
-import org.cristalise.kernel.utils.Logger;
 
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
 public class SetAgentRoles extends PredefinedStep {
 
     public SetAgentRoles() {
@@ -45,7 +47,7 @@ public class SetAgentRoles extends PredefinedStep {
     {
         String[] params = getDataList(requestData);
 
-        Logger.msg(3, "SetAgentRoles: called by " + agent + " on " + item + " with parameters " + Arrays.toString(params));
+        log.info("Called by " + agent + " on " + item + " with parameters " + Arrays.toString(params));
 
         AgentPath targetAgent;
         try {
@@ -80,7 +82,7 @@ public class SetAgentRoles extends PredefinedStep {
                 Gateway.getLookupManager().removeRole(targetAgent, roleToRemove);
             }
             catch (Exception e) {
-                Logger.error(e);
+                log.error("", e);
                 throw new InvalidDataException("Error removing role " + roleToRemove.getName());
             }
 
@@ -90,7 +92,7 @@ public class SetAgentRoles extends PredefinedStep {
                 Gateway.getLookupManager().addRole(targetAgent, roleToAdd);
             }
             catch (Exception e) {
-                Logger.error(e);
+                log.error("", e);
                 throw new InvalidDataException("Error adding role " + roleToAdd.getName());
             }
         }
