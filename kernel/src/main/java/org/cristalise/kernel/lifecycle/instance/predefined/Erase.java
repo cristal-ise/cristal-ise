@@ -54,7 +54,7 @@ public class Erase extends PredefinedStep {
     protected String runActivityLogic(AgentPath agent, ItemPath item, int transitionID, String requestData, Object locker)
             throws InvalidDataException, ObjectNotFoundException, ObjectCannotBeUpdated, CannotManageException, PersistencyException
     {
-        log.info("Called by {} on {}", agent.getAgentName(), item);
+        log.debug("Called by {} on {}", agent.getAgentName(), item);
 
         removeAliases(item);
         removeRolesIfAgent(item);

@@ -21,7 +21,6 @@
 package org.cristalise.kernel.lifecycle.instance.predefined.agent;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 
 import org.cristalise.kernel.common.InvalidDataException;
 import org.cristalise.kernel.common.ObjectNotFoundException;
@@ -47,7 +46,7 @@ public class SetAgentRoles extends PredefinedStep {
     {
         String[] params = getDataList(requestData);
 
-        log.info("Called by " + agent + " on " + item + " with parameters " + Arrays.toString(params));
+        log.debug("Called by {} on {} with parameters {}", agent.getAgentName(), item, (Object)params);
 
         AgentPath targetAgent;
         try {

@@ -46,7 +46,8 @@ public class RemoveDomainContext extends PredefinedStep {
             throws InvalidDataException, ObjectNotFoundException, ObjectCannotBeUpdated, CannotManageException
     {
         String[] params = getDataList(requestData);
-        log.info("Called by " + agent + " on " + item + " with parameters " + Arrays.toString(params));
+
+        log.debug("Called by {} on {} with parameters {}", agent.getAgentName(), item, (Object)params);
 
         if (params.length != 1) throw new InvalidDataException("RemoveDomainContext: Invalid parameters " + Arrays.toString(params));
 

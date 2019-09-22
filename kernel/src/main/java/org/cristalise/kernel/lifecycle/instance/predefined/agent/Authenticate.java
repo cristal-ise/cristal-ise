@@ -50,9 +50,9 @@ public class Authenticate extends PredefinedStep {
     protected String authenticate(AgentPath agent, ItemPath itemPath, String requestData, Object locker) 
             throws InvalidDataException, ObjectNotFoundException
     {
-        log.info("authenticate() - Starting.");
-
         String[] params = getDataList(requestData);
+
+        log.debug("Called by {} on {} with parameters {}", agent.getAgentName(), itemPath, (Object)params);
 
         if (params.length < 2 || params.length > 3) 
             throw new InvalidDataException("PredefinedStep.Authenticate() -  Invalid number of parameters (2 <= length="+params.length+" <= 3)");

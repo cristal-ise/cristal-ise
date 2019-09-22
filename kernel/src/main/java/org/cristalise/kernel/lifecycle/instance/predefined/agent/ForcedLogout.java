@@ -29,9 +29,12 @@ import org.cristalise.kernel.lifecycle.instance.predefined.PredefinedStep;
 import org.cristalise.kernel.lookup.AgentPath;
 import org.cristalise.kernel.lookup.ItemPath;
 
+import lombok.extern.slf4j.Slf4j;
+
 /**
  * {@value #description}
  */
+@Slf4j
 public class ForcedLogout extends PredefinedStep {
 
     public static final String description = "Records the ForcedLogout event in the history associated with window/tab close actions in the UI";
@@ -44,6 +47,8 @@ public class ForcedLogout extends PredefinedStep {
     protected String runActivityLogic(AgentPath agent, ItemPath itemPath, int transitionID, String requestData, Object locker)
             throws InvalidDataException, ObjectNotFoundException, ObjectCannotBeUpdated, CannotManageException, PersistencyException
     {
+        log.debug("Called by {} on {}", agent.getAgentName(), itemPath);
+
         return requestData;
     }
 

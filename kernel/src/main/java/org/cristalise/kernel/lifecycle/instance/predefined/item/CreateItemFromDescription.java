@@ -99,6 +99,8 @@ public class CreateItemFromDescription extends PredefinedStep {
     {
         String[] input = getDataList(requestData);
 
+        log.debug("Called by {} on {} with parameters {}", agent.getAgentName(), descItemPath, (Object)input);
+
         String            newName   = input[0];
         String            domPath   = input[1];
         String            descVer   = input.length > 2 && StringUtils.isNotBlank(input[2]) ? input[2] : "last";

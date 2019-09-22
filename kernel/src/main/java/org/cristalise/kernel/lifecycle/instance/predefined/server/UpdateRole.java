@@ -53,18 +53,14 @@ public class UpdateRole extends PredefinedStep {
     protected String runActivityLogic(AgentPath agent, ItemPath item, int transitionID, String requestData, Object locker)
             throws InvalidDataException, ObjectAlreadyExistsException, ObjectCannotBeUpdated,  CannotManageException, ObjectNotFoundException 
     {
-        ImportRole role = null;
-
         try {
-            role = (ImportRole) Gateway.getMarshaller().unmarshall(requestData);
+            ImportRole role = (ImportRole) Gateway.getMarshaller().unmarshall(requestData);
+            role.update(agent);
+            return requestData;
         }
         catch (MarshalException | ValidationException | IOException | MappingException e) {
             log.error("Couldn't unmarshall Role: " + requestData, e);
             throw new InvalidDataException("Couldn't unmarshall Role: " + requestData);
         }
-
-        role.update(agent);
-
-        return requestData;
     }
 }

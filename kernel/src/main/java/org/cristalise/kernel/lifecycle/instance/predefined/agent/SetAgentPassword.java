@@ -21,7 +21,9 @@
 package org.cristalise.kernel.lifecycle.instance.predefined.agent;
 
 import static org.cristalise.kernel.security.BuiltInAuthc.ADMIN_ROLE;
+
 import java.security.NoSuchAlgorithmException;
+
 import org.cristalise.kernel.common.AccessRightsException;
 import org.cristalise.kernel.common.CannotManageException;
 import org.cristalise.kernel.common.InvalidDataException;
@@ -48,7 +50,7 @@ public class SetAgentPassword extends PredefinedStep {
     {
         String[] params = getDataList(requestData);
 
-        log.info("SetAgentPassword: called by " + agent + " on " + item + " with parameters length:" + params.length);
+        log.debug("Called by {} on {} with parameters {}", agent.getAgentName(), item, (Object)params);
 
         //FIXME params.length != 1 case is deprecated, shall enforce identity check
         if (params.length != 1 && params.length != 2) 

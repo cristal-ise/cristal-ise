@@ -104,6 +104,8 @@ public class BulkImport extends PredefinedStep {
             throws InvalidDataException, InvalidCollectionModification, ObjectAlreadyExistsException, ObjectCannotBeUpdated,
                    ObjectNotFoundException, PersistencyException, CannotManageException
     {
+        log.debug("Called by {} on {}", agent.getAgentName(), itemPath);
+
         initialise();
 
         importAllClusters();
