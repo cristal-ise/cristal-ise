@@ -243,7 +243,7 @@ public class ItemImplementation implements ItemOperations {
 
             if (secMan.isShiroEnabled() && !secMan.checkPermissions(agentToUse, (Activity) lifeCycle.search(stepPath), mItemPath)) {
 
-                for (RolePath role: agent.getRoles()) log.error("%s", role.dump());
+                for (RolePath role: agent.getRoles()) log.error(role.dump());
 
                 throw new AccessRightsException("'" + agentToUse.getAgentName() + "' is NOT permitted to execute step:" + stepPath);
             }

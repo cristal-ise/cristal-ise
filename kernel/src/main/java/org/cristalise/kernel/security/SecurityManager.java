@@ -226,7 +226,7 @@ public class SecurityManager {
               String publicMsg = decodePublicSecurityMessage(ex);
 
               if (StringUtils.isNotBlank(publicMsg)) {
-                log.debug("shiroAuthenticate() - Failed with public message:%s", publicMsg);
+                log.debug("shiroAuthenticate() - Failed with public message:{}", publicMsg);
                 throw new InvalidDataException(encodePublicSecurityMessage(publicMsg));
               }
             }
@@ -254,7 +254,7 @@ public class SecurityManager {
         //The Shiro's WildcardPermission string 
         String permission = domain+":"+action+":"+target;
 
-        log.debug("checkPermissions() - agent:'%s' permission:'%s'", agent.getAgentName(), permission);
+        log.debug("checkPermissions() - agent:'{}' permission:'{}'", agent.getAgentName(), permission);
 
         return getSubject(agent).isPermitted(permission);
     }

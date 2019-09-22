@@ -269,7 +269,7 @@ public class Activity extends WfVertex {
     private String resolveViewpointName(Outcome outcome) throws InvalidDataException {
         String viewpointString = (String)getBuiltInProperty(VIEW_POINT);
 
-        log.debug("resolveViewpointName() - act:%s viewpointString:%s", getName(), viewpointString);
+        log.debug("resolveViewpointName() - act:{} viewpointString:{}", getName(), viewpointString);
 
         if (StringUtils.isBlank(viewpointString)) {
             viewpointString = "last";
@@ -476,7 +476,7 @@ public class Activity extends WfVertex {
      */
     @Override
     public void reinit(int idLoop) throws InvalidDataException {
-        log.trace("reinit(id:%s, idLoop:%d) - parent:%s act:%s", getID(), idLoop, getParent().getName(), getPath());
+        log.trace("reinit(id:{}, idLoop:{}) - parent:{} act:{}", getID(), idLoop, getParent().getName(), getPath());
 
         setState(getStateMachine().getInitialState().getId());
 

@@ -44,7 +44,7 @@ public class OrSplit extends Split {
         int active = 0;
         DirectedEdge[] outEdges = getOutEdges();
         for (String thisNext : nextsTab) {
-            log.debug("runNext(id: %d) - Finding edge with %s '%s'", id, ALIAS, thisNext);
+            log.debug("runNext(id:{}) - Finding edge with {} '{}'", id, ALIAS, thisNext);
 
             if (thisNext != null) {
                 for (DirectedEdge outEdge : outEdges) {
@@ -58,7 +58,7 @@ public class OrSplit extends Split {
                             log.error("", e);
                             throw new InvalidDataException("Error enabling next " + thisNext);
                         }
-                        log.debug("runNext(id: %d) - Running %s", id, nextEdge.getBuiltInProperty(ALIAS));
+                        log.debug("runNext(id:{}) - Running {}", id, nextEdge.getBuiltInProperty(ALIAS));
                         active++;
                     }
                 }

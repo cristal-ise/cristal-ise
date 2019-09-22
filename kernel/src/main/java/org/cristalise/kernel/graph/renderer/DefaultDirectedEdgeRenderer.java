@@ -139,7 +139,7 @@ public class DefaultDirectedEdgeRenderer implements DirectedEdgeRenderer {
             case BROKEN_PIPE:  drawBrokenPipeWithArrow(g2d, directedEdge);  break;
 
             default:
-                log.warn("draw() - unknow edge type:%s - drawing straight line", type);
+                log.warn("draw() - unknow edge type:{} - drawing straight line", type);
                 drawStraightWithArrow(g2d, directedEdge);
                 break;
         }

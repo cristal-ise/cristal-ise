@@ -123,7 +123,7 @@ public class Bootstrap
                     log.info("run() - Bootstrapper started");
 
                     ClassLoader wClassLoader = Bootstrap.class.getClassLoader();
-                    log.info("run() setContextClassLoader=[%s]", wClassLoader);
+                    log.info("run() setContextClassLoader=[{}]", wClassLoader);
                     Thread.currentThread().setContextClassLoader(wClassLoader);
 
                     // make sure all of the boot items are up-to-date
