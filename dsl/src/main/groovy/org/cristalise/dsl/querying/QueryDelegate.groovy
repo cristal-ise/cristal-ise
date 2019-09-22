@@ -22,7 +22,6 @@ package org.cristalise.dsl.querying
 
 import groovy.xml.MarkupBuilder
 
-import org.cristalise.kernel.utils.Logger
 
 
 /**
@@ -53,7 +52,6 @@ class QueryDelegate {
     }
 
     def parameter(String n, String t) {
-        Logger.msg("QueryDelegate.parameter() name:$n type:$t")
         xml.parameter('name': n, 'type': t)
     }
 

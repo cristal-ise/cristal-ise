@@ -35,15 +35,15 @@ import org.cristalise.kernel.process.resource.BuiltInResources
 import org.cristalise.kernel.process.resource.DefaultResourceImportHandler
 import org.cristalise.kernel.property.PropertyDescriptionList
 import org.cristalise.kernel.test.utils.KernelXMLUtility
-import org.cristalise.kernel.utils.Logger
 
 import groovy.transform.CompileStatic
+import groovy.util.logging.Slf4j
 
 /**
  * Utility class to implement ALL methods required to manage (create/edit)
  * CRISTAL-iSE Resources and Items defined in the dev module:  https://github.com/cristal-ise/dev
  */
-@CompileStatic
+@CompileStatic @Slf4j
 class DevItemUtility {
 
     AgentProxy agent = null
@@ -93,7 +93,7 @@ class DevItemUtility {
      * @return
      */
     public Job getDoneJob(ItemProxy proxy, String actName) {
-        Logger.msg("DevItemUtility.getDoneJob() - proxy:$proxy.name actName:$actName")
+        log.info('getDoneJob() - proxy:{} actName:{}', proxy.name, actName)
         Job j = proxy.getJobByName(actName, agent)
         assert j && j.getStepName() == actName && j.transition.name == "Done"
         return j

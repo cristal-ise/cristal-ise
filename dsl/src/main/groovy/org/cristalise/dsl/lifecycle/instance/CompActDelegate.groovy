@@ -20,8 +20,6 @@
  */
 package org.cristalise.dsl.lifecycle.instance
 
-import groovy.transform.CompileStatic
-
 import org.cristalise.kernel.common.InvalidDataException
 import org.cristalise.kernel.graph.model.GraphPoint
 import org.cristalise.kernel.lifecycle.LifecycleVertexOutlineCreator
@@ -29,13 +27,15 @@ import org.cristalise.kernel.lifecycle.instance.CompositeActivity
 import org.cristalise.kernel.lifecycle.instance.Next
 import org.cristalise.kernel.lifecycle.instance.WfVertex
 import org.cristalise.kernel.lifecycle.instance.WfVertex.Types
-import org.cristalise.kernel.utils.Logger
+
+import groovy.transform.CompileStatic
+import groovy.util.logging.Slf4j
 
 
 /**
  *
  */
-@CompileStatic
+@CompileStatic @Slf4j
 public class CompActDelegate extends BlockDelegate {
     public static final Types type = Types.Composite
 
@@ -64,7 +64,7 @@ public class CompActDelegate extends BlockDelegate {
         WfVertex v = currentCA.newChild(t, name, firstFlag, (GraphPoint)null)
         LifecycleVertexOutlineCreator lifecycleVertexOutlineCreator = new LifecycleVertexOutlineCreator();
         lifecycleVertexOutlineCreator.setOutline(v)
-        Logger.msg 1, "CA.createVertex(path: $currentCA.path) - type: '$t'; id: '$v.ID'; name: '$name;' path: '$v.path'"
+        log.info "createVertex(path: $currentCA.path) - type: '$t'; id: '$v.ID'; name: '$name;' path: '$v.path'"
 
         firstFlag = false
         updateVertexCache(t, name, v)
@@ -84,8 +84,6 @@ public class CompActDelegate extends BlockDelegate {
     public void processClosure(BlockDelegate parentBlock, Closure cl) {
         assert cl, "CompAct only works with a valid Closure"
         assert parentBlock, "CA must belong to Block/CA"
-        
-        Logger.msg 1, "CompAct(start) ---------------------------------------"
 
         currentCA =  (CompositeActivity)parentBlock.addVertex(Types.Composite, name)
 
@@ -94,8 +92,6 @@ public class CompActDelegate extends BlockDelegate {
         cl()
 
         setVertexProperties(currentCA)
-        
-        Logger.msg 1, "CompAct(end) +++++++++++++++++++++++++++++++++++++++++"
     }
 
     public void Block(Closure cl) {
