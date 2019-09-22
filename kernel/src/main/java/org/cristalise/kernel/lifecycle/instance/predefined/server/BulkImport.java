@@ -56,13 +56,11 @@ import org.cristalise.kernel.lookup.ItemPath;
 import org.cristalise.kernel.lookup.RolePath;
 import org.cristalise.kernel.persistency.ClusterType;
 import org.cristalise.kernel.process.Gateway;
-import org.cristalise.kernel.utils.Logger;
 import org.cristalise.storage.XMLClusterStorage;
 
-/**
- * This 
- *
- */
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
 public class BulkImport extends PredefinedStep {
 
     /**
@@ -149,7 +147,7 @@ public class BulkImport extends PredefinedStep {
                             items.add(new ItemPath(path.getFileName().toString()));
                         }
                         catch (InvalidItemPathException e) {
-                            Logger.warning("BulkImport.getItemsToImport() - Unvalid UUID for import directory:"+path.getFileName().toString());
+                            log.warn("getItemsToImport() - Unvalid UUID for import directory:"+path.getFileName().toString());
                         }
                     } );
             }
@@ -157,7 +155,7 @@ public class BulkImport extends PredefinedStep {
             return items;
         }
         catch (IOException e) {
-            Logger.error(e);
+            log.error("", e);
             throw new InvalidDataException(e.getMessage());
         }
     }
@@ -268,7 +266,7 @@ public class BulkImport extends PredefinedStep {
                 Gateway.getLookupManager().add( (DomainPath)importCluster.get(item, PATH+"/Domain/"+name) );
             }
             catch (ObjectCannotBeUpdated | ObjectAlreadyExistsException | CannotManageException e) {
-                Logger.error(e);
+                log.error("", e);
                 throw new PersistencyException(e.getMessage());
             }
 
@@ -288,7 +286,7 @@ public class BulkImport extends PredefinedStep {
                     if (agentPath != null) Gateway.getLookupManager().addRole(agentPath, rolePath);
                 }
                 catch (ObjectCannotBeUpdated | ObjectAlreadyExistsException | CannotManageException | ObjectNotFoundException e) {
-                    Logger.error(e);
+                    log.error("", e);
                     throw new PersistencyException(e.getMessage());
                 }
             }
@@ -308,7 +306,7 @@ public class BulkImport extends PredefinedStep {
             return itemPath;
         }
         catch (ObjectCannotBeUpdated | ObjectAlreadyExistsException | CannotManageException e) {
-            Logger.error(e);
+            log.error("", e);
             throw new PersistencyException(e.getMessage());
         }
     }
@@ -325,7 +323,7 @@ public class BulkImport extends PredefinedStep {
             return agentPath;
         }
         catch (ObjectCannotBeUpdated | ObjectAlreadyExistsException | CannotManageException | ObjectNotFoundException | NoSuchAlgorithmException e) {
-            Logger.error(e);
+            log.error("", e);
             throw new PersistencyException(e.getMessage());
         }
         
@@ -345,7 +343,7 @@ public class BulkImport extends PredefinedStep {
             if      (entity.equals("Item"))  importItemPath(item, locker);
             else if (entity.equals("Agent")) agentPath = importAgentPath(item, locker);
         }
-        else Logger.warning("BulkImport.importPath() - WARNING: '"+item+"' has no Path.Item or Path.Agent files");;
+        else log.warn("importPath() - WARNING: '"+item+"' has no Path.Item or Path.Agent files");;
 
         for (String c : contents) {
             if      (c.equals("Domain")) importDomainPath(item, locker);

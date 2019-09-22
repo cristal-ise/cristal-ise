@@ -34,11 +34,13 @@ import org.cristalise.kernel.lifecycle.instance.predefined.PredefinedStep;
 import org.cristalise.kernel.lookup.AgentPath;
 import org.cristalise.kernel.lookup.ItemPath;
 import org.cristalise.kernel.process.Gateway;
-import org.cristalise.kernel.utils.Logger;
 import org.exolab.castor.mapping.MappingException;
 import org.exolab.castor.xml.MarshalException;
 import org.exolab.castor.xml.ValidationException;
 
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
 public class UpdateRole extends PredefinedStep {
     public static final String description = "Updates an existing Role on this server";
 
@@ -57,7 +59,7 @@ public class UpdateRole extends PredefinedStep {
             role = (ImportRole) Gateway.getMarshaller().unmarshall(requestData);
         }
         catch (MarshalException | ValidationException | IOException | MappingException e) {
-            Logger.error(e);
+            log.error("Couldn't unmarshall Role: " + requestData, e);
             throw new InvalidDataException("Couldn't unmarshall Role: " + requestData);
         }
 

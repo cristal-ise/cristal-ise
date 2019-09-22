@@ -36,11 +36,13 @@ import org.cristalise.kernel.lifecycle.instance.predefined.PredefinedStep;
 import org.cristalise.kernel.lookup.AgentPath;
 import org.cristalise.kernel.lookup.ItemPath;
 import org.cristalise.kernel.process.Gateway;
-import org.cristalise.kernel.utils.Logger;
 import org.exolab.castor.mapping.MappingException;
 import org.exolab.castor.xml.MarshalException;
 import org.exolab.castor.xml.ValidationException;
 
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
 public class CreateNewItem extends PredefinedStep {
     public CreateNewItem() {
         super();
@@ -58,11 +60,11 @@ public class CreateNewItem extends PredefinedStep {
             return requestData;
         }
         catch (MarshalException | ValidationException | IOException | MappingException e) {
-            Logger.error(e);
+            log.error("CreateNewItem: Couldn't unmarshall new Item: " + requestData, e);
             throw new InvalidDataException("CreateNewItem: Couldn't unmarshall new Item: " + requestData);
         }
         catch (PersistencyException e) {
-            Logger.error(e);
+            log.error("", e);
             throw new InvalidDataException("CreateNewItem: " + e.getMessage());
         }
     }

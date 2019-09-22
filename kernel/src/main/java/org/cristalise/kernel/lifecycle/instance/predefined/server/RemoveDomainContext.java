@@ -31,8 +31,10 @@ import org.cristalise.kernel.lookup.AgentPath;
 import org.cristalise.kernel.lookup.DomainPath;
 import org.cristalise.kernel.lookup.ItemPath;
 import org.cristalise.kernel.process.Gateway;
-import org.cristalise.kernel.utils.Logger;
 
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
 public class RemoveDomainContext extends PredefinedStep {
 
     public RemoveDomainContext() {
@@ -44,7 +46,7 @@ public class RemoveDomainContext extends PredefinedStep {
             throws InvalidDataException, ObjectNotFoundException, ObjectCannotBeUpdated, CannotManageException
     {
         String[] params = getDataList(requestData);
-        Logger.msg(3, "RemoveDomainContext: called by " + agent + " on " + item + " with parameters " + Arrays.toString(params));
+        log.info("Called by " + agent + " on " + item + " with parameters " + Arrays.toString(params));
 
         if (params.length != 1) throw new InvalidDataException("RemoveDomainContext: Invalid parameters " + Arrays.toString(params));
 
