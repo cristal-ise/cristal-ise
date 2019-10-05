@@ -4,10 +4,10 @@ import static org.cristalise.kernel.collection.BuiltInCollections.SCHEMA_INITIAL
 import static org.cristalise.kernel.collection.BuiltInCollections.SCHEMA_INITIALISE
 
 /**
- * @{item} Item
+ * TestAgent Item
  */
-def @{item} = Schema('@{item}', 0) {
-    struct(name:' @{item}', documentation: '@{item} aggregated data') {
+def TestAgent = Schema('TestAgent', 0) {
+    struct(name:' TestAgent', documentation: 'TestAgent aggregated data') {
         field(name: 'Name',        type: 'string')
         field(name: 'ID',          type: 'string')
         field(name: 'State',       type: 'string', values: states)
@@ -15,90 +15,88 @@ def @{item} = Schema('@{item}', 0) {
     }
 }
 
-def @{item}Details = Schema('@{item}_Details', 0) {
-    struct(name: '@{item}_Details') {
+def TestAgentDetails = Schema('TestAgent_Details', 0) {
+    struct(name: 'TestAgent_Details') {
         field(name: 'Name',        type: 'string')
         field(name: 'Description', type: 'string')
     }
 }
 
-def @{item}UpdateAct = Activity('@{item}_Update', 0) {
+def TestAgentUpdateAct = Activity('TestAgent_Update', 0) {
     Property('OutcomeInit': 'Empty')
-    Schema(@{item}Details)
+    Schema(TestAgentDetails)
     //Script('Entity_ChangeName', 0)
 }
 
-def @{item}AggregateScript = Script('@{item}_Aggregate', 0) {
+def TestAgentAggregateScript = Script('TestAgent_Aggregate', 0) {
     input('item', 'org.cristalise.kernel.entity.proxy.ItemProxy')
-    output('@{item}XML', 'java.lang.String')
-    script('groovy', moduleDir+'/script/@{item}_Aggregate.groovy')
+    output('TestAgentXML', 'java.lang.String')
+    script('groovy', moduleDir+'/script/TestAgent_Aggregate.groovy')
 }
 
-def @{item}QueryListScript = Script('@{item}_QueryList', 0) {
+def TestAgentQueryListScript = Script('TestAgent_QueryList', 0) {
     input('item', 'org.cristalise.kernel.entity.proxy.ItemProxy')
-    output('@{item}Map', 'java.util.Map')
-    script('groovy', moduleDir+'/script/@{item}_QueryList.groovy')
+    output('TestAgentMap', 'java.util.Map')
+    script('groovy', moduleDir+'/script/TestAgent_QueryList.groovy')
 }
 
-Activity('@{item}_Aggregate', 0) {
+Activity('TestAgent_Aggregate', 0) {
     Property('OutcomeInit': 'Empty')
     Property('Agent Role': 'UserCode')
 
-    Schema(@{item})
-    Script(@{item}AggregateScript)
+    Schema(TestAgent)
+    Script(TestAgentAggregateScript)
 }
 
-def @{item}Wf = Workflow('@{item}_Workflow', 0) {
-    ElemActDef(@{item}UpdateAct)
+def TestAgentWf = Workflow('TestAgent_Workflow', 0) {
+    ElemActDef(TestAgentUpdateAct)
     CompActDef('State_Manage', 0)
 }
 
-def @{item}PropDesc = PropertyDescriptionList('@{item}', 0) {
+def TestAgentPropDesc = PropertyDescriptionList('TestAgent', 0) {
     PropertyDesc(name: 'Name',  isMutable: true,  isClassIdentifier: false)
-    PropertyDesc(name: 'Type',  isMutable: false, isClassIdentifier: true, defaultValue: '@{item}')
+    PropertyDesc(name: 'Type',  isMutable: false, isClassIdentifier: true, defaultValue: 'TestAgent')
     PropertyDesc(name: 'State', isMutable: true,  isClassIdentifier: true, defaultValue: 'ACTIVE')
 }
 
-Item(name: '@{item}Factory', folder: '/', workflow: 'Factory_Workflow', workflowVer: 0) {
+Item(name: 'TestAgentFactory', folder: '/', workflow: 'Factory_Workflow', workflowVer: 0) {
     InmutableProperty('Type': 'Factory')
-    InmutableProperty('Root': '@{moduleNs}/@{item}s')
+    InmutableProperty('Root': 'testns/TestAgents')
     InmutableProperty('IDPrefix': 'ID')
     InmutableProperty('GeneratedName': 'false')
     Property('LeftPadSize': '6')
 
-@if{isAgent}
+
     InmutableProperty('CreateAgent': 'true')
     Property('DefaultRoles': 'Admin')
-@end{}
 
-@if{!useConstructor}
-    InmutableProperty('UpdateSchema': '@{item}_Details:0')
-@end{}
 
-    Outcome(schema: 'PropertyDescription', version: '0', viewname: 'last', path: 'boot/property/@{item}.xml')
+
+
+    Outcome(schema: 'PropertyDescription', version: '0', viewname: 'last', path: 'boot/property/TestAgent.xml')
 
     Dependency('workflow') {
-        Member(itemPath: '/desc/ActivityDesc/@{moduleNs}/@{item}_Workflow') {
+        Member(itemPath: '/desc/ActivityDesc/testns/TestAgent_Workflow') {
             Property('Version': 0)
         }
     }
 
-@if{useConstructor}
+
     Dependency(SCHEMA_INITIALISE) {
-        Member(itemPath: '/desc/Schema/@{moduleNs}/@{item}_Details') {
+        Member(itemPath: '/desc/Schema/testns/TestAgent_Details') {
             Property('Version': 0)
         }
     }
-@end{}
+
 
     Dependency(MASTER_SCHEMA) {
-        Member(itemPath: '/desc/Schema/@{moduleNs}/@{item}') {
+        Member(itemPath: '/desc/Schema/testns/TestAgent') {
             Property('Version': 0)
         }
     }
 
     Dependency(AGGREGATE_SCRIPT) {
-        Member(itemPath: '/desc/Script/@{moduleNs}/@{item}_Aggregate') {
+        Member(itemPath: '/desc/Script/testns/TestAgent_Aggregate') {
             Property('Version': 0)
         }
     }

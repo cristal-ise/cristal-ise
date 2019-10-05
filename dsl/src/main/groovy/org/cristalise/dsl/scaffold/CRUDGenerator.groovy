@@ -30,7 +30,7 @@ import groovy.transform.CompileStatic
  * [rootDir: 'src/test', moduleName: 'Test Module', moduleNs: 'testns', moduleVersion: 0, item: 'TestItem', useConstructor: false]
  * </pre>
  */
-@CompileStatic
+//@CompileStatic
 class CRUDGenerator {
 
     /**
@@ -48,8 +48,6 @@ class CRUDGenerator {
         def scriptDir   = new File("${vars.rootDir}/module/script")
         def workflowDir = new File("${vars.rootDir}/resources/boot/CA")
 
-        if (generateModule) generateDSL(new File(moduleDir, 'Module.groovy'), 'module_groovy.tmpl', vars)
-
         generateDSL(new File(moduleDir,   'Factory.groovy'),                 'factory_groovy.tmpl',                 vars)
         generateDSL(new File(scriptDir,   'Factory_InstantiateItem.groovy'), 'factory_instantiateItem_groovy.tmpl', vars)
         generateDSL(new File(scriptDir,   'Entity_ChangeName.groovy'),       'entity_changeName_groovy.tmpl', vars)
@@ -62,6 +60,16 @@ class CRUDGenerator {
         if (generateStateWf) {
             generateDSL(new File(moduleDir,   'State.groovy'),       'state_groovy.tmpl',     vars)
             generateDSL(new File(workflowDir, 'State_Manage_0.xml'), 'state_manage_xml.tmpl', vars)
+        }
+
+        if (generateModule) {
+            vars['moduleFiles'] = []
+
+            moduleDir.eachFileMatch(~/.*.groovy/) { file ->
+                if (file.name != 'Module.groovy') vars['moduleFiles'].add(file.name)
+            }
+
+            generateDSL(new File(moduleDir, 'Module.groovy'), 'module_groovy.tmpl', vars)
         }
     }
 

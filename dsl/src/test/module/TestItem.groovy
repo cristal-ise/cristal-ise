@@ -1,6 +1,7 @@
 import static org.cristalise.kernel.collection.BuiltInCollections.AGGREGATE_SCRIPT
 import static org.cristalise.kernel.collection.BuiltInCollections.MASTER_SCHEMA
 import static org.cristalise.kernel.collection.BuiltInCollections.SCHEMA_INITIALISE
+import static org.cristalise.kernel.collection.BuiltInCollections.SCHEMA_INITIALISE
 
 /**
  * TestItem Item
@@ -59,15 +60,21 @@ def TestItemPropDesc = PropertyDescriptionList('TestItem', 0) {
 }
 
 Item(name: 'TestItemFactory', folder: '/', workflow: 'Factory_Workflow', workflowVer: 0) {
-    Property('Type': 'Factory')
+    InmutableProperty('Type': 'Factory')
+    InmutableProperty('Root': 'testns/TestItems')
+    InmutableProperty('IDPrefix': 'ID')
+    InmutableProperty('GeneratedName': 'false')
+    Property('LeftPadSize': '6')
 
 
-    Property('UpdateSchema': 'TestItem_Details:0')
+
+
+    InmutableProperty('UpdateSchema': 'TestItem_Details:0')
 
 
     Outcome(schema: 'PropertyDescription', version: '0', viewname: 'last', path: 'boot/property/TestItem.xml')
 
-    Dependency("workflow'") {
+    Dependency('workflow') {
         Member(itemPath: '/desc/ActivityDesc/testns/TestItem_Workflow') {
             Property('Version': 0)
         }

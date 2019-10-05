@@ -61,7 +61,7 @@ if (item.checkContent(ClusterType.COLLECTION.name, BuiltInCollections.SCHEMA_INI
 
         Logger.msg 5, "Script.Factory_InstantiateItem - initaliseOutcomeXML:%s", initaliseOutcomeXML
     }
-    else 
+    else
         throw new InvalidDataException("Script.Factory_InstantiateItem - invalid path:/NewInstanceDetails/SchemaInitialise/$updateSchema")
 }
 
@@ -145,11 +145,11 @@ try {
 	throw new ObjectAlreadyExistsException("[errorMessage]Item already exists: $itemName[/errorMessage]")
 }
 
-if (createAgent) {       
+if (createAgent) {
     params = new String[1]
-    
+
     params[0] = 'password'
-    
+
     ItemProxy employee = agent.getItem(root + '/' + itemName)
     agent.execute(employee, "SetAgentPassword", params)
 }

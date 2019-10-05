@@ -19,10 +19,19 @@ class CRUDGeneratorTest {
             moduleVersion:   0,
             resourcePackage: 'org.cristalise.test',
             item:            'TestItem',
-            useConstructor:  false
+            useConstructor:  false,
+            isAgent:         false
         ]
 
         new CRUDGenerator().generate(inputs, true, true)
+
+        inputs.with {
+            item = 'TestAgent'
+            isAgent = true
+            useConstructor = true
+        }
+
+        new CRUDGenerator().generate(inputs, true, false)
 
         CompilerConfiguration cc = new CompilerConfiguration()
         cc.setScriptBaseClass(DelegatingScript.class.getName())
