@@ -34,12 +34,16 @@ nav:
         - JavaDoc: http://javadoc.io/doc/org.cristalise/cristalise-kernel
     - Tutorials:
         - Basic (Create Patient): Basic-Tutorial.md
-        - Create PatientDetails: Create-PatientDetails.md
-        - Create SetPatientDetails: Create-SetPatientDetails.md
-        - Create PatientLifecycle: Create-PatientLifecycle.md
-        - Create PatientDescription: Create-PatientDescription.md
-        - Create Patient: Create-Patient.md
-        - Advance ( Patient Tracking ): tutorial-PatientTracking.md
+            - Create PatientDetails: Create-PatientDetails.md
+            - Create SetPatientDetails: Create-SetPatientDetails.md
+            - Create PatientLifecycle: Create-PatientLifecycle.md
+            - Create PatientDescription: Create-PatientDescription.md
+            - Create Patient: Create-Patient.md
+        - Advanced (Patient Tracking): tutorial-PatientTracking.md
+            - Specifications: Patient-Tracking-Description.md
+            - Cristalised: Patient-Tracking-Cristalised.md	
+            - Implementation: Patient-Tracking-Implementation.md
+            - Modularization: Patient-Tracking-Modularization.md
     - Others:        
         - Selected papers: Selected-papers.md
         - Maven Deploy Travis: Maven-Deploy-Travis.md
