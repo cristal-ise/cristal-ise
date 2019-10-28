@@ -22,7 +22,7 @@ class ExcelGroovyParser {
 
         DataFormatter formatter = new DataFormatter()
 
-        List<String> keys = headerRow ?: []
+        List<String> keys = headerRow ?: [] as List<String>
         //TODO: use Object instead of String for value - see getCellValue()
         Map<String, String> rowMap = [:]
         def generateKeys = !keys
