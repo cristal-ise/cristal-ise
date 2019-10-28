@@ -26,7 +26,7 @@ import java.io.Writer;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
-
+import java.util.Map.Entry;
 import org.apache.commons.lang3.StringUtils;
 import org.cristalise.kernel.common.InvalidDataException;
 import org.cristalise.kernel.persistency.outcome.Outcome;
@@ -166,7 +166,7 @@ public class OutcomeBuilder {
         
         String[] names = StringUtils.split(path, "/");
 
-        Element newElement = null;
+        Element parentElement = null;
         String fieldName = null;
 
         if(names.length == 1) {
@@ -187,12 +187,13 @@ public class OutcomeBuilder {
 
             if (modelElement == null) throw new StructuralException("Invalid path:'"+path+"'");
 
-            newElement = modelElement.createChildElement(outcome.getDOM(), fieldName);
+            modelElement.createChildElement(outcome.getDOM(), fieldName);
+            parentElement = modelElement.getElement();
         }
 
         try {
-            if (newElement == null) outcome.setField(fieldName, data);
-            else                    outcome.setField(newElement, fieldName, data);
+            if (parentElement == null) outcome.setField(fieldName, data);
+            else                       outcome.setField(parentElement, fieldName, data);
         }
         catch (InvalidDataException e) {
             Logger.error(e);
@@ -235,8 +236,19 @@ public class OutcomeBuilder {
         }
 
         try {
-            if (newElement == null) outcome.setRecord(record);
-            else                    outcome.setRecord(newElement, record);
+            for (Entry<String,String> entry : record.entrySet()) {
+                String name = entry.getKey();
+                String value = entry.getValue();
+
+                if (newElement == null) {
+                    if (outcome.hasField(name)) outcome.setField(name, value);
+                    else                        addField(path + "/" + name, value);
+                }
+                else {
+                    if (outcome.hasField(newElement, name)) outcome.setField(newElement, name, value);
+                    else                                    addField(path + "/" + name, value);
+                }
+            }
         }
         catch (InvalidDataException e) {
             Logger.error(e);
