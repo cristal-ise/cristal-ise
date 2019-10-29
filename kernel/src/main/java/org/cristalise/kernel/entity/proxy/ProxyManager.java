@@ -300,4 +300,30 @@ public class ProxyManager {
             Logger.msg(logLevel, "Proxy cache modified. Aborting.");
         }
     }
+
+    /**
+     * Clears all entries from the cache
+     */
+    public void clearCache() {
+        synchronized(proxyPool) {
+            proxyPool.clear();
+        }
+        Logger.msg(8, "ProxyManager.clearCache() - DONE");
+    }
+
+    /**
+     * Clears the given Item from the cache
+     * @param item the UUID
+     */
+    public void clearCache(ItemPath item) {
+        if (proxyPool.containsKey(item)) {
+            synchronized(proxyPool) {
+                proxyPool.remove(item);
+            }
+            Logger.msg(8, "ProxyManager.clearCache() - '%s' was removed from cache", item);
+        }
+        else {
+            Logger.msg(8, "ProxyManager.clearCache() - '%s' was not cached", item);
+        }
+    }
 }
