@@ -106,4 +106,17 @@ class RestapiTestBase {
             return id
         }
     }
+
+    def execPredefStep(String uuid,  Class<?> predefStep, String...params) {
+        given()
+            .contentType(ContentType.JSON)
+            .accept(ContentType.JSON)
+            .cookie(cauthCookie)
+            .body(params.toString())
+        .when()
+            .post(apiUri+"/item/$uuid/workflow/predefined/"+predefStep.getSimpleName())
+        .then()
+            .statusCode(STATUS_OK)
+            .extract().response().body().asString()
+    }
 }
