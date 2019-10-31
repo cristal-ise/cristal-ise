@@ -9,6 +9,7 @@ import org.json.JSONArray
 import org.junit.BeforeClass
 import org.junit.Test
 
+import groovy.json.JsonBuilder
 import groovy.transform.CompileStatic
 import io.restassured.http.ContentType
 import io.restassured.http.Cookie
@@ -19,9 +20,6 @@ class RestapiTestBase {
 
     static String apiUri
 
-    static String user = 'user'
-    static String pwd = 'test'
-    
     String userUuid
     Cookie cauthCookie
 
@@ -35,6 +33,10 @@ class RestapiTestBase {
     }
 
     def login() {
+        login 'user', 'test'
+    }
+
+    def login(String user, String pwd) {
         Response loginResp =
             given()
                 .accept(ContentType.JSON)
@@ -75,13 +77,17 @@ class RestapiTestBase {
     }
 
     int checkEvent(Integer id, String name) {
+        return checkEvent(userUuid, id, name)
+    }
+
+    int checkEvent(String uuid, Integer id, String name) {
         if (id == null) {
             String histBody = 
                 given()
                     .accept(ContentType.JSON)
                     .cookie(cauthCookie)
                 .when()
-                    .get(apiUri+"/item/$userUuid/history")
+                    .get(apiUri+"/item/$uuid/history")
                 .then()
                     .statusCode(STATUS_OK)
                 .extract().response().body().asString()
@@ -107,16 +113,20 @@ class RestapiTestBase {
         }
     }
 
-    def execPredefStep(String uuid,  Class<?> predefStep, String...params) {
-        given()
+    String executePredefStep(String uuid,  Class<?> predefStep, String...params) {
+        def json = new JsonBuilder(params)
+
+        String responseBody = given()
             .contentType(ContentType.JSON)
             .accept(ContentType.JSON)
             .cookie(cauthCookie)
-            .body(params.toString())
+            .body(json.toString())
         .when()
             .post(apiUri+"/item/$uuid/workflow/predefined/"+predefStep.getSimpleName())
         .then()
             .statusCode(STATUS_OK)
             .extract().response().body().asString()
+
+        return responseBody
     }
 }
