@@ -45,7 +45,6 @@ import javax.ws.rs.core.NewCookie;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 
-import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.cristalise.kernel.common.AccessRightsException;
 import org.cristalise.kernel.common.InvalidCollectionModification;
@@ -74,6 +73,7 @@ import org.glassfish.jersey.media.multipart.FormDataParam;
 import org.json.XML;
 
 import com.google.common.collect.ImmutableMap;
+import com.google.common.io.ByteStreams;
 
 @Path("/item/{uuid}")
 public class ItemRoot extends ItemUtils {
@@ -515,8 +515,8 @@ public class ItemRoot extends ItemUtils {
                    InvalidTransitionException, ObjectAlreadyExistsException, InvalidCollectionModification, ScriptErrorException, IOException
     {
         Job thisJob = item.getJobByTransitionName(actPath, transition, agent);
-        
-        byte[] binaryData = IOUtils.toByteArray(file);
+
+        byte[] binaryData = ByteStreams.toByteArray(file);
 
         if (thisJob == null) {
             throw new ObjectNotFoundException("Job not found for actPath:" + actPath+ " transition:" + transition);
