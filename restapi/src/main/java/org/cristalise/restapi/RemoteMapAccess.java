@@ -61,6 +61,7 @@ public class RemoteMapAccess {
             int i = last-start;
 
             while (i >= 0 && batch.size() < batchSize) {
+                @SuppressWarnings("unlikely-arg-type")
                 Object obj = map.get(i);
                 if (obj != null) batch.put(String.valueOf(i), obj);
                 i--;
@@ -76,6 +77,7 @@ public class RemoteMapAccess {
             int i = start;
 
             while (i <= last && batch.size() < batchSize) {
+                @SuppressWarnings("unlikely-arg-type")
                 Object obj = map.get(i);
                 if (obj != null) batch.put(String.valueOf(i), obj);
                 i++;
