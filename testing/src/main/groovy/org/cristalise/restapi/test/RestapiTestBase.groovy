@@ -3,6 +3,7 @@ package org.cristalise.restapi.test
 import static io.restassured.RestAssured.*
 import static org.hamcrest.Matchers.*
 
+import org.cristalise.kernel.lifecycle.instance.predefined.PredefinedStep
 import org.cristalise.kernel.process.AbstractMain
 import org.cristalise.kernel.utils.Logger
 import org.json.JSONArray
@@ -113,14 +114,19 @@ class RestapiTestBase {
         }
     }
 
-    String executePredefStep(String uuid,  Class<?> predefStep, String...params) {
-        def json = new JsonBuilder(params)
+    String executePredefStep(String uuid,  Class<?> predefStep, ContentType contentType, String...params) {
+        def inputs = ""
+        
+        if (params == null) params = new String[0]
+
+        if (contentType == ContentType.JSON) inputs = new JsonBuilder(params).toString()
+        else inputs = PredefinedStep.bundleData(params)
 
         String responseBody = given()
-            .contentType(ContentType.JSON)
+            .contentType(contentType)
             .accept(ContentType.JSON)
             .cookie(cauthCookie)
-            .body(json.toString())
+            .body(inputs)
         .when()
             .post(apiUri+"/item/$uuid/workflow/predefined/"+predefStep.getSimpleName())
         .then()
@@ -128,5 +134,9 @@ class RestapiTestBase {
             .extract().response().body().asString()
 
         return responseBody
+    }
+
+    String executePredefStep(String uuid,  Class<?> predefStep, String...params) {
+        return executePredefStep(uuid, predefStep, ContentType.JSON, params)
     }
 }

@@ -84,9 +84,9 @@ import org.cristalise.kernel.utils.DateUtility;
 import org.cristalise.kernel.utils.KeyValuePair;
 import org.cristalise.kernel.utils.LocalObjectLoader;
 import org.cristalise.kernel.utils.Logger;
+import org.json.JSONArray;
 import org.json.JSONObject;
 import org.json.XML;
-import com.github.openjson.JSONArray;
 
 //import javax.ws.rs.core.Response;
 
@@ -551,12 +551,16 @@ public abstract class ItemUtils extends RestHandler {
 
         if (contentType.contains(MediaType.APPLICATION_JSON)) {
             if (schemaName.equals("PredefinedStepOutcome")) {
+                if (StringUtils.isBlank(postData)) postData = "[]";
+
                 JSONArray array = new JSONArray(postData);
                 params = new String[array.length()];
 
                 for (int i = 0; i < array.length(); i++) params[i] = array.getString(i);
             }
             else {
+                if (StringUtils.isBlank(postData)) postData = "{}";
+
                 params = new String[1];
                 OutcomeBuilder builder = new OutcomeBuilder(LocalObjectLoader.getSchema(schemaName, 0));
                 builder.addJsonInstance(new JSONObject(postData));
@@ -566,10 +570,13 @@ public abstract class ItemUtils extends RestHandler {
         }
         else {
             if (schemaName.equals("PredefinedStepOutcome")) {
+                if (StringUtils.isBlank(postData)) postData = "<PredefinedStepOutcome/>";
+
                 params = PredefinedStep.getDataList(postData);
             }
             else {
-                params = new String[] {postData};
+                if (StringUtils.isBlank(postData)) params = new String[0];
+                else                               params = new String[] {postData};
             }
         }
 
