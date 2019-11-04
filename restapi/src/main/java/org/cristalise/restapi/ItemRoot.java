@@ -425,6 +425,7 @@ public class ItemRoot extends ItemUtils {
             else                                                return executeResult;
         }
         catch (Exception e) {
+            Logger.error("ItemRoot.requestTransition(actPat:%s) - postData:'%s'", actPath, postData);
             throw new WebAppExceptionBuilder().exception(e).newCookie(cookie).build();
         }
     }
@@ -446,14 +447,14 @@ public class ItemRoot extends ItemUtils {
     @Consumes( MediaType.MULTIPART_FORM_DATA )
     @Produces( MediaType.MULTIPART_FORM_DATA)
     @Path("{binaryUploadPath: .*}")
-    public String requestBinaryTransition(    String      postData,
-            @FormDataParam ("file") InputStream file,
-            @Context                    HttpHeaders headers,
-            @PathParam("uuid")          String      uuid,
+    public String requestBinaryTransition(  String      postData,
+            @FormDataParam ("file")         InputStream file,
+            @Context                        HttpHeaders headers,
+            @PathParam("uuid")              String      uuid,
             @PathParam("binaryUploadPath")  String      actPath,
-            @QueryParam("transition")   String      transition,
-            @CookieParam(COOKIENAME)    Cookie      authCookie,
-            @Context                    UriInfo     uri)
+            @QueryParam("transition")       String      transition,
+            @CookieParam(COOKIENAME)        Cookie      authCookie,
+            @Context                        UriInfo     uri)
     {
         NewCookie cookie = checkAndCreateNewCookie(checkAuthCookie(authCookie));
         ItemProxy item = getProxy(uuid, cookie);
@@ -488,6 +489,7 @@ public class ItemRoot extends ItemUtils {
             else                                                return executeResult;
         }
         catch (Exception e) {
+            Logger.error("ItemRoot.requestBinaryTransition(actPat:%s) - postData:'%s'", actPath, postData);
             throw new WebAppExceptionBuilder().exception(e).newCookie(cookie).build();
         }
     }
