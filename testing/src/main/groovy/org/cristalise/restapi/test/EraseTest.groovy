@@ -9,26 +9,36 @@ import io.restassured.http.ContentType
 
 @CompileStatic
 class EraseTest extends RestapiTestBase {
-    
-    @Test
-    public void 'Erase item using ContentType XML'() throws Exception {
-        login('mainUser', 'test')
-        def mainUserUuid = userUuid
-        logout(null)
 
+    @Test
+    public void 'Erase item posting XML'() throws Exception {
         login('user', 'test')
-        executePredefStep(mainUserUuid, Erase.class, ContentType.XML)
+        def uuid = createNewItem "TestItem-$timeStamp", ContentType.XML
+        executePredefStep(uuid, Erase.class, ContentType.XML)
         logout(null)
     }
 
     @Test
-    public void 'Erase item using ContentType JSON'() throws Exception {
-        login('mainUser', 'test')
-        def mainUserUuid = userUuid
-        logout(null)
-
+    public void 'Erase item posting JSON'() throws Exception {
         login('user', 'test')
-        executePredefStep(mainUserUuid, Erase.class, ContentType.JSON)
+        def uuid = createNewItem "TestItem-$timeStamp", ContentType.XML
+        executePredefStep(uuid, Erase.class, ContentType.JSON)
+        logout(null)
+    }
+
+    @Test
+    public void 'Erase agent posting XML'() throws Exception {
+        login('user', 'test')
+        def uuid = createNewAgent "TestAgent-$timeStamp", 'test', ContentType.XML
+        executePredefStep(uuid, Erase.class, ContentType.XML)
+        logout(null)
+    }
+
+    @Test
+    public void 'Erase agent posting JSON'() throws Exception {
+        login('user', 'test')
+        def uuid = createNewAgent "TestItem-$timeStamp", 'test', ContentType.XML
+        executePredefStep(uuid, Erase.class, ContentType.JSON)
         logout(null)
     }
 }

@@ -19,7 +19,7 @@ import io.restassured.response.Response
 class ChangeNameTest extends RestapiTestBase {
     
     @Test
-    public void 'Test Login after changing the Name of an logged in Agent'() throws Exception {
+    public void 'Login after changing the Name of a logged in Agent'() throws Exception {
         login('mainUser', 'test')
         def mainUserUuid = userUuid
         logout(null)
@@ -37,5 +37,6 @@ class ChangeNameTest extends RestapiTestBase {
         logout(null)
 
         login('mainUser', 'test')
+        logout(null)
     }
 }
