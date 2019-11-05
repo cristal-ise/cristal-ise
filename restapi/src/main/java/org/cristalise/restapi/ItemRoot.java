@@ -78,8 +78,8 @@ import lombok.extern.slf4j.Slf4j;
 
 @Path("/item/{uuid}") @Slf4j
 public class ItemRoot extends ItemUtils {
-	
-	private ScriptUtils scriptUtils = new ScriptUtils();
+
+    private ScriptUtils scriptUtils = new ScriptUtils();
 
     @GET
     @Path("name")
@@ -407,27 +407,26 @@ public class ItemRoot extends ItemUtils {
         }
 
         try {
-            List<String> types = headers.getRequestHeader(HttpHeaders.CONTENT_TYPE);
+            String contentType = headers.getRequestHeader(HttpHeaders.CONTENT_TYPE).get(0);
 
-            log.debug("requestTransition() postData:{}", postData);
+            log.debug("requestTransition() postData:'{}' contentType:'{}'", postData, contentType);
 
             AgentProxy agent = Gateway.getProxyManager().getAgentProxy(getAgentPath(authCookie));
+            String executeResult;
 
             if (actPath.startsWith(PREDEFINED_PATH)) {
-                return executePredefinedStep(item, postData, types, actPath, agent);
+                executeResult = executePredefinedStep(item, postData, contentType, actPath, agent);
             }
             else {
                 transition = extractAndCheckTransitionName(transition, uri);
-                String execJob = executeJob(item, postData, types, actPath, transition, agent);
-                if (types.contains(MediaType.APPLICATION_XML) || types.contains(MediaType.TEXT_XML)) {
-                	return execJob;
-                } else {
-                	return XML.toJSONObject(execJob, true).toString();
-                }
-                
+                executeResult = executeJob(item, postData, contentType, actPath, transition, agent);
             }
+
+            if (produceJSON(headers.getAcceptableMediaTypes())) return XML.toJSONObject(executeResult, true).toString();
+            else                                                return executeResult;
         }
         catch (Exception e) {
+            log.error("requestTransition(actPat:{}) - postData:'{}'", actPath, postData);
             throw new WebAppExceptionBuilder().exception(e).newCookie(cookie).build();
         }
     }
@@ -449,14 +448,14 @@ public class ItemRoot extends ItemUtils {
     @Consumes( MediaType.MULTIPART_FORM_DATA )
     @Produces( MediaType.MULTIPART_FORM_DATA)
     @Path("{binaryUploadPath: .*}")
-    public String requestBinaryTransition(    String      postData,
-            @FormDataParam ("file") InputStream file,
-            @Context                    HttpHeaders headers,
-            @PathParam("uuid")          String      uuid,
+    public String requestBinaryTransition(  String      postData,
+            @FormDataParam ("file")         InputStream file,
+            @Context                        HttpHeaders headers,
+            @PathParam("uuid")              String      uuid,
             @PathParam("binaryUploadPath")  String      actPath,
-            @QueryParam("transition")   String      transition,
-            @CookieParam(COOKIENAME)    Cookie      authCookie,
-            @Context                    UriInfo     uri)
+            @QueryParam("transition")       String      transition,
+            @CookieParam(COOKIENAME)        Cookie      authCookie,
+            @Context                        UriInfo     uri)
     {
         NewCookie cookie = checkAndCreateNewCookie(checkAuthCookie(authCookie));
         ItemProxy item = getProxy(uuid, cookie);
@@ -472,20 +471,26 @@ public class ItemRoot extends ItemUtils {
         }
 
         try {
-            List<String> types = headers.getRequestHeader(HttpHeaders.CONTENT_TYPE);
+            String contentType = headers.getRequestHeader(HttpHeaders.CONTENT_TYPE).get(0);
 
-            log.debug("requestTransition() postData:{}", postData);
+            log.debug("requestBinaryTransition() postData:'{}' contentType:'{}'", postData, contentType);
 
             AgentProxy agent = Gateway.getProxyManager().getAgentProxy(getAgentPath(authCookie));
+            String executeResult;
 
             if (actPath.startsWith(PREDEFINED_PATH)) {
-                return executePredefinedStep(item, postData, types, actPath, agent);
+                executeResult = executePredefinedStep(item, postData, contentType, actPath, agent);
             }
             else {
                 transition = extractAndCheckTransitionName(transition, uri);
-                return executeUploadJob(item, file, postData, types, actPath, transition, agent);
+                executeResult = executeUploadJob(item, file, postData, contentType, actPath, transition, agent);
             }
-        } catch (Exception e) {
+
+            if (produceJSON(headers.getAcceptableMediaTypes())) return XML.toJSONObject(executeResult, true).toString();
+            else                                                return executeResult;
+        }
+        catch (Exception e) {
+            log.error("requestBinaryTransition(actPat:{}) - postData:'{}'", actPath, postData);
             throw new WebAppExceptionBuilder().exception(e).newCookie(cookie).build();
         }
     }
@@ -511,7 +516,7 @@ public class ItemRoot extends ItemUtils {
      * @throws ScriptErrorException
      * @throws IOException
      */
-    private String executeUploadJob(ItemProxy item, InputStream file, String postData, List<String> types, String actPath, String transition, AgentProxy agent)
+    private String executeUploadJob(ItemProxy item, InputStream file, String postData, String contentType, String actPath, String transition, AgentProxy agent)
             throws AccessRightsException, ObjectNotFoundException, PersistencyException, InvalidDataException, OutcomeBuilderException,
                    InvalidTransitionException, ObjectAlreadyExistsException, InvalidCollectionModification, ScriptErrorException, IOException
     {
@@ -527,8 +532,8 @@ public class ItemRoot extends ItemUtils {
         if (thisJob.hasOutcome()) {
             OutcomeAttachment outcomeAttachment =
                     new OutcomeAttachment(item.getPath(), thisJob.getSchema().getName(), thisJob.getSchema().getVersion(), -1, MediaType.APPLICATION_OCTET_STREAM, binaryData); 
-            
-            thisJob.setAttachment(outcomeAttachment);       
+
+            thisJob.setAttachment(outcomeAttachment);
         }
         return agent.execute(thisJob);
     }

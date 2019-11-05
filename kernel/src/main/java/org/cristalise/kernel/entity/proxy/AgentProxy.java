@@ -23,6 +23,7 @@ package org.cristalise.kernel.entity.proxy;
 import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.SIMPLE_ELECTRONIC_SIGNATURE;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
@@ -39,7 +40,11 @@ import org.cristalise.kernel.entity.AgentHelper;
 import org.cristalise.kernel.entity.C2KLocalObject;
 import org.cristalise.kernel.entity.agent.Job;
 import org.cristalise.kernel.graph.model.BuiltInVertexProperties;
+import org.cristalise.kernel.lifecycle.instance.predefined.ChangeName;
+import org.cristalise.kernel.lifecycle.instance.predefined.Erase;
 import org.cristalise.kernel.lifecycle.instance.predefined.PredefinedStep;
+import org.cristalise.kernel.lifecycle.instance.predefined.RemoveC2KObject;
+import org.cristalise.kernel.lifecycle.instance.predefined.agent.SetAgentPassword;
 import org.cristalise.kernel.lifecycle.instance.predefined.agent.Sign;
 import org.cristalise.kernel.lookup.AgentPath;
 import org.cristalise.kernel.lookup.DomainPath;
@@ -371,13 +376,27 @@ public class AgentProxy extends ItemProxy {
         if (schemaName.equals("PredefinedStepOutcome")) param = PredefinedStep.bundleData(params);
         else                                            param = params[0];
 
-        return item.getItem().requestAction(
+        String result = item.getItem().requestAction(
                 mAgentPath.getSystemKey(), 
                 "workflow/predefined/" + predefStep, 
                 PredefinedStep.DONE, 
                 param,
                 "",
                 new byte[0]);
+
+        String[] clearCacheSteps = {
+                ChangeName.class.getSimpleName(), 
+                Erase.class.getSimpleName(), 
+                SetAgentPassword.class.getSimpleName(),
+                RemoveC2KObject.class.getSimpleName()
+        };
+
+        if (Arrays.asList(clearCacheSteps).contains(predefStep)) {
+            Gateway.getStorage().clearCache(item.getPath(), null);
+            Gateway.getProxyManager().clearCache(item.getPath());
+        }
+
+        return result;
     }
 
     /**

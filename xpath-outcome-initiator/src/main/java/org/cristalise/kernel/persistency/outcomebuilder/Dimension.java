@@ -31,6 +31,8 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -70,24 +72,24 @@ public class Dimension extends OutcomeStructure {
     }
 
     @Override
-    public void addInstance(Element myElement, Document parentDoc) throws OutcomeBuilderException {
+    public void addInstance(Element newElement, Document parentDoc) throws OutcomeBuilderException {
         log.debug("addInstance() - adding instance " + (elements.size() + 1) + " for " + myElement.getTagName());
 
-        if (parent == null) setParentElement((Element) myElement.getParentNode());
+        if (parent == null) setParentElement((Element) newElement.getParentNode());
 
         // if table, pass to table model
         if (mode == Mode.TABLE) {
-            tableModel.addInstance(myElement, -1);
-            elements.add(myElement);
+            tableModel.addInstance(newElement, -1);
+            elements.add(newElement);
         }
         else {
             DimensionInstance target;
-            elements.add(myElement);
+            elements.add(newElement);
 
             if (instances.size() < elements.size()) target = newInstance();
             else                                    target = instances.get(elements.size() - 1);
 
-            target.addInstance(myElement, parentDoc);
+            target.addInstance(newElement, parentDoc);
         }
     }
 
@@ -145,6 +147,9 @@ public class Dimension extends OutcomeStructure {
             newElement = newTab.initNew(parent);
             elements.add(newElement);
         }
+
+        myElement = newElement;
+
         return newElement;
     }
 /*
@@ -272,5 +277,58 @@ public class Dimension extends OutcomeStructure {
         }
         else
             throw new UnsupportedOperationException("Dimension cannot process TABS yet");
+    }
+
+    /**
+     * Dimension cannot use the subStructure inherited from OutcomeStructure
+     */
+    @Override
+    public OutcomeStructure getChildModelElement(String name) {
+        if (mode == Mode.TABLE) {
+            return tableModel.columns.get(name);
+        }
+        else {
+            log.warn("getChildModelElement("+model.getName()+") - Does not handle TAB mode for child:"+name);
+            return null;
+        }
+    }
+
+    /**
+     * Adds the child element at the correct position using the expected sequence of elements (tableModel.columnHeadings)
+     * Dimension cannot use the subStructureOrder inherited from OutcomeStructure
+     */
+    @Override
+    public void addChildElement(String name, Element newElement) {
+        if (mode == Mode.TABS) {
+            log.warn("addChildElement("+model.getName()+") - Does not handle TAB mode for child:"+name);
+            return;
+        }
+
+        Element refElement = null;
+        boolean cont = true;
+
+        // lets find out where to insert this new element
+        for (int i = 0; i < tableModel.columnHeadings.size()-1 && cont; i++) {
+            if (name.equals(tableModel.columnHeadings.get(i))) {
+                cont = false;
+
+                for (int k = i+1; k < tableModel.columnHeadings.size() && refElement == null; k++) {
+
+                    String refElementName = tableModel.columnHeadings.get(k);
+                    NodeList children = myElement.getChildNodes();
+
+                    for (int j = 0; j < children.getLength() && refElement == null; j++) {
+                        Node child = children.item(j);
+                        // ignore any Node (e.g. Text) which are not Element type
+                        if (child instanceof Element && child.getNodeName().equals(refElementName)) {
+                            refElement = (Element) child;
+                        }
+                    }
+                }
+            }
+        }
+
+        if (refElement == null) myElement.appendChild(newElement);
+        else                    myElement.insertBefore(newElement, refElement);
     }
 }

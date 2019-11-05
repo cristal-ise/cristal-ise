@@ -134,7 +134,7 @@ public class ProxyManager {
         }
         else {
             // proper proxy message
-           log.debug("processMessage() - Received proxy message: "+thisMessage.toString());
+           log.trace("processMessage() - Received proxy message:{}", thisMessage.toString());
             ItemProxy relevant = proxyPool.get(thisMessage.getItemPath());
             if (relevant == null) {
                 log.warn("Received proxy message for sysKey "+thisMessage.getItemPath()+" which we don't have a proxy for.");
@@ -295,6 +295,31 @@ public class ProxyManager {
         }
         catch (ConcurrentModificationException ex) {
             log.trace("Proxy cache modified. Aborting.");
+        }
+    }
+
+    /**
+     * Clears all entries from the cache
+     */
+    public void clearCache() {
+        synchronized(proxyPool) {
+            proxyPool.clear();
+        }
+        log.debug("clearCache() - DONE");
+    }
+
+    /**
+     * Clears the given Item from the cache
+     * @param item the UUID
+     */
+    public void clearCache(ItemPath item) {
+        synchronized(proxyPool) {
+            if (proxyPool.remove(item) != null) {
+                log.debug("clearCache({}) - Item was removed from cache", item);
+            }
+            else {
+                log.trace("clearCache({}) - Item was NOT in cache", item);
+            }
         }
     }
 }
