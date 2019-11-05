@@ -237,7 +237,24 @@ public class PropertyUtility {
     }
 
     /**
-     * Updates (writes) the value of an exitng Property
+     * Updates (writes) the value of an existing Property
+     * 
+     * @param item the Path (UUID) of actual Item
+     * @param prop the BuiltIn ItemProperty to write
+     * @param value the value of the Property
+     * @param locker transaction key
+     * @throws PersistencyException something went wrong updating the database
+     * @throws ObjectCannotBeUpdated the Property is immutable
+     * @throws ObjectNotFoundException there is no Property with the given name
+     */
+    public static void writeProperty(ItemPath item, BuiltInItemProperties prop, String value, Object locker)
+            throws PersistencyException, ObjectCannotBeUpdated, ObjectNotFoundException
+    {
+        writeProperty(item, prop.getName(), value, locker);
+    }
+
+    /**
+     * Updates (writes) the value of an existing Property
      * 
      * @param item the Path (UUID) of actual Item
      * @param name the name of the Property to write
