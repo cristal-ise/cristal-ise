@@ -50,7 +50,7 @@
     </modules>
 
     <properties>
-        <revision>4.3.0</revision>
+        <revision>4.4.0</revision>
         <productionMode>false</productionMode>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
@@ -172,6 +172,10 @@
                             <exclude>bin/**</exclude>
                             <exclude>src/main/resources/boot/allbootitems.txt</exclude>
                             <exclude>.flattened-pom.xml</exclude>
+                            <exclude>**/LICENCE</exclude>
+                            <exclude>**/README</exclude>
+                            <exclude>.gpg.enc</exclude>
+                            <exclude>.example</exclude>
                         </excludes>
                         <mapping>
                             <idl>JAVADOC_STYLE</idl>

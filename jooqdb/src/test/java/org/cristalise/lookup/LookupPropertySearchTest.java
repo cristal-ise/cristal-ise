@@ -35,6 +35,7 @@ import org.cristalise.kernel.lookup.DomainPath;
 import org.cristalise.kernel.lookup.ItemPath;
 import org.cristalise.kernel.lookup.Lookup.PagedResult;
 import org.cristalise.kernel.property.Property;
+import org.cristalise.storage.jooqdb.JooqHandler;
 import org.cristalise.storage.jooqdb.clusterStore.JooqItemPropertyHandler;
 import org.cristalise.storage.jooqdb.lookup.JooqLookupManager;
 import org.jooq.DSLContext;
@@ -69,8 +70,7 @@ public class LookupPropertySearchTest extends LookupTestBase {
         lookup.add(new DomainPath("toto/item1", itemPath1));
 
         lookupPropertiesField = (JooqItemPropertyHandler)FieldUtils.getField(JooqLookupManager.class, "properties", true).get(lookup);
-        lookupContextField    = (DSLContext)             FieldUtils.getField(JooqLookupManager.class, "context",    true).get(lookup);
-
+        lookupContextField    = JooqHandler.connect();
         lookupPropertiesField.put(lookupContextField, uuid0, propType);
         lookupPropertiesField.put(lookupContextField, uuid1, propType);
         lookupPropertiesField.put(lookupContextField, uuid1, propStyle);

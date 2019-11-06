@@ -21,6 +21,8 @@ class PathAccessTest extends RestapiTestBase {
     public void getBulkAliases() throws Exception {
         login()
         
+        //Thread.sleep(31000); //response cookie is added when 30s is passed between the cookie creation and the request
+        
         Response aliasesResp =
             given()
                 .accept(ContentType.JSON)
@@ -29,11 +31,12 @@ class PathAccessTest extends RestapiTestBase {
             .when()
                 .get(apiUri+"/domain/aliases")
             .then()
+                //.cookie('cauth') //response cookie is added when 30s is passed between the cookie creation and the request
                 .statusCode(STATUS_OK)
                 .extract().response()
-        
+
         def expected ="""[{
-                              "uuid": "050a754a-be0c-41aa-8f59-ab39caf4effe",
+                              "uuid": "$userUuid",
                               "name": "user",
                               "error": "Agent has no aliases"
                           },
@@ -50,7 +53,7 @@ class PathAccessTest extends RestapiTestBase {
                           {
                               "uuid": "00000000-0000-0000-0000-000000010410",
                               "error": "IDL:org.cristalise.kernel/common/ObjectNotFoundException:1.0  Path does not exist:00000000-0000-0000-0000-000000010410"
-                          }]"""
+                          }]""".toString()
 
         assertJsonEquals(expected, aliasesResp.body.asString());
     }
