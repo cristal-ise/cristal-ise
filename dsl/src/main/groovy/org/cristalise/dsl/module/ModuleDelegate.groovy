@@ -62,31 +62,23 @@ class ModuleDelegate {
     Module newModule = null
 
     Writer imports
-
     Binding bindings
 
-
     String resourceRoot = 'src/main/resources'
-    String exportRoot   = 'src/main/script/'
-    String moduleDir    = 'src/main/script/'
+    String exportRoot = 'src/main/script/'
+    String moduleDir = 'src/main/script/'
 
     private String resourceBoot = null
     private File moduleXMLFile = null
 
     public ModuleDelegate(String ns, String n, int v, String resRoot, String expRoot, String modDir, Binding b = null) {
-        this(ns, n, v, b)
 
         if (resRoot) resourceRoot = resRoot
-        if (expRoot) exportRoot   = expRoot
-        if (modDir)  moduleDir    = modDir
+        if (expRoot) exportRoot = expRoot
+        if (modDir) moduleDir = modDir
 
-        resourceBoot = "$resourceRoot/boot"
-        moduleXMLFile = new File("$resourceRoot/module.xml")
-    }
-
-    public ModuleDelegate(String ns, String n, int v, Binding b = null) {
         if (b) bindings = b
-        else   bindings = new Binding()
+        else bindings = new Binding()
 
         newModule = new Module()
         newModule.info = new ModuleInfo()
@@ -104,6 +96,10 @@ class ModuleDelegate {
         }
 
         imports = new PrintWriter(System.out)
+    }
+
+    public ModuleDelegate(String ns, String n, int v, Binding b = null) {
+        this(ns, n, v, null, null, null, b)
     }
 
     public include(String scriptFile) {
