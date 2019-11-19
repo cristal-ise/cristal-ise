@@ -189,18 +189,19 @@ public class ItemRoot extends ItemUtils {
     @Path("scriptResult")
     @Produces( {MediaType.TEXT_XML, MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON } )
     public Response getScriptResult(
-            @Context                 HttpHeaders headers,
-            @PathParam("uuid")       String      uuid,
-            @QueryParam("script")    String      scriptName,
-            @QueryParam("version")   Integer     scriptVersion,
-            @QueryParam("inputs")    String      inputJson,
-            @CookieParam(COOKIENAME) Cookie      authCookie)
+            @Context                    HttpHeaders headers,
+            @PathParam("uuid")          String      uuid,
+            @QueryParam("script")       String      scriptName,
+            @QueryParam("version")      Integer     scriptVersion,
+            @QueryParam("activityPath") String      actPath,
+            @QueryParam("inputs")       String      inputJson,
+            @CookieParam(COOKIENAME)    Cookie      authCookie)
     {
         NewCookie cookie = checkAndCreateNewCookie(checkAuthCookie(authCookie));
         ItemProxy item = getProxy(uuid, cookie);
 
         try {
-            return scriptUtils.executeScript(headers, item, scriptName, scriptVersion, inputJson, ImmutableMap.of())
+            return scriptUtils.executeScript(headers, item, scriptName, scriptVersion, actPath, inputJson, ImmutableMap.of())
                     .cookie(cookie).build();
         } catch (ObjectNotFoundException | UnsupportedOperationException e) {
             throw new WebAppExceptionBuilder().exception(e).newCookie(cookie).build();
@@ -213,17 +214,18 @@ public class ItemRoot extends ItemUtils {
     @Produces({ MediaType.TEXT_XML, MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON })
     public Response getScriptResultPost(
             String postData,
-            @Context                 HttpHeaders headers,
-            @PathParam("uuid")       String      uuid,
-            @QueryParam("script")    String      scriptName,
-            @QueryParam("version")   Integer     scriptVersion,
-            @CookieParam(COOKIENAME) Cookie      authCookie)
+            @Context                    HttpHeaders headers,
+            @PathParam("uuid")          String      uuid,
+            @QueryParam("script")       String      scriptName,
+            @QueryParam("version")      Integer     scriptVersion,
+            @QueryParam("activityPath") String      actPath,
+            @CookieParam(COOKIENAME)    Cookie      authCookie)
     {
         NewCookie cookie = checkAndCreateNewCookie(checkAuthCookie(authCookie));
         ItemProxy item = getProxy(uuid, cookie);
 
         try {
-            return scriptUtils.executeScript(headers, item, scriptName, scriptVersion, postData, ImmutableMap.of())
+            return scriptUtils.executeScript(headers, item, scriptName, scriptVersion, actPath, postData, ImmutableMap.of())
                     .cookie(cookie).build();
         } catch (ObjectNotFoundException | UnsupportedOperationException e) {
             throw new WebAppExceptionBuilder().exception(e).newCookie(cookie).build();
