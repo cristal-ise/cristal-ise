@@ -157,6 +157,7 @@
         </Agent>
 
         <Agent name="mainUser" password="test">
+            <Role name="Admin"/>
             <Role name='User'/>
         </Agent>
 

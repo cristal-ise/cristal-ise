@@ -16,7 +16,7 @@ import io.restassured.response.Response
 
 @CompileStatic
 class LoginAuditTest extends RestapiTestBase {
-    
+
     @Test
     public void 'Test Login-Logout Login-LoginTimeout and Login-ForcedLogout scenarios'() throws Exception {
         login()

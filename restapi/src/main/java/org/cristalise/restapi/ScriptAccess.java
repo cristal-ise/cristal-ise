@@ -136,7 +136,7 @@ public class ScriptAccess extends ResourceAccess {
      */
     private Response handleScriptExecution(HttpHeaders headers, String scriptName, Integer scriptVersion, String inputJson, NewCookie cookie) {
         try (DSLContext context = JooqHandler.connect()) {
-            return scriptUtils.executeScript(headers, null, scriptName, scriptVersion, inputJson, ImmutableMap.of("dsl", context)).cookie(cookie).build();
+            return scriptUtils.executeScript(headers, null, scriptName, scriptVersion, null, inputJson, ImmutableMap.of("dsl", context)).cookie(cookie).build();
         }
         catch (ObjectNotFoundException | UnsupportedOperationException e) {
             throw new WebAppExceptionBuilder().exception(e).newCookie(cookie).build();
