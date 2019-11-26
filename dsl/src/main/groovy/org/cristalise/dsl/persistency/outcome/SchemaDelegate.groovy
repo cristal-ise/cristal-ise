@@ -208,8 +208,8 @@ class SchemaDelegate {
                     if (f.dynamicForms.additional) {
                         f.dynamicForms.additional.fields.each { key, value -> "$key"(value) }
                     }
-                    if (f.dynamicForms.updateScriptRef != null) updateScriptRef(f.dynamicForms.updateScriptRef)
-                    if (f.dynamicForms.updateQuerytRef != null) updateQuerytRef(f.dynamicForms.updateQuerytRef)
+                    if (f.dynamicForms.updateScriptRef != null) updateScriptRef(f.dynamicForms.getUpdateScriptRefString())
+                    if (f.dynamicForms.updateQuerytRef != null) updateQuerytRef(f.dynamicForms.getUpdateQueryRefString())
                     if (f.dynamicForms.warning != null) {
                         warning {
                             if (f.dynamicForms.warning.pattern != null)    pattern(f.dynamicForms.warning.pattern)
@@ -227,8 +227,8 @@ class SchemaDelegate {
 
     private void setAppinfoListOfValues(xsd, Field f) {
         xsd.listOfValues {
-            if (f.listOfValues.scriptRef)       scriptRef(      f.listOfValues.scriptRef)
-            if (f.listOfValues.queryRef)        queryRef(       f.listOfValues.queryRef)
+            if (f.listOfValues.scriptRef)       scriptRef(      f.listOfValues.getScriptRefString())
+            if (f.listOfValues.queryRef)        queryRef(       f.listOfValues.getQueryRefString())
             if (f.listOfValues.propertyNames)   propertyNames(  f.listOfValues.propertyNames)
             if (f.listOfValues.inputName)       inputName(      f.listOfValues.inputName)
             if (f.listOfValues.values)          values(         f.listOfValues.values.join(','))
