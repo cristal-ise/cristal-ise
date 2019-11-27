@@ -199,6 +199,7 @@
                                     </xs:sequence>
                                     <xs:attribute name="name" type="xs:string" use="required" />
                                     <xs:attribute name="password" type="xs:string" use="required" />
+                                    <xs:attribute name="initialPath" type="xs:string" use="optional" />
                                 </xs:complexType>
                             </xs:element>
                         </xs:sequence>
