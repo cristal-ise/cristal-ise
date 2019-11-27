@@ -2,9 +2,14 @@ package org.cristalise.kernel.test.scenario;
 
 import static org.junit.Assert.*
 
+import org.apache.commons.collections4.CollectionUtils
 import org.cristalise.kernel.entity.agent.Job
+import org.cristalise.kernel.entity.imports.ImportAgent
+import org.cristalise.kernel.entity.imports.ImportRole
 import org.cristalise.kernel.entity.proxy.AgentProxy
 import org.cristalise.kernel.entity.proxy.ItemProxy
+import org.cristalise.kernel.lifecycle.instance.predefined.server.CreateNewAgent
+import org.cristalise.kernel.lifecycle.instance.predefined.server.CreateNewRole
 import org.cristalise.kernel.lookup.RolePath
 import org.cristalise.kernel.process.Gateway
 import org.cristalise.kernel.test.KernelScenarioTestBase
@@ -57,6 +62,27 @@ class ItemWithoutDescriptionIT extends KernelScenarioTestBase {
         String role = "TestRole-$timeStamp"
         createRole(role)
         removeRole(role)
+    }
+
+    @Test
+    public void 'CreateNewAgent with initialPath using predefined step of ServerItem'() {
+        String role = "TestRole-$timeStamp"
+        String name = "TestAgent-$timeStamp"
+
+        ImportRole newRole = new ImportRole()
+        newRole.setName(role)
+        newRole.jobList = false
+        newRole.permissions.add('dom1:Func1,Func2:')
+        newRole.permissions.add('dom2:Func1:toto')
+
+        agent.execute(serverItem, CreateNewRole.class, agent.marshall(newRole))
+        
+        def rp = Gateway.getLookup().getRolePath(role)
+
+        ImportAgent newAgent = new ImportAgent('/itemTest/agents', name, 'pwd');
+        newAgent.addRoles([rp]);
+    
+        agent.execute(serverItem, CreateNewAgent.class, agent.marshall(newAgent));
     }
 
     @Test
