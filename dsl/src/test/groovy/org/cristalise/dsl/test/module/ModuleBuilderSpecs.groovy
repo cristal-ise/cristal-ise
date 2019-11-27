@@ -1,6 +1,7 @@
 package org.cristalise.dsl.test.module
 
 import org.cristalise.dsl.module.ModuleBuilder
+import org.cristalise.kernel.entity.imports.ImportAgent
 import org.cristalise.kernel.entity.imports.ImportItem
 import org.cristalise.kernel.test.utils.CristalTestSetup
 
@@ -85,7 +86,7 @@ class ModuleBuilderSpecs extends Specification implements CristalTestSetup {
                 }
             }
 
-            Agent(name: 'Test', password: 'Test') {
+            Agent(folder: '/agents', name: 'Test', password: 'Test') {
                 Roles {
                     Role(name: 'Admin')
                     Role(name: 'Abort')
@@ -121,5 +122,8 @@ class ModuleBuilderSpecs extends Specification implements CristalTestSetup {
         item.dependencyList[1].name == 'MasterOutcome'
         item.dependencyList[1].isDescription == true
         item.dependencyList[1].dependencyMemberList[0].itemPath == '/desc/ActivityDesc/kernel/ManageSchema'
+
+        def agent = (ImportAgent)module.getImports().list[1]
+        agent.initialPath == '/agents'
     }
 }
