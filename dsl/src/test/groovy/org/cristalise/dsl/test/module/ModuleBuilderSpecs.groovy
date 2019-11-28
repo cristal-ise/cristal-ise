@@ -112,6 +112,7 @@ class ModuleBuilderSpecs extends Specification implements CristalTestSetup {
         module.getImports().list[2].name == 'Abort'
 
         def item = (ImportItem)module.getImports().list[0]
+        item.initialPath == '/'
         item.workflow == 'ScriptFactoryWorkflow'
         item.workflowVer == 0
         item.dependencyList.size() == 2
@@ -125,5 +126,6 @@ class ModuleBuilderSpecs extends Specification implements CristalTestSetup {
 
         def agent = (ImportAgent)module.getImports().list[1]
         agent.initialPath == '/agents'
+        agent.password == 'Test'
     }
 }

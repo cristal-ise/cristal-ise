@@ -54,8 +54,8 @@ class AgentBuilder {
     }
 
     public static ImportAgent build(Map<String, Object> attrs, Closure cl) {
-        assert attrs && attrs.name
-        return build(attrs.folder ? (String)attrs.folder : null, (String)attrs.name, (String)attrs.pwd, cl)
+        assert attrs && attrs.name && attrs.password
+        return build(attrs.folder ? (String)attrs.folder : null, (String)attrs.name, (String)attrs.password, cl)
     }
 
     public static ImportAgent build(String name, String pwd, Closure cl) {

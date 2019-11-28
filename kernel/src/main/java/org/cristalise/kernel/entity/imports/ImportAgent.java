@@ -58,14 +58,14 @@ public class ImportAgent extends ModuleImport {
 
     public ImportAgent() {}
 
-    public ImportAgent(String folder, String name, String password) {
+    public ImportAgent(String folder, String aName, String pwd) {
         this.initialPath = folder;
-        this.name = name;
-        this.password = password;
+        this.name = aName;
+        this.password = pwd;
     }
 
-    public ImportAgent(String name, String password) {
-        this(null, name, password);
+    public ImportAgent(String aName, String pwd) {
+        this(null, aName, pwd);
     }
 
     @Override
