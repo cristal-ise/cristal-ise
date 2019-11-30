@@ -26,8 +26,8 @@
       "additional": {"tooltip": "Insurance Number Documentation"},
       "inputType": "text",
       "id": "InsuranceNumber",
-      "label": "Insurance Number",
-      "placeholder": "Insurance ID",
+      "label": "Insurance ID",
+      "placeholder": "Insurance No",
       "cls": {
         "grid": {
           "container": "ui-g",
