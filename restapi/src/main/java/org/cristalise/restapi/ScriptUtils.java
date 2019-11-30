@@ -85,7 +85,7 @@ public class ScriptUtils extends ItemUtils {
                 throws ObjectNotFoundException, UnsupportedOperationException, InvalidDataException
     {
         if (scriptVersion == null) {
-            if (Gateway.getProperties().getBoolean("Module.Versioning.strict", true)) {
+            if (Gateway.getProperties().getBoolean("Module.Versioning.strict", false)) {
                 throw new InvalidDataException("Version for Script '" + scriptName + "' cannot be null");
             }
             else {
@@ -109,7 +109,7 @@ public class ScriptUtils extends ItemUtils {
 
                 inputs.putAll(additionalInputs);
 
-                return returnScriptResult(scriptName, item, null, script, inputs, produceJSON(headers.getAcceptableMediaTypes()));
+                return returnScriptResult(item, null, script, inputs, produceJSON(headers.getAcceptableMediaTypes()));
             }
             catch ( UnsupportedOperationException e ) {
                 throw e;
@@ -129,12 +129,12 @@ public class ScriptUtils extends ItemUtils {
         }
     }
 
-    public Response.ResponseBuilder returnScriptResult(String scriptName, ItemProxy item, final Schema schema, final Script script, CastorHashMap inputs, boolean jsonFlag)
+    public Response.ResponseBuilder returnScriptResult(ItemProxy item, final Schema schema, final Script script, CastorHashMap inputs, boolean jsonFlag)
             throws ScriptingEngineException, InvalidDataException
     {
         try {
             mutex.acquire();
-            return runScript(scriptName, item, schema, script, inputs, jsonFlag);
+            return runScript(item, schema, script, inputs, jsonFlag);
         }
         catch (ScriptingEngineException e) {
             throw e;
@@ -159,7 +159,7 @@ public class ScriptUtils extends ItemUtils {
      * @throws ScriptingEngineException
      * @throws InvalidDataException
      */
-    protected Response.ResponseBuilder runScript(String scriptName, ItemProxy item, final Schema schema, final Script script, CastorHashMap inputs, boolean jsonFlag)
+    protected Response.ResponseBuilder runScript(ItemProxy item, final Schema schema, final Script script, CastorHashMap inputs, boolean jsonFlag)
             throws ScriptingEngineException, InvalidDataException, ObjectNotFoundException
     {
         String xmlOutcome = null;
@@ -174,14 +174,12 @@ public class ScriptUtils extends ItemUtils {
             xmlOutcome = (String)((Map<?,?>) scriptResult).get(key);
         }
         else {
-            throw new ObjectNotFoundException( "Cannot handle result of script:" + scriptName );
+            throw new ObjectNotFoundException("Cannot handle result of script:" + script.getName());
         }
-
 
         if (xmlOutcome == null) {
-            throw new ObjectNotFoundException( "Cannot handle result of script:" + scriptName );
+            throw new ObjectNotFoundException("Cannot handle result of script:" + script.getName());
         }
-
 
         if (schema != null) return getOutcomeResponse(new Outcome(xmlOutcome, schema), new Date(), jsonFlag, null);
         else {

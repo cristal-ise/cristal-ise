@@ -132,6 +132,8 @@ public class ItemRoot extends ItemUtils {
     public Response getMasterOutcome(
             @Context                     HttpHeaders headers,
             @PathParam("uuid")           String      uuid,
+            @QueryParam("schema")        String      schemaName,
+            @QueryParam("schemaVersion") Integer     schemaVersion,
             @QueryParam("script")        String      scriptName,
             @QueryParam("scriptVersion") Integer     scriptVersion,
             @CookieParam(COOKIENAME)     Cookie      authCookie)
@@ -139,14 +141,15 @@ public class ItemRoot extends ItemUtils {
         NewCookie cookie = checkAndCreateNewCookie(checkAuthCookie(authCookie));
         ItemProxy item = getProxy(uuid, cookie);
 
-        Schema masterSchema = getMasterSchema(item, cookie);
-        Script aggrScript = getAggregateScript(item, scriptName, scriptVersion);
-
         try {
+            Schema masterSchema = getMasterSchema(item, schemaName, schemaVersion, cookie);
+            Script aggrScript   = getAggregateScript(item, scriptName, scriptVersion);
+
             boolean jsonFlag = produceJSON(headers.getAcceptableMediaTypes());
 
             if (aggrScript != null) {
-                return scriptUtils.returnScriptResult(scriptName, item, masterSchema, aggrScript, new CastorHashMap(), jsonFlag).cookie(cookie).build();
+                return scriptUtils.returnScriptResult(item, masterSchema, aggrScript, new CastorHashMap(), jsonFlag)
+                        .cookie(cookie).build();
             }
             else if (item.checkViewpoint(item.getType(), "last")) {
                 return getViewpointOutcome(uuid, item.getType(), "last", true, cookie).build();
@@ -268,17 +271,30 @@ public class ItemRoot extends ItemUtils {
      * 
      * @param item the actual item
      * @return the schema
+     * @throws InvalidDataException 
      */
-    private Schema getMasterSchema(ItemProxy item, NewCookie cookie) {
-        String schemaName = item.getType();
-        Integer schemaVersion = 0;
-
+    private Schema getMasterSchema(ItemProxy item, String schemaName, Integer schemaVersion, NewCookie cookie) throws InvalidDataException {
         String masterSchemaUrn = item.getProperty(MASTER_SCHEMA_URN, null);
         if (StringUtils.isBlank(masterSchemaUrn)) masterSchemaUrn = item.getProperty(SCHEMA_URN, null);
 
-        if (StringUtils.isNotBlank(masterSchemaUrn)) {
-            schemaName = masterSchemaUrn.split(":")[0];
-            schemaVersion = Integer.valueOf(masterSchemaUrn.split(":")[1]);
+        if (StringUtils.isBlank(schemaName)) {
+            if (StringUtils.isNotBlank(masterSchemaUrn)) schemaName = masterSchemaUrn.split(":")[0];
+            else                                         schemaName = item.getType();
+        }
+
+        if (schemaVersion == null) {
+            if (StringUtils.isBlank(masterSchemaUrn)) {
+                if (Gateway.getProperties().getBoolean("Module.Versioning.strict", false)) {
+                    throw new InvalidDataException("Version for Schema '" + schemaName + "' cannot be null");
+                }
+                else {
+                    Logger.warning("ItemRoot.getMasterSchema() - Version for Schema '%s' was null, using version 0 as default", schemaName);
+                    schemaVersion = 0;
+                }
+            }
+            else {
+                schemaVersion = Integer.valueOf(masterSchemaUrn.split(":")[1]);
+            }
         }
 
         try {
@@ -300,8 +316,9 @@ public class ItemRoot extends ItemUtils {
      * @param scriptName the name of the script received in the rest call (can be null)
      * @param scriptVersion the version of the script received in the rest call (can be null)
      * @return the script or null
+     * @throws InvalidDataException 
      */
-    private Script getAggregateScript(ItemProxy item, String scriptName, Integer scriptVersion) {
+    private Script getAggregateScript(ItemProxy item, String scriptName, Integer scriptVersion) throws InvalidDataException {
         String aggregateScriptUrn = item.getProperty(AGGREGATE_SCRIPT_URN, null);
         if (StringUtils.isBlank(aggregateScriptUrn)) aggregateScriptUrn = item.getProperty(SCRIPT_URN, null);
 
@@ -311,8 +328,18 @@ public class ItemRoot extends ItemUtils {
         }
 
         if (scriptVersion == null) {
-            if (StringUtils.isBlank(aggregateScriptUrn)) scriptVersion = 0;
-            else                                         scriptVersion = Integer.valueOf(aggregateScriptUrn.split(":")[1]);
+            if (StringUtils.isBlank(aggregateScriptUrn)) {
+                if (Gateway.getProperties().getBoolean("Module.Versioning.strict", false)) {
+                    throw new InvalidDataException("Version for Script '" + scriptName + "' cannot be null");
+                }
+                else {
+                    Logger.warning("ItemRoot.getAggregateScript() - Version for Script '%s' was null, using version 0 as default", scriptName);
+                    scriptVersion = 0;
+                }
+            }
+            else {
+                scriptVersion = Integer.valueOf(aggregateScriptUrn.split(":")[1]);
+            }
         }
 
         try {
