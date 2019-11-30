@@ -65,6 +65,7 @@ import org.cristalise.kernel.entity.agent.Job;
 import org.cristalise.kernel.entity.proxy.AgentProxy;
 import org.cristalise.kernel.entity.proxy.ItemProxy;
 import org.cristalise.kernel.events.Event;
+import org.cristalise.kernel.lifecycle.instance.predefined.PredefinedStep;
 import org.cristalise.kernel.lifecycle.instance.stateMachine.StateMachine;
 import org.cristalise.kernel.lookup.DomainPath;
 import org.cristalise.kernel.lookup.InvalidItemPathException;
@@ -83,6 +84,7 @@ import org.cristalise.kernel.utils.DateUtility;
 import org.cristalise.kernel.utils.KeyValuePair;
 import org.cristalise.kernel.utils.LocalObjectLoader;
 import org.cristalise.kernel.utils.Logger;
+import org.json.JSONArray;
 import org.json.JSONObject;
 import org.json.XML;
 
@@ -535,22 +537,50 @@ public abstract class ItemUtils extends RestHandler {
      * @throws ObjectAlreadyExistsException
      * @throws InvalidCollectionModification
      */
-    protected String executePredefinedStep(ItemProxy item, String postData, List<String> types, String actPath, AgentProxy agent)
+    protected String executePredefinedStep(ItemProxy item, String postData, String contentType, String actPath, AgentProxy agent)
             throws ObjectNotFoundException, InvalidDataException, OutcomeBuilderException, AccessRightsException,
             InvalidTransitionException, PersistencyException, ObjectAlreadyExistsException, InvalidCollectionModification
     {
         if ( ! actPath.startsWith(PREDEFINED_PATH) ) {
             throw new InvalidDataException("Predefined Step path should start with " + PREDEFINED_PATH);
         }
+        
+        String[] params;
+        String stepName = actPath.substring(PREDEFINED_PATH.length());
+        String schemaName = PredefinedStep.getPredefStepSchemaName(stepName);
 
-        if (types.contains(MediaType.APPLICATION_JSON)) {
-            OutcomeBuilder builder = new OutcomeBuilder(LocalObjectLoader.getSchema("PredefinesStepOutcome", 0));
-            builder.addJsonInstance(new JSONObject(postData));
-            // Outcome can be invalid at this point, because Script/Query can be executed later
-            postData = builder.getOutcome(false).getData();
+        if (contentType.contains(MediaType.APPLICATION_JSON)) {
+            if (schemaName.equals("PredefinedStepOutcome")) {
+                if (StringUtils.isBlank(postData)) postData = "[]";
+
+                JSONArray array = new JSONArray(postData);
+                params = new String[array.length()];
+
+                for (int i = 0; i < array.length(); i++) params[i] = array.getString(i);
+            }
+            else {
+                if (StringUtils.isBlank(postData)) postData = "{}";
+
+                params = new String[1];
+                OutcomeBuilder builder = new OutcomeBuilder(LocalObjectLoader.getSchema(schemaName, 0));
+                builder.addJsonInstance(new JSONObject(postData));
+
+                params[0] = builder.getOutcome().getData();
+            }
+        }
+        else {
+            if (schemaName.equals("PredefinedStepOutcome")) {
+                if (StringUtils.isBlank(postData)) postData = "<PredefinedStepOutcome/>";
+
+                params = PredefinedStep.getDataList(postData);
+            }
+            else {
+                if (StringUtils.isBlank(postData)) params = new String[0];
+                else                               params = new String[] {postData};
+            }
         }
 
-        return agent.execute(item, actPath.substring(PREDEFINED_PATH.length()), postData);
+        return agent.execute(item, stepName, params);
     }
 
     /**
@@ -572,7 +602,7 @@ public abstract class ItemUtils extends RestHandler {
      * @throws InvalidCollectionModification
      * @throws ScriptErrorException
      */
-    protected String executeJob(ItemProxy item, String postData, List<String> types, String actPath, String transition, AgentProxy agent)
+    protected String executeJob(ItemProxy item, String postData, String contentType, String actPath, String transition, AgentProxy agent)
             throws AccessRightsException, ObjectNotFoundException, PersistencyException, InvalidDataException, OutcomeBuilderException,
             InvalidTransitionException, ObjectAlreadyExistsException, InvalidCollectionModification, ScriptErrorException
     {
@@ -584,7 +614,7 @@ public abstract class ItemUtils extends RestHandler {
 
         // set outcome if required
         if (thisJob.hasOutcome()) {
-            if (types.contains(MediaType.APPLICATION_XML) || types.contains(MediaType.TEXT_XML)) {
+            if (contentType.contains(MediaType.APPLICATION_XML) || contentType.contains(MediaType.TEXT_XML)) {
                 thisJob.setOutcome(postData);
             }
             else {

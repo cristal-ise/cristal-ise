@@ -27,7 +27,7 @@ import java.util.concurrent.Semaphore;
 
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.Response;
-
+import org.apache.commons.lang3.StringUtils;
 import org.cristalise.kernel.common.InvalidDataException;
 import org.cristalise.kernel.common.ObjectNotFoundException;
 import org.cristalise.kernel.entity.proxy.ItemProxy;
@@ -74,11 +74,18 @@ public class ScriptUtils extends ItemUtils {
         return scriptResult;
     }
 
-    public Response.ResponseBuilder executeScript(HttpHeaders headers, ItemProxy item, String scriptName, Integer scriptVersion,
-            String inputJson, Map<String, Object> additionalInputs) throws InvalidDataException, ObjectNotFoundException, UnsupportedOperationException
+    public Response.ResponseBuilder executeScript(
+            HttpHeaders         headers, 
+            ItemProxy           item, 
+            String              scriptName, 
+            Integer             scriptVersion,
+            String              actPath,
+            String              inputJson,
+            Map<String, Object> additionalInputs)
+                throws ObjectNotFoundException, UnsupportedOperationException, InvalidDataException
     {
         if (scriptVersion == null) {
-            if ( Gateway.getProperties().getBoolean("Module.Versioning.strict", true)) {
+            if (Gateway.getProperties().getBoolean("Module.Versioning.strict", true)) {
                 throw new InvalidDataException("Version for Script '" + scriptName + "' cannot be null");
             }
             else {
@@ -87,10 +94,9 @@ public class ScriptUtils extends ItemUtils {
             }
         }
 
-        Script script = null;
         if (scriptName != null) {
             try {
-                script = LocalObjectLoader.getScript(scriptName, scriptVersion);
+                Script script = LocalObjectLoader.getScript(scriptName, scriptVersion);
 
                 JSONObject json =  new JSONObject(inputJson == null ? "{}" : URLDecoder.decode(inputJson, "UTF-8"));
 
@@ -98,8 +104,11 @@ public class ScriptUtils extends ItemUtils {
                 for (String key: json.keySet()) {
                     inputs.put(key, json.get(key));
                 }
+
+                if (StringUtils.isNotBlank(actPath)) inputs.put("activityPath", actPath);
+
                 inputs.putAll(additionalInputs);
-                
+
                 return returnScriptResult(scriptName, item, null, script, inputs, produceJSON(headers.getAcceptableMediaTypes()));
             }
             catch ( UnsupportedOperationException e ) {

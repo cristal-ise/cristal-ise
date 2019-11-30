@@ -80,12 +80,12 @@ Defines an xs:attribute called `unit` within the element defined by field
   * `default` - default value of the xs:attribute
 
 ### *field* listOfValues
-a field argument used to get list of items from a script
+Field argument used to get the label-value pair for the combobox ui widget
 
 | Property | Type | Description |
 | -------- | ---- | ----------- |
-| scriptRef | String | Defines the Script name and version (e.g. GetShiftNames:0') |
-| queryRef | String | Defines the Query name and version (e.g. QueryShiftNames:0') |
+| scriptRef | String or Script | Defines the Script or the name and version of the refernced Script (e.g. GetShiftNames:0') |
+| queryRef | String or Query | Defines the Query or the name and version of the refernced Query (e.g. QueryShiftNames:0') |
 | propertyNames| String | Comma separated list of ItemProperty names |
 | inputName| String | The name of the input variable |
 | values | List<String> | Use these values as html option |
@@ -107,8 +107,8 @@ Provides customization capabilities for WebUI
 | max | Integer | The maximum value |
 | mask | String | String compatible with the Mask input component of primeng |
 | value | String | Default value |
-| updateScriptRef | String | Defines the Script name and version which is executed when the from generated from the XML Schema has to be updated |
-| updateQueryRef | String |Defines the Query name and version which is executed when the from generated from the XML Schema has to be updated |
+| updateScriptRef | String or Script | Defines the Script or the name and version of the refernced Script (e.g. GetShiftNames:0') which is executed when the form generated from the XML Schema has to be updated |
+| updateQueryRef | String or Query | Defines the Query or the name and version of the refernced Query (e.g. QueryShiftNames:0') which is executed when the from generated from the XML Schema has to be updated |
 | warning| Warning | Defines Acceptable warnings or limits in the field via regex pattern or javascript expression |
 | updateFields | List<String> | List the fields to update when this field is updated |
 

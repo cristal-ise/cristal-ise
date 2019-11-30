@@ -19,8 +19,8 @@ This tutorial has 4 sections:
 
 3. [Implementation](../Patient-Tracking-Implementation)
 
-   Provides the step-by-step guidelines to create the cristalise entities defined in previous section
+    Provides the step-by-step guidelines to create the cristalise entities defined in previous section
 
 4. [Modularization](../Patient-Tracking-Modularization)
 
-   Provides the step-by-step guidelines to create the cristalise module
+    Provides the step-by-step guidelines to create the cristalise module
