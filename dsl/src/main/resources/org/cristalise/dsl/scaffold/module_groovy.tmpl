@@ -22,6 +22,18 @@ Module(ns: '@{moduleNs}', name: '@{moduleName}', version: @{moduleVersion}) {
 
     Config(name: 'Module.debug', value: true)
 
+    Roles {
+        Role(name: 'Admin', jobList: false) {
+            Permission('*')
+        }
+    }
+
+    Agent(name: 'TestAdmin', password: 'test', folder:'/@{moduleNs}/Agents') {
+        Roles {
+            Role(name: 'Admin')
+        }
+    }
+
 @foreach{file : moduleFiles} 
     include(moduleDir+'/@{file}')
 @end{}

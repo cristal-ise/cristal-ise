@@ -9,7 +9,7 @@
     </parent>
 
 	<artifactId>cristalise-module-archetype</artifactId>
-        <version>${revision}</version>
+
 	<name>module-archetype</name>
 	<description>Template Maven project for CRISTAL modules</description>
 	<properties>

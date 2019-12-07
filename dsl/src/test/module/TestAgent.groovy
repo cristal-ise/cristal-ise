@@ -59,7 +59,7 @@ def TestAgentPropDesc = PropertyDescriptionList('TestAgent', 0) {
     PropertyDesc(name: 'State', isMutable: true,  isClassIdentifier: true, defaultValue: 'ACTIVE')
 }
 
-Item(name: 'TestAgentFactory', folder: '/', workflow: 'Factory_Workflow', workflowVer: 0) {
+Item(name: 'TestAgentFactory', folder: '/testns', workflow: 'Factory_Workflow', workflowVer: 0) {
     InmutableProperty('Type': 'Factory')
     InmutableProperty('Root': 'testns/TestAgents')
     InmutableProperty('IDPrefix': 'ID')
