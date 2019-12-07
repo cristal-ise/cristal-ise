@@ -288,8 +288,6 @@ public class CastorXMLTest {
         ImportRole rolePrime = (ImportRole) marshaller.unmarshall(marshaller.marshall(role));
 
         assertReflectionEquals(role, rolePrime);
-
-        Logger.msg(marshaller.marshall(rolePrime));
     }
 
     @Test
@@ -302,7 +300,5 @@ public class CastorXMLTest {
         ImportAgent agentPrime = (ImportAgent) marshaller.unmarshall(marshaller.marshall(agent));
 
         assertReflectionEquals(agent, agentPrime);
-
-        Logger.msg(marshaller.marshall(agentPrime));
     }
 }
