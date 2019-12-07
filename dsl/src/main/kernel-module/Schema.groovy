@@ -13,3 +13,17 @@ Schema('SimpleElectonicSignature', 0) {
         }
     }
 }
+
+Schema('SystemProperties', 0) {
+    struct(name: 'SystemProperties', useSequence: true, documentation: 'blabla') {
+        struct(name:'Property', multiplicity: '0..*') {
+            field(name: 'name', type: 'string')
+            field(name: 'module', type: 'string', multiplicity: '0..1', documentation: 'The module in which the System Property was defined')
+            field(name: 'readOnly', type: 'boolean', default: false, documentation: 'Specify if the Property can be dinamically overridden')
+            field(name: 'description', type: 'string', multiplicity: '0..1')
+            field(name: 'value', type: 'string', multiplicity: '0..1') {
+                attribute(name: 'setInConfigFiles', type: 'boolean', multiplicity: '0..1') //Indicates if the value was set in config files
+            }
+        }
+    }
+}

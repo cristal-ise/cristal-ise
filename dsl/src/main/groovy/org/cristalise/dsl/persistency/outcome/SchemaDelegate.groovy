@@ -169,7 +169,7 @@ class SchemaDelegate {
     private void buildAtribute(MarkupBuilder xsd, Attribute a) {
         Logger.msg 1, "SchemaDelegate.buildAtribute() - attribute: $a.name"
 
-        if (a.documentation) throw new InvalidDataException('Atttrbute cannotnot define documentation')
+        if (a.documentation) throw new InvalidDataException('Attribute cannot define documentation')
 
         xsd.'xs:attribute'(name: a.name, type: attributeType(a), 'default': a.defaultVal, 'use': (a?.required ? "required": "")) {
             if(hasRestrictions(a)) {
@@ -255,7 +255,6 @@ class SchemaDelegate {
                 itemType(itemRef)
             }
         }
-            
     }
         
     private void buildField(MarkupBuilder xsd, Field f) {

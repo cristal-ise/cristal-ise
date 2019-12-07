@@ -1,0 +1,39 @@
+<?xml version='1.0' encoding='utf-8'?>
+<xs:schema xmlns:xs='http://www.w3.org/2001/XMLSchema'>
+  <xs:element name='SystemProperties'>
+    <xs:annotation>
+      <xs:documentation>blabla</xs:documentation>
+    </xs:annotation>
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element name='Property' minOccurs='0' maxOccurs='unbounded'>
+          <xs:complexType>
+            <xs:all minOccurs='0'>
+              <xs:element name='name' type='xs:string' minOccurs='1' maxOccurs='1' />
+              <xs:element name='module' type='xs:string' minOccurs='0' maxOccurs='1'>
+                <xs:annotation>
+                  <xs:documentation>The module in which the System Property was defined</xs:documentation>
+                </xs:annotation>
+              </xs:element>
+              <xs:element name='readOnly' type='xs:boolean' default='false' minOccurs='1' maxOccurs='1'>
+                <xs:annotation>
+                  <xs:documentation>Specify if the Property can be dinamically overridden</xs:documentation>
+                </xs:annotation>
+              </xs:element>
+              <xs:element name='description' type='xs:string' minOccurs='0' maxOccurs='1' />
+              <xs:element name='value' minOccurs='0' maxOccurs='1'>
+                <xs:complexType>
+                  <xs:simpleContent>
+                    <xs:extension base='xs:string'>
+                      <xs:attribute name='setInConfigFiles' type='xs:boolean' />
+                    </xs:extension>
+                  </xs:simpleContent>
+                </xs:complexType>
+              </xs:element>
+            </xs:all>
+          </xs:complexType>
+        </xs:element>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+</xs:schema>

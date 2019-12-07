@@ -26,6 +26,8 @@ import static org.cristalise.kernel.property.BuiltInItemProperties.NAME;
 import static org.cristalise.kernel.property.BuiltInItemProperties.TYPE;
 import static org.cristalise.kernel.security.BuiltInAuthc.ADMIN_ROLE;
 import static org.cristalise.kernel.security.BuiltInAuthc.SYSTEM_AGENT;
+
+import java.io.ByteArrayOutputStream;
 import java.net.InetAddress;
 import java.util.HashMap;
 import java.util.Set;
@@ -567,6 +569,10 @@ public class Bootstrap
         Gateway.getStorage().put(serverItem, new Property(KERNEL_VERSION,  Gateway.getKernelVersion(),              true),  null);
         Gateway.getStorage().put(serverItem, new Property("ProxyPort",     String.valueOf(proxyPort),               false), null);
         Gateway.getStorage().put(serverItem, new Property("ConsolePort",   String.valueOf(Logger.getConsolePort()), true),  null);
+
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        Gateway.getProperties().storeToXML(baos, null);
+        Logger.msg("-----------" + baos.toString());
 
         Gateway.getProxyManager().connectToProxyServer(serverName, proxyPort);
     }
