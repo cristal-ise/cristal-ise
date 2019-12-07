@@ -73,7 +73,7 @@ public class Dimension extends OutcomeStructure {
 
     @Override
     public void addInstance(Element newElement, Document parentDoc) throws OutcomeBuilderException {
-        log.debug("addInstance() - adding instance " + (elements.size() + 1) + " for " + myElement.getTagName());
+        log.debug("addInstance() - adding instance " + (elements.size() + 1) + " for " + newElement.getTagName());
 
         if (parent == null) setParentElement((Element) newElement.getParentNode());
 
