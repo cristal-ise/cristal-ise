@@ -36,6 +36,8 @@ import java.util.UUID;
 import org.cristalise.kernel.collection.Dependency;
 import org.cristalise.kernel.common.GTimeStamp;
 import org.cristalise.kernel.entity.agent.Job;
+import org.cristalise.kernel.entity.imports.ImportAgent;
+import org.cristalise.kernel.entity.imports.ImportRole;
 import org.cristalise.kernel.graph.model.GraphPoint;
 import org.cristalise.kernel.graph.model.GraphableEdge;
 import org.cristalise.kernel.lifecycle.instance.Next;
@@ -270,5 +272,36 @@ public class CastorXMLTest {
         depPrime.getCounter();
 
         assertReflectionEquals(dep, depPrime);
+    }
+
+    @Test
+    public void testCastorImportRole() throws Exception {
+        CastorXMLUtility marshaller = Gateway.getMarshaller();
+
+        ImportRole role = new ImportRole();
+        role.setName("TestRole");
+        role.jobList = false;
+        role.permissions.add("dom1:Func1,Func2:");
+        role.permissions.add("dom2:Func1:toto");
+
+        ImportRole rolePrime = (ImportRole) marshaller.unmarshall(marshaller.marshall(role));
+
+        assertReflectionEquals(role, rolePrime);
+
+        Logger.msg(marshaller.marshall(rolePrime));
+    }
+
+    @Test
+    public void testCastorImportAgent() throws Exception {
+        CastorXMLUtility marshaller = Gateway.getMarshaller();
+
+        ImportAgent agent = new ImportAgent("/itemTest/agents", "TestAgent", "pwd");
+        agent.addRoles(Arrays.asList(new RolePath("TestRole")));
+
+        ImportAgent agentPrime = (ImportAgent) marshaller.unmarshall(marshaller.marshall(agent));
+
+        assertReflectionEquals(agent, agentPrime);
+
+        Logger.msg(marshaller.marshall(agentPrime));
     }
 }
