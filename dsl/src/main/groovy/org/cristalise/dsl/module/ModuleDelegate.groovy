@@ -231,7 +231,7 @@ class ModuleDelegate {
      * @param cl
      */
     public void Agent(Map args, Closure cl) {
-        def agent = AgentBuilder.build((String) args.name, (String) args.password, cl)
+        def agent = AgentBuilder.build(args, cl)
         agent.roles.each { it.jobList = null }
 
         updateImports(agent)

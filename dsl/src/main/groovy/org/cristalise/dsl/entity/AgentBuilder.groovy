@@ -53,12 +53,16 @@ class AgentBuilder {
     }
 
     public static ImportAgent build(Map<String, Object> attrs, Closure cl) {
-        assert attrs && attrs.name
-        return build((String)attrs.name, (String)attrs.pwd, cl)
+        assert attrs && attrs.name && attrs.password
+        return build(attrs.folder ? (String)attrs.folder : null, (String)attrs.name, (String)attrs.password, cl)
     }
 
     public static ImportAgent build(String name, String pwd, Closure cl) {
-        def agentD = new AgentDelegate(name, pwd)
+        return build(null, name, pwd, cl)
+    }
+
+    public static ImportAgent build(String folder, String name, String pwd, Closure cl) {
+        def agentD = new AgentDelegate(folder, name, pwd)
 
         agentD.processClosure(cl)
 

@@ -32,6 +32,7 @@ import org.cristalise.kernel.common.ObjectNotFoundException;
 import org.cristalise.kernel.entity.agent.ActiveEntity;
 import org.cristalise.kernel.lifecycle.CompositeActivityDef;
 import org.cristalise.kernel.lookup.AgentPath;
+import org.cristalise.kernel.lookup.DomainPath;
 import org.cristalise.kernel.lookup.ItemPath;
 import org.cristalise.kernel.lookup.Path;
 import org.cristalise.kernel.lookup.RolePath;
@@ -47,15 +48,21 @@ import lombok.extern.slf4j.Slf4j;
 @Getter @Setter @Slf4j
 public class ImportAgent extends ModuleImport {
 
+    private String                initialPath; //optional
     private String                password;
     private ArrayList<Property>   properties = new ArrayList<Property>();
     private ArrayList<ImportRole> roles      = new ArrayList<ImportRole>();
 
     public ImportAgent() {}
 
-    public ImportAgent(String name, String password) {
-        this.name = name;
-        this.password = password;
+    public ImportAgent(String folder, String aName, String pwd) {
+        this.initialPath = folder;
+        this.name = aName;
+        this.password = pwd;
+    }
+
+    public ImportAgent(String aName, String pwd) {
+        this(null, aName, pwd);
     }
 
     @Override
@@ -63,6 +70,20 @@ public class ImportAgent extends ModuleImport {
             throws ObjectNotFoundException, ObjectCannotBeUpdated, CannotManageException, ObjectAlreadyExistsException
     {
         if (roles.isEmpty()) throw new ObjectNotFoundException("Agent '"+name+"' must declare at least one Role ");
+
+        if (StringUtils.isNotBlank(initialPath)) {
+            domainPath = new DomainPath(new DomainPath(initialPath), name);
+
+            if (domainPath.exists()) {
+                ItemPath domItem = domainPath.getItemPath();
+                if (!getItemPath().equals(domItem)) {
+                    throw new CannotManageException("'"+domainPath+"' was found with the different itemPath ("+domainPath.getItemPath()+" vs "+getItemPath()+")");
+                }
+            }
+            else {
+                isDOMPathExists = false;
+            }
+        }
 
         AgentPath newAgent = new AgentPath(getItemPath(), name);
 
@@ -92,6 +113,12 @@ public class ImportAgent extends ModuleImport {
             RolePath thisRole = (RolePath)role.create(agentPath, reset);
             Gateway.getLookupManager().addRole(newAgent, thisRole);
         }
+
+        if (domainPath != null && !isDOMPathExists) {
+            domainPath.setItemPath(getItemPath());
+            Gateway.getLookupManager().add(domainPath);
+        }
+
         return newAgent;
     }
 
