@@ -590,12 +590,17 @@ public class Bootstrap
         CompiledTemplate expr = TemplateCompiler.compileTemplate(templ);
 
         for (Entry<Object, Object> entry: Gateway.getProperties().entrySet()) {
-            if (((String)entry.getKey()).startsWith("//")) continue; //Skip commented lines
+            String key = (String)entry.getKey();
+
+            if (key.startsWith("//")) continue; //Skip commented lines
 
             Map<String, Object> prop = new HashMap<String, Object>();
-            prop.put("Name", entry.getKey());
-            prop.put("Value", entry.getValue());
-            prop.put("SetInConfigFiles", "true");
+
+            prop.put("Name", key);
+            prop.put("SetInConfigFiles", true);
+
+            if (StringUtils.containsIgnoreCase(key, "password")) prop.put("Value", "REDACTED");
+            else                                                 prop.put("Value", entry.getValue());
 
             props.add(prop);
         }
@@ -603,6 +608,7 @@ public class Bootstrap
         Map<Object, Object> vars = new HashMap<Object, Object>();
         vars.put("properties", props);
 
+        // Story the new Outcome and the Viewpoint
         Outcome newOutcome = new Outcome(
                 (String)TemplateRuntime.execute(expr, vars), 
                 LocalObjectLoader.getSchema("SystemProperties", 0));

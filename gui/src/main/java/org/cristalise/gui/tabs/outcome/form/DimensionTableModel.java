@@ -300,9 +300,10 @@ public class DimensionTableModel extends AbstractTableModel {
 
         // type mismatch between type of column derived from xsd and type of value coming from the xml
         if (!(getColumnClass(columnIndex).equals(thisRow[columnIndex].getClass()))) {
-            Logger.warning(thisRow[columnIndex]+" should be "+getColumnClass(columnIndex)+" is a "+thisRow[columnIndex].getClass().getName());
+            Logger.warning("Column '" + getColumnName(columnIndex) +"' of value '"+ thisRow[columnIndex] + 
+                    "' should be "+getColumnClass(columnIndex)+" but it is a "+thisRow[columnIndex].getClass().getName());
 
-            //if the value is an empty String return null instead
+            // if the value is an empty String return null instead
             if (thisRow[columnIndex] instanceof String && StringUtils.isBlank((String)thisRow[columnIndex]))
                 return null;
         }
