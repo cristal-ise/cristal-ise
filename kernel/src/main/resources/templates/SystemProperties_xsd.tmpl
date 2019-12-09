@@ -1,0 +1,12 @@
+<SystemProperties>
+@foreach{property : properties} 
+  <Property>
+    <Name>@{property.Name}</Name>
+    @if{property["Module"] != null} <Module>@{property.Module}</Module>@end{}
+    @if{property["ReadOnly"] != null} <ReadOnly>@{property.ReadOnly}</ReadOnly>@end{}
+    @if{property["Description"] != null} <Description>@{property.Description}</Description>@end{}
+    <SetInConfigFiles>@{property.SetInConfigFiles}</SetInConfigFiles>
+    <Value>@{property.Value}</Value>
+  </Property>
+@end{}
+</SystemProperties>

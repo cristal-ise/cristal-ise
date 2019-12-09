@@ -9,27 +9,55 @@
         <xs:element name='Property' minOccurs='0' maxOccurs='unbounded'>
           <xs:complexType>
             <xs:all minOccurs='0'>
-              <xs:element name='name' type='xs:string' minOccurs='1' maxOccurs='1' />
-              <xs:element name='module' type='xs:string' minOccurs='0' maxOccurs='1'>
+              <xs:element name='Name' type='xs:string' minOccurs='1' maxOccurs='1'>
+                <xs:annotation>
+                  <xs:appinfo>
+                    <dynamicForms>
+                      <disabled>true</disabled>
+                    </dynamicForms>
+                  </xs:appinfo>
+                </xs:annotation>
+              </xs:element>
+              <xs:element name='Module' type='xs:string' minOccurs='0' maxOccurs='1'>
                 <xs:annotation>
                   <xs:documentation>The module in which the System Property was defined</xs:documentation>
+                  <xs:appinfo>
+                    <dynamicForms>
+                      <disabled>true</disabled>
+                    </dynamicForms>
+                  </xs:appinfo>
                 </xs:annotation>
               </xs:element>
-              <xs:element name='readOnly' type='xs:boolean' default='false' minOccurs='1' maxOccurs='1'>
+              <xs:element name='ReadOnly' type='xs:boolean' minOccurs='0' maxOccurs='1'>
                 <xs:annotation>
-                  <xs:documentation>Specify if the Property can be dinamically overridden</xs:documentation>
+                  <xs:documentation>Specify if the Property can be dynamically overridden</xs:documentation>
+                  <xs:appinfo>
+                    <dynamicForms>
+                      <disabled>true</disabled>
+                    </dynamicForms>
+                  </xs:appinfo>
                 </xs:annotation>
               </xs:element>
-              <xs:element name='description' type='xs:string' minOccurs='0' maxOccurs='1' />
-              <xs:element name='value' minOccurs='0' maxOccurs='1'>
-                <xs:complexType>
-                  <xs:simpleContent>
-                    <xs:extension base='xs:string'>
-                      <xs:attribute name='setInConfigFiles' type='xs:boolean' />
-                    </xs:extension>
-                  </xs:simpleContent>
-                </xs:complexType>
+              <xs:element name='Description' type='xs:string' minOccurs='0' maxOccurs='1'>
+                <xs:annotation>
+                  <xs:appinfo>
+                    <dynamicForms>
+                      <disabled>true</disabled>
+                    </dynamicForms>
+                  </xs:appinfo>
+                </xs:annotation>
               </xs:element>
+              <xs:element name='SetInConfigFiles' type='xs:boolean' minOccurs='1' maxOccurs='1'>
+                <xs:annotation>
+                  <xs:documentation>Indicates if the value was set in config files</xs:documentation>
+                  <xs:appinfo>
+                    <dynamicForms>
+                      <disabled>true</disabled>
+                    </dynamicForms>
+                  </xs:appinfo>
+                </xs:annotation>
+              </xs:element>
+              <xs:element name='Value' type='xs:string' minOccurs='1' maxOccurs='1' />
             </xs:all>
           </xs:complexType>
         </xs:element>

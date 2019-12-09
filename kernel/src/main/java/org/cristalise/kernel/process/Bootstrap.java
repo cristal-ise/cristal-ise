@@ -27,12 +27,16 @@ import static org.cristalise.kernel.property.BuiltInItemProperties.TYPE;
 import static org.cristalise.kernel.security.BuiltInAuthc.ADMIN_ROLE;
 import static org.cristalise.kernel.security.BuiltInAuthc.SYSTEM_AGENT;
 
-import java.io.ByteArrayOutputStream;
 import java.net.InetAddress;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 import java.util.StringTokenizer;
 import java.util.UUID;
+
 import org.apache.commons.lang3.StringUtils;
 import org.cristalise.kernel.collection.Collection;
 import org.cristalise.kernel.collection.CollectionArrayList;
@@ -65,9 +69,13 @@ import org.cristalise.kernel.property.PropertyArrayList;
 import org.cristalise.kernel.property.PropertyDescription;
 import org.cristalise.kernel.property.PropertyDescriptionList;
 import org.cristalise.kernel.scripting.ScriptConsole;
+import org.cristalise.kernel.utils.CastorXMLUtility;
 import org.cristalise.kernel.utils.FileStringUtility;
 import org.cristalise.kernel.utils.LocalObjectLoader;
 import org.cristalise.kernel.utils.Logger;
+import org.mvel2.templates.CompiledTemplate;
+import org.mvel2.templates.TemplateCompiler;
+import org.mvel2.templates.TemplateRuntime;
 
 
 /**
@@ -570,11 +578,48 @@ public class Bootstrap
         Gateway.getStorage().put(serverItem, new Property("ProxyPort",     String.valueOf(proxyPort),               false), null);
         Gateway.getStorage().put(serverItem, new Property("ConsolePort",   String.valueOf(Logger.getConsolePort()), true),  null);
 
-        ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        Gateway.getProperties().storeToXML(baos, null);
-        Logger.msg("-----------" + baos.toString());
+        storeSystemProperties(serverItem);
 
         Gateway.getProxyManager().connectToProxyServer(serverName, proxyPort);
+    }
+
+    private static void storeSystemProperties(ItemPath serverItem) throws Exception {
+        List<Map<String, Object>> props = new ArrayList<Map<String, Object>>();
+
+        String templ = FileStringUtility.url2String(CastorXMLUtility.class.getResource("resources/templates/SystemProperties_xsd.tmpl"));
+        CompiledTemplate expr = TemplateCompiler.compileTemplate(templ);
+
+        for (Entry<Object, Object> entry: Gateway.getProperties().entrySet()) {
+            if (((String)entry.getKey()).startsWith("//")) continue; //Skip commented lines
+
+            Map<String, Object> prop = new HashMap<String, Object>();
+            prop.put("Name", entry.getKey());
+            prop.put("Value", entry.getValue());
+            prop.put("SetInConfigFiles", "true");
+
+            props.add(prop);
+        }
+
+        Map<Object, Object> vars = new HashMap<Object, Object>();
+        vars.put("properties", props);
+
+        Outcome newOutcome = new Outcome(
+                (String)TemplateRuntime.execute(expr, vars), 
+                LocalObjectLoader.getSchema("SystemProperties", 0));
+
+        History hist = new History(serverItem, null);
+
+        int eventID = hist.addEvent(systemAgents.get(SYSTEM_AGENT.getName()).getPath(), null,
+                ADMIN_ROLE.getName(), "Bootstrap", "Bootstrap", "Bootstrap",
+                newOutcome.getSchema(), getPredefSM(), PredefinedStep.DONE, "last"
+                ).getID();
+
+        newOutcome.setID(eventID);
+
+        Viewpoint newLastView = new Viewpoint(serverItem, newOutcome.getSchema(), "last", eventID);
+
+        Gateway.getStorage().put(serverItem, newOutcome,  null);
+        Gateway.getStorage().put(serverItem, newLastView, null);
     }
 
     public static void initServerItemWf() throws Exception {
