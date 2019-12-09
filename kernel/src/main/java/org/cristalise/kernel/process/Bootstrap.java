@@ -113,7 +113,10 @@ public class Bootstrap
         checkAdminAgents();
 
         // create the server's mother item
-        createServerItem();
+        ItemPath serverItem = createServerItem();
+
+        // store system properties in server item
+        storeSystemProperties(serverItem);
     }
 
     /**
@@ -296,7 +299,7 @@ public class Bootstrap
                 // validate it, but not for kernel objects (ns == null) because those are to validate the rest
                 if (ns != null) newOutcome.validateAndCheck();
 
-                storeOutcomeEventAndViews(thisProxy, newOutcome, version);
+                storeOutcomeEventAndViews(thisProxy.getPath(), newOutcome, version);
 
                 CollectionArrayList cols = typeImpHandler.getCollections(itemName, version, newOutcome);
 
@@ -370,27 +373,32 @@ public class Bootstrap
      * @throws ObjectNotFoundException
      * @throws InvalidDataException
      */
-    private static void storeOutcomeEventAndViews(ItemProxy item, Outcome newOutcome, int version)
+    private static void storeOutcomeEventAndViews(ItemPath item, Outcome newOutcome, Integer version)
             throws PersistencyException, ObjectNotFoundException, InvalidDataException
     {
         Logger.msg("Bootstrap.storeOutcomeEventAndViews() - Writing new " + newOutcome.getSchema().getName() + " v" + version + " to "+item.getName());
 
-        History hist = new History( item.getPath(), item);
-        String viewName = String.valueOf(version);
+        History hist = new History(item, null);
+
+        String viewName = "";
+        if (version != null) viewName = String.valueOf(version);
 
         int eventID = hist.addEvent( systemAgents.get(SYSTEM_AGENT.getName()).getPath(), null,
                 ADMIN_ROLE.getName(), "Bootstrap", "Bootstrap", "Bootstrap",
-                newOutcome.getSchema(), getPredefSM(), PredefinedStep.DONE, viewName
+                newOutcome.getSchema(), getPredefSM(), PredefinedStep.DONE, version != null ? viewName : "last"
                 ).getID();
 
         newOutcome.setID(eventID);
 
-        Viewpoint newLastView   = new Viewpoint(item.getPath(), newOutcome.getSchema(), "last",   eventID);
-        Viewpoint newNumberView = new Viewpoint(item.getPath(), newOutcome.getSchema(), viewName, eventID);
+        Viewpoint newLastView = new Viewpoint(item, newOutcome.getSchema(), "last", eventID);
 
-        Gateway.getStorage().put(item.getPath(), newOutcome,    item);
-        Gateway.getStorage().put(item.getPath(), newLastView,   item);
-        Gateway.getStorage().put(item.getPath(), newNumberView, item);
+        Gateway.getStorage().put(item, newOutcome,  null);
+        Gateway.getStorage().put(item, newLastView, null);
+
+        if (version != null) {
+            Viewpoint newNumberView = new Viewpoint(item, newOutcome.getSchema(), viewName, eventID);
+            Gateway.getStorage().put(item, newNumberView, null);
+        }
     }
 
     /**
@@ -553,7 +561,7 @@ public class Bootstrap
                 UUID.randomUUID().toString());
     }
 
-    public static void createServerItem() throws Exception {
+    private static ItemPath createServerItem() throws Exception {
         LookupManager lookupManager = Gateway.getLookupManager();
         String serverName = Gateway.getProperties().getString("ItemServer.name", InetAddress.getLocalHost().getHostName());
         thisServerPath = new DomainPath("/servers/"+serverName);
@@ -578,9 +586,9 @@ public class Bootstrap
         Gateway.getStorage().put(serverItem, new Property("ProxyPort",     String.valueOf(proxyPort),               false), null);
         Gateway.getStorage().put(serverItem, new Property("ConsolePort",   String.valueOf(Logger.getConsolePort()), true),  null);
 
-        storeSystemProperties(serverItem);
-
         Gateway.getProxyManager().connectToProxyServer(serverName, proxyPort);
+
+        return serverItem;
     }
 
     private static void storeSystemProperties(ItemPath serverItem) throws Exception {
@@ -613,19 +621,7 @@ public class Bootstrap
                 (String)TemplateRuntime.execute(expr, vars), 
                 LocalObjectLoader.getSchema("SystemProperties", 0));
 
-        History hist = new History(serverItem, null);
-
-        int eventID = hist.addEvent(systemAgents.get(SYSTEM_AGENT.getName()).getPath(), null,
-                ADMIN_ROLE.getName(), "Bootstrap", "Bootstrap", "Bootstrap",
-                newOutcome.getSchema(), getPredefSM(), PredefinedStep.DONE, "last"
-                ).getID();
-
-        newOutcome.setID(eventID);
-
-        Viewpoint newLastView = new Viewpoint(serverItem, newOutcome.getSchema(), "last", eventID);
-
-        Gateway.getStorage().put(serverItem, newOutcome,  null);
-        Gateway.getStorage().put(serverItem, newLastView, null);
+        storeOutcomeEventAndViews(serverItem, newOutcome, null);
     }
 
     public static void initServerItemWf() throws Exception {
