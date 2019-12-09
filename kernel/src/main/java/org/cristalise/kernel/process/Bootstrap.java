@@ -28,11 +28,7 @@ import static org.cristalise.kernel.security.BuiltInAuthc.ADMIN_ROLE;
 import static org.cristalise.kernel.security.BuiltInAuthc.SYSTEM_AGENT;
 
 import java.net.InetAddress;
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Set;
 import java.util.StringTokenizer;
 import java.util.UUID;
@@ -69,13 +65,9 @@ import org.cristalise.kernel.property.PropertyArrayList;
 import org.cristalise.kernel.property.PropertyDescription;
 import org.cristalise.kernel.property.PropertyDescriptionList;
 import org.cristalise.kernel.scripting.ScriptConsole;
-import org.cristalise.kernel.utils.CastorXMLUtility;
 import org.cristalise.kernel.utils.FileStringUtility;
 import org.cristalise.kernel.utils.LocalObjectLoader;
 import org.cristalise.kernel.utils.Logger;
-import org.mvel2.templates.CompiledTemplate;
-import org.mvel2.templates.TemplateCompiler;
-import org.mvel2.templates.TemplateRuntime;
 
 
 /**
@@ -592,35 +584,7 @@ public class Bootstrap
     }
 
     private static void storeSystemProperties(ItemPath serverItem) throws Exception {
-        List<Map<String, Object>> props = new ArrayList<Map<String, Object>>();
-
-        String templ = FileStringUtility.url2String(CastorXMLUtility.class.getResource("resources/templates/SystemProperties_xsd.tmpl"));
-        CompiledTemplate expr = TemplateCompiler.compileTemplate(templ);
-
-        for (Entry<Object, Object> entry: Gateway.getProperties().entrySet()) {
-            String key = (String)entry.getKey();
-
-            if (key.startsWith("//")) continue; //Skip commented lines
-
-            Map<String, Object> prop = new HashMap<String, Object>();
-
-            prop.put("Name", key);
-            prop.put("SetInConfigFiles", true);
-
-            if (StringUtils.containsIgnoreCase(key, "password")) prop.put("Value", "REDACTED");
-            else                                                 prop.put("Value", entry.getValue());
-
-            props.add(prop);
-        }
-
-        Map<Object, Object> vars = new HashMap<Object, Object>();
-        vars.put("properties", props);
-
-        // Story the new Outcome and the Viewpoint
-        Outcome newOutcome = new Outcome(
-                (String)TemplateRuntime.execute(expr, vars), 
-                LocalObjectLoader.getSchema("SystemProperties", 0));
-
+        Outcome newOutcome = Gateway.getProperties().convertToOutcome("ItemServer");
         storeOutcomeEventAndViews(serverItem, newOutcome, null);
     }
 

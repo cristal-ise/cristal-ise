@@ -1,5 +1,6 @@
 <SystemProperties>
-@foreach{property : properties} 
+  <ProcessName>@{ProcessName}</ProcessName>
+@foreach{property: properties} 
   <Property>
     <Name>@{property.Name}</Name>
     @if{property["Module"] != null} <Module>@{property.Module}</Module>@end{}

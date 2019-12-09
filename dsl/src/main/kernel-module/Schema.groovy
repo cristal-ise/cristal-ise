@@ -16,6 +16,9 @@ Schema('SimpleElectonicSignature', 0) {
 
 Schema('SystemProperties', 0) {
     struct(name: 'SystemProperties', useSequence: true, documentation: 'blabla') {
+        field(name: 'ProcessName', type: 'string')  {
+            dynamicForms(disabled: true)
+        }
         struct(name:'Property', multiplicity: '0..*') {
             field(name: 'Name', type: 'string')  {
                 dynamicForms(disabled: true)
