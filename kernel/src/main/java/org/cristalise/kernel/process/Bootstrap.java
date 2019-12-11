@@ -296,14 +296,14 @@ public class Bootstrap
                 CollectionArrayList cols = typeImpHandler.getCollections(itemName, version, newOutcome);
 
                 for (Collection<?> col : cols.list) {
-                    Gateway.getStorage().put(thisProxy.getPath(), col, thisProxy);
+                    Gateway.getStorage().put(thisProxy.getPath(), col, null);
                     Gateway.getStorage().clearCache(thisProxy.getPath(), ClusterType.COLLECTION+"/"+col.getName());
                     col.setVersion(null);
-                    Gateway.getStorage().put(thisProxy.getPath(), col, thisProxy);
+                    Gateway.getStorage().put(thisProxy.getPath(), col, null);
                 }
             }
         }
-        Gateway.getStorage().commit(thisProxy);
+        Gateway.getStorage().commit(null);
         return modDomPath;
     }
 
