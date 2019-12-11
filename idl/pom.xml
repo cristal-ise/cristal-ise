@@ -209,7 +209,7 @@
                 <configuration>
                     <excludes>
                         <exclude>pom.xml</exclude>
-                        <exclude>**/src/main/resources/textFiles/**</exclude>
+                        <exclude>**/src/main/**</exclude>
                         <exclude>**/src/test/resources/**</exclude>
                         <exclude>**/src/test/data/**</exclude>
                         <exclude>bin/**</exclude>
