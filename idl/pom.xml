@@ -34,8 +34,8 @@
     <artifactId>cristalise-idl</artifactId>
     <name>cristalise-idl</name>
 
-    <description>This artifact is to separate the IDL generaton from the full build to avoid
-        issues of maven build on hungarian/french operating systems.</description>
+    <description>This artifact is to separate the IDL generation from the full build to avoid
+        issues of maven build on hungarian/french operating systems. Check issue #309</description>
     <url>https://github.com/cristal-ise/kernel</url>
     <inceptionYear>1997</inceptionYear>
     <licenses>
