@@ -13,11 +13,11 @@ extra_css:
     - css/extra.css
 
 nav:
+    - Home: index.md
     - Overview:
-        - Cristal-iSE Documentation: index.md
-        - Getting started: Getting-Started.md 
-    - Features: 
-        - Key Features: Key-Features.md
+        - Introduction: Introduction.md
+        - Getting started: Getting-Started.md
+    - Features:
         - Cope with Change: Cope-with-Change.md
         - Evolve Code with Data: Evolve-Code-with-Data.md
         - Built-in Provenance: Built-in-Provenance.md
@@ -26,7 +26,6 @@ nav:
         - Built-in Security: Built-in-Security.md
         - Immutable BOs: Immutable-BOs.md
     - Technical Documentation:
-        - Introduction: Introduction.md
         - Technical Introduction: Technical-Introduction.md
         - Client API: API.md
         - Developer Guide: Developer-Guide.md
@@ -35,9 +34,8 @@ nav:
     - Tutorials:
         - Basic (Create Patient): Basic-Tutorial.md
         - Advanced (Patient Tracking): tutorial-PatientTracking.md
-    - Others:        
+    - Others:
         - Selected papers: Selected-papers.md
         - Maven Deploy Travis: Maven-Deploy-Travis.md
         - Maven Deploy Travis GPG2: Maven-Deploy-Travis-GPG2.md
         - Glossary: Glossary.md
-
