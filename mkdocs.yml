@@ -28,7 +28,11 @@ nav:
     - Technical Documentation:
         - Technical Introduction: Technical-Introduction.md
         - Client API: API.md
-        - Developer Guide: Developer-Guide.md
+        - Developer Guide:
+            - Boot sequence: Boot-Sequence-of-Server.md
+            - Reset IORs: Reset-IORs.md
+            - Command-line arguments: Command-line-Arguments.md
+            - Activity execution: Activity-Execution.md
         - DSL: Domain-Specific-Language-(DSL).md
         - JavaDoc: http://javadoc.io/doc/org.cristalise/cristalise-kernel
     - Tutorials:
