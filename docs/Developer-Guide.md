@@ -1,4 +1,0 @@
-- Boot sequence: Boot-Sequence-of-Server.md
-- Reset IORs: Reset-IORs.md
-- Command-line arguments: Command-line-Arguments.md
-- Activity execution: Activity-Execution.md

@@ -25,19 +25,19 @@ nav:
         - Process Description: Process-Description.md
         - Built-in Security: Built-in-Security.md
         - Immutable BOs: Immutable-BOs.md
-    - Technical Documentation:
-        - Technical Introduction: Technical-Introduction.md
-        - Client API: API.md
-        - Developer Guide:
-            - Boot sequence: Boot-Sequence-of-Server.md
-            - Reset IORs: Reset-IORs.md
-            - Command-line arguments: Command-line-Arguments.md
-            - Activity execution: Activity-Execution.md
-        - DSL: Domain-Specific-Language-(DSL).md
-        - JavaDoc: http://javadoc.io/doc/org.cristalise/cristalise-kernel
     - Tutorials:
         - Basic (Create Patient): Basic-Tutorial.md
         - Advanced (Patient Tracking): tutorial-PatientTracking.md
+    - Developer Guides:
+        - Technical Introduction: Technical-Introduction.md
+        - Client API: API.md
+        - DSL: Domain-Specific-Language-(DSL).md
+    - Technical Documentation:
+        - Boot sequence: Boot-Sequence-of-Server.md
+        - Activity execution: Activity-Execution.md
+        - Reset IORs: Reset-IORs.md
+        - Command-line arguments: Command-line-Arguments.md
+        - JavaDoc: http://javadoc.io/doc/org.cristalise
     - Others:
         - Selected papers: Selected-papers.md
         - Maven Deploy Travis: Maven-Deploy-Travis.md

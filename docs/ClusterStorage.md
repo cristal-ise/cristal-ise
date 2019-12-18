@@ -29,3 +29,21 @@ There are two methods to support execution of [Query](../Query):
 
 * `boolean checkQuerySupport(String language)` - Checks is the Query is supported by the ClusterStorage implementation.
 * `String executeQuery(Query query)` - Perform a query and return the result as an XML. AgenProxy.execute(job) validates the result agains the Schema associated with the Job.
+
+
+# The sequence of get() implementation
+For example, if a `DomainHandler` executes a script (for example aggregate script) which reads a viewpoint (details schema):
+[`Script.evaluate()`](https://github.com/cristal-ise/kernel/blob/56e221a176dd9c9330bb286b41aba10494353662/src/main/java/org/cristalise/kernel/scripting/Script.java#L510)
+
+   * get the ItemProxy
+   * set the **`locker`** as a **`transactionKey`** on the `ItemProxy`
+   * `execute()`
+   * then in the script, for example: <br/>
+[`ItemProxy.getViewpoint()`](https://github.com/cristal-ise/kernel/blob/7845981def21deef7a2a0a0180d13b7bbffb91fe/src/main/java/org/cristalise/kernel/entity/proxy/ItemProxy.java#L572)
+      * `locker == null ?` **`transactionKey`** `: locker`
+      * [`ItemProxy.getObject()`](https://github.com/cristal-ise/kernel/blob/7845981def21deef7a2a0a0180d13b7bbffb91fe/src/main/java/org/cristalise/kernel/entity/proxy/ItemProxy.java#L1062)
+         * `Gateway.getStorage().get()` =
+[`TransactionManager.get()`](https://github.com/cristal-ise/kernel/blob/d82053de2237a9bef35267034dc17ad0fa8737ae/src/main/java/org/cristalise/kernel/persistency/TransactionManager.java#L144)
+            * HISTORY and JOB `ClusterType`s are handled in a special way
+            * _if_ this **`locker`** has been modifying this `itemPath`, **read the object from the cache**
+            * _else_ read the object from the `ClusterStorage` using [`ClusterStorageManager.get()`](https://github.com/cristal-ise/kernel/blob/c49dd8aa8b7b278798a1f7e80c580f6b739ed7f8/src/main/java/org/cristalise/kernel/persistency/ClusterStorageManager.java#L258)
