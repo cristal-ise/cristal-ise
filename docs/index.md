@@ -18,10 +18,10 @@ Developer Guides
 
 Technical Documentation
 -----------------------
-- Boot sequence: Boot-Sequence-of-Server.md
-- Activity execution: Activity-Execution.md
-- Reset IORs: Reset-IORs.md
-- Command-line arguments: Command-line-Arguments.md
+- [Boot sequence](Boot-Sequence-of-Server) - Explain the boot sequence of the server process
+- [Activity execution](Activity-Execution) - - Sequence of action to execute an Activity
+- [Reset IORs](Reset-IORs) - How the reset the CORBA IORs
+- [Command-line arguments](Command-line-Arguments.md) - Explain the CLI of CRISTAL-iSE
 - [JavaDoc](http://javadoc.io/doc/org.cristalise) - The Javadoc API of the latest release
 
 Others
