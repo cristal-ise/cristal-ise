@@ -24,6 +24,7 @@ import java.util.Enumeration;
 
 import javax.swing.table.AbstractTableModel;
 
+import org.apache.commons.lang3.StringUtils;
 import org.cristalise.gui.tabs.outcome.OutcomeException;
 import org.cristalise.kernel.utils.Logger;
 import org.exolab.castor.xml.schema.Annotated;
@@ -296,8 +297,17 @@ public class DimensionTableModel extends AbstractTableModel {
     @Override
 	public Object getValueAt(int rowIndex, int columnIndex) {
         Object[] thisRow = rows.get(rowIndex);
-        if (!(getColumnClass(columnIndex).equals(thisRow[columnIndex].getClass())))
-            Logger.warning(thisRow[columnIndex]+" should be "+getColumnClass(columnIndex)+" is a "+thisRow[columnIndex].getClass().getName());
+
+        // type mismatch between type of column derived from xsd and type of value coming from the xml
+        if (!(getColumnClass(columnIndex).equals(thisRow[columnIndex].getClass()))) {
+            Logger.warning("Column '" + getColumnName(columnIndex) +"' of value '"+ thisRow[columnIndex] + 
+                    "' should be "+getColumnClass(columnIndex)+" but it is a "+thisRow[columnIndex].getClass().getName());
+
+            // if the value is an empty String return null instead
+            if (thisRow[columnIndex] instanceof String && StringUtils.isBlank((String)thisRow[columnIndex]))
+                return null;
+        }
+
         return thisRow[columnIndex];
     }
 

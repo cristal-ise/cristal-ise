@@ -26,11 +26,13 @@ import static org.cristalise.kernel.property.BuiltInItemProperties.NAME;
 import static org.cristalise.kernel.property.BuiltInItemProperties.TYPE;
 import static org.cristalise.kernel.security.BuiltInAuthc.ADMIN_ROLE;
 import static org.cristalise.kernel.security.BuiltInAuthc.SYSTEM_AGENT;
+
 import java.net.InetAddress;
 import java.util.HashMap;
 import java.util.Set;
 import java.util.StringTokenizer;
 import java.util.UUID;
+
 import org.apache.commons.lang3.StringUtils;
 import org.cristalise.kernel.collection.Collection;
 import org.cristalise.kernel.collection.CollectionArrayList;
@@ -105,7 +107,10 @@ public class Bootstrap
         checkAdminAgents();
 
         // create the server's mother item
-        createServerItem();
+        ItemPath serverItem = createServerItem();
+
+        // store system properties in server item
+        storeSystemProperties(serverItem);
     }
 
     /**
@@ -288,19 +293,19 @@ public class Bootstrap
                 // validate it, but not for kernel objects (ns == null) because those are to validate the rest
                 if (ns != null) newOutcome.validateAndCheck();
 
-                storeOutcomeEventAndViews(thisProxy, newOutcome, version);
+                storeOutcomeEventAndViews(thisProxy.getPath(), newOutcome, version);
 
                 CollectionArrayList cols = typeImpHandler.getCollections(itemName, version, newOutcome);
 
                 for (Collection<?> col : cols.list) {
-                    Gateway.getStorage().put(thisProxy.getPath(), col, thisProxy);
+                    Gateway.getStorage().put(thisProxy.getPath(), col, null);
                     Gateway.getStorage().clearCache(thisProxy.getPath(), ClusterType.COLLECTION+"/"+col.getName());
                     col.setVersion(null);
-                    Gateway.getStorage().put(thisProxy.getPath(), col, thisProxy);
+                    Gateway.getStorage().put(thisProxy.getPath(), col, null);
                 }
             }
         }
-        Gateway.getStorage().commit(thisProxy);
+        Gateway.getStorage().commit(null);
         return modDomPath;
     }
 
@@ -362,27 +367,32 @@ public class Bootstrap
      * @throws ObjectNotFoundException
      * @throws InvalidDataException
      */
-    private static void storeOutcomeEventAndViews(ItemProxy item, Outcome newOutcome, int version)
+    private static void storeOutcomeEventAndViews(ItemPath item, Outcome newOutcome, Integer version)
             throws PersistencyException, ObjectNotFoundException, InvalidDataException
     {
         log.info("storeOutcomeEventAndViews() - Writing new " + newOutcome.getSchema().getName() + " v" + version + " to "+item.getName());
 
-        History hist = new History( item.getPath(), item);
-        String viewName = String.valueOf(version);
+        History hist = new History(item, null);
+
+        String viewName = "";
+        if (version != null) viewName = String.valueOf(version);
 
         int eventID = hist.addEvent( systemAgents.get(SYSTEM_AGENT.getName()).getPath(), null,
                 ADMIN_ROLE.getName(), "Bootstrap", "Bootstrap", "Bootstrap",
-                newOutcome.getSchema(), getPredefSM(), PredefinedStep.DONE, viewName
+                newOutcome.getSchema(), getPredefSM(), PredefinedStep.DONE, version != null ? viewName : "last"
                 ).getID();
 
         newOutcome.setID(eventID);
 
-        Viewpoint newLastView   = new Viewpoint(item.getPath(), newOutcome.getSchema(), "last",   eventID);
-        Viewpoint newNumberView = new Viewpoint(item.getPath(), newOutcome.getSchema(), viewName, eventID);
+        Viewpoint newLastView = new Viewpoint(item, newOutcome.getSchema(), "last", eventID);
 
-        Gateway.getStorage().put(item.getPath(), newOutcome,    item);
-        Gateway.getStorage().put(item.getPath(), newLastView,   item);
-        Gateway.getStorage().put(item.getPath(), newNumberView, item);
+        Gateway.getStorage().put(item, newOutcome,  null);
+        Gateway.getStorage().put(item, newLastView, null);
+
+        if (version != null) {
+            Viewpoint newNumberView = new Viewpoint(item, newOutcome.getSchema(), viewName, eventID);
+            Gateway.getStorage().put(item, newNumberView, null);
+        }
     }
 
     /**
@@ -544,7 +554,7 @@ public class Bootstrap
                 UUID.randomUUID().toString());
     }
 
-    public static void createServerItem() throws Exception {
+    private static ItemPath createServerItem() throws Exception {
         LookupManager lookupManager = Gateway.getLookupManager();
         String serverName = Gateway.getProperties().getString("ItemServer.name", InetAddress.getLocalHost().getHostName());
         thisServerPath = new DomainPath("/servers/"+serverName);
@@ -570,6 +580,13 @@ public class Bootstrap
         Gateway.getStorage().put(serverItem, new Property("ConsolePort",   String.valueOf(Logger.getConsolePort()), true),  null);
 
         Gateway.getProxyManager().connectToProxyServer(serverName, proxyPort);
+
+        return serverItem;
+    }
+
+    private static void storeSystemProperties(ItemPath serverItem) throws Exception {
+        Outcome newOutcome = Gateway.getProperties().convertToOutcome("ItemServer");
+        storeOutcomeEventAndViews(serverItem, newOutcome, null);
     }
 
     public static void initServerItemWf() throws Exception {

@@ -90,6 +90,12 @@
 
     <dependencies>
         <dependency>
+            <groupId>org.cristalise</groupId>
+            <artifactId>cristalise-idl</artifactId>
+            <version>${revision}</version>
+        </dependency>
+
+        <dependency>
             <groupId>org.codehaus.castor</groupId>
             <artifactId>castor-xml-schema</artifactId>
             <exclusions>
@@ -121,6 +127,10 @@
         <dependency>
             <groupId>xmlunit</groupId>
             <artifactId>xmlunit</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.mvel</groupId>
+            <artifactId>mvel2</artifactId>
         </dependency>
         <dependency>
             <groupId>org.projectlombok</groupId>
@@ -188,42 +198,6 @@
         </dependency>
     </dependencies>
 
-    <dependencyManagement>
-        <dependencies>
-            <dependency>
-                <groupId>org.codehaus.castor</groupId>
-                <artifactId>castor-xml-schema</artifactId>
-                <version>1.4.1</version>
-            </dependency>
-            <dependency>
-                <groupId>org.python</groupId>
-                <artifactId>jython</artifactId>
-                <version>2.5.3</version>
-                <scope>runtime</scope>
-            </dependency>
-            <dependency>
-                <groupId>xmlunit</groupId>
-                <artifactId>xmlunit</artifactId>
-                <version>1.5</version>
-            </dependency>
-            <dependency>
-                <groupId>org.codehaus.castor</groupId>
-                <artifactId>castor-xml</artifactId>
-                <version>1.4.1</version>
-            </dependency>
-            <dependency>
-                <groupId>org.apache.commons</groupId>
-                <artifactId>commons-lang3</artifactId>
-                <version>3.4</version>
-            </dependency>
-            <dependency>
-                <groupId>org.apache.shiro</groupId>
-                <artifactId>shiro-core</artifactId>
-                <version>1.4.1</version>
-            </dependency>
-        </dependencies>
-    </dependencyManagement>
-
     <build>
         <resources>
             <resource>
@@ -246,91 +220,7 @@
             </resource>
         </resources>
 
-        <pluginManagement>
-            <plugins>
-                <!--This plugin's configuration is used to store Eclipse 
-                    m2e settings only. It has no influence on the Maven build itself. -->
-                <plugin>
-                    <groupId>org.eclipse.m2e</groupId>
-                    <artifactId>lifecycle-mapping</artifactId>
-                    <version>1.0.0</version>
-                    <configuration>
-                        <lifecycleMappingMetadata>
-                            <pluginExecutions>
-                                <pluginExecution>
-                                    <pluginExecutionFilter>
-                                        <groupId>org.codehaus.mojo</groupId>
-                                        <artifactId>idlj-maven-plugin</artifactId>
-                                        <versionRange>1.2.2</versionRange>
-                                        <goals>
-                                            <goal>generate</goal>
-                                        </goals>
-                                    </pluginExecutionFilter>
-                                    <action>
-                                        <execute>
-                                            <runOnIncremental>false</runOnIncremental>
-                                        </execute>
-                                    </action>
-                                </pluginExecution>
-                                <pluginExecution>
-                                    <pluginExecutionFilter>
-                                        <groupId>org.codehaus.gmavenplus</groupId>
-                                        <artifactId>gmavenplus-plugin</artifactId>
-                                        <versionRange>[1.5,)</versionRange>
-                                        <goals>
-                                            <goal>testGenerateStubs</goal>
-                                            <goal>removeTestStubs</goal>
-                                            <goal>testCompile</goal>
-                                        </goals>
-                                    </pluginExecutionFilter>
-                                    <action>
-                                        <ignore />
-                                    </action>
-                                </pluginExecution>
-                            </pluginExecutions>
-                        </lifecycleMappingMetadata>
-                    </configuration>
-                </plugin>
-            </plugins>
-        </pluginManagement>
-
         <plugins>
-            <plugin>
-                <groupId>org.codehaus.mojo</groupId>
-                <artifactId>idlj-maven-plugin</artifactId>
-                <version>1.2.2</version>
-                <executions>
-                    <execution>
-                        <goals>
-                            <goal>generate</goal>
-                        </goals>
-                        <configuration>
-                            <encoding>UTF-8</encoding>
-                        </configuration>
-                    </execution>
-                </executions>
-                <configuration>
-                    <compiler>idlj</compiler>
-                    <sources>
-                        <source>
-                            <includes>
-                                <include>*.idl</include>
-                            </includes>
-                            <packagePrefixes>
-                                <packagePrefix>
-                                    <type>common</type>
-                                    <prefix>org.cristalise.kernel</prefix>
-                                </packagePrefix>
-                                <packagePrefix>
-                                    <type>entity</type>
-                                    <prefix>org.cristalise.kernel</prefix>
-                                </packagePrefix>
-                            </packagePrefixes>
-                            <compatible>false</compatible>
-                        </source>
-                    </sources>
-                </configuration>
-            </plugin>
             <plugin>
                 <artifactId>maven-compiler-plugin</artifactId>
                 <version>3.5</version>
@@ -338,26 +228,6 @@
                     <source>1.8</source>
                     <target>1.8</target>
                 </configuration>
-            </plugin>
-            <plugin>
-                <groupId>org.codehaus.mojo</groupId>
-                <artifactId>build-helper-maven-plugin</artifactId>
-                <version>1.7</version>
-                <executions>
-                    <execution>
-                        <id>add-source</id>
-                        <phase>generate-sources</phase>
-                        <goals>
-                            <goal>add-source</goal>
-                        </goals>
-                        <configuration>
-                            <sources>
-                                <source>${project.build.directory}/generated-sources/idl/</source>
-                            </sources>
-                            <encoding>UTF-8</encoding>
-                        </configuration>
-                    </execution>
-                </executions>
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
