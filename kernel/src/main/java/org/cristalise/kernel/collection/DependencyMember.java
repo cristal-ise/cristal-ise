@@ -100,19 +100,28 @@ public class DependencyMember implements CollectionMember {
 
             // for each mandatory prop check if its in the member property and has the matching value
             StringTokenizer sub = new StringTokenizer(mClassProps, ",");
-
+            
+            String resProp = Gateway.getProperties().getString("DependencyMember.assignItemAllowedProp");
+            boolean propertyAllowed = false;
+            
             while (sub.hasMoreTokens()) {
                 String aClassProp = sub.nextToken();
+                
+                if(resProp != null){
+                    propertyAllowed = resProp.equals(aClassProp);
+                }
+                Logger.msg(8, "DependencyMember.assignItemAllowedProp : " + propertyAllowed);
                 try {
+
                     String memberValue = (String) getProperties().get(aClassProp);
                     Property itemProperty = (Property) Gateway.getStorage().get(itemPath, ClusterType.PROPERTY + "/" + aClassProp, null);
-
+                    
                     if (itemProperty == null)
                         throw new InvalidCollectionModification("Property " + aClassProp + " does not exist for item " + itemPath);
-
-                    if (!itemProperty.getValue().equalsIgnoreCase(memberValue))
-                        throw new InvalidCollectionModification("DependencyMember::checkProperty() Values of mandatory prop " + aClassProp
-                                + " do not match " + itemProperty.getValue() + "!=" + memberValue);
+                   
+                    if (!propertyAllowed && !itemProperty.getValue().equalsIgnoreCase(memberValue))
+                            throw new InvalidCollectionModification("DependencyMember::checkProperty() Values of mandatory prop " + aClassProp
+                                    + " do not match " + itemProperty.getValue() + "!=" + memberValue);
                 }
                 catch (Exception ex) {
                     Logger.error(ex);
