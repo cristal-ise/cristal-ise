@@ -97,7 +97,6 @@
         <commons-csv.version>1.5</commons-csv.version>
         <spock.version>1.2-groovy-2.4</spock.version>
         <unitils-core.version>3.4.6</unitils-core.version>
-        <mvel2.version>2.4.4.Final</mvel2.version>
         <spock-reports.version>1.6.1</spock-reports.version>
         <slf4j-simple.version>1.7.13</slf4j-simple.version>
         <maven.deploy.skip>false</maven.deploy.skip>
@@ -209,7 +208,6 @@
         <dependency>
             <groupId>org.mvel</groupId>
             <artifactId>mvel2</artifactId>
-            <version>${mvel2.version}</version>
         </dependency>
 
         <dependency>
