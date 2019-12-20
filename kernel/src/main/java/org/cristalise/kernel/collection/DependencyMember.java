@@ -112,10 +112,8 @@ public class DependencyMember implements CollectionMember {
                 }
                 Logger.msg(8, "DependencyMember.assignItemAllowedProp : " + propertyAllowed);
                 try {
-
                     String memberValue = (String) getProperties().get(aClassProp);
                     Property itemProperty = (Property) Gateway.getStorage().get(itemPath, ClusterType.PROPERTY + "/" + aClassProp, null);
-                    
                     if (itemProperty == null)
                         throw new InvalidCollectionModification("Property " + aClassProp + " does not exist for item " + itemPath);
                    
