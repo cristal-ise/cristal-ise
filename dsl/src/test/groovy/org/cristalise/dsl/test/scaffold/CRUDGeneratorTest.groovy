@@ -2,7 +2,6 @@ package org.cristalise.dsl.test.scaffold
 
 import org.codehaus.groovy.control.CompilerConfiguration
 import org.cristalise.dsl.scaffold.CRUDGenerator
-import org.cristalise.kernel.utils.Logger
 import org.junit.Test
 
 import groovy.transform.CompileStatic
@@ -37,7 +36,8 @@ class CRUDGeneratorTest {
         cc.setScriptBaseClass(DelegatingScript.class.getName())
 
         GroovyShell shell = new GroovyShell(this.class.classLoader, new Binding(), cc)
-        DelegatingScript script = (DelegatingScript) shell.parse(new File((String)inputs.rootDir+'/module/Module.groovy'))
+        def scriptFile = new File(inputs['rootDir'].toString()+'/module/Module.groovy')
+        DelegatingScript script = (DelegatingScript) shell.parse(scriptFile)
 
         script.setDelegate(this)
         script.run()
