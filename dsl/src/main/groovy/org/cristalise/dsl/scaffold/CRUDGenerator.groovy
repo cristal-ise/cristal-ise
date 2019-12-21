@@ -63,10 +63,12 @@ class CRUDGenerator {
         }
 
         if (generateModule) {
-            vars['moduleFiles'] = []
+            if (!vars['moduleFiles']) {
+                vars['moduleFiles'] = []
 
-            moduleDir.eachFileMatch(~/.*.groovy/) { file ->
-                if (file.name != 'Module.groovy') vars['moduleFiles'].add(file.name)
+                moduleDir.eachFileMatch(~/.*.groovy/) { file ->
+                    if (file.name != 'Module.groovy') vars['moduleFiles'].add(file.name)
+                }
             }
 
             generateDSL(new File(moduleDir, 'Module.groovy'), 'module_groovy.tmpl', vars)

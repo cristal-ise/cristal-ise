@@ -19,7 +19,8 @@ class CRUDGeneratorTest {
             resourcePackage: 'org.cristalise.test',
             item:            'TestItem',
             useConstructor:  false,
-            isAgent:         false
+            isAgent:         false,
+            moduleFiles:     ['Factory.groovy', 'State.groovy', 'TestAgent.groovy', 'TestItem.groovy']
         ]
 
         new CRUDGenerator().generate(inputs, true, true)
