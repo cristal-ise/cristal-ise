@@ -20,7 +20,9 @@
  */
 package org.cristalise.kernel.collection;
 
+import java.util.Arrays;
 import java.util.Iterator;
+import java.util.List;
 import java.util.StringTokenizer;
 import java.util.Map.Entry;
 
@@ -95,31 +97,46 @@ public class DependencyMember implements CollectionMember {
     @Override
     public void assignItem(ItemPath itemPath) throws InvalidCollectionModification {
         if (itemPath != null) {
+            List<String> collectionNames = null;
+            List<String> propCollectionNames = null;
+            
             if (mClassProps == null || getProperties() == null)
                 throw new InvalidCollectionModification("ClassProps not yet set. Cannot check membership validity.");
 
             // for each mandatory prop check if its in the member property and has the matching value
             StringTokenizer sub = new StringTokenizer(mClassProps, ",");
             
-            String resProp = Gateway.getProperties().getString("DependencyMember.assignItemAllowedProp");
-            boolean propertyAllowed = false;
+            boolean allowAddMemberWithDiffState = Gateway.getProperties().getBoolean("Dependency.allowAddMemberWithDiffState", false);
             
             while (sub.hasMoreTokens()) {
                 String aClassProp = sub.nextToken();
-                
-                if(resProp != null){
-                    propertyAllowed = resProp.equals(aClassProp);
-                }
-                Logger.msg(8, "DependencyMember.assignItemAllowedProp : " + propertyAllowed);
                 try {
                     String memberValue = (String) getProperties().get(aClassProp);
                     Property itemProperty = (Property) Gateway.getStorage().get(itemPath, ClusterType.PROPERTY + "/" + aClassProp, null);
-                    if (itemProperty == null)
-                        throw new InvalidCollectionModification("Property " + aClassProp + " does not exist for item " + itemPath);
-                   
-                    if (!propertyAllowed && !itemProperty.getValue().equalsIgnoreCase(memberValue))
-                            throw new InvalidCollectionModification("DependencyMember::checkProperty() Values of mandatory prop " + aClassProp
-                                    + " do not match " + itemProperty.getValue() + "!=" + memberValue);
+                    if(allowAddMemberWithDiffState){
+                      ItemProxy item = Gateway.getProxyManager().getProxy(itemPath);
+                      try {
+                            collectionNames = Arrays.asList(item.getContents(ClusterType.COLLECTION));
+                      }
+                      catch (ObjectNotFoundException e) {
+                          Logger.error(e);
+                          throw new InvalidCollectionModification("Member Item not found");
+                      }
+                      
+                      propCollectionNames =  Arrays.asList(Gateway.getProperties().getString("Dependency.collectionsWithDiffState").split(","));
+                        if(propCollectionNames != null && !propCollectionNames.isEmpty()){
+                            for(String str : collectionNames){
+                                if(!propCollectionNames.contains(str)){
+                                    validateProperty(itemPath, itemProperty, memberValue, aClassProp);  
+                                }
+                            }
+                        } else {
+                            validateProperty(itemPath, itemProperty, memberValue, aClassProp); 
+                        }
+                    } else {
+                       validateProperty(itemPath, itemProperty, memberValue, aClassProp);
+                    }
+                    
                 }
                 catch (Exception ex) {
                     Logger.error(ex);
@@ -130,6 +147,15 @@ public class DependencyMember implements CollectionMember {
 
         mItemPath = itemPath;
         mItem = null;
+    }
+    
+    public void validateProperty(ItemPath itemPath, Property itemProperty, String memberValue, String aClassProp)  throws InvalidCollectionModification{
+        if (itemProperty == null)
+            throw new InvalidCollectionModification("Property " + aClassProp + " does not exist for item " + itemPath);
+       
+        if (!itemProperty.getValue().equalsIgnoreCase(memberValue))
+                throw new InvalidCollectionModification("DependencyMember::checkProperty() Values of mandatory prop " + aClassProp
+                        + " do not match " + itemProperty.getValue() + "!=" + memberValue);
     }
 
     @Override
