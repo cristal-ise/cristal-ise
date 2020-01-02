@@ -140,7 +140,7 @@ public class ItemRoot extends ItemUtils {
 
         try {
             Schema masterSchema = item.getMasterSchema(schemaName, schemaVersion);
-            Script aggrScript   = item.getAggregateScript(scriptName, scriptVersion);
+            Script aggrScript   = getAggregateScript(item, scriptName, scriptVersion);
 
             boolean jsonFlag = produceJSON(headers.getAcceptableMediaTypes());
 
@@ -165,6 +165,33 @@ public class ItemRoot extends ItemUtils {
         } 
         catch ( UnsupportedOperationException e ) {
             throw new WebAppExceptionBuilder().exception(e).newCookie(cookie).build();
+        }
+    }
+
+    /**
+     * Retrieve the default Aggregate Script of the Item if exists.
+     * 
+     * @param item to be checked
+     * @return returns the Script or null
+     */
+    private Script getAggregateScript(ItemProxy item) {
+        return getAggregateScript(item, null, null);
+    }
+
+    /**
+     * Retrieve the the named version of Aggregate Scriptof the Item if exists.
+     * 
+     * @param item to be checked
+     * @param name the name or UUID of he Script
+     * @param version version of the Script
+     * @return returns the Script or null
+     */
+    private Script getAggregateScript(ItemProxy item, String name, Integer version) {
+        try {
+            return item.getAggregateScript();
+        }
+        catch (InvalidDataException | ObjectNotFoundException e) {
+            return null;
         }
     }
 
@@ -284,7 +311,7 @@ public class ItemRoot extends ItemUtils {
             if (type != null) {
                 itemSummary.put("type", type);
 
-                if (item.getAggregateScript(null, 0) != null || item.checkViewpoint(type, "last")) {
+                if (getAggregateScript(item) != null || item.checkViewpoint(type, "last")) {
                     itemSummary.put("hasMasterOutcome", true);
                     itemSummary.put("master", getItemURI(uri, item, "master"));
                 }
