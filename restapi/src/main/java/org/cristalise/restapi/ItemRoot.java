@@ -21,10 +21,7 @@
 package org.cristalise.restapi;
 
 import static org.cristalise.kernel.persistency.ClusterType.COLLECTION;
-import static org.cristalise.kernel.property.BuiltInItemProperties.AGGREGATE_SCRIPT_URN;
-import static org.cristalise.kernel.property.BuiltInItemProperties.MASTER_SCHEMA_URN;
-import static org.cristalise.kernel.property.BuiltInItemProperties.SCHEMA_URN;
-import static org.cristalise.kernel.property.BuiltInItemProperties.SCRIPT_URN;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
@@ -142,8 +139,8 @@ public class ItemRoot extends ItemUtils {
         ItemProxy item = getProxy(uuid, cookie);
 
         try {
-            Schema masterSchema = getMasterSchema(item, schemaName, schemaVersion, cookie);
-            Script aggrScript   = getAggregateScript(item, scriptName, scriptVersion);
+            Schema masterSchema = item.getMasterSchema(schemaName, schemaVersion);
+            Script aggrScript   = item.getAggregateScript(scriptName, scriptVersion);
 
             boolean jsonFlag = produceJSON(headers.getAcceptableMediaTypes());
 
@@ -266,91 +263,6 @@ public class ItemRoot extends ItemUtils {
         else          return Response.ok(xmlResult);
     }
 
-    /**
-     * Returns the so called Master Schema which can be used to construct master outcome.
-     * 
-     * @param item the actual item
-     * @return the schema
-     * @throws InvalidDataException 
-     */
-    private Schema getMasterSchema(ItemProxy item, String schemaName, Integer schemaVersion, NewCookie cookie) throws InvalidDataException {
-        String masterSchemaUrn = item.getProperty(MASTER_SCHEMA_URN, null);
-        if (StringUtils.isBlank(masterSchemaUrn)) masterSchemaUrn = item.getProperty(SCHEMA_URN, null);
-
-        if (StringUtils.isBlank(schemaName)) {
-            if (StringUtils.isNotBlank(masterSchemaUrn)) schemaName = masterSchemaUrn.split(":")[0];
-            else                                         schemaName = item.getType();
-        }
-
-        if (schemaVersion == null) {
-            if (StringUtils.isBlank(masterSchemaUrn)) {
-                if (Gateway.getProperties().getBoolean("Module.Versioning.strict", false)) {
-                    throw new InvalidDataException("Version for Schema '" + schemaName + "' cannot be null");
-                }
-                else {
-                    Logger.warning("ItemRoot.getMasterSchema() - Version for Schema '%s' was null, using version 0 as default", schemaName);
-                    schemaVersion = 0;
-                }
-            }
-            else {
-                schemaVersion = Integer.valueOf(masterSchemaUrn.split(":")[1]);
-            }
-        }
-
-        try {
-            return LocalObjectLoader.getSchema(schemaName, schemaVersion);
-        }
-        catch (ObjectNotFoundException | InvalidDataException e) {
-            throw new WebAppExceptionBuilder()
-                  .message("Cannot get MasterOutcome SchemaName:'"+schemaName+"' SchemaVersion:'"+schemaVersion + "' error:" + e.getMessage())
-                  .status(Response.Status.NOT_FOUND)
-                  .newCookie(cookie)
-                  .build();
-        }
-    }
-
-    /**
-     * Returns the so called Aggregate Script which can be used to construct master outcome.
-     * 
-     * @param item the actual Item
-     * @param scriptName the name of the script received in the rest call (can be null)
-     * @param scriptVersion the version of the script received in the rest call (can be null)
-     * @return the script or null
-     * @throws InvalidDataException 
-     */
-    private Script getAggregateScript(ItemProxy item, String scriptName, Integer scriptVersion) throws InvalidDataException {
-        String aggregateScriptUrn = item.getProperty(AGGREGATE_SCRIPT_URN, null);
-        if (StringUtils.isBlank(aggregateScriptUrn)) aggregateScriptUrn = item.getProperty(SCRIPT_URN, null);
-
-        if (StringUtils.isBlank(scriptName)) {
-            if (StringUtils.isBlank(aggregateScriptUrn)) scriptName = item.getType() + "_Aggregate";
-            else                                         scriptName = aggregateScriptUrn.split(":")[0];
-        }
-
-        if (scriptVersion == null) {
-            if (StringUtils.isBlank(aggregateScriptUrn)) {
-                if (Gateway.getProperties().getBoolean("Module.Versioning.strict", false)) {
-                    throw new InvalidDataException("Version for Script '" + scriptName + "' cannot be null");
-                }
-                else {
-                    Logger.warning("ItemRoot.getAggregateScript() - Version for Script '%s' was null, using version 0 as default", scriptName);
-                    scriptVersion = 0;
-                }
-            }
-            else {
-                scriptVersion = Integer.valueOf(aggregateScriptUrn.split(":")[1]);
-            }
-        }
-
-        try {
-            return LocalObjectLoader.getScript(scriptName, scriptVersion);
-        }
-        catch (ObjectNotFoundException | InvalidDataException e1) {
-            Logger.msg(5, "ItemRoot.getAggregateScript() - Could not find Script name:%s", scriptName);
-        }
-        return null;
-    }
-
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     public Response getItemSummary(
@@ -372,7 +284,7 @@ public class ItemRoot extends ItemUtils {
             if (type != null) {
                 itemSummary.put("type", type);
 
-                if (getAggregateScript(item, null, 0) != null || item.checkViewpoint(type, "last")) {
+                if (item.getAggregateScript(null, 0) != null || item.checkViewpoint(type, "last")) {
                     itemSummary.put("hasMasterOutcome", true);
                     itemSummary.put("master", getItemURI(uri, item, "master"));
                 }
