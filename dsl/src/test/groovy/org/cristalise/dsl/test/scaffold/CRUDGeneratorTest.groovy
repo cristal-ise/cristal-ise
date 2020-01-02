@@ -6,29 +6,63 @@ import org.junit.Test
 
 import groovy.transform.CompileStatic
 
-@CompileStatic
+//@CompileStatic
 class CRUDGeneratorTest {
 
     @Test
     void generateCRUDItemTest() {
-        def inputs = [
+        Map<String, Object> inputs = [
+            item:            'TestItem',
             rootDir:         'src/test', 
             moduleName:      'DSL Test', 
             moduleNs:        'testns', 
             moduleVersion:   0,
             resourcePackage: 'org.cristalise.test',
-            item:            'TestItem',
             useConstructor:  false,
             isAgent:         false,
-            moduleFiles:     ['Factory.groovy', 'State.groovy', 'TestAgent.groovy', 'TestItem.groovy']
+            generatedName:   false,
+            moduleFiles:     ['Factory.groovy', 'State.groovy', 'TestItem.groovy']
         ]
 
-        new CRUDGenerator().generate(inputs, true, true)
+        new CRUDGenerator().generate(inputs, false, true)
+
+        inputs.with {
+            item = 'TestItemUseConstructor'
+            useConstructor = true
+            moduleFiles.add('TestItemUseConstructor.groovy')
+        }
+
+        new CRUDGenerator().generate(inputs, false, false)
+
+        inputs.with {
+            item = 'TestAgentUseConstructor'
+            isAgent = true
+            moduleFiles.add('TestAgentUseConstructor.groovy')
+        }
+
+        new CRUDGenerator().generate(inputs, false, false)
 
         inputs.with {
             item = 'TestAgent'
-            isAgent = true
+            useConstructor = false
+            moduleFiles.add('TestAgent.groovy')
+        }
+
+        new CRUDGenerator().generate(inputs, false, false)
+
+        inputs.with {
+            item = 'TestItemGeneratedName'
+            isAgent = false
+            generatedName = true
+            ((List)moduleFiles).add('TestItemGeneratedName.groovy')
+        }
+
+        new CRUDGenerator().generate(inputs, false, false)
+
+        inputs.with {
+            item = 'TestItemUseConstructorGeneratedName'
             useConstructor = true
+            ((List)moduleFiles).add('TestItemUseConstructorGeneratedName.groovy')
         }
 
         new CRUDGenerator().generate(inputs, true, false)

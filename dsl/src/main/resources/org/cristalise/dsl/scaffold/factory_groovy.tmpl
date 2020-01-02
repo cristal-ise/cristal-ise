@@ -1,8 +1,9 @@
 def newInstanceDetails = Schema('Factory_NewInstanceDetails', 0) {
     struct(name: 'Factory_NewInstanceDetails', useSequence: true) {
-        field(name: 'Name',      type: 'string',  documentation: 'The user given Name of the new instance')
-        field(name: 'ID',        type: 'string',  documentation: 'The generated ID of the new instance')    { dynamicForms (hidden: true, required:false) }
-        field(name: 'LastCount', type: 'integer', documentation: 'The last number used to generate the ID') { dynamicForms (hidden: true, required:false) }
+        field(name: 'Name',      type: 'string',  documentation: 'The Name of the new instance, it can be generated')
+        field(name: 'LastCount', type: 'integer', documentation: 'The last number used to generate the ID', multiplicity: '0..1') {
+            dynamicForms (hidden: true)
+        }
         struct(name: 'SchemaInitialise', useSequence: true, multiplicity: '0..1') {
             anyField()
         }

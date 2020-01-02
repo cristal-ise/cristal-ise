@@ -9,7 +9,6 @@ import static org.cristalise.kernel.collection.BuiltInCollections.SCHEMA_INITIAL
 def @{item} = Schema('@{item}', 0) {
     struct(name:' @{item}', documentation: '@{item} aggregated data') {
         field(name: 'Name',        type: 'string')
-        field(name: 'ID',          type: 'string')
         field(name: 'State',       type: 'string', values: states)
         field(name: 'Description', type: 'string')
     }
@@ -17,7 +16,11 @@ def @{item} = Schema('@{item}', 0) {
 
 def @{item}Details = Schema('@{item}_Details', 0) {
     struct(name: '@{item}_Details') {
-        field(name: 'Name',        type: 'string')
+@if{generatedName}
+        field(name: 'Name', type: 'string') { dynamicForms (disabled: true, label: 'ID') }
+@else{}
+        field(name: 'Name', type: 'string')
+@end{}
         field(name: 'Description', type: 'string')
     }
 }
@@ -55,23 +58,30 @@ def @{item}Wf = Workflow('@{item}_Workflow', 0) {
 
 def @{item}PropDesc = PropertyDescriptionList('@{item}', 0) {
     PropertyDesc(name: 'Name',  isMutable: true,  isClassIdentifier: false)
-    PropertyDesc(name: 'Type',  isMutable: false, isClassIdentifier: true, defaultValue: '@{item}')
-    PropertyDesc(name: 'State', isMutable: true,  isClassIdentifier: true, defaultValue: 'ACTIVE')
+    PropertyDesc(name: 'Type',  isMutable: false, isClassIdentifier: true,  defaultValue: '@{item}')
+    PropertyDesc(name: 'State', isMutable: true,  isClassIdentifier: false, defaultValue: 'ACTIVE')
 }
 
 Item(name: '@{item}Factory', folder: '/@{moduleNs}', workflow: 'Factory_Workflow', workflowVer: 0) {
     InmutableProperty('Type': 'Factory')
     InmutableProperty('Root': '@{moduleNs}/@{item}s')
-    InmutableProperty('IDPrefix': 'ID')
-    InmutableProperty('GeneratedName': 'false')
-    Property('LeftPadSize': '6')
+@if{generatedName}
+    InmutableProperty('IDPrefix': '@{idPrefix}')
+    Property('LeftPadSize': '@{leftPadSize}')
+@end{}
 
 @if{isAgent}
     InmutableProperty('CreateAgent': 'true')
     Property('DefaultRoles': 'Admin')
 @end{}
 
-@if{!useConstructor}
+@if{useConstructor}
+    Dependency(SCHEMA_INITIALISE) {
+        Member(itemPath: '/desc/Schema/@{moduleNs}/@{item}_Details') {
+            Property('Version': 0)
+        }
+    }
+@else{}
     InmutableProperty('UpdateSchema': '@{item}_Details:0')
 @end{}
 
@@ -82,14 +92,6 @@ Item(name: '@{item}Factory', folder: '/@{moduleNs}', workflow: 'Factory_Workflow
             Property('Version': 0)
         }
     }
-
-@if{useConstructor}
-    Dependency(SCHEMA_INITIALISE) {
-        Member(itemPath: '/desc/Schema/@{moduleNs}/@{item}_Details') {
-            Property('Version': 0)
-        }
-    }
-@end{}
 
     Dependency(MASTER_SCHEMA) {
         Member(itemPath: '/desc/Schema/@{moduleNs}/@{item}') {

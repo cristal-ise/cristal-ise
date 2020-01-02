@@ -1,16 +1,16 @@
 package org.cristalise.dsl.scaffold
 
 import org.cristalise.kernel.utils.FileStringUtility
-import org.cristalise.kernel.utils.Logger
 import org.mvel2.templates.CompiledTemplate
 import org.mvel2.templates.TemplateCompiler
 import org.mvel2.templates.TemplateRuntime
 
+import groovy.transform.CompileDynamic
 import groovy.transform.CompileStatic
 
 /**
  * Class generating the following DSL files. 
- * 
+ *
  * <pre>
  * - ${root}/module/Module.groovy (optional)
  * - ${root}/module/Factory.groovy
@@ -30,48 +30,61 @@ import groovy.transform.CompileStatic
  * [rootDir: 'src/test', moduleName: 'Test Module', moduleNs: 'testns', moduleVersion: 0, item: 'TestItem', useConstructor: false]
  * </pre>
  */
-//@CompileStatic
+@CompileStatic
 class CRUDGenerator {
 
     /**
      * Trigger the generation of the DSL files. It is based on MVEL2 templating.
      * 
-     * @param vars the inputs to the MVEL2 templates
+     * @param inputs the inputs to the MVEL2 templates
      * @param generateModule whether the Module.groovy file should be generated or not
      * @param generateStateWf whether the State.groovy and State_Manage_0.xml files should be generated or not
-     * @param itemSpecificFactoryWf whether generate an Item spcific Factory workflow or not
+     * @param itemSpecificFactoryWf whether generate an Item specific Factory workflow or not
      */
-    public void generate(Map vars, boolean generateModule, boolean generateStateWf) {
-        assert vars
+    public void generate(Map<String, Object> inputs, boolean generateModule, boolean generateStateWf) {
+        assert inputs
 
-        def moduleDir   = new File("${vars.rootDir}/module")
-        def scriptDir   = new File("${vars.rootDir}/module/script")
-        def workflowDir = new File("${vars.rootDir}/resources/boot/CA")
+        def moduleDir   = new File("${inputs.rootDir}/module")
+        def scriptDir   = new File("${inputs.rootDir}/module/script")
+        def workflowDir = new File("${inputs.rootDir}/resources/boot/CA")
 
-        generateDSL(new File(moduleDir,   'Factory.groovy'),                 'factory_groovy.tmpl',                 vars)
-        generateDSL(new File(scriptDir,   'Factory_InstantiateItem.groovy'), 'factory_instantiateItem_groovy.tmpl', vars)
-        generateDSL(new File(scriptDir,   'Entity_ChangeName.groovy'),       'entity_changeName_groovy.tmpl', vars)
-        generateDSL(new File(workflowDir, 'Factory_Workflow_0.xml'),         'factory_workflow_xml.tmpl',           vars)
-        generateDSL(new File(moduleDir,   "${vars.item}.groovy"),            'item_groovy.tmpl',                    vars)
-        generateDSL(new File(scriptDir,   "${vars.item}_Aggregate.groovy"),  'item_aggregate_groovy.tmpl',          vars)
-        generateDSL(new File(scriptDir,   "${vars.item}_QueryList.groovy"),  'item_queryList_groovy.tmpl',          vars)
-        generateDSL(new File(workflowDir, "${vars.item}_Workflow_0.xml"),    'item_workflow_xml.tmpl',              vars)
+        checkAndSetInputs(inputs)
+
+        generateDSL(new File(moduleDir,   'Factory.groovy'),                  'factory_groovy.tmpl',                 inputs)
+        generateDSL(new File(scriptDir,   'Factory_InstantiateItem.groovy'),  'factory_instantiateItem_groovy.tmpl', inputs)
+        generateDSL(new File(scriptDir,   'Entity_ChangeName.groovy'),        'entity_changeName_groovy.tmpl',       inputs)
+        generateDSL(new File(workflowDir, 'Factory_Workflow_0.xml'),          'factory_workflow_xml.tmpl',           inputs)
+        generateDSL(new File(moduleDir,   "${inputs.item}.groovy"),           'item_groovy.tmpl',                    inputs)
+        generateDSL(new File(scriptDir,   "${inputs.item}_Aggregate.groovy"), 'item_aggregate_groovy.tmpl',          inputs)
+        generateDSL(new File(scriptDir,   "${inputs.item}_QueryList.groovy"), 'item_queryList_groovy.tmpl',          inputs)
+        generateDSL(new File(workflowDir, "${inputs.item}_Workflow_0.xml"),   'item_workflow_xml.tmpl',              inputs)
 
         if (generateStateWf) {
-            generateDSL(new File(moduleDir,   'State.groovy'),       'state_groovy.tmpl',     vars)
-            generateDSL(new File(workflowDir, 'State_Manage_0.xml'), 'state_manage_xml.tmpl', vars)
+            generateDSL(new File(moduleDir,   'State.groovy'),       'state_groovy.tmpl',     inputs)
+            generateDSL(new File(workflowDir, 'State_Manage_0.xml'), 'state_manage_xml.tmpl', inputs)
         }
 
-        if (generateModule) {
-            if (!vars['moduleFiles']) {
-                vars['moduleFiles'] = []
+        if (generateModule) generateModuleFiles(inputs, moduleDir)
+    }
 
-                moduleDir.eachFileMatch(~/.*.groovy/) { file ->
-                    if (file.name != 'Module.groovy') vars['moduleFiles'].add(file.name)
-                }
+    private generateModuleFiles(Map<String, Object> inputs, File moduleDir) {
+        if (!inputs['moduleFiles']) {
+            inputs['moduleFiles'] = []
+
+            moduleDir.eachFileMatch(~/.*.groovy/) { file ->
+                if (file.name != 'Module.groovy') ((List)inputs['moduleFiles']).add(file.name)
             }
+        }
 
-            generateDSL(new File(moduleDir, 'Module.groovy'), 'module_groovy.tmpl', vars)
+        generateDSL(new File(moduleDir, 'Module.groovy'), 'module_groovy.tmpl', inputs)
+    }
+
+    private void checkAndSetInputs(Map inputs) {
+        assert inputs['item'], "Specify input called 'item'"
+
+        if(inputs['generatedName']) {
+            if (!inputs['idPrefix'])    inputs['idPrefix'] = 'ID'
+            if (!inputs['leftPadSize']) inputs['leftPadSize'] = '6'
         }
     }
 

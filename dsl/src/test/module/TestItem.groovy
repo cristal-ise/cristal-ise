@@ -9,7 +9,6 @@ import static org.cristalise.kernel.collection.BuiltInCollections.SCHEMA_INITIAL
 def TestItem = Schema('TestItem', 0) {
     struct(name:' TestItem', documentation: 'TestItem aggregated data') {
         field(name: 'Name',        type: 'string')
-        field(name: 'ID',          type: 'string')
         field(name: 'State',       type: 'string', values: states)
         field(name: 'Description', type: 'string')
     }
@@ -17,7 +16,9 @@ def TestItem = Schema('TestItem', 0) {
 
 def TestItemDetails = Schema('TestItem_Details', 0) {
     struct(name: 'TestItem_Details') {
-        field(name: 'Name',        type: 'string')
+
+        field(name: 'Name', type: 'string')
+
         field(name: 'Description', type: 'string')
     }
 }
@@ -55,16 +56,14 @@ def TestItemWf = Workflow('TestItem_Workflow', 0) {
 
 def TestItemPropDesc = PropertyDescriptionList('TestItem', 0) {
     PropertyDesc(name: 'Name',  isMutable: true,  isClassIdentifier: false)
-    PropertyDesc(name: 'Type',  isMutable: false, isClassIdentifier: true, defaultValue: 'TestItem')
-    PropertyDesc(name: 'State', isMutable: true,  isClassIdentifier: true, defaultValue: 'ACTIVE')
+    PropertyDesc(name: 'Type',  isMutable: false, isClassIdentifier: true,  defaultValue: 'TestItem')
+    PropertyDesc(name: 'State', isMutable: true,  isClassIdentifier: false, defaultValue: 'ACTIVE')
 }
 
 Item(name: 'TestItemFactory', folder: '/testns', workflow: 'Factory_Workflow', workflowVer: 0) {
     InmutableProperty('Type': 'Factory')
     InmutableProperty('Root': 'testns/TestItems')
-    InmutableProperty('IDPrefix': 'ID')
-    InmutableProperty('GeneratedName': 'false')
-    Property('LeftPadSize': '6')
+
 
 
 
@@ -79,8 +78,6 @@ Item(name: 'TestItemFactory', folder: '/testns', workflow: 'Factory_Workflow', w
             Property('Version': 0)
         }
     }
-
-
 
     Dependency(MASTER_SCHEMA) {
         Member(itemPath: '/desc/Schema/testns/TestItem') {

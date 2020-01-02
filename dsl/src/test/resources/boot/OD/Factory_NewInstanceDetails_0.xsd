@@ -5,27 +5,15 @@
       <xs:sequence>
         <xs:element name='Name' type='xs:string' minOccurs='1' maxOccurs='1'>
           <xs:annotation>
-            <xs:documentation>The user given Name of the new instance</xs:documentation>
+            <xs:documentation>The Name of the new instance, it can be generated</xs:documentation>
           </xs:annotation>
         </xs:element>
-        <xs:element name='ID' type='xs:string' minOccurs='1' maxOccurs='1'>
-          <xs:annotation>
-            <xs:documentation>The generated ID of the new instance</xs:documentation>
-            <xs:appinfo>
-              <dynamicForms>
-                <hidden>true</hidden>
-                <required>false</required>
-              </dynamicForms>
-            </xs:appinfo>
-          </xs:annotation>
-        </xs:element>
-        <xs:element name='LastCount' type='xs:integer' minOccurs='1' maxOccurs='1'>
+        <xs:element name='LastCount' type='xs:integer' minOccurs='0' maxOccurs='1'>
           <xs:annotation>
             <xs:documentation>The last number used to generate the ID</xs:documentation>
             <xs:appinfo>
               <dynamicForms>
                 <hidden>true</hidden>
-                <required>false</required>
               </dynamicForms>
             </xs:appinfo>
           </xs:annotation>

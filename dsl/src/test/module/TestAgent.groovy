@@ -9,7 +9,6 @@ import static org.cristalise.kernel.collection.BuiltInCollections.SCHEMA_INITIAL
 def TestAgent = Schema('TestAgent', 0) {
     struct(name:' TestAgent', documentation: 'TestAgent aggregated data') {
         field(name: 'Name',        type: 'string')
-        field(name: 'ID',          type: 'string')
         field(name: 'State',       type: 'string', values: states)
         field(name: 'Description', type: 'string')
     }
@@ -17,7 +16,9 @@ def TestAgent = Schema('TestAgent', 0) {
 
 def TestAgentDetails = Schema('TestAgent_Details', 0) {
     struct(name: 'TestAgent_Details') {
-        field(name: 'Name',        type: 'string')
+
+        field(name: 'Name', type: 'string')
+
         field(name: 'Description', type: 'string')
     }
 }
@@ -55,22 +56,22 @@ def TestAgentWf = Workflow('TestAgent_Workflow', 0) {
 
 def TestAgentPropDesc = PropertyDescriptionList('TestAgent', 0) {
     PropertyDesc(name: 'Name',  isMutable: true,  isClassIdentifier: false)
-    PropertyDesc(name: 'Type',  isMutable: false, isClassIdentifier: true, defaultValue: 'TestAgent')
-    PropertyDesc(name: 'State', isMutable: true,  isClassIdentifier: true, defaultValue: 'ACTIVE')
+    PropertyDesc(name: 'Type',  isMutable: false, isClassIdentifier: true,  defaultValue: 'TestAgent')
+    PropertyDesc(name: 'State', isMutable: true,  isClassIdentifier: false, defaultValue: 'ACTIVE')
 }
 
 Item(name: 'TestAgentFactory', folder: '/testns', workflow: 'Factory_Workflow', workflowVer: 0) {
     InmutableProperty('Type': 'Factory')
     InmutableProperty('Root': 'testns/TestAgents')
-    InmutableProperty('IDPrefix': 'ID')
-    InmutableProperty('GeneratedName': 'false')
-    Property('LeftPadSize': '6')
+
 
 
     InmutableProperty('CreateAgent': 'true')
     Property('DefaultRoles': 'Admin')
 
 
+
+    InmutableProperty('UpdateSchema': 'TestAgent_Details:0')
 
 
     Outcome(schema: 'PropertyDescription', version: '0', viewname: 'last', path: 'boot/property/TestAgent.xml')
@@ -80,14 +81,6 @@ Item(name: 'TestAgentFactory', folder: '/testns', workflow: 'Factory_Workflow', 
             Property('Version': 0)
         }
     }
-
-
-    Dependency(SCHEMA_INITIALISE) {
-        Member(itemPath: '/desc/Schema/testns/TestAgent_Details') {
-            Property('Version': 0)
-        }
-    }
-
 
     Dependency(MASTER_SCHEMA) {
         Member(itemPath: '/desc/Schema/testns/TestAgent') {
