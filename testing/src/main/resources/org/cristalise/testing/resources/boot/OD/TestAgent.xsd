@@ -1,8 +1,8 @@
 <?xml version='1.0' encoding='utf-8'?>
 <xs:schema xmlns:xs='http://www.w3.org/2001/XMLSchema'>
-  <xs:element name=' TestItem'>
+  <xs:element name=' TestAgent'>
     <xs:annotation>
-      <xs:documentation>TestItem aggregated data</xs:documentation>
+      <xs:documentation>TestAgent aggregated data</xs:documentation>
     </xs:annotation>
     <xs:complexType>
       <xs:all minOccurs='0'>
