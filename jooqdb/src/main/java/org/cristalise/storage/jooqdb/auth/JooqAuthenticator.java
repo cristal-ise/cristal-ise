@@ -52,9 +52,11 @@ public class JooqAuthenticator implements Authenticator {
             items      = new JooqItemHandler();
             properties = new JooqItemPropertyHandler();
 
-            items     .createTables(context);
-            properties.createTables(context);
-            
+            if (!JooqHandler.readOnlyDataSource) {
+                items     .createTables(context);
+                properties.createTables(context);
+            }
+
             paswordHasher = new Argon2Password();
 
             return true;
