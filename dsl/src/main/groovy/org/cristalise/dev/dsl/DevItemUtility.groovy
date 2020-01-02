@@ -382,18 +382,6 @@ class DevItemUtility {
 
     /**
      *
-     * @param name
-     * @param folder
-     * @param activityName
-     * @param activityVersion
-     */
-    public ItemProxy editCompActDesc(String name, String folder, String activityName, Integer activityVersion) {
-        String caXML = KernelXMLUtility.getCompositeActivityDefXML(Name: name, ActivityName: activityName, ActivityVersion: activityVersion)
-        return editCompActDesc(name, folder, caXML)
-    }
-
-    /**
-     *
      *
      * @param name
      * @param folder
