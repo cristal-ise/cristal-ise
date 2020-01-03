@@ -29,6 +29,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 import org.cristalise.kernel.collection.Collection;
 import org.cristalise.kernel.collection.CollectionMemberList;
@@ -217,9 +218,12 @@ public class UpdateCollectionsFromDescription extends PredefinedStep {
         for (Map.Entry<String, Object> propDef : newCollProps.entrySet()) {
             itemColl.getProperties().put(propDef.getKey(), propDef.getValue());
         }
-        // updates classProps for Dependency if there is any
-        itemColl.setClassProps(itemPropertyList.getClassProps());
         
+        // updates classProps for Dependency if there is any
+        if(itemPropertyList != null){
+            itemColl.setClassProps(itemPropertyList.getClassProps());
+        }
+       
         return itemColl;
     }
 }
