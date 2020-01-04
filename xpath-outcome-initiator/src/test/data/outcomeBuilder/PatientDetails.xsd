@@ -36,7 +36,8 @@
                             <dynamicForms>
                                 <hidden>true</hidden>
                                 <required>false</required>
-                                <placeholder>Insurance ID</placeholder>
+                                <label>Insurance ID</label>
+                                <placeholder>Insurance No</placeholder>
                             </dynamicForms>
                         </xs:appinfo>
                     </xs:annotation>

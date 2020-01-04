@@ -87,8 +87,6 @@
         <build-helper-maven-plugin.version>1.12</build-helper-maven-plugin.version>
         <groovy-eclipse-compiler.version>2.9.2-01</groovy-eclipse-compiler.version>
         <groovy-eclipse-batch.version>2.4.3-01</groovy-eclipse-batch.version>
-        <maven-release-plugin.version>2.4.1</maven-release-plugin.version>
-        <maven-surefire-plugin.version>2.22.1</maven-surefire-plugin.version>
         <source.version>1.8</source.version>
         <target.version>1.8</target.version>
         <additionalparam>-Xdoclint:none</additionalparam>
@@ -99,7 +97,6 @@
         <commons-csv.version>1.5</commons-csv.version>
         <spock.version>1.2-groovy-2.4</spock.version>
         <unitils-core.version>3.4.6</unitils-core.version>
-        <mvel2.version>2.4.3.Final</mvel2.version>
         <spock-reports.version>1.6.1</spock-reports.version>
         <slf4j-simple.version>1.7.13</slf4j-simple.version>
         <maven.deploy.skip>false</maven.deploy.skip>
@@ -162,18 +159,6 @@
                 </dependencies>
             </plugin>
             <plugin>
-                <artifactId>maven-surefire-plugin</artifactId>
-                <version>${maven-surefire-plugin.version}</version>
-                <configuration>
-                    <redirectTestOutputToFile>true</redirectTestOutputToFile>
-                    <includes>
-                        <include>**/*Specs.*</include>
-                        <include>**/*Tests.*</include>
-                        <include>**/*Test.*</include>
-                    </includes>
-                </configuration>
-            </plugin>
-            <plugin>
                 <groupId>com.bluetrainsoftware.maven</groupId>
                 <artifactId>groovydoc-maven-plugin</artifactId>
                 <version>2.1</version>
@@ -223,7 +208,6 @@
         <dependency>
             <groupId>org.mvel</groupId>
             <artifactId>mvel2</artifactId>
-            <version>${mvel2.version}</version>
         </dependency>
         <dependency>
             <groupId>org.apache.poi</groupId>

@@ -217,7 +217,12 @@ public class UpdateCollectionsFromDescription extends PredefinedStep {
         for (Map.Entry<String, Object> propDef : newCollProps.entrySet()) {
             itemColl.getProperties().put(propDef.getKey(), propDef.getValue());
         }
-
+        
+        // updates classProps for Dependency if there is any
+        if(itemPropertyList != null){
+            itemColl.setClassProps(itemPropertyList.getClassProps());
+        }
+       
         return itemColl;
     }
 }
