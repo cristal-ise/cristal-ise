@@ -153,7 +153,7 @@ public class ItemRoot extends ItemUtils {
         try {
             boolean jsonFlag = produceJSON(headers.getAcceptableMediaTypes());
 
-            if (scriptName != null) {
+            if (StringUtils.isNotBlank(scriptName)) {
                 final Schema schema = LocalObjectLoader.getSchema(type, schemaVersion);
                 script = LocalObjectLoader.getScript(scriptName, scriptVersion);
 
