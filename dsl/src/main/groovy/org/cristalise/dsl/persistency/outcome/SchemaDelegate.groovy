@@ -169,7 +169,7 @@ class SchemaDelegate {
     private void buildAtribute(MarkupBuilder xsd, Attribute a) {
         Logger.msg 1, "SchemaDelegate.buildAtribute() - attribute: $a.name"
 
-        if (a.documentation) throw new InvalidDataException('Atttrbute cannotnot define documentation')
+        if (a.documentation) throw new InvalidDataException('Attribute cannot define documentation')
 
         xsd.'xs:attribute'(name: a.name, type: attributeType(a), 'default': a.defaultVal, 'use': (a?.required ? "required": "")) {
             if(hasRestrictions(a)) {
@@ -208,8 +208,8 @@ class SchemaDelegate {
                     if (f.dynamicForms.additional) {
                         f.dynamicForms.additional.fields.each { key, value -> "$key"(value) }
                     }
-                    if (f.dynamicForms.updateScriptRef != null) updateScriptRef(f.dynamicForms.updateScriptRef)
-                    if (f.dynamicForms.updateQuerytRef != null) updateQuerytRef(f.dynamicForms.updateQuerytRef)
+                    if (f.dynamicForms.updateScriptRef != null) updateScriptRef(f.dynamicForms.getUpdateScriptRefString())
+                    if (f.dynamicForms.updateQuerytRef != null) updateQuerytRef(f.dynamicForms.getUpdateQueryRefString())
                     if (f.dynamicForms.warning != null) {
                         warning {
                             if (f.dynamicForms.warning.pattern != null)    pattern(f.dynamicForms.warning.pattern)
@@ -227,8 +227,8 @@ class SchemaDelegate {
 
     private void setAppinfoListOfValues(xsd, Field f) {
         xsd.listOfValues {
-            if (f.listOfValues.scriptRef)       scriptRef(      f.listOfValues.scriptRef)
-            if (f.listOfValues.queryRef)        queryRef(       f.listOfValues.queryRef)
+            if (f.listOfValues.scriptRef)       scriptRef(      f.listOfValues.getScriptRefString())
+            if (f.listOfValues.queryRef)        queryRef(       f.listOfValues.getQueryRefString())
             if (f.listOfValues.propertyNames)   propertyNames(  f.listOfValues.propertyNames)
             if (f.listOfValues.inputName)       inputName(      f.listOfValues.inputName)
             if (f.listOfValues.values)          values(         f.listOfValues.values.join(','))
@@ -255,7 +255,6 @@ class SchemaDelegate {
                 itemType(itemRef)
             }
         }
-            
     }
         
     private void buildField(MarkupBuilder xsd, Field f) {

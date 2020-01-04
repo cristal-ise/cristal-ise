@@ -428,7 +428,7 @@ public class CompositeActivity extends Activity {
         Transition trans = getStateMachine().getTransition(transitionID);
 
         if (trans.isFinishing() && hasActive()) {
-            if ((Boolean)getBuiltInProperty(ABORTABLE)) 
+            if ((Boolean)getBuiltInProperty(ABORTABLE))
                 abort();
             else
                 throw new InvalidTransitionException("Attempted to finish '"+getPath()+"' it had active children but was not Abortable");
@@ -461,11 +461,11 @@ public class CompositeActivity extends Activity {
     public List<Activity> getPossibleActs(WfVertex fromVertex, int direction) throws InvalidDataException {
         List<Activity> nextActs = new ArrayList<>();
 
-        for (Vertex v: GraphTraversal.getTraversal(getChildrenGraphModel(), fromVertex, direction, false)) {
-            if(v instanceof Activity) {
-                Activity act = (Activity)v;
-
-                if (!act.isFinished() && act.active) nextActs.add(act);
+        for (Vertex v : GraphTraversal.getTraversal(getChildrenGraphModel(), fromVertex, direction, false)) {
+            if (v instanceof Activity) {
+                Activity act = (Activity) v;
+                if (!act.isFinished() && act.active)
+                  nextActs.add(act);
             }
         }
 

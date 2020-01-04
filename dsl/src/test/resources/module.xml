@@ -6,6 +6,14 @@
   <ResourceURL>org.cristalise.test/resources/</ResourceURL>
   <Config name="Module.debug">true</Config>
   <Imports>
+    <Role name="Admin" jobList="false">
+      <Permission>*</Permission>
+    </Role>
+    <Agent name="TestAdmin" password="test" initialPath="/testns/Agents">
+      <Role name="Admin"/>
+      <Property name="Name" mutable="true">TestAdmin</Property>
+      <Property name="Type" mutable="true">Agent</Property>
+    </Agent>
     <Activity name="State_Activate" version="0"/>
     <Activity name="State_Deactivate" version="0"/>
     <Workflow name="State_Manage" version="0">
@@ -28,7 +36,7 @@
       <Activity name="StateManage" version="0"/>
     </Workflow>
     <PropertyDescriptionResource name="TestItem" version="0"/>
-    <Item name="TestItemFactory" initialPath="/" workflow="TestItemFactory_Workflow">
+    <Item name="TestItemFactory" initialPath="/testns" workflow="TestItemFactory_Workflow">
       <Property name="Type" mutable="true">Factory</Property>
       <Outcome viewname="last" schema="PropertyDescription" version="0">boot/property/TestItem.xml</Outcome>
       <Dependency name="workflow'" isDescription="false">

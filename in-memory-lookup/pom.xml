@@ -87,7 +87,6 @@
         <groovy-eclipse-compiler.version>2.9.2-01</groovy-eclipse-compiler.version>
         <groovy-eclipse-batch.version>2.4.3-01</groovy-eclipse-batch.version>
         <maven-release-plugin.version>2.4.1</maven-release-plugin.version>
-        <maven-surefire-plugin.version>2.6</maven-surefire-plugin.version>
         <nexus-staging-maven-plugin.version>1.6.8</nexus-staging-maven-plugin.version>
         <maven-gpg-plugin.version>1.6</maven-gpg-plugin.version>
         <source.version>1.8</source.version>
@@ -152,17 +151,6 @@
                         <version>${groovy-eclipse-batch.version}</version>
                     </dependency>
                 </dependencies>
-            </plugin>
-            <plugin>
-                <artifactId>maven-surefire-plugin</artifactId>
-                <version>${maven-surefire-plugin.version}</version>
-                <configuration>
-                    <redirectTestOutputToFile>true</redirectTestOutputToFile>
-                    <includes>
-                        <include>**/*Specs.*</include>
-                        <include>**/*Tests.*</include>
-                    </includes>
-                </configuration>
             </plugin>
             <plugin>
                 <groupId>com.bluetrainsoftware.maven</groupId>

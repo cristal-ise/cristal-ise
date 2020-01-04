@@ -8,8 +8,8 @@ The kernel library itself provides only the CRISTAL-ISE runtime with a very basi
 The current _cristalise-dev_ package can be downloaded from: http://dev.cccs.uwe.ac.uk/cristalise-dev-3.1-beta.zip
 or they can be pulled directly from github. The server can work both on Linux and Windows.
 
-### Java 
-**CRISTAL-iSE requires Java 1.8 or higher**. It works with both the standard Oracle JDK and OpenJDK. You can either use the standard Java JRE, or get a server version. 
+### Java
+**CRISTAL-iSE requires Java 1.8 or higher**. It works with both the standard Oracle JDK and OpenJDK. You can either use the standard Java JRE, or get a server version.
   * Set JAVA_HOME, add java/bin dir to PATH, associate .jar with bin/java.exe -jar
   * Latest OpenJDK on Linux is available from your package repository.
 
@@ -40,13 +40,13 @@ _There are 2 ways to configure OpenLDAP, the static configuration based on editi
 1. Install as Windows service by executing the **cygrunsrv** command provided in [this tutorial](http://www.rigsb.net/2009/04/16/run-openldap-as-a-windows-service-via-cygwin):
     * `cygrunsrv --install OpenLDAP --path /usr/sbin/slapd --args "-d 0 -h ldap://localhost:389 -f /etc/openldap/slapd.conf" --desc OpenLDAP/Cygwin`
 
-The final version of your `slapd.conf` should look something like this: 
+The final version of your `slapd.conf` should look something like this:
 
     include        /etc/openldap/schema/core.schema
     include        /etc/openldap/schema/cristal.schema
 
     modulepath     /lib/ldap/
-    moduleload     back_bdb.so	
+    moduleload     back_bdb.so
 
     database       bdb
     suffix         "o=cern,c=ch"

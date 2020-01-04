@@ -80,7 +80,9 @@ public class CookieLogin extends RestHandler {
             if (StringUtils.isBlank(msg)) msg = "Bad username/password";
 
             Logger.msg(5, "CookieLogin() - error:%s", msg);
-            throw ItemUtils.createWebAppException(msg, Response.Status.UNAUTHORIZED);
+            throw new WebAppExceptionBuilder()
+                    .message( msg )
+                    .status( Response.Status.UNAUTHORIZED ).build();
         }
     }
 
@@ -93,9 +95,8 @@ public class CookieLogin extends RestHandler {
      */
     private synchronized Response getCookieResponse(AgentPath agentPath, boolean produceJSON) {
         // create and set cookie
-        AuthData agentData = new AuthData(agentPath);
         try {
-            NewCookie cookie = new NewCookie(COOKIENAME, encryptAuthData(agentData));
+            NewCookie cookie = createNewCookie( agentPath );
             
             //Issue #143: Read 'password temporary flag' from Lookup, because agentPath is taken from AgentProxy which could be cached
             boolean tempPwd = Gateway.getLookup().getAgentPath(agentPath.getAgentName()).isPasswordTemporary();
@@ -108,7 +109,9 @@ public class CookieLogin extends RestHandler {
         }
         catch (Exception e) {
             Logger.error(e);
-            throw ItemUtils.createWebAppException("Error creating cookie");
+            throw new WebAppExceptionBuilder()
+                    .message( "Error creating cookie" )
+                    .status( Response.Status.INTERNAL_SERVER_ERROR ).build();
         }
     }
 
@@ -141,7 +144,9 @@ public class CookieLogin extends RestHandler {
         }
         catch (Exception e) {
             Logger.error(e);
-            throw ItemUtils.createWebAppException("Problem logging in", Response.Status.BAD_REQUEST);
+            throw new WebAppExceptionBuilder()
+                    .message( "Problem logging in" )
+                    .status( Response.Status.BAD_REQUEST ).build();
         }
 
         return processLogin(user, pass, headers);

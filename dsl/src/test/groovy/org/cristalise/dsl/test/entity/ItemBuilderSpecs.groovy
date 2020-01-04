@@ -86,6 +86,20 @@ class ItemBuilderSpecs extends Specification implements CristalTestSetup {
         item.properties.size == 1
     }
 
+    def 'Item is built with specifing workfflow name and version'() {
+        when:
+        def item = ItemBuilder.build(name: "myFisrtItem", folder: "testing", workflow: "TestWorkflow", workflowVer: 1) {
+            InmutableProperty("Brain": "kovax")
+            Property("Pinky": "kovax")
+        }
+
+        then:
+        item.workflow == "TestWorkflow"
+        item.workflowVer == 1
+        
+        item.properties.size == 3
+    }
+
     def 'Item is built without workflow and a single Outcome'() {
         when:
         def item = ItemBuilder.build(name: "testItem", folder: "test") {

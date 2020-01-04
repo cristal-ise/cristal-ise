@@ -13,3 +13,29 @@ Schema('SimpleElectonicSignature', 0) {
         }
     }
 }
+
+Schema('SystemProperties', 0) {
+    struct(name: 'SystemProperties', useSequence: true, documentation: 'blabla') {
+        field(name: 'ProcessName', type: 'string')  {
+            dynamicForms(disabled: true)
+        }
+        struct(name:'Property', multiplicity: '0..*') {
+            field(name: 'Name', type: 'string')  {
+                dynamicForms(disabled: true)
+            }
+            field(name: 'Module', type: 'string', multiplicity: '0..1', documentation: 'The module in which the System Property was defined') {
+                dynamicForms(disabled: true)
+            }
+            field(name: 'ReadOnly', type: 'boolean', multiplicity: '0..1', documentation: 'Specify if the Property can be dynamically overridden') {
+                dynamicForms(disabled: true)
+            }
+            field(name: 'Description', type: 'string', multiplicity: '0..1') {
+                dynamicForms(disabled: true)
+            }
+            field(name: 'SetInConfigFiles', type: 'boolean', documentation: 'Indicates if the value was set in config files') {
+                dynamicForms(disabled: true)
+            }
+            field(name: 'Value', type: 'string')
+        }
+    }
+}

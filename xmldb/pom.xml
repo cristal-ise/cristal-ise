@@ -139,6 +139,11 @@
                 <artifactId>license-maven-plugin</artifactId>
                 <configuration>
                     <header>HEADER.txt</header>
+                    <excludes>
+                        <exclude>**/*LICENSE</exclude>
+                        <exclude>**/README</exclude>
+                        <exclude>**/*.gpg.enc</exclude>
+                    </excludes>
                 </configuration>
                 <executions>
                     <execution>

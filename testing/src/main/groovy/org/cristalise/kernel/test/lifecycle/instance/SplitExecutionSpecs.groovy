@@ -358,12 +358,18 @@ class SplitExecutionSpecs extends Specification implements CristalTestSetup {
         util.buildAndInitWf() {
             ElemAct("first")
             AndSplit {
-               Loop(RoutingScriptName: 'javascript:\"false\";') { //loop shall finish automatically
-                   ElemAct("left")
-               }
-               Loop(RoutingScriptName: 'javascript:\"false\";') { //loop shall finish automatically
-                   ElemAct("right")
-               }
+                Block {
+                    Loop(RoutingScriptName: 'javascript:\"false\";') {
+                        //loop shall finish automatically
+                        ElemAct("left")
+                    }
+                }
+                Block {
+                    Loop(RoutingScriptName: 'javascript:\"false\";') {
+                        //loop shall finish automatically
+                        ElemAct("right")
+                    }
+                }
             }
             ElemAct("last")
         }
