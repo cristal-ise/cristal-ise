@@ -39,4 +39,13 @@ class ChangeNameTest extends RestapiTestBase {
         login('mainUser', 'test')
         logout(null)
     }
+
+    @Test
+    public void 'Change name of an Item from camel case to lower case'() throws Exception {
+        login('user', 'test')
+        def name = "TestItem-$timeStamp"
+        def itemUuid = createNewItem(name, ContentType.XML)
+        executePredefStep(itemUuid, ChangeName.class, name, name.toLowerCase())
+        logout(null)
+    }
 }
