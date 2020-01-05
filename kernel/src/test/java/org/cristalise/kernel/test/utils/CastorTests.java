@@ -24,7 +24,6 @@ import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.test.process.MainTest;
 import org.cristalise.kernel.utils.CastorXMLUtility;
 import org.cristalise.kernel.utils.FileStringUtility;
-import org.cristalise.kernel.utils.Logger;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -36,7 +35,6 @@ public class CastorTests {
 
     @Before
     public void setup() throws Exception {
-        Logger.addLogStream(System.out, 1);
         Gateway.init( FileStringUtility.loadConfigFile(MainTest.class.getResource("/server.conf").getPath()) );
     }
 

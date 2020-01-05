@@ -43,10 +43,11 @@ import org.cristalise.kernel.lifecycle.instance.Next;
 import org.cristalise.kernel.lifecycle.instance.Workflow;
 import org.cristalise.kernel.lookup.InvalidItemPathException;
 import org.cristalise.kernel.process.Gateway;
-import org.cristalise.kernel.utils.Logger;
 import org.json.XML;
 
-@Path("/item/{uuid}/workflow")
+import lombok.extern.slf4j.Slf4j;
+
+@Path("/item/{uuid}/workflow") @Slf4j
 public class ItemWorkflow extends ItemUtils {
     
     private Map<String, Object> getGanttTask(String uuid, String parent, Activity act)
@@ -122,7 +123,7 @@ public class ItemWorkflow extends ItemUtils {
                     vertex = null;
             }
             else {
-                Logger.warning("ItemWorkflow.getGanttJSON() - Cannot handle vertex type:%s", vertex.getClass().getSimpleName());
+                log.warn("getGanttJSON() - Cannot handle vertex type:{}", vertex.getClass().getSimpleName());
             }
         }
         while (vertex != null);

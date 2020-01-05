@@ -69,13 +69,14 @@ import org.cristalise.kernel.scripting.ScriptErrorException;
 import org.cristalise.kernel.scripting.ScriptingEngineException;
 import org.cristalise.kernel.utils.CastorHashMap;
 import org.cristalise.kernel.utils.LocalObjectLoader;
-import org.cristalise.kernel.utils.Logger;
 import org.glassfish.jersey.media.multipart.FormDataParam;
 import org.json.XML;
 
 import com.google.common.collect.ImmutableMap;
 
-@Path("/item/{uuid}")
+import lombok.extern.slf4j.Slf4j;
+
+@Path("/item/{uuid}") @Slf4j
 public class ItemRoot extends ItemUtils {
 
     private ScriptUtils scriptUtils = new ScriptUtils();
@@ -290,6 +291,26 @@ public class ItemRoot extends ItemUtils {
         else          return Response.ok(xmlResult);
     }
 
+    /**
+     * Returns the so called Aggregate Script which can be used to construct master outcome.
+     * The method is created to retrieve the script in the if statement
+     * 
+     * @param type value of Type Property of the Item
+     * @param scriptVersion the version of the script
+     * @return the script or null
+     */
+    private Script getAggregateScript(String type, Integer scriptVersion) {
+        String scriptName = type + Gateway.getProperties().getString("REST.MasterOutcome.postfix", "_Aggregate");
+
+        try {
+            return LocalObjectLoader.getScript(scriptName, scriptVersion);
+        }
+        catch (ObjectNotFoundException | InvalidDataException e1) {
+            log.debug("getAggregateScript() - Could not find Script name:{}", scriptName);
+        }
+        return null;
+    }
+
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     public Response getItemSummary(
@@ -405,7 +426,7 @@ public class ItemRoot extends ItemUtils {
         try {
             String contentType = headers.getRequestHeader(HttpHeaders.CONTENT_TYPE).get(0);
 
-            Logger.msg(5, "ItemRoot.requestTransition() postData:'%s' contentType:'%s'", postData, contentType);
+            log.debug("requestTransition() postData:'{}' contentType:'{}'", postData, contentType);
 
             AgentProxy agent = Gateway.getProxyManager().getAgentProxy(getAgentPath(authCookie));
             String executeResult;
@@ -422,7 +443,7 @@ public class ItemRoot extends ItemUtils {
             else                                                return executeResult;
         }
         catch (Exception e) {
-            Logger.error("ItemRoot.requestTransition(actPat:%s) - postData:'%s'", actPath, postData);
+            log.error("requestTransition(actPat:{}) - postData:'{}'", actPath, postData);
             throw new WebAppExceptionBuilder().exception(e).newCookie(cookie).build();
         }
     }
@@ -469,7 +490,7 @@ public class ItemRoot extends ItemUtils {
         try {
             String contentType = headers.getRequestHeader(HttpHeaders.CONTENT_TYPE).get(0);
 
-            Logger.msg(5, "ItemRoot.requestTransition() postData:%s", postData);
+            log.debug("requestBinaryTransition() postData:'{}' contentType:'{}'", postData, contentType);
 
             AgentProxy agent = Gateway.getProxyManager().getAgentProxy(getAgentPath(authCookie));
             String executeResult;
@@ -486,7 +507,7 @@ public class ItemRoot extends ItemUtils {
             else                                                return executeResult;
         }
         catch (Exception e) {
-            Logger.error("ItemRoot.requestBinaryTransition(actPat:%s) - postData:'%s'", actPath, postData);
+            log.error("requestBinaryTransition(actPat:{}) - postData:'{}'", actPath, postData);
             throw new WebAppExceptionBuilder().exception(e).newCookie(cookie).build();
         }
     }
@@ -580,7 +601,7 @@ public class ItemRoot extends ItemUtils {
                     return Response.ok(new OutcomeBuilder(thisJob.getSchema(), false).generateNgDynamicForms(inputs))
                             .cookie(cookie).build();
                 } else {
-                    Logger.msg(5, "ItemRoot.getJobFormTemplate() - no outcome needed for job:%s", thisJob);
+                    log.debug("getJobFormTemplate() - no outcome needed for job:{}", thisJob);
                     return Response.noContent().cookie(cookie).build();
                 }
             }

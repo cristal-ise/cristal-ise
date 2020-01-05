@@ -37,9 +37,10 @@ import javax.script.ScriptEngine;
 import org.cristalise.kernel.entity.proxy.AgentProxy;
 import org.cristalise.kernel.process.AbstractMain;
 import org.cristalise.kernel.process.Gateway;
-import org.cristalise.kernel.utils.Logger;
 import org.cristalise.kernel.utils.server.SocketHandler;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 public class ScriptConsole implements SocketHandler {
     BufferedReader            input;
     PrintStream               output;
@@ -78,7 +79,7 @@ public class ScriptConsole implements SocketHandler {
                     }
                 }
                 catch (UnknownHostException ex) {
-                    Logger.error("Host not found " + ex.getMessage());
+                    log.error("Host not found ", ex);
                 }
             }
         }
@@ -126,15 +127,14 @@ public class ScriptConsole implements SocketHandler {
         if (closingSocket == null)
             return;
         try {
-            Logger.removeLogStream(output);
             closingSocket.shutdownInput();
             closingSocket.shutdownOutput();
             closingSocket.close();
-            Logger.msg("Script console to " + closingSocket.getInetAddress() + " closed");
+
+            log.info("Script console to " + closingSocket.getInetAddress() + " closed");
         }
         catch (IOException e) {
-            Logger.error("Script Console to " + closingSocket.getInetAddress() + " - Error closing.");
-            Logger.error(e);
+            log.error("Script Console to " + closingSocket.getInetAddress() + " - Error closing.", e);
         }
     }
 
@@ -154,7 +154,7 @@ public class ScriptConsole implements SocketHandler {
         }
 
         if (!allowed) {
-            Logger.error("Host " + socket.getInetAddress() + " access denied");
+            log.error("Host " + socket.getInetAddress() + " access denied");
             output.println("Host " + socket.getInetAddress() + " access denied");
             shutdown();
             return;
@@ -162,7 +162,7 @@ public class ScriptConsole implements SocketHandler {
 
         // get system objects
         try {
-            Logger.addLogStream(output, 0);
+            //FIXME remove this when Logger class is completly phased out
             Script context;
             try {
                 context = new Script("javascript", agent, output);
@@ -204,7 +204,7 @@ public class ScriptConsole implements SocketHandler {
                         commandBuffer.append(command);
                         command = commandBuffer.toString();
                         commandBuffer = new StringBuffer();
-                        Logger.msg("Console command from " + socket.getInetAddress() + ": " + command);
+                        log.info("Console command from " + socket.getInetAddress() + ": " + command);
 
                         // process control
                         if (command.equals("shutdown")) {
@@ -227,7 +227,7 @@ public class ScriptConsole implements SocketHandler {
             }
         }
         catch (IOException ex) {
-            Logger.error("IO Exception reading from script console socket");
+            log.error("IO Exception reading from script console socket");
             shutdown();
         }
     }

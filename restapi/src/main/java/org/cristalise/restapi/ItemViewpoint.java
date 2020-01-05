@@ -48,7 +48,7 @@ import org.cristalise.kernel.events.History;
 import org.cristalise.kernel.persistency.outcome.Outcome;
 import org.cristalise.kernel.persistency.outcome.Viewpoint;
 
-@Path("/item/{uuid}/viewpoint")
+@Path("/item/{uuid}/viewpoint") 
 public class ItemViewpoint extends ItemUtils {
 
     @GET

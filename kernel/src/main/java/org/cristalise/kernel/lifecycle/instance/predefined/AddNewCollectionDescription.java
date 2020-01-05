@@ -33,13 +33,15 @@ import org.cristalise.kernel.lookup.AgentPath;
 import org.cristalise.kernel.lookup.ItemPath;
 import org.cristalise.kernel.persistency.ClusterType;
 import org.cristalise.kernel.process.Gateway;
-import org.cristalise.kernel.utils.Logger;
+
+import lombok.extern.slf4j.Slf4j;
 
 
 /**
  * Generates a new empty collection description. Collection instances should
  * be added by an Admin, who can do so using AddC2KObject.
  */
+@Slf4j
 public class AddNewCollectionDescription extends PredefinedStep {
 
     public AddNewCollectionDescription() {
@@ -56,8 +58,7 @@ public class AddNewCollectionDescription extends PredefinedStep {
         // extract parameters
         String[] params = getDataList(requestData);
 
-        if (Logger.doLog(3))
-            Logger.msg(3, "AddNewCollectionDescription: called by " + agent + " on " + item + " with parameters " + Arrays.toString(params));
+        log.debug("Called by {} on {} with parameters {}", agent.getAgentName(), item, (Object)params);
 
         if (params.length != 2)
             throw new InvalidDataException("AddNewCollectionDescription: Invalid parameters " + Arrays.toString(params));

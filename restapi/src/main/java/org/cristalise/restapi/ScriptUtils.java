@@ -38,10 +38,12 @@ import org.cristalise.kernel.scripting.Script;
 import org.cristalise.kernel.scripting.ScriptingEngineException;
 import org.cristalise.kernel.utils.CastorHashMap;
 import org.cristalise.kernel.utils.LocalObjectLoader;
-import org.cristalise.kernel.utils.Logger;
 import org.json.JSONObject;
 import org.json.XML;
 
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
 public class ScriptUtils extends ItemUtils {
     
     static Semaphore mutex = new Semaphore(1);
@@ -89,7 +91,7 @@ public class ScriptUtils extends ItemUtils {
                 throw new InvalidDataException("Version for Script '" + scriptName + "' cannot be null");
             }
             else {
-                Logger.warning("ScriptUtils.executeScript() - Version for Script '%s' was null, using version 0 as default", scriptName);
+                log.warn("executeScript() - Version for Script {}' was null, using version 0 as default", scriptName);
                 scriptVersion = 0;
             }
         }
@@ -115,7 +117,7 @@ public class ScriptUtils extends ItemUtils {
                 throw e;
             }
             catch (Exception e) {
-                Logger.error(e);
+                log.error("Error executing script, please contact support", e);
                 if (e.getMessage().contains("[errorMessage]")) {
                     throw new ObjectNotFoundException( e.getMessage() );
                 } else {

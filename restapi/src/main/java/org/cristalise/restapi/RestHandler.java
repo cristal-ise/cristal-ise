@@ -57,22 +57,23 @@ import org.cristalise.kernel.lookup.Path;
 import org.cristalise.kernel.lookup.RolePath;
 import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.property.Property;
-import org.cristalise.kernel.utils.Logger;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
 abstract public class RestHandler {
 
     private ObjectMapper mapper;
     private boolean requireLogin = true;
-    private int defaultLogLevel;
 
     private static Key cookieKey;
     private static AesCipherService aesCipherService;
 
     public static final String COOKIENAME = "cauth";
-    public static final String USERNAME = "username";
-    public static final String PASSWORD = "password";
+    public static final String USERNAME   = "username";
+    public static final String PASSWORD   = "password";
 
     static {
         int keySize = Gateway.getProperties().getBoolean("REST.allowWeakKey", false) ? 128 : 256;
@@ -84,7 +85,6 @@ abstract public class RestHandler {
     public RestHandler() {
         mapper = new ObjectMapper();
         requireLogin = Gateway.getProperties().getBoolean("REST.requireLoginCookie", true);
-        defaultLogLevel = Gateway.getProperties().getInt("LOGGER.defaultLevel", 9);
     }
 
     /**
@@ -106,11 +106,12 @@ abstract public class RestHandler {
                 return new AuthData(aesCipherService.decrypt(bytes, cookieKey.getEncoded()).getBytes());
             }
             catch (final Exception e) {
-                Logger.error("Exception caught in decryptAuthData: #" + cntRetries + ": " + e.getMessage());
-                if (Logger.doLog(defaultLogLevel)) Logger.error(e);
-                if (cntRetries == 5) {
+                log.trace("Exception caught in decryptAuthData: #{}", cntRetries , e);
+
+                // try to decrypt 5 times before throwing an exception
+                if (cntRetries == 5) 
+                    log.error("Faild to decrypting AuthData ({}th try)", cntRetries , e);
                     throw e;
-                }
             }
         }
     }
@@ -132,7 +133,7 @@ abstract public class RestHandler {
     public Response.ResponseBuilder toJSON(Object data, NewCookie cookie) {
         try {
             String json = mapper.writeValueAsString(data);
-            Logger.msg(8, json);
+            log.debug("JSON response:{}", json);
             if (cookie != null) return Response.ok(json).cookie(cookie);
             else                return Response.ok(json);
         }
@@ -181,7 +182,7 @@ abstract public class RestHandler {
             NewCookie cookie = new NewCookie(COOKIENAME, encryptAuthData(authData), "/", null, null, -1, false);
             return  cookie;
         } catch (IllegalBlockSizeException | BadPaddingException e) {
-            Logger.error(e);
+            log.error("Problem building response JSON", e);
             throw new WebAppExceptionBuilder("Problem building response JSON: ", e, Response.Status.INTERNAL_SERVER_ERROR, null).build();
         }
     }
@@ -229,13 +230,15 @@ abstract public class RestHandler {
         try {
             AuthData data = decryptAuthData(authData);
             return data;
-        } catch (InvalidAgentPathException | InvalidDataException e) {
-            Logger.error(e.getMessage() + " - authData:"+authData);
-            if (Logger.doLog(defaultLogLevel)) Logger.error(e);
+        }
+        catch (InvalidAgentPathException | InvalidDataException e) {
+            log.debug("Invalid agent or login data",  e);
+
             throw new WebAppExceptionBuilder().message("Invalid agent or login data").status(Response.Status.UNAUTHORIZED).build();
-        } catch (Exception e) {
-            Logger.error(e.getMessage() + " - authData:"+authData);
-            if (Logger.doLog(defaultLogLevel)) Logger.error(e);
+        }
+        catch (Exception e) {
+            log.debug("Error reading authentication data:{}", authData, e);
+
             throw new WebAppExceptionBuilder().message("Error reading authentication data").status(Response.Status.UNAUTHORIZED).build();
         }
     }
@@ -280,7 +283,7 @@ abstract public class RestHandler {
             return (AgentProxy)Gateway.getProxyManager().getProxy(agentPath);
         }
         catch (ObjectNotFoundException e) {
-            Logger.error(e);
+            log.error("Agent not found", e);
             throw new ObjectNotFoundException("Agent not found");
         }
     }
@@ -345,8 +348,9 @@ abstract public class RestHandler {
     
                 try {
                     value = URLDecoder.decode(nameval[1], "UTF-8");
-                } catch (UnsupportedEncodingException e) {
-                    Logger.error(e);
+                }
+                catch (UnsupportedEncodingException e) {
+                    log.error("Error decoding search value: " + nameval[1], e);
                     throw new WebAppExceptionBuilder().message("Error decoding search value: " + nameval[1]).status(Status.BAD_REQUEST).build();
                 }
                 
@@ -371,7 +375,7 @@ abstract public class RestHandler {
         if (StringUtils.isNotBlank(roleWithoutTimeout)) {
             for(RolePath role: roles) {
                 if (role.getName().equals(roleWithoutTimeout)) {
-                    Logger.msg(8, "AuthData - cookie timeout is disabled for the current user:%s", agent.getName());
+                    log.trace("AuthData - cookie timeout is disabled for the current user:{}", agent.getName());
                     userNoTimeout = true;
                 }
             }

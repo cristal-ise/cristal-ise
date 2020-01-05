@@ -21,7 +21,6 @@
 package org.cristalise.kernel.entity.agent;
 
 import java.util.List;
-
 import org.cristalise.kernel.common.CannotManageException;
 import org.cristalise.kernel.common.ObjectCannotBeUpdated;
 import org.cristalise.kernel.common.ObjectNotFoundException;
@@ -36,7 +35,7 @@ import org.cristalise.kernel.lookup.ItemPath;
 import org.cristalise.kernel.lookup.RolePath;
 import org.cristalise.kernel.persistency.ClusterType;
 import org.cristalise.kernel.process.Gateway;
-import org.cristalise.kernel.utils.Logger;
+import lombok.extern.slf4j.Slf4j;
 
 
 /**
@@ -49,6 +48,7 @@ import org.cristalise.kernel.utils.Logger;
  * client API. The server implementation only manages the Agent's data: its roles
  * and persistent Jobs.
  */
+@Slf4j
 public class AgentImplementation extends ItemImplementation implements AgentOperations {
 
     private JobList currentJobs;
@@ -60,7 +60,7 @@ public class AgentImplementation extends ItemImplementation implements AgentOper
             currentJobs = (JobList) mStorage.get(path, ClusterType.JOB.getName(), path);
         }
         catch (PersistencyException | ObjectNotFoundException ex) {
-            Logger.error(ex);
+            log.error("", ex);
         }
     }
 
@@ -79,7 +79,7 @@ public class AgentImplementation extends ItemImplementation implements AgentOper
 
             // merge new jobs in first, so the RemoteMap.getLastId() used during addJob() returns the next unique id
             for (Job newJob : newJobList.list) {
-                Logger.msg(6, "AgentImplementation.refreshJobList() - Adding job:"+newJob.getItemPath()+"/"+newJob.getStepPath()+":"+newJob.getTransition().getName());
+                log.debug("refreshJobList() - Adding job:"+newJob.getItemPath()+"/"+newJob.getStepPath()+":"+newJob.getTransition().getName());
                 currentJobs.addJob(newJob);
             }
 
@@ -89,8 +89,7 @@ public class AgentImplementation extends ItemImplementation implements AgentOper
             Gateway.getStorage().commit(mItemPath);
         }
         catch (Throwable ex) {
-            Logger.error("Could not refresh job list.");
-            Logger.error(ex);
+            log.error("Could not refresh job list.", ex);
             Gateway.getStorage().abort(mItemPath);
         }
     }
@@ -144,7 +143,7 @@ public class AgentImplementation extends ItemImplementation implements AgentOper
 
     @Override
     protected void finalize() throws Throwable {
-        Logger.msg(7, "AgentImplementation.finalize() - Reaping " + mItemPath);
+        log.debug("finalize() - Reaping " + mItemPath);
         if (currentJobs != null) currentJobs.deactivate();
         Gateway.getStorage().clearCache(mItemPath, null);
         super.finalize();

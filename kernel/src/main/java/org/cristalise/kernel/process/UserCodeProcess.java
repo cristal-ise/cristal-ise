@@ -22,7 +22,6 @@ package org.cristalise.kernel.process;
 
 import java.net.InetAddress;
 import java.util.HashMap;
-
 import org.cristalise.kernel.common.AccessRightsException;
 import org.cristalise.kernel.common.InvalidCollectionModification;
 import org.cristalise.kernel.common.InvalidDataException;
@@ -38,7 +37,7 @@ import org.cristalise.kernel.lifecycle.instance.stateMachine.StateMachine;
 import org.cristalise.kernel.persistency.ClusterStorage;
 import org.cristalise.kernel.persistency.ClusterType;
 import org.cristalise.kernel.scripting.ScriptErrorException;
-import org.cristalise.kernel.utils.Logger;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * UserCodeProcess provides a very basic automatic execution of Scripts associated with the Jobs (Activities).
@@ -49,6 +48,7 @@ import org.cristalise.kernel.utils.Logger;
  * 3. complete()
  * 4. in case of error/exception execute error transition which is suspend for default statemachine
  */
+@Slf4j
 public class UserCodeProcess extends StandardClient implements ProxyObserver<Job>, Runnable {
 
     private final int START;
@@ -151,14 +151,13 @@ public class UserCodeProcess extends StandardClient implements ProxyObserver<Job
                     // must have already been done by someone else - ignore
                 }
                 catch (Exception ex) {
-                    Logger.error("Error executing job:"+thisJob);
-                    Logger.error(ex);
+                    log.error("Error executing job:"+thisJob, ex);
                 }
             }
             try {
                 synchronized (jobs) {
                     if (jobs.size() == 0) {
-                        Logger.msg("UserCodeProcess.run() - Sleeping");
+                        log.trace("run() - Sleeping");
                         while (active && jobs.size() == 0) jobs.wait(2000);
                     }
                 }
@@ -170,7 +169,7 @@ public class UserCodeProcess extends StandardClient implements ProxyObserver<Job
             Gateway.close();
         }
         catch( Exception ex ) {
-            Logger.error(ex);
+            log.error("", ex);
         }
     }
 
@@ -185,14 +184,14 @@ public class UserCodeProcess extends StandardClient implements ProxyObserver<Job
             throws AccessRightsException, InvalidDataException, InvalidTransitionException, ObjectNotFoundException, PersistencyException,
             ObjectAlreadyExistsException, ScriptErrorException, InvalidCollectionModification
     {
-        Logger.msg(5, "UserCodeProcess.start() - job:"+thisJob);
+        log.debug("start() - job:"+thisJob);
 
         if (assessStartConditions(thisJob)) {
-            Logger.msg(5, "UserCodeProcess.start() - Attempting to start");
+            log.debug("start() - Attempting to start");
             agent.execute(thisJob);
         }
         else {
-            Logger.msg(5, "UserCodeProcess.start() - Start conditions failed "+thisJob.getStepName()+" in "+thisJob.getItemPath());
+            log.debug("start() - Start conditions failed "+thisJob.getStepName()+" in "+thisJob.getItemPath());
         }
     }
 
@@ -204,7 +203,7 @@ public class UserCodeProcess extends StandardClient implements ProxyObserver<Job
      * @param jobKey the key of the job (i.e. itemPath:stepPat)
      */
     public void complete(Job thisJob, String jobKey) throws Exception {
-        Logger.msg(5, "UserCodeProcess.complete() - job:"+thisJob);
+        log.debug("complete() - job:"+thisJob);
 
         runUserCodeLogic(thisJob, getErrorJob(thisJob, ERROR));
     }
@@ -250,7 +249,7 @@ public class UserCodeProcess extends StandardClient implements ProxyObserver<Job
                 if (thisJob == null) thisJob = getJob(jobs, START);
 
                 if (thisJob == null) {
-                    Logger.error("No supported jobs, but joblist is not empty! Discarding remaining jobs");
+                    log.error("No supported jobs, but joblist is not empty! Discarding remaining jobs");
                     jobs.clear();
                 }
                 else {
@@ -274,7 +273,7 @@ public class UserCodeProcess extends StandardClient implements ProxyObserver<Job
             for (C2KLocalObject c2kLocalObject : jobs.values()) {
                 Job thisJob = (Job)c2kLocalObject;
                 if (thisJob.getItemUUID().equals(completeJob.getItemUUID()) && thisJob.getTransition().getId() == errorTrans) {
-                    Logger.msg(5, "UserCodeProcess.getErrorJob() - job:"+thisJob);
+                    log.debug("getErrorJob() - job:"+thisJob);
                     errorJob = thisJob;
                 }
             }
@@ -293,8 +292,8 @@ public class UserCodeProcess extends StandardClient implements ProxyObserver<Job
         for (C2KLocalObject c2kLocalObject : jobs.values()) {
             Job thisJob = (Job)c2kLocalObject;
             if (thisJob.getTransition().getId() == transition) {
-                Logger.msg(1,"=================================================================");
-                Logger.msg(5, "UserCodeProcess.getJob() - job:"+thisJob);
+                log.debug("=================================================================");
+                log.debug("getJob() - job:"+thisJob);
                 return thisJob;
             }
         }
@@ -310,7 +309,7 @@ public class UserCodeProcess extends StandardClient implements ProxyObserver<Job
         synchronized(jobs) {
             jobs.put(job.getClusterPath(), job);
             jobs.notify();
-            Logger.msg(7, "UserCodeProcess.add() - Added job:"+job);
+            log.debug("add() - Added job:"+job);
         }
     }
 
@@ -319,7 +318,7 @@ public class UserCodeProcess extends StandardClient implements ProxyObserver<Job
      */
     @Override
     public void control(String control, String msg) {
-        if (MemberSubscription.ERROR.equals(control)) Logger.error("Error in job subscription: "+msg);
+        if (MemberSubscription.ERROR.equals(control)) log.error("Error in job subscription: "+msg);
     }
 
     /**
@@ -329,7 +328,7 @@ public class UserCodeProcess extends StandardClient implements ProxyObserver<Job
     public void remove(String id) {
         synchronized(jobs) {
             Job job = (Job) jobs.remove(id);
-            Logger.msg(7, "UserCodeProcess.remove() - Removed job:"+job);
+            log.debug("remove() - Removed job:"+job);
         }
     }
 
@@ -367,13 +366,13 @@ public class UserCodeProcess extends StandardClient implements ProxyObserver<Job
             }));
         }
         catch( Exception ex ) {
-            Logger.error(ex);
+            log.error("", ex);
 
             try {
                 Gateway.close();
             }
             catch(Exception ex1) {
-                Logger.error(ex1);
+                log.error("", ex1);
             }
             status = 1;
             System.exit(status);

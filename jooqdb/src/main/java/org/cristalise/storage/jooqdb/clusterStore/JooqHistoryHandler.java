@@ -38,7 +38,6 @@ import org.cristalise.kernel.events.Event;
 import org.cristalise.kernel.lookup.AgentPath;
 import org.cristalise.kernel.lookup.ItemPath;
 import org.cristalise.kernel.utils.DateUtility;
-import org.cristalise.kernel.utils.Logger;
 import org.cristalise.storage.jooqdb.JooqHandler;
 import org.jooq.Condition;
 import org.jooq.DSLContext;
@@ -46,6 +45,9 @@ import org.jooq.Field;
 import org.jooq.Record;
 import org.jooq.Table;
 
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
 public class JooqHistoryHandler extends JooqHandler {
     static final Table<?> EVENT_TABLE = table(name("EVENT"));
 
@@ -162,7 +164,7 @@ public class JooqHistoryHandler extends JooqHandler {
                         ts);
             }
             catch (Exception ex) {
-                Logger.error(ex);
+                log.error("", ex);
                 throw new PersistencyException(ex.getMessage());
             }
         }
