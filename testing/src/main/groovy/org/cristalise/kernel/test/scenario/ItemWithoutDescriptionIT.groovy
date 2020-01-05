@@ -112,8 +112,8 @@ class ItemWithoutDescriptionIT extends KernelScenarioTestBase {
         OutcomeBuilder ob = new OutcomeBuilder(LocalObjectLoader.getSchema('LoggerConfig', 0))
 
         ob.addField("Root", "WARN")
-        ob.addRecord('/LoggerConfig/Logger', [Class: 'org.cristalise.storage', Level: 'TRACE'])
-        ob.addRecord('/LoggerConfig/Logger', [Class: 'org.apache.shiro',       Level: 'DEBUG'])
+        ob.addRecord('/LoggerConfig/Logger', [Name: 'org.cristalise.storage', Level: 'TRACE'])
+        ob.addRecord('/LoggerConfig/Logger', [Name: 'org.apache.shiro',       Level: 'DEBUG'])
 
         agent.execute(serverItem, ConfigureLogback.class, ob.xml)
     }
