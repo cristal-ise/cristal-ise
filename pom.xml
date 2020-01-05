@@ -57,6 +57,8 @@
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <additionalparam>-Xdoclint:none</additionalparam>
         <maven.deploy.skip>true</maven.deploy.skip>
+        <groovy-eclipse-compiler.version>3.6.0-03</groovy-eclipse-compiler.version>
+        <groovy-eclipse-batch.version>2.5.8-03</groovy-eclipse-batch.version>
     </properties>
 
     <description>Cristal-ise is a description-driven software platform originally developed to track the construction of
