@@ -170,6 +170,8 @@ public class ImportItem extends ModuleImport {
             throws InvalidDataException, ObjectCannotBeUpdated, ObjectNotFoundException,
             CannotManageException, ObjectAlreadyExistsException, InvalidCollectionModification, PersistencyException
     {
+        log.info("create() - name:%s", name);
+
         domainPath = new DomainPath(new DomainPath(initialPath), name);
 
         if (domainPath.exists()) {
@@ -311,6 +313,9 @@ public class ImportItem extends ModuleImport {
             Aggregation newAgg = element.create();
             colls.put(newAgg);
         }
+
+        log.info("createCollections() - name:{} number of colls:{}", name, colls.list.size());
+
         return colls;
     }
 }

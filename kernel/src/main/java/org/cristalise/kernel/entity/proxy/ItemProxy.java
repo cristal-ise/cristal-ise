@@ -21,12 +21,17 @@
 package org.cristalise.kernel.entity.proxy;
 
 import static org.cristalise.kernel.persistency.ClusterType.HISTORY;
+import static org.cristalise.kernel.property.BuiltInItemProperties.AGGREGATE_SCRIPT_URN;
+import static org.cristalise.kernel.property.BuiltInItemProperties.MASTER_SCHEMA_URN;
 import static org.cristalise.kernel.property.BuiltInItemProperties.NAME;
+import static org.cristalise.kernel.property.BuiltInItemProperties.SCHEMA_URN;
+import static org.cristalise.kernel.property.BuiltInItemProperties.SCRIPT_URN;
 import static org.cristalise.kernel.property.BuiltInItemProperties.TYPE;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
+import org.apache.commons.lang3.StringUtils;
 import org.cristalise.kernel.collection.BuiltInCollections;
 import org.cristalise.kernel.collection.Collection;
 import org.cristalise.kernel.collection.CollectionArrayList;
@@ -58,6 +63,7 @@ import org.cristalise.kernel.property.BuiltInItemProperties;
 import org.cristalise.kernel.property.Property;
 import org.cristalise.kernel.property.PropertyArrayList;
 import org.cristalise.kernel.querying.Query;
+import org.cristalise.kernel.scripting.Script;
 import org.cristalise.kernel.utils.CastorXMLUtility;
 import org.cristalise.kernel.utils.LocalObjectLoader;
 import org.exolab.castor.mapping.MappingException;
@@ -82,7 +88,7 @@ public class ItemProxy
     private final HashMap<MemberSubscription<?>, ProxyObserver<?>> mSubscriptions;
 
     /**
-     * Set Transaction key (aka locker) when ItemProxy is used in server side scripting
+     * Set Transaction key (a.k.a. locker) when ItemProxy is used in server side scripting
      */
     @Getter @Setter
     private Object transactionKey = null;
@@ -520,7 +526,7 @@ public class ItemProxy
     }
 
     /**
-     * Check if the given Viewpoint exists.This method can be used in server 
+     * Check if the given Viewpoint exists. This method can be used in server 
      * side Script to find uncommitted changes during the active transaction.
      *
      * @param schemaName the name of the Schema associated with the Viewpoint
@@ -1182,7 +1188,31 @@ public class ItemProxy
         Property prop = (Property)getObject(ClusterType.PROPERTY+"/"+name, locker == null ? transactionKey : locker);
 
         if(prop != null) return prop.getValue();
-        else             throw new ObjectNotFoundException("getProperty() - COULD not find property "+name+" from item "+mItemPath);
+        else             throw new ObjectNotFoundException("COULD not find property "+name+" from item "+mItemPath);
+    }
+
+    /**
+     * Check if the given Property exists
+     * 
+     * @param name of the Property
+     * @return true if the Property exist false otherwise
+     * @throws ObjectNotFoundException Item does not have any properties at all
+     */
+    public boolean checkProperty(String name) throws ObjectNotFoundException {
+        return checkContent(ClusterType.PROPERTY.getName(), name);
+    }
+
+    /**
+     * Check if the given Property exists. This method can be used in server 
+     * side Script to find uncommitted changes during the active transaction.
+     * 
+     * @param name of the Property
+     * @param locker the transaction key
+     * @return true if the Property exist false otherwise
+     * @throws ObjectNotFoundException Item does not have any properties at all
+     */
+    public boolean checkProperty(String name, Object locker) throws ObjectNotFoundException {
+        return checkContent(ClusterType.PROPERTY.getName(), name, locker == null ? transactionKey : locker);
     }
 
     /**
@@ -1225,6 +1255,100 @@ public class ItemProxy
      */
     public Event getEvent(int eventId, Object locker) throws ObjectNotFoundException {
         return (Event) getObject(HISTORY + "/" + eventId, locker == null ? transactionKey : locker);
+    }
+
+    /**
+     * Returns the so called Master Schema which can be used to construct master outcome.
+     * 
+     * @return the actual Schema
+     * @throws InvalidDataException the Schema could not be constructed
+     * @throws ObjectNotFoundException no Schema was found for the name and version
+     */
+    public Schema getMasterSchema() throws InvalidDataException, ObjectNotFoundException {
+        return getMasterSchema(null, null);
+    }
+
+    /**
+     * Returns the so called Master Schema which can be used to construct master outcome.
+     * 
+     * @param schemaName the name or UUID of the Schema or can be blank. It overwrites the master schema settings in the Properties
+     * @param schemaVersion the version of the schema or can be null. It overwrites the master schema settings in the Properties
+     * @return the Schema
+     * @throws InvalidDataException the Schema could not be constructed
+     * @throws ObjectNotFoundException no Schema was found for the name and version
+     */
+    public Schema getMasterSchema(String schemaName, Integer schemaVersion) throws InvalidDataException, ObjectNotFoundException {
+        String masterSchemaUrn = getProperty(MASTER_SCHEMA_URN, null);
+        if (StringUtils.isBlank(masterSchemaUrn)) masterSchemaUrn = getProperty(SCHEMA_URN, null);
+
+        if (StringUtils.isBlank(schemaName)) {
+            if (StringUtils.isNotBlank(masterSchemaUrn)) schemaName = masterSchemaUrn.split(":")[0];
+            else                                         schemaName = getType();
+        }
+
+        if (schemaVersion == null) {
+            if (StringUtils.isBlank(masterSchemaUrn)) {
+                if (Gateway.getProperties().getBoolean("Module.Versioning.strict", false)) {
+                    throw new InvalidDataException("Version for Schema '" + schemaName + "' cannot be null");
+                }
+                else {
+                    log.warn("getMasterSchema() - Version for Schema '{}' was null, using version 0 as default", schemaName);
+                    schemaVersion = 0;
+                }
+            }
+            else {
+                schemaVersion = Integer.valueOf(masterSchemaUrn.split(":")[1]);
+            }
+        }
+
+        return LocalObjectLoader.getSchema(schemaName, schemaVersion);
+    }
+
+    /**
+     * Returns the so called Aggregate Script which can be used to construct master outcome.
+     * 
+     * @return the script or null
+     * @throws InvalidDataException 
+     * @throws ObjectNotFoundException 
+     */
+    public Script getAggregateScript() throws InvalidDataException, ObjectNotFoundException {
+        return getAggregateScript(null, null);
+    }
+
+    /**
+     * Returns the so called Aggregate Script which can be used to construct master outcome.
+     * 
+     * @param scriptName the name of the script received in the rest call (can be null)
+     * @param scriptVersion the version of the script received in the rest call (can be null)
+     * @return the script or null
+     * @throws InvalidDataException 
+     * @throws ObjectNotFoundException 
+     */
+    public Script getAggregateScript(String scriptName, Integer scriptVersion) throws InvalidDataException, ObjectNotFoundException {
+        String aggregateScriptUrn = getProperty(AGGREGATE_SCRIPT_URN, null);
+        if (StringUtils.isBlank(aggregateScriptUrn)) aggregateScriptUrn = getProperty(SCRIPT_URN, null);
+
+        if (StringUtils.isBlank(scriptName)) {
+            if (StringUtils.isBlank(aggregateScriptUrn)) scriptName = getType() + "_Aggregate";
+            else                                         scriptName = aggregateScriptUrn.split(":")[0];
+        }
+
+        if (scriptVersion == null) {
+            if (StringUtils.isBlank(aggregateScriptUrn)) {
+                if (Gateway.getProperties().getBoolean("Module.Versioning.strict", false)) {
+                    throw new InvalidDataException("Version for Script '" + scriptName + "' cannot be null");
+                }
+                else {
+                    log.warn("getAggregateScript() - Version for Script '{}' was null, using version 0 as default", scriptName);
+                    scriptVersion = 0;
+                }
+            }
+            else {
+                scriptVersion = Integer.valueOf(aggregateScriptUrn.split(":")[1]);
+            }
+        }
+
+        return LocalObjectLoader.getScript(scriptName, scriptVersion);
     }
 
     //**************************************************************************

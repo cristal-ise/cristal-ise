@@ -30,6 +30,8 @@ import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.SCRIPT_V
 import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.STATE_MACHINE_NAME;
 import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.STATE_MACHINE_VERSION;
 import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.VERSION;
+import static org.cristalise.kernel.property.BuiltInItemProperties.AGGREGATE_SCRIPT_URN;
+import static org.cristalise.kernel.property.BuiltInItemProperties.MASTER_SCHEMA_URN;
 import static org.cristalise.kernel.property.BuiltInItemProperties.QUERY_URN;
 import static org.cristalise.kernel.property.BuiltInItemProperties.SCHEMA_URN;
 import static org.cristalise.kernel.property.BuiltInItemProperties.SCRIPT_URN;
@@ -39,6 +41,7 @@ import static org.cristalise.kernel.property.BuiltInItemProperties.WORKFLOW_URN;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.commons.lang3.StringUtils;
 import org.cristalise.kernel.common.InvalidCollectionModification;
 import org.cristalise.kernel.common.InvalidDataException;
 import org.cristalise.kernel.common.ObjectAlreadyExistsException;
@@ -49,6 +52,8 @@ import org.cristalise.kernel.lookup.ItemPath;
 import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.property.Property;
 import org.cristalise.kernel.property.PropertyArrayList;
+import org.cristalise.kernel.scripting.Script;
+import org.cristalise.kernel.scripting.ScriptingEngineException;
 import org.cristalise.kernel.utils.CastorHashMap;
 import org.cristalise.kernel.utils.KeyValuePair;
 import org.cristalise.kernel.utils.LocalObjectLoader;
@@ -260,7 +265,7 @@ public class Dependency extends Collection<DependencyMember> {
         if (itemPath == null)
             throw new InvalidCollectionModification("Cannot add empty slot to Dependency collection");
 
-        boolean checkUniqueness = Gateway.getProperties().getBoolean("checkMemberUniqueness", true);
+        boolean checkUniqueness = Gateway.getProperties().getBoolean("Dependency.checkMemberUniqueness", true);
 
         if (checkUniqueness && contains(itemPath))
             throw new ObjectAlreadyExistsException("Item "+itemPath+" already exists in Dependency "+getName());
@@ -310,6 +315,9 @@ public class Dependency extends Collection<DependencyMember> {
         //convert to BuiltInCollections
         BuiltInCollections builtInColl = BuiltInCollections.getValue(getName());
 
+        //Do not process this member further if Script has done the job already or this is not a BuiltInCollection
+        if (convertToItemPropertyByScript(props) || builtInColl == null) return;
+
         for (DependencyMember member : getMembers().list) {
             String memberUUID = member.getChildUUID();
             Integer memberVer = LocalObjectLoader.deriveVersionNumber(member.getBuiltInProperty(VERSION));
@@ -318,14 +326,22 @@ public class Dependency extends Collection<DependencyMember> {
                 throw new InvalidDataException("Version is null for Collection:" + getName() + ", MemberUUID:" + memberUUID);
             }
 
-            //Do not process this member further
-            //  - if Script has done the job already
-            //  - or this is not a BuiltInCollection
-            if (convertToItemPropertyByScript(props, member) || builtInColl == null) continue;
+            //Do not process this member further if Script has done the job already or this is not a BuiltInCollection
+            if (member.convertToItemPropertyByScript(props) || builtInColl == null) continue;
 
             log.debug("addToItemProperties() - BuiltIn Dependency:"+getName()+" memberUUID:"+memberUUID);
             //LocalObjectLoader checks if data is valid and loads object to cache
             switch (builtInColl) {
+                //***************************************************************************************************
+                case AGGREGATE_SCRIPT:
+                    LocalObjectLoader.getSchema(memberUUID, memberVer);
+                    props.put(new Property(AGGREGATE_SCRIPT_URN, memberUUID+":"+memberVer));
+                    break;
+                //***************************************************************************************************
+                case MASTER_SCHEMA:
+                    LocalObjectLoader.getSchema(memberUUID, memberVer);
+                    props.put(new Property(MASTER_SCHEMA_URN, memberUUID+":"+memberVer));
+                    break;
                 //***************************************************************************************************
                 case SCHEMA:
                     LocalObjectLoader.getSchema(memberUUID, memberVer);
@@ -343,14 +359,14 @@ public class Dependency extends Collection<DependencyMember> {
                     break;
                 //***************************************************************************************************
                 case STATE_MACHINE:
-                    if (Gateway.getProperties().getBoolean("addStateMachineURN", false) ) {
+                    if (Gateway.getProperties().getBoolean("Dependency.addStateMachineURN", false) ) {
                         LocalObjectLoader.getStateMachine(memberUUID, memberVer);
                         props.put(new Property(STATE_MACHINE_URN, memberUUID+":"+memberVer));
                     }
                     break;
                 //***************************************************************************************************
                 case WORKFLOW:
-                    if (Gateway.getProperties().getBoolean("addWorkflowURN", false) ) {
+                    if (Gateway.getProperties().getBoolean("Dependency.addWorkflowURN", false) ) {
                         LocalObjectLoader.getCompActDef(memberUUID, memberVer);
                         props.put(new Property(WORKFLOW_URN, memberUUID+":"+memberVer));
                     }
@@ -372,15 +388,21 @@ public class Dependency extends Collection<DependencyMember> {
      * @throws InvalidDataException
      * @throws ObjectNotFoundException
      */
-    private boolean convertToItemPropertyByScript(PropertyArrayList props, DependencyMember member)  throws InvalidDataException, ObjectNotFoundException {
-        log.debug("convertToItemPropertyByScript() - Dependency:"+getName()+" memberUUID:"+member.getChildUUID());
+    private boolean convertToItemPropertyByScript(PropertyArrayList props)  throws InvalidDataException, ObjectNotFoundException {
+        log.debug("convertToItemPropertyByScript() - Dependency:"+getName());
 
-        String scriptName = (String)member.getBuiltInProperty(SCRIPT_NAME);
+        String scriptName = (String)getBuiltInProperty(SCRIPT_NAME);
 
-        if (scriptName != null && scriptName.length() > 0) {
-            PropertyArrayList newProps = (PropertyArrayList)member.evaluateScript();
-            props.merge(newProps);
-            return true;
+        if (StringUtils.isNotBlank(scriptName)) {
+            Object result = evaluateScript();
+
+            if (result != null && result instanceof PropertyArrayList) {
+                props.merge((PropertyArrayList)result);
+                return true;
+            }
+            else {
+                throw new InvalidDataException("Script '" + scriptName + "' returned null or the wrong type");
+            }
         }
         return false;
     }
@@ -543,4 +565,30 @@ public class Dependency extends Collection<DependencyMember> {
     public boolean containsBuiltInProperty(BuiltInVertexProperties prop) {
         return mProperties.containsKey(prop.getName());
     }
+
+    /**
+     * 
+     * @return either PropertyArrayList or CastorHashMap
+     * 
+     * @throws InvalidDataException
+     * @throws ObjectNotFoundException
+     */
+    protected Object evaluateScript() throws InvalidDataException, ObjectNotFoundException {
+        Script script = LocalObjectLoader.getScript(getProperties());
+
+        try {
+            script.setInputParamValue("dependency", this);
+
+            script.setInputParamValue("storage", Gateway.getStorage());
+            script.setInputParamValue("proxy", Gateway.getProxyManager());
+            script.setInputParamValue("lookup", Gateway.getLookup());
+
+            return script.evaluate(null, getProperties(), null, null);
+        }
+        catch (ScriptingEngineException e) {
+            log.error("", e);
+            throw new InvalidDataException(e.getMessage());
+        }
+    }
+
 }
