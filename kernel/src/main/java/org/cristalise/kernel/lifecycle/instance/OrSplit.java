@@ -36,33 +36,36 @@ public class OrSplit extends Split {
 
     @Override
     public void runNext(AgentPath agent, ItemPath itemPath, Object locker) throws InvalidDataException {
+        int id = getID();
         String[] nextsTab = calculateNexts(itemPath, locker);
 
         int active = 0;
         DirectedEdge[] outEdges = getOutEdges();
         for (String thisNext : nextsTab) {
-            Logger.msg(7, "OrSplit.runNext(id:"+getID()+") - Finding next " + thisNext);
+            Logger.msg(7, "OrSplit.runNext(id: %d) - Finding edge with %s '%s'", id, ALIAS, thisNext);
 
-            for (DirectedEdge outEdge : outEdges) {
-                Next nextEdge = (Next) outEdge;
-                if (thisNext != null && thisNext.equals(nextEdge.getBuiltInProperty(ALIAS))) {
-                    WfVertex term = nextEdge.getTerminusVertex();
-                    try {
-                        term.run(agent, itemPath, locker);
+            if (thisNext != null) {
+                for (DirectedEdge outEdge : outEdges) {
+                    Next nextEdge = (Next) outEdge;
+                    if (thisNext.equals(nextEdge.getBuiltInProperty(ALIAS))) {
+                        WfVertex term = nextEdge.getTerminusVertex();
+                        try {
+                            term.run(agent, itemPath, locker);
+                        }
+                        catch (InvalidDataException e) {
+                            Logger.error(e);
+                            throw new InvalidDataException("Error enabling next " + thisNext);
+                        }
+                        Logger.msg(7, "OrSplit.runNext(id: %d) - Running %s", id, nextEdge.getBuiltInProperty(ALIAS));
+                        active++;
                     }
-                    catch (InvalidDataException e) {
-                        Logger.error(e);
-                        throw new InvalidDataException("Error enabling next " + thisNext);
-                    }
-                    Logger.msg(7, "OrSplit.runNext(id:"+getID()+") - Running " + nextEdge.getBuiltInProperty(ALIAS));
-                    active++;
                 }
             }
         }
 
         // if no active nexts throw exception
         if (active == 0)
-            throw new InvalidDataException("No nexts were activated! (id:"+getID()+")");
+            throw new InvalidDataException("No edges found, no next vertex activated! (id: " + id + ")");
     }
 
 }

@@ -26,9 +26,7 @@ import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import java.nio.ByteBuffer;
-import java.security.InvalidAlgorithmParameterException;
-import java.security.InvalidKeyException;
-import java.security.NoSuchAlgorithmException;
+import java.security.Key;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.LinkedHashMap;
@@ -36,24 +34,27 @@ import java.util.List;
 import java.util.Map;
 
 import javax.crypto.BadPaddingException;
-import javax.crypto.Cipher;
 import javax.crypto.IllegalBlockSizeException;
-import javax.crypto.KeyGenerator;
-import javax.crypto.NoSuchPaddingException;
-import javax.crypto.SecretKey;
-import javax.crypto.spec.IvParameterSpec;
 import javax.ws.rs.core.Cookie;
+import javax.ws.rs.core.NewCookie;
 import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
 import javax.ws.rs.core.UriInfo;
 import javax.xml.bind.DatatypeConverter;
 
+import org.apache.commons.lang3.StringUtils;
+import org.apache.shiro.crypto.AesCipherService;
 import org.cristalise.kernel.common.InvalidDataException;
 import org.cristalise.kernel.common.ObjectNotFoundException;
 import org.cristalise.kernel.common.SystemKey;
 import org.cristalise.kernel.entity.proxy.AgentProxy;
 import org.cristalise.kernel.lookup.AgentPath;
+import org.cristalise.kernel.lookup.DomainPath;
 import org.cristalise.kernel.lookup.InvalidAgentPathException;
 import org.cristalise.kernel.lookup.ItemPath;
+import org.cristalise.kernel.lookup.Lookup.PagedResult;
+import org.cristalise.kernel.lookup.Path;
+import org.cristalise.kernel.lookup.RolePath;
 import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.property.Property;
 import org.cristalise.kernel.utils.Logger;
@@ -66,32 +67,18 @@ abstract public class RestHandler {
     private boolean requireLogin = true;
     private int defaultLogLevel;
 
-    private static SecretKey cookieKey;
-    private static Cipher encryptCipher;
-    private static Cipher decryptCipher;
+    private static Key cookieKey;
+    private static AesCipherService aesCipherService;
 
     public static final String COOKIENAME = "cauth";
     public static final String USERNAME = "username";
     public static final String PASSWORD = "password";
 
     static {
-        try {
-            try {
-                initKeys(256);
-            }
-            catch (InvalidKeyException ex) {
-                if (Gateway.getProperties().getBoolean("REST.allowWeakKey", false) == false) {
-                    Logger.error(ex);
-                    Logger.die("Weak cookie crypto not allowed, and unlimited strength crypto not installed.");
-                }
-                Logger.msg("Unlimited crypto not installed. Trying 128-bit key.");
-                initKeys(128);
-            }
-        }
-        catch (Exception e) {
-            Logger.error(e);
-            Logger.die("Error initializing cookie encryption");
-        }
+        int keySize = Gateway.getProperties().getBoolean("REST.allowWeakKey", false) ? 128 : 256;
+
+        aesCipherService = new AesCipherService();
+        cookieKey = aesCipherService.generateNewKey(keySize);
     }
 
     public RestHandler() {
@@ -100,30 +87,23 @@ abstract public class RestHandler {
         defaultLogLevel = Gateway.getProperties().getInt("LOGGER.defaultLevel", 9);
     }
 
-    private static void initKeys(int keySize) 
-            throws NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException, InvalidAlgorithmParameterException
-    {
-        KeyGenerator kgen = KeyGenerator.getInstance("AES");
-        kgen.init(keySize);
-        cookieKey = kgen.generateKey();
-
-        System.out.println("RestHandler.initKeys() - Cookie key: "+DatatypeConverter.printBase64Binary(cookieKey.getEncoded()));
-
-        encryptCipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
-        encryptCipher.init(Cipher.ENCRYPT_MODE, cookieKey);
-
-        decryptCipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
-        decryptCipher.init(Cipher.DECRYPT_MODE, cookieKey, new IvParameterSpec(encryptCipher.getIV()));
-    }
-
-    private synchronized AuthData decryptAuthData(String authData)
+    /**
+     * 
+     * @param authData
+     * @return
+     * @throws InvalidAgentPathException
+     * @throws IllegalBlockSizeException
+     * @throws BadPaddingException
+     * @throws InvalidDataException
+     */
+    protected synchronized AuthData decryptAuthData(String authData)
             throws InvalidAgentPathException, IllegalBlockSizeException, BadPaddingException, InvalidDataException
     {
         byte[] bytes = DatatypeConverter.parseBase64Binary(authData);
 
         for (int cntRetries = 1; ; cntRetries++) {
             try {
-                return new AuthData(decryptCipher.doFinal(bytes));
+                return new AuthData(aesCipherService.decrypt(bytes, cookieKey.getEncoded()).getBytes());
             }
             catch (final Exception e) {
                 Logger.error("Exception caught in decryptAuthData: #" + cntRetries + ": " + e.getMessage());
@@ -135,21 +115,90 @@ abstract public class RestHandler {
         }
     }
 
+    /**
+     * 
+     * @param auth
+     * @return
+     * @throws IllegalBlockSizeException
+     * @throws BadPaddingException
+     */
     protected synchronized String encryptAuthData(AuthData auth)
             throws IllegalBlockSizeException, BadPaddingException
     {
-        byte[] bytes = encryptCipher.doFinal(auth.getBytes());
+        byte[] bytes = aesCipherService.encrypt(auth.getBytes(), cookieKey.getEncoded()).getBytes();
         return DatatypeConverter.printBase64Binary(bytes);
     }
 
-    public Response toJSON(Object data) {
+    public Response.ResponseBuilder toJSON(Object data, NewCookie cookie) {
         try {
             String json = mapper.writeValueAsString(data);
             Logger.msg(8, json);
-            return Response.ok(json).build();
-        } catch (IOException e) {
+            if (cookie != null) return Response.ok(json).cookie(cookie);
+            else                return Response.ok(json);
+        }
+        catch (IOException e) {
+            throw new WebAppExceptionBuilder("Problem building response JSON", e, Response.Status.INTERNAL_SERVER_ERROR, cookie).build();
+        }
+    }
+
+    /**
+     * This method will check if authentication is 30seconds old, if true then it will return NewCookie.
+     * Return null if not.
+     *
+     * @param authData
+     * @return NewCookie
+     */
+    public NewCookie checkAndCreateNewCookie(AuthData authData) {
+        if ( authData != null ) {
+            boolean userNoTimeout = isUserNoTimeout( authData.agent );
+            if ( !userNoTimeout && ((new Date().getTime() - authData.timestamp.getTime()) / 1000 > 30) ) {
+                authData.timestamp = new Date();
+                return createNewCookie(authData);
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * This method will check if authentication is 30seconds old, if true then it will return NewCookie.
+     * Return null if not.
+     *
+     * @param authCookie
+     * @return NewCookie
+     */
+    public NewCookie checkAndCreateNewCookie(Cookie authCookie) {
+        return checkAndCreateNewCookie( checkAuthCookie( authCookie) );
+    }
+
+    public NewCookie createNewCookie(AgentPath agentPath) {
+        AuthData agentData = new AuthData(agentPath);
+        return createNewCookie( agentData );
+    }
+
+    public NewCookie createNewCookie(AuthData authData) {
+        try {
+            NewCookie cookie = new NewCookie(COOKIENAME, encryptAuthData(authData), "/", null, null, -1, false);
+            return  cookie;
+        } catch (IllegalBlockSizeException | BadPaddingException e) {
             Logger.error(e);
-            throw ItemUtils.createWebAppException("Problem building response JSON: ", e, Response.Status.INTERNAL_SERVER_ERROR);
+            throw new WebAppExceptionBuilder("Problem building response JSON: ", e, Response.Status.INTERNAL_SERVER_ERROR, null).build();
+        }
+    }
+
+    /**
+     * AgentPath is decrypted from the cookie
+     *
+     * @param authCookie the cookie sent by the client
+     * @return AgentPath decrypted from the cookie
+     */
+    public synchronized AgentPath getAgentPath(Cookie authCookie) {
+        AuthData authData = checkAuthCookie( authCookie );
+
+        if ( authData == null ) {
+            return null;
+        } else {
+            return authData.agent;
         }
     }
 
@@ -157,9 +206,9 @@ abstract public class RestHandler {
      * Authorisation data is decrypted from the cookie
      * 
      * @param authCookie the cookie sent by the client
-     * @return AgentPath decrypted from the cookie
+     * @return AuthData decrypted from the cookie
      */
-    public synchronized AgentPath checkAuthCookie(Cookie authCookie) {
+    public synchronized AuthData checkAuthCookie(Cookie authCookie) {
         if(authCookie == null) return checkAuthData(null);
         else                   return checkAuthData(authCookie.getValue());
     }
@@ -170,23 +219,24 @@ abstract public class RestHandler {
      * @param authData authorisation data normally taken from cookie or token
      * @return AgentPath created from the decrypted autData
      */
-    private AgentPath checkAuthData(String authData) {
+    private AuthData checkAuthData(String authData) {
         if (!requireLogin) return null;
 
-        if (authData == null)
-            throw ItemUtils.createWebAppException("Missing authentication data", Response.Status.UNAUTHORIZED);
+        if (authData == null) {
+            throw new WebAppExceptionBuilder().message("Missing authentication data").status(Response.Status.UNAUTHORIZED).build();
+        }
 
         try {
             AuthData data = decryptAuthData(authData);
-            return data.agent;
+            return data;
         } catch (InvalidAgentPathException | InvalidDataException e) {
             Logger.error(e.getMessage() + " - authData:"+authData);
             if (Logger.doLog(defaultLogLevel)) Logger.error(e);
-            throw ItemUtils.createWebAppException("Invalid agent or login data", e, Response.Status.UNAUTHORIZED);
+            throw new WebAppExceptionBuilder().message("Invalid agent or login data").status(Response.Status.UNAUTHORIZED).build();
         } catch (Exception e) {
             Logger.error(e.getMessage() + " - authData:"+authData);
             if (Logger.doLog(defaultLogLevel)) Logger.error(e);
-            throw ItemUtils.createWebAppException("Error reading authentication data", e, Response.Status.UNAUTHORIZED);
+            throw new WebAppExceptionBuilder().message("Error reading authentication data").status(Response.Status.UNAUTHORIZED).build();
         }
     }
 
@@ -198,7 +248,7 @@ abstract public class RestHandler {
      * @param authCookie the cookie sent by the client
      * @returnAgentProxy
      */
-    public AgentProxy getAgent(String agentName, Cookie authCookie) {
+    public AgentProxy getAgent(String agentName, Cookie authCookie) throws ObjectNotFoundException {
         if(authCookie == null) return getAgent(agentName, (String)null);
         else                   return getAgent(agentName, authCookie.getValue());
     }
@@ -211,23 +261,27 @@ abstract public class RestHandler {
      * @param authData authorisation data (from cookie or token)
      * @return AgentProxy
      */
-    public AgentProxy getAgent(String agentName, String authData) {
-        AgentPath agentPath = checkAuthData(authData);
-
+    public AgentProxy getAgent(String agentName, String authData) throws ObjectNotFoundException {
+        AgentPath agentPath;
+        AuthData agentAuthData = checkAuthData(authData);
         try {
-            if(agentPath == null ) {
-                if (agentName != null && !"".equals(agentName)) {
+            if(agentAuthData == null ) {
+                if (StringUtils.isNoneBlank(agentName)) {
                     agentPath = Gateway.getLookup().getAgentPath(agentName);
                 }
-                else
-                    throw ItemUtils.createWebAppException("Agent is empty", Response.Status.INTERNAL_SERVER_ERROR);
+                else {
+                    throw new ObjectNotFoundException("AgentName is empty");
+                }
+            }
+            else {
+                agentPath = agentAuthData.agent;
             }
 
             return (AgentProxy)Gateway.getProxyManager().getProxy(agentPath);
         }
         catch (ObjectNotFoundException e) {
             Logger.error(e);
-            throw ItemUtils.createWebAppException("Agent not found", e, Response.Status.NOT_FOUND);
+            throw new ObjectNotFoundException("Agent not found");
         }
     }
 
@@ -285,14 +339,15 @@ abstract public class RestHandler {
                 String[] nameval = terms[i].split(":");
                 String value = nameval[1];
     
-                if (nameval.length != 2)
-                    throw ItemUtils.createWebAppException("Invalid search term: " + terms[i], Response.Status.BAD_REQUEST);
+                if (nameval.length != 2) {
+                    throw new WebAppExceptionBuilder().message("Invalid search term: " + terms[i]).status(Status.BAD_REQUEST).build();
+                }
     
                 try {
                     value = URLDecoder.decode(nameval[1], "UTF-8");
                 } catch (UnsupportedEncodingException e) {
                     Logger.error(e);
-                    throw ItemUtils.createWebAppException("Error decoding search value: " + nameval[1], Response.Status.BAD_REQUEST);
+                    throw new WebAppExceptionBuilder().message("Error decoding search value: " + nameval[1]).status(Status.BAD_REQUEST).build();
                 }
                 
                 props.add(new Property(nameval[0], value));
@@ -301,10 +356,54 @@ abstract public class RestHandler {
                 props.add(new Property(NAME, terms[i]));
             }
             else {
-                throw ItemUtils.createWebAppException("Only the first search term may omit property name", Response.Status.BAD_REQUEST);
+                throw new WebAppExceptionBuilder().message("Only the first search term may omit property name").status(Status.BAD_REQUEST).build();
             }
         }
         return props;
+    }
+
+    private boolean isUserNoTimeout ( AgentPath agent ) {
+        RolePath[] roles = agent.getRoles();
+        String roleWithoutTimeout = Gateway.getProperties().getString("REST.role.withoutTimeout");
+
+        boolean userNoTimeout = false;
+
+        if (StringUtils.isNotBlank(roleWithoutTimeout)) {
+            for(RolePath role: roles) {
+                if (role.getName().equals(roleWithoutTimeout)) {
+                    Logger.msg(8, "AuthData - cookie timeout is disabled for the current user:%s", agent.getName());
+                    userNoTimeout = true;
+                }
+            }
+        }
+
+        return userNoTimeout;
+    }
+
+    /**
+     * 
+     * @param ip
+     */
+    protected  Map<String, Object> makeItemDomainPathsData(ItemPath ip) {
+        PagedResult result = Gateway.getLookup().searchAliases(ip, 0, 50);
+
+        Map<String, Object> returnVal = new LinkedHashMap<String, Object>();
+        ArrayList<Object> domainPathesData = new ArrayList<>();
+
+        for (Path p: result.rows) domainPathesData.add(p.getStringPath());
+
+        if (domainPathesData.size() != 0) {
+            returnVal.put("uuid", ip.getUUID().toString());
+            returnVal.put("name", ((DomainPath)result.rows.get(0)).getName());
+            returnVal.put("domainPaths", domainPathesData);
+        }
+        else if (ip instanceof AgentPath) {
+            returnVal.put("uuid", ip.getUUID().toString());
+            returnVal.put("name", ((AgentPath)ip).getAgentName());
+            returnVal.put("error", "Agent has no aliases");
+        }
+
+        return returnVal;
     }
 
     /**
@@ -327,7 +426,9 @@ abstract public class RestHandler {
             timestamp = new Date(buf.getLong());
             int cookieLife = Gateway.getProperties().getInt("REST.loginCookieLife", 0);
 
-            if (cookieLife > 0 && (new Date().getTime() - timestamp.getTime()) / 1000 > cookieLife) {
+            boolean userNoTimeout = isUserNoTimeout( this.agent );
+
+            if (!userNoTimeout && cookieLife > 0 && (new Date().getTime() - timestamp.getTime()) / 1000 > cookieLife) {
                 throw new InvalidDataException("Cookie too old");
             }
         }

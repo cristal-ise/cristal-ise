@@ -22,9 +22,8 @@ package org.cristalise.kernel.entity.imports;
 
 import static org.cristalise.kernel.property.BuiltInItemProperties.CREATOR;
 import static org.cristalise.kernel.property.BuiltInItemProperties.NAME;
-
+import static org.cristalise.kernel.security.BuiltInAuthc.ADMIN_ROLE;
 import java.util.ArrayList;
-
 import org.apache.commons.lang3.StringUtils;
 import org.cristalise.kernel.collection.Aggregation;
 import org.cristalise.kernel.collection.CollectionArrayList;
@@ -58,7 +57,6 @@ import org.cristalise.kernel.property.Property;
 import org.cristalise.kernel.property.PropertyArrayList;
 import org.cristalise.kernel.utils.LocalObjectLoader;
 import org.cristalise.kernel.utils.Logger;
-
 import lombok.Getter;
 import lombok.Setter;
 
@@ -89,10 +87,6 @@ public class ImportItem extends ModuleImport {
      * It is not marshallable by castor, therefore cannot be set in module.xml
      */
     protected Workflow wf;
-
-    //TODO: Check if these 2 flags should go to class ModuleImport
-    protected boolean isNewItem = true;
-    protected boolean isDOMPathExists = true; //avoids multiple call to domainPath.exists()
 
     public ImportItem() {}
 
@@ -240,7 +234,7 @@ public class ImportItem extends ModuleImport {
             }
 
             // write new view/outcome/event
-            Event newEvent = hist.addEvent(agentPath, null, "Admin", "Import", "Import", "Import", schema, Bootstrap.getPredefSM(), PredefinedStep.DONE, thisOutcome.viewname);
+            Event newEvent = hist.addEvent(agentPath, null, ADMIN_ROLE.getName(), "Import", "Import", "Import", schema, Bootstrap.getPredefSM(), PredefinedStep.DONE, thisOutcome.viewname);
             newOutcome.setID(newEvent.getID());
             impView.setEventId(newEvent.getID());
 

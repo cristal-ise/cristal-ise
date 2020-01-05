@@ -25,12 +25,18 @@ import java.time.format.DateTimeFormatter;
 import java.util.Map;
 
 import org.cristalise.kernel.persistency.outcomebuilder.InvalidOutcomeException;
+import org.cristalise.kernel.process.Gateway;
 import org.json.JSONObject;
 
 public class DateTimeField extends DateField {
 
     public DateTimeField() {
         super();
+    }
+    
+    @Override
+    public String getDefaultValue() {
+        return Gateway.getProperties().getString("Webui.inputField.dateTime.defaultValue", "");
     }
 
     @Override
@@ -47,7 +53,7 @@ public class DateTimeField extends DateField {
 
         JSONObject additional = getAdditionalConfigNgDynamicForms(date);
         additional.put("showTime", true);
-
+        
         return date;
     }
 

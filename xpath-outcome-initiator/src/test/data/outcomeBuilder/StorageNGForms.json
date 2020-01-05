@@ -7,6 +7,8 @@
     {
       "validators": {"required": null},
       "inputType": "text",
+      "id": "ID",
+      "label": "ID *",
       "cls": {
         "grid": {
           "container": "ui-g",
@@ -15,8 +17,6 @@
         },
         "element": {"label": "ui-widget"}
       },
-      "id": "ID",
-      "label": "ID *",
       "placeholder": "ID",
       "type": "INPUT",
       "required": true
@@ -24,6 +24,8 @@
     {
       "validators": {"required": null},
       "inputType": "text",
+      "id": "Name",
+      "label": "Name *",
       "cls": {
         "grid": {
           "container": "ui-g",
@@ -32,8 +34,6 @@
         },
         "element": {"label": "ui-widget"}
       },
-      "id": "Name",
-      "label": "Name *",
       "placeholder": "Name",
       "type": "INPUT",
       "required": true
@@ -57,6 +57,8 @@
           "value": "ERROR"
         }
       ],
+      "id": "State",
+      "label": "State *",
       "cls": {
         "grid": {
           "container": "ui-g",
@@ -65,8 +67,6 @@
         },
         "element": {"label": "ui-widget"}
       },
-      "id": "State",
-      "label": "State *",
       "placeholder": "State",
       "type": "SELECT",
       "value": "READY",
@@ -87,6 +87,8 @@
           "value": "WAREHOUSE"
         }
       ],
+      "id": "Type",
+      "label": "Type *",
       "cls": {
         "grid": {
           "container": "ui-g",
@@ -95,8 +97,6 @@
         },
         "element": {"label": "ui-widget"}
       },
-      "id": "Type",
-      "label": "Type *",
       "placeholder": "Type",
       "type": "SELECT",
       "value": "BIN",
@@ -107,6 +107,8 @@
         "min": 0,
         "required": null
       },
+      "id": "Capacity",
+      "label": "Capacity *",
       "cls": {
         "grid": {
           "container": "ui-g",
@@ -115,8 +117,6 @@
         },
         "element": {"label": "ui-widget"}
       },
-      "id": "Capacity",
-      "label": "Capacity *",
       "placeholder": "Capacity",
       "type": "INPUT",
       "value": "0.0",
@@ -124,6 +124,8 @@
     },
     {
       "inputType": "text",
+      "id": "Season",
+      "label": "Season",
       "cls": {
         "grid": {
           "container": "ui-g",
@@ -132,14 +134,14 @@
         },
         "element": {"label": "ui-widget"}
       },
-      "id": "Season",
-      "label": "Season",
       "placeholder": "Season",
       "type": "INPUT",
       "required": false
     },
     {
       "inputType": "text",
+      "id": "Commodity",
+      "label": "Commodity",
       "cls": {
         "grid": {
           "container": "ui-g",
@@ -148,14 +150,14 @@
         },
         "element": {"label": "ui-widget"}
       },
-      "id": "Commodity",
-      "label": "Commodity",
       "placeholder": "Commodity",
       "type": "INPUT",
       "required": false
     },
     {
       "inputType": "text",
+      "id": "Grade",
+      "label": "Grade",
       "cls": {
         "grid": {
           "container": "ui-g",
@@ -164,14 +166,14 @@
         },
         "element": {"label": "ui-widget"}
       },
-      "id": "Grade",
-      "label": "Grade",
       "placeholder": "Grade",
       "type": "INPUT",
       "required": false
     },
     {
       "inputType": "text",
+      "id": "Note",
+      "label": "Note",
       "cls": {
         "grid": {
           "container": "ui-g",
@@ -180,14 +182,14 @@
         },
         "element": {"label": "ui-widget"}
       },
-      "id": "Note",
-      "label": "Note",
       "placeholder": "Note",
       "type": "INPUT",
       "required": false
     },
     {
       "validators": {"min": 0},
+      "id": "Amount",
+      "label": "Amount",
       "cls": {
         "grid": {
           "container": "ui-g",
@@ -196,8 +198,6 @@
         },
         "element": {"label": "ui-widget"}
       },
-      "id": "Amount",
-      "label": "Amount",
       "placeholder": "Amount",
       "type": "INPUT",
       "value": "0.0",
@@ -205,6 +205,8 @@
     },
     {
       "validators": {"min": 0},
+      "id": "MeasuredWeight",
+      "label": "Measured Weight",
       "cls": {
         "grid": {
           "container": "ui-g",
@@ -213,8 +215,6 @@
         },
         "element": {"label": "ui-widget"}
       },
-      "id": "MeasuredWeight",
-      "label": "Measured Weight",
       "placeholder": "Measured Weight",
       "type": "INPUT",
       "value": "0.0",

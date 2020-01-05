@@ -24,18 +24,18 @@ import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.AGENT_NA
 import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.AGENT_ROLE;
 import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.BREAKPOINT;
 import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.DESCRIPTION;
+import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.PAIRING_ID;
 import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.VIEW_POINT;
 import static org.cristalise.kernel.property.BuiltInItemProperties.NAME;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.Vector;
-
 import javax.xml.xpath.XPathExpressionException;
-
 import org.apache.commons.lang3.StringUtils;
 import org.cristalise.kernel.common.AccessRightsException;
 import org.cristalise.kernel.common.CannotManageException;
@@ -52,7 +52,6 @@ import org.cristalise.kernel.events.History;
 import org.cristalise.kernel.graph.model.Vertex;
 import org.cristalise.kernel.graph.traversal.GraphTraversal;
 import org.cristalise.kernel.lifecycle.WfCastorHashMap;
-import org.cristalise.kernel.lifecycle.instance.predefined.WriteProperty;
 import org.cristalise.kernel.lifecycle.instance.stateMachine.State;
 import org.cristalise.kernel.lifecycle.instance.stateMachine.StateMachine;
 import org.cristalise.kernel.lifecycle.instance.stateMachine.Transition;
@@ -68,6 +67,7 @@ import org.cristalise.kernel.persistency.outcome.Schema;
 import org.cristalise.kernel.persistency.outcome.Viewpoint;
 import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.property.Property;
+import org.cristalise.kernel.property.PropertyUtility;
 import org.cristalise.kernel.utils.DateUtility;
 import org.cristalise.kernel.utils.LocalObjectLoader;
 import org.cristalise.kernel.utils.Logger;
@@ -308,7 +308,7 @@ public class Activity extends WfVertex {
 
                     if(StringUtils.isNotBlank(propValue)) {
                         Logger.msg(5, "Activity.updateItemProperties() - propName:"+propName+" propValue:"+propValue);
-                        WriteProperty.write(itemPath, propName, propValue, locker);
+                        PropertyUtility.writeProperty(itemPath, propName, propValue, locker);
                     }
                 }
                 else {
@@ -334,7 +334,7 @@ public class Activity extends WfVertex {
      * @throws ObjectNotFoundException
      * @throws PersistencyException
      * @throws CannotManageException
-     * @throws AccessRightsException 
+     * @throws AccessRightsException
      */
     protected String runActivityLogic(AgentPath agent, ItemPath itemPath, int transitionID, String requestData, Object locker)
             throws InvalidDataException, InvalidCollectionModification, ObjectAlreadyExistsException, ObjectCannotBeUpdated,
@@ -401,7 +401,7 @@ public class Activity extends WfVertex {
         if (outVertices.length > 0) ((WfVertex) getOutGraphables()[0]).run(agent, itemPath, locker);
 
         //parent is never null, because we do not call runNext() for the top level workflow (see bellow)
-        CompositeActivity parent = getParentCA(); 
+        CompositeActivity parent = getParentCA();
 
         //compute now if the CA can be finished or not
         if (checkParentFinishable(parent, outVertices)) {
@@ -416,7 +416,7 @@ public class Activity extends WfVertex {
      * Calculate if the CompositeActivity (parent) can be finished automatically or not
      */
     private boolean checkParentFinishable(CompositeActivity parent, Vertex[] outVertices)
-            throws InvalidDataException 
+            throws InvalidDataException
     {
         WfVertex outVertex = null;
         boolean cont = outVertices.length > 0;
@@ -428,6 +428,15 @@ public class Activity extends WfVertex {
             if (outVertex instanceof Join) {
                 outVertices = outVertex.getOutGraphables();
                 cont = outVertices.length > 0;
+            }
+            else if(outVertex instanceof Loop){
+                String loopPairingId = (String) outVertex.getBuiltInProperty(PAIRING_ID);
+                if(loopPairingId != null && StringUtils.isNotBlank(loopPairingId)){
+                    //Find the out Join which has not the same pairing id as the Loop
+                    outVertices = outVertex.getOutGraphables();
+                    outVertices = Arrays.stream(outVertices).filter(v -> !loopPairingId.equals(((WfVertex) v).getBuiltInProperty(PAIRING_ID))).toArray(Vertex[]::new);
+                    cont = outVertices.length > 0;
+                } else { cont = false; }
             }
             else {
                 cont = false;
@@ -464,11 +473,15 @@ public class Activity extends WfVertex {
      */
     @Override
     public void reinit(int idLoop) throws InvalidDataException {
-        Vertex[] outVertices = getOutGraphables();
+        Logger.msg(8, "Activity.reinit(id:%s, idLoop:%d) - parent:%s act:%s", getID(), idLoop, getParent().getName(), getPath());
+
         setState(getStateMachine().getInitialState().getId());
+
+        Vertex[] outVertices = getOutGraphables();
+
+        //NOTE: strange condition, activity can have zero or one outVertex and its id cannot be the loopId
         if (outVertices.length > 0 && idLoop != getID()) {
-            WfVertex nextAct = (WfVertex) outVertices[0];
-            nextAct.reinit(idLoop);
+            ((WfVertex) outVertices[0]).reinit(idLoop);
         }
     }
 

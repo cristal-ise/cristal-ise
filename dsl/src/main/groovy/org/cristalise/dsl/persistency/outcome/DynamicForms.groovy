@@ -20,36 +20,136 @@
  */
 package org.cristalise.dsl.persistency.outcome
 
+import java.util.regex.Pattern
+
 import org.cristalise.kernel.common.InvalidDataException
-
+import org.cristalise.kernel.querying.Query
+import org.cristalise.kernel.scripting.Script
 import groovy.transform.CompileStatic;
-
 
 @CompileStatic
 class DynamicForms {
-    Boolean hidden = null
-    Boolean required = null
     Boolean disabled = null
-    Boolean multiple = null
-    String label = null
-    String placeholder = null
-    String type = null
-    String inputType = null
-    Integer min = null
-    Integer max = null
-    String value = null
-    String mask = null
-    String pattern = null
     String errmsg = null
+    Boolean hidden = null
+    String inputType = null
+    String label = null
+    String mask = null
+    Integer max = null
+    Integer min = null
+    Boolean multiple = null
+	String autoComplete = null
+    String pattern = null
+    String placeholder = null
+    Boolean required = null
+    Boolean showSeconds = null
+    Boolean hideOnDateTimeSelect = null
+    String type = null
+    String value = null
+
+    /**
+     * List all fields that will be updated once the current field is updated.
+     */
+    List<String> updateFields = null
     
     /**
-     * Defines the Script name and version (e.g. GetShiftNames:0) which is executed when
-     * the from generated from the XML Schema has to be updated
+     * Sets the grid properties of the base form or of the field
      */
-    String updateScriptRef = null
+    String container = null
+    String control = null
+    String labelGrid = null
+    
+    /**
+     * Provided validation rule and message to set a warning on the given field
+     */
+    Warning warning = null
+
+    /**
+     * Sets the width of the form
+     */
+    String width = null
+
+    /**
+     * 
+     */
+    Additional additional = null
+
+    /**
+     * Defines the Script name and version (e.g. GetShiftNames:0) which is executed when
+     * the from generated from the XML Schema has to be updated. It can be based on String 
+     * or the Script object.
+     */
+    Object updateScriptRef = null
+
+    /**
+     * Converts the updateScriptRef object to the String representation (i.e. 'GetShiftNames:0')
+     * used in the generated XSD.
+     * 
+     * @return the converted String
+     */
+    String getUpdateScriptRefString() {
+        if (updateScriptRef == null) {
+            return 'null'
+        }
+        else if (updateScriptRef instanceof Script) {
+            Script s = (Script)updateScriptRef
+            return s.getName() + ':' + s.getVersion()
+        }
+        else {
+            return updateScriptRef.toString()
+        }
+    }
+
     /**
      * Defines the Query name and version (e.g. GetShiftNames:0) which is executed when
-     * the from generated from the XML Schema has to be updated
+     * the from generated from the XML Schema has to be updated. It can be based on String 
+     * or the Query object.
      */
-    String updateQuerytRef = null
+    Object updateQuerytRef = null
+
+    /**
+     * Converts the updateQuerytRef object to the String representation (i.e. 'GetShiftNames:0')
+     * used in the generated XSD.
+     * 
+     * @return the converted String 
+     */
+    String getUpdateQueryRefString() {
+        if (updateQuerytRef == null) {
+            return 'null'
+        }
+        else if (updateQuerytRef instanceof Query) {
+            Script q = (Script)updateQuerytRef
+            return q.getName() + ':' + q.getVersion()
+        }
+        else {
+            return updateScriptRef.toString()
+        }
+    }
+
+    /**
+     * Number of digits that are present in the number. Possible value are: P, P-
+     */
+    String precision = null
+    /**
+     * Number of decimal places that are present in the number.Possible value are: S, S-
+     */
+    String scale = null
+
+    /**
+     * 
+     * @param p
+     */
+    public void setPrecision(String p) {
+        if (!(p ==~ /^\d+[-]?$/)) throw new InvalidDataException("Invalid precision value ("+p+"). Value should be '5' or '5-'")
+        precision = p
+    }
+
+    /**
+     * 
+     * @param s
+     */
+    public void setScale(String s) {
+        if (!(s ==~ /^\d+[-]?$/)) throw new InvalidDataException("Invalid scale value ("+s+"). Value should be '5' or '5-'")
+        scale = s
+    }
 }

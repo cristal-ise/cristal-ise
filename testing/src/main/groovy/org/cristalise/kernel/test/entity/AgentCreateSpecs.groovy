@@ -37,7 +37,7 @@ class AgentCreateSpecs extends Specification implements CristalTestSetup {
 
     def 'Agent with Role is created'() {
         when:
-        AgentTestBuilder agentBuilder = AgentTestBuilder.create(name: "dummy") {
+        AgentTestBuilder agentBuilder = AgentTestBuilder.create(name: "dummy", password: 'dummy') {
             Roles {
                 Role(name: 'toto', jobList: true)
             }

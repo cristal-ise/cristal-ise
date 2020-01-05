@@ -98,11 +98,16 @@ public class DomainPath extends Path {
     }
 
     public void setTargetUUID(String uuid) {
-        try {
-            target = new ItemPath(uuid);
+        if (uuid == null) {
+            target = null;
         }
-        catch (InvalidItemPathException e) {
-            Logger.error(e);
+        else {
+            try {
+                target = new ItemPath(uuid);
+            }
+            catch (InvalidItemPathException e) {
+                Logger.error(e);
+            }
         }
     }
 

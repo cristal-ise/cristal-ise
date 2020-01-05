@@ -231,7 +231,7 @@ class ModuleDelegate {
      * @param cl
      */
     public void Agent(Map args, Closure cl) {
-        def agent = AgentBuilder.build((String) args.name, (String) args.password, cl)
+        def agent = AgentBuilder.build(args, cl)
         agent.roles.each { it.jobList = null }
 
         updateImports(agent)
@@ -244,7 +244,7 @@ class ModuleDelegate {
      * @param cl
      */
     public ImportItem Item(Map args, Closure cl) {
-        def item = ItemBuilder.build((String) args.name, (String) args.folder, args.workflow, cl)
+        def item = ItemBuilder.build((String) args.name, (String) args.folder, args.workflow, args?.workflowVer as Integer, cl)
 
         item.properties.removeAll { it.value == args.name }
 

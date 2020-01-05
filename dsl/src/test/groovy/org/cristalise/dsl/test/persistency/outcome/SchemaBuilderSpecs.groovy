@@ -960,4 +960,45 @@ class SchemaBuilderSpecs extends Specification implements CristalTestSetup {
              </xs:schema>""")
     }
 
+    def 'Structure definition keeps the order of fields and structs'() {
+        expect:
+        SchemaTestBuilder.build('Test', 'TestData', 0) {
+            struct(name: 'TestData') { 
+                field(name:'stringField1')
+                struct(name: 'TestData1') { 
+                    field(name:'stringField1')
+                }
+                field(name:'stringField2')
+                struct(name: 'TestData2') { 
+                    field(name:'stringField1')
+                }
+                field(name:'stringField3')
+            }
+        }.compareXML("""<?xml version='1.0' encoding='utf-8'?>
+                        <xs:schema xmlns:xs='http://www.w3.org/2001/XMLSchema'>
+                          <xs:element name='TestData'>
+                            <xs:complexType>
+                              <xs:all minOccurs='0'>
+                                <xs:element name='stringField1' type='xs:string' minOccurs='1' maxOccurs='1' />
+                                <xs:element name='TestData1'>
+                                  <xs:complexType>
+                                    <xs:all minOccurs='0'>
+                                      <xs:element name='stringField1' type='xs:string' minOccurs='1' maxOccurs='1' />
+                                    </xs:all>
+                                  </xs:complexType>
+                                </xs:element>
+                                <xs:element name='stringField2' type='xs:string' minOccurs='1' maxOccurs='1' />
+                                <xs:element name='TestData2'>
+                                  <xs:complexType>
+                                    <xs:all minOccurs='0'>
+                                      <xs:element name='stringField1' type='xs:string' minOccurs='1' maxOccurs='1' />
+                                    </xs:all>
+                                  </xs:complexType>
+                                </xs:element>
+                                <xs:element name='stringField3' type='xs:string' minOccurs='1' maxOccurs='1' />
+                              </xs:all>
+                            </xs:complexType>
+                          </xs:element>
+                        </xs:schema>""")
+    }
 }

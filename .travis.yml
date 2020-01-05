@@ -1,6 +1,7 @@
 language: java
 jdk: oraclejdk8
-branches: 
+dist: trusty
+branches:
   only:
     - master
     - release

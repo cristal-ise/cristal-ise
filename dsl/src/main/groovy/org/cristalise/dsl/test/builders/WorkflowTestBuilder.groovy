@@ -22,15 +22,21 @@ package org.cristalise.dsl.test.builders
 
 import groovy.transform.CompileStatic
 import org.cristalise.dsl.lifecycle.instance.WorkflowBuilder
+import org.cristalise.kernel.graph.layout.DefaultGraphLayoutGenerator
 import org.cristalise.kernel.graph.model.DirectedEdge
+import org.cristalise.kernel.graph.model.GraphModel
 import org.cristalise.kernel.lifecycle.instance.*
 import org.cristalise.kernel.lifecycle.instance.stateMachine.StateMachine
 import org.cristalise.kernel.lifecycle.instance.stateMachine.Transition
+import org.cristalise.kernel.lifecycle.renderer.LifecycleRenderer
 import org.cristalise.kernel.lookup.AgentPath
 import org.cristalise.kernel.lookup.ItemPath
 import org.cristalise.kernel.persistency.outcome.Outcome
 import org.cristalise.kernel.process.Gateway
 import org.cristalise.kernel.utils.Logger
+
+import javax.imageio.ImageIO
+import java.awt.image.BufferedImage
 
 /**
  *
@@ -54,6 +60,11 @@ class WorkflowTestBuilder extends WorkflowBuilder {
 
         itemPath  = new ItemPath()
         agentPath = new AgentPath(new ItemPath(), "WorkflowTestBuilder")
+
+        if(Gateway.getCorbaServer() != null) {
+            Gateway.getLookupManager().add(itemPath)
+            Gateway.getLookupManager().add(agentPath)
+        }
     }
 
     /**
@@ -246,5 +257,13 @@ class WorkflowTestBuilder extends WorkflowBuilder {
         super.build(cl)
         initialise()
         return wf
+    }
+
+    public void saveWorkflowPngImage(GraphModel graphModel, String targetFileName, boolean autoLayout = false){
+        if(autoLayout) {
+            DefaultGraphLayoutGenerator.layoutGraph(graphModel)
+        }
+        BufferedImage imgWf = new LifecycleRenderer(graphModel, false).getWorkFlowModelImage(1920, 1080)
+        ImageIO.write(imgWf, "png", new File(targetFileName))
     }
 }

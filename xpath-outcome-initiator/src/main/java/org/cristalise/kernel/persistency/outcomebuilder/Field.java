@@ -142,7 +142,8 @@ public class Field extends OutcomeStructure {
             }
         }
         else if (json instanceof JSONArray) {
-            throw new UnsupportedOperationException("Field name '" + name + "' contains an ARRAY");
+            Logger.warning("Field.addJsonInstance() - Field name '" + name + "' contains an ARRAY. Parsing ARRAY to String");
+            setJsonValue(parentStruct, parentElement, name, json.toString());
         }
         else {
             //json variable is not JSOObject nor JSONArray, so handle it as a value
@@ -234,6 +235,9 @@ public class Field extends OutcomeStructure {
 
         if (StringUtils.isNotBlank(defVal)) fieldJson.put("value", defVal);
         if (StringUtils.isNotBlank(help))   myFieldInstance.getAdditionalConfigNgDynamicForms(fieldJson).put("tooltip", help.trim());
+
+        // dynamicForms.additional fields provided in the schema can overwrite default values (check ListOfValues.editable)
+        myFieldInstance.updateWithAdditional(fieldJson);
 
         return fieldJson;
     }

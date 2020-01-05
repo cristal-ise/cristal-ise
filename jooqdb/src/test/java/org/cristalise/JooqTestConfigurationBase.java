@@ -167,7 +167,7 @@ public class JooqTestConfigurationBase {
     private static DSLContext initH2Context(String mode) throws Exception {
         String userName = "sa";
         String password = "sa";
-        String url      = "jdbc:h2:mem:";
+        String url      = "jdbc:h2:mem:test;DB_CLOSE_DELAY=-1";
 
         if (mode != null) url += ";MODE=" + mode; 
 
@@ -187,6 +187,6 @@ public class JooqTestConfigurationBase {
         c2kProps.put(JooqHandler.JOOQ_DIALECT,    SQLDialect.H2.toString());
         c2kProps.put(JooqHandler.JOOQ_AUTOCOMMIT, true);
 
-        if (mode != null) c2kProps.put(JooqHandler.JOOQ_URI, "jdbc:h2:mem:;MODE=" + mode);
+        if (mode != null) c2kProps.put(JooqHandler.JOOQ_URI, "jdbc:h2:mem:test;DB_CLOSE_DELAY=-1;MODE=" + mode);
     }
 }

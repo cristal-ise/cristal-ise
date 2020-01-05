@@ -22,6 +22,18 @@ Module(ns: 'testns', name: 'DSL Test', version: 0) {
 
     Config(name: 'Module.debug', value: true)
 
+    Roles {
+        Role(name: 'Admin', jobList: false) {
+            Permission('*')
+        }
+    }
+
+    Agent(name: 'TestAdmin', password: 'test', folder:'/testns/Agents') {
+        Roles {
+            Role(name: 'Admin')
+        }
+    }
+
     include(moduleDir+'/State.groovy')
     include(moduleDir+'/TestItem.groovy')
 }

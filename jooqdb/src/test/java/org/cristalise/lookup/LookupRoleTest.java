@@ -38,6 +38,7 @@ import org.cristalise.kernel.lookup.ItemPath;
 import org.cristalise.kernel.lookup.Lookup.PagedResult;
 import org.cristalise.kernel.lookup.Path;
 import org.cristalise.kernel.lookup.RolePath;
+import org.jooq.exception.DataAccessException;
 import org.junit.Before;
 import org.junit.Test;
 

@@ -1,0 +1,11 @@
+{
+    "EmployeeWithSkills": {
+        "Title": "Mr",
+        "Name": "kovax",
+        "FullName": "Zsolt Kovacs",
+        "JobTitle": "CTOish",
+        "TaxID": "APEH123",
+        "DateOfHire": "2018-03-31",
+        "Skills": ["Debugging", "Programming"]
+    }
+}

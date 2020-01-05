@@ -20,8 +20,11 @@
  */
 package org.cristalise.kernel.entity.proxy;
 
+import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.SIMPLE_ELECTRONIC_SIGNATURE;
+
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
@@ -39,7 +42,12 @@ import org.cristalise.kernel.entity.AgentHelper;
 import org.cristalise.kernel.entity.C2KLocalObject;
 import org.cristalise.kernel.entity.agent.Job;
 import org.cristalise.kernel.graph.model.BuiltInVertexProperties;
+import org.cristalise.kernel.lifecycle.instance.predefined.ChangeName;
+import org.cristalise.kernel.lifecycle.instance.predefined.Erase;
 import org.cristalise.kernel.lifecycle.instance.predefined.PredefinedStep;
+import org.cristalise.kernel.lifecycle.instance.predefined.RemoveC2KObject;
+import org.cristalise.kernel.lifecycle.instance.predefined.agent.SetAgentPassword;
+import org.cristalise.kernel.lifecycle.instance.predefined.agent.Sign;
 import org.cristalise.kernel.lookup.AgentPath;
 import org.cristalise.kernel.lookup.DomainPath;
 import org.cristalise.kernel.lookup.InvalidItemPathException;
@@ -164,9 +172,6 @@ public class AgentProxy extends ItemProxy {
         if (job.hasScript()) {
             Logger.msg(3, "AgentProxy.execute(job) - executing script");
             try {
-                // #196: Outcome can be invalid at this point, because Script will be executed later
-                //if (job.hasOutcome() && job.isOutcomeSet()) job.getOutcome().validateAndCheck();
-
                 // load script
                 ErrorInfo scriptErrors = callScript(item, job);
                 String errorString = scriptErrors.toString();
@@ -190,18 +195,20 @@ public class AgentProxy extends ItemProxy {
         else if (job.hasQuery() &&  !"Query".equals(job.getActProp(BuiltInVertexProperties.OUTCOME_INIT))) {
             Logger.msg(3, "AgentProxy.execute(job) - executing query (OutcomeInit != Query)");
 
-            // #196: Outcome can be invalid at this point, because Query will be executed later
-            //if (job.hasOutcome() && job.isOutcomeSet()) job.getOutcome().validateAndCheck();
-
             job.setOutcome(item.executeQuery(job.getQuery()));
         }
 
+        // #196: Outcome is validated after script execution, becuase client(e.g. webui) 
+        // can submit an incomplete outcome which is made complete by the script
         if (job.hasOutcome() && job.isOutcomeSet()) job.getOutcome().validateAndCheck();
 
         job.setAgentPath(mAgentPath);
 
-        Logger.msg(3, "AgentProxy.execute(job) - submitting job to item proxy");
+        if ((boolean)job.getActProp(SIMPLE_ELECTRONIC_SIGNATURE, false)) {
+            executeSimpleElectonicSignature(job);
+        }
 
+        Logger.msg(3, "AgentProxy.execute(job) - submitting job to item proxy");
         String result = item.requestAction(job);
 
         if (Logger.doLog(3)) {
@@ -211,6 +218,28 @@ public class AgentProxy extends ItemProxy {
         }
 
         return result;
+    }
+
+    public void executeSimpleElectonicSignature(Job job)
+            throws AccessRightsException, InvalidDataException, InvalidTransitionException, ObjectNotFoundException,
+            PersistencyException, ObjectAlreadyExistsException, ScriptErrorException, InvalidCollectionModification
+    {
+        StringBuffer xml = new StringBuffer("<SimpleElectonicSignature>");
+        xml.append("<AgentName>").append(job.getOutcome().getField("AgentName")).append("</AgentName>");
+        xml.append("<Password>") .append(job.getOutcome().getField("Password")) .append("</Password>");
+
+        xml.append("<ExecutionContext>");
+        xml.append("<ItemPath>")     .append(job.getItemUUID())           .append("</ItemPath>");
+        xml.append("<SchemaName>")   .append(job.getSchema().getName())   .append("</SchemaName>");
+        xml.append("<SchemaVersion>").append(job.getSchema().getVersion()).append("</SchemaVersion>");
+        xml.append("<ActivityType>") .append(job.getStepType())           .append("</ActivityType>");
+        xml.append("<ActivityName>") .append(job.getStepName())           .append("</ActivityName>");
+        xml.append("<StepPath>")     .append(job.getStepPath())           .append("</StepPath>");
+        xml.append("</ExecutionContext>");
+
+        xml.append("</SimpleElectonicSignature>");
+
+        execute(this, Sign.class, xml.toString());
     }
 
     @SuppressWarnings("rawtypes")
@@ -313,7 +342,7 @@ public class AgentProxy extends ItemProxy {
      * @throws ObjectAlreadyExistsException
      * @throws InvalidCollectionModification
      */
-    public String execute(ItemProxy item, Class<?> predefStep, String[] params)
+    public String execute(ItemProxy item, Class<?> predefStep, String...params)
             throws AccessRightsException, InvalidDataException, InvalidTransitionException, ObjectNotFoundException,
             PersistencyException, ObjectAlreadyExistsException, InvalidCollectionModification
     {
@@ -325,7 +354,8 @@ public class AgentProxy extends ItemProxy {
      *
      * @param item The item on which to execute the step
      * @param predefStep The step name to run
-     * @param params An array of parameters to pass to the step. See each step's documentation for its required parameters
+     * @param params An array of parameters to pass to the step. See each step's documentation 
+     *               for its required parameters
      *
      * @return The outcome after processing. May have been altered by the step.
      *
@@ -337,7 +367,7 @@ public class AgentProxy extends ItemProxy {
      * @throws ObjectAlreadyExistsException Thrown by steps that create additional object
      * @throws InvalidCollectionModification Thrown by steps that create/modify collections
      */
-    public String execute(ItemProxy item, String predefStep, String[] params)
+    public String execute(ItemProxy item, String predefStep, String...params)
             throws AccessRightsException, InvalidDataException, InvalidTransitionException, ObjectNotFoundException,
             PersistencyException, ObjectAlreadyExistsException, InvalidCollectionModification
     {
@@ -347,28 +377,59 @@ public class AgentProxy extends ItemProxy {
         if (schemaName.equals("PredefinedStepOutcome")) param = PredefinedStep.bundleData(params);
         else                                            param = params[0];
 
-        return item.getItem().requestAction(
+        String result = item.getItem().requestAction(
                 mAgentPath.getSystemKey(), 
                 "workflow/predefined/" + predefStep, 
                 PredefinedStep.DONE, 
                 param,
                 "",
                 new byte[0]);
+
+        String[] clearCacheSteps = {
+                ChangeName.class.getSimpleName(), 
+                Erase.class.getSimpleName(), 
+                SetAgentPassword.class.getSimpleName(),
+                RemoveC2KObject.class.getSimpleName()
+        };
+
+        if (Arrays.asList(clearCacheSteps).contains(predefStep)) {
+            Gateway.getStorage().clearCache(item.getPath(), null);
+            Gateway.getProxyManager().clearCache(item.getPath());
+        }
+
+        return result;
     }
 
     /**
+     * Execution without any parameters using Class of predefined step instead of string literal. 
+     * There are steps which can be executed without any parameters
      * 
-     * @param item
-     * @param predefStep
-     * @param param
-     * @return
-     * @throws AccessRightsException
-     * @throws InvalidDataException
-     * @throws InvalidTransitionException
-     * @throws ObjectNotFoundException
-     * @throws PersistencyException
-     * @throws ObjectAlreadyExistsException
-     * @throws InvalidCollectionModification
+     * @see #execute(ItemProxy, String)
+     */
+    public String execute(ItemProxy item, Class<?> predefStep)
+            throws AccessRightsException, InvalidDataException, InvalidTransitionException, ObjectNotFoundException,
+            PersistencyException, ObjectAlreadyExistsException,InvalidCollectionModification
+    {
+        return execute(item, predefStep.getSimpleName());
+    }
+
+    /**
+     * Execution without any parameters. There are steps which can be executed without any parameters
+     * 
+     * @see #execute(ItemProxy, String, String[])
+     */
+    public String execute(ItemProxy item, String predefStep)
+            throws AccessRightsException, InvalidDataException, InvalidTransitionException, ObjectNotFoundException,
+            PersistencyException, ObjectAlreadyExistsException,InvalidCollectionModification
+    {
+        return execute(item, predefStep, new String[0]);
+    }
+
+    /**
+     * Single parameter execution using Class of predefined step instead of string literal. 
+     * Wraps parameters up in a PredefinedStepOutcome if the schema of the requested step is such.
+     *
+     * @see #execute(ItemProxy, String, String)
      */
     public String execute(ItemProxy item, Class<?> predefStep, String param)
             throws AccessRightsException, InvalidDataException, InvalidTransitionException, ObjectNotFoundException,

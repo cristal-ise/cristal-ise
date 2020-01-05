@@ -24,6 +24,8 @@ import static org.cristalise.kernel.property.BuiltInItemProperties.KERNEL_VERSIO
 import static org.cristalise.kernel.property.BuiltInItemProperties.MODULE;
 import static org.cristalise.kernel.property.BuiltInItemProperties.NAME;
 import static org.cristalise.kernel.property.BuiltInItemProperties.TYPE;
+import static org.cristalise.kernel.security.BuiltInAuthc.ADMIN_ROLE;
+import static org.cristalise.kernel.security.BuiltInAuthc.SYSTEM_AGENT;
 
 import java.net.InetAddress;
 import java.util.HashMap;
@@ -103,7 +105,10 @@ public class Bootstrap
         checkAdminAgents();
 
         // create the server's mother item
-        createServerItem();
+        ItemPath serverItem = createServerItem();
+
+        // store system properties in server item
+        storeSystemProperties(serverItem);
     }
 
     /**
@@ -137,7 +142,7 @@ public class Bootstrap
                     }
 
                     if (!shutdown) {
-                        Gateway.getModuleManager().setUser(systemAgents.get("system"));
+                        Gateway.getModuleManager().setUser(systemAgents.get(SYSTEM_AGENT.getName()));
                         Gateway.getModuleManager().registerModules();
                     }
 
@@ -286,19 +291,19 @@ public class Bootstrap
                 // validate it, but not for kernel objects (ns == null) because those are to validate the rest
                 if (ns != null) newOutcome.validateAndCheck();
 
-                storeOutcomeEventAndViews(thisProxy, newOutcome, version);
+                storeOutcomeEventAndViews(thisProxy.getPath(), newOutcome, version);
 
                 CollectionArrayList cols = typeImpHandler.getCollections(itemName, version, newOutcome);
 
                 for (Collection<?> col : cols.list) {
-                    Gateway.getStorage().put(thisProxy.getPath(), col, thisProxy);
+                    Gateway.getStorage().put(thisProxy.getPath(), col, null);
                     Gateway.getStorage().clearCache(thisProxy.getPath(), ClusterType.COLLECTION+"/"+col.getName());
                     col.setVersion(null);
-                    Gateway.getStorage().put(thisProxy.getPath(), col, thisProxy);
+                    Gateway.getStorage().put(thisProxy.getPath(), col, null);
                 }
             }
         }
-        Gateway.getStorage().commit(thisProxy);
+        Gateway.getStorage().commit(null);
         return modDomPath;
     }
 
@@ -360,27 +365,32 @@ public class Bootstrap
      * @throws ObjectNotFoundException
      * @throws InvalidDataException
      */
-    private static void storeOutcomeEventAndViews(ItemProxy item, Outcome newOutcome, int version)
+    private static void storeOutcomeEventAndViews(ItemPath item, Outcome newOutcome, Integer version)
             throws PersistencyException, ObjectNotFoundException, InvalidDataException
     {
         Logger.msg("Bootstrap.storeOutcomeEventAndViews() - Writing new " + newOutcome.getSchema().getName() + " v" + version + " to "+item.getName());
 
-        History hist = new History( item.getPath(), item);
-        String viewName = String.valueOf(version);
+        History hist = new History(item, null);
 
-        int eventID = hist.addEvent( systemAgents.get("system").getPath(), null,
-                "Admin", "Bootstrap", "Bootstrap", "Bootstrap",
-                newOutcome.getSchema(), getPredefSM(), PredefinedStep.DONE, viewName
+        String viewName = "";
+        if (version != null) viewName = String.valueOf(version);
+
+        int eventID = hist.addEvent( systemAgents.get(SYSTEM_AGENT.getName()).getPath(), null,
+                ADMIN_ROLE.getName(), "Bootstrap", "Bootstrap", "Bootstrap",
+                newOutcome.getSchema(), getPredefSM(), PredefinedStep.DONE, version != null ? viewName : "last"
                 ).getID();
 
         newOutcome.setID(eventID);
 
-        Viewpoint newLastView   = new Viewpoint(item.getPath(), newOutcome.getSchema(), "last",   eventID);
-        Viewpoint newNumberView = new Viewpoint(item.getPath(), newOutcome.getSchema(), viewName, eventID);
+        Viewpoint newLastView = new Viewpoint(item, newOutcome.getSchema(), "last", eventID);
 
-        Gateway.getStorage().put(item.getPath(), newOutcome,    item);
-        Gateway.getStorage().put(item.getPath(), newLastView,   item);
-        Gateway.getStorage().put(item.getPath(), newNumberView, item);
+        Gateway.getStorage().put(item, newOutcome,  null);
+        Gateway.getStorage().put(item, newLastView, null);
+
+        if (version != null) {
+            Viewpoint newNumberView = new Viewpoint(item, newOutcome.getSchema(), viewName, eventID);
+            Gateway.getStorage().put(item, newNumberView, null);
+        }
     }
 
     /**
@@ -462,7 +472,7 @@ public class Bootstrap
         newDomPath.setItemPath(itemPath);
         lookupManager.add(newDomPath);
         ItemProxy newItemProxy = Gateway.getProxyManager().getProxy(itemPath);
-        newItemProxy.initialise( systemAgents.get("system").getPath(), props, ca, null);
+        newItemProxy.initialise( systemAgents.get(SYSTEM_AGENT.getName()).getPath(), props, ca, null);
         return newItemProxy;
     }
 
@@ -523,12 +533,12 @@ public class Bootstrap
         if (!rootRole.exists()) Gateway.getLookupManager().createRole(rootRole);
 
         // check for admin role
-        RolePath adminRole = new RolePath(rootRole, "Admin", false);
+        RolePath adminRole = new RolePath(rootRole, ADMIN_ROLE.getName(), false);
         if (!adminRole.exists()) Gateway.getLookupManager().createRole(adminRole);
         Gateway.getLookupManager().setPermission(adminRole, "*");
 
         // check for import Agent
-        AgentProxy system = checkAgent("system", null, adminRole, new UUID(0, 1).toString());
+        AgentProxy system = checkAgent(SYSTEM_AGENT.getName(), null, adminRole, new UUID(0, 1).toString());
         ScriptConsole.setUser(system);
 
         String ucRole = Gateway.getProperties().getString("UserCode.roleOverride", UserCodeProcess.DEFAULT_ROLE);
@@ -543,7 +553,7 @@ public class Bootstrap
                 UUID.randomUUID().toString());
     }
 
-    public static void createServerItem() throws Exception {
+    private static ItemPath createServerItem() throws Exception {
         LookupManager lookupManager = Gateway.getLookupManager();
         String serverName = Gateway.getProperties().getString("ItemServer.name", InetAddress.getLocalHost().getHostName());
         thisServerPath = new DomainPath("/servers/"+serverName);
@@ -569,12 +579,19 @@ public class Bootstrap
         Gateway.getStorage().put(serverItem, new Property("ConsolePort",   String.valueOf(Logger.getConsolePort()), true),  null);
 
         Gateway.getProxyManager().connectToProxyServer(serverName, proxyPort);
+
+        return serverItem;
+    }
+
+    private static void storeSystemProperties(ItemPath serverItem) throws Exception {
+        Outcome newOutcome = Gateway.getProperties().convertToOutcome("ItemServer");
+        storeOutcomeEventAndViews(serverItem, newOutcome, null);
     }
 
     public static void initServerItemWf() throws Exception {
         CompositeActivityDef serverWfCa = (CompositeActivityDef)LocalObjectLoader.getActDef("ServerItemWorkflow", 0);
         Workflow wf = new Workflow((CompositeActivity)serverWfCa.instantiate(), new ServerPredefinedStepContainer());
-        wf.initialise(thisServerPath.getItemPath(), systemAgents.get("system").getPath(), null);
+        wf.initialise(thisServerPath.getItemPath(), systemAgents.get(SYSTEM_AGENT.getName()).getPath(), null);
         Gateway.getStorage().put(thisServerPath.getItemPath(), wf, null);
     }
 }

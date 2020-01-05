@@ -20,12 +20,13 @@
  */
 package org.cristalise.kernel.entity.transfer;
 
+import static org.cristalise.kernel.persistency.ClusterType.OUTCOME;
+import static org.cristalise.kernel.persistency.ClusterType.PROPERTY;
 import static org.cristalise.kernel.property.BuiltInItemProperties.NAME;
-
+import static org.cristalise.kernel.security.BuiltInAuthc.SYSTEM_AGENT;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Iterator;
-
 import org.cristalise.kernel.collection.Collection;
 import org.cristalise.kernel.collection.CollectionArrayList;
 import org.cristalise.kernel.common.ObjectNotFoundException;
@@ -45,9 +46,6 @@ import org.cristalise.kernel.property.PropertyArrayList;
 import org.cristalise.kernel.utils.FileStringUtility;
 import org.cristalise.kernel.utils.Logger;
 
-import static org.cristalise.kernel.persistency.ClusterType.OUTCOME;
-import static org.cristalise.kernel.persistency.ClusterType.PROPERTY;
-
 public class TransferItem {
     private ArrayList<String> domainPaths;
     protected ItemPath        itemPath;
@@ -55,7 +53,7 @@ public class TransferItem {
 
     public TransferItem() throws Exception {
         try {
-            importAgentId = Gateway.getLookup().getAgentPath("system");
+            importAgentId = Gateway.getLookup().getAgentPath(SYSTEM_AGENT.getName());
         }
         catch (ObjectNotFoundException e) {
             Logger.error("TransferItem - System agent not found!");

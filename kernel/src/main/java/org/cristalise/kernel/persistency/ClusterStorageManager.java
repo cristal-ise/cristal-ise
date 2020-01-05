@@ -27,10 +27,12 @@ import static org.cristalise.kernel.persistency.ClusterType.VIEWPOINT;
 import java.util.ArrayList;
 import java.util.ConcurrentModificationException;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.Set;
 import java.util.StringTokenizer;
-
+import java.util.concurrent.ConcurrentHashMap;
 import org.cristalise.kernel.common.ObjectNotFoundException;
 import org.cristalise.kernel.common.PersistencyException;
 import org.cristalise.kernel.entity.C2KLocalObject;
@@ -62,6 +64,8 @@ public class ClusterStorageManager {
 
     // we don't need a soft cache for the top level cache - the proxies and entities clear that when reaped
     HashMap<ItemPath, Map<String, C2KLocalObject>> memoryCache = new HashMap<ItemPath, Map<String, C2KLocalObject>>();
+
+    Map<Object, Set<ProxyMessage>> proxyMessagesMap = new ConcurrentHashMap<Object, Set<ProxyMessage>>();
 
     /**
      * Initialises all ClusterStorage handlers listed by class name in the property "ClusterStorages"
@@ -343,12 +347,12 @@ public class ClusterStorageManager {
         }
 
         putInMemoryCache(itemPath, path, obj);
-
-        // transmit proxy event
-        if(Gateway.getProxyServer() != null)
-            Gateway.getProxyServer().sendProxyEvent(new ProxyMessage(itemPath, path, ProxyMessage.ADDED));
-        else
-            Logger.warning("ClusterStorageManager.put() - ProxyServer is null - Proxies are not notified of this event");
+        ProxyMessage message = new ProxyMessage(itemPath, path, ProxyMessage.ADDED);
+        if (locker != null){
+            keepMessageForLater(message, locker);
+        }else{
+            sendProxyEvent(message);
+        }
     }
 
     /**
@@ -417,12 +421,12 @@ public class ClusterStorageManager {
                 itemMemCache.remove(path);
             }
         }
-
-        // transmit proxy event
-        if(Gateway.getProxyServer() != null)
-            Gateway.getProxyServer().sendProxyEvent(new ProxyMessage(itemPath, path, ProxyMessage.DELETED));
-        else
-            Logger.warning("ClusterStorageManager.remove() - ProxyServer is null - Proxies are not notified of this event");
+        ProxyMessage message = new ProxyMessage(itemPath, path, ProxyMessage.DELETED);
+        if (locker != null){
+            keepMessageForLater(message, locker);
+         }else{
+            sendProxyEvent(message);
+        }
     }
 
     public void clearCache(ItemPath itemPath, String path) {
@@ -495,21 +499,33 @@ public class ClusterStorageManager {
         }
     }
 
-    public void begin(Object locker) {
+    public void begin(Object locker)  throws PersistencyException {
         for (TransactionalClusterStorage thisStore : transactionalStores) {
             thisStore.begin(locker);
         }
     }
 
     public void commit(Object locker) throws PersistencyException {
+        Set <ProxyMessage> messageSet = null;
         for (TransactionalClusterStorage thisStore : transactionalStores) {
             thisStore.commit(locker);
         }
+        if(locker != null){
+            messageSet = proxyMessagesMap.remove(locker);
+            if (messageSet != null){
+               for (ProxyMessage message: messageSet){
+                    Gateway.getProxyServer().sendProxyEvent(message);
+                }
+            }
+        }
     }
 
-    public void abort(Object locker) {
+    public void abort(Object locker) throws PersistencyException {
         for (TransactionalClusterStorage thisStore : transactionalStores) {
             thisStore.abort(locker);
+        }
+        if (locker!= null){
+            proxyMessagesMap.remove(locker);
         }
     }
 
@@ -528,6 +544,23 @@ public class ClusterStorageManager {
     public void postStartServer() throws PersistencyException{
         for (TransactionalClusterStorage thisStore : transactionalStores) {
             thisStore.postStartServer();
+        }
+    }
+
+    private void keepMessageForLater(ProxyMessage message, Object locker){
+        Set<ProxyMessage> set = proxyMessagesMap.get(locker);
+        if (set == null){
+            set = new HashSet<ProxyMessage>();
+            proxyMessagesMap.put(locker, set);
+        }
+        set.add(message);
+    }
+
+    private void sendProxyEvent(ProxyMessage message){
+        if(Gateway.getProxyServer() != null){
+            Gateway.getProxyServer().sendProxyEvent(message);
+        }else{
+            Logger.warning("ClusterStorageManager.sendProxyEvent: ProxyServer is null - Proxies are not notified of this event");
         }
     }
 }

@@ -137,6 +137,15 @@
                     <mapping>
                         <schema>SCRIPT_STYLE</schema>
                     </mapping>
+                    <excludes>
+                        <exclude>pom.xml</exclude>
+                        <exclude>.flattened-pom.xml</exclude>
+                        <exclude>**/*.example</exclude>
+                        <exclude>**/*LICENSE</exclude>
+                        <exclude>**/*README</exclude>
+                        <exclude>**/*.gpg.enc</exclude>
+                        <exclude>**/*.ldif</exclude>
+                    </excludes>
                 </configuration>
                 <executions>
                     <execution>

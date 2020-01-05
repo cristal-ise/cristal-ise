@@ -23,6 +23,7 @@ package org.cristalise.kernel.lifecycle.instance.predefined;
 import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.MEMBER_UPDATE_SCRIPT;
 
 import org.cristalise.kernel.collection.Dependency;
+import org.cristalise.kernel.collection.DependencyMember;
 import org.cristalise.kernel.common.InvalidCollectionModification;
 import org.cristalise.kernel.common.InvalidDataException;
 import org.cristalise.kernel.common.ObjectNotFoundException;
@@ -69,11 +70,13 @@ public class UpdateDependencyMember extends PredefinedStepCollectionBase {
 
         Dependency dep = getDependency();
 
+        DependencyMember member = dep.resolveMembers( slotID, childPath ).get(0);
+
         if (dep.containsBuiltInProperty(MEMBER_UPDATE_SCRIPT)) {
             CastorHashMap scriptProps = new CastorHashMap();
             scriptProps.put("collection", dep);
             scriptProps.put("properties", memberNewProps);
-
+            scriptProps.put("member", member);
             evaluateScript(item, (String)dep.getBuiltInProperty(MEMBER_UPDATE_SCRIPT), scriptProps, locker);
         }
 

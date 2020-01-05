@@ -20,19 +20,24 @@
  */
 package org.cristalise.kernel.persistency.outcomebuilder.field;
 
+import java.util.Arrays;
 import java.util.Map;
 
+import org.cristalise.kernel.process.Gateway;
 import org.json.JSONObject;
 
 public class IntegerField extends NumberField {
 
+    private static final String[] strFields = {"mask", "placeholder"};
+    private static final String[] excFields = {"pattern", "errmsg", "precision"};
+
     public IntegerField() {
-        super();
+        super(Arrays.asList(strFields), Arrays.asList(excFields));
     }
 
     @Override
     public String getDefaultValue() {
-        return "0";
+        return Gateway.getProperties().getString("Webui.inputField.integer.defaultValue", "0");
     }
 
     @Override

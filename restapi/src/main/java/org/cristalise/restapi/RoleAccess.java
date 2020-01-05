@@ -31,11 +31,7 @@ import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
-import javax.ws.rs.core.Context;
-import javax.ws.rs.core.Cookie;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.UriInfo;
+import javax.ws.rs.core.*;
 
 import org.cristalise.kernel.common.ObjectNotFoundException;
 import org.cristalise.kernel.lookup.AgentPath;
@@ -62,19 +58,20 @@ public class RoleAccess extends PathUtils {
             @CookieParam(COOKIENAME) Cookie  authCookie,
             @Context                 UriInfo uri) 
     {
-        checkAuthCookie(authCookie);
+        NewCookie cookie = checkAndCreateNewCookie(checkAuthCookie(authCookie));
         ArrayList<Map<String, Object>> childRolesData = new ArrayList<>();
 
         RolePath startRole = new RolePath(path);
 
         Iterator<org.cristalise.kernel.lookup.Path> children = Gateway.getLookup().getChildren(startRole);
+
         while (children.hasNext()) {
             childRolesData.add(makeLookupData(path, children.next(), uri));
         }
-        
-        childRolesData.addAll(getRoleAgentsData(path, startRole, uri));
 
-        return toJSON(childRolesData);
+        childRolesData.addAll(getRoleAgentsData(path, startRole, uri, cookie));
+
+        return toJSON(childRolesData, cookie).build();
     }
 
     @GET
@@ -85,13 +82,13 @@ public class RoleAccess extends PathUtils {
             @CookieParam(COOKIENAME) Cookie authCookie, 
             @Context                 UriInfo uri)
     {
-        checkAuthCookie(authCookie);
+        NewCookie cookie = checkAndCreateNewCookie(checkAuthCookie(authCookie));
         RolePath role;
         try {
             role = Gateway.getLookup().getRolePath(roleName);
         }
         catch (ObjectNotFoundException e1) {
-            throw ItemUtils.createWebAppException(e1.getMessage(), Response.Status.NOT_FOUND);
+            throw new WebAppExceptionBuilder().exception(e1).newCookie(cookie).build();
         }
 
         LinkedHashMap<String, Object> roleData = new LinkedHashMap<>();
@@ -99,6 +96,7 @@ public class RoleAccess extends PathUtils {
         roleData.put("name", roleName);
         roleData.put("hasJobList", role.hasJobList());
         Iterator<org.cristalise.kernel.lookup.Path> childRoles = Gateway.getLookup().getChildren(role);
+
         if (childRoles.hasNext()) {
             LinkedHashMap<String, Object> childRoleData = new LinkedHashMap<>();
             while (childRoles.hasNext()) {
@@ -108,38 +106,38 @@ public class RoleAccess extends PathUtils {
             roleData.put("subroles", childRoleData);
         }
         AgentPath[] agents;
+
         try {
             agents = Gateway.getLookup().getAgents(role);
+
+            if (agents.length > 0) {
+                LinkedHashMap<String, Object> agentData = new LinkedHashMap<String, Object>();
+                for (AgentPath agent : agents) {
+                    agentData.put(agent.getAgentName(), uri.getBaseUriBuilder().path("item").path(agent.getUUID().toString()).build());
+                }
+                roleData.put("agents", agentData);
+            }
+
+            return toJSON(roleData, cookie).build();
         }
         catch (ObjectNotFoundException e) {
-            throw ItemUtils.createWebAppException(e.getMessage(), Response.Status.NOT_FOUND);
+            throw new WebAppExceptionBuilder().exception(e).newCookie(cookie).build();
         }
-        if (agents.length > 0) {
-            LinkedHashMap<String, Object> agentData = new LinkedHashMap<String, Object>();
-            for (AgentPath agent : agents) {
-                agentData.put(agent.getAgentName(), uri.getBaseUriBuilder().path("item").path(agent.getUUID().toString()).build());
-            }
-            roleData.put("agents", agentData);
-        }
-        return toJSON(roleData);
     }
 
-    protected List<Map<String, Object>> getRoleAgentsData(String path, RolePath role, UriInfo uri) {
+    protected List<Map<String, Object>> getRoleAgentsData(String path, RolePath role, UriInfo uri, NewCookie cookie) {
         ArrayList<Map<String, Object>> agentsData = new ArrayList<>();
 
-        AgentPath[] agents;
+        
         try {
-            agents = Gateway.getLookup().getAgents(role);
-
-            for (AgentPath agent : agents) {
+            for (AgentPath agent : Gateway.getLookup().getAgents(role)) {
                 agentsData.add(makeLookupData(path, agent, uri));
             }
-
+    
             return agentsData;
         }
         catch (ObjectNotFoundException e) {
-            throw ItemUtils.createWebAppException(e.getMessage(), Response.Status.NOT_FOUND);
+            throw new WebAppExceptionBuilder().exception(e).newCookie(cookie).build();
         }
-
     }
 }

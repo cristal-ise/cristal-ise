@@ -40,7 +40,7 @@ import org.cristalise.kernel.utils.Logger;
 
 public class TransactionManager {
 
-    HashMap<ItemPath, Object> locks;
+    private HashMap<ItemPath, Object> locks;
     HashMap<Object, ArrayList<TransactionEntry>> pendingTransactions;
     ClusterStorageManager storage;
 
@@ -89,7 +89,20 @@ public class TransactionManager {
      * @throws PersistencyException
      */
     public String[] getClusterContents(ItemPath itemPath, ClusterType type) throws PersistencyException {
-        return getClusterContents(itemPath, type.getName());
+        return getClusterContents(itemPath, type, null);
+    }
+
+    /**
+     * Retrieves the ids of the root level of a cluster
+     * 
+     * @param itemPath the item 
+     * @param type the type of the cluster
+     * @param locker the transaction key
+     * @return array of ids
+     * @throws PersistencyException
+     */
+    public String[] getClusterContents(ItemPath itemPath, ClusterType type, Object locker) throws PersistencyException {
+        return getClusterContents(itemPath, type.getName(), locker);
     }
 
     /**
@@ -110,7 +123,7 @@ public class TransactionManager {
      * 
      * @param itemPath the item 
      * @param path the cluster path
-     * @param locker the transaction kez
+     * @param locker the transaction key
      * @return array of ids
      * @throws PersistencyException
      */
@@ -278,45 +291,41 @@ public class TransactionManager {
      * Writes all pending changes to the backends.
      * 
      * @param locker transaction locker
+     * @throws PersistencyException 
      */
-    public void commit(Object locker) {
+    public void commit(Object locker) throws PersistencyException {
         synchronized(locks) {
             ArrayList<TransactionEntry> lockerTransactions = pendingTransactions.get(locker);
             HashMap<TransactionEntry, Exception> exceptions = new HashMap<TransactionEntry, Exception>();
             // quit if no transactions are present;
-            if (lockerTransactions == null) return;
+            if (lockerTransactions == null)
+                return;
+            try {
+
             storage.begin(locker);
 
             for (TransactionEntry thisEntry : lockerTransactions) {
-                try {
-                    if (thisEntry.obj == null) storage.remove(thisEntry.itemPath, thisEntry.path, locker);
-                    else                       storage.put(thisEntry.itemPath, thisEntry.obj, locker);
-
-                    locks.remove(thisEntry.itemPath);
-                }
-                catch (Exception e) {
-                    exceptions.put(thisEntry, e);
-                }
+                if (thisEntry.obj == null)
+                    storage.remove(thisEntry.itemPath, thisEntry.path, locker);
+                else
+                    storage.put(thisEntry.itemPath, thisEntry.obj, locker);
             }
+
+            storage.commit(locker);
+
+            for (TransactionEntry thisEntry : lockerTransactions) {
+                locks.remove(thisEntry.itemPath);
+            }
+
             pendingTransactions.remove(locker);
-            
-            if (exceptions.size() > 0) { // oh dear
+
+            } catch (Exception e){
                 storage.abort(locker);
                 Logger.error("TransactionManager.commit() - Problems during transaction commit of locker "+locker.toString()+". Database may be in an inconsistent state.");
-                for (TransactionEntry entry : exceptions.keySet()) {
-                    Exception ex = exceptions.get(entry);
-                    Logger.msg(entry.toString());
-                    Logger.error(ex);
-                }
+                Logger.msg(e.getMessage());
+                Logger.error(e);
                 dumpPendingTransactions(0);
                 Logger.die("Database failure during commit");
-            }
-            try {
-                storage.commit(locker);
-            }
-            catch (PersistencyException e) {
-                storage.abort(locker);
-                Logger.die("Transactional database failure");
             }
         }
     }

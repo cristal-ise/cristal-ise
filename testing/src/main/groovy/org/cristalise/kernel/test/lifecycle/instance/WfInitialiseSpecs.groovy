@@ -36,7 +36,7 @@ class WfInitialiseSpecs extends Specification  implements CristalTestSetup {
     WorkflowTestBuilder wfBuilder
 
     def setup() {
-        inMemorySetup('src/main/bin/inMemoryServer.conf', 'src/main/bin/inMemory.clc', 8)
+        inMemoryServer('src/main/bin/inMemoryServer.conf', 'src/main/bin/inMemory.clc', 8)
         wfBuilder = new WorkflowTestBuilder()
     }
 
