@@ -39,9 +39,7 @@ import org.cristalise.kernel.lookup.InvalidItemPathException;
 import org.cristalise.kernel.lookup.ItemPath;
 import org.cristalise.kernel.lookup.Lookup.PagedResult;
 import org.cristalise.kernel.process.Gateway;
-
-import com.github.openjson.JSONArray;
-import com.github.openjson.JSONException;
+import org.json.JSONArray;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -121,7 +119,7 @@ public class PathAccess extends PathUtils {
                 Map<String, Object> itemAliases = makeItemDomainPathsData(Gateway.getLookup().getItemPath(uuid));
                 returnVal.add(itemAliases);
             }
-            catch (InvalidItemPathException | ObjectNotFoundException | JSONException e) {
+            catch (InvalidItemPathException | ObjectNotFoundException e) {
                 //Logger.error(e);
 
                 Map<String, Object> error = new LinkedHashMap<String, Object>();
