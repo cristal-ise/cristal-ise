@@ -28,9 +28,12 @@ import org.cristalise.kernel.common.PersistencyException;
 import org.cristalise.kernel.lookup.AgentPath;
 import org.cristalise.kernel.lookup.ItemPath;
 
+import lombok.extern.slf4j.Slf4j;
+
 /**
  * {@value #description}
  */
+@Slf4j
 public class Login extends Authenticate {
 
     public static final String description = "Records the Login event in the history. Login is assocated with user sessions and tokens validity";
@@ -43,6 +46,7 @@ public class Login extends Authenticate {
     protected String runActivityLogic(AgentPath agent, ItemPath itemPath, int transitionID, String requestData, Object locker)
             throws InvalidDataException, ObjectNotFoundException, ObjectCannotBeUpdated, CannotManageException, PersistencyException
     {
+        log.debug("Called by {} on {}", agent.getAgentName(), itemPath);
         return requestData;
     }
 }

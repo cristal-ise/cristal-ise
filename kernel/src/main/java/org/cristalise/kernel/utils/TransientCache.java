@@ -19,6 +19,7 @@
  * http://www.fsf.org/licensing/licenses/lgpl.html
  */
 package org.cristalise.kernel.utils;
+
 import java.lang.ref.Reference;
 import java.util.AbstractMap;
 import java.util.AbstractSet;
@@ -26,16 +27,14 @@ import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
-/**************************************************************************
+
+/**
  * TransientCache - Uses transient references to allow unused entries to be
  * reaped by the java garbage collector.
  *
- * $Revision: 1.1 $
- * $Date: 2004/04/20 09:37:02 $
- *
- * Copyright (C) 2003 CERN - European Organization for Nuclear Research
- * All rights reserved.
- **************************************************************************/
+ * @param <K> key value
+ * @param <V>
+ */
 public abstract class TransientCache<K, V> extends AbstractMap<K, V> {
 
     private Map<K, Reference<V>> map = new Hashtable<K, Reference<V>>();

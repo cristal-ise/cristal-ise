@@ -25,11 +25,12 @@ import org.cristalise.kernel.common.ObjectNotFoundException;
 import org.cristalise.kernel.common.PersistencyException;
 import org.cristalise.kernel.lookup.ItemPath;
 import org.cristalise.kernel.process.Gateway;
-import org.cristalise.kernel.utils.Logger;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * Utility class to retrieve and resolve DataHelpers
  */
+@Slf4j
 public class DataHelperUtility {
 
     /**
@@ -90,7 +91,7 @@ public class DataHelperUtility {
         String pathType = ((String)value).substring(0, i);
         String dataPath = ((String)value).substring(i+2);
 
-        Logger.msg(5, "DataHelperUtility.evaluateValue() - pathType:"+pathType+" dataPath:"+dataPath);
+        log.debug("evaluateValue() - pathType:"+pathType+" dataPath:"+dataPath);
 
         DataHelper dataHelper = getDataHelper(pathType);
 

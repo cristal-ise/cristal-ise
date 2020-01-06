@@ -23,9 +23,7 @@ package org.cristalise.kernel.lifecycle.routingHelpers;
 import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.SCHEMA_NAME;
 import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.SCHEMA_VERSION;
 import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.VIEW_POINT;
-
 import javax.xml.xpath.XPathExpressionException;
-
 import org.apache.commons.lang3.StringUtils;
 import org.cristalise.kernel.common.InvalidDataException;
 import org.cristalise.kernel.common.ObjectNotFoundException;
@@ -39,11 +37,12 @@ import org.cristalise.kernel.persistency.outcome.Schema;
 import org.cristalise.kernel.persistency.outcome.Viewpoint;
 import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.utils.LocalObjectLoader;
-import org.cristalise.kernel.utils.Logger;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * Implements the DataHelper to get Outcome data using Activity path and XPath. DataHelpers ares 
  */
+@Slf4j
 public class ActivityDataHelper implements DataHelper {
 
     public ActivityDataHelper() {}
@@ -56,7 +55,7 @@ public class ActivityDataHelper implements DataHelper {
 	public String get(ItemPath itemPath, String actContext, String dataPath, Object locker)
             throws InvalidDataException, PersistencyException, ObjectNotFoundException
     {
-        Logger.msg(5,"ActivityDataHelper.get() - item:"+itemPath+", actContext:"+actContext+", dataPath:"+dataPath);
+        log.debug("get() - item:"+itemPath+", actContext:"+actContext+", dataPath:"+dataPath);
 
         String[] paths = dataPath.split(":");
 

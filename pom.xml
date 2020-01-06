@@ -51,7 +51,7 @@
     </modules>
 
     <properties>
-        <revision>4.6.0-SNAPSHOT</revision>
+        <revision>5.0.0-RC</revision>
         <productionMode>false</productionMode>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
@@ -351,9 +351,14 @@
             </dependency>
             <dependency>
                 <groupId>org.slf4j</groupId>
-                <artifactId>slf4j-simple</artifactId>
-                <version>1.6.1</version>
+                <artifactId>slf4j-api</artifactId>
+                <version>1.7.26</version>
             </dependency>
+            <dependency>
+               <groupId>org.projectlombok</groupId>
+               <artifactId>lombok</artifactId>
+               <version>1.18.8</version>
+           </dependency>
             <dependency>
                 <groupId>org.mvel</groupId>
                 <artifactId>mvel2</artifactId>
@@ -401,7 +406,7 @@
         </dependency>
         <dependency>
             <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-simple</artifactId>
+            <artifactId>slf4j-api</artifactId>
         </dependency>
         <dependency>
             <groupId>xmlunit</groupId>
@@ -410,7 +415,6 @@
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
-            <version>1.18.4</version>
             <scope>provided</scope>
         </dependency>
         <dependency>

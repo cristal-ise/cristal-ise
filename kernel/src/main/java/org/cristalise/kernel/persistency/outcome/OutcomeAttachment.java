@@ -33,12 +33,12 @@ import org.cristalise.kernel.lookup.InvalidItemPathException;
 import org.cristalise.kernel.lookup.ItemPath;
 import org.cristalise.kernel.persistency.ClusterType;
 import org.cristalise.kernel.process.Gateway;
-import org.cristalise.kernel.utils.Logger;
 
 import lombok.Getter;
 import lombok.Setter;
+import lombok.extern.slf4j.Slf4j;
 
-@Getter @Setter
+@Getter @Setter @Slf4j
 public class OutcomeAttachment implements C2KLocalObject {
 
     public static final int NONE = -1;
@@ -125,7 +125,7 @@ public class OutcomeAttachment implements C2KLocalObject {
             eventId = Integer.valueOf(name);
         }
         catch (NumberFormatException e) {
-            Logger.error("Invalid id set on Outcome:"+name);
+            log.error("Invalid id set on Outcome:"+name);
         }
     }
 

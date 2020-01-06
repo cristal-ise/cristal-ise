@@ -3,9 +3,12 @@ package org.cristalise.dev.test.scenario
 import org.cristalise.dsl.test.builders.AgentTestBuilder
 import org.cristalise.kernel.entity.proxy.ItemProxy
 import org.cristalise.kernel.lifecycle.ActivityDef
+import org.cristalise.kernel.lifecycle.instance.predefined.Erase
 import org.cristalise.kernel.lookup.RolePath
 import org.cristalise.kernel.process.Gateway
 import org.cristalise.kernel.test.KernelScenarioTestBase
+import org.junit.After
+import org.junit.Ignore
 import org.junit.Test
 
 import spock.util.concurrent.PollingConditions
@@ -20,9 +23,15 @@ class TutorialsDevIT extends KernelScenarioTestBase {
     String elemActName = "SetPatientDetails"
     String compActName = "PatientLifecycle"
     String factoryName = "PatientFactory"
-    String itemName    = "Patient"
+    String itemType    = "Patient"
 
     ItemProxy patient
+
+    @After
+    public void after() {
+        //agent.execute(patient, Erase.class)
+        super.after()
+    }
 
     /**
      *
@@ -55,13 +64,13 @@ class TutorialsDevIT extends KernelScenarioTestBase {
             Workflow(wf)
         }
 
-        createNewItemByFactory(factory, "CreateNewInstance", "$itemName-$timeStamp", folder)
+        createNewItemByFactory(factory, "CreateNewInstance", "$itemType-$timeStamp", folder)
 
-        patient = agent.getItem("$folder/$itemName-$timeStamp")
+        patient = agent.getItem("$folder/$itemType-$timeStamp")
     }
 
     @Test
-    public void basicTutorial() {
+    public void 'Basic Tutorial with one Activy'() {
         setupPatient()
 
         executeDoneJob(patient, elemActName)
@@ -70,7 +79,55 @@ class TutorialsDevIT extends KernelScenarioTestBase {
     }
 
     @Test
-    public void extendedTutorialWitAggregate() {
+    public void 'Extended Tutorial with default Master Schema and Aggregate Script'() {
+        Map<String, ActivityDef> actMap = [:]
+
+        def urinalysisSchema =  Schema("UrinSample-$timeStamp", folder) {
+            struct(name: 'UrinSample') {
+                field(name: 'Transparency', type: 'string', values: ['clear', 'clouded'])
+                field(name: 'Color',        type: 'string')
+            }
+        }
+
+        def urinalysisEA = ElementaryActivityDef("SetUrinSample-$timeStamp", folder) {
+            Property(OutcomeInit: "Empty")
+            Schema(urinalysisSchema)
+        }
+
+        actMap['SetUrinSample'] = urinalysisEA
+
+        eraseItemIfExists("/desc/Schema/$folder", itemType)
+        eraseItemIfExists("/desc/Script/$folder", "${itemType}_Aggregate")
+
+        Schema(itemType, folder) {
+            struct(name: itemType) {
+                attribute(name: 'InsuranceNumber', type: 'string', default: '123456789ABC')
+                field(name: 'DateOfBirth',  type: 'date')
+                field(name: 'Gender',       type: 'string', values: ['male', 'female'])
+                field(name: 'Weight',       type: 'decimal') { unit(values: ['g', 'kg'], default: 'kg') }
+                field(name: 'Transparency', type: 'string', values: ['clear', 'clouded'])
+                field(name: 'Color',        type: 'string')
+            }
+        }
+
+        Script("${itemType}_Aggregate", folder) {
+            output("error", "org.cristalise.kernel.scripting.ErrorInfo")
+            script(language: 'groovy') {
+                new File('src/main/data/AggregatePatientData.groovy').text
+            }
+        }
+
+        setupPatient(actMap)
+
+        assert patient.getMasterSchema()
+        assert patient.getAggregateScript()
+
+        executeDoneJob(patient, elemActName)
+        executeDoneJob(patient, 'SetUrinSample')
+    }
+
+    @Test @Ignore('Requires UserCode process')
+    public void 'Extended Tutorial using Usercode to execute Aggregate Script'() {
         Map<String, ActivityDef> actMap = [:]
 
         def urinalysisSchema =  Schema("UrinSample-$timeStamp", folder) {

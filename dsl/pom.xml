@@ -208,6 +208,16 @@
             <groupId>org.mvel</groupId>
             <artifactId>mvel2</artifactId>
         </dependency>
+        <dependency>
+            <groupId>org.apache.poi</groupId>
+            <artifactId>poi</artifactId>
+            <version>3.17</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.poi</groupId>
+            <artifactId>poi-ooxml</artifactId>
+            <version>3.17</version>
+        </dependency>
 
         <dependency>
             <groupId>junit</groupId>
@@ -272,6 +282,7 @@
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-simple</artifactId>
+            <version>1.7.26</version>
             <scope>test</scope>
         </dependency>
     </dependencies>

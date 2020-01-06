@@ -39,6 +39,7 @@ public class ServerPredefinedStepContainer extends PredefinedStepContainer {
         serverPredInit(RemoveDomainContext.class.getSimpleName(), "Deletes an existing context in the domain tree, but only if empty", new RemoveDomainContext());
         serverPredInit(AddDomainContext.class.getSimpleName(),    "Creates an empty domain context in the tree", new AddDomainContext());
         serverPredInit(BulkImport.class.getSimpleName(),          "Imports all data provided in a specific directory", new BulkImport());
+        serverPredInit(ConfigureLogback.class.getSimpleName(),    ConfigureLogback.description, new ConfigureLogback());
     }
 
     public void serverPredInit(String alias, String Description, PredefinedStep act) {

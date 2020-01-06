@@ -37,8 +37,10 @@ import org.cristalise.kernel.property.PropertyDescription;
 import org.cristalise.kernel.property.PropertyDescriptionList;
 import org.cristalise.kernel.property.PropertyUtility;
 import org.cristalise.kernel.utils.CastorHashMap;
-import org.cristalise.kernel.utils.Logger;
 
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
 public class AddNewSlot extends PredefinedStep {
     public AddNewSlot() {
         super();
@@ -72,7 +74,7 @@ public class AddNewSlot extends PredefinedStep {
         // extract parameters
         String[] params = getDataList(requestData);
 
-        if (Logger.doLog(3)) Logger.msg(3, "AddNewSlot: called by " + agent + " on " + item + " with parameters " + Arrays.toString(params));
+        log.debug("Called by {} on {} with parameters {}", agent.getAgentName(), item, (Object)params);
 
         // resolve desc item path and version
         try {

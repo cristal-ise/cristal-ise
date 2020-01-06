@@ -48,7 +48,7 @@ import org.cristalise.kernel.events.History;
 import org.cristalise.kernel.persistency.outcome.Outcome;
 import org.cristalise.kernel.persistency.outcome.Viewpoint;
 
-@Path("/item/{uuid}/viewpoint")
+@Path("/item/{uuid}/viewpoint") 
 public class ItemViewpoint extends ItemUtils {
 
     @GET
@@ -148,6 +148,7 @@ public class ItemViewpoint extends ItemUtils {
 
             LinkedHashMap<String, Object> eventList = new LinkedHashMap<String, Object>();
             for (int i = 0; i <= history.getLastId(); i++) {
+                @SuppressWarnings("unlikely-arg-type")
                 Event ev = history.get(i);
                 if (schema.equals(ev.getSchemaName()) && viewName.equals(ev.getViewName())) {
                     String evId = String.valueOf(i);

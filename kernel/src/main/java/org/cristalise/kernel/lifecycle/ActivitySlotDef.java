@@ -23,7 +23,6 @@ package org.cristalise.kernel.lifecycle;
 import static org.cristalise.kernel.collection.BuiltInCollections.ACTIVITY;
 import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.NAME;
 import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.VERSION;
-
 import org.cristalise.kernel.common.InvalidDataException;
 import org.cristalise.kernel.common.ObjectNotFoundException;
 import org.cristalise.kernel.graph.model.Vertex;
@@ -33,8 +32,9 @@ import org.cristalise.kernel.lifecycle.instance.WfVertex;
 import org.cristalise.kernel.utils.DescriptionObject;
 import org.cristalise.kernel.utils.KeyValuePair;
 import org.cristalise.kernel.utils.LocalObjectLoader;
-import org.cristalise.kernel.utils.Logger;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 public class ActivitySlotDef extends WfVertexDef {
     private String      activityDef;
     private ActivityDef theActivityDef;
@@ -74,12 +74,11 @@ public class ActivitySlotDef extends WfVertexDef {
     public ActivityDef getTheActivityDef() throws ObjectNotFoundException, InvalidDataException {
         if (theActivityDef == null) {
             try {
-                Logger.msg(5, "ActivitySlotDef.getTheActivityDef() - try to load from item desc collection of ActSlotDef:" + getName());
+                log.debug("getTheActivityDef() - try to load from item desc collection of ActSlotDef:" + getName());
                 DescriptionObject[] parentActDefs = ((CompositeActivityDef) getParent()).getBuiltInCollectionResource(ACTIVITY);
                 for (DescriptionObject thisActDef : parentActDefs) {
                     String childUUID = thisActDef.getItemID();
-                    Logger.msg(5,
-                            "ActivitySlotDef.getTheActivityDef() - Collection childUUID:" + childUUID + " of ActSlotDef:" + getName());
+                    log.debug("getTheActivityDef() - Collection childUUID:" + childUUID + " of ActSlotDef:" + getName());
                     if (childUUID.equals(getActivityDef()) || thisActDef.getName().equals(getActivityDef())) {
                         ActivityDef currentActDef = (ActivityDef) thisActDef;
                         Integer requiredVersion = deriveVersionNumber(getBuiltInProperty(VERSION));
@@ -95,7 +94,7 @@ public class ActivitySlotDef extends WfVertexDef {
             catch (ObjectNotFoundException ex) {} // old def with no collection
 
             if (theActivityDef == null) { // try to load from property
-                Logger.msg(5, "ActivitySlotDef.getTheActivityDef() - try to load from property of ActSlotDef:" + getName());
+                log.debug("getTheActivityDef() - try to load from property of ActSlotDef:" + getName());
                 Integer version = deriveVersionNumber(getBuiltInProperty(VERSION));
 
                 if (version == null) throw new InvalidDataException("No version defined in ActivityDefSlot " + getName());
@@ -114,7 +113,7 @@ public class ActivitySlotDef extends WfVertexDef {
         
         if (actDef instanceof CompositeActivityDef) mIsComposite = true;
 
-        Logger.msg(5, "ActivitySlotDef.setTheActivityDef() - ActSlotDef:" + getName() + " UUID:" + activityDef);
+        log.debug("setTheActivityDef() - ActSlotDef:" + getName() + " UUID:" + activityDef);
     }
 
     /**

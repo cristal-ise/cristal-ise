@@ -21,7 +21,6 @@
 package org.cristalise.kernel.lifecycle.routingHelpers;
 
 import javax.xml.xpath.XPathExpressionException;
-
 import org.cristalise.kernel.common.InvalidDataException;
 import org.cristalise.kernel.common.ObjectNotFoundException;
 import org.cristalise.kernel.common.PersistencyException;
@@ -30,12 +29,13 @@ import org.cristalise.kernel.persistency.ClusterType;
 import org.cristalise.kernel.persistency.outcome.Outcome;
 import org.cristalise.kernel.persistency.outcome.Viewpoint;
 import org.cristalise.kernel.process.Gateway;
-import org.cristalise.kernel.utils.Logger;
+import lombok.extern.slf4j.Slf4j;
 
 
 /**
  * Implements the  DataHelper to get Outcome data using Viewpoint and XPath.
  */
+@Slf4j
 public class ViewpointDataHelper implements DataHelper {
 
     /**
@@ -54,8 +54,7 @@ public class ViewpointDataHelper implements DataHelper {
 
         // Leading dot now no longer necessary - remove if present
         if (viewpoint.startsWith("./")) {
-            Logger.warning("Removing leading dot on viewpoint data helper path at "+actContext+" in "+
-                            itemPath.getUUID().toString() + ". Definition should be migrated.");
+            log.warn("Removing leading dot on viewpoint data helper path at "+actContext+" in "+itemPath.getUUID().toString() + ". Definition should be migrated.");
             viewpoint = viewpoint.substring(2);
         }
 

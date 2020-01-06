@@ -1,11 +1,11 @@
 package org.cristalise.dsl.persistency.outcome
 
 import org.codehaus.groovy.runtime.InvokerHelper
-import org.cristalise.kernel.utils.Logger
 
 import groovy.util.ObjectGraphBuilder.ChildPropertySetter
-import groovy.util.ObjectGraphBuilder.DefaultChildPropertySetter
+import groovy.util.logging.Slf4j
 
+@Slf4j
 class DSLPropertySetter implements ChildPropertySetter {
 
     @Override
@@ -30,7 +30,7 @@ class DSLPropertySetter implements ChildPropertySetter {
             }
         }
         catch (MissingPropertyException mpe) {
-            Logger.msg(5, "DSLPropertySetter.setChild($parentName, $propertyName) - MissingPropertyException:" + mpe.message)
+            log.warn "setChild($parentName, $propertyName) - MissingPropertyException:" + mpe.message
         }
     }
 }

@@ -20,7 +20,10 @@
  */
 package org.cristalise.dsl.test.builders
 
-import groovy.transform.CompileStatic
+import java.awt.image.BufferedImage
+
+import javax.imageio.ImageIO
+
 import org.cristalise.dsl.lifecycle.instance.WorkflowBuilder
 import org.cristalise.kernel.graph.layout.DefaultGraphLayoutGenerator
 import org.cristalise.kernel.graph.model.DirectedEdge
@@ -33,15 +36,14 @@ import org.cristalise.kernel.lookup.AgentPath
 import org.cristalise.kernel.lookup.ItemPath
 import org.cristalise.kernel.persistency.outcome.Outcome
 import org.cristalise.kernel.process.Gateway
-import org.cristalise.kernel.utils.Logger
 
-import javax.imageio.ImageIO
-import java.awt.image.BufferedImage
+import groovy.transform.CompileStatic
+import groovy.util.logging.Slf4j
 
 /**
  *
  */
-@CompileStatic
+@CompileStatic @Slf4j
 class WorkflowTestBuilder extends WorkflowBuilder {
     ItemPath  itemPath  = null
     AgentPath agentPath = null
@@ -106,7 +108,7 @@ class WorkflowTestBuilder extends WorkflowBuilder {
      * @param toNames
      */
     public void checkSplit(String splitName, List<String> toNames ) {
-        Logger.msg 5, "checkSplit() - Split '$splitName' -> $toNames"
+        log.debug "checkSplit() - Split '$splitName' -> $toNames"
         
         assert vertexCache.containsKey(splitName), "Split '$splitName' is missing from cache"
         toNames.each { assert vertexCache.containsKey(it), "Vertex '$it' is missing from cache" }
@@ -123,7 +125,7 @@ class WorkflowTestBuilder extends WorkflowBuilder {
      * @param fromNames
      */
     public void checkJoin(String joinName, List<String> fromNames) {
-        Logger.msg 5, "checkJoin() - Split '$joinName' -> $fromNames"
+        log.debug "checkJoin() - Split '$joinName' -> $fromNames"
 
         assert vertexCache.containsKey(joinName), "Join '$joinName' is missing from cache"
         fromNames.each { assert vertexCache.containsKey(it), "Vertex '$it' is missing from cache" }
@@ -141,7 +143,7 @@ class WorkflowTestBuilder extends WorkflowBuilder {
     public void checkSequence(String... names) {
         assert names.size() > 1
 
-        Logger.msg 5, "checkSequence() - '$names'"
+        log.debug "checkSequence() - '$names'"
 
         for(int i = 1; i < names.size(); i++) {
             checkOneToOneNext(names[i-1], names[i])
@@ -165,7 +167,7 @@ class WorkflowTestBuilder extends WorkflowBuilder {
      * @param to
      */
     public void checkNext(String from, String to) {
-        Logger.msg 5, "checkNext() - Vertex '$from' -> '$to'"
+        log.debug "checkNext() - Vertex '$from' -> '$to'"
         WfVertex fromV = vertexCache[from]
         
         assert fromV, "Vertex '$from' is missing from cache"
@@ -187,7 +189,7 @@ class WorkflowTestBuilder extends WorkflowBuilder {
             fromIDs.add(id)
         }
 
-        Logger.msg 5, "checkNext() - fromIDs: $fromIDs"
+        log.debug "checkNext() - fromIDs: $fromIDs"
 
         assert fromIDs.contains(vertexCache[to].ID), "Vertex '$from' shall be linked to '$to'"
     }
@@ -227,7 +229,7 @@ class WorkflowTestBuilder extends WorkflowBuilder {
      * @param trans
      */
     public void requestAction(Activity act, String trans, Outcome outcome) {
-        Logger.msg 1, "WorkflowTestBuilder.requestAction() - $act.path, $trans"
+        log.info "requestAction() - $act.path, $trans"
 
         int transID = -1
         String requestData = null

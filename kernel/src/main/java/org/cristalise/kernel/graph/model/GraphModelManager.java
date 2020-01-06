@@ -28,12 +28,12 @@ import java.util.Stack;
 import org.cristalise.kernel.graph.event.EntireModelChangedEvent;
 import org.cristalise.kernel.graph.event.ForcedNotifyEvent;
 import org.cristalise.kernel.graph.event.GraphModelEvent;
-import org.cristalise.kernel.utils.Logger;
+
+import lombok.extern.slf4j.Slf4j;
 
 
-
-public class GraphModelManager extends Observable
-{
+@Slf4j
+public class GraphModelManager extends Observable {
 
     private GraphModel                    mGraphModel;
     private EdgeFactory                   mEdgeFactory;
@@ -45,10 +45,11 @@ public class GraphModelManager extends Observable
     private final ArrayList<Integer>      mParentIds               = new ArrayList<Integer>();
     private boolean	                      mEditable                = true;
 
-    // Calling this constructor does not create a vertex outline creator
-    // which is required by the method addVertexAndCreateId()
-    public GraphModelManager()
-    {
+    /**
+     * Calling this constructor does not create a vertex outline creator
+     * which is required by the method addVertexAndCreateId()
+     */
+    public GraphModelManager() {
         mGraphModel = new GraphModel();
         mGraphModel.setManager(this);
     }
@@ -66,13 +67,13 @@ public class GraphModelManager extends Observable
             Integer parentId = iter.next();
             GraphableVertex childModelVertex = (GraphableVertex)newModel.getVertexById(parentId.intValue());
             if (childModelVertex == null) { // we've been deleted, stay here
-                Logger.msg(7, "Didn't find "+parentId+" in new model tree. Stopping here.");
+                log.debug("Didn't find "+parentId+" in new model tree. Stopping here.");
                 do { iter.remove(); } while (iter.hasNext());
                 break;
             }
             else {
                 mParentModels.push(newModel);
-                Logger.msg(7, "Pushing model and switching to "+parentId);
+                log.debug("Pushing model and switching to "+parentId);
                 newModel = childModelVertex.getChildrenGraphModel();
             }
         }
@@ -103,7 +104,7 @@ public class GraphModelManager extends Observable
             mParentModels.push(mGraphModel);
             mParentIds.add(Integer.valueOf(child.getID()));
             setModel(childModel);
-            Logger.msg(7, "ZoomIn - Stack size: "+mParentModels.size()+" ids:"+mParentIds.size());
+            log.debug("ZoomIn - Stack size: "+mParentModels.size()+" ids:"+mParentIds.size());
         }
     }
 
@@ -112,7 +113,7 @@ public class GraphModelManager extends Observable
             setModel(mParentModels.pop());
             mParentIds.remove(mParentIds.size()-1);
         }
-        Logger.msg(7, "ZoomOut - Stack size: "+mParentModels.size()+" ids:"+mParentIds.size());
+        log.debug("ZoomOut - Stack size: "+mParentModels.size()+" ids:"+mParentIds.size());
 
     }
 
