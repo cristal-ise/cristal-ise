@@ -31,7 +31,8 @@ import org.cristalise.kernel.utils.server.SimpleTCPIPServer;
 import lombok.extern.slf4j.Slf4j;
 
 /**
- * Old fashioned Logger utility class designed before the well know logging frameworks of java were available
+ * Old fashioned Logger utility class designed before the well know logging frameworks of java were available. Internally uses SLF4J
+ * api.
  *
  * <pre>
  * - message string should always contain the class name and the method name: Logger.msg(1,"ItemFact::createDir() - LifeCycle DB created");
@@ -50,7 +51,12 @@ public class Logger {
     static protected SimpleTCPIPServer mConsole  = null;
 
     /**
-     * Prints the log message to the configured list of log streams. Uses String.format() if args is not zero length.
+     * Prints the log message to the configured list of log streams. Uses SLF4J api and map the logLevel like this:
+     * <pre>
+     * if logLevel <= 2 : INFO
+     * if logLevel >= 8 : TRACE
+     * else : DEBUG
+     * </pre>
      *
      * @param message - the string to write to the log. It can also use String.format() syntax
      * @param msgLogLevel  - log level of this message. If the current log level was set less that this number,
@@ -88,7 +94,7 @@ public class Logger {
     }
 
     /**
-     * Report information that will be useful for debugging. Uses String.format() if args is not zero length.
+     * Report information that will be useful for debugging. Uses SLF4J string substitution syntax.
      *
      * @param level - log level of this message. If the current log level was set less that this number,
      *                the log message will not be displayed
@@ -100,7 +106,7 @@ public class Logger {
     }
 
     /**
-     * Report information that will be useful for debugging. Uses String.format() if args is not zero length.
+     * Report information that will be useful for debugging. Uses SLF4J string substitution syntax.
      *
      * @param level - log level of this message. If the current log level was set less that this number,
      *                the log message will not be displayed
@@ -112,7 +118,7 @@ public class Logger {
     }
 
     /**
-     * Report information that is important to log all the time (uses log level 0). Uses String.format() if args is not zero length.
+     * Report information that is important to log all the time (uses log level 0). Uses SLF4J string substitution syntax.
      *
      * @param msg - the string to write to the log. It can also use String.format() syntax
      * @param args - Arguments referenced by the format specifiers in the msg string
@@ -122,7 +128,7 @@ public class Logger {
     }
 
     /**
-     * Report error (uses log level 0). Uses String.format() if args is not zero length.
+     * Report error (uses log level 0). Uses SLF4J string substitution syntax.
      *
      * @param msg - the string to write to the log. It can also use String.format() syntax
      * @param args - Arguments referenced by the format specifiers in the msg string
@@ -148,7 +154,7 @@ public class Logger {
     }
 
     /**
-     * Report warning (uses log level 0). Uses String.format() if args is not zero length.
+     * Report warning (uses log level 0). Uses SLF4J string substitution syntax.
      *
      * @param msg - the string to write to the log. It can also use String.format() syntax
      * @param args - Arguments referenced by the format specifiers in the msg string
@@ -158,7 +164,7 @@ public class Logger {
     }
 
     /**
-     * Report FATAL error and call the shutdown hook of the process. Uses String.format() if args is not zero length.
+     * Report FATAL error and call the shutdown hook of the process. Uses SLF4J string substitution syntax.
      *
      * @param msg - the string to write to the log. It can also use String.format() syntax
      * @param args - Arguments referenced by the format specifiers in the msg string

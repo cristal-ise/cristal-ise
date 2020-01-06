@@ -1,7 +1,8 @@
 package org.cristalise.kernel.test;
 
 import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.VERSION
-import static org.junit.Assert.*
+
+import java.time.LocalDateTime
 
 import org.cristalise.dev.dsl.DevItemDSL
 import org.cristalise.dev.dsl.DevXMLUtility
@@ -60,7 +61,7 @@ class KernelScenarioTestBase extends DevItemDSL {
     }
 
     public static String getNowString() {
-        return new Date().format("yyyy-MM-dd_HH-mm-ss_SSS")
+        return LocalDateTime.now().format("yyyy-MM-dd_HH-mm-ss_SSS")
     }
 
     /**
