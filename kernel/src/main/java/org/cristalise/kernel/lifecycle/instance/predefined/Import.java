@@ -36,8 +36,10 @@ import org.cristalise.kernel.persistency.outcome.Viewpoint;
 import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.utils.DateUtility;
 import org.cristalise.kernel.utils.LocalObjectLoader;
-import org.cristalise.kernel.utils.Logger;
 
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
 public class Import extends PredefinedStep {
     public Import() {
         super();
@@ -51,8 +53,8 @@ public class Import extends PredefinedStep {
             throws InvalidDataException, PersistencyException, ObjectNotFoundException
     {
         String[] params = getDataList(requestData);
-        if (Logger.doLog(3))
-            Logger.msg(3, "Import: called by " + agent + " on " + item + " with parameters " + Arrays.toString(params));
+
+        log.debug("Called by {} on {} with parameters {}", agent.getAgentName(), item, (Object)params);
 
         int split1 = params[0].indexOf('_');
         int split2 = params[0].indexOf(':');

@@ -20,15 +20,15 @@
  */
 package org.cristalise.kernel.lifecycle.instance;
 
-import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.PAIRING_ID;
-import org.apache.commons.lang3.StringUtils;
 import org.cristalise.kernel.common.InvalidDataException;
 import org.cristalise.kernel.graph.model.Vertex;
 import org.cristalise.kernel.graph.traversal.GraphTraversal;
 import org.cristalise.kernel.lookup.AgentPath;
 import org.cristalise.kernel.lookup.ItemPath;
-import org.cristalise.kernel.utils.Logger;
 
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
 public class Loop extends XOrSplit {
 
     public Loop() {
@@ -62,7 +62,7 @@ public class Loop extends XOrSplit {
     public void reinit(int idLoop) throws InvalidDataException {
         //propagate if the reinit was NOT started by this loop 
         if (idLoop != getID()) {
-            Logger.msg(8, "Loop.reinit(id:%s, idLoop:%d) - parent:%s", getID(), idLoop, getParent().getName());
+            log.debug("reinit(id:{}, idLoop:{}) - parent:{}", getID(), idLoop, getParent().getName());
 
             for (Vertex outVertex: getOutGraphables()) {
                 WfVertex v = (WfVertex)outVertex;
@@ -79,7 +79,7 @@ public class Loop extends XOrSplit {
             }
         }
         else {
-            Logger.msg(8, "Loop.reinit(id:%s, idLoop:%d) - STOPPED!", getID(), idLoop);
+            log.debug("reinit(id:{}, idLoop:{}) - STOPPED!", getID(), idLoop);
         }
     }
 

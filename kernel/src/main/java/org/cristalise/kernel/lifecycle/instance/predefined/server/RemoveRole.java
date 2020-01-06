@@ -32,8 +32,10 @@ import org.cristalise.kernel.lookup.ItemPath;
 import org.cristalise.kernel.lookup.LookupManager;
 import org.cristalise.kernel.lookup.RolePath;
 import org.cristalise.kernel.process.Gateway;
-import org.cristalise.kernel.utils.Logger;
 
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
 public class RemoveRole extends PredefinedStep {
     public RemoveRole() {
         super();
@@ -45,7 +47,7 @@ public class RemoveRole extends PredefinedStep {
     {
         String[] params = getDataList(requestData);
 
-        Logger.msg(3, "RemoveRole: called by " + agent + " on " + item + " with parameters " + Arrays.toString(params));
+        log.debug("Called by {} on {} with parameters {}", agent.getAgentName(), item, (Object)params);
 
         if (params.length != 1) throw new InvalidDataException("RemoveRole must have one paramater:" + Arrays.toString(params));
 

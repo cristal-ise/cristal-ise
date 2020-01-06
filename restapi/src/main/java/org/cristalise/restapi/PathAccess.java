@@ -39,10 +39,11 @@ import org.cristalise.kernel.lookup.InvalidItemPathException;
 import org.cristalise.kernel.lookup.ItemPath;
 import org.cristalise.kernel.lookup.Lookup.PagedResult;
 import org.cristalise.kernel.process.Gateway;
-import org.cristalise.kernel.utils.Logger;
 import org.json.JSONArray;
 
-@Path("/domain")
+import lombok.extern.slf4j.Slf4j;
+
+@Path("/domain") @Slf4j
 public class PathAccess extends PathUtils {
 
     @GET
@@ -107,7 +108,7 @@ public class PathAccess extends PathUtils {
     }
 
     private Response.ResponseBuilder getAliases(String uuids, NewCookie cookie) {
-        Logger.msg(5, "PathAccess.getAliases() - uuids:%s", uuids);
+        log.info("getAliases() - uuids:{}", uuids);
 
         JSONArray uuidsArray = new JSONArray(uuids);
         ArrayList<Object> returnVal = new ArrayList<>();

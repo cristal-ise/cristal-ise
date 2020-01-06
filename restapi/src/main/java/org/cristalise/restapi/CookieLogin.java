@@ -21,6 +21,7 @@
 package org.cristalise.restapi;
 
 import java.util.Base64;
+
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
@@ -32,17 +33,19 @@ import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.NewCookie;
 import javax.ws.rs.core.Response;
+
 import org.apache.commons.lang3.StringUtils;
 import org.cristalise.kernel.entity.proxy.AgentProxy;
 import org.cristalise.kernel.lifecycle.instance.predefined.agent.Login;
 import org.cristalise.kernel.lookup.AgentPath;
 import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.security.SecurityManager;
-import org.cristalise.kernel.utils.Logger;
 import org.json.JSONObject;
 import org.json.XML;
 
-@Path("login")
+import lombok.extern.slf4j.Slf4j;
+
+@Path("login") @Slf4j
 public class CookieLogin extends RestHandler {
 
     @GET
@@ -65,7 +68,7 @@ public class CookieLogin extends RestHandler {
      */
     private Response processLogin(String user, String pass, HttpHeaders headers) {
         try {
-            Logger.msg(5, "CookieLogin() - agent:'%s'", user);
+            log.debug("agent:'{}'", user);
 
             AgentProxy agent = Gateway.getSecurityManager().authenticate(user, pass, null);
             agent.execute(agent, Login.class);
@@ -74,12 +77,13 @@ public class CookieLogin extends RestHandler {
         }
         catch (Exception ex) {
             //NOTE: Enable this log for testing security problems only, but always remove it when merged
-            //Logger.error(ex);
+            //log.error("", ex);
             String msg = SecurityManager.decodePublicSecurityMessage(ex);
 
             if (StringUtils.isBlank(msg)) msg = "Bad username/password";
 
-            Logger.msg(5, "CookieLogin() - error:%s", msg);
+            log.debug("error:{}", msg);
+
             throw new WebAppExceptionBuilder()
                     .message( msg )
                     .status( Response.Status.UNAUTHORIZED ).build();
@@ -108,7 +112,7 @@ public class CookieLogin extends RestHandler {
             return Response.ok(result).cookie(cookie).build();
         }
         catch (Exception e) {
-            Logger.error(e);
+            log.error("Error creating cookie", e);
             throw new WebAppExceptionBuilder()
                     .message( "Error creating cookie" )
                     .status( Response.Status.INTERNAL_SERVER_ERROR ).build();
@@ -143,7 +147,7 @@ public class CookieLogin extends RestHandler {
             }
         }
         catch (Exception e) {
-            Logger.error(e);
+            log.error("", e);
             throw new WebAppExceptionBuilder()
                     .message( "Problem logging in" )
                     .status( Response.Status.BAD_REQUEST ).build();

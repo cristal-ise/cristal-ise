@@ -33,13 +33,15 @@ import org.cristalise.kernel.scripting.Script;
 import org.cristalise.kernel.scripting.ScriptingEngineException;
 import org.cristalise.kernel.utils.CastorHashMap;
 import org.cristalise.kernel.utils.LocalObjectLoader;
-import org.cristalise.kernel.utils.Logger;
 import org.exolab.castor.types.AnyNode;
 import org.exolab.castor.xml.schema.Annotation;
 import org.exolab.castor.xml.schema.Documentation;
 import org.exolab.castor.xml.schema.Facet;
 import org.exolab.castor.xml.schema.SimpleType;
 
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
 public class ListOfValues extends HashMap<String, Object> {
     
     public enum AppInfoListTags {scriptRef, propertyNames, queryRef, inputName, values};
@@ -120,7 +122,7 @@ public class ListOfValues extends HashMap<String, Object> {
     private void callLovPopulate(AnyNode lovNode, Map<String, Object> inputs) {
         String lovType = lovNode.getLocalName();
 
-        Logger.msg(5, "ListOfValues.callLovPopulate() - lovType:"+lovType);
+        log.debug("callLovPopulate() - lovType:"+lovType);
 
         AnyNode param = lovNode.getFirstChild();
 
@@ -132,7 +134,7 @@ public class ListOfValues extends HashMap<String, Object> {
             case values:        populateLOVFromValues(param); break;
 
             default:
-                Logger.warning("ListOfValues.callLovPoupulate() - unhandled type:"+lovType);
+                log.warn("callLovPoupulate() - unhandled type:"+lovType);
         }
     }
 
@@ -155,7 +157,7 @@ public class ListOfValues extends HashMap<String, Object> {
 
     private void populateLOVFromInput(AnyNode paramNode, Map<String, Object> inputs) {
         if (paramNode.getNodeType() != AnyNode.TEXT) {
-            Logger.warning("ListOfValues.populateLOVFromInput() - paramNode is not a TEXT");
+            log.warn("populateLOVFromInput() - paramNode is not a TEXT");
             return;
         }
 
@@ -173,7 +175,7 @@ public class ListOfValues extends HashMap<String, Object> {
                         for (String value : values) put(value, value, false);
                     }
                     else 
-                        Logger.warning("ListOfValues.populateLOVFromInput() - NO Inputs were found for param:"+key);
+                        log.warn("populateLOVFromInput() - NO Inputs were found for param:"+key);
                 }
                 else if(val instanceof String) {
                     String values = (String)val;
@@ -183,7 +185,7 @@ public class ListOfValues extends HashMap<String, Object> {
                         for(String value: values.split(",")) put(value, value, false);
                     }
                     else 
-                        Logger.warning("ListOfValues.populateLOVFromInput() - NO Inputs were found for param:"+key);
+                        log.warn("populateLOVFromInput() - NO Inputs were found for param:"+key);
                 }
                 else if(val instanceof Map) {
                     @SuppressWarnings("unchecked")
@@ -194,16 +196,16 @@ public class ListOfValues extends HashMap<String, Object> {
                         extractValues(values, true);
                     }
                     else {
-                        Logger.warning("ListOfValues.populateLOVFromInput() - NO Inputs were found for param:"+key);
+                        log.warn("populateLOVFromInput() - NO Inputs were found for param:"+key);
                     }
                 }
             }
             catch (Exception e) {
-                Logger.error(e);
+                log.error("", e);
             }
         }
         else 
-            Logger.warning("ListOfValues.populateLOVFromInput() - NO Inputs were found param:"+key);
+            log.warn("populateLOVFromInput() - NO Inputs were found param:"+key);
     }
     
     /**
@@ -228,7 +230,7 @@ public class ListOfValues extends HashMap<String, Object> {
 
     private void populateLOVFromValues(AnyNode paramNode) {
         if (paramNode.getNodeType() != AnyNode.TEXT) {
-            Logger.warning("ListOfValues.populateLOVFromValues() - paramNode is not a TEXT");
+            log.warn("populateLOVFromValues() - paramNode is not a TEXT");
             return;
         }
 
@@ -248,7 +250,7 @@ public class ListOfValues extends HashMap<String, Object> {
     @SuppressWarnings("unchecked")
     private void populateLOVFromScript(AnyNode scriptRefNode, Map<String, Object> inputs) {
         if (scriptRefNode.getNodeType() != AnyNode.TEXT) {
-            Logger.warning("ListOfValues.populateLOVFromScript() - AnyNode is not a TEXT");
+            log.warn("populateLOVFromScript() - AnyNode is not a TEXT");
             return;
         }
 
@@ -256,7 +258,7 @@ public class ListOfValues extends HashMap<String, Object> {
 
         try {
             if (scriptRefTokens.length != 2) {
-                Logger.error("populateLOVFromScript; Invalid LOVScript name: " + scriptRefNode.getStringValue());
+                log.error("populateLOVFromScript; Invalid LOVScript name: " + scriptRefNode.getStringValue());
                 throw new InvalidDataException("Invalid LOVScript name");
             }
 
@@ -270,7 +272,7 @@ public class ListOfValues extends HashMap<String, Object> {
             extractValues((Map<String, Object>) result, false);
         }
         catch (NumberFormatException | ObjectNotFoundException | InvalidDataException | ScriptingEngineException e) {
-            Logger.error(e);
+            log.error("", e);
         }
     }
 }

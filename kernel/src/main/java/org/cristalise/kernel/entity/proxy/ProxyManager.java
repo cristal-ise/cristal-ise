@@ -38,12 +38,14 @@ import org.cristalise.kernel.lookup.Path;
 import org.cristalise.kernel.persistency.ClusterType;
 import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.property.Property;
-import org.cristalise.kernel.utils.Logger;
 import org.cristalise.kernel.utils.SoftCache;
+
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * Manager of pool of Proxies and their subscribers
  */
+@Slf4j
 public class ProxyManager {
     
     public static final String CONFIG_STRICT_POLICY = "ProxyManager.strictPolicy";
@@ -58,8 +60,6 @@ public class ProxyManager {
      * Create a proxy manager to listen for proxy events and reap unused proxies
      */
     public ProxyManager() throws InvalidDataException {
-        Logger.msg(5, "ProxyManager() - Starting.....");
-
         Iterator<Path> servers = Gateway.getLookup().search(new DomainPath("/servers"), new Property(TYPE, "Server", false));
 
         while(servers.hasNext()) {
@@ -73,8 +73,7 @@ public class ProxyManager {
                 connectToProxyServer(remoteServer, Integer.parseInt(portStr));
             }
             catch (Exception ex) {
-                Logger.error("Exception retrieving proxy server connection data for "+thisServerResult);
-                Logger.error(ex);
+                log.error("Exception retrieving proxy server connection data for "+thisServerResult, ex);
             }
         }
 
@@ -84,7 +83,7 @@ public class ProxyManager {
             }
         }
         catch (InstantiationException | IllegalAccessException | ClassNotFoundException e) {
-            Logger.error(e);
+            log.error("", e);
             throw new InvalidDataException(e.getMessage());
         }
     }
@@ -101,7 +100,7 @@ public class ProxyManager {
         synchronized (proxyPool) {
             for (ItemPath key : proxyPool.keySet()) {
                 ProxyMessage sub = new ProxyMessage(key, ProxyMessage.ADDPATH, false);
-                Logger.msg(5, "ProxyManager.resubscribe() - item:"+key);
+               log.debug("resubscribe() - item:"+key);
                 conn.sendMessage(sub);
             }
         }
@@ -117,14 +116,14 @@ public class ProxyManager {
     }
 
     public void shutdown() {
-        Logger.msg("ProxyManager.shutdown() - flagging shutdown of server connections");
+        log.info("shutdown() - flagging shutdown of server connections");
         for (ProxyServerConnection element : connections.values()) {
             element.shutdown();
         }
     }
 
     protected void processMessage(ProxyMessage thisMessage) throws InvalidDataException {
-        if (Logger.doLog(9)) Logger.msg(9, thisMessage.toString());
+        log.trace("mwssage {}", thisMessage.toString());
 
         if (thisMessage.getPath().equals(ProxyMessage.PINGPATH)) // ping response
             return;
@@ -135,18 +134,17 @@ public class ProxyManager {
         }
         else {
             // proper proxy message
-            Logger.msg(9, "ProxyManager.processMessage() - Received proxy message: "+thisMessage.toString());
+           log.trace("processMessage() - Received proxy message:{}", thisMessage.toString());
             ItemProxy relevant = proxyPool.get(thisMessage.getItemPath());
             if (relevant == null) {
-                Logger.warning("Received proxy message for sysKey "+thisMessage.getItemPath()+" which we don't have a proxy for.");
+                log.warn("Received proxy message for sysKey "+thisMessage.getItemPath()+" which we don't have a proxy for.");
             }
             else {
                 try {
                     relevant.notify(thisMessage);
                 }
                 catch (Throwable ex) {
-                    Logger.error("Error caught notifying proxy listener "+relevant.toString()+" of "+thisMessage.toString());
-                    Logger.error(ex);
+                    log.error("Error caught notifying proxy listener "+relevant.toString()+" of "+thisMessage.toString(), ex);
                 }
             }
         }
@@ -193,7 +191,7 @@ public class ProxyManager {
     private ItemProxy createProxy( org.omg.CORBA.Object ior, ItemPath itemPath) throws ObjectNotFoundException {
         ItemProxy newProxy = null;
 
-        Logger.msg(5, "ProxyManager.createProxy() - Item:" + itemPath);
+       log.debug("createProxy() - Item:" + itemPath);
 
         if( itemPath instanceof AgentPath ) {
             newProxy = new AgentProxy(ior, (AgentPath)itemPath);
@@ -211,7 +209,7 @@ public class ProxyManager {
 
     protected void removeProxy( ItemPath itemPath ) {
         ProxyMessage sub = new ProxyMessage(itemPath, ProxyMessage.DELPATH, true);
-        Logger.msg(5,"ProxyManager.removeProxy() - Unsubscribing to proxy informer for "+itemPath);
+        log.debug("removeProxy() - Unsubscribing to proxy informer for "+itemPath);
         sendMessage(sub);
     }
 
@@ -244,7 +242,7 @@ public class ProxyManager {
     public ItemProxy getProxy( Path path ) throws ObjectNotFoundException {
         ItemPath itemPath = null;
 
-        Logger.msg(8,"ProxyManager.getProxy(" + path.toString() + ")");
+        log.trace("getProxy(" + path.toString() + ")");
 
         if (path instanceof ItemPath) {
             try {
@@ -281,8 +279,7 @@ public class ProxyManager {
      * @param logLevel the selectd log level
      */
     public void reportCurrentProxies(int logLevel) {
-        if (!Logger.doLog(logLevel)) return;
-        Logger.msg(logLevel, "Current proxies: ");
+        log.trace("Current proxies: ");
         try {
             synchronized(proxyPool) {
                 Iterator<ItemPath> i = proxyPool.keySet().iterator();
@@ -291,13 +288,13 @@ public class ProxyManager {
                     ItemPath nextProxy = i.next();
                     ItemProxy thisProxy = proxyPool.get(nextProxy);
                     if (thisProxy != null) {
-                        Logger.msg(logLevel, ""+count + ": "+proxyPool.get(nextProxy).getClass().getName()+": "+nextProxy);
+                        log.trace(""+count + ": "+proxyPool.get(nextProxy).getClass().getName()+": "+nextProxy);
                     }
                 }
             }
         }
         catch (ConcurrentModificationException ex) {
-            Logger.msg(logLevel, "Proxy cache modified. Aborting.");
+            log.trace("Proxy cache modified. Aborting.");
         }
     }
 
@@ -308,7 +305,7 @@ public class ProxyManager {
         synchronized(proxyPool) {
             proxyPool.clear();
         }
-        Logger.msg(8, "ProxyManager.clearCache() - DONE");
+        log.debug("clearCache() - DONE");
     }
 
     /**
@@ -318,10 +315,10 @@ public class ProxyManager {
     public void clearCache(ItemPath item) {
         synchronized(proxyPool) {
             if (proxyPool.remove(item) != null) {
-                Logger.msg(8, "ProxyManager.clearCache(%s) - Item was removed from cache", item);
+                log.debug("clearCache({}) - Item was removed from cache", item);
             }
             else {
-                Logger.msg(8, "ProxyManager.clearCache(%s) - Item was NOT in cache", item);
+                log.trace("clearCache({}) - Item was NOT in cache", item);
             }
         }
     }

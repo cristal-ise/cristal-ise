@@ -28,17 +28,19 @@ import org.cristalise.kernel.persistency.outcomebuilder.OutcomeBuilderException;
 import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.scripting.ScriptErrorException;
 import org.cristalise.kernel.scripting.ScriptingEngineException;
-import org.cristalise.kernel.utils.Logger;
 
 import org.exolab.castor.mapping.MappingException;
 import org.exolab.castor.xml.MarshalException;
 import org.exolab.castor.xml.ValidationException;
+
+import lombok.extern.slf4j.Slf4j;
 
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.NewCookie;
 import javax.ws.rs.core.Response;
 import java.io.IOException;
 
+@Slf4j
 public class WebAppExceptionBuilder {
 
     private String message;
@@ -75,7 +77,7 @@ public class WebAppExceptionBuilder {
         this.exception = ex;
         if (StringUtils.isBlank(this.message)) this.message = ex.getMessage();
 
-        Logger.debug(8, "WebAppExceptionBuilder.exception() - excpetion:'%s'", ex.getClass().getSimpleName());
+        log.debug("exception() - excpetion:'%s'", ex.getClass().getSimpleName());
 
         if (ex instanceof OutcomeBuilderException ||
             ex instanceof ObjectAlreadyExistsException ||
@@ -112,14 +114,14 @@ public class WebAppExceptionBuilder {
             this.status = Response.Status.INTERNAL_SERVER_ERROR;
         }
         else if (ex instanceof WebApplicationException) {
-            Logger.debug(5, "WebAppExceptionBuilder.exception() - DO NOTHING with WebApplicationException: %s", this.message);
+            log.debug("exception() - DO NOTHING with WebApplicationException: %s", this.message);
 
 //            Response response = ((WebApplicationException) ex).getResponse();
 //            this.status = Response.Status.fromStatusCode(response.getStatus());
 //            this.message = response.getEntity().toString();
         }
         else {
-            Logger.debug(5, "WebAppExceptionBuilder.exception() - Mapping excpetion '%s' to INTERNAL_SERVER_ERROR", ex.getClass().getSimpleName());
+            log.debug("exception() - Mapping excpetion '%s' to INTERNAL_SERVER_ERROR", ex.getClass().getSimpleName());
             this.status = Response.Status.INTERNAL_SERVER_ERROR;
         }
 
@@ -172,10 +174,7 @@ public class WebAppExceptionBuilder {
 
         if (StringUtils.isBlank(message)) message = "Application process failed";
 
-        Logger.debug(8, "WebAppExceptionBuilder.build() - msg:"+ message + " status:" + status);
-
-        int defaultLogLevel = Gateway.getProperties().getInt("LOGGER.defaultLevel", 8);
-        if (exception != null && Logger.doLog(defaultLogLevel)) Logger.error(exception);
+        log.debug("build() - msg:"+ message + " status:" + status, exception);
 
         Response.ResponseBuilder responseBuilder;
 

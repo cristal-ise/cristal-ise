@@ -35,9 +35,10 @@ import org.cristalise.kernel.graph.event.VertexCreatedEvent;
 import org.cristalise.kernel.graph.event.VertexMovedEvent;
 import org.cristalise.kernel.graph.event.VertexRemovedEvent;
 import org.cristalise.kernel.graph.event.VerticesChangedEvent;
-import org.cristalise.kernel.utils.Logger;
 
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 public class GraphModel {
     /* Persistent data */
 
@@ -256,7 +257,7 @@ public class GraphModel {
     public int addVertexAndCreateId(Vertex v, GraphPoint location) {
         if (location != null) {
 	        if (mVertexOutlineCreator == null) {
-	            Logger.warning("You cannot add a vertex with no outline creator");
+	            log.warn("You cannot add a vertex with no outline creator");
 	            return -1;
 	        }
 	        placeVertex(v, location);

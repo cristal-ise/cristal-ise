@@ -8,12 +8,17 @@ import org.cristalise.kernel.entity.imports.ImportAgent
 import org.cristalise.kernel.entity.imports.ImportRole
 import org.cristalise.kernel.entity.proxy.AgentProxy
 import org.cristalise.kernel.entity.proxy.ItemProxy
+import org.cristalise.kernel.lifecycle.instance.predefined.Erase
+import org.cristalise.kernel.lifecycle.instance.predefined.server.ConfigureLogback
 import org.cristalise.kernel.lifecycle.instance.predefined.server.CreateNewAgent
 import org.cristalise.kernel.lifecycle.instance.predefined.server.CreateNewRole
+import org.cristalise.kernel.lookup.DomainPath
 import org.cristalise.kernel.lookup.RolePath
+import org.cristalise.kernel.persistency.outcomebuilder.OutcomeBuilder
 import org.cristalise.kernel.process.Gateway
 import org.cristalise.kernel.test.KernelScenarioTestBase
 import org.cristalise.kernel.test.utils.KernelXMLUtility
+import org.cristalise.kernel.utils.LocalObjectLoader
 import org.junit.Before
 import org.junit.Test
 
@@ -53,8 +58,8 @@ class ItemWithoutDescriptionIT extends KernelScenarioTestBase {
     }
 
     private ItemProxy createItem(String name) {
-        Job j = executeDoneJob(serverItem, "CreateNewItem", KernelXMLUtility.getItemXML(name: name, workflow: 'NoWorkflow', initialPath: '/domain/itemTest'))
-        return Gateway.getProxyManager().getProxy( Gateway.getLookup().getItemPath(j.itemUUID) )
+        Job j = executeDoneJob(serverItem, "CreateNewItem", KernelXMLUtility.getItemXML(name: name, type: 'Item', workflow: 'NoWorkflow', initialPath: '/domain/itemTest'))
+        return Gateway.getProxyManager().getProxy( Gateway.getLookup().resolvePath(new DomainPath("/domain/itemTest/$name")) )
     }
 
     @Test
@@ -91,11 +96,26 @@ class ItemWithoutDescriptionIT extends KernelScenarioTestBase {
         String name = "TestAgent-$timeStamp"
 
         createRole(role)
-        createAgent(name, role)
+        def newAgent = createAgent(name, role)
+        agent.execute(newAgent, Erase.class)
+        removeRole(role)
     }
 
     @Test
     public void 'CreateNewItem predefined step of ServerItem'() {
-        createItem("TestItem-$timeStamp")
+        def newItem = createItem("TestItem-$timeStamp")
+        agent.execute(newItem, Erase.class)
+    }
+
+    @Test
+    public void 'ConfigureLogback predefined step of ServerItem'() {
+        OutcomeBuilder ob = new OutcomeBuilder(LocalObjectLoader.getSchema('LoggerConfig', 0))
+
+        ob.addField("Root", "WARN")
+        ob.addRecord('/LoggerConfig/Logger', [Name: 'org.cristalise.storage', Level: 'TRACE'])
+        ob.addRecord('/LoggerConfig/Logger', [Name: 'org.apache.shiro',       Level: 'DEBUG'])
+
+        agent.execute(serverItem, ConfigureLogback.class, ob.xml)
     }
 }
+

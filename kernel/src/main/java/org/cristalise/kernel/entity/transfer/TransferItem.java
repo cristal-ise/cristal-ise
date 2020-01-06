@@ -24,9 +24,11 @@ import static org.cristalise.kernel.persistency.ClusterType.OUTCOME;
 import static org.cristalise.kernel.persistency.ClusterType.PROPERTY;
 import static org.cristalise.kernel.property.BuiltInItemProperties.NAME;
 import static org.cristalise.kernel.security.BuiltInAuthc.SYSTEM_AGENT;
+
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Iterator;
+
 import org.cristalise.kernel.collection.Collection;
 import org.cristalise.kernel.collection.CollectionArrayList;
 import org.cristalise.kernel.common.ObjectNotFoundException;
@@ -44,8 +46,15 @@ import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.property.Property;
 import org.cristalise.kernel.property.PropertyArrayList;
 import org.cristalise.kernel.utils.FileStringUtility;
-import org.cristalise.kernel.utils.Logger;
 
+import lombok.extern.slf4j.Slf4j;
+
+/**
+ * Provides a mechanism for marshaling all of the C2KLocalObjects in a single Item to XML and 
+ * exporting them to disk, and then importing that Item on another server. 
+ * {@link TransferSet} can export many Items at a time and preserve their domain paths.
+ */
+@Slf4j
 public class TransferItem {
     private ArrayList<String> domainPaths;
     protected ItemPath        itemPath;
@@ -56,7 +65,7 @@ public class TransferItem {
             importAgentId = Gateway.getLookup().getAgentPath(SYSTEM_AGENT.getName());
         }
         catch (ObjectNotFoundException e) {
-            Logger.error("TransferItem - System agent not found!");
+            log.error("TransferItem - System agent not found!");
             throw e;
         }
     }
@@ -88,7 +97,8 @@ public class TransferItem {
     }
 
     public void exportItem(File dir, String path) throws Exception {
-        Logger.msg("Path " + path + " in " + itemPath);
+        log.info("Exporting path " + path + " in " + itemPath);
+
         String[] contents = Gateway.getStorage().getClusterContents(itemPath, path);
         if (contents.length > 0) {
             FileStringUtility.createNewDir(dir.getCanonicalPath());
@@ -99,7 +109,7 @@ public class TransferItem {
         else { // no children, try to dump object
             try {
                 C2KLocalObject obj = Gateway.getStorage().get(itemPath, path, null);
-                Logger.msg("Dumping object " + path + " in " + itemPath);
+                log.info("Dumping object " + path + " in " + itemPath);
                 File dumpPath = new File(dir.getCanonicalPath() + ".xml");
                 FileStringUtility.string2File(dumpPath, Gateway.getMarshaller().marshall(obj));
                 return;
@@ -124,7 +134,7 @@ public class TransferItem {
             C2KLocalObject newObj;
             String choppedPath = element.substring(dir.getCanonicalPath().length() + 1, element.length() - 4);
 
-            Logger.msg(choppedPath);
+            log.info(choppedPath);
 
             if (choppedPath.startsWith(OUTCOME.getName())) newObj = new Outcome(choppedPath, xmlFile);
             else                                                newObj = (C2KLocalObject) Gateway.getMarshaller().unmarshall(xmlFile);

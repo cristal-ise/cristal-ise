@@ -68,14 +68,15 @@ import org.cristalise.kernel.scripting.ScriptErrorException;
 import org.cristalise.kernel.scripting.ScriptingEngineException;
 import org.cristalise.kernel.utils.CastorHashMap;
 import org.cristalise.kernel.utils.LocalObjectLoader;
-import org.cristalise.kernel.utils.Logger;
 import org.glassfish.jersey.media.multipart.FormDataParam;
 import org.json.XML;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.io.ByteStreams;
 
-@Path("/item/{uuid}")
+import lombok.extern.slf4j.Slf4j;
+
+@Path("/item/{uuid}") @Slf4j
 public class ItemRoot extends ItemUtils {
 
     private ScriptUtils scriptUtils = new ScriptUtils();
@@ -129,6 +130,8 @@ public class ItemRoot extends ItemUtils {
     public Response getMasterOutcome(
             @Context                     HttpHeaders headers,
             @PathParam("uuid")           String      uuid,
+            @QueryParam("schema")        String      schemaName,
+            @QueryParam("schemaVersion") Integer     schemaVersion,
             @QueryParam("script")        String      scriptName,
             @QueryParam("scriptVersion") Integer     scriptVersion,
             @CookieParam(COOKIENAME)     Cookie      authCookie)
@@ -136,36 +139,18 @@ public class ItemRoot extends ItemUtils {
         NewCookie cookie = checkAndCreateNewCookie(checkAuthCookie(authCookie));
         ItemProxy item = getProxy(uuid, cookie);
 
-        String type = item.getType();
-        if (type == null) {
-            throw new WebAppExceptionBuilder()
-                    .message("Type is null, cannot get MasterOutcome")
-                    .status(Response.Status.NOT_FOUND)
-                    .newCookie(cookie).build();
-        }
-
-        //FIXME: version should be retrieved from the current item or the Module
-        String view = "last";
-        int schemaVersion = 0;
-        if (scriptVersion == null) scriptVersion = 0;
-
-        Script script = null;
         try {
+            Schema masterSchema = item.getMasterSchema(schemaName, schemaVersion);
+            Script aggrScript   = getAggregateScript(item, scriptName, scriptVersion);
+
             boolean jsonFlag = produceJSON(headers.getAcceptableMediaTypes());
 
-            if (scriptName != null) {
-                final Schema schema = LocalObjectLoader.getSchema(type, schemaVersion);
-                script = LocalObjectLoader.getScript(scriptName, scriptVersion);
-
-                return scriptUtils.returnScriptResult(scriptName, item, schema, script, new CastorHashMap(), jsonFlag).cookie(cookie).build();
+            if (aggrScript != null) {
+                return scriptUtils.returnScriptResult(item, masterSchema, aggrScript, new CastorHashMap(), jsonFlag)
+                        .cookie(cookie).build();
             }
-            else if ((script = getAggregateScript(type, scriptVersion)) != null) {
-                final Schema schema = LocalObjectLoader.getSchema(type, schemaVersion);
-
-                return scriptUtils.returnScriptResult(scriptName, item, schema, script, new CastorHashMap(), jsonFlag).cookie(cookie).build();
-            }
-            else if (item.checkViewpoint(type, view)) {
-                return getViewpointOutcome(uuid, type, view, true, cookie).build();
+            else if (item.checkViewpoint(item.getType(), "last")) {
+                return getViewpointOutcome(uuid, item.getType(), "last", true, cookie).build();
             }
             else {
                 throw new WebAppExceptionBuilder()
@@ -181,6 +166,33 @@ public class ItemRoot extends ItemUtils {
         } 
         catch ( UnsupportedOperationException e ) {
             throw new WebAppExceptionBuilder().exception(e).newCookie(cookie).build();
+        }
+    }
+
+    /**
+     * Retrieve the default Aggregate Script of the Item if exists.
+     * 
+     * @param item to be checked
+     * @return returns the Script or null
+     */
+    private Script getAggregateScript(ItemProxy item) {
+        return getAggregateScript(item, null, null);
+    }
+
+    /**
+     * Retrieve the the named version of Aggregate Scriptof the Item if exists.
+     * 
+     * @param item to be checked
+     * @param name the name or UUID of he Script
+     * @param version version of the Script
+     * @return returns the Script or null
+     */
+    private Script getAggregateScript(ItemProxy item, String name, Integer version) {
+        try {
+            return item.getAggregateScript();
+        }
+        catch (InvalidDataException | ObjectNotFoundException e) {
+            return null;
         }
     }
 
@@ -200,9 +212,11 @@ public class ItemRoot extends ItemUtils {
         ItemProxy item = getProxy(uuid, cookie);
 
         try {
-            return scriptUtils.executeScript(headers, item, scriptName, scriptVersion, actPath, inputJson, ImmutableMap.of())
+            return scriptUtils
+                    .executeScript(headers, item, scriptName, scriptVersion, actPath, inputJson, ImmutableMap.of())
                     .cookie(cookie).build();
-        } catch (ObjectNotFoundException | UnsupportedOperationException e) {
+        }
+        catch (ObjectNotFoundException | UnsupportedOperationException | InvalidDataException e) {
             throw new WebAppExceptionBuilder().exception(e).newCookie(cookie).build();
         }
     }
@@ -224,9 +238,11 @@ public class ItemRoot extends ItemUtils {
         ItemProxy item = getProxy(uuid, cookie);
 
         try {
-            return scriptUtils.executeScript(headers, item, scriptName, scriptVersion, actPath, postData, ImmutableMap.of())
+            return scriptUtils
+                    .executeScript(headers, item, scriptName, scriptVersion, actPath, postData, ImmutableMap.of())
                     .cookie(cookie).build();
-        } catch (ObjectNotFoundException | UnsupportedOperationException e) {
+        }
+        catch (ObjectNotFoundException | UnsupportedOperationException | InvalidDataException e) {
             throw new WebAppExceptionBuilder().exception(e).newCookie(cookie).build();
         }
     }
@@ -290,7 +306,7 @@ public class ItemRoot extends ItemUtils {
             return LocalObjectLoader.getScript(scriptName, scriptVersion);
         }
         catch (ObjectNotFoundException | InvalidDataException e1) {
-            Logger.msg(5, "ItemRoot.getAggregateScript() - Could not find Script name:%s", scriptName);
+            log.debug("getAggregateScript() - Could not find Script name:{}", scriptName);
         }
         return null;
     }
@@ -316,7 +332,7 @@ public class ItemRoot extends ItemUtils {
             if (type != null) {
                 itemSummary.put("type", type);
 
-                if (getAggregateScript(type, 0) != null || item.checkViewpoint(type, "last")) {
+                if (getAggregateScript(item) != null || item.checkViewpoint(type, "last")) {
                     itemSummary.put("hasMasterOutcome", true);
                     itemSummary.put("master", getItemURI(uri, item, "master"));
                 }
@@ -410,7 +426,7 @@ public class ItemRoot extends ItemUtils {
         try {
             String contentType = headers.getRequestHeader(HttpHeaders.CONTENT_TYPE).get(0);
 
-            Logger.msg(5, "ItemRoot.requestTransition() postData:'%s' contentType:'%s'", postData, contentType);
+            log.debug("requestTransition() postData:'{}' contentType:'{}'", postData, contentType);
 
             AgentProxy agent = Gateway.getProxyManager().getAgentProxy(getAgentPath(authCookie));
             String executeResult;
@@ -427,7 +443,7 @@ public class ItemRoot extends ItemUtils {
             else                                                return executeResult;
         }
         catch (Exception e) {
-            Logger.error("ItemRoot.requestTransition(actPat:%s) - postData:'%s'", actPath, postData);
+            log.error("requestTransition(actPat:{}) - postData:'{}'", actPath, postData);
             throw new WebAppExceptionBuilder().exception(e).newCookie(cookie).build();
         }
     }
@@ -474,7 +490,7 @@ public class ItemRoot extends ItemUtils {
         try {
             String contentType = headers.getRequestHeader(HttpHeaders.CONTENT_TYPE).get(0);
 
-            Logger.msg(5, "ItemRoot.requestTransition() postData:%s", postData);
+            log.debug("requestBinaryTransition() postData:'{}' contentType:'{}'", postData, contentType);
 
             AgentProxy agent = Gateway.getProxyManager().getAgentProxy(getAgentPath(authCookie));
             String executeResult;
@@ -491,7 +507,7 @@ public class ItemRoot extends ItemUtils {
             else                                                return executeResult;
         }
         catch (Exception e) {
-            Logger.error("ItemRoot.requestBinaryTransition(actPat:%s) - postData:'%s'", actPath, postData);
+            log.error("requestBinaryTransition(actPat:{}) - postData:'{}'", actPath, postData);
             throw new WebAppExceptionBuilder().exception(e).newCookie(cookie).build();
         }
     }
@@ -585,7 +601,7 @@ public class ItemRoot extends ItemUtils {
                     return Response.ok(new OutcomeBuilder(thisJob.getSchema(), false).generateNgDynamicForms(inputs))
                             .cookie(cookie).build();
                 } else {
-                    Logger.msg(5, "ItemRoot.getJobFormTemplate() - no outcome needed for job:%s", thisJob);
+                    log.debug("getJobFormTemplate() - no outcome needed for job:{}", thisJob);
                     return Response.noContent().cookie(cookie).build();
                 }
             }

@@ -26,7 +26,6 @@ import java.util.Map;
 
 import org.apache.commons.lang3.StringUtils;
 import org.cristalise.kernel.persistency.outcomebuilder.field.StringField;
-import org.cristalise.kernel.utils.Logger;
 import org.exolab.castor.xml.schema.ElementDecl;
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -34,6 +33,9 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Text;
 
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
 public class Field extends OutcomeStructure {
 
     StringField   myFieldInstance = null;
@@ -46,14 +48,14 @@ public class Field extends OutcomeStructure {
         // field can have attributes
         myAttributes = new AttributeList(model);
 
-        Logger.msg(8, "Field() - name:"+model.getName()+" optional:" + isOptional());
+        log.debug("name:"+model.getName()+" optional:" + isOptional());
         
         // skipping optional fields
         //if (isOptional()) return;
 
         try {
             myFieldInstance = StringField.getField(model);
-            Logger.msg(6, "Field() - name:" + model.getName() + " type: "+myFieldInstance.getClass().getSimpleName());
+            log.debug("name:" + model.getName() + " type: "+myFieldInstance.getClass().getSimpleName());
         }
         catch (StructuralException e) {
             // no base type for field - only attributes
@@ -72,7 +74,7 @@ public class Field extends OutcomeStructure {
 
     @Override
     public void addInstance(Element newElement, Document parentDoc) throws OutcomeBuilderException {
-        Logger.msg(6, "Field.addInstance() - field:"+newElement.getTagName());
+        log.debug("addInstance() - field:"+newElement.getTagName());
 
         // Set attributes first
         myAttributes.addInstance(newElement, parentDoc);
@@ -83,7 +85,7 @@ public class Field extends OutcomeStructure {
 
         try {
             if (myFieldInstance == null) {
-                Logger.warning("Field.addInstance() - Field '"+newElement.getTagName()+"' should be empty. Discarding contents.");
+                log.warn("addInstance() - Field '"+newElement.getTagName()+"' should be empty. Discarding contents.");
             }
             else {
                 if (newElement.hasChildNodes())
@@ -102,7 +104,7 @@ public class Field extends OutcomeStructure {
     }
 
 //    private void createOptinalElement(Element parent) throws StructuralException {
-//        Logger.msg(5, "Field.createOptinalElement() - name: "+model.getName());
+//        log.debug("createOptinalElement() - name: "+model.getName());
 //
 //        if (myFieldInstance == null) myFieldInstance = StringField.getField(model);
 //
@@ -120,7 +122,7 @@ public class Field extends OutcomeStructure {
 
     @Override
     public void addJsonInstance(OutcomeStructure parentStruct, Element parentElement, String name, Object json) throws OutcomeBuilderException {
-        Logger.msg(5, "Field.addJsonInstance() - name:'" + name + "'");
+        log.debug("addJsonInstance() - name:'" + name + "'");
 
         if (json instanceof JSONObject) {
             JSONObject jsonObj = (JSONObject)json;
@@ -142,7 +144,7 @@ public class Field extends OutcomeStructure {
             }
         }
         else if (json instanceof JSONArray) {
-            Logger.warning("Field.addJsonInstance() - Field name '" + name + "' contains an ARRAY. Parsing ARRAY to String");
+            log.warn("addJsonInstance() - Field name '" + name + "' contains an ARRAY. Parsing ARRAY to String");
             setJsonValue(parentStruct, parentElement, name, json.toString());
         }
         else {
@@ -157,7 +159,7 @@ public class Field extends OutcomeStructure {
 
     private void setJsonValue (OutcomeStructure parentStruct, Element parentElement, String name, Object val) throws OutcomeBuilderException {
         if (isOptional() && isNullJsonValue(val)) {
-            Logger.msg(8, "Field.addJsonInstance() - skipping empty optional element:"+getName());
+            log.debug("addJsonInstance() - skipping empty optional element:"+getName());
         }
         else {
             if (isOptional()) parentStruct.createChildElement(parentElement.getOwnerDocument(), name);
@@ -182,7 +184,7 @@ public class Field extends OutcomeStructure {
 
     @Override
     public Element initNew(Document rootDocument) {
-        Logger.msg(6, "Field.initiNew() - Creating '"+this.getName()+"'");
+        log.debug("initiNew() - Creating '"+this.getName()+"'");
 
         // make a new Element
         myElement = rootDocument.createElement(this.getName());

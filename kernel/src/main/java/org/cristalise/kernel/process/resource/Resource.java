@@ -29,12 +29,13 @@ import java.util.Hashtable;
 import org.cristalise.kernel.common.InvalidDataException;
 import org.cristalise.kernel.common.ObjectNotFoundException;
 import org.cristalise.kernel.utils.FileStringUtility;
-import org.cristalise.kernel.utils.Logger;
+
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * Default implementation of ResourceLoader
- *
  */
+@Slf4j
 public class Resource implements ResourceLoader {
 
     private final Hashtable<String, String> txtCache = new Hashtable<String, String>();
@@ -71,7 +72,7 @@ public class Resource implements ResourceLoader {
     public void addModuleBaseURL(String ns, URL newBaseURL) {
         moduleBaseURLs.put(ns, newBaseURL);
         allBaseURLs.put(ns, newBaseURL);
-        Logger.msg("Adding resource URL for "+ns+": "+newBaseURL.toString());
+        log.info("Adding resource URL for {}: {}", ns, newBaseURL);
     }
 
     @Override
@@ -104,7 +105,7 @@ public class Resource implements ResourceLoader {
             result = Resource.class.getClassLoader().getResource(newURL);
         }
         if (result == null) {
-            Logger.error("URL "+newURL+" could not be found");
+            log.error("URL "+newURL+" could not be found");
             throw new InvalidDataException();
         }
         return result;
@@ -118,7 +119,7 @@ public class Resource implements ResourceLoader {
             }
             catch (ObjectNotFoundException ex) { }
         }
-        Logger.warning("Text resource '"+resName+"' not found.");
+        log.warn("Text resource '"+resName+"' not found.");
         return null;
     }
 
@@ -136,7 +137,7 @@ public class Resource implements ResourceLoader {
 
     @Override
     public String getTextResource(String ns, String resName) throws ObjectNotFoundException {
-        Logger.msg(8, "Resource::getTextResource() - Getting resource from namespacce "+ns+": " + resName);
+        log.trace("getTextResource() - Getting resource from namespacce "+ns+": " + resName);
 
         if (txtCache.containsKey(ns+'/'+resName)) {
             return txtCache.get(ns+'/'+resName);
@@ -151,13 +152,13 @@ public class Resource implements ResourceLoader {
             else
                 loc = getModuleResourceURL(ns, resName);
 
-            Logger.msg(5, "Loading resource: "+loc.toString());
+            log.debug("Loading resource: {}", loc);
             newRes = FileStringUtility.url2String(loc);
             txtCache.put(ns+'/'+resName, newRes);
             return newRes;
         }
         catch (Exception e) {
-            Logger.error(e);
+            log.error("", e);
             throw new ObjectNotFoundException(e.getMessage());
         }
     }
