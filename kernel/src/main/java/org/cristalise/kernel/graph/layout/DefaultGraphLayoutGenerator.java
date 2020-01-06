@@ -26,9 +26,10 @@ import org.cristalise.kernel.graph.model.DirectedEdge;
 import org.cristalise.kernel.graph.model.GraphModel;
 import org.cristalise.kernel.graph.model.GraphPoint;
 import org.cristalise.kernel.graph.model.Vertex;
-import org.cristalise.kernel.utils.Logger;
 
+import lombok.extern.slf4j.Slf4j;
 
+ @Slf4j
 public class DefaultGraphLayoutGenerator {
     private static int mTopMargin = 100;
     private static int mLeftMargin = 100;
@@ -44,7 +45,7 @@ public class DefaultGraphLayoutGenerator {
         int[] midPoints = null;
         int valueOfLargestMidPoint = 0;
         if (start == null) {
-            Logger.msg(1,"Error graph must have a starting vertex to be layed out");
+            log.warn("Error graph must have a starting vertex to be layed out");
             return;
         }
         graphModel.clearTags(start);

@@ -31,13 +31,14 @@ import org.cristalise.kernel.lookup.AgentPath;
 import org.cristalise.kernel.lookup.InvalidAgentPathException;
 import org.cristalise.kernel.lookup.ItemPath;
 import org.cristalise.kernel.process.Gateway;
-import org.cristalise.kernel.utils.Logger;
 import org.cristalise.kernel.utils.SoftCache;
 import org.omg.PortableServer.POA;
 import org.omg.PortableServer.POAManager;
 import org.omg.PortableServer.Servant;
 import org.omg.PortableServer.POAManagerPackage.AdapterInactive;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 public class CorbaServer {
     private final Map<ItemPath, Servant>         mItemCache;
     private POA         mRootPOA;
@@ -53,8 +54,8 @@ public class CorbaServer {
             setupPOA();
             mPOAManager.activate();
         } catch (Exception ex) {
-            Logger.error(ex);
-            throw new CannotManageException("Error initialising POA");
+            log.error("Error initialising POA", ex);
+            throw new CannotManageException("Error initialising POA " + ex.getMessage());
         }
 
         new Thread(new Runnable() {
@@ -80,8 +81,9 @@ public class CorbaServer {
                 }
             }
             */
-        } catch (AdapterInactive ex) {
-            Logger.error(ex);
+        }
+        catch (AdapterInactive ex) {
+            log.error("Error closing POA", ex);
         }
     }
 
@@ -132,7 +134,7 @@ public class CorbaServer {
         synchronized (mItemCache) {
             item = mItemCache.get(itemPath);
             if (item == null) {
-                Logger.msg(7, "Creating new servant for "+itemPath);
+                log.debug("Creating new servant for item:{}", itemPath);
                 item = new TraceableEntity(itemPath, mItemPOA);
                 mItemCache.put(itemPath, item);
             }
@@ -155,7 +157,7 @@ public class CorbaServer {
         synchronized (mItemCache) {
             agent = mItemCache.get(agentPath);
             if (agent == null) {
-                Logger.msg(7, "Creating new servant for "+agentPath);
+                log.debug("Creating new servant for agent:{}", agentPath);
                 agent = new ActiveEntity(agentPath, mAgentPOA);
                 mItemCache.put(agentPath, agent);
             }

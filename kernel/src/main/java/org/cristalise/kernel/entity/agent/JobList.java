@@ -20,19 +20,18 @@
  */
 package org.cristalise.kernel.entity.agent;
 
+import static org.cristalise.kernel.persistency.ClusterType.JOB;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Vector;
-
 import org.cristalise.kernel.lookup.AgentPath;
 import org.cristalise.kernel.lookup.ItemPath;
 import org.cristalise.kernel.persistency.ClusterType;
 import org.cristalise.kernel.persistency.RemoteMap;
-import org.cristalise.kernel.utils.Logger;
+import lombok.extern.slf4j.Slf4j;
 
-import static org.cristalise.kernel.persistency.ClusterType.JOB;
-
+@Slf4j
 public class JobList extends RemoteMap<Job> {
 
     /**
@@ -71,7 +70,7 @@ public class JobList extends RemoteMap<Job> {
             if (j.getItemPath().equals(itemPath)) remove(String.valueOf(j.getId()));
         }
 
-        Logger.msg(5, "JobList::removeJobsWithSysKey() - " + itemPath + " DONE.");
+        log.info("JobList::removeJobsWithSysKey() - " + itemPath + " DONE.");
     }
 
     /**
@@ -96,11 +95,11 @@ public class JobList extends RemoteMap<Job> {
     public void removeJobsForStep(ItemPath itemPath, String stepPath) {
         List<String> staleJobs = getKeysForStep(itemPath, stepPath);
 
-        Logger.msg(3, "JobList.removeJobsForStep() - removing " + staleJobs.size());
+        log.info("JobList.removeJobsForStep() - removing " + staleJobs.size());
 
         for (String jid : staleJobs) remove(jid);
 
-        Logger.msg(5, "JobList::removeJobsForStep() - " + itemPath + " DONE.");
+        log.info("JobList::removeJobsForStep() - " + itemPath + " DONE.");
     }
 
     public Vector<Job> getJobsOfItem(ItemPath itemPath) {
@@ -114,14 +113,12 @@ public class JobList extends RemoteMap<Job> {
             if (j.getItemPath().equals(itemPath)) jobs.add(j);
         }
 
-        Logger.msg(5, "JobList::getJobsOfSysKey() - returning " + jobs.size() + " Jobs.");
+        log.info("JobList::getJobsOfSysKey() - returning " + jobs.size() + " Jobs.");
 
         return jobs;
     }
 
     public void dump(int logLevel) {
-        if (!Logger.doLog(logLevel)) return;
-
         StringBuffer sb = new StringBuffer("{ ");
 
         Iterator<String> jobIter = keySet().iterator();
@@ -135,6 +132,6 @@ public class JobList extends RemoteMap<Job> {
             sb.append("trans:"+j.getTransition().getName()+"] ");
         }
         sb.append("}");
-        Logger.msg("Joblist "+sb);
+        log.info("Joblist "+sb);
     }
 }

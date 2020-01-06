@@ -22,6 +22,7 @@ package org.cristalise.kernel.process.module;
 
 import lombok.Getter;
 import lombok.Setter;
+import lombok.extern.slf4j.Slf4j;
 
 import org.apache.commons.lang3.StringUtils;
 import org.cristalise.kernel.common.CannotManageException;
@@ -34,9 +35,8 @@ import org.cristalise.kernel.lookup.Path;
 import org.cristalise.kernel.process.Bootstrap;
 import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.process.resource.BuiltInResources;
-import org.cristalise.kernel.utils.Logger;
 
-@Getter @Setter
+@Getter @Setter @Slf4j
 public class ModuleResource extends ModuleImport {
 
     public int              version;
@@ -93,7 +93,7 @@ public class ModuleResource extends ModuleImport {
             return domainPath = Bootstrap.verifyResource(ns, name, version, type.getTypeCode(), itemPath, getResourceLocation(), reset);
         }
         catch (Exception e) {
-            Logger.error(e);
+            log.error("", e);
             throw new CannotManageException("Exception verifying module resource " + ns + "/" + name);
         }
     }

@@ -29,12 +29,14 @@ import org.cristalise.kernel.common.PersistencyException;
 import org.cristalise.kernel.lookup.AgentPath;
 import org.cristalise.kernel.lookup.ItemPath;
 import org.cristalise.kernel.process.auth.Authenticator;
-import org.cristalise.kernel.utils.Logger;
 import org.cristalise.storage.jooqdb.JooqHandler;
 import org.cristalise.storage.jooqdb.clusterStore.JooqItemPropertyHandler;
 import org.cristalise.storage.jooqdb.lookup.JooqItemHandler;
 import org.jooq.DSLContext;
 
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
 public class JooqAuthenticator implements Authenticator {
 
     DSLContext context = null;
@@ -52,9 +54,11 @@ public class JooqAuthenticator implements Authenticator {
             items      = new JooqItemHandler();
             properties = new JooqItemPropertyHandler();
 
-            items     .createTables(context);
-            properties.createTables(context);
-            
+            if (!JooqHandler.readOnlyDataSource) {
+                items     .createTables(context);
+                properties.createTables(context);
+            }
+
             paswordHasher = new Argon2Password();
 
             return true;
@@ -90,9 +94,9 @@ public class JooqAuthenticator implements Authenticator {
             return paswordHasher.checkPassword(pwd, password.toCharArray());
         }
         catch (PersistencyException e) {
-            Logger.error(e);
+            log.error("", e);
             throw new InvalidDataException("Problem authenticating agent:"+agentName+" error:"+e.getMessage());
-        }
+        }   
     }
 
     @Override
@@ -102,7 +106,7 @@ public class JooqAuthenticator implements Authenticator {
                 authenticate(null);
             }
             catch (InvalidDataException | ObjectNotFoundException e) {
-                Logger.error(e);
+                log.error("", e);
             }
         }
         return context;

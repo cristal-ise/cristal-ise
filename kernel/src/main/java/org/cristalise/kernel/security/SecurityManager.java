@@ -42,9 +42,10 @@ import org.cristalise.kernel.lookup.ItemPath;
 import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.process.auth.Authenticator;
 import org.cristalise.kernel.property.BuiltInItemProperties;
-import org.cristalise.kernel.utils.Logger;
 import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 public class SecurityManager {
     
     private static final String securityMsgBegin = "[errorMessage]";
@@ -168,7 +169,7 @@ public class SecurityManager {
         org.apache.shiro.mgt.SecurityManager securityManager = factory.getInstance();
         SecurityUtils.setSecurityManager(securityManager);
 
-        Logger.msg(2, "SecurityManager.setupShiro("+shiroIni+") - Done");
+        log.info("setupShiro("+shiroIni+") - Done");
 
         shiroEnabled = true;
     }
@@ -225,7 +226,7 @@ public class SecurityManager {
               String publicMsg = decodePublicSecurityMessage(ex);
 
               if (StringUtils.isNotBlank(publicMsg)) {
-                Logger.msg(5, "SecurityManager.shiroAuthenticate() - Failed with public message:%s", publicMsg);
+                log.debug("shiroAuthenticate() - Failed with public message:{}", publicMsg);
                 throw new InvalidDataException(encodePublicSecurityMessage(publicMsg));
               }
             }
@@ -253,7 +254,7 @@ public class SecurityManager {
         //The Shiro's WildcardPermission string 
         String permission = domain+":"+action+":"+target;
 
-        Logger.msg(5, "SecurityManager.checkPermissions() - agent:'%s' permission:'%s'", agent.getAgentName(), permission);
+        log.debug("checkPermissions() - agent:'{}' permission:'{}'", agent.getAgentName(), permission);
 
         return getSubject(agent).isPermitted(permission);
     }
@@ -283,7 +284,7 @@ public class SecurityManager {
      * @throws AccessRightsException 
      */
     private String getWildcardPermissionAction(Activity act) throws AccessRightsException {
-        String action = (String) act.getBuiltInProperty(BuiltInVertexProperties.SECURITY_ACTION);
+        String action = (String) act.getBuiltInProperty(BuiltInVertexProperties.SECURITY_ACTION, "");
 
         if (StringUtils.isBlank(action)) action = act.getName();
         if (StringUtils.isBlank(action)) throw new AccessRightsException("Action was blank - Specify 'SecurityAction' or 'Name' ActivityProperties");

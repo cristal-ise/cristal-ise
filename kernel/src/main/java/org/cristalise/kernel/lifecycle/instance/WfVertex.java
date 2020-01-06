@@ -31,11 +31,10 @@ import org.cristalise.kernel.lookup.AgentPath;
 import org.cristalise.kernel.lookup.ItemPath;
 import org.cristalise.kernel.scripting.Script;
 import org.cristalise.kernel.scripting.ScriptingEngineException;
-import org.cristalise.kernel.utils.Logger;
 
-/**
- * 
- */
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
 public abstract class WfVertex extends GraphableVertex {
 
     public enum Types {
@@ -131,7 +130,7 @@ public abstract class WfVertex extends GraphableVertex {
             return script.evaluate(itemPath, getProperties(), getActContext(), locker);
         }
         catch (Exception e) {
-            Logger.error(e);
+            log.error("", e);
             throw new ScriptingEngineException(e.getMessage());
         }
     }

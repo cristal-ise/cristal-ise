@@ -21,16 +21,16 @@
 package org.cristalise.dsl.lifecycle.instance
 
 import groovy.transform.CompileStatic
+import groovy.util.logging.Slf4j
 
 import org.cristalise.kernel.lifecycle.instance.WfVertex
 import org.cristalise.kernel.lifecycle.instance.WfVertex.Types
-import org.cristalise.kernel.utils.Logger
 
 
 /**
  *
  */
-@CompileStatic
+@CompileStatic @Slf4j
 class ElemActDelegate {
     public static final Types type = Types.Atomic
     
@@ -45,7 +45,7 @@ class ElemActDelegate {
     }
 
     public void Property(Map<String, Object> props) {
-        Logger.msg 5, "ElemActDelegate.Property() - props: $props"
+        log.debug "Property() - props: $props"
         props.each { key, value -> 
             currentVertex.properties.put(key, (value instanceof String) ? (String)value : value, false)
         }

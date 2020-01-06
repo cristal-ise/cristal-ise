@@ -20,7 +20,6 @@
  */
 package org.cristalise.kernel.test.utils;
 
-import org.cristalise.kernel.utils.Logger
 import org.custommonkey.xmlunit.Difference
 import org.xml.sax.SAXException
 import org.xmlunit.builder.DiffBuilder
@@ -28,17 +27,11 @@ import org.xmlunit.diff.DefaultNodeMatcher
 import org.xmlunit.diff.Diff
 import org.xmlunit.diff.ElementSelectors
 
+import groovy.util.logging.Slf4j
 import groovy.xml.MarkupBuilder
 
-
-
-/**
- * 
- * @author kovax
- *
- */
+@Slf4j
 class KernelXMLUtility {
-
     /**
      * 
      * @param params
@@ -47,7 +40,7 @@ class KernelXMLUtility {
     public static String getRoleXML(params) {
         def writer = new StringWriter()
         def xml = new MarkupBuilder(writer)
-		
+
         writer << '<?xml version="1.0" encoding="UTF-8"?>\n'
 
         assert params.name, "name must be set"
@@ -68,8 +61,8 @@ class KernelXMLUtility {
     public static String getAgentXML(params) {
         def writer = new StringWriter()
         def xml = new MarkupBuilder(writer)
-		
-		//TODO: Agent can have many roles - IMPLEMENT
+
+        //TODO: Agent can have many roles - IMPLEMENT
 
         writer << '<?xml version="1.0" encoding="UTF-8"?>\n'
 
@@ -256,13 +249,13 @@ class KernelXMLUtility {
                 .build();
 
         if(diff.hasDifferences()) {
-            Logger.warning("Actual:\n $actual");
-            Logger.warning("Expected:\n $expected");
+            log.warn("Actual:\n $actual");
+            log.warn("Expected:\n $expected");
 
             Iterator<Difference> allDiffs = diff.getDifferences().iterator();
             int i = 1;
 
-            while (allDiffs.hasNext()) { Logger.warning("#" + i++ + ":" + allDiffs.next().toString()); }
+            while (allDiffs.hasNext()) { log.warn("#" + i++ + ":" + allDiffs.next().toString()); }
         }
 
         return !diff.hasDifferences();
