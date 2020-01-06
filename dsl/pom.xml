@@ -84,9 +84,7 @@
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <additionalparam>-Xdoclint:none</additionalparam>
         <maven-compiler-plugin.version>3.7.0</maven-compiler-plugin.version>
-        <build-helper-maven-plugin.version>1.12</build-helper-maven-plugin.version>
-        <groovy-eclipse-compiler.version>2.9.2-01</groovy-eclipse-compiler.version>
-        <groovy-eclipse-batch.version>2.4.3-01</groovy-eclipse-batch.version>
+        <build-helper-maven-plugin.version>3.0.0</build-helper-maven-plugin.version>
         <source.version>1.8</source.version>
         <target.version>1.8</target.version>
         <additionalparam>-Xdoclint:none</additionalparam>
@@ -178,14 +176,15 @@
     <dependencies>
         <dependency>
             <groupId>org.cristalise</groupId>
-            <artifactId>cristalise-dev</artifactId>
+            <artifactId>cristalise-kernel</artifactId>
             <version>${revision}</version>
             <scope>compile</scope>
         </dependency>
         <dependency>
             <groupId>org.codehaus.groovy</groupId>
             <artifactId>groovy-all</artifactId>
-            <scope>compile</scope>
+            <version>2.5.8</version>
+            <type>pom</type>
         </dependency>
         <dependency>
             <groupId>commons-lang</groupId>
@@ -208,6 +207,16 @@
         <dependency>
             <groupId>org.mvel</groupId>
             <artifactId>mvel2</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.poi</groupId>
+            <artifactId>poi</artifactId>
+            <version>3.17</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.poi</groupId>
+            <artifactId>poi-ooxml</artifactId>
+            <version>3.17</version>
         </dependency>
 
         <dependency>
@@ -273,6 +282,7 @@
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-simple</artifactId>
+            <version>1.7.26</version>
             <scope>test</scope>
         </dependency>
     </dependencies>

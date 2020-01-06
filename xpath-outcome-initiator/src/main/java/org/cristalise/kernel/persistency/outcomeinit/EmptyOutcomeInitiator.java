@@ -34,12 +34,14 @@ import org.cristalise.kernel.common.ObjectNotFoundException;
 import org.cristalise.kernel.entity.agent.Job;
 import org.cristalise.kernel.persistency.outcome.Outcome;
 import org.cristalise.kernel.persistency.outcome.OutcomeInitiator;
-import org.cristalise.kernel.utils.Logger;
+
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * OutcomeInitiator implementation creating an 'empty' Outcome from XML a Schema.
  * It is based on Apache XMLBeans.
  */
+@Slf4j
 public class EmptyOutcomeInitiator implements OutcomeInitiator {
 
     /**
@@ -77,14 +79,14 @@ public class EmptyOutcomeInitiator implements OutcomeInitiator {
         if (globalElems == null) throw new InvalidDataException("Schema has no global elements.");
 
         if(rootName == null) {
-            Logger.msg(5, "EmptyOutcomeInitiator.getRootElement() - rootName is null, taking the root from Schema");
+            log.debug("getRootElement() - rootName is null, taking the root from Schema");
 
             if (globalElems.length != 1) throw new InvalidDataException("Ambiguious root: Schema has more than one global elements");
 
             return globalElems[0];
         }
         else {
-            Logger.msg(5, "EmptyOutcomeInitiator.getRootElement() - rootName:"+rootName);
+            log.debug("getRootElement() - rootName:"+rootName);
 
             SchemaType elem = null;
             boolean found = false;
@@ -97,7 +99,7 @@ public class EmptyOutcomeInitiator implements OutcomeInitiator {
             }
 
             if (!found) {
-                Logger.error("Could not find a global element with name '" + rootName + "'");
+                log.error("Could not find a global element with name '" + rootName + "'");
                 throw new InvalidDataException("Could not find a global element with name '" + rootName + "'");
             }
 
@@ -118,7 +120,7 @@ public class EmptyOutcomeInitiator implements OutcomeInitiator {
             schemas[0] = SchemaDocument.Factory.parse( xsd, (new XmlOptions()).setLoadLineNumbers().setLoadMessageDigest());
         }
         catch (XmlException e) {
-            Logger.error(e);
+            log.error("", e);
             throw new InvalidDataException(e.getMessage());
         }
 
@@ -130,14 +132,13 @@ public class EmptyOutcomeInitiator implements OutcomeInitiator {
             sts = XmlBeans.compileXsd(schemas, XmlBeans.getBuiltinTypeSystem(), getXSDCompileOptions());
         }
         catch (Exception e) {
-            Logger.error(xsd);
-            Logger.error(e);
+            log.error(xsd, e);
 
             StringBuffer buffer = new StringBuffer();
             
             for (Object error: errors ) buffer.append(error.toString());
 
-            Logger.error("Errors to process Schema(s) : " + buffer.toString());
+            log.error("Errors to process Schema(s) : " + buffer.toString());
             throw new InvalidDataException("Errors to process Schema(s) : " + buffer.toString());
         }
 
@@ -168,7 +169,7 @@ public class EmptyOutcomeInitiator implements OutcomeInitiator {
             return getXMLString( job.getActPropString(ROOTNAME_PROPNAME), job.getSchema().getSchemaData() );
         }
         catch (ObjectNotFoundException e) {
-            Logger.error(e);
+            log.error("", e);
             throw new InvalidDataException(e.getMessage());
         }
     }
@@ -183,7 +184,7 @@ public class EmptyOutcomeInitiator implements OutcomeInitiator {
             return new Outcome(-1, xml, job.getSchema());
         }
         catch (ObjectNotFoundException e) {
-            Logger.error(e);
+            log.error("", e);
             throw new InvalidDataException(e.getMessage());
         }
     }

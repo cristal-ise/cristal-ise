@@ -1,19 +1,10 @@
 package org.cristalise.restapi.test
 
-import static io.restassured.RestAssured.*
-import static org.hamcrest.Matchers.*
-
 import org.cristalise.kernel.lifecycle.instance.predefined.ChangeName
-import org.cristalise.kernel.process.AbstractMain
-import org.cristalise.kernel.utils.Logger
-import org.json.JSONArray
-import org.junit.BeforeClass
 import org.junit.Test
 
 import groovy.transform.CompileStatic
 import io.restassured.http.ContentType
-import io.restassured.http.Cookie
-import io.restassured.response.Response
 
 @CompileStatic
 class ChangeNameTest extends RestapiTestBase {
@@ -37,6 +28,15 @@ class ChangeNameTest extends RestapiTestBase {
         logout(null)
 
         login('mainUser', 'test')
+        logout(null)
+    }
+
+    @Test
+    public void 'Change name of an Item from camel case to lower case'() throws Exception {
+        login('user', 'test')
+        def name = "TestItem-$timeStamp"
+        def itemUuid = createNewItem(name, ContentType.XML)
+        executePredefStep(itemUuid, ChangeName.class, name, name.toLowerCase())
         logout(null)
     }
 }

@@ -34,9 +34,10 @@ import org.cristalise.kernel.common.InvalidDataException;
 import org.cristalise.kernel.common.ObjectNotFoundException;
 import org.cristalise.kernel.lookup.AgentPath;
 import org.cristalise.kernel.process.Gateway;
-import org.cristalise.kernel.utils.Logger;
 
-@Path("auth")
+import lombok.extern.slf4j.Slf4j;
+
+@Path("auth") @Slf4j
 public class TokenLogin extends RestHandler {
 
     @GET
@@ -56,12 +57,12 @@ public class TokenLogin extends RestHandler {
                 return Response.ok(token).build();
             }
             catch (Exception e) {
-                Logger.error(e);
+                log.error("Error creating token", e);
                 throw new WebApplicationException("Error creating token");
             }
         }
         catch (InvalidDataException e) {
-            Logger.error(e);
+            log.error("Problem logging in", e);
             throw new WebApplicationException("Problem logging in");
         }
         catch (ObjectNotFoundException e1) {

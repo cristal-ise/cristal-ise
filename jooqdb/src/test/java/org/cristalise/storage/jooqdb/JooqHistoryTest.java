@@ -32,7 +32,6 @@ import org.cristalise.kernel.lookup.AgentPath;
 import org.cristalise.kernel.lookup.InvalidItemPathException;
 import org.cristalise.kernel.lookup.ItemPath;
 import org.cristalise.kernel.utils.DateUtility;
-import org.cristalise.kernel.utils.Logger;
 import org.cristalise.storage.jooqdb.clusterStore.JooqHistoryHandler;
 import org.hamcrest.collection.IsIterableContainingInAnyOrder;
 import org.junit.After;
@@ -180,7 +179,6 @@ public class JooqHistoryTest extends StorageTestBase {
         assert jooq.put(context, uuid2, createEvent(uuid2, 2)) == 1;
 
         String[] keys = jooq.getNextPrimaryKeys(context, uuid);
-        Logger.msg(Arrays.toString(keys));
 
         Assert.assertThat(Arrays.asList(keys), IsIterableContainingInAnyOrder.containsInAnyOrder("0", "1", "2", "3"));
     }

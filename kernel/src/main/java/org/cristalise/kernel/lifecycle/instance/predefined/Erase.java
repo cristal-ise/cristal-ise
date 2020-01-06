@@ -34,8 +34,10 @@ import org.cristalise.kernel.lookup.ItemPath;
 import org.cristalise.kernel.lookup.Path;
 import org.cristalise.kernel.lookup.RolePath;
 import org.cristalise.kernel.process.Gateway;
-import org.cristalise.kernel.utils.Logger;
 
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
 public class Erase extends PredefinedStep {
     public static final String description =  "Deletes all domain paths (aliases), roles (if agent) and clusters for this item or agent.";
 
@@ -52,13 +54,13 @@ public class Erase extends PredefinedStep {
     protected String runActivityLogic(AgentPath agent, ItemPath item, int transitionID, String requestData, Object locker)
             throws InvalidDataException, ObjectNotFoundException, ObjectCannotBeUpdated, CannotManageException, PersistencyException
     {
-        Logger.msg(1, "Erase.request() - Starting item:"+item);
+        log.debug("Called by {} on {}", agent.getAgentName(), item);
 
         removeAliases(item);
         removeRolesIfAgent(item);
         Gateway.getStorage().removeCluster(item, "", locker); //removes all clusters
 
-        Logger.msg(1, "Erase.request() - DONE item:"+item);
+        log.info("Done item:"+item);
 
         return requestData;
     }

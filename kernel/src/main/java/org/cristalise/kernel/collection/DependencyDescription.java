@@ -27,8 +27,10 @@ import org.cristalise.kernel.lookup.ItemPath;
 import org.cristalise.kernel.property.PropertyDescriptionList;
 import org.cristalise.kernel.property.PropertyUtility;
 import org.cristalise.kernel.utils.CastorHashMap;
-import org.cristalise.kernel.utils.Logger;
 
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
 public class DependencyDescription extends Dependency implements CollectionDescription<DependencyMember> {
 
     public DependencyDescription() {
@@ -63,12 +65,12 @@ public class DependencyDescription extends Dependency implements CollectionDescr
                 newDep.setClassProps(pdList.getClassProps());
             }
             else
-                Logger.warning("DependencyDescription.newInstance("+getName()+") - No PropertyDesc was found. Dependency cannot check member type.");
+                log.warn("newInstance("+getName()+") - No PropertyDesc was found. Dependency cannot check member type.");
 
             if (mProperties != null) newDep.getProperties().merge(mProperties);
         }
         else
-            Logger.warning("DependencyDescription.newInstance("+getName()+") - No PropertyDesc was found. Dependency cannot check member type.");
+            log.warn("newInstance("+getName()+") - No PropertyDesc was found. Dependency cannot check member type.");
 
         return newDep;
     }

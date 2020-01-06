@@ -40,7 +40,6 @@ import org.cristalise.kernel.persistency.outcome.Viewpoint;
 import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.test.process.MainTest;
 import org.cristalise.kernel.utils.FileStringUtility;
-import org.cristalise.kernel.utils.Logger;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -49,13 +48,15 @@ import org.junit.Test;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
 public class OutcomeTest {
 
     Outcome testOc;
 
     @BeforeClass
     public static void beforeClass() throws Exception {
-        Logger.addLogStream(System.out, 8);
         Properties props = FileStringUtility.loadConfigFile(MainTest.class.getResource("/server.conf").getPath());
         Gateway.init(props);
     }
@@ -87,7 +88,7 @@ public class OutcomeTest {
     public void validate() throws Exception  {
         testOc.getDOM().normalize();
         assertNotNull(testOc.getData());
-        //Logger.msg(testOc.getData());
+        //log.info(testOc.getData());
     }
 
     @Test
@@ -215,14 +216,14 @@ public class OutcomeTest {
                     else if (children.item(j).getNodeName().equals("FieldValue")) fieldValue = children.item(j).getTextContent().trim();
                 }
                 else  {
-                    Logger.msg("testComplexXpath() - SKIPPING nodeName:"+children.item(j).getNodeName()+" nodeType:"+children.item(j).getNodeType());
+                    log.info("testComplexXpath() - SKIPPING nodeName:"+children.item(j).getNodeName()+" nodeType:"+children.item(j).getNodeType());
                 }
             }
 
             assertNotNull( "fieldName shall not be null", fieldName);
             assertNotNull("fieldValue shall not be null", fieldValue);
 
-            Logger.msg("testComplexXpath() - slotID:"+slotID+" fieldName:"+fieldName+" fieldValue:"+fieldValue);
+            log.info("testComplexXpath() - slotID:"+slotID+" fieldName:"+fieldName+" fieldValue:"+fieldValue);
         }
     }
 
@@ -314,7 +315,7 @@ public class OutcomeTest {
 
         patient2.setRecord(record);
 
-        Logger.msg(patient2.getData());
+        log.info(patient2.getData());
 
         patient2.getDOM().normalize();
         patient2.validateAndCheck();
@@ -334,7 +335,7 @@ public class OutcomeTest {
 
         storage.validateAndCheck();
         assertNotNull(storage.getData());
-        Logger.msg(storage.getData());
+        log.info(storage.getData());
 
         assertTrue( storage.isIdentical(getOutcome("storageDetails1_updated.xml")) );
     }
@@ -343,7 +344,7 @@ public class OutcomeTest {
     public void testSite() throws Exception {
         Outcome site1 = getOutcome("site1", "NewSite");
 
-        Logger.msg(site1.getData());
+        log.info(site1.getData());
 
         Map<String, String> record =  new HashMap<>();
         record.put("Name", "kovax");
@@ -389,6 +390,6 @@ public class OutcomeTest {
 
         testOc.setNodeValue(testOc.getNodeByXPath("//Field4"), "<xml>input</xml>", true);
         assertEquals("<xml>input</xml>", testOc.getField("Field4"));
-        Logger.msg(testOc.getData());
+        log.info(testOc.getData());
     }
 }

@@ -20,17 +20,17 @@
  */
 package org.cristalise.dsl.property
 
-import org.apache.commons.lang3.StringUtils
 import org.cristalise.kernel.utils.CastorHashMap
-import org.cristalise.kernel.utils.Logger
+
 import groovy.transform.CompileStatic
+import groovy.util.logging.Slf4j
 
 
 /**
  * Wrapper/Delegate class of CastorHashMap used in Lifecycle and Collection Properties
  *
  */
-@CompileStatic
+@CompileStatic @Slf4j
 class PropertyDelegate {
 
     CastorHashMap props = new CastorHashMap()
@@ -51,7 +51,7 @@ class PropertyDelegate {
         assert attrs, "Property must have the name and value pair set"
 
         attrs.each { k, v ->
-            Logger.msg 0, "PropertyDelegate.Property() - adding name/Value: $k/$v"
+            log.debug 'Property() - adding name/value: {}/{}', k, v
 
             props.put(k, (v instanceof String) ? (String)v : v, false)
         }
@@ -61,7 +61,7 @@ class PropertyDelegate {
         assert attrs, "AbstractProperty must have the name and value pair set"
 
         attrs.each { k, v ->
-            Logger.msg 8, "PropertyDelegate.AbstractProperty() - adding name/Value: $k/$v"
+            log.debug 'AbstractProperty() - adding name/value: {}/{}', k, v
 
             props.put(k, (v instanceof String) ? (String)v : v, true)
         }

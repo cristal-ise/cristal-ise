@@ -80,7 +80,6 @@
         </mailingList>
     </mailingLists>
     <properties>
-        <jersey.version>2.26</jersey.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <additionalparam>-Xdoclint:none</additionalparam>
         <maven.deploy.skip>false</maven.deploy.skip>
@@ -143,18 +142,6 @@
         </plugins>
     </build>
 
-    <dependencyManagement>
-        <dependencies>
-            <dependency>
-                <groupId>org.glassfish.jersey</groupId>
-                <artifactId>jersey-bom</artifactId>
-                <version>${jersey.version}</version>
-                <type>pom</type>
-                <scope>import</scope>
-            </dependency>
-        </dependencies>
-    </dependencyManagement>
-
     <dependencies>
         <dependency>
             <artifactId>javax.ws.rs-api</artifactId>
@@ -194,14 +181,8 @@
             <version>20171018</version>
         </dependency>
         <dependency>
-            <groupId>com.microsoft.sqlserver</groupId>
-            <artifactId>mssql-jdbc</artifactId>
-            <version>6.4.0.jre8</version>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.tika</groupId>
-            <artifactId>tika-parsers</artifactId>
-            <version>1.18</version>
+            <groupId>com.google.guava</groupId>
+            <artifactId>guava</artifactId>
         </dependency>
 
         <dependency>
@@ -219,6 +200,12 @@
             <artifactId>cristalise-jooqdb</artifactId>
             <version>${revision}</version>
             <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>ch.qos.logback</groupId>
+            <artifactId>logback-classic</artifactId>
+            <version>1.2.3</version>
+            <scope>test</scope>
         </dependency>
     </dependencies>
 </project>
