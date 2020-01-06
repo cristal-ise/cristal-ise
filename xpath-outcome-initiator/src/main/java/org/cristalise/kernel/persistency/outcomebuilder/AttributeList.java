@@ -26,6 +26,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.cristalise.kernel.persistency.outcomebuilder.field.StringField;
+import org.cristalise.kernel.utils.Logger;
 import org.exolab.castor.xml.schema.AttributeDecl;
 import org.exolab.castor.xml.schema.ComplexType;
 import org.exolab.castor.xml.schema.ElementDecl;
@@ -35,9 +36,6 @@ import org.w3c.dom.Attr;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
-import lombok.extern.slf4j.Slf4j;
-
-@Slf4j
 public class AttributeList extends OutcomeStructure {
 
 //    private ArrayList<StringField> attrSet = new ArrayList<StringField>();
@@ -55,7 +53,7 @@ public class AttributeList extends OutcomeStructure {
         for (Enumeration<AttributeDecl> fields = content.getAttributeDecls(); fields.hasMoreElements();) {
             thisDecl = (AttributeDecl)fields.nextElement();
 
-            log.debug("attribute:{} optional:{}", thisDecl.getName(), thisDecl.isOptional());
+            Logger.msg(8, "AttributeList() - attribute:"+thisDecl.getName()+" optional:"+thisDecl.isOptional());
 
             // FIXME: this will be overwritten by the help of next attributes
             help = OutcomeStructure.extractHelp(thisDecl);
@@ -69,7 +67,7 @@ public class AttributeList extends OutcomeStructure {
                 attrMap.put(thisDecl.getName(), StringField.getField(thisDecl) );
             }
             catch (StructuralException e) {
-                log.error("", e);
+                Logger.error(e);
             }
         }
     }
@@ -79,7 +77,7 @@ public class AttributeList extends OutcomeStructure {
         this.myElement = newElement;
 
         for (StringField thisField : attrMap.values()) {
-            log.debug("setInstance() - Populating Attribute {}", thisField.getName());
+            Logger.msg(8, "AttributeList.setInstance() - Populating Attribute "+thisField.getName());
             Attr thisAttr = myElement.getAttributeNode(thisField.getName());
 
             if (thisAttr == null) thisAttr = newAttribute((AttributeDecl)thisField.getModel());
@@ -133,7 +131,7 @@ public class AttributeList extends OutcomeStructure {
      * @param parent
      */
     public void initNew(Element parent) {
-        log.debug("initNew() - Creating attributes for " + model.getName());
+        Logger.msg(5, "AttributeList.initNew() - Creating attributes for " + model.getName());
 
         this.myElement = parent;
 
@@ -168,7 +166,7 @@ public class AttributeList extends OutcomeStructure {
     public void addJsonInstance(OutcomeStructure parentStruct, Element parentElement, String attrName, Object json) throws OutcomeBuilderException {
         myElement = parentElement;
 
-        log.debug("addJsonInstance() - name:'{}'", attrName);
+        Logger.msg(5, "AttributeList.addJsonInstance() - name:'" + attrName + "'");
 
         AttributeDecl attrDecl = ((ComplexType)model.getType()).getAttributeDecl(attrName);
 

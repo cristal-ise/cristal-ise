@@ -28,16 +28,29 @@ import org.cristalise.kernel.common.ObjectNotFoundException;
 import org.cristalise.kernel.common.SystemKey;
 import org.cristalise.kernel.lookup.ItemPath;
 import org.cristalise.kernel.process.Gateway;
-import lombok.extern.slf4j.Slf4j;
+import org.cristalise.kernel.utils.Logger;
 
 
-@Slf4j
-public class TraceableLocator extends org.omg.PortableServer.ServantLocatorPOA {
 
-    public TraceableLocator() {
+/**************************************************************************
+ *
+ * @author $Author: abranson $ $Date: 2005/10/05 07:39:37 $
+ * @version $Revision: 1.15 $
+ **************************************************************************/
+public class TraceableLocator extends org.omg.PortableServer.ServantLocatorPOA
+{
+
+   /**************************************************************************
+    *
+    **************************************************************************/
+    public TraceableLocator()
+    {
     }
 
 
+   /**************************************************************************
+    *
+    **************************************************************************/
     @Override
 	public org.omg.PortableServer.Servant preinvoke(
               byte[]                                                    oid,
@@ -46,23 +59,26 @@ public class TraceableLocator extends org.omg.PortableServer.ServantLocatorPOA {
               org.omg.PortableServer.ServantLocatorPackage.CookieHolder cookie )
     {
         ByteBuffer bb = ByteBuffer.wrap(oid);
-        long msb = bb.getLong();
-        long lsb = bb.getLong();
-        ItemPath syskey = new ItemPath(new SystemKey(msb, lsb));
+		long msb = bb.getLong();
+		long lsb = bb.getLong();
+		ItemPath syskey = new ItemPath(new SystemKey(msb, lsb));
 
-        log.info("===========================================================");
-        log.info("Item called at "+new Timestamp( System.currentTimeMillis()) +": " + operation + "(" + syskey + ")." );
+		Logger.msg(1,"===========================================================");
+		Logger.msg(1,"Item called at "+new Timestamp( System.currentTimeMillis()) +": " + operation +
+		               "(" + syskey + ")." );
 
-        try {
-            return Gateway.getCorbaServer().getItem(syskey);
-        }
-        catch (ObjectNotFoundException ex) {
-            log.error("preinvoke", ex);
+		try {
+			return Gateway.getCorbaServer().getItem(syskey);
+		} catch (ObjectNotFoundException ex) {
+            Logger.error("ObjectNotFoundException::TraceableLocator::preinvoke() " + ex.toString());
             throw new org.omg.CORBA.OBJECT_NOT_EXIST();
-        }
+		}
     }
 
 
+   /**************************************************************************
+    *
+    **************************************************************************/
     @Override
 	public void postinvoke(
                byte[]                           oid,

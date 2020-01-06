@@ -28,13 +28,12 @@ import java.util.LinkedList;
 import java.util.Map;
 import java.util.Set;
 
-/**
+/*******************************************************************************
  * WeakReferences are reaped if no strong references are left next time the gc has a chance. 
  * The ClusterStorageManager caches can optionally use this one, for high volume imports etc
  *
- * @param <K> key
- * @param <V> value
- */
+ * $Revision: 1.5 $ $Date: 2004/10/29 13:29:09 $
+ ******************************************************************************/
 public class WeakCache<K, V> extends AbstractMap<K, V> {
 
     private final Map<K, WeakValue<V>> hash = new HashMap<K, WeakValue<V>>();

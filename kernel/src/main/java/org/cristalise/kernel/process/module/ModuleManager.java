@@ -33,17 +33,16 @@ import org.cristalise.kernel.entity.proxy.ItemProxy;
 import org.cristalise.kernel.lookup.DomainPath;
 import org.cristalise.kernel.persistency.outcome.OutcomeValidator;
 import org.cristalise.kernel.persistency.outcome.Schema;
-import org.cristalise.kernel.process.AbstractMain;
 import org.cristalise.kernel.process.Bootstrap;
 import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.scripting.ScriptingEngineException;
 import org.cristalise.kernel.utils.FileStringUtility;
 import org.cristalise.kernel.utils.LocalObjectLoader;
+import org.cristalise.kernel.utils.Logger;
 
 import lombok.Getter;
-import lombok.extern.slf4j.Slf4j;
 
-@Slf4j
+
 public class ModuleManager {
     @Getter
     private ArrayList<Module> modules = new ArrayList<Module>();
@@ -62,7 +61,7 @@ public class ModuleManager {
             moduleValidator = new OutcomeValidator(moduleSchema);
         }
         catch (InvalidDataException ex) {
-            log.error("", ex);
+            Logger.error(ex);
             throw new ModuleException("Module Schema is not valid");
         }
         catch (ObjectNotFoundException ex) {
@@ -110,13 +109,13 @@ public class ModuleManager {
                     throw new ModuleException("Module "+newModule.getName()+" requires kernel version "+reqKernelVer +" or higher.");
                 }
 
-                log.info("loadModules() - Module ns:"+newModule.getNamespace()+" name:"+newModule.getName());
+                Logger.msg(4, "ModuleManager.loadModules() - Module ns:"+newModule.getNamespace()+" name:"+newModule.getName());
 
                 loadedModules.add(newModule.getName());
                 moduleNs.add(newModule.getNamespace());
             }
             catch (Exception e) {
-                log.error("", e);
+                Logger.error(e);
                 throw new ModuleException("Could not load module.xml from url:"+newModuleURL);
             }
         }
@@ -139,19 +138,19 @@ public class ModuleManager {
             boolean depClean = false;
             int skipped = 0;
             Module thisMod = modules.get(i);
-            log.debug("checkModuleDependencies() - Checking dependencies of module "+thisMod.getName());
+            Logger.msg(5, "ModuleManager.checkModuleDependencies() - Checking dependencies of module "+thisMod.getName());
 
             while (!depClean) {
                 ArrayList<String> deps = thisMod.getDependencies();
                 depClean = true;
                 for (String dep : deps) {
-                    log.debug(thisMod.getName()+" depends on "+dep);
+                    Logger.msg(6, thisMod.getName()+" depends on "+dep);
                     if (!loadedModules.contains(dep)) {
-                        log.error("UNMET MODULE DEPENDENCY: "+thisMod.getName()+" requires "+dep);
+                        Logger.error("UNMET MODULE DEPENDENCY: "+thisMod.getName()+" requires "+dep);
                         allDepsPresent = false;
                     }
                     else if (!prevModules.contains(dep)) {
-                        log.info("checkModuleDependencies() - Shuffling "+thisMod.getName()+" to the end to fulfil dependency on "+dep);
+                        Logger.msg(1, "ModuleManager.checkModuleDependencies() - Shuffling "+thisMod.getName()+" to the end to fulfil dependency on "+dep);
                         modules.remove(i);
                         modules.add(thisMod);
                         thisMod = modules.get(i);
@@ -166,8 +165,7 @@ public class ModuleManager {
                     for (Module mod : modules.subList(i, modules.size())) {
                         badMod.append(mod.getName()).append(" ");
                     }
-                    log.error("checkModuleDependencies() - Circular module dependencies involving: "+badMod);
-                    AbstractMain.shutdown(1);
+                    Logger.die("ModuleManager.checkModuleDependencies() - Circular module dependencies involving: "+badMod);
                 }
             }
 
@@ -180,11 +178,7 @@ public class ModuleManager {
             prevModules.add(thisMod.getName());
         }
 
-        if (!allDepsPresent) {
-            log.error("ModuleManager.checkModuleDependencies() - Unmet module dependencies. Cannot continue");
-            AbstractMain.shutdown(1);
-
-        }
+        if (!allDepsPresent) Logger.die("ModuleManager.checkModuleDependencies() - Unmet module dependencies. Cannot continue");
         
         return allModuleProperties;
     }
@@ -220,8 +214,8 @@ public class ModuleManager {
                 thisMod.runScript(event, agent, isServer);
             }
             catch (ScriptingEngineException e) {
-                log.error("", e);
-                AbstractMain.shutdown(1);
+                Logger.error(e);
+                Logger.die(e.getMessage());
             }
         }
     }
@@ -235,14 +229,14 @@ public class ModuleManager {
             throw new ModuleException("Cannot find local server name.");
         }
 
-        log.info("registerModules() - Registering modules");
+        Logger.msg(3, "ModuleManager.registerModules() - Registering modules");
 
         boolean reset = Gateway.getProperties().getBoolean("Module.reset", false);
 
         for (Module thisMod : modules) {
             if (Bootstrap.shutdown) return; 
 
-            log.info("registerModules() - Registering module "+thisMod.getName());
+            Logger.msg("ModuleManager.registerModules() - Registering module "+thisMod.getName());
             
             try {
                 String thisResetKey = "Module."+thisMod.getNamespace()+".reset";
@@ -256,17 +250,17 @@ public class ModuleManager {
                 thisMod.importAll(serverItem, agent, thisReset);
             }
             catch (Exception e) {
-                log.error("", e);
+                Logger.error(e);
                 throw new ModuleException("Error importing items for module "+thisMod.getName());
             }
 
-            log.info("registerModules() - Module "+thisMod.getName()+" registered");
+            Logger.msg("ModuleManager.registerModules() - Module "+thisMod.getName()+" registered");
 
             try {
                 thisMod.runScript("startup", agent, true);
             }
             catch (ScriptingEngineException e) {
-                log.error("", e);
+                Logger.error(e);
                 throw new ModuleException("Error in startup script for module "+thisMod.getName());
             }
         }
@@ -281,7 +275,7 @@ public class ModuleManager {
                 FileStringUtility.string2File(thisMod.getName()+".xml", Gateway.getMarshaller().marshall(thisMod));
             }
             catch (Exception e) {
-                log.error("", e);
+                Logger.error(e);
             }
         }
     }

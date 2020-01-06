@@ -32,9 +32,6 @@ import org.cristalise.kernel.lifecycle.instance.predefined.PredefinedStep;
 import org.cristalise.kernel.lookup.AgentPath;
 import org.cristalise.kernel.lookup.ItemPath;
 
-import lombok.extern.slf4j.Slf4j;
-
-@Slf4j
 public class UpdateItemFromDescription extends PredefinedStep {
 
     public static final String description = "";
@@ -54,9 +51,7 @@ public class UpdateItemFromDescription extends PredefinedStep {
                     AccessRightsException
     {
         String[] input = getDataList(requestData);
-
-        log.debug("Called by {} on {} with parameters {}", agent.getAgentName(), descItemPath, (Object)input);
-
+        
         return requestData;
     }
 

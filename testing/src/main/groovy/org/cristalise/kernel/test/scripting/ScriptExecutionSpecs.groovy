@@ -168,7 +168,7 @@ class ScriptExecutionSpecs extends Specification implements CristalTestSetup {
         }
         ScriptBuilder.create("integTest", "Modulo", 0) {
             include("Function", 0)
-            output('java.lang.Double')
+            output('java.lang.Integer')
             javascript { "func() % 2;" }
         }
         Script script = LocalObjectLoader.getScript("Modulo", 0)

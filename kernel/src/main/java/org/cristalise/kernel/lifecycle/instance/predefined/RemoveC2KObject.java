@@ -27,10 +27,8 @@ import org.cristalise.kernel.common.PersistencyException;
 import org.cristalise.kernel.lookup.AgentPath;
 import org.cristalise.kernel.lookup.ItemPath;
 import org.cristalise.kernel.process.Gateway;
+import org.cristalise.kernel.utils.Logger;
 
-import lombok.extern.slf4j.Slf4j;
-
-@Slf4j
 public class RemoveC2KObject extends PredefinedStep {
     public RemoveC2KObject() {
         super();
@@ -47,7 +45,7 @@ public class RemoveC2KObject extends PredefinedStep {
             throw new InvalidDataException("RemoveC2KObject: Invalid parameters - length != 1" + Arrays.toString(params));
         }
 
-        log.debug("Called by {} on {} with parameters {}", agent.getAgentName(), item, (Object)params);
+        Logger.msg(3, "RemoveC2KObject: called by " + agent + " on " + item + " with parameters " + Arrays.toString(params));
 
         Gateway.getStorage().remove(item, params[0], locker);
         return requestData;

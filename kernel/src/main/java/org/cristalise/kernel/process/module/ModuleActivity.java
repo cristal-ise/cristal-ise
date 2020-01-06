@@ -26,7 +26,6 @@ import static org.cristalise.kernel.collection.BuiltInCollections.SCRIPT;
 import static org.cristalise.kernel.collection.BuiltInCollections.STATE_MACHINE;
 import lombok.Getter;
 import lombok.Setter;
-import lombok.extern.slf4j.Slf4j;
 
 import org.cristalise.kernel.collection.BuiltInCollections;
 import org.cristalise.kernel.collection.Collection;
@@ -46,8 +45,9 @@ import org.cristalise.kernel.process.Bootstrap;
 import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.process.resource.BuiltInResources;
 import org.cristalise.kernel.utils.LocalObjectLoader;
+import org.cristalise.kernel.utils.Logger;
 
-@Getter @Setter @Slf4j
+@Getter @Setter
 public class ModuleActivity extends ModuleResource {
 
     ModuleDescRef script, schema, query, stateMachine;
@@ -86,7 +86,7 @@ public class ModuleActivity extends ModuleResource {
             itemPath = domainPath.getItemPath();
         }
         catch (Exception e) {
-            log.error("", e);
+            Logger.error(e);
             throw new CannotManageException("Exception verifying module resource " + ns + "/" + name);
         }
 
@@ -99,7 +99,7 @@ public class ModuleActivity extends ModuleResource {
             colls = actDef.makeDescCollections();
         }
         catch (InvalidDataException e) {
-            log.error("", e);
+            Logger.error(e);
             throw new CannotManageException("Could not create description collections for " + getName() + ".");
         }
         for (Collection<?> coll : colls.list) {
@@ -110,7 +110,7 @@ public class ModuleActivity extends ModuleResource {
                 Gateway.getStorage().put(itemPath, coll, null);
             }
             catch (PersistencyException e) {
-                log.error("", e);
+                Logger.error(e);
                 throw new CannotManageException("Persistency exception storing description collections for " + getName() + ".");
             }
         }
@@ -124,7 +124,7 @@ public class ModuleActivity extends ModuleResource {
                 actDef.setSchema(LocalObjectLoader.getSchema(schema.id == null ? schema.name : schema.id, Integer.valueOf(schema.version)));
         }
         catch (NumberFormatException | InvalidDataException e) {
-            log.error("", e);
+            Logger.error(e);
             throw new CannotManageException("Schema definition in " + getName() + " not valid.");
         }
 
@@ -133,7 +133,7 @@ public class ModuleActivity extends ModuleResource {
                 actDef.setScript(LocalObjectLoader.getScript(script.id == null ? script.name : script.id, Integer.valueOf(script.version)));
         }
         catch (NumberFormatException | InvalidDataException e) {
-            log.error("", e);
+            Logger.error(e);
             throw new CannotManageException("Script definition in " + getName() + " not valid.");
         }
 
@@ -142,7 +142,7 @@ public class ModuleActivity extends ModuleResource {
                 actDef.setQuery(LocalObjectLoader.getQuery(query.id == null ? query.name : query.id, Integer.valueOf(query.version)));
         }
         catch (NumberFormatException | InvalidDataException e) {
-            log.error("", e);
+            Logger.error(e);
             throw new CannotManageException("Query definition in " + getName() + " not valid.");
         }
 
@@ -152,7 +152,7 @@ public class ModuleActivity extends ModuleResource {
                         Integer.valueOf(stateMachine.version)));
         }
         catch (NumberFormatException | InvalidDataException e) {
-            log.error("", e);
+            Logger.error(e);
             throw new CannotManageException("State Machine definition in " + getName() + " not valid.");
         }
     }

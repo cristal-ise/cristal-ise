@@ -54,16 +54,14 @@ import org.cristalise.kernel.property.PropertyArrayList;
 import org.cristalise.kernel.property.PropertyDescription;
 import org.cristalise.kernel.property.PropertyDescriptionList;
 import org.cristalise.kernel.property.PropertyUtility;
+import org.cristalise.kernel.utils.Logger;
 import org.exolab.castor.mapping.MappingException;
 import org.exolab.castor.xml.MarshalException;
 import org.exolab.castor.xml.ValidationException;
 
-import lombok.extern.slf4j.Slf4j;
-
 /**
  * {@value #description}
  */
-@Slf4j
 public class UpdateCollectionsFromDescription extends PredefinedStep {
 
     public static final String description = "Updates the Collections of the Item from its description";
@@ -101,7 +99,7 @@ public class UpdateCollectionsFromDescription extends PredefinedStep {
             }
         }
         catch (MarshalException | ValidationException | IOException | MappingException e) {
-            log.error("", e);
+            Logger.error(e);
             throw new InvalidDataException(e.getMessage());
         }
 
@@ -111,7 +109,7 @@ public class UpdateCollectionsFromDescription extends PredefinedStep {
             descItemPath = Gateway.getLookup().resolvePath(new DomainPath(descPath));
         }
         catch (InvalidItemPathException e) {
-            log.error("", e);
+            Logger.error(e);
             throw new InvalidDataException(e.getMessage());
         }
 

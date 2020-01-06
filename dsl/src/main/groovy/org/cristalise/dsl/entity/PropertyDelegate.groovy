@@ -20,19 +20,22 @@
  */
 package org.cristalise.dsl.entity
 
+import groovy.transform.CompileStatic
+
+import java.util.ArrayList;
+
 import org.cristalise.kernel.common.InvalidDataException
+import org.cristalise.kernel.entity.imports.ImportItem;
 import org.cristalise.kernel.property.Property
 import org.cristalise.kernel.property.PropertyArrayList
-
-import groovy.transform.CompileStatic
-import groovy.util.logging.Slf4j
+import org.cristalise.kernel.utils.Logger
 
 
 /**
  * Wrapper/Delegate class of PropertyArrayList used for Item and Agent Properties
  * 
  */
-@CompileStatic @Slf4j
+@CompileStatic
 class PropertyDelegate {
 
     PropertyArrayList itemProps = new PropertyArrayList();
@@ -51,7 +54,7 @@ class PropertyDelegate {
         attrs.each { k, v ->
             if(!v) throw new InvalidDataException("Inmutable EntityProperty '$k' must have valid value")
 
-            log.info "InmutableProperty - name/value: $k/$v"
+            Logger.msg 5, "InmutableProperty - name/Value: $k/$v"
 
             if(v instanceof String) itemProps.put(new Property(k, (String)v, false))
             else                    throw new InvalidDataException("Property '$k' value must be String")
@@ -66,7 +69,7 @@ class PropertyDelegate {
         assert attrs, "Mutable EntityProperty must have the name and value pair set"
 
         attrs.each { k, v ->
-            log.info "Property - name/value: $k/$v"
+            Logger.msg 0, "Property - name/value: $k/$v"
 
             if(v instanceof String) itemProps.put(new Property(k, (String)v, true))
             else                    throw new InvalidDataException("EntityProperty '$k' value must be String")

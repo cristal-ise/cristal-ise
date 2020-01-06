@@ -33,7 +33,6 @@ import javax.xml.parsers.DocumentBuilderFactory;
 
 import lombok.Getter;
 import lombok.Setter;
-import lombok.extern.slf4j.Slf4j;
 
 import org.apache.commons.lang3.StringUtils;
 import org.cristalise.kernel.collection.CollectionArrayList;
@@ -49,13 +48,14 @@ import org.cristalise.kernel.utils.CastorHashMap;
 import org.cristalise.kernel.utils.DescriptionObject;
 import org.cristalise.kernel.utils.FileStringUtility;
 import org.cristalise.kernel.utils.LocalObjectLoader;
+import org.cristalise.kernel.utils.Logger;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 import org.w3c.dom.Text;
 import org.xml.sax.InputSource;
 
-@Getter @Setter @Slf4j
+@Getter @Setter
 public class Query implements DescriptionObject {
 
     private String      name = "";
@@ -137,22 +137,22 @@ public class Query implements DescriptionObject {
         String error = validator.validate(xml);
 
         if (StringUtils.isBlank(error)) {
-            log.debug("validateXML() - DONE");
+            Logger.msg(5, "Query.validateXML() - DONE");
         }
         else {
-            log.error("Query.validateXML() - {}", error);
-            log.error("\n============== XML ==============\n" + xml + "\n=================================\n");
+            Logger.error("Query.validateXML() - $error");
+            Logger.error("\n============== XML ==============\n" + xml + "\n=================================\n");
             throw new InvalidDataException(error);
         }
     }
 
     public void parseXML(String xml) throws QueryParsingException {
         if (StringUtils.isBlank(xml) || "<NULL/>".equals(xml)) {
-            log.warn("Query.parseXML() - query XML was NULL!" );
+            Logger.warning("Query.parseXML() - query XML was NULL!" );
             return;
         }
 
-        log.trace("parseXML() - xml:\n{}", xml);
+        if(Logger.doLog(8)) Logger.msg("Query.parseXML() - xml:\n"+xml);
 
         try {
             validateXML(xml);
@@ -167,7 +167,7 @@ public class Query implements DescriptionObject {
             parseParameterTag(queryDoc.getElementsByTagName("parameter"));
         }
         catch (Exception ex) {
-            log.error("", ex);
+            Logger.error(ex);
             throw new QueryParsingException("Error parsing Query XML : " + ex.toString());
         }
     }
@@ -178,7 +178,7 @@ public class Query implements DescriptionObject {
         if (!queryElem.hasAttribute("language")) throw new QueryParsingException("Query data incomplete, must specify language");
         language = queryElem.getAttribute("language");
 
-        log.debug("parseQueryTag() - Query Language:" + language);
+        Logger.msg(6, "Query.parseQueryTag() - Query Language:" + language);
 
         // get source from CDATA
         NodeList queryChildNodes = queryElem.getChildNodes();
@@ -189,7 +189,7 @@ public class Query implements DescriptionObject {
         if (queryChildNodes.item(0) instanceof Text) query = ((Text) queryChildNodes.item(0)).getData();
         else                                         throw new QueryParsingException("Child element of query tag was not text");
 
-        log.debug("parseQueryTag() - query:" + query);
+        Logger.msg(6, "Query.parseQueryTag() - query:" + query);
     }
 
     private void parseParameterTag(NodeList paramList) throws ScriptParsingException, ParameterException, ClassNotFoundException {
@@ -214,7 +214,7 @@ public class Query implements DescriptionObject {
         sb.append("<query language='" + language + "'>"+"<![CDATA[" + query + "]]></query>");
         sb.append("</cristalquery>");
 
-        log.trace("getQueryXML() - xml:\n{}", sb);
+        if(Logger.doLog(8)) Logger.msg("Query.getQueryXML() - xml:\n"+sb);
 
         return sb.toString();
     }

@@ -30,10 +30,9 @@ import org.cristalise.kernel.lookup.AgentPath;
 import org.cristalise.kernel.lookup.DomainPath;
 import org.cristalise.kernel.lookup.ItemPath;
 import org.cristalise.kernel.process.Gateway;
+import org.cristalise.kernel.utils.Logger;
 
-import lombok.extern.slf4j.Slf4j;
 
-@Slf4j
 public class RemoveDomainPath extends PredefinedStep {
 
     public RemoveDomainPath() {
@@ -46,7 +45,7 @@ public class RemoveDomainPath extends PredefinedStep {
     {
         String[] params = getDataList(requestData);
 
-        log.debug("Called by {} on {} with parameters {}", agent.getAgentName(), item, (Object)params);
+        if (Logger.doLog(3)) Logger.msg(3, "RemoveDomainPath: called by "+agent+" on "+item+" with parameters "+Arrays.toString(params));
 
         if (params.length != 1) throw new InvalidDataException("RemoveDomainPath: Invalid parameters "+Arrays.toString(params));
 

@@ -27,9 +27,7 @@ import org.cristalise.kernel.common.InvalidDataException;
 import org.cristalise.kernel.lookup.ItemPath;
 import org.cristalise.kernel.process.resource.BuiltInResources;
 import org.cristalise.kernel.querying.Query;
-import lombok.extern.slf4j.Slf4j;
 
-@Slf4j
 public class QueryCache extends DescriptionObjectCache<Query> {
 
     @Override
@@ -48,7 +46,7 @@ public class QueryCache extends DescriptionObjectCache<Query> {
             return new Query(name, version, path, data);
         }
         catch (Exception ex) {
-            log.error("Error parsing query '" + name + "' v" + version, ex);
+            Logger.error(ex);
             throw new InvalidDataException("Error parsing query '" + name + "' v" + version + ": " + ex.getMessage());
         }
     }

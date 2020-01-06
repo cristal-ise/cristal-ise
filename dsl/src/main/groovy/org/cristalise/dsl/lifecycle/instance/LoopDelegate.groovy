@@ -1,3 +1,5 @@
+
+
 /**
  * This file is part of the CRISTAL-iSE kernel.
  * Copyright (c) 2001-2015 The CRISTAL Consortium. All rights reserved.
@@ -27,15 +29,15 @@ import org.cristalise.kernel.lifecycle.instance.Next
 import org.cristalise.kernel.lifecycle.instance.Split
 import org.cristalise.kernel.lifecycle.instance.WfVertex
 import org.cristalise.kernel.lifecycle.instance.WfVertex.Types
+import org.cristalise.kernel.utils.Logger
 
 import groovy.transform.CompileStatic
-import groovy.util.logging.Slf4j
 
 
 /**
  * 
  */
-@CompileStatic @Slf4j
+@CompileStatic
 class LoopDelegate extends BlockDelegate {
     Types type = Types.LoopSplit
 
@@ -63,6 +65,8 @@ class LoopDelegate extends BlockDelegate {
      */
     public void processClosure(Closure cl) {
         assert cl, "Split only works with a valid Closure"
+
+        Logger.msg 1, "$name -----------------------------------------"
 
         String joinName = name.replace('Split', 'Join')
 
@@ -97,5 +101,7 @@ class LoopDelegate extends BlockDelegate {
 
         firstVertex = joinFirst
         lastVertex = joinLast
+
+        Logger.msg 1, "$name(end) +++++++++++++++++++++++++++++++++++++++"
     }
 }

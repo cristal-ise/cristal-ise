@@ -35,6 +35,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 
 import org.apache.commons.lang3.StringUtils;
+import org.cristalise.kernel.utils.Logger;
 import org.exolab.castor.types.AnyNode;
 import org.exolab.castor.xml.schema.Annotated;
 import org.exolab.castor.xml.schema.Annotation;
@@ -56,14 +57,7 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
-import lombok.extern.slf4j.Slf4j;
-
-/**
- * contains child outcome elements - creates new ones
- * @author zsmyt
- *
- */
-@Slf4j
+// contains child outcome elements - creates new ones
 public abstract class OutcomeStructure {
 
     boolean isRootElement = false;
@@ -81,7 +75,7 @@ public abstract class OutcomeStructure {
         this.model = model;
         subStructure = new HashMap<String, OutcomeStructure>();
 
-        log.debug("Creating '" + model.getName() + "' structure as " + this.getClass().getSimpleName());
+        Logger.msg(8, "OutcomeStructure() - Creating '" + model.getName() + "' structure as " + this.getClass().getSimpleName());
 
         String doc = extractHelp(model);
         if (StringUtils.isNotBlank(doc)) help = doc;
@@ -242,7 +236,7 @@ public abstract class OutcomeStructure {
             }
             else if (thisParticle instanceof Wildcard) {
                 //do nothing
-                log.debug("enumerateElements() - group has Wildcard representing xs:any");
+                Logger.msg(5, "OutcomeStructure.enumerateElements() - group has Wildcard representing xs:any");
             }
             else {
                 throw new StructuralException("Cannot process Particle '" + thisParticle.getClass() + "' : Not implemented");
@@ -283,7 +277,7 @@ public abstract class OutcomeStructure {
         StringBuffer errors = new StringBuffer();
 
         for (Entry<String, OutcomeStructure> element : subStructure.entrySet()) {
-            log.debug("validateStructure() - validating : " + element.getKey());
+            Logger.debug(5, "OutcomeStructure.validateStructure() - validating : " + element.getKey());
             errors.append(element.getValue().validateStructure());
         }
 
@@ -381,7 +375,8 @@ public abstract class OutcomeStructure {
             }
         }
         catch (Exception ex) {
-            log.warn("Cannot convert value '" + value + "' to a " + type.getName());
+            if (Logger.doLog(6)) Logger.error(ex);
+            Logger.warning("Cannot convert value '" + value + "' to a " + type.getName());
         }
 
         return value == null ? "" : value;

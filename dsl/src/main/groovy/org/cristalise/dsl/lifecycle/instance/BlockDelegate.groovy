@@ -24,6 +24,8 @@ import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.ROUTING_
 import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.ROUTING_SCRIPT_NAME
 import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.ROUTING_SCRIPT_VERSION
 
+import groovy.transform.CompileStatic
+
 import org.cristalise.kernel.common.InvalidDataException
 import org.cristalise.kernel.lifecycle.instance.Activity
 import org.cristalise.kernel.lifecycle.instance.AndSplit
@@ -35,15 +37,13 @@ import org.cristalise.kernel.lifecycle.instance.Split
 import org.cristalise.kernel.lifecycle.instance.WfVertex
 import org.cristalise.kernel.lifecycle.instance.XOrSplit
 import org.cristalise.kernel.lifecycle.instance.WfVertex.Types
-
-import groovy.transform.CompileStatic
-import groovy.util.logging.Slf4j
+import org.cristalise.kernel.utils.Logger
 
 
 /**
  * Block is a group of WfVertices, it should only be used within Splits
  */
-@CompileStatic @Slf4j
+@CompileStatic
 public class BlockDelegate {
     String name = ""
 
@@ -125,7 +125,7 @@ public class BlockDelegate {
     protected static void setRoutingScript(WfVertex aSplit, String name, String version) {
         assert aSplit instanceof Split, "BlockDelegate.setRoutingScript() - Vertex '$aSplit.name' must be instance of Split"
 
-        log.debug "setRoutingScript() - splitName: $aSplit.name, name: '$name' version: '$version'"
+        Logger.msg 5, "BlockDelegate.setRoutingScript() - splitName: $aSplit.name, name: '$name' version: '$version'"
 
         aSplit.getProperties().setBuiltInProperty(ROUTING_SCRIPT_NAME,    name,    false);
         aSplit.getProperties().setBuiltInProperty(ROUTING_SCRIPT_VERSION, version, false)
@@ -152,7 +152,7 @@ public class BlockDelegate {
      * @return
      */
     public static String getAutoName(String n, Types t, int i) {
-        log.debug "getAutoName() - name:'$n', type: $t, index: $i"
+        Logger.msg(5, "getAutoName() - name:'$n', type: $t, index: $i")
 
         String namePrefix = getNamePrefix(t)
 
@@ -176,7 +176,7 @@ public class BlockDelegate {
     public WfVertex addVertex(Types t, String name) {
         WfVertex v = parentCABlock.createVertex(t, name)
 
-        log.debug "addVertex() - type: '$t'; id: '$v.ID'; name: '$name;' path: '$v.path'"
+        Logger.msg 1, "Block.addVertex() - type: '$t'; id: '$v.ID'; name: '$name;' path: '$v.path'"
 
         if(!firstVertex) firstVertex = v
         if(lastVertex) lastVertex.addNext(v)
@@ -193,9 +193,13 @@ public class BlockDelegate {
     public void processClosure(Closure cl) {
         assert cl, "Block only works with a valid Closure"
 
+        Logger.msg 1, "Block(start) ---------------------------------------"
+
         cl.delegate = this
         cl.resolveStrategy = Closure.DELEGATE_FIRST
         cl()
+
+        Logger.msg 1, "Block(end) +++++++++++++++++++++++++++++++++++++++++"
     }
 
     /**
@@ -204,7 +208,7 @@ public class BlockDelegate {
      * @param childBlock the child Block to be linked with
      */
     protected void linkWithChild(BlockDelegate childBlock) {
-        log.debug "linkWithChild() - class:'${childBlock.getClass()}', name: '$childBlock.name'"
+        Logger.msg 1, "Block.linkWithChild() - class:'${childBlock.getClass()}', name: '$childBlock.name'"
 
         if(!firstVertex) firstVertex = childBlock.firstVertex
         else             lastVertex.addNext(childBlock.firstVertex)
@@ -229,7 +233,7 @@ public class BlockDelegate {
      * @param props Map containing properties
      */
     public void Property(Map<String, Object> props) {
-        log.debug "Property() - adding props: $props"
+        Logger.msg 5, "BlockDelegate.Property() - adding props: $props"
         properties << props
     }
 

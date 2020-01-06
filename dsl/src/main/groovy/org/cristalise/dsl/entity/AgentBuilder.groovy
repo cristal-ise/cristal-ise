@@ -36,6 +36,7 @@ import org.cristalise.kernel.lookup.Path
 import org.cristalise.kernel.lookup.RolePath
 import org.cristalise.kernel.process.Gateway
 import org.cristalise.kernel.property.PropertyArrayList
+import org.cristalise.kernel.utils.Logger
 
 
 /**

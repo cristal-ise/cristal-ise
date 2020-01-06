@@ -54,9 +54,9 @@ import org.cristalise.kernel.common.ObjectNotFoundException;
 import org.cristalise.kernel.common.PersistencyException;
 import org.cristalise.kernel.entity.C2KLocalObject;
 import org.cristalise.kernel.persistency.ClusterType;
-import org.cristalise.kernel.process.AbstractMain;
 import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.utils.LocalObjectLoader;
+import org.cristalise.kernel.utils.Logger;
 import org.custommonkey.xmlunit.Diff;
 import org.custommonkey.xmlunit.XMLUnit;
 import org.w3c.dom.Document;
@@ -70,7 +70,6 @@ import org.xml.sax.SAXException;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.Accessors;
-import lombok.extern.slf4j.Slf4j;
 
 /**
  * A C2KLocalObject encapsulating management of XML data. It has methods to manipulate and validate the XML,
@@ -78,7 +77,7 @@ import lombok.extern.slf4j.Slf4j;
  *
  * It contains lot of utility code to read and set data in the Outcome (xml).
  */
-@Accessors(prefix = "m") @Getter @Setter @Slf4j
+@Accessors(prefix = "m") @Getter @Setter
 public class Outcome implements C2KLocalObject {
 
     //These values are set in system properties to select more efficient xpath evaluation behaviour
@@ -117,10 +116,11 @@ public class Outcome implements C2KLocalObject {
 
         try {
             parser = dbf.newDocumentBuilder();
+            Logger.msg(7, "Outcome static class init: "+parser.getClass().getName());
         }
         catch (ParserConfigurationException e) {
-            log.error("FATAL: Cannot function without XML parser", e);
-            AbstractMain.shutdown(1);
+            Logger.error(e);
+            Logger.die("Cannot function without XML parser");
         }
     }
 
@@ -161,7 +161,8 @@ public class Outcome implements C2KLocalObject {
             mDOM = parse(xml);
         }
         catch (IOException | SAXException ex) {
-            log.error("INVALID XML - schema:"+(null == mSchema ? null : mSchema.getName())+"\n"+xml, ex);
+            Logger.error("INVALID XML - schema:"+(null == mSchema ? null : mSchema.getName())+"\n"+xml);
+            Logger.error(ex);
             throw new InvalidDataException("XML not valid for schema:"+mSchema+" error:"+ex.getMessage());
         }
     }
@@ -194,7 +195,7 @@ public class Outcome implements C2KLocalObject {
             mDOM = parse(xml);
         }
         catch (IOException | SAXException ex) {
-            log.error("Invalid XML", ex);
+            Logger.error(ex);
             throw new InvalidDataException("XML not valid: "+ex.getMessage());
         }
     }
@@ -223,7 +224,7 @@ public class Outcome implements C2KLocalObject {
         StringTokenizer tok = new StringTokenizer(path,"/");
 
         if (tok.countTokens() != 3 && !(tok.nextToken().equals(OUTCOME.getName())))
-            throw new PersistencyException("Outcome path must have three components:" + path);
+            throw new PersistencyException("Outcome() - Outcome path must have three components:" + path);
 
         String schemaName = tok.nextToken();
         String verString  = tok.nextToken();
@@ -235,11 +236,11 @@ public class Outcome implements C2KLocalObject {
             mID = Integer.valueOf(objId);
         }
         catch (NumberFormatException ex) {
-            throw new InvalidDataException("Version or EventID was an invalid number version:"+verString + " eventID:" + objId);
+            throw new InvalidDataException("Outcome() - Version or EventID was an invalid number version:"+verString + " eventID:" + objId);
         }
         catch (ObjectNotFoundException e) {
-            log.error("", e);
-            throw new InvalidDataException("Problem loading schema:"+schemaName+" version:"+verString);
+            Logger.error(e);
+            throw new InvalidDataException("Outcome() - problem loading schema:"+schemaName+" version:"+verString);
         }
     }
 
@@ -269,7 +270,7 @@ public class Outcome implements C2KLocalObject {
 
         OutcomeValidator validator = OutcomeValidator.getValidator(mSchema);
 
-        if (Gateway.getProperties().getBoolean("Validation.useDOM", true))
+        if (Gateway.getProperties().getBoolean("Outcome.Validation.useDOM", true))
             return validator.validate(mDOM);
         else
             return validator.validate(getData());
@@ -284,9 +285,9 @@ public class Outcome implements C2KLocalObject {
         String error = validate();
 
         if (StringUtils.isNotBlank(error)) {
-            log.error("Outcome not valid: " + error);
-            log.error("XML: \n"+getData());
-            log.error("XSD: \n"+getSchema().getXSD());
+            Logger.error("Outcome.validateAndCheck() - Outcome not valid: " + error);
+            Logger.msg("XML: \n"+getData());
+            Logger.msg("XSD: \n"+getSchema().getXSD());
             throw new InvalidDataException(error);
         }
     }
@@ -297,7 +298,7 @@ public class Outcome implements C2KLocalObject {
             mID = Integer.valueOf(name);
         }
         catch (NumberFormatException e) {
-            log.error("Invalid id set on Outcome:"+name);
+            Logger.error("Invalid id set on Outcome:"+name);
         }
     }
 
@@ -327,7 +328,7 @@ public class Outcome implements C2KLocalObject {
             NodeList nodeChildren = node.getChildNodes();
 
             if (nodeChildren.getLength() == 0) {
-                log.trace("getNodeValue() - No child/text node for node:"+node.getNodeName()+" => returning null");
+                Logger.msg(5, "Outcome.getNodeValue() - No child/text node for node:"+node.getNodeName()+" => returning null");
                 //throw new InvalidDataException("No child/text node for element '"+node.getNodeName()+"'");
                 return null;
             }
@@ -449,7 +450,7 @@ public class Outcome implements C2KLocalObject {
      */
     public void setAttribute(Element element, String name, String data, boolean remove) throws InvalidDataException {
         if (data == null && remove) {
-            log.debug("setAttribute() - removing name:"+name);
+            Logger.msg(7, "Outcome.setAttribute() - removing name:"+name);
 
             if (element.hasAttribute(name)) element.removeAttribute(name);
             return;
@@ -538,7 +539,7 @@ public class Outcome implements C2KLocalObject {
 
         if (hasSingleField(elements)) {
             if (data == null && remove) {
-                log.debug("setField() - removing name:"+name);
+                Logger.msg(7, "Outcome.setField() - removing name:"+name);
                 element.removeChild(elements.item(0));
                 return;
             }
@@ -613,7 +614,7 @@ public class Outcome implements C2KLocalObject {
         if (StringUtils.isBlank(xpath)) throw new InvalidDataException("Xpath is null or empty string");
 
         if (data == null && remove) {
-            log.debug("setFieldByXPath() - removing field xpath");
+            Logger.msg(7, "Outcome.setFieldByXPath() - removing field xpath");
 
             removeNodeByXPath(xpath);
             return;
@@ -625,7 +626,7 @@ public class Outcome implements C2KLocalObject {
         Node field = getNodeByXPath(xpath);
 
         if (field == null) {
-            log.error("Xpath '"+xpath+"' is invalid", getData());
+            Logger.error(getData());
             throw new InvalidDataException("Xpath '"+xpath+"' is invalid");
         }
         else
@@ -646,7 +647,7 @@ public class Outcome implements C2KLocalObject {
             return parentNode.appendChild(mDOM.importNode(newNode, true));
         }
         catch (SAXException | IOException | XPathExpressionException e) {
-            log.error("", e);
+            Logger.error(e);
             throw new InvalidDataException(e.getMessage());
         }
     }
@@ -661,7 +662,7 @@ public class Outcome implements C2KLocalObject {
             return serialize(mDOM, false);
         }
         catch (InvalidDataException e) {
-           log.error("", e);
+            Logger.error(e);
             return null;
         }
     }
@@ -769,7 +770,7 @@ public class Outcome implements C2KLocalObject {
             else                               return null;
         }
         else {
-            log.warn("getAttributeOfField() - '{}' is invalid or not a single field", field);
+            Logger.warning("Outcome.getAttributeOfField() - '%s' is invalid or not a single field", field);
             return null;
         }
     }
@@ -786,16 +787,16 @@ public class Outcome implements C2KLocalObject {
             NodeList elements = element.getElementsByTagName(name);
             if (hasSingleField(elements)) {
                 if (elements.getLength() > 1) 
-                    log.warn("getField() - '{}' was found multiple times, returning first occurance", name);
+                    Logger.warning("Outcome.getField() - '%s' was found multiple times, returning first occurance", name);
 
                 return getNodeValue(elements.item(0));
             }
             else{
-                log.warn("getField() - '{}' is invalid or not a single field", name);
+                Logger.warning("Outcome.getField() - '%s' is invalid or not a single field", name);
             }
         }
         catch (InvalidDataException e) {
-            log.warn("getField() - exception:"+e.getMessage());
+            Logger.warning("Outcome.getField() - exception:"+e.getMessage());
         }
 
         return null;
@@ -847,7 +848,7 @@ public class Outcome implements C2KLocalObject {
         Node nodeToTemove = getNodeByXPath(xpathExpr);
 
         if (nodeToTemove == null) {
-            log.error("Xpath '"+xpathExpr+"' is invalid\n" + getData());
+            Logger.error("Xpath '"+xpathExpr+"' is invalid\n" + getData());
             throw new InvalidDataException("Xpath '"+xpathExpr+"' is invalid");
         }
 
@@ -869,7 +870,7 @@ public class Outcome implements C2KLocalObject {
             transformer = tf.newTransformer();
         }
         catch (TransformerConfigurationException ex) {
-            log.error("", ex);
+            Logger.error(ex);
             return "";
         }
         transformer.setOutputProperty(OutputKeys.ENCODING, "UTF-8");
@@ -881,7 +882,7 @@ public class Outcome implements C2KLocalObject {
             transformer.transform(new DOMSource(node), new StreamResult(out));
         }
         catch (Exception e) {
-            log.error("", e);
+            Logger.error(e);
             throw new InvalidDataException(e.getMessage());
         }
         return out.toString();
@@ -1099,7 +1100,7 @@ public class Outcome implements C2KLocalObject {
         Diff xmlDiff = new Diff(origDocument, otherDOM);
 
         if (!xmlDiff.identical()) {
-            log.info("{}", xmlDiff.toString());
+            Logger.msg(xmlDiff.toString());
             return false;
         }
         else

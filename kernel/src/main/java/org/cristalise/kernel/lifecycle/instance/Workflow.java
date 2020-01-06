@@ -43,10 +43,12 @@ import org.cristalise.kernel.lookup.InvalidAgentPathException;
 import org.cristalise.kernel.lookup.InvalidItemPathException;
 import org.cristalise.kernel.lookup.ItemPath;
 import org.cristalise.kernel.persistency.ClusterType;
+import org.cristalise.kernel.utils.Logger;
 
-import lombok.extern.slf4j.Slf4j;
-
- @Slf4j
+/**
+ * @version $Revision: 1.64 $ $Date: 2005/09/30 07:09:48 $
+ * @author $Author: abranson $
+ */
 public class Workflow extends CompositeActivity implements C2KLocalObject {
     public History   history;
     private ItemPath itemPath = null;
@@ -128,7 +130,7 @@ public class Workflow extends CompositeActivity implements C2KLocalObject {
                    ObjectAlreadyExistsException, PersistencyException, ObjectCannotBeUpdated, CannotManageException,
                    InvalidCollectionModification
     {
-        log.info("requestAction() - transition:" + transitionID + " step:" + stepPath + " agent:" + agent);
+        Logger.msg(3, "Workflow::requestAction() - transition:" + transitionID + " step:" + stepPath + " agent:" + agent);
         GraphableVertex vert = search(stepPath);
         if (vert != null && vert instanceof Activity)
             return ((Activity) vert).request(agent, delegator, itemPath, transitionID, requestData, attachmentType, attachment, this);

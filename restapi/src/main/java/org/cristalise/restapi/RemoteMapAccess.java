@@ -42,8 +42,17 @@ public class RemoteMapAccess {
                                                      int batchSize, Boolean descending, UriInfo uri)
             throws ObjectNotFoundException, ClassCastException
     {
-        RemoteMap<?> map= (RemoteMap<?>) item.getObject(root);
-        map.activate();
+        RemoteMap<?> map;
+        try {
+            map = (RemoteMap<?>) item.getObject(root);
+            map.activate();
+        }
+        catch (ObjectNotFoundException e) {
+            throw new ObjectNotFoundException("Could not access item history");
+        }
+        catch (ClassCastException e) {
+            throw new ClassCastException("Object was not a RemoteMap: " + root);
+        }
 
         LinkedHashMap<String, Object> batch = new LinkedHashMap<String, Object>();
         int last = map.getLastId();
@@ -52,7 +61,6 @@ public class RemoteMapAccess {
             int i = last-start;
 
             while (i >= 0 && batch.size() < batchSize) {
-                @SuppressWarnings("unlikely-arg-type")
                 Object obj = map.get(i);
                 if (obj != null) batch.put(String.valueOf(i), obj);
                 i--;
@@ -68,7 +76,6 @@ public class RemoteMapAccess {
             int i = start;
 
             while (i <= last && batch.size() < batchSize) {
-                @SuppressWarnings("unlikely-arg-type")
                 Object obj = map.get(i);
                 if (obj != null) batch.put(String.valueOf(i), obj);
                 i++;
@@ -85,7 +92,16 @@ public class RemoteMapAccess {
     }
 
     public static C2KLocalObject get(ItemProxy item, ClusterType root, String id) throws ObjectNotFoundException, ClassCastException {
-        RemoteMap<?> map = (RemoteMap<?>) item.getObject(root);
+        RemoteMap<?> map;
+        try {
+            map = (RemoteMap<?>) item.getObject(root);
+        }
+        catch (ObjectNotFoundException e) {
+            throw e;
+        }
+        catch (ClassCastException e) {
+            throw new ClassCastException("Object was not a RemoteMap: " + root);
+        }
 
         if (id.equals("last")) id = String.valueOf(map.getLastId());
 

@@ -23,10 +23,12 @@ package org.cristalise.kernel.entity.agent;
 import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.AGENT_NAME;
 import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.DELEGATE_NAME;
 import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.OUTCOME_INIT;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
 import org.apache.commons.lang3.StringUtils;
 import org.cristalise.kernel.common.GTimeStamp;
 import org.cristalise.kernel.common.InvalidDataException;
@@ -55,14 +57,15 @@ import org.cristalise.kernel.utils.CastorHashMap;
 import org.cristalise.kernel.utils.DateUtility;
 import org.cristalise.kernel.utils.KeyValuePair;
 import org.cristalise.kernel.utils.LocalObjectLoader;
+import org.cristalise.kernel.utils.Logger;
+
 import lombok.Getter;
 import lombok.Setter;
-import lombok.extern.slf4j.Slf4j;
 
 /**
  * 
  */
-@Getter @Setter @Slf4j
+@Getter @Setter
 public class Job implements C2KLocalObject {
     // Persistent fields
     private int            id;
@@ -169,14 +172,14 @@ public class Job implements C2KLocalObject {
 
     public Transition getTransition() {
         if (transition != null && transitionResolved == false) {
-            log.debug("Job.getTransition() - actProps:"+actProps);
+            Logger.msg(8, "Job.getTransition() - actProps:"+actProps);
             try {
                 StateMachine sm = LocalObjectLoader.getStateMachine(actProps);
                 transition = sm.getTransition(transition.getId());
                 transitionResolved = true;
             }
             catch (Exception e) {
-                log.error("", e);
+                Logger.error(e);
                 return transition;
             }
         }
@@ -350,7 +353,8 @@ public class Job implements C2KLocalObject {
             setOutcome(Gateway.getMarshaller().marshall(error));
         }
         catch (Exception e) {
-            log.error("Error marshalling ErrorInfo in job", e);
+            Logger.error("Error marshalling ErrorInfo in job");
+            Logger.error(e);
         } 
     }
 
@@ -363,13 +367,13 @@ public class Job implements C2KLocalObject {
     public String getValidViewpointName() {
         String viewName = getActPropString("Viewpoint");
 
-        log.info("Job.getValidViewpointName() - Activity properties Viewpoint:'"+viewName+"'");
+        Logger.msg(5, "Job.getValidViewpointName() - Activity properties Viewpoint:'"+viewName+"'");
 
         if(StringUtils.isBlank(viewName) || viewName.startsWith("xpath:")) {
             viewName = "last";
         }
 
-        log.info("Job.getValidViewpointName() - returning Viewpoint:'"+viewName+"'");
+        Logger.msg(5, "Job.getValidViewpointName() - returning Viewpoint:'"+viewName+"'");
 
         return viewName;
     }
@@ -386,7 +390,7 @@ public class Job implements C2KLocalObject {
             return item.getViewpoint(getSchema().getName(), getValidViewpointName()).getOutcome();
         }
         catch (PersistencyException e) {
-            log.error("Error loading viewpoint", e);
+            Logger.error(e);
             throw new InvalidDataException("Error loading viewpoint:"+e.getMessage()); 
         }
     }
@@ -418,7 +422,7 @@ public class Job implements C2KLocalObject {
             OutcomeInitiator ocInit;
 
             synchronized (ocInitCache) {
-                log.info("Job.getOutcomeInitiator() - ocConfigPropName:"+ocConfigPropName);
+                Logger.msg(5, "Job.getOutcomeInitiator() - ocConfigPropName:"+ocConfigPropName);
                 ocInit = ocInitCache.get(ocConfigPropName);
 
                 if (ocInit == null) {
@@ -431,7 +435,7 @@ public class Job implements C2KLocalObject {
                         ocInitCache.put(ocConfigPropName, ocInit);
                     }
                     catch (InstantiationException | IllegalAccessException | ClassNotFoundException e) {
-                        log.error("OutcomeInstantiator "+ocConfigPropName+" couldn't be instantiated", e);
+                        Logger.error(e);
                         throw new InvalidDataException("OutcomeInstantiator "+ocConfigPropName+" couldn't be instantiated:"+e.getMessage());
                     }
                 }
@@ -483,11 +487,11 @@ public class Job implements C2KLocalObject {
                 outcome = new Outcome(tempOutcome.getData(), tempOutcome.getSchema());
             }
             else {
-                log.warn("Job.getOutcome() - Could not initilase Outcome");
+                Logger.warning("Job.getOutcome() - Could not initilase Outcome");
             }
         }
         else {
-            log.debug("Job.getOutcome() - Job does not require Outcome job:"+this);
+            Logger.msg(8, "Job.getOutcome() - Job does not require Outcome job:"+this);
         }
         return outcome;
     }
@@ -564,7 +568,7 @@ public class Job implements C2KLocalObject {
                 if(newVal != null) actProps.put(entry.getKey(), newVal);
             }
             catch (InvalidDataException | PersistencyException | ObjectNotFoundException e) {
-                log.error("", e);
+                Logger.error(e);
                 errors.add(e.getMessage());
             }
         }
@@ -629,7 +633,7 @@ public class Job implements C2KLocalObject {
         }
 
         if(result.size() == 0) {
-            log.info("Job.matchActPropNames() - NO properties were found for propName.startsWith(pattern:'"+pattern+"')");
+            Logger.msg(5, "Job.matchActPropNames() - NO properties were found for propName.startsWith(pattern:'"+pattern+"')");
             actProps.dump(8);
         }
 

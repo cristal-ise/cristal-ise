@@ -35,8 +35,7 @@ import org.cristalise.kernel.entity.proxy.MemberSubscription;
 import org.cristalise.kernel.entity.proxy.ProxyObserver;
 import org.cristalise.kernel.lookup.ItemPath;
 import org.cristalise.kernel.process.Gateway;
-
-import lombok.extern.slf4j.Slf4j;
+import org.cristalise.kernel.utils.Logger;
 
 
 /**
@@ -44,7 +43,6 @@ import lombok.extern.slf4j.Slf4j;
  *
  * @param <V> the C2KLocalObject stored by this Map
  */
-@Slf4j
 public class RemoteMap<V extends C2KLocalObject> extends TreeMap<String, V> implements C2KLocalObject  {
 
     private static final long serialVersionUID = -2356840109407419763L;
@@ -104,7 +102,7 @@ public class RemoteMap<V extends C2KLocalObject> extends TreeMap<String, V> impl
 
     public void activate() {
         if (listener != null) {
-            log.debug("activate() - ALREADY active name:{}", mItemPath);
+            Logger.debug(8, "RemoteMap.activate() - ALREADY active name:%s", mItemPath);
             return;
         }
 
@@ -112,7 +110,7 @@ public class RemoteMap<V extends C2KLocalObject> extends TreeMap<String, V> impl
             @Override
             public void add(V obj) {
                 synchronized (this) {
-                    log.debug("RemoteMap:ProxyObserver.add() - id:"+obj.getName());
+                    Logger.msg(7, "RemoteMap:ProxyObserver.add() - id:"+obj.getName());
                     putLocal(obj.getName(), obj);
                 }
             }
@@ -120,7 +118,7 @@ public class RemoteMap<V extends C2KLocalObject> extends TreeMap<String, V> impl
             @Override
             public void remove(String id) {
                 synchronized (this) {
-                    log.debug("RemoteMap:ProxyObserver.remove() - id:"+id);
+                    Logger.msg(7, "RemoteMap:ProxyObserver.remove() - id:"+id);
                     removeLocal(id);
                 }
             }
@@ -134,10 +132,11 @@ public class RemoteMap<V extends C2KLocalObject> extends TreeMap<String, V> impl
             source = Gateway.getProxyManager().getProxy(mItemPath);
             source.subscribe(new MemberSubscription<V>(listener, mPath+mName, false));
 
-            log.debug("activate() - name:"+mName+" "+mItemPath);
+            Logger.debug(5, "RemoteMap.activate() - name:"+mName+" "+mItemPath);
         }
         catch (Exception ex) {
-            log.error("Error subscribing to remote map. Changes will NOT be received", ex);
+            Logger.error("Error subscribing to remote map. Changes will NOT be received");
+            Logger.error(ex);
         }
     }
 
@@ -163,7 +162,7 @@ public class RemoteMap<V extends C2KLocalObject> extends TreeMap<String, V> impl
                 for (String key : keys) super.put(key, null);
             }
             catch (PersistencyException e) {
-               log.error("Error loading keys", e);
+                Logger.error(e);
             }
         }
     }
@@ -253,10 +252,10 @@ public class RemoteMap<V extends C2KLocalObject> extends TreeMap<String, V> impl
                 return value;
             }
             catch (PersistencyException e) {
-                log.error("", e);
+                Logger.error(e);
             }
             catch (ObjectNotFoundException e) {
-                log.error("", e);
+                Logger.error(e);
             }
         }
         return null;
@@ -292,7 +291,7 @@ public class RemoteMap<V extends C2KLocalObject> extends TreeMap<String, V> impl
             }
         }
         catch (PersistencyException e) {
-            log.error("",e);
+            Logger.error(e);
             return null;
         }
     }
@@ -315,7 +314,7 @@ public class RemoteMap<V extends C2KLocalObject> extends TreeMap<String, V> impl
             }
         }
         catch (PersistencyException e) {
-            log.error("", e);
+            Logger.error(e);
         }
         return null;
     }

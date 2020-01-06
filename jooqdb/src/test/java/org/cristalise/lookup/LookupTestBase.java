@@ -35,6 +35,7 @@ import org.apache.commons.lang3.reflect.FieldUtils;
 import org.cristalise.JooqTestConfigurationBase;
 import org.cristalise.kernel.lookup.Path;
 import org.cristalise.kernel.process.Gateway;
+import org.cristalise.kernel.utils.Logger;
 import org.cristalise.kernel.utils.ObjectProperties;
 import org.cristalise.storage.jooqdb.lookup.JooqLookupManager;
 import org.junit.After;
@@ -49,6 +50,7 @@ public class LookupTestBase extends JooqTestConfigurationBase {
 
     @BeforeClass
     public static void beforeClass() throws Exception {
+        Logger.addLogStream(System.out, 8);
         c2kProps = new ObjectProperties();
         setUpStorage(c2kProps);
 

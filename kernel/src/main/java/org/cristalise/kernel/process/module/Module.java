@@ -47,17 +47,14 @@ import org.cristalise.kernel.entity.proxy.AgentProxy;
 import org.cristalise.kernel.entity.proxy.ItemProxy;
 import org.cristalise.kernel.lookup.Path;
 import org.cristalise.kernel.persistency.ClusterType;
-import org.cristalise.kernel.process.AbstractMain;
 import org.cristalise.kernel.process.Bootstrap;
 import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.process.resource.BuiltInResources;
 import org.cristalise.kernel.property.Property;
 import org.cristalise.kernel.scripting.ErrorInfo;
 import org.cristalise.kernel.scripting.ScriptingEngineException;
+import org.cristalise.kernel.utils.Logger;
 
-import lombok.extern.slf4j.Slf4j;
-
-@Slf4j
 public class Module extends ImportItem {
 
     private ModuleInfo info;
@@ -82,16 +79,16 @@ public class Module extends ImportItem {
     public void runScript(String event, AgentProxy agent, boolean isServer) throws ScriptingEngineException {
         for (ModuleEmbeddedScript script : scripts) {
             if (script.shouldRun(event, isServer)) {
-                log.info("Running "+script.event+" "+script.target+" script from "+name);
+                Logger.msg("Running "+script.event+" "+script.target+" script from "+name);
                 Object result = script.getScript(ns, agent).execute();
                 if (result instanceof ErrorInfo) {
                     ErrorInfo error = (ErrorInfo) result;
-                    log.error(error.toString());
+                    Logger.error(error.toString());
 
                     if (error.getFatal()) throw new ScriptingEngineException("Fatal Script Error");
                 }
                 else if (result != null) {
-                    log.info(result.toString());
+                    Logger.msg(result.toString());
                 }
             }
         }
@@ -175,12 +172,12 @@ public class Module extends ImportItem {
 
             try {
                 Gateway.getLookup().getAgentPath(thisAgent.name);
-                log.info("importAgents() - Agent '"+thisAgent.name+"' found.");
+                Logger.msg(3, "Module.importAgents() - Agent '"+thisAgent.name+"' found.");
                 continue;
             }
             catch (ObjectNotFoundException ex) { }
 
-            log.info("importAgents() - Agent '"+thisAgent.name+"' not found. Creating.");
+            Logger.msg("Module.importAgents() - Agent '"+thisAgent.name+"' not found. Creating.");
             addItemToContents( thisAgent.create(systemAgent.getPath(), reset) );
         }
     }
@@ -211,8 +208,8 @@ public class Module extends ImportItem {
                 addItemToContents( thisRes.create(systemAgent.getPath(), reset) );
             }
             catch (Exception ex) {
-                log.error("Error importing module resources. Unsafe to continue.", ex);
-                AbstractMain.shutdown(1);
+                Logger.error(ex);
+                Logger.die("Error importing module resources. Unsafe to continue.");
             }
         }
     }

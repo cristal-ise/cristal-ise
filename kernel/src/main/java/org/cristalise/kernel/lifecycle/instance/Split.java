@@ -39,10 +39,8 @@ import org.cristalise.kernel.lookup.AgentPath;
 import org.cristalise.kernel.lookup.ItemPath;
 import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.scripting.ScriptingEngineException;
+import org.cristalise.kernel.utils.Logger;
 
-import lombok.extern.slf4j.Slf4j;
-
-@Slf4j
 public abstract class Split extends WfVertex {
     public Vector<String> mErrors;
 
@@ -82,7 +80,7 @@ public abstract class Split extends WfVertex {
             num = Integer.parseInt((String) getBuiltInProperty(LAST_NUM));
         }
         catch (Exception e) {
-            log.debug("addNext() - Exception:" + e.getMessage());
+            Logger.msg(8, "Split::addNext() - Exception:" + e.getMessage());
         }
 
         nxt.setBuiltInProperty(ALIAS, String.valueOf(num));
@@ -92,7 +90,7 @@ public abstract class Split extends WfVertex {
 
     @Override
     public void reinit(int idLoop) throws InvalidDataException {
-        log.debug("reinit(id:{}, idLoop:{}) - parent:{}", getID(), idLoop, getParent().getName());
+        Logger.msg(8, "Split.reinit(id:%s, idLoop:%d) - parent:%s", getID(), idLoop, getParent().getName());
 
         Vertex[] outVertices = getOutGraphables();
         for (Vertex outVertice : outVertices)
@@ -213,7 +211,7 @@ public abstract class Split extends WfVertex {
                 return getRoutingReturnValue(returnValue);
             }
             catch (PersistencyException | ObjectNotFoundException e) {
-                log.error("", e);
+                Logger.error(e);
                 throw new InvalidDataException("Routing expression evaulation failed: " + expr + " with " + e.getMessage());
             }
         }
@@ -223,7 +221,7 @@ public abstract class Split extends WfVertex {
                 return getRoutingReturnValue(returnValue);
             }
             catch (ScriptingEngineException e) {
-                log.error("", e);
+                Logger.error(e);
                 throw new InvalidDataException("Error running Routing script " + scriptName + " v" + scriptVersion);
             }
         }

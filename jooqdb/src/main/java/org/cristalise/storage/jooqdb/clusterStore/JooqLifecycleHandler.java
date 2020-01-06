@@ -33,6 +33,7 @@ import java.util.UUID;
 import org.cristalise.kernel.common.PersistencyException;
 import org.cristalise.kernel.entity.C2KLocalObject;
 import org.cristalise.kernel.process.Gateway;
+import org.cristalise.kernel.utils.Logger;
 import org.cristalise.storage.jooqdb.JooqHandler;
 import org.jooq.Condition;
 import org.jooq.DSLContext;
@@ -41,9 +42,6 @@ import org.jooq.Field;
 import org.jooq.Record;
 import org.jooq.Table;
 
-import lombok.extern.slf4j.Slf4j;
-
-@Slf4j
 public class JooqLifecycleHandler extends JooqHandler {
     static final Table<?> LIFECYCLE_TABLE = table(name("LIFECYCLE"));
 
@@ -91,7 +89,7 @@ public class JooqLifecycleHandler extends JooqHandler {
                     .execute();
         }
         catch (Exception e) {
-            log.error("", e);
+            Logger.error(e);
             throw new PersistencyException(e.getMessage());
         }
     }
@@ -107,7 +105,7 @@ public class JooqLifecycleHandler extends JooqHandler {
                     .execute();
         }
         catch (Exception e) {
-            log.error("", e);
+            Logger.error(e);
             throw new PersistencyException(e.getMessage());
         }
     }
@@ -122,7 +120,7 @@ public class JooqLifecycleHandler extends JooqHandler {
                 return (C2KLocalObject)Gateway.getMarshaller().unmarshall(xml);
             }
             catch (Exception e) {
-                log.error("", e);
+                Logger.error(e);
                 throw new PersistencyException(e.getMessage());
             }
         }

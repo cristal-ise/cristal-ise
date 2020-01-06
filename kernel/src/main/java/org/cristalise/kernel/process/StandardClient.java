@@ -25,9 +25,8 @@ import org.cristalise.kernel.common.InvalidDataException;
 import org.cristalise.kernel.entity.proxy.AgentProxy;
 import org.cristalise.kernel.lifecycle.instance.stateMachine.StateMachine;
 import org.cristalise.kernel.utils.LocalObjectLoader;
-import lombok.extern.slf4j.Slf4j;
+import org.cristalise.kernel.utils.Logger;
 
-@Slf4j
 abstract public class StandardClient extends AbstractMain {
     protected AgentProxy agent = null;
 
@@ -42,12 +41,13 @@ abstract public class StandardClient extends AbstractMain {
         // login - try for a while in case server hasn't imported our agent yet
         for (int i=1; i < 6; i++) {
             try {
-                log.info("Login attempt "+i+" of 5");
+                Logger.msg("Login attempt "+i+" of 5");
                 agent = Gateway.connect(agentName, agentPass, resource);
                 break;
             }
             catch (Exception ex) {
-                log.error("Could not log in.", ex);
+                Logger.error("Could not log in.");
+                Logger.error(ex);
 
                 try {
                     Thread.sleep(5000);
@@ -80,7 +80,7 @@ abstract public class StandardClient extends AbstractMain {
                 return LocalObjectLoader.getStateMachine(smName, smVersion);
             }
             else {
-                log.warn("getRequiredStateMachine() - SM Name and/or Version was not specified, trying to load from bootsrap resource.");
+                Logger.warning("StandardClient.getRequiredStateMachine() - SM Name and/or Version was not specified, trying to load from bootsrap resource.");
 
                 String stateMachineNS   = Gateway.getProperties().getString(propPrefix + ".StateMachine.namespace", namesSpaceDefault);
                 String stateMachinePath = Gateway.getProperties().getString(propPrefix + ".StateMachine.bootfile",  bootfileDefault);
@@ -89,7 +89,7 @@ abstract public class StandardClient extends AbstractMain {
             }
         }
         catch(Exception e) {
-            log.error("", e);
+            Logger.error(e);
             throw new InvalidDataException(e.getMessage());
         }
     }

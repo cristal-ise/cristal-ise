@@ -26,10 +26,8 @@ import java.util.ArrayList;
 import org.cristalise.kernel.lookup.ItemPath;
 import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.utils.FileStringUtility;
+import org.cristalise.kernel.utils.Logger;
 
-import lombok.extern.slf4j.Slf4j;
-
-@Slf4j
 public class TransferSet {
 
     public ArrayList<TransferItem> items;
@@ -43,7 +41,8 @@ public class TransferSet {
                 items.add(new TransferItem(item));
             }
             catch (Exception ex) {
-                log.error("Could not add item " + item, ex);
+                Logger.error("Could not add item " + item);
+                Logger.error(ex);
             }
         }
     }
@@ -57,7 +56,8 @@ public class TransferSet {
                 element.exportItem(new File(dir, element.itemPath.getUUID().toString()), "/");
             }
             catch (Exception ex) {
-                log.error("Error dumping item " + element.itemPath, ex);
+                Logger.error("Error dumping item " + element.itemPath);
+                Logger.error(ex);
             }
         }
 
@@ -66,18 +66,20 @@ public class TransferSet {
             FileStringUtility.string2File(new File(dir, "transferSet.xml"), self);
         }
         catch (Exception ex) {
-            log.error("Error writing header file", ex);
+            Logger.error("Error writing header file");
+            Logger.error(ex);
         }
     }
 
     public void importPackage(File rootDir) {
         for (TransferItem element : items) {
-            log.info("Importing " + element.itemPath);
+            Logger.msg(5, "Importing " + element.itemPath);
             try {
                 element.importItem(new File(rootDir, element.itemPath.getUUID().toString()));
             }
             catch (Exception ex) {
-                log.error("Import of item " + element.itemPath + " failed. Rolling back", log);
+                Logger.error("Import of item " + element.itemPath + " failed. Rolling back");
+                Logger.error(ex);
                 Gateway.getStorage().abort(element);
             }
         }

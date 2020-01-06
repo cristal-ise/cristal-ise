@@ -23,11 +23,9 @@ package org.cristalise.kernel.persistency.outcome;
 import java.io.IOException;
 
 import org.cristalise.kernel.common.InvalidDataException;
+import org.cristalise.kernel.utils.Logger;
 import org.w3c.dom.Document;
 
-import lombok.extern.slf4j.Slf4j;
-
-@Slf4j
 public class SchemaValidator extends OutcomeValidator {
 
     @Override
@@ -47,7 +45,7 @@ public class SchemaValidator extends OutcomeValidator {
             return validate(Outcome.serialize(outcome, false));
         }
         catch (InvalidDataException e) {
-            log.error("Could not validate Outcome", e);
+            Logger.error(e);
             return null;
         }
     }

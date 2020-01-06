@@ -26,6 +26,7 @@ import static org.cristalise.kernel.persistency.ClusterType.OUTCOME;
 import static org.cristalise.kernel.persistency.ClusterType.PATH;
 import static org.cristalise.kernel.persistency.ClusterType.PROPERTY;
 import static org.cristalise.kernel.persistency.ClusterType.VIEWPOINT;
+import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
@@ -39,6 +40,7 @@ import org.cristalise.kernel.persistency.ClusterType;
 import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.test.process.MainTest;
 import org.cristalise.kernel.utils.FileStringUtility;
+import org.cristalise.kernel.utils.Logger;
 import org.cristalise.storage.XMLClusterStorage;
 import org.hamcrest.collection.IsIterableContainingInAnyOrder;
 import org.junit.AfterClass;
@@ -50,6 +52,7 @@ public class XMLClusterStorageTest {
 
     @BeforeClass
     public static void beforeClass() throws Exception {
+        Logger.addLogStream(System.out, 8);
 
         Properties props = FileStringUtility.loadConfigFile(MainTest.class.getResource("/server.conf").getPath());
         Gateway.init(props);

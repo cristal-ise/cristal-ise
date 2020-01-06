@@ -20,10 +20,6 @@
  */
 package org.cristalise.dev.dsl
 
-import org.cristalise.kernel.lookup.ItemPath
-import org.cristalise.kernel.persistency.outcome.Outcome
-import org.cristalise.kernel.utils.LocalObjectLoader
-
 import groovy.xml.MarkupBuilder
 
 
@@ -53,26 +49,6 @@ class DevXMLUtility {
         xml.NewDevObjectDef {
             ObjectName("$params.name")
             SubFolder("$params.folder")
-        }
-
-        return writer.toString()
-    }
-
-    /**
-     * Converts a map to an xml using dynamic groovy. No nested xml structure is supported.
-     * 
-     * @param root the name of the root element
-     * @param record the map to be converted
-     * @return the xml string
-     */
-    public static String recordToXML(String root, Map record) {
-        def writer = new StringWriter()
-        def xml = new MarkupBuilder(writer)
-
-        xml."$root" {
-            record.collect { key, value ->
-                "$key" { value instanceof Map ? value.collect(owner) : mkp.yield(value) }
-            }
         }
 
         return writer.toString()

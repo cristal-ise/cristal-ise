@@ -24,10 +24,12 @@
 package org.cristalise.kernel.utils;
 
 import static org.cristalise.kernel.property.BuiltInItemProperties.NAME;
+
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.StringTokenizer;
 import java.util.UUID;
+
 import org.cristalise.kernel.common.InvalidDataException;
 import org.cristalise.kernel.common.ObjectNotFoundException;
 import org.cristalise.kernel.common.PersistencyException;
@@ -46,9 +48,7 @@ import org.cristalise.kernel.process.module.ModuleResource;
 import org.cristalise.kernel.property.Property;
 import org.cristalise.kernel.property.PropertyDescription;
 import org.cristalise.kernel.property.PropertyDescriptionList;
-import lombok.extern.slf4j.Slf4j;
 
-@Slf4j
 public abstract class DescriptionObjectCache<D extends DescriptionObject> {
 
     SoftCache<String, CacheEntry<D>> cache = new SoftCache<String, CacheEntry<D>>();
@@ -65,14 +65,15 @@ public abstract class DescriptionObjectCache<D extends DescriptionObject> {
             classIdProps = classIdPropList.toArray(new Property[classIdPropList.size()]);
         }
         catch (Exception ex) {
-            log.error("Could not load property description for " + getTypeCode() + ". Cannot filter.", ex);
+            Logger.error(ex);
+            Logger.error("Could not load property description for " + getTypeCode() + ". Cannot filter.");
             classIdProps = new Property[0];
         }
     }
 
     public D loadObjectFromBootstrap(String name) throws InvalidDataException, ObjectNotFoundException {
         try {
-            log.trace("loadObjectFromBootstrap() - name:" + name + " Loading it from kernel items");
+            Logger.msg(3, "DescriptionObjectCache.loadObjectFromBootstrap() - name:" + name + " Loading it from kernel items");
 
             String bootItems = FileStringUtility.url2String(Gateway.getResource().getKernelResourceURL("boot/allbootitems.txt"));
             StringTokenizer str = new StringTokenizer(bootItems, "\n\r");
@@ -80,14 +81,14 @@ public abstract class DescriptionObjectCache<D extends DescriptionObject> {
                 String resLine = str.nextToken();
                 String[] resElem = resLine.split(",");
                 if (resElem[0].equals(name) || isBootResource(resElem[1], name)) {
-                    log.trace("loadObjectFromBootstrap() - Shimming " + getTypeCode() + " " + name + " from bootstrap");
+                    Logger.msg(3, "DescriptionObjectCache.loadObjectFromBootstrap() - Shimming " + getTypeCode() + " " + name + " from bootstrap");
                     String resData = Gateway.getResource().getTextResource(null, "boot/" + resElem[1] + (resElem[1].startsWith("OD") ? ".xsd" : ".xml"));
                     return buildObject(name, 0, new ItemPath(resElem[0]), resData);
                 }
             }
 
             for (Module module: Gateway.getModuleManager().getModules()) {
-                log.trace("loadObjectFromBootstrap() - name:" + name + " Lodaing it from module:"+module.getName());
+                Logger.msg(3, "DescriptionObjectCache.loadObjectFromBootstrap() - name:" + name + " Lodaing it from module:"+module.getName());
 
                 ModuleResource res = (ModuleResource) module.getImports().findImport(name);
 
@@ -101,7 +102,7 @@ public abstract class DescriptionObjectCache<D extends DescriptionObject> {
             }
         }
         catch (Exception e) {
-            log.error("Error finding bootstrap resources", e);
+            Logger.error(e);
             throw new InvalidDataException("Error finding bootstrap resources");
         }
         throw new ObjectNotFoundException("Resource " + getSchemaName() + " " + name + " not found in bootstrap resources");
@@ -150,13 +151,13 @@ public abstract class DescriptionObjectCache<D extends DescriptionObject> {
         synchronized (cache) {
             CacheEntry<D> thisDefEntry = cache.get(name + "_" + version);
             if (thisDefEntry == null) {
-                log.trace("get() - " + name + " v" + version + " not found in cache. Checking id.");
+                Logger.msg(6, "DescriptionObjectCache.get() - " + name + " v" + version + " not found in cache. Checking id.");
                 try {
                     ItemPath defItemPath = findItem(name);
                     String defId = defItemPath.getUUID().toString();
                     thisDefEntry = cache.get(defId + "_" + version);
                     if (thisDefEntry == null) {
-                        log.trace("get() - " + name + " v" + version + " not found in cache. Loading from database.");
+                        Logger.msg(6, "DescriptionObjectCache.get() - " + name + " v" + version + " not found in cache. Loading from database.");
                         ItemProxy defItemProxy = Gateway.getProxyManager().getProxy(defItemPath);
                         if (name.equals(defId)) {
                             String itemName = defItemProxy.getName();
@@ -178,7 +179,7 @@ public abstract class DescriptionObjectCache<D extends DescriptionObject> {
                 }
             }
             if (thisDefEntry != null && thisDef == null) {
-                log.trace("get() - " + name + " v" + version + " found in cache.");
+                Logger.msg(6, "DescriptionObjectCache.get() - " + name + " v" + version + " found in cache.");
                 thisDef = thisDefEntry.def;
             }
         }
@@ -199,7 +200,7 @@ public abstract class DescriptionObjectCache<D extends DescriptionObject> {
             rawRes = smView.getOutcome().getData();
         }
         catch (PersistencyException ex) {
-            log.error("Problem loading " + getSchemaName() + " " + name + " v" + version, ex);
+            Logger.error(ex);
             throw new ObjectNotFoundException("Problem loading " + getSchemaName() + " " + name + " v" + version + ": " + ex.getMessage());
         }
         return buildObject(name, version, proxy.getPath(), rawRes);
@@ -208,7 +209,7 @@ public abstract class DescriptionObjectCache<D extends DescriptionObject> {
     public void removeObject(String id) {
         synchronized (cache) {
             if (cache.keySet().contains(id)) {
-                log.debug("remove() - activityDef:" + id);
+                Logger.msg(7, "DescriptionObjectCache.remove() - activityDef:" + id);
                 cache.remove(id);
             }
         }

@@ -32,11 +32,11 @@ import org.cristalise.kernel.lookup.ItemPath;
 import org.cristalise.kernel.persistency.ClusterType;
 import org.cristalise.kernel.persistency.outcome.Schema;
 import org.cristalise.kernel.utils.DateUtility;
+import org.cristalise.kernel.utils.Logger;
 
 import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.Accessors;
-import lombok.extern.slf4j.Slf4j;
 
 
 /**
@@ -46,7 +46,7 @@ import lombok.extern.slf4j.Slf4j;
  * Events are generated and stored whenever a step in an Item's lifecycle 
  * changes state, and provide a full record of what was done, when, and by whom.
  */
-@Accessors(prefix = "m") @Getter @Setter @Slf4j
+@Accessors(prefix = "m") @Getter @Setter
 public class Event implements C2KLocalObject {
     ItemPath   mItemPath;
     AgentPath  mAgentPath, mDelegatePath;
@@ -66,7 +66,7 @@ public class Event implements C2KLocalObject {
                  String stepName, String stepPath, String stepType, StateMachine stateMachine, int transitionId)
     {
         Transition transition = stateMachine.getTransition(transitionId);
-        log.trace("Creating new event for {} on {} in {}", transition.getName(), stepName, itemPath);
+        Logger.msg(7, "Event() - creating new event for "+transition.getName()+" on "+stepName+" in "+itemPath);
 
         setItemPath(itemPath);
         setAgentPath(agentPath);

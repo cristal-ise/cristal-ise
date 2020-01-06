@@ -68,7 +68,7 @@ public class ModuleWorkflow extends ModuleActivity {
         ArrayList<ActivityDef> graphActDefs = compActDef.getRefChildActDef();
 
         if (activities.size() != graphActDefs.size())
-            throw new CannotManageException("'" + getName() + "' has " + activities.size() + " declared activities, but the graph uses " + graphActDefs.size());
+            throw new CannotManageException("There were " + activities.size() + " declared activities, but the graph uses " + graphActDefs.size());
 
         for (ModuleDescRef moduleDescRef : activities) {
             boolean found = false;

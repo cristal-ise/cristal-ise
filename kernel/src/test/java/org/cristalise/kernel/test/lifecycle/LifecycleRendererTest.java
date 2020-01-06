@@ -31,6 +31,7 @@ import org.cristalise.kernel.lifecycle.instance.Workflow;
 import org.cristalise.kernel.lifecycle.renderer.LifecycleRenderer;
 import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.utils.FileStringUtility;
+import org.cristalise.kernel.utils.Logger;
 import org.jfree.graphics2d.svg.SVGGraphics2D;
 import org.jfree.graphics2d.svg.SVGUtils;
 import org.junit.BeforeClass;
@@ -40,6 +41,8 @@ public class LifecycleRendererTest {
 
     @BeforeClass
     public static void beforeClass() throws Exception {
+        Logger.addLogStream(System.out, 8);
+
         Properties props = FileStringUtility.loadConfigFile(LifecycleRendererTest.class.getResource("/server.conf").getPath());
         Gateway.init(props);
     }

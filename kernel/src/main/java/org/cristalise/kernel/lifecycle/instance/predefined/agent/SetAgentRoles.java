@@ -21,6 +21,7 @@
 package org.cristalise.kernel.lifecycle.instance.predefined.agent;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 
 import org.cristalise.kernel.common.InvalidDataException;
 import org.cristalise.kernel.common.ObjectNotFoundException;
@@ -30,10 +31,8 @@ import org.cristalise.kernel.lookup.InvalidItemPathException;
 import org.cristalise.kernel.lookup.ItemPath;
 import org.cristalise.kernel.lookup.RolePath;
 import org.cristalise.kernel.process.Gateway;
+import org.cristalise.kernel.utils.Logger;
 
-import lombok.extern.slf4j.Slf4j;
-
-@Slf4j
 public class SetAgentRoles extends PredefinedStep {
 
     public SetAgentRoles() {
@@ -46,7 +45,7 @@ public class SetAgentRoles extends PredefinedStep {
     {
         String[] params = getDataList(requestData);
 
-        log.debug("Called by {} on {} with parameters {}", agent.getAgentName(), item, (Object)params);
+        Logger.msg(3, "SetAgentRoles: called by " + agent + " on " + item + " with parameters " + Arrays.toString(params));
 
         AgentPath targetAgent;
         try {
@@ -81,7 +80,7 @@ public class SetAgentRoles extends PredefinedStep {
                 Gateway.getLookupManager().removeRole(targetAgent, roleToRemove);
             }
             catch (Exception e) {
-                log.error("", e);
+                Logger.error(e);
                 throw new InvalidDataException("Error removing role " + roleToRemove.getName());
             }
 
@@ -91,7 +90,7 @@ public class SetAgentRoles extends PredefinedStep {
                 Gateway.getLookupManager().addRole(targetAgent, roleToAdd);
             }
             catch (Exception e) {
-                log.error("", e);
+                Logger.error(e);
                 throw new InvalidDataException("Error adding role " + roleToAdd.getName());
             }
         }

@@ -33,13 +33,11 @@ import org.cristalise.kernel.entity.agent.JobList;
 import org.cristalise.kernel.events.History;
 import org.cristalise.kernel.lookup.AgentPath;
 import org.cristalise.kernel.lookup.ItemPath;
-import org.cristalise.kernel.process.AbstractMain;
 import org.cristalise.kernel.process.auth.Authenticator;
 import org.cristalise.kernel.querying.Query;
+import org.cristalise.kernel.utils.Logger;
 
-import lombok.extern.slf4j.Slf4j;
 
-@Slf4j
 public class TransactionManager {
 
     private HashMap<ItemPath, Object> locks;
@@ -65,11 +63,10 @@ public class TransactionManager {
      */
     public void close() {
         if (pendingTransactions.size() != 0) {
-            log.error("There were pending transactions on shutdown. All changes were lost.");
+            Logger.error("There were pending transactions on shutdown. All changes were lost.");
             dumpPendingTransactions(0);
         }
-
-        log.info("Transaction Manager: Closing storages");
+        Logger.msg("Transaction Manager: Closing storages");
         storage.close();
     }
 
@@ -299,33 +296,36 @@ public class TransactionManager {
     public void commit(Object locker) throws PersistencyException {
         synchronized(locks) {
             ArrayList<TransactionEntry> lockerTransactions = pendingTransactions.get(locker);
+            HashMap<TransactionEntry, Exception> exceptions = new HashMap<TransactionEntry, Exception>();
             // quit if no transactions are present;
             if (lockerTransactions == null)
                 return;
-
             try {
-                storage.begin(locker);
 
-                for (TransactionEntry thisEntry : lockerTransactions) {
-                    if (thisEntry.obj == null)
-                        storage.remove(thisEntry.itemPath, thisEntry.path, locker);
-                    else
-                        storage.put(thisEntry.itemPath, thisEntry.obj, locker);
-                }
+            storage.begin(locker);
 
-                storage.commit(locker);
-
-                for (TransactionEntry thisEntry : lockerTransactions) {
-                    locks.remove(thisEntry.itemPath);
-                }
-
-                pendingTransactions.remove(locker);
+            for (TransactionEntry thisEntry : lockerTransactions) {
+                if (thisEntry.obj == null)
+                    storage.remove(thisEntry.itemPath, thisEntry.path, locker);
+                else
+                    storage.put(thisEntry.itemPath, thisEntry.obj, locker);
             }
-            catch (Exception e) {
+
+            storage.commit(locker);
+
+            for (TransactionEntry thisEntry : lockerTransactions) {
+                locks.remove(thisEntry.itemPath);
+            }
+
+            pendingTransactions.remove(locker);
+
+            } catch (Exception e){
                 storage.abort(locker);
-                log.error("commit() - Problems during transaction commit of locker "+locker.toString()+". Database may be in an inconsistent state.");
+                Logger.error("TransactionManager.commit() - Problems during transaction commit of locker "+locker.toString()+". Database may be in an inconsistent state.");
+                Logger.msg(e.getMessage());
+                Logger.error(e);
                 dumpPendingTransactions(0);
-                AbstractMain.shutdown(1);
+                Logger.die("Database failure during commit");
             }
         }
     }
@@ -354,32 +354,31 @@ public class TransactionManager {
     }
 
     public void dumpPendingTransactions(int logLevel) {
-        log.error("Transaction dump. Locked Items:");
+        if(!Logger.doLog(logLevel)) return;
 
-        if (locks.size() == 0) {
-            log.error("  None");
-        }
-        else {
+        Logger.msg(logLevel, "================");
+        Logger.msg(logLevel, "Transaction dump");
+        Logger.msg(logLevel, "Locked Items:");
+        
+        if (locks.size() == 0)
+            Logger.msg(logLevel, "  None");
+        else
             for (ItemPath thisPath : locks.keySet()) {
                 Object locker = locks.get(thisPath);
-                log.error("  "+thisPath+" locked by "+locker);
+                Logger.msg(logLevel, "  "+thisPath+" locked by "+locker);
             }
-        }
 
-        log.error("Open transactions:");
-        if (pendingTransactions.size() == 0) {
-            log.error("  None");
-        }
-        else {
+        Logger.msg(logLevel, "Open transactions:");
+        if (pendingTransactions.size() == 0)
+            Logger.msg(logLevel, "  None");
+        else
             for (Object thisLocker : pendingTransactions.keySet()) {
-                log.error("  Transaction owner:"+thisLocker);
-
+                Logger.msg(logLevel, "  Transaction owner:"+thisLocker);
                 ArrayList<TransactionEntry> entries = pendingTransactions.get(thisLocker);
                 for (TransactionEntry thisEntry : entries) {
-                    log.error("    "+thisEntry.toString());
+                    Logger.msg(logLevel, "    "+thisEntry.toString());
                 }
             }
-        }
     }
 
     /**

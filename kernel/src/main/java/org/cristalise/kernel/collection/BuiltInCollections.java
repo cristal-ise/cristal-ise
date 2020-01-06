@@ -29,8 +29,6 @@ public enum BuiltInCollections {
      */
     ACTIVITY("Activity"),
 
-    AGGREGATE_SCRIPT("AggregateScript"),
-
     /**
      * Dependency Collection of Module. ....
      */
@@ -42,8 +40,6 @@ public enum BuiltInCollections {
      */
     INCLUDE("Include"),
 
-    MASTER_SCHEMA("MasterSchema"),
-
     /**
      * CollectionDescription of elementary ActivityDef. It is instantiated as two Activity properties (see bellow).
      * Also it is Dependency Collection of Activity.
@@ -54,6 +50,8 @@ public enum BuiltInCollections {
     SCHEMA("Schema"),
 
     SCHEMA_INITIALISE("SchemaInitialise"),
+
+    SCHEMA_MASTER("SchemaMaster"),
 
     /**
      * CollectionDescription of elementary ActivityDef. It is instantiated as two Activity properties (see bellow). 

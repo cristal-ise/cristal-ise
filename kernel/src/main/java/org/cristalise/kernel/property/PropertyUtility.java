@@ -36,13 +36,11 @@ import org.cristalise.kernel.persistency.outcome.Outcome;
 import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.utils.CastorHashMap;
 import org.cristalise.kernel.utils.LocalObjectLoader;
-
-import lombok.extern.slf4j.Slf4j;
+import org.cristalise.kernel.utils.Logger;
 
 /**
  * Utility class to handle operations of ItemProperties and their description
  */
-@Slf4j
 public class PropertyUtility {
     
     /**
@@ -85,7 +83,7 @@ public class PropertyUtility {
             for (String name: contents) if(name.equals(propName)) return true;
         }
         catch (PersistencyException e) {
-            log.error("", e);
+            Logger.error(e);
         }
         return false;
     }
@@ -115,7 +113,7 @@ public class PropertyUtility {
             return (Property)Gateway.getStorage().get(itemPath, ClusterType.PROPERTY+"/"+propName, locker);
         }
         catch (PersistencyException e) {
-            log.error("", e);
+            Logger.error(e);
         }
         return null;
     }
@@ -177,9 +175,9 @@ public class PropertyUtility {
                 return (PropertyDescriptionList) Gateway.getMarshaller().unmarshall(outc.getData());
             }
         }
-        catch (Exception e) {
-            log.error("", e);
-            throw new ObjectNotFoundException("Could not fetch PropertyDescription from '"+itemPath+"' error:"+e.getMessage());
+        catch (Exception ex) {
+            Logger.error(ex);
+            throw new ObjectNotFoundException("Could not fetch PropertyDescription from '"+itemPath+"' error:"+ex.getMessage());
         }
     }
 

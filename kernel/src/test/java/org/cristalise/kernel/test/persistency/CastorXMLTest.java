@@ -56,6 +56,7 @@ import org.cristalise.kernel.test.process.MainTest;
 import org.cristalise.kernel.utils.CastorHashMap;
 import org.cristalise.kernel.utils.CastorXMLUtility;
 import org.cristalise.kernel.utils.FileStringUtility;
+import org.cristalise.kernel.utils.Logger;
 import org.hamcrest.collection.IsIterableContainingInAnyOrder;
 import org.junit.Before;
 import org.junit.Ignore;
@@ -65,9 +66,6 @@ import org.xmlunit.diff.DefaultNodeMatcher;
 import org.xmlunit.diff.Diff;
 import org.xmlunit.diff.ElementSelectors;
 
-import lombok.extern.slf4j.Slf4j;
-
-@Slf4j
 public class CastorXMLTest {
 
     String ior = "IOR:005858580000001549444C3A69646C746573742F746573743A312E3000585858"+
@@ -76,6 +74,7 @@ public class CastorXMLTest {
 
     @Before
     public void setup() throws Exception {
+        Logger.addLogStream(System.out, 6);
         Properties props = FileStringUtility.loadConfigFile(MainTest.class.getResource("/server.conf").getPath());
         Gateway.init(props);
     }
@@ -95,9 +94,9 @@ public class CastorXMLTest {
                 .checkForSimilar()
                 .build();
 
-        if(diffIdentical.hasDifferences()) {
-            log.info("actual:{}", actual);
-            log.warn(diffIdentical.toString());
+        if(diffIdentical.hasDifferences()){
+            Logger.msg(0, actual);
+            Logger.warning(diffIdentical.toString());
         }
 
         return !diffIdentical.hasDifferences();
@@ -145,7 +144,7 @@ public class CastorXMLTest {
         assertEquals( item.getUUID(),      itemPrime.getUUID());
         assertEquals( item.getIORString(), itemPrime.getIORString());
 
-        log.info(marshaller.marshall(itemPrime));
+        Logger.msg(marshaller.marshall(itemPrime));
     }
 
     @Test
@@ -159,7 +158,7 @@ public class CastorXMLTest {
         assertEquals( agent.getIORString(), agentPrime.getIORString());
         assertEquals( agent.getAgentName(), agentPrime.getAgentName());
 
-        log.info(marshaller.marshall(agentPrime));
+        Logger.msg(marshaller.marshall(agentPrime));
     }
 
     @Test
@@ -171,7 +170,7 @@ public class CastorXMLTest {
 
         assertEquals( domain.getStringPath(), domainPrime.getStringPath());
 
-        log.info(marshaller.marshall(domainPrime));
+        Logger.msg(marshaller.marshall(domainPrime));
     }
 
     @Test
@@ -184,7 +183,7 @@ public class CastorXMLTest {
         assertEquals( domain.getStringPath(), domainPrime.getStringPath());
         assertEquals( domain.getTargetUUID(), domainPrime.getTargetUUID());
 
-        log.info(marshaller.marshall(domainPrime));
+        Logger.msg(marshaller.marshall(domainPrime));
     }
 
     @Test
@@ -199,7 +198,7 @@ public class CastorXMLTest {
 
         assertThat(role.getPermissionsList(), IsIterableContainingInAnyOrder.containsInAnyOrder(rolePrime.getPermissions().toArray()));
 
-        log.info(marshaller.marshall(rolePrime));
+        Logger.msg(marshaller.marshall(rolePrime));
     }
 
     @Test
@@ -241,8 +240,8 @@ public class CastorXMLTest {
 
         assertThat(edge).isEqualToComparingFieldByField(edgePrime);
 
-        log.info(marshaller.marshall(edge));
-        log.info(marshaller.marshall(edgePrime));
+        Logger.msg(marshaller.marshall(edge));
+        Logger.msg(marshaller.marshall(edgePrime));
     }
 
     @Test
@@ -288,6 +287,8 @@ public class CastorXMLTest {
         ImportRole rolePrime = (ImportRole) marshaller.unmarshall(marshaller.marshall(role));
 
         assertReflectionEquals(role, rolePrime);
+
+        Logger.msg(marshaller.marshall(rolePrime));
     }
 
     @Test
@@ -300,5 +301,7 @@ public class CastorXMLTest {
         ImportAgent agentPrime = (ImportAgent) marshaller.unmarshall(marshaller.marshall(agent));
 
         assertReflectionEquals(agent, agentPrime);
+
+        Logger.msg(marshaller.marshall(agentPrime));
     }
 }

@@ -29,17 +29,17 @@ import java.net.Socket;
 import java.net.SocketException;
 import java.util.ArrayList;
 import java.util.Iterator;
+
 import org.cristalise.kernel.common.InvalidDataException;
 import org.cristalise.kernel.lookup.ItemPath;
 import org.cristalise.kernel.process.Gateway;
+import org.cristalise.kernel.utils.Logger;
 import org.cristalise.kernel.utils.server.SocketHandler;
-import lombok.extern.slf4j.Slf4j;
 
 /**
  * 
  *
  */
-@Slf4j
 public class ProxyClientConnection implements SocketHandler {
     static int          clientId = -1;
     Socket              clientSocket = null;
@@ -53,7 +53,7 @@ public class ProxyClientConnection implements SocketHandler {
         super();
         thisClientId = ++clientId;
         Gateway.getProxyServer().registerProxyClient(this);
-        log.debug("clientID:"+thisClientId+" READY.");
+        Logger.msg(1, "ProxyClientConnection() - clientID:"+thisClientId+" READY.");
     }
 
     @Override
@@ -69,18 +69,20 @@ public class ProxyClientConnection implements SocketHandler {
     @Override
     public synchronized void setSocket(Socket newSocket) {
         try {
-            log.debug("setSocket() - clientID "+thisClientId+" connect from "+newSocket.getInetAddress()+":"+newSocket.getPort());
+            Logger.msg(1, "ProxyClientConnection.setSocket() - clientID "+thisClientId+" connect from "+newSocket.getInetAddress()+":"+newSocket.getPort());
             newSocket.setSoTimeout(500);
             clientSocket = newSocket;
             response = new PrintWriter(clientSocket.getOutputStream(), true);
             subscribedItems = new ArrayList<ItemPath>();
         } 
         catch (SocketException ex) {
-            log.error("setSocket() - Could not set socket timeout:", ex);
+            Logger.error("ProxyClientConnection.setSocket() - Could not set socket timeout:");
+            Logger.error(ex);
             closeSocket();
         }
         catch (IOException ex) {
-            log.error("setSocket() - Could not setup output stream:", ex);
+            Logger.error("ProxyClientConnection.setSocket() - Could not setup output stream:");
+            Logger.error(ex);
             closeSocket();
         }
     }
@@ -92,7 +94,7 @@ public class ProxyClientConnection implements SocketHandler {
     public void run() {
         Thread.currentThread().setName(getName()+": "+clientSocket.getInetAddress());
 
-        log.debug("run() - clientID:"+thisClientId+" - Setting up proxy client connection with "+clientSocket.getInetAddress());
+        Logger.msg(7, "ProxyClientConnection.run() - clientID:"+thisClientId+" - Setting up proxy client connection with "+clientSocket.getInetAddress());
 
         try {
             request = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
@@ -101,24 +103,25 @@ public class ProxyClientConnection implements SocketHandler {
             while (clientSocket != null) {
                 try {
                     input = request.readLine();
-                    log.trace("run() - "+thisClientId+" - received "+input);
+                    Logger.msg(9, "ProxyClientConnection.run() - "+thisClientId+" - received "+input);
                     thisMessage = new ProxyMessage(input);
                     processMessage(thisMessage);
                 } 
                 catch (InterruptedIOException ex) { //timeout
                 }
                 catch (InvalidDataException ex) { // invalid proxy message
-                  log.error("run() - clientID:"+thisClientId+" - Invalid proxy message:{}",input, ex);
+                    Logger.error("ProxyClientConnection.run() - clientID:"+thisClientId+" - Invalid proxy message: "+input);
                 }
             }
         }
         catch (IOException ex) {
             if (!closing) {
-                if (log.isTraceEnabled()) log.error("run() - clientID:"+thisClientId+" - Error reading from socket.", ex);
+                if (Logger.doLog(8)) Logger.error(ex);
+                Logger.error("ProxyClientConnection.run() - clientID:"+thisClientId+" - Error reading from socket.");
             }
         }
         closeSocket();
-        log.debug("run() - clientID:"+thisClientId+" closed.");
+        Logger.msg(1, "ProxyClientConnection.run() - clientID:"+thisClientId+" closed.");
     }
 
     /**
@@ -130,7 +133,7 @@ public class ProxyClientConnection implements SocketHandler {
     private void processMessage(ProxyMessage message) throws InvalidDataException {
         // proxy disconnection
         if (message.getPath().equals(ProxyMessage.BYEPATH)) {
-            log.debug("processMessage() - clientID:"+thisClientId+" disconnecting");
+            Logger.msg(7, "ProxyClientConnection.processMessage() - clientID:"+thisClientId+" disconnecting");
             closeSocket();
         }
         else if (message.getPath().equals(ProxyMessage.PINGPATH)) {
@@ -139,7 +142,7 @@ public class ProxyClientConnection implements SocketHandler {
         }
         else if (message.getPath().equals(ProxyMessage.ADDPATH)) {
             // new subscription to entity changes
-            log.debug("processMessage() - clientID:"+thisClientId+" subscribed to "+message.getItemPath());
+            Logger.msg(7, "ProxyClientConnection.processMessage() - clientID:"+thisClientId+" subscribed to "+message.getItemPath());
 
             synchronized (subscribedItems) {
                 subscribedItems.add(message.getItemPath());
@@ -150,11 +153,11 @@ public class ProxyClientConnection implements SocketHandler {
             synchronized (subscribedItems) {
                 subscribedItems.remove(message.getItemPath());
             }
-            log.debug("processMessage() - clientID:"+thisClientId+" unsubscribed from "+message.getItemPath());
+            Logger.msg(7, "ProxyClientConnection.processMessage() - clientID:"+thisClientId+" unsubscribed from "+message.getItemPath());
         }
         else {
             // unknown message
-            log.error("processMessage() - clientID:"+thisClientId+" - Unknown message type: "+message);
+            Logger.error("ProxyClientConnection.processMessage() - clientID:"+thisClientId+" - Unknown message type: "+message);
         }
     }
 
@@ -179,7 +182,7 @@ public class ProxyClientConnection implements SocketHandler {
     public void shutdown() {
         if (isBusy()) {
             closing = true;
-            log.info("shutdown() - clientID: "+thisClientId+" closing.");
+            Logger.msg("ProxyClientConnection.shutdown() - clientID: "+thisClientId+" closing.");
             closeSocket();
         }
     }
@@ -199,7 +202,8 @@ public class ProxyClientConnection implements SocketHandler {
             clientSocket.close();
         }
         catch (IOException e) {
-            log.error("closeSocket() - clientID: "+thisClientId+" - Could not close socket.", e);
+            Logger.error("ProxyClientConnection.closeSocket() - clientID: "+thisClientId+" - Could not close socket.");
+            Logger.error(e);
         }
 
         synchronized (subscribedItems) {

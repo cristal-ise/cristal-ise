@@ -31,8 +31,7 @@ import org.cristalise.kernel.lookup.ItemPath;
 import org.cristalise.kernel.persistency.ClusterType;
 import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.property.Property;
-
-import lombok.extern.slf4j.Slf4j;
+import org.cristalise.kernel.utils.Logger;
 
 
 /**
@@ -41,7 +40,6 @@ import lombok.extern.slf4j.Slf4j;
 * PropertyDescription information stored in slot properties and listed as 
 * ClassProps.
 */
-@Slf4j
 public class AggregationMember extends GraphableVertex implements CollectionMember {
 
     private ItemPath    mItemPath   = null;
@@ -111,7 +109,7 @@ public class AggregationMember extends GraphableVertex implements CollectionMemb
                 }
                 catch (Exception ex)
                 {
-                    log.error("", ex);
+                    Logger.error(ex);
                     throw new InvalidCollectionModification("Error checking properties");
                 }
             }
@@ -143,7 +141,7 @@ public class AggregationMember extends GraphableVertex implements CollectionMemb
                 try {
                     mItemName = resolveItem().getName();
                 } catch (ObjectNotFoundException ex) {
-                    log.error("", ex);
+                    Logger.error(ex);
                     mItemName = "Error ("+mItemPath+")";
                 }
             }

@@ -41,6 +41,7 @@ import org.cristalise.kernel.lookup.ItemPath;
 import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.utils.CastorHashMap;
 import org.cristalise.kernel.utils.DateUtility;
+import org.cristalise.kernel.utils.Logger;
 import org.cristalise.storage.jooqdb.JooqHandler;
 import org.jooq.Condition;
 import org.jooq.DSLContext;
@@ -49,9 +50,6 @@ import org.jooq.Field;
 import org.jooq.Record;
 import org.jooq.Table;
 
-import lombok.extern.slf4j.Slf4j;
-
-@Slf4j
 public class JooqJobHandler extends JooqHandler {
     static final Table<?> JOB_TABLE = table(name("JOB"));
 
@@ -115,7 +113,7 @@ public class JooqJobHandler extends JooqHandler {
             actPropsXML = Gateway.getMarshaller().marshall(job.getActProps());
         }
         catch (Exception ex) {
-            log.error("", ex);
+            Logger.error(ex);
             throw new PersistencyException(ex.getMessage());
         }
 
@@ -167,7 +165,7 @@ public class JooqJobHandler extends JooqHandler {
                                 ts);
             }
             catch (Exception ex) {
-                log.error("", ex);
+                Logger.error(ex);
                 throw new PersistencyException(ex.getMessage());
             }
         }

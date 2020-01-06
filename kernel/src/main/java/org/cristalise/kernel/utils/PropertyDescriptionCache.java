@@ -28,9 +28,7 @@ import org.cristalise.kernel.lookup.ItemPath;
 import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.process.resource.BuiltInResources;
 import org.cristalise.kernel.property.PropertyDescriptionList;
-import lombok.extern.slf4j.Slf4j;
 
-@Slf4j
 public class PropertyDescriptionCache extends DescriptionObjectCache<PropertyDescriptionList> {
 
     @Override
@@ -53,7 +51,7 @@ public class PropertyDescriptionCache extends DescriptionObjectCache<PropertyDes
             return pdl;
         }
         catch (Exception ex) {
-            log.error("Could not parse Schema '" + name + "' v" + version, ex);
+            Logger.error(ex);
             throw new InvalidDataException("Could not parse Schema '" + name + "' v" + version + ": " + ex.getMessage());
         }
     }

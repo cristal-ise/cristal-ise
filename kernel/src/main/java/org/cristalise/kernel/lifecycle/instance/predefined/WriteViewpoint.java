@@ -34,10 +34,9 @@ import org.cristalise.kernel.persistency.outcome.Schema;
 import org.cristalise.kernel.persistency.outcome.Viewpoint;
 import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.utils.LocalObjectLoader;
+import org.cristalise.kernel.utils.Logger;
 
-import lombok.extern.slf4j.Slf4j;
 
-@Slf4j
 public class WriteViewpoint extends PredefinedStep {
 
     public WriteViewpoint() {
@@ -52,8 +51,7 @@ public class WriteViewpoint extends PredefinedStep {
             throws InvalidDataException, ObjectNotFoundException, PersistencyException
     {
         String[] params = getDataList(requestData);
-
-        log.debug("Called by {} on {} with parameters {}", agent.getAgentName(), item, (Object)params);
+        if (Logger.doLog(3)) Logger.msg(3, "WriteViewpoint: called by "+agent+" on "+item+" with parameters "+Arrays.toString(params));
 
         if (params.length != 3) {
             throw new InvalidDataException("WriteViewpoint: Invalid parameters "+Arrays.toString(params));

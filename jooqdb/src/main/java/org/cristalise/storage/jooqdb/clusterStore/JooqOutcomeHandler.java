@@ -34,6 +34,7 @@ import org.cristalise.kernel.common.PersistencyException;
 import org.cristalise.kernel.entity.C2KLocalObject;
 import org.cristalise.kernel.persistency.outcome.Outcome;
 import org.cristalise.kernel.utils.LocalObjectLoader;
+import org.cristalise.kernel.utils.Logger;
 import org.cristalise.storage.jooqdb.JooqHandler;
 import org.jooq.Condition;
 import org.jooq.DSLContext;
@@ -42,9 +43,6 @@ import org.jooq.Field;
 import org.jooq.Record;
 import org.jooq.Table;
 
-import lombok.extern.slf4j.Slf4j;
-
-@Slf4j
 public class JooqOutcomeHandler extends JooqHandler {
     static final Table<?> OUTCOME_TABLE = table(name("OUTCOME"));
 
@@ -128,7 +126,7 @@ public class JooqOutcomeHandler extends JooqHandler {
                 return new Outcome(result.get(EVENT_ID), xml, LocalObjectLoader.getSchema(result.get(SCHEMA_NAME), result.get(SCHEMA_VERSION)));
             }
             catch (Exception e) {
-                log.error("", e);
+                Logger.error(e);
                 throw new PersistencyException(e.getMessage());
             }
         }

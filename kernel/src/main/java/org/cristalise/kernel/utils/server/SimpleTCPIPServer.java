@@ -28,10 +28,11 @@ import java.net.SocketTimeoutException;
 import java.util.ArrayList;
 import java.util.ListIterator;
 import java.util.NoSuchElementException;
-import lombok.extern.slf4j.Slf4j;
+
+import org.cristalise.kernel.utils.Logger;
 
 
-@Slf4j
+
 public class SimpleTCPIPServer implements Runnable {
 
     int                      port            = 0;
@@ -59,7 +60,7 @@ public class SimpleTCPIPServer implements Runnable {
     }
 
     public void stopListening() {
-        log.info("stopListening() - Closing server for " + handlerClass.getName() +" on port "+ port);
+        Logger.msg("SimpleTCPIPServer.stopListening() - Closing server for " + handlerClass.getName() +" on port "+ port);
 
         keepListening = false;
         for (SocketHandler thisHandler : currentHandlers) {
@@ -80,7 +81,7 @@ public class SimpleTCPIPServer implements Runnable {
             serverSocket = new ServerSocket(port);
             if (port == 0) port = serverSocket.getLocalPort();
 
-            log.info("run() - Created server for " + handlerClass.getName()+" on port "+port);
+            Logger.msg("SimpleTCPIPServer.run() - Created server for " + handlerClass.getName()+" on port "+port);
 
             serverSocket.setSoTimeout(500);
             SocketHandler freeHandler = null;
@@ -101,7 +102,7 @@ public class SimpleTCPIPServer implements Runnable {
                             currentHandlers.add(freeHandler);
                         }
                         else { // max handlers are created. wait for a while, then look again
-                            log.warn("No free handlers left for "+handlerClass.getName()+" on port "+ port + "! Sleeping 2s.");
+                            Logger.warning("No free handlers left for "+handlerClass.getName()+" on port "+ port + "! Sleeping 2s.");
                             Thread.sleep(2000);
                             continue;
                         }
@@ -111,7 +112,7 @@ public class SimpleTCPIPServer implements Runnable {
                 try {
                     connectionSocket = serverSocket.accept();
                     if (keepListening) {
-                        log.info("Connection to "+freeHandler.getName()+" from "+ connectionSocket.getInetAddress());
+                        Logger.msg("SimpleTCPIPServer: Connection to "+freeHandler.getName()+" from "+ connectionSocket.getInetAddress());
 
                         freeHandler.setSocket(connectionSocket);
                         new Thread(freeHandler).start();
@@ -121,13 +122,14 @@ public class SimpleTCPIPServer implements Runnable {
                 catch (SocketException ex1)        { } // we were closed during shutdown
             }
             serverSocket.close();
-            log.info("Server closed for " + handlerClass.getName() +" on port "+ port);
+            Logger.msg("SimpleTCPIPServer: Server closed for " + handlerClass.getName() +" on port "+ port);
         }
         catch(Exception ex) {
-            log.error("run(): Fatal Error. Listener for '"+handlerClass.getName()+"' will stop.", ex);
+            Logger.error("SimpleTCPIPServer.run(): Fatal Error. Listener for '"+handlerClass.getName()+"' will stop.");
+            Logger.error(ex);
         }
         listener = null;
-        log.info("Servers still running: "+--numberOfServers);
+        Logger.msg("SimpleTCPIPServer - Servers still running: "+--numberOfServers);
     }
 
     public int getPort() {

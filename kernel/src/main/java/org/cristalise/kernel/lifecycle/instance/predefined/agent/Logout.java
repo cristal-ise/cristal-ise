@@ -28,13 +28,11 @@ import org.cristalise.kernel.common.PersistencyException;
 import org.cristalise.kernel.lifecycle.instance.predefined.PredefinedStep;
 import org.cristalise.kernel.lookup.AgentPath;
 import org.cristalise.kernel.lookup.ItemPath;
-
-import lombok.extern.slf4j.Slf4j;
+import org.cristalise.kernel.utils.Logger;
 
 /**
  * {@value #description}
  */
-@Slf4j
 public class Logout extends PredefinedStep {
 
     public static final String description = "Records the Logout event in the history";
@@ -47,7 +45,8 @@ public class Logout extends PredefinedStep {
     protected String runActivityLogic(AgentPath agent, ItemPath itemPath, int transitionID, String requestData, Object locker)
             throws InvalidDataException, ObjectNotFoundException, ObjectCannotBeUpdated, CannotManageException, PersistencyException
     {
-        log.debug("Called by {} on {}", agent.getAgentName(), itemPath);
+        Logger.msg(1, "Logout.request() - Starting.");
+
         return requestData;
     }
 

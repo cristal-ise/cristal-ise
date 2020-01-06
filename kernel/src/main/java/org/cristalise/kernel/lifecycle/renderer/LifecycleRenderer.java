@@ -24,19 +24,19 @@ import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
+
 import org.cristalise.kernel.graph.model.DirectedEdge;
 import org.cristalise.kernel.graph.model.GraphModel;
 import org.cristalise.kernel.graph.model.GraphPoint;
 import org.cristalise.kernel.graph.model.Vertex;
 import org.cristalise.kernel.graph.renderer.DirectedEdgeRenderer;
 import org.cristalise.kernel.graph.renderer.VertexRenderer;
-import lombok.extern.slf4j.Slf4j;
+import org.cristalise.kernel.utils.Logger;
 
 /**
  *
  *
  */
-@Slf4j
 public class LifecycleRenderer {
 
     GraphModel           mGraphModel;
@@ -89,7 +89,7 @@ public class LifecycleRenderer {
 
     public void draw(Graphics2D g2d) {
         if (mGraphModel == null) {
-            log.warn("draw() - GraphModel is NULL!");
+            Logger.warning("LifecycleGenerator.draw() - GraphModel is NULL!");
             return;
         }
 

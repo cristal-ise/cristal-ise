@@ -48,6 +48,7 @@ import org.cristalise.kernel.lookup.AgentPath;
 import org.cristalise.kernel.lookup.ItemPath;
 import org.cristalise.kernel.persistency.outcome.Outcome;
 import org.cristalise.kernel.process.Gateway;
+import org.cristalise.kernel.utils.Logger;
 import org.w3c.dom.CDATASection;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -56,13 +57,10 @@ import org.w3c.dom.NodeList;
 import org.w3c.dom.Text;
 import org.xml.sax.InputSource;
 
-import lombok.extern.slf4j.Slf4j;
-
 /**
  * PredefinedStep are always Active, and have only one transition. 
  * Subclasses could override this method (if necessary)
  */
-@Slf4j
 public abstract class PredefinedStep extends Activity {
 
     private boolean         isPredefined = false;
@@ -177,8 +175,8 @@ public abstract class PredefinedStep extends Activity {
             }
             return Outcome.serialize(dom, false);
         }
-        catch (Exception ex) {
-            log.error("", ex);
+        catch (Exception e) {
+            Logger.error(e);
             StringBuffer xmlData = new StringBuffer().append("<PredefinedStepOutcome>");
 
             for (String element : data)
@@ -211,7 +209,7 @@ public abstract class PredefinedStep extends Activity {
             return result;
         }
         catch (Exception ex) {
-            log.error("", ex);
+            Logger.error(ex);
         }
         return null;
     }

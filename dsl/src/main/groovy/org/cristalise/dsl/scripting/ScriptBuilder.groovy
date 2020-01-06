@@ -21,8 +21,6 @@
 package org.cristalise.dsl.scripting
 
 import groovy.transform.CompileStatic
-import groovy.util.logging.Slf4j
-
 import org.cristalise.kernel.common.InvalidDataException
 import org.cristalise.kernel.lookup.InvalidPathException
 import org.cristalise.kernel.persistency.outcome.OutcomeValidator
@@ -38,6 +36,7 @@ import org.cristalise.kernel.persistency.outcome.Outcome
 import org.cristalise.kernel.process.Bootstrap
 import org.cristalise.kernel.process.Gateway
 import org.cristalise.kernel.scripting.Script
+import org.cristalise.kernel.utils.Logger
 
 import javax.xml.validation.SchemaFactory
 
@@ -45,7 +44,7 @@ import javax.xml.validation.SchemaFactory
 /**
  *
  */
-@CompileStatic @Slf4j
+@CompileStatic
 class ScriptBuilder {
     String name = ""
     String module = ""
@@ -81,12 +80,12 @@ class ScriptBuilder {
         OutcomeValidator validator = new OutcomeValidator(scriptSchema)
         def error = validator.validate(xml)
 
-        if (!error) {
-            log.debug "validateScriptXML() - DONE"
+        if(!error) {
+            Logger.debug(5, "ScriptBuilder.validateScriptXML() - DONE")
         }
         else {
-            log.error("ScriptBuilder.validateScriptXML() - $error")
-            log.error("\n============== XML ==============\n" + xml + "\n=================================\n");
+            Logger.error("ScriptBuilder.validateScriptXML() - $error")
+            Logger.error("\n============== XML ==============\n" + xml + "\n=================================\n");
             throw new InvalidPathException(error)
         }
     }
@@ -133,7 +132,7 @@ class ScriptBuilder {
 
         sb.scriptXML = scriptD.writer.toString()
 
-        log.debug "build() - Generated xml:\n $sb.scriptXML"
+        Logger.debug(5, "ScriptBuilder.build() - Generated xml:\n $sb.scriptXML");
 
         sb.validateScriptXML(sb.scriptXML)
 

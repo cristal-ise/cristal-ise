@@ -39,14 +39,12 @@ import org.cristalise.kernel.property.Property;
 import org.cristalise.kernel.property.PropertyArrayList;
 import org.cristalise.kernel.property.PropertyDescriptionList;
 import org.cristalise.kernel.property.PropertyUtility;
-
-import lombok.extern.slf4j.Slf4j;
+import org.cristalise.kernel.utils.Logger;
 
 
 /**
  * {@value #description}
  */
-@Slf4j
 public class UpdateProperitesFromDescription extends PredefinedStep {
 
     public static final String description = "Updates the Properties of the Item from its description";
@@ -73,8 +71,6 @@ public class UpdateProperitesFromDescription extends PredefinedStep {
         String descPath = inputs[0]; //i.e. domainPath of FactoryItem
         String descVer  = inputs[1];
         PropertyArrayList initProps = inputs.length == 3 && StringUtils.isNotBlank(inputs[2]) ? unmarshallInitProperties(inputs[2]) : new PropertyArrayList();
-
-        log.debug("Called by {} on {} with parameters {}", agent.getAgentName(), item, (Object)inputs);
 
         PropertyDescriptionList newPropDesc = getPropertyDesc(descPath, descVer, locker);
 
@@ -135,7 +131,7 @@ public class UpdateProperitesFromDescription extends PredefinedStep {
             descItemPath = Gateway.getLookup().resolvePath(new DomainPath(descPath));
         }
         catch (InvalidItemPathException e) {
-            log.error("", e);
+            Logger.error(e);
             throw new InvalidDataException(e.getMessage());
         }
 
@@ -154,7 +150,7 @@ public class UpdateProperitesFromDescription extends PredefinedStep {
             return (PropertyArrayList) Gateway.getMarshaller().unmarshall(initPropString);
         }
         catch (Exception e) {
-            log.error("Initial property parameter was not a marshalled PropertyArrayList", e);
+            Logger.error(e);
             throw new InvalidDataException("Initial property parameter was not a marshalled PropertyArrayList: " + initPropString);
         }
     }

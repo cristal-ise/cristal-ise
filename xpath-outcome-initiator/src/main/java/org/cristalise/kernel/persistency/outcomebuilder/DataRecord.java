@@ -25,6 +25,7 @@ import java.io.Writer;
 import java.util.Map;
 
 import org.apache.commons.lang3.StringUtils;
+import org.cristalise.kernel.utils.Logger;
 import org.exolab.castor.xml.schema.ComplexType;
 import org.exolab.castor.xml.schema.ElementDecl;
 import org.json.JSONArray;
@@ -33,9 +34,6 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 
-import lombok.extern.slf4j.Slf4j;
-
-@Slf4j
 public class DataRecord extends OutcomeStructure {
 
     AttributeList myAttributes;
@@ -52,7 +50,7 @@ public class DataRecord extends OutcomeStructure {
             if (myElement != null) populateInstance();
         }
         catch (OutcomeBuilderException ex) {
-            log.error("", ex);
+            Logger.error(ex);
         }
     }
 
@@ -85,7 +83,7 @@ public class DataRecord extends OutcomeStructure {
 
     @Override
     public void addInstance(Element newElement, Document parentDoc) throws OutcomeBuilderException {
-        log.debug("addInstance() - name:" + newElement.getTagName());
+        Logger.msg(8, "DataRecord.addInstance() - name:" + newElement.getTagName());
 
         if (this.myElement != null) throw new CardinalException("DataRecord " + this.getName() + " cannot repeat.");
 
@@ -139,7 +137,7 @@ public class DataRecord extends OutcomeStructure {
 
     @Override
     public void addJsonInstance(OutcomeStructure parentStruct, Element parentElement, String name, Object json) throws OutcomeBuilderException {
-        log.debug("addJsonInstance() - name:'" + name + "'");
+        Logger.msg(5, "DataRecord.addJsonInstance() - name:'" + name + "'");
         JSONObject jsonObj = (JSONObject)json;
 
 //        myElement = parentElement;
@@ -167,7 +165,7 @@ public class DataRecord extends OutcomeStructure {
 
     @Override
     public Element initNew(Document rootDocument) {
-        log.debug("initNew() - name:'" + model.getName() + "'");
+        Logger.msg(5, "DataRecord.initNew() - name:'" + model.getName() + "'");
 
         // make a new Element
         myElement = rootDocument.createElement(model.getName());

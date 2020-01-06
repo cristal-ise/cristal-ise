@@ -26,15 +26,13 @@ import org.cristalise.kernel.common.ObjectNotFoundException;
 import org.cristalise.kernel.graph.model.Vertex;
 import org.cristalise.kernel.property.PropertyDescriptionList;
 import org.cristalise.kernel.property.PropertyUtility;
-
-import lombok.extern.slf4j.Slf4j;
+import org.cristalise.kernel.utils.Logger;
 
 /**
  * The description of a Collection with a graph layout. Each slot is 
  * instantiated empty in the resulting Aggregation, with ClassProps taken from
  * the PropertyDescription outcome of the description slot's referenced Item.
  */
-@Slf4j
 public class AggregationDescription extends Aggregation implements CollectionDescription<AggregationMember> {
 
     public AggregationDescription() {
@@ -74,7 +72,7 @@ public class AggregationDescription extends Aggregation implements CollectionDes
                 catch (ObjectAlreadyExistsException e) {}
             }
             else {
-                log.error("newInstance() There is no PropertyDescription. Cannot instantiate. " + mem.getItemPath());
+                Logger.error("AggregationDescription::newInstance() There is no PropertyDescription. Cannot instantiate. " + mem.getItemPath());
                 return null;
             }
         }

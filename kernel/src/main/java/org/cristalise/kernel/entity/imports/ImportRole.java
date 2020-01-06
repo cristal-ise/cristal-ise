@@ -31,10 +31,8 @@ import org.cristalise.kernel.lookup.Path;
 import org.cristalise.kernel.lookup.RolePath;
 import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.process.module.ModuleImport;
+import org.cristalise.kernel.utils.Logger;
 
-import lombok.extern.slf4j.Slf4j;
-
-@Slf4j
 public class ImportRole extends ModuleImport {
 
     public Boolean jobList;
@@ -53,7 +51,7 @@ public class ImportRole extends ModuleImport {
             if (jobList != null) update(agentPath);
         }
         else {
-            log.info("ImportRole.create() - Creating Role:"+name+" joblist:"+jobList);
+            Logger.msg("ImportRole.create() - Creating Role:"+name+" joblist:"+jobList);
 
             //Checks if parent exists and throw ObjectNotFoundException
             newRolePath.getParent();

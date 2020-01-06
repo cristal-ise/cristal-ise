@@ -24,21 +24,22 @@ import org.cristalise.kernel.common.InvalidDataException
 import org.cristalise.kernel.property.BuiltInItemProperties
 import org.cristalise.kernel.property.PropertyDescriptionList
 import org.cristalise.kernel.property.PropertyUtility
+import org.cristalise.kernel.utils.Logger
 
-import groovy.util.logging.Slf4j
 import groovy.xml.MarkupBuilder
 
 
 /**
  *
  */
-@Slf4j
 class SchemaDelegate {
 
     String xsdString
 
     public void processClosure(Closure cl) {
         assert cl, "Schema only works with a valid Closure"
+
+        Logger.msg 1, "Schema(start) ---------------------------------------"
 
         def objBuilder = new ObjectGraphBuilder()
         objBuilder.setChildPropertySetter(new DSLPropertySetter())
@@ -48,6 +49,8 @@ class SchemaDelegate {
         cl.delegate = objBuilder
 
         xsdString = buildXSD( cl() )
+
+        Logger.msg 1, "Schema(end) +++++++++++++++++++++++++++++++++++++++++"
     }
 
     public String buildXSD(Struct s) {
@@ -69,7 +72,7 @@ class SchemaDelegate {
     }
 
     private void buildStruct(MarkupBuilder xsd, Struct s) {
-        log.info "buildStruct() - Struct: $s.name"
+        Logger.msg 1, "SchemaDelegate.buildStruct() - Struct: $s.name"
         xsd.'xs:element'(name: s.name, minOccurs: s.minOccurs, maxOccurs: s.maxOccurs) {
 
             if(s.documentation || s.dynamicForms) {
@@ -164,7 +167,7 @@ class SchemaDelegate {
     }
 
     private void buildAtribute(MarkupBuilder xsd, Attribute a) {
-        log.info "buildAtribute() - attribute: $a.name"
+        Logger.msg 1, "SchemaDelegate.buildAtribute() - attribute: $a.name"
 
         if (a.documentation) throw new InvalidDataException('Attribute cannot define documentation')
 
@@ -255,7 +258,7 @@ class SchemaDelegate {
     }
         
     private void buildField(MarkupBuilder xsd, Field f) {
-        log.info "buildField() - Field: $f.name"
+        Logger.msg 1, "SchemaDelegate.buildField() - Field: $f.name"
 
         //TODO: implement support for this combination - see issue 129
         if (((f.attributes || f.unit) && hasRestrictions(f)) || (f.attributes && f.unit))
@@ -308,13 +311,13 @@ class SchemaDelegate {
     }
 
     private void buildAnyField(MarkupBuilder xsd, AnyField any) {
-        log.info "buildAnyField()"
+        Logger.msg 1, "SchemaDelegate.buildAnyField()"
 
         xsd.'xs:any'(minOccurs: any.minOccurs, maxOccurs: any.maxOccurs, processContents: any.processContents)
     }
 
     private void buildRestriction(MarkupBuilder xsd, Attribute fieldOrAttr) {
-        log.info "buildRestriction() - type:$fieldOrAttr.type"
+        Logger.msg 1, "SchemaDelegate.buildRestriction() - type:$fieldOrAttr.type"
 
         xsd.'xs:simpleType' {
             'xs:restriction'(base: fieldOrAttr.type) {

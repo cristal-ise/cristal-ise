@@ -31,17 +31,15 @@ import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.process.ShutdownHandler;
 import org.cristalise.kernel.process.StandardClient;
 import org.cristalise.kernel.process.resource.BadArgumentsException;
+import org.cristalise.kernel.utils.Logger;
 import org.glassfish.grizzly.http.server.HttpServer;
 import org.glassfish.jersey.grizzly2.httpserver.GrizzlyHttpServerFactory;
 import org.glassfish.jersey.media.multipart.MultiPartFeature;
 import org.glassfish.jersey.server.ResourceConfig;
 
-import lombok.extern.slf4j.Slf4j;
-
 /**
  * Main class to launch the Test Restapi server. It is based on grizzly HTTP server.
  */
-@Slf4j
 public class Main extends StandardClient {
 
     static HttpServer server;
@@ -83,7 +81,7 @@ public class Main extends StandardClient {
 
         if (Gateway.getProperties().getBoolean("REST.addCorsHeaders", false)) rc.register(CORSResponseFilter.class);
 
-        log.info("startServer() - Jersey app started with WADL available at "+uri+"application.wadl");
+        Logger.msg("Main.startServer() - Jersey app started with WADL available at "+uri+"application.wadl");
 
         server = GrizzlyHttpServerFactory.createHttpServer(URI.create(uri), rc);
     }

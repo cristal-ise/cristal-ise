@@ -12,11 +12,10 @@ The REST API used several CRISTAL properties (as provided in the clc or conf fil
 
  * `REST.requireLoginCookie` (boolean) - require a login cookie set at /login to access all methods. If this is false, then a login cookie may still be used, but it is not required to call any methods. If absent, job query and execution will require an 'agentName' query parameter identifying the calling agent.
  * `REST.loginCookieLife` (integer) - the number of seconds that the login cookie is valid. The cookie is set to expire at this time, but the cookie also contains a timestamp which will invalidate it after this time. 
- * `REST.allowWeakKey` (boolean default=false) - If true, the key generation will use 128-bit AES key. Use this only if 256-bit is not available, but it is recommended to install [Java Cryptography Extension (JCE) Unlimited Strength Jurisdiction Policy Files](https://www.oracle.com/technetwork/java/javase/downloads/jce8-download-2133166.html).
+ * `REST.allowWeakKey` (boolean) - If true, the key generation will use 128-bit AES key. Use this only if 256-bit is not available, but it is recommended to install [Java Cryptography Extension (JCE) Unlimited Strength Jurisdiction Policy Files](https://www.oracle.com/technetwork/java/javase/downloads/jce8-download-2133166.html).
+
  * `REST.DefaultBatchSize` (integer) - If no batch size parameter is given for Job, Event and Path queries, then this value will be used. Batch sizes for each object type may be individually set using `REST.Job.DefaultBatchSize`, `REST.Event.DefaultBatchSize` and `REST.Path.DefaultBatchSize`. If these parameters are not set, then the internal default for Paths is 75, while Job and Event are 20 each.
- * `REST.MasterOutcome.postfix` (String default=_Aggregate) - Specify the postfix that is used to find the script to calculate the master outcome.
- 
- 
+
 # Trying it out with curl
 
 Some useful example curl commands:

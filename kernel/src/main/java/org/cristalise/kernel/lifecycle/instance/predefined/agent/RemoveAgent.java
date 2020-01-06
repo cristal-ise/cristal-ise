@@ -28,6 +28,7 @@ import org.cristalise.kernel.common.PersistencyException;
 import org.cristalise.kernel.lifecycle.instance.predefined.Erase;
 import org.cristalise.kernel.lookup.AgentPath;
 import org.cristalise.kernel.lookup.ItemPath;
+import org.cristalise.kernel.utils.Logger;
 
 /**
  * 
@@ -43,6 +44,8 @@ import org.cristalise.kernel.lookup.ItemPath;
     protected String runActivityLogic(AgentPath agent, ItemPath itemPath, int transitionID, String requestData, Object locker)
             throws InvalidDataException, ObjectNotFoundException, ObjectCannotBeUpdated, CannotManageException, PersistencyException
     {
+        Logger.msg(1, "RemoveAgent.request() - Starting.");
+
         return super.runActivityLogic(agent, itemPath, transitionID, requestData, locker);
     }
 

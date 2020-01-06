@@ -23,6 +23,7 @@ package org.cristalise.kernel.persistency.outcomebuilder.field;
 import java.util.Map;
 
 import org.cristalise.kernel.persistency.outcomebuilder.StructuralException;
+import org.cristalise.kernel.utils.Logger;
 import org.exolab.castor.types.AnyNode;
 import org.exolab.castor.xml.schema.AttributeDecl;
 import org.exolab.castor.xml.schema.ElementDecl;
@@ -30,9 +31,6 @@ import org.exolab.castor.xml.schema.SimpleType;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
-import lombok.extern.slf4j.Slf4j;
-
-@Slf4j
 public class ComboField extends StringField {
 
     ListOfValues vals;
@@ -71,7 +69,7 @@ public class ComboField extends StringField {
                 selected = vals.findKey(text);
             }
             else
-                log.error("Illegal value for ComboField name:'"+getName()+"' value:'"+text+"'");
+                Logger.error("Illegal value for ComboField name:'"+getName()+"' value:'"+text+"'");
         }
         else
             selected = text;

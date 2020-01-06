@@ -23,7 +23,6 @@ package org.cristalise.dsl.entity
 import org.apache.commons.lang3.StringUtils
 import org.cristalise.dsl.collection.DependencyBuilder
 import org.cristalise.dsl.lifecycle.instance.WorkflowBuilder
-import org.cristalise.kernel.collection.BuiltInCollections
 import org.cristalise.kernel.collection.Dependency
 import org.cristalise.kernel.collection.DependencyDescription
 import org.cristalise.kernel.collection.DependencyMember
@@ -88,18 +87,10 @@ class ItemDelegate extends PropertyDelegate {
         outcomes.add(new ImportOutcome((String) attr.schema, attr.version as Integer, (String) attr.viewname, (String) attr.path))
     }
 
-    public void DependencyDescription(BuiltInCollections coll, Closure cl) {
-        DependencyDescription(coll.getName(), cl)
-    }
-
     public void DependencyDescription(String name, Closure cl) {
         Dependency(name, true, cl)
     }
 
-    public void Dependency(BuiltInCollections coll, boolean isDescription = false, Closure cl) {
-        Dependency(coll.getName(), isDescription, cl)
-    }
-   
     public void Dependency(String name, boolean isDescription = false, Closure cl) {
         assert name
         assert cl

@@ -20,21 +20,21 @@
  */
 package org.cristalise.dsl.persistency.outcome
 
+import groovy.transform.CompileStatic
+
 import org.cristalise.kernel.common.InvalidDataException
 import org.cristalise.kernel.lookup.DomainPath
 import org.cristalise.kernel.persistency.outcome.Outcome
 import org.cristalise.kernel.persistency.outcome.Schema
 import org.cristalise.kernel.process.Bootstrap
 import org.cristalise.kernel.utils.LocalObjectLoader
-
-import groovy.transform.CompileStatic
-import groovy.util.logging.Slf4j
+import org.cristalise.kernel.utils.Logger
 
 
 /**
  *
  */
-@CompileStatic @Slf4j
+@CompileStatic
 class SchemaBuilder {
     String module = ""
     String name = ""
@@ -74,7 +74,7 @@ class SchemaBuilder {
      * @return
      */
     public SchemaBuilder loadXSD(String xsdFile) {
-        log.debug "loadXSD() - From file:$xsdFile"
+        Logger.msg 5, "SchemaBuilder.loadXSD() - From file:$xsdFile"
 
         schema = new Schema(name, version, new File(xsdFile).text)
         schema.validate()
@@ -137,7 +137,7 @@ class SchemaBuilder {
         def schemaD = new SchemaDelegate()
         schemaD.processClosure(cl)
 
-        log.debug "generated xsd:\n" + schemaD.xsdString
+        Logger.msg 5, "SchemaBuilder - generated xsd:\n" + schemaD.xsdString
 
         sb.schema = new Schema(sb.name, sb.version, schemaD.xsdString)
         String errors = sb.schema.validate()

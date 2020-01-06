@@ -36,10 +36,8 @@ import org.cristalise.kernel.lookup.Lookup.PagedResult;
 import org.cristalise.kernel.lookup.Path;
 import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.property.PropertyUtility;
+import org.cristalise.kernel.utils.Logger;
 
-import lombok.extern.slf4j.Slf4j;
-
-@Slf4j
 public class ChangeName extends PredefinedStep {
     public static final String description = "Removes Items old Name, add the new Name and changes the Name property";
 
@@ -53,17 +51,15 @@ public class ChangeName extends PredefinedStep {
     {
         String[] params = getDataList(requestData);
 
-        log.debug("Called by {} on {} with parameters {}", agent.getAgentName(), item, (Object)params);
-
         if (params.length != 2) throw new InvalidDataException("ChangeName: Invalid parameters: "+Arrays.toString(params));
 
         String oldName = params[0];
         String newName = params[1];
 
-        log.info("oldName:{} newName:{}", oldName, newName);
+        Logger.msg(3, "ChangeName - oldName:%s newName:%s", oldName, newName);
 
         if (oldName.equals(newName)) {
-            log.info("oldName:{} == newName:{} - NOTHING DONE", oldName, newName);
+            Logger.msg(3, "ChangeName - oldName:%s == newName:%s - NOTHING DONE", oldName, newName);
             return requestData;
         }
 
@@ -96,7 +92,7 @@ public class ChangeName extends PredefinedStep {
             PropertyUtility.writeProperty(item, NAME, newName, locker);
         }
         catch (Exception e) {
-            log.error("", e);
+            Logger.error(e);
 
             //recover original state
             if (newDP != null) {
@@ -124,7 +120,7 @@ public class ChangeName extends PredefinedStep {
             Gateway.getLookupManager().delete(currentDP);
         }
         catch (Exception e) {
-            log.error("", e);
+            Logger.error(e);
 
             //recover original state
             Gateway.getLookupManager().delete(newDP);

@@ -6,11 +6,11 @@ import org.cristalise.kernel.entity.proxy.AgentProxy
 import org.cristalise.kernel.entity.proxy.ItemProxy
 import org.cristalise.kernel.process.AbstractMain
 import org.cristalise.kernel.process.Gateway
+import org.cristalise.kernel.utils.Logger
 
 import groovy.transform.CompileStatic
-import groovy.util.logging.Slf4j
 
-@CompileStatic @Slf4j
+@CompileStatic
 abstract class ScriptDevelopment extends Script {
 
     private static final String defaultConnect = 'local.clc'
@@ -30,6 +30,8 @@ abstract class ScriptDevelopment extends Script {
     String transitionName = "Done"
 
     private void init() {
+        Logger.addLogStream(System.out, logLevel)
+
         if (configDir && (connect || config)) throw new InvalidDataException('Specify only configDir or connect/config')
 
         if (configDir) {
@@ -40,7 +42,7 @@ abstract class ScriptDevelopment extends Script {
         if (!connect  || !config) throw new InvalidDataException("Missing connect '"+connect+"' or config '"+config+"' files")
         if (!itemPath)            throw new InvalidDataException("Missing itemPath '"+itemPath)
 
-        log.info 'ScriptDevelopment - config:{}, connect:{}, itemPath:{}, activityName:{}', config, connect, itemPath, activityName
+        Logger.msg(5, '++++++ ScriptDevelopment - config:%s, connect:%s, itemPath:%s, activityName:%s', config, connect, itemPath, activityName)
 
         Gateway.init(AbstractMain.readPropertyFiles(config, connect, null))
 
@@ -73,10 +75,10 @@ abstract class ScriptDevelopment extends Script {
             cl.delegate = this
             final result = cl()
 
-            log.debug "script returned: {}", result
+            Logger.msg(5, "ScriptDevelopment - script returned: %s", result)
         }
         catch(Exception e) {
-            log.error("", e)
+            Logger.error(e)
         }
         finally {
             Gateway.close()

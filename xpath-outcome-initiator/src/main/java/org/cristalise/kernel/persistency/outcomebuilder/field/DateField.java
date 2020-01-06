@@ -30,11 +30,9 @@ import java.util.Map;
 
 import org.cristalise.kernel.persistency.outcomebuilder.InvalidOutcomeException;
 import org.cristalise.kernel.process.Gateway;
+import org.cristalise.kernel.utils.Logger;
 import org.json.JSONObject;
 
-import lombok.extern.slf4j.Slf4j;
-
-@Slf4j
 public class DateField extends StringField {
     public static final String javaTimeDateFormat = "yyyy-MM-dd";
     public static final String primeNGDateFormat = "yy-mm-dd";
@@ -76,7 +74,7 @@ public class DateField extends StringField {
 
     @Override
     public void setValue(Object value) throws InvalidOutcomeException {
-        log.info("setValue() - value=" + value + " class:" + value.getClass().getSimpleName());
+        Logger.msg(0, "DateField.setValue() - value=" + value + " class:" + value.getClass().getSimpleName());
 
         if (value instanceof String) {
             String sVal = (String) value;
@@ -88,7 +86,7 @@ public class DateField extends StringField {
                 else if (sVal.contains("T")) zdt = ZonedDateTime.parse(sVal);
 
                 if (zdt != null) {
-                    log.trace("setValue() - ZonedDateTime:%s", zdt);
+                    Logger.msg(8,"DateField.setValue() - ZonedDateTime:%s", zdt);
 
                     // now the local date can be extracted
                     setData(zdt.toLocalDate().toString());
@@ -97,7 +95,7 @@ public class DateField extends StringField {
                     setData(sVal);
             }
             catch (DateTimeParseException e) {
-                log.error("", e);
+                Logger.error(e);
                 throw new InvalidOutcomeException(e.getMessage());
             }
         }

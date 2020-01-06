@@ -21,9 +21,8 @@
 package org.cristalise.kernel.lifecycle.instance;
 
 import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.PAIRING_ID;
-
+import java.util.Arrays;
 import java.util.Vector;
-
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.cristalise.kernel.common.InvalidDataException;
@@ -32,10 +31,8 @@ import org.cristalise.kernel.graph.model.Vertex;
 import org.cristalise.kernel.graph.traversal.GraphTraversal;
 import org.cristalise.kernel.lookup.AgentPath;
 import org.cristalise.kernel.lookup.ItemPath;
+import org.cristalise.kernel.utils.Logger;
 
-import lombok.extern.slf4j.Slf4j;
-
-@Slf4j
 public class Join extends WfVertex {
     public Vector<String> mErrors;
 
@@ -79,12 +76,12 @@ public class Join extends WfVertex {
 
             vertices = GraphTraversal.getTraversal(getParent().getChildrenGraphModel(), this, endVertex, GraphTraversal.kUp, true);
 
-            log.debug("hasPrevActiveActs(id:{}) - vertices[PairingID:"+pairingID+"]={}", getID(), (Object)vertices);
+            Logger.msg(8, "Join.hasPrevActiveActs(id:"+getID()+") - vertices[PairingID:"+pairingID+"]=%s", Arrays.toString(vertices));
         }
         else {
             vertices = GraphTraversal.getTraversal(getParent().getChildrenGraphModel(), this, GraphTraversal.kUp, true);
 
-            log.debug("hasPrevActiveActs(id:{}) - vertices={}", getID(), (Object)vertices);
+            Logger.msg(8, "Join.hasPrevActiveActs(id:"+getID()+") - vertices=%s", Arrays.toString(vertices));
         }
 
         for (Vertex v : vertices) {
@@ -118,7 +115,7 @@ public class Join extends WfVertex {
 
     @Override
     public void reinit(int idLoop) throws InvalidDataException {
-        log.debug("reinit(id:{}, idLoop:{}) - parent:{}", getID(), idLoop, getParent().getName());
+        Logger.msg(8, "Join.reinit(id:%s, idLoop:%d) - parent:%s", getID(), idLoop, getParent().getName());
 
         Vertex[] outVertices = getOutGraphables();
         if (outVertices.length == 1) {

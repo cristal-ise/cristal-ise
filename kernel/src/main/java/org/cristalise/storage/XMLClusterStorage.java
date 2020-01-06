@@ -40,10 +40,8 @@ import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.process.auth.Authenticator;
 import org.cristalise.kernel.querying.Query;
 import org.cristalise.kernel.utils.FileStringUtility;
+import org.cristalise.kernel.utils.Logger;
 
-import lombok.extern.slf4j.Slf4j;
-
-@Slf4j
 public class XMLClusterStorage extends ClusterStorage {
     String  rootDir        = null;
     String  fileExtension  = ".xml";
@@ -90,14 +88,14 @@ public class XMLClusterStorage extends ClusterStorage {
         }
 
         if (!FileStringUtility.checkDir(rootDir)) {
-            log.error("XMLClusterStorage.open() - Path " + rootDir + "' does not exist. Attempting to create.");
+            Logger.error("XMLClusterStorage.open() - Path " + rootDir + "' does not exist. Attempting to create.");
             boolean success = FileStringUtility.createNewDir(rootDir);
 
             if (!success)
                 throw new PersistencyException("XMLClusterStorage.open() - Could not create dir " + rootDir + ". Cannot continue.");
         }
         
-        log.info("open() - DONE rootDir:'" + rootDir + "' ext:'" + fileExtension + "' userDir:" + useDirectories);
+        Logger.debug(5, "XMLClusterStorage.open() - DONE rootDir:'" + rootDir + "' ext:'" + fileExtension + "' userDir:" + useDirectories);
     }
 
     @Override
@@ -138,7 +136,7 @@ public class XMLClusterStorage extends ClusterStorage {
 
     @Override
     public boolean checkQuerySupport(String language) {
-        log.warn("XMLClusterStorage DOES NOT Support any query");
+        Logger.warning("XMLClusterStorage DOES NOT Support any query");
         return false;
     }
 
@@ -156,13 +154,14 @@ public class XMLClusterStorage extends ClusterStorage {
 
             if (objString.length() == 0) return null;
 
-            log.trace("get() - objString:" + objString);
+            Logger.debug(9, "XMLClusterStorage.get() - objString:" + objString);
 
             if (type == ClusterType.OUTCOME) return new Outcome(path, objString);
             else                             return (C2KLocalObject) Gateway.getMarshaller().unmarshall(objString);
         }
         catch (Exception e) {
-            log.error("get() - The path " + path + " from " + itemPath + " does not exist", e);
+            Logger.msg(3, "XMLClusterStorage.get() - The path " + path + " from " + itemPath + " does not exist: " + e.getMessage());
+            Logger.error(e);
             throw new PersistencyException(e.getMessage());
         }
     }
@@ -171,7 +170,7 @@ public class XMLClusterStorage extends ClusterStorage {
     public void put(ItemPath itemPath, C2KLocalObject obj) throws PersistencyException {
         try {
             String filePath = getFilePath(itemPath, getPath(obj) + fileExtension);
-            log.trace("put() - Writing " + filePath);
+            Logger.msg(7, "XMLClusterStorage.put() - Writing " + filePath);
             String data = Gateway.getMarshaller().marshall(obj);
 
             String dir = filePath.substring(0, filePath.lastIndexOf('/'));
@@ -184,7 +183,7 @@ public class XMLClusterStorage extends ClusterStorage {
             FileStringUtility.string2File(filePath, data);
         }
         catch (Exception e) {
-            log.error("", e);
+            Logger.error(e);
             throw new PersistencyException("XMLClusterStorage.put() - Could not write " + getPath(obj) + " to " + itemPath);
         }
     }
@@ -201,7 +200,7 @@ public class XMLClusterStorage extends ClusterStorage {
             if (success) return;
         }
         catch (Exception e) {
-            log.error("", e);
+            Logger.error(e);
             throw new PersistencyException(
                     "XMLClusterStorage.delete() - Failure deleting path " + path + " in " + itemPath + " Error: " + e.getMessage());
         }
@@ -215,7 +214,7 @@ public class XMLClusterStorage extends ClusterStorage {
             else                return getContentsFromFileNames(itemPath, path);
         }
         catch (Exception e) {
-            log.error("", e);
+            Logger.error(e);
             throw new PersistencyException("XMLClusterStorage.getClusterContents("+itemPath+") - Could not get contents of " + path + " from "
                     + itemPath + ": " + e.getMessage());
         }
@@ -232,7 +231,7 @@ public class XMLClusterStorage extends ClusterStorage {
                       String fileName = p.getFileName().toString();
                       String content = resource.length() != 0 ? fileName.substring(resource.length()+1) : fileName.substring(resource.length());
 
-                      log.trace("getContentsFromFileNames() - resource:'"+resource+"' fileName:'"+fileName+"' content:'"+content+"'");
+                      Logger.msg(8, "XMLClusterStorage.getContentsFromFileNames() - resource:'"+resource+"' fileName:'"+fileName+"' content:'"+content+"'");
 
                       if (content.endsWith(fileExtension)) content = content.substring(0, content.length() - fileExtension.length());
 
@@ -278,7 +277,7 @@ public class XMLClusterStorage extends ClusterStorage {
         path = getResourceName(path);
 
         String filePath = rootDir + "/" + itemPath.getUUID() + "/" + path;
-        log.trace("getFilePath() - " + filePath);
+        Logger.msg(8, "XMLClusterStorage.getFilePath() - " + filePath);
 
         return filePath;
     }

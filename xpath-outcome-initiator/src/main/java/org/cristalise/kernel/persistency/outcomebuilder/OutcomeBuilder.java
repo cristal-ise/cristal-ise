@@ -31,6 +31,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.cristalise.kernel.common.InvalidDataException;
 import org.cristalise.kernel.persistency.outcome.Outcome;
 import org.cristalise.kernel.persistency.outcome.Schema;
+import org.cristalise.kernel.utils.Logger;
 import org.exolab.castor.xml.schema.ComplexType;
 import org.exolab.castor.xml.schema.ElementDecl;
 import org.json.JSONArray;
@@ -40,12 +41,9 @@ import org.w3c.dom.Element;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 
-import lombok.extern.slf4j.Slf4j;
-
 /**
  *
  */
-@Slf4j
 public class OutcomeBuilder {
 
     OutcomeStructure modelRoot;
@@ -76,7 +74,7 @@ public class OutcomeBuilder {
             }
         }
         catch (SAXException | IOException e) {
-            log.error("", e);
+            Logger.error(e);
             throw new InvalidSchemaException(e.getMessage());
         }
     }
@@ -117,7 +115,7 @@ public class OutcomeBuilder {
 
         if (rootElementDecl == null) throw new InvalidSchemaException("No root element defined");
 
-        log.debug("initialise() - selected root:" + rootElementDecl.getName());
+        Logger.msg(5, "OutcomeBuilder.initialise() - selected root:" + rootElementDecl.getName());
 
         if (rootElementDecl.getType().isSimpleType() || ((ComplexType) rootElementDecl.getType()).isSimpleContent()) {
             //modelRoot = new Field(rootElementDecl); //Simpletype could work later
@@ -128,7 +126,7 @@ public class OutcomeBuilder {
             modelRoot.setRootElementFlag(true);
         }
 
-        log.debug("initialise() - DONE");
+        Logger.msg(5, "OutcomeBuilder.initialise() - DONE");
     }
 
     public void addInstance(Outcome outcome) throws OutcomeBuilderException {
@@ -164,7 +162,7 @@ public class OutcomeBuilder {
      * @throws OutcomeBuilderException
      */
     public void addField(String path, String data) throws OutcomeBuilderException {
-        log.debug("addfield() - path:'"+path+"'");
+        Logger.msg(5,"OutcomeBuilder.addfield() - path:'"+path+"'");
         
         String[] names = StringUtils.split(path, "/");
 
@@ -198,7 +196,7 @@ public class OutcomeBuilder {
             else                       outcome.setField(parentElement, fieldName, data);
         }
         catch (InvalidDataException e) {
-            log.error("", e);
+            Logger.error(e);
             throw new StructuralException(e);
         }
     }
@@ -210,7 +208,7 @@ public class OutcomeBuilder {
      * @throws OutcomeBuilderException
      */
     public void addRecord(String path, Map<String, String> record) throws OutcomeBuilderException {
-        log.debug("addRecord() - path:'"+path+"'");
+        Logger.msg(5,"OutcomeBuilder.addRecord() - path:'"+path+"'");
 
         String[] names = StringUtils.split(path, "/");
 
@@ -253,7 +251,7 @@ public class OutcomeBuilder {
             }
         }
         catch (InvalidDataException e) {
-            log.error("", e);
+            Logger.error(e);
             throw new StructuralException(e);
         }
     }
@@ -283,7 +281,7 @@ public class OutcomeBuilder {
     public String generateNgDynamicForms(Map<String, Object> inputs) {
         String json = generateNgDynamicFormsJson(inputs).toString(2);
 
-        log.debug("generateNgDynamicForms() - json:%s", json);
+        Logger.msg(5, "OutcomeBuilder.generateNgDynamicForms() - json:%s", json);
 
         return json;
     }
@@ -309,7 +307,7 @@ public class OutcomeBuilder {
             modelRoot.exportViewTemplate(template);
         }
         catch (IOException e) {
-            log.error("", e);
+            Logger.error(e);
         }
 
         return template.toString();

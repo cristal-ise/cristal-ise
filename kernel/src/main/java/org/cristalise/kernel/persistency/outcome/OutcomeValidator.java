@@ -33,14 +33,12 @@ import javax.xml.validation.Validator;
 import org.apache.commons.lang3.StringUtils;
 import org.cristalise.kernel.common.InvalidDataException;
 import org.cristalise.kernel.common.ObjectNotFoundException;
+import org.cristalise.kernel.utils.Logger;
 import org.w3c.dom.Document;
 import org.xml.sax.ErrorHandler;
 import org.xml.sax.SAXException;
 import org.xml.sax.SAXParseException;
 
-import lombok.extern.slf4j.Slf4j;
-
-@Slf4j
 public class OutcomeValidator implements ErrorHandler {
 
     static SchemaValidator schemaValid = new SchemaValidator();
@@ -74,7 +72,7 @@ public class OutcomeValidator implements ErrorHandler {
 
         errors = new StringBuffer();
 
-        log.debug("Parsing "+schema.getName()+" version "+schema.getVersion()+". "+schema.getSchemaData().length()+" chars");
+        Logger.msg(5, "OutcomeValidator() - Parsing "+schema.getName()+" version "+schema.getVersion()+". "+schema.getSchemaData().length()+" chars");
 
         try {
             xmlSchema = schemaFactory.newSchema(new StreamSource(new StringReader(schema.getSchemaData())));

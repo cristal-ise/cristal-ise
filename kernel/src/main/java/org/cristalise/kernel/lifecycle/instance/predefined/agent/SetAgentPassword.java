@@ -21,9 +21,7 @@
 package org.cristalise.kernel.lifecycle.instance.predefined.agent;
 
 import static org.cristalise.kernel.security.BuiltInAuthc.ADMIN_ROLE;
-
 import java.security.NoSuchAlgorithmException;
-
 import org.cristalise.kernel.common.AccessRightsException;
 import org.cristalise.kernel.common.CannotManageException;
 import org.cristalise.kernel.common.InvalidDataException;
@@ -34,10 +32,8 @@ import org.cristalise.kernel.lookup.AgentPath;
 import org.cristalise.kernel.lookup.InvalidItemPathException;
 import org.cristalise.kernel.lookup.ItemPath;
 import org.cristalise.kernel.process.Gateway;
+import org.cristalise.kernel.utils.Logger;
 
-import lombok.extern.slf4j.Slf4j;
-
-@Slf4j
 public class SetAgentPassword extends PredefinedStep {
 
     public SetAgentPassword() {
@@ -50,7 +46,7 @@ public class SetAgentPassword extends PredefinedStep {
     {
         String[] params = getDataList(requestData);
 
-        log.debug("Called by {} on {} with parameters {}", agent.getAgentName(), item, (Object)params);
+        Logger.msg(3, "SetAgentPassword: called by " + agent + " on " + item + " with parameters length:" + params.length);
 
         //FIXME params.length != 1 case is deprecated, shall enforce identity check
         if (params.length != 1 && params.length != 2) 
@@ -88,11 +84,11 @@ public class SetAgentPassword extends PredefinedStep {
             return bundleData(params);
         }
         catch (InvalidItemPathException ex) {
-            log.error("", ex);
+            Logger.error(ex);
             throw new InvalidDataException("Can only set password on an Agent. " + item + " is an Item.");
         }
         catch (NoSuchAlgorithmException e) {
-            log.error("", e);
+            Logger.error(e);
             throw new InvalidDataException("Cryptographic libraries for password hashing not found.");
         }
     }

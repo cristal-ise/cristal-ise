@@ -21,7 +21,10 @@
 package org.cristalise.kernel.process;
 
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.PrintStream;
 import java.util.Enumeration;
 import java.util.Properties;
 
@@ -29,12 +32,9 @@ import org.cristalise.kernel.process.resource.BadArgumentsException;
 import org.cristalise.kernel.utils.FileStringUtility;
 import org.cristalise.kernel.utils.Logger;
 
-import lombok.extern.slf4j.Slf4j;
-
 /**
- * Abstract base class for all CristalSpecific applications
+ * Abstarct base calss for all CristalSpecific applications
  */
-@Slf4j
 abstract public class AbstractMain {
 
     public static boolean          isServer = false;
@@ -68,6 +68,7 @@ abstract public class AbstractMain {
     public static Properties readC2KArgs( String[] args ) throws BadArgumentsException {
         Properties argProps = new Properties();
         int logLevel = 0;
+        PrintStream logStream = System.out;
 
         int i = 0;
         while( i < args.length ) {
@@ -87,22 +88,33 @@ abstract public class AbstractMain {
                 throw new BadArgumentsException("Bad argument: "+args[i]);
         }
 
-        // if the optional arg "noNewLogStream" isn't present => add a new LogStream
+        if (argProps.containsKey(MAIN_ARG_LOGFILE))
+            try {
+                logStream = new PrintStream(new FileOutputStream(argProps.getProperty(MAIN_ARG_LOGFILE)), true);
+                System.setErr(logStream);
+            }
+        catch (FileNotFoundException e) {
+            e.printStackTrace();
+            throw new BadArgumentsException("Logfile "+argProps.getProperty(MAIN_ARG_LOGFILE)+" cannot be created");
+        }
+
+        // if the optional arg "noNewLogStream" isn't present => add a
+        // new LogStream
         boolean wMustAddNewLogStream = !argProps.contains(MAIN_ARG_NONEWLOGSTREAM);
         if (wMustAddNewLogStream) {
             // Set up log stream
             if (argProps.containsKey(MAIN_ARG_LOGLEVEL)) logLevel = Integer.parseInt(argProps.getProperty(MAIN_ARG_LOGLEVEL));
 
-            //This is required until the Logger class is fully phased out
-            Logger.addLogStream(null, logLevel);
+            Logger.addLogStream(logStream, logLevel);
         }
 
+        if (wMustAddNewLogStream) Logger.msg("New logStream added at logLevel %d: %s", logLevel, logStream.getClass().getName());
+
         // Dump params if log high enough
-        if (log.isInfoEnabled()) {
-            for (Enumeration<?> e = argProps.propertyNames(); e.hasMoreElements();) {
-                String next = (String)e.nextElement();
-                log.info("args param {}:{}", next, argProps.getProperty(next));
-            }
+
+        if (Logger.doLog(3)) for (Enumeration<?> e = argProps.propertyNames(); e.hasMoreElements();) {
+            String next = (String)e.nextElement();
+            System.out.println("AbstractMain: Param "+next+": "+argProps.getProperty(next));
         }
 
         String configPath = argProps.getProperty(MAIN_ARG_CONFIG);
@@ -113,7 +125,7 @@ abstract public class AbstractMain {
 
         Properties c2kProps = readPropertyFiles(configPath, connectFile, argProps);
 
-        log.info("readC2KArgs() DONE.");
+        Logger.msg(7, "AbstractMain.standardSetUp() - readC2KArgs() DONE.");
 
         return c2kProps;
     }
@@ -146,7 +158,7 @@ abstract public class AbstractMain {
             return c2kProps;
         }
         catch (IOException e) {
-            log.error("", e);
+            Logger.error(e);
             throw new BadArgumentsException(e.getMessage());
         }
     }
@@ -174,7 +186,7 @@ abstract public class AbstractMain {
             Gateway.close();
         }
         catch (Exception ex) {
-            log.error("", ex);
+            Logger.error(ex);
         }
         throw new ThreadDeath(); // if we get here, we get out
     }

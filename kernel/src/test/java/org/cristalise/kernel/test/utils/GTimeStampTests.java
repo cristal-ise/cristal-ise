@@ -26,6 +26,7 @@ import java.sql.Timestamp;
 
 import org.cristalise.kernel.common.GTimeStamp;
 import org.cristalise.kernel.utils.DateUtility;
+import org.cristalise.kernel.utils.Logger;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
@@ -37,6 +38,7 @@ public class GTimeStampTests {
 
     @BeforeClass
     public static void setup() throws Exception {
+        Logger.addLogStream(System.out, 8);
     }
     
     @SuppressWarnings("deprecation")

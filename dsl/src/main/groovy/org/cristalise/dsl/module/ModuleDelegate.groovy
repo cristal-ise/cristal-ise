@@ -47,15 +47,15 @@ import org.cristalise.kernel.scripting.Script
 import org.cristalise.kernel.test.utils.KernelXMLUtility
 import org.cristalise.kernel.utils.FileStringUtility
 import org.cristalise.kernel.utils.LocalObjectLoader
+import org.cristalise.kernel.utils.Logger
 
 import groovy.transform.CompileStatic
-import groovy.util.logging.Slf4j
 import groovy.xml.XmlUtil
 
 /**
  *
  */
-@CompileStatic @Slf4j
+@CompileStatic
 class ModuleDelegate {
 
     Module module = null
@@ -441,7 +441,7 @@ class ModuleDelegate {
             def msg = "Cannot update existing import:$mImport.name, class:${mImport.getClass().getSimpleName()}"
 
             if (Gateway.properties.getBoolean('DSL.ModuleImport.strictUpdate', true)) throw new InvalidDataException(msg)
-            else                                                                      log.warn(msg)
+            else                                                                      Logger.warning(msg)
         }
 
         if (index > -1) newModule.imports.list.set(index, mImport)

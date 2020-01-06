@@ -22,20 +22,19 @@ package org.cristalise.trigger;
 
 import org.cristalise.kernel.entity.agent.Job;
 import org.cristalise.kernel.entity.proxy.AgentProxy;
+import org.cristalise.kernel.utils.Logger;
 import org.quartz.DisallowConcurrentExecution;
 import org.quartz.JobExecutionContext;
 import org.quartz.JobExecutionException;
 import org.quartz.JobKey;
 
 import lombok.Setter;
-import lombok.extern.slf4j.Slf4j;
 
 /**
  * Default implementation of Job handling
  */
 @Setter
 @DisallowConcurrentExecution
-@Slf4j
 public class QuartzJob implements org.quartz.Job {
 
     private Job cristalJob;
@@ -48,7 +47,8 @@ public class QuartzJob implements org.quartz.Job {
     public void execute(JobExecutionContext context) throws JobExecutionException {
         JobKey key = context.getJobDetail().getKey();
 
-        log.debug("execute() - JobKey:{}", key);
+        Logger.msg(5, "==================================================================");
+        Logger.msg(5, "QuartzJob.execute() - JobKey:"+key);
 
         context.getMergedJobDataMap();
 
@@ -56,7 +56,7 @@ public class QuartzJob implements org.quartz.Job {
             cristalAgent.execute(cristalJob);
         }
         catch (Exception ex) {
-            log.error("", ex);
+            Logger.error(ex);
             //TODO: Execute activity in the Workflow of the Agent to store this error and probably remove Job from list
             throw new JobExecutionException(ex);
         }

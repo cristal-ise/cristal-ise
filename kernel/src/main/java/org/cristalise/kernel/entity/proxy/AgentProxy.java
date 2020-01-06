@@ -21,6 +21,7 @@
 package org.cristalise.kernel.entity.proxy;
 
 import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.SIMPLE_ELECTRONIC_SIGNATURE;
+
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -28,6 +29,7 @@ import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+
 import org.cristalise.kernel.common.AccessRightsException;
 import org.cristalise.kernel.common.InvalidCollectionModification;
 import org.cristalise.kernel.common.InvalidDataException;
@@ -62,16 +64,15 @@ import org.cristalise.kernel.scripting.ScriptErrorException;
 import org.cristalise.kernel.scripting.ScriptingEngineException;
 import org.cristalise.kernel.utils.CastorHashMap;
 import org.cristalise.kernel.utils.CorbaExceptionUtility;
+import org.cristalise.kernel.utils.Logger;
 import org.exolab.castor.mapping.MappingException;
 import org.exolab.castor.xml.MarshalException;
 import org.exolab.castor.xml.ValidationException;
-import lombok.extern.slf4j.Slf4j;
 
 /**
  * It is a wrapper for the connection and communication with Agent It caches
  * data loaded from the Agent to reduce communication
  */
-@Slf4j
 public class AgentProxy extends ItemProxy {
 
     AgentPath     mAgentPath;
@@ -128,7 +129,7 @@ public class AgentProxy extends ItemProxy {
             return execute(job);
         }
         catch (Exception ex) {
-            log.error("", ex);
+            Logger.error(ex);
 
             try {
                 errorJob.setAgentPath(mAgentPath);
@@ -137,7 +138,7 @@ public class AgentProxy extends ItemProxy {
                 return execute(errorJob);
             }
             catch (MarshalException | ValidationException | IOException | MappingException e) {
-                log.error("", e);
+                Logger.error(e);
                 throw new InvalidDataException(e.getMessage());
             }
         }
@@ -166,33 +167,33 @@ public class AgentProxy extends ItemProxy {
         ItemProxy item = Gateway.getProxyManager().getProxy(job.getItemPath());
         Date startTime = new Date();
 
-        log.info("execute(job) - act:" + job.getStepPath() + " agent:" + mAgentPath.getAgentName());
+        Logger.msg(3, "AgentProxy.execute(job) - act:" + job.getStepPath() + " agent:" + mAgentPath.getAgentName());
 
         if (job.hasScript()) {
-            log.info("execute(job) - executing script");
+            Logger.msg(3, "AgentProxy.execute(job) - executing script");
             try {
                 // load script
                 ErrorInfo scriptErrors = callScript(item, job);
                 String errorString = scriptErrors.toString();
                 if (scriptErrors.getFatal()) {
-                    log.error("execute(job) - fatal script errors:{}", scriptErrors);
+                    Logger.error("AgentProxy.execute(job) - fatal script errors:"+scriptErrors);
                     throw new ScriptErrorException(scriptErrors);
                 }
 
-                if (errorString.length() > 0) log.warn("Script errors: {}", errorString);
+                if (errorString.length() > 0) Logger.warning("Script errors: " + errorString);
             }
             catch (ScriptingEngineException ex) {
                 Throwable cause = ex.getCause();
 
                 if (cause == null) cause = ex;
+                else               Logger.error(ex.getMessage());
 
-                log.error("", ex);
-
+                Logger.error(cause);
                 throw new InvalidDataException(CorbaExceptionUtility.unpackMessage(cause));
             }
         }
         else if (job.hasQuery() &&  !"Query".equals(job.getActProp(BuiltInVertexProperties.OUTCOME_INIT))) {
-            log.info("execute(job) - executing query (OutcomeInit != Query)");
+            Logger.msg(3, "AgentProxy.execute(job) - executing query (OutcomeInit != Query)");
 
             job.setOutcome(item.executeQuery(job.getQuery()));
         }
@@ -207,13 +208,13 @@ public class AgentProxy extends ItemProxy {
             executeSimpleElectonicSignature(job);
         }
 
-        log.info("execute(job) - submitting job to item proxy");
+        Logger.msg(3, "AgentProxy.execute(job) - submitting job to item proxy");
         String result = item.requestAction(job);
 
-        if (log.isDebugEnabled()) {
+        if (Logger.doLog(3)) {
             Date timeNow = new Date();
             long secsNow = (timeNow.getTime() - startTime.getTime()) / 1000;
-            log.debug("execute(job) - execution DONE in " + secsNow + " seconds");
+            Logger.msg(3, "AgentProxy.execute(job) - execution DONE in " + secsNow + " seconds");
         }
 
         return result;
@@ -321,7 +322,7 @@ public class AgentProxy extends ItemProxy {
             param = marshall(obj);
         }
         catch (Exception ex) {
-            log.error("", ex);
+            Logger.error(ex);
             throw new InvalidDataException("Error on marshall");
         }
         return execute(item, predefStep, param);
@@ -488,7 +489,7 @@ public class AgentProxy extends ItemProxy {
                     if (isItemPathAndNotNull(nextMatch)) {
                         returnPath = nextMatch;
                         // found one but continue search
-                        log.debug("searchItem() - found for " + name + " UUID = " + returnPath.getItemPath().getUUID());
+                        Logger.msg(5, "AgentProxy.searchItem() - found for " + name + " UUID = " + returnPath.getItemPath().getUUID());
                     }
                 }
             }
@@ -523,14 +524,13 @@ public class AgentProxy extends ItemProxy {
 
     private List<ItemProxy> createItemProxyList(Iterator<Path> results) {
         ArrayList<ItemProxy> returnList = new ArrayList<ItemProxy>();
-
         while (results.hasNext()) {
             Path nextMatch = results.next();
             try {
                 returnList.add(Gateway.getProxyManager().getProxy(nextMatch));
             }
             catch (ObjectNotFoundException e) {
-                log.error("Path '" + nextMatch + "' did not resolve to an Item");
+                Logger.error("Path '" + nextMatch + "' did not resolve to an Item");
             }
         }
         return returnList;

@@ -43,12 +43,9 @@ import org.exolab.castor.xml.Marshaller;
 import org.exolab.castor.xml.ValidationException;
 import org.exolab.castor.xml.XMLContext;
 
-import lombok.extern.slf4j.Slf4j;
-
 /**
  * Loads all castor mapfiles, and wraps marshalling/unmarshalling
  */
-@Slf4j
 public class CastorXMLUtility {
 
     public static final String CASTOR_XML_SERIALIZER_FACTORY = "org.exolab.castor.xml.serializer.factory";
@@ -69,19 +66,19 @@ public class CastorXMLUtility {
             throws InvalidDataException
     {
         // load index
-        log.info("<init> Loading maps from [{}]", mapURL);
+        Logger.msg(3, "CastorXMLUtility.<init> Loading maps from [%s]", mapURL);
         String index;
         try {
             index = FileStringUtility.url2String(new URL(mapURL, "index"));
         }
         catch (Exception e) {
-            throw new InvalidDataException(String.format("Could not load map index from [{}]", mapURL));
+            throw new InvalidDataException(String.format("Could not load map index from [%s]", mapURL));
         }
 
         // retrieve the class loader of the class "CastorXMLUtility"
         ClassLoader defaultClassLoader = aResourceLoader.getClassLoader(CastorXMLUtility.class.getName());
 
-        log.info("<init>: defaultClassLoader=[{}]", defaultClassLoader);
+        Logger.msg(3, "CastorXMLUtility.<init>: defaultClassLoader=[%s]", defaultClassLoader);
 
         StringTokenizer sTokenizer = new StringTokenizer(index);
         int wNbMap = sTokenizer.countTokens();
@@ -96,12 +93,12 @@ public class CastorXMLUtility {
                 String thisMapURL = new URL(mapURL, thisMap).toString();
                 wMapIdx++;
                 if (!loadedMapURLs.contains(thisMapURL)) {
-                    log.info("<init>: Adding mapping file ({}/{}):[{}]", wMapIdx, wNbMap, thisMapURL);
+                    Logger.msg(3, "CastorXMLUtility.<init>: Adding mapping file (%d/%d):[%s]", wMapIdx, wNbMap, thisMapURL);
                     thisMapping.loadMapping(new URL(thisMapURL));
                     loadedMapURLs.add(thisMapURL);
                 }
                 else {
-                    log.info("Map file already loaded:" + thisMapURL);
+                    Logger.msg(3, "Map file already loaded:" + thisMapURL);
                 }
             }
 
@@ -113,26 +110,26 @@ public class CastorXMLUtility {
 
                 mappingContext.setProperty(CASTOR_XML_SERIALIZER_FACTORY, aAppProperties.getProperty(CASTOR_XML_SERIALIZER_FACTORY));
 
-                log.info("<init>: castor prop: {}=[{}]", CASTOR_XML_SERIALIZER_FACTORY,
+                Logger.msg(3, "CastorXMLUtility.<init>: castor prop: %s=[%s]", CASTOR_XML_SERIALIZER_FACTORY,
                         mappingContext.getProperty(CASTOR_XML_SERIALIZER_FACTORY));
             }
 
             mappingContext.addMapping(thisMapping);
         }
         catch (MappingException ex) {
-            log.error("XML Mapping files are not valid", ex);
+            Logger.error(ex);
             throw new InvalidDataException("XML Mapping files are not valid: " + ex.getMessage());
         }
         catch (MalformedURLException ex) {
-            log.error("Mapping file location invalid", ex);
+            Logger.error(ex);
             throw new InvalidDataException("Mapping file location invalid: " + ex.getMessage());
         }
         catch (IOException ex) {
-            log.error("Could not read XML mapping files", ex);
+            Logger.error(ex);
             throw new InvalidDataException("Could not read XML mapping files: " + ex.getMessage());
         }
 
-        log.info("Loaded [{}] maps from [{}]", loadedMapURLs.size(), mapURL);
+        Logger.msg(1, "Loaded [%d] maps from [%s]", loadedMapURLs.size(), mapURL);
     }
 
     /**

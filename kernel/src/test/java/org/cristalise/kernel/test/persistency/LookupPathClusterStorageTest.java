@@ -20,7 +20,6 @@
  */
 package org.cristalise.kernel.test.persistency;
 
-import static org.cristalise.kernel.persistency.ClusterType.PATH;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
@@ -31,9 +30,12 @@ import org.cristalise.kernel.lookup.AgentPath;
 import org.cristalise.kernel.lookup.DomainPath;
 import org.cristalise.kernel.lookup.ItemPath;
 import org.cristalise.kernel.lookup.RolePath;
+import org.cristalise.kernel.utils.Logger;
 import org.cristalise.storage.MemoryOnlyClusterStorage;
 import org.junit.Before;
 import org.junit.Test;
+
+import static org.cristalise.kernel.persistency.ClusterType.PATH;
 
 public class LookupPathClusterStorageTest {
 
@@ -46,6 +48,7 @@ public class LookupPathClusterStorageTest {
 
     @Before
     public void setup() throws Exception {
+        Logger.addLogStream(System.out, 9);
         inMemoryCluster.open(null);
     }
 

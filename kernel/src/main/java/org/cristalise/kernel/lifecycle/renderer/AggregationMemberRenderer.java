@@ -23,17 +23,17 @@ package org.cristalise.kernel.lifecycle.renderer;
 import java.awt.FontMetrics;
 import java.awt.Graphics2D;
 import java.awt.Image;
+
 import org.cristalise.kernel.collection.Aggregation;
 import org.cristalise.kernel.collection.AggregationMember;
 import org.cristalise.kernel.graph.model.GraphPoint;
 import org.cristalise.kernel.graph.model.Vertex;
 import org.cristalise.kernel.graph.renderer.DefaultVertexRenderer;
-import lombok.extern.slf4j.Slf4j;
+import org.cristalise.kernel.utils.Logger;
 
 /**
  *
  */
-@Slf4j
 public class AggregationMemberRenderer extends DefaultVertexRenderer {
 
     private Aggregation mAggregation = null;
@@ -84,7 +84,7 @@ public class AggregationMemberRenderer extends DefaultVertexRenderer {
 
         }
         catch (Exception ex) {
-            log.error("draw()", ex);
+            Logger.error("AggregationMemberRenderer::draw() " + ex);
         }
     }
 

@@ -35,9 +35,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.Vector;
-
 import javax.xml.xpath.XPathExpressionException;
-
 import org.apache.commons.lang3.StringUtils;
 import org.cristalise.kernel.common.AccessRightsException;
 import org.cristalise.kernel.common.CannotManageException;
@@ -72,10 +70,8 @@ import org.cristalise.kernel.property.Property;
 import org.cristalise.kernel.property.PropertyUtility;
 import org.cristalise.kernel.utils.DateUtility;
 import org.cristalise.kernel.utils.LocalObjectLoader;
+import org.cristalise.kernel.utils.Logger;
 
-import lombok.extern.slf4j.Slf4j;
-
-@Slf4j
 public class Activity extends WfVertex {
     protected static final String XPATH_TOKEN = "xpath:";
 
@@ -252,7 +248,7 @@ public class Activity extends WfVertex {
             }
         }
         catch (PersistencyException ex) {
-            log.error("", ex);
+            Logger.error(ex);
             throw ex;
         }
 
@@ -269,7 +265,7 @@ public class Activity extends WfVertex {
     private String resolveViewpointName(Outcome outcome) throws InvalidDataException {
         String viewpointString = (String)getBuiltInProperty(VIEW_POINT);
 
-        log.debug("resolveViewpointName() - act:{} viewpointString:{}", getName(), viewpointString);
+        Logger.msg(5, "Activity.resolveViewpointName() - act:%s viewpointString:%s", getName(), viewpointString);
 
         if (StringUtils.isBlank(viewpointString)) {
             viewpointString = "last";
@@ -311,6 +307,7 @@ public class Activity extends WfVertex {
                     }
 
                     if(StringUtils.isNotBlank(propValue)) {
+                        Logger.msg(5, "Activity.updateItemProperties() - propName:"+propName+" propValue:"+propValue);
                         PropertyUtility.writeProperty(itemPath, propName, propValue, locker);
                     }
                 }
@@ -476,7 +473,7 @@ public class Activity extends WfVertex {
      */
     @Override
     public void reinit(int idLoop) throws InvalidDataException {
-        log.trace("reinit(id:{}, idLoop:{}) - parent:{} act:{}", getID(), idLoop, getParent().getName(), getPath());
+        Logger.msg(8, "Activity.reinit(id:%s, idLoop:%d) - parent:%s act:%s", getID(), idLoop, getParent().getName(), getPath());
 
         setState(getStateMachine().getInitialState().getId());
 
@@ -502,7 +499,7 @@ public class Activity extends WfVertex {
      */
     @Override
     public void run(AgentPath agent, ItemPath itemPath, Object locker) throws InvalidDataException {
-        log.trace("run() path:" + getPath() + " state:" + getStateName());
+        Logger.msg(8, "Activity.run() path:" + getPath() + " state:" + getStateName());
 
         if (isFinished()) {
             runNext(agent, itemPath, locker);
@@ -521,7 +518,7 @@ public class Activity extends WfVertex {
      */
     @Override
     public void runFirst(AgentPath agent, ItemPath itemPath, Object locker) throws InvalidDataException {
-        log.trace("runFirst() - path:" + getPath());
+        Logger.msg(8, "Activity.runFirst() - path:" + getPath());
         run(agent, itemPath, locker);
     }
 
@@ -572,14 +569,14 @@ public class Activity extends WfVertex {
     private ArrayList<Job> calculateJobsBase(AgentPath agent, ItemPath itemPath, boolean includeInactive)
             throws ObjectNotFoundException, InvalidDataException, InvalidAgentPathException
     {
-        log.trace("calculateJobsBase() - act:" + getPath());
+        Logger.msg(7, "Activity.calculateJobsBase() - act:" + getPath());
         ArrayList<Job> jobs = new ArrayList<Job>();
         Map<Transition, String> transitions;
         if ((includeInactive || getActive()) && !getName().equals("domain")) {
             transitions = getStateMachine().getPossibleTransitions(this, agent);
-            log.trace("calculateJobsBase() - Got " + transitions.size() + " transitions.");
+            Logger.msg(7, "Activity.calculateJobsBase() - Got " + transitions.size() + " transitions.");
             for (Transition transition : transitions.keySet()) {
-                log.trace("calculateJobsBase() - Creating Job object for transition " + transition.getName());
+                Logger.msg(7, "Activity.calculateJobsBase() - Creating Job object for transition " + transition.getName());
                 jobs.add(new Job(this, itemPath, transition, agent, null, transitions.get(transition)));
             }
         }
@@ -607,17 +604,17 @@ public class Activity extends WfVertex {
                 if (StringUtils.isNotBlank(role)) roleNames.add(role);
             }
 
-            log.trace("pushJobsToAgents() - Pushing jobs to "+roleNames.size()+" roles");
+            Logger.msg(7,"Activity.pushJobsToAgents() - Pushing jobs to "+roleNames.size()+" roles");
 
             for (String roleName: roleNames) {
                 pushJobsToAgents(itemPath, Gateway.getLookup().getRolePath(roleName));
             }
         }
         catch (InvalidDataException ex) {
-            log.warn("pushJobsToAgents() - "+ex.getMessage());
+            Logger.warning("Activity.pushJobsToAgents() - "+ex.getMessage());
         }
         catch (ObjectNotFoundException e) {
-            log.warn("pushJobsToAgents() - Activity role '" + role + "' not found.");
+            Logger.warning("Activity.pushJobsToAgents() - Activity role '" + role + "' not found.");
         }
     }
 

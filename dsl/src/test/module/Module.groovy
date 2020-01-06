@@ -34,21 +34,6 @@ Module(ns: 'testns', name: 'DSL Test', version: 0) {
         }
     }
 
- 
-    include(moduleDir+'/Factory.groovy')
- 
     include(moduleDir+'/State.groovy')
- 
     include(moduleDir+'/TestItem.groovy')
- 
-    include(moduleDir+'/TestItemUseConstructor.groovy')
- 
-    include(moduleDir+'/TestAgentUseConstructor.groovy')
- 
-    include(moduleDir+'/TestAgent.groovy')
- 
-    include(moduleDir+'/TestItemGeneratedName.groovy')
- 
-    include(moduleDir+'/TestItemUseConstructorGeneratedName.groovy')
-
 }

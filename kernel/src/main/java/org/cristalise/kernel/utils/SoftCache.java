@@ -28,13 +28,12 @@ import java.util.LinkedList;
 import java.util.Map;
 import java.util.Set;
 
-/**
+/*******************************************************************************
  * SoftReferences are reaped if no strong references are left and the vm is
  * running out of memory. Most caches in the kernel use this.
  *
- * @param <K> key
- * @param <V> value
- */
+ * $Revision: 1.5 $ $Date: 2004/10/29 13:29:09 $
+ ******************************************************************************/
 public class SoftCache<K, V> extends AbstractMap<K, V> {
 
     private final Map<K, SoftValue<V>> hash = new HashMap<K, SoftValue<V>>();

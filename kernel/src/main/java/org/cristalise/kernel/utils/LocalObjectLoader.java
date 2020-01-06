@@ -30,6 +30,7 @@ import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.SCRIPT_N
 import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.SCRIPT_VERSION;
 import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.STATE_MACHINE_NAME;
 import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.STATE_MACHINE_VERSION;
+
 import org.apache.commons.lang3.StringUtils;
 import org.cristalise.kernel.common.InvalidDataException;
 import org.cristalise.kernel.common.ObjectNotFoundException;
@@ -43,9 +44,8 @@ import org.cristalise.kernel.persistency.outcome.Schema;
 import org.cristalise.kernel.property.PropertyDescriptionList;
 import org.cristalise.kernel.querying.Query;
 import org.cristalise.kernel.scripting.Script;
-import lombok.extern.slf4j.Slf4j;
 
-@Slf4j
+
 public class LocalObjectLoader {
     private static ActDefCache              actCache      = new ActDefCache(null);
     private static ActDefCache              compActCache  = new ActDefCache(true);
@@ -67,7 +67,7 @@ public class LocalObjectLoader {
      * 
      */	
     static public Script getScript(String scriptName, int scriptVersion) throws ObjectNotFoundException, InvalidDataException {
-        log.trace("getScript("+scriptName+" v"+scriptVersion+")");
+        Logger.msg(5, "LocalObjectLoader.getScript("+scriptName+" v"+scriptVersion+")");
         return scrCache.get(scriptName, scriptVersion);
     }
 
@@ -92,7 +92,7 @@ public class LocalObjectLoader {
      * 
      */ 
     static public Query getQuery(String queryName, int queryVersion) throws ObjectNotFoundException, InvalidDataException {
-        log.trace("getQuery("+queryName+" v"+queryVersion+")");
+        Logger.msg(5, "LocalObjectLoader.getQuery("+queryName+" v"+queryVersion+")");
         return queryCache.get(queryName, queryVersion);
     }
 
@@ -116,7 +116,7 @@ public class LocalObjectLoader {
      * @throws InvalidDataException - When the stored schema data was invalid
      */
     static public Schema getSchema(String schemaName, int schemaVersion) throws ObjectNotFoundException, InvalidDataException {
-        log.trace("getSchema("+schemaName+" v"+schemaVersion+")");
+        Logger.msg(5, "LocalObjectLoader.getSchema("+schemaName+" v"+schemaVersion+")");
 
         // don't bother if this is the Schema schema - for bootstrap especially
         if (schemaName.equals("Schema") && schemaVersion == 0)
@@ -145,7 +145,7 @@ public class LocalObjectLoader {
      * @throws InvalidDataException - When the stored script data was invalid
      */
     static public ActivityDef getActDef(String actName, int actVersion) throws ObjectNotFoundException, InvalidDataException {
-        log.trace("getActDef("+actName+" v"+actVersion+")");
+        Logger.msg(5, "LocalObjectLoader.getActDef("+actName+" v"+actVersion+")");
         return actCache.get(actName, actVersion);
     }
 
@@ -159,7 +159,7 @@ public class LocalObjectLoader {
      * @throws InvalidDataException - When the stored script data was invalid
      */
     static public CompositeActivityDef getCompActDef(String actName, int actVersion) throws ObjectNotFoundException, InvalidDataException {
-        log.trace("getCompActDef("+actName+" v"+actVersion+")");
+        Logger.msg(5, "LocalObjectLoader.getCompActDef("+actName+" v"+actVersion+")");
         return (CompositeActivityDef)compActCache.get(actName, actVersion);
     }
 
@@ -173,7 +173,7 @@ public class LocalObjectLoader {
      * @throws InvalidDataException - When the stored script data was invalid
      */
     static public ActivityDef getElemActDef(String actName, int actVersion) throws ObjectNotFoundException, InvalidDataException {
-        log.trace("getElemActDef("+actName+" v"+actVersion+")");
+        Logger.msg(5, "LocalObjectLoader.getElemActDef("+actName+" v"+actVersion+")");
         return elemActCache.get(actName, actVersion);
     }
 
@@ -187,7 +187,7 @@ public class LocalObjectLoader {
      * @throws InvalidDataException - When the stored state machine data was invalid
      */	
     static public StateMachine getStateMachine(String smName, int smVersion) throws ObjectNotFoundException, InvalidDataException {
-        log.trace("getStateMachine("+smName+" v"+smVersion+")");
+        Logger.msg(5, "LocalObjectLoader.getStateMachine("+smName+" v"+smVersion+")");
         return smCache.get(smName, smVersion);
     }
 
@@ -211,7 +211,7 @@ public class LocalObjectLoader {
      * @throws InvalidDataException
      */
     static public PropertyDescriptionList getPropertyDescriptionList(String name, int version) throws ObjectNotFoundException, InvalidDataException {
-        log.trace("PropertyDescriptionList("+name+" v"+version+")");
+        Logger.msg(5, "LocalObjectLoader.PropertyDescriptionList("+name+" v"+version+")");
         return propDescCache.get(name, version);
     }
 
@@ -243,7 +243,7 @@ public class LocalObjectLoader {
         if (!(properties.isAbstract(nameProp)) && StringUtils.isNotBlank(resName)) {
             Integer resVer = deriveVersionNumber(properties.getBuiltInProperty(verProp));
 
-            log.trace("getDescObjectByProperty() - "+nameProp+":"+resName+" v"+resVer+")");
+            Logger.msg(5, "LocalObjectLoader.getDescObjectByProperty() - "+nameProp+":"+resName+" v"+resVer+")");
 
             if (resVer == null && !(properties.isAbstract(verProp))) {
                 throw new InvalidDataException("Invalid version property '" + resVer + "' in " + verProp);

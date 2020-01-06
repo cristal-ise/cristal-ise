@@ -30,15 +30,15 @@ import org.cristalise.kernel.lookup.Path
 import org.cristalise.kernel.process.Gateway
 import org.cristalise.kernel.process.resource.BuiltInResources
 import org.cristalise.kernel.property.PropertyDescriptionList
+import org.cristalise.kernel.utils.Logger
 
 import groovy.transform.CompileStatic
-import groovy.util.logging.Slf4j
 
 /**
  * 
  *
  */
-@CompileStatic @Slf4j
+@CompileStatic
 class DependencyDelegate {
     Dependency dependency
     String moduleNs
@@ -87,7 +87,7 @@ class DependencyDelegate {
         assert iPathStr, "'itemPath' variable shall not be blank"
 
         if (checkItemExists(iPathStr))
-            log.debug "Unable to resolve the Item for '$iPathStr' - perhaps Item was not created yet"
+            Logger.msg 5, "Unable to resolve the Item for '$iPathStr' - perhaps Item was not created yet"
 
         //HACK: iPathStr is very likely contains a domainPath. itemPath is created 'manually' because of addMember()
         ItemPath itemPath = new ItemPath()

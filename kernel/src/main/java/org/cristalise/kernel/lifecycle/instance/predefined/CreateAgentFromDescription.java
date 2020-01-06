@@ -20,6 +20,8 @@
  */
 package org.cristalise.kernel.lifecycle.instance.predefined;
 
+import java.util.Arrays;
+
 import org.apache.commons.lang3.StringUtils;
 import org.cristalise.kernel.common.CannotManageException;
 import org.cristalise.kernel.common.InvalidDataException;
@@ -36,10 +38,8 @@ import org.cristalise.kernel.lookup.ItemPath;
 import org.cristalise.kernel.lookup.RolePath;
 import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.property.PropertyArrayList;
+import org.cristalise.kernel.utils.Logger;
 
-import lombok.extern.slf4j.Slf4j;
-
- @Slf4j
 public class CreateAgentFromDescription extends CreateItemFromDescription {
 
     public CreateAgentFromDescription() {
@@ -84,8 +84,7 @@ public class CreateAgentFromDescription extends CreateItemFromDescription {
         String            outcome   = input.length > 6 && StringUtils.isNotBlank(input[6]) ? input[6] : "";
 
         // generate new agent path with new UUID
-        log.debug("Called by {} on {} with parameters {}", agentPath.getAgentName(), descItemPath, (Object)input);
-
+        Logger.msg(1, "CreateAgentFromDescription - Requesting new agent path name:%s, input:%s", newName, Arrays.toString(input));
         AgentPath newAgentPath = new AgentPath(new ItemPath(), newName);
 
         // check if the agent's name is already taken
@@ -118,7 +117,7 @@ public class CreateAgentFromDescription extends CreateItemFromDescription {
     protected ActiveEntity createAgentAddRoles(AgentPath newAgentPath, String[] roles, String pwd) 
             throws CannotManageException, ObjectCannotBeUpdated, ObjectAlreadyExistsException
     {
-        log.info("createAgentAddRoles() - Creating Agent {}", newAgentPath.getAgentName());
+        Logger.msg(3, "CreateAgentFromDescription.createAgentAddRoles() - Creating Agent");
         
         CorbaServer factory = Gateway.getCorbaServer();
 
@@ -138,7 +137,7 @@ public class CreateAgentFromDescription extends CreateItemFromDescription {
             }
         }
         catch (Exception e) {
-            log.error("", e);
+            Logger.error(e);
             Gateway.getLookupManager().delete(newAgentPath);
 
             throw new CannotManageException(e.getMessage());

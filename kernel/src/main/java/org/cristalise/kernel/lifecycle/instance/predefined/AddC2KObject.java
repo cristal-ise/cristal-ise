@@ -28,10 +28,8 @@ import org.cristalise.kernel.entity.C2KLocalObject;
 import org.cristalise.kernel.lookup.AgentPath;
 import org.cristalise.kernel.lookup.ItemPath;
 import org.cristalise.kernel.process.Gateway;
+import org.cristalise.kernel.utils.Logger;
 
-import lombok.extern.slf4j.Slf4j;
-
-@Slf4j
 public class AddC2KObject extends PredefinedStep {
 
     public AddC2KObject() {
@@ -44,8 +42,7 @@ public class AddC2KObject extends PredefinedStep {
             throws InvalidDataException, PersistencyException 
     {
         String[] params = getDataList(requestData);
-
-        log.debug("Called by {} on {} with parameters {}", agent.getAgentName(), item, (Object)params);
+        if (Logger.doLog(3)) Logger.msg(3, "AddC2KObject: agent:" + " item:" + item + " params:" + Arrays.toString(params));
 
         if (params.length != 1) throw new InvalidDataException("AddC2KObject: Invalid parameters " + Arrays.toString(params));
 

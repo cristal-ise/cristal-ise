@@ -38,6 +38,7 @@ import org.cristalise.kernel.lookup.ItemPath;
 import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.utils.DescriptionObject;
 import org.cristalise.kernel.utils.FileStringUtility;
+import org.cristalise.kernel.utils.Logger;
 import org.exolab.castor.xml.schema.reader.SchemaReader;
 import org.xml.sax.ErrorHandler;
 import org.xml.sax.InputSource;
@@ -47,9 +48,8 @@ import org.xml.sax.SAXParseException;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
-import lombok.extern.slf4j.Slf4j;
 
-@Getter @Setter @Slf4j
+@Getter @Setter
 public class Schema implements DescriptionObject, ErrorHandler {
     private String       name;
     private Integer      version;
@@ -115,14 +115,14 @@ public class Schema implements DescriptionObject, ErrorHandler {
             org.exolab.castor.xml.schema.Schema som = mySchemaReader.read();
 
             if (StringUtils.isNotBlank(errors)) {
-                log.error("Schema '" + getName() + "' was invalid:" + errors.toString());
+                Logger.error("Schema '" + getName() + "' was invalid:" + errors.toString());
                 return null;
             }
             else
                 return som;
         }
         catch (Exception e) {
-            log.error("", e);
+            Logger.error(e);
         }
         return null;
     }
@@ -136,7 +136,7 @@ public class Schema implements DescriptionObject, ErrorHandler {
                 javaxSchema = factory.newSchema(source);
             }
             catch (SAXException e) {
-                log.error("Invalid Schemae", e);
+                Logger.error(e);
             }
         }
         return javaxSchema;

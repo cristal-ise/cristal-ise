@@ -24,14 +24,13 @@ import org.cristalise.kernel.lifecycle.instance.stateMachine.Transition
 import org.cristalise.kernel.lifecycle.instance.stateMachine.TransitionOutcome
 import org.cristalise.kernel.lifecycle.instance.stateMachine.TransitionQuery
 import org.cristalise.kernel.lifecycle.instance.stateMachine.TransitionScript
-
-import groovy.util.logging.Slf4j
+import org.cristalise.kernel.utils.Logger
 
 
 /**
  *
  */
-@Slf4j
+//@CompileStatic
 class TransitionDelegate {
     Transition trans
 
@@ -48,7 +47,7 @@ class TransitionDelegate {
     }
 
     public void property(Map<String,Object> attrs) {
-        log.debug "property() - attrs: $attrs"
+        Logger.msg 5, "TransitionDelegate.property() - attrs: $attrs"
         assert attrs, ""
 
         //FIXME: dynamic groovy is needed for this line only
@@ -56,21 +55,21 @@ class TransitionDelegate {
     }
 
     public void outcome(Map attrs) {
-        log.debug "outcome() - attrs: $attrs"
+        Logger.msg 5, "TransitionDelegate.outcome() - attrs: $attrs"
         assert attrs && attrs.name && attrs.version, "Transition Property Name or Version is null"
 
         trans.outcome = new TransitionOutcome(attrs.name, attrs.version)
     }
 
     public void script(Map attrs) {
-        log.debug "script() - attrs: $attrs"
+        Logger.msg 5, "TransitionDelegate.script() - attrs: $attrs"
         assert attrs && attrs.name && attrs.version
 
         trans.script = new TransitionScript(attrs.name, attrs.version)
     }
 
     public void query(Map attrs) {
-        log.debug "query() - attrs: $attrs"
+        Logger.msg 5, "TransitionDelegate.query() - attrs: $attrs"
         assert attrs && attrs.name && attrs.version
 
         trans.query = new TransitionQuery(attrs.name, attrs.version)

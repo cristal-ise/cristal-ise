@@ -23,11 +23,9 @@ package org.cristalise.kernel.persistency.outcomebuilder.field;
 import java.util.Map;
 
 import org.cristalise.kernel.process.Gateway;
+import org.cristalise.kernel.utils.Logger;
 import org.json.JSONObject;
 
-import lombok.extern.slf4j.Slf4j;
-
-@Slf4j
 public class BooleanField extends StringField {
 
     Boolean checkbox;
@@ -62,7 +60,7 @@ public class BooleanField extends StringField {
         try {
             newState = Boolean.valueOf(text).booleanValue();
         } catch (Exception ex) {
-            log.error("Invalid value for checkbox: "+text);
+            Logger.error("Invalid value for checkbox: "+text);
         }
         checkbox = newState;
     }

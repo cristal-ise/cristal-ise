@@ -22,6 +22,7 @@ package org.cristalise.kernel.scripting;
 
 import static org.cristalise.kernel.collection.BuiltInCollections.INCLUDE;
 import static org.cristalise.kernel.process.resource.BuiltInResources.SCRIPT_RESOURCE;
+
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintStream;
@@ -31,6 +32,7 @@ import java.io.Writer;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
+
 import javax.script.Bindings;
 import javax.script.Compilable;
 import javax.script.CompiledScript;
@@ -42,6 +44,7 @@ import javax.script.ScriptException;
 import javax.script.SimpleScriptContext;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
+
 import org.apache.commons.lang3.StringUtils;
 import org.cristalise.kernel.collection.CollectionArrayList;
 import org.cristalise.kernel.collection.Dependency;
@@ -59,21 +62,22 @@ import org.cristalise.kernel.utils.CastorHashMap;
 import org.cristalise.kernel.utils.DescriptionObject;
 import org.cristalise.kernel.utils.FileStringUtility;
 import org.cristalise.kernel.utils.LocalObjectLoader;
+import org.cristalise.kernel.utils.Logger;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 import org.w3c.dom.Text;
 import org.xml.sax.InputSource;
+
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.Accessors;
-import lombok.extern.slf4j.Slf4j;
 
 /**
  * 
  */
-@Accessors(prefix = "m") @Getter @Setter @Slf4j
+@Accessors(prefix = "m") @Getter @Setter
 public class Script implements DescriptionObject {
 
     public static final String PARAMETER_AGENT   = "agent";
@@ -236,7 +240,8 @@ public class Script implements DescriptionObject {
         String scriptText = Gateway.getResource().getTextResource(null, "textFiles/consoleScript."+lang+".txt");
 
         try {
-            log.trace("Loaded consoleScript: {}", scriptText);
+            Logger.msg(8, "Script() - Loaded consoleScript");
+            Logger.msg(8, scriptText);
             engine.put(ScriptEngine.FILENAME, "consoleScript init script");
             engine.eval(scriptText);
         }
@@ -263,25 +268,25 @@ public class Script implements DescriptionObject {
 
         // set environment - this needs to be well documented for script developers
         if (!mInputParams.containsKey(PARAMETER_ITEM)) {
-            log.warn("Item param not declared in Script "+getName()+" v"+getVersion());
+            Logger.warning("Item param not declared in Script "+getName()+" v"+getVersion());
             addInputParam(PARAMETER_ITEM, ItemProxy.class);
         }
         setInputParamValue(PARAMETER_ITEM, object, true);
 
         if (!mInputParams.containsKey(PARAMETER_AGENT)) {
-            log.warn("Agent param not declared in Script "+getName()+" v"+getVersion());
+            Logger.warning("Agent param not declared in Script "+getName()+" v"+getVersion());
             addInputParam(PARAMETER_AGENT, AgentProxy.class);
         }
         setInputParamValue(PARAMETER_AGENT, subject, true);
 
         if (!mInputParams.containsKey(PARAMETER_JOB)) {
-            log.warn("Job param not declared in Script "+getName()+" v"+getVersion());
+            Logger.warning("Job param not declared in Script "+getName()+" v"+getVersion());
             addInputParam(PARAMETER_JOB, Job.class);
         }
         setInputParamValue(PARAMETER_JOB, job, true);
 
         if (!mOutputParams.containsKey("errors")) {
-            log.warn("Errors output not declared in Script "+getName()+" v"+getVersion());
+            Logger.warning("Errors output not declared in Script "+getName()+" v"+getVersion());
             addOutput("errors", ErrorInfo.class);
         }
     }
@@ -339,7 +344,7 @@ public class Script implements DescriptionObject {
      */
     private void parseScriptXML(String scriptXML) throws ScriptParsingException, ParameterException {
         if (StringUtils.isBlank(scriptXML)) {
-            log.warn("parseScriptXML - scriptXML was NULL!" );
+            Logger.warning("Script.parseScriptXML - scriptXML was NULL!" );
             return;
         }
         
@@ -410,7 +415,7 @@ public class Script implements DescriptionObject {
                 }
             }
             catch (NumberFormatException | ScriptingEngineException | ObjectNotFoundException | InvalidDataException e) {
-                log.error("Included script '"+includeName+" v"+includeVersion+"' parse error", e);
+                Logger.error(e);
                 throw new ScriptParsingException("Included script '"+includeName+" v"+includeVersion+"' parse error", e);
             }
         }
@@ -421,7 +426,7 @@ public class Script implements DescriptionObject {
 
         if (!scriptElem.hasAttribute("language")) throw new ScriptParsingException("Script data incomplete, must specify scripting language");
 
-        log.debug("parseScriptTag() - Script Language: " + scriptElem.getAttribute("language"));
+        Logger.msg(6, "Script.parseScriptTag() - Script Language: " + scriptElem.getAttribute("language"));
 
         try {
             setScriptEngine(scriptElem.getAttribute("language"));
@@ -441,7 +446,7 @@ public class Script implements DescriptionObject {
         else
             throw new ScriptParsingException("Child element of script tag was not text");
 
-        log.trace("parseScriptTag() - script:" + mScript);
+        Logger.msg(6, "Script.parseScriptTag() - script:" + mScript);
     }
 
     /**
@@ -462,7 +467,7 @@ public class Script implements DescriptionObject {
     protected void addInputParam(String name, Class<?> type) throws ParameterException {
         Parameter inputParam = new Parameter(name, type);
 
-        log.debug("ScriptExecutor.addInputParam() - declared parameter " + name + " (" + type + ")");
+        Logger.msg(6, "ScriptExecutor.addInputParam() - declared parameter " + name + " (" + type + ")");
         //add parameter to hashtable
         mInputParams.put(inputParam.getName(), inputParam);
         mAllInputParams.put(inputParam.getName(), inputParam);
@@ -563,7 +568,7 @@ public class Script implements DescriptionObject {
                     || ( overwrite && value != null ) ) {
                 bindings.put(name, value);
 
-                log.debug("setInputParamValue() - " + name + ": " + value);
+                Logger.msg(7, "Script.setInputParamValue() - " + name + ": " + value);
 
                 param.setInitialised(true);
                 wasUsed = true;
@@ -652,7 +657,8 @@ public class Script implements DescriptionObject {
             return retVal;
         }
         catch (Exception e) {
-            log.error("evaluate() - Script:" + getName(), e);
+            Logger.error("Script.evaluate() - Script:" + getName());
+            Logger.error(e);
             throw new ScriptingEngineException(e);
         }
     }
@@ -691,8 +697,8 @@ public class Script implements DescriptionObject {
         // run the script
         Object returnValue = null;
         try {
-            log.debug("execute() - Executing script:"+getName());
-            log.trace("Script:\n {}", mScript);
+            Logger.msg(7, "Script.execute() - Executing script:"+getName());
+            if (Logger.doLog(8)) Logger.msg("Script:\n"+mScript);
 
             if (engine == null) {
                 throw new ScriptingEngineException("Script engine not set. Cannot execute scripts.");
@@ -703,12 +709,12 @@ public class Script implements DescriptionObject {
             if (mCompScript != null) returnValue = mCompScript.eval(context);
             else                     returnValue = engine.eval(mScript);
 
-            //log.debug("execute("+getName()+") - script returned '" + returnValue + "'");
+            //Logger.msg(7, "Script.execute("+getName()+") - script returned '" + returnValue + "'");
         }
         catch (ScriptException ex) {
             final String msg = "Error executing script " + getName() + ": " + ex.getCause().getMessage();
-            log.error(msg, ex.getCause());
-
+            Logger.error(msg);
+            Logger.error(ex.getCause());
             throw new ScriptingEngineException(msg, ex.getCause());
         }
 
@@ -723,7 +729,7 @@ public class Script implements DescriptionObject {
     @SuppressWarnings("unchecked")
     private void executeIncludedScripts() throws ScriptingEngineException {
         for (Script importScript : mIncludes) {
-            log.debug("executeIncludedScripts() - name:"+importScript.getName()+" version:"+importScript.getVersion());
+            Logger.msg(5, "Script.executeIncludedScripts() - name:"+importScript.getName()+" version:"+importScript.getVersion());
 
             if (isActExecEnvironment) {
                 try {
@@ -733,7 +739,7 @@ public class Script implements DescriptionObject {
                                    (Job)context.getAttribute(PARAMETER_JOB));
                 }
                 catch (InvalidDataException e) {
-                    log.error("", e);
+                    Logger.error(e);
                     throw new ScriptingEngineException(e);
                 }
             }
@@ -746,11 +752,11 @@ public class Script implements DescriptionObject {
                 ((Map<String, Object>)output).forEach((outputKey, outputValue) -> {
                     if (mInputParams.containsKey(outputKey)) {
                         try {
-                            log.debug("executeIncludedScripts() - setting inputs for parameter:"+outputKey);
+                            Logger.msg(5, "Script.executeIncludedScripts() - setting inputs for parameter:"+outputKey);
                             setInputParamValue(outputKey, outputValue, true);
                         }
                         catch (ParameterException e) {
-                            log.error("", e);
+                            Logger.error(e);
                         }
                     }
                 });
@@ -766,7 +772,7 @@ public class Script implements DescriptionObject {
         for (Parameter outputParam : mOutputParams.values()) {
             if (StringUtils.isBlank(outputParam.getName())) continue; 
 
-            log.debug("initOutputParams() - Initialising output bean '" + outputParam.getName() + "'");
+            Logger.msg(8, "Script.initOutputParams() - Initialising output bean '" + outputParam.getName() + "'");
 
             Object emptyObject = null;
             try {
@@ -774,7 +780,7 @@ public class Script implements DescriptionObject {
             }
             catch (Exception e) {
                 //This case was originally not logged
-                log.warn("initOutputParams() - Failed to init output:{} error:{}", outputParam.getName(), e.getMessage());
+                Logger.warning("Script.initOutputParams() - Failed to init output:%s error:%s", outputParam.getName(), e.getMessage());
             }
 
             context.getBindings(ScriptContext.ENGINE_SCOPE).put(outputParam.getName(), emptyObject);
@@ -795,9 +801,9 @@ public class Script implements DescriptionObject {
         // if no outputs are defined, return null
         if (mOutputParams.size() == 0) {
             if (returnValue != null)
-                log.warn("packScriptReturnValue("+getName()+") - No output params defined, returnValue is NOT null but it is discarded");
+                Logger.warning("Script.packScriptReturnValue("+getName()+") - No output params defined, returnValue is NOT null but it is discarded");
             else
-                log.debug("packScriptReturnValue("+getName()+") - No output params defined. Returning null.");
+                Logger.msg(4, "Script.packScriptReturnValue("+getName()+") - No output params defined. Returning null.");
 
             return null;
         }
@@ -819,7 +825,7 @@ public class Script implements DescriptionObject {
 
                 if (output == null) {
                     if (! outputName.equals("errors")) {
-                        log.debug("packScriptReturnValue("+getName()+") - assigning script returnValue to named output '"+outputName+"'");
+                        Logger.msg(5, "Script.packScriptReturnValue("+getName()+") - assigning script returnValue to named output '"+outputName+"'");
 
                         if (returnValue != null && ! outputParam.getType().isInstance(returnValue))
                             throw new ScriptingEngineException("Script returnValue was not instance of " + outputParam.getType().getName());
@@ -827,7 +833,7 @@ public class Script implements DescriptionObject {
                         output = returnValue;
                     }
                     else
-                        log.debug("packScriptReturnValue("+getName()+") - return value for 'errors' is discarded");
+                        Logger.msg(5, "Script.packScriptReturnValue("+getName()+") - return value for 'errors' is discarded");
                 }
                 else if (! outputParam.getType().isInstance(output))
                     throw new ScriptingEngineException("Script '"+getName()+"' returnValue was not instance of " + outputParam.getType().getName());
@@ -837,7 +843,7 @@ public class Script implements DescriptionObject {
             }
         }
         else {
-            if (returnValue != null) log.debug("packScriptReturnValue() - returnValue is NOT null but it is discarded");
+            if (returnValue != null) Logger.msg(5, "Script.packScriptReturnValue() - returnValue is NOT null but it is discarded");
 
             //there are more then one declared outputs
             for (Parameter outputParam : mOutputParams.values()) {
@@ -848,7 +854,7 @@ public class Script implements DescriptionObject {
                 //otherwise take data from the bindings using the output name
                 Object outputValue = context.getBindings(ScriptContext.ENGINE_SCOPE).get(outputParam.getName());
 
-                log.debug("packScriptReturnValue("+getName()+") - Output "+ outputName+"="+(outputValue==null ? "null" : outputValue.toString()));
+                Logger.msg(4, "Script.packScriptReturnValue("+getName()+") - Output "+ outputName+"="+(outputValue==null ? "null" : outputValue.toString()));
 
                 // check the class
                 if (outputValue != null && !(outputParam.getType().isInstance(outputValue)))  {
@@ -865,12 +871,12 @@ public class Script implements DescriptionObject {
         mScript = script;
         if (engine instanceof Compilable) {
             try {
-                log.debug("setScriptData() - Compiling script "+mName);
+                Logger.msg(1, "Script.setScriptData() - Compiling script "+mName);
                 engine.put(ScriptEngine.FILENAME, mName);
                 mCompScript = ((Compilable)engine).compile(mScript);
             }
             catch (ScriptException e) {
-                log.error("", e);
+                Logger.error(e);
                 throw new ScriptParsingException(e);
             }
         }
@@ -958,11 +964,11 @@ public class Script implements DescriptionObject {
                 includeColl.addMember(script.getItemPath());
             }
             catch (InvalidCollectionModification e) {
-                log.error("Could not add "+script.getName()+" to description collection. ", e);
+                Logger.error(e);
                 throw new InvalidDataException("Could not add "+script.getName()+" to description collection. "+e.getMessage());
             }
             catch (ObjectAlreadyExistsException e) {	
-                log.error("Script "+script.getName()+" included more than once.", e);
+                Logger.error(e);
                 throw new InvalidDataException("Script "+script.getName()+" included more than once.");
             } // 
         }

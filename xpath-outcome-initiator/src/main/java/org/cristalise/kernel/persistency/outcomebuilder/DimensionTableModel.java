@@ -23,6 +23,7 @@ package org.cristalise.kernel.persistency.outcomebuilder;
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.HashMap;
+import org.cristalise.kernel.utils.Logger;
 import org.exolab.castor.xml.schema.Annotated;
 import org.exolab.castor.xml.schema.AttributeDecl;
 import org.exolab.castor.xml.schema.ComplexType;
@@ -40,9 +41,6 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.w3c.dom.Text;
 
-import lombok.extern.slf4j.Slf4j;
-
-@Slf4j
 public class DimensionTableModel {
 
     ElementDecl          model;
@@ -97,7 +95,7 @@ public class DimensionTableModel {
     }
 
     public synchronized void addColumn(String heading, Annotated decl, int typeCode) {
-        log.debug("addColumn() - Column "+heading+" contains "+decl.getClass().getSimpleName());
+        Logger.msg(8, "DimensionTableModel.addColumn() - Column "+heading+" contains "+decl.getClass().getSimpleName());
 
         columnHeadings.add(heading);
         columnClasses.add(OutcomeStructure.getJavaClass(typeCode));
@@ -235,7 +233,7 @@ public class DimensionTableModel {
     }
 
     public void setValueAt(Object aValue, int rowIndex, String columnName) {
-        log.debug("setValueAt() - columnName:%s", columnName);
+        Logger.msg(5, "DimensionTableModel.setValueAt() - columnName:%s", columnName);
 
         int idx = columnHeadings.lastIndexOf(columnName);
 
@@ -257,7 +255,7 @@ public class DimensionTableModel {
 
             //Create the optional element if the new value is not null
             if (elements.item(0) == null && aValue != null && !"null".equals(aValue.toString())) {
-                log.debug("setValueAt() - Creating columnElement:%s", columnDecl.getName());
+                Logger.msg(5, "DimensionTableModel.setValueAt() - Creating columnElement:%s", columnDecl.getName());
 
                 columnElement = rowElement.getOwnerDocument().createElement(columnDecl.getName());
                 setupDefaultElement(columnDecl, columnElement, columnClasses.get(columnIndex));
@@ -273,11 +271,11 @@ public class DimensionTableModel {
             }
             else if (columnElement != null) {
                 if (columnDecl.getMinOccurs() == 0) {
-                    log.debug("setValueAt() - Removing columnElement:%s", columnDecl.getName());
+                    Logger.msg(5, "DimensionTableModel.setValueAt() - Removing columnElement:%s", columnDecl.getName());
                     rowElement.removeChild(columnElement);
                 }
                 else {
-                    log.debug("setValueAt() - Setting columnElement:%s to default value", columnDecl.getName());
+                    Logger.msg(5, "DimensionTableModel.setValueAt() - Setting columnElement:%s to default value", columnDecl.getName());
                     setupDefaultElement(columnDecl, columnElement, columnClasses.get(columnIndex));
                 }
             }
@@ -325,7 +323,7 @@ public class DimensionTableModel {
     public Object getValueAt(int rowIndex, int columnIndex) {
         Object[] thisRow = rows.get(rowIndex);
         if (!(getColumnClass(columnIndex).equals(thisRow[columnIndex].getClass())))
-            log.warn(thisRow[columnIndex]+" should be "+getColumnClass(columnIndex)+" is a "+thisRow[columnIndex].getClass().getName());
+            Logger.warning(thisRow[columnIndex]+" should be "+getColumnClass(columnIndex)+" is a "+thisRow[columnIndex].getClass().getName());
 
         return thisRow[columnIndex];
     }
@@ -346,7 +344,7 @@ public class DimensionTableModel {
     }
 
     public Element initNew(Document parent, int index) {
-        log.info("initNew() - name:%s index:%d", model.getName(), index);
+        Logger.msg(2, "DimensionTableModel.initNew() - name:%s index:%d", model.getName(), index);
 
         if (index == -1) index = elements.size();
         Object[] newRow = new Object[columnHeadings.size()];

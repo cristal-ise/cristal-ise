@@ -22,7 +22,6 @@
 package org.cristalise.dsl.lifecycle.instance
 
 import groovy.transform.CompileStatic
-import groovy.util.logging.Slf4j
 
 import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.PAIRING_ID
 
@@ -30,12 +29,13 @@ import org.cristalise.kernel.graph.model.BuiltInVertexProperties
 import org.cristalise.kernel.lifecycle.instance.Next
 import org.cristalise.kernel.lifecycle.instance.WfVertex
 import org.cristalise.kernel.lifecycle.instance.WfVertex.Types
+import org.cristalise.kernel.utils.Logger
 
 
 /**
  *
  */
-@CompileStatic @Slf4j
+@CompileStatic
 class SplitDelegate extends BlockDelegate {
     Types type = null
 
@@ -74,6 +74,8 @@ class SplitDelegate extends BlockDelegate {
     public void processClosure(Closure cl) {
         assert cl, "Split only works with a valid Closure"
 
+        Logger.msg 1, "$type(name: $name) -----------------------------"
+
         def aSplit = parentCABlock.createVertex(type, name)
         def aJoin  = parentCABlock.createVertex(Types.Join, joinName)
 
@@ -94,6 +96,9 @@ class SplitDelegate extends BlockDelegate {
 
         firstVertex = aSplit
         lastVertex = aJoin
+
+
+        Logger.msg 1, "$name(end) +++++++++++++++++++++++++++++++++++++++"
     }
 
     public void Block(Closure cl) {

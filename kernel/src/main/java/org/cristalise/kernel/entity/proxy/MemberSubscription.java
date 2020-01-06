@@ -22,12 +22,12 @@ package org.cristalise.kernel.entity.proxy;
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.StringTokenizer;
+
 import org.cristalise.kernel.common.ObjectNotFoundException;
 import org.cristalise.kernel.entity.C2KLocalObject;
-import lombok.extern.slf4j.Slf4j;
+import org.cristalise.kernel.utils.Logger;
 
 
-@Slf4j
 public class MemberSubscription<C extends C2KLocalObject> implements Runnable {
     public static final String ERROR = "Error";
     public static final String END = "theEND";
@@ -77,7 +77,7 @@ public class MemberSubscription<C extends C2KLocalObject> implements Runnable {
                     observer.control(ERROR, "Listed member "+newChild+" was not found.");
                 }
                 catch (ClassCastException ex) {
-                    log.error("Listed member "+newChild+" was the wrong type.", ex);
+                    Logger.error(ex);
                     observer.control(ERROR, "Listed member "+newChild+" was the wrong type.");
                 }
             }
@@ -93,11 +93,11 @@ public class MemberSubscription<C extends C2KLocalObject> implements Runnable {
         catch (Exception ex) {
             observer.control(ERROR, "Query on "+interest+" failed with "+ex.getMessage());
         }
-        log.debug("loadChildren() -  DONE interest:{}", interest);
+        Logger.msg(5, "MemberSubscription.loadChildren() -  DONE interest:"+interest);
     }
 
     public boolean isRelevant(String path) {
-        log.debug("isRelevant() - path "+path+" to "+interest);
+        Logger.msg(7, "MemberSubscription.isRelevant() - path "+path+" to "+interest);
         return (path.startsWith(interest));
     }
 
@@ -105,7 +105,7 @@ public class MemberSubscription<C extends C2KLocalObject> implements Runnable {
     public void update(String path, boolean deleted) {
         ProxyObserver<C> observer = getObserver();
         if (observer == null) return; //reaped
-        log.debug("update() - path "+path +" for "+observer+". Interest: "+interest+" Was Deleted:"+deleted);
+        Logger.msg(7, "MemberSubscription.update() - path "+path +" for "+observer+". Interest: "+interest+" Was Deleted:"+deleted);
 
         if (!path.startsWith(interest)) // doesn't concern us
             return;
@@ -115,19 +115,20 @@ public class MemberSubscription<C extends C2KLocalObject> implements Runnable {
         else {
             String name = path.substring(interest.length()+1);
             if (deleted) {
-                log.debug("update() - Removing path:"+path+" name:"+name);
+                Logger.msg(7, "MemberSubscription.update() - Removing path:"+path+" name:"+name);
                 contents.remove(name);
                 observer.remove(name);
             }
             else {
                 try {
                     C newMember = (C)subject.getObject(path);
-                    log.debug("MemberSubscription.update() - Adding path:"+path+" name:"+name);
+                    Logger.msg(7, "MemberSubscription.update() - Adding path:"+path+" name:"+name);
                     contents.add(name);
                     observer.add(newMember);
                 }
                 catch (ObjectNotFoundException e) {
-                    log.error("Could not load path:{}", path, e);
+                    Logger.error("MemberSubscription could not load path:"+path);
+                    Logger.error(e);
                 }
             }
         }

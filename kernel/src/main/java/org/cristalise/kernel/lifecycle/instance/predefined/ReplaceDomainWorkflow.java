@@ -30,10 +30,8 @@ import org.cristalise.kernel.lifecycle.instance.Workflow;
 import org.cristalise.kernel.lookup.AgentPath;
 import org.cristalise.kernel.lookup.ItemPath;
 import org.cristalise.kernel.process.Gateway;
+import org.cristalise.kernel.utils.Logger;
 
-import lombok.extern.slf4j.Slf4j;
-
-@Slf4j
 public class ReplaceDomainWorkflow extends PredefinedStep {
     public ReplaceDomainWorkflow() {
         super();
@@ -46,8 +44,7 @@ public class ReplaceDomainWorkflow extends PredefinedStep {
         Workflow lifeCycle = getWf();
 
         String[] params = getDataList(requestData);
-
-        log.debug("Called by {} on {} with parameters {}", agent.getAgentName(), item, (Object)params);
+        if (Logger.doLog(3)) Logger.msg(3, "ReplaceDomainWorkflow: called by " + agent + " on " + item + " with parameters " + Arrays.toString(params));
 
         if (params.length != 1)
             throw new InvalidDataException("ReplaceDomainWorkflow: Invalid parameters " + Arrays.toString(params));
@@ -58,7 +55,7 @@ public class ReplaceDomainWorkflow extends PredefinedStep {
             domain = (CompositeActivity) Gateway.getMarshaller().unmarshall(params[0]);
         }
         catch (Exception e) {
-            log.error("ReplaceDomainWorkflow: Could not unmarshall new workflow", e);
+            Logger.error(e);
             throw new InvalidDataException("ReplaceDomainWorkflow: Could not unmarshall new workflow: " + e.getMessage());
         }
         domain.setName("domain");

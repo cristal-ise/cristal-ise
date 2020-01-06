@@ -29,15 +29,29 @@ import org.cristalise.kernel.common.SystemKey;
 import org.cristalise.kernel.lookup.AgentPath;
 import org.cristalise.kernel.lookup.InvalidItemPathException;
 import org.cristalise.kernel.process.Gateway;
-import lombok.extern.slf4j.Slf4j;
+import org.cristalise.kernel.utils.Logger;
 
-@Slf4j
-public class ActiveLocator extends org.omg.PortableServer.ServantLocatorPOA {
 
-    public ActiveLocator() {
+
+/**************************************************************************
+ *
+ * @author $Author: abranson $ $Date: 2005/10/05 07:39:36 $
+ * @version $Revision: 1.9 $
+ **************************************************************************/
+public class ActiveLocator extends org.omg.PortableServer.ServantLocatorPOA
+{
+
+   /**************************************************************************
+    *
+    **************************************************************************/
+    public ActiveLocator()
+    {
     }
 
 
+   /**************************************************************************
+    *
+    **************************************************************************/
     @Override
 	public org.omg.PortableServer.Servant preinvoke(
               byte[]                                                    oid,
@@ -45,30 +59,35 @@ public class ActiveLocator extends org.omg.PortableServer.ServantLocatorPOA {
               String                                                    operation,
               org.omg.PortableServer.ServantLocatorPackage.CookieHolder cookie )
     {
+
         try
         {
-            ByteBuffer bb = ByteBuffer.wrap(oid);
-            long msb = bb.getLong();
-            long lsb = bb.getLong();
-            AgentPath syskey = new AgentPath(new SystemKey(msb, lsb));
+        	ByteBuffer bb = ByteBuffer.wrap(oid);
+        	long msb = bb.getLong();
+        	long lsb = bb.getLong();
+        	AgentPath syskey = new AgentPath(new SystemKey(msb, lsb));
 
-            log.info("===========================================================");
-            log.info("Agent called at "+new Timestamp( System.currentTimeMillis()) +": " + operation + "(" + syskey + ")." );
+            Logger.msg(1,"===========================================================");
+            Logger.msg(1,"Agent called at "+new Timestamp( System.currentTimeMillis()) +": " + operation +
+                    "(" + syskey + ")." );
 
             return Gateway.getCorbaServer().getAgent(syskey);
 
         }
-        catch (ObjectNotFoundException ex) {
-            log.error("preinvoke()", ex);
+        catch (ObjectNotFoundException ex)
+        {
+            Logger.error("ObjectNotFoundException::ActiveLocator::preinvoke() "+ex.toString());
             throw new org.omg.CORBA.OBJECT_NOT_EXIST();
-        }
-        catch (InvalidItemPathException ex) {
-            log.error("preinvoke()", ex);
-            throw new org.omg.CORBA.INV_OBJREF();
-        }
+        } catch (InvalidItemPathException ex) {
+        	Logger.error("InvalidItemPathException::ActiveLocator::preinvoke() "+ex.toString());
+        	throw new org.omg.CORBA.INV_OBJREF();
+		}
     }
 
 
+   /**************************************************************************
+    *
+    **************************************************************************/
     @Override
 	public void postinvoke(
                byte[]                           oid,

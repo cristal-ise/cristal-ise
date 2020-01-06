@@ -125,6 +125,10 @@
             <artifactId>shiro-core</artifactId>
         </dependency>
         <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-simple</artifactId>
+        </dependency>
+        <dependency>
             <groupId>xmlunit</groupId>
             <artifactId>xmlunit</artifactId>
         </dependency>
@@ -135,6 +139,7 @@
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
+            <version>1.18.4</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
@@ -147,6 +152,23 @@
             <groupId>org.hamcrest</groupId>
             <artifactId>hamcrest-all</artifactId>
             <version>1.3</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.spockframework</groupId>
+            <artifactId>spock-core</artifactId>
+            <version>1.1-groovy-2.4</version>
+            <scope>test</scope>
+            <exclusions>
+                <exclusion>
+                    <artifactId>org.codehaus.groovy</artifactId>
+                    <groupId>groovy-all</groupId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>org.codehaus.groovy</groupId>
+            <artifactId>groovy-all</artifactId>
             <scope>test</scope>
         </dependency>
         <dependency>
@@ -171,12 +193,6 @@
             <groupId>org.unitils</groupId>
             <artifactId>unitils-core</artifactId>
             <version>3.4.6</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-simple</artifactId>
-            <version>1.7.26</version>
             <scope>test</scope>
         </dependency>
     </dependencies>

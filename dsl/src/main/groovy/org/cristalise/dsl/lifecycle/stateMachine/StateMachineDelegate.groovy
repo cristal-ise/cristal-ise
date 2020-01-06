@@ -21,17 +21,17 @@
 package org.cristalise.dsl.lifecycle.stateMachine
 
 import groovy.transform.CompileStatic
-import groovy.util.logging.Slf4j
 
 import org.cristalise.kernel.lifecycle.instance.stateMachine.State
 import org.cristalise.kernel.lifecycle.instance.stateMachine.StateMachine
 import org.cristalise.kernel.lifecycle.instance.stateMachine.Transition
+import org.cristalise.kernel.utils.Logger
 
 
 /**
  *
  */
-@CompileStatic @Slf4j
+@CompileStatic
 class StateMachineDelegate {
     String name = ""
     int version = -1
@@ -57,7 +57,7 @@ class StateMachineDelegate {
     }
 
     public void state(String stateName, Closure cl = null) {
-        log.debug "state() - stateName: $stateName"
+        Logger.msg 5, "StateMachineDelegate.state() - stateName: $stateName"
         assert stateName
         def state = stateCache[stateName]
         if(!state) {
@@ -69,7 +69,7 @@ class StateMachineDelegate {
     }
 
     public void transition(String transName, Map<String,String> states = null, Closure cl = null) {
-        log.debug "transition() - transName: $transName, states: $states"
+        Logger.msg 5, "StateMachineDelegate.transition() - transName: $transName, states: $states"
         assert transName
 
         def trans = transCache[transName]
@@ -101,14 +101,14 @@ class StateMachineDelegate {
     }
 
     public void initialState(String stateName) {
-        log.debug "initialState() - stateName: $stateName"
+        Logger.msg 5, "StateMachineDelegate.initialState() - stateName: $stateName"
         assert stateCache && stateCache[stateName]
 
         sm.initialState = stateCache[stateName]
     }
 
     public void finishingState(String...stateNames) {
-        log.debug "finishingState() - states: $stateNames"
+        Logger.msg 5, "StateMachineDelegate.finishingState() - states: $stateNames"
 
         for (s in stateNames) {
             assert stateCache && stateCache[s]

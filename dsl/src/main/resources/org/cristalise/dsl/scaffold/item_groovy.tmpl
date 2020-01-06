@@ -1,14 +1,10 @@
-import static org.cristalise.kernel.collection.BuiltInCollections.AGGREGATE_SCRIPT
-import static org.cristalise.kernel.collection.BuiltInCollections.MASTER_SCHEMA
-import static org.cristalise.kernel.collection.BuiltInCollections.SCHEMA_INITIALISE
-import static org.cristalise.kernel.collection.BuiltInCollections.SCHEMA_INITIALISE
-
 /**
  * @{item} Item
  */
 def @{item} = Schema('@{item}', 0) {
     struct(name:' @{item}', documentation: '@{item} aggregated data') {
         field(name: 'Name',        type: 'string')
+        field(name: 'ID',          type: 'string')
         field(name: 'State',       type: 'string', values: states)
         field(name: 'Description', type: 'string')
     }
@@ -16,11 +12,7 @@ def @{item} = Schema('@{item}', 0) {
 
 def @{item}Details = Schema('@{item}_Details', 0) {
     struct(name: '@{item}_Details') {
-@if{generatedName}
-        field(name: 'Name', type: 'string') { dynamicForms (disabled: true, label: 'ID') }
-@else{}
-        field(name: 'Name', type: 'string')
-@end{}
+        field(name: 'Name',        type: 'string')
         field(name: 'Description', type: 'string')
     }
 }
@@ -53,54 +45,20 @@ Activity('@{item}_Aggregate', 0) {
 
 def @{item}Wf = Workflow('@{item}_Workflow', 0) {
     ElemActDef(@{item}UpdateAct)
-    CompActDef('State_Manage', 0)
+    ElemActDef('StateManage', 0)
 }
 
 def @{item}PropDesc = PropertyDescriptionList('@{item}', 0) {
     PropertyDesc(name: 'Name',  isMutable: true,  isClassIdentifier: false)
-    PropertyDesc(name: 'Type',  isMutable: false, isClassIdentifier: true,  defaultValue: '@{item}')
-    PropertyDesc(name: 'State', isMutable: true,  isClassIdentifier: false, defaultValue: 'ACTIVE')
+    PropertyDesc(name: 'Type',  isMutable: false, isClassIdentifier: true, defaultValue: '@{item}')
+    PropertyDesc(name: 'State', isMutable: true,  isClassIdentifier: true, defaultValue: 'ACTIVE')
 }
 
-Item(name: '@{item}Factory', folder: '/@{moduleNs}', workflow: 'Factory_Workflow', workflowVer: 0) {
-    InmutableProperty('Type': 'Factory')
-    InmutableProperty('Root': '@{moduleNs}/@{item}s')
-@if{generatedName}
-    InmutableProperty('IDPrefix': '@{idPrefix}')
-    Property('LeftPadSize': '@{leftPadSize}')
-@end{}
-
-@if{isAgent}
-    InmutableProperty('CreateAgent': 'true')
-    Property('DefaultRoles': 'Admin')
-@end{}
-
-@if{useConstructor}
-    Dependency(SCHEMA_INITIALISE) {
-        Member(itemPath: '/desc/Schema/@{moduleNs}/@{item}_Details') {
-            Property('Version': 0)
-        }
-    }
-@else{}
-    InmutableProperty('UpdateSchema': '@{item}_Details:0')
-@end{}
-
+Item(name: '@{item}Factory', folder: '/@{moduleNs}', workflow: '@{item}Factory_Workflow') {
+    Property('Type': 'Factory')
     Outcome(schema: 'PropertyDescription', version: '0', viewname: 'last', path: 'boot/property/@{item}.xml')
-
-    Dependency('workflow') {
+    Dependency("workflow'") {
         Member(itemPath: '/desc/ActivityDesc/@{moduleNs}/@{item}_Workflow') {
-            Property('Version': 0)
-        }
-    }
-
-    Dependency(MASTER_SCHEMA) {
-        Member(itemPath: '/desc/Schema/@{moduleNs}/@{item}') {
-            Property('Version': 0)
-        }
-    }
-
-    Dependency(AGGREGATE_SCRIPT) {
-        Member(itemPath: '/desc/Script/@{moduleNs}/@{item}_Aggregate') {
             Property('Version': 0)
         }
     }

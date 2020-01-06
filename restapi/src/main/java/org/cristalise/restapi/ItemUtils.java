@@ -83,14 +83,13 @@ import org.cristalise.kernel.utils.CastorHashMap;
 import org.cristalise.kernel.utils.DateUtility;
 import org.cristalise.kernel.utils.KeyValuePair;
 import org.cristalise.kernel.utils.LocalObjectLoader;
+import org.cristalise.kernel.utils.Logger;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.json.XML;
 
-import lombok.extern.slf4j.Slf4j;
+//import javax.ws.rs.core.Response;
 
-
-@Slf4j
 public abstract class ItemUtils extends RestHandler {
 
     protected static final String PREDEFINED_PATH = "workflow/predefined/";
@@ -261,7 +260,7 @@ public abstract class ItemUtils extends RestHandler {
             return getOutcomeResponse(oc, eventDate, json, cookie);
         }
         catch (ParseException e) {
-            log.error("Invalid timestamp in event "+ev.getID()+": "+ev.getTimeString(), e);
+            Logger.error(e);
             throw new WebAppExceptionBuilder("Invalid timestamp in event "+ev.getID()+": "+ev.getTimeString(), e, 
                     Status.INTERNAL_SERVER_ERROR, null).build();
         }
@@ -398,7 +397,7 @@ public abstract class ItemUtils extends RestHandler {
             outcomeData.put("schemaUrl",     uri.getBaseUriBuilder().path("schema").path(job.getSchema().getName()).path(String.valueOf(job.getSchema().getVersion())).build());
         }
         catch (InvalidDataException | ObjectNotFoundException e) {
-            log.error("Schema not found", e);
+            Logger.error(e);
             outcomeData.put("schema", "Schema not found");
         }
 
@@ -486,7 +485,7 @@ public abstract class ItemUtils extends RestHandler {
         if (classPropData.size() > 0 && includeClassProps) collData.put("classIdentifiers", classPropData);
         if (propData.size() > 0)                           collData.put("properties", propData);
     }
-
+    
     /**
      * Check if the requested media type should be a JSON or XML
      * 

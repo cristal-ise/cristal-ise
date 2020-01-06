@@ -3,14 +3,13 @@ package org.cristalise.restapi.test
 import static io.restassured.RestAssured.*
 import static org.hamcrest.Matchers.*
 
-import java.time.LocalDateTime
-
 import org.cristalise.kernel.lifecycle.instance.predefined.PredefinedStep
 import org.cristalise.kernel.lifecycle.instance.predefined.server.CreateNewAgent
 import org.cristalise.kernel.lifecycle.instance.predefined.server.CreateNewItem
 import org.cristalise.kernel.lifecycle.instance.predefined.server.CreateNewRole
 import org.cristalise.kernel.process.AbstractMain
 import org.cristalise.kernel.test.utils.KernelXMLUtility
+import org.cristalise.kernel.utils.Logger
 import org.json.JSONArray
 import org.json.JSONObject
 import org.json.XML;
@@ -37,18 +36,14 @@ class RestapiTestBase {
 
     @BeforeClass
     public static void init() {
-        org.cristalise.kernel.utils.Logger.addLogStream(System.out, 5)
+        Logger.addLogStream(System.out, 5)
         Properties props = AbstractMain.readPropertyFiles("src/main/bin/client.conf", "src/main/bin/integTest.clc", null)
         apiUri = props.get('REST.URI')
     }
 
     @Before
     public void before() {
-        timeStamp = getNowString()
-    }
-
-    public static String getNowString() {
-        return LocalDateTime.now().format("yyyy-MM-dd_HH-mm-ss_SSS")
+        timeStamp = new Date().format("yyyy-MM-dd_HH-mm-ss_SSS")
     }
 
     def login() {

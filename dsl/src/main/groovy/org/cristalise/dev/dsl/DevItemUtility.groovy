@@ -35,15 +35,15 @@ import org.cristalise.kernel.process.resource.BuiltInResources
 import org.cristalise.kernel.process.resource.DefaultResourceImportHandler
 import org.cristalise.kernel.property.PropertyDescriptionList
 import org.cristalise.kernel.test.utils.KernelXMLUtility
+import org.cristalise.kernel.utils.Logger
 
 import groovy.transform.CompileStatic
-import groovy.util.logging.Slf4j
 
 /**
  * Utility class to implement ALL methods required to manage (create/edit)
  * CRISTAL-iSE Resources and Items defined in the dev module:  https://github.com/cristal-ise/dev
  */
-@CompileStatic @Slf4j
+@CompileStatic
 class DevItemUtility {
 
     AgentProxy agent = null
@@ -93,7 +93,7 @@ class DevItemUtility {
      * @return
      */
     public Job getDoneJob(ItemProxy proxy, String actName) {
-        log.info('getDoneJob() - proxy:{} actName:{}', proxy.name, actName)
+        Logger.msg("DevItemUtility.getDoneJob() - proxy:$proxy.name actName:$actName")
         Job j = proxy.getJobByName(actName, agent)
         assert j && j.getStepName() == actName && j.transition.name == "Done"
         return j
@@ -378,6 +378,18 @@ class DevItemUtility {
         if(actCollSize) assert caDescItem.getCollection(ACTIVITY, (Integer)0).size() == actCollSize
 
         return caDescItem
+    }
+
+    /**
+     *
+     * @param name
+     * @param folder
+     * @param activityName
+     * @param activityVersion
+     */
+    public ItemProxy editCompActDesc(String name, String folder, String activityName, Integer activityVersion) {
+        String caXML = KernelXMLUtility.getCompositeActivityDefXML(Name: name, ActivityName: activityName, ActivityVersion: activityVersion)
+        return editCompActDesc(name, folder, caXML)
     }
 
     /**

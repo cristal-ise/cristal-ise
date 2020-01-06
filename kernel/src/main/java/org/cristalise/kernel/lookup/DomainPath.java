@@ -24,13 +24,11 @@ import org.apache.commons.lang3.StringUtils;
 import org.cristalise.kernel.common.ObjectNotFoundException;
 import org.cristalise.kernel.persistency.ClusterType;
 import org.cristalise.kernel.process.Gateway;
-
-import lombok.extern.slf4j.Slf4j;
+import org.cristalise.kernel.utils.Logger;
 
 /**
  * Very simple extension to Path. Only copies constructors and defines root
  */
-@Slf4j
 public class DomainPath extends Path {
 
     private ItemPath target = null;
@@ -108,7 +106,7 @@ public class DomainPath extends Path {
                 target = new ItemPath(uuid);
             }
             catch (InvalidItemPathException e) {
-                log.error("", e);
+                Logger.error(e);
             }
         }
     }

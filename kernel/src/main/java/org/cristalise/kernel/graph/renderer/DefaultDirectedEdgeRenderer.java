@@ -29,13 +29,11 @@ import java.awt.geom.GeneralPath;
 import org.apache.commons.lang3.StringUtils;
 import org.cristalise.kernel.graph.model.DirectedEdge;
 import org.cristalise.kernel.graph.model.GraphPoint;
-
-import lombok.extern.slf4j.Slf4j;
+import org.cristalise.kernel.utils.Logger;
 
 /**
  * Default edge renderer implementing the DirectedEdgeRenderer. Use it as is or as a base class
  */
-@Slf4j
 public class DefaultDirectedEdgeRenderer implements DirectedEdgeRenderer {
 
     public static final Paint LINE_PAINT  = Color.BLACK;
@@ -139,7 +137,7 @@ public class DefaultDirectedEdgeRenderer implements DirectedEdgeRenderer {
             case BROKEN_PIPE:  drawBrokenPipeWithArrow(g2d, directedEdge);  break;
 
             default:
-                log.warn("draw() - unknow edge type:{} - drawing straight line", type);
+                Logger.warning("DefaultDirectedEdgeRenderer.draw() - unknow edge type:%s - drawing straight line", type);
                 drawStraightWithArrow(g2d, directedEdge);
                 break;
         }

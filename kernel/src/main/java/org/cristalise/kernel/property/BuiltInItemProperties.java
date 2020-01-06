@@ -28,8 +28,6 @@ import org.cristalise.kernel.lifecycle.instance.predefined.item.CreateItemFromDe
  * Helper enumeration to make built-in Property names easier to maintain and document
  */
 public enum BuiltInItemProperties {
-    AGGREGATE_SCRIPT_URN("AggregateScriptURN"),
-
     /**
      * Store the Agent name used used to call the {@link CreateItemFromDescription} predefined Step.
      */
@@ -41,8 +39,6 @@ public enum BuiltInItemProperties {
     COMPLEXITY("Complexity"),
 
     KERNEL_VERSION("KernelVersion"),
-
-    MASTER_SCHEMA_URN("MasterSchemaURN"),
 
     /**
      * The name or ID of the Item, specified by the Factory Item and sent as the first parameter in the

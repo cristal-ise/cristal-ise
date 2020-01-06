@@ -26,6 +26,7 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import org.cristalise.kernel.utils.Logger;
 import org.exolab.castor.xml.schema.ElementDecl;
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -34,9 +35,9 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
-import lombok.extern.slf4j.Slf4j;
-
-@Slf4j
+/**
+ * 
+ */
 public class Dimension extends OutcomeStructure {
 
     enum Mode {TABLE, TABS};
@@ -54,7 +55,7 @@ public class Dimension extends OutcomeStructure {
         // decide whether a table or tabs
         try {
             tableModel = new DimensionTableModel(model);
-            log.debug("name:" + model.getName() + " mode:table");
+            Logger.msg(8, "Dimension() - name:" + model.getName() + " mode:table");
 
             mode = Mode.TABLE;
 
@@ -62,7 +63,7 @@ public class Dimension extends OutcomeStructure {
         }
         catch (OutcomeBuilderException e) {
             // use tabs
-            log.debug("name:" + model.getName() + " mode:tabs  ex:" + e.getMessage());
+            Logger.msg(8, "Dimension() - name:" + model.getName() + " mode:tabs  ex:" + e.getMessage());
             mode = Mode.TABS;
         }
     }
@@ -73,7 +74,7 @@ public class Dimension extends OutcomeStructure {
 
     @Override
     public void addInstance(Element newElement, Document parentDoc) throws OutcomeBuilderException {
-        log.debug("addInstance() - adding instance " + (elements.size() + 1) + " for " + newElement.getTagName());
+        Logger.msg(6, "Dimension.addInstance() - adding instance " + (elements.size() + 1) + " for " + newElement.getTagName());
 
         if (parent == null) setParentElement((Element) newElement.getParentNode());
 
@@ -107,7 +108,7 @@ public class Dimension extends OutcomeStructure {
         }
         catch (OutcomeBuilderException e) {
             // shouldn't happen, we've already done it once
-            log.error("", e);
+            Logger.error(e);
         }
         return newInstance;
     }
@@ -130,7 +131,7 @@ public class Dimension extends OutcomeStructure {
 
     @Override
     public Element initNew(Document parent) {
-        log.debug("initNew() - '" + model.getName()+"' as '" + mode.name() + "'");
+        Logger.msg(5, "Dimension.initNew() - '" + model.getName()+"' as '" + mode.name() + "'");
         
         Element newElement;
 
@@ -249,7 +250,7 @@ public class Dimension extends OutcomeStructure {
 
     @Override
     public void addJsonInstance(OutcomeStructure parentStruct, Element parentElement, String name, Object json) throws OutcomeBuilderException {
-        log.debug("addJsonInstance() - name:'" + name + "', mode:"+mode);
+        Logger.msg(5, "Dimension.addJsonInstance() - name:'" + name + "', mode:"+mode);
 
         if (myElement == null) myElement = parent;
 
@@ -288,7 +289,7 @@ public class Dimension extends OutcomeStructure {
             return tableModel.columns.get(name);
         }
         else {
-            log.warn("getChildModelElement("+model.getName()+") - Does not handle TAB mode for child:"+name);
+            Logger.warning("Dimension.getChildModelElement("+model.getName()+") - Does not handle TAB mode for child:"+name);
             return null;
         }
     }
@@ -300,7 +301,7 @@ public class Dimension extends OutcomeStructure {
     @Override
     public void addChildElement(String name, Element newElement) {
         if (mode == Mode.TABS) {
-            log.warn("addChildElement("+model.getName()+") - Does not handle TAB mode for child:"+name);
+            Logger.warning("Dimension.addChildElement("+model.getName()+") - Does not handle TAB mode for child:"+name);
             return;
         }
 

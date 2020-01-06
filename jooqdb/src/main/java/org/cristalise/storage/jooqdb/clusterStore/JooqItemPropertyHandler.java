@@ -34,6 +34,7 @@ import org.cristalise.kernel.common.PersistencyException;
 import org.cristalise.kernel.entity.C2KLocalObject;
 import org.cristalise.kernel.property.BuiltInItemProperties;
 import org.cristalise.kernel.property.Property;
+import org.cristalise.kernel.utils.Logger;
 import org.cristalise.storage.jooqdb.JooqHandler;
 import org.jooq.Condition;
 import org.jooq.DSLContext;
@@ -47,9 +48,6 @@ import org.jooq.SelectQuery;
 import org.jooq.Table;
 import org.jooq.impl.SQLDataType;
 
-import lombok.extern.slf4j.Slf4j;
-
-@Slf4j
 public class JooqItemPropertyHandler extends JooqHandler {
     static public final Table<?> ITEM_PROPERTY_TABLE = table(name("ITEM_PROPERTY"));
 
@@ -114,7 +112,7 @@ public class JooqItemPropertyHandler extends JooqHandler {
             insertInto.newRecord();
         }
 
-        log.trace("insert() - SQL:\n"+insertInto);
+        Logger.msg(8, "JooqItemPropertyHandler.insert() - SQL:\n"+insertInto);
 
         return insertInto.execute();
     }
@@ -137,7 +135,7 @@ public class JooqItemPropertyHandler extends JooqHandler {
     }
 
     public List<UUID> findItems(DSLContext context, int offset, int limit, Property...properties) {
-        log.trace("findItems() - properties:"+Arrays.toString(properties));
+        Logger.msg(5, "JooqItemPropertyHandler.findItems() - properties:"+Arrays.toString(properties));
 
         SelectQuery<?> select = context.selectQuery();
 
@@ -166,7 +164,7 @@ public class JooqItemPropertyHandler extends JooqHandler {
         if (limit > 0) select.addLimit(limit);
         if (offset > 0) select.addOffset(offset);
 
-        log.trace("findItems() - SQL:\n"+select);
+        Logger.msg(8, "JooqItemPropertyHandler.findItems() - SQL:\n"+select);
 
         Result<?> result =  select.fetch();
 

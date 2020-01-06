@@ -53,6 +53,7 @@ import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.process.auth.Authenticator;
 import org.cristalise.kernel.property.Property;
 import org.cristalise.kernel.property.PropertyDescriptionList;
+import org.cristalise.kernel.utils.Logger;
 import org.cristalise.storage.jooqdb.JooqHandler;
 import org.cristalise.storage.jooqdb.auth.Argon2Password;
 import org.cristalise.storage.jooqdb.clusterStore.JooqItemPropertyHandler;
@@ -66,12 +67,9 @@ import org.jooq.SelectQuery;
 import org.jooq.exception.DataAccessException;
 import org.jooq.impl.DSL;
 
-import lombok.extern.slf4j.Slf4j;
-
 /**
  *
  */
-@Slf4j
 public class JooqLookupManager implements LookupManager {
 
     private JooqItemHandler         items;
@@ -104,7 +102,7 @@ public class JooqLookupManager implements LookupManager {
             passwordHasher = new Argon2Password();
         }
         catch (PersistencyException ex) {
-            log.error("", ex);
+            Logger.error(ex);
             throw new IllegalArgumentException(ex.getMessage());
         }
     }
@@ -122,7 +120,7 @@ public class JooqLookupManager implements LookupManager {
 
     @Override
     public void initializeDirectory() throws ObjectNotFoundException {
-        log.debug("initializeDirectory() - NOTHING done.");
+        Logger.msg(6, "JOOQLookupManager.initializeDirectory() - NOTHING done.");
     }
 
     @Override
@@ -131,7 +129,7 @@ public class JooqLookupManager implements LookupManager {
             JooqHandler.closeDataSource();
         }
         catch (DataAccessException | PersistencyException e) {
-            log.error("", e);
+            Logger.error(e);
         }
     }
 
@@ -152,11 +150,11 @@ public class JooqLookupManager implements LookupManager {
 
                 if (isExist) itemExists.add(isExist);
 
-                JooqHandler.logConnectionCount("JooqLookupManager.exists()", DSL.using(nested));
+                if (Logger.doLog(5)) JooqHandler.logConnectionCount("JooqLookupManager.exists()", DSL.using(nested));
             });
         }
         catch (PersistencyException e) {
-            log.error("", e);
+            Logger.error(e);
         }
 
 
@@ -168,7 +166,7 @@ public class JooqLookupManager implements LookupManager {
     public void add(Path newPath) throws ObjectCannotBeUpdated, ObjectAlreadyExistsException {
         if (exists(newPath)) throw new ObjectAlreadyExistsException("Path exist:"+newPath);
 
-        log.debug("add() - path:"+newPath);
+        Logger.msg(8, "JooqLookupManager.add() - path:"+newPath);
 
         try {
             DSLContext context = JooqHandler.connect();
@@ -186,13 +184,13 @@ public class JooqLookupManager implements LookupManager {
                 }
 
                 if (rows == 0) throw new ObjectCannotBeUpdated("JOOQLookupManager must insert some records:"+rows);
-                else           log.debug("add() - path:"+newPath+" rows inserted:"+rows);
+                else           Logger.msg(8, "JooqLookupManager.add() - path:"+newPath+" rows inserted:"+rows);
             });
 
-            JooqHandler.logConnectionCount("JooqLookupManager.add()", context);
+            if (Logger.doLog(5)) JooqHandler.logConnectionCount("JooqLookupManager.add()", context);
         }
         catch (PersistencyException e) {
-            log.error("", e);
+            Logger.error(e);
             throw new ObjectCannotBeUpdated(e.getMessage());
         }
     }
@@ -201,7 +199,7 @@ public class JooqLookupManager implements LookupManager {
     public void delete(Path path) throws ObjectCannotBeUpdated {
         if (!exists(path)) throw new ObjectCannotBeUpdated("Path does not exist:"+path);
 
-        log.debug("delete() - path:"+path);
+        Logger.msg(8, "JooqLookupManager.delete() - path:"+path);
 
         try {
             if (getChildren(path).hasNext()) throw new ObjectCannotBeUpdated("Path is not a leaf");
@@ -222,12 +220,12 @@ public class JooqLookupManager implements LookupManager {
                 }
 
                 if (rows == 0) throw new ObjectCannotBeUpdated("JOOQLookupManager must delete some records:"+rows);
-                else           log.debug("delete() - path:"+path+" rows deleted:"+rows);
+                else           Logger.msg(8, "JooqLookupManager.delete() - path:"+path+" rows deleted:"+rows);
             });
 
         }
         catch (PersistencyException e) {
-            log.error("", e);
+            Logger.error(e);
             throw new ObjectCannotBeUpdated(e.getMessage());
         }
 
@@ -244,7 +242,7 @@ public class JooqLookupManager implements LookupManager {
             return items.fetch(context, ip.getUUID(), properties);
         }
         catch (PersistencyException e) {
-            log.error("", e);
+            Logger.error(e);
             throw new InvalidItemPathException(e.getMessage());
         }
     }
@@ -260,7 +258,7 @@ public class JooqLookupManager implements LookupManager {
     }
 
     private List<Path> find(DSLContext context , Path start, String name, List<UUID> uuids) throws PersistencyException {
-        log.debug("find() - start:"+start+" name:"+name);
+        Logger.msg(8, "JooqLookupManager.find() - start:"+start+" name:"+name);
         List<Path> paths = new ArrayList<>();
 
         context.transaction(nested -> {
@@ -282,7 +280,7 @@ public class JooqLookupManager implements LookupManager {
 
         }
         catch (PersistencyException e) {
-            log.error("", e);
+            Logger.error(e);
         }
 
         if (result.isEmpty()) return new ArrayList<Path>().iterator(); //returns empty iterator
@@ -324,7 +322,7 @@ public class JooqLookupManager implements LookupManager {
             return role;
         }
         catch (PersistencyException e) {
-            log.error("", e);
+            Logger.error(e);
             throw new ObjectNotFoundException(e.getMessage());
         }
     }
@@ -343,7 +341,7 @@ public class JooqLookupManager implements LookupManager {
             return items.fetch(context, dp.getTarget().getUUID(), properties);
         }
         catch (PersistencyException e) {
-            log.error("", e);
+            Logger.error(e);
             throw new ObjectNotFoundException(e.getMessage());
         }
     }
@@ -360,7 +358,7 @@ public class JooqLookupManager implements LookupManager {
             else                         throw new ObjectNotFoundException("Path is not an agent:"+agentPath);
         }
         catch (PersistencyException e) {
-            log.error("", e);
+            Logger.error(e);
             throw new ObjectNotFoundException(e.getMessage());
         }
     }
@@ -374,7 +372,7 @@ public class JooqLookupManager implements LookupManager {
     public Iterator<Path> getChildren(Path path) {
         String pattern = getChildrenPattern(path);
 
-        log.debug("getChildren() - pattern:" + pattern);
+        Logger.msg(8, "JooqLookupManager.getChildren() - pattern:" + pattern);
         try {
             DSLContext context = JooqHandler.connect();
 
@@ -383,7 +381,7 @@ public class JooqLookupManager implements LookupManager {
             else                               return domains.findByRegex(context, pattern ).iterator();
         }
         catch (Exception e) {
-            log.error("", e);
+            Logger.error(e);
         }
         return new ArrayList<Path>().iterator();
     }
@@ -392,7 +390,7 @@ public class JooqLookupManager implements LookupManager {
     public PagedResult getChildren(Path path, int offset, int limit) {
         String pattern = getChildrenPattern(path);
 
-        log.debug("getChildren() - pattern:{} offset:{} limit:{}", pattern, offset, limit);
+        Logger.msg(8, "JooqLookupManager.getChildren() - pattern:%s offset:%d limit:%d", pattern, offset, limit);
 
         if (path instanceof ItemPath) return new PagedResult();
 
@@ -403,7 +401,7 @@ public class JooqLookupManager implements LookupManager {
             context = JooqHandler.connect();
         }
         catch (PersistencyException e) {
-            log.error("", e);
+            Logger.error(e);
             return new PagedResult();
         }
 
@@ -417,7 +415,7 @@ public class JooqLookupManager implements LookupManager {
         if      (path instanceof RolePath)   pathes = roles  .findByRegex(context, pattern, offset, limit);
         else if (path instanceof DomainPath) pathes = domains.findByRegex(context, pattern, offset, limit);
 
-        JooqHandler.logConnectionCount("JooqLookupManager.getChildren()", context);
+        if (Logger.doLog(5)) JooqHandler.logConnectionCount("JooqLookupManager.getChildren()", context);
 
         if (pathes == null) return new PagedResult();
         else                return new PagedResult(maxRows, pathes);
@@ -456,7 +454,7 @@ public class JooqLookupManager implements LookupManager {
             context = JooqHandler.connect();
         }
         catch (PersistencyException e) {
-            log.error("", e);
+            Logger.error(e);
             return new PagedResult();
         }
 
@@ -467,7 +465,7 @@ public class JooqLookupManager implements LookupManager {
             SelectQuery<?> selectCount = getSearchSelect(context, start, props);
             selectCount.addSelect(DSL.count());
 
-            log.debug("search(props) - SQL(count):\n{}", selectCount);
+            Logger.msg(8, "JooqLookupManager.search(props) - SQL(count):\n%s", selectCount);
 
             maxRows = selectCount.fetchOne(0, int.class);
 
@@ -482,7 +480,7 @@ public class JooqLookupManager implements LookupManager {
         if (limit  > 0) select.addLimit(limit);
         if (offset > 0) select.addOffset(offset);
 
-        log.debug("search(props) - SQL:\n{}", select);
+        Logger.msg(8, "JooqLookupManager.search(props) - SQL:\n%s", select);
 
         return new PagedResult(maxRows, domains.getListOfPath(select.fetch()));
     }
@@ -500,7 +498,7 @@ public class JooqLookupManager implements LookupManager {
 
     @Override
     public RolePath createRole(RolePath role) throws ObjectAlreadyExistsException, ObjectCannotBeUpdated {
-        log.debug("createRole() - role:"+role);
+        Logger.msg(5, "JooqLookupManager.createRole() - role:"+role);
 
         if (exists(role)) throw new ObjectAlreadyExistsException("Role:"+role);
 
@@ -515,7 +513,7 @@ public class JooqLookupManager implements LookupManager {
             return role;
         }
         catch (Exception e) {
-            log.error("", e);
+            Logger.error(e);
             throw new ObjectCannotBeUpdated("Parent role for '"+role+"' does not exists");
         }
     }
@@ -534,7 +532,7 @@ public class JooqLookupManager implements LookupManager {
 
         }
         catch (Exception e) {
-            log.error("", e);
+            Logger.error(e);
             throw new ObjectCannotBeUpdated(e.getMessage());
         }
     }
@@ -567,7 +565,7 @@ public class JooqLookupManager implements LookupManager {
             context = JooqHandler.connect();
         }
         catch (PersistencyException e) {
-            log.error("", e);
+            Logger.error(e);
             return new PagedResult();
         }
 
@@ -575,7 +573,7 @@ public class JooqLookupManager implements LookupManager {
             SelectQuery<?> selectCount = getGetAgentsSelect(context, role);
             selectCount.addSelect(DSL.count());
 
-            log.debug("getAgents(props) - role:{}  SQL(count):\n{}", role, selectCount);
+            Logger.msg(8, "JooqLookupManager.getAgents(props) - role:%s  SQL(count):\n%s", role, selectCount);
 
             maxRows = selectCount.fetchOne(0, int.class);
         }
@@ -596,7 +594,7 @@ public class JooqLookupManager implements LookupManager {
         if (limit  > 0) select.addLimit(limit);
         if (offset > 0) select.addOffset(offset);
 
-        log.debug("getAgents() - role:{}  SQL:\n{}", role, select);
+        Logger.msg(8, "JooqLookupManager.getAgents() - role:%s  SQL:\n%s", role, select);
 
         Result<?> result = select.fetch();
 
@@ -611,7 +609,7 @@ public class JooqLookupManager implements LookupManager {
                 }
                 catch (PersistencyException e) {
                     // This shall never happen
-                    log.error("", e);
+                    Logger.error(e);
                     throw new ObjectNotFoundException(e.getMessage());
                 }
             }
@@ -627,7 +625,7 @@ public class JooqLookupManager implements LookupManager {
             return roles.findRolesOfAgent(context, agent, permissions).toArray(new RolePath[0]);
         }
         catch (PersistencyException e) {
-            log.error("", e);
+            Logger.error(e);
         }
         return new RolePath[0];
     }
@@ -641,7 +639,7 @@ public class JooqLookupManager implements LookupManager {
                     roles.findRolesOfAgent(context, agent, offset, limit, permissions));
         }
         catch (PersistencyException e) {
-            log.error("", e);
+            Logger.error(e);
         }
         return new PagedResult();
     }
@@ -653,7 +651,7 @@ public class JooqLookupManager implements LookupManager {
             return roles.exists(context, role, agent);
         }
         catch (PersistencyException e) {
-            log.error("", e);
+            Logger.error(e);
         }
         return false;
     }
@@ -694,7 +692,7 @@ public class JooqLookupManager implements LookupManager {
             });
         }
         catch (Exception e) {
-            log.error("", e);
+            Logger.error(e);
             throw new ObjectCannotBeUpdated("Agent:"+agent + " error:" + e.getMessage());
         }
     }
@@ -713,7 +711,7 @@ public class JooqLookupManager implements LookupManager {
 
         }
         catch (Exception e) {
-            log.error("", e);
+            Logger.error(e);
             throw new ObjectCannotBeUpdated("Role:"+role + " error:" + e.getMessage());
         }
     }
@@ -725,7 +723,7 @@ public class JooqLookupManager implements LookupManager {
             return domains.find(context, itemPath).iterator();
         }
         catch (PersistencyException e) {
-            log.error("", e);
+            Logger.error(e);
         }
         return new ArrayList<Path>().iterator();
     }
@@ -739,7 +737,7 @@ public class JooqLookupManager implements LookupManager {
                     domains.find(context, itemPath, offset, limit) );
         }
         catch (PersistencyException e) {
-            log.error("", e);
+            Logger.error(e);
         }
         return new PagedResult();
     }
@@ -757,7 +755,7 @@ public class JooqLookupManager implements LookupManager {
             });
         }
         catch (Exception e) {
-            log.error("", e);
+            Logger.error(e);
             throw new ObjectCannotBeUpdated("Item:" + item + " error:" + e.getMessage());
         }
     }
@@ -789,7 +787,7 @@ public class JooqLookupManager implements LookupManager {
             });
         }
         catch (Exception e) {
-            log.error("", e);
+            Logger.error(e);
             throw new ObjectCannotBeUpdated("Role:"+role + " error:" + e.getMessage());
         }
     }

@@ -21,15 +21,16 @@
 package org.cristalise.dsl.persistency.outcome
 
 import groovy.transform.CompileStatic
-import groovy.util.logging.Slf4j
 
 import org.cristalise.kernel.persistency.outcome.Outcome
 import org.cristalise.kernel.utils.LocalObjectLoader
+import org.cristalise.kernel.utils.Logger
+
 
 /**
  *
  */
-@CompileStatic @Slf4j
+@CompileStatic
 class OutcomeBuilder {
 
     /*
@@ -61,7 +62,7 @@ class OutcomeBuilder {
         def outcomeD = new OutcomeDelegate(root)
         outcomeD.processClosure(cl)
 
-        log.debug "generated xml:\n" + outcomeD.writer.toString()
+        Logger.msg 5, "OutcomeBuilder - generated xml:\n" + outcomeD.writer.toString()
 
         return new Outcome(-1, outcomeD.writer.toString(), LocalObjectLoader.getSchema(schema, version))
     }
@@ -70,7 +71,7 @@ class OutcomeBuilder {
         def outcomeD = new OutcomeDelegate(rootElement)
         outcomeD.processClosure(cl)
 
-        log.debug "generated xml:\n" + outcomeD.writer.toString()
+        Logger.msg 5, "OutcomeBuilder - generated xml:\n" + outcomeD.writer.toString()
 
         return outcomeD.writer.toString()
     }
@@ -79,7 +80,7 @@ class OutcomeBuilder {
         def outcomeD = new OutcomeDelegate()
         outcomeD.processClosure(cl)
 
-        log.debug "generated xml:\n" + outcomeD.writer.toString()
+        Logger.msg 5, "OutcomeBuilder - generated xml:\n" + outcomeD.writer.toString()
 
         return outcomeD.writer.toString()
     }

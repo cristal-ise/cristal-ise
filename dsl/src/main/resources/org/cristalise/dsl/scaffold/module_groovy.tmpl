@@ -34,7 +34,6 @@ Module(ns: '@{moduleNs}', name: '@{moduleName}', version: @{moduleVersion}) {
         }
     }
 
-@foreach{file : moduleFiles} 
-    include(moduleDir+'/@{file}')
-@end{}
+    include(moduleDir+'/State.groovy')
+    include(moduleDir+'/@{item}.groovy')
 }

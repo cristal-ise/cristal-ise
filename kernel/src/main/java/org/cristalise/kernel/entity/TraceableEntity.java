@@ -30,6 +30,7 @@ import org.cristalise.kernel.common.ObjectNotFoundException;
 import org.cristalise.kernel.common.PersistencyException;
 import org.cristalise.kernel.common.SystemKey;
 import org.cristalise.kernel.lookup.ItemPath;
+import org.cristalise.kernel.utils.Logger;
 
 
 /**************************************************************************
@@ -71,6 +72,7 @@ public class TraceableEntity extends ItemPOA
     public TraceableEntity( ItemPath                   key,
                             org.omg.PortableServer.POA poa )
     {
+        Logger.msg(5,"TraceableEntity::constructor() - SystemKey:" + key );
         mPoa	= poa;	
         mItemImpl = new ItemImplementation(key);
     }

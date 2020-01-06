@@ -48,10 +48,9 @@ import org.cristalise.kernel.lifecycle.instance.stateMachine.Transition;
 import org.cristalise.kernel.lookup.AgentPath;
 import org.cristalise.kernel.lookup.InvalidAgentPathException;
 import org.cristalise.kernel.lookup.ItemPath;
+import org.cristalise.kernel.utils.Logger;
 
-import lombok.extern.slf4j.Slf4j;
 
-@Slf4j
 public class CompositeActivity extends Activity {
 
     public CompositeActivity() {
@@ -102,7 +101,7 @@ public class CompositeActivity extends Activity {
     }
 
     public void setFirstVertex(int vertexID) {
-        log.debug("setFirstVertex() vertexID:"+vertexID);
+        Logger.msg(5, "org.cristalise.kernel.lifecycle.CompositeActivity::setFirstVertex() vertexID:"+vertexID);
 
         getChildrenGraphModel().setStartVertexId(vertexID);
     }
@@ -232,11 +231,11 @@ public class CompositeActivity extends Activity {
                             }
                         }
                     }
-                    log.trace("getAutoStart() path:"+getPath()+" trans:"+((autoStart==null)?"null":autoStart.getName()));
+                    Logger.msg(8, "CompositeActivity.getAutoStart() path:"+getPath()+" trans:"+((autoStart==null)?"null":autoStart.getName()));
                     return autoStart;
                 }
                 catch (ObjectNotFoundException e) {
-                    log.error("", e);
+                    Logger.error(e);
                     throw new InvalidDataException("Problem calculating possible transitions for agent "+agent.toString());
                 }
             }
@@ -246,7 +245,7 @@ public class CompositeActivity extends Activity {
 
     @Override
     public void run(AgentPath agent, ItemPath itemPath, Object locker) throws InvalidDataException {
-        log.trace("run() path:" + getPath() + " state:" + getState());
+        Logger.msg(8, "CompositeActivity.run() path:" + getPath() + " state:" + getState());
 
         super.run(agent, itemPath, locker);
 
@@ -260,11 +259,11 @@ public class CompositeActivity extends Activity {
                 throw e;
             }
             catch (AccessRightsException e) {
-                log.warn("Agent:"+agent+" didn't have permission to start the activity:"+getPath()+", so leave it waiting");
+                Logger.warning("Agent:"+agent+" didn't have permission to start the activity:"+getPath()+", so leave it waiting");
                 return;
             }
             catch (Exception e) {
-                log.error("", e);
+                Logger.error(e);
                 throw new InvalidDataException("Problem initializing composite activity: " + e.getMessage());
             }
         }
@@ -283,26 +282,26 @@ public class CompositeActivity extends Activity {
                         trans = possTran;
                     }
                     else if (trans.isFinishing() == possTran.isFinishing()) {
-                        log.warn("Unclear choice of transition possible from current state for Composite Activity '"+getName()+"'. Cannot automatically proceed.");
+                        Logger.warning("Unclear choice of transition possible from current state for Composite Activity '"+getName()+"'. Cannot automatically proceed.");
                         setActive(true);
                         return;
                     }
                 }
             }
             catch (ObjectNotFoundException e) {
-                log.error("", e);
+                Logger.error(e);
                 throw new InvalidDataException("Problem calculating possible transitions for agent "+agent.toString());
             }
 
             if (trans == null) { // current agent can't proceed
-                log.info("Not possible for the current agent to proceed with the Composite Activity '"+getName()+"'.");
+                Logger.msg(3, "Not possible for the current agent to proceed with the Composite Activity '"+getName()+"'.");
                 setActive(true);
                 return;
             }
             else {
                 // automatically execute the next outcome if it doesn't require an outcome.
                 if (trans.hasOutcome(getProperties()) || trans.hasScript(getProperties())) {
-                    log.info("Composite activity '"+getName()+"' has script or schema defined. Cannot proceed automatically.");
+                    Logger.msg(3, "Composite activity '"+getName()+"' has script or schema defined. Cannot proceed automatically.");
                     setActive(true);
                     return;
                 }
@@ -313,7 +312,7 @@ public class CompositeActivity extends Activity {
                         return;
                 }
                 catch (Exception e) {
-                    log.error("", e);
+                    Logger.error(e);
                     setActive(true);
                     throw new InvalidDataException("Problem completing composite activity: "+e.getMessage());
                 }

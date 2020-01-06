@@ -34,13 +34,11 @@ import org.cristalise.kernel.lifecycle.instance.predefined.PredefinedStep;
 import org.cristalise.kernel.lookup.AgentPath;
 import org.cristalise.kernel.lookup.ItemPath;
 import org.cristalise.kernel.process.Gateway;
+import org.cristalise.kernel.utils.Logger;
 import org.exolab.castor.mapping.MappingException;
 import org.exolab.castor.xml.MarshalException;
 import org.exolab.castor.xml.ValidationException;
 
-import lombok.extern.slf4j.Slf4j;
-
-@Slf4j
 public class CreateNewAgent extends PredefinedStep {
     public CreateNewAgent() {
         super();
@@ -60,7 +58,7 @@ public class CreateNewAgent extends PredefinedStep {
             return Gateway.getMarshaller().marshall(newAgent);
         }
         catch (MarshalException | ValidationException | IOException | MappingException e) {
-            log.error("Couldn't unmarshall new Agent: " + requestData, e);
+            Logger.error(e);
             throw new InvalidDataException("CreateNewAgent: Couldn't unmarshall new Agent: " + requestData);
         }
     }

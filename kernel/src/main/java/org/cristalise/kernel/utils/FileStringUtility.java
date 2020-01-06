@@ -38,9 +38,7 @@ import java.util.ArrayList;
 import java.util.Hashtable;
 import java.util.StringTokenizer;
 import java.util.Vector;
-import lombok.extern.slf4j.Slf4j;
 
-@Slf4j
 public class FileStringUtility {
     /**
      * Reads a file and converts it to String
@@ -48,12 +46,12 @@ public class FileStringUtility {
     static public String file2String(File file) throws FileNotFoundException, IOException {
         FileInputStream fis = new FileInputStream(file);
         byte[] bArray = (byte[]) Array.newInstance(byte.class, (int) file.length());
-        log.trace("file2String() - Reading file '" + file.getAbsolutePath() + "'");
+        Logger.msg(8, "FileStringUtility.file2String() - Reading file '" + file.getAbsolutePath() + "'");
 
         fis.read(bArray, 0, (int) file.length());
         fis.close();
 
-        log.trace("file2String() - file '" + file.getAbsolutePath() + "' read.");
+        Logger.msg(9, "FileStringUtility.file2String() - file '" + file.getAbsolutePath() + "' read.");
 
         return new String(bArray);
     }
@@ -110,12 +108,12 @@ public class FileStringUtility {
         FileWriter thisFile = new FileWriter(file);
         BufferedWriter thisFileBuffer = new BufferedWriter(thisFile);
 
-        log.trace("string2File() - writing file '" + file.getAbsolutePath() + "'");
+        Logger.msg(9, "FileStringUtility.string2File() - writing file '" + file.getAbsolutePath() + "'");
 
         thisFileBuffer.write(data);
         thisFileBuffer.close();
 
-        log.trace("string2File() - file '" + file.getAbsolutePath() + "' complete.");
+        Logger.msg(9, "FileStringUtility.string2File() - file '" + file.getAbsolutePath() + "' complete.");
     }
 
     /**
@@ -132,11 +130,11 @@ public class FileStringUtility {
         File dir = new File(dirPath);
 
         if (dir.isFile()) {
-            log.error("checkDir() - '" + dir.getAbsolutePath() + "' is a file.");
+            Logger.error("FileStringUtility.checkDir() - '" + dir.getAbsolutePath() + "' is a file.");
             return false;
         }
         else if (!dir.exists()) {
-            log.trace("checkDir() - directory '" + dir.getAbsolutePath() + "' does not exist.");
+            Logger.msg(9, "FileStringUtility.checkDir() - directory '" + dir.getAbsolutePath() + "' does not exist.");
             return false;
         }
 
@@ -150,16 +148,16 @@ public class FileStringUtility {
         File dir = new File(dirPath);
 
         if (dir.isFile()) {
-            log.error("createNewDir() - '" + dir.getAbsolutePath() + "' is a file.");
+            Logger.error("FileStringUtility.createNewDir() - '" + dir.getAbsolutePath() + "' is a file.");
             return false;
         }
         else if (dir.exists()) {
-            log.trace("createNewDir() - '" + dir.getAbsolutePath() + "' already exists.");
+            Logger.msg(8, "FileStringUtility.createNewDir() - '" + dir.getAbsolutePath() + "' already exists.");
             return false;
         }
         else {
             if (!dir.mkdirs()) {
-                log.error("FileStringUtility - Could not create new directory '" + dir.getAbsolutePath() + "'");
+                Logger.error("FileStringUtility - Could not create new directory '" + dir.getAbsolutePath() + "'");
                 return false;
             }
         }
@@ -173,17 +171,17 @@ public class FileStringUtility {
         File dir = new File(dirPath);
 
         if (!checkDir(dirPath)) {
-            log.trace("deleteDir() - directory '" + dir.getAbsolutePath() + "' does not exist.");
+            Logger.msg(8, "FileStringUtility.deleteDir() - directory '" + dir.getAbsolutePath() + "' does not exist.");
             return false;
         }
 
         if (!dir.delete()) {
             // prints the possible reason
             if (dir.list().length != 0) {
-                log.error("deleteDir() - cannot delete non-empty directory '" + dir.getAbsolutePath() + "'");
+                Logger.error("FileStringUtility.deleteDir() - cannot delete non-empty directory '" + dir.getAbsolutePath() + "'");
             }
             else {
-                log.error("deleteDir() - directory '" + dir.getAbsolutePath() + "' could not be deleted.");
+                Logger.error("FileStringUtility.deleteDir() - directory '" + dir.getAbsolutePath() + "' could not be deleted.");
             }
             return false;
         }
@@ -206,7 +204,7 @@ public class FileStringUtility {
         File files[];
 
         if (!dir.exists()) {
-            log.error("deleteDir() - directory '" + dir.getAbsolutePath() + "' does not exist.");
+            Logger.error("FileStringUtility.deleteDir() - directory '" + dir.getAbsolutePath() + "' does not exist.");
             return false;
         }
 
@@ -217,7 +215,7 @@ public class FileStringUtility {
                 return true;
             }
             else {
-                log.error("deleteDir() - '" + dir.getAbsolutePath() + "' was a file.");
+                Logger.error("FileStringUtility.deleteDir() - '" + dir.getAbsolutePath() + "' was a file.");
                 return false;
             }
         }
@@ -247,7 +245,7 @@ public class FileStringUtility {
         String fileName;
 
         if (!checkDir(dirPath)) {
-            log.trace("listDir() - directory '" + dir.getAbsolutePath() + "' does not exist.");
+            Logger.msg(8, "FileStringUtility.listDir() - directory '" + dir.getAbsolutePath() + "' does not exist.");
             return null;
         }
 
@@ -324,7 +322,8 @@ public class FileStringUtility {
             return props;
         }
         catch (Exception e) {
-            log.error("loadLanguageFile() - could not load language file '" + configFile + "'", e);
+            Logger.error("FileStringUtility.loadLanguageFile() - could not load language file '" + configFile + "'");
+            Logger.error(e);
             return new Hashtable<String, String>();
         }
 

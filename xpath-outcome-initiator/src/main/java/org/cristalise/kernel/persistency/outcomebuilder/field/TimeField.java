@@ -30,11 +30,9 @@ import java.util.Map;
 
 import org.cristalise.kernel.persistency.outcomebuilder.InvalidOutcomeException;
 import org.cristalise.kernel.process.Gateway;
+import org.cristalise.kernel.utils.Logger;
 import org.json.JSONObject;
 
-import lombok.extern.slf4j.Slf4j;
-
-@Slf4j
 public class TimeField extends StringField {
 
     public TimeField() {
@@ -69,7 +67,7 @@ public class TimeField extends StringField {
 
     @Override
     public void setValue(Object value) throws InvalidOutcomeException {
-        log.debug("setValue() - value=" + value + " class:" + value.getClass().getSimpleName());
+        Logger.msg(0, "TimeField.setValue() - value=" + value + " class:" + value.getClass().getSimpleName());
 
         if (value instanceof String) {
             String sVal = (String) value;
@@ -81,7 +79,7 @@ public class TimeField extends StringField {
                 else if (sVal.contains("T")) zdt = ZonedDateTime.parse(sVal);
 
                 if (zdt != null) {
-                    log.debug("setValue() - ZonedDateTime:%s", zdt);
+                    Logger.msg(8,"TimeField.setValue() - ZonedDateTime:%s", zdt);
 
                     DateTimeFormatter dtf = DateTimeFormatter.ISO_LOCAL_TIME;
                     setData(zdt.truncatedTo(ChronoUnit.SECONDS).format(dtf));
@@ -90,7 +88,7 @@ public class TimeField extends StringField {
                     setData(sVal);
             }
             catch (DateTimeParseException e) {
-                log.error("", e);
+                Logger.error(e);
                 throw new InvalidOutcomeException(e.getMessage());
             }
         }

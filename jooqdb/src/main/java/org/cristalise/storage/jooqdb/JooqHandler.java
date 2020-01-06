@@ -26,9 +26,6 @@ import static org.jooq.impl.DSL.select;
 import static org.jooq.impl.DSL.using;
 
 import com.zaxxer.hikari.HikariPoolMXBean;
-
-import lombok.extern.slf4j.Slf4j;
-
 import java.sql.Connection;
 import java.sql.Timestamp;
 import java.util.Arrays;
@@ -38,6 +35,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.cristalise.kernel.common.PersistencyException;
 import org.cristalise.kernel.entity.C2KLocalObject;
 import org.cristalise.kernel.process.Gateway;
+import org.cristalise.kernel.utils.Logger;
 import org.jooq.Condition;
 import org.jooq.DSLContext;
 import org.jooq.DataType;
@@ -51,7 +49,6 @@ import org.jooq.impl.SQLDataType;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 
-@Slf4j
 public abstract class JooqHandler {
     /**
      * Defines the key (value:{@value}) to retrieve a string value to set JDBC URI
@@ -179,11 +176,10 @@ public abstract class JooqHandler {
     private static HikariDataSource ds = null;
     private static HikariConfig config;
 
-    public static synchronized HikariDataSource getDataSource() {
-        if (ds == null) {
+    public static synchronized HikariDataSource getDataSource(){
+        if (ds == null){
             if (StringUtils.isAnyBlank(uri, user, pwd))
                 throw new IllegalArgumentException("JOOQ (uri, user, password) config values must not be blank");
-
             config = new HikariConfig();
             config.setPoolName("CRISTAL-iSE-HikariCP");
             config.setRegisterMbeans(true);
@@ -202,12 +198,11 @@ public abstract class JooqHandler {
             config.addDataSourceProperty( "prepStmtCacheSqlLimit", "2048");
             config.addDataSourceProperty( "autoCommit",             autoCommit);
 
-            log.info("getDataSource() - uri:'{}' user:'{}' dialect:'{}'", uri, user, dialect);
+            Logger.msg(8, "JooqHandler.static() - uri:'"+uri+"' user:'"+user+"' dialect:'"+dialect+"'");
 
             config.setAutoCommit(autoCommit);
             ds = new HikariDataSource(config);
-
-            log.info("getDataSource() create datasource {}", ds);
+            Logger.msg(3, "JooqHandler.getDataSource() create datasource %s", ds);
         }
         return ds;
     }
@@ -215,9 +210,7 @@ public abstract class JooqHandler {
     public static synchronized void recreateDataSource(boolean forcedAutoCommit) throws PersistencyException {
         if (ds == null)
             throw new PersistencyException("Cannot recreate a null data source");
-
-        log.info("recreateDataSource() autocommit={}", forcedAutoCommit);
-
+        Logger.msg(3, "JooqHandler.recreateDataSource() autocommit=%b", forcedAutoCommit);
         HikariConfig config = new HikariConfig();
         ds.copyStateTo(config);
         config.setAutoCommit(forcedAutoCommit);
@@ -231,8 +224,7 @@ public abstract class JooqHandler {
         try {
             if (ds != null){
                 HikariPoolMXBean poolBean = ds.getHikariPoolMXBean();
-                log.debug("closeDataSource() active connections={}", poolBean.getActiveConnections());
-
+                Logger.msg(3, "JooqHandler.closeDataSource() active connections=%d", poolBean.getActiveConnections());
                 while (poolBean.getActiveConnections() > 0) {
                     poolBean.softEvictConnections();
                 }
@@ -241,7 +233,7 @@ public abstract class JooqHandler {
             }
         }
         catch (Exception e) {
-            log.error("", e);
+            Logger.error(e);
             throw new PersistencyException(e.getMessage());
         }
     }
@@ -251,7 +243,8 @@ public abstract class JooqHandler {
             return using(getDataSource(), dialect);
         }
         catch (Exception ex) {
-            log.error("JooqHandler could not connect to URI '"+uri+"' with user '"+user+"'", ex);
+            Logger.error("JooqHandler could not connect to URI '"+uri+"' with user '"+user+"'");
+            Logger.error(ex);
             throw new PersistencyException(ex.getMessage());
         }
     }
@@ -261,7 +254,8 @@ public abstract class JooqHandler {
             return using(conn);
         }
         catch (Exception ex) {
-            log.error("JooqHandler could not connect to URI '"+uri+"' with user '"+user+"'", ex);
+            Logger.error("JooqHandler could not connect to URI '"+uri+"' with user '"+user+"'");
+            Logger.error(ex);
             throw new PersistencyException(ex.getMessage());
         }
     }
@@ -356,14 +350,14 @@ public abstract class JooqHandler {
     public static void logConnectionCount(String text, DSLContext context) {
         if (context.dialect().equals(POSTGRES)) {
             Record rec = context.fetchOne("SELECT sum(numbackends) FROM pg_stat_database;");
-            log.trace("{} ------- Number of POSTGRES connections:{}", text, rec.get(0, Integer.class));
+            Logger.msg("%s ------- Number of POSTGRES connections:%d", text, rec.get(0, Integer.class));
         }
         else if (context.dialect().equals(MYSQL)) {
             Record rec = context.fetchOne("SHOW STATUS WHERE `variable_name` = 'Threads_connected';");
-            log.trace("{} ------- Number of MSQL connections:{}", text, rec.get(1, String.class));
+            Logger.msg("%s ------- Number of MSQL connections:%s", text, rec.get(1, String.class));
         }
         else {
-            log.trace("{} ------- Printing number of connections not supported for dialect:{}", text, context.dialect());
+            Logger.warning("%s ------- Printing number of connections not supported for dialect:%s", text, context.dialect());
         }
     }
 }
