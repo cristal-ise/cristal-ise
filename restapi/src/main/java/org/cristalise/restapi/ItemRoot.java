@@ -180,7 +180,7 @@ public class ItemRoot extends ItemUtils {
     }
 
     /**
-     * Retrieve the the named version of Aggregate Scriptof the Item if exists.
+     * Retrieve the the named version of Aggregate Script of the Item if exists.
      * 
      * @param item to be checked
      * @param name the name or UUID of he Script
@@ -289,26 +289,6 @@ public class ItemRoot extends ItemUtils {
 
         if (jsonFlag) return Response.ok(XML.toJSONObject(xmlResult, true).toString());
         else          return Response.ok(xmlResult);
-    }
-
-    /**
-     * Returns the so called Aggregate Script which can be used to construct master outcome.
-     * The method is created to retrieve the script in the if statement
-     * 
-     * @param type value of Type Property of the Item
-     * @param scriptVersion the version of the script
-     * @return the script or null
-     */
-    private Script getAggregateScript(String type, Integer scriptVersion) {
-        String scriptName = type + Gateway.getProperties().getString("REST.MasterOutcome.postfix", "_Aggregate");
-
-        try {
-            return LocalObjectLoader.getScript(scriptName, scriptVersion);
-        }
-        catch (ObjectNotFoundException | InvalidDataException e1) {
-            log.debug("getAggregateScript() - Could not find Script name:{}", scriptName);
-        }
-        return null;
     }
 
     @GET
