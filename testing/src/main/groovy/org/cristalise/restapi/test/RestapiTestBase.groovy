@@ -3,6 +3,8 @@ package org.cristalise.restapi.test
 import static io.restassured.RestAssured.*
 import static org.hamcrest.Matchers.*
 
+import java.time.LocalDateTime
+
 import org.cristalise.kernel.lifecycle.instance.predefined.PredefinedStep
 import org.cristalise.kernel.lifecycle.instance.predefined.server.CreateNewAgent
 import org.cristalise.kernel.lifecycle.instance.predefined.server.CreateNewItem
@@ -16,7 +18,6 @@ import org.junit.Before
 import org.junit.BeforeClass
 
 import groovy.json.JsonBuilder
-import groovy.transform.CompileDynamic
 import groovy.transform.CompileStatic
 import io.restassured.http.ContentType
 import io.restassured.http.Cookie
@@ -46,9 +47,8 @@ class RestapiTestBase {
         timeStamp = getNowString()
     }
 
-    @CompileDynamic //It is dynamic only to quick fix an eclipse compilation issue
     public static String getNowString() {
-        return new Date().format("yyyy-MM-dd_HH-mm-ss_SSS")
+        return LocalDateTime.now().format("yyyy-MM-dd_HH-mm-ss_SSS")
     }
 
     def login() {
