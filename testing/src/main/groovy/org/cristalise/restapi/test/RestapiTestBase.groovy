@@ -9,7 +9,6 @@ import org.cristalise.kernel.lifecycle.instance.predefined.server.CreateNewItem
 import org.cristalise.kernel.lifecycle.instance.predefined.server.CreateNewRole
 import org.cristalise.kernel.process.AbstractMain
 import org.cristalise.kernel.test.utils.KernelXMLUtility
-import org.cristalise.kernel.utils.Logger
 import org.json.JSONArray
 import org.json.JSONObject
 import org.json.XML;
@@ -17,6 +16,7 @@ import org.junit.Before
 import org.junit.BeforeClass
 
 import groovy.json.JsonBuilder
+import groovy.transform.CompileDynamic
 import groovy.transform.CompileStatic
 import io.restassured.http.ContentType
 import io.restassured.http.Cookie
@@ -36,14 +36,19 @@ class RestapiTestBase {
 
     @BeforeClass
     public static void init() {
-        Logger.addLogStream(System.out, 5)
+        org.cristalise.kernel.utils.Logger.addLogStream(System.out, 5)
         Properties props = AbstractMain.readPropertyFiles("src/main/bin/client.conf", "src/main/bin/integTest.clc", null)
         apiUri = props.get('REST.URI')
     }
 
     @Before
     public void before() {
-        timeStamp = new Date().format("yyyy-MM-dd_HH-mm-ss_SSS")
+        timeStamp = getNowString()
+    }
+
+    @CompileDynamic //It is dynamic only to quick fix an eclipse compilation issue
+    public static String getNowString() {
+        return new Date().format("yyyy-MM-dd_HH-mm-ss_SSS")
     }
 
     def login() {

@@ -22,6 +22,7 @@ import org.mvel2.templates.CompiledTemplate
 import org.mvel2.templates.TemplateCompiler
 import org.mvel2.templates.TemplateRuntime
 
+import groovy.transform.CompileDynamic
 import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
 
@@ -59,6 +60,7 @@ class KernelScenarioTestBase extends DevItemDSL {
         return (String) TemplateRuntime.execute(expr, vars);
     }
 
+    @CompileDynamic //It is dynamic only to quick fix an eclipse compilation issue
     public static String getNowString() {
         return new Date().format("yyyy-MM-dd_HH-mm-ss_SSS")
     }
