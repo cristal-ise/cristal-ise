@@ -54,7 +54,7 @@ def TestItemPropDesc = PropertyDescriptionList('TestItem', 0) {
     PropertyDesc(name: 'State', isMutable: true,  isClassIdentifier: true, defaultValue: 'ACTIVE')
 }
 
-Item(name: 'TestItemFactory', folder: '/', workflow: 'TestItemFactory_Workflow', workflowVer: 0) {
+Item(name: 'TestItemFactory', folder: '/testns', workflow: 'TestItemFactory_Workflow') {
     Property('Type': 'Factory')
     Outcome(schema: 'PropertyDescription', version: '0', viewname: 'last', path: 'boot/property/TestItem.xml')
     Dependency("workflow'") {

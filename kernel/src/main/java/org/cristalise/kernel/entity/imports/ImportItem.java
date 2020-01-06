@@ -88,10 +88,6 @@ public class ImportItem extends ModuleImport {
      */
     protected Workflow wf;
 
-    //TODO: Check if these 2 flags should go to class ModuleImport
-    protected boolean isNewItem = true;
-    protected boolean isDOMPathExists = true; //avoids multiple call to domainPath.exists()
-
     public ImportItem() {}
 
     public ImportItem(String ns, String name, String initialPath, ItemPath itemPath, String wf, int wfVer) {

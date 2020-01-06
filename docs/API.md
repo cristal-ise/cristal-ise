@@ -24,13 +24,13 @@ This section details the objects that are created during CRISTAL process creatio
 
 _Singletons that CRISTAL processes use to find and communicate with Items_
 
-1.  [Properties](../ObjectProperties) - Cristal process configuration properties. Origin, usage and standard sets.
-1.  [Lookup](../Lookup) - Item and Agent Directory. Paths and resolution.
-1.  [TransactionManager](../ClusterStorageManager#TransactionManager) - Persistency of Cristal local objects.
-1.  [ProxyManager](../ProxyManager) - Client proxies to cristal Items and Agents.
-1.  [ModuleManager](../ModuleManager) - Loads, imports and initializes CRISTAL modules, which supply additional functionality through bundled Items.
-1.  [ResourceLoader](../ResourceLoader) - loads Java resources from the kernel or Module jars.
-1.  [CastorXMLUtility](../CastorXMLUtility) - Mapping between Cristal local objects and Schema described XML fragments using the kernel mapfiles.
+1. [Properties](../ObjectProperties) - Cristal process configuration properties. Origin, usage and standard sets.
+1. [Lookup](../Lookup) - Item and Agent Directory. Paths and resolution.
+1. [TransactionManager](../ClusterStorageManager#TransactionManager) - Persistency of Cristal local objects.
+1. [ProxyManager](../ProxyManager) - Client proxies to cristal Items and Agents.
+1. [ModuleManager](../ModuleManager) - Loads, imports and initializes CRISTAL modules, which supply additional functionality through bundled Items.
+1. [ResourceLoader](../ResourceLoader) - loads Java resources from the kernel or Module jars.
+1. [CastorXMLUtility](../CastorXMLUtility) - Mapping between Cristal local objects and Schema described XML fragments using the kernel mapfiles.
 
 _Server only singletons_
 
@@ -51,6 +51,13 @@ _Bundles of Items that add functionality to a kernel instance_
 _Read the Items of the modules and instantiate or update them to initialize the application_
 
 1. [Boot-Sequence-of-Server](../Boot-Sequence-of-Server) - sequence of events involved in starting a CRISTAL server process
+
+## Persistency
+
+_Version-controlled document-oriented persistency_
+
+1. [TransactionManager](../ClusterStorageManager#TransactionManager) - Persistency of Cristal local objects.
+1. [ClusterStorage](../ClusterStorage)
 
 # CRISTAL-iSE Building Blocks
 

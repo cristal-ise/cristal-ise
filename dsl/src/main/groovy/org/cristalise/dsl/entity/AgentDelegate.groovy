@@ -35,11 +35,14 @@ import org.cristalise.kernel.entity.imports.ImportRole
 @CompileStatic
 class AgentDelegate extends PropertyDelegate {
 
-    ImportAgent newAgent = new ImportAgent()
+    ImportAgent newAgent = null
+
+    public AgentDelegate(String folder, String name, String pwd) {
+        newAgent = new ImportAgent(folder, name, pwd)
+    }
 
     public AgentDelegate(String name, String pwd) {
-        newAgent.name = name
-        newAgent.password = pwd
+        newAgent = new ImportAgent(name, pwd)
     }
 
     public void processClosure(Closure cl) {
