@@ -33,8 +33,6 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-import javax.crypto.BadPaddingException;
-import javax.crypto.IllegalBlockSizeException;
 import javax.ws.rs.core.Cookie;
 import javax.ws.rs.core.NewCookie;
 import javax.ws.rs.core.Response;
@@ -88,30 +86,34 @@ abstract public class RestHandler {
     }
 
     /**
+     * Tries to decrypt AuthData from the cookie string. It will make 5 attempts before throwing the exception.
+     * Check issue https://github.com/cristal-ise/restapi/issues/25
      * 
-     * @param authData
-     * @return
-     * @throws InvalidAgentPathException
-     * @throws IllegalBlockSizeException
-     * @throws BadPaddingException
-     * @throws InvalidDataException
+     * @param authData the cookie string
+     * @return the decypted {@link AuthData}
+     * @throws InvalidAgentPathException cookie was containing invalid uuid
+     * @throws InvalidDataException Cookie too old
      */
     protected synchronized AuthData decryptAuthData(String authData)
-            throws InvalidAgentPathException, IllegalBlockSizeException, BadPaddingException, InvalidDataException
+            throws InvalidAgentPathException, InvalidDataException
     {
-        byte[] bytes = DatatypeConverter.parseBase64Binary(authData);
+        int cntRetries = 5; // try to decrypt 5 times before throwing an exception
 
-        for (int cntRetries = 1; ; cntRetries++) {
+        while(true) {
             try {
+                byte[] bytes = DatatypeConverter.parseBase64Binary(authData);
                 return new AuthData(aesCipherService.decrypt(bytes, cookieKey.getEncoded()).getBytes());
             }
             catch (final Exception e) {
-                log.trace("Exception caught in decryptAuthData: #{}", cntRetries , e);
-
-                // try to decrypt 5 times before throwing an exception
-                if (cntRetries == 5) 
-                    log.error("Faild to decrypting AuthData ({}th try)", cntRetries , e);
+                if (cntRetries == 1) {
+                    log.error("Faild to decrypting AuthData ({}th attempt)", cntRetries , e);
                     throw e;
+                }
+                else {
+                    log.trace("Exception caught in decryptAuthData: #{} attempt", cntRetries , e);
+                }
+
+                cntRetries--;
             }
         }
     }
@@ -120,12 +122,8 @@ abstract public class RestHandler {
      * 
      * @param auth
      * @return
-     * @throws IllegalBlockSizeException
-     * @throws BadPaddingException
      */
-    protected synchronized String encryptAuthData(AuthData auth)
-            throws IllegalBlockSizeException, BadPaddingException
-    {
+    protected synchronized String encryptAuthData(AuthData auth) {
         byte[] bytes = aesCipherService.encrypt(auth.getBytes(), cookieKey.getEncoded()).getBytes();
         return DatatypeConverter.printBase64Binary(bytes);
     }
@@ -181,7 +179,7 @@ abstract public class RestHandler {
         try {
             NewCookie cookie = new NewCookie(COOKIENAME, encryptAuthData(authData), "/", null, null, -1, false);
             return  cookie;
-        } catch (IllegalBlockSizeException | BadPaddingException e) {
+        } catch (Exception e) {
             log.error("Problem building response JSON", e);
             throw new WebAppExceptionBuilder("Problem building response JSON: ", e, Response.Status.INTERNAL_SERVER_ERROR, null).build();
         }
@@ -196,11 +194,8 @@ abstract public class RestHandler {
     public synchronized AgentPath getAgentPath(Cookie authCookie) {
         AuthData authData = checkAuthCookie( authCookie );
 
-        if ( authData == null ) {
-            return null;
-        } else {
-            return authData.agent;
-        }
+        if (authData == null) return null;
+        else                  return authData.agent;
     }
 
     /**

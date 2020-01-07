@@ -45,7 +45,6 @@ import javax.ws.rs.core.NewCookie;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 
-import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.cristalise.kernel.common.AccessRightsException;
 import org.cristalise.kernel.common.InvalidCollectionModification;
@@ -73,6 +72,7 @@ import org.glassfish.jersey.media.multipart.FormDataParam;
 import org.json.XML;
 
 import com.google.common.collect.ImmutableMap;
+import com.google.common.io.ByteStreams;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -180,7 +180,7 @@ public class ItemRoot extends ItemUtils {
     }
 
     /**
-     * Retrieve the the named version of Aggregate Scriptof the Item if exists.
+     * Retrieve the the named version of Aggregate Script of the Item if exists.
      * 
      * @param item to be checked
      * @param name the name or UUID of he Script
@@ -289,26 +289,6 @@ public class ItemRoot extends ItemUtils {
 
         if (jsonFlag) return Response.ok(XML.toJSONObject(xmlResult, true).toString());
         else          return Response.ok(xmlResult);
-    }
-
-    /**
-     * Returns the so called Aggregate Script which can be used to construct master outcome.
-     * The method is created to retrieve the script in the if statement
-     * 
-     * @param type value of Type Property of the Item
-     * @param scriptVersion the version of the script
-     * @return the script or null
-     */
-    private Script getAggregateScript(String type, Integer scriptVersion) {
-        String scriptName = type + Gateway.getProperties().getString("REST.MasterOutcome.postfix", "_Aggregate");
-
-        try {
-            return LocalObjectLoader.getScript(scriptName, scriptVersion);
-        }
-        catch (ObjectNotFoundException | InvalidDataException e1) {
-            log.debug("getAggregateScript() - Could not find Script name:{}", scriptName);
-        }
-        return null;
     }
 
     @GET
@@ -538,8 +518,8 @@ public class ItemRoot extends ItemUtils {
                    InvalidTransitionException, ObjectAlreadyExistsException, InvalidCollectionModification, ScriptErrorException, IOException
     {
         Job thisJob = item.getJobByTransitionName(actPath, transition, agent);
-        
-        byte[] binaryData = IOUtils.toByteArray(file);
+
+        byte[] binaryData = ByteStreams.toByteArray(file);
 
         if (thisJob == null) {
             throw new ObjectNotFoundException("Job not found for actPath:" + actPath+ " transition:" + transition);
