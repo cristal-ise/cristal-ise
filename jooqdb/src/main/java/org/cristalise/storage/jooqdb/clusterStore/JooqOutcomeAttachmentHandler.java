@@ -38,6 +38,7 @@ import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.utils.LocalObjectLoader;
 import org.cristalise.storage.jooqdb.JooqHandler;
 import org.jooq.Condition;
+import org.jooq.CreateTableColumnStep;
 import org.jooq.DSLContext;
 import org.jooq.Field;
 import org.jooq.InsertSetMoreStep;
@@ -157,16 +158,20 @@ public class JooqOutcomeAttachmentHandler extends JooqHandler {
 
     @Override
     public void createTables(DSLContext context) throws PersistencyException {
-        context.createTableIfNotExists(OUTCOME_ATTACHMENT_TABLE)
-        .column(UUID,           UUID_TYPE      .nullable(false))
-        .column(SCHEMA_NAME,    NAME_TYPE      .nullable(false))
-        .column(SCHEMA_VERSION, VERSION_TYPE   .nullable(false))
-        .column(EVENT_ID,       ID_TYPE        .nullable(false))
-        .column(MIME_TYPE,      NAME_TYPE      .nullable(true))
-        .column(ATTACHMENT,     ATTACHMENT_TYPE.nullable(false))
-        .constraints(
+        CreateTableColumnStep create = 
+                context.createTableIfNotExists(OUTCOME_ATTACHMENT_TABLE)
+                    .column(UUID,           UUID_TYPE      .nullable(false))
+                    .column(SCHEMA_NAME,    NAME_TYPE      .nullable(false))
+                    .column(SCHEMA_VERSION, VERSION_TYPE   .nullable(false))
+                    .column(EVENT_ID,       ID_TYPE        .nullable(false))
+                    .column(ATTACHMENT,     ATTACHMENT_TYPE.nullable(false));
+
+        if (enableMimeType) create.column(MIME_TYPE, NAME_TYPE.nullable(true));
+
+        create
+            .constraints(
                 constraint("PK_"+OUTCOME_ATTACHMENT_TABLE).primaryKey(UUID, SCHEMA_NAME, SCHEMA_VERSION, EVENT_ID))
-        .execute();
+            .execute();
     }
 
     @Override
