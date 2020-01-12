@@ -57,6 +57,8 @@ public class JooqOutcomeAttachmentHandler extends JooqHandler {
     static final Field<String>  MIME_TYPE       = field(name("MIME_TYPE"),      String.class);
     static final Field<byte[]>  ATTACHMENT      = field(name("ATTACHMENT"),     byte[].class);
 
+    private boolean enableMimeType = Gateway.getProperties().getBoolean("JOOQ.OutcomeAttachment.enableMimeType", true);
+
     @Override
     protected Table<?> getTable() {
         return OUTCOME_ATTACHMENT_TABLE;
@@ -110,19 +112,17 @@ public class JooqOutcomeAttachmentHandler extends JooqHandler {
 
     @Override
     public int insert(DSLContext context, UUID uuid, C2KLocalObject obj) {
-        OutcomeAttachment outcome = (OutcomeAttachment)obj;
+        OutcomeAttachment attachment = (OutcomeAttachment)obj;
 
         InsertSetMoreStep<?> insert = 
                 context.insertInto(OUTCOME_ATTACHMENT_TABLE)
                        .set(UUID,           uuid)
-                       .set(SCHEMA_NAME,    outcome.getSchemaName())
-                       .set(SCHEMA_VERSION, outcome.getSchemaVersion())
-                       .set(EVENT_ID,       outcome.getEventId())
-                       .set(ATTACHMENT,     outcome.getBinaryData());
+                       .set(SCHEMA_NAME,    attachment.getSchemaName())
+                       .set(SCHEMA_VERSION, attachment.getSchemaVersion())
+                       .set(EVENT_ID,       attachment.getEventId())
+                       .set(ATTACHMENT,     attachment.getBinaryData());
 
-        if (Gateway.getProperties().getBoolean("JOOQ.OutcomeAttachment.enableMimeType.", false)) {
-            insert.set(MIME_TYPE, outcome.getType());
-        }
+        if (enableMimeType) insert.set(MIME_TYPE, attachment.getType());
 
         return insert.execute();
     }
@@ -132,11 +132,9 @@ public class JooqOutcomeAttachmentHandler extends JooqHandler {
         Record result = fetchRecord(context, uuid, primaryKeys);
 
         if(result != null) {
-            String type = null;
+            String mimeType = null;
 
-            if (Gateway.getProperties().getBoolean("JOOQ.OutcomeAttachment.enableMimeType.", false)) {
-                type = result.get(MIME_TYPE);
-            }
+            if (enableMimeType) mimeType = result.get(MIME_TYPE);
 
             try {
                 Schema schema =  LocalObjectLoader.getSchema(result.get(SCHEMA_NAME), result.get(SCHEMA_VERSION));
@@ -146,7 +144,7 @@ public class JooqOutcomeAttachmentHandler extends JooqHandler {
                         schema.getName(),
                         schema.getVersion(),
                         result.get(EVENT_ID),
-                        type,
+                        mimeType,
                         binaryData);
             }
             catch (Exception e) {
