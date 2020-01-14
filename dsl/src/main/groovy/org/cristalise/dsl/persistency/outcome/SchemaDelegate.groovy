@@ -219,6 +219,10 @@ class SchemaDelegate {
                     if (f.dynamicForms.updateFields !=null) updateFields(f.dynamicForms.updateFields.join(','))
                 }
             }
+
+            if (f.isFileUpload()) {
+                if (f.dynamicForms.accept != null)            accept(   f.dynamicForms.accept)
+            }
         }
     }
 
