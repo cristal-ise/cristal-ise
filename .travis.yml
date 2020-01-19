@@ -14,7 +14,7 @@ before_install:
 install:
   - mvn --settings .maven.xml install -Dgpg.skip -B -V
 script:
-  - if [ "$TRAVIS_PULL_REQUEST" == "false" ] && [[ "$TRAVIS_BRANCH" == "develop" || "$TRAVIS_BRANCH" == "master" || "$TRAVIS_BRANCH" == "support/*" ]]; then mvn clean deploy --settings .maven.xml -DskipTests=true -B -U -Prelease; fi
+  - if [ "$TRAVIS_PULL_REQUEST" == "false" ] && [[ "$TRAVIS_BRANCH" == "develop" || "$TRAVIS_BRANCH" == "master" || [[ "$TRAVIS_BRANCH" == "support/*" ]] ]]; then mvn clean deploy --settings .maven.xml -DskipTests=true -B -U -Prelease; fi
 cache:
   directories:
     - $HOME/.m2
