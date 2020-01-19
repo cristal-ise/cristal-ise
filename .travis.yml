@@ -4,8 +4,9 @@ dist: trusty
 branches: 
   only:
     - master
-    - release
     - develop
+    - /^release\/.*$/
+    - /^support\/.*$/
 before_install:
   - echo $GPG_SECRET_KEYS | base64 --decode | $GPG_EXECUTABLE --import
   - echo $GPG_OWNERTRUST | base64 --decode | $GPG_EXECUTABLE --import-ownertrust
