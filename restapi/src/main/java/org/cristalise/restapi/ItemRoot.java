@@ -447,6 +447,7 @@ public class ItemRoot extends ItemUtils {
     @Path("{binaryUploadPath: .*}")
     public String requestBinaryTransition(  String      postData,
             @FormDataParam ("file")         InputStream file,
+            @FormDataParam("outcome") String outcome,
             @Context                        HttpHeaders headers,
             @PathParam("uuid")              String      uuid,
             @PathParam("binaryUploadPath")  String      actPath,
@@ -480,7 +481,7 @@ public class ItemRoot extends ItemUtils {
             }
             else {
                 transition = extractAndCheckTransitionName(transition, uri);
-                executeResult = executeUploadJob(item, file, postData, contentType, actPath, transition, agent);
+                executeResult = executeUploadJob(item, file, outcome, contentType, actPath, transition, agent);
             }
 
             if (produceJSON(headers.getAcceptableMediaTypes())) return XML.toJSONObject(executeResult, true).toString();
@@ -513,7 +514,7 @@ public class ItemRoot extends ItemUtils {
      * @throws ScriptErrorException
      * @throws IOException
      */
-    private String executeUploadJob(ItemProxy item, InputStream file, String postData, String contentType, String actPath, String transition, AgentProxy agent)
+    private String executeUploadJob(ItemProxy item, InputStream file, String outcome, String contentType, String actPath, String transition, AgentProxy agent)
             throws AccessRightsException, ObjectNotFoundException, PersistencyException, InvalidDataException, OutcomeBuilderException,
                    InvalidTransitionException, ObjectAlreadyExistsException, InvalidCollectionModification, ScriptErrorException, IOException
     {
@@ -531,6 +532,9 @@ public class ItemRoot extends ItemUtils {
                     new OutcomeAttachment(item.getPath(), thisJob.getSchema().getName(), thisJob.getSchema().getVersion(), -1, MediaType.APPLICATION_OCTET_STREAM, binaryData); 
 
             thisJob.setAttachment(outcomeAttachment);
+            if (outcome != null || outcome.length() > 0) {
+                thisJob.setOutcome(outcome);
+            }
         }
         return agent.execute(thisJob);
     }
