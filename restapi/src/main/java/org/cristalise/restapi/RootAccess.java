@@ -24,15 +24,12 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
-import javax.ws.rs.Consumes;
 import javax.ws.rs.CookieParam;
 import javax.ws.rs.GET;
-import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Cookie;
-import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
@@ -69,33 +66,6 @@ public class RootAccess extends RestHandler {
         resourceData.put("url", uri.getBaseUriBuilder().path(name).build());
 
         return resourceData;
-    }
-
-    @GET
-    @Path("{logger")
-    @Produces( {MediaType.TEXT_XML, MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON } )
-    public String getLoggerConfig(
-            @Context                 HttpHeaders headers,
-            @CookieParam(COOKIENAME) Cookie      authCookie,
-            @Context                 UriInfo     uri)
-    {
-        checkAuthCookie(authCookie);
-        //produceJSON(headers.getAcceptableMediaTypes());
-        return null;
-    }
-
-    @POST
-    @Path("{logger")
-    @Consumes( {MediaType.TEXT_XML, MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON } )
-    @Produces( {MediaType.TEXT_XML, MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON } )
-    public String configureLogger(   String      postData,
-            @Context                 HttpHeaders headers,
-            @CookieParam(COOKIENAME) Cookie      authCookie,
-            @Context                 UriInfo     uri)
-    {
-        checkAuthCookie(authCookie);
-        //produceJSON(headers.getAcceptableMediaTypes());
-        return null;
     }
 
 }
