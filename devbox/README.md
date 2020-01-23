@@ -17,9 +17,9 @@
 ### Configure cristal-ise vagrant devbox
 
 - default user: vagrant/vagrant
-- Change password of root user : `sudo passwd ubuntu`
-
-- Add umake bin to PATH in .profile:
+- Change password of root user
+   `sudo passwd ubuntu`
+- Add umake bin to PATH in .profile
 
 ```shell
 if [ -d "$HOME/.local/share/umake/bin" ] ; then
@@ -28,16 +28,14 @@ fi
 ```
 
 - jdk 11 does not have the ejb/corba libraries so configure linux to use java 8
-`sudo update-alternatives --config java`
-`sudo update-alternatives --config javac`
+   `sudo update-alternatives --config java`
+   `sudo update-alternatives --config javac`
 
 - `mkdir workspace; cd workspace`
 - `git clone https://username@github.com/cristal-ise/cristal-ise.git`
-
-- to download all maven dependencies, the 'mvn install' needs to be run on the parent pom before any build in eclipse
-`cd cristal-ise; mvn install`
-
-- install eclipse 'umake ide exlipse' or eclipse-inst
+- Before any build in eclipse download all maven dependencies
+   `cd cristal-ise; mvn install`
+- install eclipse `umake ide exlipse` or download eclipse-inst
 - add groovy plugin to eclipse:  https://dist.springsource.org/release/GRECLIPSE/e4.14
 - configure eclipse to use groovy 2.5
 - add lombok to eclipse
