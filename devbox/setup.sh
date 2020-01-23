@@ -14,7 +14,7 @@ apt-mark unhold keyboard-configuration
 # install utilities
 apt-get -y install vim git zip bzip2 fontconfig curl ca-certificates language-pack-en
 
-# install Java 8
+# install Openjdk 8 max 10 (java 11 does not contain ejb/corba packages anymore)
 apt-get install openjdk-8-jdk
 
 # install Maven
@@ -28,7 +28,7 @@ apt-get install -y nodejs
 npm install -g npm
 
 # install NPM packagaes
-
+#npm install -g @angular/cli
 
 ################################################################################
 # Install the graphical environment
@@ -43,7 +43,7 @@ echo 'LC_CTYPE=en_US.UTF-8' >> /etc/environment
 # run GUI as non-privileged user
 echo 'allowed_users=anybody' > /etc/X11/Xwrapper.config
 
-# install Ubuntu desktop and VirtualBox guest tools
+# install xubuntu desktop and VirtualBox guest tools
 apt-get install -y xubuntu-desktop virtualbox-guest-dkms virtualbox-guest-utils virtualbox-guest-x11
 
 # remove light-locker
@@ -105,7 +105,14 @@ chown -R vagrant:vagrant /home/vagrant/
 # Install IDEs
 ################################################################################
 
+# install the latest umake
+add-apt-repository ppa:lyzardking/ubuntu-make
+apt-get update
+apt-get install ubuntu-make
+
 # install Eclipse
+
+# install Intellij
 
 # install VSCode
 wget -q https://packages.microsoft.com/keys/microsoft.asc -O- | apt-key add -
