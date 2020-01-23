@@ -40,3 +40,4 @@ fi
 - add groovy plugin to eclipse:  https://dist.springsource.org/release/GRECLIPSE/e4.14
 - configure eclipse to use groovy 2.5
 - add lombok to eclipse
+- In eclipse: 'Import/Existing Maven Projects'
