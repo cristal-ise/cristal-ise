@@ -23,11 +23,11 @@ fi
 
 ### Configure Eclipse
 
-1. install eclipse `umake ide exlipse` or download eclipse-inst
-1. add lombok to eclipse: https://projectlombok.org/download
-1. open Eclipse and use workspace: `~/workspace/cristal-ise`
-1. add groovy plugin to eclipse:  https://dist.springsource.org/release/GRECLIPSE/e4.14
-1.. configure eclipse to use groovy 2.5
+1. Install eclipse `umake ide exlipse` or download eclipse-inst
+1. Add lombok to eclipse: https://projectlombok.org/download
+1. Open Eclipse and use workspace: `~/workspace/cristal-ise`
+1. Add groovy plugin to eclipse:  https://dist.springsource.org/release/GRECLIPSE/e4.14
+1. Configure eclipse to use groovy 2.5
 1. 'Import/Existing Maven Projects' - select directory `~/workspace/cristal-ise`
 1. The flattener maven plugin has to be ignored for all imported projects in eclipse preferences
 
