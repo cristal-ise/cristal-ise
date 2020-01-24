@@ -1,3 +1,7 @@
+## Create cristal-ise vagrant devbox
+
+- Use eclipe vagrant tools
+
 ## Configure cristal-ise vagrant devbox
 
 - default user: vagrant/vagrant
@@ -23,11 +27,14 @@ fi
 
 - `mkdir workspace; cd workspace`
 - `git clone https://john.doe@github.com/cristal-ise/cristal-ise.git`
-- `cd cristal-ise; mvn install` - Do this step before any build in eclipse to download all maven dependencies
+- `cd cristal-ise;`
+- `git checkout -t origin/master`
+- `git flow init`
+- `mvn install` - Do this step before any build in eclipse to download all maven dependencies
 
 ### Configure Eclipse
 
-1. Install eclipse `umake ide exlipse` or download eclipse-inst
+1. Install eclipse `umake ide eclipse` or download eclipse-inst
 1. Add lombok to eclipse: https://projectlombok.org/download
 1. Open Eclipse and use workspace: `~/workspace/cristal-ise`
 1. Add groovy plugin to eclipse:  https://dist.springsource.org/release/GRECLIPSE/e4.14

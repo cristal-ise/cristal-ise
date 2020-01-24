@@ -20,15 +20,15 @@ apt-get install openjdk-8-jdk
 # install Maven
 apt-get install -y maven
 
-# install Node.js
+# install Node.js - it will install npm as well
 curl -sL https://deb.nodesource.com/setup_10.x | bash
 apt-get install -y nodejs
 
 # update NPM
 npm install -g npm
 
-# install NPM packagaes
-#npm install -g @angular/cli
+# install NPM packages
+npm install -g @angular/cli
 
 ################################################################################
 # Install the graphical environment
@@ -53,6 +53,11 @@ apt-get remove -y light-locker --purge
 # Install the development tools
 ################################################################################
 
+# install git-flow
+curl -OL https://raw.github.com/nvie/gitflow/develop/contrib/gitflow-installer.sh
+chmod +x gitflow-installer.sh
+sudo ./gitflow-installer.sh
+
 # install Ubuntu Make - see https://wiki.ubuntu.com/ubuntu-make
 apt-get install -y ubuntu-make
 
@@ -62,7 +67,7 @@ apt-get install -y chromium-browser
 # install MySQL Workbench
 apt-get install -y mysql-workbench
 
-# install postgres packages for PgAdmin 4
+# install PgAdmin 4
 curl https://www.postgresql.org/media/keys/ACCC4CF8.asc | apt-key add -
 sh -c 'echo "deb http://apt.postgresql.org/pub/repos/apt/ $(lsb_release -cs)-pgdg main" > /etc/apt/sources.list.d/pgdg.list'
 apt-get update
