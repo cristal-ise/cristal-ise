@@ -791,7 +791,7 @@ public class Outcome implements C2KLocalObject {
                 return getNodeValue(elements.item(0));
             }
             else{
-                log.warn("getField() - '{}' is invalid or not a single field", name);
+                log.debug("getField() - '{}' is invalid or not a single field", name);
             }
         }
         catch (InvalidDataException e) {

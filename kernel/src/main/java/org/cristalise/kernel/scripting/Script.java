@@ -795,7 +795,7 @@ public class Script implements DescriptionObject {
         // if no outputs are defined, return null
         if (mOutputParams.size() == 0) {
             if (returnValue != null)
-                log.warn("packScriptReturnValue("+getName()+") - No output params defined, returnValue is NOT null but it is discarded");
+                log.trace("packScriptReturnValue("+getName()+") - No output params defined, returnValue is NOT null but it is discarded");
             else
                 log.debug("packScriptReturnValue("+getName()+") - No output params defined. Returning null.");
 
