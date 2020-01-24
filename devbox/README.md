@@ -19,7 +19,7 @@ fi
 
 - `mkdir workspace; cd workspace`
 - `git clone https://username@github.com/cristal-ise/cristal-ise.git`
-- `cd cristal-ise; mvn install` - Before any build in eclipse download all maven dependencies
+- `cd cristal-ise; mvn install` - Do this step before any build in eclipse to download all maven dependencies
 
 ### Configure Eclipse
 
