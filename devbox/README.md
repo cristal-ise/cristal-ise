@@ -2,7 +2,7 @@
 
 - default user: vagrant/vagrant
 - `sudo passwd ubuntu` - Change password of root user
-- Add umake bin to PATH in .profile
+- Add umake bin to PATH in .profile if not there already
 
 ```shell
 if [ -d "$HOME/.local/share/umake/bin" ] ; then
