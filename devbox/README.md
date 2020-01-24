@@ -3,6 +3,9 @@
 - default user: vagrant/vagrant
 - `sudo passwd ubuntu` - Change password of root user
 - `sudo adduser $USER vboxsf` - Add permission to use shared folders with the host OS
+- `git config --global credential.helper cache`
+- `git config --global user.user 'John Doe'`
+- `git config --global user.email john.doe@email.com`
 - Add umake bin to PATH in .profile if not there already
 
 ```shell
@@ -19,11 +22,8 @@ fi
 ```
 
 - `mkdir workspace; cd workspace`
-- `git clone https://username@github.com/cristal-ise/cristal-ise.git`
+- `git clone https://john.doe@github.com/cristal-ise/cristal-ise.git`
 - `cd cristal-ise; mvn install` - Do this step before any build in eclipse to download all maven dependencies
-- `git config --global credential.helper cache`
-- `git config --global user.user 'John Doe'`
-- `git config --global user.email john.doe@eamil.com`
 
 ### Configure Eclipse
 
