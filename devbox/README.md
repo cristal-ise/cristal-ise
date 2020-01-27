@@ -2,7 +2,7 @@ This work is based on [jhipster-devbox](https://github.com/jhipster/jhipster-dev
 
 ## Create cristal-ise vagrant devbox
 
-1. On the host machine clone this repository: git clone `https://john.doe@github.com/cristal-ise/cristal-ise.git`
+1. On the host machine clone this repository: `git clone https://john.doe@github.com/cristal-ise/cristal-ise.git`
 1. `vagrant up`
 - Alternatively use eclipe vagrant tools
 
