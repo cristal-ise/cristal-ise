@@ -2,37 +2,39 @@ This work is based on [jhipster-devbox](https://github.com/jhipster/jhipster-dev
 
 ## Create cristal-ise vagrant devbox
 
-- Use eclipe vagrant tools
+1. On the host machine clone this repository: git clone `https://john.doe@github.com/cristal-ise/cristal-ise.git`
+1. `vagrant up`
+- Alternatively use eclipe vagrant tools
 
 ## Configure cristal-ise vagrant devbox
 
-- default user: vagrant/vagrant
-- `sudo passwd ubuntu` - Change password of root user
-- `sudo adduser $USER vboxsf` - Add permission to use shared folders with the host OS
-- `git config --global credential.helper cache`
-- `git config --global user.user 'John Doe'`
-- `git config --global user.email john.doe@email.com`
-- Add umake bin to PATH in .profile if not there already
+1. default user: vagrant/vagrant
+1. `sudo passwd ubuntu` - Change password of root user
+1. `sudo adduser $USER vboxsf` - Add permission to use shared folders with the host OS
+1. `git config --global credential.helper cache`
+1. `git config --global user.user 'John Doe'`
+1. `git config --global user.email john.doe@email.com`
+1. Add umake bin to PATH in .profile if not there already
 
-```shell
-if [ -d "$HOME/.local/share/umake/bin" ] ; then
-    PATH=/home/vagrant/.local/share/umake/bin:$PATH
-fi
-```
+    ```shell
+    if [ -d "$HOME/.local/share/umake/bin" ] ; then
+        PATH=/home/vagrant/.local/share/umake/bin:$PATH
+    fi
+    ```
 
-- jdk 11 does not have the ejb/corba libraries so configure linux to use java 8
+1. jdk 11 does not have the ejb/corba libraries so configure linux to use java 8
 
-```shell
-  sudo update-alternatives --config java
-  sudo update-alternatives --config javac
-```
+    ```shell
+      sudo update-alternatives --config java
+      sudo update-alternatives --config javac
+    ```
 
-- `mkdir workspace; cd workspace`
-- `git clone https://john.doe@github.com/cristal-ise/cristal-ise.git`
-- `cd cristal-ise;`
-- `git checkout -t origin/master`
-- `git flow init`
-- `mvn install` - Do this step before any build in eclipse to download all maven dependencies
+1. `mkdir workspace; cd workspace`
+1. `git clone https://john.doe@github.com/cristal-ise/cristal-ise.git`
+1. `cd cristal-ise;`
+1. `git checkout -t origin/master`
+1. `git flow init`
+1. `mvn install` - Do this step before any build in eclipse to download all maven dependencies
 
 ### Configure Eclipse
 
