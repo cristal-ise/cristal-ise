@@ -1,3 +1,5 @@
+This work is based on [jhipster-devbox](https://github.com/jhipster/jhipster-devbox).
+
 ## Create cristal-ise vagrant devbox
 
 - Use eclipe vagrant tools
