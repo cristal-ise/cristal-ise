@@ -100,7 +100,7 @@ public class ProxyManager {
         synchronized (proxyPool) {
             for (ItemPath key : proxyPool.keySet()) {
                 ProxyMessage sub = new ProxyMessage(key, ProxyMessage.ADDPATH, false);
-               log.debug("resubscribe() - item:"+key);
+                log.debug("resubscribe() - item:{}", key);
                 conn.sendMessage(sub);
             }
         }
@@ -123,7 +123,7 @@ public class ProxyManager {
     }
 
     protected void processMessage(ProxyMessage thisMessage) throws InvalidDataException {
-        log.trace("mwssage {}", thisMessage.toString());
+        log.debug("processMessage() - Received proxy message:{}", thisMessage);
 
         if (thisMessage.getPath().equals(ProxyMessage.PINGPATH)) // ping response
             return;
@@ -134,17 +134,17 @@ public class ProxyManager {
         }
         else {
             // proper proxy message
-           log.trace("processMessage() - Received proxy message:{}", thisMessage.toString());
             ItemProxy relevant = proxyPool.get(thisMessage.getItemPath());
             if (relevant == null) {
-                log.warn("Received proxy message for sysKey "+thisMessage.getItemPath()+" which we don't have a proxy for.");
+                log.warn("processMessage() - Received proxy message '{}' for which there is no proxy.", thisMessage);
             }
             else {
                 try {
+                    log.trace("processMessage() - notify relevant '{}' of proxy message:{}", relevant, thisMessage);
                     relevant.notify(thisMessage);
                 }
                 catch (Throwable ex) {
-                    log.error("Error caught notifying proxy listener "+relevant.toString()+" of "+thisMessage.toString(), ex);
+                    log.error("Error caught notifying relevant '{}' of proxy message:{}", relevant, thisMessage, ex);
                 }
             }
         }
@@ -191,7 +191,7 @@ public class ProxyManager {
     private ItemProxy createProxy( org.omg.CORBA.Object ior, ItemPath itemPath) throws ObjectNotFoundException {
         ItemProxy newProxy = null;
 
-       log.debug("createProxy() - Item:" + itemPath);
+       log.debug("createProxy() - Item:{}", itemPath);
 
         if( itemPath instanceof AgentPath ) {
             newProxy = new AgentProxy(ior, (AgentPath)itemPath);
@@ -209,7 +209,7 @@ public class ProxyManager {
 
     protected void removeProxy( ItemPath itemPath ) {
         ProxyMessage sub = new ProxyMessage(itemPath, ProxyMessage.DELPATH, true);
-        log.debug("removeProxy() - Unsubscribing to proxy informer for "+itemPath);
+        log.debug("removeProxy() - Unsubscribing to proxy informer for {}", itemPath);
         sendMessage(sub);
     }
 

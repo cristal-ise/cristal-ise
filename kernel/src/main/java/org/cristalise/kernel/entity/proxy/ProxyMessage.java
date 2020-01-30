@@ -91,6 +91,6 @@ public class ProxyMessage {
 
     @Override
     public String toString() {
-        return (itemPath == null ? "tree" : itemPath.getUUID()) + ":" + (state ? "-" : "") + path;
+        return (itemPath == null ? "tree" : itemPath.getUUID()) + ":" + (state ? "-" : "+") + path;
     }
 }
