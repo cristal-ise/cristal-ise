@@ -72,7 +72,9 @@
 		       set-method="setAgentRole">
             <bind-xml name="AgentRole" node="attribute"/>
       </field>
-
+      <field name="mHasAttachment" type="boolean" direct="false" get-method="getHasAttachment" set-method="setHasAttachment">
+         <bind-xml name="hasAttachment" node="attribute"/>
+      </field>
       <field name="mTimeStamp" type="org.cristalise.kernel.common.GTimeStamp" direct="false" get-method="getTimeStamp" set-method="setTimeStamp">
          <bind-xml name="TimeStamp" node="element"/>
       </field>

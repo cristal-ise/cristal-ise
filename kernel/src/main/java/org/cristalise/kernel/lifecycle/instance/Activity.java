@@ -230,7 +230,7 @@ public class Activity extends WfVertex {
                 String viewpoint = resolveViewpointName(newOutcome);
 
                 int eventID = hist.addEvent(agent, delegate, usedRole, getName(), getPath(), getType(),
-                        schema, getStateMachine(), transitionID, viewpoint).getID();
+                        schema, getStateMachine(), transitionID, viewpoint, attachment).getID();
                 newOutcome.setID(eventID);
 
                 Gateway.getStorage().put(itemPath, newOutcome, locker);

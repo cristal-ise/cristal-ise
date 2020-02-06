@@ -53,6 +53,7 @@ public class Event implements C2KLocalObject {
     int        mOriginState, mTransition, mTargetState;
     Integer    mID, mSchemaVersion, mStateMachineVersion;
     String     mName, mStepName, mStepPath, mStepType, mSchemaName, mStateMachineName, mViewName, mAgentRole;
+    boolean    mHasAttachment;
 
     /**
      * It is always in UTC
@@ -81,6 +82,28 @@ public class Event implements C2KLocalObject {
         setStateMachineName(stateMachine.getItemID());
         setStateMachineVersion(stateMachine.getVersion());
         setTimeStamp(DateUtility.getNow());
+    }
+
+    public Event(ItemPath itemPath, AgentPath agentPath, AgentPath delegatePath, String agentRole,
+                 String stepName, String stepPath, String stepType, StateMachine stateMachine, int transitionId, boolean hasAttachment)
+    {
+        Transition transition = stateMachine.getTransition(transitionId);
+        log.trace("Creating new event for {} on {} in {}", transition.getName(), stepName, itemPath);
+
+        setItemPath(itemPath);
+        setAgentPath(agentPath);
+        setDelegatePath(delegatePath);
+        setAgentRole(agentRole);
+        setStepName(stepName);
+        setStepPath(stepPath);
+        setStepType(stepType);
+        setTransition(transitionId);
+        setOriginState(transition.getOriginStateId());
+        setTargetState(transition.getTargetStateId());
+        setStateMachineName(stateMachine.getItemID());
+        setStateMachineVersion(stateMachine.getVersion());
+        setTimeStamp(DateUtility.getNow());
+        setHasAttachment(hasAttachment);
     }
 
     /**
