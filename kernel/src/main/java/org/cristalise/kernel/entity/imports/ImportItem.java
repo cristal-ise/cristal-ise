@@ -170,7 +170,7 @@ public class ImportItem extends ModuleImport {
             throws InvalidDataException, ObjectCannotBeUpdated, ObjectNotFoundException,
             CannotManageException, ObjectAlreadyExistsException, InvalidCollectionModification, PersistencyException
     {
-        log.info("create() - name:%s", name);
+        log.info("create() - name:{}", name);
 
         domainPath = new DomainPath(new DomainPath(initialPath), name);
 
