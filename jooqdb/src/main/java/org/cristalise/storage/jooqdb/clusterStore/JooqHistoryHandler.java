@@ -45,6 +45,8 @@ import org.jooq.Field;
 import org.jooq.Record;
 import org.jooq.Table;
 
+import org.jooq.impl.SQLDataType;
+
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -67,6 +69,7 @@ public class JooqHistoryHandler extends JooqHandler {
     static final Field<Integer>   TARGET_STATE_ID       = field(name("TARGET_STATE_ID"),      Integer.class);
     static final Field<Integer>   TRANSITION_ID         = field(name("TRANSITION_ID"),        Integer.class);
     static final Field<String>    VIEW_NAME             = field(name("VIEW_NAME"),            String.class);
+    static final Field<Boolean>   HAS_ATTACHMENT        = field(name("HAS_ATTACHMENT"),       Boolean.class);
     static final Field<Timestamp> TIMESTAMP             = field(name("TIMESTAMP"),            Timestamp.class);
 
     //static final Field<OffsetDateTime> TIMESTAMP = field(name("TIMESTAMP"), Timestamp.class);
@@ -128,6 +131,7 @@ public class JooqHistoryHandler extends JooqHandler {
                 .set(TARGET_STATE_ID,       event.getTargetState())
                 .set(TRANSITION_ID,         event.getTransition())
                 .set(VIEW_NAME,             event.getViewName())
+                .set(HAS_ATTACHMENT,        event.getHasAttachment())
                 .set(TIMESTAMP,             DateUtility.toSqlTimestamp(event.getTimeStamp()))
                 .execute();
     }
@@ -161,6 +165,7 @@ public class JooqHistoryHandler extends JooqHandler {
                         result.get(SCHEMA_NAME),
                         result.get(SCHEMA_VERSION),
                         result.get(VIEW_NAME),
+                        result.get(HAS_ATTACHMENT),
                         ts);
             }
             catch (Exception ex) {
@@ -191,6 +196,7 @@ public class JooqHistoryHandler extends JooqHandler {
         .column(TARGET_STATE_ID,      ID_TYPE        .nullable(false))
         .column(TRANSITION_ID,        ID_TYPE        .nullable(false))
         .column(VIEW_NAME,            NAME_TYPE      .nullable(true))
+        .column(HAS_ATTACHMENT,       SQLDataType.BOOLEAN.nullable(false))
         .column(TIMESTAMP,            TIMESTAMP_TYPE .nullable(false))
         .constraints(constraint("PK_"+EVENT_TABLE).primaryKey(UUID, ID))
         .execute();

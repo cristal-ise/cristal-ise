@@ -53,7 +53,7 @@ public class Event implements C2KLocalObject {
     int        mOriginState, mTransition, mTargetState;
     Integer    mID, mSchemaVersion, mStateMachineVersion;
     String     mName, mStepName, mStepPath, mStepType, mSchemaName, mStateMachineName, mViewName, mAgentRole;
-    boolean    mHasAttachment;
+    boolean    mHasAttachment = false;
 
     /**
      * It is always in UTC
@@ -86,7 +86,7 @@ public class Event implements C2KLocalObject {
 
     public Event(ItemPath itemPath, AgentPath agentPath, AgentPath delegatePath, String agentRole,
                  String stepName, String stepPath, String stepType, StateMachine stateMachine, int transitionId, boolean hasAttachment)
-    {
+    {   
         Transition transition = stateMachine.getTransition(transitionId);
         log.trace("Creating new event for {} on {} in {}", transition.getName(), stepName, itemPath);
 
@@ -98,12 +98,12 @@ public class Event implements C2KLocalObject {
         setStepPath(stepPath);
         setStepType(stepType);
         setTransition(transitionId);
+        setHasAttachment(hasAttachment);
         setOriginState(transition.getOriginStateId());
         setTargetState(transition.getTargetStateId());
         setStateMachineName(stateMachine.getItemID());
         setStateMachineVersion(stateMachine.getVersion());
         setTimeStamp(DateUtility.getNow());
-        setHasAttachment(hasAttachment);
     }
 
     /**
@@ -130,6 +130,34 @@ public class Event implements C2KLocalObject {
         setSchemaName(schemaName);
         setSchemaVersion(schemaVersion);
         setViewName(viewName);
+        setTimeStamp(ts);
+    }
+
+    /**
+     * Constructor for recreating object from backend
+     */
+    public Event(Integer id, ItemPath itemPath, AgentPath agentPath, AgentPath delegatePath, String agentRole,
+            String stepName, String stepPath, String stepType, 
+            String smName, Integer smVersion, int transitionId, int originState, int targetState,
+            String schemaName, Integer schemaVersion, String viewName, boolean hasAttachment, GTimeStamp ts)
+    {
+        setID(id);
+        setItemPath(itemPath);
+        setAgentPath(agentPath);
+        setDelegatePath(delegatePath);
+        setAgentRole(agentRole);
+        setStepName(stepName);
+        setStepPath(stepPath);
+        setStepType(stepType);
+        setStateMachineName(smName);
+        setStateMachineVersion(smVersion);
+        setTransition(transitionId);
+        setOriginState(originState);
+        setTargetState(targetState);
+        setSchemaName(schemaName);
+        setSchemaVersion(schemaVersion);
+        setViewName(viewName);
+        setHasAttachment(hasAttachment);
         setTimeStamp(ts);
     }
 
@@ -223,5 +251,13 @@ public class Event implements C2KLocalObject {
     public void setViewName(String viewName) {
         if (StringUtils.isBlank(viewName)) mViewName = "last";
         else                               mViewName = viewName;
+    }
+
+    public void setHasAttachment(boolean flag) {
+        mHasAttachment = flag;
+    }
+
+    public boolean getHasAttachment() {
+        return mHasAttachment;
     }
 }

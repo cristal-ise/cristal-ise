@@ -284,17 +284,8 @@ public abstract class ItemUtils extends RestHandler {
 
             eventData.put("outcome", outcomeData);
         }
-
-        if (ev.getHasAttachment()) {
-            LinkedHashMap<String, Object> attachmentData = new LinkedHashMap<String, Object>();
-            attachmentData.put("name",          ev.getViewName());
-            attachmentData.put("schema",        ev.getSchemaName());
-            attachmentData.put("schemaVersion", ev.getSchemaVersion());
-            //outcomeData.put("schemaData",    uri.getBaseUriBuilder().build("schema", ev.getSchemaName(), ev.getSchemaVersion()));
-            attachmentData.put("data",          getItemURI(uri, ev.getItemUUID(), "attachment", ev.getSchemaName(), ev.getSchemaVersion(), ev.getID()));
-
-            eventData.put("attachment", attachmentData);
-        }
+        
+        eventData.put("hasAttachment", ev.getHasAttachment());
 
         // activity data
         LinkedHashMap<String, Object> activityData = new LinkedHashMap<String, Object>();
