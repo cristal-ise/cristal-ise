@@ -78,7 +78,7 @@ public class SecurityManager {
         if (!shiroEnabled) {
             if (!auth.authenticate(SYSTEM_AGENT.getName())) throw new InvalidDataException("Server authentication failed");
         }
-        //NOTE: the else case is not required because shiro cannot authentcate users without a password, and the current
+        //NOTE: the else case is not required because shiro cannot authenticate users without a password, and the current
         //setup does not allow us to create the 'system' Agent with password. Also the original auth.authenticate("system") 
         //code simply sets up the connection to the underlying technology (LDAP/AD/JDBC) to 'authenticate' the system user
     }
