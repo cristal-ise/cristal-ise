@@ -175,7 +175,7 @@ public class Bootstrap
             try {
                 String location = "boot/"+filename+(itemType.equals("OD")?".xsd":".xml");
                 ResourceImportHandler typeImpHandler = Gateway.getResourceImportHandler(BuiltInResources.getValue(itemType));
-                typeImpHandler.verifyResource(ns, itemName, 0, itemPath, location, reset);
+                typeImpHandler.importResource(ns, itemName, 0, itemPath, location, reset);
             }
             catch (Exception e) {
                 log.error("Error importing bootstrap items. Unsafe to continue.", e);

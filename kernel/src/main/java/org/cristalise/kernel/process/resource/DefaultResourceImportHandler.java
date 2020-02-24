@@ -27,12 +27,18 @@ import static org.cristalise.kernel.property.BuiltInItemProperties.MODULE;
 import static org.cristalise.kernel.property.BuiltInItemProperties.NAME;
 import static org.cristalise.kernel.security.BuiltInAuthc.SYSTEM_AGENT;
 
+import java.io.IOException;
 import java.util.HashSet;
 import java.util.Set;
 
 import org.cristalise.kernel.collection.Collection;
 import org.cristalise.kernel.collection.CollectionArrayList;
+import org.cristalise.kernel.common.AccessRightsException;
+import org.cristalise.kernel.common.CannotManageException;
+import org.cristalise.kernel.common.InvalidCollectionModification;
 import org.cristalise.kernel.common.InvalidDataException;
+import org.cristalise.kernel.common.ObjectAlreadyExistsException;
+import org.cristalise.kernel.common.ObjectCannotBeUpdated;
 import org.cristalise.kernel.common.ObjectNotFoundException;
 import org.cristalise.kernel.common.PersistencyException;
 import org.cristalise.kernel.entity.proxy.ItemProxy;
@@ -56,6 +62,9 @@ import org.cristalise.kernel.querying.Query;
 import org.cristalise.kernel.scripting.Script;
 import org.cristalise.kernel.utils.DescriptionObject;
 import org.cristalise.kernel.utils.LocalObjectLoader;
+import org.exolab.castor.mapping.MappingException;
+import org.exolab.castor.xml.MarshalException;
+import org.exolab.castor.xml.ValidationException;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -115,17 +124,19 @@ public class DefaultResourceImportHandler implements ResourceImportHandler {
     }
 
     @Override
-    public DomainPath getPath(String name, String ns) throws Exception {
+    public DomainPath getPath(String name, String ns) {
         //return new DomainPath(type.getTypeRoot()+"/system/"+(ns == null ? "kernel" : ns)+'/'+name);
         return new DomainPath(type.getTypeRoot()+"/"+(ns == null ? "kernel" : ns)+'/'+name);
     }
 
     @Override
-    public Set<Outcome> getResourceOutcomes(String name, String ns, String location, Integer version) throws Exception {
+    public Set<Outcome> getResourceOutcomes(String name, String ns, String location, Integer version) 
+            throws InvalidDataException, ObjectNotFoundException
+    {
         HashSet<Outcome> retArr = new HashSet<Outcome>();
         String data = Gateway.getResource().getTextResource(ns, location);
 
-        if (data == null) throw new Exception("No data found for "+type.getSchemaName()+" "+name);
+        if (data == null) throw new ObjectNotFoundException("No data found for "+type.getSchemaName()+" "+name);
 
         Outcome resOutcome = new Outcome(0, data, LocalObjectLoader.getSchema(type.getSchemaName(), 0));
         retArr.add(resOutcome);
@@ -133,12 +144,12 @@ public class DefaultResourceImportHandler implements ResourceImportHandler {
     }
 
     @Override
-    public PropertyDescriptionList getPropDesc() throws Exception {
+    public PropertyDescriptionList getPropDesc() {
         return props;
     }
 
     @Override
-    public String getWorkflowName() throws Exception {
+    public String getWorkflowName() {
         return type.getWorkflowDef();
     }
 
@@ -147,9 +158,6 @@ public class DefaultResourceImportHandler implements ResourceImportHandler {
      * Methods migrated from Bootstrap
      ********************************/
 
-    /**
-     * Create a resource item from its module definition. The item should not exist.
-     */
     @Override
     public DomainPath createResource(String ns, String itemName, int version, Set<Outcome> outcomes, boolean reset)
             throws Exception
@@ -157,45 +165,36 @@ public class DefaultResourceImportHandler implements ResourceImportHandler {
         return verifyResource(ns, itemName, version, null, outcomes, null, reset);
     }
 
-    /**
-     * Verify a resource item against a module version, using a ResourceImportHandler configured
-     * to find outcomes at the given dataLocation
-     */
     @Override
-    public DomainPath verifyResource(String ns, String itemName, int version, ItemPath itemPath, String dataLocation, boolean reset)
+    public DomainPath importResource(String ns, String itemName, int version, ItemPath itemPath, String dataLocation, boolean reset)
             throws Exception
     {
         return verifyResource(ns, itemName, version, itemPath, null, dataLocation, reset);
     }
 
-    /**
-     * Verify a resource item against a module version, but supplies the resource outcomes directly
-     * instead of through a location lookup
-     */
     @Override
-    public DomainPath verifyResource(String ns, String itemName, int version, ItemPath itemPath, Set<Outcome> outcomes, boolean reset)
+    public DomainPath importResource(String ns, String itemName, int version, ItemPath itemPath, Set<Outcome> outcomes, boolean reset)
             throws Exception
     {
         return verifyResource(ns, itemName, version, itemPath, outcomes, null, reset);
     }
 
     /**
-     *
+     * 
      * @param ns
      * @param itemName
      * @param version
-     * @param itemType
      * @param itemPath
      * @param outcomes
      * @param dataLocation
      * @param reset
-     * @return the Path of the resource either created or initialised from existing data
+     * @return
      * @throws Exception
      */
-    private DomainPath verifyResource(String ns, String itemName, int version, ItemPath itemPath, Set<Outcome> outcomes, String dataLocation, boolean reset)
+    private DomainPath verifyResource(String ns, String itemName, int version, ItemPath itemPath, Set<Outcome> outcomes, String dataLocation, boolean reset) 
             throws Exception
     {
-        log.info("verifyResource() - Verifying "+getName()+" "+ itemName+" v"+version);
+        log.info("verifyResource() - Item '{}' of type '{}' verion '{}'", itemName, getName(), version);
 
         // Find or create Item for Resource
         ItemProxy thisProxy;
@@ -244,18 +243,15 @@ public class DefaultResourceImportHandler implements ResourceImportHandler {
 
     /**
      * Verify module property and location
-     *
-     * @param ns
-     * @param itemType
-     * @param itemName
-     * @param itemPath
-     * @param modDomPath
-     * @param path
-     * @return the ItemProxy either created or initialized for existing resource
-     * @throws Exception
+     * 
+     * @throws CannotManageException 
+     * @throws ObjectNotFoundException 
+     * @throws InvalidDataException 
+     * @throws ObjectAlreadyExistsException 
+     * @throws ObjectCannotBeUpdated 
      */
     private ItemProxy verifyPathAndModuleProperty(String ns, String itemName, ItemPath itemPath, DomainPath modDomPath, DomainPath path)
-            throws Exception
+            throws CannotManageException, ObjectNotFoundException, InvalidDataException, ObjectCannotBeUpdated, ObjectAlreadyExistsException
     {
         LookupManager lookupManager = Gateway.getLookupManager();
         ItemProxy thisProxy = Gateway.getProxyManager().getProxy(path);
@@ -293,14 +289,6 @@ public class DefaultResourceImportHandler implements ResourceImportHandler {
     }
     /**
      *
-     * @param item
-     * @param newOutcome
-     * @param version
-     * @param reset
-     * @return true i the data was changed, since the last Bootstrap run
-     * @throws PersistencyException
-     * @throws InvalidDataException
-     * @throws ObjectNotFoundException
      */
     private boolean checkToStoreOutcomeVersion(ItemProxy item, Outcome newOutcome, int version, boolean reset)
             throws PersistencyException, InvalidDataException, ObjectNotFoundException
@@ -333,10 +321,21 @@ public class DefaultResourceImportHandler implements ResourceImportHandler {
      * @param ns
      * @param itemPath
      * @return the ItemProxy representing the newly create Item
-     * @throws Exception
+     * @throws CannotManageException 
+     * @throws InvalidDataException 
+     * @throws ObjectAlreadyExistsException 
+     * @throws ObjectCannotBeUpdated 
+     * @throws ObjectNotFoundException 
+     * @throws MappingException 
+     * @throws IOException 
+     * @throws InvalidCollectionModification 
+     * @throws PersistencyException 
+     * @throws AccessRightsException 
+     * @throws ValidationException 
+     * @throws MarshalException 
      */
-    private ItemProxy createResourceItem(String itemName, String ns, ItemPath itemPath)
-            throws Exception
+    private ItemProxy createResourceItem(String itemName, String ns, ItemPath itemPath) 
+            throws CannotManageException, InvalidDataException, ObjectAlreadyExistsException, ObjectCannotBeUpdated, ObjectNotFoundException, MarshalException, ValidationException, AccessRightsException, PersistencyException, InvalidCollectionModification, IOException, MappingException 
     {
         // create props
         PropertyDescriptionList pdList = getPropDesc();

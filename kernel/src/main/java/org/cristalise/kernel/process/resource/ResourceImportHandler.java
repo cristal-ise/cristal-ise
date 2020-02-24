@@ -23,6 +23,8 @@ package org.cristalise.kernel.process.resource;
 import java.util.Set;
 
 import org.cristalise.kernel.collection.CollectionArrayList;
+import org.cristalise.kernel.common.InvalidDataException;
+import org.cristalise.kernel.common.ObjectNotFoundException;
 import org.cristalise.kernel.lookup.DomainPath;
 import org.cristalise.kernel.lookup.ItemPath;
 import org.cristalise.kernel.persistency.outcome.Outcome;
@@ -37,7 +39,7 @@ public interface ResourceImportHandler {
      * @param name - resource name
      * @return DomainPath initialised
      */
-    public DomainPath getPath(String name, String ns) throws Exception;
+    public DomainPath getPath(String name, String ns);
 
     /**
      * Generates the outcomes that the resource should contain.
@@ -47,9 +49,11 @@ public interface ResourceImportHandler {
      * @param location the location of the resource file
      * @param version the specified version
      * @return a set of outcomes to be synced with the resource item.
-     * @throws Exception - if the supplied resources are not valid
+     * @throws InvalidDataException - if the supplied resources are not valid
+     * @throws ObjectNotFoundException - data was not found to handle request
      */
-    public Set<Outcome> getResourceOutcomes(String name, String ns, String location, Integer version) throws Exception;
+    public Set<Outcome> getResourceOutcomes(String name, String ns, String location, Integer version) 
+            throws InvalidDataException, ObjectNotFoundException;
 
     /** 
      * Gives the CompActDef name to instantiate to provide the workflow for this type of resource. 
@@ -57,7 +61,7 @@ public interface ResourceImportHandler {
      * 
      * @return String workflow name
      */
-    public String getWorkflowName() throws Exception; 
+    public String getWorkflowName(); 
 
     /**
      * Should return all of the Properties the resource Item will have on creation. 
@@ -65,7 +69,7 @@ public interface ResourceImportHandler {
      * 
      * @return a PropertyDescriptionList - an arraylist of PropertyDescriptions
      */
-    public PropertyDescriptionList getPropDesc() throws Exception;
+    public PropertyDescriptionList getPropDesc();
 
     /**
      * The directory context to search for existing resources. The name of the resource must
@@ -106,12 +110,49 @@ public interface ResourceImportHandler {
      */
     public String getName();
 
+    /**
+     * Create resource Item from its Module definition. The item should not exist.
+     * 
+     * @param ns the NameSpace of the Module
+     * @param itemName name of the resource Item
+     * @param version version of the resource Item
+     * @param outcomes the list of the Outcomes provided by the caller
+     * @param reset
+     * @return the DomainPath of the resource Item
+     * @throws Exception errors that are raised during the process
+     */
     public DomainPath createResource(String ns, String itemName, int version, Set<Outcome> outcomes, boolean reset)
             throws Exception;
 
-    public DomainPath verifyResource(String ns, String itemName, int version, ItemPath itemPath, String dataLocation, boolean reset)
+    /**
+     * Creates or updates resource Item against a Module version, using a ResourceImportHandler configured
+     * finding the outcome at the given dataLocation.
+     * 
+     * @param ns the NameSpace of the Module
+     * @param itemName name of the resource Item
+     * @param version version of the resource Item
+     * @param itemPath the fixed UUID of the Item
+     * @param dataLocation the location of the resource xml available from the classpath to be used as Outcome
+     * @param reset
+     * @return the DomainPath of the resource Item
+     * @throws Exception errors that are raised during the process
+     */
+    public DomainPath importResource(String ns, String itemName, int version, ItemPath itemPath, String dataLocation, boolean reset)
             throws Exception;
 
-    public DomainPath verifyResource(String ns, String itemName, int version, ItemPath itemPath, Set<Outcome> outcomes, boolean reset)
+    /**
+     * Verify a resource Item against a Module version, but supplies the resource outcomes directly
+     * instead of through a location lookup.
+     * 
+     * @param ns the NameSpace of the Module
+     * @param itemName name of the resource Item
+     * @param version version of the resource Item
+     * @param itemPath the fixed UUID of the Item
+     * @param outcomes the list of the Outcomes provided by the caller
+     * @param reset
+     * @return the DomainPath of the resource Item
+     * @throws Exception errors that are raised during the process
+     */
+    public DomainPath importResource(String ns, String itemName, int version, ItemPath itemPath, Set<Outcome> outcomes, boolean reset)
             throws Exception;
 }
