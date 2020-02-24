@@ -24,9 +24,6 @@ import static org.cristalise.kernel.collection.BuiltInCollections.QUERY;
 import static org.cristalise.kernel.collection.BuiltInCollections.SCHEMA;
 import static org.cristalise.kernel.collection.BuiltInCollections.SCRIPT;
 import static org.cristalise.kernel.collection.BuiltInCollections.STATE_MACHINE;
-import lombok.Getter;
-import lombok.Setter;
-import lombok.extern.slf4j.Slf4j;
 
 import org.cristalise.kernel.collection.BuiltInCollections;
 import org.cristalise.kernel.collection.Collection;
@@ -42,10 +39,14 @@ import org.cristalise.kernel.entity.proxy.ItemProxy;
 import org.cristalise.kernel.lifecycle.ActivityDef;
 import org.cristalise.kernel.lookup.AgentPath;
 import org.cristalise.kernel.lookup.Path;
-import org.cristalise.kernel.process.Bootstrap;
 import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.process.resource.BuiltInResources;
+import org.cristalise.kernel.process.resource.ResourceImportHandler;
 import org.cristalise.kernel.utils.LocalObjectLoader;
+
+import lombok.Getter;
+import lombok.Setter;
+import lombok.extern.slf4j.Slf4j;
 
 @Getter @Setter @Slf4j
 public class ModuleActivity extends ModuleResource {
@@ -82,7 +83,8 @@ public class ModuleActivity extends ModuleResource {
             throws ObjectNotFoundException, ObjectCannotBeUpdated, CannotManageException, ObjectAlreadyExistsException, InvalidDataException
     {
         try {
-            domainPath = Bootstrap.verifyResource(ns, name, version, type.getTypeCode(), itemPath, getResourceLocation(), reset);
+            ResourceImportHandler importHandler = Gateway.getResourceImportHandler(type);
+            domainPath = importHandler.verifyResource(ns, name, version, itemPath, getResourceLocation(), reset);
             itemPath = domainPath.getItemPath();
         }
         catch (Exception e) {

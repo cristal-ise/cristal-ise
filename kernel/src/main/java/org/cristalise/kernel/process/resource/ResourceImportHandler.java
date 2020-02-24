@@ -24,6 +24,7 @@ import java.util.Set;
 
 import org.cristalise.kernel.collection.CollectionArrayList;
 import org.cristalise.kernel.lookup.DomainPath;
+import org.cristalise.kernel.lookup.ItemPath;
 import org.cristalise.kernel.persistency.outcome.Outcome;
 import org.cristalise.kernel.property.PropertyDescriptionList;
 
@@ -105,4 +106,12 @@ public interface ResourceImportHandler {
      */
     public String getName();
 
+    public DomainPath createResource(String ns, String itemName, int version, Set<Outcome> outcomes, boolean reset)
+            throws Exception;
+
+    public DomainPath verifyResource(String ns, String itemName, int version, ItemPath itemPath, String dataLocation, boolean reset)
+            throws Exception;
+
+    public DomainPath verifyResource(String ns, String itemName, int version, ItemPath itemPath, Set<Outcome> outcomes, boolean reset)
+            throws Exception;
 }

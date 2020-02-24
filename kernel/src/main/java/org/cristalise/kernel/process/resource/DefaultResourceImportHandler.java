@@ -20,23 +20,46 @@
  */
 package org.cristalise.kernel.process.resource;
 
-import static org.cristalise.kernel.process.resource.BuiltInResources.*;
+import static org.cristalise.kernel.process.resource.BuiltInResources.QUERY_RESOURCE;
+import static org.cristalise.kernel.process.resource.BuiltInResources.SCHEMA_RESOURCE;
+import static org.cristalise.kernel.process.resource.BuiltInResources.SCRIPT_RESOURCE;
+import static org.cristalise.kernel.property.BuiltInItemProperties.MODULE;
+import static org.cristalise.kernel.property.BuiltInItemProperties.NAME;
+import static org.cristalise.kernel.security.BuiltInAuthc.SYSTEM_AGENT;
 
 import java.util.HashSet;
 import java.util.Set;
 
+import org.cristalise.kernel.collection.Collection;
 import org.cristalise.kernel.collection.CollectionArrayList;
+import org.cristalise.kernel.common.InvalidDataException;
+import org.cristalise.kernel.common.ObjectNotFoundException;
+import org.cristalise.kernel.common.PersistencyException;
+import org.cristalise.kernel.entity.proxy.ItemProxy;
+import org.cristalise.kernel.lifecycle.CompositeActivityDef;
+import org.cristalise.kernel.lifecycle.instance.CompositeActivity;
+import org.cristalise.kernel.lifecycle.instance.predefined.PredefinedStep;
+import org.cristalise.kernel.lookup.AgentPath;
 import org.cristalise.kernel.lookup.DomainPath;
+import org.cristalise.kernel.lookup.ItemPath;
+import org.cristalise.kernel.lookup.LookupManager;
+import org.cristalise.kernel.persistency.ClusterType;
 import org.cristalise.kernel.persistency.outcome.Outcome;
 import org.cristalise.kernel.persistency.outcome.Schema;
+import org.cristalise.kernel.persistency.outcome.Viewpoint;
 import org.cristalise.kernel.process.Gateway;
+import org.cristalise.kernel.property.Property;
+import org.cristalise.kernel.property.PropertyArrayList;
+import org.cristalise.kernel.property.PropertyDescription;
 import org.cristalise.kernel.property.PropertyDescriptionList;
 import org.cristalise.kernel.querying.Query;
 import org.cristalise.kernel.scripting.Script;
 import org.cristalise.kernel.utils.DescriptionObject;
 import org.cristalise.kernel.utils.LocalObjectLoader;
 
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 public class DefaultResourceImportHandler implements ResourceImportHandler {
 
     BuiltInResources         type;
@@ -117,5 +140,236 @@ public class DefaultResourceImportHandler implements ResourceImportHandler {
     @Override
     public String getWorkflowName() throws Exception {
         return type.getWorkflowDef();
+    }
+
+
+    /********************************
+     * Methods migrated from Bootstrap
+     ********************************/
+
+    /**
+     * Create a resource item from its module definition. The item should not exist.
+     */
+    @Override
+    public DomainPath createResource(String ns, String itemName, int version, Set<Outcome> outcomes, boolean reset)
+            throws Exception
+    {
+        return verifyResource(ns, itemName, version, null, outcomes, null, reset);
+    }
+
+    /**
+     * Verify a resource item against a module version, using a ResourceImportHandler configured
+     * to find outcomes at the given dataLocation
+     */
+    @Override
+    public DomainPath verifyResource(String ns, String itemName, int version, ItemPath itemPath, String dataLocation, boolean reset)
+            throws Exception
+    {
+        return verifyResource(ns, itemName, version, itemPath, null, dataLocation, reset);
+    }
+
+    /**
+     * Verify a resource item against a module version, but supplies the resource outcomes directly
+     * instead of through a location lookup
+     */
+    @Override
+    public DomainPath verifyResource(String ns, String itemName, int version, ItemPath itemPath, Set<Outcome> outcomes, boolean reset)
+            throws Exception
+    {
+        return verifyResource(ns, itemName, version, itemPath, outcomes, null, reset);
+    }
+
+    /**
+     *
+     * @param ns
+     * @param itemName
+     * @param version
+     * @param itemType
+     * @param itemPath
+     * @param outcomes
+     * @param dataLocation
+     * @param reset
+     * @return the Path of the resource either created or initialised from existing data
+     * @throws Exception
+     */
+    private DomainPath verifyResource(String ns, String itemName, int version, ItemPath itemPath, Set<Outcome> outcomes, String dataLocation, boolean reset)
+            throws Exception
+    {
+        log.info("verifyResource() - Verifying "+getName()+" "+ itemName+" v"+version);
+
+        // Find or create Item for Resource
+        ItemProxy thisProxy;
+        DomainPath modDomPath = getPath(itemName, ns);
+
+        if (modDomPath.exists()) {
+            log.info("verifyResource() - Found "+getName()+" "+itemName + ".");
+
+            thisProxy = verifyPathAndModuleProperty(ns, itemName, itemPath, modDomPath, modDomPath);
+        }
+        else {
+            if (itemPath == null) itemPath = new ItemPath();
+
+            log.info("verifyResource() - "+getName()+" "+itemName+" not found. Creating new.");
+
+            thisProxy = createResourceItem(itemName, ns, itemPath);
+        }
+
+        // Verify/Import Outcomes, creating events and views as necessary
+        if (outcomes == null || outcomes.size() == 0) {
+            outcomes = getResourceOutcomes(itemName, ns, dataLocation, version);
+        }
+
+        if (outcomes.size() == 0) log.warn("verifyResource() - no Outcome found therefore nothing stored!");
+
+        for (Outcome newOutcome : outcomes) {
+            if (checkToStoreOutcomeVersion(thisProxy, newOutcome, version, reset)) {
+                // validate it, but not for kernel objects (ns == null) because those are to validate the rest
+                if (ns != null) newOutcome.validateAndCheck();
+
+                PredefinedStep.storeOutcomeEventAndViews(thisProxy.getPath(), newOutcome, version);
+
+                CollectionArrayList cols = getCollections(itemName, version, newOutcome);
+
+                for (Collection<?> col : cols.list) {
+                    Gateway.getStorage().put(thisProxy.getPath(), col, null);
+                    Gateway.getStorage().clearCache(thisProxy.getPath(), ClusterType.COLLECTION+"/"+col.getName());
+                    col.setVersion(null);
+                    Gateway.getStorage().put(thisProxy.getPath(), col, null);
+                }
+            }
+        }
+        Gateway.getStorage().commit(null);
+        return modDomPath;
+    }
+
+    /**
+     * Verify module property and location
+     *
+     * @param ns
+     * @param itemType
+     * @param itemName
+     * @param itemPath
+     * @param modDomPath
+     * @param path
+     * @return the ItemProxy either created or initialized for existing resource
+     * @throws Exception
+     */
+    private ItemProxy verifyPathAndModuleProperty(String ns, String itemName, ItemPath itemPath, DomainPath modDomPath, DomainPath path)
+            throws Exception
+    {
+        LookupManager lookupManager = Gateway.getLookupManager();
+        ItemProxy thisProxy = Gateway.getProxyManager().getProxy(path);
+
+        if (itemPath != null && !path.getItemPath().equals(itemPath)) {
+            String error = "Resource "+type+"/"+itemName+" should have path "+itemPath+" but was found with path "+path.getItemPath();
+            log.error(error);
+            throw new InvalidDataException(error);
+        }
+
+        if (itemPath == null) itemPath = path.getItemPath();
+
+        String moduleName = (ns==null?"kernel":ns);
+        String itemModule;
+        try {
+            itemModule = thisProxy.getProperty("Module");
+            if (itemModule != null && !itemModule.equals("") && !itemModule.equals("null") && !moduleName.equals(itemModule)) {
+                String error = "Module clash! Resource '"+itemName+"' included in module "+moduleName+" but is assigned to '"+itemModule + "'.";
+                log.error(error);
+                throw new InvalidDataException(error);
+            }
+        }
+        catch (ObjectNotFoundException ex) {
+            itemModule = "";
+        }
+
+        if (!modDomPath.equals(path)) {  // move item to module subtree
+            log.info("Module item "+itemName+" found with path "+path.toString()+". Moving to "+modDomPath.toString());
+            modDomPath.setItemPath(itemPath);
+
+            if (!modDomPath.exists()) lookupManager.add(modDomPath);
+            lookupManager.delete(path);
+        }
+        return thisProxy;
+    }
+    /**
+     *
+     * @param item
+     * @param newOutcome
+     * @param version
+     * @param reset
+     * @return true i the data was changed, since the last Bootstrap run
+     * @throws PersistencyException
+     * @throws InvalidDataException
+     * @throws ObjectNotFoundException
+     */
+    private boolean checkToStoreOutcomeVersion(ItemProxy item, Outcome newOutcome, int version, boolean reset)
+            throws PersistencyException, InvalidDataException, ObjectNotFoundException
+    {
+        Schema schema = newOutcome.getSchema();
+        try {
+            Viewpoint currentData = (Viewpoint) item.getObject(ClusterType.VIEWPOINT+"/"+newOutcome.getSchema().getName()+"/"+version);
+
+            if (newOutcome.isIdentical(currentData.getOutcome())) {
+                log.debug("checkToStoreOutcomeVersion() - Data identical, no update required");
+                return false;
+            }
+            else {
+                if (!reset  && !currentData.getEvent().getStepPath().equals("Bootstrap")) {
+                    log.info("checkToStoreOutcomeVersion() - Version " + version + " was not set by Bootstrap, and reset not requested. Not overwriting.");
+                    return false;
+                }
+            }
+        }
+        catch (ObjectNotFoundException ex) {
+            log.info("checkToStoreOutcomeVersion() - "+schema.getName()+" "+item.getName()+" v"+version+" not found! Attempting to insert new.");
+        }
+        return true;
+    }
+
+    /**
+     *
+     * @param impHandler
+     * @param itemName
+     * @param ns
+     * @param itemPath
+     * @return the ItemProxy representing the newly create Item
+     * @throws Exception
+     */
+    private ItemProxy createResourceItem(String itemName, String ns, ItemPath itemPath)
+            throws Exception
+    {
+        // create props
+        PropertyDescriptionList pdList = getPropDesc();
+        PropertyArrayList props = new PropertyArrayList();
+        LookupManager lookupManager = Gateway.getLookupManager();
+
+        for (int i = 0; i < pdList.list.size(); i++) {
+            PropertyDescription pd = pdList.list.get(i);
+
+            String propName = pd.getName();
+            String propVal  = pd.getDefaultValue();
+
+            if (propName.equals(NAME.toString()))        propVal = itemName;
+            else if (propName.equals(MODULE.toString())) propVal = (ns == null) ? "kernel" : ns;
+
+            props.list.add(new Property(propName, propVal, pd.getIsMutable()));
+        }
+
+        CompositeActivity ca = new CompositeActivity();
+        try {
+            ca = (CompositeActivity) ((CompositeActivityDef)LocalObjectLoader.getActDef(getWorkflowName(), 0)).instantiate();
+        }
+        catch (ObjectNotFoundException ex) {
+            log.error("Module resource workflow "+getWorkflowName()+" not found. Using empty.", ex);
+        }
+
+        Gateway.getCorbaServer().createItem(itemPath);
+        lookupManager.add(itemPath);
+        DomainPath newDomPath = getPath(itemName, ns);
+        newDomPath.setItemPath(itemPath);
+        lookupManager.add(newDomPath);
+        ItemProxy newItemProxy = Gateway.getProxyManager().getProxy(itemPath);
+        newItemProxy.initialise((AgentPath)SYSTEM_AGENT.getPath(), props, ca, null);
+        return newItemProxy;
     }
 }

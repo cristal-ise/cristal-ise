@@ -32,9 +32,9 @@ import org.cristalise.kernel.common.ObjectCannotBeUpdated;
 import org.cristalise.kernel.common.ObjectNotFoundException;
 import org.cristalise.kernel.lookup.AgentPath;
 import org.cristalise.kernel.lookup.Path;
-import org.cristalise.kernel.process.Bootstrap;
 import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.process.resource.BuiltInResources;
+import org.cristalise.kernel.process.resource.ResourceImportHandler;
 
 @Getter @Setter @Slf4j
 public class ModuleResource extends ModuleImport {
@@ -90,7 +90,8 @@ public class ModuleResource extends ModuleImport {
             throws ObjectNotFoundException, ObjectCannotBeUpdated, CannotManageException, ObjectAlreadyExistsException, InvalidDataException
     {
         try {
-            return domainPath = Bootstrap.verifyResource(ns, name, version, type.getTypeCode(), itemPath, getResourceLocation(), reset);
+            ResourceImportHandler importHandler = Gateway.getResourceImportHandler(type);
+            return domainPath = importHandler.verifyResource(ns, name, version, itemPath, getResourceLocation(), reset);
         }
         catch (Exception e) {
             log.error("", e);

@@ -21,15 +21,17 @@
 package org.cristalise.dsl.querying
 
 import static org.cristalise.kernel.process.resource.BuiltInResources.QUERY_RESOURCE
-import groovy.transform.CompileStatic
 
 import org.cristalise.kernel.lookup.DomainPath
 import org.cristalise.kernel.lookup.ItemPath
 import org.cristalise.kernel.persistency.outcome.Outcome
 import org.cristalise.kernel.persistency.outcome.Schema
-import org.cristalise.kernel.process.Bootstrap
+import org.cristalise.kernel.process.Gateway
+import org.cristalise.kernel.process.resource.ResourceImportHandler
 import org.cristalise.kernel.querying.Query
 import org.cristalise.kernel.utils.LocalObjectLoader
+
+import groovy.transform.CompileStatic
 
 
 /**
@@ -82,6 +84,7 @@ class QueryBuilder {
      */
     public DomainPath create() {
         Schema querySchema = LocalObjectLoader.getSchema("Query", 0)
-        return domainPath = Bootstrap.createResource(module, name, version, QUERY_RESOURCE.getTypeCode(), [new Outcome(-1, (String)null, querySchema)] as Set, false)
+        ResourceImportHandler importHandler = Gateway.getResourceImportHandler(QUERY_RESOURCE);
+        return domainPath = importHandler.createResource(module, name, version, [new Outcome(-1, (String)null, querySchema)] as Set, false)
     }
 }

@@ -25,6 +25,7 @@ import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.SCHEMA_N
 import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.SCHEMA_VERSION;
 import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.STATE_MACHINE_NAME;
 import static org.cristalise.kernel.security.BuiltInAuthc.ADMIN_ROLE;
+import static org.cristalise.kernel.security.BuiltInAuthc.SYSTEM_AGENT;
 
 import java.io.StringReader;
 
@@ -40,6 +41,7 @@ import org.cristalise.kernel.common.ObjectAlreadyExistsException;
 import org.cristalise.kernel.common.ObjectCannotBeUpdated;
 import org.cristalise.kernel.common.ObjectNotFoundException;
 import org.cristalise.kernel.common.PersistencyException;
+import org.cristalise.kernel.events.History;
 import org.cristalise.kernel.lifecycle.instance.Activity;
 import org.cristalise.kernel.lifecycle.instance.predefined.agent.AgentPredefinedStepContainer;
 import org.cristalise.kernel.lifecycle.instance.predefined.item.ItemPredefinedStepContainer;
@@ -47,7 +49,9 @@ import org.cristalise.kernel.lifecycle.instance.predefined.server.ServerPredefin
 import org.cristalise.kernel.lookup.AgentPath;
 import org.cristalise.kernel.lookup.ItemPath;
 import org.cristalise.kernel.persistency.outcome.Outcome;
+import org.cristalise.kernel.persistency.outcome.Viewpoint;
 import org.cristalise.kernel.process.Gateway;
+import org.cristalise.kernel.utils.LocalObjectLoader;
 import org.w3c.dom.CDATASection;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -220,6 +224,65 @@ public abstract class PredefinedStep extends Activity {
         if (Gateway.getProperties().getBoolean("PredefinedStep.AgentRole.enableAdmin", false)) {
             String extraRoles = Gateway.getProperties().getString("PredefinedStep."+ this.getClass().getSimpleName() +".roles");
             getProperties().setBuiltInProperty(AGENT_ROLE, ADMIN_ROLE.getName() + (StringUtils.isNotBlank(extraRoles) ? ","+extraRoles : ""));
+        }
+    }
+
+
+    /********************************
+     * Methods migrated from Bootstrap
+     ********************************/
+
+    /**
+     * TODO Implement Bootstrap predefined step
+     * 
+     * @param itemPath
+     * @param newOutcome
+     * @throws PersistencyException
+     * @throws ObjectNotFoundException
+     * @throws InvalidDataException
+     */
+    public static void storeOutcomeEventAndViews(ItemPath itemPath, Outcome newOutcome)
+            throws PersistencyException, ObjectNotFoundException, InvalidDataException
+    {
+        storeOutcomeEventAndViews(itemPath, newOutcome, null);
+    }
+
+    /**
+     * TODO Implement Bootstrap predefined step
+     * 
+     * @param itemPath
+     * @param newOutcome
+     * @param version
+     * @throws PersistencyException
+     * @throws ObjectNotFoundException
+     * @throws InvalidDataException
+     */
+    public static void storeOutcomeEventAndViews(ItemPath itemPath, Outcome newOutcome, Integer version)
+            throws PersistencyException, ObjectNotFoundException, InvalidDataException
+    {
+        String viewName = "";
+        if (version != null) viewName = String.valueOf(version);
+
+        log.info("storeOutcomeEventAndViews() - Schema '{}' of version '{}' to '{}'", 
+                newOutcome.getSchema().getName(), version != null ? viewName : "last", itemPath);
+
+        History hist = new History(itemPath, null);
+
+        int eventID = hist.addEvent((AgentPath)SYSTEM_AGENT.getPath(), null,
+                ADMIN_ROLE.getName(), "Bootstrap", "Bootstrap", "Bootstrap", newOutcome.getSchema(), 
+                LocalObjectLoader.getStateMachine("PredefinedStep", 0), PredefinedStep.DONE, version != null ? viewName : "last"
+                ).getID();
+
+        newOutcome.setID(eventID);
+
+        Viewpoint newLastView = new Viewpoint(itemPath, newOutcome.getSchema(), "last", eventID);
+
+        Gateway.getStorage().put(itemPath, newOutcome,  null);
+        Gateway.getStorage().put(itemPath, newLastView, null);
+
+        if (version != null) {
+            Viewpoint newNumberView = new Viewpoint(itemPath, newOutcome.getSchema(), viewName, eventID);
+            Gateway.getStorage().put(itemPath, newNumberView, null);
         }
     }
 }

@@ -20,11 +20,14 @@
  */
 package org.cristalise.dsl.persistency.outcome
 
+import static org.cristalise.kernel.process.resource.BuiltInResources.SCHEMA_RESOURCE
+
 import org.cristalise.kernel.common.InvalidDataException
 import org.cristalise.kernel.lookup.DomainPath
 import org.cristalise.kernel.persistency.outcome.Outcome
 import org.cristalise.kernel.persistency.outcome.Schema
-import org.cristalise.kernel.process.Bootstrap
+import org.cristalise.kernel.process.Gateway
+import org.cristalise.kernel.process.resource.ResourceImportHandler
 import org.cristalise.kernel.utils.LocalObjectLoader
 
 import groovy.transform.CompileStatic
@@ -165,7 +168,7 @@ class SchemaBuilder {
     */
     public DomainPath create() {
         Schema schemaSchema = LocalObjectLoader.getSchema("Schema", 0)
-
-        return domainPath = Bootstrap.createResource(module, name, version, "OD", [new Outcome(-1, schema.schemaData, schemaSchema)] as Set, false)
+        ResourceImportHandler importHandler = Gateway.getResourceImportHandler(SCHEMA_RESOURCE);
+        return domainPath = importHandler.createResource(module, name, version, [new Outcome(-1, schema.schemaData, schemaSchema)] as Set, false)
     }
 }

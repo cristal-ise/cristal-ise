@@ -20,16 +20,18 @@
  */
 package org.cristalise.dsl.lifecycle.stateMachine
 
-import groovy.transform.CompileStatic
-import groovy.util.logging.Slf4j
+import static org.cristalise.kernel.process.resource.BuiltInResources.STATE_MACHINE_RESOURCE
 
 import org.cristalise.kernel.lifecycle.instance.stateMachine.StateMachine
 import org.cristalise.kernel.lookup.DomainPath
 import org.cristalise.kernel.persistency.outcome.Outcome
 import org.cristalise.kernel.persistency.outcome.Schema
-import org.cristalise.kernel.process.Bootstrap
 import org.cristalise.kernel.process.Gateway
+import org.cristalise.kernel.process.resource.ResourceImportHandler
 import org.cristalise.kernel.utils.LocalObjectLoader
+
+import groovy.transform.CompileStatic
+import groovy.util.logging.Slf4j
 
 
 /**
@@ -121,6 +123,7 @@ class StateMachineBuilder {
      * @return the DomainPath of the newly created resource Item
      */
     public DomainPath create() {
-        return domainPath = Bootstrap.createResource(module, name, version, "SM", [new Outcome(-1, smXML, smSchema)] as Set, false)
+        ResourceImportHandler importHandler = Gateway.getResourceImportHandler(STATE_MACHINE_RESOURCE);
+        return domainPath = importHandler.createResource(module, name, version, [new Outcome(-1, smXML, smSchema)] as Set, false)
     }
 }

@@ -243,7 +243,7 @@ public class ModuleManager {
             if (Bootstrap.shutdown) return; 
 
             log.info("registerModules() - Registering module "+thisMod.getName());
-            
+
             try {
                 String thisResetKey = "Module."+thisMod.getNamespace()+".reset";
                 boolean thisReset = reset;
