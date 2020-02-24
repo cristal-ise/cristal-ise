@@ -48,6 +48,7 @@ import org.cristalise.kernel.lookup.RolePath;
 import org.cristalise.kernel.persistency.outcome.Outcome;
 import org.cristalise.kernel.process.resource.BuiltInResources;
 import org.cristalise.kernel.process.resource.ResourceImportHandler;
+import org.cristalise.kernel.process.resource.ResourceImportHandler.Status;
 import org.cristalise.kernel.property.Property;
 import org.cristalise.kernel.scripting.ScriptConsole;
 import org.cristalise.kernel.utils.FileStringUtility;
@@ -174,8 +175,12 @@ public class Bootstrap
 
             try {
                 String location = "boot/"+filename+(itemType.equals("OD")?".xsd":".xml");
-                ResourceImportHandler typeImpHandler = Gateway.getResourceImportHandler(BuiltInResources.getValue(itemType));
-                typeImpHandler.importResource(ns, itemName, 0, itemPath, location, reset);
+                ResourceImportHandler importHandler = Gateway.getResourceImportHandler(BuiltInResources.getValue(itemType));
+                importHandler.importResource(ns, itemName, 0, itemPath, location, reset);
+
+                if (importHandler.getResourceStatus() != Status.UNCHANGED) {
+                    //
+                }
             }
             catch (Exception e) {
                 log.error("Error importing bootstrap items. Unsafe to continue.", e);

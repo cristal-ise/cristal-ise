@@ -35,6 +35,7 @@ import org.cristalise.kernel.lookup.Path;
 import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.process.resource.BuiltInResources;
 import org.cristalise.kernel.process.resource.ResourceImportHandler;
+import org.cristalise.kernel.process.resource.ResourceImportHandler.Status;
 
 @Getter @Setter @Slf4j
 public class ModuleResource extends ModuleImport {
@@ -42,6 +43,7 @@ public class ModuleResource extends ModuleImport {
     public int              version;
     public BuiltInResources type;
     public String           resourceLocation;
+    private Status          status;
 
     public ModuleResource() {
         // if not given, version defaults to 0
@@ -91,7 +93,12 @@ public class ModuleResource extends ModuleImport {
     {
         try {
             ResourceImportHandler importHandler = Gateway.getResourceImportHandler(type);
-            return domainPath = importHandler.importResource(ns, name, version, itemPath, getResourceLocation(), reset);
+
+
+            domainPath = importHandler.importResource(ns, name, version, itemPath, getResourceLocation(), reset);
+            status = importHandler.getResourceStatus();
+
+            return domainPath;
         }
         catch (Exception e) {
             log.error("", e);

@@ -51,6 +51,7 @@ import org.cristalise.kernel.process.AbstractMain;
 import org.cristalise.kernel.process.Bootstrap;
 import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.process.resource.BuiltInResources;
+import org.cristalise.kernel.process.resource.ResourceImportHandler.Status;
 import org.cristalise.kernel.property.Property;
 import org.cristalise.kernel.scripting.ErrorInfo;
 import org.cristalise.kernel.scripting.ScriptingEngineException;
@@ -208,7 +209,11 @@ public class Module extends ImportItem {
 
             try {
                 thisRes.setNamespace(ns);
-                addItemToContents( thisRes.create(systemAgent.getPath(), reset) );
+                addItemToContents(thisRes.create(systemAgent.getPath(), reset));
+                
+                if (thisRes.getStatus() != Status.UNCHANGED) {
+                    //
+                }
             }
             catch (Exception ex) {
                 log.error("Error importing module resources. Unsafe to continue.", ex);

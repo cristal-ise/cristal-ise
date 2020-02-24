@@ -32,7 +32,7 @@ import org.cristalise.kernel.property.PropertyDescriptionList;
 
 
 public interface ResourceImportHandler {
-    enum Status {NEW, CHANGED, UNCHANGED};
+    public enum Status {NEW, CHANGED, UNCHANGED};
     
     /**
      * Returns the DomainPath for a specific resource

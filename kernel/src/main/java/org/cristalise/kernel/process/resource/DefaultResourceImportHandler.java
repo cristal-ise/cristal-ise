@@ -281,6 +281,7 @@ public class DefaultResourceImportHandler implements ResourceImportHandler {
         }
         return thisProxy;
     }
+
     /**
      *
      */
