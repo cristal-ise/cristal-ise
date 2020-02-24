@@ -23,22 +23,19 @@ package org.cristalise.kernel.process.resource;
 import static org.cristalise.kernel.process.resource.BuiltInResources.QUERY_RESOURCE;
 import static org.cristalise.kernel.process.resource.BuiltInResources.SCHEMA_RESOURCE;
 import static org.cristalise.kernel.process.resource.BuiltInResources.SCRIPT_RESOURCE;
+import static org.cristalise.kernel.process.resource.ResourceImportHandler.Status.CHANGED;
+import static org.cristalise.kernel.process.resource.ResourceImportHandler.Status.NEW;
+import static org.cristalise.kernel.process.resource.ResourceImportHandler.Status.UNCHANGED;
 import static org.cristalise.kernel.property.BuiltInItemProperties.MODULE;
 import static org.cristalise.kernel.property.BuiltInItemProperties.NAME;
 import static org.cristalise.kernel.security.BuiltInAuthc.SYSTEM_AGENT;
 
-import java.io.IOException;
 import java.util.HashSet;
 import java.util.Set;
 
 import org.cristalise.kernel.collection.Collection;
 import org.cristalise.kernel.collection.CollectionArrayList;
-import org.cristalise.kernel.common.AccessRightsException;
-import org.cristalise.kernel.common.CannotManageException;
-import org.cristalise.kernel.common.InvalidCollectionModification;
 import org.cristalise.kernel.common.InvalidDataException;
-import org.cristalise.kernel.common.ObjectAlreadyExistsException;
-import org.cristalise.kernel.common.ObjectCannotBeUpdated;
 import org.cristalise.kernel.common.ObjectNotFoundException;
 import org.cristalise.kernel.common.PersistencyException;
 import org.cristalise.kernel.entity.proxy.ItemProxy;
@@ -62,9 +59,6 @@ import org.cristalise.kernel.querying.Query;
 import org.cristalise.kernel.scripting.Script;
 import org.cristalise.kernel.utils.DescriptionObject;
 import org.cristalise.kernel.utils.LocalObjectLoader;
-import org.exolab.castor.mapping.MappingException;
-import org.exolab.castor.xml.MarshalException;
-import org.exolab.castor.xml.ValidationException;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -74,6 +68,8 @@ public class DefaultResourceImportHandler implements ResourceImportHandler {
     BuiltInResources         type;
     DomainPath               typeRootPath;
     PropertyDescriptionList  props;
+
+    private Status status = UNCHANGED;
 
     public DefaultResourceImportHandler(BuiltInResources resType) throws Exception {
         type = resType;
@@ -211,6 +207,8 @@ public class DefaultResourceImportHandler implements ResourceImportHandler {
             log.info("verifyResource() - "+getName()+" "+itemName+" not found. Creating new.");
 
             thisProxy = createResourceItem(itemName, ns, itemPath);
+
+            status = NEW;
         }
 
         // Verify/Import Outcomes, creating events and views as necessary
@@ -235,6 +233,8 @@ public class DefaultResourceImportHandler implements ResourceImportHandler {
                     col.setVersion(null);
                     Gateway.getStorage().put(thisProxy.getPath(), col, null);
                 }
+
+                if (status == UNCHANGED) status = CHANGED;
             }
         }
         Gateway.getStorage().commit(null);
@@ -243,15 +243,9 @@ public class DefaultResourceImportHandler implements ResourceImportHandler {
 
     /**
      * Verify module property and location
-     * 
-     * @throws CannotManageException 
-     * @throws ObjectNotFoundException 
-     * @throws InvalidDataException 
-     * @throws ObjectAlreadyExistsException 
-     * @throws ObjectCannotBeUpdated 
      */
     private ItemProxy verifyPathAndModuleProperty(String ns, String itemName, ItemPath itemPath, DomainPath modDomPath, DomainPath path)
-            throws CannotManageException, ObjectNotFoundException, InvalidDataException, ObjectCannotBeUpdated, ObjectAlreadyExistsException
+            throws Exception
     {
         LookupManager lookupManager = Gateway.getLookupManager();
         ItemProxy thisProxy = Gateway.getProxyManager().getProxy(path);
@@ -315,28 +309,14 @@ public class DefaultResourceImportHandler implements ResourceImportHandler {
     }
 
     /**
-     *
-     * @param impHandler
+     * 
      * @param itemName
      * @param ns
      * @param itemPath
-     * @return the ItemProxy representing the newly create Item
-     * @throws CannotManageException 
-     * @throws InvalidDataException 
-     * @throws ObjectAlreadyExistsException 
-     * @throws ObjectCannotBeUpdated 
-     * @throws ObjectNotFoundException 
-     * @throws MappingException 
-     * @throws IOException 
-     * @throws InvalidCollectionModification 
-     * @throws PersistencyException 
-     * @throws AccessRightsException 
-     * @throws ValidationException 
-     * @throws MarshalException 
+     * @return
+     * @throws Exception
      */
-    private ItemProxy createResourceItem(String itemName, String ns, ItemPath itemPath) 
-            throws CannotManageException, InvalidDataException, ObjectAlreadyExistsException, ObjectCannotBeUpdated, ObjectNotFoundException, MarshalException, ValidationException, AccessRightsException, PersistencyException, InvalidCollectionModification, IOException, MappingException 
-    {
+    private ItemProxy createResourceItem(String itemName, String ns, ItemPath itemPath) throws Exception {
         // create props
         PropertyDescriptionList pdList = getPropDesc();
         PropertyArrayList props = new PropertyArrayList();
@@ -370,5 +350,10 @@ public class DefaultResourceImportHandler implements ResourceImportHandler {
         ItemProxy newItemProxy = Gateway.getProxyManager().getProxy(itemPath);
         newItemProxy.initialise((AgentPath)SYSTEM_AGENT.getPath(), props, ca, null);
         return newItemProxy;
+    }
+
+    @Override
+    public Status getResourceStatus() {
+        return status;
     }
 }

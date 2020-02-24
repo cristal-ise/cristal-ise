@@ -32,6 +32,8 @@ import org.cristalise.kernel.property.PropertyDescriptionList;
 
 
 public interface ResourceImportHandler {
+    enum Status {NEW, CHANGED, UNCHANGED};
+    
     /**
      * Returns the DomainPath for a specific resource
      * 
@@ -155,4 +157,6 @@ public interface ResourceImportHandler {
      */
     public DomainPath importResource(String ns, String itemName, int version, ItemPath itemPath, Set<Outcome> outcomes, boolean reset)
             throws Exception;
+
+    public Status getResourceStatus();
 }
