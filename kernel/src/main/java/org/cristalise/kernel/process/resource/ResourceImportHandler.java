@@ -32,8 +32,8 @@ import org.cristalise.kernel.property.PropertyDescriptionList;
 
 
 public interface ResourceImportHandler {
-    public enum Status {NEW, CHANGED, UNCHANGED};
-    
+    public enum Status {IDENTICAL, NEW, CHANGED, OVERWRITTEN, UNCHANGED};
+
     /**
      * Returns the DomainPath for a specific resource
      * 
@@ -119,7 +119,9 @@ public interface ResourceImportHandler {
      * @param itemName name of the resource Item
      * @param version version of the resource Item
      * @param outcomes the list of the Outcomes provided by the caller
-     * @param reset
+     * @param reset whether the resources shall be updated even if the current version was modified 
+     *        by someone other than the bootstrapper. Use system property 'Module.reset' or 'Module.${namespace}.reset' 
+     *        to control if bootstrap should overwrite the resource
      * @return the DomainPath of the resource Item
      * @throws Exception errors that are raised during the process
      */
@@ -135,7 +137,9 @@ public interface ResourceImportHandler {
      * @param version version of the resource Item
      * @param itemPath the fixed UUID of the Item
      * @param dataLocation the location of the resource xml available from the classpath to be used as Outcome
-     * @param reset
+     * @param reset whether the resources shall be updated even if the current version was modified 
+     *        by someone other than the bootstrapper. Use system property 'Module.reset' or 'Module.${namespace}.reset' 
+     *        to control if bootstrap should overwrite the resource
      * @return the DomainPath of the resource Item
      * @throws Exception errors that are raised during the process
      */
@@ -151,7 +155,9 @@ public interface ResourceImportHandler {
      * @param version version of the resource Item
      * @param itemPath the fixed UUID of the Item
      * @param outcomes the list of the Outcomes provided by the caller
-     * @param reset
+     * @param reset whether the resources shall be updated even if the current version was modified 
+     *        by someone other than the bootstrapper. Use system property 'Module.reset' or 'Module.${namespace}.reset' 
+     *        to control if bootstrap should overwrite the resource
      * @return the DomainPath of the resource Item
      * @throws Exception errors that are raised during the process
      */

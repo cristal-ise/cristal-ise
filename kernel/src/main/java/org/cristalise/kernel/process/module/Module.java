@@ -21,6 +21,7 @@
 package org.cristalise.kernel.process.module;
 
 import static org.cristalise.kernel.collection.BuiltInCollections.CONTENTS;
+import static org.cristalise.kernel.process.resource.ResourceImportHandler.Status.IDENTICAL;
 import static org.cristalise.kernel.property.BuiltInItemProperties.COMPLEXITY;
 import static org.cristalise.kernel.property.BuiltInItemProperties.MODULE;
 import static org.cristalise.kernel.property.BuiltInItemProperties.NAME;
@@ -51,7 +52,6 @@ import org.cristalise.kernel.process.AbstractMain;
 import org.cristalise.kernel.process.Bootstrap;
 import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.process.resource.BuiltInResources;
-import org.cristalise.kernel.process.resource.ResourceImportHandler.Status;
 import org.cristalise.kernel.property.Property;
 import org.cristalise.kernel.scripting.ErrorInfo;
 import org.cristalise.kernel.scripting.ScriptingEngineException;
@@ -211,8 +211,8 @@ public class Module extends ImportItem {
                 thisRes.setNamespace(ns);
                 addItemToContents(thisRes.create(systemAgent.getPath(), reset));
                 
-                if (thisRes.getStatus() != Status.UNCHANGED) {
-                    //
+                if (thisRes.getStatus() != IDENTICAL) {
+                    
                 }
             }
             catch (Exception ex) {

@@ -24,7 +24,9 @@ import static org.cristalise.kernel.process.resource.BuiltInResources.QUERY_RESO
 import static org.cristalise.kernel.process.resource.BuiltInResources.SCHEMA_RESOURCE;
 import static org.cristalise.kernel.process.resource.BuiltInResources.SCRIPT_RESOURCE;
 import static org.cristalise.kernel.process.resource.ResourceImportHandler.Status.CHANGED;
+import static org.cristalise.kernel.process.resource.ResourceImportHandler.Status.IDENTICAL;
 import static org.cristalise.kernel.process.resource.ResourceImportHandler.Status.NEW;
+import static org.cristalise.kernel.process.resource.ResourceImportHandler.Status.OVERWRITTEN;
 import static org.cristalise.kernel.process.resource.ResourceImportHandler.Status.UNCHANGED;
 import static org.cristalise.kernel.property.BuiltInItemProperties.MODULE;
 import static org.cristalise.kernel.property.BuiltInItemProperties.NAME;
@@ -69,7 +71,7 @@ public class DefaultResourceImportHandler implements ResourceImportHandler {
     DomainPath               typeRootPath;
     PropertyDescriptionList  props;
 
-    private Status status = UNCHANGED;
+    private Status status = IDENTICAL;
 
     public DefaultResourceImportHandler(BuiltInResources resType) throws Exception {
         type = resType;
@@ -121,7 +123,6 @@ public class DefaultResourceImportHandler implements ResourceImportHandler {
 
     @Override
     public DomainPath getPath(String name, String ns) {
-        //return new DomainPath(type.getTypeRoot()+"/system/"+(ns == null ? "kernel" : ns)+'/'+name);
         return new DomainPath(type.getTypeRoot()+"/"+(ns == null ? "kernel" : ns)+'/'+name);
     }
 
@@ -158,21 +159,21 @@ public class DefaultResourceImportHandler implements ResourceImportHandler {
     public DomainPath createResource(String ns, String itemName, int version, Set<Outcome> outcomes, boolean reset)
             throws Exception
     {
-        return verifyResource(ns, itemName, version, null, outcomes, null, reset);
+        return verifyResource(ns, itemName, version, null, outcomes, reset);
     }
 
     @Override
     public DomainPath importResource(String ns, String itemName, int version, ItemPath itemPath, String dataLocation, boolean reset)
             throws Exception
     {
-        return verifyResource(ns, itemName, version, itemPath, null, dataLocation, reset);
+        return verifyResource(ns, itemName, version, itemPath, getResourceOutcomes(itemName, ns, dataLocation, version), reset);
     }
 
     @Override
     public DomainPath importResource(String ns, String itemName, int version, ItemPath itemPath, Set<Outcome> outcomes, boolean reset)
             throws Exception
     {
-        return verifyResource(ns, itemName, version, itemPath, outcomes, null, reset);
+        return verifyResource(ns, itemName, version, itemPath, outcomes, reset);
     }
 
     /**
@@ -187,7 +188,7 @@ public class DefaultResourceImportHandler implements ResourceImportHandler {
      * @return
      * @throws Exception
      */
-    private DomainPath verifyResource(String ns, String itemName, int version, ItemPath itemPath, Set<Outcome> outcomes, String dataLocation, boolean reset) 
+    private DomainPath verifyResource(String ns, String itemName, int version, ItemPath itemPath, Set<Outcome> outcomes, boolean reset) 
             throws Exception
     {
         log.info("verifyResource() - Item '{}' of type '{}' verion '{}'", itemName, getName(), version);
@@ -207,19 +208,18 @@ public class DefaultResourceImportHandler implements ResourceImportHandler {
             log.info("verifyResource() - "+getName()+" "+itemName+" not found. Creating new.");
 
             thisProxy = createResourceItem(itemName, ns, itemPath);
-
-            status = NEW;
         }
+
+        if (outcomes.size() == 0) 
+            log.warn("verifyResource() - NO Outcome was found nothing stored for Item '{}' of type '{}' verion '{}'", itemName, getName(), version);
 
         // Verify/Import Outcomes, creating events and views as necessary
-        if (outcomes == null || outcomes.size() == 0) {
-            outcomes = getResourceOutcomes(itemName, ns, dataLocation, version);
-        }
-
-        if (outcomes.size() == 0) log.warn("verifyResource() - no Outcome found therefore nothing stored!");
-
         for (Outcome newOutcome : outcomes) {
-            if (checkToStoreOutcomeVersion(thisProxy, newOutcome, version, reset)) {
+            status = checkToStoreOutcomeVersion(thisProxy, newOutcome, version, reset);
+
+            log.info("checkToStoreOutcomeVersion() - {} item:{} schema:{} version:{} ", status.name(), thisProxy.getName(), newOutcome.getSchema().getName(), version);
+
+            if (status != IDENTICAL || status != UNCHANGED) {
                 // validate it, but not for kernel objects (ns == null) because those are to validate the rest
                 if (ns != null) newOutcome.validateAndCheck();
 
@@ -233,10 +233,9 @@ public class DefaultResourceImportHandler implements ResourceImportHandler {
                     col.setVersion(null);
                     Gateway.getStorage().put(thisProxy.getPath(), col, null);
                 }
-
-                if (status == UNCHANGED) status = CHANGED;
             }
         }
+
         Gateway.getStorage().commit(null);
         return modDomPath;
     }
@@ -285,28 +284,30 @@ public class DefaultResourceImportHandler implements ResourceImportHandler {
     /**
      *
      */
-    private boolean checkToStoreOutcomeVersion(ItemProxy item, Outcome newOutcome, int version, boolean reset)
+    private Status checkToStoreOutcomeVersion(ItemProxy item, Outcome newOutcome, int version, boolean reset)
             throws PersistencyException, InvalidDataException, ObjectNotFoundException
     {
         Schema schema = newOutcome.getSchema();
-        try {
-            Viewpoint currentData = (Viewpoint) item.getObject(ClusterType.VIEWPOINT+"/"+newOutcome.getSchema().getName()+"/"+version);
 
-            if (newOutcome.isIdentical(currentData.getOutcome())) {
-                log.debug("checkToStoreOutcomeVersion() - Data identical, no update required");
-                return false;
+        if (! item.checkViewpoint(schema.getName(), Integer.toString(version))) {
+            return NEW;
+        }
+
+        Viewpoint currentData = item.getViewpoint(schema.getName(), Integer.toString(version));
+
+        if (newOutcome.isIdentical(currentData.getOutcome())) {
+            return IDENTICAL;
+        }
+        else {
+            if (currentData.getEvent().getStepPath().equals("Bootstrap")) {
+                return CHANGED;
             }
             else {
-                if (!reset  && !currentData.getEvent().getStepPath().equals("Bootstrap")) {
-                    log.info("checkToStoreOutcomeVersion() - Version " + version + " was not set by Bootstrap, and reset not requested. Not overwriting.");
-                    return false;
-                }
+                // Use system property 'Module.reset' or 'Module.<namespace>.reset' to control if bootstrap should overwrite the resource
+                if (reset) return OVERWRITTEN;
+                else       return UNCHANGED;
             }
         }
-        catch (ObjectNotFoundException ex) {
-            log.info("checkToStoreOutcomeVersion() - "+schema.getName()+" "+item.getName()+" v"+version+" not found! Attempting to insert new.");
-        }
-        return true;
     }
 
     /**

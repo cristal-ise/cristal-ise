@@ -20,6 +20,7 @@
  */
 package org.cristalise.kernel.process;
 
+import static org.cristalise.kernel.process.resource.ResourceImportHandler.Status.IDENTICAL;
 import static org.cristalise.kernel.property.BuiltInItemProperties.KERNEL_VERSION;
 import static org.cristalise.kernel.property.BuiltInItemProperties.NAME;
 import static org.cristalise.kernel.property.BuiltInItemProperties.TYPE;
@@ -48,7 +49,6 @@ import org.cristalise.kernel.lookup.RolePath;
 import org.cristalise.kernel.persistency.outcome.Outcome;
 import org.cristalise.kernel.process.resource.BuiltInResources;
 import org.cristalise.kernel.process.resource.ResourceImportHandler;
-import org.cristalise.kernel.process.resource.ResourceImportHandler.Status;
 import org.cristalise.kernel.property.Property;
 import org.cristalise.kernel.scripting.ScriptConsole;
 import org.cristalise.kernel.utils.FileStringUtility;
@@ -178,7 +178,7 @@ public class Bootstrap
                 ResourceImportHandler importHandler = Gateway.getResourceImportHandler(BuiltInResources.getValue(itemType));
                 importHandler.importResource(ns, itemName, 0, itemPath, location, reset);
 
-                if (importHandler.getResourceStatus() != Status.UNCHANGED) {
+                if (importHandler.getResourceStatus() != IDENTICAL) {
                     //
                 }
             }
