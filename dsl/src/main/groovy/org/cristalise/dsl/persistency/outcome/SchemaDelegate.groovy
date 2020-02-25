@@ -221,7 +221,7 @@ class SchemaDelegate {
             }
 
             if (f.isFileUpload()) {
-                if (f.dynamicForms.acceptMimeTypes != null)            acceptMimeTypes(   f.dynamicForms.acceptMimeTypes)
+                if (f.dynamicForms.htmlAccept != null)            accept(   f.dynamicForms.htmlAccept)
             }
         }
     }

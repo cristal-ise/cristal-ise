@@ -29,7 +29,7 @@ import groovy.transform.CompileStatic;
 
 @CompileStatic
 class DynamicForms {
-    String acceptMimeTypes = null
+    String htmlAccept = null
     Boolean disabled = null
     String errmsg = null
     Boolean hidden = null
