@@ -154,6 +154,39 @@ class SchemaBuilderDynymicFormsSpecs extends Specification implements CristalTes
                </xs:schema>""")
     }
 
+    def 'Field can specify dynamicForms.accept using htmlAccept'() {
+      expect: 
+      SchemaTestBuilder.build('test', 'PatientDetails', 0) {
+        struct(name: 'PatientDetails') {
+          field(name: 'Record', type: 'string') {
+            dynamicForms(
+              inputType: 'file',
+              htmlAccept: '.xlsx, .xlsm, .xlsb, .xltx, .xltm, .xls, .xlt, .xml, .xlam, .xla, .xlw, .xlr'
+            )
+          }
+        }
+      }.compareXML(
+        '''<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+          <xs:element name="PatientDetails">
+            <xs:complexType>
+              <xs:all minOccurs="0">
+                <xs:element name='Record' type='xs:string' minOccurs='1' maxOccurs='1'>
+                  <xs:annotation>
+                    <xs:appinfo>
+                      <dynamicForms>
+                      <inputType>file</inputType>
+                      <accept>.xlsx, .xlsm, .xlsb, .xltx, .xltm, .xls, .xlt, .xml, .xlam, .xla, .xlw, .xlr</accept>
+                    </dynamicForms>
+                    </xs:appinfo>
+                  </xs:annotation>
+                </xs:element>
+              </xs:all>
+            </xs:complexType>
+          </xs:element>
+        </xs:schema>'''
+      )
+    }
+
     def 'Field can specify dynamicForms.warning using pattern or expression'() {
         expect:
         SchemaTestBuilder.build('test', 'PatientDetails', 0) {
