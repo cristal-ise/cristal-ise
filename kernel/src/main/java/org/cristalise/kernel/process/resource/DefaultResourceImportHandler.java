@@ -23,16 +23,21 @@ package org.cristalise.kernel.process.resource;
 import static org.cristalise.kernel.process.resource.BuiltInResources.QUERY_RESOURCE;
 import static org.cristalise.kernel.process.resource.BuiltInResources.SCHEMA_RESOURCE;
 import static org.cristalise.kernel.process.resource.BuiltInResources.SCRIPT_RESOURCE;
-import static org.cristalise.kernel.process.resource.ResourceImportHandler.Status.CHANGED;
 import static org.cristalise.kernel.process.resource.ResourceImportHandler.Status.IDENTICAL;
 import static org.cristalise.kernel.process.resource.ResourceImportHandler.Status.NEW;
 import static org.cristalise.kernel.process.resource.ResourceImportHandler.Status.OVERWRITTEN;
-import static org.cristalise.kernel.process.resource.ResourceImportHandler.Status.UNCHANGED;
+import static org.cristalise.kernel.process.resource.ResourceImportHandler.Status.SKIPPED;
+import static org.cristalise.kernel.process.resource.ResourceImportHandler.Status.UPDATED;
 import static org.cristalise.kernel.property.BuiltInItemProperties.MODULE;
 import static org.cristalise.kernel.property.BuiltInItemProperties.NAME;
 import static org.cristalise.kernel.security.BuiltInAuthc.SYSTEM_AGENT;
 
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import org.cristalise.kernel.collection.Collection;
@@ -60,7 +65,12 @@ import org.cristalise.kernel.property.PropertyDescriptionList;
 import org.cristalise.kernel.querying.Query;
 import org.cristalise.kernel.scripting.Script;
 import org.cristalise.kernel.utils.DescriptionObject;
+import org.cristalise.kernel.utils.FileStringUtility;
 import org.cristalise.kernel.utils.LocalObjectLoader;
+import org.cristalise.kernel.utils.ObjectProperties;
+import org.mvel2.templates.CompiledTemplate;
+import org.mvel2.templates.TemplateCompiler;
+import org.mvel2.templates.TemplateRuntime;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -71,7 +81,7 @@ public class DefaultResourceImportHandler implements ResourceImportHandler {
     DomainPath               typeRootPath;
     PropertyDescriptionList  props;
 
-    private Status status = IDENTICAL;
+    String resourceChangeDetails = "";
 
     public DefaultResourceImportHandler(BuiltInResources resType) throws Exception {
         type = resType;
@@ -191,35 +201,38 @@ public class DefaultResourceImportHandler implements ResourceImportHandler {
     private DomainPath verifyResource(String ns, String itemName, int version, ItemPath itemPath, Set<Outcome> outcomes, boolean reset) 
             throws Exception
     {
-        log.info("verifyResource() - Item '{}' of type '{}' verion '{}'", itemName, getName(), version);
+        if (outcomes.size() == 0) {
+            log.warn("verifyResource() - NO Outcome was found nothing stored for Item '{}' of type '{}' version '{}'", itemName, getName(), version);
+            return null;
+        }
+
+        log.debug("verifyResource() - Item '{}' of type '{}' version '{}'", itemName, getName(), version);
 
         // Find or create Item for Resource
         ItemProxy thisProxy;
         DomainPath modDomPath = getPath(itemName, ns);
 
         if (modDomPath.exists()) {
-            log.info("verifyResource() - Found "+getName()+" "+itemName + ".");
+            log.debug("verifyResource() - Found "+getName()+" "+itemName + ".");
 
             thisProxy = verifyPathAndModuleProperty(ns, itemName, itemPath, modDomPath, modDomPath);
         }
         else {
-            if (itemPath == null) itemPath = new ItemPath();
+            log.debug("verifyResource() - "+getName()+" "+itemName+" not found. Creating new.");
 
-            log.info("verifyResource() - "+getName()+" "+itemName+" not found. Creating new.");
-
+            if (itemPath == null) itemPath = new ItemPath(); //itemPath can be hardcoded in the bootstrap for example
             thisProxy = createResourceItem(itemName, ns, itemPath);
         }
-
-        if (outcomes.size() == 0) 
-            log.warn("verifyResource() - NO Outcome was found nothing stored for Item '{}' of type '{}' verion '{}'", itemName, getName(), version);
+        
+        List<Map<String, String>> resourceChangesList = new ArrayList<Map<String,String>>();
 
         // Verify/Import Outcomes, creating events and views as necessary
         for (Outcome newOutcome : outcomes) {
-            status = checkToStoreOutcomeVersion(thisProxy, newOutcome, version, reset);
+            Status status = checkToStoreOutcomeVersion(thisProxy, newOutcome, version, reset);
 
-            log.info("checkToStoreOutcomeVersion() - {} item:{} schema:{} version:{} ", status.name(), thisProxy.getName(), newOutcome.getSchema().getName(), version);
+            log.info("verifyResource() - Outcome {} of item:{} schema:{} version:{} ", status.name(), thisProxy.getName(), newOutcome.getSchema().getName(), version);
 
-            if (status != IDENTICAL || status != UNCHANGED) {
+            if (status != IDENTICAL && status != SKIPPED) {
                 // validate it, but not for kernel objects (ns == null) because those are to validate the rest
                 if (ns != null) newOutcome.validateAndCheck();
 
@@ -234,6 +247,17 @@ public class DefaultResourceImportHandler implements ResourceImportHandler {
                     Gateway.getStorage().put(thisProxy.getPath(), col, null);
                 }
             }
+
+            Map<String, String> c = new HashMap<String, String>();
+            c.put("SchemaName", newOutcome.getSchema().getName());
+            c.put("ChangeType", status.name());
+            resourceChangesList.add(c);
+        }
+
+        resourceChangeDetails = convertToResourceChangeDetails(itemName, version, resourceChangesList);
+
+        if (log.isTraceEnabled()) {
+            log.trace("verifyResource() - resourceChangeDetails:{}", resourceChangeDetails.replace("\n", "").replaceAll(">\\s*<", "><"));
         }
 
         Gateway.getStorage().commit(null);
@@ -300,12 +324,12 @@ public class DefaultResourceImportHandler implements ResourceImportHandler {
         }
         else {
             if (currentData.getEvent().getStepPath().equals("Bootstrap")) {
-                return CHANGED;
+                return UPDATED;
             }
             else {
                 // Use system property 'Module.reset' or 'Module.<namespace>.reset' to control if bootstrap should overwrite the resource
                 if (reset) return OVERWRITTEN;
-                else       return UNCHANGED;
+                else       return SKIPPED;
             }
         }
     }
@@ -341,7 +365,8 @@ public class DefaultResourceImportHandler implements ResourceImportHandler {
             ca = (CompositeActivity) ((CompositeActivityDef)LocalObjectLoader.getActDef(getWorkflowName(), 0)).instantiate();
         }
         catch (ObjectNotFoundException ex) {
-            log.error("Module resource workflow "+getWorkflowName()+" not found. Using empty.", ex);
+            // FIXME check if this could be a real error
+            log.warn("Module resource workflow "+getWorkflowName()+" not found. Using empty.", ex);
         }
 
         Gateway.getCorbaServer().createItem(itemPath);
@@ -354,8 +379,30 @@ public class DefaultResourceImportHandler implements ResourceImportHandler {
         return newItemProxy;
     }
 
+    /**
+     * Creates an XML fragment defined in Schema ModuleChanges struct ResourceChangeDetails
+     * 
+     * @param name of the resource item could be UUID
+     * @param version of the resource Item
+     * @param resourceChangesList the change list which was computed during verifyResource()
+     * @return the xml fragment 
+     * @throws IOException template file was not found
+     */
+    private String convertToResourceChangeDetails(String name, int version, List<Map<String, String>> resourceChangesList) throws IOException {
+        String templ = FileStringUtility.url2String(ObjectProperties.class.getResource("resources/templates/ResourceChangeDetails_xsd.tmpl"));
+        CompiledTemplate expr = TemplateCompiler.compileTemplate(templ);
+
+        Map<Object, Object> vars = new HashMap<Object, Object>();
+
+        vars.put("resourceName", name);
+        vars.put("resourceVersion", version);
+        vars.put("resourceChanges", resourceChangesList);
+
+        return (String)TemplateRuntime.execute(expr, vars);
+    }
+
     @Override
-    public Status getResourceStatus() {
-        return status;
+    public String getResourceChangeDetails() {
+        return resourceChangeDetails;
     }
 }

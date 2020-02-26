@@ -228,32 +228,27 @@ public class ModuleManager {
 
     public void registerModules() throws ModuleException {
         ItemProxy serverItem;
-        try {
-            serverItem = Gateway.getProxyManager().getProxy(new DomainPath("/servers/"+Gateway.getProperties().getString("ItemServer.name")));
-        } 
-        catch (ObjectNotFoundException e) {
-            throw new ModuleException("Cannot find local server name.");
-        }
+        DomainPath serverItemDP = new DomainPath("/servers/"+Gateway.getProperties().getString("ItemServer.name"));
 
-        log.info("registerModules() - Registering modules");
+        try {
+            serverItem = Gateway.getProxyManager().getProxy(serverItemDP);
+        }
+        catch (ObjectNotFoundException e) {
+            throw new ModuleException("Cannot find local server Item:"+serverItemDP);
+        }
 
         boolean reset = Gateway.getProperties().getBoolean("Module.reset", false);
 
         for (Module thisMod : modules) {
             if (Bootstrap.shutdown) return; 
 
-            log.info("registerModules() - Registering module "+thisMod.getName());
-
             try {
-                String thisResetKey = "Module."+thisMod.getNamespace()+".reset";
-                boolean thisReset = reset;
+                reset = Gateway.getProperties().getBoolean("Module."+thisMod.getNamespace()+".reset", reset);
 
-                if (Gateway.getProperties().containsKey(thisResetKey)) {
-                    thisReset = Gateway.getProperties().getBoolean(thisResetKey);
-                }
+                log.info("registerModules() - Registering module ns:'{}' with reset:{}", thisMod.getNamespace(), reset);
 
                 thisMod.setModuleXML(modulesXML.get(thisMod.getNamespace()));
-                thisMod.importAll(serverItem, agent, thisReset);
+                thisMod.importAll(serverItem, agent, reset);
             }
             catch (Exception e) {
                 log.error("", e);

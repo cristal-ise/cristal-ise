@@ -21,16 +21,17 @@
 package org.cristalise.kernel.process.module;
 
 import static org.cristalise.kernel.collection.BuiltInCollections.CONTENTS;
-import static org.cristalise.kernel.process.resource.ResourceImportHandler.Status.IDENTICAL;
 import static org.cristalise.kernel.property.BuiltInItemProperties.COMPLEXITY;
 import static org.cristalise.kernel.property.BuiltInItemProperties.MODULE;
 import static org.cristalise.kernel.property.BuiltInItemProperties.NAME;
 import static org.cristalise.kernel.property.BuiltInItemProperties.NAMESPACE;
 import static org.cristalise.kernel.property.BuiltInItemProperties.TYPE;
 import static org.cristalise.kernel.property.BuiltInItemProperties.VERSION;
+import static org.cristalise.kernel.security.BuiltInAuthc.SYSTEM_AGENT;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Properties;
 
 import org.apache.commons.lang3.StringUtils;
@@ -46,6 +47,8 @@ import org.cristalise.kernel.entity.imports.ImportOutcome;
 import org.cristalise.kernel.entity.imports.ImportRole;
 import org.cristalise.kernel.entity.proxy.AgentProxy;
 import org.cristalise.kernel.entity.proxy.ItemProxy;
+import org.cristalise.kernel.lifecycle.instance.predefined.UpdateImportReport;
+import org.cristalise.kernel.lookup.AgentPath;
 import org.cristalise.kernel.lookup.Path;
 import org.cristalise.kernel.persistency.ClusterType;
 import org.cristalise.kernel.process.AbstractMain;
@@ -126,10 +129,9 @@ public class Module extends ImportItem {
         }
         properties.add(newProp);
     }
-    
+
     private void addItemToContents(Path itemPath) {
         ImportDependency contents = dependencyList.get(0);
-        
         contents.dependencyMemberList.add(new ImportDependencyMember(itemPath.toString()));
     }
 
@@ -142,13 +144,18 @@ public class Module extends ImportItem {
      * @throws Exception All possible exceptions
      */
     public void importAll(ItemProxy serverEntity, AgentProxy systemAgent, boolean reset) throws Exception {
-        if (!Bootstrap.shutdown) importResources(systemAgent, reset);
-        if (!Bootstrap.shutdown) importRoles(    systemAgent, reset);
-        if (!Bootstrap.shutdown) importAgents(   systemAgent, reset);
-        if (!Bootstrap.shutdown) importItems(    systemAgent, reset);
+        String moduleChanges = "";
+
+        if (!Bootstrap.shutdown) moduleChanges = importResources(systemAgent, reset);
+        if (!Bootstrap.shutdown) importRoles( systemAgent, reset);
+        if (!Bootstrap.shutdown) importAgents(systemAgent, reset);
+        if (!Bootstrap.shutdown) importItems( systemAgent, reset);
 
         //Finally create this Module Item
         if (!Bootstrap.shutdown) this.create(systemAgent.getPath(), reset);
+
+        if (StringUtils.isNotBlank(moduleChanges))
+            new UpdateImportReport().request((AgentPath)SYSTEM_AGENT.getPath(), itemPath, moduleChanges);
     }
 
     /**
@@ -203,23 +210,28 @@ public class Module extends ImportItem {
      * @param systemAgent
      * @param reset
      */
-    private void importResources(AgentProxy systemAgent, boolean reset) {
+    private String importResources(AgentProxy systemAgent, boolean reset) throws Exception {
+        List<String> moduleChanges = new ArrayList<String>();
+
         for (ModuleResource thisRes : imports.getResources()) {
-            if (Bootstrap.shutdown) return;
+            if (Bootstrap.shutdown) return "";
 
             try {
                 thisRes.setNamespace(ns);
                 addItemToContents(thisRes.create(systemAgent.getPath(), reset));
-                
-                if (thisRes.getStatus() != IDENTICAL) {
-                    
-                }
+                moduleChanges.add(thisRes.getResourceChangeDetails());
             }
             catch (Exception ex) {
                 log.error("Error importing module resources. Unsafe to continue.", ex);
                 AbstractMain.shutdown(1);
             }
         }
+
+        StringBuffer moduleChangesXML = new StringBuffer("<ModuleChanges>\n");
+        for (String oneChange: moduleChanges) moduleChangesXML.append(oneChange).append("\n");
+        moduleChangesXML.append("</ModuleChanges>");
+
+        return moduleChangesXML.toString();
     }
 
     /**

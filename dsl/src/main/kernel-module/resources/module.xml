@@ -6,5 +6,6 @@
     <SchemaResource name="SimpleElectonicSignature" version="0"/>
     <SchemaResource name="SystemProperties" version="0"/>
     <SchemaResource name="LoggerConfig" version="0"/>
+    <SchemaResource name="ModuleChanges" version="0"/>
   </Imports>
 </CristalModule>

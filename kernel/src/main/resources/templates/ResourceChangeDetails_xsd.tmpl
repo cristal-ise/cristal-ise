@@ -1,0 +1,10 @@
+<ResourceChangeDetails>
+  <ResourceName>@{resourceName}</ResourceName>
+  <ResourceVersion>@{resourceVersion}</ResourceVersion>
+@foreach{change: resourceChanges}
+  <ResourceChange>
+    <SchemaName>@{change.SchemaName}</SchemaName>
+    <ChangeType>@{change.ChangeType}</ChangeType>
+  </ResourceChange>
+@end{}
+</ResourceChangeDetails>

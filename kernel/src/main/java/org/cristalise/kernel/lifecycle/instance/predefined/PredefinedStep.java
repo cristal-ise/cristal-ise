@@ -37,6 +37,7 @@ import org.cristalise.kernel.common.AccessRightsException;
 import org.cristalise.kernel.common.CannotManageException;
 import org.cristalise.kernel.common.InvalidCollectionModification;
 import org.cristalise.kernel.common.InvalidDataException;
+import org.cristalise.kernel.common.InvalidTransitionException;
 import org.cristalise.kernel.common.ObjectAlreadyExistsException;
 import org.cristalise.kernel.common.ObjectCannotBeUpdated;
 import org.cristalise.kernel.common.ObjectNotFoundException;
@@ -127,7 +128,12 @@ public abstract class PredefinedStep extends Activity {
 
     @Override
     public String getType() {
-        return getName();
+        return this.getClass().getSimpleName();
+    }
+
+    @Override
+    public String getName() {
+        return this.getClass().getSimpleName();
     }
 
     static public String getPredefStepSchemaName(String stepName) {
@@ -284,5 +290,38 @@ public abstract class PredefinedStep extends Activity {
             Viewpoint newNumberView = new Viewpoint(itemPath, newOutcome.getSchema(), viewName, eventID);
             Gateway.getStorage().put(itemPath, newNumberView, null);
         }
+    }
+
+    /**
+     * Use this method to run a Predefined step during bootstrap
+     * 
+     * @param agent
+     * @param itemPath
+     * @param requestData
+     * @return
+     * @throws AccessRightsException
+     * @throws InvalidTransitionException
+     * @throws InvalidDataException
+     * @throws ObjectNotFoundException
+     * @throws PersistencyException
+     * @throws ObjectAlreadyExistsException
+     * @throws ObjectCannotBeUpdated
+     * @throws CannotManageException
+     * @throws InvalidCollectionModification
+     */
+    public String request(AgentPath agent, ItemPath itemPath, String requestData)
+            throws AccessRightsException, 
+            InvalidTransitionException, 
+            InvalidDataException, 
+            ObjectNotFoundException, 
+            PersistencyException,
+            ObjectAlreadyExistsException, 
+            ObjectCannotBeUpdated, 
+            CannotManageException, 
+            InvalidCollectionModification
+    {
+        log.info("request({}) - Type:{}", itemPath, getType());
+        this.setActive(true);
+        return request(agent, agent, itemPath, PredefinedStep.DONE, requestData, null, new byte[0], true, null);
     }
 }

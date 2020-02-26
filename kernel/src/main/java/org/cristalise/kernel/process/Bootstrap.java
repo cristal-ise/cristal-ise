@@ -20,7 +20,6 @@
  */
 package org.cristalise.kernel.process;
 
-import static org.cristalise.kernel.process.resource.ResourceImportHandler.Status.IDENTICAL;
 import static org.cristalise.kernel.property.BuiltInItemProperties.KERNEL_VERSION;
 import static org.cristalise.kernel.property.BuiltInItemProperties.NAME;
 import static org.cristalise.kernel.property.BuiltInItemProperties.TYPE;
@@ -28,7 +27,9 @@ import static org.cristalise.kernel.security.BuiltInAuthc.ADMIN_ROLE;
 import static org.cristalise.kernel.security.BuiltInAuthc.SYSTEM_AGENT;
 
 import java.net.InetAddress;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.StringTokenizer;
 import java.util.UUID;
 
@@ -39,6 +40,7 @@ import org.cristalise.kernel.lifecycle.CompositeActivityDef;
 import org.cristalise.kernel.lifecycle.instance.CompositeActivity;
 import org.cristalise.kernel.lifecycle.instance.Workflow;
 import org.cristalise.kernel.lifecycle.instance.predefined.PredefinedStep;
+import org.cristalise.kernel.lifecycle.instance.predefined.UpdateImportReport;
 import org.cristalise.kernel.lifecycle.instance.predefined.server.ServerPredefinedStepContainer;
 import org.cristalise.kernel.lookup.AgentPath;
 import org.cristalise.kernel.lookup.DomainPath;
@@ -61,8 +63,8 @@ import lombok.extern.slf4j.Slf4j;
  * Bootstrap loads all Items defined in the kernel resource XMLs and the module XML
  */
 @Slf4j
-public class Bootstrap
-{
+public class Bootstrap {
+
     static DomainPath thisServerPath;
     static HashMap<String, AgentProxy> systemAgents = new HashMap<String, AgentProxy>();
     public static boolean shutdown = false;
@@ -162,8 +164,10 @@ public class Bootstrap
      * @param reset
      * @throws InvalidItemPathException
      */
-    private static void verifyBootDataItems(String bootList, String ns, boolean reset) throws InvalidItemPathException {
+    private static void verifyBootDataItems(String bootList, String ns, boolean reset) throws Exception {
         StringTokenizer str = new StringTokenizer(bootList, "\n\r");
+
+        List<String> kernelChanges = new ArrayList<String>();
 
         while (str.hasMoreTokens() && !shutdown) {
             String thisItem = str.nextToken();
@@ -178,17 +182,20 @@ public class Bootstrap
                 ResourceImportHandler importHandler = Gateway.getResourceImportHandler(BuiltInResources.getValue(itemType));
                 importHandler.importResource(ns, itemName, 0, itemPath, location, reset);
 
-                if (importHandler.getResourceStatus() != IDENTICAL) {
-                    //
-                }
+                kernelChanges.add(importHandler.getResourceChangeDetails());
             }
             catch (Exception e) {
                 log.error("Error importing bootstrap items. Unsafe to continue.", e);
                 AbstractMain.shutdown(1);
             }
         }
-    }
 
+        StringBuffer moduleChangesXML = new StringBuffer("<ModuleChanges>\n");
+        for (String oneChange: kernelChanges) moduleChangesXML.append(oneChange).append("\n");
+        moduleChangesXML.append("</ModuleChanges>");
+
+        new UpdateImportReport().request((AgentPath)SYSTEM_AGENT.getPath(), thisServerPath.getItemPath(), moduleChangesXML.toString());
+    }
 
     /**
      * Checks for the existence of a agents and creates it if needed so it can be used

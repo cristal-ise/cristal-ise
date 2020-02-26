@@ -51,3 +51,16 @@ Schema('LoggerConfig', 0) {
         }
     }
 }
+
+Schema('ModuleChanges', 0) {
+    struct(name: 'ModuleChanges', useSequence: true) {
+        struct(name: 'ResourceChangeDetails', useSequence: true, multiplicity: '0..*') {
+            field(name:'ResourceName', type: 'string')
+            field(name:'ResourceVersion', type: 'string')
+            struct(name: 'ResourceChange', useSequence: true, multiplicity: '0..*') {
+                field(name:'SchemaName', type: 'string')
+                field(name:'ChangeType', type: 'string', values: ['IDENTICAL', 'NEW', 'UPDATED', 'OVERWRITTEN', 'SKIPPED', 'REMOVED'])
+            }
+        }
+    }
+}
