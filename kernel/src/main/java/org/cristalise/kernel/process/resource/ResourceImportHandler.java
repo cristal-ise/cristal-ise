@@ -20,8 +20,6 @@
  */
 package org.cristalise.kernel.process.resource;
 
-import java.util.Set;
-
 import org.cristalise.kernel.collection.CollectionArrayList;
 import org.cristalise.kernel.common.InvalidDataException;
 import org.cristalise.kernel.common.ObjectNotFoundException;
@@ -44,7 +42,7 @@ public interface ResourceImportHandler {
     public DomainPath getPath(String name, String ns);
 
     /**
-     * Generates the outcomes that the resource should contain.
+     * Generate the outcome that the resource should contain.
      * 
      * @param name the name of the resource 
      * @param ns the namespace defined in the module
@@ -54,7 +52,7 @@ public interface ResourceImportHandler {
      * @throws InvalidDataException - if the supplied resources are not valid
      * @throws ObjectNotFoundException - data was not found to handle request
      */
-    public Set<Outcome> getResourceOutcomes(String name, String ns, String location, Integer version) 
+    public Outcome getResourceOutcome(String name, String ns, String location, Integer version) 
             throws InvalidDataException, ObjectNotFoundException;
 
     /** 
@@ -118,14 +116,14 @@ public interface ResourceImportHandler {
      * @param ns the NameSpace of the Module
      * @param itemName name of the resource Item
      * @param version version of the resource Item
-     * @param outcomes the list of the Outcomes provided by the caller
+     * @param outcome the Outcome to be used to create the resource
      * @param reset whether the resources shall be updated even if the current version was modified 
      *        by someone other than the bootstrapper. Use system property 'Module.reset' or 'Module.${namespace}.reset' 
      *        to control if bootstrap should overwrite the resource
      * @return the DomainPath of the resource Item
      * @throws Exception errors that are raised during the process
      */
-    public DomainPath createResource(String ns, String itemName, int version, Set<Outcome> outcomes, boolean reset)
+    public DomainPath createResource(String ns, String itemName, int version, Outcome outcome, boolean reset)
             throws Exception;
 
     /**
@@ -154,18 +152,18 @@ public interface ResourceImportHandler {
      * @param itemName name of the resource Item
      * @param version version of the resource Item
      * @param itemPath the fixed UUID of the Item
-     * @param outcomes the list of the Outcomes provided by the caller
+     * @param the Outcome to be used to import the 
      * @param reset whether the resources shall be updated even if the current version was modified 
      *        by someone other than the bootstrapper. Use system property 'Module.reset' or 'Module.${namespace}.reset' 
      *        to control if bootstrap should overwrite the resource
      * @return the DomainPath of the resource Item
      * @throws Exception errors that are raised during the process
      */
-    public DomainPath importResource(String ns, String itemName, int version, ItemPath itemPath, Set<Outcome> outcomes, boolean reset)
+    public DomainPath importResource(String ns, String itemName, int version, ItemPath itemPath, Outcome outcome, boolean reset)
             throws Exception;
 
     /**
-     * read teh XML string that was created during the createResource() and importResource() methods
+     * Reads the XML string that was created during the createResource() and importResource() methods
      * @return xml string
      */
     public String getResourceChangeDetails();

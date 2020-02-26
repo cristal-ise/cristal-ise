@@ -169,6 +169,6 @@ class SchemaBuilder {
     public DomainPath create() {
         Schema schemaSchema = LocalObjectLoader.getSchema("Schema", 0)
         ResourceImportHandler importHandler = Gateway.getResourceImportHandler(SCHEMA_RESOURCE);
-        return domainPath = importHandler.createResource(module, name, version, [new Outcome(-1, schema.schemaData, schemaSchema)] as Set, false)
+        return domainPath = importHandler.createResource(module, name, version, new Outcome(-1, schema.schemaData, schemaSchema), false)
     }
 }

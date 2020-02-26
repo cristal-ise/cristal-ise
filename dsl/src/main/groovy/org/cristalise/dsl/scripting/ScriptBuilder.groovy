@@ -144,6 +144,6 @@ class ScriptBuilder {
      */
     public DomainPath create() {
         ResourceImportHandler importHandler = Gateway.getResourceImportHandler(SCRIPT_RESOURCE);
-        return domainPath = importHandler.createResource(module, name, version, [new Outcome(-1, scriptXML, scriptSchema)] as Set, false)
+        return domainPath = importHandler.createResource(module, name, version, new Outcome(-1, scriptXML, scriptSchema), false)
     }
 }

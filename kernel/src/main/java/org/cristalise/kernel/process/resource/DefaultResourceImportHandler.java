@@ -33,12 +33,8 @@ import static org.cristalise.kernel.property.BuiltInItemProperties.NAME;
 import static org.cristalise.kernel.security.BuiltInAuthc.SYSTEM_AGENT;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import org.cristalise.kernel.collection.Collection;
 import org.cristalise.kernel.collection.CollectionArrayList;
@@ -137,17 +133,14 @@ public class DefaultResourceImportHandler implements ResourceImportHandler {
     }
 
     @Override
-    public Set<Outcome> getResourceOutcomes(String name, String ns, String location, Integer version) 
+    public Outcome getResourceOutcome(String name, String ns, String location, Integer version) 
             throws InvalidDataException, ObjectNotFoundException
     {
-        HashSet<Outcome> retArr = new HashSet<Outcome>();
         String data = Gateway.getResource().getTextResource(ns, location);
 
         if (data == null) throw new ObjectNotFoundException("No data found for "+type.getSchemaName()+" "+name);
 
-        Outcome resOutcome = new Outcome(0, data, LocalObjectLoader.getSchema(type.getSchemaName(), 0));
-        retArr.add(resOutcome);
-        return retArr;
+        return new Outcome(0, data, LocalObjectLoader.getSchema(type.getSchemaName(), 0));
     }
 
     @Override
@@ -166,24 +159,24 @@ public class DefaultResourceImportHandler implements ResourceImportHandler {
      ********************************/
 
     @Override
-    public DomainPath createResource(String ns, String itemName, int version, Set<Outcome> outcomes, boolean reset)
+    public DomainPath createResource(String ns, String itemName, int version, Outcome outcome, boolean reset)
             throws Exception
     {
-        return verifyResource(ns, itemName, version, null, outcomes, reset);
+        return verifyResource(ns, itemName, version, null, outcome, reset);
     }
 
     @Override
     public DomainPath importResource(String ns, String itemName, int version, ItemPath itemPath, String dataLocation, boolean reset)
             throws Exception
     {
-        return verifyResource(ns, itemName, version, itemPath, getResourceOutcomes(itemName, ns, dataLocation, version), reset);
+        return verifyResource(ns, itemName, version, itemPath, getResourceOutcome(itemName, ns, dataLocation, version), reset);
     }
 
     @Override
-    public DomainPath importResource(String ns, String itemName, int version, ItemPath itemPath, Set<Outcome> outcomes, boolean reset)
+    public DomainPath importResource(String ns, String itemName, int version, ItemPath itemPath, Outcome outcome, boolean reset)
             throws Exception
     {
-        return verifyResource(ns, itemName, version, itemPath, outcomes, reset);
+        return verifyResource(ns, itemName, version, itemPath, outcome, reset);
     }
 
     /**
@@ -198,10 +191,10 @@ public class DefaultResourceImportHandler implements ResourceImportHandler {
      * @return
      * @throws Exception
      */
-    private DomainPath verifyResource(String ns, String itemName, int version, ItemPath itemPath, Set<Outcome> outcomes, boolean reset) 
+    private DomainPath verifyResource(String ns, String itemName, int version, ItemPath itemPath, Outcome outcome, boolean reset) 
             throws Exception
     {
-        if (outcomes.size() == 0) {
+        if (outcome == null) {
             log.warn("verifyResource() - NO Outcome was found nothing stored for Item '{}' of type '{}' version '{}'", itemName, getName(), version);
             return null;
         }
@@ -224,37 +217,28 @@ public class DefaultResourceImportHandler implements ResourceImportHandler {
             thisProxy = createResourceItem(itemName, ns, itemPath);
         }
         
-        List<Map<String, String>> resourceChangesList = new ArrayList<Map<String,String>>();
+        // Verify/Import Outcome, creating events and views as necessary
+        Status status = checkToStoreOutcomeVersion(thisProxy, outcome, version, reset);
 
-        // Verify/Import Outcomes, creating events and views as necessary
-        for (Outcome newOutcome : outcomes) {
-            Status status = checkToStoreOutcomeVersion(thisProxy, newOutcome, version, reset);
+        log.info("verifyResource() - Outcome {} of item:{} schema:{} version:{} ", status.name(), thisProxy.getName(), outcome.getSchema().getName(), version);
 
-            log.info("verifyResource() - Outcome {} of item:{} schema:{} version:{} ", status.name(), thisProxy.getName(), newOutcome.getSchema().getName(), version);
+        if (status != IDENTICAL && status != SKIPPED) {
+            // validate it, but not for kernel objects (ns == null) because those are to validate the rest
+            if (ns != null) outcome.validateAndCheck();
 
-            if (status != IDENTICAL && status != SKIPPED) {
-                // validate it, but not for kernel objects (ns == null) because those are to validate the rest
-                if (ns != null) newOutcome.validateAndCheck();
+            PredefinedStep.storeOutcomeEventAndViews(thisProxy.getPath(), outcome, version);
 
-                PredefinedStep.storeOutcomeEventAndViews(thisProxy.getPath(), newOutcome, version);
+            CollectionArrayList cols = getCollections(itemName, version, outcome);
 
-                CollectionArrayList cols = getCollections(itemName, version, newOutcome);
-
-                for (Collection<?> col : cols.list) {
-                    Gateway.getStorage().put(thisProxy.getPath(), col, null);
-                    Gateway.getStorage().clearCache(thisProxy.getPath(), ClusterType.COLLECTION+"/"+col.getName());
-                    col.setVersion(null);
-                    Gateway.getStorage().put(thisProxy.getPath(), col, null);
-                }
+            for (Collection<?> col : cols.list) {
+                Gateway.getStorage().put(thisProxy.getPath(), col, null);
+                Gateway.getStorage().clearCache(thisProxy.getPath(), ClusterType.COLLECTION+"/"+col.getName());
+                col.setVersion(null);
+                Gateway.getStorage().put(thisProxy.getPath(), col, null);
             }
-
-            Map<String, String> c = new HashMap<String, String>();
-            c.put("SchemaName", newOutcome.getSchema().getName());
-            c.put("ChangeType", status.name());
-            resourceChangesList.add(c);
         }
 
-        resourceChangeDetails = convertToResourceChangeDetails(itemName, version, resourceChangesList);
+        resourceChangeDetails = convertToResourceChangeDetails(itemName, version, outcome.getSchema(), status);
 
         if (log.isTraceEnabled()) {
             log.trace("verifyResource() - resourceChangeDetails:{}", resourceChangeDetails.replace("\n", "").replaceAll(">\\s*<", "><"));
@@ -388,7 +372,7 @@ public class DefaultResourceImportHandler implements ResourceImportHandler {
      * @return the xml fragment 
      * @throws IOException template file was not found
      */
-    private String convertToResourceChangeDetails(String name, int version, List<Map<String, String>> resourceChangesList) throws IOException {
+    private String convertToResourceChangeDetails(String name, int version, Schema schema, Status status) throws IOException {
         String templ = FileStringUtility.url2String(ObjectProperties.class.getResource("resources/templates/ResourceChangeDetails_xsd.tmpl"));
         CompiledTemplate expr = TemplateCompiler.compileTemplate(templ);
 
@@ -396,7 +380,8 @@ public class DefaultResourceImportHandler implements ResourceImportHandler {
 
         vars.put("resourceName", name);
         vars.put("resourceVersion", version);
-        vars.put("resourceChanges", resourceChangesList);
+        vars.put("schemaName", schema.getName());
+        vars.put("changeType", status.name());
 
         return (String)TemplateRuntime.execute(expr, vars);
     }

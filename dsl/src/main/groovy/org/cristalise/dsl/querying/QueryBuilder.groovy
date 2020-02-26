@@ -85,6 +85,6 @@ class QueryBuilder {
     public DomainPath create() {
         Schema querySchema = LocalObjectLoader.getSchema("Query", 0)
         ResourceImportHandler importHandler = Gateway.getResourceImportHandler(QUERY_RESOURCE);
-        return domainPath = importHandler.createResource(module, name, version, [new Outcome(-1, (String)null, querySchema)] as Set, false)
+        return domainPath = importHandler.createResource(module, name, version, new Outcome(-1, (String)null, querySchema), false)
     }
 }

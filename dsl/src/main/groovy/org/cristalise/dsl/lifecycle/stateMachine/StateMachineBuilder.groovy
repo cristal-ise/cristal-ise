@@ -124,6 +124,6 @@ class StateMachineBuilder {
      */
     public DomainPath create() {
         ResourceImportHandler importHandler = Gateway.getResourceImportHandler(STATE_MACHINE_RESOURCE);
-        return domainPath = importHandler.createResource(module, name, version, [new Outcome(-1, smXML, smSchema)] as Set, false)
+        return domainPath = importHandler.createResource(module, name, version, new Outcome(-1, smXML, smSchema), false)
     }
 }
