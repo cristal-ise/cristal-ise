@@ -47,7 +47,6 @@ class FileUploadTest extends RestapiTestBase {
                 .when()
                     .post(url)
                 .then()
-                    .statusCode(STATUS_OK)
                     .extract().response()
     }
 }
