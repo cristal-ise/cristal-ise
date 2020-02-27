@@ -8,12 +8,14 @@ import org.junit.Test
 import groovy.transform.CompileStatic
 import io.restassured.http.ContentType
 
+import static io.restassured.RestAssured.given
+
 @CompileStatic
 class FileUploadTest extends RestapiTestBase {
 
     @Test
     public void 'Test File Upload Scenarios'() throws Exception {
-        login('hmws', 'test')
+        login('user', 'test')
         def name = "TestItem-$timeStamp"
         def itemUuid = createNewItem(name, ContentType.XML)
 
@@ -23,9 +25,8 @@ class FileUploadTest extends RestapiTestBase {
         formData.put("outcome", "<File_Details><FileName>working-pro2.xml</FileName><Size>2124</Size><Type>text/xml</Type></File_Details>")
 
         Response res = doPostForm(path, formData)
-        if (res.getStatusCode() == STATUS_OK) {
-            System.out.println(res.getBody().toString())
-        }
+        System.out.println(res.body.asString())
+
     }
 
     protected Response doPostForm(String url, Map<String, String> formData) {
@@ -39,6 +40,13 @@ class FileUploadTest extends RestapiTestBase {
             requestSpecBuilder.addMultiPart(key, value)
         }
         RequestSpecification req = requestSpecBuilder.build();
-        return req.post(url);
+        return given()
+                    .spec(req)
+                    .cookie(cauthCookie)
+                .when()
+                    .post(url)
+                .then()
+//                    .statusCode(STATUS_OK)
+                    .extract().response()
     }
 }
