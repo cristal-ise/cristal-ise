@@ -27,6 +27,7 @@ import static org.cristalise.kernel.process.resource.ResourceImportHandler.Statu
 import static org.cristalise.kernel.process.resource.ResourceImportHandler.Status.NEW;
 import static org.cristalise.kernel.process.resource.ResourceImportHandler.Status.OVERWRITTEN;
 import static org.cristalise.kernel.process.resource.ResourceImportHandler.Status.SKIPPED;
+import static org.cristalise.kernel.process.resource.ResourceImportHandler.Status.REMOVED;
 import static org.cristalise.kernel.process.resource.ResourceImportHandler.Status.UPDATED;
 import static org.cristalise.kernel.property.BuiltInItemProperties.MODULE;
 import static org.cristalise.kernel.property.BuiltInItemProperties.NAME;
@@ -140,7 +141,7 @@ public class DefaultResourceImportHandler implements ResourceImportHandler {
 
         if (data == null) throw new ObjectNotFoundException("No data found for "+type.getSchemaName()+" "+name);
 
-        return new Outcome(0, data, LocalObjectLoader.getSchema(type.getSchemaName(), 0));
+        return new Outcome(-1, data, LocalObjectLoader.getSchema(type.getSchemaName(), version));
     }
 
     @Override
@@ -214,7 +215,7 @@ public class DefaultResourceImportHandler implements ResourceImportHandler {
             log.debug("verifyResource() - "+getName()+" "+itemName+" not found. Creating new.");
 
             if (itemPath == null) itemPath = new ItemPath(); //itemPath can be hardcoded in the bootstrap for example
-            thisProxy = createResourceItem(itemName, ns, itemPath);
+            thisProxy = createResourceItem(itemName, version, ns, itemPath);
         }
         
         // Verify/Import Outcome, creating events and views as necessary
@@ -222,7 +223,7 @@ public class DefaultResourceImportHandler implements ResourceImportHandler {
 
         log.info("verifyResource() - Outcome {} of item:{} schema:{} version:{} ", status.name(), thisProxy.getName(), outcome.getSchema().getName(), version);
 
-        if (status != IDENTICAL && status != SKIPPED) {
+        if (status == NEW || status == UPDATED || status == OVERWRITTEN) {
             // validate it, but not for kernel objects (ns == null) because those are to validate the rest
             if (ns != null) outcome.validateAndCheck();
 
@@ -236,6 +237,9 @@ public class DefaultResourceImportHandler implements ResourceImportHandler {
                 col.setVersion(null);
                 Gateway.getStorage().put(thisProxy.getPath(), col, null);
             }
+        }
+        else if (status == REMOVED) {
+            // TODO implement
         }
 
         resourceChangeDetails = convertToResourceChangeDetails(itemName, version, outcome.getSchema(), status);
@@ -290,7 +294,7 @@ public class DefaultResourceImportHandler implements ResourceImportHandler {
     }
 
     /**
-     *
+     * TODO implement REMOVED
      */
     private Status checkToStoreOutcomeVersion(ItemProxy item, Outcome newOutcome, int version, boolean reset)
             throws PersistencyException, InvalidDataException, ObjectNotFoundException
@@ -326,7 +330,7 @@ public class DefaultResourceImportHandler implements ResourceImportHandler {
      * @return
      * @throws Exception
      */
-    private ItemProxy createResourceItem(String itemName, String ns, ItemPath itemPath) throws Exception {
+    private ItemProxy createResourceItem(String itemName, int version, String ns, ItemPath itemPath) throws Exception {
         // create props
         PropertyDescriptionList pdList = getPropDesc();
         PropertyArrayList props = new PropertyArrayList();
@@ -346,7 +350,7 @@ public class DefaultResourceImportHandler implements ResourceImportHandler {
 
         CompositeActivity ca = new CompositeActivity();
         try {
-            ca = (CompositeActivity) ((CompositeActivityDef)LocalObjectLoader.getActDef(getWorkflowName(), 0)).instantiate();
+            ca = (CompositeActivity) ((CompositeActivityDef)LocalObjectLoader.getActDef(getWorkflowName(), version)).instantiate();
         }
         catch (ObjectNotFoundException ex) {
             // FIXME check if this could be a real error
