@@ -21,8 +21,10 @@ class FileUploadTest extends RestapiTestBase {
 
         def path = apiUri + "/item/$itemUuid/workflow/domain/Update?transition=Done"
         Map<String, String> formData  = new HashMap<String, String>()
-        formData.put("file", File.createTempFile("xml-data", "xml").getBytes().toString())
-        formData.put("outcome", "<File_Details><FileName>working-pro2.xml</FileName><Size>2124</Size><Type>text/xml</Type></File_Details>")
+        File file = File.createTempFile("xml-data-$timeStamp", ".xml")
+        formData.put("file", file.getBytes().toString())
+        String fileName = file.getName()
+        formData.put("outcome", "<File_Details><FileName>"+ fileName +"</FileName><Size>2124</Size><Type>text/xml</Type></File_Details>")
 
         Response res = doPostForm(path, formData)
         System.out.println(res.body.asString())
@@ -30,7 +32,6 @@ class FileUploadTest extends RestapiTestBase {
     }
 
     protected Response doPostForm(String url, Map<String, String> formData) {
-
         RequestSpecBuilder requestSpecBuilder = new RequestSpecBuilder();
         requestSpecBuilder.setContentType("multipart/form-data")
         for (Map.Entry<String,String> entry : formData.entrySet())
@@ -46,7 +47,7 @@ class FileUploadTest extends RestapiTestBase {
                 .when()
                     .post(url)
                 .then()
-//                    .statusCode(STATUS_OK)
+                    .statusCode(STATUS_OK)
                     .extract().response()
     }
 }
