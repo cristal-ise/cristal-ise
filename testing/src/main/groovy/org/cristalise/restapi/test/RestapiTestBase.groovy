@@ -10,6 +10,8 @@ import org.cristalise.kernel.lifecycle.instance.predefined.server.CreateNewAgent
 import org.cristalise.kernel.lifecycle.instance.predefined.server.CreateNewItem
 import org.cristalise.kernel.lifecycle.instance.predefined.server.CreateNewRole
 import org.cristalise.kernel.process.AbstractMain
+import org.cristalise.kernel.process.Gateway
+import org.cristalise.kernel.test.KernelScenarioTestBase
 import org.cristalise.kernel.test.utils.KernelXMLUtility
 import org.json.JSONArray
 import org.json.JSONObject
@@ -19,12 +21,14 @@ import org.junit.BeforeClass
 
 import groovy.json.JsonBuilder
 import groovy.transform.CompileStatic
+import io.restassured.builder.RequestSpecBuilder
 import io.restassured.http.ContentType
 import io.restassured.http.Cookie
 import io.restassured.response.Response
+import io.restassured.specification.RequestSpecification
 
 @CompileStatic
-class RestapiTestBase {
+class RestapiTestBase extends KernelScenarioTestBase {
 
     static String apiUri
 
@@ -32,8 +36,6 @@ class RestapiTestBase {
     Cookie cauthCookie
 
     static final int STATUS_OK = 200
-
-    String timeStamp
 
     @BeforeClass
     public static void init() {
@@ -69,6 +71,8 @@ class RestapiTestBase {
 
         cauthCookie = loginResp.getDetailedCookie('cauth');
         userUuid = loginResp.body().jsonPath().getString('Login.uuid.value')
+
+        //agent = Gateway.proxyManager.getAgentProxy(Gateway.lookup.getAgentPath(user))
 
         assert userUuid
     }
@@ -164,6 +168,40 @@ class RestapiTestBase {
         return responseBody
     }
 
+    String executeActivity(String uuid, String actPath, ContentType contentType, String outcome ) {
+        return given()
+            .contentType(contentType)
+            .accept(ContentType.JSON)
+            .cookie(cauthCookie)
+            .body(outcome)
+        .when()
+            .post(apiUri+"/item/$uuid/workflow/domain/${actPath}?transition=Done")
+        .then()
+            .statusCode(STATUS_OK)
+            .extract().response().body().asString()
+    }
+
+    String executeActivityMultipart(String uuid, String actPath, Map<String, String> multipartData) {
+        RequestSpecBuilder requestSpecBuilder = new RequestSpecBuilder();
+        requestSpecBuilder.setContentType("multipart/form-data")
+
+        multipartData.each { k, v ->
+            requestSpecBuilder.addMultiPart(k, v)
+        }
+
+        RequestSpecification req = requestSpecBuilder.build();
+
+        return given()
+            .spec(req)
+            .cookie(cauthCookie)
+            .accept(ContentType.JSON)
+            .when()
+                .post(apiUri+"/item/$uuid/workflow/domain/${actPath}?transition=Done")
+            .then()
+                .statusCode(STATUS_OK)
+                .extract().response().body().asString()
+    }
+
     String executePredefStep(String uuid,  Class<?> predefStep, String...params) {
         return executePredefStep(uuid, predefStep, ContentType.JSON, params)
     }
@@ -218,7 +256,7 @@ class RestapiTestBase {
 
         def agents = resolveRole('Admin')
         def uuid = ""
-        
+
         for (int i = 0; i < agents.length(); i++) {
             def json = agents.getJSONObject(i)
 
