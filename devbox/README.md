@@ -12,8 +12,9 @@ This work is based on [jhipster-devbox](https://github.com/jhipster/jhipster-dev
 1. `sudo passwd ubuntu` - Change password of root user
 1. `sudo adduser $USER vboxsf` - Add permission to use shared folders with the host OS
 1. `git config --global credential.helper cache`
-1. `git config --global user.user 'John Doe'`
+1. `git config --global user.name 'John Doe'`
 1. `git config --global user.email john.doe@email.com`
+1. `git config --global pull.rebase true`
 1. Add umake bin to PATH in .profile if not there already
 
     ```shell
