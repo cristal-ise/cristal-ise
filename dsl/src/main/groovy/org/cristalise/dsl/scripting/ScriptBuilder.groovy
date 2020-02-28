@@ -20,26 +20,22 @@
  */
 package org.cristalise.dsl.scripting
 
-import groovy.transform.CompileStatic
-import groovy.util.logging.Slf4j
+import static org.cristalise.kernel.process.resource.BuiltInResources.SCRIPT_RESOURCE
 
 import org.cristalise.kernel.common.InvalidDataException
-import org.cristalise.kernel.lookup.InvalidPathException
-import org.cristalise.kernel.persistency.outcome.OutcomeValidator
-import org.cristalise.kernel.persistency.outcome.Schema
-import org.cristalise.kernel.utils.LocalObjectLoader
-
-import javax.xml.XMLConstants
-import javax.xml.transform.stream.StreamSource
-
 import org.cristalise.kernel.lookup.DomainPath
+import org.cristalise.kernel.lookup.InvalidPathException
 import org.cristalise.kernel.lookup.ItemPath
 import org.cristalise.kernel.persistency.outcome.Outcome
-import org.cristalise.kernel.process.Bootstrap
+import org.cristalise.kernel.persistency.outcome.OutcomeValidator
+import org.cristalise.kernel.persistency.outcome.Schema
 import org.cristalise.kernel.process.Gateway
+import org.cristalise.kernel.process.resource.ResourceImportHandler
 import org.cristalise.kernel.scripting.Script
+import org.cristalise.kernel.utils.LocalObjectLoader
 
-import javax.xml.validation.SchemaFactory
+import groovy.transform.CompileStatic
+import groovy.util.logging.Slf4j
 
 
 /**
@@ -147,6 +143,7 @@ class ScriptBuilder {
      * @return the DomainPath of the newly created resource Item
      */
     public DomainPath create() {
-        return domainPath = Bootstrap.createResource(module, name, version, "SC", [new Outcome(-1, scriptXML, scriptSchema)] as Set, false)
+        ResourceImportHandler importHandler = Gateway.getResourceImportHandler(SCRIPT_RESOURCE);
+        return domainPath = importHandler.createResource(module, name, version, new Outcome(-1, scriptXML, scriptSchema), false)
     }
 }

@@ -20,15 +20,18 @@
  */
 package org.cristalise.kernel.process.resource;
 
-import java.util.Set;
-
 import org.cristalise.kernel.collection.CollectionArrayList;
+import org.cristalise.kernel.common.InvalidDataException;
+import org.cristalise.kernel.common.ObjectNotFoundException;
 import org.cristalise.kernel.lookup.DomainPath;
+import org.cristalise.kernel.lookup.ItemPath;
 import org.cristalise.kernel.persistency.outcome.Outcome;
 import org.cristalise.kernel.property.PropertyDescriptionList;
 
 
 public interface ResourceImportHandler {
+    public enum Status {IDENTICAL, NEW, UPDATED, OVERWRITTEN, SKIPPED, REMOVED};
+
     /**
      * Returns the DomainPath for a specific resource
      * 
@@ -36,19 +39,21 @@ public interface ResourceImportHandler {
      * @param name - resource name
      * @return DomainPath initialised
      */
-    public DomainPath getPath(String name, String ns) throws Exception;
+    public DomainPath getPath(String name, String ns);
 
     /**
-     * Generates the outcomes that the resource should contain.
+     * Generate the outcome that the resource should contain.
      * 
      * @param name the name of the resource 
      * @param ns the namespace defined in the module
      * @param location the location of the resource file
      * @param version the specified version
      * @return a set of outcomes to be synced with the resource item.
-     * @throws Exception - if the supplied resources are not valid
+     * @throws InvalidDataException - if the supplied resources are not valid
+     * @throws ObjectNotFoundException - data was not found to handle request
      */
-    public Set<Outcome> getResourceOutcomes(String name, String ns, String location, Integer version) throws Exception;
+    public Outcome getResourceOutcome(String name, String ns, String location, Integer version) 
+            throws InvalidDataException, ObjectNotFoundException;
 
     /** 
      * Gives the CompActDef name to instantiate to provide the workflow for this type of resource. 
@@ -56,7 +61,7 @@ public interface ResourceImportHandler {
      * 
      * @return String workflow name
      */
-    public String getWorkflowName() throws Exception; 
+    public String getWorkflowName(); 
 
     /**
      * Should return all of the Properties the resource Item will have on creation. 
@@ -64,7 +69,7 @@ public interface ResourceImportHandler {
      * 
      * @return a PropertyDescriptionList - an arraylist of PropertyDescriptions
      */
-    public PropertyDescriptionList getPropDesc() throws Exception;
+    public PropertyDescriptionList getPropDesc();
 
     /**
      * The directory context to search for existing resources. The name of the resource must
@@ -105,4 +110,61 @@ public interface ResourceImportHandler {
      */
     public String getName();
 
+    /**
+     * Create resource Item from its Module definition. The item should not exist.
+     * 
+     * @param ns the NameSpace of the Module
+     * @param itemName name of the resource Item
+     * @param version version of the resource Item
+     * @param outcome the Outcome to be used to create the resource
+     * @param reset whether the resources shall be updated even if the current version was modified 
+     *        by someone other than the bootstrapper. Use system property 'Module.reset' or 'Module.${namespace}.reset' 
+     *        to control if bootstrap should overwrite the resource
+     * @return the DomainPath of the resource Item
+     * @throws Exception errors that are raised during the process
+     */
+    public DomainPath createResource(String ns, String itemName, int version, Outcome outcome, boolean reset)
+            throws Exception;
+
+    /**
+     * Creates or updates resource Item against a Module version, using a ResourceImportHandler configured
+     * finding the outcome at the given dataLocation.
+     * 
+     * @param ns the NameSpace of the Module
+     * @param itemName name of the resource Item
+     * @param version version of the resource Item
+     * @param itemPath the fixed UUID of the Item
+     * @param dataLocation the location of the resource xml available from the classpath to be used as Outcome
+     * @param reset whether the resources shall be updated even if the current version was modified 
+     *        by someone other than the bootstrapper. Use system property 'Module.reset' or 'Module.${namespace}.reset' 
+     *        to control if bootstrap should overwrite the resource
+     * @return the DomainPath of the resource Item
+     * @throws Exception errors that are raised during the process
+     */
+    public DomainPath importResource(String ns, String itemName, int version, ItemPath itemPath, String dataLocation, boolean reset)
+            throws Exception;
+
+    /**
+     * Verify a resource Item against a Module version, but supplies the resource outcomes directly
+     * instead of through a location lookup.
+     * 
+     * @param ns the NameSpace of the Module
+     * @param itemName name of the resource Item
+     * @param version version of the resource Item
+     * @param itemPath the fixed UUID of the Item
+     * @param the Outcome to be used to import the 
+     * @param reset whether the resources shall be updated even if the current version was modified 
+     *        by someone other than the bootstrapper. Use system property 'Module.reset' or 'Module.${namespace}.reset' 
+     *        to control if bootstrap should overwrite the resource
+     * @return the DomainPath of the resource Item
+     * @throws Exception errors that are raised during the process
+     */
+    public DomainPath importResource(String ns, String itemName, int version, ItemPath itemPath, Outcome outcome, boolean reset)
+            throws Exception;
+
+    /**
+     * Reads the XML string that was created during the createResource() and importResource() methods
+     * @return xml string
+     */
+    public String getResourceChangeDetails();
 }
