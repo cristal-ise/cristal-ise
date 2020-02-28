@@ -244,12 +244,12 @@ public class ActivityDef extends WfVertexDef implements C2KLocalObject, Descript
         ArrayList<DescriptionObject> retArr = new ArrayList<DescriptionObject>();
 
         if (itemPath == null) {
-            log.warn("getBuiltInCollectionResource(actName:"+getName()+", collection:"+collection+") - itemPath is null! CANNOT resolve data in ClusterStorage");
+            log.debug("getBuiltInCollectionResource(actName:{}, collection:{}) - itemPath is null! CANNOT resolve data in ClusterStorage", getName(), collection);
             return retArr.toArray(new DescriptionObject[0]);
             //throw new InvalidDataException("actName:"+getName()+", collection:"+collection+" - itemPath is null! CANNOT resolve data in ClusterStorage");
         }
 
-        log.info("getBuiltInCollectionResource(actName:"+getName()+") - Loading from collection:"+collection);
+        log.info("getBuiltInCollectionResource(actName:{}) - Loading from collection:{}", getName(), collection);
 
         Dependency resColl;
 

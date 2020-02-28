@@ -20,9 +20,14 @@
  */
 package org.cristalise.kernel.security;
 
-import lombok.Getter;
+import org.cristalise.kernel.common.ObjectNotFoundException;
+import org.cristalise.kernel.lookup.Path;
+import org.cristalise.kernel.process.Gateway;
 
-@Getter
+import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
+
+@Getter @Slf4j
 public enum BuiltInAuthc {
 
     /**
@@ -34,10 +39,19 @@ public enum BuiltInAuthc {
      * Built in 'system' agent
      */
     SYSTEM_AGENT("system");
-    
+
     private String name;
 
     private BuiltInAuthc(final String n) {
         name = n;
+    }
+
+    public Path getPath() throws ObjectNotFoundException {
+        if      (this.equals(SYSTEM_AGENT)) return Gateway.getLookup().getAgentPath(name);
+        else if (this.equals(ADMIN_ROLE))   return Gateway.getLookup().getRolePath(name);
+        else {
+            log.warn("getPath() - Enum value '{}' is not handled correctly", name);
+            return null;
+        }
     }
 }

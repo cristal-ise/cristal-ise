@@ -80,8 +80,7 @@ public class Activity extends WfVertex {
     protected static final String XPATH_TOKEN = "xpath:";
 
     /**
-     * vector of errors (Strings) that is constructed each time verify() is
-     * launched
+     * vector of errors (Strings) that is constructed each time verify() was launched
      */
     protected Vector<String> mErrors;
     /**
@@ -192,6 +191,30 @@ public class Activity extends WfVertex {
                    CannotManageException,
                    InvalidCollectionModification
     {
+        boolean validateOutcome = Gateway.getProperties().getBoolean("Activity.validateOutcome", false);
+        return request(agent, delegate, itemPath, transitionID, requestData, attachmentType, attachment, validateOutcome, locker);
+    }
+
+    public String request(AgentPath agent,
+                          AgentPath delegate,
+                          ItemPath itemPath,
+                          int transitionID,
+                          String requestData,
+                          String attachmentType,
+                          byte[] attachment,
+                          boolean validateOutcome,
+                          Object locker
+                          )
+            throws AccessRightsException,
+                   InvalidTransitionException,
+                   InvalidDataException,
+                   ObjectNotFoundException,
+                   PersistencyException,
+                   ObjectAlreadyExistsException,
+                   ObjectCannotBeUpdated,
+                   CannotManageException,
+                   InvalidCollectionModification
+    {
         // Find requested transition
         Transition transition = getStateMachine().getTransition(transitionID);
 
@@ -218,14 +241,18 @@ public class Activity extends WfVertex {
         setState(newState.getId());
         setBuiltInProperty(AGENT_NAME, transition.getReservation(this, agent));
 
-        try {
-            History hist = getWf().getHistory(locker);
+        History hist = null;
+
+        // Enables PredefinedSteps instances to call Activity.request() during bootstrap
+        if (getParent() != null) hist = getWf().getHistory(locker);
+        else                     hist = new History(itemPath, locker);
 
             if (storeOutcome) {
                 Schema schema = transition.getSchema(getProperties());
                 Outcome newOutcome = new Outcome(-1, outcome, schema);
-                // TODO: if we were ever going to validate outcomes on storage, it would be here.
-                //newOutcome.validateAndCheck();
+
+            // This is used by PredefinedStep executed during bootstrap
+            if (validateOutcome) newOutcome.validateAndCheck();
 
                 String viewpoint = resolveViewpointName(newOutcome);
 
@@ -250,11 +277,6 @@ public class Activity extends WfVertex {
                 updateItemProperties(itemPath, null, locker);
                 hist.addEvent(agent, delegate, usedRole, getName(), getPath(), getType(), getStateMachine(), transitionID);
             }
-        }
-        catch (PersistencyException ex) {
-            log.error("", ex);
-            throw ex;
-        }
 
         if (newState.isFinished() && !(getBuiltInProperty(BREAKPOINT).equals(Boolean.TRUE) && !oldState.isFinished())) {
             runNext(agent, itemPath, locker);
