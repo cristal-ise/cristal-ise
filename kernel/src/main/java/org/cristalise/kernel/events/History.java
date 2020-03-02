@@ -78,13 +78,9 @@ public class History extends RemoteMap<Event> {
 
     public Event addEvent(AgentPath agentPath, AgentPath delegatePath, String agentRole,
                           String stepName, String stepPath, String stepType, Schema schema, 
-                          StateMachine stateMachine, int transitionId, String viewName, byte[] attachment)
+                          StateMachine stateMachine, int transitionId, String viewName, boolean attachment)
     {
-        boolean hasAttachment = false;
-        if (attachment.length > 0) {
-            hasAttachment = true;
-        }
-        Event newEvent = new Event(mItemPath,agentPath, delegatePath, agentRole, stepName, stepPath, stepType, stateMachine, transitionId, hasAttachment);
+        Event newEvent = new Event(mItemPath,agentPath, delegatePath, agentRole, stepName, stepPath, stepType, stateMachine, transitionId, attachment);
         newEvent.addOutcomeDetails(schema, viewName);
         return storeNewEvent(newEvent);
     }

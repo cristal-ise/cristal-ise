@@ -255,9 +255,13 @@ public class Activity extends WfVertex {
             if (validateOutcome) newOutcome.validateAndCheck();
 
                 String viewpoint = resolveViewpointName(newOutcome);
+                boolean hasAttachment = false;
+                if (attachment.length > 0) {
+                    hasAttachment = true;
+                }
 
                 int eventID = hist.addEvent(agent, delegate, usedRole, getName(), getPath(), getType(),
-                        schema, getStateMachine(), transitionID, viewpoint, attachment).getID();
+                        schema, getStateMachine(), transitionID, viewpoint, hasAttachment).getID();
                 newOutcome.setID(eventID);
 
                 Gateway.getStorage().put(itemPath, newOutcome, locker);
