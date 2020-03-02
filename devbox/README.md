@@ -12,8 +12,9 @@ This work is based on [jhipster-devbox](https://github.com/jhipster/jhipster-dev
 1. default user: vagrant/vagrant
 1. `sudo passwd ubuntu` - Change password of root user
 1. `sudo adduser $USER vboxsf` - Add permission to use shared folders with the host OS
-1. Consider to use different oh-my-zshell theme like:
-  - edit ~/.zshrc file: `ZSH_THEME="powerlevel10k/powerlevel10k"`
+1. Consider to use different oh-my-zshell theme like: powerlevel10k
+   1. edit ~/.zshrc file: `ZSH_THEME="powerlevel10k/powerlevel10k"`
+   1. use `p10k configure` if you want to tune the settings
 1. `git config --global credential.helper cache`
 1. `git config --global user.name 'John Doe'`
 1. `git config --global user.email john.doe@email.com`
