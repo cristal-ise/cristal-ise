@@ -20,19 +20,18 @@
  */
 package org.cristalise.restapi;
 
+import org.cristalise.kernel.process.Gateway;
+
+import java.io.File;
+import java.net.MalformedURLException;
+import java.net.URISyntaxException;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
-import javax.ws.rs.CookieParam;
-import javax.ws.rs.GET;
-import javax.ws.rs.Path;
-import javax.ws.rs.Produces;
-import javax.ws.rs.core.Context;
-import javax.ws.rs.core.Cookie;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.UriInfo;
+import javax.ws.rs.*;
+import javax.ws.rs.core.*;
 
 @Path("/")
 public class RootAccess extends RestHandler {
@@ -57,6 +56,20 @@ public class RootAccess extends RestHandler {
 //        resourceRoots.add(getRootData(uri, "agent"));
 
         return toJSON(resourceRoots, null).build();
+    }
+
+    @GET
+    @Path("files/{path}")
+    @Produces(MediaType.APPLICATION_OCTET_STREAM)
+    public Response getFile(
+        @PathParam("path")       String  path,
+        @CookieParam(COOKIENAME)  Cookie      authCookie)
+    {
+        String filePath = Gateway.getProperties().getString("REST.staticFilesDir", "/temp") + "/"  + path + ".tmp";
+        File file = new File(filePath);
+        return Response.ok(file, MediaType.APPLICATION_OCTET_STREAM)
+            .header("Content-Disposition", "attachment; filename=\"" + file.getName() + "\"" )
+            .build();
     }
 
     private Map<String, Object> getRootData(UriInfo uri, String name) {
