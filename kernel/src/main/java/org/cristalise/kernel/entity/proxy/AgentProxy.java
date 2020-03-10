@@ -77,8 +77,11 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class AgentProxy extends ItemProxy {
 
-    AgentPath     mAgentPath;
-    String        mAgentName;
+    protected AgentPath     mAgentPath;
+    protected String        mAgentName;
+
+    /** Used for transaction handling */
+    protected Object locker = null;
 
     /**
      * Creates an AgentProxy without cache and change notification
@@ -168,8 +171,9 @@ public class AgentProxy extends ItemProxy {
             throws AccessRightsException, InvalidDataException, InvalidTransitionException, ObjectNotFoundException,
             PersistencyException, ObjectAlreadyExistsException, ScriptErrorException, InvalidCollectionModification
     {
-        if (Gateway.getProperties().getBoolean("ServerSideScripting", false)) {
-            return executeLocal(job);
+        if (       Gateway.getProperties().getBoolean("ServerSideScripting", false)
+                && "Client" .equals( Gateway.getProperties().getString("ProcessType", "Client")) ) {
+            return executeServerSideScripting(job);
         }
 
         ItemProxy item = Gateway.getProxyManager().getProxy(job.getItemPath());
@@ -234,7 +238,7 @@ public class AgentProxy extends ItemProxy {
         return result;
     }
 
-    public String executeLocal(Job job)
+    public String executeServerSideScripting(Job job)
             throws ObjectNotFoundException, AccessRightsException, InvalidDataException, InvalidTransitionException, PersistencyException, ObjectAlreadyExistsException,
             InvalidCollectionModification, ScriptErrorException
     {
@@ -292,7 +296,7 @@ public class AgentProxy extends ItemProxy {
         params.put(Script.PARAMETER_AGENT, this);
         params.put(Script.PARAMETER_JOB,   job);
 
-        Object returnVal = script.evaluate(item.getPath(), params, job.getStepPath(), true, null);
+        Object returnVal = script.evaluate(item.getPath(), params, job.getStepPath(), true, locker);
 
         // At least one output parameter has to be ErrorInfo,
         // it is either a single unnamed parameter or a parameter named 'errors'

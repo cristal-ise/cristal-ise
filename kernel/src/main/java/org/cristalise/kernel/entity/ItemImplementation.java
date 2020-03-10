@@ -86,6 +86,9 @@ public class ItemImplementation implements ItemOperations {
     protected final TransactionManager mStorage;
     protected final ItemPath           mItemPath;
 
+    /** Used for transaction handling */
+    protected Object locker = null;
+
     protected ItemImplementation(ItemPath key) {
         this.mStorage = Gateway.getStorage();
         this.mItemPath = key;
@@ -268,16 +271,17 @@ public class ItemImplementation implements ItemOperations {
                 throw new AccessRightsException("'" + agentToUse.getAgentName() + "' is NOT permitted to execute step:" + stepPath);
             }
 
-            String finalOutcome = lifeCycle.requestAction(agent, delegate, stepPath, mItemPath, transitionID, requestData, attachmentType, attachment);
+            String finalOutcome = lifeCycle.requestAction(agent, delegate, stepPath, mItemPath, transitionID, requestData, attachmentType, attachment, locker == null ? lifeCycle : locker);
 
             // store the workflow if we've changed the state of the domain wf
             if (!(stepPath.startsWith("workflow/predefined"))) {
-                mStorage.put(mItemPath, lifeCycle, lifeCycle);
+                mStorage.put(mItemPath, lifeCycle, locker == null ? lifeCycle : locker);
             }
 
             // remove entity path if transaction was successful
             if (stepPath.equals("workflow/predefined/Erase")) {
                 log.info("Erasing item path " + mItemPath.toString());
+                // TODO add locker
                 Gateway.getLookupManager().delete(mItemPath);
             }
 
@@ -491,7 +495,7 @@ public class ItemImplementation implements ItemOperations {
         params.put(Script.PARAMETER_AGENT, agentProxy);
         params.put(Script.PARAMETER_JOB,   job);
 
-        Object returnVal = script.evaluate(item.getPath(), params, job.getStepPath(), true, null);
+        Object returnVal = script.evaluate(item.getPath(), params, job.getStepPath(), true, locker);
 
         // At least one output parameter has to be ErrorInfo,
         // it is either a single unnamed parameter or a parameter named 'errors'

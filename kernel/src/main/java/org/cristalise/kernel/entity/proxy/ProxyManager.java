@@ -20,8 +20,7 @@
  */
 package org.cristalise.kernel.entity.proxy;
 
-import static org.cristalise.kernel.property.BuiltInItemProperties.NAME;
-import static org.cristalise.kernel.property.BuiltInItemProperties.TYPE;
+import static org.cristalise.kernel.property.BuiltInItemProperties.*;
 
 import java.util.ArrayList;
 import java.util.ConcurrentModificationException;
@@ -47,12 +46,12 @@ import lombok.extern.slf4j.Slf4j;
  */
 @Slf4j
 public class ProxyManager {
-    
+
     public static final String CONFIG_STRICT_POLICY = "ProxyManager.strictPolicy";
 
-    SoftCache<ItemPath, ItemProxy>             proxyPool       = new SoftCache<ItemPath, ItemProxy>(50);
-    HashMap<DomainPathSubscriber, DomainPath>  treeSubscribers = new HashMap<DomainPathSubscriber, DomainPath>();
-    HashMap<String, ProxyServerConnection>     connections     = new HashMap<String, ProxyServerConnection>();
+    SoftCache<ItemPath, ItemProxy>             proxyPool       = new SoftCache<>(50);
+    HashMap<DomainPathSubscriber, DomainPath>  treeSubscribers = new HashMap<>();
+    HashMap<String, ProxyServerConnection>     connections     = new HashMap<>();
 
     ProxyMessageListener messageListener = null;
 
@@ -91,7 +90,9 @@ public class ProxyManager {
     public void connectToProxyServer(String name, int port) {
         ProxyServerConnection oldConn = connections.get(name);
 
-        if (oldConn != null) oldConn.shutdown();
+        if (oldConn != null) {
+            oldConn.shutdown();
+        }
 
         connections.put(name, new ProxyServerConnection(name, port, this));
     }
@@ -125,8 +126,9 @@ public class ProxyManager {
     protected void processMessage(ProxyMessage thisMessage) throws InvalidDataException {
         log.trace("mwssage {}", thisMessage.toString());
 
-        if (thisMessage.getPath().equals(ProxyMessage.PINGPATH)) // ping response
+        if (thisMessage.getPath().equals(ProxyMessage.PINGPATH)) {
             return;
+        }
 
         if (thisMessage.getItemPath() == null) {
             // must be domain path info
@@ -149,7 +151,9 @@ public class ProxyManager {
             }
         }
 
-        if (messageListener != null) messageListener.notifyMessage(thisMessage);
+        if (messageListener != null) {
+            messageListener.notifyMessage(thisMessage);
+        }
     }
 
     private void informTreeSubscribers(boolean state, String path) {
@@ -159,15 +163,19 @@ public class ProxyManager {
 
         synchronized (treeSubscribers) {
             while ((parent = last.getParent()) != null) {
-                ArrayList<DomainPathSubscriber> currentKeys = new ArrayList<DomainPathSubscriber>();
+                ArrayList<DomainPathSubscriber> currentKeys = new ArrayList<>();
                 currentKeys.addAll(treeSubscribers.keySet());
 
                 for (DomainPathSubscriber sub : currentKeys) {
                     DomainPath interest = treeSubscribers.get(sub);
 
                     if (interest != null && interest.equals(parent)) {
-                        if (state == ProxyMessage.ADDED) sub.pathAdded(last);
-                        else if (first)                  sub.pathRemoved(last);
+                        if (state == ProxyMessage.ADDED) {
+                            sub.pathAdded(last);
+                        }
+                        else if (first) {
+                            sub.pathRemoved(last);
+                        }
                     }
                 }
                 last = parent;
@@ -194,9 +202,11 @@ public class ProxyManager {
        log.debug("createProxy() - Item:" + itemPath);
 
         if( itemPath instanceof AgentPath ) {
+            // TODO can it use AgentProxyImpl? can each thread have their own locker in it?
             newProxy = new AgentProxy(ior, (AgentPath)itemPath);
         }
         else {
+            // TODO can it use ItemProxyImpl? can each thread have their own locker in it?
             newProxy = new ItemProxy(ior, itemPath);
         }
 
@@ -217,7 +227,7 @@ public class ProxyManager {
     /**
      * Called by the other GetProxy methods to either load the find the proxy in the cache
      * or create it from the ItemPath.
-     * 
+     *
      * @param ior
      * @param itemPath
      * @return the ItemProx
@@ -259,7 +269,9 @@ public class ProxyManager {
             itemPath = path.getItemPath();
         }
 
-        if (itemPath == null) throw new ObjectNotFoundException("Cannot use RolePath");
+        if (itemPath == null) {
+            throw new ObjectNotFoundException("Cannot use RolePath");
+        }
 
         return getProxy( itemPath.getIOR(), itemPath );
     }
@@ -275,7 +287,7 @@ public class ProxyManager {
 
     /**
      * A utility to Dump the current proxies loaded
-     * 
+     *
      * @param logLevel the selectd log level
      */
     public void reportCurrentProxies(int logLevel) {
