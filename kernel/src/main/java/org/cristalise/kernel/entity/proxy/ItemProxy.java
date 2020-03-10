@@ -20,17 +20,14 @@
  */
 package org.cristalise.kernel.entity.proxy;
 
-import static org.cristalise.kernel.persistency.ClusterType.HISTORY;
-import static org.cristalise.kernel.property.BuiltInItemProperties.AGGREGATE_SCRIPT_URN;
-import static org.cristalise.kernel.property.BuiltInItemProperties.MASTER_SCHEMA_URN;
-import static org.cristalise.kernel.property.BuiltInItemProperties.NAME;
-import static org.cristalise.kernel.property.BuiltInItemProperties.SCHEMA_URN;
-import static org.cristalise.kernel.property.BuiltInItemProperties.SCRIPT_URN;
-import static org.cristalise.kernel.property.BuiltInItemProperties.TYPE;
+import static org.cristalise.kernel.persistency.ClusterType.*;
+import static org.cristalise.kernel.property.BuiltInItemProperties.*;
+
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
+
 import org.apache.commons.lang3.StringUtils;
 import org.cristalise.kernel.collection.BuiltInCollections;
 import org.cristalise.kernel.collection.Collection;
@@ -45,6 +42,7 @@ import org.cristalise.kernel.common.PersistencyException;
 import org.cristalise.kernel.entity.C2KLocalObject;
 import org.cristalise.kernel.entity.Item;
 import org.cristalise.kernel.entity.ItemHelper;
+import org.cristalise.kernel.entity.ItemOperations;
 import org.cristalise.kernel.entity.agent.Job;
 import org.cristalise.kernel.entity.agent.JobArrayList;
 import org.cristalise.kernel.events.Event;
@@ -69,6 +67,7 @@ import org.cristalise.kernel.utils.LocalObjectLoader;
 import org.exolab.castor.mapping.MappingException;
 import org.exolab.castor.xml.MarshalException;
 import org.exolab.castor.xml.ValidationException;
+
 import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
@@ -81,11 +80,11 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class ItemProxy
 {
-    protected Item                  mItem = null;
+    protected ItemOperations        mItem = null;
     protected ItemPath              mItemPath;
     protected org.omg.CORBA.Object  mIOR;
 
-    private final HashMap<MemberSubscription<?>, ProxyObserver<?>> mSubscriptions;
+    protected final HashMap<MemberSubscription<?>, ProxyObserver<?>> mSubscriptions;
 
     /**
      * Set Transaction key (a.k.a. locker) when ItemProxy is used in server side scripting
@@ -101,7 +100,7 @@ public class ItemProxy
     protected ItemProxy( org.omg.CORBA.Object  ior, ItemPath itemPath) {
         mIOR            = ior;
         mItemPath       = itemPath;
-        mSubscriptions  = new HashMap<MemberSubscription<?>, ProxyObserver<?>>();
+        mSubscriptions  = new HashMap<>();
     }
 
     /**
@@ -118,8 +117,10 @@ public class ItemProxy
      * @return the CORBA Item this proxy is linked with
      * @throws ObjectNotFoundException there was a problem connecting with the Item
      */
-    protected Item getItem() throws ObjectNotFoundException {
-        if (mItem == null) mItem = narrow();
+    protected ItemOperations getItem() throws ObjectNotFoundException {
+        if (mItem == null) {
+            mItem = narrow();
+        }
         return mItem;
     }
 
@@ -156,9 +157,9 @@ public class ItemProxy
      * @throws MappingException errors in XML marshall/unmarshall mapping
      * @throws InvalidCollectionModification invalid Collection
      */
-    public void initialise(AgentPath agentId, 
-                           PropertyArrayList itemProps, 
-                           CompositeActivity workflow, 
+    public void initialise(AgentPath agentId,
+                           PropertyArrayList itemProps,
+                           CompositeActivity workflow,
                            CollectionArrayList colls
                            )
              throws AccessRightsException,
@@ -194,9 +195,9 @@ public class ItemProxy
      * @throws MappingException errors in XML marshall/unmarshall mapping
      * @throws InvalidCollectionModification invalid Collection
      */
-    public void initialise(AgentPath agentId, 
-                           PropertyArrayList itemProps, 
-                           CompositeActivity workflow, 
+    public void initialise(AgentPath agentId,
+                           PropertyArrayList itemProps,
+                           CompositeActivity workflow,
                            CollectionArrayList colls,
                            Viewpoint viewpoint,
                            Outcome outcome
@@ -214,20 +215,30 @@ public class ItemProxy
         log.debug("initialise() - started");
 
         CastorXMLUtility xml = Gateway.getMarshaller();
-        if (itemProps == null) throw new InvalidDataException("initialise() - No initial properties supplied");
+        if (itemProps == null) {
+            throw new InvalidDataException("initialise() - No initial properties supplied");
+        }
         String propString = xml.marshall(itemProps);
 
         String wfString = "";
-        if (workflow != null) wfString = xml.marshall(workflow);
+        if (workflow != null) {
+            wfString = xml.marshall(workflow);
+        }
 
         String collString = "";
-        if (colls != null) collString = xml.marshall(colls);
+        if (colls != null) {
+            collString = xml.marshall(colls);
+        }
 
         String viewpointString = "";
-        if (viewpoint != null) viewpointString = xml.marshall(viewpoint);
+        if (viewpoint != null) {
+            viewpointString = xml.marshall(viewpoint);
+        }
 
         String outcomeString = "";
-        if (outcome != null) outcomeString = outcome.getData();
+        if (outcome != null) {
+            outcomeString = outcome.getData();
+        }
 
         getItem().initialise(agentId.getSystemKey(), propString, wfString, collString, viewpointString, outcomeString);
     }
@@ -280,15 +291,21 @@ public class ItemProxy
                    ObjectAlreadyExistsException,
                    InvalidCollectionModification
     {
-        if (thisJob.getAgentPath() == null) throw new InvalidDataException("No Agent specified.");
+        if (thisJob.getAgentPath() == null) {
+            throw new InvalidDataException("No Agent specified.");
+        }
 
         String outcome = thisJob.getOutcomeString();
 
         if (outcome == null) {
-            if (thisJob.isOutcomeRequired()) throw new InvalidDataException("Outcome is required.");
-            else                             outcome = "";
+            if (thisJob.isOutcomeRequired()) {
+                throw new InvalidDataException("Outcome is required.");
+            }
+            else {
+                outcome = "";
+            }
         }
-        
+
         OutcomeAttachment attachment = thisJob.getAttachment();
         String attachmentType = "";
         byte[] attachmentBinary = new byte[0];
@@ -302,23 +319,92 @@ public class ItemProxy
 
         if (thisJob.getDelegatePath() == null) {
             return getItem().requestAction (
-                    thisJob.getAgentPath().getSystemKey(), 
+                    thisJob.getAgentPath().getSystemKey(),
                     thisJob.getStepPath(),
-                    thisJob.getTransition().getId(), 
+                    thisJob.getTransition().getId(),
                     outcome,
                     attachmentType,
                     attachmentBinary);
         }
         else {
             return getItem().delegatedAction(
-                    thisJob.getAgentPath().getSystemKey(), 
+                    thisJob.getAgentPath().getSystemKey(),
                     thisJob.getDelegatePath().getSystemKey(),
-                    thisJob.getStepPath(), 
-                    thisJob.getTransition().getId(), 
-                    outcome, 
+                    thisJob.getStepPath(),
+                    thisJob.getTransition().getId(),
+                    outcome,
                     attachmentType,
                     attachmentBinary);
         }
+    }
+
+    /**
+     * Executes the given Job
+     *
+     * @param thisJob the Job to be executed
+     * @return the result of the execution
+     * @throws AccessRightsException Agent does not the rights to execute this operation
+     * @throws PersistencyException there was a database problems during this operations
+     * @throws InvalidDataException data was invalid
+     * @throws InvalidTransitionException the Transition cannot be executed
+     * @throws ObjectNotFoundException Object not found
+     * @throws ObjectAlreadyExistsException Object already exists
+     * @throws InvalidCollectionModification Invalid collection
+     */
+    public String requestActionWithScript( Job thisJob )
+            throws AccessRightsException,
+                   InvalidTransitionException,
+                   ObjectNotFoundException,
+                   InvalidDataException,
+                   PersistencyException,
+                   ObjectAlreadyExistsException,
+                   InvalidCollectionModification
+    {
+        if (thisJob.getAgentPath() == null) {
+            throw new InvalidDataException("No Agent specified.");
+        }
+
+        String outcome = thisJob.getOutcomeString();
+
+        if (outcome == null) {
+            if (thisJob.isOutcomeRequired()) {
+                throw new InvalidDataException("Outcome is required.");
+            }
+            else {
+                outcome = "";
+            }
+        }
+
+        OutcomeAttachment attachment = thisJob.getAttachment();
+        String attachmentType = "";
+        byte[] attachmentBinary = new byte[0];
+
+        if (attachment != null) {
+            attachmentType = attachment.getType();
+            attachmentBinary = attachment.getBinaryData();
+        }
+
+        log.debug("requestAction() - executing "+thisJob.getStepPath()+" for "+thisJob.getAgentName());
+
+//        if (thisJob.getDelegatePath() == null) {
+            return getItem().requestActionWithScript (
+                    thisJob.getAgentPath().getSystemKey(),
+                    thisJob.getStepPath(),
+                    thisJob.getTransition().getId(),
+                    outcome,
+                    attachmentType,
+                    attachmentBinary);
+//        }
+//        else {
+//            return getItem().delegatedAction(
+//                    thisJob.getAgentPath().getSystemKey(),
+//                    thisJob.getDelegatePath().getSystemKey(),
+//                    thisJob.getStepPath(),
+//                    thisJob.getTransition().getId(),
+//                    outcome,
+//                    attachmentType,
+//                    attachmentBinary);
+//        }
     }
 
     /**
@@ -385,8 +471,9 @@ public class ItemProxy
     private Job getJobByName(String actName, AgentPath agent) throws AccessRightsException, ObjectNotFoundException, PersistencyException {
         ArrayList<Job> jobList = getJobList(agent, true);
         for (Job job : jobList) {
-            if (job.getStepName().equals(actName) && job.getTransition().isFinishing())
+            if (job.getStepName().equals(actName) && job.getTransition().isFinishing()) {
                 return job;
+            }
         }
         return null;
     }
@@ -403,7 +490,7 @@ public class ItemProxy
     }
 
     /**
-     * Gets the current version of the named Collection. This method can be used in server 
+     * Gets the current version of the named Collection. This method can be used in server
      * side Script to find uncommitted changes during the active transaction.
      *
      * @param collection The built-in collection
@@ -452,7 +539,7 @@ public class ItemProxy
     }
 
     /**
-     * Gets the last version of the named collection. This method can be used in server 
+     * Gets the last version of the named collection. This method can be used in server
      * side Script to find uncommitted changes during the active transaction.
      *
      * @param collName The collection name
@@ -477,7 +564,7 @@ public class ItemProxy
     }
 
     /**
-     * Gets a numbered version (snapshot) of a collection. This method can be used in server 
+     * Gets a numbered version (snapshot) of a collection. This method can be used in server
      * side Script to find uncommitted changes during the active transaction.
      *
      * @param collName The collection name
@@ -491,7 +578,7 @@ public class ItemProxy
         return (Collection<?>) getObject(ClusterType.COLLECTION+"/"+collName+"/"+verStr, locker == null ? transactionKey : locker);
     }
 
-    /** 
+    /**
      * Gets the Workflow object of this Item
      *
      * @return the Item's Workflow object
@@ -502,7 +589,7 @@ public class ItemProxy
     }
 
     /**
-     * Gets the Workflow object of this Item. This method can be used in server 
+     * Gets the Workflow object of this Item. This method can be used in server
      * side Script to find uncommitted changes during the active transaction.
      *
      * @param locker the transaction key
@@ -526,7 +613,7 @@ public class ItemProxy
     }
 
     /**
-     * Check if the given Viewpoint exists. This method can be used in server 
+     * Check if the given Viewpoint exists. This method can be used in server
      * side Script to find uncommitted changes during the active transaction.
      *
      * @param schemaName the name of the Schema associated with the Viewpoint
@@ -540,8 +627,8 @@ public class ItemProxy
     }
 
     /**
-     * Reads the list of existing Viewpoint names for the given schema 
-     * 
+     * Reads the list of existing Viewpoint names for the given schema
+     *
      * @param schemaName the name of the schema
      * @return array of strings containing the Viewpoint names
      * @throws ObjectNotFoundException Object not found
@@ -551,9 +638,9 @@ public class ItemProxy
     }
 
     /**
-     * Reads the list of existing Viewpoint names for the given schema. This method can be used in server 
+     * Reads the list of existing Viewpoint names for the given schema. This method can be used in server
      * side Script to find uncommitted changes during the active transaction.
-     * 
+     *
      * @param schemaName the name of the schema
      * @param locker the transaction key
      * @return array of strings containing the Viewpoint names
@@ -578,7 +665,7 @@ public class ItemProxy
     /**
      * Gets the named Viewpoint. This method can be used in server side Script to find uncommitted changes
      * during the active transaction.
-     * 
+     *
      * @param schemaName the name of the Schema associated with the Viewpoint
      * @param viewName name if the View
      * @param locker the transaction key
@@ -638,7 +725,7 @@ public class ItemProxy
     /**
      * Check if the given Outcome exists. This method can be used in server side Script to find uncommitted changes
      * during the active transaction.
-     * 
+     *
      * @param schema the Schema used to create the Outcome
      * @param eventId the id of the Event created when the Outcome was stored
      * @param locker transaction key
@@ -742,7 +829,7 @@ public class ItemProxy
 
     /**
      * Gets the Outcome associated with the Event.
-     * 
+     *
      * @param event the Event to be used
      * @return the Outcome object
      * @throws ObjectNotFoundException
@@ -754,7 +841,7 @@ public class ItemProxy
     /**
      * Gets the Outcome associated with the Event. This method can be used in server side Script to find uncommitted changes
      * during the active transaction.
-     * 
+     *
      * @param event the Event to be used
      * @param locker  the transaction key
      * @return the Outcome object
@@ -777,7 +864,7 @@ public class ItemProxy
     }
 
     /**
-     * Check if the given OutcomeAttachment exists. This method can be used in server side Script 
+     * Check if the given OutcomeAttachment exists. This method can be used in server side Script
      * to find uncommitted changes during the active transaction.
      *
      * @param schema the Schema used to create the Outcome and its OutcomeAttachment
@@ -895,8 +982,9 @@ public class ItemProxy
     public Job getJobByTransitionName(String actName, String transName, AgentPath agentPath) throws AccessRightsException, ObjectNotFoundException,PersistencyException {
         for (Job job : getJobList(agentPath, true)) {
             if (job.getTransition().getName().equals(transName)) {
-                if ((actName.contains("/") && job.getStepPath().equals(actName)) || job.getStepName().equals(actName))
+                if ((actName.contains("/") && job.getStepPath().equals(actName)) || job.getStepName().equals(actName)) {
                     return job;
+                }
             }
         }
         return null;
@@ -945,7 +1033,9 @@ public class ItemProxy
                 for (int i = 0; i < result.length; i++) {
                     retString.append(result[i]);
 
-                    if (i < result.length-1) retString.append(",");
+                    if (i < result.length-1) {
+                        retString.append(",");
+                    }
                 }
                 log.debug("queryData() - "+retString.toString());
                 return retString.toString();
@@ -999,7 +1089,11 @@ public class ItemProxy
      * @throws ObjectNotFoundException path was not correct
      */
     public boolean checkContent(String path, String name, Object locker) throws ObjectNotFoundException {
-        for (String key : getContents(path, locker == null ? transactionKey : locker)) if (key.equals(name)) return true;
+        for (String key : getContents(path, locker == null ? transactionKey : locker)) {
+            if (key.equals(name)) {
+                return true;
+            }
+        }
         return false;
     }
 
@@ -1015,7 +1109,7 @@ public class ItemProxy
     }
 
     /**
-     * List the root content of the given ClusterType. This method can be used in server side Script 
+     * List the root content of the given ClusterType. This method can be used in server side Script
      * to find uncommitted changes during the active transaction.
      *
      * @param type the type of the cluster
@@ -1039,7 +1133,7 @@ public class ItemProxy
     }
 
     /**
-     * List the content of the cluster located by the cluster path. This method can be used in server side Script 
+     * List the content of the cluster located by the cluster path. This method can be used in server side Script
      * to find uncommitted changes during the active transaction.
      *
      * @param path the ClusterStorage path
@@ -1093,7 +1187,7 @@ public class ItemProxy
     /**
      * Retrieve the C2KLocalObject for the Cluster path. This method can be used in server side Script to find uncommitted changes
      * during the active transaction.
-     * 
+     *
      * @param path the path to the cluster object
      * @param locker the transaction key
      * @return the C2KLocalObject
@@ -1122,7 +1216,7 @@ public class ItemProxy
 
     /**
      * Retrieves the values of a BuiltInItemProperty or returns the defaulValue if no Property was found
-     * 
+     *
      * @param prop one of the Built-In Item Property
      * @param defaultValue the value to be used if no Property was found
      * @return the value or the defaultValue
@@ -1133,7 +1227,7 @@ public class ItemProxy
 
     /**
      * Retrieves the values of a named property or returns the defaulValue if no Property was found
-     * 
+     *
      * @param name of the Item Property
      * @param defaultValue the value to be used if no Property was found
      * @return the value or the defaultValue
@@ -1176,7 +1270,7 @@ public class ItemProxy
     }
 
     /**
-     * 
+     *
      * @param name
      * @param locker
      * @return
@@ -1187,13 +1281,17 @@ public class ItemProxy
 
         Property prop = (Property)getObject(ClusterType.PROPERTY+"/"+name, locker == null ? transactionKey : locker);
 
-        if(prop != null) return prop.getValue();
-        else             throw new ObjectNotFoundException("COULD not find property "+name+" from item "+mItemPath);
+        if(prop != null) {
+            return prop.getValue();
+        }
+        else {
+            throw new ObjectNotFoundException("COULD not find property "+name+" from item "+mItemPath);
+        }
     }
 
     /**
      * Check if the given Property exists
-     * 
+     *
      * @param name of the Property
      * @return true if the Property exist false otherwise
      * @throws ObjectNotFoundException Item does not have any properties at all
@@ -1203,9 +1301,9 @@ public class ItemProxy
     }
 
     /**
-     * Check if the given Property exists. This method can be used in server 
+     * Check if the given Property exists. This method can be used in server
      * side Script to find uncommitted changes during the active transaction.
-     * 
+     *
      * @param name of the Property
      * @param locker the transaction key
      * @return true if the Property exist false otherwise
@@ -1235,7 +1333,7 @@ public class ItemProxy
 
     /**
      * Retrieves the Event of the given id.
-     * 
+     *
      * @param eventId the id of the Event
      * @return the Event object
      * @throws ObjectNotFoundException there is no event for the given id
@@ -1247,7 +1345,7 @@ public class ItemProxy
     /**
      * Retrieves the Event of the given id. This method can be used in server side Script to find uncommitted changes
      * during the active transaction.
-     * 
+     *
      * @param eventId the id of the Event
      * @param locker the transaction key
      * @return the Event object
@@ -1259,7 +1357,7 @@ public class ItemProxy
 
     /**
      * Returns the so called Master Schema which can be used to construct master outcome.
-     * 
+     *
      * @return the actual Schema
      * @throws InvalidDataException the Schema could not be constructed
      * @throws ObjectNotFoundException no Schema was found for the name and version
@@ -1270,7 +1368,7 @@ public class ItemProxy
 
     /**
      * Returns the so called Master Schema which can be used to construct master outcome.
-     * 
+     *
      * @param schemaName the name or UUID of the Schema or can be blank. It overwrites the master schema settings in the Properties
      * @param schemaVersion the version of the schema or can be null. It overwrites the master schema settings in the Properties
      * @return the Schema
@@ -1279,11 +1377,17 @@ public class ItemProxy
      */
     public Schema getMasterSchema(String schemaName, Integer schemaVersion) throws InvalidDataException, ObjectNotFoundException {
         String masterSchemaUrn = getProperty(MASTER_SCHEMA_URN, null);
-        if (StringUtils.isBlank(masterSchemaUrn)) masterSchemaUrn = getProperty(SCHEMA_URN, null);
+        if (StringUtils.isBlank(masterSchemaUrn)) {
+            masterSchemaUrn = getProperty(SCHEMA_URN, null);
+        }
 
         if (StringUtils.isBlank(schemaName)) {
-            if (StringUtils.isNotBlank(masterSchemaUrn)) schemaName = masterSchemaUrn.split(":")[0];
-            else                                         schemaName = getType();
+            if (StringUtils.isNotBlank(masterSchemaUrn)) {
+                schemaName = masterSchemaUrn.split(":")[0];
+            }
+            else {
+                schemaName = getType();
+            }
         }
 
         if (schemaVersion == null) {
@@ -1306,10 +1410,10 @@ public class ItemProxy
 
     /**
      * Returns the so called Aggregate Script which can be used to construct master outcome.
-     * 
+     *
      * @return the script or null
-     * @throws InvalidDataException 
-     * @throws ObjectNotFoundException 
+     * @throws InvalidDataException
+     * @throws ObjectNotFoundException
      */
     public Script getAggregateScript() throws InvalidDataException, ObjectNotFoundException {
         return getAggregateScript(null, null);
@@ -1317,20 +1421,26 @@ public class ItemProxy
 
     /**
      * Returns the so called Aggregate Script which can be used to construct master outcome.
-     * 
+     *
      * @param scriptName the name of the script received in the rest call (can be null)
      * @param scriptVersion the version of the script received in the rest call (can be null)
      * @return the script or null
-     * @throws InvalidDataException 
-     * @throws ObjectNotFoundException 
+     * @throws InvalidDataException
+     * @throws ObjectNotFoundException
      */
     public Script getAggregateScript(String scriptName, Integer scriptVersion) throws InvalidDataException, ObjectNotFoundException {
         String aggregateScriptUrn = getProperty(AGGREGATE_SCRIPT_URN, null);
-        if (StringUtils.isBlank(aggregateScriptUrn)) aggregateScriptUrn = getProperty(SCRIPT_URN, null);
+        if (StringUtils.isBlank(aggregateScriptUrn)) {
+            aggregateScriptUrn = getProperty(SCRIPT_URN, null);
+        }
 
         if (StringUtils.isBlank(scriptName)) {
-            if (StringUtils.isBlank(aggregateScriptUrn)) scriptName = getType() + "_Aggregate";
-            else                                         scriptName = aggregateScriptUrn.split(":")[0];
+            if (StringUtils.isBlank(aggregateScriptUrn)) {
+                scriptName = getType() + "_Aggregate";
+            }
+            else {
+                scriptName = aggregateScriptUrn.split(":")[0];
+            }
         }
 
         if (scriptVersion == null) {
@@ -1384,8 +1494,12 @@ public class ItemProxy
             for (MemberSubscription<?> element : mSubscriptions.keySet()) {
                 ProxyObserver<?> obs = element.getObserver();
 
-                if (obs != null) log.debug("    "+element.getObserver().getClass().getName()+" subscribed to "+element.interest);
-                else             log.debug("    Phantom subscription to "+element.interest);
+                if (obs != null) {
+                    log.debug("    "+element.getObserver().getClass().getName()+" subscribed to "+element.interest);
+                }
+                else {
+                    log.debug("    Phantom subscription to "+element.interest);
+                }
             }
         }
     }
@@ -1403,8 +1517,9 @@ public class ItemProxy
                     log.trace("removing phantom subscription to {}", newSub.interest);
                     e.remove();
                 }
-                else
+                else {
                     newSub.update(message.getPath(), message.isState());
+                }
             }
         }
     }

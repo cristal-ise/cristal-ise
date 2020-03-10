@@ -20,8 +20,7 @@
     http://www.fsf.org/licensing/licenses/lgpl.html
 
 -->
-<project xmlns="http://maven.apache.org/POM/4.0.0"
-    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
@@ -83,7 +82,74 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <maven.deploy.skip>false</maven.deploy.skip>
     </properties>
-    
+
+    <profiles>
+        <profile>
+            <id>idl</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.codehaus.mojo</groupId>
+                        <artifactId>idlj-maven-plugin</artifactId>
+                        <version>1.2.2</version>
+                        <executions>
+                            <execution>
+                                <goals>
+                                    <goal>generate</goal>
+                                </goals>
+                                <configuration>
+                                    <encoding>UTF-8</encoding>
+                                </configuration>
+                            </execution>
+                        </executions>
+                        <configuration>
+                            <compiler>idlj</compiler>
+                            <sources>
+                                <source>
+                                    <includes>
+                                        <include>*.idl</include>
+                                    </includes>
+                                    <packagePrefixes>
+                                        <packagePrefix>
+                                            <type>common</type>
+                                            <prefix>org.cristalise.kernel</prefix>
+                                        </packagePrefix>
+                                        <packagePrefix>
+                                            <type>entity</type>
+                                            <prefix>org.cristalise.kernel</prefix>
+                                        </packagePrefix>
+                                    </packagePrefixes>
+                                    <compatible>false</compatible>
+                                </source>
+                            </sources>
+                        </configuration>
+                    </plugin>
+
+                    <plugin>
+                        <groupId>org.codehaus.mojo</groupId>
+                        <artifactId>build-helper-maven-plugin</artifactId>
+                        <version>1.7</version>
+                        <executions>
+                            <execution>
+                                <id>add-source</id>
+                                <phase>generate-sources</phase>
+                                <goals>
+                                    <goal>add-source</goal>
+                                </goals>
+                                <configuration>
+                                    <sources>
+                                        <source>${project.build.directory}/generated-sources/idl/</source>
+                                    </sources>
+                                    <encoding>UTF-8</encoding>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
+
     <build>
 <!--         <pluginManagement> -->
 <!--             <plugins> -->
@@ -134,62 +200,6 @@
 <!--         </pluginManagement> -->
 
         <plugins>
-<!--             <plugin> -->
-<!--                 <groupId>org.codehaus.mojo</groupId> -->
-<!--                 <artifactId>idlj-maven-plugin</artifactId> -->
-<!--                 <version>1.2.2</version> -->
-<!--                 <executions> -->
-<!--                     <execution> -->
-<!--                         <goals> -->
-<!--                             <goal>generate</goal> -->
-<!--                         </goals> -->
-<!--                         <configuration> -->
-<!--                             <encoding>UTF-8</encoding> -->
-<!--                         </configuration> -->
-<!--                     </execution> -->
-<!--                 </executions> -->
-<!--                 <configuration> -->
-<!--                     <compiler>idlj</compiler> -->
-<!--                     <sources> -->
-<!--                         <source> -->
-<!--                             <includes> -->
-<!--                                 <include>*.idl</include> -->
-<!--                             </includes> -->
-<!--                             <packagePrefixes> -->
-<!--                                 <packagePrefix> -->
-<!--                                     <type>common</type> -->
-<!--                                     <prefix>org.cristalise.kernel</prefix> -->
-<!--                                 </packagePrefix> -->
-<!--                                 <packagePrefix> -->
-<!--                                     <type>entity</type> -->
-<!--                                     <prefix>org.cristalise.kernel</prefix> -->
-<!--                                 </packagePrefix> -->
-<!--                             </packagePrefixes> -->
-<!--                             <compatible>false</compatible> -->
-<!--                         </source> -->
-<!--                     </sources> -->
-<!--                 </configuration> -->
-<!--             </plugin> -->
-<!--             <plugin> -->
-<!--                 <groupId>org.codehaus.mojo</groupId> -->
-<!--                 <artifactId>build-helper-maven-plugin</artifactId> -->
-<!--                 <version>1.7</version> -->
-<!--                 <executions> -->
-<!--                     <execution> -->
-<!--                         <id>add-source</id> -->
-<!--                         <phase>generate-sources</phase> -->
-<!--                         <goals> -->
-<!--                             <goal>add-source</goal> -->
-<!--                         </goals> -->
-<!--                         <configuration> -->
-<!--                             <sources> -->
-<!--                                 <source>${project.build.directory}/generated-sources/idl/</source> -->
-<!--                             </sources> -->
-<!--                             <encoding>UTF-8</encoding> -->
-<!--                         </configuration> -->
-<!--                     </execution> -->
-<!--                 </executions> -->
-<!--             </plugin> -->
             <plugin>
                 <artifactId>maven-compiler-plugin</artifactId>
                 <version>3.5</version>

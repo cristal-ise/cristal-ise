@@ -22,6 +22,7 @@ package org.cristalise.kernel.entity;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Map;
 import java.util.UUID;
 
 import org.apache.commons.lang3.StringUtils;
@@ -39,14 +40,18 @@ import org.cristalise.kernel.common.PersistencyException;
 import org.cristalise.kernel.common.SystemKey;
 import org.cristalise.kernel.entity.agent.Job;
 import org.cristalise.kernel.entity.agent.JobArrayList;
+import org.cristalise.kernel.entity.proxy.AgentProxy;
+import org.cristalise.kernel.entity.proxy.ItemProxy;
 import org.cristalise.kernel.events.Event;
 import org.cristalise.kernel.events.History;
+import org.cristalise.kernel.graph.model.BuiltInVertexProperties;
 import org.cristalise.kernel.lifecycle.instance.Activity;
 import org.cristalise.kernel.lifecycle.instance.CompositeActivity;
 import org.cristalise.kernel.lifecycle.instance.Workflow;
 import org.cristalise.kernel.lifecycle.instance.predefined.PredefinedStep;
 import org.cristalise.kernel.lifecycle.instance.predefined.PredefinedStepContainer;
 import org.cristalise.kernel.lifecycle.instance.predefined.item.ItemPredefinedStepContainer;
+import org.cristalise.kernel.lifecycle.instance.stateMachine.Transition;
 import org.cristalise.kernel.lookup.AgentPath;
 import org.cristalise.kernel.lookup.InvalidAgentPathException;
 import org.cristalise.kernel.lookup.InvalidItemPathException;
@@ -61,7 +66,13 @@ import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.property.Property;
 import org.cristalise.kernel.property.PropertyArrayList;
 import org.cristalise.kernel.scripting.ErrorInfo;
+import org.cristalise.kernel.scripting.Parameter;
+import org.cristalise.kernel.scripting.Script;
+import org.cristalise.kernel.scripting.ScriptErrorException;
+import org.cristalise.kernel.scripting.ScriptingEngineException;
 import org.cristalise.kernel.security.SecurityManager;
+import org.cristalise.kernel.utils.CastorHashMap;
+import org.cristalise.kernel.utils.CorbaExceptionUtility;
 import org.cristalise.kernel.utils.LocalObjectLoader;
 import org.exolab.castor.mapping.MappingException;
 import org.exolab.castor.xml.MarshalException;
@@ -90,11 +101,11 @@ public class ItemImplementation implements ItemOperations {
     }
 
     @Override
-    public void initialise( SystemKey agentId, 
-                            String propString, 
-                            String initWfString, 
+    public void initialise( SystemKey agentId,
+                            String propString,
+                            String initWfString,
                             String initCollsString,
-                            String initViewpointString, 
+                            String initViewpointString,
                             String initOutcomeString
                            )
             throws AccessRightsException, InvalidDataException, PersistencyException
@@ -118,7 +129,9 @@ public class ItemImplementation implements ItemOperations {
         // store properties
         try {
             PropertyArrayList props = (PropertyArrayList) Gateway.getMarshaller().unmarshall(propString);
-            for (Property thisProp : props.list) mStorage.put(mItemPath, thisProp, locker);
+            for (Property thisProp : props.list) {
+                mStorage.put(mItemPath, thisProp, locker);
+            }
         }
         catch (Exception ex) {
             log.error("initialise({}) - Properties were invalid: {}", mItemPath, propString, ex);
@@ -134,7 +147,7 @@ public class ItemImplementation implements ItemOperations {
             Outcome initOutcome = new Outcome(0, propString, initSchema);
 
             Event newEvent = hist.addEvent(
-                    new AgentPath(agentId), null, "", "Initialize", "", "", initSchema, 
+                    new AgentPath(agentId), null, "", "Initialize", "", "", initSchema,
                     LocalObjectLoader.getStateMachine("PredefinedStep", 0), PredefinedStep.DONE, "last");
 
             initOutcome.setID(newEvent.getID());
@@ -159,7 +172,7 @@ public class ItemImplementation implements ItemOperations {
                 vp.setItemPath(mItemPath);
 
                 Event newEvent = hist.addEvent(
-                        new AgentPath(agentId), null, "", "Constructor", "", "", schema, 
+                        new AgentPath(agentId), null, "", "Constructor", "", "", schema,
                         LocalObjectLoader.getStateMachine("PredefinedStep", 0), PredefinedStep.DONE, vp.getName());
                 vp.setEventId(newEvent.getID());
                 outcome.setID(newEvent.getID());
@@ -248,7 +261,9 @@ public class ItemImplementation implements ItemOperations {
 
             if (secMan.isShiroEnabled() && !secMan.checkPermissions(agentToUse, (Activity) lifeCycle.search(stepPath), mItemPath)) {
 
-                for (RolePath role: agent.getRoles()) log.error(role.dump());
+                for (RolePath role: agent.getRoles()) {
+                    log.error(role.dump());
+                }
 
                 throw new AccessRightsException("'" + agentToUse.getAgentName() + "' is NOT permitted to execute step:" + stepPath);
             }
@@ -256,7 +271,9 @@ public class ItemImplementation implements ItemOperations {
             String finalOutcome = lifeCycle.requestAction(agent, delegate, stepPath, mItemPath, transitionID, requestData, attachmentType, attachment);
 
             // store the workflow if we've changed the state of the domain wf
-            if (!(stepPath.startsWith("workflow/predefined"))) mStorage.put(mItemPath, lifeCycle, lifeCycle);
+            if (!(stepPath.startsWith("workflow/predefined"))) {
+                mStorage.put(mItemPath, lifeCycle, lifeCycle);
+            }
 
             // remove entity path if transaction was successful
             if (stepPath.equals("workflow/predefined/Erase")) {
@@ -314,6 +331,200 @@ public class ItemImplementation implements ItemOperations {
         }
     }
 
+// TODO   @Override
+    public String requestActionWithScript(SystemKey agentId, String stepPath, int transitionID, String requestData, String attachmentType, byte[] attachment)
+            throws AccessRightsException, InvalidTransitionException, ObjectNotFoundException, InvalidDataException,
+            PersistencyException, ObjectAlreadyExistsException, InvalidCollectionModification
+    {
+        Workflow lifeCycle = null;
+
+        try {
+            AgentPath agent = new AgentPath(agentId);
+            AgentPath agentToUse = agent;
+
+            log.info("request(" + mItemPath + ") Transition " + transitionID + " on " + stepPath + " by " + agent);
+
+            // TODO: check if delegate is allowed valid for agent
+            lifeCycle = (Workflow) mStorage.get(mItemPath, ClusterType.LIFECYCLE + "/workflow", null);
+
+            SecurityManager secMan = Gateway.getSecurityManager();
+
+            Activity act = (Activity) lifeCycle.search(stepPath);
+            if (secMan.isShiroEnabled() && !secMan.checkPermissions(agentToUse, act, mItemPath)) {
+
+                for (RolePath role: agent.getRoles()) {
+                    log.error(role.dump());
+                }
+
+                throw new AccessRightsException("'" + agentToUse.getAgentName() + "' is NOT permitted to execute step:" + stepPath);
+            }
+
+
+            // ********************************************* CALL SCRIPT
+
+            Transition transition = act.getStateMachine().getTransition(transitionID);
+            Job job = new Job(act, mItemPath, transition, agent, null, null);
+
+//            Job job = new Job(int id, mItemPath, String stepName, stepPath, String stepType,
+//                    Transition transition, String originStateName, String targetStateName,
+//                    String agentRole, AgentPath agentPath, AgentPath delegatePath, CastorHashMap actProps, GTimeStamp creationDate);
+
+            ItemProxy item = new ItemProxyImpl(mItemPath, this);
+//            ItemProxy item = Gateway.getProxyManager().getProxy(job.getItemPath());
+
+            AgentProxy agentProxy = new AgentProxyImpl(agent, this);
+            if (job.hasScript()) {
+                log.info("execute(job) - executing script");
+                try {
+                    // load script
+                    ErrorInfo scriptErrors = callScript(item, agentProxy, job);
+                    String errorString = scriptErrors.toString();
+                    if (scriptErrors.getFatal()) {
+                        log.error("execute(job) - fatal script errors:{}", scriptErrors);
+                        throw new ScriptErrorException(scriptErrors);
+                    }
+
+                    if (errorString.length() > 0) {
+                        log.warn("Script errors: {}", errorString);
+                    }
+                }
+                catch (ScriptingEngineException ex) {
+                    Throwable cause = ex.getCause();
+
+                    if (cause == null) {
+                        cause = ex;
+                    }
+
+                    log.error("", ex);
+
+                    throw new InvalidDataException(CorbaExceptionUtility.unpackMessage(cause));
+                }
+            }
+            else if (job.hasQuery() &&  !"Query".equals(job.getActProp(BuiltInVertexProperties.OUTCOME_INIT))) {
+                log.info("execute(job) - executing query (OutcomeInit != Query)");
+
+                job.setOutcome(item.executeQuery(job.getQuery()));
+            }
+
+            // #196: Outcome is validated after script execution, becuase client(e.g. webui)
+            // can submit an incomplete outcome which is made complete by the script
+            if (job.hasOutcome() && job.isOutcomeSet()) {
+                job.getOutcome().validateAndCheck();
+            }
+
+            // ********************************************* REQUEST ACTION
+
+
+            String finalOutcome = lifeCycle.requestAction(agent, null, stepPath, mItemPath, transitionID, requestData, attachmentType, attachment, this);
+
+            // store the workflow if we've changed the state of the domain wf
+            if (!(stepPath.startsWith("workflow/predefined"))) {
+                mStorage.put(mItemPath, lifeCycle, lifeCycle);
+            }
+
+            // remove entity path if transaction was successful
+            if (stepPath.equals("workflow/predefined/Erase")) {
+                log.info("Erasing item path " + mItemPath.toString());
+                Gateway.getLookupManager().delete(mItemPath);
+            }
+
+            mStorage.commit(this);
+
+            return finalOutcome;
+        }
+        catch (AccessRightsException | InvalidTransitionException   | ObjectNotFoundException | PersistencyException |
+                InvalidDataException  | ObjectAlreadyExistsException | InvalidCollectionModification ex)
+        {
+            log.error("", ex);
+
+            String errorOutcome = handleError(agentId, null, stepPath, lifeCycle, ex);
+
+            if (StringUtils.isBlank(errorOutcome)) {
+                mStorage.abort(this);
+                throw ex;
+            }
+            else {
+                mStorage.commit(this);
+                return errorOutcome;
+            }
+        }
+        catch (InvalidAgentPathException | ObjectCannotBeUpdated | CannotManageException ex) {
+            log.error("", ex);
+
+            String errorOutcome = handleError(agentId, null, stepPath, lifeCycle, ex);
+
+            if (StringUtils.isBlank(errorOutcome)) {
+                mStorage.abort(this);
+                throw new InvalidDataException(ex.getClass().getName() + " - " + ex.getMessage());
+            }
+            else {
+                mStorage.commit(this);
+                return errorOutcome;
+            }
+        }
+        catch (Exception ex) { // non-CORBA exception hasn't been caught!
+            log.error("Unknown Error: requestAction on " + mItemPath + " by " + agentId + " executing " + stepPath, ex);
+
+            String errorOutcome = handleError(agentId, null, stepPath, lifeCycle, ex);
+
+            if (StringUtils.isBlank(errorOutcome)) {
+                mStorage.abort(this);
+                throw new InvalidDataException("Extraordinary Exception during execution:" + ex.getClass().getName() + " - " + ex.getMessage());
+            }
+            else {
+                mStorage.commit(this);
+                return errorOutcome;
+            }
+        }
+
+
+
+    }
+
+
+    @SuppressWarnings("rawtypes")
+    private  ErrorInfo callScript(ItemProxy item, AgentProxy agentProxy, Job job) throws ScriptingEngineException, InvalidDataException, ObjectNotFoundException {
+        Script script = job.getScript();
+
+        CastorHashMap params = new CastorHashMap();
+        params.put(Script.PARAMETER_ITEM,  item);
+        params.put(Script.PARAMETER_AGENT, agentProxy);
+        params.put(Script.PARAMETER_JOB,   job);
+
+        Object returnVal = script.evaluate(item.getPath(), params, job.getStepPath(), true, null);
+
+        // At least one output parameter has to be ErrorInfo,
+        // it is either a single unnamed parameter or a parameter named 'errors'
+        if (returnVal instanceof Map) {
+            return (ErrorInfo) ((Map)returnVal).get(getErrorInfoParameterName(script));
+        }
+        else {
+            if (returnVal instanceof ErrorInfo) {
+                return (ErrorInfo) returnVal;
+            }
+            else {
+                throw new InvalidDataException("Script "+script.getName()+" return value must be of org.cristalise.kernel.scripting.ErrorInfo");
+            }
+        }
+    }
+
+    private String getErrorInfoParameterName(Script script) throws InvalidDataException {
+        Parameter p;
+
+        if (script.getOutputParams().size() == 1) {
+            p = script.getOutputParams().values().iterator().next();
+        }
+        else {
+            p = script.getOutputParams().get("errors");
+        }
+
+        if (p.getType() != ErrorInfo.class ) {
+            throw new InvalidDataException("Script "+script.getName()+" must have at least one output of org.cristalise.kernel.scripting.ErrorInfo");
+        }
+
+        return p.getName();
+    }
+
     /**
      *
      * @param agentId
@@ -333,11 +544,15 @@ public class ItemImplementation implements ItemOperations {
             throws PersistencyException, ObjectNotFoundException, AccessRightsException, InvalidTransitionException,
             InvalidDataException, ObjectAlreadyExistsException, InvalidCollectionModification
     {
-        if (!Gateway.getProperties().getBoolean("StateMachine.enableErrorHandling", false)) return null;
+        if (!Gateway.getProperties().getBoolean("StateMachine.enableErrorHandling", false)) {
+            return null;
+        }
 
         int errorTransId = ((Activity)lifeCycle.search(stepPath)).getErrorTransitionId();
 
-        if (errorTransId == -1) return null;
+        if (errorTransId == -1) {
+            return null;
+        }
 
         try {
             AgentPath agent = new AgentPath(agentId);
@@ -347,7 +562,9 @@ public class ItemImplementation implements ItemOperations {
 
             lifeCycle.requestAction(agent, delegate, stepPath, mItemPath, errorTransId, errorOutcome, "", null);
 
-            if (!(stepPath.startsWith("workflow/predefined"))) mStorage.put(mItemPath, lifeCycle, lifeCycle);
+            if (!(stepPath.startsWith("workflow/predefined"))) {
+                mStorage.put(mItemPath, lifeCycle, lifeCycle);
+            }
 
             return errorOutcome;
         }
@@ -439,7 +656,9 @@ public class ItemImplementation implements ItemOperations {
                 for (int i = 0; i < ids.length; i++) {
                     result += ids[i];
 
-                    if (i != ids.length - 1) result += ",";
+                    if (i != ids.length - 1) {
+                        result += ",";
+                    }
                 }
             }
             // ****************************************************************

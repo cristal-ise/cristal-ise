@@ -20,7 +20,8 @@
  */
 package org.cristalise.kernel.entity.proxy;
 
-import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.SIMPLE_ELECTRONIC_SIGNATURE;
+import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.*;
+
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -28,6 +29,7 @@ import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+
 import org.cristalise.kernel.common.AccessRightsException;
 import org.cristalise.kernel.common.InvalidCollectionModification;
 import org.cristalise.kernel.common.InvalidDataException;
@@ -65,6 +67,7 @@ import org.cristalise.kernel.utils.CorbaExceptionUtility;
 import org.exolab.castor.mapping.MappingException;
 import org.exolab.castor.xml.MarshalException;
 import org.exolab.castor.xml.ValidationException;
+
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -122,7 +125,9 @@ public class AgentProxy extends ItemProxy {
             throws ObjectNotFoundException, AccessRightsException, InvalidTransitionException, InvalidDataException,
             PersistencyException, ObjectAlreadyExistsException, InvalidCollectionModification, ScriptErrorException
     {
-        if (errorJob == null) throw new InvalidDataException("errorJob cannot be null");
+        if (errorJob == null) {
+            throw new InvalidDataException("errorJob cannot be null");
+        }
 
         try {
             return execute(job);
@@ -163,6 +168,10 @@ public class AgentProxy extends ItemProxy {
             throws AccessRightsException, InvalidDataException, InvalidTransitionException, ObjectNotFoundException,
             PersistencyException, ObjectAlreadyExistsException, ScriptErrorException, InvalidCollectionModification
     {
+        if (Gateway.getProperties().getBoolean("ServerSideScripting", false)) {
+            return executeLocal(job);
+        }
+
         ItemProxy item = Gateway.getProxyManager().getProxy(job.getItemPath());
         Date startTime = new Date();
 
@@ -179,12 +188,16 @@ public class AgentProxy extends ItemProxy {
                     throw new ScriptErrorException(scriptErrors);
                 }
 
-                if (errorString.length() > 0) log.warn("Script errors: {}", errorString);
+                if (errorString.length() > 0) {
+                    log.warn("Script errors: {}", errorString);
+                }
             }
             catch (ScriptingEngineException ex) {
                 Throwable cause = ex.getCause();
 
-                if (cause == null) cause = ex;
+                if (cause == null) {
+                    cause = ex;
+                }
 
                 log.error("", ex);
 
@@ -197,9 +210,11 @@ public class AgentProxy extends ItemProxy {
             job.setOutcome(item.executeQuery(job.getQuery()));
         }
 
-        // #196: Outcome is validated after script execution, becuase client(e.g. webui) 
+        // #196: Outcome is validated after script execution, becuase client(e.g. webui)
         // can submit an incomplete outcome which is made complete by the script
-        if (job.hasOutcome() && job.isOutcomeSet()) job.getOutcome().validateAndCheck();
+        if (job.hasOutcome() && job.isOutcomeSet()) {
+            job.getOutcome().validateAndCheck();
+        }
 
         job.setAgentPath(mAgentPath);
 
@@ -209,6 +224,33 @@ public class AgentProxy extends ItemProxy {
 
         log.info("execute(job) - submitting job to item proxy");
         String result = item.requestAction(job);
+
+        if (log.isDebugEnabled()) {
+            Date timeNow = new Date();
+            long secsNow = (timeNow.getTime() - startTime.getTime()) / 1000;
+            log.debug("execute(job) - execution DONE in " + secsNow + " seconds");
+        }
+
+        return result;
+    }
+
+    public String executeLocal(Job job)
+            throws ObjectNotFoundException, AccessRightsException, InvalidDataException, InvalidTransitionException, PersistencyException, ObjectAlreadyExistsException,
+            InvalidCollectionModification, ScriptErrorException
+    {
+        ItemProxy item = Gateway.getProxyManager().getProxy(job.getItemPath());
+        Date startTime = new Date();
+
+        log.info("execute(job) - act:" + job.getStepPath() + " agent:" + mAgentPath.getAgentName());
+
+        job.setAgentPath(mAgentPath);
+
+        if ((boolean)job.getActProp(SIMPLE_ELECTRONIC_SIGNATURE, false)) {
+            executeSimpleElectonicSignature(job);
+        }
+
+        log.info("execute(job) - submitting job to item proxy");
+        String result = item.requestActionWithScript(job);
 
         if (log.isDebugEnabled()) {
             Date timeNow = new Date();
@@ -252,33 +294,40 @@ public class AgentProxy extends ItemProxy {
 
         Object returnVal = script.evaluate(item.getPath(), params, job.getStepPath(), true, null);
 
-        // At least one output parameter has to be ErrorInfo, 
+        // At least one output parameter has to be ErrorInfo,
         // it is either a single unnamed parameter or a parameter named 'errors'
         if (returnVal instanceof Map) {
             return (ErrorInfo) ((Map)returnVal).get(getErrorInfoParameterName(script));
         }
         else {
-            if (returnVal instanceof ErrorInfo)
+            if (returnVal instanceof ErrorInfo) {
                 return (ErrorInfo) returnVal;
-            else
+            }
+            else {
                 throw new InvalidDataException("Script "+script.getName()+" return value must be of org.cristalise.kernel.scripting.ErrorInfo");
+            }
         }
     }
 
     private String getErrorInfoParameterName(Script script) throws InvalidDataException {
         Parameter p;
 
-        if (script.getOutputParams().size() == 1) p = script.getOutputParams().values().iterator().next();
-        else                                      p = script.getOutputParams().get("errors");
+        if (script.getOutputParams().size() == 1) {
+            p = script.getOutputParams().values().iterator().next();
+        }
+        else {
+            p = script.getOutputParams().get("errors");
+        }
 
-        if (p.getType() != ErrorInfo.class )
+        if (p.getType() != ErrorInfo.class ) {
             throw new InvalidDataException("Script "+script.getName()+" must have at least one output of org.cristalise.kernel.scripting.ErrorInfo");
-        
+        }
+
         return p.getName();
     }
 
     /**
-     * 
+     *
      * @param item
      * @param predefStep
      * @param obj
@@ -292,14 +341,14 @@ public class AgentProxy extends ItemProxy {
      * @throws InvalidCollectionModification
      */
     public String execute(ItemProxy item, Class<?> predefStep, C2KLocalObject obj)
-            throws AccessRightsException, InvalidDataException, InvalidTransitionException, ObjectNotFoundException, 
-                   PersistencyException, ObjectAlreadyExistsException, InvalidCollectionModification 
+            throws AccessRightsException, InvalidDataException, InvalidTransitionException, ObjectNotFoundException,
+                   PersistencyException, ObjectAlreadyExistsException, InvalidCollectionModification
     {
         return execute(item, predefStep.getSimpleName(), obj);
     }
 
     /**
-     * 
+     *
      * @param item
      * @param predefStep
      * @param obj
@@ -313,8 +362,8 @@ public class AgentProxy extends ItemProxy {
      * @throws InvalidCollectionModification
      */
     public String execute(ItemProxy item, String predefStep, C2KLocalObject obj)
-            throws AccessRightsException, InvalidDataException, InvalidTransitionException, ObjectNotFoundException, 
-                   PersistencyException, ObjectAlreadyExistsException, InvalidCollectionModification 
+            throws AccessRightsException, InvalidDataException, InvalidTransitionException, ObjectNotFoundException,
+                   PersistencyException, ObjectAlreadyExistsException, InvalidCollectionModification
     {
         String param;
         try {
@@ -328,7 +377,7 @@ public class AgentProxy extends ItemProxy {
     }
 
     /**
-     * 
+     *
      * @param item
      * @param predefStep
      * @param params
@@ -353,7 +402,7 @@ public class AgentProxy extends ItemProxy {
      *
      * @param item The item on which to execute the step
      * @param predefStep The step name to run
-     * @param params An array of parameters to pass to the step. See each step's documentation 
+     * @param params An array of parameters to pass to the step. See each step's documentation
      *               for its required parameters
      *
      * @return The outcome after processing. May have been altered by the step.
@@ -373,20 +422,24 @@ public class AgentProxy extends ItemProxy {
         String schemaName = PredefinedStep.getPredefStepSchemaName(predefStep);
         String param;
 
-        if (schemaName.equals("PredefinedStepOutcome")) param = PredefinedStep.bundleData(params);
-        else                                            param = params[0];
+        if (schemaName.equals("PredefinedStepOutcome")) {
+            param = PredefinedStep.bundleData(params);
+        }
+        else {
+            param = params[0];
+        }
 
         String result = item.getItem().requestAction(
-                mAgentPath.getSystemKey(), 
-                "workflow/predefined/" + predefStep, 
-                PredefinedStep.DONE, 
+                mAgentPath.getSystemKey(),
+                "workflow/predefined/" + predefStep,
+                PredefinedStep.DONE,
                 param,
                 "",
                 new byte[0]);
 
         String[] clearCacheSteps = {
-                ChangeName.class.getSimpleName(), 
-                Erase.class.getSimpleName(), 
+                ChangeName.class.getSimpleName(),
+                Erase.class.getSimpleName(),
                 SetAgentPassword.class.getSimpleName(),
                 RemoveC2KObject.class.getSimpleName()
         };
@@ -400,9 +453,9 @@ public class AgentProxy extends ItemProxy {
     }
 
     /**
-     * Execution without any parameters using Class of predefined step instead of string literal. 
+     * Execution without any parameters using Class of predefined step instead of string literal.
      * There are steps which can be executed without any parameters
-     * 
+     *
      * @see #execute(ItemProxy, String)
      */
     public String execute(ItemProxy item, Class<?> predefStep)
@@ -414,7 +467,7 @@ public class AgentProxy extends ItemProxy {
 
     /**
      * Execution without any parameters. There are steps which can be executed without any parameters
-     * 
+     *
      * @see #execute(ItemProxy, String, String[])
      */
     public String execute(ItemProxy item, String predefStep)
@@ -425,7 +478,7 @@ public class AgentProxy extends ItemProxy {
     }
 
     /**
-     * Single parameter execution using Class of predefined step instead of string literal. 
+     * Single parameter execution using Class of predefined step instead of string literal.
      * Wraps parameters up in a PredefinedStepOutcome if the schema of the requested step is such.
      *
      * @see #execute(ItemProxy, String, String)
@@ -522,7 +575,7 @@ public class AgentProxy extends ItemProxy {
     }
 
     private List<ItemProxy> createItemProxyList(Iterator<Path> results) {
-        ArrayList<ItemProxy> returnList = new ArrayList<ItemProxy>();
+        ArrayList<ItemProxy> returnList = new ArrayList<>();
 
         while (results.hasNext()) {
             Path nextMatch = results.next();
