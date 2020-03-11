@@ -335,7 +335,7 @@ public class ItemImplementation implements ItemOperations {
         }
     }
 
-// TODO   @Override
+    @Override
     public String requestActionWithScript(SystemKey agentId, String stepPath, int transitionID, String requestData, String attachmentType, byte[] attachment)
             throws AccessRightsException, InvalidTransitionException, ObjectNotFoundException, InvalidDataException,
             PersistencyException, ObjectAlreadyExistsException, InvalidCollectionModification

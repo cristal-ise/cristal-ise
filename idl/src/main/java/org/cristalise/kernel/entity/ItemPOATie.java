@@ -1,5 +1,13 @@
 package org.cristalise.kernel.entity;
 
+import org.cristalise.kernel.common.AccessRightsException;
+import org.cristalise.kernel.common.InvalidCollectionModification;
+import org.cristalise.kernel.common.InvalidDataException;
+import org.cristalise.kernel.common.InvalidTransitionException;
+import org.cristalise.kernel.common.ObjectAlreadyExistsException;
+import org.cristalise.kernel.common.ObjectNotFoundException;
+import org.cristalise.kernel.common.PersistencyException;
+import org.cristalise.kernel.common.SystemKey;
 
 /**
 * org/cristalise/kernel/entity/ItemPOATie.java .
@@ -157,5 +165,14 @@ public class ItemPOATie extends ItemPOA
 
   private org.cristalise.kernel.entity.ItemOperations _impl;
   private org.omg.PortableServer.POA _poa;
+  
+	@Override
+	public String requestActionWithScript(SystemKey agentKey, String stepPath, int transitionID, String requestData,
+			String attachmentType, byte[] attachment)
+			throws AccessRightsException, InvalidTransitionException, ObjectNotFoundException, InvalidDataException,
+			PersistencyException, ObjectAlreadyExistsException, InvalidCollectionModification {
+		// TODO Auto-generated method stub
+		return null;
+	}
 
 } // class ItemPOATie

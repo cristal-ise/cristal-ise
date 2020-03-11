@@ -139,4 +139,13 @@ public class ActiveEntity extends AgentPOA {
             return mAgentImpl.queryLifeCycle(agentId, filter);
         }
     }
+
+	@Override
+	public String requestActionWithScript(SystemKey agentKey, String stepPath, int transitionID, String requestData,
+			String attachmentType, byte[] attachment)
+			throws AccessRightsException, InvalidTransitionException, ObjectNotFoundException, InvalidDataException,
+			PersistencyException, ObjectAlreadyExistsException, InvalidCollectionModification {
+		// TODO Auto-generated method stub
+		return null;
+	}
 }

@@ -1,5 +1,13 @@
 package org.cristalise.kernel.entity;
 
+import org.cristalise.kernel.common.AccessRightsException;
+import org.cristalise.kernel.common.InvalidCollectionModification;
+import org.cristalise.kernel.common.InvalidDataException;
+import org.cristalise.kernel.common.InvalidTransitionException;
+import org.cristalise.kernel.common.ObjectAlreadyExistsException;
+import org.cristalise.kernel.common.ObjectNotFoundException;
+import org.cristalise.kernel.common.PersistencyException;
+import org.cristalise.kernel.common.SystemKey;
 
 /**
 * org/cristalise/kernel/entity/AgentPOATie.java .
@@ -191,5 +199,14 @@ public class AgentPOATie extends AgentPOA
 
   private org.cristalise.kernel.entity.AgentOperations _impl;
   private org.omg.PortableServer.POA _poa;
+  
+	@Override
+	public String requestActionWithScript(SystemKey agentKey, String stepPath, int transitionID, String requestData,
+			String attachmentType, byte[] attachment)
+			throws AccessRightsException, InvalidTransitionException, ObjectNotFoundException, InvalidDataException,
+			PersistencyException, ObjectAlreadyExistsException, InvalidCollectionModification {
+		// TODO Auto-generated method stub
+		return null;
+	}
 
 } // class AgentPOATie

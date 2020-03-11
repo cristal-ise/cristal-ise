@@ -92,6 +92,40 @@ public interface ItemOperations
           * @throws ObjectAlreadyExistsException Not normally thrown, but reserved for PredefinedSteps to throw if they need to.
           **/
   String requestAction (org.cristalise.kernel.common.SystemKey agentKey, String stepPath, int transitionID, String requestData, String attachmentType, byte[] attachment) throws org.cristalise.kernel.common.AccessRightsException, org.cristalise.kernel.common.InvalidTransitionException, org.cristalise.kernel.common.ObjectNotFoundException, org.cristalise.kernel.common.InvalidDataException, org.cristalise.kernel.common.PersistencyException, org.cristalise.kernel.common.ObjectAlreadyExistsException, org.cristalise.kernel.common.InvalidCollectionModification;
+  /**
+		   * Requests a transition of an Activity in this Item's workflow. If possible and permitted, an Event is 
+		   * generated and stored, the Activity's state is updated, which may cause the Workflow to proceed. If 
+		   * this transition requires Outcome data, this is supplied and stored, and a Viewpoint will be created 
+		   * or updated to point to this latest version. In the case of PredefinedSteps, additional data changes 
+		   * may be performed in the server data.
+		   * 
+		   * This method can be called directly, to handle server side activity execution 
+		   * implemented in the Proxy objects, such as script execution and schema validation.
+		   *
+		   * @param agentKey The SystemKey of the Agent. Some activities may be restricted in which roles may execute them.
+		   * Some transitions cause the activity to be assigned to the executing Agent.
+		   *
+		   * @param stepPath The path in the Workflow to the desired Activity
+		   *
+		   * @param transitionID The transition to be performed
+		   *
+		   * @param requestData The XML Outcome of the work defined by the Activity. Must be valid to the XML Schema,
+		   * though this is not verified on the server, rather in the AgentProxy in the Client API.
+		   *
+		   * @param attachmentType the MimeType of the attachment (can be empty)
+		   *
+		   * @param attachment binary data associated with the Outcome (can be empty)
+		   *
+		   * @throws AccessRightsException The Agent is not permitted to perform the operation. Either it does not 
+		   * have the correct role, or the Activity is reserved by another Agent. Also thrown when the given Agent ID doesn't exist.
+		   * @throws InvalidTransitionException The Activity is not in the correct state to make the requested transition.
+		   * @throws ObjectNotFoundException The Activity or a container of it does not exist.
+		   * @throws InvalidDataException An activity property for the requested Activity was invalid e.g. SchemaVersion was not a number. 
+		   Also thrown when an uncaught Java exception or error occurred.
+		   * @throws PersistencyException There was a problem committing the changes to storage.
+		   * @throws ObjectAlreadyExistsException Not normally thrown, but reserved for PredefinedSteps to throw if they need to.
+		   **/
+  String requestActionWithScript (org.cristalise.kernel.common.SystemKey agentKey, String stepPath, int transitionID, String requestData, String attachmentType, byte[] attachment) throws org.cristalise.kernel.common.AccessRightsException, org.cristalise.kernel.common.InvalidTransitionException, org.cristalise.kernel.common.ObjectNotFoundException, org.cristalise.kernel.common.InvalidDataException, org.cristalise.kernel.common.PersistencyException, org.cristalise.kernel.common.ObjectAlreadyExistsException, org.cristalise.kernel.common.InvalidCollectionModification;
   String delegatedAction (org.cristalise.kernel.common.SystemKey agentKey, org.cristalise.kernel.common.SystemKey delegateAgentKey, String stepPath, int transitionID, String requestData, String attachmentType, byte[] attachment) throws org.cristalise.kernel.common.AccessRightsException, org.cristalise.kernel.common.InvalidTransitionException, org.cristalise.kernel.common.ObjectNotFoundException, org.cristalise.kernel.common.InvalidDataException, org.cristalise.kernel.common.PersistencyException, org.cristalise.kernel.common.ObjectAlreadyExistsException, org.cristalise.kernel.common.InvalidCollectionModification;
 
   /**
