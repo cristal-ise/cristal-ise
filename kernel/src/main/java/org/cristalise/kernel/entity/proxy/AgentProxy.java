@@ -80,17 +80,23 @@ public class AgentProxy extends ItemProxy {
     protected AgentPath     mAgentPath;
     protected String        mAgentName;
 
-    /** Used for transaction handling */
-    protected Object locker = null;
+    /**
+    *
+    * @param ior
+    * @param itemPath
+    */
+   public AgentProxy(AgentPath agentPath, Object transactionKey) {
+       this((org.omg.CORBA.Object)null, agentPath);
+       this.transactionKey = transactionKey;
+   }
 
     /**
      * Creates an AgentProxy without cache and change notification
      *
      * @param ior
      * @param agentPath
-     * @throws ObjectNotFoundException
      */
-    protected AgentProxy(org.omg.CORBA.Object ior, AgentPath agentPath) throws ObjectNotFoundException {
+    protected AgentProxy(org.omg.CORBA.Object ior, AgentPath agentPath) {
         super(ior, agentPath);
         mAgentPath = agentPath;
     }
@@ -296,7 +302,7 @@ public class AgentProxy extends ItemProxy {
         params.put(Script.PARAMETER_AGENT, this);
         params.put(Script.PARAMETER_JOB,   job);
 
-        Object returnVal = script.evaluate(item.getPath(), params, job.getStepPath(), true, locker);
+        Object returnVal = script.evaluate(item.getPath(), params, job.getStepPath(), true, transactionKey);
 
         // At least one output parameter has to be ErrorInfo,
         // it is either a single unnamed parameter or a parameter named 'errors'
@@ -603,6 +609,7 @@ public class AgentProxy extends ItemProxy {
     }
 
     public ItemProxy getItem(Path itemPath) throws ObjectNotFoundException {
+        // TODO set locker on new proxy
         return Gateway.getProxyManager().getProxy(itemPath);
     }
 

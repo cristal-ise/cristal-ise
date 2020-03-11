@@ -210,6 +210,7 @@ public class ProxyManager {
             newProxy = new ItemProxy(ior, itemPath);
         }
 
+        // TODO don't subscribe on server side, fix NPEs everywhere
         // subscribe to changes from server
         ProxyMessage sub = new ProxyMessage(itemPath, ProxyMessage.ADDPATH, false);
         sendMessage(sub);
@@ -234,6 +235,7 @@ public class ProxyManager {
      * @throws ObjectNotFoundException
      */
     private ItemProxy getProxy( org.omg.CORBA.Object ior, ItemPath itemPath) throws ObjectNotFoundException {
+        // TODO if (serversidescripting && Server side) throw not allowed
         synchronized(proxyPool) {
             ItemProxy newProxy;
             // return it if it exists

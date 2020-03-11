@@ -90,7 +90,17 @@ public class ItemProxy
      * Set Transaction key (a.k.a. locker) when ItemProxy is used in server side scripting
      */
     @Getter @Setter
-    private Object transactionKey = null;
+    protected Object transactionKey = null;
+
+    /**
+    *
+    * @param ior
+    * @param itemPath
+    */
+   public ItemProxy(ItemPath itemPath, Object transactionKey) {
+       this((org.omg.CORBA.Object)null, itemPath);
+       this.transactionKey = transactionKey;
+   }
 
     /**
      *
@@ -118,6 +128,7 @@ public class ItemProxy
      * @throws ObjectNotFoundException there was a problem connecting with the Item
      */
     protected ItemOperations getItem() throws ObjectNotFoundException {
+        // TODO return ItemImplementation after setting locker on it
         if (mItem == null) {
             mItem = narrow();
         }

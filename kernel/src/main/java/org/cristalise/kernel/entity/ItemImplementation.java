@@ -343,10 +343,10 @@ public class ItemImplementation implements ItemOperations {
         Workflow lifeCycle = null;
 
         try {
-            AgentPath agent = new AgentPath(agentId);
-            AgentPath agentToUse = agent;
+            AgentPath agentPath = new AgentPath(agentId);
+            AgentPath agentToUse = agentPath;
 
-            log.info("request(" + mItemPath + ") Transition " + transitionID + " on " + stepPath + " by " + agent);
+            log.info("request(" + mItemPath + ") Transition " + transitionID + " on " + stepPath + " by " + agentPath);
 
             // TODO: check if delegate is allowed valid for agent
             lifeCycle = (Workflow) mStorage.get(mItemPath, ClusterType.LIFECYCLE + "/workflow", null);
@@ -356,7 +356,7 @@ public class ItemImplementation implements ItemOperations {
             Activity act = (Activity) lifeCycle.search(stepPath);
             if (secMan.isShiroEnabled() && !secMan.checkPermissions(agentToUse, act, mItemPath)) {
 
-                for (RolePath role: agent.getRoles()) {
+                for (RolePath role: agentPath.getRoles()) {
                     log.error(role.dump());
                 }
 
@@ -367,21 +367,23 @@ public class ItemImplementation implements ItemOperations {
             // ********************************************* CALL SCRIPT
 
             Transition transition = act.getStateMachine().getTransition(transitionID);
-            Job job = new Job(act, mItemPath, transition, agent, null, null);
+            Job job = new Job(act, mItemPath, transition, agentPath, null, null);
 
-//            Job job = new Job(int id, mItemPath, String stepName, stepPath, String stepType,
+//            Job job = new Job(-1, mItemPath, String stepName, stepPath, String stepType,
 //                    Transition transition, String originStateName, String targetStateName,
 //                    String agentRole, AgentPath agentPath, AgentPath delegatePath, CastorHashMap actProps, GTimeStamp creationDate);
 
-            ItemProxy item = new ItemProxyImpl(mItemPath, this);
-//            ItemProxy item = Gateway.getProxyManager().getProxy(job.getItemPath());
+            ItemProxy item = new ItemProxy(null, mItemPath);
+            item.setTransactionKey(this);
 
-            AgentProxy agentProxy = new AgentProxyImpl(agent, this);
+            AgentProxy agent = new AgentProxy(null, agentPath);
+            agent.setTransactionKey(this);
+
             if (job.hasScript()) {
                 log.info("execute(job) - executing script");
                 try {
                     // load script
-                    ErrorInfo scriptErrors = callScript(item, agentProxy, job);
+                    ErrorInfo scriptErrors = callScript(item, agent, job);
                     String errorString = scriptErrors.toString();
                     if (scriptErrors.getFatal()) {
                         log.error("execute(job) - fatal script errors:{}", scriptErrors);
@@ -419,7 +421,7 @@ public class ItemImplementation implements ItemOperations {
             // ********************************************* REQUEST ACTION
 
 
-            String finalOutcome = lifeCycle.requestAction(agent, null, stepPath, mItemPath, transitionID, requestData, attachmentType, attachment, this);
+            String finalOutcome = lifeCycle.requestAction(agentPath, null, stepPath, mItemPath, transitionID, requestData, attachmentType, attachment, this);
 
             // store the workflow if we've changed the state of the domain wf
             if (!(stepPath.startsWith("workflow/predefined"))) {
