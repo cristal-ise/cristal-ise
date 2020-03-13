@@ -2,7 +2,7 @@ CRISTAL-iSE framework uses Java IDL technology to bind distributed objects, Java
 
 # IDL - Java Language Mapping
 
-In Cristal-ise, we have defined idl object that can be found in [`CRISTAL-iSEidl`](https://github.com/cristal-ise/cristal-ise/tree/develop/idl/src/main/idl). When updating a java interface in that uses or that is binded
+In CRISTAL-iSE , we have defined idl object that can be found in [`CRISTAL-iSE/idl`](https://github.com/cristal-ise/cristal-ise/tree/develop/idl/src/main/idl). When updating a java interface in that uses or that is binded
 with an IDL file, one should update the idl object itself and compile. <br/>
 
 In Example:  <br/> <br/>
