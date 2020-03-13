@@ -1,8 +1,8 @@
-Cristal-ise framework uses Java IDL technology to bind distributed objects, Java object on different platforms across the network. Cristal-ise framework uses Common Object Request Brokerage Architecture (CORBA) for client and server communications, a key feature of **CORBA** is **IDL** (Interface Definition Language).
+CRISTAL-iSE framework uses Java IDL technology to bind distributed objects, Java object on different platforms across the network. CRISTAL-iSE framework uses Common Object Request Brokerage Architecture (CORBA) for client and server communications, a key feature of **CORBA** is **IDL** (Interface Definition Language).
 
 # IDL - Java Language Mapping
 
-In Cristal-ise, we have defined idl object that can be found in [`cristal-ise idl`](https://github.com/cristal-ise/cristal-ise/tree/develop/idl/src/main/idl). When updating a java interface in that uses or is binded
+In Cristal-ise, we have defined idl object that can be found in [`CRISTAL-iSEidl`](https://github.com/cristal-ise/cristal-ise/tree/develop/idl/src/main/idl). When updating a java interface in that uses or that is binded
 with an IDL file, one should update the idl object itself and compile. <br/>
 
 In Example:  <br/> <br/>
