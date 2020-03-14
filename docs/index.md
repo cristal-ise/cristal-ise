@@ -15,6 +15,7 @@ Developer Guides
 - [Technical Introduction](Technical-Introduction) - Gentle technical introduction to Description-Driven Framework
 - [The CRISTAL-iSE Client API|API](API) - How to design Items and develop client processes
 - [Domain Specific Language (DSL)](Domain-Specific-Language-(DSL)) - Eases the management of cristal-ise XML resources
+- [Interface Definition Language (IDL)](IDL) - CRISTAL-iSE IDL implementation
 
 Technical Documentation
 -----------------------
