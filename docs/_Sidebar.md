@@ -15,6 +15,7 @@
    * [Client API](API)
    * [[Developer Guide]]
    * [[DSL|Domain Specific Language (DSL)]]
+   * [[IDL]]
    * [JavaDoc](http://javadoc.io/doc/org.cristalise/cristalise-kernel)
 * Tutorials
    * Basic: [Create Patient](Basic-Tutorial)
