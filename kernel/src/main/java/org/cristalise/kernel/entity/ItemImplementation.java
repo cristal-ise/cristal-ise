@@ -377,6 +377,7 @@ public class ItemImplementation implements ItemOperations {
 //                    String agentRole, AgentPath agentPath, AgentPath delegatePath, CastorHashMap actProps, GTimeStamp creationDate);
 
             ItemProxy item = new ItemProxy(null, mItemPath);
+            log.info("requestActionWithScript(" + mItemPath + ") - executing script with item " + item.getName());
             item.setTransactionKey(this);
 
             AgentProxy agent = new AgentProxy(null, agentPath);
