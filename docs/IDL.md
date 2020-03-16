@@ -16,7 +16,7 @@ Execute maven commands from the project root directory (e.g. `cd ~/workspace/cri
 * `mvn install -P idl -pl idl` - full build with generation of java classes from idls
 * `mvn install -pl idl` - full build (no java generation)
 
-**NOTE:** The `generate-sources` will generate all java classes including the current timestapm in the comment of the file. Unfortunatelly this will actually create a change in all the files, instead of changing only the effected ones.
+**NOTE:** The `generate-sources` will generate all java classes including the current timestamp in the comment of the file. Unfortunatelly this will actually create a change in all the files, instead of changing only the affected ones.
 
 ### Build manually
 
