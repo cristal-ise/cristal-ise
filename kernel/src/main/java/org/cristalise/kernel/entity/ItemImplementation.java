@@ -346,15 +346,15 @@ public class ItemImplementation implements ItemOperations {
         Workflow lifeCycle = null;
         lifeCycle = (Workflow) mStorage.get(mItemPath, ClusterType.LIFECYCLE + "/workflow", null);
         //TODO : Call handle error in try catch
-        
+
         transactionKey = lifeCycle;
-        
+
         try {
             AgentPath agentPath = new AgentPath(agentId);
             AgentPath agentToUse = agentPath;
 
             log.info("request(" + mItemPath + ") Transition " + transitionID + " on " + stepPath + " by " + agentPath);
-         
+
             SecurityManager secMan = Gateway.getSecurityManager();
 
             Activity act = (Activity) lifeCycle.search(stepPath);
@@ -379,9 +379,9 @@ public class ItemImplementation implements ItemOperations {
 
             ItemProxy item = new ItemProxy(mItemPath, transactionKey);
             log.info("requestActionWithScript(" + mItemPath + ") - executing script with item " + item.getName());
-           
+
             AgentProxy agent = new AgentProxy(agentPath,transactionKey);
-           
+
             if (job.hasScript()) {
                 log.info("execute(job) - executing script");
                 try {
@@ -566,10 +566,10 @@ public class ItemImplementation implements ItemOperations {
 
             String errorOutcome = Gateway.getMarshaller().marshall(new ErrorInfo(ex));
 
-            lifeCycle.requestAction(agent, delegate, stepPath, mItemPath, errorTransId, errorOutcome, "", null, transactionKey);
+            lifeCycle.requestAction(agent, delegate, stepPath, mItemPath, errorTransId, errorOutcome, "", null, transactionKey == null ? lifeCycle : transactionKey);
 
             if (!(stepPath.startsWith("workflow/predefined"))) {
-                mStorage.put(mItemPath, lifeCycle, transactionKey);
+                mStorage.put(mItemPath, lifeCycle, transactionKey == null ? lifeCycle : transactionKey);
             }
 
             return errorOutcome;
