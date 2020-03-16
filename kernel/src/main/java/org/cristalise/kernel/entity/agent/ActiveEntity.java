@@ -145,7 +145,8 @@ public class ActiveEntity extends AgentPOA {
 			String attachmentType, byte[] attachment)
 			throws AccessRightsException, InvalidTransitionException, ObjectNotFoundException, InvalidDataException,
 			PersistencyException, ObjectAlreadyExistsException, InvalidCollectionModification {
-		// TODO Auto-generated method stub
-		return null;
+		synchronized (this) {
+            return mAgentImpl.requestAction(agentKey, stepPath, transitionID, requestData, attachmentType, attachment);
+        }
 	}
 }
