@@ -22,7 +22,6 @@ This work is based on [jhipster-devbox](https://github.com/jhipster/jhipster-dev
 1. `git config --global user.email john.doe@email.com`
 1. `git config --global pull.rebase true`
 1. Add umake bin to PATH in .profile if not there already
-1. Rebbot the VM
 
     ```shell
     if [ -d "$HOME/.local/share/umake/bin" ] ; then
@@ -43,6 +42,7 @@ This work is based on [jhipster-devbox](https://github.com/jhipster/jhipster-dev
 1. `git checkout -t origin/master`
 1. `git flow init`
 1. `mvn install` - Do this step before any build in eclipse to download all maven dependencies
+1. Rebbot the VM
 
 ### Configure Eclipse
 
