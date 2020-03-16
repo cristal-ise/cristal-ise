@@ -128,15 +128,15 @@ public class ItemProxy
      * @return the CORBA Item this proxy is linked with
      * @throws ObjectNotFoundException there was a problem connecting with the Item
      */
-    protected ItemOperations getItem() throws ObjectNotFoundException {
-        // TODO return ItemImplementation after setting locker on it
-    	
+    protected ItemOperations getItem() throws ObjectNotFoundException
+    {
     	if (       Gateway.getProperties().getBoolean("ServerSideScripting", false)
-                && "Server" .equals( Gateway.getProperties().getString("ProcessType", "Client")) ) {
+                && "Server" .equals( Gateway.getProperties().getString("ProcessType", "Client"))
+    	        ) {
     		mItem = new ItemImplementation(mItemPath);
     		((ItemImplementation)mItem).setTransactionKey(transactionKey);
         }
-    	
+
         if (mItem == null) {
             mItem = narrow();
         }

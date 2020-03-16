@@ -65,7 +65,9 @@ public class DomainPath extends Path {
     }
 
     public DomainPath getParent() {
-        if (mPath.length == 0) return null;
+        if (mPath.length == 0) {
+            return null;
+        }
 
         String[] parentPath = new String[mPath.length - 1];
         System.arraycopy(mPath, 0, parentPath, 0, parentPath.length);
@@ -84,18 +86,23 @@ public class DomainPath extends Path {
     public ItemPath getItemPath() throws ObjectNotFoundException {
         if (target == null) {
             try {
+                // TODO switch lookup to use transactionKey
                 setItemPath( Gateway.getLookup().resolvePath(this) );
-                if (target == null) throw new ObjectNotFoundException("Path " + toString() + " does not resolve to an Item");
+                if (target == null) {
+                    throw new ObjectNotFoundException("Path " + toString() + " does not resolve to an Item");
+                }
             }
             catch (InvalidItemPathException e) {
                 throw new ObjectNotFoundException(e.getMessage());
-            } 
+            }
         }
         return target;
     }
 
     public String getTargetUUID() {
-        if (target != null) return target.getUUID().toString();
+        if (target != null) {
+            return target.getUUID().toString();
+        }
         return null;
     }
 
@@ -116,7 +123,7 @@ public class DomainPath extends Path {
     /**
      * Checks if the DomainPath represents a context node (i.e. its target ItemPath is null).
      * Use this method when target was set already.
-     * 
+     *
      * @return true if the DomainPath represents a context node
      */
     public boolean isContext() {
@@ -125,13 +132,17 @@ public class DomainPath extends Path {
 
     /**
      * Retrieves the domain name of the path
-     * 
+     *
      * @return the last path component;
      */
     @Override
     public String getName() {
-        if (mPath.length > 0) return mPath[mPath.length - 1];
-        else                  return getRoot();
+        if (mPath.length > 0) {
+            return mPath[mPath.length - 1];
+        }
+        else {
+            return getRoot();
+        }
     }
 
     @Override

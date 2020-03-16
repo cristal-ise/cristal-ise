@@ -89,8 +89,7 @@ public class ItemImplementation implements ItemOperations {
     protected final ItemPath           mItemPath;
 
     /** Used for transaction handling */
-    @Setter
-    @Getter
+    @Getter @Setter
     protected Object transactionKey = null;
 
     public ItemImplementation(ItemPath key) {

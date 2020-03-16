@@ -40,8 +40,6 @@ import org.cristalise.kernel.common.PersistencyException;
 import org.cristalise.kernel.entity.Agent;
 import org.cristalise.kernel.entity.AgentHelper;
 import org.cristalise.kernel.entity.C2KLocalObject;
-import org.cristalise.kernel.entity.Item;
-import org.cristalise.kernel.entity.ItemImplementation;
 import org.cristalise.kernel.entity.agent.Job;
 import org.cristalise.kernel.graph.model.BuiltInVertexProperties;
 import org.cristalise.kernel.lifecycle.instance.predefined.ChangeName;
@@ -69,7 +67,6 @@ import org.cristalise.kernel.utils.CorbaExceptionUtility;
 import org.exolab.castor.mapping.MappingException;
 import org.exolab.castor.xml.MarshalException;
 import org.exolab.castor.xml.ValidationException;
-import org.mvel2.ast.DoNode;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -611,11 +608,12 @@ public class AgentProxy extends ItemProxy {
         return mAgentPath;
     }
 
-    public ItemProxy getItem(Path path) throws ObjectNotFoundException {
-    	if (       Gateway.getProperties().getBoolean("ServerSideScripting", false)
-                && "Server" .equals( Gateway.getProperties().getString("ProcessType", "Client")) ) {
-    		
-    		return new ItemProxy(path instanceof DomainPath ? ((DomainPath)path).getItemPath() : (ItemPath)path , transactionKey);
+    public ItemProxy getItem(Path path) throws ObjectNotFoundException
+    {
+        if (       Gateway.getProperties().getBoolean("ServerSideScripting", false)
+                && "Server" .equals( Gateway.getProperties().getString("ProcessType", "Client"))
+                ) {
+            return new ItemProxy(path instanceof DomainPath ? ((DomainPath)path).getItemPath() : (ItemPath)path, transactionKey);
         }
         return Gateway.getProxyManager().getProxy(path);
     }
