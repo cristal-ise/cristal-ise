@@ -180,12 +180,12 @@ public class AgentProxy extends ItemProxy {
             throws AccessRightsException, InvalidDataException, InvalidTransitionException, ObjectNotFoundException,
             PersistencyException, ObjectAlreadyExistsException, ScriptErrorException, InvalidCollectionModification
     {
-        if (       Gateway.getProperties().getBoolean("ServerSideScripting", false)
+        if ( Gateway.getProperties().getBoolean("ServerSideScripting", false)
                 && "Client" .equals( Gateway.getProperties().getString("ProcessType", "Client")) ) {
             return executeServerSideScripting(job);
         }
-
-        ItemProxy item = Gateway.getProxyManager().getProxy(job.getItemPath());
+       
+        ItemProxy item = this.getItem(job.getItemPath());
         Date startTime = new Date();
 
         log.info("execute(job) - act:" + job.getStepPath() + " agent:" + mAgentPath.getAgentName());

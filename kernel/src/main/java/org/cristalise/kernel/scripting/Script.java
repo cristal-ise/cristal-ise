@@ -585,7 +585,7 @@ public class Script implements DescriptionObject {
      * @throws ScriptingEngineException something went wrong during the execution
      */
     public Object evaluate(CastorHashMap inputProps) throws ScriptingEngineException {
-       return evaluate(null, inputProps, null, false, null);
+       return evaluate((ItemPath)null, inputProps, null, false, null);
     }
 
     /**
@@ -613,17 +613,30 @@ public class Script implements DescriptionObject {
     public synchronized Object evaluate(ItemPath itemPath, CastorHashMap inputProps, String actContext, boolean actExecEnv, Object locker) 
             throws ScriptingEngineException
     {
-        try {
+    	   log.info("evaluate() - itemPath: "+ itemPath);
             //it is possible to execute a script outside of the context of an Item
-            ItemProxy item = itemPath == null ? null : Gateway.getProxyManager().getProxy(itemPath);
-
+            ItemProxy item;
+			try {
+				item = itemPath == null ? null : Gateway.getProxyManager().getProxy(itemPath);
+				return evaluate(item, inputProps, actContext, actExecEnv, locker);
+			} catch (ObjectNotFoundException e) {
+				  log.error("evaluate() - Script:" + getName(), e);
+		          throw new ScriptingEngineException(e);
+			}
+            
+     }
+    
+   public synchronized Object evaluate(ItemProxy item, CastorHashMap inputProps, String actContext, boolean actExecEnv, Object locker) 
+                    throws ScriptingEngineException
+    {
+          try {
             createEmptyContext();
             
             if (actExecEnv) setActExecEnvironment(item, (AgentProxy)inputProps.get(PARAMETER_AGENT), (Job)inputProps.get(PARAMETER_JOB));
 
             for (String inputParamName: getAllInputParams().keySet()) {
                 if (inputProps.containsKey(inputParamName)) {
-                    setInputParamValue(inputParamName, inputProps.evaluateProperty(itemPath, inputParamName, actContext, locker), true);
+                    setInputParamValue(inputParamName, inputProps.evaluateProperty(item.getPath(), inputParamName, actContext, locker), true);
                 }
             }
 

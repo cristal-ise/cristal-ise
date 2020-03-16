@@ -180,7 +180,9 @@ public class TraceableEntity extends ItemPOA
 			String attachmentType, byte[] attachment)
 			throws AccessRightsException, InvalidTransitionException, ObjectNotFoundException, InvalidDataException,
 			PersistencyException, ObjectAlreadyExistsException, InvalidCollectionModification {
-		// TODO Auto-generated method stub
-		return null;
+		
+        synchronized (this) {
+            return mItemImpl.requestActionWithScript(agentKey, stepPath, transitionID, requestData, attachmentType, attachment);
+        }
 	}
 }

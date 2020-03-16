@@ -486,9 +486,6 @@ public class ItemImplementation implements ItemOperations {
                 return errorOutcome;
             }
         }
-
-
-
     }
 
 
@@ -501,7 +498,7 @@ public class ItemImplementation implements ItemOperations {
         params.put(Script.PARAMETER_AGENT, agentProxy);
         params.put(Script.PARAMETER_JOB,   job);
 
-        Object returnVal = script.evaluate(item.getPath(), params, job.getStepPath(), true, transactionKey);
+        Object returnVal = script.evaluate(item, params, job.getStepPath(), true, transactionKey);
 
         // At least one output parameter has to be ErrorInfo,
         // it is either a single unnamed parameter or a parameter named 'errors'
