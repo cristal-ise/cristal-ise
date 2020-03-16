@@ -288,7 +288,7 @@ public class ItemImplementation implements ItemOperations {
                 Gateway.getLookupManager().delete(mItemPath);
             }
 
-            mStorage.commit(lifeCycle);
+            mStorage.commit(transactionKey == null ? lifeCycle : transactionKey);
 
             return finalOutcome;
         }
@@ -300,11 +300,11 @@ public class ItemImplementation implements ItemOperations {
             String errorOutcome = handleError(agentId, delegateId, stepPath, lifeCycle, ex);
 
             if (StringUtils.isBlank(errorOutcome)) {
-                mStorage.abort(lifeCycle);
+                mStorage.abort(transactionKey == null ? lifeCycle : transactionKey);
                 throw ex;
             }
             else {
-                mStorage.commit(lifeCycle);
+                mStorage.commit(transactionKey == null ? lifeCycle : transactionKey);
                 return errorOutcome;
             }
         }
@@ -314,11 +314,11 @@ public class ItemImplementation implements ItemOperations {
             String errorOutcome = handleError(agentId, delegateId, stepPath, lifeCycle, ex);
 
             if (StringUtils.isBlank(errorOutcome)) {
-                mStorage.abort(lifeCycle);
+                mStorage.abort(transactionKey == null ? lifeCycle : transactionKey);
                 throw new InvalidDataException(ex.getClass().getName() + " - " + ex.getMessage());
             }
             else {
-                mStorage.commit(lifeCycle);
+                mStorage.commit(transactionKey == null ? lifeCycle : transactionKey);
                 return errorOutcome;
             }
         }
@@ -328,11 +328,11 @@ public class ItemImplementation implements ItemOperations {
             String errorOutcome = handleError(agentId, delegateId, stepPath, lifeCycle, ex);
 
             if (StringUtils.isBlank(errorOutcome)) {
-                mStorage.abort(lifeCycle);
+                mStorage.abort(transactionKey == null ? lifeCycle : transactionKey);
                 throw new InvalidDataException("Extraordinary Exception during execution:" + ex.getClass().getName() + " - " + ex.getMessage());
             }
             else {
-                mStorage.commit(lifeCycle);
+                mStorage.commit(transactionKey == null ? lifeCycle : transactionKey);
                 return errorOutcome;
             }
         }
@@ -344,16 +344,17 @@ public class ItemImplementation implements ItemOperations {
             PersistencyException, ObjectAlreadyExistsException, InvalidCollectionModification
     {
         Workflow lifeCycle = null;
-
+        lifeCycle = (Workflow) mStorage.get(mItemPath, ClusterType.LIFECYCLE + "/workflow", null);
+        //TODO : Call handle error in try catch
+        
+        transactionKey = lifeCycle;
+        
         try {
             AgentPath agentPath = new AgentPath(agentId);
             AgentPath agentToUse = agentPath;
 
             log.info("request(" + mItemPath + ") Transition " + transitionID + " on " + stepPath + " by " + agentPath);
-
-            // TODO: check if delegate is allowed valid for agent
-            lifeCycle = (Workflow) mStorage.get(mItemPath, ClusterType.LIFECYCLE + "/workflow", null);
-
+         
             SecurityManager secMan = Gateway.getSecurityManager();
 
             Activity act = (Activity) lifeCycle.search(stepPath);
@@ -376,13 +377,11 @@ public class ItemImplementation implements ItemOperations {
 //                    Transition transition, String originStateName, String targetStateName,
 //                    String agentRole, AgentPath agentPath, AgentPath delegatePath, CastorHashMap actProps, GTimeStamp creationDate);
 
-            ItemProxy item = new ItemProxy(null, mItemPath);
+            ItemProxy item = new ItemProxy(mItemPath, transactionKey);
             log.info("requestActionWithScript(" + mItemPath + ") - executing script with item " + item.getName());
-            item.setTransactionKey(this);
-
-            AgentProxy agent = new AgentProxy(null, agentPath);
-            agent.setTransactionKey(this);
-
+           
+            AgentProxy agent = new AgentProxy(agentPath,transactionKey);
+           
             if (job.hasScript()) {
                 log.info("execute(job) - executing script");
                 try {
@@ -425,11 +424,11 @@ public class ItemImplementation implements ItemOperations {
             // ********************************************* REQUEST ACTION
 
 
-            String finalOutcome = lifeCycle.requestAction(agentPath, null, stepPath, mItemPath, transitionID, requestData, attachmentType, attachment, this);
+            String finalOutcome = lifeCycle.requestAction(agentPath, null, stepPath, mItemPath, transitionID, requestData, attachmentType, attachment, transactionKey);
 
             // store the workflow if we've changed the state of the domain wf
             if (!(stepPath.startsWith("workflow/predefined"))) {
-                mStorage.put(mItemPath, lifeCycle, lifeCycle);
+                mStorage.put(mItemPath, lifeCycle, transactionKey);
             }
 
             // remove entity path if transaction was successful
@@ -438,7 +437,7 @@ public class ItemImplementation implements ItemOperations {
                 Gateway.getLookupManager().delete(mItemPath);
             }
 
-            mStorage.commit(this);
+            mStorage.commit(transactionKey);
 
             return finalOutcome;
         }
@@ -450,11 +449,11 @@ public class ItemImplementation implements ItemOperations {
             String errorOutcome = handleError(agentId, null, stepPath, lifeCycle, ex);
 
             if (StringUtils.isBlank(errorOutcome)) {
-                mStorage.abort(this);
+                mStorage.abort(transactionKey);
                 throw ex;
             }
             else {
-                mStorage.commit(this);
+                mStorage.commit(transactionKey);
                 return errorOutcome;
             }
         }
@@ -464,11 +463,11 @@ public class ItemImplementation implements ItemOperations {
             String errorOutcome = handleError(agentId, null, stepPath, lifeCycle, ex);
 
             if (StringUtils.isBlank(errorOutcome)) {
-                mStorage.abort(this);
+                mStorage.abort(transactionKey);
                 throw new InvalidDataException(ex.getClass().getName() + " - " + ex.getMessage());
             }
             else {
-                mStorage.commit(this);
+                mStorage.commit(transactionKey);
                 return errorOutcome;
             }
         }
@@ -478,11 +477,11 @@ public class ItemImplementation implements ItemOperations {
             String errorOutcome = handleError(agentId, null, stepPath, lifeCycle, ex);
 
             if (StringUtils.isBlank(errorOutcome)) {
-                mStorage.abort(this);
+                mStorage.abort(transactionKey);
                 throw new InvalidDataException("Extraordinary Exception during execution:" + ex.getClass().getName() + " - " + ex.getMessage());
             }
             else {
-                mStorage.commit(this);
+                mStorage.commit(transactionKey);
                 return errorOutcome;
             }
         }
@@ -567,10 +566,10 @@ public class ItemImplementation implements ItemOperations {
 
             String errorOutcome = Gateway.getMarshaller().marshall(new ErrorInfo(ex));
 
-            lifeCycle.requestAction(agent, delegate, stepPath, mItemPath, errorTransId, errorOutcome, "", null);
+            lifeCycle.requestAction(agent, delegate, stepPath, mItemPath, errorTransId, errorOutcome, "", null, transactionKey);
 
             if (!(stepPath.startsWith("workflow/predefined"))) {
-                mStorage.put(mItemPath, lifeCycle, lifeCycle);
+                mStorage.put(mItemPath, lifeCycle, transactionKey);
             }
 
             return errorOutcome;
