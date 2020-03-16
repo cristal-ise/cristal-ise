@@ -78,6 +78,8 @@ import org.exolab.castor.mapping.MappingException;
 import org.exolab.castor.xml.MarshalException;
 import org.exolab.castor.xml.ValidationException;
 
+import lombok.Getter;
+import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -87,9 +89,11 @@ public class ItemImplementation implements ItemOperations {
     protected final ItemPath           mItemPath;
 
     /** Used for transaction handling */
-    protected Object locker = null;
+    @Setter
+    @Getter
+    protected Object transactionKey = null;
 
-    protected ItemImplementation(ItemPath key) {
+    public ItemImplementation(ItemPath key) {
         this.mStorage = Gateway.getStorage();
         this.mItemPath = key;
     }
@@ -114,7 +118,7 @@ public class ItemImplementation implements ItemOperations {
             throws AccessRightsException, InvalidDataException, PersistencyException
     {
         log.debug("initialise(" + mItemPath + ") - agent:" + agentId);
-        Object locker = new Object();
+        Object transactionKey = new Object();
 
         AgentPath agentPath;
         try {
@@ -133,16 +137,16 @@ public class ItemImplementation implements ItemOperations {
         try {
             PropertyArrayList props = (PropertyArrayList) Gateway.getMarshaller().unmarshall(propString);
             for (Property thisProp : props.list) {
-                mStorage.put(mItemPath, thisProp, locker);
+                mStorage.put(mItemPath, thisProp, transactionKey);
             }
         }
         catch (Exception ex) {
             log.error("initialise({}) - Properties were invalid: {}", mItemPath, propString, ex);
-            mStorage.abort(locker);
+            mStorage.abort(transactionKey);
             throw new InvalidDataException("Properties were invalid");
         }
 
-        History hist = new History(mItemPath, locker);
+        History hist = new History(mItemPath, transactionKey);
 
         // Store an "Initialize" event and the outcome containing the initial values for properties
         try {
@@ -155,12 +159,12 @@ public class ItemImplementation implements ItemOperations {
 
             initOutcome.setID(newEvent.getID());
             Viewpoint newLastView = new Viewpoint(mItemPath, initSchema, "last", newEvent.getID());
-            mStorage.put(mItemPath, initOutcome, locker);
-            mStorage.put(mItemPath, newLastView, locker);
+            mStorage.put(mItemPath, initOutcome, transactionKey);
+            mStorage.put(mItemPath, newLastView, transactionKey);
         }
         catch (Exception ex) {
             log.error("initialise({}) - Could not store event and outcome.", mItemPath, ex);
-            mStorage.abort(locker);
+            mStorage.abort(transactionKey);
             throw new PersistencyException("Error storing 'Initialize' event and outcome:" + ex.getMessage());
         }
 
@@ -180,12 +184,12 @@ public class ItemImplementation implements ItemOperations {
                 vp.setEventId(newEvent.getID());
                 outcome.setID(newEvent.getID());
 
-                mStorage.put(mItemPath, outcome, locker);
-                mStorage.put(mItemPath, vp, locker);
+                mStorage.put(mItemPath, outcome, transactionKey);
+                mStorage.put(mItemPath, vp, transactionKey);
             }
             catch (Exception ex) {
                 log.error("initialise({}) - Could not store event and outcome.", mItemPath, ex);
-                mStorage.abort(locker);
+                mStorage.abort(transactionKey);
                 throw new PersistencyException("Error storing 'Constructor event and outcome:" + ex.getMessage());
             }
         }
@@ -195,12 +199,12 @@ public class ItemImplementation implements ItemOperations {
             try {
                 CollectionArrayList colls = (CollectionArrayList) Gateway.getMarshaller().unmarshall(initCollsString);
                 for (Collection<?> thisColl : colls.list) {
-                    mStorage.put(mItemPath, thisColl, locker);
+                    mStorage.put(mItemPath, thisColl, transactionKey);
                 }
             }
             catch (Exception ex) {
                 log.error("initialise(" + mItemPath + ") - Collections were invalid: " + initCollsString, ex);
-                mStorage.abort(locker);
+                mStorage.abort(transactionKey);
                 throw new InvalidDataException("Collections were invalid");
             }
         }
@@ -215,18 +219,18 @@ public class ItemImplementation implements ItemOperations {
                 lc = new Workflow((CompositeActivity) Gateway.getMarshaller().unmarshall(initWfString), getNewPredefStepContainer());
             }
 
-            mStorage.put(mItemPath, lc, locker);
+            mStorage.put(mItemPath, lc, transactionKey);
         }
         catch (Exception ex) {
             log.error("initialise(" + mItemPath + ") - Workflow was invalid: " + initWfString, ex);
-            mStorage.abort(locker);
+            mStorage.abort(transactionKey);
             throw new InvalidDataException("Workflow was invalid");
         }
 
         // All objects are in place, initialize the workflow to get the Item running
-        lc.initialise(mItemPath, agentPath, locker);
-        mStorage.put(mItemPath, lc, locker);
-        mStorage.commit(locker);
+        lc.initialise(mItemPath, agentPath, transactionKey);
+        mStorage.put(mItemPath, lc, transactionKey);
+        mStorage.commit(transactionKey);
 
         log.info("Initialisation of item " + mItemPath + " was successful");
     }
@@ -271,17 +275,17 @@ public class ItemImplementation implements ItemOperations {
                 throw new AccessRightsException("'" + agentToUse.getAgentName() + "' is NOT permitted to execute step:" + stepPath);
             }
 
-            String finalOutcome = lifeCycle.requestAction(agent, delegate, stepPath, mItemPath, transitionID, requestData, attachmentType, attachment, locker == null ? lifeCycle : locker);
+            String finalOutcome = lifeCycle.requestAction(agent, delegate, stepPath, mItemPath, transitionID, requestData, attachmentType, attachment, transactionKey == null ? lifeCycle : transactionKey);
 
             // store the workflow if we've changed the state of the domain wf
             if (!(stepPath.startsWith("workflow/predefined"))) {
-                mStorage.put(mItemPath, lifeCycle, locker == null ? lifeCycle : locker);
+                mStorage.put(mItemPath, lifeCycle, transactionKey == null ? lifeCycle : transactionKey);
             }
 
             // remove entity path if transaction was successful
             if (stepPath.equals("workflow/predefined/Erase")) {
                 log.info("Erasing item path " + mItemPath.toString());
-                // TODO add locker
+                // TODO add transactionKey
                 Gateway.getLookupManager().delete(mItemPath);
             }
 
@@ -497,7 +501,7 @@ public class ItemImplementation implements ItemOperations {
         params.put(Script.PARAMETER_AGENT, agentProxy);
         params.put(Script.PARAMETER_JOB,   job);
 
-        Object returnVal = script.evaluate(item.getPath(), params, job.getStepPath(), true, locker);
+        Object returnVal = script.evaluate(item.getPath(), params, job.getStepPath(), true, transactionKey);
 
         // At least one output parameter has to be ErrorInfo,
         // it is either a single unnamed parameter or a parameter named 'errors'

@@ -42,6 +42,7 @@ import org.cristalise.kernel.common.PersistencyException;
 import org.cristalise.kernel.entity.C2KLocalObject;
 import org.cristalise.kernel.entity.Item;
 import org.cristalise.kernel.entity.ItemHelper;
+import org.cristalise.kernel.entity.ItemImplementation;
 import org.cristalise.kernel.entity.ItemOperations;
 import org.cristalise.kernel.entity.agent.Job;
 import org.cristalise.kernel.entity.agent.JobArrayList;
@@ -129,6 +130,13 @@ public class ItemProxy
      */
     protected ItemOperations getItem() throws ObjectNotFoundException {
         // TODO return ItemImplementation after setting locker on it
+    	
+    	if (       Gateway.getProperties().getBoolean("ServerSideScripting", false)
+                && "Server" .equals( Gateway.getProperties().getString("ProcessType", "Client")) ) {
+    		mItem = new ItemImplementation(mItemPath);
+    		((ItemImplementation)mItem).setTransactionKey(transactionKey);
+        }
+    	
         if (mItem == null) {
             mItem = narrow();
         }
