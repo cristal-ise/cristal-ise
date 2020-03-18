@@ -287,9 +287,12 @@ public class ItemImplementation implements ItemOperations {
                 // TODO add transactionKey
                 Gateway.getLookupManager().delete(mItemPath);
             }
-
-            mStorage.commit(transactionKey == null ? lifeCycle : transactionKey);
-
+           
+            if ( ! Gateway.getProperties().getBoolean("ServerSideScripting", false)
+                   || "Client" .equals( Gateway.getProperties().getString("ProcessType", "Client")) ) {
+            	 mStorage.commit(transactionKey == null ? lifeCycle : transactionKey);
+            }
+           
             return finalOutcome;
         }
         catch (AccessRightsException | InvalidTransitionException   | ObjectNotFoundException | PersistencyException |
@@ -300,11 +303,17 @@ public class ItemImplementation implements ItemOperations {
             String errorOutcome = handleError(agentId, delegateId, stepPath, lifeCycle, ex);
 
             if (StringUtils.isBlank(errorOutcome)) {
-                mStorage.abort(transactionKey == null ? lifeCycle : transactionKey);
-                throw ex;
+            	if ( ! Gateway.getProperties().getBoolean("ServerSideScripting", false)
+                        || "Client" .equals( Gateway.getProperties().getString("ProcessType", "Client")) ) {
+                    mStorage.abort(transactionKey == null ? lifeCycle : transactionKey);
+            	}
+            	 throw ex;
             }
             else {
-                mStorage.commit(transactionKey == null ? lifeCycle : transactionKey);
+            	if ( ! Gateway.getProperties().getBoolean("ServerSideScripting", false)
+                        || "Client" .equals( Gateway.getProperties().getString("ProcessType", "Client")) ) { 
+            		mStorage.commit(transactionKey == null ? lifeCycle : transactionKey);
+                }
                 return errorOutcome;
             }
         }
@@ -314,11 +323,17 @@ public class ItemImplementation implements ItemOperations {
             String errorOutcome = handleError(agentId, delegateId, stepPath, lifeCycle, ex);
 
             if (StringUtils.isBlank(errorOutcome)) {
-                mStorage.abort(transactionKey == null ? lifeCycle : transactionKey);
+            	if ( ! Gateway.getProperties().getBoolean("ServerSideScripting", false)
+                        || "Client" .equals( Gateway.getProperties().getString("ProcessType", "Client")) ) {
+            		mStorage.abort(transactionKey == null ? lifeCycle : transactionKey);
+            	}
                 throw new InvalidDataException(ex.getClass().getName() + " - " + ex.getMessage());
             }
             else {
-                mStorage.commit(transactionKey == null ? lifeCycle : transactionKey);
+            	if ( ! Gateway.getProperties().getBoolean("ServerSideScripting", false)
+                        || "Client" .equals( Gateway.getProperties().getString("ProcessType", "Client")) ) {
+            		mStorage.commit(transactionKey == null ? lifeCycle : transactionKey);
+            	}
                 return errorOutcome;
             }
         }
@@ -328,11 +343,17 @@ public class ItemImplementation implements ItemOperations {
             String errorOutcome = handleError(agentId, delegateId, stepPath, lifeCycle, ex);
 
             if (StringUtils.isBlank(errorOutcome)) {
-                mStorage.abort(transactionKey == null ? lifeCycle : transactionKey);
+            	if ( ! Gateway.getProperties().getBoolean("ServerSideScripting", false)
+                        || "Client" .equals( Gateway.getProperties().getString("ProcessType", "Client")) ) {
+            		mStorage.abort(transactionKey == null ? lifeCycle : transactionKey);
+            	}
                 throw new InvalidDataException("Extraordinary Exception during execution:" + ex.getClass().getName() + " - " + ex.getMessage());
             }
             else {
-                mStorage.commit(transactionKey == null ? lifeCycle : transactionKey);
+            	if ( ! Gateway.getProperties().getBoolean("ServerSideScripting", false)
+                        || "Client" .equals( Gateway.getProperties().getString("ProcessType", "Client")) ) {
+            		mStorage.commit(transactionKey == null ? lifeCycle : transactionKey);
+            	}
                 return errorOutcome;
             }
         }
