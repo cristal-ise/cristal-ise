@@ -457,6 +457,7 @@ public class Gateway
         return mResource;
     }
 
+    // TODO how can we prevent this from being used in scripts?
     static public ProxyManager getProxyManager() {
         return mProxyManager;
     }
