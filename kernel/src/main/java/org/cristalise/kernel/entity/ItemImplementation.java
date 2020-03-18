@@ -261,6 +261,7 @@ public class ItemImplementation implements ItemOperations {
             log.info("request(" + mItemPath + ") Transition " + transitionID + " on " + stepPath + " by " + (delegate == null ? "" : delegate + " on behalf of ") + agent);
 
             // TODO: check if delegate is allowed valid for agent
+            // TODO move this into its own try-catch, because it's used in handleError
             lifeCycle = (Workflow) mStorage.get(mItemPath, ClusterType.LIFECYCLE + "/workflow", null);
 
             SecurityManager secMan = Gateway.getSecurityManager();
@@ -287,12 +288,12 @@ public class ItemImplementation implements ItemOperations {
                 // TODO add transactionKey
                 Gateway.getLookupManager().delete(mItemPath);
             }
-           
+
             if ( ! Gateway.getProperties().getBoolean("ServerSideScripting", false)
                    || "Client" .equals( Gateway.getProperties().getString("ProcessType", "Client")) ) {
             	 mStorage.commit(transactionKey == null ? lifeCycle : transactionKey);
             }
-           
+
             return finalOutcome;
         }
         catch (AccessRightsException | InvalidTransitionException   | ObjectNotFoundException | PersistencyException |
@@ -311,7 +312,7 @@ public class ItemImplementation implements ItemOperations {
             }
             else {
             	if ( ! Gateway.getProperties().getBoolean("ServerSideScripting", false)
-                        || "Client" .equals( Gateway.getProperties().getString("ProcessType", "Client")) ) { 
+                        || "Client" .equals( Gateway.getProperties().getString("ProcessType", "Client")) ) {
             		mStorage.commit(transactionKey == null ? lifeCycle : transactionKey);
                 }
                 return errorOutcome;
