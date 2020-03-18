@@ -11,6 +11,8 @@ This work is based on [jhipster-devbox](https://github.com/jhipster/jhipster-dev
 
 1. default user: vagrant/vagrant
 1. `sudo passwd ubuntu` - Change password of root user
+1. Follow this guide to update VirtualBox Guest Additions
+    - https://linuxize.com/post/how-to-install-virtualbox-guest-additions-in-ubuntu/
 1. `sudo adduser $USER vboxsf` - Add permission to use shared folders with the host OS
 1. Consider to use different oh-my-zshell theme like: powerlevel10k
    1. edit ~/.zshrc file: `ZSH_THEME="powerlevel10k/powerlevel10k"`
@@ -40,6 +42,7 @@ This work is based on [jhipster-devbox](https://github.com/jhipster/jhipster-dev
 1. `git checkout -t origin/master`
 1. `git flow init`
 1. `mvn install` - Do this step before any build in eclipse to download all maven dependencies
+1. Rebbot the VM
 
 ### Configure Eclipse
 
