@@ -73,3 +73,7 @@ This work is based on [jhipster-devbox](https://github.com/jhipster/jhipster-dev
 - `docker stop psql9.6`
 - `docker start psql9.6`
 - pgadmin 4 is already installed
+
+### INSTALL older version of Google Chrome:
+Development migth require to use a specific version oh Google Chrome. Download the Ubuntu package from here:
+https://www.slimjet.com/chrome/google-chrome-old-version.php
