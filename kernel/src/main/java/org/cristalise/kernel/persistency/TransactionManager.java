@@ -337,9 +337,11 @@ public class TransactionManager {
      */
     public void abort(Object locker) {
         synchronized(locks) {
-            if (locks.containsValue(locker)) {
-                for (ItemPath thisPath : locks.keySet()) {
-                    if (locks.get(thisPath).equals(locker))
+        	HashMap<ItemPath, Object> lockTemp = new HashMap<>();
+        	lockTemp.putAll(locks);
+            if (lockTemp.containsValue(locker)) {
+                for (ItemPath thisPath : lockTemp.keySet()) {
+                    if (lockTemp.get(thisPath).equals(locker))
                         locks.remove(thisPath);
                 }
             }
