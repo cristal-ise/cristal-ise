@@ -2,6 +2,7 @@ This work is based on [jhipster-devbox](https://github.com/jhipster/jhipster-dev
 
 ## Create cristal-ise vagrant devbox
 
+1. Install vagrant on your pc
 1. On the host machine clone this repository: `git clone https://john.doe@github.com/cristal-ise/cristal-ise.git`
 1. `vagrant up`
 - Alternatively use eclipe vagrant tools
@@ -10,7 +11,12 @@ This work is based on [jhipster-devbox](https://github.com/jhipster/jhipster-dev
 
 1. default user: vagrant/vagrant
 1. `sudo passwd ubuntu` - Change password of root user
+1. Follow this guide to update VirtualBox Guest Additions
+    - https://linuxize.com/post/how-to-install-virtualbox-guest-additions-in-ubuntu/
 1. `sudo adduser $USER vboxsf` - Add permission to use shared folders with the host OS
+1. Consider to use different oh-my-zshell theme like: powerlevel10k
+   1. edit ~/.zshrc file: `ZSH_THEME="powerlevel10k/powerlevel10k"`
+   1. use `p10k configure` if you want to tune the settings
 1. `git config --global credential.helper cache`
 1. `git config --global user.name 'John Doe'`
 1. `git config --global user.email john.doe@email.com`
@@ -36,6 +42,7 @@ This work is based on [jhipster-devbox](https://github.com/jhipster/jhipster-dev
 1. `git checkout -t origin/master`
 1. `git flow init`
 1. `mvn install` - Do this step before any build in eclipse to download all maven dependencies
+1. Rebbot the VM
 
 ### Configure Eclipse
 
@@ -67,3 +74,6 @@ This work is based on [jhipster-devbox](https://github.com/jhipster/jhipster-dev
 - `docker start psql9.6`
 - pgadmin 4 is already installed
 
+### INSTALL older version of Google Chrome:
+Development migth require to use a specific version of Google Chrome. Download the Ubuntu package from here:
+https://www.slimjet.com/chrome/google-chrome-old-version.php

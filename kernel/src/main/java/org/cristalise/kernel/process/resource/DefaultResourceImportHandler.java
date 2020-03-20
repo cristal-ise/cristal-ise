@@ -37,6 +37,7 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.apache.commons.lang3.StringEscapeUtils;
 import org.cristalise.kernel.collection.Collection;
 import org.cristalise.kernel.collection.CollectionArrayList;
 import org.cristalise.kernel.common.InvalidDataException;
@@ -382,7 +383,7 @@ public class DefaultResourceImportHandler implements ResourceImportHandler {
 
         Map<Object, Object> vars = new HashMap<Object, Object>();
 
-        vars.put("resourceName", name);
+        vars.put("resourceName", StringEscapeUtils.escapeXml11(name));
         vars.put("resourceVersion", version);
         vars.put("schemaName", schema.getName());
         vars.put("changeType", status.name());
