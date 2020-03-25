@@ -43,15 +43,22 @@ import org.cristalise.kernel.common.ObjectAlreadyExistsException;
 import org.cristalise.kernel.common.ObjectCannotBeUpdated;
 import org.cristalise.kernel.common.ObjectNotFoundException;
 import org.cristalise.kernel.common.PersistencyException;
+import org.cristalise.kernel.common.SystemKey;
 import org.cristalise.kernel.entity.CorbaServer;
 import org.cristalise.kernel.entity.ItemOperations;
 import org.cristalise.kernel.entity.TraceableEntity;
+import org.cristalise.kernel.events.Event;
+import org.cristalise.kernel.events.History;
 import org.cristalise.kernel.lifecycle.CompositeActivityDef;
 import org.cristalise.kernel.lifecycle.instance.CompositeActivity;
+import org.cristalise.kernel.lifecycle.instance.Workflow;
 import org.cristalise.kernel.lifecycle.instance.predefined.PredefinedStep;
 import org.cristalise.kernel.lookup.AgentPath;
 import org.cristalise.kernel.lookup.DomainPath;
+import org.cristalise.kernel.lookup.InvalidItemPathException;
 import org.cristalise.kernel.lookup.ItemPath;
+import org.cristalise.kernel.persistency.outcome.Outcome;
+import org.cristalise.kernel.persistency.outcome.Schema;
 import org.cristalise.kernel.persistency.outcome.Viewpoint;
 import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.property.Property;
@@ -175,13 +182,34 @@ public class CreateItemFromDescription extends PredefinedStep {
             Viewpoint           newViewpoint = instantiateViewpoint  (descItemPath, descVer, locker);
 
             CastorXMLUtility xml = Gateway.getMarshaller();
+            
+            if ( ! Gateway.getProperties().getBoolean("ServerSideScripting", false)
+                    || "Client" .equals( Gateway.getProperties().getString("ProcessType", "Client")) ) {
+            	
+            	newItem.initialise( agent.getSystemKey(),
+                        xml.marshall(newProps),
+                        xml.marshall(newWorkflow),
+                        xml.marshall(newColls),
+                        (newViewpoint != null) ? xml.marshall(newViewpoint) : "",
+                        (outcome != null) ? outcome: "");
+             } else {
+            	 
+            	 AgentPath agentPath;
+                 try {
+                     agentPath = new AgentPath(agent.getSystemKey());
+                 }
+                 catch (InvalidItemPathException e) {
+                     throw new AccessRightsException("Invalid Agent Id:" + agent.getSystemKey());
+                 }
+                 
+                 initialiseItemProperties(agent.getSystemKey(), newProps, locker);
+                 initialiseItemViewpointAndOutcome(agent.getSystemKey(), newViewpoint, outcome != null ? outcome : "", locker);
+                 initialiseItemCollection(newColls, locker);
+                 initialiseItemWorkflow(agentPath, newWorkflow, locker);
+            	 
+             }
 
-            newItem.initialise( agent.getSystemKey(),
-                                xml.marshall(newProps),
-                                xml.marshall(newWorkflow),
-                                xml.marshall(newColls),
-                                (newViewpoint != null) ? xml.marshall(newViewpoint) : "",
-                                (outcome != null) ? outcome: "");
+         
         }
         catch (MarshalException | ValidationException | AccessRightsException | IOException | MappingException | InvalidCollectionModification e) {
             log.error("", e);
@@ -398,6 +426,157 @@ public class CreateItemFromDescription extends PredefinedStep {
         }
         catch (NumberFormatException ex) {
             throw new InvalidDataException("Invalid schema version number: " + schemaVerObj.toString());
+        }
+    }
+    
+    protected void initialiseItemProperties(SystemKey agentId, PropertyArrayList newProps, Object transactionKey) 
+    		throws MarshalException, ValidationException, IOException, MappingException, InvalidDataException, PersistencyException {
+    	
+    	String propString = Gateway.getMarshaller().marshall(newProps);
+    	Workflow wf = (Workflow) transactionKey;
+    	
+    	if(wf == null) {
+    		 throw new InvalidDataException("initialiseItemProperties () - TransactionKey should be provided on server side scripting");
+    	}
+    	
+        if (StringUtils.isBlank(propString) || propString.equals("<NULL/>")) {
+            throw new InvalidDataException("No properties supplied");
+        }
+        
+        try {
+            PropertyArrayList props = (PropertyArrayList) Gateway.getMarshaller().unmarshall(propString);
+            for (Property thisProp : props.list) {
+                Gateway.getStorage().put(wf.getItemPath(), thisProp, transactionKey);
+            }
+        }
+        catch (Exception ex) {
+            log.error("initialiseItemProperties() - Properties were invalid: {}", wf.getItemPath(), propString, ex);
+            Gateway.getStorage().abort(transactionKey);
+            throw new InvalidDataException("Properties were invalid");
+        }
+        initialiseItemEvents(agentId, propString, wf);
+    }
+    
+    protected void initialiseItemEvents(SystemKey agentId, String propString, Object transactionKey) 
+    		throws MarshalException, ValidationException, IOException, MappingException, InvalidDataException, PersistencyException {
+    
+    	
+    	Workflow wf = (Workflow) transactionKey;
+    	
+    	History hist = new History(wf.getItemPath(), transactionKey);
+
+         // Store an "Initialize" event and the outcome containing the initial values for properties
+         try {
+             Schema initSchema = LocalObjectLoader.getSchema("ItemInitialization", 0);
+             Outcome initOutcome = new Outcome(0, propString, initSchema);
+
+             Event newEvent = hist.addEvent(
+                     new AgentPath(agentId), null, "", "Initialize", "", "", initSchema,
+                     LocalObjectLoader.getStateMachine("PredefinedStep", 0), PredefinedStep.DONE, "last");
+
+             initOutcome.setID(newEvent.getID());
+             Viewpoint newLastView = new Viewpoint(wf.getItemPath(), initSchema, "last", newEvent.getID());
+             Gateway.getStorage().put(wf.getItemPath(), initOutcome, transactionKey);
+             Gateway.getStorage().put(wf.getItemPath(), newLastView, transactionKey);
+         }
+         catch (Exception ex) {
+             log.error("initialiseItemEvents() - Could not store event and outcome.", wf.getItemPath(), ex);
+             Gateway.getStorage().abort(transactionKey);
+             throw new PersistencyException("Error storing 'Initialize' event and outcome:" + ex.getMessage());
+         }
+         
+    }
+    
+    protected void initialiseItemViewpointAndOutcome(SystemKey agentId, Viewpoint newViewpoint, String initOutcomeString, Object transactionKey)
+    		throws PersistencyException, InvalidDataException, MarshalException, ValidationException, IOException, MappingException {
+    
+    	String initViewpointString = Gateway.getMarshaller().marshall(newViewpoint);
+
+    	Workflow wf = (Workflow) transactionKey;
+    	
+    	if(wf == null) {
+    		throw new InvalidDataException("initialiseItemViewpointAndOutcome() : TransactionKey should be provided on server side scripting");
+    	}
+    	
+    	History hist = new History(wf.getItemPath(), transactionKey);
+    
+        if (StringUtils.isNotBlank(initViewpointString)) {
+            try {
+                Viewpoint vp = (Viewpoint)Gateway.getMarshaller().unmarshall(initViewpointString);
+                Schema schema = LocalObjectLoader.getSchema(vp.getSchemaName(), vp.getSchemaVersion());
+                Outcome outcome = new Outcome(-1, initOutcomeString, schema);
+                outcome.validateAndCheck();
+
+                vp.setItemPath(wf.getItemPath());
+
+                Event newEvent = hist.addEvent(
+                        new AgentPath(agentId), null, "", "Constructor", "", "", schema,
+                        LocalObjectLoader.getStateMachine("PredefinedStep", 0), PredefinedStep.DONE, vp.getName());
+                vp.setEventId(newEvent.getID());
+                outcome.setID(newEvent.getID());
+
+                Gateway.getStorage().put(wf.getItemPath(), outcome, transactionKey);
+                Gateway.getStorage().put(wf.getItemPath(), vp, transactionKey);
+            }
+            catch (Exception ex) {
+                log.error("initialiseItemViewpointAndOutcome() - Could not store event and outcome.", wf.getItemPath(), ex);
+                Gateway.getStorage().abort(transactionKey);
+                throw new PersistencyException("Error storing 'Constructor event and outcome:" + ex.getMessage());
+            }
+        }
+
+    }
+    
+    protected void initialiseItemCollection(CollectionArrayList newColls, Object transactionKey) 
+    		throws MarshalException, ValidationException, IOException, MappingException, InvalidDataException {
+    	
+       String initCollsString = Gateway.getMarshaller().marshall(newColls);
+       Workflow wf = (Workflow) transactionKey;
+    	
+    	if(wf == null) {
+    		throw new InvalidDataException("initialiseItemCollection() : TransactionKey should be provided on server side scripting");
+    	}
+    	// init collections
+        if (StringUtils.isNotBlank(initCollsString) && !initCollsString.equals("<NULL/>")) {
+            try {
+                CollectionArrayList colls = (CollectionArrayList) Gateway.getMarshaller().unmarshall(initCollsString);
+                for (Collection<?> thisColl : colls.list) {
+                	Gateway.getStorage().put(wf.getItemPath(), thisColl, transactionKey);
+                }
+            }
+            catch (Exception ex) {
+                log.error("initialiseItemCollection() - Collections were invalid: " + initCollsString, ex);
+                Gateway.getStorage().abort(transactionKey);
+                throw new InvalidDataException("Collections were invalid");
+            }
+        }
+    }
+    protected void initialiseItemWorkflow(AgentPath agentPath, CompositeActivity newWorkflow, Object transactionKey) 
+    		throws MarshalException, ValidationException, IOException, MappingException, InvalidDataException {
+    	
+    	String initWfString = Gateway.getMarshaller().marshall(newWorkflow);
+        Workflow wf = (Workflow) transactionKey;
+     	
+     	if(wf == null) {
+     		throw new InvalidDataException("initialiseItemCollection() : TransactionKey should be provided on server side scripting");
+     	}
+    	// create wf
+        Workflow lc = null;
+        try {
+            if (StringUtils.isBlank(initWfString) || initWfString.equals("<NULL/>")) {
+                lc = new Workflow(new CompositeActivity(), new ItemPredefinedStepContainer());
+            }
+            else{
+                lc = new Workflow((CompositeActivity) Gateway.getMarshaller().unmarshall(initWfString), new ItemPredefinedStepContainer());
+            }
+
+            lc.initialise(wf.getItemPath(), agentPath, transactionKey);
+            Gateway.getStorage().put(wf.getItemPath(), lc, transactionKey);
+        }
+        catch (Exception ex) {
+            log.error("initialiseItemWorkflow() - Workflow was invalid: " + initWfString, ex);
+            Gateway.getStorage().abort(transactionKey);
+            throw new InvalidDataException("Workflow was invalid");
         }
     }
 }
