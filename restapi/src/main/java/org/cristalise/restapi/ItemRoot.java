@@ -578,8 +578,8 @@ public class ItemRoot extends ItemUtils {
 
                 // set outcome if required
                 if (thisJob.hasOutcome()) {
-                    return Response.ok(new OutcomeBuilder(thisJob.getSchema(), false).generateNgDynamicForms(inputs))
-                            .cookie(cookie).build();
+                    OutcomeBuilder ob = new OutcomeBuilder(thisJob.getSchema(), thisJob.getOutcome()); 
+                    return Response.ok(ob.generateNgDynamicForms(inputs)).cookie(cookie).build();
                 } else {
                     log.debug("getJobFormTemplate() - no outcome needed for job:{}", thisJob);
                     return Response.noContent().cookie(cookie).build();
