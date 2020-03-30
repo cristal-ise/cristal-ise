@@ -394,6 +394,10 @@ public class ItemImplementation implements ItemOperations {
 
             Transition transition = act.getStateMachine().getTransition(transitionID);
             Job job = new Job(act, mItemPath, transition, agentPath, null, null);
+            
+            if(requestData != null && !requestData.isEmpty()) {
+            	job.setOutcome(requestData);
+            }
 
 //            Job job = new Job(-1, mItemPath, String stepName, stepPath, String stepType,
 //                    Transition transition, String originStateName, String targetStateName,
