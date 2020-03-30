@@ -608,12 +608,12 @@ public class AgentProxy extends ItemProxy {
         return mAgentPath;
     }
 
-    public ItemProxy getItem(Path path) throws ObjectNotFoundException
-    {
-        if (       Gateway.getProperties().getBoolean("ServerSideScripting", false)
-                && "Server" .equals( Gateway.getProperties().getString("ProcessType", "Client"))
-                ) {
-            return new ItemProxy(path instanceof DomainPath ? ((DomainPath)path).getItemPath() : (ItemPath)path, transactionKey);
+    public ItemProxy getItem(Path path) throws ObjectNotFoundException {
+        if (Gateway.getProperties().getBoolean("ServerSideScripting", false)
+                && "Server".equals(Gateway.getProperties().getString("ProcessType", "Client")))
+        {
+            ItemPath ip = path instanceof DomainPath ? ((DomainPath) path).getItemPath() : (ItemPath) path;
+            return new ItemProxy(ip, transactionKey);
         }
         return Gateway.getProxyManager().getProxy(path);
     }
