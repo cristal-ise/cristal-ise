@@ -23,6 +23,8 @@ Technical Documentation
 - [Activity execution](Activity-Execution) - - Sequence of action to execute an Activity
 - [Reset IORs](Reset-IORs) - How the reset the CORBA IORs
 - [Command-line arguments](Command-line-Arguments.md) - Explain the CLI of CRISTAL-iSE
+- [CRISTAL-iSE: Client side scripting](ClientSideScripting.md) - Show class calls when a script execution on Client side
+- [CRISTAL-iSE: Server side scripting](ServerSideScripting.md) - Show class calls when a script execution on Server side
 - [JavaDoc](http://javadoc.io/doc/org.cristalise) - The Javadoc API of the latest release
 
 Others
