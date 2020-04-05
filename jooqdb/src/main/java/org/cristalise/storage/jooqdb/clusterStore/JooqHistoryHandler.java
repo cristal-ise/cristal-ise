@@ -38,9 +38,11 @@ import org.cristalise.kernel.events.Event;
 import org.cristalise.kernel.lookup.AgentPath;
 import org.cristalise.kernel.lookup.ItemPath;
 import org.cristalise.kernel.utils.DateUtility;
+import org.cristalise.kernel.process.Gateway;
 import org.cristalise.storage.jooqdb.JooqHandler;
 import org.jooq.Condition;
 import org.jooq.DSLContext;
+import org.jooq.InsertSetMoreStep;
 import org.jooq.Field;
 import org.jooq.Record;
 import org.jooq.Table;
@@ -131,9 +133,9 @@ public class JooqHistoryHandler extends JooqHandler {
                 .set(TARGET_STATE_ID,       event.getTargetState())
                 .set(TRANSITION_ID,         event.getTransition())
                 .set(VIEW_NAME,             event.getViewName())
-                .set(TIMESTAMP,             DateUtility.toSqlTimestamp(event.getTimeStamp()))
+                .set(TIMESTAMP,             DateUtility.toSqlTimestamp(event.getTimeStamp()));
                 
-        if (Gateway.getProperties().getBoolean("JOOQ.Event.enableHasAttachment", true)) 
+        if (Gateway.getProperties().getBoolean("JOOQ.Event.enableHasAttachment", false)) 
             insert.set(HAS_ATTACHMENT, event.getHasAttachment());
 
         return insert.execute();
@@ -199,7 +201,7 @@ public class JooqHistoryHandler extends JooqHandler {
         .column(TARGET_STATE_ID,      ID_TYPE        .nullable(false))
         .column(TRANSITION_ID,        ID_TYPE        .nullable(false))
         .column(VIEW_NAME,            NAME_TYPE      .nullable(true))
-        .column(HAS_ATTACHMENT,       SQLDataType.BOOLEAN.nullable(true))
+        .column(HAS_ATTACHMENT,       SQLDataType.BOOLEAN.nullable(false).defaultValue(false))
         .column(TIMESTAMP,            TIMESTAMP_TYPE .nullable(false))
         .constraints(constraint("PK_"+EVENT_TABLE).primaryKey(UUID, ID))
         .execute();
