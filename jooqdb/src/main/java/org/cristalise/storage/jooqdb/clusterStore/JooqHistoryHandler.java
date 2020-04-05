@@ -113,7 +113,7 @@ public class JooqHistoryHandler extends JooqHandler {
         Event event = (Event)obj;
         AgentPath delegate = event.getDelegatePath();
 
-        return context
+        InsertSetMoreStep<?> insert = context
                 .insertInto(EVENT_TABLE)
                 .set(UUID,                  uuid)
                 .set(ID,                    event.getID())
@@ -131,9 +131,12 @@ public class JooqHistoryHandler extends JooqHandler {
                 .set(TARGET_STATE_ID,       event.getTargetState())
                 .set(TRANSITION_ID,         event.getTransition())
                 .set(VIEW_NAME,             event.getViewName())
-                .set(HAS_ATTACHMENT,        event.getHasAttachment())
                 .set(TIMESTAMP,             DateUtility.toSqlTimestamp(event.getTimeStamp()))
-                .execute();
+                
+        if (Gateway.getProperties().getBoolean("JOOQ.Event.enableHasAttachment", true)) 
+            insert.set(HAS_ATTACHMENT, event.getHasAttachment());
+
+        return insert.execute();
     }
 
     @Override
@@ -196,7 +199,7 @@ public class JooqHistoryHandler extends JooqHandler {
         .column(TARGET_STATE_ID,      ID_TYPE        .nullable(false))
         .column(TRANSITION_ID,        ID_TYPE        .nullable(false))
         .column(VIEW_NAME,            NAME_TYPE      .nullable(true))
-        .column(HAS_ATTACHMENT,       SQLDataType.BOOLEAN.nullable(false))
+        .column(HAS_ATTACHMENT,       SQLDataType.BOOLEAN.nullable(true))
         .column(TIMESTAMP,            TIMESTAMP_TYPE .nullable(false))
         .constraints(constraint("PK_"+EVENT_TABLE).primaryKey(UUID, ID))
         .execute();
