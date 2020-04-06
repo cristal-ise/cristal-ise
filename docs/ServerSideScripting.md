@@ -10,7 +10,7 @@
    1. [`ItemProxy.requestActionWithScript()`](https://github.com/cristal-ise/cristal-ise/blob/Issue344_Server_side_scripting/kernel/src/main/java/org/cristalise/kernel/entity/proxy/ItemProxy.java#L408)	
    1. [`ItemImplementation.requestActionWithScript()`](https://github.com/cristal-ise/cristal-ise/blob/Issue344_Server_side_scripting/kernel/src/main/java/org/cristalise/kernel/entity/ItemImplementation.java#L364)
       1. callScript(item, agent, job) [`line 415`](https://github.com/cristal-ise/cristal-ise/blob/Issue344_Server_side_scripting/kernel/src/main/java/org/cristalise/kernel/entity/ItemImplementation.java#L415)
-		1. [`ItemImplementation.callScript()`] [`line 518`](https://github.com/cristal-ise/cristal-ise/blob/Issue344_Server_side_scripting/kernel/src/main/java/org/cristalise/kernel/entity/ItemImplementation.java#L518)
+		1. [`ItemImplementation.callScript()`](https://github.com/cristal-ise/cristal-ise/blob/Issue344_Server_side_scripting/kernel/src/main/java/org/cristalise/kernel/entity/ItemImplementation.java#L518)
 			1. execute() [`line 526`](https://github.com/cristal-ise/cristal-ise/blob/Issue344_Server_side_scripting/kernel/src/main/java/org/cristalise/kernel/entity/ItemImplementation.java#L526)
 			1.  ** If the script will call another job, ProcessType will be then set to Server  **
 				1. [`AgentProxy.execute(job)`](https://github.com/cristal-ise/cristal-ise/blob/Issue344_Server_side_scripting/kernel/src/main/java/org/cristalise/kernel/entity/proxy/AgentProxy.java#L176)
