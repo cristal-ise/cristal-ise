@@ -58,20 +58,6 @@ public class RootAccess extends RestHandler {
         return toJSON(resourceRoots, null).build();
     }
 
-    @GET
-    @Path("files/{path}")
-    @Produces(MediaType.APPLICATION_OCTET_STREAM)
-    public Response getFile(
-        @PathParam("path")       String  path,
-        @CookieParam(COOKIENAME)  Cookie      authCookie)
-    {
-        String filePath = Gateway.getProperties().getString("REST.staticFilesDir", "/temp") + "/"  + path + ".tmp";
-        File file = new File(filePath);
-        return Response.ok(file, MediaType.APPLICATION_OCTET_STREAM)
-            .header("Content-Disposition", "attachment; filename=\"" + file.getName() + "\"" )
-            .build();
-    }
-
     private Map<String, Object> getRootData(UriInfo uri, String name) {
         Map<String, Object> resourceData = new HashMap<>();
 
