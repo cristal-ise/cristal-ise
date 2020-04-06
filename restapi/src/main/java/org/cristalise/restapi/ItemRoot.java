@@ -68,6 +68,8 @@ import org.cristalise.kernel.scripting.ScriptErrorException;
 import org.cristalise.kernel.scripting.ScriptingEngineException;
 import org.cristalise.kernel.utils.CastorHashMap;
 import org.cristalise.kernel.utils.LocalObjectLoader;
+import org.glassfish.jersey.media.multipart.FormDataBodyPart;
+import org.glassfish.jersey.media.multipart.FormDataMultiPart;
 import org.glassfish.jersey.media.multipart.FormDataParam;
 import org.json.XML;
 
@@ -429,31 +431,17 @@ public class ItemRoot extends ItemUtils {
     }
 
 
-    /**
-     * Method for handling binary uplaod POST methods
-     * 
-     * @param postData
-     * @param headers
-     * @param uuid
-     * @param actPath
-     * @param transition
-     * @param authCookie
-     * @param uri
-     * @return
-     */
     @POST
-    @Consumes( MediaType.MULTIPART_FORM_DATA )
-    @Produces( MediaType.MULTIPART_FORM_DATA)
+    @Consumes(MediaType.MULTIPART_FORM_DATA)
+    @Produces( {MediaType.TEXT_XML, MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON } )
     @Path("{binaryUploadPath: .*}")
-    public String requestBinaryTransition(  String      postData,
-            @FormDataParam ("file")         InputStream file,
-            @FormDataParam("outcome") String outcome,
-            @Context                        HttpHeaders headers,
-            @PathParam("uuid")              String      uuid,
-            @PathParam("binaryUploadPath")  String      actPath,
-            @QueryParam("transition")       String      transition,
-            @CookieParam(COOKIENAME)        Cookie      authCookie,
-            @Context                        UriInfo     uri)
+    public String requestBinaryTransition( FormDataMultiPart  body,
+            @Context                       HttpHeaders        headers,
+            @PathParam("uuid")             String             uuid,
+            @PathParam("binaryUploadPath") String             actPath,
+            @QueryParam("transition")      String             transition,
+            @CookieParam(COOKIENAME)       Cookie             authCookie,
+            @Context                       UriInfo            uri)
     {
         NewCookie cookie = checkAndCreateNewCookie(checkAuthCookie(authCookie));
         ItemProxy item = getProxy(uuid, cookie);
@@ -462,24 +450,24 @@ public class ItemRoot extends ItemUtils {
             throw new WebAppExceptionBuilder().message("Must specify activity path")
                     .status(Response.Status.BAD_REQUEST).newCookie(cookie).build();
         }
-        
-        if (file == null) {
-            throw new WebAppExceptionBuilder().message("Must provide a file to upload")
-                    .status(Response.Status.BAD_REQUEST).newCookie(cookie).build();
-        }
 
         try {
-            String contentType = headers.getRequestHeader(HttpHeaders.CONTENT_TYPE).get(0);
+            FormDataBodyPart outcomeBodyPart = body.getField("outcome");
+            String outcome = outcomeBodyPart.getValue();
+            String contentType = outcomeBodyPart.getMediaType().toString();
 
-            log.debug("requestBinaryTransition() postData:'{}' contentType:'{}'", postData, contentType);
+            log.debug("requestBinaryTransition() postData:'{}' contentType:'{}'", outcome, contentType);
 
             AgentProxy agent = Gateway.getProxyManager().getAgentProxy(getAgentPath(authCookie));
             String executeResult;
 
             if (actPath.startsWith(PREDEFINED_PATH)) {
-                executeResult = executePredefinedStep(item, postData, contentType, actPath, agent);
+                executeResult = executePredefinedStep(item, outcome, contentType, actPath, agent);
             }
             else {
+                FormDataBodyPart fileBodyPart = body.getField("file");
+                InputStream file = fileBodyPart.getEntityAs(InputStream.class);
+
                 transition = extractAndCheckTransitionName(transition, uri);
                 executeResult = executeUploadJob(item, file, outcome, contentType, actPath, transition, agent);
             }
@@ -488,11 +476,11 @@ public class ItemRoot extends ItemUtils {
             else                                                return executeResult;
         }
         catch (Exception e) {
-            log.error("requestBinaryTransition(actPat:{}) - postData:'{}'", actPath, postData);
+            log.error("requestBinaryTransition(actPat:{})", actPath, e);
             throw new WebAppExceptionBuilder().exception(e).newCookie(cookie).build();
         }
     }
-    
+
     /**
      * 
      * @param item
@@ -528,8 +516,8 @@ public class ItemRoot extends ItemUtils {
 
         // set outcome if required
         if (thisJob.hasOutcome()) {
-            OutcomeAttachment outcomeAttachment =
-                    new OutcomeAttachment(item.getPath(), thisJob.getSchema().getName(), thisJob.getSchema().getVersion(), -1, MediaType.APPLICATION_OCTET_STREAM, binaryData); 
+            OutcomeAttachment outcomeAttachment = new OutcomeAttachment(item.getPath(), thisJob.getSchema().getName(),
+                    thisJob.getSchema().getVersion(), -1, MediaType.APPLICATION_OCTET_STREAM, binaryData);
 
             thisJob.setAttachment(outcomeAttachment);
             if (outcome != null || outcome.length() > 0) {

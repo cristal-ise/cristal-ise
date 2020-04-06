@@ -201,7 +201,7 @@ public class Activity extends WfVertex {
                           int transitionID,
                           String requestData,
                           String attachmentType,
-                          byte[] attachments,
+                          byte[] attachment,
                           boolean validateOutcome,
                           Object locker
                           )
@@ -256,7 +256,7 @@ public class Activity extends WfVertex {
 
                 String viewpoint = resolveViewpointName(newOutcome);
                 boolean hasAttachment = false;
-                if (attachments.length > 0) {
+                if (attachment.length > 0) {
                     hasAttachment = true;
                 }
 
@@ -265,7 +265,9 @@ public class Activity extends WfVertex {
                 newOutcome.setID(eventID);
 
                 Gateway.getStorage().put(itemPath, newOutcome, locker);
-                if (attachments.length > 0) Gateway.getStorage().put(itemPath, new OutcomeAttachment(itemPath, newOutcome, attachmentType, attachments), locker);
+                if (attachment.length > 0) {
+                    Gateway.getStorage().put(itemPath, new OutcomeAttachment(itemPath, newOutcome, attachmentType, attachment), locker);
+                }
 
                 // update specific view if defined
                 if (!viewpoint.equals("last")) {

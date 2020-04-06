@@ -186,7 +186,8 @@ class RestapiTestBase extends KernelScenarioTestBase {
         requestSpecBuilder.setContentType("multipart/form-data")
 
         multipartData.each { k, v ->
-            requestSpecBuilder.addMultiPart(k, v)
+            if      (k == 'outcome') requestSpecBuilder.addMultiPart(k, v).setContentType(ContentType.XML)
+            else if (k == 'file')    requestSpecBuilder.addMultiPart(k, v).setContentType(ContentType.BINARY)
         }
 
         RequestSpecification req = requestSpecBuilder.build();

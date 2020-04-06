@@ -24,6 +24,7 @@ import static org.jooq.impl.DSL.constraint;
 import static org.jooq.impl.DSL.field;
 import static org.jooq.impl.DSL.name;
 import static org.jooq.impl.DSL.table;
+import static org.jooq.impl.SQLDataType.BOOLEAN;
 
 import java.sql.Timestamp;
 import java.util.ArrayList;
@@ -37,17 +38,15 @@ import org.cristalise.kernel.entity.C2KLocalObject;
 import org.cristalise.kernel.events.Event;
 import org.cristalise.kernel.lookup.AgentPath;
 import org.cristalise.kernel.lookup.ItemPath;
-import org.cristalise.kernel.utils.DateUtility;
 import org.cristalise.kernel.process.Gateway;
+import org.cristalise.kernel.utils.DateUtility;
 import org.cristalise.storage.jooqdb.JooqHandler;
 import org.jooq.Condition;
 import org.jooq.DSLContext;
-import org.jooq.InsertSetMoreStep;
 import org.jooq.Field;
+import org.jooq.InsertSetMoreStep;
 import org.jooq.Record;
 import org.jooq.Table;
-
-import org.jooq.impl.SQLDataType;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -134,9 +133,10 @@ public class JooqHistoryHandler extends JooqHandler {
                 .set(TRANSITION_ID,         event.getTransition())
                 .set(VIEW_NAME,             event.getViewName())
                 .set(TIMESTAMP,             DateUtility.toSqlTimestamp(event.getTimeStamp()));
-                
-        if (Gateway.getProperties().getBoolean("JOOQ.Event.enableHasAttachment", false)) 
+
+        if (Gateway.getProperties().getBoolean("JOOQ.Event.enableHasAttachment", true)) {
             insert.set(HAS_ATTACHMENT, event.getHasAttachment());
+        }
 
         return insert.execute();
     }
@@ -151,6 +151,11 @@ public class JooqHistoryHandler extends JooqHandler {
 
             GTimeStamp ts = DateUtility.fromSqlTimestamp( result.get(TIMESTAMP));
             //GTimeStamp ts = DateUtility.fromOffsetDateTime( result.get(TIMESTAMP", OffsetDateTime.class)));
+
+            Boolean hasAttachment = false;
+            if (Gateway.getProperties().getBoolean("JOOQ.Event.enableHasAttachment", true)) {
+                hasAttachment = result.get(HAS_ATTACHMENT.getName(), Boolean.class);
+            }
 
             try {
                 return new Event(
@@ -170,7 +175,7 @@ public class JooqHistoryHandler extends JooqHandler {
                         result.get(SCHEMA_NAME),
                         result.get(SCHEMA_VERSION),
                         result.get(VIEW_NAME),
-                        Arrays.asList(result.fields()).contains(HAS_ATTACHMENT) ? false : result.get(HAS_ATTACHMENT),
+                        hasAttachment,
                         ts);
             }
             catch (Exception ex) {
@@ -201,7 +206,7 @@ public class JooqHistoryHandler extends JooqHandler {
         .column(TARGET_STATE_ID,      ID_TYPE        .nullable(false))
         .column(TRANSITION_ID,        ID_TYPE        .nullable(false))
         .column(VIEW_NAME,            NAME_TYPE      .nullable(true))
-        .column(HAS_ATTACHMENT,       SQLDataType.BOOLEAN.nullable(false).defaultValue(false))
+        .column(HAS_ATTACHMENT,       BOOLEAN        .nullable(false).defaultValue(false))
         .column(TIMESTAMP,            TIMESTAMP_TYPE .nullable(false))
         .constraints(constraint("PK_"+EVENT_TABLE).primaryKey(UUID, ID))
         .execute();

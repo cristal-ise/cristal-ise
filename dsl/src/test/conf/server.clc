@@ -12,4 +12,3 @@ JOOQ.user       = sa
 JOOQ.password   = sa
 JOOQ.dialect    = H2
 JOOQ.autoCommit = true
-JOOQ.Event.enableHasAttachment = false
