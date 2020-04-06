@@ -170,7 +170,7 @@ public class JooqHistoryHandler extends JooqHandler {
                         result.get(SCHEMA_NAME),
                         result.get(SCHEMA_VERSION),
                         result.get(VIEW_NAME),
-                        result.get(HAS_ATTACHMENT),
+                        Arrays.asList(result.fields()).contains(HAS_ATTACHMENT) ? false : result.get(HAS_ATTACHMENT),
                         ts);
             }
             catch (Exception ex) {
