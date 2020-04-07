@@ -30,12 +30,10 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
-import org.cristalise.kernel.collection.Collection;
 import org.cristalise.kernel.collection.CollectionMemberList;
 import org.cristalise.kernel.collection.Dependency;
 import org.cristalise.kernel.collection.DependencyDescription;
 import org.cristalise.kernel.collection.DependencyMember;
-import org.cristalise.kernel.common.AccessRightsException;
 import org.cristalise.kernel.common.CannotManageException;
 import org.cristalise.kernel.common.InvalidCollectionModification;
 import org.cristalise.kernel.common.InvalidDataException;
@@ -73,17 +71,18 @@ public class UpdateCollectionsFromDescription extends PredefinedStep {
     }
 
     /**
+     * @throws InvalidCollectionModification 
      * 
      */
+    @Override
     protected String runActivityLogic(AgentPath agent, ItemPath item, int transitionID, String requestData, Object locker)
             throws  InvalidDataException,
-                    InvalidCollectionModification,
                     ObjectAlreadyExistsException,
                     ObjectCannotBeUpdated,
                     ObjectNotFoundException,
                     PersistencyException,
                     CannotManageException,
-                    AccessRightsException
+                    InvalidCollectionModification
     {
         String[] inputs = getDataList(requestData);
 
@@ -97,7 +96,7 @@ public class UpdateCollectionsFromDescription extends PredefinedStep {
 
         try {
             if (inputs.length == 3) { //optional parameter
-                newMembers = (CollectionMemberList<DependencyMember>)Gateway.getMarshaller().unmarshall(inputs[2]);
+                newMembers = (CollectionMemberList<DependencyMember>) Gateway.getMarshaller().unmarshall(inputs[2]);
             }
         }
         catch (MarshalException | ValidationException | IOException | MappingException e) {
@@ -121,9 +120,7 @@ public class UpdateCollectionsFromDescription extends PredefinedStep {
         //Loop through collection desc names and create new ones
         for (String collName :  Gateway.getStorage().getClusterContents(descItemPath, COLLECTION, locker)) {
             if (! currentCollNames.contains(collName)) {
-                Collection<?> newColl = CreateItemFromDescription.instantiateCollection(collName, descItemPath, descVer, newItemProps, locker);
-
-                if (newColl != null) Gateway.getStorage().put(item, newColl, locker);
+                CreateItemFromDescription.instantiateCollection(collName, descItemPath, descVer, newItemProps, item, locker);
             }
             else {
                 currentCollNames.remove(collName);
