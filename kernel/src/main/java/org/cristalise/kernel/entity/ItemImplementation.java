@@ -233,6 +233,7 @@ public class ItemImplementation implements ItemOperations {
             PersistencyException, ObjectAlreadyExistsException, InvalidCollectionModification
     {
         Workflow lifeCycle = null;
+        Object locker = new Object();
 
         try {
             AgentPath agent = new AgentPath(agentId);
@@ -253,10 +254,10 @@ public class ItemImplementation implements ItemOperations {
                 throw new AccessRightsException("'" + agentToUse.getAgentName() + "' is NOT permitted to execute step:" + stepPath);
             }
 
-            String finalOutcome = lifeCycle.requestAction(agent, delegate, stepPath, mItemPath, transitionID, requestData, attachmentType, attachment);
+            String finalOutcome = lifeCycle.requestAction(agent, delegate, stepPath, mItemPath, transitionID, requestData, attachmentType, attachment, locker);
 
             // store the workflow if we've changed the state of the domain wf
-            if (!(stepPath.startsWith("workflow/predefined"))) mStorage.put(mItemPath, lifeCycle, lifeCycle);
+            if (!(stepPath.startsWith("workflow/predefined"))) mStorage.put(mItemPath, lifeCycle, locker);
 
             // remove entity path if transaction was successful
             if (stepPath.equals("workflow/predefined/Erase")) {
@@ -264,7 +265,7 @@ public class ItemImplementation implements ItemOperations {
                 Gateway.getLookupManager().delete(mItemPath);
             }
 
-            mStorage.commit(lifeCycle);
+            mStorage.commit(locker);
 
             return finalOutcome;
         }
@@ -273,42 +274,42 @@ public class ItemImplementation implements ItemOperations {
         {
             log.error("", ex);
 
-            String errorOutcome = handleError(agentId, delegateId, stepPath, lifeCycle, ex);
+            String errorOutcome = handleError(agentId, delegateId, stepPath, lifeCycle, ex, locker);
 
             if (StringUtils.isBlank(errorOutcome)) {
-                mStorage.abort(lifeCycle);
+                mStorage.abort(locker);
                 throw ex;
             }
             else {
-                mStorage.commit(lifeCycle);
+                mStorage.commit(locker);
                 return errorOutcome;
             }
         }
         catch (InvalidAgentPathException | ObjectCannotBeUpdated | CannotManageException ex) {
             log.error("", ex);
 
-            String errorOutcome = handleError(agentId, delegateId, stepPath, lifeCycle, ex);
+            String errorOutcome = handleError(agentId, delegateId, stepPath, lifeCycle, ex, locker);
 
             if (StringUtils.isBlank(errorOutcome)) {
-                mStorage.abort(lifeCycle);
+                mStorage.abort(locker);
                 throw new InvalidDataException(ex.getClass().getName() + " - " + ex.getMessage());
             }
             else {
-                mStorage.commit(lifeCycle);
+                mStorage.commit(locker);
                 return errorOutcome;
             }
         }
         catch (Exception ex) { // non-CORBA exception hasn't been caught!
             log.error("Unknown Error: requestAction on " + mItemPath + " by " + agentId + " executing " + stepPath, ex);
 
-            String errorOutcome = handleError(agentId, delegateId, stepPath, lifeCycle, ex);
+            String errorOutcome = handleError(agentId, delegateId, stepPath, lifeCycle, ex, locker);
 
             if (StringUtils.isBlank(errorOutcome)) {
-                mStorage.abort(lifeCycle);
+                mStorage.abort(locker);
                 throw new InvalidDataException("Extraordinary Exception during execution:" + ex.getClass().getName() + " - " + ex.getMessage());
             }
             else {
-                mStorage.commit(lifeCycle);
+                mStorage.commit(locker);
                 return errorOutcome;
             }
         }
@@ -329,7 +330,7 @@ public class ItemImplementation implements ItemOperations {
      * @throws ObjectAlreadyExistsException
      * @throws InvalidCollectionModification
      */
-    private String handleError(SystemKey agentId, SystemKey delegateId, String stepPath, Workflow lifeCycle, Exception ex)
+    private String handleError(SystemKey agentId, SystemKey delegateId, String stepPath, Workflow lifeCycle, Exception ex, Object locker)
             throws PersistencyException, ObjectNotFoundException, AccessRightsException, InvalidTransitionException,
             InvalidDataException, ObjectAlreadyExistsException, InvalidCollectionModification
     {
@@ -345,7 +346,7 @@ public class ItemImplementation implements ItemOperations {
 
             String errorOutcome = Gateway.getMarshaller().marshall(new ErrorInfo(ex));
 
-            lifeCycle.requestAction(agent, delegate, stepPath, mItemPath, errorTransId, errorOutcome, "", null);
+            lifeCycle.requestAction(agent, delegate, stepPath, mItemPath, errorTransId, errorOutcome, "", null, locker);
 
             if (!(stepPath.startsWith("workflow/predefined"))) mStorage.put(mItemPath, lifeCycle, lifeCycle);
 
