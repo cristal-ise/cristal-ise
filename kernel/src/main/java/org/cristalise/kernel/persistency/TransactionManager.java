@@ -42,9 +42,12 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class TransactionManager {
 
+    /**
+     * Stores the locker used for ItemPath
+     */
     private HashMap<ItemPath, Object> locks;
-    HashMap<Object, ArrayList<TransactionEntry>> pendingTransactions;
-    ClusterStorageManager storage;
+    private HashMap<Object, ArrayList<TransactionEntry>> pendingTransactions;
+    private ClusterStorageManager storage;
 
     public TransactionManager(Authenticator auth) throws PersistencyException {
         storage = new ClusterStorageManager(auth);
@@ -164,10 +167,10 @@ public class TransactionManager {
 
         // deal out top level remote maps, if transactions aren't needed
         if (path.indexOf('/') == -1) {
-            if (path.equals(ClusterType.HISTORY) && locker != null) {
+            if (ClusterType.HISTORY.equals(path) && locker != null) {
                 return new History(itemPath, locker);
             }
-            else if (path.equals(ClusterType.JOB) && locker != null) {
+            else if (ClusterType.JOB.equals(path) && locker != null) {
                 if (itemPath instanceof AgentPath) return new JobList((AgentPath)itemPath, locker);
                 else                               throw new ObjectNotFoundException("TransactionManager.get() - Items do not have job lists");
             }
@@ -290,6 +293,21 @@ public class TransactionManager {
         if (children.length==0 && path.indexOf("/") > -1)
             remove(itemPath, path, locker);
     }
+
+    public void begin(Object locker) throws PersistencyException {
+        synchronized(locks) {
+            try {
+                storage.begin(locker);
+            }
+            catch (Exception e) {
+                storage.abort(locker);
+                log.error("begin() - Database may be in an inconsistent state, calling shutdown()", e);
+                dumpPendingTransactions(0);
+                AbstractMain.shutdown(1);
+            }
+        }
+    }
+
     /**
      * Writes all pending changes to the backends.
      * 
@@ -299,13 +317,11 @@ public class TransactionManager {
     public void commit(Object locker) throws PersistencyException {
         synchronized(locks) {
             ArrayList<TransactionEntry> lockerTransactions = pendingTransactions.get(locker);
-            // quit if no transactions are present;
-            if (lockerTransactions == null)
-                return;
+
+            // do nothing if no transactions are present;
+            if (lockerTransactions == null) return;
 
             try {
-                storage.begin(locker);
-
                 for (TransactionEntry thisEntry : lockerTransactions) {
                     if (thisEntry.obj == null)
                         storage.remove(thisEntry.itemPath, thisEntry.path, locker);
@@ -323,7 +339,7 @@ public class TransactionManager {
             }
             catch (Exception e) {
                 storage.abort(locker);
-                log.error("commit() - Problems during transaction commit of locker "+locker.toString()+". Database may be in an inconsistent state.");
+                log.error("commit() - Database may be in an inconsistent state, calling shutdown()", e);
                 dumpPendingTransactions(0);
                 AbstractMain.shutdown(1);
             }
@@ -343,6 +359,15 @@ public class TransactionManager {
                         locks.remove(thisPath);
                 }
             }
+
+            try {
+                // This call is not required 
+                storage.abort(locker);
+            }
+            catch (PersistencyException e) {
+                log.error("", e);
+            }
+
             pendingTransactions.remove(locker);
         }
     }

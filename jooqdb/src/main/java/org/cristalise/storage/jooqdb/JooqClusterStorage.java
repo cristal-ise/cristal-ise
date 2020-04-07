@@ -177,10 +177,13 @@ public class JooqClusterStorage extends TransactionalClusterStorage {
         if (!JooqHandler.getDataSource().isAutoCommit() && locker == null) {
             throw new PersistencyException("locker cannot be null when autoCommit is false");
         }
+
+        log.info("begin()");
+
         Connection conn = JooqHandler.connect().configuration().connectionProvider().acquire();
 
         if (locker != null) connectionMap.put(locker, conn);
-        else                log.warn("begin() called with a null locker");
+        else                log.trace("begin() - locker was null");
     }
 
     private DSLContext retrieveContext(Object locker) throws PersistencyException {
@@ -199,7 +202,7 @@ public class JooqClusterStorage extends TransactionalClusterStorage {
         for (JooqDomainHandler domainHandler : domainHandlers) domainHandler.commit(context, locker);
 
         if (locker == null) {
-            log.warn("commit() Cannot retrieve connection because locker is null");
+            log.warn("commit() - Cannot retrieve connection because locker is null");
             return;
         }
 
@@ -229,17 +232,24 @@ public class JooqClusterStorage extends TransactionalClusterStorage {
         for (JooqDomainHandler domainHandler : domainHandlers) domainHandler.abort(context, locker);
 
         if (locker == null) {
-            log.warn("abort() Cannot retrieve connection because locker is null");
+            log.warn("abort() - Cannot retrieve connection because locker is null");
             return;
         }
 
-        log.info("abort()");
         try {
             Connection conn = connectionMap.remove(locker);
-            if (!JooqHandler.getDataSource().isAutoCommit()) {
-                conn.rollback();
+
+            if (conn != null) {
+                log.info("abort()");
+
+                if (!JooqHandler.getDataSource().isAutoCommit()) {
+                    conn.rollback();
+                }
+                conn.close();
             }
-            conn.close();
+            else {
+                log.warn("abort() - No connection was found for this locker");
+            }
         }
         catch (Exception e) {
             log.error("", e);
@@ -336,7 +346,7 @@ public class JooqClusterStorage extends TransactionalClusterStorage {
             C2KLocalObject obj = handler.fetch(JooqHandler.connect(), uuid, primaryKeys);
 
             if (obj == null) {
-                log.trace(("JooqClusterStorage.get() - Could NOT fetch '"+itemPath+"/"+path+"'"));
+                log.trace("get() - Could NOT fetch '"+itemPath+"/"+path+"'");
             }
             return obj;
         }
@@ -361,7 +371,7 @@ public class JooqClusterStorage extends TransactionalClusterStorage {
         JooqHandler handler = jooqHandlers.get(cluster);
 
         DSLContext context = retrieveContext(locker);
-        JooqHandler.logConnectionCount("JooqClusterStorage.put(before)", context);
+        JooqHandler.logConnectionCount("put(before)", context);
 
         if (handler != null) {
             log.debug("put() - uuid:"+uuid+" cluster:"+cluster+" path:"+obj.getClusterPath());
@@ -374,7 +384,7 @@ public class JooqClusterStorage extends TransactionalClusterStorage {
         // Trigger all registered handlers to update domain specific tables
         for (JooqDomainHandler domainHandler : domainHandlers) domainHandler.put(context, uuid, obj, locker);
 
-        JooqHandler.logConnectionCount("JooqClusterStorage.put(after) ", context);
+        JooqHandler.logConnectionCount("put(after) ", context);
     }
 
     @Override

@@ -91,6 +91,10 @@ public enum ClusterType {
     public String toString() {
         return getName();
     }
+    
+    public boolean equals(String other) {
+        return clusterName.equals(other);
+    }
 
     public static ClusterType getValue(String name) {
         for (ClusterType type : ClusterType.values()) {
