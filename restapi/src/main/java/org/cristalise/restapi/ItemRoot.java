@@ -466,7 +466,7 @@ public class ItemRoot extends ItemUtils {
             }
             else {
                 FormDataBodyPart fileBodyPart = body.getField("file");
-                InputStream file = fileBodyPart.getEntityAs(InputStream.class);
+                InputStream file = fileBodyPart.getValueAs(InputStream.class);
 
                 transition = extractAndCheckTransitionName(transition, uri);
                 executeResult = executeUploadJob(item, file, outcome, contentType, actPath, transition, agent);
@@ -485,8 +485,8 @@ public class ItemRoot extends ItemUtils {
      * 
      * @param item
      * @param file
-     * @param postData
-     * @param types
+     * @param outcome
+     * @param contentType
      * @param actPath
      * @param transition
      * @param agent
