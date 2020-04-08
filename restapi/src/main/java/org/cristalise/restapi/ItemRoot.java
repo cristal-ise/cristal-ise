@@ -22,7 +22,6 @@ package org.cristalise.restapi;
 
 import static org.cristalise.kernel.persistency.ClusterType.COLLECTION;
 
-import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
@@ -46,35 +45,27 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 
 import org.apache.commons.lang3.StringUtils;
-import org.cristalise.kernel.common.AccessRightsException;
-import org.cristalise.kernel.common.InvalidCollectionModification;
 import org.cristalise.kernel.common.InvalidDataException;
-import org.cristalise.kernel.common.InvalidTransitionException;
-import org.cristalise.kernel.common.ObjectAlreadyExistsException;
 import org.cristalise.kernel.common.ObjectNotFoundException;
 import org.cristalise.kernel.common.PersistencyException;
 import org.cristalise.kernel.entity.agent.Job;
 import org.cristalise.kernel.entity.proxy.AgentProxy;
 import org.cristalise.kernel.entity.proxy.ItemProxy;
 import org.cristalise.kernel.lookup.ItemPath;
-import org.cristalise.kernel.persistency.outcome.OutcomeAttachment;
 import org.cristalise.kernel.persistency.outcome.Schema;
 import org.cristalise.kernel.persistency.outcomebuilder.OutcomeBuilder;
-import org.cristalise.kernel.persistency.outcomebuilder.OutcomeBuilderException;
 import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.querying.Query;
 import org.cristalise.kernel.scripting.Script;
-import org.cristalise.kernel.scripting.ScriptErrorException;
 import org.cristalise.kernel.scripting.ScriptingEngineException;
 import org.cristalise.kernel.utils.CastorHashMap;
 import org.cristalise.kernel.utils.LocalObjectLoader;
 import org.glassfish.jersey.media.multipart.FormDataBodyPart;
 import org.glassfish.jersey.media.multipart.FormDataMultiPart;
-import org.glassfish.jersey.media.multipart.FormDataParam;
+import org.json.JSONObject;
 import org.json.XML;
 
 import com.google.common.collect.ImmutableMap;
-import com.google.common.io.ByteStreams;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -430,7 +421,6 @@ public class ItemRoot extends ItemUtils {
         }
     }
 
-
     @POST
     @Consumes(MediaType.MULTIPART_FORM_DATA)
     @Produces( {MediaType.TEXT_XML, MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON } )
@@ -452,24 +442,42 @@ public class ItemRoot extends ItemUtils {
         }
 
         try {
-            FormDataBodyPart outcomeBodyPart = body.getField("outcome");
-            String outcome = outcomeBodyPart.getValue();
-            String contentType = outcomeBodyPart.getMediaType().toString();
-
-            log.debug("requestBinaryTransition() postData:'{}' contentType:'{}'", outcome, contentType);
-
             AgentProxy agent = Gateway.getProxyManager().getAgentProxy(getAgentPath(authCookie));
             String executeResult;
 
             if (actPath.startsWith(PREDEFINED_PATH)) {
-                executeResult = executePredefinedStep(item, outcome, contentType, actPath, agent);
+                throw new WebAppExceptionBuilder().message("PredefinedStep cannot have attahcment")
+                        .status(Response.Status.BAD_REQUEST).newCookie(cookie).build();
             }
             else {
+                FormDataBodyPart outcomeBodyPart = body.getField("outcome");
+                String outcome = null;
+                String outcomeType = MediaType.APPLICATION_JSON;
+
+                if (outcomeBodyPart != null) {
+                    outcome = outcomeBodyPart.getEntityAs(JSONObject.class).toString();
+                    MediaType type = outcomeBodyPart.getMediaType();
+
+                    if (type != null) outcomeType = type.getType();
+
+                    log.debug("requestBinaryTransition() - outcome:'{}' contentType:'{}'", outcome, outcomeType);
+                }
+
                 FormDataBodyPart fileBodyPart = body.getField("file");
-                InputStream file = fileBodyPart.getValueAs(InputStream.class);
+                InputStream file = null;
+                String fileType = MediaType.APPLICATION_OCTET_STREAM;
+
+                if (fileBodyPart != null) {
+                    file = fileBodyPart.getValueAs(InputStream.class);
+                    MediaType type =  fileBodyPart.getMediaType();
+
+                    if (type != null) fileType = type.getType();
+
+                    log.debug("requestBinaryTransition() - fileType:'{}'", fileType);
+                }
 
                 transition = extractAndCheckTransitionName(transition, uri);
-                executeResult = executeUploadJob(item, file, outcome, contentType, actPath, transition, agent);
+                executeResult = executeJob(item, outcome, outcomeType, file, fileType, actPath, transition, agent);
             }
 
             if (produceJSON(headers.getAcceptableMediaTypes())) return XML.toJSONObject(executeResult, true).toString();
@@ -479,52 +487,6 @@ public class ItemRoot extends ItemUtils {
             log.error("requestBinaryTransition(actPat:{})", actPath, e);
             throw new WebAppExceptionBuilder().exception(e).newCookie(cookie).build();
         }
-    }
-
-    /**
-     * 
-     * @param item
-     * @param file
-     * @param outcome
-     * @param contentType
-     * @param actPath
-     * @param transition
-     * @param agent
-     * @return
-     * @throws AccessRightsException
-     * @throws ObjectNotFoundException
-     * @throws PersistencyException
-     * @throws InvalidDataException
-     * @throws OutcomeBuilderException
-     * @throws InvalidTransitionException
-     * @throws ObjectAlreadyExistsException
-     * @throws InvalidCollectionModification
-     * @throws ScriptErrorException
-     * @throws IOException
-     */
-    private String executeUploadJob(ItemProxy item, InputStream file, String outcome, String contentType, String actPath, String transition, AgentProxy agent)
-            throws AccessRightsException, ObjectNotFoundException, PersistencyException, InvalidDataException, OutcomeBuilderException,
-                   InvalidTransitionException, ObjectAlreadyExistsException, InvalidCollectionModification, ScriptErrorException, IOException
-    {
-        Job thisJob = item.getJobByTransitionName(actPath, transition, agent);
-
-        byte[] binaryData = ByteStreams.toByteArray(file);
-
-        if (thisJob == null) {
-            throw new ObjectNotFoundException("Job not found for actPath:" + actPath+ " transition:" + transition);
-        }
-
-        // set outcome if required
-        if (thisJob.hasOutcome()) {
-            OutcomeAttachment outcomeAttachment = new OutcomeAttachment(item.getPath(), thisJob.getSchema().getName(),
-                    thisJob.getSchema().getVersion(), -1, MediaType.APPLICATION_OCTET_STREAM, binaryData);
-
-            thisJob.setAttachment(outcomeAttachment);
-            if (outcome != null || outcome.length() > 0) {
-                thisJob.setOutcome(outcome);
-            }
-        }
-        return agent.execute(thisJob);
     }
 
     @GET

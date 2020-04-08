@@ -10,7 +10,6 @@ import org.cristalise.kernel.lifecycle.instance.predefined.server.CreateNewAgent
 import org.cristalise.kernel.lifecycle.instance.predefined.server.CreateNewItem
 import org.cristalise.kernel.lifecycle.instance.predefined.server.CreateNewRole
 import org.cristalise.kernel.process.AbstractMain
-import org.cristalise.kernel.process.Gateway
 import org.cristalise.kernel.test.KernelScenarioTestBase
 import org.cristalise.kernel.test.utils.KernelXMLUtility
 import org.json.JSONArray
@@ -181,20 +180,19 @@ class RestapiTestBase extends KernelScenarioTestBase {
             .extract().response().body().asString()
     }
 
-    void executeActivityMultipart(String uuid, String actPath, Map<String, String> multipartData) {
-
+    String executeActivityMultipart(String uuid, String actPath, String outcome, File file) {
         RequestSpecBuilder requestSpecBuilder = new RequestSpecBuilder();
         requestSpecBuilder.setContentType("multipart/form-data")
 
-        multipartData.each { k, v ->
-            if      (k == 'outcome') requestSpecBuilder.addMultiPart(k, v).setContentType(ContentType.XML)
-            else if (k == 'file')    requestSpecBuilder.addMultiPart(k, v).setContentType(ContentType.BINARY)
-        }
+        requestSpecBuilder.addMultiPart('outcome', outcome).setContentType(ContentType.XML)
+        requestSpecBuilder.addMultiPart('file', file).setContentType(ContentType.BINARY)
 
         RequestSpecification req = requestSpecBuilder.build();
 
         given()
             .spec(req)
+            // .multiPart("outcome", outcome)
+            // .multiPart("file", file)
             .cookie(cauthCookie)
             .header("Content-Type", "multipart/form-data")
             .accept(ContentType.JSON)

@@ -9,13 +9,16 @@ import org.cristalise.kernel.lifecycle.ActivityDef
 import org.cristalise.kernel.process.Gateway
 import org.junit.Test
 
+import groovy.transform.CompileDynamic
 import groovy.transform.CompileStatic
 import io.restassured.http.ContentType
 
 import static io.restassured.RestAssured.given
 
+@CompileStatic
 class FileUploadTest extends RestapiTestBase {
 
+    @CompileDynamic
     private String setupItem() {
         init('src/main/bin/client.conf', 'src/main/bin/integTest.clc')
 
@@ -69,14 +72,14 @@ class FileUploadTest extends RestapiTestBase {
 
         File file = File.createTempFile("xml-data-$timeStamp", ".xml")
 
-        executeActivityMultipart(
+        String body = executeActivityMultipart(
             itemUuid,
             'UpdateProfile', 
-            [
-                'file': file.getBytes().toString(),
-                outcome:  "<ProfileDetails><FullName>Wierd Employee</FullName><ProfilePicture>${file.getName()}</ProfilePicture></ProfileDetails>".toString()
-            ]
+            "{'ProfileDetails': {'FullName': 'Wierd Employee,'ProfilePicture': '${file.getName()}'}}",
+            file
         )
         logout(null)
+
+        System.out.println(body)
     }
 }
