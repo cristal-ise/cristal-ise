@@ -181,7 +181,8 @@ class RestapiTestBase extends KernelScenarioTestBase {
             .extract().response().body().asString()
     }
 
-    String executeActivityMultipart(String uuid, String actPath, Map<String, String> multipartData) {
+    void executeActivityMultipart(String uuid, String actPath, Map<String, String> multipartData) {
+
         RequestSpecBuilder requestSpecBuilder = new RequestSpecBuilder();
         requestSpecBuilder.setContentType("multipart/form-data")
 
@@ -192,7 +193,7 @@ class RestapiTestBase extends KernelScenarioTestBase {
 
         RequestSpecification req = requestSpecBuilder.build();
 
-        return given()
+        given()
             .spec(req)
             .cookie(cauthCookie)
             .header("Content-Type", "multipart/form-data")
@@ -201,7 +202,33 @@ class RestapiTestBase extends KernelScenarioTestBase {
                 .post(apiUri+"/item/$uuid/workflow/domain/${actPath}?transition=Done")
             .then()
                 .statusCode(STATUS_OK)
+                .extract().response().asString()
+
+        String response = given()
+            .cookie(cauthCookie)
+            .when()
+                .get(apiUri+"/item/$uuid/attachment")
+            .then()
+                .statusCode(STATUS_OK)
                 .extract().response().body().asString()
+
+        JSONArray attachment = new JSONArray(response)
+        String activityName = attachment.get(0).getAt('name')
+
+        given()
+            .cookie(cauthCookie)
+            .when()
+                .get(apiUri+"/item/$uuid/attachment/$activityName")
+            .then()
+                .statusCode(STATUS_OK)
+
+        given()
+            .cookie(cauthCookie)
+            .when()
+                .get(apiUri+"/item/$uuid/outcome/$activityName")
+            .then()
+                .statusCode(STATUS_OK)
+
     }
 
     String executePredefStep(String uuid,  Class<?> predefStep, String...params) {
