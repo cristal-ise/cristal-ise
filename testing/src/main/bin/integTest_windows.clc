@@ -49,7 +49,7 @@ REST.Debug.errorsWithBody=true
 // JOOQ (postgresql) config
 JOOQ.URI=jdbc:postgresql://localhost:5432/integtest
 JOOQ.user=postgres
-JOOQ.password=dev
+JOOQ.password=cristal
 JOOQ.dialect=POSTGRES
 JOOQ.autoCommit=true
 //JOOQ.TemporaryPwdFieldImplemented=false
