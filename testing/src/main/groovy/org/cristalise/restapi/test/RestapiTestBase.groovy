@@ -195,6 +195,7 @@ class RestapiTestBase extends KernelScenarioTestBase {
         return given()
             .spec(req)
             .cookie(cauthCookie)
+            .header("Content-Type", "multipart/form-data")
             .accept(ContentType.JSON)
             .when()
                 .post(apiUri+"/item/$uuid/workflow/domain/${actPath}?transition=Done")
