@@ -69,7 +69,7 @@ class FileUploadTest extends RestapiTestBase {
 
         File file = File.createTempFile("xml-data-$timeStamp", ".xml")
 
-        String body = executeActivityMultipart(
+        executeActivityMultipart(
             itemUuid,
             'UpdateProfile', 
             [
@@ -77,7 +77,6 @@ class FileUploadTest extends RestapiTestBase {
                 outcome:  "<ProfileDetails><FullName>Wierd Employee</FullName><ProfilePicture>${file.getName()}</ProfilePicture></ProfileDetails>".toString()
             ]
         )
-
-        //System.out.println(body)
+        logout(null)
     }
 }
