@@ -44,13 +44,12 @@ public class OutcomeAttachment implements C2KLocalObject {
     public static final int NONE = -1;
 
     // db fields
-    ItemPath  itemPath;
-    String    schemaName;
-    int       schemaVersion;
-    int       eventId;
-
-    String type;
-    byte[] binaryData;
+    ItemPath itemPath;
+    String   schemaName;
+    int      schemaVersion;
+    int      eventId;
+    String   fileName;
+    byte[]   binaryData;
 
     public OutcomeAttachment() {
         eventId = NONE;
@@ -58,27 +57,27 @@ public class OutcomeAttachment implements C2KLocalObject {
         schemaVersion = NONE;
         schemaName = null;
 
-        type = null;
+        fileName = null;
         binaryData = new byte[0];
     }
 
-    public OutcomeAttachment(ItemPath itemPath, String schemaName, int schemaVersion, int eventId, String type, byte[] binaryData) {
+    public OutcomeAttachment(ItemPath itemPath, String schemaName, int schemaVersion, int eventId, String file, byte[] binaryData) {
         this.itemPath = itemPath;
         this.schemaName = schemaName;
         this.schemaVersion = schemaVersion;
         this.eventId = eventId;
 
-        this.type = type;
+        this.fileName = file;
         this.binaryData = binaryData;
     }
 
-    public OutcomeAttachment(ItemPath itemPath, Outcome outcome, String type, byte[] binaryData) {
+    public OutcomeAttachment(ItemPath itemPath, Outcome outcome, String file, byte[] binaryData) {
         this.itemPath = itemPath;
         this.schemaName = outcome.getSchema().getName();
         this.schemaVersion = outcome.getSchema().getVersion();
         this.eventId = outcome.getID();
 
-        this.type = type;
+        this.fileName = file;
         this.binaryData = binaryData;
     }
 

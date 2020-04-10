@@ -290,15 +290,15 @@ public class ItemProxy
         }
         
         OutcomeAttachment attachment = thisJob.getAttachment();
-        String attachmentType = "";
+        String attachmentFileName = "";
         byte[] attachmentBinary = new byte[0];
 
         if (attachment != null) {
-            attachmentType = attachment.getType();
+            attachmentFileName = attachment.getFileName();
             attachmentBinary = attachment.getBinaryData();
         }
 
-        log.debug("requestAction() - executing "+thisJob.getStepPath()+" for "+thisJob.getAgentName());
+        log.debug("requestAction() - executing "+thisJob);
 
         if (thisJob.getDelegatePath() == null) {
             return getItem().requestAction (
@@ -306,7 +306,7 @@ public class ItemProxy
                     thisJob.getStepPath(),
                     thisJob.getTransition().getId(), 
                     outcome,
-                    attachmentType,
+                    attachmentFileName,
                     attachmentBinary);
         }
         else {
@@ -316,7 +316,7 @@ public class ItemProxy
                     thisJob.getStepPath(), 
                     thisJob.getTransition().getId(), 
                     outcome, 
-                    attachmentType,
+                    attachmentFileName,
                     attachmentBinary);
         }
     }
@@ -1406,6 +1406,17 @@ public class ItemProxy
                 else
                     newSub.update(message.getPath(), message.isState());
             }
+        }
+    }
+    
+    @Override
+    public String toString() {
+        if (log.isTraceEnabled()) {
+            return this.getName() + "(" + this.getPath() + ")";
+        }
+        else {
+            return this.getName();
+            
         }
     }
 }
