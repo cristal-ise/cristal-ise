@@ -62,7 +62,6 @@ import org.cristalise.kernel.utils.CastorHashMap;
 import org.cristalise.kernel.utils.LocalObjectLoader;
 import org.glassfish.jersey.media.multipart.FormDataBodyPart;
 import org.glassfish.jersey.media.multipart.FormDataMultiPart;
-import org.json.JSONObject;
 import org.json.XML;
 
 import com.google.common.collect.ImmutableMap;
@@ -318,6 +317,7 @@ public class ItemRoot extends ItemUtils {
             itemSummary.put("workflow",    getItemURI(uri, item, "workflow"));
             itemSummary.put("history",     getItemURI(uri, item, "history"));
             itemSummary.put("outcome",     getItemURI(uri, item, "outcome"));
+            itemSummary.put("attachment",  getItemURI(uri, item, "attachment"));
 
             return toJSON(itemSummary, cookie).build();
         }
@@ -381,7 +381,7 @@ public class ItemRoot extends ItemUtils {
     @Consumes( {MediaType.TEXT_PLAIN, MediaType.TEXT_XML, MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON } )
     @Produces( {MediaType.TEXT_XML, MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON } )
     @Path("{activityPath: .*}")
-    public String requestTransition(    String      postData,
+    public String requestTransition(    String      outcome, //body of the post
             @Context                    HttpHeaders headers,
             @PathParam("uuid")          String      uuid,
             @PathParam("activityPath")  String      actPath,
@@ -396,27 +396,29 @@ public class ItemRoot extends ItemUtils {
             throw new WebAppExceptionBuilder().message("Must specify activity path").status(Response.Status.BAD_REQUEST).newCookie(cookie).build();
         }
 
+        log.info("requestTransition({}://{})", item, actPath);
+
         try {
             String contentType = headers.getRequestHeader(HttpHeaders.CONTENT_TYPE).get(0);
 
-            log.debug("requestTransition() postData:'{}' contentType:'{}'", postData, contentType);
+            log.debug("requestTransition() outcome:'{}' contentType:'{}'", outcome, contentType);
 
             AgentProxy agent = Gateway.getProxyManager().getAgentProxy(getAgentPath(authCookie));
             String executeResult;
 
             if (actPath.startsWith(PREDEFINED_PATH)) {
-                executeResult = executePredefinedStep(item, postData, contentType, actPath, agent);
+                executeResult = executePredefinedStep(item, outcome, contentType, actPath, agent);
             }
             else {
                 transition = extractAndCheckTransitionName(transition, uri);
-                executeResult = executeJob(item, postData, contentType, actPath, transition, agent);
+                executeResult = executeJob(item, outcome, contentType, actPath, transition, agent);
             }
 
             if (produceJSON(headers.getAcceptableMediaTypes())) return XML.toJSONObject(executeResult, true).toString();
             else                                                return executeResult;
         }
         catch (Exception e) {
-            log.error("requestTransition(actPat:{}) - postData:'{}'", actPath, postData);
+            log.debug("requestTransition({}://{}) - outcome:'{}'", item, actPath, outcome);
             throw new WebAppExceptionBuilder().exception(e).newCookie(cookie).build();
         }
     }
@@ -436,55 +438,61 @@ public class ItemRoot extends ItemUtils {
         NewCookie cookie = checkAndCreateNewCookie(checkAuthCookie(authCookie));
         ItemProxy item = getProxy(uuid, cookie);
 
+        log.info("requestBinaryTransition({}://{})", item, actPath);
+
         if (actPath == null) {
             throw new WebAppExceptionBuilder().message("Must specify activity path")
                     .status(Response.Status.BAD_REQUEST).newCookie(cookie).build();
         }
 
+        String outcome = null;
+
         try {
             AgentProxy agent = Gateway.getProxyManager().getAgentProxy(getAgentPath(authCookie));
             String executeResult;
 
+            FormDataBodyPart outcomeBodyPart = body.getField("outcome");
+            String outcomeType = MediaType.APPLICATION_JSON;
+
+            if (outcomeBodyPart != null) {
+                outcome = outcomeBodyPart.getValue();
+
+                // Multipart only works with text/plain so outcome string needs to be inspected for media type
+                if (outcome.startsWith("<")) outcomeType = MediaType.APPLICATION_XML;
+
+                log.debug("requestBinaryTransition() - outcome:'{}' contentType:'{}'", outcome, outcomeType);
+            }
+
+            FormDataBodyPart fileBodyPart = body.getField("file");
+            InputStream file = null;
+            String fileName = null;
+
+            if (fileBodyPart != null) {
+                file = fileBodyPart.getValueAs(InputStream.class);
+                fileName = fileBodyPart.getContentDisposition().getFileName();
+
+                log.debug("requestBinaryTransition() - attachment fileName:'{}'", fileName);
+            }
+
             if (actPath.startsWith(PREDEFINED_PATH)) {
-                throw new WebAppExceptionBuilder().message("PredefinedStep cannot have attahcment")
+                if (file != null) {
+                    throw new WebAppExceptionBuilder().message("PredefinedStep '"+actPath+"' cannot have attahcment")
                         .status(Response.Status.BAD_REQUEST).newCookie(cookie).build();
+                }
+
+                //This will execute 
+                executeResult = executePredefinedStep(item, outcome, outcomeType, actPath, agent);
             }
             else {
-                FormDataBodyPart outcomeBodyPart = body.getField("outcome");
-                String outcome = null;
-                String outcomeType = MediaType.APPLICATION_JSON;
-
-                if (outcomeBodyPart != null) {
-                    outcome = outcomeBodyPart.getEntityAs(JSONObject.class).toString();
-                    MediaType type = outcomeBodyPart.getMediaType();
-
-                    if (type != null) outcomeType = type.getType();
-
-                    log.debug("requestBinaryTransition() - outcome:'{}' contentType:'{}'", outcome, outcomeType);
-                }
-
-                FormDataBodyPart fileBodyPart = body.getField("file");
-                InputStream file = null;
-                String fileType = MediaType.APPLICATION_OCTET_STREAM;
-
-                if (fileBodyPart != null) {
-                    file = fileBodyPart.getValueAs(InputStream.class);
-                    MediaType type =  fileBodyPart.getMediaType();
-
-                    if (type != null) fileType = type.getType();
-
-                    log.debug("requestBinaryTransition() - fileType:'{}'", fileType);
-                }
-
                 transition = extractAndCheckTransitionName(transition, uri);
-                executeResult = executeJob(item, outcome, outcomeType, file, fileType, actPath, transition, agent);
+                executeResult = executeJob(item, outcome, outcomeType, file, fileName, actPath, transition, agent);
             }
 
             if (produceJSON(headers.getAcceptableMediaTypes())) return XML.toJSONObject(executeResult, true).toString();
             else                                                return executeResult;
         }
         catch (Exception e) {
-            log.error("requestBinaryTransition(actPat:{})", actPath, e);
+            log.debug("requestBinaryTransition({}://{}) - outcome:'{}'", item, actPath, outcome);
             throw new WebAppExceptionBuilder().exception(e).newCookie(cookie).build();
         }
     }

@@ -41,6 +41,7 @@ import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.UUID;
+import java.util.regex.Pattern;
 
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.NewCookie;
@@ -193,7 +194,11 @@ public abstract class ItemUtils extends RestHandler {
                 LinkedHashMap<String, Object> childData = new LinkedHashMap<>();
 
                 childData.put("name", childName);
-                childData.put("url", getItemURI(uri, item, uriPath, childName));
+
+                if (Pattern.matches("^Attachment/.*/[0-9]+$", dataPath))
+                    childData.put("url", getItemURI(uri, item, uriPath, childName).toString() + "?inline");
+                else
+                    childData.put("url", getItemURI(uri, item, uriPath, childName));
 
                 childrenData.add(childData);
             }
@@ -601,7 +606,7 @@ public abstract class ItemUtils extends RestHandler {
     /**
      * 
      */
-    protected String executeJob(ItemProxy item, String outcome, String outcomeType, InputStream file, String fileType, 
+    protected String executeJob(ItemProxy item, String outcome, String outcomeType, InputStream attachment, String fileName, 
             String actPath, String transition, AgentProxy agent)
         throws AccessRightsException, ObjectNotFoundException, PersistencyException, InvalidDataException, OutcomeBuilderException,
             InvalidTransitionException, ObjectAlreadyExistsException, InvalidCollectionModification, ScriptErrorException, IOException
@@ -625,15 +630,15 @@ public abstract class ItemUtils extends RestHandler {
             }
         }
 
-        if (file != null) {
-            byte[] binaryData = ByteStreams.toByteArray(file);
+        if (attachment != null) {
+            byte[] binaryData = ByteStreams.toByteArray(attachment);
 
             OutcomeAttachment outcomeAttachment = new OutcomeAttachment(
                     item.getPath(),
                     thisJob.getSchema().getName(),
                     thisJob.getSchema().getVersion(),
                     -1,
-                    fileType,
+                    fileName,
                     binaryData);
 
             thisJob.setAttachment(outcomeAttachment);

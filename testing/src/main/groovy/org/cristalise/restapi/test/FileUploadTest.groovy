@@ -46,9 +46,22 @@ class FileUploadTest extends RestapiTestBase {
             Schema(schema1)
         }
 
+        def schema2 = Schema("ListOfPublications-$timeStamp", folder) {
+            struct(name: 'ListOfPublications') {
+                field(name: 'Comment', type: 'string')
+                field(name: 'TextFile', type: 'string')
+            }
+        }
+
+        def ea2 = ElementaryActivityDef("UpdateListOfPublications-$timeStamp", folder) {
+            Property(OutcomeInit: "Empty")
+            Schema(schema2)
+        }
+
         def wf = CompositeActivityDef("EmployeeWorkflow-$timeStamp", folder) {
             ElemActDef('UpdateProfile',  ea0)
             ElemActDef('UpdateContract', ea1)
+            ElemActDef('UpdateListOfPublications', ea2)
         }
 
         def factory = DescriptionItem("EmployeeFactory-$timeStamp", folder) {
@@ -64,22 +77,70 @@ class FileUploadTest extends RestapiTestBase {
         return uuid
     }
 
+    /**
+     * Use this for development when descriptions do not change anymore.
+     * Creare a new item based on existing Descriptions and Factory
+     * @param ts timestamp used previously to create a factory
+     * @return
+     */
+    private String setupItem(String factoryTimestamp) {
+        init('src/main/bin/client.conf', 'src/main/bin/integTest.clc')
+
+        def factory = agent.getItem("$folder/EmployeeFactory-$factoryTimestamp")
+        createNewItemByFactory(factory, "CreateNewInstance", "Employee-$timeStamp", folder)
+        def uuid = agent.getItem("$folder/Employee-$timeStamp").getPath().getUUID().toString()
+
+        Gateway.close()
+
+        return uuid
+    }
+
     @Test
-    public void 'Test File Upload Scenarios'() throws Exception {
+    public void TestOutcomeAttachmentScenarios() throws Exception {
         login('user', 'test')
 
         def itemUuid = setupItem()
+//        def itemUuid = setupItem('2020-04-09_18-28-31_097')
+//        timeStamp = '2020-04-09_18-28-31_097'
 
-        File file = File.createTempFile("xml-data-$timeStamp", ".xml")
+        File profilePic    = new File('src/main/data', 'ProfilePicture.png')
+        File contractPdf   = new File('src/main/data', 'Contract.pdf')
+        File listOfPubsTxt = new File('src/main/data', 'ListOfPublications.txt')
 
-        String body = executeActivityMultipart(
+        executeActivity(
             itemUuid,
             'UpdateProfile', 
-            "{'ProfileDetails': {'FullName': 'Wierd Employee,'ProfilePicture': '${file.getName()}'}}",
-            file
+            ContentType.JSON,
+            "{'ProfileDetails': {'FullName': 'Wierd Employee','ProfilePicture': '${profilePic.getName()}'}}",
+            profilePic,
         )
-        logout(null)
 
-        System.out.println(body)
+        checkOutcome(   itemUuid, "ProfileDetails-$timeStamp", 0, 1)
+        checkAttachment(itemUuid, "ProfileDetails-$timeStamp", 0, 1)
+
+        executeActivity(
+            itemUuid,
+            'UpdateContract', 
+            ContentType.XML,
+            "<ContractDetails><Position>Dummy Manager</Position><ContractFilePfd>${contractPdf.getName()}</ContractFilePfd></ContractDetails>",
+            //"{'ContractDetails': {'Position': 'Dummy Manager','ContractFilePfd': '${contractPdf.getName()}'}}",
+            contractPdf,
+        )
+
+        checkOutcome(   itemUuid, "ContractDetails-$timeStamp", 0, 2)
+        checkAttachment(itemUuid, "ContractDetails-$timeStamp", 0, 2)
+
+        executeActivity(
+            itemUuid,
+            'UpdateListOfPublications',
+            ContentType.JSON,
+            "{'ListOfPublications': {'Comment': 'Dummy Comment','TextFile': '${listOfPubsTxt.getName()}'}}",
+            listOfPubsTxt,
+        )
+
+        checkOutcome(   itemUuid, "ListOfPublications-$timeStamp", 0, 3)
+        checkAttachment(itemUuid, "ListOfPublications-$timeStamp", 0, 3)
+
+        logout(null)
     }
 }

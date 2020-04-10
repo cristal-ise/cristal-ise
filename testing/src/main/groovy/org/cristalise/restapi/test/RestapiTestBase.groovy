@@ -167,7 +167,7 @@ class RestapiTestBase extends KernelScenarioTestBase {
         return responseBody
     }
 
-    String executeActivity(String uuid, String actPath, ContentType contentType, String outcome ) {
+    String executeActivity(String uuid, String actPath, ContentType contentType, String outcome) {
         return given()
             .contentType(contentType)
             .accept(ContentType.JSON)
@@ -180,53 +180,39 @@ class RestapiTestBase extends KernelScenarioTestBase {
             .extract().response().body().asString()
     }
 
-    String executeActivityMultipart(String uuid, String actPath, String outcome, File file) {
-        RequestSpecBuilder requestSpecBuilder = new RequestSpecBuilder();
-        requestSpecBuilder.setContentType("multipart/form-data")
-
-        requestSpecBuilder.addMultiPart('outcome', outcome).setContentType(ContentType.XML)
-        requestSpecBuilder.addMultiPart('file', file).setContentType(ContentType.BINARY)
-
-        RequestSpecification req = requestSpecBuilder.build();
-
-        given()
-            .spec(req)
-            // .multiPart("outcome", outcome)
-            // .multiPart("file", file)
+    String checkAttachment(String uuid, String schema, int version, int event) {
+        return given()
             .cookie(cauthCookie)
+        .when()
+            .get(apiUri+"/item/$uuid/attachment/$schema/$version/$event")
+        .then()
+            .statusCode(STATUS_OK)
+        .extract().response().body().asString()
+    }
+
+    String checkOutcome(String uuid, String schema, int version, int event) {
+        return given()
+            .cookie(cauthCookie)
+        .when()
+            .get(apiUri+"/item/$uuid/outcome/$schema/$version/$event")
+        .then()
+            .statusCode(STATUS_OK)
+        .extract().response().body().asString()
+    }
+
+    String executeActivity(String uuid, String actPath, ContentType outcomeType, String outcome, File attachment) {
+
+        return given().log().all()
             .header("Content-Type", "multipart/form-data")
+            .multiPart("outcome", outcome) // sets text/plain
+            .multiPart("file", attachment) // sets application/octet-stream and fileName in Content-Disposition
+            .cookie(cauthCookie)
             .accept(ContentType.JSON)
             .when()
                 .post(apiUri+"/item/$uuid/workflow/domain/${actPath}?transition=Done")
             .then()
                 .statusCode(STATUS_OK)
-                .extract().response().asString()
-
-        String response = given()
-            .cookie(cauthCookie)
-            .when()
-                .get(apiUri+"/item/$uuid/attachment")
-            .then()
-                .statusCode(STATUS_OK)
-                .extract().response().body().asString()
-
-        JSONArray attachment = new JSONArray(response)
-        String activityName = attachment.get(0).getAt('name')
-
-        given()
-            .cookie(cauthCookie)
-            .when()
-                .get(apiUri+"/item/$uuid/attachment/$activityName")
-            .then()
-                .statusCode(STATUS_OK)
-
-        given()
-            .cookie(cauthCookie)
-            .when()
-                .get(apiUri+"/item/$uuid/outcome/$activityName")
-            .then()
-                .statusCode(STATUS_OK)
-
+            .extract().response().asString()
     }
 
     String executePredefStep(String uuid,  Class<?> predefStep, String...params) {
