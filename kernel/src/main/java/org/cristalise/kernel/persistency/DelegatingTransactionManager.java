@@ -77,14 +77,18 @@ public class DelegatingTransactionManager implements TransactionManager {
         storage.close();
     }
 
+    public String executeQuery(Query query) throws PersistencyException {
+        return executeQuery(query, null);
+    }
+
     /**
      * 
      * @param query
      * @return
      * @throws PersistencyException
      */
-    public String executeQuery(Query query) throws PersistencyException {
-        return storage.executeQuery(query);
+    public String executeQuery(Query query, Object locker) throws PersistencyException {
+        return storage.executeQuery(query, locker);
     }
 
     /**

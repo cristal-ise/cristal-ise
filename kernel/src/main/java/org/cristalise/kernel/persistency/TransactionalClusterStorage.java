@@ -23,6 +23,7 @@ package org.cristalise.kernel.persistency;
 import org.cristalise.kernel.common.PersistencyException;
 import org.cristalise.kernel.entity.C2KLocalObject;
 import org.cristalise.kernel.lookup.ItemPath;
+import org.cristalise.kernel.querying.Query;
 
 public abstract class TransactionalClusterStorage extends ClusterStorage {
 
@@ -37,4 +38,6 @@ public abstract class TransactionalClusterStorage extends ClusterStorage {
     public abstract void delete(ItemPath itemPath, String path, Object locker) throws PersistencyException;
 
     public abstract String[] getClusterContents(ItemPath itemPath, String path, Object locker) throws PersistencyException;
+
+    public abstract String executeQuery(Query query, Object locker) throws PersistencyException;
 }

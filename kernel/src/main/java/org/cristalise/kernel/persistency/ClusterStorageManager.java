@@ -196,17 +196,29 @@ public class ClusterStorageManager {
         return useableStorages;
     }
 
+    public String executeQuery(Query query) throws PersistencyException {
+        return executeQuery(query, null);
+    }
     /**
      * Executes the Query
      *
      * @param query the Query to be executed
      * @return the xml result of the query
      */
-    public String executeQuery(Query query) throws PersistencyException {
+    public String executeQuery(Query query, Object locker) throws PersistencyException {
         ClusterStorage reader = findStorageForQuery(query.getLanguage());
 
-        if (reader != null) return reader.executeQuery(query);
-        else                throw new PersistencyException("No storage was found supporting language:"+query.getLanguage()+" query:"+query.getName());
+        if (reader != null) {
+            if (reader instanceof TransactionalClusterStorage && locker != null) {
+                return ((TransactionalClusterStorage)reader).executeQuery(query, locker);
+            }
+            else {
+                return reader.executeQuery(query);
+            }
+        }
+        else {
+            throw new PersistencyException("No storage was found supporting language:"+query.getLanguage()+" query:"+query.getName());
+        }
     }
 
     /**
@@ -405,14 +417,14 @@ public class ClusterStorageManager {
         ArrayList<ClusterStorage> writers = findStorages(ClusterStorage.getClusterType(path), true);
         for (ClusterStorage thisWriter : writers) {
             try {
-                log.debug( "ClusterStorageManager.delete() - removing "+path+" from "+thisWriter.getName());
+                log.debug( "ClusterStorageManager.remove() - removing "+path+" from "+thisWriter.getName());
                 if (thisWriter instanceof TransactionalClusterStorage && locker != null)
                     ((TransactionalClusterStorage)thisWriter).delete(itemPath, path, locker);
                 else
                     thisWriter.delete(itemPath, path);
             }
             catch (PersistencyException e) {
-                log.error("ClusterStorageManager.delete() - writer " + thisWriter.getName() + " could not delete " + itemPath + "/" + path + ": " + e.getMessage());
+                log.error("ClusterStorageManager.remove() - writer " + thisWriter.getName() + " could not delete " + itemPath + "/" + path + ": " + e.getMessage());
                 throw e;
             }
         }

@@ -279,6 +279,11 @@ public class JooqClusterStorage extends TransactionalClusterStorage {
 
     @Override
     public String executeQuery(Query query) throws PersistencyException {
+        return executeQuery(query, null);
+    }
+
+    @Override
+    public String executeQuery(Query query, Object locker) throws PersistencyException {
         throw new PersistencyException("UnImplemented");
     }
 
