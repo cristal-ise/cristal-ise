@@ -35,6 +35,8 @@ import org.cristalise.kernel.entity.proxy.ProxyManager;
 import org.cristalise.kernel.entity.proxy.ProxyServer;
 import org.cristalise.kernel.lookup.Lookup;
 import org.cristalise.kernel.lookup.LookupManager;
+import org.cristalise.kernel.persistency.DelegatingTransactionManager;
+import org.cristalise.kernel.persistency.SimpleTransactionManager;
 import org.cristalise.kernel.persistency.TransactionManager;
 import org.cristalise.kernel.process.auth.Authenticator;
 import org.cristalise.kernel.process.module.ModuleManager;
@@ -247,8 +249,18 @@ public class Gateway
             log.error("", ex);
             throw new InvalidDataException("Cannot connect server process. Please check config.");
         }
+        
+        String transManagerType = getProperties().getString("TransactionManager", "Simple");
 
-        mStorage = new TransactionManager(auth);
+        if ("Delegating".equals(transManagerType)) {
+            mStorage = new DelegatingTransactionManager(auth);
+        }
+        else if ("Simple".equals(transManagerType)) {
+            mStorage = new SimpleTransactionManager(auth);
+        }
+        else
+            throw new InvalidDataException("'"+transManagerType+"' is invalid for system property 'TransactionManager'");
+
         mProxyManager = new ProxyManager();
     }
 
@@ -515,9 +527,9 @@ public class Gateway
 
         ResourceImportHandler handler = null;
 
-        if (Gateway.getProperties().containsKey("ResourceImportHandler."+resType)) {
+        if (getProperties().containsKey("ResourceImportHandler."+resType)) {
             try {
-                handler = (ResourceImportHandler) Gateway.getProperties().getInstance("ResourceImportHandler."+resType);
+                handler = (ResourceImportHandler) getProperties().getInstance("ResourceImportHandler."+resType);
             }
             catch (Exception ex) {
                 log.error("Exception loading ResourceHandler for "+resType+". Using default.", ex);
@@ -537,7 +549,7 @@ public class Gateway
      * @throws Exception anything could happen
      */
     public static void runBoostrap() throws Exception {
-        if (Gateway.getProperties().containsKey(AbstractMain.MAIN_ARG_SKIPBOOTSTRAP)) {
+        if (getProperties().containsKey(AbstractMain.MAIN_ARG_SKIPBOOTSTRAP)) {
             //minimum initialisation only
             Bootstrap.init();
 

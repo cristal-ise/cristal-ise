@@ -217,8 +217,9 @@ public class ObjectProperties extends Properties {
         else if (val instanceof String) {
             ArrayList<Object> retArr = new ArrayList<Object>();
             StringTokenizer tok = new StringTokenizer((String) val, ",");
-            while (tok.hasMoreTokens())
-                retArr.add(getInstance(tok.nextToken()));
+            
+            while (tok.hasMoreTokens()) retArr.add(getInstance(tok.nextToken()));
+
             return retArr;
         }
         else {

@@ -40,6 +40,7 @@ import org.cristalise.kernel.lifecycle.CompositeActivityDef;
 import org.cristalise.kernel.lifecycle.instance.stateMachine.StateMachine;
 import org.cristalise.kernel.lookup.ItemPath;
 import org.cristalise.kernel.persistency.outcome.Schema;
+import org.cristalise.kernel.persistency.outcome.Viewpoint;
 import org.cristalise.kernel.property.PropertyDescriptionList;
 import org.cristalise.kernel.querying.Query;
 import org.cristalise.kernel.scripting.Script;
@@ -104,6 +105,18 @@ public class LocalObjectLoader {
      */
     static public Query getQuery(CastorHashMap properties) throws InvalidDataException, ObjectNotFoundException {
         return (Query)getDescObjectByProperty(properties, QUERY_NAME, QUERY_VERSION);
+    }
+
+    /**
+     * Retrieves a named version of a schema from the database based on a Viewpoint
+     *
+     * @param vp the Viewpoint specifying the name and version of the Schema
+     * @return Schema
+     * @throws ObjectNotFoundException - When schema or version does not exist
+     * @throws InvalidDataException - When the stored schema data was invalid
+     */
+    static public Schema getSchema(Viewpoint vp) throws ObjectNotFoundException, InvalidDataException {
+        return getSchema(vp.getSchemaName(), vp.getSchemaVersion());
     }
 
     /**

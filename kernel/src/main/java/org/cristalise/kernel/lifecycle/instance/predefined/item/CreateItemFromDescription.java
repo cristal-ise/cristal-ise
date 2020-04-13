@@ -31,6 +31,7 @@ import java.io.IOException;
 
 import org.apache.commons.lang3.StringUtils;
 import org.cristalise.kernel.collection.Collection;
+import org.cristalise.kernel.collection.CollectionArrayList;
 import org.cristalise.kernel.collection.CollectionDescription;
 import org.cristalise.kernel.collection.CollectionMember;
 import org.cristalise.kernel.collection.Dependency;
@@ -42,17 +43,18 @@ import org.cristalise.kernel.common.ObjectCannotBeUpdated;
 import org.cristalise.kernel.common.ObjectNotFoundException;
 import org.cristalise.kernel.common.PersistencyException;
 import org.cristalise.kernel.entity.CorbaServer;
-import org.cristalise.kernel.entity.ItemOperations;
-import org.cristalise.kernel.entity.TraceableEntity;
 import org.cristalise.kernel.events.Event;
 import org.cristalise.kernel.events.History;
 import org.cristalise.kernel.lifecycle.CompositeActivityDef;
 import org.cristalise.kernel.lifecycle.instance.CompositeActivity;
 import org.cristalise.kernel.lifecycle.instance.Workflow;
 import org.cristalise.kernel.lifecycle.instance.predefined.PredefinedStep;
+import org.cristalise.kernel.lifecycle.instance.predefined.PredefinedStepContainer;
+import org.cristalise.kernel.lifecycle.instance.predefined.agent.AgentPredefinedStepContainer;
 import org.cristalise.kernel.lookup.AgentPath;
 import org.cristalise.kernel.lookup.DomainPath;
 import org.cristalise.kernel.lookup.ItemPath;
+import org.cristalise.kernel.persistency.SimpleTransactionManager;
 import org.cristalise.kernel.persistency.outcome.Outcome;
 import org.cristalise.kernel.persistency.outcome.Schema;
 import org.cristalise.kernel.persistency.outcome.Viewpoint;
@@ -76,44 +78,38 @@ public class CreateItemFromDescription extends PredefinedStep {
     }
 
     /**
-     * Params encoded in requestData:
+     * Params:
      * <ol>
      * <li>Item name</li>
      * <li>Domain context</li>
      * <li>Description version to use(optional)</li>
      * <li>Initial properties to set in the new Agent (optional)</li>
-     * <li>Outcome for constructor (optional)</li>
      * </ol>
-     * 
      * @throws ObjectNotFoundException
-     * @throws InvalidDataException
-     *             The input parameters were incorrect
-     * @throws ObjectAlreadyExistsException
-     *             The Agent already exists
-     * @throws CannotManageException
-     *             The Agent could not be created
-     * @throws ObjectCannotBeUpdated
-     *             The addition of the new entries into the LookupManager failed
+     * @throws InvalidDataException The input parameters were incorrect
+     * @throws ObjectAlreadyExistsException The Agent already exists
+     * @throws CannotManageException The Agent could not be created
+     * @throws ObjectCannotBeUpdated The addition of the new entries into the LookupManager failed
      * @throws PersistencyException
      */
     @Override
-    protected String runActivityLogic(AgentPath agent, ItemPath descItemPath, int transitionID, String requestData, Object locker)
-        throws InvalidDataException,
-            ObjectNotFoundException,
-            ObjectAlreadyExistsException,
-            CannotManageException,
-            ObjectCannotBeUpdated,
-            PersistencyException
+    protected String runActivityLogic(AgentPath agent, ItemPath descItemPath, int transitionID, String requestData, Object transactionKey)
+            throws InvalidDataException,
+                   ObjectNotFoundException,
+                   ObjectAlreadyExistsException,
+                   CannotManageException,
+                   ObjectCannotBeUpdated,
+                   PersistencyException
     {
-        String[] params = getDataList(requestData);
+        String[] input = getDataList(requestData);
 
-        log.debug("Called by {} on {} with parameters {}", agent.getAgentName(), descItemPath, (Object) params);
+        log.debug("Called by {} on {} with parameters {}", agent.getAgentName(), descItemPath, (Object)input);
 
-        String newName = params[0];
-        String domPath = params[1];
-        String descVer = params.length > 2 && StringUtils.isNotBlank(params[2]) ? params[2] : "last";
-        PropertyArrayList initProps = params.length > 3 && StringUtils.isNotBlank(params[3]) ? unmarshallInitProperties(params[3]) : new PropertyArrayList();
-        String outcome = params.length > 4 && StringUtils.isNotBlank(params[4]) ? params[4] : "";
+        String            newName   = input[0];
+        String            domPath   = input[1];
+        String            descVer   = input.length > 2 && StringUtils.isNotBlank(input[2]) ? input[2] : "last";
+        PropertyArrayList initProps = input.length > 3 && StringUtils.isNotBlank(input[3]) ? unmarshallInitProperties(input[3]) : new PropertyArrayList();
+        String            outcome   = input.length > 4 && StringUtils.isNotBlank(input[4]) ? input[4] : "";
 
         // check if the path is already taken
         DomainPath context = new DomainPath(new DomainPath(domPath), newName);
@@ -125,14 +121,14 @@ public class CreateItemFromDescription extends PredefinedStep {
 
         // create the Item object
         log.info("Creating Item name:{} uuid:{}", newName, newItemPath);
-        CorbaServer factory = Gateway.getCorbaServer();
+        CorbaServer corbaFactory = Gateway.getCorbaServer();
 
-        if (factory == null) throw new CannotManageException("This process cannot create new Items");
+        if (corbaFactory == null) throw new CannotManageException("This process cannot create new Items");
 
-        TraceableEntity newItem = factory.createItem(newItemPath);
+        corbaFactory.createItem(newItemPath);
         Gateway.getLookupManager().add(newItemPath);
 
-        initialiseItem(newItem, agent, descItemPath, initProps, outcome, newName, descVer, context, newItemPath, locker);
+        initialiseItem(agent, descItemPath, initProps, outcome, newName, descVer, context, newItemPath, transactionKey);
 
         return requestData;
     }
@@ -141,13 +137,13 @@ public class CreateItemFromDescription extends PredefinedStep {
      * 
      * @param agent
      * @param descItemPath
-     * @param locker
+     * @param transactionKey
      * @param input
      * @param newName
      * @param descVer
      * @param context
      * @param newItemPath
-     * @param newItem
+     * @param servant
      * @throws ObjectCannotBeUpdated
      * @throws CannotManageException
      * @throws InvalidDataException
@@ -155,42 +151,51 @@ public class CreateItemFromDescription extends PredefinedStep {
      * @throws PersistencyException
      * @throws ObjectNotFoundException
      */
-    protected void initialiseItem(ItemOperations newItem,
-            AgentPath agent,
-            ItemPath descItemPath,
-            PropertyArrayList initProps,
-            String outcome,
-            String newName,
-            String descVer,
-            DomainPath context,
-            ItemPath newItemPath,
-            Object locker)
-        throws ObjectCannotBeUpdated,
-            CannotManageException,
-            InvalidDataException,
-            ObjectAlreadyExistsException,
-            PersistencyException,
-            ObjectNotFoundException
+    protected void initialiseItem(AgentPath         agent, 
+                                  ItemPath          descItemPath, 
+                                  PropertyArrayList initProps,
+                                  String            outcome,
+                                  String            newName, 
+                                  String            descVer,
+                                  DomainPath        context, 
+                                  ItemPath          newItemPath, 
+                                  Object            transactionKey
+                                  )
+            throws ObjectCannotBeUpdated, 
+                   CannotManageException,
+                   InvalidDataException, 
+                   ObjectAlreadyExistsException, 
+                   PersistencyException, 
+                   ObjectNotFoundException
     {
-        // initialise it with its properties and workflow
-        log.info("initialiseItem() - Initializing Item:" + newName);
+        log.info("initialiseItem() - Initializing Item:{}({})", newName, newItemPath);
 
         try {
-            PropertyArrayList newProps = instantiateProperties(descItemPath, descVer, initProps, newName, newItemPath, agent, locker);
-            createInitialiseEvent(newItemPath, agent, newProps, locker);
-            if (StringUtils.isNotBlank(outcome)) {
-                instantiateConstructor(descItemPath, descVer, newItemPath, outcome, agent, locker);
+            PropertyArrayList   newProps     = instantiateProperties (descItemPath, descVer, initProps, newName, agent, transactionKey);
+            CollectionArrayList newColls     = instantiateCollections(descItemPath, descVer, newProps, transactionKey);
+            CompositeActivity   newWorkflow  = instantiateWorkflow   (descItemPath, descVer, transactionKey);
+            Viewpoint           newViewpoint = instantiateViewpoint  (descItemPath, descVer, transactionKey);
+
+            if (Gateway.getStorage() instanceof SimpleTransactionManager) {
+                // SimpleTransactionManager cannot update more then one Item in one transaction => start new transaction
+                Object newTranasactionKey = new Object();
+                try {
+                    storeNewItem(agent, newItemPath, newProps, newWorkflow, newColls, newViewpoint, outcome, newTranasactionKey);
+                    Gateway.getStorage().commit(newTranasactionKey);
+                }
+                catch (InvalidDataException | ObjectNotFoundException | PersistencyException e) {
+                    log.debug("", e);
+                    Gateway.getStorage().abort(newTranasactionKey);
+                    throw e;
+                }
             }
-            instantiateCollections(descItemPath, descVer, newProps, newItemPath, locker);
-            instantiateWorkflow(descItemPath, descVer, newItemPath, agent, locker);
+            else {
+                // DelegatingTransactionManager can update more than one Item in one transaction
+                storeNewItem(agent, newItemPath, newProps, newWorkflow, newColls, newViewpoint, outcome, transactionKey);
+            }
         }
-        catch (MarshalException | ValidationException | AccessRightsException | IOException | MappingException e) {
-            log.error("", e);
-            Gateway.getLookupManager().delete(newItemPath);
-            throw new InvalidDataException("CreateItemFromDescription: Problem initializing new Item. See log: " + e.getMessage());
-        }
-        catch (InvalidDataException | ObjectNotFoundException | PersistencyException e) {
-            log.error("Problem initializing new Item", e);
+        catch (Exception e) {
+            log.debug("", e);
             Gateway.getLookupManager().delete(newItemPath);
             throw e;
         }
@@ -213,31 +218,29 @@ public class CreateItemFromDescription extends PredefinedStep {
             return (PropertyArrayList) Gateway.getMarshaller().unmarshall(initPropString);
         }
         catch (Exception e) {
-            log.error("Initial property parameter was not a marshalled PropertyArrayList", e);
+            log.error("", e);
             throw new InvalidDataException("Initial property parameter was not a marshalled PropertyArrayList: " + initPropString);
         }
     }
 
     /**
-     * Instantiates and stores the properties
-     * 
+     *
      * @param descItemPath
      * @param descVer
      * @param initProps
      * @param newName
      * @param agent
-     * @param locker
+     * @param transactionKey
      * @return props
      * @throws ObjectNotFoundException
      * @throws InvalidDataException
-     * @throws PersistencyException
      */
-    protected PropertyArrayList instantiateProperties(ItemPath descItemPath, String descVer, PropertyArrayList initProps,
-            String newName, ItemPath newItemPath, AgentPath agent, Object locker)
-            throws ObjectNotFoundException, InvalidDataException, PersistencyException {
+    protected PropertyArrayList instantiateProperties(ItemPath descItemPath, String descVer, PropertyArrayList initProps, String newName, AgentPath agent, Object transactionKey)
+            throws ObjectNotFoundException, InvalidDataException
+    {
         // copy properties -- intend to create from propdesc
-        PropertyDescriptionList pdList = PropertyUtility.getPropertyDescriptionOutcome(descItemPath, descVer, locker);
-        PropertyArrayList props = pdList.instantiate(initProps);
+        PropertyDescriptionList pdList = PropertyUtility.getPropertyDescriptionOutcome(descItemPath, descVer, transactionKey);
+        PropertyArrayList       props  = pdList.instantiate(initProps);
 
         // set Name prop or create if not present
         boolean foundName = false;
@@ -252,9 +255,6 @@ public class CreateItemFromDescription extends PredefinedStep {
         if (!foundName) props.list.add(new Property(NAME, newName, true));
         props.list.add(new Property(CREATOR, agent.getAgentName(), false));
 
-        // store them
-        for (Property thisProp : props.list) Gateway.getStorage().put(newItemPath, thisProp, locker);
-
         return props;
     }
 
@@ -263,21 +263,22 @@ public class CreateItemFromDescription extends PredefinedStep {
      *
      * @param descItemPath
      * @param descVer
-     * @param locker
+     * @param transactionKey
      * @return the Workflow instance
      * @throws ObjectNotFoundException
      * @throws InvalidDataException
      * @throws PersistencyException
      */
-    protected void instantiateWorkflow(ItemPath descItemPath, String descVer, ItemPath newItemPath, AgentPath agentPath, Object locker)
-            throws ObjectNotFoundException, InvalidDataException, PersistencyException {
+    protected CompositeActivity instantiateWorkflow(ItemPath descItemPath, String descVer, Object transactionKey)
+            throws ObjectNotFoundException, InvalidDataException, PersistencyException
+    {
         @SuppressWarnings("unchecked")
-        Collection<? extends CollectionMember> thisCol = (Collection<? extends CollectionMember>) Gateway.getStorage().get(descItemPath,
-                COLLECTION + "/" + WORKFLOW + "/" + descVer, locker);
+        Collection<? extends CollectionMember> thisCol = (Collection<? extends CollectionMember>)
+                Gateway.getStorage().get(descItemPath, COLLECTION + "/" + WORKFLOW + "/" + descVer, transactionKey);
 
-        CollectionMember wfMember = thisCol.getMembers().list.get(0);
-        String wfDefName = wfMember.resolveItem().getName();
-        Object wfVerObj = wfMember.getProperties().getBuiltInProperty(VERSION);
+        CollectionMember wfMember  = thisCol.getMembers().list.get(0);
+        String           wfDefName = wfMember.resolveItem().getName();
+        Object           wfVerObj  = wfMember.getProperties().getBuiltInProperty(VERSION);
 
         if (wfVerObj == null || String.valueOf(wfVerObj).length() == 0) {
             throw new InvalidDataException("Workflow version number not set");
@@ -288,12 +289,9 @@ public class CreateItemFromDescription extends PredefinedStep {
 
             if (wfDefName == null) throw new InvalidDataException("No workflow given or defined");
 
-            // load workflow def, instantiate, initalise and store
-            CompositeActivityDef caDef = (CompositeActivityDef) LocalObjectLoader.getActDef(wfDefName, wfDefVer);
-            CompositeActivity ca =  (CompositeActivity) caDef.instantiate();
-            Workflow wf = new Workflow(ca, new ItemPredefinedStepContainer());
-            wf.initialise(newItemPath, agentPath, locker);
-            Gateway.getStorage().put(newItemPath, wf, locker);
+            // load workflow def
+            CompositeActivityDef wfDef = (CompositeActivityDef) LocalObjectLoader.getActDef(wfDefName, wfDefVer);
+            return (CompositeActivity) wfDef.instantiate();
         }
         catch (NumberFormatException ex) {
             throw new InvalidDataException("Invalid workflow version number: " + wfVerObj.toString());
@@ -302,7 +300,6 @@ public class CreateItemFromDescription extends PredefinedStep {
             log.error("Activity def '" + wfDefName + "' was not Composite", ex);
             throw new InvalidDataException("Activity def '" + wfDefName + "' was not Composite");
         }
-        
     }
 
     /**
@@ -310,22 +307,24 @@ public class CreateItemFromDescription extends PredefinedStep {
      *
      * @param descItemPath
      * @param descVer
-     * @param locker
+     * @param transactionKey
      * @return the new collection
      * @throws ObjectNotFoundException
      * @throws PersistencyException
      * @throws InvalidDataException
      */
-    protected void instantiateCollections(ItemPath descItemPath, String descVer, PropertyArrayList newProps,
-            ItemPath newItemPath, Object locker)
+    protected CollectionArrayList instantiateCollections(ItemPath descItemPath, String descVer, PropertyArrayList newProps , Object transactionKey)
             throws ObjectNotFoundException, PersistencyException, InvalidDataException
     {
+        // loop through collections, collecting instantiated descriptions and finding the default workflow def
+        CollectionArrayList colls = new CollectionArrayList();
         String[] collNames = Gateway.getStorage().getClusterContents(descItemPath, COLLECTION);
 
-        // loop through collections, collecting instantiated descriptions
         for (String collName : collNames) {
-            instantiateCollection(collName, descItemPath, descVer, newProps, newItemPath, locker);
+            Collection<?> newColl = instantiateCollection(collName, descItemPath, descVer, newProps, transactionKey);
+            if (newColl != null) colls.put(newColl);
         }
+        return colls;
     }
 
     /**
@@ -334,68 +333,62 @@ public class CreateItemFromDescription extends PredefinedStep {
      * @param descItemPath
      * @param descVer
      * @param newProps
-     * @param locker
+     * @param transactionKey
+     * @return
      * @throws PersistencyException
      * @throws ObjectNotFoundException
      * @throws InvalidDataException
      */
-    public static void instantiateCollection(String collName, ItemPath descItemPath, String descVer, PropertyArrayList newProps,
-            ItemPath newItemPath, Object locker)
+    public static Collection<?> instantiateCollection(String collName, ItemPath descItemPath, String descVer, PropertyArrayList newProps, Object transactionKey) 
             throws PersistencyException, ObjectNotFoundException, InvalidDataException
     {
         @SuppressWarnings("unchecked")
-        Collection<? extends CollectionMember> collOfDesc = (Collection<? extends CollectionMember>) 
-            Gateway.getStorage().get(descItemPath, COLLECTION + "/" + collName + "/" + descVer, locker);
+        Collection<? extends CollectionMember> collOfDesc = (Collection<? extends CollectionMember>)
+                Gateway.getStorage().get(descItemPath, COLLECTION + "/" + collName + "/" + descVer, transactionKey);
+
+        Collection<?> newColl = null;
 
         if (collOfDesc instanceof CollectionDescription) {
-            log.info("Instantiating CollectionDescription:" + collName);
+            log.info("Instantiating CollectionDescription:"+ collName);
             CollectionDescription<?> collDesc = (CollectionDescription<?>) collOfDesc;
-            Collection<?>  newColl = collDesc.newInstance();
-
-            // store collection
-            Gateway.getStorage().put(newItemPath, newColl, locker);
+            newColl = collDesc.newInstance();
         }
-        else if (collOfDesc instanceof Dependency) {
-            log.info("Instantiating Dependency:" + collName);
+        else if(collOfDesc instanceof Dependency) {
+            log.info("Instantiating Dependency:"+ collName);
             ((Dependency) collOfDesc).addToItemProperties(newProps);
-
-            // store properties
-            for (Property thisProp : newProps.list) Gateway.getStorage().put(newItemPath, thisProp, locker);
         }
         else {
-            throw new InvalidDataException("CANNOT instantiate collection:" + collName + " class:" + collOfDesc.getClass().getName());
+            throw new InvalidDataException("CANNOT instantiate collection:"+ collName + " class:"+collOfDesc.getClass().getName());
         }
+
+        return newColl;
     }
 
     /**
      * 
      * @param descItemPath
      * @param descVer
-     * @param locker
+     * @param transactionKey
      * @return
      * @throws ObjectNotFoundException
      * @throws InvalidDataException
      * @throws PersistencyException
      */
-    protected void instantiateConstructor(ItemPath descItemPath, String descVer, ItemPath newItemPath, String initOutcomeString,
-            AgentPath agentPath, Object locker)
+    protected Viewpoint instantiateViewpoint(ItemPath descItemPath, String descVer, Object transactionKey) 
             throws ObjectNotFoundException, InvalidDataException, PersistencyException
     {
         String collPath = COLLECTION + "/" + SCHEMA_INITIALISE;
 
-        if (Gateway.getStorage().getClusterContents(descItemPath, collPath).length == 0) {
-            throw new InvalidDataException("Dependency was not defined:" + SCHEMA_INITIALISE);
-        }
+        if (Gateway.getStorage().getClusterContents(descItemPath, collPath).length == 0) return null;
 
         @SuppressWarnings("unchecked")
-        Collection<? extends CollectionMember> thisCol = (Collection<? extends CollectionMember>) Gateway.getStorage().get(descItemPath,
-                collPath + "/" + descVer, locker);
+        Collection<? extends CollectionMember> thisCol = (Collection<? extends CollectionMember>)
+                    Gateway.getStorage().get(descItemPath, collPath + "/" + descVer, transactionKey);
 
         CollectionMember schemaMember = thisCol.getMembers().list.get(0);
-
-        String schemaName   = schemaMember.resolveItem().getName();
-        Object schemaVerObj = schemaMember.getProperties().getBuiltInProperty(VERSION);
-        Object viewNameObj  = schemaMember.getProperties().get("View");
+        String           schemaName   = schemaMember.resolveItem().getName();
+        Object           schemaVerObj = schemaMember.getProperties().getBuiltInProperty(VERSION);
+        Object           viewNameObj  = schemaMember.getProperties().get("View");
 
         if (schemaName == null) throw new InvalidDataException("No schema given or defined");
 
@@ -404,25 +397,10 @@ public class CreateItemFromDescription extends PredefinedStep {
         }
 
         try {
-            History hist = new History(newItemPath, locker);
-
             Integer schemaVer = Integer.parseInt(schemaVerObj.toString());
-            String viewName = (viewNameObj == null) ? "last" : viewNameObj.toString();
-            Viewpoint vp = new Viewpoint(newItemPath, schemaName, viewName, schemaVer, -1);
-
-            Schema schema = LocalObjectLoader.getSchema(vp.getSchemaName(), vp.getSchemaVersion());
-            Outcome outcome = new Outcome(-1, initOutcomeString, schema);
-            outcome.validateAndCheck();
-
-            Event newEvent = hist.addEvent(
-                    agentPath, null, "", "Constructor", "", "", schema,
-                    LocalObjectLoader.getStateMachine("PredefinedStep", 0), PredefinedStep.DONE, vp.getName());
-
-            vp.setEventId(newEvent.getID());
-            outcome.setID(newEvent.getID());
-
-            Gateway.getStorage().put(newItemPath, outcome, locker);
-            Gateway.getStorage().put(newItemPath, vp, locker);
+            String viewName = (viewNameObj == null) ? "last": viewNameObj.toString();
+            // new ItemPath with random UUID is assigned to make xml marshall work
+            return new Viewpoint(new ItemPath(), schemaName, viewName, schemaVer, -1);
         }
         catch (NumberFormatException ex) {
             throw new InvalidDataException("Invalid schema version number: " + schemaVerObj.toString());
@@ -431,36 +409,94 @@ public class CreateItemFromDescription extends PredefinedStep {
 
     /**
      * 
-     * @param newItemPath
      * @param agentPath
-     * @param newProps
-     * @param locker
+     * @param itemPath
+     * @param props
+     * @param wf
+     * @param colls
+     * @param constructorViewpoint
+     * @param constructorOutcome
+     * @param transactionKey
      * @throws AccessRightsException
      * @throws InvalidDataException
      * @throws PersistencyException
+     * @throws ObjectNotFoundException
      * @throws MarshalException
      * @throws ValidationException
      * @throws IOException
      * @throws MappingException
-     * @throws ObjectNotFoundException
      */
-    private void createInitialiseEvent(ItemPath newItemPath, AgentPath agentPath, PropertyArrayList newProps, Object locker)
-            throws AccessRightsException, InvalidDataException, PersistencyException, MarshalException, ValidationException, IOException,
-                   MappingException, ObjectNotFoundException 
+    public static void storeNewItem(AgentPath agentPath,
+                                    ItemPath itemPath,
+                                    PropertyArrayList props,
+                                    CompositeActivity domainWf,
+                                    CollectionArrayList colls,
+                                    Viewpoint constructorViewpoint, 
+                                    String constructorOutcomeString,
+                                    Object transactionKey
+        )
+        throws InvalidDataException,
+               PersistencyException,
+               ObjectNotFoundException
     {
-        History hist = new History(newItemPath, locker);
+        // store ItemProperties
+        for (Property thisProp : props.list) Gateway.getStorage().put(itemPath, thisProp, transactionKey);
 
-        // Store an "Initialize" event and the outcome containing the initial values for properties
+        History hist = new History(itemPath, transactionKey);
+
+        // store initialise event with 'ItemInitialization' Outcome of ItemProperties
         Schema initSchema = LocalObjectLoader.getSchema("ItemInitialization", 0);
-        Outcome initOutcome = new Outcome(0, Gateway.getMarshaller().marshall(newProps), initSchema);
-
-        Event newEvent = hist.addEvent(
+        Event initEvent = hist.addEvent(
                 agentPath, null, "", "Initialize", "", "", initSchema,
                 LocalObjectLoader.getStateMachine("PredefinedStep", 0), PredefinedStep.DONE, "last");
 
-        initOutcome.setID(newEvent.getID());
-        Viewpoint newLastView = new Viewpoint(newItemPath, initSchema, "last", newEvent.getID());
-        Gateway.getStorage().put(newItemPath, initOutcome, locker);
-        Gateway.getStorage().put(newItemPath, newLastView, locker);
+        Outcome initOutcome = null;
+        try {
+            String propsString = Gateway.getMarshaller().marshall(props);
+            initOutcome = new Outcome(initEvent.getID(), propsString, initSchema);
+        }
+        catch (MarshalException | ValidationException | IOException | MappingException e) {
+            throw new InvalidDataException(e.getMessage());
+        }
+
+        Viewpoint newLastView = new Viewpoint(itemPath, initSchema, "last", initEvent.getID());
+        Gateway.getStorage().put(itemPath, initOutcome, transactionKey);
+        Gateway.getStorage().put(itemPath, newLastView, transactionKey);
+
+        // store constructor
+        if (constructorViewpoint != null) {
+            Schema constructorSchema = LocalObjectLoader.getSchema(constructorViewpoint);
+            Outcome constructorOutcome = new Outcome(-1, constructorOutcomeString, constructorSchema);
+
+            constructorOutcome.validateAndCheck();
+
+            constructorViewpoint.setItemPath(itemPath);
+
+            Event constructorEvent = hist.addEvent(
+                    agentPath, null, "", "Constructor", "", "", constructorOutcome.getSchema(),
+                    LocalObjectLoader.getStateMachine("PredefinedStep", 0), PredefinedStep.DONE, constructorViewpoint.getName());
+
+            constructorViewpoint.setEventId(constructorEvent.getID());
+            constructorOutcome.setID(constructorEvent.getID());
+
+            Gateway.getStorage().put(itemPath, constructorOutcome, transactionKey);
+            Gateway.getStorage().put(itemPath, constructorViewpoint, transactionKey);
+        }
+
+        // store collection
+        if (colls != null) {
+            for (Collection<?> thisColl : colls.list) {
+                Gateway.getStorage().put(itemPath, thisColl, transactionKey);
+            }
+        }
+        
+        PredefinedStepContainer predefCont = new ItemPredefinedStepContainer();
+        
+        if (itemPath instanceof AgentPath) predefCont = new AgentPredefinedStepContainer();
+
+        // initialise and store workflow
+        Workflow wf = new Workflow(domainWf, predefCont);
+        wf.initialise(itemPath, agentPath, transactionKey);
+        Gateway.getStorage().put(itemPath, wf, transactionKey);
     }
 }

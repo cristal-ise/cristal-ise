@@ -89,16 +89,33 @@ public class CreateAgentFromDescription extends CreateItemFromDescription {
         AgentPath newAgentPath = new AgentPath(new ItemPath(), newName);
 
         // check if the agent's name is already taken
-        if (Gateway.getLookup().exists(newAgentPath) )
-            throw new ObjectAlreadyExistsException("The agent name " + newName + " exists already.");
+        if (Gateway.getLookup().exists(newAgentPath) ) throw new ObjectAlreadyExistsException("The agent name " + newName + " exists already.");
 
         DomainPath context = new DomainPath(new DomainPath(contextS), newName);
 
-        if (context.exists()) throw new ObjectAlreadyExistsException("The path " +context+ " exists already.");
+        if (context.exists()) {
+            throw new ObjectAlreadyExistsException("The path " +context+ " exists already.");
+        }
 
-        ActiveEntity newAgent = createAgentAddRoles(newAgentPath, roles, pwd);
+        createAgentAddRoles(newAgentPath, roles, pwd);
 
-        initialiseItem(newAgent, agentPath, descItemPath, initProps, outcome, newName, descVer, context, newAgentPath, locker);
+        try {
+            initialiseItem(agentPath, descItemPath, initProps, outcome, newName, descVer, context, newAgentPath, locker);
+        }
+        catch (Exception e) {
+            log.error("runActivityLogic() - Due to error agent {} and its roles are deleted", newAgentPath, e);
+
+            for (String roleName: roles) {
+                if (StringUtils.isNotBlank(roleName)) {
+                    RolePath role = Gateway.getLookupManager().getRolePath(roleName);
+                    Gateway.getLookupManager().removeRole(newAgentPath, role);
+                }
+            }
+
+            Gateway.getLookupManager().delete(newAgentPath);
+
+            throw e;
+        }
 
         if (input.length > 3) input[3] = "REDACTED"; // censor password from outcome
 
@@ -124,7 +141,7 @@ public class CreateAgentFromDescription extends CreateItemFromDescription {
 
         if (factory == null) throw new CannotManageException("This process cannot create new Items");
 
-        ActiveEntity newAgent = factory.createAgent(newAgentPath);
+        ActiveEntity servant = factory.createAgent(newAgentPath);
         Gateway.getLookupManager().add(newAgentPath);
 
         try {
@@ -138,12 +155,12 @@ public class CreateAgentFromDescription extends CreateItemFromDescription {
             }
         }
         catch (Exception e) {
-            log.error("", e);
+            log.error("createAgentAddRoles() - due to an error agent {} is deleted", newAgentPath, e);
             Gateway.getLookupManager().delete(newAgentPath);
 
             throw new CannotManageException(e.getMessage());
         }
 
-        return newAgent;
+        return servant;
     }
 }
