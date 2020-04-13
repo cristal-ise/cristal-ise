@@ -153,7 +153,7 @@ public class SimpleTransactionManager implements TransactionManager {
         }
 
         return ArrayUtils.addAll(
-                storage.getClusterContents(itemPath, path), 
+                storage.getClusterContents(itemPath, path, null), 
                 uncomittedContents.toArray(new String[uncomittedContents.size()])
         );
     }

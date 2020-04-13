@@ -26,14 +26,15 @@ import org.cristalise.kernel.lookup.ItemPath;
 
 public abstract class TransactionalClusterStorage extends ClusterStorage {
 
-	public abstract void begin(Object locker) throws PersistencyException;
+    public abstract void begin(Object locker) throws PersistencyException;
 
-	public abstract void commit(Object locker) throws PersistencyException;
-	
-	public abstract void abort(Object locker) throws PersistencyException;
+    public abstract void commit(Object locker) throws PersistencyException;
 
-	public abstract void put(ItemPath itemPath, C2KLocalObject obj, Object locker) throws PersistencyException;
+    public abstract void abort(Object locker) throws PersistencyException;
 
-	public abstract void delete(ItemPath itemPath, String path, Object locker) throws PersistencyException;
+    public abstract void put(ItemPath itemPath, C2KLocalObject obj, Object locker) throws PersistencyException;
 
+    public abstract void delete(ItemPath itemPath, String path, Object locker) throws PersistencyException;
+
+    public abstract String[] getClusterContents(ItemPath itemPath, String path, Object locker) throws PersistencyException;
 }

@@ -295,6 +295,11 @@ public class JooqClusterStorage extends TransactionalClusterStorage {
 
     @Override
     public String[] getClusterContents(ItemPath itemPath, String path) throws PersistencyException {
+        return getClusterContents(itemPath, path, null);
+    }
+
+    @Override
+    public String[] getClusterContents(ItemPath itemPath, String path, Object locker) throws PersistencyException {
         if (StringUtils.isBlank(path)) {
             ArrayList<String> result = new ArrayList<String>();
 
@@ -310,11 +315,12 @@ public class JooqClusterStorage extends TransactionalClusterStorage {
         ClusterType cluster     = ClusterType.getValue(pathArray[0]);
 
         JooqHandler handler = jooqHandlers.get(cluster);
+        DSLContext context = retrieveContext(locker);
 
         if (handler != null) {
             log.debug("getClusterContents() - uuid:"+uuid+" cluster:"+cluster+" primaryKeys"+Arrays.toString(primaryKeys));
 
-            return handler.getNextPrimaryKeys(JooqHandler.connect(), uuid, primaryKeys);
+            return handler.getNextPrimaryKeys(context, uuid, primaryKeys);
         }
         else
             throw new PersistencyException("No handler found for cluster:'"+cluster+"'");

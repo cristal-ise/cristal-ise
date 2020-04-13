@@ -217,7 +217,7 @@ public class ClusterStorageManager {
      * @param path the cluster path
      * @return list of keys found in the cluster
      */
-    public String[] getClusterContents(ItemPath itemPath, String path) throws PersistencyException {
+    public String[] getClusterContents(ItemPath itemPath, String path, Object locker) throws PersistencyException {
         ArrayList<String> contents = new ArrayList<String>();
         // get all readers
         log.trace( "ClusterStorageManager.getClusterContents() - path:"+path);
@@ -225,7 +225,12 @@ public class ClusterStorageManager {
         // try each in turn until we get a result
         for (ClusterStorage thisReader : readers) {
             try {
-                String[] thisArr = thisReader.getClusterContents(itemPath, path);
+                String[] thisArr = null;
+                if (thisReader instanceof TransactionalClusterStorage && locker != null)
+                    thisArr = ((TransactionalClusterStorage)thisReader).getClusterContents(itemPath, path, locker);
+                else
+                    thisArr = thisReader.getClusterContents(itemPath, path);
+
                 if (thisArr != null) {
                     for (int j = 0; j < thisArr.length; j++)
                         if (!contents.contains(thisArr[j])) {

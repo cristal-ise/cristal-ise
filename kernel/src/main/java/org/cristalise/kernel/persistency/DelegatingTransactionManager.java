@@ -152,7 +152,7 @@ public class DelegatingTransactionManager implements TransactionManager {
         }
 
         return ArrayUtils.addAll(
-                storage.getClusterContents(itemPath, path), 
+                storage.getClusterContents(itemPath, path, locker), 
                 uncomittedContents.toArray(new String[uncomittedContents.size()])
         );
     }
