@@ -20,6 +20,7 @@
  */
 package org.cristalise.kernel.process.resource;
 
+import static org.cristalise.kernel.lifecycle.instance.predefined.item.CreateItemFromDescription.storeNewItem;
 import static org.cristalise.kernel.process.resource.BuiltInResources.QUERY_RESOURCE;
 import static org.cristalise.kernel.process.resource.BuiltInResources.SCHEMA_RESOURCE;
 import static org.cristalise.kernel.process.resource.BuiltInResources.SCRIPT_RESOURCE;
@@ -349,23 +350,28 @@ public class DefaultResourceImportHandler implements ResourceImportHandler {
             props.list.add(new Property(propName, propVal, pd.getIsMutable()));
         }
 
-        CompositeActivity ca = new CompositeActivity();
-        try {
-            ca = (CompositeActivity) ((CompositeActivityDef)LocalObjectLoader.getActDef(getWorkflowName(), version)).instantiate();
-        }
-        catch (ObjectNotFoundException ex) {
-            // FIXME check if this could be a real error
-            log.warn("Module resource workflow "+getWorkflowName()+" not found. Using empty.", ex);
-        }
+        CompositeActivityDef caDef = (CompositeActivityDef)LocalObjectLoader.getActDef(getWorkflowName(), version);
+        CompositeActivity ca = (CompositeActivity) caDef.instantiate();
 
         Gateway.getCorbaServer().createItem(itemPath);
         lookupManager.add(itemPath);
         DomainPath newDomPath = getPath(itemName, ns);
         newDomPath.setItemPath(itemPath);
         lookupManager.add(newDomPath);
-        ItemProxy newItemProxy = Gateway.getProxyManager().getProxy(itemPath);
-        newItemProxy.initialise((AgentPath)SYSTEM_AGENT.getPath(), props, ca, null);
-        return newItemProxy;
+
+        Object transactionKey = new Object();
+        try {
+            //replacing item.initialise()
+            storeNewItem((AgentPath)SYSTEM_AGENT.getPath(), itemPath, props, ca, null, null, null, transactionKey);
+            Gateway.getStorage().commit(transactionKey);
+        }
+        catch (Exception e) {
+            log.debug("createResourceItem({}) - aborting transaction", itemName, e);
+            Gateway.getStorage().abort(transactionKey);
+            throw e;
+        }
+
+        return Gateway.getProxyManager().getProxy(itemPath);
     }
 
     /**

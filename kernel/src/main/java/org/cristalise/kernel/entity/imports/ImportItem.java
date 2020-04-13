@@ -20,6 +20,7 @@
  */
 package org.cristalise.kernel.entity.imports;
 
+import static org.cristalise.kernel.lifecycle.instance.predefined.item.CreateItemFromDescription.storeNewItem;
 import static org.cristalise.kernel.property.BuiltInItemProperties.CREATOR;
 import static org.cristalise.kernel.property.BuiltInItemProperties.NAME;
 import static org.cristalise.kernel.security.BuiltInAuthc.ADMIN_ROLE;
@@ -105,19 +106,23 @@ public class ImportItem extends ModuleImport {
     }
 
     /**
-     * Try to find ItemPath if already exists. If not create new one.
+     * Try to find ItemPath if already exists using DomainPath. If not create new one,
+     * i.e. create new UUID.
      */
     @Override
     public ItemPath getItemPath() {
         if (itemPath == null) {
-            DomainPath existingItem = new DomainPath(initialPath + "/" + name);
-            if (existingItem.exists()) {
+            DomainPath itemDomPath = new DomainPath(initialPath + "/" + name);
+
+            if (itemDomPath.exists()) {
+                isNewItem = false;
                 try {
-                    itemPath = existingItem.getItemPath();
+                    itemPath = itemDomPath.getItemPath();
                 }
                 catch (ObjectNotFoundException ex) {}
             }
         }
+
         if (itemPath == null) itemPath = new ItemPath();
 
         return itemPath;
@@ -145,18 +150,18 @@ public class ImportItem extends ModuleImport {
     private TraceableEntity getTraceableEntitiy()
             throws ObjectNotFoundException, CannotManageException, ObjectAlreadyExistsException, ObjectCannotBeUpdated
     {
-        TraceableEntity newItem;
-        ItemPath ip = getItemPath();
+        getItemPath();
+        TraceableEntity newItem = null;
 
-        if (ip.exists()) {
-            log.info("getTraceableEntitiy() - Verifying module item "+domainPath+" at "+ip);
-            newItem = Gateway.getCorbaServer().getItem(getItemPath());
+        if (itemPath.exists()) {
+            log.info("getTraceableEntitiy() - Verifying module item {} at {}", domainPath, itemPath);
             isNewItem = false;
+            newItem = Gateway.getCorbaServer().getItem(itemPath);
         }
         else {
-            log.info("getTraceableEntitiy() - Creating module item "+ip+" at "+domainPath);
-            newItem = Gateway.getCorbaServer().createItem(ip);
-            Gateway.getLookupManager().add(ip);
+            log.info("getTraceableEntitiy() - Creating module item {} at {}", domainPath, itemPath);
+            newItem = Gateway.getCorbaServer().createItem(itemPath);
+            Gateway.getLookupManager().add(itemPath);
         }
         return newItem;
     }
@@ -165,7 +170,7 @@ public class ImportItem extends ModuleImport {
      *
      */
     @Override
-    public Path create(AgentPath agentPath, boolean reset)
+    public Path create(AgentPath executingAgentPath, boolean reset)
             throws InvalidDataException, ObjectCannotBeUpdated, ObjectNotFoundException,
             CannotManageException, ObjectAlreadyExistsException, InvalidCollectionModification, PersistencyException
     {
@@ -175,32 +180,51 @@ public class ImportItem extends ModuleImport {
 
         if (domainPath.exists()) {
             ItemPath domItem = domainPath.getItemPath();
-            if (!getItemPath().equals(domItem)) {
+            if (!itemPath.equals(domItem)) {
                 throw new CannotManageException("Item "+domainPath+" was found with the wrong itemPath ("+domainPath.getItemPath()+" vs "+getItemPath()+")");
             }
         }
-        else isDOMPathExists = false;
+        else {
+            isDOMPathExists = false;
+        }
 
-        TraceableEntity newItem = getTraceableEntitiy();
+        getTraceableEntitiy();
 
-        // (re)initialise the new item with properties, workflow and collections
+        Object transactionKey = new Object();
         try {
-            newItem.initialise( 
-                    agentPath.getSystemKey(),
-                    Gateway.getMarshaller().marshall(createItemProperties()),
-                    Gateway.getMarshaller().marshall(createCompositeActivity()),
-                    Gateway.getMarshaller().marshall(createCollections()),
-                    "", ""
-                    );
+            //replacing item.initialise()
+            storeNewItem(executingAgentPath,
+                         itemPath,
+                         createItemProperties(),
+                         createCompositeActivity(),
+                         createCollections(), 
+                         null,
+                         null,
+                         transactionKey);
+            Gateway.getStorage().commit(transactionKey);
         }
         catch (Exception ex) {
             log.error("Error initialising new item " + ns + "/" + name, ex);
 
             if (isNewItem) Gateway.getLookupManager().delete(itemPath);
+            Gateway.getStorage().abort(transactionKey);
 
             throw new CannotManageException("Problem initialising new item. See server log:" + ex.getMessage());
         }
 
+        importOutcomes(executingAgentPath, reset);
+
+        // register domain path (before collections in case of recursive collections)
+        if (!isDOMPathExists) {
+            domainPath.setItemPath(getItemPath());
+            Gateway.getLookupManager().add(domainPath);
+        }
+
+        return domainPath;
+    }
+
+    private void importOutcomes(AgentPath executingAgentPath, boolean reset)
+            throws ObjectNotFoundException, InvalidDataException, PersistencyException {
         History hist = new History(getItemPath(), null);
 
         // import outcomes
@@ -216,29 +240,30 @@ public class ImportItem extends ModuleImport {
 
             Viewpoint impView;
             try {
-                impView = (Viewpoint) Gateway.getStorage().get(getItemPath(), ClusterType.VIEWPOINT + "/" + thisOutcome.schema + "/" + thisOutcome.viewname, null);
+                String clusterPath = ClusterType.VIEWPOINT + "/" + thisOutcome.schema + "/" + thisOutcome.viewname;
+                impView = (Viewpoint) Gateway.getStorage().get(getItemPath(), clusterPath, null);
 
                 if (newOutcome.isIdentical(impView.getOutcome())) {
-                    log.debug("create() - View "+thisOutcome.schema+"/"+thisOutcome.viewname+" in "+ns+"/"+name+" identical, no update required");
+                    log.debug("importOutcomes() - View "+thisOutcome.schema+"/"+thisOutcome.viewname+" in "+ns+"/"+name+" identical, no update required");
                     continue;
                 }
                 else {
-                    log.info("create() - Difference found in view "+thisOutcome.schema+"/"+thisOutcome.viewname+" in "+ns+"/"+name);
+                    log.info("importOutcomes() - Difference found in view "+thisOutcome.schema+"/"+thisOutcome.viewname+" in "+ns+"/"+name);
 
                     if (!reset && !impView.getEvent().getStepPath().equals("Import")) {
-                        log.info("create() - Last edit was not done by import, and reset not requested. Not overwriting.");
+                        log.info("importOutcomes() - Last edit was not done by import, and reset not requested. Not overwriting.");
                         continue;
                     }
                 }
             }
             catch (ObjectNotFoundException ex) {
-                log.info("create() - View "+thisOutcome.schema+"/"+thisOutcome.viewname+" not found in "+ns+"/"+name+". Creating.");
+                log.info("importOutcomes() - View "+thisOutcome.schema+"/"+thisOutcome.viewname+" not found in "+ns+"/"+name+". Creating.");
                 impView = new Viewpoint(getItemPath(), schema, thisOutcome.viewname, -1);
             }
 
             // write new view/outcome/event
             Event newEvent = hist.addEvent(
-                    agentPath, null, ADMIN_ROLE.getName(), "Import", "Import", "Import", schema, 
+                    executingAgentPath, null, ADMIN_ROLE.getName(), "Import", "Import", "Import", schema, 
                     LocalObjectLoader.getStateMachine("PredefinedStep", 0), PredefinedStep.DONE, thisOutcome.viewname);
             newOutcome.setID(newEvent.getID());
             impView.setEventId(newEvent.getID());
@@ -246,14 +271,6 @@ public class ImportItem extends ModuleImport {
             Gateway.getStorage().put(getItemPath(), newOutcome, null);
             Gateway.getStorage().put(getItemPath(), impView, null);
         }
-
-        // register domain path (before collections in case of recursive collections)
-        if (!isDOMPathExists) {
-            domainPath.setItemPath(getItemPath());
-            Gateway.getLookupManager().add(domainPath);
-        }
-
-        return domainPath;
     }
 
     /**
@@ -285,7 +302,7 @@ public class ImportItem extends ModuleImport {
                     compActDef = (CompositeActivityDef) LocalObjectLoader.getActDef(workflow, workflowVer == null ? 0 : workflowVer);
                 }
                 else {
-                    log.warn("createCompositeActivity() - NO Workflow was set for domainPath:"+domainPath);
+                    log.warn("createCompositeActivity({}) - NO Workflow was provided, using 'NoWorkflow' definition", domainPath);
                     compActDef = (CompositeActivityDef) LocalObjectLoader.getActDef("NoWorkflow", workflowVer == null ? 0 : workflowVer);
                 }
             }

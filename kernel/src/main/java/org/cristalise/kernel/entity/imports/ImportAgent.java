@@ -20,19 +20,24 @@
  */
 package org.cristalise.kernel.entity.imports;
 
+import static org.cristalise.kernel.lifecycle.instance.predefined.item.CreateItemFromDescription.storeNewItem;
 import static org.cristalise.kernel.property.BuiltInItemProperties.NAME;
 import static org.cristalise.kernel.property.BuiltInItemProperties.TYPE;
+
+import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.List;
+
 import org.apache.commons.lang3.StringUtils;
 import org.cristalise.kernel.common.CannotManageException;
 import org.cristalise.kernel.common.ObjectAlreadyExistsException;
 import org.cristalise.kernel.common.ObjectCannotBeUpdated;
 import org.cristalise.kernel.common.ObjectNotFoundException;
 import org.cristalise.kernel.entity.agent.ActiveEntity;
-import org.cristalise.kernel.lifecycle.CompositeActivityDef;
+import org.cristalise.kernel.lifecycle.instance.CompositeActivity;
 import org.cristalise.kernel.lookup.AgentPath;
 import org.cristalise.kernel.lookup.DomainPath;
+import org.cristalise.kernel.lookup.InvalidAgentPathException;
 import org.cristalise.kernel.lookup.ItemPath;
 import org.cristalise.kernel.lookup.Path;
 import org.cristalise.kernel.lookup.RolePath;
@@ -41,6 +46,7 @@ import org.cristalise.kernel.process.module.ModuleImport;
 import org.cristalise.kernel.property.Property;
 import org.cristalise.kernel.property.PropertyArrayList;
 import org.cristalise.kernel.utils.LocalObjectLoader;
+
 import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
@@ -65,8 +71,27 @@ public class ImportAgent extends ModuleImport {
         this(null, aName, pwd);
     }
 
+    private ActiveEntity getActiveEntity()
+            throws ObjectNotFoundException, CannotManageException, ObjectAlreadyExistsException, ObjectCannotBeUpdated, InvalidAgentPathException
+    {
+        getItemPath();
+        ActiveEntity newAgent = null;
+
+        if (itemPath.exists()) {
+            log.info("getActiveEntity() - Verifying module agent {} at {}", name, itemPath);
+            isNewItem = false;
+            newAgent = Gateway.getCorbaServer().getAgent((AgentPath)itemPath);
+        }
+        else {
+            log.info("getTraceableEntitiy() - Creating module agent {} at {}", name, itemPath);
+            newAgent = Gateway.getCorbaServer().createAgent((AgentPath)itemPath);
+            Gateway.getLookupManager().add(itemPath);
+        }
+        return newAgent;
+    }
+
     @Override
-    public Path create(AgentPath agentPath, boolean reset)
+    public Path create(AgentPath executingAgentPath, boolean reset)
             throws ObjectNotFoundException, ObjectCannotBeUpdated, CannotManageException, ObjectAlreadyExistsException
     {
         if (roles.isEmpty()) throw new ObjectNotFoundException("Agent '"+name+"' must declare at least one Role ");
@@ -85,33 +110,37 @@ public class ImportAgent extends ModuleImport {
             }
         }
 
-        AgentPath newAgent = new AgentPath(getItemPath(), name);
-
-        ActiveEntity newAgentEnt = Gateway.getCorbaServer().createAgent(newAgent);
-        Gateway.getLookupManager().add(newAgent);
+        AgentPath newAgentPath = (AgentPath)getItemPath();
+        try {
+            getActiveEntity();
+            if (StringUtils.isNotBlank(password)) Gateway.getLookupManager().setAgentPassword(newAgentPath, password);
+        }
+        catch (InvalidAgentPathException | NoSuchAlgorithmException e) {
+            
+        }
 
         // assemble properties
         properties.add(new Property(NAME, name, true));
         properties.add(new Property(TYPE, "Agent", false));
 
+        Object transactionKey = new Object();
         try {
-            if (StringUtils.isNotBlank(password)) Gateway.getLookupManager().setAgentPassword(newAgent, password);
-
-            newAgentEnt.initialise(
-                    agentPath.getSystemKey(), 
-                    Gateway.getMarshaller().marshall(new PropertyArrayList(properties)), 
-                    Gateway.getMarshaller().marshall(((CompositeActivityDef)LocalObjectLoader.getCompActDef("NoWorkflow", 0)).instantiate()), 
-                    null, "", "");
+            //replacing item.initialise()
+            CompositeActivity domainWf = (CompositeActivity)LocalObjectLoader.getCompActDef("NoWorkflow", 0).instantiate();
+            PropertyArrayList props = new PropertyArrayList(properties);
+            storeNewItem(executingAgentPath, itemPath, props, domainWf, null, null, null, transactionKey);
+            Gateway.getStorage().commit(transactionKey);
         }
         catch (Exception ex) {
             log.error("Error initialising new agent name:{}", name, ex);
-            Gateway.getLookupManager().delete(newAgent);
+            Gateway.getLookupManager().delete(newAgentPath);
+            Gateway.getStorage().abort(transactionKey);
             throw new CannotManageException("Error initialising new agent name:"+name);
         }
 
         for (ImportRole role : roles) {
-            RolePath thisRole = (RolePath)role.create(agentPath, reset);
-            Gateway.getLookupManager().addRole(newAgent, thisRole);
+            RolePath thisRole = (RolePath)role.create(executingAgentPath, reset);
+            Gateway.getLookupManager().addRole(newAgentPath, thisRole);
         }
 
         if (domainPath != null && !isDOMPathExists) {
@@ -119,12 +148,12 @@ public class ImportAgent extends ModuleImport {
             Gateway.getLookupManager().add(domainPath);
         }
 
-        return newAgent;
+        return newAgentPath;
     }
 
     /**
-     * Sets the ItemPath representing the Agent. Tries to find Agent if it already exists, 
-     * otherwise creates  new ItemPath, i.e. it creates new UUID.
+     * Gets the ItemPath representing the Agent. Tries to find Agent if it already exists, 
+     * otherwise creates new ItemPath, i.e. it creates new UUID.
      */
     @Override
     public ItemPath getItemPath() {
