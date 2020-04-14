@@ -23,10 +23,12 @@ package org.cristalise.kernel.entity.agent;
 import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.AGENT_NAME;
 import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.DELEGATE_NAME;
 import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.OUTCOME_INIT;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
 import org.apache.commons.lang3.StringUtils;
 import org.cristalise.kernel.common.GTimeStamp;
 import org.cristalise.kernel.common.InvalidDataException;
@@ -55,6 +57,7 @@ import org.cristalise.kernel.utils.CastorHashMap;
 import org.cristalise.kernel.utils.DateUtility;
 import org.cristalise.kernel.utils.KeyValuePair;
 import org.cristalise.kernel.utils.LocalObjectLoader;
+
 import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
@@ -169,14 +172,14 @@ public class Job implements C2KLocalObject {
 
     public Transition getTransition() {
         if (transition != null && transitionResolved == false) {
-            log.debug("Job.getTransition() - actProps:"+actProps);
+            log.debug("getTransition() - retrieving state machine for actProps:{}", actProps);
             try {
                 StateMachine sm = LocalObjectLoader.getStateMachine(actProps);
                 transition = sm.getTransition(transition.getId());
                 transitionResolved = true;
             }
             catch (Exception e) {
-                log.error("", e);
+                log.error("Cannot retrieve state machine for actProps:{}", actProps, e);
                 return transition;
             }
         }
@@ -363,13 +366,11 @@ public class Job implements C2KLocalObject {
     public String getValidViewpointName() {
         String viewName = getActPropString("Viewpoint");
 
-        log.info("Job.getValidViewpointName() - Activity properties Viewpoint:'"+viewName+"'");
-
         if(StringUtils.isBlank(viewName) || viewName.startsWith("xpath:")) {
             viewName = "last";
         }
 
-        log.info("Job.getValidViewpointName() - returning Viewpoint:'"+viewName+"'");
+        log.info("Job.getValidViewpointName() - returning Viewpoint:'{}'", viewName);
 
         return viewName;
     }
@@ -418,7 +419,7 @@ public class Job implements C2KLocalObject {
             OutcomeInitiator ocInit;
 
             synchronized (ocInitCache) {
-                log.info("Job.getOutcomeInitiator() - ocConfigPropName:"+ocConfigPropName);
+                log.info("Job.getOutcomeInitiator() - ocConfigPropName:{}", ocConfigPropName);
                 ocInit = ocInitCache.get(ocConfigPropName);
 
                 if (ocInit == null) {
@@ -431,7 +432,7 @@ public class Job implements C2KLocalObject {
                         ocInitCache.put(ocConfigPropName, ocInit);
                     }
                     catch (InstantiationException | IllegalAccessException | ClassNotFoundException e) {
-                        log.error("OutcomeInstantiator "+ocConfigPropName+" couldn't be instantiated", e);
+                        log.error("OutcomeInstantiator {} couldn't be instantiated", ocConfigPropName, e);
                         throw new InvalidDataException("OutcomeInstantiator "+ocConfigPropName+" couldn't be instantiated:"+e.getMessage());
                     }
                 }
@@ -483,11 +484,11 @@ public class Job implements C2KLocalObject {
                 outcome = new Outcome(tempOutcome.getData(), tempOutcome.getSchema());
             }
             else {
-                log.warn("Job.getOutcome() - Could not initilase Outcome");
+                log.warn("getOutcome() - Could not initilase Outcome");
             }
         }
         else {
-            log.debug("Job.getOutcome() - Job does not require Outcome job:"+this);
+            log.debug("getOutcome() - Job does not require Outcome job:{}", this);
         }
         return outcome;
     }
@@ -564,7 +565,7 @@ public class Job implements C2KLocalObject {
                 if(newVal != null) actProps.put(entry.getKey(), newVal);
             }
             catch (InvalidDataException | PersistencyException | ObjectNotFoundException e) {
-                log.error("", e);
+                log.error("setActPropsAndEvaluateValues() - error evaluating act property '{}:{}'", entry.getKey(), entry.getValue(), e);
                 errors.add(e.getMessage());
             }
         }
@@ -629,8 +630,8 @@ public class Job implements C2KLocalObject {
         }
 
         if(result.size() == 0) {
-            log.info("Job.matchActPropNames() - NO properties were found for propName.startsWith(pattern:'"+pattern+"')");
-            actProps.dump(8);
+            log.info("Job.matchActPropNames() - NO properties were found for propName.startsWith(pattern:'{}')", pattern);
+            log.trace("matchActPropNames() - actProps:", actProps);
         }
 
         return result;
@@ -638,6 +639,11 @@ public class Job implements C2KLocalObject {
 
     @Override
     public String toString() {
-        return "[item:"+itemPath+" step:"+stepName+" trans:"+getTransition()+" role:"+agentRole+"]";
+        String agent = agentPath.toString();
+        //enable to use toString even if Lookup is not configured in Gateway
+        if (Gateway.getLookup() != null) {
+            agent = agentPath.getAgentName();
+        }
+        return "[item:"+itemPath+" step:"+stepName+" trans:"+getTransition()+" agent:"+agent+"]";
     }
 }
