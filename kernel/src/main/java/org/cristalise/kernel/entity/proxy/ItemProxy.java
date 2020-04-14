@@ -947,7 +947,7 @@ public class ItemProxy
 
                     if (i < result.length-1) retString.append(",");
                 }
-                log.debug("queryData() - {}"+retString);
+                log.debug("queryData() - {}", retString);
                 return retString.toString();
             }
             else {

@@ -136,7 +136,7 @@ public class ProxyManager {
             // proper proxy message
             ItemProxy relevant = proxyPool.get(thisMessage.getItemPath());
             if (relevant == null) {
-                log.warn("processMessage() - Received proxy message '{}' for which there is no proxy.", thisMessage);
+                log.warn("processMessage() - Received message for which there is no proxy - message:{}", thisMessage);
             }
             else {
                 try {
