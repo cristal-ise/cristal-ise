@@ -55,10 +55,10 @@ public class JooqOutcomeAttachmentHandler extends JooqHandler {
     static final Field<String>  SCHEMA_NAME     = field(name("SCHEMA_NAME"),    String.class);
     static final Field<Integer> SCHEMA_VERSION  = field(name("SCHEMA_VERSION"), Integer.class);
     static final Field<Integer> EVENT_ID        = field(name("EVENT_ID"),       Integer.class);
-    static final Field<String>  MIME_TYPE       = field(name("MIME_TYPE"),      String.class);
+    static final Field<String>  FILE_NAME       = field(name("FILE_NAME"),      String.class);
     static final Field<byte[]>  ATTACHMENT      = field(name("ATTACHMENT"),     byte[].class);
 
-    private boolean enableMimeType = Gateway.getProperties().getBoolean("JOOQ.OutcomeAttachment.enableMimeType", true);
+    private boolean enableFileName = Gateway.getProperties().getBoolean("JOOQ.OutcomeAttachment.enableFileName", true);
 
     @Override
     protected Table<?> getTable() {
@@ -123,7 +123,7 @@ public class JooqOutcomeAttachmentHandler extends JooqHandler {
                        .set(EVENT_ID,       attachment.getEventId())
                        .set(ATTACHMENT,     attachment.getBinaryData());
 
-        if (enableMimeType) insert.set(MIME_TYPE, attachment.getType());
+        if (enableFileName) insert.set(FILE_NAME, attachment.getFileName());
 
         return insert.execute();
     }
@@ -133,9 +133,9 @@ public class JooqOutcomeAttachmentHandler extends JooqHandler {
         Record result = fetchRecord(context, uuid, primaryKeys);
 
         if(result != null) {
-            String mimeType = null;
+            String fileName = null;
 
-            if (enableMimeType) mimeType = result.get(MIME_TYPE);
+            if (enableFileName) fileName = result.get(FILE_NAME);
 
             try {
                 Schema schema =  LocalObjectLoader.getSchema(result.get(SCHEMA_NAME), result.get(SCHEMA_VERSION));
@@ -145,7 +145,7 @@ public class JooqOutcomeAttachmentHandler extends JooqHandler {
                         schema.getName(),
                         schema.getVersion(),
                         result.get(EVENT_ID),
-                        mimeType,
+                        fileName,
                         binaryData);
             }
             catch (Exception e) {
@@ -166,7 +166,7 @@ public class JooqOutcomeAttachmentHandler extends JooqHandler {
                     .column(EVENT_ID,       ID_TYPE        .nullable(false))
                     .column(ATTACHMENT,     ATTACHMENT_TYPE.nullable(false));
 
-        if (enableMimeType) create.column(MIME_TYPE, NAME_TYPE.nullable(true));
+        if (enableFileName) create.column(FILE_NAME, NAME_TYPE.nullable(true));
 
         create
             .constraints(

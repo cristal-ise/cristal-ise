@@ -28,6 +28,8 @@ import static org.cristalise.kernel.persistency.ClusterType.HISTORY;
 import static org.cristalise.kernel.persistency.ClusterType.PROPERTY;
 import static org.cristalise.kernel.persistency.ClusterType.VIEWPOINT;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.net.URI;
 import java.text.DateFormat;
 import java.text.ParseException;
@@ -39,6 +41,7 @@ import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.UUID;
+import java.util.regex.Pattern;
 
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.NewCookie;
@@ -73,6 +76,7 @@ import org.cristalise.kernel.lookup.ItemPath;
 import org.cristalise.kernel.lookup.Lookup.PagedResult;
 import org.cristalise.kernel.persistency.ClusterType;
 import org.cristalise.kernel.persistency.outcome.Outcome;
+import org.cristalise.kernel.persistency.outcome.OutcomeAttachment;
 import org.cristalise.kernel.persistency.outcome.Viewpoint;
 import org.cristalise.kernel.persistency.outcomebuilder.OutcomeBuilder;
 import org.cristalise.kernel.persistency.outcomebuilder.OutcomeBuilderException;
@@ -86,6 +90,8 @@ import org.cristalise.kernel.utils.LocalObjectLoader;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.json.XML;
+
+import com.google.common.io.ByteStreams;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -188,7 +194,11 @@ public abstract class ItemUtils extends RestHandler {
                 LinkedHashMap<String, Object> childData = new LinkedHashMap<>();
 
                 childData.put("name", childName);
-                childData.put("url", getItemURI(uri, item, uriPath, childName));
+
+                if (Pattern.matches("^Attachment/.*/[0-9]+$", dataPath))
+                    childData.put("url", getItemURI(uri, item, uriPath, childName).toString() + "?inline");
+                else
+                    childData.put("url", getItemURI(uri, item, uriPath, childName));
 
                 childrenData.add(childData);
             }
@@ -284,6 +294,8 @@ public abstract class ItemUtils extends RestHandler {
 
             eventData.put("outcome", outcomeData);
         }
+        
+        eventData.put("hasAttachment", ev.getHasAttachment());
 
         // activity data
         LinkedHashMap<String, Object> activityData = new LinkedHashMap<String, Object>();
@@ -584,28 +596,20 @@ public abstract class ItemUtils extends RestHandler {
         return agent.execute(item, stepName, params);
     }
 
+    protected String executeJob(ItemProxy item, String outcome, String outcomeType,  String actPath, String transition, AgentProxy agent)
+        throws AccessRightsException, ObjectNotFoundException, PersistencyException, InvalidDataException, OutcomeBuilderException,
+            InvalidTransitionException, ObjectAlreadyExistsException, InvalidCollectionModification, ScriptErrorException, IOException
+    {
+        return executeJob(item, outcome, outcomeType, null, null, actPath, transition, agent);
+    }
+
     /**
      * 
-     * @param item
-     * @param postData
-     * @param types
-     * @param actPath
-     * @param transition
-     * @param agent
-     * @return
-     * @throws AccessRightsException
-     * @throws ObjectNotFoundException
-     * @throws PersistencyException
-     * @throws InvalidDataException
-     * @throws OutcomeBuilderException
-     * @throws InvalidTransitionException
-     * @throws ObjectAlreadyExistsException
-     * @throws InvalidCollectionModification
-     * @throws ScriptErrorException
      */
-    protected String executeJob(ItemProxy item, String postData, String contentType, String actPath, String transition, AgentProxy agent)
-            throws AccessRightsException, ObjectNotFoundException, PersistencyException, InvalidDataException, OutcomeBuilderException,
-            InvalidTransitionException, ObjectAlreadyExistsException, InvalidCollectionModification, ScriptErrorException
+    protected String executeJob(ItemProxy item, String outcome, String outcomeType, InputStream attachment, String fileName, 
+            String actPath, String transition, AgentProxy agent)
+        throws AccessRightsException, ObjectNotFoundException, PersistencyException, InvalidDataException, OutcomeBuilderException,
+            InvalidTransitionException, ObjectAlreadyExistsException, InvalidCollectionModification, ScriptErrorException, IOException
     {
         Job thisJob = item.getJobByTransitionName(actPath, transition, agent);
 
@@ -615,16 +619,31 @@ public abstract class ItemUtils extends RestHandler {
 
         // set outcome if required
         if (thisJob.hasOutcome()) {
-            if (contentType.contains(MediaType.APPLICATION_XML) || contentType.contains(MediaType.TEXT_XML)) {
-                thisJob.setOutcome(postData);
+            if (outcomeType.contains(MediaType.APPLICATION_XML) || outcomeType.contains(MediaType.TEXT_XML)) {
+                thisJob.setOutcome(outcome);
             }
             else {
                 OutcomeBuilder builder = new OutcomeBuilder(thisJob.getSchema());
-                builder.addJsonInstance(new JSONObject(postData));
-                // Outcome can be invalid at this point, because Script/Query can be executed later
+                builder.addJsonInstance(new JSONObject(outcome));
+                // Outcome can be invalid at this point, because Script/Query executed later
                 thisJob.setOutcome(builder.getOutcome(false));
             }
         }
+
+        if (attachment != null) {
+            byte[] binaryData = ByteStreams.toByteArray(attachment);
+
+            OutcomeAttachment outcomeAttachment = new OutcomeAttachment(
+                    item.getPath(),
+                    thisJob.getSchema().getName(),
+                    thisJob.getSchema().getVersion(),
+                    -1,
+                    fileName,
+                    binaryData);
+
+            thisJob.setAttachment(outcomeAttachment);
+        }
+
         return agent.execute(thisJob);
     }
 }
