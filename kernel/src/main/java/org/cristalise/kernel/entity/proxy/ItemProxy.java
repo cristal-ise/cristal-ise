@@ -253,7 +253,7 @@ public class ItemProxy
             throw (e);
         }
         catch (Exception e) {
-            log.error("", e);
+            log.error("Could not store property {}", name, e);
             throw new PersistencyException("Could not store property:"+e.getMessage());
         }
     }
@@ -298,7 +298,7 @@ public class ItemProxy
             attachmentBinary = attachment.getBinaryData();
         }
 
-        log.debug("requestAction() - executing "+thisJob);
+        log.debug("requestAction() - executing job:{}", thisJob);
 
         if (thisJob.getDelegatePath() == null) {
             return getItem().requestAction (
@@ -354,8 +354,8 @@ public class ItemProxy
             thisJobList = (JobArrayList)Gateway.getMarshaller().unmarshall(jobs);
         }
         catch (Exception e) {
-            log.error("", e);
-            throw new PersistencyException("Exception::ItemProxy::getJobList() - Cannot unmarshall the jobs");
+            log.error("Cannot unmarshall the jobs", e);
+            throw new PersistencyException("Cannot unmarshall the jobs");
         }
         return thisJobList.list;
     }
@@ -618,7 +618,7 @@ public class ItemProxy
             return checkOutcome(LocalObjectLoader.getSchema(schemaName, schemaVersion), eventId, locker == null ? transactionKey : locker);
         }
         catch (InvalidDataException e) {
-            log.error("", e);
+            log.error("Schema was not found:{}", schemaName, e);
             throw new ObjectNotFoundException(e.getMessage());
         }
     }
@@ -679,7 +679,7 @@ public class ItemProxy
             return getOutcome(LocalObjectLoader.getSchema(schemaName, schemaVersion), eventId, locker == null ? transactionKey : locker);
         }
         catch (InvalidDataException e) {
-            log.error("", e);
+            log.error("Schema was not found:{}", schemaName, e);
             throw new ObjectNotFoundException(e.getMessage());
         }
     }
@@ -735,7 +735,7 @@ public class ItemProxy
             return view.getOutcome(locker == null ? transactionKey : locker);
         }
         catch (PersistencyException e) {
-            log.error("", e);
+            log.error("Could not retrieve outcome for view:{}", view, e);
             throw new ObjectNotFoundException(e.getMessage());
         }
     }
@@ -821,7 +821,7 @@ public class ItemProxy
             return getOutcomeAttachment(LocalObjectLoader.getSchema(schemaName, schemaVersion), eventId, locker == null ? transactionKey : locker);
         }
         catch (InvalidDataException e) {
-            log.error("", e);
+            log.error("Could not retrieve attachment for schema:{}", schemaName, e);
             throw new ObjectNotFoundException(e.getMessage());
         }
     }
@@ -907,7 +907,7 @@ public class ItemProxy
      */
     @Override
     protected void finalize() throws Throwable {
-        log.debug("finalize() - caches are reaped for item:"+mItemPath);
+        log.debug("finalize() - caches are reaped for item:{}", mItemPath);
         Gateway.getStorage().clearCache(mItemPath, null);
         Gateway.getProxyManager().removeProxy(mItemPath);
         super.finalize();
@@ -934,7 +934,7 @@ public class ItemProxy
      */
     public String queryData(String path, Object locker) throws ObjectNotFoundException {
         try {
-            log.debug("queryData() - "+mItemPath+"/"+path);
+            log.debug("queryData() - {}/{}", mItemPath, path);
 
             if (path.endsWith("all")) {
                 log.debug("queryData() - listing contents");
@@ -947,7 +947,7 @@ public class ItemProxy
 
                     if (i < result.length-1) retString.append(",");
                 }
-                log.debug("queryData() - "+retString.toString());
+                log.debug("queryData() - {}", retString);
                 return retString.toString();
             }
             else {
@@ -959,7 +959,7 @@ public class ItemProxy
             throw e;
         }
         catch (Exception e) {
-            log.error("", e);
+            log.error("queryData() - could not read data for path:{}/{}", mItemPath, path, e);
             return "<ERROR>"+e.getMessage()+"</ERROR>";
         }
     }
@@ -1104,7 +1104,7 @@ public class ItemProxy
             return Gateway.getStorage().get(mItemPath, path , locker == null ? transactionKey : locker);
         }
         catch( PersistencyException ex ) {
-            log.error("getObject() - Exception loading object:"+mItemPath+"/"+path, ex);
+            log.error("getObject() - Exception loading object:{}/{}", mItemPath, path, ex);
             throw new ObjectNotFoundException( ex.toString() );
         }
     }
@@ -1183,7 +1183,7 @@ public class ItemProxy
      * @throws ObjectNotFoundException
      */
     public String getProperty(String name, Object locker) throws ObjectNotFoundException {
-        log.debug("getProperty() - "+name+" from item "+mItemPath);
+        log.debug("getProperty() - {} from item {}", name, mItemPath);
 
         Property prop = (Property)getObject(ClusterType.PROPERTY+"/"+name, locker == null ? transactionKey : locker);
 
@@ -1362,7 +1362,7 @@ public class ItemProxy
             mSubscriptions.put( newSub, newSub.getObserver() );
         }
         new Thread(newSub).start();
-        log.debug("subscribe() - "+newSub.getObserver().getClass().getName()+" for "+newSub.interest);
+        log.debug("subscribe() - {} for {}", newSub.getObserver().getClass().getName(), newSub.interest);
     }
 
     public void unsubscribe(ProxyObserver<?> observer) {
@@ -1371,21 +1371,21 @@ public class ItemProxy
                 MemberSubscription<?> thisSub = e.next();
                 if (mSubscriptions.get( thisSub ) == observer) {
                     e.remove();
-                    log.debug("unsubscribed() - "+observer.getClass().getName());
+                    log.debug("unsubscribed() - {}", observer.getClass().getName());
                 }
             }
         }
     }
 
     public void dumpSubscriptions(int logLevel) {
-        log.debug("Subscriptions to proxy "+mItemPath+":");
+        log.debug("Subscriptions to proxy {}", mItemPath);
 
         synchronized(this) {
             for (MemberSubscription<?> element : mSubscriptions.keySet()) {
                 ProxyObserver<?> obs = element.getObserver();
 
-                if (obs != null) log.debug("    "+element.getObserver().getClass().getName()+" subscribed to "+element.interest);
-                else             log.debug("    Phantom subscription to "+element.interest);
+                if (obs != null) log.debug("    {} subscribed to {}", element.getObserver().getClass().getName(), element.interest);
+                else             log.debug("    Phantom subscription to {}", element.interest);
             }
         }
     }
@@ -1394,7 +1394,7 @@ public class ItemProxy
         log.trace("Received change notification for {} on {}", message.getPath(), mItemPath);
 
         synchronized (this){
-            if (Gateway.getProxyServer()== null || !message.getServer().equals(Gateway.getProxyServer().getServerName())) {
+            if (Gateway.getProxyServer() == null || !message.getServer().equals(Gateway.getProxyServer().getServerName())) {
                 Gateway.getStorage().clearCache(mItemPath, message.getPath());
             }
             for (Iterator<MemberSubscription<?>> e = mSubscriptions.keySet().iterator(); e.hasNext();) {
@@ -1412,11 +1412,10 @@ public class ItemProxy
     @Override
     public String toString() {
         if (log.isTraceEnabled()) {
-            return this.getName() + "(" + this.getPath() + ")";
+            return this.getName()+"("+this.getPath().getUUID()+"/"+getType()+")";
         }
         else {
             return this.getName();
-            
         }
     }
 }

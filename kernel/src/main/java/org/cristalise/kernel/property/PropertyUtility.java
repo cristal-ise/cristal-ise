@@ -211,7 +211,7 @@ public class PropertyUtility {
             }
 
             if (version == -1)
-                throw new ObjectNotFoundException(String.format("itemPath:%s schema:%s does not have any version", itemPath, schema));
+                throw new ObjectNotFoundException(String.format("itemPath:{} schema:{} does not have any version", itemPath, schema));
         }
         else {
             if (StringUtils.isNumeric(descVer)) version = Integer.parseInt(descVer);
