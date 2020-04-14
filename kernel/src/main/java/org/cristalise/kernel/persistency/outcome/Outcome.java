@@ -769,7 +769,7 @@ public class Outcome implements C2KLocalObject {
             else                               return null;
         }
         else {
-            log.warn("getAttributeOfField() - '{}' is invalid or not a single field", field);
+            log.debug("getAttributeOfField() - '{}' is invalid or not a single field", field);
             return null;
         }
     }
@@ -785,17 +785,18 @@ public class Outcome implements C2KLocalObject {
         try {
             NodeList elements = element.getElementsByTagName(name);
             if (hasSingleField(elements)) {
-                if (elements.getLength() > 1) 
+                if (elements.getLength() > 1) {
                     log.warn("getField() - '{}' was found multiple times, returning first occurance", name);
+                }
 
                 return getNodeValue(elements.item(0));
             }
             else{
-                log.warn("getField() - '{}' is invalid or not a single field", name);
+                log.debug("getField() - '{}' is invalid or not a single field", name);
             }
         }
         catch (InvalidDataException e) {
-            log.warn("getField() - exception:"+e.getMessage());
+            log.warn("getField() - exception caught, returning null", e);
         }
 
         return null;

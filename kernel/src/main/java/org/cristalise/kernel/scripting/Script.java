@@ -263,25 +263,25 @@ public class Script implements DescriptionObject {
 
         // set environment - this needs to be well documented for script developers
         if (!mInputParams.containsKey(PARAMETER_ITEM)) {
-            log.warn("Item param not declared in Script "+getName()+" v"+getVersion());
+            log.debug("Item param not declared in Script "+getName()+" v"+getVersion());
             addInputParam(PARAMETER_ITEM, ItemProxy.class);
         }
         setInputParamValue(PARAMETER_ITEM, object, true);
 
         if (!mInputParams.containsKey(PARAMETER_AGENT)) {
-            log.warn("Agent param not declared in Script "+getName()+" v"+getVersion());
+            log.debug("Agent param not declared in Script "+getName()+" v"+getVersion());
             addInputParam(PARAMETER_AGENT, AgentProxy.class);
         }
         setInputParamValue(PARAMETER_AGENT, subject, true);
 
         if (!mInputParams.containsKey(PARAMETER_JOB)) {
-            log.warn("Job param not declared in Script "+getName()+" v"+getVersion());
+            log.debug("Job param not declared in Script "+getName()+" v"+getVersion());
             addInputParam(PARAMETER_JOB, Job.class);
         }
         setInputParamValue(PARAMETER_JOB, job, true);
 
         if (!mOutputParams.containsKey("errors")) {
-            log.warn("Errors output not declared in Script "+getName()+" v"+getVersion());
+            log.debug("Errors output not declared in Script "+getName()+" v"+getVersion());
             addOutput("errors", ErrorInfo.class);
         }
     }
@@ -795,7 +795,7 @@ public class Script implements DescriptionObject {
         // if no outputs are defined, return null
         if (mOutputParams.size() == 0) {
             if (returnValue != null)
-                log.warn("packScriptReturnValue("+getName()+") - No output params defined, returnValue is NOT null but it is discarded");
+                log.trace("packScriptReturnValue("+getName()+") - No output params defined, returnValue is NOT null but it is discarded");
             else
                 log.debug("packScriptReturnValue("+getName()+") - No output params defined. Returning null.");
 

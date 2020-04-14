@@ -14,21 +14,21 @@ apt-mark unhold keyboard-configuration
 # install utilities
 apt-get -y install vim git zip bzip2 fontconfig curl ca-certificates language-pack-en
 
-# install Java 8
+# install Openjdk 8 max 10 (java 11 does not contain ejb/corba packages anymore)
 apt-get install openjdk-8-jdk
 
 # install Maven
 apt-get install -y maven
 
-# install Node.js
+# install Node.js - it will install npm as well
 curl -sL https://deb.nodesource.com/setup_10.x | bash
 apt-get install -y nodejs
 
 # update NPM
 npm install -g npm
 
-# install NPM packagaes
-
+# install NPM packages
+npm install -g @angular/cli
 
 ################################################################################
 # Install the graphical environment
@@ -43,7 +43,7 @@ echo 'LC_CTYPE=en_US.UTF-8' >> /etc/environment
 # run GUI as non-privileged user
 echo 'allowed_users=anybody' > /etc/X11/Xwrapper.config
 
-# install Ubuntu desktop and VirtualBox guest tools
+# install xubuntu desktop and VirtualBox guest tools
 apt-get install -y xubuntu-desktop virtualbox-guest-dkms virtualbox-guest-utils virtualbox-guest-x11
 
 # remove light-locker
@@ -52,6 +52,11 @@ apt-get remove -y light-locker --purge
 ################################################################################
 # Install the development tools
 ################################################################################
+
+# install git-flow
+curl -OL https://raw.github.com/nvie/gitflow/develop/contrib/gitflow-installer.sh
+chmod +x gitflow-installer.sh
+sudo ./gitflow-installer.sh
 
 # install Ubuntu Make - see https://wiki.ubuntu.com/ubuntu-make
 apt-get install -y ubuntu-make
@@ -62,7 +67,7 @@ apt-get install -y chromium-browser
 # install MySQL Workbench
 apt-get install -y mysql-workbench
 
-# install postgres packages for PgAdmin 4
+# install PgAdmin 4
 curl https://www.postgresql.org/media/keys/ACCC4CF8.asc | apt-key add -
 sh -c 'echo "deb http://apt.postgresql.org/pub/repos/apt/ $(lsb_release -cs)-pgdg main" > /etc/apt/sources.list.d/pgdg.list'
 apt-get update
@@ -105,7 +110,14 @@ chown -R vagrant:vagrant /home/vagrant/
 # Install IDEs
 ################################################################################
 
+# install the latest umake
+add-apt-repository ppa:lyzardking/ubuntu-make
+apt-get update
+apt-get install ubuntu-make
+
 # install Eclipse
+
+# install Intellij
 
 # install VSCode
 wget -q https://packages.microsoft.com/keys/microsoft.asc -O- | apt-key add -

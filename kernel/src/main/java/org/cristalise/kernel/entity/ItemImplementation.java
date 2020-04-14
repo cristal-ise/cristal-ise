@@ -23,6 +23,7 @@ package org.cristalise.kernel.entity;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.UUID;
+
 import org.apache.commons.lang3.StringUtils;
 import org.cristalise.kernel.collection.Collection;
 import org.cristalise.kernel.collection.CollectionArrayList;
@@ -56,7 +57,6 @@ import org.cristalise.kernel.persistency.TransactionManager;
 import org.cristalise.kernel.persistency.outcome.Outcome;
 import org.cristalise.kernel.persistency.outcome.Schema;
 import org.cristalise.kernel.persistency.outcome.Viewpoint;
-import org.cristalise.kernel.process.Bootstrap;
 import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.property.Property;
 import org.cristalise.kernel.property.PropertyArrayList;
@@ -66,6 +66,7 @@ import org.cristalise.kernel.utils.LocalObjectLoader;
 import org.exolab.castor.mapping.MappingException;
 import org.exolab.castor.xml.MarshalException;
 import org.exolab.castor.xml.ValidationException;
+
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -132,7 +133,9 @@ public class ItemImplementation implements ItemOperations {
             Schema initSchema = LocalObjectLoader.getSchema("ItemInitialization", 0);
             Outcome initOutcome = new Outcome(0, propString, initSchema);
 
-            Event newEvent = hist.addEvent(new AgentPath(agentId), null, "", "Initialize", "", "", initSchema, Bootstrap.getPredefSM(), PredefinedStep.DONE, "last");
+            Event newEvent = hist.addEvent(
+                    new AgentPath(agentId), null, "", "Initialize", "", "", initSchema, 
+                    LocalObjectLoader.getStateMachine("PredefinedStep", 0), PredefinedStep.DONE, "last");
 
             initOutcome.setID(newEvent.getID());
             Viewpoint newLastView = new Viewpoint(mItemPath, initSchema, "last", newEvent.getID());
@@ -155,7 +158,9 @@ public class ItemImplementation implements ItemOperations {
 
                 vp.setItemPath(mItemPath);
 
-                Event newEvent = hist.addEvent(new AgentPath(agentId), null, "", "Constructor", "", "", schema, Bootstrap.getPredefSM(), PredefinedStep.DONE, vp.getName());
+                Event newEvent = hist.addEvent(
+                        new AgentPath(agentId), null, "", "Constructor", "", "", schema, 
+                        LocalObjectLoader.getStateMachine("PredefinedStep", 0), PredefinedStep.DONE, vp.getName());
                 vp.setEventId(newEvent.getID());
                 outcome.setID(newEvent.getID());
 

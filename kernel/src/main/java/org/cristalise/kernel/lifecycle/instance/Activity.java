@@ -80,8 +80,7 @@ public class Activity extends WfVertex {
     protected static final String XPATH_TOKEN = "xpath:";
 
     /**
-     * vector of errors (Strings) that is constructed each time verify() is
-     * launched
+     * vector of errors (Strings) that is constructed each time verify() was launched
      */
     protected Vector<String> mErrors;
     /**
@@ -183,6 +182,30 @@ public class Activity extends WfVertex {
                           Object locker
                           )
             throws AccessRightsException,
+                 InvalidTransitionException,
+                 InvalidDataException,
+                 ObjectNotFoundException,
+                 PersistencyException,
+                 ObjectAlreadyExistsException,
+                 ObjectCannotBeUpdated,
+                 CannotManageException,
+                 InvalidCollectionModification
+    {
+        boolean validateOutcome = Gateway.getProperties().getBoolean("Activity.validateOutcome", false);
+        return request(agent, delegate, itemPath, transitionID, requestData, attachmentType, attachment, validateOutcome, locker);
+    }
+
+    public String request(AgentPath agent,
+                          AgentPath delegate,
+                          ItemPath itemPath,
+                          int transitionID,
+                          String requestData,
+                          String attachmentType,
+                          byte[] attachment,
+                          boolean validateOutcome,
+                          Object locker
+                          )
+            throws AccessRightsException,
                    InvalidTransitionException,
                    InvalidDataException,
                    ObjectNotFoundException,
@@ -218,42 +241,41 @@ public class Activity extends WfVertex {
         setState(newState.getId());
         setBuiltInProperty(AGENT_NAME, transition.getReservation(this, agent));
 
-        try {
-            History hist = getWf().getHistory(locker);
+        History hist = null;
 
-            if (storeOutcome) {
-                Schema schema = transition.getSchema(getProperties());
-                Outcome newOutcome = new Outcome(-1, outcome, schema);
-                // TODO: if we were ever going to validate outcomes on storage, it would be here.
-                //newOutcome.validateAndCheck();
+        // Enables PredefinedSteps instances to call Activity.request() during bootstrap
+        if (getParent() != null) hist = getWf().getHistory(locker);
+        else                     hist = new History(itemPath, locker);
 
-                String viewpoint = resolveViewpointName(newOutcome);
+        if (storeOutcome) {
+            Schema schema = transition.getSchema(getProperties());
+            Outcome newOutcome = new Outcome(-1, outcome, schema);
 
-                int eventID = hist.addEvent(agent, delegate, usedRole, getName(), getPath(), getType(),
+            // This is used by PredefinedStep executed during bootstrap
+            if (validateOutcome) newOutcome.validateAndCheck();
+
+            String viewpoint = resolveViewpointName(newOutcome);
+
+            int eventID = hist.addEvent(agent, delegate, usedRole, getName(), getPath(), getType(),
                         schema, getStateMachine(), transitionID, viewpoint).getID();
-                newOutcome.setID(eventID);
+            newOutcome.setID(eventID);
 
-                Gateway.getStorage().put(itemPath, newOutcome, locker);
-                if (attachment.length > 0) Gateway.getStorage().put(itemPath, new OutcomeAttachment(itemPath, newOutcome, attachmentType, attachment), locker);
+            Gateway.getStorage().put(itemPath, newOutcome, locker);
+            if (attachment.length > 0) Gateway.getStorage().put(itemPath, new OutcomeAttachment(itemPath, newOutcome, attachmentType, attachment), locker);
 
-                // update specific view if defined
-                if (!viewpoint.equals("last")) {
-                    Gateway.getStorage().put(itemPath, new Viewpoint(itemPath, schema, viewpoint, eventID), locker);
-                }
-
-                // update the default "last" view
-                Gateway.getStorage().put(itemPath, new Viewpoint(itemPath, schema, "last", eventID), locker);
-
-                updateItemProperties(itemPath, newOutcome, locker);
+            // update specific view if defined
+            if (!viewpoint.equals("last")) {
+                Gateway.getStorage().put(itemPath, new Viewpoint(itemPath, schema, viewpoint, eventID), locker);
             }
-            else {
-                updateItemProperties(itemPath, null, locker);
-                hist.addEvent(agent, delegate, usedRole, getName(), getPath(), getType(), getStateMachine(), transitionID);
-            }
+
+            // update the default "last" view
+            Gateway.getStorage().put(itemPath, new Viewpoint(itemPath, schema, "last", eventID), locker);
+
+            updateItemProperties(itemPath, newOutcome, locker);
         }
-        catch (PersistencyException ex) {
-            log.error("", ex);
-            throw ex;
+        else {
+            updateItemProperties(itemPath, null, locker);
+            hist.addEvent(agent, delegate, usedRole, getName(), getPath(), getType(), getStateMachine(), transitionID);
         }
 
         if (newState.isFinished() && !(getBuiltInProperty(BREAKPOINT).equals(Boolean.TRUE) && !oldState.isFinished())) {
