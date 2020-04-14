@@ -220,15 +220,15 @@ public class ItemImplementation implements ItemOperations {
     }
 
     @Override
-    public String requestAction(SystemKey agentId, String stepPath, int transitionID, String requestData, String attachmentType, byte[] attachment)
+    public String requestAction(SystemKey agentId, String stepPath, int transitionID, String requestData, String fileName, byte[] attachment)
             throws AccessRightsException, InvalidTransitionException, ObjectNotFoundException, InvalidDataException,
             PersistencyException, ObjectAlreadyExistsException, InvalidCollectionModification
     {
-        return delegatedAction(agentId, null, stepPath, transitionID, requestData, attachmentType,attachment);
+        return delegatedAction(agentId, null, stepPath, transitionID, requestData, fileName,attachment);
     }
 
     @Override
-    public String delegatedAction(SystemKey agentId, SystemKey delegateId, String stepPath, int transitionID, String requestData, String attachmentType, byte[] attachment)
+    public String delegatedAction(SystemKey agentId, SystemKey delegateId, String stepPath, int transitionID, String requestData, String fileName, byte[] attachment)
             throws AccessRightsException, InvalidTransitionException, ObjectNotFoundException, InvalidDataException,
             PersistencyException, ObjectAlreadyExistsException, InvalidCollectionModification
     {
@@ -253,7 +253,7 @@ public class ItemImplementation implements ItemOperations {
                 throw new AccessRightsException("'" + agentToUse.getAgentName() + "' is NOT permitted to execute step:" + stepPath);
             }
 
-            String finalOutcome = lifeCycle.requestAction(agent, delegate, stepPath, mItemPath, transitionID, requestData, attachmentType, attachment);
+            String finalOutcome = lifeCycle.requestAction(agent, delegate, stepPath, mItemPath, transitionID, requestData, fileName, attachment);
 
             // store the workflow if we've changed the state of the domain wf
             if (!(stepPath.startsWith("workflow/predefined"))) mStorage.put(mItemPath, lifeCycle, lifeCycle);

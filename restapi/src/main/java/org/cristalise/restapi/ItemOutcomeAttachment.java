@@ -22,23 +22,29 @@ package org.cristalise.restapi;
 
 import static org.cristalise.kernel.persistency.ClusterType.ATTACHMENT;
 
+import java.io.ByteArrayInputStream;
+import java.net.URLConnection;
+
 import javax.ws.rs.CookieParam;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Cookie;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.NewCookie;
 import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.ResponseBuilder;
 import javax.ws.rs.core.UriInfo;
 
-import org.cristalise.kernel.common.ObjectNotFoundException;
+import org.apache.commons.lang3.StringUtils;
 import org.cristalise.kernel.entity.proxy.ItemProxy;
 import org.cristalise.kernel.persistency.outcome.OutcomeAttachment;
 
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
 @Path("/item/{uuid}/attachment")
 public class ItemOutcomeAttachment extends ItemUtils {
 
@@ -90,18 +96,43 @@ public class ItemOutcomeAttachment extends ItemUtils {
                                     @PathParam("schema")     String  schema,
                                     @PathParam("version")    Integer version,
                                     @PathParam("event")      Integer event,
+                                    @QueryParam("inline")    String  inline,
                                     @CookieParam(COOKIENAME) Cookie  authCookie,
                                     @Context                 UriInfo uri)
     {
         NewCookie cookie = checkAndCreateNewCookie(checkAuthCookie(authCookie));
         ItemProxy item = getProxy(uuid, cookie);
 
+        log.debug("queryBinaryData() - {}/{}/{}/{}", item, schema, version, event);
+
         try {
-            OutcomeAttachment attachemnt = item.getOutcomeAttachment(schema, version, event);
-            ResponseBuilder builder = Response.ok(attachemnt.getBinaryData()).type(attachemnt.getType());
-            return builder.build();
+            OutcomeAttachment attachment = item.getOutcomeAttachment(schema, version, event);
+            String fileName = attachment.getFileName();
+            String mimeType = MediaType.APPLICATION_OCTET_STREAM;
+            String contentDisposition = "attachment;";
+
+            if (StringUtils.isNotBlank(fileName)) {
+                if (inline != null) {
+                    contentDisposition = "inline;";
+                    if ("guessContent".equals(inline)) {
+                        mimeType = URLConnection.guessContentTypeFromStream(new ByteArrayInputStream(attachment.getBinaryData()));
+                    }
+                    else{
+                        mimeType = URLConnection.getFileNameMap().getContentTypeFor(fileName);
+                    }
+                }
+                contentDisposition += " filename=\"" + fileName + "\"";
+
+                log.debug("queryBinaryData() - {} : {}", mimeType, contentDisposition);
+            }
+
+            return Response
+                    .ok(attachment.getBinaryData())
+                    .type(mimeType)
+                    .header("Content-Disposition", contentDisposition)
+                    .build();
         }
-        catch (ObjectNotFoundException e) {
+        catch (Exception e) {
             throw new WebAppExceptionBuilder().exception(e).newCookie(cookie).build();
         }
     }
