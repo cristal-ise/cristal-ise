@@ -52,7 +52,6 @@ import org.cristalise.kernel.persistency.ClusterType;
 import org.cristalise.kernel.persistency.outcome.Outcome;
 import org.cristalise.kernel.persistency.outcome.Schema;
 import org.cristalise.kernel.persistency.outcome.Viewpoint;
-import org.cristalise.kernel.process.Bootstrap;
 import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.process.module.ModuleImport;
 import org.cristalise.kernel.property.Property;
@@ -170,9 +169,9 @@ public class ImportItem extends ModuleImport {
             throws InvalidDataException, ObjectCannotBeUpdated, ObjectNotFoundException,
             CannotManageException, ObjectAlreadyExistsException, InvalidCollectionModification, PersistencyException
     {
-        log.info("create() - name:{}", name);
-
         domainPath = new DomainPath(new DomainPath(initialPath), name);
+
+        log.info("create() - path:{}", domainPath);
 
         if (domainPath.exists()) {
             ItemPath domItem = domainPath.getItemPath();
@@ -238,7 +237,9 @@ public class ImportItem extends ModuleImport {
             }
 
             // write new view/outcome/event
-            Event newEvent = hist.addEvent(agentPath, null, ADMIN_ROLE.getName(), "Import", "Import", "Import", schema, Bootstrap.getPredefSM(), PredefinedStep.DONE, thisOutcome.viewname);
+            Event newEvent = hist.addEvent(
+                    agentPath, null, ADMIN_ROLE.getName(), "Import", "Import", "Import", schema, 
+                    LocalObjectLoader.getStateMachine("PredefinedStep", 0), PredefinedStep.DONE, thisOutcome.viewname);
             newOutcome.setID(newEvent.getID());
             impView.setEventId(newEvent.getID());
 

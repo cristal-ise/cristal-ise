@@ -74,5 +74,4 @@ public abstract class ModuleImport {
     public int hashCode() {
         return name.hashCode() + (ns == null ? 0 : ns.hashCode());
     }
-
 }

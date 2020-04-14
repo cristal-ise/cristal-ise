@@ -22,12 +22,12 @@ package org.cristalise.kernel.entity;
 
 
 import java.nio.ByteBuffer;
-import java.sql.Timestamp;
 
 import org.cristalise.kernel.common.ObjectNotFoundException;
 import org.cristalise.kernel.common.SystemKey;
 import org.cristalise.kernel.lookup.ItemPath;
 import org.cristalise.kernel.process.Gateway;
+
 import lombok.extern.slf4j.Slf4j;
 
 
@@ -51,7 +51,7 @@ public class TraceableLocator extends org.omg.PortableServer.ServantLocatorPOA {
         ItemPath syskey = new ItemPath(new SystemKey(msb, lsb));
 
         log.info("===========================================================");
-        log.info("Item called at "+new Timestamp( System.currentTimeMillis()) +": " + operation + "(" + syskey + ")." );
+        log.info("Item called: " + operation + "(" + syskey + ")." );
 
         try {
             return Gateway.getCorbaServer().getItem(syskey);
