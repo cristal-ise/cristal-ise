@@ -96,7 +96,6 @@ public class Import extends PredefinedStep {
             storage.abort(locker);
             throw e;
         }
-        storage.commit(locker);
         return requestData;
     }
 }

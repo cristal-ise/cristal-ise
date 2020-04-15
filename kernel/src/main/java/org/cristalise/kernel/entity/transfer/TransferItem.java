@@ -20,6 +20,7 @@
  */
 package org.cristalise.kernel.entity.transfer;
 
+import static org.cristalise.kernel.lifecycle.instance.predefined.item.CreateItemFromDescription.storeNewItem;
 import static org.cristalise.kernel.persistency.ClusterType.OUTCOME;
 import static org.cristalise.kernel.persistency.ClusterType.PROPERTY;
 import static org.cristalise.kernel.property.BuiltInItemProperties.NAME;
@@ -33,7 +34,7 @@ import org.cristalise.kernel.collection.Collection;
 import org.cristalise.kernel.collection.CollectionArrayList;
 import org.cristalise.kernel.common.ObjectNotFoundException;
 import org.cristalise.kernel.entity.C2KLocalObject;
-import org.cristalise.kernel.entity.TraceableEntity;
+import org.cristalise.kernel.lifecycle.instance.CompositeActivity;
 import org.cristalise.kernel.lifecycle.instance.Workflow;
 import org.cristalise.kernel.lookup.AgentPath;
 import org.cristalise.kernel.lookup.DomainPath;
@@ -137,13 +138,13 @@ public class TransferItem {
             log.info(choppedPath);
 
             if (choppedPath.startsWith(OUTCOME.getName())) newObj = new Outcome(choppedPath, xmlFile);
-            else                                                newObj = (C2KLocalObject) Gateway.getMarshaller().unmarshall(xmlFile);
+            else                                           newObj = (C2KLocalObject) Gateway.getMarshaller().unmarshall(xmlFile);
 
             objects.add(newObj);
         }
 
         // create item
-        TraceableEntity newItem = Gateway.getCorbaServer().createItem(itemPath);
+        Gateway.getCorbaServer().createItem(itemPath);
         Gateway.getLookupManager().add(itemPath);
 
         PropertyArrayList props = new PropertyArrayList();
@@ -158,18 +159,19 @@ public class TransferItem {
 
         if (wf == null) throw new Exception("No workflow found in import for " + itemPath);
 
-        // init item
-        newItem.initialise(importAgentId.getSystemKey(),
-                           Gateway.getMarshaller().marshall(props),
-                           Gateway.getMarshaller().marshall(wf.search("workflow/domain")),
-                           Gateway.getMarshaller().marshall(colls),
-                           "", "");
+        //replacing item.initialise()
+        Object transactionKey = new Object();
+        Gateway.getStorage().begin(transactionKey);
+
+        CompositeActivity ca = (CompositeActivity) wf.search("workflow/domain");
+        storeNewItem(importAgentId, itemPath, props, ca, colls, null, null, transactionKey);
 
         // store objects
-        importByType(ClusterType.HISTORY, objects);
-        importByType(ClusterType.OUTCOME, objects);
-        importByType(ClusterType.VIEWPOINT, objects);
-        Gateway.getStorage().commit(this);
+        importByType(ClusterType.HISTORY, objects, transactionKey);
+        importByType(ClusterType.OUTCOME, objects, transactionKey);
+        importByType(ClusterType.VIEWPOINT, objects, transactionKey);
+
+        Gateway.getStorage().commit(transactionKey);
 
         // add domPaths
         for (String element : domainPaths) {
@@ -178,9 +180,9 @@ public class TransferItem {
         }
     }
 
-    private void importByType(ClusterType type, ArrayList<C2KLocalObject> objects) throws Exception {
+    private void importByType(ClusterType type, ArrayList<C2KLocalObject> objects, Object transactionKey) throws Exception {
         for (C2KLocalObject element : objects) {
-            if (element.getClusterType().equals(type)) Gateway.getStorage().put(itemPath, element, this);
+            if (element.getClusterType().equals(type)) Gateway.getStorage().put(itemPath, element, transactionKey);
         }
 
     }

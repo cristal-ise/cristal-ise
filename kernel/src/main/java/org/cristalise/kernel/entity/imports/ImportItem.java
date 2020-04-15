@@ -193,6 +193,7 @@ public class ImportItem extends ModuleImport {
         Object transactionKey = new Object();
         try {
             //replacing item.initialise()
+            Gateway.getStorage().begin(transactionKey);
             storeNewItem(executingAgentPath,
                          itemPath,
                          createItemProperties(),

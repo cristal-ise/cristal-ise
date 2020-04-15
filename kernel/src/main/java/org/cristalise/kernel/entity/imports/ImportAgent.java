@@ -126,6 +126,7 @@ public class ImportAgent extends ModuleImport {
         Object transactionKey = new Object();
         try {
             //replacing item.initialise()
+            Gateway.getStorage().begin(transactionKey);
             CompositeActivity domainWf = (CompositeActivity)LocalObjectLoader.getCompActDef("NoWorkflow", 0).instantiate();
             PropertyArrayList props = new PropertyArrayList(properties);
             storeNewItem(executingAgentPath, itemPath, props, domainWf, null, null, null, transactionKey);

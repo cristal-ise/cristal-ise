@@ -250,7 +250,6 @@ public class DefaultResourceImportHandler implements ResourceImportHandler {
             log.trace("verifyResource() - resourceChangeDetails:{}", resourceChangeDetails.replace("\n", "").replaceAll(">\\s*<", "><"));
         }
 
-        Gateway.getStorage().commit(null);
         return modDomPath;
     }
 
@@ -362,6 +361,7 @@ public class DefaultResourceImportHandler implements ResourceImportHandler {
         Object transactionKey = new Object();
         try {
             //replacing item.initialise()
+            Gateway.getStorage().begin(transactionKey);
             storeNewItem((AgentPath)SYSTEM_AGENT.getPath(), itemPath, props, ca, null, null, null, transactionKey);
             Gateway.getStorage().commit(transactionKey);
         }

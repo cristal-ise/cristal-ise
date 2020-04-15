@@ -116,6 +116,7 @@ public class BulkImport extends PredefinedStep {
     public void importAllClusters() throws InvalidDataException, PersistencyException {
         for (ItemPath item: getItemsToImport(root)) {
             Object sublocker = new Object();
+            Gateway.getStorage().begin(sublocker);
 
             for (ClusterType type : importCluster.getClusters(item)) {
                 switch (type) {

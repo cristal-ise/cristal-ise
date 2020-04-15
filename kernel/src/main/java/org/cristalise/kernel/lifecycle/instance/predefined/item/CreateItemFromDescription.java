@@ -180,6 +180,7 @@ public class CreateItemFromDescription extends PredefinedStep {
                 // SimpleTransactionManager cannot update more then one Item in one transaction => start new transaction
                 Object newTranasactionKey = new Object();
                 try {
+                    Gateway.getStorage().begin(newTranasactionKey);
                     storeNewItem(agent, newItemPath, newProps, newWorkflow, newColls, newViewpoint, outcome, newTranasactionKey);
                     Gateway.getStorage().commit(newTranasactionKey);
                 }

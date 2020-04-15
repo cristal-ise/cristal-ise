@@ -323,8 +323,10 @@ public class SimpleTransactionManager implements TransactionManager {
         synchronized(locks) {
             ArrayList<TransactionEntry> lockerTransactions = pendingTransactions.get(locker);
             // quit if no transactions are present;
-            if (lockerTransactions == null)
+            if (lockerTransactions == null) {
+                log.warn("commit() - nothing was done, perhaps tranasaction key was null!?");
                 return;
+            }
 
             try {
                 for (TransactionEntry thisEntry : lockerTransactions) {
