@@ -330,7 +330,11 @@ public class JooqClusterStorage extends TransactionalClusterStorage {
         ClusterType cluster     = ClusterType.getValue(pathArray[0]);
 
         JooqHandler handler = jooqHandlers.get(cluster);
-        DSLContext context = retrieveContext(locker);
+        DSLContext context = null;
+
+        // can be used without transaction key
+        if (locker == null) context = JooqHandler.connect();
+        else                context = retrieveContext(locker);
 
         if (handler != null) {
             log.debug("getClusterContents() - uuid:"+uuid+" cluster:"+cluster+" primaryKeys"+Arrays.toString(primaryKeys));
@@ -343,6 +347,11 @@ public class JooqClusterStorage extends TransactionalClusterStorage {
 
     @Override
     public C2KLocalObject get(ItemPath itemPath, String path) throws PersistencyException {
+        return get(itemPath, path, null);
+    }
+
+    @Override
+    public C2KLocalObject get(ItemPath itemPath, String path, Object locker) throws PersistencyException {
         UUID uuid = itemPath.getUUID();
 
         String[]    pathArray   = path.split("/");
@@ -354,7 +363,14 @@ public class JooqClusterStorage extends TransactionalClusterStorage {
         if (handler != null) {
             log.debug("get() - uuid:"+uuid+" cluster:"+cluster+" primaryKeys:"+Arrays.toString(primaryKeys));
 
-            C2KLocalObject obj = handler.fetch(JooqHandler.connect(), uuid, primaryKeys);
+            DSLContext context = null;
+
+            // can be used without transaction key
+            if (locker == null) context = JooqHandler.connect();
+            else                context = retrieveContext(locker);
+
+            C2KLocalObject obj = handler.fetch(context, uuid, primaryKeys);
+
 
             if (obj == null) {
                 log.trace("get() - Could NOT fetch '"+itemPath+"/"+path+"'");

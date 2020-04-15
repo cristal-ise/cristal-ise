@@ -37,6 +37,8 @@ public abstract class TransactionalClusterStorage extends ClusterStorage {
 
     public abstract void delete(ItemPath itemPath, String path, Object locker) throws PersistencyException;
 
+    public abstract C2KLocalObject get(ItemPath itemPath, String path, Object locker) throws PersistencyException;
+
     public abstract String[] getClusterContents(ItemPath itemPath, String path, Object locker) throws PersistencyException;
 
     public abstract String executeQuery(Query query, Object locker) throws PersistencyException;
