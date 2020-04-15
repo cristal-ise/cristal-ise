@@ -123,7 +123,7 @@ public class ProxyServerConnection extends Thread
             log.info("Connected to proxy server on "+serverName+":"+serverPort);
             manager.resubscribe(this);
         } catch (Exception e) {
-            log.info("Could not connect to proxy server. Retrying in 5s");
+            log.debug("Could not connect to proxy server. Retrying in 5s");
             try { Thread.sleep(5000); } catch (InterruptedException ex) { }
             serverStream = null;
             serverConnection = null;
