@@ -28,8 +28,6 @@ import org.cristalise.kernel.querying.Query;
 
 public interface TransactionManager {
 
-    public boolean hasPendingTransactions();
-
     public ClusterStorageManager getDb();
 
     /**
@@ -113,6 +111,9 @@ public interface TransactionManager {
      */
     public void removeCluster(ItemPath itemPath, String path, Object locker) throws PersistencyException;
     
+
+    public void begin(Object locker) throws PersistencyException;
+
     /**
      * Writes all pending changes to the backends.
      * 
@@ -120,7 +121,7 @@ public interface TransactionManager {
      * @throws PersistencyException 
      */
     public void commit(Object locker) throws PersistencyException;
-    
+
     /**
      * Rolls back all changes sent in the name of 'locker' and unlocks the sysKeys
      * 

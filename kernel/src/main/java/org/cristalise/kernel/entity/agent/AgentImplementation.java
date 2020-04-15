@@ -71,7 +71,11 @@ public class AgentImplementation extends ItemImplementation implements AgentOper
      */
     @Override
     public synchronized void refreshJobList(SystemKey sysKey, String stepPath, String newJobs) {
+        Object locker = new Object();
+
         try {
+            Gateway.getStorage().begin(locker);
+
             ItemPath itemPath = new ItemPath(sysKey);
             JobArrayList newJobList = (JobArrayList)Gateway.getMarshaller().unmarshall(newJobs);
 
@@ -86,11 +90,11 @@ public class AgentImplementation extends ItemImplementation implements AgentOper
             // remove old jobs for this item0
             for(String key: keysToRemove) currentJobs.remove(key);
 
-            Gateway.getStorage().commit(mItemPath);
+            Gateway.getStorage().commit(locker);
         }
         catch (Throwable ex) {
             log.error("Could not refresh job list.", ex);
-            Gateway.getStorage().abort(mItemPath);
+            Gateway.getStorage().abort(locker);
         }
     }
 
@@ -143,7 +147,7 @@ public class AgentImplementation extends ItemImplementation implements AgentOper
 
     @Override
     protected void finalize() throws Throwable {
-        log.debug("finalize() - Reaping " + mItemPath);
+        log.debug("finalize() - Reaping {}", mItemPath);
         if (currentJobs != null) currentJobs.deactivate();
         Gateway.getStorage().clearCache(mItemPath, null);
         super.finalize();

@@ -298,6 +298,22 @@ public class DelegatingTransactionManager implements TransactionManager {
         if (children.length==0 && path.indexOf("/") > -1)
             remove(itemPath, path, locker);
     }
+
+    @Override
+    public void begin(Object locker) throws PersistencyException {
+        synchronized(locks) {
+            try {
+                storage.begin(locker);
+            }
+            catch (Exception e) {
+                storage.abort(locker);
+                log.error("begin() - Database may be in an inconsistent state, calling shutdown()", e);
+                dumpPendingTransactions(0);
+                AbstractMain.shutdown(1);
+            }
+        }
+    }
+
     /**
      * Writes all pending changes to the backends.
      * 

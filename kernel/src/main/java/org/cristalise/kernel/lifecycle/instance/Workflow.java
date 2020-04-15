@@ -123,7 +123,8 @@ public class Workflow extends CompositeActivity implements C2KLocalObject {
         return mEdgeTypeNameAndConstructionInfo;
     }
 
-    public String requestAction(AgentPath agent, AgentPath delegator, String stepPath, ItemPath itemPath, int transitionID, String requestData, String attachmentType, byte[] attachment, Object locker)
+    public String requestAction(AgentPath agent, AgentPath delegator, String stepPath, ItemPath itemPath, int transitionID, 
+            String requestData, String attachmentType, byte[] attachment, Object locker)
             throws ObjectNotFoundException, AccessRightsException, InvalidTransitionException, InvalidDataException,
                    ObjectAlreadyExistsException, PersistencyException, ObjectCannotBeUpdated, CannotManageException,
                    InvalidCollectionModification
