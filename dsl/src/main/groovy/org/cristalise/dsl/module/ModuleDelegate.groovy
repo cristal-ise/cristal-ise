@@ -22,6 +22,8 @@ package org.cristalise.dsl.module
 
 import static org.cristalise.kernel.process.resource.BuiltInResources.PROPERTY_DESC_RESOURCE
 
+import org.apache.poi.xssf.usermodel.XSSFSheet
+import org.apache.poi.xssf.usermodel.XSSFWorkbook
 import org.codehaus.groovy.control.CompilerConfiguration
 import org.cristalise.dsl.entity.AgentBuilder
 import org.cristalise.dsl.entity.ItemBuilder
@@ -112,6 +114,16 @@ class ModuleDelegate {
         script.run()
     }
 
+    public void includeSchemaExcel(String excelFile) {
+        FileInputStream fileStream = new FileInputStream(new File(excelFile))
+        XSSFWorkbook workbook = new XSSFWorkbook(fileStream);
+
+        for (int i = 0; i < workbook.getNumberOfSheets(); i++) {
+            XSSFSheet sheet = workbook.getSheetAt(i)
+            Schema(sheet.sheetName, 0, sheet)
+        }
+    }
+
     public Schema Schema(String name, Integer version) {
         def schema = LocalObjectLoader.getSchema(name, version)
         addSchema(schema)
@@ -120,6 +132,13 @@ class ModuleDelegate {
 
     public Schema Schema(String name, Integer version, Closure cl) {
         def schema = SchemaBuilder.build(name, version, cl)
+        schema.export(null, new File(resourceBoot), true)
+        addSchema(schema)
+        return schema
+    }
+
+    public Schema Schema(String name, Integer version, XSSFSheet sheet) {
+        def schema = SchemaBuilder.build(name, version, sheet)
         schema.export(null, new File(resourceBoot), true)
         addSchema(schema)
         return schema

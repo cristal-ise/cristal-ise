@@ -16,10 +16,20 @@ class ExcelGroovyParser {
     
     public static void eachRow(String filePath, String sheetName, List<String> headerRow = null, Boolean skipFirstRow = null, Closure block) {
         FileInputStream fileStream = new FileInputStream(new File(filePath))
-
         XSSFWorkbook workbook = new XSSFWorkbook(fileStream);
-        XSSFSheet sheet = workbook.getSheet(sheetName.trim())
 
+        eachRow(workbook, sheetName, headerRow,skipFirstRow, block)
+
+        workbook.close()
+        fileStream.close()
+    }
+
+    public static void eachRow(XSSFWorkbook workbook, String sheetName, List<String> headerRow = null, Boolean skipFirstRow = null, Closure block) {
+        XSSFSheet sheet = workbook.getSheet(sheetName.trim())
+        eachRow(sheet, headerRow, skipFirstRow, block)
+    }
+
+    public static void eachRow(XSSFSheet sheet, List<String> headerRow = null, Boolean skipFirstRow = null, Closure block) {
         DataFormatter formatter = new DataFormatter()
 
         List<String> keys = headerRow ?: [] as List<String>
@@ -48,9 +58,6 @@ class ExcelGroovyParser {
 
             rowMap.clear()
         }
-
-        workbook.close()
-        fileStream.close()
     }
 
     /**

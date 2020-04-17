@@ -20,6 +20,7 @@
  */
 package org.cristalise.dsl.persistency.outcome
 
+import org.apache.poi.xssf.usermodel.XSSFSheet
 import org.cristalise.kernel.common.InvalidDataException
 import org.cristalise.kernel.property.BuiltInItemProperties
 import org.cristalise.kernel.property.PropertyDescriptionList
@@ -48,6 +49,11 @@ class SchemaDelegate {
         cl.delegate = objBuilder
 
         xsdString = buildXSD( cl() )
+    }
+
+    public void processExcelSheet(XSSFSheet sheet) {
+        def esb = new ExcelSchemaBuilder()
+        xsdString = buildXSD(esb.build(sheet))
     }
 
     public String buildXSD(Struct s) {

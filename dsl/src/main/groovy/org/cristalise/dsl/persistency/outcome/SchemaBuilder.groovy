@@ -22,6 +22,7 @@ package org.cristalise.dsl.persistency.outcome
 
 import static org.cristalise.kernel.process.resource.BuiltInResources.SCHEMA_RESOURCE
 
+import org.apache.poi.xssf.usermodel.XSSFSheet
 import org.cristalise.kernel.common.InvalidDataException
 import org.cristalise.kernel.lookup.DomainPath
 import org.cristalise.kernel.persistency.outcome.Outcome
@@ -117,9 +118,7 @@ class SchemaBuilder {
 
     public static Schema build(String name, int version, Closure cl) {
         def sb = new SchemaBuilder(name, version)
-
         generateSchema(sb, cl)
-
         return sb.schema
     }
 
@@ -130,15 +129,37 @@ class SchemaBuilder {
      */
     public static SchemaBuilder build(String module, String name, int version, Closure cl) {
         def sb = new SchemaBuilder(module, name, version)
-
         generateSchema(sb, cl)
-
         return sb
     }
 
     private static void generateSchema(SchemaBuilder sb, Closure cl) {
         def schemaD = new SchemaDelegate()
         schemaD.processClosure(cl)
+
+        log.debug "generated xsd:\n" + schemaD.xsdString
+
+        sb.schema = new Schema(sb.name, sb.version, schemaD.xsdString)
+        String errors = sb.schema.validate()
+
+        if (errors) throw new InvalidDataException(errors)
+    }
+
+    public static Schema build(String name, int version, XSSFSheet sheet) {
+        def sb = new SchemaBuilder(name, version)
+        generateSchema(sb, sheet)
+        return sb.schema
+    }
+
+    public static SchemaBuilder build(String module, String name, int version, XSSFSheet sheet) {
+        def sb = new SchemaBuilder(module, name, version)
+        generateSchema(sb, sheet)
+        return sb
+    }
+
+    private static void generateSchema(SchemaBuilder sb, XSSFSheet sheet) {
+        def schemaD = new SchemaDelegate()
+        schemaD.processExcelSheet(sheet)
 
         log.debug "generated xsd:\n" + schemaD.xsdString
 

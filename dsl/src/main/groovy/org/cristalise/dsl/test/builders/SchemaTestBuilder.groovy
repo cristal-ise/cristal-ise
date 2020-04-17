@@ -20,11 +20,12 @@
  */
 package org.cristalise.dsl.test.builders
 
-import groovy.transform.CompileStatic
-
+import org.apache.poi.xssf.usermodel.XSSFSheet
+import org.apache.poi.xssf.usermodel.XSSFWorkbook
 import org.cristalise.dsl.persistency.outcome.SchemaBuilder
-import org.cristalise.kernel.persistency.outcome.Schema
 import org.cristalise.kernel.test.utils.KernelXMLUtility
+
+import groovy.transform.CompileStatic
 
 
 /**
@@ -39,6 +40,18 @@ class SchemaTestBuilder extends SchemaBuilder {
         version = sb.version
 
         schema = sb.schema
+    }
+
+    public static SchemaTestBuilder excel(String module, String name, int version, String excelFile) {
+        FileInputStream fileStream = new FileInputStream(new File(excelFile))
+        XSSFWorkbook workbook = new XSSFWorkbook(fileStream);
+
+        XSSFSheet sheet = workbook.getSheet(name)
+
+        def sb = SchemaBuilder.build(module, name, version, sheet)
+        sb.schema.validate()
+
+        return new SchemaTestBuilder(sb)
     }
 
     public static SchemaTestBuilder build(String module, String name, int version, Closure cl) {
