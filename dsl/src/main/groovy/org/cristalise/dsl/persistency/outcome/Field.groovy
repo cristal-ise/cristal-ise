@@ -22,6 +22,7 @@ package org.cristalise.dsl.persistency.outcome
 
 import java.util.List;
 
+import org.apache.commons.lang3.StringUtils
 import org.cristalise.kernel.common.InvalidDataException
 
 import groovy.transform.CompileStatic;
@@ -54,7 +55,7 @@ class Field extends Attribute {
      * @return
      */
     public void setMultiplicity(String m) {
-        if(!m) {
+        if(StringUtils.isBlank(m)) {
             minOccurs = ''; maxOccurs = '';
         }
         else if(m.contains("..")) {

@@ -76,7 +76,7 @@ class Attribute {
     }
 
     public void setMultiplicity(String m) {
-        if(m) {
+        if(m?.trim()) {
             if(m == "1")         required = true
             else if(m == "1..1") required = true
             else if(m == "0..1") required = false
@@ -90,7 +90,7 @@ class Attribute {
      * @param r the string form of the range, e.g. [0..10]
      */
     public void setRange(String r) {
-        if(r && r.contains("..")) {
+        if(r?.trim() && r.contains("..")) {
             def vals = r.split(/\.\./)
             
             def minTypeChar  = vals[0].getAt(0)
@@ -106,5 +106,37 @@ class Attribute {
             else if (maxTypeChar == ')') maxExclusive = new BigDecimal(maxValString)
         }
         else throw new UnsupportedOperationException("Range must be in the format of '[0..123)")
+    }
+
+    /**
+     * Sets the minInclusive BigDecimal value from String. It was required for the ExcelSchemaBuilder functionality.
+     * @param val of minInclusive
+     */
+    public void setMinInclusive(String val) {
+        minInclusive = new BigDecimal(val)
+    }
+
+    /**
+     * Sets the maxInclusive BigDecimal value from String. It was required for the ExcelSchemaBuilder functionality.
+     * @param val of maxInclusive
+     */
+    public void setMaxInclusive(String val) {
+        maxInclusive = new BigDecimal(val)
+    }
+
+    /**
+     * Sets the minExclusive BigDecimal value from String. It was required for the ExcelSchemaBuilder functionality.
+     * @param val of minExclusive
+     */
+    public void setMinExclusive(String val) {
+        minExclusive = new BigDecimal(val)
+    }
+
+    /**
+     * Sets the maxExclusive BigDecimal value from String. It was required for the ExcelSchemaBuilder functionality.
+     * @param val of maxExclusive
+     */
+    public void setMaxExclusive(String val) {
+        maxExclusive = new BigDecimal(val)
     }
 }

@@ -161,12 +161,13 @@ class SchemaBuilder {
         def schemaD = new SchemaDelegate()
         schemaD.processExcelSheet(sheet)
 
-        log.debug "generated xsd:\n" + schemaD.xsdString
-
         sb.schema = new Schema(sb.name, sb.version, schemaD.xsdString)
         String errors = sb.schema.validate()
 
-        if (errors) throw new InvalidDataException(errors)
+        if (errors) {
+            log.error "generateSchema() - xsd:\n{}", schemaD.xsdString
+            throw new InvalidDataException(errors)
+        }
     }
 
     /**

@@ -22,9 +22,12 @@ package org.cristalise.dsl.persistency.outcome
 
 import org.cristalise.kernel.common.InvalidDataException
 
+import groovy.transform.CompileStatic
+
 /**
  *
  */
+@CompileStatic
 class Struct {
     String name
     String documentation
@@ -42,6 +45,11 @@ class Struct {
     String maxOccurs = null
 
     DynamicForms dynamicForms
+
+    public void addField(Field f) {
+        fields[f.name] = f
+        orderOfElements.add(f.name)
+    }
 
     private String getMultiplicityVal(String m) {
         def dec = /^\d+$/

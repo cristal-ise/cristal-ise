@@ -4,35 +4,75 @@ import org.apache.poi.xssf.usermodel.XSSFSheet
 import org.cristalise.dsl.excel.ExcelGroovyParser
 import org.cristalise.kernel.common.InvalidDataException
 
+import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
 
 @Slf4j
 class ExcelSchemaBuilder {
-    def structKeys = ['name', 'documentation', 'multiplicity', 'useSequence', 'orderOfElements']
-    def fieldKeys = ['name', 'type', 'documentation', 'values', 'pattern', 'range', 'length', 'minLength', 'maxLength']
+    def structKeys = ['name', 'documentation', 'multiplicity', 'useSequence']
+    def fieldKeys = [
+        'name', 'type', 'documentation', 'multiplicity', 'values', 'pattern',
+        'length', 'minLength', 'maxLength', 
+        'range', 'minInclusive', 'maxInclusive', 'minExclusive', 'maxExclusive'
+    ]
+
+    /**
+     * Used to 
+     */
+    def parentLifo = []
 
     Struct build(XSSFSheet sheet) {
-        def parentLifo = []
-
         ExcelGroovyParser.eachRow(sheet) { Map<String, Object> record ->
             switch (record['class']) {
-                case 'struct':
-                    log.debug 'struct -- ' + record
-                    def s = new Struct(record.subMap(structKeys))
-                    parentLifo.push(s)
-                    break
-                case 'field':
-                    log.debug 'field -- ' + record
-                    def f = new Field(record.subMap(fieldKeys))
-                    ((Struct)parentLifo.last()).fields[f.name] = f
-                    ((Struct)parentLifo.last()).orderOfElements.add(f.name)
-                    break
+                case 'struct':    convertToStruct(record); break;
+                case 'field':     convertToField(record); break;
+                case 'attribute': convertToAttribute(record); break;
                 default:
-                    throw new InvalidDataException()
+                    throw new InvalidDataException('Uncovered class value:' + record['class'])
             }
         }
-        
-        def s = (Struct) parentLifo.pop()
-        return s
+
+        assert parentLifo.size() == 1
+
+        return (Struct) parentLifo.pop()
+    }
+
+    private void convertToStruct(Map<String, Object> record) {
+        log.debug 'convertToStruct() - {}', record
+
+        def fMap = record.subMap(structKeys)
+        def s = new Struct(fMap)
+
+        // conversion code comes here
+
+        parentLifo.push(s)
+    }
+
+    private void convertToField(Map<String, Object> record) {
+        log.debug 'convertToField() - {}', record
+
+        def fMap = record.subMap(fieldKeys)
+        def f = new Field(fMap)
+
+        if (fMap.multiplicity) {
+            f.setMultiplicity(fMap.multiplicity)
+        }
+
+        if (fMap.range) {
+            f.setRange(fMap.range)
+
+            if (! (f.type == 'xs:integer' || f.type == 'xs:decimal')) {
+                throw new InvalidDataException(
+                    "Field '${f.name}' uses invalid type '${f.type}'. 'range' must be integer or decimal")
+            }
+        }
+
+        def s = (Struct)parentLifo.last()
+        s.addField(f)
+    }
+
+    private void convertToAttribute(Map<String, Object> record) {
+        log.debug 'convertToAttribute() - {}', record
+        throw new UnsupportedOperationException('attribute is not implemented yet record:'+record)
     }
 }

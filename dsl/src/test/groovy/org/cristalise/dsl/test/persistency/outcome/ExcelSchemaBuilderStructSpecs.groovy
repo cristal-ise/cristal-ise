@@ -21,6 +21,7 @@
 package org.cristalise.dsl.test.persistency.outcome
 
 import org.cristalise.dsl.test.builders.SchemaTestBuilder
+import org.cristalise.kernel.common.InvalidDataException
 import org.cristalise.kernel.test.utils.CristalTestSetup
 
 import spock.lang.Specification
@@ -29,14 +30,16 @@ import spock.lang.Specification
 /**
  *
  */
-class ExcelSchemaBuilderSpecs extends Specification implements CristalTestSetup {
+class ExcelSchemaBuilderStructSpecs extends Specification implements CristalTestSetup {
 
     def setup()   { loggerSetup()    }
     def cleanup() { cristalCleanup() }
+    
+    def xlsxFile = 'src/test/data/ExcelSchemaBuilderStruct.xlsx'
 
     def 'Building empty Structure with documentation adds annotation to the element'() {
         expect:
-        SchemaTestBuilder.excel('test', 'EmptyWithDoc', 0, 'src/test/data/ExcelSchemaBuilder.xlsx')
+        SchemaTestBuilder.excel('test', 'EmptyWithDoc', 0, xlsxFile)
         .compareXML("""<?xml version='1.0' encoding='utf-8'?>
                        <xs:schema xmlns:xs='http://www.w3.org/2001/XMLSchema'>
                          <xs:element name='EmptyWithDoc'>
@@ -50,7 +53,7 @@ class ExcelSchemaBuilderSpecs extends Specification implements CristalTestSetup 
 
     def 'Define sequence of Fields which default type is string and multiplicity is 1'() {
         expect:
-        SchemaTestBuilder.excel('test', 'Stringfields-Seq', 0, 'src/test/data/ExcelSchemaBuilder.xlsx')
+        SchemaTestBuilder.excel('test', 'Stringfields-Seq', 0, xlsxFile)
         .compareXML("""<xs:schema xmlns:xs='http://www.w3.org/2001/XMLSchema'>
                           <xs:element name='Stringfields-Seq'>
                             <xs:complexType>
@@ -65,7 +68,7 @@ class ExcelSchemaBuilderSpecs extends Specification implements CristalTestSetup 
 
     def 'Define unordered set of Fields which default type is string and multiplicity is 1'() {
         expect:
-        SchemaTestBuilder.excel('test', 'Stringfields-All', 0, 'src/test/data/ExcelSchemaBuilder.xlsx')
+        SchemaTestBuilder.excel('test', 'Stringfields-All', 0, xlsxFile)
         .compareXML("""<xs:schema xmlns:xs='http://www.w3.org/2001/XMLSchema'>
                           <xs:element name='Stringfields-All'>
                             <xs:complexType>
@@ -77,60 +80,4 @@ class ExcelSchemaBuilderSpecs extends Specification implements CristalTestSetup 
                           </xs:element>
                         </xs:schema>""")
     }
-
-
-    def 'Complex example using PatientDetails from Basic Tutorial'() {
-        expect:
-        SchemaTestBuilder.excel('test', 'PatientDetails', 0, 'src/test/data/ExcelSchemaBuilder.xlsx') 
-        .compareXML(
-            """<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
-                 <xs:element name="PatientDetails">
-                   <xs:annotation>
-                     <xs:documentation>This is the Schema for Basic Tutorial</xs:documentation>
-                   </xs:annotation>
-                   <xs:complexType>
-                   <xs:all minOccurs="0">
-                   <xs:element name='DateOfBirth' type='xs:date' minOccurs='1' maxOccurs='1'>
-                     <xs:annotation>
-                       <xs:documentation>DateOfBirth docs</xs:documentation>
-                       <xs:appinfo>
-                         <dynamicForms>
-                           <additional>
-                             <updateScriptRef>Script:0</updateScriptRef>
-                           </additional>
-                         </dynamicForms>
-                       </xs:appinfo>
-                     </xs:annotation>
-                    </xs:element>
-                    <xs:element minOccurs="1" maxOccurs="1" name="Gender">
-                       <xs:simpleType>
-                         <xs:restriction base="xs:string">
-                           <xs:enumeration value="male" />
-                           <xs:enumeration value="female" />
-                         </xs:restriction>
-                       </xs:simpleType>
-                     </xs:element>
-                     <xs:element name='Weight' minOccurs='1' maxOccurs='1'>
-                       <xs:complexType>
-                         <xs:simpleContent>
-                           <xs:extension base='xs:decimal'>
-                             <xs:attribute name='unit' default='kg' use='optional'>
-                               <xs:simpleType>
-                                 <xs:restriction base='xs:string'>
-                                   <xs:enumeration value='g' />
-                                   <xs:enumeration value='kg' />
-                                 </xs:restriction>
-                               </xs:simpleType>
-                             </xs:attribute>
-                           </xs:extension>
-                         </xs:simpleContent>
-                       </xs:complexType>
-                     </xs:element>
-                   </xs:all>
-                   <xs:attribute name="InsuranceNumber" type="xs:string" default= "123456789ABC"/>
-                 </xs:complexType>
-               </xs:element>
-             </xs:schema>""")
-    }
-
 }
