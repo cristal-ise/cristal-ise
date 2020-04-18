@@ -168,7 +168,7 @@ class SchemaBuilderStructSpecs extends Specification implements CristalTestSetup
         SchemaTestBuilder.build('test', 'PatientDetails', 0) {
             struct(name: 'PatientDetails', documentation: 'This is the Schema for Basic Tutorial') {
                 attribute(name: 'InsuranceNumber', type: 'string', default: '123456789ABC')
-                field(name: 'DateOfBirth',     type: 'date', documentation: 'DateOfBirth docs') {dynamicForms(updateScriptRef : "Script:0")}
+                field(name: 'DateOfBirth',     type: 'date', documentation: 'DateOfBirth docs')
                 field(name: 'Gender',          type: 'string', values: ['male', 'female'])
                 field(name: 'Weight',          type: 'decimal') { unit(values: ['g', 'kg'], default: 'kg') }
             }
@@ -183,13 +183,6 @@ class SchemaBuilderStructSpecs extends Specification implements CristalTestSetup
                    <xs:element name='DateOfBirth' type='xs:date' minOccurs='1' maxOccurs='1'>
                      <xs:annotation>
                        <xs:documentation>DateOfBirth docs</xs:documentation>
-                       <xs:appinfo>
-                         <dynamicForms>
-                           <additional>
-                             <updateScriptRef>Script:0</updateScriptRef>
-                           </additional>
-                         </dynamicForms>
-                       </xs:appinfo>
                      </xs:annotation>
                     </xs:element>
                     <xs:element minOccurs="1" maxOccurs="1" name="Gender">
@@ -233,7 +226,7 @@ class SchemaBuilderStructSpecs extends Specification implements CristalTestSetup
             struct(name: 'Person', documentation: 'Person data', useSequence: true) {
                 field(name: 'Title',  type: 'string', values: titles)
                 field(name: 'Name',   type: 'string')
-                field(name: 'State',  type: 'string', values: states) { dynamicForms (hidden: true) }
+                field(name: 'State',  type: 'string', values: states)
     
                 // next 3 structs were copied from contactMech
                 struct(name: 'Phone', documentation: 'Defines Phone entries', multiplicity: '0..*', useSequence: true) {
@@ -265,13 +258,6 @@ class SchemaBuilderStructSpecs extends Specification implements CristalTestSetup
                         </xs:element>
                         <xs:element name='Name' type='xs:string' minOccurs='1' maxOccurs='1' />
                         <xs:element name='State' minOccurs='1' maxOccurs='1'>
-                          <xs:annotation>
-                            <xs:appinfo>
-                              <dynamicForms>
-                                <hidden>true</hidden>
-                              </dynamicForms>
-                            </xs:appinfo>
-                          </xs:annotation>
                           <xs:simpleType>
                             <xs:restriction base='xs:string'>
                               <xs:enumeration value='UNINITIALISED' />
