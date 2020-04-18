@@ -727,11 +727,11 @@ class SchemaBuilderSpecs extends Specification implements CristalTestSetup {
     }
 
 
-    def 'Unit can specify the list of values it contains'() {
+    def 'Unit can specify the list of values it contains with default'() {
         expect:
         SchemaTestBuilder.build('Test', 'TestData', 0) {
             struct(name: 'TestData', useSequence: true) {
-                field(name: 'Weight', type: 'decimal') { unit(values: ['g', 'kg']) }
+                field(name: 'Weight', type: 'decimal') { unit(values: ['g', 'kg'], default: 'kg') }
             }
         }.compareXML("""<xs:schema xmlns:xs='http://www.w3.org/2001/XMLSchema'>
                             <xs:element name='TestData'>
@@ -741,7 +741,7 @@ class SchemaBuilderSpecs extends Specification implements CristalTestSetup {
                                             <xs:complexType>
                                                 <xs:simpleContent>
                                                     <xs:extension base='xs:decimal'>
-                                                        <xs:attribute name='unit' use='required'>
+                                                        <xs:attribute name='unit' default='kg' use='optional'>
                                                             <xs:simpleType>
                                                                 <xs:restriction base="xs:string">
                                                                    <xs:enumeration value="g" />
