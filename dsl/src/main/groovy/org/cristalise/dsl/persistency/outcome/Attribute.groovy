@@ -38,7 +38,8 @@ class Attribute {
 
     String documentation
 
-    List values
+    List values = null
+
     BigDecimal minExclusive = null, minInclusive= null, maxExclusive= null, maxInclusive= null
     BigInteger length = null, minLength = null, maxLength = null
 
@@ -138,5 +139,21 @@ class Attribute {
      */
     public void setMaxExclusive(String val) {
         maxExclusive = new BigDecimal(val)
+    }
+
+    /**
+     * Sets the totalDigits Integer value from String. It was required for the ExcelSchemaBuilder functionality.
+     * @param val of totalDigits
+     */
+    public void setTotalDigits(String val) {
+        totalDigits = new Integer(val)
+    }
+
+    /**
+     * Sets the fractionDigits Integer value from String. It was required for the ExcelSchemaBuilder functionality.
+     * @param val of fractionDigits
+     */
+    public void setFractionDigits(String val) {
+        fractionDigits = new Integer(val)
     }
 }

@@ -11,9 +11,10 @@ import groovy.util.logging.Slf4j
 class ExcelSchemaBuilder {
     def structKeys = ['name', 'documentation', 'multiplicity', 'useSequence']
     def fieldKeys = [
-        'name', 'type', 'documentation', 'multiplicity', 'values', 'pattern',
+        'name', 'type', 'documentation', 'multiplicity', 'values', 'pattern', 'default',
         'length', 'minLength', 'maxLength', 
-        'range', 'minInclusive', 'maxInclusive', 'minExclusive', 'maxExclusive'
+        'range', 'minInclusive', 'maxInclusive', 'minExclusive', 'maxExclusive',
+        'totalDigits', 'fractionDigits'
     ]
 
     /**
@@ -52,6 +53,10 @@ class ExcelSchemaBuilder {
         log.debug 'convertToField() - {}', record
 
         def fMap = record.subMap(fieldKeys)
+
+        // convert comma separated string to list before calling map constructor
+        if (fMap.values) fMap.values = fMap.values.trim().split('\\s*,\\s*')
+
         def f = new Field(fMap)
 
         if (fMap.multiplicity) {
@@ -67,6 +72,13 @@ class ExcelSchemaBuilder {
             }
         }
 
+        if (fMap.totalDigits != null || fMap.fractionDigits!= null) {
+            if (f.type != 'xs:decimal') {
+                throw new InvalidDataException(
+                    "Field '${f.name}' uses invalid type '${f.type}'. 'totalDigits' and 'fractionDigits' must be decimal")
+            }
+        }
+            
         def s = (Struct)parentLifo.last()
         s.addField(f)
     }

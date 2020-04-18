@@ -24,6 +24,7 @@ import org.cristalise.dsl.test.builders.SchemaTestBuilder
 import org.cristalise.kernel.common.InvalidDataException
 import org.cristalise.kernel.test.utils.CristalTestSetup
 
+import spock.lang.Ignore
 import spock.lang.Specification
 
 
@@ -170,5 +171,193 @@ class ExcelSchemaBuilderFieldSpecs extends Specification implements CristalTestS
                             </xs:complexType>
                           </xs:element>
                         </xs:schema>""")
+    }
+
+    def 'Field can define the default value'() {
+        expect:
+        SchemaTestBuilder.excel('test', 'DefaultValue', 0, xlsxFile)
+        .compareXML("""<xs:schema xmlns:xs='http://www.w3.org/2001/XMLSchema'>
+                            <xs:element name='DefaultValue'>
+                                <xs:complexType>
+                                    <xs:all minOccurs='0'>
+                                        <xs:element minOccurs="1" maxOccurs="1" name="Gender" type='xs:string' default="female"/>
+                                    </xs:all>
+                                </xs:complexType>
+                            </xs:element>
+                        </xs:schema>""")
+    }
+
+    def 'Field can have documentation'() {
+        expect:
+        SchemaTestBuilder.excel('test', 'Documentation', 0, xlsxFile)
+        .compareXML("""<xs:schema xmlns:xs='http://www.w3.org/2001/XMLSchema'>
+                          <xs:element name='Documentation'>
+                            <xs:complexType>
+                              <xs:all minOccurs='0'>
+                                <xs:element name='stringField' type='xs:string' minOccurs='1' maxOccurs='1'>
+                                  <xs:annotation>
+                                    <xs:documentation>Field has Documentation</xs:documentation>
+                                  </xs:annotation>
+                                </xs:element>
+                              </xs:all>
+                            </xs:complexType>
+                          </xs:element>
+                        </xs:schema>""")
+    }
+
+    def 'Field can define a predefined set of values'() {
+        expect:
+        SchemaTestBuilder.excel('test', 'Values', 0, xlsxFile)
+        .compareXML("""<xs:schema xmlns:xs='http://www.w3.org/2001/XMLSchema'>
+                            <xs:element name='Values'>
+                                <xs:complexType>
+                                    <xs:all minOccurs='0'>
+                                        <xs:element minOccurs="1" maxOccurs="1" name="Gender">
+                                            <xs:simpleType>
+                                                <xs:restriction base="xs:string">
+                                                   <xs:enumeration value="male" />
+                                                   <xs:enumeration value="female" />
+                                                   <xs:enumeration value="she male" />
+                                                </xs:restriction>
+                                            </xs:simpleType>
+                                        </xs:element>
+                                    </xs:all>
+                                </xs:complexType>
+                            </xs:element>
+                        </xs:schema>""")
+    }
+
+    def 'Field value can be restricted by reqex pattern'() {
+        expect:
+        SchemaTestBuilder.excel('test', 'Pattern', 0, xlsxFile)
+        .compareXML("""<xs:schema xmlns:xs='http://www.w3.org/2001/XMLSchema'>
+                          <xs:element name='Pattern'>
+                            <xs:complexType>
+                              <xs:all minOccurs='0'>
+                                <xs:element minOccurs="1" maxOccurs="1" name="Gender">
+                                  <xs:simpleType>
+                                    <xs:restriction base="xs:string">
+                                      <xs:pattern value="male|female"/>
+                                    </xs:restriction>
+                                  </xs:simpleType>
+                                </xs:element>
+                              </xs:all>
+                            </xs:complexType>
+                          </xs:element>
+                        </xs:schema>""")
+    }
+
+    def 'Field value of decimal type can be restricted by totalDigits and fractionDigits'() {
+        expect:
+        SchemaTestBuilder.excel('test', 'Digits', 0, xlsxFile)
+        .compareXML("""<xs:schema xmlns:xs='http://www.w3.org/2001/XMLSchema'>
+                          <xs:element name='Digits'>
+                            <xs:complexType>
+                              <xs:all minOccurs='0'>
+                                <xs:element minOccurs="1" maxOccurs="1" name="efficiency">
+                                  <xs:simpleType>
+                                    <xs:restriction base="xs:decimal">
+                                      <xs:totalDigits value="3"/>
+                                      <xs:fractionDigits value="2"/>
+                                    </xs:restriction>
+                                  </xs:simpleType>
+                                </xs:element>
+                              </xs:all>
+                            </xs:complexType>
+                          </xs:element>
+                        </xs:schema>""")
+    }
+
+
+
+
+    @Ignore("Attribute not implemented")
+    def 'Field can have attribute'() {
+        expect:
+//            struct(name: 'Attribute') {
+//                field(name: 'Weight', type: 'decimal') {
+//                    attribute(name: 'unit', type: 'string')
+//                }
+//            }
+        SchemaTestBuilder.excel('test', 'Attribute', 0, xlsxFile)
+        .compareXML(
+            """<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+                 <xs:element name="Attribute">
+                   <xs:complexType>
+                   <xs:all minOccurs="0">
+                     <xs:element name='Weight' minOccurs='1' maxOccurs='1'>
+                       <xs:complexType>
+                         <xs:simpleContent>
+                           <xs:extension base='xs:decimal'>
+                            <xs:attribute name='unit' type='xs:string' use='required'/>
+                           </xs:extension>
+                         </xs:simpleContent>
+                       </xs:complexType>
+                     </xs:element>
+                   </xs:all>
+                 </xs:complexType>
+               </xs:element>
+             </xs:schema>""")
+    }
+
+    @Ignore("Attribute/Unit not implemented")
+    def 'Field can have Unit which is added as attribute of type string'() {
+        expect:
+//            struct(name: 'Unit', useSequence: true) {
+//                field(name: 'Weight', type: 'decimal') { unit() }
+//            }
+        SchemaTestBuilder.excel('test', 'Unit', 0, xlsxFile)
+        .compareXML(
+            """<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+                 <xs:element name="Unit">
+                   <xs:complexType>
+                     <xs:sequence>
+                       <xs:element maxOccurs="1" minOccurs="1" name="Weight">
+                         <xs:complexType>
+                           <xs:simpleContent>
+                             <xs:extension base="xs:decimal">
+                               <xs:attribute name="unit" type="xs:string" use="required"/>
+                             </xs:extension>
+                           </xs:simpleContent>
+                         </xs:complexType>
+                       </xs:element>
+                     </xs:sequence>
+                   </xs:complexType>
+                 </xs:element>
+               </xs:schema>""")
+    }
+
+    @Ignore("Attribute/Unit not implemented")
+    def 'Unit can specify the list of values it contains with default'() {
+        expect:
+//            struct(name: 'UnitWithValues', useSequence: true) {
+//                field(name: 'Weight', type: 'decimal') { unit(values: ['g', 'kg'], default: 'kg') }
+//            }
+        SchemaTestBuilder.excel('test', 'UnitWithValues', 0, xlsxFile)
+        .compareXML(
+            """<xs:schema xmlns:xs='http://www.w3.org/2001/XMLSchema'>
+                 <xs:element name='UnitWithValues'>
+                   <xs:complexType>
+                     <xs:sequence>
+                       <xs:element name='Weight' minOccurs='1' maxOccurs='1'>
+                         <xs:complexType>
+                           <xs:simpleContent>
+                             <xs:extension base='xs:decimal'>
+                               <xs:attribute name='unit' default='kg' use='optional'>
+                                 <xs:simpleType>
+                                   <xs:restriction base="xs:string">
+                                     <xs:enumeration value="g" />
+                                     <xs:enumeration value="kg" />
+                                   </xs:restriction>
+                                 </xs:simpleType>
+                               </xs:attribute>
+                             </xs:extension>
+                           </xs:simpleContent>
+                         </xs:complexType>
+                       </xs:element>
+                     </xs:sequence>
+                   </xs:complexType>
+                 </xs:element>
+               </xs:schema>""")
     }
 }
