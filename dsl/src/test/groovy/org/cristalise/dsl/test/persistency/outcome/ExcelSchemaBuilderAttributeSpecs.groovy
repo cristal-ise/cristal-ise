@@ -31,21 +31,18 @@ import spock.lang.Specification
 /**
  *
  */
-class SchemaBuilderAttributeSpecs extends Specification implements CristalTestSetup {
+class ExcelSchemaBuilderAttributeSpecs extends Specification implements CristalTestSetup {
 
     def setup()   { loggerSetup()    }
     def cleanup() { cristalCleanup() }
 
+    def xlsxFile = 'src/test/data/ExcelSchemaBuilderAttribute.xlsx'
+
     def 'Attribute accepts a number of types: string, boolean, integer, decimal, date, time, dateTime'() {
         expect: "Accepted types are ${org.cristalise.dsl.persistency.outcome.Attribute.types}"
-        SchemaTestBuilder.build('Test', 'TestData', 0) {
-            struct(name: 'TestData') {
-                Attribute.types.each {
-                    attribute(name:"${it}Attribute", type: it)
-                }
-            }
-        }.compareXML("""<xs:schema xmlns:xs='http://www.w3.org/2001/XMLSchema'>
-                          <xs:element name='TestData'>
+        SchemaTestBuilder.excel('test', 'Types', 0, xlsxFile)
+        .compareXML("""<xs:schema xmlns:xs='http://www.w3.org/2001/XMLSchema'>
+                          <xs:element name='Types'>
                             <xs:complexType>
                               <xs:attribute name='stringAttribute'   type='xs:string'  />
                               <xs:attribute name='booleanAttribute'  type='xs:boolean' />
@@ -59,14 +56,9 @@ class SchemaBuilderAttributeSpecs extends Specification implements CristalTestSe
                         </xs:schema>""")
     }
 
-
     def 'Unknown Attribute type throws InvalidDataException'() {
         when: "Accepted types are ${org.cristalise.dsl.persistency.outcome.Attribute.types}"
-        SchemaTestBuilder.build('Test', 'TestData', 0) {
-            struct(name: 'TestData') { 
-                attribute(name: 'byteField', type: 'byte')
-            }
-        }
+        SchemaTestBuilder.excel('test', 'UnknownType', 0, xlsxFile)
 
         then:
         thrown(InvalidDataException)
@@ -74,32 +66,31 @@ class SchemaBuilderAttributeSpecs extends Specification implements CristalTestSe
 
     def 'Attribute can use multiplicity to specify if it is optional or not'() {
         expect:
-        SchemaTestBuilder.build('Test', 'TestData', 0) {
-            struct(name: 'TestData') {
-                attribute(name: 'required', multiplicity: '1..1')
-                attribute(name: 'optional', multiplicity: '0..1')
-            }
-        }.compareXML("""<xs:schema xmlns:xs='http://www.w3.org/2001/XMLSchema'>
-                          <xs:element name='TestData'>
+        SchemaTestBuilder.excel('test', 'Multiplicity', 0, xlsxFile)
+        .compareXML("""<xs:schema xmlns:xs='http://www.w3.org/2001/XMLSchema'>
+                          <xs:element name='Multiplicity'>
                             <xs:complexType>
-                              <xs:attribute name="required" type='xs:string' use="required"/>
                               <xs:attribute name="optional" type='xs:string' />
+                              <xs:attribute name="required" type='xs:string' use="required"/>
                             </xs:complexType>
                           </xs:element>
                         </xs:schema>""")
     }
+    
+    def 'Attribute CANNOT specify multiplicity other than 0..1 and 1..1'() {
+        when: "attribute specifies multiplicity"
+
+        SchemaTestBuilder.excel('test', 'WrongMultiplicity', 0, xlsxFile)
+
+        then: "InvalidDataException is thrown"
+        thrown(InvalidDataException)
+    }
 
     def 'Attribute can specify range'() {
         expect:
-        SchemaTestBuilder.build('Test', 'TestData', 0) {
-            struct(name: 'TestData') {
-                attribute(name:'inclusiveInt', type:'integer', range:'[0..10]')
-                attribute(name:'exclusiveInt', type:'integer', range:'(0..10)')
-                attribute(name:'inclusiveDec', type:'decimal', range:'[0.1..0.11]')
-                attribute(name:'exclusiveDec', type:'decimal', range:'(0.1..0.11)')
-            }
-        }.compareXML("""<xs:schema xmlns:xs='http://www.w3.org/2001/XMLSchema'>
-                          <xs:element name='TestData'>
+        SchemaTestBuilder.excel('test', 'Range', 0, xlsxFile)
+        .compareXML("""<xs:schema xmlns:xs='http://www.w3.org/2001/XMLSchema'>
+                          <xs:element name='Range'>
                             <xs:complexType>
                               <xs:attribute name="inclusiveInt">
                                 <xs:simpleType>
@@ -140,15 +131,9 @@ class SchemaBuilderAttributeSpecs extends Specification implements CristalTestSe
 
     def 'Attribute can specify minInclusive/maxInclusive/minExclusive/maxExclusive restrictions'() {
         expect:
-        SchemaTestBuilder.build('Test', 'TestData', 0) {
-            struct(name: 'TestData') {
-                attribute(name:'inclusive', type:'integer', minInclusive:0, maxInclusive: 10)
-                attribute(name:'exclusive', type:'integer', minExclusive:0, maxExclusive: 10)
-                attribute(name:'minExclusive', type:'integer', minExclusive:0)
-                attribute(name:'maxInclusive', type:'integer', maxInclusive: 10)
-            }
-        }.compareXML("""<xs:schema xmlns:xs='http://www.w3.org/2001/XMLSchema'>
-                          <xs:element name='TestData'>
+        SchemaTestBuilder.excel('test', 'XSDExclusive', 0, xlsxFile)
+        .compareXML("""<xs:schema xmlns:xs='http://www.w3.org/2001/XMLSchema'>
+                          <xs:element name='XSDExclusive'>
                             <xs:complexType>
                               <xs:attribute name="inclusive">
                                 <xs:simpleType>
@@ -185,61 +170,39 @@ class SchemaBuilderAttributeSpecs extends Specification implements CristalTestSe
                         </xs:schema>""")
     }
 
-    def 'Attribute CANNOT specify multiplicity other than 0..1 and 1..1'() {
-        when: "attribute specifies multiplicity"
-        SchemaTestBuilder.build('Test', 'TestData', 0) {
-            struct(name: 'TestData') {
-                attribute(name: 'byteField', multiplicity: '2')
-            }
-        }
-
-        then: "InvalidDataException is thrown"
-        thrown(InvalidDataException)
-    }
-
     def 'Attribute CANNOT specify documentation'() {
         when: "attribute specifies multiplicity"
-        SchemaTestBuilder.build('Test', 'TestData', 0) {
-            struct(name: 'TestData') {
-                attribute(name: 'attr1', documentation: 'docs')
-            }
-        }
+
+        SchemaTestBuilder.excel('test', 'Documentation', 0, xlsxFile)
 
         then: "InvalidDataException is thrown"
         thrown(InvalidDataException)
     }
- 
 
     def 'Attribute can define the default value'() {
-            expect:
-            SchemaTestBuilder.build('Test', 'TestData', 0) {
-                struct(name: 'TestData') {
-                    attribute(name: 'Gender', type: 'string', default: 'female')
-                }
-            }.compareXML("""<xs:schema xmlns:xs='http://www.w3.org/2001/XMLSchema'>
-                              <xs:element name='TestData'>
-                                <xs:complexType>
-                                  <xs:attribute name="Gender" type='xs:string' default="female"/>
-                                </xs:complexType>
-                              </xs:element>
-                            </xs:schema>""")
+        expect:
+        SchemaTestBuilder.excel('test', 'DefaultValue', 0, xlsxFile)
+        .compareXML("""<xs:schema xmlns:xs='http://www.w3.org/2001/XMLSchema'>
+                          <xs:element name='DefaultValue'>
+                            <xs:complexType>
+                              <xs:attribute name="Gender" type='xs:string' default="female"/>
+                            </xs:complexType>
+                          </xs:element>
+                        </xs:schema>""")
         }
-
 
     def 'Attribute can define a predefined set of values'() {
         expect:
-        SchemaTestBuilder.build('Test', 'TestData', 0) {
-            struct(name: 'TestData') {
-                attribute(name: 'Gender', type: 'string', values: ['male', 'female'])
-            }
-        }.compareXML("""<xs:schema xmlns:xs='http://www.w3.org/2001/XMLSchema'>
-                          <xs:element name='TestData'>
+        SchemaTestBuilder.excel('test', 'Values', 0, xlsxFile)
+        .compareXML("""<xs:schema xmlns:xs='http://www.w3.org/2001/XMLSchema'>
+                          <xs:element name='Values'>
                             <xs:complexType>
                               <xs:attribute name="Gender">
                                 <xs:simpleType>
                                   <xs:restriction base="xs:string">
                                     <xs:enumeration value="male" />
                                     <xs:enumeration value="female" />
+                                    <xs:enumeration value="she male" />
                                   </xs:restriction>
                                 </xs:simpleType>
                               </xs:attribute>
@@ -248,15 +211,11 @@ class SchemaBuilderAttributeSpecs extends Specification implements CristalTestSe
                         </xs:schema>""")
     }
 
-
     def 'Attribute value can be restricted by reqex pattern'() {
         expect:
-        SchemaTestBuilder.build('Test', 'TestData', 0) {
-            struct(name: 'TestData') {
-                attribute(name: 'Gender', type: 'string', pattern: 'male|female')
-            }
-        }.compareXML("""<xs:schema xmlns:xs='http://www.w3.org/2001/XMLSchema'>
-                          <xs:element name='TestData'>
+        SchemaTestBuilder.excel('test', 'Pattern', 0, xlsxFile)
+        .compareXML("""<xs:schema xmlns:xs='http://www.w3.org/2001/XMLSchema'>
+                          <xs:element name='Pattern'>
                             <xs:complexType>
                               <xs:attribute name="Gender">
                                 <xs:simpleType>
@@ -270,15 +229,11 @@ class SchemaBuilderAttributeSpecs extends Specification implements CristalTestSe
                         </xs:schema>""")
     }
 
-
     def 'Attribute value of decimal type can be restricted by totalDigits and fractionDigits'() {
         expect:
-        SchemaTestBuilder.build('Test', 'TestData', 0) {
-            struct(name: 'TestData') {
-                attribute(name: 'efficiency', type: 'decimal', totalDigits: 3, fractionDigits: 2)
-            }
-        }.compareXML("""<xs:schema xmlns:xs='http://www.w3.org/2001/XMLSchema'>
-                          <xs:element name='TestData'>
+        SchemaTestBuilder.excel('test', 'Digits', 0, xlsxFile)
+        .compareXML("""<xs:schema xmlns:xs='http://www.w3.org/2001/XMLSchema'>
+                          <xs:element name='Digits'>
                             <xs:complexType>
                               <xs:attribute name="efficiency">
                                 <xs:simpleType>

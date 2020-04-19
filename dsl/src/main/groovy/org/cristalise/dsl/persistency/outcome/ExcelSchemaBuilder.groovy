@@ -18,8 +18,10 @@ class ExcelSchemaBuilder {
 
     def attributeKeys = [
         'name', 'type', 'multiplicity', 'values', 'pattern', 'default',
+        'range', 'minInclusive', 'maxInclusive', 'minExclusive', 'maxExclusive',
+        'totalDigits', 'fractionDigits'
     ]
-    
+
     /**
      * Contains the actually processed Struct or Field
      */
@@ -53,7 +55,7 @@ class ExcelSchemaBuilder {
 
     private void convertToStruct(Map<String, Object> record) {
         log.debug 'convertToStruct() - {}', record
-
+        
         // if previous row was a field remove it from lifo
         if (parentLifo.size() > 1 && parentLifo.last() instanceof Field) parentLifo.removeLast()
 
@@ -74,6 +76,15 @@ class ExcelSchemaBuilder {
         }
     }
 
+    private void setRange(Map record, Attribute attrOrField) {
+        attrOrField.setRange(record.range)
+
+        if (! (attrOrField.type == 'xs:integer' || attrOrField.type == 'xs:decimal')) {
+            throw new InvalidDataException(
+                    "Field/Attribute '${attrOrField.name}' uses invalid type '${attrOrField.type}'. 'range' must be integer or decimal")
+        }
+    }
+
     private void convertToField(Map<String, Object> record) {
         log.debug 'convertToField() - {}', record
 
@@ -83,18 +94,8 @@ class ExcelSchemaBuilder {
 
         def f = new Field(fMap)
 
-        if (fMap.multiplicity) {
-            f.setMultiplicity(fMap.multiplicity)
-        }
-
-        if (fMap.range) {
-            f.setRange(fMap.range)
-
-            if (! (f.type == 'xs:integer' || f.type == 'xs:decimal')) {
-                throw new InvalidDataException(
-                    "Field '${f.name}' uses invalid type '${f.type}'. 'range' must be integer or decimal")
-            }
-        }
+        if (fMap.multiplicity) f.setMultiplicity(fMap.multiplicity)
+        if (fMap.range) setRange(fMap, f)
 
         if (fMap.totalDigits != null || fMap.fractionDigits!= null) {
             if (f.type != 'xs:decimal') {
@@ -117,9 +118,15 @@ class ExcelSchemaBuilder {
         log.debug 'convertToAttribute() - {}', record
         def aMap = record.subMap(attributeKeys)
 
+        if (record.documentation)
+            throw new InvalidDataException("Attribute '${aMap.name}' cannot have a documentation")
+
         fixValues(aMap)
 
         def a = new Attribute(aMap)
+
+        if (aMap.multiplicity) a.setMultiplicity(aMap.multiplicity)
+        if (aMap.range) setRange(aMap, a)
 
         def prev = parentLifo.last()
 
