@@ -150,9 +150,6 @@ class ExcelSchemaBuilderStructSpecs extends Specification implements CristalTest
                        </xs:schema>""")
     }
 
-
-
-
     @Ignore('Not implemented')
     def 'Structure can define anyField with defaults minOccurs=0 and processContents=lax'() {
         expect:
@@ -173,15 +170,8 @@ class ExcelSchemaBuilderStructSpecs extends Specification implements CristalTest
                         </xs:schema>""")
     }
 
-    @Ignore('Attribute not implemented')
     def 'Complex example using PatientDetails from Basic Tutorial'() {
         expect:
-//            struct(name: 'PatientDetails', documentation: 'This is the Schema for Basic Tutorial') {
-//                attribute(name: 'InsuranceNumber', type: 'string', default: '123456789ABC')
-//                field(name: 'DateOfBirth',     type: 'date', documentation: 'DateOfBirth docs')
-//                field(name: 'Gender',          type: 'string', values: ['male', 'female'])
-//                field(name: 'Weight',          type: 'decimal') { unit(values: ['g', 'kg'], default: 'kg') }
-//            }
         SchemaTestBuilder.excel('test', 'PatientDetails', 0, xlsxFile)
         .compareXML(
             """<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
