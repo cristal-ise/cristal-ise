@@ -136,6 +136,21 @@ class ExcelSchemaBuilderStructSpecs extends Specification implements CristalTest
                         </xs:schema>""")
     }
 
+    def 'Structure can have a list of Attributes which default type is string'() {
+        expect:
+        SchemaTestBuilder.excel('test', 'Attribute', 0, xlsxFile)
+        .compareXML("""<?xml version='1.0' encoding='utf-8'?>
+                       <xs:schema xmlns:xs='http://www.w3.org/2001/XMLSchema'>
+                         <xs:element name='Attribute'>
+                           <xs:complexType>
+                             <xs:attribute name="stringAttr1" type="xs:string"/>
+                             <xs:attribute name="stringAttr2" type="xs:string"/>
+                           </xs:complexType>
+                         </xs:element>
+                       </xs:schema>""")
+    }
+
+
 
 
     @Ignore('Not implemented')
@@ -157,26 +172,6 @@ class ExcelSchemaBuilderStructSpecs extends Specification implements CristalTest
                           </xs:element>
                         </xs:schema>""")
     }
-
-    @Ignore('Attribute not implemented')
-    def 'Structure can have a list of Attributes which default type is string'() {
-        expect:
-//            struct(name: 'TestData') {
-//                attribute(name:'stringAttr1')
-//                attribute(name:'stringAttr2')
-//            }
-        SchemaTestBuilder.excel('test', 'Attribute', 0, xlsxFile)
-        .compareXML("""<?xml version='1.0' encoding='utf-8'?>
-                       <xs:schema xmlns:xs='http://www.w3.org/2001/XMLSchema'>
-                         <xs:element name='Attribute'>
-                           <xs:complexType>
-                             <xs:attribute name="stringAttr1" type="xs:string"/>
-                             <xs:attribute name="stringAttr2" type="xs:string"/>
-                           </xs:complexType>
-                         </xs:element>
-                       </xs:schema>""")
-    }
-
 
     @Ignore('Attribute not implemented')
     def 'Complex example using PatientDetails from Basic Tutorial'() {

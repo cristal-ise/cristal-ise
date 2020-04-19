@@ -4,7 +4,6 @@ import org.apache.poi.xssf.usermodel.XSSFSheet
 import org.cristalise.dsl.excel.ExcelGroovyParser
 import org.cristalise.kernel.common.InvalidDataException
 
-import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
 
 @Slf4j
@@ -17,35 +16,52 @@ class ExcelSchemaBuilder {
         'totalDigits', 'fractionDigits'
     ]
 
+    def attributeKeys = [
+        'name', 'type', 'multiplicity', 'values', 'pattern', 'default',
+    ]
+    
     /**
-     * Used to 
+     * Contains the actually processed Struct or Field
      */
     def parentLifo = []
 
+    /**
+     * 
+     * @param sheet
+     * @return
+     */
     Struct build(XSSFSheet sheet) {
         ExcelGroovyParser.eachRow(sheet) { Map<String, Object> record ->
             switch (record['class']) {
-                case 'struct':    convertToStruct(record); break;
-                case 'field':     convertToField(record); break;
+                case 'struct'   : convertToStruct(record); break;
+                case 'field'    : convertToField(record); break;
                 case 'attribute': convertToAttribute(record); break;
                 default:
                     throw new InvalidDataException('Uncovered class value:' + record['class'])
             }
         }
 
-        assert parentLifo.size() == 1
+        return (Struct) parentLifo.pop()
+    }
 
-        return (Struct) parentLifo.removeLast()
+    /**
+     * Convert comma separated string to list before calling map constructor
+     */
+    private void fixValues(Map map) {
+        if (map.values) map.values = map.values.trim().split('\\s*,\\s*')
     }
 
     private void convertToStruct(Map<String, Object> record) {
         log.debug 'convertToStruct() - {}', record
 
+        // if previous row was a field remove it from lifo
+        if (parentLifo.size() > 1 && parentLifo.last() instanceof Field) parentLifo.removeLast()
+
         def fMap = record.subMap(structKeys)
         Struct parentS = parentLifo.empty ? null : (Struct)parentLifo.last()
 
         // This is the closing record of the currently processed struct declaration
-        if (parentS && fMap.name == parentS.name) {
+        if (parentS && (fMap.name == parentS.name || fMap.name.startsWith('---'))) {
             if (parentLifo.size() > 1) parentLifo.removeLast() // remove it from lifo
         }
         else {
@@ -63,8 +79,7 @@ class ExcelSchemaBuilder {
 
         def fMap = record.subMap(fieldKeys)
 
-        // convert comma separated string to list before calling map constructor
-        if (fMap.values) fMap.values = fMap.values.trim().split('\\s*,\\s*')
+        fixValues(fMap)
 
         def f = new Field(fMap)
 
@@ -87,13 +102,28 @@ class ExcelSchemaBuilder {
                     "Field '${f.name}' uses invalid type '${f.type}'. 'totalDigits' and 'fractionDigits' must be decimal")
             }
         }
-            
-        def s = (Struct)parentLifo.last()
+
+        // perhaps previous row was a field - see comment bellow
+        if (parentLifo.last() instanceof Field) parentLifo.removeLast()
+
+        def s = (Struct) parentLifo.last()
         s.addField(f)
+
+        // next row can be an attribute of this field
+        parentLifo.add(f)
     }
 
     private void convertToAttribute(Map<String, Object> record) {
         log.debug 'convertToAttribute() - {}', record
-        throw new UnsupportedOperationException('attribute is not implemented yet record:'+record)
+        def aMap = record.subMap(attributeKeys)
+
+        fixValues(aMap)
+
+        def a = new Attribute(aMap)
+
+        def prev = parentLifo.last()
+
+        if      (parentLifo.last() instanceof Struct) ((Struct)prev).attributes.add(a)
+        else if (parentLifo.last() instanceof Field)  ((Field)prev).attributes.add(a)
     }
 }
