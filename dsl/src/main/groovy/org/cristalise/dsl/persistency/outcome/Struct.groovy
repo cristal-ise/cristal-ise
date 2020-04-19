@@ -51,6 +51,11 @@ class Struct {
         orderOfElements.add(f.name)
     }
 
+    public void addStruct(Struct s) {
+        structs[s.name] = s
+        orderOfElements.add(s.name)
+    }
+
     private String getMultiplicityVal(String m) {
         def dec = /^\d+$/
 
@@ -62,32 +67,32 @@ class Struct {
     }
 
     /**
+     * Sets values of minOccurs and maxOccurs from multiplicity used in the DSL
      * 
-     * @param m
-     * @return
+     * @param m value of multiplicity
      */
     public void setMultiplicity(String m) {
-        if(!m) {
+        if (! m?.trim()) {
             minOccurs = '1'; maxOccurs = '1';
         }
-        else if(m.contains("..")) {
+        else if (m.contains("..")) {
             def vals = m.split(/\.\./)
 
             def v = getMultiplicityVal(vals[0])
 
-            if(v) minOccurs = v
+            if (v) minOccurs = v
             else  throw new InvalidDataException("Invalid value for multiplicity : '$m'")
 
             v = getMultiplicityVal(vals[1])
 
-            if(v) maxOccurs = v
-            else  maxOccurs = ''
+            if (v) maxOccurs = v
+            else   maxOccurs = ''
         }
         else {
             def v = getMultiplicityVal(m)
 
-            if(!v) { minOccurs = '0' }
-            else   {
+            if (!v) { minOccurs = '0' }
+            else {
                 if (v == 'unbounded') { maxOccurs = v; maxOccurs = ''; }
                 else                  { minOccurs = v; maxOccurs = v; }
             }

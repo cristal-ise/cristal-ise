@@ -77,21 +77,21 @@ class Attribute {
     }
 
     public void setMultiplicity(String m) {
-        if(m?.trim()) {
-            if(m == "1")         required = true
-            else if(m == "1..1") required = true
-            else if(m == "0..1") required = false
-            else                 throw new InvalidDataException("Invalid value for attribute multiplicity : '$m'")
+        if (m?.trim()) {
+            if      (m == "1")    required = true
+            else if (m == "1..1") required = true
+            else if (m == "0..1") required = false
+            else                  throw new InvalidDataException("Invalid value for attribute multiplicity : '$m'")
         }
     }
 
     /**
      * Inclusive uses [], exclusive uses ()
      * 
-     * @param r the string form of the range, e.g. [0..10]
+     * @param r the string form of the range, e.g. [0..10)
      */
     public void setRange(String r) {
-        if(r?.trim() && r.contains("..")) {
+        if (r?.trim() && r.contains("..")) {
             def vals = r.split(/\.\./)
             
             def minTypeChar  = vals[0].getAt(0)

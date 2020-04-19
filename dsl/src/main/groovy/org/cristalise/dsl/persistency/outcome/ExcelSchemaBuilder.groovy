@@ -35,18 +35,27 @@ class ExcelSchemaBuilder {
 
         assert parentLifo.size() == 1
 
-        return (Struct) parentLifo.pop()
+        return (Struct) parentLifo.removeLast()
     }
 
     private void convertToStruct(Map<String, Object> record) {
         log.debug 'convertToStruct() - {}', record
 
         def fMap = record.subMap(structKeys)
-        def s = new Struct(fMap)
+        Struct parentS = parentLifo.empty ? null : (Struct)parentLifo.last()
 
-        // conversion code comes here
+        // This is the closing record of the currently processed struct declaration
+        if (parentS && fMap.name == parentS.name) {
+            if (parentLifo.size() > 1) parentLifo.removeLast() // remove it from lifo
+        }
+        else {
+            def s = new Struct(fMap)
 
-        parentLifo.push(s)
+            // conversion code comes here
+
+            if (parentS) parentS.addStruct(s)
+            parentLifo.add(s)
+        }
     }
 
     private void convertToField(Map<String, Object> record) {

@@ -24,6 +24,7 @@ import org.cristalise.dsl.test.builders.SchemaTestBuilder
 import org.cristalise.kernel.common.InvalidDataException
 import org.cristalise.kernel.test.utils.CristalTestSetup
 
+import spock.lang.Ignore
 import spock.lang.Specification
 
 
@@ -79,5 +80,155 @@ class ExcelSchemaBuilderStructSpecs extends Specification implements CristalTest
                             </xs:complexType>
                           </xs:element>
                         </xs:schema>""")
+    }
+
+    def 'Structure can define nested Structure with multiplicity'() {
+        expect:
+        SchemaTestBuilder.excel('test', 'NestedStructure', 0, xlsxFile)
+        .compareXML(
+            """<xs:schema xmlns:xs='http://www.w3.org/2001/XMLSchema'>
+                  <xs:element name='NestedStructure'>
+                    <xs:complexType>
+                      <xs:sequence>
+                        <xs:element name='stringField1' type='xs:string' minOccurs='1' maxOccurs='1' />
+                        <xs:element name='SubStruct' minOccurs='0' maxOccurs='unbounded'>
+                          <xs:complexType>
+                            <xs:sequence>
+                              <xs:element name='stringField11' type='xs:string' minOccurs='1' maxOccurs='1' />
+                            </xs:sequence>
+                          </xs:complexType>
+                        </xs:element>
+                      </xs:sequence>
+                    </xs:complexType>
+                  </xs:element>
+                </xs:schema>"""
+        )
+    }
+
+    def 'Structure definition keeps the order of fields and structs'() {
+        expect:
+        SchemaTestBuilder.excel('test', 'StructureOrder', 0, xlsxFile)
+        .compareXML("""<?xml version='1.0' encoding='utf-8'?>
+                        <xs:schema xmlns:xs='http://www.w3.org/2001/XMLSchema'>
+                          <xs:element name='StructureOrder'>
+                            <xs:complexType>
+                              <xs:all minOccurs='0'>
+                                <xs:element name='stringField1' type='xs:string' minOccurs='1' maxOccurs='1' />
+                                <xs:element name='SubStruct1'>
+                                  <xs:complexType>
+                                    <xs:all minOccurs='0'>
+                                      <xs:element name='stringField11' type='xs:string' minOccurs='1' maxOccurs='1' />
+                                    </xs:all>
+                                  </xs:complexType>
+                                </xs:element>
+                                <xs:element name='stringField2' type='xs:string' minOccurs='1' maxOccurs='1' />
+                                <xs:element name='SubStruct2'>
+                                  <xs:complexType>
+                                    <xs:all minOccurs='0'>
+                                      <xs:element name='stringField21' type='xs:string' minOccurs='1' maxOccurs='1' />
+                                    </xs:all>
+                                  </xs:complexType>
+                                </xs:element>
+                                <xs:element name='stringField3' type='xs:string' minOccurs='1' maxOccurs='1' />
+                              </xs:all>
+                            </xs:complexType>
+                          </xs:element>
+                        </xs:schema>""")
+    }
+
+
+
+    @Ignore('Not implemented')
+    def 'Structure can define anyField with defaults minOccurs=0 and processContents=lax'() {
+        expect:
+//            struct(name: 'TestData', useSequence: true) {
+//                field(name:'stringField1')
+//                anyField()
+//            }
+        SchemaTestBuilder.excel('test', 'AnyField', 0, xlsxFile)
+        .compareXML("""<xs:schema xmlns:xs='http://www.w3.org/2001/XMLSchema'>
+                          <xs:element name='AnyField'>
+                            <xs:complexType>
+                              <xs:sequence>
+                                <xs:element name='stringField1' type='xs:string' minOccurs='1' maxOccurs='1' />
+                                <xs:any minOccurs='0' processContents='lax'/>
+                              </xs:sequence>
+                            </xs:complexType>
+                          </xs:element>
+                        </xs:schema>""")
+    }
+
+    @Ignore('Attribute not implemented')
+    def 'Structure can have a list of Attributes which default type is string'() {
+        expect:
+//            struct(name: 'TestData') {
+//                attribute(name:'stringAttr1')
+//                attribute(name:'stringAttr2')
+//            }
+        SchemaTestBuilder.excel('test', 'Attribute', 0, xlsxFile)
+        .compareXML("""<?xml version='1.0' encoding='utf-8'?>
+                       <xs:schema xmlns:xs='http://www.w3.org/2001/XMLSchema'>
+                         <xs:element name='Attribute'>
+                           <xs:complexType>
+                             <xs:attribute name="stringAttr1" type="xs:string"/>
+                             <xs:attribute name="stringAttr2" type="xs:string"/>
+                           </xs:complexType>
+                         </xs:element>
+                       </xs:schema>""")
+    }
+
+
+    @Ignore('Attribute not implemented')
+    def 'Complex example using PatientDetails from Basic Tutorial'() {
+        expect:
+//            struct(name: 'PatientDetails', documentation: 'This is the Schema for Basic Tutorial') {
+//                attribute(name: 'InsuranceNumber', type: 'string', default: '123456789ABC')
+//                field(name: 'DateOfBirth',     type: 'date', documentation: 'DateOfBirth docs')
+//                field(name: 'Gender',          type: 'string', values: ['male', 'female'])
+//                field(name: 'Weight',          type: 'decimal') { unit(values: ['g', 'kg'], default: 'kg') }
+//            }
+        SchemaTestBuilder.excel('test', 'PatientDetails', 0, xlsxFile)
+        .compareXML(
+            """<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+                 <xs:element name="PatientDetails">
+                   <xs:annotation>
+                     <xs:documentation>This is the Schema for Basic Tutorial</xs:documentation>
+                   </xs:annotation>
+                   <xs:complexType>
+                   <xs:all minOccurs="0">
+                   <xs:element name='DateOfBirth' type='xs:date' minOccurs='1' maxOccurs='1'>
+                     <xs:annotation>
+                       <xs:documentation>DateOfBirth docs</xs:documentation>
+                     </xs:annotation>
+                    </xs:element>
+                    <xs:element minOccurs="1" maxOccurs="1" name="Gender">
+                       <xs:simpleType>
+                         <xs:restriction base="xs:string">
+                           <xs:enumeration value="male" />
+                           <xs:enumeration value="female" />
+                         </xs:restriction>
+                       </xs:simpleType>
+                     </xs:element>
+                     <xs:element name='Weight' minOccurs='1' maxOccurs='1'>
+                       <xs:complexType>
+                         <xs:simpleContent>
+                           <xs:extension base='xs:decimal'>
+                             <xs:attribute name='unit' default='kg' use='optional'>
+                               <xs:simpleType>
+                                 <xs:restriction base='xs:string'>
+                                   <xs:enumeration value='g' />
+                                   <xs:enumeration value='kg' />
+                                 </xs:restriction>
+                               </xs:simpleType>
+                             </xs:attribute>
+                           </xs:extension>
+                         </xs:simpleContent>
+                       </xs:complexType>
+                     </xs:element>
+                   </xs:all>
+                   <xs:attribute name="InsuranceNumber" type="xs:string" default= "123456789ABC"/>
+                 </xs:complexType>
+               </xs:element>
+             </xs:schema>""")
     }
 }
