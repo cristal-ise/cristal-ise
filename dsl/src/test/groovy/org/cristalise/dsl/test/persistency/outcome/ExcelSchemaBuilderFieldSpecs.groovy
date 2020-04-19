@@ -291,36 +291,8 @@ class ExcelSchemaBuilderFieldSpecs extends Specification implements CristalTestS
              </xs:schema>""")
     }
 
-    @Ignore("Unit not implemented")
-    def 'Field can have Unit which is added as attribute of type string'() {
-        expect:
-        SchemaTestBuilder.excel('test', 'Unit', 0, xlsxFile)
-        .compareXML(
-            """<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
-                 <xs:element name="Unit">
-                   <xs:complexType>
-                     <xs:sequence>
-                       <xs:element maxOccurs="1" minOccurs="1" name="Weight">
-                         <xs:complexType>
-                           <xs:simpleContent>
-                             <xs:extension base="xs:decimal">
-                               <xs:attribute name="unit" type="xs:string" use="required"/>
-                             </xs:extension>
-                           </xs:simpleContent>
-                         </xs:complexType>
-                       </xs:element>
-                     </xs:sequence>
-                   </xs:complexType>
-                 </xs:element>
-               </xs:schema>""")
-    }
-
-    @Ignore("Unit not implemented")
     def 'Unit can specify the list of values it contains with default'() {
         expect:
-//            struct(name: 'UnitWithValues', useSequence: true) {
-//                field(name: 'Weight', type: 'decimal') { unit(values: ['g', 'kg'], default: 'kg') }
-//            }
         SchemaTestBuilder.excel('test', 'UnitWithValues', 0, xlsxFile)
         .compareXML(
             """<xs:schema xmlns:xs='http://www.w3.org/2001/XMLSchema'>

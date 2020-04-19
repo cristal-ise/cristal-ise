@@ -22,6 +22,8 @@ class ExcelSchemaBuilder {
         'totalDigits', 'fractionDigits'
     ]
 
+    def unitKeys = ['unit.values', 'unit.default']
+
     /**
      * Contains the actually processed Struct or Field
      */
@@ -89,6 +91,7 @@ class ExcelSchemaBuilder {
         log.debug 'convertToField() - {}', record
 
         def fMap = record.subMap(fieldKeys)
+        def unitMap = record.subMap(unitKeys)
 
         fixValues(fMap)
 
@@ -102,6 +105,19 @@ class ExcelSchemaBuilder {
                 throw new InvalidDataException(
                     "Field '${f.name}' uses invalid type '${f.type}'. 'totalDigits' and 'fractionDigits' must be decimal")
             }
+        }
+
+        if (unitMap) {
+            if (unitMap['unit.values'] ) {
+                unitMap['values']  = unitMap['unit.values']
+                unitMap.remove('unit.values')
+            }
+            if (unitMap['unit.default']) {
+                unitMap['default'] = unitMap['unit.default']
+                unitMap.remove('unit.default')
+            }
+            fixValues(unitMap)
+            f.unit = new Unit(unitMap)
         }
 
         // perhaps previous row was a field - see comment bellow
