@@ -4,80 +4,191 @@ import org.apache.poi.ss.usermodel.Cell
 import org.apache.poi.ss.usermodel.CellType
 import org.apache.poi.ss.usermodel.DataFormatter
 import org.apache.poi.ss.usermodel.DateUtil
-import org.apache.poi.ss.usermodel.Header
 import org.apache.poi.ss.usermodel.Row
+import org.apache.poi.ss.usermodel.Sheet
+import org.apache.poi.ss.util.CellRangeAddress
 import org.apache.poi.ss.util.CellReference
 import org.apache.poi.xssf.usermodel.XSSFSheet
 import org.apache.poi.xssf.usermodel.XSSFWorkbook
-import groovy.transform.CompileStatic
 
-@CompileStatic
+import groovy.transform.CompileDynamic
+import groovy.transform.CompileStatic
+import groovy.util.logging.Slf4j
+
+@CompileStatic @Slf4j
 class ExcelGroovyParser {
     
-    public static void eachRow(String filePath, String sheetName, List<String> headerRow = null, Boolean skipFirstRow = null, Closure block) {
+    /**
+     * 
+     * @param filePath
+     * @param sheetName
+     * @param headerRowCount
+     * @param block
+     */
+    public static void eachRow(String filePath, String sheetName, int headerRowCount, Closure block) {
         FileInputStream fileStream = new FileInputStream(new File(filePath))
         XSSFWorkbook workbook = new XSSFWorkbook(fileStream);
 
-        eachRow(workbook, sheetName, headerRow,skipFirstRow, block)
+        eachRow(workbook, sheetName, headerRowCount, block)
 
         workbook.close()
         fileStream.close()
     }
 
-    public static void eachRow(XSSFWorkbook workbook, String sheetName, List<String> headerRow = null, Boolean skipFirstRow = null, Closure block) {
+    /**
+     * 
+     * @param workbook
+     * @param sheetName
+     * @param headerRowCount
+     * @param block
+     */
+    public static void eachRow(XSSFWorkbook workbook, String sheetName, int headerRowCount, Closure block) {
         XSSFSheet sheet = workbook.getSheet(sheetName.trim())
-        eachRow(sheet, headerRow, skipFirstRow, block)
+        eachRow(sheet, headerRowCount, block)
     }
 
-    public static void eachRow(XSSFSheet sheet, List<String> headerRow = null, Boolean skipFirstRow = null, Closure block) {
+    /**
+     * 
+     * @param sheet
+     * @param headerRowCount
+     * @return
+     */
+    public static List<List<String>> getHeader(XSSFSheet sheet, int headerRowCount) {
+        List<List<String>> header = []
+
         DataFormatter formatter = new DataFormatter()
-
-        List<String> keys = headerRow ?: [] as List<String>
-        //TODO: use Object instead of String for value - see getCellValue()
-        Map<String, String> rowMap = [:]
-        def generateKeys = !keys
-
         for (Row row: sheet) {
             for (Cell cell : row) {
                 def cellRef = new CellReference(row.getRowNum(), cell.getColumnIndex()).formatAsString()
                 def cellText = formatter.formatCellValue(cell)
 
-                //print "$cellRef='$cellText' "
+                def currentRegion = getMergedRegionForCell(sheet, cell)
 
-                if (cell.getRowIndex() == 0) {
-                    if (generateKeys)       keys << cellText
-                    else if (!skipFirstRow) rowMap[keys[cell.getColumnIndex()]] = cellText
+                log.debug "getHeader() - row:${cell.getRowIndex()} cell:$cellRef='$cellText'" +  
+                          ((currentRegion == null) ? '' : " - region:"+currentRegion.formatAsString())
+
+                if (header[cell.columnIndex] == null) header[cell.columnIndex] = []
+
+                if (currentRegion) {
+                    // read the cell text from the first element of the region
+                    header[cell.columnIndex] << formatter.formatCellValue(row.getCell(currentRegion.getFirstColumn()))
                 }
                 else {
-                    rowMap[keys[cell.getColumnIndex()]] = cellText
+                    header[cell.columnIndex] << cellText
                 }
             }
-            //println ""
 
-            if ((!skipFirstRow && !generateKeys) || row.getRowNum() != 0) block(rowMap)
+            if (row.getRowNum() == headerRowCount - 1) break
+        }
+
+        return header
+    }
+
+    /**
+     * Recursively process the list of names to build the nested Maps and Lists
+     *
+     * @param map
+     * @param names List of String for one column e.g. 'contacts.address[0].purpose'
+     * @param value Is a String as presented in the excel
+     */
+    @CompileDynamic
+    public static void convertNamesToMaps(Map map, List<String> names, String value) {
+        def name = names.head()
+        def namesTail = names.tail()
+        int index = -1
+
+        log.debug "convertNamesToMaps() - {} index:{} names:{} value:'{}'", name, index, names, value
+
+        if (namesTail) {
+            //Names are not fully converted to maps and lists yet
+            if (index == -1) {
+                if(!map[name]) { map[name] = [:] } //init Map
+
+                convertNamesToMaps(map[name], namesTail, value)
+            }
+            else {
+                //Dealing with repeating section, so handle it as List of Maps
+                if (!map[name]) { map[name] = [] } //init List
+                if (!map[name][index]) { map[name][index] = [:] } //init Map in the List
+
+                convertNamesToMaps(map[name][index], namesTail, value)
+            }
+        }
+        else {
+            //Assign the value to the map
+            map[name] = value
+
+            log.debug "convertNamesToMaps() - map[{}] = {}", name, map[name]
+        }
+    }
+
+    /**
+     * 
+     * @param sheet
+     * @param headerRowCount
+     * @param block
+     */
+    public static void eachRow(XSSFSheet sheet, int headerRowCount, Closure block) {
+        DataFormatter formatter = new DataFormatter()
+
+        def header = getHeader(sheet, headerRowCount)
+
+        for (Row row: sheet) {
+            // skip header section
+            if (row.getRowNum() < headerRowCount) continue
+
+            def rowMap = [:]
+
+            for (Cell cell : row) {
+                def cellRef = new CellReference(row.getRowNum(), cell.getColumnIndex()).formatAsString()
+                def cellText = formatter.formatCellValue(cell)
+
+                log.debug "eachRow() - row:{} cell:{}='{}'", cell.getRowIndex(), cellRef, cellText
+
+                convertNamesToMaps(rowMap, header[cell.columnIndex], cellText)
+            }
+
+            block(rowMap, row.rowNum - headerRowCount)
 
             rowMap.clear()
         }
     }
 
     /**
-     * NOTE: This method is not ready, because it cannot return an Integer even if the number format defines an int
+     * 
+     * @param s
+     * @param c
+     * @return
      */
-    public static Object getCellValue(Cell cell, String cellText) {
+    private static CellRangeAddress getMergedRegionForCell(Sheet s, Cell c) {
+        for (CellRangeAddress mergedRegion : s.getMergedRegions()) {
+           if (mergedRegion.isInRange(c)) {
+              return mergedRegion;
+           }
+        }
+        // Not in any
+        return null;
+     }
+
+    /**
+     * NOTE: This method is not ready to be used, because it cannot return an Integer 
+     * even if the number format defines an int. 
+     * 
+     * @param cell
+     * @return
+     */
+    public static Object getCellValue(Cell cell) {
         switch (cell.getCellTypeEnum()) {
             case CellType.STRING:
                 //print '(STRING) '
                 return cell.getStringCellValue()
-                break
             case CellType.NUMERIC:
                 //print '(NUMERIC) '
                 if (DateUtil.isCellDateFormatted(cell)) return cell.getDateCellValue()
                 else                                    return cell.getNumericCellValue() 
-                break;
             case CellType.BOOLEAN:
                 //print '(BOOLEAN) '
                 return cell.getBooleanCellValue()
-                break;
             case CellType.FORMULA:
                 //print '(FORMULA) '
                 switch (cell.getCachedFormulaResultTypeEnum()) {
@@ -90,11 +201,9 @@ class ExcelGroovyParser {
             case CellType.ERROR:
                 //print '(ERROR) '
                 return cell.getErrorCellValue()
-                break
             case CellType.BLANK:
                 //print '(BLANK) '
                 return ''
-                break
             default:
                 return null
         }

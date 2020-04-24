@@ -35,7 +35,7 @@ class ExcelSchemaBuilder {
      * @return
      */
     Struct build(XSSFSheet sheet) {
-        ExcelGroovyParser.eachRow(sheet) { Map<String, Object> record ->
+        ExcelGroovyParser.eachRow(sheet, 1) { Map<String, Object> record, int i ->
             switch (record['class']) {
                 case 'struct'   : convertToStruct(record); break;
                 case 'field'    : convertToField(record); break;
