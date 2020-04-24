@@ -89,7 +89,7 @@
         <target.version>1.8</target.version>
         <additionalparam>-Xdoclint:none</additionalparam>
         <commons-lang.version>2.6</commons-lang.version>
-        <commons-csv.version>1.5</commons-csv.version>
+        <commons-csv.version>1.8</commons-csv.version>
         <unitils-core.version>3.4.6</unitils-core.version>
         <maven.deploy.skip>false</maven.deploy.skip>
     </properties>
