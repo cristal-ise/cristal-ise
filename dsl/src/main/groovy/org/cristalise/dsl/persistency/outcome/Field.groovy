@@ -20,9 +20,6 @@
  */
 package org.cristalise.dsl.persistency.outcome
 
-import java.util.List;
-
-import org.apache.commons.lang3.StringUtils
 import org.cristalise.kernel.common.InvalidDataException
 
 import groovy.transform.CompileStatic;
@@ -30,6 +27,16 @@ import groovy.transform.CompileStatic;
 
 @CompileStatic
 class Field extends Attribute {
+    /**
+     * Keys used for reading the header in the ExcelSchemaBuilder
+     */
+    public static final List<String> keys = [
+        'name', 'type', 'documentation', 'multiplicity', 'values', 'pattern', 'default',
+        'length', 'minLength', 'maxLength',
+        'range', 'minInclusive', 'maxInclusive', 'minExclusive', 'maxExclusive',
+        'totalDigits', 'fractionDigits'
+    ]
+
     String minOccurs = '1'
     String maxOccurs = '1'
 

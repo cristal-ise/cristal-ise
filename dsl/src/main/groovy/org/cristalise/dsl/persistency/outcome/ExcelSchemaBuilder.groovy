@@ -6,24 +6,8 @@ import org.cristalise.kernel.common.InvalidDataException
 
 import groovy.util.logging.Slf4j
 
-@Slf4j
+@Slf4j 
 class ExcelSchemaBuilder {
-    def structKeys = ['name', 'documentation', 'multiplicity', 'useSequence']
-    def fieldKeys = [
-        'name', 'type', 'documentation', 'multiplicity', 'values', 'pattern', 'default',
-        'length', 'minLength', 'maxLength', 
-        'range', 'minInclusive', 'maxInclusive', 'minExclusive', 'maxExclusive',
-        'totalDigits', 'fractionDigits'
-    ]
-
-    def attributeKeys = [
-        'name', 'type', 'multiplicity', 'values', 'pattern', 'default',
-        'range', 'minInclusive', 'maxInclusive', 'minExclusive', 'maxExclusive',
-        'totalDigits', 'fractionDigits'
-    ]
-
-    def unitKeys = ['values', 'default']
-
     /**
      * Contains the actually processed Structs or Field
      */
@@ -61,7 +45,7 @@ class ExcelSchemaBuilder {
         // if previous row was a field remove it from lifo
         if (parentLifo.size() > 1 && parentLifo.last() instanceof Field) parentLifo.removeLast()
 
-        def sMap = record['xsd'].subMap(structKeys)
+        def sMap = record['xsd'].subMap(Struct.keys)
         Struct parentS = parentLifo.empty ? null : (Struct)parentLifo.last()
 
         // This is the closing record of the currently processed struct declaration
@@ -90,7 +74,7 @@ class ExcelSchemaBuilder {
     private void convertToField(Map<String, Object> record) {
         log.debug 'convertToField() - {}', record
 
-        def fMap = record['xsd'].subMap(fieldKeys)
+        def fMap = record['xsd'].subMap(Field.keys)
         def unitMap = (record['unit']) ? record['unit'] : [:]
 
         fixValues(fMap)
@@ -108,14 +92,6 @@ class ExcelSchemaBuilder {
         }
 
         if (unitMap) {
-            if (unitMap['unit.values'] ) {
-                unitMap['values']  = unitMap['unit.values']
-                unitMap.remove('unit.values')
-            }
-            if (unitMap['unit.default']) {
-                unitMap['default'] = unitMap['unit.default']
-                unitMap.remove('unit.default')
-            }
             fixValues(unitMap)
             f.unit = new Unit(unitMap)
         }
@@ -132,7 +108,7 @@ class ExcelSchemaBuilder {
 
     private void convertToAttribute(Map<String, Object> record) {
         log.debug 'convertToAttribute() - {}', record
-        def aMap = record['xsd'].subMap(attributeKeys)
+        def aMap = record['xsd'].subMap(Attribute.keys)
 
         if (record['xsd'].documentation)
             throw new InvalidDataException("Attribute '${aMap.name}' cannot have a documentation")

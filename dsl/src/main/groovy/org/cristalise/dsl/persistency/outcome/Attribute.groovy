@@ -28,6 +28,15 @@ import groovy.transform.CompileStatic;
 @CompileStatic
 class Attribute {
     /**
+     * Keys used for reading the header in the ExcelSchemaBuilder
+     */
+    public static final List<String> keys = [
+        'name', 'type', 'multiplicity', 'values', 'pattern', 'default',
+        'range', 'minInclusive', 'maxInclusive', 'minExclusive', 'maxExclusive',
+        'totalDigits', 'fractionDigits'
+    ]
+
+    /**
      * accepted types from XSD specification without namespace (i.e. xs:)
      */
     public static final List types = ['string', 'boolean', 'integer', 'decimal', 'date', 'time', 'dateTime']

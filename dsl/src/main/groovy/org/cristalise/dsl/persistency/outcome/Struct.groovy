@@ -29,6 +29,11 @@ import groovy.transform.CompileStatic
  */
 @CompileStatic
 class Struct {
+    /**
+     * Keys used for reading the header in the ExcelSchemaBuilder
+     */
+    public static final List<String> keys = ['name', 'documentation', 'multiplicity', 'useSequence']
+    
     String name
     String documentation
     boolean useSequence = false
