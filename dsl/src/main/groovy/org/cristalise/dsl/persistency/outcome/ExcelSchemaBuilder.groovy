@@ -22,10 +22,10 @@ class ExcelSchemaBuilder {
         'totalDigits', 'fractionDigits'
     ]
 
-    def unitKeys = ['unit.values', 'unit.default']
+    def unitKeys = ['values', 'default']
 
     /**
-     * Contains the actually processed Struct or Field
+     * Contains the actually processed Structs or Field
      */
     def parentLifo = []
 
@@ -35,13 +35,13 @@ class ExcelSchemaBuilder {
      * @return
      */
     Struct build(XSSFSheet sheet) {
-        ExcelGroovyParser.eachRow(sheet, 1) { Map<String, Object> record, int i ->
-            switch (record['class']) {
+        ExcelGroovyParser.eachRow(sheet, 2) { Map<String, Object> record, int i ->
+            switch (record['xsd']['class']) {
                 case 'struct'   : convertToStruct(record); break;
                 case 'field'    : convertToField(record); break;
                 case 'attribute': convertToAttribute(record); break;
                 default:
-                    throw new InvalidDataException('Uncovered class value:' + record['class'])
+                    throw new InvalidDataException('Uncovered class value:' + record['xsd']['class'])
             }
         }
 
@@ -61,15 +61,15 @@ class ExcelSchemaBuilder {
         // if previous row was a field remove it from lifo
         if (parentLifo.size() > 1 && parentLifo.last() instanceof Field) parentLifo.removeLast()
 
-        def fMap = record.subMap(structKeys)
+        def sMap = record['xsd'].subMap(structKeys)
         Struct parentS = parentLifo.empty ? null : (Struct)parentLifo.last()
 
         // This is the closing record of the currently processed struct declaration
-        if (parentS && (fMap.name == parentS.name || fMap.name.startsWith('---'))) {
+        if (parentS && (sMap.name == parentS.name || sMap.name.startsWith('---'))) {
             if (parentLifo.size() > 1) parentLifo.removeLast() // remove it from lifo
         }
         else {
-            def s = new Struct(fMap)
+            def s = new Struct(sMap)
 
             // conversion code comes here
 
@@ -78,8 +78,8 @@ class ExcelSchemaBuilder {
         }
     }
 
-    private void setRange(Map record, Attribute attrOrField) {
-        attrOrField.setRange(record.range)
+    private void setRange(Map map, Attribute attrOrField) {
+        attrOrField.setRange(map.range)
 
         if (! (attrOrField.type == 'xs:integer' || attrOrField.type == 'xs:decimal')) {
             throw new InvalidDataException(
@@ -90,8 +90,8 @@ class ExcelSchemaBuilder {
     private void convertToField(Map<String, Object> record) {
         log.debug 'convertToField() - {}', record
 
-        def fMap = record.subMap(fieldKeys)
-        def unitMap = record.subMap(unitKeys)
+        def fMap = record['xsd'].subMap(fieldKeys)
+        def unitMap = (record['unit']) ? record['unit'] : [:]
 
         fixValues(fMap)
 
@@ -132,9 +132,9 @@ class ExcelSchemaBuilder {
 
     private void convertToAttribute(Map<String, Object> record) {
         log.debug 'convertToAttribute() - {}', record
-        def aMap = record.subMap(attributeKeys)
+        def aMap = record['xsd'].subMap(attributeKeys)
 
-        if (record.documentation)
+        if (record['xsd'].documentation)
             throw new InvalidDataException("Attribute '${aMap.name}' cannot have a documentation")
 
         fixValues(aMap)
