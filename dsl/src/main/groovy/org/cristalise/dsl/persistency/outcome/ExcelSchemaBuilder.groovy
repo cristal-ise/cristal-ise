@@ -76,7 +76,8 @@ class ExcelSchemaBuilder {
 
         def fMap = record['xsd'].subMap(Field.keys)
         def unitMap = (record['unit']) ? record['unit'] : [:]
-
+        def lovMap = (record['listOfValues']) ? record['listOfValues'] : [:]
+        
         fixValues(fMap)
 
         def f = new Field(fMap)
@@ -94,6 +95,11 @@ class ExcelSchemaBuilder {
         if (unitMap) {
             fixValues(unitMap)
             f.unit = new Unit(unitMap)
+        }
+
+        if (lovMap) {
+            fixValues(lovMap)
+            f.listOfValues = new ListOfValues(lovMap)
         }
 
         // perhaps previous row was a field - see comment bellow
