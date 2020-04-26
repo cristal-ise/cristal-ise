@@ -178,42 +178,73 @@ class ExcelSchemaBuilderStructSpecs extends Specification implements CristalTest
                  <xs:element name="PatientDetails">
                    <xs:annotation>
                      <xs:documentation>This is the Schema for Basic Tutorial</xs:documentation>
+                     <xs:appinfo>
+                       <dynamicForms>
+                         <width>100%</width>
+                       </dynamicForms>
+                     </xs:appinfo>
                    </xs:annotation>
                    <xs:complexType>
                    <xs:all minOccurs="0">
-                   <xs:element name='DateOfBirth' type='xs:date' minOccurs='1' maxOccurs='1'>
-                     <xs:annotation>
-                       <xs:documentation>DateOfBirth docs</xs:documentation>
-                     </xs:annotation>
-                    </xs:element>
-                    <xs:element minOccurs="1" maxOccurs="1" name="Gender">
-                       <xs:simpleType>
-                         <xs:restriction base="xs:string">
-                           <xs:enumeration value="male" />
-                           <xs:enumeration value="female" />
-                         </xs:restriction>
-                       </xs:simpleType>
+                     <xs:element name='FullName' type='xs:string' minOccurs='1' maxOccurs='1'>
+                       <xs:annotation>
+                         <xs:appinfo>
+                           <dynamicForms>
+                             <disabled>true</disabled>
+                           </dynamicForms>
+                         </xs:appinfo>
+                       </xs:annotation>
                      </xs:element>
-                     <xs:element name='Weight' minOccurs='1' maxOccurs='1'>
-                       <xs:complexType>
-                         <xs:simpleContent>
-                           <xs:extension base='xs:decimal'>
-                             <xs:attribute name='unit' default='kg' use='optional'>
-                               <xs:simpleType>
-                                 <xs:restriction base='xs:string'>
-                                   <xs:enumeration value='g' />
-                                   <xs:enumeration value='kg' />
-                                 </xs:restriction>
-                               </xs:simpleType>
-                             </xs:attribute>
-                           </xs:extension>
-                         </xs:simpleContent>
-                       </xs:complexType>
-                     </xs:element>
-                   </xs:all>
-                   <xs:attribute name="InsuranceNumber" type="xs:string" default= "123456789ABC"/>
-                 </xs:complexType>
-               </xs:element>
-             </xs:schema>""")
+                     <xs:element name='DateOfBirth' type='xs:date' minOccurs='1' maxOccurs='1'>
+                       <xs:annotation>
+                         <xs:documentation>DateOfBirth docs</xs:documentation>
+                       </xs:annotation>
+                      </xs:element>
+                      <xs:element minOccurs="1" maxOccurs="1" name="Gender">
+                        <xs:annotation>
+                          <xs:appinfo>
+                            <dynamicForms>
+                              <mask>999.99</mask>
+                              <additional>
+                                <updateScriptRef>Script:0</updateScriptRef>
+                              </additional>
+                            </dynamicForms>
+                          </xs:appinfo>
+                         </xs:annotation>
+                         <xs:simpleType>
+                           <xs:restriction base="xs:string">
+                             <xs:enumeration value="male" />
+                             <xs:enumeration value="female" />
+                           </xs:restriction>
+                         </xs:simpleType>
+                       </xs:element>
+                       <xs:element name='Weight' minOccurs='1' maxOccurs='1'>
+                         <xs:annotation>
+                           <xs:appinfo>
+                             <dynamicForms>
+                               <placeholder>999.99</placeholder>
+                             </dynamicForms>
+                           </xs:appinfo>
+                         </xs:annotation>
+                         <xs:complexType>
+                           <xs:simpleContent>
+                             <xs:extension base='xs:decimal'>
+                               <xs:attribute name='unit' default='kg' use='optional'>
+                                 <xs:simpleType>
+                                   <xs:restriction base='xs:string'>
+                                     <xs:enumeration value='g' />
+                                     <xs:enumeration value='kg' />
+                                   </xs:restriction>
+                                 </xs:simpleType>
+                               </xs:attribute>
+                             </xs:extension>
+                           </xs:simpleContent>
+                         </xs:complexType>
+                       </xs:element>
+                     </xs:all>
+                     <xs:attribute name="InsuranceNumber" type="xs:string" default= "123456789ABC"/>
+                   </xs:complexType>
+                 </xs:element>
+               </xs:schema>""")
     }
 }
