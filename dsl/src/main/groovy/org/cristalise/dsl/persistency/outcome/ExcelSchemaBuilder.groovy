@@ -94,6 +94,7 @@ class ExcelSchemaBuilder {
 
         Map unitMap         = (record['unit'])         ?: [:]
         Map lovMap          = (record['listOfValues']) ?: [:]
+        Map referenceMap    = (record['reference'])    ?: [:]
         Map dynamicFormsMap = (record['dynamicForms']) ?: [:]
         Map warningMap      = (record['warning'])      ?: [:]
         Map additionalMap   = (record['additional'])   ?: [:]
@@ -120,6 +121,10 @@ class ExcelSchemaBuilder {
         if (lovMap) {
             fixListValues(lovMap)
             f.listOfValues = new ListOfValues(lovMap)
+        }
+
+        if (referenceMap) {
+            f.reference = new Reference(referenceMap)
         }
 
         if (dynamicFormsMap && dynamicFormsMap.find { it.value }) {
