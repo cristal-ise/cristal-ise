@@ -95,24 +95,13 @@ class ExcelGroovyParser {
     public static void convertNamesToMaps(Map map, List<String> names, String value) {
         def name = names.head()
         def namesTail = names.tail()
-        int index = -1
 
-        log.debug "convertNamesToMaps() - {} index:{} names:{} value:'{}'", name, index, names, value
+        log.debug "convertNamesToMaps() - {} names:{} value:'{}'", name, names, value
 
         if (namesTail) {
-            //Names are not fully converted to maps and lists yet
-            if (index == -1) {
                 if(!map[name]) { map[name] = [:] } //init Map
 
                 convertNamesToMaps(map[name], namesTail, value)
-            }
-            else {
-                //Dealing with repeating section, so handle it as List of Maps
-                if (!map[name]) { map[name] = [] } //init List
-                if (!map[name][index]) { map[name][index] = [:] } //init Map in the List
-
-                convertNamesToMaps(map[name][index], namesTail, value)
-            }
         }
         else {
             //Assign the value to the map
