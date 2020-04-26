@@ -35,8 +35,10 @@ class ExcelSchemaBuilder {
     /**
      * Convert comma separated string to list before calling map constructor
      */
-    private void fixValues(Map map) {
-        if (map.values) map.values = map.values.trim().split('\\s*,\\s*')
+    private void fixListValues(Map map) {
+        def regex = '\\s*,\\s*'
+        if (map.values)       map.values       = map.values      .trim().split(regex)
+        if (map.updateFields) map.updateFields = map.updateFields.trim().split(regex)
     }
 
     private void convertToStruct(Map<String, Object> record) {
@@ -46,6 +48,7 @@ class ExcelSchemaBuilder {
         if (parentLifo.size() > 1 && parentLifo.last() instanceof Field) parentLifo.removeLast()
 
         def sMap = record['xsd'].subMap(Struct.keys)
+
         Struct parentS = parentLifo.empty ? null : (Struct)parentLifo.last()
 
         // This is the closing record of the currently processed struct declaration
@@ -53,10 +56,23 @@ class ExcelSchemaBuilder {
             if (parentLifo.size() > 1) parentLifo.removeLast() // remove it from lifo
         }
         else {
+            Map dynamicFormsMap = (record['dynamicForms']) ?: [:]
+            Map additionalMap   = (record['additional'])   ?: [:]
+
+            println dynamicFormsMap
+
             def s = new Struct(sMap)
 
-            // conversion code comes here
+            if (dynamicFormsMap && dynamicFormsMap.find { it.value }) {
+                fixListValues(dynamicFormsMap)
+                s.dynamicForms = new DynamicForms(dynamicFormsMap)
+            }
 
+            if (additionalMap && additionalMap.find { it.value }) {
+                if (!s.dynamicForms) s.dynamicForms = new DynamicForms()
+                s.dynamicForms.additional = new Additional(additionalMap)
+            }
+    
             if (parentS) parentS.addStruct(s)
             parentLifo.add(s)
         }
@@ -74,11 +90,15 @@ class ExcelSchemaBuilder {
     private void convertToField(Map<String, Object> record) {
         log.debug 'convertToField() - {}', record
 
-        def fMap = record['xsd'].subMap(Field.keys)
-        def unitMap = (record['unit']) ? record['unit'] : [:]
-        def lovMap = (record['listOfValues']) ? record['listOfValues'] : [:]
-        
-        fixValues(fMap)
+        Map fMap = record['xsd'].subMap(Field.keys)
+
+        Map unitMap         = (record['unit'])         ?: [:]
+        Map lovMap          = (record['listOfValues']) ?: [:]
+        Map dynamicFormsMap = (record['dynamicForms']) ?: [:]
+        Map warningMap      = (record['warning'])      ?: [:]
+        Map additionalMap   = (record['additional'])   ?: [:]
+
+        fixListValues(fMap)
 
         def f = new Field(fMap)
 
@@ -93,13 +113,28 @@ class ExcelSchemaBuilder {
         }
 
         if (unitMap) {
-            fixValues(unitMap)
+            fixListValues(unitMap)
             f.unit = new Unit(unitMap)
         }
 
         if (lovMap) {
-            fixValues(lovMap)
+            fixListValues(lovMap)
             f.listOfValues = new ListOfValues(lovMap)
+        }
+
+        if (dynamicFormsMap && dynamicFormsMap.find { it.value }) {
+            fixListValues(dynamicFormsMap)
+            f.dynamicForms = new DynamicForms(dynamicFormsMap)
+        }
+
+        if (warningMap && warningMap.find { it.value }) {
+            if (!f.dynamicForms) f.dynamicForms = new DynamicForms()
+            f.dynamicForms.warning = new Warning(warningMap)
+        }
+
+        if (additionalMap && additionalMap.find { it.value }) {
+            if (!f.dynamicForms) f.dynamicForms = new DynamicForms()
+            f.dynamicForms.additional = new Additional(additionalMap)
         }
 
         // perhaps previous row was a field - see comment bellow
@@ -119,7 +154,7 @@ class ExcelSchemaBuilder {
         if (record['xsd'].documentation)
             throw new InvalidDataException("Attribute '${aMap.name}' cannot have a documentation")
 
-        fixValues(aMap)
+        fixListValues(aMap)
 
         def a = new Attribute(aMap)
 
