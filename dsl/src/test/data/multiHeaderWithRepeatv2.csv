@@ -1,0 +1,6 @@
+,,,,,,,,contacts,,,,,,,,,,,,,,
+,,,,,,,,address[0],,,,,,,,phone[0],,,email[0],,email[1],
+kind,userid,password,title,firstName,lastName,sex,age,purpose,country,countryCode,province,address1,city,postalCode,deliveryInfo,purpose,areaCode,number,purpose,address,purpose,address
+customer,customer@nowhere.com,hellobaby2,Mr,Bill,Customer,M,31,delivery,Magyaro,HUN,Pest,My Street 1,Hugeville,231 QW ETR,do not ring,primary,36-70,1212121212,primary,customer@nowhere.com,secondary,customer2@nowhere.com
+supplier,supplier@nowhere.com,hellobaby,Mr,John,Supplier,M,32,shipping,Magyaro,HUN,Buda,His Street 1,Smallville,232 QW ETR,do not ring,primary,36-70,2323232323,work,supplier@nowhere.com,,
+salesman,salesman@nowhere.com,hellobaby,Ms,Kathy,Salesman,F,33,none,Magyaro,HUN,Pest,Her Street 1,Smallville,233 QW ETR,do not ring,primary,36-70,3434343434,private,salesman@nowhere.com,,

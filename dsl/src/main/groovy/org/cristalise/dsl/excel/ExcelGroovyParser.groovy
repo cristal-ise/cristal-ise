@@ -1,3 +1,23 @@
+/**
+ * This file is part of the CRISTAL-iSE kernel.
+ * Copyright (c) 2001-2015 The CRISTAL Consortium. All rights reserved.
+ *
+ * This library is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU Lesser General Public License as published
+ * by the Free Software Foundation; either version 3 of the License, or (at
+ * your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; with out even the implied warranty of MERCHANTABILITY or
+ * FITNESS FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public
+ * License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this library; if not, write to the Free Software Foundation,
+ * Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA.
+ *
+ * http://www.fsf.org/licensing/licenses/lgpl.html
+ */
 package org.cristalise.dsl.excel
 
 import org.apache.poi.ss.usermodel.Cell
@@ -11,7 +31,6 @@ import org.apache.poi.ss.util.CellReference
 import org.apache.poi.xssf.usermodel.XSSFSheet
 import org.apache.poi.xssf.usermodel.XSSFWorkbook
 
-import groovy.transform.CompileDynamic
 import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
 
@@ -25,11 +44,11 @@ class ExcelGroovyParser {
      * @param headerRowCount
      * @param block
      */
-    public static void eachRow(String filePath, String sheetName, int headerRowCount, Closure block) {
+    public static void excelEachRow(String filePath, String sheetName, int headerRowCount, Closure block) {
         FileInputStream fileStream = new FileInputStream(new File(filePath))
         XSSFWorkbook workbook = new XSSFWorkbook(fileStream);
 
-        eachRow(workbook, sheetName, headerRowCount, block)
+        excelEachRow(workbook, sheetName, headerRowCount, block)
 
         workbook.close()
         fileStream.close()
@@ -42,7 +61,7 @@ class ExcelGroovyParser {
      * @param headerRowCount
      * @param block
      */
-    public static void eachRow(XSSFWorkbook workbook, String sheetName, int headerRowCount, Closure block) {
+    public static void excelEachRow(XSSFWorkbook workbook, String sheetName, int headerRowCount, Closure block) {
         XSSFSheet sheet = workbook.getSheet(sheetName.trim())
         eachRow(sheet, headerRowCount, block)
     }
@@ -53,31 +72,33 @@ class ExcelGroovyParser {
      * @param headerRowCount
      * @return
      */
-    public static List<List<String>> getHeader(XSSFSheet sheet, int headerRowCount) {
+    public static List<List<String>> excelHeader(XSSFSheet sheet, int headerRowCount) {
         List<List<String>> header = []
-
         DataFormatter formatter = new DataFormatter()
+
         for (Row row: sheet) {
             for (Cell cell : row) {
-                def cellRef = new CellReference(row.getRowNum(), cell.getColumnIndex()).formatAsString()
                 def cellText = formatter.formatCellValue(cell)
-
                 def currentRegion = getMergedRegionForCell(sheet, cell)
-
-                log.debug "getHeader() - row:${cell.getRowIndex()} cell:$cellRef='$cellText'" +  
-                          ((currentRegion == null) ? '' : " - region:"+currentRegion.formatAsString())
-
-                if (header[cell.columnIndex] == null) header[cell.columnIndex] = []
 
                 if (currentRegion) {
                     // read the cell text from the first element of the region
-                    header[cell.columnIndex] << formatter.formatCellValue(row.getCell(currentRegion.getFirstColumn()))
+                    cellText = formatter.formatCellValue(row.getCell(currentRegion.getFirstColumn()))
                 }
-                else {
-                    header[cell.columnIndex] << cellText
-                }
+
+                if (log.debugEnabled) {
+                    def cellRef = new CellReference(row.getRowNum(), cell.getColumnIndex()).formatAsString()
+
+                    log.debug "excelHeader() - row:${cell.getRowIndex()} cell:$cellRef='$cellText'" +
+                    ((currentRegion == null) ? '' : " - region:"+currentRegion.formatAsString())
+                } 
+
+                if (header[cell.columnIndex] == null) header[cell.columnIndex] = []
+
+                header[cell.columnIndex] << cellText
             }
 
+            // stop the loop after processing the header rows
             if (row.getRowNum() == headerRowCount - 1) break
         }
 
@@ -91,7 +112,6 @@ class ExcelGroovyParser {
      * @param names List of String for one column e.g. 'contacts.address[0].purpose'
      * @param value Is a String as presented in the excel
      */
-    @CompileDynamic
     public static void convertNamesToMaps(Map map, List<String> names, String value) {
         def name = names.head()
         def namesTail = names.tail()
@@ -99,9 +119,9 @@ class ExcelGroovyParser {
         log.debug "convertNamesToMaps() - {} names:{} value:'{}'", name, names, value
 
         if (namesTail) {
-                if(!map[name]) { map[name] = [:] } //init Map
+            if(!map[name]) { map[name] = [:] } //init Map
 
-                convertNamesToMaps(map[name], namesTail, value)
+            convertNamesToMaps((Map)map[name], namesTail, value)
         }
         else {
             //Assign the value to the map
@@ -120,7 +140,7 @@ class ExcelGroovyParser {
     public static void eachRow(XSSFSheet sheet, int headerRowCount, Closure block) {
         DataFormatter formatter = new DataFormatter()
 
-        def header = getHeader(sheet, headerRowCount)
+        def header = excelHeader(sheet, headerRowCount)
 
         for (Row row: sheet) {
             // skip header section
@@ -155,7 +175,7 @@ class ExcelGroovyParser {
               return mergedRegion;
            }
         }
-        // Not in any
+        // Cell is not in any merged regions
         return null;
      }
 
@@ -167,20 +187,20 @@ class ExcelGroovyParser {
      * @return
      */
     public static Object getCellValue(Cell cell) {
-        switch (cell.getCellTypeEnum()) {
+        switch (cell.getCellType()) {
             case CellType.STRING:
                 //print '(STRING) '
                 return cell.getStringCellValue()
             case CellType.NUMERIC:
                 //print '(NUMERIC) '
                 if (DateUtil.isCellDateFormatted(cell)) return cell.getDateCellValue()
-                else                                    return cell.getNumericCellValue() 
+                else                                    return cell.getNumericCellValue()
             case CellType.BOOLEAN:
                 //print '(BOOLEAN) '
                 return cell.getBooleanCellValue()
             case CellType.FORMULA:
                 //print '(FORMULA) '
-                switch (cell.getCachedFormulaResultTypeEnum()) {
+                switch (cell.getCachedFormulaResultType()) {
                     case CellType.NUMERIC: return cell.getNumericCellValue()
                     case CellType.STRING:  return cell.getStringCellValue()
                     case CellType.BOOLEAN: return cell.getBooleanCellValue()

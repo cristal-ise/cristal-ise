@@ -89,7 +89,6 @@
         <target.version>1.8</target.version>
         <additionalparam>-Xdoclint:none</additionalparam>
         <commons-lang.version>2.6</commons-lang.version>
-        <commons-csv.version>1.8</commons-csv.version>
         <unitils-core.version>3.4.6</unitils-core.version>
         <maven.deploy.skip>false</maven.deploy.skip>
     </properties>
@@ -192,10 +191,9 @@
             <scope>compile</scope>
         </dependency>
         <dependency>
-            <groupId>org.apache.commons</groupId>
-            <artifactId>commons-csv</artifactId>
-            <version>${commons-csv.version}</version>
-            <scope>compile</scope>
+            <groupId>com.opencsv</groupId>
+            <artifactId>opencsv</artifactId>
+            <version>5.1</version>
         </dependency>
         <dependency>
             <groupId>org.mvel</groupId>
