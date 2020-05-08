@@ -6,7 +6,7 @@ import org.cristalise.kernel.common.InvalidDataException
 
 import groovy.util.logging.Slf4j
 
-@Slf4j 
+@Slf4j
 class ExcelSchemaBuilder {
     /**
      * Contains the actually processed Structs or Field
@@ -58,8 +58,6 @@ class ExcelSchemaBuilder {
         else {
             Map dynamicFormsMap = (record['dynamicForms']) ?: [:]
             Map additionalMap   = (record['additional'])   ?: [:]
-
-            println dynamicFormsMap
 
             def s = new Struct(sMap)
 
