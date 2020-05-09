@@ -26,7 +26,7 @@ class NewCSVGroovyParserTest {
     @Test
     public void singleLineHeaderValues() {
         use(CSVGroovyParser) {
-            new File("src/test/data/parsers/address.csv").csvEachRow(headerRows:1) { address, i ->
+            new File("src/test/data/parsers/address.csv").csvEachRow { address, i ->
                 assert address.name
                 assert address.postal
                 assert address.email
@@ -37,7 +37,7 @@ class NewCSVGroovyParserTest {
     @Test
     public void allTypeConverts() {
         use(CSVGroovyParser) {
-            new File("src/test/data/parsers/convertedTypes.csv").csvEachRow(headerRows:1, dateFormater:'yyyy/MM/dd') { types, i ->
+            new File("src/test/data/parsers/convertedTypes.csv").csvEachRow(dateFormater:'yyyy/MM/dd') { types, i ->
                 assert types
                 
                 assert types.empty == ''
@@ -191,12 +191,12 @@ kind,userid,password,title,firstName,lastName,sex,age,purpose,country,countryCod
     @Test
     public void wikiTableString() {
         def wikiTable ="""\
-                | Num | Status | Action | Who | When | Progress |
-                | 1 | C | Chose new colours | John | 1-Dec-02 | Done |
-                | 2 | X | Release | John | 1-Apr-02 | |
-                | 3 |   | Get feedback | Anne | 1-Feb-02 | |
-                | 4 | C | Spec error handling | Jack | 1-Dec-02 | |
-                | 5 |   | Abc | John | | |"""
+                | Num | Status | Action              | Who  | When     | Progress |
+                | 1   | C      | Chose new colours   | John | 1-Dec-02 | Done     |
+                | 2   | X      | Release             | John | 1-Apr-02 |          |
+                | 3   |        | Get feedback        | Anne | 1-Feb-02 |          |
+                | 4   | C      | Spec error handling | Jack | 1-Dec-02 |          |
+                | 5   |        | Abc                 | John |          |          |"""
 
         def writer = new StringWriter()
         def xml = new MarkupBuilder(writer)

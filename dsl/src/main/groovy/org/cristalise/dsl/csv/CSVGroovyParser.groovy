@@ -230,17 +230,17 @@ class CSVGroovyParser {
     public static void setDefaultCsvOptions(Map options) {
         assert options != null, "options cannot be null"
 
-        options.headerRows    = options.headerRows    ?: 1 //Elvis operator
-        options.skipLeftCols  = options.skipLeftCols  ?: 0
-        options.skipRightCols = options.skipRightCols ?: 0
-        options.trimHeader    = options.trimHeader    ?: true
-        options.trimData      = options.trimData      ?: false
-        options.strictQuotes  = options.strictQuotes  ?: CSVParser.DEFAULT_STRICT_QUOTES
-        options.skipRows      = options.skipRows      ?: CSVReader.DEFAULT_SKIP_LINES
-        options.separatorChar = options.separatorChar ?: CSVParser.DEFAULT_SEPARATOR
-        options.quoteChar     = options.quoteChar     ?: CSVParser.DEFAULT_QUOTE_CHARACTER
-        options.escapeChar    = options.escapeChar    ?: CSVParser.DEFAULT_ESCAPE_CHARACTER
-        options.useStringOnly = options.useStringOnly ?: false
+        options.headerRows    = options.headerRows    != null ? options.headerRows    : 1
+        options.skipLeftCols  = options.skipLeftCols  != null ? options.skipLeftCols  : 0
+        options.skipRightCols = options.skipRightCols != null ? options.skipRightCols : 0
+        options.trimHeader    = options.trimHeader    != null ? options.trimHeader    : true
+        options.trimData      = options.trimData      != null ? options.trimData      : false
+        options.strictQuotes  = options.strictQuotes  != null ? options.strictQuotes  : CSVParser.DEFAULT_STRICT_QUOTES
+        options.skipRows      = options.skipRows      != null ? options.skipRows      : CSVReader.DEFAULT_SKIP_LINES
+        options.useStringOnly = options.useStringOnly != null ? options.useStringOnly : false
+        options.separatorChar = options.separatorChar         ? options.separatorChar : CSVParser.DEFAULT_SEPARATOR
+        options.quoteChar     = options.quoteChar             ? options.quoteChar     : CSVParser.DEFAULT_QUOTE_CHARACTER
+        options.escapeChar    = options.escapeChar            ? options.escapeChar    : CSVParser.DEFAULT_ESCAPE_CHARACTER
         //options.dateFormater  = options.dateFormater  ?: 'yyyy/MM/dd'
     }
 
