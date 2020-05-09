@@ -51,6 +51,9 @@ class SchemaTestBuilder extends SchemaBuilder {
         def sb = SchemaBuilder.build(module, name, version, sheet)
         sb.schema.validate()
 
+        workbook.close()
+        fileStream.close()
+
         return new SchemaTestBuilder(sb)
     }
 
