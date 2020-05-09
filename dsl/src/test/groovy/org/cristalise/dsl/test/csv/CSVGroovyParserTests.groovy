@@ -45,7 +45,7 @@ class CSVGroovyParserTests extends Specification {
 
         expect: "CSVGroovyParser reads the line using a Closure"
 
-        CSVGroovyParser.parse(new File('src/test/data/data.csv')) { record, i -> 
+        CSVGroovyParser.parse(new File('src/test/data/parsers/data.csv')) { record, i -> 
             if (i == 0) {
                 assert record['f1'] == 'a'
                 assert record.'f2' == 'b'

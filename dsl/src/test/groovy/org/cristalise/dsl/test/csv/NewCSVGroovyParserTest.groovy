@@ -15,7 +15,7 @@ class NewCSVGroovyParserTest {
     @Test
     public void noHeaderValues() {
         use(CSVGroovyParser) {
-            new File("src/test/data/noHeaderAddress.csv").csvEachRow(headerRows:0) { address, i ->
+            new File("src/test/data/parsers/noHeaderAddress.csv").csvEachRow(headerRows:0) { address, i ->
                 assert address[0]
                 assert address[1]
                 assert address[2]
@@ -26,7 +26,7 @@ class NewCSVGroovyParserTest {
     @Test
     public void singleLineHeaderValues() {
         use(CSVGroovyParser) {
-            new File("src/test/data/address.csv").csvEachRow(headerRows:1) { address, i ->
+            new File("src/test/data/parsers/address.csv").csvEachRow(headerRows:1) { address, i ->
                 assert address.name
                 assert address.postal
                 assert address.email
@@ -37,7 +37,7 @@ class NewCSVGroovyParserTest {
     @Test
     public void allTypeConverts() {
         use(CSVGroovyParser) {
-            new File("src/test/data/convertedTypes.csv").csvEachRow(headerRows:1, dateFormater:'yyyy/MM/dd') { types, i ->
+            new File("src/test/data/parsers/convertedTypes.csv").csvEachRow(headerRows:1, dateFormater:'yyyy/MM/dd') { types, i ->
                 assert types
                 
                 assert types.empty == ''
@@ -53,7 +53,7 @@ class NewCSVGroovyParserTest {
     @Test
     public void multiLineHeader() {
         use(CSVGroovyParser) {
-            def header = new File("src/test/data/multiHeader.csv").csvHeader(headerRows:2)
+            def header = new File("src/test/data/parsers/multiHeader.csv").csvHeader(headerRows:2)
 
             assert header
 
@@ -74,7 +74,7 @@ class NewCSVGroovyParserTest {
     @Test
     public void multiLineHeaderValues() {
         use(CSVGroovyParser) {
-            new File("src/test/data/multiHeader.csv").csvEachRow(headerRows:2) { user, i ->
+            new File("src/test/data/parsers/multiHeader.csv").csvEachRow(headerRows:2) { user, i ->
                 assert user.kind
                 assert user.sex
 
@@ -117,7 +117,7 @@ class NewCSVGroovyParserTest {
         }
     }
 
-    def multiLineHeaderFile = "src/test/data/multiHeaderWithRepeat.csv"
+    def multiLineHeaderFile = "src/test/data/parsers/multiHeaderWithRepeat.csv"
 
 
     def checkMultiLineHeader(header) {
