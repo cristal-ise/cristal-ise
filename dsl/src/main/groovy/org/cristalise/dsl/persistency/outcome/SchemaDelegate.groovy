@@ -52,8 +52,8 @@ class SchemaDelegate {
     }
 
     public void processExcelSheet(XSSFSheet sheet) {
-        def esb = new ExcelSchemaBuilder()
-        xsdString = buildXSD(esb.build(sheet))
+        def tsb = new TabularSchemaBuilder()
+        xsdString = buildXSD(tsb.build(sheet))
     }
 
     public String buildXSD(Struct s) {

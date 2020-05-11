@@ -28,7 +28,7 @@ import groovy.transform.CompileStatic;
 @CompileStatic
 class Field extends Attribute {
     /**
-     * Keys used for reading the header in the ExcelSchemaBuilder
+     * Keys used for reading the header in the TabularSchemaBuilder
      */
     public static final List<String> keys = [
         'name', 'type', 'documentation', 'multiplicity', 'values', 'pattern', 'default',
