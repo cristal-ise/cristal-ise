@@ -180,8 +180,9 @@ class ExcelGroovyParser {
      }
 
     /**
-     * NOTE: This method is not ready to be used, because it cannot return an Integer 
-     * even if the number format defines an int. 
+     * NOTE: This method is not ready to be used, because it cannot return an Integer even if 
+     * the number format defines an int. This is due to the limitation that cell.getNumericCellValue()
+     * returns double.
      * 
      * @param cell
      * @return
