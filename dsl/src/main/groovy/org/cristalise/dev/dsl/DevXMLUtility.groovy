@@ -59,22 +59,62 @@ class DevXMLUtility {
     }
 
     /**
-     * Converts a map to an xml using dynamic groovy. No nested xml structure is supported.
+     * Converts a Map to an XML using dynamic groovy. Support arbitrary level of nested structures 
+     * through recursive algorithm. It also supports repeating elements specified as List.
      * 
      * @param root the name of the root element
-     * @param record the map to be converted
-     * @return the xml string
+     * @param record the Map to be converted
+     * @return the XML string
      */
     public static String recordToXML(String root, Map record) {
+        return recordToXML([root: record])
+    }
+
+    /**
+     * Converts a Map to an XML using dynamic groovy. Support arbitrary level of nested structures 
+     * through recursive algorithm. It also supports repeating elements specified as List.
+     * 
+     * @param record the Map to be converted
+     * @return the XML string
+     */
+    public static String recordToXML(Map record) {
         def writer = new StringWriter()
         def xml = new MarkupBuilder(writer)
 
-        xml."$root" {
-            record.collect { key, value ->
-                "$key" { value instanceof Map ? value.collect(owner) : mkp.yield(value) }
-            }
-        }
+        recordToXML(xml, record)
 
         return writer.toString()
+    }
+
+    /**
+     * Converts a Map to an XML using dynamic groovy. Support arbitrary level of nested structures 
+     * through recursive algorithm. It also supports repeating elements specified as List.
+     * 
+     * @param xml the initialised MarkupBuilder to be used to build the XML
+     * @param record the Map to be converted
+     */
+    public static void recordToXML(MarkupBuilder xml, Map record) {
+        record.each { key, value ->
+            switch (value) {
+                case Map:
+                    xml."$key" { recordToXML(xml, value) }
+                    break;
+
+                case List:
+                    value.each { listValue ->
+                        xml."$key" {
+                            switch (listValue) {
+                                case Map: recordToXML(xml, listValue); break;
+                                default:  mkp.yield(listValue); break;
+                            }
+                        }
+                    }
+                    break;
+
+                default:
+                    xml."$key"(value)
+                    break;
+            }
+        }
     }
 }
