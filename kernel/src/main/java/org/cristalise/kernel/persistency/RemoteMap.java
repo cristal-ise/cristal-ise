@@ -169,12 +169,10 @@ public class RemoteMap<V extends C2KLocalObject> extends TreeMap<String, V> impl
     }
 
     public synchronized int getLastId() {
-        loadKeys();
-        if (size() == 0) return -1;
-        try {
-            return Integer.parseInt(lastKey());
+        try{
+            return storage.getLastEventId(mItemPath, mPath+mName);
         }
-        catch (NumberFormatException ex) {
+        catch(PersistencyException ex){
             return -1;
         }
     }
@@ -236,7 +234,6 @@ public class RemoteMap<V extends C2KLocalObject> extends TreeMap<String, V> impl
     @Override
     @SuppressWarnings("unchecked")
     public synchronized V get(Object objKey) {
-        loadKeys();
         String key;
 
         if (objKey instanceof Integer)     key = ((Integer)objKey).toString();
@@ -245,11 +242,8 @@ public class RemoteMap<V extends C2KLocalObject> extends TreeMap<String, V> impl
 
         synchronized(this) {
             try {
-                V value = super.get(key);
-                if (value == null) {
-                    value = (V)storage.get(mItemPath, mPath+mName+"/"+key, mLocker);
-                    super.put(key, value);
-                }
+                V value = (V)storage.get(mItemPath, mPath+mName+"/"+key, mLocker);
+                super.put(key, value);
                 return value;
             }
             catch (PersistencyException e) {
