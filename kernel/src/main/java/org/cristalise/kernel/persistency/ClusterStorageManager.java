@@ -312,13 +312,10 @@ public class ClusterStorageManager {
         return result;
     }
 
-    public int getLastEventId(ItemPath itemPath, String path) throws PersistencyException {
-        ArrayList<ClusterStorage> historyStorageList = findStorages(HISTORY, false);
-        for(ClusterStorage storage: historyStorageList){
-            int lastEventId = storage.getLastEventId(itemPath, path);
-            if(lastEventId != -1){
-                return lastEventId;
-            }
+    public int getLastIntegerId(ItemPath itemPath, String path) throws PersistencyException {
+        ArrayList<ClusterStorage> readers = findStorages(HISTORY, false);
+        for(ClusterStorage storage: readers) {
+            return storage.getLastIntegerId(itemPath, path);
         }
         return -1;
     }

@@ -21,9 +21,7 @@
 package org.cristalise.kernel.persistency;
 
 import java.util.ArrayList;
-import java.util.UUID;
 
-import org.apache.commons.lang3.NotImplementedException;
 import org.cristalise.kernel.common.PersistencyException;
 import org.cristalise.kernel.common.SystemKey;
 import org.cristalise.kernel.entity.C2KLocalObject;
@@ -241,12 +239,15 @@ public abstract class ClusterStorage {
      */
     public abstract String getId();
 
-
-    public int getLastEventId(ItemPath itemPath, String path) throws PersistencyException{
-        log.warn("Tried to getLastEventId with parameters {} and {} but failed because method was not implemented. " +
-                        "Returning -1.", itemPath, path);
-        return -1;
-    }
+    /**
+     * History and JobList based on a integer id that is incremented each tome a new Event or Job is stored
+     * 
+     * @param itemPath The ItemPath (UUID) of the containing Item
+     * @param path the cluster patch, either equals to 'AuditTrail' or 'Job'
+     * @return returns the last found integer id (zero based), or -1 if not found
+     * @throws PersistencyException When storage fails
+     */
+    public abstract int getLastIntegerId(ItemPath itemPath, String path) throws PersistencyException;
 
     /**
      * Utility method to find the cluster for a particular Local Object (the first part of its path)

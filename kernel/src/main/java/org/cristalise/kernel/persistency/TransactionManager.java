@@ -23,7 +23,6 @@ package org.cristalise.kernel.persistency;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import java.util.UUID;
 
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -448,7 +447,7 @@ public class TransactionManager {
         storage.postStartServer();
     }
 
-    public int getLastEventId(ItemPath itemPath, String path) throws PersistencyException{
-        return storage.getLastEventId(itemPath, path);
+    public int getLastIntegerId(ItemPath itemPath, String path) throws PersistencyException{
+        return storage.getLastIntegerId(itemPath, path);
     }
 }

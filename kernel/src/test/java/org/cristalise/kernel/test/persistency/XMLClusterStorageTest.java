@@ -102,6 +102,7 @@ public class XMLClusterStorageTest {
                     assertEquals(30, contents.length);
                     assertNotNull( importCluster.get(itemPath, HISTORY+"/0") );
                     assertNotNull( importCluster.get(itemPath, HISTORY+"/29") );
+                    assertEquals(29, importCluster.getLastIntegerId(itemPath, HISTORY.getName()));
                     break;
 
                 default:

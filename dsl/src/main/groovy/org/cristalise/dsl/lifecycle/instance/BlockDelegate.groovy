@@ -103,15 +103,15 @@ public class BlockDelegate {
         if(properties.containsKey(ROUTING_SCRIPT_NAME.name) || properties.containsKey(ROUTING_EXPR.name)) return
 
         if(properties.javascript) {
-            setRoutingScript(aSplit, (String)"javascript:\"${properties.javascript}\";", '');
+            setRoutingScript(aSplit, (String)"javascript:\"${properties.javascript}\";", null);
             properties.remove('javascript')
         }
         else if(properties.groovy) {
-            setRoutingScript(aSplit, (String)"groovy:\"${properties.groovy}\";", '');
+            setRoutingScript(aSplit, (String)"groovy:\"${properties.groovy}\";", null);
             properties.remove('groovy')
         }
         else {
-            setRoutingScript(aSplit, "javascript:\"true\";", '');
+            setRoutingScript(aSplit, "javascript:\"true\";", null);
         }
     }
 
@@ -122,7 +122,7 @@ public class BlockDelegate {
      * @param name value of the RoutingScriptName property
      * @param version value of the RoutingScriptVersion property
      */
-    protected static void setRoutingScript(WfVertex aSplit, String name, String version) {
+    protected static void setRoutingScript(WfVertex aSplit, String name, Integer version) {
         assert aSplit instanceof Split, "BlockDelegate.setRoutingScript() - Vertex '$aSplit.name' must be instance of Split"
 
         log.debug "setRoutingScript() - splitName: $aSplit.name, name: '$name' version: '$version'"
@@ -215,12 +215,21 @@ public class BlockDelegate {
     /**
      * DSL method to be used to set RoutingScript quickly
      * 
-     * @param sName name of the Split
+     * @param splitName name of the Split
      * @param name value of the RoutingScriptName property
      * @param version value of the RoutingScriptVersion property
      */
-    public void setRoutingScript(String sName, String name, String version) {
-        setRoutingScript(getVertex(sName), name, version)
+    public void setRoutingScript(String splitName, String name, Integer version) {
+        setRoutingScript(getVertex(splitName), name, version)
+    }
+
+    /**
+     * 
+     * @param splitName
+     * @param scriptText
+     */
+    public void setRoutingScript(String splitName, String scriptText) {
+        setRoutingScript(getVertex(splitName), scriptText, null)
     }
 
     /**
