@@ -148,4 +148,6 @@ public interface TransactionManager {
      * Propagate start server has finished hook to the storages
      */
     public void postStartServer() throws PersistencyException;
+
+    public int getLastIntegerId(ItemPath itemPath, String path) throws PersistencyException;
 }

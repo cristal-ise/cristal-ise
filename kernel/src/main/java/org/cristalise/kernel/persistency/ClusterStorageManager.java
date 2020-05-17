@@ -24,14 +24,7 @@ import static org.cristalise.kernel.persistency.ClusterType.HISTORY;
 import static org.cristalise.kernel.persistency.ClusterType.JOB;
 import static org.cristalise.kernel.persistency.ClusterType.VIEWPOINT;
 
-import java.util.ArrayList;
-import java.util.ConcurrentModificationException;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.Set;
-import java.util.StringTokenizer;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import org.cristalise.kernel.common.ObjectNotFoundException;
 import org.cristalise.kernel.common.PersistencyException;
@@ -334,6 +327,14 @@ public class ClusterStorageManager {
         putInMemoryCache(itemPath, path, result);
 
         return result;
+    }
+
+    public int getLastIntegerId(ItemPath itemPath, String path) throws PersistencyException {
+        ArrayList<ClusterStorage> readers = findStorages(HISTORY, false);
+        for(ClusterStorage storage: readers) {
+            return storage.getLastIntegerId(itemPath, path);
+        }
+        return -1;
     }
 
     public void put(ItemPath itemPath, C2KLocalObject obj) throws PersistencyException {

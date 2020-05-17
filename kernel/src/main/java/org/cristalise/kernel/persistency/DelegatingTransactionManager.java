@@ -470,4 +470,9 @@ public class DelegatingTransactionManager implements TransactionManager {
     public void postStartServer() throws PersistencyException {
         storage.postStartServer();
     }
+
+    @Override
+    public int getLastIntegerId(ItemPath itemPath, String path) throws PersistencyException {
+        return storage.getLastIntegerId(itemPath, path);
+    }
 }
