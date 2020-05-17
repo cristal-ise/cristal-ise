@@ -93,7 +93,7 @@ class WFBuilderPropertySpecs extends Specification implements CristalTestSetup {
         }
         then: "RoutingScriptName and Version were added to Properties"
         wfBuilder.wf.search("workflow/domain/OrSplit").properties.RoutingScriptName  == "javascript:\"true\";"
-        wfBuilder.wf.search("workflow/domain/OrSplit").properties.RoutingScriptVersion  == ""
+        wfBuilder.wf.search("workflow/domain/OrSplit").properties.RoutingScriptVersion  == null
     }
 
     def 'Default RoutingScriptis added to Loop if nothing specified'() {
@@ -103,7 +103,7 @@ class WFBuilderPropertySpecs extends Specification implements CristalTestSetup {
         }
         then: "RoutingScriptName and Version were added to Properties"
         wfBuilder.wf.search("workflow/domain/LoopSplit").properties.RoutingScriptName  == "javascript:\"true\";"
-        wfBuilder.wf.search("workflow/domain/LoopSplit").properties.RoutingScriptVersion  == ""
+        wfBuilder.wf.search("workflow/domain/LoopSplit").properties.RoutingScriptVersion  == null
     }
 
     def 'OrSplit can use javascript keyword to specify hardcoded RoutingScript'() {
@@ -113,7 +113,7 @@ class WFBuilderPropertySpecs extends Specification implements CristalTestSetup {
         }
         then: "RoutingScriptName and Version were added and javascript was removed from Properties"
         wfBuilder.wf.search("workflow/domain/OrSplit").properties.RoutingScriptName  == "javascript:\"true\";"
-        wfBuilder.wf.search("workflow/domain/OrSplit").properties.RoutingScriptVersion  == ""
+        wfBuilder.wf.search("workflow/domain/OrSplit").properties.RoutingScriptVersion  == null
         wfBuilder.wf.search("workflow/domain/OrSplit").properties.javascript  == null
     }
 
@@ -124,7 +124,7 @@ class WFBuilderPropertySpecs extends Specification implements CristalTestSetup {
         }
         then: "RoutingScriptName and Version were added and javascript was removed from Properties"
         wfBuilder.wf.search("workflow/domain/XOrSplit").properties.RoutingScriptName  == "javascript:\"true\";"
-        wfBuilder.wf.search("workflow/domain/XOrSplit").properties.RoutingScriptVersion  == ""
+        wfBuilder.wf.search("workflow/domain/XOrSplit").properties.RoutingScriptVersion  == null
         wfBuilder.wf.search("workflow/domain/XOrSplit").properties.javascript  == null
     }
 

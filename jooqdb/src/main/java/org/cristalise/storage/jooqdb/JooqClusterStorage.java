@@ -278,6 +278,29 @@ public class JooqClusterStorage extends TransactionalClusterStorage {
     }
 
     @Override
+    public int getLastIntegerId(ItemPath itemPath, String path) throws PersistencyException {
+        String[]    pathArray   = path.split("/");
+        ClusterType cluster     = ClusterType.getValue(pathArray[0]);
+
+        JooqHandler handler = jooqHandlers.get(cluster);
+
+        if (handler == null) {
+            throw new PersistencyException("No handler found for cluster:'"+cluster+"'");
+        }
+        else if (cluster == ClusterType.HISTORY) {
+            return ((JooqHistoryHandler)handler).getLastEventId(JooqHandler.connect(), itemPath.getUUID());
+        }
+        else if (cluster == ClusterType.JOB) {
+            return ((JooqJobHandler)handler).getLastJobId(JooqHandler.connect(), itemPath.getUUID());
+        }
+        else {
+            String msg = "Invalid ClusterType! Must be either HISTORY or JOB. Actual cluster:" + cluster;
+            log.error("getLastIntegerId() - {}", msg);
+            throw new PersistencyException(msg);
+        }
+    }
+
+    @Override
     public String executeQuery(Query query) throws PersistencyException {
         throw new PersistencyException("UnImplemented");
     }

@@ -36,7 +36,6 @@ import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.process.auth.Authenticator;
 import org.cristalise.kernel.querying.Parameter;
 import org.cristalise.kernel.querying.Query;
-import org.cristalise.kernel.utils.Logger;
 import org.exist.xmldb.EXistResource;
 import org.exist.xmldb.XQueryService;
 import org.xmldb.api.DatabaseManager;
@@ -49,9 +48,12 @@ import org.xmldb.api.base.ResourceIterator;
 import org.xmldb.api.base.XMLDBException;
 import org.xmldb.api.modules.CollectionManagementService;
 
+import lombok.extern.slf4j.Slf4j;
+
 /**
  * 
  */
+@Slf4j
 public class XMLDBClusterStorage extends ClusterStorage {
 
     public static final String XMLDB_URI      = "XMLDB.URI";
@@ -107,7 +109,7 @@ public class XMLDBClusterStorage extends ClusterStorage {
                     return null;
             }
             else {
-                Logger.error(ex);
+                log.error("Error loading XMLDB collection for item " + name, ex);
                 throw new PersistencyException("Error loading XMLDB collection for item " + name);
             }
         }
@@ -140,7 +142,7 @@ public class XMLDBClusterStorage extends ClusterStorage {
             else root = db;
         }
         catch (Exception ex) {
-            Logger.error(ex);
+            log.error("Error initializing eXist XMLDB", ex);
             throw new PersistencyException("Error initializing XMLDB");
         }
 
@@ -155,7 +157,7 @@ public class XMLDBClusterStorage extends ClusterStorage {
             //manager.shutdown();
         }
         catch (XMLDBException e) {
-            Logger.error(e);
+            log.error("Error shutting down eXist XMLDB", e);
             throw new PersistencyException("Error shutting down eXist XMLDB");
         }
     }
@@ -208,7 +210,7 @@ public class XMLDBClusterStorage extends ClusterStorage {
             if (query.hasParameters()) {
                 for(Parameter p: query.getParameters()) {
                     if (p.getValue() != null) {
-                        Logger.msg(5, "XMLDBClusterStorage.executeQuery() - declareVariable:'"+p.getName()+"' = '"+p.getValue()+"'");
+                        log.debug("executeQuery() - declareVariable:'"+p.getName()+"' = '"+p.getValue()+"'");
                         xqs.declareVariable(p.getName(), (String)p.getValue());
                     }
                 }
@@ -227,15 +229,16 @@ public class XMLDBClusterStorage extends ClusterStorage {
                 finally {
                     //dont forget to cleanup resources
                     try { ((EXistResource)resource).freeResources(); } 
-                    catch(XMLDBException xe) {Logger.error(xe);}
+                    catch(XMLDBException xe) {
+                        log.error("", xe);
+                    }
                 }
             }
-            if(Logger.doLog(5)) Logger.msg("XMLDBClusterStorage.executeQuery() - returning:"+resultBuffer.toString());
+            log.debug("executeQuery() - returning:{}", resultBuffer);
             return resultBuffer.toString();
         }
         catch (Exception e) {
-            Logger.error(e);
-            Logger.error(query.getQuery());
+            log.error("executeQuery() - {}", query.getQuery(), e);
             throw new PersistencyException(e.getMessage());
         }
     }
@@ -260,7 +263,7 @@ public class XMLDBClusterStorage extends ClusterStorage {
             else return null;
         }
         catch (Exception e) {
-            Logger.error(e);
+            log.error("", e);
             throw new PersistencyException("XMLDB error");
         }
     }
@@ -280,7 +283,7 @@ public class XMLDBClusterStorage extends ClusterStorage {
             itemColl.close();
         }
         catch (Exception e) {
-            Logger.error(e);
+            log.error("", e);
             throw new PersistencyException("XMLDB error");
         }
     }
@@ -296,8 +299,8 @@ public class XMLDBClusterStorage extends ClusterStorage {
             itemColl.close();
         }
         catch (Exception e) {
-            Logger.error(e);
-            throw new PersistencyException("XMLClusterStorage.delete() - Could not delete " + path + " to " + itemPath);
+            log.error("", e);
+            throw new PersistencyException("Could not delete " + path + " to " + itemPath);
         }
     }
 
@@ -318,18 +321,18 @@ public class XMLDBClusterStorage extends ClusterStorage {
             }
         }
 
-        Logger.msg(5,"XMLDBClusterStorage.getClusterContents() - path:"+path+" converted to:"+searchPrefix);
+        log.debug("getClusterContents() - path:"+path+" converted to:"+searchPrefix);
 
         // Look at each entry for matches. Trim off the ends.
         try {
             for (String dbResource : itemCollection.listResources()) {
-                Logger.msg(8,"XMLDBClusterStorage.getClusterContents() - dbResource:"+dbResource);
+                log.trace("getClusterContents() - dbResource:"+dbResource);
 
                 if (dbResource.startsWith(searchPrefix.toString())) {
                     //Get string which is after the searchPerfix
                     String contentName = URLDecoder.decode(dbResource.substring(searchPrefix.length()), "UTF-8");
 
-                    Logger.msg(8,"XMLDBClusterStorage.getClusterContents() - contentName:"+contentName);
+                    log.trace("getClusterContents() - contentName:"+contentName);
 
                     //Only add the name of the next section (sections are separated by '.')
                     if (contentName.contains(".")) contentName = contentName.substring(0, contentName.indexOf('.'));
@@ -340,14 +343,35 @@ public class XMLDBClusterStorage extends ClusterStorage {
             }
         }
         catch (XMLDBException e) {
-            Logger.error(e);
+            log.error("", e);
             throw new PersistencyException("Error listing collection resources for item " + itemPath);
         }
         catch (UnsupportedEncodingException e) {
-            Logger.error(e);
+            log.error("", e);
             throw new PersistencyException("Error listing decoding resource name for item " + itemPath);
         }
 
         return contents.toArray(new String[contents.size()]);
+    }
+
+    /**
+     * FIXME use xquery instead of calling getClusterContents()
+     */
+    @Override
+    public int getLastIntegerId(ItemPath itemPath, String path) throws PersistencyException {
+        int lastId = -1;
+        try {
+            String[] keys = getClusterContents(itemPath, path);
+            for (String key : keys) {
+                int newId = Integer.parseInt(key);
+                lastId = newId > lastId ? newId : lastId;
+            }
+        }
+        catch (NumberFormatException e) {
+           log.error("Error parsing keys", e);
+           throw new PersistencyException(e.getMessage());
+        }
+
+        return lastId;
     }
 }

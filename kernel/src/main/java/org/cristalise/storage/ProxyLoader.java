@@ -42,8 +42,11 @@ import lombok.extern.slf4j.Slf4j;
 /**
  * Used by proxies to load clusters by queryData from the Entity.
  * Last client storage - only used if not cached elsewhere
+ * 
+ * @deprecated Should not be used anymore. The actual backend implementation should provide class
+ * for read only access (see JooqClientReader).
  */
-@Slf4j
+@Slf4j @Deprecated
 public class ProxyLoader extends ClusterStorage {
     HashMap<ItemPath, Item> entities = new HashMap<ItemPath, Item>();
     Lookup lookup;
@@ -195,5 +198,10 @@ public class ProxyLoader extends ClusterStorage {
         catch (Exception e) {
             throw new PersistencyException("Error narrowing "+thisPath+": "+e.getMessage());
         }
+    }
+
+    @Override
+    public int getLastIntegerId(ItemPath itemPath, String path) throws PersistencyException {
+        throw new PersistencyException("Unimplemented");
     }
 }

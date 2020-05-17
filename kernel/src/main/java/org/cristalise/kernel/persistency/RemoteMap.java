@@ -58,7 +58,8 @@ public class RemoteMap<V extends C2KLocalObject> extends TreeMap<String, V> impl
     Comparator<String> comp;
 
     /**
-     * for remote client processes to receive updates, disables puts. @check activate()
+     * For remote client processes to receive updates, disables write operations (remove, put).
+     * @check activate()
      */
     ItemProxy source;
 
@@ -90,8 +91,8 @@ public class RemoteMap<V extends C2KLocalObject> extends TreeMap<String, V> impl
 
         // split the path into path/name
         int lastSlash = path.lastIndexOf("/");
-        mName = path.substring(lastSlash+1);
-        if (lastSlash>0) mPath = path.substring(0,lastSlash);
+        mName = path.substring(lastSlash + 1);
+        if (lastSlash > 0) mPath = path.substring(0, lastSlash);
 
         // see if the name is also a suitable id
         try {
@@ -112,7 +113,7 @@ public class RemoteMap<V extends C2KLocalObject> extends TreeMap<String, V> impl
             @Override
             public void add(V obj) {
                 synchronized (this) {
-                    log.debug("RemoteMap:ProxyObserver.add() - id:"+obj.getName());
+                    log.debug("ProxyObserver.add() - id:"+obj.getName());
                     putLocal(obj.getName(), obj);
                 }
             }
@@ -120,7 +121,7 @@ public class RemoteMap<V extends C2KLocalObject> extends TreeMap<String, V> impl
             @Override
             public void remove(String id) {
                 synchronized (this) {
-                    log.debug("RemoteMap:ProxyObserver.remove() - id:"+id);
+                    log.debug("ProxyObserver.remove() - id:"+id);
                     removeLocal(id);
                 }
             }
@@ -128,7 +129,6 @@ public class RemoteMap<V extends C2KLocalObject> extends TreeMap<String, V> impl
             @Override
             public void control(String control, String msg) { }
         };
-
 
         try {
             source = Gateway.getProxyManager().getProxy(mItemPath);
@@ -169,14 +169,13 @@ public class RemoteMap<V extends C2KLocalObject> extends TreeMap<String, V> impl
     }
 
     public synchronized int getLastId() {
-        loadKeys();
-        if (size() == 0) return -1;
         try {
-            return Integer.parseInt(lastKey());
+            return storage.getLastIntegerId(mItemPath, mPath+mName);
         }
-        catch (NumberFormatException ex) {
-            return -1;
+        catch (PersistencyException ex) {
+            log.error("Failed to get last integer id for path:{}", "/"+ mItemPath + "/"+ mPath + mName, ex);
         }
+        return -1;
     }
 
     public void setID(int id) { mID = id; }
@@ -236,7 +235,6 @@ public class RemoteMap<V extends C2KLocalObject> extends TreeMap<String, V> impl
     @Override
     @SuppressWarnings("unchecked")
     public synchronized V get(Object objKey) {
-        loadKeys();
         String key;
 
         if (objKey instanceof Integer)     key = ((Integer)objKey).toString();
@@ -245,11 +243,8 @@ public class RemoteMap<V extends C2KLocalObject> extends TreeMap<String, V> impl
 
         synchronized(this) {
             try {
-                V value = super.get(key);
-                if (value == null) {
-                    value = (V)storage.get(mItemPath, mPath+mName+"/"+key, mLocker);
-                    super.put(key, value);
-                }
+                V value = (V)storage.get(mItemPath, mPath+mName+"/"+key, mLocker);
+                super.put(key, value);
                 return value;
             }
             catch (PersistencyException e) {
@@ -285,6 +280,7 @@ public class RemoteMap<V extends C2KLocalObject> extends TreeMap<String, V> impl
     @Override
     public synchronized V put(String key, V value) {
         if (source != null) throw new UnsupportedOperationException("Cannot use an activated RemoteMap to write to storage.");
+
         try {
             synchronized(this) {
                 storage.put(mItemPath, value, mLocker);
@@ -307,8 +303,8 @@ public class RemoteMap<V extends C2KLocalObject> extends TreeMap<String, V> impl
     @Override
     public synchronized V remove(Object key) {
         if (source != null) throw new UnsupportedOperationException("Cannot use an activated RemoteMap to write to storage.");
-        loadKeys();
-        if (containsKey(key)) try {
+
+        try {
             synchronized(keyLock) {
                 storage.remove(mItemPath, mPath+mName+"/"+key, mLocker);
                 return removeLocal(key);
@@ -387,8 +383,8 @@ public class RemoteMap<V extends C2KLocalObject> extends TreeMap<String, V> impl
         public int size() {
             return mParent.size();
         }
-
     }
+
     /**
      * Iterator view on RemoteMap data. Doesn't preload anything.
      * REVISIT: Will go strange if the RemoteMap is modified. Detect this and throw ConcurrentMod ex
