@@ -54,7 +54,7 @@ import org.cristalise.kernel.lifecycle.instance.predefined.agent.AgentPredefined
 import org.cristalise.kernel.lookup.AgentPath;
 import org.cristalise.kernel.lookup.DomainPath;
 import org.cristalise.kernel.lookup.ItemPath;
-import org.cristalise.kernel.persistency.SimpleTransactionManager;
+import org.cristalise.kernel.persistency.CachingTransactionManager;
 import org.cristalise.kernel.persistency.outcome.Outcome;
 import org.cristalise.kernel.persistency.outcome.Schema;
 import org.cristalise.kernel.persistency.outcome.Viewpoint;
@@ -176,8 +176,8 @@ public class CreateItemFromDescription extends PredefinedStep {
             CompositeActivity   newWorkflow  = instantiateWorkflow   (descItemPath, descVer, transactionKey);
             Viewpoint           newViewpoint = instantiateViewpoint  (descItemPath, descVer, transactionKey);
 
-            if (Gateway.getStorage() instanceof SimpleTransactionManager) {
-                // SimpleTransactionManager cannot update more then one Item in one transaction => start new transaction
+            if (Gateway.getStorage() instanceof CachingTransactionManager) {
+                // CachingTransactionManager cannot update more then one Item in one transaction => start new transaction
                 Object newTranasactionKey = new Object();
                 try {
                     Gateway.getStorage().begin(newTranasactionKey);

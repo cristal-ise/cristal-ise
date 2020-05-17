@@ -35,8 +35,8 @@ import org.cristalise.kernel.entity.proxy.ProxyManager;
 import org.cristalise.kernel.entity.proxy.ProxyServer;
 import org.cristalise.kernel.lookup.Lookup;
 import org.cristalise.kernel.lookup.LookupManager;
+import org.cristalise.kernel.persistency.CachingTransactionManager;
 import org.cristalise.kernel.persistency.DelegatingTransactionManager;
-import org.cristalise.kernel.persistency.SimpleTransactionManager;
 import org.cristalise.kernel.persistency.TransactionManager;
 import org.cristalise.kernel.process.auth.Authenticator;
 import org.cristalise.kernel.process.module.ModuleManager;
@@ -250,13 +250,13 @@ public class Gateway
             throw new InvalidDataException("Cannot connect server process. Please check config.");
         }
         
-        String transManagerType = getProperties().getString("TransactionManager", "Simple");
+        String transManagerType = getProperties().getString("TransactionManager", "Caching");
 
         if ("Delegating".equals(transManagerType)) {
             mStorage = new DelegatingTransactionManager(auth);
         }
-        else if ("Simple".equals(transManagerType)) {
-            mStorage = new SimpleTransactionManager(auth);
+        else if ("Caching".equals(transManagerType)) {
+            mStorage = new CachingTransactionManager(auth);
         }
         else
             throw new InvalidDataException("'"+transManagerType+"' is invalid for system property 'TransactionManager'");

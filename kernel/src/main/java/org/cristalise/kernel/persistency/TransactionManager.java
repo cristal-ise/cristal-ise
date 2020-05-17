@@ -93,6 +93,13 @@ public interface TransactionManager {
     public C2KLocalObject get(ItemPath itemPath, String path, Object locker)
             throws PersistencyException, ObjectNotFoundException;
 
+    /**
+     * 
+     * @param itemPath
+     * @param obj
+     * @param locker
+     * @throws PersistencyException
+     */
     public void put(ItemPath itemPath, C2KLocalObject obj, Object locker) throws PersistencyException;
 
     /**
@@ -110,14 +117,19 @@ public interface TransactionManager {
      * @throws PersistencyException - when deleting fails
      */
     public void removeCluster(ItemPath itemPath, String path, Object locker) throws PersistencyException;
-    
 
+    /**
+     * Informs backends about the begining of transacaion
+     * 
+     * @param locker transaction key
+     * @throws PersistencyException
+     */
     public void begin(Object locker) throws PersistencyException;
 
     /**
      * Writes all pending changes to the backends.
      * 
-     * @param locker transaction locker
+     * @param locker transaction key
      * @throws PersistencyException 
      */
     public void commit(Object locker) throws PersistencyException;
@@ -125,15 +137,23 @@ public interface TransactionManager {
     /**
      * Rolls back all changes sent in the name of 'locker' and unlocks the sysKeys
      * 
-     * @param locker transaction locker
+     * @param locker transaction key
      */
     public void abort(Object locker);
 
+    /**
+     * 
+     * @param itemPath
+     * @param path
+     */
     public void clearCache(ItemPath itemPath, String path);
-    
+
+    /**
+     * 
+     * @param logLevel
+     */
     public void dumpPendingTransactions(int logLevel);
 
-    
     /**
      * Propagate Gateway connect has finished hook to the storages
      */
@@ -149,5 +169,13 @@ public interface TransactionManager {
      */
     public void postStartServer() throws PersistencyException;
 
+    /**
+     * History and JobList based on a integer id that is incremented each tome a new Event or Job is stored
+     * 
+     * @param itemPath The ItemPath (UUID) of the containing Item
+     * @param path the cluster patch, either equals to 'AuditTrail' or 'Job'
+     * @return returns the last found integer id (zero based), or -1 if not found
+     * @throws PersistencyException When storage fails
+     */
     public int getLastIntegerId(ItemPath itemPath, String path) throws PersistencyException;
 }

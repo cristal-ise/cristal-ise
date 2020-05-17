@@ -45,13 +45,13 @@ import lombok.extern.slf4j.Slf4j;
  * to implement isolation.
  */
 @Slf4j
-public class SimpleTransactionManager implements TransactionManager {
+public class CachingTransactionManager implements TransactionManager {
 
     private HashMap<ItemPath, Object> locks;
     HashMap<Object, ArrayList<TransactionEntry>> pendingTransactions;
     ClusterStorageManager storage;
 
-    public SimpleTransactionManager(Authenticator auth) throws PersistencyException {
+    public CachingTransactionManager(Authenticator auth) throws PersistencyException {
         storage = new ClusterStorageManager(auth);
         locks = new HashMap<ItemPath, Object>();
         pendingTransactions = new HashMap<Object, ArrayList<TransactionEntry>>();
