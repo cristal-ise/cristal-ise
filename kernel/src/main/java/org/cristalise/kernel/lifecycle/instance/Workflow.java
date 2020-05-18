@@ -79,28 +79,20 @@ public class Workflow extends CompositeActivity implements C2KLocalObject {
     }
 
     /**
-     * Caches a History object for this Item, using the workflow as a locker. This object will be used for all Event storage during
+     * Caches a History object for this Item. This object will be used for all Event storage during
      * execution, to reduce the cost of creating a new one for each one.
      * 
-     * For other storage, such as during initialization, a non-cached History is created
-     * 
-     * @param locker the transaction locker
+     * @param locker the transaction key
      * @return History object
      * @throws InvalidDataException inconsistent data
      */
     public History getHistory(Object locker) throws InvalidDataException {
-        if (locker != this) return new History(itemPath, locker);
-        
         if (history == null) {
             if (itemPath == null) throw new InvalidDataException("Workflow not initialized.");
 
-            history = new History(itemPath, this);
+            history = new History(itemPath, locker);
         }
         return history;
-    }
-
-    public History getHistory() throws InvalidDataException {
-        return getHistory(this);
     }
 
     /**

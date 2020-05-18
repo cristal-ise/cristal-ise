@@ -82,7 +82,7 @@ public class Import extends PredefinedStep {
         // write event, outcome and viewpoints to storage
 
         TransactionManager storage = Gateway.getStorage();
-        History hist = getWf().getHistory();
+        History hist = getWf().getHistory(locker);
         Event event = hist.addEvent(agent, null, getCurrentAgentRole(), getName(), getPath(), getType(), schema,
                 getStateMachine(), transitionID, viewpoint, timestamp);
 
