@@ -12,7 +12,7 @@ appender('STDOUT', ConsoleAppender) {
   }
 }
 
-logger('org.cristalise.kernel.lifecycle', DEBUG)
+// logger('org.cristalise.kernel.lifecycle', DEBUG)
 logger('org.cristalise.kernel.persistency', DEBUG)
 
 root(INFO, ['STDOUT'])
