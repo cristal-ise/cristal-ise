@@ -72,7 +72,7 @@ public class ClusterStorageManager {
         Object clusterStorageProp = Gateway.getProperties().getObject("ClusterStorage");
 
         if (clusterStorageProp == null || "".equals(clusterStorageProp)) {
-            throw new PersistencyException("ClusterStorageManager.init() - no ClusterStorages defined. No persistency!");
+            throw new PersistencyException("init() - no ClusterStorages defined. No persistency!");
         }
 
         ArrayList<ClusterStorage> rootStores;
@@ -99,7 +99,7 @@ public class ClusterStorageManager {
         for (ClusterStorage newStorage : rootStores) {
             newStorage.open(auth);
 
-            log.debug("ClusterStorageManager.init() - Cluster storage " + newStorage.getClass().getName() + " initialised successfully.");
+            log.debug("init() - Cluster storage " + newStorage.getClass().getName() + " initialised successfully.");
             allStores.put(newStorage.getId(), newStorage);
             clusterPriority[clusterNo++] = newStorage.getId();
 
@@ -122,7 +122,7 @@ public class ClusterStorageManager {
                 newStorage = (ClusterStorage)(Class.forName(newStorageClass).newInstance());
             }
             catch (ClassNotFoundException | InstantiationException | IllegalAccessException ex) {
-                throw new PersistencyException("ClusterStorageManager.init() - The cluster storage handler class "+newStorageClass+" could not be found.");
+                throw new PersistencyException("init() - The cluster storage handler class "+newStorageClass+" could not be found.");
             }
             rootStores.add(newStorage);
         }
@@ -173,7 +173,7 @@ public class ClusterStorageManager {
         if (cache.containsKey(clusterType)) return cache.get(clusterType);
 
         // not done yet, we'll have to query them all
-        log.debug("ClusterStorageManager.findStorages() - finding storage for "+clusterType+" forWrite:"+forWrite);
+        log.debug("findStorages() - finding storage for "+clusterType+" forWrite:"+forWrite);
 
         ArrayList<ClusterStorage> useableStorages = new ArrayList<ClusterStorage>();
 
@@ -181,7 +181,7 @@ public class ClusterStorageManager {
             ClusterStorage thisStorage = allStores.get(element);
             short requiredSupport = forWrite ? ClusterStorage.WRITE : ClusterStorage.READ;
             if ((thisStorage.queryClusterSupport(clusterType) & requiredSupport) == requiredSupport) {
-                log.debug( "ClusterStorageManager.findStorages() - Got "+thisStorage.getName());
+                log.debug( "findStorages() - Got "+thisStorage.getName());
                 useableStorages.add(thisStorage);
             }
         }
@@ -225,7 +225,7 @@ public class ClusterStorageManager {
     public String[] getClusterContents(ItemPath itemPath, String path, Object locker) throws PersistencyException {
         ArrayList<String> contents = new ArrayList<String>();
         // get all readers
-        log.trace( "ClusterStorageManager.getClusterContents() - path:"+path);
+        log.trace( "getClusterContents() - path:"+path);
         ArrayList<ClusterStorage> readers = findStorages(ClusterStorage.getClusterType(path), false);
         // try each in turn until we get a result
         for (ClusterStorage thisReader : readers) {
@@ -239,18 +239,18 @@ public class ClusterStorageManager {
                 if (thisArr != null) {
                     for (int j = 0; j < thisArr.length; j++)
                         if (!contents.contains(thisArr[j])) {
-                            log.trace("ClusterStorageManager.getClusterContents() - "+thisReader.getName()+" reports "+thisArr[j]);
+                            log.trace("getClusterContents() - "+thisReader.getName()+" reports "+thisArr[j]);
                             contents.add(thisArr[j]);
                         }
                 }
             }
             catch (PersistencyException e) {
-                log.debug( "ClusterStorageManager.getClusterContents() - reader " + thisReader.getName() +
+                log.debug( "getClusterContents() - reader " + thisReader.getName() +
                         " could not retrieve contents of " + itemPath + "/" + path + ": " + e.getMessage());
             }
         }
 
-        log.trace( "ClusterStorageManager.getClusterContents() - Returning "+contents.size()+" elements of path:"+path);
+        log.trace( "getClusterContents() - Returning "+contents.size()+" elements of path:"+path);
 
         String[] retArr = new String[0];
         retArr = contents.toArray(retArr);
@@ -274,7 +274,7 @@ public class ClusterStorageManager {
             synchronized(sysKeyMemCache) {
                 C2KLocalObject obj = sysKeyMemCache.get(path);
                 if (obj != null) {
-                    log.debug( "ClusterStorageManager.get() - found "+itemPath+"/"+path+" in memcache");
+                    log.debug( "get() - found "+itemPath+"/"+path+" in memcache");
                     return obj;
                 }
             }
@@ -310,18 +310,18 @@ public class ClusterStorageManager {
             for (ClusterStorage thisReader : readers) {
                 try {
                     result = thisReader.get(itemPath, path);
-                    log.debug( "ClusterStorageManager.get() - reading "+path+" from "+thisReader.getName() + " for item " + itemPath);
+                    log.debug( "get() - reading "+path+" from "+thisReader.getName() + " for item " + itemPath);
                     if (result != null) break; // got it!
                 }
                 catch (PersistencyException e) {
-                    log.debug( "ClusterStorageManager.get() - reader "+thisReader.getName()+" could not retrieve "+itemPath+"/"+ path+": "+e.getMessage());
+                    log.debug( "get() - reader "+thisReader.getName()+" could not retrieve "+itemPath+"/"+ path+": "+e.getMessage());
                 }
             }
         }
 
         //No result was found after reading the list of ClusterStorages
         if (result == null) {
-            throw new ObjectNotFoundException("ClusterStorageManager.get() - Path "+path+" not found in "+itemPath);
+            throw new ObjectNotFoundException("get() - Path "+path+" not found in "+itemPath);
         }
 
         putInMemoryCache(itemPath, path, result);
@@ -349,14 +349,14 @@ public class ClusterStorageManager {
         ArrayList<ClusterStorage> writers = findStorages(ClusterStorage.getClusterType(path), true);
         for (ClusterStorage thisWriter : writers) {
             try {
-                log.debug( "ClusterStorageManager.put() - writing "+path+" to "+thisWriter.getName());
+                log.debug( "put() - writing "+path+" to "+thisWriter.getName());
                 if (thisWriter instanceof TransactionalClusterStorage && locker != null)
                     ((TransactionalClusterStorage)thisWriter).put(itemPath, obj, locker);
                 else
                     thisWriter.put(itemPath, obj);
             }
             catch (PersistencyException e) {
-                log.error("ClusterStorageManager.put() - writer " + thisWriter.getName() + " could not store " + itemPath + "/" + path + ": " + e.getMessage());
+                log.error("put() - writer " + thisWriter.getName() + " could not store " + itemPath + "/" + path + ": " + e.getMessage());
                 throw e;
             }
         }
@@ -379,7 +379,7 @@ public class ClusterStorageManager {
      */
     private void putInMemoryCache(ItemPath itemPath, String path, C2KLocalObject obj) {
         if (Gateway.getProperties().getBoolean("Storage.disableCache", false)) {
-            log.trace("ClusterStorageManager.putInMemoryCache() - Cache is DISABLED");
+            log.trace("putInMemoryCache() - Cache is DISABLED");
             return;
         }
 
@@ -391,7 +391,7 @@ public class ClusterStorageManager {
         else {
             boolean useWeak = Gateway.getProperties().getBoolean("Storage.useWeakCache", false);
 
-            log.debug("ClusterStorageManager.putInMemoryCache() - Creating "+(useWeak ? "Weak" : "Strong")+" cache for item "+itemPath);
+            log.debug("putInMemoryCache() - Creating "+(useWeak ? "Weak" : "Strong")+" cache for item "+itemPath);
 
             sysKeyMemCache = useWeak ? new WeakCache<String, C2KLocalObject>() : new SoftCache<String, C2KLocalObject>(0);
 
@@ -418,14 +418,14 @@ public class ClusterStorageManager {
         ArrayList<ClusterStorage> writers = findStorages(ClusterStorage.getClusterType(path), true);
         for (ClusterStorage thisWriter : writers) {
             try {
-                log.debug( "ClusterStorageManager.remove() - removing "+path+" from "+thisWriter.getName());
+                log.debug( "remove() - removing "+path+" from "+thisWriter.getName());
                 if (thisWriter instanceof TransactionalClusterStorage && locker != null)
                     ((TransactionalClusterStorage)thisWriter).delete(itemPath, path, locker);
                 else
                     thisWriter.delete(itemPath, path);
             }
             catch (PersistencyException e) {
-                log.error("ClusterStorageManager.remove() - writer " + thisWriter.getName() + " could not delete " + itemPath + "/" + path + ": " + e.getMessage());
+                log.error("remove() - writer " + thisWriter.getName() + " could not delete " + itemPath + "/" + path + ": " + e.getMessage());
                 throw e;
             }
         }
@@ -445,7 +445,7 @@ public class ClusterStorageManager {
     }
 
     public void clearCache(ItemPath itemPath, String path) {
-        log.debug( "ClusterStorageManager.clearCache() - removing "+itemPath+"/"+path);
+        log.debug( "clearCache() - removing "+itemPath+"/"+path);
 
         if (memoryCache.containsKey(itemPath)) {
             Map<String, C2KLocalObject> sysKeyMemCache = memoryCache.get(itemPath);
@@ -453,7 +453,7 @@ public class ClusterStorageManager {
                 for (Iterator<String> iter = sysKeyMemCache.keySet().iterator(); iter.hasNext();) {
                     String thisPath = iter.next();
                     if (thisPath.startsWith(path)) {
-                        log.debug( "ClusterStorageManager.clearCache() - removing "+itemPath+"/"+thisPath);
+                        log.debug( "clearCache() - removing "+itemPath+"/"+thisPath);
                         iter.remove();
                     }
                 }
@@ -476,7 +476,7 @@ public class ClusterStorageManager {
         synchronized (memoryCache) {
             memoryCache.clear();
         }
-        log.debug( "ClusterStorageManager.clearCache() - cleared entire cache, "+memoryCache.size()+" entities.");
+        log.debug( "clearCache() - cleared entire cache, "+memoryCache.size()+" entities.");
     }
 
     public void dumpCacheContents(int logLevel) {
