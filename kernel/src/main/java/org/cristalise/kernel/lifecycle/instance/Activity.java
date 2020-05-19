@@ -247,42 +247,42 @@ public class Activity extends WfVertex {
         if (getParent() != null) hist = getWf().getHistory(locker);
         else                     hist = new History(itemPath, locker);
 
-            if (storeOutcome) {
-                Schema schema = transition.getSchema(getProperties());
-                Outcome newOutcome = new Outcome(-1, outcome, schema);
+        if (storeOutcome) {
+            Schema schema = transition.getSchema(getProperties());
+            Outcome newOutcome = new Outcome(-1, outcome, schema);
 
             // This is used by PredefinedStep executed during bootstrap
             if (validateOutcome) newOutcome.validateAndCheck();
 
-                String viewpoint = resolveViewpointName(newOutcome);
-                boolean hasAttachment = false;
-                if (attachment.length > 0) {
-                    hasAttachment = true;
-                }
-
-                int eventID = hist.addEvent(agent, delegate, usedRole, getName(), getPath(), getType(),
-                        schema, getStateMachine(), transitionID, viewpoint, hasAttachment).getID();
-                newOutcome.setID(eventID);
-
-                Gateway.getStorage().put(itemPath, newOutcome, locker);
-                if (attachment.length > 0) {
-                    Gateway.getStorage().put(itemPath, new OutcomeAttachment(itemPath, newOutcome, attachmentType, attachment), locker);
-                }
-
-                // update specific view if defined
-                if (!viewpoint.equals("last")) {
-                    Gateway.getStorage().put(itemPath, new Viewpoint(itemPath, schema, viewpoint, eventID), locker);
-                }
-
-                // update the default "last" view
-                Gateway.getStorage().put(itemPath, new Viewpoint(itemPath, schema, "last", eventID), locker);
-
-                updateItemProperties(itemPath, newOutcome, locker);
+            String viewpoint = resolveViewpointName(newOutcome);
+            boolean hasAttachment = false;
+            if (attachment.length > 0) {
+                hasAttachment = true;
             }
-            else {
-                updateItemProperties(itemPath, null, locker);
-                hist.addEvent(agent, delegate, usedRole, getName(), getPath(), getType(), getStateMachine(), transitionID);
+
+            int eventID = hist.addEvent(agent, delegate, usedRole, getName(), getPath(), getType(),
+                    schema, getStateMachine(), transitionID, viewpoint, hasAttachment).getID();
+            newOutcome.setID(eventID);
+
+            Gateway.getStorage().put(itemPath, newOutcome, locker);
+            if (attachment.length > 0) {
+                Gateway.getStorage().put(itemPath, new OutcomeAttachment(itemPath, newOutcome, attachmentType, attachment), locker);
             }
+
+            // update specific view if defined
+            if (!viewpoint.equals("last")) {
+                Gateway.getStorage().put(itemPath, new Viewpoint(itemPath, schema, viewpoint, eventID), locker);
+            }
+
+            // update the default "last" view
+            Gateway.getStorage().put(itemPath, new Viewpoint(itemPath, schema, "last", eventID), locker);
+
+            updateItemProperties(itemPath, newOutcome, locker);
+        }
+        else {
+            updateItemProperties(itemPath, null, locker);
+            hist.addEvent(agent, delegate, usedRole, getName(), getPath(), getType(), getStateMachine(), transitionID);
+        }
 
         if (newState.isFinished() && !(getBuiltInProperty(BREAKPOINT).equals(Boolean.TRUE) && !oldState.isFinished())) {
             runNext(agent, itemPath, locker);
