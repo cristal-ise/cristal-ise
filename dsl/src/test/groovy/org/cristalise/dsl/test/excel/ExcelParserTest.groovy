@@ -4,7 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat
 
 import org.apache.poi.xssf.usermodel.XSSFSheet
 import org.apache.poi.xssf.usermodel.XSSFWorkbook
-import org.cristalise.dsl.excel.ExcelGroovyParser
+import org.cristalise.dsl.csv.ExcelGroovyParser
 import org.junit.Test
 
 //@CompileStatic

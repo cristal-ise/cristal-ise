@@ -2,7 +2,7 @@ package org.cristalise.dsl.persistency.outcome
 
 import org.apache.poi.xssf.usermodel.XSSFSheet
 import org.cristalise.dsl.csv.CSVGroovyParser
-import org.cristalise.dsl.excel.ExcelGroovyParser
+import org.cristalise.dsl.csv.ExcelGroovyParser
 import org.cristalise.kernel.common.InvalidDataException
 
 import groovy.util.logging.Slf4j
