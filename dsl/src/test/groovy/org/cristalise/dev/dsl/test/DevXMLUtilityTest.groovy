@@ -16,9 +16,10 @@ class DevXMLUtilityTest {
         def actual = DevXMLUtility.recordToXML(
             'Batch', [
                 Name: 'ID-12345',
+                ParentBatch: null,
                 Status: [Quality: 'Producion', State: 'Verified'],
                 SignedBy: 'User12',
-                Workorders: ['WO-12', 'WO-53'],
+                Workorders: ['WO-12', 'WO-53', null],
                 ShippmentPerCountry: [
                     [Country: 'Switzerland', boxes: 100],
                     [Country: 'France', boxes: 22],
@@ -30,6 +31,7 @@ class DevXMLUtilityTest {
         def expected ='''
                <Batch>
                  <Name>ID-12345</Name>
+                 <ParentBatch />
                  <Status>
                    <Quality>Producion</Quality>
                    <State>Verified</State>
@@ -37,6 +39,7 @@ class DevXMLUtilityTest {
                  <SignedBy>User12</SignedBy>
                  <Workorders>WO-12</Workorders>
                  <Workorders>WO-53</Workorders>
+                 <Workorders />
                  <ShippmentPerCountry>
                    <Country>Switzerland</Country>
                    <boxes>100</boxes>
@@ -58,7 +61,7 @@ class DevXMLUtilityTest {
                  </ShippmentPerCountry>
                </Batch>'''
 
-        KernelXMLUtility.compareXML(expected, actual)
+        assert KernelXMLUtility.compareXML(expected, actual)
     }
 
 }

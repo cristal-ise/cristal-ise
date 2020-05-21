@@ -67,7 +67,7 @@ class DevXMLUtility {
      * @return the XML string
      */
     public static String recordToXML(String root, Map record) {
-        return recordToXML([root: record])
+        return recordToXML([(root): record])
     }
 
     /**
@@ -105,7 +105,7 @@ class DevXMLUtility {
                         xml."$key" {
                             switch (listValue) {
                                 case Map: recordToXML(xml, listValue); break;
-                                default:  mkp.yield(listValue); break;
+                                default:  if (listValue) mkp.yield(listValue); break;
                             }
                         }
                     }
