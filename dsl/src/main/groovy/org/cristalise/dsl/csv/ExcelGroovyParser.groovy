@@ -36,34 +36,15 @@ import groovy.util.logging.Slf4j
 
 @CompileStatic @Slf4j
 class ExcelGroovyParser {
-    
-    /**
-     * 
-     * @param filePath
-     * @param sheetName
-     * @param headerRowCount
-     * @param block
-     */
-    public static void excelEachRow(String filePath, String sheetName, int headerRowCount, Closure block) {
-        FileInputStream fileStream = new FileInputStream(new File(filePath))
-        XSSFWorkbook workbook = new XSSFWorkbook(fileStream);
 
-        excelEachRow(workbook, sheetName, headerRowCount, block)
+    Map<String, Object> options = [:]
+    XSSFSheet sheet = null
 
-        workbook.close()
-        fileStream.close()
-    }
+    DataFormatter formatter = new DataFormatter()
 
-    /**
-     * 
-     * @param workbook
-     * @param sheetName
-     * @param headerRowCount
-     * @param block
-     */
-    public static void excelEachRow(XSSFWorkbook workbook, String sheetName, int headerRowCount, Closure block) {
-        XSSFSheet sheet = workbook.getSheet(sheetName.trim())
-        eachRow(sheet, headerRowCount, block)
+    public ExcelGroovyParser(XSSFSheet s, Map opts) {
+        options.headerRows = opts.headerRows    != null ? opts.headerRows : 1
+        sheet = s
     }
 
     /**
@@ -72,14 +53,15 @@ class ExcelGroovyParser {
      * @param headerRowCount
      * @return
      */
-    public static List<List<String>> excelHeader(XSSFSheet sheet, int headerRowCount) {
+    private List<List<String>> getExcelHeader() {
+        int headerRowCount = options.headerRows as int
+
         List<List<String>> header = []
-        DataFormatter formatter = new DataFormatter()
 
         for (Row row: sheet) {
             for (Cell cell : row) {
                 def cellText = formatter.formatCellValue(cell)
-                def currentRegion = getMergedRegionForCell(sheet, cell)
+                def currentRegion = getMergedRegionForCell(cell)
 
                 if (currentRegion) {
                     // read the cell text from the first element of the region
@@ -89,7 +71,7 @@ class ExcelGroovyParser {
                 if (log.debugEnabled) {
                     def cellRef = new CellReference(row.getRowNum(), cell.getColumnIndex()).formatAsString()
 
-                    log.debug "excelHeader() - row:${cell.getRowIndex()} cell:$cellRef='$cellText'" +
+                    log.debug "getExcelHeader() - row:${cell.getRowIndex()} cell:$cellRef='$cellText'" +
                     ((currentRegion == null) ? '' : " - region:"+currentRegion.formatAsString())
                 } 
 
@@ -112,7 +94,7 @@ class ExcelGroovyParser {
      * @param names List of String for one column e.g. 'contacts.address[0].purpose'
      * @param value Is a String as presented in the excel
      */
-    public static void convertNamesToMaps(Map map, List<String> names, String value) {
+    private void convertNamesToMaps(Map map, List<String> names, String value) {
         def name = names.head()
         def namesTail = names.tail()
 
@@ -137,10 +119,9 @@ class ExcelGroovyParser {
      * @param headerRowCount
      * @param block
      */
-    public static void eachRow(XSSFSheet sheet, int headerRowCount, Closure block) {
-        DataFormatter formatter = new DataFormatter()
-
-        def header = excelHeader(sheet, headerRowCount)
+    private void processEachRow(Closure block) {
+        def header = getExcelHeader()
+        int headerRowCount = options.headerRows as int
 
         for (Row row: sheet) {
             // skip header section
@@ -152,7 +133,7 @@ class ExcelGroovyParser {
                 def cellRef = new CellReference(row.getRowNum(), cell.getColumnIndex()).formatAsString()
                 def cellText = formatter.formatCellValue(cell)
 
-                log.debug "eachRow() - row:{} cell:{}='{}'", cell.getRowIndex(), cellRef, cellText
+                log.debug "processEachRow() - row:{} cell:{}='{}'", cell.getRowIndex(), cellRef, cellText
 
                 convertNamesToMaps(rowMap, header[cell.columnIndex], cellText)
             }
@@ -169,8 +150,8 @@ class ExcelGroovyParser {
      * @param c
      * @return
      */
-    private static CellRangeAddress getMergedRegionForCell(Sheet s, Cell c) {
-        for (CellRangeAddress mergedRegion : s.getMergedRegions()) {
+    private CellRangeAddress getMergedRegionForCell(Cell c) {
+        for (CellRangeAddress mergedRegion : sheet.getMergedRegions()) {
            if (mergedRegion.isInRange(c)) {
               return mergedRegion;
            }
@@ -187,7 +168,7 @@ class ExcelGroovyParser {
      * @param cell
      * @return
      */
-    public static Object getCellValue(Cell cell) {
+    private Object getCellValue(Cell cell) {
         switch (cell.getCellType()) {
             case CellType.STRING:
                 //print '(STRING) '
@@ -217,5 +198,68 @@ class ExcelGroovyParser {
             default:
                 return null
         }
+    }
+
+    /**
+     * Category method
+     * 
+     * @param self
+     * @param sheetName
+     * @param options
+     * @return
+     */
+    public static List<List<String>> excelHeader(File self, String sheetName, Map options = [:]) {
+        FileInputStream fileStream = new FileInputStream(self)
+        XSSFWorkbook workbook = new XSSFWorkbook(fileStream);
+
+        def header = excelHeader(workbook.getSheet(sheetName.trim()), options)
+
+        workbook.close()
+        fileStream.close()
+
+        return header
+    }
+
+    /**
+     * Category method
+     * 
+     * @param sheet
+     * @param options
+     * @return
+     */
+    public static List<List<String>> excelHeader(XSSFSheet sheet, Map options = [:]) {
+        return new ExcelGroovyParser(sheet, options).getExcelHeader()
+    }
+
+    /**
+     * Category method
+     * 
+     * @param self
+     * @param sheetName
+     * @param options
+     * @param block
+     */
+    public static void excelEachRow(File self, String sheetName, Map options = [:], Closure block) {
+        FileInputStream fileStream = new FileInputStream(self)
+        XSSFWorkbook workbook = new XSSFWorkbook(fileStream);
+
+        XSSFSheet sheet = workbook.getSheet(sheetName.trim())
+        excelEachRow(sheet, options, block)
+
+        workbook.close()
+        fileStream.close()
+    }
+
+    /**
+     * Category method
+     * 
+     * @param filePath
+     * @param sheetName
+     * @param headerRowCount
+     * @param block
+     */
+    public static void excelEachRow(XSSFSheet sheet, Map options = [:], Closure block) {
+        def egp = new ExcelGroovyParser(sheet, options)
+        egp.processEachRow(block)
     }
 }

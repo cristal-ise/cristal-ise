@@ -24,7 +24,7 @@ class TabularSchemaBuilder {
      * @return
      */
     Struct build(XSSFSheet sheet) {
-        ExcelGroovyParser.eachRow(sheet, 2) { Map<String, Object> record, int i ->
+        ExcelGroovyParser.excelEachRow(sheet, [headerRows:2]) { Map<String, Object> record, int i ->
             switch (record['xsd']['class']) {
                 case 'struct'   : convertToStruct(record); break;
                 case 'field'    : convertToField(record); break;
