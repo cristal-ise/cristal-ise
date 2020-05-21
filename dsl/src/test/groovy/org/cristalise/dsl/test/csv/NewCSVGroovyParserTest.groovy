@@ -37,7 +37,7 @@ class NewCSVGroovyParserTest {
     @Test
     public void allTypeConverts() {
         use(CSVGroovyParser) {
-            new File("src/test/data/parsers/convertedTypes.csv").csvEachRow(dateFormater:'yyyy/MM/dd') { types, i ->
+            new File("src/test/data/parsers/convertedTypes.csv").csvEachRow(dateFormatter:'yyyy/MM/dd') { types, i ->
                 assert types
                 
                 assert types.empty == ''

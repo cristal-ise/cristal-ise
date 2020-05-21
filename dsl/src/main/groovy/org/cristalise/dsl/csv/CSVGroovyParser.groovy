@@ -33,8 +33,53 @@ import groovy.util.logging.Slf4j
 
 @Slf4j @CompileStatic
 class CSVGroovyParser {
-    
-    Map options = [:]
+
+    Map<String, Object> options = [:]
+    CSVReader reader = null
+
+    public CSVGroovyParser(Reader ioReader, Map opts) {
+        setDefaultOptions(opts)
+        reader = getCSVReader(ioReader)
+    }
+
+    /**
+     *     
+     * @param r
+     * @return
+     */
+    private CSVReader getCSVReader(Reader ioReader) {
+        def parser = new CSVParserBuilder()
+            .withSeparator(options.separatorChar as char)
+            .withQuoteChar(options.quoteChar as char)
+            .withEscapeChar(options.escapeChar as char)
+            .withStrictQuotes(options.strictQuotes as boolean)
+            .build()
+
+        return new CSVReaderBuilder(ioReader)
+            .withCSVParser(parser)
+            .withSkipLines(options.skipRows as int)
+            .build()
+    }
+
+    /**
+     * 
+     * @param opts
+     */
+    private void setDefaultOptions(Map opts) {
+        options.headerRows    = opts.headerRows    != null ? opts.headerRows    : 1
+        options.skipLeftCols  = opts.skipLeftCols  != null ? opts.skipLeftCols  : 0
+        options.skipRightCols = opts.skipRightCols != null ? opts.skipRightCols : 0
+        options.trimHeader    = opts.trimHeader    != null ? opts.trimHeader    : true
+        options.trimData      = opts.trimData      != null ? opts.trimData      : false
+        options.strictQuotes  = opts.strictQuotes  != null ? opts.strictQuotes  : CSVParser.DEFAULT_STRICT_QUOTES
+        options.skipRows      = opts.skipRows      != null ? opts.skipRows      : CSVReader.DEFAULT_SKIP_LINES
+        options.useStringOnly = opts.useStringOnly != null ? opts.useStringOnly : false
+        options.separatorChar = opts.separatorChar         ? opts.separatorChar : CSVParser.DEFAULT_SEPARATOR
+        options.quoteChar     = opts.quoteChar             ? opts.quoteChar     : CSVParser.DEFAULT_QUOTE_CHARACTER
+        options.escapeChar    = opts.escapeChar            ? opts.escapeChar    : CSVParser.DEFAULT_ESCAPE_CHARACTER
+        options.dateFormatter = opts.dateFormatter         ? opts.dateFormatter : 'yyyy/MM/dd'
+        options.header        = opts.header                ? opts.header        : []
+    }
 
     /**
      *
@@ -45,10 +90,15 @@ class CSVGroovyParser {
      * @param trim
      * @return
      */
-    public static List getCsvHeader(CSVReader reader, int rowCount, int skipLeftCols, int skipRightCols, boolean trim) {
+    private List getCsvHeader() {
+        int rowCount = options.headerRows as int
+        int skipLeftCols = options.skipLeftCols as int
+        int skipRightCols = options.skipRightCols as int
+        boolean trim = (boolean)options.trimData
+
         assert rowCount, "row count for header must be grater than zero"
 
-        log.debug "rowCount: $rowCount, skipLeftCols: $skipLeftCols, skipRightCols: $skipRightCols"
+        log.debug "getCsvHeader() - rowCount: $rowCount, skipLeftCols: $skipLeftCols, skipRightCols: $skipRightCols"
 
         List<String[]> headerRows = []
         Integer size = null
@@ -59,7 +109,7 @@ class CSVGroovyParser {
 
             assert headerRows[i], "$i. row in header is null or zero size"
 
-            log.debug "headerRows[$i] size: ${headerRows[i].size()}"
+            log.debug "getCsvHeader() - headerRows[$i] size: ${headerRows[i].size()}"
 
             //compare current size with the previous
             if (size) {
@@ -86,12 +136,47 @@ class CSVGroovyParser {
                 //if not null/empty append it to the list
                 if (name) { aList << name }
             }
-            log.info "header[${i-skipLeftCols}] = $aList"
+            log.info "getCsvHeader() - header[${i-skipLeftCols}] = $aList"
             header << aList
         }
         return header
     }
 
+    /**
+     * 
+     * @param value
+     * @return
+     */
+    private Object getValue(String value) {
+        //Assign the value to the map and cast it to a real type
+        if ((boolean)options.useStringOnly || !value) {
+            //value is null or empty string
+            return (boolean)options.trimData && value != null ? value.trim() : value
+        }
+        else if (value.isInteger()) {
+            return value.trim() as Integer
+        }
+        else if (value.isBigInteger()) {
+            return value.trim() as BigInteger
+        }
+        else if (value.isBigDecimal()) {
+            return value.trim() as BigDecimal
+        }
+        else {
+            try {
+                if((String)options.dateFormatter) {
+                    return LocalDate.parse(value.trim(), (String)options.dateFormatter)
+                }
+                else {
+                    return LocalDate.parse(value.trim())
+                }
+            }
+            catch (DateTimeParseException e) {
+                //OpenCSV always returns String
+                return (boolean)options.trimData && value != null ? value.trim() : value
+            }
+        }
+    }
 
     /**
      * Recursively process the list of names to build the nested Maps and Lists
@@ -101,7 +186,7 @@ class CSVGroovyParser {
      * @param value Is a String as returned by OpensCSV
      * @return
      */
-    public static void convertNamesToMaps(Map<String, Object> map, List<String> names, boolean trim, String dateFormater, boolean stringOnly, String value) {
+    private void convertNamesToMaps(Map<String, Object> map, List<String> names, String value) {
         String name = names.head()
         List<String> namesTail = names.tail()
         int index = -1
@@ -121,47 +206,19 @@ class CSVGroovyParser {
             if(index == -1) {
                 if(!map[name]) { map[name] = [:] } //init Map
 
-                convertNamesToMaps((Map)map[name], namesTail, trim, dateFormater, stringOnly, value)
+                convertNamesToMaps((Map)map[name], namesTail, value)
             }
             else {
                 //Dealing with repeating section, so handle it as List of Maps
                 if(!map[name]) { map[name] = [] } //init List
                 if(!((List)map[name])[index]) { ((List)map[name])[index] = [:] } //init Map in the List
 
-                convertNamesToMaps((Map)((List)map[name])[index], namesTail, trim, dateFormater, stringOnly, value)
+                convertNamesToMaps((Map)((List)map[name])[index], namesTail, value)
             }
         }
         else {
-            //Assign the value to the map and cast it to a real type
-            if (stringOnly || !value) {
-                //value is null or empty string
-                map[name] = trim && value ? value.trim() : value
-            }
-            else if (value.isInteger()) {
-                map[name] = value.trim() as Integer
-            }
-            else if (value.isBigInteger()) {
-                map[name] = value.trim() as BigInteger
-            }
-            else if (value.isBigDecimal()) {
-                map[name] = value.trim() as BigDecimal
-            }
-            else {
-                try {
-                    if(dateFormater) {
-                        map[name] = LocalDate.parse(value.trim(), dateFormater)
-                    }
-                    else {
-                        map[name] = LocalDate.parse(value.trim())
-                    }
-                }
-                catch (DateTimeParseException e) {
-                    //OpenCSV always returns String
-                    map[name] = trim && value ? value.trim() : value
-                }
-            }
-
-            log.debug "map[name] = " + map[name].dump()
+            map[name] = getValue(value)
+            log.debug "map[$name] = ${map[name]}"
         }
     }
 
@@ -171,13 +228,14 @@ class CSVGroovyParser {
      * @param options
      * @param cl
      */
-    private static void processEachRow(CSVReader reader, Map options, Closure cl) {
+    private void processEachRow(Closure cl) {
         String[] nextLine;
 
         int headerRows        = options.headerRows as int
         int skipLeftCols      = options.skipLeftCols as int
         int skipRightCols     = options.skipRightCols as int
         List<String[]> header = options.header as List
+
         int index = 0
 
         //CSV has no header
@@ -190,7 +248,7 @@ class CSVGroovyParser {
         }
         else {
             if(!header) {
-                header = getCsvHeader(reader, headerRows, skipLeftCols, skipRightCols, options.trimHeader as boolean)
+                header = getCsvHeader()
             }
             else {
                 log.debug "external header: $header"
@@ -206,13 +264,7 @@ class CSVGroovyParser {
 
                 //header is a List of Lists
                 header.eachWithIndex { names, i ->
-                    convertNamesToMaps(
-                        map, 
-                        names as List<String>, 
-                        (boolean)options.trimData,
-                        (String)options.dateFormater,
-                        (boolean)options.useStringOnly,
-                        nextLine[i+skipLeftCols])
+                    convertNamesToMaps(map, names as List<String>, nextLine[i+skipLeftCols])
                 }
 
                 log.debug "map given to closure of user: $map"
@@ -223,83 +275,35 @@ class CSVGroovyParser {
     }
 
     /**
-     *
-     * @param options
-     * @return
-     */
-    public static void setDefaultCsvOptions(Map options) {
-        assert options != null, "options cannot be null"
-
-        options.headerRows    = options.headerRows    != null ? options.headerRows    : 1
-        options.skipLeftCols  = options.skipLeftCols  != null ? options.skipLeftCols  : 0
-        options.skipRightCols = options.skipRightCols != null ? options.skipRightCols : 0
-        options.trimHeader    = options.trimHeader    != null ? options.trimHeader    : true
-        options.trimData      = options.trimData      != null ? options.trimData      : false
-        options.strictQuotes  = options.strictQuotes  != null ? options.strictQuotes  : CSVParser.DEFAULT_STRICT_QUOTES
-        options.skipRows      = options.skipRows      != null ? options.skipRows      : CSVReader.DEFAULT_SKIP_LINES
-        options.useStringOnly = options.useStringOnly != null ? options.useStringOnly : false
-        options.separatorChar = options.separatorChar         ? options.separatorChar : CSVParser.DEFAULT_SEPARATOR
-        options.quoteChar     = options.quoteChar             ? options.quoteChar     : CSVParser.DEFAULT_QUOTE_CHARACTER
-        options.escapeChar    = options.escapeChar            ? options.escapeChar    : CSVParser.DEFAULT_ESCAPE_CHARACTER
-        //options.dateFormater  = options.dateFormater  ?: 'yyyy/MM/dd'
-    }
-
-    /**
-     *
-     * @param reader
-     * @param options
-     * @return
-     */
-    private static CSVReader getCSVReader(Reader reader, Map options) {
-        def parser = new CSVParserBuilder()
-            .withSeparator(options.separatorChar as char)
-            .withQuoteChar(options.quoteChar as char)
-            .withEscapeChar(options.escapeChar as char)
-            .withStrictQuotes(options.strictQuotes as boolean)
-            .build()
-        
-        return new CSVReaderBuilder(reader)
-            .withCSVParser(parser)
-            .withSkipLines(options.skipRows as int)
-            .build()
-    }
-
-    /**
-     * Category method
-     *
-     * @param self
-     * @return
-     */
-    public static List csvHeader(File self) {
-        csvHeader(self,[:])
-    }
-
-    /**
      * Category method
      *
      * @param self
      * @param options
      * @return
      */
-    public static List csvHeader(File self, Map options) {
-        setDefaultCsvOptions(options)
-        def reader = getCSVReader(new FileReader(self), options)
-        return getCsvHeader(
-            reader,
-            (int)options.headerRows,
-            (int)options.skipLeftCols,
-            (int)options.skipRightCols,
-            (boolean)options.trimHeader)
+    public static List csvHeader(File self, Map options = [:]) {
+        return new CSVGroovyParser(new FileReader(self), options).getCsvHeader()
     }
 
     /**
      * Category method
+     * 
+     * @param self
+     * @param options
+     * @return
+     */
+    public static List csvHeader(String self, Map options = [:]) {
+        return new CSVGroovyParser(new StringReader(self), options).getCsvHeader()
+    }
+    /**
+     * Category method
      *
      * @param self
+     * @param options
      * @param cl
      */
-    public static void csvEachRow(File self, Closure cl) {
-        csvEachRow(self, [:], cl)
+    public static void csvEachRow(File self, Map options = [:], Closure cl) {
+        new CSVGroovyParser(new FileReader(self), options).processEachRow(cl)
     }
 
     /**
@@ -309,66 +313,13 @@ class CSVGroovyParser {
      * @param options
      * @param cl
      */
-    public static void csvEachRow(File self, Map options, Closure cl) {
-        setDefaultCsvOptions(options)
-        def reader = getCSVReader(new FileReader(self), options)
-        processEachRow(reader, options, cl)
-    }
-
-    /**
-     * Category method
-     *
-     * @param self
-     * @return
-     */
-    public static List csvHeader(String self) {
-        csvHeader(self,[:])
-    }
-
-    /**
-     * Category method
-     *
-     * @param self
-     * @param options
-     * @return
-     */
-    public static List csvHeader(String self, Map options) {
-        setDefaultCsvOptions(options)
-        def reader = getCSVReader(new StringReader(self), options)
-        return getCsvHeader(
-            reader,
-            (int)options.headerRows,
-            (int)options.skipLeftCols,
-            (int)options.skipRightCols,
-            (boolean)options.trimHeader)
-    }
-
-    /**
-     * Category method
-     *
-     * @param self
-     * @param cl
-     */
-    public static void csvEachRow(String self, Closure cl) {
-        csvEachRow(self, [:], cl)
-    }
-
-    /**
-     * Category method
-     *
-     * @param self
-     * @param options
-     * @param cl
-     */
-    public static void csvEachRow(String self, Map options, Closure cl) {
-        setDefaultCsvOptions(options)
-        def reader = getCSVReader(new StringReader(self), options)
-        processEachRow(reader, options, cl)
+    public static void csvEachRow(String self, Map options = [:], Closure cl) {
+        new CSVGroovyParser(new StringReader(self), options).processEachRow(cl)
     }
 
     /**
      * @deprecated use {@link #csvEachRow(File, Closure)} to avoid name collision with 
-     * CSVGroovyParser when it is used as groovy Category or Extension.
+     * ExcelGroovyParser when it is used as groovy Category or Extension.
      * @param file
      * @param cl
      * @throws IOException
@@ -380,7 +331,7 @@ class CSVGroovyParser {
 
     /**
      * @deprecated use {@link #csvEachRow(String, Closure)} to avoid name collision with 
-     * CSVGroovyParser when it is used as groovy Category or Extension.
+     * ExcelGroovyParser when it is used as groovy Category or Extension.
      * @param string
      * @param cl
      * @throws IOException
@@ -389,5 +340,4 @@ class CSVGroovyParser {
     public static void parse(final String string, Closure cl) throws IOException {
         csvEachRow(string, [headerRows: 1, trimData: true, useStringOnly: true], cl)
     }
-
 }
