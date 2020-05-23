@@ -23,6 +23,9 @@ package org.cristalise.dsl.csv
 import java.time.LocalDate
 import java.time.format.DateTimeParseException
 
+import org.apache.commons.lang3.math.NumberUtils
+import org.apache.commons.lang3.time.DateUtils
+
 import com.opencsv.CSVParser
 import com.opencsv.CSVParserBuilder
 import com.opencsv.CSVReader
@@ -32,7 +35,7 @@ import groovy.transform.CompileStatic;
 import groovy.util.logging.Slf4j
 
 @Slf4j @CompileStatic
-class CSVGroovyParser {
+class CSVGroovyParser implements TabularGroovyParser {
 
     Map<String, Object> options = [:]
     CSVReader reader = null
@@ -40,6 +43,16 @@ class CSVGroovyParser {
     public CSVGroovyParser(Reader ioReader, Map opts) {
         setDefaultOptions(opts)
         reader = getCSVReader(ioReader)
+    }
+
+    @Override
+    public void setHeaderRowCount(int rowCount) {
+        options.headerRows = rowCount
+    }
+
+    @Override
+    public void setHeader(List<List<String>> h) {
+        options.header = h
     }
 
     /**
@@ -77,7 +90,7 @@ class CSVGroovyParser {
         options.separatorChar = opts.separatorChar         ? opts.separatorChar : CSVParser.DEFAULT_SEPARATOR
         options.quoteChar     = opts.quoteChar             ? opts.quoteChar     : CSVParser.DEFAULT_QUOTE_CHARACTER
         options.escapeChar    = opts.escapeChar            ? opts.escapeChar    : CSVParser.DEFAULT_ESCAPE_CHARACTER
-        options.dateFormatter = opts.dateFormatter         ? opts.dateFormatter : 'yyyy/MM/dd'
+//        options.dateFormatter = opts.dateFormatter         ? opts.dateFormatter : 'yyyy/MM/dd'
         options.header        = opts.header                ? opts.header        : []
     }
 
@@ -90,7 +103,8 @@ class CSVGroovyParser {
      * @param trim
      * @return
      */
-    private List getCsvHeader() {
+    @Override
+    public List<List<String>> getHeader() {
         int rowCount = options.headerRows as int
         int skipLeftCols = options.skipLeftCols as int
         int skipRightCols = options.skipRightCols as int
@@ -98,7 +112,7 @@ class CSVGroovyParser {
 
         assert rowCount, "row count for header must be grater than zero"
 
-        log.debug "getCsvHeader() - rowCount: $rowCount, skipLeftCols: $skipLeftCols, skipRightCols: $skipRightCols"
+        log.debug "getHeader() - rowCount: $rowCount, skipLeftCols: $skipLeftCols, skipRightCols: $skipRightCols"
 
         List<String[]> headerRows = []
         Integer size = null
@@ -109,7 +123,7 @@ class CSVGroovyParser {
 
             assert headerRows[i], "$i. row in header is null or zero size"
 
-            log.debug "getCsvHeader() - headerRows[$i] size: ${headerRows[i].size()}"
+            log.debug "getHeader() - headerRows[$i] size: ${headerRows[i].size()}"
 
             //compare current size with the previous
             if (size) {
@@ -136,31 +150,43 @@ class CSVGroovyParser {
                 //if not null/empty append it to the list
                 if (name) { aList << name }
             }
-            log.info "getCsvHeader() - header[${i-skipLeftCols}] = $aList"
+            log.info "getHeader() - header[${i-skipLeftCols}] = $aList"
             header << aList
         }
         return header
     }
 
     /**
-     * 
-     * @param value
-     * @return
+     * Cast the string value to a real type
+     * @param value in string format
+     * @return the value converted to its real type
      */
     private Object getValue(String value) {
-        //Assign the value to the map and cast it to a real type
-        if ((boolean)options.useStringOnly || !value) {
+        boolean trim = (boolean)options.trimData
+
+        if (!value) {
             //value is null or empty string
-            return (boolean)options.trimData && value != null ? value.trim() : value
+            return value
         }
-        else if (value.isInteger()) {
-            return value.trim() as Integer
+        else if ((boolean)options.useStringOnly) {
+            return trim ? value.trim() : value
         }
-        else if (value.isBigInteger()) {
-            return value.trim() as BigInteger
+        else if (value == 'null') {
+            return null
         }
-        else if (value.isBigDecimal()) {
-            return value.trim() as BigDecimal
+        else if (NumberUtils.isCreatable(value)) {
+            if (value.isInteger()) {
+                return value.trim() as Integer
+            }
+            else if (value.isBigInteger()) {
+                return value.trim() as BigInteger
+            }
+            else if (value.isBigDecimal()) {
+                return value.trim() as BigDecimal
+            }
+            else {
+                return value.trim() as Number
+            }
         }
         else {
             try {
@@ -172,8 +198,7 @@ class CSVGroovyParser {
                 }
             }
             catch (DateTimeParseException e) {
-                //OpenCSV always returns String
-                return (boolean)options.trimData && value != null ? value.trim() : value
+                return trim ? value.trim() : value
             }
         }
     }
@@ -228,13 +253,14 @@ class CSVGroovyParser {
      * @param options
      * @param cl
      */
-    private void processEachRow(Closure cl) {
+    @Override
+    public void eachRow(Closure cl) {
         String[] nextLine;
 
-        int headerRows        = options.headerRows as int
-        int skipLeftCols      = options.skipLeftCols as int
-        int skipRightCols     = options.skipRightCols as int
-        List<String[]> header = options.header as List
+        int headerRows            = options.headerRows as int
+        int skipLeftCols          = options.skipLeftCols as int
+        int skipRightCols         = options.skipRightCols as int
+        List<List<String>> header = options.header as List
 
         int index = 0
 
@@ -248,7 +274,7 @@ class CSVGroovyParser {
         }
         else {
             if(!header) {
-                header = getCsvHeader()
+                header = getHeader()
             }
             else {
                 log.debug "external header: $header"
@@ -281,8 +307,8 @@ class CSVGroovyParser {
      * @param options
      * @return
      */
-    public static List csvHeader(File self, Map options = [:]) {
-        return new CSVGroovyParser(new FileReader(self), options).getCsvHeader()
+    public static List<List<String>> csvHeader(File self, Map options = [:]) {
+        return new CSVGroovyParser(new FileReader(self), options).getHeader()
     }
 
     /**
@@ -292,9 +318,10 @@ class CSVGroovyParser {
      * @param options
      * @return
      */
-    public static List csvHeader(String self, Map options = [:]) {
-        return new CSVGroovyParser(new StringReader(self), options).getCsvHeader()
+    public static List<List<String>> csvHeader(String self, Map options = [:]) {
+        return new CSVGroovyParser(new StringReader(self), options).getHeader()
     }
+
     /**
      * Category method
      *
@@ -303,7 +330,7 @@ class CSVGroovyParser {
      * @param cl
      */
     public static void csvEachRow(File self, Map options = [:], Closure cl) {
-        new CSVGroovyParser(new FileReader(self), options).processEachRow(cl)
+        new CSVGroovyParser(new FileReader(self), options).eachRow(cl)
     }
 
     /**
@@ -314,7 +341,7 @@ class CSVGroovyParser {
      * @param cl
      */
     public static void csvEachRow(String self, Map options = [:], Closure cl) {
-        new CSVGroovyParser(new StringReader(self), options).processEachRow(cl)
+        new CSVGroovyParser(new StringReader(self), options).eachRow(cl)
     }
 
     /**

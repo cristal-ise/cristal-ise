@@ -35,7 +35,7 @@ import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
 
 @CompileStatic @Slf4j
-class ExcelGroovyParser {
+class ExcelGroovyParser implements TabularGroovyParser {
 
     Map<String, Object> options = [:]
     XSSFSheet sheet = null
@@ -43,8 +43,18 @@ class ExcelGroovyParser {
     DataFormatter formatter = new DataFormatter()
 
     public ExcelGroovyParser(XSSFSheet s, Map opts) {
-        options.headerRows = opts.headerRows    != null ? opts.headerRows : 1
+        options.headerRows = opts.headerRows != null ? opts.headerRows : 1
         sheet = s
+    }
+
+    @Override
+    public void setHeaderRowCount(int rowCount) {
+        options.headerRows = rowCount
+    }
+
+    @Override
+    public void setHeader(List<List<String>> h) {
+        options.header = h
     }
 
     /**
@@ -53,7 +63,8 @@ class ExcelGroovyParser {
      * @param headerRowCount
      * @return
      */
-    private List<List<String>> getExcelHeader() {
+    @Override
+    public List<List<String>> getHeader() {
         int headerRowCount = options.headerRows as int
 
         List<List<String>> header = []
@@ -71,7 +82,7 @@ class ExcelGroovyParser {
                 if (log.debugEnabled) {
                     def cellRef = new CellReference(row.getRowNum(), cell.getColumnIndex()).formatAsString()
 
-                    log.debug "getExcelHeader() - row:${cell.getRowIndex()} cell:$cellRef='$cellText'" +
+                    log.debug "getHeader() - row:${cell.getRowIndex()} cell:$cellRef='$cellText'" +
                     ((currentRegion == null) ? '' : " - region:"+currentRegion.formatAsString())
                 } 
 
@@ -119,8 +130,9 @@ class ExcelGroovyParser {
      * @param headerRowCount
      * @param block
      */
-    private void processEachRow(Closure block) {
-        def header = getExcelHeader()
+    @Override
+    public void eachRow(Closure block) {
+        def header = getHeader()
         int headerRowCount = options.headerRows as int
 
         for (Row row: sheet) {
@@ -228,7 +240,7 @@ class ExcelGroovyParser {
      * @return
      */
     public static List<List<String>> excelHeader(XSSFSheet sheet, Map options = [:]) {
-        return new ExcelGroovyParser(sheet, options).getExcelHeader()
+        return new ExcelGroovyParser(sheet, options).getHeader()
     }
 
     /**
@@ -260,6 +272,6 @@ class ExcelGroovyParser {
      */
     public static void excelEachRow(XSSFSheet sheet, Map options = [:], Closure block) {
         def egp = new ExcelGroovyParser(sheet, options)
-        egp.processEachRow(block)
+        egp.eachRow(block)
     }
 }
