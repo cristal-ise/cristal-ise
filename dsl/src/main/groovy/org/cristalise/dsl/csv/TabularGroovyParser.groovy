@@ -11,7 +11,7 @@ import groovy.transform.CompileStatic
 @CompileStatic
 public interface TabularGroovyParser {
     
-    public enum ParserTypes {EXCEL, CSV, GSHEET} //GSHEET is not supported yet
+    public enum ParserTypes {EXCEL, CSV}
 
     /**
      * Sets the number of rows to be used as header, default is 1

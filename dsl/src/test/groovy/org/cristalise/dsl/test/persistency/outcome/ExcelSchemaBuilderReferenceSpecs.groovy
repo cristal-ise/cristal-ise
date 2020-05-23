@@ -40,7 +40,7 @@ class ExcelSchemaBuilderReferenceSpecs extends Specification implements CristalT
 
     def 'Field can specify the item type it references using String'() {
         expect:
-        SchemaTestBuilder.excel('test', 'ItemType', 0, xlsxFile)
+        SchemaTestBuilder.build('test', 'ItemType', 0, xlsxFile)
         .compareXML(
             """<xs:schema xmlns:xs='http://www.w3.org/2001/XMLSchema'>
                  <xs:element name='ItemType'>

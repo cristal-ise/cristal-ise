@@ -1,8 +1,6 @@
 package org.cristalise.dsl.persistency.outcome
 
-import org.apache.poi.xssf.usermodel.XSSFSheet
-import org.cristalise.dsl.csv.CSVGroovyParser
-import org.cristalise.dsl.csv.ExcelGroovyParser
+import org.cristalise.dsl.csv.TabularGroovyParser
 import org.cristalise.kernel.common.InvalidDataException
 
 import groovy.util.logging.Slf4j
@@ -11,20 +9,20 @@ import groovy.util.logging.Slf4j
  * 
  *
  */
-@Slf4j
+@Slf4j //@CompileStatic
 class TabularSchemaBuilder {
     /**
      * Contains the actually processed Structs or Field
      */
-    def parentLifo = []
+    private List parentLifo = []
 
     /**
      * 
      * @param sheet
      * @return
      */
-    Struct build(XSSFSheet sheet) {
-        ExcelGroovyParser.excelEachRow(sheet, [headerRows:2]) { Map<String, Object> record, int i ->
+    Struct build(TabularGroovyParser parser) {
+        parser.eachRow() { Map<String, Object> record, int i ->
             switch (record['xsd']['class']) {
                 case 'struct'   : convertToStruct(record); break;
                 case 'field'    : convertToField(record); break;
@@ -36,19 +34,6 @@ class TabularSchemaBuilder {
 
         return (Struct) parentLifo.pop()
     }
-
-    Struct build(String csv) {
-        CSVGroovyParser.csvEachRow(csv, headerRows:2) { Map<String, Object> record, int i ->
-            switch (record['xsd']['class']) {
-                case 'struct'   : convertToStruct(record); break;
-                case 'field'    : convertToField(record); break;
-                case 'attribute': convertToAttribute(record); break;
-                default:
-                    throw new InvalidDataException('Uncovered class value:' + record['xsd']['class'])
-            }
-        }
-    }
-
 
     /**
      * Convert comma separated string to list before calling map constructor

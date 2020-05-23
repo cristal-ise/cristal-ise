@@ -40,7 +40,7 @@ class ExcelSchemaBuilderStructSpecs extends Specification implements CristalTest
 
     def 'Building empty Structure with documentation adds annotation to the element'() {
         expect:
-        SchemaTestBuilder.excel('test', 'EmptyWithDoc', 0, xlsxFile)
+        SchemaTestBuilder.build('test', 'EmptyWithDoc', 0, xlsxFile)
         .compareXML("""<?xml version='1.0' encoding='utf-8'?>
                        <xs:schema xmlns:xs='http://www.w3.org/2001/XMLSchema'>
                          <xs:element name='EmptyWithDoc'>
@@ -54,7 +54,7 @@ class ExcelSchemaBuilderStructSpecs extends Specification implements CristalTest
 
     def 'Define sequence of Fields which default type is string and multiplicity is 1'() {
         expect:
-        SchemaTestBuilder.excel('test', 'Stringfields-Seq', 0, xlsxFile)
+        SchemaTestBuilder.build('test', 'Stringfields-Seq', 0, xlsxFile)
         .compareXML("""<xs:schema xmlns:xs='http://www.w3.org/2001/XMLSchema'>
                           <xs:element name='Stringfields-Seq'>
                             <xs:complexType>
@@ -69,7 +69,7 @@ class ExcelSchemaBuilderStructSpecs extends Specification implements CristalTest
 
     def 'Define unordered set of Fields which default type is string and multiplicity is 1'() {
         expect:
-        SchemaTestBuilder.excel('test', 'Stringfields-All', 0, xlsxFile)
+        SchemaTestBuilder.build('test', 'Stringfields-All', 0, xlsxFile)
         .compareXML("""<xs:schema xmlns:xs='http://www.w3.org/2001/XMLSchema'>
                           <xs:element name='Stringfields-All'>
                             <xs:complexType>
@@ -84,7 +84,7 @@ class ExcelSchemaBuilderStructSpecs extends Specification implements CristalTest
 
     def 'Structure can define nested Structure with multiplicity'() {
         expect:
-        SchemaTestBuilder.excel('test', 'NestedStructure', 0, xlsxFile)
+        SchemaTestBuilder.build('test', 'NestedStructure', 0, xlsxFile)
         .compareXML(
             """<xs:schema xmlns:xs='http://www.w3.org/2001/XMLSchema'>
                   <xs:element name='NestedStructure'>
@@ -107,7 +107,7 @@ class ExcelSchemaBuilderStructSpecs extends Specification implements CristalTest
 
     def 'Structure definition keeps the order of fields and structs'() {
         expect:
-        SchemaTestBuilder.excel('test', 'StructureOrder', 0, xlsxFile)
+        SchemaTestBuilder.build('test', 'StructureOrder', 0, xlsxFile)
         .compareXML("""<?xml version='1.0' encoding='utf-8'?>
                         <xs:schema xmlns:xs='http://www.w3.org/2001/XMLSchema'>
                           <xs:element name='StructureOrder'>
@@ -138,7 +138,7 @@ class ExcelSchemaBuilderStructSpecs extends Specification implements CristalTest
 
     def 'Structure can have a list of Attributes which default type is string'() {
         expect:
-        SchemaTestBuilder.excel('test', 'Attribute', 0, xlsxFile)
+        SchemaTestBuilder.build('test', 'Attribute', 0, xlsxFile)
         .compareXML("""<?xml version='1.0' encoding='utf-8'?>
                        <xs:schema xmlns:xs='http://www.w3.org/2001/XMLSchema'>
                          <xs:element name='Attribute'>
@@ -157,7 +157,7 @@ class ExcelSchemaBuilderStructSpecs extends Specification implements CristalTest
 //                field(name:'stringField1')
 //                anyField()
 //            }
-        SchemaTestBuilder.excel('test', 'AnyField', 0, xlsxFile)
+        SchemaTestBuilder.build('test', 'AnyField', 0, xlsxFile)
         .compareXML("""<xs:schema xmlns:xs='http://www.w3.org/2001/XMLSchema'>
                           <xs:element name='AnyField'>
                             <xs:complexType>
@@ -172,7 +172,7 @@ class ExcelSchemaBuilderStructSpecs extends Specification implements CristalTest
 
     def 'Complex example using PatientDetails from Basic Tutorial'() {
         expect:
-        SchemaTestBuilder.excel('test', 'PatientDetails', 0, xlsxFile)
+        SchemaTestBuilder.build('test', 'PatientDetails', 0, xlsxFile)
         .compareXML(
             """<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
                  <xs:element name="PatientDetails">

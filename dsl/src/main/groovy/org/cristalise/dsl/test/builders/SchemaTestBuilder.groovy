@@ -42,17 +42,9 @@ class SchemaTestBuilder extends SchemaBuilder {
         schema = sb.schema
     }
 
-    public static SchemaTestBuilder excel(String module, String name, int version, String excelFile) {
-        FileInputStream fileStream = new FileInputStream(new File(excelFile))
-        XSSFWorkbook workbook = new XSSFWorkbook(fileStream);
-
-        XSSFSheet sheet = workbook.getSheet(name)
-
-        def sb = SchemaBuilder.build(module, name, version, sheet)
+    public static SchemaTestBuilder build(String module, String name, int version, String fileName) {
+        def sb = SchemaBuilder.build(module, name, version, fileName)
         sb.schema.validate()
-
-        workbook.close()
-        fileStream.close()
 
         return new SchemaTestBuilder(sb)
     }

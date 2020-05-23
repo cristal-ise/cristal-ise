@@ -43,13 +43,13 @@ class ExcelGroovyParser implements TabularGroovyParser {
     DataFormatter formatter = new DataFormatter()
 
     public ExcelGroovyParser(XSSFSheet s, Map opts) {
-        options.headerRows = opts.headerRows != null ? opts.headerRows : 1
+        options.headerRowCount = opts.headerRowCount != null ? opts.headerRowCount : 1
         sheet = s
     }
 
     @Override
     public void setHeaderRowCount(int rowCount) {
-        options.headerRows = rowCount
+        options.headerRowCount = rowCount
     }
 
     @Override
@@ -65,7 +65,7 @@ class ExcelGroovyParser implements TabularGroovyParser {
      */
     @Override
     public List<List<String>> getHeader() {
-        int headerRowCount = options.headerRows as int
+        int headerRowCount = options.headerRowCount as int
 
         List<List<String>> header = []
 
@@ -133,7 +133,7 @@ class ExcelGroovyParser implements TabularGroovyParser {
     @Override
     public void eachRow(Closure block) {
         def header = getHeader()
-        int headerRowCount = options.headerRows as int
+        int headerRowCount = options.headerRowCount as int
 
         for (Row row: sheet) {
             // skip header section

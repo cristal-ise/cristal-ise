@@ -45,7 +45,7 @@ class ExcelSchemaBuilderDynymicFormsSpecs extends Specification implements Crist
 
     def 'Field can specify dynamicForms.mask'() {
         expect:
-        SchemaTestBuilder.excel('test', 'Mask', 0, xlsxFile)
+        SchemaTestBuilder.build('test', 'Mask', 0, xlsxFile)
         .compareXML(
             """<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
                  <xs:element name="Mask">
@@ -78,7 +78,7 @@ class ExcelSchemaBuilderDynymicFormsSpecs extends Specification implements Crist
     //@Ignore('God knows what wrong with this test')
     def 'Field can specify dynamicForms.placeHolder'() {
         expect:
-        SchemaTestBuilder.excel('test', 'PlaceHolder', 0, xlsxFile)
+        SchemaTestBuilder.build('test', 'PlaceHolder', 0, xlsxFile)
         .compareXML(
             """<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
                  <xs:element name="PlaceHolder">
@@ -110,7 +110,7 @@ class ExcelSchemaBuilderDynymicFormsSpecs extends Specification implements Crist
 
     def 'Field can specify dynamicForms.showSeconds and dynamicForms.hideOnDateTimeSelect'() {
         expect:
-        SchemaTestBuilder.excel('test', 'ShowSeconds', 0, xlsxFile)
+        SchemaTestBuilder.build('test', 'ShowSeconds', 0, xlsxFile)
         .compareXML(
             """<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
                  <xs:element name="ShowSeconds">
@@ -146,7 +146,7 @@ class ExcelSchemaBuilderDynymicFormsSpecs extends Specification implements Crist
 
     def 'Field can specify dynamicForms.inputType using htmlAccept'() {
       expect: 
-      SchemaTestBuilder.excel('test', 'HtmlAccept', 0, xlsxFile)
+      SchemaTestBuilder.build('test', 'HtmlAccept', 0, xlsxFile)
       .compareXML(
         '''<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
           <xs:element name="HtmlAccept">
@@ -171,7 +171,7 @@ class ExcelSchemaBuilderDynymicFormsSpecs extends Specification implements Crist
 
     def 'Field can specify dynamicForms.warning using pattern or expression with message'() {
         expect:
-        SchemaTestBuilder.excel('test', 'Warning', 0, xlsxFile)
+        SchemaTestBuilder.build('test', 'Warning', 0, xlsxFile)
         .compareXML(
             '''<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
                  <xs:element name="Warning">
@@ -213,7 +213,7 @@ class ExcelSchemaBuilderDynymicFormsSpecs extends Specification implements Crist
 
     def 'Field can specify dynamicForms.precision and dynamicForms.scale'() {
         expect:
-        SchemaTestBuilder.excel('test', 'PrecisionScale', 0, xlsxFile)
+        SchemaTestBuilder.build('test', 'PrecisionScale', 0, xlsxFile)
         .compareXML(
             """<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
                  <xs:element name="PrecisionScale">
@@ -237,7 +237,7 @@ class ExcelSchemaBuilderDynymicFormsSpecs extends Specification implements Crist
     
     def 'Field can specify dynamicForms grid properties'() {
         expect:
-        SchemaTestBuilder.excel('test', 'GridProperties', 0, xlsxFile)
+        SchemaTestBuilder.build('test', 'GridProperties', 0, xlsxFile)
         .compareXML(
             """<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
                   <xs:element name='GridProperties'>
@@ -262,7 +262,7 @@ class ExcelSchemaBuilderDynymicFormsSpecs extends Specification implements Crist
     
     def 'Field can specify a list of dynamicForms.updateFields'() {
         expect:
-        SchemaTestBuilder.excel('test', 'UpdateFields', 0, xlsxFile)
+        SchemaTestBuilder.build('test', 'UpdateFields', 0, xlsxFile)
         .compareXML(
             '''<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
                  <xs:element name="UpdateFields">
@@ -287,7 +287,7 @@ class ExcelSchemaBuilderDynymicFormsSpecs extends Specification implements Crist
 
     def 'Field can specify dynamicForms.autoComplete'() {
         expect:
-        SchemaTestBuilder.excel('test', 'AutoComplete', 0, xlsxFile)
+        SchemaTestBuilder.build('test', 'AutoComplete', 0, xlsxFile)
         .compareXML(
             '''<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
                  <xs:element name="AutoComplete">
@@ -310,7 +310,7 @@ class ExcelSchemaBuilderDynymicFormsSpecs extends Specification implements Crist
 
     def 'Field can specify arbitrary fields in dynamicForms.additional'() {
         expect:
-        SchemaTestBuilder.excel('test', 'Additional', 0, xlsxFile)
+        SchemaTestBuilder.build('test', 'Additional', 0, xlsxFile)
         .compareXML(
             '''<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
                  <xs:element name="Additional">
@@ -336,7 +336,7 @@ class ExcelSchemaBuilderDynymicFormsSpecs extends Specification implements Crist
 
     def 'Field can specify dynamicForms.updateScriptRef using String'() {
         expect:
-        SchemaTestBuilder.excel('test', 'UpdateScriptRef', 0, xlsxFile)
+        SchemaTestBuilder.build('test', 'UpdateScriptRef', 0, xlsxFile)
         .compareXML(
             '''<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
                  <xs:element name="UpdateScriptRef">
@@ -361,7 +361,7 @@ class ExcelSchemaBuilderDynymicFormsSpecs extends Specification implements Crist
 
     def 'Struct can specify dynamicForms properties in appInfo'() {
         expect:
-        SchemaTestBuilder.excel('test', 'StructDynamicForms', 0, xlsxFile)
+        SchemaTestBuilder.build('test', 'StructDynamicForms', 0, xlsxFile)
         .compareXML(
             """<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
                   <xs:element name="StructDynamicForms">

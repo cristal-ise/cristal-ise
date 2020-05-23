@@ -40,7 +40,7 @@ class ExcelSchemaBuilderFieldSpecs extends Specification implements CristalTestS
 
     def 'Field accepts a number of types: string, boolean, integer, decimal, date, time, dateTime'() {
         expect: "Accepted types are ${org.cristalise.dsl.persistency.outcome.Field.types}"
-        SchemaTestBuilder.excel('test', 'Types', 0, xlsxFile)
+        SchemaTestBuilder.build('test', 'Types', 0, xlsxFile)
         .compareXML("""<xs:schema xmlns:xs='http://www.w3.org/2001/XMLSchema'>
                           <xs:element name='Types'>
                             <xs:complexType>
@@ -60,7 +60,7 @@ class ExcelSchemaBuilderFieldSpecs extends Specification implements CristalTestS
 
     def 'Unknown Field type throws InvalidDataException'() {
         when: "Accepted types are ${org.cristalise.dsl.persistency.outcome.Field.types}"
-        SchemaTestBuilder.excel('test', 'UnknownType', 0, xlsxFile)
+        SchemaTestBuilder.build('test', 'UnknownType', 0, xlsxFile)
 
         then:
         thrown(InvalidDataException)
@@ -68,7 +68,7 @@ class ExcelSchemaBuilderFieldSpecs extends Specification implements CristalTestS
 
     def 'Field can specify multiplicity'() {
         expect:
-        SchemaTestBuilder.excel('test', 'Multiplicity', 0, xlsxFile)
+        SchemaTestBuilder.build('test', 'Multiplicity', 0, xlsxFile)
         .compareXML("""<xs:schema xmlns:xs='http://www.w3.org/2001/XMLSchema'>
                             <xs:element name='Multiplicity'>
                                 <xs:complexType>
@@ -87,7 +87,7 @@ class ExcelSchemaBuilderFieldSpecs extends Specification implements CristalTestS
 
     def 'Field can specify range'() {
         expect:
-        SchemaTestBuilder.excel('test', 'Range', 0, xlsxFile)
+        SchemaTestBuilder.build('test', 'Range', 0, xlsxFile)
         .compareXML("""<xs:schema xmlns:xs='http://www.w3.org/2001/XMLSchema'>
                           <xs:element name='Range'>
                             <xs:complexType>
@@ -132,7 +132,7 @@ class ExcelSchemaBuilderFieldSpecs extends Specification implements CristalTestS
 
     def 'Field can specify minInclusive/maxInclusive/minExclusive/maxExclusive restrictions'() {
         expect:
-        SchemaTestBuilder.excel('test', 'XSDExclusive', 0, xlsxFile)
+        SchemaTestBuilder.build('test', 'XSDExclusive', 0, xlsxFile)
         .compareXML("""<xs:schema xmlns:xs='http://www.w3.org/2001/XMLSchema'>
                           <xs:element name='XSDExclusive'>
                             <xs:complexType>
@@ -175,7 +175,7 @@ class ExcelSchemaBuilderFieldSpecs extends Specification implements CristalTestS
 
     def 'Field can define the default value'() {
         expect:
-        SchemaTestBuilder.excel('test', 'DefaultValue', 0, xlsxFile)
+        SchemaTestBuilder.build('test', 'DefaultValue', 0, xlsxFile)
         .compareXML("""<xs:schema xmlns:xs='http://www.w3.org/2001/XMLSchema'>
                             <xs:element name='DefaultValue'>
                                 <xs:complexType>
@@ -189,7 +189,7 @@ class ExcelSchemaBuilderFieldSpecs extends Specification implements CristalTestS
 
     def 'Field can have documentation'() {
         expect:
-        SchemaTestBuilder.excel('test', 'Documentation', 0, xlsxFile)
+        SchemaTestBuilder.build('test', 'Documentation', 0, xlsxFile)
         .compareXML("""<xs:schema xmlns:xs='http://www.w3.org/2001/XMLSchema'>
                           <xs:element name='Documentation'>
                             <xs:complexType>
@@ -207,7 +207,7 @@ class ExcelSchemaBuilderFieldSpecs extends Specification implements CristalTestS
 
     def 'Field can define a predefined set of values'() {
         expect:
-        SchemaTestBuilder.excel('test', 'Values', 0, xlsxFile)
+        SchemaTestBuilder.build('test', 'Values', 0, xlsxFile)
         .compareXML("""<xs:schema xmlns:xs='http://www.w3.org/2001/XMLSchema'>
                             <xs:element name='Values'>
                                 <xs:complexType>
@@ -229,7 +229,7 @@ class ExcelSchemaBuilderFieldSpecs extends Specification implements CristalTestS
 
     def 'Field value can be restricted by reqex pattern'() {
         expect:
-        SchemaTestBuilder.excel('test', 'Pattern', 0, xlsxFile)
+        SchemaTestBuilder.build('test', 'Pattern', 0, xlsxFile)
         .compareXML("""<xs:schema xmlns:xs='http://www.w3.org/2001/XMLSchema'>
                           <xs:element name='Pattern'>
                             <xs:complexType>
@@ -249,7 +249,7 @@ class ExcelSchemaBuilderFieldSpecs extends Specification implements CristalTestS
 
     def 'Field value of decimal type can be restricted by totalDigits and fractionDigits'() {
         expect:
-        SchemaTestBuilder.excel('test', 'Digits', 0, xlsxFile)
+        SchemaTestBuilder.build('test', 'Digits', 0, xlsxFile)
         .compareXML("""<xs:schema xmlns:xs='http://www.w3.org/2001/XMLSchema'>
                           <xs:element name='Digits'>
                             <xs:complexType>
@@ -270,7 +270,7 @@ class ExcelSchemaBuilderFieldSpecs extends Specification implements CristalTestS
 
     def 'Field can have attribute'() {
         expect:
-        SchemaTestBuilder.excel('test', 'Attribute', 0, xlsxFile)
+        SchemaTestBuilder.build('test', 'Attribute', 0, xlsxFile)
         .compareXML(
             """<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
                  <xs:element name="Attribute">
@@ -293,7 +293,7 @@ class ExcelSchemaBuilderFieldSpecs extends Specification implements CristalTestS
 
     def 'Unit can specify the list of values it contains with default'() {
         expect:
-        SchemaTestBuilder.excel('test', 'UnitWithValues', 0, xlsxFile)
+        SchemaTestBuilder.build('test', 'UnitWithValues', 0, xlsxFile)
         .compareXML(
             """<xs:schema xmlns:xs='http://www.w3.org/2001/XMLSchema'>
                  <xs:element name='UnitWithValues'>

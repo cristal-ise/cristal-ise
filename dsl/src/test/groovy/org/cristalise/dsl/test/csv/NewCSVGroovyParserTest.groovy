@@ -15,7 +15,7 @@ class NewCSVGroovyParserTest {
     @Test
     public void noHeaderValues() {
         use(CSVGroovyParser) {
-            new File("src/test/data/parsers/noHeaderAddress.csv").csvEachRow(headerRows:0) { address, i ->
+            new File("src/test/data/parsers/noHeaderAddress.csv").csvEachRow(headerRowCount:0) { address, i ->
                 assert address[0]
                 assert address[1]
                 assert address[2]
@@ -37,7 +37,7 @@ class NewCSVGroovyParserTest {
     @Test
     public void allTypeConverts() {
         use(CSVGroovyParser) {
-            new File("src/test/data/parsers/convertedTypes.csv").csvEachRow(dateFormatter:'yyyy/MM/dd') { types, i ->
+            new File("src/test/data/parsers/convertedTypes.csv").csvEachRow([dateFormatter:'yyyy/MM/dd']) { types, i ->
                 assert types
                 
                 assert types.empty == ''
@@ -53,7 +53,7 @@ class NewCSVGroovyParserTest {
     @Test
     public void multiLineHeader() {
         use(CSVGroovyParser) {
-            def header = new File("src/test/data/parsers/multiHeader.csv").csvHeader(headerRows:2)
+            def header = new File("src/test/data/parsers/multiHeader.csv").csvHeader(headerRowCount:2)
 
             assert header
 
@@ -74,7 +74,7 @@ class NewCSVGroovyParserTest {
     @Test
     public void multiLineHeaderValues() {
         use(CSVGroovyParser) {
-            new File("src/test/data/parsers/multiHeader.csv").csvEachRow(headerRows:2) { user, i ->
+            new File("src/test/data/parsers/multiHeader.csv").csvEachRow(headerRowCount:2) { user, i ->
                 assert user.kind
                 assert user.sex
 
@@ -153,7 +153,7 @@ class NewCSVGroovyParserTest {
         def i=0
 
         use(CSVGroovyParser) {
-            new File(multiLineHeaderFile).csvEachRow([headerRows:3], multiLineHeaderTestClosure)
+            new File(multiLineHeaderFile).csvEachRow([headerRowCount:3], multiLineHeaderTestClosure)
         }
     }
 
@@ -163,7 +163,7 @@ class NewCSVGroovyParserTest {
         def i=0
 
         use(CSVGroovyParser) {
-            def header = new File(multiLineHeaderFile).csvHeader(headerRows:3)
+            def header = new File(multiLineHeaderFile).csvHeader(headerRowCount:3)
 
             checkMultiLineHeader(header)
 
@@ -180,7 +180,7 @@ class NewCSVGroovyParserTest {
 kind,userid,password,title,firstName,lastName,sex,age,purpose,country,countryCode,province,address1,city,postalCode,deliveryInfo,purpose,areaCode,number,purpose,address,purpose,address
 """
         use(CSVGroovyParser) {
-            def header = new String(headerText).csvHeader(headerRows:3)
+            def header = new String(headerText).csvHeader(headerRowCount:3)
 
             checkMultiLineHeader(header)
 
@@ -206,7 +206,7 @@ kind,userid,password,title,firstName,lastName,sex,age,purpose,country,countryCod
         use(CSVGroovyParser) {
             xml.calendar
             {
-                new String(wikiTable).csvEachRow([headerRows:1, separatorChar:'|', skipLeftCols:1, skipRightCols:1, trimData:true])
+                new String(wikiTable).csvEachRow([headerRowCount:1, separatorChar:'|', skipLeftCols:1, skipRightCols:1, trimData:true])
                 { 
                     row, i ->
 

@@ -40,7 +40,7 @@ class ExcelSchemaBuilderAttributeSpecs extends Specification implements CristalT
 
     def 'Attribute accepts a number of types: string, boolean, integer, decimal, date, time, dateTime'() {
         expect: "Accepted types are ${org.cristalise.dsl.persistency.outcome.Attribute.types}"
-        SchemaTestBuilder.excel('test', 'Types', 0, xlsxFile)
+        SchemaTestBuilder.build('test', 'Types', 0, xlsxFile)
         .compareXML("""<xs:schema xmlns:xs='http://www.w3.org/2001/XMLSchema'>
                           <xs:element name='Types'>
                             <xs:complexType>
@@ -58,7 +58,7 @@ class ExcelSchemaBuilderAttributeSpecs extends Specification implements CristalT
 
     def 'Unknown Attribute type throws InvalidDataException'() {
         when: "Accepted types are ${org.cristalise.dsl.persistency.outcome.Attribute.types}"
-        SchemaTestBuilder.excel('test', 'UnknownType', 0, xlsxFile)
+        SchemaTestBuilder.build('test', 'UnknownType', 0, xlsxFile)
 
         then:
         thrown(InvalidDataException)
@@ -66,7 +66,7 @@ class ExcelSchemaBuilderAttributeSpecs extends Specification implements CristalT
 
     def 'Attribute can use multiplicity to specify if it is optional or not'() {
         expect:
-        SchemaTestBuilder.excel('test', 'Multiplicity', 0, xlsxFile)
+        SchemaTestBuilder.build('test', 'Multiplicity', 0, xlsxFile)
         .compareXML("""<xs:schema xmlns:xs='http://www.w3.org/2001/XMLSchema'>
                           <xs:element name='Multiplicity'>
                             <xs:complexType>
@@ -80,7 +80,7 @@ class ExcelSchemaBuilderAttributeSpecs extends Specification implements CristalT
     def 'Attribute CANNOT specify multiplicity other than 0..1 and 1..1'() {
         when: "attribute specifies multiplicity"
 
-        SchemaTestBuilder.excel('test', 'WrongMultiplicity', 0, xlsxFile)
+        SchemaTestBuilder.build('test', 'WrongMultiplicity', 0, xlsxFile)
 
         then: "InvalidDataException is thrown"
         thrown(InvalidDataException)
@@ -88,7 +88,7 @@ class ExcelSchemaBuilderAttributeSpecs extends Specification implements CristalT
 
     def 'Attribute can specify range'() {
         expect:
-        SchemaTestBuilder.excel('test', 'Range', 0, xlsxFile)
+        SchemaTestBuilder.build('test', 'Range', 0, xlsxFile)
         .compareXML("""<xs:schema xmlns:xs='http://www.w3.org/2001/XMLSchema'>
                           <xs:element name='Range'>
                             <xs:complexType>
@@ -131,7 +131,7 @@ class ExcelSchemaBuilderAttributeSpecs extends Specification implements CristalT
 
     def 'Attribute can specify minInclusive/maxInclusive/minExclusive/maxExclusive restrictions'() {
         expect:
-        SchemaTestBuilder.excel('test', 'XSDExclusive', 0, xlsxFile)
+        SchemaTestBuilder.build('test', 'XSDExclusive', 0, xlsxFile)
         .compareXML("""<xs:schema xmlns:xs='http://www.w3.org/2001/XMLSchema'>
                           <xs:element name='XSDExclusive'>
                             <xs:complexType>
@@ -173,7 +173,7 @@ class ExcelSchemaBuilderAttributeSpecs extends Specification implements CristalT
     def 'Attribute CANNOT specify documentation'() {
         when: "attribute specifies multiplicity"
 
-        SchemaTestBuilder.excel('test', 'Documentation', 0, xlsxFile)
+        SchemaTestBuilder.build('test', 'Documentation', 0, xlsxFile)
 
         then: "InvalidDataException is thrown"
         thrown(InvalidDataException)
@@ -181,7 +181,7 @@ class ExcelSchemaBuilderAttributeSpecs extends Specification implements CristalT
 
     def 'Attribute can define the default value'() {
         expect:
-        SchemaTestBuilder.excel('test', 'DefaultValue', 0, xlsxFile)
+        SchemaTestBuilder.build('test', 'DefaultValue', 0, xlsxFile)
         .compareXML("""<xs:schema xmlns:xs='http://www.w3.org/2001/XMLSchema'>
                           <xs:element name='DefaultValue'>
                             <xs:complexType>
@@ -193,7 +193,7 @@ class ExcelSchemaBuilderAttributeSpecs extends Specification implements CristalT
 
     def 'Attribute can define a predefined set of values'() {
         expect:
-        SchemaTestBuilder.excel('test', 'Values', 0, xlsxFile)
+        SchemaTestBuilder.build('test', 'Values', 0, xlsxFile)
         .compareXML("""<xs:schema xmlns:xs='http://www.w3.org/2001/XMLSchema'>
                           <xs:element name='Values'>
                             <xs:complexType>
@@ -213,7 +213,7 @@ class ExcelSchemaBuilderAttributeSpecs extends Specification implements CristalT
 
     def 'Attribute value can be restricted by reqex pattern'() {
         expect:
-        SchemaTestBuilder.excel('test', 'Pattern', 0, xlsxFile)
+        SchemaTestBuilder.build('test', 'Pattern', 0, xlsxFile)
         .compareXML("""<xs:schema xmlns:xs='http://www.w3.org/2001/XMLSchema'>
                           <xs:element name='Pattern'>
                             <xs:complexType>
@@ -231,7 +231,7 @@ class ExcelSchemaBuilderAttributeSpecs extends Specification implements CristalT
 
     def 'Attribute value of decimal type can be restricted by totalDigits and fractionDigits'() {
         expect:
-        SchemaTestBuilder.excel('test', 'Digits', 0, xlsxFile)
+        SchemaTestBuilder.build('test', 'Digits', 0, xlsxFile)
         .compareXML("""<xs:schema xmlns:xs='http://www.w3.org/2001/XMLSchema'>
                           <xs:element name='Digits'>
                             <xs:complexType>

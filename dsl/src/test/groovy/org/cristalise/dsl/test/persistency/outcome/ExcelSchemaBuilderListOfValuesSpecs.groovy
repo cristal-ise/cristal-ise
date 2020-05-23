@@ -44,7 +44,7 @@ class ExcelSchemaBuilderListOfValuesSpecs extends Specification implements Crist
 
     def 'Field can specify listOfValues.scriptRef'() {
         expect:
-        SchemaTestBuilder.excel('test', 'ScriptRef', 0, xlsxFile)
+        SchemaTestBuilder.build('test', 'ScriptRef', 0, xlsxFile)
         .compareXML(
             '''<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
                  <xs:element name="ScriptRef">
@@ -67,7 +67,7 @@ class ExcelSchemaBuilderListOfValuesSpecs extends Specification implements Crist
 
     def 'Field can specify listOfValues.values'() {
         expect:
-        SchemaTestBuilder.excel('test', 'Values', 0, xlsxFile)
+        SchemaTestBuilder.build('test', 'Values', 0, xlsxFile)
         .compareXML(
             '''<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
                  <xs:element name="Values">

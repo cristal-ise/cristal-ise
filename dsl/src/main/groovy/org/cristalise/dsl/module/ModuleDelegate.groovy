@@ -114,16 +114,6 @@ class ModuleDelegate {
         script.run()
     }
 
-    public void includeSchemaExcel(String excelFile) {
-        FileInputStream fileStream = new FileInputStream(new File(excelFile))
-        XSSFWorkbook workbook = new XSSFWorkbook(fileStream);
-
-        for (int i = 0; i < workbook.getNumberOfSheets(); i++) {
-            XSSFSheet sheet = workbook.getSheetAt(i)
-            Schema(sheet.sheetName, 0, sheet)
-        }
-    }
-
     public Schema Schema(String name, Integer version) {
         def schema = LocalObjectLoader.getSchema(name, version)
         addSchema(schema)
@@ -137,8 +127,8 @@ class ModuleDelegate {
         return schema
     }
 
-    public Schema Schema(String name, Integer version, XSSFSheet sheet) {
-        def schema = SchemaBuilder.build(name, version, sheet)
+    public Schema Schema(String name, Integer version, File file) {
+        def schema = SchemaBuilder.build(name, version, file)
         schema.export(null, new File(resourceBoot), true)
         addSchema(schema)
         return schema

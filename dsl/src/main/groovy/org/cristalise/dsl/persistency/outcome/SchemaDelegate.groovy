@@ -21,6 +21,7 @@
 package org.cristalise.dsl.persistency.outcome
 
 import org.apache.poi.xssf.usermodel.XSSFSheet
+import org.cristalise.dsl.csv.TabularGroovyParser
 import org.cristalise.kernel.common.InvalidDataException
 import org.cristalise.kernel.property.BuiltInItemProperties
 import org.cristalise.kernel.property.PropertyDescriptionList
@@ -51,9 +52,9 @@ class SchemaDelegate {
         xsdString = buildXSD( cl() )
     }
 
-    public void processExcelSheet(XSSFSheet sheet) {
+    public void processTabularData(TabularGroovyParser parser) {
         def tsb = new TabularSchemaBuilder()
-        xsdString = buildXSD(tsb.build(sheet))
+        xsdString = buildXSD(tsb.build(parser))
     }
 
     public String buildXSD(Struct s) {
@@ -123,7 +124,6 @@ class SchemaDelegate {
         }
         if (s.anyField) this.buildAnyField(xsd, s.anyField)
     }
-
 
     private boolean hasRangeConstraints(Attribute a) {
         return a.minInclusive != null || a.maxInclusive != null || a.minExclusive != null || a.maxExclusive != null

@@ -29,7 +29,7 @@ class ExcelParserTest {
     public void twoLineHeaderOnlyTest() {
         def expected = [['h0','f0'], ['h1', 'f1'], ['h1', 'f2'], ['h2', 'f3'], ['h2', 'f4']]
 
-        def header = ExcelGroovyParser.excelHeader(new File('src/test/data/parsers/data.xlsx'), 'TwoLineHeader', [headerRows: 2])
+        def header = ExcelGroovyParser.excelHeader(new File('src/test/data/parsers/data.xlsx'), 'TwoLineHeader', [headerRowCount: 2])
         assertThat(header).isEqualTo(expected)
     }
 
@@ -40,7 +40,7 @@ class ExcelParserTest {
             [h0:[f0: 'class1'], h1:[f1:'1',  f2:'2'],  h2:[f3:'3',  f4:'4 4']],
         ]
 
-        ExcelGroovyParser.excelEachRow(new File('src/test/data/parsers/data.xlsx'), 'TwoLineHeader', [headerRows: 2]) { Map record, int i ->
+        ExcelGroovyParser.excelEachRow(new File('src/test/data/parsers/data.xlsx'), 'TwoLineHeader', [headerRowCount: 2]) { Map record, int i ->
             assertThat(record).containsAllEntriesOf(excpected[i])
         }
     }

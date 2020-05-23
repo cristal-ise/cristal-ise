@@ -47,7 +47,7 @@ class CSVGroovyParser implements TabularGroovyParser {
 
     @Override
     public void setHeaderRowCount(int rowCount) {
-        options.headerRows = rowCount
+        options.headerRowCount = rowCount
     }
 
     @Override
@@ -79,19 +79,19 @@ class CSVGroovyParser implements TabularGroovyParser {
      * @param opts
      */
     private void setDefaultOptions(Map opts) {
-        options.headerRows    = opts.headerRows    != null ? opts.headerRows    : 1
-        options.skipLeftCols  = opts.skipLeftCols  != null ? opts.skipLeftCols  : 0
-        options.skipRightCols = opts.skipRightCols != null ? opts.skipRightCols : 0
-        options.trimHeader    = opts.trimHeader    != null ? opts.trimHeader    : true
-        options.trimData      = opts.trimData      != null ? opts.trimData      : false
-        options.strictQuotes  = opts.strictQuotes  != null ? opts.strictQuotes  : CSVParser.DEFAULT_STRICT_QUOTES
-        options.skipRows      = opts.skipRows      != null ? opts.skipRows      : CSVReader.DEFAULT_SKIP_LINES
-        options.useStringOnly = opts.useStringOnly != null ? opts.useStringOnly : false
-        options.separatorChar = opts.separatorChar         ? opts.separatorChar : CSVParser.DEFAULT_SEPARATOR
-        options.quoteChar     = opts.quoteChar             ? opts.quoteChar     : CSVParser.DEFAULT_QUOTE_CHARACTER
-        options.escapeChar    = opts.escapeChar            ? opts.escapeChar    : CSVParser.DEFAULT_ESCAPE_CHARACTER
-//        options.dateFormatter = opts.dateFormatter         ? opts.dateFormatter : 'yyyy/MM/dd'
-        options.header        = opts.header                ? opts.header        : []
+        options.headerRowCount = opts.headerRowCount != null ? opts.headerRowCount : 1
+        options.skipLeftCols   = opts.skipLeftCols   != null ? opts.skipLeftCols   : 0
+        options.skipRightCols  = opts.skipRightCols  != null ? opts.skipRightCols  : 0
+        options.trimHeader     = opts.trimHeader     != null ? opts.trimHeader     : true
+        options.trimData       = opts.trimData       != null ? opts.trimData       : false
+        options.strictQuotes   = opts.strictQuotes   != null ? opts.strictQuotes   : CSVParser.DEFAULT_STRICT_QUOTES
+        options.skipRows       = opts.skipRows       != null ? opts.skipRows       : CSVReader.DEFAULT_SKIP_LINES
+        options.useStringOnly  = opts.useStringOnly  != null ? opts.useStringOnly  : false
+        options.separatorChar  = opts.separatorChar          ? opts.separatorChar  : CSVParser.DEFAULT_SEPARATOR
+        options.quoteChar      = opts.quoteChar              ? opts.quoteChar      : CSVParser.DEFAULT_QUOTE_CHARACTER
+        options.escapeChar     = opts.escapeChar             ? opts.escapeChar     : CSVParser.DEFAULT_ESCAPE_CHARACTER
+        options.dateFormatter  = opts.dateFormatter          ? opts.dateFormatter  : ''
+        options.header         = opts.header                 ? opts.header         : []
     }
 
     /**
@@ -105,7 +105,7 @@ class CSVGroovyParser implements TabularGroovyParser {
      */
     @Override
     public List<List<String>> getHeader() {
-        int rowCount = options.headerRows as int
+        int rowCount = options.headerRowCount as int
         int skipLeftCols = options.skipLeftCols as int
         int skipRightCols = options.skipRightCols as int
         boolean trim = (boolean)options.trimData
@@ -257,7 +257,7 @@ class CSVGroovyParser implements TabularGroovyParser {
     public void eachRow(Closure cl) {
         String[] nextLine;
 
-        int headerRows            = options.headerRows as int
+        int headerRowCount            = options.headerRowCount as int
         int skipLeftCols          = options.skipLeftCols as int
         int skipRightCols         = options.skipRightCols as int
         List<List<String>> header = options.header as List
@@ -265,7 +265,7 @@ class CSVGroovyParser implements TabularGroovyParser {
         int index = 0
 
         //CSV has no header
-        if(!headerRows && !header) {
+        if(!headerRowCount && !header) {
             log.warn "No header was specified so reverting to original openCsv behaviour"
             //TODO: processing lines could be done in parallel, but be careful as closure written by user
             while ((nextLine = reader.readNext()) != null) {
@@ -353,7 +353,7 @@ class CSVGroovyParser implements TabularGroovyParser {
      */
     @Deprecated
     public static void parse(final File file, Closure cl) throws IOException {
-        csvEachRow(file, [headerRows: 1, trimData: true, useStringOnly: true], cl)
+        csvEachRow(file, [headerRowCount: 1, trimData: true, useStringOnly: true], cl)
     }
 
     /**
@@ -365,6 +365,6 @@ class CSVGroovyParser implements TabularGroovyParser {
      */
     @Deprecated
     public static void parse(final String string, Closure cl) throws IOException {
-        csvEachRow(string, [headerRows: 1, trimData: true, useStringOnly: true], cl)
+        csvEachRow(string, [headerRowCount: 1, trimData: true, useStringOnly: true], cl)
     }
 }
