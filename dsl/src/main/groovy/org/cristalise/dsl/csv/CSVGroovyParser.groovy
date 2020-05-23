@@ -166,7 +166,7 @@ class CSVGroovyParser implements TabularGroovyParser {
 
         if (!value) {
             //value is null or empty string
-            return value
+            return null
         }
         else if ((boolean)options.useStringOnly) {
             return trim ? value.trim() : value
@@ -217,7 +217,6 @@ class CSVGroovyParser implements TabularGroovyParser {
         int index = -1
 
         //Dealing with repeating section, so handle it as List of Maps
-        //TODO: use regex here instead of string methods
         if(name.contains('[') && name.endsWith(']')) {
             int i = name.indexOf('[')
             index = name.substring(i+1,name.size()-1) as int
@@ -257,23 +256,22 @@ class CSVGroovyParser implements TabularGroovyParser {
     public void eachRow(Closure cl) {
         String[] nextLine;
 
-        int headerRowCount            = options.headerRowCount as int
+        int headerRowCount        = options.headerRowCount as int
         int skipLeftCols          = options.skipLeftCols as int
         int skipRightCols         = options.skipRightCols as int
         List<List<String>> header = options.header as List
 
-        int index = 0
+        int rowIndex = 0
 
         //CSV has no header
-        if(!headerRowCount && !header) {
+        if (!headerRowCount && !header) {
             log.warn "No header was specified so reverting to original openCsv behaviour"
-            //TODO: processing lines could be done in parallel, but be careful as closure written by user
             while ((nextLine = reader.readNext()) != null) {
-                cl(nextLine,index++)
+                cl(nextLine, rowIndex++)
             }
         }
         else {
-            if(!header) {
+            if (!header) {
                 header = getHeader()
             }
             else {
@@ -282,20 +280,19 @@ class CSVGroovyParser implements TabularGroovyParser {
 
             assert header, "no header is availalle"
 
-            def map = [:]
 
-            //TODO: processing lines could be done in parallel, but be careful as closure written by user
             while ((nextLine = reader.readNext()) != null) {
                 assert header.size() == nextLine.size() - (skipLeftCols + skipRightCols), "Header size must be equal with the size of data line"
 
+                def map = [:]
+
                 //header is a List of Lists
-                header.eachWithIndex { names, i ->
-                    convertNamesToMaps(map, names as List<String>, nextLine[i+skipLeftCols])
+                header.eachWithIndex { List<String> names, int i ->
+                    def value = nextLine[i+skipLeftCols]
+                    if (value) convertNamesToMaps(map, names, value)
                 }
 
-                log.debug "map given to closure of user: $map"
-
-                cl(map, index++)
+                cl(map, rowIndex++)
             }
         }
     }

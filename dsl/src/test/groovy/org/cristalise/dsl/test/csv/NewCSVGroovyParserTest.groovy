@@ -40,7 +40,7 @@ class NewCSVGroovyParserTest {
             new File("src/test/data/parsers/convertedTypes.csv").csvEachRow([dateFormatter:'yyyy/MM/dd']) { types, i ->
                 assert types
                 
-                assert types.empty == ''
+                assert types.empty == null
                 assert types.string == 'customer'
                 assert types.integer == 34
                 assert types.date == LocalDate.parse('1969/02/23', 'yyyy/MM/dd')
@@ -99,7 +99,8 @@ class NewCSVGroovyParserTest {
         assert user.age
 
         assert user.contacts.address[0].purpose
-        assert user.contacts.address[0].deliveryInfo
+        if (i == 2) assert user.contacts.address[0].deliveryInfo == null
+        else        assert user.contacts.address[0].deliveryInfo == 'do not ring'
 
         assert user.contacts.phone[0].purpose
         assert user.contacts.phone[0].number
@@ -112,8 +113,8 @@ class NewCSVGroovyParserTest {
             assert user.contacts.email[1].address == "customer2@nowhere.com"
         }
         else {
-            assert user.contacts.email[1].purpose == ""
-            assert user.contacts.email[1].address == ""
+            println "$i - ${user.contacts.email[1]}"
+            assert user.contacts.email[1] == null
         }
     }
 

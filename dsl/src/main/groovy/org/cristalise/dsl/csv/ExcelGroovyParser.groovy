@@ -145,7 +145,7 @@ class ExcelGroovyParser implements TabularGroovyParser {
                 def cellRef = new CellReference(row.getRowNum(), cell.getColumnIndex()).formatAsString()
                 def cellText = formatter.formatCellValue(cell)
 
-                log.debug "processEachRow() - row:{} cell:{}='{}'", cell.getRowIndex(), cellRef, cellText
+                log.debug "eachRow() - row:{} cell:{}='{}'", cell.getRowIndex(), cellRef, cellText
 
                 convertNamesToMaps(rowMap, header[cell.columnIndex], cellText)
             }
@@ -158,7 +158,6 @@ class ExcelGroovyParser implements TabularGroovyParser {
 
     /**
      * 
-     * @param s
      * @param c
      * @return
      */

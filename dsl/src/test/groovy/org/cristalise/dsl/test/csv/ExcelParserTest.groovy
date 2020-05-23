@@ -38,6 +38,7 @@ class ExcelParserTest {
         def excpected = [
             [h0:[f0: 'class0'], h1:[f1:'a ', f2:'b '], h2:[f3:'c ', f4:'d d']],
             [h0:[f0: 'class1'], h1:[f1:'1',  f2:'2'],  h2:[f3:'3',  f4:'4 4']],
+            [h1:[f1:'11',  f2:'22'],  h2:[f3:'33',  f4:'444']],
         ]
 
         ExcelGroovyParser.excelEachRow(new File('src/test/data/parsers/data.xlsx'), 'TwoLineHeader', [headerRowCount: 2]) { Map record, int i ->

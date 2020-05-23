@@ -2,7 +2,7 @@
 <launchConfiguration type="org.eclipse.jdt.launching.localJavaApplication">
 <stringAttribute key="bad_container_name" value="\r"/>
 <listAttribute key="org.eclipse.debug.core.MAPPED_RESOURCE_PATHS">
-<listEntry value="/restapi/src/test/java/org/cristalise/restapi/Main.java"/>
+<listEntry value="/testing/src/main/java/org/cristalise/restapi/Main.java"/>
 </listAttribute>
 <listAttribute key="org.eclipse.debug.core.MAPPED_RESOURCE_TYPES">
 <listEntry value="1"/>

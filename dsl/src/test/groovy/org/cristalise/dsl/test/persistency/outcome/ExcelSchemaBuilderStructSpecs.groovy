@@ -20,9 +20,11 @@
  */
 package org.cristalise.dsl.test.persistency.outcome
 
+import org.cristalise.dev.dsl.DevXMLUtility
 import org.cristalise.dsl.test.builders.SchemaTestBuilder
 import org.cristalise.kernel.common.InvalidDataException
 import org.cristalise.kernel.test.utils.CristalTestSetup
+import org.cristalise.kernel.test.utils.KernelXMLUtility
 
 import spock.lang.Ignore
 import spock.lang.Specification
@@ -35,8 +37,8 @@ class ExcelSchemaBuilderStructSpecs extends Specification implements CristalTest
 
     def setup()   { loggerSetup()    }
     def cleanup() { cristalCleanup() }
-    
-    def xlsxFile = 'src/test/data/ExcelSchemaBuilderStruct.xlsx'
+
+    def xlsxFile = "src/test/data/ExcelSchemaBuilderStruct.xlsx"
 
     def 'Building empty Structure with documentation adds annotation to the element'() {
         expect:
@@ -170,10 +172,7 @@ class ExcelSchemaBuilderStructSpecs extends Specification implements CristalTest
                         </xs:schema>""")
     }
 
-    def 'Complex example using PatientDetails from Basic Tutorial'() {
-        expect:
-        SchemaTestBuilder.build('test', 'PatientDetails', 0, xlsxFile)
-        .compareXML(
+    def expectdPatientDetails = 
             """<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
                  <xs:element name="PatientDetails">
                    <xs:annotation>
@@ -245,6 +244,19 @@ class ExcelSchemaBuilderStructSpecs extends Specification implements CristalTest
                      <xs:attribute name="InsuranceNumber" type="xs:string" default= "123456789ABC"/>
                    </xs:complexType>
                  </xs:element>
-               </xs:schema>""")
+               </xs:schema>"""
+
+    def 'Complex example using PatientDetails from Basic Tutorial'() {
+        expect:
+        SchemaTestBuilder.build('test', 'PatientDetails', 0, xlsxFile)
+        .compareXML(expectdPatientDetails)
+    }
+
+    def 'Complex example using PatientDetails from Basic Tutorial - CSV'() {
+        when:
+        def actual = SchemaTestBuilder.build('test', 'PatientDetails', 0, "src/test/data/CsvSchemaBuilderStruct/PatientDetails.csv")
+
+        then:
+        KernelXMLUtility.compareXML(expectdPatientDetails, actual.schema.schemaData)
     }
 }
