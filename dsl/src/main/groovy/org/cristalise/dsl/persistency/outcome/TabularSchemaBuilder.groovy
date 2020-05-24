@@ -7,9 +7,9 @@ import groovy.util.logging.Slf4j
 
 /**
  * 
- *
+ * FIXME cannot use CompileStatic even if classes (e.g. Struct, Field) are decorated with MapConstructor annotation
  */
-@Slf4j //@CompileStatic
+@Slf4j 
 class TabularSchemaBuilder {
     /**
      * Contains the actually processed Structs or Field
@@ -38,7 +38,7 @@ class TabularSchemaBuilder {
     /**
      * Convert comma separated string to list before calling map constructor
      */
-    private void fixListValues(Map map) {
+    private void fixListValues(Map<String, String> map) {
         def regex = '\\s*,\\s*'
         if (map.values)       map.values       = map.values      .trim().split(regex)
         if (map.updateFields) map.updateFields = map.updateFields.trim().split(regex)
@@ -50,19 +50,19 @@ class TabularSchemaBuilder {
         // if previous row was a field remove it from lifo
         if (parentLifo.size() > 1 && parentLifo.last() instanceof Field) parentLifo.removeLast()
 
-        def sMap = record['xsd'].subMap(Struct.keys)
+        def sMap = ((Map)record['xsd']).subMap(Struct.keys)
 
         Struct parentS = parentLifo.empty ? null : (Struct)parentLifo.last()
 
         // This is the closing record of the currently processed struct declaration
-        if (parentS && (sMap.name == parentS.name || sMap.name.startsWith('---'))) {
+        if (parentS && (sMap.name == parentS.name || ((String)sMap.name).startsWith('---'))) {
             if (parentLifo.size() > 1) parentLifo.removeLast() // remove it from lifo
         }
         else {
-            Map dynamicFormsMap = (record['dynamicForms']) ?: [:]
-            Map additionalMap   = (record['additional'])   ?: [:]
+            Map dynamicFormsMap = ((Map)record['dynamicForms']) ?: [:]
+            Map additionalMap   = ((Map)record['additional'])   ?: [:]
 
-            def s = new Struct(sMap)
+            Struct s = new Struct(sMap)
 
             if (dynamicFormsMap && dynamicFormsMap.find { it.value }) {
                 fixListValues(dynamicFormsMap)
@@ -80,7 +80,7 @@ class TabularSchemaBuilder {
     }
 
     private void setRange(Map map, Attribute attrOrField) {
-        attrOrField.setRange(map.range)
+        attrOrField.setRange((String)map.range)
 
         if (! (attrOrField.type == 'xs:integer' || attrOrField.type == 'xs:decimal')) {
             throw new InvalidDataException(
@@ -91,20 +91,20 @@ class TabularSchemaBuilder {
     private void convertToField(Map<String, Object> record) {
         log.debug 'convertToField() - {}', record
 
-        Map fMap = record['xsd'].subMap(Field.keys)
+        Map fMap = ((Map)record['xsd']).subMap(Field.keys)
 
-        Map unitMap         = (record['unit'])         ?: [:]
-        Map lovMap          = (record['listOfValues']) ?: [:]
-        Map referenceMap    = (record['reference'])    ?: [:]
-        Map dynamicFormsMap = (record['dynamicForms']) ?: [:]
-        Map warningMap      = (record['warning'])      ?: [:]
-        Map additionalMap   = (record['additional'])   ?: [:]
+        Map unitMap         = ((Map)record['unit'])         ?: [:]
+        Map lovMap          = ((Map)record['listOfValues']) ?: [:]
+        Map referenceMap    = ((Map)record['reference'])    ?: [:]
+        Map dynamicFormsMap = ((Map)record['dynamicForms']) ?: [:]
+        Map warningMap      = ((Map)record['warning'])      ?: [:]
+        Map additionalMap   = ((Map)record['additional'])   ?: [:]
 
         fixListValues(fMap)
 
         def f = new Field(fMap)
 
-        if (fMap.multiplicity) f.setMultiplicity(fMap.multiplicity)
+        if (fMap.multiplicity) f.setMultiplicity((String)fMap.multiplicity)
         if (fMap.range) setRange(fMap, f)
 
         if (fMap.totalDigits != null || fMap.fractionDigits!= null) {
@@ -155,16 +155,16 @@ class TabularSchemaBuilder {
 
     private void convertToAttribute(Map<String, Object> record) {
         log.debug 'convertToAttribute() - {}', record
-        def aMap = record['xsd'].subMap(Attribute.keys)
+        Map aMap = ((Map)record['xsd']).subMap(Attribute.keys)
 
-        if (record['xsd'].documentation)
+        if (((Map)record['xsd']).documentation)
             throw new InvalidDataException("Attribute '${aMap.name}' cannot have a documentation")
 
         fixListValues(aMap)
 
         def a = new Attribute(aMap)
 
-        if (aMap.multiplicity) a.setMultiplicity(aMap.multiplicity)
+        if (aMap.multiplicity) a.setMultiplicity((String)aMap.multiplicity)
         if (aMap.range) setRange(aMap, a)
 
         def prev = parentLifo.last()
