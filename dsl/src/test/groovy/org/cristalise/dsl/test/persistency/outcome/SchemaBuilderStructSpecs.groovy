@@ -129,6 +129,7 @@ class SchemaBuilderStructSpecs extends Specification implements CristalTestSetup
             struct(name: 'TestData', useSequence: true) {
                 field(name:'stringField1')
                 anyField()
+                field(name:'stringField2')
             }
         }.compareXML("""<xs:schema xmlns:xs='http://www.w3.org/2001/XMLSchema'>
                           <xs:element name='TestData'>
@@ -136,6 +137,7 @@ class SchemaBuilderStructSpecs extends Specification implements CristalTestSetup
                               <xs:sequence>
                                 <xs:element name='stringField1' type='xs:string' minOccurs='1' maxOccurs='1' />
                                 <xs:any minOccurs='0' processContents='lax'/>
+                                <xs:element name='stringField2' type='xs:string' minOccurs='1' maxOccurs='1' />
                               </xs:sequence>
                             </xs:complexType>
                           </xs:element>

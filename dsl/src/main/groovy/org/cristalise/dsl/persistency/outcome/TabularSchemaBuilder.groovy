@@ -27,6 +27,7 @@ class TabularSchemaBuilder {
                 case 'struct'   : convertToStruct(record); break;
                 case 'field'    : convertToField(record); break;
                 case 'attribute': convertToAttribute(record); break;
+                case 'anyField' : convertToAnyField(record); break;
                 default:
                     throw new InvalidDataException('Uncovered class value:' + record['xsd']['class'])
             }
@@ -144,7 +145,9 @@ class TabularSchemaBuilder {
         }
 
         // perhaps previous row was a field - see comment bellow
-        if (parentLifo.last() instanceof Field) parentLifo.removeLast()
+        if (parentLifo.last() instanceof Field || parentLifo.last() instanceof AnyField) {
+            parentLifo.removeLast()
+        }
 
         def s = (Struct) parentLifo.last()
         s.addField(f)
@@ -169,7 +172,22 @@ class TabularSchemaBuilder {
 
         def prev = parentLifo.last()
 
-        if      (parentLifo.last() instanceof Struct) ((Struct)prev).attributes.add(a)
-        else if (parentLifo.last() instanceof Field)  ((Field)prev).attributes.add(a)
+        if      (prev instanceof Struct) ((Struct)prev).attributes.add(a)
+        else if (prev instanceof Field)  ((Field)prev).attributes.add(a)
+    }
+
+    private void convertToAnyField(Map<String, Object> record) {
+        log.debug 'convertToAnyField() - {}', record
+        Map anyMap = ((Map)record['xsd']).subMap(AnyField.keys)
+
+        def any = new AnyField(anyMap)
+
+        // perhaps previous row was a field
+        if (parentLifo.last() instanceof Field) {
+            parentLifo.removeLast()
+        }
+
+        def s = (Struct) parentLifo.last()
+        s.anyField = any
     }
 }
