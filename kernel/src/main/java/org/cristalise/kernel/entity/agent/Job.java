@@ -472,24 +472,29 @@ public class Job implements C2KLocalObject {
      */
     public Outcome getOutcome() throws InvalidDataException, ObjectNotFoundException {
         if (outcome == null && hasOutcome()) {
-            OutcomeInitiator ocInit = getOutcomeInitiator();
-
             boolean useViewpoint = Gateway.getProperties().getBoolean("OutcomeInit.jobUseViewpoint", false);
 
-            if (ocInit != null && !useViewpoint) {
-                outcome = ocInit.initOutcomeInstance(this);
+            // check viewpoint first if exists
+            if (useViewpoint) {
+                if (getItem().checkViewpoint(getSchema().getName(), getValidViewpointName())) {
+                    Outcome tempOutcome = getLastOutcome();
+                    outcome = new Outcome(tempOutcome.getData(), tempOutcome.getSchema());
+                }
             }
-            else if (getItem().checkViewpoint(getSchema().getName(), getValidViewpointName())) {
-                Outcome tempOutcome = getLastOutcome();
-                outcome = new Outcome(tempOutcome.getData(), tempOutcome.getSchema());
+
+            if (outcome == null) {
+                // try outcome initiator
+                OutcomeInitiator ocInit = getOutcomeInitiator();
+
+                if (ocInit != null) outcome = ocInit.initOutcomeInstance(this);
             }
-            else {
-                log.warn("getOutcome() - Could not initilase Outcome");
-            }
+
+            if (outcome == null) log.warn("getOutcome() - Could not initilase Outcome for Job:{}", this);
         }
-        else {
-            log.debug("getOutcome() - Job does not require Outcome job:{}", this);
+        else if (!hasOutcome()) {
+            log.debug("getOutcome() - No Outcome description for Job:{}", this);
         }
+
         return outcome;
     }
 
