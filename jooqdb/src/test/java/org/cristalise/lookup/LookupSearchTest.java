@@ -116,6 +116,13 @@ public class LookupSearchTest extends LookupTestBase {
     }
 
     @Test
+    public void getChildren_DomainPathSpecialChars_delete() throws Exception {
+        if (JooqTestConfigurationBase.dbType == DBModes.PostgreSQL) {
+            lookup.delete( new DomainPath("special/something/special||Chars") );
+        }
+    }
+
+    @Test
     public void getChildren_RolePath() throws Exception {
         compare(Arrays.asList(new RolePath(new RolePath("User", false), "SubUser"),  new RolePath(new RolePath("User", false), "LowerUser")),
                 lookup.getChildren(new RolePath(new RolePath(), "User")));
