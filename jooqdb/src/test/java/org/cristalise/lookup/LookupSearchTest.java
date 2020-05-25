@@ -21,6 +21,7 @@
 package org.cristalise.lookup;
 
 import static org.junit.Assert.*;
+import static org.junit.Assume.assumeTrue;
 import static org.unitils.reflectionassert.ReflectionAssert.*;
 import static org.unitils.reflectionassert.ReflectionComparatorMode.*;
 
@@ -99,27 +100,16 @@ public class LookupSearchTest extends LookupTestBase {
     }
 
     @Test
-    public void getChildren_DomainPathSpecialChars_noChild() throws Exception {
-        if (JooqTestConfigurationBase.dbType == DBModes.PostgreSQL) {
-            compare(new ArrayList<Path>(), lookup.getChildren(new DomainPath("special/something/special||Chars[escaped] *%._\\\\")) );
-        }
-    }
+    public void getChildren_DomainPathSpecialChars() throws Exception {
+        assumeTrue("This case only works with psql", JooqTestConfigurationBase.dbType == DBModes.PostgreSQL);
 
-    @Test
-    public void getChildren_DomainPathSpecialChars_withChild() throws Exception {
-        lookup.add( new DomainPath("special/something/special||Chars[escaped] *%._\\\\/dummy") );
+        DomainPath dp       = new DomainPath("special/something/special||Chars[escaped] *%._\\\\");
+        DomainPath dp_child = new DomainPath("special/something/special||Chars[escaped] *%._\\\\/dummy");
 
-        if (JooqTestConfigurationBase.dbType == DBModes.PostgreSQL) {
-            compare(Arrays.asList(new DomainPath("special/something/special||Chars[escaped] *%._\\\\/dummy")),
-                lookup.getChildren(new DomainPath("special/something/special||Chars[escaped] *%._\\\\")) );
-        }
-    }
+        compare(new ArrayList<Path>(), lookup.getChildren(dp));
 
-    @Test
-    public void getChildren_DomainPathSpecialChars_delete() throws Exception {
-        if (JooqTestConfigurationBase.dbType == DBModes.PostgreSQL) {
-            lookup.delete( new DomainPath("special/something/special||Chars[escaped] *%._\\\\") );
-        }
+        lookup.add(dp_child);
+        compare(Arrays.asList(dp_child), lookup.getChildren(dp));
     }
 
     @Test
