@@ -20,10 +20,9 @@
  */
 package org.cristalise.lookup;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.unitils.reflectionassert.ReflectionAssert.assertReflectionEquals;
-import static org.unitils.reflectionassert.ReflectionComparatorMode.LENIENT_ORDER;
+import static org.junit.Assert.*;
+import static org.unitils.reflectionassert.ReflectionAssert.*;
+import static org.unitils.reflectionassert.ReflectionComparatorMode.*;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -31,6 +30,7 @@ import java.util.List;
 import java.util.UUID;
 
 import org.apache.commons.lang3.StringUtils;
+import org.cristalise.JooqTestConfigurationBase;
 import org.cristalise.kernel.common.ObjectNotFoundException;
 import org.cristalise.kernel.lookup.AgentPath;
 import org.cristalise.kernel.lookup.DomainPath;
@@ -57,6 +57,7 @@ public class LookupSearchTest extends LookupTestBase {
         lookup.add( new AgentPath(uuid2, "John") );
         lookup.add( new DomainPath("empty/nothing") );
         lookup.add( new DomainPath("empty/something/uuid0", lookup.getItemPath(uuid0.toString())) );
+        lookup.add( new DomainPath("special/something/special||Chars") );
         //lookup.add( new DomainPath("empty.old/something/uuid1", lookup.getItemPath(uuid1.toString())) );
         lookup.add( new RolePath(new RolePath(),               "User") );
         lookup.add( new RolePath(new RolePath("User"),         "SubUser") );
@@ -91,10 +92,27 @@ public class LookupSearchTest extends LookupTestBase {
     public void getChildren_DomainPath() throws Exception {
         lookup.add( new DomainPath("dummy") );
 
-        compare(Arrays.asList(new DomainPath("empty"), new DomainPath("dummy")), lookup.getChildren(new DomainPath()) );
+        compare(Arrays.asList(new DomainPath("empty"), new DomainPath("dummy"), new DomainPath("special")), lookup.getChildren(new DomainPath()) );
 
         compare(Arrays.asList(new DomainPath("empty/nothing"),  new DomainPath("empty/something")),
                 lookup.getChildren(new DomainPath("empty")));
+    }
+
+    @Test
+    public void getChildren_DomainPathSpecialChars_noChild() throws Exception {
+        if (JooqTestConfigurationBase.dbType == DBModes.PostgreSQL) {
+            compare(new ArrayList<Path>(), lookup.getChildren(new DomainPath("special/something/special||Chars")) );
+        }
+    }
+
+    @Test
+    public void getChildren_DomainPathSpecialChars_withChild() throws Exception {
+        lookup.add( new DomainPath("special/something/special||Chars/dummy") );
+
+        if (JooqTestConfigurationBase.dbType == DBModes.PostgreSQL) {
+            compare(Arrays.asList(new DomainPath("special/something/special||Chars/dummy")),
+                lookup.getChildren(new DomainPath("special/something/special||Chars")) );
+        }
     }
 
     @Test
