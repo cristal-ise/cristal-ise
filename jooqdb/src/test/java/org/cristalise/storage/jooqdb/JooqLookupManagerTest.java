@@ -18,7 +18,9 @@
  *
  * http://www.fsf.org/licensing/licenses/lgpl.html
  */
-package org.cristalise.lookup;
+package org.cristalise.storage.jooqdb;
+
+import static org.junit.Assert.*;
 
 import java.util.Properties;
 
@@ -37,7 +39,7 @@ public class JooqLookupManagerTest extends JooqTestConfigurationBase {
     @BeforeClass
     public static void beforeClass() throws Exception {
         Properties props = new Properties();
-        
+
         setUpStorage(props);
 
         Gateway.init(props);
@@ -56,5 +58,10 @@ public class JooqLookupManagerTest extends JooqTestConfigurationBase {
 
     @Test
     public void openConnectionAndCreateTables() {
+    }
+
+    @Test
+    public void testPostgresRegex() {
+        assertEquals("(?e)^\\A\\l\\l\\ \\|\\|\\ \\c\\h\\a\\r\\s\\ \\[\\e\\s\\c\\a\\p\\e\\d\\]\\ \\*\\%\\.\\_\\/\\\\/[^/]*$", jooq.convertToPostgresPattern("All || chars [escaped] *%._/\\"));
     }
 }

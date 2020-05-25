@@ -369,9 +369,13 @@ public class JooqLookupManager implements LookupManager {
     private String getChildrenPattern(Path path, DSLContext context) {
         //after the path match everything except '/'
         if (context.dialect().equals(POSTGRES)) {
-            return "(?e)^" + path.getStringPath().replaceAll("(.)", "\\$1") + "/[^/]*$";
+            return convertToPostgresPattern(path.getStringPath());
         }
         return "^" + path.getStringPath() + "/[^/]*$";
+    }
+
+    public String convertToPostgresPattern(String path) {
+        return "(?e)^" + path.replaceAll("(.)", "\\\\$1") + "/[^/]*$";
     }
 
     @Override
