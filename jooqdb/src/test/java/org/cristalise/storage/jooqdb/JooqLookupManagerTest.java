@@ -62,6 +62,6 @@ public class JooqLookupManagerTest extends JooqTestConfigurationBase {
 
     @Test
     public void testPostgresRegex() {
-        assertEquals("(?e)^\\A\\l\\l\\ \\|\\|\\ \\c\\h\\a\\r\\s\\ \\[\\e\\s\\c\\a\\p\\e\\d\\]\\ \\*\\%\\.\\_\\/\\\\/[^/]*$", jooq.convertToPostgresPattern("All || chars [escaped] *%._/\\"));
+        assertEquals("(?e)^Special \\|\\| chars \\[escaped\\] \\*\\%\\.\\_\\/\\\\/[^/]*$", jooq.convertToPostgresPattern("Special || chars [escaped] *%._/\\"));
     }
 }

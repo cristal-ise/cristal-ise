@@ -20,7 +20,7 @@
  */
 package org.cristalise;
 
-import static org.jooq.impl.DSL.using;
+import static org.jooq.impl.DSL.*;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -34,7 +34,7 @@ import org.jooq.SQLDialect;
  * This class configures all jooqdb tests
  */
 public class JooqTestConfigurationBase {
-    
+
     /**
      * Specifies the supported DB configuration modes
      */
@@ -43,17 +43,17 @@ public class JooqTestConfigurationBase {
          * Run tests using in-memory H2 configured with PostgreSQL compability mode
          */
         H2_PostgreSQL,
-        
+
         /**
          * Run tests using in-memory H2 configured with MYSQL compability mode
          */
-        H2_MYSQL, 
-        
+        H2_MYSQL,
+
         /**
          * Run tests using PostgreSQL integtest database
          */
         PostgreSQL,
-        
+
         /**
          * Run tests using MYSQL integtest database
          */
@@ -68,7 +68,7 @@ public class JooqTestConfigurationBase {
     /**
      * Sets the database mode to run all jooqdb tests. For travis runs it should be set to H2
      */
-    public static DBModes dbType = DBModes.H2_PostgreSQL;
+    public static DBModes dbType = DBModes.PostgreSQL;
 
     /**
      * Sets the database name used to run all jooqdb tests
@@ -76,7 +76,7 @@ public class JooqTestConfigurationBase {
     public static String dbName = "integtest";
 
     /**
-     * 
+     *
      * @return
      * @throws Exception
      */
@@ -91,7 +91,7 @@ public class JooqTestConfigurationBase {
     }
 
     /**
-     * 
+     *
      * @param c2kProps
      */
     public static void setUpStorage(Properties c2kProps) {
@@ -107,7 +107,7 @@ public class JooqTestConfigurationBase {
     /**
      * Use this if testing needs to be done with postgres. Make sure that 'integtest' database is created.
      * This is not the default setup because postgres cannot be run in travis as it has no in-memory/embedded mode.
-     * 
+     *
      * @throws Exception throw anything that could happen
      */
     private static DSLContext initPostrgresContext() throws Exception {
@@ -120,13 +120,13 @@ public class JooqTestConfigurationBase {
     }
 
     /**
-     * 
+     *
      * @param c2kProps
      */
     private static void setUpPostgres(Properties c2kProps) {
         c2kProps.put(JooqHandler.JOOQ_URI,        "jdbc:postgresql://localhost:5432/" + dbName);
         c2kProps.put(JooqHandler.JOOQ_USER,       "postgres");
-        c2kProps.put(JooqHandler.JOOQ_PASSWORD,   "cristal");
+        c2kProps.put(JooqHandler.JOOQ_PASSWORD,   "dev");
         c2kProps.put(JooqHandler.JOOQ_DIALECT,    SQLDialect.POSTGRES.toString());
         c2kProps.put(JooqHandler.JOOQ_AUTOCOMMIT, true);
     }
@@ -134,7 +134,7 @@ public class JooqTestConfigurationBase {
     /**
      * Use this if testing needs to be done with mysql. Make sure that 'integtest' database is created.
      * This is not the default setup because mysql cannot be run in travis as it has no in-memory/embedded mode.
-     * 
+     *
      * @throws Exception throw anything that could happen
      */
     private static DSLContext initMySQLContext() throws Exception {
@@ -147,7 +147,7 @@ public class JooqTestConfigurationBase {
     }
 
     /**
-     * 
+     *
      * @param c2kProps
      */
     private static void setUpMySQL(Properties c2kProps) {
@@ -159,7 +159,7 @@ public class JooqTestConfigurationBase {
     }
 
     /**
-     * 
+     *
      * @param mode
      * @return
      * @throws Exception
@@ -169,14 +169,16 @@ public class JooqTestConfigurationBase {
         String password = "sa";
         String url      = "jdbc:h2:mem:test;DB_CLOSE_DELAY=-1";
 
-        if (mode != null) url += ";MODE=" + mode; 
+        if (mode != null) {
+            url += ";MODE=" + mode;
+        }
 
         Connection conn = DriverManager.getConnection(url, userName, password);
         return using(conn, SQLDialect.H2);
     }
 
     /**
-     * 
+     *
      * @param c2kProps
      * @param mode
      */
@@ -187,6 +189,8 @@ public class JooqTestConfigurationBase {
         c2kProps.put(JooqHandler.JOOQ_DIALECT,    SQLDialect.H2.toString());
         c2kProps.put(JooqHandler.JOOQ_AUTOCOMMIT, true);
 
-        if (mode != null) c2kProps.put(JooqHandler.JOOQ_URI, "jdbc:h2:mem:test;DB_CLOSE_DELAY=-1;MODE=" + mode);
+        if (mode != null) {
+            c2kProps.put(JooqHandler.JOOQ_URI, "jdbc:h2:mem:test;DB_CLOSE_DELAY=-1;MODE=" + mode);
+        }
     }
 }
