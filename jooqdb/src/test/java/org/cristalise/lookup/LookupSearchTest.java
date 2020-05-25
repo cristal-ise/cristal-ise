@@ -57,7 +57,7 @@ public class LookupSearchTest extends LookupTestBase {
         lookup.add( new AgentPath(uuid2, "John") );
         lookup.add( new DomainPath("empty/nothing") );
         lookup.add( new DomainPath("empty/something/uuid0", lookup.getItemPath(uuid0.toString())) );
-        lookup.add( new DomainPath("special/something/special||Chars") );
+        lookup.add( new DomainPath("special/something/special||Chars[escaped] *%._\\\\") );
         //lookup.add( new DomainPath("empty.old/something/uuid1", lookup.getItemPath(uuid1.toString())) );
         lookup.add( new RolePath(new RolePath(),               "User") );
         lookup.add( new RolePath(new RolePath("User"),         "SubUser") );
@@ -101,24 +101,24 @@ public class LookupSearchTest extends LookupTestBase {
     @Test
     public void getChildren_DomainPathSpecialChars_noChild() throws Exception {
         if (JooqTestConfigurationBase.dbType == DBModes.PostgreSQL) {
-            compare(new ArrayList<Path>(), lookup.getChildren(new DomainPath("special/something/special||Chars")) );
+            compare(new ArrayList<Path>(), lookup.getChildren(new DomainPath("special/something/special||Chars[escaped] *%._\\\\")) );
         }
     }
 
     @Test
     public void getChildren_DomainPathSpecialChars_withChild() throws Exception {
-        lookup.add( new DomainPath("special/something/special||Chars/dummy") );
+        lookup.add( new DomainPath("special/something/special||Chars[escaped] *%._\\\\/dummy") );
 
         if (JooqTestConfigurationBase.dbType == DBModes.PostgreSQL) {
-            compare(Arrays.asList(new DomainPath("special/something/special||Chars/dummy")),
-                lookup.getChildren(new DomainPath("special/something/special||Chars")) );
+            compare(Arrays.asList(new DomainPath("special/something/special||Chars[escaped] *%._\\\\/dummy")),
+                lookup.getChildren(new DomainPath("special/something/special||Chars[escaped] *%._\\\\")) );
         }
     }
 
     @Test
     public void getChildren_DomainPathSpecialChars_delete() throws Exception {
         if (JooqTestConfigurationBase.dbType == DBModes.PostgreSQL) {
-            lookup.delete( new DomainPath("special/something/special||Chars") );
+            lookup.delete( new DomainPath("special/something/special||Chars[escaped] *%._\\\\") );
         }
     }
 
