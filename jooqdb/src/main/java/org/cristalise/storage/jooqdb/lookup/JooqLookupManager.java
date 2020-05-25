@@ -375,7 +375,8 @@ public class JooqLookupManager implements LookupManager {
     }
 
     public String convertToPostgresPattern(String path) {
-        return "(?e)^" + path.replaceAll("([^a-zA-Z0-9 ])", "\\\\$1") + "/[^/]*$";
+        String specialCharsToReplace = Gateway.getProperties().getString("JooqLookupManager.getChildrenPattern.specialCharsToReplace", "[^a-zA-Z0-9 ]");
+        return "(?e)^" + path.replaceAll("(" + specialCharsToReplace + ")", "\\\\$1") + "/[^/]*$";
     }
 
     @Override
