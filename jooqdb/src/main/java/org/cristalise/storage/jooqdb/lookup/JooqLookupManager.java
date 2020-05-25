@@ -26,6 +26,7 @@ import static org.cristalise.storage.jooqdb.lookup.JooqDomainPathHandler.TARGET;
 import static org.cristalise.storage.jooqdb.lookup.JooqItemHandler.ITEM_TABLE;
 import static org.cristalise.storage.jooqdb.lookup.JooqRolePathHandler.AGENT;
 import static org.cristalise.storage.jooqdb.lookup.JooqRolePathHandler.ROLE_PATH_TABLE;
+import static org.jooq.SQLDialect.POSTGRES;
 import static org.jooq.impl.DSL.field;
 import static org.jooq.impl.DSL.name;
 import static org.jooq.impl.DSL.upper;
