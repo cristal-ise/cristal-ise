@@ -124,10 +124,15 @@ public class ChangeName extends PredefinedStep {
             Gateway.getLookupManager().delete(currentDP);
         }
         catch (Exception e) {
-            log.error("", e);
+            log.error("Could not delete old domain path: " + currentDP.getStringPath(), e);
 
             //recover original state
-            Gateway.getLookupManager().delete(newDP);
+            try {
+                Gateway.getLookupManager().delete(newDP);
+            }
+            catch (Exception ex) {
+                log.error("Could not delete new domain path: " + newDP.getStringPath(), e);
+            }
 
             throw new CannotManageException(e.getMessage());
         }
