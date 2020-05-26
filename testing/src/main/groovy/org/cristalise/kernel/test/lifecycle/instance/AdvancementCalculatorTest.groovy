@@ -102,8 +102,8 @@ class AdvancementCalculatorTest implements CristalTestSetup {
 
             setFirst('Join1')
 
-            setRoutingScript('Loop1', """javascript:"false"; """, '')
-            setRoutingScript('Loop2', """javascript:"true"; """,  '')
+            setRoutingScript('Loop1', 'javascript:"false";')
+            setRoutingScript('Loop2', 'javascript:"true";')
         }
         wfBuilder.checkActStatus("EA1", [state: 'Waiting', active: true])
 

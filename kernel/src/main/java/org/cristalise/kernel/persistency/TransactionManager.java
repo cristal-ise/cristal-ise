@@ -446,4 +446,8 @@ public class TransactionManager {
     public void postStartServer() throws PersistencyException {
         storage.postStartServer();
     }
+
+    public int getLastIntegerId(ItemPath itemPath, String path) throws PersistencyException{
+        return storage.getLastIntegerId(itemPath, path);
+    }
 }
