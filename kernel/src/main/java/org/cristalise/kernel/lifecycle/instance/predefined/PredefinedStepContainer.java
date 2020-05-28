@@ -52,6 +52,7 @@ public abstract class PredefinedStepContainer extends CompositeActivity {
         predInit("RemoveSlotFromCollection", RemoveSlotFromCollection.description, new RemoveSlotFromCollection());
         predInit("UpdateDependencyMember",   UpdateDependencyMember.description,   new UpdateDependencyMember());
         predInit("AddMemberToCollection",    AddMemberToCollection.description,    new AddMemberToCollection());
+        predInit("AddMembersToCollection",    AddMembersToCollection.description,    new AddMembersToCollection());
         predInit("Import", "Imports an outcome into the Item, with a given schema and viewpoint", new Import());
         predInit("CreateAgentFromDescription", "Create a new agent using this item as its description", new CreateAgentFromDescription());
         predInit(ChangeName.class.getSimpleName(), ChangeName.description, new ChangeName());
