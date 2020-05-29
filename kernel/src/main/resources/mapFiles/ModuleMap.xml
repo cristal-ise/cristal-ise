@@ -158,6 +158,42 @@
       <bind-xml node="text" />
     </field>
   </class>
+  <class name="org.cristalise.kernel.process.module.ModuleItem">
+    <map-to xml="ItemResource" />
+    <field name="name" direct="false" type="string">
+      <bind-xml name="name" node="attribute" />
+    </field>
+    <field name="version" direct="false" type="integer">
+      <bind-xml name="version" node="attribute" />
+    </field>
+    <field name="resourceLocation" direct="false" type="string">
+      <bind-xml node="text" />
+    </field>
+  </class>
+  <class name="org.cristalise.kernel.process.module.ModuleAgent">
+    <map-to xml="AgentResource" />
+    <field name="name" direct="false" type="string">
+      <bind-xml name="name" node="attribute" />
+    </field>
+    <field name="version" direct="false" type="integer">
+      <bind-xml name="version" node="attribute" />
+    </field>
+    <field name="resourceLocation" direct="false" type="string">
+      <bind-xml node="text" />
+    </field>
+  </class>
+  <class name="org.cristalise.kernel.process.module.ModuleRole">
+    <map-to xml="RoleResource" />
+    <field name="name" direct="false" type="string">
+      <bind-xml name="name" node="attribute" />
+    </field>
+    <field name="version" direct="false" type="integer">
+      <bind-xml name="version" node="attribute" />
+    </field>
+    <field name="resourceLocation" direct="false" type="string">
+      <bind-xml node="text" />
+    </field>
+  </class>
   <class name="org.cristalise.kernel.process.module.ModuleActivity">
     <map-to xml="Activity" />
     <field name="name" direct="false" type="string">
