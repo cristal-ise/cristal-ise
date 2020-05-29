@@ -373,7 +373,7 @@ public class AgentProxy extends ItemProxy {
         String schemaName = PredefinedStep.getPredefStepSchemaName(predefStep);
         String param;
 
-        if (schemaName.equals("PredefinedStepOutcome")) param = PredefinedStep.bundleData(params);
+        if (schemaName.equals("PredefinedStepOutcome")) param = PredefinedStep.bundleData(predefStep, params);
         else                                            param = params[0];
 
         String result = item.getItem().requestAction(

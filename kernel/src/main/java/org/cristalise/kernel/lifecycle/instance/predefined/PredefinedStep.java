@@ -28,6 +28,7 @@ import static org.cristalise.kernel.security.BuiltInAuthc.ADMIN_ROLE;
 import static org.cristalise.kernel.security.BuiltInAuthc.SYSTEM_AGENT;
 
 import java.io.StringReader;
+import java.lang.reflect.Method;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -136,19 +137,27 @@ public abstract class PredefinedStep extends Activity {
         return this.getClass().getSimpleName();
     }
 
-    static public String getPredefStepSchemaName(String stepName) {
-        PredefinedStepContainer[] allSteps = 
-            { new ItemPredefinedStepContainer(), new AgentPredefinedStepContainer(), new ServerPredefinedStepContainer() };
+    public static String getPredefStepSchemaName(String stepName) {
+        Activity step = getStepInstance(stepName);
+        if (step != null) {
+            return (String) step.getBuiltInProperty(SCHEMA_NAME);
+        }
+        return "PredefinedStepOutcome"; // default to standard if not found - server may be a newer version
+    }
+
+    public static Activity getStepInstance(String stepName) {
+        PredefinedStepContainer[] allSteps =
+                { new ItemPredefinedStepContainer(), new AgentPredefinedStepContainer(), new ServerPredefinedStepContainer() };
 
         for (PredefinedStepContainer thisContainer : allSteps) {
             String stepPath = thisContainer.getName() + "/" + stepName;
             Activity step = (Activity) thisContainer.search(stepPath);
 
             if (step != null) {
-                return (String) step.getBuiltInProperty(SCHEMA_NAME);
+                return step;
             }
         }
-        return "PredefinedStepOutcome"; // default to standard if not found - server may be a newer version
+        return null;
     }
 
     /**
@@ -171,7 +180,7 @@ public abstract class PredefinedStep extends Activity {
      * @param data
      * @return
      */
-    static public String bundleData(String...data) {
+    public static String bundleData(String...data) {
         try {
             DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
             DocumentBuilder builder = factory.newDocumentBuilder();
@@ -199,8 +208,22 @@ public abstract class PredefinedStep extends Activity {
         }
     }
 
+    public static String bundleData(String stepName, String[] data) {
+        PredefinedStep stepInstance = (PredefinedStep) getStepInstance(stepName);
+        try{
+            if(stepInstance != null) {
+                //Invoke static method bundleData
+                Method bundleDataMethod = stepInstance.getClass().getMethod("bundleData", String[].class);
+                return (String) bundleDataMethod.invoke(null, new Object[]{data});
+            }
+        }catch(Exception ex){
+            log.error("Error invoking bundleData for step {} with data:\n{}", stepName, data, ex);
+        }
+        return bundleData(data);
+    }
+
     // generic bundling of single parameter
-    static public String bundleData(String data) {
+    public static String bundleData(String data) {
         return bundleData(new String[] { data });
     }
 
