@@ -13,11 +13,13 @@ class CRUDGeneratorTest {
     void generateCRUDItemTest() {
         Map<String, Object> inputs = [
             item:            'TestItem',
-            rootDir:         'src/test', 
-            moduleName:      'DSL Test', 
-            moduleNs:        'testns', 
+            rootDir:         'src/test',
+            resourceRoot:    'src/test/resources/org/cristalise/dsl/test/resources/',
+            moduleName:      'DSL Test',
+            moduleNs:        'dsl', 
             moduleVersion:   0,
-            resourcePackage: 'org.cristalise.test',
+            moduleXmlDir:    'src/test/resources/META-INF/cristal',
+            resourceURL:    'org/cristalise/dsl/test/resources/',
             useConstructor:  false,
             isAgent:         false,
             generatedName:   false,

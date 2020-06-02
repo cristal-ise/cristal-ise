@@ -259,8 +259,8 @@ public class Module extends ImportItem {
     public String getDesc() {
         return info.desc;
     }
-    public String getVersion() {
-        return info.version;
+    public Integer getVersion() {
+        return new Integer(info.version);
     }
     public String getResURL() {
         return resURL;

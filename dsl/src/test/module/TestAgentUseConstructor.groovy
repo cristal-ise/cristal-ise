@@ -60,9 +60,9 @@ def TestAgentUseConstructorPropDesc = PropertyDescriptionList('TestAgentUseConst
     PropertyDesc(name: 'State', isMutable: true,  isClassIdentifier: false, defaultValue: 'ACTIVE')
 }
 
-Item(name: 'TestAgentUseConstructorFactory', folder: '/testns', workflow: 'Factory_Workflow', workflowVer: 0) {
+Item(name: 'TestAgentUseConstructorFactory', folder: '/dsl', workflow: 'Factory_Workflow', workflowVer: 0) {
     InmutableProperty('Type': 'Factory')
-    InmutableProperty('Root': 'testns/TestAgentUseConstructors')
+    InmutableProperty('Root': 'dsl/TestAgentUseConstructors')
 
 
 
@@ -72,28 +72,28 @@ Item(name: 'TestAgentUseConstructorFactory', folder: '/testns', workflow: 'Facto
 
 
     Dependency(SCHEMA_INITIALISE) {
-        Member(itemPath: '/desc/Schema/testns/TestAgentUseConstructor_Details') {
+        Member(itemPath: '/desc/Schema/dsl/TestAgentUseConstructor_Details') {
             Property('Version': 0)
         }
     }
 
 
-    Outcome(schema: 'PropertyDescription', version: '0', viewname: 'last', path: 'boot/property/TestAgentUseConstructor.xml')
+    Outcome(schema: 'PropertyDescription', version: '0', viewname: 'last', path: 'boot/property/TestAgentUseConstructor_0.xml')
 
     Dependency('workflow') {
-        Member(itemPath: '/desc/ActivityDesc/testns/TestAgentUseConstructor_Workflow') {
+        Member(itemPath: '/desc/ActivityDesc/dsl/TestAgentUseConstructor_Workflow') {
             Property('Version': 0)
         }
     }
 
     Dependency(MASTER_SCHEMA) {
-        Member(itemPath: '/desc/Schema/testns/TestAgentUseConstructor') {
+        Member(itemPath: '/desc/Schema/dsl/TestAgentUseConstructor') {
             Property('Version': 0)
         }
     }
 
     Dependency(AGGREGATE_SCRIPT) {
-        Member(itemPath: '/desc/Script/testns/TestAgentUseConstructor_Aggregate') {
+        Member(itemPath: '/desc/Script/dsl/TestAgentUseConstructor_Aggregate') {
             Property('Version': 0)
         }
     }

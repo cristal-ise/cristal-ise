@@ -37,7 +37,10 @@ public enum BuiltInResources {
     QUERY_RESOURCE(        "query",    "Query",                 "/desc/Query",        "ManageQuery"),
     STATE_MACHINE_RESOURCE("SM",       "StateMachine",          "/desc/StateMachine", "ManageStateMachine"),
     COMP_ACT_DESC_RESOURCE("CA",       "CompositeActivityDef",  "/desc/ActivityDesc", "ManageCompositeActDef"),
-    ELEM_ACT_DESC_RESOURCE("EA",       "ElementaryActivityDef", "/desc/ActivityDesc", "ManageElementaryActDef");
+    ELEM_ACT_DESC_RESOURCE("EA",       "ElementaryActivityDef", "/desc/ActivityDesc", "ManageElementaryActDef"),
+    ITEM_DESC_RESOURCE(    "item",     "Item",                  "/desc/ItemDesc",     "ManageItemDesc"),
+    AGENT_DESC_RESOURCE(   "agent",    "Agent",                 "/desc/AgentDesc",    "ManageAgentDesc"),
+    ROLE_DESC_RESOURCE(    "role" ,    "Role",                  "/desc/RoleDesc",     "ManageRoleDesc");
 
     private String  typeCode;
     private String  schemaName;
@@ -51,13 +54,16 @@ public enum BuiltInResources {
         workflowDef = wf;
     }
 
+    @Override
     public String toString() {
         return getTypeCode();
     }
 
     public static BuiltInResources getValue(String typeCode) {
         for (BuiltInResources res : BuiltInResources.values()) {
-            if(res.getTypeCode().equals(typeCode) || res.name().equals(typeCode)) return res;
+            if(res.getTypeCode().equals(typeCode) || res.name().equals(typeCode)) {
+                return res;
+            }
         }
         return null;
     }

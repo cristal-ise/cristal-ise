@@ -23,13 +23,16 @@ abstract class ModuleScriptBase extends DelegatingScript {
 
     String resourceRoot = null
     String exportRoot = null
+    String moduleXmlDir = null
+    String moduleDir = 'src/main/module'
 
-    String moduletDir = 'src/main/module'
-    
-    Integer logLevel = 0
-    
+    @Deprecated
     def setModuletDir(URI uri) {
-        moduletDir = Paths.get(uri).parent.toString()
+        setModuleDir(uri)
+    }
+
+    def setModuleDir(URI uri) {
+        moduleDir = Paths.get(uri).parent.toString()
     }
 
     public void init() {
@@ -48,18 +51,16 @@ abstract class ModuleScriptBase extends DelegatingScript {
         Gateway.connect()
     }
 
-    public void Module(Map args, Closure cl) {        
+    public void Module(Map args, Closure cl) {
         init()
 
-        ModuleDelegate md = new ModuleDelegate(
-            (String)args.ns, 
-            (String)args.name, 
-            (Integer)args.version,
-            resourceRoot,
-            exportRoot,
-            moduletDir,
-            this.binding
-        )
+        args.resourceRoot = resourceRoot
+        args.exportRoot = exportRoot
+        args.moduleDir = moduleDir
+        args.moduleXmlDir = moduleXmlDir
+        args.bindings = this.binding
+
+        ModuleDelegate md = new ModuleDelegate(args)
 
         if(cl) md.processClosure(cl)
 

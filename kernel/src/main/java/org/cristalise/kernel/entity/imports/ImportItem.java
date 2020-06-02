@@ -24,6 +24,9 @@ import static org.cristalise.kernel.property.BuiltInItemProperties.CREATOR;
 import static org.cristalise.kernel.property.BuiltInItemProperties.NAME;
 import static org.cristalise.kernel.security.BuiltInAuthc.ADMIN_ROLE;
 
+import java.io.File;
+import java.io.IOException;
+import java.io.Writer;
 import java.util.ArrayList;
 
 import org.apache.commons.lang3.StringUtils;
@@ -54,8 +57,11 @@ import org.cristalise.kernel.persistency.outcome.Schema;
 import org.cristalise.kernel.persistency.outcome.Viewpoint;
 import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.process.module.ModuleImport;
+import org.cristalise.kernel.process.resource.BuiltInResources;
 import org.cristalise.kernel.property.Property;
 import org.cristalise.kernel.property.PropertyArrayList;
+import org.cristalise.kernel.utils.DescriptionObject;
+import org.cristalise.kernel.utils.FileStringUtility;
 import org.cristalise.kernel.utils.LocalObjectLoader;
 
 import lombok.Getter;
@@ -66,7 +72,9 @@ import lombok.extern.slf4j.Slf4j;
  * Complete Structure for new Item created by different bootstrap uses cases including testing
  */
 @Getter @Setter @Slf4j
-public class ImportItem extends ModuleImport {
+public class ImportItem extends ModuleImport implements DescriptionObject {
+
+    protected Integer version = 0;
 
     protected String  initialPath;
     protected String  workflow;
@@ -318,5 +326,50 @@ public class ImportItem extends ModuleImport {
         log.info("createCollections() - name:{} number of colls:{}", name, colls.list.size());
 
         return colls;
+    }
+
+    @Override
+    public String getItemID() {
+        return getID();
+    }
+
+    @Override
+    public CollectionArrayList makeDescCollections() throws InvalidDataException, ObjectNotFoundException {
+        return new CollectionArrayList();
+    }
+
+    @Override
+    public void export(Writer imports, File dir, boolean shallow) throws InvalidDataException, ObjectNotFoundException, IOException {
+        String xml;
+        String typeCode = BuiltInResources.ITEM_DESC_RESOURCE.getTypeCode();
+        String fileName = getName() + (getVersion() == null ? "" : "_" + getVersion()) + ".xml";
+
+        try {
+            xml = Gateway.getMarshaller().marshall(this);
+        }
+        catch (Exception e) {
+            log.error("Couldn't marshall name:" + getName(), e);
+            throw new InvalidDataException("Couldn't marshall name:" + getName());
+        }
+
+        FileStringUtility.string2File(new File(new File(dir, typeCode), fileName), xml);
+
+        if (imports == null) return;
+
+        if (Gateway.getProperties().getBoolean("Resource.useOldImportFormat", false)) {
+            imports.write("<Resource "
+                    + "name='" + getName() + "' "
+                    + (getItemPath() == null ? "" : "id='"      + getItemID()  + "' ")
+                    + (getVersion()  == null ? "" : "version='" + getVersion() + "' ")
+                    + "type='" + typeCode + "'>boot/" + typeCode + "/" + fileName
+                    + "</Resource>\n");
+        }
+        else {
+            imports.write("<ItemResource "
+                    + "name='" + getName() + "' "
+                    + (getItemPath() == null ? "" : "id='"      + getItemID()  + "' ")
+                    + (getVersion()  == null ? "" : "version='" + getVersion() + "'")
+                    + "/>\n");
+        }
     }
 }

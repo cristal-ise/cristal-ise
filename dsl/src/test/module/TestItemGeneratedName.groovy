@@ -60,9 +60,9 @@ def TestItemGeneratedNamePropDesc = PropertyDescriptionList('TestItemGeneratedNa
     PropertyDesc(name: 'State', isMutable: true,  isClassIdentifier: false, defaultValue: 'ACTIVE')
 }
 
-Item(name: 'TestItemGeneratedNameFactory', folder: '/testns', workflow: 'Factory_Workflow', workflowVer: 0) {
+Item(name: 'TestItemGeneratedNameFactory', folder: '/dsl', workflow: 'Factory_Workflow', workflowVer: 0) {
     InmutableProperty('Type': 'Factory')
-    InmutableProperty('Root': 'testns/TestItemGeneratedNames')
+    InmutableProperty('Root': 'dsl/TestItemGeneratedNames')
 
     InmutableProperty('IDPrefix': 'ID')
     Property('LeftPadSize': '6')
@@ -74,22 +74,22 @@ Item(name: 'TestItemGeneratedNameFactory', folder: '/testns', workflow: 'Factory
     InmutableProperty('UpdateSchema': 'TestItemGeneratedName_Details:0')
 
 
-    Outcome(schema: 'PropertyDescription', version: '0', viewname: 'last', path: 'boot/property/TestItemGeneratedName.xml')
+    Outcome(schema: 'PropertyDescription', version: '0', viewname: 'last', path: 'boot/property/TestItemGeneratedName_0.xml')
 
     Dependency('workflow') {
-        Member(itemPath: '/desc/ActivityDesc/testns/TestItemGeneratedName_Workflow') {
+        Member(itemPath: '/desc/ActivityDesc/dsl/TestItemGeneratedName_Workflow') {
             Property('Version': 0)
         }
     }
 
     Dependency(MASTER_SCHEMA) {
-        Member(itemPath: '/desc/Schema/testns/TestItemGeneratedName') {
+        Member(itemPath: '/desc/Schema/dsl/TestItemGeneratedName') {
             Property('Version': 0)
         }
     }
 
     Dependency(AGGREGATE_SCRIPT) {
-        Member(itemPath: '/desc/Script/testns/TestItemGeneratedName_Aggregate') {
+        Member(itemPath: '/desc/Script/dsl/TestItemGeneratedName_Aggregate') {
             Property('Version': 0)
         }
     }

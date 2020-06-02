@@ -82,6 +82,9 @@
                   </xs:complexContent>
                 </xs:complexType>
               </xs:element>
+              <xs:element name="ItemResource" type="resource" minOccurs="0" />
+              <xs:element name="AgentResource" type="resource" minOccurs="0" />
+              <xs:element name="RoleResource" type="resource" minOccurs="0" />
               <xs:element name="SchemaResource" type="resource" minOccurs="0" />
               <xs:element name="ScriptResource" type="resource" minOccurs="0" />
               <xs:element name="QueryResource" type="resource" minOccurs="0" />

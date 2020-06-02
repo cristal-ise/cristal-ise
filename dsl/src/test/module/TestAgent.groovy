@@ -60,9 +60,9 @@ def TestAgentPropDesc = PropertyDescriptionList('TestAgent', 0) {
     PropertyDesc(name: 'State', isMutable: true,  isClassIdentifier: false, defaultValue: 'ACTIVE')
 }
 
-Item(name: 'TestAgentFactory', folder: '/testns', workflow: 'Factory_Workflow', workflowVer: 0) {
+Item(name: 'TestAgentFactory', folder: '/dsl', workflow: 'Factory_Workflow', workflowVer: 0) {
     InmutableProperty('Type': 'Factory')
-    InmutableProperty('Root': 'testns/TestAgents')
+    InmutableProperty('Root': 'dsl/TestAgents')
 
 
 
@@ -74,22 +74,22 @@ Item(name: 'TestAgentFactory', folder: '/testns', workflow: 'Factory_Workflow', 
     InmutableProperty('UpdateSchema': 'TestAgent_Details:0')
 
 
-    Outcome(schema: 'PropertyDescription', version: '0', viewname: 'last', path: 'boot/property/TestAgent.xml')
+    Outcome(schema: 'PropertyDescription', version: '0', viewname: 'last', path: 'boot/property/TestAgent_0.xml')
 
     Dependency('workflow') {
-        Member(itemPath: '/desc/ActivityDesc/testns/TestAgent_Workflow') {
+        Member(itemPath: '/desc/ActivityDesc/dsl/TestAgent_Workflow') {
             Property('Version': 0)
         }
     }
 
     Dependency(MASTER_SCHEMA) {
-        Member(itemPath: '/desc/Schema/testns/TestAgent') {
+        Member(itemPath: '/desc/Schema/dsl/TestAgent') {
             Property('Version': 0)
         }
     }
 
     Dependency(AGGREGATE_SCRIPT) {
-        Member(itemPath: '/desc/Script/testns/TestAgent_Aggregate') {
+        Member(itemPath: '/desc/Script/dsl/TestAgent_Aggregate') {
             Property('Version': 0)
         }
     }

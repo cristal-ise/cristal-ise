@@ -43,6 +43,7 @@
     <xs:simpleContent>
       <xs:extension base="xs:string">
         <xs:attribute name="name" type="xs:string" />
+        <xs:attribute name="mutable" type="xs:boolean" default="true" use="optional" />
       </xs:extension>
     </xs:simpleContent>
   </xs:complexType>
