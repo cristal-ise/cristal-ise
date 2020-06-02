@@ -372,4 +372,9 @@ public class ImportItem extends ModuleImport implements DescriptionObject {
                     + "/>\n");
         }
     }
+
+    @Override
+    public String toString() {
+        return "ImportItem(name:"+name+" version:"+version+" status:"+resourceChangeStatus+")";
+    }
 }

@@ -155,4 +155,9 @@ public class ImportRole extends ModuleImport implements DescriptionObject {
                     + "/>\n");
         }
     }
+
+    @Override
+    public String toString() {
+        return "ImportRole(name:"+name+" version:"+version+" status:"+resourceChangeStatus+")";
+    }
 }

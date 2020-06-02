@@ -28,6 +28,7 @@ import java.io.IOException;
 import java.io.Writer;
 import java.util.ArrayList;
 import java.util.List;
+
 import org.apache.commons.lang3.StringUtils;
 import org.cristalise.kernel.collection.CollectionArrayList;
 import org.cristalise.kernel.common.CannotManageException;
@@ -50,6 +51,7 @@ import org.cristalise.kernel.property.PropertyArrayList;
 import org.cristalise.kernel.utils.DescriptionObject;
 import org.cristalise.kernel.utils.FileStringUtility;
 import org.cristalise.kernel.utils.LocalObjectLoader;
+
 import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
@@ -197,5 +199,10 @@ public class ImportAgent extends ModuleImport implements DescriptionObject {
                     + (getVersion()  == null ? "" : "version='" + getVersion() + "'")
                     + "/>\n");
         }
+    }
+
+    @Override
+    public String toString() {
+        return "ImportAgent(name:"+name+" version:"+version+" status:"+resourceChangeStatus+")";
     }
 }
