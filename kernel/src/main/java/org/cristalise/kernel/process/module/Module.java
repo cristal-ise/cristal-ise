@@ -21,6 +21,8 @@
 package org.cristalise.kernel.process.module;
 
 import static org.cristalise.kernel.collection.BuiltInCollections.CONTENTS;
+import static org.cristalise.kernel.process.resource.ResourceImportHandler.Status.IDENTICAL;
+import static org.cristalise.kernel.process.resource.ResourceImportHandler.Status.SKIPPED;
 import static org.cristalise.kernel.property.BuiltInItemProperties.COMPLEXITY;
 import static org.cristalise.kernel.property.BuiltInItemProperties.MODULE;
 import static org.cristalise.kernel.property.BuiltInItemProperties.NAME;
@@ -53,8 +55,8 @@ import org.cristalise.kernel.lookup.Path;
 import org.cristalise.kernel.persistency.ClusterType;
 import org.cristalise.kernel.process.AbstractMain;
 import org.cristalise.kernel.process.Bootstrap;
-import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.process.resource.BuiltInResources;
+import org.cristalise.kernel.process.resource.ResourceImportHandler.Status;
 import org.cristalise.kernel.property.Property;
 import org.cristalise.kernel.scripting.ErrorInfo;
 import org.cristalise.kernel.scripting.ScriptingEngineException;
@@ -154,8 +156,9 @@ public class Module extends ImportItem {
         //Finally create this Module Item
         if (!Bootstrap.shutdown) this.create(systemAgent.getPath(), reset);
 
-        if (StringUtils.isNotBlank(moduleChanges))
+        if (StringUtils.isNotBlank(moduleChanges)) {
             new UpdateImportReport().request((AgentPath)SYSTEM_AGENT.getPath(), itemPath, moduleChanges);
+        }
     }
 
     /**
@@ -167,8 +170,15 @@ public class Module extends ImportItem {
         for (ImportItem thisItem : imports.getItems()) {
             if (Bootstrap.shutdown) return;
 
-            thisItem.setNamespace(ns);
-            addItemToContents( thisItem.create(systemAgent.getPath(), reset) );
+            log.info("importItems() - {}", thisItem);
+
+            Status changeStatus = thisItem.getResourceChangeStatus();
+
+            if (changeStatus == null || (changeStatus != IDENTICAL && changeStatus != SKIPPED)) {
+                thisItem.setNamespace(ns);
+                Path p = thisItem.create(systemAgent.getPath(), reset);
+                addItemToContents(p);
+            }
         }
     }
 
@@ -181,15 +191,15 @@ public class Module extends ImportItem {
         for (ImportAgent thisAgent : imports.getAgents()) {
             if (Bootstrap.shutdown) return;
 
-            try {
-                Gateway.getLookup().getAgentPath(thisAgent.name);
-                log.info("importAgents() - Agent '"+thisAgent.name+"' found.");
-                continue;
-            }
-            catch (ObjectNotFoundException ex) { }
+            log.info("importAgents() - {}", thisAgent);
 
-            log.info("importAgents() - Agent '"+thisAgent.name+"' not found. Creating.");
-            addItemToContents( thisAgent.create(systemAgent.getPath(), reset) );
+            Status changeStatus = thisAgent.getResourceChangeStatus();
+
+            if (changeStatus == null || (changeStatus != IDENTICAL && changeStatus != SKIPPED)) {
+                thisAgent.setNamespace(ns);
+                Path p = thisAgent.create(systemAgent.getPath(), reset);
+                addItemToContents(p);
+            }
         }
     }
 
@@ -202,7 +212,13 @@ public class Module extends ImportItem {
         for (ImportRole thisRole : imports.getRoles()) {
             if (Bootstrap.shutdown) return;
 
-            thisRole.create(systemAgent.getPath(), reset);
+            log.info("importRoles() - {}", thisRole);
+
+            Status changeStatus = thisRole.getResourceChangeStatus();
+
+            if (changeStatus == null || (changeStatus != IDENTICAL && changeStatus != SKIPPED)) {
+                thisRole.create(systemAgent.getPath(), reset);
+            }
         }
     }
 

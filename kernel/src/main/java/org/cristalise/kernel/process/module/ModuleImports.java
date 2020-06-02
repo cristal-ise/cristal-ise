@@ -27,6 +27,7 @@ import org.cristalise.kernel.common.ObjectNotFoundException;
 import org.cristalise.kernel.entity.imports.ImportAgent;
 import org.cristalise.kernel.entity.imports.ImportItem;
 import org.cristalise.kernel.entity.imports.ImportRole;
+import org.cristalise.kernel.process.AbstractMain;
 import org.cristalise.kernel.utils.CastorArrayList;
 import org.cristalise.kernel.utils.LocalObjectLoader;
 
@@ -67,19 +68,22 @@ public class ModuleImports extends CastorArrayList<ModuleImport> {
     public ArrayList<ImportItem> getItems() {
         ArrayList<ImportItem> subset = new ArrayList<ImportItem>();
 
-        for (ModuleImport imp : list) {
-            if (imp instanceof ImportItem) {
-                subset.add((ImportItem)imp);
+        for (ModuleImport moduleImport : list) {
+            if (moduleImport instanceof ImportItem) {
+                subset.add((ImportItem)moduleImport);
             }
-            else if (imp instanceof ModuleItem) {
-                int version = ((ModuleItem) imp).getVersion();
+            else if (moduleImport instanceof ModuleItem) {
+                ModuleItem moduleItem = (ModuleItem) moduleImport;
+
                 try {
-                    ImportItem importItem = LocalObjectLoader.getItemDesc(imp.getName(), version);
+                    ImportItem importItem = LocalObjectLoader.getItemDesc(moduleImport.getName(), moduleItem.getVersion());
                     importItem.setItemPath(null);
+                    importItem.setResourceChangeStatus(moduleItem.getResourceChangeStatus());
                     subset.add(importItem);
                 }
                 catch (ObjectNotFoundException | InvalidDataException e) {
-                    log.error("Could not load itemDesc:{} version:{}", imp.getName(), version, e);
+                    log.error("Could not load itemDesc:{} version:{}", moduleImport.getName(), moduleItem.getVersion(), e);
+                    AbstractMain.shutdown(1);
                 }
             }
         }
@@ -102,10 +106,12 @@ public class ModuleImports extends CastorArrayList<ModuleImport> {
                 try {
                     ImportAgent importAgent= LocalObjectLoader.getAgentDesc(imp.getName(), version);
                     importAgent.setItemPath(null);
+                    importAgent.setResourceChangeStatus(imp.getResourceChangeStatus());
                     subset.add(importAgent);
                 }
                 catch (ObjectNotFoundException | InvalidDataException e) {
                     log.error("Could not load agentDesc:{} version:{}", imp.getName(), version, e);
+                    AbstractMain.shutdown(1);
                 }
             }
         }
@@ -128,10 +134,12 @@ public class ModuleImports extends CastorArrayList<ModuleImport> {
                 try {
                     ImportRole importRole = LocalObjectLoader.getRoleDesc(imp.getName(), version);
                     importRole.setItemPath(null);
+                    importRole.setResourceChangeStatus(imp.getResourceChangeStatus());
                     subset.add(importRole);
                 }
                 catch (ObjectNotFoundException | InvalidDataException e) {
-                    log.error("Could not load agentDesc:{} version:{}", imp.getName(), version, e);
+                    log.error("Could not load roleDesc:{} version:{}", imp.getName(), version, e);
+                    AbstractMain.shutdown(1);
                 }
             }
         }

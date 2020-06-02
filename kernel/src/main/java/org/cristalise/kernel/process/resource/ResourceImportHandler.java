@@ -167,4 +167,6 @@ public interface ResourceImportHandler {
      * @return xml string
      */
     public String getResourceChangeDetails();
+
+    public Status getResourceChangeStatus();
 }
