@@ -13,9 +13,9 @@ setConnect '@{rootDir}/conf/server.clc'
 setResourceRoot @if{resourceRoot} '@{resourceRoot}' @else{} '@{rootDir}/resources' @end{}
 @if{moduleXmlDir} setModuleXmlDir '@{moduleXmlDir}' @end{}
 
-Module(ns: '@{moduleNs}', name: '@{moduleName}', version: @{moduleVersion}) {
+Module(ns: '@{moduleNs}', name: '@{moduleName}', version: @{version}) {
 
-    Info(description: '@{moduleName} CRISTAL-iSE module', version: '@{moduleVersion}'){
+    Info(description: '@{moduleName} CRISTAL-iSE module', version: '@{version}'){
         // provide dependencies here. e.g. dependencies: ['dependency1', 'dependency1' ... ]
     }
 

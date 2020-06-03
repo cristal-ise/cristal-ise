@@ -13,9 +13,13 @@ import org.cristalise.kernel.persistency.ClusterType
 import org.cristalise.kernel.persistency.outcome.Outcome
 import org.cristalise.kernel.property.PropertyArrayList
 import org.cristalise.kernel.utils.LocalObjectLoader
-import org.cristalise.kernel.utils.Logger
+
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 
 import groovy.transform.CompileStatic
+
+final Logger log = LoggerFactory.getLogger("@{appPackage}.scripts.Factory.InstantiateItem")
 
 //--------------------------------------------------
 // item, agent and job are injected by the CRISTAL-iSE Script class automatically
@@ -29,7 +33,7 @@ import groovy.transform.CompileStatic
 
 Outcome outcome = job.getOutcome()
 
-Logger.msg 8, "Script.Factory_InstantiateItem - Factory_NewInstanceDetails:%s", outcome.getData()
+log.debug 'Factory_NewInstanceDetails:{}', outcome.getData()
 
 String   itemName    = getItemName(item, outcome)
 String   root        = item.getProperty('Root')
@@ -39,7 +43,7 @@ String   initaliseOutcomeXML = null
 
 if (item.checkContent(ClusterType.COLLECTION.name, BuiltInCollections.SCHEMA_INITIALISE.name)) {
     initaliseOutcomeXML = getInitaliseOutcomeXML(item, outcome, itemName)
-    Logger.msg 5, "Script.Factory_InstantiateItem - initaliseOutcomeXML:%s", initaliseOutcomeXML
+    log.debug 'initaliseOutcomeXML:{}', initaliseOutcomeXML
 }
 
 String[] params = null

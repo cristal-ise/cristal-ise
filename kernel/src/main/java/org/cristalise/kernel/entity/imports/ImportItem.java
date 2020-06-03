@@ -78,7 +78,7 @@ public class ImportItem extends ModuleImport implements DescriptionObject {
 
     protected String  initialPath;
     protected String  workflow;
-    protected Integer workflowVer;
+    protected Integer workflowVer = 0;
 
     protected ArrayList<Property> properties = new ArrayList<Property>();
 
@@ -290,11 +290,11 @@ public class ImportItem extends ModuleImport implements DescriptionObject {
             if (compActDef == null) {
                 // default workflow version is 0 if not given
                 if (StringUtils.isNotBlank(workflow)) {
-                    compActDef = (CompositeActivityDef) LocalObjectLoader.getActDef(workflow, workflowVer == null ? 0 : workflowVer);
+                    compActDef = (CompositeActivityDef) LocalObjectLoader.getActDef(workflow, workflowVer);
                 }
                 else {
                     log.warn("createCompositeActivity() - NO Workflow was set for domainPath:"+domainPath);
-                    compActDef = (CompositeActivityDef) LocalObjectLoader.getActDef("NoWorkflow", workflowVer == null ? 0 : workflowVer);
+                    compActDef = (CompositeActivityDef) LocalObjectLoader.getActDef("NoWorkflow", 0);
                 }
             }
         }

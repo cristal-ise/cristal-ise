@@ -1,4 +1,4 @@
-def newInstanceDetails = Schema('Factory_NewInstanceDetails', 0) {
+def newInstanceDetails = Schema('Factory_NewInstanceDetails', @{version}) {
     struct(name: 'Factory_NewInstanceDetails', useSequence: true) {
         field(name: 'Name',      type: 'string',  documentation: 'The Name of the new instance, it can be generated')
         field(name: 'LastCount', type: 'integer', documentation: 'The last number used to generate the ID', multiplicity: '0..1') {
@@ -10,21 +10,21 @@ def newInstanceDetails = Schema('Factory_NewInstanceDetails', 0) {
     }
 }
 
-def instantiateItem = Script("Factory_InstantiateItem", 0) {
+def instantiateItem = Script("Factory_InstantiateItem", @{version}) {
     script('groovy', moduleDir+'/script/Factory_InstantiateItem.groovy')
 }
 
-changeName = Script("Entity_ChangeName", 0) {
+changeName = Script("Entity_ChangeName", @{version}) {
     script('groovy', moduleDir+'/script/Entity_ChangeName.groovy')
 }
 
-def createItem = Activity('Factory_CreateItem', 0) {
+def createItem = Activity('Factory_CreateItem', @{version}) {
     Property('OutcomeInit': 'Empty')
 
     Schema(newInstanceDetails)
     Script(instantiateItem)
 }
 
-Workflow('Factory_Workflow', 0) {
+Workflow('Factory_Workflow', @{version}) {
     ElemActDef(createItem)
 }

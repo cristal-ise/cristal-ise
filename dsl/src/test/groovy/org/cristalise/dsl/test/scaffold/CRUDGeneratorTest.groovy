@@ -6,7 +6,7 @@ import org.junit.Test
 
 import groovy.transform.CompileStatic
 
-//@CompileStatic
+@CompileStatic
 class CRUDGeneratorTest {
 
     @Test
@@ -17,9 +17,10 @@ class CRUDGeneratorTest {
             resourceRoot:    'src/test/resources/org/cristalise/dsl/test/resources/',
             moduleName:      'DSL Test',
             moduleNs:        'dsl', 
-            moduleVersion:   0,
+            version:         0,
             moduleXmlDir:    'src/test/resources/META-INF/cristal',
-            resourceURL:    'org/cristalise/dsl/test/resources/',
+            appPackage:      'org.cristalise.dsl.test',
+            resourceURL:     'org/cristalise/dsl/test/resources/',
             useConstructor:  false,
             isAgent:         false,
             generatedName:   false,
@@ -31,7 +32,7 @@ class CRUDGeneratorTest {
         inputs.with {
             item = 'TestItemUseConstructor'
             useConstructor = true
-            moduleFiles.add('TestItemUseConstructor.groovy')
+            ((List)moduleFiles).add('TestItemUseConstructor.groovy')
         }
 
         new CRUDGenerator().generate(inputs, false, false)
@@ -39,7 +40,7 @@ class CRUDGeneratorTest {
         inputs.with {
             item = 'TestAgentUseConstructor'
             isAgent = true
-            moduleFiles.add('TestAgentUseConstructor.groovy')
+            ((List)moduleFiles).add('TestAgentUseConstructor.groovy')
         }
 
         new CRUDGenerator().generate(inputs, false, false)
@@ -47,7 +48,7 @@ class CRUDGeneratorTest {
         inputs.with {
             item = 'TestAgent'
             useConstructor = false
-            moduleFiles.add('TestAgent.groovy')
+            ((List)moduleFiles).add('TestAgent.groovy')
         }
 
         new CRUDGenerator().generate(inputs, false, false)
