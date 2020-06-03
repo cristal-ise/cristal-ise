@@ -4,18 +4,20 @@ import org.junit.Test
 
 import groovy.transform.CompileStatic
 
+
 @CompileStatic
-class LoginAuditTest extends RestapiTestBase {
+class LoginTest extends RestapiTestBase {
 
     @Test
     public void 'Test Login-Logout Login-LoginTimeout and Login-ForcedLogout scenarios'() throws Exception {
+
         login()
         def eventId = checkEvent(null, 'Login')
 
         logout(null)
         checkEvent(++eventId, 'Logout')
 
-        login()
+        loginPost()
         checkEvent(++eventId, 'Login')
 
         logout('timeout')
@@ -26,5 +28,10 @@ class LoginAuditTest extends RestapiTestBase {
 
         logout('windowClose')
         checkEvent(++eventId, 'ForcedLogout')
+    }
+    
+    @Test
+    public void 'Test Login using passowrd with special characters'() throws Exception {
+        loginPost('mainUser', 'test©£')
     }
 }

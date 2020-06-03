@@ -20,6 +20,7 @@
  */
 package org.cristalise.restapi;
 
+import java.nio.charset.Charset;
 import java.util.Base64;
 
 import javax.ws.rs.Consumes;
@@ -164,6 +165,7 @@ public class CookieLogin extends RestHandler {
      */
     private String decode(String encodedStr) {
         return new String(Base64.getDecoder().decode(encodedStr));
+        //return new String(Base64.getDecoder().decode(encodedStr.getBytes(Charset.defaultCharset())));
     }
 
 }
