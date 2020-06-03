@@ -77,7 +77,7 @@ public class WebAppExceptionBuilder {
         this.exception = ex;
         if (StringUtils.isBlank(this.message)) this.message = ex.getMessage();
 
-        log.debug("exception() - excpetion:'%s'", ex.getClass().getSimpleName());
+        log.debug("exception()", ex);
 
         if (ex instanceof OutcomeBuilderException ||
             ex instanceof ObjectAlreadyExistsException ||
@@ -114,14 +114,14 @@ public class WebAppExceptionBuilder {
             this.status = Response.Status.INTERNAL_SERVER_ERROR;
         }
         else if (ex instanceof WebApplicationException) {
-            log.debug("exception() - DO NOTHING with WebApplicationException: %s", this.message);
+            log.debug("exception() - DO NOTHING with WebApplicationException: {}", this.message);
 
 //            Response response = ((WebApplicationException) ex).getResponse();
 //            this.status = Response.Status.fromStatusCode(response.getStatus());
 //            this.message = response.getEntity().toString();
         }
         else {
-            log.debug("exception() - Mapping excpetion '%s' to INTERNAL_SERVER_ERROR", ex.getClass().getSimpleName());
+            log.debug("exception() - Mapping excpetion '{}' to INTERNAL_SERVER_ERROR", ex.getClass().getSimpleName());
             this.status = Response.Status.INTERNAL_SERVER_ERROR;
         }
 
