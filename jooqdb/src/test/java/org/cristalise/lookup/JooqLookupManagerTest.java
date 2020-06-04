@@ -20,6 +20,8 @@
  */
 package org.cristalise.lookup;
 
+import static org.junit.Assert.*;
+
 import java.util.Properties;
 
 import org.cristalise.JooqTestConfigurationBase;
@@ -37,7 +39,7 @@ public class JooqLookupManagerTest extends JooqTestConfigurationBase {
     @BeforeClass
     public static void beforeClass() throws Exception {
         Properties props = new Properties();
-        
+
         setUpStorage(props);
 
         Gateway.init(props);
@@ -56,5 +58,10 @@ public class JooqLookupManagerTest extends JooqTestConfigurationBase {
 
     @Test
     public void openConnectionAndCreateTables() {
+    }
+
+    @Test
+    public void testPostgresRegex() {
+        assertEquals("(?e)^Special \\|\\| chars \\[escaped\\] \\*\\%\\.\\_\\/\\\\/[^/]*$", jooq.convertToPostgresPattern("Special || chars [escaped] *%._/\\"));
     }
 }
