@@ -20,8 +20,8 @@ class AgentPredefinedStepsTest extends RestapiTestBase {
         login(name, 'test')
 
         StringBuffer xml = new StringBuffer("<SimpleElectonicSignature>");
-        xml.append("<AgentName>").append(name)      .append("</AgentName>");
-        xml.append("<Password>") .append("test1").append("</Password>");
+        xml.append("<AgentName>").append(name)  .append("</AgentName>");
+        xml.append("<Password>") .append("test").append("</Password>");
 
         xml.append("<ExecutionContext>");
         xml.append("<ItemPath>")     .append("ItemPath")     .append("</ItemPath>");
