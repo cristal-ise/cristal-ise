@@ -62,7 +62,7 @@ def @{item}PropDesc = PropertyDescriptionList('@{item}', @{version}) {
     PropertyDesc(name: 'State', isMutable: true,  isClassIdentifier: false, defaultValue: 'ACTIVE')
 }
 
-Item(name: '@{item}Factory', folder: '/@{moduleNs}', workflow: 'Factory_Workflow', workflowVer: @{version}) {
+Item(name: '@{item}Factory', version: @{version}, folder: '/@{moduleNs}', workflow: 'Factory_Workflow', workflowVer: @{version}) {
     InmutableProperty('Type': 'Factory')
     InmutableProperty('Root': '@{moduleNs}/@{item}s')
 @if{generatedName}

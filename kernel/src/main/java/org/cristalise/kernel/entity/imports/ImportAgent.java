@@ -68,14 +68,19 @@ public class ImportAgent extends ModuleImport implements DescriptionObject {
 
     public ImportAgent() {}
 
+    public ImportAgent(String folder, String aName, Integer version, String pwd) {
+        setInitialPath(folder);
+        setName(aName);
+        setVersion(version);
+        setPassword(pwd);
+    }
+
     public ImportAgent(String folder, String aName, String pwd) {
-        this.initialPath = folder;
-        this.name = aName;
-        this.password = pwd;
+        this(folder, aName, null, pwd);
     }
 
     public ImportAgent(String aName, String pwd) {
-        this(null, aName, pwd);
+        this(null, aName, null, pwd);
     }
 
     @Override

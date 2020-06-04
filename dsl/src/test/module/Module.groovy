@@ -21,7 +21,7 @@ Module(ns: 'dsl', name: 'DSL Test', version: 0) {
 
     Url('org/cristalise/dsl/test/resources/')
 
-    Agent(name: 'dsl', password: 'test', folder:'/dsl/Agents') {
+    Agent(name: 'dsl', version: 0, password: 'test', folder:'/dsl/Agents') {
         Roles {
             Role(name: 'Admin')
         }

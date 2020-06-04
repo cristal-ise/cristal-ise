@@ -256,7 +256,7 @@ class ModuleDelegate {
      * @param cl
      */
     public ImportItem Item(Map args, Closure cl) {
-        def item = ItemBuilder.build((String) args.name, (String) args.folder, args.workflow, args?.workflowVer as Integer, cl)
+        def item = ItemBuilder.build(args, cl)
         item.properties.removeAll { it.value == args.name }
 
         if (Gateway.getProperties().getBoolean('DSL.Module.generateAllResourceItems', true)) {

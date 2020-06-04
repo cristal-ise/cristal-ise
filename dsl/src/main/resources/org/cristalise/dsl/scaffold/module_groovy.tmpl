@@ -21,7 +21,7 @@ Module(ns: '@{moduleNs}', name: '@{moduleName}', version: @{version}) {
 
     Url('@{resourceURL}')
 
-    Agent(name: '@{moduleNs}', password: 'test', folder:'/@{moduleNs}/Agents') {
+    Agent(name: '@{moduleNs}', version: @{version}, password: 'test', folder:'/@{moduleNs}/Agents') {
         Roles {
             Role(name: 'Admin')
         }

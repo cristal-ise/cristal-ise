@@ -100,9 +100,10 @@ public class ImportItem extends ModuleImport implements DescriptionObject {
 
     public ImportItem() {}
 
-    public ImportItem(String ns, String name, String initialPath, ItemPath itemPath, String wf, int wfVer) {
+    public ImportItem(String ns, String name, Integer version, String initialPath, ItemPath itemPath, String wf, int wfVer) {
         setNamespace(ns);
         setName(name);
+        setVersion(version);
         setItemPath(itemPath);
         setInitialPath(initialPath);
         setWorkflow(wf);
@@ -110,6 +111,10 @@ public class ImportItem extends ModuleImport implements DescriptionObject {
 
         compActDef = null;
         wf = null;
+    }
+
+    public ImportItem(String ns, String name, String initialPath, ItemPath itemPath, String wf, int wfVer) {
+        this(ns, name, null, initialPath, itemPath, wf, wfVer);
     }
 
     /**

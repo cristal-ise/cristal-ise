@@ -38,23 +38,20 @@ class ItemBuilder {
     public ItemBuilder() {}
 
     public static ImportItem build(Map<String, Object> attrs, Closure cl) {
-        assert attrs, "ItemBuilder build() cannot work with empty attributes (Map)"
-        return build((String)attrs.name, (String)attrs.folder, attrs.workflow as String, attrs?.workflowVer as Integer, cl)
-    }
+        assert attrs, "cannot work with empty attributes (Map)"
 
-    public static ImportItem build(String name, String folder, Object workflow, Integer workflowVer, Closure cl) {
-        if(!name || !folder) throw new InvalidDataException("")
-
-        def itemD = (workflow == null || workflow instanceof String) ? 
-            new ItemDelegate(name, folder, (String)workflow, workflowVer) : new ItemDelegate(name, folder, (CompositeActivityDef)workflow)
-
+        def itemD = new ItemDelegate(attrs)
         itemD.processClosure(cl)
 
         return itemD.newItem
     }
 
+    public static ImportItem build(String name, String folder, Object workflow, Integer workflowVer, Closure cl) {
+        return build(['name': name, 'folder': folder, 'workflow': workflow, 'workflowVer': workflowVer], cl)
+    }
+
     public static DomainPath create(Map<String, Object> attrs, Closure cl) {
-        assert attrs, "ItemBuilder create() cannot work with empty attributes (Map)"
+        assert attrs, "cannot work with empty attributes (Map)"
         assert attrs.agent && (attrs.agent instanceof AgentPath)
 
         return create((AgentPath)attrs.agent, build(attrs, cl))

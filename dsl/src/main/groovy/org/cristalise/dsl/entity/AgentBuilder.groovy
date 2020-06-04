@@ -46,29 +46,28 @@ class AgentBuilder {
 
     public AgentBuilder() {}
 
-    public static AgentPath create(Map<String, Object> attrs, Closure cl) {
-        assert attrs && attrs.agent && (attrs.agent instanceof AgentPath)
-
-        return create((AgentPath)attrs.agent, build(attrs, cl))
-    }
-
     public static ImportAgent build(Map<String, Object> attrs, Closure cl) {
         assert attrs && attrs.name && attrs.password
-        return build(attrs.folder ? (String)attrs.folder : null, (String)attrs.name, (String)attrs.password, cl)
+
+        def agentD = new AgentDelegate(attrs)
+        agentD.processClosure(cl)
+
+        if(!agentD.newAgent.roles) throw new InvalidDataException("Agent '${attrs.name}' does not have any Roles defined")
+
+        return agentD.newAgent
     }
 
     public static ImportAgent build(String name, String pwd, Closure cl) {
-        return build(null, name, pwd, cl)
+        return build(['name': name, 'pwd': pwd] as Map<String, Object>, cl)
     }
 
     public static ImportAgent build(String folder, String name, String pwd, Closure cl) {
-        def agentD = new AgentDelegate(folder, name, pwd)
+        return build(['folder': folder, 'name': name, 'pwd': pwd] as Map<String, Object>, cl)
+    }
 
-        agentD.processClosure(cl)
-
-        if(!agentD.newAgent.roles) throw new InvalidDataException("Agent '$name' does not have any Roles defined")
-
-        return agentD.newAgent
+    public static AgentPath create(Map<String, Object> attrs, Closure cl) {
+        assert attrs && attrs.agent && (attrs.agent instanceof AgentPath)
+        return create((AgentPath)attrs.agent, build(attrs, cl))
     }
 
     public static AgentPath create(AgentPath builderAgent, ImportAgent newAgent) {
