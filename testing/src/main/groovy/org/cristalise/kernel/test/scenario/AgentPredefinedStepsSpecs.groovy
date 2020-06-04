@@ -1,5 +1,7 @@
 package org.cristalise.kernel.test.scenario;
 
+import java.time.LocalDateTime
+
 import org.cristalise.kernel.entity.imports.ImportAgent
 import org.cristalise.kernel.entity.imports.ImportRole
 import org.cristalise.kernel.entity.proxy.AgentProxy
@@ -23,12 +25,12 @@ import spock.lang.Specification
 class AgentPredefinedStepsSpecs extends Specification implements CristalTestSetup {
 
     AgentProxy agent
-    String timeStamp = new Date().format("yyyy-MM-dd_HH-mm-ss_SSS")
+    String timeStamp = null
 
-    def setup()   { 
+    def setup()   {
         cristalInit(8, 'src/main/bin/client.conf', 'src/main/bin/integTest.clc')
         agent = Gateway.connect('user', 'test')
-        timeStamp = new Date().format("yyyy-MM-dd_HH-mm-ss_SSS")
+        timeStamp = LocalDateTime.now().format("yyyy-MM-dd_HH-mm-ss_SSS")
     }
 
     def cleanup() { cristalCleanup() }
