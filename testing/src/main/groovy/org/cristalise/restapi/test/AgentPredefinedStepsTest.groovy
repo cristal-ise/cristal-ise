@@ -35,8 +35,6 @@ class AgentPredefinedStepsTest extends RestapiTestBase {
         xml.append("</SimpleElectonicSignature>");
         executePredefStep(userUuid, Sign.class, ContentType.XML, xml.toString())
 
-        //newAgent.getViewpoint('SimpleElectonicSignature', 'last')
-
         logout(null)
     }
 }
