@@ -149,7 +149,7 @@ public class CookieLogin extends RestHandler {
         catch (Exception e) {
             log.error("Problem logging in", e);
             throw new WebAppExceptionBuilder()
-                    .message("Problem logging in")
+                    .message("Problem reading authentication data")
                     .status(Response.Status.BAD_REQUEST)
                     .build();
         }
