@@ -55,7 +55,7 @@ class RestapiTestBase {
     }
 
     public static String encodeString(String s) {
-        return Base64.getEncoder().encodeToString(s.getBytes(StandardCharsets.UTF_8))
+        return Base64.getEncoder().encodeToString(s.getBytes(StandardCharsets.ISO_8859_1))
     }
 
     def login() {

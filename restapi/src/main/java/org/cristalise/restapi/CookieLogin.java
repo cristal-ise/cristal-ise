@@ -20,7 +20,7 @@
  */
 package org.cristalise.restapi;
 
-import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 
 import javax.ws.rs.Consumes;
@@ -131,27 +131,34 @@ public class CookieLogin extends RestHandler {
     @Consumes({ MediaType.TEXT_PLAIN, MediaType.TEXT_XML, MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON })
     @Produces({ MediaType.TEXT_XML, MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON })
     public Response postLogin(String postData, @Context HttpHeaders headers) {
-        String user;
-        String pass;
+        String user = null;
+        String pass = null;
+
+        if (StringUtils.isBlank(postData)) {
+            throw new WebAppExceptionBuilder()
+                    .message("Authentication data is null or empty")
+                    .status(Response.Status.BAD_REQUEST)
+                    .build();
+        }
 
         try {
-            if (StringUtils.isEmpty(postData)) {
-                throw new Exception("Authentication data is null or empty");
-            }
-
             JSONObject authData = new JSONObject(postData);
             user = decode(authData.getString(USERNAME));
             pass = decode(authData.getString(PASSWORD));
-
-            if (StringUtils.isEmpty(user) || StringUtils.isEmpty(pass)) {
-                throw new Exception("Invalid username or password");
-            }
         }
         catch (Exception e) {
-            log.error("", e);
+            log.error("Problem logging in", e);
             throw new WebAppExceptionBuilder()
-                    .message( "Problem logging in" )
-                    .status( Response.Status.BAD_REQUEST ).build();
+                    .message("Problem logging in")
+                    .status(Response.Status.BAD_REQUEST)
+                    .build();
+        }
+
+        if (StringUtils.isBlank(user) || StringUtils.isBlank(pass)) {
+            throw new WebAppExceptionBuilder()
+                    .message("Invalid username or password")
+                    .status(Response.Status.UNAUTHORIZED)
+                    .build();
         }
 
         return processLogin(user, pass, headers);
@@ -164,8 +171,6 @@ public class CookieLogin extends RestHandler {
      * @return
      */
     private String decode(String encodedStr) {
-        return new String(Base64.getDecoder().decode(encodedStr));
-        //return new String(Base64.getDecoder().decode(encodedStr.getBytes(Charset.defaultCharset())));
+        return new String(Base64.getDecoder().decode(encodedStr), StandardCharsets.ISO_8859_1);
     }
-
 }
