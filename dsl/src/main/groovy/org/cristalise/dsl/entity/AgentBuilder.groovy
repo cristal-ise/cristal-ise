@@ -58,11 +58,11 @@ class AgentBuilder {
     }
 
     public static ImportAgent build(String name, String pwd, Closure cl) {
-        return build(['name': name, 'pwd': pwd] as Map<String, Object>, cl)
+        return build(['name': name, 'password': pwd] as Map<String, Object>, cl)
     }
 
     public static ImportAgent build(String folder, String name, String pwd, Closure cl) {
-        return build(['folder': folder, 'name': name, 'pwd': pwd] as Map<String, Object>, cl)
+        return build(['folder': folder, 'name': name, 'password': pwd] as Map<String, Object>, cl)
     }
 
     public static AgentPath create(Map<String, Object> attrs, Closure cl) {
