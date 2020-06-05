@@ -21,6 +21,18 @@
 
 package org.cristalise.kernel.process.resource;
 
+import org.cristalise.kernel.entity.imports.ImportAgent;
+import org.cristalise.kernel.entity.imports.ImportItem;
+import org.cristalise.kernel.entity.imports.ImportRole;
+import org.cristalise.kernel.lifecycle.ActivityDef;
+import org.cristalise.kernel.lifecycle.CompositeActivityDef;
+import org.cristalise.kernel.lifecycle.instance.stateMachine.StateMachine;
+import org.cristalise.kernel.persistency.outcome.Schema;
+import org.cristalise.kernel.property.PropertyDescriptionList;
+import org.cristalise.kernel.querying.Query;
+import org.cristalise.kernel.scripting.Script;
+import org.cristalise.kernel.utils.DescriptionObject;
+
 import lombok.Getter;
 
 /**
@@ -59,12 +71,41 @@ public enum BuiltInResources {
         return getTypeCode();
     }
 
-    public static BuiltInResources getValue(String typeCode) {
+    public static BuiltInResources getValue(String value) {
         for (BuiltInResources res : BuiltInResources.values()) {
-            if(res.getTypeCode().equals(typeCode) || res.name().equals(typeCode)) {
+            if(res.getTypeCode().equals(value) || 
+               res.getSchemaName().equals(value) || 
+               res.name().equals(value))
+            {
                 return res;
             }
         }
         return null;
+    }
+    
+    public DescriptionObject getDescriptionObject(String name) {
+        DescriptionObject descObj;
+
+        switch(this) {
+            case ACTIVITY_DESC_RESOURCE: descObj = null; break; //abstract resource
+            case MODULE_RESOURCE:        descObj = null; break; //Module is not a DescriptionObject
+            case SCHEMA_RESOURCE:        descObj = new Schema(null); break; 
+            case SCRIPT_RESOURCE:        descObj = new Script(); break; 
+            case QUERY_RESOURCE:         descObj = new Query(); break; 
+            case PROPERTY_DESC_RESOURCE: descObj = new PropertyDescriptionList(); break;
+            case COMP_ACT_DESC_RESOURCE: descObj = new CompositeActivityDef(); break;
+            case ELEM_ACT_DESC_RESOURCE: descObj = new ActivityDef(); break;
+            case STATE_MACHINE_RESOURCE: descObj = new StateMachine(); break;
+            case ITEM_DESC_RESOURCE:     descObj = new ImportItem(); break;
+            case AGENT_DESC_RESOURCE:    descObj = new ImportAgent(); break;
+            case ROLE_DESC_RESOURCE:     descObj = new ImportRole(); break;
+
+            default:
+                return null;
+        }
+
+        if (descObj != null) descObj.setName(name);
+
+        return descObj;
     }
 }
