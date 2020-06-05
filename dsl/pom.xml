@@ -90,7 +90,6 @@
         <additionalparam>-Xdoclint:none</additionalparam>
         <commons-lang.version>2.6</commons-lang.version>
         <junit.version>4.11</junit.version>
-        <xmlunit-core.version>2.3.0</xmlunit-core.version>
         <commons-csv.version>1.5</commons-csv.version>
         <unitils-core.version>3.4.6</unitils-core.version>
         <slf4j-simple.version>1.7.13</slf4j-simple.version>
@@ -192,7 +191,6 @@
         <dependency>
             <groupId>org.xmlunit</groupId>
             <artifactId>xmlunit-core</artifactId>
-            <version>${xmlunit-core.version}</version>
             <scope>compile</scope>
         </dependency>
         <dependency>
