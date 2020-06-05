@@ -54,18 +54,26 @@ public class ImportRole extends ModuleImport implements DescriptionObject {
 
     public ImportRole() {}
 
+    public RolePath getRolePath() {
+        return new RolePath(name.split("/"), (jobList == null) ? false : jobList, permissions);
+    }
+
+    public boolean exists() {
+        return getRolePath().exists();
+    }
+
     @Override
     public Path create(AgentPath agentPath, boolean reset)
             throws ObjectAlreadyExistsException, ObjectCannotBeUpdated, CannotManageException, ObjectNotFoundException
     {
-        RolePath newRolePath = new RolePath(name.split("/"), (jobList == null) ? false : jobList, permissions);
+        RolePath newRolePath = getRolePath();
 
-        if (Gateway.getLookup().exists(newRolePath)) {
+        if (newRolePath.exists()) {
             //If jobList is null it means it was NOT set in the module.xml, therefore existing Role cannot be updated
             if (jobList != null) update(agentPath);
         }
         else {
-            log.info("ImportRole.create() - Creating Role:"+name+" joblist:"+jobList);
+            log.info("create() - Creating Role:"+name+" joblist:"+jobList);
 
             //Checks if parent exists and throw ObjectNotFoundException
             newRolePath.getParent();
@@ -87,9 +95,9 @@ public class ImportRole extends ModuleImport implements DescriptionObject {
     public void update(AgentPath agentPath) 
             throws ObjectAlreadyExistsException, ObjectCannotBeUpdated, CannotManageException, ObjectNotFoundException
     {
-        RolePath rolePath = new RolePath(name.split("/"), (jobList == null) ? false : jobList, permissions);
+        RolePath rolePath = getRolePath();
 
-        if (!Gateway.getLookup().exists(rolePath)) 
+        if (!rolePath.exists()) 
             throw new ObjectNotFoundException("Role '" + rolePath.getName() + "' does NOT exists.");
 
         Gateway.getLookupManager().setHasJobList(rolePath, (jobList == null) ? false : jobList);

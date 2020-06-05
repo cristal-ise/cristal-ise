@@ -40,6 +40,7 @@ import org.cristalise.kernel.entity.agent.ActiveEntity;
 import org.cristalise.kernel.lifecycle.CompositeActivityDef;
 import org.cristalise.kernel.lookup.AgentPath;
 import org.cristalise.kernel.lookup.DomainPath;
+import org.cristalise.kernel.lookup.InvalidAgentPathException;
 import org.cristalise.kernel.lookup.ItemPath;
 import org.cristalise.kernel.lookup.Path;
 import org.cristalise.kernel.lookup.RolePath;
@@ -103,17 +104,14 @@ public class ImportAgent extends ModuleImport implements DescriptionObject {
             }
         }
 
-        AgentPath newAgent = new AgentPath(getItemPath(), name);
-
-        ActiveEntity newAgentEnt = Gateway.getCorbaServer().createAgent(newAgent);
-        Gateway.getLookupManager().add(newAgent);
+        ActiveEntity newAgentEnt = getActiveEntity();
 
         // assemble properties
         properties.add(new Property(NAME, name, true));
         properties.add(new Property(TYPE, "Agent", false));
 
         try {
-            if (StringUtils.isNotBlank(password)) Gateway.getLookupManager().setAgentPassword(newAgent, password);
+            if (StringUtils.isNotBlank(password)) Gateway.getLookupManager().setAgentPassword(getAgentPath(), password);
 
             newAgentEnt.initialise(
                     agentPath.getSystemKey(), 
@@ -123,13 +121,23 @@ public class ImportAgent extends ModuleImport implements DescriptionObject {
         }
         catch (Exception ex) {
             log.error("Error initialising new agent name:{}", name, ex);
-            Gateway.getLookupManager().delete(newAgent);
+            Gateway.getLookupManager().delete(getAgentPath());
             throw new CannotManageException("Error initialising new agent name:"+name);
         }
 
         for (ImportRole role : roles) {
-            RolePath thisRole = (RolePath)role.create(agentPath, reset);
-            Gateway.getLookupManager().addRole(newAgent, thisRole);
+            if (role.exists()) {
+                RolePath rp = role.getRolePath();
+                role.update(agentPath);
+
+                if (!getAgentPath().hasRole(rp)) {
+                    Gateway.getLookupManager().addRole(getAgentPath(), rp);
+                }
+            }
+            else {
+                RolePath thisRole = (RolePath)role.create(agentPath, reset);
+                Gateway.getLookupManager().addRole(getAgentPath(), thisRole);
+            }
         }
 
         if (domainPath != null && !isDOMPathExists) {
@@ -137,7 +145,35 @@ public class ImportAgent extends ModuleImport implements DescriptionObject {
             Gateway.getLookupManager().add(domainPath);
         }
 
-        return newAgent;
+        return getAgentPath();
+    }
+
+    private ActiveEntity getActiveEntity()
+            throws ObjectNotFoundException, CannotManageException, ObjectAlreadyExistsException, ObjectCannotBeUpdated
+    {
+        ActiveEntity activeEntity;
+        AgentPath ap = getAgentPath();
+
+        if (ap.exists()) {
+            log.info("getActiveEntity() - Existing agent:{}", name);
+            try {
+                activeEntity = Gateway.getCorbaServer().getAgent(ap);
+                isNewItem = false;
+            }
+            catch (InvalidAgentPathException  e) {
+                throw new ObjectAlreadyExistsException(e.getMessage());
+            }
+        }
+        else {
+            log.info("getActiveEntity() - Creating agent:{}", name);
+            activeEntity = Gateway.getCorbaServer().createAgent(ap);
+            Gateway.getLookupManager().add(ap);
+        }
+        return activeEntity;
+    }
+
+    public AgentPath getAgentPath() {
+        return (AgentPath)getItemPath();
     }
 
     /**
