@@ -163,7 +163,7 @@ public class ImportItem extends ModuleImport implements DescriptionObject {
 
         if (ip.exists()) {
             log.info("getTraceableEntitiy() - Verifying module item "+domainPath+" at "+ip);
-            newItem = Gateway.getCorbaServer().getItem(getItemPath());
+            newItem = Gateway.getCorbaServer().getItem(ip);
             isNewItem = false;
         }
         else {
