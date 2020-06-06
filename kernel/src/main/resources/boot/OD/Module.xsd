@@ -175,6 +175,7 @@
                     </xs:element>
                   </xs:sequence>
                   <xs:attribute name="name" type="xs:string" use="required" />
+                  <xs:attribute name="version" type="xs:integer" use="optional" />
                   <xs:attribute name="id" type="uuid" use="optional" />
                   <xs:attribute name="workflow" type="xs:string" use="required" />
                   <xs:attribute name="workflowVer" type="xs:int" use="optional" />
@@ -187,6 +188,8 @@
                     <xs:element name="Permission" type="xs:string" minOccurs="0" maxOccurs="unbounded" />
                   </xs:sequence>
                   <xs:attribute name="name" type="xs:string" use="required" />
+                  <xs:attribute name="version" type="xs:integer" use="optional" />
+                  <xs:attribute name="id" type="uuid" use="optional" />
                   <xs:attribute name="jobList" type="xs:boolean" use="required" />
                 </xs:complexType>
               </xs:element>
@@ -201,6 +204,7 @@
                     <xs:element name="Property" type="property" minOccurs="0" maxOccurs="unbounded" />
                   </xs:sequence>
                   <xs:attribute name="name" type="xs:string" use="required" />
+                  <xs:attribute name="version" type="xs:integer" use="optional" />
                   <xs:attribute name="id" type="uuid" use="optional" />
                   <xs:attribute name="password" type="xs:string" use="required" />
                   <xs:attribute name="initialPath" type="xs:string" use="optional" />

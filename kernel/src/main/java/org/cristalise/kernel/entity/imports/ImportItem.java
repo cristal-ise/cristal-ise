@@ -74,11 +74,11 @@ import lombok.extern.slf4j.Slf4j;
 @Getter @Setter @Slf4j
 public class ImportItem extends ModuleImport implements DescriptionObject {
 
-    protected Integer version = 0;
+    protected Integer version;
 
     protected String  initialPath;
     protected String  workflow;
-    protected Integer workflowVer = 0;
+    protected Integer workflowVer;
 
     protected ArrayList<Property> properties = new ArrayList<Property>();
 
@@ -100,7 +100,7 @@ public class ImportItem extends ModuleImport implements DescriptionObject {
 
     public ImportItem() {}
 
-    public ImportItem(String ns, String name, Integer version, String initialPath, ItemPath itemPath, String wf, int wfVer) {
+    public ImportItem(String ns, String name, Integer version, String initialPath, ItemPath itemPath, String wf, Integer wfVer) {
         setNamespace(ns);
         setName(name);
         setVersion(version);
@@ -113,8 +113,20 @@ public class ImportItem extends ModuleImport implements DescriptionObject {
         wf = null;
     }
 
-    public ImportItem(String ns, String name, String initialPath, ItemPath itemPath, String wf, int wfVer) {
+    public ImportItem(String ns, String name, String initialPath, ItemPath itemPath, String wf, Integer wfVer) {
         this(ns, name, null, initialPath, itemPath, wf, wfVer);
+    }
+
+    /**
+     * Constructor with mandatory fields
+     * 
+     * @param name
+     * @param initialPath
+     * @param itemPath
+     * @param wf
+     */
+    public ImportItem(String name, String initialPath, ItemPath itemPath, String wf) {
+        this(null, name, null, initialPath, itemPath, wf, null);
     }
 
     /**
@@ -293,9 +305,10 @@ public class ImportItem extends ModuleImport implements DescriptionObject {
         }
         else {
             if (compActDef == null) {
-                // default workflow version is 0 if not given
                 if (StringUtils.isNotBlank(workflow)) {
-                    compActDef = (CompositeActivityDef) LocalObjectLoader.getActDef(workflow, workflowVer);
+                    // default workflow version is 0 if not given
+                    int v = workflowVer != null ? workflowVer : 0;
+                    compActDef = (CompositeActivityDef) LocalObjectLoader.getActDef(workflow, v);
                 }
                 else {
                     log.warn("createCompositeActivity() - NO Workflow was set for domainPath:"+domainPath);

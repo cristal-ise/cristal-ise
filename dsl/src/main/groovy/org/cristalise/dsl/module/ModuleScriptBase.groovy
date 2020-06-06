@@ -31,6 +31,11 @@ abstract class ModuleScriptBase extends DelegatingScript {
         setModuleDir(uri)
     }
 
+    @Deprecated
+    String getModuletDir() {
+        return moduleDir
+    }
+
     def setModuleDir(URI uri) {
         moduleDir = Paths.get(uri).parent.toString()
     }

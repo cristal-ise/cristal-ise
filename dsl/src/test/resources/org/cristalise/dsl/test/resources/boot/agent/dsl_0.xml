@@ -1,1 +1,1 @@
-<Agent name="dsl" password="test" initialPath="/dsl/Agents"><Role name="Admin"/><Property name="Name" mutable="true">dsl</Property><Property name="Type" mutable="true">Agent</Property></Agent>
+<Agent name="dsl" version="0" password="test" initialPath="/dsl/Agents"><Role name="Admin"/><Property name="Name" mutable="true">dsl</Property><Property name="Type" mutable="true">Agent</Property></Agent>

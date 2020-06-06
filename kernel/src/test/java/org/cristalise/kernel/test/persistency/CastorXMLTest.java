@@ -24,6 +24,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.STATE_MACHINE_NAME;
 import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.STATE_MACHINE_VERSION;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.unitils.reflectionassert.ReflectionAssert.assertReflectionEquals;
@@ -37,6 +39,7 @@ import org.cristalise.kernel.collection.Dependency;
 import org.cristalise.kernel.common.GTimeStamp;
 import org.cristalise.kernel.entity.agent.Job;
 import org.cristalise.kernel.entity.imports.ImportAgent;
+import org.cristalise.kernel.entity.imports.ImportItem;
 import org.cristalise.kernel.entity.imports.ImportRole;
 import org.cristalise.kernel.graph.model.GraphPoint;
 import org.cristalise.kernel.graph.model.GraphableEdge;
@@ -288,17 +291,44 @@ public class CastorXMLTest {
         ImportRole rolePrime = (ImportRole) marshaller.unmarshall(marshaller.marshall(role));
 
         assertReflectionEquals(role, rolePrime);
+        assertNull(rolePrime.getVersion());
+
+        role.setVersion(1);
+        rolePrime = (ImportRole) marshaller.unmarshall(marshaller.marshall(role));
+        assertReflectionEquals(role, rolePrime);
+        assertNotNull(rolePrime.getVersion());
     }
 
     @Test
     public void testCastorImportAgent() throws Exception {
         CastorXMLUtility marshaller = Gateway.getMarshaller();
 
-        ImportAgent agent = new ImportAgent("/itemTest/agents", "TestAgent", "pwd");
+        ImportAgent agent = new ImportAgent("TestAgent", "pwd");
         agent.addRoles(Arrays.asList(new RolePath("TestRole")));
-
         ImportAgent agentPrime = (ImportAgent) marshaller.unmarshall(marshaller.marshall(agent));
 
         assertReflectionEquals(agent, agentPrime);
+        assertNull(agentPrime.getVersion());
+
+        agent.setVersion(1);
+        agentPrime = (ImportAgent) marshaller.unmarshall(marshaller.marshall(agent));
+        assertReflectionEquals(agent, agentPrime);
+        assertNotNull(agentPrime.getVersion());
+    }
+
+    @Test
+    public void testCastorImportItem() throws Exception {
+        CastorXMLUtility marshaller = Gateway.getMarshaller();
+
+        ImportItem item = new ImportItem("name", "initialPath", new ItemPath(), "wf");
+        ImportItem itemPrime = (ImportItem) marshaller.unmarshall(marshaller.marshall(item));
+
+        assertReflectionEquals(item, itemPrime);
+        assertNull(itemPrime.getVersion());
+
+        item.setVersion(1);
+        itemPrime = (ImportItem) marshaller.unmarshall(marshaller.marshall(item));
+        assertReflectionEquals(item, itemPrime);
+        assertNotNull(itemPrime.getVersion());
     }
 }

@@ -68,7 +68,10 @@ class ItemDelegate extends PropertyDelegate {
         else if (args.workflow instanceof CompositeActivityDef) {
             newItem.compActDef = (CompositeActivityDef)args.workflow
             newItem.workflow = newItem.compActDef.name
-            if (newItem.compActDef.version != null) newItem.workflowVer = newItem.compActDef.version
+            if (newItem.compActDef.version != null) {
+                newItem.workflowVer = newItem.compActDef.version
+                if (args.workflowVer != null) assert newItem.workflowVer == (Integer)args.workflowVer
+            }
         }
         else if (args.workflow instanceof Workflow) {
             newItem.wf = (Workflow)args.workflow
@@ -77,7 +80,7 @@ class ItemDelegate extends PropertyDelegate {
             log.warn 'constructor() - UNKNOWN class:{} item:{} will be created without workflow', args.workflow.class.getSimpleName(), args.name
         }
 
-        if (args.workflowVer != null) newItem.workflowVer =  (Integer)args.workflowVer
+        if (args.workflowVer != null) newItem.workflowVer = (Integer)args.workflowVer
     }
 
     public ItemDelegate(String name, String folder, String workflow, Integer workflowVer = null) {

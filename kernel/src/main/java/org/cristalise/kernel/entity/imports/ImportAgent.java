@@ -60,7 +60,7 @@ import lombok.extern.slf4j.Slf4j;
 @Getter @Setter @Slf4j
 public class ImportAgent extends ModuleImport implements DescriptionObject {
 
-    protected Integer version = 0;
+    protected Integer version; //optional
 
     private String                initialPath; //optional
     private String                password;
@@ -80,6 +80,12 @@ public class ImportAgent extends ModuleImport implements DescriptionObject {
         this(folder, aName, null, pwd);
     }
 
+    /**
+     * Constructor with mandatory fields
+     * 
+     * @param aName name of the agent
+     * @param pwd the password of the agent
+     */
     public ImportAgent(String aName, String pwd) {
         this(null, aName, null, pwd);
     }

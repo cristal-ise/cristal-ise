@@ -25,7 +25,6 @@ import org.cristalise.kernel.process.AbstractMain
 import org.cristalise.kernel.process.Bootstrap
 import org.cristalise.kernel.process.Gateway
 import org.cristalise.kernel.process.auth.Authenticator
-import org.cristalise.kernel.utils.Logger
 
 import groovy.transform.CompileStatic
 
@@ -34,6 +33,7 @@ import groovy.transform.CompileStatic
  */
 @CompileStatic
 trait CristalTestSetup {
+    @Deprecated
     final int defaultLogLevel = 8
 
     private void waitBootstrapThread() {
@@ -58,23 +58,20 @@ trait CristalTestSetup {
         }
 
         if(bootstrapT) {
-            Logger.msg "CristalTestSetup.waitBootstrapThread() - Bootstrapper FOUND"
             bootstrapT.join()
-            Logger.msg "CristalTestSetup.waitBootstrapThread() - Bootstrapper FINISHED"
         }
-        else
-            Logger.die "CristalTestSetup.waitBootstrapThread() - NO Bootstrapper FOUND!?!?"
+        else {
+            AbstractMain.shutdown(1);
+        }
     }
 
     public void loggerSetup(int logLevel = defaultLogLevel) {
-        Logger.addLogStream(System.out, logLevel);
     }
 
     public void loggerCleanup() {
-        Logger.removeLogStream(System.out);
     }
 
-    public void inMemorySetup(String conf, String clc,int logLevel) {
+    public void inMemorySetup(String conf, String clc, int logLevel) {
         cristalSetup(logLevel, conf, clc)
     }
 
@@ -94,7 +91,6 @@ trait CristalTestSetup {
 
     public Authenticator serverSetup(int logLevel, String config, String connect, Properties testProps = null, boolean skipBootstrap = false) {
         Authenticator auth = cristalSetup(logLevel, config, connect, testProps)
-        Logger.initConsole("ItemServer");
 
         Gateway.startServer()
 

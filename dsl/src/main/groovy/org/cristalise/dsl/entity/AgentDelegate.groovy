@@ -38,6 +38,8 @@ class AgentDelegate extends PropertyDelegate {
     ImportAgent newAgent = null
 
     public AgentDelegate(Map<String, Object> args) {
+        assert args && args.name && args.password
+
         newAgent = new ImportAgent((String)args.name, (String)args.password)
 
         if (args.folder) newAgent.initialPath = args.folder
