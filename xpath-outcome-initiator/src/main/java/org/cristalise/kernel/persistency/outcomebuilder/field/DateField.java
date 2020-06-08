@@ -29,12 +29,16 @@ import java.time.format.DateTimeParseException;
 import java.util.Map;
 
 import org.cristalise.kernel.persistency.outcomebuilder.InvalidOutcomeException;
-import org.cristalise.kernel.utils.Logger;
+import org.cristalise.kernel.process.Gateway;
 import org.json.JSONObject;
 
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
 public class DateField extends StringField {
     public static final String javaTimeDateFormat = "yyyy-MM-dd";
     public static final String primeNGDateFormat = "yy-mm-dd";
+    private static final String webuiDateFormatKey = "Webui.format.date.default";
 
     public DateField() {
         super();
@@ -42,7 +46,7 @@ public class DateField extends StringField {
 
     @Override
     public String getDefaultValue() {
-        return "";
+        return Gateway.getProperties().getString("Webui.inputField.date.defaultValue", "");
     }
 
     @Override
@@ -62,17 +66,17 @@ public class DateField extends StringField {
     public JSONObject generateNgDynamicForms(Map<String, Object> inputs) {
         JSONObject date = getCommonFieldsNgDynamicForms();
 
-        date.put("format", primeNGDateFormat);
+        date.put("format", Gateway.getProperties().getString(webuiDateFormatKey, primeNGDateFormat));
 
         JSONObject additional = getAdditionalConfigNgDynamicForms(date);
         additional.put("showButtonBar", true);
-
+        
         return date;
     }
 
     @Override
     public void setValue(Object value) throws InvalidOutcomeException {
-        Logger.msg(0, "DateField.setValue() - value=" + value + " class:" + value.getClass().getSimpleName());
+        log.info("setValue() - value=" + value + " class:" + value.getClass().getSimpleName());
 
         if (value instanceof String) {
             String sVal = (String) value;
@@ -84,7 +88,7 @@ public class DateField extends StringField {
                 else if (sVal.contains("T")) zdt = ZonedDateTime.parse(sVal);
 
                 if (zdt != null) {
-                    Logger.msg(8,"DateField.setValue() - ZonedDateTime:%s", zdt);
+                    log.trace("setValue() - ZonedDateTime:%s", zdt);
 
                     // now the local date can be extracted
                     setData(zdt.toLocalDate().toString());
@@ -93,7 +97,7 @@ public class DateField extends StringField {
                     setData(sVal);
             }
             catch (DateTimeParseException e) {
-                Logger.error(e);
+                log.error("", e);
                 throw new InvalidOutcomeException(e.getMessage());
             }
         }

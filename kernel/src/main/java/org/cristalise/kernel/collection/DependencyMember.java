@@ -20,8 +20,10 @@
  */
 package org.cristalise.kernel.collection;
 
-import java.util.StringTokenizer;
+import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.SCRIPT_NAME;
+import java.util.Iterator;
 import java.util.Map.Entry;
+import java.util.StringTokenizer;
 
 import org.cristalise.kernel.common.InvalidCollectionModification;
 import org.cristalise.kernel.common.InvalidDataException;
@@ -33,19 +35,22 @@ import org.cristalise.kernel.lookup.ItemPath;
 import org.cristalise.kernel.persistency.ClusterType;
 import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.property.Property;
+import org.cristalise.kernel.property.PropertyArrayList;
 import org.cristalise.kernel.scripting.Script;
 import org.cristalise.kernel.scripting.ScriptingEngineException;
 import org.cristalise.kernel.utils.CastorHashMap;
 import org.cristalise.kernel.utils.KeyValuePair;
 import org.cristalise.kernel.utils.LocalObjectLoader;
-import org.cristalise.kernel.utils.Logger;
 
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
 public class DependencyMember implements CollectionMember {
     private ItemPath      mItemPath   = null;
     private ItemProxy     mItem       = null;
     private int           mId         = -1;
     private CastorHashMap mProperties = null;
-    private String        mClassProps;
+    private String        mClassProps = "";
 
     public DependencyMember() {
         mProperties = new CastorHashMap();
@@ -104,17 +109,17 @@ public class DependencyMember implements CollectionMember {
                 String aClassProp = sub.nextToken();
                 try {
                     String memberValue = (String) getProperties().get(aClassProp);
-                    Property ItemProperty = (Property) Gateway.getStorage().get(itemPath, ClusterType.PROPERTY + "/" + aClassProp, null);
+                    Property itemProperty = (Property) Gateway.getStorage().get(itemPath, ClusterType.PROPERTY + "/" + aClassProp, null);
 
-                    if (ItemProperty == null)
+                    if (itemProperty == null)
                         throw new InvalidCollectionModification("Property " + aClassProp + " does not exist for item " + itemPath);
 
-                    if (!ItemProperty.getValue().equalsIgnoreCase(memberValue))
-                        throw new InvalidCollectionModification("DependencyMember::checkProperty() Values of mandatory prop " + aClassProp
-                                + " do not match " + ItemProperty.getValue() + "!=" + memberValue);
+                    if (!itemProperty.getValue().equalsIgnoreCase(memberValue))
+                        throw new InvalidCollectionModification("checkProperty() Values of mandatory prop " + aClassProp
+                                + " do not match " + itemProperty.getValue() + "!=" + memberValue);
                 }
                 catch (Exception ex) {
-                    Logger.error(ex);
+                    log.error("", ex);
                     throw new InvalidCollectionModification("Error checking properties");
                 }
             }
@@ -162,7 +167,7 @@ public class DependencyMember implements CollectionMember {
      * @throws ObjectNotFoundException
      */
     protected Object evaluateScript() throws InvalidDataException, ObjectNotFoundException {
-        Logger.msg(5, "DependencyMember.evaluateScript() - memberUUID:" + getChildUUID());
+        log.debug("evaluateScript() - memberUUID:" + getChildUUID());
         Script script = LocalObjectLoader.getScript(getProperties());
 
         try {
@@ -175,27 +180,106 @@ public class DependencyMember implements CollectionMember {
             return script.evaluate(getItemPath(), getProperties(), null, null);
         }
         catch (ScriptingEngineException e) {
-            Logger.error(e);
+            log.error("", e);
             throw new InvalidDataException(e.getMessage());
         }
     }
-    
+
+    /**
+     * 
+     * @param propDesc
+     * @param newMember
+     * @throws ObjectNotFoundException
+     * @throws InvalidCollectionModification
+     */
+    public void updatePropertieFromDescription(CastorHashMap propDesc, DependencyMember newMember) 
+            throws ObjectNotFoundException, InvalidCollectionModification
+    {
+        for(String key: propDesc.keySet()) {
+            Object newValue = newMember != null ? newMember.mProperties.get(key) : null;
+            Object newDefaultValue = propDesc.get(key);
+
+            if (mProperties.containsKey(key)) {
+                if (mClassProps.contains(key)) {
+                    // Update default value of Class Identifier
+                    mProperties.put(key, newDefaultValue);
+                }
+                else {
+                    // Update if there is a newValue
+                    if (newValue != null) mProperties.put(key, newValue);
+                }
+            }
+            else {
+                if (mClassProps.contains(key)) {
+                    // Add Class Identifier
+                    mProperties.put(key, newDefaultValue);
+                }
+                else {
+                    // Add using newValue or the default value from propDesc
+                    mProperties.put(key, newValue != null ? newValue : newDefaultValue);
+                }
+            }
+        }
+
+        Iterator<String> propsNames =  mProperties.keySet().iterator();
+
+        while (propsNames.hasNext()) {
+            String key = propsNames.next();
+
+            if(! propDesc.containsKey(key)) {
+                propsNames.remove();
+            }
+        }
+    }
+
     /**
      * Only update existing properties otherwise throw an exception
      * 
-     * @param newProps the new properties 
+     * @param newProps the new properties
      * @throws ObjectNotFoundException property does not exists for member
      * @throws InvalidCollectionModification cannot update class properties
      */
     public void updateProperties(CastorHashMap newProps) throws ObjectNotFoundException, InvalidCollectionModification {
         for (Entry<String, Object> newProp: newProps.entrySet()) {
-            if (mClassProps.contains(newProp.getKey()))
+            if (mClassProps.contains(newProp.getKey())) {
                 throw new InvalidCollectionModification("Dependency cannot change classProperties:"+mClassProps);
+            }
 
-            if (getProperties().containsKey(newProp.getKey())) getProperties().put(newProp.getKey(), newProp.getValue());
-            else
+            if (getProperties().containsKey(newProp.getKey())) {
+                getProperties().put(newProp.getKey(), newProp.getValue());
+            }
+            else {
                 throw new ObjectNotFoundException("Property "+newProp.getKey()+" does not exists for slotID:" + getID());
+            }
         }
-        
     }
+
+    /**
+     * Executes Script if it was defined in the Member properties
+     * 
+     * @param props the current list of ItemProperties
+     * @param member the current DependencyMember
+     * @return true when Script was executed
+     * @throws InvalidDataException
+     * @throws ObjectNotFoundException
+     */
+    public boolean convertToItemPropertyByScript(PropertyArrayList props)  throws InvalidDataException, ObjectNotFoundException {
+        log.debug("convertToItemPropertyByScript() - memberUUID:"+getChildUUID());
+
+        String scriptName = (String)getBuiltInProperty(SCRIPT_NAME);
+
+        if (scriptName != null && scriptName.length() > 0) {
+            Object result = evaluateScript();
+
+            if (result != null && result instanceof PropertyArrayList) {
+                props.merge((PropertyArrayList)result);
+                return true;
+            }
+            else {
+                throw new InvalidDataException("Script '" + scriptName + "' returned null or the wrong type");
+            }
+        }
+        return false;
+    }
+
 }

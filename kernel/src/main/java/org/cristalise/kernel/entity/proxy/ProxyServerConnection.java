@@ -28,10 +28,11 @@ import java.io.PrintWriter;
 import java.net.Socket;
 
 import org.cristalise.kernel.common.InvalidDataException;
-import org.cristalise.kernel.utils.Logger;
+
+import lombok.extern.slf4j.Slf4j;
 
 
-
+@Slf4j
 public class ProxyServerConnection extends Thread
 {
 
@@ -51,7 +52,7 @@ public class ProxyServerConnection extends Thread
      */
     public ProxyServerConnection(String host, int port, ProxyManager manager)
     {
-        Logger.msg(5, "ProxyServerConnection - Initialising connection to "+host+":"+port);
+        log.debug("ProxyServerConnection - Initialising connection to "+host+":"+port);
         serverName = host;
         serverPort = port;
         this.manager = manager;
@@ -79,14 +80,14 @@ public class ProxyServerConnection extends Thread
                             sendMessage(ProxyMessage.pingMessage);
                         } catch (InvalidDataException ex) { // invalid proxy message
                             if (input != null) {
-                                if (Logger.doLog(8)) Logger.error(ex);
-                                Logger.error("ProxyManager - Invalid proxy message: "+input);
+                                log.trace("", ex);
+                                log.error("ProxyManager - Invalid proxy message: "+input);
                             }
                         }
                     }
                 }
             } catch (IOException ex) {
-                Logger.error("ProxyServerConnection - Disconnected from "+serverName+":"+serverPort);
+                log.error("ProxyServerConnection - Disconnected from "+serverName+":"+serverPort);
                 try {
                     serverStream.close();
                     serverConnection.close();
@@ -100,29 +101,29 @@ public class ProxyServerConnection extends Thread
 
         if (serverStream != null) {
             try {
-                Logger.msg(1, "Disconnecting from proxy server on "+serverName+":"+serverPort);
+                log.info("Disconnecting from proxy server on "+serverName+":"+serverPort);
                 serverStream.println(ProxyMessage.byeMessage.toString());
                 serverStream.close();
                 serverConnection.close();
                 serverConnection = null;
             } catch (Exception e) {
-                Logger.error("Error disconnecting from proxy server.");
+                log.error("Error disconnecting from proxy server.");
             }
         }
     }
 
     public void connect() {
-        Logger.msg(3, "ProxyServerConnection - connecting to proxy server on "+serverName+":"+serverPort);
+        log.info("ProxyServerConnection - connecting to proxy server on "+serverName+":"+serverPort);
         try {
             serverConnection = new Socket(serverName, serverPort);
             serverConnection.setKeepAlive(true);
             serverIsActive = true;
             serverConnection.setSoTimeout(5000);
             serverStream = new PrintWriter(serverConnection.getOutputStream(), true);
-            Logger.msg("Connected to proxy server on "+serverName+":"+serverPort);
+            log.info("Connected to proxy server on "+serverName+":"+serverPort);
             manager.resubscribe(this);
         } catch (Exception e) {
-            Logger.msg(3, "Could not connect to proxy server. Retrying in 5s");
+            log.debug("Could not connect to proxy server. Retrying in 5s");
             try { Thread.sleep(5000); } catch (InterruptedException ex) { }
             serverStream = null;
             serverConnection = null;
@@ -131,7 +132,7 @@ public class ProxyServerConnection extends Thread
     }
 
     public void shutdown() {
-        Logger.msg("Proxy Client: flagging shutdown.");
+        log.info("Proxy Client: flagging shutdown.");
         listening = false;
         if (serverConnection != null)
         	try {

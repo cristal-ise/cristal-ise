@@ -28,7 +28,9 @@ import org.cristalise.kernel.lifecycle.instance.stateMachine.StateMachine;
 import org.cristalise.kernel.lookup.ItemPath;
 import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.process.resource.BuiltInResources;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 public class StateMachineCache extends DescriptionObjectCache<StateMachine> {
 
     @Override
@@ -52,7 +54,7 @@ public class StateMachineCache extends DescriptionObjectCache<StateMachine> {
             return thisStateMachine;
         }
         catch (Exception ex) {
-            Logger.error(ex);
+            log.error("Could not unmarshall State Machine '" + name + "' v" + version, ex);
             throw new InvalidDataException("Could not unmarshall State Machine '" + name + "' v" + version + ": " + ex.getMessage());
         }
     }

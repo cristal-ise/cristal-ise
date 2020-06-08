@@ -34,7 +34,7 @@ public abstract class PredefinedStepContainer extends CompositeActivity {
         createChildren();
     }
 
-    //TODO make this complete configure from the given class
+    //TODO make this complete configure from the given classes
     public void createChildren() {
         predInit("AddDomainPath", "Adds a new path to this item in the LDAP domain tree", new AddDomainPath());
         predInit("RemoveDomainPath", "Removes an existing path to this item from the LDAP domain tree", new RemoveDomainPath());
@@ -57,6 +57,14 @@ public abstract class PredefinedStepContainer extends CompositeActivity {
         predInit(ChangeName.class.getSimpleName(), ChangeName.description, new ChangeName());
         predInit(Erase.class.getSimpleName(), Erase.description, new Erase());
 
+        predInit(UpdateCollectionsFromDescription.class.getSimpleName(), UpdateCollectionsFromDescription.description, new UpdateCollectionsFromDescription());
+        predInit(UpdateProperitesFromDescription.class.getSimpleName(),  UpdateProperitesFromDescription.description,  new UpdateProperitesFromDescription());
+
+        //UpdateImportReport class is not added to the container because it can only be used during bootstrap
+    }
+
+    public void predInit(Class<?> clazz, String description, PredefinedStep act) {
+        predInit(clazz.getSimpleName(), description, act);
     }
 
     public void predInit(String alias, String Description, PredefinedStep act) {

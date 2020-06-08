@@ -22,7 +22,6 @@ package org.cristalise.kernel.process;
 
 import java.util.Iterator;
 import java.util.Properties;
-
 import org.cristalise.kernel.common.CannotManageException;
 import org.cristalise.kernel.common.ObjectCannotBeUpdated;
 import org.cristalise.kernel.common.ObjectNotFoundException;
@@ -32,15 +31,17 @@ import org.cristalise.kernel.lookup.Path;
 import org.cristalise.kernel.lookup.RolePath;
 import org.cristalise.kernel.process.resource.ResourceLoader;
 import org.cristalise.kernel.utils.Logger;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * Base class for all servers i.e. c2k processes that serve Entities
  */
+@Slf4j
 public class StandardServer extends AbstractMain {
     protected static StandardServer server;
 
     public static void resetItemIORs(DomainPath root) throws ObjectNotFoundException, ObjectCannotBeUpdated, CannotManageException {
-        Logger.msg("StandardServer.resetItemIORs() - root:"+root);
+        log.info("resetItemIORs() - root:"+root);
 
         Iterator<Path> pathes = Gateway.getLookup().getChildren(root);
 
@@ -51,7 +52,7 @@ public class StandardServer extends AbstractMain {
                 resetItemIORs(domain);
             }
             else {
-                Logger.msg("StandardServer.resetItemIORs() - setting IOR for domain:" + domain + " item:" + domain.getItemPath());
+                log.info("resetItemIORs() - setting IOR for domain:" + domain + " item:" + domain.getItemPath());
 
                 Gateway.getLookupManager().setIOR(
                         domain.getItemPath(),
@@ -61,7 +62,7 @@ public class StandardServer extends AbstractMain {
     }
 
     public static void resetAgentIORs(RolePath root) throws ObjectNotFoundException, ObjectCannotBeUpdated, CannotManageException {
-        Logger.msg("StandardServer.resetAgentIORs() - root:"+root);
+        log.info("resetAgentIORs() - root:"+root);
 
         Iterator<Path> roles = Gateway.getLookup().getChildren(root);
 
@@ -71,7 +72,7 @@ public class StandardServer extends AbstractMain {
             resetAgentIORs(role);
 
             for (AgentPath agent :  Gateway.getLookup().getAgents(role)) {
-                Logger.msg("StandardServer.resetAgentIORs() - setting IOR for role:" + role + " agent:" + agent.getAgentName() + " " + agent.getItemPath());
+                log.info("resetAgentIORs() - setting IOR for role:" + role + " agent:" + agent.getAgentName() + " " + agent.getItemPath());
 
                 Gateway.getLookupManager().setIOR(
                         agent.getItemPath(),
@@ -103,23 +104,18 @@ public class StandardServer extends AbstractMain {
         Gateway.startServer();
 
         if (Gateway.getProperties().containsKey(AbstractMain.MAIN_ARG_RESETIOR)) {
-            Logger.msg(5, "StandardServer.standardInitialisation() - RESETTING IORs");
+            log.info("standard initialisation RESETTING IORs");
 
             resetItemIORs(new DomainPath(""));
             resetAgentIORs(new RolePath());
 
             AbstractMain.shutdown(0);
         }
-        else if (Gateway.getProperties().containsKey(AbstractMain.MAIN_ARG_SKIPBOOTSTRAP)) {
-            //minimum initialisation only
-            Bootstrap.init();
-        }
         else {
-            //initialisation and complete checking bootstrap & module items
-            Bootstrap.run();
+            Gateway.runBoostrap();
         }
 
-        Logger.msg(5, "StandardServer.standardInitialisation() - complete.");
+        log.info("standardInitialisation() - complete.");
     }
 
     /**

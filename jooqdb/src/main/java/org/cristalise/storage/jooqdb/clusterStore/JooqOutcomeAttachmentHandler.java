@@ -25,7 +25,6 @@ import static org.jooq.impl.DSL.field;
 import static org.jooq.impl.DSL.name;
 import static org.jooq.impl.DSL.table;
 
-import java.sql.Blob;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -33,20 +32,22 @@ import java.util.UUID;
 
 import org.cristalise.kernel.common.PersistencyException;
 import org.cristalise.kernel.entity.C2KLocalObject;
-import org.cristalise.kernel.lookup.ItemPath;
-import org.cristalise.kernel.persistency.outcome.Outcome;
 import org.cristalise.kernel.persistency.outcome.OutcomeAttachment;
 import org.cristalise.kernel.persistency.outcome.Schema;
+import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.utils.LocalObjectLoader;
-import org.cristalise.kernel.utils.Logger;
 import org.cristalise.storage.jooqdb.JooqHandler;
 import org.jooq.Condition;
+import org.jooq.CreateTableColumnStep;
 import org.jooq.DSLContext;
-import org.jooq.DataType;
 import org.jooq.Field;
+import org.jooq.InsertSetMoreStep;
 import org.jooq.Record;
 import org.jooq.Table;
 
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
 public class JooqOutcomeAttachmentHandler extends JooqHandler {
     static final Table<?> OUTCOME_ATTACHMENT_TABLE = table(name("ATTACHMENT"));
 
@@ -54,7 +55,10 @@ public class JooqOutcomeAttachmentHandler extends JooqHandler {
     static final Field<String>  SCHEMA_NAME     = field(name("SCHEMA_NAME"),    String.class);
     static final Field<Integer> SCHEMA_VERSION  = field(name("SCHEMA_VERSION"), Integer.class);
     static final Field<Integer> EVENT_ID        = field(name("EVENT_ID"),       Integer.class);
-    static final Field<byte[]> ATTACHMENT = field(name("ATTACHMENT"),             byte[].class);
+    static final Field<String>  FILE_NAME       = field(name("FILE_NAME"),      String.class);
+    static final Field<byte[]>  ATTACHMENT      = field(name("ATTACHMENT"),     byte[].class);
+
+    private boolean enableFileName = Gateway.getProperties().getBoolean("JOOQ.OutcomeAttachment.enableFileName", true);
 
     @Override
     protected Table<?> getTable() {
@@ -104,33 +108,48 @@ public class JooqOutcomeAttachmentHandler extends JooqHandler {
 
     @Override
     public int update(DSLContext context, UUID uuid, C2KLocalObject obj) throws PersistencyException {
-        throw new IllegalArgumentException("Outcome must not be updated uuid:"+uuid+" name:"+obj.getName());
+        throw new IllegalArgumentException("OutcomeAttachment must not be updated uuid:"+uuid+" name:"+obj.getName());
     }
 
     @Override
     public int insert(DSLContext context, UUID uuid, C2KLocalObject obj) {
-        OutcomeAttachment outcome = (OutcomeAttachment)obj;
-        return context
-                .insertInto(OUTCOME_ATTACHMENT_TABLE)
-                .set(UUID,           uuid)
-                .set(SCHEMA_NAME,    outcome.getSchemaName())
-                .set(SCHEMA_VERSION, outcome.getSchemaVersion())
-                .set(EVENT_ID,       outcome.getEventId())
-                .set(ATTACHMENT,            outcome.getBinaryData())
-                .execute();
+        OutcomeAttachment attachment = (OutcomeAttachment)obj;
+
+        InsertSetMoreStep<?> insert = 
+                context.insertInto(OUTCOME_ATTACHMENT_TABLE)
+                       .set(UUID,           uuid)
+                       .set(SCHEMA_NAME,    attachment.getSchemaName())
+                       .set(SCHEMA_VERSION, attachment.getSchemaVersion())
+                       .set(EVENT_ID,       attachment.getEventId())
+                       .set(ATTACHMENT,     attachment.getBinaryData());
+
+        if (enableFileName) insert.set(FILE_NAME, attachment.getFileName());
+
+        return insert.execute();
     }
 
     @Override
     public C2KLocalObject fetch(DSLContext context, UUID uuid, String...primaryKeys) throws PersistencyException {
         Record result = fetchRecord(context, uuid, primaryKeys);
+
         if(result != null) {
+            String fileName = null;
+
+            if (enableFileName) fileName = result.get(FILE_NAME);
+
             try {
                 Schema schema =  LocalObjectLoader.getSchema(result.get(SCHEMA_NAME), result.get(SCHEMA_VERSION));
                 byte[] binaryData = (byte[]) result.get(ATTACHMENT);
-                return new OutcomeAttachment(schema.getItemPath(), schema.getName(), schema.getVersion(),result.get(EVENT_ID),null, binaryData );
+                return new OutcomeAttachment(
+                        schema.getItemPath(),
+                        schema.getName(),
+                        schema.getVersion(),
+                        result.get(EVENT_ID),
+                        fileName,
+                        binaryData);
             }
             catch (Exception e) {
-                Logger.error(e);
+                log.error("", e);
                 throw new PersistencyException(e.getMessage());
             }
         }
@@ -139,16 +158,24 @@ public class JooqOutcomeAttachmentHandler extends JooqHandler {
 
     @Override
     public void createTables(DSLContext context) throws PersistencyException {
+        CreateTableColumnStep create = 
+                context.createTableIfNotExists(OUTCOME_ATTACHMENT_TABLE)
+                    .column(UUID,           UUID_TYPE      .nullable(false))
+                    .column(SCHEMA_NAME,    NAME_TYPE      .nullable(false))
+                    .column(SCHEMA_VERSION, VERSION_TYPE   .nullable(false))
+                    .column(EVENT_ID,       ID_TYPE        .nullable(false))
+                    .column(ATTACHMENT,     ATTACHMENT_TYPE.nullable(false));
 
+        if (enableFileName) create.column(FILE_NAME, NAME_TYPE.nullable(true));
 
-        context.createTableIfNotExists(OUTCOME_ATTACHMENT_TABLE)
-        .column(UUID,           UUID_TYPE   .nullable(false))
-        .column(SCHEMA_NAME,    NAME_TYPE   .nullable(false))
-        .column(SCHEMA_VERSION, VERSION_TYPE.nullable(false))
-        .column(EVENT_ID,       ID_TYPE     .nullable(false))
-        .column(ATTACHMENT,   ATTACHMENT_TYPE.nullable(false))
-        .constraints(
+        create
+            .constraints(
                 constraint("PK_"+OUTCOME_ATTACHMENT_TABLE).primaryKey(UUID, SCHEMA_NAME, SCHEMA_VERSION, EVENT_ID))
-        .execute();
+            .execute();
+    }
+
+    @Override
+    public void dropTables(DSLContext context) throws PersistencyException {
+        context.dropTableIfExists(OUTCOME_ATTACHMENT_TABLE).execute();
     }
 }

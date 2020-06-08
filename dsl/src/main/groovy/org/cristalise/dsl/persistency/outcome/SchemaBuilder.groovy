@@ -20,21 +20,24 @@
  */
 package org.cristalise.dsl.persistency.outcome
 
-import groovy.transform.CompileStatic
+import static org.cristalise.kernel.process.resource.BuiltInResources.SCHEMA_RESOURCE
 
 import org.cristalise.kernel.common.InvalidDataException
 import org.cristalise.kernel.lookup.DomainPath
 import org.cristalise.kernel.persistency.outcome.Outcome
 import org.cristalise.kernel.persistency.outcome.Schema
-import org.cristalise.kernel.process.Bootstrap
+import org.cristalise.kernel.process.Gateway
+import org.cristalise.kernel.process.resource.ResourceImportHandler
 import org.cristalise.kernel.utils.LocalObjectLoader
-import org.cristalise.kernel.utils.Logger
+
+import groovy.transform.CompileStatic
+import groovy.util.logging.Slf4j
 
 
 /**
  *
  */
-@CompileStatic
+@CompileStatic @Slf4j
 class SchemaBuilder {
     String module = ""
     String name = ""
@@ -74,7 +77,7 @@ class SchemaBuilder {
      * @return
      */
     public SchemaBuilder loadXSD(String xsdFile) {
-        Logger.msg 5, "SchemaBuilder.loadXSD() - From file:$xsdFile"
+        log.debug "loadXSD() - From file:$xsdFile"
 
         schema = new Schema(name, version, new File(xsdFile).text)
         schema.validate()
@@ -137,7 +140,7 @@ class SchemaBuilder {
         def schemaD = new SchemaDelegate()
         schemaD.processClosure(cl)
 
-        Logger.msg 5, "SchemaBuilder - generated xsd:\n" + schemaD.xsdString
+        log.debug "generated xsd:\n" + schemaD.xsdString
 
         sb.schema = new Schema(sb.name, sb.version, schemaD.xsdString)
         String errors = sb.schema.validate()
@@ -165,7 +168,7 @@ class SchemaBuilder {
     */
     public DomainPath create() {
         Schema schemaSchema = LocalObjectLoader.getSchema("Schema", 0)
-
-        return domainPath = Bootstrap.createResource(module, name, version, "OD", [new Outcome(-1, schema.schemaData, schemaSchema)] as Set, false)
+        ResourceImportHandler importHandler = Gateway.getResourceImportHandler(SCHEMA_RESOURCE);
+        return domainPath = importHandler.createResource(module, name, version, new Outcome(-1, schema.schemaData, schemaSchema), false)
     }
 }

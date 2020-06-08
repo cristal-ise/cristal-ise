@@ -24,7 +24,6 @@ import java.util.Properties;
 
 import org.cristalise.kernel.process.AbstractMain;
 import org.cristalise.kernel.process.resource.BadArgumentsException;
-import org.cristalise.kernel.utils.Logger;
 import org.junit.Test;
 
 public class LauncherTest {
@@ -45,7 +44,6 @@ public class LauncherTest {
 
     @Test
     public void testValidC2KArgs() throws Exception {
-        Logger.msg("Testing valid startup args");
         Properties props = AbstractMain.readC2KArgs(standardArgs());
 
         assert "MemoryOnlyClusterStorage".equals(props.get("ClusterStorage")) : "Config file properties not loaded";

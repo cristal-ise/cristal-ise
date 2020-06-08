@@ -20,7 +20,6 @@
  */
 package org.cristalise.storage.jooqdb.lookup;
 
-import static org.jooq.impl.DSL.constraint;
 import static org.jooq.impl.DSL.field;
 import static org.jooq.impl.DSL.name;
 import static org.jooq.impl.DSL.select;
@@ -46,10 +45,13 @@ public class JooqPermissionHandler {
 
     public void createTables(DSLContext context) throws PersistencyException {
         context.createTableIfNotExists(ROLE_PERMISSION_TABLE)
-        .column(ROLE_PATH,  JooqHandler.STRING_TYPE .nullable(false))
-        .column(PERMISSION, JooqHandler.STRING_TYPE .nullable(true))
-        .constraints(constraint("PK_"+ROLE_PERMISSION_TABLE).primaryKey(ROLE_PATH, PERMISSION))
+        .column(ROLE_PATH,  JooqHandler.STRING_TYPE.nullable(false))
+        .column(PERMISSION, JooqHandler.TEXT_TYPE  .nullable(true))
         .execute();
+    }
+
+    public void dropTables(DSLContext context) throws PersistencyException {
+        context.dropTableIfExists(ROLE_PERMISSION_TABLE).execute();
     }
 
     public boolean exists(DSLContext context, String role) {
@@ -63,13 +65,17 @@ public class JooqPermissionHandler {
     public int insert(DSLContext context, String role, List<String> permissions) {
         InsertQuery<?> insertInto = context.insertQuery(ROLE_PERMISSION_TABLE);
 
-        for (String permission: permissions) {
-            insertInto.addValue(ROLE_PATH, role);
-            insertInto.addValue(PERMISSION, permission);
-            insertInto.newRecord();
-        }
+        if (permissions.size() > 0) {
+            for (String permission: permissions) {
+                insertInto.addValue(ROLE_PATH, role);
+                insertInto.addValue(PERMISSION, permission);
+                insertInto.newRecord();
+            }
 
-        return insertInto.execute();
+            return insertInto.execute();
+        }
+        else 
+            return 0;
     }
 
     public List<String> fetch(DSLContext context, String role) {

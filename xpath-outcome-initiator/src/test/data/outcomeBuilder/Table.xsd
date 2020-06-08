@@ -1,3 +1,4 @@
+<?xml version='1.0' encoding='utf-8'?>
 <!--
 
     This file is part of the CRISTAL-iSE XPath Outcome Initiator module.
@@ -24,10 +25,20 @@
   <xs:element name='Details'>
     <xs:complexType>
       <xs:sequence>
+        <xs:element name='Name'  type='xs:string' minOccurs='1' maxOccurs='1' />
         <xs:element name='Table' minOccurs='0' maxOccurs='unbounded'>
           <xs:complexType>
             <xs:sequence>
-              <xs:element name='Product'          type='xs:string'  minOccurs='1' maxOccurs='1' />
+              <xs:element name='Product'          type='xs:string'  minOccurs='1' maxOccurs='1'>
+                <xs:annotation>
+                  <xs:appinfo>
+                    <dynamicForms>
+                      <pattern>^[a-zA-Z]+.*\S+$</pattern>
+                      <errmsg>Trailing spaces or contains only spaces</errmsg>
+                    </dynamicForms>
+                  </xs:appinfo>
+                </xs:annotation>
+              </xs:element>
               <xs:element name='RequiredQuantity' type='xs:decimal' minOccurs='1' maxOccurs='1' />
               <xs:element name='PickedQuantity'   type='xs:decimal' minOccurs='1' maxOccurs='1' />
               <xs:element name='MissingQuantity'  type='xs:decimal' minOccurs='1' maxOccurs='1' />
@@ -35,6 +46,7 @@
             </xs:sequence>
           </xs:complexType>
         </xs:element>
+        <xs:element name='Comment'  type='xs:string' minOccurs='1' maxOccurs='1' />
       </xs:sequence>
     </xs:complexType>
   </xs:element>

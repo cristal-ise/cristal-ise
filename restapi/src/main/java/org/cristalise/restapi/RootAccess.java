@@ -56,7 +56,7 @@ public class RootAccess extends RestHandler {
 //        resourceRoots.add(getRootData(uri, "item"));
 //        resourceRoots.add(getRootData(uri, "agent"));
 
-        return toJSON(resourceRoots);
+        return toJSON(resourceRoots, null).build();
     }
 
     private Map<String, Object> getRootData(UriInfo uri, String name) {
@@ -67,4 +67,5 @@ public class RootAccess extends RestHandler {
 
         return resourceData;
     }
+
 }

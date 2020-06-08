@@ -22,19 +22,29 @@ package org.cristalise.restapi;
 
 import static org.cristalise.kernel.persistency.ClusterType.ATTACHMENT;
 
+import java.io.ByteArrayInputStream;
+import java.net.URLConnection;
+
 import javax.ws.rs.CookieParam;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Cookie;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.NewCookie;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 
+import org.apache.commons.lang3.StringUtils;
 import org.cristalise.kernel.entity.proxy.ItemProxy;
+import org.cristalise.kernel.persistency.outcome.OutcomeAttachment;
 
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
 @Path("/item/{uuid}/attachment")
 public class ItemOutcomeAttachment extends ItemUtils {
 
@@ -44,9 +54,10 @@ public class ItemOutcomeAttachment extends ItemUtils {
                                       @CookieParam(COOKIENAME) Cookie authCookie,
                                       @Context                 UriInfo uri)
     {
-        checkAuthCookie(authCookie);
-        ItemProxy item = ItemRoot.getProxy(uuid);
-        return toJSON(enumerate(item, ATTACHMENT, "attachment", uri));
+        NewCookie cookie = checkAndCreateNewCookie(checkAuthCookie(authCookie));
+        ItemProxy item = getProxy(uuid, cookie);
+
+        return toJSON(enumerate(item, ATTACHMENT, "attachment", uri, cookie), cookie).build();
     }
 
     @GET
@@ -57,9 +68,10 @@ public class ItemOutcomeAttachment extends ItemUtils {
                                        @CookieParam(COOKIENAME) Cookie  authCookie,
                                        @Context                 UriInfo uri)
     {
-        checkAuthCookie(authCookie);
-        ItemProxy item = ItemRoot.getProxy(uuid);
-        return toJSON(enumerate(item, ATTACHMENT + "/" + schema, "attachment/" + schema, uri));
+        NewCookie cookie = checkAndCreateNewCookie(checkAuthCookie(authCookie));
+        ItemProxy item = getProxy(uuid, cookie);
+
+        return toJSON(enumerate(item, ATTACHMENT + "/" + schema, "attachment/" + schema, uri, cookie), cookie).build();
     }
 
     @GET
@@ -71,36 +83,57 @@ public class ItemOutcomeAttachment extends ItemUtils {
                                      @CookieParam(COOKIENAME) Cookie  authCookie,
                                      @Context                 UriInfo uri)
     {
-        checkAuthCookie(authCookie);
-        ItemProxy item = ItemRoot.getProxy(uuid);
-        return toJSON(enumerate(item, ATTACHMENT+"/"+schema+"/"+version, "attachment/"+schema+"/"+version, uri));
+        NewCookie cookie = checkAndCreateNewCookie(checkAuthCookie(authCookie));
+        ItemProxy item = getProxy(uuid, cookie);
+
+        return toJSON(enumerate(item, ATTACHMENT+"/"+schema+"/"+version, "attachment/"+schema+"/"+version, uri, cookie), cookie).build();
     }
 
     @GET
-    @Produces( {MediaType.TEXT_PLAIN, MediaType.TEXT_XML, MediaType.APPLICATION_XML})
+    @Produces( {MediaType.APPLICATION_OCTET_STREAM})
     @Path("{schema}/{version}/{event}")
-    public Response queryXMLData(@PathParam("uuid")       String  uuid,
-                                 @PathParam("schema")     String  schema,
-                                 @PathParam("version")    Integer version,
-                                 @PathParam("event")      Integer event,
-                                 @CookieParam(COOKIENAME) Cookie  authCookie,
-                                 @Context                 UriInfo uri)
+    public Response queryBinaryData(@PathParam("uuid")       String  uuid,
+                                    @PathParam("schema")     String  schema,
+                                    @PathParam("version")    Integer version,
+                                    @PathParam("event")      Integer event,
+                                    @QueryParam("inline")    String  inline,
+                                    @CookieParam(COOKIENAME) Cookie  authCookie,
+                                    @Context                 UriInfo uri)
     {
-        checkAuthCookie(authCookie);
-        return getOutcome(uuid, schema, version, event, false);
-    }
+        NewCookie cookie = checkAndCreateNewCookie(checkAuthCookie(authCookie));
+        ItemProxy item = getProxy(uuid, cookie);
 
-    @GET
-    @Produces(MediaType.APPLICATION_JSON)
-    @Path("{schema}/{version}/{event}")
-    public Response queryJSONData(@PathParam("uuid")       String  uuid,
-                                  @PathParam("schema")     String  schema,
-                                  @PathParam("version")    Integer version,
-                                  @PathParam("event")      Integer event,
-                                  @CookieParam(COOKIENAME) Cookie  authCookie,
-                                  @Context                 UriInfo uri)
-    {
-        checkAuthCookie(authCookie);
-        return getOutcome(uuid, schema, version, event, true);
+        log.debug("queryBinaryData() - {}/{}/{}/{}", item, schema, version, event);
+
+        try {
+            OutcomeAttachment attachment = item.getOutcomeAttachment(schema, version, event);
+            String fileName = attachment.getFileName();
+            String mimeType = MediaType.APPLICATION_OCTET_STREAM;
+            String contentDisposition = "attachment;";
+
+            if (StringUtils.isNotBlank(fileName)) {
+                if (inline != null) {
+                    contentDisposition = "inline;";
+                    if ("guessContent".equals(inline)) {
+                        mimeType = URLConnection.guessContentTypeFromStream(new ByteArrayInputStream(attachment.getBinaryData()));
+                    }
+                    else{
+                        mimeType = URLConnection.getFileNameMap().getContentTypeFor(fileName);
+                    }
+                }
+                contentDisposition += " filename=\"" + fileName + "\"";
+
+                log.debug("queryBinaryData() - {} : {}", mimeType, contentDisposition);
+            }
+
+            return Response
+                    .ok(attachment.getBinaryData())
+                    .type(mimeType)
+                    .header("Content-Disposition", contentDisposition)
+                    .build();
+        }
+        catch (Exception e) {
+            throw new WebAppExceptionBuilder().exception(e).newCookie(cookie).build();
+        }
     }
 }

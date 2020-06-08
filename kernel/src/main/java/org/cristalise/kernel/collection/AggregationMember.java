@@ -28,11 +28,11 @@ import org.cristalise.kernel.entity.proxy.ItemProxy;
 import org.cristalise.kernel.graph.model.GraphableVertex;
 import org.cristalise.kernel.lookup.InvalidItemPathException;
 import org.cristalise.kernel.lookup.ItemPath;
-import org.cristalise.kernel.persistency.ClusterStorage;
 import org.cristalise.kernel.persistency.ClusterType;
 import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.property.Property;
-import org.cristalise.kernel.utils.Logger;
+
+import lombok.extern.slf4j.Slf4j;
 
 
 /**
@@ -41,15 +41,14 @@ import org.cristalise.kernel.utils.Logger;
 * PropertyDescription information stored in slot properties and listed as 
 * ClassProps.
 */
+@Slf4j
+public class AggregationMember extends GraphableVertex implements CollectionMember {
 
-public class AggregationMember extends GraphableVertex implements CollectionMember
-{
-
-    private ItemPath             mItemPath   = null;
-    private ItemProxy            mItem       = null;
-    private Aggregation          mCollection = null;
-	private String 			     mClassProps = null;
-	private String 				 mItemName   = null;
+    private ItemPath    mItemPath   = null;
+    private ItemProxy   mItem       = null;
+    private Aggregation mCollection = null;
+    private String      mClassProps = null;
+    private String      mItemName   = null;
 
 
    /**************************************************************************
@@ -65,13 +64,13 @@ public class AggregationMember extends GraphableVertex implements CollectionMemb
         mCollection = aggregation;
     }
 
-	public void setClassProps(String props)
+    public void setClassProps(String props)
     {
         mClassProps = props;
     }
 
     @Override
-	public ItemPath getItemPath()
+    public ItemPath getItemPath()
     {
         return mItemPath;
     }
@@ -82,13 +81,13 @@ public class AggregationMember extends GraphableVertex implements CollectionMemb
     }
 
     @Override
-	public String getClassProps()
+    public String getClassProps()
     {
         return mClassProps;
     }
 
     @Override
-	public void assignItem(ItemPath itemPath) throws InvalidCollectionModification
+    public void assignItem(ItemPath itemPath) throws InvalidCollectionModification
     {
         if (itemPath != null) {
             if (mClassProps == null || getProperties() == null)
@@ -112,7 +111,7 @@ public class AggregationMember extends GraphableVertex implements CollectionMemb
                 }
                 catch (Exception ex)
                 {
-                    Logger.error(ex);
+                    log.error("", ex);
                     throw new InvalidCollectionModification("Error checking properties");
                 }
             }
@@ -124,48 +123,45 @@ public class AggregationMember extends GraphableVertex implements CollectionMemb
     }
 
     @Override
-	public void clearItem() {
+    public void clearItem() {
         mItemPath   = null;
         mItem       = null;
         mItemName   = null;
     }
 
     @Override
-	public ItemProxy resolveItem() throws ObjectNotFoundException {
+    public ItemProxy resolveItem() throws ObjectNotFoundException {
         if (mItem == null && mItemPath != null) {
-        	mItem = Gateway.getProxyManager().getProxy(mItemPath);
+            mItem = Gateway.getProxyManager().getProxy(mItemPath);
         }
         return mItem;
-
     }
 
     public String getItemName() {
-    	if (mItemName == null) {
-    		if (mItemPath != null) {
-        		try {
-        			mItemName = resolveItem().getName();
-        		} catch (ObjectNotFoundException ex) {
-        			Logger.error(ex);
-        			mItemName = "Error ("+mItemPath+")";
-        		}
-    		}
-    		else
-    			mItemName = "Empty";
-    	}
+        if (mItemName == null) {
+            if (mItemPath != null) {
+                try {
+                    mItemName = resolveItem().getName();
+                } catch (ObjectNotFoundException ex) {
+                    log.error("", ex);
+                    mItemName = "Error ("+mItemPath+")";
+                }
+            }
+            else
+                mItemName = "Empty";
+        }
 
-    	return mItemName;
+        return mItemName;
     }
 
-	public void setChildUUID(String uuid) throws InvalidCollectionModification, InvalidItemPathException {
-		mItemPath = new ItemPath(uuid);
-		mItemName = null;
-	}
+    public void setChildUUID(String uuid) throws InvalidCollectionModification, InvalidItemPathException {
+        mItemPath = new ItemPath(uuid);
+        mItemName = null;
+    }
 
-
-	@Override
-	public String getChildUUID() {
-		if (getItemPath() == null) return null;
-		return getItemPath().getUUID().toString();
-	}
-
+    @Override
+    public String getChildUUID() {
+        if (getItemPath() == null) return null;
+        return getItemPath().getUUID().toString();
+    }
 }

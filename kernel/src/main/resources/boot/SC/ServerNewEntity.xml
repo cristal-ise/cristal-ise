@@ -28,9 +28,10 @@
     <output name="errors" type="org.cristalise.kernel.scripting.ErrorInfo"/>
     <script language="javascript" name="ServerNewEntity"><![CDATA[
 var predef = "";
-var schema = String(job.getActPropString("SchemaType"));
+var schemaType = String(job.getActPropString("SchemaType"));
+var schemaName = String(org.cristalise.kernel.utils.LocalObjectLoader.getSchema(schemaType, 0).getName());
 
-switch (schema) {
+switch (schemaName) {
     case "Item":
         predef = "CreateNewItem";
         break;

@@ -1,6 +1,6 @@
 <!--
 
-    This file is part of the CRISTAL-iSE eXist-DB storage plugin.
+    This file is part of the CRISTAL-iSE jOOQ Cluster Storage Module.
     Copyright (c) 2001-2016 The CRISTAL Consortium. All rights reserved.
 
     This library is free software; you can redistribute it and/or modify it
@@ -120,6 +120,17 @@
             <plugin>
                 <groupId>com.mycila</groupId>
                 <artifactId>license-maven-plugin</artifactId>
+                <configuration>
+                    <header>HEADER.txt</header>
+                    <excludes>
+                        <exclude>*pom*.xml</exclude>
+                        <exclude>**/logback*.xml</exclude>
+                        <exclude>**/src/test/data/**</exclude>
+                        <exclude>**/*LICENSE</exclude>
+                        <exclude>**/README</exclude>
+                        <exclude>**/*.gpg.enc</exclude>
+                    </excludes>
+                </configuration>
                 <executions>
                     <execution>
                         <goals>
@@ -150,12 +161,22 @@
         <dependency>
             <groupId>org.jooq</groupId>
             <artifactId>jooq</artifactId>
-            <version>3.9.6</version>
+            <version>3.11.9</version>
         </dependency>
         <dependency>
             <groupId>de.mkammerer</groupId>
             <artifactId>argon2-jvm</artifactId>
             <version>2.5</version>
+        </dependency>
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.zaxxer</groupId>
+            <artifactId>HikariCP</artifactId>
+            <version>3.3.1</version>
         </dependency>
 
         <dependency>
@@ -180,6 +201,12 @@
             <groupId>org.unitils</groupId>
             <artifactId>unitils-core</artifactId>
             <version>3.4.6</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>ch.qos.logback</groupId>
+            <artifactId>logback-classic</artifactId>
+            <version>1.1.7</version>
             <scope>test</scope>
         </dependency>
     </dependencies>

@@ -21,14 +21,17 @@
 package org.cristalise.kernel.entity.proxy;
 
 import static org.cristalise.kernel.persistency.ClusterType.HISTORY;
+import static org.cristalise.kernel.property.BuiltInItemProperties.AGGREGATE_SCRIPT_URN;
+import static org.cristalise.kernel.property.BuiltInItemProperties.MASTER_SCHEMA_URN;
 import static org.cristalise.kernel.property.BuiltInItemProperties.NAME;
+import static org.cristalise.kernel.property.BuiltInItemProperties.SCHEMA_URN;
+import static org.cristalise.kernel.property.BuiltInItemProperties.SCRIPT_URN;
 import static org.cristalise.kernel.property.BuiltInItemProperties.TYPE;
-
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
-
+import org.apache.commons.lang3.StringUtils;
 import org.cristalise.kernel.collection.BuiltInCollections;
 import org.cristalise.kernel.collection.Collection;
 import org.cristalise.kernel.collection.CollectionArrayList;
@@ -60,21 +63,22 @@ import org.cristalise.kernel.property.BuiltInItemProperties;
 import org.cristalise.kernel.property.Property;
 import org.cristalise.kernel.property.PropertyArrayList;
 import org.cristalise.kernel.querying.Query;
+import org.cristalise.kernel.scripting.Script;
 import org.cristalise.kernel.utils.CastorXMLUtility;
 import org.cristalise.kernel.utils.LocalObjectLoader;
-import org.cristalise.kernel.utils.Logger;
 import org.exolab.castor.mapping.MappingException;
 import org.exolab.castor.xml.MarshalException;
 import org.exolab.castor.xml.ValidationException;
-
 import lombok.Getter;
 import lombok.Setter;
+import lombok.extern.slf4j.Slf4j;
 
 
 /**
  * It is a wrapper for the connection and communication with Item.
  * It caches data loaded from the Item to reduce communication
  */
+@Slf4j
 public class ItemProxy
 {
     protected Item                  mItem = null;
@@ -84,7 +88,7 @@ public class ItemProxy
     private final HashMap<MemberSubscription<?>, ProxyObserver<?>> mSubscriptions;
 
     /**
-     * Set Transaction key (aka locker) when ItemProxy is used in server side scripting
+     * Set Transaction key (a.k.a. locker) when ItemProxy is used in server side scripting
      */
     @Getter @Setter
     private Object transactionKey = null;
@@ -95,8 +99,6 @@ public class ItemProxy
      * @param itemPath
      */
     protected ItemProxy( org.omg.CORBA.Object  ior, ItemPath itemPath) {
-        Logger.msg(8, "ItemProxy::initialise() - path:" +itemPath);
-
         mIOR            = ior;
         mItemPath       = itemPath;
         mSubscriptions  = new HashMap<MemberSubscription<?>, ProxyObserver<?>>();
@@ -209,10 +211,10 @@ public class ItemProxy
                     MappingException,
                     InvalidCollectionModification
     {
-        Logger.msg(7, "ItemProxy.initialise() - started");
+        log.debug("initialise() - started");
 
         CastorXMLUtility xml = Gateway.getMarshaller();
-        if (itemProps == null) throw new InvalidDataException("ItemProxy.initialise() - No initial properties supplied");
+        if (itemProps == null) throw new InvalidDataException("initialise() - No initial properties supplied");
         String propString = xml.marshall(itemProps);
 
         String wfString = "";
@@ -251,7 +253,7 @@ public class ItemProxy
             throw (e);
         }
         catch (Exception e) {
-            Logger.error(e);
+            log.error("Could not store property {}", name, e);
             throw new PersistencyException("Could not store property:"+e.getMessage());
         }
     }
@@ -288,15 +290,15 @@ public class ItemProxy
         }
         
         OutcomeAttachment attachment = thisJob.getAttachment();
-        String attachmentType = "";
+        String attachmentFileName = "";
         byte[] attachmentBinary = new byte[0];
 
         if (attachment != null) {
-            attachmentType = attachment.getType();
+            attachmentFileName = attachment.getFileName();
             attachmentBinary = attachment.getBinaryData();
         }
 
-        Logger.msg(7, "ItemProxy.requestAction() - executing "+thisJob.getStepPath()+" for "+thisJob.getAgentName());
+        log.debug("requestAction() - executing job:{}", thisJob);
 
         if (thisJob.getDelegatePath() == null) {
             return getItem().requestAction (
@@ -304,7 +306,7 @@ public class ItemProxy
                     thisJob.getStepPath(),
                     thisJob.getTransition().getId(), 
                     outcome,
-                    attachmentType,
+                    attachmentFileName,
                     attachmentBinary);
         }
         else {
@@ -314,7 +316,7 @@ public class ItemProxy
                     thisJob.getStepPath(), 
                     thisJob.getTransition().getId(), 
                     outcome, 
-                    attachmentType,
+                    attachmentFileName,
                     attachmentBinary);
         }
     }
@@ -352,8 +354,8 @@ public class ItemProxy
             thisJobList = (JobArrayList)Gateway.getMarshaller().unmarshall(jobs);
         }
         catch (Exception e) {
-            Logger.error(e);
-            throw new PersistencyException("Exception::ItemProxy::getJobList() - Cannot unmarshall the jobs");
+            log.error("Cannot unmarshall the jobs", e);
+            throw new PersistencyException("Cannot unmarshall the jobs");
         }
         return thisJobList.list;
     }
@@ -524,7 +526,7 @@ public class ItemProxy
     }
 
     /**
-     * Check if the given Viewpoint exists.This method can be used in server 
+     * Check if the given Viewpoint exists. This method can be used in server 
      * side Script to find uncommitted changes during the active transaction.
      *
      * @param schemaName the name of the Schema associated with the Viewpoint
@@ -616,7 +618,7 @@ public class ItemProxy
             return checkOutcome(LocalObjectLoader.getSchema(schemaName, schemaVersion), eventId, locker == null ? transactionKey : locker);
         }
         catch (InvalidDataException e) {
-            Logger.error(e);
+            log.error("Schema was not found:{}", schemaName, e);
             throw new ObjectNotFoundException(e.getMessage());
         }
     }
@@ -677,7 +679,7 @@ public class ItemProxy
             return getOutcome(LocalObjectLoader.getSchema(schemaName, schemaVersion), eventId, locker == null ? transactionKey : locker);
         }
         catch (InvalidDataException e) {
-            Logger.error(e);
+            log.error("Schema was not found:{}", schemaName, e);
             throw new ObjectNotFoundException(e.getMessage());
         }
     }
@@ -733,7 +735,7 @@ public class ItemProxy
             return view.getOutcome(locker == null ? transactionKey : locker);
         }
         catch (PersistencyException e) {
-            Logger.error(e);
+            log.error("Could not retrieve outcome for view:{}", view, e);
             throw new ObjectNotFoundException(e.getMessage());
         }
     }
@@ -819,7 +821,7 @@ public class ItemProxy
             return getOutcomeAttachment(LocalObjectLoader.getSchema(schemaName, schemaVersion), eventId, locker == null ? transactionKey : locker);
         }
         catch (InvalidDataException e) {
-            Logger.error(e);
+            log.error("Could not retrieve attachment for schema:{}", schemaName, e);
             throw new ObjectNotFoundException(e.getMessage());
         }
     }
@@ -905,7 +907,7 @@ public class ItemProxy
      */
     @Override
     protected void finalize() throws Throwable {
-        Logger.msg(7, "ItemProxy.finalize() - caches are reaped for item:"+mItemPath);
+        log.debug("finalize() - caches are reaped for item:{}", mItemPath);
         Gateway.getStorage().clearCache(mItemPath, null);
         Gateway.getProxyManager().removeProxy(mItemPath);
         super.finalize();
@@ -932,10 +934,10 @@ public class ItemProxy
      */
     public String queryData(String path, Object locker) throws ObjectNotFoundException {
         try {
-            Logger.msg(7, "ItemProxy.queryData() - "+mItemPath+"/"+path);
+            log.debug("queryData() - {}/{}", mItemPath, path);
 
             if (path.endsWith("all")) {
-                Logger.msg(7, "ItemProxy.queryData() - listing contents");
+                log.debug("queryData() - listing contents");
 
                 String[] result = Gateway.getStorage().getClusterContents(mItemPath, path.substring(0, path.length()-3));
                 StringBuffer retString = new StringBuffer();
@@ -945,7 +947,7 @@ public class ItemProxy
 
                     if (i < result.length-1) retString.append(",");
                 }
-                Logger.msg(7, "ItemProxy.queryData() - "+retString.toString());
+                log.debug("queryData() - {}", retString);
                 return retString.toString();
             }
             else {
@@ -957,7 +959,7 @@ public class ItemProxy
             throw e;
         }
         catch (Exception e) {
-            Logger.error(e);
+            log.error("queryData() - could not read data for path:{}/{}", mItemPath, path, e);
             return "<ERROR>"+e.getMessage()+"</ERROR>";
         }
     }
@@ -1102,8 +1104,7 @@ public class ItemProxy
             return Gateway.getStorage().get(mItemPath, path , locker == null ? transactionKey : locker);
         }
         catch( PersistencyException ex ) {
-            Logger.error("ItemProxy.getObject() - Exception loading object:"+mItemPath+"/"+path);
-            Logger.error(ex);
+            log.error("getObject() - Exception loading object:{}/{}", mItemPath, path, ex);
             throw new ObjectNotFoundException( ex.toString() );
         }
     }
@@ -1182,12 +1183,36 @@ public class ItemProxy
      * @throws ObjectNotFoundException
      */
     public String getProperty(String name, Object locker) throws ObjectNotFoundException {
-        Logger.msg(5, "ItemProxy.getProperty() - "+name+" from item "+mItemPath);
+        log.debug("getProperty() - {} from item {}", name, mItemPath);
 
         Property prop = (Property)getObject(ClusterType.PROPERTY+"/"+name, locker == null ? transactionKey : locker);
 
         if(prop != null) return prop.getValue();
-        else             throw new ObjectNotFoundException("ItemProxy.getProperty() - COULD not find property "+name+" from item "+mItemPath);
+        else             throw new ObjectNotFoundException("COULD not find property "+name+" from item "+mItemPath);
+    }
+
+    /**
+     * Check if the given Property exists
+     * 
+     * @param name of the Property
+     * @return true if the Property exist false otherwise
+     * @throws ObjectNotFoundException Item does not have any properties at all
+     */
+    public boolean checkProperty(String name) throws ObjectNotFoundException {
+        return checkContent(ClusterType.PROPERTY.getName(), name);
+    }
+
+    /**
+     * Check if the given Property exists. This method can be used in server 
+     * side Script to find uncommitted changes during the active transaction.
+     * 
+     * @param name of the Property
+     * @param locker the transaction key
+     * @return true if the Property exist false otherwise
+     * @throws ObjectNotFoundException Item does not have any properties at all
+     */
+    public boolean checkProperty(String name, Object locker) throws ObjectNotFoundException {
+        return checkContent(ClusterType.PROPERTY.getName(), name, locker == null ? transactionKey : locker);
     }
 
     /**
@@ -1232,6 +1257,100 @@ public class ItemProxy
         return (Event) getObject(HISTORY + "/" + eventId, locker == null ? transactionKey : locker);
     }
 
+    /**
+     * Returns the so called Master Schema which can be used to construct master outcome.
+     * 
+     * @return the actual Schema
+     * @throws InvalidDataException the Schema could not be constructed
+     * @throws ObjectNotFoundException no Schema was found for the name and version
+     */
+    public Schema getMasterSchema() throws InvalidDataException, ObjectNotFoundException {
+        return getMasterSchema(null, null);
+    }
+
+    /**
+     * Returns the so called Master Schema which can be used to construct master outcome.
+     * 
+     * @param schemaName the name or UUID of the Schema or can be blank. It overwrites the master schema settings in the Properties
+     * @param schemaVersion the version of the schema or can be null. It overwrites the master schema settings in the Properties
+     * @return the Schema
+     * @throws InvalidDataException the Schema could not be constructed
+     * @throws ObjectNotFoundException no Schema was found for the name and version
+     */
+    public Schema getMasterSchema(String schemaName, Integer schemaVersion) throws InvalidDataException, ObjectNotFoundException {
+        String masterSchemaUrn = getProperty(MASTER_SCHEMA_URN, null);
+        if (StringUtils.isBlank(masterSchemaUrn)) masterSchemaUrn = getProperty(SCHEMA_URN, null);
+
+        if (StringUtils.isBlank(schemaName)) {
+            if (StringUtils.isNotBlank(masterSchemaUrn)) schemaName = masterSchemaUrn.split(":")[0];
+            else                                         schemaName = getType();
+        }
+
+        if (schemaVersion == null) {
+            if (StringUtils.isBlank(masterSchemaUrn)) {
+                if (Gateway.getProperties().getBoolean("Module.Versioning.strict", false)) {
+                    throw new InvalidDataException("Version for Schema '" + schemaName + "' cannot be null");
+                }
+                else {
+                    log.warn("getMasterSchema() - Version for Schema '{}' was null, using version 0 as default", schemaName);
+                    schemaVersion = 0;
+                }
+            }
+            else {
+                schemaVersion = Integer.valueOf(masterSchemaUrn.split(":")[1]);
+            }
+        }
+
+        return LocalObjectLoader.getSchema(schemaName, schemaVersion);
+    }
+
+    /**
+     * Returns the so called Aggregate Script which can be used to construct master outcome.
+     * 
+     * @return the script or null
+     * @throws InvalidDataException 
+     * @throws ObjectNotFoundException 
+     */
+    public Script getAggregateScript() throws InvalidDataException, ObjectNotFoundException {
+        return getAggregateScript(null, null);
+    }
+
+    /**
+     * Returns the so called Aggregate Script which can be used to construct master outcome.
+     * 
+     * @param scriptName the name of the script received in the rest call (can be null)
+     * @param scriptVersion the version of the script received in the rest call (can be null)
+     * @return the script or null
+     * @throws InvalidDataException 
+     * @throws ObjectNotFoundException 
+     */
+    public Script getAggregateScript(String scriptName, Integer scriptVersion) throws InvalidDataException, ObjectNotFoundException {
+        String aggregateScriptUrn = getProperty(AGGREGATE_SCRIPT_URN, null);
+        if (StringUtils.isBlank(aggregateScriptUrn)) aggregateScriptUrn = getProperty(SCRIPT_URN, null);
+
+        if (StringUtils.isBlank(scriptName)) {
+            if (StringUtils.isBlank(aggregateScriptUrn)) scriptName = getType() + "_Aggregate";
+            else                                         scriptName = aggregateScriptUrn.split(":")[0];
+        }
+
+        if (scriptVersion == null) {
+            if (StringUtils.isBlank(aggregateScriptUrn)) {
+                if (Gateway.getProperties().getBoolean("Module.Versioning.strict", false)) {
+                    throw new InvalidDataException("Version for Script '" + scriptName + "' cannot be null");
+                }
+                else {
+                    log.warn("getAggregateScript() - Version for Script '{}' was null, using version 0 as default", scriptName);
+                    scriptVersion = 0;
+                }
+            }
+            else {
+                scriptVersion = Integer.valueOf(aggregateScriptUrn.split(":")[1]);
+            }
+        }
+
+        return LocalObjectLoader.getScript(scriptName, scriptVersion);
+    }
+
     //**************************************************************************
     // Subscription methods
     //**************************************************************************/
@@ -1243,7 +1362,7 @@ public class ItemProxy
             mSubscriptions.put( newSub, newSub.getObserver() );
         }
         new Thread(newSub).start();
-        Logger.msg(7, "ItemProxy.subscribe() - "+newSub.getObserver().getClass().getName()+" for "+newSub.interest);
+        log.debug("subscribe() - {} for {}", newSub.getObserver().getClass().getName(), newSub.interest);
     }
 
     public void unsubscribe(ProxyObserver<?> observer) {
@@ -1252,42 +1371,51 @@ public class ItemProxy
                 MemberSubscription<?> thisSub = e.next();
                 if (mSubscriptions.get( thisSub ) == observer) {
                     e.remove();
-                    Logger.msg(7, "ItemProxy.unsubscribed() - "+observer.getClass().getName());
+                    log.debug("unsubscribed() - {}", observer.getClass().getName());
                 }
             }
         }
     }
 
     public void dumpSubscriptions(int logLevel) {
-        if(!Logger.doLog(logLevel) || mSubscriptions.size() == 0) return;
+        log.debug("Subscriptions to proxy {}", mItemPath);
 
-        Logger.msg(logLevel, "Subscriptions to proxy "+mItemPath+":");
         synchronized(this) {
             for (MemberSubscription<?> element : mSubscriptions.keySet()) {
                 ProxyObserver<?> obs = element.getObserver();
-                if (obs != null)
-                    Logger.msg(logLevel, "    "+element.getObserver().getClass().getName()+" subscribed to "+element.interest);
-                else
-                    Logger.msg(logLevel, "    Phantom subscription to "+element.interest);
+
+                if (obs != null) log.debug("    {} subscribed to {}", element.getObserver().getClass().getName(), element.interest);
+                else             log.debug("    Phantom subscription to {}", element.interest);
             }
         }
     }
 
     public void notify(ProxyMessage message) {
-        Logger.msg(4, "ItemProxy.notify() - Received change notification for "+message.getPath()+" on "+mItemPath);
+        log.trace("Received change notification for {} on {}", message.getPath(), mItemPath);
+
         synchronized (this){
-            if (Gateway.getProxyServer()== null || !message.getServer().equals(Gateway.getProxyServer().getServerName())) {
+            if (Gateway.getProxyServer() == null || !message.getServer().equals(Gateway.getProxyServer().getServerName())) {
                 Gateway.getStorage().clearCache(mItemPath, message.getPath());
             }
             for (Iterator<MemberSubscription<?>> e = mSubscriptions.keySet().iterator(); e.hasNext();) {
                 MemberSubscription<?> newSub = e.next();
                 if (newSub.getObserver() == null) { // phantom
-                    Logger.msg(4, "ItemProxy.notify() - Removing phantom subscription to "+newSub.interest);
+                    log.trace("removing phantom subscription to {}", newSub.interest);
                     e.remove();
                 }
                 else
                     newSub.update(message.getPath(), message.isState());
             }
+        }
+    }
+    
+    @Override
+    public String toString() {
+        if (log.isTraceEnabled()) {
+            return this.getName()+"("+this.getPath().getUUID()+"/"+getType()+")";
+        }
+        else {
+            return this.getName();
         }
     }
 }

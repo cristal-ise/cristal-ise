@@ -27,9 +27,11 @@ import static org.cristalise.kernel.property.BuiltInItemProperties.NAME;
 import static org.cristalise.kernel.property.BuiltInItemProperties.NAMESPACE;
 import static org.cristalise.kernel.property.BuiltInItemProperties.TYPE;
 import static org.cristalise.kernel.property.BuiltInItemProperties.VERSION;
+import static org.cristalise.kernel.security.BuiltInAuthc.SYSTEM_AGENT;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Properties;
 
 import org.apache.commons.lang3.StringUtils;
@@ -45,16 +47,21 @@ import org.cristalise.kernel.entity.imports.ImportOutcome;
 import org.cristalise.kernel.entity.imports.ImportRole;
 import org.cristalise.kernel.entity.proxy.AgentProxy;
 import org.cristalise.kernel.entity.proxy.ItemProxy;
+import org.cristalise.kernel.lifecycle.instance.predefined.UpdateImportReport;
+import org.cristalise.kernel.lookup.AgentPath;
 import org.cristalise.kernel.lookup.Path;
 import org.cristalise.kernel.persistency.ClusterType;
+import org.cristalise.kernel.process.AbstractMain;
 import org.cristalise.kernel.process.Bootstrap;
 import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.process.resource.BuiltInResources;
 import org.cristalise.kernel.property.Property;
 import org.cristalise.kernel.scripting.ErrorInfo;
 import org.cristalise.kernel.scripting.ScriptingEngineException;
-import org.cristalise.kernel.utils.Logger;
 
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
 public class Module extends ImportItem {
 
     private ModuleInfo info;
@@ -79,16 +86,16 @@ public class Module extends ImportItem {
     public void runScript(String event, AgentProxy agent, boolean isServer) throws ScriptingEngineException {
         for (ModuleEmbeddedScript script : scripts) {
             if (script.shouldRun(event, isServer)) {
-                Logger.msg("Running "+script.event+" "+script.target+" script from "+name);
+                log.info("Running "+script.event+" "+script.target+" script from "+name);
                 Object result = script.getScript(ns, agent).execute();
                 if (result instanceof ErrorInfo) {
                     ErrorInfo error = (ErrorInfo) result;
-                    Logger.error(error.toString());
+                    log.error(error.toString());
 
                     if (error.getFatal()) throw new ScriptingEngineException("Fatal Script Error");
                 }
                 else if (result != null) {
-                    Logger.msg(result.toString());
+                    log.info(result.toString());
                 }
             }
         }
@@ -122,10 +129,9 @@ public class Module extends ImportItem {
         }
         properties.add(newProp);
     }
-    
+
     private void addItemToContents(Path itemPath) {
         ImportDependency contents = dependencyList.get(0);
-        
         contents.dependencyMemberList.add(new ImportDependencyMember(itemPath.toString()));
     }
 
@@ -138,13 +144,18 @@ public class Module extends ImportItem {
      * @throws Exception All possible exceptions
      */
     public void importAll(ItemProxy serverEntity, AgentProxy systemAgent, boolean reset) throws Exception {
-        if (!Bootstrap.shutdown) importResources(systemAgent, reset);
-        if (!Bootstrap.shutdown) importRoles(    systemAgent, reset);
-        if (!Bootstrap.shutdown) importAgents(   systemAgent, reset);
-        if (!Bootstrap.shutdown) importItems(    systemAgent, reset);
+        String moduleChanges = "";
+
+        if (!Bootstrap.shutdown) moduleChanges = importResources(systemAgent, reset);
+        if (!Bootstrap.shutdown) importRoles( systemAgent, reset);
+        if (!Bootstrap.shutdown) importAgents(systemAgent, reset);
+        if (!Bootstrap.shutdown) importItems( systemAgent, reset);
 
         //Finally create this Module Item
         if (!Bootstrap.shutdown) this.create(systemAgent.getPath(), reset);
+
+        if (StringUtils.isNotBlank(moduleChanges))
+            new UpdateImportReport().request((AgentPath)SYSTEM_AGENT.getPath(), itemPath, moduleChanges);
     }
 
     /**
@@ -172,12 +183,12 @@ public class Module extends ImportItem {
 
             try {
                 Gateway.getLookup().getAgentPath(thisAgent.name);
-                Logger.msg(3, "Module.importAgents() - Agent '"+thisAgent.name+"' found.");
+                log.info("importAgents() - Agent '"+thisAgent.name+"' found.");
                 continue;
             }
             catch (ObjectNotFoundException ex) { }
 
-            Logger.msg("Module.importAgents() - Agent '"+thisAgent.name+"' not found. Creating.");
+            log.info("importAgents() - Agent '"+thisAgent.name+"' not found. Creating.");
             addItemToContents( thisAgent.create(systemAgent.getPath(), reset) );
         }
     }
@@ -199,19 +210,28 @@ public class Module extends ImportItem {
      * @param systemAgent
      * @param reset
      */
-    private void importResources(AgentProxy systemAgent, boolean reset) {
+    private String importResources(AgentProxy systemAgent, boolean reset) throws Exception {
+        List<String> moduleChanges = new ArrayList<String>();
+
         for (ModuleResource thisRes : imports.getResources()) {
-            if (Bootstrap.shutdown) return;
+            if (Bootstrap.shutdown) return "";
 
             try {
                 thisRes.setNamespace(ns);
-                addItemToContents( thisRes.create(systemAgent.getPath(), reset) );
+                addItemToContents(thisRes.create(systemAgent.getPath(), reset));
+                moduleChanges.add(thisRes.getResourceChangeDetails());
             }
             catch (Exception ex) {
-                Logger.error(ex);
-                Logger.die("Error importing module resources. Unsafe to continue.");
+                log.error("Error importing module resources. Unsafe to continue.", ex);
+                AbstractMain.shutdown(1);
             }
         }
+
+        StringBuffer moduleChangesXML = new StringBuffer("<ModuleChanges>\n");
+        for (String oneChange: moduleChanges) moduleChangesXML.append(oneChange).append("\n");
+        moduleChangesXML.append("</ModuleChanges>");
+
+        return moduleChangesXML.toString();
     }
 
     /**

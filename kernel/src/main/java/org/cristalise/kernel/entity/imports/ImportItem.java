@@ -22,6 +22,7 @@ package org.cristalise.kernel.entity.imports;
 
 import static org.cristalise.kernel.property.BuiltInItemProperties.CREATOR;
 import static org.cristalise.kernel.property.BuiltInItemProperties.NAME;
+import static org.cristalise.kernel.security.BuiltInAuthc.ADMIN_ROLE;
 
 import java.util.ArrayList;
 
@@ -51,21 +52,20 @@ import org.cristalise.kernel.persistency.ClusterType;
 import org.cristalise.kernel.persistency.outcome.Outcome;
 import org.cristalise.kernel.persistency.outcome.Schema;
 import org.cristalise.kernel.persistency.outcome.Viewpoint;
-import org.cristalise.kernel.process.Bootstrap;
 import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.process.module.ModuleImport;
 import org.cristalise.kernel.property.Property;
 import org.cristalise.kernel.property.PropertyArrayList;
 import org.cristalise.kernel.utils.LocalObjectLoader;
-import org.cristalise.kernel.utils.Logger;
 
 import lombok.Getter;
 import lombok.Setter;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * Complete Structure for new Item created by different bootstrap uses cases including testing
  */
-@Getter @Setter
+@Getter @Setter @Slf4j
 public class ImportItem extends ModuleImport {
 
     protected String  initialPath;
@@ -89,10 +89,6 @@ public class ImportItem extends ModuleImport {
      * It is not marshallable by castor, therefore cannot be set in module.xml
      */
     protected Workflow wf;
-
-    //TODO: Check if these 2 flags should go to class ModuleImport
-    protected boolean isNewItem = true;
-    protected boolean isDOMPathExists = true; //avoids multiple call to domainPath.exists()
 
     public ImportItem() {}
 
@@ -153,12 +149,12 @@ public class ImportItem extends ModuleImport {
         ItemPath ip = getItemPath();
 
         if (ip.exists()) {
-            Logger.msg(1, "ImportItem.getTraceableEntitiy() - Verifying module item "+domainPath+" at "+ip);
+            log.info("getTraceableEntitiy() - Verifying module item "+domainPath+" at "+ip);
             newItem = Gateway.getCorbaServer().getItem(getItemPath());
             isNewItem = false;
         }
         else {
-            Logger.msg("ImportItem.getTraceableEntitiy() - Creating module item "+ip+" at "+domainPath);
+            log.info("getTraceableEntitiy() - Creating module item "+ip+" at "+domainPath);
             newItem = Gateway.getCorbaServer().createItem(ip);
             Gateway.getLookupManager().add(ip);
         }
@@ -174,6 +170,8 @@ public class ImportItem extends ModuleImport {
             CannotManageException, ObjectAlreadyExistsException, InvalidCollectionModification, PersistencyException
     {
         domainPath = new DomainPath(new DomainPath(initialPath), name);
+
+        log.info("create() - path:{}", domainPath);
 
         if (domainPath.exists()) {
             ItemPath domItem = domainPath.getItemPath();
@@ -196,8 +194,7 @@ public class ImportItem extends ModuleImport {
                     );
         }
         catch (Exception ex) {
-            Logger.error("Error initialising new item " + ns + "/" + name);
-            Logger.error(ex);
+            log.error("Error initialising new item " + ns + "/" + name, ex);
 
             if (isNewItem) Gateway.getLookupManager().delete(itemPath);
 
@@ -222,25 +219,27 @@ public class ImportItem extends ModuleImport {
                 impView = (Viewpoint) Gateway.getStorage().get(getItemPath(), ClusterType.VIEWPOINT + "/" + thisOutcome.schema + "/" + thisOutcome.viewname, null);
 
                 if (newOutcome.isIdentical(impView.getOutcome())) {
-                    Logger.msg(5, "ImportItem.create() - View "+thisOutcome.schema+"/"+thisOutcome.viewname+" in "+ns+"/"+name+" identical, no update required");
+                    log.debug("create() - View "+thisOutcome.schema+"/"+thisOutcome.viewname+" in "+ns+"/"+name+" identical, no update required");
                     continue;
                 }
                 else {
-                    Logger.msg("ImportItem.create() - Difference found in view "+thisOutcome.schema+"/"+thisOutcome.viewname+" in "+ns+"/"+name);
+                    log.info("create() - Difference found in view "+thisOutcome.schema+"/"+thisOutcome.viewname+" in "+ns+"/"+name);
 
                     if (!reset && !impView.getEvent().getStepPath().equals("Import")) {
-                        Logger.msg("ImportItem.create() - Last edit was not done by import, and reset not requested. Not overwriting.");
+                        log.info("create() - Last edit was not done by import, and reset not requested. Not overwriting.");
                         continue;
                     }
                 }
             }
             catch (ObjectNotFoundException ex) {
-                Logger.msg("ImportItem.create() - View "+thisOutcome.schema+"/"+thisOutcome.viewname+" not found in "+ns+"/"+name+". Creating.");
+                log.info("create() - View "+thisOutcome.schema+"/"+thisOutcome.viewname+" not found in "+ns+"/"+name+". Creating.");
                 impView = new Viewpoint(getItemPath(), schema, thisOutcome.viewname, -1);
             }
 
             // write new view/outcome/event
-            Event newEvent = hist.addEvent(agentPath, null, "Admin", "Import", "Import", "Import", schema, Bootstrap.getPredefSM(), PredefinedStep.DONE, thisOutcome.viewname);
+            Event newEvent = hist.addEvent(
+                    agentPath, null, ADMIN_ROLE.getName(), "Import", "Import", "Import", schema, 
+                    LocalObjectLoader.getStateMachine("PredefinedStep", 0), PredefinedStep.DONE, thisOutcome.viewname);
             newOutcome.setID(newEvent.getID());
             impView.setEventId(newEvent.getID());
 
@@ -286,7 +285,7 @@ public class ImportItem extends ModuleImport {
                     compActDef = (CompositeActivityDef) LocalObjectLoader.getActDef(workflow, workflowVer == null ? 0 : workflowVer);
                 }
                 else {
-                    Logger.warning("ImportItem.createCompositeActivity() - NO Workflow was set for domainPath:"+domainPath);
+                    log.warn("createCompositeActivity() - NO Workflow was set for domainPath:"+domainPath);
                     compActDef = (CompositeActivityDef) LocalObjectLoader.getActDef("NoWorkflow", workflowVer == null ? 0 : workflowVer);
                 }
             }
@@ -315,6 +314,9 @@ public class ImportItem extends ModuleImport {
             Aggregation newAgg = element.create();
             colls.put(newAgg);
         }
+
+        log.info("createCollections() - name:{} number of colls:{}", name, colls.list.size());
+
         return colls;
     }
 }

@@ -31,8 +31,10 @@ import org.cristalise.kernel.lookup.Path;
 import org.cristalise.kernel.lookup.RolePath;
 import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.process.module.ModuleImport;
-import org.cristalise.kernel.utils.Logger;
 
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
 public class ImportRole extends ModuleImport {
 
     public Boolean jobList;
@@ -51,13 +53,13 @@ public class ImportRole extends ModuleImport {
             if (jobList != null) update(agentPath);
         }
         else {
-            Logger.msg("ImportRole.create() - Creating Role:"+name+" joblist:"+jobList);
+            log.info("ImportRole.create() - Creating Role:"+name+" joblist:"+jobList);
 
             //Checks if parent exists and throw ObjectNotFoundException
             newRolePath.getParent();
 
             Gateway.getLookupManager().createRole(newRolePath);
-            Gateway.getLookupManager().setPermissions(newRolePath, newRolePath.getPermissions());
+            Gateway.getLookupManager().setPermissions(newRolePath, newRolePath.getPermissionsList());
         }
         return newRolePath;
     }
@@ -79,7 +81,7 @@ public class ImportRole extends ModuleImport {
             throw new ObjectNotFoundException("Role '" + rolePath.getName() + "' does NOT exists.");
 
         Gateway.getLookupManager().setHasJobList(rolePath, (jobList == null) ? false : jobList);
-        Gateway.getLookupManager().setPermissions(rolePath, permissions);
+        Gateway.getLookupManager().setPermissions(rolePath, rolePath.getPermissionsList());
     }
 
     /**
@@ -92,7 +94,7 @@ public class ImportRole extends ModuleImport {
 
         ir.setName(rp.getName());
         ir.jobList = rp.hasJobList();
-        ir.permissions = (ArrayList<String>) rp.getPermissions();
+        ir.permissions = (ArrayList<String>) rp.getPermissionsList();
 
         return ir;
     }

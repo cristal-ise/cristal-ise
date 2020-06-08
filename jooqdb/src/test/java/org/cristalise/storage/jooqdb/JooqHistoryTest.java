@@ -20,6 +20,10 @@
  */
 package org.cristalise.storage.jooqdb;
 
+import static org.cristalise.JooqTestConfigurationBase.DBModes.MYSQL;
+import static org.cristalise.JooqTestConfigurationBase.DBModes.PostgreSQL;
+import static org.junit.Assert.assertEquals;
+
 import java.util.Arrays;
 import java.util.UUID;
 
@@ -29,9 +33,9 @@ import org.cristalise.kernel.lookup.AgentPath;
 import org.cristalise.kernel.lookup.InvalidItemPathException;
 import org.cristalise.kernel.lookup.ItemPath;
 import org.cristalise.kernel.utils.DateUtility;
-import org.cristalise.kernel.utils.Logger;
 import org.cristalise.storage.jooqdb.clusterStore.JooqHistoryHandler;
 import org.hamcrest.collection.IsIterableContainingInAnyOrder;
+import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -39,6 +43,24 @@ import org.junit.Test;
 public class JooqHistoryTest extends StorageTestBase {
     Event event;
     JooqHistoryHandler jooq;
+
+    @Before
+    public void before() throws Exception {
+        context = initJooqContext();
+
+        jooq = new JooqHistoryHandler();
+        jooq.createTables(context);
+
+        event = createEvent(uuid);
+        assert jooq.put(context, uuid, event) == 1;
+    }
+
+    @After
+    public void after() throws Exception {
+        context.close();
+        
+        if (dbType == MYSQL || dbType == PostgreSQL) jooq.dropTables(context);
+    }
 
     private void compareEvents(Event actual, Event expected) {
         Assert.assertNotNull(actual);
@@ -64,6 +86,10 @@ public class JooqHistoryTest extends StorageTestBase {
             Assert.assertEquals(expected.getDelegatePath(), actual.getDelegatePath());
 
         compareTimestramps(actual.getTimeStamp(), expected.getTimeStamp());
+    }
+
+    private Event createEvent(UUID itemUUID) throws InvalidItemPathException {
+        return createEvent(itemUUID, jooq.getLastEventId(context, uuid)+1);
     }
 
     private Event createEvent(UUID itemUUID, int id) throws InvalidItemPathException {
@@ -108,17 +134,6 @@ public class JooqHistoryTest extends StorageTestBase {
                 DateUtility.getNow());
     }
 
-    @Before
-    public void before() throws Exception {
-        context = initJooqContext();
-
-        jooq = new JooqHistoryHandler();
-        jooq.createTables(context);
-
-        event = createEvent(uuid, 0);
-        assert jooq.put(context, uuid, event) == 1;
-    }
-
     @Test
     public void fetchEvent() throws Exception {
         compareEvents((Event)jooq.fetch(context, uuid, "0"), event);
@@ -159,18 +174,20 @@ public class JooqHistoryTest extends StorageTestBase {
 
     @Test
     public void getEventIDs() throws Exception {
-        assert jooq.put(context, uuid, createEvent(uuid, 1)) == 1;
-        assert jooq.put(context, uuid, createEvent(uuid, 2)) == 1;
-        assert jooq.put(context, uuid, createEvent(uuid, 3)) == 1;
+        assertEquals(0, jooq.getLastEventId(context, uuid)); //event 0 is created in before()
+        assert jooq.put(context, uuid, createEvent(uuid)) == 1;
+        assert jooq.put(context, uuid, createEvent(uuid)) == 1;
+        assert jooq.put(context, uuid, createEvent(uuid)) == 1;
+        assertEquals(3, jooq.getLastEventId(context, uuid));
+
+        String[] keys = jooq.getNextPrimaryKeys(context, uuid);
+        Assert.assertThat(Arrays.asList(keys), IsIterableContainingInAnyOrder.containsInAnyOrder("0", "1", "2", "3"));
 
         UUID uuid2 = UUID.randomUUID();
+        assertEquals(-1, jooq.getLastEventId(context, uuid2));
         assert jooq.put(context, uuid2, createEvent(uuid2, 0)) == 1;
         assert jooq.put(context, uuid2, createEvent(uuid2, 1)) == 1;
         assert jooq.put(context, uuid2, createEvent(uuid2, 2)) == 1;
-
-        String[] keys = jooq.getNextPrimaryKeys(context, uuid);
-        Logger.msg(Arrays.toString(keys));
-
-        Assert.assertThat(Arrays.asList(keys), IsIterableContainingInAnyOrder.containsInAnyOrder("0", "1", "2", "3"));
+        assertEquals(2, jooq.getLastEventId(context, uuid2));
     }
 }

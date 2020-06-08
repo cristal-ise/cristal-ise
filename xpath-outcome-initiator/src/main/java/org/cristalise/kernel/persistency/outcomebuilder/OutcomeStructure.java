@@ -35,7 +35,6 @@ import java.util.Map;
 import java.util.Map.Entry;
 
 import org.apache.commons.lang3.StringUtils;
-import org.cristalise.kernel.utils.Logger;
 import org.exolab.castor.types.AnyNode;
 import org.exolab.castor.xml.schema.Annotated;
 import org.exolab.castor.xml.schema.Annotation;
@@ -57,8 +56,17 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
-// contains child outcome elements - creates new ones
+import lombok.extern.slf4j.Slf4j;
+
+/**
+ * contains child outcome elements - creates new ones
+ * @author zsmyt
+ *
+ */
+@Slf4j
 public abstract class OutcomeStructure {
+
+    boolean isRootElement = false;
 
     ElementDecl model      = null;
     Element     myElement  = null;
@@ -73,7 +81,7 @@ public abstract class OutcomeStructure {
         this.model = model;
         subStructure = new HashMap<String, OutcomeStructure>();
 
-        Logger.msg(8, "OutcomeStructure() - Creating '" + model.getName() + "' structure as " + this.getClass().getSimpleName());
+        log.debug("Creating '" + model.getName() + "' structure as " + this.getClass().getSimpleName());
 
         String doc = extractHelp(model);
         if (StringUtils.isNotBlank(doc)) help = doc;
@@ -104,24 +112,38 @@ public abstract class OutcomeStructure {
             throws OutcomeBuilderException;
 
     /**
+     * Create the named child element from the xsd model and adds it to the document
      * 
-     * @param rootDocument
-     * @param recordName
-     * @return
-     * @throws OutcomeBuilderException
+     * @param rootDocument the root of the dom
+     * @param name the name of the elements to be added
+     * @return the newly create element
+     * @throws OutcomeBuilderException no element exists in the xsd model
      */
-    public Element createChildElement(Document rootDocument, String recordName) throws OutcomeBuilderException {
-        OutcomeStructure childModel = getChildModelElement(recordName);
+    public Element createChildElement(Document rootDocument, String name) throws OutcomeBuilderException {
+        OutcomeStructure childModel = getChildModelElement(name);
 
-        if (childModel == null) throw new StructuralException("'"+model.getName()+"' does not have child '"+recordName+"'");
+        if (childModel == null) throw new StructuralException("'"+model.getName()+"' does not have child '"+name+"'");
 
         Element newElement = childModel.initNew(rootDocument);
+
+        addChildElement(name, newElement);
+
+        return newElement;
+    }
+
+    /**
+     * Adds the child element az the correct position using the expected sequence of elements (subStructureOrder)
+     * 
+     * @param name the name of the elements to be added
+     * @param newElement the new xml element to be added
+     */
+    public void addChildElement(String name, Element newElement) {
         Element refElement = null;
         boolean cont = true;
 
         // lets find out where to insert this new element
         for (int i = 0; i < subStructureOrder.size()-1 && cont; i++) {
-            if (recordName.equals(subStructureOrder.get(i))) {
+            if (name.equals(subStructureOrder.get(i))) {
                 cont = false;
 
                 for (int k = i+1; k < subStructureOrder.size() && refElement == null; k++) {
@@ -142,8 +164,6 @@ public abstract class OutcomeStructure {
 
         if (refElement == null) myElement.appendChild(newElement);
         else                    myElement.insertBefore(newElement, refElement);
-
-        return newElement;
     }
 
     /**
@@ -222,7 +242,7 @@ public abstract class OutcomeStructure {
             }
             else if (thisParticle instanceof Wildcard) {
                 //do nothing
-                Logger.msg(5, "OutcomeStructure.enumerateElements() - group has Wildcard representing xs:any");
+                log.debug("enumerateElements() - group has Wildcard representing xs:any");
             }
             else {
                 throw new StructuralException("Cannot process Particle '" + thisParticle.getClass() + "' : Not implemented");
@@ -263,7 +283,7 @@ public abstract class OutcomeStructure {
         StringBuffer errors = new StringBuffer();
 
         for (Entry<String, OutcomeStructure> element : subStructure.entrySet()) {
-            Logger.debug(5, "OutcomeStructure.validateStructure() - validating : " + element.getKey());
+            log.debug("validateStructure() - validating : " + element.getKey());
             errors.append(element.getValue().validateStructure());
         }
 
@@ -361,8 +381,7 @@ public abstract class OutcomeStructure {
             }
         }
         catch (Exception ex) {
-            if (Logger.doLog(6)) Logger.error(ex);
-            Logger.warning("Cannot convert value '" + value + "' to a " + type.getName());
+            log.warn("Cannot convert value '" + value + "' to a " + type.getName());
         }
 
         return value == null ? "" : value;
@@ -395,5 +414,13 @@ public abstract class OutcomeStructure {
 
         if (names.length == 1) return child;
         else                   return child.find(Arrays.copyOfRange(names, 1, names.length-1));
+    }
+
+    public boolean isRootElement() {
+        return isRootElement;
+    }
+
+    public void setRootElementFlag(boolean isRootElement) {
+        this.isRootElement = isRootElement;
     }
 }

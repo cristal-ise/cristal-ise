@@ -31,11 +31,13 @@ import org.cristalise.kernel.lookup.ItemPath;
 import org.cristalise.kernel.persistency.ClusterType;
 import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.utils.CastorHashMap;
-import org.cristalise.kernel.utils.Logger;
+
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * A Collection with a graph layout
  */
+@Slf4j
 abstract public class Aggregation extends Collection<AggregationMember> {
 
     protected GraphModel mLayout = new GraphModel(new AggregationVertexOutlineCreator());
@@ -109,7 +111,7 @@ abstract public class Aggregation extends Collection<AggregationMember> {
         aggMem.setIsLayoutable(true);
 
         mMembers.list.add(aggMem);
-        Logger.msg(8, "AggregationDescription::addSlot new slot linked to vertexid " + vertex.getID());
+        log.debug("AggregationDescription::addSlot new slot linked to vertexid " + vertex.getID());
         return aggMem;
     }
 
@@ -120,7 +122,7 @@ abstract public class Aggregation extends Collection<AggregationMember> {
             aggMem.assignItem(itemPath);
             aggMem.setIsComposite(getIsComposite(itemPath, getName()));
         }
-        Logger.msg(8, "AggregationDescription::addMember(" + itemPath + ") assigned to new slot " + aggMem.getID());
+        log.debug("AggregationDescription::addMember(" + itemPath + ") assigned to new slot " + aggMem.getID());
         return aggMem;
     }
 

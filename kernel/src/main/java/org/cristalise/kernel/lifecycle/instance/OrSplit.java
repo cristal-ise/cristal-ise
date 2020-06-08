@@ -26,8 +26,10 @@ import org.cristalise.kernel.common.InvalidDataException;
 import org.cristalise.kernel.graph.model.DirectedEdge;
 import org.cristalise.kernel.lookup.AgentPath;
 import org.cristalise.kernel.lookup.ItemPath;
-import org.cristalise.kernel.utils.Logger;
 
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
 public class OrSplit extends Split {
 
     public OrSplit() {
@@ -36,33 +38,36 @@ public class OrSplit extends Split {
 
     @Override
     public void runNext(AgentPath agent, ItemPath itemPath, Object locker) throws InvalidDataException {
+        int id = getID();
         String[] nextsTab = calculateNexts(itemPath, locker);
 
         int active = 0;
         DirectedEdge[] outEdges = getOutEdges();
         for (String thisNext : nextsTab) {
-            Logger.msg(7, "OrSplit.runNext() - Finding next " + thisNext);
+            log.debug("runNext(id:{}) - Finding edge with {} '{}'", id, ALIAS, thisNext);
 
-            for (DirectedEdge outEdge : outEdges) {
-                Next nextEdge = (Next) outEdge;
-                if (thisNext != null && thisNext.equals(nextEdge.getBuiltInProperty(ALIAS))) {
-                    WfVertex term = nextEdge.getTerminusVertex();
-                    try {
-                        term.run(agent, itemPath, locker);
+            if (thisNext != null) {
+                for (DirectedEdge outEdge : outEdges) {
+                    Next nextEdge = (Next) outEdge;
+                    if (thisNext.equals(nextEdge.getBuiltInProperty(ALIAS))) {
+                        WfVertex term = nextEdge.getTerminusVertex();
+                        try {
+                            term.run(agent, itemPath, locker);
+                        }
+                        catch (InvalidDataException e) {
+                            log.error("", e);
+                            throw new InvalidDataException("Error enabling next " + thisNext);
+                        }
+                        log.debug("runNext(id:{}) - Running {}", id, nextEdge.getBuiltInProperty(ALIAS));
+                        active++;
                     }
-                    catch (InvalidDataException e) {
-                        Logger.error(e);
-                        throw new InvalidDataException("Error enabling next " + thisNext);
-                    }
-                    Logger.msg(7, "OrSplit.runNext() - Running " + nextEdge.getBuiltInProperty(ALIAS));
-                    active++;
                 }
             }
         }
 
         // if no active nexts throw exception
         if (active == 0)
-            throw new InvalidDataException("No nexts were activated!");
+            throw new InvalidDataException("No edges found, no next vertex activated! (id: " + id + ")");
     }
 
 }

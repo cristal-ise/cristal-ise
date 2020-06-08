@@ -23,15 +23,13 @@ package org.cristalise.restapi;
 import static javax.ws.rs.core.MediaType.APPLICATION_JSON_TYPE;
 import static javax.ws.rs.core.MediaType.APPLICATION_XML_TYPE;
 import static javax.ws.rs.core.MediaType.TEXT_XML_TYPE;
-import static javax.ws.rs.core.Response.Status.BAD_REQUEST;
-import static javax.ws.rs.core.Response.Status.INTERNAL_SERVER_ERROR;
-import static javax.ws.rs.core.Response.Status.NOT_FOUND;
-import static javax.ws.rs.core.Response.Status.UNSUPPORTED_MEDIA_TYPE;
 import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.ATTACHMENT_MIME_TYPES;
 import static org.cristalise.kernel.persistency.ClusterType.HISTORY;
 import static org.cristalise.kernel.persistency.ClusterType.PROPERTY;
 import static org.cristalise.kernel.persistency.ClusterType.VIEWPOINT;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.net.URI;
 import java.text.DateFormat;
 import java.text.ParseException;
@@ -42,13 +40,16 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.UUID;
-import javax.ws.rs.WebApplicationException;
+import java.util.regex.Pattern;
+
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.NewCookie;
 import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
 import javax.ws.rs.core.UriBuilder;
 import javax.ws.rs.core.UriInfo;
+
 import org.apache.commons.lang3.StringUtils;
 import org.cristalise.kernel.collection.Aggregation;
 import org.cristalise.kernel.collection.AggregationMember;
@@ -67,6 +68,7 @@ import org.cristalise.kernel.entity.agent.Job;
 import org.cristalise.kernel.entity.proxy.AgentProxy;
 import org.cristalise.kernel.entity.proxy.ItemProxy;
 import org.cristalise.kernel.events.Event;
+import org.cristalise.kernel.lifecycle.instance.predefined.PredefinedStep;
 import org.cristalise.kernel.lifecycle.instance.stateMachine.StateMachine;
 import org.cristalise.kernel.lookup.DomainPath;
 import org.cristalise.kernel.lookup.InvalidItemPathException;
@@ -74,6 +76,7 @@ import org.cristalise.kernel.lookup.ItemPath;
 import org.cristalise.kernel.lookup.Lookup.PagedResult;
 import org.cristalise.kernel.persistency.ClusterType;
 import org.cristalise.kernel.persistency.outcome.Outcome;
+import org.cristalise.kernel.persistency.outcome.OutcomeAttachment;
 import org.cristalise.kernel.persistency.outcome.Viewpoint;
 import org.cristalise.kernel.persistency.outcomebuilder.OutcomeBuilder;
 import org.cristalise.kernel.persistency.outcomebuilder.OutcomeBuilderException;
@@ -84,22 +87,24 @@ import org.cristalise.kernel.utils.CastorHashMap;
 import org.cristalise.kernel.utils.DateUtility;
 import org.cristalise.kernel.utils.KeyValuePair;
 import org.cristalise.kernel.utils.LocalObjectLoader;
-import org.cristalise.kernel.utils.Logger;
+import org.json.JSONArray;
 import org.json.JSONObject;
 import org.json.XML;
 
-//import javax.ws.rs.core.Response;
+import com.google.common.io.ByteStreams;
 
+import lombok.extern.slf4j.Slf4j;
+
+
+@Slf4j
 public abstract class ItemUtils extends RestHandler {
 
     protected static final String PREDEFINED_PATH = "workflow/predefined/";
-    private static int defaultLogLevel;
     final DateFormat dateFormatter;
 
     public ItemUtils() {
         super();
         dateFormatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-        defaultLogLevel = Gateway.getProperties().getInt("LOGGER.defaultLevel", 9);
     }
 
     protected static URI getItemURI(UriInfo uri, ItemProxy item, Object...path) {
@@ -140,57 +145,47 @@ public abstract class ItemUtils extends RestHandler {
         return props;
     }
 
-    protected static ItemProxy getProxy(String uuid) {
-        ItemProxy item;
-        ItemPath itemPath;
-        try {
-            itemPath = Gateway.getLookup().getItemPath(uuid);
-        } catch (InvalidItemPathException e) {
-            Logger.error(e);
-            throw ItemUtils.createWebAppException(e.getMessage(), BAD_REQUEST); // Bad Request - the UUID wasn't valid
-        } catch (ObjectNotFoundException e) {
-            Logger.error(e);
-            throw ItemUtils.createWebAppException(e.getMessage(), NOT_FOUND); // UUID isn't used in this server
-        }
+    //protected ItemProxy getProxy(String uuid) { return getProxy(uuid, null); }
 
+    protected ItemProxy getProxy(String uuid, NewCookie cookie) {
         try {
-            item = Gateway.getProxyManager().getProxy(itemPath);
-        } catch (ObjectNotFoundException e) {
-            Logger.error(e);
-            throw ItemUtils.createWebAppException(e.getMessage(), NOT_FOUND); // Not found - the path doesn't exist
+            ItemPath itemPath = Gateway.getLookup().getItemPath(uuid);
+            return Gateway.getProxyManager().getProxy(itemPath);
         }
-        return item;
+        catch(InvalidItemPathException | ObjectNotFoundException e) {
+            throw new WebAppExceptionBuilder().exception(e).newCookie(cookie).build();
+        }
     }
 
-    public Response getViewpointOutcome(String uuid, String schema, String viewName, boolean json) {
-        ItemProxy item = ItemRoot.getProxy(uuid);
+    public Response.ResponseBuilder getViewpointOutcome(String uuid, String schema, String viewName, boolean json, NewCookie cookie) {
+        ItemProxy item = getProxy(uuid, null);
+
         try {
             Viewpoint view = item.getViewpoint(schema, viewName);
-            return getOutcomeResponse(view.getOutcome(), json);
+            return getOutcomeResponse(view.getOutcome(), json, cookie);
         }
-        catch (PersistencyException | ObjectNotFoundException e) {
-            Logger.error(e);
-            throw ItemUtils.createWebAppException(e.getMessage(), e, NOT_FOUND);
+        catch (ObjectNotFoundException | PersistencyException e) {
+            throw new WebAppExceptionBuilder().exception(e).newCookie(cookie).build();
         }
     }
 
-    public Response getOutcome(String uuid, String schema, int version, int eventId, boolean json) {
-        ItemProxy item = ItemRoot.getProxy(uuid);
+    public Response.ResponseBuilder getOutcome(String uuid, String schema, int version, int eventId, boolean json, NewCookie cookie) {
+        ItemProxy item = getProxy(uuid, null);
+
         try {
             Outcome outcome = item.getOutcome(schema, version, eventId);
-            return getOutcomeResponse(outcome, (Event)RemoteMapAccess.get(item, HISTORY, Integer.toString(eventId)), json);
+            return getOutcomeResponse(outcome,(Event)RemoteMapAccess.get(item, HISTORY, Integer.toString(eventId)), json, cookie);
         }
         catch (ObjectNotFoundException e) {
-            Logger.error(e);
-            throw ItemUtils.createWebAppException(e.getMessage(), NOT_FOUND);
+            throw new WebAppExceptionBuilder().exception(e).newCookie(cookie).build();
         }
     }
 
-    public ArrayList<LinkedHashMap<String, Object>> enumerate(ItemProxy item, ClusterType cluster, String uriPath, UriInfo uri) {
-        return enumerate(item, cluster.getName(), uriPath, uri);
+    public ArrayList<LinkedHashMap<String, Object>> enumerate(ItemProxy item, ClusterType cluster, String uriPath, UriInfo uri, NewCookie cookie) {
+        return enumerate(item, cluster.getName(), uriPath, uri, cookie);
     }
 
-    public ArrayList<LinkedHashMap<String, Object>> enumerate(ItemProxy item, String dataPath, String uriPath, UriInfo uri) {
+    public ArrayList<LinkedHashMap<String, Object>> enumerate(ItemProxy item, String dataPath, String uriPath, UriInfo uri, NewCookie cookie) {
         try {
             String[] children = item.getContents(dataPath);
             ArrayList<LinkedHashMap<String, Object>> childrenData = new ArrayList<>();
@@ -199,7 +194,11 @@ public abstract class ItemUtils extends RestHandler {
                 LinkedHashMap<String, Object> childData = new LinkedHashMap<>();
 
                 childData.put("name", childName);
-                childData.put("url", getItemURI(uri, item, uriPath, childName));
+
+                if (Pattern.matches("^Attachment/.*/[0-9]+$", dataPath))
+                    childData.put("url", getItemURI(uri, item, uriPath, childName).toString() + "?inline");
+                else
+                    childData.put("url", getItemURI(uri, item, uriPath, childName));
 
                 childrenData.add(childData);
             }
@@ -207,17 +206,16 @@ public abstract class ItemUtils extends RestHandler {
             return childrenData;
         }
         catch (ObjectNotFoundException e) {
-            Logger.error(e);
-            throw ItemUtils.createWebAppException("Database Error");
+            throw new WebAppExceptionBuilder().exception(e).newCookie(cookie).build();
         }
     }
 
-    protected ArrayList<LinkedHashMap<String, Object>> getAllViewpoints(ItemProxy item, UriInfo uri) {
-        ArrayList<LinkedHashMap<String, Object>> viewPoints = enumerate(item, VIEWPOINT, "viewpoint", uri);
+    protected ArrayList<LinkedHashMap<String, Object>> getAllViewpoints(ItemProxy item, UriInfo uri, NewCookie cookie) throws Exception {
+        ArrayList<LinkedHashMap<String, Object>> viewPoints = enumerate(item, VIEWPOINT, "viewpoint", uri, cookie);
 
         for(LinkedHashMap<String, Object> vp: viewPoints) {
             String schema = vp.get("name").toString();
-            vp.put("views", enumerate(item, VIEWPOINT+"/"+schema, "viewpoint"+"/"+schema, uri));
+            vp.put("views", enumerate(item, VIEWPOINT+"/"+schema, "viewpoint"+"/"+schema, uri, cookie));
         }
 
         return viewPoints;
@@ -228,21 +226,24 @@ public abstract class ItemUtils extends RestHandler {
      * 
      * @param oc the Outcome to convert
      * @param json produce json or xml
-     * @return the ws Response
+     * @return the ws ResponseBuilder
      */
-    protected Response getOutcomeResponse(Outcome oc, boolean json) {
+    protected Response.ResponseBuilder getOutcomeResponse(Outcome oc, boolean json, NewCookie cookie) {
         String result;
 
-        if(json) result = XML.toJSONObject(oc.getData(), true).toString();
+        if(json) result = XML.toJSONObject(oc.getData()).toString();
         else     result = oc.getData();
-        
+
         //Perhaps header 'Cache-Control: no-cache' should be used.
 //        CacheControl cc = new CacheControl();
 //        cc.setMaxAge(300);
 //        cc.setPrivate(true);
 //        cc.setNoStore(true);
 
-        return Response.ok(result)./*cacheControl(cc).*/build();
+        Response.ResponseBuilder r = Response.ok(result)/*cacheControl(cc).*/;
+
+        if (cookie != null) return r.cookie(cookie);
+        else                return r;
     }
 
     /**
@@ -250,25 +251,29 @@ public abstract class ItemUtils extends RestHandler {
      * 
      * @param oc the Outcome to convert
      * @param json produce json or xml
-     * @return the ws Response
+     * @return the ws ResponseBuilder
      */
-    protected Response getOutcomeResponse(Outcome oc, Date eventDate, boolean json) {
+    protected Response.ResponseBuilder getOutcomeResponse(Outcome oc, Date eventDate, boolean json, NewCookie cookie) {
         String result;
 
-        if(json) result = XML.toJSONObject(oc.getData(), true).toString();
+        if(json) result = XML.toJSONObject(oc.getData()).toString();
         else     result = oc.getData();
+        
+        Response.ResponseBuilder r = Response.ok(result).lastModified(eventDate);
 
-        return Response.ok(result).lastModified(eventDate).build();
+        if (cookie != null) return r.cookie(cookie);
+        else                return r;
     }
 
-    protected Response getOutcomeResponse(Outcome oc, Event ev, boolean json) {
+    protected Response.ResponseBuilder getOutcomeResponse(Outcome oc, Event ev, boolean json, NewCookie cookie) {
         try {
             Date eventDate = dateFormatter.parse(ev.getTimeString());
-            return getOutcomeResponse(oc, eventDate, json);
+            return getOutcomeResponse(oc, eventDate, json, cookie);
         }
         catch (ParseException e) {
-            Logger.error(e);
-            throw ItemUtils.createWebAppException("Invalid timestamp in event "+ev.getID()+": "+ev.getTimeString());
+            log.error("Invalid timestamp in event "+ev.getID()+": "+ev.getTimeString(), e);
+            throw new WebAppExceptionBuilder("Invalid timestamp in event "+ev.getID()+": "+ev.getTimeString(), e, 
+                    Status.INTERNAL_SERVER_ERROR, null).build();
         }
     }
 
@@ -289,6 +294,8 @@ public abstract class ItemUtils extends RestHandler {
 
             eventData.put("outcome", outcomeData);
         }
+        
+        eventData.put("hasAttachment", ev.getHasAttachment());
 
         // activity data
         LinkedHashMap<String, Object> activityData = new LinkedHashMap<String, Object>();
@@ -403,7 +410,7 @@ public abstract class ItemUtils extends RestHandler {
             outcomeData.put("schemaUrl",     uri.getBaseUriBuilder().path("schema").path(job.getSchema().getName()).path(String.valueOf(job.getSchema().getVersion())).build());
         }
         catch (InvalidDataException | ObjectNotFoundException e) {
-            Logger.error(e);
+            log.error("Schema not found", e);
             outcomeData.put("schema", "Schema not found");
         }
 
@@ -493,60 +500,12 @@ public abstract class ItemUtils extends RestHandler {
     }
 
     /**
-     * Creates a WebApplicationException response from a simple text message. The status is set to INTERNAL_SERVER_ERROR
-     *
-     * @param msg text message
-     * @return WebApplicationException response
-     */
-    public static WebApplicationException createWebAppException(String msg) {
-        return createWebAppException(msg, INTERNAL_SERVER_ERROR);
-    }
-
-    /**
-     * Creates a WebApplicationException response from a simple text message and status
-     *
-     * @param msg text message
-     * @param status HTTP status of the response
-     * @return WebApplicationException response
-     */
-    public static WebApplicationException createWebAppException(String msg, Response.Status status) {
-        return createWebAppException(msg, null, status);
-    }
-
-    /**
-     * Creates a WebApplicationException response from a simple text message, exception and status
-     *
-     * @param msg text message
-     * @param ex exception
-     * @param status HTTP status of the response
-     * @return WebApplicationException response
-     */
-    public static WebApplicationException createWebAppException(String msg, Exception ex, Response.Status status) {
-        Logger.debug(8, "ItemUtils.createWebAppException() - msg:"+ msg + " status:" + status);
-        if (ex != null && Logger.doLog(defaultLogLevel)) Logger.error(ex);
-
-        if (Gateway.getProperties().getBoolean("REST.Debug.errorsWithBody", false)) {
-            StringBuffer sb = new StringBuffer("[errorMessage]");
-            sb.append(msg).append("[/errorMessage]");
-
-            if(ex != null) sb.append(" - Exception:" + ex.getMessage());
-
-            return new WebApplicationException(sb.toString(), Response.status(status).entity(msg).build());
-        }
-        else {
-            return new WebApplicationException(msg, status);
-        }
-    }
-
-    
-    
-    /**
      * Check if the requested media type should be a JSON or XML
      * 
      * @param types the media types requested by the client
      * @return true if the type is JSON, false if it is XML
      */
-    public static boolean produceJSON(List<MediaType> types) {
+    public static boolean produceJSON(List<MediaType> types) throws UnsupportedOperationException {
         if (types.isEmpty()) return false;
 
         for (MediaType t: types) {
@@ -554,14 +513,12 @@ public abstract class ItemUtils extends RestHandler {
             else if (t.isCompatible(APPLICATION_JSON_TYPE))                                 return true;
         }
 
-        throw ItemUtils.createWebAppException(
-                    "Supported media types: TEXT_XML, APPLICATION_XML, APPLICATION_JSON", 
-                    UNSUPPORTED_MEDIA_TYPE);
+        throw new UnsupportedOperationException("Supported media types: TEXT_XML, APPLICATION_XML, APPLICATION_JSON");
     }
 
     /**
      * 
-     * @param type
+     * @param props
      * @return
      */
     public static List<String> getItemNames(Property ...props) {
@@ -578,26 +535,6 @@ public abstract class ItemUtils extends RestHandler {
 
     /**
      * 
-     * @param ip
-     * @param jsonRoot
-     */
-    protected void makeItemDomainPathsData(ItemPath ip, Map<String, Object> jsonRoot) {
-        PagedResult result = Gateway.getLookup().searchAliases(ip, 0, 50);
-
-        ArrayList<Object> domainPathesData = new ArrayList<>();
-    
-        for (org.cristalise.kernel.lookup.Path p: result.rows) {
-            domainPathesData.add(p.toString());
-        }
-
-        if (domainPathesData.size() != 0) {
-            jsonRoot.put("name", ((DomainPath)result.rows.get(0)).getName());
-            jsonRoot.put("domainPaths", domainPathesData);
-        }
-    }
-
-    /**
-     * 
      * @param item
      * @param postData
      * @param types
@@ -613,65 +550,100 @@ public abstract class ItemUtils extends RestHandler {
      * @throws ObjectAlreadyExistsException
      * @throws InvalidCollectionModification
      */
-    protected String executePredefinedStep(ItemProxy item, String postData, List<String> types, String actPath, AgentProxy agent)
+    protected String executePredefinedStep(ItemProxy item, String postData, String contentType, String actPath, AgentProxy agent)
             throws ObjectNotFoundException, InvalidDataException, OutcomeBuilderException, AccessRightsException,
             InvalidTransitionException, PersistencyException, ObjectAlreadyExistsException, InvalidCollectionModification
     {
         if ( ! actPath.startsWith(PREDEFINED_PATH) ) {
             throw new InvalidDataException("Predefined Step path should start with " + PREDEFINED_PATH);
         }
+        
+        String[] params;
+        String stepName = actPath.substring(PREDEFINED_PATH.length());
+        String schemaName = PredefinedStep.getPredefStepSchemaName(stepName);
 
-        if (types.contains(MediaType.APPLICATION_JSON)) {
-            OutcomeBuilder builder = new OutcomeBuilder(LocalObjectLoader.getSchema("PredefinesStepOutcome", 0));
-            builder.addJsonInstance(new JSONObject(postData));
-            // Outcome can be invalid at this point, because Script/Query can be executed later
-            postData = builder.getOutcome(false).getData();
+        if (contentType.contains(MediaType.APPLICATION_JSON)) {
+            if (schemaName.equals("PredefinedStepOutcome")) {
+                if (StringUtils.isBlank(postData)) postData = "[]";
+
+                JSONArray array = new JSONArray(postData);
+                params = new String[array.length()];
+
+                for (int i = 0; i < array.length(); i++) params[i] = array.getString(i);
+            }
+            else {
+                if (StringUtils.isBlank(postData)) postData = "{}";
+
+                params = new String[1];
+                OutcomeBuilder builder = new OutcomeBuilder(LocalObjectLoader.getSchema(schemaName, 0));
+                builder.addJsonInstance(new JSONObject(postData));
+
+                params[0] = builder.getOutcome().getData();
+            }
+        }
+        else {
+            if (schemaName.equals("PredefinedStepOutcome")) {
+                if (StringUtils.isBlank(postData)) postData = "<PredefinedStepOutcome/>";
+
+                params = PredefinedStep.getDataList(postData);
+            }
+            else {
+                if (StringUtils.isBlank(postData)) params = new String[0];
+                else                               params = new String[] {postData};
+            }
         }
 
-        return agent.execute(item, actPath.substring(PREDEFINED_PATH.length()), postData);
+        return agent.execute(item, stepName, params);
+    }
+
+    protected String executeJob(ItemProxy item, String outcome, String outcomeType,  String actPath, String transition, AgentProxy agent)
+        throws AccessRightsException, ObjectNotFoundException, PersistencyException, InvalidDataException, OutcomeBuilderException,
+            InvalidTransitionException, ObjectAlreadyExistsException, InvalidCollectionModification, ScriptErrorException, IOException
+    {
+        return executeJob(item, outcome, outcomeType, null, null, actPath, transition, agent);
     }
 
     /**
      * 
-     * @param item
-     * @param postData
-     * @param types
-     * @param actPath
-     * @param transition
-     * @param agent
-     * @return
-     * @throws AccessRightsException
-     * @throws ObjectNotFoundException
-     * @throws PersistencyException
-     * @throws InvalidDataException
-     * @throws OutcomeBuilderException
-     * @throws InvalidTransitionException
-     * @throws ObjectAlreadyExistsException
-     * @throws InvalidCollectionModification
-     * @throws ScriptErrorException
      */
-    protected String executeJob(ItemProxy item, String postData, List<String> types, String actPath, String transition, AgentProxy agent)
-            throws AccessRightsException, ObjectNotFoundException, PersistencyException, InvalidDataException, OutcomeBuilderException,
-            InvalidTransitionException, ObjectAlreadyExistsException, InvalidCollectionModification, ScriptErrorException
+    protected String executeJob(ItemProxy item, String outcome, String outcomeType, InputStream attachment, String fileName, 
+            String actPath, String transition, AgentProxy agent)
+        throws AccessRightsException, ObjectNotFoundException, PersistencyException, InvalidDataException, OutcomeBuilderException,
+            InvalidTransitionException, ObjectAlreadyExistsException, InvalidCollectionModification, ScriptErrorException, IOException
     {
         Job thisJob = item.getJobByTransitionName(actPath, transition, agent);
 
-        if (thisJob == null)
-            throw ItemUtils.createWebAppException("Job not found for actPath:" + actPath + " transition:" + transition,
-                    NOT_FOUND);
+        if (thisJob == null) {
+            throw new ObjectNotFoundException( "Job not found for actPath:" + actPath + " transition:" + transition );
+        }
 
         // set outcome if required
         if (thisJob.hasOutcome()) {
-            if (types.contains(MediaType.APPLICATION_XML) || types.contains(MediaType.TEXT_XML)) {
-                thisJob.setOutcome(postData);
+            if (outcomeType.contains(MediaType.APPLICATION_XML) || outcomeType.contains(MediaType.TEXT_XML)) {
+                thisJob.setOutcome(outcome);
             }
             else {
                 OutcomeBuilder builder = new OutcomeBuilder(thisJob.getSchema());
-                builder.addJsonInstance(new JSONObject(postData));
-                // Outcome can be invalid at this point, because Script/Query can be executed later
+                builder.addJsonInstance(new JSONObject(outcome));
+                // Outcome can be invalid at this point, because Script/Query executed later
                 thisJob.setOutcome(builder.getOutcome(false));
             }
         }
+
+        if (attachment != null) {
+            byte[] binaryData = ByteStreams.toByteArray(attachment);
+
+            OutcomeAttachment outcomeAttachment = new OutcomeAttachment(
+                    item.getPath(),
+                    thisJob.getSchema().getName(),
+                    thisJob.getSchema().getVersion(),
+                    -1,
+                    fileName,
+                    binaryData);
+
+            thisJob.setAttachment(outcomeAttachment);
+        }
+
         return agent.execute(thisJob);
     }
 }

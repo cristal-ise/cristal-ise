@@ -28,7 +28,8 @@ import org.cristalise.kernel.entity.C2KLocalObject;
 import org.cristalise.kernel.lookup.ItemPath;
 import org.cristalise.kernel.process.auth.Authenticator;
 import org.cristalise.kernel.querying.Query;
-import org.cristalise.kernel.utils.Logger;
+
+import lombok.extern.slf4j.Slf4j;
 
 
 /**
@@ -54,6 +55,7 @@ import org.cristalise.kernel.utils.Logger;
  * cluster does not exist, get should return null, and delete should return with
  * no action.
  */
+@Slf4j
 public abstract class ClusterStorage {
     /**
      * Constant to return from {@link #queryClusterSupport(String)} for Cluster
@@ -168,10 +170,33 @@ public abstract class ClusterStorage {
      * this method returns, so the process can exit. No further gets or puts
      * should follow.
      * 
-     * @throws PersistencyException
-     *             If closing failed
+     * @throws PersistencyException If closing failed
      */
     public abstract void close() throws PersistencyException;
+
+    /**
+     * Informs the ClusterSorage that the Boostrap process has finished. It enables the implementation
+     * to perform domain specific tasks
+     * 
+     * @throws PersistencyException Database error
+     */
+    public abstract void postBoostrap() throws PersistencyException;
+
+    /**
+     * Informs the ClusterSorage that the start server process has finished. It enables the implementation
+     * to perform domain specific tasks
+     * 
+     * @throws PersistencyException Database error
+     */
+    public abstract void postStartServer() throws PersistencyException;
+
+    /**
+     * Informs the ClusterSorage that connect was done. It enables the implementation
+     * to perform domain specific tasks
+     * 
+     * @throws PersistencyException Database error
+     */
+    public abstract void postConnect() throws PersistencyException;
 
     /**
      * Declares whether or not this ClusterStorage can read or write a
@@ -215,6 +240,16 @@ public abstract class ClusterStorage {
     public abstract String getId();
 
     /**
+     * History and JobList based on a integer id that is incremented each tome a new Event or Job is stored
+     * 
+     * @param itemPath The ItemPath (UUID) of the containing Item
+     * @param path the cluster patch, either equals to 'AuditTrail' or 'Job'
+     * @return returns the last found integer id (zero based), or -1 if not found
+     * @throws PersistencyException When storage fails
+     */
+    public abstract int getLastIntegerId(ItemPath itemPath, String path) throws PersistencyException;
+
+    /**
      * Utility method to find the cluster for a particular Local Object (the first part of its path)
      * 
      * @param path object path
@@ -232,7 +267,7 @@ public abstract class ClusterStorage {
             return ClusterType.getValue(path.substring(start, end));
         }
         catch (Exception ex) {
-            Logger.error(ex);
+            log.error("", ex);
             return ClusterType.ROOT;
         }
     }
@@ -337,8 +372,11 @@ public abstract class ClusterStorage {
         for (String content : contents) {
             ClusterType type = ClusterType.getValue(content);
 
-            if (type != null)         types.add(type);
-            else if (Logger.doLog(8)) Logger.warning("ClusterStorage.getClusters() - Cannot convert content '"+content+"' to ClusterType");
+            if (type != null) 
+                types.add(type);
+            else 
+                log.warn("Cannot convert content '{}' to ClusterType", content);
+                //throw new PersistencyException("Cannot convert content '"+content+"' to ClusterType");
         }
 
         return types.toArray(new ClusterType[0]);

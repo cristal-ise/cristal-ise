@@ -32,24 +32,26 @@ import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
-import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Cookie;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.NewCookie;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 
 import org.apache.commons.lang3.StringUtils;
 import org.cristalise.kernel.collection.Dependency;
+import org.cristalise.kernel.common.InvalidDataException;
 import org.cristalise.kernel.common.ObjectNotFoundException;
 import org.cristalise.kernel.entity.proxy.AgentProxy;
 import org.cristalise.kernel.entity.proxy.ItemProxy;
 import org.cristalise.kernel.persistency.outcome.Schema;
 import org.cristalise.kernel.persistency.outcomebuilder.OutcomeBuilder;
+import org.cristalise.kernel.persistency.outcomebuilder.OutcomeBuilderException;
 import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.scripting.Script;
+import org.cristalise.kernel.scripting.ScriptingEngineException;
 import org.cristalise.kernel.utils.LocalObjectLoader;
-import org.cristalise.kernel.utils.Logger;
 
 @Path("/item/{uuid}/collection")
 public class ItemCollection extends ItemUtils {
@@ -59,9 +61,10 @@ public class ItemCollection extends ItemUtils {
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     public Response getCollections(@PathParam("uuid") String uuid, @CookieParam(COOKIENAME) Cookie authCookie, @Context UriInfo uri) {
-        checkAuthCookie(authCookie);
-        ItemProxy item = getProxy(uuid);
-        return toJSON(enumerate(item, COLLECTION, "collection", uri));
+        NewCookie cookie = checkAndCreateNewCookie(checkAuthCookie(authCookie));
+        ItemProxy item = getProxy(uuid, cookie);
+
+        return toJSON(enumerate(item, COLLECTION, "collection", uri, cookie), cookie).build();
     }
 
     @GET
@@ -72,13 +75,14 @@ public class ItemCollection extends ItemUtils {
                                       @CookieParam(COOKIENAME) Cookie authCookie,
                                       @Context UriInfo uri)
     {
-        checkAuthCookie(authCookie);
-        ItemProxy item = getProxy(uuid);
+        NewCookie cookie = checkAndCreateNewCookie(checkAuthCookie(authCookie));
+        ItemProxy item = getProxy(uuid, cookie);
+
         try {
-            return toJSON(makeCollectionData(item.getCollection(collName), uri));
+            return toJSON(makeCollectionData(item.getCollection(collName), uri), cookie).build();
         }
         catch (ObjectNotFoundException e) {
-            throw ItemUtils.createWebAppException(e.getMessage(), Response.Status.NOT_FOUND);
+            throw new WebAppExceptionBuilder().exception(e).newCookie(cookie).build();
         }
     }
 
@@ -89,9 +93,10 @@ public class ItemCollection extends ItemUtils {
                                          @CookieParam(COOKIENAME) Cookie authCookie,
                                          @Context UriInfo uri)
     {
-        checkAuthCookie(authCookie);
-        ItemProxy item = getProxy(uuid);
-        return toJSON(enumerate(item, COLLECTION + "/" + collName, "collection/" + collName + "/version", uri));
+        NewCookie cookie = checkAndCreateNewCookie(checkAuthCookie(authCookie));
+        ItemProxy item = getProxy(uuid, cookie);
+
+        return toJSON(enumerate(item, COLLECTION + "/" + collName, "collection/" + collName + "/version", uri, cookie), cookie).build();
     }
 
     @GET
@@ -102,15 +107,16 @@ public class ItemCollection extends ItemUtils {
                                          @CookieParam(COOKIENAME) Cookie authCookie,
                                          @Context UriInfo uri)
     {
-        checkAuthCookie(authCookie);
-        ItemProxy item = getProxy(uuid);
+        NewCookie cookie = checkAndCreateNewCookie(checkAuthCookie(authCookie));
+        ItemProxy item = getProxy(uuid, cookie);
+        Integer version = collVersion.equals("last") ? null : Integer.valueOf(collVersion);
+
         try {
-            return toJSON(
-                    makeCollectionData(item.getCollection(collName, collVersion.equals("last") ? null : Integer.valueOf(collVersion)),uri)
-            );
+            Map<String, Object> collData = makeCollectionData(item.getCollection(collName, version), uri);
+            return toJSON(collData, cookie).build();
         }
-        catch (ObjectNotFoundException | NumberFormatException e ) {
-            throw ItemUtils.createWebAppException(e.getMessage(), Response.Status.NOT_FOUND);
+        catch (ObjectNotFoundException e) {
+            throw new WebAppExceptionBuilder().exception(e).newCookie(cookie).build();
         }
     }
 
@@ -124,18 +130,13 @@ public class ItemCollection extends ItemUtils {
                         @CookieParam(COOKIENAME) Cookie authCookie,
                         @Context UriInfo uri)
     {
-        AgentProxy agent = null;
-        try {
-            agent = (AgentProxy)Gateway.getProxyManager().getProxy( checkAuthCookie(authCookie) );
-        }
-        catch (ObjectNotFoundException e1) {
-            throw ItemUtils.createWebAppException(e1.getMessage(), Response.Status.UNAUTHORIZED);
-        }
+        AuthData authData = checkAuthCookie(authCookie);
+        NewCookie cookie = checkAndCreateNewCookie(authData);
+        ItemProxy item = getProxy(uuid, cookie);
 
-        ItemProxy item = getProxy(uuid);
         try {
             Dependency dep = (Dependency) item.getCollection(collName);
-            
+
             HashMap<String, Object> inputs = new HashMap<>();
 
             String lovProp = (String) dep.getProperties().get("ListOfValues");
@@ -155,28 +156,30 @@ public class ItemCollection extends ItemUtils {
                 List<String> names = getItemNames(dep.getClassProperties());
 
                 if (Gateway.getProperties().getBoolean("REST.CollectionForm.checkInputs", false)) {
-                    if (names.size() == 0)  throw ItemUtils.createWebAppException("No Item was found", Response.Status.NOT_FOUND);
+                    if (names.size() == 0) {
+                        throw new WebAppExceptionBuilder()
+                                .message("No Item was found")
+                                .status(Response.Status.NOT_FOUND)
+                                .newCookie(cookie).build();
+                    }
                 }
 
                 inputs.put("memberNames", names); // Put the new member here e.g.ListOfValues
             }
 
+            AgentProxy agent = Gateway.getProxyManager().getAgentProxy(authData.agent);
+
             inputs.put(Script.PARAMETER_AGENT, agent);
             inputs.put(Script.PARAMETER_ITEM, item);
-            //inputs.put(Script.PARAMETER_JOB, thisJob); //this service could be given the stepPath to calculate the job
 
             // this shall contain the SchemaName and version like this: Shift:0
             String[] schemaInfo = ((String) dep.getProperties().get("MemberUpdateSchema")).split(":");
 
             Schema schema = LocalObjectLoader.getSchema(schemaInfo[0], Integer.valueOf(schemaInfo[1]));
-            return Response.ok(new OutcomeBuilder(schema, false).generateNgDynamicForms(inputs)).build();
+            return Response.ok(new OutcomeBuilder(schema, false).generateNgDynamicForms(inputs)).cookie(cookie).build();
         }
-        catch (WebApplicationException e) {
-            throw e;
-        }
-        catch (Exception e) {
-            Logger.error(e);
-            throw ItemUtils.createWebAppException(e.getMessage(), e, Response.Status.NOT_FOUND);
+        catch (ObjectNotFoundException | NumberFormatException | InvalidDataException | OutcomeBuilderException | ScriptingEngineException e) {
+            throw new WebAppExceptionBuilder().exception(e).newCookie(cookie).build();
         }
     }
 }

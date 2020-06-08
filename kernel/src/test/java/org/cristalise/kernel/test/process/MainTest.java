@@ -34,16 +34,17 @@ import org.cristalise.kernel.persistency.outcome.SchemaValidator;
 import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.scripting.Script;
 import org.cristalise.kernel.utils.FileStringUtility;
-import org.cristalise.kernel.utils.Logger;
 import org.custommonkey.xmlunit.XMLUnit;
 import org.junit.Before;
 import org.junit.Test;
 
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
 public class MainTest {
 
     @Before
     public void setup() throws InvalidDataException, IOException {
-        Logger.addLogStream(System.out, 1);
         Properties props = FileStringUtility.loadConfigFile(MainTest.class.getResource("/server.conf").getPath());
         Gateway.init(props);
         XMLUnit.setIgnoreWhitespace(true);
@@ -66,7 +67,7 @@ public class MainTest {
             StringTokenizer str2 = new StringTokenizer(thisItem, "/,");
             String id = str2.nextToken();
             String itemType = str2.nextToken(), resName = str2.nextToken();
-            Logger.msg(1, "Validating " + itemType+" "+resName);
+            log.info("Validating " + itemType+" "+resName);
             OutcomeValidator validator = validators.get(itemType);
             String data = Gateway.getResource().getTextResource(
                     null, "boot/" + itemType + "/"+ resName + (itemType.equals("OD") ? ".xsd" : ".xml"));
@@ -76,19 +77,19 @@ public class MainTest {
             assert errors.length() == 0 : "Kernel resource " + itemType + " "+ resName + " has errors :" + errors;
 
             if (itemType.equals("CA") || itemType.equals("EA") || itemType.equals("SM")) {
-                Logger.msg(1, "Remarshalling " + itemType + " "+ resName);
+                log.info("Remarshalling " + itemType + " "+ resName);
                 long then = System.currentTimeMillis();
                 Object unmarshalled = Gateway.getMarshaller().unmarshall(data);
                 assert unmarshalled != null;
                 String remarshalled = Gateway.getMarshaller().marshall(unmarshalled);
                 long now = System.currentTimeMillis();
-                Logger.msg("Marshall/remarshall of " + itemType + " "+ resName + " took " + (now - then) + "ms");
+                log.info("Marshall/remarshall of " + itemType + " "+ resName + " took " + (now - then) + "ms");
                 errors = validator.validate(remarshalled);
                 assert errors.length() == 0 : "Remarshalled resource " + itemType + " "+ resName + " has errors :" + errors + "\nRemarshalled form:\n" + remarshalled;
 
                 // Diff xmlDiff = new Diff(data, remarshalled);
                 // if (!xmlDiff.identical()) {
-                // Logger.msg("Difference found in remarshalled "+thisItem+": "+xmlDiff.toString());
+                // log.info("Difference found in remarshalled "+thisItem+": "+xmlDiff.toString());
                 // Logger.msg("Original: "+data);
                 // Logger.msg("Remarshalled: "+remarshalled);
                 // }
@@ -96,7 +97,7 @@ public class MainTest {
             }
 
             if (itemType.equals("SC")) {
-                Logger.msg(1, "Parsing script " + resName);
+                log.info("Parsing script " + resName);
                 new Script(resName, 0, null, data);
             }
         }
@@ -128,7 +129,7 @@ public class MainTest {
 
     @Test
     public void testStateMachine() throws Exception {
-        Logger.msg("Validating test state machine");
+        log.info("Validating test state machine");
         String smXml = FileStringUtility.url2String(MainTest.class.getResource("/TestStateMachine.xml"));
         StateMachine sm = (StateMachine) Gateway.getMarshaller().unmarshall(smXml);
         sm.validate();

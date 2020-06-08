@@ -24,7 +24,7 @@ import java.io.IOException;
 import java.io.Writer;
 import java.util.Map;
 
-import org.cristalise.kernel.utils.Logger;
+import org.apache.commons.lang3.StringUtils;
 import org.exolab.castor.xml.schema.ComplexType;
 import org.exolab.castor.xml.schema.ElementDecl;
 import org.json.JSONArray;
@@ -33,6 +33,9 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
 public class DataRecord extends OutcomeStructure {
 
     AttributeList myAttributes;
@@ -49,7 +52,7 @@ public class DataRecord extends OutcomeStructure {
             if (myElement != null) populateInstance();
         }
         catch (OutcomeBuilderException ex) {
-            Logger.error(ex);
+            log.error("", ex);
         }
     }
 
@@ -82,7 +85,7 @@ public class DataRecord extends OutcomeStructure {
 
     @Override
     public void addInstance(Element newElement, Document parentDoc) throws OutcomeBuilderException {
-        Logger.msg(8, "DataRecord.addInstance() - name:" + newElement.getTagName());
+        log.debug("addInstance() - name:" + newElement.getTagName());
 
         if (this.myElement != null) throw new CardinalException("DataRecord " + this.getName() + " cannot repeat.");
 
@@ -136,7 +139,7 @@ public class DataRecord extends OutcomeStructure {
 
     @Override
     public void addJsonInstance(OutcomeStructure parentStruct, Element parentElement, String name, Object json) throws OutcomeBuilderException {
-        Logger.msg(5, "DataRecord.addJsonInstance() - name:'" + name + "'");
+        log.debug("addJsonInstance() - name:'" + name + "'");
         JSONObject jsonObj = (JSONObject)json;
 
 //        myElement = parentElement;
@@ -164,7 +167,7 @@ public class DataRecord extends OutcomeStructure {
 
     @Override
     public Element initNew(Document rootDocument) {
-        Logger.msg(5, "DataRecord.initNew() - name:'" + model.getName() + "'");
+        log.debug("initNew() - name:'" + model.getName() + "'");
 
         // make a new Element
         myElement = rootDocument.createElement(model.getName());
@@ -198,11 +201,26 @@ public class DataRecord extends OutcomeStructure {
     @Override
     public JSONObject generateNgDynamicFormsCls() {
         JSONObject drCls = new JSONObject();
-
         JSONObject drGrid = new JSONObject();
-        drGrid.put("container", "ui-g-12");
+        
+        StructureWithAppInfo appInfoer = new StructureWithAppInfo();
+        appInfoer.readAppInfoDynamicForms(model, drGrid, true);
+        
+        // Set default value when container is not defined
+        if (!drGrid.has("container")) {
+            drGrid.put("container", "ui-g-12");
+        }
 
         drCls.put("grid", drGrid);
+
+        if (!isRootElement)  {
+            JSONObject drClass = new JSONObject();
+
+            drClass.put("label", "formGroupLabel");
+            drClass.put("container", "formGroupContainer");
+
+            drCls.put("element", drClass);
+        }
         return drCls;
     }
 
@@ -211,17 +229,23 @@ public class DataRecord extends OutcomeStructure {
         JSONObject dr = new JSONObject();
         
         dr.put("cls", generateNgDynamicFormsCls());
-
         dr.put("type",  "GROUP");
         dr.put("id",    model.getName());
         dr.put("name",  model.getName());
 
-        //String label = StringUtils.join(StringUtils.splitByCharacterTypeCamelCase(model.getName()), " ");
-        //dr.put("label", label);
-
         JSONArray array = myAttributes.generateNgDynamicForms(inputs);
 
         for (String elementName : subStructureOrder) array.put(subStructure.get(elementName).generateNgDynamicForms(inputs));
+
+        if (!isRootElement && !dr.has("label")) {
+            String label = StringUtils.join(StringUtils.splitByCharacterTypeCamelCase(model.getName()), " ");
+            dr.put("label", label);
+        }
+
+        StructureWithAppInfo appInfoer = new StructureWithAppInfo();
+
+        //This call could overwrite values set earlier
+        appInfoer.readAppInfoDynamicForms(model, dr, false);
 
         dr.put("group", array);
 

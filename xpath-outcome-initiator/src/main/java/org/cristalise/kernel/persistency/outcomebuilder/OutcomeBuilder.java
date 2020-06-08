@@ -26,12 +26,11 @@ import java.io.Writer;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
-
+import java.util.Map.Entry;
 import org.apache.commons.lang3.StringUtils;
 import org.cristalise.kernel.common.InvalidDataException;
 import org.cristalise.kernel.persistency.outcome.Outcome;
 import org.cristalise.kernel.persistency.outcome.Schema;
-import org.cristalise.kernel.utils.Logger;
 import org.exolab.castor.xml.schema.ComplexType;
 import org.exolab.castor.xml.schema.ElementDecl;
 import org.json.JSONArray;
@@ -41,9 +40,12 @@ import org.w3c.dom.Element;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 
+import lombok.extern.slf4j.Slf4j;
+
 /**
  *
  */
+@Slf4j
 public class OutcomeBuilder {
 
     OutcomeStructure modelRoot;
@@ -74,7 +76,7 @@ public class OutcomeBuilder {
             }
         }
         catch (SAXException | IOException e) {
-            Logger.error(e);
+            log.error("", e);
             throw new InvalidSchemaException(e.getMessage());
         }
     }
@@ -115,7 +117,7 @@ public class OutcomeBuilder {
 
         if (rootElementDecl == null) throw new InvalidSchemaException("No root element defined");
 
-        Logger.msg(5, "OutcomeBuilder.initialise() - selected root:" + rootElementDecl.getName());
+        log.debug("initialise() - selected root:" + rootElementDecl.getName());
 
         if (rootElementDecl.getType().isSimpleType() || ((ComplexType) rootElementDecl.getType()).isSimpleContent()) {
             //modelRoot = new Field(rootElementDecl); //Simpletype could work later
@@ -123,9 +125,10 @@ public class OutcomeBuilder {
         }
         else {
             modelRoot = new DataRecord(rootElementDecl);
+            modelRoot.setRootElementFlag(true);
         }
 
-        Logger.msg(5, "OutcomeBuilder.initialise() - DONE");
+        log.debug("initialise() - DONE");
     }
 
     public void addInstance(Outcome outcome) throws OutcomeBuilderException {
@@ -161,11 +164,11 @@ public class OutcomeBuilder {
      * @throws OutcomeBuilderException
      */
     public void addField(String path, String data) throws OutcomeBuilderException {
-        Logger.msg(5,"OutcomeBuilder.addfield() - path:'"+path+"'");
+        log.debug("addfield() - path:'"+path+"'");
         
         String[] names = StringUtils.split(path, "/");
 
-        Element newElement = null;
+        Element parentElement = null;
         String fieldName = null;
 
         if(names.length == 1) {
@@ -186,15 +189,16 @@ public class OutcomeBuilder {
 
             if (modelElement == null) throw new StructuralException("Invalid path:'"+path+"'");
 
-            newElement = modelElement.createChildElement(outcome.getDOM(), fieldName);
+            modelElement.createChildElement(outcome.getDOM(), fieldName);
+            parentElement = modelElement.getElement();
         }
 
         try {
-            if (newElement == null) outcome.setField(fieldName, data);
-            else                    outcome.setField(newElement, fieldName, data);
+            if (parentElement == null) outcome.setField(fieldName, data);
+            else                       outcome.setField(parentElement, fieldName, data);
         }
         catch (InvalidDataException e) {
-            Logger.error(e);
+            log.error("", e);
             throw new StructuralException(e);
         }
     }
@@ -206,7 +210,7 @@ public class OutcomeBuilder {
      * @throws OutcomeBuilderException
      */
     public void addRecord(String path, Map<String, String> record) throws OutcomeBuilderException {
-        Logger.msg(5,"OutcomeBuilder.addRecord() - path:'"+path+"'");
+        log.debug("addRecord() - path:'"+path+"'");
 
         String[] names = StringUtils.split(path, "/");
 
@@ -234,11 +238,22 @@ public class OutcomeBuilder {
         }
 
         try {
-            if (newElement == null) outcome.setRecord(record);
-            else                    outcome.setRecord(newElement, record);
+            for (Entry<String,String> entry : record.entrySet()) {
+                String name = entry.getKey();
+                String value = entry.getValue();
+
+                if (newElement == null) {
+                    if (outcome.hasField(name)) outcome.setField(name, value);
+                    else                        addField(path + "/" + name, value);
+                }
+                else {
+                    if (outcome.hasField(newElement, name)) outcome.setField(newElement, name, value);
+                    else                                    addField(path + "/" + name, value);
+                }
+            }
         }
         catch (InvalidDataException e) {
-            Logger.error(e);
+            log.error("", e);
             throw new StructuralException(e);
         }
     }
@@ -268,7 +283,7 @@ public class OutcomeBuilder {
     public String generateNgDynamicForms(Map<String, Object> inputs) {
         String json = generateNgDynamicFormsJson(inputs).toString(2);
 
-        Logger.msg(5, "OutcomeBuilder.generateNgDynamicForms() - json:%s", json);
+        log.debug("generateNgDynamicForms() - json:%s", json);
 
         return json;
     }
@@ -294,7 +309,7 @@ public class OutcomeBuilder {
             modelRoot.exportViewTemplate(template);
         }
         catch (IOException e) {
-            Logger.error(e);
+            log.error("", e);
         }
 
         return template.toString();

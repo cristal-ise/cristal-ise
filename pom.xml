@@ -32,6 +32,7 @@
     <packaging>pom</packaging>
 
     <modules>
+        <module>idl</module>
         <module>kernel</module>
         <module>jooqdb</module>
         <module>in-memory-lookup</module>
@@ -43,21 +44,21 @@
         <module>restapi</module>
         <module>dev</module>
         <module>dsl</module>
-<!--
-        <module>testing</module>
--->      
-	<module>service</module>
+        <!--module>testing</module-->
+        <module>service</module>
         <module>js-rhino</module>
-        <module>module-archetype</module>
+        <!--module>module-archetype</module-->
     </modules>
 
     <properties>
-        <revision>4.0.0-SNAPSHOT</revision>
+        <revision>5.3.0-SNAPSHOT</revision>
         <productionMode>false</productionMode>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-	<additionalparam>-Xdoclint:none</additionalparam>
-	<maven.deploy.skip>true</maven.deploy.skip>
+        <additionalparam>-Xdoclint:none</additionalparam>
+        <maven.deploy.skip>true</maven.deploy.skip>
+        <groovy-eclipse-compiler.version>3.6.0-03</groovy-eclipse-compiler.version>
+        <groovy-eclipse-batch.version>2.5.8-03</groovy-eclipse-batch.version>
     </properties>
 
     <description>Cristal-ise is a description-driven software platform originally developed to track the construction of
@@ -76,10 +77,10 @@
     </licenses>
     <developers>
         <developer>
-            <name>Zsolt Kovács</name>
-            <email>zs.myth@gmail.com</email>
-            <organization>UWE CCCS</organization>
-            <organizationUrl>http://www.cccs.uwe.ac.uk/et/research/cccs</organizationUrl>
+            <name>Zsolt Kovacs</name>
+            <email>zsoltk@titusgt.com</email>
+            <organization>Titus Global Tech</organization>
+            <organizationUrl>https://www.titusgt.com</organizationUrl>
             <roles>
                 <role>Pinky/Brain/CTO</role>
             </roles>
@@ -143,7 +144,7 @@
                 <artifactId>maven-release-plugin</artifactId>
                 <version>2.4.1</version>
             </plugin>
-            
+
             <plugin>
                 <artifactId>maven-compiler-plugin</artifactId>
                 <version>3.5.1</version>
@@ -173,12 +174,16 @@
                             <exclude>src/test/data/**</exclude>
                             <exclude>bin/**</exclude>
                             <exclude>src/main/resources/boot/allbootitems.txt</exclude>
-    			            <exclude>.flattened-pom.xml</exclude>
+                            <exclude>.flattened-pom.xml</exclude>
+                            <exclude>**/LICENCE</exclude>
+                            <exclude>**/README</exclude>
+                            <exclude>.gpg.enc</exclude>
+                            <exclude>.example</exclude>
                         </excludes>
                         <mapping>
                             <idl>JAVADOC_STYLE</idl>
                         </mapping>
-            	    </configuration>
+                    </configuration>
                 </plugin>
                 <plugin>
                     <artifactId>maven-surefire-plugin</artifactId>
@@ -186,10 +191,10 @@
                     <configuration>
                         <redirectTestOutputToFile>true</redirectTestOutputToFile>
                         <includes>
-                            <include>**/*Spec.*</include>
-                            <include>**/*Test.*</include>
                             <include>**/*Specs.*</include>
+                            <include>**/*Spec.*</include>
                             <include>**/*Tests.*</include>
+                            <include>**/*Test.*</include>
                         </includes>
                     </configuration>
                 </plugin>
@@ -243,7 +248,7 @@
                             </execution>
                         </executions>
                     </plugin>
-               
+
                     <plugin>
                         <groupId>org.apache.maven.plugins</groupId>
                         <artifactId>maven-javadoc-plugin</artifactId>
@@ -342,12 +347,87 @@
             <dependency>
                 <groupId>org.apache.shiro</groupId>
                 <artifactId>shiro-core</artifactId>
-                <version>1.4.0</version>
+                <version>1.4.2</version>
             </dependency>
             <dependency>
                 <groupId>org.slf4j</groupId>
-                <artifactId>slf4j-simple</artifactId>
-                <version>1.6.1</version>
+                <artifactId>slf4j-api</artifactId>
+                <version>1.7.26</version>
+            </dependency>
+            <dependency>
+               <groupId>org.projectlombok</groupId>
+               <artifactId>lombok</artifactId>
+               <version>1.18.8</version>
+           </dependency>
+            <dependency>
+                <groupId>org.mvel</groupId>
+                <artifactId>mvel2</artifactId>
+                <version>2.4.4.Final</version>
+            </dependency>
+            <dependency>
+                <groupId>org.glassfish.jersey</groupId>
+                <artifactId>jersey-bom</artifactId>
+                <version>2.26</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+            <dependency>
+                <groupId>com.google.guava</groupId>
+                <artifactId>guava</artifactId>
+                <version>28.1-jre</version>
+            </dependency>
+            <!--                              -->
+            <!-- common dependencies for test -->
+            <!--                              -->
+            <dependency>
+                <groupId>org.spockframework</groupId>
+                <artifactId>spock-core</artifactId>
+                <version>1.3-groovy-2.5</version>
+                <exclusions>
+                    <exclusion>
+                        <groupId>org.codehaus.groovy</groupId>
+                        <artifactId>*</artifactId>
+                    </exclusion>
+                </exclusions>
+            </dependency>
+            <dependency>
+                <groupId>org.spockframework</groupId>
+                <artifactId>spock-unitils</artifactId>
+                <version>1.3-groovy-2.5</version>
+                <exclusions>
+                    <exclusion>
+                        <groupId>org.codehaus.groovy</groupId>
+                        <artifactId>*</artifactId>
+                    </exclusion>
+                </exclusions>
+            </dependency>
+            <dependency>
+                <groupId>com.athaydes</groupId>
+                <artifactId>spock-reports</artifactId>
+                <version>1.6.3</version>
+                <exclusions>
+                    <exclusion>
+                        <groupId>*</groupId>
+                        <artifactId>*</artifactId>
+                    </exclusion>
+                </exclusions>
+            </dependency>
+            <dependency>
+                <groupId>org.awaitility</groupId>
+                <artifactId>awaitility-groovy</artifactId>
+                <version>4.0.2</version>
+                <scope>test</scope>
+                <exclusions>
+                    <exclusion>
+                        <groupId>org.codehaus.groovy</groupId>
+                        <artifactId>*</artifactId>
+                    </exclusion>
+                </exclusions>
+            </dependency>
+            <dependency>
+                <groupId>org.xmlunit</groupId>
+                <artifactId>xmlunit-core</artifactId>
+                <version>2.3.0</version>
             </dependency>
         </dependencies>
     </dependencyManagement>
@@ -384,7 +464,7 @@
         </dependency>
         <dependency>
             <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-simple</artifactId>
+            <artifactId>slf4j-api</artifactId>
         </dependency>
         <dependency>
             <groupId>xmlunit</groupId>
@@ -393,7 +473,6 @@
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
-            <version>1.18.4</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
@@ -409,39 +488,14 @@
             <scope>test</scope>
         </dependency>
         <dependency>
-            <groupId>org.spockframework</groupId>
-            <artifactId>spock-core</artifactId>
-            <version>1.1-groovy-2.4</version>
-            <scope>test</scope>
-            <exclusions>
-                <exclusion>
-                    <artifactId>org.codehaus.groovy</artifactId>
-                    <groupId>groovy-all</groupId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-        <dependency>
-            <groupId>org.codehaus.groovy</groupId>
-            <artifactId>groovy-all</artifactId>
-            <version>2.4.15</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
             <groupId>org.xmlunit</groupId>
             <artifactId>xmlunit-core</artifactId>
-            <version>[2.2,)</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.assertj</groupId>
             <artifactId>assertj-core</artifactId>
             <version>3.8.0</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.jfree</groupId>
-            <artifactId>jfreesvg</artifactId>
-            <version>3.3</version>
             <scope>test</scope>
         </dependency>
         <dependency>

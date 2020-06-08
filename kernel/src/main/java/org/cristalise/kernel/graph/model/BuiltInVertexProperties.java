@@ -20,6 +20,7 @@
  */
 package org.cristalise.kernel.graph.model;
 
+import org.cristalise.kernel.lookup.RolePath;
 
 /**
  * Enumeration to define all Vertex properties which are used by collection and lifecycle packages
@@ -53,6 +54,8 @@ public enum BuiltInVertexProperties {
 
     /**
      * String property. The role of the Agent associated with Activities. Can be null or undefined.
+     * 
+     * @deprecated use {@link RolePath#setPermissions(java.util.List)} instead
      */
     AGENT_ROLE("Agent Role"),
 
@@ -104,7 +107,7 @@ public enum BuiltInVertexProperties {
     MEMBER_REMOVE_SCRIPT("MemberRemoveScript"),
 
     /**
-     * String property Used in CollectionDefinition to specify the Script to be executed during UpdateDependencyMamber. 
+     * String property. Used in CollectionDefinition to specify the Script to be executed during UpdateDependencyMamber. 
      * Its primary purpose is to  ensure referential integrity. It shall contain the Name or UUID of the Script and the version number 
      * separated with colon.
      * 
@@ -142,6 +145,13 @@ public enum BuiltInVertexProperties {
      * Can be null or undefined.
      */
     OUTCOME_INIT("OutcomeInit"),
+
+    /**
+     * String property. It is used to find the Split-Join pairs to calculate if all the branches were finished.
+     *
+     * Can be null or undefined.
+     */
+    PAIRING_ID("PairingID"),
 
     /**
      * String property. It contains either the name or the UUID of the PropertyDescription Item.
@@ -222,6 +232,11 @@ public enum BuiltInVertexProperties {
      * Can be null or undefined.
      */
     SECURITY_ACTION("SecurityAction"),
+
+    /**
+     * 
+     */
+    SIMPLE_ELECTRONIC_SIGNATURE("SimpleElectonicSignature"),
 
     /**
      * String property. Either the name of the Schema or the UUID of the Schema Item associated with Activities.

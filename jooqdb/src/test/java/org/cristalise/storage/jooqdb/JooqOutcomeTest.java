@@ -20,11 +20,15 @@
  */
 package org.cristalise.storage.jooqdb;
 
+import static org.cristalise.JooqTestConfigurationBase.DBModes.MYSQL;
+import static org.cristalise.JooqTestConfigurationBase.DBModes.PostgreSQL;
+
 import java.util.UUID;
 
 import org.cristalise.kernel.persistency.outcome.Outcome;
 import org.cristalise.kernel.persistency.outcome.Schema;
 import org.cristalise.storage.jooqdb.clusterStore.JooqOutcomeHandler;
+import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -43,6 +47,14 @@ public class JooqOutcomeTest extends StorageTestBase {
 
         outcome = new Outcome(0, "<xml/>", new Schema("Schema", 0, "<xs:schema/>"));
         assert jooq.put(context, uuid, outcome) == 1;
+    }
+
+    @After
+    public void after() throws Exception {
+        jooq.delete(context, uuid);
+        context.close();
+        
+        if (dbType == MYSQL || dbType == PostgreSQL) jooq.dropTables(context);
     }
 
     @Test

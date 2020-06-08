@@ -20,12 +20,12 @@
  */
 package org.cristalise.kernel.lifecycle.instance.stateMachine;
 
+import static org.cristalise.kernel.security.BuiltInAuthc.ADMIN_ROLE;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
 import org.apache.commons.lang3.StringUtils;
 import org.cristalise.kernel.common.AccessRightsException;
 import org.cristalise.kernel.common.InvalidDataException;
@@ -40,12 +40,11 @@ import org.cristalise.kernel.querying.Query;
 import org.cristalise.kernel.scripting.Script;
 import org.cristalise.kernel.utils.CastorHashMap;
 import org.cristalise.kernel.utils.LocalObjectLoader;
-import org.cristalise.kernel.utils.Logger;
-
 import lombok.Getter;
 import lombok.Setter;
+import lombok.extern.slf4j.Slf4j;
 
-@Getter @Setter
+@Getter @Setter @Slf4j
 public class Transition {
 
     int    id;
@@ -169,8 +168,10 @@ public class Transition {
         if (roles.size() != 0) {
             RolePath matchingRole = agent.getFirstMatchingRole(roles);
 
-            if (matchingRole != null)         return matchingRole.getName();
-            else if (agent.hasRole("Admin"))  return "Admin";
+            if (matchingRole != null) 
+                return matchingRole.getName();
+            else if (agent.hasRole(ADMIN_ROLE.getName())) 
+                return ADMIN_ROLE.getName();
             else
                 throw new AccessRightsException("Agent '" + agent.getAgentName() + "' does not hold a suitable role '" + act.getCurrentAgentRole() + "' for the activity " + act.getName());
         }
@@ -201,7 +202,7 @@ public class Transition {
             String propValString = propValue == null ? "" : propValue.toString();
             result = result.replace("${" + propName + "}", propValString);
         }
-        Logger.msg(8, "Transition.resolveValue() - returning key '" + key + "' as '" + result + "'");
+        log.debug("resolveValue() - returning key '" + key + "' as '" + result + "'");
         return result;
     }
 
@@ -216,7 +217,7 @@ public class Transition {
     public boolean isEnabled(Activity act) throws ObjectNotFoundException {
         if (StringUtils.isBlank(enabledProp)) return true;
 
-        Logger.msg(5, "Transition.isEnabled() - trans:" + getName()+" enabledProp:"+enabledProp);
+        log.debug("isEnabled() - trans:" + getName()+" enabledProp:"+enabledProp);
 
         try {
             Object propValue = act.evaluateProperty(null, enabledProp, null);
@@ -225,7 +226,7 @@ public class Transition {
             else                  return new Boolean(propValue.toString());
         }
         catch ( InvalidDataException | PersistencyException e) {
-            Logger.error(e);
+            log.error("", e);
             throw new ObjectNotFoundException(e.getMessage());
         }
     }

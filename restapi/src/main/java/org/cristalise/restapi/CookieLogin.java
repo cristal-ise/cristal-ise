@@ -20,9 +20,15 @@
  */
 package org.cristalise.restapi;
 
+import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 
-import javax.ws.rs.*;
+import javax.ws.rs.Consumes;
+import javax.ws.rs.GET;
+import javax.ws.rs.POST;
+import javax.ws.rs.Path;
+import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
@@ -30,16 +36,17 @@ import javax.ws.rs.core.NewCookie;
 import javax.ws.rs.core.Response;
 
 import org.apache.commons.lang3.StringUtils;
-import org.cristalise.kernel.common.InvalidDataException;
-import org.cristalise.kernel.common.ObjectNotFoundException;
+import org.cristalise.kernel.entity.proxy.AgentProxy;
+import org.cristalise.kernel.lifecycle.instance.predefined.agent.Login;
 import org.cristalise.kernel.lookup.AgentPath;
 import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.security.SecurityManager;
-import org.cristalise.kernel.utils.Logger;
 import org.json.JSONObject;
 import org.json.XML;
 
-@Path("login")
+import lombok.extern.slf4j.Slf4j;
+
+@Path("login") @Slf4j
 public class CookieLogin extends RestHandler {
 
     @GET
@@ -62,18 +69,25 @@ public class CookieLogin extends RestHandler {
      */
     private Response processLogin(String user, String pass, HttpHeaders headers) {
         try {
-            AgentPath agentPath = Gateway.getSecurityManager().authenticate(user, pass, null).getPath();
-            return getCookieResponse(agentPath, ItemUtils.produceJSON(headers.getAcceptableMediaTypes()));
+            log.debug("agent:'{}'", user);
+
+            AgentProxy agent = Gateway.getSecurityManager().authenticate(user, pass, null);
+            agent.execute(agent, Login.class);
+
+            return getCookieResponse(agent.getPath(), ItemUtils.produceJSON(headers.getAcceptableMediaTypes()));
         }
-        catch (ObjectNotFoundException | InvalidDataException ex) {
+        catch (Exception ex) {
             //NOTE: Enable this log for testing security problems only, but always remove it when merged
-            //Logger.error(ex);
+            //log.error("", ex);
             String msg = SecurityManager.decodePublicSecurityMessage(ex);
 
             if (StringUtils.isBlank(msg)) msg = "Bad username/password";
 
-            Logger.msg(5, "CookieLogin.login() - %s", msg);
-            throw ItemUtils.createWebAppException(msg, Response.Status.UNAUTHORIZED);
+            log.debug("error:{}", msg);
+
+            throw new WebAppExceptionBuilder()
+                    .message( msg )
+                    .status( Response.Status.UNAUTHORIZED ).build();
         }
     }
 
@@ -86,29 +100,23 @@ public class CookieLogin extends RestHandler {
      */
     private synchronized Response getCookieResponse(AgentPath agentPath, boolean produceJSON) {
         // create and set cookie
-        AuthData agentData = new AuthData(agentPath);
         try {
-            NewCookie cookie;
-
-            int cookieLife = Gateway.getProperties().getInt("REST.loginCookieLife", 0);
-
-            if (cookieLife > 0)
-                cookie = new NewCookie(COOKIENAME, encryptAuthData(agentData), "/", null, null, cookieLife, false);
-            else
-                cookie = new NewCookie(COOKIENAME, encryptAuthData(agentData));
+            NewCookie cookie = createNewCookie( agentPath );
             
             //Issue #143: Read 'password temporary flag' from Lookup, because agentPath is taken from AgentProxy which could be cached
             boolean tempPwd = Gateway.getLookup().getAgentPath(agentPath.getAgentName()).isPasswordTemporary();
 
-            String result = "<Login result='Success' temporaryPassword='" + tempPwd + "' />";
+            String result = "<Login result='Success' temporaryPassword='" + tempPwd + "' uuid='" + agentPath.getUUID() + "' />";
             if (produceJSON) result = XML.toJSONObject(result, true).toString();
 
             // FIXME: Perhaps Angular 4 bug. Return string is a json, so HttpClient will be able to process the response
             return Response.ok(result).cookie(cookie).build();
         }
         catch (Exception e) {
-            Logger.error(e);
-            throw ItemUtils.createWebAppException("Error creating cookie");
+            log.error("Error creating cookie", e);
+            throw new WebAppExceptionBuilder()
+                    .message( "Error creating cookie" )
+                    .status( Response.Status.INTERNAL_SERVER_ERROR ).build();
         }
     }
 
@@ -123,25 +131,34 @@ public class CookieLogin extends RestHandler {
     @Consumes({ MediaType.TEXT_PLAIN, MediaType.TEXT_XML, MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON })
     @Produces({ MediaType.TEXT_XML, MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON })
     public Response postLogin(String postData, @Context HttpHeaders headers) {
-        String user;
-        String pass;
+        String user = null;
+        String pass = null;
+
+        if (StringUtils.isBlank(postData)) {
+            throw new WebAppExceptionBuilder()
+                    .message("Authentication data is null or empty")
+                    .status(Response.Status.BAD_REQUEST)
+                    .build();
+        }
 
         try {
-            if (StringUtils.isEmpty(postData)) {
-                throw new Exception("Authentication data is null or empty");
-            }
-
             JSONObject authData = new JSONObject(postData);
             user = decode(authData.getString(USERNAME));
             pass = decode(authData.getString(PASSWORD));
-
-            if (StringUtils.isEmpty(user) || StringUtils.isEmpty(pass)) {
-                throw new Exception("Invalid username or password");
-            }
         }
         catch (Exception e) {
-            Logger.error(e);
-            throw ItemUtils.createWebAppException("Problem logging in", Response.Status.BAD_REQUEST);
+            log.error("Problem logging in", e);
+            throw new WebAppExceptionBuilder()
+                    .message("Problem reading authentication data")
+                    .status(Response.Status.BAD_REQUEST)
+                    .build();
+        }
+
+        if (StringUtils.isBlank(user) || StringUtils.isBlank(pass)) {
+            throw new WebAppExceptionBuilder()
+                    .message("Invalid username or password")
+                    .status(Response.Status.UNAUTHORIZED)
+                    .build();
         }
 
         return processLogin(user, pass, headers);
@@ -154,7 +171,6 @@ public class CookieLogin extends RestHandler {
      * @return
      */
     private String decode(String encodedStr) {
-        return new String(Base64.getDecoder().decode(encodedStr));
+        return new String(Base64.getDecoder().decode(encodedStr), StandardCharsets.ISO_8859_1);
     }
-
 }

@@ -34,7 +34,6 @@ import org.cristalise.kernel.common.PersistencyException;
 import org.cristalise.kernel.entity.C2KLocalObject;
 import org.cristalise.kernel.property.BuiltInItemProperties;
 import org.cristalise.kernel.property.Property;
-import org.cristalise.kernel.utils.Logger;
 import org.cristalise.storage.jooqdb.JooqHandler;
 import org.jooq.Condition;
 import org.jooq.DSLContext;
@@ -48,6 +47,9 @@ import org.jooq.SelectQuery;
 import org.jooq.Table;
 import org.jooq.impl.SQLDataType;
 
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
 public class JooqItemPropertyHandler extends JooqHandler {
     static public final Table<?> ITEM_PROPERTY_TABLE = table(name("ITEM_PROPERTY"));
 
@@ -112,7 +114,7 @@ public class JooqItemPropertyHandler extends JooqHandler {
             insertInto.newRecord();
         }
 
-        Logger.msg(8, "JooqItemPropertyHandler.insert() - SQL:\n"+insertInto);
+        log.trace("insert() - SQL:\n"+insertInto);
 
         return insertInto.execute();
     }
@@ -135,7 +137,7 @@ public class JooqItemPropertyHandler extends JooqHandler {
     }
 
     public List<UUID> findItems(DSLContext context, int offset, int limit, Property...properties) {
-        Logger.msg(5, "JooqItemPropertyHandler.findItems() - properties:"+Arrays.toString(properties));
+        log.trace("findItems() - properties:"+Arrays.toString(properties));
 
         SelectQuery<?> select = context.selectQuery();
 
@@ -164,7 +166,7 @@ public class JooqItemPropertyHandler extends JooqHandler {
         if (limit > 0) select.addLimit(limit);
         if (offset > 0) select.addOffset(offset);
 
-        Logger.msg(8, "JooqItemPropertyHandler.findItems() - SQL:\n"+select);
+        log.trace("findItems() - SQL:\n"+select);
 
         Result<?> result =  select.fetch();
 
@@ -180,10 +182,15 @@ public class JooqItemPropertyHandler extends JooqHandler {
         context.createTableIfNotExists(ITEM_PROPERTY_TABLE)
         .column(UUID,    UUID_TYPE.nullable(false))
         .column(NAME,    NAME_TYPE.nullable(false))
-        .column(VALUE,   STRING_TYPE.nullable(true))
+        .column(VALUE,   TEXT_TYPE.nullable(true))
         .column(MUTABLE, SQLDataType.BOOLEAN.nullable(false))
         .constraints(
                 constraint("PK_"+ITEM_PROPERTY_TABLE).primaryKey(UUID, NAME))
         .execute();
+    }
+
+    @Override
+    public void dropTables(DSLContext context) throws PersistencyException {
+        context.dropTableIfExists(ITEM_PROPERTY_TABLE).execute();
     }
 }

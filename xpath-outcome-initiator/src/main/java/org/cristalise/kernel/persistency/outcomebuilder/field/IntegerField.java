@@ -20,29 +20,30 @@
  */
 package org.cristalise.kernel.persistency.outcomebuilder.field;
 
+import java.util.Arrays;
 import java.util.Map;
 
+import org.cristalise.kernel.process.Gateway;
 import org.json.JSONObject;
 
 public class IntegerField extends NumberField {
 
+    private static final String[] strFields = {"mask", "placeholder"};
+    private static final String[] excFields = {"pattern", "errmsg", "precision"};
+
     public IntegerField() {
-        super();
+        super(Arrays.asList(strFields), Arrays.asList(excFields));
     }
 
     @Override
     public String getDefaultValue() {
-        return "0";
+        return Gateway.getProperties().getString("Webui.inputField.integer.defaultValue", "0");
     }
 
     @Override
     public JSONObject generateNgDynamicForms(Map<String, Object> inputs) {
-        JSONObject inputInt = getCommonFieldsNgDynamicForms();
+        JSONObject inputInt = super.generateNgDynamicForms(inputs);
 
-        //inputInt.put("inputType", "number");
-        inputInt.put("max", (String)null);
-        inputInt.put("min", (String)null);
-        
         if (inputInt.getString("type").equals("RATING")) {
             // disable cancel icon for RATING
             getAdditionalConfigNgDynamicForms(inputInt).put("cancel", false);

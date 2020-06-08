@@ -33,14 +33,16 @@ import org.cristalise.kernel.entity.agent.JobList;
 import org.cristalise.kernel.events.History;
 import org.cristalise.kernel.lookup.AgentPath;
 import org.cristalise.kernel.lookup.ItemPath;
+import org.cristalise.kernel.process.AbstractMain;
 import org.cristalise.kernel.process.auth.Authenticator;
 import org.cristalise.kernel.querying.Query;
-import org.cristalise.kernel.utils.Logger;
 
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 public class TransactionManager {
 
-    HashMap<ItemPath, Object> locks;
+    private HashMap<ItemPath, Object> locks;
     HashMap<Object, ArrayList<TransactionEntry>> pendingTransactions;
     ClusterStorageManager storage;
 
@@ -59,14 +61,15 @@ public class TransactionManager {
     }
 
     /**
-     * Closing will abort all all transactions
+     * Closing will abort all transactions
      */
     public void close() {
         if (pendingTransactions.size() != 0) {
-            Logger.error("There were pending transactions on shutdown. All changes were lost.");
+            log.error("There were pending transactions on shutdown. All changes were lost.");
             dumpPendingTransactions(0);
         }
-        Logger.msg("Transaction Manager: Closing storages");
+
+        log.info("Transaction Manager: Closing storages");
         storage.close();
     }
 
@@ -89,7 +92,20 @@ public class TransactionManager {
      * @throws PersistencyException
      */
     public String[] getClusterContents(ItemPath itemPath, ClusterType type) throws PersistencyException {
-        return getClusterContents(itemPath, type.getName());
+        return getClusterContents(itemPath, type, null);
+    }
+
+    /**
+     * Retrieves the ids of the root level of a cluster
+     * 
+     * @param itemPath the item 
+     * @param type the type of the cluster
+     * @param locker the transaction key
+     * @return array of ids
+     * @throws PersistencyException
+     */
+    public String[] getClusterContents(ItemPath itemPath, ClusterType type, Object locker) throws PersistencyException {
+        return getClusterContents(itemPath, type.getName(), locker);
     }
 
     /**
@@ -110,7 +126,7 @@ public class TransactionManager {
      * 
      * @param itemPath the item 
      * @param path the cluster path
-     * @param locker the transaction kez
+     * @param locker the transaction key
      * @return array of ids
      * @throws PersistencyException
      */
@@ -278,45 +294,38 @@ public class TransactionManager {
      * Writes all pending changes to the backends.
      * 
      * @param locker transaction locker
+     * @throws PersistencyException 
      */
-    public void commit(Object locker) {
+    public void commit(Object locker) throws PersistencyException {
         synchronized(locks) {
             ArrayList<TransactionEntry> lockerTransactions = pendingTransactions.get(locker);
-            HashMap<TransactionEntry, Exception> exceptions = new HashMap<TransactionEntry, Exception>();
             // quit if no transactions are present;
-            if (lockerTransactions == null) return;
-            storage.begin(locker);
+            if (lockerTransactions == null)
+                return;
 
-            for (TransactionEntry thisEntry : lockerTransactions) {
-                try {
-                    if (thisEntry.obj == null) storage.remove(thisEntry.itemPath, thisEntry.path, locker);
-                    else                       storage.put(thisEntry.itemPath, thisEntry.obj, locker);
+            try {
+                storage.begin(locker);
 
+                for (TransactionEntry thisEntry : lockerTransactions) {
+                    if (thisEntry.obj == null)
+                        storage.remove(thisEntry.itemPath, thisEntry.path, locker);
+                    else
+                        storage.put(thisEntry.itemPath, thisEntry.obj, locker);
+                }
+
+                storage.commit(locker);
+
+                for (TransactionEntry thisEntry : lockerTransactions) {
                     locks.remove(thisEntry.itemPath);
                 }
-                catch (Exception e) {
-                    exceptions.put(thisEntry, e);
-                }
+
+                pendingTransactions.remove(locker);
             }
-            pendingTransactions.remove(locker);
-            
-            if (exceptions.size() > 0) { // oh dear
+            catch (Exception e) {
                 storage.abort(locker);
-                Logger.error("TransactionManager.commit() - Problems during transaction commit of locker "+locker.toString()+". Database may be in an inconsistent state.");
-                for (TransactionEntry entry : exceptions.keySet()) {
-                    Exception ex = exceptions.get(entry);
-                    Logger.msg(entry.toString());
-                    Logger.error(ex);
-                }
+                log.error("commit() - Problems during transaction commit of locker "+locker.toString()+". Database may be in an inconsistent state.");
                 dumpPendingTransactions(0);
-                Logger.die("Database failure during commit");
-            }
-            try {
-                storage.commit(locker);
-            }
-            catch (PersistencyException e) {
-                storage.abort(locker);
-                Logger.die("Transactional database failure");
+                AbstractMain.shutdown(1);
             }
         }
     }
@@ -342,35 +351,35 @@ public class TransactionManager {
         if (itemPath == null)  storage.clearCache();
         else if (path == null) storage.clearCache(itemPath);
         else                   storage.clearCache(itemPath, path);
-
     }
 
     public void dumpPendingTransactions(int logLevel) {
-        if(!Logger.doLog(logLevel)) return;
+        log.error("Transaction dump. Locked Items:");
 
-        Logger.msg(logLevel, "================");
-        Logger.msg(logLevel, "Transaction dump");
-        Logger.msg(logLevel, "Locked Items:");
-        
-        if (locks.size() == 0)
-            Logger.msg(logLevel, "  None");
-        else
+        if (locks.size() == 0) {
+            log.error("  None");
+        }
+        else {
             for (ItemPath thisPath : locks.keySet()) {
                 Object locker = locks.get(thisPath);
-                Logger.msg(logLevel, "  "+thisPath+" locked by "+locker);
+                log.error("  "+thisPath+" locked by "+locker);
             }
+        }
 
-        Logger.msg(logLevel, "Open transactions:");
-        if (pendingTransactions.size() == 0)
-            Logger.msg(logLevel, "  None");
-        else
+        log.error("Open transactions:");
+        if (pendingTransactions.size() == 0) {
+            log.error("  None");
+        }
+        else {
             for (Object thisLocker : pendingTransactions.keySet()) {
-                Logger.msg(logLevel, "  Transaction owner:"+thisLocker);
+                log.error("  Transaction owner:"+thisLocker);
+
                 ArrayList<TransactionEntry> entries = pendingTransactions.get(thisLocker);
                 for (TransactionEntry thisEntry : entries) {
-                    Logger.msg(logLevel, "    "+thisEntry.toString());
+                    log.error("    "+thisEntry.toString());
                 }
             }
+        }
     }
 
     /**
@@ -417,4 +426,28 @@ public class TransactionManager {
         }
     }
 
+    /**
+     * Propagate Gateway connect has finished hook to the storages
+     */
+    public void postConnect() throws PersistencyException {
+        storage.postConnect();
+    }
+
+    /**
+     * Propagate Bootstrap has finished hook to the storages
+     */
+    public void postBoostrap() throws PersistencyException{
+        storage.postBoostrap();
+    }
+
+    /**
+     * Propagate start server has finished hook to the storages
+     */
+    public void postStartServer() throws PersistencyException {
+        storage.postStartServer();
+    }
+
+    public int getLastIntegerId(ItemPath itemPath, String path) throws PersistencyException{
+        return storage.getLastIntegerId(itemPath, path);
+    }
 }

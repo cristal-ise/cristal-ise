@@ -23,16 +23,15 @@ package org.cristalise.storage.jooqdb;
 import java.util.Properties;
 import java.util.UUID;
 
-import org.cristalise.JooqTestBase;
+import org.cristalise.JooqTestConfigurationBase;
 import org.cristalise.kernel.common.GTimeStamp;
 import org.cristalise.kernel.process.Gateway;
 import org.jooq.DSLContext;
-import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.BeforeClass;
 
-public class StorageTestBase extends JooqTestBase {
+public class StorageTestBase extends JooqTestConfigurationBase {
     DSLContext context;
     UUID       uuid = UUID.randomUUID();
 
@@ -44,11 +43,6 @@ public class StorageTestBase extends JooqTestBase {
     @AfterClass
     public static void afterClass() throws Exception {
         Gateway.close();
-    }
-
-    @After
-    public void after() throws Exception {
-        context.close();
     }
 
     public static void compareTimestramps(GTimeStamp actual, GTimeStamp expected) {

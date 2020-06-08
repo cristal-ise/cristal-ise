@@ -23,15 +23,15 @@ package org.cristalise.dsl.entity
 import org.cristalise.kernel.entity.imports.ImportRole
 import org.cristalise.kernel.lookup.AgentPath
 import org.cristalise.kernel.lookup.RolePath
-import org.cristalise.kernel.utils.Logger
 
 import groovy.transform.CompileStatic
+import groovy.util.logging.Slf4j
 
 
 /**
  *
  */
-@CompileStatic
+@CompileStatic @Slf4j
 class RoleBuilder {
 
     public static ArrayList<ImportRole> build(Closure cl) {
@@ -39,7 +39,7 @@ class RoleBuilder {
 
         roleDelegate.processClosure(cl)
 
-        Logger.msg 5, "RoleBuilder.build() - Done"
+        log.debug "RoleBuilder.build() - Done"
 
         return roleDelegate.roles
     }

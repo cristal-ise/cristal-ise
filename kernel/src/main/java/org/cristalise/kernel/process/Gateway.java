@@ -49,6 +49,8 @@ import org.cristalise.kernel.utils.CastorXMLUtility;
 import org.cristalise.kernel.utils.Logger;
 import org.cristalise.kernel.utils.ObjectProperties;
 
+import lombok.extern.slf4j.Slf4j;
+
 /**
  * The Gateway is the central object of a CRISTAL process. It initializes,
  * maintains and shuts down every other subsystem in both the client and the
@@ -65,6 +67,7 @@ import org.cristalise.kernel.utils.ObjectProperties;
  * <li>ORB - the CORBA ORB
  * </ul>
  */
+@Slf4j
 public class Gateway
 {
     static private ObjectProperties     mC2KProps = new ObjectProperties();
@@ -117,7 +120,7 @@ public class Gateway
         if (mResource == null) mResource = new Resource();
 
         // report version info
-        Logger.msg("Gateway.init() - Kernel version: "+getKernelVersion());
+        log.info("Kernel version: "+getKernelVersion());
 
         // load kernel mapfiles giving the resourse loader and the properties of
         // the application to be able to configure castor
@@ -136,7 +139,7 @@ public class Gateway
             allModuleProperties = mModules.loadModules(mResource.getModuleDefURLs());
         }
         catch (Exception e) {
-            Logger.error(e);
+            log.error("", e);
             throw new InvalidDataException("Could not load module definitions.");
         }
 
@@ -152,7 +155,7 @@ public class Gateway
         mSecurityManager = new SecurityManager();
 
         // dump properties
-        Logger.msg("Gateway.init() - DONE");
+        log.info("Gateway.init() - DONE");
         dumpC2KProps(7);
     }
 
@@ -201,16 +204,19 @@ public class Gateway
             orbDestroyed = false;
             mORB = org.omg.CORBA.ORB.init(new String[0], mC2KProps);
 
-            Logger.msg("Gateway.startServer() - ORB initialised. ORB class:'" + mORB.getClass().getName()+"'" );
+            log.info("ORB initialised. ORB class:'" + mORB.getClass().getName()+"'" );
 
             // start corba server components
             mCorbaServer = new CorbaServer();
 
-            Logger.msg("Gateway.startServer() - Server '"+serverName+"' STARTED.");
+            log.info("Server '"+serverName+"' STARTED.");
+
+            if (mLookupManager != null) mLookupManager.postStartServer();
+            mStorage.postStartServer();
         }
         catch (Exception ex) {
-            Logger.error(ex);
-            Logger.die("Exception starting server components. Shutting down.");
+            log.error("Exception starting server components. Shutting down.", ex);
+            AbstractMain.shutdown(1);
         }
     }
 
@@ -238,7 +244,7 @@ public class Gateway
             mLookup.open(auth);
         }
         catch (ClassNotFoundException | InstantiationException | IllegalAccessException ex) {
-            Logger.error(ex);
+            log.error("", ex);
             throw new InvalidDataException("Cannot connect server process. Please check config.");
         }
 
@@ -260,7 +266,9 @@ public class Gateway
 
         setup(mSecurityManager.getAuth());
 
-        Logger.msg("Gateway.connect(system) - DONE.");
+        log.info("connect(system) DONE.");
+
+        mStorage.postConnect();
 
         return mSecurityManager.getAuth();
     }
@@ -312,7 +320,9 @@ public class Gateway
         mModules.setUser(agent);
         mModules.runScripts("startup");
 
-        Logger.msg("Gateway.connect(agent) - DONE.");
+        log.info("connect(agent) DONE.");
+
+        mStorage.postConnect();
 
         return agent;
     }
@@ -349,7 +359,7 @@ public class Gateway
             return (Authenticator)mC2KProps.getInstance("Authenticator");
         }
         catch (ClassNotFoundException | InstantiationException | IllegalAccessException ex) {
-            Logger.error(ex);
+            log.error("Authenticator "+mC2KProps.getString("Authenticator")+" could not be instantiated", ex);
             throw new InvalidDataException("Authenticator "+mC2KProps.getString("Authenticator")+" could not be instantiated");
         } 
     }
@@ -465,7 +475,6 @@ public class Gateway
     }
 
     static public void dumpC2KProps(int logLevel) {
-        if (!Logger.doLog(logLevel)) return;
         mC2KProps.dumpProps(logLevel);
     }
 
@@ -511,8 +520,7 @@ public class Gateway
                 handler = (ResourceImportHandler) Gateway.getProperties().getInstance("ResourceImportHandler."+resType);
             }
             catch (Exception ex) {
-                Logger.error(ex);
-                Logger.error("Exception loading ResourceHandler for "+resType+". Using default.");
+                log.error("Exception loading ResourceHandler for "+resType+". Using default.", ex);
             }
         }
 
@@ -523,4 +531,22 @@ public class Gateway
         return handler;
     }
 
+    /**
+     * Run the different kind of Boostrap processes
+     * 
+     * @throws Exception anything could happen
+     */
+    public static void runBoostrap() throws Exception {
+        if (Gateway.getProperties().containsKey(AbstractMain.MAIN_ARG_SKIPBOOTSTRAP)) {
+            //minimum initialisation only
+            Bootstrap.init();
+
+            if (mLookupManager != null) mLookupManager.postBoostrap();
+            mStorage.postBoostrap();
+        }
+        else {
+            //creates a new thread to run initialisation and complete checking bootstrap & module items
+            Bootstrap.run();
+        }
+    }
 }

@@ -23,7 +23,6 @@ package org.cristalise.kernel.persistency.outcomebuilder;
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.HashMap;
-import org.cristalise.kernel.utils.Logger;
 import org.exolab.castor.xml.schema.Annotated;
 import org.exolab.castor.xml.schema.AttributeDecl;
 import org.exolab.castor.xml.schema.ComplexType;
@@ -41,6 +40,9 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.w3c.dom.Text;
 
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
 public class DimensionTableModel {
 
     ElementDecl          model;
@@ -95,7 +97,7 @@ public class DimensionTableModel {
     }
 
     public synchronized void addColumn(String heading, Annotated decl, int typeCode) {
-        Logger.msg(8, "DimensionTableModel.addColumn() - Column "+heading+" contains "+decl.getClass().getSimpleName());
+        log.debug("addColumn() - Column "+heading+" contains "+decl.getClass().getSimpleName());
 
         columnHeadings.add(heading);
         columnClasses.add(OutcomeStructure.getJavaClass(typeCode));
@@ -184,10 +186,12 @@ public class DimensionTableModel {
                             newRow[i] = this.setupDefaultElement(columnElementDecl, childElement, columnClasses.get(i));
                         }
                         break;
-                    case 0: // element is missing - create it
-                        Element newElement = myElement.getOwnerDocument().createElement(columnElementDecl.getName());
-                        myElement.appendChild(newElement); //TODO: not in the right place in sequence. should insert it
-                        newRow[i] = setupDefaultElement(columnElementDecl, newElement, columnClasses.get(i));
+                    case 0: // element is missing - if mandatory create it
+                        if (columnElementDecl.getMinOccurs() != 0) {
+                            Element newElement = myElement.getOwnerDocument().createElement(columnElementDecl.getName());
+                            myElement.appendChild(newElement); //TODO: not in the right place in sequence. should insert it
+                            newRow[i] = setupDefaultElement(columnElementDecl, newElement, columnClasses.get(i));
+                        }
                         break;
                     default:
                         throw new CardinalException("Element "+columnElementDecl.getName()+" appeared more than once.");
@@ -231,7 +235,7 @@ public class DimensionTableModel {
     }
 
     public void setValueAt(Object aValue, int rowIndex, String columnName) {
-        Logger.msg(5, "DimensionTableModel.setValueAt() - columnName:%s", columnName);
+        log.debug("setValueAt() - columnName:%s", columnName);
 
         int idx = columnHeadings.lastIndexOf(columnName);
 
@@ -253,7 +257,7 @@ public class DimensionTableModel {
 
             //Create the optional element if the new value is not null
             if (elements.item(0) == null && aValue != null && !"null".equals(aValue.toString())) {
-                Logger.msg(5, "DimensionTableModel.setValueAt() - Creating columnElement:%s", columnDecl.getName());
+                log.debug("setValueAt() - Creating columnElement:%s", columnDecl.getName());
 
                 columnElement = rowElement.getOwnerDocument().createElement(columnDecl.getName());
                 setupDefaultElement(columnDecl, columnElement, columnClasses.get(columnIndex));
@@ -269,11 +273,11 @@ public class DimensionTableModel {
             }
             else if (columnElement != null) {
                 if (columnDecl.getMinOccurs() == 0) {
-                    Logger.msg(5, "DimensionTableModel.setValueAt() - Removing columnElement:%s", columnDecl.getName());
+                    log.debug("setValueAt() - Removing columnElement:%s", columnDecl.getName());
                     rowElement.removeChild(columnElement);
                 }
                 else {
-                    Logger.msg(5, "DimensionTableModel.setValueAt() - Setting columnElement:%s to default value", columnDecl.getName());
+                    log.debug("setValueAt() - Setting columnElement:%s to default value", columnDecl.getName());
                     setupDefaultElement(columnDecl, columnElement, columnClasses.get(columnIndex));
                 }
             }
@@ -321,7 +325,7 @@ public class DimensionTableModel {
     public Object getValueAt(int rowIndex, int columnIndex) {
         Object[] thisRow = rows.get(rowIndex);
         if (!(getColumnClass(columnIndex).equals(thisRow[columnIndex].getClass())))
-            Logger.warning(thisRow[columnIndex]+" should be "+getColumnClass(columnIndex)+" is a "+thisRow[columnIndex].getClass().getName());
+            log.warn(thisRow[columnIndex]+" should be "+getColumnClass(columnIndex)+" is a "+thisRow[columnIndex].getClass().getName());
 
         return thisRow[columnIndex];
     }
@@ -342,7 +346,7 @@ public class DimensionTableModel {
     }
 
     public Element initNew(Document parent, int index) {
-        Logger.msg(2, "DimensionTableModel.initNew() - name:%s index:%d", model.getName(), index);
+        log.info("initNew() - name:%s index:%d", model.getName(), index);
 
         if (index == -1) index = elements.size();
         Object[] newRow = new Object[columnHeadings.size()];

@@ -20,6 +20,10 @@
  */
 package org.cristalise.lookup;
 
+import static org.cristalise.JooqTestConfigurationBase.DBModes.MYSQL;
+import static org.cristalise.JooqTestConfigurationBase.DBModes.PostgreSQL;
+import static org.cristalise.JooqTestConfigurationBase.DBModes.H2_PostgreSQL;
+import static org.cristalise.JooqTestConfigurationBase.DBModes.H2_MYSQL;
 import static org.unitils.reflectionassert.ReflectionAssert.assertReflectionEquals;
 import static org.unitils.reflectionassert.ReflectionComparatorMode.LENIENT_ORDER;
 
@@ -28,30 +32,37 @@ import java.util.Iterator;
 import java.util.List;
 
 import org.apache.commons.lang3.reflect.FieldUtils;
-import org.cristalise.JooqTestBase;
+import org.cristalise.JooqTestConfigurationBase;
 import org.cristalise.kernel.lookup.Path;
 import org.cristalise.kernel.process.Gateway;
-import org.cristalise.kernel.utils.Logger;
 import org.cristalise.kernel.utils.ObjectProperties;
 import org.cristalise.storage.jooqdb.lookup.JooqLookupManager;
 import org.junit.After;
+import org.junit.AfterClass;
 import org.junit.Before;
+import org.junit.BeforeClass;
 
-public class LookupTestBase extends JooqTestBase {
+public class LookupTestBase extends JooqTestConfigurationBase {
 
+    static ObjectProperties c2kProps;
     protected JooqLookupManager lookup;
 
-    @Before
-    public void setUp() throws Exception {
-        Logger.addLogStream(System.out, 8);
-
-        lookup = new JooqLookupManager();
-
-        ObjectProperties c2kProps = new ObjectProperties();
-
+    @BeforeClass
+    public static void beforeClass() throws Exception {
+        c2kProps = new ObjectProperties();
         setUpStorage(c2kProps);
 
         Gateway.init(c2kProps);
+    }
+    
+    @AfterClass
+    public static void afterClass() throws Exception {
+        Gateway.close();
+    }
+
+    @Before
+    public void setUp() throws Exception {
+        lookup = new JooqLookupManager();
 
         FieldUtils.writeDeclaredStaticField(Gateway.class, "mLookupManager", lookup, true);
         FieldUtils.writeDeclaredStaticField(Gateway.class, "mLookup",        lookup, true);
@@ -61,9 +72,9 @@ public class LookupTestBase extends JooqTestBase {
     }
 
     @After
-    public void tearDown() {
+    public void tearDown() throws Exception {
         if (lookup != null) lookup.close();
-        Logger.removeLogStream(System.out);
+        if (dbType == MYSQL || dbType == PostgreSQL || dbType == H2_PostgreSQL || dbType == H2_MYSQL) lookup.dropHandlers();
     }
 
     public void compare(List<Path> expecteds, Iterator<Path> actualsIter) {

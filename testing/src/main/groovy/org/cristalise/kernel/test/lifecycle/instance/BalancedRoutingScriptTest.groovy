@@ -94,7 +94,7 @@ class BalancedRoutingScriptTest implements CristalTestSetup {
         }
 
         wfBuilder.requestAction("last", "Done")
-        wfBuilder.checkActStatus("last",  [state: "Finished", active: true])
+        wfBuilder.checkActStatus("last",  [state: "Finished", active: false])
     }
 
 }

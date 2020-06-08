@@ -99,7 +99,7 @@ trait CristalTestSetup {
         Gateway.startServer()
 
         if (!skipBootstrap) {
-            Bootstrap.run();
+            Gateway.runBoostrap();
             waitBootstrapThread()
         }
 
@@ -113,6 +113,10 @@ trait CristalTestSetup {
 
     public void cristalInit(int logLevel, String config, String connect, Properties testProps = null) {
         loggerSetup(logLevel)
+
+        if (testProps == null) testProps = new Properties();
+        testProps.put("Shiro.iniFile", "src/main/bin/shiro.ini");
+
         Gateway.init(AbstractMain.readPropertyFiles(config, connect, testProps))
     }
 

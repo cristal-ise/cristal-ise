@@ -36,6 +36,8 @@
                             <dynamicForms>
                                 <hidden>true</hidden>
                                 <required>false</required>
+                                <label>Insurance ID</label>
+                                <placeholder>Insurance No</placeholder>
                             </dynamicForms>
                         </xs:appinfo>
                     </xs:annotation>
@@ -46,8 +48,13 @@
                             <dynamicForms>
                                 <value>now</value>
 	                            <mask>99/99/9999</mask>
+                                <placeholder>99/99/9999</placeholder>
                                 <additional>
-                                    <updateScriptRef>Script:0</updateScriptRef>
+                                  <updateScriptRef>Script:0</updateScriptRef>
+                                  <warning>
+                                    <message>Date is invalid</message>
+                                    <expression><![CDATA[ var m = moment('2015-11-32', 'YYYY-MM-DD'); m.isValid();]]></expression>
+                                  </warning>
                                 </additional>
                             </dynamicForms>
                         </xs:appinfo>
@@ -66,6 +73,13 @@
                         <xs:appinfo>
                             <dynamicForms>
 	                            <mask>99,99</mask>
+                                <placeholder>99,99</placeholder>
+                                <additional>
+                                  <warning>
+                                    <pattern>^[0-9]{1,4}$</pattern>
+                                    <message>Value out of specification, has to be &lt;= 9999</message>
+                                  </warning>
+                                </additional>
                             </dynamicForms>
                         </xs:appinfo>
                     </xs:annotation>

@@ -1,0 +1,45 @@
+site_name: Cristal-ISE
+repo_url: https://github.com/cristal-ise/cristal-ise
+edit_uri: edit/cristalise-docs/docs
+
+theme:
+    name: readthedocs
+    highlightjs: true
+    hljs_languages:
+        - yaml
+        - django
+
+extra_css:
+    - css/extra.css
+
+nav:
+    - Home: index.md
+    - Overview:
+        - Introduction: Introduction.md
+        - Getting started: Getting-Started.md
+    - Features:
+        - Cope with Change: Cope-with-Change.md
+        - Evolve Code with Data: Evolve-Code-with-Data.md
+        - Built-in Provenance: Built-in-Provenance.md
+        - Universal Data Catalogue: Universal-Data-Catalogue.md
+        - Process Description: Process-Description.md
+        - Built-in Security: Built-in-Security.md
+        - Immutable BOs: Immutable-BOs.md
+    - Tutorials:
+        - Basic (Create Patient): Basic-Tutorial.md
+        - Advanced (Patient Tracking): tutorial-PatientTracking.md
+    - Developer Guides:
+        - Technical Introduction: Technical-Introduction.md
+        - Client API: API.md
+        - DSL: Domain-Specific-Language-(DSL).md
+    - Technical Documentation:
+        - Boot sequence: Boot-Sequence-of-Server.md
+        - Activity execution: Activity-Execution.md
+        - Reset IORs: Reset-IORs.md
+        - Command-line arguments: Command-line-Arguments.md
+        - JavaDoc: http://javadoc.io/doc/org.cristalise
+    - Others:
+        - Selected papers: Selected-papers.md
+        - Maven Deploy Travis: Maven-Deploy-Travis.md
+        - Maven Deploy Travis GPG2: Maven-Deploy-Travis-GPG2.md
+        - Glossary: Glossary.md
