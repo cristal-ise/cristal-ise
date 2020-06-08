@@ -20,6 +20,8 @@
  */
 package org.cristalise.dsl.persistency.outcome
 
+import org.apache.poi.xssf.usermodel.XSSFSheet
+import org.cristalise.dsl.csv.TabularGroovyParser
 import org.cristalise.kernel.common.InvalidDataException
 import org.cristalise.kernel.property.BuiltInItemProperties
 import org.cristalise.kernel.property.PropertyDescriptionList
@@ -48,6 +50,11 @@ class SchemaDelegate {
         cl.delegate = objBuilder
 
         xsdString = buildXSD( cl() )
+    }
+
+    public void processTabularData(TabularGroovyParser parser) {
+        def tsb = new TabularSchemaBuilder()
+        xsdString = buildXSD(tsb.build(parser))
     }
 
     public String buildXSD(Struct s) {
@@ -118,7 +125,6 @@ class SchemaDelegate {
         if (s.anyField) this.buildAnyField(xsd, s.anyField)
     }
 
-
     private boolean hasRangeConstraints(Attribute a) {
         return a.minInclusive != null || a.maxInclusive != null || a.minExclusive != null || a.maxExclusive != null
     }
@@ -187,15 +193,15 @@ class SchemaDelegate {
             if (f.dynamicForms.inputType)                    inputType(   f.dynamicForms.inputType)
             if (f.dynamicForms.min != null)                  min(         f.dynamicForms.min)
             if (f.dynamicForms.max != null)                  max(         f.dynamicForms.max)
-            if (f.dynamicForms.value != null)                value(       f.dynamicForms.value)
-            if (f.dynamicForms.mask != null)                 mask(        f.dynamicForms.mask)
-            if (f.dynamicForms.autoComplete != null)         autoComplete(f.dynamicForms.autoComplete)
-            if (f.dynamicForms.pattern != null)              pattern(     f.dynamicForms.pattern)
-            if (f.dynamicForms.errmsg != null)               errmsg(      f.dynamicForms.errmsg)
+            if (f.dynamicForms.value)                        value(       f.dynamicForms.value)
+            if (f.dynamicForms.mask)                         mask(        f.dynamicForms.mask)
+            if (f.dynamicForms.autoComplete)                 autoComplete(f.dynamicForms.autoComplete)
+            if (f.dynamicForms.pattern)                      pattern(     f.dynamicForms.pattern)
+            if (f.dynamicForms.errmsg)                       errmsg(      f.dynamicForms.errmsg)
             if (f.dynamicForms.showSeconds != null)          showSeconds( f.dynamicForms.showSeconds)
-            if (f.dynamicForms.container != null)            container(   f.dynamicForms.container)
-            if (f.dynamicForms.control != null)              control(     f.dynamicForms.control)
-            if (f.dynamicForms.labelGrid != null)            labelGrid(   f.dynamicForms.labelGrid)
+            if (f.dynamicForms.container)                    container(   f.dynamicForms.container)
+            if (f.dynamicForms.control)                      control(     f.dynamicForms.control)
+            if (f.dynamicForms.labelGrid)                    labelGrid(   f.dynamicForms.labelGrid)
             if (f.dynamicForms.hideOnDateTimeSelect != null) hideOnDateTimeSelect( f.dynamicForms.hideOnDateTimeSelect)
             if (f.dynamicForms.precision)                    precision(   f.dynamicForms.precision)
             if (f.dynamicForms.scale)                        scale(       f.dynamicForms.scale)
@@ -209,19 +215,19 @@ class SchemaDelegate {
                     if (f.dynamicForms.updateQuerytRef != null) updateQuerytRef(f.dynamicForms.getUpdateQueryRefString())
                     if (f.dynamicForms.warning != null) {
                         warning {
-                            if (f.dynamicForms.warning.pattern != null)    pattern(f.dynamicForms.warning.pattern)
-                            if (f.dynamicForms.warning.message != null)    message(f.dynamicForms.warning.message)
-                            if (f.dynamicForms.warning.expression != null) expression {
+                            if (f.dynamicForms.warning.pattern)    pattern(f.dynamicForms.warning.pattern)
+                            if (f.dynamicForms.warning.message)    message(f.dynamicForms.warning.message)
+                            if (f.dynamicForms.warning.expression) expression {
                                 mkp.yieldUnescaped("<![CDATA[ ${f.dynamicForms.warning.expression}]]>")
                             }
                         }
                     }
-                    if (f.dynamicForms.updateFields !=null) updateFields(f.dynamicForms.updateFields.join(','))
+                    if (f.dynamicForms.updateFields) updateFields(f.dynamicForms.updateFields.join(','))
                 }
             }
 
             if (f.isFileUpload()) {
-                if (f.dynamicForms.htmlAccept != null)            accept(   f.dynamicForms.htmlAccept)
+                if (f.dynamicForms.htmlAccept != null) accept(f.dynamicForms.htmlAccept)
             }
         }
     }

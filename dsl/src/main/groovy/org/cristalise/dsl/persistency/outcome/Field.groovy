@@ -20,8 +20,6 @@
  */
 package org.cristalise.dsl.persistency.outcome
 
-import java.util.List;
-
 import org.cristalise.kernel.common.InvalidDataException
 
 import groovy.transform.CompileStatic;
@@ -29,6 +27,16 @@ import groovy.transform.CompileStatic;
 
 @CompileStatic
 class Field extends Attribute {
+    /**
+     * Keys used for reading the header in the TabularSchemaBuilder
+     */
+    public static final List<String> keys = [
+        'name', 'type', 'documentation', 'multiplicity', 'values', 'pattern', 'default',
+        'length', 'minLength', 'maxLength',
+        'range', 'minInclusive', 'maxInclusive', 'minExclusive', 'maxExclusive',
+        'totalDigits', 'fractionDigits'
+    ]
+
     String minOccurs = '1'
     String maxOccurs = '1'
 
@@ -54,33 +62,33 @@ class Field extends Attribute {
      * @return
      */
     public void setMultiplicity(String m) {
-        if(!m) {
+        if (! m?.trim()) {
             minOccurs = ''; maxOccurs = '';
         }
-        else if(m.contains("..")) {
+        else if (m.contains("..")) {
             def vals = m.split(/\.\./)
 
             def v = getMultiplicityVal(vals[0])
 
-            if(v) minOccurs = v
-            else  throw new InvalidDataException("Invalid value for multiplicity : '$m'")
+            if (v) minOccurs = v
+            else   throw new InvalidDataException("Invalid value for multiplicity : '$m'")
 
             v = getMultiplicityVal(vals[1])
 
-            if(v) maxOccurs = v
-            else  maxOccurs = 'unbounded'
+            if (v) maxOccurs = v
+            else   maxOccurs = 'unbounded'
         }
         else {
             def v = getMultiplicityVal(m)
 
-            if(!v) { minOccurs = '0'; maxOccurs = 'unbounded'; }
-            else   { minOccurs = v;   maxOccurs = v; }
+            if (!v) { minOccurs = '0'; maxOccurs = 'unbounded'; }
+            else    { minOccurs = v;   maxOccurs = v; }
         }
     }
 
     def setUnit(Unit u) {
-        if(values) throw new InvalidDataException("UNIMPLEMENTED: Cannot use unit and values together")
-        if(attributes) throw new InvalidDataException("UNIMPLEMENTED: Cannot use unit and attributes together")
+        if (values)     throw new InvalidDataException("UNIMPLEMENTED: Cannot use unit and values together")
+        if (attributes) throw new InvalidDataException("UNIMPLEMENTED: Cannot use unit and attributes together")
 
         unit = u
     }
