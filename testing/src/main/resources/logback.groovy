@@ -12,6 +12,6 @@ appender("STDOUT", ConsoleAppender) {
   }
 }
 
-// logger('org.cristalise.restapi', DEBUG)
+//logger('org.cristalise.restapi', DEBUG)
 
 root(INFO, ["STDOUT"])
