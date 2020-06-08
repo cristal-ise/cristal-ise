@@ -35,11 +35,13 @@ import org.cristalise.kernel.lookup.AgentPath;
 import org.cristalise.kernel.lookup.ItemPath;
 import org.cristalise.kernel.lookup.RolePath;
 import org.cristalise.kernel.process.Gateway;
-import org.cristalise.kernel.utils.Logger;
 import org.exolab.castor.mapping.MappingException;
 import org.exolab.castor.xml.MarshalException;
 import org.exolab.castor.xml.ValidationException;
 
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
 public class CreateNewRole extends PredefinedStep {
     public CreateNewRole() {
         super();
@@ -62,7 +64,7 @@ public class CreateNewRole extends PredefinedStep {
             return requestData;
         }
         catch (MarshalException | ValidationException | IOException | MappingException e) {
-            Logger.error(e);
+            log.error("CreateNewRole: Couldn't unmarshall new Role: " + requestData, e);
             throw new InvalidDataException("CreateNewRole: Couldn't unmarshall new Role: " + requestData);
         }
 

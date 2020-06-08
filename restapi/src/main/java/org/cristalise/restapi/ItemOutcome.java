@@ -27,11 +27,7 @@ import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
-import javax.ws.rs.core.Context;
-import javax.ws.rs.core.Cookie;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.UriInfo;
+import javax.ws.rs.core.*;
 
 import org.cristalise.kernel.entity.proxy.ItemProxy;
 
@@ -44,9 +40,10 @@ public class ItemOutcome extends ItemUtils {
                                       @CookieParam(COOKIENAME) Cookie authCookie,
                                       @Context                 UriInfo uri)
     {
-        checkAuthCookie(authCookie);
-        ItemProxy item = ItemRoot.getProxy(uuid);
-        return toJSON(enumerate(item, OUTCOME, "outcome", uri));
+        NewCookie cookie = checkAndCreateNewCookie(checkAuthCookie(authCookie));
+        ItemProxy item = getProxy(uuid, cookie);
+
+        return toJSON(enumerate(item, OUTCOME, "outcome", uri, cookie), cookie).build();
     }
 
     @GET
@@ -57,9 +54,10 @@ public class ItemOutcome extends ItemUtils {
                                        @CookieParam(COOKIENAME) Cookie  authCookie,
                                        @Context                 UriInfo uri)
     {
-        checkAuthCookie(authCookie);
-        ItemProxy item = ItemRoot.getProxy(uuid);
-        return toJSON(enumerate(item, OUTCOME + "/" + schema, "outcome/" + schema, uri));
+        NewCookie cookie = checkAndCreateNewCookie(checkAuthCookie(authCookie));
+        ItemProxy item = getProxy(uuid, cookie);
+
+        return toJSON(enumerate(item, OUTCOME + "/" + schema, "outcome/" + schema, uri, cookie), cookie).build();
     }
 
     @GET
@@ -71,9 +69,10 @@ public class ItemOutcome extends ItemUtils {
                                      @CookieParam(COOKIENAME) Cookie  authCookie,
                                      @Context                 UriInfo uri)
     {
-        checkAuthCookie(authCookie);
-        ItemProxy item = ItemRoot.getProxy(uuid);
-        return toJSON(enumerate(item, OUTCOME+"/"+schema+"/"+version, "outcome/"+schema+"/"+version, uri));
+        NewCookie cookie = checkAndCreateNewCookie(checkAuthCookie(authCookie));
+        ItemProxy item = getProxy(uuid, cookie);
+
+        return toJSON(enumerate(item, OUTCOME+"/"+schema+"/"+version, "outcome/"+schema+"/"+version, uri, cookie), cookie).build();
     }
 
     @GET
@@ -86,8 +85,9 @@ public class ItemOutcome extends ItemUtils {
                                  @CookieParam(COOKIENAME) Cookie  authCookie,
                                  @Context                 UriInfo uri)
     {
-        checkAuthCookie(authCookie);
-        return getOutcome(uuid, schema, version, event, false);
+        NewCookie cookie = checkAndCreateNewCookie(checkAuthCookie(authCookie));
+
+        return getOutcome(uuid, schema, version, event, false, cookie).build();
     }
 
     @GET
@@ -100,7 +100,8 @@ public class ItemOutcome extends ItemUtils {
                                   @CookieParam(COOKIENAME) Cookie  authCookie,
                                   @Context                 UriInfo uri)
     {
-        checkAuthCookie(authCookie);
-        return getOutcome(uuid, schema, version, event, true);
+        NewCookie cookie = checkAndCreateNewCookie(checkAuthCookie(authCookie));
+
+        return getOutcome(uuid, schema, version, event, true, cookie).build();
     }
 }

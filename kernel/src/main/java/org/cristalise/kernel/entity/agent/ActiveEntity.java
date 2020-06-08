@@ -31,7 +31,6 @@ import org.cristalise.kernel.common.PersistencyException;
 import org.cristalise.kernel.common.SystemKey;
 import org.cristalise.kernel.entity.AgentPOA;
 import org.cristalise.kernel.lookup.AgentPath;
-import org.cristalise.kernel.utils.Logger;
 
 /**
  * ActiveEntity - the CORBA object representing the Agent. 
@@ -44,7 +43,6 @@ public class ActiveEntity extends AgentPOA {
     private final AgentImplementation        mAgentImpl;
 
     public ActiveEntity(AgentPath key, org.omg.PortableServer.POA poa) {
-        Logger.msg(5, "ActiveEntity::constructor() - SystemKey:" + key);
         mPoa = poa;
         mAgentImpl = new AgentImplementation(key);
     }

@@ -29,9 +29,12 @@ import java.time.temporal.ChronoUnit;
 import java.util.Map;
 
 import org.cristalise.kernel.persistency.outcomebuilder.InvalidOutcomeException;
-import org.cristalise.kernel.utils.Logger;
+import org.cristalise.kernel.process.Gateway;
 import org.json.JSONObject;
 
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
 public class TimeField extends StringField {
 
     public TimeField() {
@@ -42,7 +45,7 @@ public class TimeField extends StringField {
     public String getDefaultValue() {
         //return DateTimeFormatter.ISO_DATE_TIME.format(LocalDateTime.of ( LocalDate.now(), LocalTime.of (12, 0, 0) ));
         //return "12:00:00";
-        return "";
+        return Gateway.getProperties().getString("Webui.inputField.time.defaultValue", "");
     }
 
     @Override
@@ -66,7 +69,7 @@ public class TimeField extends StringField {
 
     @Override
     public void setValue(Object value) throws InvalidOutcomeException {
-        Logger.msg(0, "TimeField.setValue() - value=" + value + " class:" + value.getClass().getSimpleName());
+        log.debug("setValue() - value=" + value + " class:" + value.getClass().getSimpleName());
 
         if (value instanceof String) {
             String sVal = (String) value;
@@ -78,7 +81,7 @@ public class TimeField extends StringField {
                 else if (sVal.contains("T")) zdt = ZonedDateTime.parse(sVal);
 
                 if (zdt != null) {
-                    Logger.msg(8,"TimeField.setValue() - ZonedDateTime:%s", zdt);
+                    log.debug("setValue() - ZonedDateTime:%s", zdt);
 
                     DateTimeFormatter dtf = DateTimeFormatter.ISO_LOCAL_TIME;
                     setData(zdt.truncatedTo(ChronoUnit.SECONDS).format(dtf));
@@ -87,7 +90,7 @@ public class TimeField extends StringField {
                     setData(sVal);
             }
             catch (DateTimeParseException e) {
-                Logger.error(e);
+                log.error("", e);
                 throw new InvalidOutcomeException(e.getMessage());
             }
         }

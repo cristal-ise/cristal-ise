@@ -29,9 +29,10 @@ import org.cristalise.kernel.lookup.AgentPath;
 import org.cristalise.kernel.lookup.ItemPath;
 import org.cristalise.kernel.persistency.ClusterType;
 import org.cristalise.kernel.process.Gateway;
-import org.cristalise.kernel.utils.Logger;
 
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 public class RemoveViewpoint extends PredefinedStep {
     public static final String description = "Removes a viewpoint from the Item";
 
@@ -47,7 +48,8 @@ public class RemoveViewpoint extends PredefinedStep {
             throws InvalidDataException, ObjectNotFoundException, PersistencyException
     {
         String[] params = getDataList(requestData);
-        if (Logger.doLog(3)) Logger.msg(3, "RemoveViewpoint: called by "+agent+" on "+item+" with parameters "+Arrays.toString(params));
+
+        log.debug("Called by {} on {} with parameters {}", agent.getAgentName(), item, (Object)params);
 
         if (params.length != 2) {
             throw new InvalidDataException("RemoveViewpoint: Invalid parameters "+Arrays.toString(params));

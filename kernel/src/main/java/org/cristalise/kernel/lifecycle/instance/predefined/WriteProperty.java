@@ -29,8 +29,10 @@ import org.cristalise.kernel.common.PersistencyException;
 import org.cristalise.kernel.lookup.AgentPath;
 import org.cristalise.kernel.lookup.ItemPath;
 import org.cristalise.kernel.property.PropertyUtility;
-import org.cristalise.kernel.utils.Logger;
 
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
 public class WriteProperty extends PredefinedStep {
     /**
      * Constructor for Castor
@@ -44,8 +46,8 @@ public class WriteProperty extends PredefinedStep {
             throws InvalidDataException, ObjectCannotBeUpdated, ObjectNotFoundException, PersistencyException
     {
         String[] params = getDataList(requestData);
-        if (Logger.doLog(3))
-            Logger.msg(3, "WriteProperty: called by " + agent + " on " + item + " with parameters " + Arrays.toString(params));
+
+        log.debug("Called by {} on {} with parameters {}", agent.getAgentName(), item, (Object)params);
 
         if (params.length != 2)
             throw new InvalidDataException("WriteProperty: invalid parameters " + Arrays.toString(params));

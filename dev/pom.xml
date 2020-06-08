@@ -139,6 +139,16 @@
                 <artifactId>license-maven-plugin</artifactId>
                 <configuration>
                     <header>HEADER.txt</header>
+                    <excludes>
+                        <exclude>pom.xml</exclude>
+                        <exclude>.flattened-pom.xml</exclude>
+                        <exclude>**/server.conf</exclude>
+                        <exclude>**/*.gpg.enc</exclude>
+                        <exclude>**/*.example</exclude>
+                        <exclude>**/*.launch</exclude>
+                        <exclude>**/*.conf</exclude>
+                        <exclude>**/src/main/config/**</exclude>
+                    </excludes>
                 </configuration>
                 <executions>
                     <execution>
@@ -218,28 +228,6 @@
                         </goals>
                     </execution>
                 </executions>
-            </plugin>
-            <plugin>
-                <groupId>org.codehaus.gmavenplus</groupId>
-                <artifactId>gmavenplus-plugin</artifactId>
-                <version>1.5</version>
-                <executions>
-                    <execution>
-                        <goals>
-                            <goal>testCompile</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
-            <plugin>
-                <artifactId>maven-surefire-plugin</artifactId>
-                <version>2.18.1</version>
-                <configuration>
-                    <useFile>false</useFile>
-                    <includes>
-                        <include>**/*Spec.java</include>
-                    </includes>
-                </configuration>
             </plugin>
         </plugins>
     </build>

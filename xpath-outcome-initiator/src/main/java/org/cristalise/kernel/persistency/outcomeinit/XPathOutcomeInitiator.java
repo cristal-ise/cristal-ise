@@ -30,14 +30,16 @@ import org.cristalise.kernel.entity.agent.Job;
 import org.cristalise.kernel.persistency.outcome.Outcome;
 import org.cristalise.kernel.persistency.outcome.OutcomeInitiator;
 import org.cristalise.kernel.process.Gateway;
-import org.cristalise.kernel.utils.Logger;
 import org.mvel2.templates.TemplateRuntime;
+
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * OutcomeInitiator implementation using on Activity Properties. It is based on the convention that the name
  * of the Activity Property is a XPath expression. All Activity properties in the Job shall be resolved already,
  * i.e. all the DataHelpers were executed while the Job was created.
  */
+@Slf4j
 public class XPathOutcomeInitiator extends EmptyOutcomeInitiator {
 
     /**
@@ -61,7 +63,7 @@ public class XPathOutcomeInitiator extends EmptyOutcomeInitiator {
      */
     @Override
     public String initOutcome(Job job) throws InvalidDataException {
-        Logger.msg(5, "XPathOutcomeInitiator.initOutcome() - stepName:"+job.getStepName());
+        log.debug("initOutcome() - stepName:"+job.getStepName());
         return initOutcomeInstance(job).getData();
     }
 
@@ -83,14 +85,14 @@ public class XPathOutcomeInitiator extends EmptyOutcomeInitiator {
                 if ("/".equals(propNamePrefix)) xpath = entry.getKey();
                 else                            xpath = entry.getKey().substring(propNamePrefix.length());
 
-                Logger.msg(5, "XPathOutcomeInitiator.initOutcomeInstance() - Using Property xpath:"+xpath+" value:"+value);
+                log.debug("initOutcomeInstance() - Using Property xpath:"+xpath+" value:"+value);
 
                 if(StringUtils.isEmpty(value)) throw new InvalidDataException("Value is NULL/EMPTY for Property name:'"+xpath+"'");
 
                 value = evaluate(value, job);
 
                 if(value.startsWith("<") && value.endsWith(">")) {
-                    Logger.msg(5, "XPathOutcomeInitiator.initOutcomeInstance() - Updating XML fregment with xpath:"+xpath);
+                    log.debug("initOutcomeInstance() - Updating XML fregment with xpath:"+xpath);
                     xpathOutcome.appendXmlFragment(xpath, value);
                 }
                 else {
@@ -98,8 +100,7 @@ public class XPathOutcomeInitiator extends EmptyOutcomeInitiator {
                 }
             }
             catch (XPathExpressionException e) {
-                Logger.msg(5,"XPathOutcomeInitiator - Invalid XPath:"+entry.getKey());
-                Logger.error(e);
+                log.error("Invalid XPath:"+entry.getKey(), e);
                 throw new InvalidDataException(e.getMessage());
             }
         }

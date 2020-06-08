@@ -42,8 +42,10 @@ import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.scripting.Script;
 import org.cristalise.kernel.scripting.ScriptingEngineException;
 import org.cristalise.kernel.utils.CastorHashMap;
-import org.cristalise.kernel.utils.Logger;
 
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
 public abstract class PredefinedStepCollectionBase extends PredefinedStep {
 
     public PredefinedStepCollectionBase() {
@@ -81,13 +83,13 @@ public abstract class PredefinedStepCollectionBase extends PredefinedStep {
             }
             else {
                 String error = collectionName + " is not Dependency (class:" + collection.getClass().getSimpleName()+")";
-                Logger.error(error);
+                log.error(error);
                 throw new InvalidDataException(error);
             }
         }
         else {
             String error = "Collection '" + collectionName + "' was not found or not initilaised.";
-            Logger.error(error);
+            log.error(error);
             throw new InvalidDataException(error);
         }
     }
@@ -104,13 +106,13 @@ public abstract class PredefinedStepCollectionBase extends PredefinedStep {
             }
             else {
                 String error = collectionName + " is not Aggregation (class:" + collection.getClass().getSimpleName()+")";
-                Logger.error(error);
+                log.error(error);
                 throw new InvalidDataException(error);
             }
         }
         else {
             String error = "Collection '" + collectionName + "' was not found or not initilaised.";
-            Logger.error(error);
+            log.error(error);
             throw new InvalidDataException(error);
         }
     }
@@ -132,7 +134,7 @@ public abstract class PredefinedStepCollectionBase extends PredefinedStep {
 
         if (params == null || params.length < 2) throw new InvalidDataException("CollectionBase - Invalid parameters:" + Arrays.toString(params));
 
-        Logger.msg(2, "PredefinedStepCollectionBase.unpackParamsAndGetCollection() - params:%s", Arrays.toString(params));
+        log.debug("unpackParamsAndGetCollection() - params:{}", (Object)params);
 
         collectionName = params[0];
 
@@ -160,8 +162,7 @@ public abstract class PredefinedStepCollectionBase extends PredefinedStep {
             }
         }
         catch (Exception e) {
-            Logger.error("CollectionBase - Invalid parameters:" + Arrays.toString(params));
-            Logger.error(e);
+            log.error("Invalid parameters:{}", Arrays.toString(params), e);
             throw new InvalidDataException("CollectionBase - Invalid parameters:" + Arrays.toString(params));
         }
 
@@ -202,7 +203,7 @@ public abstract class PredefinedStepCollectionBase extends PredefinedStep {
             script.evaluate(item, scriptProps, getActContext(), locker);
         }
         catch (ScriptingEngineException e) {
-            Logger.error(e);
+            log.error("", e);
             throw new InvalidCollectionModification(e.getMessage());
         }
     }

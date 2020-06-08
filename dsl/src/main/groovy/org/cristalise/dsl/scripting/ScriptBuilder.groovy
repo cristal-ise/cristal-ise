@@ -20,31 +20,28 @@
  */
 package org.cristalise.dsl.scripting
 
-import groovy.transform.CompileStatic
+import static org.cristalise.kernel.process.resource.BuiltInResources.SCRIPT_RESOURCE
+
 import org.cristalise.kernel.common.InvalidDataException
-import org.cristalise.kernel.lookup.InvalidPathException
-import org.cristalise.kernel.persistency.outcome.OutcomeValidator
-import org.cristalise.kernel.persistency.outcome.Schema
-import org.cristalise.kernel.utils.LocalObjectLoader
-
-import javax.xml.XMLConstants
-import javax.xml.transform.stream.StreamSource
-
 import org.cristalise.kernel.lookup.DomainPath
+import org.cristalise.kernel.lookup.InvalidPathException
 import org.cristalise.kernel.lookup.ItemPath
 import org.cristalise.kernel.persistency.outcome.Outcome
-import org.cristalise.kernel.process.Bootstrap
+import org.cristalise.kernel.persistency.outcome.OutcomeValidator
+import org.cristalise.kernel.persistency.outcome.Schema
 import org.cristalise.kernel.process.Gateway
+import org.cristalise.kernel.process.resource.ResourceImportHandler
 import org.cristalise.kernel.scripting.Script
-import org.cristalise.kernel.utils.Logger
+import org.cristalise.kernel.utils.LocalObjectLoader
 
-import javax.xml.validation.SchemaFactory
+import groovy.transform.CompileStatic
+import groovy.util.logging.Slf4j
 
 
 /**
  *
  */
-@CompileStatic
+@CompileStatic @Slf4j
 class ScriptBuilder {
     String name = ""
     String module = ""
@@ -80,12 +77,12 @@ class ScriptBuilder {
         OutcomeValidator validator = new OutcomeValidator(scriptSchema)
         def error = validator.validate(xml)
 
-        if(!error) {
-            Logger.debug(5, "ScriptBuilder.validateScriptXML() - DONE")
+        if (!error) {
+            log.debug "validateScriptXML() - DONE"
         }
         else {
-            Logger.error("ScriptBuilder.validateScriptXML() - $error")
-            Logger.error("\n============== XML ==============\n" + xml + "\n=================================\n");
+            log.error("ScriptBuilder.validateScriptXML() - $error")
+            log.error("\n============== XML ==============\n" + xml + "\n=================================\n");
             throw new InvalidPathException(error)
         }
     }
@@ -132,7 +129,7 @@ class ScriptBuilder {
 
         sb.scriptXML = scriptD.writer.toString()
 
-        Logger.debug(5, "ScriptBuilder.build() - Generated xml:\n $sb.scriptXML");
+        log.debug "build() - Generated xml:\n $sb.scriptXML"
 
         sb.validateScriptXML(sb.scriptXML)
 
@@ -146,6 +143,7 @@ class ScriptBuilder {
      * @return the DomainPath of the newly created resource Item
      */
     public DomainPath create() {
-        return domainPath = Bootstrap.createResource(module, name, version, "SC", [new Outcome(-1, scriptXML, scriptSchema)] as Set, false)
+        ResourceImportHandler importHandler = Gateway.getResourceImportHandler(SCRIPT_RESOURCE);
+        return domainPath = importHandler.createResource(module, name, version, new Outcome(-1, scriptXML, scriptSchema), false)
     }
 }

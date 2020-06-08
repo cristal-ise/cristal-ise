@@ -25,14 +25,12 @@ import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.ABORTABL
 import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.REPEAT_WHEN;
 import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.STATE_MACHINE_NAME;
 import static org.cristalise.kernel.process.resource.BuiltInResources.COMP_ACT_DESC_RESOURCE;
-
 import java.io.File;
 import java.io.IOException;
 import java.io.Writer;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map.Entry;
-
 import org.cristalise.kernel.collection.CollectionArrayList;
 import org.cristalise.kernel.collection.Dependency;
 import org.cristalise.kernel.common.InvalidDataException;
@@ -54,12 +52,13 @@ import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.utils.CastorHashMap;
 import org.cristalise.kernel.utils.FileStringUtility;
 import org.cristalise.kernel.utils.LocalObjectLoader;
-import org.cristalise.kernel.utils.Logger;
 import org.w3c.dom.NodeList;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * 
  */
+@Slf4j
 public class CompositeActivityDef extends ActivityDef {
     private ArrayList<ActivityDef> refChildActDef = new ArrayList<ActivityDef>();
 
@@ -177,7 +176,7 @@ public class CompositeActivityDef extends ActivityDef {
 
         if(!wasAdded) addChild(child, location);
 
-        Logger.msg(5, "CompositeActivityDef.newChild() - Type:"+Type + " ID:" + child.getID() + " added to ID:" + this.getID());
+        log.debug("newChild() - Type:"+Type + " ID:" + child.getID() + " added to ID:" + this.getID());
 
         return child;
     }
@@ -195,7 +194,7 @@ public class CompositeActivityDef extends ActivityDef {
     public WfVertex instantiate(String name) throws ObjectNotFoundException, InvalidDataException {
         CompositeActivity caInstance = new CompositeActivity();
 
-        Logger.msg(1, "CompositeActivityDef.instantiate(name:"+name+") - Starting.");
+        log.info("instantiate(name:"+name+") - Starting.");
 
         caInstance.setName(name);
 
@@ -419,7 +418,7 @@ public class CompositeActivityDef extends ActivityDef {
                         nodeList.item(i).setNodeValue(itemProxy.getName());
                     }
                     catch(Exception e) {
-                         Logger.error(e);
+                         log.error("Cannot find item with UIID: "+nodeList.item(i).getNodeValue(), e);
                          throw new ObjectNotFoundException("Cannot find item with UIID: "+nodeList.item(i).getNodeValue());
                     }
                }
@@ -428,7 +427,7 @@ public class CompositeActivityDef extends ActivityDef {
             FileStringUtility.string2File(new File(new File(dir, tc), getActName() + (getVersion() == null ? "" : "_" + getVersion()) + ".xml"), compactXML);
         }
         catch (Exception e) {
-            Logger.error(e);
+            log.error("Couldn't marshall composite activity def " + getActName(), e);
             throw new InvalidDataException("Couldn't marshall composite activity def " + getActName());
         }
 

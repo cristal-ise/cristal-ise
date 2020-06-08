@@ -308,42 +308,42 @@
                 <element name="Chillers" minOccurs="0" maxOccurs="3">
                     <complexType>
                         <sequence>
-                            <element name="Manufacturer">
+                            <element name="Manufacturer" minOccurs='0' maxOccurs='1'>
                                 <complexType>
                                     <simpleContent>
                                         <extension base="string" />
                                     </simpleContent>
                                 </complexType>
                             </element>
-                            <element name="CoolingPower">
+                            <element name="CoolingPower" minOccurs='0' maxOccurs='1'>
                                 <complexType>
                                     <simpleContent>
                                         <extension base="string" />
                                     </simpleContent>
                                 </complexType>
                             </element>
-                            <element name="Technology">
+                            <element name="Technology" minOccurs='0' maxOccurs='1'>
                                 <complexType>
                                     <simpleContent>
                                         <extension base="string" />
                                     </simpleContent>
                                 </complexType>
                             </element>
-                            <element name="IndependantCircuits">
+                            <element name="IndependantCircuits" minOccurs='0' maxOccurs='1'>
                                 <complexType>
                                     <simpleContent>
                                         <extension base="string" />
                                     </simpleContent>
                                 </complexType>
                             </element>
-                            <element name="UsedFor">
+                            <element name="UsedFor" minOccurs='0' maxOccurs='1'>
                                 <complexType>
                                     <simpleContent>
                                         <extension base="string" />
                                     </simpleContent>
                                 </complexType>
                             </element>
-                            <element name="Remarks">
+                            <element name="Remarks" minOccurs='0' maxOccurs='1'>
                                 <complexType>
                                     <simpleContent>
                                         <extension base="string" />

@@ -22,7 +22,6 @@ package org.cristalise.restapi;
 
 import java.util.LinkedHashMap;
 
-import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 
 import org.cristalise.kernel.common.ObjectNotFoundException;
@@ -30,7 +29,6 @@ import org.cristalise.kernel.entity.C2KLocalObject;
 import org.cristalise.kernel.entity.proxy.ItemProxy;
 import org.cristalise.kernel.persistency.ClusterType;
 import org.cristalise.kernel.persistency.RemoteMap;
-import org.cristalise.kernel.utils.Logger;
 
 /**
  * 
@@ -40,19 +38,12 @@ public class RemoteMapAccess {
 
     private RemoteMapAccess() {}
 
-    public static LinkedHashMap<String, Object> list(ItemProxy item, ClusterType root, int start, int batchSize, Boolean descending, UriInfo uri) {
-        RemoteMap<?> map;
-        try {
-            map = (RemoteMap<?>) item.getObject(root);
-            map.activate();
-        }
-        catch (ObjectNotFoundException e) {
-            Logger.error(e);
-            throw ItemUtils.createWebAppException("Could not access item history");
-        }
-        catch (ClassCastException e) {
-            throw ItemUtils.createWebAppException("Object was not a RemoteMap: " + root, Response.Status.BAD_REQUEST);
-        }
+    public static LinkedHashMap<String, Object> list(ItemProxy item, ClusterType root, int start,
+                                                     int batchSize, Boolean descending, UriInfo uri)
+            throws ObjectNotFoundException, ClassCastException
+    {
+        RemoteMap<?> map = (RemoteMap<?>) item.getObject(root);
+        map.activate();
 
         LinkedHashMap<String, Object> batch = new LinkedHashMap<String, Object>();
         int last = map.getLastId();
@@ -61,6 +52,7 @@ public class RemoteMapAccess {
             int i = last-start;
 
             while (i >= 0 && batch.size() < batchSize) {
+                @SuppressWarnings("unlikely-arg-type")
                 Object obj = map.get(i);
                 if (obj != null) batch.put(String.valueOf(i), obj);
                 i--;
@@ -76,6 +68,7 @@ public class RemoteMapAccess {
             int i = start;
 
             while (i <= last && batch.size() < batchSize) {
+                @SuppressWarnings("unlikely-arg-type")
                 Object obj = map.get(i);
                 if (obj != null) batch.put(String.valueOf(i), obj);
                 i++;
@@ -91,22 +84,16 @@ public class RemoteMapAccess {
         return batch;
     }
 
-    public static C2KLocalObject get(ItemProxy item, ClusterType root, String id) {
-        RemoteMap<?> map;
-        try {
-            map = (RemoteMap<?>) item.getObject(root);
-        }
-        catch (ObjectNotFoundException e) {
-            Logger.error(e);
-            throw ItemUtils.createWebAppException(e.getMessage(), Response.Status.NOT_FOUND);
-        }
-        catch (ClassCastException e) {
-            throw ItemUtils.createWebAppException("Object was not a RemoteMap: " + root, Response.Status.BAD_REQUEST);
-        }
+    public static C2KLocalObject get(ItemProxy item, ClusterType root, String id) throws ObjectNotFoundException, ClassCastException {
+        RemoteMap<?> map = (RemoteMap<?>) item.getObject(root);
+        map.activate();
 
         if (id.equals("last")) id = String.valueOf(map.getLastId());
 
-        if (map.containsKey(id)) return map.get(id);
-        else throw ItemUtils.createWebAppException("Object was not found in " + root + " id:" + id, Response.Status.NOT_FOUND);
+        if (map.containsKey(id)) {
+            return map.get(id);
+        } else {
+            throw new ObjectNotFoundException("Object was not found in " + root + " id:" + id);
+        }
     }
 }

@@ -24,10 +24,11 @@ import java.util.ArrayList;
 import java.util.concurrent.LinkedBlockingQueue;
 
 import org.cristalise.kernel.process.Gateway;
-import org.cristalise.kernel.utils.Logger;
 import org.cristalise.kernel.utils.server.SimpleTCPIPServer;
 
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 public class ProxyServer implements Runnable {
 
     ArrayList<ProxyClientConnection> proxyClients;
@@ -40,12 +41,12 @@ public class ProxyServer implements Runnable {
     int port = 0;
 
     public ProxyServer(String serverName) {
-        Logger.msg(5, "ProxyServer(serverName:"+serverName+") - Starting.....");
+       log.info("ProxyServer(serverName:"+serverName+") - Starting.....");
 
         port = Gateway.getProperties().getInt("ItemServer.Proxy.port", 0);
 
         if (port == 0) {
-            Logger.error("ItemServer.Proxy.port not defined in connect file. Remote proxies will not be informed of changes.");
+            log.error("ItemServer.Proxy.port not defined in connect file. Remote proxies will not be informed of changes.");
             return;
         }
 
@@ -62,13 +63,12 @@ public class ProxyServer implements Runnable {
         Thread.currentThread().setName("ProxyServer");
 
         try {
-            Logger.msg(5, "ProxyManager::initServer - Initialising proxy informer on port "+port);
+            log.info("initServer - Initialising proxy informer on port "+port);
             proxyListener = new SimpleTCPIPServer(port, ProxyClientConnection.class, 200);
             proxyListener.startListening();
         }
         catch (Exception ex) {
-            Logger.error("Error setting up Proxy Server. Remote proxies will not be informed of changes.");
-            Logger.error(ex);
+            log.error("Error setting up Proxy Server. Remote proxies will not be informed of changes.",ex);
         }
 
         while(keepRunning) {
@@ -107,14 +107,14 @@ public class ProxyServer implements Runnable {
 
     public void reportConnections(int logLevel) {
         synchronized(proxyClients) {
-            Logger.msg(logLevel, "Currently connected proxy clients:");
+            log.debug("Currently connected proxy clients:");
 
-            for (ProxyClientConnection client : proxyClients) Logger.msg(logLevel, "   "+client);
+            for (ProxyClientConnection client : proxyClients) log.debug("   "+client);
         }
     }
 
     public void shutdownServer() {
-        Logger.msg(1, "ProxyManager: Closing Server.");
+        log.info("Closing Server.");
 
         proxyListener.stopListening();
 

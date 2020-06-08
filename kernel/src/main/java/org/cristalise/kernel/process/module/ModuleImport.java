@@ -45,6 +45,9 @@ public abstract class ModuleImport {
     protected DomainPath domainPath;
     protected ItemPath   itemPath;
 
+    protected boolean isNewItem = true;
+    protected boolean isDOMPathExists = true; //avoids multiple call to domainPath.exists()
+
     public ModuleImport() {}
 
     public abstract Path create(AgentPath agentPath, boolean reset)
@@ -71,5 +74,4 @@ public abstract class ModuleImport {
     public int hashCode() {
         return name.hashCode() + (ns == null ? 0 : ns.hashCode());
     }
-
 }

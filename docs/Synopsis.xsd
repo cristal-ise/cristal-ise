@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified" attributeFormDefault="unqualified">
+    <xs:element name="ECGData">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="Synopsis" type="xs:string">
+                    <xs:annotation>
+                        <xs:documentation>Provide summary of your diagnosis.</xs:documentation>
+                    </xs:annotation>
+                </xs:element>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+</xs:schema>

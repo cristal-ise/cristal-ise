@@ -39,8 +39,10 @@ import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.process.resource.BuiltInResources;
 import org.cristalise.kernel.utils.DescriptionObject;
 import org.cristalise.kernel.utils.FileStringUtility;
-import org.cristalise.kernel.utils.Logger;
 
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
 public class StateMachine implements DescriptionObject {
     public String   name;
     public Integer  version;
@@ -122,7 +124,7 @@ public class StateMachine implements DescriptionObject {
     public State createState(String name) {
         State newState = new State(getNextStateId(), name);
         states.add(newState);
-        Logger.msg(5, "StateMachine.createState() - created:" + name + " id:" + newState.id);
+        log.debug("createState() - created:" + name + " id:" + newState.id);
         return newState;
     }
 
@@ -136,7 +138,7 @@ public class StateMachine implements DescriptionObject {
     public Transition createTransition(String name) {
         Transition newTrans = new Transition(getNextTransId(), name);
         transitions.add(newTrans);
-        Logger.msg(5, "StateMachine.createTransition() - created:" + name + " id:" + newTrans.id);
+        log.debug("createTransition() - created:" + name + " id:" + newTrans.id);
         return newTrans;
     }
 
@@ -155,10 +157,10 @@ public class StateMachine implements DescriptionObject {
         transitionCodes.clear();
         isCoherent = true;
 
-        Logger.msg(5, "StateMachine.validate() - name:'" + name + "'");
+        log.debug("validate() - name:'" + name + "'");
 
         for (State state : states) {
-            Logger.debug(8, "State     : " + state);
+            log.trace("State     :{} ", state);
             stateCodes.put(state.getId(), state);
         }
 
@@ -166,7 +168,7 @@ public class StateMachine implements DescriptionObject {
         else isCoherent = false;
 
         for (Transition trans : transitions) {
-            Logger.debug(8, "Transition: " + trans);
+            log.trace("Transition: {}", trans);
             transitionCodes.put(trans.getId(), trans);
             isCoherent = isCoherent && trans.resolveStates(stateCodes);
         }
@@ -302,11 +304,11 @@ public class StateMachine implements DescriptionObject {
                 if (possTrans.isEnabled(act)) {
                     returnList.put(possTrans, possTrans.getPerformingRole(act, agent) );
                 }
-                else Logger.msg(7, "StetMachine.getPossibleTransitions() - DISABLED trans:"+possTrans+" act:"+act.getName());
+                else log.trace("getPossibleTransitions() - DISABLED trans:"+possTrans+" act:"+act.getName());
             }
             catch (AccessRightsException ex) {
-                Logger.msg(5, "StetMachine.getPossibleTransitions() - trans:"+possTrans+" not possible for "+agent.getAgentName()+" exception:" + ex.getMessage());
-                if (Logger.doLog(8)) Logger.error(ex);
+                log.debug("getPossibleTransitions() - trans:"+possTrans+" not possible for "+agent.getAgentName()+" exception:" + ex.getMessage());
+                if (log.isTraceEnabled()) log.error("", ex);
             }
         }
         return returnList;
@@ -342,7 +344,7 @@ public class StateMachine implements DescriptionObject {
             smXML = Gateway.getMarshaller().marshall(this);
         }
         catch (Exception e) {
-            Logger.error(e);
+            log.error("", e);
             throw new InvalidDataException("Couldn't marshall state machine " + getName());
         }
 

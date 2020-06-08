@@ -32,8 +32,10 @@ import org.cristalise.kernel.lookup.AgentPath;
 import org.cristalise.kernel.lookup.DomainPath;
 import org.cristalise.kernel.lookup.ItemPath;
 import org.cristalise.kernel.process.Gateway;
-import org.cristalise.kernel.utils.Logger;
 
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
 public class AddDomainContext extends PredefinedStep {
 
     public AddDomainContext() {
@@ -45,7 +47,8 @@ public class AddDomainContext extends PredefinedStep {
             throws InvalidDataException, ObjectCannotBeUpdated, ObjectAlreadyExistsException, CannotManageException
     {
         String[] params = getDataList(requestData);
-        Logger.msg(3, "AddDomainContext: called by " + agent + " on " + item + " with parameters " + Arrays.toString(params));
+
+        log.debug("Called by {} on {} with parameters {}", agent.getAgentName(), item, (Object)params);
 
         if (params.length != 1) throw new InvalidDataException("AddDomainContext: Invalid parameters " + Arrays.toString(params));
 

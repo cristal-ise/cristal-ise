@@ -34,6 +34,7 @@ import org.cristalise.kernel.persistency.outcomebuilder.InvalidOutcomeException;
 import org.cristalise.kernel.persistency.outcomebuilder.OutcomeStructure;
 import org.cristalise.kernel.persistency.outcomebuilder.StructuralException;
 import org.cristalise.kernel.persistency.outcomebuilder.StructureWithAppInfo;
+import org.cristalise.kernel.process.Gateway;
 import org.exolab.castor.types.AnyNode;
 import org.exolab.castor.xml.schema.Annotated;
 import org.exolab.castor.xml.schema.AttributeDecl;
@@ -256,7 +257,7 @@ public class StringField extends StructureWithAppInfo {
      * @return zero length String
      */
     public String getDefaultValue() {
-        return "";
+        return Gateway.getProperties().getString("Webui.inputField.string.defaultValue", "");
     }
 
     public void updateNode() {
@@ -365,15 +366,31 @@ public class StringField extends StructureWithAppInfo {
         }
     }
 
+    /**
+     * 
+     * @param field
+     */
+    public void updateWithAdditional(JSONObject field) {
+        if (additional != null) {
+            JSONObject fieldAdditional = getAdditionalConfigNgDynamicForms(field);
+            for (String key: additional.keySet()) fieldAdditional.put(key, additional.get(key));
+        }
+    }
+
+    /**
+     * 
+     * @return
+     */
     public JSONObject getCommonFieldsNgDynamicForms() {
         JSONObject field = new JSONObject();
         
         field.put("id",       name);
-        field.put("label",    name);
+        // appinfo/dynamicForms could update label later, so do the CamelCase splitting now
+        field.put("label",    StringUtils.join(StringUtils.splitByCharacterTypeCamelCase(name), " "));
         field.put("type",     getNgDynamicFormsControlType());
         field.put("required", !isOptional());
 
-        //This can overwrite values set earlier, for example 'type' can be changed from INPUT to RATING
+        //This can overwrite values set earlier, for example 'type' can be changed from INPUT to RATING or label can be provided
         readAppInfoDynamicForms(model, field, false);
 
         field.put("cls", generateNgDynamicFormsCls());
@@ -393,13 +410,20 @@ public class StringField extends StructureWithAppInfo {
             setNgDynamicFormsErrorMessages(errorMessages);
         }
 
-        // appinfo/dynamicForms could have updated label, so do the CamelCase splitting now
-        String label = StringUtils.join(StringUtils.splitByCharacterTypeCamelCase((String)field.get("label")), " ");
+        // appinfo/dynamicForms could have updated label, so do some fixing now
+        String label = field.getString("label");
         label.replaceAll(" *", " ");
         field.put("label", label + (required ? " *": ""));
 
         //Put label as placholder if it was not specified in the Schema
         if (! field.has("placeholder")) field.put("placeholder", label);
+
+        String defaultAutoComplete = Gateway.getProperties().getString("Webui.autoComplete.default", "off");
+
+        // autoComplete=on by default in NgDyanmicForms so no need to set
+        if (! field.has("autoComplete") && defaultAutoComplete.equals("off") ) {
+            field.put("autoComplete", defaultAutoComplete);
+        }
 
         // if validators has no elements then remove it.
         if (field.getJSONObject("validators").length() == 0) {

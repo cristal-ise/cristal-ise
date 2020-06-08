@@ -89,6 +89,10 @@ public class ProxyMessage {
         this(new String(packet.getData()));
     }
 
+    /**
+     * This is also used to create the message sent to the subscribers, therfore the format cannot
+     * be changed without changing the parsing 
+     */
     @Override
     public String toString() {
         return (itemPath == null ? "tree" : itemPath.getUUID()) + ":" + (state ? "-" : "") + path;

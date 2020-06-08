@@ -6,12 +6,12 @@ import java.nio.file.Paths
 import org.cristalise.kernel.common.InvalidDataException
 import org.cristalise.kernel.process.AbstractMain
 import org.cristalise.kernel.process.Gateway
-import org.cristalise.kernel.utils.Logger
 
 import groovy.transform.CompileStatic
 import groovy.transform.SourceURI
+import groovy.util.logging.Slf4j
 
-@CompileStatic
+@CompileStatic @Slf4j
 abstract class ModuleScriptBase extends DelegatingScript {
 
     private static final String defaultConnect = 'local.clc'
@@ -33,15 +33,13 @@ abstract class ModuleScriptBase extends DelegatingScript {
     }
 
     public void init() {
-        Logger.addLogStream(System.out, logLevel)
-
         if (configDir && (connect || config)) throw new InvalidDataException('Specify only configDir or connect/config')
 
         if (configDir) {
             config  = config  ?: "$configDir/$defaultConfig"
             connect = connect ?: "$configDir/$defaultConnect"
 
-            Logger.msg(5, 'DslScriptBase - config:%s, connect:%s', config, connect)
+            log.info('config:{}, connect:{}', config, connect)
         }
 
         if (!connect || !config) throw new InvalidDataException("Missing connect '"+connect+"' or config '"+config+"' files")

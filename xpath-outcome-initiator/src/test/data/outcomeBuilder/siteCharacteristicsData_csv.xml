@@ -63,7 +63,7 @@
     <ACSRemarks/>
     <Chillers>
         <Manufacturer/>
-        <CoolingPower/>
+        <CoolingPower>P1</CoolingPower>
         <Technology/>
         <IndependantCircuits/>
         <UsedFor/>
@@ -71,7 +71,7 @@
     </Chillers>
     <Chillers>
         <Manufacturer/>
-        <CoolingPower/>
+        <CoolingPower>P2</CoolingPower>
         <Technology/>
         <IndependantCircuits/>
         <UsedFor/>
@@ -79,7 +79,7 @@
     </Chillers>
     <Chillers>
         <Manufacturer/>
-        <CoolingPower/>
+        <CoolingPower>P3</CoolingPower>
         <Technology/>
         <IndependantCircuits/>
         <UsedFor/>
@@ -110,7 +110,7 @@
         <Remarks/>
     </UPS>
     <HotLabs>
-        <Dedication>prod</Dedication>
+        <Dedication>prod1</Dedication>
         <DedicationCleanGrade>nc</DedicationCleanGrade>
         <Manufacturer/>
         <SynthesisHotCells/>
@@ -120,14 +120,14 @@
         <DispensingHotCells/>
         <DispensingCleanGrade>nc</DispensingCleanGrade>
         <Compartment>yes</Compartment>
-        <CompartmentCleanGrade>nc</CompartmentCleanGrade>
+        <CompartmentCleanGrade>nc1</CompartmentCleanGrade>
         <DispensingSystemType/>
         <Autoclave>yes</Autoclave>
         <Qualified>yes</Qualified>
         <Remarks/>
     </HotLabs>
     <HotLabs>
-        <Dedication>prod</Dedication>
+        <Dedication>prod2</Dedication>
         <DedicationCleanGrade>nc</DedicationCleanGrade>
         <Manufacturer/>
         <SynthesisHotCells/>
@@ -137,14 +137,14 @@
         <DispensingHotCells/>
         <DispensingCleanGrade>nc</DispensingCleanGrade>
         <Compartment>yes</Compartment>
-        <CompartmentCleanGrade>nc</CompartmentCleanGrade>
+        <CompartmentCleanGrade>nc2</CompartmentCleanGrade>
         <DispensingSystemType/>
         <Autoclave>yes</Autoclave>
         <Qualified>yes</Qualified>
         <Remarks/>
     </HotLabs>
     <HotLabs>
-        <Dedication>prod</Dedication>
+        <Dedication>prod3</Dedication>
         <DedicationCleanGrade>nc</DedicationCleanGrade>
         <Manufacturer/>
         <SynthesisHotCells/>
@@ -154,14 +154,14 @@
         <DispensingHotCells/>
         <DispensingCleanGrade>nc</DispensingCleanGrade>
         <Compartment>yes</Compartment>
-        <CompartmentCleanGrade>nc</CompartmentCleanGrade>
+        <CompartmentCleanGrade>nc3</CompartmentCleanGrade>
         <DispensingSystemType/>
         <Autoclave>yes</Autoclave>
         <Qualified>yes</Qualified>
         <Remarks/>
     </HotLabs>
     <HotLabs>
-        <Dedication>prod</Dedication>
+        <Dedication>prod4</Dedication>
         <DedicationCleanGrade>nc</DedicationCleanGrade>
         <Manufacturer/>
         <SynthesisHotCells/>
@@ -171,14 +171,14 @@
         <DispensingHotCells/>
         <DispensingCleanGrade>nc</DispensingCleanGrade>
         <Compartment>yes</Compartment>
-        <CompartmentCleanGrade>nc</CompartmentCleanGrade>
+        <CompartmentCleanGrade>nc4</CompartmentCleanGrade>
         <DispensingSystemType/>
         <Autoclave>yes</Autoclave>
         <Qualified>yes</Qualified>
         <Remarks/>
     </HotLabs>
     <HotLabs>
-        <Dedication>prod</Dedication>
+        <Dedication>prod5</Dedication>
         <DedicationCleanGrade>nc</DedicationCleanGrade>
         <Manufacturer/>
         <SynthesisHotCells/>
@@ -188,14 +188,14 @@
         <DispensingHotCells/>
         <DispensingCleanGrade>nc</DispensingCleanGrade>
         <Compartment>yes</Compartment>
-        <CompartmentCleanGrade>nc</CompartmentCleanGrade>
+        <CompartmentCleanGrade>nc5</CompartmentCleanGrade>
         <DispensingSystemType/>
         <Autoclave>yes</Autoclave>
         <Qualified>yes</Qualified>
         <Remarks/>
     </HotLabs>
     <HotLabs>
-        <Dedication>prod</Dedication>
+        <Dedication>prod6</Dedication>
         <DedicationCleanGrade>nc</DedicationCleanGrade>
         <Manufacturer/>
         <SynthesisHotCells/>
@@ -205,14 +205,14 @@
         <DispensingHotCells/>
         <DispensingCleanGrade>nc</DispensingCleanGrade>
         <Compartment>yes</Compartment>
-        <CompartmentCleanGrade>nc</CompartmentCleanGrade>
+        <CompartmentCleanGrade>nc6</CompartmentCleanGrade>
         <DispensingSystemType/>
         <Autoclave>yes</Autoclave>
         <Qualified>yes</Qualified>
         <Remarks/>
     </HotLabs>
     <HotLabs>
-        <Dedication>prod</Dedication>
+        <Dedication>prod7</Dedication>
         <DedicationCleanGrade>nc</DedicationCleanGrade>
         <Manufacturer/>
         <SynthesisHotCells/>
@@ -222,14 +222,14 @@
         <DispensingHotCells/>
         <DispensingCleanGrade>nc</DispensingCleanGrade>
         <Compartment>yes</Compartment>
-        <CompartmentCleanGrade>nc</CompartmentCleanGrade>
+        <CompartmentCleanGrade>nc7</CompartmentCleanGrade>
         <DispensingSystemType/>
         <Autoclave>yes</Autoclave>
         <Qualified>yes</Qualified>
         <Remarks/>
     </HotLabs>
     <HotLabs>
-        <Dedication>prod</Dedication>
+        <Dedication>prod8</Dedication>
         <DedicationCleanGrade>nc</DedicationCleanGrade>
         <Manufacturer/>
         <SynthesisHotCells/>
@@ -239,7 +239,7 @@
         <DispensingHotCells/>
         <DispensingCleanGrade>nc</DispensingCleanGrade>
         <Compartment>yes</Compartment>
-        <CompartmentCleanGrade>nc</CompartmentCleanGrade>
+        <CompartmentCleanGrade>nc8</CompartmentCleanGrade>
         <DispensingSystemType/>
         <Autoclave>yes</Autoclave>
         <Qualified>yes</Qualified>

@@ -84,23 +84,15 @@
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <additionalparam>-Xdoclint:none</additionalparam>
         <maven-compiler-plugin.version>3.7.0</maven-compiler-plugin.version>
-        <build-helper-maven-plugin.version>1.12</build-helper-maven-plugin.version>
-        <groovy-eclipse-compiler.version>2.9.2-01</groovy-eclipse-compiler.version>
-        <groovy-eclipse-batch.version>2.4.3-01</groovy-eclipse-batch.version>
-        <maven-release-plugin.version>2.4.1</maven-release-plugin.version>
-        <maven-surefire-plugin.version>2.22.1</maven-surefire-plugin.version>
+        <build-helper-maven-plugin.version>3.0.0</build-helper-maven-plugin.version>
         <source.version>1.8</source.version>
         <target.version>1.8</target.version>
         <additionalparam>-Xdoclint:none</additionalparam>
         <commons-lang.version>2.6</commons-lang.version>
         <junit.version>4.11</junit.version>
         <xmlunit-core.version>2.3.0</xmlunit-core.version>
-        <awaitility-groovy.version>2.0.0</awaitility-groovy.version>
         <commons-csv.version>1.5</commons-csv.version>
-        <spock.version>1.2-groovy-2.4</spock.version>
         <unitils-core.version>3.4.6</unitils-core.version>
-        <mvel2.version>2.4.3.Final</mvel2.version>
-        <spock-reports.version>1.6.1</spock-reports.version>
         <slf4j-simple.version>1.7.13</slf4j-simple.version>
         <maven.deploy.skip>false</maven.deploy.skip>
     </properties>
@@ -162,18 +154,6 @@
                 </dependencies>
             </plugin>
             <plugin>
-                <artifactId>maven-surefire-plugin</artifactId>
-                <version>${maven-surefire-plugin.version}</version>
-                <configuration>
-                    <redirectTestOutputToFile>true</redirectTestOutputToFile>
-                    <includes>
-                        <include>**/*Specs.*</include>
-                        <include>**/*Tests.*</include>
-                        <include>**/*Test.*</include>
-                    </includes>
-                </configuration>
-            </plugin>
-            <plugin>
                 <groupId>com.bluetrainsoftware.maven</groupId>
                 <artifactId>groovydoc-maven-plugin</artifactId>
                 <version>2.1</version>
@@ -193,14 +173,15 @@
     <dependencies>
         <dependency>
             <groupId>org.cristalise</groupId>
-            <artifactId>cristalise-dev</artifactId>
+            <artifactId>cristalise-kernel</artifactId>
             <version>${revision}</version>
             <scope>compile</scope>
         </dependency>
         <dependency>
             <groupId>org.codehaus.groovy</groupId>
             <artifactId>groovy-all</artifactId>
-            <scope>compile</scope>
+            <version>2.5.8</version>
+            <type>pom</type>
         </dependency>
         <dependency>
             <groupId>commons-lang</groupId>
@@ -223,49 +204,36 @@
         <dependency>
             <groupId>org.mvel</groupId>
             <artifactId>mvel2</artifactId>
-            <version>${mvel2.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.poi</groupId>
+            <artifactId>poi</artifactId>
+            <version>3.17</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.poi</groupId>
+            <artifactId>poi-ooxml</artifactId>
+            <version>3.17</version>
         </dependency>
 
         <dependency>
-            <groupId>junit</groupId>
-            <artifactId>junit</artifactId>
-            <version>${junit.version}</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
             <groupId>org.awaitility</groupId>
             <artifactId>awaitility-groovy</artifactId>
-            <version>${awaitility-groovy.version}</version>
             <scope>test</scope>
-            <exclusions>
-                <exclusion>
-                    <artifactId>org.codehaus.groovy</artifactId>
-                    <groupId>groovy-all</groupId>
-                </exclusion>
-            </exclusions>
         </dependency>
         <dependency>
             <groupId>org.spockframework</groupId>
             <artifactId>spock-core</artifactId>
-            <version>${spock.version}</version>
             <scope>test</scope>
-            <exclusions>
-                <exclusion>
-                    <artifactId>org.codehaus.groovy</artifactId>
-                    <groupId>groovy-all</groupId>
-                </exclusion>
-            </exclusions>
         </dependency>
         <dependency>
             <groupId>org.spockframework</groupId>
             <artifactId>spock-unitils</artifactId>
-            <version>${spock.version}</version>
             <scope>test</scope>
         </dependency>
         <dependency>
-            <groupId>org.unitils</groupId>
-            <artifactId>unitils-core</artifactId>
-            <version>${unitils-core.version}</version>
+            <groupId>com.athaydes</groupId>
+            <artifactId>spock-reports</artifactId>
             <scope>test</scope>
         </dependency>
         <dependency>
@@ -275,20 +243,9 @@
             <scope>test</scope>
         </dependency>
         <dependency>
-            <groupId>com.athaydes</groupId>
-            <artifactId>spock-reports</artifactId>
-            <version>${spock-reports.version}</version>
-            <scope>test</scope>
-            <exclusions>
-                <exclusion>
-                    <groupId>*</groupId>
-                    <artifactId>*</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-        <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-simple</artifactId>
+            <version>1.7.26</version>
             <scope>test</scope>
         </dependency>
     </dependencies>

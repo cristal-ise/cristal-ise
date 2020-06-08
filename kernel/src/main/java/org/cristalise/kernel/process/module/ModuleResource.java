@@ -20,9 +20,6 @@
  */
 package org.cristalise.kernel.process.module;
 
-import lombok.Getter;
-import lombok.Setter;
-
 import org.apache.commons.lang3.StringUtils;
 import org.cristalise.kernel.common.CannotManageException;
 import org.cristalise.kernel.common.InvalidDataException;
@@ -31,17 +28,23 @@ import org.cristalise.kernel.common.ObjectCannotBeUpdated;
 import org.cristalise.kernel.common.ObjectNotFoundException;
 import org.cristalise.kernel.lookup.AgentPath;
 import org.cristalise.kernel.lookup.Path;
-import org.cristalise.kernel.process.Bootstrap;
 import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.process.resource.BuiltInResources;
-import org.cristalise.kernel.utils.Logger;
+import org.cristalise.kernel.process.resource.ResourceImportHandler;
 
-@Getter @Setter
+import lombok.Getter;
+import lombok.Setter;
+import lombok.extern.slf4j.Slf4j;
+
+@Getter @Setter @Slf4j
 public class ModuleResource extends ModuleImport {
 
     public int              version;
     public BuiltInResources type;
     public String           resourceLocation;
+
+    @Getter
+    String resourceChangeDetails = null;
 
     public ModuleResource() {
         // if not given, version defaults to 0
@@ -90,10 +93,17 @@ public class ModuleResource extends ModuleImport {
             throws ObjectNotFoundException, ObjectCannotBeUpdated, CannotManageException, ObjectAlreadyExistsException, InvalidDataException
     {
         try {
-            return domainPath = Bootstrap.verifyResource(ns, name, version, type.getTypeCode(), itemPath, getResourceLocation(), reset);
+            ResourceImportHandler importHandler = Gateway.getResourceImportHandler(type);
+
+            domainPath = importHandler.importResource(ns, name, version, itemPath, getResourceLocation(), reset);
+            resourceChangeDetails = importHandler.getResourceChangeDetails();
+
+            if (itemPath == null) itemPath = domainPath.getItemPath();
+
+            return domainPath;
         }
         catch (Exception e) {
-            Logger.error(e);
+            log.error("Exception verifying module resource {}/{}", ns, name, e);
             throw new CannotManageException("Exception verifying module resource " + ns + "/" + name);
         }
     }

@@ -197,4 +197,9 @@ public class LDAPClusterStorage extends ClusterStorage {
     public String executeQuery(Query query) throws PersistencyException {
         throw new PersistencyException("UNIMPLEMENTED funnctionality");
     }
+
+    @Override
+    public int getLastIntegerId(ItemPath itemPath, String path) throws PersistencyException {
+        throw new PersistencyException("UNIMPLEMENTED funnctionality");
+    }
 }

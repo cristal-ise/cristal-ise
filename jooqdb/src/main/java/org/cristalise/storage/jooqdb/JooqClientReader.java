@@ -41,7 +41,7 @@ public class JooqClientReader extends JooqClusterStorage {
 
     @Override
     public String getId() {
-        return "JOOQCLIENT:"+context.dialect();
+        return "JOOQCLIENT:"+JooqHandler.dialect;
     }
 
     @Override

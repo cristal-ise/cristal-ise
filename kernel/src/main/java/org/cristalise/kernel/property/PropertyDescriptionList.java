@@ -35,13 +35,13 @@ import org.cristalise.kernel.process.resource.BuiltInResources;
 import org.cristalise.kernel.utils.CastorArrayList;
 import org.cristalise.kernel.utils.DescriptionObject;
 import org.cristalise.kernel.utils.FileStringUtility;
-import org.cristalise.kernel.utils.Logger;
 
 import lombok.Getter;
 import lombok.Setter;
+import lombok.extern.slf4j.Slf4j;
 
 
-@Getter @Setter
+@Getter @Setter @Slf4j
 public class PropertyDescriptionList extends CastorArrayList<PropertyDescription> implements DescriptionObject {
     String   name;
     Integer  version;
@@ -103,6 +103,10 @@ public class PropertyDescriptionList extends CastorArrayList<PropertyDescription
         add(name, value, isClassId, isMutable, false);
     }
 
+    public void add(String name, String value) {
+        add(name, value, false, true, false);
+    }
+
     public boolean definesProperty(String name) {
         for (PropertyDescription element : list) {
             if (element.getName().equals(name)) return true;
@@ -161,7 +165,7 @@ public class PropertyDescriptionList extends CastorArrayList<PropertyDescription
             xml = Gateway.getMarshaller().marshall(this);
         }
         catch (Exception e) {
-            Logger.error(e);
+            log.error("", e);
             throw new InvalidDataException("Couldn't marshall PropertyDescriptionList name:" + getName());
         }
 

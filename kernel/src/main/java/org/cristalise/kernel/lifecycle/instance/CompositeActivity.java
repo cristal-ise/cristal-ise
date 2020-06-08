@@ -49,9 +49,10 @@ import org.cristalise.kernel.lifecycle.instance.stateMachine.Transition;
 import org.cristalise.kernel.lookup.AgentPath;
 import org.cristalise.kernel.lookup.InvalidAgentPathException;
 import org.cristalise.kernel.lookup.ItemPath;
-import org.cristalise.kernel.utils.Logger;
 
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 public class CompositeActivity extends Activity {
 
     public CompositeActivity() {
@@ -102,7 +103,7 @@ public class CompositeActivity extends Activity {
     }
 
     public void setFirstVertex(int vertexID) {
-        Logger.msg(5, "org.cristalise.kernel.lifecycle.CompositeActivity::setFirstVertex() vertexID:"+vertexID);
+        log.debug("setFirstVertex() vertexID:"+vertexID);
 
         getChildrenGraphModel().setStartVertexId(vertexID);
     }
@@ -232,11 +233,11 @@ public class CompositeActivity extends Activity {
                             }
                         }
                     }
-                    Logger.msg(8, "CompositeActivity.getAutoStart() path:"+getPath()+" trans:"+((autoStart==null)?"null":autoStart.getName()));
+                    log.trace("getAutoStart() path:"+getPath()+" trans:"+((autoStart==null)?"null":autoStart.getName()));
                     return autoStart;
                 }
                 catch (ObjectNotFoundException e) {
-                    Logger.error(e);
+                    log.error("", e);
                     throw new InvalidDataException("Problem calculating possible transitions for agent "+agent.toString());
                 }
             }
@@ -246,7 +247,7 @@ public class CompositeActivity extends Activity {
 
     @Override
     public void run(AgentPath agent, ItemPath itemPath, Object locker) throws InvalidDataException {
-        Logger.msg(8, "CompositeActivity.run() path:" + getPath() + " state:" + getState());
+        log.trace("run() path:" + getPath() + " state:" + getState());
 
         super.run(agent, itemPath, locker);
 
@@ -260,11 +261,11 @@ public class CompositeActivity extends Activity {
                 throw e;
             }
             catch (AccessRightsException e) {
-                Logger.warning("Agent:"+agent+" didn't have permission to start the activity:"+getPath()+", so leave it waiting");
+                log.warn("Agent:"+agent+" didn't have permission to start the activity:"+getPath()+", so leave it waiting");
                 return;
             }
             catch (Exception e) {
-                Logger.error(e);
+                log.error("", e);
                 throw new InvalidDataException("Problem initializing composite activity: " + e.getMessage());
             }
         }
@@ -283,26 +284,26 @@ public class CompositeActivity extends Activity {
                         trans = possTran;
                     }
                     else if (trans.isFinishing() == possTran.isFinishing()) {
-                        Logger.warning("Unclear choice of transition possible from current state for Composite Activity '"+getName()+"'. Cannot automatically proceed.");
+                        log.warn("Unclear choice of transition possible from current state for Composite Activity '"+getName()+"'. Cannot automatically proceed.");
                         setActive(true);
                         return;
                     }
                 }
             }
             catch (ObjectNotFoundException e) {
-                Logger.error(e);
+                log.error("", e);
                 throw new InvalidDataException("Problem calculating possible transitions for agent "+agent.toString());
             }
 
             if (trans == null) { // current agent can't proceed
-                Logger.msg(3, "Not possible for the current agent to proceed with the Composite Activity '"+getName()+"'.");
+                log.info("Not possible for the current agent to proceed with the Composite Activity '"+getName()+"'.");
                 setActive(true);
                 return;
             }
             else {
                 // automatically execute the next outcome if it doesn't require an outcome.
                 if (trans.hasOutcome(getProperties()) || trans.hasScript(getProperties())) {
-                    Logger.msg(3, "Composite activity '"+getName()+"' has script or schema defined. Cannot proceed automatically.");
+                    log.info("Composite activity '"+getName()+"' has script or schema defined. Cannot proceed automatically.");
                     setActive(true);
                     return;
                 }
@@ -313,7 +314,7 @@ public class CompositeActivity extends Activity {
                         return;
                 }
                 catch (Exception e) {
-                    Logger.error(e);
+                    log.error("", e);
                     setActive(true);
                     throw new InvalidDataException("Problem completing composite activity: "+e.getMessage());
                 }
@@ -429,7 +430,7 @@ public class CompositeActivity extends Activity {
         Transition trans = getStateMachine().getTransition(transitionID);
 
         if (trans.isFinishing() && hasActive()) {
-            if ((Boolean)getBuiltInProperty(ABORTABLE)) 
+            if ((Boolean)getBuiltInProperty(ABORTABLE))
                 abort();
             else
                 throw new InvalidTransitionException("Attempted to finish '"+getPath()+"' it had active children but was not Abortable");
@@ -462,11 +463,11 @@ public class CompositeActivity extends Activity {
     public List<Activity> getPossibleActs(WfVertex fromVertex, int direction) throws InvalidDataException {
         List<Activity> nextActs = new ArrayList<>();
 
-        for (Vertex v: GraphTraversal.getTraversal(getChildrenGraphModel(), fromVertex, direction, false)) {
-            if(v instanceof Activity) {
-                Activity act = (Activity)v;
-
-                if (!act.isFinished() && act.active) nextActs.add(act);
+        for (Vertex v : GraphTraversal.getTraversal(getChildrenGraphModel(), fromVertex, direction, false)) {
+            if (v instanceof Activity) {
+                Activity act = (Activity) v;
+                if (!act.isFinished() && act.active)
+                  nextActs.add(act);
             }
         }
 

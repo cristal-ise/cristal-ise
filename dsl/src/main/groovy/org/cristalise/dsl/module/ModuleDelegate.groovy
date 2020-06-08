@@ -47,24 +47,20 @@ import org.cristalise.kernel.scripting.Script
 import org.cristalise.kernel.test.utils.KernelXMLUtility
 import org.cristalise.kernel.utils.FileStringUtility
 import org.cristalise.kernel.utils.LocalObjectLoader
-import org.cristalise.kernel.utils.Logger
 
 import groovy.transform.CompileStatic
+import groovy.util.logging.Slf4j
 import groovy.xml.XmlUtil
 
 /**
  *
  */
-@CompileStatic
+@CompileStatic @Slf4j
 class ModuleDelegate {
 
     Module module = null
     Module newModule = null
-
-    Writer imports
-
     Binding bindings
-
 
     String resourceRoot = 'src/main/resources'
     String exportRoot   = 'src/main/script/'
@@ -103,7 +99,6 @@ class ModuleDelegate {
             assert module.name == n
         }
 
-        imports = new PrintWriter(System.out)
     }
 
     public include(String scriptFile) {
@@ -125,7 +120,7 @@ class ModuleDelegate {
 
     public Schema Schema(String name, Integer version, Closure cl) {
         def schema = SchemaBuilder.build(name, version, cl)
-        schema.export(imports, new File(resourceBoot), true)
+        schema.export(null, new File(resourceBoot), true)
         addSchema(schema)
         return schema
     }
@@ -138,7 +133,7 @@ class ModuleDelegate {
 
     public Query Query(String name, Integer version, Closure cl) {
         def query = QueryBuilder.build(newModule.name, name, version, cl)
-        query.export(imports, new File(resourceBoot), true)
+        query.export(null, new File(resourceBoot), true)
         addQuery(query)
         return query
     }
@@ -151,7 +146,7 @@ class ModuleDelegate {
 
     public Script Script(String name, Integer version, Closure cl) {
         def script = ScriptBuilder.build(name, version, cl)
-        script.export(imports, new File(resourceBoot), true)
+        script.export(null, new File(resourceBoot), true)
         addScript(script)
         return script
     }
@@ -164,7 +159,7 @@ class ModuleDelegate {
 
     public StateMachine StateMachine(String name, Integer version, Closure cl) {
         def sm = StateMachineBuilder.build("", name, version, cl).sm
-        sm.export(imports, new File(resourceBoot), true)
+        sm.export(null, new File(resourceBoot), true)
         addStateMachine(sm)
         return sm
     }
@@ -177,7 +172,7 @@ class ModuleDelegate {
 
     public ActivityDef Activity(String name, Integer version, Closure cl) {
         def eaDef = ElemActDefBuilder.build(name, version, cl)
-        eaDef.export(imports, new File(resourceBoot), true)
+        eaDef.export(null, new File(resourceBoot), true)
         addActivityDef(eaDef)
         return eaDef
     }
@@ -211,14 +206,14 @@ class ModuleDelegate {
         def type = propDescList.list.find { it.isClassIdentifier && it.name == 'Type' }
 
         FileStringUtility.string2File(
-            new File(new File(resourceBoot+"/"+PROPERTY_DESC_RESOURCE.typeCode), "${type.defaultValue}.xml"), 
+            new File(new File(resourceBoot+"/"+PROPERTY_DESC_RESOURCE.typeCode), "${type.defaultValue}.xml"),
             XmlUtil.serialize(Gateway.getMarshaller().marshall(propDescList))
         )
     }
 
     public PropertyDescriptionList PropertyDescriptionList(String name, Integer version, Closure cl) {
         def propDescList = PropertyDescriptionBuilder.build(name, version, cl)
-        propDescList.export(imports, new File(resourceBoot), true)
+        propDescList.export(null, new File(resourceBoot), true)
         addPropertyDescriptionList(propDescList)
 
         return propDescList
@@ -231,7 +226,7 @@ class ModuleDelegate {
      * @param cl
      */
     public void Agent(Map args, Closure cl) {
-        def agent = AgentBuilder.build((String) args.name, (String) args.password, cl)
+        def agent = AgentBuilder.build(args, cl)
         agent.roles.each { it.jobList = null }
 
         updateImports(agent)
@@ -244,7 +239,7 @@ class ModuleDelegate {
      * @param cl
      */
     public ImportItem Item(Map args, Closure cl) {
-        def item = ItemBuilder.build((String) args.name, (String) args.folder, args.workflow, cl)
+        def item = ItemBuilder.build((String) args.name, (String) args.folder, args.workflow, args?.workflowVer as Integer, cl)
 
         item.properties.removeAll { it.value == args.name }
 
@@ -318,13 +313,12 @@ class ModuleDelegate {
             FileStringUtility.string2File(moduleXMLFile, newModuleXML)
         }
 
-        imports.close()
     }
 
     /**
      * Validate if the StateMachine is existing or not.  If not it will be added to the module's resources.
-     * 
-     * @param sm 
+     *
+     * @param sm
      */
     private void addStateMachine(StateMachine sm) {
         ModuleStateMachine moduleSm = new ModuleStateMachine()
@@ -337,7 +331,7 @@ class ModuleDelegate {
 
     /**
      * Validate if the Query is existing or not.  If not it will be added to the module's resources.
-     * 
+     *
      * @param obj
      */
     private void addQuery(Query query) {
@@ -351,7 +345,7 @@ class ModuleDelegate {
 
     /**
      * Validate if the Schema is existing or not.  If not it will be added to the module's resources.
-     * 
+     *
      * @param obj
      */
     private void addSchema(Schema schema) {
@@ -365,7 +359,7 @@ class ModuleDelegate {
 
     /**
      * Validate if the Script is existing or not.  If not it will be added to the module's resources.
-     * 
+     *
      * @param obj
      */
     private void addScript(Script script) {
@@ -379,7 +373,7 @@ class ModuleDelegate {
 
     /**
      * Validate if the activity is existing and has been updated.  If not existing it will be added, if updated it will update the details.
-     * 
+     *
      * @param obj
      */
     private void addActivityDef(ActivityDef actDef) {
@@ -401,7 +395,7 @@ class ModuleDelegate {
     }
 
     /**
-     * 
+     *
      * @param caDef
      */
     private void addCompositeActivityDef(CompositeActivityDef caDef) {
@@ -433,7 +427,7 @@ class ModuleDelegate {
     }
 
     private void updateImports(ModuleImport mImport) {
-        int index = newModule.imports.list.findIndexOf { 
+        int index = newModule.imports.list.findIndexOf {
             ModuleImport mi -> (mi.name == mImport.name) && (mi.getClass() == mImport.getClass())
         }
 
@@ -441,7 +435,7 @@ class ModuleDelegate {
             def msg = "Cannot update existing import:$mImport.name, class:${mImport.getClass().getSimpleName()}"
 
             if (Gateway.properties.getBoolean('DSL.ModuleImport.strictUpdate', true)) throw new InvalidDataException(msg)
-            else                                                                      Logger.warning(msg)
+            else                                                                      log.warn(msg)
         }
 
         if (index > -1) newModule.imports.list.set(index, mImport)

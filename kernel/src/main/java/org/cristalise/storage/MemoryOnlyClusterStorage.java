@@ -32,9 +32,10 @@ import org.cristalise.kernel.persistency.ClusterStorage;
 import org.cristalise.kernel.persistency.ClusterType;
 import org.cristalise.kernel.process.auth.Authenticator;
 import org.cristalise.kernel.querying.Query;
-import org.cristalise.kernel.utils.Logger;
 
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 public class MemoryOnlyClusterStorage extends ClusterStorage {
 
     HashMap<ItemPath, Map<String, C2KLocalObject>> memoryCache = new HashMap<ItemPath, Map<String, C2KLocalObject>>();
@@ -60,7 +61,7 @@ public class MemoryOnlyClusterStorage extends ClusterStorage {
 
     @Override
     public boolean checkQuerySupport(String language) {
-        Logger.warning("MemoryOnlyClusterStorage DOES NOT Support any query");
+        log.warn("MemoryOnlyClusterStorage DOES NOT Support any query");
         return false;
     }
 
@@ -160,10 +161,10 @@ public class MemoryOnlyClusterStorage extends ClusterStorage {
 
     public void dumpContents(ItemPath thisItem) {
         synchronized(memoryCache) {
-            Logger.msg(0, "Cached Objects of Entity "+thisItem);
+            log.info("Cached Objects of Entity "+thisItem);
             Map<String, C2KLocalObject> sysKeyMemCache = memoryCache.get(thisItem);
             if (sysKeyMemCache == null) {
-                Logger.msg(0, "No cache found");
+                log.info("No cache found");
                 return;
             }
             try {
@@ -171,17 +172,17 @@ public class MemoryOnlyClusterStorage extends ClusterStorage {
                     for (Object name : sysKeyMemCache.keySet()) {
                         String path = (String) name;
                         try {
-                            Logger.msg(0, "    Path "+path+": "+sysKeyMemCache.get(path).getClass().getName());
+                            log.info("    Path "+path+": "+sysKeyMemCache.get(path).getClass().getName());
                         } catch (NullPointerException e) {
-                            Logger.msg(0, "    Path "+path+": reaped");
+                            log.info("    Path "+path+": reaped");
                         }
                     }
                 }
             } catch (ConcurrentModificationException ex) {
-                Logger.msg(0, "Cache modified - aborting");
+                log.info("Cache modified - aborting");
             }
         }
-        Logger.msg(0, "Total number of cached entities: "+memoryCache.size());
+        log.info("Total number of cached entities: "+memoryCache.size());
     }
 
     @Override
@@ -197,5 +198,23 @@ public class MemoryOnlyClusterStorage extends ClusterStorage {
     @Override
     public void postConnect() {
         //nothing to be done
+    }
+
+    @Override
+    public int getLastIntegerId(ItemPath itemPath, String path) throws PersistencyException {
+        int lastId = -1;
+        try {
+            String[] keys = getClusterContents(itemPath, path);
+            for (String key : keys) {
+                int newId = Integer.parseInt(key);
+                lastId = newId > lastId ? newId : lastId;
+            }
+        }
+        catch (NumberFormatException e) {
+           log.error("Error parsing keys", e);
+           throw new PersistencyException(e.getMessage());
+        }
+
+        return lastId;
     }
 }

@@ -116,8 +116,10 @@ public  class LoginBox extends JFrame {
   private void loginClicked(){
     errorSet=false;
     try {
-      if (this.getUser().length()>0 && this.getPassword().length()>0)
-        userAgent = Gateway.connect(this.getUser(), this.getPassword(), title);
+      if (this.getUser().length() > 0 && this.getPassword().length() > 0) {
+          userAgent = Gateway.getSecurityManager().authenticate(this.getUser(), this.getPassword(), title, true);
+      }
+
       logged = (userAgent != null);
       Logger.msg(7, "AbstractMain::standardSetUp() - Gateway.connect() OK.");
     }
@@ -125,7 +127,7 @@ public  class LoginBox extends JFrame {
       String message = ex.getMessage();
       int i = ex.getMessage().indexOf(' ');
       if (i > -1 ) message = message.substring(i);
-                                                                  //Here us elanguage translate I guess :)
+      //Here use language translate I guess :)
       //if (message.length()>65 && message.substring(1,5).compareTo("User")==0)
       //  message = (message.substring(1,50)+ "... not found" );
       this.errorLabel.setText(message);
@@ -136,9 +138,9 @@ public  class LoginBox extends JFrame {
     if (!logged) {
       Logger.msg("Login attempt "+loginAttemptNumber+" of "+maxNumberLogon+" failed");
       if (loginAttemptNumber>=maxNumberLogon)  {
-    	  dispose();
-    	  Logger.error("Login failure limit reached");
-    	  AbstractMain.shutdown(1);
+        dispose();
+        Logger.error("Login failure limit reached");
+        AbstractMain.shutdown(1);
       }
       if (!errorSet) this.errorLabel.setText("Please enter username & password");
 //      int posx=xMov+120;

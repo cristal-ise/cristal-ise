@@ -26,9 +26,10 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.Map;
-
+import java.util.Properties;
 import org.cristalise.kernel.persistency.outcome.Schema;
 import org.cristalise.kernel.persistency.outcomebuilder.OutcomeBuilder;
+import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.test.persistency.XMLUtils;
 import org.cristalise.kernel.utils.Logger;
 import org.json.JSONArray;
@@ -45,6 +46,13 @@ public class NgDynamicFormsTest extends XMLUtils {
     @Before
     public void setUp() throws Exception {
         Logger.addLogStream(System.out, 8);
+        Properties props = new Properties();
+        props.put("Webui.autoComplete.default", "on");
+        props.put("Authenticator", "Shiro");
+        props.put("Webui.inputField.boolean.defaultValue", "false");
+        props.put("Webui.inputField.decimal.defaultValue", "0.0");
+        props.put("Webui.inputField.integer.defaultValue", "0");
+        Gateway.init(props);
     }
 
     @Test
@@ -164,31 +172,59 @@ public class NgDynamicFormsTest extends XMLUtils {
     
     @Test
     public void ngForm_FormContainer() throws Exception {
-          OutcomeBuilder builder = new OutcomeBuilder("Form", new Schema("DynamicFormsContainer", 0, getXSD(dir, "DynamicFormsContainer")), false);
-    
-          JSONArray actual = builder.generateNgDynamicFormsJson();
-    
-          Logger.msg(actual.toString(2));
-    
-          JSONArray expected = new JSONArray(getJSON(dir, "DynamicFormsContainer"));
-          
-          Logger.msg(expected.toString(2));
-    
-          assertJsonEquals(expected, actual);
+        OutcomeBuilder builder = new OutcomeBuilder("Form", new Schema("DynamicFormsContainer", 0, getXSD(dir, "DynamicFormsContainer")), false);
+
+        JSONArray actual = builder.generateNgDynamicFormsJson();
+
+        Logger.msg(actual.toString(2));
+
+        JSONArray expected = new JSONArray(getJSON(dir, "DynamicFormsContainer"));
+
+        Logger.msg(expected.toString(2));
+
+        assertJsonEquals(expected, actual);
     }
     
     @Test
     public void ngForm_FormGroupContainer() throws Exception {
-          OutcomeBuilder builder = new OutcomeBuilder("Form", new Schema("DynamicFormsGroupContainer", 0, getXSD(dir, "DynamicFormsGroupContainer")), false);
-    
-          JSONArray actual = builder.generateNgDynamicFormsJson();
-    
-          Logger.msg(actual.toString(2));
-    
-          JSONArray expected = new JSONArray(getJSON(dir, "DynamicFormsGroupContainer"));
-          
-          Logger.msg(expected.toString(2));
-    
-          assertJsonEquals(expected, actual);
+        OutcomeBuilder builder = new OutcomeBuilder("Form", new Schema("DynamicFormsGroupContainer", 0, getXSD(dir, "DynamicFormsGroupContainer")), false);
+
+        JSONArray actual = builder.generateNgDynamicFormsJson();
+
+        Logger.msg(actual.toString(2));
+
+        JSONArray expected = new JSONArray(getJSON(dir, "DynamicFormsGroupContainer"));
+
+        Logger.msg(expected.toString(2));
+
+        assertJsonEquals(expected, actual);
+    }
+
+    @Test
+    public void ngForm_AutoComplete() throws Exception {
+        Gateway.getProperties().remove("Webui.autoComplete.default");
+
+        OutcomeBuilder builder = new OutcomeBuilder("PatientDetails", new Schema("AutoComplete", 0, getXSD(dir, "AutoComplete")), false);
+
+        JSONArray actual = builder.generateNgDynamicFormsJson();
+
+        Logger.msg(actual.toString(2));
+
+        JSONArray expected = new JSONArray(getJSON(dir, "AutoComplete"));
+
+        assertJsonEquals(expected, actual);
+    }
+
+    @Test
+    public void ngForm_Additional() throws Exception {
+        OutcomeBuilder builder = new OutcomeBuilder("Additional", new Schema("Additional", 0, getXSD(dir, "Additional")), false);
+
+        JSONArray actual = builder.generateNgDynamicFormsJson();
+
+        Logger.msg(actual.toString(2));
+
+        JSONArray expected = new JSONArray(getJSON(dir, "Additional"));
+
+        assertJsonEquals(expected, actual);
     }
 }

@@ -1,0 +1,56 @@
+Selected List of Publications
+2002
+F. Estrella, Z. Kovacs, J-M Le Goff, R. McClatchey & N. Toth. “Reifying Patterns to Cater for Systems
+Evolution” Accepted by the 2nd ER International Workshop on Evolution and Change in Data
+Management (ECDM 2002) ER 2002, Tampere, Finland. October 2002.
+N. Baker, Z. Kovacs, G. Mathers & R. McClatchey. “Communication Abstraction Based on Multi-Level
+System Description”. In the proceedings of the ECOOP’02 workshop on Concrete Communication
+Abstractions of the next 701 Distributed Object Systems Malaga, Spain. June 2002.
+2001
+F. Estrella, Z. Kovacs, J-M. Le Goff & R. McClatchey. “Meta-Data Objects as the Basis for System
+Evolution”. In Lecture Notes in Computer Science Vol. 2118, pp 390-399 ISBN 3-540-42298-6 Springer-
+Verlag, 2001 (Presented at the 2nd ACM SIGMOD Int. Conf on Web-Age Information Management).
+WAIM’2001,
+Xi’an, China. July 2001.
+P. Brooks, F. Estrella, Z. Kovacs, J-M. Le Goff, G Mathers & R. McClatchey. “Handling System Evolution
+Through Information Abstraction ”In Proceedings of the OOPSLA 2001 Workshop on Engineering
+Complex Object-Oriented Systems for Evolution. Tampa, USA October 2001.
+2000
+Guy Chevenier, Christoph Koch, Zsolt Kovacs, Jean-Marie Le Goff, Richard McClatchey,
+and Steve Murray. “Meta-Models for System Description". In Proc. Fifth CAiSE/IFIP8.1
+International Workshop on Evaluation of Modelling Methods in Systems Analysis and Design
+(EMMSAD'00), Stockholm, Sweden, June 5-6, 2000.
+Christoph Koch, Zsolt Kovacs, Jean-Marie Le Goff, Richard McClatchey, Paolo Petta, and Tony
+Solomonides. “Explicit Modelling of the Semantics of Large Multi-layered Object-Oriented Databases". In
+A.H.F. Laender, S.W. Liddle, and V.C. Storey (Eds.), Proceedings of the 19th International Conference on
+Conceptual Modelling (ER 2000), pp. 52-65.Salt Lake City, USA, Oct. 9-12, 2000. LNCS 1920, Springer-
+Verlag Berlin Heidelberg, 2000.
+1999
+J Draskic et al. “Using a Meta-Model as the Basis for Enterprise-Wide Data Navigation”. in Proceedings of
+the 3rd IEEE Meta-Data Conference. Bethesda, Maryland, USA. April 1999. Available at
+http://computer.org/conferen/proceed/meta/1999/
+Z Kovacs, R McClatchey, J-M Le Goff, N Baker. “Patterns for Integrating Product and Process Models”. In
+Proceedings of the Third IEEE/ACM International Enterprise Distributed Object Computing (EDOC’99)
+Workshop, ISBN 0-7803-5784-1 pp 37-48 Mannheim, Germany. September 1999.
+F. Estrella, Z. Kovacs, J-M. Le Goff, R. McClatchey, and M. Zsenei. “Handling Evolving Data Through
+the Use of a Description Driven Systems Architecture”. Lecture Notes in Computer Science Vol. 1727, pp
+1-11 ISBN 3-540-66653-2 Springer-Verlag, 1999 (Presented at the Evolution & Change in Data
+Management Workshop at 18th Int. Conf. on Conceptual Modelling). ER’99 Paris, France. November 1999
+1998
+Z Kovacs, J-M Le Goff & R McClatchey. “Support for Product Data from Design to Production”. In
+Journal Computer Integrated Manufacturing Systems Vol. 11 No. 4 pp 285-290, October 1998. Elsevier
+ISSN 0951-5240
+F. Estrella, Z. Kovacs, J-M Le Goff, R. McClatchey & I. Willers. “The Design of an Engineering Data
+Warehouse Based on Meta-Object Structures”. In Lecture Notes in Computer Science Vol 1552, pp 145-
+156 ISBN 3-540-65690-1 Springer-Verlag. 1999 (Presented at the Data Warehousing & Data Mining
+Workshop at 17th Int. Conf. on Conceptual Modelling). ER’98 Singapore, November 1998
+1997
+R McClatchey, J-M Le Goff, N Baker, W Harris & Z Kovacs. “A Distributed Workflow & Product Data
+Management Application for the Construction of Large Scale Scientific Apparatus”. NATO ASI Series F :
+Computer & Systems Sciences Vol. 164 pp 18-34. ISBN 3-540-64411-3 Springer Verlag 1998. (Presented at
+the NATO Advanced Studies Institute : Workflow Management Systems & Interoperability Istanbul,
+Turkey. August 1997)
+1996
+J-M Le Goff et al. “The C.R.I.S.T.A.L Project - A Data Capture & Production Management Tool for the
+Assembly and Construction of High Resolution Apparatus for Physics” In Proceedings of the 5th
+International AIHENP Conference. Lausanne, Switzerland, September 1996.

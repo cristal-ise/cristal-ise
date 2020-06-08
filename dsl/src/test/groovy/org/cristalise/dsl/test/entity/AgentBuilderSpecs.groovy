@@ -37,7 +37,7 @@ class AgentBuilderSpecs extends Specification implements CristalTestSetup {
 
     def 'Agent must have at least one Role defined'() {
         when:
-        AgentBuilder.build(name: "dummy") {}
+        AgentBuilder.build(name: "dummy", password: "dummy") {}
 
         then:
         thrown InvalidDataException
@@ -45,7 +45,7 @@ class AgentBuilderSpecs extends Specification implements CristalTestSetup {
 
     def 'Agent with Role a role has name/type property added'() {
         when:
-        def newAgent = AgentBuilder.build(name: "dummy") {
+        def newAgent = AgentBuilder.build(name: "dummy", password: "dummy") {
             Roles {
                 Role(name: 'User')
             }

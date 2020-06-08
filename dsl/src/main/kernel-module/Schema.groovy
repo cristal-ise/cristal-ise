@@ -13,3 +13,52 @@ Schema('SimpleElectonicSignature', 0) {
         }
     }
 }
+
+Schema('SystemProperties', 0) {
+    struct(name: 'SystemProperties', useSequence: true, documentation: 'blabla') {
+        field(name: 'ProcessName', type: 'string')  {
+            dynamicForms(disabled: true)
+        }
+        struct(name:'Property', multiplicity: '0..*') {
+            field(name: 'Name', type: 'string')  {
+                dynamicForms(disabled: true)
+            }
+            field(name: 'Module', type: 'string', multiplicity: '0..1', documentation: 'The module in which the System Property was defined') {
+                dynamicForms(disabled: true)
+            }
+            field(name: 'ReadOnly', type: 'boolean', multiplicity: '0..1', documentation: 'Specify if the Property can be dynamically overridden') {
+                dynamicForms(disabled: true)
+            }
+            field(name: 'Description', type: 'string', multiplicity: '0..1') {
+                dynamicForms(disabled: true)
+            }
+            field(name: 'SetInConfigFiles', type: 'boolean', documentation: 'Indicates if the value was set in config files') {
+                dynamicForms(disabled: true)
+            }
+            field(name: 'Value', type: 'string')
+        }
+    }
+}
+
+def level = ['OFF', 'ERROR', 'WARN', 'INFO', 'DEBUG', 'TRACE', 'ALL']
+
+Schema('LoggerConfig', 0) {
+    struct(name: 'LoggerConfig', useSequence: true) {
+        field(name:'Root', type: 'string', values: level, multiplicity: '0..1')
+        struct(name: 'Logger', multiplicity: '0..*', useSequence: true) {
+            field(name:'Name', type: 'string')
+            field(name:'Level', type: 'string', values: level)
+        }
+    }
+}
+
+Schema('ModuleChanges', 0) {
+    struct(name: 'ModuleChanges', useSequence: true) {
+        struct(name: 'ResourceChangeDetails', useSequence: true, multiplicity: '0..*') {
+            field(name:'ResourceName', type: 'string')
+            field(name:'ResourceVersion', type: 'string')
+            field(name:'SchemaName', type: 'string')
+            field(name:'ChangeType', type: 'string', values: ['IDENTICAL', 'NEW', 'UPDATED', 'OVERWRITTEN', 'SKIPPED', 'REMOVED'])
+        }
+    }
+}
