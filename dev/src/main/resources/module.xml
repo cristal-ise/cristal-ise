@@ -22,8 +22,7 @@
 -->
 <CristalModule ns="dev" name="CristaliseDev">
     <Info>
-        <Description>CRISTAL-iSE Development Items, such as resource factories and workflows. 
-        Also includes a demonstrative DescriptionFactory</Description>
+        <Description>CRISTAL-iSE Development Items to implement CRUD functionality.</Description>
         <Version>${version}</Version>
         <KernelVersion>3.3</KernelVersion>
     </Info>
