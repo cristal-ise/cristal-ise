@@ -1,8 +1,11 @@
 package org.cristalise.restapi.test
 
 import static io.restassured.RestAssured.*
+import static org.cristalise.restapi.RestHandler.PASSWORD
+import static org.cristalise.restapi.RestHandler.USERNAME
 import static org.hamcrest.Matchers.*
 
+import java.nio.charset.StandardCharsets
 import java.time.LocalDateTime
 
 import org.cristalise.kernel.lifecycle.instance.predefined.PredefinedStep
@@ -10,7 +13,9 @@ import org.cristalise.kernel.lifecycle.instance.predefined.server.CreateNewAgent
 import org.cristalise.kernel.lifecycle.instance.predefined.server.CreateNewItem
 import org.cristalise.kernel.lifecycle.instance.predefined.server.CreateNewRole
 import org.cristalise.kernel.process.AbstractMain
+import org.cristalise.kernel.test.KernelScenarioTestBase
 import org.cristalise.kernel.test.utils.KernelXMLUtility
+import org.cristalise.restapi.RestHandler
 import org.json.JSONArray
 import org.json.JSONObject
 import org.json.XML;
@@ -19,12 +24,14 @@ import org.junit.BeforeClass
 
 import groovy.json.JsonBuilder
 import groovy.transform.CompileStatic
+import io.restassured.builder.RequestSpecBuilder
 import io.restassured.http.ContentType
 import io.restassured.http.Cookie
 import io.restassured.response.Response
+import io.restassured.specification.RequestSpecification
 
 @CompileStatic
-class RestapiTestBase {
+class RestapiTestBase extends KernelScenarioTestBase {
 
     static String apiUri
 
@@ -33,11 +40,8 @@ class RestapiTestBase {
 
     static final int STATUS_OK = 200
 
-    String timeStamp
-
     @BeforeClass
     public static void init() {
-        org.cristalise.kernel.utils.Logger.addLogStream(System.out, 5)
         Properties props = AbstractMain.readPropertyFiles("src/main/bin/client.conf", "src/main/bin/integTest.clc", null)
         apiUri = props.get('REST.URI')
     }
@@ -51,8 +55,37 @@ class RestapiTestBase {
         return LocalDateTime.now().format("yyyy-MM-dd_HH-mm-ss_SSS")
     }
 
+    public static String encodeString(String s) {
+        return Base64.getEncoder().encodeToString(s.getBytes(StandardCharsets.ISO_8859_1))
+    }
+
     def login() {
         login 'user', 'test'
+    }
+
+    def loginPost() {
+        loginPost 'user', 'test'
+    }
+
+    def loginPost(String user, String pwd) {
+        JSONObject inputs = new JSONObject((USERNAME): encodeString(user), (PASSWORD): encodeString(pwd))
+
+        Response loginResp =
+            given().log().all()
+                .contentType(ContentType.JSON)
+                .accept(ContentType.JSON)
+                .body(inputs.toString())
+            .when()
+                .post(apiUri+"/login")
+            .then()
+                .cookie('cauth')
+                .statusCode(STATUS_OK)
+                .extract().response()
+
+        cauthCookie = loginResp.getDetailedCookie('cauth');
+        userUuid = loginResp.body().jsonPath().getString('Login.uuid.value')
+
+        assert userUuid
     }
 
     def login(String user, String pwd) {
@@ -69,6 +102,8 @@ class RestapiTestBase {
 
         cauthCookie = loginResp.getDetailedCookie('cauth');
         userUuid = loginResp.body().jsonPath().getString('Login.uuid.value')
+
+        //agent = Gateway.proxyManager.getAgentProxy(Gateway.lookup.getAgentPath(user))
 
         assert userUuid
     }
@@ -164,6 +199,54 @@ class RestapiTestBase {
         return responseBody
     }
 
+    String executeActivity(String uuid, String actPath, ContentType contentType, String outcome) {
+        return given()
+            .contentType(contentType)
+            .accept(ContentType.JSON)
+            .cookie(cauthCookie)
+            .body(outcome)
+        .when()
+            .post(apiUri+"/item/$uuid/workflow/domain/${actPath}?transition=Done")
+        .then()
+            .statusCode(STATUS_OK)
+            .extract().response().body().asString()
+    }
+
+    String checkAttachment(String uuid, String schema, int version, int event) {
+        return given()
+            .cookie(cauthCookie)
+        .when()
+            .get(apiUri+"/item/$uuid/attachment/$schema/$version/$event")
+        .then()
+            .statusCode(STATUS_OK)
+        .extract().response().body().asString()
+    }
+
+    String checkOutcome(String uuid, String schema, int version, int event) {
+        return given()
+            .cookie(cauthCookie)
+        .when()
+            .get(apiUri+"/item/$uuid/outcome/$schema/$version/$event")
+        .then()
+            .statusCode(STATUS_OK)
+        .extract().response().body().asString()
+    }
+
+    String executeActivity(String uuid, String actPath, ContentType outcomeType, String outcome, File attachment) {
+
+        return given().log().all()
+            .header("Content-Type", "multipart/form-data")
+            .multiPart("outcome", outcome) // sets text/plain
+            .multiPart("file", attachment) // sets application/octet-stream and fileName in Content-Disposition
+            .cookie(cauthCookie)
+            .accept(ContentType.JSON)
+            .when()
+                .post(apiUri+"/item/$uuid/workflow/domain/${actPath}?transition=Done")
+            .then()
+                .statusCode(STATUS_OK)
+            .extract().response().asString()
+    }
+
     String executePredefStep(String uuid,  Class<?> predefStep, String...params) {
         return executePredefStep(uuid, predefStep, ContentType.JSON, params)
     }
@@ -218,7 +301,7 @@ class RestapiTestBase {
 
         def agents = resolveRole('Admin')
         def uuid = ""
-        
+
         for (int i = 0; i < agents.length(); i++) {
             def json = agents.getJSONObject(i)
 

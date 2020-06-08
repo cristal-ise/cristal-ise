@@ -42,7 +42,7 @@ public class RemoteMapAccess {
                                                      int batchSize, Boolean descending, UriInfo uri)
             throws ObjectNotFoundException, ClassCastException
     {
-        RemoteMap<?> map= (RemoteMap<?>) item.getObject(root);
+        RemoteMap<?> map = (RemoteMap<?>) item.getObject(root);
         map.activate();
 
         LinkedHashMap<String, Object> batch = new LinkedHashMap<String, Object>();
@@ -86,6 +86,7 @@ public class RemoteMapAccess {
 
     public static C2KLocalObject get(ItemProxy item, ClusterType root, String id) throws ObjectNotFoundException, ClassCastException {
         RemoteMap<?> map = (RemoteMap<?>) item.getObject(root);
+        map.activate();
 
         if (id.equals("last")) id = String.valueOf(map.getLastId());
 

@@ -22,8 +22,10 @@ package org.cristalise.storage.jooqdb.clusterStore;
 
 import static org.jooq.impl.DSL.constraint;
 import static org.jooq.impl.DSL.field;
+import static org.jooq.impl.DSL.max;
 import static org.jooq.impl.DSL.name;
 import static org.jooq.impl.DSL.table;
+import static org.jooq.impl.SQLDataType.BOOLEAN;
 
 import java.sql.Timestamp;
 import java.util.ArrayList;
@@ -37,12 +39,16 @@ import org.cristalise.kernel.entity.C2KLocalObject;
 import org.cristalise.kernel.events.Event;
 import org.cristalise.kernel.lookup.AgentPath;
 import org.cristalise.kernel.lookup.ItemPath;
+import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.utils.DateUtility;
 import org.cristalise.storage.jooqdb.JooqHandler;
 import org.jooq.Condition;
 import org.jooq.DSLContext;
 import org.jooq.Field;
+import org.jooq.InsertSetMoreStep;
 import org.jooq.Record;
+import org.jooq.Record1;
+import org.jooq.SelectConditionStep;
 import org.jooq.Table;
 
 import lombok.extern.slf4j.Slf4j;
@@ -67,6 +73,7 @@ public class JooqHistoryHandler extends JooqHandler {
     static final Field<Integer>   TARGET_STATE_ID       = field(name("TARGET_STATE_ID"),      Integer.class);
     static final Field<Integer>   TRANSITION_ID         = field(name("TRANSITION_ID"),        Integer.class);
     static final Field<String>    VIEW_NAME             = field(name("VIEW_NAME"),            String.class);
+    static final Field<Boolean>   HAS_ATTACHMENT        = field(name("HAS_ATTACHMENT"),       Boolean.class);
     static final Field<Timestamp> TIMESTAMP             = field(name("TIMESTAMP"),            Timestamp.class);
 
     //static final Field<OffsetDateTime> TIMESTAMP = field(name("TIMESTAMP"), Timestamp.class);
@@ -110,7 +117,7 @@ public class JooqHistoryHandler extends JooqHandler {
         Event event = (Event)obj;
         AgentPath delegate = event.getDelegatePath();
 
-        return context
+        InsertSetMoreStep<?> insert = context
                 .insertInto(EVENT_TABLE)
                 .set(UUID,                  uuid)
                 .set(ID,                    event.getID())
@@ -128,8 +135,13 @@ public class JooqHistoryHandler extends JooqHandler {
                 .set(TARGET_STATE_ID,       event.getTargetState())
                 .set(TRANSITION_ID,         event.getTransition())
                 .set(VIEW_NAME,             event.getViewName())
-                .set(TIMESTAMP,             DateUtility.toSqlTimestamp(event.getTimeStamp()))
-                .execute();
+                .set(TIMESTAMP,             DateUtility.toSqlTimestamp(event.getTimeStamp()));
+
+        if (Gateway.getProperties().getBoolean("JOOQ.Event.enableHasAttachment", true)) {
+            insert.set(HAS_ATTACHMENT, event.getHasAttachment());
+        }
+
+        return insert.execute();
     }
 
     @Override
@@ -142,6 +154,11 @@ public class JooqHistoryHandler extends JooqHandler {
 
             GTimeStamp ts = DateUtility.fromSqlTimestamp( result.get(TIMESTAMP));
             //GTimeStamp ts = DateUtility.fromOffsetDateTime( result.get(TIMESTAMP", OffsetDateTime.class)));
+
+            Boolean hasAttachment = false;
+            if (Gateway.getProperties().getBoolean("JOOQ.Event.enableHasAttachment", true)) {
+                hasAttachment = result.get(HAS_ATTACHMENT.getName(), Boolean.class);
+            }
 
             try {
                 return new Event(
@@ -161,6 +178,7 @@ public class JooqHistoryHandler extends JooqHandler {
                         result.get(SCHEMA_NAME),
                         result.get(SCHEMA_VERSION),
                         result.get(VIEW_NAME),
+                        hasAttachment,
                         ts);
             }
             catch (Exception ex) {
@@ -191,6 +209,7 @@ public class JooqHistoryHandler extends JooqHandler {
         .column(TARGET_STATE_ID,      ID_TYPE        .nullable(false))
         .column(TRANSITION_ID,        ID_TYPE        .nullable(false))
         .column(VIEW_NAME,            NAME_TYPE      .nullable(true))
+        .column(HAS_ATTACHMENT,       BOOLEAN        .nullable(false).defaultValue(false))
         .column(TIMESTAMP,            TIMESTAMP_TYPE .nullable(false))
         .constraints(constraint("PK_"+EVENT_TABLE).primaryKey(UUID, ID))
         .execute();
@@ -199,5 +218,15 @@ public class JooqHistoryHandler extends JooqHandler {
     @Override
     public void dropTables(DSLContext context) throws PersistencyException {
         context.dropTableIfExists(EVENT_TABLE).execute();
+    }
+
+    public int getLastEventId(DSLContext context, UUID uuid){
+        Field<Integer> maxID = max(ID);
+        SelectConditionStep<Record1<Integer>> query = context.select(maxID).from(EVENT_TABLE).where(UUID.equal(uuid));
+        Integer value = query.fetchOne(maxID);
+        if(value == null) {
+            return -1;
+        }
+        return value;
     }
 }

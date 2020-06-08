@@ -22,6 +22,7 @@ package org.cristalise.storage.jooqdb;
 
 import static org.cristalise.JooqTestConfigurationBase.DBModes.MYSQL;
 import static org.cristalise.JooqTestConfigurationBase.DBModes.PostgreSQL;
+import static org.junit.Assert.assertEquals;
 
 import java.util.Arrays;
 import java.util.UUID;
@@ -50,7 +51,7 @@ public class JooqHistoryTest extends StorageTestBase {
         jooq = new JooqHistoryHandler();
         jooq.createTables(context);
 
-        event = createEvent(uuid, 0);
+        event = createEvent(uuid);
         assert jooq.put(context, uuid, event) == 1;
     }
 
@@ -85,6 +86,10 @@ public class JooqHistoryTest extends StorageTestBase {
             Assert.assertEquals(expected.getDelegatePath(), actual.getDelegatePath());
 
         compareTimestramps(actual.getTimeStamp(), expected.getTimeStamp());
+    }
+
+    private Event createEvent(UUID itemUUID) throws InvalidItemPathException {
+        return createEvent(itemUUID, jooq.getLastEventId(context, uuid)+1);
     }
 
     private Event createEvent(UUID itemUUID, int id) throws InvalidItemPathException {
@@ -169,17 +174,20 @@ public class JooqHistoryTest extends StorageTestBase {
 
     @Test
     public void getEventIDs() throws Exception {
-        assert jooq.put(context, uuid, createEvent(uuid, 1)) == 1;
-        assert jooq.put(context, uuid, createEvent(uuid, 2)) == 1;
-        assert jooq.put(context, uuid, createEvent(uuid, 3)) == 1;
+        assertEquals(0, jooq.getLastEventId(context, uuid)); //event 0 is created in before()
+        assert jooq.put(context, uuid, createEvent(uuid)) == 1;
+        assert jooq.put(context, uuid, createEvent(uuid)) == 1;
+        assert jooq.put(context, uuid, createEvent(uuid)) == 1;
+        assertEquals(3, jooq.getLastEventId(context, uuid));
+
+        String[] keys = jooq.getNextPrimaryKeys(context, uuid);
+        Assert.assertThat(Arrays.asList(keys), IsIterableContainingInAnyOrder.containsInAnyOrder("0", "1", "2", "3"));
 
         UUID uuid2 = UUID.randomUUID();
+        assertEquals(-1, jooq.getLastEventId(context, uuid2));
         assert jooq.put(context, uuid2, createEvent(uuid2, 0)) == 1;
         assert jooq.put(context, uuid2, createEvent(uuid2, 1)) == 1;
         assert jooq.put(context, uuid2, createEvent(uuid2, 2)) == 1;
-
-        String[] keys = jooq.getNextPrimaryKeys(context, uuid);
-
-        Assert.assertThat(Arrays.asList(keys), IsIterableContainingInAnyOrder.containsInAnyOrder("0", "1", "2", "3"));
+        assertEquals(2, jooq.getLastEventId(context, uuid2));
     }
 }

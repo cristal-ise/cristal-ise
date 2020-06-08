@@ -156,6 +156,11 @@ public class CastorHashMap extends HashMap<String, Object> {
         }
     }
     
+    /**
+     * @deprecated HashMap can be printed or use StringUtils.join()
+     * @param logLevel
+     */
+    @Deprecated
     public void dump(int logLevel) {
         if(log.isDebugEnabled()) {
             StringBuffer sb = new StringBuffer();

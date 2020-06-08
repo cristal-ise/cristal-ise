@@ -120,7 +120,7 @@ module entity
         * @param requestData The XML Outcome of the work defined by the Activity. Must be valid to the XML Schema,
         * though this is not verified on the server, rather in the AgentProxy in the Client API.
         *
-        * @param attachmentType the MimeType of the attachment (can be empty)
+        * @param fileName the name of the file associated with attahment
         *
         * @param attachment binary data associated with the Outcome (can be empty)
         *
@@ -137,7 +137,7 @@ module entity
                             in string              stepPath,
                             in unsigned long       transitionID,
                             in string              requestData,
-                            in string              attachmentType,
+                            in string              fileName,
                             in OctetSequence       attachment
                           )
             raises( common::AccessRightsException,
@@ -153,7 +153,7 @@ module entity
                                 in string            stepPath,
                                 in unsigned long     transitionID,
                                 in string            requestData,
-                                in string            attachmentType,
+                                in string            fileName,
                                 in OctetSequence     attachment
                           )
             raises( common::AccessRightsException,
