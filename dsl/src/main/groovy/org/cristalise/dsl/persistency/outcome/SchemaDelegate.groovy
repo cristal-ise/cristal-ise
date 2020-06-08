@@ -20,23 +20,25 @@
  */
 package org.cristalise.dsl.persistency.outcome
 
-import groovy.xml.MarkupBuilder
-
 import org.cristalise.kernel.common.InvalidDataException
-import org.cristalise.kernel.utils.Logger
+import org.cristalise.kernel.property.BuiltInItemProperties
+import org.cristalise.kernel.property.PropertyDescriptionList
+import org.cristalise.kernel.property.PropertyUtility
+
+import groovy.util.logging.Slf4j
+import groovy.xml.MarkupBuilder
 
 
 /**
  *
  */
+@Slf4j
 class SchemaDelegate {
 
     String xsdString
 
     public void processClosure(Closure cl) {
         assert cl, "Schema only works with a valid Closure"
-
-        Logger.msg 1, "Schema(start) ---------------------------------------"
 
         def objBuilder = new ObjectGraphBuilder()
         objBuilder.setChildPropertySetter(new DSLPropertySetter())
@@ -46,8 +48,6 @@ class SchemaDelegate {
         cl.delegate = objBuilder
 
         xsdString = buildXSD( cl() )
-
-        Logger.msg 1, "Schema(end) +++++++++++++++++++++++++++++++++++++++++"
     }
 
     public String buildXSD(Struct s) {
@@ -69,7 +69,7 @@ class SchemaDelegate {
     }
 
     private void buildStruct(MarkupBuilder xsd, Struct s) {
-        Logger.msg 1, "SchemaDelegate.buildStruct() - Struct: $s.name"
+        log.info "buildStruct() - Struct: $s.name"
         xsd.'xs:element'(name: s.name, minOccurs: s.minOccurs, maxOccurs: s.maxOccurs) {
 
             if(s.documentation || s.dynamicForms) {
@@ -135,6 +135,10 @@ class SchemaDelegate {
         return a.values || a.pattern || hasRangeConstraints(a) || hasNumericConstraints(a) || hasLengthConstraints(a)
     }
 
+    private boolean hasAppinfoNodes(Field f) {
+        return f.dynamicForms || f.listOfValues || f.reference
+    }
+
     /**
      * Checks whether the field has a restriction/attributes/unit or not, because the type of the element 
      * is either specified in the 'type' attribute or in the restriction as 'base'
@@ -160,9 +164,9 @@ class SchemaDelegate {
     }
 
     private void buildAtribute(MarkupBuilder xsd, Attribute a) {
-        Logger.msg 1, "SchemaDelegate.buildAtribute() - attribute: $a.name"
+        log.info "buildAtribute() - attribute: $a.name"
 
-        if (a.documentation) throw new InvalidDataException('Atttrbute cannotnot define documentation')
+        if (a.documentation) throw new InvalidDataException('Attribute cannot define documentation')
 
         xsd.'xs:attribute'(name: a.name, type: attributeType(a), 'default': a.defaultVal, 'use': (a?.required ? "required": "")) {
             if(hasRestrictions(a)) {
@@ -198,8 +202,11 @@ class SchemaDelegate {
 
             if (f.hasAdditional()) {
                 additional {
-                    if (f.dynamicForms.updateScriptRef != null) updateScriptRef(f.dynamicForms.updateScriptRef)
-                    if (f.dynamicForms.updateQuerytRef != null) updateQuerytRef(f.dynamicForms.updateQuerytRef)
+                    if (f.dynamicForms.additional) {
+                        f.dynamicForms.additional.fields.each { key, value -> "$key"(value) }
+                    }
+                    if (f.dynamicForms.updateScriptRef != null) updateScriptRef(f.dynamicForms.getUpdateScriptRefString())
+                    if (f.dynamicForms.updateQuerytRef != null) updateQuerytRef(f.dynamicForms.getUpdateQueryRefString())
                     if (f.dynamicForms.warning != null) {
                         warning {
                             if (f.dynamicForms.warning.pattern != null)    pattern(f.dynamicForms.warning.pattern)
@@ -212,34 +219,61 @@ class SchemaDelegate {
                     if (f.dynamicForms.updateFields !=null) updateFields(f.dynamicForms.updateFields.join(','))
                 }
             }
+
+            if (f.isFileUpload()) {
+                if (f.dynamicForms.htmlAccept != null)            accept(   f.dynamicForms.htmlAccept)
+            }
         }
     }
 
     private void setAppinfoListOfValues(xsd, Field f) {
         xsd.listOfValues {
-            if (f.listOfValues.scriptRef)       scriptRef(      f.listOfValues.scriptRef)
-            if (f.listOfValues.queryRef)        queryRef(       f.listOfValues.queryRef)
+            if (f.listOfValues.scriptRef)       scriptRef(      f.listOfValues.getScriptRefString())
+            if (f.listOfValues.queryRef)        queryRef(       f.listOfValues.getQueryRefString())
             if (f.listOfValues.propertyNames)   propertyNames(  f.listOfValues.propertyNames)
             if (f.listOfValues.inputName)       inputName(      f.listOfValues.inputName)
             if (f.listOfValues.values)          values(         f.listOfValues.values.join(','))
         }
     }
 
+    private void setAppinfoReference(xsd, Field f) {
+        xsd.reference {
+            if (f.reference.itemType) {
+                def itemRef = ""
+
+                if (f.reference.itemType instanceof String)  {
+                    itemRef = f.reference.itemType
+                }
+                else if (f.reference.itemType instanceof PropertyDescriptionList) {
+                    def propDesc = (PropertyDescriptionList) f.reference.itemType
+                    itemRef = PropertyUtility.getDefaultValue(propDesc.list, BuiltInItemProperties.TYPE.getName())
+
+                    if (!itemRef) throw new InvalidDataException("Property called '${BuiltInItemProperties.TYPE}' is missing")
+                }
+                else
+                    throw new InvalidDataException("itemType must be a String or PropertyDescriptionList")
+
+                itemType(itemRef)
+            }
+        }
+    }
+        
     private void buildField(MarkupBuilder xsd, Field f) {
-        Logger.msg 1, "SchemaDelegate.buildField() - Field: $f.name"
+        log.info "buildField() - Field: $f.name"
 
         //TODO: implement support for this combination - see issue 129
         if (((f.attributes || f.unit) && hasRestrictions(f)) || (f.attributes && f.unit))
             throw new InvalidDataException('Field cannot have attributes, unit and restrictions at the same time')
 
         xsd.'xs:element'(name: f.name, type: fieldType(f), 'default': f.defaultVal, minOccurs: f.minOccurs, maxOccurs: f.maxOccurs) {
-            if(f.documentation || f.dynamicForms || f.listOfValues) {
+            if(f.documentation || this.hasAppinfoNodes(f)) {
                 'xs:annotation' {
                     if (f.documentation) 'xs:documentation'(f.documentation)
-                    if (f.dynamicForms || f.listOfValues) {
+                    if (this.hasAppinfoNodes(f)) {
                         'xs:appinfo' {
                             if (f.dynamicForms) this.setAppinfoDynamicForms(xsd, f)
                             if (f.listOfValues) this.setAppinfoListOfValues(xsd, f)
+                            if (f.reference)    this.setAppinfoReference(xsd, f)
                         }
                     }
                 }
@@ -278,13 +312,13 @@ class SchemaDelegate {
     }
 
     private void buildAnyField(MarkupBuilder xsd, AnyField any) {
-        Logger.msg 1, "SchemaDelegate.buildAnyField()"
+        log.info "buildAnyField()"
 
         xsd.'xs:any'(minOccurs: any.minOccurs, maxOccurs: any.maxOccurs, processContents: any.processContents)
     }
 
     private void buildRestriction(MarkupBuilder xsd, Attribute fieldOrAttr) {
-        Logger.msg 1, "SchemaDelegate.buildRestriction() - type:$fieldOrAttr.type"
+        log.info "buildRestriction() - type:$fieldOrAttr.type"
 
         xsd.'xs:simpleType' {
             'xs:restriction'(base: fieldOrAttr.type) {

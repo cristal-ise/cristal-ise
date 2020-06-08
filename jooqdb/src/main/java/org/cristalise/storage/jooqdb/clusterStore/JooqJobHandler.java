@@ -22,6 +22,7 @@ package org.cristalise.storage.jooqdb.clusterStore;
 
 import static org.jooq.impl.DSL.constraint;
 import static org.jooq.impl.DSL.field;
+import static org.jooq.impl.DSL.max;
 import static org.jooq.impl.DSL.name;
 import static org.jooq.impl.DSL.table;
 
@@ -41,15 +42,19 @@ import org.cristalise.kernel.lookup.ItemPath;
 import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.utils.CastorHashMap;
 import org.cristalise.kernel.utils.DateUtility;
-import org.cristalise.kernel.utils.Logger;
 import org.cristalise.storage.jooqdb.JooqHandler;
 import org.jooq.Condition;
 import org.jooq.DSLContext;
 import org.jooq.DataType;
 import org.jooq.Field;
 import org.jooq.Record;
+import org.jooq.Record1;
+import org.jooq.SelectConditionStep;
 import org.jooq.Table;
 
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
 public class JooqJobHandler extends JooqHandler {
     static final Table<?> JOB_TABLE = table(name("JOB"));
 
@@ -113,7 +118,7 @@ public class JooqJobHandler extends JooqHandler {
             actPropsXML = Gateway.getMarshaller().marshall(job.getActProps());
         }
         catch (Exception ex) {
-            Logger.error(ex);
+            log.error("", ex);
             throw new PersistencyException(ex.getMessage());
         }
 
@@ -165,7 +170,7 @@ public class JooqJobHandler extends JooqHandler {
                                 ts);
             }
             catch (Exception ex) {
-                Logger.error(ex);
+                log.error("", ex);
                 throw new PersistencyException(ex.getMessage());
             }
         }
@@ -198,5 +203,15 @@ public class JooqJobHandler extends JooqHandler {
     @Override
     public void dropTables(DSLContext context) throws PersistencyException {
         context.dropTableIfExists(JOB_TABLE).execute();
+    }
+
+    public int getLastJobId(DSLContext context, UUID uuid) {
+        Field<Integer> maxID = max(ID);
+        SelectConditionStep<Record1<Integer>> query = context.select(maxID).from(JOB_TABLE).where(UUID.equal(uuid));
+        Integer value = query.fetchOne(maxID);
+        if (value == null) {
+            return -1;
+        }
+        return value;
     }
 }

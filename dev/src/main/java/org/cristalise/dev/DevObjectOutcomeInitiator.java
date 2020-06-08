@@ -34,13 +34,14 @@ import org.cristalise.kernel.persistency.outcome.OutcomeInitiator;
 import org.cristalise.kernel.persistency.outcome.Viewpoint;
 import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.utils.DescriptionObject;
-import org.cristalise.kernel.utils.Logger;
+
+import lombok.extern.slf4j.Slf4j;
 
 
 /**
  * Creates empty object for Activities and StateMachine or loads empty one from Factory
- *
  */
+@Slf4j
 public class DevObjectOutcomeInitiator implements OutcomeInitiator {
 
     @Override
@@ -64,8 +65,7 @@ public class DevObjectOutcomeInitiator implements OutcomeInitiator {
                 return Gateway.getMarshaller().marshall(emptyObj);
             }
             catch (Exception e) {
-                Logger.error("Error creating empty "+type);
-                Logger.error(e);
+                log.error("Error creating empty "+type, e);
                 return null;
             }
         }
@@ -93,7 +93,7 @@ public class DevObjectOutcomeInitiator implements OutcomeInitiator {
                 return newInstance.getOutcome().getData();
             }
             catch (Exception e) {
-                Logger.error(e);
+                log.error("Error loading new "+schema, e);
                 throw new InvalidDataException("Error loading new "+schema);
             }
         }

@@ -23,9 +23,12 @@ package org.cristalise.lookup;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.fail;
+import static org.junit.Assume.assumeTrue;
 
 import java.util.UUID;
 
+import org.cristalise.JooqTestConfigurationBase;
+import org.cristalise.JooqTestConfigurationBase.DBModes;
 import org.cristalise.kernel.common.ObjectAlreadyExistsException;
 import org.cristalise.kernel.common.ObjectCannotBeUpdated;
 import org.cristalise.kernel.common.SystemKey;
@@ -67,7 +70,6 @@ public class LookupAddPathTest extends LookupTestBase {
     @Test
     public void addDeleteDomainPath() throws Exception {
         Path p = new DomainPath("empty/toto");
-        if(lookup.exists(p)) lookup.delete(p);
         assertEquals("/domain/empty/toto", p.getStringPath());
         lookup.add(p);
         assert lookup.exists(p);
@@ -105,5 +107,15 @@ public class LookupAddPathTest extends LookupTestBase {
     public void deleteDomainPath_ObjectIsNotALeafError() throws Exception {
         lookup.add(new DomainPath("empty/toto"));
         lookup.delete(new DomainPath("empty"));
+    }
+
+    @Test
+    public void getChildren_DomainPathSpecialChars_delete() throws Exception {
+        assumeTrue("This case only works with psql", JooqTestConfigurationBase.dbType == DBModes.PostgreSQL);
+
+        DomainPath dp = new DomainPath("special/something/special||Chars[escaped] *%._\\\\");
+
+        lookup.add(dp);
+        lookup.delete(dp);
     }
 }

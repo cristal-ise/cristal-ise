@@ -21,6 +21,7 @@
 package org.cristalise.restapi;
 
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 import javax.ws.rs.CookieParam;
@@ -30,19 +31,19 @@ import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
-import javax.ws.rs.core.Context;
-import javax.ws.rs.core.Cookie;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.UriInfo;
+import javax.ws.rs.core.*;
 
 import org.cristalise.kernel.common.ObjectNotFoundException;
 import org.cristalise.kernel.lookup.DomainPath;
+import org.cristalise.kernel.lookup.InvalidItemPathException;
 import org.cristalise.kernel.lookup.ItemPath;
 import org.cristalise.kernel.lookup.Lookup.PagedResult;
 import org.cristalise.kernel.process.Gateway;
+import org.json.JSONArray;
 
-@Path("/domain")
+import lombok.extern.slf4j.Slf4j;
+
+@Path("/domain") @Slf4j
 public class PathAccess extends PathUtils {
 
     @GET
@@ -68,33 +69,66 @@ public class PathAccess extends PathUtils {
             @CookieParam(COOKIENAME)                Cookie authCookie,
             @Context                                UriInfo uri)
     {
-        checkAuthCookie(authCookie);
+        NewCookie cookie = checkAndCreateNewCookie(checkAuthCookie(authCookie));
         DomainPath domPath = new DomainPath(path);
+
         if (batchSize == null) batchSize = Gateway.getProperties().getInt("REST.Path.DefaultBatchSize",
                 Gateway.getProperties().getInt("REST.DefaultBatchSize", 75));
 
-        // Return 404 if the domain path doesn't exist
-        if (!domPath.exists())
-            throw ItemUtils.createWebAppException("Domain path does not exist", Response.Status.NOT_FOUND);
-
-        // If the domain path represents an item, redirect to it
-        try {
-            ItemPath item = domPath.getItemPath();
-            return Response.seeOther(ItemUtils.getItemURI(uri, item)).build();
+        if (path.equals("aliases") && search != null && search.startsWith("[") && search.endsWith("]")) {
+            return getAliases(search, cookie).build();
         }
-        catch (ObjectNotFoundException ex) {} // not an item
+        else {
+            // Return 404 if the domain path doesn't exist
+            if (!domPath.exists()) {
+                throw new WebAppExceptionBuilder().message("Domain path does not exist")
+                        .status(Response.Status.NOT_FOUND).newCookie(cookie).build();
+            }
 
-        PagedResult childSearch;
+            // If the domain path represents an item, redirect to it
+            try {
+                ItemPath item = domPath.getItemPath();
+                return Response.seeOther(ItemUtils.getItemURI(uri, item)).build();
+            }
+            catch (ObjectNotFoundException ex) {} // not an item
 
-        if (search == null) childSearch = Gateway.getLookup().getChildren(domPath, start, batchSize);
-        else                childSearch = Gateway.getLookup().search(domPath, getPropertiesFromQParams(search), start, batchSize);
+            PagedResult childSearch;
 
-        ArrayList<Map<String, Object>> pathDataArray = new ArrayList<>();
+            if (search == null) childSearch = Gateway.getLookup().getChildren(domPath, start, batchSize);
+            else                childSearch = Gateway.getLookup().search(domPath, getPropertiesFromQParams(search), start, batchSize);
 
-        for (org.cristalise.kernel.lookup.Path p: childSearch.rows) {
-            pathDataArray.add(makeLookupData(path, p, uri));
+            ArrayList<Map<String, Object>> pathDataArray = new ArrayList<>();
+
+            for (org.cristalise.kernel.lookup.Path p: childSearch.rows) {
+                    pathDataArray.add(makeLookupData(path, p, uri));
+            }
+
+            return toJSON(getPagedResult(uri, start, batchSize, childSearch.maxRows, pathDataArray), cookie).build();
+        }
+    }
+
+    private Response.ResponseBuilder getAliases(String uuids, NewCookie cookie) {
+        log.info("getAliases() - uuids:{}", uuids);
+
+        JSONArray uuidsArray = new JSONArray(uuids);
+        ArrayList<Object> returnVal = new ArrayList<>();
+
+        for (int i = 0; i < uuidsArray.length(); i++) {
+            String uuid = uuidsArray.getString(i);
+            try {
+                Map<String, Object> itemAliases = makeItemDomainPathsData(Gateway.getLookup().getItemPath(uuid));
+                returnVal.add(itemAliases);
+            }
+            catch (InvalidItemPathException | ObjectNotFoundException e) {
+                //Logger.error(e);
+
+                Map<String, Object> error = new LinkedHashMap<String, Object>();
+                error.put("uuid", uuid);
+                error.put("error", e.getMessage());
+                returnVal.add(error);
+            }
         }
 
-        return toJSON(getPagedResult(uri, start, batchSize, childSearch.maxRows, pathDataArray));
+        return toJSON(returnVal, cookie);
     }
 }

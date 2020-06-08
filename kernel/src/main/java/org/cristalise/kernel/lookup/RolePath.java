@@ -146,14 +146,16 @@ public class RolePath extends Path {
 
     @Override
     public String dump() {
-        StringBuffer comp = new StringBuffer("Components: { ");
+        StringBuffer dump = new StringBuffer("RolePath: {\n");
 
-        for (String element : mPath) comp.append("'").append(element).append("' ");
+        dump.append("  Path:"    + toString() + "\n");
+        dump.append("  JobList:" + hasJobList + "\n");
 
-        return "Path - dump(): " + comp.toString() 
-            + "}\n        string=" + toString()
-            +  "\n        name="   + getName()
-            +  "\n        ";
+        for(String p: permissions) dump.append("  Permission:" + p + "\n");
+
+        dump.append("}\n");
+
+        return dump.toString();
     }
 
     @Override

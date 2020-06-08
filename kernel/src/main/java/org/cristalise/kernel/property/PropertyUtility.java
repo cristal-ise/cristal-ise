@@ -36,11 +36,13 @@ import org.cristalise.kernel.persistency.outcome.Outcome;
 import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.utils.CastorHashMap;
 import org.cristalise.kernel.utils.LocalObjectLoader;
-import org.cristalise.kernel.utils.Logger;
+
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * Utility class to handle operations of ItemProperties and their description
  */
+@Slf4j
 public class PropertyUtility {
     
     /**
@@ -83,7 +85,7 @@ public class PropertyUtility {
             for (String name: contents) if(name.equals(propName)) return true;
         }
         catch (PersistencyException e) {
-            Logger.error(e);
+            log.error("", e);
         }
         return false;
     }
@@ -113,7 +115,7 @@ public class PropertyUtility {
             return (Property)Gateway.getStorage().get(itemPath, ClusterType.PROPERTY+"/"+propName, locker);
         }
         catch (PersistencyException e) {
-            Logger.error(e);
+            log.error("", e);
         }
         return null;
     }
@@ -175,9 +177,9 @@ public class PropertyUtility {
                 return (PropertyDescriptionList) Gateway.getMarshaller().unmarshall(outc.getData());
             }
         }
-        catch (Exception ex) {
-            Logger.error(ex);
-            throw new ObjectNotFoundException("Could not fetch PropertyDescription from '"+itemPath+"' error:"+ex.getMessage());
+        catch (Exception e) {
+            log.error("", e);
+            throw new ObjectNotFoundException("Could not fetch PropertyDescription from '"+itemPath+"' error:"+e.getMessage());
         }
     }
 
@@ -209,7 +211,7 @@ public class PropertyUtility {
             }
 
             if (version == -1)
-                throw new ObjectNotFoundException(String.format("itemPath:%s schema:%s does not have any version", itemPath, schema));
+                throw new ObjectNotFoundException(String.format("itemPath:{} schema:{} does not have any version", itemPath, schema));
         }
         else {
             if (StringUtils.isNumeric(descVer)) version = Integer.parseInt(descVer);
@@ -237,7 +239,24 @@ public class PropertyUtility {
     }
 
     /**
-     * Updates (writes) the value of an exitng Property
+     * Updates (writes) the value of an existing Property
+     * 
+     * @param item the Path (UUID) of actual Item
+     * @param prop the BuiltIn ItemProperty to write
+     * @param value the value of the Property
+     * @param locker transaction key
+     * @throws PersistencyException something went wrong updating the database
+     * @throws ObjectCannotBeUpdated the Property is immutable
+     * @throws ObjectNotFoundException there is no Property with the given name
+     */
+    public static void writeProperty(ItemPath item, BuiltInItemProperties prop, String value, Object locker)
+            throws PersistencyException, ObjectCannotBeUpdated, ObjectNotFoundException
+    {
+        writeProperty(item, prop.getName(), value, locker);
+    }
+
+    /**
+     * Updates (writes) the value of an existing Property
      * 
      * @param item the Path (UUID) of actual Item
      * @param name the name of the Property to write

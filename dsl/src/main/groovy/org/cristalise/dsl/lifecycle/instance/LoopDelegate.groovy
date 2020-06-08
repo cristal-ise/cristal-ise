@@ -1,5 +1,3 @@
-
-
 /**
  * This file is part of the CRISTAL-iSE kernel.
  * Copyright (c) 2001-2015 The CRISTAL Consortium. All rights reserved.
@@ -23,20 +21,21 @@
 package org.cristalise.dsl.lifecycle.instance
 
 import static org.cristalise.kernel.graph.model.BuiltInEdgeProperties.ALIAS
+import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.PAIRING_ID
 
 import org.cristalise.kernel.lifecycle.instance.Next
 import org.cristalise.kernel.lifecycle.instance.Split
 import org.cristalise.kernel.lifecycle.instance.WfVertex
 import org.cristalise.kernel.lifecycle.instance.WfVertex.Types
-import org.cristalise.kernel.utils.Logger
 
 import groovy.transform.CompileStatic
+import groovy.util.logging.Slf4j
 
 
 /**
  * 
  */
-@CompileStatic
+@CompileStatic @Slf4j
 class LoopDelegate extends BlockDelegate {
     Types type = Types.LoopSplit
 
@@ -65,18 +64,14 @@ class LoopDelegate extends BlockDelegate {
     public void processClosure(Closure cl) {
         assert cl, "Split only works with a valid Closure"
 
-        Logger.msg 1, "$name -----------------------------------------"
-
         String joinName = name.replace('Split', 'Join')
 
         def joinFirst  = parentCABlock.createVertex(Types.Join, "${joinName}_first")
         def split      = parentCABlock.createVertex(type, name)
         def joinLast   = parentCABlock.createVertex(Types.Join, "${joinName}_last")
 
-        //NOTE: require more analysis to know if setting PairingID is needed for Loops
-        //split.setBuiltInProperty(PAIRING_ID, name)
-        //joinFirst.setBuiltInProperty(PAIRING_ID, name)
-        //joinLast.setBuiltInProperty(PAIRING_ID, name)
+        split.setBuiltInProperty(PAIRING_ID, name)
+        joinFirst.setBuiltInProperty(PAIRING_ID, name)
 
         cl.delegate = this
         cl.resolveStrategy = Closure.DELEGATE_FIRST
@@ -102,7 +97,5 @@ class LoopDelegate extends BlockDelegate {
 
         firstVertex = joinFirst
         lastVertex = joinLast
-
-        Logger.msg 1, "$name(end) +++++++++++++++++++++++++++++++++++++++"
     }
 }

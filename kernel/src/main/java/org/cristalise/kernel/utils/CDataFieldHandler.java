@@ -25,12 +25,13 @@ import java.beans.Introspector;
 import java.beans.PropertyDescriptor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-
 import org.exolab.castor.mapping.AbstractFieldHandler;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * 
  */
+@Slf4j
 public class CDataFieldHandler extends AbstractFieldHandler<String> {
 
     private Method getBeanMethod(@SuppressWarnings("rawtypes") Class clazz, String propertyName, boolean setter) 
@@ -55,7 +56,7 @@ public class CDataFieldHandler extends AbstractFieldHandler<String> {
             else               return "<![CDATA[" + value.toString() + "]]>";
         }
         catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException | IntrospectionException e) {
-            Logger.error(e);
+            log.error("", e);
             throw new IllegalStateException(e);
         }
     }
@@ -67,7 +68,7 @@ public class CDataFieldHandler extends AbstractFieldHandler<String> {
             setter.invoke(object, value);
         }
         catch (IllegalAccessException | InvocationTargetException | IntrospectionException e) {
-            Logger.error(e);
+            log.error("", e);
             throw new IllegalStateException(e);
         }
     }

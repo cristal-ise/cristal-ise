@@ -25,6 +25,7 @@ import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.SCHEMA_N
 import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.SCHEMA_VERSION;
 import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.STATE_MACHINE_NAME;
 import static org.cristalise.kernel.security.BuiltInAuthc.ADMIN_ROLE;
+import static org.cristalise.kernel.security.BuiltInAuthc.SYSTEM_AGENT;
 
 import java.io.StringReader;
 
@@ -36,10 +37,12 @@ import org.cristalise.kernel.common.AccessRightsException;
 import org.cristalise.kernel.common.CannotManageException;
 import org.cristalise.kernel.common.InvalidCollectionModification;
 import org.cristalise.kernel.common.InvalidDataException;
+import org.cristalise.kernel.common.InvalidTransitionException;
 import org.cristalise.kernel.common.ObjectAlreadyExistsException;
 import org.cristalise.kernel.common.ObjectCannotBeUpdated;
 import org.cristalise.kernel.common.ObjectNotFoundException;
 import org.cristalise.kernel.common.PersistencyException;
+import org.cristalise.kernel.events.History;
 import org.cristalise.kernel.lifecycle.instance.Activity;
 import org.cristalise.kernel.lifecycle.instance.predefined.agent.AgentPredefinedStepContainer;
 import org.cristalise.kernel.lifecycle.instance.predefined.item.ItemPredefinedStepContainer;
@@ -47,8 +50,9 @@ import org.cristalise.kernel.lifecycle.instance.predefined.server.ServerPredefin
 import org.cristalise.kernel.lookup.AgentPath;
 import org.cristalise.kernel.lookup.ItemPath;
 import org.cristalise.kernel.persistency.outcome.Outcome;
+import org.cristalise.kernel.persistency.outcome.Viewpoint;
 import org.cristalise.kernel.process.Gateway;
-import org.cristalise.kernel.utils.Logger;
+import org.cristalise.kernel.utils.LocalObjectLoader;
 import org.w3c.dom.CDATASection;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -57,10 +61,13 @@ import org.w3c.dom.NodeList;
 import org.w3c.dom.Text;
 import org.xml.sax.InputSource;
 
+import lombok.extern.slf4j.Slf4j;
+
 /**
  * PredefinedStep are always Active, and have only one transition. 
  * Subclasses could override this method (if necessary)
  */
+@Slf4j
 public abstract class PredefinedStep extends Activity {
 
     private boolean         isPredefined = false;
@@ -121,7 +128,12 @@ public abstract class PredefinedStep extends Activity {
 
     @Override
     public String getType() {
-        return getName();
+        return this.getClass().getSimpleName();
+    }
+
+    @Override
+    public String getName() {
+        return this.getClass().getSimpleName();
     }
 
     static public String getPredefStepSchemaName(String stepName) {
@@ -175,8 +187,8 @@ public abstract class PredefinedStep extends Activity {
             }
             return Outcome.serialize(dom, false);
         }
-        catch (Exception e) {
-            Logger.error(e);
+        catch (Exception ex) {
+            log.error("", ex);
             StringBuffer xmlData = new StringBuffer().append("<PredefinedStepOutcome>");
 
             for (String element : data)
@@ -209,7 +221,7 @@ public abstract class PredefinedStep extends Activity {
             return result;
         }
         catch (Exception ex) {
-            Logger.error(ex);
+            log.error("", ex);
         }
         return null;
     }
@@ -219,5 +231,97 @@ public abstract class PredefinedStep extends Activity {
             String extraRoles = Gateway.getProperties().getString("PredefinedStep."+ this.getClass().getSimpleName() +".roles");
             getProperties().setBuiltInProperty(AGENT_ROLE, ADMIN_ROLE.getName() + (StringUtils.isNotBlank(extraRoles) ? ","+extraRoles : ""));
         }
+    }
+
+
+    /********************************
+     * Methods migrated from Bootstrap
+     ********************************/
+
+    /**
+     * TODO Implement Bootstrap predefined step
+     * 
+     * @param itemPath
+     * @param newOutcome
+     * @throws PersistencyException
+     * @throws ObjectNotFoundException
+     * @throws InvalidDataException
+     */
+    public static void storeOutcomeEventAndViews(ItemPath itemPath, Outcome newOutcome)
+            throws PersistencyException, ObjectNotFoundException, InvalidDataException
+    {
+        storeOutcomeEventAndViews(itemPath, newOutcome, null);
+    }
+
+    /**
+     * TODO Implement Bootstrap predefined step
+     * 
+     * @param itemPath
+     * @param newOutcome
+     * @param version
+     * @throws PersistencyException
+     * @throws ObjectNotFoundException
+     * @throws InvalidDataException
+     */
+    public static void storeOutcomeEventAndViews(ItemPath itemPath, Outcome newOutcome, Integer version)
+            throws PersistencyException, ObjectNotFoundException, InvalidDataException
+    {
+        String viewName = "";
+        if (version != null) viewName = String.valueOf(version);
+
+        log.info("storeOutcomeEventAndViews() - Schema '{}' of version '{}' to '{}'", 
+                newOutcome.getSchema().getName(), version != null ? viewName : "last", itemPath);
+
+        History hist = new History(itemPath, null);
+
+        int eventID = hist.addEvent((AgentPath)SYSTEM_AGENT.getPath(), null,
+                ADMIN_ROLE.getName(), "Bootstrap", "Bootstrap", "Bootstrap", newOutcome.getSchema(), 
+                LocalObjectLoader.getStateMachine("PredefinedStep", 0), PredefinedStep.DONE, version != null ? viewName : "last"
+                ).getID();
+
+        newOutcome.setID(eventID);
+
+        Viewpoint newLastView = new Viewpoint(itemPath, newOutcome.getSchema(), "last", eventID);
+
+        Gateway.getStorage().put(itemPath, newOutcome,  null);
+        Gateway.getStorage().put(itemPath, newLastView, null);
+
+        if (version != null) {
+            Viewpoint newNumberView = new Viewpoint(itemPath, newOutcome.getSchema(), viewName, eventID);
+            Gateway.getStorage().put(itemPath, newNumberView, null);
+        }
+    }
+
+    /**
+     * Use this method to run a Predefined step during bootstrap
+     * 
+     * @param agent
+     * @param itemPath
+     * @param requestData
+     * @return
+     * @throws AccessRightsException
+     * @throws InvalidTransitionException
+     * @throws InvalidDataException
+     * @throws ObjectNotFoundException
+     * @throws PersistencyException
+     * @throws ObjectAlreadyExistsException
+     * @throws ObjectCannotBeUpdated
+     * @throws CannotManageException
+     * @throws InvalidCollectionModification
+     */
+    public String request(AgentPath agent, ItemPath itemPath, String requestData)
+            throws AccessRightsException, 
+            InvalidTransitionException, 
+            InvalidDataException, 
+            ObjectNotFoundException, 
+            PersistencyException,
+            ObjectAlreadyExistsException, 
+            ObjectCannotBeUpdated, 
+            CannotManageException, 
+            InvalidCollectionModification
+    {
+        log.info("request({}) - Type:{}", itemPath, getType());
+        this.setActive(true);
+        return request(agent, agent, itemPath, PredefinedStep.DONE, requestData, null, new byte[0], true, null);
     }
 }

@@ -23,12 +23,13 @@ package org.cristalise.dsl.persistency.outcome
 import java.util.regex.Pattern
 
 import org.cristalise.kernel.common.InvalidDataException
-
+import org.cristalise.kernel.querying.Query
+import org.cristalise.kernel.scripting.Script
 import groovy.transform.CompileStatic;
-
 
 @CompileStatic
 class DynamicForms {
+    String htmlAccept = null
     Boolean disabled = null
     String errmsg = null
     Boolean hidden = null
@@ -46,6 +47,7 @@ class DynamicForms {
     Boolean hideOnDateTimeSelect = null
     String type = null
     String value = null
+
     /**
      * List all fields that will be updated once the current field is updated.
      */
@@ -69,15 +71,61 @@ class DynamicForms {
     String width = null
 
     /**
-     * Defines the Script name and version (e.g. GetShiftNames:0) which is executed when
-     * the from generated from the XML Schema has to be updated
+     * 
      */
-    String updateScriptRef = null
+    Additional additional = null
+
+    /**
+     * Defines the Script name and version (e.g. GetShiftNames:0) which is executed when
+     * the from generated from the XML Schema has to be updated. It can be based on String 
+     * or the Script object.
+     */
+    Object updateScriptRef = null
+
+    /**
+     * Converts the updateScriptRef object to the String representation (i.e. 'GetShiftNames:0')
+     * used in the generated XSD.
+     * 
+     * @return the converted String
+     */
+    String getUpdateScriptRefString() {
+        if (updateScriptRef == null) {
+            return 'null'
+        }
+        else if (updateScriptRef instanceof Script) {
+            Script s = (Script)updateScriptRef
+            return s.getName() + ':' + s.getVersion()
+        }
+        else {
+            return updateScriptRef.toString()
+        }
+    }
+
     /**
      * Defines the Query name and version (e.g. GetShiftNames:0) which is executed when
-     * the from generated from the XML Schema has to be updated
+     * the from generated from the XML Schema has to be updated. It can be based on String 
+     * or the Query object.
      */
-    String updateQuerytRef = null
+    Object updateQuerytRef = null
+
+    /**
+     * Converts the updateQuerytRef object to the String representation (i.e. 'GetShiftNames:0')
+     * used in the generated XSD.
+     * 
+     * @return the converted String 
+     */
+    String getUpdateQueryRefString() {
+        if (updateQuerytRef == null) {
+            return 'null'
+        }
+        else if (updateQuerytRef instanceof Query) {
+            Script q = (Script)updateQuerytRef
+            return q.getName() + ':' + q.getVersion()
+        }
+        else {
+            return updateScriptRef.toString()
+        }
+    }
 
     /**
      * Number of digits that are present in the number. Possible value are: P, P-

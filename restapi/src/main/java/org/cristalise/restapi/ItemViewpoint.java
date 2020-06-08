@@ -20,6 +20,10 @@
  */
 package org.cristalise.restapi;
 
+import static org.cristalise.kernel.persistency.ClusterType.HISTORY;
+import static org.cristalise.kernel.persistency.ClusterType.OUTCOME;
+import static org.cristalise.kernel.persistency.ClusterType.VIEWPOINT;
+
 import java.util.LinkedHashMap;
 
 import javax.ws.rs.CookieParam;
@@ -29,7 +33,9 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Cookie;
+import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.NewCookie;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 
@@ -41,13 +47,8 @@ import org.cristalise.kernel.events.Event;
 import org.cristalise.kernel.events.History;
 import org.cristalise.kernel.persistency.outcome.Outcome;
 import org.cristalise.kernel.persistency.outcome.Viewpoint;
-import org.cristalise.kernel.utils.Logger;
 
-import static org.cristalise.kernel.persistency.ClusterType.HISTORY;
-import static org.cristalise.kernel.persistency.ClusterType.OUTCOME;
-import static org.cristalise.kernel.persistency.ClusterType.VIEWPOINT;
-
-@Path("/item/{uuid}/viewpoint")
+@Path("/item/{uuid}/viewpoint") 
 public class ItemViewpoint extends ItemUtils {
 
     @GET
@@ -56,9 +57,9 @@ public class ItemViewpoint extends ItemUtils {
                                @CookieParam(COOKIENAME) Cookie authCookie,
                                @Context UriInfo uri)
     {
-        checkAuthCookie(authCookie);
-        ItemProxy item = ItemRoot.getProxy(uuid);
-        return toJSON(enumerate(item, VIEWPOINT, "viewpoint", uri));
+        NewCookie cookie = checkAndCreateNewCookie(checkAuthCookie(authCookie));
+
+        return toJSON(enumerate(getProxy(uuid, cookie), VIEWPOINT, "viewpoint", uri, cookie), cookie).build();
     }
 
     @GET
@@ -69,9 +70,9 @@ public class ItemViewpoint extends ItemUtils {
                                  @CookieParam(COOKIENAME) Cookie authCookie,
                                  @Context UriInfo uri)
     {
-        checkAuthCookie(authCookie);
-        ItemProxy item = ItemRoot.getProxy(uuid);
-        return toJSON(enumerate(item, VIEWPOINT + "/" + schema, "viewpoint/" + schema, uri));
+        NewCookie cookie = checkAndCreateNewCookie(checkAuthCookie(authCookie));
+
+        return toJSON(enumerate(getProxy(uuid, cookie), VIEWPOINT + "/" + schema, "viewpoint/" + schema, uri, cookie), cookie).build();
     }
 
     @GET
@@ -83,8 +84,9 @@ public class ItemViewpoint extends ItemUtils {
                                  @CookieParam(COOKIENAME) Cookie authCookie,
                                  @Context UriInfo uri)
     {
-        checkAuthCookie(authCookie);
-        return getViewpointOutcome(uuid, schema, viewName, false);
+        NewCookie cookie = checkAndCreateNewCookie(checkAuthCookie(authCookie));
+
+        return getViewpointOutcome(uuid, schema, viewName, false, cookie).build();
     }
 
     @GET
@@ -96,8 +98,9 @@ public class ItemViewpoint extends ItemUtils {
                                   @CookieParam(COOKIENAME) Cookie authCookie,
                                   @Context UriInfo uri)
     {
-        checkAuthCookie(authCookie);
-        return getViewpointOutcome(uuid, schema, viewName, true);
+        NewCookie cookie = checkAndCreateNewCookie(checkAuthCookie(authCookie));
+
+        return getViewpointOutcome(uuid, schema, viewName, true, cookie).build();
     }
 
     @GET
@@ -109,26 +112,21 @@ public class ItemViewpoint extends ItemUtils {
                                  @CookieParam(COOKIENAME) Cookie authCookie,
                                  @Context UriInfo uri)
     {
-        checkAuthCookie(authCookie);
-        ItemProxy item = ItemRoot.getProxy(uuid);
-        Viewpoint view;
-        try {
-            view = item.getViewpoint(schema, viewName);
-        }
-        catch (ObjectNotFoundException e) {
-            Logger.error(e);
-            throw ItemUtils.createWebAppException("Database error loading view " + viewName + " of schema " + schema);
-        }
-        Event ev;
-        try {
-            ev = view.getEvent();
-        }
-        catch (InvalidDataException | PersistencyException | ObjectNotFoundException e) {
-            Logger.error(e);
-            throw ItemUtils.createWebAppException("Database error loading event data for view " + viewName + " of schema " + schema);
-        }
+        NewCookie cookie = checkAndCreateNewCookie(checkAuthCookie(authCookie));
+        ItemProxy item = getProxy(uuid, cookie);
 
-        return toJSON(makeEventData(ev, uri));
+        try {
+            Viewpoint view = item.getViewpoint(schema, viewName);
+            Event ev = view.getEvent();
+            return toJSON(makeEventData(ev, uri), cookie).build();
+        }
+        catch (ObjectNotFoundException | InvalidDataException | PersistencyException e) {
+            throw new WebAppExceptionBuilder()
+                .message("Database error loading view " + viewName + " of schema " + schema)
+                .exception(e)
+                .newCookie(cookie)
+                .build();
+        }
     }
 
     @GET
@@ -140,85 +138,97 @@ public class ItemViewpoint extends ItemUtils {
                                         @CookieParam(COOKIENAME) Cookie authCookie,
                                         @Context UriInfo uri)
     {
-        checkAuthCookie(authCookie);
-        ItemProxy item = ItemRoot.getProxy(uuid);
+        NewCookie cookie = checkAndCreateNewCookie(checkAuthCookie(authCookie));
+        ItemProxy item = getProxy(uuid, cookie);
+
         History history;
         try {
             history = (History) item.getObject(HISTORY);
             history.activate();
+
+            LinkedHashMap<String, Object> eventList = new LinkedHashMap<String, Object>();
+            for (int i = 0; i <= history.getLastId(); i++) {
+                @SuppressWarnings("unlikely-arg-type")
+                Event ev = history.get(i);
+                if (schema.equals(ev.getSchemaName()) && viewName.equals(ev.getViewName())) {
+                    String evId = String.valueOf(i);
+                    LinkedHashMap<String, Object> eventDetails = new LinkedHashMap<String, Object>();
+                    eventDetails.put("timestamp", ev.getTimeString());
+                    eventDetails.put("data", uri.getAbsolutePathBuilder().path(evId).build());
+                    eventList.put(evId, eventDetails);
+                }
+            }
+
+            return toJSON(eventList, cookie).build();
         }
         catch (ObjectNotFoundException e) {
-            throw ItemUtils.createWebAppException("Could not load History");
+            throw new WebAppExceptionBuilder().message("Could not load History").exception(e).newCookie(cookie).build();
         }
-        LinkedHashMap<String, Object> eventList = new LinkedHashMap<String, Object>();
-        for (int i = 0; i <= history.getLastId(); i++) {
-            Event ev = history.get(i);
-            if (schema.equals(ev.getSchemaName()) && viewName.equals(ev.getViewName())) {
-                String evId = String.valueOf(i);
-                LinkedHashMap<String, Object> eventDetails = new LinkedHashMap<String, Object>();
-                eventDetails.put("timestamp", ev.getTimeString());
-                eventDetails.put("data", uri.getAbsolutePathBuilder().path(evId).build());
-                eventList.put(evId, eventDetails);
-            }
-        }
-        return toJSON(eventList);
     }
 
     @GET
     @Produces(MediaType.TEXT_XML)
     @Path("{schema}/{viewName}/history/{event}")
-    public Response getOutcomeForEvent(@PathParam("uuid") String uuid,
+    public Response getOutcomeForEvent(@Context           HttpHeaders headers,
+                                       @PathParam("uuid") String uuid,
                                        @PathParam("schema") String schema,
                                        @PathParam("viewName") String viewName,
                                        @PathParam("event") Integer eventId,
                                        @CookieParam(COOKIENAME) Cookie authCookie,
                                        @Context UriInfo uri)
     {
-        checkAuthCookie(authCookie);
-        ItemProxy item = ItemRoot.getProxy(uuid);
+        NewCookie cookie = checkAndCreateNewCookie(checkAuthCookie(authCookie));
+        ItemProxy item = getProxy(uuid, cookie);
+
         Event ev;
         try {
             ev = (Event) item.getObject(HISTORY + "/" + eventId);
         }
         catch (ObjectNotFoundException e) {
-            throw ItemUtils.createWebAppException("Event " + eventId + " was not found", Response.Status.NOT_FOUND);
+            throw new WebAppExceptionBuilder().message("Event " + eventId + " was not found").exception(e).newCookie(cookie).build();
         }
+
         if (!schema.equals(ev.getSchemaName()) || !viewName.equals(ev.getViewName())) {
-            throw ItemUtils.createWebAppException("Event does not belong to this data", Response.Status.BAD_REQUEST);
+            throw new WebAppExceptionBuilder().message("Event does not belong to this data")
+                    .status(Response.Status.BAD_REQUEST).newCookie(cookie).build();
         }
-        Outcome oc;
+
         try {
-            oc = (Outcome) item.getObject(OUTCOME + "/" + schema + "/" + ev.getSchemaVersion() + "/" + eventId);
+            Outcome oc = (Outcome) item.getObject(OUTCOME + "/" + schema + "/" + ev.getSchemaVersion() + "/" + eventId);
+            // TODO: implement retrieving json media type as well
+            return getOutcomeResponse(oc, ev, produceJSON(headers.getAcceptableMediaTypes()), cookie).build();
         }
         catch (ObjectNotFoundException e) {
-            throw ItemUtils.createWebAppException("Outcome " + eventId + " was not found", Response.Status.NOT_FOUND);
+            throw new WebAppExceptionBuilder().message("Outcome " + eventId + " was not found").exception(e).newCookie(cookie).build();
         }
-        // TODO: implement retrieving json media type as well
-        return getOutcomeResponse(oc, ev, false);
     }
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @Path("{schema}/{viewName}/history/{event}/event")
-    public Response getOutcomeEvent(@PathParam("uuid") String uuid,
+    public Response getOutcomeEvent(@Context           HttpHeaders headers,
+                                    @PathParam("uuid") String uuid,
                                     @PathParam("schema") String schema,
                                     @PathParam("viewName") String viewName,
                                     @PathParam("event") Integer eventId,
                                     @CookieParam(COOKIENAME) Cookie authCookie,
                                     @Context UriInfo uri)
     {
-        checkAuthCookie(authCookie);
-        ItemProxy item = ItemRoot.getProxy(uuid);
-        Event ev;
+        NewCookie cookie = checkAndCreateNewCookie(checkAuthCookie(authCookie));
+        ItemProxy item = getProxy(uuid, cookie);
+
         try {
-            ev = (Event) item.getObject(HISTORY + "/" + eventId);
+            Event ev = (Event) item.getObject(HISTORY + "/" + eventId);
+
+            if (!schema.equals(ev.getSchemaName()) || !viewName.equals(ev.getViewName())) {
+                throw new WebAppExceptionBuilder().message("Event does not belong to this data")
+                        .status(Response.Status.BAD_REQUEST).newCookie(cookie).build();
+            }
+
+            return toJSON(makeEventData(ev, uri), cookie).build();
         }
         catch (ObjectNotFoundException e) {
-            throw ItemUtils.createWebAppException("Event " + eventId + " was not found", Response.Status.NOT_FOUND);
+            throw new WebAppExceptionBuilder().message("Event " + eventId + " was not found").exception(e).newCookie(cookie).build();
         }
-        if (!schema.equals(ev.getSchemaName()) || !viewName.equals(ev.getViewName())) {
-            throw ItemUtils.createWebAppException("Event does not belong to this data", Response.Status.BAD_REQUEST);
-        }
-        return toJSON(makeEventData(ev, uri));
     }
 }

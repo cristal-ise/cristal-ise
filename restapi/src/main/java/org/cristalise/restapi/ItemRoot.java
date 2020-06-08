@@ -22,11 +22,10 @@ package org.cristalise.restapi;
 
 import static org.cristalise.kernel.persistency.ClusterType.COLLECTION;
 
-import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
-import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 import javax.ws.rs.Consumes;
@@ -37,48 +36,42 @@ import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
-import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Cookie;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.NewCookie;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 
-import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.cristalise.kernel.common.AccessRightsException;
-import org.cristalise.kernel.common.InvalidCollectionModification;
 import org.cristalise.kernel.common.InvalidDataException;
-import org.cristalise.kernel.common.InvalidTransitionException;
-import org.cristalise.kernel.common.ObjectAlreadyExistsException;
 import org.cristalise.kernel.common.ObjectNotFoundException;
 import org.cristalise.kernel.common.PersistencyException;
 import org.cristalise.kernel.entity.agent.Job;
 import org.cristalise.kernel.entity.proxy.AgentProxy;
 import org.cristalise.kernel.entity.proxy.ItemProxy;
 import org.cristalise.kernel.lookup.ItemPath;
-import org.cristalise.kernel.persistency.outcome.OutcomeAttachment;
 import org.cristalise.kernel.persistency.outcome.Schema;
 import org.cristalise.kernel.persistency.outcomebuilder.OutcomeBuilder;
-import org.cristalise.kernel.persistency.outcomebuilder.OutcomeBuilderException;
 import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.querying.Query;
 import org.cristalise.kernel.scripting.Script;
-import org.cristalise.kernel.scripting.ScriptErrorException;
 import org.cristalise.kernel.scripting.ScriptingEngineException;
 import org.cristalise.kernel.utils.CastorHashMap;
 import org.cristalise.kernel.utils.LocalObjectLoader;
-import org.cristalise.kernel.utils.Logger;
-import org.glassfish.jersey.media.multipart.FormDataParam;
+import org.glassfish.jersey.media.multipart.FormDataBodyPart;
+import org.glassfish.jersey.media.multipart.FormDataMultiPart;
 import org.json.XML;
 
 import com.google.common.collect.ImmutableMap;
 
-@Path("/item/{uuid}")
+import lombok.extern.slf4j.Slf4j;
+
+@Path("/item/{uuid}") @Slf4j
 public class ItemRoot extends ItemUtils {
-	
-	private ScriptUtils scriptUtils = new ScriptUtils();
+
+    private ScriptUtils scriptUtils = new ScriptUtils();
 
     @GET
     @Path("name")
@@ -87,10 +80,17 @@ public class ItemRoot extends ItemUtils {
             @PathParam("uuid")       String uuid,
             @CookieParam(COOKIENAME) Cookie authCookie)
     {
-        checkAuthCookie(authCookie);
+        NewCookie cookie = checkAndCreateNewCookie(checkAuthCookie(authCookie));
         String name = getItemName(new ItemPath(UUID.fromString(uuid)));
 
-        if (StringUtils.isBlank(name)) throw ItemUtils.createWebAppException("Cannot resolve UUID", Response.Status.NOT_FOUND);
+        if (StringUtils.isBlank(name)) {
+            throw new WebAppExceptionBuilder()
+                    .message("Cannot resolve UUID")
+                    .status(Response.Status.NOT_FOUND)
+                    .newCookie(cookie)
+                    .build();
+        }
+
         return name;
     }
 
@@ -101,16 +101,19 @@ public class ItemRoot extends ItemUtils {
             @PathParam("uuid")       String uuid,
             @CookieParam(COOKIENAME) Cookie authCookie)
     {
-        checkAuthCookie(authCookie);
-        LinkedHashMap<String, Object> itemAliases = new LinkedHashMap<String, Object>();
+        NewCookie cookie = checkAndCreateNewCookie(checkAuthCookie(authCookie));
 
         //Add name, and domainPathes
-        makeItemDomainPathsData(new ItemPath(UUID.fromString(uuid)), itemAliases);
+        Map<String, Object> itemAliases = makeItemDomainPathsData(new ItemPath(UUID.fromString(uuid)));
 
-        if (StringUtils.isBlank((String)itemAliases.get("name")))
-            throw ItemUtils.createWebAppException("Cannot resolve UUID", Response.Status.NOT_FOUND);
+        if (StringUtils.isBlank((String)itemAliases.get("name"))) {
+            throw new WebAppExceptionBuilder()
+                    .message("Cannot resolve UUID")
+                    .status(Response.Status.NOT_FOUND)
+                    .newCookie(cookie).build();
+        }
 
-        return toJSON(itemAliases);
+        return toJSON(itemAliases, cookie).build();
     }
 
     @GET
@@ -119,45 +122,69 @@ public class ItemRoot extends ItemUtils {
     public Response getMasterOutcome(
             @Context                     HttpHeaders headers,
             @PathParam("uuid")           String      uuid,
+            @QueryParam("schema")        String      schemaName,
+            @QueryParam("schemaVersion") Integer     schemaVersion,
             @QueryParam("script")        String      scriptName,
             @QueryParam("scriptVersion") Integer     scriptVersion,
             @CookieParam(COOKIENAME)     Cookie      authCookie)
     {
-        checkAuthCookie(authCookie);
-        ItemProxy item = getProxy(uuid);
-
-        String type = item.getType();
-
-        if (type == null) throw ItemUtils.createWebAppException("Type is null, cannot get MasterOutcome ", Response.Status.NOT_FOUND);
-
-        //FIXME: version should be retrieved from the current item or the Module
-        String view = "last";
-        int schemaVersion = 0;
-        if (scriptVersion == null) scriptVersion = 0;
-
-        Script script = null;
+        NewCookie cookie = checkAndCreateNewCookie(checkAuthCookie(authCookie));
+        ItemProxy item = getProxy(uuid, cookie);
 
         try {
-            if (scriptName != null) {
-                final Schema schema = LocalObjectLoader.getSchema(type, schemaVersion);
-                script = LocalObjectLoader.getScript(scriptName, scriptVersion);
+            Schema masterSchema = item.getMasterSchema(schemaName, schemaVersion);
+            Script aggrScript   = getAggregateScript(item, scriptName, scriptVersion);
 
-                return scriptUtils.returnScriptResult(scriptName, item, schema, script, new CastorHashMap(), produceJSON(headers.getAcceptableMediaTypes()));
-            }
-            else if ((script = getAggregateScript(type, scriptVersion)) != null) {
-                final Schema schema = LocalObjectLoader.getSchema(type, schemaVersion);
+            boolean jsonFlag = produceJSON(headers.getAcceptableMediaTypes());
 
-                return scriptUtils.returnScriptResult(scriptName, item, schema, script, new CastorHashMap(), produceJSON(headers.getAcceptableMediaTypes()));
+            if (aggrScript != null) {
+                return scriptUtils.returnScriptResult(item, masterSchema, aggrScript, new CastorHashMap(), jsonFlag)
+                        .cookie(cookie).build();
             }
-            else if (item.checkViewpoint(type, view)) {
-                return getViewpointOutcome(uuid, type, view, true);
+            else if (item.checkViewpoint(item.getType(), "last")) {
+                return getViewpointOutcome(uuid, item.getType(), "last", true, cookie).build();
             }
-            else
-                throw ItemUtils.createWebAppException("No method available to retrieve MasterOutcome", Response.Status.NOT_FOUND);
+            else {
+                throw new WebAppExceptionBuilder()
+                        .message("No method available to retrieve MasterOutcome")
+                        .status(Response.Status.NOT_FOUND)
+                        .newCookie(cookie).build();
+            }
+        } catch (ObjectNotFoundException | InvalidDataException | ScriptingEngineException e) {
+            throw new WebAppExceptionBuilder()
+                .message("Error retrieving MasterOutcome")
+                .status(Response.Status.NOT_FOUND)
+                .newCookie(cookie).build();
+        } 
+        catch ( UnsupportedOperationException e ) {
+            throw new WebAppExceptionBuilder().exception(e).newCookie(cookie).build();
         }
-        catch (ObjectNotFoundException | InvalidDataException | ScriptingEngineException e) {
-            Logger.error(e);
-            throw ItemUtils.createWebAppException("Error retrieving MasterOutcome:" + e.getMessage() , e, Response.Status.NOT_FOUND);
+    }
+
+    /**
+     * Retrieve the default Aggregate Script of the Item if exists.
+     * 
+     * @param item to be checked
+     * @return returns the Script or null
+     */
+    private Script getAggregateScript(ItemProxy item) {
+        return getAggregateScript(item, null, null);
+    }
+
+    /**
+     * Retrieve the the named version of Aggregate Script of the Item if exists.
+     * 
+     * @param item to be checked
+     * @param name the name or UUID of he Script
+     * @param version version of the Script
+     * @return returns the Script or null
+     */
+    private Script getAggregateScript(ItemProxy item, String name, Integer version) {
+        try {
+            return item.getAggregateScript();
+        }
+        catch (InvalidDataException | ObjectNotFoundException e) {
+            return null;
         }
     }
 
@@ -165,17 +192,25 @@ public class ItemRoot extends ItemUtils {
     @Path("scriptResult")
     @Produces( {MediaType.TEXT_XML, MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON } )
     public Response getScriptResult(
-            @Context                 HttpHeaders headers,
-            @PathParam("uuid")       String      uuid,
-            @QueryParam("script")    String      scriptName,
-            @QueryParam("version")   Integer     scriptVersion,
-            @QueryParam("inputs")    String      inputJson,
-            @CookieParam(COOKIENAME) Cookie      authCookie)
+            @Context                    HttpHeaders headers,
+            @PathParam("uuid")          String      uuid,
+            @QueryParam("script")       String      scriptName,
+            @QueryParam("version")      Integer     scriptVersion,
+            @QueryParam("activityPath") String      actPath,
+            @QueryParam("inputs")       String      inputJson,
+            @CookieParam(COOKIENAME)    Cookie      authCookie)
     {
-        checkAuthCookie(authCookie);
-        ItemProxy item = getProxy(uuid);
+        NewCookie cookie = checkAndCreateNewCookie(checkAuthCookie(authCookie));
+        ItemProxy item = getProxy(uuid, cookie);
 
-        return scriptUtils.executeScript(headers, item, scriptName, scriptVersion, inputJson, ImmutableMap.of());
+        try {
+            return scriptUtils
+                    .executeScript(headers, item, scriptName, scriptVersion, actPath, inputJson, ImmutableMap.of())
+                    .cookie(cookie).build();
+        }
+        catch (ObjectNotFoundException | UnsupportedOperationException | InvalidDataException e) {
+            throw new WebAppExceptionBuilder().exception(e).newCookie(cookie).build();
+        }
     }
 
     @POST
@@ -184,16 +219,24 @@ public class ItemRoot extends ItemUtils {
     @Produces({ MediaType.TEXT_XML, MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON })
     public Response getScriptResultPost(
             String postData,
-            @Context                 HttpHeaders headers,
-            @PathParam("uuid")       String      uuid,
-            @QueryParam("script")    String      scriptName,
-            @QueryParam("version")   Integer     scriptVersion,
-            @CookieParam(COOKIENAME) Cookie      authCookie)
+            @Context                    HttpHeaders headers,
+            @PathParam("uuid")          String      uuid,
+            @QueryParam("script")       String      scriptName,
+            @QueryParam("version")      Integer     scriptVersion,
+            @QueryParam("activityPath") String      actPath,
+            @CookieParam(COOKIENAME)    Cookie      authCookie)
     {
-        checkAuthCookie(authCookie);
-        ItemProxy item = getProxy(uuid);
+        NewCookie cookie = checkAndCreateNewCookie(checkAuthCookie(authCookie));
+        ItemProxy item = getProxy(uuid, cookie);
 
-        return scriptUtils.executeScript(headers, item, scriptName, scriptVersion, postData, ImmutableMap.of());
+        try {
+            return scriptUtils
+                    .executeScript(headers, item, scriptName, scriptVersion, actPath, postData, ImmutableMap.of())
+                    .cookie(cookie).build();
+        }
+        catch (ObjectNotFoundException | UnsupportedOperationException | InvalidDataException e) {
+            throw new WebAppExceptionBuilder().exception(e).newCookie(cookie).build();
+        }
     }
 
     @GET
@@ -206,8 +249,8 @@ public class ItemRoot extends ItemUtils {
             @QueryParam("version")   Integer     queryVersion,
             @CookieParam(COOKIENAME) Cookie      authCookie)
     {
-        checkAuthCookie(authCookie);
-        ItemProxy item = getProxy(uuid);
+        NewCookie cookie = checkAndCreateNewCookie(checkAuthCookie(authCookie));
+        ItemProxy item = getProxy(uuid, cookie);
 
         //FIXME: version should be retrieved from the current item or the Module
         //String view = "last";
@@ -216,44 +259,28 @@ public class ItemRoot extends ItemUtils {
         Query query = null;
 
         try {
+            boolean jsonFlag = produceJSON(headers.getAcceptableMediaTypes());
+
             if (queryName != null) {
                 query = LocalObjectLoader.getQuery(queryName, queryVersion);
-                return returnQueryResult(queryName, item, null, query, produceJSON(headers.getAcceptableMediaTypes()));
+                return returnQueryResult(queryName, item, null, query, jsonFlag).cookie(cookie).build();
+            } else {
+                throw new WebAppExceptionBuilder()
+                        .message("Name or UUID of Query was missing")
+                        .status(Response.Status.NOT_FOUND)
+                        .newCookie(cookie).build();
             }
-            else
-                throw ItemUtils.createWebAppException("Name or UUID of Query was missing", Response.Status.NOT_FOUND);
-        }
-        catch (Exception e) {
-            Logger.error(e);
-            throw ItemUtils.createWebAppException("Error executing Query:" + e.getMessage() , e, Response.Status.NOT_FOUND);
+        } catch (UnsupportedOperationException | ObjectNotFoundException | InvalidDataException | PersistencyException e) {
+            throw new WebAppExceptionBuilder().exception(e).newCookie(cookie).build();
         }
     }
 
-    private Response returnQueryResult(String queryName, ItemProxy item, Object object, Query query, boolean jsonFlag) throws PersistencyException {
+    private Response.ResponseBuilder returnQueryResult(String queryName, ItemProxy item,
+                                       Object object, Query query, boolean jsonFlag) throws PersistencyException {
         String xmlResult = item.executeQuery(query);
 
-        if (jsonFlag) return Response.ok(XML.toJSONObject(xmlResult, true).toString()).build();
-        else          return Response.ok(xmlResult).build();
-    }
-
-    /**
-     * Returns the so called Aggregate Script which can be used to construct master outcome.
-     * The method is created to retrieve the script in the if statement
-     * 
-     * @param the value of Type Property of the Item
-     * @param scriptVersion the version of the script
-     * @return the script or null
-     */
-    private Script getAggregateScript(String type, Integer scriptVersion) {
-        String scriptName = type + Gateway.getProperties().getString("REST.MasterOutcome.postfix", "_Aggregate");
-
-        try {
-            return LocalObjectLoader.getScript(scriptName, scriptVersion);
-        }
-        catch (ObjectNotFoundException | InvalidDataException e1) {
-            Logger.msg(5, "ItemRoot.getAggregateScript() - Could not find Script name:%s", scriptName);
-        }
-        return null;
+        if (jsonFlag) return Response.ok(XML.toJSONObject(xmlResult, true).toString());
+        else          return Response.ok(xmlResult);
     }
 
     @GET
@@ -261,45 +288,45 @@ public class ItemRoot extends ItemUtils {
     public Response getItemSummary(
             @PathParam("uuid")       String  uuid,
             @CookieParam(COOKIENAME) Cookie  authCookie,
-            @Context                 UriInfo uri)
+            @Context                 UriInfo uri) throws Exception
     {
-        checkAuthCookie(authCookie);
-        ItemProxy item = getProxy(uuid);
-
-        LinkedHashMap<String, Object> itemSummary = new LinkedHashMap<String, Object>();
+        NewCookie cookie = checkAndCreateNewCookie(checkAuthCookie(authCookie));
+        ItemProxy item = getProxy(uuid, cookie);
 
         //Add name, and domainPaths
-        makeItemDomainPathsData(item.getPath(), itemSummary);
+        Map<String, Object> itemSummary = makeItemDomainPathsData(item.getPath());
 
         itemSummary.put("uuid", uuid);
         itemSummary.put("hasMasterOutcome", false);
-
 
         try {
             String type = item.getType();
             if (type != null) {
                 itemSummary.put("type", type);
 
-                if (getAggregateScript(type, 0) != null || item.checkViewpoint(type, "last")) {
+                if (getAggregateScript(item) != null || item.checkViewpoint(type, "last")) {
                     itemSummary.put("hasMasterOutcome", true);
                     itemSummary.put("master", getItemURI(uri, item, "master"));
                 }
             }
 
             itemSummary.put("properties", getPropertySummary(item));
+
+            itemSummary.put("viewpoints",  getAllViewpoints(item, uri, cookie));
+            itemSummary.put("collections", enumerate(item, COLLECTION, "collection", uri, cookie));
+            itemSummary.put("workflow",    getItemURI(uri, item, "workflow"));
+            itemSummary.put("history",     getItemURI(uri, item, "history"));
+            itemSummary.put("outcome",     getItemURI(uri, item, "outcome"));
+            itemSummary.put("attachment",  getItemURI(uri, item, "attachment"));
+
+            return toJSON(itemSummary, cookie).build();
         }
         catch (ObjectNotFoundException e) {
-            Logger.error(e);
-            throw ItemUtils.createWebAppException("No Properties found", e, Response.Status.BAD_REQUEST);
+            throw new WebAppExceptionBuilder().message("No Properties found")
+                    .status(Response.Status.BAD_REQUEST).newCookie(cookie).build();
+        } catch ( Exception e ) {
+            throw new WebAppExceptionBuilder().exception(e).newCookie(cookie).build();
         }
-
-        itemSummary.put("viewpoints",  getAllViewpoints(item, uri));
-        itemSummary.put("collections", enumerate(item, COLLECTION, "collection", uri));
-        itemSummary.put("workflow",    getItemURI(uri, item, "workflow"));
-        itemSummary.put("history",     getItemURI(uri, item, "history"));
-        itemSummary.put("outcome",     getItemURI(uri, item, "outcome"));
-
-        return toJSON(itemSummary);
     }
 
 
@@ -314,14 +341,13 @@ public class ItemRoot extends ItemUtils {
             @CookieParam(COOKIENAME)      Cookie  authCookie,
             @Context                      UriInfo uri)
     {
-        checkAuthCookie(authCookie);
-
-        ItemProxy item = getProxy(uuid);
-        AgentProxy agent = getAgent(agentName, authCookie);
+        NewCookie cookie = checkAndCreateNewCookie(checkAuthCookie(authCookie));
+        ItemProxy item = getProxy(uuid, cookie);
 
         List<Job> jobList = null;
         Job job = null;
         try {
+            AgentProxy agent = getAgent(agentName, authCookie);
             if (StringUtils.isNotBlank(activityName)) {
                 if (StringUtils.isNotBlank(transitionName)) job = item.getJobByTransitionName(activityName, transitionName, agent);
                 else                                        job = item.getJobByName(activityName, agent);
@@ -330,23 +356,24 @@ public class ItemRoot extends ItemUtils {
                 jobList = item.getJobList(agent);
         }
         catch (Exception e) {
-            Logger.error(e);
-            throw ItemUtils.createWebAppException("Error loading joblist");
+            throw new WebAppExceptionBuilder("Error loading joblist", e, null, cookie).build();
         }
 
         String itemName = item.getName();
+
         if (jobList != null) {
             ArrayList<Object> jobListData = new ArrayList<Object>();
 
             for (Job j : jobList) jobListData.add(makeJobData(j, itemName, uri));
 
-            return toJSON(jobListData);
+            return toJSON(jobListData, cookie).build();
         }
         else if (job != null) {
-            return toJSON(makeJobData(job, itemName, uri));
+            return toJSON(makeJobData(job, itemName, uri), cookie).build();
         }
         else {
-            throw ItemUtils.createWebAppException("No job found for actName:" + activityName + " transName:" + transitionName, Response.Status.NOT_FOUND);
+            throw new WebAppExceptionBuilder().message("No job found for actName:" + activityName + " transName:" + transitionName)
+                        .status(Response.Status.NOT_FOUND).newCookie(cookie).build();
         }
     }
 
@@ -354,7 +381,7 @@ public class ItemRoot extends ItemUtils {
     @Consumes( {MediaType.TEXT_PLAIN, MediaType.TEXT_XML, MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON } )
     @Produces( {MediaType.TEXT_XML, MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON } )
     @Path("{activityPath: .*}")
-    public String requestTransition(    String      postData,
+    public String requestTransition(    String      outcome, //body of the post
             @Context                    HttpHeaders headers,
             @PathParam("uuid")          String      uuid,
             @PathParam("activityPath")  String      actPath,
@@ -362,183 +389,112 @@ public class ItemRoot extends ItemUtils {
             @CookieParam(COOKIENAME)    Cookie      authCookie,
             @Context                    UriInfo     uri)
     {
-        AgentProxy agent = null;
-        try {
-            agent = (AgentProxy)Gateway.getProxyManager().getProxy( checkAuthCookie(authCookie) );
-        }
-        catch (ObjectNotFoundException e1) {
-            throw ItemUtils.createWebAppException(e1.getMessage(), Response.Status.UNAUTHORIZED);
+        NewCookie cookie = checkAndCreateNewCookie(checkAuthCookie(authCookie));
+        ItemProxy item = getProxy(uuid, cookie);
+
+        if (actPath == null) {
+            throw new WebAppExceptionBuilder().message("Must specify activity path").status(Response.Status.BAD_REQUEST).newCookie(cookie).build();
         }
 
-        if (actPath == null) throw ItemUtils.createWebAppException("Must specify activity path", Response.Status.BAD_REQUEST);
-
-        // Find agent
-        ItemProxy item = getProxy(uuid);
+        log.info("requestTransition({}://{}:{})", item, actPath, transition);
 
         try {
-            List<String> types = headers.getRequestHeader(HttpHeaders.CONTENT_TYPE);
+            String contentType = headers.getRequestHeader(HttpHeaders.CONTENT_TYPE).get(0);
 
-            Logger.msg(5, "ItemRoot.requestTransition() postData:%s", postData);
+            log.debug("requestTransition() outcome:'{}' contentType:'{}'", outcome, contentType);
+
+            AgentProxy agent = Gateway.getProxyManager().getAgentProxy(getAgentPath(authCookie));
+            String executeResult;
 
             if (actPath.startsWith(PREDEFINED_PATH)) {
-                return executePredefinedStep(item, postData, types, actPath, agent);
+                executeResult = executePredefinedStep(item, outcome, contentType, actPath, agent);
             }
             else {
-                transition = extractAndCcheckTransitionName(transition, uri);
-                String execJob = executeJob(item, postData, types, actPath, transition, agent);
-                if (types.contains(MediaType.APPLICATION_XML) || types.contains(MediaType.TEXT_XML)) {
-                	return execJob;
-                } else {
-                	return XML.toJSONObject(execJob, true).toString();
-                }
-                
+                transition = extractAndCheckTransitionName(transition, uri);
+                executeResult = executeJob(item, outcome, contentType, actPath, transition, agent);
             }
+
+            if (produceJSON(headers.getAcceptableMediaTypes())) return XML.toJSONObject(executeResult, true).toString();
+            else                                                return executeResult;
         }
-        catch (OutcomeBuilderException | InvalidDataException | ScriptErrorException | ObjectAlreadyExistsException | InvalidCollectionModification e) {
-            Logger.error(e);
-            throw ItemUtils.createWebAppException(e.getMessage(), e, Response.Status.BAD_REQUEST);
-        }
-        catch (AccessRightsException e) { // agent doesn't hold the right to execute
-            throw ItemUtils.createWebAppException(e.getMessage(), e, Response.Status.UNAUTHORIZED);
-        }
-        catch (ObjectNotFoundException e) { // workflow, schema, script etc not found.
-            Logger.error(e);
-            throw ItemUtils.createWebAppException(e.getMessage(), e, Response.Status.NOT_FOUND);
-        }
-        catch (InvalidTransitionException e) { // activity has already changed state
-            Logger.error(e);
-            throw ItemUtils.createWebAppException(e.getMessage(), e, Response.Status.CONFLICT);
-        }
-        catch (PersistencyException e) { // database failure
-            Logger.error(e);
-            throw ItemUtils.createWebAppException(e.getMessage(), e, Response.Status.INTERNAL_SERVER_ERROR);
-        }
-        catch (Exception e) { // any other failure
-            Logger.error(e);
-            throw ItemUtils.createWebAppException(e.getMessage(), Response.Status.INTERNAL_SERVER_ERROR);
+        catch (Exception e) {
+            log.error("requestTransition() - could not execute {}://{}:{}'", uuid, actPath, transition);
+            throw new WebAppExceptionBuilder().exception(e).newCookie(cookie).build();
         }
     }
 
-
-    /**
-     * Method for handling binary uplaod POST methods
-     * 
-     * @param postData
-     * @param headers
-     * @param uuid
-     * @param actPath
-     * @param transition
-     * @param authCookie
-     * @param uri
-     * @return
-     */
     @POST
-    @Consumes( MediaType.MULTIPART_FORM_DATA )
-    @Produces( MediaType.MULTIPART_FORM_DATA)
+    @Consumes(MediaType.MULTIPART_FORM_DATA)
+    @Produces( {MediaType.TEXT_XML, MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON } )
     @Path("{binaryUploadPath: .*}")
-    public String requestBinaryTransition(    String      postData,
-            @FormDataParam ("file") InputStream file,
-            @Context                    HttpHeaders headers,
-            @PathParam("uuid")          String      uuid,
-            @PathParam("binaryUploadPath")  String      actPath,
-            @QueryParam("transition")   String      transition,
-            @CookieParam(COOKIENAME)    Cookie      authCookie,
-            @Context                    UriInfo     uri)
+    public String requestBinaryTransition( FormDataMultiPart  body,
+            @Context                       HttpHeaders        headers,
+            @PathParam("uuid")             String             uuid,
+            @PathParam("binaryUploadPath") String             actPath,
+            @QueryParam("transition")      String             transition,
+            @CookieParam(COOKIENAME)       Cookie             authCookie,
+            @Context                       UriInfo            uri)
     {
-        AgentProxy agent = null;
-        try {
-            agent = (AgentProxy)Gateway.getProxyManager().getProxy( checkAuthCookie(authCookie) );
-        }
-        catch (ObjectNotFoundException e1) {
-            throw ItemUtils.createWebAppException(e1.getMessage(), Response.Status.UNAUTHORIZED);
+        NewCookie cookie = checkAndCreateNewCookie(checkAuthCookie(authCookie));
+        ItemProxy item = getProxy(uuid, cookie);
+
+        log.info("requestBinaryTransition({}://{}:{})", item, actPath, transition);
+
+        if (actPath == null) {
+            throw new WebAppExceptionBuilder().message("Must specify activity path")
+                    .status(Response.Status.BAD_REQUEST).newCookie(cookie).build();
         }
 
-        if (actPath == null) throw ItemUtils.createWebAppException("Must specify activity path", Response.Status.BAD_REQUEST);
-        
-        if (file == null) throw ItemUtils.createWebAppException("Must provide a file to upload", Response.Status.BAD_REQUEST);
-
-        // Find agent
-        ItemProxy item = getProxy(uuid);
+        String outcome = null;
 
         try {
-            List<String> types = headers.getRequestHeader(HttpHeaders.CONTENT_TYPE);
+            AgentProxy agent = Gateway.getProxyManager().getAgentProxy(getAgentPath(authCookie));
+            String executeResult;
 
-            Logger.msg(5, "ItemRoot.requestTransition() postData:%s", postData);
+            FormDataBodyPart outcomeBodyPart = body.getField("outcome");
+            String outcomeType = MediaType.APPLICATION_JSON;
+
+            if (outcomeBodyPart != null) {
+                outcome = outcomeBodyPart.getValue();
+
+                // Multipart only works with text/plain so outcome string needs to be inspected for media type
+                if (outcome.startsWith("<")) outcomeType = MediaType.APPLICATION_XML;
+
+                log.debug("requestBinaryTransition() - outcome:'{}' contentType:'{}'", outcome, outcomeType);
+            }
+
+            FormDataBodyPart fileBodyPart = body.getField("file");
+            InputStream file = null;
+            String fileName = null;
+
+            if (fileBodyPart != null) {
+                file = fileBodyPart.getValueAs(InputStream.class);
+                fileName = fileBodyPart.getContentDisposition().getFileName();
+
+                log.debug("requestBinaryTransition() - attachment fileName:'{}'", fileName);
+            }
 
             if (actPath.startsWith(PREDEFINED_PATH)) {
-                return executePredefinedStep(item, postData, types, actPath, agent);
+                if (file != null) {
+                    throw new WebAppExceptionBuilder().message("PredefinedStep '"+actPath+"' cannot have attahcment")
+                        .status(Response.Status.BAD_REQUEST).newCookie(cookie).build();
+                }
+
+                //This will execute 
+                executeResult = executePredefinedStep(item, outcome, outcomeType, actPath, agent);
             }
             else {
-                transition = extractAndCcheckTransitionName(transition, uri);
-
-                return executeUploadJob(item, file, postData, types, actPath, transition, agent);
+                transition = extractAndCheckTransitionName(transition, uri);
+                executeResult = executeJob(item, outcome, outcomeType, file, fileName, actPath, transition, agent);
             }
-        }
-        catch (OutcomeBuilderException | InvalidDataException | ScriptErrorException | ObjectAlreadyExistsException | InvalidCollectionModification e) {
-            Logger.error(e);
-            throw ItemUtils.createWebAppException(e.getMessage(), e, Response.Status.BAD_REQUEST);
-        }
-        catch (AccessRightsException e) { // agent doesn't hold the right to execute
-            throw ItemUtils.createWebAppException(e.getMessage(), e, Response.Status.UNAUTHORIZED);
-        }
-        catch (ObjectNotFoundException e) { // workflow, schema, script etc not found.
-            Logger.error(e);
-            throw ItemUtils.createWebAppException(e.getMessage(), e, Response.Status.NOT_FOUND);
-        }
-        catch (InvalidTransitionException e) { // activity has already changed state
-            Logger.error(e);
-            throw ItemUtils.createWebAppException(e.getMessage(), e, Response.Status.CONFLICT);
-        }
-        catch (PersistencyException e) { // database failure
-            Logger.error(e);
-            throw ItemUtils.createWebAppException(e.getMessage(), e, Response.Status.INTERNAL_SERVER_ERROR);
-        }
-        catch (Exception e) { // any other failure
-            Logger.error(e);
-            throw ItemUtils.createWebAppException(e.getMessage(), Response.Status.INTERNAL_SERVER_ERROR);
-        }
-    }
-    
-    /**
-     * 
-     * @param item
-     * @param file
-     * @param postData
-     * @param types
-     * @param actPath
-     * @param transition
-     * @param agent
-     * @return
-     * @throws AccessRightsException
-     * @throws ObjectNotFoundException
-     * @throws PersistencyException
-     * @throws InvalidDataException
-     * @throws OutcomeBuilderException
-     * @throws InvalidTransitionException
-     * @throws ObjectAlreadyExistsException
-     * @throws InvalidCollectionModification
-     * @throws ScriptErrorException
-     * @throws IOException
-     */
-    private String executeUploadJob(ItemProxy item, InputStream file, String postData, List<String> types, String actPath, String transition, AgentProxy agent)
-            throws AccessRightsException, ObjectNotFoundException, PersistencyException, InvalidDataException, OutcomeBuilderException,
-                   InvalidTransitionException, ObjectAlreadyExistsException, InvalidCollectionModification, ScriptErrorException, IOException
-    {
-        Job thisJob = item.getJobByTransitionName(actPath, transition, agent);
-        
-        byte[] binaryData = IOUtils.toByteArray(file);
 
-        if (thisJob == null)
-            throw ItemUtils.createWebAppException("Job not found for actPath:"+actPath+" transition:"+transition, Response.Status.NOT_FOUND);
-
-        // set outcome if required
-        if (thisJob.hasOutcome()) {
-            OutcomeAttachment outcomeAttachment =
-                    new OutcomeAttachment(item.getPath(), thisJob.getSchema().getName(), thisJob.getSchema().getVersion(), -1, MediaType.APPLICATION_OCTET_STREAM, binaryData); 
-            
-            thisJob.setAttachment(outcomeAttachment);       
+            if (produceJSON(headers.getAcceptableMediaTypes())) return XML.toJSONObject(executeResult, true).toString();
+            else                                                return executeResult;
         }
-        return agent.execute(thisJob);
+        catch (Exception e) {
+            log.error("requestBinaryTransition() - could not execute {}://{}:{}'", uuid, actPath, transition);
+            throw new WebAppExceptionBuilder().exception(e).newCookie(cookie).build();
+        }
     }
 
     @GET
@@ -552,30 +508,29 @@ public class ItemRoot extends ItemUtils {
             @CookieParam(COOKIENAME)    Cookie      authCookie,
             @Context                    UriInfo     uri)
     {
-        AgentProxy agent = null;
-        try {
-            agent = (AgentProxy)Gateway.getProxyManager().getProxy( checkAuthCookie(authCookie) );
-        }
-        catch (ObjectNotFoundException e1) {
-            throw ItemUtils.createWebAppException(e1.getMessage(), Response.Status.UNAUTHORIZED);
-        }
+        NewCookie cookie = checkAndCreateNewCookie(checkAuthCookie(authCookie));
+        ItemProxy item = getProxy(uuid, cookie);
 
-        if (actPath == null) throw ItemUtils.createWebAppException("Must specify activity path", Response.Status.BAD_REQUEST);
-
-        // Find agent
-        ItemProxy item = getProxy(uuid);
+        if (actPath == null) {
+            throw new WebAppExceptionBuilder().message("Must specify activity path")
+                    .status(Response.Status.BAD_REQUEST).newCookie(cookie).build();
+        }
 
         try {
             if (actPath.startsWith(PREDEFINED_PATH)) {
-                throw ItemUtils.createWebAppException("Unimplemented", Response.Status.BAD_REQUEST);
+                throw new WebAppExceptionBuilder().message("Unimplemented")
+                        .status(Response.Status.BAD_REQUEST).newCookie(cookie).build();
             }
             else {
-                transition = extractAndCcheckTransitionName(transition, uri);
+                transition = extractAndCheckTransitionName(transition, uri);
+                AgentProxy agent = Gateway.getProxyManager().getAgentProxy(getAgentPath(authCookie));
 
                 Job thisJob = item.getJobByTransitionName(actPath, transition, agent);
 
-                if (thisJob == null)
-                    throw ItemUtils.createWebAppException("Job not found for actPath:"+actPath+" transition:"+transition, Response.Status.NOT_FOUND);
+                if (thisJob == null) {
+                    throw new WebAppExceptionBuilder().message("Job not found for actPath:"+actPath+" transition:"+transition)
+                            .status(Response.Status.NOT_FOUND).newCookie(cookie).build();
+                }
                 
                 CastorHashMap inputs = (CastorHashMap) thisJob.getActProps().clone();
 
@@ -585,32 +540,15 @@ public class ItemRoot extends ItemUtils {
 
                 // set outcome if required
                 if (thisJob.hasOutcome()) {
-                    return Response.ok(new OutcomeBuilder(thisJob.getSchema(), false).generateNgDynamicForms(inputs)).build();
-                }
-                else {
-                    Logger.msg(5, "ItemRoot.getJobFormTemplate() - no outcome needed for job:%s", thisJob);
-                    return Response.noContent().build();
+                    return Response.ok(new OutcomeBuilder(thisJob.getSchema(), false).generateNgDynamicForms(inputs))
+                            .cookie(cookie).build();
+                } else {
+                    log.debug("getJobFormTemplate() - no outcome needed for job:{}", thisJob);
+                    return Response.noContent().cookie(cookie).build();
                 }
             }
-        }
-        catch (OutcomeBuilderException | InvalidDataException  e) {
-            Logger.error(e);
-            throw ItemUtils.createWebAppException(e.getMessage(), e, Response.Status.BAD_REQUEST);
-        }
-        catch (AccessRightsException e) { // agent doesn't hold the right to execute
-            throw ItemUtils.createWebAppException(e.getMessage(), e, Response.Status.UNAUTHORIZED);
-        }
-        catch (ObjectNotFoundException e) { // workflow, schema, script etc not found.
-            Logger.error(e);
-            throw ItemUtils.createWebAppException(e.getMessage(), e, Response.Status.NOT_FOUND);
-        }
-        catch (PersistencyException e) { // database failure
-            Logger.error(e);
-            throw ItemUtils.createWebAppException(e.getMessage(), e, Response.Status.INTERNAL_SERVER_ERROR);
-        }
-        catch (Exception e) { // any other failure
-            Logger.error(e);
-            throw ItemUtils.createWebAppException(e.getMessage(), Response.Status.INTERNAL_SERVER_ERROR);
+        } catch (Exception e) {
+            throw new WebAppExceptionBuilder().exception(e).newCookie(cookie).build();
         }
     }
 
@@ -620,9 +558,9 @@ public class ItemRoot extends ItemUtils {
      * @param transName the name of the transition, can be null
      * @param uri the uri of the request
      * @return the transName if it was not blank or the name of first valueless query parameter
-     * @throws WebApplicationException if no transition name can be extracted
+     * @throws InvalidDataException if no transition name can be extracted
      */
-    private String extractAndCcheckTransitionName(String transName, UriInfo uri) {
+    private String extractAndCheckTransitionName(String transName, UriInfo uri) throws InvalidDataException {
         if (StringUtils.isNotBlank(transName)) return transName;
 
         for (String key: uri.getQueryParameters().keySet()) {
@@ -631,6 +569,6 @@ public class ItemRoot extends ItemUtils {
             if (qparams.size() == 1 && qparams.get(0).length() == 0) return key;
         }
 
-        throw ItemUtils.createWebAppException("Must specify transition name", Response.Status.BAD_REQUEST);
+        throw new InvalidDataException("Must specify transition name");
     }
 }

@@ -20,8 +20,6 @@
  */
 package org.cristalise.restapi;
 
-import static javax.ws.rs.core.Response.Status.NOT_FOUND;
-
 import java.net.URLDecoder;
 import java.util.Date;
 import java.util.Map;
@@ -29,19 +27,23 @@ import java.util.concurrent.Semaphore;
 
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.Response;
-
+import org.apache.commons.lang3.StringUtils;
 import org.cristalise.kernel.common.InvalidDataException;
+import org.cristalise.kernel.common.ObjectNotFoundException;
 import org.cristalise.kernel.entity.proxy.ItemProxy;
 import org.cristalise.kernel.persistency.outcome.Outcome;
 import org.cristalise.kernel.persistency.outcome.Schema;
+import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.scripting.Script;
 import org.cristalise.kernel.scripting.ScriptingEngineException;
 import org.cristalise.kernel.utils.CastorHashMap;
 import org.cristalise.kernel.utils.LocalObjectLoader;
-import org.cristalise.kernel.utils.Logger;
 import org.json.JSONObject;
 import org.json.XML;
 
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
 public class ScriptUtils extends ItemUtils {
     
     static Semaphore mutex = new Semaphore(1);
@@ -74,45 +76,67 @@ public class ScriptUtils extends ItemUtils {
         return scriptResult;
     }
 
-    public Response executeScript(HttpHeaders headers, ItemProxy item, String scriptName, Integer scriptVersion,
-            String inputJson, Map<String, Object> additionalInputs) {
-        // FIXME: version should be retrieved from the current item or the Module
-        // String view = "last";
-        if (scriptVersion == null) scriptVersion = 0;
+    public Response.ResponseBuilder executeScript(
+            HttpHeaders         headers, 
+            ItemProxy           item, 
+            String              scriptName, 
+            Integer             scriptVersion,
+            String              actPath,
+            String              inputJson,
+            Map<String, Object> additionalInputs)
+                throws ObjectNotFoundException, UnsupportedOperationException, InvalidDataException
+    {
+        if (scriptVersion == null) {
+            if (Gateway.getProperties().getBoolean("Module.Versioning.strict", false)) {
+                throw new InvalidDataException("Version for Script '" + scriptName + "' cannot be null");
+            }
+            else {
+                log.warn("executeScript() - Version for Script {}' was null, using version 0 as default", scriptName);
+                scriptVersion = 0;
+            }
+        }
 
-        Script script = null;
         if (scriptName != null) {
             try {
-                script = LocalObjectLoader.getScript(scriptName, scriptVersion);
-                
-                JSONObject json = 
-                        new JSONObject(
-                                inputJson == null ? "{}" : URLDecoder.decode(inputJson, "UTF-8"));
-                
+                Script script = LocalObjectLoader.getScript(scriptName, scriptVersion);
+
+                JSONObject json =  new JSONObject(inputJson == null ? "{}" : URLDecoder.decode(inputJson, "UTF-8"));
+
                 CastorHashMap inputs = new CastorHashMap();
                 for (String key: json.keySet()) {
                     inputs.put(key, json.get(key));
                 }
+
+                if (StringUtils.isNotBlank(actPath)) inputs.put("activityPath", actPath);
+
                 inputs.putAll(additionalInputs);
-                
-                return returnScriptResult(scriptName, item, null, script, inputs, produceJSON(headers.getAcceptableMediaTypes()));
+
+                return returnScriptResult(item, null, script, inputs, produceJSON(headers.getAcceptableMediaTypes()));
+            }
+            catch ( UnsupportedOperationException e ) {
+                throw e;
             }
             catch (Exception e) {
-                Logger.error(e);
-                throw ItemUtils.createWebAppException("Error executing script, please contact support", e, Response.Status.NOT_FOUND);
+                log.error("Error executing script, please contact support", e);
+                if (e.getMessage().contains("[errorMessage]")) {
+                    throw new ObjectNotFoundException( e.getMessage() );
+                } else {
+                    // Throw the generic exception when error message is not defined in the script.
+                    throw new ObjectNotFoundException( "Error executing script, please contact support" );
+                }
             }
         }
         else {
-            throw ItemUtils.createWebAppException("Name or UUID of Script was missing", Response.Status.NOT_FOUND);
+            throw new ObjectNotFoundException( "Name or UUID of Script was missing" );
         }
     }
 
-    public Response returnScriptResult(String scriptName, ItemProxy item, final Schema schema, final Script script, CastorHashMap inputs, boolean jsonFlag)
+    public Response.ResponseBuilder returnScriptResult(ItemProxy item, final Schema schema, final Script script, CastorHashMap inputs, boolean jsonFlag)
             throws ScriptingEngineException, InvalidDataException
     {
         try {
             mutex.acquire();
-            return runScript(scriptName, item, schema, script, inputs, jsonFlag);
+            return runScript(item, schema, script, inputs, jsonFlag);
         }
         catch (ScriptingEngineException e) {
             throw e;
@@ -133,11 +157,12 @@ public class ScriptUtils extends ItemUtils {
      * @param script
      * @param jsonFlag whether the response is a JSON or XML
      * @return
+     * @throws ObjectNotFoundException
      * @throws ScriptingEngineException
      * @throws InvalidDataException
      */
-    protected Response runScript(String scriptName, ItemProxy item, final Schema schema, final Script script, CastorHashMap inputs, boolean jsonFlag)
-            throws ScriptingEngineException, InvalidDataException
+    protected Response.ResponseBuilder runScript(ItemProxy item, final Schema schema, final Script script, CastorHashMap inputs, boolean jsonFlag)
+            throws ScriptingEngineException, InvalidDataException, ObjectNotFoundException
     {
         String xmlOutcome = null;
         Object scriptResult = executeScript(item, script, inputs);
@@ -150,16 +175,18 @@ public class ScriptUtils extends ItemUtils {
             String key = ((Map<?,?>) scriptResult).keySet().toArray(new String[0])[0];
             xmlOutcome = (String)((Map<?,?>) scriptResult).get(key);
         }
-        else
-            throw ItemUtils.createWebAppException("Cannot handle result of script:" + scriptName, NOT_FOUND);
-
-        if (xmlOutcome == null)
-            throw ItemUtils.createWebAppException("Cannot handle result of script:" + scriptName, NOT_FOUND);
-
-        if (schema != null) return getOutcomeResponse(new Outcome(xmlOutcome, schema), new Date(), jsonFlag);
         else {
-            if (jsonFlag) return Response.ok(XML.toJSONObject(xmlOutcome, true).toString()).build();
-            else          return Response.ok((xmlOutcome)).build();
+            throw new ObjectNotFoundException("Cannot handle result of script:" + script.getName());
+        }
+
+        if (xmlOutcome == null) {
+            throw new ObjectNotFoundException("Cannot handle result of script:" + script.getName());
+        }
+
+        if (schema != null) return getOutcomeResponse(new Outcome(xmlOutcome, schema), new Date(), jsonFlag, null);
+        else {
+            if (jsonFlag) return Response.ok(XML.toJSONObject(xmlOutcome, true).toString());
+            else          return Response.ok((xmlOutcome));
         }
     }
 }

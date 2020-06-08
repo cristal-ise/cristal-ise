@@ -23,6 +23,8 @@ package org.cristalise.dsl.persistency.outcome
 import org.cristalise.kernel.common.InvalidDataException
 
 import groovy.transform.CompileStatic;
+import org.cristalise.kernel.querying.Query
+import org.cristalise.kernel.scripting.Script
 
 
 @CompileStatic
@@ -31,12 +33,52 @@ class ListOfValues {
      * Defines the Script name and version (e.g. GetShiftNames:0') which is executed when
      * the XML Schema is converted to form meta-data
      */
-    String scriptRef = null
+    Object scriptRef = null
+
+    /**
+     * Converts the scriptRef object to the String representation (i.e. 'GetShiftNames:0')
+     * used in the generated XSD.
+     *
+     * @return the converted String
+     */
+    String getScriptRefString() {
+        if (scriptRef == null) {
+            return 'null'
+        }
+        else if (scriptRef instanceof Script) {
+            Script s = (Script)scriptRef
+            return s.getName() + ':' + s.getVersion()
+        }
+        else {
+            return scriptRef.toString()
+        }
+    }
+
     /**
      * Defines the Query name and version (e.g. GetShiftNames:0) which is executed while
      * the XML Schema is converted to form meta-data
      */
-    String queryRef = null
+    Object queryRef = null
+
+    /**
+     * Converts the queryRef object to the String representation (i.e. 'GetShiftNames:0')
+     * used in the generated XSD.
+     *
+     * @return the converted String
+     */
+    String getQueryRefString() {
+        if (queryRef == null) {
+            return 'null'
+        }
+        else if (queryRef instanceof Query) {
+            Query q = (Query)queryRef
+            return q.getName() + ':' + q.getVersion()
+        }
+        else {
+            return queryRef.toString()
+        }
+    }
+
     /**
      * Comma separated list of ItemProperty names
      */

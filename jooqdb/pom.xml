@@ -125,6 +125,10 @@
                     <excludes>
                         <exclude>*pom*.xml</exclude>
                         <exclude>**/logback*.xml</exclude>
+                        <exclude>**/src/test/data/**</exclude>
+                        <exclude>**/*LICENSE</exclude>
+                        <exclude>**/README</exclude>
+                        <exclude>**/*.gpg.enc</exclude>
                     </excludes>
                 </configuration>
                 <executions>
@@ -165,6 +169,11 @@
             <version>2.2</version>
         </dependency>
         <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
             <groupId>com.zaxxer</groupId>
             <artifactId>HikariCP</artifactId>
             <version>3.3.1</version>
@@ -192,12 +201,6 @@
             <groupId>org.unitils</groupId>
             <artifactId>unitils-core</artifactId>
             <version>3.4.6</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-api</artifactId>
-            <version>1.7.26</version>
             <scope>test</scope>
         </dependency>
         <dependency>

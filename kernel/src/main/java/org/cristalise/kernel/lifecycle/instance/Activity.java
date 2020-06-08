@@ -24,10 +24,12 @@ import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.AGENT_NA
 import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.AGENT_ROLE;
 import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.BREAKPOINT;
 import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.DESCRIPTION;
+import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.PAIRING_ID;
 import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.VIEW_POINT;
 import static org.cristalise.kernel.property.BuiltInItemProperties.NAME;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
@@ -70,14 +72,15 @@ import org.cristalise.kernel.property.Property;
 import org.cristalise.kernel.property.PropertyUtility;
 import org.cristalise.kernel.utils.DateUtility;
 import org.cristalise.kernel.utils.LocalObjectLoader;
-import org.cristalise.kernel.utils.Logger;
 
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
 public class Activity extends WfVertex {
     protected static final String XPATH_TOKEN = "xpath:";
 
     /**
-     * vector of errors (Strings) that is constructed each time verify() is
-     * launched
+     * vector of errors (Strings) that is constructed each time verify() was launched
      */
     protected Vector<String> mErrors;
     /**
@@ -188,6 +191,30 @@ public class Activity extends WfVertex {
                    CannotManageException,
                    InvalidCollectionModification
     {
+        boolean validateOutcome = Gateway.getProperties().getBoolean("Activity.validateOutcome", false);
+        return request(agent, delegate, itemPath, transitionID, requestData, attachmentType, attachment, validateOutcome, locker);
+    }
+
+    public String request(AgentPath agent,
+                          AgentPath delegate,
+                          ItemPath itemPath,
+                          int transitionID,
+                          String requestData,
+                          String attachmentType,
+                          byte[] attachment,
+                          boolean validateOutcome,
+                          Object locker
+                          )
+            throws AccessRightsException,
+                   InvalidTransitionException,
+                   InvalidDataException,
+                   ObjectNotFoundException,
+                   PersistencyException,
+                   ObjectAlreadyExistsException,
+                   ObjectCannotBeUpdated,
+                   CannotManageException,
+                   InvalidCollectionModification
+    {
         // Find requested transition
         Transition transition = getStateMachine().getTransition(transitionID);
 
@@ -214,23 +241,33 @@ public class Activity extends WfVertex {
         setState(newState.getId());
         setBuiltInProperty(AGENT_NAME, transition.getReservation(this, agent));
 
-        try {
-            History hist = getWf().getHistory(locker);
+        History hist = null;
+
+        // Enables PredefinedSteps instances to call Activity.request() during bootstrap
+        if (getParent() != null) hist = getWf().getHistory(locker);
+        else                     hist = new History(itemPath, locker);
 
             if (storeOutcome) {
                 Schema schema = transition.getSchema(getProperties());
                 Outcome newOutcome = new Outcome(-1, outcome, schema);
-                // TODO: if we were ever going to validate outcomes on storage, it would be here.
-                //newOutcome.validateAndCheck();
+
+            // This is used by PredefinedStep executed during bootstrap
+            if (validateOutcome) newOutcome.validateAndCheck();
 
                 String viewpoint = resolveViewpointName(newOutcome);
+                boolean hasAttachment = false;
+                if (attachment.length > 0) {
+                    hasAttachment = true;
+                }
 
                 int eventID = hist.addEvent(agent, delegate, usedRole, getName(), getPath(), getType(),
-                        schema, getStateMachine(), transitionID, viewpoint).getID();
+                        schema, getStateMachine(), transitionID, viewpoint, hasAttachment).getID();
                 newOutcome.setID(eventID);
 
                 Gateway.getStorage().put(itemPath, newOutcome, locker);
-                if (attachment.length > 0) Gateway.getStorage().put(itemPath, new OutcomeAttachment(itemPath, newOutcome, attachmentType, attachment), locker);
+                if (attachment.length > 0) {
+                    Gateway.getStorage().put(itemPath, new OutcomeAttachment(itemPath, newOutcome, attachmentType, attachment), locker);
+                }
 
                 // update specific view if defined
                 if (!viewpoint.equals("last")) {
@@ -246,11 +283,6 @@ public class Activity extends WfVertex {
                 updateItemProperties(itemPath, null, locker);
                 hist.addEvent(agent, delegate, usedRole, getName(), getPath(), getType(), getStateMachine(), transitionID);
             }
-        }
-        catch (PersistencyException ex) {
-            Logger.error(ex);
-            throw ex;
-        }
 
         if (newState.isFinished() && !(getBuiltInProperty(BREAKPOINT).equals(Boolean.TRUE) && !oldState.isFinished())) {
             runNext(agent, itemPath, locker);
@@ -265,7 +297,7 @@ public class Activity extends WfVertex {
     private String resolveViewpointName(Outcome outcome) throws InvalidDataException {
         String viewpointString = (String)getBuiltInProperty(VIEW_POINT);
 
-        Logger.msg(5, "Activity.resolveViewpointName() - act:%s viewpointString:%s", getName(), viewpointString);
+        log.debug("resolveViewpointName() - act:{} viewpointString:{}", getName(), viewpointString);
 
         if (StringUtils.isBlank(viewpointString)) {
             viewpointString = "last";
@@ -307,7 +339,6 @@ public class Activity extends WfVertex {
                     }
 
                     if(StringUtils.isNotBlank(propValue)) {
-                        Logger.msg(5, "Activity.updateItemProperties() - propName:"+propName+" propValue:"+propValue);
                         PropertyUtility.writeProperty(itemPath, propName, propValue, locker);
                     }
                 }
@@ -334,7 +365,7 @@ public class Activity extends WfVertex {
      * @throws ObjectNotFoundException
      * @throws PersistencyException
      * @throws CannotManageException
-     * @throws AccessRightsException 
+     * @throws AccessRightsException
      */
     protected String runActivityLogic(AgentPath agent, ItemPath itemPath, int transitionID, String requestData, Object locker)
             throws InvalidDataException, InvalidCollectionModification, ObjectAlreadyExistsException, ObjectCannotBeUpdated,
@@ -401,7 +432,7 @@ public class Activity extends WfVertex {
         if (outVertices.length > 0) ((WfVertex) getOutGraphables()[0]).run(agent, itemPath, locker);
 
         //parent is never null, because we do not call runNext() for the top level workflow (see bellow)
-        CompositeActivity parent = getParentCA(); 
+        CompositeActivity parent = getParentCA();
 
         //compute now if the CA can be finished or not
         if (checkParentFinishable(parent, outVertices)) {
@@ -416,7 +447,7 @@ public class Activity extends WfVertex {
      * Calculate if the CompositeActivity (parent) can be finished automatically or not
      */
     private boolean checkParentFinishable(CompositeActivity parent, Vertex[] outVertices)
-            throws InvalidDataException 
+            throws InvalidDataException
     {
         WfVertex outVertex = null;
         boolean cont = outVertices.length > 0;
@@ -428,6 +459,15 @@ public class Activity extends WfVertex {
             if (outVertex instanceof Join) {
                 outVertices = outVertex.getOutGraphables();
                 cont = outVertices.length > 0;
+            }
+            else if(outVertex instanceof Loop){
+                String loopPairingId = (String) outVertex.getBuiltInProperty(PAIRING_ID);
+                if(loopPairingId != null && StringUtils.isNotBlank(loopPairingId)){
+                    //Find the out Join which has not the same pairing id as the Loop
+                    outVertices = outVertex.getOutGraphables();
+                    outVertices = Arrays.stream(outVertices).filter(v -> !loopPairingId.equals(((WfVertex) v).getBuiltInProperty(PAIRING_ID))).toArray(Vertex[]::new);
+                    cont = outVertices.length > 0;
+                } else { cont = false; }
             }
             else {
                 cont = false;
@@ -464,7 +504,7 @@ public class Activity extends WfVertex {
      */
     @Override
     public void reinit(int idLoop) throws InvalidDataException {
-        Logger.msg(8, "Activity.reinit(id:%s, idLoop:%d) - parent:%s act:%s", getID(), idLoop, getParent().getName(), getPath());
+        log.trace("reinit(id:{}, idLoop:{}) - parent:{} act:{}", getID(), idLoop, getParent().getName(), getPath());
 
         setState(getStateMachine().getInitialState().getId());
 
@@ -490,7 +530,7 @@ public class Activity extends WfVertex {
      */
     @Override
     public void run(AgentPath agent, ItemPath itemPath, Object locker) throws InvalidDataException {
-        Logger.msg(8, "Activity.run() path:" + getPath() + " state:" + getStateName());
+        log.trace("run() path:" + getPath() + " state:" + getStateName());
 
         if (isFinished()) {
             runNext(agent, itemPath, locker);
@@ -509,7 +549,7 @@ public class Activity extends WfVertex {
      */
     @Override
     public void runFirst(AgentPath agent, ItemPath itemPath, Object locker) throws InvalidDataException {
-        Logger.msg(8, "Activity.runFirst() - path:" + getPath());
+        log.trace("runFirst() - path:" + getPath());
         run(agent, itemPath, locker);
     }
 
@@ -560,14 +600,14 @@ public class Activity extends WfVertex {
     private ArrayList<Job> calculateJobsBase(AgentPath agent, ItemPath itemPath, boolean includeInactive)
             throws ObjectNotFoundException, InvalidDataException, InvalidAgentPathException
     {
-        Logger.msg(7, "Activity.calculateJobsBase() - act:" + getPath());
+        log.trace("calculateJobsBase() - act:" + getPath());
         ArrayList<Job> jobs = new ArrayList<Job>();
         Map<Transition, String> transitions;
         if ((includeInactive || getActive()) && !getName().equals("domain")) {
             transitions = getStateMachine().getPossibleTransitions(this, agent);
-            Logger.msg(7, "Activity.calculateJobsBase() - Got " + transitions.size() + " transitions.");
+            log.trace("calculateJobsBase() - Got " + transitions.size() + " transitions.");
             for (Transition transition : transitions.keySet()) {
-                Logger.msg(7, "Activity.calculateJobsBase() - Creating Job object for transition " + transition.getName());
+                log.trace("calculateJobsBase() - Creating Job object for transition " + transition.getName());
                 jobs.add(new Job(this, itemPath, transition, agent, null, transitions.get(transition)));
             }
         }
@@ -595,17 +635,17 @@ public class Activity extends WfVertex {
                 if (StringUtils.isNotBlank(role)) roleNames.add(role);
             }
 
-            Logger.msg(7,"Activity.pushJobsToAgents() - Pushing jobs to "+roleNames.size()+" roles");
+            log.trace("pushJobsToAgents() - Pushing jobs to "+roleNames.size()+" roles");
 
             for (String roleName: roleNames) {
                 pushJobsToAgents(itemPath, Gateway.getLookup().getRolePath(roleName));
             }
         }
         catch (InvalidDataException ex) {
-            Logger.warning("Activity.pushJobsToAgents() - "+ex.getMessage());
+            log.warn("pushJobsToAgents() - "+ex.getMessage());
         }
         catch (ObjectNotFoundException e) {
-            Logger.warning("Activity.pushJobsToAgents() - Activity role '" + role + "' not found.");
+            log.warn("pushJobsToAgents() - Activity role '" + role + "' not found.");
         }
     }
 

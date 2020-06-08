@@ -23,6 +23,7 @@ package org.cristalise.lookup;
 import static org.cristalise.JooqTestConfigurationBase.DBModes.MYSQL;
 import static org.cristalise.JooqTestConfigurationBase.DBModes.PostgreSQL;
 import static org.cristalise.JooqTestConfigurationBase.DBModes.H2_PostgreSQL;
+import static org.cristalise.JooqTestConfigurationBase.DBModes.H2_MYSQL;
 import static org.unitils.reflectionassert.ReflectionAssert.assertReflectionEquals;
 import static org.unitils.reflectionassert.ReflectionComparatorMode.LENIENT_ORDER;
 
@@ -34,7 +35,6 @@ import org.apache.commons.lang3.reflect.FieldUtils;
 import org.cristalise.JooqTestConfigurationBase;
 import org.cristalise.kernel.lookup.Path;
 import org.cristalise.kernel.process.Gateway;
-import org.cristalise.kernel.utils.Logger;
 import org.cristalise.kernel.utils.ObjectProperties;
 import org.cristalise.storage.jooqdb.lookup.JooqLookupManager;
 import org.junit.After;
@@ -49,7 +49,6 @@ public class LookupTestBase extends JooqTestConfigurationBase {
 
     @BeforeClass
     public static void beforeClass() throws Exception {
-        Logger.addLogStream(System.out, 8);
         c2kProps = new ObjectProperties();
         setUpStorage(c2kProps);
 
@@ -75,7 +74,7 @@ public class LookupTestBase extends JooqTestConfigurationBase {
     @After
     public void tearDown() throws Exception {
         if (lookup != null) lookup.close();
-        if (dbType == MYSQL || dbType == PostgreSQL || dbType == H2_PostgreSQL) lookup.dropHandlers();
+        if (dbType == MYSQL || dbType == PostgreSQL || dbType == H2_PostgreSQL || dbType == H2_MYSQL) lookup.dropHandlers();
     }
 
     public void compare(List<Path> expecteds, Iterator<Path> actualsIter) {

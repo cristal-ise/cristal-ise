@@ -83,11 +83,8 @@
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <additionalparam>-Xdoclint:none</additionalparam>
         <maven-compiler-plugin.version>3.7.0</maven-compiler-plugin.version>
-        <build-helper-maven-plugin.version>1.12</build-helper-maven-plugin.version>
-        <groovy-eclipse-compiler.version>2.9.2-01</groovy-eclipse-compiler.version>
-        <groovy-eclipse-batch.version>2.4.3-01</groovy-eclipse-batch.version>
+        <build-helper-maven-plugin.version>3.0.0</build-helper-maven-plugin.version>
         <maven-release-plugin.version>2.4.1</maven-release-plugin.version>
-        <maven-surefire-plugin.version>2.6</maven-surefire-plugin.version>
         <nexus-staging-maven-plugin.version>1.6.8</nexus-staging-maven-plugin.version>
         <maven-gpg-plugin.version>1.6</maven-gpg-plugin.version>
         <source.version>1.8</source.version>
@@ -154,17 +151,6 @@
                 </dependencies>
             </plugin>
             <plugin>
-                <artifactId>maven-surefire-plugin</artifactId>
-                <version>${maven-surefire-plugin.version}</version>
-                <configuration>
-                    <redirectTestOutputToFile>true</redirectTestOutputToFile>
-                    <includes>
-                        <include>**/*Specs.*</include>
-                        <include>**/*Tests.*</include>
-                    </includes>
-                </configuration>
-            </plugin>
-            <plugin>
                 <groupId>com.bluetrainsoftware.maven</groupId>
                 <artifactId>groovydoc-maven-plugin</artifactId>
                 <version>2.1</version>
@@ -191,7 +177,8 @@
         <dependency>
             <groupId>org.codehaus.groovy</groupId>
             <artifactId>groovy-all</artifactId>
-            <scope>compile</scope>
+            <version>2.5.8</version>
+            <type>pom</type>
         </dependency>
         <dependency>
             <groupId>commons-lang</groupId>

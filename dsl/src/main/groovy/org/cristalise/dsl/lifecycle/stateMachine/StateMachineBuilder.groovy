@@ -20,22 +20,24 @@
  */
 package org.cristalise.dsl.lifecycle.stateMachine
 
-import groovy.transform.CompileStatic
+import static org.cristalise.kernel.process.resource.BuiltInResources.STATE_MACHINE_RESOURCE
 
 import org.cristalise.kernel.lifecycle.instance.stateMachine.StateMachine
 import org.cristalise.kernel.lookup.DomainPath
 import org.cristalise.kernel.persistency.outcome.Outcome
 import org.cristalise.kernel.persistency.outcome.Schema
-import org.cristalise.kernel.process.Bootstrap
 import org.cristalise.kernel.process.Gateway
+import org.cristalise.kernel.process.resource.ResourceImportHandler
 import org.cristalise.kernel.utils.LocalObjectLoader
-import org.cristalise.kernel.utils.Logger
+
+import groovy.transform.CompileStatic
+import groovy.util.logging.Slf4j
 
 
 /**
  *
  */
-@CompileStatic
+@CompileStatic @Slf4j
 class StateMachineBuilder {
     String module = ""
     String name = ""
@@ -74,7 +76,7 @@ class StateMachineBuilder {
     }
 
     public StateMachineBuilder loadXML(String xmlFile) {
-        Logger.msg 5, "StateMachineBuilder.loadXML() - From file:$xmlFile"
+        log.debug "loadXML() - From file:$xmlFile"
 
         smXML = new File(xmlFile).getText()
         sm = (StateMachine)Gateway.getMarshaller().unmarshall(smXML)
@@ -99,7 +101,7 @@ class StateMachineBuilder {
 
         builder.smXML =  Gateway.getMarshaller().marshall(builder.sm)
 
-        Logger.msg(5, builder.smXML)
+        log.debug 'buid() - xml created:{}', builder.smXML
 
         return builder
     }
@@ -121,6 +123,7 @@ class StateMachineBuilder {
      * @return the DomainPath of the newly created resource Item
      */
     public DomainPath create() {
-        return domainPath = Bootstrap.createResource(module, name, version, "SM", [new Outcome(-1, smXML, smSchema)] as Set, false)
+        ResourceImportHandler importHandler = Gateway.getResourceImportHandler(STATE_MACHINE_RESOURCE);
+        return domainPath = importHandler.createResource(module, name, version, new Outcome(-1, smXML, smSchema), false)
     }
 }
