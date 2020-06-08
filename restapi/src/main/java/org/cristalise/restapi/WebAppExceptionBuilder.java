@@ -77,7 +77,7 @@ public class WebAppExceptionBuilder {
         this.exception = ex;
         if (StringUtils.isBlank(this.message)) this.message = ex.getMessage();
 
-        log.debug("exception() - excpetion:'{}'", ex.getClass().getSimpleName());
+        log.debug("exception()", ex);
 
         if (ex instanceof OutcomeBuilderException ||
             ex instanceof ObjectAlreadyExistsException ||
