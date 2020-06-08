@@ -396,7 +396,7 @@ public class ItemRoot extends ItemUtils {
             throw new WebAppExceptionBuilder().message("Must specify activity path").status(Response.Status.BAD_REQUEST).newCookie(cookie).build();
         }
 
-        log.info("requestTransition({}://{})", item, actPath);
+        log.info("requestTransition({}://{}:{})", item, actPath, transition);
 
         try {
             String contentType = headers.getRequestHeader(HttpHeaders.CONTENT_TYPE).get(0);
@@ -418,7 +418,7 @@ public class ItemRoot extends ItemUtils {
             else                                                return executeResult;
         }
         catch (Exception e) {
-            log.debug("requestTransition({}://{}) - outcome:'{}'", item, actPath, outcome);
+            log.error("requestTransition() - could not execute {}://{}:{}'", uuid, actPath, transition);
             throw new WebAppExceptionBuilder().exception(e).newCookie(cookie).build();
         }
     }
@@ -438,7 +438,7 @@ public class ItemRoot extends ItemUtils {
         NewCookie cookie = checkAndCreateNewCookie(checkAuthCookie(authCookie));
         ItemProxy item = getProxy(uuid, cookie);
 
-        log.info("requestBinaryTransition({}://{})", item, actPath);
+        log.info("requestBinaryTransition({}://{}:{})", item, actPath, transition);
 
         if (actPath == null) {
             throw new WebAppExceptionBuilder().message("Must specify activity path")
@@ -492,7 +492,7 @@ public class ItemRoot extends ItemUtils {
             else                                                return executeResult;
         }
         catch (Exception e) {
-            log.debug("requestBinaryTransition({}://{}) - outcome:'{}'", item, actPath, outcome);
+            log.error("requestBinaryTransition() - could not execute {}://{}:{}'", uuid, actPath, transition);
             throw new WebAppExceptionBuilder().exception(e).newCookie(cookie).build();
         }
     }
