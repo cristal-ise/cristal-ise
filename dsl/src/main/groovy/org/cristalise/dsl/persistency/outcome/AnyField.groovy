@@ -29,6 +29,11 @@ import groovy.transform.CompileStatic;
 
 @CompileStatic
 class AnyField {
+    /**
+     * Keys used for reading the header in the TabularSchemaBuilder
+     */
+    public static final List<String> keys = ['processContents', 'multiplicity']
+
     String minOccurs = '0'
     String maxOccurs = ''
     String processContents = 'lax'

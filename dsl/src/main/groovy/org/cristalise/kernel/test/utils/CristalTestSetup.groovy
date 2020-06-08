@@ -27,6 +27,7 @@ import org.cristalise.kernel.process.Gateway
 import org.cristalise.kernel.process.auth.Authenticator
 
 import groovy.transform.CompileStatic
+import groovy.util.logging.Slf4j
 
 /**
  *

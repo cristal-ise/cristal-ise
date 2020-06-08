@@ -28,6 +28,15 @@ import groovy.transform.CompileStatic;
 @CompileStatic
 class Attribute {
     /**
+     * Keys used for reading the header in the TabularSchemaBuilder
+     */
+    public static final List<String> keys = [
+        'name', 'type', 'multiplicity', 'values', 'pattern', 'default',
+        'range', 'minInclusive', 'maxInclusive', 'minExclusive', 'maxExclusive',
+        'totalDigits', 'fractionDigits'
+    ]
+
+    /**
      * accepted types from XSD specification without namespace (i.e. xs:)
      */
     public static final List types = ['string', 'boolean', 'integer', 'decimal', 'date', 'time', 'dateTime']
@@ -38,7 +47,8 @@ class Attribute {
 
     String documentation
 
-    List values
+    List values = null
+
     BigDecimal minExclusive = null, minInclusive= null, maxExclusive= null, maxInclusive= null
     BigInteger length = null, minLength = null, maxLength = null
 
@@ -76,21 +86,21 @@ class Attribute {
     }
 
     public void setMultiplicity(String m) {
-        if(m) {
-            if(m == "1")         required = true
-            else if(m == "1..1") required = true
-            else if(m == "0..1") required = false
-            else                 throw new InvalidDataException("Invalid value for attribute multiplicity : '$m'")
+        if (m?.trim()) {
+            if      (m == "1")    required = true
+            else if (m == "1..1") required = true
+            else if (m == "0..1") required = false
+            else                  throw new InvalidDataException("Invalid value for attribute multiplicity : '$m'")
         }
     }
 
     /**
      * Inclusive uses [], exclusive uses ()
      * 
-     * @param r the string form of the range, e.g. [0..10]
+     * @param r the string form of the range, e.g. [0..10)
      */
     public void setRange(String r) {
-        if(r && r.contains("..")) {
+        if (r?.trim() && r.contains("..")) {
             def vals = r.split(/\.\./)
             
             def minTypeChar  = vals[0].getAt(0)
@@ -106,5 +116,53 @@ class Attribute {
             else if (maxTypeChar == ')') maxExclusive = new BigDecimal(maxValString)
         }
         else throw new UnsupportedOperationException("Range must be in the format of '[0..123)")
+    }
+
+    /**
+     * Sets the minInclusive BigDecimal value from String. It was required for the ExcelSchemaBuilder functionality.
+     * @param val of minInclusive
+     */
+    public void setMinInclusive(String val) {
+        minInclusive = new BigDecimal(val)
+    }
+
+    /**
+     * Sets the maxInclusive BigDecimal value from String. It was required for the ExcelSchemaBuilder functionality.
+     * @param val of maxInclusive
+     */
+    public void setMaxInclusive(String val) {
+        maxInclusive = new BigDecimal(val)
+    }
+
+    /**
+     * Sets the minExclusive BigDecimal value from String. It was required for the ExcelSchemaBuilder functionality.
+     * @param val of minExclusive
+     */
+    public void setMinExclusive(String val) {
+        minExclusive = new BigDecimal(val)
+    }
+
+    /**
+     * Sets the maxExclusive BigDecimal value from String. It was required for the ExcelSchemaBuilder functionality.
+     * @param val of maxExclusive
+     */
+    public void setMaxExclusive(String val) {
+        maxExclusive = new BigDecimal(val)
+    }
+
+    /**
+     * Sets the totalDigits Integer value from String. It was required for the ExcelSchemaBuilder functionality.
+     * @param val of totalDigits
+     */
+    public void setTotalDigits(String val) {
+        totalDigits = new Integer(val)
+    }
+
+    /**
+     * Sets the fractionDigits Integer value from String. It was required for the ExcelSchemaBuilder functionality.
+     * @param val of fractionDigits
+     */
+    public void setFractionDigits(String val) {
+        fractionDigits = new Integer(val)
     }
 }

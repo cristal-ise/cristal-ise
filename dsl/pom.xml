@@ -89,10 +89,7 @@
         <target.version>1.8</target.version>
         <additionalparam>-Xdoclint:none</additionalparam>
         <commons-lang.version>2.6</commons-lang.version>
-        <junit.version>4.11</junit.version>
-        <commons-csv.version>1.5</commons-csv.version>
         <unitils-core.version>3.4.6</unitils-core.version>
-        <slf4j-simple.version>1.7.13</slf4j-simple.version>
         <maven.deploy.skip>false</maven.deploy.skip>
     </properties>
 
@@ -194,10 +191,9 @@
             <scope>compile</scope>
         </dependency>
         <dependency>
-            <groupId>org.apache.commons</groupId>
-            <artifactId>commons-csv</artifactId>
-            <version>${commons-csv.version}</version>
-            <scope>compile</scope>
+            <groupId>com.opencsv</groupId>
+            <artifactId>opencsv</artifactId>
+            <version>5.1</version>
         </dependency>
         <dependency>
             <groupId>org.mvel</groupId>
@@ -206,12 +202,12 @@
         <dependency>
             <groupId>org.apache.poi</groupId>
             <artifactId>poi</artifactId>
-            <version>3.17</version>
+            <version>4.1.2</version>
         </dependency>
         <dependency>
             <groupId>org.apache.poi</groupId>
             <artifactId>poi-ooxml</artifactId>
-            <version>3.17</version>
+            <version>4.1.2</version>
         </dependency>
 
         <dependency>
@@ -241,9 +237,9 @@
             <scope>test</scope>
         </dependency>
         <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-simple</artifactId>
-            <version>1.7.26</version>
+            <groupId>ch.qos.logback</groupId>
+            <artifactId>logback-classic</artifactId>
+            <version>1.2.3</version>
             <scope>test</scope>
         </dependency>
     </dependencies>
