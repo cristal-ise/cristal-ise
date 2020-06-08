@@ -149,14 +149,17 @@
             <Permission>p1</Permission>
             <Permission>p2</Permission>
         </Role>
-        <Role name="User/SubUser" jobList="false"/>
+        <Role name="User/SubUser" jobList="false">
+            <Permission>p11</Permission>
+            <Permission>p12</Permission>
+        </Role>
 
         <Agent name="user" password="test">
             <Role name="Admin"/>
-            <Role name="User/SubUser"/>
+            <Role name="SubUser"/>
         </Agent>
 
-        <Agent name="mainUser" password="test" initialPath="/integTest/agents">
+        <Agent name="mainUser" password="test©£" initialPath="/integTest/agents">
             <Role name="Admin"/>
             <Role name='User'/>
         </Agent>

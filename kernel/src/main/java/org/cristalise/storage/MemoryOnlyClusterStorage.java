@@ -199,4 +199,22 @@ public class MemoryOnlyClusterStorage extends ClusterStorage {
     public void postConnect() {
         //nothing to be done
     }
+
+    @Override
+    public int getLastIntegerId(ItemPath itemPath, String path) throws PersistencyException {
+        int lastId = -1;
+        try {
+            String[] keys = getClusterContents(itemPath, path);
+            for (String key : keys) {
+                int newId = Integer.parseInt(key);
+                lastId = newId > lastId ? newId : lastId;
+            }
+        }
+        catch (NumberFormatException e) {
+           log.error("Error parsing keys", e);
+           throw new PersistencyException(e.getMessage());
+        }
+
+        return lastId;
+    }
 }

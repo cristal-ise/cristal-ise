@@ -26,6 +26,7 @@ import static org.cristalise.storage.jooqdb.lookup.JooqDomainPathHandler.TARGET;
 import static org.cristalise.storage.jooqdb.lookup.JooqItemHandler.ITEM_TABLE;
 import static org.cristalise.storage.jooqdb.lookup.JooqRolePathHandler.AGENT;
 import static org.cristalise.storage.jooqdb.lookup.JooqRolePathHandler.ROLE_PATH_TABLE;
+import static org.jooq.SQLDialect.POSTGRES;
 import static org.jooq.impl.DSL.field;
 import static org.jooq.impl.DSL.name;
 import static org.jooq.impl.DSL.upper;
@@ -365,18 +366,26 @@ public class JooqLookupManager implements LookupManager {
         }
     }
 
-    private String getChildrenPattern(Path path) {
+    private String getChildrenPattern(Path path, DSLContext context) {
         //after the path match everything except '/'
+        if (context.dialect().equals(POSTGRES)) {
+            return convertToPostgresPattern(path.getStringPath());
+        }
         return "^" + path.getStringPath() + "/[^/]*$";
+    }
+
+    public String convertToPostgresPattern(String path) {
+        String specialCharsToReplace = Gateway.getProperties().getString("JooqLookupManager.getChildrenPattern.specialCharsToReplace", "[^a-zA-Z0-9 ]");
+        return "(?e)^" + path.replaceAll("(" + specialCharsToReplace + ")", "\\\\$1") + "/[^/]*$";
     }
 
     @Override
     public Iterator<Path> getChildren(Path path) {
-        String pattern = getChildrenPattern(path);
-
-        log.debug("getChildren() - pattern:" + pattern);
         try {
             DSLContext context = JooqHandler.connect();
+
+            String pattern = getChildrenPattern(path, context);
+            log.debug("getChildren() - pattern:" + pattern);
 
             if      (path instanceof ItemPath) return new ArrayList<Path>().iterator(); //empty iterator
             else if (path instanceof RolePath) return roles  .findByRegex(context, pattern ).iterator();
@@ -390,10 +399,6 @@ public class JooqLookupManager implements LookupManager {
 
     @Override
     public PagedResult getChildren(Path path, int offset, int limit) {
-        String pattern = getChildrenPattern(path);
-
-        log.debug("getChildren() - pattern:{} offset:{} limit:{}", pattern, offset, limit);
-
         if (path instanceof ItemPath) return new PagedResult();
 
         int maxRows = 0;
@@ -406,6 +411,9 @@ public class JooqLookupManager implements LookupManager {
             log.error("", e);
             return new PagedResult();
         }
+
+        String pattern = getChildrenPattern(path, context);
+        log.debug("getChildren() - pattern:{} offset:{} limit:{}", pattern, offset, limit);
 
         if      (path instanceof RolePath)   maxRows = roles  .countByRegex(context, pattern);
         else if (path instanceof DomainPath) maxRows = domains.countByRegex(context, pattern);
