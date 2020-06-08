@@ -1,6 +1,7 @@
 import org.cristalise.kernel.common.ObjectAlreadyExistsException
 import org.cristalise.kernel.lifecycle.instance.predefined.ChangeName
-import org.cristalise.kernel.utils.Logger
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 
 //--------------------------------------------------
 // item, agent and job are injected by the Script class
@@ -12,6 +13,8 @@ import org.cristalise.kernel.utils.Logger
 // AgentProxy agent
 // Job job
 //--------------------------------------------------
+
+final Logger log = LoggerFactory.getLogger("org.cristalise.dsl.test.scripts.Entity.ChangeName")
 
 def outcome = job.getOutcome()
 def currentName = item.getName()
@@ -26,4 +29,4 @@ if (currentName && newName && (newName != currentName)) {
     agent.execute(item, ChangeName.getClass(), params)
 }
 else
-    Logger.msg(5, "New name or current name were empty or new name is equal to the current one")
+    log.warn 'New name or current name were empty or new name is equal to the current one'

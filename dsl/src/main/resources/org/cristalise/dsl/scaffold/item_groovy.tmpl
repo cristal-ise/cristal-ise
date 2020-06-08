@@ -6,7 +6,7 @@ import static org.cristalise.kernel.collection.BuiltInCollections.SCHEMA_INITIAL
 /**
  * @{item} Item
  */
-def @{item} = Schema('@{item}', 0) {
+def @{item} = Schema('@{item}', @{version}) {
     struct(name:' @{item}', documentation: '@{item} aggregated data') {
         field(name: 'Name',        type: 'string')
         field(name: 'State',       type: 'string', values: states)
@@ -14,7 +14,7 @@ def @{item} = Schema('@{item}', 0) {
     }
 }
 
-def @{item}Details = Schema('@{item}_Details', 0) {
+def @{item}Details = Schema('@{item}_Details', @{version}) {
     struct(name: '@{item}_Details') {
 @if{generatedName}
         field(name: 'Name', type: 'string') { dynamicForms (disabled: true, label: 'ID') }
@@ -25,25 +25,25 @@ def @{item}Details = Schema('@{item}_Details', 0) {
     }
 }
 
-def @{item}UpdateAct = Activity('@{item}_Update', 0) {
+def @{item}UpdateAct = Activity('@{item}_Update', @{version}) {
     Property('OutcomeInit': 'Empty')
     Schema(@{item}Details)
-    //Script('Entity_ChangeName', 0)
+    //Script('Entity_ChangeName', @{version})
 }
 
-def @{item}AggregateScript = Script('@{item}_Aggregate', 0) {
+def @{item}AggregateScript = Script('@{item}_Aggregate', @{version}) {
     input('item', 'org.cristalise.kernel.entity.proxy.ItemProxy')
     output('@{item}XML', 'java.lang.String')
     script('groovy', moduleDir+'/script/@{item}_Aggregate.groovy')
 }
 
-def @{item}QueryListScript = Script('@{item}_QueryList', 0) {
+def @{item}QueryListScript = Script('@{item}_QueryList', @{version}) {
     input('item', 'org.cristalise.kernel.entity.proxy.ItemProxy')
     output('@{item}Map', 'java.util.Map')
     script('groovy', moduleDir+'/script/@{item}_QueryList.groovy')
 }
 
-Activity('@{item}_Aggregate', 0) {
+Activity('@{item}_Aggregate', @{version}) {
     Property('OutcomeInit': 'Empty')
     Property('Agent Role': 'UserCode')
 
@@ -51,18 +51,18 @@ Activity('@{item}_Aggregate', 0) {
     Script(@{item}AggregateScript)
 }
 
-def @{item}Wf = Workflow('@{item}_Workflow', 0) {
+def @{item}Wf = Workflow('@{item}_Workflow', @{version}) {
     ElemActDef(@{item}UpdateAct)
-    CompActDef('State_Manage', 0)
+    CompActDef('State_Manage', @{version})
 }
 
-def @{item}PropDesc = PropertyDescriptionList('@{item}', 0) {
+def @{item}PropDesc = PropertyDescriptionList('@{item}', @{version}) {
     PropertyDesc(name: 'Name',  isMutable: true,  isClassIdentifier: false)
     PropertyDesc(name: 'Type',  isMutable: false, isClassIdentifier: true,  defaultValue: '@{item}')
     PropertyDesc(name: 'State', isMutable: true,  isClassIdentifier: false, defaultValue: 'ACTIVE')
 }
 
-Item(name: '@{item}Factory', folder: '/@{moduleNs}', workflow: 'Factory_Workflow', workflowVer: 0) {
+Item(name: '@{item}Factory', version: @{version}, folder: '/@{moduleNs}', workflow: 'Factory_Workflow', workflowVer: @{version}) {
     InmutableProperty('Type': 'Factory')
     InmutableProperty('Root': '@{moduleNs}/@{item}s')
 @if{generatedName}
@@ -78,30 +78,30 @@ Item(name: '@{item}Factory', folder: '/@{moduleNs}', workflow: 'Factory_Workflow
 @if{useConstructor}
     Dependency(SCHEMA_INITIALISE) {
         Member(itemPath: '/desc/Schema/@{moduleNs}/@{item}_Details') {
-            Property('Version': 0)
+            Property('Version': @{version})
         }
     }
 @else{}
-    InmutableProperty('UpdateSchema': '@{item}_Details:0')
+    InmutableProperty('UpdateSchema': '@{item}_Details:@{version}')
 @end{}
 
-    Outcome(schema: 'PropertyDescription', version: '0', viewname: 'last', path: 'boot/property/@{item}.xml')
+    Outcome(schema: 'PropertyDescription', version: '@{version}', viewname: 'last', path: 'boot/property/@{item}_@{version}.xml')
 
     Dependency('workflow') {
         Member(itemPath: '/desc/ActivityDesc/@{moduleNs}/@{item}_Workflow') {
-            Property('Version': 0)
+            Property('Version': @{version})
         }
     }
 
     Dependency(MASTER_SCHEMA) {
         Member(itemPath: '/desc/Schema/@{moduleNs}/@{item}') {
-            Property('Version': 0)
+            Property('Version': @{version})
         }
     }
 
     Dependency(AGGREGATE_SCRIPT) {
         Member(itemPath: '/desc/Script/@{moduleNs}/@{item}_Aggregate') {
-            Property('Version': 0)
+            Property('Version': @{version})
         }
     }
 }

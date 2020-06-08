@@ -21,7 +21,6 @@
 package org.cristalise.dsl.test.entity
 
 import org.cristalise.dsl.entity.ItemBuilder;
-import org.cristalise.kernel.common.InvalidDataException
 import org.cristalise.kernel.test.utils.CristalTestSetup;
 
 import spock.lang.Specification
@@ -40,7 +39,7 @@ class ItemBuilderSpecs extends Specification implements CristalTestSetup {
         def item = ItemBuilder.build(name: "myFisrtItem") {}
 
         then:
-        thrown InvalidDataException
+        thrown AssertionError
     }
 
     def 'Item is built without workflow adds Name to Properties'() {

@@ -12,6 +12,8 @@ class ModuleBuilderSpecs extends Specification implements CristalTestSetup {
     def setupSpec() {
         def props = new Properties()
         props.put('DSL.GenerateModuleXml', false)
+        props.put('DSL.Module.generateAllResourceItems', false)
+        props.put('Resource.moduleUseFileNameWithVersion', 'dsl')
         inMemoryServer(8, props, false)
     }
     def cleanupSpec() { cristalCleanup() }

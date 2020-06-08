@@ -33,6 +33,7 @@ import org.cristalise.kernel.lookup.DomainPath;
 import org.cristalise.kernel.lookup.InvalidItemPathException;
 import org.cristalise.kernel.lookup.ItemPath;
 import org.cristalise.kernel.lookup.Path;
+import org.cristalise.kernel.process.resource.ResourceImportHandler.Status;
 
 import lombok.Getter;
 import lombok.Setter;
@@ -47,6 +48,9 @@ public abstract class ModuleImport {
 
     protected boolean isNewItem = true;
     protected boolean isDOMPathExists = true; //avoids multiple call to domainPath.exists()
+
+    protected String resourceChangeDetails = null;
+    protected Status resourceChangeStatus = null;
 
     public ModuleImport() {}
 

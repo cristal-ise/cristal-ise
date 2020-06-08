@@ -22,7 +22,6 @@
 
 -->
 <mapping>
-
    <class name="org.cristalise.kernel.events.Event">
       <map-to xml="Event"/>
       <field name="mID" type="integer" direct="false" get-method="getID" set-method="setID">
@@ -68,8 +67,8 @@
          <bind-xml name="Transition" node="attribute"/>
       </field>
       <field name="mAgentRole" type="string" direct="false" 
-        	   get-method="getAgentRole"
-		       set-method="setAgentRole">
+               get-method="getAgentRole"
+               set-method="setAgentRole">
             <bind-xml name="AgentRole" node="attribute"/>
       </field>
       <field name="mHasAttachment" type="boolean" direct="false"

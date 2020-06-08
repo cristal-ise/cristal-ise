@@ -19,9 +19,9 @@ import groovy.transform.CompileStatic
  * - ${root}/module/script/Factory_InstantiateItem.groovy
  * - ${root}/module/script/Entity_ChangeName.groovy
  * - ${root}/module/script/${item}_Aggregate.groovy
- * - ${root}/module/resources/CA/Factory_Workflow_0,xml
- * - ${root}/module/resources/CA/${item}_Workflow_0,xml
- * - ${root}/module/resources/CA/State_Manage_0.xml (optional)
+ * - ${root}/${resourceRoot}/CA/Factory_Workflow_0,xml
+ * - ${root}/${resourceRoot}/CA/${item}_Workflow_0,xml
+ * - ${root}/${resourceRoot}/CA/State_Manage_0.xml (optional)
  * </pre>
  * 
  * Inputs could be like these using the groovy map literal:
@@ -46,7 +46,7 @@ class CRUDGenerator {
 
         def moduleDir   = new File("${inputs.rootDir}/module")
         def scriptDir   = new File("${inputs.rootDir}/module/script")
-        def workflowDir = new File("${inputs.rootDir}/resources/boot/CA")
+        def workflowDir = new File(inputs.resourceRoot ? "${inputs.resourceRoot}/boot/CA" : "${inputs.rootDir}/resources/boot/CA")
 
         checkAndSetInputs(inputs)
 

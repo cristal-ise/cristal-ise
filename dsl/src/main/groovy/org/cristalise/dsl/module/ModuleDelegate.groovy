@@ -36,7 +36,9 @@ import org.cristalise.dsl.property.PropertyDescriptionBuilder
 import org.cristalise.dsl.querying.QueryBuilder
 import org.cristalise.dsl.scripting.ScriptBuilder
 import org.cristalise.kernel.common.InvalidDataException
+import org.cristalise.kernel.entity.imports.ImportAgent
 import org.cristalise.kernel.entity.imports.ImportItem
+import org.cristalise.kernel.entity.imports.ImportRole
 import org.cristalise.kernel.lifecycle.ActivityDef
 import org.cristalise.kernel.lifecycle.CompositeActivityDef
 import org.cristalise.kernel.lifecycle.instance.stateMachine.StateMachine
@@ -67,40 +69,46 @@ class ModuleDelegate {
     String resourceRoot = 'src/main/resources'
     String exportRoot   = 'src/main/script/'
     String moduleDir    = 'src/main/script/'
+    String moduleXmlDir = null
 
     private String resourceBoot = null
     private File moduleXMLFile = null
 
-    public ModuleDelegate(String ns, String n, int v, String resRoot, String expRoot, String modDir, Binding b = null) {
-        this(ns, n, v, b)
-
-        if (resRoot) resourceRoot = resRoot
-        if (expRoot) exportRoot   = expRoot
-        if (modDir)  moduleDir    = modDir
-
-        resourceBoot = "$resourceRoot/boot"
-        moduleXMLFile = new File("$resourceRoot/module.xml")
-    }
-
-    public ModuleDelegate(String ns, String n, int v, Binding b = null) {
-        if (b) bindings = b
-        else   bindings = new Binding()
+    public ModuleDelegate(Map<String, Object> args) {
+        assert args.ns && args.name && args.version != null
 
         newModule = new Module()
         newModule.info = new ModuleInfo()
-        newModule.ns = ns
-        newModule.name = n
-        newModule.info.version = Integer.toString(v)
+        newModule.ns = args.ns
+        newModule.name = args.name
+        newModule.info.version = args.version
+
+        if (args.bindings) bindings = (Binding) args.bindings
+        else               bindings = new Binding()
+
+        if (args.resourceRoot) resourceRoot = args.resourceRoot
+        if (args.exportRoot)   exportRoot   = args.exportRoot
+        if (args.moduleDir)    moduleDir    = args.moduleDir
+        if (args.moduleXmlDir) moduleXmlDir = args.moduleXmlDir
+
+        if (!moduleXmlDir) moduleXmlDir = resourceRoot
 
         resourceBoot = "$resourceRoot/boot"
-        moduleXMLFile = new File("$resourceRoot/module.xml")
+        moduleXMLFile = new File("$moduleXmlDir/module.xml")
 
         if (moduleXMLFile.exists()) {
             module = (Module) Gateway.getMarshaller().unmarshall(moduleXMLFile.text)
-            assert module.ns == ns
-            assert module.name == n
+            assert module.ns == newModule.ns
+            assert module.name == newModule.name
         }
+    }
 
+    public ModuleDelegate(String ns, String n, int v, String resRoot, String expRoot, String modDir, Binding b = null) {
+        this('ns': ns, 'name': n, 'version': v, 'resourceRoot': resRoot, 'exportRoot': expRoot, 'moduleDir': modDir, 'bindings': b)
+    }
+
+    public ModuleDelegate(String ns, String n, int v, Binding b = null) {
+        this('ns': ns, 'name': n, 'version': v, 'bindings': b)
     }
 
     public include(String scriptFile) {
@@ -234,11 +242,20 @@ class ModuleDelegate {
      * @param password
      * @param cl
      */
-    public void Agent(Map args, Closure cl) {
+    public ImportAgent Agent(Map args, Closure cl) {
         def agent = AgentBuilder.build(args, cl)
         agent.roles.each { it.jobList = null }
 
-        updateImports(agent)
+        if (Gateway.getProperties().getBoolean('DSL.Module.generateAllResourceItems', true)) {
+            agent.export(null, new File(resourceBoot), true)
+            addImportAgent(agent)
+        }
+        else {
+            //Original functionality: XML of ImportAgent is added to the module.xml
+            updateImports(agent)
+        }
+
+        return agent
     }
 
     /**
@@ -248,11 +265,17 @@ class ModuleDelegate {
      * @param cl
      */
     public ImportItem Item(Map args, Closure cl) {
-        def item = ItemBuilder.build((String) args.name, (String) args.folder, args.workflow, args?.workflowVer as Integer, cl)
-
+        def item = ItemBuilder.build(args, cl)
         item.properties.removeAll { it.value == args.name }
 
-        updateImports(item)
+        if (Gateway.getProperties().getBoolean('DSL.Module.generateAllResourceItems', true)) {
+            item.export(null, new File(resourceBoot), true)
+            addImportItem(item)
+        }
+        else {
+            //Original functionality: XML of ImportItem is added to the module.xml
+            updateImports(item)
+        }
 
         return item
     }
@@ -261,9 +284,21 @@ class ModuleDelegate {
      * Collects define roles and add/update on module.xml.
      * @param cl
      */
-    public void Roles(Closure cl) {
+    public List<ImportRole> Roles(Closure cl) {
         def importRoles = RoleBuilder.build(cl)
-        importRoles.each {         updateImports(it) }
+
+        importRoles.each { role ->
+            if (Gateway.getProperties().getBoolean('DSL.Module.generateAllResourceItems', true)) {
+                role.export(null, new File(resourceBoot), true)
+                addImportRole(role)
+            }
+            else {
+                //Original functionality: XML of ImportRole is added to the module.xml
+                updateImports(role)
+            }
+        }
+
+        return importRoles
     }
 
     /**
@@ -391,9 +426,9 @@ class ModuleDelegate {
         moduleAct.setVersion(actDef.version)
         moduleAct.setName(actDef.name)
 
-        if (actDef.script) moduleAct.setScript(new ModuleDescRef(actDef.script.name,       null, actDef.script.version))
-        if (actDef.schema) moduleAct.setSchema(new ModuleDescRef(actDef.schema.name,       null, actDef.schema.version))
-        if (actDef.query)  moduleAct.setQuery( new ModuleDescRef(actDef.query.name,        null, actDef.query.version))
+        if (actDef.script) moduleAct.setScript(new ModuleDescRef(actDef.script.name, null, actDef.script.version))
+        if (actDef.schema) moduleAct.setSchema(new ModuleDescRef(actDef.schema.name, null, actDef.schema.version))
+        if (actDef.query)  moduleAct.setQuery( new ModuleDescRef(actDef.query.name,  null, actDef.query.version))
 
         //Do not add 'Default' StateMachine
         if (actDef.stateMachine && actDef.stateMachine.name != 'Default') {
@@ -433,6 +468,30 @@ class ModuleDelegate {
         modulePropDesc.setName(pdl.name)
 
         updateImports(modulePropDesc)
+    }
+
+    private void addImportAgent(ImportAgent agent) {
+        def moduleAgent = new ModuleAgent()
+        moduleAgent.setName(agent.name)
+        moduleAgent.setVersion(agent.version)
+
+        updateImports(moduleAgent)
+    }
+
+    private void addImportItem(ImportItem item) {
+        def moduleItem = new ModuleItem()
+        moduleItem.setName(item.name)
+        moduleItem.setVersion(item.version)
+
+        updateImports(moduleItem)
+    }
+
+    private void addImportRole(ImportRole role) {
+        def moduleRole = new ModuleRole()
+        moduleRole.setName(role.name)
+        moduleRole.setVersion(role.version)
+
+        updateImports(moduleRole)
     }
 
     private void updateImports(ModuleImport mImport) {

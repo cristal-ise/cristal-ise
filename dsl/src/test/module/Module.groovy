@@ -5,30 +5,23 @@ import groovy.transform.SourceURI
 @SourceURI
 URI scriptUri
 
-setModuletDir scriptUri
+setModuleDir scriptUri
 
 setConfig  'src/test/conf/client.conf'
 setConnect 'src/test/conf/server.clc'
 
-setResourceRoot 'src/test/resources'
+setResourceRoot  'src/test/resources/org/cristalise/dsl/test/resources/' 
+ setModuleXmlDir 'src/test/resources/META-INF/cristal' 
 
-Module(ns: 'testns', name: 'DSL Test', version: 0) {
+Module(ns: 'dsl', name: 'DSL Test', version: 0) {
 
     Info(description: 'DSL Test CRISTAL-iSE module', version: '0'){
         // provide dependencies here. e.g. dependencies: ['dependency1', 'dependency1' ... ]
     }
 
-    Url('org.cristalise.test/resources/')
+    Url('org/cristalise/dsl/test/resources/')
 
-    Config(name: 'Module.debug', value: true)
-
-    Roles {
-        Role(name: 'Admin', jobList: false) {
-            Permission('*')
-        }
-    }
-
-    Agent(name: 'TestAdmin', password: 'test', folder:'/testns/Agents') {
+    Agent(name: 'dsl', version: 0, password: 'test', folder:'/dsl/Agents') {
         Roles {
             Role(name: 'Admin')
         }

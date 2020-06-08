@@ -60,9 +60,9 @@ def TestItemPropDesc = PropertyDescriptionList('TestItem', 0) {
     PropertyDesc(name: 'State', isMutable: true,  isClassIdentifier: false, defaultValue: 'ACTIVE')
 }
 
-Item(name: 'TestItemFactory', folder: '/testns', workflow: 'Factory_Workflow', workflowVer: 0) {
+Item(name: 'TestItemFactory', version: 0, folder: '/dsl', workflow: 'Factory_Workflow', workflowVer: 0) {
     InmutableProperty('Type': 'Factory')
-    InmutableProperty('Root': 'testns/TestItems')
+    InmutableProperty('Root': 'dsl/TestItems')
 
 
 
@@ -71,22 +71,22 @@ Item(name: 'TestItemFactory', folder: '/testns', workflow: 'Factory_Workflow', w
     InmutableProperty('UpdateSchema': 'TestItem_Details:0')
 
 
-    Outcome(schema: 'PropertyDescription', version: '0', viewname: 'last', path: 'boot/property/TestItem.xml')
+    Outcome(schema: 'PropertyDescription', version: '0', viewname: 'last', path: 'boot/property/TestItem_0.xml')
 
     Dependency('workflow') {
-        Member(itemPath: '/desc/ActivityDesc/testns/TestItem_Workflow') {
+        Member(itemPath: '/desc/ActivityDesc/dsl/TestItem_Workflow') {
             Property('Version': 0)
         }
     }
 
     Dependency(MASTER_SCHEMA) {
-        Member(itemPath: '/desc/Schema/testns/TestItem') {
+        Member(itemPath: '/desc/Schema/dsl/TestItem') {
             Property('Version': 0)
         }
     }
 
     Dependency(AGGREGATE_SCRIPT) {
-        Member(itemPath: '/desc/Script/testns/TestItem_Aggregate') {
+        Member(itemPath: '/desc/Script/dsl/TestItem_Aggregate') {
             Property('Version': 0)
         }
     }

@@ -60,9 +60,9 @@ def TestItemUseConstructorGeneratedNamePropDesc = PropertyDescriptionList('TestI
     PropertyDesc(name: 'State', isMutable: true,  isClassIdentifier: false, defaultValue: 'ACTIVE')
 }
 
-Item(name: 'TestItemUseConstructorGeneratedNameFactory', folder: '/testns', workflow: 'Factory_Workflow', workflowVer: 0) {
+Item(name: 'TestItemUseConstructorGeneratedNameFactory', version: 0, folder: '/dsl', workflow: 'Factory_Workflow', workflowVer: 0) {
     InmutableProperty('Type': 'Factory')
-    InmutableProperty('Root': 'testns/TestItemUseConstructorGeneratedNames')
+    InmutableProperty('Root': 'dsl/TestItemUseConstructorGeneratedNames')
 
     InmutableProperty('IDPrefix': 'ID')
     Property('LeftPadSize': '6')
@@ -72,28 +72,28 @@ Item(name: 'TestItemUseConstructorGeneratedNameFactory', folder: '/testns', work
 
 
     Dependency(SCHEMA_INITIALISE) {
-        Member(itemPath: '/desc/Schema/testns/TestItemUseConstructorGeneratedName_Details') {
+        Member(itemPath: '/desc/Schema/dsl/TestItemUseConstructorGeneratedName_Details') {
             Property('Version': 0)
         }
     }
 
 
-    Outcome(schema: 'PropertyDescription', version: '0', viewname: 'last', path: 'boot/property/TestItemUseConstructorGeneratedName.xml')
+    Outcome(schema: 'PropertyDescription', version: '0', viewname: 'last', path: 'boot/property/TestItemUseConstructorGeneratedName_0.xml')
 
     Dependency('workflow') {
-        Member(itemPath: '/desc/ActivityDesc/testns/TestItemUseConstructorGeneratedName_Workflow') {
+        Member(itemPath: '/desc/ActivityDesc/dsl/TestItemUseConstructorGeneratedName_Workflow') {
             Property('Version': 0)
         }
     }
 
     Dependency(MASTER_SCHEMA) {
-        Member(itemPath: '/desc/Schema/testns/TestItemUseConstructorGeneratedName') {
+        Member(itemPath: '/desc/Schema/dsl/TestItemUseConstructorGeneratedName') {
             Property('Version': 0)
         }
     }
 
     Dependency(AGGREGATE_SCRIPT) {
-        Member(itemPath: '/desc/Script/testns/TestItemUseConstructorGeneratedName_Aggregate') {
+        Member(itemPath: '/desc/Script/dsl/TestItemUseConstructorGeneratedName_Aggregate') {
             Property('Version': 0)
         }
     }

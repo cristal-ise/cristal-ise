@@ -32,32 +32,63 @@ import org.cristalise.kernel.entity.imports.ImportDependencyMember
 import org.cristalise.kernel.entity.imports.ImportItem
 import org.cristalise.kernel.entity.imports.ImportOutcome
 import org.cristalise.kernel.lifecycle.CompositeActivityDef
+import org.cristalise.kernel.lifecycle.instance.Workflow
 import org.cristalise.kernel.lookup.ItemPath
 import org.cristalise.kernel.process.resource.BuiltInResources
 
 import groovy.transform.CompileStatic
+import groovy.util.logging.Slf4j
 
 /**
  *
  */
-@CompileStatic
+@CompileStatic @Slf4j
 class ItemDelegate extends PropertyDelegate {
 
     static String ENTITY_PATTERN = '/entity/'
     public ImportItem newItem = new ImportItem()
     List<ImportOutcome> outcomes = new ArrayList<>()
 
+    public ItemDelegate(Map<String, Object> args) {
+        assert args && args.name && args.folder
+
+        log.debug 'constructor() - args:{}', args
+
+        newItem.name        = args.name
+        newItem.initialPath = args.folder
+
+        if (args.version != null) newItem.version = (Integer)args.version
+
+        if (args.workflow == null) {
+            log.debug 'constructor() - item:{} will be created without workflow', args.name
+        }
+        else if (args.workflow instanceof String) {
+            newItem.workflow = (String)args.workflow
+        }
+        else if (args.workflow instanceof CompositeActivityDef) {
+            newItem.compActDef = (CompositeActivityDef)args.workflow
+            newItem.workflow = newItem.compActDef.name
+            if (newItem.compActDef.version != null) {
+                newItem.workflowVer = newItem.compActDef.version
+                if (args.workflowVer != null) assert newItem.workflowVer == (Integer)args.workflowVer
+            }
+        }
+        else if (args.workflow instanceof Workflow) {
+            newItem.wf = (Workflow)args.workflow
+        }
+        else {
+            log.warn 'constructor() - UNKNOWN class:{} item:{} will be created without workflow', args.workflow.class.getSimpleName(), args.name
+        }
+
+        if (args.workflowVer != null) newItem.workflowVer = (Integer)args.workflowVer
+    }
+
     public ItemDelegate(String name, String folder, String workflow, Integer workflowVer = null) {
-        newItem.name = name
-        newItem.initialPath = folder
-        newItem.workflow = workflow
-        newItem.workflowVer = workflowVer
+        this(['name': name, 'folder': folder, 'workflow': workflow, 'workflowVer': workflowVer] as Map<String, Object>)
     }
 
     public ItemDelegate(String name, String folder, CompositeActivityDef caDef) {
-        newItem.name = name
-        newItem.initialPath = folder
-        newItem.workflow = caDef.getName()
+        this(['name': name, 'folder': folder, 'workflow': caDef] as Map<String, Object>)
     }
 
     public void processClosure(Closure cl) {

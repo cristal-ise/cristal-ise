@@ -6,18 +6,21 @@ import org.junit.Test
 
 import groovy.transform.CompileStatic
 
-//@CompileStatic
+@CompileStatic
 class CRUDGeneratorTest {
 
     @Test
     void generateCRUDItemTest() {
         Map<String, Object> inputs = [
             item:            'TestItem',
-            rootDir:         'src/test', 
-            moduleName:      'DSL Test', 
-            moduleNs:        'testns', 
-            moduleVersion:   0,
-            resourcePackage: 'org.cristalise.test',
+            rootDir:         'src/test',
+            resourceRoot:    'src/test/resources/org/cristalise/dsl/test/resources/',
+            moduleName:      'DSL Test',
+            moduleNs:        'dsl', 
+            version:         0,
+            moduleXmlDir:    'src/test/resources/META-INF/cristal',
+            appPackage:      'org.cristalise.dsl.test',
+            resourceURL:     'org/cristalise/dsl/test/resources/',
             useConstructor:  false,
             isAgent:         false,
             generatedName:   false,
@@ -29,7 +32,7 @@ class CRUDGeneratorTest {
         inputs.with {
             item = 'TestItemUseConstructor'
             useConstructor = true
-            moduleFiles.add('TestItemUseConstructor.groovy')
+            ((List)moduleFiles).add('TestItemUseConstructor.groovy')
         }
 
         new CRUDGenerator().generate(inputs, false, false)
@@ -37,7 +40,7 @@ class CRUDGeneratorTest {
         inputs.with {
             item = 'TestAgentUseConstructor'
             isAgent = true
-            moduleFiles.add('TestAgentUseConstructor.groovy')
+            ((List)moduleFiles).add('TestAgentUseConstructor.groovy')
         }
 
         new CRUDGenerator().generate(inputs, false, false)
@@ -45,7 +48,7 @@ class CRUDGeneratorTest {
         inputs.with {
             item = 'TestAgent'
             useConstructor = false
-            moduleFiles.add('TestAgent.groovy')
+            ((List)moduleFiles).add('TestAgent.groovy')
         }
 
         new CRUDGenerator().generate(inputs, false, false)

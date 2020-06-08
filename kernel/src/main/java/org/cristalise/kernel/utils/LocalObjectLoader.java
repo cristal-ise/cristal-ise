@@ -30,10 +30,14 @@ import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.SCRIPT_N
 import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.SCRIPT_VERSION;
 import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.STATE_MACHINE_NAME;
 import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.STATE_MACHINE_VERSION;
+
 import org.apache.commons.lang3.StringUtils;
 import org.cristalise.kernel.common.InvalidDataException;
 import org.cristalise.kernel.common.ObjectNotFoundException;
 import org.cristalise.kernel.common.SystemKey;
+import org.cristalise.kernel.entity.imports.ImportAgent;
+import org.cristalise.kernel.entity.imports.ImportItem;
+import org.cristalise.kernel.entity.imports.ImportRole;
 import org.cristalise.kernel.graph.model.BuiltInVertexProperties;
 import org.cristalise.kernel.lifecycle.ActivityDef;
 import org.cristalise.kernel.lifecycle.CompositeActivityDef;
@@ -43,6 +47,7 @@ import org.cristalise.kernel.persistency.outcome.Schema;
 import org.cristalise.kernel.property.PropertyDescriptionList;
 import org.cristalise.kernel.querying.Query;
 import org.cristalise.kernel.scripting.Script;
+
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -55,6 +60,9 @@ public class LocalObjectLoader {
     private static ScriptCache              scrCache      = new ScriptCache();
     private static QueryCache               queryCache    = new QueryCache();
     private static PropertyDescriptionCache propDescCache = new PropertyDescriptionCache();
+    private static AgentDescCache           agentDescCache = new AgentDescCache();
+    private static ItemDescCache            itemDescCache = new ItemDescCache();
+    private static RoleDescCache            roleDescCache = new RoleDescCache();
 
     /**
      * Retrieves a named version of a script from the database
@@ -225,6 +233,37 @@ public class LocalObjectLoader {
     static public PropertyDescriptionList getPropertyDescriptionList(CastorHashMap properties) throws InvalidDataException, ObjectNotFoundException {
         return (PropertyDescriptionList)getDescObjectByProperty(properties, PROPERTY_DEF_NAME, PROPERTY_DEF_VERSION);
     }
+
+
+
+    static public ImportAgent getAgentDesc(String name, int version) throws ObjectNotFoundException, InvalidDataException {
+        log.trace("ImportAgent("+name+" v"+version+")");
+        return agentDescCache.get(name, version);
+    }
+
+    static public ImportAgent getAgentDesc(CastorHashMap properties) throws InvalidDataException, ObjectNotFoundException {
+        return (ImportAgent)getDescObjectByProperty(properties, PROPERTY_DEF_NAME, PROPERTY_DEF_VERSION);
+    }
+
+    static public ImportItem getItemDesc(String name, int version) throws ObjectNotFoundException, InvalidDataException {
+        log.trace("ImportItem("+name+" v"+version+")");
+        return itemDescCache.get(name, version);
+    }
+
+    static public ImportItem getItemDesc(CastorHashMap properties) throws InvalidDataException, ObjectNotFoundException {
+        return (ImportItem)getDescObjectByProperty(properties, PROPERTY_DEF_NAME, PROPERTY_DEF_VERSION);
+    }
+
+    static public ImportRole getRoleDesc(String name, int version) throws ObjectNotFoundException, InvalidDataException {
+        log.trace("ImportRole("+name+" v"+version+")");
+        return roleDescCache.get(name, version);
+    }
+
+    static public ImportRole getRoleDesc(CastorHashMap properties) throws InvalidDataException, ObjectNotFoundException {
+        return (ImportRole)getDescObjectByProperty(properties, PROPERTY_DEF_NAME, PROPERTY_DEF_VERSION);
+    }
+
+
 
     /**
      * 

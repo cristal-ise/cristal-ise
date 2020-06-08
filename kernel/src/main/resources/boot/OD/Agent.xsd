@@ -21,29 +21,37 @@
     http://www.fsf.org/licensing/licenses/lgpl.html
 
 -->
-<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
-	elementFormDefault="qualified" attributeFormDefault="unqualified">
-	<xs:element name="Agent">
-		<xs:complexType>
-			<xs:sequence>
-				<xs:element name="Role" maxOccurs="unbounded">
-					<xs:complexType>
-						<xs:attribute name="name" type="xs:string" use="required" />
-					</xs:complexType>
-				</xs:element>
-				<xs:element name="Property" type="property" minOccurs="0" maxOccurs="unbounded" />
-			</xs:sequence>
-			<xs:attribute name="name" type="xs:string" use="required" />
-			<xs:attribute name="password" type="xs:string" use="required" />
-            <xs:attribute name="initialPath" type="xs:string" use="optional" />
-			<xs:attribute name="id" type="xs:string" use="optional" />
-		</xs:complexType>
-	</xs:element>
-	<xs:complexType name="property">
-		<xs:simpleContent>
-			<xs:extension base="xs:string">
-				<xs:attribute name="name" type="xs:string" />
-			</xs:extension>
-		</xs:simpleContent>
-	</xs:complexType>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified"
+  attributeFormDefault="unqualified">
+  <xs:element name="Agent">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element name="Role" minOccurs="0" maxOccurs="unbounded">
+          <xs:complexType>
+            <xs:attribute name="name" type="xs:string" use="required" />
+          </xs:complexType>
+        </xs:element>
+        <xs:element name="Property" type="property" minOccurs="0" maxOccurs="unbounded" />
+      </xs:sequence>
+      <xs:attribute name="name" type="xs:string" use="required" />
+      <xs:attribute name="version" type="xs:integer" use="optional" />
+      <xs:attribute name="id" type="uuid" use="optional" />
+      <xs:attribute name="password" type="xs:string" use="required" />
+      <xs:attribute name="initialPath" type="xs:string" use="optional" />
+    </xs:complexType>
+  </xs:element>
+  <xs:complexType name="property">
+    <xs:simpleContent>
+      <xs:extension base="xs:string">
+        <xs:attribute name="name" type="xs:string" />
+        <xs:attribute name="mutable" type="xs:boolean" default="true" use="optional" />
+      </xs:extension>
+    </xs:simpleContent>
+  </xs:complexType>
+  <xs:simpleType name="uuid">
+    <xs:restriction base="xs:string">
+      <xs:length value="36" fixed="true" />
+      <xs:pattern value="[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}" />
+    </xs:restriction>
+  </xs:simpleType>
 </xs:schema>
