@@ -45,6 +45,7 @@ import org.cristalise.kernel.graph.model.Vertex;
 import org.cristalise.kernel.lifecycle.instance.CompositeActivity;
 import org.cristalise.kernel.lifecycle.instance.Next;
 import org.cristalise.kernel.lifecycle.instance.WfVertex;
+import org.cristalise.kernel.lifecycle.instance.stateMachine.StateMachine;
 import org.cristalise.kernel.lookup.ItemPath;
 import org.cristalise.kernel.persistency.outcome.Outcome;
 import org.cristalise.kernel.process.Gateway;
@@ -65,7 +66,7 @@ public class CompositeActivityDef extends ActivityDef {
         super();
         setBuiltInProperty(ABORTABLE, false);
         setBuiltInProperty(REPEAT_WHEN, false);
-        setBuiltInProperty(STATE_MACHINE_NAME, "CompositeActivity");
+        setBuiltInProperty(STATE_MACHINE_NAME,  StateMachine.getDefaultStateMachine("Composite"));
 
         try {
             setChildrenGraphModel(new GraphModel(new LifecycleVertexOutlineCreator()));

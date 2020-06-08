@@ -47,6 +47,7 @@ import org.cristalise.kernel.lifecycle.instance.Activity;
 import org.cristalise.kernel.lifecycle.instance.predefined.agent.AgentPredefinedStepContainer;
 import org.cristalise.kernel.lifecycle.instance.predefined.item.ItemPredefinedStepContainer;
 import org.cristalise.kernel.lifecycle.instance.predefined.server.ServerPredefinedStepContainer;
+import org.cristalise.kernel.lifecycle.instance.stateMachine.StateMachine;
 import org.cristalise.kernel.lookup.AgentPath;
 import org.cristalise.kernel.lookup.ItemPath;
 import org.cristalise.kernel.persistency.outcome.Outcome;
@@ -76,7 +77,7 @@ public abstract class PredefinedStep extends Activity {
 
     public PredefinedStep() {
         super();
-        setBuiltInProperty(STATE_MACHINE_NAME, "PredefinedStep");
+        setBuiltInProperty(STATE_MACHINE_NAME, StateMachine.getDefaultStateMachine("Predefined"));
         setBuiltInProperty(SCHEMA_NAME, "PredefinedStepOutcome");
         setBuiltInProperty(SCHEMA_VERSION, "0");
 

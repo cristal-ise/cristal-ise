@@ -431,7 +431,7 @@ class ModuleDelegate {
         if (actDef.query)  moduleAct.setQuery( new ModuleDescRef(actDef.query.name,  null, actDef.query.version))
 
         //Do not add 'Default' StateMachine
-        if (actDef.stateMachine && actDef.stateMachine.name != 'Default') {
+        if (actDef.stateMachine && actDef.stateMachine.name != StateMachine.getDefaultStateMachine('Elementary')) {
             moduleAct.setStateMachine( new ModuleDescRef(actDef.stateMachine.name, null, actDef.stateMachine.version))
         }
 
@@ -455,7 +455,7 @@ class ModuleDelegate {
         }
 
         //Do not add 'CompositeActivity' StateMachine
-        if (caDef.stateMachine && caDef.stateMachine.name != 'CompositeActivity') {
+        if (caDef.stateMachine && caDef.stateMachine.name != StateMachine.getDefaultStateMachine('Composite')) {
             moduleWf.setStateMachine( new ModuleDescRef(caDef.stateMachine.name, null, caDef.stateMachine.version))
         }
 

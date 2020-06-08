@@ -44,6 +44,7 @@ import org.cristalise.kernel.graph.model.Vertex;
 import org.cristalise.kernel.graph.traversal.GraphTraversal;
 import org.cristalise.kernel.lifecycle.LifecycleVertexOutlineCreator;
 import org.cristalise.kernel.lifecycle.instance.stateMachine.State;
+import org.cristalise.kernel.lifecycle.instance.stateMachine.StateMachine;
 import org.cristalise.kernel.lifecycle.instance.stateMachine.Transition;
 import org.cristalise.kernel.lookup.AgentPath;
 import org.cristalise.kernel.lookup.InvalidAgentPathException;
@@ -58,7 +59,7 @@ public class CompositeActivity extends Activity {
         super();
         setBuiltInProperty(ABORTABLE, false);
         setBuiltInProperty(REPEAT_WHEN, false);
-        setBuiltInProperty(STATE_MACHINE_NAME, "CompositeActivity");
+        setBuiltInProperty(STATE_MACHINE_NAME, StateMachine.getDefaultStateMachine("Composite"));
 
         try {
             setChildrenGraphModel(new GraphModel(new LifecycleVertexOutlineCreator()));
