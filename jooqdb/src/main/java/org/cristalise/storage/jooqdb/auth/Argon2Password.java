@@ -20,44 +20,79 @@
  */
 package org.cristalise.storage.jooqdb.auth;
 
+import static de.mkammerer.argon2.Argon2Factory.Argon2Types.ARGON2d;
+import static de.mkammerer.argon2.Argon2Factory.Argon2Types.ARGON2i;
+import static de.mkammerer.argon2.Argon2Factory.Argon2Types.ARGON2id;
+
+import org.cristalise.kernel.process.Gateway;
+
 import de.mkammerer.argon2.Argon2;
 import de.mkammerer.argon2.Argon2Constants;
 import de.mkammerer.argon2.Argon2Factory;
 import de.mkammerer.argon2.Argon2Factory.Argon2Types;
 
+/**
+ * System properties to configure argon2:
+ * 
+ * <li>JooqAuth.Argon2.type - default: ARGON2id
+ * <li>JooqAuth.Argon2.iterations - default: 2
+ * <li>JooqAuth.Argon2.memory - default: 65536
+ * <li>JooqAuth.Argon2.parallelism - default: 1
+ */
 public class Argon2Password {
 
-    private Argon2 argon2 = null;
+    /**
+     * Argon2 instance used only for hashing
+     */
+    private final Argon2 argon2;
+    private final Argon2Types argon2Type;
 
-    private final Argon2Types type;
-    private final int         saltLenght;
-    private final int         hashLenght;
-    
+    private final int saltLenght;
+    private final int hashLenght;
+
     private final int iterations;
     private final int memory;
     private final int parallelism;
 
     public Argon2Password() {
-        type       = Argon2Types.ARGON2i;
+        //TODO make argon2 setup configurable
         saltLenght = Argon2Constants.DEFAULT_SALT_LENGTH;
         hashLenght = Argon2Constants.DEFAULT_HASH_LENGTH;
 
-        argon2 = Argon2Factory.create(type, saltLenght, hashLenght);
+        argon2Type  = Argon2Types.valueOf(Gateway.getProperties().getString("JooqAuth.Argon2.type", "ARGON2id"));
+        iterations  = Gateway.getProperties().getInt("JooqAuth.Argon2.iterations", 2);
+        memory      = Gateway.getProperties().getInt("JooqAuth.Argon2.memory", 65536);
+        parallelism = Gateway.getProperties().getInt("JooqAuth.Argon2.parallelism", 1);
 
-        iterations = 2;
-        memory = 65536;
-        parallelism = 1;
+        argon2 = Argon2Factory.create(argon2Type, saltLenght, hashLenght);
     }
 
     /**
-     * Check if the given password string produces the same hash
+     * Check if the given password string produces the same hash. It is possible that there are passwords 
+     * stored with different argon type if JooqAuth.Argon2 configurations were changed. 
      * 
      * @param hash the hashed password retrieved from database
      * @param password the password string
-     * @return true, if the verification was successfull otherwise false
+     * @return true, if the verification was successful otherwise false
      */
     public boolean checkPassword(final String hash, final char[] password) {
-        return argon2.verify(hash, password);
+        Argon2Types currentType = null;
+
+        if      (hash.startsWith("$argon2i$")) currentType = ARGON2i;
+        else if (hash.startsWith("$argon2d$")) currentType = ARGON2d;
+        else                                   currentType = ARGON2id;
+
+        try {
+            if (currentType == argon2Type) {
+                return argon2.verify(hash, password);
+            }
+            else {
+                return Argon2Factory.create(currentType, saltLenght, hashLenght).verify(hash, password);
+            }
+        }
+        finally {
+            argon2.wipeArray(password);
+        }
     }
 
     /**
