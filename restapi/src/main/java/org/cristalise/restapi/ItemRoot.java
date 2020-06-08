@@ -423,7 +423,7 @@ public class ItemRoot extends ItemUtils {
             else                                                return executeResult;
         }
         catch (Exception e) {
-            log.error("requestTransition(actPat:{}) - postData:'{}'", actPath, postData);
+            log.error("requestTransition() - could not execute {}/{}:{}'", uuid, actPath, transition);
             throw new WebAppExceptionBuilder().exception(e).newCookie(cookie).build();
         }
     }
@@ -487,7 +487,7 @@ public class ItemRoot extends ItemUtils {
             else                                                return executeResult;
         }
         catch (Exception e) {
-            log.error("requestBinaryTransition(actPat:{}) - postData:'{}'", actPath, postData);
+            log.error("requestBinaryTransition() - could not execute {}/{}:{}'", uuid, actPath, transition);
             throw new WebAppExceptionBuilder().exception(e).newCookie(cookie).build();
         }
     }

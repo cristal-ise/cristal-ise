@@ -1,8 +1,6 @@
 import ch.qos.logback.classic.encoder.PatternLayoutEncoder
 import ch.qos.logback.core.ConsoleAppender
 
-import static ch.qos.logback.classic.Level.DEBUG
-
 import static ch.qos.logback.classic.Level.WARN
 import static ch.qos.logback.classic.Level.INFO
 import static ch.qos.logback.classic.Level.DEBUG
@@ -14,6 +12,6 @@ appender("STDOUT", ConsoleAppender) {
   }
 }
 
-logger('org.cristalise.restapi', DEBUG)
+//logger('org.cristalise.restapi', DEBUG)
 
 root(INFO, ["STDOUT"])
