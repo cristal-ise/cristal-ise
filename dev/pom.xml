@@ -239,6 +239,11 @@
             <version>${revision}</version>
         </dependency>
         <dependency>
+            <groupId>org.cristalise</groupId>
+            <artifactId>cristalise-dsl</artifactId>
+            <version>${revision}</version>
+        </dependency>
+        <dependency>
             <groupId>org.mozilla</groupId>
             <artifactId>rhino</artifactId>
             <version>[1.7.7,)</version>
