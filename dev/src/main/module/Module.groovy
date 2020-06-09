@@ -7,16 +7,15 @@ URI scriptUri
 
 setModuleDir scriptUri
 
-setConfig  'src/test/conf/client.conf'
-setConnect 'src/test/conf/server.clc'
+Module(ns: 'dev', name: 'CristaliseDev', version: 0) {
 
-
-Module(ns: 'dev', name: 'DSL Test', version: 0) {
-
-    Info(description: 'CRISTAL-iSE Development Items to implement CRUD functionality.', version: '0'){
+    Info(description: 'CRISTAL-iSE Development Items to implement CRUD functionality.', version: '0') {
     }
 
     Url('org/cristalise/dev/resources/')
+    
+    Activity('CreateAgent', 0) {
+    }
 
-    include(moduleDir+'/Factory.groovy')
+    //include(moduleDir+'/Factory.groovy')
 }
