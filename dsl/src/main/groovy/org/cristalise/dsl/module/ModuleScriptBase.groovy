@@ -46,14 +46,20 @@ abstract class ModuleScriptBase extends DelegatingScript {
         if (configDir) {
             config  = config  ?: "$configDir/$defaultConfig"
             connect = connect ?: "$configDir/$defaultConnect"
-
-            log.info('config:{}, connect:{}', config, connect)
         }
 
-        if (!connect || !config) throw new InvalidDataException("Missing connect '"+connect+"' or config '"+config+"' files")
+        if (!connect || !config) {
+            log.info('init() - generation only mode')
 
-        Gateway.init(AbstractMain.readPropertyFiles(config, connect, null))
-        Gateway.connect()
+            // Runs the dsl scripts in the generation only mode, no connection to database
+            Gateway.init(new Properties())
+        }
+        else {
+            log.info('init() - config:{}, connect:{}', config, connect)
+
+            Gateway.init(AbstractMain.readPropertyFiles(config, connect, null))
+            Gateway.connect()
+        }
     }
 
     public void Module(Map args, Closure cl) {
