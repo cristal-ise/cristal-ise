@@ -299,7 +299,15 @@ public class JooqLookupManager implements LookupManager {
 
             if (uuids.size() == 0) throw new ObjectNotFoundException("Could not find agent:"+agentName);
 
-            return (AgentPath) items.fetch(context, uuids.get(0), properties);
+            // FIXME (Dirty Fix) there could many Items (very likely only 2) created with the name of the Agent.
+            // Instead using the findItemsByName() create a new similar SQL joining ITEM table 'IS_AGENT = true'.
+            for (UUID uuid: uuids) {
+                ItemPath ip = items.fetch(context, uuid, properties);
+
+                if (ip instanceof AgentPath) return (AgentPath)ip;
+            }
+
+            throw new ObjectNotFoundException("Could not find agent:"+agentName);
         }
         catch (PersistencyException e) {
             throw new ObjectNotFoundException("Could not retrieve agentName:"+agentName + " error:"+e.getMessage());
