@@ -25,6 +25,7 @@ import org.cristalise.kernel.lookup.ItemPath;
 import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.utils.ObjectProperties;
 import org.cristalise.storage.jooqdb.JooqHandler;
+import org.cristalise.storage.jooqdb.auth.Argon2PasswordService;
 import org.cristalise.storage.jooqdb.auth.JooqAuthenticator;
 import org.cristalise.storage.jooqdb.lookup.JooqLookupManager;
 import org.junit.After;
@@ -34,7 +35,6 @@ import org.junit.Test;
 
 public class AuthenticatorTest {
     
-    JooqAuthenticator auth;
     JooqLookupManager lookup;
 
     @Before
@@ -47,25 +47,35 @@ public class AuthenticatorTest {
         c2kProps.put(JooqHandler.JOOQ_DIALECT,  "H2");
 
         Gateway.init(c2kProps);
-
-        auth = new JooqAuthenticator();
         lookup  = new JooqLookupManager();
-
         lookup.open(null);
     }
 
     @After
     public void tearDown() {
-        auth.disconnect();
         lookup.close();
     }
 
-    @Test @Ignore
+    @Test
     public void authentcateUser() throws Exception {
+        JooqAuthenticator auth = new JooqAuthenticator();
+
         AgentPath agent = new AgentPath(new ItemPath(), "dummyUser");
         lookup.add(agent);
         lookup.setAgentPassword(agent, "123456");
 
         assert auth.authenticate("dummyUser", "123456", null);
+
+        auth.disconnect();
+    }
+
+    @Test @Ignore("Not Implemented")
+    public void authentcateUserShiro() throws Exception {
+        AgentPath agent = new AgentPath(new ItemPath(), "dummyUser");
+        lookup.add(agent);
+        lookup.setAgentPassword(agent, "123456");
+
+        Argon2PasswordService shiroPwdService = new Argon2PasswordService();
+        assert shiroPwdService.passwordsMatch("dummyUser", "123456");
     }
 }
