@@ -21,7 +21,9 @@ class ModuleBuilderSpecs extends Specification implements CristalTestSetup {
     def 'Module can define Info, Url and Configs'() {
         when:
         def module = ModuleBuilder.build('ttt', 'integtest', 0) {
-            Info(description: 'Test Cristal module', version: '1.0') {}
+            Info(description: 'Test Cristal module', version: '1.0') {
+                dependencies: ['CristaliseDev', 'CristalTrigger']
+            }
             Url('cristal/resources/')
             Config(name: 'Module.debug', value: false)
             Config(name: 'OverrideScriptLang.javascript', value: 'rhino')
@@ -40,6 +42,9 @@ class ModuleBuilderSpecs extends Specification implements CristalTestSetup {
         module.config[1].value == 'rhino'
         module.info.desc == 'Test Cristal module'
         module.resURL == 'cristal/resources/'
+        module.dependencies.size() == 2
+        module.dependencies[0] == 'CristaliseDev'
+        module.dependencies[1] == 'CristalTrigger'
     }
 
     def 'Module can reference existing resources'() {
