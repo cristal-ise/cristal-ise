@@ -253,12 +253,12 @@ public class Bootstrap {
         RolePath rootRole = new RolePath();
         if (!rootRole.exists()) Gateway.getLookupManager().createRole(rootRole);
 
-        // check for admin role
+        // check for 'Admin' role
         RolePath adminRole = new RolePath(rootRole, ADMIN_ROLE.getName(), false);
+        adminRole.getPermissions().add("*");
         if (!adminRole.exists()) Gateway.getLookupManager().createRole(adminRole);
-        Gateway.getLookupManager().setPermission(adminRole, "*");
 
-        // check for import Agent
+        // check for 'system' Agent
         AgentProxy system = checkAgent(SYSTEM_AGENT.getName(), null, adminRole, new UUID(0, 1).toString());
         ScriptConsole.setUser(system);
 
