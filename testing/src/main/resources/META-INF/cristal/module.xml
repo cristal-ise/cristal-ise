@@ -156,7 +156,7 @@
 
         <Agent name="user" password="test">
             <Role name="Admin"/>
-            <Role name="SubUser"/>
+            <Role name="User/SubUser"/>
         </Agent>
         <AgentResource name="mainUser" version="0"/>
 
