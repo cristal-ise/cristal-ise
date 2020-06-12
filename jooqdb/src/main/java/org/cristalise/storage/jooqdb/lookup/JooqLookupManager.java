@@ -544,7 +544,8 @@ public class JooqLookupManager implements LookupManager {
         try {
             DSLContext context = JooqHandler.connect();
             context.transaction(nested -> {
-                int rows = roles.insert(DSL.using(nested), role, agent);
+                RolePath finalRole = roles.fetch(DSL.using(nested), role); // retreive the joblis
+                int rows = roles.insert(DSL.using(nested), finalRole, agent);
                 if (rows != 1) throw new ObjectCannotBeUpdated("Updated rows must be 1 but it was '"+rows+"'");
             });
 
@@ -796,7 +797,7 @@ public class JooqLookupManager implements LookupManager {
 
         try {
             DSLContext context = JooqHandler.connect();
-            context.transaction(nested ->{
+            context.transaction(nested -> {
               //empty permission list shall clear the permissions of Role
                 if (this.permissions.exists(DSL.using(nested),role.getStringPath())) {
                     this.permissions.delete(DSL.using(nested), role.getStringPath());
