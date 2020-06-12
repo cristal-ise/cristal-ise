@@ -49,8 +49,8 @@ public class ImportRole extends ModuleImport implements DescriptionObject {
 
     public Integer version;
 
-    public Boolean jobList;
-    public ArrayList<String> permissions = new ArrayList<>();
+    public Boolean jobList = null;
+    public ArrayList<String> permissions = null;
 
     public ImportRole() {}
 
@@ -95,6 +95,7 @@ public class ImportRole extends ModuleImport implements DescriptionObject {
     public void update(AgentPath agentPath) 
             throws ObjectAlreadyExistsException, ObjectCannotBeUpdated, CannotManageException, ObjectNotFoundException
     {
+        log.info("update() - Updating Role:"+name+" joblist:"+jobList);
         RolePath rolePath = getRolePath();
 
         if (!rolePath.exists()) 
