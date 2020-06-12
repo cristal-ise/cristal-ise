@@ -132,17 +132,22 @@ public class ImportAgent extends ModuleImport implements DescriptionObject {
         }
 
         for (ImportRole role : roles) {
-            if (role.exists()) {
-                RolePath rp = role.getRolePath();
-                role.update(agentPath);
-
+            RolePath rp = role.getRolePath();
+            if (rp.exists()) {
                 if (!getAgentPath().hasRole(rp)) {
                     Gateway.getLookupManager().addRole(getAgentPath(), rp);
                 }
+                // no update to the role is done, because role might not be fully specified (i.e. it only contains the name as a reference)
             }
             else {
-                RolePath thisRole = (RolePath)role.create(agentPath, reset);
-                Gateway.getLookupManager().addRole(getAgentPath(), thisRole);
+                if (Gateway.getProperties().getBoolean("Module.ImportAgent.enableRoleCreation", false)) {
+                    // Creates Role even if it is not fully specified in the ImportAgent (i.e. no permissions were specified)
+                    RolePath thisRole = (RolePath)role.create(agentPath, reset);
+                    Gateway.getLookupManager().addRole(getAgentPath(), thisRole);
+                }
+                else {
+                    throw new CannotManageException("Role '"+rp+ "' does not exists");
+                } 
             }
         }
 
