@@ -50,7 +50,7 @@ public class ImportRole extends ModuleImport implements DescriptionObject {
     public Integer version;
 
     public Boolean jobList = null;
-    public ArrayList<String> permissions = null;
+    public ArrayList<String> permissions = new ArrayList<>();
 
     public ImportRole() {}
 
