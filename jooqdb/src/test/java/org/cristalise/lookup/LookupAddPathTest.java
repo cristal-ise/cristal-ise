@@ -28,7 +28,6 @@ import static org.junit.Assume.assumeTrue;
 import java.util.UUID;
 
 import org.cristalise.JooqTestConfigurationBase;
-import org.cristalise.JooqTestConfigurationBase.DBModes;
 import org.cristalise.kernel.common.ObjectAlreadyExistsException;
 import org.cristalise.kernel.common.ObjectCannotBeUpdated;
 import org.cristalise.kernel.common.SystemKey;

@@ -299,7 +299,15 @@ public class JooqLookupManager implements LookupManager {
 
             if (uuids.size() == 0) throw new ObjectNotFoundException("Could not find agent:"+agentName);
 
-            return (AgentPath) items.fetch(context, uuids.get(0), properties);
+            // FIXME (Dirty Fix) there could many Items (very likely only 2) created with the name of the Agent.
+            // Instead using the findItemsByName() create a new similar SQL joining ITEM table 'IS_AGENT = true'.
+            for (UUID uuid: uuids) {
+                ItemPath ip = items.fetch(context, uuid, properties);
+
+                if (ip instanceof AgentPath) return (AgentPath)ip;
+            }
+
+            throw new ObjectNotFoundException("Could not find agent:"+agentName);
         }
         catch (PersistencyException e) {
             throw new ObjectNotFoundException("Could not retrieve agentName:"+agentName + " error:"+e.getMessage());
@@ -536,7 +544,8 @@ public class JooqLookupManager implements LookupManager {
         try {
             DSLContext context = JooqHandler.connect();
             context.transaction(nested -> {
-                int rows = roles.insert(DSL.using(nested), role, agent);
+                RolePath finalRole = roles.fetch(DSL.using(nested), role); // retreive the joblis
+                int rows = roles.insert(DSL.using(nested), finalRole, agent);
                 if (rows != 1) throw new ObjectCannotBeUpdated("Updated rows must be 1 but it was '"+rows+"'");
             });
 
@@ -788,7 +797,7 @@ public class JooqLookupManager implements LookupManager {
 
         try {
             DSLContext context = JooqHandler.connect();
-            context.transaction(nested ->{
+            context.transaction(nested -> {
               //empty permission list shall clear the permissions of Role
                 if (this.permissions.exists(DSL.using(nested),role.getStringPath())) {
                     this.permissions.delete(DSL.using(nested), role.getStringPath());

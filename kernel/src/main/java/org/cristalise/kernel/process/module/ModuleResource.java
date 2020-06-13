@@ -41,7 +41,7 @@ import lombok.extern.slf4j.Slf4j;
 @Getter @Setter @Slf4j
 public class ModuleResource extends ModuleImport {
 
-    public int              version;
+    public Integer          version;
     public BuiltInResources type;
     public String           resourceLocation;
 

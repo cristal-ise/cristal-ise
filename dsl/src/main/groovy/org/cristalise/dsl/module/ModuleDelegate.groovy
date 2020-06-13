@@ -45,6 +45,7 @@ import org.cristalise.kernel.lifecycle.instance.stateMachine.StateMachine
 import org.cristalise.kernel.persistency.outcome.Schema
 import org.cristalise.kernel.process.Gateway
 import org.cristalise.kernel.process.module.*
+import org.cristalise.kernel.process.resource.BuiltInResources
 import org.cristalise.kernel.property.PropertyDescriptionList
 import org.cristalise.kernel.querying.Query
 import org.cristalise.kernel.scripting.Script
@@ -71,7 +72,7 @@ class ModuleDelegate {
     String moduleDir    = 'src/main/script/'
     String moduleXmlDir = null
 
-    private String resourceBoot = null
+    private File resourceBootDir = null
     private File moduleXMLFile = null
 
     public ModuleDelegate(Map<String, Object> args) {
@@ -93,7 +94,6 @@ class ModuleDelegate {
 
         if (!moduleXmlDir) moduleXmlDir = resourceRoot
 
-        resourceBoot = "$resourceRoot/boot"
         moduleXMLFile = new File("$moduleXmlDir/module.xml")
 
         if (moduleXMLFile.exists()) {
@@ -101,6 +101,13 @@ class ModuleDelegate {
             assert module.ns == newModule.ns
             assert module.name == newModule.name
         }
+
+        new FileTreeBuilder(new File(resourceRoot)).dir('boot') {
+            for (def res : BuiltInResources.values()) {
+                dir(res.getTypeCode())
+            }
+        }
+        resourceBootDir = new File("$resourceRoot/boot")
     }
 
     public ModuleDelegate(String ns, String n, int v, String resRoot, String expRoot, String modDir, Binding b = null) {
@@ -130,14 +137,14 @@ class ModuleDelegate {
 
     public Schema Schema(String name, Integer version, Closure cl) {
         def schema = SchemaBuilder.build(name, version, cl)
-        schema.export(null, new File(resourceBoot), true)
+        schema.export(null, resourceBootDir, true)
         addSchema(schema)
         return schema
     }
 
     public Schema Schema(String name, Integer version, File file) {
         def schema = SchemaBuilder.build(name, version, file)
-        schema.export(null, new File(resourceBoot), true)
+        schema.export(null, resourceBootDir, true)
         addSchema(schema)
         return schema
     }
@@ -150,7 +157,7 @@ class ModuleDelegate {
 
     public Query Query(String name, Integer version, Closure cl) {
         def query = QueryBuilder.build(newModule.name, name, version, cl)
-        query.export(null, new File(resourceBoot), true)
+        query.export(null, resourceBootDir, true)
         addQuery(query)
         return query
     }
@@ -163,7 +170,7 @@ class ModuleDelegate {
 
     public Script Script(String name, Integer version, Closure cl) {
         def script = ScriptBuilder.build(name, version, cl)
-        script.export(null, new File(resourceBoot), true)
+        script.export(null, resourceBootDir, true)
         addScript(script)
         return script
     }
@@ -176,7 +183,7 @@ class ModuleDelegate {
 
     public StateMachine StateMachine(String name, Integer version, Closure cl) {
         def sm = StateMachineBuilder.build("", name, version, cl).sm
-        sm.export(null, new File(resourceBoot), true)
+        sm.export(null, resourceBootDir, true)
         addStateMachine(sm)
         return sm
     }
@@ -189,7 +196,7 @@ class ModuleDelegate {
 
     public ActivityDef Activity(String name, Integer version, Closure cl) {
         def eaDef = ElemActDefBuilder.build(name, version, cl)
-        eaDef.export(null, new File(resourceBoot), true)
+        eaDef.export(null, resourceBootDir, true)
         addActivityDef(eaDef)
         return eaDef
     }
@@ -201,15 +208,28 @@ class ModuleDelegate {
     }
 
     /**
-     * Enable export if workflow needs to be generated.
-     * e.g. caDef.export(imports, new File(exportRoot), true)
+     * 
      * @param name
      * @param version
      * @param cl
      * @return
      */
     public CompositeActivityDef Workflow(String name, Integer version, Closure cl) {
-        def caDef = CompActDefBuilder.build(name, version, cl)
+        return Workflow(name: name, version: version, generate: false, cl)
+    }
+
+    /**
+     * Enable export if workflow needs to be generated, e.g. caDef.export(imports, new File(exportRoot), true)
+     * 
+     * @param args
+     * @param cl
+     * @return
+     */
+    public CompositeActivityDef Workflow(Map args, Closure cl) {
+        def caDef = CompActDefBuilder.build((String)args.name, (Integer)args.version, cl)
+
+        if (args?.generate) caDef.export(null, resourceBootDir, true)
+
         addCompositeActivityDef(caDef)
         return caDef
     }
@@ -223,14 +243,14 @@ class ModuleDelegate {
         def type = propDescList.list.find { it.isClassIdentifier && it.name == 'Type' }
 
         FileStringUtility.string2File(
-            new File(new File(resourceBoot+"/"+PROPERTY_DESC_RESOURCE.typeCode), "${type.defaultValue}.xml"),
+            new File(new File(resourceBootDir.path+"/"+PROPERTY_DESC_RESOURCE.typeCode), "${type.defaultValue}.xml"),
             XmlUtil.serialize(Gateway.getMarshaller().marshall(propDescList))
         )
     }
 
     public PropertyDescriptionList PropertyDescriptionList(String name, Integer version, Closure cl) {
         def propDescList = PropertyDescriptionBuilder.build(name, version, cl)
-        propDescList.export(null, new File(resourceBoot), true)
+        propDescList.export(null, resourceBootDir, true)
         addPropertyDescriptionList(propDescList)
 
         return propDescList
@@ -247,7 +267,7 @@ class ModuleDelegate {
         agent.roles.each { it.jobList = null }
 
         if (Gateway.getProperties().getBoolean('DSL.Module.generateAllResourceItems', true)) {
-            agent.export(null, new File(resourceBoot), true)
+            agent.export(null, resourceBootDir, true)
             addImportAgent(agent)
         }
         else {
@@ -269,7 +289,7 @@ class ModuleDelegate {
         item.properties.removeAll { it.value == args.name }
 
         if (Gateway.getProperties().getBoolean('DSL.Module.generateAllResourceItems', true)) {
-            item.export(null, new File(resourceBoot), true)
+            item.export(null, resourceBootDir, true)
             addImportItem(item)
         }
         else {
@@ -289,7 +309,7 @@ class ModuleDelegate {
 
         importRoles.each { role ->
             if (Gateway.getProperties().getBoolean('DSL.Module.generateAllResourceItems', true)) {
-                role.export(null, new File(resourceBoot), true)
+                role.export(null, resourceBootDir, true)
                 addImportRole(role)
             }
             else {
