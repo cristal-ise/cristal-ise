@@ -411,7 +411,7 @@ public class CompositeActivityDef extends ActivityDef {
             if (Gateway.getProperties().getBoolean("Export.replaceActivitySlotDefUUIDWithName", false)) {
                outcome = new Outcome(compactXML);
                nodeList = outcome.getNodesByXPath("/CompositeActivityDef/childrenGraphModel/GraphModelCastorData/ActivitySlotDef/activityDef/text()");
-               for (int i = 0; i < nodeList.getLength(); i++) {					 
+               for (int i = 0; i < nodeList.getLength(); i++) {
                     try {
                         ItemPath itemPath = Gateway.getLookup().getItemPath(nodeList.item(i).getNodeValue());
                         ItemProxy itemProxy = Gateway.getProxyManager().getProxy(itemPath);
