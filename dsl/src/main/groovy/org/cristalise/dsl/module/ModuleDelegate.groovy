@@ -39,6 +39,7 @@ import org.cristalise.kernel.common.InvalidDataException
 import org.cristalise.kernel.entity.imports.ImportAgent
 import org.cristalise.kernel.entity.imports.ImportItem
 import org.cristalise.kernel.entity.imports.ImportRole
+import org.cristalise.kernel.graph.layout.DefaultGraphLayoutGenerator
 import org.cristalise.kernel.lifecycle.ActivityDef
 import org.cristalise.kernel.lifecycle.CompositeActivityDef
 import org.cristalise.kernel.lifecycle.instance.stateMachine.StateMachine
@@ -228,7 +229,10 @@ class ModuleDelegate {
     public CompositeActivityDef Workflow(Map args, Closure cl) {
         def caDef = CompActDefBuilder.build((String)args.name, (Integer)args.version, cl)
 
-        if (args?.generate) caDef.export(null, resourceBootDir, true)
+        if (args?.generate) {
+            DefaultGraphLayoutGenerator.layoutGraph(caDef.childrenGraphModel)
+            caDef.export(null, resourceBootDir, true)
+        }
 
         addCompositeActivityDef(caDef)
         return caDef
