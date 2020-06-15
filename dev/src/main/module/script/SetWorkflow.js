@@ -1,32 +1,3 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<!--
-
-    This file is part of the CRISTAL-iSE Development Module.
-    Copyright (c) 2001-2017 The CRISTAL Consortium. All rights reserved.
-
-    This library is free software; you can redistribute it and/or modify it
-    under the terms of the GNU Lesser General Public License as published
-    by the Free Software Foundation; either version 3 of the License, or (at
-    your option) any later version.
-
-    This library is distributed in the hope that it will be useful, but WITHOUT
-    ANY WARRANTY; with out even the implied warranty of MERCHANTABILITY or
-    FITNESS FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public
-    License for more details.
-
-    You should have received a copy of the GNU Lesser General Public License
-    along with this library; if not, write to the Free Software Foundation,
-    Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA.
-
-    http://www.fsf.org/licensing/licenses/lgpl.html
-
--->
-<cristalscript>
-    <param name="item" type="org.cristalise.kernel.entity.proxy.ItemProxy" />
-    <param name="agent" type="org.cristalise.kernel.entity.proxy.AgentProxy" />
-    <param name="job" type="org.cristalise.kernel.entity.agent.Job" />
-    <output name="errors" type="org.cristalise.kernel.scripting.ErrorInfo" />
-    <script language="javascript" name="SetWorkflow"><![CDATA[
 // Fetch the requested name from the outcome field
 var wfDefName    = job.getOutcome().getField("WorkflowDefinitionName");
 var wfDefVersion = job.getOutcome().getField("WorkflowDefinitionVersion");
@@ -72,5 +43,3 @@ cm.getProperties().put("Version", wfDefVersion);
 var params = new Array(1);
 params[0] = agent.marshall(coll);
 agent.execute(item, "AddC2KObject", params);
-    ]]></script>
-</cristalscript>

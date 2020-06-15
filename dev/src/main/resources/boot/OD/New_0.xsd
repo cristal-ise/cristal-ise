@@ -1,3 +1,4 @@
+<?xml version="1.0" encoding="UTF-8"?>
 <!--
 
     This file is part of the CRISTAL-iSE Development Module.
@@ -20,14 +21,5 @@
     http://www.fsf.org/licensing/licenses/lgpl.html
 
 -->
-<ActivityDef ID="-1" Name="CreateItem" Height="0" Width="0"
-	IsLayoutable="false" IsComposite="false">
-	<Properties>
-		<KeyValuePair Key="Description" String="Create a new Item from its Description" />
-		<KeyValuePair Key="Agent Name" String="" />
-		<KeyValuePair Key="Viewpoint" String="" />
-		<KeyValuePair Key="Breakpoint" Boolean="false" />
-		<KeyValuePair Key="Show time" Boolean="true" />
-		<KeyValuePair Key="Agent Role" String="" />
-	</Properties>
-</ActivityDef>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified" attributeFormDefault="unqualified">
+</xs:schema>

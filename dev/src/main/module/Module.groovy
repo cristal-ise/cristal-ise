@@ -13,9 +13,9 @@ Module(ns: 'dev', name: 'CristaliseDev', version: 0) {
     }
 
     Url('org/cristalise/dev/resources/')
-    
-    Activity('CreateAgent', 0) {
-    }
 
-    //include(moduleDir+'/Factory.groovy')
+    include(moduleDir+'/Schema.groovy')
+    include(moduleDir+'/Script.groovy')
+    include(moduleDir+'/Activity.groovy')
+    include(moduleDir+'/Workflow.groovy')
 }
