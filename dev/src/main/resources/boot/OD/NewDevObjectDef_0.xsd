@@ -3,7 +3,7 @@
   <xs:element name='NewDevObjectDef'>
     <xs:complexType>
       <xs:sequence>
-        <xs:element name='Name' type='xs:string' minOccurs='1' maxOccurs='1'>
+        <xs:element name='ObjectName' type='xs:string' minOccurs='1' maxOccurs='1'>
           <xs:annotation>
             <xs:documentation>Please give a name for your new object.</xs:documentation>
           </xs:annotation>

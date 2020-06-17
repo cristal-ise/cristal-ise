@@ -1,0 +1,1 @@
+<Item name="ActivityDefType" version="0" initialPath="/desc/dev" workflow="NoWorkflow" workflowVer="0"><Property name="Type" mutable="false">Type</Property><Outcome viewname="last" schema="PropertyDescription" version="0">boot/property/ActivityDesc_0.xml</Outcome></Item>

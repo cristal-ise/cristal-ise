@@ -5,7 +5,7 @@ Schema('ChooseWorkflow', 0) {
     }
 }
 
-Schema('New', 0, new File('src/main/resources/boot/OD/New.xsd'))
+Schema('New', 0, new File('src/main/resources/boot/OD/New_0.xsd'))
 
 Schema('NewAgent', 0) {
     struct(name: 'NewAgent', useSequence: true) {
@@ -25,7 +25,7 @@ Schema('NewCollection', 0) {
 
 Schema('NewDevObjectDef', 0) {
     struct(name: 'NewDevObjectDef', useSequence: true) {
-        field(name: 'Name', type: 'string', documentation: 'Please give a name for your new object.')
-        field(name: 'SubFolder', type: 'string', documentation: 'If you want to store your object in a subfolder, give the subpath here.')
+        field(name: 'ObjectName', type: 'string', documentation: 'Please give a name for your new object.')
+        field(name: 'SubFolder',  type: 'string', documentation: 'If you want to store your object in a subfolder, give the subpath here.')
     }
 }
