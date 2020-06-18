@@ -35,6 +35,7 @@ import org.cristalise.kernel.lifecycle.CompositeActivityDef
 import org.cristalise.kernel.lifecycle.instance.Workflow
 import org.cristalise.kernel.lookup.ItemPath
 import org.cristalise.kernel.process.resource.BuiltInResources
+import org.cristalise.kernel.property.PropertyDescriptionList
 
 import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
@@ -47,7 +48,6 @@ class ItemDelegate extends PropertyDelegate {
 
     static String ENTITY_PATTERN = '/entity/'
     public ImportItem newItem = new ImportItem()
-    List<ImportOutcome> outcomes = new ArrayList<>()
 
     public ItemDelegate(Map<String, Object> args) {
         assert args && args.name && args.folder
@@ -101,8 +101,6 @@ class ItemDelegate extends PropertyDelegate {
         cl()
 
         if (itemProps) newItem.properties = itemProps.list
-
-        if (outcomes) newItem.outcomes = ArrayList.cast(outcomes)
     }
 
     def Workflow(Closure cl) {
@@ -116,7 +114,16 @@ class ItemDelegate extends PropertyDelegate {
         assert attr.viewname
         assert attr.path
 
-        outcomes.add(new ImportOutcome((String) attr.schema, attr.version as Integer, (String) attr.viewname, (String) attr.path))
+        newItem.outcomes.add(new ImportOutcome((String) attr.schema, attr.version as Integer, (String) attr.viewname, (String) attr.path))
+    }
+
+    public void Outcome(PropertyDescriptionList propDesc) {
+        String schema = 'PropertyDescription'
+        Integer version = propDesc.version
+        String view = 'last'
+        String path = "boot/property/${propDesc.name}_${version}.xml"
+
+        newItem.outcomes.add(new ImportOutcome(schema, version, view, path))
     }
 
     public void DependencyDescription(BuiltInCollections coll, Closure cl) {
