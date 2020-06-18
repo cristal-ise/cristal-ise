@@ -22,19 +22,27 @@ package org.cristalise.dsl.module
 
 import static org.cristalise.kernel.process.resource.BuiltInResources.PROPERTY_DESC_RESOURCE
 
-import org.apache.poi.xssf.usermodel.XSSFSheet
-import org.apache.poi.xssf.usermodel.XSSFWorkbook
 import org.codehaus.groovy.control.CompilerConfiguration
 import org.cristalise.dsl.entity.AgentBuilder
+import org.cristalise.dsl.entity.AgentDelegate
 import org.cristalise.dsl.entity.ItemBuilder
+import org.cristalise.dsl.entity.ItemDelegate
 import org.cristalise.dsl.entity.RoleBuilder
+import org.cristalise.dsl.entity.RoleDelegate
 import org.cristalise.dsl.lifecycle.definition.CompActDefBuilder
+import org.cristalise.dsl.lifecycle.definition.CompActDefDelegate
 import org.cristalise.dsl.lifecycle.definition.ElemActDefBuilder
+import org.cristalise.dsl.lifecycle.definition.ElemActDefDelegate
 import org.cristalise.dsl.lifecycle.stateMachine.StateMachineBuilder
+import org.cristalise.dsl.lifecycle.stateMachine.StateMachineDelegate
 import org.cristalise.dsl.persistency.outcome.SchemaBuilder
+import org.cristalise.dsl.persistency.outcome.SchemaDelegate
 import org.cristalise.dsl.property.PropertyDescriptionBuilder
+import org.cristalise.dsl.property.PropertyDescriptionDelegate
 import org.cristalise.dsl.querying.QueryBuilder
+import org.cristalise.dsl.querying.QueryDelegate
 import org.cristalise.dsl.scripting.ScriptBuilder
+import org.cristalise.dsl.scripting.ScriptDelegate
 import org.cristalise.kernel.common.InvalidDataException
 import org.cristalise.kernel.entity.imports.ImportAgent
 import org.cristalise.kernel.entity.imports.ImportItem
@@ -45,7 +53,21 @@ import org.cristalise.kernel.lifecycle.CompositeActivityDef
 import org.cristalise.kernel.lifecycle.instance.stateMachine.StateMachine
 import org.cristalise.kernel.persistency.outcome.Schema
 import org.cristalise.kernel.process.Gateway
-import org.cristalise.kernel.process.module.*
+import org.cristalise.kernel.process.module.Module
+import org.cristalise.kernel.process.module.ModuleActivity
+import org.cristalise.kernel.process.module.ModuleAgent
+import org.cristalise.kernel.process.module.ModuleConfig
+import org.cristalise.kernel.process.module.ModuleDescRef
+import org.cristalise.kernel.process.module.ModuleImport
+import org.cristalise.kernel.process.module.ModuleInfo
+import org.cristalise.kernel.process.module.ModuleItem
+import org.cristalise.kernel.process.module.ModulePropertyDescription
+import org.cristalise.kernel.process.module.ModuleQuery
+import org.cristalise.kernel.process.module.ModuleRole
+import org.cristalise.kernel.process.module.ModuleSchema
+import org.cristalise.kernel.process.module.ModuleScript
+import org.cristalise.kernel.process.module.ModuleStateMachine
+import org.cristalise.kernel.process.module.ModuleWorkflow
 import org.cristalise.kernel.process.resource.BuiltInResources
 import org.cristalise.kernel.property.PropertyDescriptionList
 import org.cristalise.kernel.querying.Query
@@ -62,7 +84,7 @@ import groovy.xml.XmlUtil
  *
  */
 @CompileStatic @Slf4j
-class ModuleDelegate {
+class ModuleDelegate implements BindingConvention {
 
     Module module = null
     Module newModule = null
@@ -136,7 +158,7 @@ class ModuleDelegate {
         return schema
     }
 
-    public Schema Schema(String name, Integer version, Closure cl) {
+    public Schema Schema(String name, Integer version, @DelegatesTo(SchemaDelegate) Closure cl) {
         def schema = SchemaBuilder.build(name, version, cl)
         schema.export(null, resourceBootDir, true)
         addSchema(schema)
@@ -156,7 +178,7 @@ class ModuleDelegate {
         return query
     }
 
-    public Query Query(String name, Integer version, Closure cl) {
+    public Query Query(String name, Integer version, @DelegatesTo(QueryDelegate) Closure cl) {
         def query = QueryBuilder.build(newModule.name, name, version, cl)
         query.export(null, resourceBootDir, true)
         addQuery(query)
@@ -169,7 +191,7 @@ class ModuleDelegate {
         return script
     }
 
-    public Script Script(String name, Integer version, Closure cl) {
+    public Script Script(String name, Integer version, @DelegatesTo(ScriptDelegate) Closure cl) {
         def script = ScriptBuilder.build(name, version, cl)
         script.export(null, resourceBootDir, true)
         addScript(script)
@@ -182,7 +204,7 @@ class ModuleDelegate {
         return sm
     }
 
-    public StateMachine StateMachine(String name, Integer version, Closure cl) {
+    public StateMachine StateMachine(String name, Integer version, @DelegatesTo(StateMachineDelegate) Closure cl) {
         def sm = StateMachineBuilder.build("", name, version, cl).sm
         sm.export(null, resourceBootDir, true)
         addStateMachine(sm)
@@ -195,7 +217,7 @@ class ModuleDelegate {
         return eaDef
     }
 
-    public ActivityDef Activity(String name, Integer version, Closure cl) {
+    public ActivityDef Activity(String name, Integer version, @DelegatesTo(ElemActDefDelegate) Closure cl) {
         def eaDef = ElemActDefBuilder.build(name, version, cl)
         eaDef.export(null, resourceBootDir, true)
         addActivityDef(eaDef)
@@ -215,7 +237,7 @@ class ModuleDelegate {
      * @param cl
      * @return
      */
-    public CompositeActivityDef Workflow(String name, Integer version, Closure cl) {
+    public CompositeActivityDef Workflow(String name, Integer version, @DelegatesTo(CompActDefDelegate) Closure cl) {
         return Workflow(name: name, version: version, generate: false, cl)
     }
 
@@ -226,12 +248,15 @@ class ModuleDelegate {
      * @param cl
      * @return
      */
-    public CompositeActivityDef Workflow(Map args, Closure cl) {
+    public CompositeActivityDef Workflow(Map args, @DelegatesTo(CompActDefDelegate) Closure cl) {
         def caDef = CompActDefBuilder.build((String)args.name, (Integer)args.version, cl)
 
         if (args?.generate) {
             DefaultGraphLayoutGenerator.layoutGraph(caDef.childrenGraphModel)
             caDef.export(null, resourceBootDir, true)
+        }
+        else {
+            assert new File(new File(resourceBootDir, 'CA'), ""+args.name + (args.version == null ? "" : "_" + args.version) + ".xml").exists()
         }
 
         addCompositeActivityDef(caDef)
@@ -242,7 +267,7 @@ class ModuleDelegate {
      * Generates xml files for the define property description values.
      * @param cl
      */
-    public void PropertyDescriptionList(Closure cl) {
+    public void PropertyDescriptionList(@DelegatesTo(PropertyDescriptionDelegate) Closure cl) {
         def propDescList = PropertyDescriptionBuilder.build(cl)
         def type = propDescList.list.find { it.isClassIdentifier && it.name == 'Type' }
 
@@ -252,7 +277,7 @@ class ModuleDelegate {
         )
     }
 
-    public PropertyDescriptionList PropertyDescriptionList(String name, Integer version, Closure cl) {
+    public PropertyDescriptionList PropertyDescriptionList(String name, Integer version, @DelegatesTo(PropertyDescriptionDelegate) Closure cl) {
         def propDescList = PropertyDescriptionBuilder.build(name, version, cl)
         propDescList.export(null, resourceBootDir, true)
         addPropertyDescriptionList(propDescList)
@@ -266,7 +291,7 @@ class ModuleDelegate {
      * @param password
      * @param cl
      */
-    public ImportAgent Agent(Map args, Closure cl) {
+    public ImportAgent Agent(Map args, @DelegatesTo(AgentDelegate) Closure cl) {
         def agent = AgentBuilder.build(args, cl)
         agent.roles.each { it.jobList = null }
 
@@ -288,7 +313,7 @@ class ModuleDelegate {
      * @param args
      * @param cl
      */
-    public ImportItem Item(Map args, Closure cl) {
+    public ImportItem Item(Map args, @DelegatesTo(ItemDelegate) Closure cl) {
         def item = ItemBuilder.build(args, cl)
         item.properties.removeAll { it.value == args.name }
 
@@ -308,7 +333,7 @@ class ModuleDelegate {
      * Collects define roles and add/update on module.xml.
      * @param cl
      */
-    public List<ImportRole> Roles(Closure cl) {
+    public List<ImportRole> Roles(@DelegatesTo(RoleDelegate) Closure cl) {
         def importRoles = RoleBuilder.build(cl)
 
         importRoles.each { role ->
@@ -389,6 +414,8 @@ class ModuleDelegate {
      * @param sm
      */
     private void addStateMachine(StateMachine sm) {
+        addToBingings(bindings, sm)
+
         ModuleStateMachine moduleSm = new ModuleStateMachine()
 
         moduleSm.setVersion(sm.version)
@@ -403,6 +430,8 @@ class ModuleDelegate {
      * @param obj
      */
     private void addQuery(Query query) {
+        addToBingings(bindings, query)
+
         ModuleQuery moduleQuery = new ModuleQuery()
 
         moduleQuery.setVersion(query.version)
@@ -417,6 +446,8 @@ class ModuleDelegate {
      * @param obj
      */
     private void addSchema(Schema schema) {
+        addToBingings(bindings, schema)
+
         ModuleSchema moduleSchema = new ModuleSchema()
 
         moduleSchema.setVersion(schema.version)
@@ -431,6 +462,8 @@ class ModuleDelegate {
      * @param obj
      */
     private void addScript(Script script) {
+        addToBingings(bindings, script)
+
         ModuleScript moduleScript = new ModuleScript()
 
         moduleScript.setVersion(script.version)
@@ -445,6 +478,8 @@ class ModuleDelegate {
      * @param obj
      */
     private void addActivityDef(ActivityDef actDef) {
+        addToBingings(bindings, actDef)
+
         ModuleActivity moduleAct = new ModuleActivity()
 
         moduleAct.setVersion(actDef.version)
@@ -467,6 +502,8 @@ class ModuleDelegate {
      * @param caDef
      */
     private void addCompositeActivityDef(CompositeActivityDef caDef) {
+        addToBingings(bindings, caDef)
+
         ModuleWorkflow moduleWf = new ModuleWorkflow()
         moduleWf.setVersion(caDef.version)
         moduleWf.setName(caDef.name)
@@ -487,6 +524,8 @@ class ModuleDelegate {
     }
 
     private void addPropertyDescriptionList(PropertyDescriptionList pdl) {
+        addToBingings(bindings, pdl)
+
         def modulePropDesc = new ModulePropertyDescription()
         modulePropDesc.setVersion(pdl.version)
         modulePropDesc.setName(pdl.name)
@@ -495,6 +534,8 @@ class ModuleDelegate {
     }
 
     private void addImportAgent(ImportAgent agent) {
+        addToBingings(bindings, agent)
+
         def moduleAgent = new ModuleAgent()
         moduleAgent.setName(agent.name)
         moduleAgent.setVersion(agent.version)
@@ -503,6 +544,8 @@ class ModuleDelegate {
     }
 
     private void addImportItem(ImportItem item) {
+        addToBingings(bindings, item)
+
         def moduleItem = new ModuleItem()
         moduleItem.setName(item.name)
         moduleItem.setVersion(item.version)
@@ -511,6 +554,8 @@ class ModuleDelegate {
     }
 
     private void addImportRole(ImportRole role) {
+        addToBingings(bindings, role)
+
         def moduleRole = new ModuleRole()
         moduleRole.setName(role.name)
         moduleRole.setVersion(role.version)
