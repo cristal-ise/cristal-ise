@@ -62,7 +62,7 @@ abstract class ModuleScriptBase extends DelegatingScript {
         }
     }
 
-    public void Module(Map args, Closure cl) {
+    public void Module(Map args, @DelegatesTo(ModuleDelegate) Closure cl) {
         init()
 
         args.resourceRoot = resourceRoot

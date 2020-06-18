@@ -22,6 +22,8 @@ package org.cristalise.dsl.entity
 
 import org.apache.commons.lang3.StringUtils
 import org.cristalise.dsl.collection.DependencyBuilder
+import org.cristalise.dsl.collection.DependencyDelegate
+import org.cristalise.dsl.lifecycle.instance.CompActDelegate
 import org.cristalise.dsl.lifecycle.instance.WorkflowBuilder
 import org.cristalise.kernel.collection.BuiltInCollections
 import org.cristalise.kernel.collection.Dependency
@@ -103,7 +105,7 @@ class ItemDelegate extends PropertyDelegate {
         if (itemProps) newItem.properties = itemProps.list
     }
 
-    def Workflow(Closure cl) {
+    def Workflow(@DelegatesTo(CompActDelegate) Closure cl) {
         newItem.wf = new WorkflowBuilder().build(cl)
     }
 
@@ -126,7 +128,7 @@ class ItemDelegate extends PropertyDelegate {
         newItem.outcomes.add(new ImportOutcome(schema, version, view, path))
     }
 
-    public void DependencyDescription(BuiltInCollections coll, Closure cl) {
+    public void DependencyDescription(BuiltInCollections coll, @DelegatesTo(DependencyDelegate) Closure cl) {
         DependencyDescription(coll.getName(), cl)
     }
 
@@ -134,11 +136,11 @@ class ItemDelegate extends PropertyDelegate {
         Dependency(name, true, cl)
     }
 
-    public void Dependency(BuiltInCollections coll, boolean isDescription = false, Closure cl) {
+    public void Dependency(BuiltInCollections coll, boolean isDescription = false, @DelegatesTo(DependencyDelegate) Closure cl) {
         Dependency(coll.getName(), isDescription, cl)
     }
    
-    public void Dependency(String name, boolean isDescription = false, Closure cl) {
+    public void Dependency(String name, boolean isDescription = false, @DelegatesTo(DependencyDelegate) Closure cl) {
         assert name
         assert cl
 

@@ -21,6 +21,7 @@
 package org.cristalise.dsl.collection
 
 import org.cristalise.dsl.property.PropertyBuilder
+import org.cristalise.dsl.property.PropertyDelegate
 import org.cristalise.kernel.collection.Dependency
 import org.cristalise.kernel.collection.DependencyDescription
 import org.cristalise.kernel.common.ObjectNotFoundException
@@ -58,15 +59,15 @@ class DependencyDelegate {
         cl()
     }
 
-    public void Properties(Closure cl) {
+    public void Properties(@DelegatesTo(PropertyDelegate) Closure cl) {
         dependency.properties = PropertyBuilder.build(cl)
     }
 
-    public void Member(PropertyDescriptionList props, Closure cl = null) {
+    public void Member(PropertyDescriptionList props, @DelegatesTo(DependencyMemberDelegate) Closure cl = null) {
         Member(moduleNs: moduleNs, itemPath: props, cl)
     }
 
-    public void Member(Map attrs, Closure cl = null) {
+    public void Member(Map attrs, @DelegatesTo(DependencyMemberDelegate) Closure cl = null) {
         assert attrs && attrs.itemPath
 
         String iPathStr

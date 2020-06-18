@@ -32,7 +32,7 @@ import org.cristalise.kernel.process.module.Module
 @CompileStatic
 class ModuleBuilder {
 
-    public static Module build(String ns, String name, int version, Closure cl) {
+    public static Module build(String ns, String name, int version, @DelegatesTo(ModuleDelegate) Closure cl) {
         ModuleDelegate md = new ModuleDelegate(ns, name, version)
 
         if(cl) md.processClosure(cl)
@@ -40,7 +40,7 @@ class ModuleBuilder {
         return md.newModule
     }
 
-    public static Path create(String ns, String name, int version, Closure cl) {
+    public static Path create(String ns, String name, int version, @DelegatesTo(ModuleDelegate) Closure cl) {
         def module = build(ns, name, version, cl)
 
         return module.create(null, false)
