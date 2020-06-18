@@ -306,6 +306,7 @@ public class Gateway
     static public AgentProxy connect(String agentName, String agentPassword, String resource)
             throws InvalidDataException, ObjectNotFoundException, PersistencyException
     {
+        mSecurityManager = new SecurityManager();
         mSecurityManager.authenticate(agentName, agentPassword, resource);
 
         setup(mSecurityManager.getAuth());
@@ -342,6 +343,7 @@ public class Gateway
     static public AgentProxy login(String agentName, String agentPassword, String resource) 
             throws InvalidDataException, ObjectNotFoundException
     {
+        if (mSecurityManager == null) mSecurityManager = new SecurityManager();
         return mSecurityManager.authenticate(agentName, agentPassword, resource);
     }
 
