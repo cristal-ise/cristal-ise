@@ -1,49 +1,49 @@
 Workflow('CompositeActivityFactory', 0) {
-  ElemActDef($CreateNewLocalObjectDef_ActivityDef)
+  ElemActDef($createNewLocalObjectDef_ActivityDef)
 }
 
 Workflow('ElementaryActivityFactory', 0) {
-    ElemActDef($CreateNewLocalObjectDef_ActivityDef)
+    ElemActDef($createNewLocalObjectDef_ActivityDef)
 }
 
 Workflow('SchemaFactoryWf', 0) {
     ElemActDef('EditDefinition', 0)
-    ElemActDef($CreateNewLocalObjectDef_ActivityDef)
+    ElemActDef($createNewLocalObjectDef_ActivityDef)
 }
 
 Workflow('ScriptFactoryWf', 0) {
     ElemActDef('EditDefinition', 0)
-    ElemActDef($CreateNewLocalObjectDef_ActivityDef)
+    ElemActDef($createNewLocalObjectDef_ActivityDef)
 }
 
 Workflow('QueryFactoryWf', 0) {
     ElemActDef('EditDefinition', 0)
-    ElemActDef($CreateNewLocalObjectDef_ActivityDef)
+    ElemActDef($createNewLocalObjectDef_ActivityDef)
 }
 
 Workflow('StateMachineFactoryWf', 0) {
-    ElemActDef($CreateNewLocalObjectDef_ActivityDef)
+    ElemActDef($createNewLocalObjectDef_ActivityDef)
 }
 
 Workflow('ItemDescriptionWf', 0) {
-    ElemActDef($EditPropertyDescription_ActivityDef)
-    ElemActDef($SetInstanceWorkflow_ActivityDef)
-    ElemActDef($CreateItem_ActivityDef)
-    ElemActDef($DefineNewCollection_ActivityDef)
+    ElemActDef($editPropertyDescription_ActivityDef)
+    ElemActDef($setInstanceWorkflow_ActivityDef)
+    ElemActDef($createItem_ActivityDef)
+    ElemActDef($defineNewCollection_ActivityDef)
 }
 
 Workflow('ItemDescriptionFactoryWf', 0) {
-    ElemActDef($CreateItem_ActivityDef)
+    ElemActDef($createItem_ActivityDef)
 }
 
 Workflow('ReadOnlyItemDescriptionWf', 0) {
-    ElemActDef($CreateItem_ActivityDef)
+    ElemActDef($createItem_ActivityDef)
 }
 
 Workflow('ModuleFactory', 0) {
-    ElemActDef($CreateItem_ActivityDef)
+    ElemActDef($createItem_ActivityDef)
 }
 
 Workflow('AgentFactoryWf', 0) {
-    ElemActDef($CreateAgent_ActivityDef)
+    ElemActDef($createAgent_ActivityDef)
 }

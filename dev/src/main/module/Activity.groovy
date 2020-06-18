@@ -2,29 +2,29 @@ Activity('CreateNewLocalObjectDef', 0) {
     Property(Description: 'Create a new C2KLocalObject Definition')
     AbstractProperty(NewType: '')
 
-    Schema($NewDevObjectDef_Schema)
-    Script($LocalObjectDefCreator_Script)
+    Schema($newDevObjectDef_Schema)
+    Script($localObjectDefCreator_Script)
 }
 
 Activity('CreateAgent', 0) {
     Property(Description: 'Create a new Agent from its Description')
 
-    Schema($NewAgent_Schema)
-    Script($InstantiateAgent_Script)
+    Schema($newAgent_Schema)
+    Script($instantiateAgent_Script)
 }
 
 Activity('CreateItem', 0) {
     Property(Description: 'Create a new Item from its Description')
 
-    Schema($NewDevObjectDef_Schema)
-    Script($InstantiateItem_Script)
+    Schema($newDevObjectDef_Schema)
+    Script($instantiateItem_Script)
 }
 
 Activity('DefineNewCollection', 0) {
     Property(Description: '')
 
-    Schema($NewCollection_Schema)
-    Script($CollDescCreator_Script)
+    Schema($newCollection_Schema)
+    Script($collDescCreator_Script)
 }
 
 Activity('EditPropertyDescription', 0) {
@@ -36,6 +36,6 @@ Activity('EditPropertyDescription', 0) {
 Activity('SetInstanceWorkflow', 0) {
     Property(Description: 'Choose a CompositeActivityDefinition to use for the workflow of new instances')
 
-    Schema($ChooseWorkflow_Schema)
-    Script($SetWorkflow_Script)
+    Schema($chooseWorkflow_Schema)
+    Script($setWorkflow_Script)
 }

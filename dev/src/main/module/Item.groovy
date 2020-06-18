@@ -3,7 +3,7 @@ import org.cristalise.kernel.collection.BuiltInCollections
 Item(name: 'ScriptFactory', version: 0, folder: '/desc/dev', workflow: 'ScriptFactoryWf', workflowVer: 0) {
     InmutableProperty('Type': 'Factory')
     InmutableProperty('LocalObjectType': 'Script')
-    Outcome($Script_PropertyDescriptionList)
+    Outcome($script_PropertyDescriptionList)
     Outcome(schema: 'Script', version: '0', viewname: 'last', path: 'boot/SC/New_0.xml')
 
     Dependency(BuiltInCollections.WORKFLOW) {
@@ -17,7 +17,7 @@ Item(name: 'ScriptFactory', version: 0, folder: '/desc/dev', workflow: 'ScriptFa
 Item(name: 'QueryFactory', version: 0, folder: '/desc/dev', workflow: 'QueryFactoryWf', workflowVer: 0) {
     InmutableProperty('Type': 'Factory')
     InmutableProperty('LocalObjectType': 'Query')
-    Outcome($Query_PropertyDescriptionList)
+    Outcome($query_PropertyDescriptionList)
     Outcome(schema: 'Query', version: '0', viewname: 'last', path: 'boot/query/New_0.xml')
 
     Dependency(BuiltInCollections.WORKFLOW) {
@@ -30,7 +30,7 @@ Item(name: 'QueryFactory', version: 0, folder: '/desc/dev', workflow: 'QueryFact
 Item(name: 'SchemaFactory', version: 0, folder: '/desc/dev', workflow: 'SchemaFactoryWf', workflowVer: 0) {
     InmutableProperty('Type': 'Factory')
     InmutableProperty('LocalObjectType': 'Schema')
-    Outcome($Schema_PropertyDescriptionList)
+    Outcome($schema_PropertyDescriptionList)
     Outcome(schema: 'Schema', version: '0', viewname: 'last', path: 'boot/OD/New_0.xsd')
 
     Dependency(BuiltInCollections.WORKFLOW) {
@@ -43,7 +43,7 @@ Item(name: 'SchemaFactory', version: 0, folder: '/desc/dev', workflow: 'SchemaFa
 Item(name: 'StateMachineFactory', version: 0, folder: '/desc/dev', workflow: 'StateMachineFactoryWf', workflowVer: 0) {
     InmutableProperty('Type': 'Factory')
     InmutableProperty('LocalObjectType': 'StateMachine')
-    Outcome($StateMachine_PropertyDescriptionList)
+    Outcome($stateMachine_PropertyDescriptionList)
 
     Dependency(BuiltInCollections.WORKFLOW) {
         Member(itemPath: '/desc/ActivityDesc/kernel/ManageStateMachine') {
@@ -55,7 +55,7 @@ Item(name: 'StateMachineFactory', version: 0, folder: '/desc/dev', workflow: 'St
 Item(name: 'ElementaryActivityDefFactory', version: 0, folder: '/desc/dev', workflow: 'ElementaryActivityFactory', workflowVer: 0) {
     InmutableProperty('Type': 'Factory')
     InmutableProperty('LocalObjectType': 'ElementaryActivityDef')
-    Outcome($ElementaryActivityDesc_PropertyDescriptionList)
+    Outcome($elementaryActivityDesc_PropertyDescriptionList)
 
     Dependency(BuiltInCollections.WORKFLOW) {
         Member(itemPath: '/desc/ActivityDesc/kernel/ManageElementaryActDef') {
@@ -78,13 +78,13 @@ Item(name: 'ElementaryActivityDefFactory', version: 0, folder: '/desc/dev', work
 
 Item(name: 'ActivityDefType', version: 0, folder: '/desc/dev', workflow: 'NoWorkflow', workflowVer: 0) {
     InmutableProperty('Type': 'Type')
-    Outcome($ActivityDesc_PropertyDescriptionList)
+    Outcome($activityDesc_PropertyDescriptionList)
 }
 
 Item(name: 'CompositeActivityDefFactory', version: 0, folder: '/desc/dev', workflow: 'CompositeActivityFactory', workflowVer: 0) {
     InmutableProperty('Type': 'Factory')
     InmutableProperty('LocalObjectType': 'CompositeActivityDef')
-    Outcome($CompositeActivityDesc_PropertyDescriptionList)
+    Outcome($compositeActivityDesc_PropertyDescriptionList)
 
     Dependency(BuiltInCollections.WORKFLOW) {
         Member(itemPath: '/desc/ActivityDesc/kernel/ManageCompositeActDef') {
@@ -110,7 +110,7 @@ Item(name: 'CompositeActivityDefFactory', version: 0, folder: '/desc/dev', workf
 
 Item(name: 'DescriptionFactory', version: 0, folder: '/desc/dev', workflow: 'ItemDescriptionFactoryWf', workflowVer: 0) {
     InmutableProperty('Type': 'Factory')
-    Outcome($ItemDescription_PropertyDescriptionList)
+    Outcome($itemDescription_PropertyDescriptionList)
 
     Dependency(BuiltInCollections.WORKFLOW) {
         Member(itemPath: '/desc/ActivityDesc/dev/ItemDescriptionWf') {
@@ -124,7 +124,7 @@ Item(name: 'DescriptionFactory', version: 0, folder: '/desc/dev', workflow: 'Ite
 
 Item(name: 'ModuleFactory', version: 0, folder: '/desc/dev', workflow: 'ModuleFactory', workflowVer: 0) {
     InmutableProperty('Type': 'Factory')
-    Outcome($Module_PropertyDescriptionList)
+    Outcome($module_PropertyDescriptionList)
 
     Dependency(BuiltInCollections.WORKFLOW) {
         Member(itemPath: '/desc/ActivityDesc/kernel/ManageModule') {
@@ -136,7 +136,7 @@ Item(name: 'ModuleFactory', version: 0, folder: '/desc/dev', workflow: 'ModuleFa
 
 Item(name: 'AgentFactory', version: 0, folder: '/desc/dev', workflow: 'AgentFactoryWf', workflowVer: 0) {
     InmutableProperty('Type': 'Factory')
-    Outcome($Agent_PropertyDescriptionList)
+    Outcome($agent_PropertyDescriptionList)
 
     Dependency(BuiltInCollections.WORKFLOW) {
         Member(itemPath: '/desc/ActivityDesc/kernel/ManageAgent') {
