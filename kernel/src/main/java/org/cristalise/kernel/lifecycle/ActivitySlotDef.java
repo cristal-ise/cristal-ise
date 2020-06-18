@@ -23,6 +23,8 @@ package org.cristalise.kernel.lifecycle;
 import static org.cristalise.kernel.collection.BuiltInCollections.ACTIVITY;
 import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.NAME;
 import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.VERSION;
+
+import org.apache.commons.lang3.StringUtils;
 import org.cristalise.kernel.common.InvalidDataException;
 import org.cristalise.kernel.common.ObjectNotFoundException;
 import org.cristalise.kernel.graph.model.Vertex;
@@ -109,6 +111,7 @@ public class ActivitySlotDef extends WfVertexDef {
     public void setTheActivityDef(ActivityDef actDef) {
         theActivityDef = actDef;
         activityDef = actDef.getItemID();
+        if (StringUtils.isBlank(activityDef)) activityDef = actDef.getName();
         setBuiltInProperty(VERSION, actDef.getVersion());
         
         if (actDef instanceof CompositeActivityDef) mIsComposite = true;
