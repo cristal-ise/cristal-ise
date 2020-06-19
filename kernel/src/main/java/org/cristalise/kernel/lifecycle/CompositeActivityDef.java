@@ -411,9 +411,9 @@ public class CompositeActivityDef extends ActivityDef {
             // export marshalled compAct
             String compactXML = Gateway.getMarshaller().marshall(this);
             if (Gateway.getProperties().getBoolean("Export.replaceActivitySlotDefUUIDWithName", false)) {
-               outcome = new Outcome(compactXML);
-               nodeList = outcome.getNodesByXPath("/CompositeActivityDef/childrenGraphModel/GraphModelCastorData/ActivitySlotDef/activityDef/text()");
-               for (int i = 0; i < nodeList.getLength(); i++) {
+                outcome = new Outcome(compactXML);
+                nodeList = outcome.getNodesByXPath("/CompositeActivityDef/childrenGraphModel/GraphModelCastorData/ActivitySlotDef/activityDef/text()");
+                for (int i = 0; i < nodeList.getLength(); i++) {
                     try {
                         String syskey = nodeList.item(i).getNodeValue();
                         if (StringUtils.isNotBlank(syskey) && ItemPath.isUUID(syskey)) {
@@ -428,11 +428,11 @@ public class CompositeActivityDef extends ActivityDef {
                         }
                     }
                     catch(Exception e) {
-                         log.error("Cannot find item with UIID: "+nodeList.item(i).getNodeValue(), e);
-                         throw new ObjectNotFoundException("Cannot find item with UIID: "+nodeList.item(i).getNodeValue());
+                        log.error("Cannot find item with UIID: "+nodeList.item(i).getNodeValue(), e);
+                        throw new ObjectNotFoundException("Cannot find item with UIID: "+nodeList.item(i).getNodeValue());
                     }
-               }
-               compactXML = outcome.getData();
+                }
+                compactXML = outcome.getData();
             }            
             FileStringUtility.string2File(new File(new File(dir, tc), getActName() + (getVersion() == null ? "" : "_" + getVersion()) + ".xml"), compactXML);
         }
