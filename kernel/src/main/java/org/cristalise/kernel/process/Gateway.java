@@ -152,8 +152,6 @@ public class Gateway
         // Overwrite with argument props
         if (props != null) mC2KProps.putAll(props);
 
-        mSecurityManager = new SecurityManager();
-
         // dump properties
         log.info("Gateway.init() - DONE");
         dumpC2KProps(7);
@@ -262,6 +260,7 @@ public class Gateway
      * @throws ObjectNotFoundException - object not found
      */
     static public Authenticator connect() throws InvalidDataException, PersistencyException, ObjectNotFoundException {
+        mSecurityManager = new SecurityManager();
         mSecurityManager.authenticate();
 
         setup(mSecurityManager.getAuth());
@@ -307,6 +306,7 @@ public class Gateway
     static public AgentProxy connect(String agentName, String agentPassword, String resource)
             throws InvalidDataException, ObjectNotFoundException, PersistencyException
     {
+        mSecurityManager = new SecurityManager();
         mSecurityManager.authenticate(agentName, agentPassword, resource);
 
         setup(mSecurityManager.getAuth());
@@ -343,6 +343,7 @@ public class Gateway
     static public AgentProxy login(String agentName, String agentPassword, String resource) 
             throws InvalidDataException, ObjectNotFoundException
     {
+        if (mSecurityManager == null) mSecurityManager = new SecurityManager();
         return mSecurityManager.authenticate(agentName, agentPassword, resource);
     }
 

@@ -31,6 +31,8 @@ import java.io.Writer;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map.Entry;
+
+import org.apache.commons.lang3.StringUtils;
 import org.cristalise.kernel.collection.CollectionArrayList;
 import org.cristalise.kernel.collection.Dependency;
 import org.cristalise.kernel.common.InvalidDataException;
@@ -409,20 +411,28 @@ public class CompositeActivityDef extends ActivityDef {
             // export marshalled compAct
             String compactXML = Gateway.getMarshaller().marshall(this);
             if (Gateway.getProperties().getBoolean("Export.replaceActivitySlotDefUUIDWithName", false)) {
-               outcome = new Outcome(compactXML);
-               nodeList = outcome.getNodesByXPath("/CompositeActivityDef/childrenGraphModel/GraphModelCastorData/ActivitySlotDef/activityDef/text()");
-               for (int i = 0; i < nodeList.getLength(); i++) {
+                outcome = new Outcome(compactXML);
+                nodeList = outcome.getNodesByXPath("/CompositeActivityDef/childrenGraphModel/GraphModelCastorData/ActivitySlotDef/activityDef/text()");
+                for (int i = 0; i < nodeList.getLength(); i++) {
                     try {
-                        ItemPath itemPath = Gateway.getLookup().getItemPath(nodeList.item(i).getNodeValue());
-                        ItemProxy itemProxy = Gateway.getProxyManager().getProxy(itemPath);
-                        nodeList.item(i).setNodeValue(itemProxy.getName());
+                        String syskey = nodeList.item(i).getNodeValue();
+                        if (StringUtils.isNotBlank(syskey) && ItemPath.isUUID(syskey)) {
+                            ItemPath itemPath = Gateway.getLookup().getItemPath(syskey);
+                            ItemProxy itemProxy = Gateway.getProxyManager().getProxy(itemPath);
+                            nodeList.item(i).setNodeValue(itemProxy.getName());
+                            break;
+                        }
+                        else if (StringUtils.isNotBlank(syskey)) {
+                            log.debug("export(name:{}) - syskey:{} was not replaced - not null & not UUID", getActName(), syskey);
+                            break;
+                        }
                     }
                     catch(Exception e) {
-                         log.error("Cannot find item with UIID: "+nodeList.item(i).getNodeValue(), e);
-                         throw new ObjectNotFoundException("Cannot find item with UIID: "+nodeList.item(i).getNodeValue());
+                        log.error("Cannot find item with UIID: "+nodeList.item(i).getNodeValue(), e);
+                        throw new ObjectNotFoundException("Cannot find item with UIID: "+nodeList.item(i).getNodeValue());
                     }
-               }
-               compactXML = outcome.getData();
+                }
+                compactXML = outcome.getData();
             }            
             FileStringUtility.string2File(new File(new File(dir, tc), getActName() + (getVersion() == null ? "" : "_" + getVersion()) + ".xml"), compactXML);
         }

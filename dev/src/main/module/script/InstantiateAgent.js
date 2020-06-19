@@ -1,6 +1,6 @@
-/**
- * This file is part of the CRISTAL-iSE kernel.
- * Copyright (c) 2001-2015 The CRISTAL Consortium. All rights reserved.
+/*
+ * This file is part of the CRISTAL-iSE Development Module.
+ * Copyright (c) 2001-2017 The CRISTAL Consortium. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as published
@@ -18,28 +18,24 @@
  *
  * http://www.fsf.org/licensing/licenses/lgpl.html
  */
-package org.cristalise.dsl.test.entity
+var name   = job.getOutcome().getField("Name");
+var folder = job.getOutcome().getField("SubFolder");
+var roles  = job.getOutcome().getField("InitialRoles");
+var pwd    = job.getOutcome().getField("Password");
 
-import groovy.transform.CompileStatic
+var root = job.getActPropString("Root");
 
-import java.util.ArrayList;
+var domPath = (root != null ? root : "") + "/" + (folder != null ? folder : "");
 
-import org.cristalise.dsl.entity.PropertyDelegate
-import org.cristalise.kernel.property.Property;
-import org.cristalise.kernel.property.PropertyArrayList
+// Create new Item
+var params = new Array(4);
+params[0] = name;
+params[1] = domPath;
+params[2] = roles;
+params[3] = pwd;
 
-
-/**
- * 
- */
-@CompileStatic
-class ItemPropertyTestBuilder {
-
-    public static ArrayList<Property> build(@DelegatesTo(PropertyDelegate) Closure cl) {
-        def pd = new PropertyDelegate()
-
-        pd.processClosure(cl)
-
-        return pd.itemProps.list
-    }
+try {
+    agent.execute(item, "CreateAgentFromDescription", params);
+} catch (e) {
+    throw "Could not create "+name+": "+e.message;
 }

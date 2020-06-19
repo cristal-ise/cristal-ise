@@ -34,7 +34,7 @@ import groovy.util.logging.Slf4j
 @CompileStatic @Slf4j
 class RoleBuilder {
 
-    public static ArrayList<ImportRole> build(Closure cl) {
+    public static ArrayList<ImportRole> build(@DelegatesTo(RoleDelegate) Closure cl) {
         def roleDelegate = new RoleDelegate()
 
         roleDelegate.processClosure(cl)
@@ -44,7 +44,7 @@ class RoleBuilder {
         return roleDelegate.roles
     }
 
-    public static List<RolePath> create(Closure cl) {
+    public static List<RolePath> create(@DelegatesTo(RoleDelegate) Closure cl) {
         return createRoles(build(cl))
     }
 

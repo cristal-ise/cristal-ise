@@ -1,6 +1,11 @@
-/.settings
-/.classpath
 /target
+/build
+/.classpath
 /.project
-/cristal.preferences
+/.settings
+/.gradle
+/.groovy
+/bin/
 /*.iml
+/cristal.preferences
+/gradle-app.setting

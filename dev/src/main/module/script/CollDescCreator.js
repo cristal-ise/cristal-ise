@@ -1,6 +1,6 @@
-/**
- * This file is part of the CRISTAL-iSE kernel.
- * Copyright (c) 2001-2015 The CRISTAL Consortium. All rights reserved.
+/*
+ * This file is part of the CRISTAL-iSE Development Module.
+ * Copyright (c) 2001-2017 The CRISTAL Consortium. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as published
@@ -18,28 +18,18 @@
  *
  * http://www.fsf.org/licensing/licenses/lgpl.html
  */
-package org.cristalise.dsl.test.entity
+var name = job.getOutcome().getField("Name");
+var type = job.getOutcome().getField("Type");
 
-import groovy.transform.CompileStatic
+var found = false;
 
-import java.util.ArrayList;
+try { // check if already exists
+	item.getCollection(name);
+	found = true;
+} catch (e) { }
+if (found) throw "Collection "+name+" already exists in this Item Description";
 
-import org.cristalise.dsl.entity.PropertyDelegate
-import org.cristalise.kernel.property.Property;
-import org.cristalise.kernel.property.PropertyArrayList
-
-
-/**
- * 
- */
-@CompileStatic
-class ItemPropertyTestBuilder {
-
-    public static ArrayList<Property> build(@DelegatesTo(PropertyDelegate) Closure cl) {
-        def pd = new PropertyDelegate()
-
-        pd.processClosure(cl)
-
-        return pd.itemProps.list
-    }
-}
+var params = new Array(2);
+params[0] = name;
+params[1] = type;
+agent.execute(item, "AddNewCollectionDescription", params);
