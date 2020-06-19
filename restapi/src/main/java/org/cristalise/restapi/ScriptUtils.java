@@ -46,8 +46,6 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class ScriptUtils extends ItemUtils {
     
-    static Semaphore mutex = new Semaphore(1);
-    
     public ScriptUtils() {
         super();
     }
@@ -135,7 +133,6 @@ public class ScriptUtils extends ItemUtils {
             throws ScriptingEngineException, InvalidDataException
     {
         try {
-            mutex.acquire();
             return runScript(item, schema, script, inputs, jsonFlag);
         }
         catch (ScriptingEngineException e) {
@@ -143,9 +140,6 @@ public class ScriptUtils extends ItemUtils {
         }
         catch (Exception e) {
             throw new InvalidDataException(e.getMessage());
-        }
-        finally {
-            mutex.release();
         }
     }
     
