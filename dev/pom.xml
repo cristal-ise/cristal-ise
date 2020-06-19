@@ -137,19 +137,6 @@
             <plugin>
                 <groupId>com.mycila</groupId>
                 <artifactId>license-maven-plugin</artifactId>
-                <configuration>
-                    <header>HEADER.txt</header>
-                    <excludes>
-                        <exclude>pom.xml</exclude>
-                        <exclude>.flattened-pom.xml</exclude>
-                        <exclude>**/server.conf</exclude>
-                        <exclude>**/*.gpg.enc</exclude>
-                        <exclude>**/*.example</exclude>
-                        <exclude>**/*.launch</exclude>
-                        <exclude>**/*.conf</exclude>
-                        <exclude>**/src/main/config/**</exclude>
-                    </excludes>
-                </configuration>
                 <executions>
                     <execution>
                         <goals>
