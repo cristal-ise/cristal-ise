@@ -20,13 +20,14 @@
  */
 package org.cristalise.kernel.test.utils;
 
-import org.custommonkey.xmlunit.Difference
 import org.xml.sax.SAXException
 import org.xmlunit.builder.DiffBuilder
 import org.xmlunit.diff.DefaultNodeMatcher
 import org.xmlunit.diff.Diff
+import org.xmlunit.diff.Difference
 import org.xmlunit.diff.ElementSelectors
 
+import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
 import groovy.xml.MarkupBuilder
 
@@ -240,6 +241,7 @@ class KernelXMLUtility {
      * @throws SAXException
      * @throws IOException
      */
+    @CompileStatic
     public static boolean compareXML(String expected, String actual) throws SAXException, IOException {
         Diff diff = DiffBuilder.compare(expected).withTest(actual)
                 .withNodeMatcher(new DefaultNodeMatcher(ElementSelectors.byNameAndAllAttributes))
