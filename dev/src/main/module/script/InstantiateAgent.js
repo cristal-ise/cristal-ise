@@ -18,12 +18,14 @@
  *
  * http://www.fsf.org/licensing/licenses/lgpl.html
  */
+
 var name   = job.getOutcome().getField("Name");
 var folder = job.getOutcome().getField("SubFolder");
 var roles  = job.getOutcome().getField("InitialRoles");
 var pwd    = job.getOutcome().getField("Password");
 
 var root = job.getActPropString("Root");
+if (root == null) root = item.getProperty("Root");
 
 var domPath = (root != null ? root : "") + "/" + (folder != null ? folder : "");
 
