@@ -90,6 +90,21 @@ public class ImportAgent extends ModuleImport implements DescriptionObject {
         this(null, aName, null, pwd);
     }
 
+    /**
+     * 
+     */
+    @Override
+    public DomainPath getDomainPath() {
+        if (domainPath == null && StringUtils.isNotBlank(initialPath)) {
+            domainPath = new DomainPath(new DomainPath(initialPath), name);
+        }
+        return domainPath;
+    }
+
+    public boolean exists() {
+        return getAgentPath().exists();
+    }
+
     @Override
     public Path create(AgentPath agentPath, boolean reset)
             throws ObjectNotFoundException, ObjectCannotBeUpdated, CannotManageException, ObjectAlreadyExistsException
@@ -97,7 +112,7 @@ public class ImportAgent extends ModuleImport implements DescriptionObject {
         if (roles.isEmpty()) throw new ObjectNotFoundException("Agent '"+name+"' must declare at least one Role ");
 
         if (StringUtils.isNotBlank(initialPath)) {
-            domainPath = new DomainPath(new DomainPath(initialPath), name);
+            getDomainPath();
 
             if (domainPath.exists()) {
                 ItemPath domItem = domainPath.getItemPath();

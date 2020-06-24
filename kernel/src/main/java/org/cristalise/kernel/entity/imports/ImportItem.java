@@ -130,15 +130,28 @@ public class ImportItem extends ModuleImport implements DescriptionObject {
     }
 
     /**
-     * Try to find ItemPath if already exists. If not create new one.
+     * 
+     */
+    @Override
+    public DomainPath getDomainPath() {
+        if (domainPath == null) domainPath = new DomainPath(new DomainPath(initialPath), name);
+        return domainPath;
+    }
+
+    public boolean exists() {
+        return getDomainPath().exists();
+    }
+
+    /**
+     * Tries to find ItemPath if already exists. If not create new one.
      */
     @Override
     public ItemPath getItemPath() {
         if (itemPath == null) {
-            DomainPath existingItem = new DomainPath(initialPath + "/" + name);
-            if (existingItem.exists()) {
+            getDomainPath();
+            if (domainPath.exists()) {
                 try {
-                    itemPath = existingItem.getItemPath();
+                    itemPath = domainPath.getItemPath();
                 }
                 catch (ObjectNotFoundException ex) {}
             }
@@ -194,7 +207,7 @@ public class ImportItem extends ModuleImport implements DescriptionObject {
             throws InvalidDataException, ObjectCannotBeUpdated, ObjectNotFoundException,
             CannotManageException, ObjectAlreadyExistsException, InvalidCollectionModification, PersistencyException
     {
-        domainPath = new DomainPath(new DomainPath(initialPath), name);
+        getDomainPath();
 
         log.info("create() - path:{}", domainPath);
 
