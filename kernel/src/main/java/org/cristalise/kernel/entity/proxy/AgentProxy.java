@@ -21,6 +21,7 @@
 package org.cristalise.kernel.entity.proxy;
 
 import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.SIMPLE_ELECTRONIC_SIGNATURE;
+
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -28,6 +29,7 @@ import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+
 import org.cristalise.kernel.common.AccessRightsException;
 import org.cristalise.kernel.common.InvalidCollectionModification;
 import org.cristalise.kernel.common.InvalidDataException;
@@ -65,6 +67,7 @@ import org.cristalise.kernel.utils.CorbaExceptionUtility;
 import org.exolab.castor.mapping.MappingException;
 import org.exolab.castor.xml.MarshalException;
 import org.exolab.castor.xml.ValidationException;
+
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -166,7 +169,7 @@ public class AgentProxy extends ItemProxy {
         ItemProxy item = Gateway.getProxyManager().getProxy(job.getItemPath());
         Date startTime = new Date();
 
-        log.info("execute(job) - act:" + job.getStepPath() + " agent:" + mAgentPath.getAgentName());
+        log.info("execute(job) - {}" + job);
 
         if (job.hasScript()) {
             log.info("execute(job) - executing script");
@@ -191,34 +194,47 @@ public class AgentProxy extends ItemProxy {
                 throw new InvalidDataException(CorbaExceptionUtility.unpackMessage(cause));
             }
         }
-        else if (job.hasQuery() &&  !"Query".equals(job.getActProp(BuiltInVertexProperties.OUTCOME_INIT))) {
+        else if (job.hasQuery() && !"Query".equals(job.getActProp(BuiltInVertexProperties.OUTCOME_INIT))) {
             log.info("execute(job) - executing query (OutcomeInit != Query)");
 
             job.setOutcome(item.executeQuery(job.getQuery()));
         }
 
-        // #196: Outcome is validated after script execution, becuase client(e.g. webui) 
+        // #196: Outcome is validated after script execution, because client(e.g. webui) 
         // can submit an incomplete outcome which is made complete by the script
         if (job.hasOutcome() && job.isOutcomeSet()) job.getOutcome().validateAndCheck();
 
         job.setAgentPath(mAgentPath);
 
         if ((boolean)job.getActProp(SIMPLE_ELECTRONIC_SIGNATURE, false)) {
+            log.info("execute(job) - executing SimpleElectonicSignature predefStep");
             executeSimpleElectonicSignature(job);
         }
 
         log.info("execute(job) - submitting job to item proxy");
         String result = item.requestAction(job);
-
+                
         if (log.isDebugEnabled()) {
             Date timeNow = new Date();
             long secsNow = (timeNow.getTime() - startTime.getTime()) / 1000;
-            log.debug("execute(job) - execution DONE in " + secsNow + " seconds");
+            log.debug("execute(job) - execution DONE in {} seconds", secsNow);
         }
 
         return result;
     }
-
+    
+    /**
+     * 
+     * @param job
+     * @throws AccessRightsException
+     * @throws InvalidDataException
+     * @throws InvalidTransitionException
+     * @throws ObjectNotFoundException
+     * @throws PersistencyException
+     * @throws ObjectAlreadyExistsException
+     * @throws ScriptErrorException
+     * @throws InvalidCollectionModification
+     */
     public void executeSimpleElectonicSignature(Job job)
             throws AccessRightsException, InvalidDataException, InvalidTransitionException, ObjectNotFoundException,
             PersistencyException, ObjectAlreadyExistsException, ScriptErrorException, InvalidCollectionModification
@@ -371,10 +387,16 @@ public class AgentProxy extends ItemProxy {
             PersistencyException, ObjectAlreadyExistsException, InvalidCollectionModification
     {
         String schemaName = PredefinedStep.getPredefStepSchemaName(predefStep);
-        String param;
+        String param = null;
 
-        if (schemaName.equals("PredefinedStepOutcome")) param = PredefinedStep.bundleData(params);
-        else                                            param = params[0];
+        if (schemaName.equals("PredefinedStepOutcome")) {
+            param = PredefinedStep.bundleData(params);
+        }
+        else {
+            if(params.length == 0)      param = "";
+            else if(params.length == 1) param = params[0];
+            else                        throw new InvalidDataException("prdefStep:'"+predefStep+"' schemaName:'"+schemaName+"' incorrect params:"+Arrays.toString(params));
+        }
 
         String result = item.getItem().requestAction(
                 mAgentPath.getSystemKey(), 

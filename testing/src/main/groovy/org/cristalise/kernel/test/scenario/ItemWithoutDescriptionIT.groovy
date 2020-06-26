@@ -5,6 +5,7 @@ import static org.junit.Assert.*
 import org.apache.commons.collections4.CollectionUtils
 import org.cristalise.kernel.entity.agent.Job
 import org.cristalise.kernel.entity.imports.ImportAgent
+import org.cristalise.kernel.entity.imports.ImportItem
 import org.cristalise.kernel.entity.imports.ImportRole
 import org.cristalise.kernel.entity.proxy.AgentProxy
 import org.cristalise.kernel.entity.proxy.ItemProxy
@@ -12,10 +13,12 @@ import org.cristalise.kernel.lifecycle.instance.predefined.Erase
 import org.cristalise.kernel.lifecycle.instance.predefined.server.ConfigureLogback
 import org.cristalise.kernel.lifecycle.instance.predefined.server.CreateNewAgent
 import org.cristalise.kernel.lifecycle.instance.predefined.server.CreateNewRole
+import org.cristalise.kernel.lifecycle.instance.predefined.server.RemoveRole
 import org.cristalise.kernel.lookup.DomainPath
 import org.cristalise.kernel.lookup.RolePath
 import org.cristalise.kernel.persistency.outcomebuilder.OutcomeBuilder
 import org.cristalise.kernel.process.Gateway
+import org.cristalise.kernel.property.Property
 import org.cristalise.kernel.test.KernelScenarioTestBase
 import org.cristalise.kernel.test.utils.KernelXMLUtility
 import org.cristalise.kernel.utils.LocalObjectLoader
@@ -41,25 +44,34 @@ class ItemWithoutDescriptionIT extends KernelScenarioTestBase {
         assert serverItem && serverItem.getName() == "localhost"
     }
 
-    private RolePath createRole(String role) {
-        executeDoneJob(serverItem, "CreateNewRole", KernelXMLUtility.getRoleXML(name: role))
-        return Gateway.getLookup().getRolePath(role);
+    private RolePath createRole(String roleName) {
+        def role = new ImportRole()
+        role.name = roleName
+        role.jobList = false
+        executeDoneJob(serverItem, "CreateNewRole", Gateway.marshaller.marshall(role))
+        return Gateway.getLookup().getRolePath(roleName);
     }
 
     private void removeRole(String role) {
         String[] params = [ role ];
-        agent.execute(serverItem, "RemoveRole", params);
+        agent.execute(serverItem, RemoveRole.class, params);
         assert ! Gateway.getLookup().exists(new RolePath(role, false));
     }
 
-    private AgentProxy createAgent(String name, String role) {
-        Job j = executeDoneJob(serverItem, "CreateNewAgent", KernelXMLUtility.getAgentXML(name: name, password: "test", Role: role))
+    private AgentProxy createAgent(String name, String roleName) {
+        def agent = new ImportAgent(name, 'test')
+        def role = new ImportRole()
+        role.name = roleName
+        agent.roles.add(role)
+        Job j = executeDoneJob(serverItem, "CreateNewAgent", Gateway.marshaller.marshall(agent))
         return Gateway.getProxyManager().getAgentProxy( Gateway.getLookup().getAgentPath(name) )
     }
 
     private ItemProxy createItem(String name) {
-        Job j = executeDoneJob(serverItem, "CreateNewItem", KernelXMLUtility.getItemXML(name: name, type: 'Item', workflow: 'NoWorkflow', initialPath: '/domain/itemTest'))
-        return Gateway.getProxyManager().getProxy( Gateway.getLookup().resolvePath(new DomainPath("/domain/itemTest/$name")) )
+        def item = new ImportItem(name, '/domain/itemTest', null, 'NoWorkflow')
+        item.properties.add(new Property('Type', 'Item'))
+        Job j = executeDoneJob(serverItem, "CreateNewItem", Gateway.marshaller.marshall(item))
+        return agent.getItem("/domain/itemTest/$name")
     }
 
     @Test

@@ -187,7 +187,8 @@ public class ImportAgent extends ModuleImport implements DescriptionObject {
                 isNewItem = false;
             }
             catch (InvalidAgentPathException  e) {
-                throw new ObjectAlreadyExistsException(e.getMessage());
+                log.error("", e);
+                throw new CannotManageException(e.getMessage());
             }
         }
         else {

@@ -217,7 +217,8 @@ public class ImportItem extends ModuleImport implements DescriptionObject {
                 throw new CannotManageException("Item "+domainPath+" was found with the wrong itemPath ("+domainPath.getItemPath()+" vs "+getItemPath()+")");
             }
         }
-        else isDOMPathExists = false;
+        else
+            isDOMPathExists = false;
 
         TraceableEntity newItem = getTraceableEntitiy();
 

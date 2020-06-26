@@ -37,7 +37,9 @@ class KernelXMLUtility {
      * 
      * @param params
      * @return
+     * @deprecated use marshalled ImportRole
      */
+    @Deprecated
     public static String getRoleXML(params) {
         def writer = new StringWriter()
         def xml = new MarkupBuilder(writer)
@@ -58,7 +60,9 @@ class KernelXMLUtility {
      * 
      * @param params
      * @return
+     * @deprecated use marshalled ImportAgent
      */
+    @Deprecated
     public static String getAgentXML(params) {
         def writer = new StringWriter()
         def xml = new MarkupBuilder(writer)
@@ -83,9 +87,12 @@ class KernelXMLUtility {
 
     /**
      * 
+     * 
      * @param params
      * @return
+     * @deprecated use marshalled ImportItem
      */
+    @Deprecated
     public static String getItemXML(params) {
         def writer = new StringWriter()
         def xml = new MarkupBuilder(writer)

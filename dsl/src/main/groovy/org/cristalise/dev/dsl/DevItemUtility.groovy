@@ -41,7 +41,7 @@ import groovy.util.logging.Slf4j
 
 /**
  * Utility class to implement ALL methods required to manage (create/edit)
- * CRISTAL-iSE Resources and Items defined in the dev module:  https://github.com/cristal-ise/dev
+ * CRISTAL-iSE Resources and Items defined in the dev module:  https://github.com/cristal-ise/cristal-ise/dev
  */
 @CompileStatic @Slf4j
 class DevItemUtility {
