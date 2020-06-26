@@ -26,7 +26,7 @@
     <param name="agent" type="org.cristalise.kernel.entity.proxy.AgentProxy"/>
     <param name="job" type="org.cristalise.kernel.entity.agent.Job"/>
     <output name="errors" type="org.cristalise.kernel.scripting.ErrorInfo"/>
-    <script language="javascript" name="UpdateImport"><![CDATA[
+    <script language="javascript" name="UpdateImportItem"><![CDATA[
 var module = item.getProperty("Module");
 var importItemXML = item.getViewpoint('Item', 'last').getOutcome().getData();
 var importItem = agent.unmarshall(importItemXML);

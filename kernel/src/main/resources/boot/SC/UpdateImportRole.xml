@@ -27,10 +27,10 @@
     <param name="job" type="org.cristalise.kernel.entity.agent.Job"/>
     <output name="errors" type="org.cristalise.kernel.scripting.ErrorInfo"/>
     <script language="javascript" name="UpdateRole"><![CDATA[
-    ]]></script>
 var module = item.getProperty("Module");
 var importRoleXML = item.getViewpoint('Role', 'last').getOutcome().getData();
 var importRole = agent.unmarshall(importRoleXML);
 importRole.setNamespace(module);
-agent.execute(item, "ImportImportItem", agent.marshall(importRole));
+agent.execute(item, "ImportImportRole", agent.marshall(importRole));
+    ]]></script>
 </cristalscript>

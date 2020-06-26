@@ -8,11 +8,14 @@ import org.cristalise.kernel.process.Gateway
 import org.cristalise.kernel.test.utils.CristalTestSetup
 
 import spock.lang.Specification
+import spock.util.concurrent.PollingConditions
 
 class EditDescItemSpecs extends Specification implements CristalTestSetup {
     AgentProxy agent
     String timeStamp = null
 
+    PollingConditions pollingWait = new PollingConditions(timeout: 2, initialDelay: 0.2, factor: 1)
+    
     def setup()   {
         cristalInit(8, 'src/main/bin/client.conf', 'src/main/bin/integTest.clc')
         agent = Gateway.connect('user', 'test')
@@ -33,7 +36,7 @@ class EditDescItemSpecs extends Specification implements CristalTestSetup {
         agent.execute(job)
 
         then:
-        mainUserHistory.getLastId() == lastEventId + 1
+        pollingWait.eventually { mainUserHistory.getLastId() == lastEventId + 1 }
         mainUserHistory.getLastEntry().getValue().stepName == 'UpdateAgent'
     }
 
@@ -49,7 +52,7 @@ class EditDescItemSpecs extends Specification implements CristalTestSetup {
         agent.execute(job)
 
         then:
-        testItemGeneratedNameFactoryHistory.getLastId() == lastEventId + 1
+        pollingWait.eventually { testItemGeneratedNameFactoryHistory.getLastId() == lastEventId + 1 }
         testItemGeneratedNameFactoryHistory.getLastEntry().getValue().stepName == 'UpdateItem'
     }
     
@@ -65,7 +68,7 @@ class EditDescItemSpecs extends Specification implements CristalTestSetup {
         agent.execute(job)
 
         then:
-        userRoleHistory.getLastId() == lastEventId + 1
+        pollingWait.eventually { userRoleHistory.getLastId() == lastEventId + 2 }
         userRoleHistory.getLastEntry().getValue().stepName == 'UpdateRole'
     }
 }
