@@ -152,9 +152,13 @@ public class ModuleImports extends CastorArrayList<ModuleImport> {
      * @param name hte name of the import
      * @return the ModuleImport if found null otherwise
      */
-    public ModuleImport findImport(String name) {
+    public ModuleImport findImport(String name, String typeCode) {
         for (ModuleImport imp : list) {
-            if (imp.getName().equals(name)) return imp;
+            //skipping ImportItem/ImportAgent/ImportRole
+            if (imp instanceof ModuleResource) {
+                ModuleResource res = (ModuleResource) imp;
+                if (res.getName().equals(name) && res.type.getTypeCode().equals(typeCode)) return imp;
+            }
         }
         return null;
     }
