@@ -54,6 +54,10 @@ class DevItemUtility {
     public String scriptFactoryName       = "/domain/desc/dev/ScriptFactory"
     public String queryFactoryName        = "/domain/desc/dev/QueryFactory"
     public String stateMachineFactoryName = "/domain/desc/dev/StateMachineFactory"
+    public String propertyDescFactoryName = "/domain/desc/dev/PropertyDescriptionFactory"
+    public String agentDescFactoryName    = "/domain/desc/dev/AgentDescFactory"
+    public String itemDescFactoryName     = "/domain/desc/dev/ItemDescFactory"
+    public String roletDescFactoryName    = "/domain/desc/dev/RoleDescFactory"
     public String descItemFactoryName     = "/domain/desc/dev/DescriptionFactory"
     public String moduleFactoryName       = "/domain/desc/dev/ModuleFactory"
 
@@ -169,6 +173,10 @@ class DevItemUtility {
             case SCRIPT_RESOURCE:        return scriptFactoryName
             case QUERY_RESOURCE:         return queryFactoryName
             case STATE_MACHINE_RESOURCE: return stateMachineFactoryName
+            case PROPERTY_DESC_RESOURCE: return propertyDescFactoryName
+            case AGENT_DESC_RESOURCE:    return agentDescFactoryName
+            case ITEM_DESC_RESOURCE:     return itemDescFactoryName
+            case ROLE_DESC_RESOURCE:     return roletDescFactoryName
 
             default: return descItemFactoryName
         }
@@ -261,6 +269,52 @@ class DevItemUtility {
      */
     public ItemProxy createNewCompActDesc(String name, String folder) {
         return createNewDevItem(COMP_ACT_DESC_RESOURCE, "CreateNewCompositeActivityDef", name, folder)
+    }
+
+    /**
+     *
+     * @param name
+     * @param folder
+     */
+    public ItemProxy createNewStateMachine(String name, String folder) {
+        return createNewDevItem(STATE_MACHINE_RESOURCE, "CreateNewStateMachineDef", name, folder)
+    }
+
+    /**
+     * 
+     * @param name
+     * @param folder
+     * @return
+     */
+    public ItemProxy createNewPropertyDescription(String name, String folder) {
+        return createNewDevItem(PROPERTY_DESC_RESOURCE, "CreateNewPropertyDescription", name, folder)
+    }
+
+    /**
+     *
+     * @param name
+     * @param folder
+     */
+    public ItemProxy createNewAgentDesc(String name, String folder) {
+        return createNewDevItem(AGENT_DESC_RESOURCE, "CreateNewAgentDesc", name, folder)
+    }
+
+    /**
+     *
+     * @param name
+     * @param folder
+     */
+    public ItemProxy createNewItemDesc(String name, String folder) {
+        return createNewDevItem(ITEM_DESC_RESOURCE, "CreateNewItemDesc", name, folder)
+    }
+
+    /**
+     *
+     * @param name
+     * @param folder
+     */
+    public ItemProxy createNewRoleDesc(String name, String folder) {
+        return createNewDevItem(ROLE_DESC_RESOURCE, "CreateNewRoleDesc", name, folder)
     }
 
     /**
@@ -362,6 +416,54 @@ class DevItemUtility {
      */
     public ItemProxy editQuery(String name, String folder, String queryXML) {
         return editDevItem(QUERY_RESOURCE, "EditDefinition", "AssignNewQueryVersionFromLast", name, folder, queryXML)
+    }
+
+    /**
+     * 
+     * @param name
+     * @param folder
+     * @param xml
+     * @return
+     */
+    public ItemProxy editStateMachine(String name, String folder, String xml) {
+        return editDevItem(STATE_MACHINE_RESOURCE, "EditDefinition", "AssignNewStateMachineVersionFromLast", name, folder, xml)
+    }
+
+    public ItemProxy editPropertyDescription(String name, String folder, String xml) {
+        return editDevItem(PROPERTY_DESC_RESOURCE, "EditDefinition", "AssignNewPropertyDescriptionVersionFromLast", name, folder, xml)
+    }
+
+    /**
+     * 
+     * @param name
+     * @param folder
+     * @param xml
+     * @return
+     */
+    public ItemProxy editAgentDesc(String name, String folder, String xml) {
+        return editDevItem(AGENT_DESC_RESOURCE, "EditDefinition", "AssignNewAgentDescVersionFromLast", name, folder, xml)
+    }
+
+    /**
+     * 
+     * @param name
+     * @param folder
+     * @param xml
+     * @return
+     */
+    public ItemProxy editItemDesc(String name, String folder, String xml) {
+        return editDevItem(ITEM_DESC_RESOURCE, "EditDefinition", "AssignNewItemDescVersionFromLast", name, folder, xml)
+    }
+
+    /**
+     * 
+     * @param name
+     * @param folder
+     * @param xml
+     * @return
+     */
+    public ItemProxy editRoleDesc(String name, String folder, String xml) {
+        return editDevItem(ROLE_DESC_RESOURCE, "EditDefinition", "AssignNewRoleDescVersionFromLast", name, folder, xml)
     }
 
     /**

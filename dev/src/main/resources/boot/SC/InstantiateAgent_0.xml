@@ -31,7 +31,7 @@ var roles  = job.getOutcome().getField("InitialRoles");
 var pwd    = job.getOutcome().getField("Password");
 
 var root = job.getActPropString("Root");
-if (root == null) root = item.getProperty("Root");
+if (root == null) root = item.getProperty("Root", null, null);
 
 var domPath = (root != null ? root : "") + "/" + (folder != null ? folder : "");
 

@@ -80,3 +80,27 @@ PropertyDescriptionList('StateMachine', 0) {
     PropertyDesc(name: 'Type',   isMutable: false, isClassIdentifier: true,  defaultValue: 'StateMachine')
     PropertyDesc(name: 'Module', isMutable: false, isClassIdentifier: false, defaultValue: '')
 }
+
+PropertyDescriptionList('PropertyDescription', 0) {
+    PropertyDesc(name: 'Name',   isMutable: true , isClassIdentifier: false, defaultValue: '')
+    PropertyDesc(name: 'Type',   isMutable: false, isClassIdentifier: true,  defaultValue: 'PropertyDescription')
+    PropertyDesc(name: 'Module', isMutable: false, isClassIdentifier: false, defaultValue: '')
+}
+
+PropertyDescriptionList('AgentDesc', 0) {
+    PropertyDesc(name: 'Name',   isMutable: true , isClassIdentifier: false, defaultValue: '')
+    PropertyDesc(name: 'Type',   isMutable: false, isClassIdentifier: true,  defaultValue: 'AgentDesc')
+    PropertyDesc(name: 'Module', isMutable: false, isClassIdentifier: false, defaultValue: '')
+}
+
+PropertyDescriptionList('ItemDesc', 0) {
+    PropertyDesc(name: 'Name',   isMutable: true , isClassIdentifier: false, defaultValue: '')
+    PropertyDesc(name: 'Type',   isMutable: false, isClassIdentifier: true,  defaultValue: 'ItemDesc')
+    PropertyDesc(name: 'Module', isMutable: false, isClassIdentifier: false, defaultValue: '')
+}
+
+PropertyDescriptionList('RoleDesc', 0) {
+    PropertyDesc(name: 'Name',   isMutable: true , isClassIdentifier: false, defaultValue: '')
+    PropertyDesc(name: 'Type',   isMutable: false, isClassIdentifier: true,  defaultValue: 'RoleDesc')
+    PropertyDesc(name: 'Module', isMutable: false, isClassIdentifier: false, defaultValue: '')
+}

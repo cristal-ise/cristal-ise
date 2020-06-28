@@ -1,9 +1,8 @@
 package org.cristalise.dev.test.scenario;
 
-import static org.junit.Assert.*
-
 import org.cristalise.kernel.test.KernelScenarioTestBase
 import org.cristalise.kernel.test.utils.KernelXMLUtility
+import org.junit.Ignore
 import org.junit.Test
 
 import groovy.transform.CompileStatic
@@ -71,5 +70,64 @@ class BasicDevDescriptionIT extends KernelScenarioTestBase {
 
         assert item.getMasterSchema()
         //assert item.getAggregateScript()
+    }
+
+    @Test
+    public void createAndEditStateMachine() {
+        String name = "StateMachine-$timeStamp"
+
+        def item = createNewStateMachine(name, folder)
+        editStateMachine(name, folder, new File("$testDataRoot/TestStateMachine.xml").text)
+
+        assert item.getMasterSchema()
+        //assert item.getAggregateScript()
+    }
+
+    @Test
+    public void createAndEditPropertyDescription() {
+        String name = "PropertyDescription-$timeStamp"
+
+        def item = createNewPropertyDescription(name, folder)
+        editPropertyDescription(name, folder, new File("$testDataRoot/TestPropertyDescription.xml").text)
+
+        assert item.getMasterSchema()
+        //assert item.getAggregateScript()
+    }
+
+    @Test
+    public void createAndEditAgentDesc() {
+        String name = "AgentDesc-$timeStamp"
+
+        def item = createNewAgentDesc(name, folder)
+        editAgentDesc(name, folder, new File("$testDataRoot/TestAgentDesc.xml").text)
+
+        //assert item.getMasterSchema()
+        //assert item.getAggregateScript()
+    }
+
+    @Test
+    public void createAndEditItemDesc() {
+        String name = "ItemDesc-$timeStamp"
+
+        def item = createNewItemDesc(name, folder)
+        editItemDesc(name, folder, new File("$testDataRoot/TestItemDesc.xml").text)
+
+        //assert item.getMasterSchema()
+        //assert item.getAggregateScript()
+    }
+
+    @Test
+    public void createAndEditRoleDesc() {
+        String name = "RoleDesc-$timeStamp"
+
+        def item = createNewRoleDesc(name, folder)
+        editRoleDesc(name, folder, new File("$testDataRoot/TestRoleDesc.xml").text)
+
+        //assert item.getMasterSchema()
+        //assert item.getAggregateScript()
+    }
+
+    @Test @Ignore('Test Unimplemented')
+    public void createAndEditModule() {
     }
 }

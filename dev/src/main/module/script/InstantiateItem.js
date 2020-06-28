@@ -23,7 +23,7 @@
 var name = job.getOutcome().getField("ObjectName");
 var folder = job.getOutcome().getField("SubFolder");
 var root = job.getActPropString("Root");
-if (root == null) root = item.getProperty("Root");
+if (root == null) root = item.getProperty("Root", null, null);
 
 var domPath = (root != null ? root : "") + "/" + (folder != null ? folder : "");
 
