@@ -101,7 +101,7 @@ class BasicDevDescriptionIT extends KernelScenarioTestBase {
         def item = createNewAgentDesc(name, folder)
         editAgentDesc(name, folder, new File("$testDataRoot/TestAgentDesc.xml").text)
 
-        //assert item.getMasterSchema()
+        assert item.getMasterSchema()
         //assert item.getAggregateScript()
     }
 
@@ -112,7 +112,7 @@ class BasicDevDescriptionIT extends KernelScenarioTestBase {
         def item = createNewItemDesc(name, folder)
         editItemDesc(name, folder, new File("$testDataRoot/TestItemDesc.xml").text)
 
-        //assert item.getMasterSchema()
+        assert item.getMasterSchema()
         //assert item.getAggregateScript()
     }
 
@@ -123,7 +123,7 @@ class BasicDevDescriptionIT extends KernelScenarioTestBase {
         def item = createNewRoleDesc(name, folder)
         editRoleDesc(name, folder, new File("$testDataRoot/TestRoleDesc.xml").text)
 
-        //assert item.getMasterSchema()
+        assert item.getMasterSchema()
         //assert item.getAggregateScript()
     }
 
