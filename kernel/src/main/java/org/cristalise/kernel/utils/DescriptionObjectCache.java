@@ -88,8 +88,8 @@ public abstract class DescriptionObjectCache<D extends DescriptionObject> {
 
             for (Module module: Gateway.getModuleManager().getModules()) {
                 log.trace("loadObjectFromBootstrap() - name:" + name + " Lodaing it from module:"+module.getName());
-
-                ModuleResource res = (ModuleResource) module.getImports().findImport(name);
+                
+                ModuleResource res = (ModuleResource) module.getImports().findImport(name, getTypeCode());
 
                 if (res != null) {
                     res.setNs(module.getNs());

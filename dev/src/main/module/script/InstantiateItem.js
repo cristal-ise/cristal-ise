@@ -18,11 +18,14 @@
  *
  * http://www.fsf.org/licensing/licenses/lgpl.html
  */
+
 // Get parameters from outcome
 var name = job.getOutcome().getField("ObjectName");
 var folder = job.getOutcome().getField("SubFolder");
 var root = job.getActPropString("Root");
-var domPath = (root != null?root:"") + "/" + (folder != null?folder:"");
+if (root == null) root = item.getProperty("Root", null, null);
+
+var domPath = (root != null ? root : "") + "/" + (folder != null ? folder : "");
 
 // Create new Item
 var params = new Array(2);

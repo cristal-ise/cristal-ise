@@ -45,6 +45,10 @@ Workflow('StateMachineFactoryWf', 0) {
     ElemActDef($createNewLocalObjectDef_ActivityDef)
 }
 
+Workflow('PropertyDescriptionFactoryWf', 0) {
+    ElemActDef($createNewLocalObjectDef_ActivityDef)
+}
+
 Workflow('ItemDescriptionWf', 0) {
     ElemActDef($editPropertyDescription_ActivityDef)
     ElemActDef($setInstanceWorkflow_ActivityDef)
@@ -66,4 +70,16 @@ Workflow('ModuleFactory', 0) {
 
 Workflow('AgentFactoryWf', 0) {
     ElemActDef($createAgent_ActivityDef)
+}
+
+Workflow('AgentDescFactoryWf', 0) {
+    ElemActDef($createNewLocalObjectDef_ActivityDef)
+}
+
+Workflow('ItemDescFactoryWf', 0) {
+    ElemActDef($createNewLocalObjectDef_ActivityDef)
+}
+
+Workflow('RoleDescFactoryWf', 0) {
+    ElemActDef($createNewLocalObjectDef_ActivityDef)
 }

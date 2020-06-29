@@ -22,6 +22,8 @@ package org.cristalise.kernel.process.module;
 
 import static org.cristalise.kernel.collection.BuiltInCollections.CONTENTS;
 import static org.cristalise.kernel.process.resource.ResourceImportHandler.Status.IDENTICAL;
+import static org.cristalise.kernel.process.resource.ResourceImportHandler.Status.NEW;
+import static org.cristalise.kernel.process.resource.ResourceImportHandler.Status.REMOVED;
 import static org.cristalise.kernel.process.resource.ResourceImportHandler.Status.SKIPPED;
 import static org.cristalise.kernel.property.BuiltInItemProperties.COMPLEXITY;
 import static org.cristalise.kernel.property.BuiltInItemProperties.MODULE;
@@ -174,7 +176,10 @@ public class Module extends ImportItem {
 
             Status changeStatus = thisItem.getResourceChangeStatus();
 
-            if (changeStatus == null || (changeStatus != IDENTICAL && changeStatus != SKIPPED)) {
+            // make sure that item is created if not exists
+            if (! thisItem.exists() && changeStatus == IDENTICAL) changeStatus = NEW;
+
+            if (changeStatus == null || (changeStatus != IDENTICAL && changeStatus != SKIPPED && changeStatus != REMOVED)) {
                 thisItem.setNamespace(ns);
                 Path p = thisItem.create(systemAgent.getPath(), reset);
                 addItemToContents(p);
@@ -195,7 +200,10 @@ public class Module extends ImportItem {
 
             Status changeStatus = thisAgent.getResourceChangeStatus();
 
-            if (changeStatus == null || (changeStatus != IDENTICAL && changeStatus != SKIPPED)) {
+            // make sure that item is created if not exists
+            if (! thisAgent.exists() && changeStatus == IDENTICAL) changeStatus = NEW;
+
+            if (changeStatus == null || (changeStatus != IDENTICAL && changeStatus != SKIPPED && changeStatus != REMOVED)) {
                 thisAgent.setNamespace(ns);
                 Path p = thisAgent.create(systemAgent.getPath(), reset);
                 addItemToContents(p);
@@ -216,7 +224,10 @@ public class Module extends ImportItem {
 
             Status changeStatus = thisRole.getResourceChangeStatus();
 
-            if (changeStatus == null || (changeStatus != IDENTICAL && changeStatus != SKIPPED)) {
+            // make sure that item is created if not exists
+            if (! thisRole.exists() && changeStatus == IDENTICAL) changeStatus = NEW;
+
+            if (changeStatus == null || (changeStatus != IDENTICAL && changeStatus != SKIPPED && changeStatus != REMOVED)) {
                 thisRole.create(systemAgent.getPath(), reset);
             }
         }

@@ -18,6 +18,7 @@
  *
  * http://www.fsf.org/licensing/licenses/lgpl.html
  */
+
 var name    = job.getOutcome().getField("ObjectName");
 var folder  = job.getOutcome().getField("SubFolder");
 var handler = new org.cristalise.kernel.process.resource.DefaultResourceImportHandler(job.getActPropString("NewType"));

@@ -18,6 +18,7 @@
  *
  * http://www.fsf.org/licensing/licenses/lgpl.html
  */
+
 // Fetch the requested name from the outcome field
 var wfDefName    = job.getOutcome().getField("WorkflowDefinitionName");
 var wfDefVersion = job.getOutcome().getField("WorkflowDefinitionVersion");

@@ -18,6 +18,7 @@
  *
  * http://www.fsf.org/licensing/licenses/lgpl.html
  */
+
 var name = job.getOutcome().getField("Name");
 var type = job.getOutcome().getField("Type");
 

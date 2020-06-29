@@ -164,3 +164,51 @@ Item(name: 'AgentFactory', version: 0, folder: '/desc/dev', workflow: 'AgentFact
         }
     }
 }
+
+Item(name: 'PropertyDescriptionFactory', version: 0, folder: '/desc/dev', workflow: 'PropertyDescriptionFactoryWf', workflowVer: 0) {
+    InmutableProperty('Type': 'Factory')
+    InmutableProperty('LocalObjectType': 'PropertyDescription')
+    Outcome($propertyDescription_PropertyDescriptionList)
+
+    Dependency(BuiltInCollections.WORKFLOW) {
+        Member(itemPath: '/desc/ActivityDesc/kernel/ManagePropertyDesc') {
+            Property('Version': 0)
+        }
+    }
+}
+
+Item(name: 'AgentDescFactory', version: 0, folder: '/desc/dev', workflow: 'AgentDescFactoryWf', workflowVer: 0) {
+    InmutableProperty('Type': 'Factory')
+    InmutableProperty('LocalObjectType': 'AgentDesc')
+    Outcome($agentDesc_PropertyDescriptionList)
+
+    Dependency(BuiltInCollections.WORKFLOW) {
+        Member(itemPath: '/desc/ActivityDesc/kernel/ManageAgentDesc') {
+            Property('Version': 0)
+        }
+    }
+}
+
+Item(name: 'ItemDescFactory', version: 0, folder: '/desc/dev', workflow: 'ItemDescFactoryWf', workflowVer: 0) {
+    InmutableProperty('Type': 'Factory')
+    InmutableProperty('LocalObjectType': 'ItemDesc')
+    Outcome($itemDesc_PropertyDescriptionList)
+
+    Dependency(BuiltInCollections.WORKFLOW) {
+        Member(itemPath: '/desc/ActivityDesc/kernel/ManageItemDesc') {
+            Property('Version': 0)
+        }
+    }
+}
+
+Item(name: 'RoleDescFactory', version: 0, folder: '/desc/dev', workflow: 'RoleDescFactoryWf', workflowVer: 0) {
+    InmutableProperty('Type': 'Factory')
+    InmutableProperty('LocalObjectType': 'RoleDesc')
+    Outcome($roleDesc_PropertyDescriptionList)
+
+    Dependency(BuiltInCollections.WORKFLOW) {
+        Member(itemPath: '/desc/ActivityDesc/kernel/ManageRoleDesc') {
+            Property('Version': 0)
+        }
+    }
+}

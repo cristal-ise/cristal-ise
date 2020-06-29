@@ -24,6 +24,9 @@
 <mapping>
   <class name="org.cristalise.kernel.entity.imports.ImportItem">
     <map-to xml="Item" />
+    <field name="ns" type="string" direct="false">
+      <bind-xml name="ns" node="attribute" />
+    </field>
     <field name="name" type="string" direct="false">
       <bind-xml name="name" node="attribute" />
     </field>

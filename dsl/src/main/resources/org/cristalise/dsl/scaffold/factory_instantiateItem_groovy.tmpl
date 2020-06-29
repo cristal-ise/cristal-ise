@@ -1,10 +1,14 @@
 import static org.apache.commons.lang3.StringUtils.leftPad
 import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.VERSION
 
+import groovy.transform.Field
+
+import org.cristalise.kernel.entity.agent.Job
 import org.cristalise.kernel.collection.BuiltInCollections
 import org.cristalise.kernel.collection.DependencyMember
 import org.cristalise.kernel.common.InvalidDataException
 import org.cristalise.kernel.common.ObjectAlreadyExistsException
+import org.cristalise.kernel.entity.proxy.AgentProxy
 import org.cristalise.kernel.entity.proxy.ItemProxy
 import org.cristalise.kernel.lifecycle.instance.predefined.CreateAgentFromDescription
 import org.cristalise.kernel.lifecycle.instance.predefined.agent.SetAgentPassword
@@ -19,7 +23,9 @@ import org.slf4j.LoggerFactory
 
 import groovy.transform.CompileStatic
 
-final Logger log = LoggerFactory.getLogger("@{appPackage}.scripts.Factory.InstantiateItem")
+@Field final Logger log = LoggerFactory.getLogger('@{appPackage}.scripts.Factory.InstantiateItem')
+@Field String[] params = null
+@Field Class<?> predefStep = null
 
 //--------------------------------------------------
 // item, agent and job are injected by the CRISTAL-iSE Script class automatically
@@ -31,48 +37,21 @@ final Logger log = LoggerFactory.getLogger("@{appPackage}.scripts.Factory.Instan
 //Job job
 //--------------------------------------------------
 
-Outcome outcome = job.getOutcome()
+@Field Outcome outcome = job.getOutcome()
 
 log.debug 'Factory_NewInstanceDetails:{}', outcome.getData()
 
-String   itemName    = getItemName(item, outcome)
-String   root        = item.getProperty('Root')
-Boolean  createAgent = new Boolean(item.getProperty('CreateAgent', 'false'))
-
-String   initaliseOutcomeXML = null
+@Field String   itemName    = getItemName(item, outcome)
+@Field String   root        = getDomainRoot(item, job)
+@Field Boolean  createAgent = new Boolean(item.getProperty('CreateAgent', 'false'))
+@Field String   initaliseOutcomeXML = null
 
 if (item.checkContent(ClusterType.COLLECTION.name, BuiltInCollections.SCHEMA_INITIALISE.name)) {
     initaliseOutcomeXML = getInitaliseOutcomeXML(item, outcome, itemName)
     log.debug 'initaliseOutcomeXML:{}', initaliseOutcomeXML
 }
 
-String[] params = null
-Class<?> predefStep = null
-
-if (createAgent) {
-    predefStep = CreateAgentFromDescription.class
-
-    params = new String[initaliseOutcomeXML ? 7 : 4]
-
-    params[0] = itemName
-    params[1] = root
-    params[2] = item.getProperty('DefaultRoles')
-    params[3] = 'password'
-}
-else {
-    predefStep = CreateItemFromDescription.class
-
-    params = new String[initaliseOutcomeXML ? 5 : 2]
-
-    params[0] = itemName
-    params[1] = root
-}
-
-if (initaliseOutcomeXML) {
-    params[params.length-3] = 'last'
-    params[params.length-2] = agent.marshall(new PropertyArrayList())
-    params[params.length-1] = initaliseOutcomeXML
-}
+setParamsAndPredefStep(item, agent)
 
 try {
     agent.execute(item, predefStep, params)
@@ -86,8 +65,8 @@ if (createAgent) {
 
     params[0] = 'password'
 
-    ItemProxy employee = agent.getItem(root + '/' + itemName)
-    agent.execute(employee, SetAgentPassword, params)
+    ItemProxy newAgent = agent.getItem(root + '/' + itemName)
+    agent.execute(newAgent, SetAgentPassword, params)
 }
 
 @CompileStatic
@@ -108,7 +87,7 @@ String getInitaliseOutcomeXML(ItemProxy item, Outcome outcome, String itemName) 
         return Outcome.serialize(initialiseNode, true)
     }
     else {
-        throw new InvalidDataException("Script.Factory_InstantiateItem - invalid path:/Factory_NewInstanceDetails/SchemaInitialise/$updateSchema")
+        throw new InvalidDataException("Script.InstantiateItem - invalid path:/Factory_NewInstanceDetails/SchemaInitialise/$updateSchema")
     }
 }
 
@@ -149,4 +128,42 @@ String getItemName(ItemProxy item, Outcome outcome) {
     outcome.setFieldByXPath('Factory_NewInstanceDetails/Name', itemName);
 
     return itemName
+}
+
+@CompileStatic
+String getDomainRoot(ItemProxy item, Job job) {
+    String root = job.getActPropString('Root');
+    if (!root) root = item.getProperty('Root')
+
+    if (!root) throw new InvalidDataException("Script.InstantiateItem - Define property:'Root' for either Activity or for Item")
+
+    return root
+}
+
+@CompileStatic
+void setParamsAndPredefStep(ItemProxy item, AgentProxy agent) {
+    if (createAgent) {
+        predefStep = CreateAgentFromDescription.class
+
+        params = new String[initaliseOutcomeXML ? 7 : 4]
+
+        params[0] = itemName
+        params[1] = root
+        params[2] = item.getProperty('DefaultRoles')
+        params[3] = 'password'
+    }
+    else {
+        predefStep = CreateItemFromDescription.class
+
+        params = new String[initaliseOutcomeXML ? 5 : 2]
+
+        params[0] = itemName
+        params[1] = root
+    }
+
+    if (initaliseOutcomeXML) {
+        params[params.length-3] = 'last'
+        params[params.length-2] = agent.marshall(new PropertyArrayList())
+        params[params.length-1] = initaliseOutcomeXML
+    }
 }
