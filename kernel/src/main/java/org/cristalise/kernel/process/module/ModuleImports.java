@@ -28,6 +28,7 @@ import org.cristalise.kernel.entity.imports.ImportAgent;
 import org.cristalise.kernel.entity.imports.ImportItem;
 import org.cristalise.kernel.entity.imports.ImportRole;
 import org.cristalise.kernel.process.AbstractMain;
+import org.cristalise.kernel.process.resource.BuiltInResources;
 import org.cristalise.kernel.utils.CastorArrayList;
 import org.cristalise.kernel.utils.LocalObjectLoader;
 
@@ -154,11 +155,26 @@ public class ModuleImports extends CastorArrayList<ModuleImport> {
      */
     public ModuleImport findImport(String name, String typeCode) {
         for (ModuleImport imp : list) {
-            //skipping ImportItem/ImportAgent/ImportRole
+            String thisTypeCode = "";
+            //ImportItem/ImportAgent/ImportRole does not have a getTypeCode()
             if (imp instanceof ModuleResource) {
-                ModuleResource res = (ModuleResource) imp;
-                if (res.getName().equals(name) && res.type.getTypeCode().equals(typeCode)) return imp;
+                thisTypeCode = ((ModuleResource) imp).type.getTypeCode();
             }
+            else if(imp instanceof ImportAgent) {
+                thisTypeCode =  BuiltInResources.AGENT_DESC_RESOURCE.getTypeCode();
+            }
+            else if(imp instanceof ImportItem) {
+                thisTypeCode =  BuiltInResources.ITEM_DESC_RESOURCE.getTypeCode();
+            }
+            else if(imp instanceof ImportRole) {
+                thisTypeCode =  BuiltInResources.ROLE_DESC_RESOURCE.getTypeCode();
+            }
+            else {
+                // this case should never happen?!?!
+                log.warn("findImport() -  No typeCode is available for ModuleImport:{}", imp.getName());
+            }
+
+            if (imp.getName().equals(name) && thisTypeCode.equals(typeCode)) return imp;
         }
         return null;
     }

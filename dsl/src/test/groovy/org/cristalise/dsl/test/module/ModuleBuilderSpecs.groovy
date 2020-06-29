@@ -61,11 +61,11 @@ class ModuleBuilderSpecs extends Specification implements CristalTestSetup {
         module != null
         module.getImports().list.size() == 5
 
-        module.getImports().findImport('ServerNewEntity')
-        module.getImports().findImport('Item')
-        module.getImports().findImport('Default')
-        module.getImports().findImport('EditDefinition')
-        module.getImports().findImport('ManageScript')
+        module.getImports().findImport('ServerNewEntity', 'SC')
+        module.getImports().findImport('Item', 'OD')
+        module.getImports().findImport('Default', 'SM')
+        module.getImports().findImport('EditDefinition', 'EA')
+        module.getImports().findImport('ManageScript', 'CA')
 
         //the order is important
         module.getImports().list[0].name == 'ServerNewEntity'
@@ -109,9 +109,9 @@ class ModuleBuilderSpecs extends Specification implements CristalTestSetup {
         module != null
         module.getImports().list.size() == 3
         
-        module.getImports().findImport('Test')
-        module.getImports().findImport('Abort')
-        module.getImports().findImport('ScriptFactory')
+        module.getImports().findImport('Test', 'agent')
+        module.getImports().findImport('Abort', 'role')
+        module.getImports().findImport('ScriptFactory', 'item')
 
         //the order is important
         module.getImports().list[0].name == 'ScriptFactory'
