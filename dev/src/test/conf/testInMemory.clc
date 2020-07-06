@@ -4,8 +4,7 @@ ItemServer.name=localhost
 ItemServer.iiop=1498
 ItemServer.Proxy.port=1499
 
-//Authenticator = org.cristalise.lookup.lite.InMemoryAuthManager
-Authenticator = Shiro
+Authenticator = org.cristalise.lookup.lite.InMemoryAuthManager
 Lookup        = org.cristalise.storage.InMemoryPropertyClusterStorage
 
 JOOQ.URI        = jdbc:h2:mem:
@@ -13,7 +12,3 @@ JOOQ.user       = sa
 JOOQ.password   = sa
 JOOQ.dialect    = H2
 JOOQ.autoCommit = true
-
-SimpleType.DefaultValues = 12:string
-
-Resource.moduleUseFileNameWithVersion = dev

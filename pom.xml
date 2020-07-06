@@ -171,7 +171,9 @@
                         <excludes>
                             <exclude>pom.xml</exclude>
                             <exclude>src/main/resources/**</exclude>
+                            <exclude>src/test/resources/**</exclude>
                             <exclude>src/test/data/**</exclude>
+                            <exclude>src/test/module/**</exclude>
                             <exclude>bin/**</exclude>
                             <exclude>.flattened-pom.xml</exclude>
                             <exclude>**/LICENCE</exclude>

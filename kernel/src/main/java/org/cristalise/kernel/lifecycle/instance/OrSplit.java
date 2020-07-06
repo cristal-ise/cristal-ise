@@ -22,6 +22,9 @@ package org.cristalise.kernel.lifecycle.instance;
 
 import static org.cristalise.kernel.graph.model.BuiltInEdgeProperties.ALIAS;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+
 import org.cristalise.kernel.common.InvalidDataException;
 import org.cristalise.kernel.graph.model.DirectedEdge;
 import org.cristalise.kernel.lookup.AgentPath;
@@ -41,33 +44,25 @@ public class OrSplit extends Split {
         int id = getID();
         String[] nextsTab = calculateNexts(itemPath, locker);
 
-        int active = 0;
-        DirectedEdge[] outEdges = getOutEdges();
-        for (String thisNext : nextsTab) {
-            log.debug("runNext(id:{}) - Finding edge with {} '{}'", id, ALIAS, thisNext);
+        ArrayList<DirectedEdge> nextsToFollow = new ArrayList<DirectedEdge>();
 
-            if (thisNext != null) {
-                for (DirectedEdge outEdge : outEdges) {
-                    Next nextEdge = (Next) outEdge;
-                    if (thisNext.equals(nextEdge.getBuiltInProperty(ALIAS))) {
-                        WfVertex term = nextEdge.getTerminusVertex();
-                        try {
-                            term.run(agent, itemPath, locker);
-                        }
-                        catch (InvalidDataException e) {
-                            log.error("", e);
-                            throw new InvalidDataException("Error enabling next " + thisNext);
-                        }
-                        log.debug("runNext(id:{}) - Running {}", id, nextEdge.getBuiltInProperty(ALIAS));
-                        active++;
-                    }
-                }
+        log.debug("runNext(id:{}) - Finding edge with {} '{}'", id, ALIAS, Arrays.toString(nextsTab));
+
+        for (DirectedEdge outEdge : getOutEdges()) {
+            if (isInTable((String)((Next)outEdge).getBuiltInProperty(ALIAS), nextsTab)) {
+                nextsToFollow.add(outEdge);
             }
         }
 
-        // if no active nexts throw exception
-        if (active == 0)
+        if (nextsToFollow .size() == 0) {
             throw new InvalidDataException("No edges found, no next vertex activated! (id: " + id + ")");
+        }
+
+        for (DirectedEdge edge : nextsToFollow) {
+            Next next = (Next)edge;
+            log.debug("runNext(id:{}) - Running {}", id, next.getBuiltInProperty(ALIAS));
+            next.getTerminusVertex().run(agent, itemPath, locker);
+        }
     }
 
 }
