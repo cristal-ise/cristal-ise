@@ -23,10 +23,6 @@ import org.slf4j.LoggerFactory
 
 import groovy.transform.CompileStatic
 
-@Field final Logger log = LoggerFactory.getLogger('org.cristalise.dsl.test.scripts.Factory.InstantiateItem')
-@Field String[] params = null
-@Field Class<?> predefStep = null
-
 //--------------------------------------------------
 // item, agent and job are injected by the CRISTAL-iSE Script class automatically
 // so these declaration are only needed to write the script with code completion.
@@ -37,14 +33,17 @@ import groovy.transform.CompileStatic
 //Job job
 //--------------------------------------------------
 
-@Field Outcome outcome = job.getOutcome()
+@Field final Logger log = LoggerFactory.getLogger('org.cristalise.dsl.test.scripts.Factory.InstantiateItem')
 
-log.debug 'Factory_NewInstanceDetails:{}', outcome.getData()
-
+@Field String[] params      = null
+@Field Class<?> predefStep  = null
+@Field Outcome  outcome     = job.getOutcome()
 @Field String   itemName    = getItemName(item, outcome)
 @Field String   root        = getDomainRoot(item, job)
 @Field Boolean  createAgent = new Boolean(item.getProperty('CreateAgent', 'false'))
 @Field String   initaliseOutcomeXML = null
+
+log.debug 'Factory_NewInstanceDetails:{}', outcome.getData()
 
 if (item.checkContent(ClusterType.COLLECTION.name, BuiltInCollections.SCHEMA_INITIALISE.name)) {
     initaliseOutcomeXML = getInitaliseOutcomeXML(item, outcome, itemName)
@@ -97,8 +96,10 @@ String getItemName(ItemProxy item, Outcome outcome) {
 
     if (item.checkProperty('IDPrefix')) {
         //Name is generated
-        String prefix  = item.getProperty('IDPrefix')
-        int    padSize = new Integer(item.getProperty('LeftPadSize'))
+        String  prefix  = item.getProperty('IDPrefix')
+        Integer padSize = new Integer(item.getProperty('LeftPadSize'))
+
+        log.debug 'getItemName() - generating name prefix:{}, padSize:{}', prefix, padSize
 
         if (!prefix)  throw new InvalidDataException("Script.InstantiateItem - Activity property IDPrefix must contain value")
         if (!padSize) throw new InvalidDataException("Script.InstantiateItem - Activity property LeftPadSize must contain value")

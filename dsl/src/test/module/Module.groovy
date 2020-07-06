@@ -28,8 +28,6 @@ Module(ns: 'dsl', name: 'DSL Test', version: 0) {
     }
 
  
-    include(moduleDir+'/Factory.groovy')
- 
     include(moduleDir+'/State.groovy')
  
     include(moduleDir+'/TestItem.groovy')

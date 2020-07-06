@@ -6,16 +6,6 @@
   <ResourceURL>org/cristalise/dsl/test/resources/</ResourceURL>
   <Imports>
     <AgentResource name="dsl" version="0"/>
-    <SchemaResource name="Factory_NewInstanceDetails" version="0"/>
-    <ScriptResource name="Factory_InstantiateItem" version="0"/>
-    <ScriptResource name="Entity_ChangeName" version="0"/>
-    <Activity name="Factory_CreateItem" version="0">
-      <Schema name="Factory_NewInstanceDetails" version="0"/>
-      <Script name="Factory_InstantiateItem" version="0"/>
-    </Activity>
-    <Workflow name="Factory_Workflow" version="0">
-      <Activity name="Factory_CreateItem" version="0"/>
-    </Workflow>
     <Activity name="State_Activate" version="0"/>
     <Activity name="State_Deactivate" version="0"/>
     <Workflow name="State_Manage" version="0">

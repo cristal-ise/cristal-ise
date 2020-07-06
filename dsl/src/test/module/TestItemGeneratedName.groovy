@@ -60,7 +60,7 @@ def TestItemGeneratedNamePropDesc = PropertyDescriptionList('TestItemGeneratedNa
     PropertyDesc(name: 'State', isMutable: true,  isClassIdentifier: false, defaultValue: 'ACTIVE')
 }
 
-Item(name: 'TestItemGeneratedNameFactory', version: 0, folder: '/dsl', workflow: 'Factory_Workflow', workflowVer: 0) {
+Item(name: 'TestItemGeneratedNameFactory', version: 0, folder: '/dsl', workflow: 'CrudFactory_Workflow', workflowVer: 0) {
     InmutableProperty('Type': 'Factory')
     InmutableProperty('Root': 'dsl/TestItemGeneratedNames')
 

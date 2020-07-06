@@ -60,7 +60,7 @@ def TestItemPropDesc = PropertyDescriptionList('TestItem', 0) {
     PropertyDesc(name: 'State', isMutable: true,  isClassIdentifier: false, defaultValue: 'ACTIVE')
 }
 
-Item(name: 'TestItemFactory', version: 0, folder: '/dsl', workflow: 'Factory_Workflow', workflowVer: 0) {
+Item(name: 'TestItemFactory', version: 0, folder: '/dsl', workflow: 'CrudFactory_Workflow', workflowVer: 0) {
     InmutableProperty('Type': 'Factory')
     InmutableProperty('Root': 'dsl/TestItems')
 
