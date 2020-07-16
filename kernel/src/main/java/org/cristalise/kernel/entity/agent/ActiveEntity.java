@@ -139,4 +139,13 @@ public class ActiveEntity extends AgentPOA {
             return mAgentImpl.queryLifeCycle(agentId, filter);
         }
     }
+
+    @Override
+    public String queryLifeCycle(SystemKey agentId, boolean filter, String actName, String transName)
+            throws AccessRightsException, ObjectNotFoundException, PersistencyException
+    {
+        synchronized (this) {
+            return mAgentImpl.queryLifeCycle(agentId, filter, actName, transName);
+        }
+    }
 }

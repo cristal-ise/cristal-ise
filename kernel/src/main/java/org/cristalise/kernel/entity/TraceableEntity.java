@@ -164,6 +164,21 @@ public class TraceableEntity extends ItemPOA
     }
 
     @Override
+	public String queryLifeCycle( SystemKey agentId,
+                                  boolean     filter,
+                                  String actName,
+                                  String transName
+                                )
+        throws AccessRightsException,
+               ObjectNotFoundException,
+               PersistencyException
+    {
+        synchronized (this) {
+            return mItemImpl.queryLifeCycle(agentId, filter, actName, transName);
+        }
+    }
+
+    @Override
 	public String queryData(String path)
         throws AccessRightsException,
                ObjectNotFoundException,

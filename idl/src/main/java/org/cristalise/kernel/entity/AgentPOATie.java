@@ -189,6 +189,25 @@ public class AgentPOATie extends AgentPOA
     return _impl.queryLifeCycle(agentKey, filter);
   } // queryLifeCycle
 
+  /**
+          * Returns a set of Jobs for this Agent on this Item. Each Job represents a possible transition
+          * of a particular Activity in the Item's lifecycle. The list may be filtered to only refer to 
+          * currently active activities. 
+          *
+          * @param agentKey The system key of the Agent requesting Jobs.
+          * @param filter If true, then only Activities which are currently active will be included.
+          * @param actName
+          * @param transname
+          * @return An XML marshalled {@link org.cristalise.kernel.entity.agent.JobArrayList JobArrayList}
+          * @throws AccessRightsException - when the Agent doesn't exist
+          * @throws ObjectNotFoundException - when the Item doesn't have a lifecycle
+          * @throws PersistencyException - when there was a storage or other unknown error
+          **/
+  public String queryLifeCycle (org.cristalise.kernel.common.SystemKey agentKey, boolean filter, String actName, String transName) throws org.cristalise.kernel.common.AccessRightsException, org.cristalise.kernel.common.ObjectNotFoundException, org.cristalise.kernel.common.PersistencyException
+  {
+    return _impl.queryLifeCycle(agentKey, filter, actName, transName);
+  } // queryLifeCycle
+
   private org.cristalise.kernel.entity.AgentOperations _impl;
   private org.omg.PortableServer.POA _poa;
 

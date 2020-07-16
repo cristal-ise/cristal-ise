@@ -366,60 +366,90 @@ public class ItemImplementation implements ItemOperations {
     public String queryLifeCycle(SystemKey agentId, boolean filter)
             throws AccessRightsException, ObjectNotFoundException, PersistencyException
     {
-        log.info("queryLifeCycle(" + mItemPath + ") - agent: " + agentId);
-        try {
-            AgentPath agent;
+        return queryLifeCycle(agentId, filter, null, null);
+    }
+
+    /**
+     *
+     */
+    public String queryLifeCycle(SystemKey agentId, boolean filter, String actName, String transName) 
+        throws AccessRightsException, ObjectNotFoundException, PersistencyException {
+            Workflow lifeCycle = null;
+            log.info("queryLifeCycle(" + mItemPath + ") - agent: " + agentId);
             try {
-                agent = new AgentPath(agentId);
-            }
-            catch (InvalidItemPathException e) {
-                throw new AccessRightsException("Agent " + agentId + " doesn't exist");
-            }
-            Workflow wf = (Workflow) mStorage.get(mItemPath, ClusterType.LIFECYCLE + "/workflow", null);
+                AgentPath agent;
+                try {
+                    agent = new AgentPath(agentId);
+                }
+                catch (InvalidItemPathException e) {
+                    throw new AccessRightsException("Agent " + agentId + " doesn't exist");
+                }
+                Workflow wf = (Workflow) mStorage.get(mItemPath, ClusterType.LIFECYCLE + "/workflow", null);
+                ArrayList<Job> jobs;
+                if (actName == null || !actName.contains("/")) {
+                    CompositeActivity domainWf = (CompositeActivity) wf.search("workflow/domain");
+                    jobs = filter ? domainWf.calculateJobs(agent, mItemPath, true) : domainWf.calculateAllJobs(agent, mItemPath, true);
 
-            JobArrayList jobBag = new JobArrayList();
-            CompositeActivity domainWf = (CompositeActivity) wf.search("workflow/domain");
-            ArrayList<Job> jobs = filter ? domainWf.calculateJobs(agent, mItemPath, true) : domainWf.calculateAllJobs(agent, mItemPath, true);
+                    jobs.stream().filter(j -> j.getStepName().equals(actName));
+                    
+                    if (transName != null) {
+                        jobs.stream().filter(j -> j.getTransition().getName().equals(transName));
+                    }
 
-            SecurityManager secMan = Gateway.getSecurityManager();
+                } else {
+                    Activity act = (Activity) wf.search(actName);
+                    log.info("hiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii");
+                    log.info(act.getName());
+                    jobs = filter ? act.calculateJobs(agent, mItemPath, true) : act.calculateAllJobs(agent, mItemPath, true);
+                    log.info("jobssssssssssssssssssssssssssssssssssssss");
+                    log.info(jobs.get(0).getStepName());
+                    if (transName != null) {
+                        jobs.stream().filter(j -> j.getTransition().getName().equals(transName));
+                    }
+                }
 
-            if (secMan.isShiroEnabled()) {
-                for (Job j: jobs) {
-                    Activity act =  (Activity) wf.search(j.getStepPath());
-                    if (secMan.checkPermissions(agent, act, mItemPath)) {
-                        try {
-                            j.getTransition().getPerformingRole(act, agent);
-                            jobBag.list.add(j);
-                        }
-                        catch (AccessRightsException e) {
-                            //AccessRightsException is thrown if Job requires specific Role that agent does not have
+                JobArrayList jobBag = new JobArrayList();
+        
+                SecurityManager secMan = Gateway.getSecurityManager();
+    
+                if (secMan.isShiroEnabled()) {
+                    for (Job j: jobs) {
+                        Activity act =  (Activity) wf.search(j.getStepPath());
+                        if (secMan.checkPermissions(agent, act, mItemPath)) {
+                            try {
+                                j.getTransition().getPerformingRole(act, agent);
+                                jobBag.list.add(j);
+                            }
+                            catch (AccessRightsException e) {
+                                //AccessRightsException is thrown if Job requires specific Role that agent does not have
+                            }
                         }
                     }
                 }
+                else {
+                    jobBag.list = jobs;
+                }
+    
+                log.info("queryLifeCycle(" + mItemPath + ") - Returning " + jobBag.list.size() + " jobs.");
+                
+                try {
+                    return Gateway.getMarshaller().marshall(jobBag);
+                }
+                catch (Exception e) {
+                    log.error("", e);
+                    throw new PersistencyException("Error marshalling job bag");
+                }
+                
             }
-            else {
-                jobBag.list = jobs;
-            }
-
-            log.info("queryLifeCycle(" + mItemPath + ") - Returning " + jobBag.list.size() + " jobs.");
-
-            try {
-                return Gateway.getMarshaller().marshall(jobBag);
-            }
-            catch (Exception e) {
+            catch (AccessRightsException | ObjectNotFoundException | PersistencyException e) {
                 log.error("", e);
-                throw new PersistencyException("Error marshalling job bag");
+                throw e;
             }
-        }
-        catch (AccessRightsException | ObjectNotFoundException | PersistencyException e) {
-            log.error("", e);
-            throw e;
-        }
-        catch (Exception ex) {
-            log.error("queryLifeCycle(" + mItemPath + ") - Unknown error", ex);
-            throw new PersistencyException("Unknown error querying jobs. Please see server log.");
-        }
-    }
+            catch (Exception ex) {
+                log.error("queryLifeCycle(" + mItemPath + ") - Unknown error", ex);
+                throw new PersistencyException("Unknown error querying jobs. Please see server log.");
+            }
+    } 
 
     /**
      *

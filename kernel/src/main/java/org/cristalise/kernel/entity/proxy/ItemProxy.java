@@ -383,12 +383,15 @@ public class ItemProxy
      * @throws PersistencyException
      */
     private Job getJobByName(String actName, AgentPath agent) throws AccessRightsException, ObjectNotFoundException, PersistencyException {
-        ArrayList<Job> jobList = getJobList(agent, true);
-        for (Job job : jobList) {
-            if (job.getStepName().equals(actName) && job.getTransition().isFinishing())
-                return job;
+        String jobs = getItem().queryLifeCycle(agent.getSystemKey(), true, actName, null);
+
+        try {
+            return ((JobArrayList) Gateway.getMarshaller().unmarshall(jobs)).list.get(0);
         }
-        return null;
+        catch (Exception e) {
+            log.error("Cannot unmarshall the jobs", e);
+            throw new PersistencyException("Cannot unmarshall the jobs");
+        }
     }
 
     /**
@@ -893,13 +896,15 @@ public class ItemProxy
      * @throws PersistencyException Error loading the relevant objects
      */
     public Job getJobByTransitionName(String actName, String transName, AgentPath agentPath) throws AccessRightsException, ObjectNotFoundException,PersistencyException {
-        for (Job job : getJobList(agentPath, true)) {
-            if (job.getTransition().getName().equals(transName)) {
-                if ((actName.contains("/") && job.getStepPath().equals(actName)) || job.getStepName().equals(actName))
-                    return job;
-            }
+        String jobs = getItem().queryLifeCycle(agentPath.getSystemKey(), true, actName, transName);
+
+        try {
+            return ((JobArrayList) Gateway.getMarshaller().unmarshall(jobs)).list.get(0);
         }
-        return null;
+        catch (Exception e) {
+            log.error("Cannot unmarshall the jobs", e);
+            throw new PersistencyException("Cannot unmarshall the jobs");
+        }
     }
 
     /**
