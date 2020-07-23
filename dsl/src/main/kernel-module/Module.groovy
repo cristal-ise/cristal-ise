@@ -7,7 +7,7 @@ import groovy.transform.SourceURI
 @SourceURI
 URI scriptUri
 
-setModuletDir scriptUri
+setModuleDir scriptUri
 
 setConfig  'src/test/conf/client.conf'
 setConnect 'src/test/conf/server.clc'
@@ -16,5 +16,6 @@ setResourceRoot Paths.get(scriptUri).parent.toString()+'/resources'
 
 
 Module(ns: 'kernel', name: 'cristal-ise kernel', version: 0) {
+    include(moduleDir+'/CommonTypes.groovy')
     include(moduleDir+'/Schema.groovy')
 }

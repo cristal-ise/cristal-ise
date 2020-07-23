@@ -1,9 +1,6 @@
 <?xml version='1.0' encoding='utf-8'?>
 <xs:schema xmlns:xs='http://www.w3.org/2001/XMLSchema'>
   <xs:element name='SystemProperties'>
-    <xs:annotation>
-      <xs:documentation>blabla</xs:documentation>
-    </xs:annotation>
     <xs:complexType>
       <xs:sequence>
         <xs:element name='ProcessName' type='xs:string' minOccurs='1' maxOccurs='1'>
