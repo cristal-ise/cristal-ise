@@ -30,11 +30,19 @@
     <Imports>
         <Resource name="TriggerStateMachine" version="0" type="SM">boot/SM/Trigger.xml</Resource>
 
-        <Role name="TriggerAdmin" jobList="true">
-            <Permission>*:SetAgentPassword:*</Permission>
+        <Role>
+            <Name>TriggerAdmin</Name>
+            <JobList>false</JobList>
+            <Permission>
+                <Domains>*</Domains>
+                <Actions>SetAgentPassword</Actions>
+                <Targets>*</Targets>
+            </Permission>
         </Role>
         <Agent name="triggerAgent" password="test">
-            <Role name="TriggerAdmin"/>
+            <Role>
+                <Name>TriggerAdmin</Name>
+            </Role>
         </Agent>
     </Imports>
 </CristalModule>
