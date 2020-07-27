@@ -57,9 +57,11 @@ public class ImportImportAgent extends PredefinedStep {
     {
         try {
             ImportAgent importAgent = (ImportAgent) Gateway.getMarshaller().unmarshall(requestData);
-            importAgent.setPassword("");
             importAgent.create(agent, true);
-            return requestData;
+
+            importAgent.setPassword("REDACTED");
+
+            return Gateway.getMarshaller().marshall(importAgent);
         }
         catch (MarshalException | ValidationException | IOException | MappingException e) {
             log.error("Couldn't unmarshall Agent: " + requestData, e);

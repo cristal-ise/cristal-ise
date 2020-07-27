@@ -53,8 +53,7 @@
   </class>
   <class name="org.cristalise.kernel.process.module.ModuleImports">
     <map-to xml="Imports" />
-    <field name="list" collection="arraylist" direct="true"
-      type="org.cristalise.kernel.process.module.ModuleImport">
+    <field name="list" collection="arraylist" direct="true" type="org.cristalise.kernel.process.module.ModuleImport">
       <bind-xml auto-naming="deriveByClass" node="element" />
     </field>
   </class>
@@ -81,8 +80,7 @@
       <bind-xml name="id" node="attribute" />
     </field>
   </class>
-  <class name="org.cristalise.kernel.process.module.ModuleResource"
-    extends="org.cristalise.kernel.process.module.ModuleImport">
+  <class name="org.cristalise.kernel.process.module.ModuleResource" extends="org.cristalise.kernel.process.module.ModuleImport">
     <map-to xml="Resource" />
     <field name="version" direct="false" type="integer">
       <bind-xml name="version" node="attribute" />
@@ -221,8 +219,7 @@
       <bind-xml name="StateMachine" node="element" />
     </field>
   </class>
-  <class name="org.cristalise.kernel.process.module.ModuleWorkflow"
-    extends="org.cristalise.kernel.process.module.ModuleActivity">
+  <class name="org.cristalise.kernel.process.module.ModuleWorkflow" extends="org.cristalise.kernel.process.module.ModuleActivity">
     <map-to xml="Workflow" />
     <field name="activities" direct="false" collection="arraylist"
       type="org.cristalise.kernel.process.module.ModuleDescRef">

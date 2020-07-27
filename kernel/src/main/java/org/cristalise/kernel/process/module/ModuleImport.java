@@ -37,8 +37,9 @@ import org.cristalise.kernel.process.resource.ResourceImportHandler.Status;
 
 import lombok.Getter;
 import lombok.Setter;
+import lombok.extern.slf4j.Slf4j;
 
-@Getter @Setter
+@Getter @Setter @Slf4j
 public abstract class ModuleImport {
 
     protected String     ns;
@@ -76,6 +77,8 @@ public abstract class ModuleImport {
 
     @Override
     public int hashCode() {
+        // helps debugging castor related issues
+        if(log.isTraceEnabled()) log.trace("hashCode() - {}:{}", this.getClass().getSimpleName(), name);
         return name.hashCode() + (ns == null ? 0 : ns.hashCode());
     }
 }

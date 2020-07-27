@@ -48,8 +48,7 @@
     <field name="properties" collection="arraylist" direct="false" type="org.cristalise.kernel.property.Property">
       <bind-xml name="Property" node="element" />
     </field>
-    <field name="outcomes" collection="arraylist" direct="false"
-      type="org.cristalise.kernel.entity.imports.ImportOutcome">
+    <field name="outcomes" collection="arraylist" direct="false" type="org.cristalise.kernel.entity.imports.ImportOutcome">
       <bind-xml name="Outcome" node="element" />
     </field>
     <field name="dependencyList" collection="arraylist" direct="false"
@@ -170,8 +169,7 @@
     <field name="password" type="string" direct="false">
       <bind-xml name="password" node="attribute" />
     </field>
-    <field name="roles" collection="arraylist" direct="false"
-      type="org.cristalise.kernel.entity.imports.ImportRole">
+    <field name="roles" collection="arraylist" direct="false" type="org.cristalise.kernel.entity.imports.ImportRole">
       <bind-xml name="Role" node="element" />
     </field>
     <field name="properties" collection="arraylist" direct="false" type="org.cristalise.kernel.property.Property">
@@ -184,18 +182,32 @@
       <bind-xml name="initialPath" node="attribute" />
     </field>
   </class>
+  <class name="org.cristalise.kernel.entity.imports.ImportPermission">
+    <field name="domains" type="string" direct="false">
+      <bind-xml name="Domains" node="element" />
+    </field>
+    <field name="actions" type="string" direct="false">
+      <bind-xml name="Actions" node="element" />
+    </field>
+    <field name="targets" type="string" direct="false">
+      <bind-xml name="Targets" node="element" />
+    </field>
+  </class>
   <class name="org.cristalise.kernel.entity.imports.ImportRole">
     <map-to xml="Role" />
     <field name="name" type="string" direct="false">
-      <bind-xml name="name" node="attribute" />
+      <bind-xml name="Name" node="element" />
     </field>
     <field name="version" type="integer" direct="false">
-      <bind-xml name="version" node="attribute" />
+      <bind-xml name="Version" node="element" />
     </field>
-    <field name="jobList" type="boolean" direct="true">
-      <bind-xml name="jobList" node="attribute" />
+    <field name="itemPath" type="string" direct="false" get-method="getID" set-method="setID">
+      <bind-xml name="Id" node="element" />
     </field>
-    <field name="permissions" collection="arraylist" type="string" direct="true">
+    <field name="jobList" type="boolean" direct="false">
+      <bind-xml name="JobList" node="element" />
+    </field>
+    <field name="permissions" collection="arraylist" direct="true" type="org.cristalise.kernel.entity.imports.ImportPermission">
       <bind-xml name="Permission" node="element" />
     </field>
   </class>
