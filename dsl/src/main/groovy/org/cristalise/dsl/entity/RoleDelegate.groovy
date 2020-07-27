@@ -22,6 +22,7 @@ package org.cristalise.dsl.entity
 
 import groovy.transform.CompileStatic
 
+import org.cristalise.kernel.entity.imports.ImportPermission
 import org.cristalise.kernel.entity.imports.ImportRole
 
 
@@ -52,14 +53,14 @@ class RoleDelegate {
 
         if (cl) cl()
     }
-    
+
     public void Permission(String p) {
-        roles[roles.size-1].permissions.add(p)
+        roles[roles.size-1].permissions.add(new ImportPermission(p))
     }
 
-    public void Permission(Map<String, String>  args) {
-        assert args.domain && args.actions && args.targets, 'domain:actions:targets triplet must be set' 
+    public void Permission(Map<String, String> args) {
+        assert args, 'one of the domains:actions:targets triplet must be set' 
 
-        roles[roles.size-1].permissions.add("${args.domain}:${args.actions}:${args.targets}".toString())
+        roles[roles.size-1].permissions.add(new ImportPermission(args))
     }
 }

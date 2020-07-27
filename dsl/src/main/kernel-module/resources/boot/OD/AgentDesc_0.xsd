@@ -34,7 +34,7 @@
           <xs:annotation>
             <xs:appinfo>
               <listOfValues>
-                <scriptRef>AgentDesc_QueryRoles:0</scriptRef>
+                <scriptRef>QueryRoles:0</scriptRef>
               </listOfValues>
             </xs:appinfo>
           </xs:annotation>
@@ -44,6 +44,7 @@
             <xs:sequence>
               <xs:element name='Name' type='xs:string' minOccurs='1' maxOccurs='1' />
               <xs:element name='Mutable' type='xs:boolean' default='true' minOccurs='0' maxOccurs='1' />
+              <xs:element name='Value' type='xs:string' minOccurs='1' maxOccurs='1' />
             </xs:sequence>
           </xs:complexType>
         </xs:element>

@@ -64,8 +64,8 @@ class RoleBuilderSpecs extends Specification implements CristalTestSetup {
         when:
         def roles = RoleBuilder.build {
             Role(name: 'QA') {
-                Permission('BatchFactory:Create:*')
-                Permission(domain: 'Batch', actions: 'Review', targets: '*')
+                Permission('Factory:Create:BatchFactory')
+                Permission(domains: 'Batch', actions: 'Review')
             }
             Role(name: 'User')
         }
@@ -73,9 +73,10 @@ class RoleBuilderSpecs extends Specification implements CristalTestSetup {
         then:
         roles[0].name == "QA"
         roles[0].jobList == false
-        roles[0].permissions[0] == 'BatchFactory:Create:*'
-        roles[0].permissions[1] == 'Batch:Review:*'
+        roles[0].permissions[0].toString() == 'Factory:Create:BatchFactory'
+        roles[0].permissions[1].toString() == 'Batch:Review'
         roles[1].name == "User"
+        roles[1].jobList == false
         roles[1].permissions.size == 0
     }
 
