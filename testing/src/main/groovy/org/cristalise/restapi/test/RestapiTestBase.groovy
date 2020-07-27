@@ -8,14 +8,18 @@ import static org.hamcrest.Matchers.*
 import java.nio.charset.StandardCharsets
 import java.time.LocalDateTime
 
+import org.cristalise.kernel.entity.imports.ImportAgent
+import org.cristalise.kernel.entity.imports.ImportRole
+import org.cristalise.kernel.lifecycle.instance.predefined.ImportImportAgent
+import org.cristalise.kernel.lifecycle.instance.predefined.ImportImportItem
+import org.cristalise.kernel.lifecycle.instance.predefined.ImportImportRole
 import org.cristalise.kernel.lifecycle.instance.predefined.PredefinedStep
-import org.cristalise.kernel.lifecycle.instance.predefined.server.CreateNewAgent
-import org.cristalise.kernel.lifecycle.instance.predefined.server.CreateNewItem
-import org.cristalise.kernel.lifecycle.instance.predefined.server.CreateNewRole
+import org.cristalise.kernel.lookup.RolePath
 import org.cristalise.kernel.process.AbstractMain
+import org.cristalise.kernel.process.resource.Resource
 import org.cristalise.kernel.test.KernelScenarioTestBase
 import org.cristalise.kernel.test.utils.KernelXMLUtility
-import org.cristalise.restapi.RestHandler
+import org.cristalise.kernel.utils.CastorXMLUtility
 import org.json.JSONArray
 import org.json.JSONObject
 import org.json.XML;
@@ -24,11 +28,9 @@ import org.junit.BeforeClass
 
 import groovy.json.JsonBuilder
 import groovy.transform.CompileStatic
-import io.restassured.builder.RequestSpecBuilder
 import io.restassured.http.ContentType
 import io.restassured.http.Cookie
 import io.restassured.response.Response
-import io.restassured.specification.RequestSpecification
 
 @CompileStatic
 class RestapiTestBase extends KernelScenarioTestBase {
@@ -37,6 +39,7 @@ class RestapiTestBase extends KernelScenarioTestBase {
 
     String userUuid
     Cookie cauthCookie
+    static CastorXMLUtility marshaller
 
     static final int STATUS_OK = 200
 
@@ -44,6 +47,8 @@ class RestapiTestBase extends KernelScenarioTestBase {
     public static void init() {
         Properties props = AbstractMain.readPropertyFiles("src/main/bin/client.conf", "src/main/bin/integTest.clc", null)
         apiUri = props.get('REST.URI')
+        def resource = new Resource()
+        marshaller = new CastorXMLUtility(resource, null, resource.getKernelResourceURL("mapFiles/"));
     }
 
     @Before
@@ -285,19 +290,21 @@ class RestapiTestBase extends KernelScenarioTestBase {
 
         if (type == ContentType.JSON) param = XML.toJSONObject(param).toString()
 
-        executePredefStep(serverItemUUID, CreateNewItem.class, type, param)
+        executePredefStep(serverItemUUID, ImportImportItem.class, type, param)
         def uuid = resolveDomainPath("/restapiTests/$name")
         assert uuid
         return uuid
     }
 
     String createNewAgent(String name, String pwd, ContentType type) {
-        def param = KernelXMLUtility.getAgentXML(name: name, password: pwd, Role: 'Admin')
+        def importAgent = new ImportAgent(name, pwd)
+        importAgent.addRole(new RolePath('Admin'))
+        def param = marshaller.marshall(importAgent)
         def serverItemUUID = resolveDomainPath('/servers/localhost')
 
         if (type == ContentType.JSON) param = XML.toJSONObject(param).toString()
 
-        executePredefStep(serverItemUUID, CreateNewAgent.class, type, param)
+        executePredefStep(serverItemUUID, ImportImportAgent.class, type, param)
 
         def agents = resolveRole('Admin')
         def uuid = ""
@@ -314,12 +321,14 @@ class RestapiTestBase extends KernelScenarioTestBase {
     }
 
     void createNewRole(String name, ContentType type) {
-        def param = KernelXMLUtility.getRoleXML(name: name)
+        def importRole = new ImportRole()
+        importRole.name = name
+        def param = marshaller.marshall(importRole)
         def serverItemUUID = resolveDomainPath('/servers/localhost')
 
         if (type == ContentType.JSON) param = XML.toJSONObject(param).toString()
 
-        executePredefStep(serverItemUUID, CreateNewRole.class, type, param)
+        executePredefStep(serverItemUUID, ImportImportRole.class, type, param)
 
         resolveRole(name)
     }

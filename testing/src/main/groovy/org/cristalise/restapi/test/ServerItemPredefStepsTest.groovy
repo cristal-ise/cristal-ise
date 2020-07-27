@@ -31,11 +31,12 @@ class ServerItemPredefStepsTest extends RestapiTestBase {
 
     @Test
     public void 'CreateNewAgent predefined step posting XML'() throws Exception {
+        String newName = "TestAgent-$timeStamp"
         login('user', 'test')
-        createNewAgent "TestAgent-$timeStamp", 'test', ContentType.XML
+        createNewAgent newName, 'test', ContentType.XML
         logout(null)
 
-        login("TestAgent-$timeStamp", 'test')
+        login(newName, 'test')
         logout(null)
     }
 

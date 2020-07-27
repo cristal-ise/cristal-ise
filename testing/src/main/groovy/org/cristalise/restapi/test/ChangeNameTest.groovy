@@ -11,7 +11,7 @@ class ChangeNameTest extends RestapiTestBase {
     
     @Test
     public void 'Login after changing the Name of a logged in Agent'() throws Exception {
-        login('mainUser', 'test')
+        login('mainUser', 'test©£')
         def mainUserUuid = userUuid
         logout(null)
 
@@ -19,7 +19,7 @@ class ChangeNameTest extends RestapiTestBase {
         executePredefStep(mainUserUuid, ChangeName.class, 'mainUser', 'rootUser')
         logout(null)
 
-        login('rootUser', 'test')
+        login('rootUser', 'test©£')
         assert mainUserUuid == userUuid
         logout(null)
 
@@ -27,7 +27,7 @@ class ChangeNameTest extends RestapiTestBase {
         executePredefStep(mainUserUuid, ChangeName.class, 'rootUser', 'mainUser')
         logout(null)
 
-        login('mainUser', 'test')
+        login('mainUser', 'test©£')
         logout(null)
     }
 

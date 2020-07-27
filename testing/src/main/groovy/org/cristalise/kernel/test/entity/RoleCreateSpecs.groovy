@@ -72,7 +72,7 @@ class RoleCreateSpecs extends Specification implements CristalTestSetup {
         def roles = RoleBuilder.create {
             Role(name: 'QA') {
                 Permission('BatchFactory:Create:*')
-                Permission(domain: 'Batch', actions: 'Review', targets: '*')
+                Permission(domains: 'Batch', actions: 'Review', targets: '*')
             }
         }
 

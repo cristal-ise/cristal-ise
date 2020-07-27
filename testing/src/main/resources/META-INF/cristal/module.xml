@@ -1,3 +1,4 @@
+<?xml version="1.0" encoding="UTF-8"?>
 <CristalModule ns="integTest" name="IntegrationTest">
     <Info>
         <Description>CRISTAL-iSE Items for testing</Description>
@@ -146,14 +147,28 @@
         <QueryResource name="TestQuery" version="0"/>
 
         <RoleResource name="User" version="0"/>
-        <Role name="User/SubUser" jobList="false">
-            <Permission>p11</Permission>
-            <Permission>p12</Permission>
+        <Role>
+            <Name>User/SubUser</Name>
+            <JobList>false</JobList>
+            <Permission>
+                <Domains>p11</Domains>
+                <Actions>p11</Actions>
+                <Targets>p11</Targets>
+            </Permission>
+            <Permission>
+                <Domains>p12</Domains>
+                <Actions>p12</Actions>
+                <Targets>p12</Targets>
+            </Permission>
         </Role>
 
         <Agent name="user" password="test">
-            <Role name="Admin"/>
-            <Role name="User/SubUser"/>
+            <Role>
+                <Name>Admin</Name>
+            </Role>
+            <Role>
+                <Name>User/SubUser</Name>
+            </Role>
         </Agent>
         <AgentResource name="mainUser" version="0"/>
 
