@@ -36,7 +36,10 @@ import org.jooq.DSLContext;
 
 import lombok.extern.slf4j.Slf4j;
 
-@Slf4j
+/**
+ * @deprecated shiro integration should be used instead
+ */
+@Slf4j @Deprecated
 public class JooqAuthenticator implements Authenticator {
 
     DSLContext context = null;
@@ -72,13 +75,17 @@ public class JooqAuthenticator implements Authenticator {
         List<UUID> uuids = properties.findItemsByName(context, agentName);
 
         if (uuids.size() == 0) throw new ObjectNotFoundException("Could not find agent name:"+agentName);
-        if (uuids.size() != 1) throw new ObjectNotFoundException("Ambiguous agent name:"+agentName);
 
         try {
-            ItemPath item = items.fetch(context, uuids.get(0), properties);
+            // FIXME (Dirty Fix) there could many Items (very likely only 2) created with the name of the Agent.
+            // Instead using the findItemsByName() create a new similar SQL joining ITEM table 'IS_AGENT = true'.
+            for (UUID uuid: uuids) {
+                ItemPath ip = items.fetch(context, uuid, properties);
 
-            if (item instanceof AgentPath) return item.getUUID();
-            else                           throw new ObjectNotFoundException("'"+agentName + " is not an Agent");
+                if (ip instanceof AgentPath) return uuid;
+            }
+
+            throw new ObjectNotFoundException("'"+agentName + " is not an Agent");
         }
         catch (PersistencyException e) {
             throw new ObjectNotFoundException("Could not retrieve agentName:"+agentName + " error:"+e.getMessage());

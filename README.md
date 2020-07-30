@@ -1,3 +1,8 @@
+CRISTAL-iSE [![Build Status](https://img.shields.io/travis/cristal-ise/cristal-ise/master.svg?label=master)](https://travis-ci.org/cristal-ise/cristal-ise)[![Build Status](https://img.shields.io/travis/cristal-ise/cristal-ise/develop.svg?label=develop)](https://travis-ci.org/cristal-ise/cristal-ise)[![Javadocs](http://javadoc.io/badge/org.cristalise/cristalise.svg)](http://javadoc.io/doc/org.cristalise)
+==================
+
+[![Join the chat at https://gitter.im/cristal-ise/kernel](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/cristal-ise/kernel?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+
 # CRISTAL-iSE Description-Driven Framework
 Main repository of the [CRISTAL-iSE Description-Driven Framework](http://cristal-ise.github.io/)
 

@@ -117,6 +117,12 @@
     <dependencies>
         <dependency>
             <groupId>org.cristalise</groupId>
+            <artifactId>cristalise-gui</artifactId>
+            <version>${revision}</version>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.cristalise</groupId>
             <artifactId>cristalise-dev</artifactId>
             <version>${revision}</version>
             <scope>compile</scope>

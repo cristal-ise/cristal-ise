@@ -97,4 +97,32 @@ class SchemaBuilderListOfValuesSpecs extends Specification implements CristalTes
                  </xs:element>
                </xs:schema>''')
     }
+
+    def 'Field can specify listOfValues.values'() {
+        expect:
+        SchemaTestBuilder.build('test', 'PatientDetails', 0) {
+            struct(name: 'PatientDetails') {
+                field(name: 'Weight', type: 'decimal') {
+                    listOfValues(values: ['v1', 'v2', 'v3'])
+                }
+            }
+        }.compareXML(
+            '''<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+                 <xs:element name="PatientDetails">
+                   <xs:complexType>
+                     <xs:all minOccurs="0">
+                       <xs:element name='Weight' type='xs:decimal' minOccurs='1' maxOccurs='1'>
+                         <xs:annotation>
+                           <xs:appinfo>
+                             <listOfValues>
+                               <values>v1,v2,v3</values>
+                             </listOfValues>
+                           </xs:appinfo>
+                         </xs:annotation>
+                       </xs:element>
+                     </xs:all>
+                   </xs:complexType>
+                 </xs:element>
+               </xs:schema>''')
+    }
 }

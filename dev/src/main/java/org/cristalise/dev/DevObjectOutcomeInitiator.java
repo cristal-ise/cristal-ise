@@ -21,80 +21,73 @@
 package org.cristalise.dev;
 
 import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.SCHEMA_NAME;
+import static org.cristalise.kernel.process.resource.BuiltInResources.QUERY_RESOURCE;
+import static org.cristalise.kernel.process.resource.BuiltInResources.SCHEMA_RESOURCE;
+import static org.cristalise.kernel.process.resource.BuiltInResources.SCRIPT_RESOURCE;
 
 import org.cristalise.kernel.common.InvalidDataException;
+import org.cristalise.kernel.common.ObjectNotFoundException;
 import org.cristalise.kernel.entity.agent.Job;
 import org.cristalise.kernel.entity.proxy.ItemProxy;
-import org.cristalise.kernel.lifecycle.ActivityDef;
-import org.cristalise.kernel.lifecycle.CompositeActivityDef;
-import org.cristalise.kernel.lifecycle.instance.stateMachine.StateMachine;
 import org.cristalise.kernel.lookup.DomainPath;
+import org.cristalise.kernel.lookup.InvalidItemPathException;
 import org.cristalise.kernel.persistency.outcome.Outcome;
 import org.cristalise.kernel.persistency.outcome.OutcomeInitiator;
 import org.cristalise.kernel.persistency.outcome.Viewpoint;
 import org.cristalise.kernel.process.Gateway;
+import org.cristalise.kernel.process.resource.BuiltInResources;
 import org.cristalise.kernel.utils.DescriptionObject;
 
 import lombok.extern.slf4j.Slf4j;
 
 
 /**
- * Creates empty object for Activities and StateMachine or loads empty one from Factory
+ * Creates empty DescriptionObject and marshalls them or loads the 'new' XML from Factory
  */
 @Slf4j
 public class DevObjectOutcomeInitiator implements OutcomeInitiator {
 
     @Override
     public Outcome initOutcomeInstance(Job job) throws InvalidDataException {
-    	return new Outcome(initOutcome(job));
+        return new Outcome(initOutcome(job));
     }
 
     @Override
     public String initOutcome(Job job) throws InvalidDataException {
         String type = job.getActPropString(SCHEMA_NAME);
+        BuiltInResources res = BuiltInResources.getValue(type);
+        String itemName = null;
 
-        DescriptionObject emptyObj = null;
-
-        if      (type.equals("CompositeActivityDef"))  emptyObj = new CompositeActivityDef();
-        else if (type.equals("ElementaryActivityDef")) emptyObj = new ActivityDef();
-        else if (type.equals("StateMachine"))          emptyObj = new StateMachine();
-
-        if (emptyObj != null) {
-            try {
-                emptyObj.setName(job.getItemProxy().getName());
-                return Gateway.getMarshaller().marshall(emptyObj);
-            }
-            catch (Exception e) {
-                log.error("Error creating empty "+type, e);
-                return null;
-            }
+        try {
+            itemName = job.getItemProxy().getName();
         }
-        else {
-            DomainPath factoryPath;
-            String schema;
+        catch (ObjectNotFoundException | InvalidItemPathException e) {
+            throw new InvalidDataException(e.getMessage());
+        }
 
-            if (type.equals("Schema")) {
-                factoryPath = new DomainPath("/desc/dev/SchemaFactory");
-                schema = "Schema";
-            }
-            else if (type.equals("Script")) {
-                factoryPath = new DomainPath("/desc/dev/ScriptFactory");
-                schema = "Script";
-            }
-            else 
-                throw new InvalidDataException("Unknown dev object type: "+type);
+        DescriptionObject emptyObj = res.getDescriptionObject(itemName);
 
-            ItemProxy factory;
-            Viewpoint newInstance;
+        // these DescObject cannot be marshalled by castor due to the use of CDATA
+        if (res == SCHEMA_RESOURCE || res == SCRIPT_RESOURCE || res == QUERY_RESOURCE) {
+            DomainPath factoryPath = new DomainPath("/desc/dev/" + res.getSchemaName() + "Factory");
 
             try {
-                factory = Gateway.getProxyManager().getProxy(factoryPath);
-                newInstance = factory.getViewpoint(schema, "last");
+                ItemProxy factory = Gateway.getProxyManager().getProxy(factoryPath);
+                Viewpoint newInstance = factory.getViewpoint(res.getSchemaName(), "last");
                 return newInstance.getOutcome().getData();
             }
             catch (Exception e) {
-                log.error("Error loading new "+schema, e);
-                throw new InvalidDataException("Error loading new "+schema);
+                log.error("Error creating new schema:'"+res.getSchemaName()+"'", e);
+                throw new InvalidDataException("Error loading new schema:'"+res.getSchemaName()+"' exception:"+e.getMessage());
+            }
+        }
+        else {
+            try {
+                return Gateway.getMarshaller().marshall(emptyObj);
+            }
+            catch (Exception e) {
+                log.error("Error creating empty type:'"+type+"'", e);
+                throw new InvalidDataException("Error creating empty type:'"+type+"' exception:"+e.getMessage());
             }
         }
     }

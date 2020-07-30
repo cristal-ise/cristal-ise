@@ -23,13 +23,21 @@ abstract class ModuleScriptBase extends DelegatingScript {
 
     String resourceRoot = null
     String exportRoot = null
+    String moduleXmlDir = null
+    String moduleDir = 'src/main/module'
 
-    String moduletDir = 'src/main/module'
-    
-    Integer logLevel = 0
-    
+    @Deprecated
     def setModuletDir(URI uri) {
-        moduletDir = Paths.get(uri).parent.toString()
+        setModuleDir(uri)
+    }
+
+    @Deprecated
+    String getModuletDir() {
+        return moduleDir
+    }
+
+    def setModuleDir(URI uri) {
+        moduleDir = Paths.get(uri).parent.toString()
     }
 
     public void init() {
@@ -38,28 +46,32 @@ abstract class ModuleScriptBase extends DelegatingScript {
         if (configDir) {
             config  = config  ?: "$configDir/$defaultConfig"
             connect = connect ?: "$configDir/$defaultConnect"
-
-            log.info('config:{}, connect:{}', config, connect)
         }
 
-        if (!connect || !config) throw new InvalidDataException("Missing connect '"+connect+"' or config '"+config+"' files")
+        if (!connect || !config) {
+            log.info('init() - generation only mode')
 
-        Gateway.init(AbstractMain.readPropertyFiles(config, connect, null))
-        Gateway.connect()
+            // Runs the dsl scripts in the generation only mode, no connection to database
+            Gateway.init(new Properties())
+        }
+        else {
+            log.info('init() - config:{}, connect:{}', config, connect)
+
+            Gateway.init(AbstractMain.readPropertyFiles(config, connect, null))
+            Gateway.connect()
+        }
     }
 
-    public void Module(Map args, Closure cl) {        
+    public void Module(Map args, @DelegatesTo(ModuleDelegate) Closure cl) {
         init()
 
-        ModuleDelegate md = new ModuleDelegate(
-            (String)args.ns, 
-            (String)args.name, 
-            (Integer)args.version,
-            resourceRoot,
-            exportRoot,
-            moduletDir,
-            this.binding
-        )
+        args.resourceRoot = resourceRoot
+        args.exportRoot = exportRoot
+        args.moduleDir = moduleDir
+        args.moduleXmlDir = moduleXmlDir
+        args.bindings = this.binding
+
+        ModuleDelegate md = new ModuleDelegate(args)
 
         if(cl) md.processClosure(cl)
 

@@ -33,7 +33,7 @@ import org.cristalise.kernel.process.Gateway;
 
 public class RolePath extends Path {
     private boolean hasJobList = false;
-    
+
     //LinkedHashSet is used to make permissions string unique and to keep its original order
     private Set<String> permissions = new LinkedHashSet<>();
 
@@ -55,7 +55,7 @@ public class RolePath extends Path {
     }
 
     public RolePath(RolePath parent, String roleName, List<String> newPermissions) {
-        this(parent, roleName, new LinkedHashSet<>(newPermissions));
+        this(parent, roleName, newPermissions != null ? new LinkedHashSet<>(newPermissions) : null);
     }
 
     public RolePath(String path, boolean jobList) {
@@ -69,7 +69,7 @@ public class RolePath extends Path {
     }
     
     public RolePath(String path, boolean jobList, List<String> newPermissions) {
-        this(path, jobList, new LinkedHashSet<>(newPermissions));
+        this(path, jobList, newPermissions != null ? new LinkedHashSet<>(newPermissions) : null);
     }
 
     public RolePath(String[] path, boolean jobList) {
@@ -131,13 +131,17 @@ public class RolePath extends Path {
     }
 
     public void setPermissions(List<String> newPermissions) {
-        this.permissions.clear();
-        this.permissions.addAll(newPermissions);
+        if (newPermissions != null) {
+            this.permissions.clear();
+            this.permissions.addAll(newPermissions);
+        }
     }
 
     public void setPermissions(Set<String> newPermissions) {
-        this.permissions.clear();
-        this.permissions.addAll(newPermissions);
+        if (newPermissions != null) {
+            this.permissions.clear();
+            this.permissions.addAll(newPermissions);
+        }
     }
 
     public Iterator<Path> getChildren() {

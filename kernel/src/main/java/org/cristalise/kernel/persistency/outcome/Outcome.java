@@ -28,6 +28,7 @@ import java.io.StringWriter;
 import java.io.Writer;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -57,8 +58,6 @@ import org.cristalise.kernel.persistency.ClusterType;
 import org.cristalise.kernel.process.AbstractMain;
 import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.utils.LocalObjectLoader;
-import org.custommonkey.xmlunit.Diff;
-import org.custommonkey.xmlunit.XMLUnit;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NamedNodeMap;
@@ -66,6 +65,11 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
+import org.xmlunit.builder.DiffBuilder;
+import org.xmlunit.diff.DefaultNodeMatcher;
+import org.xmlunit.diff.Diff;
+import org.xmlunit.diff.Difference;
+import org.xmlunit.diff.ElementSelectors;
 
 import lombok.Getter;
 import lombok.Setter;
@@ -1090,17 +1094,28 @@ public class Outcome implements C2KLocalObject {
      * Utility method to comare 2 XML Documents
      *
      * @param origDocument XML document
-     * @param otherDOM the other XML
+     * @param otherDocument the other XML document
      * @return true if the two XML Documents are identical, otherwise returns false
      */
-    public static boolean isIdentical(Document origDocument, Document otherDOM) {
-        XMLUnit.setIgnoreWhitespace(true);
-        XMLUnit.setIgnoreComments(true);
+    public static boolean isIdentical(Document origDocument, Document otherDocument) {
+        Diff xmlDiff = DiffBuilder.compare(origDocument).withTest(otherDocument)
+                .withNodeMatcher(new DefaultNodeMatcher(ElementSelectors.byNameAndAllAttributes))
+                .ignoreComments()
+                .ignoreWhitespace()
+                .checkForSimilar()
+                .build();
 
-        Diff xmlDiff = new Diff(origDocument, otherDOM);
+        if (xmlDiff.hasDifferences()) {
+            Iterator<Difference> allDiffs = xmlDiff.getDifferences().iterator();
 
-        if (!xmlDiff.identical()) {
-            log.info("{}", xmlDiff.toString());
+            for (int i = 1; allDiffs.hasNext(); i++) log.info("Diff #{}:{}", i, allDiffs.next());
+
+            try {
+                log.debug("expected:{}", serialize(origDocument, false));
+                log.debug("actual:{}", serialize(otherDocument, false));
+            }
+            catch (InvalidDataException e) {}
+
             return false;
         }
         else

@@ -37,12 +37,21 @@ class AgentDelegate extends PropertyDelegate {
 
     ImportAgent newAgent = null
 
+    public AgentDelegate(Map<String, Object> args) {
+        assert args && args.name && args.password
+
+        newAgent = new ImportAgent((String)args.name, (String)args.password)
+
+        if (args.folder) newAgent.initialPath = args.folder
+        if (args.version != null) newAgent.version = args.version as Integer
+    }
+
     public AgentDelegate(String folder, String name, String pwd) {
-        newAgent = new ImportAgent(folder, name, pwd)
+        this(['folder': folder, 'name': name, 'password': pwd] as Map<String, Object>)
     }
 
     public AgentDelegate(String name, String pwd) {
-        newAgent = new ImportAgent(name, pwd)
+        this(['name': name, 'password': pwd] as Map<String, Object>)
     }
 
     public void processClosure(Closure cl) {

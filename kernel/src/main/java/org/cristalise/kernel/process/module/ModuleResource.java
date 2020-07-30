@@ -20,6 +20,8 @@
  */
 package org.cristalise.kernel.process.module;
 
+import java.util.Arrays;
+
 import org.apache.commons.lang3.StringUtils;
 import org.cristalise.kernel.common.CannotManageException;
 import org.cristalise.kernel.common.InvalidDataException;
@@ -39,12 +41,9 @@ import lombok.extern.slf4j.Slf4j;
 @Getter @Setter @Slf4j
 public class ModuleResource extends ModuleImport {
 
-    public int              version;
+    public Integer          version;
     public BuiltInResources type;
     public String           resourceLocation;
-
-    @Getter
-    String resourceChangeDetails = null;
 
     public ModuleResource() {
         // if not given, version defaults to 0
@@ -77,7 +76,9 @@ public class ModuleResource extends ModuleImport {
 
     public String getResourceLocation() {
         if (StringUtils.isBlank(resourceLocation) && ns != null) {
-            if (Gateway.getProperties().getString("Resource.moduleUseFileNameWithVersion", "").equals(ns)) {
+            String[] vals = Gateway.getProperties().getString("Resource.moduleUseFileNameWithVersion", "").split(",");
+
+            if (Arrays.asList(vals).contains(ns)) {
                 resourceLocation = getResourceDir() + "/" + name + "_" + version + "." + getResourceExt();
             }
             else {
@@ -96,6 +97,7 @@ public class ModuleResource extends ModuleImport {
             ResourceImportHandler importHandler = Gateway.getResourceImportHandler(type);
 
             domainPath = importHandler.importResource(ns, name, version, itemPath, getResourceLocation(), reset);
+            resourceChangeStatus = importHandler.getResourceChangeStatus();
             resourceChangeDetails = importHandler.getResourceChangeDetails();
 
             if (itemPath == null) itemPath = domainPath.getItemPath();

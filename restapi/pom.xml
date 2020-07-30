@@ -35,7 +35,7 @@
     <name>CRISTAL-iSE Restapi</name>
     <packaging>jar</packaging>
     <description>CRISTAL-iSE REST API Module</description>
-    <url>https://github.com/cristal-ise/xpath-outcomeinit</url>
+    <url>https://github.com/cristal-ise/restapi</url>
     <licenses>
         <license>
             <name>GNU Library or Lesser General Public License v3 (LGPL3)</name>

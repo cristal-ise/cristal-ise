@@ -1,0 +1,8 @@
+xsd,,,,,,unit,,dynamicForms,,,,
+class,name,type,default,values,documentation,values,default,placeholder,mask,width,updateScriptRef,disabled
+struct,PatientDetails,,,,This is the Schema for Basic Tutorial,,,,,100%,,
+attribute,InsuranceNumber,string,123456789ABC,,,,,,,,,
+field,FullName,string,,,,,,,,,,TRUE
+field,DateOfBirth,date,,,DateOfBirth docs,,,,,,,
+field,Gender,string,,"male,female",,,,,999.99,,Script:0,
+field,Weight,decimal,,,,"g,kg",kg,999.99,,,,

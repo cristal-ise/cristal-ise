@@ -20,53 +20,15 @@
  */
 package org.cristalise.kernel.lifecycle.instance.predefined.server;
 
-import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.SCHEMA_NAME;
+import org.cristalise.kernel.lifecycle.instance.predefined.ImportImportRole;
 
-import java.io.IOException;
-
-import org.cristalise.kernel.common.CannotManageException;
-import org.cristalise.kernel.common.InvalidDataException;
-import org.cristalise.kernel.common.ObjectAlreadyExistsException;
-import org.cristalise.kernel.common.ObjectCannotBeUpdated;
-import org.cristalise.kernel.common.ObjectNotFoundException;
-import org.cristalise.kernel.entity.imports.ImportRole;
-import org.cristalise.kernel.lifecycle.instance.predefined.PredefinedStep;
-import org.cristalise.kernel.lookup.AgentPath;
-import org.cristalise.kernel.lookup.ItemPath;
-import org.cristalise.kernel.lookup.RolePath;
-import org.cristalise.kernel.process.Gateway;
-import org.exolab.castor.mapping.MappingException;
-import org.exolab.castor.xml.MarshalException;
-import org.exolab.castor.xml.ValidationException;
-
-import lombok.extern.slf4j.Slf4j;
-
-@Slf4j
-public class CreateNewRole extends PredefinedStep {
+/**
+ * This class is only kept for backward compatibility
+ * @deprecated use:{@link ImportImportRole}
+ */
+@Deprecated
+public class CreateNewRole extends ImportImportRole {
     public CreateNewRole() {
         super();
-        setBuiltInProperty(SCHEMA_NAME, "Role");
-    }
-
-    @Override
-    protected String runActivityLogic(AgentPath agent, ItemPath item, int transitionID, String requestData, Object locker)
-            throws InvalidDataException, ObjectAlreadyExistsException, ObjectCannotBeUpdated, 
-                   CannotManageException, ObjectNotFoundException 
-    {
-        try {
-            ImportRole newRole = (ImportRole) Gateway.getMarshaller().unmarshall(requestData);
-
-            if (Gateway.getLookup().exists(new RolePath(newRole.getName(), newRole.jobList) ))
-                throw new ObjectAlreadyExistsException("CreateNewRole: Role '" + newRole.getName() + "' already exists.");
-
-            newRole.create(agent, true);
-
-            return requestData;
-        }
-        catch (MarshalException | ValidationException | IOException | MappingException e) {
-            log.error("CreateNewRole: Couldn't unmarshall new Role: " + requestData, e);
-            throw new InvalidDataException("CreateNewRole: Couldn't unmarshall new Role: " + requestData);
-        }
-
     }
 }

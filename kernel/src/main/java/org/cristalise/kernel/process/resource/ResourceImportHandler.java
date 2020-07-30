@@ -30,6 +30,7 @@ import org.cristalise.kernel.property.PropertyDescriptionList;
 
 
 public interface ResourceImportHandler {
+    // TODO: Implement REMOVE
     public enum Status {IDENTICAL, NEW, UPDATED, OVERWRITTEN, SKIPPED, REMOVED};
 
     /**
@@ -167,4 +168,6 @@ public interface ResourceImportHandler {
      * @return xml string
      */
     public String getResourceChangeDetails();
+
+    public Status getResourceChangeStatus();
 }

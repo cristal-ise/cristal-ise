@@ -24,6 +24,9 @@ import static org.cristalise.kernel.property.BuiltInItemProperties.CREATOR;
 import static org.cristalise.kernel.property.BuiltInItemProperties.NAME;
 import static org.cristalise.kernel.security.BuiltInAuthc.ADMIN_ROLE;
 
+import java.io.File;
+import java.io.IOException;
+import java.io.Writer;
 import java.util.ArrayList;
 
 import org.apache.commons.lang3.StringUtils;
@@ -54,8 +57,11 @@ import org.cristalise.kernel.persistency.outcome.Schema;
 import org.cristalise.kernel.persistency.outcome.Viewpoint;
 import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.process.module.ModuleImport;
+import org.cristalise.kernel.process.resource.BuiltInResources;
 import org.cristalise.kernel.property.Property;
 import org.cristalise.kernel.property.PropertyArrayList;
+import org.cristalise.kernel.utils.DescriptionObject;
+import org.cristalise.kernel.utils.FileStringUtility;
 import org.cristalise.kernel.utils.LocalObjectLoader;
 
 import lombok.Getter;
@@ -66,7 +72,9 @@ import lombok.extern.slf4j.Slf4j;
  * Complete Structure for new Item created by different bootstrap uses cases including testing
  */
 @Getter @Setter @Slf4j
-public class ImportItem extends ModuleImport {
+public class ImportItem extends ModuleImport implements DescriptionObject {
+
+    protected Integer version;
 
     protected String  initialPath;
     protected String  workflow;
@@ -92,9 +100,10 @@ public class ImportItem extends ModuleImport {
 
     public ImportItem() {}
 
-    public ImportItem(String ns, String name, String initialPath, ItemPath itemPath, String wf, int wfVer) {
+    public ImportItem(String ns, String name, Integer version, String initialPath, ItemPath itemPath, String wf, Integer wfVer) {
         setNamespace(ns);
         setName(name);
+        setVersion(version);
         setItemPath(itemPath);
         setInitialPath(initialPath);
         setWorkflow(wf);
@@ -104,16 +113,45 @@ public class ImportItem extends ModuleImport {
         wf = null;
     }
 
+    public ImportItem(String ns, String name, String initialPath, ItemPath itemPath, String wf, Integer wfVer) {
+        this(ns, name, null, initialPath, itemPath, wf, wfVer);
+    }
+
     /**
-     * Try to find ItemPath if already exists. If not create new one.
+     * Constructor with mandatory fields
+     * 
+     * @param name
+     * @param initialPath
+     * @param itemPath
+     * @param wf
+     */
+    public ImportItem(String name, String initialPath, ItemPath itemPath, String wf) {
+        this(null, name, null, initialPath, itemPath, wf, null);
+    }
+
+    /**
+     * 
+     */
+    @Override
+    public DomainPath getDomainPath() {
+        if (domainPath == null) domainPath = new DomainPath(new DomainPath(initialPath), name);
+        return domainPath;
+    }
+
+    public boolean exists() {
+        return getDomainPath().exists();
+    }
+
+    /**
+     * Tries to find ItemPath if already exists. If not create new one.
      */
     @Override
     public ItemPath getItemPath() {
         if (itemPath == null) {
-            DomainPath existingItem = new DomainPath(initialPath + "/" + name);
-            if (existingItem.exists()) {
+            getDomainPath();
+            if (domainPath.exists()) {
                 try {
-                    itemPath = existingItem.getItemPath();
+                    itemPath = domainPath.getItemPath();
                 }
                 catch (ObjectNotFoundException ex) {}
             }
@@ -150,7 +188,7 @@ public class ImportItem extends ModuleImport {
 
         if (ip.exists()) {
             log.info("getTraceableEntitiy() - Verifying module item "+domainPath+" at "+ip);
-            newItem = Gateway.getCorbaServer().getItem(getItemPath());
+            newItem = Gateway.getCorbaServer().getItem(ip);
             isNewItem = false;
         }
         else {
@@ -169,7 +207,7 @@ public class ImportItem extends ModuleImport {
             throws InvalidDataException, ObjectCannotBeUpdated, ObjectNotFoundException,
             CannotManageException, ObjectAlreadyExistsException, InvalidCollectionModification, PersistencyException
     {
-        domainPath = new DomainPath(new DomainPath(initialPath), name);
+        getDomainPath();
 
         log.info("create() - path:{}", domainPath);
 
@@ -179,7 +217,8 @@ public class ImportItem extends ModuleImport {
                 throw new CannotManageException("Item "+domainPath+" was found with the wrong itemPath ("+domainPath.getItemPath()+" vs "+getItemPath()+")");
             }
         }
-        else isDOMPathExists = false;
+        else
+            isDOMPathExists = false;
 
         TraceableEntity newItem = getTraceableEntitiy();
 
@@ -280,13 +319,14 @@ public class ImportItem extends ModuleImport {
         }
         else {
             if (compActDef == null) {
-                // default workflow version is 0 if not given
                 if (StringUtils.isNotBlank(workflow)) {
-                    compActDef = (CompositeActivityDef) LocalObjectLoader.getActDef(workflow, workflowVer == null ? 0 : workflowVer);
+                    // default workflow version is 0 if not given
+                    int v = workflowVer != null ? workflowVer : 0;
+                    compActDef = (CompositeActivityDef) LocalObjectLoader.getActDef(workflow, v);
                 }
                 else {
                     log.warn("createCompositeActivity() - NO Workflow was set for domainPath:"+domainPath);
-                    compActDef = (CompositeActivityDef) LocalObjectLoader.getActDef("NoWorkflow", workflowVer == null ? 0 : workflowVer);
+                    compActDef = (CompositeActivityDef) LocalObjectLoader.getActDef("NoWorkflow", 0);
                 }
             }
         }
@@ -318,5 +358,55 @@ public class ImportItem extends ModuleImport {
         log.info("createCollections() - name:{} number of colls:{}", name, colls.list.size());
 
         return colls;
+    }
+
+    @Override
+    public String getItemID() {
+        return getID();
+    }
+
+    @Override
+    public CollectionArrayList makeDescCollections() throws InvalidDataException, ObjectNotFoundException {
+        return new CollectionArrayList();
+    }
+
+    @Override
+    public void export(Writer imports, File dir, boolean shallow) throws InvalidDataException, ObjectNotFoundException, IOException {
+        String xml;
+        String typeCode = BuiltInResources.ITEM_DESC_RESOURCE.getTypeCode();
+        String fileName = getName() + (getVersion() == null ? "" : "_" + getVersion()) + ".xml";
+
+        try {
+            xml = Gateway.getMarshaller().marshall(this);
+        }
+        catch (Exception e) {
+            log.error("Couldn't marshall name:" + getName(), e);
+            throw new InvalidDataException("Couldn't marshall name:" + getName());
+        }
+
+        FileStringUtility.string2File(new File(new File(dir, typeCode), fileName), xml);
+
+        if (imports == null) return;
+
+        if (Gateway.getProperties().getBoolean("Resource.useOldImportFormat", false)) {
+            imports.write("<Resource "
+                    + "name='" + getName() + "' "
+                    + (getItemPath() == null ? "" : "id='"      + getItemID()  + "' ")
+                    + (getVersion()  == null ? "" : "version='" + getVersion() + "' ")
+                    + "type='" + typeCode + "'>boot/" + typeCode + "/" + fileName
+                    + "</Resource>\n");
+        }
+        else {
+            imports.write("<ItemResource "
+                    + "name='" + getName() + "' "
+                    + (getItemPath() == null ? "" : "id='"      + getItemID()  + "' ")
+                    + (getVersion()  == null ? "" : "version='" + getVersion() + "'")
+                    + "/>\n");
+        }
+    }
+
+    @Override
+    public String toString() {
+        return "ImportItem(name:"+name+" version:"+version+" status:"+resourceChangeStatus+")";
     }
 }

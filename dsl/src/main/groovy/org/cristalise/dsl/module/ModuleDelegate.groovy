@@ -24,23 +24,51 @@ import static org.cristalise.kernel.process.resource.BuiltInResources.PROPERTY_D
 
 import org.codehaus.groovy.control.CompilerConfiguration
 import org.cristalise.dsl.entity.AgentBuilder
+import org.cristalise.dsl.entity.AgentDelegate
 import org.cristalise.dsl.entity.ItemBuilder
+import org.cristalise.dsl.entity.ItemDelegate
 import org.cristalise.dsl.entity.RoleBuilder
+import org.cristalise.dsl.entity.RoleDelegate
 import org.cristalise.dsl.lifecycle.definition.CompActDefBuilder
+import org.cristalise.dsl.lifecycle.definition.CompActDefDelegate
 import org.cristalise.dsl.lifecycle.definition.ElemActDefBuilder
+import org.cristalise.dsl.lifecycle.definition.ElemActDefDelegate
 import org.cristalise.dsl.lifecycle.stateMachine.StateMachineBuilder
+import org.cristalise.dsl.lifecycle.stateMachine.StateMachineDelegate
 import org.cristalise.dsl.persistency.outcome.SchemaBuilder
+import org.cristalise.dsl.persistency.outcome.SchemaDelegate
 import org.cristalise.dsl.property.PropertyDescriptionBuilder
+import org.cristalise.dsl.property.PropertyDescriptionDelegate
 import org.cristalise.dsl.querying.QueryBuilder
+import org.cristalise.dsl.querying.QueryDelegate
 import org.cristalise.dsl.scripting.ScriptBuilder
+import org.cristalise.dsl.scripting.ScriptDelegate
 import org.cristalise.kernel.common.InvalidDataException
+import org.cristalise.kernel.entity.imports.ImportAgent
 import org.cristalise.kernel.entity.imports.ImportItem
+import org.cristalise.kernel.entity.imports.ImportRole
+import org.cristalise.kernel.graph.layout.DefaultGraphLayoutGenerator
 import org.cristalise.kernel.lifecycle.ActivityDef
 import org.cristalise.kernel.lifecycle.CompositeActivityDef
 import org.cristalise.kernel.lifecycle.instance.stateMachine.StateMachine
 import org.cristalise.kernel.persistency.outcome.Schema
 import org.cristalise.kernel.process.Gateway
-import org.cristalise.kernel.process.module.*
+import org.cristalise.kernel.process.module.Module
+import org.cristalise.kernel.process.module.ModuleActivity
+import org.cristalise.kernel.process.module.ModuleAgent
+import org.cristalise.kernel.process.module.ModuleConfig
+import org.cristalise.kernel.process.module.ModuleDescRef
+import org.cristalise.kernel.process.module.ModuleImport
+import org.cristalise.kernel.process.module.ModuleInfo
+import org.cristalise.kernel.process.module.ModuleItem
+import org.cristalise.kernel.process.module.ModulePropertyDescription
+import org.cristalise.kernel.process.module.ModuleQuery
+import org.cristalise.kernel.process.module.ModuleRole
+import org.cristalise.kernel.process.module.ModuleSchema
+import org.cristalise.kernel.process.module.ModuleScript
+import org.cristalise.kernel.process.module.ModuleStateMachine
+import org.cristalise.kernel.process.module.ModuleWorkflow
+import org.cristalise.kernel.process.resource.BuiltInResources
 import org.cristalise.kernel.property.PropertyDescriptionList
 import org.cristalise.kernel.querying.Query
 import org.cristalise.kernel.scripting.Script
@@ -56,7 +84,7 @@ import groovy.xml.XmlUtil
  *
  */
 @CompileStatic @Slf4j
-class ModuleDelegate {
+class ModuleDelegate implements BindingConvention {
 
     Module module = null
     Module newModule = null
@@ -65,40 +93,52 @@ class ModuleDelegate {
     String resourceRoot = 'src/main/resources'
     String exportRoot   = 'src/main/script/'
     String moduleDir    = 'src/main/script/'
+    String moduleXmlDir = null
 
-    private String resourceBoot = null
+    private File resourceBootDir = null
     private File moduleXMLFile = null
 
-    public ModuleDelegate(String ns, String n, int v, String resRoot, String expRoot, String modDir, Binding b = null) {
-        this(ns, n, v, b)
-
-        if (resRoot) resourceRoot = resRoot
-        if (expRoot) exportRoot   = expRoot
-        if (modDir)  moduleDir    = modDir
-
-        resourceBoot = "$resourceRoot/boot"
-        moduleXMLFile = new File("$resourceRoot/module.xml")
-    }
-
-    public ModuleDelegate(String ns, String n, int v, Binding b = null) {
-        if (b) bindings = b
-        else   bindings = new Binding()
+    public ModuleDelegate(Map<String, Object> args) {
+        assert args.ns && args.name && args.version != null
 
         newModule = new Module()
         newModule.info = new ModuleInfo()
-        newModule.ns = ns
-        newModule.name = n
-        newModule.info.version = Integer.toString(v)
+        newModule.ns = args.ns
+        newModule.name = args.name
+        newModule.info.version = args.version
 
-        resourceBoot = "$resourceRoot/boot"
-        moduleXMLFile = new File("$resourceRoot/module.xml")
+        if (args.bindings) bindings = (Binding) args.bindings
+        else               bindings = new Binding()
+
+        if (args.resourceRoot) resourceRoot = args.resourceRoot
+        if (args.exportRoot)   exportRoot   = args.exportRoot
+        if (args.moduleDir)    moduleDir    = args.moduleDir
+        if (args.moduleXmlDir) moduleXmlDir = args.moduleXmlDir
+
+        if (!moduleXmlDir) moduleXmlDir = resourceRoot
+
+        moduleXMLFile = new File("$moduleXmlDir/module.xml")
 
         if (moduleXMLFile.exists()) {
             module = (Module) Gateway.getMarshaller().unmarshall(moduleXMLFile.text)
-            assert module.ns == ns
-            assert module.name == n
+            assert module.ns == newModule.ns
+            assert module.name == newModule.name
         }
 
+        new FileTreeBuilder(new File(resourceRoot)).dir('boot') {
+            for (def res : BuiltInResources.values()) {
+                dir(res.getTypeCode())
+            }
+        }
+        resourceBootDir = new File("$resourceRoot/boot")
+    }
+
+    public ModuleDelegate(String ns, String n, int v, String resRoot, String expRoot, String modDir, Binding b = null) {
+        this('ns': ns, 'name': n, 'version': v, 'resourceRoot': resRoot, 'exportRoot': expRoot, 'moduleDir': modDir, 'bindings': b)
+    }
+
+    public ModuleDelegate(String ns, String n, int v, Binding b = null) {
+        this('ns': ns, 'name': n, 'version': v, 'bindings': b)
     }
 
     public include(String scriptFile) {
@@ -118,9 +158,16 @@ class ModuleDelegate {
         return schema
     }
 
-    public Schema Schema(String name, Integer version, Closure cl) {
+    public Schema Schema(String name, Integer version, @DelegatesTo(SchemaDelegate) Closure cl) {
         def schema = SchemaBuilder.build(name, version, cl)
-        schema.export(null, new File(resourceBoot), true)
+        schema.export(null, resourceBootDir, true)
+        addSchema(schema)
+        return schema
+    }
+
+    public Schema Schema(String name, Integer version, File file) {
+        def schema = SchemaBuilder.build(name, version, file)
+        schema.export(null, resourceBootDir, true)
         addSchema(schema)
         return schema
     }
@@ -131,9 +178,9 @@ class ModuleDelegate {
         return query
     }
 
-    public Query Query(String name, Integer version, Closure cl) {
+    public Query Query(String name, Integer version, @DelegatesTo(QueryDelegate) Closure cl) {
         def query = QueryBuilder.build(newModule.name, name, version, cl)
-        query.export(null, new File(resourceBoot), true)
+        query.export(null, resourceBootDir, true)
         addQuery(query)
         return query
     }
@@ -144,9 +191,9 @@ class ModuleDelegate {
         return script
     }
 
-    public Script Script(String name, Integer version, Closure cl) {
+    public Script Script(String name, Integer version, @DelegatesTo(ScriptDelegate) Closure cl) {
         def script = ScriptBuilder.build(name, version, cl)
-        script.export(null, new File(resourceBoot), true)
+        script.export(null, resourceBootDir, true)
         addScript(script)
         return script
     }
@@ -157,9 +204,9 @@ class ModuleDelegate {
         return sm
     }
 
-    public StateMachine StateMachine(String name, Integer version, Closure cl) {
+    public StateMachine StateMachine(String name, Integer version, @DelegatesTo(StateMachineDelegate) Closure cl) {
         def sm = StateMachineBuilder.build("", name, version, cl).sm
-        sm.export(null, new File(resourceBoot), true)
+        sm.export(null, resourceBootDir, true)
         addStateMachine(sm)
         return sm
     }
@@ -170,9 +217,9 @@ class ModuleDelegate {
         return eaDef
     }
 
-    public ActivityDef Activity(String name, Integer version, Closure cl) {
+    public ActivityDef Activity(String name, Integer version, @DelegatesTo(ElemActDefDelegate) Closure cl) {
         def eaDef = ElemActDefBuilder.build(name, version, cl)
-        eaDef.export(null, new File(resourceBoot), true)
+        eaDef.export(null, resourceBootDir, true)
         addActivityDef(eaDef)
         return eaDef
     }
@@ -184,15 +231,34 @@ class ModuleDelegate {
     }
 
     /**
-     * Enable export if workflow needs to be generated.
-     * e.g. caDef.export(imports, new File(exportRoot), true)
+     * 
      * @param name
      * @param version
      * @param cl
      * @return
      */
-    public CompositeActivityDef Workflow(String name, Integer version, Closure cl) {
-        def caDef = CompActDefBuilder.build(name, version, cl)
+    public CompositeActivityDef Workflow(String name, Integer version, @DelegatesTo(CompActDefDelegate) Closure cl) {
+        return Workflow(name: name, version: version, generate: false, cl)
+    }
+
+    /**
+     * Enable export if workflow needs to be generated, e.g. caDef.export(imports, new File(exportRoot), true)
+     * 
+     * @param args
+     * @param cl
+     * @return
+     */
+    public CompositeActivityDef Workflow(Map args, @DelegatesTo(CompActDefDelegate) Closure cl) {
+        def caDef = CompActDefBuilder.build((String)args.name, (Integer)args.version, cl)
+
+        if (args?.generate) {
+            DefaultGraphLayoutGenerator.layoutGraph(caDef.childrenGraphModel)
+            caDef.export(null, resourceBootDir, true)
+        }
+        else {
+            assert new File(new File(resourceBootDir, 'CA'), ""+args.name + (args.version == null ? "" : "_" + args.version) + ".xml").exists()
+        }
+
         addCompositeActivityDef(caDef)
         return caDef
     }
@@ -201,19 +267,19 @@ class ModuleDelegate {
      * Generates xml files for the define property description values.
      * @param cl
      */
-    public void PropertyDescriptionList(Closure cl) {
+    public void PropertyDescriptionList(@DelegatesTo(PropertyDescriptionDelegate) Closure cl) {
         def propDescList = PropertyDescriptionBuilder.build(cl)
         def type = propDescList.list.find { it.isClassIdentifier && it.name == 'Type' }
 
         FileStringUtility.string2File(
-            new File(new File(resourceBoot+"/"+PROPERTY_DESC_RESOURCE.typeCode), "${type.defaultValue}.xml"),
+            new File(new File(resourceBootDir.path+"/"+PROPERTY_DESC_RESOURCE.typeCode), "${type.defaultValue}.xml"),
             XmlUtil.serialize(Gateway.getMarshaller().marshall(propDescList))
         )
     }
 
-    public PropertyDescriptionList PropertyDescriptionList(String name, Integer version, Closure cl) {
+    public PropertyDescriptionList PropertyDescriptionList(String name, Integer version, @DelegatesTo(PropertyDescriptionDelegate) Closure cl) {
         def propDescList = PropertyDescriptionBuilder.build(name, version, cl)
-        propDescList.export(null, new File(resourceBoot), true)
+        propDescList.export(null, resourceBootDir, true)
         addPropertyDescriptionList(propDescList)
 
         return propDescList
@@ -225,11 +291,20 @@ class ModuleDelegate {
      * @param password
      * @param cl
      */
-    public void Agent(Map args, Closure cl) {
+    public ImportAgent Agent(Map args, @DelegatesTo(AgentDelegate) Closure cl) {
         def agent = AgentBuilder.build(args, cl)
         agent.roles.each { it.jobList = null }
 
-        updateImports(agent)
+        if (Gateway.getProperties().getBoolean('DSL.Module.generateAllResourceItems', true)) {
+            agent.export(null, resourceBootDir, true)
+            addImportAgent(agent)
+        }
+        else {
+            //Original functionality: XML of ImportAgent is added to the module.xml
+            updateImports(agent)
+        }
+
+        return agent
     }
 
     /**
@@ -238,12 +313,18 @@ class ModuleDelegate {
      * @param args
      * @param cl
      */
-    public ImportItem Item(Map args, Closure cl) {
-        def item = ItemBuilder.build((String) args.name, (String) args.folder, args.workflow, args?.workflowVer as Integer, cl)
-
+    public ImportItem Item(Map args, @DelegatesTo(ItemDelegate) Closure cl) {
+        def item = ItemBuilder.build(args, cl)
         item.properties.removeAll { it.value == args.name }
 
-        updateImports(item)
+        if (Gateway.getProperties().getBoolean('DSL.Module.generateAllResourceItems', true)) {
+            item.export(null, resourceBootDir, true)
+            addImportItem(item)
+        }
+        else {
+            //Original functionality: XML of ImportItem is added to the module.xml
+            updateImports(item)
+        }
 
         return item
     }
@@ -252,9 +333,21 @@ class ModuleDelegate {
      * Collects define roles and add/update on module.xml.
      * @param cl
      */
-    public void Roles(Closure cl) {
+    public List<ImportRole> Roles(@DelegatesTo(RoleDelegate) Closure cl) {
         def importRoles = RoleBuilder.build(cl)
-        importRoles.each {         updateImports(it) }
+
+        importRoles.each { role ->
+            if (Gateway.getProperties().getBoolean('DSL.Module.generateAllResourceItems', true)) {
+                role.export(null, resourceBootDir, true)
+                addImportRole(role)
+            }
+            else {
+                //Original functionality: XML of ImportRole is added to the module.xml
+                updateImports(role)
+            }
+        }
+
+        return importRoles
     }
 
     /**
@@ -321,6 +414,8 @@ class ModuleDelegate {
      * @param sm
      */
     private void addStateMachine(StateMachine sm) {
+        addToBingings(bindings, sm)
+
         ModuleStateMachine moduleSm = new ModuleStateMachine()
 
         moduleSm.setVersion(sm.version)
@@ -335,6 +430,8 @@ class ModuleDelegate {
      * @param obj
      */
     private void addQuery(Query query) {
+        addToBingings(bindings, query)
+
         ModuleQuery moduleQuery = new ModuleQuery()
 
         moduleQuery.setVersion(query.version)
@@ -349,6 +446,8 @@ class ModuleDelegate {
      * @param obj
      */
     private void addSchema(Schema schema) {
+        addToBingings(bindings, schema)
+
         ModuleSchema moduleSchema = new ModuleSchema()
 
         moduleSchema.setVersion(schema.version)
@@ -363,6 +462,8 @@ class ModuleDelegate {
      * @param obj
      */
     private void addScript(Script script) {
+        addToBingings(bindings, script)
+
         ModuleScript moduleScript = new ModuleScript()
 
         moduleScript.setVersion(script.version)
@@ -377,17 +478,19 @@ class ModuleDelegate {
      * @param obj
      */
     private void addActivityDef(ActivityDef actDef) {
+        addToBingings(bindings, actDef)
+
         ModuleActivity moduleAct = new ModuleActivity()
 
         moduleAct.setVersion(actDef.version)
         moduleAct.setName(actDef.name)
 
-        if (actDef.script) moduleAct.setScript(new ModuleDescRef(actDef.script.name,       null, actDef.script.version))
-        if (actDef.schema) moduleAct.setSchema(new ModuleDescRef(actDef.schema.name,       null, actDef.schema.version))
-        if (actDef.query)  moduleAct.setQuery( new ModuleDescRef(actDef.query.name,        null, actDef.query.version))
+        if (actDef.script) moduleAct.setScript(new ModuleDescRef(actDef.script.name, null, actDef.script.version))
+        if (actDef.schema) moduleAct.setSchema(new ModuleDescRef(actDef.schema.name, null, actDef.schema.version))
+        if (actDef.query)  moduleAct.setQuery( new ModuleDescRef(actDef.query.name,  null, actDef.query.version))
 
         //Do not add 'Default' StateMachine
-        if (actDef.stateMachine && actDef.stateMachine.name != 'Default') {
+        if (actDef.stateMachine && actDef.stateMachine.name != StateMachine.getDefaultStateMachine('Elementary')) {
             moduleAct.setStateMachine( new ModuleDescRef(actDef.stateMachine.name, null, actDef.stateMachine.version))
         }
 
@@ -399,6 +502,8 @@ class ModuleDelegate {
      * @param caDef
      */
     private void addCompositeActivityDef(CompositeActivityDef caDef) {
+        addToBingings(bindings, caDef)
+
         ModuleWorkflow moduleWf = new ModuleWorkflow()
         moduleWf.setVersion(caDef.version)
         moduleWf.setName(caDef.name)
@@ -411,7 +516,7 @@ class ModuleDelegate {
         }
 
         //Do not add 'CompositeActivity' StateMachine
-        if (caDef.stateMachine && caDef.stateMachine.name != 'CompositeActivity') {
+        if (caDef.stateMachine && caDef.stateMachine.name != StateMachine.getDefaultStateMachine('Composite')) {
             moduleWf.setStateMachine( new ModuleDescRef(caDef.stateMachine.name, null, caDef.stateMachine.version))
         }
 
@@ -419,11 +524,43 @@ class ModuleDelegate {
     }
 
     private void addPropertyDescriptionList(PropertyDescriptionList pdl) {
+        addToBingings(bindings, pdl)
+
         def modulePropDesc = new ModulePropertyDescription()
         modulePropDesc.setVersion(pdl.version)
         modulePropDesc.setName(pdl.name)
 
         updateImports(modulePropDesc)
+    }
+
+    private void addImportAgent(ImportAgent agent) {
+        addToBingings(bindings, agent)
+
+        def moduleAgent = new ModuleAgent()
+        moduleAgent.setName(agent.name)
+        moduleAgent.setVersion(agent.version)
+
+        updateImports(moduleAgent)
+    }
+
+    private void addImportItem(ImportItem item) {
+        addToBingings(bindings, item)
+
+        def moduleItem = new ModuleItem()
+        moduleItem.setName(item.name)
+        moduleItem.setVersion(item.version)
+
+        updateImports(moduleItem)
+    }
+
+    private void addImportRole(ImportRole role) {
+        addToBingings(bindings, role)
+
+        def moduleRole = new ModuleRole()
+        moduleRole.setName(role.name)
+        moduleRole.setVersion(role.version)
+
+        updateImports(moduleRole)
     }
 
     private void updateImports(ModuleImport mImport) {

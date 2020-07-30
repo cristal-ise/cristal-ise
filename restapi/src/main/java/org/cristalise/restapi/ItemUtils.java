@@ -24,6 +24,8 @@ import static javax.ws.rs.core.MediaType.APPLICATION_JSON_TYPE;
 import static javax.ws.rs.core.MediaType.APPLICATION_XML_TYPE;
 import static javax.ws.rs.core.MediaType.TEXT_XML_TYPE;
 import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.ATTACHMENT_MIME_TYPES;
+import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.STATE_MACHINE_NAME;
+import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.STATE_MACHINE_VERSION;
 import static org.cristalise.kernel.persistency.ClusterType.HISTORY;
 import static org.cristalise.kernel.persistency.ClusterType.PROPERTY;
 import static org.cristalise.kernel.persistency.ClusterType.VIEWPOINT;
@@ -385,16 +387,16 @@ public abstract class ItemUtils extends RestHandler {
 
         Object url = uri.getBaseUriBuilder()
                 .path("stateMachine")
-                .path(job.getActPropString("StateMachineName"))
-                .path(job.getActPropString("StateMachineVersion"))
+                .path(job.getActPropString(STATE_MACHINE_NAME))
+                .path(job.getActPropString(STATE_MACHINE_VERSION))
                 .build();
 
         transitionData.put("name",                job.getTransition().getName());
         transitionData.put("id",                  Integer.valueOf(job.getTransition().getId()));
         transitionData.put("origin",              job.getOriginStateName());
         transitionData.put("target",              job.getTargetStateName());
-        transitionData.put("stateMachine",        job.getActPropString("StateMachineName"));
-        transitionData.put("stateMachineVersion", job.getActPropString("StateMachineVersion"));
+        transitionData.put("stateMachine",        job.getActPropString(STATE_MACHINE_NAME));
+        transitionData.put("stateMachineVersion", job.getActPropString(STATE_MACHINE_VERSION));
         transitionData.put("stateMachineUrl",     url);
 
         return transitionData;

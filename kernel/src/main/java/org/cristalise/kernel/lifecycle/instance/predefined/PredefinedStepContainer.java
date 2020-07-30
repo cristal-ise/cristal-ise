@@ -20,6 +20,8 @@
  */
 package org.cristalise.kernel.lifecycle.instance.predefined;
 
+import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.DESCRIPTION;
+
 import org.cristalise.kernel.graph.model.GraphPoint;
 import org.cristalise.kernel.lifecycle.instance.CompositeActivity;
 
@@ -55,11 +57,15 @@ public abstract class PredefinedStepContainer extends CompositeActivity {
         predInit("AddMembersToCollection",    AddMembersToCollection.description,    new AddMembersToCollection());
         predInit("Import", "Imports an outcome into the Item, with a given schema and viewpoint", new Import());
         predInit("CreateAgentFromDescription", "Create a new agent using this item as its description", new CreateAgentFromDescription());
-        predInit(ChangeName.class.getSimpleName(), ChangeName.description, new ChangeName());
-        predInit(Erase.class.getSimpleName(), Erase.description, new Erase());
+        predInit(ChangeName.class, ChangeName.description, new ChangeName());
+        predInit(Erase.class,      Erase.description,      new Erase());
 
-        predInit(UpdateCollectionsFromDescription.class.getSimpleName(), UpdateCollectionsFromDescription.description, new UpdateCollectionsFromDescription());
-        predInit(UpdateProperitesFromDescription.class.getSimpleName(),  UpdateProperitesFromDescription.description,  new UpdateProperitesFromDescription());
+        predInit(UpdateCollectionsFromDescription.class, UpdateCollectionsFromDescription.description, new UpdateCollectionsFromDescription());
+        predInit(UpdateProperitesFromDescription.class,  UpdateProperitesFromDescription.description,  new UpdateProperitesFromDescription());
+
+        predInit(ImportImportAgent.class, ImportImportAgent.description, new ImportImportAgent());
+        predInit(ImportImportItem.class,  ImportImportItem.description,  new ImportImportItem());
+        predInit(ImportImportRole.class,  ImportImportRole.description,  new ImportImportRole());
 
         //UpdateImportReport class is not added to the container because it can only be used during bootstrap
     }
@@ -68,10 +74,10 @@ public abstract class PredefinedStepContainer extends CompositeActivity {
         predInit(clazz.getSimpleName(), description, act);
     }
 
-    public void predInit(String alias, String Description, PredefinedStep act) {
+    public void predInit(String alias, String description, PredefinedStep act) {
         act.setName(alias);
         act.setType(alias);
-        act.getProperties().put("Description", Description);
+        act.setBuiltInProperty(DESCRIPTION, description);
         act.setCentrePoint(new GraphPoint());
         act.setIsPredefined(true);
         addChild(act, new GraphPoint(100, 75 * ++num));

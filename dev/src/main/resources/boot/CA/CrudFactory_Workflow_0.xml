@@ -1,0 +1,94 @@
+<CompositeActivityDef ID="-1" Name="CrudFactory_Workflow" Height="0" Width="0" IsLayoutable="false" IsComposite="true">
+  <childrenGraphModel>
+    <GraphModelCastorData StartVertexId="0" NextId="10">
+      <ActivitySlotDef ID="5" Name="CrudFactory_InstantiateItem" Height="60" Width="130" IsLayoutable="true" IsComposite="false">
+        <CentrePoint x="97" y="181" />
+        <OutlinePoint x="32" y="151" />
+        <OutlinePoint x="162" y="151" />
+        <OutlinePoint x="162" y="211" />
+        <OutlinePoint x="32" y="211" />
+        <InEdgeId>6</InEdgeId>
+        <OutEdgeId>7</OutEdgeId>
+        <Properties>
+          <KeyValuePair Key="Name" String="InstantiateItem" />
+          <KeyValuePair Key="Description" String="Create a new Item implementing the selected business process" />
+          <KeyValuePair Key="Agent Role" isAbstract="false" String="" />
+          <KeyValuePair Key="Version" Integer="0" isAbstract="false" />
+        </Properties>
+        <activityDef>CrudFactory_InstantiateItem</activityDef>
+      </ActivitySlotDef>
+      <LoopDef ID="2" Name="" Height="24" Width="60" IsLayoutable="true" IsComposite="false" isNext="0">
+        <CentrePoint x="251" y="175" />
+        <OutlinePoint x="221" y="163" />
+        <OutlinePoint x="281" y="163" />
+        <OutlinePoint x="281" y="187" />
+        <OutlinePoint x="221" y="187" />
+        <InEdgeId>7</InEdgeId>
+        <OutEdgeId>8</OutEdgeId>
+        <OutEdgeId>9</OutEdgeId>
+        <Properties>
+          <KeyValuePair Key="LastNum" String="2" />
+          <KeyValuePair Key="RoutingScriptName" String="javascript:true;" />
+          <KeyValuePair Key="RoutingScriptVersion" String="" />
+          <KeyValuePair Key="PairingID" String="Loop2" isAbstract="false" />
+        </Properties>
+      </LoopDef>
+      <JoinDef ID="1" Name="" Height="24" Width="60" IsLayoutable="true" IsComposite="false">
+        <CentrePoint x="254" y="294" />
+        <OutlinePoint x="224" y="282" />
+        <OutlinePoint x="284" y="282" />
+        <OutlinePoint x="284" y="306" />
+        <OutlinePoint x="224" y="306" />
+        <InEdgeId>9</InEdgeId>
+        <Properties>
+          <KeyValuePair Key="Type" String="Join" />
+        </Properties>
+      </JoinDef>
+      <JoinDef ID="0" Name="" Height="24" Width="60" IsLayoutable="true" IsComposite="false">
+        <CentrePoint x="250" y="63" />
+        <OutlinePoint x="220" y="51" />
+        <OutlinePoint x="280" y="51" />
+        <OutlinePoint x="280" y="75" />
+        <OutlinePoint x="220" y="75" />
+        <InEdgeId>8</InEdgeId>
+        <OutEdgeId>6</OutEdgeId>
+        <Properties>
+          <KeyValuePair Key="Type" String="Join" />
+          <KeyValuePair Key="PairingID" String="Loop2" isAbstract="false" />
+        </Properties>
+      </JoinDef>
+      <NextDef ID="6" OriginVertexId="0" TerminusVertexId="5">
+        <OriginPoint x="250" y="63" />
+        <TerminusPoint x="97" y="181" />
+        <Properties />
+      </NextDef>
+      <NextDef ID="9" OriginVertexId="2" TerminusVertexId="1">
+        <OriginPoint x="251" y="175" />
+        <TerminusPoint x="254" y="294" />
+        <Properties>
+          <KeyValuePair Key="Alias" String="false" />
+        </Properties>
+      </NextDef>
+      <NextDef ID="8" OriginVertexId="2" TerminusVertexId="0">
+        <OriginPoint x="251" y="175" />
+        <TerminusPoint x="250" y="63" />
+        <Properties>
+          <KeyValuePair Key="Alias" String="true" />
+        </Properties>
+      </NextDef>
+      <NextDef ID="7" OriginVertexId="5" TerminusVertexId="2">
+        <OriginPoint x="97" y="181" />
+        <TerminusPoint x="251" y="175" />
+        <Properties />
+      </NextDef>
+    </GraphModelCastorData>
+  </childrenGraphModel>
+  <Properties>
+    <KeyValuePair Key="Description" String="" />
+    <KeyValuePair Key="Agent Role" String="" />
+    <KeyValuePair Key="Show time" Boolean="true" />
+    <KeyValuePair Key="Viewpoint" String="" />
+    <KeyValuePair Key="Agent Name" String="" />
+    <KeyValuePair Key="Breakpoint" Boolean="false" />
+  </Properties>
+</CompositeActivityDef>

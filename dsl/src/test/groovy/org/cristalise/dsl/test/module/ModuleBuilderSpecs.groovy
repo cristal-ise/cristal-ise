@@ -12,6 +12,8 @@ class ModuleBuilderSpecs extends Specification implements CristalTestSetup {
     def setupSpec() {
         def props = new Properties()
         props.put('DSL.GenerateModuleXml', false)
+        props.put('DSL.Module.generateAllResourceItems', false)
+        props.put('Resource.moduleUseFileNameWithVersion', 'dev')
         inMemoryServer(8, props, false)
     }
     def cleanupSpec() { cristalCleanup() }
@@ -19,7 +21,9 @@ class ModuleBuilderSpecs extends Specification implements CristalTestSetup {
     def 'Module can define Info, Url and Configs'() {
         when:
         def module = ModuleBuilder.build('ttt', 'integtest', 0) {
-            Info(description: 'Test Cristal module', version: '1.0') {}
+            Info(description: 'Test Cristal module', version: '1.0') {
+                dependencies: ['CristaliseDev', 'CristalTrigger']
+            }
             Url('cristal/resources/')
             Config(name: 'Module.debug', value: false)
             Config(name: 'OverrideScriptLang.javascript', value: 'rhino')
@@ -38,6 +42,9 @@ class ModuleBuilderSpecs extends Specification implements CristalTestSetup {
         module.config[1].value == 'rhino'
         module.info.desc == 'Test Cristal module'
         module.resURL == 'cristal/resources/'
+        module.dependencies.size() == 2
+        module.dependencies[0] == 'CristaliseDev'
+        module.dependencies[1] == 'CristalTrigger'
     }
 
     def 'Module can reference existing resources'() {
@@ -54,11 +61,11 @@ class ModuleBuilderSpecs extends Specification implements CristalTestSetup {
         module != null
         module.getImports().list.size() == 5
 
-        module.getImports().findImport('ServerNewEntity')
-        module.getImports().findImport('Item')
-        module.getImports().findImport('Default')
-        module.getImports().findImport('EditDefinition')
-        module.getImports().findImport('ManageScript')
+        module.getImports().findImport('ServerNewEntity', 'SC')
+        module.getImports().findImport('Item', 'OD')
+        module.getImports().findImport('Default', 'SM')
+        module.getImports().findImport('EditDefinition', 'EA')
+        module.getImports().findImport('ManageScript', 'CA')
 
         //the order is important
         module.getImports().list[0].name == 'ServerNewEntity'
@@ -102,9 +109,9 @@ class ModuleBuilderSpecs extends Specification implements CristalTestSetup {
         module != null
         module.getImports().list.size() == 3
         
-        module.getImports().findImport('Test')
-        module.getImports().findImport('Abort')
-        module.getImports().findImport('ScriptFactory')
+        module.getImports().findImport('Test', 'agent')
+        module.getImports().findImport('Abort', 'role')
+        module.getImports().findImport('ScriptFactory', 'item')
 
         //the order is important
         module.getImports().list[0].name == 'ScriptFactory'

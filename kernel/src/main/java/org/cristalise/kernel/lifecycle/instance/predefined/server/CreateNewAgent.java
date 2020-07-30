@@ -20,48 +20,15 @@
  */
 package org.cristalise.kernel.lifecycle.instance.predefined.server;
 
-import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.SCHEMA_NAME;
+import org.cristalise.kernel.lifecycle.instance.predefined.ImportImportAgent;
 
-import java.io.IOException;
-
-import org.cristalise.kernel.common.CannotManageException;
-import org.cristalise.kernel.common.InvalidDataException;
-import org.cristalise.kernel.common.ObjectAlreadyExistsException;
-import org.cristalise.kernel.common.ObjectCannotBeUpdated;
-import org.cristalise.kernel.common.ObjectNotFoundException;
-import org.cristalise.kernel.entity.imports.ImportAgent;
-import org.cristalise.kernel.lifecycle.instance.predefined.PredefinedStep;
-import org.cristalise.kernel.lookup.AgentPath;
-import org.cristalise.kernel.lookup.ItemPath;
-import org.cristalise.kernel.process.Gateway;
-import org.exolab.castor.mapping.MappingException;
-import org.exolab.castor.xml.MarshalException;
-import org.exolab.castor.xml.ValidationException;
-
-import lombok.extern.slf4j.Slf4j;
-
-@Slf4j
-public class CreateNewAgent extends PredefinedStep {
+/**
+ * This class is only kept for backward compatibility
+ * @deprecated use:{@link ImportImportAgent}
+ */
+@Deprecated
+public class CreateNewAgent extends ImportImportAgent {
     public CreateNewAgent() {
         super();
-        setBuiltInProperty(SCHEMA_NAME, "Agent");
-    }
-
-    @Override
-    protected String runActivityLogic(AgentPath agent, ItemPath item, int transitionID, String requestData, Object locker)
-            throws InvalidDataException, ObjectNotFoundException, ObjectCannotBeUpdated, CannotManageException, ObjectAlreadyExistsException
-    {
-        try {
-            ImportAgent newAgent = (ImportAgent) Gateway.getMarshaller().unmarshall(requestData);
-            newAgent.create(agent, true);
-
-            newAgent.setPassword("REDACTED");
-
-            return Gateway.getMarshaller().marshall(newAgent);
-        }
-        catch (MarshalException | ValidationException | IOException | MappingException e) {
-            log.error("Couldn't unmarshall new Agent: " + requestData, e);
-            throw new InvalidDataException("CreateNewAgent: Couldn't unmarshall new Agent: " + requestData);
-        }
     }
 }

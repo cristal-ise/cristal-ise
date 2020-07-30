@@ -78,6 +78,7 @@ public class DefaultResourceImportHandler implements ResourceImportHandler {
     BuiltInResources         type;
     DomainPath               typeRootPath;
     PropertyDescriptionList  props;
+    Status                   status = null; 
 
     String resourceChangeDetails = "";
 
@@ -220,7 +221,7 @@ public class DefaultResourceImportHandler implements ResourceImportHandler {
         }
         
         // Verify/Import Outcome, creating events and views as necessary
-        Status status = checkToStoreOutcomeVersion(thisProxy, outcome, version, reset);
+        status = checkToStoreOutcomeVersion(thisProxy, outcome, version, reset);
 
         log.info("verifyResource() - Outcome {} of item:{} schema:{} version:{} ", status.name(), thisProxy.getName(), outcome.getSchema().getName(), version);
 
@@ -394,5 +395,10 @@ public class DefaultResourceImportHandler implements ResourceImportHandler {
     @Override
     public String getResourceChangeDetails() {
         return resourceChangeDetails;
+    }
+
+    @Override
+    public Status getResourceChangeStatus() {
+        return status;
     }
 }

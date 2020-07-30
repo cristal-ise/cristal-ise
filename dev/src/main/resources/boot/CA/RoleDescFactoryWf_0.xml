@@ -1,0 +1,120 @@
+<!--
+
+    This file is part of the CRISTAL-iSE Development Module.
+    Copyright (c) 2001-2017 The CRISTAL Consortium. All rights reserved.
+
+    This library is free software; you can redistribute it and/or modify it
+    under the terms of the GNU Lesser General Public License as published
+    by the Free Software Foundation; either version 3 of the License, or (at
+    your option) any later version.
+
+    This library is distributed in the hope that it will be useful, but WITHOUT
+    ANY WARRANTY; with out even the implied warranty of MERCHANTABILITY or
+    FITNESS FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public
+    License for more details.
+
+    You should have received a copy of the GNU Lesser General Public License
+    along with this library; if not, write to the Free Software Foundation,
+    Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA.
+
+    http://www.fsf.org/licensing/licenses/lgpl.html
+
+-->
+<CompositeActivityDef ID="-1" Name="RoleDescFactoryWf" Height="0" Width="0" IsLayoutable="false" IsComposite="true">
+  <childrenGraphModel>
+    <GraphModelCastorData ClassNameOfVertexOutlineCreator="org.cristalise.kernel.lifecycle.gui.model.WfVertexDefOutlineCreator" StartVertexId="5" NextId="14">
+      <JoinDef ID="6" Name="" Height="24" Width="60" IsLayoutable="true" IsComposite="false">
+        <CentrePoint x="321" y="325" />
+        <OutlinePoint x="291" y="313" />
+        <OutlinePoint x="351" y="313" />
+        <OutlinePoint x="351" y="337" />
+        <OutlinePoint x="291" y="337" />
+        <InEdgeId>9</InEdgeId>
+        <Properties>
+          <KeyValuePair Key="Type" String="Join" />
+        </Properties>
+      </JoinDef>
+      <JoinDef ID="5" Name="" Height="24" Width="60" IsLayoutable="true" IsComposite="false">
+        <CentrePoint x="321" y="92" />
+        <OutlinePoint x="291" y="80" />
+        <OutlinePoint x="351" y="80" />
+        <OutlinePoint x="351" y="104" />
+        <OutlinePoint x="291" y="104" />
+        <InEdgeId>7</InEdgeId>
+        <OutEdgeId>12</OutEdgeId>
+        <Properties>
+          <KeyValuePair Key="Type" String="Join" />
+          <KeyValuePair Key="PairingID" String="Loop3" isAbstract="false" />
+        </Properties>
+      </JoinDef>
+      <LoopDef ID="3" Name="" Height="24" Width="60" IsLayoutable="true" IsComposite="false" isNext="0">
+        <CentrePoint x="321" y="211" />
+        <OutlinePoint x="291" y="199" />
+        <OutlinePoint x="351" y="199" />
+        <OutlinePoint x="351" y="223" />
+        <OutlinePoint x="291" y="223" />
+        <InEdgeId>13</InEdgeId>
+        <OutEdgeId>7</OutEdgeId>
+        <OutEdgeId>9</OutEdgeId>
+        <Properties>
+          <KeyValuePair Key="LastNum" String="2" />
+          <KeyValuePair Key="RoutingScriptName" String="javascript:true;" />
+          <KeyValuePair Key="PairingID" String="Loop3" isAbstract="false" />
+        </Properties>
+      </LoopDef>
+      <ActivitySlotDef ID="10" Name="CreateNewRoleDesc" Height="60" Width="130"
+        IsLayoutable="true" IsComposite="false">
+        <CentrePoint x="133" y="215" />
+        <OutlinePoint x="68" y="185" />
+        <OutlinePoint x="198" y="185" />
+        <OutlinePoint x="198" y="245" />
+        <OutlinePoint x="68" y="245" />
+        <InEdgeId>12</InEdgeId>
+        <OutEdgeId>13</OutEdgeId>
+        <Properties>
+          <KeyValuePair Key="Name" String="CreateNewRoleDesc" />
+          <KeyValuePair Key="Version" Integer="0" />
+          <KeyValuePair Key="NewType" String="role" />
+        </Properties>
+        <activityDef>CreateNewLocalObjectDef</activityDef>
+      </ActivitySlotDef>
+      <NextDef ID="13" OriginVertexId="10" TerminusVertexId="3">
+        <OriginPoint x="133" y="215" />
+        <TerminusPoint x="321" y="211" />
+        <Properties>
+          <KeyValuePair Key="Type" String="Straight" />
+        </Properties>
+      </NextDef>
+      <NextDef ID="12" OriginVertexId="5" TerminusVertexId="10">
+        <OriginPoint x="321" y="92" />
+        <TerminusPoint x="133" y="215" />
+        <Properties>
+          <KeyValuePair Key="Type" String="Straight" />
+        </Properties>
+      </NextDef>
+      <NextDef ID="9" OriginVertexId="3" TerminusVertexId="6">
+        <OriginPoint x="321" y="211" />
+        <TerminusPoint x="321" y="325" />
+        <Properties>
+          <KeyValuePair Key="Type" String="Straight" />
+          <KeyValuePair Key="Alias" String="false" />
+        </Properties>
+      </NextDef>
+      <NextDef ID="7" OriginVertexId="3" TerminusVertexId="5">
+        <OriginPoint x="321" y="211" />
+        <TerminusPoint x="321" y="92" />
+        <Properties>
+          <KeyValuePair Key="Type" String="Straight" />
+          <KeyValuePair Key="Alias" String="true" />
+        </Properties>
+      </NextDef>
+    </GraphModelCastorData>
+  </childrenGraphModel>
+  <Properties>
+    <KeyValuePair Key="Agent Name" String="" />
+    <KeyValuePair Key="Description" String="" />
+    <KeyValuePair Key="Show time" Boolean="true" />
+    <KeyValuePair Key="Viewpoint" String="" />
+    <KeyValuePair Key="Agent Role" String="" />
+  </Properties>
+</CompositeActivityDef>

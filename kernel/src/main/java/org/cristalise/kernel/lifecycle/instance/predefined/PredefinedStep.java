@@ -48,8 +48,10 @@ import org.cristalise.kernel.lifecycle.instance.Activity;
 import org.cristalise.kernel.lifecycle.instance.predefined.agent.AgentPredefinedStepContainer;
 import org.cristalise.kernel.lifecycle.instance.predefined.item.ItemPredefinedStepContainer;
 import org.cristalise.kernel.lifecycle.instance.predefined.server.ServerPredefinedStepContainer;
+import org.cristalise.kernel.lifecycle.instance.stateMachine.StateMachine;
 import org.cristalise.kernel.lookup.AgentPath;
 import org.cristalise.kernel.lookup.ItemPath;
+import org.cristalise.kernel.lookup.RolePath;
 import org.cristalise.kernel.persistency.outcome.Outcome;
 import org.cristalise.kernel.persistency.outcome.Viewpoint;
 import org.cristalise.kernel.process.Gateway;
@@ -77,7 +79,7 @@ public abstract class PredefinedStep extends Activity {
 
     public PredefinedStep() {
         super();
-        setBuiltInProperty(STATE_MACHINE_NAME, "PredefinedStep");
+        setBuiltInProperty(STATE_MACHINE_NAME, StateMachine.getDefaultStateMachine("Predefined"));
         setBuiltInProperty(SCHEMA_NAME, "PredefinedStepOutcome");
         setBuiltInProperty(SCHEMA_VERSION, "0");
 
@@ -249,13 +251,16 @@ public abstract class PredefinedStep extends Activity {
         return null;
     }
 
+    /**
+     * @deprecated use {@link RolePath#setPermissions(java.util.List)} instead
+     */
+    @Deprecated
     protected void addAdminAgentRole() {
         if (Gateway.getProperties().getBoolean("PredefinedStep.AgentRole.enableAdmin", false)) {
             String extraRoles = Gateway.getProperties().getString("PredefinedStep."+ this.getClass().getSimpleName() +".roles");
             getProperties().setBuiltInProperty(AGENT_ROLE, ADMIN_ROLE.getName() + (StringUtils.isNotBlank(extraRoles) ? ","+extraRoles : ""));
         }
     }
-
 
     /********************************
      * Methods migrated from Bootstrap

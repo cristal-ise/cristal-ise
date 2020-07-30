@@ -28,6 +28,7 @@ import static org.cristalise.kernel.security.BuiltInAuthc.SYSTEM_AGENT;
 
 import java.net.InetAddress;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.StringTokenizer;
@@ -35,6 +36,7 @@ import java.util.UUID;
 
 import org.apache.commons.lang3.StringUtils;
 import org.cristalise.kernel.common.ObjectNotFoundException;
+import org.cristalise.kernel.entity.imports.ImportRole;
 import org.cristalise.kernel.entity.proxy.AgentProxy;
 import org.cristalise.kernel.lifecycle.CompositeActivityDef;
 import org.cristalise.kernel.lifecycle.instance.CompositeActivity;
@@ -253,18 +255,20 @@ public class Bootstrap {
         RolePath rootRole = new RolePath();
         if (!rootRole.exists()) Gateway.getLookupManager().createRole(rootRole);
 
-        // check for admin role
-        RolePath adminRole = new RolePath(rootRole, ADMIN_ROLE.getName(), false);
-        if (!adminRole.exists()) Gateway.getLookupManager().createRole(adminRole);
-        Gateway.getLookupManager().setPermission(adminRole, "*");
+        // check for 'Admin' role
+        RolePath adminRole = new RolePath(rootRole, ADMIN_ROLE.getName(), false, Arrays.asList("*"));
+        ImportRole importAdminRole = ImportRole.getImportRole(adminRole);
 
-        // check for import Agent
+        if (adminRole.exists()) importAdminRole.update(null); // this will reset any changes done to thr Admin role
+        else                    importAdminRole.create(null, false);
+
+        // check for 'system' Agent
         AgentProxy system = checkAgent(SYSTEM_AGENT.getName(), null, adminRole, new UUID(0, 1).toString());
         ScriptConsole.setUser(system);
 
         String ucRole = Gateway.getProperties().getString("UserCode.roleOverride", UserCodeProcess.DEFAULT_ROLE);
 
-        // check for local usercode user & role
+        // check for local usercode user & its role
         RolePath usercodeRole = new RolePath(rootRole, ucRole, true);
         if (!usercodeRole.exists()) Gateway.getLookupManager().createRole(usercodeRole);
         checkAgent(
@@ -274,6 +278,11 @@ public class Bootstrap {
                 UUID.randomUUID().toString());
     }
 
+    /**
+     * 
+     * @return
+     * @throws Exception
+     */
     private static ItemPath createServerItem() throws Exception {
         LookupManager lookupManager = Gateway.getLookupManager();
         String serverName = Gateway.getProperties().getString("ItemServer.name", InetAddress.getLocalHost().getHostName());

@@ -41,12 +41,22 @@ These properties configure server or client processes. Some are included in modu
 | OutcomeInit.jobUseViewpoint| Client | Job.getOutcome() will use last viewpoint if exist instead OutcomeInitiator (default: false) | Boolean |
 | ProxyMessageListener | Client | Name of the class that implements the ProxyMessageListener interface, which will be triggered by ProxyManager.processMessage() for ALL items (since 3.5) | String |
 | DSL.GenerateModuleXml| DSL (Client) | Disables module.xml generation (default: true) | Boolean |
-| JOOQ.domainHandlers | ? | Comma separated list of fully qualified class names implementing the `JooqDomainHandler` interface | String |
-| JOOQ.disableDomainCreateTables | ? | Disables the invocation of `createTables(DSLContext)` on `JooqDomainHandler` instances from `JooqClusterStorage.initialiseHandlers()` (default: false) | Boolean | 
+| JOOQ.domainHandlers | Server | Comma separated list of fully qualified class names implementing the `JooqDomainHandler` interface | String |
+| JOOQ.disableDomainCreateTables | Server | Disables the invocation of `createTables(DSLContext)` on `JooqDomainHandler` instances from `JooqClusterStorage.initialiseHandlers()` (default: false) | Boolean |
+| JOOQ.Event.enableHasAttachment | Server | Enables the proper handling of attachement of Event table. Using this feature coukd require database migration (default: true) | Boolean |
+| JOOQ.OutcomeAttachment.enableFileName | Server | Enables the proper handling of attachement of Outome table. Using this feature coukd require database migration (default: true) | Boolean |
+| JOOQ.TemporaryPwdFieldImplemented | Server | Enables the proper handling of temproary password in Item table. Using this feature coukd require database migration (default: true) | Boolean |
+|JooqLookupManager.getChildrenPattern.specialCharsToReplace | Server | Regular expression to escape special charaters in Item names during Lookup.getChildren() (default: [^a-zA-Z0-9]) | String |
+| JOOQ.NameType.length | Server | Configure the length of the varchar column for Names (default: 64) | Integer |
+| JOOQ.PasswordType.length | Server | Configure the length of the varchar column for Passwords (default: 800) | Integer |
+| JOOQ.StringType.length | Server | Configure the length of the varchar column for Strings (default: 800) | Integer |
+| JOOQ.TextType.length | Server | Configure the length of the varchar column for clobs (default: 800) | Integer |
+| JOOQ.readOnlyDataSource | Client | Setup the client connection to use readonly connections (default: false) | boolean |
 | PredefinedStep.AgentRole.enableAdmin | Server | Set it true to switch on original Admin role settings in certain predefined steps (default: false) | Boolean | 
 | PredefinedStep.Erase.roles | Server | Comma seperated list of Roles that are also enabled for the Erase predefined step. It is only needed when `PredefinedStep.AgentRole.enableAdmin` is set to true | String |
 | Shiro.iniFile | Server | The location of the shiro ini file (default: `classpath:shiro.ini`) | String |
 | Webui.autoComplete.default | Server | Value of default autoComplete flag used during DynamicForms generation. Use values 'on' or 'off' (default=off)| String |
+| DSL.Module.generateAllResourceItems | Client/Server | Disables DSL to generate sperate XML file for Item/Agent/Role defintions (default: true) | Boolean |
 
 ## Module-specific
 
@@ -55,7 +65,6 @@ These properties enable integration of module extensions into the kernel.
 | Property | Process type | Description | Example value |
 |----------|--------------|-------------|---------------|
 | OutcomeInit.&lt;name&gt; | Agent | Specifies an OutcomeInitiator implementation to use to create new empty outcomes. Will be invoked from Job.getOutcome() for Activities with an 'OutcomeInit' property set to the given name | Class name |
-| Module.debug | Server | Attempts to assign cristal-dev workflows to module resources as they are imported, so they can be edited. | Boolean |
 | Module.reset<br>Module.&lt;namespace&gt;.reset | Server | Instructs the module manager not to preserve any modified module resources for either this module or all modules. If false, then resources will not be updated if the current version was modified by someone other than the bootstrapper | Boolean |
 | ResourceImportHandler.&lt;type code&gt; | Server | Specifies a custom ResourceImportHandler implementation, allowing modules to define their own resource types, or override the import of the core ones. The type code can be any string, but by convention a short upper-case string is used. The core types are EA (Elementary Activity), CA (Composite Activity), OD (Outcome Description - Schema), SC (Script) and SM (State Machine)| Class name |
 | cli.auth | Shell | ProxyLogin implementation to handle console user login | Class name |
