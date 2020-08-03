@@ -306,10 +306,10 @@ public class CastorXMLTest {
         assertNotNull(rolePrime.getVersion());
 
         // Check now the Schema
-        new Outcome(roleXml,      LocalObjectLoader.getSchema("RoleDesc", 0)).validateAndCheck();
-        new Outcome(rolePrimeXml, LocalObjectLoader.getSchema("RoleDesc", 0)).validateAndCheck();
         new Outcome(roleXml,      LocalObjectLoader.getSchema("Role", 0)).validateAndCheck();
         new Outcome(rolePrimeXml, LocalObjectLoader.getSchema("Role", 0)).validateAndCheck();
+        new Outcome(roleXml,      LocalObjectLoader.getSchema("RoleDesc", 0)).validateAndCheck();
+        new Outcome(rolePrimeXml, LocalObjectLoader.getSchema("RoleDesc", 0)).validateAndCheck();
     }
 
     @Test

@@ -167,7 +167,7 @@ public class JooqTestConfigurationBase {
     private static DSLContext initH2Context(String mode) throws Exception {
         String userName = "sa";
         String password = "sa";
-        String url      = "jdbc:h2:mem:test;DB_CLOSE_DELAY=-1";
+        String url      = "jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1;DATABASE_TO_UPPER=false";
 
         if (mode != null) url += ";MODE=" + mode; 
 

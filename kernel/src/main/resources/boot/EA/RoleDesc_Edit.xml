@@ -20,13 +20,12 @@
     http://www.fsf.org/licensing/licenses/lgpl.html
 
 -->
-<ActivityDef ID="-1" Name="UpdateImportItem" Height="0" Width="0" IsLayoutable="false" IsComposite="false">
+<ActivityDef ID="-1" Name="RoleDesc_Edit" Height="0" Width="0" IsLayoutable="false" IsComposite="false">
   <Properties>
-    <KeyValuePair Key="Description" String="Update Item created from this ImportItem object" />
-    <KeyValuePair Key="Agent Name" String="" />
-    <KeyValuePair Key="SchemaType" String="Item" />
+    <KeyValuePair Key="Description" isAbstract="false" String="Edit the Role Description" />
+    <KeyValuePair Key="SchemaType" String="RoleDesc_Details" />
     <KeyValuePair Key="SchemaVersion" String="0" />
-    <KeyValuePair Key="ScriptName" String="UpdateImportItem" />
+    <KeyValuePair Key="ScriptName" String="" />
     <KeyValuePair Key="ScriptVersion" String="0" />
   </Properties>
 </ActivityDef>

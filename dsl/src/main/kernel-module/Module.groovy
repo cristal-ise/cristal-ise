@@ -17,5 +17,7 @@ setResourceRoot Paths.get(scriptUri).parent.toString()+'/resources'
 
 Module(ns: 'kernel', name: 'cristal-ise kernel', version: 0) {
     include(moduleDir+'/CommonTypes.groovy')
+    include(moduleDir+'/Role.groovy')
+    include(moduleDir+'/Script.groovy')
     include(moduleDir+'/Schema.groovy')
 }

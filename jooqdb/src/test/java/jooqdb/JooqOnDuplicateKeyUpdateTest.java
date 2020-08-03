@@ -60,9 +60,9 @@ public class JooqOnDuplicateKeyUpdateTest {
     public void openH2() throws Exception {
         String userName = "sa";
         String password = "sa";
-//        String url      = "jdbc:h2:mem:";  //this settings does not work
-//        String url      = "jdbc:h2:mem:;MODE=PostgreSQL"; //this settings does not work
-        String url      = "jdbc:h2:mem:;MODE=MYSQL";
+//        String url      = "jdbc:h2:mem:test";  //this settings does not work
+        String url      = "jdbc:h2:mem:test;MODE=PostgreSQL"; //this settings does not work
+//        String url      = "jdbc:h2:mem:;MODE=MYSQL";
 
         Connection conn = DriverManager.getConnection(url, userName, password);
         context = using(conn, SQLDialect.H2);

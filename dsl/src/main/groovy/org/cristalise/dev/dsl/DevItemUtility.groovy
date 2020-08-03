@@ -57,7 +57,7 @@ class DevItemUtility {
     public String propertyDescFactoryName = "/domain/desc/dev/PropertyDescriptionFactory"
     public String agentDescFactoryName    = "/domain/desc/dev/AgentDescFactory"
     public String itemDescFactoryName     = "/domain/desc/dev/ItemDescFactory"
-    public String roletDescFactoryName    = "/domain/desc/dev/RoleDescFactory"
+    public String roleDescFactoryName    = "/domain/desc/dev/RoleDescFactory"
     public String descItemFactoryName     = "/domain/desc/dev/DescriptionFactory"
     public String moduleFactoryName       = "/domain/desc/dev/ModuleFactory"
 
@@ -176,7 +176,7 @@ class DevItemUtility {
             case PROPERTY_DESC_RESOURCE: return propertyDescFactoryName
             case AGENT_DESC_RESOURCE:    return agentDescFactoryName
             case ITEM_DESC_RESOURCE:     return itemDescFactoryName
-            case ROLE_DESC_RESOURCE:     return roletDescFactoryName
+            case ROLE_DESC_RESOURCE:     return roleDescFactoryName
 
             default: return descItemFactoryName
         }
@@ -306,15 +306,6 @@ class DevItemUtility {
      */
     public ItemProxy createNewItemDesc(String name, String folder) {
         return createNewDevItem(ITEM_DESC_RESOURCE, "CreateNewItemDesc", name, folder)
-    }
-
-    /**
-     *
-     * @param name
-     * @param folder
-     */
-    public ItemProxy createNewRoleDesc(String name, String folder) {
-        return createNewDevItem(ROLE_DESC_RESOURCE, "CreateNewRoleDesc", name, folder)
     }
 
     /**
@@ -453,17 +444,6 @@ class DevItemUtility {
      */
     public ItemProxy editItemDesc(String name, String folder, String xml) {
         return editDevItem(ITEM_DESC_RESOURCE, "EditDefinition", "AssignNewItemDescVersionFromLast", name, folder, xml)
-    }
-
-    /**
-     * 
-     * @param name
-     * @param folder
-     * @param xml
-     * @return
-     */
-    public ItemProxy editRoleDesc(String name, String folder, String xml) {
-        return editDevItem(ROLE_DESC_RESOURCE, "EditDefinition", "AssignNewRoleDescVersionFromLast", name, folder, xml)
     }
 
     /**

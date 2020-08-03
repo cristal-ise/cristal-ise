@@ -1,0 +1,47 @@
+<?xml version='1.0' encoding='utf-8'?>
+<xs:schema xmlns:xs='http://www.w3.org/2001/XMLSchema'>
+  <xs:element name='Permission'>
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element name='Domains' type='xs:string' minOccurs='1' maxOccurs='1'>
+          <xs:annotation>
+            <xs:appinfo>
+              <dynamicForms>
+                <label>Type</label>
+              </dynamicForms>
+              <listOfValues>
+                <scriptRef>PropertyDescription_QueryList:0</scriptRef>
+              </listOfValues>
+            </xs:appinfo>
+          </xs:annotation>
+        </xs:element>
+        <xs:element name='Actions' type='xs:string' default='*' minOccurs='0' maxOccurs='1'>
+          <xs:annotation>
+            <xs:appinfo>
+              <dynamicForms>
+                <multiple>true</multiple>
+                <label>Activities</label>
+                <additional>
+                  <updateScriptRef>RoleDesc_EditPermissionUpdateScript:0</updateScriptRef>
+                </additional>
+              </dynamicForms>
+            </xs:appinfo>
+          </xs:annotation>
+        </xs:element>
+        <xs:element name='Targets' type='xs:string' default='*' minOccurs='0' maxOccurs='1'>
+          <xs:annotation>
+            <xs:appinfo>
+              <dynamicForms>
+                <multiple>true</multiple>
+                <label>Instances</label>
+                <additional>
+                  <updateScriptRef>RoleDesc_EditPermissionUpdateScript:0</updateScriptRef>
+                </additional>
+              </dynamicForms>
+            </xs:appinfo>
+          </xs:annotation>
+        </xs:element>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+</xs:schema>

@@ -63,30 +63,6 @@ Schema('ModuleChanges', 0) {
     }
 }
 
-Schema('RoleDesc', 0) {
-    struct(name: 'RoleDesc', useSequence: true) {
-        field(name: 'Name', type: 'string',  multiplicity: '1..1')
-        field(name: 'Version', type: 'integer', multiplicity: '0..1')
-        field(name: 'Id', type: 'string',  multiplicity: '0..1', pattern: patternUuid, length: 36) {
-            dynamicForms(disabled: true)
-        }
-        field(name: 'JobList', type: 'boolean', default: 'false', multiplicity: '1..1')
-
-        struct(name:'Permission', multiplicity: '0..*', useSequence: true) {
-            field(name: 'Domains', type: 'string', default: '*',  multiplicity: '1..1') {
-                listOfValues(scriptRef: 'QueryPropertyDescriptions:0') //cannot use * 
-            }
-            field(name: 'Actions', type: 'string', default: '*', multiplicity: '1..1') {
-                listOfValues(scriptRef: 'QueryActivityNames:0') //collects all ActNames from all Types selected for Domains
-                dynamicForms(multiple: true)
-            }
-            field(name: 'Targets', type: 'string', default: '*', multiplicity: '1..1') {
-                listOfValues(scriptRef: 'QueryItemsOfType:0') //
-            }
-        }
-    }
-}
-
 Schema('AgentDesc', 0) {
     struct(name: 'AgentDesc', useSequence: true) {
         field(name: 'Name', type: 'string',  multiplicity: '1..1')

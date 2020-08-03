@@ -1,6 +1,6 @@
 <?xml version='1.0' encoding='utf-8'?>
 <xs:schema xmlns:xs='http://www.w3.org/2001/XMLSchema'>
-  <xs:element name='RoleDesc'>
+  <xs:element name='Role'>
     <xs:complexType>
       <xs:sequence>
         <xs:element name='Name' type='xs:string' minOccurs='1' maxOccurs='1' />
@@ -24,36 +24,9 @@
         <xs:element name='Permission' minOccurs='0' maxOccurs='unbounded'>
           <xs:complexType>
             <xs:sequence>
-              <xs:element name='Domains' type='xs:string' default='*' minOccurs='1' maxOccurs='1'>
-                <xs:annotation>
-                  <xs:appinfo>
-                    <listOfValues>
-                      <scriptRef>QueryPropertyDescriptions:0</scriptRef>
-                    </listOfValues>
-                  </xs:appinfo>
-                </xs:annotation>
-              </xs:element>
-              <xs:element name='Actions' type='xs:string' default='*' minOccurs='1' maxOccurs='1'>
-                <xs:annotation>
-                  <xs:appinfo>
-                    <dynamicForms>
-                      <multiple>true</multiple>
-                    </dynamicForms>
-                    <listOfValues>
-                      <scriptRef>QueryActivityNames:0</scriptRef>
-                    </listOfValues>
-                  </xs:appinfo>
-                </xs:annotation>
-              </xs:element>
-              <xs:element name='Targets' type='xs:string' default='*' minOccurs='1' maxOccurs='1'>
-                <xs:annotation>
-                  <xs:appinfo>
-                    <listOfValues>
-                      <scriptRef>QueryItemsOfType:0</scriptRef>
-                    </listOfValues>
-                  </xs:appinfo>
-                </xs:annotation>
-              </xs:element>
+              <xs:element name='Domains' type='xs:string' minOccurs='1' maxOccurs='1' />
+              <xs:element name='Actions' type='xs:string' minOccurs='1' maxOccurs='1' />
+              <xs:element name='Targets' type='xs:string' minOccurs='1' maxOccurs='1' />
             </xs:sequence>
           </xs:complexType>
         </xs:element>

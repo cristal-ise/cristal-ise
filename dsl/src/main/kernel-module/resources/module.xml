@@ -3,11 +3,25 @@
     <Version>0</Version>
   </Info>
   <Imports>
+    <SchemaResource name="RoleDesc_Details" version="0"/>
+    <ScriptResource name="PropertyDescription_QueryList" version="0"/>
+    <ScriptResource name="RoleDesc_EditPermissionUpdateScript" version="0"/>
+    <SchemaResource name="Permission" version="0"/>
+    <SchemaResource name="RoleDesc" version="0"/>
+    <Activity name="RoleDesc_Edit" version="0">
+      <Schema name="RoleDesc_Details" version="0"/>
+    </Activity>
+    <ScriptResource name="RoleDesc_EditPermission" version="0"/>
+    <Activity name="RoleDesc_EditPermission" version="0">
+      <Schema name="Permission" version="0"/>
+    </Activity>
+    <ScriptResource name="DescriptionCollVersionLib" version="0"/>
+    <ScriptResource name="CreateNewNumberedVersionFromLast" version="0"/>
+    <ScriptResource name="SetLastNumberedVersionFromLast" version="0"/>
     <SchemaResource name="SimpleElectonicSignature" version="0"/>
     <SchemaResource name="SystemProperties" version="0"/>
     <SchemaResource name="LoggerConfig" version="0"/>
     <SchemaResource name="ModuleChanges" version="0"/>
-    <SchemaResource name="RoleDesc" version="0"/>
     <SchemaResource name="AgentDesc" version="0"/>
   </Imports>
 </CristalModule>

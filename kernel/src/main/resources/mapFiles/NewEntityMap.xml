@@ -183,6 +183,7 @@
     </field>
   </class>
   <class name="org.cristalise.kernel.entity.imports.ImportPermission">
+    <map-to xml="Permission" />
     <field name="domains" type="string" direct="false">
       <bind-xml name="Domains" node="element" />
     </field>
