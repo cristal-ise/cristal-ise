@@ -49,7 +49,7 @@ import org.w3c.dom.Document;
 
 import lombok.val;
 
-//@Ignore("Postgres test cannot run on Travis")
+@Ignore("Postgres test cannot run on Travis")
 public class JooqSqlXmlTest {
     static final String TABLE_NAME = "TEST";
     DSLContext context;
