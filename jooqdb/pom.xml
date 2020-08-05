@@ -156,12 +156,12 @@
         <dependency>
             <groupId>org.postgresql</groupId>
             <artifactId>postgresql</artifactId>
-            <version>42.2.5</version>
+            <version>42.2.14</version>
         </dependency>
         <dependency>
             <groupId>org.jooq</groupId>
             <artifactId>jooq</artifactId>
-            <version>3.11.9</version>
+            <version>3.13.4</version>
         </dependency>
         <dependency>
             <groupId>de.mkammerer</groupId>
