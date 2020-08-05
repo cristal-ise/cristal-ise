@@ -68,7 +68,7 @@ public class JooqTestConfigurationBase {
     /**
      * Sets the database mode to run all jooqdb tests. For travis runs it should be set to H2
      */
-    public static DBModes dbType = DBModes.PostgreSQL;
+    public static DBModes dbType = DBModes.H2_PostgreSQL;
 
     /**
      * Sets the database name used to run all jooqdb tests
@@ -129,7 +129,6 @@ public class JooqTestConfigurationBase {
         c2kProps.put(JooqHandler.JOOQ_PASSWORD,   "cristal");
         c2kProps.put(JooqHandler.JOOQ_DIALECT,    SQLDialect.POSTGRES.toString());
         c2kProps.put(JooqHandler.JOOQ_AUTOCOMMIT, true);
-        //c2kProps.put(JooqHandler.JOOQ_NATIVEXML,  false);
     }
 
     /**
