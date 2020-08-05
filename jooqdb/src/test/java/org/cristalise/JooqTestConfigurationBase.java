@@ -68,7 +68,7 @@ public class JooqTestConfigurationBase {
     /**
      * Sets the database mode to run all jooqdb tests. For travis runs it should be set to H2
      */
-    public static DBModes dbType = DBModes.H2_PostgreSQL;
+    public static DBModes dbType = DBModes.PostgreSQL;
 
     /**
      * Sets the database name used to run all jooqdb tests
@@ -129,6 +129,7 @@ public class JooqTestConfigurationBase {
         c2kProps.put(JooqHandler.JOOQ_PASSWORD,   "cristal");
         c2kProps.put(JooqHandler.JOOQ_DIALECT,    SQLDialect.POSTGRES.toString());
         c2kProps.put(JooqHandler.JOOQ_AUTOCOMMIT, true);
+        //c2kProps.put(JooqHandler.JOOQ_NATIVEXML,  false);
     }
 
     /**
@@ -156,6 +157,7 @@ public class JooqTestConfigurationBase {
         c2kProps.put(JooqHandler.JOOQ_PASSWORD,   "cristal");
         c2kProps.put(JooqHandler.JOOQ_DIALECT,    SQLDialect.MYSQL.toString());
         c2kProps.put(JooqHandler.JOOQ_AUTOCOMMIT, true);
+        c2kProps.put(JooqHandler.JOOQ_NATIVEXML,  false);
     }
 
     /**
@@ -186,6 +188,7 @@ public class JooqTestConfigurationBase {
         c2kProps.put(JooqHandler.JOOQ_PASSWORD,   "sa");
         c2kProps.put(JooqHandler.JOOQ_DIALECT,    SQLDialect.H2.toString());
         c2kProps.put(JooqHandler.JOOQ_AUTOCOMMIT, true);
+        c2kProps.put(JooqHandler.JOOQ_NATIVEXML,  false);
 
         if (mode != null) c2kProps.put(JooqHandler.JOOQ_URI, "jdbc:h2:mem:test;DB_CLOSE_DELAY=-1;MODE=" + mode);
     }

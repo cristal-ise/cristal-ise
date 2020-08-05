@@ -25,19 +25,17 @@ import static org.jooq.SQLDialect.POSTGRES;
 import static org.jooq.impl.DSL.select;
 import static org.jooq.impl.DSL.using;
 
-import com.zaxxer.hikari.HikariPoolMXBean;
-
-import lombok.extern.slf4j.Slf4j;
-
 import java.sql.Connection;
 import java.sql.Timestamp;
 import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
+
 import org.apache.commons.lang3.StringUtils;
 import org.cristalise.kernel.common.PersistencyException;
 import org.cristalise.kernel.entity.C2KLocalObject;
 import org.cristalise.kernel.process.Gateway;
+import org.cristalise.storage.jooqdb.bindings.PostgreSqlXmlBinding;
 import org.jooq.Condition;
 import org.jooq.DSLContext;
 import org.jooq.DataType;
@@ -46,10 +44,16 @@ import org.jooq.Record;
 import org.jooq.Result;
 import org.jooq.SQLDialect;
 import org.jooq.Table;
+import org.jooq.exception.ConfigurationException;
 import org.jooq.impl.DefaultDataType;
 import org.jooq.impl.SQLDataType;
+import org.w3c.dom.Document;
+
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
+import com.zaxxer.hikari.HikariPoolMXBean;
+
+import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public abstract class JooqHandler {
@@ -79,6 +83,11 @@ public abstract class JooqHandler {
      * create read only connections. Default is 'false'
      */
     public static final String JOOQ_READONLYDATASOURCE = "JOOQ.readOnlyDataSource";
+    /**
+     * Defines the key (value:{@value}) to retrieve a boolean value to setup Jooq Handler(s)
+     * to use postgres jdbc SQLXML support. Default is 'true'.
+     */
+    public static final String JOOQ_NATIVEXML = "JOOQ.nativeXml";
     /**
      * Defines the key (value:{@value}) to retrieve the string value of the comma separated list of 
      * fully qualified class names implementing the {@link JooqDomainHandler} interface.
@@ -162,19 +171,21 @@ public abstract class JooqHandler {
     public static final DataType<Integer>        ID_TYPE         = SQLDataType.INTEGER;
     public static final DataType<Timestamp>      TIMESTAMP_TYPE  = SQLDataType.TIMESTAMP;
 //  public static final DataType<OffsetDateTime> TIMESTAMP_TYPE  = SQLDataType.TIMESTAMPWITHTIMEZONE;
+    public static final DataType<Document>       SQLXML_TYPE     = new DefaultDataType<Document>(POSTGRES, Document.class, "xml").asConvertedDataType(new PostgreSqlXmlBinding());
     public static final DataType<String>         XML_TYPE        = SQLDataType.CLOB;
     // Use this declaration when generating MySQL tables: see issue #23
-    public static final DataType<String>         XML_TYPE_MYSQL  = new DefaultDataType<String>(SQLDialect.MYSQL, SQLDataType.CLOB, "mediumtext", "char");
+    public static final DataType<String>         XML_TYPE_MYSQL  = new DefaultDataType<String>(MYSQL, SQLDataType.CLOB, "mediumtext", "char");
     public static final DataType<byte[]>         ATTACHMENT_TYPE = SQLDataType.BLOB;
 
 
-    public static final String     uri                = Gateway.getProperties().getString(JooqHandler.JOOQ_URI);
-    public static final String     user               = Gateway.getProperties().getString(JooqHandler.JOOQ_USER);
-    public static final String     pwd                = Gateway.getProperties().getString(JooqHandler.JOOQ_PASSWORD);
-    public static final Boolean    autoCommit         = Gateway.getProperties().getBoolean(JooqHandler.JOOQ_AUTOCOMMIT, false);
+    public static final String     uri                = Gateway.getProperties().getString(JOOQ_URI);
+    public static final String     user               = Gateway.getProperties().getString(JOOQ_USER);
+    public static final String     pwd                = Gateway.getProperties().getString(JOOQ_PASSWORD);
+    public static final Boolean    autoCommit         = Gateway.getProperties().getBoolean(JOOQ_AUTOCOMMIT, false);
 
-    public static final Boolean    readOnlyDataSource = Gateway.getProperties().getBoolean(JooqHandler.JOOQ_READONLYDATASOURCE, false);
-    public static final SQLDialect dialect            = SQLDialect.valueOf(Gateway.getProperties().getString(JooqHandler.JOOQ_DIALECT, "POSTGRES"));
+    public static final Boolean    readOnlyDataSource = Gateway.getProperties().getBoolean(JOOQ_READONLYDATASOURCE, false);
+    public static final SQLDialect dialect            = SQLDialect.valueOf(Gateway.getProperties().getString(JOOQ_DIALECT, "POSTGRES"));
+    public static final Boolean    nativeXml          = Gateway.getProperties().getBoolean(JOOQ_NATIVEXML, true);
 
     private static HikariDataSource ds = null;
     private static HikariConfig config;
@@ -332,15 +343,14 @@ public abstract class JooqHandler {
     }
 
     /**
-     * Return the good XML type for the given dialect
+     * Return the string DataType for the given dialect
      * 
-     * @param context the context
-     * @return XML type 
+     * @return the string DataType for the given dialect
      */
-    protected DataType<String> getXMLType(DSLContext context) {
+    protected static DataType<String> getStringXmlType() {
         //There a bug in jooq supporting CLOB with MySQL: check issue #23
-        if (context.dialect().equals(SQLDialect.MYSQL)) return XML_TYPE_MYSQL;
-        else                                            return XML_TYPE;
+        if (dialect.equals(MYSQL)) return XML_TYPE_MYSQL;
+        else                       return XML_TYPE;
     }
 
     abstract public void createTables(DSLContext context) throws PersistencyException;
@@ -364,6 +374,15 @@ public abstract class JooqHandler {
         }
         else {
             log.trace("{} ------- Printing number of connections not supported for dialect:{}", text, context.dialect());
+        }
+    }
+
+    protected boolean checkNativeXMLSupport() {
+        switch (dialect) {
+            case POSTGRES: 
+                return true;
+            default:
+                throw new ConfigurationException("NativeXML is not supported for " + dialect);
         }
     }
 }
