@@ -84,10 +84,10 @@ public abstract class JooqHandler {
      */
     public static final String JOOQ_READONLYDATASOURCE = "JOOQ.readOnlyDataSource";
     /**
-     * Defines the key (value:{@value}) to retrieve a boolean value to setup Jooq Handler(s)
-     * to use postgres jdbc SQLXML support. Default is 'true'.
+     * Defines the key (value:{@value}) to retrieve a boolean value to setup JooqOutcomeHandler
+     * to use SQLXML support of jdbc. Default is 'true'.
      */
-    public static final String JOOQ_NATIVEXML = "JOOQ.nativeXml";
+    public static final String JOOQ_USESQLXML = "JOOQ.supportJdbXmlType";
     /**
      * Defines the key (value:{@value}) to retrieve the string value of the comma separated list of 
      * fully qualified class names implementing the {@link JooqDomainHandler} interface.
@@ -185,7 +185,7 @@ public abstract class JooqHandler {
 
     public static final Boolean    readOnlyDataSource = Gateway.getProperties().getBoolean(JOOQ_READONLYDATASOURCE, false);
     public static final SQLDialect dialect            = SQLDialect.valueOf(Gateway.getProperties().getString(JOOQ_DIALECT, "POSTGRES"));
-    public static final Boolean    nativeXml          = Gateway.getProperties().getBoolean(JOOQ_NATIVEXML, true);
+    public static final Boolean    useSqlXml          = Gateway.getProperties().getBoolean(JOOQ_USESQLXML, true);
 
     private static HikariDataSource ds = null;
     private static HikariConfig config;
@@ -377,7 +377,7 @@ public abstract class JooqHandler {
         }
     }
 
-    protected boolean checkNativeXMLSupport() {
+    protected boolean checkSqlXmlSupport() {
         switch (dialect) {
             case POSTGRES: 
                 return true;

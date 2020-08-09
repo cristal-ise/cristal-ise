@@ -119,7 +119,7 @@ public class JooqOutcomeHandler extends JooqHandler {
                 .set(SCHEMA_VERSION, outcome.getSchema().getVersion())
                 .set(EVENT_ID,       outcome.getID());
 
-        if (nativeXml && checkNativeXMLSupport()) {
+        if (useSqlXml && checkSqlXmlSupport()) {
             try {
                 insert.set(SQLXML, outcome.getDOM());
             }
@@ -144,7 +144,7 @@ public class JooqOutcomeHandler extends JooqHandler {
                 Schema schema = LocalObjectLoader.getSchema(result.get(SCHEMA_NAME), result.get(SCHEMA_VERSION));
                 String xml = null;
 
-                if (nativeXml && checkNativeXMLSupport()) {
+                if (useSqlXml && checkSqlXmlSupport()) {
                     //this cast should not be needed, see JooqSqlXmlTest class 
                     xml = ((java.sql.SQLXML)result.get(SQLXML)).getString();
                 }
@@ -163,7 +163,7 @@ public class JooqOutcomeHandler extends JooqHandler {
     }
 
     protected Field<?> getXmlField() {
-        if (nativeXml && checkNativeXMLSupport()) {
+        if (useSqlXml && checkSqlXmlSupport()) {
             SQLXML.getDataType().nullable(false);
             return SQLXML;
         }

@@ -156,7 +156,7 @@ public class JooqTestConfigurationBase {
         c2kProps.put(JooqHandler.JOOQ_PASSWORD,   "cristal");
         c2kProps.put(JooqHandler.JOOQ_DIALECT,    SQLDialect.MYSQL.toString());
         c2kProps.put(JooqHandler.JOOQ_AUTOCOMMIT, true);
-        c2kProps.put(JooqHandler.JOOQ_NATIVEXML,  false);
+        c2kProps.put(JooqHandler.JOOQ_USESQLXML,  false);
     }
 
     /**
@@ -187,7 +187,7 @@ public class JooqTestConfigurationBase {
         c2kProps.put(JooqHandler.JOOQ_PASSWORD,   "sa");
         c2kProps.put(JooqHandler.JOOQ_DIALECT,    SQLDialect.H2.toString());
         c2kProps.put(JooqHandler.JOOQ_AUTOCOMMIT, true);
-        c2kProps.put(JooqHandler.JOOQ_NATIVEXML,  false);
+        c2kProps.put(JooqHandler.JOOQ_USESQLXML,  false);
 
         if (mode != null) c2kProps.put(JooqHandler.JOOQ_URI, "jdbc:h2:mem:test;DB_CLOSE_DELAY=-1;MODE=" + mode);
     }
