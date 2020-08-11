@@ -68,7 +68,7 @@ public class JooqTestConfigurationBase {
     /**
      * Sets the database mode to run all jooqdb tests. For travis runs it should be set to H2
      */
-    public static DBModes dbType = DBModes.H2_PostgreSQL;
+    public static DBModes dbType = DBModes.H2;
 
     /**
      * Sets the database name used to run all jooqdb tests
