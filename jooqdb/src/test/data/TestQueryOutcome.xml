@@ -1,7 +1,7 @@
 <!--
 
-    This file is part of the CRISTAL-iSE jOOQ Cluster Storage Module.
-    Copyright (c) 2001-2016 The CRISTAL Consortium. All rights reserved.
+    This file is part of the CRISTAL-iSE kernel.
+    Copyright (c) 2001-2015 The CRISTAL Consortium. All rights reserved.
 
     This library is free software; you can redistribute it and/or modify it
     under the terms of the GNU Lesser General Public License as published
@@ -20,20 +20,13 @@
     http://www.fsf.org/licensing/licenses/lgpl.html
 
 -->
-<configuration>
-
-  <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
-    <!-- encoders are assigned the type ch.qos.logback.classic.encoder.PatternLayoutEncoder by default -->
-    <encoder>
-      <pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
-    </encoder>
-  </appender>
-
-<!--   <logger name="org.jooq" level="DEBUG" /> -->
-  <logger name="org.cristalise.storage.jooqdb" level="DEBUG" />
-
-  <root level="INFO">
-    <appender-ref ref="STDOUT" />
-  </root>
-
-</configuration>
+<cristalquery name="TestQueryHistory" version="0" recordElement="EVENT">
+    <parameter name="uuid" type="java.lang.String"/>
+    <query language="sql"><![CDATA[
+select "XML" from "OUTCOME" 
+where "UUID" = '@{itemUUID}'
+and "SCHEMA_NAME" = '@{schemaName}'
+and "SCHEMA_VERSION" = '@{schemaVersion}'
+and "EVENT_ID" = '@{eventId}'
+    ]]></query>
+</cristalquery>

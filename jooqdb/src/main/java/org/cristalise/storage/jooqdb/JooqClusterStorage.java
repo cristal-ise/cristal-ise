@@ -24,12 +24,16 @@ import static org.cristalise.storage.jooqdb.JooqHandler.JOOQ_DISABLE_DOMAIN_CREA
 import static org.cristalise.storage.jooqdb.JooqHandler.JOOQ_DOMAIN_HANDLERS;
 
 import java.sql.Connection;
+import java.sql.SQLException;
+import java.sql.SQLXML;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
+
 import org.apache.commons.lang3.StringUtils;
 import org.cristalise.kernel.common.PersistencyException;
 import org.cristalise.kernel.entity.C2KLocalObject;
@@ -38,6 +42,7 @@ import org.cristalise.kernel.persistency.ClusterType;
 import org.cristalise.kernel.persistency.TransactionalClusterStorage;
 import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.process.auth.Authenticator;
+import org.cristalise.kernel.querying.Parameter;
 import org.cristalise.kernel.querying.Query;
 import org.cristalise.storage.jooqdb.clusterStore.JooqCollectionHadler;
 import org.cristalise.storage.jooqdb.clusterStore.JooqHistoryHandler;
@@ -48,7 +53,12 @@ import org.cristalise.storage.jooqdb.clusterStore.JooqOutcomeAttachmentHandler;
 import org.cristalise.storage.jooqdb.clusterStore.JooqOutcomeHandler;
 import org.cristalise.storage.jooqdb.clusterStore.JooqViewpointHandler;
 import org.jooq.DSLContext;
+import org.jooq.Field;
+import org.jooq.Record;
+import org.jooq.Result;
 import org.jooq.impl.DSL;
+import org.mvel2.templates.TemplateCompiler;
+import org.mvel2.templates.TemplateRuntime;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -183,6 +193,10 @@ public class JooqClusterStorage extends TransactionalClusterStorage {
         else                log.warn("begin() called with a null locker");
     }
 
+    private DSLContext retrieveContext() throws PersistencyException {
+        return retrieveContext(null);
+    }
+
     private DSLContext retrieveContext(Object locker) throws PersistencyException {
         if (JooqHandler.getDataSource().isAutoCommit()) return JooqHandler.connect();
         else return JooqHandler.connect(connectionMap.get(locker));
@@ -282,16 +296,17 @@ public class JooqClusterStorage extends TransactionalClusterStorage {
         String[]    pathArray   = path.split("/");
         ClusterType cluster     = ClusterType.getValue(pathArray[0]);
 
+        DSLContext context = retrieveContext();
         JooqHandler handler = jooqHandlers.get(cluster);
 
         if (handler == null) {
             throw new PersistencyException("No handler found for cluster:'"+cluster+"'");
         }
         else if (cluster == ClusterType.HISTORY) {
-            return ((JooqHistoryHandler)handler).getLastEventId(JooqHandler.connect(), itemPath.getUUID());
+            return ((JooqHistoryHandler)handler).getLastEventId(context, itemPath.getUUID());
         }
         else if (cluster == ClusterType.JOB) {
-            return ((JooqJobHandler)handler).getLastJobId(JooqHandler.connect(), itemPath.getUUID());
+            return ((JooqJobHandler)handler).getLastJobId(context, itemPath.getUUID());
         }
         else {
             String msg = "Invalid ClusterType! Must be either HISTORY or JOB. Actual cluster:" + cluster;
@@ -302,7 +317,99 @@ public class JooqClusterStorage extends TransactionalClusterStorage {
 
     @Override
     public String executeQuery(Query query) throws PersistencyException {
-        throw new PersistencyException("UnImplemented");
+        if(!checkQuerySupport(query.getLanguage())) throw new PersistencyException("Unsupported query:"+query.getLanguage());
+
+        DSLContext context = retrieveContext();
+
+        Map<Object, Object> params = new HashMap<Object, Object>();
+
+        if (query.hasParameters()) {
+            for(Parameter p: query.getParameters()) {
+                if (p.getValue() != null) {
+                    log.debug("executeQuery() - param:'"+p.getName()+"' = '"+p.getValue()+"'");
+                    params.put(p.getName(), p.getValue());
+                }
+            }
+        }
+
+        String sql = query.getQuery();
+        sql = (String)TemplateRuntime.execute(TemplateCompiler.compileTemplate(sql), params);
+        Result<Record> result = context.fetch(sql);
+
+        if (result == null || result.size() == 0) {
+            return "<NULL/>";
+            //return "</"+query.getRootElement()+">";
+        }
+        else if (result.size() == 1) {
+            return convertRecord2Xml(result.get(0), query.getRecordElement());
+        }
+        else {
+            StringBuffer b = new StringBuffer("<"+query.getRootElement()+">");
+
+            for (Record rec: result) {
+                b.append(convertRecord2Xml(rec, query.getRecordElement()));
+            }
+
+            b.append("</"+query.getRootElement()+">");
+
+            return b.toString();
+        }
+    }
+
+    private String convertRecord2Xml(Record rec, String recordElement) throws PersistencyException {
+        if (rec.fields().length == 0) {
+            return "<"+recordElement+"/>";
+        }
+        else if (rec.fields().length == 1) {
+            Field<?> field = rec.fields()[0];
+            return convertField2Xml(field, rec.get(field));
+        }
+        else {
+            StringBuffer b = new StringBuffer("<"+recordElement+">");
+
+            for (Field<?> field: rec.fields()) {
+                b.append(convertField2Xml(field, rec.get(field)));
+            }
+
+            b.append("</"+recordElement+">");
+
+            return b.toString();
+        }
+    }
+
+    private String convertField2Xml(Field<?> field, Object value) throws PersistencyException {
+        StringBuffer b = new StringBuffer();
+
+        if (value == null) {
+            
+            //b.append("</"+field.getName()+">");
+        }
+        else if (value instanceof SQLXML) {
+            try {
+                b.append(((SQLXML)value).getString());
+            }
+            catch (SQLException e) {
+                log.error("Could not process SQLXML type of jdbc", e);
+                throw new PersistencyException(e.getMessage());
+            }
+        }
+        else if("XML".equals(field.getName().toUpperCase())) { //cristal-ise tables use field name 'XML'
+            b.append(value.toString());
+        }
+        else {
+            String stringValue = value.toString();
+
+            if (StringUtils.isEmpty(stringValue)) {
+                b.append("<"+field.getName()+"/>");
+            }
+            else {
+                b.append("<"+field.getName()+">")
+                .append(stringValue)
+                .append("</"+field.getName()+">");
+            }
+        }
+
+        return b.toString();
     }
 
     @Override
