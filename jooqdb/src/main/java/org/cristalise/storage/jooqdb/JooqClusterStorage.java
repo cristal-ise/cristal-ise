@@ -296,7 +296,7 @@ public class JooqClusterStorage extends TransactionalClusterStorage {
         String[]    pathArray   = path.split("/");
         ClusterType cluster     = ClusterType.getValue(pathArray[0]);
 
-        DSLContext context = retrieveContext();
+        DSLContext context = JooqHandler.connect();
         JooqHandler handler = jooqHandlers.get(cluster);
 
         if (handler == null) {

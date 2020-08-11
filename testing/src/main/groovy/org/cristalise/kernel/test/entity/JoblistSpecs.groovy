@@ -20,6 +20,7 @@
  */
 package org.cristalise.kernel.test.entity
 
+import org.cristalise.dsl.entity.RoleBuilder
 import org.cristalise.dsl.lifecycle.stateMachine.StateMachineBuilder
 import org.cristalise.dsl.test.builders.AgentTestBuilder
 import org.cristalise.dsl.test.builders.ItemTestBuilder
@@ -48,9 +49,13 @@ class JoblistSpecs extends Specification implements CristalTestSetup {
 
     def 'The persistent Joblist of Agent is automatically updated'() {
         given: "the workflow of Item is initialised its first Activity is activated"
+        RoleBuilder.create {
+            Role(name: 'toto', jobList: true) { Permission('*') }
+        }
+
         dummyAgentBuilder = AgentTestBuilder.create(name: "dummyAgent", password: 'dummy') {
             Roles {
-                Role(name: 'toto', jobList: true) { Permission('*') }
+                Role(name: 'toto')
             }
         }
 
@@ -112,15 +117,19 @@ class JoblistSpecs extends Specification implements CristalTestSetup {
             finishingState("Finished")
         }
 
+        RoleBuilder.create {
+            Role(name: 'toto') { Permission('*') }
+            Role(name: 'Timeout', jobList: true) { Permission('*') }
+        }
         AgentTestBuilder dummyAgentBuilder = AgentTestBuilder.create(name: "dummy", password: 'dummy') {
             Roles {
-                Role(name: 'toto') { Permission('*') }
+                Role(name: 'toto')
             }
         }
 
         AgentTestBuilder timeoutAgentBuilder = AgentTestBuilder.create(name: "TimeoutManager", password: 'dummy') {
             Roles {
-                Role(name: 'Timeout', jobList: true) { Permission('*') }
+                Role(name: 'Timeout')
             }
         }
 
