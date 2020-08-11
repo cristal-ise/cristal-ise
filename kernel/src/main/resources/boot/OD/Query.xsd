@@ -44,6 +44,8 @@
             </xs:sequence>
             <xs:attribute name="name" type="xs:string"/>
             <xs:attribute name="version" type="xs:integer"/>
+            <xs:attribute name="rootElement" type="xs:string" use="optional"/>
+            <xs:attribute name="recordElement" type="xs:string" use="optional"/>
         </xs:complexType>
     </xs:element>
 </xs:schema>

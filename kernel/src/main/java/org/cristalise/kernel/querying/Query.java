@@ -58,11 +58,23 @@ import org.xml.sax.InputSource;
 @Getter @Setter @Slf4j
 public class Query implements DescriptionObject {
 
-    private String      name = "";
-    private Integer     version = null;
-    private ItemPath    itemPath;
-    private String      language;
-    private String      query;
+    private String   name = "";
+    private Integer  version = null;
+    private ItemPath itemPath;
+    private String   language;
+    private String   query;
+
+    /**
+     * Specifies the name of the root element of the XML generated from the result of the query. 
+     * It can be omitted if the query returns a valid XML (i.e. it is an instance of SQLXML of jdbc),
+     * or the result has a single record (in this case use recordElement).
+     */
+    private String rootElement;
+    /**
+     * Specifies the name of the record element of the XML generated from the result of the query
+     * It can be omitted if the record returns a valid XML (i.e. it is an instance of SQLXML of jdbc).
+     */
+    private String recordElement;
 
     private ArrayList<Parameter> parameters = new ArrayList<Parameter>();
 
@@ -163,6 +175,9 @@ public class Query implements DescriptionObject {
             if(queryDoc.getDocumentElement().hasAttribute("name") )    name    = queryDoc.getDocumentElement().getAttribute("name");
             if(queryDoc.getDocumentElement().hasAttribute("version") ) version = Integer.valueOf(queryDoc.getDocumentElement().getAttribute("version"));
 
+            if(queryDoc.getDocumentElement().hasAttribute("rootElement") )   rootElement   = queryDoc.getDocumentElement().getAttribute("rootElement");
+            if(queryDoc.getDocumentElement().hasAttribute("recordElement") ) recordElement = queryDoc.getDocumentElement().getAttribute("recordElement");
+
             parseQueryTag(queryDoc.getElementsByTagName("query"));
             parseParameterTag(queryDoc.getElementsByTagName("parameter"));
         }
@@ -205,7 +220,12 @@ public class Query implements DescriptionObject {
     }
 
     public String getQueryXML() {
-        StringBuffer sb = new StringBuffer("<cristalquery name='" + name + "' version='" + version + "'>");
+        StringBuffer sb = new StringBuffer("<cristalquery name='" + name + "' version='" + version + "'");
+
+        if (StringUtils.isNotBlank(rootElement))   sb.append(" rootElement='"+rootElement+"'");
+        if (StringUtils.isNotBlank(recordElement)) sb.append(" recordElement='"+recordElement+"'");
+
+        sb.append(">");
 
         for(Parameter p: parameters) {
             sb.append("<parameter name='"+p.getName()+"' type='"+p.getType().getName()+"'/>");

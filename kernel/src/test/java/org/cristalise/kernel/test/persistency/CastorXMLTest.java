@@ -124,7 +124,8 @@ public class CastorXMLTest {
 
     @Test
     public void testQueryParsing() throws Exception {
-        Query q = new Query(FileStringUtility.url2String(CastorXMLTest.class.getResource("/testQuery.xml")));
+        String origXml = FileStringUtility.url2String(CastorXMLTest.class.getResource("/testQuery.xml"));
+        Query q = new Query(origXml);
 
         assertEquals("TestQuery", q.getName());
         assertEquals(0, (int)q.getVersion());
@@ -136,6 +137,29 @@ public class CastorXMLTest {
 
         assertTrue(q.getQuery().startsWith("\n<TRList>"));
         assertTrue(q.getQuery().endsWith("</TRList>\n    "));
+
+        assertTrue(compareXML(origXml, q.getQueryXML()));
+    }
+
+    @Test
+    public void testSqlQueryParsing() throws Exception {
+        String origXml = FileStringUtility.url2String(CastorXMLTest.class.getResource("/testQuerySql.xml"));
+        Query q = new Query(origXml);
+
+        assertEquals("TestQuerySql", q.getName());
+        assertEquals(0, (int)q.getVersion());
+        assertEquals("sql", q.getLanguage());
+        assertEquals("History", q.getRootElement());
+        assertEquals("Event", q.getRecordElement());
+
+        assertEquals(1, q.getParameters().size());
+        assertEquals("uuid", q.getParameters().get(0).getName());
+        assertEquals("java.lang.String", q.getParameters().get(0).getType().getName());
+
+        assertTrue(q.getQuery().startsWith("\nselect"));
+        assertTrue(q.getQuery().endsWith("'@{schemaName}'\n    "));
+
+        assertTrue(compareXML(origXml, q.getQueryXML()));
     }
 
     @Test
