@@ -213,9 +213,8 @@ public abstract class JooqHandler {
             config.addDataSourceProperty( "prepStmtCacheSqlLimit", "2048");
             config.addDataSourceProperty( "autoCommit",             autoCommit);
 
-            log.info("getDataSource() - uri:'{}' user:'{}' dialect:'{}'", uri, user, dialect);
+            log.info("getDataSource() - uri:'{}' user:'{}' dialect:'{}' autoCommit:'{}'", uri, user, dialect, autoCommit);
 
-            config.setAutoCommit(autoCommit);
             ds = new HikariDataSource(config);
 
             log.info("getDataSource() create datasource {}", ds);
