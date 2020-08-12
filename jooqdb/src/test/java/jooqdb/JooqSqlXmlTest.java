@@ -20,52 +20,56 @@
  */
 package jooqdb;
 
+import static org.jooq.SQLDialect.POSTGRES;
 import static org.jooq.impl.DSL.constraint;
 import static org.jooq.impl.DSL.field;
 import static org.jooq.impl.DSL.name;
 import static org.jooq.impl.DSL.table;
 import static org.jooq.impl.DSL.using;
-import static org.junit.Assert.assertEquals;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
+import java.util.UUID;
 
+import org.cristalise.kernel.persistency.outcome.Outcome;
+import org.cristalise.storage.jooqdb.bindings.PostgreSqlXmlBinding;
 import org.jooq.DSLContext;
+import org.jooq.DataType;
 import org.jooq.Field;
 import org.jooq.Record;
 import org.jooq.SQLDialect;
 import org.jooq.Table;
+import org.jooq.impl.DefaultDataType;
 import org.jooq.impl.SQLDataType;
 import org.junit.After;
+import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
+import org.w3c.dom.Document;
 
 import lombok.val;
 
-public class JooqOnDuplicateKeyUpdateTest {
+@Ignore("Postgres test cannot run on Travis")
+public class JooqSqlXmlTest {
     static final String TABLE_NAME = "TEST";
     DSLContext context;
-    
-    static Table<Record>         TEST  = table(name(TABLE_NAME));
-    static Field<java.util.UUID> UUID  = field(name("UUID"), java.util.UUID.class);
-    static Field<String>         NAME  = field(name("NAME"), String.class);
-    static Field<String>         VALUE = field(name("VALUE"), String.class);
+
+    static DataType<Document> XMLTYPE = new DefaultDataType<Document>(POSTGRES, Document.class, "xml").asConvertedDataType(new PostgreSqlXmlBinding());
+
+    static Table<Record>      TEST  = table(name(TABLE_NAME));
+    static Field<UUID>        ID    = field(name("UUID"), UUID.class);
+    static Field<Document>    XML   = field(name("XML"),  Document.class);
+
+    @Before
+    public void before() throws Exception {
+        openPostgres();
+        createTable();
+    }
 
     @After
     public void after() {
         dropTable();
         context.close();
-    }
-
-    public void openH2() throws Exception {
-        String userName = "sa";
-        String password = "sa";
-//        String url      = "jdbc:h2:mem:test";  //this settings does not work
-        String url      = "jdbc:h2:mem:test;MODE=PostgreSQL"; //this settings does not work
-//        String url      = "jdbc:h2:mem:;MODE=MYSQL";
-
-        Connection conn = DriverManager.getConnection(url, userName, password);
-        context = using(conn, SQLDialect.H2);
     }
 
     public void openPostgres() throws Exception {
@@ -79,10 +83,9 @@ public class JooqOnDuplicateKeyUpdateTest {
 
     public int createTable() {
         return context.createTableIfNotExists(TEST)
-            .column(UUID,  SQLDataType.UUID.nullable(false))
-            .column(NAME,  SQLDataType.VARCHAR.length(128).nullable(false))
-            .column(VALUE, SQLDataType.VARCHAR.length(4096).nullable(true))
-            .constraints(constraint("PK_"+TABLE_NAME).primaryKey(UUID, NAME))
+            .column(ID, SQLDataType.UUID.nullable(false))
+            .column(XML, XMLTYPE.nullable(true))
+            .constraints(constraint("PK_"+TABLE_NAME).primaryKey(ID))
         .execute();
     }
 
@@ -90,55 +93,29 @@ public class JooqOnDuplicateKeyUpdateTest {
         return context.dropTableIfExists(TEST).execute();
     }
 
-    public int set(java.util.UUID uuid, String name, String value) {
+    public int set(UUID uuid, Document xml) {
         val insertQuery = context.insertQuery(TEST);
 
-        insertQuery.addValue(UUID, uuid);
-        insertQuery.addValue(NAME, name);
-        insertQuery.addValue(VALUE, value);
-        insertQuery.onDuplicateKeyUpdate(true);
-        insertQuery.onConflict(UUID, NAME);
-        insertQuery.addValueForUpdate(VALUE, value);
-
-        System.out.println("-------\n" + insertQuery.toString()+"\n-------");
+        insertQuery.addValue(ID, uuid);
+        insertQuery.addValue(XML, xml);
 
         return insertQuery.execute();
     }
 
-    public String fetch(java.util.UUID uuid, String name) {
+    public Document fetch(UUID uuid) throws Exception {
         Record result = context
                 .select().from(TEST)
-                .where(UUID.equal(uuid))
-                  .and(NAME.equal(name))
+                .where(ID.equal(uuid))
                 .fetchOne();
 
-        if(result != null) return result.get(field(name("VALUE")), String.class);
-        return null;
+        return result.get(XML);
     }
     
     @Test
-    public void testWithH2() throws Exception {
-        openH2();
-        testLogic();
-    }
-
-    @Test @Ignore("Postgres test cannot run on Travis")
     public void testWithPostgres() throws Exception {
-        openPostgres();
-        testLogic();
-    }
+        UUID uuid = UUID.randomUUID();
 
-    /**
-     * 
-     */
-    private void testLogic() {
-        java.util.UUID uuid = java.util.UUID.randomUUID();
-        createTable();
-
-        assertEquals(1, set(uuid, "Type", "Serious"));
-        assertEquals("Serious", fetch(uuid, "Type"));
-
-        assertEquals(1, set(uuid, "Type", "Ridiculous"));
-        assertEquals("Ridiculous", fetch(uuid, "Type"));
+        assert set(uuid, Outcome.parse("<Outcome/>")) == 1;
+        assert fetch(uuid) != null;
     }
 }

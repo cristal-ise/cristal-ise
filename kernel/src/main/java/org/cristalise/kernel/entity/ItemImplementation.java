@@ -143,7 +143,7 @@ public class ItemImplementation implements ItemOperations {
             mStorage.put(mItemPath, newLastView, locker);
         }
         catch (Exception ex) {
-            log.error("initialise({}) - Could not store event and outcome.", mItemPath, ex);
+            log.error("initialise("+mItemPath+") - Could not store event and outcome.", ex);
             mStorage.abort(locker);
             throw new PersistencyException("Error storing 'Initialize' event and outcome:" + ex.getMessage());
         }

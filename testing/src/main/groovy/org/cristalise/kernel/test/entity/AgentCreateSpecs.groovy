@@ -20,6 +20,7 @@
  */
 package org.cristalise.kernel.test.entity
 
+import org.cristalise.dsl.entity.RoleBuilder
 import org.cristalise.dsl.test.builders.AgentTestBuilder;
 import org.cristalise.kernel.test.utils.CristalTestSetup;
 
@@ -41,9 +42,12 @@ class AgentCreateSpecs extends Specification implements CristalTestSetup {
 
     def 'Agent with Role is created'() {
         when:
+        RoleBuilder.create {
+            Role(name: 'toto', jobList: true)
+        }
         AgentTestBuilder agentBuilder = AgentTestBuilder.create(name: "dummy", password: 'dummy') {
             Roles {
-                Role(name: 'toto', jobList: true)
+                Role(name: 'toto')
             }
         }
 
@@ -59,6 +63,10 @@ class AgentCreateSpecs extends Specification implements CristalTestSetup {
     @Ignore("Unimplemented")
     def 'Agent can be updated'() {
         when:
+        RoleBuilder.create {
+            Role(name: 'toto')
+            Role(name: 'tototo')
+        }
         AgentTestBuilder.create(name: "dummy") {
             Roles {
                 Role(name: 'toto')

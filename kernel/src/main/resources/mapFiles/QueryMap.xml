@@ -30,6 +30,12 @@
         <field name="version" type="integer" direct="false">
             <bind-xml name="version" node="attribute" />
         </field>
+        <field name="rootElement" type="string" direct="false">
+            <bind-xml name="recordElement" node="attribute" />
+        </field>
+        <field name="recordElement" type="string" direct="false">
+            <bind-xml name="recordElement" node="attribute" />
+        </field>
         <field name="language" type="string" direct="false">
             <bind-xml name="language" location="query" node="attribute" />
         </field>

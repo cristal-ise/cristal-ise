@@ -53,19 +53,20 @@ class ExecutionAccessRigthSpecs extends Specification implements CristalTestSetu
 
     def 'Job is only given to the Agent with the proper Role'() {
         when: ""
+        RoleBuilder.create {
+            Role(name: 'oper')  { Permission('*') }
+            Role(name: 'clerk') { Permission('*') }
+        }
+
         AgentTestBuilder  oper1 = AgentTestBuilder.create(name: "oper1", password: 'dummy') {
             Roles {
-                Role(name: 'oper') {
-                    Permission('*')
-                }
+                Role(name: 'oper')
             }
         }
 
         AgentTestBuilder  clerk1 = AgentTestBuilder.create(name: "clerk1", password: 'dummy') {
             Roles {
-                Role(name: 'clerk') {
-                    Permission('*')
-                }
+                Role(name: 'clerk')
             }
         }
 
@@ -85,15 +86,20 @@ class ExecutionAccessRigthSpecs extends Specification implements CristalTestSetu
 
     def "Activity property 'Agent Role' can contain a list of Roles"() {
         when: ""
+        RoleBuilder.create {
+            Role(name: 'oper')  { Permission('*') }
+            Role(name: 'clerk') { Permission('*') }
+        }
+
         AgentTestBuilder  oper1 = AgentTestBuilder.create(name: "oper1", password: 'dummy') {
             Roles {
-                Role(name: 'oper') { Permission('*') }
+                Role(name: 'oper')
             }
         }
 
         AgentTestBuilder  clerk1 = AgentTestBuilder.create(name: "clerk1", password: 'dummy') {
             Roles {
-                Role(name: 'clerk') { Permission('*') }
+                Role(name: 'clerk')
             }
         }
 
@@ -115,15 +121,19 @@ class ExecutionAccessRigthSpecs extends Specification implements CristalTestSetu
 
     def "Role hierachy boss/minion declares that boss1 could execute all Jobs of minion1"() {
         when: "Agent 'boss' has a Role of 'boss' and Agent 'minion1' has a Role of 'minion'"
+        RoleBuilder.create {
+            Role(name: 'boss')        { Permission('*') }
+            Role(name: 'boss/minion') { Permission('*') }
+        }
         AgentTestBuilder  boss1 = AgentTestBuilder.create(name: "boss1", password: 'dummy') {
             Roles {
-                Role(name: 'boss') { Permission('*') }
+                Role(name: 'boss')
             }
         }
 
         AgentTestBuilder  minion1 = AgentTestBuilder.create(name: "minion1", password: 'dummy') {
             Roles {
-                Role(name: 'boss/minion') { Permission('*') }
+                Role(name: 'boss/minion')
             }
         }
 

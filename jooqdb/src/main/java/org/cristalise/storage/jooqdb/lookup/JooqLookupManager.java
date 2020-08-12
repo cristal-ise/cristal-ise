@@ -111,7 +111,6 @@ public class JooqLookupManager implements LookupManager {
     }
 
     public void dropHandlers() throws PersistencyException {
-
         JooqHandler.connect().transaction(nested -> {
             properties .dropTables(DSL.using(nested));
             permissions.dropTables(DSL.using(nested));
@@ -119,6 +118,12 @@ public class JooqLookupManager implements LookupManager {
             domains    .dropTables(DSL.using(nested));
             items      .dropTables(DSL.using(nested));
         });
+
+        items       = null;
+        domains     = null;
+        roles       = null;
+        permissions = null;
+        properties  = null;
     }
 
     @Override

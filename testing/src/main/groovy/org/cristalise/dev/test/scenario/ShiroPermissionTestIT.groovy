@@ -13,19 +13,24 @@ class ShiroPermissionTestIT extends KernelScenarioTestBase {
     
     @Test
     public void 'Job is only given to the Agent with the proper Permission'() {
+        Roles {
+            Role(name: 'oper') {
+                Permission('test:EA1')
+            }
+            Role(name: 'clerk') {
+                Permission('test:EA2')
+            }
+        }
+
         def oper1 = Agent("oper1-$timeStamp") {
             Roles {
-                Role(name: 'oper') {
-                    Permission('test:EA1')
-                }
+                Role(name: 'oper')
             }
         }
 
         def clerk1 = Agent("clerk1-$timeStamp") {
             Roles {
-                Role(name: 'clerk') {
-                    Permission('test:EA2')
-                }
+                Role(name: 'clerk')
             }
         }
 
@@ -44,19 +49,24 @@ class ShiroPermissionTestIT extends KernelScenarioTestBase {
 
     @Test
     public void 'Agent can execute activities with the proper Permission'() {
+        Roles {
+            Role(name: 'oper') {
+                Permission('test:first,left,last')
+            }
+            Role(name: 'clerk') {
+                Permission('test:right,last')
+            }
+        }
+
         def oper1 = (AgentPath)Agent("oper1-$timeStamp") {
             Roles {
-                Role(name: 'oper') {
-                    Permission('test:first,left,last')
-                }
+                Role(name: 'oper')
             }
         }.getItemPath()
 
         def clerk1 = (AgentPath)Agent("clerk1-$timeStamp") {
             Roles {
-                Role(name: 'clerk') {
-                    Permission('test:right,last')
-                }
+                Role(name: 'clerk')
             }
         }.getItemPath()
 
