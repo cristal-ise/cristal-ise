@@ -23,5 +23,5 @@
 -->
 <cristalscript>
   <output name='outputXML' type='java.lang.String' />
-  <script language='groovy' name='RoleDesc_EditPermissionUpdateScript'><![CDATA[  ]]></script>
+  <script language='javascript' name='RoleDesc_EditPermissionUpdateScript'><![CDATA[  ]]></script>
 </cristalscript>

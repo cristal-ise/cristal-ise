@@ -23,7 +23,9 @@
 -->
 <cristalscript>
   <output name='PropertyDescriptionMap' type='java.util.Map' />
-  <script language='groovy' name='PropertyDescription_QueryList'><![CDATA[ import org.cristalise.kernel.entity.proxy.AgentProxy
+  <script language='javascript' name='PropertyDescription_QueryList'><![CDATA[
+/*
+import org.cristalise.kernel.entity.proxy.AgentProxy
 import org.cristalise.kernel.lookup.DomainPath
 import org.cristalise.kernel.process.Gateway
 import org.cristalise.kernel.property.Property
@@ -39,7 +41,7 @@ import org.cristalise.kernel.property.Property
 // Job job
 //--------------------------------------------------
 
-def properties = [new Property('Type', 'PropertyDescription')/*, new Property('State', 'ENABLED')*/]
+def properties = [new Property('Type', 'PropertyDescription')]
 
 def result = Gateway.getLookup().search(new DomainPath(), properties, 0, 100)
 PropertyDescriptionMap = [];
@@ -49,5 +51,6 @@ for (DomainPath dp: result.rows) {
 }
 
 return PropertyDescriptionMap
+*/
  ]]></script>
 </cristalscript>
