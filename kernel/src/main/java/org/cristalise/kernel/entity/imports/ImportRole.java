@@ -50,12 +50,16 @@ public class ImportRole extends ModuleImport implements DescriptionObject {
     public Integer version;
 
     public Boolean jobList = null;
-    public ArrayList<String> permissions = new ArrayList<>();
+    public ArrayList<ImportPermission> permissions = new ArrayList<>();
 
     public ImportRole() {}
 
     public RolePath getRolePath() {
-        return new RolePath(name.split("/"), (jobList == null) ? false : jobList, permissions);
+        ArrayList<String> permissionStrings = new ArrayList<String>();
+        for (ImportPermission p : permissions) {
+            permissionStrings.add(p.toString());
+        }
+        return new RolePath(name.split("/"), (jobList == null) ? false : jobList, permissionStrings);
     }
 
     public boolean exists() {
@@ -115,7 +119,14 @@ public class ImportRole extends ModuleImport implements DescriptionObject {
 
         ir.setName(rp.getName());
         ir.jobList = rp.hasJobList();
-        ir.permissions = (ArrayList<String>) rp.getPermissionsList();
+        
+        ArrayList<ImportPermission> importPermissions = new ArrayList<>();
+
+        for (String p : rp.getPermissionsList()) {
+            importPermissions.add(new ImportPermission(p));
+        }
+
+        ir.permissions = importPermissions;
 
         return ir;
     }

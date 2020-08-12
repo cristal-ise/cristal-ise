@@ -24,7 +24,7 @@
   <Properties>
     <KeyValuePair Key="Description" String="Update Agent created from this ImportAgent object" />
     <KeyValuePair Key="Agent Name" String="" />
-    <KeyValuePair Key="SchemaType" String="" />
+    <KeyValuePair Key="SchemaType" String="Agent" />
     <KeyValuePair Key="SchemaVersion" String="0" />
     <KeyValuePair Key="ScriptName" String="UpdateImportAgent" />
     <KeyValuePair Key="ScriptVersion" String="0" />

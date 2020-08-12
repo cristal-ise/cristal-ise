@@ -116,17 +116,6 @@ class BasicDevDescriptionIT extends KernelScenarioTestBase {
         //assert item.getAggregateScript()
     }
 
-    @Test
-    public void createAndEditRoleDesc() {
-        String name = "RoleDesc-$timeStamp"
-
-        def item = createNewRoleDesc(name, folder)
-        editRoleDesc(name, folder, new File("$testDataRoot/TestRoleDesc.xml").text)
-
-        assert item.getMasterSchema()
-        //assert item.getAggregateScript()
-    }
-
     @Test @Ignore('Test Unimplemented')
     public void createAndEditModule() {
     }

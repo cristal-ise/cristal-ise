@@ -1,4 +1,8 @@
 <Agent name="mainUser" password="test©£" version="0" initialPath="/integTest/agents">
-    <Role name="Admin"/>
-    <Role name='User'/>
+  <Role>
+    <Name>Admin</Name>
+  </Role>
+  <Role>
+    <Name>User</Name>
+  </Role>
 </Agent>

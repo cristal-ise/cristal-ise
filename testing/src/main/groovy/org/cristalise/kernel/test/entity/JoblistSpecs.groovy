@@ -40,7 +40,11 @@ class JoblistSpecs extends Specification implements CristalTestSetup {
     AgentTestBuilder dummyAgentBuilder
     AgentTestBuilder timeoutAgentBuilder
 
-    def setup()   { inMemoryServer('src/main/bin/inMemoryServer.conf', 'src/main/bin/inMemory.clc', 8) }
+    def setup() {
+        def testProps = new Properties()
+        testProps.put("Module.ImportAgent.enableRoleCreation", true)
+        inMemoryServer('src/main/bin/inMemoryServer.conf', 'src/main/bin/inMemory.clc', 8, testProps)
+    }
     def cleanup() {
         if(dummyAgentBuilder) dummyAgentBuilder.jobList.deactivate()
         if(timeoutAgentBuilder) timeoutAgentBuilder.jobList.deactivate()
@@ -68,7 +72,7 @@ class JoblistSpecs extends Specification implements CristalTestSetup {
             }
         }
 
-        //"Agent gets 2 Jobs (Start, Complete) for the Activity it was assigned to"
+        //"Agent gets 2 Jobs (Start, Done) for the Activity it was assigned to"
         pollingWait.eventually {
             dummyAgentBuilder.checkJobList(
                     [   [stepName: "EA1", agentRole: "toto", transitionName: "Start"],

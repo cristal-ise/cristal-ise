@@ -1,9 +1,9 @@
 Schema('SimpleElectonicSignature', 0) {
-    struct(name: 'SimpleElectonicSignature', documentation: "Minimum form to provide electronic signature") {
+    struct(name: 'SimpleElectonicSignature', documentation: 'Minimum form to provide electronic signature') {
         field(name:'AgentName', type: 'string')
         field(name:'Password',  type: 'string') { dynamicForms(inputType: 'password') }
 
-        struct(name: 'ExecutionContext', documentation: "The context of Item and Actitiy of the Electronic Signature", multiplicity: '1..1') {
+        struct(name: 'ExecutionContext', documentation: 'The context of Item and Actitiy of the Electronic Signature', multiplicity: '1..1') {
             field(name:'ItemPath',     type: 'string') { dynamicForms(hidden: true) }
             field(name:'SchemaName',   type: 'string') { dynamicForms(hidden: true) }
             field(name:'SchemaVersion',type: 'string') { dynamicForms(hidden: true) }
@@ -15,7 +15,7 @@ Schema('SimpleElectonicSignature', 0) {
 }
 
 Schema('SystemProperties', 0) {
-    struct(name: 'SystemProperties', useSequence: true, documentation: 'blabla') {
+    struct(name: 'SystemProperties', useSequence: true) {
         field(name: 'ProcessName', type: 'string')  {
             dynamicForms(disabled: true)
         }
@@ -62,3 +62,27 @@ Schema('ModuleChanges', 0) {
         }
     }
 }
+
+Schema('AgentDesc', 0) {
+    struct(name: 'AgentDesc', useSequence: true) {
+        field(name: 'Name', type: 'string',  multiplicity: '1..1')
+        field(name: 'Version', type: 'integer', multiplicity: '0..1')
+        field(name: 'Id', type: 'string',  multiplicity: '0..1', pattern: patternUuid, length: 36) {
+            dynamicForms(disabled: true)
+        }
+        field(name: 'Password', type: 'string',  multiplicity: '1..1') {
+            dynamicForms(inputType: 'password')
+        }
+        field(name: 'InitialPath', type: 'string',  multiplicity: '0..1')
+        field(name: 'Roles', type: 'string', multiplicity: '1..1') {
+            listOfValues(scriptRef: 'QueryRoles:0')
+        }
+
+        struct(name:'Property', multiplicity: '0..*', useSequence: true) {
+            field(name: 'Name', type: 'string',  multiplicity: '1..1')
+            field(name: 'Mutable', type: 'boolean', default: 'true', multiplicity: '0..1')
+            field(name: 'Value', type: 'string', multiplicity: '1..1')
+        }
+    }
+}
+

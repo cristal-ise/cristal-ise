@@ -40,6 +40,7 @@ import org.cristalise.kernel.common.GTimeStamp;
 import org.cristalise.kernel.entity.agent.Job;
 import org.cristalise.kernel.entity.imports.ImportAgent;
 import org.cristalise.kernel.entity.imports.ImportItem;
+import org.cristalise.kernel.entity.imports.ImportPermission;
 import org.cristalise.kernel.entity.imports.ImportRole;
 import org.cristalise.kernel.graph.model.GraphPoint;
 import org.cristalise.kernel.graph.model.GraphableEdge;
@@ -59,6 +60,7 @@ import org.cristalise.kernel.test.process.MainTest;
 import org.cristalise.kernel.utils.CastorHashMap;
 import org.cristalise.kernel.utils.CastorXMLUtility;
 import org.cristalise.kernel.utils.FileStringUtility;
+import org.cristalise.kernel.utils.LocalObjectLoader;
 import org.hamcrest.collection.IsIterableContainingInAnyOrder;
 import org.junit.Before;
 import org.junit.Ignore;
@@ -309,18 +311,29 @@ public class CastorXMLTest {
         ImportRole role = new ImportRole();
         role.setName("TestRole");
         role.jobList = false;
-        role.permissions.add("dom1:Func1,Func2:");
-        role.permissions.add("dom2:Func1:toto");
-
-        ImportRole rolePrime = (ImportRole) marshaller.unmarshall(marshaller.marshall(role));
+        role.permissions.add(new ImportPermission("dom1", "Func1", "tata"));
+        role.permissions.add(new ImportPermission("dom2", "Func1", "toto"));
+        
+        String roleXml = marshaller.marshall(role);
+        ImportRole rolePrime = (ImportRole) marshaller.unmarshall(roleXml);
 
         assertReflectionEquals(role, rolePrime);
         assertNull(rolePrime.getVersion());
 
         role.setVersion(1);
-        rolePrime = (ImportRole) marshaller.unmarshall(marshaller.marshall(role));
+        role.setID(UUID.randomUUID().toString());;
+
+        String rolePrimeXml = marshaller.marshall(role);
+        rolePrime = (ImportRole) marshaller.unmarshall(rolePrimeXml);
+
         assertReflectionEquals(role, rolePrime);
         assertNotNull(rolePrime.getVersion());
+
+        // Check now the Schema
+        new Outcome(roleXml,      LocalObjectLoader.getSchema("Role", 0)).validateAndCheck();
+        new Outcome(rolePrimeXml, LocalObjectLoader.getSchema("Role", 0)).validateAndCheck();
+        new Outcome(roleXml,      LocalObjectLoader.getSchema("RoleDesc", 0)).validateAndCheck();
+        new Outcome(rolePrimeXml, LocalObjectLoader.getSchema("RoleDesc", 0)).validateAndCheck();
     }
 
     @Test

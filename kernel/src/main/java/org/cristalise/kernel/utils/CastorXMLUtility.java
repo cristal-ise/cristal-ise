@@ -155,6 +155,8 @@ public class CastorXMLUtility {
 
         marshaller.marshal(obj);
 
+        log.debug("marshall() - {}", sWriter);
+
         return sWriter.toString();
     }
 

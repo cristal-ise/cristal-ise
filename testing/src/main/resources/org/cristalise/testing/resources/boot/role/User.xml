@@ -1,5 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Role name="User" jobList="false">
-  <Permission>p1</Permission>
-  <Permission>p2</Permission>
+<Role>
+  <Name>User</Name>
+  <JobList>false</JobList>
+  <Permission>
+    <Domains>p1</Domains>
+    <Actions>p1</Actions>
+    <Targets>p1</Targets>
+  </Permission>
+  <Permission>
+    <Domains>p2</Domains>
+    <Actions>p2</Actions>
+    <Targets>p2</Targets>
+  </Permission>
 </Role>

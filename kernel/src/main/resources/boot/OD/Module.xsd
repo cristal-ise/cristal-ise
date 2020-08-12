@@ -182,15 +182,23 @@
                   <xs:attribute name="initialPath" type="xs:string" use="optional" />
                 </xs:complexType>
               </xs:element>
-              <xs:element name="Role" minOccurs="0">
+              <xs:element name='Role' minOccurs="0">
                 <xs:complexType>
                   <xs:sequence>
-                    <xs:element name="Permission" type="xs:string" minOccurs="0" maxOccurs="unbounded" />
+                    <xs:element name='Name' type='xs:string' minOccurs='1' maxOccurs='1' />
+                    <xs:element name='Version' type='xs:integer' minOccurs='0' maxOccurs='1' />
+                    <xs:element name='Id' type="uuid" minOccurs='0' maxOccurs='1' />
+                    <xs:element name='JobList' type='xs:boolean' default='false' minOccurs='1' maxOccurs='1' />
+                    <xs:element name='Permission' minOccurs='0' maxOccurs='unbounded'>
+                      <xs:complexType>
+                        <xs:sequence>
+                          <xs:element name='Domains' type='xs:string' default='*' minOccurs='1' maxOccurs='1' />
+                          <xs:element name='Actions' type='xs:string' default='*' minOccurs='1' maxOccurs='1' />
+                          <xs:element name='Targets' type='xs:string' default='*' minOccurs='1' maxOccurs='1' />
+                        </xs:sequence>
+                      </xs:complexType>
+                    </xs:element>
                   </xs:sequence>
-                  <xs:attribute name="name" type="xs:string" use="required" />
-                  <xs:attribute name="version" type="xs:integer" use="optional" />
-                  <xs:attribute name="id" type="uuid" use="optional" />
-                  <xs:attribute name="jobList" type="xs:boolean" use="required" />
                 </xs:complexType>
               </xs:element>
               <xs:element name="Agent" minOccurs="0">
@@ -198,7 +206,9 @@
                   <xs:sequence>
                     <xs:element name="Role" minOccurs="0" maxOccurs="unbounded">
                       <xs:complexType>
-                        <xs:attribute name="name" type="xs:string" use="required" />
+                        <xs:sequence>
+                          <xs:element name='Name' type='xs:string' minOccurs='1' maxOccurs='1' />
+                        </xs:sequence>
                       </xs:complexType>
                     </xs:element>
                     <xs:element name="Property" type="property" minOccurs="0" maxOccurs="unbounded" />

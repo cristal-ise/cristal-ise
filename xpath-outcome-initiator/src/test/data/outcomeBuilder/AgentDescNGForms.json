@@ -1,0 +1,155 @@
+[{
+  "name": "AgentDesc",
+  "cls": {"grid": {"container": "ui-g-12"}},
+  "id": "AgentDesc",
+  "type": "GROUP",
+  "group": [
+    {
+      "validators": {"required": null},
+      "inputType": "text",
+      "id": "Name",
+      "label": "Name *",
+      "cls": {
+        "grid": {
+          "container": "ui-g",
+          "control": "ui-g-8",
+          "label": "ui-g-4"
+        },
+        "element": {"label": "ui-widget"}
+      },
+      "placeholder": "Name",
+      "type": "INPUT",
+      "required": true
+    },
+    {
+      "id": "Version",
+      "label": "Version",
+      "cls": {
+        "grid": {
+          "container": "ui-g",
+          "control": "ui-g-8",
+          "label": "ui-g-4"
+        },
+        "element": {"label": "ui-widget"}
+      },
+      "placeholder": "Version",
+      "type": "INPUT",
+      "value": "0",
+      "required": false
+    },
+    {
+      "validators": {
+        "minLength": "36",
+        "maxLength": "36"
+      },
+      "disabled": true,
+      "inputType": "text",
+      "id": "Id",
+      "label": "Id",
+      "cls": {
+        "grid": {
+          "container": "ui-g",
+          "control": "ui-g-8",
+          "label": "ui-g-4"
+        },
+        "element": {"label": "ui-widget"}
+      },
+      "placeholder": "Id",
+      "type": "INPUT",
+      "required": false
+    },
+    {
+      "validators": {"required": null},
+      "inputType": "password",
+      "id": "Password",
+      "label": "Password *",
+      "cls": {
+        "grid": {
+          "container": "ui-g",
+          "control": "ui-g-8",
+          "label": "ui-g-4"
+        },
+        "element": {"label": "ui-widget"}
+      },
+      "placeholder": "Password",
+      "type": "INPUT",
+      "required": true
+    },
+    {
+      "inputType": "text",
+      "id": "InitialPath",
+      "label": "Initial Path",
+      "cls": {
+        "grid": {
+          "container": "ui-g",
+          "control": "ui-g-8",
+          "label": "ui-g-4"
+        },
+        "element": {"label": "ui-widget"}
+      },
+      "placeholder": "Initial Path",
+      "type": "INPUT",
+      "required": false
+    },
+    {
+      "validators": {"required": null},
+      "disabled": true,
+      "id": "Roles",
+      "label": "Roles *",
+      "cls": {
+        "grid": {
+          "container": "ui-g",
+          "control": "ui-g-8",
+          "label": "ui-g-4"
+        },
+        "element": {"label": "ui-widget"}
+      },
+      "placeholder": "Roles",
+      "type": "INPUT",
+      "required": true
+    },
+    {
+      "columns": [
+        {
+          "onLabel": "Yes",
+          "id": "Mutable",
+          "label": "Mutable",
+          "cls": {
+            "grid": {
+              "container": "ui-g",
+              "control": "ui-g-8",
+              "label": "ui-g-4"
+            },
+            "element": {"label": "ui-widget"}
+          },
+          "placeholder": "Mutable",
+          "type": "SWITCH",
+          "offLabel": "No",
+          "value": "true",
+          "required": false
+        },
+        {
+          "validators": {"required": null},
+          "inputType": "text",
+          "id": "Name",
+          "label": "Name *",
+          "cls": {
+            "grid": {
+              "container": "ui-g",
+              "control": "ui-g-8",
+              "label": "ui-g-4"
+            },
+            "element": {"label": "ui-widget"}
+          },
+          "placeholder": "Name",
+          "type": "INPUT",
+          "required": true
+        }
+      ],
+      "name": "Property",
+      "id": "Property",
+      "type": "TABLE",
+      "rows": []
+    }
+  ]
+}]

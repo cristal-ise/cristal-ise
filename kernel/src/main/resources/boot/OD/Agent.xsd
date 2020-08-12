@@ -28,7 +28,9 @@
       <xs:sequence>
         <xs:element name="Role" minOccurs="0" maxOccurs="unbounded">
           <xs:complexType>
-            <xs:attribute name="name" type="xs:string" use="required" />
+            <xs:sequence>
+              <xs:element name='Name' type='xs:string' minOccurs='1' maxOccurs='1' />
+            </xs:sequence>
           </xs:complexType>
         </xs:element>
         <xs:element name="Property" type="property" minOccurs="0" maxOccurs="unbounded" />

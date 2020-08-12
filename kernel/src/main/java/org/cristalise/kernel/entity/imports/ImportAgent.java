@@ -224,6 +224,10 @@ public class ImportAgent extends ModuleImport implements DescriptionObject {
         for (RolePath rp: newRoles) roles.add(ImportRole.getImportRole(rp));
     }
 
+    public void addRole(RolePath newRole) {
+        roles.add(ImportRole.getImportRole(newRole));
+    }
+
     @Override
     public String getItemID() {
         return getID();

@@ -1,0 +1,36 @@
+<?xml version='1.0' encoding='utf-8'?>
+<xs:schema xmlns:xs='http://www.w3.org/2001/XMLSchema'>
+  <xs:element name='Role'>
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element name='Name' type='xs:string' minOccurs='1' maxOccurs='1' />
+        <xs:element name='Version' type='xs:integer' minOccurs='0' maxOccurs='1' />
+        <xs:element name='Id' minOccurs='0' maxOccurs='1'>
+          <xs:annotation>
+            <xs:appinfo>
+              <dynamicForms>
+                <disabled>true</disabled>
+              </dynamicForms>
+            </xs:appinfo>
+          </xs:annotation>
+          <xs:simpleType>
+            <xs:restriction base='xs:string'>
+              <xs:pattern value='[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}' />
+              <xs:length value='36' />
+            </xs:restriction>
+          </xs:simpleType>
+        </xs:element>
+        <xs:element name='JobList' type='xs:boolean' default='false' minOccurs='1' maxOccurs='1' />
+        <xs:element name='Permission' minOccurs='0' maxOccurs='unbounded'>
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element name='Domains' type='xs:string' minOccurs='1' maxOccurs='1' />
+              <xs:element name='Actions' type='xs:string' minOccurs='1' maxOccurs='1' />
+              <xs:element name='Targets' type='xs:string' minOccurs='1' maxOccurs='1' />
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+</xs:schema>
