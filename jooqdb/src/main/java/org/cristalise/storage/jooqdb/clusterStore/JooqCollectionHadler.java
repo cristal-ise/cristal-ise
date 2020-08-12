@@ -144,7 +144,7 @@ public class JooqCollectionHadler extends JooqHandler {
 
     @Override
     public void createTables(DSLContext context) throws PersistencyException {
-        DataType<String> xmlType = getXMLType(context);
+        DataType<String> xmlType = getStringXmlType();
 
         context.createTableIfNotExists(COLLECTION_TABLE)
         .column(UUID,    UUID_TYPE.nullable(false))

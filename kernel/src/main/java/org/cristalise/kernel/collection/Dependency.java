@@ -334,7 +334,7 @@ public class Dependency extends Collection<DependencyMember> {
             switch (builtInColl) {
                 //***************************************************************************************************
                 case AGGREGATE_SCRIPT:
-                    LocalObjectLoader.getSchema(memberUUID, memberVer);
+                    LocalObjectLoader.getScript(memberUUID, memberVer);
                     props.put(new Property(AGGREGATE_SCRIPT_URN, memberUUID+":"+memberVer));
                     break;
                 //***************************************************************************************************
