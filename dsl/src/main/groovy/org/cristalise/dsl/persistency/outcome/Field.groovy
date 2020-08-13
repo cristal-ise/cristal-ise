@@ -62,7 +62,9 @@ class Field extends Attribute {
      * @return
      */
     public void setMultiplicity(String m) {
-        if (! m?.trim()) {
+        m = m?.trim()
+
+        if (!m) {
             minOccurs = ''; maxOccurs = '';
         }
         else if (m.contains("..")) {
@@ -87,6 +89,8 @@ class Field extends Attribute {
     }
 
     def setUnit(Unit u) {
+        if (!u.values) throw new InvalidDataException("Unit must specify values")
+
         if (values)     throw new InvalidDataException("UNIMPLEMENTED: Cannot use unit and values together")
         if (attributes) throw new InvalidDataException("UNIMPLEMENTED: Cannot use unit and attributes together")
 
