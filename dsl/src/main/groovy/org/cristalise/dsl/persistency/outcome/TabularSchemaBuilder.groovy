@@ -48,9 +48,19 @@ class TabularSchemaBuilder {
         }
     }
 
+    /**
+     * Issue #410 If the excel was edited by google spreadsheet empty cell contains empty string instead of null
+     * @param map the map to fix
+     */
+    private void resetMultiplicity(Map<String, String> map) {
+        if (map.multiplicity != null) {
+            if (map.multiplicity.size() == 0) map.remove('multiplicity')
+        }
+    }
+
     private void convertToStruct(Map<String, Object> record) {
         log.debug 'convertToStruct() - {}', record
-        
+
         // if previous row was a field remove it from lifo
         if (parentLifo.size() > 1 && parentLifo.last() instanceof Field) parentLifo.removeLast()
 
@@ -66,12 +76,14 @@ class TabularSchemaBuilder {
             Map dynamicFormsMap = ((Map)record['dynamicForms']) ?: [:]
             Map additionalMap   = ((Map)record['additional'])   ?: [:]
 
-            // excel/csv should use xsd sequence by default
+            // excel/csv should use xs:sequence by default (check comment bellow)
             if (sMap?.useSequence == null) sMap.useSequence = 'TRUE'
+
+            resetMultiplicity(sMap)
 
             Struct s = new Struct(sMap)
 
-            // "sMap.useSequence = 'FALSE'" does not seem to work in the map constructor
+            // "sMap.useSequence = 'FALSE'" does not seem to work in the map constructor (check comment above)
             s.useSequence = ((String)sMap.useSequence).toBoolean()
 
             if (dynamicFormsMap && dynamicFormsMap.find { it.value }) {
@@ -110,10 +122,10 @@ class TabularSchemaBuilder {
         Map additionalMap   = ((Map)record['additional'])   ?: [:]
 
         fixListValues(fMap, 'values')
+        resetMultiplicity(fMap)
 
         def f = new Field(fMap)
 
-        if (fMap.multiplicity) f.setMultiplicity((String)fMap.multiplicity)
         if (fMap.range) setRange(fMap, f)
 
         if (fMap.totalDigits != null || fMap.fractionDigits != null) {
@@ -175,7 +187,6 @@ class TabularSchemaBuilder {
 
         def a = new Attribute(aMap)
 
-        if (aMap.multiplicity) a.setMultiplicity((String)aMap.multiplicity)
         if (aMap.range) setRange(aMap, a)
 
         def prev = parentLifo.last()
