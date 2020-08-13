@@ -141,6 +141,8 @@ class ExcelGroovyParser implements TabularGroovyParser {
 
             def rowMap = [:]
 
+            log.debug "eachRow() - row #{} physicalNumberOfCells:{}", row.getRowNum(), row.getPhysicalNumberOfCells()
+
             for (Cell cell : row) {
                 def cellRef = new CellReference(row.getRowNum(), cell.getColumnIndex()).formatAsString()
                 def cellText = formatter.formatCellValue(cell)
@@ -150,9 +152,14 @@ class ExcelGroovyParser implements TabularGroovyParser {
                 convertNamesToMaps(rowMap, header[cell.columnIndex], cellText)
             }
 
-            block(rowMap, row.rowNum - headerRowCount)
-
-            rowMap.clear()
+            //Issue #410: if the excel was edited with different editor (e.g. google spreadsheet), the row iterator will continue with empty rows
+            if (row != null && row.getPhysicalNumberOfCells() != 0) {
+                block(rowMap, row.rowNum - headerRowCount)
+                rowMap.clear()
+            }
+            else {
+                break;
+            }
         }
     }
 

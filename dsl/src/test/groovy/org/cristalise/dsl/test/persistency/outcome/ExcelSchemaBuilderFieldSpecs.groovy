@@ -44,7 +44,7 @@ class ExcelSchemaBuilderFieldSpecs extends Specification implements CristalTestS
         .compareXML("""<xs:schema xmlns:xs='http://www.w3.org/2001/XMLSchema'>
                           <xs:element name='Types'>
                             <xs:complexType>
-                              <xs:all minOccurs='0'>
+                              <xs:sequence>
                                 <xs:element name='stringField'   type='xs:string'   minOccurs='1' maxOccurs='1' />
                                 <xs:element name='booleanField'  type='xs:boolean'  minOccurs='1' maxOccurs='1' />
                                 <xs:element name='integerField'  type='xs:integer'  minOccurs='1' maxOccurs='1' />
@@ -52,7 +52,7 @@ class ExcelSchemaBuilderFieldSpecs extends Specification implements CristalTestS
                                 <xs:element name='dateField'     type='xs:date'     minOccurs='1' maxOccurs='1' />
                                 <xs:element name='timeField'     type='xs:time'     minOccurs='1' maxOccurs='1' />
                                 <xs:element name='dateTimeField' type='xs:dateTime' minOccurs='1' maxOccurs='1' />
-                              </xs:all>
+                              </xs:sequence>
                             </xs:complexType>
                           </xs:element>
                         </xs:schema>""")
@@ -136,7 +136,7 @@ class ExcelSchemaBuilderFieldSpecs extends Specification implements CristalTestS
         .compareXML("""<xs:schema xmlns:xs='http://www.w3.org/2001/XMLSchema'>
                           <xs:element name='XSDExclusive'>
                             <xs:complexType>
-                              <xs:all minOccurs='0'>
+                              <xs:sequence>
                                 <xs:element name="inclusive" minOccurs="1" maxOccurs="1">
                                   <xs:simpleType>
                                     <xs:restriction base="xs:integer">
@@ -167,7 +167,7 @@ class ExcelSchemaBuilderFieldSpecs extends Specification implements CristalTestS
                                     </xs:restriction>
                                   </xs:simpleType>
                                 </xs:element>
-                              </xs:all>
+                              </xs:sequence>
                             </xs:complexType>
                           </xs:element>
                         </xs:schema>""")
@@ -179,9 +179,9 @@ class ExcelSchemaBuilderFieldSpecs extends Specification implements CristalTestS
         .compareXML("""<xs:schema xmlns:xs='http://www.w3.org/2001/XMLSchema'>
                             <xs:element name='DefaultValue'>
                                 <xs:complexType>
-                                    <xs:all minOccurs='0'>
+                                    <xs:sequence>
                                         <xs:element minOccurs="1" maxOccurs="1" name="Gender" type='xs:string' default="female"/>
-                                    </xs:all>
+                                    </xs:sequence>
                                 </xs:complexType>
                             </xs:element>
                         </xs:schema>""")
@@ -193,13 +193,13 @@ class ExcelSchemaBuilderFieldSpecs extends Specification implements CristalTestS
         .compareXML("""<xs:schema xmlns:xs='http://www.w3.org/2001/XMLSchema'>
                           <xs:element name='Documentation'>
                             <xs:complexType>
-                              <xs:all minOccurs='0'>
+                              <xs:sequence>
                                 <xs:element name='stringField' type='xs:string' minOccurs='1' maxOccurs='1'>
                                   <xs:annotation>
                                     <xs:documentation>Field has Documentation</xs:documentation>
                                   </xs:annotation>
                                 </xs:element>
-                              </xs:all>
+                              </xs:sequence>
                             </xs:complexType>
                           </xs:element>
                         </xs:schema>""")
@@ -211,7 +211,7 @@ class ExcelSchemaBuilderFieldSpecs extends Specification implements CristalTestS
         .compareXML("""<xs:schema xmlns:xs='http://www.w3.org/2001/XMLSchema'>
                             <xs:element name='Values'>
                                 <xs:complexType>
-                                    <xs:all minOccurs='0'>
+                                    <xs:sequence>
                                         <xs:element minOccurs="1" maxOccurs="1" name="Gender">
                                             <xs:simpleType>
                                                 <xs:restriction base="xs:string">
@@ -221,7 +221,7 @@ class ExcelSchemaBuilderFieldSpecs extends Specification implements CristalTestS
                                                 </xs:restriction>
                                             </xs:simpleType>
                                         </xs:element>
-                                    </xs:all>
+                                    </xs:sequence>
                                 </xs:complexType>
                             </xs:element>
                         </xs:schema>""")
@@ -233,7 +233,7 @@ class ExcelSchemaBuilderFieldSpecs extends Specification implements CristalTestS
         .compareXML("""<xs:schema xmlns:xs='http://www.w3.org/2001/XMLSchema'>
                           <xs:element name='Pattern'>
                             <xs:complexType>
-                              <xs:all minOccurs='0'>
+                              <xs:sequence>
                                 <xs:element minOccurs="1" maxOccurs="1" name="Gender">
                                   <xs:simpleType>
                                     <xs:restriction base="xs:string">
@@ -241,7 +241,7 @@ class ExcelSchemaBuilderFieldSpecs extends Specification implements CristalTestS
                                     </xs:restriction>
                                   </xs:simpleType>
                                 </xs:element>
-                              </xs:all>
+                              </xs:sequence>
                             </xs:complexType>
                           </xs:element>
                         </xs:schema>""")
@@ -253,7 +253,7 @@ class ExcelSchemaBuilderFieldSpecs extends Specification implements CristalTestS
         .compareXML("""<xs:schema xmlns:xs='http://www.w3.org/2001/XMLSchema'>
                           <xs:element name='Digits'>
                             <xs:complexType>
-                              <xs:all minOccurs='0'>
+                              <xs:sequence>
                                 <xs:element minOccurs="1" maxOccurs="1" name="efficiency">
                                   <xs:simpleType>
                                     <xs:restriction base="xs:decimal">
@@ -262,7 +262,7 @@ class ExcelSchemaBuilderFieldSpecs extends Specification implements CristalTestS
                                     </xs:restriction>
                                   </xs:simpleType>
                                 </xs:element>
-                              </xs:all>
+                              </xs:sequence>
                             </xs:complexType>
                           </xs:element>
                         </xs:schema>""")
@@ -275,7 +275,7 @@ class ExcelSchemaBuilderFieldSpecs extends Specification implements CristalTestS
             """<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
                  <xs:element name="Attribute">
                    <xs:complexType>
-                   <xs:all minOccurs="0">
+                   <xs:sequence>
                      <xs:element name='weight' minOccurs='1' maxOccurs='1'>
                        <xs:complexType>
                          <xs:simpleContent>
@@ -285,7 +285,7 @@ class ExcelSchemaBuilderFieldSpecs extends Specification implements CristalTestS
                          </xs:simpleContent>
                        </xs:complexType>
                      </xs:element>
-                   </xs:all>
+                   </xs:sequence>
                  </xs:complexType>
                </xs:element>
              </xs:schema>""")

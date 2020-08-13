@@ -49,7 +49,7 @@ class ExcelSchemaBuilderListOfValuesSpecs extends Specification implements Crist
             '''<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
                  <xs:element name="ScriptRef">
                    <xs:complexType>
-                     <xs:all minOccurs="0">
+                     <xs:sequence>
                        <xs:element name='stringField' type='xs:string' minOccurs='1' maxOccurs='1'>
                          <xs:annotation>
                            <xs:appinfo>
@@ -59,7 +59,7 @@ class ExcelSchemaBuilderListOfValuesSpecs extends Specification implements Crist
                            </xs:appinfo>
                          </xs:annotation>
                        </xs:element>
-                     </xs:all>
+                     </xs:sequence>
                    </xs:complexType>
                  </xs:element>
                </xs:schema>''')
@@ -72,7 +72,7 @@ class ExcelSchemaBuilderListOfValuesSpecs extends Specification implements Crist
             '''<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
                  <xs:element name="Values">
                    <xs:complexType>
-                     <xs:all minOccurs="0">
+                     <xs:sequence>
                        <xs:element name='stringField' type='xs:string' minOccurs='1' maxOccurs='1'>
                          <xs:annotation>
                            <xs:appinfo>
@@ -82,7 +82,7 @@ class ExcelSchemaBuilderListOfValuesSpecs extends Specification implements Crist
                            </xs:appinfo>
                          </xs:annotation>
                        </xs:element>
-                     </xs:all>
+                     </xs:sequence>
                    </xs:complexType>
                  </xs:element>
                </xs:schema>''')

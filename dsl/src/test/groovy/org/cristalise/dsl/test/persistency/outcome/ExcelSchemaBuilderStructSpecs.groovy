@@ -75,10 +75,10 @@ class ExcelSchemaBuilderStructSpecs extends Specification implements CristalTest
         .compareXML("""<xs:schema xmlns:xs='http://www.w3.org/2001/XMLSchema'>
                           <xs:element name='Stringfields-All'>
                             <xs:complexType>
-                              <xs:all minOccurs='0'>
+                              <xs:sequence>
                                 <xs:element name='stringField1' type='xs:string' minOccurs='1' maxOccurs='1' />
                                 <xs:element name='stringField2' type='xs:string' minOccurs='1' maxOccurs='1' />
-                              </xs:all>
+                              </xs:sequence>
                             </xs:complexType>
                           </xs:element>
                         </xs:schema>""")
@@ -114,25 +114,25 @@ class ExcelSchemaBuilderStructSpecs extends Specification implements CristalTest
                         <xs:schema xmlns:xs='http://www.w3.org/2001/XMLSchema'>
                           <xs:element name='StructureOrder'>
                             <xs:complexType>
-                              <xs:all minOccurs='0'>
+                              <xs:sequence>
                                 <xs:element name='stringField1' type='xs:string' minOccurs='1' maxOccurs='1' />
                                 <xs:element name='SubStruct1'>
                                   <xs:complexType>
-                                    <xs:all minOccurs='0'>
+                                    <xs:sequence>
                                       <xs:element name='stringField11' type='xs:string' minOccurs='1' maxOccurs='1' />
-                                    </xs:all>
+                                    </xs:sequence>
                                   </xs:complexType>
                                 </xs:element>
                                 <xs:element name='stringField2' type='xs:string' minOccurs='1' maxOccurs='1' />
                                 <xs:element name='SubStruct2'>
                                   <xs:complexType>
-                                    <xs:all minOccurs='0'>
+                                    <xs:sequence>
                                       <xs:element name='stringField21' type='xs:string' minOccurs='1' maxOccurs='1' />
-                                    </xs:all>
+                                    </xs:sequence>
                                   </xs:complexType>
                                 </xs:element>
                                 <xs:element name='stringField3' type='xs:string' minOccurs='1' maxOccurs='1' />
-                              </xs:all>
+                              </xs:sequence>
                             </xs:complexType>
                           </xs:element>
                         </xs:schema>""")
@@ -180,7 +180,7 @@ class ExcelSchemaBuilderStructSpecs extends Specification implements CristalTest
                      </xs:appinfo>
                    </xs:annotation>
                    <xs:complexType>
-                   <xs:all minOccurs="0">
+                   <xs:sequence>
                      <xs:element name='FullName' type='xs:string' minOccurs='1' maxOccurs='1'>
                        <xs:annotation>
                          <xs:appinfo>
@@ -236,7 +236,7 @@ class ExcelSchemaBuilderStructSpecs extends Specification implements CristalTest
                            </xs:simpleContent>
                          </xs:complexType>
                        </xs:element>
-                     </xs:all>
+                     </xs:sequence>
                      <xs:attribute name="InsuranceNumber" type="xs:string" default= "123456789ABC"/>
                    </xs:complexType>
                  </xs:element>

@@ -175,6 +175,8 @@ class SchemaBuilder {
      * @return
      */
     public static SchemaBuilder build(String module, String name, int version, Closure cl) {
+        log.info("build(closure) - module:{} name:{} version:{}", module, name, version)
+
         def sb = new SchemaBuilder(module, name, version)
         sb.generateSchema(cl)
         return sb
@@ -213,6 +215,8 @@ class SchemaBuilder {
      * @return
      */
     public static SchemaBuilder build(String module, String name, int version, File file) {
+        log.info("build(file) - module:{} name:{} version:{} file:{}", module, name, version, file.name)
+
         def sb = new SchemaBuilder(module, name, version)
         def fileName = file.name
         def type = fileName.substring(fileName.lastIndexOf('.')+1).toUpperCase() as FileType

@@ -39,15 +39,28 @@ class TabularSchemaBuilder {
     /**
      * Convert comma separated string to list before calling map constructor
      */
-    private void fixListValues(Map<String, String> map) {
-        def regex = '\\s*,\\s*'
-        if (map.values)       map.values       = map.values      .trim().split(regex)
-        if (map.updateFields) map.updateFields = map.updateFields.trim().split(regex)
+    private void fixListValues(Map<String, String> map, String field) {
+        if (map[field] != null) {
+            def value = map[field].trim()
+
+            if (value.size() == 0) map[field] = null
+            else                   map[field] = value.split('\\s*,\\s*')
+        }
+    }
+
+    /**
+     * Issue #410 If the excel was edited by google spreadsheet empty cell contains empty string instead of null
+     * @param map the map to fix
+     */
+    private void resetMultiplicity(Map<String, String> map) {
+        if (map.multiplicity != null) {
+            if (map.multiplicity.size() == 0) map.remove('multiplicity')
+        }
     }
 
     private void convertToStruct(Map<String, Object> record) {
         log.debug 'convertToStruct() - {}', record
-        
+
         // if previous row was a field remove it from lifo
         if (parentLifo.size() > 1 && parentLifo.last() instanceof Field) parentLifo.removeLast()
 
@@ -63,10 +76,17 @@ class TabularSchemaBuilder {
             Map dynamicFormsMap = ((Map)record['dynamicForms']) ?: [:]
             Map additionalMap   = ((Map)record['additional'])   ?: [:]
 
+            // excel/csv should use xs:sequence by default (check comment bellow)
+            if (sMap?.useSequence == null) sMap.useSequence = 'TRUE'
+
+            resetMultiplicity(sMap)
+
             Struct s = new Struct(sMap)
 
+            // "sMap.useSequence = 'FALSE'" does not seem to work in the map constructor (check comment above)
+            s.useSequence = ((String)sMap.useSequence).toBoolean()
+
             if (dynamicFormsMap && dynamicFormsMap.find { it.value }) {
-                fixListValues(dynamicFormsMap)
                 s.dynamicForms = new DynamicForms(dynamicFormsMap)
             }
 
@@ -74,7 +94,7 @@ class TabularSchemaBuilder {
                 if (!s.dynamicForms) s.dynamicForms = new DynamicForms()
                 s.dynamicForms.additional = new Additional(additionalMap)
             }
-    
+
             if (parentS) parentS.addStruct(s)
             parentLifo.add(s)
         }
@@ -101,14 +121,14 @@ class TabularSchemaBuilder {
         Map warningMap      = ((Map)record['warning'])      ?: [:]
         Map additionalMap   = ((Map)record['additional'])   ?: [:]
 
-        fixListValues(fMap)
+        fixListValues(fMap, 'values')
+        resetMultiplicity(fMap)
 
         def f = new Field(fMap)
 
-        if (fMap.multiplicity) f.setMultiplicity((String)fMap.multiplicity)
         if (fMap.range) setRange(fMap, f)
 
-        if (fMap.totalDigits != null || fMap.fractionDigits!= null) {
+        if (fMap.totalDigits != null || fMap.fractionDigits != null) {
             if (f.type != 'xs:decimal') {
                 throw new InvalidDataException(
                     "Field '${f.name}' uses invalid type '${f.type}'. 'totalDigits' and 'fractionDigits' must be decimal")
@@ -116,12 +136,12 @@ class TabularSchemaBuilder {
         }
 
         if (unitMap) {
-            fixListValues(unitMap)
-            f.unit = new Unit(unitMap)
+            fixListValues(unitMap, 'values')
+            if (unitMap.values) f.unit = new Unit(unitMap)
         }
 
         if (lovMap) {
-            fixListValues(lovMap)
+            fixListValues(lovMap, 'values')
             f.listOfValues = new ListOfValues(lovMap)
         }
 
@@ -130,7 +150,7 @@ class TabularSchemaBuilder {
         }
 
         if (dynamicFormsMap && dynamicFormsMap.find { it.value }) {
-            fixListValues(dynamicFormsMap)
+            fixListValues(dynamicFormsMap, 'updateFields')
             f.dynamicForms = new DynamicForms(dynamicFormsMap)
         }
 
@@ -163,11 +183,10 @@ class TabularSchemaBuilder {
         if (((Map)record['xsd']).documentation)
             throw new InvalidDataException("Attribute '${aMap.name}' cannot have a documentation")
 
-        fixListValues(aMap)
+        fixListValues(aMap, 'values')
 
         def a = new Attribute(aMap)
 
-        if (aMap.multiplicity) a.setMultiplicity((String)aMap.multiplicity)
         if (aMap.range) setRange(aMap, a)
 
         def prev = parentLifo.last()

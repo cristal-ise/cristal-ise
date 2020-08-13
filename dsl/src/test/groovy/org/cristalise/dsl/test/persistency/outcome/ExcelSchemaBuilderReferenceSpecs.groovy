@@ -45,7 +45,7 @@ class ExcelSchemaBuilderReferenceSpecs extends Specification implements CristalT
             """<xs:schema xmlns:xs='http://www.w3.org/2001/XMLSchema'>
                  <xs:element name='ItemType'>
                    <xs:complexType>
-                     <xs:all minOccurs='0'>
+                     <xs:sequence>
                        <xs:element name='ItemRef' type='xs:string' minOccurs='1' maxOccurs='1'>
                          <xs:annotation>
                            <xs:appinfo>
@@ -55,7 +55,7 @@ class ExcelSchemaBuilderReferenceSpecs extends Specification implements CristalT
                            </xs:appinfo>
                          </xs:annotation>
                        </xs:element>
-                     </xs:all>
+                     </xs:sequence>
                    </xs:complexType>
                  </xs:element>
                </xs:schema>""")

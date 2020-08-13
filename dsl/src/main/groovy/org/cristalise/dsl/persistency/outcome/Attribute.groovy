@@ -79,10 +79,11 @@ class Attribute {
      * @param val
      * @return
      */
-    def setDefault(val) {
-        if(values && !values.contains(val)) throw new InvalidDataException("Default value '$val' is wrong, it must be one of these: $values")
-
-        defaultVal = val
+    def setDefault(String val) {
+        if(val) {
+            if (values && !values.contains(val)) throw new InvalidDataException("Default value '$val' is wrong, it must be one of these: $values")
+            defaultVal = val
+        }
     }
 
     public void setMultiplicity(String m) {
