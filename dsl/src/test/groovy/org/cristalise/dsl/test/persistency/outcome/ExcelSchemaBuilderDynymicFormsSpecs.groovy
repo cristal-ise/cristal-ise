@@ -50,7 +50,7 @@ class ExcelSchemaBuilderDynymicFormsSpecs extends Specification implements Crist
             """<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
                  <xs:element name="Mask">
                    <xs:complexType>
-                     <xs:all minOccurs="0">
+                     <xs:sequence>
                        <xs:element name='Weight' type='xs:decimal' minOccurs='1' maxOccurs='1'>
                          <xs:annotation>
                            <xs:appinfo>
@@ -69,7 +69,7 @@ class ExcelSchemaBuilderDynymicFormsSpecs extends Specification implements Crist
                            </xs:appinfo>
                          </xs:annotation>
                        </xs:element>
-                     </xs:all>
+                     </xs:sequence>
                    </xs:complexType>
                  </xs:element>
                </xs:schema>""")
@@ -83,7 +83,7 @@ class ExcelSchemaBuilderDynymicFormsSpecs extends Specification implements Crist
             """<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
                  <xs:element name="PlaceHolder">
                    <xs:complexType>
-                     <xs:all minOccurs="0">
+                     <xs:sequence>
                        <xs:element name='Weight' type='xs:decimal' minOccurs='1' maxOccurs='1'>
                          <xs:annotation>
                            <xs:appinfo>
@@ -102,7 +102,7 @@ class ExcelSchemaBuilderDynymicFormsSpecs extends Specification implements Crist
                            </xs:appinfo>
                          </xs:annotation>
                        </xs:element>
-                     </xs:all>
+                     </xs:sequence>
                    </xs:complexType>
                  </xs:element>
                </xs:schema>""")
@@ -115,7 +115,7 @@ class ExcelSchemaBuilderDynymicFormsSpecs extends Specification implements Crist
             """<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
                  <xs:element name="ShowSeconds">
                    <xs:complexType>
-                     <xs:all minOccurs="0">
+                     <xs:sequence>
                        <xs:element name='startOfShift' type='xs:time' minOccurs='1' maxOccurs='1'>
                          <xs:annotation>
                            <xs:appinfo>
@@ -138,7 +138,7 @@ class ExcelSchemaBuilderDynymicFormsSpecs extends Specification implements Crist
                          </xs:annotation>
                        </xs:element>
                        <xs:element name='signatureTSNoSeconds' type='xs:dateTime' minOccurs='1' maxOccurs='1' />
-                     </xs:all>
+                     </xs:sequence>
                    </xs:complexType>
                  </xs:element>
                </xs:schema>""")
@@ -151,7 +151,7 @@ class ExcelSchemaBuilderDynymicFormsSpecs extends Specification implements Crist
         '''<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
           <xs:element name="HtmlAccept">
             <xs:complexType>
-              <xs:all minOccurs="0">
+              <xs:sequence>
                 <xs:element name='stringField' type='xs:string' minOccurs='1' maxOccurs='1'>
                   <xs:annotation>
                     <xs:appinfo>
@@ -162,7 +162,7 @@ class ExcelSchemaBuilderDynymicFormsSpecs extends Specification implements Crist
                     </xs:appinfo>
                   </xs:annotation>
                 </xs:element>
-              </xs:all>
+              </xs:sequence>
             </xs:complexType>
           </xs:element>
         </xs:schema>'''
@@ -176,7 +176,7 @@ class ExcelSchemaBuilderDynymicFormsSpecs extends Specification implements Crist
             '''<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
                  <xs:element name="Warning">
                    <xs:complexType>
-                     <xs:all minOccurs="0">
+                     <xs:sequence>
                        <xs:element name='decimalField' type='xs:decimal' minOccurs='1' maxOccurs='1'>
                          <xs:annotation>
                            <xs:appinfo>
@@ -205,7 +205,7 @@ class ExcelSchemaBuilderDynymicFormsSpecs extends Specification implements Crist
                            </xs:appinfo>
                          </xs:annotation>
                        </xs:element>
-                     </xs:all>
+                     </xs:sequence>
                    </xs:complexType>
                  </xs:element>
                </xs:schema>''')
@@ -218,7 +218,7 @@ class ExcelSchemaBuilderDynymicFormsSpecs extends Specification implements Crist
             """<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
                  <xs:element name="PrecisionScale">
                    <xs:complexType>
-                     <xs:all minOccurs="0">
+                     <xs:sequence>
                        <xs:element name='decimalField' type='xs:decimal' minOccurs='1' maxOccurs='1'>
                          <xs:annotation>
                            <xs:appinfo>
@@ -229,7 +229,7 @@ class ExcelSchemaBuilderDynymicFormsSpecs extends Specification implements Crist
                            </xs:appinfo>
                          </xs:annotation>
                        </xs:element>
-                     </xs:all>
+                     </xs:sequence>
                    </xs:complexType>
                  </xs:element>
                </xs:schema>""")
@@ -242,7 +242,7 @@ class ExcelSchemaBuilderDynymicFormsSpecs extends Specification implements Crist
             """<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
                   <xs:element name='GridProperties'>
                     <xs:complexType>
-                      <xs:all minOccurs='0'>
+                      <xs:sequence>
                         <xs:element name='stringField' type='xs:string' minOccurs='1' maxOccurs='1'>
                           <xs:annotation>
                             <xs:appinfo>
@@ -254,7 +254,7 @@ class ExcelSchemaBuilderDynymicFormsSpecs extends Specification implements Crist
                             </xs:appinfo>
                           </xs:annotation>
                         </xs:element>
-                      </xs:all>
+                      </xs:sequence>
                     </xs:complexType>
                   </xs:element>
                 </xs:schema>""")
@@ -267,7 +267,7 @@ class ExcelSchemaBuilderDynymicFormsSpecs extends Specification implements Crist
             '''<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
                  <xs:element name="UpdateFields">
                    <xs:complexType>
-                     <xs:all minOccurs="0">
+                     <xs:sequence>
                        <xs:element name='decimalField' type='xs:decimal' minOccurs='1' maxOccurs='1'>
                          <xs:annotation>
                            <xs:appinfo>
@@ -279,7 +279,7 @@ class ExcelSchemaBuilderDynymicFormsSpecs extends Specification implements Crist
                            </xs:appinfo>
                          </xs:annotation>
                        </xs:element>
-                     </xs:all>
+                     </xs:sequence>
                    </xs:complexType>
                  </xs:element>
                </xs:schema>''')
@@ -292,7 +292,7 @@ class ExcelSchemaBuilderDynymicFormsSpecs extends Specification implements Crist
             '''<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
                  <xs:element name="AutoComplete">
                    <xs:complexType>
-                     <xs:all minOccurs="0">
+                     <xs:sequence>
                        <xs:element name='decimalField' type='xs:decimal' minOccurs='1' maxOccurs='1'>
                          <xs:annotation>
                            <xs:appinfo>
@@ -302,7 +302,7 @@ class ExcelSchemaBuilderDynymicFormsSpecs extends Specification implements Crist
                            </xs:appinfo>
                          </xs:annotation>
                        </xs:element>
-                     </xs:all>
+                     </xs:sequence>
                    </xs:complexType>
                  </xs:element>
                </xs:schema>''')
@@ -315,7 +315,7 @@ class ExcelSchemaBuilderDynymicFormsSpecs extends Specification implements Crist
             '''<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
                  <xs:element name="Additional">
                    <xs:complexType>
-                     <xs:all minOccurs="0">
+                     <xs:sequence>
                        <xs:element name='decimalField' type='xs:decimal' minOccurs='1' maxOccurs='1'>
                          <xs:annotation>
                            <xs:appinfo>
@@ -328,7 +328,7 @@ class ExcelSchemaBuilderDynymicFormsSpecs extends Specification implements Crist
                            </xs:appinfo>
                          </xs:annotation>
                        </xs:element>
-                     </xs:all>
+                     </xs:sequence>
                    </xs:complexType>
                  </xs:element>
                </xs:schema>''')
@@ -341,7 +341,7 @@ class ExcelSchemaBuilderDynymicFormsSpecs extends Specification implements Crist
             '''<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
                  <xs:element name="UpdateScriptRef">
                    <xs:complexType>
-                     <xs:all minOccurs="0">
+                     <xs:sequence>
                        <xs:element name='decimalField' type='xs:decimal' minOccurs='1' maxOccurs='1'>
                          <xs:annotation>
                            <xs:appinfo>
@@ -353,7 +353,7 @@ class ExcelSchemaBuilderDynymicFormsSpecs extends Specification implements Crist
                            </xs:appinfo>
                          </xs:annotation>
                        </xs:element>
-                     </xs:all>
+                     </xs:sequence>
                    </xs:complexType>
                  </xs:element>
                </xs:schema>''')

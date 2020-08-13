@@ -66,7 +66,13 @@ class TabularSchemaBuilder {
             Map dynamicFormsMap = ((Map)record['dynamicForms']) ?: [:]
             Map additionalMap   = ((Map)record['additional'])   ?: [:]
 
+            // excel/csv should use xsd sequence by default
+            if (sMap?.useSequence == null) sMap.useSequence = 'TRUE'
+
             Struct s = new Struct(sMap)
+
+            // "sMap.useSequence = 'FALSE'" does not seem to work in the map constructor
+            s.useSequence = ((String)sMap.useSequence).toBoolean()
 
             if (dynamicFormsMap && dynamicFormsMap.find { it.value }) {
                 s.dynamicForms = new DynamicForms(dynamicFormsMap)
