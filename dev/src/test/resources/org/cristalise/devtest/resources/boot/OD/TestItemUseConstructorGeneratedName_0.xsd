@@ -11,7 +11,7 @@
           <xs:simpleType>
             <xs:restriction base='xs:string'>
               <xs:enumeration value='ACTIVE' />
-              <xs:enumeration value='DEACTIVATED' />
+              <xs:enumeration value='INACTIVE' />
             </xs:restriction>
           </xs:simpleType>
         </xs:element>

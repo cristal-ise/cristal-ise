@@ -16,7 +16,7 @@ setResourceRoot @if{resourceRoot} '@{resourceRoot}' @else{} '@{rootDir}/resource
 Module(ns: '@{moduleNs}', name: '@{moduleName}', version: @{version}) {
 
     Info(description: '@{moduleName} CRISTAL-iSE module', version: '@{version}'){
-        // provide dependencies here. e.g. dependencies: ['dependency1', 'dependency1' ... ]
+        Dependencies:['CristaliseDev']
     }
 
     Url('@{resourceURL}')

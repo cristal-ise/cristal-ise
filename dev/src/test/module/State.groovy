@@ -1,4 +1,4 @@
-states = ['ACTIVE', 'DEACTIVATED']
+states = ['ACTIVE', 'INACTIVE']
 
 def activateAct = Activity('State_Activate', 0) {
     Property('ItemProperty.State': states[0])

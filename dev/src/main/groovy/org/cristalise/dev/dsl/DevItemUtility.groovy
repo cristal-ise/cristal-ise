@@ -157,7 +157,7 @@ class DevItemUtility {
      * @return
      */
     public void createNewItemByFactory(ItemProxy factory, String factoryActName, String name, String folder) {
-        executeDoneJob(factory, factoryActName, DevXMLUtility.getNewDevObjectDefXML(name: name, folder: folder) )
+        executeDoneJob(factory, factoryActName, DevXMLUtility.recordToXML('NewDevObjectDef', [ObjectName: name, SubFolder: folder]))
     }
 
     /**

@@ -1,4 +1,4 @@
-package org.cristalise.dev.dsl.test
+package org.cristalise.dev.test
 
 import static org.junit.Assert.*
 

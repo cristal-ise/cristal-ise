@@ -34,10 +34,11 @@ import groovy.xml.MarkupBuilder
 class DevXMLUtility {
 
     /**
-     * 
+     * @deprecated USE recordToXML()
      * @param params
      * @return the XML string
      */
+    @Deprecated
     public static String getNewDevObjectDefXML(params) {
         def writer = new StringWriter()
         def xml = new MarkupBuilder(writer)
