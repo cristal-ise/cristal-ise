@@ -1,17 +1,52 @@
-package org.cristalise.dev.test.scenario;
+package org.cristalise.dev.test;
 
-import org.cristalise.kernel.test.KernelScenarioTestBase
+import java.time.LocalDateTime
+
+import org.cristalise.kernel.entity.proxy.ItemProxy
+import org.cristalise.kernel.process.Gateway
+import org.cristalise.kernel.test.utils.CristalTestSetup
 import org.cristalise.kernel.test.utils.KernelXMLUtility
+import org.junit.Before
+import org.junit.BeforeClass
 import org.junit.Ignore
 import org.junit.Test
 
 import groovy.transform.CompileStatic
+import groovy.util.logging.Slf4j
 
 
-@CompileStatic
-class BasicDevDescriptionIT extends KernelScenarioTestBase {
+@CompileStatic @Slf4j
+class BasicDevDescriptionTests extends DevTestScenarioBase implements CristalTestSetup {
+
+    ItemProxy item
     
-    public static final String testDataRoot = "src/main/data";
+    static Properties props = new Properties()
+    static String timeStamp = null
+    static String folder = "devtest"
+
+    static boolean initialised
+    
+    @BeforeClass
+    public static void setup() {
+        initialised = false
+        props.put('Resource.moduleUseFileNameWithVersion', 'dev,devtest')
+        timeStamp = LocalDateTime.now().format("yyyy-MM-dd_HH-mm-ss_SSS")
+    }
+    
+    @Before
+    public void init() {
+        //cristal in memory server has to be initialised only once
+        if (!initialised) {
+            inMemoryServer(-1, props) //it is not static therefore cannot be called from @BeforeClass
+            initialised = true
+        }
+
+        log.info '====================================================================================================='
+    
+        agent = Gateway.getProxyManager().getAgentProxy('devtest')
+    }
+    
+    public static final String testDataRoot = "src/test/data";
 
     @Test
     public void createAndEditElemActDesc() {
