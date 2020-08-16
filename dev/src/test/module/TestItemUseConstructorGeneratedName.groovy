@@ -1,7 +1,6 @@
 import static org.cristalise.kernel.collection.BuiltInCollections.AGGREGATE_SCRIPT
 import static org.cristalise.kernel.collection.BuiltInCollections.MASTER_SCHEMA
 import static org.cristalise.kernel.collection.BuiltInCollections.SCHEMA_INITIALISE
-import static org.cristalise.kernel.collection.BuiltInCollections.SCHEMA_INITIALISE
 
 /**
  * TestItemUseConstructorGeneratedName Item
