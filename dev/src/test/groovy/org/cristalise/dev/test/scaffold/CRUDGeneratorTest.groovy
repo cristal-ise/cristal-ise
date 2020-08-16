@@ -44,10 +44,10 @@ class CRUDGeneratorTest {
             useConstructor:  false,
             isAgent:         false,
             generatedName:   false,
-            moduleFiles:     ['State.groovy', 'TestItem.groovy']
+            moduleFiles:     ['TestItem.groovy']
         ]
 
-        new CRUDGenerator().generate(inputs, false, true)
+        new CRUDGenerator().generate(inputs, false)
 
         inputs.with {
             item = 'TestItemUseConstructor'
@@ -55,7 +55,7 @@ class CRUDGeneratorTest {
             ((List)moduleFiles).add('TestItemUseConstructor.groovy')
         }
 
-        new CRUDGenerator().generate(inputs, false, false)
+        new CRUDGenerator().generate(inputs, false)
 
         inputs.with {
             item = 'TestAgentUseConstructor'
@@ -63,7 +63,7 @@ class CRUDGeneratorTest {
             ((List)moduleFiles).add('TestAgentUseConstructor.groovy')
         }
 
-        new CRUDGenerator().generate(inputs, false, false)
+        new CRUDGenerator().generate(inputs, false)
 
         inputs.with {
             item = 'TestAgent'
@@ -71,7 +71,7 @@ class CRUDGeneratorTest {
             ((List)moduleFiles).add('TestAgent.groovy')
         }
 
-        new CRUDGenerator().generate(inputs, false, false)
+        new CRUDGenerator().generate(inputs, false)
 
         inputs.with {
             item = 'TestItemGeneratedName'
@@ -80,7 +80,7 @@ class CRUDGeneratorTest {
             ((List)moduleFiles).add('TestItemGeneratedName.groovy')
         }
 
-        new CRUDGenerator().generate(inputs, false, false)
+        new CRUDGenerator().generate(inputs, false)
 
         inputs.with {
             item = 'TestItemUseConstructorGeneratedName'
@@ -88,7 +88,7 @@ class CRUDGeneratorTest {
             ((List)moduleFiles).add('TestItemUseConstructorGeneratedName.groovy')
         }
 
-        new CRUDGenerator().generate(inputs, true, false)
+        new CRUDGenerator().generate(inputs, true)
 
         CompilerConfiguration cc = new CompilerConfiguration()
         cc.setScriptBaseClass(DelegatingScript.class.getName())

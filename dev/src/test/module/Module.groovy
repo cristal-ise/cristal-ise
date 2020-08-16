@@ -28,8 +28,6 @@ Module(ns: 'devtest', name: 'DEV Scaffold Test module', version: 0) {
     }
 
  
-    include(moduleDir+'/State.groovy')
- 
     include(moduleDir+'/TestItem.groovy')
  
     include(moduleDir+'/TestItemUseConstructor.groovy')

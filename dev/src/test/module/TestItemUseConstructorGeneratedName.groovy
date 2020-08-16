@@ -2,6 +2,9 @@ import static org.cristalise.kernel.collection.BuiltInCollections.AGGREGATE_SCRI
 import static org.cristalise.kernel.collection.BuiltInCollections.MASTER_SCHEMA
 import static org.cristalise.kernel.collection.BuiltInCollections.SCHEMA_INITIALISE
 
+// this is defined in CrudState.groovy of the dev module
+def states = ['ACTIVE', 'INACTIVE']
+
 /**
  * TestItemUseConstructorGeneratedName Item
  */
@@ -50,7 +53,7 @@ Activity('TestItemUseConstructorGeneratedName_Aggregate', 0) {
 
 def TestItemUseConstructorGeneratedNameWf = Workflow('TestItemUseConstructorGeneratedName_Workflow', 0) {
     ElemActDef(TestItemUseConstructorGeneratedNameUpdateAct)
-    CompActDef('State_Manage', 0)
+    CompActDef('CrudState_Manage', 0)
 }
 
 def TestItemUseConstructorGeneratedNamePropDesc = PropertyDescriptionList('TestItemUseConstructorGeneratedName', 0) {

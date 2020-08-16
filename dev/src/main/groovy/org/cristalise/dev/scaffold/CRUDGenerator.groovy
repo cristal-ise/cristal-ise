@@ -55,10 +55,9 @@ class CRUDGenerator {
      * 
      * @param inputs the inputs to the MVEL2 templates
      * @param generateModule whether the Module.groovy file should be generated or not
-     * @param generateStateWf whether the State.groovy and State_Manage_0.xml files should be generated or not
      * @param itemSpecificFactoryWf whether generate an Item specific Factory workflow or not
      */
-    public void generate(Map<String, Object> inputs, boolean generateModule, boolean generateStateWf) {
+    public void generate(Map<String, Object> inputs, boolean generateModule) {
         assert inputs
 
         new FileTreeBuilder(new File((String)inputs.resourceRoot)).dir('boot') {
@@ -73,15 +72,10 @@ class CRUDGenerator {
 
         checkAndSetInputs(inputs)
 
-        generateDSL(new File(moduleDir,   "${inputs.item}.groovy"),           'item_groovy.tmpl',                    inputs)
-        generateDSL(new File(scriptDir,   "${inputs.item}_Aggregate.groovy"), 'item_aggregate_groovy.tmpl',          inputs)
-        generateDSL(new File(scriptDir,   "${inputs.item}_QueryList.groovy"), 'item_queryList_groovy.tmpl',          inputs)
-        generateDSL(new File(workflowDir, "${inputs.item}_Workflow_0.xml"),   'item_workflow_xml.tmpl',              inputs)
-
-        if (generateStateWf) {
-            generateDSL(new File(moduleDir,   'State.groovy'),       'state_groovy.tmpl',     inputs)
-            generateDSL(new File(workflowDir, 'State_Manage_0.xml'), 'state_manage_xml.tmpl', inputs)
-        }
+        generateDSL(new File(moduleDir,   "${inputs.item}.groovy"),           'item_groovy.tmpl',           inputs)
+        generateDSL(new File(scriptDir,   "${inputs.item}_Aggregate.groovy"), 'item_aggregate_groovy.tmpl', inputs)
+        generateDSL(new File(scriptDir,   "${inputs.item}_QueryList.groovy"), 'item_queryList_groovy.tmpl', inputs)
+        generateDSL(new File(workflowDir, "${inputs.item}_Workflow_0.xml"),   'item_workflow_xml.tmpl',     inputs)
 
         if (generateModule) generateModuleFiles(inputs, moduleDir)
     }

@@ -26,6 +26,12 @@
     <PropertyDescriptionResource name="AgentDesc" version="0"/>
     <PropertyDescriptionResource name="ItemDesc" version="0"/>
     <PropertyDescriptionResource name="RoleDesc" version="0"/>
+    <Activity name="CrudState_Activate" version="0"/>
+    <Activity name="CrudState_Deactivate" version="0"/>
+    <Workflow name="CrudState_Manage" version="0">
+      <Activity name="CrudState_Activate" version="0"/>
+      <Activity name="CrudState_Deactivate" version="0"/>
+    </Workflow>
     <SchemaResource name="CrudFactory_NewInstanceDetails" version="0"/>
     <ScriptResource name="CrudFactory_InstantiateItem" version="0"/>
     <ScriptResource name="CrudEntity_ChangeName" version="0"/>

@@ -1,4 +1,4 @@
-<CompositeActivityDef Height="0" ID="-1" IsComposite="true" IsLayoutable="false" Name="State_Manage" Width="0">
+<CompositeActivityDef Height="0" ID="-1" IsComposite="true" IsLayoutable="false" Name="CrudState_Manage" Width="0">
   <childrenGraphModel>
     <GraphModelCastorData NextId="44" StartVertexId="26">
       <LoopDef Height="24" ID="27" IsComposite="false" IsLayoutable="true" Name="" Width="60" isNext="0">
@@ -18,7 +18,7 @@
           <KeyValuePair Key="RoutingScriptName" String="javascript:true;" isAbstract="false" />
         </Properties>
       </LoopDef>
-      <ActivitySlotDef Height="60" ID="5" IsComposite="false" IsLayoutable="true" Name="State_Activate" Width="130">
+      <ActivitySlotDef Height="60" ID="5" IsComposite="false" IsLayoutable="true" Name="CrudState_Activate" Width="130">
         <CentrePoint x="100" y="210" />
         <OutlinePoint x="35" y="180" />
         <OutlinePoint x="165" y="180" />
@@ -30,7 +30,7 @@
           <KeyValuePair Integer="0" Key="Version" isAbstract="false" />
           <KeyValuePair Key="Name" String="Activate" isAbstract="false" />
         </Properties>
-        <activityDef>State_Activate</activityDef>
+        <activityDef>CrudState_Activate</activityDef>
       </ActivitySlotDef>
       <JoinDef Height="24" ID="26" IsComposite="false" IsLayoutable="true" Name="" Width="60">
         <CentrePoint x="367" y="48" />
@@ -45,7 +45,7 @@
           <KeyValuePair Key="PairingID" String="Loop27" isAbstract="false" />
         </Properties>
       </JoinDef>
-      <ActivitySlotDef Height="60" ID="13" IsComposite="false" IsLayoutable="true" Name="State_Deactivate" Width="130">
+      <ActivitySlotDef Height="60" ID="13" IsComposite="false" IsLayoutable="true" Name="CrudState_Deactivate" Width="130">
         <CentrePoint x="280" y="210" />
         <OutlinePoint x="215" y="180" />
         <OutlinePoint x="345" y="180" />
@@ -57,7 +57,7 @@
           <KeyValuePair Integer="0" Key="Version" isAbstract="false" />
           <KeyValuePair Key="Name" String="Deactivate" isAbstract="false" />
         </Properties>
-        <activityDef>State_Deactivate</activityDef>
+        <activityDef>CrudState_Deactivate</activityDef>
       </ActivitySlotDef>
       <JoinDef Height="24" ID="37" IsComposite="false" IsLayoutable="true" Name="" Width="60">
         <CentrePoint x="190" y="290" />

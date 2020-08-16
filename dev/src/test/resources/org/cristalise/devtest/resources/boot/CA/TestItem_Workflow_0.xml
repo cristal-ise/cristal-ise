@@ -58,7 +58,7 @@
                     <KeyValuePair Key="Type" isAbstract="false" String="Join" />
                 </Properties>
             </JoinDef>
-            <ActivitySlotDef ID="10" Name="State_Manage" Height="60" Width="130" IsLayoutable="true" IsComposite="true">
+            <ActivitySlotDef ID="10" Name="CrudState_Manage" Height="60" Width="130" IsLayoutable="true" IsComposite="true">
                 <CentrePoint x="278" y="175" />
                 <OutlinePoint x="213" y="145" />
                 <OutlinePoint x="343" y="145" />
@@ -68,9 +68,9 @@
                 <OutEdgeId>14</OutEdgeId>
                 <Properties>
                     <KeyValuePair Key="Version" isAbstract="false" Integer="0" />
-                    <KeyValuePair Key="Name" isAbstract="false" String="State_Manage" />
+                    <KeyValuePair Key="Name" isAbstract="false" String="CrudState_Manage" />
                 </Properties>
-                <activityDef>State_Manage</activityDef>
+                <activityDef>CrudState_Manage</activityDef>
             </ActivitySlotDef>
             <JoinDef ID="0" Name="" Height="24" Width="60" IsLayoutable="true" IsComposite="false">
                 <CentrePoint x="173" y="113" />

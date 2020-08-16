@@ -7,12 +7,6 @@
   <ResourceURL>org/cristalise/devtest/resources/</ResourceURL>
   <Imports>
     <AgentResource name="devtest" version="0"/>
-    <Activity name="State_Activate" version="0"/>
-    <Activity name="State_Deactivate" version="0"/>
-    <Workflow name="State_Manage" version="0">
-      <Activity name="State_Activate" version="0"/>
-      <Activity name="State_Deactivate" version="0"/>
-    </Workflow>
     <SchemaResource name="TestItem" version="0"/>
     <SchemaResource name="TestItem_Details" version="0"/>
     <Activity name="TestItem_Update" version="0">
@@ -26,7 +20,7 @@
     </Activity>
     <Workflow name="TestItem_Workflow" version="0">
       <Activity name="TestItem_Update" version="0"/>
-      <Activity name="State_Manage" version="0"/>
+      <Activity name="CrudState_Manage" version="0"/>
     </Workflow>
     <PropertyDescriptionResource name="TestItem" version="0"/>
     <ItemResource name="TestItemFactory" version="0"/>
@@ -43,7 +37,7 @@
     </Activity>
     <Workflow name="TestItemUseConstructor_Workflow" version="0">
       <Activity name="TestItemUseConstructor_Update" version="0"/>
-      <Activity name="State_Manage" version="0"/>
+      <Activity name="CrudState_Manage" version="0"/>
     </Workflow>
     <PropertyDescriptionResource name="TestItemUseConstructor" version="0"/>
     <ItemResource name="TestItemUseConstructorFactory" version="0"/>
@@ -60,7 +54,7 @@
     </Activity>
     <Workflow name="TestAgentUseConstructor_Workflow" version="0">
       <Activity name="TestAgentUseConstructor_Update" version="0"/>
-      <Activity name="State_Manage" version="0"/>
+      <Activity name="CrudState_Manage" version="0"/>
     </Workflow>
     <PropertyDescriptionResource name="TestAgentUseConstructor" version="0"/>
     <ItemResource name="TestAgentUseConstructorFactory" version="0"/>
@@ -77,7 +71,7 @@
     </Activity>
     <Workflow name="TestAgent_Workflow" version="0">
       <Activity name="TestAgent_Update" version="0"/>
-      <Activity name="State_Manage" version="0"/>
+      <Activity name="CrudState_Manage" version="0"/>
     </Workflow>
     <PropertyDescriptionResource name="TestAgent" version="0"/>
     <ItemResource name="TestAgentFactory" version="0"/>
@@ -94,7 +88,7 @@
     </Activity>
     <Workflow name="TestItemGeneratedName_Workflow" version="0">
       <Activity name="TestItemGeneratedName_Update" version="0"/>
-      <Activity name="State_Manage" version="0"/>
+      <Activity name="CrudState_Manage" version="0"/>
     </Workflow>
     <PropertyDescriptionResource name="TestItemGeneratedName" version="0"/>
     <ItemResource name="TestItemGeneratedNameFactory" version="0"/>
@@ -111,7 +105,7 @@
     </Activity>
     <Workflow name="TestItemUseConstructorGeneratedName_Workflow" version="0">
       <Activity name="TestItemUseConstructorGeneratedName_Update" version="0"/>
-      <Activity name="State_Manage" version="0"/>
+      <Activity name="CrudState_Manage" version="0"/>
     </Workflow>
     <PropertyDescriptionResource name="TestItemUseConstructorGeneratedName" version="0"/>
     <ItemResource name="TestItemUseConstructorGeneratedNameFactory" version="0"/>
