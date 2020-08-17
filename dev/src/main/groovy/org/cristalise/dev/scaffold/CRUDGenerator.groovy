@@ -150,8 +150,8 @@ class CRUDGenerator {
         cli.with {
             h longOpt: 'help', 'Show usage information'
             r longOpt: 'rootDir',  args: 1, argName: 'root', 'Root directory'
-            t longOpt: 'itemName', args: 1, argName: 'type', 'Type of the Item'
-            n longOpt: 'moduleNs', args: 1, argName: 'ns', '  Module namespace'
+            t longOpt: 'itemType', args: 1, argName: 'type', 'Type of the Item'
+            n longOpt: 'moduleNs', args: 1, argName: 'ns',   'Module namespace'
         }
 
         def options = cli.parse(args)
