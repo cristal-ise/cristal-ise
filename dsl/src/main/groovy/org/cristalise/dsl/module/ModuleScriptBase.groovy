@@ -22,7 +22,6 @@ abstract class ModuleScriptBase extends DelegatingScript {
     String config = null
 
     String resourceRoot = null
-    String exportRoot = null
     String moduleXmlDir = null
     String moduleDir = 'src/main/module'
 
@@ -66,7 +65,6 @@ abstract class ModuleScriptBase extends DelegatingScript {
         init()
 
         args.resourceRoot = resourceRoot
-        args.exportRoot = exportRoot
         args.moduleDir = moduleDir
         args.moduleXmlDir = moduleXmlDir
         args.bindings = this.binding

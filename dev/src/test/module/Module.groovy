@@ -16,7 +16,7 @@ setResourceRoot  'src/test/resources/org/cristalise/devtest/resources/'
 Module(ns: 'devtest', name: 'DEV Scaffold Test module', version: 0) {
 
     Info(description: 'DEV Scaffold Test module CRISTAL-iSE module', version: '0'){
-        // provide dependencies here. e.g. dependencies: ['dependency1', 'dependency1' ... ]
+        Dependencies:['CristaliseDev']
     }
 
     Url('org/cristalise/devtest/resources/')
@@ -28,9 +28,9 @@ Module(ns: 'devtest', name: 'DEV Scaffold Test module', version: 0) {
     }
 
  
-    include(moduleDir+'/State.groovy')
- 
     include(moduleDir+'/TestItem.groovy')
+ 
+    include(moduleDir+'/TestItemExcel.groovy')
  
     include(moduleDir+'/TestItemUseConstructor.groovy')
  

@@ -1,11 +1,14 @@
 import static org.cristalise.kernel.collection.BuiltInCollections.AGGREGATE_SCRIPT
 import static org.cristalise.kernel.collection.BuiltInCollections.MASTER_SCHEMA
 import static org.cristalise.kernel.collection.BuiltInCollections.SCHEMA_INITIALISE
-import static org.cristalise.kernel.collection.BuiltInCollections.SCHEMA_INITIALISE
+
+// this is defined in CrudState.groovy of the dev module
+def states = ['ACTIVE', 'INACTIVE']
 
 /**
  * TestItemUseConstructor Item
  */
+
 def TestItemUseConstructor = Schema('TestItemUseConstructor', 0) {
     struct(name:' TestItemUseConstructor', documentation: 'TestItemUseConstructor aggregated data') {
         field(name: 'Name',        type: 'string')
@@ -23,10 +26,11 @@ def TestItemUseConstructorDetails = Schema('TestItemUseConstructor_Details', 0) 
     }
 }
 
+
 def TestItemUseConstructorUpdateAct = Activity('TestItemUseConstructor_Update', 0) {
     Property('OutcomeInit': 'Empty')
     Schema(TestItemUseConstructorDetails)
-    //Script('Entity_ChangeName', 0)
+    //Script('CrudEntity_ChangeName', 0)
 }
 
 def TestItemUseConstructorAggregateScript = Script('TestItemUseConstructor_Aggregate', 0) {
@@ -51,7 +55,7 @@ Activity('TestItemUseConstructor_Aggregate', 0) {
 
 def TestItemUseConstructorWf = Workflow('TestItemUseConstructor_Workflow', 0) {
     ElemActDef(TestItemUseConstructorUpdateAct)
-    CompActDef('State_Manage', 0)
+    CompActDef('CrudState_Manage', 0)
 }
 
 def TestItemUseConstructorPropDesc = PropertyDescriptionList('TestItemUseConstructor', 0) {

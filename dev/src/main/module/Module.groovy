@@ -42,6 +42,7 @@ Module(ns: 'dev', name: 'CristaliseDev', version: 0) {
     Url('org/cristalise/dev/resources/')
 
     include(moduleDir+'/Property.groovy')
+    include(moduleDir+'/CrudState.groovy')
     include(moduleDir+'/CrudFactory.groovy')
     include(moduleDir+'/Schema.groovy')
     include(moduleDir+'/Script.groovy')

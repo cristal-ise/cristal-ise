@@ -244,6 +244,12 @@
         </dependency>
 
         <dependency>
+            <groupId>org.cristalise</groupId>
+            <artifactId>cristalise-xpath-outcomeinit</artifactId>
+            <version>${revision}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
             <groupId>org.awaitility</groupId>
             <artifactId>awaitility-groovy</artifactId>
             <scope>test</scope>

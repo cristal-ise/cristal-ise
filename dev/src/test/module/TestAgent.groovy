@@ -1,11 +1,14 @@
 import static org.cristalise.kernel.collection.BuiltInCollections.AGGREGATE_SCRIPT
 import static org.cristalise.kernel.collection.BuiltInCollections.MASTER_SCHEMA
 import static org.cristalise.kernel.collection.BuiltInCollections.SCHEMA_INITIALISE
-import static org.cristalise.kernel.collection.BuiltInCollections.SCHEMA_INITIALISE
+
+// this is defined in CrudState.groovy of the dev module
+def states = ['ACTIVE', 'INACTIVE']
 
 /**
  * TestAgent Item
  */
+
 def TestAgent = Schema('TestAgent', 0) {
     struct(name:' TestAgent', documentation: 'TestAgent aggregated data') {
         field(name: 'Name',        type: 'string')
@@ -23,10 +26,11 @@ def TestAgentDetails = Schema('TestAgent_Details', 0) {
     }
 }
 
+
 def TestAgentUpdateAct = Activity('TestAgent_Update', 0) {
     Property('OutcomeInit': 'Empty')
     Schema(TestAgentDetails)
-    //Script('Entity_ChangeName', 0)
+    //Script('CrudEntity_ChangeName', 0)
 }
 
 def TestAgentAggregateScript = Script('TestAgent_Aggregate', 0) {
@@ -51,7 +55,7 @@ Activity('TestAgent_Aggregate', 0) {
 
 def TestAgentWf = Workflow('TestAgent_Workflow', 0) {
     ElemActDef(TestAgentUpdateAct)
-    CompActDef('State_Manage', 0)
+    CompActDef('CrudState_Manage', 0)
 }
 
 def TestAgentPropDesc = PropertyDescriptionList('TestAgent', 0) {

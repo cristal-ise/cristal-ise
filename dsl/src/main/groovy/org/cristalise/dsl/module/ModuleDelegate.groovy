@@ -91,8 +91,7 @@ class ModuleDelegate implements BindingConvention {
     Binding bindings
 
     String resourceRoot = 'src/main/resources'
-    String exportRoot   = 'src/main/script/'
-    String moduleDir    = 'src/main/script/'
+    String moduleDir    = 'src/main/module/'
     String moduleXmlDir = null
 
     private File resourceBootDir = null
@@ -111,7 +110,6 @@ class ModuleDelegate implements BindingConvention {
         else               bindings = new Binding()
 
         if (args.resourceRoot) resourceRoot = args.resourceRoot
-        if (args.exportRoot)   exportRoot   = args.exportRoot
         if (args.moduleDir)    moduleDir    = args.moduleDir
         if (args.moduleXmlDir) moduleXmlDir = args.moduleXmlDir
 
@@ -131,10 +129,6 @@ class ModuleDelegate implements BindingConvention {
             }
         }
         resourceBootDir = new File("$resourceRoot/boot")
-    }
-
-    public ModuleDelegate(String ns, String n, int v, String resRoot, String expRoot, String modDir, Binding b = null) {
-        this('ns': ns, 'name': n, 'version': v, 'resourceRoot': resRoot, 'exportRoot': expRoot, 'moduleDir': modDir, 'bindings': b)
     }
 
     public ModuleDelegate(String ns, String n, int v, Binding b = null) {
@@ -242,7 +236,6 @@ class ModuleDelegate implements BindingConvention {
     }
 
     /**
-     * Enable export if workflow needs to be generated, e.g. caDef.export(imports, new File(exportRoot), true)
      * 
      * @param args
      * @param cl

@@ -20,13 +20,10 @@
  */
 package org.cristalise.dsl.test.persistency.outcome
 
-import org.cristalise.dev.dsl.DevXMLUtility
 import org.cristalise.dsl.test.builders.SchemaTestBuilder
-import org.cristalise.kernel.common.InvalidDataException
 import org.cristalise.kernel.test.utils.CristalTestSetup
 import org.cristalise.kernel.test.utils.KernelXMLUtility
 
-import spock.lang.Ignore
 import spock.lang.Specification
 
 

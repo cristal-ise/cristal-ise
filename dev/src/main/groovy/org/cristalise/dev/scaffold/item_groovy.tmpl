@@ -1,11 +1,20 @@
 import static org.cristalise.kernel.collection.BuiltInCollections.AGGREGATE_SCRIPT
 import static org.cristalise.kernel.collection.BuiltInCollections.MASTER_SCHEMA
 import static org.cristalise.kernel.collection.BuiltInCollections.SCHEMA_INITIALISE
-import static org.cristalise.kernel.collection.BuiltInCollections.SCHEMA_INITIALISE
+
+// this is defined in CrudState.groovy of the dev module
+def states = ['ACTIVE', 'INACTIVE']
 
 /**
  * @{item} Item
  */
+@if{inputFile != null}
+def xlsxFile = new File(moduleDir+'/@{inputFile}')
+
+def @{item}         = Schema('@{item}', 0, xlsxFile) 
+def @{item}Details =  Schema('@{item}_Details', 0, xlsxFile)
+
+@else{}
 def @{item} = Schema('@{item}', @{version}) {
     struct(name:' @{item}', documentation: '@{item} aggregated data') {
         field(name: 'Name',        type: 'string')
@@ -24,11 +33,12 @@ def @{item}Details = Schema('@{item}_Details', @{version}) {
         field(name: 'Description', type: 'string')
     }
 }
+@end{}
 
 def @{item}UpdateAct = Activity('@{item}_Update', @{version}) {
     Property('OutcomeInit': 'Empty')
     Schema(@{item}Details)
-    //Script('Entity_ChangeName', @{version})
+    //Script('CrudEntity_ChangeName', @{version})
 }
 
 def @{item}AggregateScript = Script('@{item}_Aggregate', @{version}) {
@@ -53,7 +63,7 @@ Activity('@{item}_Aggregate', @{version}) {
 
 def @{item}Wf = Workflow('@{item}_Workflow', @{version}) {
     ElemActDef(@{item}UpdateAct)
-    CompActDef('State_Manage', @{version})
+    CompActDef('CrudState_Manage', @{version})
 }
 
 def @{item}PropDesc = PropertyDescriptionList('@{item}', @{version}) {

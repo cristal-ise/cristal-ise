@@ -1,11 +1,14 @@
 import static org.cristalise.kernel.collection.BuiltInCollections.AGGREGATE_SCRIPT
 import static org.cristalise.kernel.collection.BuiltInCollections.MASTER_SCHEMA
 import static org.cristalise.kernel.collection.BuiltInCollections.SCHEMA_INITIALISE
-import static org.cristalise.kernel.collection.BuiltInCollections.SCHEMA_INITIALISE
+
+// this is defined in CrudState.groovy of the dev module
+def states = ['ACTIVE', 'INACTIVE']
 
 /**
  * TestItemGeneratedName Item
  */
+
 def TestItemGeneratedName = Schema('TestItemGeneratedName', 0) {
     struct(name:' TestItemGeneratedName', documentation: 'TestItemGeneratedName aggregated data') {
         field(name: 'Name',        type: 'string')
@@ -23,10 +26,11 @@ def TestItemGeneratedNameDetails = Schema('TestItemGeneratedName_Details', 0) {
     }
 }
 
+
 def TestItemGeneratedNameUpdateAct = Activity('TestItemGeneratedName_Update', 0) {
     Property('OutcomeInit': 'Empty')
     Schema(TestItemGeneratedNameDetails)
-    //Script('Entity_ChangeName', 0)
+    //Script('CrudEntity_ChangeName', 0)
 }
 
 def TestItemGeneratedNameAggregateScript = Script('TestItemGeneratedName_Aggregate', 0) {
@@ -51,7 +55,7 @@ Activity('TestItemGeneratedName_Aggregate', 0) {
 
 def TestItemGeneratedNameWf = Workflow('TestItemGeneratedName_Workflow', 0) {
     ElemActDef(TestItemGeneratedNameUpdateAct)
-    CompActDef('State_Manage', 0)
+    CompActDef('CrudState_Manage', 0)
 }
 
 def TestItemGeneratedNamePropDesc = PropertyDescriptionList('TestItemGeneratedName', 0) {
