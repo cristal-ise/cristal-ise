@@ -40,8 +40,9 @@ Script("CrudEntity_ChangeName", 0) {
 }
 
 Activity('CrudFactory_InstantiateItem', 0) {
+    Property('PredefinedStep': 'CreateItemFromDescription')
     Property('OutcomeInit': 'Empty')
-
+    
     Schema($crudFactory_NewInstanceDetails_Schema)
     Script($crudFactory_InstantiateItem_Script)
 }
