@@ -26,6 +26,7 @@ import org.mvel2.templates.CompiledTemplate
 import org.mvel2.templates.TemplateCompiler
 import org.mvel2.templates.TemplateRuntime
 
+import groovy.cli.commons.CliBuilder
 import groovy.transform.CompileDynamic
 import groovy.transform.CompileStatic
 
@@ -33,12 +34,11 @@ import groovy.transform.CompileStatic
  * Class generating the following DSL files. 
  *
  * <pre>
- * - ${root}/module/Module.groovy (optional)
  * - ${root}/module/${item}.groovy
- * - ${root}/module/State.groovy (optional)
  * - ${root}/module/script/${item}_Aggregate.groovy
+ * - ${root}/module/script/${item}_QueryList.groovy
  * - ${root}/${resourceRoot}/CA/${item}_Workflow_0,xml
- * - ${root}/${resourceRoot}/CA/State_Manage_0.xml (optional)
+ * - ${root}/module/Module.groovy (optional)
  * </pre>
  * 
  * Inputs could be like these using the groovy map literal:
@@ -50,6 +50,30 @@ import groovy.transform.CompileStatic
 @CompileStatic
 class CRUDGenerator {
 
+    String rootDir
+    String resourceRootDir
+    String moduleXmlDir
+
+    public CRUDGenerator(Map<String, String> args) {
+        assert args && args.rootDir, 'Please specify rootDir'
+
+        rootDir         = args.rootDir
+        resourceRootDir = args?.resourceRootDir
+        moduleXmlDir    = args?.moduleXmlDir
+
+        if (!resourceRootDir) resourceRootDir = "${rootDir}/resources"
+    }
+
+    /**
+     * Trigger the generation of the DSL files. It is based on MVEL2 templating. Module.groovy is not generated.
+     * 
+     * @param inputs the inputs to the MVEL2 templates
+     * @param itemSpecificFactoryWf whether generate an Item specific Factory workflow or not
+     */
+    public void generate(Map<String, Object> inputs) {
+        generate(inputs, false)
+    }
+
     /**
      * Trigger the generation of the DSL files. It is based on MVEL2 templating.
      * 
@@ -60,15 +84,19 @@ class CRUDGenerator {
     public void generate(Map<String, Object> inputs, boolean generateModule) {
         assert inputs
 
-        new FileTreeBuilder(new File((String)inputs.resourceRoot)).dir('boot') {
+        inputs.rootDir = rootDir
+        inputs.resourceRootDir = resourceRootDir
+        if (moduleXmlDir) inputs.moduleXmlDir = moduleXmlDir
+
+        new FileTreeBuilder(new File(resourceRootDir)).dir('boot') {
             for (def res : BuiltInResources.values()) {
                 dir(res.getTypeCode())
             }
         }
 
-        def moduleDir   = new File("${inputs.rootDir}/module")
-        def scriptDir   = new File("${inputs.rootDir}/module/script")
-        def workflowDir = new File(inputs.resourceRoot ? "${inputs.resourceRoot}/boot/CA" : "${inputs.rootDir}/resources/boot/CA")
+        def moduleDir   = new File("${rootDir}/module")
+        def scriptDir   = new File("${rootDir}/module/script")
+        def workflowDir = new File("${resourceRootDir}/boot/CA")
 
         checkAndSetInputs(inputs)
 
@@ -112,5 +140,68 @@ class CRUDGenerator {
         String templ = FileStringUtility.url2String(this.class.getResource(templName))
         CompiledTemplate expr = TemplateCompiler.compileTemplate(templ);
         file.write((String) TemplateRuntime.execute(expr, vars))
+    }
+
+    @CompileDynamic
+    public static void main(String[] args) {
+        def cli = new CliBuilder(usage: 'CrudGenerator -[rtnh] [excelfile]')
+        cli.width = 100
+
+        cli.with {
+            h longOpt: 'help', 'Show usage information'
+            r longOpt: 'rootDir',  args: 1, argName: 'root', 'Root directory'
+            t longOpt: 'itemName', args: 1, argName: 'type', 'Type of the Item'
+            n longOpt: 'moduleNs', args: 1, argName: 'ns', '  Module namespace'
+        }
+
+        def options = cli.parse(args)
+
+        // Show usage text when error or -h or --help option is used.
+        if (!args || !options || options.h) {
+            cli.usage(); return
+        }
+
+        if (!options.r) {
+            println "Please provide the root directory"
+            cli.usage()
+            return
+        }
+
+        if (!options.t) {
+            println "Please provide the type of the Item (i.e. Site)"
+            cli.usage()
+            return
+        }
+
+        if (!options.n) {
+            println "Please provide the namespace (i.e. limsdemo)"
+            cli.usage()
+            return
+        }
+
+        if (!options.arguments()) {
+            println "Please provide input csv/excel file"
+            cli.usage()
+            return
+        }
+
+        def rootDir   = (String)options.r
+        def item      = (String)options.t
+        def ns        = (String)options.n
+        def inputFile = options.arguments()[0]
+
+        def generator = new CRUDGenerator(rootDir: rootDir)
+
+        Map<String, Object> inputs = [
+            item:           item,
+            version:        0,
+            moduleNs:       ns,
+            useConstructor: false,
+            isAgent:        false,
+            generatedName:  false,
+            inputFile:      inputFile
+        ]
+
+        generator.generate(inputs)
     }
 }

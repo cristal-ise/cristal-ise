@@ -30,6 +30,8 @@ Module(ns: 'devtest', name: 'DEV Scaffold Test module', version: 0) {
  
     include(moduleDir+'/TestItem.groovy')
  
+    include(moduleDir+'/TestItemExcel.groovy')
+ 
     include(moduleDir+'/TestItemUseConstructor.groovy')
  
     include(moduleDir+'/TestAgentUseConstructor.groovy')

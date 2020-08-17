@@ -131,6 +131,39 @@ class DevScaffoldedModuleTests extends DevTestScenarioBase implements CristalTes
     }
 
     @Test
+    public void 'Create Item using Update - generated from excel'() {
+        item = createItemWithUpdateAndCheck(
+            Name: "ItemExcelUsingUpdate-$timeStamp",
+            Description: 'ItemUsingUpdate description - generated from excel',
+            "/$folder/TestItemExcelFactory")
+
+        assert item.getMasterSchema()
+        assert item.getAggregateScript()
+
+        assert item.getProperty('State') == 'ACTIVE'
+
+        def updateJob     = item.getJobByName('Update', agent)
+        def activateJob   = item.getJobByName('Activate', agent)
+        def deactivateJob = item.getJobByName('Deactivate', agent)
+
+        assert updateJob, "Cannot get Job for Activity 'Update' of Item '$item.name'"
+        assert activateJob == null, "Job must be null for Activity 'Activate' of Item '$item.name'"
+        assert deactivateJob, "Cannot get Job for Activity 'Deactivate' of Item '$item.name'"
+
+        agent.execute(deactivateJob)
+
+        assert item.getProperty('State') == 'INACTIVE'
+
+        updateJob     = item.getJobByName('Update', agent)
+        activateJob   = item.getJobByName('Activate', agent)
+        deactivateJob = item.getJobByName('Deactivate', agent)
+
+        assert updateJob, "Cannot get Job for Activity 'Update' of Item '$item.name'"
+        assert activateJob, "Cannot get Job for Activity 'Activate' of Item '$item.name'"
+        assert deactivateJob == null, "Job must be null for Activity 'Deactivate' of Item '$item.name'"
+    }
+
+    @Test
     public void 'Create Item using Update and Generated Name'() {
         item = createItemWithUpdateAndCheck(
             Description: 'ItemUsingUpdateGenretedName description',

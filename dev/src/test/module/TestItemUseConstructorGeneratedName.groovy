@@ -8,6 +8,7 @@ def states = ['ACTIVE', 'INACTIVE']
 /**
  * TestItemUseConstructorGeneratedName Item
  */
+
 def TestItemUseConstructorGeneratedName = Schema('TestItemUseConstructorGeneratedName', 0) {
     struct(name:' TestItemUseConstructorGeneratedName', documentation: 'TestItemUseConstructorGeneratedName aggregated data') {
         field(name: 'Name',        type: 'string')
@@ -25,10 +26,11 @@ def TestItemUseConstructorGeneratedNameDetails = Schema('TestItemUseConstructorG
     }
 }
 
+
 def TestItemUseConstructorGeneratedNameUpdateAct = Activity('TestItemUseConstructorGeneratedName_Update', 0) {
     Property('OutcomeInit': 'Empty')
     Schema(TestItemUseConstructorGeneratedNameDetails)
-    //Script('Entity_ChangeName', 0)
+    //Script('CrudEntity_ChangeName', 0)
 }
 
 def TestItemUseConstructorGeneratedNameAggregateScript = Script('TestItemUseConstructorGeneratedName_Aggregate', 0) {

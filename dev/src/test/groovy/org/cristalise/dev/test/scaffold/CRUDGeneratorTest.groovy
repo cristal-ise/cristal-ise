@@ -22,6 +22,10 @@ package org.cristalise.dev.test.scaffold
 
 import org.codehaus.groovy.control.CompilerConfiguration
 import org.cristalise.dev.scaffold.CRUDGenerator
+import org.cristalise.kernel.process.Gateway
+import org.cristalise.kernel.utils.FileStringUtility
+import org.junit.Before
+import org.junit.BeforeClass
 import org.junit.Test
 
 import groovy.transform.CompileStatic
@@ -29,33 +33,50 @@ import groovy.transform.CompileStatic
 @CompileStatic
 class CRUDGeneratorTest {
 
+    @BeforeClass
+    public static void setup() throws Exception {
+        Properties props = new Properties()
+        props.put('Resource.moduleUseFileNameWithVersion', 'dev')
+        Gateway.init(props);
+    }
+
     @Test
     void generateCRUDItemTest() {
-        Map<String, Object> inputs = [
-            item:            'TestItem',
+        def generator = new CRUDGenerator(
             rootDir:         'src/test',
-            resourceRoot:    'src/test/resources/org/cristalise/devtest/resources/',
-            moduleName:      'DEV Scaffold Test module',
-            moduleNs:        'devtest', 
-            version:         0,
+            resourceRootDir: 'src/test/resources/org/cristalise/devtest/resources/',
             moduleXmlDir:    'src/test/resources/META-INF/cristal',
-            appPackage:      'org.cristalise.devtest',
-            resourceURL:     'org/cristalise/devtest/resources/',
-            useConstructor:  false,
-            isAgent:         false,
-            generatedName:   false,
-            moduleFiles:     ['TestItem.groovy']
+        )
+
+        Map<String, Object> inputs = [
+            item:           'TestItem',
+            version:        0,
+            moduleNs:       'devtest',
+            useConstructor: false,
+            isAgent:        false,
+            generatedName:  false,
+            inputFile:      null,
+            moduleFiles:    ['TestItem.groovy']
         ]
 
-        new CRUDGenerator().generate(inputs, false)
+        generator.generate(inputs)
 
         inputs.with {
+            item = 'TestItemExcel'
+            inputFile = 'TestItemExcel.xlsx'
+            ((List)moduleFiles).add('TestItemExcel.groovy')
+        }
+
+        generator.generate(inputs)
+
+        inputs.with {
+            inputFile = null
             item = 'TestItemUseConstructor'
             useConstructor = true
             ((List)moduleFiles).add('TestItemUseConstructor.groovy')
         }
 
-        new CRUDGenerator().generate(inputs, false)
+        generator.generate(inputs)
 
         inputs.with {
             item = 'TestAgentUseConstructor'
@@ -63,7 +84,7 @@ class CRUDGeneratorTest {
             ((List)moduleFiles).add('TestAgentUseConstructor.groovy')
         }
 
-        new CRUDGenerator().generate(inputs, false)
+        generator.generate(inputs)
 
         inputs.with {
             item = 'TestAgent'
@@ -71,7 +92,7 @@ class CRUDGeneratorTest {
             ((List)moduleFiles).add('TestAgent.groovy')
         }
 
-        new CRUDGenerator().generate(inputs, false)
+        generator.generate(inputs, false)
 
         inputs.with {
             item = 'TestItemGeneratedName'
@@ -80,15 +101,18 @@ class CRUDGeneratorTest {
             ((List)moduleFiles).add('TestItemGeneratedName.groovy')
         }
 
-        new CRUDGenerator().generate(inputs, false)
+        generator.generate(inputs)
 
         inputs.with {
-            item = 'TestItemUseConstructorGeneratedName'
+            moduleName     = 'DEV Scaffold Test module'
+            resourceURL    = 'org/cristalise/devtest/resources/'
+            item           = 'TestItemUseConstructorGeneratedName'
             useConstructor = true
+
             ((List)moduleFiles).add('TestItemUseConstructorGeneratedName.groovy')
         }
 
-        new CRUDGenerator().generate(inputs, true)
+        generator.generate(inputs, true)
 
         CompilerConfiguration cc = new CompilerConfiguration()
         cc.setScriptBaseClass(DelegatingScript.class.getName())

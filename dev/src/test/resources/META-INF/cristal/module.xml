@@ -24,6 +24,23 @@
     </Workflow>
     <PropertyDescriptionResource name="TestItem" version="0"/>
     <ItemResource name="TestItemFactory" version="0"/>
+    <SchemaResource name="TestItemExcel" version="0"/>
+    <SchemaResource name="TestItemExcel_Details" version="0"/>
+    <Activity name="TestItemExcel_Update" version="0">
+      <Schema name="TestItemExcel_Details" version="0"/>
+    </Activity>
+    <ScriptResource name="TestItemExcel_Aggregate" version="0"/>
+    <ScriptResource name="TestItemExcel_QueryList" version="0"/>
+    <Activity name="TestItemExcel_Aggregate" version="0">
+      <Schema name="TestItemExcel" version="0"/>
+      <Script name="TestItemExcel_Aggregate" version="0"/>
+    </Activity>
+    <Workflow name="TestItemExcel_Workflow" version="0">
+      <Activity name="TestItemExcel_Update" version="0"/>
+      <Activity name="CrudState_Manage" version="0"/>
+    </Workflow>
+    <PropertyDescriptionResource name="TestItemExcel" version="0"/>
+    <ItemResource name="TestItemExcelFactory" version="0"/>
     <SchemaResource name="TestItemUseConstructor" version="0"/>
     <SchemaResource name="TestItemUseConstructor_Details" version="0"/>
     <Activity name="TestItemUseConstructor_Update" version="0">

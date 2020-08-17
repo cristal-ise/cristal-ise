@@ -10,7 +10,7 @@ setModuleDir scriptUri
 setConfig  '@{rootDir}/conf/client.conf'
 setConnect '@{rootDir}/conf/server.clc'
 
-setResourceRoot @if{resourceRoot} '@{resourceRoot}' @else{} '@{rootDir}/resources' @end{}
+setResourceRoot @if{resourceRootDir} '@{resourceRootDir}' @else{} '@{rootDir}/resources' @end{}
 @if{moduleXmlDir} setModuleXmlDir '@{moduleXmlDir}' @end{}
 
 Module(ns: '@{moduleNs}', name: '@{moduleName}', version: @{version}) {

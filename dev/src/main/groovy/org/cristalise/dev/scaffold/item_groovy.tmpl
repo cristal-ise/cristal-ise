@@ -8,6 +8,13 @@ def states = ['ACTIVE', 'INACTIVE']
 /**
  * @{item} Item
  */
+@if{inputFile != null}
+def xlsxFile = new File(moduleDir+'/@{inputFile}')
+
+def @{item}         = Schema('@{item}', 0, xlsxFile) 
+def @{item}Details =  Schema('@{item}_Details', 0, xlsxFile)
+
+@else{}
 def @{item} = Schema('@{item}', @{version}) {
     struct(name:' @{item}', documentation: '@{item} aggregated data') {
         field(name: 'Name',        type: 'string')
@@ -26,11 +33,12 @@ def @{item}Details = Schema('@{item}_Details', @{version}) {
         field(name: 'Description', type: 'string')
     }
 }
+@end{}
 
 def @{item}UpdateAct = Activity('@{item}_Update', @{version}) {
     Property('OutcomeInit': 'Empty')
     Schema(@{item}Details)
-    //Script('Entity_ChangeName', @{version})
+    //Script('CrudEntity_ChangeName', @{version})
 }
 
 def @{item}AggregateScript = Script('@{item}_Aggregate', @{version}) {

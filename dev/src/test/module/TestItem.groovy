@@ -8,6 +8,7 @@ def states = ['ACTIVE', 'INACTIVE']
 /**
  * TestItem Item
  */
+
 def TestItem = Schema('TestItem', 0) {
     struct(name:' TestItem', documentation: 'TestItem aggregated data') {
         field(name: 'Name',        type: 'string')
@@ -25,10 +26,11 @@ def TestItemDetails = Schema('TestItem_Details', 0) {
     }
 }
 
+
 def TestItemUpdateAct = Activity('TestItem_Update', 0) {
     Property('OutcomeInit': 'Empty')
     Schema(TestItemDetails)
-    //Script('Entity_ChangeName', 0)
+    //Script('CrudEntity_ChangeName', 0)
 }
 
 def TestItemAggregateScript = Script('TestItem_Aggregate', 0) {
