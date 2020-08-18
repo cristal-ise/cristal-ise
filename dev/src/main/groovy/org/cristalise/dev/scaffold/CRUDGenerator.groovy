@@ -151,9 +151,9 @@ class CRUDGenerator {
 
         cli.with {
             h longOpt: 'help', 'Show usage information'
-            r longOpt: 'rootDir',  args: 1, argName: 'root', 'Root directory'
-            t longOpt: 'itemType', args: 1, argName: 'type', 'Type of the Item'
-            n longOpt: 'moduleNs', args: 1, argName: 'ns',   'Module namespace'
+            r longOpt: 'rootDir',   args: 1, argName: 'root',  'Root directory'
+            t longOpt: 'itemTypes', args: 1, argName: 'types', 'Comma separated list of Item types'
+            n longOpt: 'moduleNs',  args: 1, argName: 'ns',    'Module namespace'
         }
 
         def options = cli.parse(args)
@@ -170,7 +170,7 @@ class CRUDGenerator {
         }
 
         if (!options.t) {
-            println "Please provide the type of the Item (i.e. Site)"
+            println "Please provide the comma separated list of Item types (i.e. Site, Product)"
             cli.usage()
             return
         }
@@ -188,22 +188,24 @@ class CRUDGenerator {
         }
 
         def rootDir   = (String)options.r
-        def item      = (String)options.t
+        def items     = (String)options.t
         def ns        = (String)options.n
         def inputFile = options.arguments()[0]
 
         def generator = new CRUDGenerator(rootDir: rootDir)
 
-        Map<String, Object> inputs = [
-            item:           item,
-            version:        0,
-            moduleNs:       ns,
-            useConstructor: false,
-            isAgent:        false,
-            generatedName:  false,
-            inputFile:      inputFile
-        ]
+        items.split(',').each { item ->
+            Map<String, Object> inputs = [
+                item:           item.trim(),
+                version:        0,
+                moduleNs:       ns,
+                useConstructor: false,
+                isAgent:        false,
+                generatedName:  false,
+                inputFile:      inputFile
+            ]
 
-        generator.generate(inputs)
+            generator.generate(inputs)
+        }
     }
 }
