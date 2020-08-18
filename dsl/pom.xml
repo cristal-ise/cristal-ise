@@ -88,6 +88,12 @@
     <build>
         <plugins>
             <plugin>
+                <groupId>org.codehaus.groovy</groupId>
+                <artifactId>groovy-eclipse-compiler</artifactId>
+                <version>${groovy-eclipse-compiler.version}</version>
+                <extensions>true</extensions>
+            </plugin>
+            <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
                 <configuration>
@@ -160,7 +166,7 @@
         <dependency>
             <groupId>org.codehaus.groovy</groupId>
             <artifactId>groovy-all</artifactId>
-            <version>2.5.8</version>
+            <version>${groovy.version}</version>
             <type>pom</type>
         </dependency>
         <dependency>
