@@ -49,6 +49,8 @@ import groovy.transform.CompileStatic
  */
 @CompileStatic
 class CRUDGenerator {
+    
+    static final String templateRoot = '/org/cristalise/dev/resources/templates/'
 
     String rootDir
     String resourceRootDir
@@ -137,7 +139,7 @@ class CRUDGenerator {
      * @param vars the inputs needed for the generation
      */
     private void generateDSL(File file, String templName, Map vars) {
-        String templ = FileStringUtility.url2String(this.class.getResource(templName))
+        String templ = FileStringUtility.url2String(this.getClass().getResource(templateRoot + templName))
         CompiledTemplate expr = TemplateCompiler.compileTemplate(templ);
         file.write((String) TemplateRuntime.execute(expr, vars))
     }
