@@ -38,11 +38,11 @@ import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.process.resource.BuiltInResources;
 import org.cristalise.kernel.utils.DescriptionObject;
 
-import lombok.extern.slf4j.Slf4j;
+import groovy.util.logging.Slf4j
 
 
 /**
- * Creates empty DescriptionObject and marshalls them or loads the 'new' XML from Factory
+ * Creates empty DescriptionObject and marshals them or loads the 'new' XML from Factory
  */
 @Slf4j
 public class DevObjectOutcomeInitiator implements OutcomeInitiator {

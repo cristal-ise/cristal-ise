@@ -1,7 +1,7 @@
 <!--
 
-    This file is part of the CRISTAL-iSE eXist-DB storage plugin.
-    Copyright (c) 2001-2016 The CRISTAL Consortium. All rights reserved.
+    This file is part of the CRISTAL-iSE Development Module.
+    Copyright (c) 2001-2017 The CRISTAL Consortium. All rights reserved.
 
     This library is free software; you can redistribute it and/or modify it
     under the terms of the GNU Lesser General Public License as published
@@ -122,18 +122,41 @@
         </resources>
         <plugins>
             <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
-                <version>3.5</version>
                 <configuration>
-                    <source>1.8</source>
-                    <target>1.8</target>
+                    <source>${source.version}</source>
+                    <target>${target.version}</target>
+                    <compilerId>groovy-eclipse-compiler</compilerId>
                 </configuration>
+                <dependencies>
+                    <dependency>
+                        <groupId>org.codehaus.groovy</groupId>
+                        <artifactId>groovy-eclipse-compiler</artifactId>
+                        <version>${groovy-eclipse-compiler.version}</version>
+                    </dependency>
+                    <dependency>
+                        <groupId>org.codehaus.groovy</groupId>
+                        <artifactId>groovy-eclipse-batch</artifactId>
+                        <version>${groovy-eclipse-batch.version}</version>
+                    </dependency>
+                </dependencies>
             </plugin>
             <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-release-plugin</artifactId>
-                <version>2.4.1</version>
+                <groupId>com.bluetrainsoftware.maven</groupId>
+                <artifactId>groovydoc-maven-plugin</artifactId>
+                <version>2.1</version>
+                <executions>
+                    <execution>
+                        <id>attach-docs</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>attach-docs</goal>
+                        </goals>
+                    </execution>
+                </executions>
             </plugin>
+
             <plugin>
                 <groupId>com.mycila</groupId>
                 <artifactId>license-maven-plugin</artifactId>
@@ -163,46 +186,8 @@
                     </defaultJvmSettings>
                     <programs>
                         <program>
-                            <mainClass>org.cristalise.kernel.process.StandardServer</mainClass>
-                            <id>cristalise-server</id>
-                            <commandLineArguments>
-                                <commandLineArgument>-logLevel</commandLineArgument>
-                                <commandLineArgument>0</commandLineArgument>
-                                <commandLineArgument>-logFile</commandLineArgument>
-                                <commandLineArgument>@BASEDIR@/server.log</commandLineArgument>
-                                <commandLineArgument>-config</commandLineArgument>
-                                <commandLineArgument>@BASEDIR@/conf/server.conf</commandLineArgument>
-                                <commandLineArgument>-connect</commandLineArgument>
-                                <commandLineArgument>@BASEDIR@/conf/local.clc</commandLineArgument>
-                            </commandLineArguments>
-                        </program>
-                        <program>
-                            <mainClass>org.cristalise.gui.Main</mainClass>
-                            <id>cristalise-gui</id>
-                            <commandLineArguments>
-                                <commandLineArgument>-logLevel</commandLineArgument>
-                                <commandLineArgument>0</commandLineArgument>
-                                <commandLineArgument>-logFile</commandLineArgument>
-                                <commandLineArgument>@BASEDIR@/gui.log</commandLineArgument>
-                                <commandLineArgument>-config</commandLineArgument>
-                                <commandLineArgument>@BASEDIR@/conf/client.conf</commandLineArgument>
-                                <commandLineArgument>-connect</commandLineArgument>
-                                <commandLineArgument>@BASEDIR@/conf/local.clc</commandLineArgument>
-                            </commandLineArguments>
-                        </program>
-                        <program>
-                            <mainClass>org.cristalise.kernel.process.UserCodeProcess</mainClass>
-                            <id>cristalise-usercode</id>
-                            <commandLineArguments>
-                                <commandLineArgument>-logLevel</commandLineArgument>
-                                <commandLineArgument>0</commandLineArgument>
-                                <commandLineArgument>-logFile</commandLineArgument>
-                                <commandLineArgument>@BASEDIR@/usercode.log</commandLineArgument>
-                                <commandLineArgument>-config</commandLineArgument>
-                                <commandLineArgument>@BASEDIR@/conf/client.conf</commandLineArgument>
-                                <commandLineArgument>-connect</commandLineArgument>
-                                <commandLineArgument>@BASEDIR@/conf/local.clc</commandLineArgument>
-                            </commandLineArguments>
+                            <mainClass>org.cristalise.dev.scaffold.CRUDGenerator</mainClass>
+                            <id>cristalise-generator</id>
                         </program>
                     </programs>
                 </configuration>

@@ -16,8 +16,10 @@ import groovy.xml.MarkupBuilder
 def detailsSchema = 'TestItemGeneratedName_Details'
 
 def name  = item.getName()
-def id    = item.getProperty('ID')
 def state = item.getProperty('State')
+
+def id = item.getProperty('ID')
+
 
 Outcome details = null
 
@@ -30,10 +32,14 @@ def xml = new MarkupBuilder(writer)
 
 xml.TestItemGeneratedName {
     Name(  name  )
-    ID(    id    )
     State( state )
 
-    if (details) Description(details.getField('Description'))
+    ID(    id    )
+
+
+    if (details) {
+        Description(details.getField('Description'))
+    }
 }
 
 //check if this variable was defined as output

@@ -16,8 +16,8 @@ import groovy.xml.MarkupBuilder
 def detailsSchema = 'TestAgentUseConstructor_Details'
 
 def name  = item.getName()
-def id    = item.getProperty('ID')
 def state = item.getProperty('State')
+
 
 Outcome details = null
 
@@ -30,10 +30,12 @@ def xml = new MarkupBuilder(writer)
 
 xml.TestAgentUseConstructor {
     Name(  name  )
-    ID(    id    )
     State( state )
 
-    if (details) Description(details.getField('Description'))
+
+    if (details) {
+        Description(details.getField('Description'))
+    }
 }
 
 //check if this variable was defined as output
