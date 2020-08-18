@@ -29,6 +29,7 @@ import org.mvel2.templates.TemplateRuntime
 import groovy.cli.commons.CliBuilder
 import groovy.transform.CompileDynamic
 import groovy.transform.CompileStatic
+import groovy.util.logging.Slf4j
 
 /**
  * Class generating the following DSL files. 
@@ -47,7 +48,7 @@ import groovy.transform.CompileStatic
  * [rootDir: 'src/test', moduleName: 'Test Module', moduleNs: 'testns', moduleVersion: 0, item: 'TestItem', useConstructor: false]
  * </pre>
  */
-@CompileStatic
+@CompileStatic @Slf4j
 class CRUDGenerator {
     
     static final String templateRoot = '/org/cristalise/dev/resources/templates/'
@@ -195,6 +196,8 @@ class CRUDGenerator {
         def generator = new CRUDGenerator(rootDir: rootDir)
 
         items.split(',').each { item ->
+            log.info('main() - generating item:{}', item)
+
             Map<String, Object> inputs = [
                 item:           item.trim(),
                 version:        0,
