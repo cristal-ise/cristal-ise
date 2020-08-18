@@ -20,8 +20,6 @@
  */
 package org.cristalise.dev.test.scaffold
 
-import static org.junit.Assert.*
-
 import java.time.LocalDateTime
 
 import org.cristalise.dev.test.DevTestScenarioBase
@@ -31,7 +29,6 @@ import org.cristalise.kernel.test.utils.CristalTestSetup
 import org.junit.AfterClass
 import org.junit.Before
 import org.junit.BeforeClass
-import org.junit.Ignore
 import org.junit.Test
 
 import groovy.transform.CompileStatic
@@ -66,6 +63,11 @@ class DevScaffoldedModuleTests extends DevTestScenarioBase implements CristalTes
         log.info '====================================================================================================='
 
         agent = Gateway.getProxyManager().getAgentProxy('devtest')
+    }
+
+    @AfterClass
+    public static void teardown() {
+        Gateway.close()
     }
 
     @Test
