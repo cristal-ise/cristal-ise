@@ -66,7 +66,7 @@ def TestItemGeneratedNamePropDesc = PropertyDescriptionList('TestItemGeneratedNa
 
 Item(name: 'TestItemGeneratedNameFactory', version: 0, folder: '/devtest', workflow: 'CrudFactory_Workflow', workflowVer: 0) {
     InmutableProperty('Type': 'Factory')
-    InmutableProperty('Root': 'devtest/TestItemGeneratedNames')
+    InmutableProperty('Root': '/devtest/TestItemGeneratedNames')
 
     InmutableProperty('IDPrefix': 'ID')
     Property('LeftPadSize': '6')

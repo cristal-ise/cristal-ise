@@ -66,7 +66,7 @@ def TestAgentUseConstructorPropDesc = PropertyDescriptionList('TestAgentUseConst
 
 Item(name: 'TestAgentUseConstructorFactory', version: 0, folder: '/devtest', workflow: 'CrudFactory_Workflow', workflowVer: 0) {
     InmutableProperty('Type': 'Factory')
-    InmutableProperty('Root': 'devtest/TestAgentUseConstructors')
+    InmutableProperty('Root': '/devtest/TestAgentUseConstructors')
 
 
 

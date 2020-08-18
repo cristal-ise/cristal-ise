@@ -66,7 +66,7 @@ def TestAgentPropDesc = PropertyDescriptionList('TestAgent', 0) {
 
 Item(name: 'TestAgentFactory', version: 0, folder: '/devtest', workflow: 'CrudFactory_Workflow', workflowVer: 0) {
     InmutableProperty('Type': 'Factory')
-    InmutableProperty('Root': 'devtest/TestAgents')
+    InmutableProperty('Root': '/devtest/TestAgents')
 
 
 

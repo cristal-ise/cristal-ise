@@ -34,7 +34,9 @@ xml.TestAgentUseConstructor {
 
 
     if (details) {
-        Description(details.getField('Description'))
+        details.getRecord().each {field, value ->
+          "$field"(value)
+        }
     }
 }
 

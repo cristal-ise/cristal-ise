@@ -74,7 +74,7 @@ def @{item}PropDesc = PropertyDescriptionList('@{item}', @{version}) {
 
 Item(name: '@{item}Factory', version: @{version}, folder: '/@{moduleNs}', workflow: 'CrudFactory_Workflow', workflowVer: @{version}) {
     InmutableProperty('Type': 'Factory')
-    InmutableProperty('Root': '@{moduleNs}/@{item}s')
+    InmutableProperty('Root': '/@{moduleNs}/@{item}s')
 @if{generatedName}
     InmutableProperty('IDPrefix': '@{idPrefix}')
     Property('LeftPadSize': '@{leftPadSize}')

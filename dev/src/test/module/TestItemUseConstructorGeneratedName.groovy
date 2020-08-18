@@ -66,7 +66,7 @@ def TestItemUseConstructorGeneratedNamePropDesc = PropertyDescriptionList('TestI
 
 Item(name: 'TestItemUseConstructorGeneratedNameFactory', version: 0, folder: '/devtest', workflow: 'CrudFactory_Workflow', workflowVer: 0) {
     InmutableProperty('Type': 'Factory')
-    InmutableProperty('Root': 'devtest/TestItemUseConstructorGeneratedNames')
+    InmutableProperty('Root': '/devtest/TestItemUseConstructorGeneratedNames')
 
     InmutableProperty('IDPrefix': 'ID')
     Property('LeftPadSize': '6')

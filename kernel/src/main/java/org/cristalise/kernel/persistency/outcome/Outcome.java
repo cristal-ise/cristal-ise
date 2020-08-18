@@ -27,12 +27,12 @@ import java.io.StringReader;
 import java.io.StringWriter;
 import java.io.Writer;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.StringTokenizer;
+import java.util.TreeMap;
 
 import javax.xml.namespace.QName;
 import javax.xml.parsers.DocumentBuilder;
@@ -893,13 +893,13 @@ public class Outcome implements C2KLocalObject {
     }
 
     /**
-     * Reads the all Attributes and child Elements of the given Node
+     * Reads the all Attributes and child Elements of the given Node. Use TreeMap to keep the order of Nodes.
      *
      * @param node the node to work with
      * @return a Map as a key/value pairs of Attribute/Element names with their value
      */
     public  Map<String, String> getRecordOfNode(Node node) {
-        HashMap<String, String> record = new HashMap<>();
+        Map<String, String> record = new TreeMap<>();
         NodeList elements = node.getChildNodes();
 
         for (int i = 0; i < elements.getLength(); i++) {

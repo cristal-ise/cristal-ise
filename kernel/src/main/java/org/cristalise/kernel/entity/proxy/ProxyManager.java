@@ -123,7 +123,7 @@ public class ProxyManager {
     }
 
     protected void processMessage(ProxyMessage thisMessage) throws InvalidDataException {
-        log.debug("processMessage() - Received proxy message:{}", thisMessage);
+        log.trace("processMessage() - Received proxy message:{}", thisMessage);
 
         if (thisMessage.getPath().equals(ProxyMessage.PINGPATH)) // ping response
             return;

@@ -66,7 +66,7 @@ def TestItemUseConstructorPropDesc = PropertyDescriptionList('TestItemUseConstru
 
 Item(name: 'TestItemUseConstructorFactory', version: 0, folder: '/devtest', workflow: 'CrudFactory_Workflow', workflowVer: 0) {
     InmutableProperty('Type': 'Factory')
-    InmutableProperty('Root': 'devtest/TestItemUseConstructors')
+    InmutableProperty('Root': '/devtest/TestItemUseConstructors')
 
 
 
