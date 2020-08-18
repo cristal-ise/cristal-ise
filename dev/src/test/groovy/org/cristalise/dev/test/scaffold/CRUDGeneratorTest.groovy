@@ -41,7 +41,7 @@ class CRUDGeneratorTest {
     }
 
     @Test
-    void generateCRUDItemTest() {
+    void generateCRUDItemTest()throws Exception {
         def generator = new CRUDGenerator(
             rootDir:         'src/test',
             resourceRootDir: 'src/test/resources/org/cristalise/devtest/resources/',

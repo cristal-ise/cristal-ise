@@ -26,6 +26,7 @@ import org.cristalise.kernel.entity.proxy.ItemProxy
 import org.cristalise.kernel.process.Gateway
 import org.cristalise.kernel.test.utils.CristalTestSetup
 import org.cristalise.kernel.test.utils.KernelXMLUtility
+import org.junit.AfterClass
 import org.junit.Before
 import org.junit.BeforeClass
 import org.junit.Ignore
@@ -64,6 +65,11 @@ class BasicDevDescriptionTests extends DevTestScenarioBase implements CristalTes
         log.info '====================================================================================================='
     
         agent = Gateway.getProxyManager().getAgentProxy('devtest')
+    }
+    
+    @AfterClass
+    public static void teardown() {
+        Gateway.close()
     }
     
     public static final String testDataRoot = "src/test/data";
