@@ -162,10 +162,10 @@ class TabularSchemaBuilder {
 
         if (lovMap) {
             fixListValues(lovMap, 'values')
-            f.listOfValues = new ListOfValues(lovMap)
+            if (lovMap.scriptRef || lovMap.values) f.listOfValues = new ListOfValues(lovMap)
         }
 
-        if (referenceMap) {
+        if (referenceMap && referenceMap.itemType) {
             f.reference = new Reference(referenceMap)
         }
 
