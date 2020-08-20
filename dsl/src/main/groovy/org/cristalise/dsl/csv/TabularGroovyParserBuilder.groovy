@@ -40,9 +40,6 @@ class TabularGroovyParserBuilder {
     private List<List<String>> header = null
     private Integer headerRowCount = null
 
-    public TabularGroovyParserBuilder() {
-    }
-
     public TabularGroovyParserBuilder csvParser(File f) {
         type = CSV
         file = f
@@ -95,6 +92,17 @@ class TabularGroovyParserBuilder {
             case EXCEL: return initExcelParser(options)
             default: 
                 throw new InvalidDataException()
+        }
+    }
+
+    public static TabularGroovyParser build(File file, String sheet, int headerRowCount) {
+        def fileName = file.name
+        def type = fileName.substring(fileName.lastIndexOf('.')+1).toUpperCase()
+
+        switch(type) {
+            case 'XLSX': return new TabularGroovyParserBuilder().excelParser(file, sheet).withHeaderRowCount(headerRowCount).build()
+            case 'CSV':  return new TabularGroovyParserBuilder().csvParser(file).withHeaderRowCount(headerRowCount).build()
+            default: throw new UnsupportedOperationException("Unsupported file type:$type name:$fileName")
         }
     }
 }

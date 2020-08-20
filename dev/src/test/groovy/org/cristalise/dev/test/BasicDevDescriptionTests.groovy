@@ -22,6 +22,7 @@ package org.cristalise.dev.test;
 
 import java.time.LocalDateTime
 
+import org.cristalise.dev.dsl.DevItemUtility
 import org.cristalise.kernel.entity.proxy.ItemProxy
 import org.cristalise.kernel.process.Gateway
 import org.cristalise.kernel.test.utils.CristalTestSetup
@@ -37,7 +38,7 @@ import groovy.util.logging.Slf4j
 
 
 @CompileStatic @Slf4j
-class BasicDevDescriptionTests extends DevTestScenarioBase implements CristalTestSetup {
+class BasicDevDescriptionTests extends DevItemUtility implements CristalTestSetup {
 
     ItemProxy item
     

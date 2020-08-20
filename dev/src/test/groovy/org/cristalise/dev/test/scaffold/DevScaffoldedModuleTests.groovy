@@ -20,9 +20,13 @@
  */
 package org.cristalise.dev.test.scaffold
 
+import static org.cristalise.dev.scaffold.CRUDItemCreator.CreateBehaviour.ERASE
+
 import java.time.LocalDateTime
 
-import org.cristalise.dev.test.DevTestScenarioBase
+import org.cristalise.dev.dsl.DevItemDSL
+import org.cristalise.dev.scaffold.CRUDGenerator
+import org.cristalise.dev.scaffold.CRUDItemCreator
 import org.cristalise.kernel.entity.proxy.ItemProxy
 import org.cristalise.kernel.process.Gateway
 import org.cristalise.kernel.test.utils.CristalTestSetup
@@ -35,9 +39,10 @@ import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
 
 @CompileStatic @Slf4j
-class DevScaffoldedModuleTests extends DevTestScenarioBase implements CristalTestSetup {
+class DevScaffoldedModuleTests extends DevItemDSL implements CristalTestSetup {
 
     ItemProxy item
+    CRUDItemCreator creator
 
     static Properties props = new Properties()
     static String timeStamp = null
@@ -63,6 +68,7 @@ class DevScaffoldedModuleTests extends DevTestScenarioBase implements CristalTes
         log.info '====================================================================================================='
 
         agent = Gateway.getProxyManager().getAgentProxy('devtest')
+        creator = new CRUDItemCreator(agent)
     }
 
     @AfterClass
@@ -90,10 +96,11 @@ class DevScaffoldedModuleTests extends DevTestScenarioBase implements CristalTes
 
     @Test
     public void 'Create Item using Constructor'() {
-        item = createItemWithConstructorAndCheck(
+        item = creator.createItemWithConstructorAndCheck(
             Name: "ItemUsingConstructor-$timeStamp",
             Description: 'ItemUsingConstructor description',
-            "/$folder/TestItemUseConstructorFactory")
+            "/$folder/TestItemUseConstructorFactory",
+            ERASE)
 
         assert item.getMasterSchema()
         assert item.getAggregateScript()
@@ -101,10 +108,11 @@ class DevScaffoldedModuleTests extends DevTestScenarioBase implements CristalTes
 
     @Test
     public void 'Create Item using Update'() {
-        item = createItemWithUpdateAndCheck(
+        item = creator.createItemWithUpdateAndCheck(
             Name: "ItemUsingUpdate-$timeStamp",
             Description: 'ItemUsingUpdate description',
-            "/$folder/TestItemFactory")
+            "/$folder/TestItemFactory",
+            ERASE)
 
         assert item.getMasterSchema()
         assert item.getAggregateScript()
@@ -134,10 +142,11 @@ class DevScaffoldedModuleTests extends DevTestScenarioBase implements CristalTes
 
     @Test
     public void 'Create Item using Update - generated from excel'() {
-        item = createItemWithUpdateAndCheck(
+        item = creator.createItemWithUpdateAndCheck(
             Name: "ItemExcelUsingUpdate-$timeStamp",
             Description: 'ItemUsingUpdate description - generated from excel',
-            "/$folder/TestItemExcelFactory")
+            "/$folder/TestItemExcelFactory",
+            ERASE)
 
         assert item.getMasterSchema()
         assert item.getAggregateScript()
@@ -167,9 +176,10 @@ class DevScaffoldedModuleTests extends DevTestScenarioBase implements CristalTes
 
     @Test
     public void 'Create Item using Update and Generated Name'() {
-        item = createItemWithUpdateAndCheck(
+        item = creator.createItemWithUpdateAndCheck(
             Description: 'ItemUsingUpdateGenretedName description',
-            "/$folder/TestItemGeneratedNameFactory")
+            "/$folder/TestItemGeneratedNameFactory",
+            ERASE)
 
         assert item.getMasterSchema()
         assert item.getAggregateScript()
@@ -177,10 +187,11 @@ class DevScaffoldedModuleTests extends DevTestScenarioBase implements CristalTes
 
     @Test
     public void 'Create Agent using Constructor'() {
-        item = createItemWithConstructorAndCheck(
+        item = creator.createItemWithConstructorAndCheck(
             Name: "AgentUsingConstructor-$timeStamp",
             Description: 'AgentUsingConstructor description',
-            "/$folder/TestAgentUseConstructorFactory")
+            "/$folder/TestAgentUseConstructorFactory",
+            ERASE)
 
         assert item.getMasterSchema()
         assert item.getAggregateScript()
@@ -188,10 +199,11 @@ class DevScaffoldedModuleTests extends DevTestScenarioBase implements CristalTes
 
     @Test
     public void 'Create Agent using Update'() {
-        item = createItemWithUpdateAndCheck(
+        item = creator.createItemWithUpdateAndCheck(
             Name: "AgentUsingUpdate-$timeStamp",
             Description: 'AgentUsingUpdate description',
-            "/$folder/TestAgentFactory")
+            "/$folder/TestAgentFactory",
+            ERASE)
 
         assert item.getMasterSchema()
         assert item.getAggregateScript()
