@@ -391,7 +391,7 @@ public class StringField extends StructureWithAppInfo {
         field.put("required", !isOptional());
 
         //This can overwrite values set earlier, for example 'type' can be changed from INPUT to RATING or label can be provided
-        readAppInfoDynamicForms(model, field, false);
+        setAppInfoDynamicFormsJson(model, field, false);
 
         field.put("cls", generateNgDynamicFormsCls());
 

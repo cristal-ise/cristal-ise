@@ -314,4 +314,8 @@ public class OutcomeBuilder {
 
         return template.toString();
     }
+
+    public OutcomeStructure findChildStructure(String path) {
+        return modelRoot.find(StringUtils.split(path, "/"));
+    }
 }
