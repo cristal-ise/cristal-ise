@@ -20,7 +20,7 @@
  */
 package org.cristalise.dev.test.scaffold
 
-import static org.cristalise.dev.scaffold.CRUDItemCreator.CreateBehaviour.ERASE
+import static org.cristalise.dev.scaffold.CRUDItemCreator.UpdateMode.ERASE
 
 import java.time.LocalDateTime
 
@@ -65,10 +65,10 @@ class DevScaffoldedModuleTests extends DevItemDSL implements CristalTestSetup {
             initialised = true
         }
 
-        log.info '====================================================================================================='
+        log.info '======================================================================================'
 
         agent = Gateway.getProxyManager().getAgentProxy('devtest')
-        creator = new CRUDItemCreator(agent)
+        creator = new CRUDItemCreator(folder, ERASE, agent)
     }
 
     @AfterClass
@@ -99,8 +99,7 @@ class DevScaffoldedModuleTests extends DevItemDSL implements CristalTestSetup {
         item = creator.createItemWithConstructorAndCheck(
             Name: "ItemUsingConstructor-$timeStamp",
             Description: 'ItemUsingConstructor description',
-            "/$folder/TestItemUseConstructorFactory",
-            ERASE)
+            "/$folder/TestItemUseConstructorFactory")
 
         assert item.getMasterSchema()
         assert item.getAggregateScript()
@@ -111,8 +110,7 @@ class DevScaffoldedModuleTests extends DevItemDSL implements CristalTestSetup {
         item = creator.createItemWithUpdateAndCheck(
             Name: "ItemUsingUpdate-$timeStamp",
             Description: 'ItemUsingUpdate description',
-            "/$folder/TestItemFactory",
-            ERASE)
+            "/$folder/TestItemFactory")
 
         assert item.getMasterSchema()
         assert item.getAggregateScript()
@@ -145,8 +143,7 @@ class DevScaffoldedModuleTests extends DevItemDSL implements CristalTestSetup {
         item = creator.createItemWithUpdateAndCheck(
             Name: "ItemExcelUsingUpdate-$timeStamp",
             Description: 'ItemUsingUpdate description - generated from excel',
-            "/$folder/TestItemExcelFactory",
-            ERASE)
+            "/$folder/TestItemExcelFactory")
 
         assert item.getMasterSchema()
         assert item.getAggregateScript()
@@ -178,8 +175,7 @@ class DevScaffoldedModuleTests extends DevItemDSL implements CristalTestSetup {
     public void 'Create Item using Update and Generated Name'() {
         item = creator.createItemWithUpdateAndCheck(
             Description: 'ItemUsingUpdateGenretedName description',
-            "/$folder/TestItemGeneratedNameFactory",
-            ERASE)
+            "/$folder/TestItemGeneratedNameFactory")
 
         assert item.getMasterSchema()
         assert item.getAggregateScript()
@@ -190,8 +186,7 @@ class DevScaffoldedModuleTests extends DevItemDSL implements CristalTestSetup {
         item = creator.createItemWithConstructorAndCheck(
             Name: "AgentUsingConstructor-$timeStamp",
             Description: 'AgentUsingConstructor description',
-            "/$folder/TestAgentUseConstructorFactory",
-            ERASE)
+            "/$folder/TestAgentUseConstructorFactory")
 
         assert item.getMasterSchema()
         assert item.getAggregateScript()
@@ -202,10 +197,18 @@ class DevScaffoldedModuleTests extends DevItemDSL implements CristalTestSetup {
         item = creator.createItemWithUpdateAndCheck(
             Name: "AgentUsingUpdate-$timeStamp",
             Description: 'AgentUsingUpdate description',
-            "/$folder/TestAgentFactory",
-            ERASE)
+            "/$folder/TestAgentFactory")
 
         assert item.getMasterSchema()
         assert item.getAggregateScript()
+    }
+
+    @Test
+    public void 'Create Items from CSV'() {
+        def csv = new File('src/test/data/TestItemExcel.csv')
+        creator.createItems(csv, 'TestItemExcel')
+
+        agent.getItem("/$folder/TestItemExcels/TestItemExcel1")
+        agent.getItem("/$folder/TestItemExcels/TestItemExcel2")
     }
 }
