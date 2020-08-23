@@ -1,0 +1,17 @@
+<xs:schema xmlns:xs='http://www.w3.org/2001/XMLSchema'>
+  <xs:element name='Reference'>
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element name='ItemRef' type='xs:string' minOccurs='1' maxOccurs='1'>
+          <xs:annotation>
+            <xs:appinfo>
+              <reference>
+                <itemType>UnitTest</itemType>
+              </reference>
+            </xs:appinfo>
+          </xs:annotation>
+        </xs:element>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+</xs:schema>

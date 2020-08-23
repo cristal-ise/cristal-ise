@@ -243,4 +243,13 @@ public class Field extends OutcomeStructure {
 
         return fieldJson;
     }
+
+    /**
+     * Finds and returns the value of the 'itemType' Element in the 'reference' AppInfo node. 
+     * 
+     * @return value of the 'itemType' Element in the 'reference' AppInfo node if exists, otherwise returns null.
+     */
+    public String getReferencedItemType() {
+        return StructureWithAppInfo.getAppInfoNodeElementValue(model, "reference", "itemType");
+    }
 }

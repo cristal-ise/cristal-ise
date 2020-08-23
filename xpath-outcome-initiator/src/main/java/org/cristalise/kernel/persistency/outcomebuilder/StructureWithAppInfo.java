@@ -25,6 +25,7 @@ import java.util.Enumeration;
 import java.util.List;
 import java.util.Scanner;
 
+import org.cristalise.kernel.persistency.outcomebuilder.field.StringField;
 import org.exolab.castor.types.AnyNode;
 import org.exolab.castor.xml.schema.Annotated;
 import org.exolab.castor.xml.schema.Annotation;
@@ -148,11 +149,54 @@ public class StructureWithAppInfo {
     }
 
     /**
+     * Finds the named Element inf the the named AppInfo node in the model, and returns the value
+     * 
+     * @param aModel the XSD model to be searched
+     * @param nodeName the name of the AppInfo node 
+     * @param elementName the name of the Element in the named AppInfo node
+     * @return value of the named Element in the named AppInfo node if exists, otherwise returns null.
+     */
+    public static String getAppInfoNodeElementValue(Annotated  aModel, String nodeName, String elementName) {
+        AnyNode referenceNode = StringField.getAppInfoNode(aModel, nodeName);
+
+        if (referenceNode != null) {
+            AnyNode child = referenceNode.getFirstChild(); //stupid API, there is no getChildren
+
+            if (child != null) {
+                if (child.getNodeType() == AnyNode.ELEMENT) {
+                    String name  = child.getLocalName();
+                    if (elementName.equals(name)) return child.getStringValue().trim();
+                }
+
+                for (child = child.getNextSibling(); child != null; child = child.getNextSibling()) {
+                    if (child.getNodeType() == AnyNode.ELEMENT) {
+                        String name  = child.getLocalName();
+                        if (elementName.equals(name)) return child.getStringValue().trim();
+                    }
+                }
+            }
+        }
+        return null;
+    }
+
+    /**
      * 
      * @param aModel
      * @param json
+     * @param formGridCls
+     * @deprecated badly named method, use setAppInfoDynamicFormsJson() instead
      */
     public void readAppInfoDynamicForms(Annotated aModel, JSONObject json, Boolean formGridCls) {
+        setAppInfoDynamicFormsJson(aModel, json, formGridCls);
+    }
+
+    /**
+     * 
+     * @param aModel
+     * @param json
+     * @param formGridCls
+     */
+    public void setAppInfoDynamicFormsJson(Annotated aModel, JSONObject json, Boolean formGridCls) {
         AnyNode appInfoNode = getAppInfoNode(aModel, "dynamicForms");
 
         if (appInfoNode != null) {
