@@ -149,7 +149,7 @@ class CRUDItemCreator extends StandardClient {
                 if (isMultiple) {
                     newValue.append('[')
                     fieldValue.toString().split(',').each { value ->
-                        if (newValue != '[') newValue.append(',')
+                        if (newValue.toString() != '[') newValue.append(',')
                         newValue.append(agent.getItem("$moduleNs/${referencedItemType}s/$value").getPath().getUUID().toString())
                     }
                     newValue.append(']')
@@ -158,7 +158,7 @@ class CRUDItemCreator extends StandardClient {
                     newValue.append(agent.getItem("$moduleNs/${referencedItemType}s/$fieldValue").getPath().getUUID().toString())
                 }
 
-                log.info('updateRecord() - field:{} replacing value {} with {}', fieldName, fieldValue, newValue)
+                log.info('convertItemNamesToUuid() - field:{} replacing value {} with {}', fieldName, fieldValue, newValue)
                 record[fieldName] = newValue.toString()
             }
         }
