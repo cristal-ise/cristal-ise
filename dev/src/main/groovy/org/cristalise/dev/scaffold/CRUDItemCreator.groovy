@@ -343,6 +343,6 @@ class CRUDItemCreator extends StandardClient {
             creator.createItems(xlsx, type)
         }
 
-        AbstractMain.shutdown(1)
+        Gateway.close()
     }
 }
