@@ -245,11 +245,13 @@ public class Field extends OutcomeStructure {
     }
 
     /**
-     * Finds and returns the value of the 'itemType' Element in the 'reference' AppInfo node. 
+     * Finds the named Element in the named AppInfo node, and returns the value
      * 
-     * @return value of the 'itemType' Element in the 'reference' AppInfo node if exists, otherwise returns null.
+     * @param nodeName the name of the AppInfo node 
+     * @param elementName the name of the Element in the named AppInfo node
+     * @return value of the named Element in the named AppInfo node if exists, otherwise returns null.
      */
-    public String getReferencedItemType() {
-        return StructureWithAppInfo.getAppInfoNodeElementValue(model, "reference", "itemType");
+    public String getAppInfoNodeElementValue(String nodeName, String elementName) {
+        return StructureWithAppInfo.getAppInfoNodeElementValue(model, nodeName, elementName);
     }
 }

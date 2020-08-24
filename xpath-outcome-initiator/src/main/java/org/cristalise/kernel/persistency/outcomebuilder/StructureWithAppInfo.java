@@ -149,7 +149,7 @@ public class StructureWithAppInfo {
     }
 
     /**
-     * Finds the named Element inf the the named AppInfo node in the model, and returns the value
+     * Finds the named Element in the named AppInfo node, and returns the value
      * 
      * @param aModel the XSD model to be searched
      * @param nodeName the name of the AppInfo node 

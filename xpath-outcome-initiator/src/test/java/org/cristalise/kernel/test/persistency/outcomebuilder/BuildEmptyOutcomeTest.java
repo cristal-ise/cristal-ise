@@ -155,6 +155,6 @@ public class BuildEmptyOutcomeTest extends XMLUtils {
         OutcomeBuilder builder = new OutcomeBuilder("Reference", new Schema("Reference", 0, getXSD(dir, "Reference")), false);
         Field field = (Field)builder.findChildStructure("ItemRef");
         
-        assertEquals("UnitTest", field.getReferencedItemType());
+        assertEquals("UnitTest", field.getAppInfoNodeElementValue("reference", "itemType"));
     }
 }
