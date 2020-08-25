@@ -240,11 +240,11 @@ public class ListOfValues extends HashMap<String, Object> {
     }
 
     private void populateLOVFromLookup(AnyNode param, Map<String, Object> inputs) {
-        assert false;
+        throw new UnsupportedOperationException("Unimplemented: populate ListOfVAlues from Lookup");
     }
 
     private void populateLOVFromQuery(AnyNode queryRef, Map<String, Object> inputs) {
-        assert false;
+        throw new UnsupportedOperationException("Unimplemented: populate ListOfVAlues from Query");
     }
 
     @SuppressWarnings("unchecked")
