@@ -55,6 +55,9 @@ public class ListOfValues extends HashMap<String, Object> {
 
     boolean editable = false;
 
+    // when values are defined in schema enumeration, check the values against that list
+    boolean strictValueHandling = false;
+
     public ListOfValues(SimpleType type, AnyNode list) {
         super();
         contentType = type;
@@ -116,6 +119,8 @@ public class ListOfValues extends HashMap<String, Object> {
 
                 put(desc, thisEnum.getValue(), false);
             }
+            
+            strictValueHandling = true;
         }
     }
 

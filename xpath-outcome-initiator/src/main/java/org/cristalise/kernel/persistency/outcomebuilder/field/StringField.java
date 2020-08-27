@@ -40,6 +40,7 @@ import org.exolab.castor.xml.schema.Annotated;
 import org.exolab.castor.xml.schema.AttributeDecl;
 import org.exolab.castor.xml.schema.ElementDecl;
 import org.exolab.castor.xml.schema.Facet;
+import org.exolab.castor.xml.schema.Particle;
 import org.exolab.castor.xml.schema.SimpleType;
 import org.exolab.castor.xml.schema.SimpleTypesFactory;
 import org.exolab.castor.xml.schema.Structure;
@@ -66,11 +67,11 @@ public class StringField extends StructureWithAppInfo {
     SimpleType contentType;
     String     text;
     String     defaultValue;
-    
+
     String     container;
     String     control;
     String     labelGrid;
-    
+
     /**
      * Javascript regexp pattern to validate field value in DynamicForms. It is either provided in the AppInfo.pattern field 
      * or it is computed from data available in XSD restrictions or in various AppInfo fields (check subclasses)
@@ -114,15 +115,15 @@ public class StringField extends StructureWithAppInfo {
      * @param model
      * @return
      */
-    private static StringField getFieldForType(Annotated  model) {
-        SimpleType type = getFieldType(model);
-
+    private static StringField getFieldForType(SimpleType type, AnyNode listOfValues, boolean isMutiple) {
         // handle lists special
         if (type instanceof ListType) return new ArrayField(type.getBuiltInBaseType());
 
         // is a combobox
-        AnyNode appInfoNode = StructureWithAppInfo.getAppInfoNode(model, "listOfValues");
-        if (type.hasFacet(Facet.ENUMERATION) || appInfoNode != null) return new ComboField(type, appInfoNode);
+//        AnyNode appInfoNode = StructureWithAppInfo.getAppInfoNode(model, "listOfValues");
+        if (type.hasFacet(Facet.ENUMERATION) || listOfValues != null || isMutiple){
+            return new ComboField(type, listOfValues, isMutiple);
+        }
 
         // find info on length before we go to the base type
         long length = -1;
@@ -149,7 +150,12 @@ public class StringField extends StructureWithAppInfo {
     public static StringField getField(AttributeDecl model) throws StructuralException {
         if (model.isReference()) model = model.getReference();
 
-        StringField newField = getFieldForType(model);
+        StringField newField = getFieldForType(
+                getFieldType(model),
+                StructureWithAppInfo.getAppInfoNode(model, "listOfValues"),
+                false
+        );
+
         newField.setDecl(model);
 
         return newField;
@@ -157,7 +163,11 @@ public class StringField extends StructureWithAppInfo {
 
     public static StringField getField(ElementDecl model) throws StructuralException {
         try {
-            StringField newField = getFieldForType(model);
+            StringField newField = getFieldForType(
+                    getFieldType(model),
+                    StructureWithAppInfo.getAppInfoNode(model, "listOfValues"),
+                    (model.getMaxOccurs() > 1 || model.getMaxOccurs() == Particle.UNBOUNDED)
+            );
 
             newField.setDecl(model);
             return newField;

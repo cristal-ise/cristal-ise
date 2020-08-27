@@ -94,7 +94,7 @@ public class NgDynamicFormsTest extends XMLUtils {
 
         JSONArray actual   = builder.generateNgDynamicFormsJson();
 
-        log.info(actual.toString(2));
+        log.info("ngForm_Table() - actual:\n{}", actual.toString(2));
 
         JSONArray expected = new JSONArray(getJSON(dir, "TableNGForms"));
 

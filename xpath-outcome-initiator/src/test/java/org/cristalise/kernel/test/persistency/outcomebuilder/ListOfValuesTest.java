@@ -33,19 +33,20 @@ import org.cristalise.kernel.persistency.outcome.Schema;
 import org.cristalise.kernel.persistency.outcomebuilder.OutcomeBuilder;
 import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.test.persistency.XMLUtils;
-import org.cristalise.kernel.utils.Logger;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.junit.Before;
 import org.junit.Test;
 
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
 public class ListOfValuesTest extends XMLUtils {
 
     String dir = "src/test/data/outcomeBuilder";
 
     @Before
     public void setUp() throws Exception {
-        Logger.addLogStream(System.out, 8);
         Properties props = new Properties();
         props.put("Webui.autoComplete.default", "on");
         props.put("Authenticator", "Shiro");
@@ -69,7 +70,7 @@ public class ListOfValuesTest extends XMLUtils {
 
         JSONArray actual = builder.generateNgDynamicFormsJson(inputs);
 
-        Logger.msg(actual.toString(2));
+        log.info(actual.toString(2));
 
         JSONArray expected = new JSONArray(getJSON(dir, type));
 
@@ -83,7 +84,7 @@ public class ListOfValuesTest extends XMLUtils {
 
         JSONArray actual   = builder.generateNgDynamicFormsJson();
 
-        Logger.msg(actual.toString(2));
+        log.info(actual.toString(2));
 
         JSONArray expected = new JSONArray(getJSON(dir, type+"_emptyInputs"));
 
@@ -97,6 +98,7 @@ public class ListOfValuesTest extends XMLUtils {
 
         builder.addJsonInstance(new JSONObject("{'EmployeeShiftSchedule': {'CollectionName': 'Shift','MemberID': '0','ShiftName': 'shift1','MemberUUID': null,}}"));
         String actual = builder.getXml();
+        log.info(actual);
         assert compareXML(getXML(dir, type), actual);
     }
 }
