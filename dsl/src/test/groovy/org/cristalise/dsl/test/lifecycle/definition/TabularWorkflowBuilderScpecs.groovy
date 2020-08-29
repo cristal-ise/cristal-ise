@@ -1,0 +1,55 @@
+/**
+ * This file is part of the CRISTAL-iSE kernel.
+ * Copyright (c) 2001-2015 The CRISTAL Consortium. All rights reserved.
+ *
+ * This library is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU Lesser General Public License as published
+ * by the Free Software Foundation; either version 3 of the License, or (at
+ * your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; with out even the implied warranty of MERCHANTABILITY or
+ * FITNESS FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public
+ * License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this library; if not, write to the Free Software Foundation,
+ * Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA.
+ *
+ * http://www.fsf.org/licensing/licenses/lgpl.html
+ */
+package org.cristalise.dsl.test.lifecycle.definition
+
+import org.cristalise.dsl.lifecycle.definition.CompActDefBuilder;
+import org.cristalise.dsl.lifecycle.definition.ElemActDefBuilder
+import org.cristalise.kernel.test.utils.CristalTestSetup
+
+import spock.lang.Specification
+
+
+/**
+ *
+ */
+class TabularWorkflowBuilderScpecs extends Specification implements CristalTestSetup {
+    
+    def setup()   {}
+    def cleanup() { cristalCleanup() }
+
+    def xlsxFile = "src/test/data/TabularWorkflowBuilder.xlsx"
+
+    def 'TabularWorkflowBuilder can build a sequence of ElementaryActivityDefs'() {
+        when:
+        def caDef
+        try {
+            caDef  = CompActDefBuilder.build(module: 'test', name: 'TestItem_Workflow', version: 0, new File(xlsxFile))
+        } catch (Exception e) {
+            e.printStackTrace()
+        }
+
+        then:
+        caDef.name == 'TestItem_Workflow'
+        caDef.version == 0
+        caDef.childrenGraphModel.vertices.length == 2
+        caDef.childrenGraphModel.startVertex.name == "First"
+    }
+}

@@ -20,15 +20,17 @@
  */
 package org.cristalise.dsl.lifecycle.definition
 
+import org.cristalise.dsl.csv.TabularGroovyParserBuilder
 import org.cristalise.kernel.lifecycle.CompositeActivityDef
 
 import groovy.transform.CompileStatic
+import groovy.util.logging.Slf4j
 
  
 /**
  *
  */
-@CompileStatic
+@CompileStatic @Slf4j
 class CompActDefBuilder {
 
     public static CompositeActivityDef build(String name, int version, Closure cl) {
@@ -46,4 +48,14 @@ class CompActDefBuilder {
         delegate.processClosure(caDef, cl)
         return caDef
     }
+    
+    public static CompositeActivityDef build(Map<String, Object> attrs, File file) {
+        log.info("build(file) - module:{} name:{} version:{} file:{}", attrs.module, attrs.name, attrs.version, file.name)
+
+        def parser = TabularGroovyParserBuilder.build(file, (String)attrs.name, 2)
+        def delegate = new CompActDefDelegate()
+        delegate.processTabularData(parser)
+        return delegate.compActDef
+    }
+
 }

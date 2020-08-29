@@ -1,3 +1,4 @@
+package org.cristalise.dsl.lifecycle.definition
 /**
  * This file is part of the CRISTAL-iSE kernel.
  * Copyright (c) 2001-2015 The CRISTAL Consortium. All rights reserved.
@@ -18,12 +19,12 @@
  *
  * http://www.fsf.org/licensing/licenses/lgpl.html
  */
-package org.cristalise.dsl.lifecycle.definition
 
 import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.AGENT_NAME
 import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.AGENT_ROLE
 import groovy.transform.CompileStatic
 
+import org.cristalise.dsl.csv.TabularGroovyParser
 import org.cristalise.dsl.property.PropertyDelegate
 import org.cristalise.kernel.graph.layout.DefaultGraphLayoutGenerator
 import org.cristalise.kernel.graph.model.GraphPoint
@@ -45,9 +46,6 @@ class CompActDefDelegate extends PropertyDelegate {
 
     public CompositeActivityDef compActDef
 
-    //TODO: build this to enable easier testing
-    public Map<String, WfVertexDef> vertexDefCache = [:]
-
     public Map<String, WfVertexDef> processClosure(String name, int version, Closure cl) {
         compActDef = new CompositeActivityDef()
         compActDef.name = name
@@ -56,7 +54,7 @@ class CompActDefDelegate extends PropertyDelegate {
         return processClosure(compActDef, cl)
     }
 
-    public Map<String, WfVertexDef> processClosure(CompositeActivityDef caDef, Closure cl) {
+    public void processClosure(CompositeActivityDef caDef, Closure cl) {
         assert caDef
 
         compActDef = caDef
@@ -65,13 +63,20 @@ class CompActDefDelegate extends PropertyDelegate {
             cl.delegate = this
             cl.resolveStrategy = Closure.DELEGATE_FIRST
             cl()
-    
+
             props.each { k, v ->
                 compActDef.properties.put(k, v, props.getAbstract().contains(k))
             }
         }
+    }
 
-        return vertexDefCache
+    public void processTabularData(TabularGroovyParser parser) {
+        def twb = new TabularWorkflowBuilder()
+        buildCompActDef(twb.build(parser))
+    }
+
+    public String buildCompActDef(Layout s) {
+
     }
 
     def StateMachine(StateMachine s) {
@@ -82,6 +87,7 @@ class CompActDefDelegate extends PropertyDelegate {
         compActDef.setStateMachine(LocalObjectLoader.getStateMachine(name, version))
     }
 
+    @Deprecated
     private int addActDefToSequence(String actName, ActivityDef actDef) {
         def newActSlotDef = compActDef.addExistingActivityDef(actName, actDef, new GraphPoint())
 
