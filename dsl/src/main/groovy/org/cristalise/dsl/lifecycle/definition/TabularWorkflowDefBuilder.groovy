@@ -9,7 +9,7 @@ import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
 
 @CompileStatic @Slf4j
-class TabularWorkflowBuilder {
+class TabularWorkflowDefBuilder {
 
     Layout build(TabularGroovyParser parser) {
         parser.eachRow() { Map<String, Object> record, int i ->

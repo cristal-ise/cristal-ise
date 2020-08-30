@@ -30,14 +30,14 @@ import spock.lang.Specification
 /**
  *
  */
-class TabularWorkflowBuilderScpecs extends Specification implements CristalTestSetup {
+class TabularWorkflowDefBuilderScpecs extends Specification implements CristalTestSetup {
     
     def setup()   {}
     def cleanup() { cristalCleanup() }
 
     def xlsxFile = "src/test/data/TabularWorkflowBuilder.xlsx"
 
-    def 'TabularWorkflowBuilder can build a sequence of ElementaryActivityDefs'() {
+    def 'TabularWorkflowDefBuilder can build a sequence of ElementaryActivityDefs'() {
         when:
         def caDef
         try {

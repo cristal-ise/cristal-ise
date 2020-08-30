@@ -71,7 +71,7 @@ class CompActDefDelegate extends PropertyDelegate {
     }
 
     public void processTabularData(TabularGroovyParser parser) {
-        def twb = new TabularWorkflowBuilder()
+        def twb = new TabularWorkflowDefBuilder()
         buildCompActDef(twb.build(parser))
     }
 
