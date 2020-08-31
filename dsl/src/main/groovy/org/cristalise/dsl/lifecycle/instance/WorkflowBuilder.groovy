@@ -42,7 +42,7 @@ class WorkflowBuilder {
      * @param cl
      * @return
      */
-    public Workflow build(/*boolean verify = false,*/ Closure cl) {
+    public Workflow build(@DelegatesTo(CompActDelegate) Closure cl) {
         assert cl, "WorkflowBuilder.build() only works with a valid Closure"
 
         vertexCache = [:]

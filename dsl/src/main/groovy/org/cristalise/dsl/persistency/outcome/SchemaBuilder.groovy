@@ -96,7 +96,7 @@ class SchemaBuilder {
         return this
     }
     
-    public SchemaBuilder generateSchema(Closure cl) {
+    public SchemaBuilder generateSchema(@DelegatesTo(SchemaDelegate) Closure cl) {
         def schemaD = new SchemaDelegate()
         schemaD.processClosure(cl)
 
