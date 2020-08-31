@@ -8,8 +8,10 @@ import org.cristalise.kernel.lifecycle.CompositeActivityDef
 import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
 
-@CompileStatic @Slf4j
+@Slf4j
 class TabularWorkflowDefBuilder {
+    
+    Layout layout = new Layout()
 
     Layout build(TabularGroovyParser parser) {
         parser.eachRow() { Map<String, Object> record, int i ->
@@ -19,11 +21,18 @@ class TabularWorkflowDefBuilder {
                     throw new InvalidDataException('Uncovered class value:' + record['layout']['class'])
             }
         }
-        
-        return null;
+
+        return layout;
     }
     
     private void convertToActivity(Map<String, Object> record) {
         log.info('convertToActivity() - {}', record)
+
+        def activityMap = record.layout.subMap(LayoutActivity.keys)
+        if (record.property.Name) activityMap.name = record.property.Name
+
+        def act = new LayoutActivity(activityMap)
+
+        layout.children.add(act)
     }
 }

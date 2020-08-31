@@ -4,9 +4,12 @@ import groovy.transform.CompileStatic
 
 @CompileStatic
 class LayoutActivity extends LayoutElement {
+    public static final List<String> keys = ['name', 'activityReference', 'activityVersion']
 
-    def Schema
-    def Script
-    def Query
-    def StateMachine
+    String activityReference
+    Integer activityVersion
+    
+    public void setActivityVersion(String v) {
+        activityVersion = v as Integer
+    }
 }

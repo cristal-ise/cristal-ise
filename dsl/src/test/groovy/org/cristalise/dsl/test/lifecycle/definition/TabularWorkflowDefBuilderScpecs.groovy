@@ -49,7 +49,7 @@ class TabularWorkflowDefBuilderScpecs extends Specification implements CristalTe
         then:
         caDef.name == 'TestItem_Workflow'
         caDef.version == 0
-        caDef.childrenGraphModel.vertices.length == 2
+        caDef.childrenGraphModel.vertices.length == 3
         caDef.childrenGraphModel.startVertex.name == "First"
     }
 }

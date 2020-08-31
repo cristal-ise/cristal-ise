@@ -22,6 +22,9 @@ package org.cristalise.dsl.lifecycle.definition
 
 import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.AGENT_NAME
 import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.AGENT_ROLE
+
+import org.apache.tools.ant.types.resources.selectors.InstanceOf
+
 import groovy.transform.CompileStatic
 
 import org.cristalise.dsl.csv.TabularGroovyParser
@@ -70,13 +73,27 @@ class CompActDefDelegate extends PropertyDelegate {
         }
     }
 
-    public void processTabularData(TabularGroovyParser parser) {
+    public void processTabularData(String name, Integer version, TabularGroovyParser parser) {
+        compActDef = new CompositeActivityDef()
+        compActDef.name = name
+        compActDef.version = version
+
         def twb = new TabularWorkflowDefBuilder()
         buildCompActDef(twb.build(parser))
     }
 
-    public String buildCompActDef(Layout s) {
+    public String buildCompActDef(Layout layout) {
+        layout.children.eachWithIndex {element, idx ->
+            if (element instanceof LayoutActivity) {
+                def activity = (LayoutActivity)element
+                // cannot use LocalObjectLoader.getElemActDef(activity.activityName, activity.activityVersion)
+                def actDef = new ActivityDef()
+                actDef.name = activity.activityReference
+                actDef.version = activity.activityVersion
 
+                addActDefToSequence(activity.name, actDef)
+            }
+        }
     }
 
     def StateMachine(StateMachine s) {

@@ -39,7 +39,9 @@ public abstract class WfVertex extends GraphableVertex {
 
     public enum Types {
         Atomic,
+        LocalAtomic,
         Composite,
+        LocalComposite,
         OrSplit,
         XOrSplit,
         AndSplit,

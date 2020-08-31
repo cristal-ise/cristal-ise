@@ -29,6 +29,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.Writer;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map.Entry;
 
@@ -117,13 +118,13 @@ public class CompositeActivityDef extends ActivityDef {
 
     public ActivitySlotDef addExistingActivityDef(String name, ActivityDef actDef, GraphPoint point) throws InvalidDataException {
         changed = true;
-        boolean newActDef = true;
+        boolean isNewActDef = true;
 
         for (ActivityDef existingActDef : refChildActDef) {
             if (existingActDef.getName().equals(actDef.getName())) {
                 if (existingActDef.getVersion().equals(actDef.getVersion())) {
                     actDef = existingActDef;
-                    newActDef = false;
+                    isNewActDef = false;
                     break;
                 }
                 else {
@@ -131,7 +132,7 @@ public class CompositeActivityDef extends ActivityDef {
                 }
             }
         }
-        if (newActDef) refChildActDef.add(actDef);
+        if (isNewActDef) refChildActDef.add(actDef);
         
         ActivitySlotDef child = new ActivitySlotDef(name, actDef);
         addChild(child, point);
@@ -151,34 +152,51 @@ public class CompositeActivityDef extends ActivityDef {
     public WfVertexDef newChild(String Name, String Type, Integer version, GraphPoint location)
             throws ObjectNotFoundException, InvalidDataException
     {
+        List<String> splits = Arrays.asList(new String[]{"Or", "XOr", "And", "Loop"});
+
+        if (splits.contains(Type)) Type = Type+"Split";
+
+        return newChild(Name, WfVertex.Types.valueOf(Type), version, location);
+    }
+
+    public WfVertexDef newChild(String name, WfVertex.Types type, Integer version, GraphPoint location)
+            throws ObjectNotFoundException, InvalidDataException
+    {
         changed = true;
         boolean wasAdded = false;
-        WfVertexDef child;
-        
-        if (Type.equals("Or"))        child = new OrSplitDef();
-        else if (Type.equals("XOr"))  child = new XOrSplitDef();
-        else if (Type.equals("And"))  child = new AndSplitDef();
-        else if (Type.equals("Loop")) child = new LoopDef();
-        else if (Type.equals("Join") || Type.equals("Route")) {
-            child = new JoinDef();
-            child.getProperties().put("Type", Type);
-        }
-        else if (Type.equals("Atomic") || Type.equals("Composite")) {
-            ActivityDef act = Type.equals("Atomic") ? LocalObjectLoader.getElemActDef(Name, version) : LocalObjectLoader.getCompActDef(Name, version);
-            child = addExistingActivityDef(act.getActName(), act, location);
-            wasAdded = true;
-        }
-        else if (Type.equals("AtomicLocal") || Type.equals("CompositeLocal")) {
-            child = addLocalActivityDef(Name, Type, location);
-            wasAdded = true;
-        }
-        else {
-            throw new InvalidDataException("Unknown child type: " + Type);
+        WfVertexDef child = null;
+
+        switch (type) {
+            case OrSplit: child = new OrSplitDef(); break;
+            case XOrSplit: child = new XOrSplitDef(); break;
+            case AndSplit: child = new AndSplitDef(); break;
+            case LoopSplit: child = new LoopDef(); break;
+            case Join:
+            case Route:
+                child = new JoinDef(); 
+                child.getProperties().put("Type", type.toString());
+                break;
+            case Atomic:
+            case Composite:
+                ActivityDef act = type.toString().equals("Atomic") ? 
+                        LocalObjectLoader.getElemActDef(name, version) : 
+                        LocalObjectLoader.getCompActDef(name, version);
+                child = addExistingActivityDef(act.getActName(), act, location);
+                wasAdded = true;
+                break;
+            case LocalAtomic:
+            case LocalComposite:
+                child = addLocalActivityDef(name, type.toString(), location);
+                wasAdded = true;
+                break;
+
+            default:
+                throw new InvalidDataException("Unknown child type '" + type + "' for name:'"+name+"'");
         }
 
         if(!wasAdded) addChild(child, location);
 
-        log.debug("newChild() - Type:"+Type + " ID:" + child.getID() + " added to ID:" + this.getID());
+        log.debug("newChild() - Type:"+type + " ID:" + child.getID() + " added to ID:" + this.getID());
 
         return child;
     }
@@ -232,7 +250,7 @@ public class CompositeActivityDef extends ActivityDef {
             if(aCAProp.getValue() instanceof CastorHashMap) {
                 for (Vertex vertex : caInstance.getChildrenGraphModel().getVertices()) {
                     CastorHashMap propsToPropagate = (CastorHashMap)aCAProp.getValue();
-                    propsToPropagate.dump(8);
+                    //propsToPropagate.dump(8);
                     BuiltInVertexProperties builtInProp = BuiltInVertexProperties.getValue(aCAProp.getKey());
 
                     if(builtInProp == null) {

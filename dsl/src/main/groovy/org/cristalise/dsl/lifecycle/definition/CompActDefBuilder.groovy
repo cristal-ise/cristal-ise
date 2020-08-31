@@ -54,7 +54,7 @@ class CompActDefBuilder {
 
         def parser = TabularGroovyParserBuilder.build(file, (String)attrs.name, 2)
         def delegate = new CompActDefDelegate()
-        delegate.processTabularData(parser)
+        delegate.processTabularData((String)attrs.name, (Integer)attrs.version, parser)
         return delegate.compActDef
     }
 

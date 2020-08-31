@@ -335,7 +335,7 @@ public abstract class GraphableVertex extends Vertex {
     public void updatePropertiesFromCollection(int slotID, CastorHashMap newProps) throws InvalidDataException {
         if (getID() == slotID) {
             log.debug("updatePropertiesFromCollection(slotID:" + slotID + ") - MERGING properties for name:" + getName() + " id:" + getID());
-            newProps.dump(5);
+            //newProps.dump(5);
             mProperties.merge(newProps);
         }
         else {

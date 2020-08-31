@@ -4,8 +4,8 @@ import groovy.transform.CompileStatic
 
 @CompileStatic
 class LayoutElement {
-    Map<String, Object> properties = [:]
+    Map<String, Object> props = [:]
 
-    Integer id
+    Integer id // could be auto generated!?
     String name
 }
