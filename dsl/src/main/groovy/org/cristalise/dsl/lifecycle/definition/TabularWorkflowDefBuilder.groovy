@@ -17,6 +17,7 @@ class TabularWorkflowDefBuilder {
         parser.eachRow() { Map<String, Object> record, int i ->
             switch (record['layout']['class']) {
                 case 'activity': convertToActivity(record); break;
+                case 'loop': convertToLoop(record); break;
                 default:
                     throw new InvalidDataException('Uncovered class value:' + record['layout']['class'])
             }
@@ -24,7 +25,7 @@ class TabularWorkflowDefBuilder {
 
         return layout;
     }
-    
+
     private void convertToActivity(Map<String, Object> record) {
         log.info('convertToActivity() - {}', record)
 
@@ -34,5 +35,9 @@ class TabularWorkflowDefBuilder {
         def act = new LayoutActivity(activityMap)
 
         layout.children.add(act)
+    }
+
+    private void convertToLoop(Map<String, Object> record) {
+        log.info('convertToLoop() - {}', record)
     }
 }

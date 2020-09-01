@@ -24,6 +24,7 @@ import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.AGENT_NA
 import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.AGENT_ROLE
 import groovy.transform.CompileStatic
 
+import org.cristalise.dsl.csv.TabularGroovyParser
 import org.cristalise.dsl.property.PropertyDelegate
 import org.cristalise.kernel.lifecycle.ActivityDef
 import org.cristalise.kernel.lifecycle.instance.stateMachine.StateMachine
@@ -54,6 +55,18 @@ class ElemActDefDelegate extends PropertyDelegate {
                 elemActDef.properties.put(k, v, props.getAbstract().contains(k))
             }
         }
+    }
+
+    public List<ActivityDef> processTabularData(String name, Integer version, TabularGroovyParser parser) {
+        def twb = new TabularActivityDefBuilder()
+        def actDefs = twb.build(parser)
+
+        if (version != null) {
+            
+            actDefs.each { it.version = version }
+        }
+
+        return actDefs
     }
 
     def Schema(Schema s) {

@@ -30,21 +30,18 @@ import spock.lang.Specification
 /**
  *
  */
-class TabularWorkflowDefBuilderScpecs extends Specification implements CristalTestSetup {
+class TabularActivityDefBuilderScpecs extends Specification implements CristalTestSetup {
     
     def setup()   {}
     def cleanup() { cristalCleanup() }
 
     def xlsxFile = "src/test/data/TabularWorkflowBuilder.xlsx"
 
-    def 'TabularWorkflowDefBuilder can build a sequence of ElementaryActivityDefs'() {
+    def 'TabularWorkflowDefBuilder can build a list of ActivityDefs'() {
         when:
-        def caDef  = CompActDefBuilder.build(module: 'test', name: 'TestItem_Workflow', version: 0, new File(xlsxFile))
+        def litOfActDefs  = ElemActDefBuilder.build([module: 'test', name: 'TestItem_Activitites', version: 0], new File(xlsxFile))
 
         then:
-        caDef.name == 'TestItem_Workflow'
-        caDef.version == 0
-        caDef.childrenGraphModel.vertices.length == 3
-        caDef.childrenGraphModel.startVertex.name == "First"
+        litOfActDefs.size() == 3
     }
 }
