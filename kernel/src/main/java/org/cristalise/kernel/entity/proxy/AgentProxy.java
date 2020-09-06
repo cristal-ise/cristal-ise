@@ -21,6 +21,7 @@
 package org.cristalise.kernel.entity.proxy;
 
 import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.SIMPLE_ELECTRONIC_SIGNATURE;
+import static org.cristalise.kernel.lifecycle.instance.predefined.agent.Authenticate.REDACTED;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -208,7 +209,9 @@ public class AgentProxy extends ItemProxy {
 
         if (job.hasOutcome() && (boolean)job.getActProp(SIMPLE_ELECTRONIC_SIGNATURE, false)) {
             log.info("execute(job) - executing SimpleElectonicSignature predefStep");
-            executeSimpleElectonicSignature(job);
+            String xml = Sign.getSimpleElectonicSignature(job);
+
+            if (xml != null) execute(item, Sign.class, xml);
         }
 
         log.info("execute(job) - submitting job to item proxy");
@@ -223,40 +226,6 @@ public class AgentProxy extends ItemProxy {
         return result;
     }
     
-    /**
-     * 
-     * @param job
-     * @throws AccessRightsException
-     * @throws InvalidDataException
-     * @throws InvalidTransitionException
-     * @throws ObjectNotFoundException
-     * @throws PersistencyException
-     * @throws ObjectAlreadyExistsException
-     * @throws ScriptErrorException
-     * @throws InvalidCollectionModification
-     */
-    public void executeSimpleElectonicSignature(Job job)
-            throws AccessRightsException, InvalidDataException, InvalidTransitionException, ObjectNotFoundException,
-            PersistencyException, ObjectAlreadyExistsException, ScriptErrorException, InvalidCollectionModification
-    {
-        StringBuffer xml = new StringBuffer("<SimpleElectonicSignature>");
-        xml.append("<AgentName>").append(job.getOutcome().getField("AgentName")).append("</AgentName>");
-        xml.append("<Password>") .append(job.getOutcome().getField("Password")) .append("</Password>");
-
-        xml.append("<ExecutionContext>");
-        xml.append("<ItemPath>")     .append(job.getItemUUID())           .append("</ItemPath>");
-        xml.append("<SchemaName>")   .append(job.getSchema().getName())   .append("</SchemaName>");
-        xml.append("<SchemaVersion>").append(job.getSchema().getVersion()).append("</SchemaVersion>");
-        xml.append("<ActivityType>") .append(job.getStepType())           .append("</ActivityType>");
-        xml.append("<ActivityName>") .append(job.getStepName())           .append("</ActivityName>");
-        xml.append("<StepPath>")     .append(job.getStepPath())           .append("</StepPath>");
-        xml.append("</ExecutionContext>");
-
-        xml.append("</SimpleElectonicSignature>");
-
-        execute(this, Sign.class, xml.toString());
-    }
-
     @SuppressWarnings("rawtypes")
     private  ErrorInfo callScript(ItemProxy item, Job job) throws ScriptingEngineException, InvalidDataException, ObjectNotFoundException {
         Script script = job.getScript();
