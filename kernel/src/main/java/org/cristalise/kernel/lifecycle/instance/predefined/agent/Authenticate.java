@@ -35,6 +35,8 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class Authenticate extends PredefinedStep {
     public static final String description = "Records the Login event in the history. Login is assocated with user sessions with tokens validity";
+    
+    public static final String REDACTED = "REDACTED";
 
     public Authenticate() {
         super();
@@ -59,7 +61,7 @@ public class Authenticate extends PredefinedStep {
 
         Gateway.getSecurityManager().authenticate(params[0], params[1], null, false);
 
-        params[1] = "REDACTED"; // censor password from outcome
+        params[1] = REDACTED; // censor password from outcome
 
         return bundleData(params);
     }
