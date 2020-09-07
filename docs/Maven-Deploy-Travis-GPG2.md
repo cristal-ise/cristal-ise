@@ -97,9 +97,9 @@ _This guide uses GPG2 encryption.  Please see [https://www.gnupg.org/documentati
     environment variables:
 
     * **GPG_EXECUTABLE** - the value must be `gpg`.
-    * **GPG_SECRET_KEYS** - the value from the `gpg` export secret keys.
-    * **GPG_OWNERTRUST** - the value from the `gpg` export owner true.
-    * **GPG_PASSPHRASE** - the passphrase used in exporting export secret keys.
+    * **GPG_SECRET_KEYS** - the value from the `gpg -a --export-secret-keys <keyid> | base64`.
+    * **GPG_OWNERTRUST** - the value from the `gpg --export-ownertrust | base64`.
+    * **GPG_PASSPHRASE** - the passphrase used in creating secret keys.
     * **SONATYPE_USERNAME** - the username used in creating OSSRH ticket.
     * **SONATYPE_PASSWORD** - the password used in creating OSSRH ticket.
 
