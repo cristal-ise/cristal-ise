@@ -9,8 +9,18 @@ _This guide uses GPG2 encryption.  Please see [https://www.gnupg.org/documentati
 
 1. Generate Pretty Good Privacy (PGP) keys
 
-    These steps are explained in this guide: [http://central.sonatype.org/pages/working-with-pgp-signatures.html](http://central.sonatype.org/pages/working-with-pgp-signatures.html).
-    Use `gpg --list-secret-keys` to find the keyid or keyname. In the guide such keyid is `C6EED57A` and this 
+    These steps are explained in this guide: [http://central.sonatype.org/pages/working-with-pgp-signatures.html](http://central.sonatype.org/pages/working-with-pgp-signatures.html). Unfortunatelly this document is a bit outdated, gpg keyid formats has changed.
+    
+    Use `gpg --list-secret-keys  --keyid-format LONG` to find the keyid or keyname. This will have the following output:
+    ```
+    /home/vagrant/.gnupg/pubring.kbx
+    --------------------------------
+    pub   rsa3072/3615D3466393F7AA 2020-09-07 [SC] [expires: 2022-09-07]
+      B15E8AD67E833F28615B33F13615D3466393F7AA
+    uid                 [ultimate] Zsolt Kovacs <zs.myth@gmail.com>
+    sub   rsa3072/B525228546FD535F 2020-09-07 [E] [expires: 2022-09-07]
+    ```
+    In this example the keyid is `B525228546FD535F` (in the guide such keyid is `C6EED57A`) and this 
     is what you need to find in your gpg database, and use for `GPG_KEYNAME` environment variable bellow.
     
     *Note: GPG2 version uses keybox (.kbx) file which contains both public and secret keys.*
