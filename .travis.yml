@@ -10,6 +10,7 @@ branches:
 before_install:
   - echo $GPG_SECRET_KEYS
   - echo $GPG_SECRET_KEYS | base64 --decode | $GPG_EXECUTABLE --import
+  - echo $GPG_OWNERTRUST
   - echo $GPG_OWNERTRUST | base64 --decode | $GPG_EXECUTABLE --import-ownertrust
   - echo $TRAVIS_BRANCH
 install:
