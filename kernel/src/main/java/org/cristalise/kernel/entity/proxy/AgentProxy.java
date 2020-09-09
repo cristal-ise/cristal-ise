@@ -21,7 +21,6 @@
 package org.cristalise.kernel.entity.proxy;
 
 import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.SIMPLE_ELECTRONIC_SIGNATURE;
-import static org.cristalise.kernel.lifecycle.instance.predefined.agent.Authenticate.REDACTED;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -211,7 +210,7 @@ public class AgentProxy extends ItemProxy {
             log.info("execute(job) - executing SimpleElectonicSignature predefStep");
             String xml = Sign.getSimpleElectonicSignature(job);
 
-            if (xml != null) execute(item, Sign.class, xml);
+            if (xml != null) execute(this, Sign.class, xml);
         }
 
         log.info("execute(job) - submitting job to item proxy");
