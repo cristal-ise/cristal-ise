@@ -246,11 +246,16 @@ public class ItemImplementation implements ItemOperations {
 
             SecurityManager secMan = Gateway.getSecurityManager();
 
-            if (secMan.isShiroEnabled() && !secMan.checkPermissions(agentToUse, (Activity) lifeCycle.search(stepPath), mItemPath)) {
+            Activity act = (Activity) lifeCycle.search(stepPath);
 
-                for (RolePath role: agent.getRoles()) log.error(role.dump());
-
-                throw new AccessRightsException("'" + agentToUse.getAgentName() + "' is NOT permitted to execute step:" + stepPath);
+            if (act != null) {
+                if (secMan.isShiroEnabled() && !secMan.checkPermissions(agentToUse, act, mItemPath)) {
+                    if (log.isTraceEnabled()) for (RolePath role: agent.getRoles()) log.error(role.dump());
+                    throw new AccessRightsException("'" + agentToUse.getAgentName() + "' is NOT permitted to execute step:" + stepPath);
+                }
+            }
+            else {
+                throw new InvalidDataException("Step '"+stepPath+"' is not available for item:"+mItemPath);
             }
 
             String finalOutcome = lifeCycle.requestAction(agent, delegate, stepPath, mItemPath, transitionID, requestData, fileName, attachment);
