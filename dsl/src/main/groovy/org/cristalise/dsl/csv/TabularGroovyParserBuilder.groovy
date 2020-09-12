@@ -74,7 +74,7 @@ class TabularGroovyParserBuilder {
         XSSFWorkbook workbook = new XSSFWorkbook(is);
         XSSFSheet sheet = workbook.getSheet(sheetName.trim())
 
-        return new ExcelGroovyParser(sheet, options)
+        return new ExcelGroovyParser(workbook, sheet, options)
     }
 
     public TabularGroovyParser build() {

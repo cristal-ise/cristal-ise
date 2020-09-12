@@ -24,13 +24,13 @@ import org.apache.poi.ss.usermodel.Cell
 import org.apache.poi.ss.usermodel.CellType
 import org.apache.poi.ss.usermodel.DataFormatter
 import org.apache.poi.ss.usermodel.DateUtil
+import org.apache.poi.ss.usermodel.FormulaEvaluator
 import org.apache.poi.ss.usermodel.Row
-import org.apache.poi.ss.usermodel.Sheet
 import org.apache.poi.ss.util.CellRangeAddress
 import org.apache.poi.ss.util.CellReference
+import org.apache.poi.xssf.usermodel.XSSFFormulaEvaluator
 import org.apache.poi.xssf.usermodel.XSSFSheet
 import org.apache.poi.xssf.usermodel.XSSFWorkbook
-
 import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
 
@@ -41,8 +41,10 @@ class ExcelGroovyParser implements TabularGroovyParser {
     XSSFSheet sheet = null
 
     DataFormatter formatter = new DataFormatter()
+    FormulaEvaluator evaluator
 
-    public ExcelGroovyParser(XSSFSheet s, Map opts) {
+    public ExcelGroovyParser(XSSFWorkbook workbook, XSSFSheet s, Map opts) {
+        evaluator = new XSSFFormulaEvaluator(workbook)
         options.headerRowCount = opts.headerRowCount != null ? opts.headerRowCount : 1
         sheet = s
     }
@@ -76,7 +78,7 @@ class ExcelGroovyParser implements TabularGroovyParser {
 
                 if (currentRegion) {
                     // read the cell text from the first element of the region
-                    cellText = formatter.formatCellValue(row.getCell(currentRegion.getFirstColumn()))
+                    cellText = formatter.formatCellValue(row.getCell(currentRegion.getFirstColumn()), evaluator)
                 }
 
                 if (log.debugEnabled) {
@@ -94,6 +96,8 @@ class ExcelGroovyParser implements TabularGroovyParser {
             // stop the loop after processing the header rows
             if (row.getRowNum() == headerRowCount - 1) break
         }
+
+        log.debug "getHeader() - header:{}", header
 
         return header
     }
@@ -134,6 +138,7 @@ class ExcelGroovyParser implements TabularGroovyParser {
     public void eachRow(Closure block) {
         def header = getHeader()
         int headerRowCount = options.headerRowCount as int
+        int numberOfColumns = header.size()
 
         for (Row row: sheet) {
             // skip header section
@@ -141,18 +146,24 @@ class ExcelGroovyParser implements TabularGroovyParser {
 
             def rowMap = [:]
 
-            log.debug "eachRow() - row #{} physicalNumberOfCells:{}", row.getRowNum(), row.getPhysicalNumberOfCells()
+            log.debug "eachRow() - row #{} numberOfColumns:{} physicalNumberOfCells:{}",
+                 row.getRowNum(), numberOfColumns, row.getPhysicalNumberOfCells()
 
-            for (Cell cell : row) {
-                def cellRef = new CellReference(row.getRowNum(), cell.getColumnIndex()).formatAsString()
-                def cellText = formatter.formatCellValue(cell)
+            for (int idx = 0; idx < numberOfColumns; idx++) {
+                def cell = row.getCell(idx)
 
-                log.debug "eachRow() - row:{} cell:{}='{}'", cell.getRowIndex(), cellRef, cellText
+                if (cell != null) {
+                    def cellRef = new CellReference(row.getRowNum(), cell.getColumnIndex()).formatAsString()
+                    def cellText = formatter.formatCellValue(cell, evaluator)
 
-                convertNamesToMaps(rowMap, header[cell.columnIndex], cellText)
+                    log.debug "eachRow() - row:{} cell:{}='{}'", cell.getRowIndex(), cellRef, cellText
+
+                    convertNamesToMaps(rowMap, header[cell.columnIndex], cellText)
+                }
             }
 
-            //Issue #410: if the excel was edited with different editor (e.g. google spreadsheet), the row iterator will continue with empty rows
+            //Issue #410: if the excel was edited with different editor (e.g. google spreadsheet),
+            //the row iterator will continue with empty rows
             if (row != null && row.getPhysicalNumberOfCells() != 0) {
                 block(rowMap, row.rowNum - headerRowCount)
                 rowMap.clear()
@@ -230,7 +241,7 @@ class ExcelGroovyParser implements TabularGroovyParser {
         FileInputStream fileStream = new FileInputStream(self)
         XSSFWorkbook workbook = new XSSFWorkbook(fileStream);
 
-        def header = excelHeader(workbook.getSheet(sheetName.trim()), options)
+        def header = excelHeader(workbook, workbook.getSheet(sheetName.trim()), options)
 
         workbook.close()
         fileStream.close()
@@ -245,8 +256,8 @@ class ExcelGroovyParser implements TabularGroovyParser {
      * @param options
      * @return
      */
-    public static List<List<String>> excelHeader(XSSFSheet sheet, Map options = [:]) {
-        return new ExcelGroovyParser(sheet, options).getHeader()
+    public static List<List<String>> excelHeader(XSSFWorkbook workbook, XSSFSheet sheet, Map options = [:]) {
+        return new ExcelGroovyParser(workbook, sheet, options).getHeader()
     }
 
     /**
@@ -262,7 +273,7 @@ class ExcelGroovyParser implements TabularGroovyParser {
         XSSFWorkbook workbook = new XSSFWorkbook(fileStream);
 
         XSSFSheet sheet = workbook.getSheet(sheetName.trim())
-        excelEachRow(sheet, options, block)
+        excelEachRow(workbook, sheet, options, block)
 
         workbook.close()
         fileStream.close()
@@ -276,8 +287,8 @@ class ExcelGroovyParser implements TabularGroovyParser {
      * @param headerRowCount
      * @param block
      */
-    public static void excelEachRow(XSSFSheet sheet, Map options = [:], Closure block) {
-        def egp = new ExcelGroovyParser(sheet, options)
+    public static void excelEachRow(XSSFWorkbook workbook, XSSFSheet sheet, Map options = [:], Closure block) {
+        def egp = new ExcelGroovyParser(workbook, sheet, options)
         egp.eachRow(block)
     }
 }
