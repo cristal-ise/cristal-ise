@@ -450,7 +450,7 @@ public class Script implements DescriptionObject {
      * @param type
      * @throws ParameterException
      */
-    protected void addInputParam(String name, String type) throws ParameterException {
+    public void addInputParam(String name, String type) throws ParameterException {
         try {
             addInputParam(name, Gateway.getResource().getClassForName(type));
         }
@@ -459,10 +459,10 @@ public class Script implements DescriptionObject {
         }
     }
 
-    protected void addInputParam(String name, Class<?> type) throws ParameterException {
+    public void addInputParam(String name, Class<?> type) throws ParameterException {
         Parameter inputParam = new Parameter(name, type);
 
-        log.debug("ScriptExecutor.addInputParam() - declared parameter " + name + " (" + type + ")");
+        log.debug("addInputParam() - declared parameter " + name + " (" + type + ")");
         //add parameter to hashtable
         mInputParams.put(inputParam.getName(), inputParam);
         mAllInputParams.put(inputParam.getName(), inputParam);
@@ -500,7 +500,7 @@ public class Script implements DescriptionObject {
      * @param type
      * @throws ParameterException
      */
-    protected void addOutput(String name, String type) throws ParameterException {
+    public void addOutput(String name, String type) throws ParameterException {
         try {
             addOutput(name, Gateway.getResource().getClassForName(type));
         }
@@ -515,7 +515,7 @@ public class Script implements DescriptionObject {
      * @param type
      * @throws ParameterException
      */
-    protected void addOutput(String name, Class<?> type) throws ParameterException {
+    public void addOutput(String name, Class<?> type) throws ParameterException {
         if (mOutputParams.containsKey(name)) {
             throw new ParameterException("Output parameter '"+name+"' declared more than once.");
         }

@@ -20,12 +20,12 @@
  */
 package org.cristalise.dsl.persistency.outcome
 
-import org.apache.poi.xssf.usermodel.XSSFSheet
 import org.cristalise.dsl.csv.TabularGroovyParser
 import org.cristalise.kernel.common.InvalidDataException
 import org.cristalise.kernel.property.BuiltInItemProperties
 import org.cristalise.kernel.property.PropertyDescriptionList
 import org.cristalise.kernel.property.PropertyUtility
+import org.cristalise.kernel.scripting.Script
 
 import groovy.util.logging.Slf4j
 import groovy.xml.MarkupBuilder
@@ -37,8 +37,14 @@ import groovy.xml.MarkupBuilder
 @Slf4j
 class SchemaDelegate {
 
-    String xsdString
+    String  name
+    Integer version
 
+    String xsdString
+    
+    Map<String, Script> expressionScripts = [:]
+    Map<String, List<String>> expressionScriptsInputFields = [:]
+    
     public void processClosure(Closure cl) {
         assert cl, "Schema only works with a valid Closure"
 
@@ -49,12 +55,30 @@ class SchemaDelegate {
 
         cl.delegate = objBuilder
 
-        xsdString = buildXSD( cl() )
+        Struct s = cl()
+        updateScriptReferences(s)
+        xsdString = buildXSD(s)
+    }
+
+    private updateScriptReferences(Struct s) {
+        s.fields.each { name, f ->
+            if (f.expression) this.generateExpressionScript(f)
+        }
+
+        expressionScriptsInputFields.each { scriptName, inputFields ->
+            inputFields.each { fieldName ->
+                def inputField = s.fields[fieldName]
+                if (inputField.dynamicForms == null) inputField.dynamicForms = new DynamicForms()
+                inputField.dynamicForms.updateScriptRef = expressionScripts[scriptName]
+            }
+        }
     }
 
     public void processTabularData(TabularGroovyParser parser) {
         def tsb = new TabularSchemaBuilder()
-        xsdString = buildXSD(tsb.build(parser))
+        Struct s = tsb.build(parser)
+        updateScriptReferences(s)
+        xsdString = buildXSD(s)
     }
 
     public String buildXSD(Struct s) {
@@ -68,8 +92,8 @@ class SchemaDelegate {
 
         xsd.mkp.xmlDeclaration(version: "1.0", encoding: "utf-8")
 
-        xsd.'xs:schema'('xmlns:xs': 'http://www.w3.org/2001/XMLSchema') { 
-            buildStruct(xsd,s) 
+        xsd.'xs:schema'('xmlns:xs': 'http://www.w3.org/2001/XMLSchema') {
+            buildStruct(xsd, s) 
         }
 
         return writer.toString()
@@ -78,7 +102,6 @@ class SchemaDelegate {
     private void buildStruct(MarkupBuilder xsd, Struct s) {
         log.info "buildStruct() - Struct: $s.name"
         xsd.'xs:element'(name: s.name, minOccurs: s.minOccurs, maxOccurs: s.maxOccurs) {
-
             if(s.documentation || s.dynamicForms) {
                 'xs:annotation' { 
                     if (s.documentation) {
@@ -262,6 +285,21 @@ class SchemaDelegate {
                 itemType(itemRef)
             }
         }
+    }
+
+    private void generateExpressionScript(Field f) {
+        def s = new Script('groovy', f.expression.generateUpdateScript(f.name, name, version))
+
+        s.name = f.expression.name
+        s.version = f.expression.version
+        s.addInputParam(name, 'org.json.JSONObject')
+        s.addInputParam('item', 'org.cristalise.kernel.entity.proxy.ItemProxy')
+        s.addInputParam('agent', 'org.cristalise.kernel.entity.proxy.AgentProxy')
+        s.addOutput(name+'Xml', 'java.lang.String')
+
+        expressionScripts[f.expression.name] = s
+        expressionScriptsInputFields[f.expression.name] = f.expression.inputFields
+        log.info s.getScript()
     }
         
     private void buildField(MarkupBuilder xsd, Field f) {

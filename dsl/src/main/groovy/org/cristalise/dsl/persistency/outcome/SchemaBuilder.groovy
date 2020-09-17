@@ -33,6 +33,7 @@ import org.cristalise.kernel.persistency.outcome.Outcome
 import org.cristalise.kernel.persistency.outcome.Schema
 import org.cristalise.kernel.process.Gateway
 import org.cristalise.kernel.process.resource.ResourceImportHandler
+import org.cristalise.kernel.scripting.Script
 import org.cristalise.kernel.utils.LocalObjectLoader
 
 import groovy.transform.CompileStatic
@@ -53,6 +54,7 @@ class SchemaBuilder {
     DomainPath domainPath = null
 
     Schema schema = null
+    Map<String, Script> expressionScipts = [:]
 
     public SchemaBuilder() {}
 
@@ -97,7 +99,7 @@ class SchemaBuilder {
     }
     
     public SchemaBuilder generateSchema(Closure cl) {
-        def schemaD = new SchemaDelegate()
+        def schemaD = new SchemaDelegate(name: name, version: version)
         schemaD.processClosure(cl)
 
         log.debug "generated xsd:\n" + schemaD.xsdString
@@ -110,11 +112,15 @@ class SchemaBuilder {
             throw new InvalidDataException(errors)
         }
 
+        if (schemaD.expressionScripts) {
+            expressionScipts = schemaD.expressionScripts
+        }
+
         return this
     }
 
     public SchemaBuilder generateSchema(TabularGroovyParser parser) {
-        def schemaD = new SchemaDelegate()
+        def schemaD = new SchemaDelegate(name: name, version: version)
         schemaD.processTabularData(parser)
 
         schema = new Schema(name, version, schemaD.xsdString)
