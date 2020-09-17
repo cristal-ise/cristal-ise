@@ -140,6 +140,7 @@ class TabularSchemaBuilder {
         Map dynamicFormsMap = ((Map)record['dynamicForms']) ?: [:]
         Map warningMap      = ((Map)record['warning'])      ?: [:]
         Map additionalMap   = ((Map)record['additional'])   ?: [:]
+        Map expressionMap   = ((Map)record['expression'])   ?: [:]
 
         fixListValues(fMap, 'values')
         resetMultiplicity(fMap)
@@ -182,6 +183,12 @@ class TabularSchemaBuilder {
         if (additionalMap && additionalMap.find { it.value }) {
             if (!f.dynamicForms) f.dynamicForms = new DynamicForms()
             f.dynamicForms.additional = new Additional(additionalMap)
+        }
+
+        if (expressionMap && expressionMap.find { it.value }) {
+            fixListValues(expressionMap, 'imports')
+            fixListValues(expressionMap, 'inputFields')
+            f.expression = new Expression(expressionMap)
         }
 
         // perhaps previous row was a field - see comment bellow
