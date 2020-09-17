@@ -153,17 +153,29 @@ class ModuleDelegate implements BindingConvention {
     }
 
     public Schema Schema(String name, Integer version, @DelegatesTo(SchemaDelegate) Closure cl) {
-        def schema = SchemaBuilder.build(name, version, cl)
-        schema.export(null, resourceBootDir, true)
-        addSchema(schema)
-        return schema
+        def sb = SchemaBuilder.build(name, version, cl)
+        sb.schema.export(null, resourceBootDir, true)
+        addSchema(sb.schema)
+        
+        sb.expressionScipts.each { scriptName, script ->
+            script.export(null, resourceBootDir, true)
+            addScript(script)
+        }
+        
+        return sb.schema
     }
 
     public Schema Schema(String name, Integer version, File file) {
-        def schema = SchemaBuilder.build(name, version, file)
-        schema.export(null, resourceBootDir, true)
-        addSchema(schema)
-        return schema
+        def sb = SchemaBuilder.build(name, version, file)
+        sb.schema.export(null, resourceBootDir, true)
+        addSchema(sb.schema)
+
+        sb.expressionScipts.each { scriptName, script ->
+            script.export(null, resourceBootDir, true)
+            addScript(script)
+        }
+
+        return sb.schema
     }
 
     public Query Query(String name, Integer version) {

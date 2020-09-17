@@ -86,7 +86,7 @@ class DevItemDSL extends DevItemUtility {
 
     public Schema Schema(String name, String folder, Closure cl) {
         createNewSchema(name, folder)
-        def schema = SchemaBuilder.build(name, 0, cl)
+        def schema = SchemaBuilder.build(name, 0, cl).schema
         editSchema(name, folder, schema.XSD)
         return schema
     }

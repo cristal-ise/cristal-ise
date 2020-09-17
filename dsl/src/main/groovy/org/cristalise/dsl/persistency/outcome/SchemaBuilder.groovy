@@ -171,8 +171,8 @@ class SchemaBuilder {
      * @param cl
      * @return
      */
-    public static Schema build(String name, int version, Closure cl) {
-        return build('', name, version, cl).schema
+    public static SchemaBuilder build(String name, int version, Closure cl) {
+        return build('', name, version, cl)
     }
 
     /**
@@ -207,8 +207,8 @@ class SchemaBuilder {
      * @param file
      * @return
      */
-    public static Schema build(String name, int version, File file) {
-        return build('', name, version, file).schema
+    public static SchemaBuilder build(String name, int version, File file) {
+        return build('', name, version, file)
     }
 
     /**
