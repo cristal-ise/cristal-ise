@@ -27,7 +27,5 @@ Module(ns: '@{moduleNs}', name: '@{moduleName}', version: @{version}) {
         }
     }
 
-@foreach{file : moduleFiles} 
-    include(moduleDir+'/@{file}')
-@end{}
+@foreach{file : moduleFiles}    include(moduleDir+'/@{file}')@end{'\n'}
 }
