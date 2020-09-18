@@ -20,6 +20,8 @@
  */
 package org.cristalise.dsl.persistency.outcome
 
+import org.apache.commons.lang3.StringUtils
+import org.apache.tools.ant.types.resources.selectors.InstanceOf
 import org.cristalise.dsl.csv.TabularGroovyParser
 import org.cristalise.kernel.common.InvalidDataException
 
@@ -65,6 +67,23 @@ class TabularSchemaBuilder {
 
             if (value.size() == 0) map[field] = null
             else                   map[field] = value.split('\\s*,\\s*')
+        }
+    }
+
+    /**
+     * Convert integer string to Integer before calling map constructor
+     */
+    private void fixIntegerValue(Map<String, String> map, String field) {
+        if (map[field] != null) {
+            def value = map[field]
+
+            if (value instanceof String) {
+                if (StringUtils.isBlank(value)) map[field] = null
+                else                            map[field] = Integer.parseInt(value.trim())
+            }
+            else {
+                log.debug('fixIntegerValue(field:{}) - value is not String => skipping', field)
+            }
         }
     }
 
@@ -140,6 +159,7 @@ class TabularSchemaBuilder {
         Map dynamicFormsMap = ((Map)record['dynamicForms']) ?: [:]
         Map warningMap      = ((Map)record['warning'])      ?: [:]
         Map additionalMap   = ((Map)record['additional'])   ?: [:]
+        Map expressionMap   = ((Map)record['expression'])   ?: [:]
 
         fixListValues(fMap, 'values')
         resetMultiplicity(fMap)
@@ -182,6 +202,13 @@ class TabularSchemaBuilder {
         if (additionalMap && additionalMap.find { it.value }) {
             if (!f.dynamicForms) f.dynamicForms = new DynamicForms()
             f.dynamicForms.additional = new Additional(additionalMap)
+        }
+
+        if (expressionMap && expressionMap.find { it.value }) {
+            fixListValues(expressionMap, 'imports')
+            fixListValues(expressionMap, 'inputFields')
+            fixIntegerValue(expressionMap, 'version')
+            f.expression = new Expression(expressionMap)
         }
 
         // perhaps previous row was a field - see comment bellow

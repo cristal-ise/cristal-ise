@@ -30,6 +30,10 @@ import org.cristalise.dev.scaffold.CRUDItemCreator
 import org.cristalise.kernel.entity.proxy.ItemProxy
 import org.cristalise.kernel.process.Gateway
 import org.cristalise.kernel.test.utils.CristalTestSetup
+import org.cristalise.kernel.test.utils.KernelXMLUtility
+import org.cristalise.kernel.utils.CastorHashMap
+import org.cristalise.kernel.utils.LocalObjectLoader
+import org.json.JSONObject
 import org.junit.AfterClass
 import org.junit.Before
 import org.junit.BeforeClass
@@ -143,6 +147,8 @@ class DevScaffoldedModuleTests extends DevItemDSL implements CristalTestSetup {
         item = creator.createItemWithUpdateAndCheck(
             Name: "ItemExcelUsingUpdate-$timeStamp",
             Description: 'ItemUsingUpdate description - generated from excel',
+            DateOfBirth: '1969-02-23',
+            Age: '51',
             "/$folder/TestItemExcelFactory")
 
         assert item.getMasterSchema()
@@ -210,5 +216,17 @@ class DevScaffoldedModuleTests extends DevItemDSL implements CristalTestSetup {
 
         agent.getItem("/$folder/TestItemExcels/TestItemExcel1")
         agent.getItem("/$folder/TestItemExcels/TestItemExcel2")
+    }
+
+    @Test
+    public void 'Execute update script generated from Expression'() {
+        def s = LocalObjectLoader.getScript('TestItemExcel_DetailsAgeUpdateExpression', 0)
+        def inputs = new CastorHashMap()
+        def json = new JSONObject()
+        json.put('DateOfBirth', '1969-02-23')
+        inputs.put("TestItemExcel_Details", json, false)
+        def result = (Map)s.evaluate(inputs)
+        def expected = '<TestItemExcel_Details><Age>51</Age></TestItemExcel_Details>'
+        assert KernelXMLUtility.compareXML(expected, (String)result.TestItemExcel_DetailsXml)
     }
 }

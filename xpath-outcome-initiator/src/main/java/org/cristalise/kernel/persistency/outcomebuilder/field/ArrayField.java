@@ -20,6 +20,7 @@
  */
 package org.cristalise.kernel.persistency.outcomebuilder.field;
 
+import org.cristalise.kernel.persistency.outcomebuilder.OutcomeStructure;
 import org.exolab.castor.xml.schema.SimpleType;
 
 public class ArrayField extends StringField {
@@ -28,6 +29,7 @@ public class ArrayField extends StringField {
 
     public ArrayField(SimpleType type) {
         arrayModel = new ArrayTableModel(type);
+        javaType = OutcomeStructure.getJavaClass(type.getTypeCode());
     }
 
     @Override

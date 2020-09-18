@@ -17,7 +17,7 @@ import org.cristalise.kernel.property.Property
 def properties = [new Property('Type', 'TestItemUseConstructor'), new Property('State', 'ACTIVE')]
 
 def result = Gateway.getLookup().search(new DomainPath(), properties, 0, 100)
-TestItemUseConstructorMap = [];
+TestItemUseConstructorMap = [:]
 
 for (DomainPath dp: result.rows) {
     TestItemUseConstructorMap.put(dp.name, dp.itemPath.UUID)

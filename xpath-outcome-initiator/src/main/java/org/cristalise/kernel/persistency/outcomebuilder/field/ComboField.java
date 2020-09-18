@@ -22,6 +22,7 @@ package org.cristalise.kernel.persistency.outcomebuilder.field;
 
 import java.util.Map;
 
+import org.cristalise.kernel.persistency.outcomebuilder.OutcomeStructure;
 import org.cristalise.kernel.persistency.outcomebuilder.StructuralException;
 import org.exolab.castor.types.AnyNode;
 import org.exolab.castor.xml.schema.AttributeDecl;
@@ -37,7 +38,7 @@ public class ComboField extends StringField {
 
     ListOfValues vals;
     String selected;
-    
+
     // when values are defined in schema enumeration, check the values against that list
     boolean strictValueHandling;
 
@@ -46,6 +47,7 @@ public class ComboField extends StringField {
         contentType = type;
         strictValueHandling = listNode == null;
         vals = new ListOfValues(type, listNode);
+        javaType = OutcomeStructure.getJavaClass(type.getTypeCode());
     }
 
     @Override

@@ -22,6 +22,7 @@ package org.cristalise.kernel.scripting;
 
 import static org.cristalise.kernel.collection.BuiltInCollections.INCLUDE;
 import static org.cristalise.kernel.process.resource.BuiltInResources.SCRIPT_RESOURCE;
+
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintStream;
@@ -31,6 +32,7 @@ import java.io.Writer;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
+
 import javax.script.Bindings;
 import javax.script.Compilable;
 import javax.script.CompiledScript;
@@ -42,6 +44,7 @@ import javax.script.ScriptException;
 import javax.script.SimpleScriptContext;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
+
 import org.apache.commons.lang3.StringUtils;
 import org.cristalise.kernel.collection.CollectionArrayList;
 import org.cristalise.kernel.collection.Dependency;
@@ -59,11 +62,15 @@ import org.cristalise.kernel.utils.CastorHashMap;
 import org.cristalise.kernel.utils.DescriptionObject;
 import org.cristalise.kernel.utils.FileStringUtility;
 import org.cristalise.kernel.utils.LocalObjectLoader;
+import org.mvel2.templates.CompiledTemplate;
+import org.mvel2.templates.TemplateCompiler;
+import org.mvel2.templates.TemplateRuntime;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 import org.w3c.dom.Text;
 import org.xml.sax.InputSource;
+
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
@@ -75,6 +82,21 @@ import lombok.extern.slf4j.Slf4j;
  */
 @Accessors(prefix = "m") @Getter @Setter @Slf4j
 public class Script implements DescriptionObject {
+
+    static final String scriptTemplate = "/org/cristalise/kernel/utils/resources/templates/Script_xml.tmpl";
+
+    private static CompiledTemplate compiledScriptTemplate = null;
+
+    static {
+        try {
+            String templ = FileStringUtility.url2String(Script.class.getResource(scriptTemplate));
+            compiledScriptTemplate = TemplateCompiler.compileTemplate(templ);
+        }
+        catch (IOException e) {
+            // this case should never happen
+            e.printStackTrace();
+        }
+    }
 
     public static final String PARAMETER_AGENT   = "agent";
     public static final String PARAMETER_DB      = "db";
@@ -450,7 +472,7 @@ public class Script implements DescriptionObject {
      * @param type
      * @throws ParameterException
      */
-    protected void addInputParam(String name, String type) throws ParameterException {
+    public void addInputParam(String name, String type) throws ParameterException {
         try {
             addInputParam(name, Gateway.getResource().getClassForName(type));
         }
@@ -459,10 +481,10 @@ public class Script implements DescriptionObject {
         }
     }
 
-    protected void addInputParam(String name, Class<?> type) throws ParameterException {
+    public void addInputParam(String name, Class<?> type) throws ParameterException {
         Parameter inputParam = new Parameter(name, type);
 
-        log.debug("ScriptExecutor.addInputParam() - declared parameter " + name + " (" + type + ")");
+        log.debug("addInputParam() - declared parameter " + name + " (" + type + ")");
         //add parameter to hashtable
         mInputParams.put(inputParam.getName(), inputParam);
         mAllInputParams.put(inputParam.getName(), inputParam);
@@ -500,7 +522,7 @@ public class Script implements DescriptionObject {
      * @param type
      * @throws ParameterException
      */
-    protected void addOutput(String name, String type) throws ParameterException {
+    public void addOutput(String name, String type) throws ParameterException {
         try {
             addOutput(name, Gateway.getResource().getClassForName(type));
         }
@@ -515,7 +537,7 @@ public class Script implements DescriptionObject {
      * @param type
      * @throws ParameterException
      */
-    protected void addOutput(String name, Class<?> type) throws ParameterException {
+    public void addOutput(String name, Class<?> type) throws ParameterException {
         if (mOutputParams.containsKey(name)) {
             throw new ParameterException("Output parameter '"+name+"' declared more than once.");
         }
@@ -877,6 +899,12 @@ public class Script implements DescriptionObject {
     }
 
     public String getScriptData() {
+        try {
+            if (StringUtils.isBlank(mScriptXML)) mScriptXML = toXml();
+        }
+        catch (IOException e) {
+            log.error("", e);
+        }
         return mScriptXML;
     }
 
@@ -1001,5 +1029,18 @@ public class Script implements DescriptionObject {
             System.out.println(sef.getEngineName()+" v"+sef.getEngineVersion()+" using "+sef.getLanguageName()+" v"+sef.getLanguageVersion()+" "+sef.getNames());
         }
         System.out.println("Preferred javascript engine: "+new ScriptEngineManager().getEngineByName("javascript").getClass().getName());
+    }
+
+    public String toXml() throws IOException {
+        Map<String, Object> vars = new HashMap<String, Object>();
+
+        vars.put("name", getName());
+        vars.put("language", getLanguage());
+        vars.put("includes", mIncludes);
+        vars.put("inputs", getInputParams().values());
+        vars.put("outputs", getOutputParams().values());
+        vars.put("script", mScript);
+
+        return (String) TemplateRuntime.execute(compiledScriptTemplate, vars);
     }
 }
