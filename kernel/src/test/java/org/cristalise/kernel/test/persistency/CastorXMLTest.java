@@ -55,6 +55,7 @@ import org.cristalise.kernel.property.PropertyDescription;
 import org.cristalise.kernel.property.PropertyDescriptionList;
 import org.cristalise.kernel.querying.Query;
 import org.cristalise.kernel.scripting.ErrorInfo;
+import org.cristalise.kernel.scripting.Script;
 import org.cristalise.kernel.test.process.MainTest;
 import org.cristalise.kernel.utils.CastorHashMap;
 import org.cristalise.kernel.utils.CastorXMLUtility;
@@ -99,8 +100,9 @@ public class CastorXMLTest {
                 .build();
 
         if(diffIdentical.hasDifferences()) {
-            log.info("actual:{}", actual);
             log.warn(diffIdentical.toString());
+            log.info("expected:\n{}", expected);
+            log.info("actual:\n{}", actual);
         }
 
         return !diffIdentical.hasDifferences();
@@ -112,6 +114,14 @@ public class CastorXMLTest {
         String marshalledScriptXML = Gateway.getMarshaller().marshall(Gateway.getMarshaller().unmarshall(origScriptXML));
 
         assertTrue(compareXML(origScriptXML, marshalledScriptXML));
+    }
+
+    @Test 
+    public void testScriptParseXml() throws Exception {
+        String origXML = FileStringUtility.url2String(Gateway.getResource().getKernelResourceURL("boot/SC/CreateNewNumberedVersionFromLast.xml"));
+        String primeXml = new Script("CreateNewNumberedVersionFromLast", 0, null, origXML, true).toXml();
+
+        assertTrue(compareXML(origXML, primeXml));
     }
 
     @Test @Ignore("Castor XML mapping is not done for Query")
