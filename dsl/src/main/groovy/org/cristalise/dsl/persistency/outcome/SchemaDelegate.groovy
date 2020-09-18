@@ -288,7 +288,11 @@ class SchemaDelegate {
     }
 
     private void generateExpressionScript(Field f) {
+        log.info('generateExpressionScript(field:{}) - script:{}', f.name, f.expression.name)
+
         def s = new Script('groovy', f.expression.generateUpdateScript(f.name, name, version))
+        // this constructor adds a default output which is not needed
+        s.getOutputParams().clear()
 
         s.name = f.expression.name
         s.version = f.expression.version
@@ -299,7 +303,6 @@ class SchemaDelegate {
 
         expressionScripts[f.expression.name] = s
         expressionScriptsInputFields[f.expression.name] = f.expression.inputFields
-        log.info s.getScript()
     }
         
     private void buildField(MarkupBuilder xsd, Field f) {
