@@ -54,7 +54,7 @@ class SchemaBuilderExpressionSpecs extends Specification implements CristalTestS
             }
         }
         def schema = sb.schema
-        def script = sb.expressionScipts['Patient_DetailsComputeAgeUpdateExpression']
+        def script = sb.expressionScipts[0]
 
         then:
         script != null

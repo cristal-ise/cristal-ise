@@ -61,6 +61,8 @@ class SchemaDelegate {
     }
 
     private updateScriptReferences(Struct s) {
+        if (!s || !s.fields) return
+
         s.fields.each { name, f ->
             if (f.expression) this.generateExpressionScript(f)
         }
