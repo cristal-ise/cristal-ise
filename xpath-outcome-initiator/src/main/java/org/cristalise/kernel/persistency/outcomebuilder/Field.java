@@ -255,7 +255,7 @@ public class Field extends OutcomeStructure {
         return StructureWithAppInfo.getAppInfoNodeElementValue(model, nodeName, elementName);
     }
 
-    public Class<?> getInstanceClass() {
-        return myFieldInstance.getClass();
+    public Class<?> getJavaType() {
+        return myFieldInstance.getJavaType();
     }
 }

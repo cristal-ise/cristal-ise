@@ -21,6 +21,7 @@
 package org.cristalise.kernel.persistency.outcomebuilder.field;
 
 import java.time.Instant;
+import java.time.OffsetTime;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
@@ -39,6 +40,7 @@ public class TimeField extends StringField {
 
     public TimeField() {
         super();
+        javaType = OffsetTime.class;
     }
 
     @Override
