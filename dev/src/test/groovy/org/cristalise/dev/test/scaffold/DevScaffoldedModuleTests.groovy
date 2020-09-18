@@ -30,6 +30,8 @@ import org.cristalise.dev.scaffold.CRUDItemCreator
 import org.cristalise.kernel.entity.proxy.ItemProxy
 import org.cristalise.kernel.process.Gateway
 import org.cristalise.kernel.test.utils.CristalTestSetup
+import org.cristalise.kernel.utils.CastorHashMap
+import org.cristalise.kernel.utils.LocalObjectLoader
 import org.junit.AfterClass
 import org.junit.Before
 import org.junit.BeforeClass
@@ -143,6 +145,8 @@ class DevScaffoldedModuleTests extends DevItemDSL implements CristalTestSetup {
         item = creator.createItemWithUpdateAndCheck(
             Name: "ItemExcelUsingUpdate-$timeStamp",
             Description: 'ItemUsingUpdate description - generated from excel',
+            DateOfBirth: '1969-02-23',
+            Age: '51',
             "/$folder/TestItemExcelFactory")
 
         assert item.getMasterSchema()
@@ -169,6 +173,15 @@ class DevScaffoldedModuleTests extends DevItemDSL implements CristalTestSetup {
         assert updateJob, "Cannot get Job for Activity 'Update' of Item '$item.name'"
         assert activateJob, "Cannot get Job for Activity 'Activate' of Item '$item.name'"
         assert deactivateJob == null, "Job must be null for Activity 'Deactivate' of Item '$item.name'"
+    }
+
+    @Test
+    public void 'Execute update script generated from Expression'() {
+        def s = LocalObjectLoader.getScript('TestItemExcel_DetailsAgeUpdateExpression', 0)
+        def inputs = new CastorHashMap()
+        def result = s.evaluate(inputs)
+
+        assert result == ''
     }
 
     @Test

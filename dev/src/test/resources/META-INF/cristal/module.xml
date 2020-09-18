@@ -26,6 +26,7 @@
     <ItemResource name="TestItemFactory" version="0"/>
     <SchemaResource name="TestItemExcel" version="0"/>
     <SchemaResource name="TestItemExcel_Details" version="0"/>
+    <ScriptResource name="TestItemExcel_DetailsAgeUpdateExpression" version="0"/>
     <Activity name="TestItemExcel_Update" version="0">
       <Schema name="TestItemExcel_Details" version="0"/>
     </Activity>

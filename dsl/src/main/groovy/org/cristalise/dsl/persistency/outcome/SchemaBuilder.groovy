@@ -54,7 +54,7 @@ class SchemaBuilder {
     DomainPath domainPath = null
 
     Schema schema = null
-    Map<String, Script> expressionScipts = [:]
+    Collection<Script> expressionScipts = []
 
     public SchemaBuilder() {}
 
@@ -113,7 +113,7 @@ class SchemaBuilder {
         }
 
         if (schemaD.expressionScripts) {
-            expressionScipts = schemaD.expressionScripts
+            expressionScipts = schemaD.expressionScripts.values()
         }
 
         return this
@@ -129,6 +129,10 @@ class SchemaBuilder {
         if (errors) {
             log.error "generateSchema() - xsd:\n{}", schemaD.xsdString
             throw new InvalidDataException(errors)
+        }
+
+        if (schemaD.expressionScripts) {
+            expressionScipts = schemaD.expressionScripts.values()
         }
 
         return this

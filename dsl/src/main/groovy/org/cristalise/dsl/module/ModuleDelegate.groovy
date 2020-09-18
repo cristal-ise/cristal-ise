@@ -156,8 +156,8 @@ class ModuleDelegate implements BindingConvention {
         def sb = SchemaBuilder.build(name, version, cl)
         sb.schema.export(null, resourceBootDir, true)
         addSchema(sb.schema)
-        
-        sb.expressionScipts.each { scriptName, script ->
+
+        sb.expressionScipts.each { script ->
             script.export(null, resourceBootDir, true)
             addScript(script)
         }
@@ -170,7 +170,7 @@ class ModuleDelegate implements BindingConvention {
         sb.schema.export(null, resourceBootDir, true)
         addSchema(sb.schema)
 
-        sb.expressionScipts.each { scriptName, script ->
+        sb.expressionScipts.each { script ->
             script.export(null, resourceBootDir, true)
             addScript(script)
         }

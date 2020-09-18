@@ -1,0 +1,65 @@
+<cristalscript>
+
+    <param name="item" type="org.cristalise.kernel.entity.proxy.ItemProxy"/>
+    <param name="agent" type="org.cristalise.kernel.entity.proxy.AgentProxy"/>
+    <param name="TestItemExcel_Details" type="org.json.JSONObject"/>
+    <output name="null" type="java.lang.Object"/>
+    <output name="TestItemExcel_DetailsXml" type="java.lang.String"/>
+    <script language="groovy" name="TestItemExcel_DetailsAgeUpdateExpression"><![CDATA[import static org.cristalise.kernel.persistency.outcomebuilder.utils.OutcomeUtils.getValueOrNull;
+
+import org.cristalise.kernel.common.InvalidDataException;
+import org.cristalise.kernel.persistency.outcomebuilder.OutcomeBuilder;
+import org.cristalise.kernel.persistency.outcome.Schema;
+import org.cristalise.kernel.utils.LocalObjectLoader
+import org.json.JSONObject
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
+
+import groovy.xml.MarkupBuilder
+
+import java.time.Period
+import java.time.LocalDate
+
+final Logger log = LoggerFactory.getLogger("TestItemExcel_DetailsAgeUpdateExpression")
+
+def getAge(JSONObject json) {
+    def builder = new OutcomeBuilder(LocalObjectLoader.getSchema('TestItemExcel_Details', 0))
+
+
+    def DateOfBirth = getValueOrNull(json, 'DateOfBirth', builder)
+
+
+    if (DateOfBirth != null) {
+        //expression comes here, use Outcome, OutcomeBuilder, OutcomeUtils, ItemProxy and other utility classes
+        Period.between(DateOfBirth, LocalDate.now()).getYears()
+    }
+    else {
+        return null
+    }
+}
+
+if (!TestItemExcel_Details) throw new InvalidDataException('Undefined inputs TestItemExcel_Details for script TestItemExcel_DetailsAgeUpdateExpression')
+
+JSONObject jsonInput = (JSONObject)TestItemExcel_Details
+log.debug 'TestItemExcel_Details:{}', jsonInput
+
+StringWriter writer = new StringWriter()
+MarkupBuilder xml = new MarkupBuilder(writer)
+
+// returned XML shall only contain fields that is updated by the script
+xml.TestItemExcel_Details {
+    def AgeValue = getAge(jsonInput)
+
+    if (AgeValue != null) {
+        Age(AgeValue)
+    }
+    else {
+        Age()
+    }
+}
+
+TestItemExcel_DetailsXml = writer.toString()
+
+log.debug('returning TestItemExcel_DetailsXml:{}', TestItemExcel_DetailsXml)
+]]></script>
+</cristalscript>

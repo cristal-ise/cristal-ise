@@ -31,6 +31,7 @@ import groovy.transform.CompileStatic
 public class Expression {
     static final String updateScriptTemplate = '/org/cristalise/dsl/resources/templates/item_updateExpression_groovy.tmpl'
 
+    //Expression could generate save scripts as well
     //Boolean generateUpdateScript = true
 
     String name

@@ -1,3 +1,3 @@
-Name,Description
-TestItemExcel1,"TestItemExcel1 created by CRUDItemCreator using CSV"
-TestItemExcel2,"TestItemExcel2 created by CRUDItemCreator using CSV"
+Name,Description,DateOfBirth,Age
+TestItemExcel1,TestItemExcel1 created by CRUDItemCreator using CSV,1969-02-23,51
+TestItemExcel2,TestItemExcel2 created by CRUDItemCreator using CSV,1971-02-23,49
