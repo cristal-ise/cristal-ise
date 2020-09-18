@@ -26,10 +26,18 @@ import org.mvel2.templates.TemplateCompiler
 import org.mvel2.templates.TemplateRuntime
 
 import groovy.transform.CompileStatic
+import groovy.util.logging.Slf4j
 
-@CompileStatic
+@CompileStatic @Slf4j
 public class Expression {
     static final String updateScriptTemplate = '/org/cristalise/dsl/resources/templates/item_updateExpression_groovy.tmpl'
+
+    private static CompiledTemplate compiledUpdateScript = null
+    
+    static {
+        String templ = FileStringUtility.url2String(Expression.getResource(updateScriptTemplate))
+        compiledUpdateScript = TemplateCompiler.compileTemplate(templ);
+    }
 
     //Expression could generate save scripts as well
     //Boolean generateUpdateScript = true
@@ -51,8 +59,10 @@ public class Expression {
         vars.loggerName = loggerName
         vars.expression = expression
 
-        String templ = FileStringUtility.url2String(this.getClass().getResource(updateScriptTemplate))
-        CompiledTemplate expr = TemplateCompiler.compileTemplate(templ);
-        return (String) TemplateRuntime.execute(expr, vars)
+        def script = (String) TemplateRuntime.execute(compiledUpdateScript, vars)
+
+        log.debug('generateUpdateScript(field:{}) - script:{}', field, script)
+
+        return script
     }
 }

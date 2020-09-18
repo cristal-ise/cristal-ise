@@ -85,6 +85,19 @@ public class Script implements DescriptionObject {
 
     static final String scriptTemplate = "/org/cristalise/kernel/utils/resources/templates/Script_xml.tmpl";
 
+    private static CompiledTemplate compiledScriptTemplate = null;
+
+    static {
+        try {
+            String templ = FileStringUtility.url2String(Script.class.getResource(scriptTemplate));
+            compiledScriptTemplate = TemplateCompiler.compileTemplate(templ);
+        }
+        catch (IOException e) {
+            // this case should never happen
+            e.printStackTrace();
+        }
+    }
+
     public static final String PARAMETER_AGENT   = "agent";
     public static final String PARAMETER_DB      = "db";
     public static final String PARAMETER_ITEM    = "item";
@@ -1028,8 +1041,6 @@ public class Script implements DescriptionObject {
         vars.put("outputs", getOutputParams().values());
         vars.put("script", mScript);
 
-        String templ = FileStringUtility.url2String(this.getClass().getResource(scriptTemplate));
-        CompiledTemplate expr = TemplateCompiler.compileTemplate(templ);
-        return (String) TemplateRuntime.execute(expr, vars);
+        return (String) TemplateRuntime.execute(compiledScriptTemplate, vars);
     }
 }
