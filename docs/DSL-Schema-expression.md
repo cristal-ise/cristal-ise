@@ -1,5 +1,7 @@
 # Field: Expression 
-Defines an expression to compute the value of the field
+Defines an expression to compute the value of the given field including all information to generate a Script (UpdateScript only) to compte the value. 
+
+The geneared script will contain variables named after the inputFields which means that expression can use them to perform the required actions. The expression will only be triggered if all these fields have are not null. The script is based on the OutcomeUtils, a generic utility class of the framework to help script development. 
 
 | Property | Type (default) | Description |
 | -------- | -------------- | ----------- |
@@ -9,6 +11,12 @@ Defines an expression to compute the value of the field
 | imports | List<String> | list of imported classes required to compile/execute the expression |
 | loggerName | String | e.g.: org.cristalise.template.Script.Patient.ComputeAgeUpdateExpression |
 | expression | String | the actual expression (currently only groovy is supported) |
+
+## Limitations
+- inputField can only reference fields in the same level
+- only UpdateScript is generated. Generating SaveScript could be implemented as well.
+- only groovy is supported
+- expression is only triggered if all input fields are not null. Not mandatory fields should be excluded from this condition.
 
 **Example Schema:**
 ```groovy
@@ -60,7 +68,7 @@ def getAge(JSONObject json) {
     }
 }
 
-if (!TestItemExcel_Details) throw new InvalidDataException('Undefined inputs TestItemExcel_Details for script TestItemExcel_DetailsAgeUpdateExpression')
+if (!TestItemExcel_Details) throw new InvalidDataException('Undefined inputs Patient_Details for script Patient_DetailsComputeAgeUpdateExpression')
 
 JSONObject jsonInput = (JSONObject)TestItemExcel_Details
 log.debug 'TestItemExcel_Details:{}', jsonInput
