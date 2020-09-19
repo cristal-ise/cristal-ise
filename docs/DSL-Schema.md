@@ -133,7 +133,7 @@ Provides customization capabilities for WebUI
 | updateQueryRef | String or Query | Defines the Query or the name and version of the refernced Query (e.g. QueryShiftNames:0') which is executed when the from generated from the XML Schema has to be updated |
 | updateFields | List<String> | List the fields to update when this field is updated |
 | container | **Default**: `ui-g-12` | Defines the [Grid CSS Class](https://www.primefaces.org/showcase/ui/panel/grid.xhtml) for the whole field container that contains the label and the control. It defines how many columns of the 12 columns of the struct (panel or form) are taken up by this field. For example `ui-g-6` means half of the width of the struct (panel or form) is allocated to this field container. |
-| labelGrid and control | **Default** `ui-g-4` for `labelGrid` and `ui-g-8` for `control` | defines the [Grid CSS Class](https://www.primefaces.org/showcase/ui/panel/grid.xhtml) for the label, `control` defines it for the control, inside the container (container contains 12 columns, so `control + labelGrid = 12`). Bboth `control` and `labelGrid` have to be specified to be effective. |
+| labelGrid / control | **Default**: `labelGrid: ui-g-4` / `control: ui-g-8` | `labelGrid` defines the [Grid CSS Class](https://www.primefaces.org/showcase/ui/panel/grid.xhtml) for the label, `control` defines it for the control, inside the container (container contains 12 columns, so `control + labelGrid = 12`). Both `control` and `labelGrid` have to be specified to be effective. |
 
 <p style="margin-left: 20px">
 
