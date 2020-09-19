@@ -25,6 +25,7 @@ Schema('test', 'Employee', 0) {
 
 ## Schema
 Defines the XML Schema which is stored in description `Schema Item` (the equivalent of an xsd file)
+
 * Parameters
   * namespace(optional) - normally the namespace of the module which is added to the DomainPath
   * name - name of the Schema Item
@@ -34,6 +35,7 @@ Defines the XML Schema which is stored in description `Schema Item` (the equival
 
 ## struct
 Defines an xml element which contains other elements (i.e. xs:complexType)
+
 * Parameters
   * `name` - name of the element, it is often the root element
   * `documentation` - defines xs:documentation within the xs:annotation
@@ -46,12 +48,14 @@ Defines an xml element which contains other elements (i.e. xs:complexType)
     * [field](#field) 
 
 ### *struct* dynamicforms
-Provides customization capabilities for WebUI.  
+Provides customization capabilities for WebUI.
+
 * Parameters:
   * `width` - specifies the width of the form. The width can be in % or in px or whatever HTML allows. See example above.
 
 ## *struct* attribute
 Defines an xs:attribute of the xml element. it can be used for building struct and field
+
 * Parameters
   * `multiplicity` - can only be 1, 0..1 or 1..1. calculates the `required` flag of attribute
   * `values` - provides accepted values for the xs:enumeration
@@ -64,6 +68,7 @@ Defines an xs:attribute of the xml element. it can be used for building struct a
 
 ## **field**
 Defines element within the struct. Inherits all functionalities of [attribute](#attribute)
+
 * Parameters
   * `multiplicity` - extends attribute to provides values for minOccurs and maxOccurs and to accept xs:maxOccurs greater than 1 or unbounded
   * closure - includes the following elements to define extra functionality
@@ -75,6 +80,7 @@ Defines element within the struct. Inherits all functionalities of [attribute](#
 
 ### *field* unit
 Defines an xs:attribute called `unit` within the element defined by field
+
 * Paremeters
   * `values` - provides values for the xs:enumeration of the unit
   * `default` - default value of the xs:attribute
@@ -146,11 +152,13 @@ def purchaseOrderDetails = Schema(updateSchemaName, 0) {
 ```
 
 **Structs** can have the following **dynamicForms** attributes:
+
 * `container`: this defines the [Grid CSS Class](https://www.primefaces.org/showcase/ui/panel/grid.xhtml) for the whole group (panel)
 * `label`: this is the title of the group (panel)
 * `width`: the top-level struct (form) can have this atribute to specify the width of the form. The width can be in `%` or in `px` or whatever else is allowed in HTML.
 
 **Fields** can have the following **dynamicForms** attributes:
+
 * `container`: this defines the [Grid CSS Class](https://www.primefaces.org/showcase/ui/panel/grid.xhtml) for the whole field container that contains the label and the control. It defines how many columns of the 12 columns of the struct (panel or form) are taken up by this field. For example `ui-g-6` means half of the width of the struct (panel or form) is allocated to this field container.
   * **Default value**: `ui-g-12`
 * `labelGrid` and `control`: 
