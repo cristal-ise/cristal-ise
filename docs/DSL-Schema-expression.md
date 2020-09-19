@@ -1,7 +1,10 @@
 # Field: Expression 
-Defines an expression to compute the value of the given field including all information to generate a Script (UpdateScript only) to compte the value. 
+Defines an expression to compute the value of the given field. It contains all information to perform 2 actions
 
-The geneared script will contain variables named after the inputFields which means that expression can use them to perform the required actions. The expression will only be triggered if all these fields have are not null. The script is based on the OutcomeUtils, a generic utility class of the framework to help script development. 
+1. generate the Script (UpdateScript only) to compute the value
+1. update the input fields with the UpdateScriptRef - see [field dynamicForms](../DSL-Schema#field-dynamicforms)
+
+The genearted script contains variables named after the inputFields which means that expression can use them to perform the required actions. The expression will only be triggered if all these fields have valid values (i.e. not null). The script is based on the OutcomeUtils, a generic utility class of the framework to help script development. 
 
 | Property | Type (default) | Description |
 | -------- | -------------- | ----------- |
@@ -36,7 +39,7 @@ Schema('Patient_Details', 0) {
 }
 ```
 
-**Generated groooy script:**
+**Generated Updatescript:**
 ```groovy
 import static org.cristalise.kernel.persistency.outcomebuilder.utils.OutcomeUtils.getValueOrNull;
 
