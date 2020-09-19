@@ -1,6 +1,6 @@
 Creating an XSD with few fields (elements) is relatively easy but as number or the complexity of elements grows the readability of the XSD becoming a problem. Also the The CRISTAL-iSE DSL based on Groovy scripting is used to address this challenge.
 
-**Comprehensive Example:**
+**Comprehensive Example: Funtional specs**
 ```groovy
 Schema('test', 'Employee', 0) {
   struct(name: 'Employee', documentation: 'Employee data', useSequence: true) {
@@ -23,25 +23,42 @@ Schema('test', 'Employee', 0) {
 }
 ```
 
+**Comprehensive Example: Layout Field Groups**
+```groovy
+def purchaseOrderDetails = Schema(updateSchemaName, 0) {
+    struct(name: updateSchemaName, documentation: 'Defines PurchaseOrder entries', useSequence: true) {
+        struct(name: 'Addresses', useSequence: true, multiplicity: '0..1') {
+            field(name: 'BillingAddress',       type: 'string'){
+                dynamicForms(type: 'SELECT', disabled: true, container: 'ui-g-12',  labelGrid: 'ui-g-2', control: 'ui-g-10')
+            }
+            field(name: 'ShippingAddress',      type: 'string'){
+                dynamicForms(type: 'SELECT',  disabled: true)
+            }
+            dynamicForms(container: 'ui-g-6', label: 'Group Title Here')
+        }
+        field(name: 'CustomerReferences',    type: 'string'){dynamicForms(label: 'Customer PO #')}
+        dynamicForms(container: 'ui-g-12', width: '81%')
+    }
+}
+```
+
 ## Schema
 Defines the XML Schema which is stored in description `Schema Item` (the equivalent of an xsd file)
 
-* Parameters
-  * namespace(optional) - normally the namespace of the module which is added to the DomainPath
-  * name - name of the Schema Item
-  * version - version of the Schema Item
-  * closure - includes the following elements to define the actual structure
+* namespace(optional) - normally the namespace of the module which is added to the DomainPath
+* name - name of the Schema Item
+* version - version of the Schema Item
+* closure - includes the following elements to define the actual structure
     * [struct](#struct)
 
 ## struct
 Defines an xml element which contains other elements (i.e. xs:complexType)
 
-* Parameters
-  * `name` - name of the element, it is often the root element
-  * `documentation` - defines xs:documentation within the xs:annotation
-  * `useSequence` - whether the xs:complexType is a xs:sequence or xs:all (default)
-  * `multiplicity` - specifies the minOccurs and maxOccurs xsd elements
-  * `closure` - includes the following elements to define the actual content of the element
+* `name` - name of the element, it is often the root element
+* `documentation` - defines xs:documentation within the xs:annotation
+* `useSequence` - whether the xs:complexType is a xs:sequence or xs:all (default)
+* `multiplicity` - specifies the minOccurs and maxOccurs xsd elements
+* `closure` - includes the following elements to define the actual content of the element
     * [struct](#struct)
     * [dynamicForms](#struct-dynamicForms)
     * [attribute](#attribute)
@@ -50,40 +67,39 @@ Defines an xml element which contains other elements (i.e. xs:complexType)
 ### *struct* dynamicforms
 Provides customization capabilities for WebUI.
 
-* Parameters:
-  * `width` - specifies the width of the form. The width can be in % or in px or whatever HTML allows. See example above.
+* `label` - the title of the group (panel)
+* `width` - for the top-level struct it specifies the width of the form. The width can be in % or in px or whatever HTML allows. See 'Field Groups' example above
+* `container`: defines the [Grid CSS Class](https://www.primefaces.org/showcase/ui/panel/grid.xhtml) for the whole group (panel)
 
-## *struct* attribute
+### *struct* attribute
 Defines an xs:attribute of the xml element. it can be used for building struct and field
 
-* Parameters
-  * `multiplicity` - can only be 1, 0..1 or 1..1. calculates the `required` flag of attribute
-  * `values` - provides accepted values for the xs:enumeration
-  * `type` - the schema element type. It could be one of the following: string, decimal, integer, boolean. date, time
-  * `pattern` - regex pattern to evaluate the value
-  * `default` - default value
-  * `range` - example: `[0..10)` - defines values for xs:minExclusive, xs:minInclusive, xs:maxExclusive, xs:maxInclusive
-  * `totalDigits` - Specifies the exact number of digits allowed. Must be greater than zero
-  * `fractionDigits` - Specifies the maximum number of decimal places allowed. Must be equal to or greater than zero
+* `multiplicity` - can only be 1, 0..1 or 1..1. calculates the `required` flag of attribute
+* `values` - provides accepted values for the xs:enumeration
+* `type` - the schema element type. It could be one of the following: string, decimal, integer, boolean. date, time
+* `pattern` - regex pattern to evaluate the value
+* `default` - default value
+* `range` - example: `[0..10)` - defines values for xs:minExclusive, xs:minInclusive, xs:maxExclusive, xs:maxInclusive
+* `totalDigits` - Specifies the exact number of digits allowed. Must be greater than zero
+* `fractionDigits` - Specifies the maximum number of decimal places allowed. Must be equal to or greater than zero
 
 ## **field**
 Defines element within the struct. Inherits all functionalities of [attribute](#attribute)
 
-* Parameters
-  * `multiplicity` - extends attribute to provides values for minOccurs and maxOccurs and to accept xs:maxOccurs greater than 1 or unbounded
-  * closure - includes the following elements to define extra functionality
-    * [attribute](#attribute)
-    * [unit](#field-unit)
-    * [listOfValues](#field-listOfValues)
-    * [dynamicForms](#field-dynamicForms)
-    * [warning](#field-warning)
+* `multiplicity` - extends attribute to provides values for minOccurs and maxOccurs and to accept xs:maxOccurs greater than 1 or unbounded
+* closure - includes the following elements to define extra functionality
+  * [attribute](#attribute)
+  * [unit](#field-unit)
+  * [listOfValues](#field-listOfValues)
+  * [dynamicForms](#field-dynamicForms)
+  * [warning](#field-warning)
+  * [expression](#field-expression)
 
 ### *field* unit
 Defines an xs:attribute called `unit` within the element defined by field
 
-* Paremeters
-  * `values` - provides values for the xs:enumeration of the unit
-  * `default` - default value of the xs:attribute
+* `values` - provides values for the xs:enumeration of the unit
+* `default` - default value of the xs:attribute
 
 ### *field* listOfValues
 Field argument used to get the label-value pair for the combobox ui widget
@@ -115,13 +131,14 @@ Provides customization capabilities for WebUI
 | value | String | Default value |
 | updateScriptRef | String or Script | Defines the Script or the name and version of the refernced Script (e.g. GetShiftNames:0') which is executed when the form generated from the XML Schema has to be updated |
 | updateQueryRef | String or Query | Defines the Query or the name and version of the refernced Query (e.g. QueryShiftNames:0') which is executed when the from generated from the XML Schema has to be updated |
-| warning| Warning | Defines Acceptable warnings or limits in the field via regex pattern or javascript expression |
 | updateFields | List<String> | List the fields to update when this field is updated |
+| container | **Default**: `ui-g-12` | Defines the [Grid CSS Class](https://www.primefaces.org/showcase/ui/panel/grid.xhtml) for the whole field container that contains the label and the control. It defines how many columns of the 12 columns of the struct (panel or form) are taken up by this field. For example `ui-g-6` means half of the width of the struct (panel or form) is allocated to this field container. |
+| labelGrid and control | **Default** `ui-g-4` for `labelGrid` and `ui-g-8` for `control` | defines the [Grid CSS Class](https://www.primefaces.org/showcase/ui/panel/grid.xhtml) for the label, `control` defines it for the control, inside the container (container contains 12 columns, so `control + labelGrid = 12`). Bboth `control` and `labelGrid` have to be specified to be effective. |
 
 <p style="margin-left: 20px">
 
 ### *field* warning
-Displays a warning on the field, but the value can be saved, the field is still valid.  
+Defines Acceptable warnings or limits in the field, A warning message is deplayed on the field, but the value can be saved, the field is still valid.  
 The warning is shown if the field does not match the **pattern** or if the **expression** evaluates to false.
 
 | Property | Type | Description |
@@ -131,36 +148,4 @@ The warning is shown if the field does not match the **pattern** or if the **exp
 | message | String | Warning message if the pattern doesn't match or expression evaluates to false |
 </p>
 
-# Field Groups
-**Comprehensive Example:**
-```groovy
-def purchaseOrderDetails = Schema(updateSchemaName, 0) {
-    struct(name: updateSchemaName, documentation: 'Defines PurchaseOrder entries', useSequence: true) {
-        struct(name: 'Addresses', useSequence: true, multiplicity: '0..1') {
-            field(name: 'BillingAddress',       type: 'string'){
-                dynamicForms(type: 'SELECT', disabled: true, container: 'ui-g-12',  labelGrid: 'ui-g-2', control: 'ui-g-10')
-            }
-            field(name: 'ShippingAddress',      type: 'string'){
-                dynamicForms(type: 'SELECT',  disabled: true)
-            }
-            dynamicForms(container: 'ui-g-6', label: 'Group Title Here')
-        }
-        field(name: 'CustomerReferences',    type: 'string'){dynamicForms(label: 'Customer PO #')}
-        dynamicForms(container: 'ui-g-12', width: '81%')
-    }
-}
-```
-
-**Structs** can have the following **dynamicForms** attributes:
-
-* `container`: this defines the [Grid CSS Class](https://www.primefaces.org/showcase/ui/panel/grid.xhtml) for the whole group (panel)
-* `label`: this is the title of the group (panel)
-* `width`: the top-level struct (form) can have this atribute to specify the width of the form. The width can be in `%` or in `px` or whatever else is allowed in HTML.
-
-**Fields** can have the following **dynamicForms** attributes:
-
-* `container`: this defines the [Grid CSS Class](https://www.primefaces.org/showcase/ui/panel/grid.xhtml) for the whole field container that contains the label and the control. It defines how many columns of the 12 columns of the struct (panel or form) are taken up by this field. For example `ui-g-6` means half of the width of the struct (panel or form) is allocated to this field container.
-  * **Default value**: `ui-g-12`
-* `labelGrid` and `control`: 
-  * `labelGrid` defines the [Grid CSS Class](https://www.primefaces.org/showcase/ui/panel/grid.xhtml) for the label, `control` defines it for the control, inside the container (container contains 12 columns, so `control + labelGrid = 12`)
-  * **Default values**: both `control` and `labelGrid` have to be specified. If either of them is not specified, the default will be `ui-g-4` for `labelGrid` and `ui-g-8` for `control`.
+### *field* expression
