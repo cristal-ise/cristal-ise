@@ -1,6 +1,9 @@
-Creating an XSD with few fields (elements) is relatively easy but as number or the complexity of elements grows the readability of the XSD becoming a problem. Also the The CRISTAL-iSE DSL based on Groovy scripting is used to address this challenge.
+# Schema
+Defines the XML Schema which is stored in description item of type `Schema`. In priciple it is equivalent of an xsd file.
 
-**Comprehensive Example: Funtional specs**
+Creating an XSD with few fields (elements) is relatively easy but as number or the complexity of elements grows the readability of the XSD becoming a problem. The CRISTAL-iSE DSL based on Groovy scripting and Excel was developed to address this challenge.
+
+**Comprehensive Example: Structural and Funtional elements**
 ```groovy
 Schema('test', 'Employee', 0) {
   struct(name: 'Employee', documentation: 'Employee data', useSequence: true) {
@@ -23,7 +26,7 @@ Schema('test', 'Employee', 0) {
 }
 ```
 
-**Comprehensive Example: Layout Field Groups**
+**Comprehensive Example: Field Groups for layout**
 ```groovy
 def purchaseOrderDetails = Schema(updateSchemaName, 0) {
     struct(name: updateSchemaName, documentation: 'Defines PurchaseOrder entries', useSequence: true) {
@@ -41,9 +44,6 @@ def purchaseOrderDetails = Schema(updateSchemaName, 0) {
     }
 }
 ```
-
-## Schema
-Defines the XML Schema which is stored in description `Schema Item` (the equivalent of an xsd file)
 
 * namespace(optional) - normally the namespace of the module which is added to the DomainPath
 * name - name of the Schema Item
@@ -87,7 +87,7 @@ Defines an xs:attribute of the xml element. it can be used for building struct a
 Defines element within the struct. Inherits all functionalities of [attribute](#attribute)
 
 * `multiplicity` - extends attribute to provides values for minOccurs and maxOccurs and to accept xs:maxOccurs greater than 1 or unbounded
-* closure - includes the following elements to define extra functionality
+* `closure` - includes the following elements to define extra functionality
   * [attribute](#attribute)
   * [unit](#field-unit)
   * [listOfValues](#field-listOfValues)
@@ -135,10 +135,8 @@ Provides customization capabilities for WebUI
 | container | **Default**: `ui-g-12` | Defines the [Grid CSS Class](https://www.primefaces.org/showcase/ui/panel/grid.xhtml) for the whole field container that contains the label and the control. It defines how many columns of the 12 columns of the struct (panel or form) are taken up by this field. For example `ui-g-6` means half of the width of the struct (panel or form) is allocated to this field container. |
 | labelGrid / control | **Default**: `labelGrid: ui-g-4` / `control: ui-g-8` | `labelGrid` defines the [Grid CSS Class](https://www.primefaces.org/showcase/ui/panel/grid.xhtml) for the label, `control` defines it for the control, inside the container (container contains 12 columns, so `control + labelGrid = 12`). Both `control` and `labelGrid` have to be specified to be effective. |
 
-<p style="margin-left: 20px">
-
 ### *field* warning
-Defines Acceptable warnings or limits in the field, A warning message is deplayed on the field, but the value can be saved, the field is still valid.  
+Defines acceptable limits in the field, A warning message is deplayed on the field, but the value can be saved, the field is still valid.  
 The warning is shown if the field does not match the **pattern** or if the **expression** evaluates to false.
 
 | Property | Type | Description |
@@ -146,6 +144,5 @@ The warning is shown if the field does not match the **pattern** or if the **exp
 | pattern | String | Regex pattern to be tested in webui (e.g. `'^[0-9]{1,4}$'`) |
 | expression | String | Javascript condition to be evaluated in webui (e.g. `'element.value < 5000'`). The values of other fields can be referenced in the following way: (e.g. `'element.value <= fieldValue("AllocatedQuantity")`) |
 | message | String | Warning message if the pattern doesn't match or expression evaluates to false |
-</p>
 
 ### *field* expression
