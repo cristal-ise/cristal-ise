@@ -146,3 +146,4 @@ The warning is shown if the field does not match the **pattern** or if the **exp
 | message | String | Warning message if the pattern doesn't match or expression evaluates to false |
 
 ### *field* expression
+Definenes an expression to compute the value of the field - [For full specification follow this link](../DSL-Schema-expression)
