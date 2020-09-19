@@ -45,7 +45,7 @@ import groovy.xml.MarkupBuilder
 import java.time.Period
 import java.time.LocalDate
 
-final Logger log = LoggerFactory.getLogger("TestItemExcel_DetailsAgeUpdateExpression")
+final Logger log = LoggerFactory.getLogger("org.cristalise.test.Script.Patient.DetailsAgeUpdateExpression")
 
 def getAge(JSONObject json) {
     def builder = new OutcomeBuilder(LocalObjectLoader.getSchema('TestItemExcel_Details', 0))
@@ -85,31 +85,13 @@ TestItemExcel_DetailsXml = writer.toString()
 log.debug('returning TestItemExcel_DetailsXml:{}', TestItemExcel_DetailsXml)
 ```
 
-**Generated XSD**
+**Generated XSD:**
 ```xml
 <?xml version='1.0' encoding='utf-8'?>
 <xs:schema xmlns:xs='http://www.w3.org/2001/XMLSchema'>
-  <xs:element name='TestItemExcel_Details'>
-    <xs:annotation>
-      <xs:documentation>This is the Update chame for TestItemExcel</xs:documentation>
-      <xs:appinfo>
-        <dynamicForms>
-          <width>100%</width>
-        </dynamicForms>
-      </xs:appinfo>
-    </xs:annotation>
+  <xs:element name='Patient_Details'>
     <xs:complexType>
       <xs:sequence>
-        <xs:element name='Name' type='xs:string' minOccurs='1' maxOccurs='1'>
-          <xs:annotation>
-            <xs:appinfo>
-              <dynamicForms>
-                <disabled>true</disabled>
-              </dynamicForms>
-            </xs:appinfo>
-          </xs:annotation>
-        </xs:element>
-        <xs:element name='Description' type='xs:string' minOccurs='1' maxOccurs='1' />
         <xs:element name='DateOfBirth' type='xs:date' minOccurs='1' maxOccurs='1'>
           <xs:annotation>
             <xs:appinfo>
