@@ -4,99 +4,60 @@ Defines an expression to compute the value of the given field. It contains all i
 1. generate the Script (UpdateScript only) to compute the value
 1. update the input fields with the UpdateScriptRef - see [field dynamicForms](../DSL-Schema#field-dynamicforms)
 
-The genearted script contains variables named after the inputFields which means that expression can use them to perform the required actions. The expression will only be triggered if all these fields have valid values (i.e. not null). The script is based on the OutcomeUtils, a generic utility class of the framework to help script development. 
+The genearted script contains variables named after the inputFields which means that expression can use them to perform the required actions. The expression will only be triggered if all mandatory fields have valid values (i.e. not null). The script is based on the OutcomeUtils, a generic utility class of the framework to help script development. 
 
-| Property | Type (default) | Description |
-| -------- | -------------- | ----------- |
-| name | String | the name of the generated Script item |
-| version | Integer | the version of the generated Script item  |
-| inputFields | List<String> | list of field names used to comput ethe value |
-| imports | List<String> | list of imported classes required to compile/execute the expression |
-| loggerName | String | e.g.: org.cristalise.template.Script.Patient.ComputeAgeUpdateExpression |
-| expression | String | the actual expression (currently only groovy is supported) |
+| Property      | Type (default)          | Description |
+| ------------- | ----------------------- | ----------- |
+| name          | String                  | the name of the generated Script item |
+| version       | Integer                 | the version of the generated Script item  |
+| inputFields   | List<String>            | list of field names used to comput ethe value |
+| imports       | List<String>            | list of imported classes required to compile/execute the expression |
+| loggerName    | String                  | e.g.: org.cristalise.template.Script.Patient.ComputeAgeUpdateExpression |
+| expression    | String                  | the actual expression (currently only groovy is supported) |
+| compileStatic | boolean (default: true) | set it to false when the expression requires dynamic groovy |
+
+## Injected variable available to the expression
+
+| Property     | Type (default)    | Description |
+| ------------ | ------------------| ----------- |
+| <InputField> | Type of the Field | variable created from the 'inputFields' |
+| item         | ItemProxy         | the actual Item for which the UpdateScript is executed |
+| agent        | AgentProxy        | the user executing the Activity |
+| schema       | Schema            | the Schema used to generate the form |
+| builder      | OutcomeBuilder    | the builder initilaied with the Schema. |
 
 ## Limitations
+
 - inputField can only reference fields in the same level
 - only UpdateScript is generated. Generating SaveScript could be implemented as well.
 - only groovy is supported
-- expression is only triggered if all input fields are not null. Not mandatory fields should be excluded from this condition.
 
-**Example Schema:**
+# Example
+The age of the patient is computed from the DataOfBirth and from the DateOfDeath fields, where the DateOfDeath is optional (the patient is still alive). In case the patient is still alive the expression uses the current date (LocalDate.now()) for the calculation. The expression is based in the [Elvis operator of groovy](http://groovy-lang.org/operators.html#_elvis_operator).
+
+**Schema DSL:**
+
 ```groovy
 Schema('Patient_Details', 0) {
   struct(name: 'Patient_Details') {
     field(name: 'DateOfBirth', type: 'date')
+    field(name: 'DateOfDeath', type: 'date', multiplicity: '0..1')
     field(name: 'Age', type: 'integer') {
     expression(
       name: 'Patient_DetailsComputeAgeUpdateExpression',
-      version: 10,
+      version: 0,
       imports: ['java.time.Period', 'java.time.LocalDate'],
-      inputFields: ['DateOfBirth'],
+      inputFields: ['DateOfBirth, DateOfDeath'],
       loggerName : 'org.cristalise.test.Script.Patient.ComputeAgeUpdateExpression',
-      expression: 'Period.between(DateOfBirth, LocalDate.now()).getYears()'
+      expression: 'Period.between(DateOfBirth, DateOfDeath ?: LocalDate.now()).getYears()'
     )
   }
 }
 ```
 
-**Generated Updatescript:**
-```groovy
-import static org.cristalise.kernel.persistency.outcomebuilder.utils.OutcomeUtils.getValueOrNull;
-
-import org.cristalise.kernel.common.InvalidDataException;
-import org.cristalise.kernel.persistency.outcomebuilder.OutcomeBuilder;
-import org.cristalise.kernel.persistency.outcome.Schema;
-import org.cristalise.kernel.utils.LocalObjectLoader
-import org.json.JSONObject
-import org.slf4j.Logger
-import org.slf4j.LoggerFactory
-
-import groovy.xml.MarkupBuilder
-
-import java.time.Period
-import java.time.LocalDate
-
-final Logger log = LoggerFactory.getLogger("org.cristalise.test.Script.Patient.DetailsAgeUpdateExpression")
-
-def getAge(JSONObject json) {
-    def builder = new OutcomeBuilder(LocalObjectLoader.getSchema('Patient_Details', 0))
-    def DateOfBirth = getValueOrNull(json, 'DateOfBirth', builder)
-
-    if (DateOfBirth != null) {
-        //expression comes here, use Outcome, OutcomeBuilder, OutcomeUtils, ItemProxy and other utility classes
-        Period.between(DateOfBirth, LocalDate.now()).getYears()
-    }
-    else {
-        return null
-    }
-}
-
-if (!TestItemExcel_Details) throw new InvalidDataException('Undefined inputs Patient_Details for script Patient_DetailsComputeAgeUpdateExpression')
-
-JSONObject jsonInput = (JSONObject)TestItemExcel_Details
-log.debug 'TestItemExcel_Details:{}', jsonInput
-
-StringWriter writer = new StringWriter()
-MarkupBuilder xml = new MarkupBuilder(writer)
-
-// returned XML shall only contain fields that is updated by the script
-xml.TestItemExcel_Details {
-    def AgeValue = getAge(jsonInput)
-
-    if (AgeValue != null) {
-        Age(AgeValue)
-    }
-    else {
-        Age()
-    }
-}
-
-TestItemExcel_DetailsXml = writer.toString()
-
-log.debug('returning TestItemExcel_DetailsXml:{}', TestItemExcel_DetailsXml)
-```
-
 **Generated XSD:**
+Both input fields, DateOfBirth and DateOfDeath, have the dynamicForms/updateScriptRef assigned with the generated script. 
+
 ```xml
 <?xml version='1.0' encoding='utf-8'?>
 <xs:schema xmlns:xs='http://www.w3.org/2001/XMLSchema'>
@@ -108,7 +69,18 @@ log.debug('returning TestItemExcel_DetailsXml:{}', TestItemExcel_DetailsXml)
             <xs:appinfo>
               <dynamicForms>
                 <additional>
-                  <updateScriptRef>TestItemExcel_DetailsAgeUpdateExpression:0</updateScriptRef>
+                  <updateScriptRef>Patient_DetailsAgeUpdateExpression:0</updateScriptRef>
+                </additional>
+              </dynamicForms>
+            </xs:appinfo>
+          </xs:annotation>
+        </xs:element>
+        <xs:element name='DateOfDeath' type='xs:date' minOccurs='0' maxOccurs='1'>
+          <xs:annotation>
+            <xs:appinfo>
+              <dynamicForms>
+                <additional>
+                  <updateScriptRef>Patient_DetailsAgeUpdateExpression:0</updateScriptRef>
                 </additional>
               </dynamicForms>
             </xs:appinfo>
@@ -119,4 +91,71 @@ log.debug('returning TestItemExcel_DetailsXml:{}', TestItemExcel_DetailsXml)
     </xs:complexType>
   </xs:element>
 </xs:schema>
+```
+
+**Generated Updatescript:**
+
+- The `getAge(json)` method is generated to execute the 'expression'.
+- The expression is only executed if the DateOfBirth is not null, because it is mandatory. 
+- all the static methods of OutcomeUtils are imported
+
+```groovy
+import static org.cristalise.kernel.persistency.outcomebuilder.utils.OutcomeUtils.*
+
+import org.cristalise.kernel.common.InvalidDataException
+import org.cristalise.kernel.persistency.outcomebuilder.OutcomeBuilder
+import org.cristalise.kernel.persistency.outcome.Schema
+import org.cristalise.kernel.utils.LocalObjectLoader
+import org.json.JSONObject
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
+
+import groovy.transform.CompileStatic
+import groovy.xml.MarkupBuilder
+
+import java.time.Period
+import java.time.LocalDate
+
+final Logger log = LoggerFactory.getLogger("org.cristalise.test.Patient.DetailsAgeUpdateExpression")
+
+@CompileStatic
+def getAge(JSONObject json) {
+    def schema = LocalObjectLoader.getSchema('Patient_Details', 0)
+    def builder = new OutcomeBuilder(schema)
+
+    def DateOfBirth = getLocalDateOrNull(json, 'DateOfBirth')
+    def DateOfDeath = getLocalDateOrNull(json, 'DateOfDeath')
+
+    if (DateOfBirth != null) {
+        //expression comes here, use Outcome, OutcomeBuilder, OutcomeUtils, ItemProxy and other utility classes
+        Period.between(DateOfBirth, DateOfDeath ?: LocalDate.now()).getYears()
+    }
+    else {
+        return null
+    }
+}
+
+if (!Patient_Details) throw new InvalidDataException('Undefined inputs Patient_Details for script org.cristalise.dsl.test.Patient.DetailsAgeUpdateExpression')
+
+JSONObject jsonInput = (JSONObject)Patient_Details
+log.debug 'Patient_Details:{}', jsonInput
+
+StringWriter writer = new StringWriter()
+MarkupBuilder xml = new MarkupBuilder(writer)
+
+// returned XML shall only contain fields that is updated by the script
+xml.Patient_Details {
+    def AgeValue = getAge(jsonInput)
+
+    if (AgeValue != null) {
+        Age(AgeValue)
+    }
+    else {
+        Age()
+    }
+}
+
+Patient_DetailsXml = writer.toString()
+
+log.debug('returning Patient_DetailsXml:{}', Patient_DetailsXml)
 ```

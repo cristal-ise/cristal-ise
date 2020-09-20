@@ -109,7 +109,12 @@ class Field extends Attribute {
      * 
      * @return
      */
-     public boolean isFileUpload() {
-         return dynamicForms.inputType == 'file'
-     }
+    public boolean isFileUpload() {
+        return dynamicForms.inputType == 'file'
+    }
+
+    @Override
+    public boolean isRequired() {
+        return minOccurs == null || minOccurs != '0'
+    }
 }

@@ -48,20 +48,28 @@ public class Expression {
     List<String> inputFields = []
     String loggerName //e.g.: org.cristalise.template.Script.Patient.ComputeAgeUpdateExpression
     String expression
+    Boolean compileStatic = true
 
-    public String generateUpdateScript(String field, String schemaName, Integer schemaVersion) {
+    public String generateUpdateScript(Struct s, Field f, String schemaName, Integer schemaVersion) {
         Map vars = [:]
-        vars.field = field
-        vars.schemaName = schemaName
-        vars.schemaVersion = schemaVersion
-        vars.imports = imports
-        vars.inputFields = inputFields
-        vars.loggerName = loggerName
-        vars.expression = expression
+        Map<String, String> inputFieldsType = [:]
+
+        inputFields.each { inputFieldsType[it] = s.fields[it].getJavaType().getSimpleName() }
+
+        vars.field           = f.name
+        vars.schemaName      = schemaName
+        vars.schemaVersion   = schemaVersion
+        vars.imports         = imports
+        vars.inputFields     = inputFields
+        vars.inputFieldsType = inputFieldsType
+        vars.requiredFields  = inputFields.findAll { s.fields[it].isRequired() }
+        vars.loggerName      = loggerName
+        vars.expression      = expression
+        vars.compileStatic   = compileStatic
 
         def script = (String) TemplateRuntime.execute(compiledUpdateScript, vars)
 
-        log.debug('generateUpdateScript(field:{}) - script:{}', field, script)
+        log.debug('generateUpdateScript(field:{}) - script:{}', f.name, script)
 
         return script
     }

@@ -20,6 +20,10 @@
  */
 package org.cristalise.dsl.persistency.outcome
 
+import java.time.LocalDate
+import java.time.OffsetDateTime
+import java.time.OffsetTime
+
 import org.cristalise.kernel.common.InvalidDataException
 
 import groovy.transform.CompileStatic;
@@ -166,5 +170,21 @@ class Attribute {
      */
     public void setFractionDigits(String val) {
         fractionDigits = new Integer(val)
+    }
+
+    public boolean isRequired() {
+        return required;
+    }
+    
+    public Class<?> getJavaType() {
+        switch(type) {
+            case 'xs:string':   return String.class;
+            case 'xs:boolean':  return Boolean.class;
+            case 'xs:integer':  return BigInteger.class;
+            case 'xs:decimal':  return BigDecimal.class;
+            case 'xs:date':     return LocalDate.class;
+            case 'xs:time':     return OffsetTime.class;
+            case 'xs:dateTime': return OffsetDateTime.class;
+        }
     }
 }

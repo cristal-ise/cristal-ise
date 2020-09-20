@@ -1,27 +1,28 @@
-import static org.cristalise.kernel.persistency.outcomebuilder.utils.OutcomeUtils.getValueOrNull;
+import static org.cristalise.kernel.persistency.outcomebuilder.utils.OutcomeUtils.*
 
-import org.cristalise.kernel.common.InvalidDataException;
-import org.cristalise.kernel.persistency.outcomebuilder.OutcomeBuilder;
-import org.cristalise.kernel.persistency.outcome.Schema;
+import org.cristalise.kernel.common.InvalidDataException
+import org.cristalise.kernel.persistency.outcomebuilder.OutcomeBuilder
+import org.cristalise.kernel.persistency.outcome.Schema
 import org.cristalise.kernel.utils.LocalObjectLoader
 import org.json.JSONObject
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
+import groovy.transform.CompileStatic
 import groovy.xml.MarkupBuilder
 
 @foreach{clazz : imports}import @{clazz}@end{'\n'}
 
 final Logger log = LoggerFactory.getLogger("@{loggerName}")
 
+@if{compileStatic} @CompileStatic @end{}
 def get@{field}(JSONObject json) {
-    def builder = new OutcomeBuilder(LocalObjectLoader.getSchema('@{schemaName}', 0))
+    def schema = LocalObjectLoader.getSchema('@{schemaName}', @{schemaVersion})
+    def builder = new OutcomeBuilder(schema)
 
-@foreach{inputField : inputFields}
-    def @{inputField} = getValueOrNull(json, '@{inputField}', builder)
-@end{}
+@foreach{inputField : inputFields}    def @{inputField} = get@{inputFieldsType[inputField]}OrNull(json, '@{inputField}')@end{'\n'}
 
-    if (@foreach{inputField : inputFields}@{inputField} != null@end{'&&'}) {
+    if (@foreach{inputField : requiredFields}@{inputField} != null@end{' && '}) {
         //expression comes here, use Outcome, OutcomeBuilder, OutcomeUtils, ItemProxy and other utility classes
         @{expression}
     }

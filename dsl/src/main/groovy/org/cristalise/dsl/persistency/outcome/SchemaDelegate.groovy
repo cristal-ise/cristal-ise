@@ -27,6 +27,8 @@ import org.cristalise.kernel.property.PropertyDescriptionList
 import org.cristalise.kernel.property.PropertyUtility
 import org.cristalise.kernel.scripting.Script
 
+import groovy.transform.CompileDynamic
+import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
 import groovy.xml.MarkupBuilder
 
@@ -34,7 +36,7 @@ import groovy.xml.MarkupBuilder
 /**
  *
  */
-@Slf4j
+@Slf4j @CompileStatic
 class SchemaDelegate {
 
     String  name
@@ -45,6 +47,23 @@ class SchemaDelegate {
     Map<String, Script> expressionScripts = [:]
     Map<String, List<String>> expressionScriptsInputFields = [:]
     
+    private updateScriptReferences(Struct s) {
+        if (!s || !s.fields) return
+
+        s.fields.each { name, f ->
+            if (f.expression) this.generateExpressionScript(s, f)
+        }
+
+        expressionScriptsInputFields.each { scriptName, inputFields ->
+            inputFields.each { fieldName ->
+                def inputField = s.fields[fieldName]
+                if (inputField.dynamicForms == null) inputField.dynamicForms = new DynamicForms()
+                inputField.dynamicForms.updateScriptRef = expressionScripts[scriptName]
+            }
+        }
+    }
+
+    @CompileDynamic
     public void processClosure(Closure cl) {
         assert cl, "Schema only works with a valid Closure"
 
@@ -60,22 +79,6 @@ class SchemaDelegate {
         xsdString = buildXSD(s)
     }
 
-    private updateScriptReferences(Struct s) {
-        if (!s || !s.fields) return
-
-        s.fields.each { name, f ->
-            if (f.expression) this.generateExpressionScript(f)
-        }
-
-        expressionScriptsInputFields.each { scriptName, inputFields ->
-            inputFields.each { fieldName ->
-                def inputField = s.fields[fieldName]
-                if (inputField.dynamicForms == null) inputField.dynamicForms = new DynamicForms()
-                inputField.dynamicForms.updateScriptRef = expressionScripts[scriptName]
-            }
-        }
-    }
-
     public void processTabularData(TabularGroovyParser parser) {
         def tsb = new TabularSchemaBuilder()
         Struct s = tsb.build(parser)
@@ -83,6 +86,7 @@ class SchemaDelegate {
         xsdString = buildXSD(s)
     }
 
+    @CompileDynamic
     public String buildXSD(Struct s) {
         if(!s) throw new InvalidDataException("Schema cannot be built from empty declaration")
 
@@ -101,6 +105,7 @@ class SchemaDelegate {
         return writer.toString()
     }
 
+    @CompileDynamic
     private void buildStruct(MarkupBuilder xsd, Struct s) {
         log.info "buildStruct() - Struct: $s.name"
         xsd.'xs:element'(name: s.name, minOccurs: s.minOccurs, maxOccurs: s.maxOccurs) {
@@ -194,6 +199,7 @@ class SchemaDelegate {
         else                    return a.type
     }
 
+    @CompileDynamic
     private void buildAtribute(MarkupBuilder xsd, Attribute a) {
         log.info "buildAtribute() - attribute: $a.name"
 
@@ -206,6 +212,7 @@ class SchemaDelegate {
         }
     }
 
+    @CompileDynamic
     private void setAppinfoDynamicForms(xsd, Field f) {
         xsd.dynamicForms {
             if (f.dynamicForms.hidden   != null)             hidden(      f.dynamicForms.hidden)
@@ -257,6 +264,7 @@ class SchemaDelegate {
         }
     }
 
+    @CompileDynamic
     private void setAppinfoListOfValues(xsd, Field f) {
         xsd.listOfValues {
             if (f.listOfValues.scriptRef)       scriptRef(      f.listOfValues.getScriptRefString())
@@ -267,6 +275,7 @@ class SchemaDelegate {
         }
     }
 
+    @CompileDynamic
     private void setAppinfoReference(xsd, Field f) {
         xsd.reference {
             if (f.reference.itemType) {
@@ -289,24 +298,25 @@ class SchemaDelegate {
         }
     }
 
-    private void generateExpressionScript(Field f) {
+    private void generateExpressionScript(Struct s, Field f) {
         log.info('generateExpressionScript(field:{}) - script:{}', f.name, f.expression.name)
 
-        def s = new Script('groovy', f.expression.generateUpdateScript(f.name, name, version))
+        def script = new Script('groovy', f.expression.generateUpdateScript(s, f, name, version))
         // this constructor adds a default output which is not needed
-        s.getOutputParams().clear()
+        script.getOutputParams().clear()
 
-        s.name = f.expression.name
-        s.version = f.expression.version
-        s.addInputParam(name, 'org.json.JSONObject')
-        s.addInputParam('item', 'org.cristalise.kernel.entity.proxy.ItemProxy')
-        s.addInputParam('agent', 'org.cristalise.kernel.entity.proxy.AgentProxy')
-        s.addOutput(name+'Xml', 'java.lang.String')
+        script.name = f.expression.name
+        script.version = f.expression.version
+        script.addInputParam(name, 'org.json.JSONObject')
+        script.addInputParam('item', 'org.cristalise.kernel.entity.proxy.ItemProxy')
+        script.addInputParam('agent', 'org.cristalise.kernel.entity.proxy.AgentProxy')
+        script.addOutput(name+'Xml', 'java.lang.String')
 
-        expressionScripts[f.expression.name] = s
+        expressionScripts[f.expression.name] = script
         expressionScriptsInputFields[f.expression.name] = f.expression.inputFields
     }
-        
+
+    @CompileDynamic
     private void buildField(MarkupBuilder xsd, Field f) {
         log.info "buildField() - Field: $f.name"
 
@@ -360,12 +370,14 @@ class SchemaDelegate {
         }
     }
 
+    @CompileDynamic
     private void buildAnyField(MarkupBuilder xsd, AnyField any) {
         log.info "buildAnyField()"
 
         xsd.'xs:any'(minOccurs: any.minOccurs, maxOccurs: any.maxOccurs, processContents: any.processContents)
     }
 
+    @CompileDynamic
     private void buildRestriction(MarkupBuilder xsd, Attribute fieldOrAttr) {
         log.info "buildRestriction() - type:$fieldOrAttr.type"
 

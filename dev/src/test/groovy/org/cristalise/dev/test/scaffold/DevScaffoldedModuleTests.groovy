@@ -22,10 +22,12 @@ package org.cristalise.dev.test.scaffold
 
 import static org.cristalise.dev.scaffold.CRUDItemCreator.UpdateMode.ERASE
 
+import java.time.LocalDate
 import java.time.LocalDateTime
+import java.time.Period
+import java.time.format.DateTimeFormatter
 
 import org.cristalise.dev.dsl.DevItemDSL
-import org.cristalise.dev.scaffold.CRUDGenerator
 import org.cristalise.dev.scaffold.CRUDItemCreator
 import org.cristalise.kernel.entity.proxy.ItemProxy
 import org.cristalise.kernel.process.Gateway
@@ -220,13 +222,22 @@ class DevScaffoldedModuleTests extends DevItemDSL implements CristalTestSetup {
 
     @Test
     public void 'Execute update script generated from Expression'() {
-        def s = LocalObjectLoader.getScript('TestItemExcel_DetailsAgeUpdateExpression', 0)
+        def script = LocalObjectLoader.getScript('TestItemExcel_DetailsAgeUpdateExpression', 0)
+
         def inputs = new CastorHashMap()
         def json = new JSONObject()
-        json.put('DateOfBirth', '1969-02-23')
+        def dateOfBirth = '1969-02-23'
+        def age = Period.between(LocalDate.parse(dateOfBirth, DateTimeFormatter.ofPattern('yyyy-MM-dd')), LocalDate.now()).getYears()
+
+        json.put('DateOfBirth', dateOfBirth)
         inputs.put("TestItemExcel_Details", json, false)
-        def result = (Map)s.evaluate(inputs)
-        def expected = '<TestItemExcel_Details><Age>51</Age></TestItemExcel_Details>'
+        def result = (Map)script.evaluate(inputs)
+        def expected = "<TestItemExcel_Details><Age>$age</Age></TestItemExcel_Details>"
+        assert KernelXMLUtility.compareXML(expected, (String)result.TestItemExcel_DetailsXml)
+
+        json.put('DateOfDeath', '1971-02-23')
+        result = (Map)script.evaluate(inputs)
+        expected = '<TestItemExcel_Details><Age>2</Age></TestItemExcel_Details>'
         assert KernelXMLUtility.compareXML(expected, (String)result.TestItemExcel_DetailsXml)
     }
 }
