@@ -18,13 +18,13 @@ The genearted script contains variables named after the inputFields which means 
 
 ## Injected variable available to the expression
 
-| Property     | Type (default)    | Description |
-| ------------ | ------------------| ----------- |
-| <InputField> | Type of the Field | variable created from the 'inputFields' |
-| item         | ItemProxy         | the actual Item for which the UpdateScript is executed |
-| agent        | AgentProxy        | the user executing the Activity |
-| schema       | Schema            | the Schema used to generate the form |
-| builder      | OutcomeBuilder    | the builder initilaied with the Schema. |
+| Property       | Type (default)    | Description |
+| -------------- | ------------------| ----------- |
+| \<InputField\> | Type of the Field | variable created from the 'inputFields' |
+| item           | ItemProxy         | the actual Item for which the UpdateScript is executed |
+| agent          | AgentProxy        | the user executing the Activity |
+| schema         | Schema            | the Schema used to generate the form |
+| builder        | OutcomeBuilder    | the builder initilaied with the Schema. |
 
 ## Limitations
 
