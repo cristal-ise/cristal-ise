@@ -59,7 +59,7 @@ import java.time.LocalDate
 final Logger log = LoggerFactory.getLogger("org.cristalise.test.Script.Patient.DetailsAgeUpdateExpression")
 
 def getAge(JSONObject json) {
-    def builder = new OutcomeBuilder(LocalObjectLoader.getSchema('TestItemExcel_Details', 0))
+    def builder = new OutcomeBuilder(LocalObjectLoader.getSchema('Patient_Details', 0))
     def DateOfBirth = getValueOrNull(json, 'DateOfBirth', builder)
 
     if (DateOfBirth != null) {
