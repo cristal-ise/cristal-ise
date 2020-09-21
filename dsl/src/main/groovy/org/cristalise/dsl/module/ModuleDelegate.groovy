@@ -155,12 +155,12 @@ class ModuleDelegate implements BindingConvention {
     public Schema Schema(String name, Integer version, @DelegatesTo(SchemaDelegate) Closure cl) {
         def sb = SchemaBuilder.build(name, version, cl)
         sb.schema.export(null, resourceBootDir, true)
-        addSchema(sb.schema)
 
         sb.expressionScipts.each { script ->
             script.export(null, resourceBootDir, true)
             addScript(script)
         }
+        addSchema(sb.schema)
         
         return sb.schema
     }
