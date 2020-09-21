@@ -299,21 +299,21 @@ class SchemaDelegate {
     }
 
     private void generateExpressionScript(Struct s, Field f) {
-        log.info('generateExpressionScript(field:{}) - script:{}', f.name, f.expression.name)
+        log.info('generateExpressionScript(struct:{}, field:{}) - script:{}', s.name, f.name, f.expression.name)
 
         def script = new Script('groovy', f.expression.generateUpdateScript(s, f, name, version))
         // this constructor adds a default output which is not needed
         script.getOutputParams().clear()
 
-        script.name = f.expression.name
-        script.version = f.expression.version
+        script.name = f.expression.name ?: f.expression.generateName(name, f.name)
+        script.version = f.expression.version != null ? f.expression.version : version
         script.addInputParam(name, 'org.json.JSONObject')
         script.addInputParam('item', 'org.cristalise.kernel.entity.proxy.ItemProxy')
         script.addInputParam('agent', 'org.cristalise.kernel.entity.proxy.AgentProxy')
         script.addOutput(name+'Xml', 'java.lang.String')
 
-        expressionScripts[f.expression.name] = script
-        expressionScriptsInputFields[f.expression.name] = f.expression.inputFields
+        expressionScripts[script.name] = script
+        expressionScriptsInputFields[script.name] = f.expression.inputFields
     }
 
     @CompileDynamic

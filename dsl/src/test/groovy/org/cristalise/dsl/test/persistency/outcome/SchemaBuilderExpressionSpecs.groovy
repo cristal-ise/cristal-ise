@@ -43,6 +43,56 @@ class SchemaBuilderExpressionSpecs extends Specification implements CristalTestS
                 field(name: 'DateOfBirth', type: 'date')
                 field(name: 'Age', type: 'integer') {
                     expression(
+                        imports: ['java.time.Period', 'java.time.LocalDate'],
+                        inputFields: ['DateOfBirth'],
+                        loggerPrefix : 'org.cristalise.test',
+                        expression: 'Period.between(DateOfBirth, LocalDate.now()).getYears()'
+                    )
+                }
+            }
+        }
+        def schema = sb.schema
+        def script = sb.expressionScipts[0]
+
+        then:
+        script != null
+        script.name == 'Patient_DetailsAgeUpdateExpression'
+        script.version == 0
+        script.language == 'groovy'
+        script.scriptData
+        script.scriptData.contains('org.cristalise.test.Script.Patient.DetailsAgeUpdateExpression')
+
+        KernelXMLUtility.compareXML(
+            """<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+                 <xs:element name="Patient_Details">
+                   <xs:complexType>
+                     <xs:all minOccurs="0">
+                       <xs:element name='DateOfBirth' type='xs:date' minOccurs='1' maxOccurs='1'>
+                         <xs:annotation>
+                           <xs:appinfo>
+                             <dynamicForms>
+                               <additional>
+                                 <updateScriptRef>Patient_DetailsAgeUpdateExpression:0</updateScriptRef>
+                               </additional>
+                             </dynamicForms>
+                           </xs:appinfo>
+                         </xs:annotation>
+                       </xs:element>
+                       <xs:element name='Age' type='xs:integer' minOccurs='1' maxOccurs='1'/>
+                     </xs:all>
+                   </xs:complexType>
+                 </xs:element>
+               </xs:schema>""", 
+               schema.schemaData)
+    }
+
+    def 'Field can specify name, version and loggerName of the expression'() {
+        when:
+        SchemaBuilder sb = SchemaBuilder.build('test', 'Patient_Details', 0) {
+            struct(name: 'Patient_Details') {
+                field(name: 'DateOfBirth', type: 'date')
+                field(name: 'Age', type: 'integer') {
+                    expression(
                         name: 'Patient_DetailsComputeAgeUpdateExpression',
                         version: 10,
                         imports: ['java.time.Period', 'java.time.LocalDate'],
@@ -60,6 +110,10 @@ class SchemaBuilderExpressionSpecs extends Specification implements CristalTestS
         script != null
         script.name == 'Patient_DetailsComputeAgeUpdateExpression'
         script.version == 10
+        script.language == 'groovy'
+        script.scriptData
+        script.scriptData.contains('org.cristalise.test.Script.Patient.ComputeAgeUpdateExpression')
+
         KernelXMLUtility.compareXML(
             """<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
                  <xs:element name="Patient_Details">

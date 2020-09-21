@@ -42,13 +42,25 @@ public class Expression {
     //Expression could generate save scripts as well
     //Boolean generateUpdateScript = true
 
-    String name
-    Integer version
+    String name //optional
+    Integer version  //optional
     List<String> imports = []
     List<String> inputFields = []
-    String loggerName //e.g.: org.cristalise.template.Script.Patient.ComputeAgeUpdateExpression
+    String loggerPrefix //optional : e.g. org.cristalise.template
+    String loggerName //optional (e.g. org.cristalise.template.Script.Patient.ComputeAgeUpdateExpression)
     String expression
     Boolean compileStatic = true
+
+    
+    
+    public String generateName(String schemaName, String fieldName) {
+        return "${schemaName}${fieldName}UpdateExpression";
+    }
+
+    public String generateLoggerName(String schemaName, String fieldName) {
+        def scriptName = generateName(schemaName, fieldName).replace('_', '.')
+        return loggerPrefix ? "${loggerPrefix}.Script.${scriptName}" : "Script.${scriptName}";
+    }
 
     public String generateUpdateScript(Struct s, Field f, String schemaName, Integer schemaVersion) {
         Map vars = [:]
@@ -63,7 +75,7 @@ public class Expression {
         vars.inputFields     = inputFields
         vars.inputFieldsType = inputFieldsType
         vars.requiredFields  = inputFields.findAll { s.fields[it].isRequired() }
-        vars.loggerName      = loggerName
+        vars.loggerName      = loggerName ?: generateLoggerName(s.name, f.name)
         vars.expression      = expression
         vars.compileStatic   = compileStatic
 

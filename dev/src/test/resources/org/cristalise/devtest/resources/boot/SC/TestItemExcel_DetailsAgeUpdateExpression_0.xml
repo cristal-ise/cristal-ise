@@ -20,7 +20,7 @@ import groovy.xml.MarkupBuilder
 import java.time.Period
 import java.time.LocalDate
 
-final Logger log = LoggerFactory.getLogger("org.cristalise.dsl.test.TestItemExcel.DetailsAgeUpdateExpression")
+final Logger log = LoggerFactory.getLogger("org.cristalise.devtest.Script.TestItemExcel.DetailsAgeUpdateExpression")
 
  @CompileStatic 
 def getAge(JSONObject json) {
@@ -39,7 +39,7 @@ def getAge(JSONObject json) {
     }
 }
 
-if (!TestItemExcel_Details) throw new InvalidDataException('Undefined inputs TestItemExcel_Details for script org.cristalise.dsl.test.TestItemExcel.DetailsAgeUpdateExpression')
+if (!TestItemExcel_Details) throw new InvalidDataException('Undefined inputs TestItemExcel_Details for script org.cristalise.devtest.Script.TestItemExcel.DetailsAgeUpdateExpression')
 
 JSONObject jsonInput = (JSONObject)TestItemExcel_Details
 log.debug 'TestItemExcel_Details:{}', jsonInput

@@ -8,11 +8,12 @@ The genearted script contains variables named after the inputFields which means 
 
 | Property      | Type (default)          | Description |
 | ------------- | ----------------------- | ----------- |
-| name          | String                  | the name of the generated Script item |
-| version       | Integer                 | the version of the generated Script item  |
+| name          | String (optional)       | ovwewrites the generated name (i.e. '\<schemaName\>\<fieldName\>UpdateExpression' |
+| version       | Integer (optional)      | ovwewrites the version of Schema  |
 | inputFields   | List<String>            | list of field names used to comput ethe value |
 | imports       | List<String>            | list of imported classes required to compile/execute the expression |
-| loggerName    | String                  | e.g.: org.cristalise.template.Script.Patient.ComputeAgeUpdateExpression |
+| loggerPrefix  | String (optional)       | the application package name, e.g. org.cristalise.template |
+| loggerName    | String (optional)       | ovwewrites the generated loggerName from the name and loggerPrefix |
 | expression    | String                  | the actual expression (currently only groovy is supported) |
 | compileStatic | boolean (default: true) | set it to false when the expression requires dynamic groovy |
 
@@ -20,7 +21,7 @@ The genearted script contains variables named after the inputFields which means 
 
 | Property       | Type (default)    | Description |
 | -------------- | ------------------| ----------- |
-| \<InputField\> | Type of the Field | variable created from the 'inputFields' |
+| \<InputField\> | Type of the Field | variable(s) created from the 'inputFields' |
 | item           | ItemProxy         | the actual Item for which the UpdateScript is executed |
 | agent          | AgentProxy        | the user executing the Activity |
 | schema         | Schema            | the Schema used to generate the form |
@@ -32,10 +33,12 @@ The genearted script contains variables named after the inputFields which means 
 - only UpdateScript is generated. Generating SaveScript could be implemented as well.
 - only groovy is supported
 
-# Example
+## Example
 The age of the patient is computed from the DataOfBirth and from the DateOfDeath fields, where the DateOfDeath is optional (the patient is still alive). In case the patient is still alive the expression uses the current date (LocalDate.now()) for the calculation. The expression is based in the [Elvis operator of groovy](http://groovy-lang.org/operators.html#_elvis_operator).
 
-**Schema DSL:**
+### Schema DSL
+
+- only the mandatory fields are specified in this example
 
 ```groovy
 Schema('Patient_Details', 0) {
@@ -44,19 +47,18 @@ Schema('Patient_Details', 0) {
     field(name: 'DateOfDeath', type: 'date', multiplicity: '0..1')
     field(name: 'Age', type: 'integer') {
     expression(
-      name: 'Patient_DetailsComputeAgeUpdateExpression',
-      version: 0,
       imports: ['java.time.Period', 'java.time.LocalDate'],
       inputFields: ['DateOfBirth, DateOfDeath'],
-      loggerName : 'org.cristalise.test.Script.Patient.ComputeAgeUpdateExpression',
       expression: 'Period.between(DateOfBirth, DateOfDeath ?: LocalDate.now()).getYears()'
     )
   }
 }
 ```
 
-**Generated XSD:**
-Both input fields, DateOfBirth and DateOfDeath, have the dynamicForms/updateScriptRef assigned with the generated script. 
+### Generated XSD
+
+- Both input fields, DateOfBirth and DateOfDeath, have the dynamicForms/additional/updateScriptRef assigned 
+- The generated script name is Patient_DetailsAgeUpdateExpression with version 0
 
 ```xml
 <?xml version='1.0' encoding='utf-8'?>
@@ -93,11 +95,12 @@ Both input fields, DateOfBirth and DateOfDeath, have the dynamicForms/updateScri
 </xs:schema>
 ```
 
-**Generated Updatescript:**
+### Generated Updatescript
 
 - The `getAge(json)` method is generated to execute the 'expression'.
-- The expression is only executed if the DateOfBirth is not null, because it is mandatory. 
-- all the static methods of OutcomeUtils are imported
+- The 'expression' is only executed if the DateOfBirth is not null, because DateOfDeath is NOT mandatory. 
+- Without 'loggerPrefix' the generated loggerName is Script.Patient.DetailsAgeUpdateExpression
+- All the static methods of OutcomeUtils were imported
 
 ```groovy
 import static org.cristalise.kernel.persistency.outcomebuilder.utils.OutcomeUtils.*
@@ -116,7 +119,7 @@ import groovy.xml.MarkupBuilder
 import java.time.Period
 import java.time.LocalDate
 
-final Logger log = LoggerFactory.getLogger("org.cristalise.test.Patient.DetailsAgeUpdateExpression")
+final Logger log = LoggerFactory.getLogger("Script.Patient.DetailsAgeUpdateExpression")
 
 @CompileStatic
 def getAge(JSONObject json) {
