@@ -62,3 +62,11 @@ Schema('ModuleChanges', 0) {
         }
     }
 }
+
+Schema('BulkAddMembers', 0) {
+    struct(name: 'BulkAddMembers', useSequence: true) {
+        struct(name: 'Member', useSequence: true, multiplicity: '0..*') {
+            field(name: 'param', type: 'string', multiplicity: '0..*')
+        }
+    }
+}
