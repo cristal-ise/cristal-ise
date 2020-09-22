@@ -25,23 +25,27 @@ import java.math.BigInteger;
 import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.time.OffsetDateTime;
 import java.time.OffsetTime;
+import java.time.ZoneId;
+import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.util.Map;
-
 import org.apache.commons.lang3.StringUtils;
 import org.cristalise.kernel.persistency.outcome.Outcome;
 import org.cristalise.kernel.persistency.outcomebuilder.Field;
 import org.cristalise.kernel.persistency.outcomebuilder.OutcomeBuilder;
 import org.cristalise.kernel.process.Gateway;
 import org.json.JSONObject;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * Utility class for generated Scripts, Script development and testing. JSONObject, Outcome and Map are the
  * 3 major formats the are used in the framework to handle outcome, and this class provides consistent type conversion
  * for field values.
  */
+@Slf4j
 public class OutcomeUtils {
     public static final String webuiDateFormat     = Gateway.getProperties().getString("Webui.format.date",     "yyyy-MM-dd");
     public static final String webuiDateTimeFormat = Gateway.getProperties().getString("Webui.format.datetime", "yyyy-MM-dd'T'HH:mm:ss");
@@ -314,9 +318,15 @@ public class OutcomeUtils {
             if (json.has(key) && !json.isNull(key)) {
                 Object value = json.get(key);
 
-                if (value instanceof String && "".equals(value)) return null;
+                if (value instanceof String) {
+                  String v = (String)value;
+                  DateTimeFormatter dtf = DateTimeFormatter.ofPattern(webuiDateFormat);
 
-                return LocalDate.parse(json.getString(key), DateTimeFormatter.ofPattern(webuiDateFormat));
+                  if (StringUtils.isNotBlank(v)) return LocalDate.parse(v, dtf);
+                }
+                else {
+                    log.warn("getLocalDateOrNull(key:{}) - json value is not a String, dropping it", key);
+                }
             }
         }
         else if (input instanceof Outcome) {
@@ -351,9 +361,15 @@ public class OutcomeUtils {
             if (json.has(key) && !json.isNull(key)) {
                 Object value = json.get(key);
 
-                if (value instanceof String && "".equals(value)) return null;
+                if (value instanceof String) {
+                    String v = (String)value;
+                    DateTimeFormatter dtf = DateTimeFormatter.ofPattern(webuiDateTimeFormat);
 
-                return LocalDateTime.parse(json.getString(key), DateTimeFormatter.ofPattern(webuiDateTimeFormat));
+                    if (StringUtils.isNotBlank(v)) return LocalDateTime.parse(v, dtf);
+                }
+                else {
+                    log.warn("getLocalDateTimeOrNull(key:{}) - json value is not a String, dropping it", key);
+                }
             }
         }
         else if (input instanceof Outcome) {
@@ -388,9 +404,19 @@ public class OutcomeUtils {
             if (json.has(key) && !json.isNull(key)) {
                 Object value = json.get(key);
 
-                if (value instanceof String && "".equals(value)) return null;
+                if (value instanceof String) {
+                    String v = (String)value;
+                    DateTimeFormatter dtf = DateTimeFormatter.ofPattern(webuiDateTimeFormat);
 
-                return OffsetDateTime.parse(json.getString(key), DateTimeFormatter.ofPattern(webuiDateTimeFormat));
+                    if (StringUtils.isNotBlank(v)) {
+                        OffsetDateTime odt = OffsetDateTime.now (ZoneId.systemDefault ());
+                        ZoneOffset zoneOffset = odt.getOffset ();
+                        return LocalDateTime.parse(v, dtf).atOffset(zoneOffset);
+                    }
+                }
+                else {
+                    log.warn("getOffsetDateTimeOrNull(key:{}) - json value is not a String, dropping it", key);
+                }
             }
         }
         else if (input instanceof Outcome) {
@@ -424,9 +450,19 @@ public class OutcomeUtils {
             if (json.has(key) && !json.isNull(key)) {
                 Object value = json.get(key);
 
-                if (value instanceof String && "".equals(value)) return null;
+                if (value instanceof String) {
+                    String v = (String)value;
+                    DateTimeFormatter dtf = DateTimeFormatter.ofPattern(webuiTimeFormat);
 
-                return OffsetTime.parse(json.getString(key), DateTimeFormatter.ofPattern(webuiTimeFormat));
+                    if (StringUtils.isNotBlank(v)) {
+                        OffsetDateTime odt = OffsetDateTime.now (ZoneId.systemDefault ());
+                        ZoneOffset zoneOffset = odt.getOffset ();
+                        return LocalTime.parse(v, dtf).atOffset(zoneOffset);
+                    }
+               }
+                else {
+                    log.warn("getOffsetTimeOrNull(key:{}) - json value is not a String, dropping it", key);
+                }
             }
         }
         else if (input instanceof Outcome) {
