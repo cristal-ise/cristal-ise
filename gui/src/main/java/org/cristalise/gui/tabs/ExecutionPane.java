@@ -38,7 +38,7 @@ import org.cristalise.kernel.entity.agent.Job;
 import org.cristalise.kernel.entity.proxy.MemberSubscription;
 import org.cristalise.kernel.entity.proxy.ProxyObserver;
 import org.cristalise.kernel.lifecycle.instance.Workflow;
-import org.cristalise.kernel.persistency.ClusterStorage;
+import org.cristalise.kernel.persistency.ClusterType;
 import org.cristalise.kernel.utils.Logger;
 
 
@@ -89,7 +89,7 @@ public class ExecutionPane extends ItemTabPane implements ProxyObserver<Workflow
     @Override
 	public void run() {
         Thread.currentThread().setName("Execution Pane Builder");
-        sourceItem.getItem().subscribe(new MemberSubscription<Workflow>(this, ClusterStorage.LIFECYCLE, false));
+        sourceItem.getItem().subscribe(new MemberSubscription<Workflow>(this, ClusterType.LIFECYCLE.getName(), false));
         loadJobList();
         init = true;
         if (autoRun != null) {

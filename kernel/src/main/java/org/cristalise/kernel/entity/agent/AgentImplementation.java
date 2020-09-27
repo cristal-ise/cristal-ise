@@ -73,6 +73,9 @@ public class AgentImplementation extends ItemImplementation implements AgentOper
     public synchronized void refreshJobList(SystemKey sysKey, String stepPath, String newJobs) {
         try {
             ItemPath itemPath = new ItemPath(sysKey);
+
+            mStorage.begin(mItemPath);
+
             JobArrayList newJobList = (JobArrayList)Gateway.getMarshaller().unmarshall(newJobs);
 
             List<String> keysToRemove = currentJobs.getKeysForStep(itemPath, stepPath);
@@ -86,11 +89,16 @@ public class AgentImplementation extends ItemImplementation implements AgentOper
             // remove old jobs for this item0
             for(String key: keysToRemove) currentJobs.remove(key);
 
-            Gateway.getStorage().commit(mItemPath);
+            mStorage.commit(mItemPath);
         }
         catch (Throwable ex) {
             log.error("Could not refresh job list.", ex);
-            Gateway.getStorage().abort(mItemPath);
+            try {
+                Gateway.getStorage().abort(mItemPath);
+            }
+            catch (PersistencyException e) {
+                log.error("Could not abort transaction.", e);
+            }
         }
     }
 

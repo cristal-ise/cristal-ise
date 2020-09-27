@@ -53,9 +53,9 @@ public class LookupPathClusterStorageTest {
     public void storeItemPath() throws Exception {
         ItemPath item = new ItemPath(UUID.randomUUID(), ior);
 
-        inMemoryCluster.put(storingItem, item);
+        inMemoryCluster.put(storingItem, item, null);
 
-        ItemPath itemPrime = (ItemPath) inMemoryCluster.get(storingItem, PATH + "/Item");
+        ItemPath itemPrime = (ItemPath) inMemoryCluster.get(storingItem, PATH + "/Item", null);
 
         assertNotNull(itemPrime);
         assertEquals(item.getUUID(),      itemPrime.getUUID());
@@ -66,9 +66,9 @@ public class LookupPathClusterStorageTest {
     public void storeAgentPath() throws Exception {
         AgentPath agent = new AgentPath(UUID.randomUUID(), ior, "toto");
 
-        inMemoryCluster.put(storingItem, agent);
+        inMemoryCluster.put(storingItem, agent, null);
 
-        AgentPath agentPrime = (AgentPath) inMemoryCluster.get(storingItem, PATH + "/Agent");
+        AgentPath agentPrime = (AgentPath) inMemoryCluster.get(storingItem, PATH + "/Agent", null);
 
         assertNotNull(agentPrime);
         assertEquals(agent.getUUID(),      agentPrime.getUUID());
@@ -80,11 +80,11 @@ public class LookupPathClusterStorageTest {
     public void storeDomainPath() throws Exception {
         DomainPath domain = new DomainPath("/my/path.2", new ItemPath());
 
-        inMemoryCluster.put(storingItem, domain);
+        inMemoryCluster.put(storingItem, domain, null);
         
         String name = StringUtils.remove( StringUtils.join(domain.getPath(), ""), "." );
 
-        DomainPath domainPrime = (DomainPath) inMemoryCluster.get(storingItem, PATH + "/Domain/" + name);
+        DomainPath domainPrime = (DomainPath) inMemoryCluster.get(storingItem, PATH + "/Domain/" + name, null);
 
         assertNotNull(domainPrime);
         assertEquals(domain.getStringPath(), domainPrime.getStringPath());
@@ -95,9 +95,9 @@ public class LookupPathClusterStorageTest {
     public void storeRolePath() throws Exception {
         RolePath role      = new RolePath("Minion", false);
 
-        inMemoryCluster.put(storingItem, role);
+        inMemoryCluster.put(storingItem, role, null);
 
-        RolePath rolePrime = (RolePath) inMemoryCluster.get(storingItem, PATH + "/Role/" + StringUtils.join(role.getPath(), ""));
+        RolePath rolePrime = (RolePath) inMemoryCluster.get(storingItem, PATH + "/Role/" + StringUtils.join(role.getPath(), ""), null);
 
         assertNotNull(rolePrime);
         assertEquals(role.getStringPath(), rolePrime.getStringPath());

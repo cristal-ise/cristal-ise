@@ -146,29 +146,28 @@ public class Module extends ImportItem {
     public void importAll(ItemProxy serverEntity, AgentProxy systemAgent, boolean reset) throws Exception {
         String moduleChanges = "";
 
-        if (!Bootstrap.shutdown) moduleChanges = importResources(systemAgent, reset);
-        if (!Bootstrap.shutdown) importRoles( systemAgent, reset);
-        if (!Bootstrap.shutdown) importAgents(systemAgent, reset);
-        if (!Bootstrap.shutdown) importItems( systemAgent, reset);
+        Object transactionKey = null;
+        //Object transactionKey = new Object();
+        Gateway.getStorage().begin(transactionKey); // should do nothing if transactionKey is null
 
-        //Finally create this Module Item
-        if (!Bootstrap.shutdown) this.create(systemAgent.getPath(), reset);
+        try {
+            if (!Bootstrap.shutdown) moduleChanges = importResources(systemAgent, reset, transactionKey);
+            if (!Bootstrap.shutdown) importRoles( systemAgent, reset, transactionKey);
+            if (!Bootstrap.shutdown) importAgents(systemAgent, reset, transactionKey);
+            if (!Bootstrap.shutdown) importItems( systemAgent, reset, transactionKey);
 
-        if (StringUtils.isNotBlank(moduleChanges))
-            new UpdateImportReport().request((AgentPath)SYSTEM_AGENT.getPath(), itemPath, moduleChanges);
-    }
+            //Finally create this Module Item
+            if (!Bootstrap.shutdown) this.create(systemAgent.getPath(), reset, transactionKey);
 
-    /**
-     * @param systemAgent
-     * @param reset
-     * @throws Exception
-     */
-    private void importItems(AgentProxy systemAgent, boolean reset) throws Exception {
-        for (ImportItem thisItem : imports.getItems()) {
-            if (Bootstrap.shutdown) return;
+            if (StringUtils.isNotBlank(moduleChanges)) {
+                new UpdateImportReport().request((AgentPath)SYSTEM_AGENT.getPath(), itemPath, moduleChanges, transactionKey);
+            }
 
-            thisItem.setNamespace(ns);
-            addItemToContents( thisItem.create(systemAgent.getPath(), reset) );
+            Gateway.getStorage().commit(transactionKey);
+        }
+        catch (Exception e) {
+            Gateway.getStorage().abort(transactionKey);
+            throw e;
         }
     }
 
@@ -177,7 +176,21 @@ public class Module extends ImportItem {
      * @param reset
      * @throws Exception
      */
-    private void importAgents(AgentProxy systemAgent, boolean reset) throws Exception {
+    private void importItems(AgentProxy systemAgent, boolean reset, Object transactionKey) throws Exception {
+        for (ImportItem thisItem : imports.getItems()) {
+            if (Bootstrap.shutdown) return;
+
+            thisItem.setNamespace(ns);
+            addItemToContents( thisItem.create(systemAgent.getPath(), reset, transactionKey) );
+        }
+    }
+
+    /**
+     * @param systemAgent
+     * @param reset
+     * @throws Exception
+     */
+    private void importAgents(AgentProxy systemAgent, boolean reset, Object transactionKey) throws Exception {
         for (ImportAgent thisAgent : imports.getAgents()) {
             if (Bootstrap.shutdown) return;
 
@@ -189,7 +202,7 @@ public class Module extends ImportItem {
             catch (ObjectNotFoundException ex) { }
 
             log.info("importAgents() - Agent '"+thisAgent.name+"' not found. Creating.");
-            addItemToContents( thisAgent.create(systemAgent.getPath(), reset) );
+            addItemToContents( thisAgent.create(systemAgent.getPath(), reset, transactionKey) );
         }
     }
 
@@ -198,11 +211,11 @@ public class Module extends ImportItem {
      * @param reset
      * @throws Exception
      */
-    private void importRoles(AgentProxy systemAgent, boolean reset) throws Exception {
+    private void importRoles(AgentProxy systemAgent, boolean reset, Object transactionKey) throws Exception {
         for (ImportRole thisRole : imports.getRoles()) {
             if (Bootstrap.shutdown) return;
 
-            thisRole.create(systemAgent.getPath(), reset);
+            thisRole.create(systemAgent.getPath(), reset, transactionKey);
         }
     }
 
@@ -210,7 +223,7 @@ public class Module extends ImportItem {
      * @param systemAgent
      * @param reset
      */
-    private String importResources(AgentProxy systemAgent, boolean reset) throws Exception {
+    private String importResources(AgentProxy systemAgent, boolean reset, Object transactionKey) throws Exception {
         List<String> moduleChanges = new ArrayList<String>();
 
         for (ModuleResource thisRes : imports.getResources()) {
@@ -218,7 +231,7 @@ public class Module extends ImportItem {
 
             try {
                 thisRes.setNamespace(ns);
-                addItemToContents(thisRes.create(systemAgent.getPath(), reset));
+                addItemToContents(thisRes.create(systemAgent.getPath(), reset, transactionKey));
                 moduleChanges.add(thisRes.getResourceChangeDetails());
             }
             catch (Exception ex) {
@@ -228,6 +241,8 @@ public class Module extends ImportItem {
         }
 
         StringBuffer moduleChangesXML = new StringBuffer("<ModuleChanges>\n");
+        moduleChangesXML.append("<ModuleName>"+name+"</ModuleName>");
+        moduleChangesXML.append("<ModuleVersion>"+getVersion()+"</ModuleVersion>");
         for (String oneChange: moduleChanges) moduleChangesXML.append(oneChange).append("\n");
         moduleChangesXML.append("</ModuleChanges>");
 

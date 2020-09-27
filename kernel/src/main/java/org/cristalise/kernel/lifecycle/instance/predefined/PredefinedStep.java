@@ -247,10 +247,10 @@ public abstract class PredefinedStep extends Activity {
      * @throws ObjectNotFoundException
      * @throws InvalidDataException
      */
-    public static void storeOutcomeEventAndViews(ItemPath itemPath, Outcome newOutcome)
+    public static void storeOutcomeEventAndViews(ItemPath itemPath, Outcome newOutcome, Object transactionKey )
             throws PersistencyException, ObjectNotFoundException, InvalidDataException
     {
-        storeOutcomeEventAndViews(itemPath, newOutcome, null);
+        storeOutcomeEventAndViews(itemPath, newOutcome, null, transactionKey);
     }
 
     /**
@@ -263,7 +263,7 @@ public abstract class PredefinedStep extends Activity {
      * @throws ObjectNotFoundException
      * @throws InvalidDataException
      */
-    public static void storeOutcomeEventAndViews(ItemPath itemPath, Outcome newOutcome, Integer version)
+    public static void storeOutcomeEventAndViews(ItemPath itemPath, Outcome newOutcome, Integer version, Object transactionKey)
             throws PersistencyException, ObjectNotFoundException, InvalidDataException
     {
         String viewName = "";
@@ -283,12 +283,12 @@ public abstract class PredefinedStep extends Activity {
 
         Viewpoint newLastView = new Viewpoint(itemPath, newOutcome.getSchema(), "last", eventID);
 
-        Gateway.getStorage().put(itemPath, newOutcome,  null);
-        Gateway.getStorage().put(itemPath, newLastView, null);
+        Gateway.getStorage().put(itemPath, newOutcome,  transactionKey);
+        Gateway.getStorage().put(itemPath, newLastView, transactionKey);
 
         if (version != null) {
             Viewpoint newNumberView = new Viewpoint(itemPath, newOutcome.getSchema(), viewName, eventID);
-            Gateway.getStorage().put(itemPath, newNumberView, null);
+            Gateway.getStorage().put(itemPath, newNumberView, transactionKey);
         }
     }
 
@@ -298,6 +298,7 @@ public abstract class PredefinedStep extends Activity {
      * @param agent
      * @param itemPath
      * @param requestData
+     * @param transactioKey
      * @return
      * @throws AccessRightsException
      * @throws InvalidTransitionException
@@ -309,7 +310,7 @@ public abstract class PredefinedStep extends Activity {
      * @throws CannotManageException
      * @throws InvalidCollectionModification
      */
-    public String request(AgentPath agent, ItemPath itemPath, String requestData)
+    public String request(AgentPath agent, ItemPath itemPath, String requestData, Object transactioKey)
             throws AccessRightsException, 
             InvalidTransitionException, 
             InvalidDataException, 
@@ -322,6 +323,6 @@ public abstract class PredefinedStep extends Activity {
     {
         log.info("request({}) - Type:{}", itemPath, getType());
         this.setActive(true);
-        return request(agent, agent, itemPath, PredefinedStep.DONE, requestData, null, new byte[0], true, null);
+        return request(agent, agent, itemPath, PredefinedStep.DONE, requestData, null, new byte[0], true, transactioKey);
     }
 }

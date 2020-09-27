@@ -56,7 +56,7 @@ public class CreateNewItem extends PredefinedStep {
     {
         try {
             ImportItem newItem = (ImportItem) Gateway.getMarshaller().unmarshall(requestData);
-            newItem.create(agent, false);
+            newItem.create(agent, false, locker);
             return requestData;
         }
         catch (MarshalException | ValidationException | IOException | MappingException e) {

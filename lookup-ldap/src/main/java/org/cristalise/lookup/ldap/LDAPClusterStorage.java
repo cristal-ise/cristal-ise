@@ -70,7 +70,7 @@ public class LDAPClusterStorage extends ClusterStorage {
 
     // introspection
     @Override
-    public short queryClusterSupport(String clusterType) {
+    public short queryClusterSupport(ClusterType clusterType) {
         if (clusterType.equals(ClusterType.PROPERTY.getName()))
             return READWRITE;
         else
@@ -89,7 +89,7 @@ public class LDAPClusterStorage extends ClusterStorage {
 
     // retrieve object by path
     @Override
-    public C2KLocalObject get(ItemPath thisItem, String path) throws PersistencyException {
+    public C2KLocalObject get(ItemPath thisItem, String path, Object transactionKey) throws PersistencyException {
         Logger.msg(6, "LDAPClusterStorage.get() - " + thisItem + "/" + path);
         StringTokenizer tok = new StringTokenizer(path, "/");
         int pathLength = tok.countTokens();
@@ -117,7 +117,7 @@ public class LDAPClusterStorage extends ClusterStorage {
 
     // store object by path
     @Override
-    public void put(ItemPath thisItem, C2KLocalObject obj) throws PersistencyException {
+    public void put(ItemPath thisItem, C2KLocalObject obj, Object transactionKey) throws PersistencyException {
         Logger.msg(6, "LDAPClusterStorage.put() - " + thisItem + "/" + ClusterStorage.getPath(obj));
 
         ClusterType type = obj.getClusterType();
@@ -137,7 +137,7 @@ public class LDAPClusterStorage extends ClusterStorage {
 
     // delete cluster
     @Override
-    public void delete(ItemPath thisItem, String path) throws PersistencyException {
+    public void delete(ItemPath thisItem, String path, Object transactionKey) throws PersistencyException {
         StringTokenizer tok = new StringTokenizer(path, "/");
         int pathLength = tok.countTokens();
         if (pathLength != 2) throw new PersistencyException("Path length was invalid: " + path);
@@ -161,7 +161,7 @@ public class LDAPClusterStorage extends ClusterStorage {
 
     // directory listing
     @Override
-    public String[] getClusterContents(ItemPath thisItem, String path) throws PersistencyException {
+    public String[] getClusterContents(ItemPath thisItem, String path, Object transactionKey) throws PersistencyException {
         Logger.msg(6, "LDAPClusterStorage.getClusterContents() - " + thisItem + "/" + path);
         StringTokenizer tok = new StringTokenizer(path, "/");
         int pathLength = tok.countTokens();
@@ -194,12 +194,30 @@ public class LDAPClusterStorage extends ClusterStorage {
     }
 
     @Override
-    public String executeQuery(Query query) throws PersistencyException {
+    public String executeQuery(Query query, Object transactionKey) throws PersistencyException {
         throw new PersistencyException("UNIMPLEMENTED funnctionality");
     }
 
     @Override
-    public int getLastIntegerId(ItemPath itemPath, String path) throws PersistencyException {
+    public int getLastIntegerId(ItemPath itemPath, String path, Object locker) throws PersistencyException {
         throw new PersistencyException("UNIMPLEMENTED funnctionality");
+    }
+
+    @Override
+    public void begin(Object transactionKey) throws PersistencyException {
+        // TODO Auto-generated method stub
+        
+    }
+
+    @Override
+    public void commit(Object transactionKey) throws PersistencyException {
+        // TODO Auto-generated method stub
+        
+    }
+
+    @Override
+    public void abort(Object transactionKey) throws PersistencyException {
+        // TODO Auto-generated method stub
+        
     }
 }

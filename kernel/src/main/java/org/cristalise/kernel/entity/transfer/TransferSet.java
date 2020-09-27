@@ -23,6 +23,7 @@ package org.cristalise.kernel.entity.transfer;
 import java.io.File;
 import java.util.ArrayList;
 
+import org.cristalise.kernel.common.PersistencyException;
 import org.cristalise.kernel.lookup.ItemPath;
 import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.utils.FileStringUtility;
@@ -78,7 +79,12 @@ public class TransferSet {
             }
             catch (Exception ex) {
                 log.error("Import of item " + element.itemPath + " failed. Rolling back", log);
-                Gateway.getStorage().abort(element);
+                try {
+                    Gateway.getStorage().abort(element);
+                }
+                catch (PersistencyException e) {
+                    log.error("Could not abort transaction.", e);
+                }
             }
         }
     }

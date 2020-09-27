@@ -280,10 +280,13 @@ public abstract class JooqHandler {
         return context.selectDistinct(field).from(getTable()).where(getPKConditions(uuid, primaryKeys)).fetch();
     }
 
+    public static String[] getPrimaryKeys(String path) {
+        String[] pathArray   = StringUtils.split(path, "/");
+        return Arrays.copyOfRange(pathArray, 1, pathArray.length);
+    }
+
     protected List<Condition> getPKConditions(UUID uuid, C2KLocalObject obj) throws PersistencyException {
-        String[] pathArray   = obj.getClusterPath().split("/");
-        String[] primaryKeys = Arrays.copyOfRange(pathArray, 1, pathArray.length);
-        return getPKConditions(uuid, primaryKeys);
+        return getPKConditions(uuid, getPrimaryKeys(obj.getClusterPath()));
     }
 
     public int put(DSLContext context, UUID uuid, C2KLocalObject obj) throws PersistencyException {

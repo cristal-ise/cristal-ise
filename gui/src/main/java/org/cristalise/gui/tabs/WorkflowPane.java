@@ -49,7 +49,7 @@ import org.cristalise.kernel.graph.model.VertexFactory;
 import org.cristalise.kernel.lifecycle.LifecycleVertexOutlineCreator;
 import org.cristalise.kernel.lifecycle.instance.CompositeActivity;
 import org.cristalise.kernel.lifecycle.instance.Workflow;
-import org.cristalise.kernel.persistency.ClusterStorage;
+import org.cristalise.kernel.persistency.ClusterType;
 import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.utils.FileStringUtility;
 import org.cristalise.kernel.utils.Logger;
@@ -209,13 +209,13 @@ public class WorkflowPane extends ItemTabPane implements ProxyObserver<Workflow>
             mEditorPanel.setEditable(MainFrame.isAdmin);
             init = true;
         }
-        sourceItem.getItem().subscribe(new MemberSubscription<Workflow>(this, ClusterStorage.LIFECYCLE, true));
+        sourceItem.getItem().subscribe(new MemberSubscription<Workflow>(this, ClusterType.LIFECYCLE.getName(), true));
         transPanel.setItem(sourceItem.getItem());
     }
     @Override
     public void reload()
     {
-        Gateway.getStorage().clearCache(sourceItem.getItemPath(), ClusterStorage.LIFECYCLE);
+        Gateway.getStorage().clearCache(sourceItem.getItemPath(), ClusterType.LIFECYCLE.getName());
         initForItem(sourceItem);
     }
     protected void createLayout()

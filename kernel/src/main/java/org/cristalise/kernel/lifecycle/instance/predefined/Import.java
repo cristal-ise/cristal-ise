@@ -29,7 +29,7 @@ import org.cristalise.kernel.events.Event;
 import org.cristalise.kernel.events.History;
 import org.cristalise.kernel.lookup.AgentPath;
 import org.cristalise.kernel.lookup.ItemPath;
-import org.cristalise.kernel.persistency.TransactionManager;
+import org.cristalise.kernel.persistency.ClusterStorageManager;
 import org.cristalise.kernel.persistency.outcome.Outcome;
 import org.cristalise.kernel.persistency.outcome.Schema;
 import org.cristalise.kernel.persistency.outcome.Viewpoint;
@@ -81,7 +81,7 @@ public class Import extends PredefinedStep {
 
         // write event, outcome and viewpoints to storage
 
-        TransactionManager storage = Gateway.getStorage();
+        ClusterStorageManager storage = Gateway.getStorage();
         History hist = getWf().getHistory();
         Event event = hist.addEvent(agent, null, getCurrentAgentRole(), getName(), getPath(), getType(), schema,
                 getStateMachine(), transitionID, viewpoint, timestamp);
@@ -96,7 +96,7 @@ public class Import extends PredefinedStep {
             storage.abort(locker);
             throw e;
         }
-        storage.commit(locker);
+//        storage.commit(locker);
         return requestData;
     }
 }

@@ -40,7 +40,7 @@ import org.cristalise.kernel.entity.proxy.ProxyObserver;
 import org.cristalise.kernel.events.Event;
 import org.cristalise.kernel.lifecycle.instance.predefined.PredefinedStep;
 import org.cristalise.kernel.lookup.ItemPath;
-import org.cristalise.kernel.persistency.ClusterStorage;
+import org.cristalise.kernel.persistency.ClusterType;
 import org.cristalise.kernel.persistency.outcome.Outcome;
 import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.utils.Logger;
@@ -75,7 +75,7 @@ public class CollectionHistoryWindow extends JFrame  {
 			this.coll = coll;
 			collEvents = new ArrayList<Event>();
 			collEventData = new ArrayList<Object>();
-			item.subscribe(new MemberSubscription<Event>(this, ClusterStorage.HISTORY, true));
+			item.subscribe(new MemberSubscription<Event>(this, ClusterType.HISTORY.getName(), true));
 		}
 		@Override
 		public int getColumnCount() {
@@ -136,7 +136,7 @@ public class CollectionHistoryWindow extends JFrame  {
 			if (thisEv.getStepName().equals("AssignItemToSlot") || thisEv.getStepName().equals("AddC2KObject")) {
 				String[] params;
 				try {
-				Outcome oc = (Outcome)item.getObject(ClusterStorage.OUTCOME+"/PredefinedStepOutcome/0/"+thisEv.getID());
+				Outcome oc = (Outcome)item.getObject(ClusterType.OUTCOME+"/PredefinedStepOutcome/0/"+thisEv.getID());
 				params = PredefinedStep.getDataList(oc.getData());
 				} catch (ObjectNotFoundException ex) { return; }
 				if (thisEv.getStepName().equals("AssignItemToSlot")) {

@@ -55,7 +55,7 @@ public class ClusterStorageManager {
     String[]                                        clusterPriority     = new String[0];
     HashMap<ClusterType, ArrayList<ClusterStorage>> clusterWriters      = new HashMap<ClusterType, ArrayList<ClusterStorage>>();
     HashMap<ClusterType, ArrayList<ClusterStorage>> clusterReaders      = new HashMap<ClusterType, ArrayList<ClusterStorage>>();
-    ArrayList<TransactionalClusterStorage>          transactionalStores = new ArrayList<TransactionalClusterStorage>();
+//    ArrayList<TransactionalClusterStorage>          transactionalStores = new ArrayList<TransactionalClusterStorage>();
 
     // we don't need a soft cache for the top level cache - the proxies and entities clear that when reaped
     HashMap<ItemPath, Map<String, C2KLocalObject>> memoryCache = new HashMap<ItemPath, Map<String, C2KLocalObject>>();
@@ -103,7 +103,7 @@ public class ClusterStorageManager {
             allStores.put(newStorage.getId(), newStorage);
             clusterPriority[clusterNo++] = newStorage.getId();
 
-            if (newStorage instanceof TransactionalClusterStorage) transactionalStores.add((TransactionalClusterStorage)newStorage);
+            //if (newStorage instanceof TransactionalClusterStorage) transactionalStores.add((TransactionalClusterStorage)newStorage);
         }
 
         clusterReaders.put(ClusterType.ROOT, rootStores); // all storages are queried for clusters at the root level
@@ -189,17 +189,33 @@ public class ClusterStorageManager {
         return useableStorages;
     }
 
+    public String executeQuery(Query query) throws PersistencyException {
+        return executeQuery(query, null);
+    }
+
     /**
      * Executes the Query
      *
      * @param query the Query to be executed
      * @return the xml result of the query
      */
-    public String executeQuery(Query query) throws PersistencyException {
+    public String executeQuery(Query query, Object locker) throws PersistencyException {
         ClusterStorage reader = findStorageForQuery(query.getLanguage());
 
-        if (reader != null) return reader.executeQuery(query);
+        if (reader != null) return reader.executeQuery(query, locker);
         else                throw new PersistencyException("No storage was found supporting language:"+query.getLanguage()+" query:"+query.getName());
+    }
+
+    public String[] getClusterContents(ItemPath itemPath, ClusterType type) throws PersistencyException {
+        return getClusterContents(itemPath, type, null);
+    }
+
+    public String[] getClusterContents(ItemPath itemPath, ClusterType type, Object locker) throws PersistencyException {
+        return getClusterContents(itemPath, type.getName(), locker);
+    }
+
+    public String[] getClusterContents(ItemPath itemPath, String path) throws PersistencyException {
+        return getClusterContents(itemPath, path, null);
     }
 
     /**
@@ -210,7 +226,7 @@ public class ClusterStorageManager {
      * @param path the cluster path
      * @return list of keys found in the cluster
      */
-    public String[] getClusterContents(ItemPath itemPath, String path) throws PersistencyException {
+    public String[] getClusterContents(ItemPath itemPath, String path, Object locker) throws PersistencyException {
         ArrayList<String> contents = new ArrayList<String>();
         // get all readers
         log.trace( "ClusterStorageManager.getClusterContents() - path:"+path);
@@ -218,7 +234,7 @@ public class ClusterStorageManager {
         // try each in turn until we get a result
         for (ClusterStorage thisReader : readers) {
             try {
-                String[] thisArr = thisReader.getClusterContents(itemPath, path);
+                String[] thisArr = thisReader.getClusterContents(itemPath, path, locker);
                 if (thisArr != null) {
                     for (int j = 0; j < thisArr.length; j++)
                         if (!contents.contains(thisArr[j])) {
@@ -240,6 +256,10 @@ public class ClusterStorageManager {
         return retArr;
     }
 
+    public C2KLocalObject get(ItemPath itemPath, String path) throws PersistencyException, ObjectNotFoundException {
+        return get(itemPath, path, null);
+    }
+
     /**
      * Internal get method. Retrieves clusters from ClusterStorages & maintains the memory cache.
      * <br>
@@ -249,7 +269,7 @@ public class ClusterStorageManager {
      * @param path the cluster path
      * @return the C2KObject located by path
      */
-    public C2KLocalObject get(ItemPath itemPath, String path) throws PersistencyException, ObjectNotFoundException {
+    public C2KLocalObject get(ItemPath itemPath, String path, Object locker) throws PersistencyException, ObjectNotFoundException {
         // check cache first
         Map<String, C2KLocalObject> sysKeyMemCache = memoryCache.get(itemPath);
 
@@ -267,7 +287,7 @@ public class ClusterStorageManager {
         if (path.startsWith(VIEWPOINT.getName()) && path.endsWith("/data")) {
             StringTokenizer tok = new StringTokenizer(path,"/");
             if (tok.countTokens() == 4) { // to not catch viewpoints called 'data'
-                Viewpoint view = (Viewpoint)get(itemPath, path.substring(0, path.lastIndexOf("/")));
+                Viewpoint view = (Viewpoint)get(itemPath, path.substring(0, path.lastIndexOf("/")), locker);
 
                 if (view != null) return view.getOutcome();
                 else              return null;
@@ -292,7 +312,7 @@ public class ClusterStorageManager {
             ArrayList<ClusterStorage> readers = findStorages(ClusterStorage.getClusterType(path), false);
             for (ClusterStorage thisReader : readers) {
                 try {
-                    result = thisReader.get(itemPath, path);
+                    result = thisReader.get(itemPath, path, locker);
                     log.debug( "ClusterStorageManager.get() - reading "+path+" from "+thisReader.getName() + " for item " + itemPath);
                     if (result != null) break; // got it!
                 }
@@ -312,10 +332,10 @@ public class ClusterStorageManager {
         return result;
     }
 
-    public int getLastIntegerId(ItemPath itemPath, String path) throws PersistencyException {
+    public int getLastIntegerId(ItemPath itemPath, String path, Object locker) throws PersistencyException {
         ArrayList<ClusterStorage> readers = findStorages(HISTORY, false);
         for(ClusterStorage storage: readers) {
-            return storage.getLastIntegerId(itemPath, path);
+            return storage.getLastIntegerId(itemPath, path, locker);
         }
         return -1;
     }
@@ -333,10 +353,7 @@ public class ClusterStorageManager {
         for (ClusterStorage thisWriter : writers) {
             try {
                 log.debug( "ClusterStorageManager.put() - writing "+path+" to "+thisWriter.getName());
-                if (thisWriter instanceof TransactionalClusterStorage && locker != null)
-                    ((TransactionalClusterStorage)thisWriter).put(itemPath, obj, locker);
-                else
-                    thisWriter.put(itemPath, obj);
+                thisWriter.put(itemPath, obj, locker);
             }
             catch (PersistencyException e) {
                 log.error("ClusterStorageManager.put() - writer " + thisWriter.getName() + " could not store " + itemPath + "/" + path + ": " + e.getMessage());
@@ -402,10 +419,7 @@ public class ClusterStorageManager {
         for (ClusterStorage thisWriter : writers) {
             try {
                 log.debug( "ClusterStorageManager.delete() - removing "+path+" from "+thisWriter.getName());
-                if (thisWriter instanceof TransactionalClusterStorage && locker != null)
-                    ((TransactionalClusterStorage)thisWriter).delete(itemPath, path, locker);
-                else
-                    thisWriter.delete(itemPath, path);
+                thisWriter.delete(itemPath, path, locker);
             }
             catch (PersistencyException e) {
                 log.error("ClusterStorageManager.delete() - writer " + thisWriter.getName() + " could not delete " + itemPath + "/" + path + ": " + e.getMessage());
@@ -425,6 +439,25 @@ public class ClusterStorageManager {
          } else {
             sendProxyEvent(message);
         }
+    }
+
+    /**
+     * Removes all child objects from the given path
+     *
+     * @param itemPath - Item to delete from
+     * @param path - root path to delete
+     * @param locker - locking object
+     *
+     * @throws PersistencyException - when deleting fails
+     */
+    public void removeCluster(ItemPath itemPath, String path, Object locker) throws PersistencyException {
+        String[] children = getClusterContents(itemPath, path);
+
+        for (String element : children)
+            removeCluster(itemPath, path+(path.length()>0?"/":"")+element, locker);
+
+        if (children.length==0 && path.indexOf("/") > -1)
+            remove(itemPath, path, locker);
     }
 
     public void clearCache(ItemPath itemPath, String path) {
@@ -490,14 +523,14 @@ public class ClusterStorageManager {
     }
 
     public void begin(Object locker)  throws PersistencyException {
-        for (TransactionalClusterStorage thisStore : transactionalStores) {
+        for (ClusterStorage thisStore: allStores.values()) {
             thisStore.begin(locker);
         }
     }
 
     public void commit(Object locker) throws PersistencyException {
         Set <ProxyMessage> messageSet = null;
-        for (TransactionalClusterStorage thisStore : transactionalStores) {
+        for (ClusterStorage thisStore : allStores.values()) {
             thisStore.commit(locker);
         }
         if(locker != null) {
@@ -511,7 +544,7 @@ public class ClusterStorageManager {
     }
 
     public void abort(Object locker) throws PersistencyException {
-        for (TransactionalClusterStorage thisStore : transactionalStores) {
+        for (ClusterStorage thisStore : allStores.values()) {
             thisStore.abort(locker);
         }
         if (locker!= null){
@@ -520,19 +553,19 @@ public class ClusterStorageManager {
     }
 
     public void postConnect() throws PersistencyException {
-        for (TransactionalClusterStorage thisStore : transactionalStores) {
+        for (ClusterStorage thisStore : allStores.values()) {
             thisStore.postConnect();
         }
     }
 
     public void postBoostrap() throws PersistencyException {
-        for (TransactionalClusterStorage thisStore : transactionalStores) {
+        for (ClusterStorage thisStore : allStores.values()) {
             thisStore.postBoostrap();
         }
     }
 
     public void postStartServer() throws PersistencyException{
-        for (TransactionalClusterStorage thisStore : transactionalStores) {
+        for (ClusterStorage thisStore : allStores.values()) {
             thisStore.postStartServer();
         }
     }
