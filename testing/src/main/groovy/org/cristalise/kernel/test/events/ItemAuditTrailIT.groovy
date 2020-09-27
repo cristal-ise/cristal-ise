@@ -57,9 +57,9 @@ class ItemAuditTrailIT extends KernelScenarioTestBase {
         auditTrail = agent.getItem("$folder/AuditTrail-$timeStamp")
 
         checkEvent(0, 0, 'Initialize')
-        checkEvent(1, 0, 'CA') //wrong its should be id:3
+        checkEvent(1, 0, 'workflow')
         checkEvent(2, 0, 'domain')
-        checkEvent(3, 0, 'workflow') //wrong its should be id:1
+        checkEvent(3, 0, 'CA')
 
         executeDoneJob(auditTrail, 'EA')
 

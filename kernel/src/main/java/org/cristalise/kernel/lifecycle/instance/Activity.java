@@ -215,6 +215,11 @@ public class Activity extends WfVertex {
                    CannotManageException,
                    InvalidCollectionModification
     {
+        if (log.isTraceEnabled()) {
+            StateMachine sm = getStateMachine();
+            log.trace("request() - path:{} state:{} transition:{}", getPath(), sm.getState(getState()), sm.getTransition(transitionID));
+        }
+
         // Find requested transition
         Transition transition = getStateMachine().getTransition(transitionID);
 
