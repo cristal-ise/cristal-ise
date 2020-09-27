@@ -1,20 +1,19 @@
 language: java
-jdk: oraclejdk8
-dist: trusty
+jdk: openjdk8
+#dist: trusty
 branches:
   only:
     - master
-    - release
     - develop
     - /^release\/.*$/
 before_install:
-  - echo $GPG_SECRET_KEYS | base64 --decode | $GPG_EXECUTABLE --import
+  - echo $GPG_SECRET_KEYS | tr " " "\n" | base64 --decode | $GPG_EXECUTABLE --import
   - echo $GPG_OWNERTRUST | base64 --decode | $GPG_EXECUTABLE --import-ownertrust
   - echo $TRAVIS_BRANCH
 install:
   - mvn --settings .maven.xml install -Dgpg.skip -B -V
 script:
-  - if [ "$TRAVIS_PULL_REQUEST" == "false" ] && [[ "$TRAVIS_BRANCH" == "develop" || "$TRAVIS_BRANCH" == "master" ]]; then mvn clean deploy --settings .maven.xml -DskipTests=true -B -U -Prelease; fi
+  - if [[ $TRAVIS_PULL_REQUEST == false ]] && ([[ $TRAVIS_BRANCH == develop ]] || [[ $TRAVIS_BRANCH == master ]] || [[ $TRAVIS_BRANCH == support/* ]]); then mvn clean deploy --settings .maven.xml -DskipTests=true -B -U -Prelease; fi
 cache:
   directories:
     - $HOME/.m2
