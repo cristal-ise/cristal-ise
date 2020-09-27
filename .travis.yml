@@ -1,13 +1,14 @@
 language: java
 jdk: openjdk8
-#dist: trusty
+dist: bionic
 branches:
   only:
     - master
     - develop
     - /^release\/.*$/
 before_install:
-  - echo $GPG_SECRET_KEYS | tr " " "\n" | base64 --decode | $GPG_EXECUTABLE --import
+#  - echo $GPG_SECRET_KEYS | tr " " "\n" | base64 --decode | $GPG_EXECUTABLE --import
+  - echo $GPG_SECRET_KEYS | base64 --decode | $GPG_EXECUTABLE --import
   - echo $GPG_OWNERTRUST | base64 --decode | $GPG_EXECUTABLE --import-ownertrust
   - echo $TRAVIS_BRANCH
 install:
