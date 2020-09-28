@@ -66,6 +66,7 @@ public class JooqClusterStorage extends ClusterStorage {
 
     @Override
     public void open(Authenticator auth) throws PersistencyException {
+        JooqHandler.readSystemProperties();
         initialiseHandlers();
     }
 

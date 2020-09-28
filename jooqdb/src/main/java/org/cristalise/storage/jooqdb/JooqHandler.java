@@ -167,28 +167,34 @@ public abstract class JooqHandler {
     public static final DataType<String>         XML_TYPE_MYSQL  = new DefaultDataType<String>(SQLDialect.MYSQL, SQLDataType.CLOB, "mediumtext", "char");
     public static final DataType<byte[]>         ATTACHMENT_TYPE = SQLDataType.BLOB;
 
-
-    public static final String     uri                = Gateway.getProperties().getString(JooqHandler.JOOQ_URI);
-    public static final String     user               = Gateway.getProperties().getString(JooqHandler.JOOQ_USER);
-    public static final String     pwd                = Gateway.getProperties().getString(JooqHandler.JOOQ_PASSWORD);
-    public static final Boolean    autoCommit         = Gateway.getProperties().getBoolean(JooqHandler.JOOQ_AUTOCOMMIT, false);
-
-    public static final Boolean    readOnlyDataSource = Gateway.getProperties().getBoolean(JooqHandler.JOOQ_READONLYDATASOURCE, false);
-    public static final SQLDialect dialect            = SQLDialect.valueOf(Gateway.getProperties().getString(JooqHandler.JOOQ_DIALECT, "POSTGRES"));
+    public static String     uri;
+    public static String     user;
+    public static String     pwd ;
+    public static Boolean    autoCommit;
+    public static Boolean    readOnlyDataSource;
+    public static SQLDialect dialect;
 
     private static HikariDataSource ds = null;
     private static HikariConfig config;
-    
 
-    static {
-        System.out.println("++++++++++++++++++++++JooqHandler"+ uri +";" + user +";"+pwd);
-        System.err.println("++++++++++++++++++++++JooqHandler"+ uri +";" + user +";"+pwd);
+    public static void readSystemProperties() {
+        uri                = Gateway.getProperties().getString(JooqHandler.JOOQ_URI);
+        user               = Gateway.getProperties().getString(JooqHandler.JOOQ_USER);
+        pwd                = Gateway.getProperties().getString(JooqHandler.JOOQ_PASSWORD);
+        autoCommit         = Gateway.getProperties().getBoolean(JooqHandler.JOOQ_AUTOCOMMIT, false);
+        readOnlyDataSource = Gateway.getProperties().getBoolean(JooqHandler.JOOQ_READONLYDATASOURCE, false);
+        dialect            = SQLDialect.valueOf(Gateway.getProperties().getString(JooqHandler.JOOQ_DIALECT, "POSTGRES"));
     }
 
     public static synchronized HikariDataSource getDataSource() {
         if (ds == null) {
-            if (StringUtils.isAnyBlank(uri, user, pwd))
-                throw new IllegalArgumentException("JOOQ (uri, user, password) config values must not be blank");
+            if (StringUtils.isAnyBlank(uri, user, pwd)) {
+                readSystemProperties();
+
+                if (StringUtils.isAnyBlank(uri, user, pwd)) {
+                    throw new IllegalArgumentException("JOOQ (uri, user, password) config values must not be blank");
+                }
+            }
 
             config = new HikariConfig();
             config.setPoolName("CRISTAL-iSE-HikariCP");

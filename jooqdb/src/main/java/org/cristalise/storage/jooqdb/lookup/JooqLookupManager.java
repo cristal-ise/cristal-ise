@@ -85,6 +85,8 @@ public class JooqLookupManager implements LookupManager {
 
     @Override
     public void open(Authenticator auth) {
+        JooqHandler.readSystemProperties();
+
         try {
             items       = new JooqItemHandler();
             domains     = new JooqDomainPathHandler();
@@ -111,7 +113,6 @@ public class JooqLookupManager implements LookupManager {
     }
 
     public void dropHandlers() throws PersistencyException {
-
         JooqHandler.connect().transaction(nested -> {
             properties .dropTables(DSL.using(nested));
             permissions.dropTables(DSL.using(nested));
@@ -159,8 +160,6 @@ public class JooqLookupManager implements LookupManager {
         catch (PersistencyException e) {
             log.error("", e);
         }
-
-
 
         return itemExists.size() > 0 ? true : false;
     }

@@ -48,9 +48,6 @@ public class LookupTestBase extends JooqTestConfigurationBase {
         c2kProps = new ObjectProperties();
         setUpStorage(c2kProps);
 
-        System.out.println("++++++++++++++++++++++"+ c2kProps);
-        System.err.println("++++++++++++++++++++++"+ c2kProps);
-
         Gateway.init(c2kProps);
     }
     
