@@ -178,6 +178,12 @@ public abstract class JooqHandler {
 
     private static HikariDataSource ds = null;
     private static HikariConfig config;
+    
+
+    static {
+        System.out.println("++++++++++++++++++++++JooqHandler"+ uri +";" + user +";"+pwd);
+        System.err.println("++++++++++++++++++++++JooqHandler"+ uri +";" + user +";"+pwd);
+    }
 
     public static synchronized HikariDataSource getDataSource() {
         if (ds == null) {
