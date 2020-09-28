@@ -7,14 +7,15 @@ branches:
     - develop
     - /^release\/.*$/
     - /^support\/.*$/
-before_install:
-  - echo $GPG_SECRET_KEYS | tr " " "\n" | base64 --decode | $GPG_EXECUTABLE --import --no-tty --batch --yes
-  - echo $GPG_OWNERTRUST | base64 --decode | $GPG_EXECUTABLE --import-ownertrust
-  - echo $TRAVIS_BRANCH
-install:
-  - mvn --settings .maven.xml install -Dgpg.skip -B -V
 script:
-  - if [[ $TRAVIS_PULL_REQUEST == false ]] && ([[ $TRAVIS_BRANCH == develop ]] || [[ $TRAVIS_BRANCH == master ]] || [[ $TRAVIS_BRANCH == support/* ]]); then mvn clean deploy --settings .maven.xml -DskipTests=true -B -U -Prelease; fi
+  - |
+    if [[ $TRAVIS_PULL_REQUEST == false ]] && ([[ $TRAVIS_BRANCH == develop ]] || [[ $TRAVIS_BRANCH == master ]] || [[ $TRAVIS_BRANCH == support/* ]]); then 
+      echo $GPG_SECRET_KEYS | tr " " "\n" | base64 --decode | $GPG_EXECUTABLE --import --no-tty --batch --yes
+      echo $GPG_OWNERTRUST | base64 --decode | $GPG_EXECUTABLE --import-ownertrust
+      mvn clean deploy --settings .maven.xml -B -V -Prelease;
+    else
+      mvn clean install --settings .maven.xml -Dgpg.skip -B -V
+    fi
 cache:
   directories:
     - $HOME/.m2
