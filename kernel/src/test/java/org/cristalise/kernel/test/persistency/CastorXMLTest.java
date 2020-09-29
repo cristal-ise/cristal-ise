@@ -57,7 +57,7 @@ import org.cristalise.kernel.utils.CastorHashMap;
 import org.cristalise.kernel.utils.CastorXMLUtility;
 import org.cristalise.kernel.utils.FileStringUtility;
 import org.hamcrest.collection.IsIterableContainingInAnyOrder;
-import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.xmlunit.builder.DiffBuilder;
@@ -74,8 +74,8 @@ public class CastorXMLTest {
             "0000000100000000000000350001005800000006636F726261009B44000000214F52"+
             "424C696E6B3A3A636F7262613A33393734383A3A736B656C65746F6E202330";
 
-    @Before
-    public void setup() throws Exception {
+    @BeforeClass
+    public static void setup() throws Exception {
         Properties props = FileStringUtility.loadConfigFile(MainTest.class.getResource("/server.conf").getPath());
         Gateway.init(props);
     }
