@@ -310,7 +310,7 @@ public abstract class PredefinedStep extends Activity {
      * @throws CannotManageException
      * @throws InvalidCollectionModification
      */
-    public String request(AgentPath agent, ItemPath itemPath, String requestData, Object transactioKey)
+    public String request(AgentPath agent, ItemPath itemPath, String requestData, Object transactionKey)
             throws AccessRightsException, 
             InvalidTransitionException, 
             InvalidDataException, 
@@ -323,6 +323,6 @@ public abstract class PredefinedStep extends Activity {
     {
         log.info("request({}) - Type:{}", itemPath, getType());
         this.setActive(true);
-        return request(agent, agent, itemPath, PredefinedStep.DONE, requestData, null, new byte[0], true, transactioKey);
+        return request(agent, agent, itemPath, PredefinedStep.DONE, requestData, null, new byte[0], true, transactionKey);
     }
 }

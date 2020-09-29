@@ -181,7 +181,7 @@ public class JooqClusterStorage extends ClusterStorage {
             throw new PersistencyException("transactionKey cannot be null when autoCommit is false");
         }
 
-        log.info("begin() - transactionKey:{}", transactionKey);
+        log.debug("begin() - transactionKey:{}", transactionKey);
 
         if (transactionKey != null) {
             Connection conn = JooqHandler.connect().configuration().connectionProvider().acquire();
@@ -219,7 +219,7 @@ public class JooqClusterStorage extends ClusterStorage {
             return;
         }
 
-        log.info("commit()");
+        log.debug("commit() - transactionKey:{}", transactionKey);
 
         DSLContext context = retrieveContext(transactionKey);
 
@@ -249,7 +249,7 @@ public class JooqClusterStorage extends ClusterStorage {
             return;
         }
 
-        log.info("abort()");
+        log.debug("abort() - transactionKey:{}", transactionKey);
 
         DSLContext context = retrieveContext(transactionKey);
 

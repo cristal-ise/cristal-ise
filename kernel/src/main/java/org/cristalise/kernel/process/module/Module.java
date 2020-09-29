@@ -146,8 +146,8 @@ public class Module extends ImportItem {
     public void importAll(ItemProxy serverEntity, AgentProxy systemAgent, boolean reset) throws Exception {
         String moduleChanges = "";
 
-        Object transactionKey = null;
-        //Object transactionKey = new Object();
+        String transactionKey = null;
+        //String transactionKey = "Module.importAll(module:"+name+")";
         Gateway.getStorage().begin(transactionKey); // should do nothing if transactionKey is null
 
         try {
@@ -159,7 +159,7 @@ public class Module extends ImportItem {
             //Finally create this Module Item
             if (!Bootstrap.shutdown) this.create(systemAgent.getPath(), reset, transactionKey);
 
-            if (StringUtils.isNotBlank(moduleChanges)) {
+            if (!Bootstrap.shutdown && StringUtils.isNotBlank(moduleChanges)) {
                 new UpdateImportReport().request((AgentPath)SYSTEM_AGENT.getPath(), itemPath, moduleChanges, transactionKey);
             }
 
