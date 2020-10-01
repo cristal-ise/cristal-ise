@@ -28,6 +28,7 @@ import static org.cristalise.kernel.security.BuiltInAuthc.SYSTEM_AGENT;
 
 import java.net.InetAddress;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.StringTokenizer;
@@ -283,10 +284,12 @@ public class Bootstrap {
         ScriptConsole.setUser(system);
 
         String ucRole = Gateway.getProperties().getString("UserCode.roleOverride", UserCodeProcess.DEFAULT_ROLE);
+        String ucPermissions = Gateway.getProperties().getString(ucRole + ".permissions", "");
 
         // check for local usercode user & role
         RolePath usercodeRole = new RolePath(rootRole, ucRole, true);
         if (!usercodeRole.exists()) Gateway.getLookupManager().createRole(usercodeRole);
+        Gateway.getLookupManager().setPermissions(usercodeRole, Arrays.asList(ucPermissions.split(",")));
         checkAgent(
                 Gateway.getProperties().getString(ucRole + ".agent",     InetAddress.getLocalHost().getHostName()),
                 Gateway.getProperties().getString(ucRole + ".password", "uc"),

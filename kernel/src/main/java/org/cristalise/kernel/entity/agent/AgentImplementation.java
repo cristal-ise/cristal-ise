@@ -21,6 +21,7 @@
 package org.cristalise.kernel.entity.agent;
 
 import java.util.List;
+
 import org.cristalise.kernel.common.CannotManageException;
 import org.cristalise.kernel.common.ObjectCannotBeUpdated;
 import org.cristalise.kernel.common.ObjectNotFoundException;
@@ -33,8 +34,8 @@ import org.cristalise.kernel.lifecycle.instance.predefined.agent.AgentPredefined
 import org.cristalise.kernel.lookup.AgentPath;
 import org.cristalise.kernel.lookup.ItemPath;
 import org.cristalise.kernel.lookup.RolePath;
-import org.cristalise.kernel.persistency.ClusterType;
 import org.cristalise.kernel.process.Gateway;
+
 import lombok.extern.slf4j.Slf4j;
 
 
@@ -51,17 +52,8 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class AgentImplementation extends ItemImplementation implements AgentOperations {
 
-    private JobList currentJobs;
-
     public AgentImplementation(AgentPath path) {
         super(path);
-
-        try {
-            currentJobs = (JobList) mStorage.get(path, ClusterType.JOB.getName(), path);
-        }
-        catch (PersistencyException | ObjectNotFoundException ex) {
-            log.error("", ex);
-        }
     }
 
     /**
@@ -77,6 +69,8 @@ public class AgentImplementation extends ItemImplementation implements AgentOper
             mStorage.begin(mItemPath);
 
             JobArrayList newJobList = (JobArrayList)Gateway.getMarshaller().unmarshall(newJobs);
+
+            JobList currentJobs = new JobList((AgentPath)mItemPath, mItemPath);
 
             List<String> keysToRemove = currentJobs.getKeysForStep(itemPath, stepPath);
 
@@ -152,7 +146,7 @@ public class AgentImplementation extends ItemImplementation implements AgentOper
     @Override
     protected void finalize() throws Throwable {
         log.debug("finalize() - Reaping " + mItemPath);
-        if (currentJobs != null) currentJobs.deactivate();
+        //if (currentJobs != null) currentJobs.deactivate();
         Gateway.getStorage().clearCache(mItemPath, null);
         super.finalize();
     }
