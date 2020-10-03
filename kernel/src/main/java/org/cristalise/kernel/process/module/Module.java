@@ -147,7 +147,7 @@ public class Module extends ImportItem {
         String moduleChanges = "";
 
         String transactionKey = null;
-        //String transactionKey = "Module.importAll(module:"+name+")";
+        //Object transactionKey = new Object();;
         Gateway.getStorage().begin(transactionKey); // should do nothing if transactionKey is null
 
         try {
