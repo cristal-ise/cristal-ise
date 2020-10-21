@@ -279,7 +279,11 @@ public class Dependency extends Collection<DependencyMember> {
         depMember.setID(getCounter());
 
         // class props needs to be added
-        for (String classProp: mClassProps.split(",")) props.put(classProp, mProperties.get(classProp));
+        if (StringUtils.isNotBlank(mClassProps)) {
+            for (String classProp: mClassProps.split(",")) {
+                if (StringUtils.isNotBlank(classProp)) props.put(classProp, mProperties.get(classProp));
+            }
+        }
 
         depMember.setProperties(props);
         depMember.setClassProps(mClassProps);

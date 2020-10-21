@@ -59,6 +59,7 @@ import org.cristalise.kernel.test.process.MainTest;
 import org.cristalise.kernel.utils.CastorHashMap;
 import org.cristalise.kernel.utils.CastorXMLUtility;
 import org.cristalise.kernel.utils.FileStringUtility;
+import org.cristalise.kernel.utils.LocalObjectLoader;
 import org.hamcrest.collection.IsIterableContainingInAnyOrder;
 import org.junit.Before;
 import org.junit.Ignore;
@@ -267,15 +268,23 @@ public class CastorXMLTest {
 
         //THIS is not the correct way of creating a new Dependency, it is used here to make testing possible
         Dependency dep = new Dependency("TestDep");
-        dep.addMember(new ItemPath());
-        dep.setClassProps("Type,State");
-        dep.getMember(0).setClassProps("Type,State");
+        // dep.setClassProps("Type,State");
+        CastorHashMap props = new CastorHashMap();
+        props.put("Name", "myName");
+        props.put("Type", "Unknown");
+        props.put("State", "Unmanaged");
+        dep.addMember(new ItemPath(), props, "");
         dep.getCounter(); //counter is not persistent but calculated from the IDs of its members
 
         Dependency depPrime = (Dependency) marshaller.unmarshall(marshaller.marshall(dep));
         depPrime.getCounter();
 
         assertReflectionEquals(dep, depPrime);
+
+        log.info(marshaller.marshall(dep));
+
+        Outcome o = new Outcome(marshaller.marshall(dep), LocalObjectLoader.getSchema("Dependency", 0));
+        o.validateAndCheck();
     }
 
     @Test
