@@ -50,6 +50,7 @@ import org.cristalise.kernel.lookup.DomainPath;
 import org.cristalise.kernel.lookup.ItemPath;
 import org.cristalise.kernel.lookup.RolePath;
 import org.cristalise.kernel.persistency.outcome.Outcome;
+import org.cristalise.kernel.persistency.outcome.Schema;
 import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.property.PropertyDescription;
 import org.cristalise.kernel.property.PropertyDescriptionList;
@@ -265,15 +266,17 @@ public class CastorXMLTest {
     @Test
     public void testCastorDependency() throws Exception {
         CastorXMLUtility marshaller = Gateway.getMarshaller();
+        Schema schema = LocalObjectLoader.getSchema("Dependency", 0);
 
         //THIS is not the correct way of creating a new Dependency, it is used here to make testing possible
+        Dependency dep = new Dependency("TestDep");
         CastorHashMap collProps = new CastorHashMap();
         collProps.put("Type", "Unknown");
         collProps.put("State", "Unmanaged");
-
-        Dependency dep = new Dependency("TestDep");
         dep.setProperties(collProps);
 //        dep.setClassProps("Type,State"); // this can be tested after mocking Gateway.getStorage().get(Property)
+
+        new Outcome(marshaller.marshall(dep), schema).validateAndCheck();
 
         CastorHashMap memberProps = new CastorHashMap();
         memberProps.put("Name", "myName");
@@ -285,11 +288,7 @@ public class CastorXMLTest {
         depPrime.getCounter();
 
         assertReflectionEquals(dep, depPrime);
-
-        log.info(marshaller.marshall(dep));
-
-        Outcome o = new Outcome(marshaller.marshall(dep), LocalObjectLoader.getSchema("Dependency", 0));
-        o.validateAndCheck();
+        new Outcome(marshaller.marshall(dep), schema).validateAndCheck();
     }
 
     @Test
