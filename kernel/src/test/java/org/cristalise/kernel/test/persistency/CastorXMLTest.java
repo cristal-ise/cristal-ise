@@ -267,13 +267,18 @@ public class CastorXMLTest {
         CastorXMLUtility marshaller = Gateway.getMarshaller();
 
         //THIS is not the correct way of creating a new Dependency, it is used here to make testing possible
+        CastorHashMap collProps = new CastorHashMap();
+        collProps.put("Type", "Unknown");
+        collProps.put("State", "Unmanaged");
+
         Dependency dep = new Dependency("TestDep");
-        // dep.setClassProps("Type,State");
-        CastorHashMap props = new CastorHashMap();
-        props.put("Name", "myName");
-        props.put("Type", "Unknown");
-        props.put("State", "Unmanaged");
-        dep.addMember(new ItemPath(), props, "");
+        dep.setProperties(collProps);
+//        dep.setClassProps("Type,State"); // this can be tested after mocking Gateway.getStorage().get(Property)
+
+        CastorHashMap memberProps = new CastorHashMap();
+        memberProps.put("Name", "myName");
+        memberProps.put("Stats", "chaotic");
+        dep.addMember(new ItemPath(), memberProps, "");
         dep.getCounter(); //counter is not persistent but calculated from the IDs of its members
 
         Dependency depPrime = (Dependency) marshaller.unmarshall(marshaller.marshall(dep));

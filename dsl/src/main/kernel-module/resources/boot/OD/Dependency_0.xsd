@@ -1,0 +1,73 @@
+<?xml version='1.0' encoding='utf-8'?>
+<xs:schema xmlns:xs='http://www.w3.org/2001/XMLSchema'>
+  <xs:element name='Dependency'>
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element name='CollectionMemberList' minOccurs='1' maxOccurs='1'>
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element name='DependencyMember' minOccurs='0' maxOccurs='unbounded'>
+                <xs:complexType>
+                  <xs:sequence>
+                    <xs:element name='Properties' minOccurs='1' maxOccurs='unbounded'>
+                      <xs:complexType>
+                        <xs:sequence>
+                          <xs:element name=' KeyValuePair' minOccurs='0' maxOccurs='unbounded'>
+                            <xs:complexType>
+                              <xs:simpleContent>
+                                <xs:extension base='xs:string'>
+                                  <xs:attribute name='Key' type='xs:string' use='required' />
+                                  <xs:attribute name='isAbstract' type='xs:boolean' use='required' />
+                                  <xs:attribute name='Integer' type='xs:integer' />
+                                  <xs:attribute name='String' type='xs:string' />
+                                  <xs:attribute name='Float' type='xs:decimal' />
+                                  <xs:attribute name='Boolean' type='xs:boolean' />
+                                </xs:extension>
+                              </xs:simpleContent>
+                            </xs:complexType>
+                          </xs:element>
+                        </xs:sequence>
+                      </xs:complexType>
+                    </xs:element>
+                  </xs:sequence>
+                  <xs:attribute name='ChildUUID'>
+                    <xs:simpleType>
+                      <xs:restriction base='xs:string'>
+                        <xs:pattern value='[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}' />
+                        <xs:length value='36' />
+                      </xs:restriction>
+                    </xs:simpleType>
+                  </xs:attribute>
+                  <xs:attribute name='ID' type='xs:integer' />
+                  <xs:attribute name='ClassProps' type='xs:string' />
+                </xs:complexType>
+              </xs:element>
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+        <xs:element name='Properties' minOccurs='1' maxOccurs='unbounded'>
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element name=' KeyValuePair' minOccurs='0' maxOccurs='unbounded'>
+                <xs:complexType>
+                  <xs:simpleContent>
+                    <xs:extension base='xs:string'>
+                      <xs:attribute name='Key' type='xs:string' use='required' />
+                      <xs:attribute name='isAbstract' type='xs:boolean' use='required' />
+                      <xs:attribute name='Integer' type='xs:integer' />
+                      <xs:attribute name='String' type='xs:string' />
+                      <xs:attribute name='Float' type='xs:decimal' />
+                      <xs:attribute name='Boolean' type='xs:boolean' />
+                    </xs:extension>
+                  </xs:simpleContent>
+                </xs:complexType>
+              </xs:element>
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+      </xs:sequence>
+      <xs:attribute name='CollectionName' type='xs:string' use='required' />
+      <xs:attribute name='ClassProps' type='xs:string' use='required' />
+    </xs:complexType>
+  </xs:element>
+</xs:schema>

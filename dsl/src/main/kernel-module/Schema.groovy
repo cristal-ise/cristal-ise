@@ -63,10 +63,32 @@ Schema('ModuleChanges', 0) {
     }
 }
 
-Schema('BulkAddMembers', 0) {
-    struct(name: 'BulkAddMembers', useSequence: true) {
-        struct(name: 'Member', useSequence: true, multiplicity: '0..*') {
-            field(name: 'param', type: 'string', multiplicity: '0..*')
+def uuidPattern = '[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}'
+
+def fieldKeyValuePair = {
+    field(name:' KeyValuePair', type: 'string',  multiplicity: '0..*') {
+        attribute(name: 'Key',        type: 'string',  multiplicity: '1..1')
+        attribute(name: 'isAbstract', type: 'boolean', multiplicity: '1..1')
+        attribute(name: 'Integer',    type: 'integer', multiplicity: '0..1')
+        attribute(name: 'String',     type: 'string',  multiplicity: '0..1')
+        attribute(name: 'Float',      type: 'decimal', multiplicity: '0..1')
+        attribute(name: 'Boolean',    type: 'boolean', multiplicity: '0..1')
+    }
+}
+
+Schema('Dependency', 0) {
+    struct(name: 'Dependency', useSequence: true) {
+        attribute(name: 'CollectionName', type: 'string', multiplicity: '1..1')
+        attribute(name: 'ClassProps',     type: 'string', multiplicity: '1..1')
+        struct(name: 'CollectionMemberList', useSequence: true, multiplicity: '1..1') {
+            struct(name: 'DependencyMember', useSequence: true, multiplicity: '0..*') {
+                attribute(name: 'ChildUUID',  type: 'string', pattern: uuidPattern, length : 36)
+                attribute(name: 'ID',         type: 'integer')
+                attribute(name: 'ClassProps', type: 'string')
+
+                struct(name: 'Properties', useSequence: true,  multiplicity: '1..*', fieldKeyValuePair)
+            }
         }
+        struct(name: 'Properties', useSequence: true, multiplicity: '1..*', fieldKeyValuePair)
     }
 }
