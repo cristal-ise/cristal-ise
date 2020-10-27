@@ -28,7 +28,6 @@ import static org.cristalise.kernel.security.BuiltInAuthc.ADMIN_ROLE;
 import static org.cristalise.kernel.security.BuiltInAuthc.SYSTEM_AGENT;
 
 import java.io.StringReader;
-import java.lang.reflect.Method;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -174,25 +173,12 @@ public abstract class PredefinedStep extends Activity {
                     CannotManageException,
                     AccessRightsException;
 
-                    public static String bundleData(String stepName, String[] data) {
-                        PredefinedStep stepInstance = (PredefinedStep) getStepInstance(stepName);
-                        try{
-                            if(stepInstance != null) {
-                                //Invoke static method bundleData
-                                Method bundleDataMethod = stepInstance.getClass().getMethod("bundleData", String[].class);
-                                return (String) bundleDataMethod.invoke(null, new Object[]{data});
-                            }
-                        }catch(Exception ex){
-                            log.error("Error invoking bundleData for step {} with data:\n{}", stepName, data, ex);
-                        }
-                        return bundleData(data);
-                    }
-
     /**
-     * Generic bundling of parameters
+     * Generic bundling of parameters. Converts the array of strings to PredefinedStepOutcome XML.
+     * Uses CDATA so any of the string could also be an XML.
      * 
-     * @param data
-     * @return
+     * @param data array of input string for a PredefinedStep
+     * @return the result of the PredefienedStep execution
      */
     public static String bundleData(String...data) {
         try {
@@ -222,7 +208,13 @@ public abstract class PredefinedStep extends Activity {
         }
     }
 
-    // generic bundling of single parameter
+    /**
+     * Generic bundling of a single parameter. Converts the array of strings to PredefinedStepOutcome XML.
+     * Uses CDATA so the string could also be an XML.
+     * 
+     * @param input string for a PredefinedStep
+     * @return the result of the PredefienedStep execution
+     */
     static public String bundleData(String data) {
         return bundleData(new String[] { data });
     }

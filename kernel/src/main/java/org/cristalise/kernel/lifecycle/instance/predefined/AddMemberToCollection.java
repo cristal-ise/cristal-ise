@@ -69,13 +69,7 @@ public class AddMemberToCollection extends PredefinedStepCollectionBase {
         if (memberNewProps == null) member = dep.createMember(childPath);
         else                        member = dep.createMember(childPath, memberNewProps);
 
-        if (dep.containsBuiltInProperty(MEMBER_ADD_SCRIPT)) {
-            CastorHashMap scriptProps = new CastorHashMap();
-            scriptProps.put("collection", dep);
-            scriptProps.put("member", member);
-
-            evaluateScript(item, (String)dep.getBuiltInProperty(MEMBER_ADD_SCRIPT), scriptProps, locker);
-        }
+        evaluateScript(item, dep, member, locker);
 
         dep.addMember(member);
 

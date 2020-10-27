@@ -20,36 +20,33 @@
  */
 package org.cristalise.kernel.lifecycle.instance.predefined;
 
-import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.MEMBER_ADD_SCRIPT;
 import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.SCHEMA_NAME;
 import static org.cristalise.kernel.persistency.ClusterType.COLLECTION;
 
-import java.util.Arrays;
-
-import lombok.extern.slf4j.Slf4j;
-import org.cristalise.kernel.common.*;
-import org.w3c.dom.NodeList;
-import javax.xml.parsers.DocumentBuilderFactory;
-import java.io.StringReader;
 import java.io.IOException;
-import org.exolab.castor.mapping.MappingException;
-import org.exolab.castor.xml.MarshalException;
-import org.exolab.castor.xml.ValidationException;
-import org.xml.sax.InputSource;
-import org.w3c.dom.Document;
+
 import org.cristalise.kernel.collection.Dependency;
 import org.cristalise.kernel.collection.DependencyMember;
+import org.cristalise.kernel.common.InvalidCollectionModification;
+import org.cristalise.kernel.common.InvalidDataException;
+import org.cristalise.kernel.common.ObjectAlreadyExistsException;
+import org.cristalise.kernel.common.ObjectNotFoundException;
+import org.cristalise.kernel.common.PersistencyException;
 import org.cristalise.kernel.lookup.AgentPath;
 import org.cristalise.kernel.lookup.ItemPath;
 import org.cristalise.kernel.process.Gateway;
-import org.cristalise.kernel.utils.CastorHashMap;
+import org.exolab.castor.mapping.MappingException;
+import org.exolab.castor.xml.MarshalException;
+import org.exolab.castor.xml.ValidationException;
+
+import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-public class AddMembersToCollection extends AddMemberToCollection {
+public class AddMembersToCollection extends PredefinedStepCollectionBase {
 
     public AddMembersToCollection(){
         super();
-        this.setBuiltInProperty(SCHEMA_NAME, "Collection");
+        this.setBuiltInProperty(SCHEMA_NAME, "Dependency");
     }
 
     //Creates a new member slot for the given item in a dependency, and assigns the item
@@ -57,30 +54,35 @@ public class AddMembersToCollection extends AddMemberToCollection {
     @Override
     protected String runActivityLogic(AgentPath agent, ItemPath item, int transitionID, String requestData, Object locker)
             throws InvalidDataException, ObjectAlreadyExistsException, PersistencyException, ObjectNotFoundException,
-            InvalidCollectionModification {
-                try {
-                    Dependency input = (Dependency) Gateway.getMarshaller().unmarshall(requestData);
-                    String collectionName = input.getName();
-                    Dependency dep = (Dependency) Gateway.getStorage().get(item, COLLECTION+"/"+collectionName+"/last", locker);
-                    for (DependencyMember member: input.getMembers().list) {
-                        if (dep.containsBuiltInProperty(MEMBER_ADD_SCRIPT)) {
-                            CastorHashMap scriptProps = new CastorHashMap();
-                            scriptProps.put("collection", dep);
-                            scriptProps.put("member", member);
-            
-                            evaluateScript(item, (String)dep.getBuiltInProperty(MEMBER_ADD_SCRIPT), scriptProps, locker);
-                        }
-                        DependencyMember newMember = dep.createMember(member.getItemPath(), member.getProperties());
-                        dep.addMember(newMember);
-                    }
-    
-                    Gateway.getStorage().put(item, dep, locker);
-    
-                    return Gateway.getMarshaller().marshall(dep);
-                } catch (IOException | ValidationException | MarshalException | MappingException ex) {
-                    log.error("Error adding members to collection", ex);
-                    throw new InvalidDataException("Error adding members to collection: " + ex);
+            InvalidCollectionModification
+    {
+        try {
+            Dependency inputDependendency = (Dependency) Gateway.getMarshaller().unmarshall(requestData);
+            String collectionName = inputDependendency.getName();
+            Dependency dep = (Dependency) Gateway.getStorage().get(item, COLLECTION + "/" + collectionName + "/last", locker);
+
+            for (DependencyMember inputMember : inputDependendency.getMembers().list) {
+                DependencyMember newMember = null;
+
+                if (inputMember.getProperties() != null && inputMember.getProperties().size() != 0) {
+                    newMember = dep.createMember(inputMember.getItemPath(), inputMember.getProperties());
                 }
-                
+                else {
+                    newMember = dep.createMember(inputMember.getItemPath());
+                }
+
+                evaluateScript(item, dep, newMember, locker);
+
+                dep.addMember(newMember);
+            }
+
+            Gateway.getStorage().put(item, dep, locker);
+
+            return Gateway.getMarshaller().marshall(dep);
+        }
+        catch (IOException | ValidationException | MarshalException | MappingException ex) {
+            log.error("Error adding members to collection", ex);
+            throw new InvalidDataException("Error adding members to collection: " + ex);
+        }
     }
 }
