@@ -47,6 +47,7 @@ public class ImportDependency {
     public String                            itemDescriptionVersion = null;
     public ArrayList<ImportDependencyMember> dependencyMemberList   = new ArrayList<ImportDependencyMember>();
     public CastorHashMap                     props                  = new CastorHashMap();
+    public String                            classProps             = "";
 
     public ImportDependency() {}
 
@@ -71,6 +72,8 @@ public class ImportDependency {
         Dependency newDep = isDescription ? new DependencyDescription(name) : new Dependency(name);
         if (version != null) newDep.setVersion(version);
 
+        if (StringUtils.isNotBlank(classProps)) newDep.setClassProps(classProps);
+
         if (StringUtils.isNotBlank(itemDescriptionPath)) {
             ItemPath itemPath;
             try {
@@ -81,14 +84,20 @@ public class ImportDependency {
             }
 
             String descVer = itemDescriptionVersion == null ? "last" : itemDescriptionVersion;
-            PropertyDescriptionList propList = PropertyUtility.getPropertyDescriptionOutcome(itemPath, descVer, null);
-            StringBuffer classProps = new StringBuffer();
+            PropertyDescriptionList propDescList = PropertyUtility.getPropertyDescriptionOutcome(itemPath, descVer, null);
+            StringBuffer descClassProps = new StringBuffer();
 
-            for (PropertyDescription pd : propList.list) {
+            for (PropertyDescription pd : propDescList.list) {
                 props.put(pd.getName(), pd.getDefaultValue());
-                if (pd.getIsClassIdentifier()) classProps.append((classProps.length() > 0 ? "," : "")).append(pd.getName());
+                if (pd.getIsClassIdentifier()) descClassProps.append((descClassProps.length() > 0 ? "," : "")).append(pd.getName());
             }
-            newDep.setClassProps(classProps.toString());
+
+            if (StringUtils.isBlank(classProps)) {
+                newDep.setClassProps(descClassProps.toString());
+            }
+            else {
+                newDep.setClassProps(classProps + "," + descClassProps.toString());
+            }
         }
 
         newDep.setProperties(props);
