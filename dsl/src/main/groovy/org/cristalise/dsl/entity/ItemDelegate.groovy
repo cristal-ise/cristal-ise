@@ -96,21 +96,22 @@ class ItemDelegate extends PropertyDelegate {
         Dependency(name, true, cl)
     }
 
-    public void Dependency(BuiltInCollections coll, boolean isDescription = false, Closure cl) {
-        Dependency(coll.getName(), isDescription, cl)
+    public void Dependency(BuiltInCollections coll, boolean isDescription = false, String classProps = null, Closure cl) {
+        Dependency(coll.getName(), isDescription, classProps, cl)
     }
-   
-    public void Dependency(String name, boolean isDescription = false, Closure cl) {
+
+    public void Dependency(String name, boolean isDescription = false, String classProps = null, Closure cl) {
         assert name
         assert cl
 
-        def builder = DependencyBuilder.build(name, isDescription, cl)
+        def builder = DependencyBuilder.build(name, isDescription, classProps, cl)
         Dependency dependency = builder.dependency
 
         assert dependency
 
         ImportDependency idep = new ImportDependency(dependency.name)
         idep.isDescription = dependency instanceof DependencyDescription
+        idep.classProps = dependency.classProps
 
         dependency.members.list.each { mem ->
             DependencyMember member = DependencyMember.cast(mem)
