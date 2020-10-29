@@ -20,8 +20,6 @@
  */
 package org.cristalise.kernel.lifecycle.instance.predefined;
 
-import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.MEMBER_ADD_SCRIPT;
-
 import java.util.Arrays;
 
 import org.cristalise.kernel.collection.Dependency;
@@ -34,7 +32,6 @@ import org.cristalise.kernel.common.PersistencyException;
 import org.cristalise.kernel.lookup.AgentPath;
 import org.cristalise.kernel.lookup.ItemPath;
 import org.cristalise.kernel.process.Gateway;
-import org.cristalise.kernel.utils.CastorHashMap;
 
 /**
  * <pre>
