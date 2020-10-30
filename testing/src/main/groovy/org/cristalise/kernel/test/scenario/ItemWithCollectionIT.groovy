@@ -2,14 +2,11 @@ package org.cristalise.kernel.test.scenario;
 
 import org.cristalise.dsl.entity.ItemBuilder
 import org.cristalise.kernel.collection.Dependency
-import org.cristalise.kernel.entity.agent.Job
 import org.cristalise.kernel.entity.imports.ImportItem
 import org.cristalise.kernel.entity.proxy.ItemProxy
 import org.cristalise.kernel.lifecycle.instance.predefined.AddMemberToCollection
 import org.cristalise.kernel.lifecycle.instance.predefined.AddMembersToCollection
 import org.cristalise.kernel.lookup.DomainPath
-import org.cristalise.kernel.lookup.ItemPath
-import org.cristalise.kernel.persistency.outcome.Outcome
 import org.cristalise.kernel.process.Gateway
 import org.cristalise.kernel.test.KernelScenarioTestBase
 import org.cristalise.kernel.utils.CastorHashMap
