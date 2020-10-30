@@ -68,7 +68,7 @@ Schema('ModuleChanges', 0) {
 def uuidPattern = '[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}'
 
 def fieldKeyValuePair = {
-    field(name:' KeyValuePair', type: 'string',  multiplicity: '0..*') {
+    field(name:'KeyValuePair', type: 'string',  multiplicity: '0..*') {
         attribute(name: 'Key',        type: 'string',  multiplicity: '1..1')
         attribute(name: 'isAbstract', type: 'boolean', multiplicity: '1..1')
         attribute(name: 'Integer',    type: 'integer', multiplicity: '0..1')

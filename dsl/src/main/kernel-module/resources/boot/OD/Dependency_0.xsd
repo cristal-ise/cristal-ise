@@ -1,4 +1,3 @@
-  
 <?xml version='1.0' encoding='utf-8'?>
 <xs:schema xmlns:xs='http://www.w3.org/2001/XMLSchema'>
   <xs:element name='Dependency'>
@@ -13,7 +12,7 @@
                     <xs:element name='Properties' minOccurs='1' maxOccurs='unbounded'>
                       <xs:complexType>
                         <xs:sequence>
-                          <xs:element name=' KeyValuePair' minOccurs='0' maxOccurs='unbounded'>
+                          <xs:element name='KeyValuePair' minOccurs='0' maxOccurs='unbounded'>
                             <xs:complexType>
                               <xs:simpleContent>
                                 <xs:extension base='xs:string'>
@@ -49,7 +48,7 @@
         <xs:element name='Properties' minOccurs='1' maxOccurs='unbounded'>
           <xs:complexType>
             <xs:sequence>
-              <xs:element name=' KeyValuePair' minOccurs='0' maxOccurs='unbounded'>
+              <xs:element name='KeyValuePair' minOccurs='0' maxOccurs='unbounded'>
                 <xs:complexType>
                   <xs:simpleContent>
                     <xs:extension base='xs:string'>
