@@ -1,15 +1,15 @@
 In CRISTAL 3.x, the hard-coded State Machine of CRISTAL 2.x was replaced with a described one, defined in StateMachine Items. 
 
- * Each State and Transition are identified by integer ID, and have non-unique names. 
- * Each State indicates whether it is a terminal state that triggers the Workflow to proceed.
- * Each Transition can:
-  * Name a boolean Activity Property that can enable or disable it.
-  * Name a Role that may override the Activity assigned Role for that Transition
-  * Indicate how it may change the Agent reservation: Set, clear or preserve
-  * Specify a Script that must be run during the Transition.
-  * Specify a Query that must be executed during the Transition.
-  * Specify that an Outcome may be supplied, referencing its [XMLSchema](../XMLSchema).
-  * Indicate that the Outcome is required.
+- Each State and Transition are identified by integer ID, and have non-unique names. 
+- Each State indicates whether it is a terminal state that triggers the Workflow to proceed.
+- Each Transition can:
+  - Name a boolean Activity Property that can enable or disable it.
+  - Name a Role that may override the Activity assigned Role for that Transition
+  - Indicate how it may change the Agent reservation: Set, clear or preserve
+  - Specify a Script that must be run during the Transition.
+  - Specify a Query that must be executed during the Transition.
+  - Specify that an Outcome may be supplied, referencing its [XMLSchema](../XMLSchema).
+  - Indicate that the Outcome is required.
 
 Values for these properties can be explicit, or reference Activity properties like this: `${SchemaType}`. The referenced properties may also invoke [data helpers](../DataHelper) to reference other Item data.
 
