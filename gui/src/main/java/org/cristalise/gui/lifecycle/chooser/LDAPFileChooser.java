@@ -33,6 +33,7 @@ import javax.swing.JPanel;
 import org.cristalise.gui.MainFrame;
 import org.cristalise.kernel.common.PersistencyException;
 import org.cristalise.kernel.persistency.ClusterStorage;
+import org.cristalise.kernel.persistency.ClusterType;
 import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.property.Property;
 import org.cristalise.kernel.utils.Logger;
@@ -114,7 +115,7 @@ public class LDAPFileChooser extends JPanel
 				String selectedItem = (String)e.getItem();
 				if (selectedItem != null && selectedItem.length() > 0) {
 					try {
-						String[] views = Gateway.getStorage().getClusterContents(mLec.getItem(selectedItem), ClusterStorage.VIEWPOINT+"/"+schemaName);
+						String[] views = Gateway.getStorage().getClusterContents(mLec.getItem(selectedItem), ClusterType.VIEWPOINT+"/"+schemaName, null);
 						for (String thisVer : views) {
 							try {
 								mVer.addItem(Integer.parseInt(thisVer));

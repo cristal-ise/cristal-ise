@@ -38,8 +38,8 @@ public class History extends RemoteMap<Event> {
 
     private static final long serialVersionUID = 3273324106002587993L;
 
-    public History(ItemPath itemPath, Object locker) {
-        super(itemPath, HISTORY.getName(), locker);
+    public History(ItemPath itemPath, Object transactionKey) {
+        super(itemPath, HISTORY.getName(), transactionKey);
     }
 
     public Event getEvent(int id) {
@@ -53,7 +53,7 @@ public class History extends RemoteMap<Event> {
 
     private Event storeNewEvent(Event newEvent) {
         synchronized (this) {
-            newEvent.setID( getLastId()+1 );
+            newEvent.setID( getLastId()+1);
             put(newEvent.getName(), newEvent);
             return newEvent;
         }

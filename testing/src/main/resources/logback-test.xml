@@ -30,7 +30,8 @@
   </appender>
 
 <!--   <logger name="org.jooq" level="DEBUG" /> -->
-  <logger name="org.cristalise.restapi" level="DEBUG" />
+<!--   <logger name="org.cristalise.kernel.lifecycle.instance" level="TRACE" /> -->
+<!--   <logger name="org.cristalise.storage.jooqdb" level="DEBUG" /> -->
 
   <root level="INFO">
     <appender-ref ref="STDOUT" />

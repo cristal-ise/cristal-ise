@@ -50,7 +50,7 @@ public abstract class ModuleImport {
 
     public ModuleImport() {}
 
-    public abstract Path create(AgentPath agentPath, boolean reset)
+    public abstract Path create(AgentPath agentPath, boolean reset, Object transactionKey)
             throws ObjectNotFoundException, ObjectCannotBeUpdated, CannotManageException, ObjectAlreadyExistsException,
                    InvalidCollectionModification, InvalidDataException, AccessRightsException, PersistencyException;
 

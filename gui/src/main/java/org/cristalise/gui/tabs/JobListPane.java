@@ -45,8 +45,8 @@ import org.cristalise.kernel.entity.agent.Job;
 import org.cristalise.kernel.entity.agent.JobList;
 import org.cristalise.kernel.entity.proxy.MemberSubscription;
 import org.cristalise.kernel.entity.proxy.ProxyObserver;
-import org.cristalise.kernel.events.Event;
 import org.cristalise.kernel.persistency.ClusterStorage;
+import org.cristalise.kernel.persistency.ClusterType;
 import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.property.Property;
 import org.cristalise.kernel.utils.DateUtility;
@@ -114,9 +114,9 @@ public class JobListPane extends ItemTabPane implements ActionListener, ProxyObs
 	public void run() {
         Thread.currentThread().setName("Joblist Pane Builder");
 		try {
-            joblist = (JobList)sourceItem.getItem().getObject(ClusterStorage.JOB);
+            joblist = (JobList)sourceItem.getItem().getObject(ClusterType.JOB);
             joblist.activate();
-            sourceItem.getItem().subscribe(new MemberSubscription<Job>(this, ClusterStorage.JOB, false));
+            sourceItem.getItem().subscribe(new MemberSubscription<Job>(this, ClusterType.JOB.getName(), false));
 		} catch (ObjectNotFoundException e) {
 			Logger.error(e);
 		}
@@ -207,7 +207,7 @@ public class JobListPane extends ItemTabPane implements ActionListener, ProxyObs
                     job[idx] = joblist.getJob(thisJobId.intValue());
                     itemNames[idx] = "Item Not Found";
                     try {
-                        itemNames[idx] = ((Property)Gateway.getStorage().get(job[count-startId].getItemPath(), ClusterStorage.PROPERTY+"/Name", null)).getValue();
+                        itemNames[idx] = ((Property)Gateway.getStorage().get(job[count-startId].getItemPath(), ClusterType.PROPERTY+"/Name", null)).getValue();
                     } catch (Exception ex) {
                         Logger.error(ex);
                     }

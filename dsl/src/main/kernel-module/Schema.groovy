@@ -54,6 +54,8 @@ Schema('LoggerConfig', 0) {
 
 Schema('ModuleChanges', 0) {
     struct(name: 'ModuleChanges', useSequence: true) {
+        field(name:'ModuleName', type: 'string')
+        field(name:'ModuleVersion', type: 'string')
         struct(name: 'ResourceChangeDetails', useSequence: true, multiplicity: '0..*') {
             field(name:'ResourceName', type: 'string')
             field(name:'ResourceVersion', type: 'string')

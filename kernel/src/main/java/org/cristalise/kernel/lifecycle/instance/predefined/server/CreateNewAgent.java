@@ -53,7 +53,7 @@ public class CreateNewAgent extends PredefinedStep {
     {
         try {
             ImportAgent newAgent = (ImportAgent) Gateway.getMarshaller().unmarshall(requestData);
-            newAgent.create(agent, true);
+            newAgent.create(agent, true, locker);
 
             newAgent.setPassword("REDACTED");
 

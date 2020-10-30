@@ -21,6 +21,7 @@
 package org.cristalise.kernel.lifecycle.instance.predefined;
 
 import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.SCHEMA_NAME;
+import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.VIEW_POINT;
 
 import org.cristalise.kernel.common.AccessRightsException;
 import org.cristalise.kernel.common.CannotManageException;
@@ -46,6 +47,7 @@ public class UpdateImportReport extends PredefinedStep {
     public UpdateImportReport() {
         super();
         setBuiltInProperty(SCHEMA_NAME, "ModuleChanges");
+        setBuiltInProperty(VIEW_POINT, "xpath://ModuleName");
     }
 
     protected String runActivityLogic(AgentPath agent, ItemPath itemPath, int transitionID, String requestData, Object locker)

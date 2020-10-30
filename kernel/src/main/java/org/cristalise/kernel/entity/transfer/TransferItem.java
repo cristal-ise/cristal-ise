@@ -100,6 +100,7 @@ public class TransferItem {
         log.info("Exporting path " + path + " in " + itemPath);
 
         String[] contents = Gateway.getStorage().getClusterContents(itemPath, path);
+
         if (contents.length > 0) {
             FileStringUtility.createNewDir(dir.getCanonicalPath());
             for (String content : contents) {
@@ -108,7 +109,7 @@ public class TransferItem {
         }
         else { // no children, try to dump object
             try {
-                C2KLocalObject obj = Gateway.getStorage().get(itemPath, path, null);
+                C2KLocalObject obj = Gateway.getStorage().get(itemPath, path);
                 log.info("Dumping object " + path + " in " + itemPath);
                 File dumpPath = new File(dir.getCanonicalPath() + ".xml");
                 FileStringUtility.string2File(dumpPath, Gateway.getMarshaller().marshall(obj));
@@ -119,9 +120,11 @@ public class TransferItem {
     }
 
     public void importItem(File dir) throws Exception {
+        Gateway.getStorage().begin(this);
+
         // check if already exists
         try {
-            Property name = (Property) Gateway.getStorage().get(itemPath, PROPERTY + "/" + NAME, null);
+            Property name = (Property) Gateway.getStorage().get(itemPath, PROPERTY + "/" + NAME, this);
             throw new Exception("Item " + itemPath + " already in use as " + name.getValue());
         }
         catch (Exception ex) {}

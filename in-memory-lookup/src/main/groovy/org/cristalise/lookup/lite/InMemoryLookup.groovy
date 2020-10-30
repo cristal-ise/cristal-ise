@@ -235,7 +235,7 @@ abstract class InMemoryLookup extends ClusterStorage implements Lookup {
         Logger.msg(5, "InMemoryLookup.checkItemProps(props) - ItemPath:$itemP # of props: $props.length")
 
         for(Property prop: props) {
-            Property p = (Property)propertyStore.get(itemP.itemPath, ""+ClusterType.PROPERTY+"/"+prop.name)
+            Property p = (Property)propertyStore.get(itemP.itemPath, ""+ClusterType.PROPERTY+"/"+prop.name, null)
             if(!p || p.value != prop.value) return false
         }
         return true

@@ -33,6 +33,7 @@ import org.cristalise.kernel.lookup.DomainPath;
 import org.cristalise.kernel.lookup.ItemPath;
 import org.cristalise.kernel.lookup.Path;
 import org.cristalise.kernel.persistency.ClusterStorage;
+import org.cristalise.kernel.persistency.ClusterType;
 import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.property.Property;
 
@@ -58,7 +59,7 @@ public class LDAPEntryChooser extends JComboBox<String>
             while (children.hasNext())
             {
                 ItemPath path = children.next().getItemPath();
-                Property prop = (Property)Gateway.getStorage().get(path, ClusterStorage.PROPERTY+"/Name", null);
+                Property prop = (Property)Gateway.getStorage().get(path, ClusterType.PROPERTY+"/Name", null);
                 allItems.add(prop.getValue());
                 itemPaths.put(prop.getValue(), path);
             }

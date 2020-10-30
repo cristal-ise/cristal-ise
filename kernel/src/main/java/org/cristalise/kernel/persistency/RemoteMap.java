@@ -54,7 +54,7 @@ public class RemoteMap<V extends C2KLocalObject> extends TreeMap<String, V> impl
     protected ItemPath mItemPath;
     private String mPath = "";
     Object keyLock = null;
-    TransactionManager storage;
+    ClusterStorageManager storage;
     Comparator<String> comp;
 
     /**
@@ -68,9 +68,9 @@ public class RemoteMap<V extends C2KLocalObject> extends TreeMap<String, V> impl
     /**
      * if this remote map will participate in a transaction
      */
-    Object mLocker;
+    Object mTransactionKey;
 
-    public RemoteMap(ItemPath itemPath, String path, Object locker) {
+    public RemoteMap(ItemPath itemPath, String path, Object transactionKey) {
         super(new Comparator<String>() {
             @Override
             public int compare(String o1, String o2) {
@@ -87,7 +87,7 @@ public class RemoteMap<V extends C2KLocalObject> extends TreeMap<String, V> impl
         });
 
         mItemPath = itemPath;
-        mLocker = locker;
+        mTransactionKey = transactionKey;
 
         // split the path into path/name
         int lastSlash = path.lastIndexOf("/");
@@ -170,7 +170,7 @@ public class RemoteMap<V extends C2KLocalObject> extends TreeMap<String, V> impl
 
     public synchronized int getLastId() {
         try {
-            return storage.getLastIntegerId(mItemPath, mPath+mName);
+            return storage.getLastIntegerId(mItemPath, mPath+mName, mTransactionKey);
         }
         catch (PersistencyException ex) {
             log.error("Failed to get last integer id for path:{}", "/"+ mItemPath + "/"+ mPath + mName, ex);
@@ -243,7 +243,7 @@ public class RemoteMap<V extends C2KLocalObject> extends TreeMap<String, V> impl
 
         synchronized(this) {
             try {
-                V value = (V)storage.get(mItemPath, mPath+mName+"/"+key, mLocker);
+                V value = (V)storage.get(mItemPath, mPath+mName+"/"+key, mTransactionKey);
                 super.put(key, value);
                 return value;
             }
@@ -283,7 +283,7 @@ public class RemoteMap<V extends C2KLocalObject> extends TreeMap<String, V> impl
 
         try {
             synchronized(this) {
-                storage.put(mItemPath, value, mLocker);
+                storage.put(mItemPath, value, mTransactionKey);
                 return putLocal(key, value);
             }
         }
@@ -306,7 +306,7 @@ public class RemoteMap<V extends C2KLocalObject> extends TreeMap<String, V> impl
 
         try {
             synchronized(keyLock) {
-                storage.remove(mItemPath, mPath+mName+"/"+key, mLocker);
+                storage.remove(mItemPath, mPath+mName+"/"+key, mTransactionKey);
                 return removeLocal(key);
             }
         }
