@@ -117,6 +117,9 @@
 		<field name="itemDescriptionVersion" type="string" direct="true">
 			<bind-xml name="itemDescriptionVersion" node="attribute"/>
 		</field>
+        <field name="classProps" type="string" direct="true">
+            <bind-xml name="classProps" node="attribute"/>
+        </field>
 		<field name="dependencyMemberList" collection="arraylist" direct="true" type="org.cristalise.kernel.entity.imports.ImportDependencyMember">
 			<bind-xml name="DependencyMember" node="element"/>
 		</field>

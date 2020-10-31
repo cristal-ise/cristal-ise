@@ -214,7 +214,7 @@ public abstract class Split extends WfVertex {
             }
             catch (PersistencyException | ObjectNotFoundException e) {
                 log.error("", e);
-                throw new InvalidDataException("Routing expression evaulation failed: " + expr + " with " + e.getMessage());
+                throw new InvalidDataException("Routing expression evaluation failed: " + expr + " with " + e.getMessage());
             }
         }
         else if (StringUtils.isNotBlank(scriptName)) {
@@ -223,8 +223,9 @@ public abstract class Split extends WfVertex {
                 return getRoutingReturnValue(returnValue);
             }
             catch (ScriptingEngineException e) {
-                log.error("", e);
-                throw new InvalidDataException("Error running Routing script " + scriptName + " v" + scriptVersion);
+                String msg = "Error running Routing script "+scriptName+" v"+scriptVersion;
+                log.error(msg, e);
+                throw new InvalidDataException(msg + " error:" + e.getMessage());
             }
         }
         else

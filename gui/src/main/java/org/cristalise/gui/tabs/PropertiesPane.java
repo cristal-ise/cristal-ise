@@ -44,7 +44,7 @@ import org.cristalise.gui.tree.NodeAgent;
 import org.cristalise.kernel.entity.proxy.AgentProxy;
 import org.cristalise.kernel.entity.proxy.MemberSubscription;
 import org.cristalise.kernel.entity.proxy.ProxyObserver;
-import org.cristalise.kernel.persistency.ClusterStorage;
+import org.cristalise.kernel.persistency.ClusterType;
 import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.property.Property;
 
@@ -107,7 +107,7 @@ public class PropertiesPane extends ItemTabPane implements ProxyObserver<Propert
 
     @Override
 	public void reload() {
-    	Gateway.getStorage().clearCache(sourceItem.getItemPath(), ClusterStorage.PROPERTY);
+    	Gateway.getStorage().clearCache(sourceItem.getItemPath(), ClusterType.PROPERTY.getName());
         loadedProps = new HashMap<String, JLabel>();
         initForItem(sourceItem);
     }
@@ -123,7 +123,7 @@ public class PropertiesPane extends ItemTabPane implements ProxyObserver<Propert
             domAdmin.setEntity(sourceItem.getItem());
         propertyBox.removeAll();
 		revalidate();
-        sourceItem.getItem().subscribe(new MemberSubscription<Property>(this, ClusterStorage.PROPERTY, true));
+        sourceItem.getItem().subscribe(new MemberSubscription<Property>(this, ClusterType.PROPERTY.getName(), true));
 
     }
     /**

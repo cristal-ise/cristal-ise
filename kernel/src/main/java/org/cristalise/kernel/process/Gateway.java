@@ -35,7 +35,7 @@ import org.cristalise.kernel.entity.proxy.ProxyManager;
 import org.cristalise.kernel.entity.proxy.ProxyServer;
 import org.cristalise.kernel.lookup.Lookup;
 import org.cristalise.kernel.lookup.LookupManager;
-import org.cristalise.kernel.persistency.TransactionManager;
+import org.cristalise.kernel.persistency.ClusterStorageManager;
 import org.cristalise.kernel.process.auth.Authenticator;
 import org.cristalise.kernel.process.module.ModuleManager;
 import org.cristalise.kernel.process.resource.BuiltInResources;
@@ -76,7 +76,7 @@ public class Gateway
     static private boolean              orbDestroyed = false;
     static private Lookup               mLookup;
     static private LookupManager        mLookupManager = null;
-    static private TransactionManager   mStorage;
+    static private ClusterStorageManager   mStorage;
     static private ProxyManager         mProxyManager;
     static private ProxyServer          mProxyServer;
     static private CorbaServer          mCorbaServer;
@@ -248,7 +248,7 @@ public class Gateway
             throw new InvalidDataException("Cannot connect server process. Please check config.");
         }
 
-        mStorage = new TransactionManager(auth);
+        mStorage = new ClusterStorageManager(auth);
         mProxyManager = new ProxyManager();
     }
 
@@ -445,7 +445,7 @@ public class Gateway
         return mCorbaServer;
     }
 
-    static public TransactionManager getStorage() {
+    static public ClusterStorageManager getStorage() {
         return mStorage;
     }
 

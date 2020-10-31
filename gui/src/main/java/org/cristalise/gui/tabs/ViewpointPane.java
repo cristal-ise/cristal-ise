@@ -48,7 +48,7 @@ import org.cristalise.kernel.entity.C2KLocalObject;
 import org.cristalise.kernel.entity.proxy.MemberSubscription;
 import org.cristalise.kernel.entity.proxy.ProxyObserver;
 import org.cristalise.kernel.events.Event;
-import org.cristalise.kernel.persistency.ClusterStorage;
+import org.cristalise.kernel.persistency.ClusterType;
 import org.cristalise.kernel.persistency.outcome.Outcome;
 import org.cristalise.kernel.persistency.outcome.Schema;
 import org.cristalise.kernel.persistency.outcome.Viewpoint;
@@ -163,14 +163,14 @@ public class ViewpointPane extends ItemTabPane implements ItemListener, ActionLi
 	public void run() {
         Thread.currentThread().setName("Viewpoint Pane Builder");
         //Local object subscriptions
-        sourceItem.getItem().subscribe(new MemberSubscription<C2KLocalObject>(this, ClusterStorage.VIEWPOINT, false));
-        sourceItem.getItem().subscribe(new MemberSubscription<C2KLocalObject>(this, ClusterStorage.OUTCOME, false));
+        sourceItem.getItem().subscribe(new MemberSubscription<C2KLocalObject>(this, ClusterType.VIEWPOINT.getName(), false));
+        sourceItem.getItem().subscribe(new MemberSubscription<C2KLocalObject>(this, ClusterType.OUTCOME.getName(), false));
         clearView();
         schemas.addItem("--");
         currentSchema = null;
         schemaList = new ArrayList<String>();
         try {
-            String outcomeTypes = sourceItem.getItem().queryData(ClusterStorage.VIEWPOINT+"/all");
+            String outcomeTypes = sourceItem.getItem().queryData(ClusterType.VIEWPOINT+"/all");
             StringTokenizer tok = new StringTokenizer(outcomeTypes, ",");
             int nonSystemSchemas = 0; String defaultSelection = null;
             while (tok.hasMoreTokens()) {
@@ -215,12 +215,12 @@ public class ViewpointPane extends ItemTabPane implements ItemListener, ActionLi
 
         try {
             // populate views
-            String viewNames = sourceItem.getItem().queryData(ClusterStorage.VIEWPOINT+"/"+schemaName+"/all");
+            String viewNames = sourceItem.getItem().queryData(ClusterType.VIEWPOINT+"/"+schemaName+"/all");
             StringTokenizer tok = new StringTokenizer(viewNames, ",");
             Viewpoint lastView = null;
             while(tok.hasMoreTokens()) {
                 String viewName = tok.nextToken();
-                Viewpoint thisView = (Viewpoint)sourceItem.getItem().getObject(ClusterStorage.VIEWPOINT+"/"+schemaName+"/"+viewName);
+                Viewpoint thisView = (Viewpoint)sourceItem.getItem().getObject(ClusterType.VIEWPOINT+"/"+schemaName+"/"+viewName);
                 views.addItem(thisView);
                 if (lastView == null) lastView = thisView;
                 if (thisView.getName().equals("last")) //select
@@ -228,11 +228,11 @@ public class ViewpointPane extends ItemTabPane implements ItemListener, ActionLi
                 viewpointList.add(thisView);
             }
 
-            String ocVersions = sourceItem.getItem().queryData(ClusterStorage.OUTCOME+"/"+schemaName+"/all");
+            String ocVersions = sourceItem.getItem().queryData(ClusterType.OUTCOME+"/"+schemaName+"/all");
             tok = new StringTokenizer(ocVersions, ",");
             while(tok.hasMoreTokens()) {
                 int schemaVersion = Integer.parseInt(tok.nextToken());
-                String ocEvents = sourceItem.getItem().queryData(ClusterStorage.OUTCOME+"/"+schemaName+"/"+schemaVersion+"/all");
+                String ocEvents = sourceItem.getItem().queryData(ClusterType.OUTCOME+"/"+schemaName+"/"+schemaVersion+"/all");
                 StringTokenizer tok2 = new StringTokenizer(ocEvents, ",");
                     while(tok2.hasMoreTokens()) {
                         int eventId = Integer.parseInt(tok2.nextToken());
@@ -284,7 +284,7 @@ public class ViewpointPane extends ItemTabPane implements ItemListener, ActionLi
         eventDetails.setText(thisEvent.getEventDesc());
         try {
             setView((Outcome)sourceItem.getItem().getObject(
-                ClusterStorage.OUTCOME+"/"+currentSchema+"/"+thisEvent.schemaVersion+"/"+thisEvent.eventId));
+                ClusterType.OUTCOME+"/"+currentSchema+"/"+thisEvent.schemaVersion+"/"+thisEvent.eventId));
         } catch (Exception ex) {
             Logger.error(ex);
             JOptionPane.showMessageDialog(this,
@@ -509,7 +509,7 @@ public class ViewpointPane extends ItemTabPane implements ItemListener, ActionLi
 
         public String getEventDesc() {
             try {
-                Event myEvent = (Event)sourceItem.getItem().getObject(ClusterStorage.HISTORY+"/"+eventId);
+                Event myEvent = (Event)sourceItem.getItem().getObject(ClusterType.HISTORY+"/"+eventId);
                 return ("Recorded on "+myEvent.getTimeString()+
                     " by "+myEvent.getAgentPath().getAgentName()+
                     " using schema v"+schemaVersion);

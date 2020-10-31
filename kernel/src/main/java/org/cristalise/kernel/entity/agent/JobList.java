@@ -21,14 +21,16 @@
 package org.cristalise.kernel.entity.agent;
 
 import static org.cristalise.kernel.persistency.ClusterType.JOB;
+
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Vector;
+
 import org.cristalise.kernel.lookup.AgentPath;
 import org.cristalise.kernel.lookup.ItemPath;
-import org.cristalise.kernel.persistency.ClusterType;
 import org.cristalise.kernel.persistency.RemoteMap;
+
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -39,8 +41,8 @@ public class JobList extends RemoteMap<Job> {
      */
     private static final long serialVersionUID = -1110616958817712975L;
 
-    public JobList(AgentPath agentPath, Object locker) {
-        super(agentPath, JOB.getName(), locker);
+    public JobList(AgentPath agentPath, Object transactionKey) {
+        super(agentPath, JOB.getName(), transactionKey);
     }
 
     public void addJob(Job job) {
@@ -49,11 +51,6 @@ public class JobList extends RemoteMap<Job> {
             job.setId(jobId);
             put(String.valueOf(jobId), job);
         }
-    }
-
-    @Override
-    public ClusterType getClusterType() {
-        return null;
     }
 
     public Job getJob(int id) {

@@ -35,7 +35,7 @@ import org.cristalise.kernel.entity.proxy.MemberSubscription;
 import org.cristalise.kernel.entity.proxy.ProxyObserver;
 import org.cristalise.kernel.lookup.ItemPath;
 import org.cristalise.kernel.lookup.Path;
-import org.cristalise.kernel.persistency.ClusterStorage;
+import org.cristalise.kernel.persistency.ClusterType;
 import org.cristalise.kernel.utils.CastorHashMap;
 import org.cristalise.kernel.utils.KeyValuePair;
 import org.cristalise.kernel.utils.Logger;
@@ -51,7 +51,7 @@ public class NodeCollection extends Node implements ProxyObserver<Collection<? e
     	super(desktop);
         this.parent = parent;
         this.name = name;
-        this.path = parent.getPath()+"/"+ClusterStorage.COLLECTION+"/"+name+"/last";
+        this.path = parent.getPath()+"/"+ClusterType.COLLECTION+"/"+name+"/last";
         createTreeNode();
         this.makeExpandable();
     }
@@ -60,7 +60,7 @@ public class NodeCollection extends Node implements ProxyObserver<Collection<? e
     	super(desktop);
         this.parent = parent;
         this.name = coll.getName();
-        this.path = parent.getPath()+"/"+ClusterStorage.COLLECTION+"/"+name+"/last";
+        this.path = parent.getPath()+"/"+ClusterType.COLLECTION+"/"+name+"/last";
         createTreeNode();
         this.makeExpandable();
         add(coll);
@@ -71,10 +71,10 @@ public class NodeCollection extends Node implements ProxyObserver<Collection<? e
         Logger.msg(8, "NodeCollection::loadChildren()");
         try {
         	if (thisCollection == null) {
-        		Collection<? extends CollectionMember> initColl = (Collection<? extends CollectionMember>)parent.getObject(ClusterStorage.COLLECTION+"/"+name+"/last");
+        		Collection<? extends CollectionMember> initColl = (Collection<? extends CollectionMember>)parent.getObject(ClusterType.COLLECTION+"/"+name+"/last");
         		add(initColl);
         	}
-            parent.subscribe(new MemberSubscription<Collection<? extends CollectionMember>>(this, ClusterStorage.COLLECTION, false));
+            parent.subscribe(new MemberSubscription<Collection<? extends CollectionMember>>(this, ClusterType.COLLECTION.getName(), false));
         } catch (ObjectNotFoundException ex) {
             end(false);
             return;

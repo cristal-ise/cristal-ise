@@ -82,7 +82,7 @@ public class ProxyLoader extends ClusterStorage {
     }
 
     @Override
-    public short queryClusterSupport(String clusterType) {
+    public short queryClusterSupport(ClusterType clusterType) {
         return READ;
     }
 
@@ -97,7 +97,7 @@ public class ProxyLoader extends ClusterStorage {
     }
 
     @Override
-    public String executeQuery(Query query) throws PersistencyException {
+    public String executeQuery(Query query, Object transactionKey) throws PersistencyException {
         throw new PersistencyException("UNIMPLEMENTED funnction");
     }
 
@@ -105,7 +105,7 @@ public class ProxyLoader extends ClusterStorage {
      * retrieve object by path
      */
     @Override
-    public C2KLocalObject get(ItemPath thisItem, String path) throws PersistencyException {
+    public C2KLocalObject get(ItemPath thisItem, String path, Object transactionKey) throws PersistencyException {
         try {
             Item thisEntity = getIOR(thisItem);
             ClusterType type = getClusterType(path);
@@ -134,7 +134,7 @@ public class ProxyLoader extends ClusterStorage {
      * store object not supported
      */
     @Override
-    public void put(ItemPath thisItem, C2KLocalObject obj) throws PersistencyException {
+    public void put(ItemPath thisItem, C2KLocalObject obj, Object transactionKey) throws PersistencyException {
         throw new PersistencyException("Cannot write to items through the ProxyLoader");
     }
 
@@ -142,7 +142,7 @@ public class ProxyLoader extends ClusterStorage {
      * delete cluster not supported
      */
     @Override
-    public void delete(ItemPath thisItem, String path) throws PersistencyException {
+    public void delete(ItemPath thisItem, String path, Object transactionKey) throws PersistencyException {
         throw new PersistencyException("Cannot write to items through the ProxyLoader");
     }
 
@@ -150,7 +150,7 @@ public class ProxyLoader extends ClusterStorage {
      * Directory listing
      */
     @Override
-    public String[] getClusterContents(ItemPath thisItem, String path) throws PersistencyException {
+    public String[] getClusterContents(ItemPath thisItem, String path, Object transactionKey) throws PersistencyException {
         try {
             Item thisEntity = getIOR(thisItem);
             String contents = thisEntity.queryData(path+"/all");
@@ -201,7 +201,25 @@ public class ProxyLoader extends ClusterStorage {
     }
 
     @Override
-    public int getLastIntegerId(ItemPath itemPath, String path) throws PersistencyException {
+    public int getLastIntegerId(ItemPath itemPath, String path, Object transactionKey) throws PersistencyException {
         throw new PersistencyException("Unimplemented");
+    }
+
+    @Override
+    public void begin(Object transactionKey) throws PersistencyException {
+        // TODO Auto-generated method stub
+        
+    }
+
+    @Override
+    public void commit(Object transactionKey) throws PersistencyException {
+        // TODO Auto-generated method stub
+        
+    }
+
+    @Override
+    public void abort(Object transactionKey) throws PersistencyException {
+        // TODO Auto-generated method stub
+        
     }
 }

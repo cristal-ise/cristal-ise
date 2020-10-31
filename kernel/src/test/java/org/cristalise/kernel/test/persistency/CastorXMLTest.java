@@ -47,6 +47,7 @@ import org.cristalise.kernel.lookup.DomainPath;
 import org.cristalise.kernel.lookup.ItemPath;
 import org.cristalise.kernel.lookup.RolePath;
 import org.cristalise.kernel.persistency.outcome.Outcome;
+import org.cristalise.kernel.persistency.outcome.Schema;
 import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.property.PropertyDescription;
 import org.cristalise.kernel.property.PropertyDescriptionList;
@@ -56,8 +57,9 @@ import org.cristalise.kernel.test.process.MainTest;
 import org.cristalise.kernel.utils.CastorHashMap;
 import org.cristalise.kernel.utils.CastorXMLUtility;
 import org.cristalise.kernel.utils.FileStringUtility;
+import org.cristalise.kernel.utils.LocalObjectLoader;
 import org.hamcrest.collection.IsIterableContainingInAnyOrder;
-import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.xmlunit.builder.DiffBuilder;
@@ -74,8 +76,8 @@ public class CastorXMLTest {
             "0000000100000000000000350001005800000006636F726261009B44000000214F52"+
             "424C696E6B3A3A636F7262613A33393734383A3A736B656C65746F6E202330";
 
-    @Before
-    public void setup() throws Exception {
+    @BeforeClass
+    public static void setup() throws Exception {
         Properties props = FileStringUtility.loadConfigFile(MainTest.class.getResource("/server.conf").getPath());
         Gateway.init(props);
     }
@@ -257,22 +259,33 @@ public class CastorXMLTest {
 
         assertReflectionEquals(pdl, pdlPrime, LENIENT_ORDER);
     }
-    
+
     @Test
     public void testCastorDependency() throws Exception {
         CastorXMLUtility marshaller = Gateway.getMarshaller();
+        Schema schema = LocalObjectLoader.getSchema("Dependency", 0);
 
         //THIS is not the correct way of creating a new Dependency, it is used here to make testing possible
         Dependency dep = new Dependency("TestDep");
-        dep.addMember(new ItemPath());
-        dep.setClassProps("Type,State");
-        dep.getMember(0).setClassProps("Type,State");
+        CastorHashMap collProps = new CastorHashMap();
+        collProps.put("Type", "Unknown");
+        collProps.put("State", "Unmanaged");
+        dep.setProperties(collProps);
+//        dep.setClassProps("Type,State"); // this can be tested after mocking Gateway.getStorage().get(Property)
+
+        new Outcome(marshaller.marshall(dep), schema).validateAndCheck();
+
+        CastorHashMap memberProps = new CastorHashMap();
+        memberProps.put("Name", "myName");
+        memberProps.put("Stats", "chaotic");
+        dep.addMember(new ItemPath(), memberProps, "");
         dep.getCounter(); //counter is not persistent but calculated from the IDs of its members
 
         Dependency depPrime = (Dependency) marshaller.unmarshall(marshaller.marshall(dep));
         depPrime.getCounter();
 
         assertReflectionEquals(dep, depPrime);
+        new Outcome(marshaller.marshall(dep), schema).validateAndCheck();
     }
 
     @Test

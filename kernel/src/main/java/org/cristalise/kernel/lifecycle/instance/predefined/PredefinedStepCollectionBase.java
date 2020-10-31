@@ -20,6 +20,7 @@
  */
 package org.cristalise.kernel.lifecycle.instance.predefined;
 
+import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.MEMBER_ADD_SCRIPT;
 import static org.cristalise.kernel.persistency.ClusterType.COLLECTION;
 
 import java.util.Arrays;
@@ -189,6 +190,28 @@ public abstract class PredefinedStepCollectionBase extends PredefinedStep {
         return (DependencyMember)member;
     }
 
+    /**
+     * Executes a script if exists.
+     * @param item
+     * @param dependency
+     * @param newMember
+     * @param locker
+     * @throws ObjectNotFoundException
+     * @throws InvalidDataException
+     * @throws InvalidCollectionModification
+     */
+    protected void evaluateScript(ItemPath item, Dependency dependency, DependencyMember newMember, Object locker)
+            throws ObjectNotFoundException, InvalidDataException, InvalidCollectionModification
+    {
+        if (dependency.containsBuiltInProperty(MEMBER_ADD_SCRIPT)) {
+            CastorHashMap scriptProps = new CastorHashMap();
+            scriptProps.put("collection", dependency);
+            scriptProps.put("member", newMember);
+
+            evaluateScript(item, (String) dependency.getBuiltInProperty(MEMBER_ADD_SCRIPT), scriptProps, locker);
+        }
+    }
+
     protected void evaluateScript(ItemPath item, String propertyValue, CastorHashMap scriptProps , Object locker)
             throws ObjectNotFoundException, InvalidDataException, InvalidCollectionModification
     {
@@ -203,7 +226,7 @@ public abstract class PredefinedStepCollectionBase extends PredefinedStep {
             script.evaluate(item, scriptProps, getActContext(), locker);
         }
         catch (ScriptingEngineException e) {
-            log.error("", e);
+            log.error("evaluateScript() - failed to execute script:{}", propertyValue, e);
             throw new InvalidCollectionModification(e.getMessage());
         }
     }

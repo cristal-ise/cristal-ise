@@ -59,7 +59,7 @@ public class CreateNewRole extends PredefinedStep {
             if (Gateway.getLookup().exists(new RolePath(newRole.getName(), newRole.jobList) ))
                 throw new ObjectAlreadyExistsException("CreateNewRole: Role '" + newRole.getName() + "' already exists.");
 
-            newRole.create(agent, true);
+            newRole.create(agent, true, locker);
 
             return requestData;
         }
