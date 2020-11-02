@@ -27,8 +27,8 @@ _This guide uses GPG2 encryption.  Please see [https://www.gnupg.org/documentati
 
 1. Distribute your public key
 
-    - `gpg2 --keyserver hkp://pool.sks-keyservers.net --send-keys <keyid>`
-    - check key: `gpg --keyserver hkp://pool.sks-keyservers.net --search-key 'zs.myth@gmail.com'`
+    - `gpg2 --keyserver hkp://keys.openpgp.org --send-keys <keyid>`
+    - check key: `gpg --keyserver hkp://keys.openpgp.org --search-key 'zs.myth@gmail.com'`
 
 1. Install Travis Client
 
