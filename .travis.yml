@@ -9,7 +9,8 @@ branches:
     - /^support\/.*$/
 script:
   - |
-    if [[ $TRAVIS_PULL_REQUEST == false ]] && ([[ $TRAVIS_BRANCH == develop ]] || [[ $TRAVIS_BRANCH == master ]] || [[ $TRAVIS_BRANCH == support/* ]]); then 
+    if [[ $TRAVIS_PULL_REQUEST == false ]] && ([[ $TRAVIS_BRANCH == develop ]] || [[ $TRAVIS_BRANCH == master ]] || [[ $TRAVIS_BRANCH == support/* ]]); then
+      export GPG_TTY=$(tty)
       echo $GPG_SECRET_KEYS | tr " " "\n" | base64 --decode | $GPG_EXECUTABLE --import --no-tty --batch --yes
       echo $GPG_OWNERTRUST | base64 --decode | $GPG_EXECUTABLE --import-ownertrust --no-tty --batch --yes
       mvn clean deploy --settings .maven.xml -B -V -Prelease;
