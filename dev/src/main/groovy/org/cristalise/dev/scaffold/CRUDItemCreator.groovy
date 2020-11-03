@@ -82,7 +82,7 @@ class CRUDItemCreator extends StandardClient {
 
         if (factory.checkContent(ClusterType.COLLECTION, SCHEMA_INITIALISE.name)) {
             def initSchemaCollection = factory.getCollection(SCHEMA_INITIALISE)
-            DependencyMember member = initSchemaCollection.getMembers().list[0]
+            DependencyMember member = (DependencyMember) initSchemaCollection.getMembers().list[0]
 
             schemaName = member.getChildUUID()
             def initSchemaVersion = member.getProperties().getBuiltInProperty(VERSION)
