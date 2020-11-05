@@ -106,7 +106,7 @@ public class ImportAgent extends ModuleImport implements DescriptionObject {
     }
 
     @Override
-    public Path create(AgentPath agentPath, boolean reset)
+    public Path create(AgentPath agentPath, boolean reset, Object transactionKey)
             throws ObjectNotFoundException, ObjectCannotBeUpdated, CannotManageException, ObjectAlreadyExistsException
     {
         if (roles.isEmpty()) throw new ObjectNotFoundException("Agent '"+name+"' must declare at least one Role ");
@@ -157,7 +157,7 @@ public class ImportAgent extends ModuleImport implements DescriptionObject {
             else {
                 if (Gateway.getProperties().getBoolean("Module.ImportAgent.enableRoleCreation", false)) {
                     // Creates Role even if it is not fully specified in the ImportAgent (i.e. no permissions were specified)
-                    RolePath thisRole = (RolePath)role.create(agentPath, reset);
+                    RolePath thisRole = (RolePath)role.create(agentPath, reset, transactionKey);
                     Gateway.getLookupManager().addRole(getAgentPath(), thisRole);
                 }
                 else {

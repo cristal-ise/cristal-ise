@@ -57,6 +57,7 @@ import org.cristalise.kernel.lookup.Path;
 import org.cristalise.kernel.persistency.ClusterType;
 import org.cristalise.kernel.process.AbstractMain;
 import org.cristalise.kernel.process.Bootstrap;
+import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.process.resource.BuiltInResources;
 import org.cristalise.kernel.process.resource.ResourceImportHandler.Status;
 import org.cristalise.kernel.property.Property;
@@ -150,16 +151,28 @@ public class Module extends ImportItem {
     public void importAll(ItemProxy serverEntity, AgentProxy systemAgent, boolean reset) throws Exception {
         String moduleChanges = "";
 
-        if (!Bootstrap.shutdown) moduleChanges = importResources(systemAgent, reset);
-        if (!Bootstrap.shutdown) importRoles( systemAgent, reset);
-        if (!Bootstrap.shutdown) importAgents(systemAgent, reset);
-        if (!Bootstrap.shutdown) importItems( systemAgent, reset);
+        String transactionKey = null;
+        //Object transactionKey = new Object();;
+        Gateway.getStorage().begin(transactionKey); // should do nothing if transactionKey is null
+
+        try {
+            if (!Bootstrap.shutdown) moduleChanges = importResources(systemAgent, reset, transactionKey);
+            if (!Bootstrap.shutdown) importRoles( systemAgent, reset, transactionKey);
+            if (!Bootstrap.shutdown) importAgents(systemAgent, reset, transactionKey);
+            if (!Bootstrap.shutdown) importItems( systemAgent, reset, transactionKey);
 
         //Finally create this Module Item
-        if (!Bootstrap.shutdown) this.create(systemAgent.getPath(), reset);
+            if (!Bootstrap.shutdown) this.create(systemAgent.getPath(), reset, transactionKey);
 
-        if (StringUtils.isNotBlank(moduleChanges)) {
-            new UpdateImportReport().request((AgentPath)SYSTEM_AGENT.getPath(), itemPath, moduleChanges);
+            if (!Bootstrap.shutdown && StringUtils.isNotBlank(moduleChanges)) {
+                new UpdateImportReport().request((AgentPath)SYSTEM_AGENT.getPath(), itemPath, moduleChanges, transactionKey);
+            }
+
+            Gateway.getStorage().commit(transactionKey);
+        }
+        catch (Exception e) {
+            Gateway.getStorage().abort(transactionKey);
+            throw e;
         }
     }
 
@@ -168,7 +181,7 @@ public class Module extends ImportItem {
      * @param reset
      * @throws Exception
      */
-    private void importItems(AgentProxy systemAgent, boolean reset) throws Exception {
+    private void importItems(AgentProxy systemAgent, boolean reset, Object transactionKey) throws Exception {
         for (ImportItem thisItem : imports.getItems()) {
             if (Bootstrap.shutdown) return;
 
@@ -181,7 +194,7 @@ public class Module extends ImportItem {
 
             if (changeStatus == null || (changeStatus != IDENTICAL && changeStatus != SKIPPED && changeStatus != REMOVED)) {
                 thisItem.setNamespace(ns);
-                Path p = thisItem.create(systemAgent.getPath(), reset);
+                Path p = thisItem.create(systemAgent.getPath(), reset, transactionKey);
                 addItemToContents(p);
             }
         }
@@ -192,7 +205,7 @@ public class Module extends ImportItem {
      * @param reset
      * @throws Exception
      */
-    private void importAgents(AgentProxy systemAgent, boolean reset) throws Exception {
+    private void importAgents(AgentProxy systemAgent, boolean reset, Object transactionKey) throws Exception {
         for (ImportAgent thisAgent : imports.getAgents()) {
             if (Bootstrap.shutdown) return;
 
@@ -205,7 +218,7 @@ public class Module extends ImportItem {
 
             if (changeStatus == null || (changeStatus != IDENTICAL && changeStatus != SKIPPED && changeStatus != REMOVED)) {
                 thisAgent.setNamespace(ns);
-                Path p = thisAgent.create(systemAgent.getPath(), reset);
+                Path p = thisAgent.create(systemAgent.getPath(), reset, transactionKey);
                 addItemToContents(p);
             }
         }
@@ -216,7 +229,7 @@ public class Module extends ImportItem {
      * @param reset
      * @throws Exception
      */
-    private void importRoles(AgentProxy systemAgent, boolean reset) throws Exception {
+    private void importRoles(AgentProxy systemAgent, boolean reset, Object transactionKey) throws Exception {
         for (ImportRole thisRole : imports.getRoles()) {
             if (Bootstrap.shutdown) return;
 
@@ -228,7 +241,7 @@ public class Module extends ImportItem {
             if (! thisRole.exists() && changeStatus == IDENTICAL) changeStatus = NEW;
 
             if (changeStatus == null || (changeStatus != IDENTICAL && changeStatus != SKIPPED && changeStatus != REMOVED)) {
-                thisRole.create(systemAgent.getPath(), reset);
+                thisRole.create(systemAgent.getPath(), reset, transactionKey);
             }
         }
     }
@@ -237,7 +250,7 @@ public class Module extends ImportItem {
      * @param systemAgent
      * @param reset
      */
-    private String importResources(AgentProxy systemAgent, boolean reset) throws Exception {
+    private String importResources(AgentProxy systemAgent, boolean reset, Object transactionKey) throws Exception {
         List<String> moduleChanges = new ArrayList<String>();
 
         for (ModuleResource thisRes : imports.getResources()) {
@@ -245,7 +258,7 @@ public class Module extends ImportItem {
 
             try {
                 thisRes.setNamespace(ns);
-                addItemToContents(thisRes.create(systemAgent.getPath(), reset));
+                addItemToContents(thisRes.create(systemAgent.getPath(), reset, transactionKey));
                 moduleChanges.add(thisRes.getResourceChangeDetails());
             }
             catch (Exception ex) {
@@ -255,6 +268,8 @@ public class Module extends ImportItem {
         }
 
         StringBuffer moduleChangesXML = new StringBuffer("<ModuleChanges>\n");
+        moduleChangesXML.append("<ModuleName>"+name+"</ModuleName>");
+        moduleChangesXML.append("<ModuleVersion>"+getVersion()+"</ModuleVersion>");
         for (String oneChange: moduleChanges) moduleChangesXML.append(oneChange).append("\n");
         moduleChangesXML.append("</ModuleChanges>");
 

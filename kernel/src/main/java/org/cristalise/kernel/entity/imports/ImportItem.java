@@ -203,7 +203,7 @@ public class ImportItem extends ModuleImport implements DescriptionObject {
      *
      */
     @Override
-    public Path create(AgentPath agentPath, boolean reset)
+    public Path create(AgentPath agentPath, boolean reset, Object transactionKey)
             throws InvalidDataException, ObjectCannotBeUpdated, ObjectNotFoundException,
             CannotManageException, ObjectAlreadyExistsException, InvalidCollectionModification, PersistencyException
     {
@@ -240,7 +240,7 @@ public class ImportItem extends ModuleImport implements DescriptionObject {
             throw new CannotManageException("Problem initialising new item. See server log:" + ex.getMessage());
         }
 
-        History hist = new History(getItemPath(), null);
+        History hist = new History(getItemPath(), transactionKey);
 
         // import outcomes
         for (ImportOutcome thisOutcome : outcomes) {
@@ -255,7 +255,7 @@ public class ImportItem extends ModuleImport implements DescriptionObject {
 
             Viewpoint impView;
             try {
-                impView = (Viewpoint) Gateway.getStorage().get(getItemPath(), ClusterType.VIEWPOINT + "/" + thisOutcome.schema + "/" + thisOutcome.viewname, null);
+                impView = (Viewpoint) Gateway.getStorage().get(getItemPath(), ClusterType.VIEWPOINT + "/" + thisOutcome.schema + "/" + thisOutcome.viewname, transactionKey);
 
                 if (newOutcome.isIdentical(impView.getOutcome())) {
                     log.debug("create() - View "+thisOutcome.schema+"/"+thisOutcome.viewname+" in "+ns+"/"+name+" identical, no update required");
@@ -282,8 +282,8 @@ public class ImportItem extends ModuleImport implements DescriptionObject {
             newOutcome.setID(newEvent.getID());
             impView.setEventId(newEvent.getID());
 
-            Gateway.getStorage().put(getItemPath(), newOutcome, null);
-            Gateway.getStorage().put(getItemPath(), impView, null);
+            Gateway.getStorage().put(getItemPath(), newOutcome, transactionKey);
+            Gateway.getStorage().put(getItemPath(), impView, transactionKey);
         }
 
         // register domain path (before collections in case of recursive collections)

@@ -52,8 +52,8 @@ import org.cristalise.kernel.lookup.InvalidAgentPathException;
 import org.cristalise.kernel.lookup.InvalidItemPathException;
 import org.cristalise.kernel.lookup.ItemPath;
 import org.cristalise.kernel.lookup.RolePath;
+import org.cristalise.kernel.persistency.ClusterStorageManager;
 import org.cristalise.kernel.persistency.ClusterType;
-import org.cristalise.kernel.persistency.TransactionManager;
 import org.cristalise.kernel.persistency.outcome.Outcome;
 import org.cristalise.kernel.persistency.outcome.Schema;
 import org.cristalise.kernel.persistency.outcome.Viewpoint;
@@ -72,8 +72,8 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class ItemImplementation implements ItemOperations {
 
-    protected final TransactionManager mStorage;
-    protected final ItemPath           mItemPath;
+    protected final ClusterStorageManager mStorage;
+    protected final ItemPath              mItemPath;
 
     protected ItemImplementation(ItemPath key) {
         this.mStorage = Gateway.getStorage();
@@ -101,6 +101,8 @@ public class ItemImplementation implements ItemOperations {
     {
         log.debug("initialise(" + mItemPath + ") - agent:" + agentId);
         Object locker = new Object();
+
+        mStorage.begin(locker);
 
         AgentPath agentPath;
         try {
@@ -143,7 +145,7 @@ public class ItemImplementation implements ItemOperations {
             mStorage.put(mItemPath, newLastView, locker);
         }
         catch (Exception ex) {
-            log.error("initialise("+mItemPath+") - Could not store event and outcome.", ex);
+            log.error("initialise({}) - Could not store event and outcome.", mItemPath, ex);
             mStorage.abort(locker);
             throw new PersistencyException("Error storing 'Initialize' event and outcome:" + ex.getMessage());
         }
@@ -198,8 +200,6 @@ public class ItemImplementation implements ItemOperations {
             else{
                 lc = new Workflow((CompositeActivity) Gateway.getMarshaller().unmarshall(initWfString), getNewPredefStepContainer());
             }
-
-            mStorage.put(mItemPath, lc, locker);
         }
         catch (Exception ex) {
             log.error("initialise(" + mItemPath + ") - Workflow was invalid: " + initWfString, ex);
@@ -243,6 +243,8 @@ public class ItemImplementation implements ItemOperations {
 
             // TODO: check if delegate is allowed valid for agent
             lifeCycle = (Workflow) mStorage.get(mItemPath, ClusterType.LIFECYCLE + "/workflow", null);
+
+            mStorage.begin(lifeCycle);
 
             SecurityManager secMan = Gateway.getSecurityManager();
 

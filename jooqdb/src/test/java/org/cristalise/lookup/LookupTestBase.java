@@ -71,6 +71,7 @@ public class LookupTestBase extends JooqTestConfigurationBase {
     public void tearDown() throws Exception {
         if (lookup != null) {
             lookup.dropHandlers();
+            lookup.close();
         }
     }
 

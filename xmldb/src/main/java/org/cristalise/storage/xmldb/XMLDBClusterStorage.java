@@ -178,7 +178,7 @@ public class XMLDBClusterStorage extends ClusterStorage {
     }
 
     @Override
-    public short queryClusterSupport(String clusterType) {
+    public short queryClusterSupport(ClusterType clusterType) {
         return READWRITE;
     }
 
@@ -198,7 +198,7 @@ public class XMLDBClusterStorage extends ClusterStorage {
     }
 
     @Override
-    public String executeQuery(Query query) throws PersistencyException {
+    public String executeQuery(Query query, Object transactionKey) throws PersistencyException {
         if(!checkQuerySupport(query.getLanguage())) throw new PersistencyException("Unsupported query:"+query.getLanguage());
 
         try {
@@ -244,7 +244,7 @@ public class XMLDBClusterStorage extends ClusterStorage {
     }
 
     @Override
-    public C2KLocalObject get(ItemPath itemPath, String path) throws PersistencyException {
+    public C2KLocalObject get(ItemPath itemPath, String path, Object transactionKey) throws PersistencyException {
         ClusterType type = ClusterStorage.getClusterType(path);
         // Get item collection
         Collection itemColl = getItemCollection(itemPath, false);
@@ -269,7 +269,7 @@ public class XMLDBClusterStorage extends ClusterStorage {
     }
 
     @Override
-    public void put(ItemPath itemPath, C2KLocalObject obj) throws PersistencyException {
+    public void put(ItemPath itemPath, C2KLocalObject obj, Object transactionKey) throws PersistencyException {
         String resName = getPath(obj);
         Collection itemColl = getItemCollection(itemPath, true);
 
@@ -289,7 +289,7 @@ public class XMLDBClusterStorage extends ClusterStorage {
     }
 
     @Override
-    public void delete(ItemPath itemPath, String path) throws PersistencyException {
+    public void delete(ItemPath itemPath, String path, Object transactionKey) throws PersistencyException {
         Collection itemColl = getItemCollection(itemPath, false);
         if (itemColl == null) return;
 
@@ -305,7 +305,7 @@ public class XMLDBClusterStorage extends ClusterStorage {
     }
 
     @Override
-    public String[] getClusterContents(ItemPath itemPath, String path) throws PersistencyException {
+    public String[] getClusterContents(ItemPath itemPath, String path, Object transactionKey) throws PersistencyException {
         Collection itemCollection = getItemCollection(itemPath, false);
         if (itemCollection == null) return new String[0];
 
@@ -358,10 +358,10 @@ public class XMLDBClusterStorage extends ClusterStorage {
      * FIXME use xquery instead of calling getClusterContents()
      */
     @Override
-    public int getLastIntegerId(ItemPath itemPath, String path) throws PersistencyException {
+    public int getLastIntegerId(ItemPath itemPath, String path, Object transactionKey) throws PersistencyException {
         int lastId = -1;
         try {
-            String[] keys = getClusterContents(itemPath, path);
+            String[] keys = getClusterContents(itemPath, path, transactionKey);
             for (String key : keys) {
                 int newId = Integer.parseInt(key);
                 lastId = newId > lastId ? newId : lastId;
@@ -373,5 +373,23 @@ public class XMLDBClusterStorage extends ClusterStorage {
         }
 
         return lastId;
+    }
+
+    @Override
+    public void begin(Object transactionKey) throws PersistencyException {
+        // TODO Auto-generated method stub
+        
+    }
+
+    @Override
+    public void commit(Object transactionKey) throws PersistencyException {
+        // TODO Auto-generated method stub
+        
+    }
+
+    @Override
+    public void abort(Object transactionKey) throws PersistencyException {
+        // TODO Auto-generated method stub
+        
     }
 }

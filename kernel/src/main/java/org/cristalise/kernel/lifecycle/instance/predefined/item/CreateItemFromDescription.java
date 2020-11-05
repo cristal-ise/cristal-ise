@@ -116,7 +116,7 @@ public class CreateItemFromDescription extends PredefinedStep {
         ItemPath newItemPath = new ItemPath();
 
         // create the Item object
-        log.info("Creating Item name:{} uuid:{}", newName, newItemPath);
+        log.info("Creating Item name:{} uuid:{} locker:{}", newName, newItemPath, locker);
         CorbaServer factory = Gateway.getCorbaServer();
 
         if (factory == null) throw new CannotManageException("This process cannot create new Items");

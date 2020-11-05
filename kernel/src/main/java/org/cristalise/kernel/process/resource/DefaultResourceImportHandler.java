@@ -162,24 +162,24 @@ public class DefaultResourceImportHandler implements ResourceImportHandler {
      ********************************/
 
     @Override
-    public DomainPath createResource(String ns, String itemName, int version, Outcome outcome, boolean reset)
+    public DomainPath createResource(String ns, String itemName, int version, Outcome outcome, boolean reset, Object transactionKey)
             throws Exception
     {
-        return verifyResource(ns, itemName, version, null, outcome, reset);
+        return verifyResource(ns, itemName, version, null, outcome, reset, transactionKey);
     }
 
     @Override
-    public DomainPath importResource(String ns, String itemName, int version, ItemPath itemPath, String dataLocation, boolean reset)
+    public DomainPath importResource(String ns, String itemName, int version, ItemPath itemPath, String dataLocation, boolean reset, Object transactionKey)
             throws Exception
     {
-        return verifyResource(ns, itemName, version, itemPath, getResourceOutcome(itemName, ns, dataLocation, version), reset);
+        return verifyResource(ns, itemName, version, itemPath, getResourceOutcome(itemName, ns, dataLocation, version), reset, transactionKey);
     }
 
     @Override
-    public DomainPath importResource(String ns, String itemName, int version, ItemPath itemPath, Outcome outcome, boolean reset)
+    public DomainPath importResource(String ns, String itemName, int version, ItemPath itemPath, Outcome outcome, boolean reset, Object transactionKey)
             throws Exception
     {
-        return verifyResource(ns, itemName, version, itemPath, outcome, reset);
+        return verifyResource(ns, itemName, version, itemPath, outcome, reset, transactionKey);
     }
 
     /**
@@ -194,7 +194,7 @@ public class DefaultResourceImportHandler implements ResourceImportHandler {
      * @return
      * @throws Exception
      */
-    private DomainPath verifyResource(String ns, String itemName, int version, ItemPath itemPath, Outcome outcome, boolean reset) 
+    private DomainPath verifyResource(String ns, String itemName, int version, ItemPath itemPath, Outcome outcome, boolean reset, Object transactionKey) 
             throws Exception
     {
         if (outcome == null) {
@@ -229,15 +229,15 @@ public class DefaultResourceImportHandler implements ResourceImportHandler {
             // validate it, but not for kernel objects (ns == null) because those are to validate the rest
             if (ns != null) outcome.validateAndCheck();
 
-            PredefinedStep.storeOutcomeEventAndViews(thisProxy.getPath(), outcome, version);
+            PredefinedStep.storeOutcomeEventAndViews(thisProxy.getPath(), outcome, version, transactionKey);
 
             CollectionArrayList cols = getCollections(itemName, version, outcome);
 
             for (Collection<?> col : cols.list) {
-                Gateway.getStorage().put(thisProxy.getPath(), col, null);
+                Gateway.getStorage().put(thisProxy.getPath(), col, transactionKey);
                 Gateway.getStorage().clearCache(thisProxy.getPath(), ClusterType.COLLECTION+"/"+col.getName());
                 col.setVersion(null);
-                Gateway.getStorage().put(thisProxy.getPath(), col, null);
+                Gateway.getStorage().put(thisProxy.getPath(), col, transactionKey);
             }
         }
         else if (status == REMOVED) {
@@ -250,7 +250,6 @@ public class DefaultResourceImportHandler implements ResourceImportHandler {
             log.trace("verifyResource() - resourceChangeDetails:{}", resourceChangeDetails.replace("\n", "").replaceAll(">\\s*<", "><"));
         }
 
-        Gateway.getStorage().commit(null);
         return modDomPath;
     }
 

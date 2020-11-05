@@ -244,7 +244,7 @@ public class Script implements DescriptionObject {
         Bindings beans = context.getBindings(ScriptContext.ENGINE_SCOPE);
 
         beans.put(PARAMETER_STORAGE, Gateway.getStorage());
-        beans.put(PARAMETER_DB, Gateway.getStorage().getDb());
+        beans.put(PARAMETER_DB, Gateway.getStorage());
         beans.put(PARAMETER_PROXY, Gateway.getProxyManager());
         beans.put(PARAMETER_LOOKUP, Gateway.getLookup());
         beans.put(PARAMETER_ORB, Gateway.getORB());

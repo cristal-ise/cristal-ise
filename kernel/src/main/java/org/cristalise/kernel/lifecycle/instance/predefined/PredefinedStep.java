@@ -138,19 +138,27 @@ public abstract class PredefinedStep extends Activity {
         return this.getClass().getSimpleName();
     }
 
-    static public String getPredefStepSchemaName(String stepName) {
-        PredefinedStepContainer[] allSteps = 
-            { new ItemPredefinedStepContainer(), new AgentPredefinedStepContainer(), new ServerPredefinedStepContainer() };
+    public static String getPredefStepSchemaName(String stepName) {
+        Activity step = getStepInstance(stepName);
+        if (step != null) {
+            return (String) step.getBuiltInProperty(SCHEMA_NAME);
+        }
+        return "PredefinedStepOutcome"; // default to standard if not found - server may be a newer version
+    }
+
+    public static Activity getStepInstance(String stepName) {
+        PredefinedStepContainer[] allSteps =
+                { new ItemPredefinedStepContainer(), new AgentPredefinedStepContainer(), new ServerPredefinedStepContainer() };
 
         for (PredefinedStepContainer thisContainer : allSteps) {
             String stepPath = thisContainer.getName() + "/" + stepName;
             Activity step = (Activity) thisContainer.search(stepPath);
 
             if (step != null) {
-                return (String) step.getBuiltInProperty(SCHEMA_NAME);
+                return step;
             }
         }
-        return "PredefinedStepOutcome"; // default to standard if not found - server may be a newer version
+        return null;
     }
 
     /**
@@ -168,12 +176,13 @@ public abstract class PredefinedStep extends Activity {
                     AccessRightsException;
 
     /**
-     * Generic bundling of parameters
+     * Generic bundling of parameters. Converts the array of strings to PredefinedStepOutcome XML.
+     * Uses CDATA so any of the string could also be an XML.
      * 
-     * @param data
-     * @return
+     * @param data array of input string for a PredefinedStep
+     * @return the result of the PredefienedStep execution
      */
-    static public String bundleData(String...data) {
+    public static String bundleData(String...data) {
         try {
             DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
             DocumentBuilder builder = factory.newDocumentBuilder();
@@ -201,7 +210,13 @@ public abstract class PredefinedStep extends Activity {
         }
     }
 
-    // generic bundling of single parameter
+    /**
+     * Generic bundling of a single parameter. Converts the array of strings to PredefinedStepOutcome XML.
+     * Uses CDATA so the string could also be an XML.
+     * 
+     * @param input string for a PredefinedStep
+     * @return the result of the PredefienedStep execution
+     */
     static public String bundleData(String data) {
         return bundleData(new String[] { data });
     }
@@ -252,10 +267,10 @@ public abstract class PredefinedStep extends Activity {
      * @throws ObjectNotFoundException
      * @throws InvalidDataException
      */
-    public static void storeOutcomeEventAndViews(ItemPath itemPath, Outcome newOutcome)
+    public static void storeOutcomeEventAndViews(ItemPath itemPath, Outcome newOutcome, Object transactionKey )
             throws PersistencyException, ObjectNotFoundException, InvalidDataException
     {
-        storeOutcomeEventAndViews(itemPath, newOutcome, null);
+        storeOutcomeEventAndViews(itemPath, newOutcome, null, transactionKey);
     }
 
     /**
@@ -268,7 +283,7 @@ public abstract class PredefinedStep extends Activity {
      * @throws ObjectNotFoundException
      * @throws InvalidDataException
      */
-    public static void storeOutcomeEventAndViews(ItemPath itemPath, Outcome newOutcome, Integer version)
+    public static void storeOutcomeEventAndViews(ItemPath itemPath, Outcome newOutcome, Integer version, Object transactionKey)
             throws PersistencyException, ObjectNotFoundException, InvalidDataException
     {
         String viewName = "";
@@ -288,12 +303,12 @@ public abstract class PredefinedStep extends Activity {
 
         Viewpoint newLastView = new Viewpoint(itemPath, newOutcome.getSchema(), "last", eventID);
 
-        Gateway.getStorage().put(itemPath, newOutcome,  null);
-        Gateway.getStorage().put(itemPath, newLastView, null);
+        Gateway.getStorage().put(itemPath, newOutcome,  transactionKey);
+        Gateway.getStorage().put(itemPath, newLastView, transactionKey);
 
         if (version != null) {
             Viewpoint newNumberView = new Viewpoint(itemPath, newOutcome.getSchema(), viewName, eventID);
-            Gateway.getStorage().put(itemPath, newNumberView, null);
+            Gateway.getStorage().put(itemPath, newNumberView, transactionKey);
         }
     }
 
@@ -303,6 +318,7 @@ public abstract class PredefinedStep extends Activity {
      * @param agent
      * @param itemPath
      * @param requestData
+     * @param transactioKey
      * @return
      * @throws AccessRightsException
      * @throws InvalidTransitionException
@@ -314,7 +330,7 @@ public abstract class PredefinedStep extends Activity {
      * @throws CannotManageException
      * @throws InvalidCollectionModification
      */
-    public String request(AgentPath agent, ItemPath itemPath, String requestData)
+    public String request(AgentPath agent, ItemPath itemPath, String requestData, Object transactionKey)
             throws AccessRightsException, 
             InvalidTransitionException, 
             InvalidDataException, 
@@ -327,6 +343,6 @@ public abstract class PredefinedStep extends Activity {
     {
         log.info("request({}) - Type:{}", itemPath, getType());
         this.setActive(true);
-        return request(agent, agent, itemPath, PredefinedStep.DONE, requestData, null, new byte[0], true, null);
+        return request(agent, agent, itemPath, PredefinedStep.DONE, requestData, null, new byte[0], true, transactionKey);
     }
 }

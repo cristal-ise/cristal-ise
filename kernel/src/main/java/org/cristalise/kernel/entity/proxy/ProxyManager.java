@@ -234,6 +234,11 @@ public class ProxyManager {
                 newProxy = createProxy(ior, itemPath);
                 proxyPool.put(itemPath, newProxy);
             }
+            else {
+                // Avoid sharing false transactionKey between calls to the same item (i.e. side scripting requires transactionKey)
+                // FIXME for server side use of proxies disable caching and event notifications
+                newProxy.setTransactionKey(null);
+            }
 
             return newProxy;
         }

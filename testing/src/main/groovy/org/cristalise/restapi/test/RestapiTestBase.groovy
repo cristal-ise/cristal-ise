@@ -185,7 +185,7 @@ class RestapiTestBase extends KernelScenarioTestBase {
             }
         }
 
-        String responseBody = given()
+        String responseBody = given().log().all()
             .contentType(contentType)
             .accept(ContentType.JSON)
             .cookie(cauthCookie)

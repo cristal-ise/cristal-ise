@@ -470,28 +470,37 @@ class DevItemUtility {
      *
      * @param name
      * @param folder
-     * @param caXML
+     * @param caXml
      * @param actCollSize
+     * @return
      */
-    public ItemProxy editCompActDesc(String name, String folder, String caXML, int actCollSize = 0) {
-        def caDescItem = editDevItem(COMP_ACT_DESC_RESOURCE, "EditDefinition", "AssignNewActivityVersionFromLast", name, folder, caXML)
+    public ItemProxy editCompActDesc(String name, String folder, String caXml, int actCollSize = 0) {
+        return editCompActDesc(name, folder, (CompositeActivityDef)Gateway.getMarshaller().unmarshall(caXml))
+    }
 
+    /**
+     * 
+     * @param name
+     * @param folder
+     * @param caDef
+     * @param actCollSize
+     * @return
+     */
+    public ItemProxy editCompActDesc(String name, String folder, CompositeActivityDef caDef, int actCollSize = 0) {
+        def resHandler = new DefaultResourceImportHandler(BuiltInResources.COMP_ACT_DESC_RESOURCE)
+        ItemProxy caDescItem = agent.getItem("${resHandler.typeRoot}/$folder/$name")
+        assert caDescItem && caDescItem.getName() == name
+
+        caDef.setItemPath(caDescItem.getPath())
+
+        executeDoneJob(caDescItem, "EditDefinition", Gateway.getMarshaller().marshall(caDef) )
+        executeDoneJob(caDescItem, "AssignNewActivityVersionFromLast")
+
+        assert caDescItem.getViewpoint(resHandler.name, "0")
         assert caDescItem.getCollection(ACTIVITY, (Integer)0).size()
         if(actCollSize) assert caDescItem.getCollection(ACTIVITY, (Integer)0).size() == actCollSize
 
         return caDescItem
-    }
-
-    /**
-     *
-     *
-     * @param name
-     * @param folder
-     * @param caDef
-     */
-    public ItemProxy editCompActDesc(String name, String folder, CompositeActivityDef caDef) {
-        String caXML = Gateway.getMarshaller().marshall(caDef)
-        return editCompActDesc(name, folder, caXML)
     }
 
     /**

@@ -49,7 +49,7 @@ import org.cristalise.kernel.common.ObjectNotFoundException;
 import org.cristalise.kernel.lookup.DomainPath;
 import org.cristalise.kernel.lookup.ItemPath;
 import org.cristalise.kernel.lookup.Path;
-import org.cristalise.kernel.persistency.ClusterStorage;
+import org.cristalise.kernel.persistency.ClusterType;
 import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.property.Property;
 import org.cristalise.kernel.utils.FileStringUtility;
@@ -121,8 +121,8 @@ public class MenuBuilder extends JMenuBar implements ActionListener, ItemListene
             Path thisServerPath = (Path)servers.next();
             try {
                 ItemPath serverItemPath = thisServerPath.getItemPath();
-                String serverName = ((Property)Gateway.getStorage().get(serverItemPath, ClusterStorage.PROPERTY+"/Name", null)).getValue();
-                String portStr = ((Property)Gateway.getStorage().get(serverItemPath, ClusterStorage.PROPERTY+"/ConsolePort", null)).getValue();
+                String serverName = ((Property)Gateway.getStorage().get(serverItemPath, ClusterType.PROPERTY+"/Name", null)).getValue();
+                String portStr = ((Property)Gateway.getStorage().get(serverItemPath, ClusterType.PROPERTY+"/ConsolePort", null)).getValue();
                 addMenuItem(serverName+":"+portStr, "console", null, 0);
             } catch (Exception ex) {
                 Logger.error("Exception retrieving proxy server connection data for "+thisServerPath);

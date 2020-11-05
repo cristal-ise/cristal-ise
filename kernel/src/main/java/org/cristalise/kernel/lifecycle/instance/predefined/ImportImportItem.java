@@ -60,7 +60,7 @@ public class ImportImportItem extends PredefinedStep {
     {
         try {
             ImportItem importItem = (ImportItem) Gateway.getMarshaller().unmarshall(requestData);
-            importItem.create(agent, true);
+            importItem.create(agent, true, locker);
             return requestData;
         }
         catch (MarshalException | ValidationException | IOException | MappingException e) {

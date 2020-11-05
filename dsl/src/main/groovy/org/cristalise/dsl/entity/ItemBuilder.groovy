@@ -58,6 +58,6 @@ class ItemBuilder {
     public static DomainPath create(AgentPath agent, ImportItem item) {
         assert agent
 
-        return (DomainPath)item.create(agent, true)
+        return (DomainPath)item.create(agent, true, null)
     }
 }

@@ -25,9 +25,9 @@ import spock.lang.Specification
 class AgentPredefinedStepsSpecs extends Specification implements CristalTestSetup {
 
     AgentProxy agent
-    String timeStamp = null
+    String timeStamp
 
-    def setup()   {
+    def setup() {
         cristalInit(8, 'src/main/bin/client.conf', 'src/main/bin/integTest.clc')
         agent = Gateway.connect('user', 'test')
         timeStamp = LocalDateTime.now().format("yyyy-MM-dd_HH-mm-ss_SSS")

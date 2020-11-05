@@ -61,7 +61,7 @@ public class ImportImportRole extends PredefinedStep {
 //            if (Gateway.getLookup().exists(new RolePath(importRole.getName(), importRole.jobList) ))
 //                throw new ObjectAlreadyExistsException("CreateNewRole: Role '" + importRole.getName() + "' already exists.");
 
-            importRole.create(agent, true);
+            importRole.create(agent, true, locker);
 
             return requestData;
         }

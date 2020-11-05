@@ -45,6 +45,7 @@ import org.cristalise.kernel.events.Event;
 import org.cristalise.kernel.events.History;
 import org.cristalise.kernel.lifecycle.instance.stateMachine.StateMachine;
 import org.cristalise.kernel.persistency.ClusterStorage;
+import org.cristalise.kernel.persistency.ClusterType;
 import org.cristalise.kernel.persistency.outcome.Schema;
 import org.cristalise.kernel.utils.LocalObjectLoader;
 import org.cristalise.kernel.utils.Logger;
@@ -120,9 +121,9 @@ public class HistoryPane extends ItemTabPane implements ActionListener, ProxyObs
         Thread.currentThread().setName("History Pane Builder");
         MainFrame.progress.startBouncing("Loading history");
 		try {
-			history = (History)sourceItem.getItem().getObject(ClusterStorage.HISTORY);
+			history = (History)sourceItem.getItem().getObject(ClusterType.HISTORY);
 			history.activate();
-            sourceItem.getItem().subscribe(new MemberSubscription<Event>(this, ClusterStorage.HISTORY, false));
+            sourceItem.getItem().subscribe(new MemberSubscription<Event>(this, ClusterType.HISTORY.getName(), false));
 		} catch (ObjectNotFoundException e) {
 			Logger.error(e);
 		}

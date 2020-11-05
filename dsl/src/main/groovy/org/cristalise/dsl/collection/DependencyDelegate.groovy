@@ -49,8 +49,13 @@ class DependencyDelegate {
     }
 
     public DependencyDelegate(String ns, String name, boolean isDescription) {
+        this(ns, name, isDescription, null)
+    }
+
+    public DependencyDelegate(String ns, String name, boolean isDescription, String classProps) {
         moduleNs = ns
         dependency = isDescription ? new DependencyDescription(name) : new Dependency(name)
+        if (classProps) dependency.setClassProps(classProps)
     }
 
     public void  processClosure(Closure cl) {

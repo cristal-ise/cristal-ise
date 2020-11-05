@@ -20,8 +20,6 @@
  */
 package org.cristalise.kernel.lifecycle.instance.predefined;
 
-import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.MEMBER_ADD_SCRIPT;
-
 import java.util.Arrays;
 
 import org.cristalise.kernel.collection.Dependency;
@@ -34,7 +32,6 @@ import org.cristalise.kernel.common.PersistencyException;
 import org.cristalise.kernel.lookup.AgentPath;
 import org.cristalise.kernel.lookup.ItemPath;
 import org.cristalise.kernel.process.Gateway;
-import org.cristalise.kernel.utils.CastorHashMap;
 
 /**
  * <pre>
@@ -69,13 +66,7 @@ public class AddMemberToCollection extends PredefinedStepCollectionBase {
         if (memberNewProps == null) member = dep.createMember(childPath);
         else                        member = dep.createMember(childPath, memberNewProps);
 
-        if (dep.containsBuiltInProperty(MEMBER_ADD_SCRIPT)) {
-            CastorHashMap scriptProps = new CastorHashMap();
-            scriptProps.put("collection", dep);
-            scriptProps.put("member", member);
-
-            evaluateScript(item, (String)dep.getBuiltInProperty(MEMBER_ADD_SCRIPT), scriptProps, locker);
-        }
+        evaluateScript(item, dep, member, locker);
 
         dep.addMember(member);
 

@@ -56,6 +56,7 @@
             <xs:attribute name="isDescription" type="xs:boolean" use="optional" default="false" />
             <xs:attribute name="itemDescriptionPath" type="xs:string" use="optional" />
             <xs:attribute name="itemDescriptionVersion" type="xs:string" use="optional" />
+            <xs:attribute name="classProps" type="xs:string" use="optional" />
           </xs:complexType>
         </xs:element>
         <xs:element name="Aggregation" minOccurs="0" maxOccurs="unbounded">
@@ -110,8 +111,8 @@
     <xs:sequence>
       <xs:element name="KeyValuePair" minOccurs="0" maxOccurs="unbounded">
         <xs:complexType>
-          <xs:attribute name="Key" type="xs:string" use="optional" />
           <xs:attribute name="isAbstract" type="xs:boolean" use="optional" />
+          <xs:attribute name="Key" type="xs:string" use="optional" />
           <xs:attribute name="Boolean" type="xs:boolean" use="optional" />
           <xs:attribute name="String" type="xs:string" use="optional" />
           <xs:attribute name="Integer" type="xs:int" use="optional" />

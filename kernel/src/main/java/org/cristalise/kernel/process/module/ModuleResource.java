@@ -90,13 +90,13 @@ public class ModuleResource extends ModuleImport {
     }
 
     @Override
-    public Path create(AgentPath agentPath, boolean reset) 
+    public Path create(AgentPath agentPath, boolean reset, Object transactionKey) 
             throws ObjectNotFoundException, ObjectCannotBeUpdated, CannotManageException, ObjectAlreadyExistsException, InvalidDataException
     {
         try {
             ResourceImportHandler importHandler = Gateway.getResourceImportHandler(type);
 
-            domainPath = importHandler.importResource(ns, name, version, itemPath, getResourceLocation(), reset);
+            domainPath = importHandler.importResource(ns, name, version, itemPath, getResourceLocation(), reset, transactionKey);
             resourceChangeStatus = importHandler.getResourceChangeStatus();
             resourceChangeDetails = importHandler.getResourceChangeDetails();
 

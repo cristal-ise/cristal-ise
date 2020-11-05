@@ -124,7 +124,7 @@ public interface ResourceImportHandler {
      * @return the DomainPath of the resource Item
      * @throws Exception errors that are raised during the process
      */
-    public DomainPath createResource(String ns, String itemName, int version, Outcome outcome, boolean reset)
+    public DomainPath createResource(String ns, String itemName, int version, Outcome outcome, boolean reset, Object transactionKey)
             throws Exception;
 
     /**
@@ -142,7 +142,7 @@ public interface ResourceImportHandler {
      * @return the DomainPath of the resource Item
      * @throws Exception errors that are raised during the process
      */
-    public DomainPath importResource(String ns, String itemName, int version, ItemPath itemPath, String dataLocation, boolean reset)
+    public DomainPath importResource(String ns, String itemName, int version, ItemPath itemPath, String dataLocation, boolean reset, Object transactionKey)
             throws Exception;
 
     /**
@@ -160,7 +160,7 @@ public interface ResourceImportHandler {
      * @return the DomainPath of the resource Item
      * @throws Exception errors that are raised during the process
      */
-    public DomainPath importResource(String ns, String itemName, int version, ItemPath itemPath, Outcome outcome, boolean reset)
+    public DomainPath importResource(String ns, String itemName, int version, ItemPath itemPath, Outcome outcome, boolean reset, Object transactionKey)
             throws Exception;
 
     /**

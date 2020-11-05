@@ -102,10 +102,17 @@ public class LookupAddPathTest extends LookupTestBase {
         catch (ObjectAlreadyExistsException e) {}
     }
 
-    @Test(expected=ObjectCannotBeUpdated.class)
+    @Test
     public void deleteDomainPath_ObjectIsNotALeafError() throws Exception {
-        lookup.add(new DomainPath("empty/toto"));
-        lookup.delete(new DomainPath("empty"));
+        Path p = new DomainPath("empty/toto");
+        try {
+            lookup.add(p);
+            lookup.delete(new DomainPath("empty"));
+            fail("shall throw ObjectCannotBeUpdated");
+        }
+        catch (ObjectCannotBeUpdated e) {
+            lookup.delete(p);
+        }
     }
 
     @Test

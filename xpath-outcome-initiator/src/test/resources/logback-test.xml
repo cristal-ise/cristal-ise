@@ -1,6 +1,6 @@
 <!--
 
-    This file is part of the CRISTAL-iSE REST API.
+    This file is part of the CRISTAL-iSE XPath Outcome Initiator module.
     Copyright (c) 2001-2016 The CRISTAL Consortium. All rights reserved.
 
     This library is free software; you can redistribute it and/or modify it
@@ -30,9 +30,6 @@
   </appender>
 
 <!--   <logger name="org.jooq" level="DEBUG" /> -->
-<!--   <logger name="org.cristalise" level="DEBUG" /> -->
-<!--   <logger name="org.cristalise.kernel.lifecycle.instance" level="TRACE" /> -->
-<!--   <logger name="org.cristalise.storage.jooqdb" level="DEBUG" /> -->
 
   <root level="INFO">
     <appender-ref ref="STDOUT" />

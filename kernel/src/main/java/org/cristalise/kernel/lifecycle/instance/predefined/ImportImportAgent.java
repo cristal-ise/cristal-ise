@@ -58,7 +58,7 @@ public class ImportImportAgent extends PredefinedStep {
         try {
             ImportAgent importAgent = (ImportAgent) Gateway.getMarshaller().unmarshall(requestData);
             importAgent.setPassword("");
-            importAgent.create(agent, true);
+            importAgent.create(agent, true, locker);
             return requestData;
         }
         catch (MarshalException | ValidationException | IOException | MappingException e) {

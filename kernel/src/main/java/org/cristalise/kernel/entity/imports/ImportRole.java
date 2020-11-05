@@ -63,7 +63,7 @@ public class ImportRole extends ModuleImport implements DescriptionObject {
     }
 
     @Override
-    public Path create(AgentPath agentPath, boolean reset)
+    public Path create(AgentPath agentPath, boolean reset, Object transactionKey)
             throws ObjectAlreadyExistsException, ObjectCannotBeUpdated, CannotManageException, ObjectNotFoundException
     {
         RolePath newRolePath = getRolePath();
