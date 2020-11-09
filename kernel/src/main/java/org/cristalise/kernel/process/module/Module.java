@@ -161,7 +161,7 @@ public class Module extends ImportItem {
             if (!Bootstrap.shutdown) importAgents(systemAgent, reset, transactionKey);
             if (!Bootstrap.shutdown) importItems( systemAgent, reset, transactionKey);
 
-        //Finally create this Module Item
+            //Finally create this Module Item
             if (!Bootstrap.shutdown) this.create(systemAgent.getPath(), reset, transactionKey);
 
             if (!Bootstrap.shutdown && StringUtils.isNotBlank(moduleChanges)) {
@@ -268,7 +268,7 @@ public class Module extends ImportItem {
         }
 
         StringBuffer moduleChangesXML = new StringBuffer("<ModuleChanges>\n");
-        moduleChangesXML.append("<ModuleName>"+name+"</ModuleName>");
+        moduleChangesXML.append("<ModuleName>"+name.replaceAll("\\s+","")+"</ModuleName>"); //remove whitespace because it is not allowed in Viewpoint name
         moduleChangesXML.append("<ModuleVersion>"+getVersion()+"</ModuleVersion>");
         for (String oneChange: moduleChanges) moduleChangesXML.append(oneChange).append("\n");
         moduleChangesXML.append("</ModuleChanges>");
@@ -301,8 +301,15 @@ public class Module extends ImportItem {
     public String getDesc() {
         return info.desc;
     }
+    @Override
     public Integer getVersion() {
-        return new Integer(info.version);
+        try {
+            return new Integer(info.version);
+        }
+        catch (NumberFormatException e) {
+            log.warn("getVersion() - failed to convert module version to integer", e);
+            return -1;
+        }
     }
     public String getResURL() {
         return resURL;

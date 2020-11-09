@@ -322,12 +322,13 @@ public class Bootstrap {
         }
 
         int proxyPort = Gateway.getProperties().getInt("ItemServer.Proxy.port", 1553);
+        int consolePort = Logger.getConsolePort();
 
-        Gateway.getStorage().put(serverItem, new Property(NAME,            serverName,                              false), null);
-        Gateway.getStorage().put(serverItem, new Property(TYPE,            "Server",                                false), null);
-        Gateway.getStorage().put(serverItem, new Property(KERNEL_VERSION,  Gateway.getKernelVersion(),              true),  null);
-        Gateway.getStorage().put(serverItem, new Property("ProxyPort",     String.valueOf(proxyPort),               false), null);
-        Gateway.getStorage().put(serverItem, new Property("ConsolePort",   String.valueOf(Logger.getConsolePort()), true),  null);
+        Gateway.getStorage().put(serverItem, new Property(NAME,            serverName,                  false), transactionKey);
+        Gateway.getStorage().put(serverItem, new Property(TYPE,            "Server",                    false), transactionKey);
+        Gateway.getStorage().put(serverItem, new Property(KERNEL_VERSION,  Gateway.getKernelVersion(),  true),  transactionKey);
+        Gateway.getStorage().put(serverItem, new Property("ProxyPort",     String.valueOf(proxyPort),   false), transactionKey);
+        Gateway.getStorage().put(serverItem, new Property("ConsolePort",   String.valueOf(consolePort), true),  transactionKey);
 
         initServerItemWf(transactionKey);
 
