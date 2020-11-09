@@ -264,10 +264,12 @@ public class ClusterStorageManager {
      * Retrieves the ids of the next level of a cluster.
      *
      * @param itemPath the current Item
-     * @param path the cluster path
+     * @param path the cluster path. The leading slash is removed if exists
      * @return list of keys found in the cluster
      */
     public String[] getClusterContents(ItemPath itemPath, String path, Object transactionKey) throws PersistencyException {
+        if (path.startsWith("/") && path.length() > 1) path = path.substring(1);
+
         ArrayList<String> contents = new ArrayList<String>();
         // get all readers
         log.trace( "getClusterContents() - path:"+path);
@@ -315,11 +317,13 @@ public class ClusterStorageManager {
      * <br>
      * There is a special case for Viewpoint. When path ends with /data it returns referenced Outcome instead of Viewpoint.
      *
-     * @param itemPath current Iten
-     * @param path the cluster path
+     * @param itemPath current Item
+     * @param path the cluster path. The leading slash is removed if exists
      * @return the C2KObject located by path
      */
     public C2KLocalObject get(ItemPath itemPath, String path, Object transactionKey) throws PersistencyException, ObjectNotFoundException {
+        if (path.startsWith("/") && path.length() > 1) path = path.substring(1);
+
         // check cache first
         Map<String, C2KLocalObject> sysKeyMemCache = memoryCache.get(itemPath);
 
@@ -383,14 +387,16 @@ public class ClusterStorageManager {
     }
 
     /**
-     * 
-     * @param itemPath
-     * @param path
+     * Retrieves the last id of the History
+     * @param itemPath current Item
+     * @param path the cluster path. The leading slash is removed if exists
      * @param transactionKey
      * @return
      * @throws PersistencyException
      */
     public int getLastIntegerId(ItemPath itemPath, String path, Object transactionKey) throws PersistencyException {
+        if (path.startsWith("/") && path.length() > 1) path = path.substring(1);
+
         ArrayList<ClusterStorage> readers = findStorages(HISTORY, false);
         for(ClusterStorage storage: readers) {
             return storage.getLastIntegerId(itemPath, path, transactionKey);
@@ -550,19 +556,24 @@ public class ClusterStorageManager {
      * @param path the identifier of the cluster content to be cleared. Can be null.
      */
     public void clearCache(ItemPath itemPath, String path) {
-        if (itemPath == null)  clearCache();
-        else if (path == null) clearCache(itemPath);
-
-        log.debug( "clearCache() - removing "+itemPath+"/"+path);
-
-        if (memoryCache.containsKey(itemPath)) {
-            Map<String, C2KLocalObject> sysKeyMemCache = memoryCache.get(itemPath);
-            synchronized(sysKeyMemCache) {
-                for (Iterator<String> iter = sysKeyMemCache.keySet().iterator(); iter.hasNext();) {
-                    String thisPath = iter.next();
-                    if (thisPath.startsWith(path)) {
-                        log.trace( "clearCache() - removing "+itemPath+"/"+thisPath);
-                        iter.remove();
+        if (itemPath == null) {
+            clearCache();
+        }
+        else if (path == null) {
+            clearCache(itemPath);
+        }
+        else {
+            log.debug( "clearCache() - removing "+itemPath+"/"+path);
+    
+            if (memoryCache.containsKey(itemPath)) {
+                Map<String, C2KLocalObject> sysKeyMemCache = memoryCache.get(itemPath);
+                synchronized(sysKeyMemCache) {
+                    for (Iterator<String> iter = sysKeyMemCache.keySet().iterator(); iter.hasNext();) {
+                        String thisPath = iter.next();
+                        if (thisPath.startsWith(path)) {
+                            log.trace( "clearCache() - removing "+itemPath+"/"+thisPath);
+                            iter.remove();
+                        }
                     }
                 }
             }
@@ -575,18 +586,21 @@ public class ClusterStorageManager {
      * @param itemPath the Item for which the cache should be cleared. Can be null.
      */
     public void clearCache(ItemPath itemPath) {
-        if (itemPath == null)  clearCache();
-
-        log.debug( "clearCache() - removing complete item:"+itemPath);
-
-        if (memoryCache.containsKey(itemPath)) {
-            synchronized (memoryCache) {
-                log.trace( "clearCache() - {} objects to remove for {}", memoryCache.get(itemPath).size(), itemPath);
-                memoryCache.remove(itemPath);
-            }
+        if (itemPath == null) {
+            clearCache();
         }
         else {
-            log.debug("No objects cached for {}", itemPath);
+            log.debug( "clearCache() - removing complete item:"+itemPath);
+
+            if (memoryCache.containsKey(itemPath)) {
+                synchronized (memoryCache) {
+                    log.trace( "clearCache() - {} objects to remove for {}", memoryCache.get(itemPath).size(), itemPath);
+                    memoryCache.remove(itemPath);
+                }
+            }
+            else {
+                log.debug("No objects cached for {}", itemPath);
+            }
         }
     }
 

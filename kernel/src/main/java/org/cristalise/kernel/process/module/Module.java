@@ -241,7 +241,7 @@ public class Module extends ImportItem {
         }
 
         StringBuffer moduleChangesXML = new StringBuffer("<ModuleChanges>\n");
-        moduleChangesXML.append("<ModuleName>"+name+"</ModuleName>");
+        moduleChangesXML.append("<ModuleName>"+name.replaceAll("\\s+","")+"</ModuleName>"); //remove whitespace because it is not allowed in Viewpoint name
         moduleChangesXML.append("<ModuleVersion>"+getVersion()+"</ModuleVersion>");
         for (String oneChange: moduleChanges) moduleChangesXML.append(oneChange).append("\n");
         moduleChangesXML.append("</ModuleChanges>");
@@ -274,8 +274,14 @@ public class Module extends ImportItem {
     public String getDesc() {
         return info.desc;
     }
-    public String getVersion() {
-        return info.version;
+    public Integer getVersion() {
+        try {
+            return new Integer(info.version);
+        }
+        catch (NumberFormatException e) {
+            log.warn("getVersion() - failed to convert module version to integer", e);
+            return -1;
+        }
     }
     public String getResURL() {
         return resURL;

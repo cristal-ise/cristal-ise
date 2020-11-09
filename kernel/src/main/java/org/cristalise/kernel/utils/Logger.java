@@ -211,13 +211,15 @@ public class Logger {
     }
 
     static public int getConsolePort() {
-        return mConsole.getPort();
+        if (mConsole != null) return mConsole.getPort();
+        else                  return -1;
     }
 
     static public void closeConsole() {
-        if (mConsole != null)
+        if (mConsole != null) {
             mConsole.stopListening();
-        mConsole = null;
+            mConsole = null;
+        }
     }
 
     public static void removeAll() {
