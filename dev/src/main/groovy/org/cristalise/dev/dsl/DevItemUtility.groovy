@@ -219,8 +219,8 @@ class DevItemUtility {
         assert devItem && devItem.getName() == name
 
         executeDoneJob(devItem, editActName, xml)
+        assert devItem.getViewpoint(resHandler.name, 'last')
         executeDoneJob(devItem, newVersionActName)
-
         assert devItem.getViewpoint(resHandler.name, "0")
 
         return devItem
@@ -332,6 +332,7 @@ class DevItemUtility {
         assert eaDescItem && eaDescItem.getName() == name
 
         executeDoneJob(eaDescItem, "EditDefinition", KernelXMLUtility.getActivityDefXML(Name: name, AgentRole: role))
+        assert eaDescItem.getViewpoint(resHandler.name, 'last')
 
         //it is possible there was no Schema specified for this Activity
         if(schemaName && !schemaName.startsWith("-")) {
@@ -339,9 +340,9 @@ class DevItemUtility {
         }
 
         executeDoneJob(eaDescItem, "AssignNewActivityVersionFromLast")
+        assert eaDescItem.getViewpoint(resHandler.name, "0")
 
         if(schemaName && !schemaName.startsWith("-")) {
-            assert eaDescItem.getViewpoint(resHandler.name, "0")
             assert eaDescItem.getCollection(SCHEMA, (Integer)0).size() == 1
         }
     }
@@ -361,6 +362,7 @@ class DevItemUtility {
         eaDef.setItemPath(eaDescItem.getPath())
 
         executeDoneJob(eaDescItem, "EditDefinition", Gateway.getMarshaller().marshall(eaDef) )
+        assert eaDescItem.getViewpoint(resHandler.name, 'last')
 
         if(eaDef.schema) {
             executeDoneJob(eaDescItem, "SetSchema", KernelXMLUtility.getDescObjectDetailsXML(id: eaDef.schema.name, version: eaDef.schema.version) )
@@ -379,7 +381,6 @@ class DevItemUtility {
         }
 
         executeDoneJob(eaDescItem, "AssignNewActivityVersionFromLast")
-
         assert eaDescItem.getViewpoint(resHandler.name, "0")
 
         if(eaDef.schema)       assert eaDescItem.getCollection(SCHEMA,        (Integer)0).size() == 1
@@ -494,9 +495,10 @@ class DevItemUtility {
         caDef.setItemPath(caDescItem.getPath())
 
         executeDoneJob(caDescItem, "EditDefinition", Gateway.getMarshaller().marshall(caDef) )
+        assert caDescItem.getViewpoint(resHandler.name, 'last')
         executeDoneJob(caDescItem, "AssignNewActivityVersionFromLast")
-
         assert caDescItem.getViewpoint(resHandler.name, "0")
+
         assert caDescItem.getCollection(ACTIVITY, (Integer)0).size()
         if(actCollSize) assert caDescItem.getCollection(ACTIVITY, (Integer)0).size() == actCollSize
 

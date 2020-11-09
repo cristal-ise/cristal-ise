@@ -4,11 +4,15 @@ import org.cristalise.kernel.entity.proxy.ItemProxy
 import org.cristalise.kernel.test.KernelScenarioTestBase
 import org.junit.Test
 
+import groovy.transform.CompileDynamic
+import groovy.transform.CompileStatic
+
 
 /**
  * 
  *
  */
+@CompileStatic
 class ViewpointCreateIT extends KernelScenarioTestBase {
     String schemaName  = "ViewpointTest"
     String elemActName = "SetViewpoint"
@@ -22,6 +26,7 @@ class ViewpointCreateIT extends KernelScenarioTestBase {
 	 * 
 	 * @param actDefList
 	 */
+    @CompileDynamic
     private void setupItem(String viewpoint) {
         def schema = Schema("$schemaName-$timeStamp", folder) {
             struct(name: schemaName) {
@@ -51,7 +56,7 @@ class ViewpointCreateIT extends KernelScenarioTestBase {
 
     @Test
     public void defaultLastView() {
-        setupItem()
+        setupItem('')
         executeDoneJob(viewpointTest, elemActName)
         assert viewpointTest.checkViewpoint("$schemaName-$timeStamp", "last")
     }
