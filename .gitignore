@@ -7,3 +7,4 @@ target/
 /.metadata/
 .idea
 *.iml
+**/.groovy/

@@ -197,7 +197,7 @@ class KernelScenarioTestBase extends DevItemDSL {
     public Schema getUpdateSchema(ItemProxy factory) {
         if (factory.checkContent(ClusterType.COLLECTION, BuiltInCollections.SCHEMA_INITIALISE.name)) {
             def initSchemaCollection = factory.getCollection(BuiltInCollections.SCHEMA_INITIALISE)
-            DependencyMember member = initSchemaCollection.getMembers().list[0]
+            DependencyMember member = (DependencyMember) initSchemaCollection.getMembers().list[0]
 
             def updateSchemaUUID = member.getChildUUID()
             def updateSchemaVersion = member.getProperties().getBuiltInProperty(VERSION)
