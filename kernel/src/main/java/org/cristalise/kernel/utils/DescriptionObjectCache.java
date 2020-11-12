@@ -151,13 +151,13 @@ public abstract class DescriptionObjectCache<D extends DescriptionObject> {
     public D get(String name, int version) throws ObjectNotFoundException, InvalidDataException {
         try {
             ItemPath defItemPath = findItem(name);
-            String defId = defItemPath.getUUID().toString();
+            String defUuid = defItemPath.getUUID().toString();
 
             synchronized (cache) {
                 CacheEntry<D> thisDefEntry = cache.get(name + "_" + version);
                 if (thisDefEntry == null) {
                     log.trace("get() - " + name + " v" + version + " not found in cache. Checking id.");
-                    thisDefEntry = cache.get(defId + "_" + version);
+                    thisDefEntry = cache.get(defUuid + "_" + version);
                 }
 
                 if (thisDefEntry != null) {
@@ -169,7 +169,7 @@ public abstract class DescriptionObjectCache<D extends DescriptionObject> {
             log.trace("get() - " + name + " v" + version + " not found in cache. Loading from database.");
 
             ItemProxy defItemProxy = Gateway.getProxyManager().getProxy(defItemPath);
-            if (name.equals(defId)) {
+            if (name.equals(defUuid)) {
                 String itemName = defItemProxy.getName();
                 if (itemName != null) name = itemName;
             }
@@ -178,7 +178,7 @@ public abstract class DescriptionObjectCache<D extends DescriptionObject> {
 
             CacheEntry<D> entry = new CacheEntry<>(thisDef, defItemProxy, this);
             synchronized (cache) {
-                cache.put(defId + "_" + version, entry);
+                cache.put(defUuid + "_" + version, entry);
             }
 
             return thisDef;
