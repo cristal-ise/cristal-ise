@@ -201,7 +201,6 @@ class RestapiTestBase extends KernelScenarioTestBase {
     }
 
     String executeActivity(String uuid, String actPath, ContentType outcomeType, String outcome, File attachment) {
-
         return given().log().all()
             .header("Content-Type", "multipart/form-data")
             .multiPart("outcome", outcome) // sets text/plain
@@ -217,6 +216,19 @@ class RestapiTestBase extends KernelScenarioTestBase {
 
     String executePredefStep(String uuid,  Class<?> predefStep, String...params) {
         return executePredefStep(uuid, predefStep, ContentType.JSON, params)
+    }
+
+    String executeScript(String uuid, String scriptName, ContentType contentType, String inputs) {
+        return given()
+            .contentType(contentType)
+            .accept(ContentType.JSON)
+            .cookie(cauthCookie)
+            .body(inputs)
+        .when()
+            .post(apiUri+"/item/$uuid/scriptResult/?script=${scriptName}&version=0")
+        .then()
+            .statusCode(STATUS_OK)
+            .extract().response().body().asString()
     }
 
     String resolveDomainPath(String path) {

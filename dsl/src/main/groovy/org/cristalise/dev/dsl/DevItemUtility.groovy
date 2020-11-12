@@ -23,6 +23,7 @@ package org.cristalise.dev.dsl
 import static org.cristalise.kernel.collection.BuiltInCollections.*
 import static org.cristalise.kernel.process.resource.BuiltInResources.*
 
+import org.cristalise.kernel.common.ObjectNotFoundException
 import org.cristalise.kernel.entity.agent.Job
 import org.cristalise.kernel.entity.proxy.AgentProxy
 import org.cristalise.kernel.entity.proxy.ItemProxy
@@ -352,6 +353,17 @@ class DevItemUtility {
      */
     public ItemProxy editScript(String name, String folder, String scriptXML) {
         return editDevItem(SCRIPT_RESOURCE, "EditDefinition", "AssignNewScriptVersionFromLast", name, folder, scriptXML)
+    }
+
+    /**
+     * 
+     * @param name
+     * @param folder
+     * @param scriptXML
+     * @return
+     */
+    public ItemProxy editExistingScript(String name, String folder, String scriptXML) {
+        return editDevItem(SCRIPT_RESOURCE, "EditDefinition", "MoveLatestScriptVersionToLast", name, folder, scriptXML)
     }
 
     /**

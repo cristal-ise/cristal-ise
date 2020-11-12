@@ -21,6 +21,8 @@
 
 package org.cristalise.dev.dsl
 
+import static org.cristalise.kernel.process.resource.BuiltInResources.*
+
 import org.cristalise.dsl.entity.AgentBuilder
 import org.cristalise.dsl.entity.ItemBuilder
 import org.cristalise.dsl.entity.RoleBuilder
@@ -29,6 +31,7 @@ import org.cristalise.dsl.lifecycle.definition.ElemActDefBuilder
 import org.cristalise.dsl.persistency.outcome.SchemaBuilder
 import org.cristalise.dsl.querying.QueryBuilder
 import org.cristalise.dsl.scripting.ScriptBuilder
+import org.cristalise.kernel.common.ObjectNotFoundException
 import org.cristalise.kernel.entity.imports.ImportAgent
 import org.cristalise.kernel.entity.imports.ImportItem
 import org.cristalise.kernel.entity.imports.ImportRole
@@ -40,6 +43,7 @@ import org.cristalise.kernel.lifecycle.instance.predefined.server.CreateNewAgent
 import org.cristalise.kernel.lifecycle.instance.predefined.server.CreateNewItem
 import org.cristalise.kernel.lifecycle.instance.predefined.server.CreateNewRole
 import org.cristalise.kernel.persistency.outcome.Schema
+import org.cristalise.kernel.process.resource.DefaultResourceImportHandler
 import org.cristalise.kernel.querying.Query
 import org.cristalise.kernel.scripting.Script
 
@@ -96,10 +100,19 @@ class DevItemDSL extends DevItemUtility {
     }
 
     public Script Script(String name, String folder, Closure cl) {
-        createNewScript(name, folder)
-        def script = ScriptBuilder.build("", name, 0, cl)
-        editScript(name, folder, script.scriptXML)
-        return script.script
+        Script script = ScriptBuilder.build("", name, 0, cl).script
+
+        try {
+            def resHandler = new DefaultResourceImportHandler(SCRIPT_RESOURCE)
+            agent.getItem("${resHandler.typeRoot}/$folder/$name")
+            editExistingScript(name, folder, script.scriptXML)
+        }
+        catch(ObjectNotFoundException e) {
+            createNewScript(name, folder)
+            editScript(name, folder, script.scriptXML)
+        }
+
+        return script
     }
 
     public ActivityDef ElementaryActivityDef(String actName, String folder, Closure cl) {
