@@ -115,11 +115,14 @@ public abstract class DescriptionObjectCache<D extends DescriptionObject> {
         if (Gateway.getLookup() == null) throw new ObjectNotFoundException("Cannot find Items without a Lookup");
 
         // first check for a UUID name
-        try {
-            ItemPath resItem = new ItemPath(name);
-            if (resItem.exists()) return resItem;
+        // exception handling is slow, the if() avoids to use exception to check valid UUID
+        if (ItemPath.isUUID(name)) {
+            try {
+                ItemPath resItem = new ItemPath(name);
+                if (resItem.exists()) return resItem;
+            }
+            catch (InvalidItemPathException ex) {}
         }
-        catch (InvalidItemPathException ex) {}
 
         // then check for a direct path
         DomainPath directPath = new DomainPath(name);
@@ -146,34 +149,36 @@ public abstract class DescriptionObjectCache<D extends DescriptionObject> {
     }
 
     public D get(String name, int version) throws ObjectNotFoundException, InvalidDataException {
-        D thisDef = null;
         try {
+            ItemPath defItemPath = findItem(name);
+            String defId = defItemPath.getUUID().toString();
+
             synchronized (cache) {
                 CacheEntry<D> thisDefEntry = cache.get(name + "_" + version);
                 if (thisDefEntry == null) {
                     log.trace("get() - " + name + " v" + version + " not found in cache. Checking id.");
-                    ItemPath defItemPath = findItem(name);
-                    String defId = defItemPath.getUUID().toString();
                     thisDefEntry = cache.get(defId + "_" + version);
                 }
+
                 if (thisDefEntry != null) {
                     log.trace("get() - " + name + " v" + version + " found in cache.");
-                    thisDef = thisDefEntry.def;
+                    return thisDefEntry.def;
                 }
             }
-            
-            if (thisDef == null) {
-                log.trace("get() - " + name + " v" + version + " not found in cache. Loading from database.");
-                ItemProxy defItemProxy = Gateway.getProxyManager().getProxy(defItemPath);
-                if (name.equals(defId)) {
-                    String itemName = defItemProxy.getName();
-                    if (itemName != null) name = itemName;
-                }
-                thisDef = loadObject(name, version, defItemProxy);
-                CacheEntry<D> entry = new CacheEntry<>(thisDef, defItemProxy, this));
-                synchronized (cache) {
-                    cache.put(defId + "_" + version, entry);
-                }
+
+            log.trace("get() - " + name + " v" + version + " not found in cache. Loading from database.");
+
+            ItemProxy defItemProxy = Gateway.getProxyManager().getProxy(defItemPath);
+            if (name.equals(defId)) {
+                String itemName = defItemProxy.getName();
+                if (itemName != null) name = itemName;
+            }
+
+            D thisDef = loadObject(name, version, defItemProxy);
+
+            CacheEntry<D> entry = new CacheEntry<>(thisDef, defItemProxy, this);
+            synchronized (cache) {
+                cache.put(defId + "_" + version, entry);
             }
 
             return thisDef;
