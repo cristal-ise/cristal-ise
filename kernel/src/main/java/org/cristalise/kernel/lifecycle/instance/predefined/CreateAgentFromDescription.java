@@ -96,9 +96,9 @@ public class CreateAgentFromDescription extends CreateItemFromDescription {
 
         if (context.exists()) throw new ObjectAlreadyExistsException("The path " +context+ " exists already.");
 
-        ActiveEntity newAgent = createAgentAddRoles(newAgentPath, roles, pwd);
+        createAgentAddRoles(newAgentPath, roles, pwd);
 
-        initialiseItem(newAgent, agentPath, descItemPath, initProps, outcome, newName, descVer, context, newAgentPath, locker);
+        initialiseItem(newAgentPath, agentPath, descItemPath, initProps, outcome, newName, descVer, context, newAgentPath, locker);
 
         if (input.length > 3) input[3] = "REDACTED"; // censor password from outcome
 
