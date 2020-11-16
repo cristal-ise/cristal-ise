@@ -44,6 +44,7 @@ import org.cristalise.kernel.lifecycle.CompositeActivityDef;
 import org.cristalise.kernel.lifecycle.instance.CompositeActivity;
 import org.cristalise.kernel.lifecycle.instance.Workflow;
 import org.cristalise.kernel.lifecycle.instance.predefined.PredefinedStep;
+import org.cristalise.kernel.lifecycle.instance.predefined.item.CreateItemFromDescription;
 import org.cristalise.kernel.lookup.AgentPath;
 import org.cristalise.kernel.lookup.DomainPath;
 import org.cristalise.kernel.lookup.ItemPath;
@@ -181,17 +182,19 @@ public class ImportItem extends ModuleImport {
         }
         else isDOMPathExists = false;
 
-        TraceableEntity newItem = getTraceableEntitiy();
+        getTraceableEntitiy();
 
         // (re)initialise the new item with properties, workflow and collections
         try {
-            newItem.initialise( 
-                    agentPath.getSystemKey(),
-                    Gateway.getMarshaller().marshall(createItemProperties()),
-                    Gateway.getMarshaller().marshall(createCompositeActivity()),
-                    Gateway.getMarshaller().marshall(createCollections()),
-                    "", ""
-                    );
+            CreateItemFromDescription.storeItem(
+                    agentPath, 
+                    getItemPath(),
+                    createItemProperties(),
+                    createCollections(),
+                    createCompositeActivity(),
+                    null, //initViewpoint
+                    null, //initOutcomeString
+                    transactionKey);
         }
         catch (Exception ex) {
             log.error("Error initialising new item " + ns + "/" + name, ex);
