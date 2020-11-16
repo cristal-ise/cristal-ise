@@ -476,6 +476,8 @@ public class CreateItemFromDescription extends PredefinedStep {
         Workflow lc = null;
 
         if (ca == null) {
+            // FIXME check if this could be a real error
+            log.warn("storeItem({}) - CompositeActivity was null. Creating workflow with empty domain CompAct.", item);
             lc = new Workflow(new CompositeActivity(), new ItemPredefinedStepContainer());
         }
         else{
