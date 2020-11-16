@@ -48,6 +48,8 @@ import org.cristalise.kernel.lifecycle.CompositeActivityDef;
 import org.cristalise.kernel.lifecycle.instance.CompositeActivity;
 import org.cristalise.kernel.lifecycle.instance.Workflow;
 import org.cristalise.kernel.lifecycle.instance.predefined.PredefinedStep;
+import org.cristalise.kernel.lifecycle.instance.predefined.PredefinedStepContainer;
+import org.cristalise.kernel.lifecycle.instance.predefined.agent.AgentPredefinedStepContainer;
 import org.cristalise.kernel.lifecycle.instance.stateMachine.StateMachine;
 import org.cristalise.kernel.lookup.AgentPath;
 import org.cristalise.kernel.lookup.DomainPath;
@@ -474,14 +476,15 @@ public class CreateItemFromDescription extends PredefinedStep {
 
         // create wf
         Workflow lc = null;
+        PredefinedStepContainer cont = (item instanceof AgentPath) ? new AgentPredefinedStepContainer() : new ItemPredefinedStepContainer();
 
         if (ca == null) {
             // FIXME check if this could be a real error
             log.warn("storeItem({}) - CompositeActivity was null. Creating workflow with empty domain CompAct.", item);
-            lc = new Workflow(new CompositeActivity(), new ItemPredefinedStepContainer());
+            lc = new Workflow(new CompositeActivity(), cont);
         }
-        else{
-            lc = new Workflow(ca, new ItemPredefinedStepContainer());
+        else {
+            lc = new Workflow(ca, cont);
         }
 
         // All objects are in place, initialize the workflow
