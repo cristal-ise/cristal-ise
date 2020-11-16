@@ -156,6 +156,7 @@ public class ItemProxy
      * @throws MappingException errors in XML marshall/unmarshall mapping
      * @throws InvalidCollectionModification invalid Collection
      */
+    @Deprecated
     public void initialise(AgentPath agentId, 
                            PropertyArrayList itemProps, 
                            CompositeActivity workflow, 
@@ -194,6 +195,7 @@ public class ItemProxy
      * @throws MappingException errors in XML marshall/unmarshall mapping
      * @throws InvalidCollectionModification invalid Collection
      */
+    @Deprecated
     public void initialise(AgentPath agentId, 
                            PropertyArrayList itemProps, 
                            CompositeActivity workflow, 
