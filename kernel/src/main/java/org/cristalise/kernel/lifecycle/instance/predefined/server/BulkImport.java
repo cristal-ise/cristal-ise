@@ -93,7 +93,7 @@ public class BulkImport extends PredefinedStep {
     public void initialise() throws InvalidDataException {
         if (importCluster == null) {
             if (root == null)
-                throw new InvalidDataException("BulkImport.runActivityLogic() - Root path not given in config file.");
+                throw new InvalidDataException("Root path not given in config file.");
 
             importCluster = new XMLClusterStorage(root, ext, useDir);
         }
@@ -108,17 +108,13 @@ public class BulkImport extends PredefinedStep {
 
         initialise();
 
-        importAllClusters();
+        importAllClusters(transactionKey);
 
         return requestData;
     }
 
-    public void importAllClusters() throws InvalidDataException, PersistencyException {
+    public void importAllClusters(Object transactionKey) throws InvalidDataException, PersistencyException {
         for (ItemPath item: getItemsToImport(root)) {
-            Object transactionKey = new Object();
-
-            Gateway.getStorage().begin(transactionKey);
-
             for (ClusterType type : importCluster.getClusters(item, null)) {
                 switch (type) {
                     case PATH:       importPath(item, transactionKey);       break;
@@ -136,8 +132,6 @@ public class BulkImport extends PredefinedStep {
             }
 
             //importCluster.delete(item, "");
-
-            Gateway.getStorage().commit(transactionKey);
         }
     }
 
