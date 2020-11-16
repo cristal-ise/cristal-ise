@@ -137,6 +137,8 @@ public class ItemImplementation implements ItemOperations {
             throw new InvalidDataException("Properties were invalid");
         }
 
+        mStorage.commit(locker);
+
         log.info("Initialisation of item " + mItemPath + " was successful");
     }
 
