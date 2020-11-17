@@ -51,7 +51,7 @@
       <Property name="Root" mutable="false">testns/TestItems</Property>
       <Property name="UpdateSchema" mutable="false">TestItem_Details:0</Property>
       <Outcome viewname="last" schema="PropertyDescription" version="0">boot/property/TestItem.xml</Outcome>
-      <Dependency name="workflow" isDescription="false">
+      <Dependency name="workflow" isDescription="false" classProps="">
         <DependencyMember itemPath="/desc/ActivityDesc/testns/TestItem_Workflow">
           <MemberProperties>
             <KeyValuePair Key="Version" isAbstract="false" Integer="0"/>
@@ -59,7 +59,7 @@
         </DependencyMember>
         <CollectionProperties/>
       </Dependency>
-      <Dependency name="MasterSchema" isDescription="false">
+      <Dependency name="MasterSchema" isDescription="false" classProps="">
         <DependencyMember itemPath="/desc/Schema/testns/TestItem">
           <MemberProperties>
             <KeyValuePair Key="Version" isAbstract="false" Integer="0"/>
@@ -67,7 +67,7 @@
         </DependencyMember>
         <CollectionProperties/>
       </Dependency>
-      <Dependency name="AggregateScript" isDescription="false">
+      <Dependency name="AggregateScript" isDescription="false" classProps="">
         <DependencyMember itemPath="/desc/Script/testns/TestItem_Aggregate">
           <MemberProperties>
             <KeyValuePair Key="Version" isAbstract="false" Integer="0"/>
@@ -96,7 +96,7 @@
       <Property name="Type" mutable="false">Factory</Property>
       <Property name="Root" mutable="false">testns/TestItemUseConstructors</Property>
       <Outcome viewname="last" schema="PropertyDescription" version="0">boot/property/TestItemUseConstructor.xml</Outcome>
-      <Dependency name="SchemaInitialise" isDescription="false">
+      <Dependency name="SchemaInitialise" isDescription="false" classProps="">
         <DependencyMember itemPath="/desc/Schema/testns/TestItemUseConstructor_Details">
           <MemberProperties>
             <KeyValuePair Key="Version" isAbstract="false" Integer="0"/>
@@ -104,7 +104,7 @@
         </DependencyMember>
         <CollectionProperties/>
       </Dependency>
-      <Dependency name="workflow" isDescription="false">
+      <Dependency name="workflow" isDescription="false" classProps="">
         <DependencyMember itemPath="/desc/ActivityDesc/testns/TestItemUseConstructor_Workflow">
           <MemberProperties>
             <KeyValuePair Key="Version" isAbstract="false" Integer="0"/>
@@ -112,7 +112,7 @@
         </DependencyMember>
         <CollectionProperties/>
       </Dependency>
-      <Dependency name="MasterSchema" isDescription="false">
+      <Dependency name="MasterSchema" isDescription="false" classProps="">
         <DependencyMember itemPath="/desc/Schema/testns/TestItemUseConstructor">
           <MemberProperties>
             <KeyValuePair Key="Version" isAbstract="false" Integer="0"/>
@@ -120,7 +120,7 @@
         </DependencyMember>
         <CollectionProperties/>
       </Dependency>
-      <Dependency name="AggregateScript" isDescription="false">
+      <Dependency name="AggregateScript" isDescription="false" classProps="">
         <DependencyMember itemPath="/desc/Script/testns/TestItemUseConstructor_Aggregate">
           <MemberProperties>
             <KeyValuePair Key="Version" isAbstract="false" Integer="0"/>
@@ -151,7 +151,7 @@
       <Property name="CreateAgent" mutable="false">true</Property>
       <Property name="DefaultRoles" mutable="true">Admin</Property>
       <Outcome viewname="last" schema="PropertyDescription" version="0">boot/property/TestAgentUseConstructor.xml</Outcome>
-      <Dependency name="SchemaInitialise" isDescription="false">
+      <Dependency name="SchemaInitialise" isDescription="false" classProps="">
         <DependencyMember itemPath="/desc/Schema/testns/TestAgentUseConstructor_Details">
           <MemberProperties>
             <KeyValuePair Key="Version" isAbstract="false" Integer="0"/>
@@ -159,7 +159,7 @@
         </DependencyMember>
         <CollectionProperties/>
       </Dependency>
-      <Dependency name="workflow" isDescription="false">
+      <Dependency name="workflow" isDescription="false" classProps="">
         <DependencyMember itemPath="/desc/ActivityDesc/testns/TestAgentUseConstructor_Workflow">
           <MemberProperties>
             <KeyValuePair Key="Version" isAbstract="false" Integer="0"/>
@@ -167,7 +167,7 @@
         </DependencyMember>
         <CollectionProperties/>
       </Dependency>
-      <Dependency name="MasterSchema" isDescription="false">
+      <Dependency name="MasterSchema" isDescription="false" classProps="">
         <DependencyMember itemPath="/desc/Schema/testns/TestAgentUseConstructor">
           <MemberProperties>
             <KeyValuePair Key="Version" isAbstract="false" Integer="0"/>
@@ -175,7 +175,7 @@
         </DependencyMember>
         <CollectionProperties/>
       </Dependency>
-      <Dependency name="AggregateScript" isDescription="false">
+      <Dependency name="AggregateScript" isDescription="false" classProps="">
         <DependencyMember itemPath="/desc/Script/testns/TestAgentUseConstructor_Aggregate">
           <MemberProperties>
             <KeyValuePair Key="Version" isAbstract="false" Integer="0"/>
@@ -207,7 +207,7 @@
       <Property name="DefaultRoles" mutable="true">Admin</Property>
       <Property name="UpdateSchema" mutable="false">TestAgent_Details:0</Property>
       <Outcome viewname="last" schema="PropertyDescription" version="0">boot/property/TestAgent.xml</Outcome>
-      <Dependency name="workflow" isDescription="false">
+      <Dependency name="workflow" isDescription="false" classProps="">
         <DependencyMember itemPath="/desc/ActivityDesc/testns/TestAgent_Workflow">
           <MemberProperties>
             <KeyValuePair Key="Version" isAbstract="false" Integer="0"/>
@@ -215,7 +215,7 @@
         </DependencyMember>
         <CollectionProperties/>
       </Dependency>
-      <Dependency name="MasterSchema" isDescription="false">
+      <Dependency name="MasterSchema" isDescription="false" classProps="">
         <DependencyMember itemPath="/desc/Schema/testns/TestAgent">
           <MemberProperties>
             <KeyValuePair Key="Version" isAbstract="false" Integer="0"/>
@@ -223,7 +223,7 @@
         </DependencyMember>
         <CollectionProperties/>
       </Dependency>
-      <Dependency name="AggregateScript" isDescription="false">
+      <Dependency name="AggregateScript" isDescription="false" classProps="">
         <DependencyMember itemPath="/desc/Script/testns/TestAgent_Aggregate">
           <MemberProperties>
             <KeyValuePair Key="Version" isAbstract="false" Integer="0"/>
@@ -255,7 +255,7 @@
       <Property name="LeftPadSize" mutable="true">6</Property>
       <Property name="UpdateSchema" mutable="false">TestItemGeneratedName_Details:0</Property>
       <Outcome viewname="last" schema="PropertyDescription" version="0">boot/property/TestItemGeneratedName.xml</Outcome>
-      <Dependency name="workflow" isDescription="false">
+      <Dependency name="workflow" isDescription="false" classProps="">
         <DependencyMember itemPath="/desc/ActivityDesc/testns/TestItemGeneratedName_Workflow">
           <MemberProperties>
             <KeyValuePair Key="Version" isAbstract="false" Integer="0"/>
@@ -263,7 +263,7 @@
         </DependencyMember>
         <CollectionProperties/>
       </Dependency>
-      <Dependency name="MasterSchema" isDescription="false">
+      <Dependency name="MasterSchema" isDescription="false" classProps="">
         <DependencyMember itemPath="/desc/Schema/testns/TestItemGeneratedName">
           <MemberProperties>
             <KeyValuePair Key="Version" isAbstract="false" Integer="0"/>
@@ -271,7 +271,7 @@
         </DependencyMember>
         <CollectionProperties/>
       </Dependency>
-      <Dependency name="AggregateScript" isDescription="false">
+      <Dependency name="AggregateScript" isDescription="false" classProps="">
         <DependencyMember itemPath="/desc/Script/testns/TestItemGeneratedName_Aggregate">
           <MemberProperties>
             <KeyValuePair Key="Version" isAbstract="false" Integer="0"/>
@@ -302,7 +302,7 @@
       <Property name="IDPrefix" mutable="false">ID</Property>
       <Property name="LeftPadSize" mutable="true">6</Property>
       <Outcome viewname="last" schema="PropertyDescription" version="0">boot/property/TestItemUseConstructorGeneratedName.xml</Outcome>
-      <Dependency name="SchemaInitialise" isDescription="false">
+      <Dependency name="SchemaInitialise" isDescription="false" classProps="">
         <DependencyMember itemPath="/desc/Schema/testns/TestItemUseConstructorGeneratedName_Details">
           <MemberProperties>
             <KeyValuePair Key="Version" isAbstract="false" Integer="0"/>
@@ -310,7 +310,7 @@
         </DependencyMember>
         <CollectionProperties/>
       </Dependency>
-      <Dependency name="workflow" isDescription="false">
+      <Dependency name="workflow" isDescription="false" classProps="">
         <DependencyMember itemPath="/desc/ActivityDesc/testns/TestItemUseConstructorGeneratedName_Workflow">
           <MemberProperties>
             <KeyValuePair Key="Version" isAbstract="false" Integer="0"/>
@@ -318,7 +318,7 @@
         </DependencyMember>
         <CollectionProperties/>
       </Dependency>
-      <Dependency name="MasterSchema" isDescription="false">
+      <Dependency name="MasterSchema" isDescription="false" classProps="">
         <DependencyMember itemPath="/desc/Schema/testns/TestItemUseConstructorGeneratedName">
           <MemberProperties>
             <KeyValuePair Key="Version" isAbstract="false" Integer="0"/>
@@ -326,7 +326,7 @@
         </DependencyMember>
         <CollectionProperties/>
       </Dependency>
-      <Dependency name="AggregateScript" isDescription="false">
+      <Dependency name="AggregateScript" isDescription="false" classProps="">
         <DependencyMember itemPath="/desc/Script/testns/TestItemUseConstructorGeneratedName_Aggregate">
           <MemberProperties>
             <KeyValuePair Key="Version" isAbstract="false" Integer="0"/>

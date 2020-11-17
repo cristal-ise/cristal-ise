@@ -274,14 +274,8 @@ public class Module extends ImportItem {
     public String getDesc() {
         return info.desc;
     }
-    public Integer getVersion() {
-        try {
-            return new Integer(info.version);
-        }
-        catch (NumberFormatException e) {
-            log.warn("getVersion() - failed to convert module version to integer", e);
-            return -1;
-        }
+    public String getVersion() {
+        return info.version;
     }
     public String getResURL() {
         return resURL;

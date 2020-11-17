@@ -22,15 +22,17 @@ package org.cristalise.kernel.entity.imports;
 
 import static org.cristalise.kernel.property.BuiltInItemProperties.NAME;
 import static org.cristalise.kernel.property.BuiltInItemProperties.TYPE;
+
 import java.util.ArrayList;
 import java.util.List;
+
 import org.apache.commons.lang3.StringUtils;
 import org.cristalise.kernel.common.CannotManageException;
 import org.cristalise.kernel.common.ObjectAlreadyExistsException;
 import org.cristalise.kernel.common.ObjectCannotBeUpdated;
 import org.cristalise.kernel.common.ObjectNotFoundException;
-import org.cristalise.kernel.entity.agent.ActiveEntity;
-import org.cristalise.kernel.lifecycle.CompositeActivityDef;
+import org.cristalise.kernel.lifecycle.instance.CompositeActivity;
+import org.cristalise.kernel.lifecycle.instance.predefined.item.CreateItemFromDescription;
 import org.cristalise.kernel.lookup.AgentPath;
 import org.cristalise.kernel.lookup.DomainPath;
 import org.cristalise.kernel.lookup.ItemPath;
@@ -41,6 +43,7 @@ import org.cristalise.kernel.process.module.ModuleImport;
 import org.cristalise.kernel.property.Property;
 import org.cristalise.kernel.property.PropertyArrayList;
 import org.cristalise.kernel.utils.LocalObjectLoader;
+
 import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
@@ -87,7 +90,7 @@ public class ImportAgent extends ModuleImport {
 
         AgentPath newAgent = new AgentPath(getItemPath(), name);
 
-        ActiveEntity newAgentEnt = Gateway.getCorbaServer().createAgent(newAgent);
+        Gateway.getCorbaServer().createAgent(newAgent);
         Gateway.getLookupManager().add(newAgent);
 
         // assemble properties
@@ -97,11 +100,15 @@ public class ImportAgent extends ModuleImport {
         try {
             if (StringUtils.isNotBlank(password)) Gateway.getLookupManager().setAgentPassword(newAgent, password);
 
-            newAgentEnt.initialise(
-                    agentPath.getSystemKey(), 
-                    Gateway.getMarshaller().marshall(new PropertyArrayList(properties)), 
-                    Gateway.getMarshaller().marshall(((CompositeActivityDef)LocalObjectLoader.getCompActDef("NoWorkflow", 0)).instantiate()), 
-                    null, "", "");
+            CreateItemFromDescription.storeItem(
+                    agentPath, 
+                    getItemPath(),
+                    new PropertyArrayList(properties),
+                    null, //colls
+                    (CompositeActivity)LocalObjectLoader.getCompActDef("NoWorkflow", 0).instantiate(),
+                    null, //initViewpoint
+                    null, //initOutcomeString
+                    transactionKey);
         }
         catch (Exception ex) {
             log.error("Error initialising new agent name:{}", name, ex);
