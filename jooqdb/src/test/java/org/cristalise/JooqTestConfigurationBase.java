@@ -81,6 +81,8 @@ public class JooqTestConfigurationBase {
      * @throws Exception
      */
     public static DSLContext initJooqContext() throws Exception {
+        JooqHandler.readSystemProperties();
+
         switch (dbType) {
             case H2_PostgreSQL: return initH2Context("PostgreSQL");
             case H2_MYSQL:      return initH2Context("MYSQL");
