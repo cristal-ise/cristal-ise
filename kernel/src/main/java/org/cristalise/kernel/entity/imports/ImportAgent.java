@@ -37,7 +37,8 @@ import org.cristalise.kernel.common.ObjectAlreadyExistsException;
 import org.cristalise.kernel.common.ObjectCannotBeUpdated;
 import org.cristalise.kernel.common.ObjectNotFoundException;
 import org.cristalise.kernel.entity.agent.ActiveEntity;
-import org.cristalise.kernel.lifecycle.CompositeActivityDef;
+import org.cristalise.kernel.lifecycle.instance.CompositeActivity;
+import org.cristalise.kernel.lifecycle.instance.predefined.item.CreateItemFromDescription;
 import org.cristalise.kernel.lookup.AgentPath;
 import org.cristalise.kernel.lookup.DomainPath;
 import org.cristalise.kernel.lookup.InvalidAgentPathException;
@@ -125,7 +126,7 @@ public class ImportAgent extends ModuleImport implements DescriptionObject {
             }
         }
 
-        ActiveEntity newAgentEnt = getActiveEntity();
+        getActiveEntity();
 
         // assemble properties
         properties.add(new Property(NAME, name, true));
@@ -134,11 +135,15 @@ public class ImportAgent extends ModuleImport implements DescriptionObject {
         try {
             if (StringUtils.isNotBlank(password)) Gateway.getLookupManager().setAgentPassword(getAgentPath(), password);
 
-            newAgentEnt.initialise(
-                    agentPath.getSystemKey(), 
-                    Gateway.getMarshaller().marshall(new PropertyArrayList(properties)), 
-                    Gateway.getMarshaller().marshall(((CompositeActivityDef)LocalObjectLoader.getCompActDef("NoWorkflow", 0)).instantiate()), 
-                    null, "", "");
+            CreateItemFromDescription.storeItem(
+                    agentPath, 
+                    getAgentPath(),
+                    new PropertyArrayList(properties),
+                    null, //colls
+                    (CompositeActivity)LocalObjectLoader.getCompActDef("NoWorkflow", 0).instantiate(),
+                    null, //initViewpoint
+                    null, //initOutcomeString
+                    transactionKey);
         }
         catch (Exception ex) {
             log.error("Error initialising new agent name:{}", name, ex);

@@ -35,30 +35,33 @@ import org.cristalise.kernel.collection.CollectionArrayList;
 import org.cristalise.kernel.collection.CollectionDescription;
 import org.cristalise.kernel.collection.CollectionMember;
 import org.cristalise.kernel.collection.Dependency;
-import org.cristalise.kernel.common.AccessRightsException;
 import org.cristalise.kernel.common.CannotManageException;
-import org.cristalise.kernel.common.InvalidCollectionModification;
 import org.cristalise.kernel.common.InvalidDataException;
 import org.cristalise.kernel.common.ObjectAlreadyExistsException;
 import org.cristalise.kernel.common.ObjectCannotBeUpdated;
 import org.cristalise.kernel.common.ObjectNotFoundException;
 import org.cristalise.kernel.common.PersistencyException;
 import org.cristalise.kernel.entity.CorbaServer;
-import org.cristalise.kernel.entity.ItemOperations;
-import org.cristalise.kernel.entity.TraceableEntity;
+import org.cristalise.kernel.events.Event;
+import org.cristalise.kernel.events.History;
 import org.cristalise.kernel.lifecycle.CompositeActivityDef;
 import org.cristalise.kernel.lifecycle.instance.CompositeActivity;
+import org.cristalise.kernel.lifecycle.instance.Workflow;
 import org.cristalise.kernel.lifecycle.instance.predefined.PredefinedStep;
+import org.cristalise.kernel.lifecycle.instance.predefined.PredefinedStepContainer;
+import org.cristalise.kernel.lifecycle.instance.predefined.agent.AgentPredefinedStepContainer;
+import org.cristalise.kernel.lifecycle.instance.stateMachine.StateMachine;
 import org.cristalise.kernel.lookup.AgentPath;
 import org.cristalise.kernel.lookup.DomainPath;
 import org.cristalise.kernel.lookup.ItemPath;
+import org.cristalise.kernel.persistency.outcome.Outcome;
+import org.cristalise.kernel.persistency.outcome.Schema;
 import org.cristalise.kernel.persistency.outcome.Viewpoint;
 import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.property.Property;
 import org.cristalise.kernel.property.PropertyArrayList;
 import org.cristalise.kernel.property.PropertyDescriptionList;
 import org.cristalise.kernel.property.PropertyUtility;
-import org.cristalise.kernel.utils.CastorXMLUtility;
 import org.cristalise.kernel.utils.LocalObjectLoader;
 import org.exolab.castor.mapping.MappingException;
 import org.exolab.castor.xml.MarshalException;
@@ -121,10 +124,10 @@ public class CreateItemFromDescription extends PredefinedStep {
 
         if (factory == null) throw new CannotManageException("This process cannot create new Items");
 
-        TraceableEntity newItem = factory.createItem(newItemPath);
+        factory.createItem(newItemPath);
         Gateway.getLookupManager().add(newItemPath);
 
-        initialiseItem(newItem, agent, descItemPath, initProps, outcome, newName, descVer, context, newItemPath, locker);
+        initialiseItem(newItemPath, agent, descItemPath, initProps, outcome, newName, descVer, context, newItemPath, locker);
 
         return requestData;
     }
@@ -147,7 +150,7 @@ public class CreateItemFromDescription extends PredefinedStep {
      * @throws PersistencyException
      * @throws ObjectNotFoundException
      */
-    protected void initialiseItem(ItemOperations    newItem, 
+    protected void initialiseItem(ItemPath          newItem, 
                                   AgentPath         agent, 
                                   ItemPath          descItemPath, 
                                   PropertyArrayList initProps,
@@ -174,16 +177,9 @@ public class CreateItemFromDescription extends PredefinedStep {
             CompositeActivity   newWorkflow  = instantiateWorkflow   (descItemPath, descVer, locker);
             Viewpoint           newViewpoint = instantiateViewpoint  (descItemPath, descVer, locker);
 
-            CastorXMLUtility xml = Gateway.getMarshaller();
-
-            newItem.initialise( agent.getSystemKey(),
-                                xml.marshall(newProps),
-                                xml.marshall(newWorkflow),
-                                xml.marshall(newColls),
-                                (newViewpoint != null) ? xml.marshall(newViewpoint) : "",
-                                (outcome != null) ? outcome: "");
+            storeItem(agent, newItem, newProps, newColls, newWorkflow, newViewpoint, outcome, locker);
         }
-        catch (MarshalException | ValidationException | AccessRightsException | IOException | MappingException | InvalidCollectionModification e) {
+        catch (MarshalException | ValidationException | IOException | MappingException e) {
             log.error("", e);
             Gateway.getLookupManager().delete(newItemPath);
             throw new InvalidDataException("CreateItemFromDescription: Problem initializing new Item. See log: " + e.getMessage());
@@ -399,5 +395,100 @@ public class CreateItemFromDescription extends PredefinedStep {
         catch (NumberFormatException ex) {
             throw new InvalidDataException("Invalid schema version number: " + schemaVerObj.toString());
         }
+    }
+
+    /**
+     * 
+     * @param agent
+     * @param item
+     * @param props
+     * @param initViewpoint
+     * @param initOutcomeString
+     * @param colls
+     * @param ca
+     * @param locker
+     * @throws PersistencyException
+     * @throws ObjectNotFoundException
+     * @throws InvalidDataException
+     * @throws MarshalException
+     * @throws ValidationException
+     * @throws IOException
+     * @throws MappingException
+     */
+    public static void storeItem(AgentPath           agent, 
+                                 ItemPath            item, 
+                                 PropertyArrayList   props, 
+                                 CollectionArrayList colls,
+                                 CompositeActivity   ca,
+                                 Viewpoint           initViewpoint, 
+                                 String              initOutcomeString,
+                                 Object              locker
+            )
+            throws PersistencyException, 
+                   ObjectNotFoundException, 
+                   InvalidDataException, 
+                   MarshalException, 
+                   ValidationException, 
+                   IOException, 
+                   MappingException 
+    {
+        // store properties
+        for (Property thisProp : props.list) Gateway.getStorage().put(item, thisProp, locker);
+
+        History hist = new History(item, locker);
+
+        // Store an "Initialize" event and the outcome containing the initial values for properties
+        Schema initSchema = LocalObjectLoader.getSchema("ItemInitialization", 0);
+        Outcome initOutcome = new Outcome(0, Gateway.getMarshaller().marshall(props), initSchema);
+        StateMachine predefSm = LocalObjectLoader.getStateMachine("PredefinedStep", 0);
+
+        Event newEvent = hist.addEvent(agent, null, "", "Initialize", "", "", initSchema, predefSm, PredefinedStep.DONE, "last");
+
+        initOutcome.setID(newEvent.getID());
+
+        Viewpoint newLastView = new Viewpoint(item, initSchema, "last", newEvent.getID());
+        Gateway.getStorage().put(item, initOutcome, locker);
+        Gateway.getStorage().put(item, newLastView, locker);
+
+        // Store an "Constructor" event and the outcome containing the "Constructor"
+        if (initViewpoint != null) {
+            Schema schema = LocalObjectLoader.getSchema(initViewpoint.getSchemaName(), initViewpoint.getSchemaVersion());
+            Outcome outcome = new Outcome(-1, initOutcomeString, schema);
+            outcome.validateAndCheck();
+
+            initViewpoint.setItemPath(item);
+
+            Event intiEvent = hist.addEvent(agent, null, "", "Constructor", "", "", schema, predefSm, PredefinedStep.DONE, initViewpoint.getName());
+
+            initViewpoint.setEventId(intiEvent.getID());
+            outcome.setID(intiEvent.getID());
+
+            Gateway.getStorage().put(item, outcome, locker);
+            Gateway.getStorage().put(item, initViewpoint, locker);
+        }
+
+        // init collections
+        if (colls != null) {
+            for (Collection<?> thisColl : colls.list) {
+                Gateway.getStorage().put(item, thisColl, locker);
+            }
+        }
+
+        // create wf
+        Workflow lc = null;
+        PredefinedStepContainer cont = (item instanceof AgentPath) ? new AgentPredefinedStepContainer() : new ItemPredefinedStepContainer();
+
+        if (ca == null) {
+            // FIXME check if this could be a real error
+            log.warn("storeItem({}) - CompositeActivity was null. Creating workflow with empty domain CompAct.", item);
+            lc = new Workflow(new CompositeActivity(), cont);
+        }
+        else {
+            lc = new Workflow(ca, cont);
+        }
+
+        // All objects are in place, initialize the workflow
+        lc.initialise(item, agent, locker);
+        Gateway.getStorage().put(item, lc, locker);
     }
 }

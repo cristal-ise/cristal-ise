@@ -47,6 +47,7 @@ import org.cristalise.kernel.entity.proxy.ItemProxy;
 import org.cristalise.kernel.lifecycle.CompositeActivityDef;
 import org.cristalise.kernel.lifecycle.instance.CompositeActivity;
 import org.cristalise.kernel.lifecycle.instance.predefined.PredefinedStep;
+import org.cristalise.kernel.lifecycle.instance.predefined.item.CreateItemFromDescription;
 import org.cristalise.kernel.lookup.AgentPath;
 import org.cristalise.kernel.lookup.DomainPath;
 import org.cristalise.kernel.lookup.ItemPath;
@@ -211,17 +212,17 @@ public class DefaultResourceImportHandler implements ResourceImportHandler {
         if (modDomPath.exists()) {
             log.debug("verifyResource() - Found "+getName()+" "+itemName + ".");
 
-            thisProxy = verifyPathAndModuleProperty(ns, itemName, itemPath, modDomPath, modDomPath);
+            thisProxy = verifyPathAndModuleProperty(ns, itemName, itemPath, modDomPath, modDomPath, transactionKey);
         }
         else {
             log.debug("verifyResource() - "+getName()+" "+itemName+" not found. Creating new.");
 
             if (itemPath == null) itemPath = new ItemPath(); //itemPath can be hardcoded in the bootstrap for example
-            thisProxy = createResourceItem(itemName, version, ns, itemPath);
+            thisProxy = createResourceItem(itemName, version, ns, itemPath, transactionKey);
         }
         
         // Verify/Import Outcome, creating events and views as necessary
-        status = checkToStoreOutcomeVersion(thisProxy, outcome, version, reset);
+        status = checkToStoreOutcomeVersion(thisProxy, outcome, version, reset, transactionKey);
 
         log.info("verifyResource() - Outcome {} of item:{} schema:{} version:{} ", status.name(), thisProxy.getName(), outcome.getSchema().getName(), version);
 
@@ -256,7 +257,7 @@ public class DefaultResourceImportHandler implements ResourceImportHandler {
     /**
      * Verify module property and location
      */
-    private ItemProxy verifyPathAndModuleProperty(String ns, String itemName, ItemPath itemPath, DomainPath modDomPath, DomainPath path)
+    private ItemProxy verifyPathAndModuleProperty(String ns, String itemName, ItemPath itemPath, DomainPath modDomPath, DomainPath path, Object transactionKey)
             throws Exception
     {
         LookupManager lookupManager = Gateway.getLookupManager();
@@ -297,16 +298,16 @@ public class DefaultResourceImportHandler implements ResourceImportHandler {
     /**
      * TODO implement REMOVED
      */
-    private Status checkToStoreOutcomeVersion(ItemProxy item, Outcome newOutcome, int version, boolean reset)
+    private Status checkToStoreOutcomeVersion(ItemProxy item, Outcome newOutcome, int version, boolean reset, Object transactionKey)
             throws PersistencyException, InvalidDataException, ObjectNotFoundException
     {
         Schema schema = newOutcome.getSchema();
 
-        if (! item.checkViewpoint(schema.getName(), Integer.toString(version))) {
+        if (! item.checkViewpoint(schema.getName(), Integer.toString(version), transactionKey)) {
             return NEW;
         }
 
-        Viewpoint currentData = item.getViewpoint(schema.getName(), Integer.toString(version));
+        Viewpoint currentData = item.getViewpoint(schema.getName(), Integer.toString(version), transactionKey);
 
         if (newOutcome.isIdentical(currentData.getOutcome())) {
             return IDENTICAL;
@@ -331,7 +332,7 @@ public class DefaultResourceImportHandler implements ResourceImportHandler {
      * @return
      * @throws Exception
      */
-    private ItemProxy createResourceItem(String itemName, int version, String ns, ItemPath itemPath) throws Exception {
+    private ItemProxy createResourceItem(String itemName, int version, String ns, ItemPath itemPath, Object transactionKey) throws Exception {
         // create props
         PropertyDescriptionList pdList = getPropDesc();
         PropertyArrayList props = new PropertyArrayList();
@@ -349,23 +350,25 @@ public class DefaultResourceImportHandler implements ResourceImportHandler {
             props.list.add(new Property(propName, propVal, pd.getIsMutable()));
         }
 
-        CompositeActivity ca = new CompositeActivity();
+        CompositeActivity ca = null;
+
         try {
             ca = (CompositeActivity) ((CompositeActivityDef)LocalObjectLoader.getActDef(getWorkflowName(), version)).instantiate();
         }
         catch (ObjectNotFoundException ex) {
             // FIXME check if this could be a real error
-            log.warn("Module resource workflow "+getWorkflowName()+" not found. Using empty.", ex);
         }
 
         Gateway.getCorbaServer().createItem(itemPath);
         lookupManager.add(itemPath);
+
+        CreateItemFromDescription.storeItem((AgentPath)SYSTEM_AGENT.getPath(), itemPath, props, null, ca, null, null, transactionKey);
+
         DomainPath newDomPath = getPath(itemName, ns);
         newDomPath.setItemPath(itemPath);
         lookupManager.add(newDomPath);
-        ItemProxy newItemProxy = Gateway.getProxyManager().getProxy(itemPath);
-        newItemProxy.initialise((AgentPath)SYSTEM_AGENT.getPath(), props, ca, null);
-        return newItemProxy;
+
+        return Gateway.getProxyManager().getProxy(itemPath);
     }
 
     /**
