@@ -7,6 +7,7 @@ import org.cristalise.kernel.collection.BuiltInCollections
 import org.cristalise.kernel.collection.DependencyMember
 import org.cristalise.kernel.common.InvalidDataException
 import org.cristalise.kernel.common.ObjectAlreadyExistsException
+import org.cristalise.kernel.entity.agent.Job
 import org.cristalise.kernel.entity.proxy.ItemProxy
 import org.cristalise.kernel.lifecycle.instance.predefined.CreateAgentFromDescription
 import org.cristalise.kernel.lifecycle.instance.predefined.agent.SetAgentPassword
@@ -34,7 +35,7 @@ Outcome outcome = job.getOutcome()
 Logger.msg 8, "Script.Factory_InstantiateItem - Factory_NewInstanceDetails:%s", outcome.getData()
 
 String   itemName    = getItemName(item, outcome)
-String   root        = item.getProperty('Root')
+String   root        = getDomainRoot(item, job, outcome)
 Boolean  createAgent = new Boolean(item.getProperty('CreateAgent', 'false'))
 
 String   initaliseOutcomeXML = null
@@ -148,5 +149,17 @@ String getItemName(ItemProxy item, Outcome outcome) {
 
     return itemName
 }
- ]]></script>
+
+@CompileStatic
+String getDomainRoot(ItemProxy item, Job job, Outcome o) {
+    String root = job.getActPropString('Root');
+    if (!root) root = item.getProperty('Root')
+
+    if (!root) throw new InvalidDataException("CrudFactory.InstantiateItem - Define property:'Root' for either Activity or for Item")
+
+    String subFolder = o.getField('SubFolder')
+
+    return (subFolder && subFolder != 'string') ? "${root}/${subFolder}" : root
+}
+]]></script>
 </cristalscript>

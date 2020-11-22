@@ -27,6 +27,7 @@ import org.cristalise.dsl.entity.AgentBuilder
 import org.cristalise.dsl.entity.ItemBuilder
 import org.cristalise.dsl.entity.RoleBuilder
 import org.cristalise.dsl.lifecycle.definition.CompActDefBuilder
+import org.cristalise.dsl.lifecycle.definition.CompActDefDelegate
 import org.cristalise.dsl.lifecycle.definition.ElemActDefBuilder
 import org.cristalise.dsl.lifecycle.stateMachine.StateMachineBuilder
 import org.cristalise.dsl.persistency.outcome.SchemaBuilder
@@ -35,6 +36,7 @@ import org.cristalise.dsl.querying.QueryBuilder
 import org.cristalise.dsl.scripting.ScriptBuilder
 import org.cristalise.kernel.common.InvalidDataException
 import org.cristalise.kernel.entity.imports.ImportItem
+import org.cristalise.kernel.graph.layout.DefaultGraphLayoutGenerator
 import org.cristalise.kernel.lifecycle.ActivityDef
 import org.cristalise.kernel.lifecycle.CompositeActivityDef
 import org.cristalise.kernel.lifecycle.instance.stateMachine.StateMachine
@@ -193,6 +195,21 @@ class ModuleDelegate {
      */
     public CompositeActivityDef Workflow(String name, Integer version, Closure cl) {
         def caDef = CompActDefBuilder.build(name, version, cl)
+        addCompositeActivityDef(caDef)
+        return caDef
+    }
+
+    public CompositeActivityDef Workflow(Map args, @DelegatesTo(CompActDefDelegate) Closure cl) {
+        def caDef = CompActDefBuilder.build((String)args.name, (Integer)args.version, cl)
+
+        if (args?.generate) {
+            DefaultGraphLayoutGenerator.layoutGraph(caDef.childrenGraphModel)
+            caDef.export(null, new File(resourceBoot), true)
+        }
+        else {
+            assert new File(new File(resourceBoot, 'CA'), ""+args.name + (args.version == null ? "" : "_" + args.version) + ".xml").exists()
+        }
+
         addCompositeActivityDef(caDef)
         return caDef
     }
