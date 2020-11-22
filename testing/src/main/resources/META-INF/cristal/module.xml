@@ -157,5 +157,53 @@
         </Agent>
         <AgentResource name="mainUser" version="0"/>
 
+        <!-- Patient Descriptions -->
+
+        <PropertyDescriptionResource name="Patient" version="0"/>
+        <SchemaResource name="Patient_Details" version="0"/>
+        <Activity name="Patient_SetDetails" version="0">
+          <Schema name="Patient_Details" version="0"/>
+        </Activity>
+        <SchemaResource name="Patient_UrinSample" version="0"/>
+        <Activity name="Patient_SetUrinSample" version="0">
+          <Schema name="Patient_UrinSample" version="0"/>
+        </Activity>
+        <SchemaResource name="Patient" version="0"/>
+        <ScriptResource name="Patient_Aggregate" version="0"/>
+        <Workflow name="Patient_Workflow" version="0">
+          <Activity name="Patient_SetUrinSample" version="0"/>
+          <Activity name="Patient_SetDetails" version="0"/>
+        </Workflow>
+        <Item name="PatientFactory" initialPath="/integTest" workflow="Factory_Workflow" workflowVer="0">
+          <Property name="Type" mutable="false">Factory</Property>
+          <Property name="Root" mutable="false">/integTest/Patients</Property>
+          <Property name="UpdateSchema" mutable="false">Equipment_Details:0</Property>
+          <Outcome viewname="last" schema="PropertyDescription" version="0">boot/property/Patient.xml</Outcome>
+          <Dependency name="workflow" isDescription="false" classProps="">
+            <DependencyMember itemPath="/desc/ActivityDesc/integTest/Patient_Workflow">
+              <MemberProperties>
+                <KeyValuePair Key="Version" isAbstract="false" Integer="0"/>
+              </MemberProperties>
+            </DependencyMember>
+            <CollectionProperties/>
+          </Dependency>
+          <Dependency name="MasterSchema" isDescription="false" classProps="">
+            <DependencyMember itemPath="/desc/Schema/integTest/Patient">
+              <MemberProperties>
+                <KeyValuePair Key="Version" isAbstract="false" Integer="0"/>
+              </MemberProperties>
+            </DependencyMember>
+            <CollectionProperties/>
+          </Dependency>
+          <Dependency name="AggregateScript" isDescription="false" classProps="">
+            <DependencyMember itemPath="/desc/Script/integTest/Patient_Aggregate">
+              <MemberProperties>
+                <KeyValuePair Key="Version" isAbstract="false" Integer="0"/>
+              </MemberProperties>
+            </DependencyMember>
+            <CollectionProperties/>
+          </Dependency>
+        </Item>
+
     </Imports>
 </CristalModule>

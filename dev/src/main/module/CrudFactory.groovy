@@ -21,6 +21,7 @@
 Schema('CrudFactory_NewInstanceDetails', 0) {
     struct(name: 'CrudFactory_NewInstanceDetails', useSequence: true) {
         field(name: 'Name',      type: 'string',  documentation: 'The Name of the new instance, it can be generated')
+        field(name: 'SuFolder',  type: 'string',  documentation: 'Put the new Item into this sub-forlder', multiplicity: '0..1')
         field(name: 'LastCount', type: 'integer', documentation: 'The last number used to generate the ID', multiplicity: '0..1') {
             dynamicForms (hidden: true)
         }

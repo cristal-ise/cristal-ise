@@ -56,7 +56,7 @@ import groovy.transform.Field
 @Field Class<?> predefStep  = null
 @Field Outcome  outcome     = job.getOutcome()
 @Field String   itemName    = getItemName(item, outcome)
-@Field String   root        = getDomainRoot(item, job)
+@Field String   root        = getDomainRoot(item, job, outcome)
 @Field Boolean  createAgent = new Boolean(item.getProperty('CreateAgent', 'false'))
 @Field String   initaliseOutcomeXML = null
 
@@ -143,13 +143,15 @@ String getItemName(ItemProxy item, Outcome outcome) {
 }
 
 @CompileStatic
-String getDomainRoot(ItemProxy item, Job job) {
+String getDomainRoot(ItemProxy item, Job job, Outcome o) {
     String root = job.getActPropString('Root');
     if (!root) root = item.getProperty('Root')
 
     if (!root) throw new InvalidDataException("CrudFactory.InstantiateItem - Define property:'Root' for either Activity or for Item")
 
-    return root
+    String subFolder = o.getField('SubFolder')
+
+    return (subFolder && subFolder != 'string') ? "${root}/${subFolder}" : root
 }
 
 @CompileStatic
