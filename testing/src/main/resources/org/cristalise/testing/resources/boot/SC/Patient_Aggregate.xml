@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <cristalscript>
   <param name='item' type='org.cristalise.kernel.entity.proxy.ItemProxy' />
-  <param name='postFix' type='java.lang.String' />
   <output name='PatientXML' type='java.lang.String' />
   <script language='groovy' name='Patient_Aggregate'><![CDATA[ import groovy.transform.Field
 import groovy.xml.MarkupBuilder
@@ -16,8 +15,17 @@ log.info('item:{} starting', item)
 
 if (binding.hasVariable('job')) postFix = job.getActProp("postFix")
 
-Outcome patientDetails = item.getViewpoint("PatientDetails-$postFix", 'last').getOutcome()
-Outcome urinSample     = item.getViewpoint("UrinSample-$postFix", 'last').getOutcome()
+Outcome patientDetails
+Outcome urinSample
+
+if (binding.hasVariable('postFix') && postFix && postFix != 'string') {
+    patientDetails = item.getViewpoint("PatientDetails-$postFix", 'last').getOutcome()
+    urinSample     = item.getViewpoint("UrinSample-$postFix", 'last').getOutcome()
+}
+else {
+    patientDetails = item.getViewpoint("Patient_Details", 'last').getOutcome()
+    urinSample     = item.getViewpoint("Patient_UrinSample", 'last').getOutcome()
+}
 
 def writer = new StringWriter()
 def xml    = new MarkupBuilder(writer)

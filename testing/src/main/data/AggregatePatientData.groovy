@@ -11,8 +11,17 @@ log.info('item:{} starting', item)
 
 if (binding.hasVariable('job')) postFix = job.getActProp("postFix")
 
-Outcome patientDetails = item.getViewpoint("PatientDetails-$postFix", 'last').getOutcome()
-Outcome urinSample     = item.getViewpoint("UrinSample-$postFix", 'last').getOutcome()
+Outcome patientDetails
+Outcome urinSample
+
+if (binding.hasVariable('postFix') && postFix && postFix != 'string') {
+    patientDetails = item.getViewpoint("PatientDetails-$postFix", 'last').getOutcome()
+    urinSample     = item.getViewpoint("UrinSample-$postFix", 'last').getOutcome()
+}
+else {
+    patientDetails = item.getViewpoint("Patient_Details", 'last').getOutcome()
+    urinSample     = item.getViewpoint("Patient_UrinSample", 'last').getOutcome()
+}
 
 def writer = new StringWriter()
 def xml    = new MarkupBuilder(writer)
