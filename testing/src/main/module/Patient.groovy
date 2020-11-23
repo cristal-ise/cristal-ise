@@ -48,7 +48,6 @@ def aggregatedSchema =  Schema("Patient", 0) {
 
 def aggregateScript =  Script("Patient_Aggregate", 0) {
     input('item', 'org.cristalise.kernel.entity.proxy.ItemProxy')
-    input('postFix', 'java.lang.String')
     output('PatientXML', 'java.lang.String')
     script('groovy', 'src/main/data/AggregatePatientData.groovy')
 }
