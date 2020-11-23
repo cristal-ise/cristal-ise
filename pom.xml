@@ -51,7 +51,7 @@
     </modules>
 
     <properties>
-        <revision>5.3.2</revision>
+        <revision>5.3.3</revision>
         <productionMode>false</productionMode>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
