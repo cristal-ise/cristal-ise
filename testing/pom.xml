@@ -77,6 +77,84 @@
                     <target>1.8</target>
                 </configuration>
             </plugin>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>appassembler-maven-plugin</artifactId>
+                <version>2.1.0</version>
+                <configuration>
+                    <repositoryLayout>flat</repositoryLayout>
+                    <configurationSourceDirectory>src/main/bin</configurationSourceDirectory>
+                    <copyConfigurationDirectory>true</copyConfigurationDirectory>
+                    <configurationDirectory>bin</configurationDirectory>
+                    <useTimestampInSnapshotFileName>false</useTimestampInSnapshotFileName>
+                    <includeConfigurationDirectoryInClasspath>true</includeConfigurationDirectoryInClasspath>
+                    <assembleDirectory>${project.build.directory}/dist</assembleDirectory>
+                    <showConsoleWindow>true</showConsoleWindow>
+                    <repositoryName>lib</repositoryName>
+                    <defaultJvmSettings>
+                        <maxMemorySize>1024M</maxMemorySize>
+                    </defaultJvmSettings>
+                    <programs>
+                        <program>
+                            <mainClass>org.cristalise.kernel.process.StandardServer</mainClass>
+                            <id>cristalise-server</id>
+                            <commandLineArguments>
+                                <commandLineArgument>-config</commandLineArgument>
+                                <commandLineArgument>@BASEDIR@/bin/server.conf</commandLineArgument>
+                                <commandLineArgument>-connect</commandLineArgument>
+                                <commandLineArgument>@BASEDIR@/bin/integTest.clc</commandLineArgument>
+                                <commandLineArgument>-Shiro.iniFile</commandLineArgument>
+                                <commandLineArgument>@BASEDIR@/bin/shiro.ini</commandLineArgument>
+                            </commandLineArguments>
+                        </program>
+                        <program>
+                            <mainClass>org.cristalise.gui.Main</mainClass>
+                            <id>cristalise-gui</id>
+                            <commandLineArguments>
+                                <commandLineArgument>-config</commandLineArgument>
+                                <commandLineArgument>@BASEDIR@/bin/gui.conf</commandLineArgument>
+                                <commandLineArgument>-connect</commandLineArgument>
+                                <commandLineArgument>@BASEDIR@/bin/integTest.clc</commandLineArgument>
+                                <commandLineArgument>-Shiro.iniFile</commandLineArgument>
+                                <commandLineArgument>@BASEDIR@/bin/shiro.ini</commandLineArgument>
+                            </commandLineArguments>
+                        </program>
+                        <program>
+                            <mainClass>org.cristalise.kernel.process.UserCodeProcess</mainClass>
+                            <id>cristalise-usercode</id>
+                            <commandLineArguments>
+                                <commandLineArgument>-config</commandLineArgument>
+                                <commandLineArgument>@BASEDIR@/bin/client.conf</commandLineArgument>
+                                <commandLineArgument>-connect</commandLineArgument>
+                                <commandLineArgument>@BASEDIR@/bin/integTest.clc</commandLineArgument>
+                                <commandLineArgument>-Shiro.iniFile</commandLineArgument>
+                                <commandLineArgument>@BASEDIR@/bin/shiro.ini</commandLineArgument>
+                            </commandLineArguments>
+                        </program>
+                        <program>
+                            <mainClass>org.cristalise.restapi.Main</mainClass>
+                            <id>cristalise-restapi</id>
+                            <commandLineArguments>
+                                <commandLineArgument>-config</commandLineArgument>
+                                <commandLineArgument>@BASEDIR@/bin/client.conf</commandLineArgument>
+                                <commandLineArgument>-connect</commandLineArgument>
+                                <commandLineArgument>@BASEDIR@/bin/integTest.clc</commandLineArgument>
+                                <commandLineArgument>-Shiro.iniFile</commandLineArgument>
+                                <commandLineArgument>@BASEDIR@/bin/shiro.ini</commandLineArgument>
+                            </commandLineArguments>
+                        </program>
+                    </programs>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>generate-distribution</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>assemble</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
         </plugins>
         <pluginManagement>
             <plugins>
@@ -197,7 +275,6 @@
         <dependency>
             <groupId>org.xmlunit</groupId>
             <artifactId>xmlunit-core</artifactId>
-            <version>[2.2,)</version>
             <scope>compile</scope>
         </dependency>
         <dependency>
@@ -215,7 +292,6 @@
         <dependency>
             <groupId>org.awaitility</groupId>
             <artifactId>awaitility-groovy</artifactId>
-            <version>4.0.2</version>
             <scope>compile</scope>
             <exclusions>
                 <exclusion>
@@ -227,7 +303,6 @@
         <dependency>
             <groupId>org.spockframework</groupId>
             <artifactId>spock-core</artifactId>
-            <version>1.3-groovy-2.5</version>
             <scope>compile</scope>
             <exclusions>
                 <exclusion>
@@ -239,7 +314,6 @@
         <dependency>
             <groupId>org.spockframework</groupId>
             <artifactId>spock-unitils</artifactId>
-            <version>1.3-groovy-2.5</version>
             <scope>compile</scope>
         </dependency>
         <dependency>
