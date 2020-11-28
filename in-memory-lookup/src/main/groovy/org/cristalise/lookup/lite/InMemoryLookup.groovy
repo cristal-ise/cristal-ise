@@ -119,6 +119,11 @@ abstract class InMemoryLookup extends ClusterStorage implements Lookup {
     }
 
     @Override
+    public ItemPath getItemPath(DomainPath domainPath) {
+        return null;
+    }
+
+    @Override
     public AgentPath getAgentPath(String agentName) throws ObjectNotFoundException {
         Logger.msg(5, "InMemoryLookup.getAgentPath() - agentName: $agentName")
 

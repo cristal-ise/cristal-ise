@@ -21,8 +21,7 @@
 package org.cristalise.storage.jooqdb.lookup;
 
 import static org.cristalise.storage.jooqdb.clusterStore.JooqItemPropertyHandler.ITEM_PROPERTY_TABLE;
-import static org.cristalise.storage.jooqdb.lookup.JooqDomainPathHandler.DOMAIN_PATH_TABLE;
-import static org.cristalise.storage.jooqdb.lookup.JooqDomainPathHandler.TARGET;
+import static org.cristalise.storage.jooqdb.lookup.JooqDomainPathHandler.*;
 import static org.cristalise.storage.jooqdb.lookup.JooqItemHandler.ITEM_TABLE;
 import static org.cristalise.storage.jooqdb.lookup.JooqRolePathHandler.AGENT;
 import static org.cristalise.storage.jooqdb.lookup.JooqRolePathHandler.ROLE_PATH_TABLE;
@@ -246,6 +245,21 @@ public class JooqLookupManager implements LookupManager {
         catch (PersistencyException e) {
             log.error("", e);
             throw new InvalidItemPathException(e.getMessage());
+        }
+    }
+
+    @Override
+    public ItemPath getItemPath(DomainPath domainPath) {
+
+        DSLContext context;
+        try {
+            context = JooqHandler.connect();
+            DomainPath dp = domains.fetch(context, domainPath);
+            return dp.getItemPath();
+        }
+        catch (Exception e) {
+            log.error("Exception caught", e);
+            return null;
         }
     }
 

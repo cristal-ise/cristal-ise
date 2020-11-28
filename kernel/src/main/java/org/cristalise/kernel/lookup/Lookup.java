@@ -77,6 +77,16 @@ public interface Lookup {
     public ItemPath getItemPath(String sysKey) throws InvalidItemPathException, ObjectNotFoundException;
 
     /**
+     * Quick search item path by type and name.
+     *
+     * @param domainPath
+     * @return null if not found
+     */
+    public default ItemPath getItemPath(DomainPath domainPath) {
+        return null;
+    }
+
+    /**
      * Find the ItemPath for which a DomainPath is an alias.
      *
      * @param domainPath The path to resolve

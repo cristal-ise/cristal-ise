@@ -128,6 +128,15 @@ public abstract class DescriptionObjectCache<D extends DescriptionObject> {
         DomainPath directPath = new DomainPath(name);
         if (directPath.exists() && directPath.getItemPath() != null) { return directPath.getItemPath(); }
 
+        // check if we can find it with quick search
+        if (classIdProps.length == 1 && classIdProps[0].getName() .equals ("Type")) {
+            ItemPath itemPath = Gateway.getLookup().getItemPath(
+                    new DomainPath("/domain/desc/" + classIdProps[0].getValue() + "/hmws/" + name));
+            if (itemPath != null) {
+                return itemPath;
+            }
+        }
+
         // else search for it in the whole tree using property description
         Property[] searchProps = new Property[classIdProps.length + 1];
         searchProps[0] = new Property(NAME, name);
