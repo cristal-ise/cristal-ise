@@ -46,7 +46,7 @@ public class SetAgentRoles extends PredefinedStep {
     {
         String[] params = getDataList(requestData);
 
-        log.debug("Called by {} on {} with parameters {}", agent.getAgentName(), item, (Object)params);
+        log.debug("Called by {} on {} with parameters {}", agent.getAgentName(locker), item, (Object)params);
 
         AgentPath targetAgent;
         try {
@@ -56,11 +56,11 @@ public class SetAgentRoles extends PredefinedStep {
             throw new InvalidDataException("Could not resolve syskey " + item + " as an Agent.");
         }
 
-        RolePath[] currentRoles = targetAgent.getRoles();
+        RolePath[] currentRoles = targetAgent.getRoles(locker);
         ArrayList<RolePath> requestedRoles = new ArrayList<RolePath>();
         for (int i = 0; i < params.length; i++) {
             try {
-                requestedRoles.add(Gateway.getLookup().getRolePath(params[i]));
+                requestedRoles.add(Gateway.getLookup().getRolePath(params[i], locker));
             }
             catch (ObjectNotFoundException e) {
                 throw new InvalidDataException("Role " + params[i] + " not found");
@@ -78,7 +78,7 @@ public class SetAgentRoles extends PredefinedStep {
         // remove roles not in new list
         for (RolePath roleToRemove : rolesToRemove)
             try {
-                Gateway.getLookupManager().removeRole(targetAgent, roleToRemove);
+                Gateway.getLookupManager().removeRole(targetAgent, roleToRemove, locker);
             }
             catch (Exception e) {
                 log.error("", e);
@@ -88,7 +88,7 @@ public class SetAgentRoles extends PredefinedStep {
         // add requested roles we don't already have
         for (RolePath roleToAdd : requestedRoles) {
             try {
-                Gateway.getLookupManager().addRole(targetAgent, roleToAdd);
+                Gateway.getLookupManager().addRole(targetAgent, roleToAdd, locker);
             }
             catch (Exception e) {
                 log.error("", e);

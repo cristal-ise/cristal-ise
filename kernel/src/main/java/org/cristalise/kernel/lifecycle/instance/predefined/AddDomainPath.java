@@ -46,11 +46,11 @@ public class AddDomainPath extends PredefinedStep {
     {
         String[] params = getDataList(requestData);
 
-        log.debug("Called by {} on {} with parameters {}", agent.getAgentName(), item, (Object)params);
+        log.debug("Called by {} on {} with parameters {}", agent.getAgentName(locker), item, (Object)params);
 
         if (params.length != 1) throw new InvalidDataException("AddDomainPath: Invalid parameters: "+Arrays.toString(params));
 
-        Gateway.getLookupManager().add(new DomainPath(params[0], item));
+        Gateway.getLookupManager().add(new DomainPath(params[0], item), locker);
 
         return requestData;
     }

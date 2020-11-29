@@ -47,8 +47,12 @@ public enum BuiltInAuthc {
     }
 
     public Path getPath() throws ObjectNotFoundException {
-        if      (this.equals(SYSTEM_AGENT)) return Gateway.getLookup().getAgentPath(name);
-        else if (this.equals(ADMIN_ROLE))   return Gateway.getLookup().getRolePath(name);
+        return getPath(null);
+    }
+
+    public Path getPath(Object transactionKey) throws ObjectNotFoundException {
+        if      (this.equals(SYSTEM_AGENT)) return Gateway.getLookup().getAgentPath(name, transactionKey);
+        else if (this.equals(ADMIN_ROLE))   return Gateway.getLookup().getRolePath(name, transactionKey);
         else {
             log.warn("getPath() - Enum value '{}' is not handled correctly", name);
             return null;

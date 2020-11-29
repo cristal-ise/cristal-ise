@@ -123,7 +123,7 @@ public class JooqLookupManager implements LookupManager {
     }
 
     @Override
-    public void initializeDirectory() throws ObjectNotFoundException {
+    public void initializeDirectory(Object transactionKey) throws ObjectNotFoundException {
         log.debug("initializeDirectory() - NOTHING done.");
     }
 
@@ -138,7 +138,7 @@ public class JooqLookupManager implements LookupManager {
     }
 
     @Override
-    public boolean exists(Path path) {
+    public boolean exists(Path path, Object transactionKey) {
         if (path == null) return false;
 
         List<Boolean> itemExists = new ArrayList<>();
@@ -165,8 +165,8 @@ public class JooqLookupManager implements LookupManager {
     }
 
     @Override
-    public void add(Path newPath) throws ObjectCannotBeUpdated, ObjectAlreadyExistsException {
-        if (exists(newPath)) throw new ObjectAlreadyExistsException("Path exist:"+newPath);
+    public void add(Path newPath, Object transactionKey) throws ObjectCannotBeUpdated, ObjectAlreadyExistsException {
+        if (exists(newPath, transactionKey)) throw new ObjectAlreadyExistsException("Path exist:"+newPath);
 
         log.debug("add() - path:"+newPath);
 
@@ -182,7 +182,7 @@ public class JooqLookupManager implements LookupManager {
                 } else if (newPath instanceof DomainPath) {
                     rows = domains.insert(DSL.using(nested), (DomainPath)newPath);
                 } else if (newPath instanceof RolePath) {
-                    rows = (createRole((RolePath)newPath) != null) ? 1 : 0;
+                    rows = (createRole((RolePath)newPath, transactionKey) != null) ? 1 : 0;
                 }
 
                 if (rows == 0) throw new ObjectCannotBeUpdated("JOOQLookupManager must insert some records:"+rows);
@@ -198,13 +198,13 @@ public class JooqLookupManager implements LookupManager {
     }
 
     @Override
-    public void delete(Path path) throws ObjectCannotBeUpdated {
-        if (!exists(path)) throw new ObjectCannotBeUpdated("Path does not exist:"+path);
+    public void delete(Path path, Object transactionKey) throws ObjectCannotBeUpdated {
+        if (!exists(path, transactionKey)) throw new ObjectCannotBeUpdated("Path does not exist:"+path);
 
         log.debug("delete() - path:"+path);
 
         try {
-            if (getChildren(path).hasNext()) throw new ObjectCannotBeUpdated("Path is not a leaf");
+            if (getChildren(path, transactionKey).hasNext()) throw new ObjectCannotBeUpdated("Path is not a leaf");
 
             DSLContext context = JooqHandler.connect();
 
@@ -234,10 +234,10 @@ public class JooqLookupManager implements LookupManager {
     }
 
     @Override
-    public ItemPath getItemPath(String sysKey) throws InvalidItemPathException, ObjectNotFoundException {
+    public ItemPath getItemPath(String sysKey, Object transactionKey) throws InvalidItemPathException, ObjectNotFoundException {
         ItemPath ip = new ItemPath(sysKey);
 
-        if (!exists(ip)) throw new ObjectNotFoundException("Path does not exist:"+sysKey);
+        if (!exists(ip, transactionKey)) throw new ObjectNotFoundException("Path does not exist:"+sysKey);
 
         try {
             DSLContext context = JooqHandler.connect();
@@ -250,9 +250,9 @@ public class JooqLookupManager implements LookupManager {
     }
 
     @Override
-    public String getIOR(Path path) throws ObjectNotFoundException {
+    public String getIOR(Path path, Object transactionKey) throws ObjectNotFoundException {
         try {
-            return getItemPath(path.getStringPath()).getIORString();
+            return getItemPath(path.getStringPath(), transactionKey).getIORString();
         }
         catch (InvalidItemPathException e) {
             throw new ObjectNotFoundException(e.getMessage());
@@ -272,7 +272,7 @@ public class JooqLookupManager implements LookupManager {
     }
 
     @Override
-    public Iterator<Path> search(Path start, String name) {
+    public Iterator<Path> search(Path start, String name, Object transactionKey) {
         List<Path> result = new ArrayList<>();
         try {
             DSLContext context = JooqHandler.connect();
@@ -290,7 +290,7 @@ public class JooqLookupManager implements LookupManager {
     }
 
     @Override
-    public AgentPath getAgentPath(String agentName) throws ObjectNotFoundException {
+    public AgentPath getAgentPath(String agentName, Object transactionKey) throws ObjectNotFoundException {
         try {
             DSLContext context = JooqHandler.connect();
 
@@ -306,7 +306,7 @@ public class JooqLookupManager implements LookupManager {
     }
 
     @Override
-    public RolePath getRolePath(String roleName) throws ObjectNotFoundException {
+    public RolePath getRolePath(String roleName, Object transactionKey) throws ObjectNotFoundException {
         List<UUID> uuids = new ArrayList<>();
         uuids.add(JooqRolePathHandler.NO_AGENT);
 
@@ -330,8 +330,8 @@ public class JooqLookupManager implements LookupManager {
     }
 
     @Override
-    public ItemPath resolvePath(DomainPath domainPath) throws InvalidItemPathException, ObjectNotFoundException {
-        if (!exists(domainPath)) throw new ObjectNotFoundException("Path does not exist:"+domainPath);
+    public ItemPath resolvePath(DomainPath domainPath, Object transactionKey) throws InvalidItemPathException, ObjectNotFoundException {
+        if (!exists(domainPath, transactionKey)) throw new ObjectNotFoundException("Path does not exist:"+domainPath);
 
         try {
             DSLContext context = JooqHandler.connect();
@@ -349,14 +349,14 @@ public class JooqLookupManager implements LookupManager {
     }
 
     @Override
-    public String getAgentName(AgentPath agentPath) throws ObjectNotFoundException {
-        if (!exists(agentPath)) throw new ObjectNotFoundException("Path does not exist:"+agentPath);
+    public String getAgentName(AgentPath agentPath, Object transactionKey) throws ObjectNotFoundException {
+        if (!exists(agentPath, transactionKey)) throw new ObjectNotFoundException("Path does not exist:"+agentPath);
 
         try {
             DSLContext context = JooqHandler.connect();
             ItemPath ip = items.fetch(context, agentPath.getUUID(), properties);
 
-            if (ip instanceof AgentPath) return ((AgentPath)ip).getAgentName();
+            if (ip instanceof AgentPath) return ((AgentPath)ip).getAgentName(transactionKey);
             else                         throw new ObjectNotFoundException("Path is not an agent:"+agentPath);
         }
         catch (PersistencyException e) {
@@ -379,7 +379,7 @@ public class JooqLookupManager implements LookupManager {
     }
 
     @Override
-    public Iterator<Path> getChildren(Path path) {
+    public Iterator<Path> getChildren(Path path, Object transactionKey) {
         try {
             DSLContext context = JooqHandler.connect();
 
@@ -397,7 +397,7 @@ public class JooqLookupManager implements LookupManager {
     }
 
     @Override
-    public PagedResult getChildren(Path path, int offset, int limit) {
+    public PagedResult getChildren(Path path, int offset, int limit, Object transactionKey) {
         if (path instanceof ItemPath) return new PagedResult();
 
         int maxRows = 0;
@@ -450,13 +450,13 @@ public class JooqLookupManager implements LookupManager {
     }
 
     @Override
-    public Iterator<Path> search(Path start, Property... props) {
-        return search(start, Arrays.asList(props), 0, 0).rows.iterator();
+    public Iterator<Path> search(Path start, Object transactionKey, Property... props) {
+        return search(start, Arrays.asList(props), 0, 0, transactionKey).rows.iterator();
     }
 
     @Override
-    public PagedResult search(Path start, List<Property> props, int offset, int limit) {
-        if (!exists(start)) return new PagedResult(0, new ArrayList<Path>());
+    public PagedResult search(Path start, List<Property> props, int offset, int limit, Object transactionKey) {
+        if (!exists(start, transactionKey)) return new PagedResult(0, new ArrayList<Path>());
 
         DSLContext context;
         try {
@@ -495,26 +495,26 @@ public class JooqLookupManager implements LookupManager {
     }
 
     @Override
-    public Iterator<Path> search(Path start, PropertyDescriptionList props) {
-        return search(start, props, 0, 0).rows.iterator();
+    public Iterator<Path> search(Path start, PropertyDescriptionList props, Object transactionKey) {
+        return search(start, props, 0, 0, transactionKey).rows.iterator();
     }
 
     @Override
-    public PagedResult search(Path start, PropertyDescriptionList props, int offset, int limit) {
+    public PagedResult search(Path start, PropertyDescriptionList props, int offset, int limit, Object transactionKey) {
         //FIXME: UNIMPLEMENTED search(PropertyDescriptionList)
         throw new RuntimeException("InMemoryLookup.search(PropertyDescriptionList) - UNIMPLEMENTED start:"+start);
     }
 
     @Override
-    public RolePath createRole(RolePath role) throws ObjectAlreadyExistsException, ObjectCannotBeUpdated {
+    public RolePath createRole(RolePath role, Object transactionKey) throws ObjectAlreadyExistsException, ObjectCannotBeUpdated {
         log.debug("createRole() - role:"+role);
 
-        if (exists(role)) throw new ObjectAlreadyExistsException("Role:"+role);
+        if (exists(role, transactionKey)) throw new ObjectAlreadyExistsException("Role:"+role);
 
         try {
             DSLContext context = JooqHandler.connect();
             context.transaction(nested -> {
-                role.getParent();
+                role.getParent(transactionKey);
                 roles.insert(DSL.using(nested), role, null);
                 permissions.insert(DSL.using(nested), role.getStringPath(), role.getPermissionsList());
             });
@@ -528,9 +528,9 @@ public class JooqLookupManager implements LookupManager {
     }
 
     @Override
-    public void addRole(AgentPath agent, RolePath role) throws ObjectCannotBeUpdated, ObjectNotFoundException {
-        if (!exists(role))  throw new ObjectNotFoundException("Role:"+role);
-        if (!exists(agent)) throw new ObjectNotFoundException("Agent:"+agent);
+    public void addRole(AgentPath agent, RolePath role, Object transactionKey) throws ObjectCannotBeUpdated, ObjectNotFoundException {
+        if (!exists(role, transactionKey))  throw new ObjectNotFoundException("Role:"+role);
+        if (!exists(agent, transactionKey)) throw new ObjectNotFoundException("Agent:"+agent);
 
         try {
             DSLContext context = JooqHandler.connect();
@@ -561,12 +561,12 @@ public class JooqLookupManager implements LookupManager {
     }
 
     @Override
-    public AgentPath[] getAgents(RolePath role) throws ObjectNotFoundException {
-        return getAgents(role, -1, -1).rows.toArray(new AgentPath[0]);
+    public AgentPath[] getAgents(RolePath role, Object transactionKey) throws ObjectNotFoundException {
+        return getAgents(role, -1, -1, transactionKey).rows.toArray(new AgentPath[0]);
     }
 
     @Override
-    public PagedResult getAgents(RolePath role, int offset, int limit) throws ObjectNotFoundException {
+    public PagedResult getAgents(RolePath role, int offset, int limit, Object transactionKey) throws ObjectNotFoundException {
         int maxRows = -1;
 
         DSLContext context;
@@ -628,7 +628,7 @@ public class JooqLookupManager implements LookupManager {
     }
 
     @Override
-    public RolePath[] getRoles(AgentPath agent) {
+    public RolePath[] getRoles(AgentPath agent, Object transactionKey) {
         try {
             DSLContext context = JooqHandler.connect();
             return roles.findRolesOfAgent(context, agent, permissions).toArray(new RolePath[0]);
@@ -640,7 +640,7 @@ public class JooqLookupManager implements LookupManager {
     }
 
     @Override
-    public PagedResult getRoles(AgentPath agent, int offset, int limit) {
+    public PagedResult getRoles(AgentPath agent, int offset, int limit, Object transactionKey) {
         try {
             DSLContext context = JooqHandler.connect();
             return new PagedResult(
@@ -654,7 +654,7 @@ public class JooqLookupManager implements LookupManager {
     }
 
     @Override
-    public boolean hasRole(AgentPath agent, RolePath role) {
+    public boolean hasRole(AgentPath agent, RolePath role, Object transactionKey) {
         try {
             DSLContext context = JooqHandler.connect();
             return roles.exists(context, role, agent);
@@ -666,9 +666,9 @@ public class JooqLookupManager implements LookupManager {
     }
 
     @Override
-    public void removeRole(AgentPath agent, RolePath role) throws ObjectCannotBeUpdated, ObjectNotFoundException {
-        if (!exists(role))  throw new ObjectNotFoundException("Role:"+role);
-        if (!exists(agent)) throw new ObjectNotFoundException("Agent:"+agent);
+    public void removeRole(AgentPath agent, RolePath role, Object transactionKey) throws ObjectCannotBeUpdated, ObjectNotFoundException {
+        if (!exists(role, transactionKey))  throw new ObjectNotFoundException("Role:"+role);
+        if (!exists(agent, transactionKey)) throw new ObjectNotFoundException("Agent:"+agent);
 
         try {
             DSLContext context = JooqHandler.connect();
@@ -685,13 +685,13 @@ public class JooqLookupManager implements LookupManager {
     }
 
     @Override
-    public void setAgentPassword(AgentPath agent, String newPassword) throws ObjectNotFoundException, ObjectCannotBeUpdated, NoSuchAlgorithmException {
+    public void setAgentPassword(AgentPath agent, String newPassword, Object transactionKey) throws ObjectNotFoundException, ObjectCannotBeUpdated, NoSuchAlgorithmException {
         setAgentPassword(agent, newPassword, false);
     }
 
     @Override
-    public void setAgentPassword(AgentPath agent, String newPassword, boolean temporary) throws ObjectNotFoundException, ObjectCannotBeUpdated, NoSuchAlgorithmException {
-        if (!exists(agent)) throw new ObjectNotFoundException("Agent:"+agent);
+    public void setAgentPassword(AgentPath agent, String newPassword, boolean temporary, Object transactionKey) throws ObjectNotFoundException, ObjectCannotBeUpdated, NoSuchAlgorithmException {
+        if (!exists(agent, transactionKey)) throw new ObjectNotFoundException("Agent:"+agent);
 
         try {
             DSLContext context = JooqHandler.connect();
@@ -707,8 +707,8 @@ public class JooqLookupManager implements LookupManager {
     }
 
     @Override
-    public void setHasJobList(RolePath role, boolean hasJobList) throws ObjectNotFoundException, ObjectCannotBeUpdated {
-        if (!exists(role)) throw new ObjectNotFoundException("Role:"+role);
+    public void setHasJobList(RolePath role, boolean hasJobList, Object transactionKey) throws ObjectNotFoundException, ObjectCannotBeUpdated {
+        if (!exists(role, transactionKey)) throw new ObjectNotFoundException("Role:"+role);
 
         role.setHasJobList(hasJobList);
 
@@ -726,7 +726,7 @@ public class JooqLookupManager implements LookupManager {
     }
 
     @Override
-    public Iterator<Path> searchAliases(ItemPath itemPath) {
+    public Iterator<Path> searchAliases(ItemPath itemPath, Object transactionKey) {
         try {
             DSLContext context = JooqHandler.connect();
             return domains.find(context, itemPath).iterator();
@@ -738,7 +738,7 @@ public class JooqLookupManager implements LookupManager {
     }
 
     @Override
-    public PagedResult searchAliases(ItemPath itemPath, int offset, int limit) {
+    public PagedResult searchAliases(ItemPath itemPath, int offset, int limit, Object transactionKey) {
         try {
             DSLContext context = JooqHandler.connect();
             return new PagedResult(
@@ -752,8 +752,8 @@ public class JooqLookupManager implements LookupManager {
     }
 
     @Override
-    public void setIOR(ItemPath item, String ior) throws ObjectNotFoundException, ObjectCannotBeUpdated {
-        if (!exists(item)) throw new ObjectNotFoundException("Item:"+item);
+    public void setIOR(ItemPath item, String ior, Object transactionKey) throws ObjectNotFoundException, ObjectCannotBeUpdated {
+        if (!exists(item, transactionKey)) throw new ObjectNotFoundException("Item:"+item);
 
         item.setIORString(ior);
 
@@ -770,18 +770,18 @@ public class JooqLookupManager implements LookupManager {
     }
 
     @Override
-    public void setPermission(RolePath role, String permission) throws ObjectNotFoundException, ObjectCannotBeUpdated {
+    public void setPermission(RolePath role, String permission, Object transactionKey) throws ObjectNotFoundException, ObjectCannotBeUpdated {
         ArrayList<String> permissions = new ArrayList<>();
 
         if (StringUtils.isNotBlank(permission)) permissions.add(permission);
 
         //empty permission list shall clear the permissions of Role
-        setPermissions(role, permissions);
+        setPermissions(role, permissions, transactionKey);
     }
 
     @Override
-    public void setPermissions(RolePath role, List<String> permissions) throws ObjectNotFoundException, ObjectCannotBeUpdated {
-        if (!exists(role)) throw new ObjectNotFoundException("Role:"+role);
+    public void setPermissions(RolePath role, List<String> permissions, Object transactionKey) throws ObjectNotFoundException, ObjectCannotBeUpdated {
+        if (!exists(role, transactionKey)) throw new ObjectNotFoundException("Role:"+role);
 
         role.setPermissions(permissions);
 

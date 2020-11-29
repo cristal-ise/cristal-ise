@@ -55,7 +55,7 @@ public class UpdateItemFromDescription extends PredefinedStep {
     {
         String[] input = getDataList(requestData);
 
-        log.debug("Called by {} on {} with parameters {}", agent.getAgentName(), descItemPath, (Object)input);
+        log.debug("Called by {} on {} with parameters {}", agent.getAgentName(locker), descItemPath, (Object)input);
 
         return requestData;
     }

@@ -47,7 +47,7 @@ public class RemoveC2KObject extends PredefinedStep {
             throw new InvalidDataException("RemoveC2KObject: Invalid parameters - length != 1" + Arrays.toString(params));
         }
 
-        log.debug("Called by {} on {} with parameters {}", agent.getAgentName(), item, (Object)params);
+        log.debug("Called by {} on {} with parameters {}", agent.getAgentName(locker), item, (Object)params);
 
         Gateway.getStorage().remove(item, params[0], locker);
         return requestData;

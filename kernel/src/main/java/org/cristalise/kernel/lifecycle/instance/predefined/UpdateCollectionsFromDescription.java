@@ -108,7 +108,7 @@ public class UpdateCollectionsFromDescription extends PredefinedStep {
         ItemPath descItemPath; // very likely the factory item
 
         try {
-            descItemPath = Gateway.getLookup().resolvePath(new DomainPath(descPath));
+            descItemPath = Gateway.getLookup().resolvePath(new DomainPath(descPath), locker);
         }
         catch (InvalidItemPathException e) {
             log.error("", e);

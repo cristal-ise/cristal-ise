@@ -47,7 +47,7 @@ public class ReplaceDomainWorkflow extends PredefinedStep {
 
         String[] params = getDataList(requestData);
 
-        log.debug("Called by {} on {} with parameters {}", agent.getAgentName(), item, (Object)params);
+        log.debug("Called by {} on {} with parameters {}", agent.getAgentName(locker), item, (Object)params);
 
         if (params.length != 1)
             throw new InvalidDataException("ReplaceDomainWorkflow: Invalid parameters " + Arrays.toString(params));

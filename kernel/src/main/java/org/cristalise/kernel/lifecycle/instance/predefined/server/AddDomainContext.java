@@ -48,13 +48,13 @@ public class AddDomainContext extends PredefinedStep {
     {
         String[] params = getDataList(requestData);
 
-        log.debug("Called by {} on {} with parameters {}", agent.getAgentName(), item, (Object)params);
+        log.debug("Called by {} on {} with parameters {}", agent.getAgentName(locker), item, (Object)params);
 
         if (params.length != 1) throw new InvalidDataException("AddDomainContext: Invalid parameters " + Arrays.toString(params));
 
         DomainPath pathToAdd = new DomainPath(params[0]);
 
-        if (pathToAdd.exists())
+        if (pathToAdd.exists(locker))
             throw new ObjectAlreadyExistsException("Context " + pathToAdd + " already exists");
 
         // collect parent paths if they don't exist
@@ -67,7 +67,7 @@ public class AddDomainContext extends PredefinedStep {
 
         while (!pathsToAdd.empty()) {
             pathToAdd = pathsToAdd.pop();
-            Gateway.getLookupManager().add(pathToAdd);
+            Gateway.getLookupManager().add(pathToAdd, locker);
         }
 
         return requestData;

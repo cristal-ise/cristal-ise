@@ -91,7 +91,7 @@ public class ItemProxy
      * Set Transaction key (a.k.a. locker) when ItemProxy is used in server side scripting
      */
     @Getter @Setter
-    private Object transactionKey = null;
+    protected Object transactionKey = null;
 
     /**
      *

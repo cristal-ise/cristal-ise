@@ -62,7 +62,7 @@ public class TransferItem {
 
     public TransferItem() throws Exception {
         try {
-            importAgentId = Gateway.getLookup().getAgentPath(SYSTEM_AGENT.getName());
+            importAgentId = Gateway.getLookup().getAgentPath(SYSTEM_AGENT.getName(), null);
         }
         catch (ObjectNotFoundException e) {
             log.error("TransferItem - System agent not found!");
@@ -73,7 +73,7 @@ public class TransferItem {
     public TransferItem(ItemPath itemPath) throws Exception {
         this.itemPath = itemPath;
         domainPaths = new ArrayList<String>();
-        Iterator<Path> paths = Gateway.getLookup().searchAliases(itemPath);
+        Iterator<Path> paths = Gateway.getLookup().searchAliases(itemPath, null);
         while (paths.hasNext()) {
             DomainPath thisPath = (DomainPath) paths.next();
             domainPaths.add(thisPath.toString());
@@ -140,14 +140,14 @@ public class TransferItem {
             log.info(choppedPath);
 
             if (choppedPath.startsWith(OUTCOME.getName())) newObj = new Outcome(choppedPath, xmlFile);
-            else                                                newObj = (C2KLocalObject) Gateway.getMarshaller().unmarshall(xmlFile);
+            else                                           newObj = (C2KLocalObject) Gateway.getMarshaller().unmarshall(xmlFile);
 
             objects.add(newObj);
         }
 
         // create item
-        TraceableEntity newItem = Gateway.getCorbaServer().createItem(itemPath);
-        Gateway.getLookupManager().add(itemPath);
+        TraceableEntity newItem = Gateway.getCorbaServer().createItem(itemPath, this);
+        Gateway.getLookupManager().add(itemPath, this);
 
         PropertyArrayList props = new PropertyArrayList();
         CollectionArrayList colls = new CollectionArrayList();
@@ -177,7 +177,7 @@ public class TransferItem {
         // add domPaths
         for (String element : domainPaths) {
             DomainPath newPath = new DomainPath(element, itemPath);
-            Gateway.getLookupManager().add(newPath);
+            Gateway.getLookupManager().add(newPath, this);
         }
     }
 

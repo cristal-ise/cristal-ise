@@ -287,9 +287,9 @@ public abstract class PredefinedStep extends Activity {
         log.info("storeOutcomeEventAndViews() - Schema '{}' of version '{}' to '{}'", 
                 newOutcome.getSchema().getName(), version != null ? viewName : "last", itemPath);
 
-        History hist = new History(itemPath, null);
+        History hist = new History(itemPath, transactionKey);
 
-        int eventID = hist.addEvent((AgentPath)SYSTEM_AGENT.getPath(), null,
+        int eventID = hist.addEvent((AgentPath)SYSTEM_AGENT.getPath(transactionKey), null,
                 ADMIN_ROLE.getName(), "Bootstrap", "Bootstrap", "Bootstrap", newOutcome.getSchema(), 
                 LocalObjectLoader.getStateMachine("PredefinedStep", 0), PredefinedStep.DONE, version != null ? viewName : "last"
                 ).getID();

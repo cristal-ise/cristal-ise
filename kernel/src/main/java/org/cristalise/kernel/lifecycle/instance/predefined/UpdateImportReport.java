@@ -60,7 +60,7 @@ public class UpdateImportReport extends PredefinedStep {
                     CannotManageException,
                     AccessRightsException
     {
-        log.debug("Called by {} on {}", agent.getAgentName(), itemPath);
+        log.debug("Called by {} on {}", agent.getAgentName(locker), itemPath);
         // not much to do here
         return requestData;
     }

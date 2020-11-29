@@ -50,7 +50,7 @@ public class SetAgentPassword extends PredefinedStep {
     {
         String[] params = getDataList(requestData);
 
-        log.debug("Called by {} on {} with parameters {}", agent.getAgentName(), item, (Object)params);
+        log.debug("Called by {} on {} with parameters {}", agent.getAgentName(locker), item, (Object)params);
 
         //FIXME params.length != 1 case is deprecated, shall enforce identity check
         if (params.length != 1 && params.length != 2) 
@@ -60,7 +60,7 @@ public class SetAgentPassword extends PredefinedStep {
             AgentPath targetAgent = new AgentPath(item);
             String newPwd;
 
-            if (!targetAgent.equals(agent) && !agent.hasRole(ADMIN_ROLE.getName()))
+            if (!targetAgent.equals(agent) && !agent.hasRole(ADMIN_ROLE.getName(), locker))
                 throw new AccessRightsException("Agent passwords may only be set by those Agents or by an Administrator");
 
             if (params.length == 1) {
@@ -71,7 +71,7 @@ public class SetAgentPassword extends PredefinedStep {
             else {
                 //Enforce identity check
                 try {
-                    Gateway.getSecurityManager().authenticate(agent.getAgentName(), params[0], null);
+                    Gateway.getSecurityManager().authenticate(agent.getAgentName(locker), params[0], null, locker);
                 }
                 catch (Exception e) {
                     throw new AccessRightsException("Authentication failed");
@@ -83,7 +83,7 @@ public class SetAgentPassword extends PredefinedStep {
             }
 
             // Password is temporary when it was set by someone else
-            Gateway.getLookupManager().setAgentPassword(targetAgent, newPwd, !targetAgent.equals(agent));
+            Gateway.getLookupManager().setAgentPassword(targetAgent, newPwd, !targetAgent.equals(agent), locker);
 
             return bundleData(params);
         }

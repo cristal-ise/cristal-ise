@@ -105,16 +105,21 @@ public class ImportItem extends ModuleImport {
         wf = null;
     }
 
+    @Override
+    public ItemPath getItemPath() {
+        return getItemPath(null);
+    }
+
     /**
      * Try to find ItemPath if already exists. If not create new one.
      */
     @Override
-    public ItemPath getItemPath() {
+    public ItemPath getItemPath(Object transactionKey) {
         if (itemPath == null) {
             DomainPath existingItem = new DomainPath(initialPath + "/" + name);
-            if (existingItem.exists()) {
+            if (existingItem.exists(transactionKey)) {
                 try {
-                    itemPath = existingItem.getItemPath();
+                    itemPath = existingItem.getItemPath(transactionKey);
                 }
                 catch (ObjectNotFoundException ex) {}
             }
@@ -143,21 +148,21 @@ public class ImportItem extends ModuleImport {
      * @throws ObjectAlreadyExistsException
      * @throws ObjectCannotBeUpdated
      */
-    private TraceableEntity getTraceableEntitiy()
+    private TraceableEntity getTraceableEntitiy(Object transactionKey)
             throws ObjectNotFoundException, CannotManageException, ObjectAlreadyExistsException, ObjectCannotBeUpdated
     {
         TraceableEntity newItem;
-        ItemPath ip = getItemPath();
+        ItemPath ip = getItemPath(transactionKey);
 
-        if (ip.exists()) {
+        if (ip.exists(transactionKey)) {
             log.info("getTraceableEntitiy() - Verifying module item "+domainPath+" at "+ip);
-            newItem = Gateway.getCorbaServer().getItem(getItemPath());
+            newItem = Gateway.getCorbaServer().getItem(getItemPath(transactionKey), transactionKey);
             isNewItem = false;
         }
         else {
             log.info("getTraceableEntitiy() - Creating module item "+ip+" at "+domainPath);
-            newItem = Gateway.getCorbaServer().createItem(ip);
-            Gateway.getLookupManager().add(ip);
+            newItem = Gateway.getCorbaServer().createItem(ip, transactionKey);
+            Gateway.getLookupManager().add(ip, transactionKey);
         }
         return newItem;
     }
@@ -174,21 +179,21 @@ public class ImportItem extends ModuleImport {
 
         log.info("create() - path:{}", domainPath);
 
-        if (domainPath.exists()) {
-            ItemPath domItem = domainPath.getItemPath();
-            if (!getItemPath().equals(domItem)) {
-                throw new CannotManageException("Item "+domainPath+" was found with the wrong itemPath ("+domainPath.getItemPath()+" vs "+getItemPath()+")");
+        if (domainPath.exists(transactionKey)) {
+            ItemPath domItem = domainPath.getItemPath(transactionKey);
+            if (!getItemPath(transactionKey).equals(domItem)) {
+                throw new CannotManageException("Item "+domainPath+" was found with the wrong itemPath ("+domainPath.getItemPath(transactionKey)+" vs "+getItemPath(transactionKey)+")");
             }
         }
         else isDOMPathExists = false;
 
-        getTraceableEntitiy();
+        getTraceableEntitiy(transactionKey);
 
         // (re)initialise the new item with properties, workflow and collections
         try {
             CreateItemFromDescription.storeItem(
                     agentPath, 
-                    getItemPath(),
+                    getItemPath(transactionKey),
                     createItemProperties(),
                     createCollections(),
                     createCompositeActivity(),
@@ -199,12 +204,12 @@ public class ImportItem extends ModuleImport {
         catch (Exception ex) {
             log.error("Error initialising new item " + ns + "/" + name, ex);
 
-            if (isNewItem) Gateway.getLookupManager().delete(itemPath);
+            if (isNewItem) Gateway.getLookupManager().delete(itemPath, transactionKey);
 
             throw new CannotManageException("Problem initialising new item. See server log:" + ex.getMessage());
         }
 
-        History hist = new History(getItemPath(), transactionKey);
+        History hist = new History(getItemPath(transactionKey), transactionKey);
 
         // import outcomes
         for (ImportOutcome thisOutcome : outcomes) {
@@ -219,7 +224,7 @@ public class ImportItem extends ModuleImport {
 
             Viewpoint impView;
             try {
-                impView = (Viewpoint) Gateway.getStorage().get(getItemPath(), ClusterType.VIEWPOINT + "/" + thisOutcome.schema + "/" + thisOutcome.viewname, transactionKey);
+                impView = (Viewpoint) Gateway.getStorage().get(getItemPath(transactionKey), ClusterType.VIEWPOINT + "/" + thisOutcome.schema + "/" + thisOutcome.viewname, transactionKey);
 
                 if (newOutcome.isIdentical(impView.getOutcome())) {
                     log.debug("create() - View "+thisOutcome.schema+"/"+thisOutcome.viewname+" in "+ns+"/"+name+" identical, no update required");
@@ -236,7 +241,7 @@ public class ImportItem extends ModuleImport {
             }
             catch (ObjectNotFoundException ex) {
                 log.info("create() - View "+thisOutcome.schema+"/"+thisOutcome.viewname+" not found in "+ns+"/"+name+". Creating.");
-                impView = new Viewpoint(getItemPath(), schema, thisOutcome.viewname, -1);
+                impView = new Viewpoint(getItemPath(transactionKey), schema, thisOutcome.viewname, -1);
             }
 
             // write new view/outcome/event
@@ -246,14 +251,14 @@ public class ImportItem extends ModuleImport {
             newOutcome.setID(newEvent.getID());
             impView.setEventId(newEvent.getID());
 
-            Gateway.getStorage().put(getItemPath(), newOutcome, transactionKey);
-            Gateway.getStorage().put(getItemPath(), impView, transactionKey);
+            Gateway.getStorage().put(getItemPath(transactionKey), newOutcome, transactionKey);
+            Gateway.getStorage().put(getItemPath(transactionKey), impView, transactionKey);
         }
 
         // register domain path (before collections in case of recursive collections)
         if (!isDOMPathExists) {
-            domainPath.setItemPath(getItemPath());
-            Gateway.getLookupManager().add(domainPath);
+            domainPath.setItemPath(getItemPath(transactionKey));
+            Gateway.getLookupManager().add(domainPath, transactionKey);
         }
 
         return domainPath;

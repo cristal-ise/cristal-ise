@@ -615,7 +615,7 @@ public class Script implements DescriptionObject {
     {
         try {
             //it is possible to execute a script outside of the context of an Item
-            ItemProxy item = itemPath == null ? null : Gateway.getProxyManager().getProxy(itemPath);
+            ItemProxy item = itemPath == null ? null : Gateway.getProxyManager().getProxy(itemPath, locker);
 
             createEmptyContext();
             
@@ -636,7 +636,7 @@ public class Script implements DescriptionObject {
 
             //Set agent to be 'system' only if it was not set already
             if (getAllInputParams().containsKey(PARAMETER_AGENT) && getAllInputParams().get(PARAMETER_AGENT) != null) {
-                ItemProxy systemAgent = Gateway.getProxyManager().getProxy(Gateway.getLookup().getAgentPath(SYSTEM_USER));
+                ItemProxy systemAgent = Gateway.getProxyManager().getProxy(Gateway.getLookup().getAgentPath(SYSTEM_USER, locker), locker);
                 setInputParamValue(PARAMETER_AGENT, systemAgent, false);
             }
 

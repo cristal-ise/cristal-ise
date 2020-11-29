@@ -103,9 +103,13 @@ public class RolePath extends Path {
     }
 
     public RolePath getParent() throws ObjectNotFoundException {
+        return getParent(null);
+    }
+
+    public RolePath getParent(Object transactionKey) throws ObjectNotFoundException {
         if (mPath.length < 2) return null;
 
-        return Gateway.getLookup().getRolePath(mPath[mPath.length - 2]);
+        return Gateway.getLookup().getRolePath(mPath[mPath.length - 2], transactionKey);
     }
 
     /**
@@ -141,7 +145,11 @@ public class RolePath extends Path {
     }
 
     public Iterator<Path> getChildren() {
-        return Gateway.getLookup().getChildren(this);
+        return getChildren(null);
+    }
+
+    public Iterator<Path> getChildren(Object transactionKey) {
+        return Gateway.getLookup().getChildren(this, transactionKey);
     }
 
     @Override

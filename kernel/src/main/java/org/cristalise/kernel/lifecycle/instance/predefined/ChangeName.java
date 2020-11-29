@@ -53,7 +53,7 @@ public class ChangeName extends PredefinedStep {
     {
         String[] params = getDataList(requestData);
 
-        log.debug("Called by {} on {} with parameters {}", agent.getAgentName(), item, (Object)params);
+        log.debug("Called by {} on {} with parameters {}", agent.getAgentName(locker), item, (Object)params);
 
         if (params.length != 2) throw new InvalidDataException("ChangeName: Invalid parameters: "+Arrays.toString(params));
 
@@ -74,7 +74,7 @@ public class ChangeName extends PredefinedStep {
         }
 
         // First find the DomainPath (alias) and change it. Note that 'pure' Agent does not have any DomainPath
-        PagedResult result = Gateway.getLookup().searchAliases(item, 0, 100);
+        PagedResult result = Gateway.getLookup().searchAliases(item, 0, 100, locker);
         DomainPath currentDP = null;
         DomainPath newDP = null;
 
@@ -100,8 +100,8 @@ public class ChangeName extends PredefinedStep {
 
             //recover original state
             if (newDP != null) {
-                Gateway.getLookupManager().delete(newDP);
-                Gateway.getLookupManager().add(currentDP);
+                Gateway.getLookupManager().delete(newDP, locker);
+                Gateway.getLookupManager().add(currentDP, locker);
             }
 
             throw new CannotManageException(e.getMessage());
@@ -118,17 +118,17 @@ public class ChangeName extends PredefinedStep {
         newDP.setItemPath(item);
 
         // Throws an exception if newName exists
-        Gateway.getLookupManager().add(newDP);
+        Gateway.getLookupManager().add(newDP, locker);
 
         try {
-            Gateway.getLookupManager().delete(currentDP);
+            Gateway.getLookupManager().delete(currentDP, locker);
         }
         catch (Exception e) {
             log.error("Could not delete old domain path: " + currentDP.getStringPath(), e);
 
             //recover original state
             try {
-                Gateway.getLookupManager().delete(newDP);
+                Gateway.getLookupManager().delete(newDP, locker);
             }
             catch (Exception ex) {
                 log.error("Could not delete new domain path: " + newDP.getStringPath(), ex);

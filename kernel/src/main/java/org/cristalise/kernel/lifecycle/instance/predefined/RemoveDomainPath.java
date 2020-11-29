@@ -46,21 +46,21 @@ public class RemoveDomainPath extends PredefinedStep {
     {
         String[] params = getDataList(requestData);
 
-        log.debug("Called by {} on {} with parameters {}", agent.getAgentName(), item, (Object)params);
+        log.debug("Called by {} on {} with parameters {}", agent.getAgentName(locker), item, (Object)params);
 
         if (params.length != 1) throw new InvalidDataException("RemoveDomainPath: Invalid parameters "+Arrays.toString(params));
 
         DomainPath domainPath = new DomainPath(params[0]);
 
-        if (!domainPath.exists()) {
+        if (!domainPath.exists(locker)) {
             throw new ObjectNotFoundException("RemoveDomainPath: Domain path "+domainPath+" does not exist.");
         }
 
-        if (!domainPath.getItemPath().equals(item)) {
+        if (!domainPath.getItemPath(locker).equals(item)) {
             throw new InvalidDataException("RemoveDomainPath: Domain path "+domainPath+" is not an alias of the current Item "+item);
         }
 
-        Gateway.getLookupManager().delete(domainPath);
+        Gateway.getLookupManager().delete(domainPath, locker);
 
         return requestData;
     }

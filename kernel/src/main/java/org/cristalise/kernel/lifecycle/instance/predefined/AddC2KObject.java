@@ -45,7 +45,7 @@ public class AddC2KObject extends PredefinedStep {
     {
         String[] params = getDataList(requestData);
 
-        log.debug("Called by {} on {} with parameters {}", agent.getAgentName(), item, (Object)params);
+        log.debug("Called by {} on {} with parameters {}", agent.getAgentName(locker), item, (Object)params);
 
         if (params.length != 1) throw new InvalidDataException("AddC2KObject: Invalid parameters " + Arrays.toString(params));
 

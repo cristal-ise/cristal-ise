@@ -106,15 +106,15 @@ public class ItemPath extends Path {
     }
 
     @Override
-    public ItemPath getItemPath() throws ObjectNotFoundException {
+    public ItemPath getItemPath(Object transactionKey) throws ObjectNotFoundException {
         return this;
     }
 
     @Override
-    public org.omg.CORBA.Object getIOR() {
+    public org.omg.CORBA.Object getIOR(Object transactionKey) {
         if (mIOR == null) {
             try {
-                mIOR = Gateway.getLookup().getIOR(this);
+                mIOR = Gateway.getLookup().getIOR(this, transactionKey);
             }
             catch (ObjectNotFoundException ex) {
                 log.warn(ex.getMessage());

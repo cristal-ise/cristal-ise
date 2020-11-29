@@ -104,7 +104,7 @@ public class BulkImport extends PredefinedStep {
             throws InvalidDataException, InvalidCollectionModification, ObjectAlreadyExistsException, ObjectCannotBeUpdated,
                    ObjectNotFoundException, PersistencyException, CannotManageException
     {
-        log.debug("Called by {} on {}", agent.getAgentName(), itemPath);
+        log.debug("Called by {} on {}", agent.getAgentName(transactionKey), itemPath);
 
         initialise();
 
@@ -261,7 +261,7 @@ public class BulkImport extends PredefinedStep {
 
         for (String name : domains) {
             try {
-                Gateway.getLookupManager().add( (DomainPath)importCluster.get(item, PATH+"/Domain/"+name, transactionKey) );
+                Gateway.getLookupManager().add( (DomainPath)importCluster.get(item, PATH+"/Domain/"+name, transactionKey), transactionKey );
             }
             catch (ObjectCannotBeUpdated | ObjectAlreadyExistsException | CannotManageException e) {
                 log.error("", e);
@@ -278,10 +278,10 @@ public class BulkImport extends PredefinedStep {
         for (String role : roles) {
             RolePath rolePath = (RolePath)importCluster.get(item, PATH+"/Role/"+role, transactionKey);
 
-            if (!Gateway.getLookup().exists(rolePath)) {
+            if (!Gateway.getLookup().exists(rolePath, transactionKey)) {
                 try {
-                    Gateway.getLookupManager().add(rolePath);
-                    if (agentPath != null) Gateway.getLookupManager().addRole(agentPath, rolePath);
+                    Gateway.getLookupManager().add(rolePath, transactionKey);
+                    if (agentPath != null) Gateway.getLookupManager().addRole(agentPath, rolePath, transactionKey);
                 }
                 catch (ObjectCannotBeUpdated | ObjectAlreadyExistsException | CannotManageException | ObjectNotFoundException e) {
                     log.error("", e);
@@ -297,7 +297,7 @@ public class BulkImport extends PredefinedStep {
     public ItemPath importItemPath(ItemPath item, Object transactionKey) throws PersistencyException {
         try {
             ItemPath itemPath = (ItemPath)importCluster.get(item, PATH+"/Item", transactionKey);
-            Gateway.getLookupManager().add(itemPath);
+            Gateway.getLookupManager().add(itemPath, transactionKey);
 
             //importCluster.delete(item, PATH+"/Item");
 
@@ -312,9 +312,9 @@ public class BulkImport extends PredefinedStep {
     public AgentPath importAgentPath(ItemPath item, Object transactionKey) throws PersistencyException {
         try {
             AgentPath agentPath = (AgentPath)importCluster.get(item, PATH+"/Item", transactionKey);
-            Gateway.getLookupManager().add(agentPath);
+            Gateway.getLookupManager().add(agentPath, transactionKey);
 
-            Gateway.getLookupManager().setAgentPassword(agentPath, "aaa");
+            Gateway.getLookupManager().setAgentPassword(agentPath, "", transactionKey);
 
             //importCluster.delete(item, PATH+"/Item");
 

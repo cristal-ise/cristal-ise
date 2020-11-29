@@ -47,19 +47,19 @@ public class RemoveRole extends PredefinedStep {
     {
         String[] params = getDataList(requestData);
 
-        log.debug("Called by {} on {} with parameters {}", agent.getAgentName(), item, (Object)params);
+        log.debug("Called by {} on {} with parameters {}", agent.getAgentName(locker), item, (Object)params);
 
         if (params.length != 1) throw new InvalidDataException("RemoveRole must have one paramater:" + Arrays.toString(params));
 
         LookupManager lookup = Gateway.getLookupManager();
 
-        RolePath thisRole = lookup.getRolePath(params[0]);
-        AgentPath[] agents = Gateway.getLookup().getAgents(thisRole);
+        RolePath thisRole = lookup.getRolePath(params[0], locker);
+        AgentPath[] agents = Gateway.getLookup().getAgents(thisRole, locker);
 
         if (agents.length > 0)
             throw new ObjectCannotBeUpdated("Cannot remove role as " + agents.length + " other agents still hold it.");
 
-        lookup.delete(thisRole);
+        lookup.delete(thisRole, locker);
 
         return requestData;
     }

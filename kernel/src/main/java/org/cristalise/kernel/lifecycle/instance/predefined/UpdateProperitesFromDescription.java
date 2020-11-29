@@ -74,7 +74,7 @@ public class UpdateProperitesFromDescription extends PredefinedStep {
         String descVer  = inputs[1];
         PropertyArrayList initProps = inputs.length == 3 && StringUtils.isNotBlank(inputs[2]) ? unmarshallInitProperties(inputs[2]) : new PropertyArrayList();
 
-        log.debug("Called by {} on {} with parameters {}", agent.getAgentName(), item, (Object)inputs);
+        log.debug("Called by {} on {} with parameters {}", agent.getAgentName(locker), item, (Object)inputs);
 
         PropertyDescriptionList newPropDesc = getPropertyDesc(descPath, descVer, locker);
 
@@ -132,7 +132,7 @@ public class UpdateProperitesFromDescription extends PredefinedStep {
         ItemPath descItemPath;
 
         try {
-            descItemPath = Gateway.getLookup().resolvePath(new DomainPath(descPath));
+            descItemPath = Gateway.getLookup().resolvePath(new DomainPath(descPath), locker);
         }
         catch (InvalidItemPathException e) {
             log.error("", e);

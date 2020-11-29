@@ -49,7 +49,7 @@ public class RemoveViewpoint extends PredefinedStep {
     {
         String[] params = getDataList(requestData);
 
-        log.debug("Called by {} on {} with parameters {}", agent.getAgentName(), item, (Object)params);
+        log.debug("Called by {} on {} with parameters {}", agent.getAgentName(locker), item, (Object)params);
 
         if (params.length != 2) {
             throw new InvalidDataException("RemoveViewpoint: Invalid parameters "+Arrays.toString(params));

@@ -23,7 +23,6 @@ package org.cristalise.kernel.entity.agent;
 import java.util.List;
 
 import org.cristalise.kernel.common.CannotManageException;
-import org.cristalise.kernel.common.ObjectCannotBeUpdated;
 import org.cristalise.kernel.common.ObjectNotFoundException;
 import org.cristalise.kernel.common.PersistencyException;
 import org.cristalise.kernel.common.SystemKey;
@@ -33,7 +32,6 @@ import org.cristalise.kernel.lifecycle.instance.predefined.PredefinedStepContain
 import org.cristalise.kernel.lifecycle.instance.predefined.agent.AgentPredefinedStepContainer;
 import org.cristalise.kernel.lookup.AgentPath;
 import org.cristalise.kernel.lookup.ItemPath;
-import org.cristalise.kernel.lookup.RolePath;
 import org.cristalise.kernel.process.Gateway;
 
 import lombok.extern.slf4j.Slf4j;
@@ -96,7 +94,8 @@ public class AgentImplementation extends ItemImplementation implements AgentOper
         }
     }
 
-    /** Adds the given Role to this Agent. Called from the SetAgentRoles predefined step.
+    /** 
+     * Adds the given Role to this Agent. Called from the SetAgentRoles predefined step.
      *
      * @param roleName - the new Role to add
      * @throws CannotManageException When the process has no lookup manager
@@ -105,13 +104,7 @@ public class AgentImplementation extends ItemImplementation implements AgentOper
      */
     @Override
     public void addRole(String roleName) throws CannotManageException, ObjectNotFoundException {
-        RolePath newRole = Gateway.getLookup().getRolePath(roleName);
-        try {
-            Gateway.getLookupManager().addRole((AgentPath)mItemPath, newRole);
-        }
-        catch (ObjectCannotBeUpdated ex) {
-            throw new CannotManageException("Could not update role");
-        }
+        throw new CannotManageException("Unsupported operation. Use SetAgentRoles predefined step instead!");
     }
 
     /**
@@ -122,13 +115,7 @@ public class AgentImplementation extends ItemImplementation implements AgentOper
      */
     @Override
     public void removeRole(String roleName) throws CannotManageException, ObjectNotFoundException {
-        RolePath rolePath = Gateway.getLookup().getRolePath(roleName);
-        try {
-            Gateway.getLookupManager().removeRole((AgentPath)mItemPath, rolePath);
-        }
-        catch (ObjectCannotBeUpdated ex) {
-            throw new CannotManageException("Could not update role");
-        }
+        throw new CannotManageException("Unsupported operation. Use SetAgentRoles predefined step instead!");
     }
 
     /**

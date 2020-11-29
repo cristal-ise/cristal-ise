@@ -55,7 +55,7 @@ public class UpdateRole extends PredefinedStep {
     {
         try {
             ImportRole role = (ImportRole) Gateway.getMarshaller().unmarshall(requestData);
-            role.update(agent);
+            role.update(agent, locker);
             return requestData;
         }
         catch (MarshalException | ValidationException | IOException | MappingException e) {

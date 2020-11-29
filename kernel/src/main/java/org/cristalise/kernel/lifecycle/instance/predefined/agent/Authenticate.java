@@ -52,7 +52,7 @@ public class Authenticate extends PredefinedStep {
     {
         String[] params = getDataList(requestData);
 
-        log.debug("Called by {} on {} with parameters {}", agent.getAgentName(), itemPath, (Object)params);
+        log.debug("Called by {} on {} with parameters {}", agent.getAgentName(locker), itemPath, (Object)params);
 
         if (params.length < 2 || params.length > 3) 
             throw new InvalidDataException("PredefinedStep.Authenticate() -  Invalid number of parameters (2 <= length="+params.length+" <= 3)");

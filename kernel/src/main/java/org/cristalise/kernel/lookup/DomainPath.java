@@ -81,10 +81,10 @@ public class DomainPath extends Path {
     }
 
     @Override
-    public ItemPath getItemPath() throws ObjectNotFoundException {
+    public ItemPath getItemPath(Object transactionKey) throws ObjectNotFoundException {
         if (target == null) {
             try {
-                setItemPath( Gateway.getLookup().resolvePath(this) );
+                setItemPath( Gateway.getLookup().resolvePath(this, transactionKey) );
                 if (target == null) throw new ObjectNotFoundException("Path " + toString() + " does not resolve to an Item");
             }
             catch (InvalidItemPathException e) {

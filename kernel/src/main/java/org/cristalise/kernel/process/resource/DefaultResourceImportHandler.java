@@ -208,7 +208,7 @@ public class DefaultResourceImportHandler implements ResourceImportHandler {
         ItemProxy thisProxy;
         DomainPath modDomPath = getPath(itemName, ns);
 
-        if (modDomPath.exists()) {
+        if (modDomPath.exists(transactionKey)) {
             log.debug("verifyResource() - Found "+getName()+" "+itemName + ".");
 
             thisProxy = verifyPathAndModuleProperty(ns, itemName, itemPath, modDomPath, modDomPath, transactionKey);
@@ -260,7 +260,7 @@ public class DefaultResourceImportHandler implements ResourceImportHandler {
             throws Exception
     {
         LookupManager lookupManager = Gateway.getLookupManager();
-        ItemProxy thisProxy = Gateway.getProxyManager().getProxy(path);
+        ItemProxy thisProxy = Gateway.getProxyManager().getProxy(path, transactionKey);
 
         if (itemPath != null && !path.getItemPath().equals(itemPath)) {
             String error = "Resource "+type+"/"+itemName+" should have path "+itemPath+" but was found with path "+path.getItemPath();
@@ -288,8 +288,8 @@ public class DefaultResourceImportHandler implements ResourceImportHandler {
             log.info("Module item "+itemName+" found with path "+path.toString()+". Moving to "+modDomPath.toString());
             modDomPath.setItemPath(itemPath);
 
-            if (!modDomPath.exists()) lookupManager.add(modDomPath);
-            lookupManager.delete(path);
+            if (!modDomPath.exists(transactionKey)) lookupManager.add(modDomPath, transactionKey);
+            lookupManager.delete(path, transactionKey);
         }
         return thisProxy;
     }
@@ -358,16 +358,16 @@ public class DefaultResourceImportHandler implements ResourceImportHandler {
             // FIXME check if this could be a real error
         }
 
-        Gateway.getCorbaServer().createItem(itemPath);
-        lookupManager.add(itemPath);
+        Gateway.getCorbaServer().createItem(itemPath, transactionKey);
+        lookupManager.add(itemPath, transactionKey);
 
-        CreateItemFromDescription.storeItem((AgentPath)SYSTEM_AGENT.getPath(), itemPath, props, null, ca, null, null, transactionKey);
+        CreateItemFromDescription.storeItem((AgentPath)SYSTEM_AGENT.getPath(transactionKey), itemPath, props, null, ca, null, null, transactionKey);
 
         DomainPath newDomPath = getPath(itemName, ns);
         newDomPath.setItemPath(itemPath);
-        lookupManager.add(newDomPath);
+        lookupManager.add(newDomPath, transactionKey);
 
-        return Gateway.getProxyManager().getProxy(itemPath);
+        return Gateway.getProxyManager().getProxy(itemPath, transactionKey);
     }
 
     /**

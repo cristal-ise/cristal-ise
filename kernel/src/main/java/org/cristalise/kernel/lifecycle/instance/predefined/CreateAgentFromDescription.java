@@ -84,19 +84,19 @@ public class CreateAgentFromDescription extends CreateItemFromDescription {
         String            outcome   = input.length > 6 && StringUtils.isNotBlank(input[6]) ? input[6] : "";
 
         // generate new agent path with new UUID
-        log.debug("Called by {} on {} with parameters {}", agentPath.getAgentName(), descItemPath, (Object)input);
+        log.debug("Called by {} on {} with parameters {}", agentPath.getAgentName(locker), descItemPath, (Object)input);
 
         AgentPath newAgentPath = new AgentPath(new ItemPath(), newName);
 
         // check if the agent's name is already taken
-        if (Gateway.getLookup().exists(newAgentPath) )
+        if (Gateway.getLookup().exists(newAgentPath, locker) )
             throw new ObjectAlreadyExistsException("The agent name " + newName + " exists already.");
 
         DomainPath context = new DomainPath(new DomainPath(contextS), newName);
 
-        if (context.exists()) throw new ObjectAlreadyExistsException("The path " +context+ " exists already.");
+        if (context.exists(locker)) throw new ObjectAlreadyExistsException("The path " +context+ " exists already.");
 
-        createAgentAddRoles(newAgentPath, roles, pwd);
+        createAgentAddRoles(newAgentPath, roles, pwd, locker);
 
         initialiseItem(newAgentPath, agentPath, descItemPath, initProps, outcome, newName, descVer, context, newAgentPath, locker);
 
@@ -115,31 +115,31 @@ public class CreateAgentFromDescription extends CreateItemFromDescription {
      * @throws ObjectCannotBeUpdated
      * @throws ObjectAlreadyExistsException
      */
-    protected ActiveEntity createAgentAddRoles(AgentPath newAgentPath, String[] roles, String pwd) 
+    protected ActiveEntity createAgentAddRoles(AgentPath newAgentPath, String[] roles, String pwd, Object locker) 
             throws CannotManageException, ObjectCannotBeUpdated, ObjectAlreadyExistsException
     {
-        log.info("createAgentAddRoles() - Creating Agent {}", newAgentPath.getAgentName());
+        log.info("createAgentAddRoles() - Creating Agent {}", newAgentPath.getAgentName(locker));
         
         CorbaServer factory = Gateway.getCorbaServer();
 
         if (factory == null) throw new CannotManageException("This process cannot create new Items");
 
-        ActiveEntity newAgent = factory.createAgent(newAgentPath);
-        Gateway.getLookupManager().add(newAgentPath);
+        ActiveEntity newAgent = factory.createAgent(newAgentPath, locker);
+        Gateway.getLookupManager().add(newAgentPath, locker);
 
         try {
             if (StringUtils.isNotBlank(pwd)) Gateway.getLookupManager().setAgentPassword(newAgentPath, pwd, true);
 
             for (String roleName: roles) {
                 if (StringUtils.isNotBlank(roleName)) {
-                    RolePath role = Gateway.getLookupManager().getRolePath(roleName);
-                    Gateway.getLookupManager().addRole(newAgentPath, role);
+                    RolePath role = Gateway.getLookupManager().getRolePath(roleName, locker);
+                    Gateway.getLookupManager().addRole(newAgentPath, role, locker);
                 }
             }
         }
         catch (Exception e) {
             log.error("", e);
-            Gateway.getLookupManager().delete(newAgentPath);
+            Gateway.getLookupManager().delete(newAgentPath, locker);
 
             throw new CannotManageException(e.getMessage());
         }

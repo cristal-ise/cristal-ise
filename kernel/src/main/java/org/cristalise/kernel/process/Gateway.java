@@ -179,7 +179,7 @@ public class Gateway
             // check top level directory contexts
             if (mLookup instanceof LookupManager) {
                 mLookupManager = (LookupManager) mLookup;
-                mLookupManager.initializeDirectory();
+                mLookupManager.initializeDirectory(null);
             }
             else {
                 throw new CannotManageException("Lookup implementation is not a LookupManager. Cannot write to directory");
@@ -307,7 +307,7 @@ public class Gateway
     static public AgentProxy connect(String agentName, String agentPassword, String resource)
             throws InvalidDataException, ObjectNotFoundException, PersistencyException
     {
-        mSecurityManager.authenticate(agentName, agentPassword, resource);
+        mSecurityManager.authenticate(agentName, agentPassword, resource, null);
 
         setup(mSecurityManager.getAuth());
 
@@ -343,7 +343,7 @@ public class Gateway
     static public AgentProxy login(String agentName, String agentPassword, String resource) 
             throws InvalidDataException, ObjectNotFoundException
     {
-        return mSecurityManager.authenticate(agentName, agentPassword, resource);
+        return mSecurityManager.authenticate(agentName, agentPassword, resource, null);
     }
 
     /**

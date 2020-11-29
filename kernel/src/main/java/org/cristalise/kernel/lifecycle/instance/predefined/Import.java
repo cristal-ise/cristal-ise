@@ -54,7 +54,7 @@ public class Import extends PredefinedStep {
     {
         String[] params = getDataList(requestData);
 
-        log.debug("Called by {} on {} with parameters {}", agent.getAgentName(), item, (Object)params);
+        log.debug("Called by {} on {} with parameters {}", agent.getAgentName(locker), item, (Object)params);
 
         int split1 = params[0].indexOf('_');
         int split2 = params[0].indexOf(':');

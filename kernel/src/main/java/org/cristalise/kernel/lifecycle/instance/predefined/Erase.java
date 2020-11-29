@@ -54,10 +54,10 @@ public class Erase extends PredefinedStep {
     protected String runActivityLogic(AgentPath agent, ItemPath item, int transitionID, String requestData, Object locker)
             throws InvalidDataException, ObjectNotFoundException, ObjectCannotBeUpdated, CannotManageException, PersistencyException
     {
-        log.debug("Called by {} on {}", agent.getAgentName(), item);
+        log.debug("Called by {} on {}", agent.getAgentName(locker), item);
 
-        removeAliases(item);
-        removeRolesIfAgent(item);
+        removeAliases(item, locker);
+        removeRolesIfAgent(item, locker);
         Gateway.getStorage().removeCluster(item, "", locker); //removes all clusters
 
         log.info("Done item:"+item);
@@ -72,12 +72,12 @@ public class Erase extends PredefinedStep {
      * @throws ObjectCannotBeUpdated
      * @throws CannotManageException
      */
-    private void removeAliases(ItemPath item) throws ObjectNotFoundException, ObjectCannotBeUpdated, CannotManageException {
-        Iterator<Path> domPaths = Gateway.getLookup().searchAliases(item);
+    private void removeAliases(ItemPath item, Object locker) throws ObjectNotFoundException, ObjectCannotBeUpdated, CannotManageException {
+        Iterator<Path> domPaths = Gateway.getLookup().searchAliases(item, locker);
 
         while (domPaths.hasNext()) {
             DomainPath path = (DomainPath) domPaths.next();
-            Gateway.getLookupManager().delete(path);
+            Gateway.getLookupManager().delete(path, locker);
         }
     }
 
@@ -89,14 +89,14 @@ public class Erase extends PredefinedStep {
      * @throws ObjectNotFoundException
      * @throws CannotManageException
      */
-    private void removeRolesIfAgent(ItemPath item) throws InvalidDataException, ObjectCannotBeUpdated, ObjectNotFoundException, CannotManageException {
+    private void removeRolesIfAgent(ItemPath item, Object locker) throws InvalidDataException, ObjectCannotBeUpdated, ObjectNotFoundException, CannotManageException {
         try {
             AgentPath targetAgent = new AgentPath(item);
             
             //This check if the item is an agent or not
-            if (targetAgent.getAgentName() != null) {
-                for (RolePath role : targetAgent.getRoles()) {
-                    Gateway.getLookupManager().removeRole(targetAgent, role);
+            if (targetAgent.getAgentName(locker) != null) {
+                for (RolePath role : targetAgent.getRoles(locker)) {
+                    Gateway.getLookupManager().removeRole(targetAgent, role, locker);
                 }
             }
         }

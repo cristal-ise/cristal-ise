@@ -22,6 +22,7 @@ package org.cristalise.kernel.process;
 
 import java.util.Iterator;
 import java.util.Properties;
+
 import org.cristalise.kernel.common.CannotManageException;
 import org.cristalise.kernel.common.ObjectCannotBeUpdated;
 import org.cristalise.kernel.common.ObjectNotFoundException;
@@ -30,7 +31,7 @@ import org.cristalise.kernel.lookup.DomainPath;
 import org.cristalise.kernel.lookup.Path;
 import org.cristalise.kernel.lookup.RolePath;
 import org.cristalise.kernel.process.resource.ResourceLoader;
-import org.cristalise.kernel.utils.Logger;
+
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -40,43 +41,45 @@ import lombok.extern.slf4j.Slf4j;
 public class StandardServer extends AbstractMain {
     protected static StandardServer server;
 
-    public static void resetItemIORs(DomainPath root) throws ObjectNotFoundException, ObjectCannotBeUpdated, CannotManageException {
+    public static void resetItemIORs(DomainPath root, Object transactionKey) throws ObjectNotFoundException, ObjectCannotBeUpdated, CannotManageException {
         log.info("resetItemIORs() - root:"+root);
 
-        Iterator<Path> pathes = Gateway.getLookup().getChildren(root);
+        Iterator<Path> pathes = Gateway.getLookup().getChildren(root, transactionKey);
 
         while (pathes.hasNext()) {
             DomainPath domain = (DomainPath) pathes.next();
 
             if (domain.isContext()) {
-                resetItemIORs(domain);
+                resetItemIORs(domain, transactionKey);
             }
             else {
                 log.info("resetItemIORs() - setting IOR for domain:" + domain + " item:" + domain.getItemPath());
 
                 Gateway.getLookupManager().setIOR(
                         domain.getItemPath(),
-                        Gateway.getORB().object_to_string(Gateway.getCorbaServer().getItemIOR(domain.getItemPath())));
+                        Gateway.getORB().object_to_string(Gateway.getCorbaServer().getItemIOR(domain.getItemPath())),
+                        transactionKey);
             }
         }
     }
 
-    public static void resetAgentIORs(RolePath root) throws ObjectNotFoundException, ObjectCannotBeUpdated, CannotManageException {
+    public static void resetAgentIORs(RolePath root, Object transactionKey) throws ObjectNotFoundException, ObjectCannotBeUpdated, CannotManageException {
         log.info("resetAgentIORs() - root:"+root);
 
-        Iterator<Path> roles = Gateway.getLookup().getChildren(root);
+        Iterator<Path> roles = Gateway.getLookup().getChildren(root, transactionKey);
 
         while (roles.hasNext()) {
             RolePath role = (RolePath) roles.next();
 
-            resetAgentIORs(role);
+            resetAgentIORs(role, transactionKey);
 
-            for (AgentPath agent :  Gateway.getLookup().getAgents(role)) {
+            for (AgentPath agent :  Gateway.getLookup().getAgents(role, transactionKey)) {
                 log.info("resetAgentIORs() - setting IOR for role:" + role + " agent:" + agent.getAgentName() + " " + agent.getItemPath());
 
                 Gateway.getLookupManager().setIOR(
                         agent.getItemPath(),
-                        Gateway.getORB().object_to_string(Gateway.getCorbaServer().getAgentIOR(agent)));
+                        Gateway.getORB().object_to_string(Gateway.getCorbaServer().getAgentIOR(agent)),
+                        transactionKey);
             }
         }
     }
@@ -97,17 +100,25 @@ public class StandardServer extends AbstractMain {
         // connect to LDAP as root
         Gateway.connect();
 
-        //start console
-        Logger.initConsole("ItemServer");
-
         //initialize the server objects
         Gateway.startServer();
 
         if (Gateway.getProperties().containsKey(AbstractMain.MAIN_ARG_RESETIOR)) {
             log.info("standard initialisation RESETTING IORs");
 
-            resetItemIORs(new DomainPath(""));
-            resetAgentIORs(new RolePath());
+            Object transactionKey = new Object();
+            Gateway.getStorage().begin(transactionKey);
+
+            try {
+                resetItemIORs(new DomainPath(""), transactionKey);
+                resetAgentIORs(new RolePath(), transactionKey);
+
+                Gateway.getStorage().commit(transactionKey);
+            }
+            catch (Exception e) {
+                log.error("Error reseting IORs", e);
+                Gateway.getStorage().abort(transactionKey);
+            }
 
             AbstractMain.shutdown(0);
         }
@@ -135,8 +146,6 @@ public class StandardServer extends AbstractMain {
      * @throws Exception  throw whatever happens
      */
     public static void main(String[] args) throws Exception {
-        //initialise everything
-        standardInitialisation( args );
 
         Runtime.getRuntime().addShutdownHook(new Thread() {
             @Override
@@ -144,5 +153,8 @@ public class StandardServer extends AbstractMain {
                 AbstractMain.shutdown(0);
             }
         });
+
+        //initialise everything
+        standardInitialisation( args );
     }
 }

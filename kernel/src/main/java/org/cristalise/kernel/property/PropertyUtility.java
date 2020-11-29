@@ -24,8 +24,10 @@ import static org.cristalise.kernel.persistency.ClusterType.VIEWPOINT;
 import static org.cristalise.kernel.process.resource.BuiltInResources.PROPERTY_DESC_RESOURCE;
 import static org.cristalise.kernel.property.BuiltInItemProperties.NAME;
 import static org.cristalise.kernel.property.BuiltInItemProperties.TYPE;
+
 import java.util.ArrayList;
 import java.util.Iterator;
+
 import org.apache.commons.lang3.StringUtils;
 import org.cristalise.kernel.common.ObjectCannotBeUpdated;
 import org.cristalise.kernel.common.ObjectNotFoundException;
@@ -280,5 +282,67 @@ public class PropertyUtility {
 
             Gateway.getStorage().put(item, prop, locker);
         }
+    }
+
+    /**
+     * 
+     * @param item
+     * @param prop
+     * @param transactionKey
+     * @return
+     */
+    public static boolean checkProperty(ItemPath item, BuiltInItemProperties prop, Object transactionKey) {
+        return checkProperty(item, prop.getName(), transactionKey);
+    }
+
+    /**
+     * 
+     * @param item
+     * @param name
+     * @param transactionKey
+     * @return
+     */
+    public static boolean checkProperty(ItemPath item, String name, Object transactionKey) {
+        try {
+            for (String key : Gateway.getStorage().getClusterContents(item,  ClusterType.PROPERTY, transactionKey)) {
+                if (key.equals(name)) return true;
+            }
+        }
+        catch (PersistencyException e) {}
+
+        return false;
+    }
+
+    /**
+     * 
+     * @param item
+     * @param prop
+     * @param defaultValue
+     * @param transactionKey
+     * @return
+     */
+    public static String getPropertyValue(ItemPath item, BuiltInItemProperties prop, String defaultValue, Object transactionKey) {
+        return getPropertyValue(item, prop.getName(), defaultValue, transactionKey);
+    }
+
+    /**
+     * 
+     * @param item
+     * @param name
+     * @param defaultValue
+     * @param transactionKey
+     * @return
+     */
+    public static String getPropertyValue(ItemPath item, String name, String defaultValue, Object transactionKey) {
+        try {
+            if (checkProperty(item, name, transactionKey)) {
+                return getProperty(item, name, transactionKey).getValue();
+            }
+        }
+        catch(ObjectNotFoundException e) {
+            //This line should never happen because of the use of checkProperty()
+        }
+
+        return defaultValue;
     }
 }

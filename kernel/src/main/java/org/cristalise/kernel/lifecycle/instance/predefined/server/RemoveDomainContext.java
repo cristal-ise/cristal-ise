@@ -47,25 +47,25 @@ public class RemoveDomainContext extends PredefinedStep {
     {
         String[] params = getDataList(requestData);
 
-        log.debug("Called by {} on {} with parameters {}", agent.getAgentName(), item, (Object)params);
+        log.debug("Called by {} on {} with parameters {}", agent.getAgentName(locker), item, (Object)params);
 
         if (params.length != 1) throw new InvalidDataException("RemoveDomainContext: Invalid parameters " + Arrays.toString(params));
 
         DomainPath pathToDelete = new DomainPath(params[0]);
 
-        if (!pathToDelete.exists())
+        if (!pathToDelete.exists(locker))
             throw new ObjectNotFoundException("Context " + pathToDelete + " does not exist");
 
         try {
-            pathToDelete.getItemPath();
+            pathToDelete.getItemPath(locker);
             throw new InvalidDataException("Path " + pathToDelete + " is an Entity. Use its own Erase step instead, or RemoveAgent.");
         }
         catch (ObjectNotFoundException ex) {}
 
-        if (Gateway.getLookup().getChildren(pathToDelete).hasNext())
+        if (Gateway.getLookup().getChildren(pathToDelete, locker).hasNext())
             throw new ObjectCannotBeUpdated("Context " + pathToDelete + " is not empty. Cannot delete.");
 
-        Gateway.getLookupManager().delete(pathToDelete);
+        Gateway.getLookupManager().delete(pathToDelete, locker);
 
         return requestData;
     }

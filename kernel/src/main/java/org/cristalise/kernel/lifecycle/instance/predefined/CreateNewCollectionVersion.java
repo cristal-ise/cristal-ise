@@ -61,7 +61,7 @@ public class CreateNewCollectionVersion extends PredefinedStep {
         // extract parameters
         String[] params = getDataList(requestData);
 
-        log.debug("Called by {} on {} with parameters {}", agent.getAgentName(), item, (Object)params);
+        log.debug("Called by {} on {} with parameters {}", agent.getAgentName(locker), item, (Object)params);
 
         if (params.length == 0 || params.length > 2) { 
             throw new InvalidDataException("CreateNewCollectionVersion: Invalid parameters "+Arrays.toString(params));
@@ -76,7 +76,7 @@ public class CreateNewCollectionVersion extends PredefinedStep {
         }
         else {
             // find last numbered version
-            String[] versions = Gateway.getStorage().getClusterContents(item, ClusterType.COLLECTION+"/"+collName);
+            String[] versions = Gateway.getStorage().getClusterContents(item, ClusterType.COLLECTION+"/"+collName, locker);
             int lastVer = -1;
 
             for (String thisVerStr : versions) {

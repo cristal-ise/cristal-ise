@@ -102,7 +102,7 @@ public class CreateItemFromDescription extends PredefinedStep {
     {
         String[] input = getDataList(requestData);
 
-        log.debug("Called by {} on {} with parameters {}", agent.getAgentName(), descItemPath, (Object)input);
+        log.debug("Called by {} on {} with parameters {}", agent.getAgentName(locker), descItemPath, (Object)input);
 
         String            newName   = input[0];
         String            domPath   = input[1];
@@ -113,7 +113,7 @@ public class CreateItemFromDescription extends PredefinedStep {
         // check if the path is already taken
         DomainPath context = new DomainPath(new DomainPath(domPath), newName);
 
-        if (context.exists()) throw new ObjectAlreadyExistsException("The path " + context + " exists already.");
+        if (context.exists(locker)) throw new ObjectAlreadyExistsException("The path " + context + " exists already.");
 
         // generate new item path with random uuid
         ItemPath newItemPath = new ItemPath();
@@ -124,8 +124,8 @@ public class CreateItemFromDescription extends PredefinedStep {
 
         if (factory == null) throw new CannotManageException("This process cannot create new Items");
 
-        factory.createItem(newItemPath);
-        Gateway.getLookupManager().add(newItemPath);
+        factory.createItem(newItemPath, locker);
+        Gateway.getLookupManager().add(newItemPath, locker);
 
         initialiseItem(newItemPath, agent, descItemPath, initProps, outcome, newName, descVer, context, newItemPath, locker);
 
@@ -181,19 +181,19 @@ public class CreateItemFromDescription extends PredefinedStep {
         }
         catch (MarshalException | ValidationException | IOException | MappingException e) {
             log.error("", e);
-            Gateway.getLookupManager().delete(newItemPath);
+            Gateway.getLookupManager().delete(newItemPath, locker);
             throw new InvalidDataException("CreateItemFromDescription: Problem initializing new Item. See log: " + e.getMessage());
         }
         catch (InvalidDataException | ObjectNotFoundException | PersistencyException e) {
             log.error("", e);
-            Gateway.getLookupManager().delete(newItemPath);
+            Gateway.getLookupManager().delete(newItemPath, locker);
             throw e;
         }
 
         // add its domain path
         log.info("Creating " + context);
         context.setItemPath(newItemPath);
-        Gateway.getLookupManager().add(context);
+        Gateway.getLookupManager().add(context, locker);
     }
 
     /**
@@ -243,7 +243,7 @@ public class CreateItemFromDescription extends PredefinedStep {
         }
 
         if (!foundName) props.list.add(new Property(NAME, newName, true));
-        props.list.add(new Property(CREATOR, agent.getAgentName(), false));
+        props.list.add(new Property(CREATOR, agent.getAgentName(locker), false));
 
         return props;
     }
@@ -267,7 +267,7 @@ public class CreateItemFromDescription extends PredefinedStep {
                     Gateway.getStorage().get(descItemPath, COLLECTION + "/" + WORKFLOW + "/" + descVer, locker);
 
         CollectionMember wfMember  = thisCol.getMembers().list.get(0);
-        String           wfDefName = wfMember.resolveItem().getName();
+        String           wfDefName = wfMember.resolveItem(locker).getName();
         Object           wfVerObj  = wfMember.getProperties().getBuiltInProperty(VERSION);
 
         if (wfVerObj == null || String.valueOf(wfVerObj).length() == 0) {
@@ -376,7 +376,7 @@ public class CreateItemFromDescription extends PredefinedStep {
                     Gateway.getStorage().get(descItemPath, collPath + "/" + descVer, locker);
 
         CollectionMember schemaMember = thisCol.getMembers().list.get(0);
-        String           schemaName   = schemaMember.resolveItem().getName();
+        String           schemaName   = schemaMember.resolveItem(locker).getName();
         Object           schemaVerObj = schemaMember.getProperties().getBuiltInProperty(VERSION);
         Object           viewNameObj  = schemaMember.getProperties().get("View");
 

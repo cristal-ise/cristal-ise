@@ -20,7 +20,12 @@
  */
 package org.cristalise.kernel.security;
 
+import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.SECURITY_ACTION;
+import static org.cristalise.kernel.property.BuiltInItemProperties.NAME;
+import static org.cristalise.kernel.property.BuiltInItemProperties.SECURITY_DOMAIN;
+import static org.cristalise.kernel.property.BuiltInItemProperties.TYPE;
 import static org.cristalise.kernel.security.BuiltInAuthc.SYSTEM_AGENT;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shiro.SecurityUtils;
 import org.apache.shiro.authc.UsernamePasswordToken;
@@ -34,14 +39,13 @@ import org.cristalise.kernel.common.AccessRightsException;
 import org.cristalise.kernel.common.InvalidDataException;
 import org.cristalise.kernel.common.ObjectNotFoundException;
 import org.cristalise.kernel.entity.proxy.AgentProxy;
-import org.cristalise.kernel.entity.proxy.ItemProxy;
-import org.cristalise.kernel.graph.model.BuiltInVertexProperties;
 import org.cristalise.kernel.lifecycle.instance.Activity;
 import org.cristalise.kernel.lookup.AgentPath;
 import org.cristalise.kernel.lookup.ItemPath;
 import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.process.auth.Authenticator;
-import org.cristalise.kernel.property.BuiltInItemProperties;
+import org.cristalise.kernel.property.PropertyUtility;
+
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
@@ -83,6 +87,12 @@ public class SecurityManager {
         //code simply sets up the connection to the underlying technology (LDAP/AD/JDBC) to 'authenticate' the system user
     }
 
+    public AgentProxy authenticate(String agentName, String agentPassword, String resource)
+            throws InvalidDataException, ObjectNotFoundException
+    {
+        return authenticate(agentName, agentPassword, resource, true, null);
+    }
+
     /**
      * 
      * @param agentName
@@ -92,10 +102,10 @@ public class SecurityManager {
      * @throws InvalidDataException
      * @throws ObjectNotFoundException
      */
-    public AgentProxy authenticate(String agentName, String agentPassword, String resource)
+    public AgentProxy authenticate(String agentName, String agentPassword, String resource, Object transactionKey)
             throws InvalidDataException, ObjectNotFoundException
     {
-        return authenticate(agentName, agentPassword, resource, true);
+        return authenticate(agentName, agentPassword, resource, true, transactionKey);
     }
 
     /**
@@ -108,7 +118,7 @@ public class SecurityManager {
      * @throws InvalidDataException
      * @throws ObjectNotFoundException
      */
-    public AgentProxy authenticate(String agentName, String agentPassword, String resource, boolean isClient)
+    public AgentProxy authenticate(String agentName, String agentPassword, String resource, boolean isClient, Object transactionKey)
             throws InvalidDataException, ObjectNotFoundException
     {
         if (shiroEnabled) {
@@ -119,7 +129,7 @@ public class SecurityManager {
         }
 
         // It can be invoked before ProxyManager and Lookup is initialised
-        if (isClient && Gateway.getProxyManager() != null) return Gateway.getProxyManager().getAgentProxy(agentName);
+        if (isClient && Gateway.getProxyManager() != null) return Gateway.getProxyManager().getAgentProxy(agentName, transactionKey);
         else                                               return null;
     }
 
@@ -244,12 +254,12 @@ public class SecurityManager {
      * @throws AccessRightsException
      * @throws ObjectNotFoundException Item was not found
      */
-    public boolean checkPermissions(AgentPath agent, Activity act, ItemPath itemPath) 
+    public boolean checkPermissions(AgentPath agent, Activity act, ItemPath itemPath, Object transactionKey) 
             throws AccessRightsException, ObjectNotFoundException
     {
-        String domain = getWildcardPermissionDomain(itemPath);
+        String domain = getWildcardPermissionDomain(itemPath, transactionKey);
         String action = getWildcardPermissionAction(act);
-        String target = Gateway.getProxyManager().getProxy(itemPath).getName();
+        String target = PropertyUtility.getPropertyValue(itemPath, NAME, "", transactionKey);
 
         //The Shiro's WildcardPermission string 
         String permission = domain+":"+action+":"+target;
@@ -266,11 +276,9 @@ public class SecurityManager {
      * @throws ObjectNotFoundException Item was not found 
      * @throws AccessRightsException 
      */
-    private String getWildcardPermissionDomain(ItemPath itemPath) throws ObjectNotFoundException, AccessRightsException {
-        ItemProxy item = Gateway.getProxyManager().getProxy(itemPath);
-        String type = item.getType();
-
-        String domain = item.getProperty(BuiltInItemProperties.SECURITY_DOMAIN, type);
+    private String getWildcardPermissionDomain(ItemPath itemPath, Object transactionKey) throws ObjectNotFoundException, AccessRightsException {
+        String type   = PropertyUtility.getPropertyValue(itemPath, TYPE, "", transactionKey);
+        String domain = PropertyUtility.getPropertyValue(itemPath, SECURITY_DOMAIN, type, transactionKey);
 
         if (StringUtils.isBlank(domain)) throw new AccessRightsException("Domain was blank - Specify 'SecurityDomain' or 'Type' ItemProperties");
 
@@ -284,7 +292,7 @@ public class SecurityManager {
      * @throws AccessRightsException 
      */
     private String getWildcardPermissionAction(Activity act) throws AccessRightsException {
-        String action = (String) act.getBuiltInProperty(BuiltInVertexProperties.SECURITY_ACTION, "");
+        String action = (String) act.getBuiltInProperty(SECURITY_ACTION, "");
 
         if (StringUtils.isBlank(action)) action = act.getName();
         if (StringUtils.isBlank(action)) throw new AccessRightsException("Action was blank - Specify 'SecurityAction' or 'Name' ActivityProperties");

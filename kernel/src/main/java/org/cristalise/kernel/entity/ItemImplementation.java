@@ -178,7 +178,7 @@ public class ItemImplementation implements ItemOperations {
             Activity act = (Activity) lifeCycle.search(stepPath);
 
             if (act != null) {
-                if (secMan.isShiroEnabled() && !secMan.checkPermissions(agentToUse, act, mItemPath)) {
+                if (secMan.isShiroEnabled() && !secMan.checkPermissions(agentToUse, act, mItemPath, lifeCycle)) {
                     if (log.isTraceEnabled()) for (RolePath role: agent.getRoles()) log.error(role.dump());
                     throw new AccessRightsException("'" + agentToUse.getAgentName() + "' is NOT permitted to execute step:" + stepPath);
                 }
@@ -195,7 +195,7 @@ public class ItemImplementation implements ItemOperations {
             // remove entity path if transaction was successful
             if (stepPath.equals("workflow/predefined/Erase")) {
                 log.info("Erasing item path " + mItemPath.toString());
-                Gateway.getLookupManager().delete(mItemPath);
+                Gateway.getLookupManager().delete(mItemPath, lifeCycle);
             }
 
             mStorage.commit(lifeCycle);
@@ -320,7 +320,7 @@ public class ItemImplementation implements ItemOperations {
             if (secMan.isShiroEnabled()) {
                 for (Job j: jobs) {
                     Activity act =  (Activity) wf.search(j.getStepPath());
-                    if (secMan.checkPermissions(agent, act, mItemPath)) {
+                    if (secMan.checkPermissions(agent, act, mItemPath, null)) {
                         try {
                             j.getTransition().getPerformingRole(act, agent);
                             jobBag.list.add(j);

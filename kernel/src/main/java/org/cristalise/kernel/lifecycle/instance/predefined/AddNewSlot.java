@@ -74,7 +74,7 @@ public class AddNewSlot extends PredefinedStep {
         // extract parameters
         String[] params = getDataList(requestData);
 
-        log.debug("Called by {} on {} with parameters {}", agent.getAgentName(), item, (Object)params);
+        log.debug("Called by {} on {} with parameters {}", agent.getAgentName(locker), item, (Object)params);
 
         // resolve desc item path and version
         try {
@@ -84,7 +84,7 @@ public class AddNewSlot extends PredefinedStep {
                     descKey = new ItemPath(params[1]);
                 }
                 catch (InvalidItemPathException e) {
-                    descKey = new DomainPath(params[1]).getItemPath();
+                    descKey = new DomainPath(params[1]).getItemPath(locker);
                 }
             }
 

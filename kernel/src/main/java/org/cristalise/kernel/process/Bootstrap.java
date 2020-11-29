@@ -82,6 +82,9 @@ public class Bootstrap {
         Gateway.getStorage().begin(transactionKey); // should do nothing if transactionKey is null
 
         try {
+            //start console
+            Logger.initConsole("ItemServer");
+
             // check for system agents
             checkAdminAgents(transactionKey);
 
@@ -217,7 +220,7 @@ public class Bootstrap {
         moduleChangesXML.append("</ModuleChanges>");
 
         if (StringUtils.isNotBlank(moduleChangesXML)) {
-            new UpdateImportReport().request((AgentPath)SYSTEM_AGENT.getPath(), thisServerPath.getItemPath(), moduleChangesXML.toString(), transactionKey);
+            new UpdateImportReport().request((AgentPath)SYSTEM_AGENT.getPath(transactionKey), thisServerPath.getItemPath(), moduleChangesXML.toString(), transactionKey);
         }
     }
 
@@ -236,7 +239,7 @@ public class Bootstrap {
         LookupManager lookup = Gateway.getLookupManager();
 
         try {
-            AgentProxy agentProxy = Gateway.getProxyManager().getAgentProxy(lookup.getAgentPath(name));
+            AgentProxy agentProxy = Gateway.getProxyManager().getAgentProxy(lookup.getAgentPath(name, transactionKey), transactionKey);
             systemAgents.put(name, agentProxy);
             log.info("checkAgent() - Agent '"+name+"' found.");
             return agentProxy;
@@ -248,17 +251,17 @@ public class Bootstrap {
         try {
             AgentPath agentPath = new AgentPath(new ItemPath(uuid), name);
 
-            Gateway.getCorbaServer().createAgent(agentPath);
-            lookup.add(agentPath);
+            Gateway.getCorbaServer().createAgent(agentPath, transactionKey);
+            lookup.add(agentPath, transactionKey);
 
-            if (StringUtils.isNotBlank(pass)) lookup.setAgentPassword(agentPath, pass);
+            if (StringUtils.isNotBlank(pass)) lookup.setAgentPassword(agentPath, pass, transactionKey);
 
             // assign role
             log.info("checkAgent() - Assigning role '"+rolePath.getName()+"'");
-            Gateway.getLookupManager().addRole(agentPath, rolePath);
+            Gateway.getLookupManager().addRole(agentPath, rolePath, transactionKey);
             Gateway.getStorage().put(agentPath, new Property(NAME, name, true), transactionKey);
             Gateway.getStorage().put(agentPath, new Property(TYPE, "Agent", false), transactionKey);
-            AgentProxy agentProxy = Gateway.getProxyManager().getAgentProxy(agentPath);
+            AgentProxy agentProxy = Gateway.getProxyManager().getAgentProxy(agentPath, transactionKey);
             //TODO: properly init agent here with wf, props and colls -> use CreatItemFromDescription
             systemAgents.put(name, agentProxy);
             return agentProxy;
@@ -275,12 +278,12 @@ public class Bootstrap {
      */
     public static void checkAdminAgents(Object transactionKey) throws Exception {
         RolePath rootRole = new RolePath();
-        if (!rootRole.exists()) Gateway.getLookupManager().createRole(rootRole);
+        if (!rootRole.exists(transactionKey)) Gateway.getLookupManager().createRole(rootRole, transactionKey);
 
         // check for admin role
         RolePath adminRole = new RolePath(rootRole, ADMIN_ROLE.getName(), false);
-        if (!adminRole.exists()) Gateway.getLookupManager().createRole(adminRole);
-        Gateway.getLookupManager().setPermission(adminRole, "*");
+        if (!adminRole.exists(transactionKey)) Gateway.getLookupManager().createRole(adminRole, transactionKey);
+        Gateway.getLookupManager().setPermission(adminRole, "*", transactionKey);
 
         // check for import Agent
         AgentProxy system = checkAgent(SYSTEM_AGENT.getName(), null, adminRole, new UUID(0, 1).toString(), transactionKey);
@@ -291,8 +294,8 @@ public class Bootstrap {
 
         // check for local usercode user & role
         RolePath usercodeRole = new RolePath(rootRole, ucRole, true);
-        if (!usercodeRole.exists()) Gateway.getLookupManager().createRole(usercodeRole);
-        Gateway.getLookupManager().setPermissions(usercodeRole, Arrays.asList(ucPermissions.split(",")));
+        if (!usercodeRole.exists(transactionKey)) Gateway.getLookupManager().createRole(usercodeRole, transactionKey);
+        Gateway.getLookupManager().setPermissions(usercodeRole, Arrays.asList(ucPermissions.split(",")), transactionKey);
         checkAgent(
                 Gateway.getProperties().getString(ucRole + ".agent",     InetAddress.getLocalHost().getHostName()),
                 Gateway.getProperties().getString(ucRole + ".password", "uc"),
@@ -312,10 +315,10 @@ public class Bootstrap {
         catch (ObjectNotFoundException ex) {
             log.info("Creating server item "+thisServerPath);
             serverItem = new ItemPath();
-            Gateway.getCorbaServer().createItem(serverItem);
-            lookupManager.add(serverItem);
+            Gateway.getCorbaServer().createItem(serverItem, transactionKey);
+            lookupManager.add(serverItem, transactionKey);
             thisServerPath.setItemPath(serverItem);
-            lookupManager.add(thisServerPath);
+            lookupManager.add(thisServerPath, transactionKey);
         }
 
         int proxyPort = Gateway.getProperties().getInt("ItemServer.Proxy.port", 1553);

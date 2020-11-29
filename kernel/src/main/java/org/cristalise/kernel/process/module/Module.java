@@ -160,7 +160,7 @@ public class Module extends ImportItem {
             if (!Bootstrap.shutdown) this.create(systemAgent.getPath(), reset, transactionKey);
 
             if (!Bootstrap.shutdown && StringUtils.isNotBlank(moduleChanges)) {
-                new UpdateImportReport().request((AgentPath)SYSTEM_AGENT.getPath(), itemPath, moduleChanges, transactionKey);
+                new UpdateImportReport().request((AgentPath)SYSTEM_AGENT.getPath(transactionKey), itemPath, moduleChanges, transactionKey);
             }
 
             Gateway.getStorage().commit(transactionKey);
@@ -195,7 +195,7 @@ public class Module extends ImportItem {
             if (Bootstrap.shutdown) return;
 
             try {
-                Gateway.getLookup().getAgentPath(thisAgent.name);
+                Gateway.getLookup().getAgentPath(thisAgent.name, transactionKey);
                 log.info("importAgents() - Agent '"+thisAgent.name+"' found.");
                 continue;
             }
@@ -332,7 +332,7 @@ public class Module extends ImportItem {
     public void addImports(Collection<?> contents) throws ObjectNotFoundException, InvalidDataException {
         for (CollectionMember mem : contents.getMembers().list) {
             if (mem.getItemPath() != null) {
-                ItemProxy    child   = mem.resolveItem();
+                ItemProxy    child   = mem.resolveItem(null);
                 String       name    = child.getName();
                 Integer      version = Integer.valueOf(mem.getProperties().get(VERSION.getName()).toString());
                 String       type    = child.getProperty(TYPE);

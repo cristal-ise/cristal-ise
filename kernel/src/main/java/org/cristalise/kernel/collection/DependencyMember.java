@@ -136,9 +136,9 @@ public class DependencyMember implements CollectionMember {
     }
 
     @Override
-    public ItemProxy resolveItem() throws ObjectNotFoundException {
+    public ItemProxy resolveItem(Object transactionKey) throws ObjectNotFoundException {
         if (mItem == null && mItemPath != null)
-            mItem = Gateway.getProxyManager().getProxy(mItemPath);
+            mItem = Gateway.getProxyManager().getProxy(mItemPath, transactionKey);
         return mItem;
     }
 

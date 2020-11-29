@@ -131,7 +131,7 @@ public class RemoteMap<V extends C2KLocalObject> extends TreeMap<String, V> impl
         };
 
         try {
-            source = Gateway.getProxyManager().getProxy(mItemPath);
+            source = Gateway.getProxyManager().getProxy(mItemPath, mTransactionKey);
             source.subscribe(new MemberSubscription<V>(listener, mPath+mName, false));
 
             log.debug("activate() - name:"+mName+" "+mItemPath);
