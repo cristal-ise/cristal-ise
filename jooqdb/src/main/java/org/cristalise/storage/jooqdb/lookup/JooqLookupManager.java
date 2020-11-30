@@ -262,7 +262,7 @@ public class JooqLookupManager implements LookupManager {
             return dp.getItemPath();
         }
         catch (Exception e) {
-            log.error("Exception caught", e);
+            log.error("getItemPath: Exception caught while looking up item path for the DomainPath " + domainPath, e);
             return null;
         }
     }
