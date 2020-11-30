@@ -255,6 +255,10 @@ public class JooqLookupManager implements LookupManager {
         try {
             context = JooqHandler.connect();
             DomainPath dp = domains.fetch(context, domainPath);
+            if (dp == null) {
+                log.info("getItemPath: Could not find DomainPath " + domainPath);
+                return null;
+            }
             return dp.getItemPath();
         }
         catch (Exception e) {
@@ -351,6 +355,9 @@ public class JooqLookupManager implements LookupManager {
             DSLContext context = JooqHandler.connect();
             DomainPath dp = domains.fetch(context, domainPath);
 
+            if (dp == null) {
+                throw new InvalidItemPathException("resolvePath: Could not find DomainPath " + domainPath);
+            }
             if (dp.getTarget() == null) throw new InvalidItemPathException("DomainPath has no target:"+domainPath);
 
             //issue #165: using items.fetch() ensures that Path is either ItemPath or AgentPath

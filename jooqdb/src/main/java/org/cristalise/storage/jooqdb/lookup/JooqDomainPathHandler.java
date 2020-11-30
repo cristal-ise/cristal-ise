@@ -137,6 +137,9 @@ public class JooqDomainPathHandler {
                 .where(PATH.equal(path.getStringPath()))
                 .fetchOne();
 
+        if (result == null) {
+            return null;
+        }
         return getDomainPath(result);
     }
 
