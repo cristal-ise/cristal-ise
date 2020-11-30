@@ -256,7 +256,7 @@ public class JooqLookupManager implements LookupManager {
             context = JooqHandler.connect();
             DomainPath dp = domains.fetch(context, domainPath);
             if (dp == null) {
-                log.info("getItemPath: Could not find DomainPath " + domainPath);
+                log.info("getItemPath: Could not find DomainPath " + domainPath, new Exception());
                 return null;
             }
             return dp.getItemPath();
