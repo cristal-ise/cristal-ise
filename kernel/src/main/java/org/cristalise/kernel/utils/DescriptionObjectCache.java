@@ -135,7 +135,7 @@ public abstract class DescriptionObjectCache<D extends DescriptionObject> {
         Iterator<Path> searchResult = null;
 
         // else ...
-        if (Gateway.getProperties().getBoolean("LocalObjectLoader.lookupUseProperties", false)) {
+        if (Gateway.getProperties().getBoolean("LocalObjectLoader.lookupUseProperties", false) || StringUtils.isBlank(getTypeRoot())) {
             // search for it in the whole tree using properties
             Property[] searchProps = new Property[classIdProps.length + 1];
             searchProps[0] = new Property(NAME, name);
@@ -144,9 +144,6 @@ public abstract class DescriptionObjectCache<D extends DescriptionObject> {
             searchResult = Gateway.getLookup().search(new DomainPath(getTypeRoot()), searchProps);
         }
         else {
-            if (StringUtils.isBlank(getTypeRoot())) {
-                throw new InvalidDataException("TypeRoot is empty");
-            }
             // or search for it in the subtree using name
             searchResult = Gateway.getLookup().search(new DomainPath(getTypeRoot()), name);
         }
