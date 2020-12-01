@@ -132,6 +132,10 @@ public abstract class DescriptionObjectCache<D extends DescriptionObject> {
         if (classIdProps.length == 1 && classIdProps[0].getName() .equals ("Type")) {
             ItemPath itemPath = Gateway.getLookup().getItemPath(
                     new DomainPath("/domain/desc/" + classIdProps[0].getValue() + "/hmws/" + name));
+            if (itemPath == null) {
+                itemPath = Gateway.getLookup().getItemPath(
+                        new DomainPath("/domain/desc/" + classIdProps[0].getValue() + "/kernel/" + name));
+            }
             if (itemPath != null) {
                 return itemPath;
             }
