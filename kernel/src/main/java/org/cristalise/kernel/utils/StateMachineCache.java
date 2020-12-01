@@ -23,11 +23,13 @@
  */
 package org.cristalise.kernel.utils;
 
+import static org.cristalise.kernel.process.resource.BuiltInResources.STATE_MACHINE_RESOURCE;
+
 import org.cristalise.kernel.common.InvalidDataException;
 import org.cristalise.kernel.lifecycle.instance.stateMachine.StateMachine;
 import org.cristalise.kernel.lookup.ItemPath;
 import org.cristalise.kernel.process.Gateway;
-import org.cristalise.kernel.process.resource.BuiltInResources;
+
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -35,12 +37,17 @@ public class StateMachineCache extends DescriptionObjectCache<StateMachine> {
 
     @Override
     public String getTypeCode() {
-        return BuiltInResources.STATE_MACHINE_RESOURCE.getTypeCode();
+        return STATE_MACHINE_RESOURCE.getTypeCode();
     }
 
     @Override
     public String getSchemaName() {
-        return BuiltInResources.STATE_MACHINE_RESOURCE.getSchemaName();
+        return STATE_MACHINE_RESOURCE.getSchemaName();
+    }
+
+    @Override
+    public String getTypeRoot() {
+        return STATE_MACHINE_RESOURCE.getTypeRoot();
     }
 
     @Override

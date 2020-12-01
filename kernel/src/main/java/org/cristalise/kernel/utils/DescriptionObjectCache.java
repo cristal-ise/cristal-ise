@@ -28,6 +28,8 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.StringTokenizer;
 import java.util.UUID;
+
+import org.apache.commons.lang3.StringUtils;
 import org.cristalise.kernel.common.InvalidDataException;
 import org.cristalise.kernel.common.ObjectNotFoundException;
 import org.cristalise.kernel.common.PersistencyException;
@@ -126,17 +128,32 @@ public abstract class DescriptionObjectCache<D extends DescriptionObject> {
 
         // then check for a direct path
         DomainPath directPath = new DomainPath(name);
-        if (directPath.exists() && directPath.getItemPath() != null) { return directPath.getItemPath(); }
+        if (directPath.exists() && directPath.getItemPath() != null) { 
+            return directPath.getItemPath();
+        }
 
-        // else search for it in the whole tree using property description
-        Property[] searchProps = new Property[classIdProps.length + 1];
-        searchProps[0] = new Property(NAME, name);
-        System.arraycopy(classIdProps, 0, searchProps, 1, classIdProps.length);
+        Iterator<Path> searchResult = null;
 
-        Iterator<Path> e = Gateway.getLookup().search(new DomainPath(), searchProps);
-        if (e.hasNext()) {
-            Path defPath = e.next();
-            if (e.hasNext()) throw new ObjectNotFoundException("Too many matches for " + getTypeCode() + " " + name);
+        // else ...
+        if (Gateway.getProperties().getBoolean("LocalObjectLoader.lookupUseProperties", false)) {
+            // search for it in the whole tree using properties
+            Property[] searchProps = new Property[classIdProps.length + 1];
+            searchProps[0] = new Property(NAME, name);
+            System.arraycopy(classIdProps, 0, searchProps, 1, classIdProps.length);
+
+            searchResult = Gateway.getLookup().search(new DomainPath(getTypeRoot()), searchProps);
+        }
+        else {
+            if (StringUtils.isBlank(getTypeRoot())) {
+                throw new InvalidDataException("TypeRoot is empty");
+            }
+            // or search for it in the subtree using name
+            searchResult = Gateway.getLookup().search(new DomainPath(getTypeRoot()), name);
+        }
+
+        if (searchResult.hasNext()) {
+            Path defPath = searchResult.next();
+            if (searchResult.hasNext()) throw new ObjectNotFoundException("Too many matches for " + getTypeCode() + " " + name);
 
             if (defPath.getItemPath() == null)
                 throw new InvalidDataException(getTypeCode() + " " + name + " was found, but was not an Item");
@@ -148,17 +165,32 @@ public abstract class DescriptionObjectCache<D extends DescriptionObject> {
         }
     }
 
+    /**
+     * 
+     * @param name the Name or the UUID of the resource Item
+     * @param version the Version of the resource Item
+     * @return
+     * @throws ObjectNotFoundException
+     * @throws InvalidDataException
+     */
     public D get(String name, int version) throws ObjectNotFoundException, InvalidDataException {
         try {
+            CacheEntry<D> thisDefEntry = null;
+            synchronized (cache) {
+                thisDefEntry = cache.get(name + "_" + version);
+            }
+
+            if (thisDefEntry != null) {
+                log.trace("get() - " + name + " v" + version + " found in cache.");
+                return thisDefEntry.def;
+            }
+
             ItemPath defItemPath = findItem(name);
             String defUuid = defItemPath.getUUID().toString();
 
             synchronized (cache) {
-                CacheEntry<D> thisDefEntry = cache.get(name + "_" + version);
-                if (thisDefEntry == null) {
-                    log.trace("get() - " + name + " v" + version + " not found in cache. Checking id.");
-                    thisDefEntry = cache.get(defUuid + "_" + version);
-                }
+                log.trace("get() - " + name + " v" + version + " not found in cache. Checking uuid.");
+                thisDefEntry = cache.get(defUuid + "_" + version);
 
                 if (thisDefEntry != null) {
                     log.trace("get() - " + name + " v" + version + " found in cache.");
@@ -179,6 +211,7 @@ public abstract class DescriptionObjectCache<D extends DescriptionObject> {
             CacheEntry<D> entry = new CacheEntry<>(thisDef, defItemProxy, this);
             synchronized (cache) {
                 cache.put(defUuid + "_" + version, entry);
+                cache.put(name + "_" + version, entry);
             }
 
             return thisDef;
@@ -199,10 +232,11 @@ public abstract class DescriptionObjectCache<D extends DescriptionObject> {
 
     public abstract String getSchemaName();
 
+    public abstract String getTypeRoot();
+
     public abstract D buildObject(String name, int version, ItemPath path, String data) throws InvalidDataException;
 
     public D loadObject(String name, int version, ItemProxy proxy) throws ObjectNotFoundException, InvalidDataException {
-
         Viewpoint smView = (Viewpoint) proxy.getObject(ClusterType.VIEWPOINT + "/" + getSchemaName() + "/" + version);
         String rawRes;
         try {
