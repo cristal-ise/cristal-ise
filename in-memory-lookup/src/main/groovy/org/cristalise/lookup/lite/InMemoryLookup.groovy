@@ -217,7 +217,7 @@ abstract class InMemoryLookup extends ClusterStorage implements Lookup {
         }
 
         def result = []
-        def foundPathes = search(start, name)
+        def foundPathes = search(start, name, transactionKey)
 
         foundPathes.each { Path p ->
             ItemPath ip = null
@@ -225,17 +225,17 @@ abstract class InMemoryLookup extends ClusterStorage implements Lookup {
             if     (p instanceof DomainPath) { if(!((DomainPath)p).isContext()) ip = ((DomainPath)p).itemPath }
             else if(p instanceof ItemPath)   { ip = (ItemPath)p}
 
-            if(ip && checkItemProps(ip, props)) { result.add(p) }
+            if(ip && checkItemProps(ip, transactionKey, props)) { result.add(p) }
         }
         Logger.msg(5, "InMemoryLookup.search(props) - returning ${result.size()} pathes")
         return result.iterator()
     }
 
-    private boolean checkItemProps(ItemPath itemP, Property... props) {
+    private boolean checkItemProps(ItemPath itemP, Object transactionKey, Property... props) {
         Logger.msg(5, "InMemoryLookup.checkItemProps(props) - ItemPath:$itemP # of props: $props.length")
 
         for(Property prop: props) {
-            Property p = (Property)propertyStore.get(itemP.itemPath, ""+ClusterType.PROPERTY+"/"+prop.name, null)
+            Property p = (Property)propertyStore.get(itemP.itemPath, ""+ClusterType.PROPERTY+"/"+prop.name, transactionKey)
             if(!p || p.value != prop.value) return false
         }
         return true
@@ -302,7 +302,7 @@ abstract class InMemoryLookup extends ClusterStorage implements Lookup {
     public String getAgentName(AgentPath agentPath, Object transactionKey) throws ObjectNotFoundException {
         Logger.msg(5, "InMemoryLookup.getAgentName() - AgentPath: $agentPath")
         AgentPath p = (AgentPath) retrievePath(agentPath.stringPath)
-        return p.agentName
+        return p.getAgentName(transactionKey)
     }
 
     @Override

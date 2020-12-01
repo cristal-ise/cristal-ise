@@ -6,7 +6,7 @@ import org.cristalise.lookup.lite.InMemoryLookupManager
 
 import groovy.transform.CompileStatic
 
-@CompileStatic
+//@CompileStatic
 class InMemoryPropertyClusterStorage extends ClusterStorage {
     @Delegate InMemoryLookupManager lookup = InMemoryLookupManager.instance
 

@@ -36,7 +36,7 @@ import org.cristalise.kernel.utils.Logger
 import groovy.transform.CompileStatic
 
 
-@CompileStatic
+//@CompileStatic
 @Singleton
 class InMemoryLookupManager extends InMemoryLookup implements LookupManager {
 
@@ -83,7 +83,7 @@ class InMemoryLookupManager extends InMemoryLookup implements LookupManager {
         Logger.msg(5, "InMemoryLookupManager.delete() - Path: $path");
 
         if(exists(path, transactionKey)) {
-            if(search(path, "").size() != 1 ) throw new ObjectCannotBeUpdated("Path $path is not a leaf")
+            if(search(path, "", transactionKey).size() != 1 ) throw new ObjectCannotBeUpdated("Path $path is not a leaf")
 
             if(path instanceof RolePath && role2AgentsCache.containsKey(path.stringPath)) {
                 Logger.msg(8, "InMemoryLookupManager.delete() - RolePath: $path");
@@ -147,7 +147,7 @@ class InMemoryLookupManager extends InMemoryLookup implements LookupManager {
 
     @Override
     public void setAgentPassword(AgentPath agent, String newPassword, Object transactionKey) throws ObjectNotFoundException, ObjectCannotBeUpdated, NoSuchAlgorithmException {
-        setAgentPassword(agent, newPassword, false)
+        setAgentPassword(agent, newPassword, false, (Object)transactionKey)
     }
 
     @Override

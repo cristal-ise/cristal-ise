@@ -254,7 +254,7 @@ public class Bootstrap {
             Gateway.getCorbaServer().createAgent(agentPath, transactionKey);
             lookup.add(agentPath, transactionKey);
 
-            if (StringUtils.isNotBlank(pass)) lookup.setAgentPassword(agentPath, pass, transactionKey);
+            if (StringUtils.isNotBlank(pass)) lookup.setAgentPassword(agentPath, pass, false, transactionKey);
 
             // assign role
             log.info("checkAgent() - Assigning role '"+rolePath.getName()+"'");
