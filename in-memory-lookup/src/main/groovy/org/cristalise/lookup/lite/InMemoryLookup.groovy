@@ -29,6 +29,7 @@ import org.cristalise.kernel.lookup.Lookup
 import org.cristalise.kernel.lookup.Path
 import org.cristalise.kernel.lookup.RolePath
 import org.cristalise.kernel.lookup.Lookup.PagedResult
+import org.cristalise.kernel.lookup.Lookup.SearchConstraints
 import org.cristalise.kernel.persistency.ClusterStorage
 import org.cristalise.kernel.persistency.ClusterType
 import org.cristalise.kernel.process.auth.Authenticator
@@ -199,7 +200,7 @@ abstract class InMemoryLookup extends ClusterStorage implements Lookup {
     }
 
     @Override
-    public Iterator<Path> search(Path start, String name) {
+    public Iterator<Path> search(Path start, String name, SearchConstraints constraints) {
         Logger.msg(5, "InMemoryLookup.search(name: $name) - start: $start")
         def result = cache.values().findAll { ((Path)it).stringPath =~ /^$start.stringPath.*$name/ }
         Logger.msg(5, "InMemoryLookup.search(name: $name) - returning ${result.size()} pathes")
@@ -217,7 +218,7 @@ abstract class InMemoryLookup extends ClusterStorage implements Lookup {
         }
 
         def result = []
-        def foundPathes = search(start, name)
+        def foundPathes = search(start, name, null)
 
         foundPathes.each { Path p ->
             ItemPath ip = null

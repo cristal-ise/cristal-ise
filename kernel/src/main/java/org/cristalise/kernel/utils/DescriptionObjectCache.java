@@ -23,7 +23,9 @@
  */
 package org.cristalise.kernel.utils;
 
+import static org.cristalise.kernel.lookup.Lookup.SearchConstraints.EXACT_NAME_MATCH;
 import static org.cristalise.kernel.property.BuiltInItemProperties.NAME;
+
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.StringTokenizer;
@@ -48,6 +50,7 @@ import org.cristalise.kernel.process.module.ModuleResource;
 import org.cristalise.kernel.property.Property;
 import org.cristalise.kernel.property.PropertyDescription;
 import org.cristalise.kernel.property.PropertyDescriptionList;
+
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -145,12 +148,12 @@ public abstract class DescriptionObjectCache<D extends DescriptionObject> {
         }
         else {
             // or search for it in the subtree using name
-            searchResult = Gateway.getLookup().search(new DomainPath(getTypeRoot()), name);
+            searchResult = Gateway.getLookup().search(new DomainPath(getTypeRoot()), name, EXACT_NAME_MATCH);
         }
 
         if (searchResult.hasNext()) {
             Path defPath = searchResult.next();
-            if (searchResult.hasNext()) throw new ObjectNotFoundException("Too many matches for " + getTypeCode() + " " + name);
+            if (searchResult.hasNext()) throw new InvalidDataException("Too many matches for " + getTypeCode() + " " + name);
 
             if (defPath.getItemPath() == null)
                 throw new InvalidDataException(getTypeCode() + " " + name + " was found, but was not an Item");
@@ -214,6 +217,7 @@ public abstract class DescriptionObjectCache<D extends DescriptionObject> {
             return thisDef;
         }
         catch (ObjectNotFoundException ex) {
+            log.trace("Failed to load resource from database", ex);
             // for bootstrap and testing, try to load built-in kernel objects from resources
             if (version == 0) {
                 try {

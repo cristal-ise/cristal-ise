@@ -35,6 +35,7 @@ import org.cristalise.kernel.common.PersistencyException;
 import org.cristalise.kernel.lookup.AgentPath;
 import org.cristalise.kernel.lookup.Path;
 import org.cristalise.kernel.lookup.RolePath;
+import org.cristalise.kernel.lookup.Lookup.SearchConstraints;
 import org.cristalise.storage.jooqdb.JooqHandler;
 import org.jooq.DSLContext;
 import org.jooq.DeleteQuery;
@@ -221,7 +222,7 @@ public class JooqRolePathHandler {
         return getListOfPaths(result);
     }
 
-    public List<Path> find(DSLContext context, RolePath startPath, String name, List<UUID> uuids) {
+    public List<Path> find(DSLContext context, RolePath startPath, String name, List<UUID> uuids, SearchConstraints constraints) {
         String pattern = startPath.getStringPath() + "/%" + name;
 
         return find(context, pattern, uuids);
