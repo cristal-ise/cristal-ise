@@ -21,6 +21,7 @@
 package org.cristalise.lookup.lite
 
 import static org.cristalise.kernel.lookup.Lookup.SearchConstraints.EXACT_NAME_MATCH
+import static org.cristalise.kernel.lookup.Lookup.SearchConstraints.WILDCARD_MATCH
 
 import org.cristalise.kernel.common.ObjectNotFoundException
 import org.cristalise.kernel.lookup.AgentPath
@@ -222,7 +223,7 @@ abstract class InMemoryLookup extends ClusterStorage implements Lookup {
         }
 
         def result = []
-        def foundPathes = search(start, name, null)
+        def foundPathes = search(start, name, WILDCARD_MATCH)
 
         foundPathes.each { Path p ->
             ItemPath ip = null
