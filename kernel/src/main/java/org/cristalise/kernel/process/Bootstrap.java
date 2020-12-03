@@ -129,11 +129,14 @@ public class Bootstrap {
                     }
 
                     if (!shutdown) {
-                        log.info("run() - Bootstrapper complete");
+                        log.info("run() - RegisterModules complete");
+
                         Gateway.getModuleManager().runScripts("initialized");
 
                         if (Gateway.getLookupManager() != null) Gateway.getLookupManager().postBoostrap();
                         Gateway.getStorage().postBoostrap();
+
+                        log.info("run() - Bootstrapper complete");
                     }
                 }
                 catch (Throwable e) {
