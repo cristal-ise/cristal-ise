@@ -37,7 +37,7 @@ import org.cristalise.kernel.lookup.RolePath
 import org.cristalise.kernel.utils.Logger
 
 
-@CompileStatic
+//@CompileStatic
 @Singleton
 class InMemoryLookupManager extends InMemoryLookup implements LookupManager {
 

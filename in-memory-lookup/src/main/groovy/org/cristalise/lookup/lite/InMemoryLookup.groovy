@@ -20,6 +20,9 @@
  */
 package org.cristalise.lookup.lite
 
+import static org.cristalise.kernel.lookup.Lookup.SearchConstraints.EXACT_NAME_MATCH
+import static org.cristalise.kernel.lookup.Lookup.SearchConstraints.WILDCARD_MATCH
+
 import org.cristalise.kernel.common.ObjectNotFoundException
 import org.cristalise.kernel.lookup.AgentPath
 import org.cristalise.kernel.lookup.DomainPath
@@ -29,6 +32,7 @@ import org.cristalise.kernel.lookup.Lookup
 import org.cristalise.kernel.lookup.Path
 import org.cristalise.kernel.lookup.RolePath
 import org.cristalise.kernel.lookup.Lookup.PagedResult
+import org.cristalise.kernel.lookup.Lookup.SearchConstraints
 import org.cristalise.kernel.persistency.ClusterStorage
 import org.cristalise.kernel.persistency.ClusterType
 import org.cristalise.kernel.process.auth.Authenticator
@@ -199,9 +203,11 @@ abstract class InMemoryLookup extends ClusterStorage implements Lookup {
     }
 
     @Override
-    public Iterator<Path> search(Path start, String name) {
+    public Iterator<Path> search(Path start, String name, SearchConstraints constraints) {
         Logger.msg(5, "InMemoryLookup.search(name: $name) - start: $start")
-        def result = cache.values().findAll { ((Path)it).stringPath =~ /^$start.stringPath.*$name/ }
+        def pattern = "^${start.stringPath}.*$name"
+        if (constraints == EXACT_NAME_MATCH) pattern = "^${start.stringPath}/.*/$name\$"
+        def result = cache.values().findAll { ((Path)it).stringPath =~ /$pattern/ }
         Logger.msg(5, "InMemoryLookup.search(name: $name) - returning ${result.size()} pathes")
         return result.iterator()
     }
@@ -217,7 +223,7 @@ abstract class InMemoryLookup extends ClusterStorage implements Lookup {
         }
 
         def result = []
-        def foundPathes = search(start, name)
+        def foundPathes = search(start, name, WILDCARD_MATCH)
 
         foundPathes.each { Path p ->
             ItemPath ip = null

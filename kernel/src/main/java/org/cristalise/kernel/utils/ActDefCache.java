@@ -28,6 +28,7 @@ import static org.cristalise.kernel.process.resource.BuiltInResources.ACTIVITY_D
 import static org.cristalise.kernel.process.resource.BuiltInResources.COMP_ACT_DESC_RESOURCE;
 import static org.cristalise.kernel.process.resource.BuiltInResources.ELEM_ACT_DESC_RESOURCE;
 import static org.cristalise.kernel.property.BuiltInItemProperties.COMPLEXITY;
+
 import org.cristalise.kernel.common.InvalidDataException;
 import org.cristalise.kernel.common.ObjectNotFoundException;
 import org.cristalise.kernel.common.PersistencyException;
@@ -37,6 +38,7 @@ import org.cristalise.kernel.lookup.ItemPath;
 import org.cristalise.kernel.persistency.ClusterType;
 import org.cristalise.kernel.persistency.outcome.Viewpoint;
 import org.cristalise.kernel.process.Gateway;
+
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -61,6 +63,12 @@ public class ActDefCache extends DescriptionObjectCache<ActivityDef> {
             return ACTIVITY_DESC_RESOURCE.getSchemaName(); // this won't work for resource loads, but loadObject is overridden below
         else 
             return isComposite ? COMP_ACT_DESC_RESOURCE.getSchemaName() : ELEM_ACT_DESC_RESOURCE.getSchemaName();
+    }
+
+    @Override
+    public String getTypeRoot() {
+        if (isComposite == null) return ACTIVITY_DESC_RESOURCE.getTypeRoot(); 
+        else                     return isComposite ? COMP_ACT_DESC_RESOURCE.getTypeRoot() : ELEM_ACT_DESC_RESOURCE.getTypeRoot();
     }
 
     @Override
