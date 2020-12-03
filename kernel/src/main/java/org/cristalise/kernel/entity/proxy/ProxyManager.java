@@ -239,7 +239,7 @@ public class ProxyManager {
             }
             else {
                 // Avoid sharing wrong transactionKey between calls to the same item (i.e. server side scripting requires transactionKey)
-                if (transactionKey == null || transactionKey.equals(newProxy.getTransactionKey())) {
+                if (transactionKey == null || newProxy.getTransactionKey() == null || transactionKey.equals(newProxy.getTransactionKey())) {
                     newProxy.setTransactionKey(transactionKey);
                 }
                 else if (! transactionKey.equals(newProxy.getTransactionKey())) {
