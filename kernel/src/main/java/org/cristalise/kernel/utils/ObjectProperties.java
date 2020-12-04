@@ -184,7 +184,8 @@ public class ObjectProperties extends Properties {
             Object value = getObject(name);
 
             if (value == null) log.info("{}: 'null'", name);
-            else               log.info("{}: ({}):'{}'", name, getObject(name).getClass().getSimpleName(), getObject(name).toString());
+            else if (name.toLowerCase().contains("password")) log.info("{}: ({}):'{}'", name, getObject(name).getClass().getSimpleName(), "******");
+            else log.info("{}: ({}):'{}'", name, getObject(name).getClass().getSimpleName(), getObject(name).toString());
         }
     }
 
