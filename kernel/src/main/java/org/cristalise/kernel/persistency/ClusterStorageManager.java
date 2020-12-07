@@ -802,7 +802,12 @@ public class ClusterStorageManager {
                     // nothing to do, all the writer storages must be in autocommit mode
                 }
                 else { // add the lock
-                    lockCatalog.get(transactionKey).add(itemPath);
+                    Set<ItemPath> lockEntry = lockCatalog.get(transactionKey);
+                    if (lockEntry == null) {
+                        throw new PersistencyException("'"+itemPath+"' - No lockentry was found for transactionKey:"+transactionKey);
+                    }
+
+                    lockEntry.add(itemPath);
                     itemLocks.put(itemPath, transactionKey);
                 }
             }

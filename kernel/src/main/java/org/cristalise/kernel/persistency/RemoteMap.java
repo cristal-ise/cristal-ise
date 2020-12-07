@@ -247,14 +247,11 @@ public class RemoteMap<V extends C2KLocalObject> extends TreeMap<String, V> impl
                 super.put(key, value);
                 return value;
             }
-            catch (PersistencyException e) {
-                log.error("", e);
-            }
-            catch (ObjectNotFoundException e) {
-                log.error("", e);
+            catch (PersistencyException | ObjectNotFoundException e) {
+                log.error("get()", e);
+                throw new IllegalArgumentException(e);
             }
         }
-        return null;
     }
 
     @Override
@@ -288,8 +285,8 @@ public class RemoteMap<V extends C2KLocalObject> extends TreeMap<String, V> impl
             }
         }
         catch (PersistencyException e) {
-            log.error("",e);
-            return null;
+            log.error("put()",e);
+            throw new IllegalArgumentException(e);
         }
     }
 
@@ -311,9 +308,9 @@ public class RemoteMap<V extends C2KLocalObject> extends TreeMap<String, V> impl
             }
         }
         catch (PersistencyException e) {
-            log.error("", e);
+            log.error("remove()", e);
+            throw new IllegalArgumentException(e);
         }
-        return null;
     }
 
     protected synchronized V removeLocal(Object key) {
