@@ -183,9 +183,9 @@ public class ObjectProperties extends Properties {
             String name = (String) e.nextElement();
             Object value = getObject(name);
 
-            if (value == null) log.info("{}: 'null'", name);
-            else if (name.toLowerCase().contains("password")) log.info("{}: ({}):'{}'", name, getObject(name).getClass().getSimpleName(), "******");
-            else log.info("{}: ({}):'{}'", name, getObject(name).getClass().getSimpleName(), getObject(name).toString());
+            if (value == null) log.debug("{}: 'null'", name);
+            else if (propertiesToRedact(key)) log.debug("{}: ({}):'{}'", name, getObject(name).getClass().getSimpleName(), "REDACTED");
+            else log.debug("{}: ({}):'{}'", name, getObject(name).getClass().getSimpleName(), getObject(name).toString());
         }
     }
 
