@@ -238,13 +238,16 @@ public class ProxyManager {
                 proxyPool.put(itemPath, newProxy);
             }
             else {
-                // Avoid sharing wrong transactionKey between calls to the same item (i.e. server side scripting requires transactionKey)
-                if (transactionKey == null || newProxy.getTransactionKey() == null || transactionKey.equals(newProxy.getTransactionKey())) {
-                    newProxy.setTransactionKey(transactionKey);
-                }
-                else if (! transactionKey.equals(newProxy.getTransactionKey())) {
-                    throw new ObjectNotFoundException("Cannot create proxy (name:"+newProxy.getName()+") with different transaction keys");
-                }
+                // Avoid sharing wrong transactionKey between calls to the same item (i.e. server side scripting would require transactionKey)
+                newProxy.setTransactionKey(null);
+
+                // FIXME check transactionKey consistency for server side use of proxies
+//                if (transactionKey == null || newProxy.getTransactionKey() == null || transactionKey.equals(newProxy.getTransactionKey())) {
+//                    newProxy.setTransactionKey(transactionKey);
+//                }
+//                else if (! transactionKey.equals(newProxy.getTransactionKey())) {
+//                    throw new ObjectNotFoundException("Cannot create proxy (name:"+newProxy.getName()+") with different transaction keys");
+//                }
             }
 
             return newProxy;
