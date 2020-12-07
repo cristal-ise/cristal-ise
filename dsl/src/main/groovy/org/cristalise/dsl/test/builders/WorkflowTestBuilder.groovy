@@ -239,7 +239,9 @@ class WorkflowTestBuilder extends WorkflowBuilder {
         if (act instanceof CompositeActivity) transID = getTransID(caSM, trans)
         else transID = getTransID(eaSM, trans)
 
+        Gateway.getStorage().begin(wf)
         wf.requestAction(agentPath, null, act.path, itemPath, transID, requestData, "", "".bytes)
+        Gateway.getStorage().commit(wf)
     }
 
     /**
