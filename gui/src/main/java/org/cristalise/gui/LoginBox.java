@@ -117,7 +117,7 @@ public  class LoginBox extends JFrame {
     errorSet=false;
     try {
       if (this.getUser().length() > 0 && this.getPassword().length() > 0) {
-          userAgent = Gateway.getSecurityManager().authenticate(this.getUser(), this.getPassword(), title, true);
+          userAgent = Gateway.getSecurityManager().authenticate(this.getUser(), this.getPassword(), title, true, null);
       }
 
       logged = (userAgent != null);
@@ -154,9 +154,8 @@ public  class LoginBox extends JFrame {
       // obtain screen dimensions
 //    Dimension screen = Toolkit.getDefaultToolkit().getScreenSize();
 //    this.setBounds(screen.width/2-posx/2, screen.height/2-posy/2,posx,posy);
-    this.validate();
+      this.validate();
     }
-
     else {
       MainFrame.userAgent = userAgent;
       this.setVisible(false);
