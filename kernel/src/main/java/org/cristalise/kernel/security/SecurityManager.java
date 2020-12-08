@@ -98,14 +98,15 @@ public class SecurityManager {
      * @param agentName
      * @param agentPassword
      * @param resource
+     * @param isClient
      * @return
      * @throws InvalidDataException
      * @throws ObjectNotFoundException
      */
-    public AgentProxy authenticate(String agentName, String agentPassword, String resource, Object transactionKey)
+    public AgentProxy authenticate(String agentName, String agentPassword, String resource, boolean isClient)
             throws InvalidDataException, ObjectNotFoundException
     {
-        return authenticate(agentName, agentPassword, resource, true, transactionKey);
+        return authenticate(agentName, agentPassword, resource, isClient, null);
     }
 
     /**

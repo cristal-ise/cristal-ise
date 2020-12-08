@@ -652,7 +652,7 @@ public class ClusterStorageManager {
     public void begin(Object transactionKey)  throws PersistencyException {
         if (transactionKey != null) {
             if (lockCatalog.containsKey(transactionKey)) {
-                throw new PersistencyException("TransactionKey '"+transactionKey+"' is alsready in use");
+                throw new PersistencyException("TransactionKey '"+transactionKey+"' is already in use");
             }
             else {
                 lockCatalog.put(transactionKey, new LinkedHashSet<ItemPath>());

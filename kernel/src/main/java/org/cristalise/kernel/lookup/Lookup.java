@@ -20,6 +20,8 @@
  */
 package org.cristalise.kernel.lookup;
 
+import static org.cristalise.kernel.lookup.Lookup.SearchConstraints.WILDCARD_MATCH;
+
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -52,6 +54,8 @@ public interface Lookup {
             rows = result;
         }
     }
+
+    public enum SearchConstraints { EXACT_NAME_MATCH, WILDCARD_MATCH };
 
     /**
      * Connect to the directory using the credentials supplied in the Authenticator.
@@ -196,14 +200,14 @@ public interface Lookup {
     public PagedResult getChildren(Path path, int offset, int limit, Object transactionKey);
 
     /**
-     * Find a path with a particular name (last component)
+     * Find a path with a particular name (last component).  Uses WILDCARD_MATCH as default constraints.
      *
      * @param start Search root
      * @param name The name to search for
      * @return An Iterator of matching Paths. Should be an empty Iterator if there are no matches.
      */
     public default Iterator<Path> search(Path start, String name) {
-        return search(start, name, (Object)null);
+        return search(start, name, WILDCARD_MATCH, (Object)null);
     }
 
     /**
@@ -212,10 +216,11 @@ public interface Lookup {
      *
      * @param start Search root
      * @param name The name to search for
+     * @param constraints to optimise the backend query
      * @param transactionKey identifier of the active transaction
      * @return An Iterator of matching Paths. Should be an empty Iterator if there are no matches.
      */
-    public Iterator<Path> search(Path start, String name, Object transactionKey);
+    public Iterator<Path> search(Path start, String name, SearchConstraints constraints, Object transactionKey);
 
     /**
      * Search for Items in the specified path with the given property list

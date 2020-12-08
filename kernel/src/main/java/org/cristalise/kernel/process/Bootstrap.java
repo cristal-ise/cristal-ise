@@ -132,11 +132,14 @@ public class Bootstrap {
                     }
 
                     if (!shutdown) {
-                        log.info("run() - Bootstrapper complete");
+                        log.info("run() - RegisterModules complete");
+
                         Gateway.getModuleManager().runScripts("initialized");
 
                         if (Gateway.getLookupManager() != null) Gateway.getLookupManager().postBoostrap();
                         Gateway.getStorage().postBoostrap();
+
+                        log.info("run() - Bootstrapper complete");
                     }
                 }
                 catch (Throwable e) {
@@ -343,7 +346,7 @@ public class Bootstrap {
     }
 
     private static void initServerItemWf(Object transactionKey) throws Exception {
-        CompositeActivityDef serverWfCa = (CompositeActivityDef)LocalObjectLoader.getActDef("ServerItemWorkflow", 0);
+        CompositeActivityDef serverWfCa = (CompositeActivityDef)LocalObjectLoader.getCompActDef("ServerItemWorkflow", 0);
         Workflow wf = new Workflow((CompositeActivity)serverWfCa.instantiate(), new ServerPredefinedStepContainer());
         wf.initialise(thisServerPath.getItemPath(), systemAgents.get(SYSTEM_AGENT.getName()).getPath(), null);
         Gateway.getStorage().put(thisServerPath.getItemPath(), wf, transactionKey);

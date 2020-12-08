@@ -57,7 +57,7 @@ public class Authenticate extends PredefinedStep {
         if (params.length < 2 || params.length > 3) 
             throw new InvalidDataException("PredefinedStep.Authenticate() -  Invalid number of parameters (2 <= length="+params.length+" <= 3)");
 
-        Gateway.getSecurityManager().authenticate(params[0], params[1], null, false);
+        Gateway.getSecurityManager().authenticate(params[0], params[1], null, false, locker);
 
         params[1] = "REDACTED"; // censor password from outcome
 

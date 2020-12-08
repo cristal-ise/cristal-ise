@@ -275,7 +275,7 @@ public class Gateway
 
     /**
      * Log in with the given username and password, and initialises the {@link Lookup}, 
-     * {@link TransactionManager} and {@link ProxyManager}. It shall be uses in client processes only.
+     * {@link TransactionManager} and {@link ProxyManager}. It shall be used in client processes only.
      * 
      * @param agentName - username
      * @param agentPassword - password
@@ -293,7 +293,7 @@ public class Gateway
 
     /**
      * Log in with the given username and password, and initialises the {@link Lookup}, 
-     * {@link TransactionManager} and {@link ProxyManager}. It shall be uses in client processes only.
+     * {@link TransactionManager} and {@link ProxyManager}. It shall be used in client processes only.
      * 
      * @param agentName - username
      * @param agentPassword - password
@@ -307,7 +307,7 @@ public class Gateway
     static public AgentProxy connect(String agentName, String agentPassword, String resource)
             throws InvalidDataException, ObjectNotFoundException, PersistencyException
     {
-        mSecurityManager.authenticate(agentName, agentPassword, resource, null);
+        mSecurityManager.authenticate(agentName, agentPassword, resource, true, null);
 
         setup(mSecurityManager.getAuth());
 
@@ -343,7 +343,7 @@ public class Gateway
     static public AgentProxy login(String agentName, String agentPassword, String resource) 
             throws InvalidDataException, ObjectNotFoundException
     {
-        return mSecurityManager.authenticate(agentName, agentPassword, resource, null);
+        return mSecurityManager.authenticate(agentName, agentPassword, resource, true, null);
     }
 
     /**

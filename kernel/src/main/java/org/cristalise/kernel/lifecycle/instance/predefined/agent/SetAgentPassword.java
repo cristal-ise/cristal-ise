@@ -71,7 +71,7 @@ public class SetAgentPassword extends PredefinedStep {
             else {
                 //Enforce identity check
                 try {
-                    Gateway.getSecurityManager().authenticate(agent.getAgentName(locker), params[0], null, locker);
+                    Gateway.getSecurityManager().authenticate(agent.getAgentName(locker), params[0], null, false, locker);
                 }
                 catch (Exception e) {
                     throw new AccessRightsException("Authentication failed");
