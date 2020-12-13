@@ -128,7 +128,7 @@ public class CreateAgentFromDescription extends CreateItemFromDescription {
         Gateway.getLookupManager().add(newAgentPath, locker);
 
         try {
-            if (StringUtils.isNotBlank(pwd)) Gateway.getLookupManager().setAgentPassword(newAgentPath, pwd, true);
+            if (StringUtils.isNotBlank(pwd)) Gateway.getLookupManager().setAgentPassword(newAgentPath, pwd, true, locker);
 
             for (String roleName: roles) {
                 if (StringUtils.isNotBlank(roleName)) {
@@ -138,7 +138,7 @@ public class CreateAgentFromDescription extends CreateItemFromDescription {
             }
         }
         catch (Exception e) {
-            log.error("", e);
+            log.error("createAgentAddRoles()", e);
             Gateway.getLookupManager().delete(newAgentPath, locker);
 
             throw new CannotManageException(e.getMessage());

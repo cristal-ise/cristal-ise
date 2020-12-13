@@ -811,13 +811,6 @@ public class LDAPLookup implements LookupManager {
     }
 
     @Override
-    public void setAgentPassword(AgentPath agent, String newPassword, Object transactionKey)
-            throws ObjectNotFoundException, ObjectCannotBeUpdated, NoSuchAlgorithmException
-    {
-        setAgentPassword(agent, newPassword, false);
-    }
-
-    @Override
     public void setAgentPassword(AgentPath agent, String newPassword, boolean temporary, Object transactionKey)
             throws ObjectNotFoundException, ObjectCannotBeUpdated, NoSuchAlgorithmException
     {

@@ -62,7 +62,7 @@ import lombok.extern.slf4j.Slf4j;
  * search for Items or Agents.
  * <li>ProxyManager - Gives a local proxy object for Entities found
  * in the directory. Execute activities in Items, query or subscribe to Entity data.
- * <li>TransactionManager - Access to the configured CRISTAL databases
+ * <li>ClusterStorageManager - Access to the configured CRISTAL databases
  * <li>CorbaServer - Manages the memory pool of active Entities
  * <li>ORB - the CORBA ORB
  * </ul>
@@ -230,7 +230,7 @@ public class Gateway
     }
 
     /**
-     * Initialises the {@link Lookup}, {@link TransactionManager} and {@link ProxyManager}
+     * Initialises the {@link Lookup}, {@link ClusterStorageManager} and {@link ProxyManager}
      *
      * @param auth the Authenticator instance
      * @throws InvalidDataException bad params
@@ -275,7 +275,7 @@ public class Gateway
 
     /**
      * Log in with the given username and password, and initialises the {@link Lookup}, 
-     * {@link TransactionManager} and {@link ProxyManager}. It shall be used in client processes only.
+     * {@link ClusterStorageManager} and {@link ProxyManager}. It shall be used in client processes only.
      * 
      * @param agentName - username
      * @param agentPassword - password
@@ -293,7 +293,7 @@ public class Gateway
 
     /**
      * Log in with the given username and password, and initialises the {@link Lookup}, 
-     * {@link TransactionManager} and {@link ProxyManager}. It shall be used in client processes only.
+     * {@link ClusterStorageManager} and {@link ProxyManager}. It shall be used in client processes only.
      * 
      * @param agentName - username
      * @param agentPassword - password

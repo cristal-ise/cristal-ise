@@ -95,7 +95,7 @@ abstract class InMemoryLookup extends ClusterStorage implements Lookup {
      */
     @Override
     public void open(Authenticator user) {
-        Logger.msg(8, "InMemoryLookup.open(user) - Do nothing")
+        Logger.msg("InMemoryLookup.open(user) - Do nothing")
         clear()
     }
 
@@ -104,7 +104,7 @@ abstract class InMemoryLookup extends ClusterStorage implements Lookup {
      */
     @Override
     public void close() {
-        Logger.msg(8, "InMemoryLookup.close() - Do nothing")
+        Logger.msg("InMemoryLookup.close() - Do nothing")
         clear()
     }
 

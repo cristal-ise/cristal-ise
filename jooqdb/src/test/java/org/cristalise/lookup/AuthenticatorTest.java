@@ -24,7 +24,7 @@ import org.cristalise.kernel.lookup.AgentPath;
 import org.cristalise.kernel.lookup.ItemPath;
 import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.utils.ObjectProperties;
-import org.cristalise.storage.jooqdb.JooqHandler;
+import org.cristalise.storage.jooqdb.JooqDataSourceHandler;
 import org.cristalise.storage.jooqdb.auth.JooqAuthenticator;
 import org.cristalise.storage.jooqdb.lookup.JooqLookupManager;
 import org.junit.After;
@@ -41,10 +41,10 @@ public class AuthenticatorTest {
     public void setUp() throws Exception {
         ObjectProperties c2kProps = new ObjectProperties();
 
-        c2kProps.put(JooqHandler.JOOQ_URI,      "jdbc:h2:mem:");
-        c2kProps.put(JooqHandler.JOOQ_USER,     "sa");
-        c2kProps.put(JooqHandler.JOOQ_PASSWORD, "sa");
-        c2kProps.put(JooqHandler.JOOQ_DIALECT,  "H2");
+        c2kProps.put(JooqDataSourceHandler.JOOQ_URI,      "jdbc:h2:mem:");
+        c2kProps.put(JooqDataSourceHandler.JOOQ_USER,     "sa");
+        c2kProps.put(JooqDataSourceHandler.JOOQ_PASSWORD, "sa");
+        c2kProps.put(JooqDataSourceHandler.JOOQ_DIALECT,  "H2");
 
         Gateway.init(c2kProps);
 

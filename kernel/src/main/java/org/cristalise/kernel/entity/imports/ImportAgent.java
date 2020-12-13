@@ -98,7 +98,7 @@ public class ImportAgent extends ModuleImport {
         properties.add(new Property(TYPE, "Agent", false));
 
         try {
-            if (StringUtils.isNotBlank(password)) Gateway.getLookupManager().setAgentPassword(newAgent, password, transactionKey);
+            if (StringUtils.isNotBlank(password)) Gateway.getLookupManager().setAgentPassword(newAgent, password, false, transactionKey);
 
             CreateItemFromDescription.storeItem(
                     agentPath, 

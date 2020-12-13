@@ -159,18 +159,8 @@ public interface LookupManager extends Lookup {
      * @param newPassword The Agent's new password
      */
     public default void setAgentPassword(AgentPath agent, String newPassword) throws ObjectNotFoundException, ObjectCannotBeUpdated, NoSuchAlgorithmException {
-        setAgentPassword(agent, newPassword, null);
+        setAgentPassword(agent, newPassword, false, null);
     }
-
-    /**
-     * Set permanent password of Agent's
-     * This method can be used in server side code or Script to find uncommitted changes during the active transaction.
-     * 
-     * @param agent The Agent
-     * @param newPassword The Agent's new password
-     * @param transactionKey identifier of the active transaction
-     */
-    public void setAgentPassword(AgentPath agent, String newPassword, Object transactionKey) throws ObjectNotFoundException, ObjectCannotBeUpdated, NoSuchAlgorithmException;
 
     /**
      * Set an Agent's password

@@ -284,6 +284,7 @@ public class ImportItem extends ModuleImport {
      */
     protected CompositeActivity createCompositeActivity() throws ObjectNotFoundException, InvalidDataException {
         if (wf != null) {
+            log.info("createCompositeActivity() - use Workflow instance");
             return (CompositeActivity) wf.search("workflow/domain");
         }
         else {

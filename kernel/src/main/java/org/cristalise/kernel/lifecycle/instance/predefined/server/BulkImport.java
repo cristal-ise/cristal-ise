@@ -314,7 +314,7 @@ public class BulkImport extends PredefinedStep {
             AgentPath agentPath = (AgentPath)importCluster.get(item, PATH+"/Item", transactionKey);
             Gateway.getLookupManager().add(agentPath, transactionKey);
 
-            Gateway.getLookupManager().setAgentPassword(agentPath, "", transactionKey);
+            Gateway.getLookupManager().setAgentPassword(agentPath, "", true, transactionKey);
 
             //importCluster.delete(item, PATH+"/Item");
 
