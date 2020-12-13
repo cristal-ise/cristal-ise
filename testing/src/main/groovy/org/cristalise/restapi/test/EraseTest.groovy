@@ -37,7 +37,7 @@ class EraseTest extends RestapiTestBase {
     @Test
     public void 'Erase agent posting JSON'() throws Exception {
         login('user', 'test')
-        def uuid = createNewAgent "TestItem-$timeStamp", 'test', ContentType.XML
+        def uuid = createNewAgent "TestAgent-$timeStamp", 'test', ContentType.XML
         executePredefStep(uuid, Erase.class, ContentType.JSON)
         logout(null)
     }
