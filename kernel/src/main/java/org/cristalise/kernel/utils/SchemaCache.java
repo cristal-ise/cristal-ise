@@ -43,6 +43,11 @@ public class SchemaCache extends DescriptionObjectCache<Schema> {
     }
 
     @Override
+    public String getTypeRoot() {
+        return BuiltInResources.SCHEMA_RESOURCE.getTypeRoot();
+    }
+
+    @Override
     public Schema buildObject(String name, int version, ItemPath path, String data) throws InvalidDataException {
         try {
             Schema thisSchema = new Schema(name, version, path, data);

@@ -20,6 +20,7 @@
  */
 package org.cristalise.storage.jooqdb.lookup;
 
+import static org.cristalise.kernel.lookup.Lookup.SearchConstraints.WILDCARD_MATCH;
 import static org.cristalise.storage.jooqdb.clusterStore.JooqItemPropertyHandler.ITEM_PROPERTY_TABLE;
 import static org.cristalise.storage.jooqdb.lookup.JooqDomainPathHandler.DOMAIN_PATH_TABLE;
 import static org.cristalise.storage.jooqdb.lookup.JooqDomainPathHandler.TARGET;
@@ -265,25 +266,25 @@ public class JooqLookupManager implements LookupManager {
         }
     }
 
-    private List<Path> find(DSLContext context , Path start, String name, List<UUID> uuids) throws PersistencyException {
+    private List<Path> find(DSLContext context , Path start, String name, List<UUID> uuids, SearchConstraints constraints) throws PersistencyException {
         log.debug("find() - start:"+start+" name:"+name);
         List<Path> paths = new ArrayList<>();
 
         context.transaction(nested -> {
-            if      (start instanceof DomainPath) paths.addAll(domains.find(DSL.using(nested), (DomainPath)start, name, uuids));
-            else if (start instanceof RolePath)   paths.addAll(roles.find(  DSL.using(nested), (RolePath)start,   name, uuids));
+            if      (start instanceof DomainPath) paths.addAll(domains.find(DSL.using(nested), (DomainPath)start, name, uuids, constraints));
+            else if (start instanceof RolePath)   paths.addAll(roles.find(  DSL.using(nested), (RolePath)start,   name, uuids, constraints));
         });
 
         return paths;
     }
 
     @Override
-    public Iterator<Path> search(Path start, String name) {
+    public Iterator<Path> search(Path start, String name, SearchConstraints constraints) {
         List<Path> result = new ArrayList<>();
         try {
             DSLContext context = JooqHandler.connect();
             context.transaction(nested -> {
-                result.addAll(find(DSL.using(nested), start, name, null));
+                result.addAll(find(DSL.using(nested), start, name, null, constraints));
             });
 
         }
@@ -458,7 +459,7 @@ public class JooqLookupManager implements LookupManager {
             select.addConditions(Operator.AND, upper(field(name(p.getName(), "VALUE"), String.class)).like(upper(p.getValue())));
         }
 
-        select.addConditions(Operator.AND, JooqDomainPathHandler.PATH.like(domains.getFindPattern(start, "")));
+        select.addConditions(Operator.AND, JooqDomainPathHandler.PATH.like(domains.getFindPattern(start, "", WILDCARD_MATCH)));
 
         return select;
     }

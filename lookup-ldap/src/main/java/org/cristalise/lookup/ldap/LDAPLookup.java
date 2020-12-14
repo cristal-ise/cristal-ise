@@ -25,6 +25,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Stack;
 import java.util.StringTokenizer;
 
@@ -41,6 +42,7 @@ import org.cristalise.kernel.lookup.ItemPath;
 import org.cristalise.kernel.lookup.LookupManager;
 import org.cristalise.kernel.lookup.Path;
 import org.cristalise.kernel.lookup.RolePath;
+import org.cristalise.kernel.lookup.Lookup.SearchConstraints;
 import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.process.auth.Authenticator;
 import org.cristalise.kernel.property.Property;
@@ -374,7 +376,7 @@ public class LDAPLookup implements LookupManager {
 
     // typically search for cn=barcode
     @Override
-    public LDAPPathSet search(Path start, String filter) {
+    public LDAPPathSet search(Path start, String filter, SearchConstraints constraints) {
         Logger.msg(8, "LDAPLookup::search() From " + getDN(start) + " for cn=" + filter);
         return search(getFullDN(start), "cn=" + LDAPLookupUtils.escapeSearchFilter(filter));
     }
