@@ -138,16 +138,23 @@ public class BulkImport extends PredefinedStep {
     private List<ItemPath> getItemsToImport(String root) throws InvalidDataException {
         List<ItemPath> items = new ArrayList<>();
         try {
-            try (Stream<Path> files = Files.walk(Paths.get(root))) {
+            try (Stream<Path> files = Files.walk(Paths.get(root), 1)) {
                 files.filter(Files::isDirectory)
                     .forEach(path -> {
+                        //skip root directory
+                        if (path.equals(Paths.get(root))) return;
+
+                        String uuid = path.getFileName().toString();
+
+                        log.info("getItemsToImport()- directory:{}", uuid);
+
                         try {
-                            items.add(new ItemPath(path.getFileName().toString()));
+                            items.add(new ItemPath(uuid));
                         }
                         catch (InvalidItemPathException e) {
-                            log.warn("getItemsToImport() - Unvalid UUID for import directory:"+path.getFileName().toString());
+                            log.warn("getItemsToImport() - Unvalid UUID for import directory:{}", uuid);
                         }
-                    } );
+                    });
             }
 
             return items;
