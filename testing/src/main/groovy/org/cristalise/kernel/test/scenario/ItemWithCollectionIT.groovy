@@ -94,5 +94,7 @@ class ItemWithCollectionIT extends KernelScenarioTestBase {
         assert depPrime.getMember(1).getProperties().size() == 3
         assert depPrime.getMember(2).getChildUUID() == p3.getPath().getUUID().toString()
         assert depPrime.getMember(2).getProperties().size() == 3
+
+        //call UpdateDependencyMember
     }
 }
