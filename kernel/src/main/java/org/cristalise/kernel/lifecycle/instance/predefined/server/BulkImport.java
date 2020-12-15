@@ -90,6 +90,13 @@ public class BulkImport extends PredefinedStep {
         useDir = Gateway.getProperties().getBoolean(BULK_IMPORT_USE_DIRECTORIES, false);
     }
 
+    public BulkImport(String rootDir) {
+        super();
+        root = rootDir;
+        ext = "";
+        useDir = false;
+    }
+
     public void initialise() throws InvalidDataException {
         if (importCluster == null) {
             if (root == null)

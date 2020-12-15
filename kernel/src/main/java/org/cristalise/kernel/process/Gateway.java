@@ -186,10 +186,10 @@ public class Gateway
             }
 
             // start entity proxy server
-            mProxyServer = new ProxyServer(mC2KProps.getProperty("ItemServer.name"));
+            String serverName = mC2KProps.getProperty("ItemServer.name");
+            if (serverName != null) mProxyServer = new ProxyServer(serverName);
 
             // Init ORB - set various config 
-            String serverName = mC2KProps.getProperty("ItemServer.name");
 
             //TODO: externalize this (or replace corba completely)
             if (serverName != null) mC2KProps.put("com.sun.CORBA.ORBServerHost", serverName);
