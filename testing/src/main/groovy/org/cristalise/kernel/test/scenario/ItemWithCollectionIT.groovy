@@ -95,6 +95,16 @@ class ItemWithCollectionIT extends KernelScenarioTestBase {
         assert depPrime.getMember(2).getChildUUID() == p3.getPath().getUUID().toString()
         assert depPrime.getMember(2).getProperties().size() == 3
 
-        //call UpdateDependencyMember
+        CastorHashMap memberUpdate = new CastorHashMap()
+        memberUpdate.put("Name", "P3a")
+        memberUpdate.put("Disease", "covid19+")
+        dep.updatemember(p3.getPath(), memberUpdate)
+        def updateParams = new String[4]
+        updateParams[0] = "Patients"
+        updateParams[1] = "1"
+        updateParams[2] = p3.getPath().getUUID().toString()
+        updateParams[3] = Gateway.getMarshaller().marshall(memberUpdate)
+        def updateResult = agent.execute(doctor, "UpdateDependencyMember", updateParams)
+        def depUpdate = (Dependency)Gateway.marshaller.unmarshall(updateResult)
     }
 }
