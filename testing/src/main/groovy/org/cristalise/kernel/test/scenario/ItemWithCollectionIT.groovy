@@ -1,5 +1,7 @@
 package org.cristalise.kernel.test.scenario;
 
+import static org.cristalise.kernel.persistency.ClusterType.COLLECTION
+
 import org.cristalise.dsl.entity.ItemBuilder
 import org.cristalise.kernel.collection.Dependency
 import org.cristalise.kernel.entity.imports.ImportItem
@@ -96,11 +98,11 @@ class ItemWithCollectionIT extends KernelScenarioTestBase {
         assert depPrime.getMember(2).getChildUUID() == p3.getPath().getUUID().toString()
         assert depPrime.getMember(2).getProperties().size() == 3
 
-        def depUpdate = (Dependency<?>) Gateway.getStorage().get(doctor.getPath(), COLLECTION.name+"/Products/last", null)
+        // def depUpdate = (Dependency<?>) Gateway.getStorage().get(doctor.getPath(), COLLECTION.name+"/Patients/last", null)
         CastorHashMap memberUpdate = new CastorHashMap()
         memberUpdate.put("Name", "P3a")
         memberUpdate.put("Disease", "covid19+")
-        depUpdate.updateMember(p3.getPath(), memberUpdate)
+        // depUpdate.updateMember(p3.getPath(), memberUpdate)
         def updateParams = new String[4]
         updateParams[0] = "Patients"
         updateParams[1] = "2"
