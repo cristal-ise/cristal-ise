@@ -52,7 +52,7 @@ public class ProxyServerConnection extends Thread
      */
     public ProxyServerConnection(String host, int port, ProxyManager manager)
     {
-        log.debug("ProxyServerConnection - Initialising connection to "+host+":"+port);
+        log.debug("ProxyServerConnection() - Initialising connection to "+host+":"+port);
         serverName = host;
         serverPort = port;
         this.manager = manager;
@@ -80,14 +80,13 @@ public class ProxyServerConnection extends Thread
                             sendMessage(ProxyMessage.pingMessage);
                         } catch (InvalidDataException ex) { // invalid proxy message
                             if (input != null) {
-                                log.trace("", ex);
-                                log.error("ProxyManager - Invalid proxy message: "+input);
+                                log.error("run() - Invalid proxy message: "+input, ex);
                             }
                         }
                     }
                 }
             } catch (IOException ex) {
-                log.error("ProxyServerConnection - Disconnected from "+serverName+":"+serverPort);
+                log.error("run() - Disconnected from "+serverName+":"+serverPort, ex);
                 try {
                     serverStream.close();
                     serverConnection.close();
@@ -101,29 +100,29 @@ public class ProxyServerConnection extends Thread
 
         if (serverStream != null) {
             try {
-                log.info("Disconnecting from proxy server on "+serverName+":"+serverPort);
+                log.info("run() - Disconnecting from proxy server on "+serverName+":"+serverPort);
                 serverStream.println(ProxyMessage.byeMessage.toString());
                 serverStream.close();
                 serverConnection.close();
                 serverConnection = null;
             } catch (Exception e) {
-                log.error("Error disconnecting from proxy server.");
+                log.error("run() - Error disconnecting from proxy server.", e);
             }
         }
     }
 
     public void connect() {
-        log.info("ProxyServerConnection - connecting to proxy server on "+serverName+":"+serverPort);
+        log.info("connect() - connecting to proxy server on "+serverName+":"+serverPort);
         try {
             serverConnection = new Socket(serverName, serverPort);
             serverConnection.setKeepAlive(true);
             serverIsActive = true;
             serverConnection.setSoTimeout(5000);
             serverStream = new PrintWriter(serverConnection.getOutputStream(), true);
-            log.info("Connected to proxy server on "+serverName+":"+serverPort);
+            log.info("connect() - Connected to proxy server on "+serverName+":"+serverPort);
             manager.resubscribe(this);
         } catch (Exception e) {
-            log.debug("Could not connect to proxy server. Retrying in 5s");
+            log.debug("connect() - Could not connect to proxy server. Retrying in 5s", e);
             try { Thread.sleep(5000); } catch (InterruptedException ex) { }
             serverStream = null;
             serverConnection = null;
