@@ -130,7 +130,6 @@ public class JooqTestConfigurationBase {
         c2kProps.put(JooqDataSourceHandler.JOOQ_USER,       "postgres");
         c2kProps.put(JooqDataSourceHandler.JOOQ_PASSWORD,   "cristal");
         c2kProps.put(JooqDataSourceHandler.JOOQ_DIALECT,    SQLDialect.POSTGRES.toString());
-        c2kProps.put(JooqDataSourceHandler.JOOQ_AUTOCOMMIT, true);
     }
 
     /**
@@ -157,7 +156,6 @@ public class JooqTestConfigurationBase {
         c2kProps.put(JooqDataSourceHandler.JOOQ_USER,       "root");
         c2kProps.put(JooqDataSourceHandler.JOOQ_PASSWORD,   "cristal");
         c2kProps.put(JooqDataSourceHandler.JOOQ_DIALECT,    SQLDialect.MYSQL.toString());
-        c2kProps.put(JooqDataSourceHandler.JOOQ_AUTOCOMMIT, true);
     }
 
     /**
