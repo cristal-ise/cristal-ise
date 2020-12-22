@@ -55,7 +55,7 @@ class AgentCreateSpecs extends Specification implements CristalTestSetup {
         // check data available in through Lookup API
         def rolePath = agentBuilder.newAgent.roles[0].rolePath
         agentBuilder.newAgentPath.exists()
-        rolePath.exists(rolePath)
+        rolePath.exists()
         agentBuilder.newAgentPath.hasRole(rolePath)
     }
 
