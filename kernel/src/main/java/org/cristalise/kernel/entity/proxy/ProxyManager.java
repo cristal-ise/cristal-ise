@@ -36,6 +36,7 @@ import org.cristalise.kernel.lookup.InvalidItemPathException;
 import org.cristalise.kernel.lookup.ItemPath;
 import org.cristalise.kernel.lookup.Path;
 import org.cristalise.kernel.persistency.ClusterType;
+import org.cristalise.kernel.persistency.TransactionKey;
 import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.property.Property;
 import org.cristalise.kernel.utils.SoftCache;
@@ -188,7 +189,7 @@ public class ProxyManager {
         }
     }
 
-    private ItemProxy createProxy( org.omg.CORBA.Object ior, ItemPath itemPath, Object transactionKey) throws ObjectNotFoundException {
+    private ItemProxy createProxy( org.omg.CORBA.Object ior, ItemPath itemPath, TransactionKey transactionKey) throws ObjectNotFoundException {
         ItemProxy newProxy = null;
 
        log.debug("createProxy() - Item:{}", itemPath);
@@ -226,7 +227,7 @@ public class ProxyManager {
      * @return the ItemProx
      * @throws ObjectNotFoundException
      */
-    private ItemProxy getProxy(org.omg.CORBA.Object ior, ItemPath itemPath, Object transactionKey) throws ObjectNotFoundException {
+    private ItemProxy getProxy(org.omg.CORBA.Object ior, ItemPath itemPath, TransactionKey transactionKey) throws ObjectNotFoundException {
         synchronized(proxyPool) {
             ItemProxy newProxy;
             // return it if it exists
@@ -258,7 +259,7 @@ public class ProxyManager {
         return getProxy(path, null);
     }
 
-    public ItemProxy getProxy(Path path, Object transactionKey) throws ObjectNotFoundException {
+    public ItemProxy getProxy(Path path, TransactionKey transactionKey) throws ObjectNotFoundException {
         ItemPath itemPath = null;
 
         log.trace("getProxy(" + path.toString() + ")");
@@ -287,7 +288,7 @@ public class ProxyManager {
         return getAgentProxy(agentName, null);
     }
 
-    public AgentProxy getAgentProxy(String agentName, Object transactionKey) throws ObjectNotFoundException {
+    public AgentProxy getAgentProxy(String agentName, TransactionKey transactionKey) throws ObjectNotFoundException {
         AgentPath path = Gateway.getLookup().getAgentPath(agentName, transactionKey);
         return (AgentProxy) getProxy(path, transactionKey);
     }
@@ -296,7 +297,7 @@ public class ProxyManager {
         return getAgentProxy(path, null);
     }
 
-    public AgentProxy getAgentProxy(AgentPath path, Object transactionKey) throws ObjectNotFoundException {
+    public AgentProxy getAgentProxy(AgentPath path, TransactionKey transactionKey) throws ObjectNotFoundException {
         return (AgentProxy) getProxy(path, transactionKey);
     }
 

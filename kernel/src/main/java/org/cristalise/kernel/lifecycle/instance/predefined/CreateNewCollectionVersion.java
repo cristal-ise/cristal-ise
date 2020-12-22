@@ -30,6 +30,7 @@ import org.cristalise.kernel.common.PersistencyException;
 import org.cristalise.kernel.lookup.AgentPath;
 import org.cristalise.kernel.lookup.ItemPath;
 import org.cristalise.kernel.persistency.ClusterType;
+import org.cristalise.kernel.persistency.TransactionKey;
 import org.cristalise.kernel.process.Gateway;
 
 import lombok.extern.slf4j.Slf4j;
@@ -55,20 +56,20 @@ public class CreateNewCollectionVersion extends PredefinedStep {
      * </pre>
      */
     @Override
-    protected String runActivityLogic(AgentPath agent, ItemPath item, int transitionID, String requestData, Object locker) 
+    protected String runActivityLogic(AgentPath agent, ItemPath item, int transitionID, String requestData, TransactionKey transactionKey) 
             throws InvalidDataException, PersistencyException, ObjectNotFoundException 
     {
         // extract parameters
         String[] params = getDataList(requestData);
 
-        log.debug("Called by {} on {} with parameters {}", agent.getAgentName(locker), item, (Object)params);
+        log.debug("Called by {} on {} with parameters {}", agent.getAgentName(transactionKey), item, (Object)params);
 
         if (params.length == 0 || params.length > 2) { 
             throw new InvalidDataException("CreateNewCollectionVersion: Invalid parameters "+Arrays.toString(params));
         }
 
         String collName = params[0];
-        Collection<?> coll = (Collection<?>)Gateway.getStorage().get(item, ClusterType.COLLECTION+"/"+collName+"/last", locker);
+        Collection<?> coll = (Collection<?>)Gateway.getStorage().get(item, ClusterType.COLLECTION+"/"+collName+"/last", transactionKey);
         int newVersion;
 
         if (params.length > 1) {
@@ -76,7 +77,7 @@ public class CreateNewCollectionVersion extends PredefinedStep {
         }
         else {
             // find last numbered version
-            String[] versions = Gateway.getStorage().getClusterContents(item, ClusterType.COLLECTION+"/"+collName, locker);
+            String[] versions = Gateway.getStorage().getClusterContents(item, ClusterType.COLLECTION+"/"+collName, transactionKey);
             int lastVer = -1;
 
             for (String thisVerStr : versions) {
@@ -94,7 +95,7 @@ public class CreateNewCollectionVersion extends PredefinedStep {
 
         // Set the version & store it
         coll.setVersion(newVersion);
-        Gateway.getStorage().put(item, coll, locker);
+        Gateway.getStorage().put(item, coll, transactionKey);
 
         return requestData;
     }

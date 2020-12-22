@@ -31,6 +31,7 @@ import org.cristalise.kernel.common.PersistencyException;
 import org.cristalise.kernel.lifecycle.instance.predefined.PredefinedStep;
 import org.cristalise.kernel.lookup.AgentPath;
 import org.cristalise.kernel.lookup.ItemPath;
+import org.cristalise.kernel.persistency.TransactionKey;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -43,7 +44,7 @@ public class UpdateItemFromDescription extends PredefinedStep {
         super();
     }
 
-    protected String runActivityLogic(AgentPath agent, ItemPath descItemPath, int transitionID, String requestData, Object locker)
+    protected String runActivityLogic(AgentPath agent, ItemPath descItemPath, int transitionID, String requestData, TransactionKey transactionKey)
             throws  InvalidDataException,
                     InvalidCollectionModification,
                     ObjectAlreadyExistsException,
@@ -55,7 +56,7 @@ public class UpdateItemFromDescription extends PredefinedStep {
     {
         String[] input = getDataList(requestData);
 
-        log.debug("Called by {} on {} with parameters {}", agent.getAgentName(locker), descItemPath, (Object)input);
+        log.debug("Called by {} on {} with parameters {}", agent.getAgentName(transactionKey), descItemPath, (Object)input);
 
         return requestData;
     }

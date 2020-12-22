@@ -33,6 +33,7 @@ import org.cristalise.kernel.lookup.InvalidAgentPathException;
 import org.cristalise.kernel.lookup.ItemPath;
 import org.cristalise.kernel.lookup.Path;
 import org.cristalise.kernel.lookup.RolePath;
+import org.cristalise.kernel.persistency.TransactionKey;
 import org.cristalise.kernel.process.Gateway;
 
 import lombok.extern.slf4j.Slf4j;
@@ -51,14 +52,14 @@ public class Erase extends PredefinedStep {
      * @param requestData is empty
      */
     @Override
-    protected String runActivityLogic(AgentPath agent, ItemPath item, int transitionID, String requestData, Object locker)
+    protected String runActivityLogic(AgentPath agent, ItemPath item, int transitionID, String requestData, TransactionKey transactionKey)
             throws InvalidDataException, ObjectNotFoundException, ObjectCannotBeUpdated, CannotManageException, PersistencyException
     {
-        log.debug("Called by {} on {}", agent.getAgentName(locker), item);
+        log.debug("Called by {} on {}", agent.getAgentName(transactionKey), item);
 
-        removeAliases(item, locker);
-        removeRolesIfAgent(item, locker);
-        Gateway.getStorage().removeCluster(item, "", locker); //removes all clusters
+        removeAliases(item, transactionKey);
+        removeRolesIfAgent(item, transactionKey);
+        Gateway.getStorage().removeCluster(item, "", transactionKey); //removes all clusters
 
         log.info("Done item:"+item);
 
@@ -72,12 +73,12 @@ public class Erase extends PredefinedStep {
      * @throws ObjectCannotBeUpdated
      * @throws CannotManageException
      */
-    private void removeAliases(ItemPath item, Object locker) throws ObjectNotFoundException, ObjectCannotBeUpdated, CannotManageException {
-        Iterator<Path> domPaths = Gateway.getLookup().searchAliases(item, locker);
+    private void removeAliases(ItemPath item, TransactionKey transactionKey) throws ObjectNotFoundException, ObjectCannotBeUpdated, CannotManageException {
+        Iterator<Path> domPaths = Gateway.getLookup().searchAliases(item, transactionKey);
 
         while (domPaths.hasNext()) {
             DomainPath path = (DomainPath) domPaths.next();
-            Gateway.getLookupManager().delete(path, locker);
+            Gateway.getLookupManager().delete(path, transactionKey);
         }
     }
 
@@ -89,14 +90,14 @@ public class Erase extends PredefinedStep {
      * @throws ObjectNotFoundException
      * @throws CannotManageException
      */
-    private void removeRolesIfAgent(ItemPath item, Object locker) throws InvalidDataException, ObjectCannotBeUpdated, ObjectNotFoundException, CannotManageException {
+    private void removeRolesIfAgent(ItemPath item, TransactionKey transactionKey) throws InvalidDataException, ObjectCannotBeUpdated, ObjectNotFoundException, CannotManageException {
         try {
             AgentPath targetAgent = new AgentPath(item);
             
             //This check if the item is an agent or not
-            if (targetAgent.getAgentName(locker) != null) {
-                for (RolePath role : targetAgent.getRoles(locker)) {
-                    Gateway.getLookupManager().removeRole(targetAgent, role, locker);
+            if (targetAgent.getAgentName(transactionKey) != null) {
+                for (RolePath role : targetAgent.getRoles(transactionKey)) {
+                    Gateway.getLookupManager().removeRole(targetAgent, role, transactionKey);
                 }
             }
         }

@@ -32,6 +32,7 @@ import org.cristalise.kernel.lifecycle.instance.predefined.PredefinedStepContain
 import org.cristalise.kernel.lifecycle.instance.predefined.agent.AgentPredefinedStepContainer;
 import org.cristalise.kernel.lookup.AgentPath;
 import org.cristalise.kernel.lookup.ItemPath;
+import org.cristalise.kernel.persistency.TransactionKey;
 import org.cristalise.kernel.process.Gateway;
 
 import lombok.extern.slf4j.Slf4j;
@@ -61,14 +62,15 @@ public class AgentImplementation extends ItemImplementation implements AgentOper
      */
     @Override
     public synchronized void refreshJobList(SystemKey sysKey, String stepPath, String newJobs) {
-        try {
-            ItemPath itemPath = new ItemPath(sysKey);
+        ItemPath itemPath = new ItemPath(sysKey);
+        TransactionKey transactionKey = new TransactionKey(itemPath);
 
-            mStorage.begin(mItemPath);
+        try {
+            mStorage.begin(transactionKey);
 
             JobArrayList newJobList = (JobArrayList)Gateway.getMarshaller().unmarshall(newJobs);
 
-            JobList currentJobs = new JobList((AgentPath)mItemPath, mItemPath);
+            JobList currentJobs = new JobList((AgentPath)mItemPath, transactionKey);
 
             List<String> keysToRemove = currentJobs.getKeysForStep(itemPath, stepPath);
 
@@ -81,12 +83,12 @@ public class AgentImplementation extends ItemImplementation implements AgentOper
             // remove old jobs for this item0
             for(String key: keysToRemove) currentJobs.remove(key);
 
-            mStorage.commit(mItemPath);
+            mStorage.commit(transactionKey);
         }
         catch (Throwable ex) {
             log.error("Could not refresh job list.", ex);
             try {
-                Gateway.getStorage().abort(mItemPath);
+                Gateway.getStorage().abort(transactionKey);
             }
             catch (PersistencyException e) {
                 log.error("Could not abort transaction.", e);

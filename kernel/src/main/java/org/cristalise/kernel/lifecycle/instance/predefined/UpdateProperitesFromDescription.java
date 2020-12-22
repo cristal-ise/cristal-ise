@@ -34,6 +34,7 @@ import org.cristalise.kernel.lookup.DomainPath;
 import org.cristalise.kernel.lookup.InvalidItemPathException;
 import org.cristalise.kernel.lookup.ItemPath;
 import org.cristalise.kernel.persistency.ClusterType;
+import org.cristalise.kernel.persistency.TransactionKey;
 import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.property.Property;
 import org.cristalise.kernel.property.PropertyArrayList;
@@ -58,7 +59,7 @@ public class UpdateProperitesFromDescription extends PredefinedStep {
     /**
      * 
      */
-    protected String runActivityLogic(AgentPath agent, ItemPath item, int transitionID, String requestData, Object locker)
+    protected String runActivityLogic(AgentPath agent, ItemPath item, int transitionID, String requestData, TransactionKey transactionKey)
             throws  InvalidDataException,
                     InvalidCollectionModification,
                     ObjectAlreadyExistsException,
@@ -74,14 +75,14 @@ public class UpdateProperitesFromDescription extends PredefinedStep {
         String descVer  = inputs[1];
         PropertyArrayList initProps = inputs.length == 3 && StringUtils.isNotBlank(inputs[2]) ? unmarshallInitProperties(inputs[2]) : new PropertyArrayList();
 
-        log.debug("Called by {} on {} with parameters {}", agent.getAgentName(locker), item, (Object)inputs);
+        log.debug("Called by {} on {} with parameters {}", agent.getAgentName(transactionKey), item, (Object)inputs);
 
-        PropertyDescriptionList newPropDesc = getPropertyDesc(descPath, descVer, locker);
+        PropertyDescriptionList newPropDesc = getPropertyDesc(descPath, descVer, transactionKey);
 
         //Delete or update existing Properties
         for (String existingPropName: Gateway.getStorage().getClusterContents(item, ClusterType.PROPERTY)) {
             if (newPropDesc.definesProperty(existingPropName)) {
-                Property existingProp = PropertyUtility.getProperty(item, existingPropName, locker);
+                Property existingProp = PropertyUtility.getProperty(item, existingPropName, transactionKey);
 
                 //TODO: cover the cases when the mutable flag was changed
                 if (existingProp.isMutable()) {
@@ -90,7 +91,7 @@ public class UpdateProperitesFromDescription extends PredefinedStep {
 
                     if (initProp != null) {
                         existingProp.setValue(initProp.getValue());
-                        Gateway.getStorage().put(item, existingProp, locker);
+                        Gateway.getStorage().put(item, existingProp, transactionKey);
                     }
                 }
                 else {
@@ -99,20 +100,20 @@ public class UpdateProperitesFromDescription extends PredefinedStep {
 
                     if (StringUtils.isNotBlank(defaultValue) && !defaultValue.equals(existingProp.getValue())) {
                         existingProp.setValue(defaultValue);
-                        Gateway.getStorage().put(item, existingProp, locker);
+                        Gateway.getStorage().put(item, existingProp, transactionKey);
                     }
                 }
             }
             else  {
                 //Delete Property as it does not exist in definition
-                Gateway.getStorage().remove(item, ClusterType.PROPERTY + "/" + existingPropName, locker);
+                Gateway.getStorage().remove(item, ClusterType.PROPERTY + "/" + existingPropName, transactionKey);
             }
         }
 
         //Add new properties
         for (Property newProp: newPropDesc.instantiate(initProps).list) {
-            if (!PropertyUtility.propertyExists(item, newProp.getName(), locker)) {
-                Gateway.getStorage().put(item, newProp, locker);
+            if (!PropertyUtility.propertyExists(item, newProp.getName(), transactionKey)) {
+                Gateway.getStorage().put(item, newProp, transactionKey);
             }
         }
 
@@ -123,23 +124,23 @@ public class UpdateProperitesFromDescription extends PredefinedStep {
      * 
      * @param descPath
      * @param descVer
-     * @param locker
+     * @param transactionKey
      * @return
      * @throws ObjectNotFoundException
      * @throws InvalidDataException
      */
-    private PropertyDescriptionList getPropertyDesc(String descPath, String descVer, Object locker) throws ObjectNotFoundException, InvalidDataException {
+    private PropertyDescriptionList getPropertyDesc(String descPath, String descVer, TransactionKey transactionKey) throws ObjectNotFoundException, InvalidDataException {
         ItemPath descItemPath;
 
         try {
-            descItemPath = Gateway.getLookup().resolvePath(new DomainPath(descPath), locker);
+            descItemPath = Gateway.getLookup().resolvePath(new DomainPath(descPath), transactionKey);
         }
         catch (InvalidItemPathException e) {
             log.error("", e);
             throw new InvalidDataException(e.getMessage());
         }
 
-        return PropertyUtility.getPropertyDescriptionOutcome(descItemPath, descVer, locker);
+        return PropertyUtility.getPropertyDescriptionOutcome(descItemPath, descVer, transactionKey);
     }
 
     /**

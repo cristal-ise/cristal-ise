@@ -80,7 +80,7 @@ public class TransferSet {
             catch (Exception ex) {
                 log.error("Import of item " + element.itemPath + " failed. Rolling back", log);
                 try {
-                    Gateway.getStorage().abort(element);
+                    Gateway.getStorage().abort(null);
                 }
                 catch (PersistencyException e) {
                     log.error("Could not abort transaction.", e);

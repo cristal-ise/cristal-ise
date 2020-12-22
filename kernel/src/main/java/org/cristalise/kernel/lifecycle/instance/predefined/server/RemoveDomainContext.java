@@ -30,6 +30,7 @@ import org.cristalise.kernel.lifecycle.instance.predefined.PredefinedStep;
 import org.cristalise.kernel.lookup.AgentPath;
 import org.cristalise.kernel.lookup.DomainPath;
 import org.cristalise.kernel.lookup.ItemPath;
+import org.cristalise.kernel.persistency.TransactionKey;
 import org.cristalise.kernel.process.Gateway;
 
 import lombok.extern.slf4j.Slf4j;
@@ -42,30 +43,30 @@ public class RemoveDomainContext extends PredefinedStep {
     }
 
     @Override
-    protected String runActivityLogic(AgentPath agent, ItemPath item, int transitionID, String requestData, Object locker)
+    protected String runActivityLogic(AgentPath agent, ItemPath item, int transitionID, String requestData, TransactionKey transactionKey)
             throws InvalidDataException, ObjectNotFoundException, ObjectCannotBeUpdated, CannotManageException
     {
         String[] params = getDataList(requestData);
 
-        log.debug("Called by {} on {} with parameters {}", agent.getAgentName(locker), item, (Object)params);
+        log.debug("Called by {} on {} with parameters {}", agent.getAgentName(transactionKey), item, (Object)params);
 
         if (params.length != 1) throw new InvalidDataException("RemoveDomainContext: Invalid parameters " + Arrays.toString(params));
 
         DomainPath pathToDelete = new DomainPath(params[0]);
 
-        if (!pathToDelete.exists(locker))
+        if (!pathToDelete.exists(transactionKey))
             throw new ObjectNotFoundException("Context " + pathToDelete + " does not exist");
 
         try {
-            pathToDelete.getItemPath(locker);
+            pathToDelete.getItemPath(transactionKey);
             throw new InvalidDataException("Path " + pathToDelete + " is an Entity. Use its own Erase step instead, or RemoveAgent.");
         }
         catch (ObjectNotFoundException ex) {}
 
-        if (Gateway.getLookup().getChildren(pathToDelete, locker).hasNext())
+        if (Gateway.getLookup().getChildren(pathToDelete, transactionKey).hasNext())
             throw new ObjectCannotBeUpdated("Context " + pathToDelete + " is not empty. Cannot delete.");
 
-        Gateway.getLookupManager().delete(pathToDelete, locker);
+        Gateway.getLookupManager().delete(pathToDelete, transactionKey);
 
         return requestData;
     }

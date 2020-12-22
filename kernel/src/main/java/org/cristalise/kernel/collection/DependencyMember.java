@@ -21,6 +21,7 @@
 package org.cristalise.kernel.collection;
 
 import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.SCRIPT_NAME;
+
 import java.util.Iterator;
 import java.util.Map.Entry;
 import java.util.StringTokenizer;
@@ -33,6 +34,7 @@ import org.cristalise.kernel.graph.model.BuiltInVertexProperties;
 import org.cristalise.kernel.lookup.InvalidItemPathException;
 import org.cristalise.kernel.lookup.ItemPath;
 import org.cristalise.kernel.persistency.ClusterType;
+import org.cristalise.kernel.persistency.TransactionKey;
 import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.property.Property;
 import org.cristalise.kernel.property.PropertyArrayList;
@@ -136,7 +138,7 @@ public class DependencyMember implements CollectionMember {
     }
 
     @Override
-    public ItemProxy resolveItem(Object transactionKey) throws ObjectNotFoundException {
+    public ItemProxy resolveItem(TransactionKey transactionKey) throws ObjectNotFoundException {
         if (mItem == null && mItemPath != null)
             mItem = Gateway.getProxyManager().getProxy(mItemPath, transactionKey);
         return mItem;

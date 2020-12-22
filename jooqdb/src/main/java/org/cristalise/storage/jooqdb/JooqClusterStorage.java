@@ -38,6 +38,7 @@ import org.cristalise.kernel.entity.C2KLocalObject;
 import org.cristalise.kernel.lookup.ItemPath;
 import org.cristalise.kernel.persistency.ClusterStorage;
 import org.cristalise.kernel.persistency.ClusterType;
+import org.cristalise.kernel.persistency.TransactionKey;
 import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.process.auth.Authenticator;
 import org.cristalise.kernel.querying.Query;
@@ -175,12 +176,12 @@ public class JooqClusterStorage extends ClusterStorage {
     }
 
     @Override
-    public void begin(Object transactionKey)  throws PersistencyException {
+    public void begin(TransactionKey transactionKey)  throws PersistencyException {
         JooqDataSourceHandler.createConnection(transactionKey);
     }
 
     @Override
-    public void commit(Object transactionKey) throws PersistencyException {
+    public void commit(TransactionKey transactionKey) throws PersistencyException {
         log.debug("commit() - transactionKey:{}", transactionKey);
 
         DSLContext context = retrieveContext(transactionKey);
@@ -203,7 +204,7 @@ public class JooqClusterStorage extends ClusterStorage {
     }
 
     @Override
-    public void abort(Object transactionKey) throws PersistencyException {
+    public void abort(TransactionKey transactionKey) throws PersistencyException {
         log.debug("abort() - transactionKey:{}", transactionKey);
 
         DSLContext context = retrieveContext(transactionKey);
@@ -251,7 +252,7 @@ public class JooqClusterStorage extends ClusterStorage {
     }
     
     @Override
-    public int getLastIntegerId(ItemPath itemPath, String path, Object transactionKey) throws PersistencyException {
+    public int getLastIntegerId(ItemPath itemPath, String path, TransactionKey transactionKey) throws PersistencyException {
         DSLContext  context = retrieveContext(transactionKey);
         ClusterType cluster = getClusterType(path);
         JooqHandler handler = jooqHandlers.get(cluster);
@@ -273,12 +274,12 @@ public class JooqClusterStorage extends ClusterStorage {
     }
 
     @Override
-    public String executeQuery(Query query, Object transactionKey) throws PersistencyException {
+    public String executeQuery(Query query, TransactionKey transactionKey) throws PersistencyException {
         throw new PersistencyException("UnImplemented");
     }
 
     @Override
-    public ClusterType[] getClusters(ItemPath itemPath, Object transactionKey) throws PersistencyException {
+    public ClusterType[] getClusters(ItemPath itemPath, TransactionKey transactionKey) throws PersistencyException {
         ArrayList<ClusterType> result = new ArrayList<ClusterType>();
 
         for (ClusterType type:jooqHandlers.keySet()) {
@@ -289,7 +290,7 @@ public class JooqClusterStorage extends ClusterStorage {
     }
 
     @Override
-    public String[] getClusterContents(ItemPath itemPath, String path, Object transactionKey) throws PersistencyException {
+    public String[] getClusterContents(ItemPath itemPath, String path, TransactionKey transactionKey) throws PersistencyException {
         if (StringUtils.isBlank(path)) {
             ArrayList<String> result = new ArrayList<String>();
 
@@ -312,7 +313,7 @@ public class JooqClusterStorage extends ClusterStorage {
     }
 
     @Override
-    public C2KLocalObject get(ItemPath itemPath, String path, Object transactionKey) throws PersistencyException {
+    public C2KLocalObject get(ItemPath itemPath, String path, TransactionKey transactionKey) throws PersistencyException {
         UUID uuid = itemPath.getUUID();
 
         ClusterType cluster     = getClusterType(path);
@@ -334,7 +335,7 @@ public class JooqClusterStorage extends ClusterStorage {
     }
 
     @Override
-    public void put(ItemPath itemPath, C2KLocalObject obj, Object transactionKey) throws PersistencyException {
+    public void put(ItemPath itemPath, C2KLocalObject obj, TransactionKey transactionKey) throws PersistencyException {
         if (!JooqDataSourceHandler.getDataSource().isAutoCommit() && transactionKey == null) {
             throw new PersistencyException("transactionKey cannot be null when autoCommit is false");
         }
@@ -360,7 +361,7 @@ public class JooqClusterStorage extends ClusterStorage {
     }
 
     @Override
-    public void delete(ItemPath itemPath, String path, Object transactionKey) throws PersistencyException {
+    public void delete(ItemPath itemPath, String path, TransactionKey transactionKey) throws PersistencyException {
         if (!JooqDataSourceHandler.getDataSource().isAutoCommit() && transactionKey == null) {
             throw new PersistencyException("transactionKey cannot be null when autoCommit is false");
         }

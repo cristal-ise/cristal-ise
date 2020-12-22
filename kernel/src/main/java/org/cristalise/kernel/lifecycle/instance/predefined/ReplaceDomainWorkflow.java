@@ -29,6 +29,7 @@ import org.cristalise.kernel.lifecycle.instance.CompositeActivity;
 import org.cristalise.kernel.lifecycle.instance.Workflow;
 import org.cristalise.kernel.lookup.AgentPath;
 import org.cristalise.kernel.lookup.ItemPath;
+import org.cristalise.kernel.persistency.TransactionKey;
 import org.cristalise.kernel.process.Gateway;
 
 import lombok.extern.slf4j.Slf4j;
@@ -40,14 +41,14 @@ public class ReplaceDomainWorkflow extends PredefinedStep {
     }
 
     @Override
-    protected String runActivityLogic(AgentPath agent, ItemPath item, int transitionID, String requestData, Object locker) 
+    protected String runActivityLogic(AgentPath agent, ItemPath item, int transitionID, String requestData, TransactionKey transactionKey) 
             throws InvalidDataException, PersistencyException
     {
         Workflow lifeCycle = getWf();
 
         String[] params = getDataList(requestData);
 
-        log.debug("Called by {} on {} with parameters {}", agent.getAgentName(locker), item, (Object)params);
+        log.debug("Called by {} on {} with parameters {}", agent.getAgentName(transactionKey), item, (Object)params);
 
         if (params.length != 1)
             throw new InvalidDataException("ReplaceDomainWorkflow: Invalid parameters " + Arrays.toString(params));
@@ -65,12 +66,12 @@ public class ReplaceDomainWorkflow extends PredefinedStep {
         lifeCycle.initChild(domain, true, new GraphPoint(150, 100));
 
         // if new workflow, activate it, otherwise refresh the jobs
-        if (!domain.active) lifeCycle.run(agent, item, locker);
+        if (!domain.active) lifeCycle.run(agent, item, transactionKey);
         else                lifeCycle.refreshJobs(item);
 
         // store new wf
         try {
-            Gateway.getStorage().put(item, lifeCycle, locker);
+            Gateway.getStorage().put(item, lifeCycle, transactionKey);
         }
         catch (PersistencyException e) {
             throw new PersistencyException("ReplaceDomainWorkflow: Could not write new workflow to storage: " + e.getMessage());

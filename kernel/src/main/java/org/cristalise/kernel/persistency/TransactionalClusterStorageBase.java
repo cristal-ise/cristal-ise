@@ -39,14 +39,14 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public abstract class TransactionalClusterStorageBase extends ClusterStorage{
 
-    private HashMap<ItemPath, Object> locks;
-    HashMap<Object, ArrayList<TransactionEntry>> pendingTransactions;
+    private HashMap<ItemPath, TransactionKey> locks;
+    HashMap<TransactionKey, ArrayList<TransactionEntry>> pendingTransactions;
 
     // ClusterStorage storage;
 
     public TransactionalClusterStorageBase() throws PersistencyException {
-        locks = new HashMap<ItemPath, Object>();
-        pendingTransactions = new HashMap<Object, ArrayList<TransactionEntry>>();
+        locks = new HashMap<ItemPath, TransactionKey>();
+        pendingTransactions = new HashMap<TransactionKey, ArrayList<TransactionEntry>>();
     }
 
 
@@ -60,7 +60,7 @@ public abstract class TransactionalClusterStorageBase extends ClusterStorage{
      * @return array of ids
      * @throws PersistencyException
      */
-    public String[] getUncommittedClusterContents(ItemPath itemPath, String path, Object transactionKey) throws PersistencyException {
+    public String[] getUncommittedClusterContents(ItemPath itemPath, String path, TransactionKey transactionKey) throws PersistencyException {
         if (path.startsWith("/") && path.length() > 1) path = path.substring(1);
 
         List<String> uncomittedContents = new ArrayList<>();
@@ -84,7 +84,7 @@ public abstract class TransactionalClusterStorageBase extends ClusterStorage{
      * Public get method. Required a 'transactionKey' object for a transaction key.
      * Checks the transaction table first to see if the caller has uncommitted changes
      */
-    public C2KLocalObject getUncommitted(ItemPath itemPath, String path, Object transactionKey)
+    public C2KLocalObject getUncommitted(ItemPath itemPath, String path, TransactionKey transactionKey)
             throws PersistencyException, ObjectNotFoundException
     {
         if (path.startsWith("/") && path.length() > 1) path = path.substring(1);
@@ -115,7 +115,7 @@ public abstract class TransactionalClusterStorageBase extends ClusterStorage{
         return null;
     }
 
-    public void put(ItemPath itemPath, C2KLocalObject obj, Object transactionKey) throws PersistencyException {
+    public void put(ItemPath itemPath, C2KLocalObject obj, TransactionKey transactionKey) throws PersistencyException {
         ArrayList<TransactionEntry> lockingTransaction = getLockingTransaction(itemPath, transactionKey);
 
         if (lockingTransaction == null) {
@@ -129,7 +129,7 @@ public abstract class TransactionalClusterStorageBase extends ClusterStorage{
     /**
      * Uses the put method, with null as the object value.
      */
-    public void delete(ItemPath itemPath, String path, Object transactionKey) throws PersistencyException {
+    public void delete(ItemPath itemPath, String path, TransactionKey transactionKey) throws PersistencyException {
         ArrayList<TransactionEntry> lockingTransaction = getLockingTransaction(itemPath, transactionKey);
 
         if (lockingTransaction == null) {
@@ -149,7 +149,7 @@ public abstract class TransactionalClusterStorageBase extends ClusterStorage{
      * @return the list of transaction corresponds to that lock object
      * @throws PersistencyException
      */
-    private ArrayList<TransactionEntry> getLockingTransaction(ItemPath itemPath, Object transactionKey) throws PersistencyException {
+    private ArrayList<TransactionEntry> getLockingTransaction(ItemPath itemPath, TransactionKey transactionKey) throws PersistencyException {
         ArrayList<TransactionEntry> lockerTransaction;
         synchronized(locks) {
             // look to see if this object is already locked
@@ -166,7 +166,7 @@ public abstract class TransactionalClusterStorageBase extends ClusterStorage{
             }
             else { // no locks for this item
                 if (transactionKey == null) { // lock the item until the non-transactional put/remove is complete :/
-                    locks.put(itemPath, new Object());
+                    locks.put(itemPath, new TransactionKey(itemPath));
                     lockerTransaction = null;
                 }
                 else { // initialise the transaction
@@ -202,7 +202,7 @@ public abstract class TransactionalClusterStorageBase extends ClusterStorage{
     }
 
     @Override
-    public void begin(Object transactionKey) throws PersistencyException {
+    public void begin(TransactionKey transactionKey) throws PersistencyException {
         // TODO Auto-generated method stub
     }
 
@@ -212,7 +212,7 @@ public abstract class TransactionalClusterStorageBase extends ClusterStorage{
      * @param transactionKey transaction transactionKey
      * @throws PersistencyException 
      */
-    public void commit(Object transactionKey) throws PersistencyException {
+    public void commit(TransactionKey transactionKey) throws PersistencyException {
         synchronized(locks) {
             ArrayList<TransactionEntry> lockerTransactions = pendingTransactions.get(transactionKey);
             // quit if no transactions are present;
@@ -246,7 +246,7 @@ public abstract class TransactionalClusterStorageBase extends ClusterStorage{
      * 
      * @param transactionKey transaction transactionKey
      */
-    public void abort(Object transactionKey) {
+    public void abort(TransactionKey transactionKey) {
         synchronized(locks) {
             if (locks.containsValue(transactionKey)) {
                 for (ItemPath thisPath : locks.keySet()) {
@@ -266,7 +266,7 @@ public abstract class TransactionalClusterStorageBase extends ClusterStorage{
         }
         else {
             for (ItemPath thisPath : locks.keySet()) {
-                Object transactionKey = locks.get(thisPath);
+                TransactionKey transactionKey = locks.get(thisPath);
                 log.error("  "+thisPath+" locked by "+transactionKey);
             }
         }

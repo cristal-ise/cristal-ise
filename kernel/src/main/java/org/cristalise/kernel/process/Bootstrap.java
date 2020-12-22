@@ -49,6 +49,7 @@ import org.cristalise.kernel.lookup.InvalidItemPathException;
 import org.cristalise.kernel.lookup.ItemPath;
 import org.cristalise.kernel.lookup.LookupManager;
 import org.cristalise.kernel.lookup.RolePath;
+import org.cristalise.kernel.persistency.TransactionKey;
 import org.cristalise.kernel.persistency.outcome.Outcome;
 import org.cristalise.kernel.process.resource.BuiltInResources;
 import org.cristalise.kernel.process.resource.ResourceImportHandler;
@@ -77,8 +78,7 @@ public class Bootstrap {
      * @throws Exception in case of any error
      */
     static void init() throws Exception {
-        String transactionKey = null;
-        //Object transactionKey = new Object();
+        TransactionKey transactionKey = null;
         Gateway.getStorage().begin(transactionKey); // should do nothing if transactionKey is null
 
         try {
@@ -166,8 +166,7 @@ public class Bootstrap {
 
         bootItems = FileStringUtility.url2String(Gateway.getResource().getKernelResourceURL("boot/allbootitems.txt"));
 
-        String transactionKey = null;
-        //Object transactionKey = new Object();;
+        TransactionKey transactionKey = null;
         Gateway.getStorage().begin(transactionKey); // should do nothing if transactionKey is null
 
         try {
@@ -190,7 +189,7 @@ public class Bootstrap {
      * @param reset
      * @throws InvalidItemPathException
      */
-    private static void verifyBootDataItems(String bootList, String ns, boolean reset, Object transactionKey) throws Exception {
+    private static void verifyBootDataItems(String bootList, String ns, boolean reset, TransactionKey transactionKey) throws Exception {
         StringTokenizer str = new StringTokenizer(bootList, "\n\r");
 
         List<String> kernelChanges = new ArrayList<String>();
@@ -237,7 +236,7 @@ public class Bootstrap {
      * @return the Proxy representing the Agent
      * @throws Exception any exception found
      */
-    private static AgentProxy checkAgent(String name, String pass, RolePath rolePath, String uuid, Object transactionKey) throws Exception {
+    private static AgentProxy checkAgent(String name, String pass, RolePath rolePath, String uuid, TransactionKey transactionKey) throws Exception {
         log.info("checkAgent() - Checking for existence of '"+name+"' agent.");
         LookupManager lookup = Gateway.getLookupManager();
 
@@ -279,7 +278,7 @@ public class Bootstrap {
      * 
      * @throws Exception
      */
-    public static void checkAdminAgents(Object transactionKey) throws Exception {
+    public static void checkAdminAgents(TransactionKey transactionKey) throws Exception {
         RolePath rootRole = new RolePath();
         if (!rootRole.exists(transactionKey)) Gateway.getLookupManager().createRole(rootRole, transactionKey);
 
@@ -307,7 +306,7 @@ public class Bootstrap {
                 transactionKey);
     }
 
-    private static ItemPath createServerItem(Object transactionKey) throws Exception {
+    private static ItemPath createServerItem(TransactionKey transactionKey) throws Exception {
         LookupManager lookupManager = Gateway.getLookupManager();
         String serverName = Gateway.getProperties().getString("ItemServer.name", InetAddress.getLocalHost().getHostName());
         thisServerPath = new DomainPath("/servers/"+serverName);
@@ -340,12 +339,12 @@ public class Bootstrap {
         return serverItem;
     }
 
-    private static void storeSystemProperties(ItemPath serverItem, Object transactionKey) throws Exception {
+    private static void storeSystemProperties(ItemPath serverItem, TransactionKey transactionKey) throws Exception {
         Outcome newOutcome = Gateway.getProperties().convertToOutcome("ItemServer");
         PredefinedStep.storeOutcomeEventAndViews(serverItem, newOutcome, transactionKey);
     }
 
-    private static void initServerItemWf(Object transactionKey) throws Exception {
+    private static void initServerItemWf(TransactionKey transactionKey) throws Exception {
         CompositeActivityDef serverWfCa = (CompositeActivityDef)LocalObjectLoader.getCompActDef("ServerItemWorkflow", 0);
         Workflow wf = new Workflow((CompositeActivity)serverWfCa.instantiate(), new ServerPredefinedStepContainer());
         wf.initialise(thisServerPath.getItemPath(), systemAgents.get(SYSTEM_AGENT.getName()).getPath(), null);

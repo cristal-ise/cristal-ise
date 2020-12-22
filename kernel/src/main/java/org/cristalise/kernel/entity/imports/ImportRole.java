@@ -30,6 +30,7 @@ import org.cristalise.kernel.lookup.AgentPath;
 import org.cristalise.kernel.lookup.ItemPath;
 import org.cristalise.kernel.lookup.Path;
 import org.cristalise.kernel.lookup.RolePath;
+import org.cristalise.kernel.persistency.TransactionKey;
 import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.process.module.ModuleImport;
 
@@ -45,7 +46,7 @@ public class ImportRole extends ModuleImport {
     public ImportRole() {}
 
     @Override
-    public Path create(AgentPath agentPath, boolean reset, Object transactionKey)
+    public Path create(AgentPath agentPath, boolean reset, TransactionKey transactionKey)
             throws ObjectAlreadyExistsException, ObjectCannotBeUpdated, CannotManageException, ObjectNotFoundException
     {
         rolePath = new RolePath(name.split("/"), (jobList == null) ? false : jobList, permissions);
@@ -74,7 +75,7 @@ public class ImportRole extends ModuleImport {
      * @throws CannotManageException
      * @throws ObjectNotFoundException
      */
-    public void update(AgentPath agentPath, Object transactionKey) 
+    public void update(AgentPath agentPath, TransactionKey transactionKey) 
             throws ObjectAlreadyExistsException, ObjectCannotBeUpdated, CannotManageException, ObjectNotFoundException
     {
         RolePath rolePath = new RolePath(name.split("/"), (jobList == null) ? false : jobList, permissions);
@@ -102,7 +103,7 @@ public class ImportRole extends ModuleImport {
     }
 
     @Override
-    public ItemPath getItemPath(Object transactionKey) {
+    public ItemPath getItemPath(TransactionKey transactionKey) {
         return getItemPath();
     }
 }

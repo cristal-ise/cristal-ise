@@ -29,6 +29,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.commons.lang3.StringUtils;
 import org.cristalise.kernel.common.PersistencyException;
+import org.cristalise.kernel.persistency.TransactionKey;
 import org.cristalise.kernel.process.Gateway;
 import org.jooq.DSLContext;
 import org.jooq.Record;
@@ -183,7 +184,7 @@ public class JooqDataSourceHandler {
         }
     }
 
-    public static Connection createConnection(Object transactionKey) throws PersistencyException {
+    public static Connection createConnection(TransactionKey transactionKey) throws PersistencyException {
         if (!getDataSource().isAutoCommit() && transactionKey == null) {
             throw new PersistencyException("transactionKey cannot be null when autoCommit is false");
         }
@@ -201,7 +202,7 @@ public class JooqDataSourceHandler {
         return null;
     }
 
-    public static Connection removeConnection(Object transactionKey) throws PersistencyException {
+    public static Connection removeConnection(TransactionKey transactionKey) throws PersistencyException {
         if (!getDataSource().isAutoCommit() && transactionKey == null) {
             throw new PersistencyException("transactionKey cannot be null when autoCommit is false");
         }
@@ -216,7 +217,7 @@ public class JooqDataSourceHandler {
         return connectionMap.remove(transactionKey);
     }
 
-    public static DSLContext retrieveContext(Object transactionKey) throws PersistencyException {
+    public static DSLContext retrieveContext(TransactionKey transactionKey) throws PersistencyException {
         log.trace("retrieveContext() - transactionKey:{}", transactionKey);
 
         if (getDataSource().isAutoCommit() || transactionKey == null) {

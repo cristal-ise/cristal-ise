@@ -21,6 +21,7 @@
 package org.cristalise.kernel.lifecycle;
 
 import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.PAIRING_ID;
+
 import org.cristalise.kernel.common.InvalidDataException;
 import org.cristalise.kernel.common.ObjectNotFoundException;
 import org.cristalise.kernel.lifecycle.instance.Join;

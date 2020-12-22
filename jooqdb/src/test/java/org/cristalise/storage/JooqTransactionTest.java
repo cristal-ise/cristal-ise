@@ -28,6 +28,7 @@ import java.util.Properties;
 import org.cristalise.JooqTestConfigurationBase;
 import org.cristalise.kernel.lifecycle.instance.predefined.server.BulkImport;
 import org.cristalise.kernel.lookup.ItemPath;
+import org.cristalise.kernel.persistency.TransactionKey;
 import org.cristalise.kernel.process.AbstractMain;
 import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.process.StandardServer;
@@ -38,7 +39,7 @@ import org.junit.Test;
 
 public class JooqTransactionTest extends JooqTestConfigurationBase {
 
-    String transactionKey = "JooqTransactionTest-"+System.currentTimeMillis();
+    TransactionKey transactionKey = new TransactionKey("JooqTransactionTest");
     static ItemPath itemPath;
 
     @BeforeClass
@@ -60,8 +61,8 @@ public class JooqTransactionTest extends JooqTestConfigurationBase {
     @After
     public void tearDown() throws Exception {
         if (itemPath.exists()) {
-            String transactionKey = "JooqTransactionTest-"+System.currentTimeMillis();
-            
+            TransactionKey transactionKey = new TransactionKey("JooqTransactionTest");
+
             Gateway.getStorage().begin(transactionKey);
             Gateway.getStorage().removeCluster(itemPath, "", transactionKey); 
             Gateway.getLookupManager().delete(itemPath, transactionKey);

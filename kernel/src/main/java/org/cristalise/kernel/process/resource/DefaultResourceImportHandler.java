@@ -26,8 +26,8 @@ import static org.cristalise.kernel.process.resource.BuiltInResources.SCRIPT_RES
 import static org.cristalise.kernel.process.resource.ResourceImportHandler.Status.IDENTICAL;
 import static org.cristalise.kernel.process.resource.ResourceImportHandler.Status.NEW;
 import static org.cristalise.kernel.process.resource.ResourceImportHandler.Status.OVERWRITTEN;
-import static org.cristalise.kernel.process.resource.ResourceImportHandler.Status.SKIPPED;
 import static org.cristalise.kernel.process.resource.ResourceImportHandler.Status.REMOVED;
+import static org.cristalise.kernel.process.resource.ResourceImportHandler.Status.SKIPPED;
 import static org.cristalise.kernel.process.resource.ResourceImportHandler.Status.UPDATED;
 import static org.cristalise.kernel.property.BuiltInItemProperties.MODULE;
 import static org.cristalise.kernel.property.BuiltInItemProperties.NAME;
@@ -53,6 +53,7 @@ import org.cristalise.kernel.lookup.DomainPath;
 import org.cristalise.kernel.lookup.ItemPath;
 import org.cristalise.kernel.lookup.LookupManager;
 import org.cristalise.kernel.persistency.ClusterType;
+import org.cristalise.kernel.persistency.TransactionKey;
 import org.cristalise.kernel.persistency.outcome.Outcome;
 import org.cristalise.kernel.persistency.outcome.Schema;
 import org.cristalise.kernel.persistency.outcome.Viewpoint;
@@ -162,21 +163,21 @@ public class DefaultResourceImportHandler implements ResourceImportHandler {
      ********************************/
 
     @Override
-    public DomainPath createResource(String ns, String itemName, int version, Outcome outcome, boolean reset, Object transactionKey)
+    public DomainPath createResource(String ns, String itemName, int version, Outcome outcome, boolean reset, TransactionKey transactionKey)
             throws Exception
     {
         return verifyResource(ns, itemName, version, null, outcome, reset, transactionKey);
     }
 
     @Override
-    public DomainPath importResource(String ns, String itemName, int version, ItemPath itemPath, String dataLocation, boolean reset, Object transactionKey)
+    public DomainPath importResource(String ns, String itemName, int version, ItemPath itemPath, String dataLocation, boolean reset, TransactionKey transactionKey)
             throws Exception
     {
         return verifyResource(ns, itemName, version, itemPath, getResourceOutcome(itemName, ns, dataLocation, version), reset, transactionKey);
     }
 
     @Override
-    public DomainPath importResource(String ns, String itemName, int version, ItemPath itemPath, Outcome outcome, boolean reset, Object transactionKey)
+    public DomainPath importResource(String ns, String itemName, int version, ItemPath itemPath, Outcome outcome, boolean reset, TransactionKey transactionKey)
             throws Exception
     {
         return verifyResource(ns, itemName, version, itemPath, outcome, reset, transactionKey);
@@ -194,7 +195,7 @@ public class DefaultResourceImportHandler implements ResourceImportHandler {
      * @return
      * @throws Exception
      */
-    private DomainPath verifyResource(String ns, String itemName, int version, ItemPath itemPath, Outcome outcome, boolean reset, Object transactionKey) 
+    private DomainPath verifyResource(String ns, String itemName, int version, ItemPath itemPath, Outcome outcome, boolean reset, TransactionKey transactionKey) 
             throws Exception
     {
         if (outcome == null) {
@@ -256,7 +257,7 @@ public class DefaultResourceImportHandler implements ResourceImportHandler {
     /**
      * Verify module property and location
      */
-    private ItemProxy verifyPathAndModuleProperty(String ns, String itemName, ItemPath itemPath, DomainPath modDomPath, DomainPath path, Object transactionKey)
+    private ItemProxy verifyPathAndModuleProperty(String ns, String itemName, ItemPath itemPath, DomainPath modDomPath, DomainPath path, TransactionKey transactionKey)
             throws Exception
     {
         LookupManager lookupManager = Gateway.getLookupManager();
@@ -297,7 +298,7 @@ public class DefaultResourceImportHandler implements ResourceImportHandler {
     /**
      * TODO implement REMOVED
      */
-    private Status checkToStoreOutcomeVersion(ItemProxy item, Outcome newOutcome, int version, boolean reset, Object transactionKey)
+    private Status checkToStoreOutcomeVersion(ItemProxy item, Outcome newOutcome, int version, boolean reset, TransactionKey transactionKey)
             throws PersistencyException, InvalidDataException, ObjectNotFoundException
     {
         Schema schema = newOutcome.getSchema();
@@ -331,7 +332,7 @@ public class DefaultResourceImportHandler implements ResourceImportHandler {
      * @return
      * @throws Exception
      */
-    private ItemProxy createResourceItem(String itemName, int version, String ns, ItemPath itemPath, Object transactionKey) throws Exception {
+    private ItemProxy createResourceItem(String itemName, int version, String ns, ItemPath itemPath, TransactionKey transactionKey) throws Exception {
         // create props
         PropertyDescriptionList pdList = getPropDesc();
         PropertyArrayList props = new PropertyArrayList();

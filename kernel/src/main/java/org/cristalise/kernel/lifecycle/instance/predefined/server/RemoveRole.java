@@ -31,6 +31,7 @@ import org.cristalise.kernel.lookup.AgentPath;
 import org.cristalise.kernel.lookup.ItemPath;
 import org.cristalise.kernel.lookup.LookupManager;
 import org.cristalise.kernel.lookup.RolePath;
+import org.cristalise.kernel.persistency.TransactionKey;
 import org.cristalise.kernel.process.Gateway;
 
 import lombok.extern.slf4j.Slf4j;
@@ -42,24 +43,24 @@ public class RemoveRole extends PredefinedStep {
     }
 
     @Override
-    protected String runActivityLogic(AgentPath agent, ItemPath item, int transitionID, String requestData, Object locker)
+    protected String runActivityLogic(AgentPath agent, ItemPath item, int transitionID, String requestData, TransactionKey transactionKey)
             throws InvalidDataException, CannotManageException, ObjectNotFoundException, ObjectCannotBeUpdated
     {
         String[] params = getDataList(requestData);
 
-        log.debug("Called by {} on {} with parameters {}", agent.getAgentName(locker), item, (Object)params);
+        log.debug("Called by {} on {} with parameters {}", agent.getAgentName(transactionKey), item, (Object)params);
 
         if (params.length != 1) throw new InvalidDataException("RemoveRole must have one paramater:" + Arrays.toString(params));
 
         LookupManager lookup = Gateway.getLookupManager();
 
-        RolePath thisRole = lookup.getRolePath(params[0], locker);
-        AgentPath[] agents = Gateway.getLookup().getAgents(thisRole, locker);
+        RolePath thisRole = lookup.getRolePath(params[0], transactionKey);
+        AgentPath[] agents = Gateway.getLookup().getAgents(thisRole, transactionKey);
 
         if (agents.length > 0)
             throw new ObjectCannotBeUpdated("Cannot remove role as " + agents.length + " other agents still hold it.");
 
-        lookup.delete(thisRole, locker);
+        lookup.delete(thisRole, transactionKey);
 
         return requestData;
     }

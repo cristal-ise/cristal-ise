@@ -30,6 +30,7 @@ import org.cristalise.kernel.events.History;
 import org.cristalise.kernel.lookup.AgentPath;
 import org.cristalise.kernel.lookup.ItemPath;
 import org.cristalise.kernel.persistency.ClusterStorageManager;
+import org.cristalise.kernel.persistency.TransactionKey;
 import org.cristalise.kernel.persistency.outcome.Outcome;
 import org.cristalise.kernel.persistency.outcome.Schema;
 import org.cristalise.kernel.persistency.outcome.Viewpoint;
@@ -49,12 +50,12 @@ public class Import extends PredefinedStep {
      * Params: Schemaname_version:Viewpoint (optional), Outcome, Timestamp (optional)
      */
     @Override
-    protected String runActivityLogic(AgentPath agent, ItemPath item, int transitionID, String requestData, Object locker)
+    protected String runActivityLogic(AgentPath agent, ItemPath item, int transitionID, String requestData, TransactionKey transactionKey)
             throws InvalidDataException, PersistencyException, ObjectNotFoundException
     {
         String[] params = getDataList(requestData);
 
-        log.debug("Called by {} on {} with parameters {}", agent.getAgentName(locker), item, (Object)params);
+        log.debug("Called by {} on {} with parameters {}", agent.getAgentName(transactionKey), item, (Object)params);
 
         int split1 = params[0].indexOf('_');
         int split2 = params[0].indexOf(':');
@@ -87,16 +88,16 @@ public class Import extends PredefinedStep {
                 getStateMachine(), transitionID, viewpoint, timestamp);
 
         try {
-            storage.put(item, new Outcome(event.getID(), requestData, schema), locker);
-            storage.put(item, new Viewpoint(item, schema, viewpoint, event.getID()), locker);
+            storage.put(item, new Outcome(event.getID(), requestData, schema), transactionKey);
+            storage.put(item, new Viewpoint(item, schema, viewpoint, event.getID()), transactionKey);
             if (!"last".equals(viewpoint))
-                storage.put(item, new Viewpoint(item, schema, "last", event.getID()), locker);
+                storage.put(item, new Viewpoint(item, schema, "last", event.getID()), transactionKey);
         }
         catch (PersistencyException e) {
-            storage.abort(locker);
+            storage.abort(transactionKey);
             throw e;
         }
-//        storage.commit(locker);
+//        storage.commit(transactionKey);
         return requestData;
     }
 }

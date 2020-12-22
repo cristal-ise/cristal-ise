@@ -23,6 +23,7 @@ package org.cristalise.kernel.lifecycle;
 import static org.cristalise.kernel.collection.BuiltInCollections.ACTIVITY;
 import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.NAME;
 import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.VERSION;
+
 import org.cristalise.kernel.common.InvalidDataException;
 import org.cristalise.kernel.common.ObjectNotFoundException;
 import org.cristalise.kernel.graph.model.Vertex;
@@ -32,6 +33,7 @@ import org.cristalise.kernel.lifecycle.instance.WfVertex;
 import org.cristalise.kernel.utils.DescriptionObject;
 import org.cristalise.kernel.utils.KeyValuePair;
 import org.cristalise.kernel.utils.LocalObjectLoader;
+
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j

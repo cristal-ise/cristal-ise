@@ -34,6 +34,7 @@ import org.cristalise.kernel.common.ObjectNotFoundException;
 import org.cristalise.kernel.common.PersistencyException;
 import org.cristalise.kernel.lookup.ItemPath;
 import org.cristalise.kernel.persistency.ClusterType;
+import org.cristalise.kernel.persistency.TransactionKey;
 import org.cristalise.kernel.persistency.outcome.Outcome;
 import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.utils.CastorHashMap;
@@ -77,10 +78,10 @@ public class PropertyUtility {
      * 
      * @param itemPath
      * @param propName
-     * @param locker
+     * @param transactionKey
      * @return
      */
-    public static boolean propertyExists(ItemPath itemPath, String propName, Object locker) {
+    public static boolean propertyExists(ItemPath itemPath, String propName, Object transactionKey) {
         try {
             String[] contents = Gateway.getStorage().getClusterContents(itemPath, ClusterType.PROPERTY);
 
@@ -96,25 +97,25 @@ public class PropertyUtility {
      * 
      * @param itemPath
      * @param prop
-     * @param locker
+     * @param transactionKey
      * @return
      * @throws ObjectNotFoundException
      */
-    public static Property getProperty(ItemPath itemPath, BuiltInItemProperties prop, Object locker) throws ObjectNotFoundException {
-        return getProperty(itemPath, prop.getName(), locker);
+    public static Property getProperty(ItemPath itemPath, BuiltInItemProperties prop, TransactionKey transactionKey) throws ObjectNotFoundException {
+        return getProperty(itemPath, prop.getName(), transactionKey);
     }
 
     /**
      * 
      * @param itemPath
      * @param propName
-     * @param locker
+     * @param transactionKey
      * @return
      * @throws ObjectNotFoundException
      */
-    public static Property getProperty(ItemPath itemPath, String propName, Object locker) throws ObjectNotFoundException {
+    public static Property getProperty(ItemPath itemPath, String propName, TransactionKey transactionKey) throws ObjectNotFoundException {
         try {
-            return (Property)Gateway.getStorage().get(itemPath, ClusterType.PROPERTY+"/"+propName, locker);
+            return (Property)Gateway.getStorage().get(itemPath, ClusterType.PROPERTY+"/"+propName, transactionKey);
         }
         catch (PersistencyException e) {
             log.error("", e);
@@ -159,23 +160,23 @@ public class PropertyUtility {
      * 
      * @param itemPath the Item containing the PropertyDescriptionList
      * @param descVer the version of the PropertyDescriptionList
-     * @param locker transaction key
+     * @param transactionKey transaction key
      * @return the PropertyDescriptionList
      * @throws ObjectNotFoundException PropertyDescriptionList cannot be retrieved
      */
-    static public PropertyDescriptionList getPropertyDescriptionOutcome(ItemPath itemPath, String descVer, Object locker) throws ObjectNotFoundException {
+    static public PropertyDescriptionList getPropertyDescriptionOutcome(ItemPath itemPath, String descVer, TransactionKey transactionKey) throws ObjectNotFoundException {
         try {
             //the type of the Item is a PropertyDesc
-            if (getProperty(itemPath, TYPE, locker).getValue().equals(PROPERTY_DESC_RESOURCE.getSchemaName())) {
-                String name = getProperty(itemPath, NAME, locker).getValue();
+            if (getProperty(itemPath, TYPE, transactionKey).getValue().equals(PROPERTY_DESC_RESOURCE.getSchemaName())) {
+                String name = getProperty(itemPath, NAME, transactionKey).getValue();
 
-                int version = getVersionID(itemPath, descVer, PROPERTY_DESC_RESOURCE.getSchemaName(), locker);
+                int version = getVersionID(itemPath, descVer, PROPERTY_DESC_RESOURCE.getSchemaName(), transactionKey);
 
                 return LocalObjectLoader.getPropertyDescriptionList(name, version);
             }
             else  {
                 //the type of the Item is very likely a Factory
-                Outcome outc = (Outcome) Gateway.getStorage().get(itemPath, VIEWPOINT+"/PropertyDescription/"+descVer+"/data", locker);
+                Outcome outc = (Outcome) Gateway.getStorage().get(itemPath, VIEWPOINT+"/PropertyDescription/"+descVer+"/data", transactionKey);
                 return (PropertyDescriptionList) Gateway.getMarshaller().unmarshall(outc.getData());
             }
         }
@@ -190,19 +191,19 @@ public class PropertyUtility {
      * @param itemPath
      * @param descVer
      * @param schema
-     * @param locker
+     * @param transactionKey
      * @return
      * @throws PersistencyException
      * @throws ObjectNotFoundException
      */
-    private static int getVersionID(ItemPath itemPath, String descVer, String schema, Object locker)
+    private static int getVersionID(ItemPath itemPath, String descVer, String schema, TransactionKey transactionKey)
         throws PersistencyException, ObjectNotFoundException
     {
         int version = 0;
 
         //find the 'last' version
         if ("last".equals(descVer)) {
-            String[] views = Gateway.getStorage().getClusterContents(itemPath, VIEWPOINT+"/"+schema, locker);
+            String[] views = Gateway.getStorage().getClusterContents(itemPath, VIEWPOINT+"/"+schema, transactionKey);
             version = -1;
 
             for (int i = 0; i < views.length; i ++) {
@@ -246,15 +247,15 @@ public class PropertyUtility {
      * @param item the Path (UUID) of actual Item
      * @param prop the BuiltIn ItemProperty to write
      * @param value the value of the Property
-     * @param locker transaction key
+     * @param transactionKey transaction key
      * @throws PersistencyException something went wrong updating the database
      * @throws ObjectCannotBeUpdated the Property is immutable
      * @throws ObjectNotFoundException there is no Property with the given name
      */
-    public static void writeProperty(ItemPath item, BuiltInItemProperties prop, String value, Object locker)
+    public static void writeProperty(ItemPath item, BuiltInItemProperties prop, String value, TransactionKey transactionKey)
             throws PersistencyException, ObjectCannotBeUpdated, ObjectNotFoundException
     {
-        writeProperty(item, prop.getName(), value, locker);
+        writeProperty(item, prop.getName(), value, transactionKey);
     }
 
     /**
@@ -263,15 +264,15 @@ public class PropertyUtility {
      * @param item the Path (UUID) of actual Item
      * @param name the name of the Property to write
      * @param value the value of the Property
-     * @param locker transaction key
+     * @param transactionKey transaction key
      * @throws PersistencyException something went wrong updating the database
      * @throws ObjectCannotBeUpdated the Property is immutable
      * @throws ObjectNotFoundException there is no Property with the given name
      */
-    public static void writeProperty(ItemPath item, String name, String value, Object locker)
+    public static void writeProperty(ItemPath item, String name, String value, TransactionKey transactionKey)
             throws PersistencyException, ObjectCannotBeUpdated, ObjectNotFoundException
     {
-        Property prop = (Property) Gateway.getStorage().get(item, ClusterType.PROPERTY + "/" + name, locker);
+        Property prop = (Property) Gateway.getStorage().get(item, ClusterType.PROPERTY + "/" + name, transactionKey);
 
         if (!prop.isMutable())
             throw new ObjectCannotBeUpdated("WriteProperty: Property '" + name + "' is not mutable.");
@@ -280,7 +281,7 @@ public class PropertyUtility {
         if (!value.equals(prop.getValue())) {
             prop.setValue(value);
 
-            Gateway.getStorage().put(item, prop, locker);
+            Gateway.getStorage().put(item, prop, transactionKey);
         }
     }
 
@@ -291,7 +292,7 @@ public class PropertyUtility {
      * @param transactionKey
      * @return
      */
-    public static boolean checkProperty(ItemPath item, BuiltInItemProperties prop, Object transactionKey) {
+    public static boolean checkProperty(ItemPath item, BuiltInItemProperties prop, TransactionKey transactionKey) {
         return checkProperty(item, prop.getName(), transactionKey);
     }
 
@@ -302,7 +303,7 @@ public class PropertyUtility {
      * @param transactionKey
      * @return
      */
-    public static boolean checkProperty(ItemPath item, String name, Object transactionKey) {
+    public static boolean checkProperty(ItemPath item, String name, TransactionKey transactionKey) {
         try {
             for (String key : Gateway.getStorage().getClusterContents(item,  ClusterType.PROPERTY, transactionKey)) {
                 if (key.equals(name)) return true;
@@ -321,7 +322,7 @@ public class PropertyUtility {
      * @param transactionKey
      * @return
      */
-    public static String getPropertyValue(ItemPath item, BuiltInItemProperties prop, String defaultValue, Object transactionKey) {
+    public static String getPropertyValue(ItemPath item, BuiltInItemProperties prop, String defaultValue, TransactionKey transactionKey) {
         return getPropertyValue(item, prop.getName(), defaultValue, transactionKey);
     }
 
@@ -333,7 +334,7 @@ public class PropertyUtility {
      * @param transactionKey
      * @return
      */
-    public static String getPropertyValue(ItemPath item, String name, String defaultValue, Object transactionKey) {
+    public static String getPropertyValue(ItemPath item, String name, String defaultValue, TransactionKey transactionKey) {
         try {
             if (checkProperty(item, name, transactionKey)) {
                 return getProperty(item, name, transactionKey).getValue();

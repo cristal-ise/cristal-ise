@@ -28,6 +28,7 @@ import org.cristalise.kernel.common.ObjectNotFoundException;
 import org.cristalise.kernel.common.SystemKey;
 import org.cristalise.kernel.entity.C2KLocalObject;
 import org.cristalise.kernel.persistency.ClusterType;
+import org.cristalise.kernel.persistency.TransactionKey;
 import org.cristalise.kernel.process.Gateway;
 
 public abstract class Path implements C2KLocalObject {
@@ -87,12 +88,12 @@ public abstract class Path implements C2KLocalObject {
 
     //these methods declared here to provide backward compatibility
     public org.omg.CORBA.Object getIOR() { return getIOR(null); }
-    public org.omg.CORBA.Object getIOR(Object transactionKey) { return null; }
+    public org.omg.CORBA.Object getIOR(TransactionKey transactionKey) { return null; }
     public void setIOR(org.omg.CORBA.Object IOR) {}
     public SystemKey getSystemKey() { return null; }
     public UUID getUUID() { return null; }
     public ItemPath getItemPath() throws ObjectNotFoundException { return getItemPath(null); }
-    public ItemPath getItemPath(Object transactionKey) throws ObjectNotFoundException { return null; }
+    public ItemPath getItemPath(TransactionKey transactionKey) throws ObjectNotFoundException { return null; }
 
     /**
      * clones the path object
@@ -123,7 +124,7 @@ public abstract class Path implements C2KLocalObject {
         return exists(null);
     }
 
-    public boolean exists(Object transactionKey) {
+    public boolean exists(TransactionKey transactionKey) {
         if (Gateway.getLookup() == null) return false;
         return Gateway.getLookup().exists(this, transactionKey);
     }

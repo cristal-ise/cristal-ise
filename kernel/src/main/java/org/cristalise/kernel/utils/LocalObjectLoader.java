@@ -30,6 +30,7 @@ import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.SCRIPT_N
 import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.SCRIPT_VERSION;
 import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.STATE_MACHINE_NAME;
 import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.STATE_MACHINE_VERSION;
+
 import org.apache.commons.lang3.StringUtils;
 import org.cristalise.kernel.common.InvalidDataException;
 import org.cristalise.kernel.common.ObjectNotFoundException;
@@ -43,6 +44,7 @@ import org.cristalise.kernel.persistency.outcome.Schema;
 import org.cristalise.kernel.property.PropertyDescriptionList;
 import org.cristalise.kernel.querying.Query;
 import org.cristalise.kernel.scripting.Script;
+
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j

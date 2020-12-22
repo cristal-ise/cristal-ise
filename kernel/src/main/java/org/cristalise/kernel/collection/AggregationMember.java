@@ -29,6 +29,7 @@ import org.cristalise.kernel.graph.model.GraphableVertex;
 import org.cristalise.kernel.lookup.InvalidItemPathException;
 import org.cristalise.kernel.lookup.ItemPath;
 import org.cristalise.kernel.persistency.ClusterType;
+import org.cristalise.kernel.persistency.TransactionKey;
 import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.property.Property;
 
@@ -130,7 +131,7 @@ public class AggregationMember extends GraphableVertex implements CollectionMemb
     }
 
     @Override
-    public ItemProxy resolveItem(Object transactionKey) throws ObjectNotFoundException {
+    public ItemProxy resolveItem(TransactionKey transactionKey) throws ObjectNotFoundException {
         if (mItem == null && mItemPath != null) {
             mItem = Gateway.getProxyManager().getProxy(mItemPath, transactionKey);
         }

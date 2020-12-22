@@ -51,6 +51,7 @@ import org.cristalise.kernel.lifecycle.instance.predefined.UpdateImportReport;
 import org.cristalise.kernel.lookup.AgentPath;
 import org.cristalise.kernel.lookup.Path;
 import org.cristalise.kernel.persistency.ClusterType;
+import org.cristalise.kernel.persistency.TransactionKey;
 import org.cristalise.kernel.process.AbstractMain;
 import org.cristalise.kernel.process.Bootstrap;
 import org.cristalise.kernel.process.Gateway;
@@ -146,8 +147,7 @@ public class Module extends ImportItem {
     public void importAll(ItemProxy serverEntity, AgentProxy systemAgent, boolean reset) throws Exception {
         String moduleChanges = "";
 
-        String transactionKey = null;
-        //Object transactionKey = new Object();;
+        TransactionKey transactionKey = null;
         Gateway.getStorage().begin(transactionKey); // should do nothing if transactionKey is null
 
         try {
@@ -176,7 +176,7 @@ public class Module extends ImportItem {
      * @param reset
      * @throws Exception
      */
-    private void importItems(AgentProxy systemAgent, boolean reset, Object transactionKey) throws Exception {
+    private void importItems(AgentProxy systemAgent, boolean reset, TransactionKey transactionKey) throws Exception {
         for (ImportItem thisItem : imports.getItems()) {
             if (Bootstrap.shutdown) return;
 
@@ -190,7 +190,7 @@ public class Module extends ImportItem {
      * @param reset
      * @throws Exception
      */
-    private void importAgents(AgentProxy systemAgent, boolean reset, Object transactionKey) throws Exception {
+    private void importAgents(AgentProxy systemAgent, boolean reset, TransactionKey transactionKey) throws Exception {
         for (ImportAgent thisAgent : imports.getAgents()) {
             if (Bootstrap.shutdown) return;
 
@@ -211,7 +211,7 @@ public class Module extends ImportItem {
      * @param reset
      * @throws Exception
      */
-    private void importRoles(AgentProxy systemAgent, boolean reset, Object transactionKey) throws Exception {
+    private void importRoles(AgentProxy systemAgent, boolean reset, TransactionKey transactionKey) throws Exception {
         for (ImportRole thisRole : imports.getRoles()) {
             if (Bootstrap.shutdown) return;
 
@@ -223,7 +223,7 @@ public class Module extends ImportItem {
      * @param systemAgent
      * @param reset
      */
-    private String importResources(AgentProxy systemAgent, boolean reset, Object transactionKey) throws Exception {
+    private String importResources(AgentProxy systemAgent, boolean reset, TransactionKey transactionKey) throws Exception {
         List<String> moduleChanges = new ArrayList<String>();
 
         for (ModuleResource thisRes : imports.getResources()) {

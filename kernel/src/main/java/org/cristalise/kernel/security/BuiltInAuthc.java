@@ -22,6 +22,7 @@ package org.cristalise.kernel.security;
 
 import org.cristalise.kernel.common.ObjectNotFoundException;
 import org.cristalise.kernel.lookup.Path;
+import org.cristalise.kernel.persistency.TransactionKey;
 import org.cristalise.kernel.process.Gateway;
 
 import lombok.Getter;
@@ -50,7 +51,7 @@ public enum BuiltInAuthc {
         return getPath(null);
     }
 
-    public Path getPath(Object transactionKey) throws ObjectNotFoundException {
+    public Path getPath(TransactionKey transactionKey) throws ObjectNotFoundException {
         if      (this.equals(SYSTEM_AGENT)) return Gateway.getLookup().getAgentPath(name, transactionKey);
         else if (this.equals(ADMIN_ROLE))   return Gateway.getLookup().getRolePath(name, transactionKey);
         else {

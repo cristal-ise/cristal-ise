@@ -50,6 +50,7 @@ import org.cristalise.kernel.lookup.DomainPath;
 import org.cristalise.kernel.lookup.ItemPath;
 import org.cristalise.kernel.lookup.Path;
 import org.cristalise.kernel.persistency.ClusterType;
+import org.cristalise.kernel.persistency.TransactionKey;
 import org.cristalise.kernel.persistency.outcome.Outcome;
 import org.cristalise.kernel.persistency.outcome.Schema;
 import org.cristalise.kernel.persistency.outcome.Viewpoint;
@@ -114,7 +115,7 @@ public class ImportItem extends ModuleImport {
      * Try to find ItemPath if already exists. If not create new one.
      */
     @Override
-    public ItemPath getItemPath(Object transactionKey) {
+    public ItemPath getItemPath(TransactionKey transactionKey) {
         if (itemPath == null) {
             DomainPath existingItem = new DomainPath(initialPath + "/" + name);
             if (existingItem.exists(transactionKey)) {
@@ -148,7 +149,7 @@ public class ImportItem extends ModuleImport {
      * @throws ObjectAlreadyExistsException
      * @throws ObjectCannotBeUpdated
      */
-    private TraceableEntity getTraceableEntitiy(Object transactionKey)
+    private TraceableEntity getTraceableEntitiy(TransactionKey transactionKey)
             throws ObjectNotFoundException, CannotManageException, ObjectAlreadyExistsException, ObjectCannotBeUpdated
     {
         TraceableEntity newItem;
@@ -171,7 +172,7 @@ public class ImportItem extends ModuleImport {
      *
      */
     @Override
-    public Path create(AgentPath agentPath, boolean reset, Object transactionKey)
+    public Path create(AgentPath agentPath, boolean reset, TransactionKey transactionKey)
             throws InvalidDataException, ObjectCannotBeUpdated, ObjectNotFoundException,
             CannotManageException, ObjectAlreadyExistsException, InvalidCollectionModification, PersistencyException
     {

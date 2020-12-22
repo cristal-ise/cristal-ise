@@ -38,6 +38,7 @@ import org.cristalise.kernel.lookup.DomainPath;
 import org.cristalise.kernel.lookup.ItemPath;
 import org.cristalise.kernel.lookup.Path;
 import org.cristalise.kernel.lookup.RolePath;
+import org.cristalise.kernel.persistency.TransactionKey;
 import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.process.module.ModuleImport;
 import org.cristalise.kernel.property.Property;
@@ -69,7 +70,7 @@ public class ImportAgent extends ModuleImport {
     }
 
     @Override
-    public Path create(AgentPath agentPath, boolean reset, Object transactionKey)
+    public Path create(AgentPath agentPath, boolean reset, TransactionKey transactionKey)
             throws ObjectNotFoundException, ObjectCannotBeUpdated, CannotManageException, ObjectAlreadyExistsException
     {
         if (roles.isEmpty()) throw new ObjectNotFoundException("Agent '"+name+"' must declare at least one Role ");
@@ -139,7 +140,7 @@ public class ImportAgent extends ModuleImport {
      * otherwise creates  new ItemPath, i.e. it creates new UUID.
      */
     @Override
-    public ItemPath getItemPath(Object transactionKey) {
+    public ItemPath getItemPath(TransactionKey transactionKey) {
         if (itemPath == null) {
             try {
                 itemPath = Gateway.getLookup().getAgentPath(name, transactionKey);

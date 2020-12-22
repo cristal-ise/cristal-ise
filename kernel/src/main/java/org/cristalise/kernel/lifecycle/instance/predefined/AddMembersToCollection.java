@@ -34,6 +34,7 @@ import org.cristalise.kernel.common.ObjectNotFoundException;
 import org.cristalise.kernel.common.PersistencyException;
 import org.cristalise.kernel.lookup.AgentPath;
 import org.cristalise.kernel.lookup.ItemPath;
+import org.cristalise.kernel.persistency.TransactionKey;
 import org.cristalise.kernel.process.Gateway;
 import org.exolab.castor.mapping.MappingException;
 import org.exolab.castor.xml.MarshalException;
@@ -52,14 +53,14 @@ public class AddMembersToCollection extends PredefinedStepCollectionBase {
     //Creates a new member slot for the given item in a dependency, and assigns the item
     public static final String description = "Adds members to a given item";
     @Override
-    protected String runActivityLogic(AgentPath agent, ItemPath item, int transitionID, String requestData, Object locker)
+    protected String runActivityLogic(AgentPath agent, ItemPath item, int transitionID, String requestData, TransactionKey transactionKey)
             throws InvalidDataException, ObjectAlreadyExistsException, PersistencyException, ObjectNotFoundException,
             InvalidCollectionModification
     {
         try {
             Dependency inputDependendency = (Dependency) Gateway.getMarshaller().unmarshall(requestData);
             String collectionName = inputDependendency.getName();
-            Dependency dep = (Dependency) Gateway.getStorage().get(item, COLLECTION + "/" + collectionName + "/last", locker);
+            Dependency dep = (Dependency) Gateway.getStorage().get(item, COLLECTION + "/" + collectionName + "/last", transactionKey);
 
             for (DependencyMember inputMember : inputDependendency.getMembers().list) {
                 DependencyMember newMember = null;
@@ -71,12 +72,12 @@ public class AddMembersToCollection extends PredefinedStepCollectionBase {
                     newMember = dep.createMember(inputMember.getItemPath());
                 }
 
-                evaluateScript(item, dep, newMember, locker);
+                evaluateScript(item, dep, newMember, transactionKey);
 
                 dep.addMember(newMember);
             }
 
-            Gateway.getStorage().put(item, dep, locker);
+            Gateway.getStorage().put(item, dep, transactionKey);
 
             return Gateway.getMarshaller().marshall(dep);
         }

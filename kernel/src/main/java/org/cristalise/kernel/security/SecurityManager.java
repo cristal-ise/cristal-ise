@@ -42,6 +42,7 @@ import org.cristalise.kernel.entity.proxy.AgentProxy;
 import org.cristalise.kernel.lifecycle.instance.Activity;
 import org.cristalise.kernel.lookup.AgentPath;
 import org.cristalise.kernel.lookup.ItemPath;
+import org.cristalise.kernel.persistency.TransactionKey;
 import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.process.auth.Authenticator;
 import org.cristalise.kernel.property.PropertyUtility;
@@ -119,7 +120,7 @@ public class SecurityManager {
      * @throws InvalidDataException
      * @throws ObjectNotFoundException
      */
-    public AgentProxy authenticate(String agentName, String agentPassword, String resource, boolean isClient, Object transactionKey)
+    public AgentProxy authenticate(String agentName, String agentPassword, String resource, boolean isClient, TransactionKey transactionKey)
             throws InvalidDataException, ObjectNotFoundException
     {
         if (shiroEnabled) {
@@ -255,7 +256,7 @@ public class SecurityManager {
      * @throws AccessRightsException
      * @throws ObjectNotFoundException Item was not found
      */
-    public boolean checkPermissions(AgentPath agent, Activity act, ItemPath itemPath, Object transactionKey) 
+    public boolean checkPermissions(AgentPath agent, Activity act, ItemPath itemPath, TransactionKey transactionKey) 
             throws AccessRightsException, ObjectNotFoundException
     {
         String domain = getWildcardPermissionDomain(itemPath, transactionKey);
@@ -277,7 +278,7 @@ public class SecurityManager {
      * @throws ObjectNotFoundException Item was not found 
      * @throws AccessRightsException 
      */
-    private String getWildcardPermissionDomain(ItemPath itemPath, Object transactionKey) throws ObjectNotFoundException, AccessRightsException {
+    private String getWildcardPermissionDomain(ItemPath itemPath, TransactionKey transactionKey) throws ObjectNotFoundException, AccessRightsException {
         String type   = PropertyUtility.getPropertyValue(itemPath, TYPE, "", transactionKey);
         String domain = PropertyUtility.getPropertyValue(itemPath, SECURITY_DOMAIN, type, transactionKey);
 

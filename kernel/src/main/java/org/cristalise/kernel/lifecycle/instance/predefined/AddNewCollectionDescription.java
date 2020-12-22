@@ -32,6 +32,7 @@ import org.cristalise.kernel.common.PersistencyException;
 import org.cristalise.kernel.lookup.AgentPath;
 import org.cristalise.kernel.lookup.ItemPath;
 import org.cristalise.kernel.persistency.ClusterType;
+import org.cristalise.kernel.persistency.TransactionKey;
 import org.cristalise.kernel.process.Gateway;
 
 import lombok.extern.slf4j.Slf4j;
@@ -52,13 +53,13 @@ public class AddNewCollectionDescription extends PredefinedStep {
      * Params: 0 - collection name 1 - collection type (Aggregation, Dependency)
      */
     @Override
-    protected String runActivityLogic(AgentPath agent, ItemPath item, int transitionID, String requestData, Object locker)
+    protected String runActivityLogic(AgentPath agent, ItemPath item, int transitionID, String requestData, TransactionKey transactionKey)
             throws InvalidDataException, ObjectAlreadyExistsException, PersistencyException
     {
         // extract parameters
         String[] params = getDataList(requestData);
 
-        log.debug("Called by {} on {} with parameters {}", agent.getAgentName(locker), item, (Object)params);
+        log.debug("Called by {} on {} with parameters {}", agent.getAgentName(transactionKey), item, (Object)params);
 
         if (params.length != 2)
             throw new InvalidDataException("AddNewCollectionDescription: Invalid parameters " + Arrays.toString(params));
@@ -68,7 +69,7 @@ public class AddNewCollectionDescription extends PredefinedStep {
 
         // check if collection already exists
         try {
-            Gateway.getStorage().get(item, ClusterType.COLLECTION + "/" + collName + "/last", locker);
+            Gateway.getStorage().get(item, ClusterType.COLLECTION + "/" + collName + "/last", transactionKey);
             throw new ObjectAlreadyExistsException("Collection '" + collName + "' already exists");
         }
         catch (ObjectNotFoundException ex) {
@@ -84,7 +85,7 @@ public class AddNewCollectionDescription extends PredefinedStep {
 
         // store it
         try {
-            Gateway.getStorage().put(item, newCollDesc, locker);
+            Gateway.getStorage().put(item, newCollDesc, transactionKey);
         }
         catch (PersistencyException e) {
             throw new PersistencyException("AddNewCollectionDescription: Error saving new collection '" + collName + "': " + e.getMessage());

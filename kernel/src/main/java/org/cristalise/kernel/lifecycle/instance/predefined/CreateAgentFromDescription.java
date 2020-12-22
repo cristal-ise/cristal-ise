@@ -34,6 +34,7 @@ import org.cristalise.kernel.lookup.AgentPath;
 import org.cristalise.kernel.lookup.DomainPath;
 import org.cristalise.kernel.lookup.ItemPath;
 import org.cristalise.kernel.lookup.RolePath;
+import org.cristalise.kernel.persistency.TransactionKey;
 import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.property.PropertyArrayList;
 
@@ -65,7 +66,7 @@ public class CreateAgentFromDescription extends CreateItemFromDescription {
      * @see org.cristalise.kernel.lifecycle.instance.predefined.item.CreateItemFromDescription#runActivityLogic(AgentPath, ItemPath, int, String, Object)
      */
     @Override
-    protected String runActivityLogic(AgentPath agentPath, ItemPath descItemPath, int transitionID, String requestData, Object locker)
+    protected String runActivityLogic(AgentPath agentPath, ItemPath descItemPath, int transitionID, String requestData, TransactionKey transactionKey)
             throws ObjectNotFoundException, 
                    InvalidDataException, 
                    ObjectAlreadyExistsException, 
@@ -84,21 +85,21 @@ public class CreateAgentFromDescription extends CreateItemFromDescription {
         String            outcome   = input.length > 6 && StringUtils.isNotBlank(input[6]) ? input[6] : "";
 
         // generate new agent path with new UUID
-        log.debug("Called by {} on {} with parameters {}", agentPath.getAgentName(locker), descItemPath, (Object)input);
+        log.debug("Called by {} on {} with parameters {}", agentPath.getAgentName(transactionKey), descItemPath, (Object)input);
 
         AgentPath newAgentPath = new AgentPath(new ItemPath(), newName);
 
         // check if the agent's name is already taken
-        if (Gateway.getLookup().exists(newAgentPath, locker) )
+        if (Gateway.getLookup().exists(newAgentPath, transactionKey) )
             throw new ObjectAlreadyExistsException("The agent name " + newName + " exists already.");
 
         DomainPath context = new DomainPath(new DomainPath(contextS), newName);
 
-        if (context.exists(locker)) throw new ObjectAlreadyExistsException("The path " +context+ " exists already.");
+        if (context.exists(transactionKey)) throw new ObjectAlreadyExistsException("The path " +context+ " exists already.");
 
-        createAgentAddRoles(newAgentPath, roles, pwd, locker);
+        createAgentAddRoles(newAgentPath, roles, pwd, transactionKey);
 
-        initialiseItem(newAgentPath, agentPath, descItemPath, initProps, outcome, newName, descVer, context, newAgentPath, locker);
+        initialiseItem(newAgentPath, agentPath, descItemPath, initProps, outcome, newName, descVer, context, newAgentPath, transactionKey);
 
         if (input.length > 3) input[3] = "REDACTED"; // censor password from outcome
 
@@ -115,31 +116,31 @@ public class CreateAgentFromDescription extends CreateItemFromDescription {
      * @throws ObjectCannotBeUpdated
      * @throws ObjectAlreadyExistsException
      */
-    protected ActiveEntity createAgentAddRoles(AgentPath newAgentPath, String[] roles, String pwd, Object locker) 
+    protected ActiveEntity createAgentAddRoles(AgentPath newAgentPath, String[] roles, String pwd, TransactionKey transactionKey) 
             throws CannotManageException, ObjectCannotBeUpdated, ObjectAlreadyExistsException
     {
-        log.info("createAgentAddRoles() - Creating Agent {}", newAgentPath.getAgentName(locker));
+        log.info("createAgentAddRoles() - Creating Agent {}", newAgentPath.getAgentName(transactionKey));
         
         CorbaServer factory = Gateway.getCorbaServer();
 
         if (factory == null) throw new CannotManageException("This process cannot create new Items");
 
-        ActiveEntity newAgent = factory.createAgent(newAgentPath, locker);
-        Gateway.getLookupManager().add(newAgentPath, locker);
+        ActiveEntity newAgent = factory.createAgent(newAgentPath, transactionKey);
+        Gateway.getLookupManager().add(newAgentPath, transactionKey);
 
         try {
-            if (StringUtils.isNotBlank(pwd)) Gateway.getLookupManager().setAgentPassword(newAgentPath, pwd, true, locker);
+            if (StringUtils.isNotBlank(pwd)) Gateway.getLookupManager().setAgentPassword(newAgentPath, pwd, true, transactionKey);
 
             for (String roleName: roles) {
                 if (StringUtils.isNotBlank(roleName)) {
-                    RolePath role = Gateway.getLookupManager().getRolePath(roleName, locker);
-                    Gateway.getLookupManager().addRole(newAgentPath, role, locker);
+                    RolePath role = Gateway.getLookupManager().getRolePath(roleName, transactionKey);
+                    Gateway.getLookupManager().addRole(newAgentPath, role, transactionKey);
                 }
             }
         }
         catch (Exception e) {
             log.error("createAgentAddRoles()", e);
-            Gateway.getLookupManager().delete(newAgentPath, locker);
+            Gateway.getLookupManager().delete(newAgentPath, transactionKey);
 
             throw new CannotManageException(e.getMessage());
         }

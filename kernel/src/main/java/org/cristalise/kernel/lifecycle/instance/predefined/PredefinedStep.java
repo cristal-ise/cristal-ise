@@ -49,6 +49,7 @@ import org.cristalise.kernel.lifecycle.instance.predefined.item.ItemPredefinedSt
 import org.cristalise.kernel.lifecycle.instance.predefined.server.ServerPredefinedStepContainer;
 import org.cristalise.kernel.lookup.AgentPath;
 import org.cristalise.kernel.lookup.ItemPath;
+import org.cristalise.kernel.persistency.TransactionKey;
 import org.cristalise.kernel.persistency.outcome.Outcome;
 import org.cristalise.kernel.persistency.outcome.Viewpoint;
 import org.cristalise.kernel.process.Gateway;
@@ -163,7 +164,7 @@ public abstract class PredefinedStep extends Activity {
      * All predefined steps must override this to implement their action
      */
     @Override
-    protected abstract String runActivityLogic(AgentPath agent, ItemPath itemPath, int transitionID, String requestData, Object locker) 
+    protected abstract String runActivityLogic(AgentPath agent, ItemPath itemPath, int transitionID, String requestData, TransactionKey transactionKey) 
             throws  InvalidDataException,
                     InvalidCollectionModification,
                     ObjectAlreadyExistsException,
@@ -262,7 +263,7 @@ public abstract class PredefinedStep extends Activity {
      * @throws ObjectNotFoundException
      * @throws InvalidDataException
      */
-    public static void storeOutcomeEventAndViews(ItemPath itemPath, Outcome newOutcome, Object transactionKey )
+    public static void storeOutcomeEventAndViews(ItemPath itemPath, Outcome newOutcome, TransactionKey transactionKey )
             throws PersistencyException, ObjectNotFoundException, InvalidDataException
     {
         storeOutcomeEventAndViews(itemPath, newOutcome, null, transactionKey);
@@ -278,7 +279,7 @@ public abstract class PredefinedStep extends Activity {
      * @throws ObjectNotFoundException
      * @throws InvalidDataException
      */
-    public static void storeOutcomeEventAndViews(ItemPath itemPath, Outcome newOutcome, Integer version, Object transactionKey)
+    public static void storeOutcomeEventAndViews(ItemPath itemPath, Outcome newOutcome, Integer version, TransactionKey transactionKey)
             throws PersistencyException, ObjectNotFoundException, InvalidDataException
     {
         String viewName = "";
@@ -325,7 +326,7 @@ public abstract class PredefinedStep extends Activity {
      * @throws CannotManageException
      * @throws InvalidCollectionModification
      */
-    public String request(AgentPath agent, ItemPath itemPath, String requestData, Object transactionKey)
+    public String request(AgentPath agent, ItemPath itemPath, String requestData, TransactionKey transactionKey)
             throws AccessRightsException, 
             InvalidTransitionException, 
             InvalidDataException, 

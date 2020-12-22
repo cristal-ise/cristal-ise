@@ -27,6 +27,7 @@ import java.util.Iterator;
 import java.util.List;
 
 import org.cristalise.kernel.common.ObjectNotFoundException;
+import org.cristalise.kernel.persistency.TransactionKey;
 import org.cristalise.kernel.process.auth.Authenticator;
 import org.cristalise.kernel.property.Property;
 import org.cristalise.kernel.property.PropertyDescriptionList;
@@ -91,7 +92,7 @@ public interface Lookup {
      * @throws InvalidItemPathException When the system key is invalid/out-of-range
      * @throws ObjectNotFoundException When the Item does not exist in the directory.
      */
-    public ItemPath getItemPath(String sysKey, Object transactionKey) throws InvalidItemPathException, ObjectNotFoundException;
+    public ItemPath getItemPath(String sysKey, TransactionKey transactionKey) throws InvalidItemPathException, ObjectNotFoundException;
 
     /**
      * Find the ItemPath for which a DomainPath is an alias.
@@ -111,7 +112,7 @@ public interface Lookup {
      * @param transactionKey identifier of the active transaction
      * @return The ItemPath it points to (should be an AgentPath if the path references an Agent)
      */
-    public ItemPath resolvePath(DomainPath domainPath, Object transactionKey) throws InvalidItemPathException, ObjectNotFoundException;
+    public ItemPath resolvePath(DomainPath domainPath, TransactionKey transactionKey) throws InvalidItemPathException, ObjectNotFoundException;
 
     /**
      * Resolves the IOR to a CORBA Object (Item or Agent)
@@ -133,7 +134,7 @@ public interface Lookup {
      * @return The CORBA Object's IOR
      * @throws ObjectNotFoundException When the Path doesn't exist, or doesn't have an IOR associated with it
      */
-    public String getIOR(Path path, Object transactionKey) throws ObjectNotFoundException;
+    public String getIOR(Path path, TransactionKey transactionKey) throws ObjectNotFoundException;
 
     /**
      * Checks if a particular Path exists in the directory
@@ -153,7 +154,7 @@ public interface Lookup {
      * @param transactionKey identifier of the active transaction
      * @return boolean true if the path exists, false if it doesn't
      */
-    public boolean exists(Path path, Object transactionKey);
+    public boolean exists(Path path, TransactionKey transactionKey);
 
     /**
      * List the next-level-deep children of a Path
@@ -173,7 +174,7 @@ public interface Lookup {
      * @param transactionKey identifier of the active transaction
      * @return An Iterator of child Paths
      */
-    public Iterator<Path> getChildren(Path path, Object transactionKey);
+    public Iterator<Path> getChildren(Path path, TransactionKey transactionKey);
 
     /**
      * List the next-level-deep children of a Path
@@ -197,7 +198,7 @@ public interface Lookup {
      * @param transactionKey identifier of the active transaction
      * @return A List of child Paths
      */
-    public PagedResult getChildren(Path path, int offset, int limit, Object transactionKey);
+    public PagedResult getChildren(Path path, int offset, int limit, TransactionKey transactionKey);
 
     /**
      * Find a path with a particular name (last component).  Uses WILDCARD_MATCH as default constraints.
@@ -207,7 +208,7 @@ public interface Lookup {
      * @return An Iterator of matching Paths. Should be an empty Iterator if there are no matches.
      */
     public default Iterator<Path> search(Path start, String name) {
-        return search(start, name, WILDCARD_MATCH, (Object)null);
+        return search(start, name, WILDCARD_MATCH, (TransactionKey)null);
     }
 
     /**
@@ -220,7 +221,7 @@ public interface Lookup {
      * @param transactionKey identifier of the active transaction
      * @return An Iterator of matching Paths. Should be an empty Iterator if there are no matches.
      */
-    public Iterator<Path> search(Path start, String name, SearchConstraints constraints, Object transactionKey);
+    public Iterator<Path> search(Path start, String name, SearchConstraints constraints, TransactionKey transactionKey);
 
     /**
      * Search for Items in the specified path with the given property list
@@ -230,7 +231,7 @@ public interface Lookup {
      * @return An Iterator of matching Paths
      */
     public default Iterator<Path> search(Path start, Property... props) {
-        return search(start, (Object)null, props);
+        return search(start, (TransactionKey)null, props);
     }
 
     /**
@@ -242,7 +243,7 @@ public interface Lookup {
      * @param props list of Properties
      * @return An Iterator of matching Paths
      */
-    public Iterator<Path> search(Path start, Object transactionKey, Property... props);
+    public Iterator<Path> search(Path start, TransactionKey transactionKey, Property... props);
 
     /**
      * Search for Items in the specified path with the given property list
@@ -268,7 +269,7 @@ public interface Lookup {
      * @param transactionKey identifier of the active transaction
      * @return PagedResult of matching Paths
      */
-    public PagedResult search(Path start, List<Property> props, int offset, int limit, Object transactionKey);
+    public PagedResult search(Path start, List<Property> props, int offset, int limit, TransactionKey transactionKey);
 
     /**
      * Search for Items of a particular type, based on its PropertyDescription outcome
@@ -278,7 +279,7 @@ public interface Lookup {
      * @return An Iterator of matching Paths
      */
     public default Iterator<Path> search(Path start, PropertyDescriptionList props) {
-        return search(start, props, (Object)null);
+        return search(start, props, (TransactionKey)null);
     }
 
     /**
@@ -290,7 +291,7 @@ public interface Lookup {
      * @param transactionKey identifier of the active transaction
      * @return An Iterator of matching Paths
      */
-    public Iterator<Path> search(Path start, PropertyDescriptionList props, Object transactionKey);
+    public Iterator<Path> search(Path start, PropertyDescriptionList props, TransactionKey transactionKey);
 
     /**
      * Search for Items of a particular type, based on its PropertyDescription outcome
@@ -316,7 +317,7 @@ public interface Lookup {
      * @param transactionKey identifier of the active transaction
      * @return An PagedResult of matching Paths
      */
-    public PagedResult search(Path start, PropertyDescriptionList props, int offset, int limit, Object transactionKey);
+    public PagedResult search(Path start, PropertyDescriptionList props, int offset, int limit, TransactionKey transactionKey);
 
     /**
      * Find all DomainPaths that are aliases for a particular Item or Agent
@@ -336,7 +337,7 @@ public interface Lookup {
      * @param transactionKey identifier of the active transaction
      * @return An Iterator of DomainPaths that are aliases for that Item
      */
-    public Iterator<Path> searchAliases(ItemPath itemPath, Object transactionKey);
+    public Iterator<Path> searchAliases(ItemPath itemPath, TransactionKey transactionKey);
 
     /**
      * Find all DomainPaths that are aliases for a particular Item or Agent
@@ -360,7 +361,7 @@ public interface Lookup {
      * @param transactionKey identifier of the active transaction
      * @return An PagedResult of DomainPaths that are aliases for that Item
      */
-    public PagedResult searchAliases(ItemPath itemPath, int offset, int limit, Object transactionKey);
+    public PagedResult searchAliases(ItemPath itemPath, int offset, int limit, TransactionKey transactionKey);
 
     /**
      * Find the AgentPath for the named Agent
@@ -380,7 +381,7 @@ public interface Lookup {
      * @param transactionKey identifier of the active transaction
      * @return the AgentPath representing the Agent
      */
-    public AgentPath getAgentPath(String agentName, Object transactionKey) throws ObjectNotFoundException;
+    public AgentPath getAgentPath(String agentName, TransactionKey transactionKey) throws ObjectNotFoundException;
 
     /**
      * Find the RolePath for the named Role
@@ -400,7 +401,7 @@ public interface Lookup {
      * @param transactionKey identifier of the active transaction
      * @return the RolePath representing the Role
      */
-    public RolePath getRolePath(String roleName, Object transactionKey) throws ObjectNotFoundException;
+    public RolePath getRolePath(String roleName, TransactionKey transactionKey) throws ObjectNotFoundException;
 
     /**
      * Returns all of the Agents in this centre who hold this role (including sub-roles)
@@ -420,7 +421,7 @@ public interface Lookup {
      * @param transactionKey identifier of the active transaction
      * @return the list of Agents
      */
-    public AgentPath[] getAgents(RolePath rolePath, Object transactionKey) throws ObjectNotFoundException;
+    public AgentPath[] getAgents(RolePath rolePath, TransactionKey transactionKey) throws ObjectNotFoundException;
 
     /**
      * Returns all of the Agents who hold this role (including sub-roles)
@@ -444,7 +445,7 @@ public interface Lookup {
      * @param transactionKey identifier of the active transaction
      * @return the PagedResult of Agents
      */
-    public PagedResult getAgents(RolePath rolePath, int offset, int limit, Object transactionKey) throws ObjectNotFoundException;
+    public PagedResult getAgents(RolePath rolePath, int offset, int limit, TransactionKey transactionKey) throws ObjectNotFoundException;
 
     /**
      * Get all roles held by the given Agent
@@ -464,7 +465,7 @@ public interface Lookup {
      * @param transactionKey identifier of the active transaction
      * @return the list of Roles
      */
-    public RolePath[] getRoles(AgentPath agentPath, Object transactionKey);
+    public RolePath[] getRoles(AgentPath agentPath, TransactionKey transactionKey);
 
     /**
      * Get all roles held by the given Agent
@@ -488,7 +489,7 @@ public interface Lookup {
      * @param transactionKey identifier of the active transaction
      * @return the PagedResult of Roles
      */
-    public PagedResult getRoles(AgentPath agentPath, int offset, int limit, Object transactionKey);
+    public PagedResult getRoles(AgentPath agentPath, int offset, int limit, TransactionKey transactionKey);
 
     /**
      * Checks if an agent qualifies as holding the stated Role, including any sub-role logic.
@@ -510,7 +511,7 @@ public interface Lookup {
      * @param transactionKey identifier of the active transaction
      * @return true or false
      */
-    public boolean hasRole(AgentPath agentPath, RolePath role, Object transactionKey);
+    public boolean hasRole(AgentPath agentPath, RolePath role, TransactionKey transactionKey);
 
     /**
      * Return the name of the Agent referenced by an AgentPath
@@ -530,5 +531,5 @@ public interface Lookup {
      * @param transactionKey identifier of the active transaction
      * @return the name string
      */
-    public String getAgentName(AgentPath agentPath, Object transactionKey) throws ObjectNotFoundException;
+    public String getAgentName(AgentPath agentPath, TransactionKey transactionKey) throws ObjectNotFoundException;
 }

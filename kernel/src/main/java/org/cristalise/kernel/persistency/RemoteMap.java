@@ -68,9 +68,9 @@ public class RemoteMap<V extends C2KLocalObject> extends TreeMap<String, V> impl
     /**
      * if this remote map will participate in a transaction
      */
-    Object mTransactionKey;
+    TransactionKey mTransactionKey;
 
-    public RemoteMap(ItemPath itemPath, String path, Object transactionKey) {
+    public RemoteMap(ItemPath itemPath, String path, TransactionKey transactionKey) {
         super(new Comparator<String>() {
             @Override
             public int compare(String o1, String o2) {

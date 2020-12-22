@@ -23,6 +23,7 @@ package org.cristalise.kernel.lookup;
 import org.apache.commons.lang3.StringUtils;
 import org.cristalise.kernel.common.ObjectNotFoundException;
 import org.cristalise.kernel.persistency.ClusterType;
+import org.cristalise.kernel.persistency.TransactionKey;
 import org.cristalise.kernel.process.Gateway;
 
 import lombok.extern.slf4j.Slf4j;
@@ -81,7 +82,7 @@ public class DomainPath extends Path {
     }
 
     @Override
-    public ItemPath getItemPath(Object transactionKey) throws ObjectNotFoundException {
+    public ItemPath getItemPath(TransactionKey transactionKey) throws ObjectNotFoundException {
         if (target == null) {
             try {
                 setItemPath( Gateway.getLookup().resolvePath(this, transactionKey) );

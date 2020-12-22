@@ -24,6 +24,7 @@ import org.cristalise.kernel.common.PersistencyException;
 import org.cristalise.kernel.entity.C2KLocalObject;
 import org.cristalise.kernel.lookup.ItemPath;
 import org.cristalise.kernel.persistency.ClusterType;
+import org.cristalise.kernel.persistency.TransactionKey;
 
 /**
  * Use this class in clients for read only access to the database
@@ -46,12 +47,12 @@ public class JooqClientReader extends JooqClusterStorage {
     }
 
     @Override
-    public void put(ItemPath itemPath, C2KLocalObject obj, Object locker) throws PersistencyException {
+    public void put(ItemPath itemPath, C2KLocalObject obj, TransactionKey transactionKey) throws PersistencyException {
         throw new PersistencyException("Writing not supported in JooqClientReader");
     }
 
     @Override
-    public void delete(ItemPath itemPath, String path, Object locker) throws PersistencyException {
+    public void delete(ItemPath itemPath, String path, TransactionKey transactionKey) throws PersistencyException {
         throw new PersistencyException("Delete not supported in JooqClientReader");
     }
 }

@@ -30,12 +30,14 @@ import org.cristalise.kernel.entity.agent.ActiveLocator;
 import org.cristalise.kernel.lookup.AgentPath;
 import org.cristalise.kernel.lookup.InvalidAgentPathException;
 import org.cristalise.kernel.lookup.ItemPath;
+import org.cristalise.kernel.persistency.TransactionKey;
 import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.utils.SoftCache;
 import org.omg.PortableServer.POA;
 import org.omg.PortableServer.POAManager;
 import org.omg.PortableServer.Servant;
 import org.omg.PortableServer.POAManagerPackage.AdapterInactive;
+
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -128,7 +130,7 @@ public class CorbaServer {
      * @return the servant
      * @throws ObjectNotFoundException itemPath was not found
      */
-    public TraceableEntity getItem(ItemPath itemPath, Object transactionKey) throws ObjectNotFoundException {
+    public TraceableEntity getItem(ItemPath itemPath, TransactionKey transactionKey) throws ObjectNotFoundException {
         Servant item = null;
         if (!itemPath.exists(transactionKey)) throw new ObjectNotFoundException(itemPath+" does not exist");
         synchronized (mItemCache) {
@@ -150,7 +152,7 @@ public class CorbaServer {
      * @throws InvalidAgentPathException agentPath was not Agent
      * @throws ObjectNotFoundException agentPath was not found
      */
-    public ActiveEntity getAgent(AgentPath agentPath, Object transactionKey) throws InvalidAgentPathException, ObjectNotFoundException {
+    public ActiveEntity getAgent(AgentPath agentPath, TransactionKey transactionKey) throws InvalidAgentPathException, ObjectNotFoundException {
         Servant agent = null;
         if (!agentPath.exists(transactionKey)) throw new ObjectNotFoundException(agentPath+" does not exist");
 
@@ -171,7 +173,7 @@ public class CorbaServer {
         return mItemPOA.create_reference_with_id(itemPath.getOID(), ItemHelper.id());
     }
 
-    public TraceableEntity createItem(ItemPath itemPath, Object transactionKey) throws CannotManageException, ObjectAlreadyExistsException {
+    public TraceableEntity createItem(ItemPath itemPath, TransactionKey transactionKey) throws CannotManageException, ObjectAlreadyExistsException {
         if (itemPath.exists(transactionKey)) throw new ObjectAlreadyExistsException();
 
         itemPath.setIOR( getItemIOR(itemPath) );
@@ -188,7 +190,7 @@ public class CorbaServer {
         return mAgentPOA.create_reference_with_id(agentPath.getOID(), AgentHelper.id());
     }
 
-    public ActiveEntity createAgent(AgentPath agentPath, Object transactionKey) throws CannotManageException, ObjectAlreadyExistsException {
+    public ActiveEntity createAgent(AgentPath agentPath, TransactionKey transactionKey) throws CannotManageException, ObjectAlreadyExistsException {
         if (agentPath.exists(transactionKey)) throw new ObjectAlreadyExistsException("Agent:"+agentPath.getAgentName());
 
         agentPath.setIOR( getAgentIOR(agentPath) );

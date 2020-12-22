@@ -30,6 +30,7 @@ import org.cristalise.kernel.lookup.AgentPath;
 import org.cristalise.kernel.lookup.DomainPath;
 import org.cristalise.kernel.lookup.Path;
 import org.cristalise.kernel.lookup.RolePath;
+import org.cristalise.kernel.persistency.TransactionKey;
 import org.cristalise.kernel.process.resource.ResourceLoader;
 
 import lombok.extern.slf4j.Slf4j;
@@ -41,7 +42,7 @@ import lombok.extern.slf4j.Slf4j;
 public class StandardServer extends AbstractMain {
     protected static StandardServer server;
 
-    public static void resetItemIORs(DomainPath root, Object transactionKey) throws ObjectNotFoundException, ObjectCannotBeUpdated, CannotManageException {
+    public static void resetItemIORs(DomainPath root, TransactionKey transactionKey) throws ObjectNotFoundException, ObjectCannotBeUpdated, CannotManageException {
         log.info("resetItemIORs() - root:"+root);
 
         Iterator<Path> pathes = Gateway.getLookup().getChildren(root, transactionKey);
@@ -63,7 +64,7 @@ public class StandardServer extends AbstractMain {
         }
     }
 
-    public static void resetAgentIORs(RolePath root, Object transactionKey) throws ObjectNotFoundException, ObjectCannotBeUpdated, CannotManageException {
+    public static void resetAgentIORs(RolePath root, TransactionKey transactionKey) throws ObjectNotFoundException, ObjectCannotBeUpdated, CannotManageException {
         log.info("resetAgentIORs() - root:"+root);
 
         Iterator<Path> roles = Gateway.getLookup().getChildren(root, transactionKey);
@@ -106,7 +107,7 @@ public class StandardServer extends AbstractMain {
         if (Gateway.getProperties().containsKey(AbstractMain.MAIN_ARG_RESETIOR)) {
             log.info("standard initialisation RESETTING IORs");
 
-            Object transactionKey = new Object();
+            TransactionKey transactionKey = new TransactionKey("ResetIORs");
             Gateway.getStorage().begin(transactionKey);
 
             try {

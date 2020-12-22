@@ -35,6 +35,7 @@ import org.cristalise.kernel.entity.imports.ImportItem;
 import org.cristalise.kernel.lifecycle.instance.predefined.PredefinedStep;
 import org.cristalise.kernel.lookup.AgentPath;
 import org.cristalise.kernel.lookup.ItemPath;
+import org.cristalise.kernel.persistency.TransactionKey;
 import org.cristalise.kernel.process.Gateway;
 import org.exolab.castor.mapping.MappingException;
 import org.exolab.castor.xml.MarshalException;
@@ -50,13 +51,13 @@ public class CreateNewItem extends PredefinedStep {
     }
 
     @Override
-    protected String runActivityLogic(AgentPath agent, ItemPath item, int transitionID, String requestData, Object locker)
+    protected String runActivityLogic(AgentPath agent, ItemPath item, int transitionID, String requestData, TransactionKey transactionKey)
             throws InvalidDataException, ObjectCannotBeUpdated, ObjectNotFoundException, CannotManageException,
                    ObjectAlreadyExistsException, InvalidCollectionModification
     {
         try {
             ImportItem newItem = (ImportItem) Gateway.getMarshaller().unmarshall(requestData);
-            newItem.create(agent, false, locker);
+            newItem.create(agent, false, transactionKey);
             return requestData;
         }
         catch (MarshalException | ValidationException | IOException | MappingException e) {

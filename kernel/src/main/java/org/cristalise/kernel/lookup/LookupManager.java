@@ -26,6 +26,7 @@ import java.util.List;
 import org.cristalise.kernel.common.ObjectAlreadyExistsException;
 import org.cristalise.kernel.common.ObjectCannotBeUpdated;
 import org.cristalise.kernel.common.ObjectNotFoundException;
+import org.cristalise.kernel.persistency.TransactionKey;
 
 
 /**
@@ -46,7 +47,7 @@ public interface LookupManager extends Lookup {
      * @param transactionKey identifier of the active transaction
      * @throws ObjectNotFoundException When initialization data is not found
      */
-    public void initializeDirectory(Object transactionKey) throws ObjectNotFoundException;
+    public void initializeDirectory(TransactionKey transactionKey) throws ObjectNotFoundException;
 
     /**
      * Register a new a Path in the directory.
@@ -68,7 +69,7 @@ public interface LookupManager extends Lookup {
      * @throws ObjectCannotBeUpdated When there is an error writing to the directory
      * @throws ObjectAlreadyExistsException When the Path has already been registered
      */
-    public void add(Path newPath, Object transactionKey) throws ObjectCannotBeUpdated, ObjectAlreadyExistsException;
+    public void add(Path newPath, TransactionKey transactionKey) throws ObjectCannotBeUpdated, ObjectAlreadyExistsException;
 
     /**
      * Remove a Path from the directory.
@@ -88,7 +89,7 @@ public interface LookupManager extends Lookup {
      * @param transactionKey identifier of the active transaction
      * @throws ObjectCannotBeUpdated When an error occurs writing to the directory
      */
-    public void delete(Path path, Object transactionKey) throws ObjectCannotBeUpdated;
+    public void delete(Path path, TransactionKey transactionKey) throws ObjectCannotBeUpdated;
 
     /**
      * Creates a new Role. Checks if parent role exists or not and throws ObjectCannotBeUpdated if parent does not exist
@@ -110,7 +111,7 @@ public interface LookupManager extends Lookup {
      * @param transactionKey identifier of the active transaction
      * @return the RolePath representing the newly create Role
      */
-    public RolePath createRole(RolePath role, Object transactionKey) throws ObjectAlreadyExistsException, ObjectCannotBeUpdated;
+    public RolePath createRole(RolePath role, TransactionKey transactionKey) throws ObjectAlreadyExistsException, ObjectCannotBeUpdated;
 
     /**
      * Adds the given Agent to the given Role, if they both exist.
@@ -130,7 +131,7 @@ public interface LookupManager extends Lookup {
      * @param rolePath the path representing the given Role
      * @param transactionKey identifier of the active transaction
      */
-    public void addRole(AgentPath agent, RolePath rolePath, Object transactionKey) throws ObjectCannotBeUpdated, ObjectNotFoundException;
+    public void addRole(AgentPath agent, RolePath rolePath, TransactionKey transactionKey) throws ObjectCannotBeUpdated, ObjectNotFoundException;
 
     /**
      * Remove the given Agent from the given Role. Does not delete the Role.
@@ -150,7 +151,7 @@ public interface LookupManager extends Lookup {
      * @param role the path representing the given Role
      * @param transactionKey identifier of the active transaction
      */
-    public void removeRole(AgentPath agent, RolePath role, Object transactionKey) throws ObjectCannotBeUpdated, ObjectNotFoundException;
+    public void removeRole(AgentPath agent, RolePath role, TransactionKey transactionKey) throws ObjectCannotBeUpdated, ObjectNotFoundException;
 
     /**
      * Set permanent password of Agent's
@@ -182,7 +183,7 @@ public interface LookupManager extends Lookup {
      * @param temporary whether the new password is temporary or not
      * @param transactionKey identifier of the active transaction
      */
-    public void setAgentPassword(AgentPath agent, String newPassword, boolean temporary, Object transactionKey) throws ObjectNotFoundException, ObjectCannotBeUpdated, NoSuchAlgorithmException;
+    public void setAgentPassword(AgentPath agent, String newPassword, boolean temporary, TransactionKey transactionKey) throws ObjectNotFoundException, ObjectCannotBeUpdated, NoSuchAlgorithmException;
 
     /**
      * Set the flag specifying whether Activities holding this Role should push Jobs its Agents.
@@ -202,7 +203,7 @@ public interface LookupManager extends Lookup {
      * @param hasJobList boolean flag
      * @param transactionKey identifier of the active transaction
      */
-    public void setHasJobList(RolePath role, boolean hasJobList, Object transactionKey) throws ObjectNotFoundException, ObjectCannotBeUpdated;
+    public void setHasJobList(RolePath role, boolean hasJobList, TransactionKey transactionKey) throws ObjectNotFoundException, ObjectCannotBeUpdated;
 
     /**
      * Set the IOR of the Item
@@ -226,7 +227,7 @@ public interface LookupManager extends Lookup {
      * @throws ObjectNotFoundException Item does not exists
      * @throws ObjectCannotBeUpdated there was a probelm updating the ior
      */
-    public void setIOR(ItemPath item, String ior, Object transactionKey) throws ObjectNotFoundException, ObjectCannotBeUpdated;
+    public void setIOR(ItemPath item, String ior, TransactionKey transactionKey) throws ObjectNotFoundException, ObjectCannotBeUpdated;
 
     /**
      * Sets the permission of the given Role. Use blank string to clear the permissions
@@ -250,7 +251,7 @@ public interface LookupManager extends Lookup {
      * @throws ObjectNotFoundException Role does not exists
      * @throws ObjectCannotBeUpdated there was a problem updating the permissions
      */
-    public void setPermission(RolePath role, String permission, Object transactionKey) throws ObjectNotFoundException, ObjectCannotBeUpdated;
+    public void setPermission(RolePath role, String permission, TransactionKey transactionKey) throws ObjectNotFoundException, ObjectCannotBeUpdated;
 
     /**
      * Sets the list of permission of the given Role. Use empty list to clear the permissions
@@ -274,7 +275,7 @@ public interface LookupManager extends Lookup {
      * @throws ObjectNotFoundException Role does not exists
      * @throws ObjectCannotBeUpdated there was a problem updating the permissions
      */
-    public void setPermissions(RolePath role, List<String> permissions, Object transactionKey) throws ObjectNotFoundException, ObjectCannotBeUpdated;
+    public void setPermissions(RolePath role, List<String> permissions, TransactionKey transactionKey) throws ObjectNotFoundException, ObjectCannotBeUpdated;
 
     /**
      * 
