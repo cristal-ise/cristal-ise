@@ -76,7 +76,7 @@ public class Console extends JFrame {
         this.setDefaultCloseOperation(DISPOSE_ON_CLOSE);
         GridBagLayout gridbag = new GridBagLayout();
         getContentPane().setLayout(gridbag);
-        output = new JTextArea("Type 'help' for help. . .\n");
+        output = new JTextArea("Enter 'help()' for help. . .\n");
         output.setEditable(false);
         input = new JTextField();
         setSize(400, 600);
