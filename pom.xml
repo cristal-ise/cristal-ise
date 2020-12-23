@@ -200,6 +200,7 @@
                     <version>2.22.1</version>
                     <configuration>
                         <redirectTestOutputToFile>true</redirectTestOutputToFile>
+                        <reuseForks>false</reuseForks>
                         <includes>
                             <include>**/*Specs.*</include>
                             <include>**/*Spec.*</include>
