@@ -43,6 +43,7 @@ import org.cristalise.kernel.lookup.InvalidItemPathException;
 import org.cristalise.kernel.lookup.ItemPath;
 import org.cristalise.kernel.lookup.Path;
 import org.cristalise.kernel.persistency.ClusterType;
+import org.cristalise.kernel.persistency.TransactionKey;
 import org.cristalise.kernel.persistency.outcome.Viewpoint;
 import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.process.module.Module;
@@ -116,7 +117,7 @@ public abstract class DescriptionObjectCache<D extends DescriptionObject> {
         return filename.equals(getTypeCode() + "/" + resName);
     }
 
-    public ItemPath findItem(String name) throws ObjectNotFoundException, InvalidDataException {
+    public ItemPath findItem(String name, TransactionKey transactionKey) throws ObjectNotFoundException, InvalidDataException {
         if (Gateway.getLookup() == null) throw new ObjectNotFoundException("Cannot find Items without a Lookup");
 
         // first check for a UUID name
@@ -144,11 +145,11 @@ public abstract class DescriptionObjectCache<D extends DescriptionObject> {
             searchProps[0] = new Property(NAME, name);
             System.arraycopy(classIdProps, 0, searchProps, 1, classIdProps.length);
 
-            searchResult = Gateway.getLookup().search(new DomainPath(getTypeRoot()), searchProps);
+            searchResult = Gateway.getLookup().search(new DomainPath(getTypeRoot()), transactionKey, searchProps);
         }
         else {
             // or search for it in the subtree using name
-            searchResult = Gateway.getLookup().search(new DomainPath(getTypeRoot()), name, EXACT_NAME_MATCH, null);
+            searchResult = Gateway.getLookup().search(new DomainPath(getTypeRoot()), name, EXACT_NAME_MATCH, transactionKey);
         }
 
         if (searchResult.hasNext()) {
@@ -174,6 +175,19 @@ public abstract class DescriptionObjectCache<D extends DescriptionObject> {
      * @throws InvalidDataException
      */
     public D get(String name, int version) throws ObjectNotFoundException, InvalidDataException {
+        return get(name, version, null);
+    }
+
+    /**
+     * 
+     * @param name the Name or the UUID of the resource Item
+     * @param version the Version of the resource Item
+     * @param transactionKey
+     * @return
+     * @throws ObjectNotFoundException
+     * @throws InvalidDataException
+     */
+    public D get(String name, int version, TransactionKey transactionKey) throws ObjectNotFoundException, InvalidDataException {
         try {
             CacheEntry<D> thisDefEntry = null;
             synchronized (cache) {
@@ -185,7 +199,7 @@ public abstract class DescriptionObjectCache<D extends DescriptionObject> {
                 return thisDefEntry.def;
             }
 
-            ItemPath defItemPath = findItem(name);
+            ItemPath defItemPath = findItem(name, transactionKey);
             String defUuid = defItemPath.getUUID().toString();
 
             synchronized (cache) {
@@ -200,7 +214,7 @@ public abstract class DescriptionObjectCache<D extends DescriptionObject> {
 
             log.trace("get() - " + name + " v" + version + " not found in cache. Loading from database.");
 
-            ItemProxy defItemProxy = Gateway.getProxyManager().getProxy(defItemPath);
+            ItemProxy defItemProxy = Gateway.getProxyManager().getProxy(defItemPath, transactionKey);
             if (name.equals(defUuid)) {
                 String itemName = defItemProxy.getName();
                 if (itemName != null) name = itemName;

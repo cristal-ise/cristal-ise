@@ -281,7 +281,7 @@ public class CreateItemFromDescription extends PredefinedStep {
             if (wfDefName == null) throw new InvalidDataException("No workflow given or defined");
 
             // load workflow def
-            CompositeActivityDef wfDef = (CompositeActivityDef) LocalObjectLoader.getActDef(wfDefName, wfDefVer);
+            CompositeActivityDef wfDef = (CompositeActivityDef) LocalObjectLoader.getActDef(wfDefName, wfDefVer, transactionKey);
             return (CompositeActivity) wfDef.instantiate();
         }
         catch (NumberFormatException ex) {
@@ -439,9 +439,9 @@ public class CreateItemFromDescription extends PredefinedStep {
         History hist = new History(item, transactionKey);
 
         // Store an "Initialize" event and the outcome containing the initial values for properties
-        Schema initSchema = LocalObjectLoader.getSchema("ItemInitialization", 0);
+        Schema initSchema = LocalObjectLoader.getSchema("ItemInitialization", 0, transactionKey);
         Outcome initOutcome = new Outcome(0, Gateway.getMarshaller().marshall(props), initSchema);
-        StateMachine predefSm = LocalObjectLoader.getStateMachine("PredefinedStep", 0);
+        StateMachine predefSm = LocalObjectLoader.getStateMachine("PredefinedStep", 0, transactionKey);
 
         Event newEvent = hist.addEvent(agent, null, "", "Initialize", "", "", initSchema, predefSm, PredefinedStep.DONE, "last");
 
@@ -453,7 +453,7 @@ public class CreateItemFromDescription extends PredefinedStep {
 
         // Store an "Constructor" event and the outcome containing the "Constructor"
         if (initViewpoint != null) {
-            Schema schema = LocalObjectLoader.getSchema(initViewpoint.getSchemaName(), initViewpoint.getSchemaVersion());
+            Schema schema = LocalObjectLoader.getSchema(initViewpoint.getSchemaName(), initViewpoint.getSchemaVersion(), transactionKey);
             Outcome outcome = new Outcome(-1, initOutcomeString, schema);
             outcome.validateAndCheck();
 

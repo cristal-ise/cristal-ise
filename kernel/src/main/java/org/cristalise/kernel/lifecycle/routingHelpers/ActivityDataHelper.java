@@ -87,7 +87,7 @@ public class ActivityDataHelper implements DataHelper {
 
         if (StringUtils.isBlank(viewName)) viewName = "last";
 
-        Schema schema = LocalObjectLoader.getSchema(schemaName, schemaVersion); //checks if schema/version was correct
+        Schema schema = LocalObjectLoader.getSchema(schemaName, schemaVersion, transactionKey); //checks if schema/version was correct
 
         // get the viewpoint and outcome
         Viewpoint view  = (Viewpoint) Gateway.getStorage().get(itemPath, ClusterType.VIEWPOINT+"/"+schema.getName()+"/"+viewName, transactionKey);

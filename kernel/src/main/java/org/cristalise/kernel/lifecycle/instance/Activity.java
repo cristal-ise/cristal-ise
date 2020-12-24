@@ -127,9 +127,13 @@ public class Activity extends WfVertex {
     }
 
     public StateMachine getStateMachine() throws InvalidDataException {
+        return getStateMachine(null);
+    }
+
+    public StateMachine getStateMachine(TransactionKey transKey) throws InvalidDataException {
         if (machine == null) {
             try {
-                machine = LocalObjectLoader.getStateMachine(getProperties());
+                machine = LocalObjectLoader.getStateMachine(getProperties(), transKey);
             }
             catch (ObjectNotFoundException e) {
                 throw new InvalidDataException(e.getMessage());

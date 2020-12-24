@@ -74,7 +74,7 @@ public class Import extends PredefinedStep {
         }
         else schemaVersion = Integer.parseInt(params[0].substring(split1 + 1));
 
-        schema = LocalObjectLoader.getSchema(schemaName, schemaVersion);
+        schema = LocalObjectLoader.getSchema(schemaName, schemaVersion, transactionKey);
 
         String timestamp;
         if (params.length == 3) timestamp = params[2];

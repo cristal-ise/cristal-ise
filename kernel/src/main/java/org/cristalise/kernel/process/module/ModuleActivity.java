@@ -94,7 +94,7 @@ public class ModuleActivity extends ModuleResource {
             throw new CannotManageException("Exception verifying module resource " + ns + "/" + name);
         }
 
-        actDef = LocalObjectLoader.getActDef(name, version);
+        actDef = LocalObjectLoader.getActDef(name, version, transactionKey);
         populateActivityDef();
 
         CollectionArrayList colls;

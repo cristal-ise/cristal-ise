@@ -86,7 +86,7 @@ public class WriteViewpoint extends PredefinedStep {
         }
 
         //checks Schema name/version
-        Schema thisSchema = LocalObjectLoader.getSchema(schemaName, event.getSchemaVersion());
+        Schema thisSchema = LocalObjectLoader.getSchema(schemaName, event.getSchemaVersion(), transactionKey);
 
         if (!event.getSchemaName().equals(thisSchema.getItemID())) { 
             throw new InvalidDataException("Event outcome schema is "+event.getSchemaName()+", and cannot be used for a "+schemaName+" Viewpoint");

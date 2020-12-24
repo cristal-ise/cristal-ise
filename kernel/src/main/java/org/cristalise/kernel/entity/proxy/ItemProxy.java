@@ -621,7 +621,8 @@ public class ItemProxy
      */
     public boolean checkOutcome(String schemaName, int schemaVersion, int eventId, TransactionKey transKey) throws ObjectNotFoundException {
         try {
-            return checkOutcome(LocalObjectLoader.getSchema(schemaName, schemaVersion), eventId, transKey == null ? transactionKey : transKey);
+            TransactionKey tk = transKey == null ? transactionKey : transKey;
+            return checkOutcome(LocalObjectLoader.getSchema(schemaName, schemaVersion, tk), eventId, tk);
         }
         catch (InvalidDataException e) {
             log.error("Schema was not found:{}", schemaName, e);
@@ -682,7 +683,8 @@ public class ItemProxy
      */
     public Outcome getOutcome(String schemaName, int schemaVersion, int eventId, TransactionKey transKey) throws ObjectNotFoundException {
         try {
-            return getOutcome(LocalObjectLoader.getSchema(schemaName, schemaVersion), eventId, transKey == null ? transactionKey : transKey);
+            TransactionKey tk = transKey == null ? transactionKey : transKey;
+            return getOutcome(LocalObjectLoader.getSchema(schemaName, schemaVersion, tk), eventId, tk);
         }
         catch (InvalidDataException e) {
             log.error("Schema was not found:{}", schemaName, e);
@@ -824,7 +826,8 @@ public class ItemProxy
             throws ObjectNotFoundException
     {
         try {
-            return getOutcomeAttachment(LocalObjectLoader.getSchema(schemaName, schemaVersion), eventId, transKey == null ? transactionKey : transKey);
+            TransactionKey tk = transKey == null ? transactionKey : transKey;
+            return getOutcomeAttachment(LocalObjectLoader.getSchema(schemaName, schemaVersion, tk), eventId, tk);
         }
         catch (InvalidDataException e) {
             log.error("Could not retrieve attachment for schema:{}", schemaName, e);
@@ -1307,7 +1310,7 @@ public class ItemProxy
             }
         }
 
-        return LocalObjectLoader.getSchema(schemaName, schemaVersion);
+        return LocalObjectLoader.getSchema(schemaName, schemaVersion, transactionKey);
     }
 
     /**
@@ -1354,7 +1357,7 @@ public class ItemProxy
             }
         }
 
-        return LocalObjectLoader.getScript(scriptName, scriptVersion);
+        return LocalObjectLoader.getScript(scriptName, scriptVersion, transactionKey);
     }
 
     //**************************************************************************

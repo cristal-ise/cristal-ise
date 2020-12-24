@@ -69,7 +69,10 @@ public class ConfigureLogback extends PredefinedStep {
                    ObjectAlreadyExistsException, InvalidCollectionModification
     {
         Schema schema = LocalObjectLoader.getSchema(
-                (String)getBuiltInProperty(SCHEMA_NAME), Integer.parseInt((String)getBuiltInProperty(SCHEMA_VERSION)));
+                (String)getBuiltInProperty(SCHEMA_NAME), 
+                Integer.parseInt((String)getBuiltInProperty(SCHEMA_VERSION)),
+                transactionKey);
+
         Outcome config = new Outcome(requestData, schema);
 
         config.validateAndCheck();

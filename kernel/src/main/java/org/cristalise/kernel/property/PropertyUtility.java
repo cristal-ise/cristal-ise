@@ -172,7 +172,7 @@ public class PropertyUtility {
 
                 int version = getVersionID(itemPath, descVer, PROPERTY_DESC_RESOURCE.getSchemaName(), transactionKey);
 
-                return LocalObjectLoader.getPropertyDescriptionList(name, version);
+                return LocalObjectLoader.getPropertyDescriptionList(name, version, transactionKey);
             }
             else  {
                 //the type of the Item is very likely a Factory
