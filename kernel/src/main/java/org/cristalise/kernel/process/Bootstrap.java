@@ -78,8 +78,8 @@ public class Bootstrap {
      * @throws Exception in case of any error
      */
     static void init() throws Exception {
-        TransactionKey transactionKey = null;
-        Gateway.getStorage().begin(transactionKey); // should do nothing if transactionKey is null
+        TransactionKey transactionKey = new TransactionKey("Bootstrap-Init");
+        Gateway.getStorage().begin(transactionKey);
 
         try {
             //start console
@@ -166,8 +166,8 @@ public class Bootstrap {
 
         bootItems = FileStringUtility.url2String(Gateway.getResource().getKernelResourceURL("boot/allbootitems.txt"));
 
-        TransactionKey transactionKey = null;
-        Gateway.getStorage().begin(transactionKey); // should do nothing if transactionKey is null
+        TransactionKey transactionKey = new TransactionKey("Bootstrap-VerifyBootDataItems");
+        Gateway.getStorage().begin(transactionKey);
 
         try {
             verifyBootDataItems(bootItems, null, true, transactionKey);

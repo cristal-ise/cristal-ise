@@ -147,8 +147,8 @@ public class Module extends ImportItem {
     public void importAll(ItemProxy serverEntity, AgentProxy systemAgent, boolean reset) throws Exception {
         String moduleChanges = "";
 
-        TransactionKey transactionKey = null;
-        Gateway.getStorage().begin(transactionKey); // should do nothing if transactionKey is null
+        TransactionKey transactionKey = new TransactionKey("Module-ImportAll");
+        Gateway.getStorage().begin(transactionKey);
 
         try {
             if (!Bootstrap.shutdown) moduleChanges = importResources(systemAgent, reset, transactionKey);
