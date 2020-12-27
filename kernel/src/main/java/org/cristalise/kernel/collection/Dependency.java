@@ -209,7 +209,7 @@ public class Dependency extends Collection<DependencyMember> {
             throw new InvalidCollectionModification("Cannot add empty slot to Dependency collection");
 
         if (contains(itemPath))
-            throw new ObjectAlreadyExistsException("Item "+itemPath+" already exists in Dependency "+getName());
+            throw new ObjectAlreadyExistsException("Item "+itemPath+" already exists in Dependency:"+getName());
 
         // create member object
         DependencyMember depMember = new DependencyMember();

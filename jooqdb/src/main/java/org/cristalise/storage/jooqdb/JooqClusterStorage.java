@@ -146,12 +146,6 @@ public class JooqClusterStorage extends ClusterStorage {
         retrieveContext(null).transaction(nested ->{
             for (JooqDomainHandler domainHandler : domainHandlers) domainHandler.postBoostrap(DSL.using(nested));
         });
-
-        // after the the bootstrap the DataSource needs to be reset to its original config
-        if (!JooqDataSourceHandler.readOnlyDataSource && !JooqDataSourceHandler.autoCommit) {
-            //Restore data source with original auto-commit setting
-            JooqDataSourceHandler.recreateDataSource(JooqDataSourceHandler.autoCommit);
-        }
     }
 
     @Override
@@ -163,16 +157,9 @@ public class JooqClusterStorage extends ClusterStorage {
 
     @Override
     public void postConnect() throws PersistencyException {
-        // the DataSource need to be set to autocommit for the the bootstrap to work
-        if (!JooqDataSourceHandler.readOnlyDataSource && !JooqDataSourceHandler.autoCommit) {
-            //recreate a new DS with auto-commit forced to true
-            JooqDataSourceHandler.recreateDataSource(true);
-        }
-
         retrieveContext(null).transaction(nested -> {
             for (JooqDomainHandler domainHandler : domainHandlers) domainHandler.postConnect(DSL.using(nested));
         });
-
     }
 
     @Override

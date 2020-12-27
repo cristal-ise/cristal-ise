@@ -122,27 +122,11 @@ public class JooqDataSourceHandler {
 
             log.info("getDataSource() - uri:'{}' user:'{}' dialect:'{}'", uri, user, dialect);
 
-            config.setAutoCommit(autoCommit);
             ds = new HikariDataSource(config);
 
             log.info("getDataSource() - create datasource {}", ds);
         }
         return ds;
-    }
-
-    public static synchronized void recreateDataSource(boolean forcedAutoCommit) throws PersistencyException {
-        if (ds == null)
-            throw new PersistencyException("Cannot recreate a null data source");
-
-        log.info("recreateDataSource() - autocommit={}", forcedAutoCommit);
-
-        HikariConfig config = new HikariConfig();
-        ds.copyStateTo(config);
-        config.setAutoCommit(forcedAutoCommit);
-        config.addDataSourceProperty("autoCommit", forcedAutoCommit);
-        closeDataSource();
-        HikariDataSource newDs = new HikariDataSource(config);
-        ds = newDs;
     }
 
     public static synchronized void closeDataSource() throws PersistencyException {

@@ -202,17 +202,11 @@ public class Bootstrap {
             String[] fileParts = filename.split("/");
             String itemType = fileParts[0], itemName = fileParts[1];
 
-            try {
-                String location = "boot/"+filename+(itemType.equals("OD")?".xsd":".xml");
-                ResourceImportHandler importHandler = Gateway.getResourceImportHandler(BuiltInResources.getValue(itemType));
-                importHandler.importResource(ns, itemName, 0, itemPath, location, reset, transactionKey);
+            String location = "boot/"+filename+(itemType.equals("OD")?".xsd":".xml");
+            ResourceImportHandler importHandler = Gateway.getResourceImportHandler(BuiltInResources.getValue(itemType));
+            importHandler.importResource(ns, itemName, 0, itemPath, location, reset, transactionKey);
 
-                kernelChanges.add(importHandler.getResourceChangeDetails());
-            }
-            catch (Exception e) {
-                log.error("Error importing bootstrap items. Unsafe to continue.", e);
-                AbstractMain.shutdown(1);
-            }
+            kernelChanges.add(importHandler.getResourceChangeDetails());
         }
 
         StringBuffer moduleChangesXML = new StringBuffer("<ModuleChanges>\n");
@@ -347,7 +341,7 @@ public class Bootstrap {
     private static void initServerItemWf(TransactionKey transactionKey) throws Exception {
         CompositeActivityDef serverWfCa = (CompositeActivityDef)LocalObjectLoader.getCompActDef("ServerItemWorkflow", 0, transactionKey);
         Workflow wf = new Workflow((CompositeActivity)serverWfCa.instantiate(), new ServerPredefinedStepContainer());
-        wf.initialise(thisServerPath.getItemPath(), systemAgents.get(SYSTEM_AGENT.getName()).getPath(), null);
+        wf.initialise(thisServerPath.getItemPath(), systemAgents.get(SYSTEM_AGENT.getName()).getPath(), transactionKey);
         Gateway.getStorage().put(thisServerPath.getItemPath(), wf, transactionKey);
     }
 }

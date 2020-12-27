@@ -337,7 +337,7 @@ public class ActivityDef extends WfVertexDef implements C2KLocalObject, Descript
             }
             catch (Exception e) {
                 log.error("Problem creating description collection for " + thisDesc + " in " + getName(), e);
-                throw new InvalidDataException();
+                throw new InvalidDataException(e.getMessage());
             }
         }
         return descDep;
@@ -403,5 +403,10 @@ public class ActivityDef extends WfVertexDef implements C2KLocalObject, Descript
                    + (getSchema() == null ? "" : "<Schema name=\""       + getSchema().getName()       + "\" id=\"" + getSchema().getItemID()       + "\" version=\"" + getSchema().getVersion()       + "\"/>")
                    + (getScript() == null ? "" : "<Script name=\""       + getScript().getName()       + "\" id=\"" + getScript().getItemID()       + "\" version=\"" + getScript().getVersion()       + "\"/>")
                    + (getQuery()  == null ? "" : "<Query name=\""        + getQuery().getName()        + "\" id=\"" + getQuery().getItemID()        + "\" version=\"" + getQuery().getVersion()        + "\"/>");
+    }
+
+    @Override
+    public String toString() {
+        return getActName()+"(uuid:"+getItemPath()+")";
     }
 }

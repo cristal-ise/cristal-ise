@@ -794,7 +794,8 @@ public class ClusterStorageManager {
                 else {
                     // the item is already locked by someone else
                     // at this point a semaphore could be used to block the thread, but this could create deadlocks
-                    throw new PersistencyException("Access denied: '"+itemPath+"' has been locked for writing by "+thisLocker);
+                    throw new PersistencyException("Access denied for '"+transactionKey+"': '"+itemPath+
+                                                   "' has been locked for writing by '"+thisLocker+"'");
                 }
             }
             else { // no locks for this item
