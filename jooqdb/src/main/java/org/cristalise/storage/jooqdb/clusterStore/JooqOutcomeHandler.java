@@ -33,7 +33,6 @@ import java.util.UUID;
 import org.cristalise.kernel.common.PersistencyException;
 import org.cristalise.kernel.entity.C2KLocalObject;
 import org.cristalise.kernel.persistency.outcome.Outcome;
-import org.cristalise.kernel.utils.LocalObjectLoader;
 import org.cristalise.storage.jooqdb.JooqHandler;
 import org.jooq.Condition;
 import org.jooq.DSLContext;
@@ -125,7 +124,7 @@ public class JooqOutcomeHandler extends JooqHandler {
         if(result != null) {
             try {
                 String xml = result.get(XML);
-                return new Outcome(result.get(EVENT_ID), xml, LocalObjectLoader.getSchema(result.get(SCHEMA_NAME), result.get(SCHEMA_VERSION)));
+                return new Outcome(result.get(EVENT_ID), xml, result.get(SCHEMA_NAME), result.get(SCHEMA_VERSION));
             }
             catch (Exception e) {
                 log.error("", e);
