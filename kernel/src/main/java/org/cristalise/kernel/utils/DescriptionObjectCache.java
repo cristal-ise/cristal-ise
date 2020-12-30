@@ -253,15 +253,15 @@ public abstract class DescriptionObjectCache<D extends DescriptionObject> {
 
     public D loadObject(String name, int version, ItemProxy proxy) throws ObjectNotFoundException, InvalidDataException {
         Viewpoint smView = (Viewpoint) proxy.getObject(ClusterType.VIEWPOINT + "/" + getSchemaName() + "/" + version);
-        String rawRes;
+
         try {
-            rawRes = smView.getOutcome().getData();
+            String rawRes = smView.getOutcome().getData();
+            return buildObject(name, version, proxy.getPath(), rawRes);
         }
         catch (PersistencyException ex) {
             log.error("Problem loading " + getSchemaName() + " " + name + " v" + version, ex);
             throw new ObjectNotFoundException("Problem loading " + getSchemaName() + " " + name + " v" + version + ": " + ex.getMessage());
         }
-        return buildObject(name, version, proxy.getPath(), rawRes);
     }
 
     public void removeObject(String id) {
