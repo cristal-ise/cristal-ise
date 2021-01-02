@@ -88,7 +88,7 @@ public class AggregationMember extends GraphableVertex implements CollectionMemb
     }
 
     @Override
-    public void assignItem(ItemPath itemPath) throws InvalidCollectionModification
+    public void assignItem(ItemPath itemPath, TransactionKey transactionKey) throws InvalidCollectionModification
     {
         if (itemPath != null) {
             if (mClassProps == null || getProperties() == null)
@@ -101,7 +101,7 @@ public class AggregationMember extends GraphableVertex implements CollectionMemb
                 String aClassProp = sub.nextToken();
                 try {
                     String memberValue = (String)getProperties().get(aClassProp);
-                    Property ItemProperty = (Property)Gateway.getStorage().get(itemPath, ClusterType.PROPERTY+"/"+aClassProp, null);
+                    Property ItemProperty = (Property)Gateway.getStorage().get(itemPath, ClusterType.PROPERTY+"/"+aClassProp, transactionKey);
                     if (ItemProperty == null)
                         throw new InvalidCollectionModification("Property "+aClassProp+ " does not exist for item " + itemPath );
                     if (ItemProperty.getValue() == null || !ItemProperty.getValue().equalsIgnoreCase(memberValue))

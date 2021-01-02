@@ -196,8 +196,8 @@ public class ImportItem extends ModuleImport {
                     agentPath, 
                     getItemPath(transactionKey),
                     createItemProperties(),
-                    createCollections(),
-                    createCompositeActivity(),
+                    createCollections(transactionKey),
+                    createCompositeActivity(transactionKey),
                     null, //initViewpoint
                     null, //initOutcomeString
                     transactionKey);
@@ -217,7 +217,7 @@ public class ImportItem extends ModuleImport {
             String outcomeData = thisOutcome.getData(ns);
 
             // load schema and state machine
-            Schema schema = LocalObjectLoader.getSchema(thisOutcome.schema, thisOutcome.version);
+            Schema schema = LocalObjectLoader.getSchema(thisOutcome.schema, thisOutcome.version, transactionKey);
 
             // parse new outcome and validate
             Outcome newOutcome = new Outcome(-1, outcomeData, schema);
@@ -248,7 +248,7 @@ public class ImportItem extends ModuleImport {
             // write new view/outcome/event
             Event newEvent = hist.addEvent(
                     agentPath, null, ADMIN_ROLE.getName(), "Import", "Import", "Import", schema, 
-                    LocalObjectLoader.getStateMachine("PredefinedStep", 0), PredefinedStep.DONE, thisOutcome.viewname);
+                    LocalObjectLoader.getStateMachine("PredefinedStep", 0, transactionKey), PredefinedStep.DONE, thisOutcome.viewname);
             newOutcome.setID(newEvent.getID());
             impView.setEventId(newEvent.getID());
 
@@ -283,7 +283,7 @@ public class ImportItem extends ModuleImport {
      * @throws ObjectNotFoundException
      * @throws InvalidDataException
      */
-    protected CompositeActivity createCompositeActivity() throws ObjectNotFoundException, InvalidDataException {
+    protected CompositeActivity createCompositeActivity(TransactionKey transactionKey) throws ObjectNotFoundException, InvalidDataException {
         if (wf != null) {
             log.info("createCompositeActivity() - use Workflow instance");
             return (CompositeActivity) wf.search("workflow/domain");
@@ -292,36 +292,37 @@ public class ImportItem extends ModuleImport {
             if (compActDef == null) {
                 // default workflow version is 0 if not given
                 if (StringUtils.isNotBlank(workflow)) {
-                    compActDef = (CompositeActivityDef) LocalObjectLoader.getActDef(workflow, workflowVer == null ? 0 : workflowVer);
+                    compActDef = (CompositeActivityDef) LocalObjectLoader.getActDef(workflow, workflowVer == null ? 0 : workflowVer, transactionKey);
                 }
                 else {
                     log.warn("createCompositeActivity() - NO Workflow was set for domainPath:"+domainPath);
-                    compActDef = (CompositeActivityDef) LocalObjectLoader.getActDef("NoWorkflow", workflowVer == null ? 0 : workflowVer);
+                    compActDef = (CompositeActivityDef) LocalObjectLoader.getActDef("NoWorkflow", workflowVer == null ? 0 : workflowVer, transactionKey);
                 }
             }
         }
-        return (CompositeActivity) compActDef.instantiate();
+        return (CompositeActivity) compActDef.instantiate(transactionKey);
     }
 
     /**
      *
+     * @param transactionKey 
      * @return
      * @throws InvalidCollectionModification
      * @throws ObjectNotFoundException
      * @throws ObjectAlreadyExistsException
      */
-    protected CollectionArrayList createCollections()
+    protected CollectionArrayList createCollections(TransactionKey transactionKey)
             throws InvalidCollectionModification, ObjectNotFoundException, ObjectAlreadyExistsException
     {
         CollectionArrayList colls = new CollectionArrayList();
 
         for (ImportDependency element : dependencyList) {
-            Dependency newDep = element.create();
+            Dependency newDep = element.create(transactionKey);
             colls.put(newDep);
         }
 
         for (ImportAggregation element : aggregationList) {
-            Aggregation newAgg = element.create();
+            Aggregation newAgg = element.create(transactionKey);
             colls.put(newAgg);
         }
 

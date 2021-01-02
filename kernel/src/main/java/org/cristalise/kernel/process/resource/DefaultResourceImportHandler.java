@@ -95,29 +95,36 @@ public class DefaultResourceImportHandler implements ResourceImportHandler {
     }
 
     @Override
-    public CollectionArrayList getCollections(String name, String ns, String location, Integer version) throws Exception {
-        return getCollections(name, version,Gateway.getResource().getTextResource(ns, location));
+    public CollectionArrayList getCollections(String name, String ns, String location, Integer version, TransactionKey transactionKey) throws Exception {
+        return getCollections(name, version, Gateway.getResource().getTextResource(ns, location), transactionKey);
     }
 
     @Override
-    public CollectionArrayList getCollections(String name, Integer version, Outcome outcome) throws Exception {
-        return getCollections(name, version, outcome.getData());
+    public CollectionArrayList getCollections(String name, Integer version, Outcome outcome, TransactionKey transactionKey) throws Exception {
+        return getCollections(name, version, outcome.getData(), transactionKey);
     }
 
-    private CollectionArrayList getCollections(String name, Integer version, String xml) throws Exception {
+    private CollectionArrayList getCollections(String name, Integer version, String xml, TransactionKey transactionKey) throws Exception {
         if (type == SCHEMA_RESOURCE) {
-            return new Schema(name, version, null, xml).makeDescCollections();
+            return new Schema(name, version, null, xml).makeDescCollections(transactionKey);
         }
         else if (type == SCRIPT_RESOURCE) {
-            return new Script(name, version, null, xml).makeDescCollections();
+            return new Script(name, version, null, xml).makeDescCollections(transactionKey);
         }
         else if (type == QUERY_RESOURCE) {
-            return new Query(name, version, null, xml).makeDescCollections();
+            return new Query(name, version, null, xml).makeDescCollections(transactionKey);
         }
         else {
             DescriptionObject descObject = (DescriptionObject)Gateway.getMarshaller().unmarshall(xml);
             descObject.setVersion(version);
-            return descObject.makeDescCollections();
+
+            // caDef.setRefChildActDef(...) is called during unmarshall, but without using transactionKey.
+            if (type == BuiltInResources.COMP_ACT_DESC_RESOURCE) {
+                CompositeActivityDef caDesc = (CompositeActivityDef)descObject;
+                caDesc.setRefChildActDef(caDesc.findRefActDefs(caDesc.getChildrenGraphModel(), transactionKey));
+            }
+
+            return descObject.makeDescCollections(transactionKey);
         }
     }
 
@@ -144,7 +151,7 @@ public class DefaultResourceImportHandler implements ResourceImportHandler {
 
         if (data == null) throw new ObjectNotFoundException("No data found for "+type.getSchemaName()+" "+name);
 
-        return new Outcome(-1, data, LocalObjectLoader.getSchema(type.getSchemaName(), version));
+        return new Outcome(-1, data, type.getSchemaName(), version);
     }
 
     @Override
@@ -232,7 +239,7 @@ public class DefaultResourceImportHandler implements ResourceImportHandler {
 
             PredefinedStep.storeOutcomeEventAndViews(thisProxy.getPath(), outcome, version, transactionKey);
 
-            CollectionArrayList cols = getCollections(itemName, version, outcome);
+            CollectionArrayList cols = getCollections(itemName, version, outcome, transactionKey);
 
             for (Collection<?> col : cols.list) {
                 Gateway.getStorage().put(thisProxy.getPath(), col, transactionKey);
@@ -301,7 +308,7 @@ public class DefaultResourceImportHandler implements ResourceImportHandler {
     private Status checkToStoreOutcomeVersion(ItemProxy item, Outcome newOutcome, int version, boolean reset, TransactionKey transactionKey)
             throws PersistencyException, InvalidDataException, ObjectNotFoundException
     {
-        Schema schema = newOutcome.getSchema();
+        Schema schema = newOutcome.getSchema(transactionKey);
 
         if (! item.checkViewpoint(schema.getName(), Integer.toString(version), transactionKey)) {
             return NEW;
@@ -353,7 +360,7 @@ public class DefaultResourceImportHandler implements ResourceImportHandler {
         CompositeActivity ca = null;
 
         try {
-            ca = (CompositeActivity) ((CompositeActivityDef)LocalObjectLoader.getCompActDef(getWorkflowName(), version, transactionKey)).instantiate();
+            ca = (CompositeActivity) ((CompositeActivityDef)LocalObjectLoader.getCompActDef(getWorkflowName(), version, transactionKey)).instantiate(transactionKey);
         }
         catch (ObjectNotFoundException ex) {
             // FIXME check if this could be a real error

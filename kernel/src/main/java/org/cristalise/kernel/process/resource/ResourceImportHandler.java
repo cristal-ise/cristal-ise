@@ -91,7 +91,7 @@ public interface ResourceImportHandler {
      * @return CollectionArrayList
      * @throws Exception something went wrong
      */
-    public CollectionArrayList getCollections(String name, String ns, String location, Integer version) throws Exception;
+    public CollectionArrayList getCollections(String name, String ns, String location, Integer version, TransactionKey transactionKey) throws Exception;
 
     /**
      * Returns any collections that this Resource Item stored in the outcome should contain.
@@ -102,7 +102,7 @@ public interface ResourceImportHandler {
      * @return CollectionArrayList
      * @throws Exception something went wrong
      */
-    public CollectionArrayList getCollections(String name, Integer version, Outcome outcome) throws Exception;
+    public CollectionArrayList getCollections(String name, Integer version, Outcome outcome, TransactionKey transactionKey) throws Exception;
 
     /**
      * The name of the imported resource managed by the handler

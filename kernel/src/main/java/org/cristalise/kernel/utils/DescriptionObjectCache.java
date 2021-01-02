@@ -125,15 +125,15 @@ public abstract class DescriptionObjectCache<D extends DescriptionObject> {
         if (ItemPath.isUUID(name)) {
             try {
                 ItemPath resItem = new ItemPath(name);
-                if (resItem.exists()) return resItem;
+                if (resItem.exists(transactionKey)) return resItem;
             }
             catch (InvalidItemPathException ex) {}
         }
 
         // then check for a direct path
         DomainPath directPath = new DomainPath(name);
-        if (directPath.exists() && directPath.getItemPath() != null) { 
-            return directPath.getItemPath();
+        if (directPath.exists(transactionKey) && directPath.getItemPath(transactionKey) != null) { 
+            return directPath.getItemPath(transactionKey);
         }
 
         Iterator<Path> searchResult = null;
@@ -156,10 +156,10 @@ public abstract class DescriptionObjectCache<D extends DescriptionObject> {
             Path defPath = searchResult.next();
             if (searchResult.hasNext()) throw new InvalidDataException("Too many matches for " + getTypeCode() + " " + name);
 
-            if (defPath.getItemPath() == null)
+            if (defPath.getItemPath(transactionKey) == null)
                 throw new InvalidDataException(getTypeCode() + " " + name + " was found, but was not an Item");
 
-            return defPath.getItemPath();
+            return defPath.getItemPath(transactionKey);
         }
         else {
             throw new ObjectNotFoundException("No match for " + getTypeCode() + " " + name);
@@ -231,7 +231,7 @@ public abstract class DescriptionObjectCache<D extends DescriptionObject> {
             return thisDef;
         }
         catch (ObjectNotFoundException ex) {
-            log.trace("Failed to load resource from database", ex);
+            log.trace("Failed to load resource '{}' from database, loading from classpath", name);
             // for bootstrap and testing, try to load built-in kernel objects from resources
             if (version == 0) {
                 try {

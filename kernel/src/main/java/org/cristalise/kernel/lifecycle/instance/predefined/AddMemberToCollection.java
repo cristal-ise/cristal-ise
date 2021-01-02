@@ -64,8 +64,8 @@ public class AddMemberToCollection extends PredefinedStepCollectionBase {
         DependencyMember member = null;
 
         // find member and assign entity
-        if (memberNewProps == null) member = dep.createMember(childPath);
-        else                        member = dep.createMember(childPath, memberNewProps);
+        if (memberNewProps == null) member = dep.createMember(childPath, transactionKey);
+        else                        member = dep.createMember(childPath, memberNewProps, transactionKey);
 
         evaluateScript(item, dep, member, transactionKey);
 

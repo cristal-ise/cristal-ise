@@ -106,7 +106,7 @@ public class ImportAgent extends ModuleImport {
                     getItemPath(transactionKey),
                     new PropertyArrayList(properties),
                     null, //colls
-                    (CompositeActivity)LocalObjectLoader.getCompActDef("NoWorkflow", 0).instantiate(),
+                    (CompositeActivity)LocalObjectLoader.getCompActDef("NoWorkflow", 0, transactionKey).instantiate(transactionKey),
                     null, //initViewpoint
                     null, //initOutcomeString
                     transactionKey);

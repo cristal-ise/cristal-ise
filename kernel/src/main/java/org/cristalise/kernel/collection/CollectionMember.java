@@ -59,7 +59,7 @@ public interface CollectionMember {
 	 * @param itemPath The item to assign
 	 * @throws InvalidCollectionModification When the Item Properties don't match the typing specification in ClassProps and Properties
 	 */
-    public void assignItem(ItemPath itemPath) throws InvalidCollectionModification;
+    public void assignItem(ItemPath itemPath, TransactionKey transactionKey) throws InvalidCollectionModification;
     
     /**
      * De-assign the slot, leaving it empty.

@@ -282,7 +282,7 @@ public class CreateItemFromDescription extends PredefinedStep {
 
             // load workflow def
             CompositeActivityDef wfDef = (CompositeActivityDef) LocalObjectLoader.getActDef(wfDefName, wfDefVer, transactionKey);
-            return (CompositeActivity) wfDef.instantiate();
+            return (CompositeActivity) wfDef.instantiate(transactionKey);
         }
         catch (NumberFormatException ex) {
             throw new InvalidDataException("Invalid workflow version number: " + wfVerObj.toString());
@@ -342,11 +342,11 @@ public class CreateItemFromDescription extends PredefinedStep {
         if (collOfDesc instanceof CollectionDescription) {
             log.info("Instantiating CollectionDescription:"+ collName);
             CollectionDescription<?> collDesc = (CollectionDescription<?>) collOfDesc;
-            newColl = collDesc.newInstance();
+            newColl = collDesc.newInstance(transactionKey);
         }
         else if(collOfDesc instanceof Dependency) {
             log.info("Instantiating Dependency:"+ collName);
-            ((Dependency) collOfDesc).addToItemProperties(newProps);
+            ((Dependency) collOfDesc).addToItemProperties(newProps, transactionKey);
         }
         else {
             throw new InvalidDataException("CANNOT instantiate collection:"+ collName + " class:"+collOfDesc.getClass().getName());

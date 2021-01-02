@@ -33,6 +33,7 @@ import org.cristalise.kernel.graph.model.Vertex;
 import org.cristalise.kernel.graph.traversal.GraphTraversal;
 import org.cristalise.kernel.lifecycle.instance.AndSplit;
 import org.cristalise.kernel.lifecycle.instance.WfVertex;
+import org.cristalise.kernel.persistency.TransactionKey;
 import org.cristalise.kernel.scripting.Script;
 import org.cristalise.kernel.utils.LocalObjectLoader;
 
@@ -111,13 +112,13 @@ public class AndSplitDef extends WfVertexDef {
     }
 
     @Override
-    public WfVertex instantiate() throws InvalidDataException, ObjectNotFoundException {
+    public WfVertex instantiate(TransactionKey transactionKey) throws InvalidDataException, ObjectNotFoundException {
         AndSplit newSplit = new AndSplit();
-        configureInstance(newSplit);
+        configureInstance(newSplit, transactionKey);
         return newSplit;
     }
 
-    public Script getRoutingScript() throws ObjectNotFoundException, InvalidDataException {
+    public Script getRoutingScript(TransactionKey transactionKey) throws ObjectNotFoundException, InvalidDataException {
         String scriptName = (String) getBuiltInProperty(ROUTING_SCRIPT_NAME);
         Integer scriptVersion;
         try {
@@ -130,7 +131,7 @@ public class AndSplitDef extends WfVertexDef {
         catch (NumberFormatException e) {
             throw new InvalidDataException(e.getMessage());
         }
-        return LocalObjectLoader.getScript(scriptName, scriptVersion);
+        return LocalObjectLoader.getScript(scriptName, scriptVersion, transactionKey);
     }
 
 }

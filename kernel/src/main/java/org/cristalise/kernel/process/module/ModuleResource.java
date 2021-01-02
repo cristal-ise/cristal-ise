@@ -99,7 +99,7 @@ public class ModuleResource extends ModuleImport {
             domainPath = importHandler.importResource(ns, name, version, itemPath, getResourceLocation(), reset, transactionKey);
             resourceChangeDetails = importHandler.getResourceChangeDetails();
 
-            if (itemPath == null) itemPath = domainPath.getItemPath();
+            if (itemPath == null) itemPath = domainPath.getItemPath(transactionKey);
 
             return domainPath;
         }

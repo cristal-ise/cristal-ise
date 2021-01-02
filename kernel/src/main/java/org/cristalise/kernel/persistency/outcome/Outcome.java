@@ -250,7 +250,7 @@ public class Outcome implements C2KLocalObject {
     public Schema getSchema(TransactionKey transactionKey) {
         if (mSchema == null) {
             try {
-                LocalObjectLoader.getSchema(mSchemaName, mSchemaVersion, transactionKey);
+                mSchema = LocalObjectLoader.getSchema(mSchemaName, mSchemaVersion, transactionKey);
             }
             catch (ObjectNotFoundException | InvalidDataException e) {
                 log.debug("Cannot retrieve Schema object", e);

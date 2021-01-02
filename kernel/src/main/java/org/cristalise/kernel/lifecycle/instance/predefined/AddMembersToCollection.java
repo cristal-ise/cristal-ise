@@ -66,10 +66,10 @@ public class AddMembersToCollection extends PredefinedStepCollectionBase {
                 DependencyMember newMember = null;
 
                 if (inputMember.getProperties() != null && inputMember.getProperties().size() != 0) {
-                    newMember = dep.createMember(inputMember.getItemPath(), inputMember.getProperties());
+                    newMember = dep.createMember(inputMember.getItemPath(), inputMember.getProperties(), transactionKey);
                 }
                 else {
-                    newMember = dep.createMember(inputMember.getItemPath());
+                    newMember = dep.createMember(inputMember.getItemPath(), transactionKey);
                 }
 
                 evaluateScript(item, dep, newMember, transactionKey);

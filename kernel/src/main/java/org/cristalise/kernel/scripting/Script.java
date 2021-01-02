@@ -901,13 +901,30 @@ public class Script implements DescriptionObject {
      * @param version the version of the Script. If set to null
      * @return {@link Script}
      */
-    public static Script getScript(String name, Integer version) 
+    public static Script getScript(String name, Integer version)
+            throws ScriptingEngineException, ObjectNotFoundException, InvalidDataException
+    {
+        return getScript(name, version, null);
+    }
+
+    /**
+     * Resolves the Script object using its name and version. If Version is null tries to interpret the name 
+     * as an expression
+     * 
+     * @see BuiltInVertexProperties#ROUTING_EXPR
+     * 
+     * @param name the name of the Script Item or an expression
+     * @param version the version of the Script. If set to null
+     * @param transactionKey key of the transaction
+     * @return {@link Script}
+     */
+    public static Script getScript(String name, Integer version, TransactionKey transactionKey) 
             throws ScriptingEngineException, ObjectNotFoundException, InvalidDataException
     {
         if (StringUtils.isBlank(name)) throw new ScriptingEngineException("Script name is blank");
 
         if (version != null) {
-            return LocalObjectLoader.getScript(name, version);
+            return LocalObjectLoader.getScript(name, version, transactionKey);
         }
         else {
             // empty version: try expression
@@ -955,12 +972,12 @@ public class Script implements DescriptionObject {
      * 
      */
     @Override
-    public CollectionArrayList makeDescCollections() throws InvalidDataException, ObjectNotFoundException {
+    public CollectionArrayList makeDescCollections(TransactionKey transactionKey) throws InvalidDataException, ObjectNotFoundException {
         CollectionArrayList retArr = new CollectionArrayList();
         Dependency includeColl = new Dependency(INCLUDE);
         for (Script script : mIncludes) {
             try {
-                includeColl.addMember(script.getItemPath());
+                includeColl.addMember(script.getItemPath(), transactionKey);
             }
             catch (InvalidCollectionModification e) {
                 log.error("Could not add "+script.getName()+" to description collection. ", e);

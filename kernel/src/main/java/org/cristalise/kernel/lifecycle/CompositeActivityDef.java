@@ -48,6 +48,7 @@ import org.cristalise.kernel.lifecycle.instance.CompositeActivity;
 import org.cristalise.kernel.lifecycle.instance.Next;
 import org.cristalise.kernel.lifecycle.instance.WfVertex;
 import org.cristalise.kernel.lookup.ItemPath;
+import org.cristalise.kernel.persistency.TransactionKey;
 import org.cristalise.kernel.persistency.outcome.Outcome;
 import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.utils.CastorHashMap;
@@ -188,26 +189,26 @@ public class CompositeActivityDef extends ActivityDef {
      * @return CompositeActivity
      */
     @Override
-    public WfVertex instantiate() throws ObjectNotFoundException, InvalidDataException {
-        return instantiate(getName());
+    public WfVertex instantiate(TransactionKey transactionKey) throws ObjectNotFoundException, InvalidDataException {
+        return instantiate(getName(), transactionKey);
     }
 
     @Override
-    public WfVertex instantiate(String name) throws ObjectNotFoundException, InvalidDataException {
+    public WfVertex instantiate(String name, TransactionKey transactionKey) throws ObjectNotFoundException, InvalidDataException {
         CompositeActivity caInstance = new CompositeActivity();
 
         log.info("instantiate(name:"+name+") - Starting.");
 
         caInstance.setName(name);
 
-        configureInstance(caInstance);
+        configureInstance(caInstance, transactionKey);
 
         if (getItemPath() != null) caInstance.setType(getItemID());
 
-        caInstance.getChildrenGraphModel().setStartVertexId( getChildrenGraphModel().getStartVertexId() );
-        caInstance.getChildrenGraphModel().setVertices(      intantiateVertices(caInstance)             );
-        caInstance.getChildrenGraphModel().setEdges(         instantiateEdges(caInstance)               );
-        caInstance.getChildrenGraphModel().setNextId(        getChildrenGraphModel().getNextId()        );
+        caInstance.getChildrenGraphModel().setStartVertexId( getChildrenGraphModel().getStartVertexId()    );
+        caInstance.getChildrenGraphModel().setVertices(      intantiateVertices(caInstance, transactionKey));
+        caInstance.getChildrenGraphModel().setEdges(         instantiateEdges(caInstance)                  );
+        caInstance.getChildrenGraphModel().setNextId(        getChildrenGraphModel().getNextId()           );
 
         caInstance.getChildrenGraphModel().resetVertexOutlines();
 
@@ -232,7 +233,6 @@ public class CompositeActivityDef extends ActivityDef {
             if(aCAProp.getValue() instanceof CastorHashMap) {
                 for (Vertex vertex : caInstance.getChildrenGraphModel().getVertices()) {
                     CastorHashMap propsToPropagate = (CastorHashMap)aCAProp.getValue();
-                    propsToPropagate.dump(8);
                     BuiltInVertexProperties builtInProp = BuiltInVertexProperties.getValue(aCAProp.getKey());
 
                     if(builtInProp == null) {
@@ -274,14 +274,14 @@ public class CompositeActivityDef extends ActivityDef {
      * @param ca the parent CompositeActivity instance which will be set as a Parent
      * @return the instantiated array of WfVertex instances
      */
-    public WfVertex[] intantiateVertices(CompositeActivity ca) throws ObjectNotFoundException, InvalidDataException {
+    public WfVertex[] intantiateVertices(CompositeActivity ca, TransactionKey transactionKey) throws ObjectNotFoundException, InvalidDataException {
         GraphableVertex[] vertexDefs = getLayoutableChildren();
         WfVertex[]        wfVertices = new WfVertex[vertexDefs.length];
 
         for (int i = 0; i < vertexDefs.length; i++) {
             WfVertexDef vertDef = (WfVertexDef) vertexDefs[i];
 
-            wfVertices[i] = vertDef.instantiate();
+            wfVertices[i] = vertDef.instantiate(transactionKey);
 
             wfVertices[i].setParent(ca);
         }
@@ -289,9 +289,9 @@ public class CompositeActivityDef extends ActivityDef {
     }
 
     @Override
-    public CollectionArrayList makeDescCollections() throws InvalidDataException, ObjectNotFoundException {
-        CollectionArrayList retArr = super.makeDescCollections();
-        retArr.put(makeActDefCollection());
+    public CollectionArrayList makeDescCollections(TransactionKey transactionKey) throws InvalidDataException, ObjectNotFoundException {
+        CollectionArrayList retArr = super.makeDescCollections(transactionKey);
+        retArr.put(makeActDefCollection(transactionKey));
         return retArr;
     }
 
@@ -301,15 +301,17 @@ public class CompositeActivityDef extends ActivityDef {
      * @return the Dependency collection created from the list of child ActDefs of this class
      * @throws InvalidDataException there was a problem creating the collections
      */
-    public Dependency makeActDefCollection() throws InvalidDataException {
-        return makeDescCollection(ACTIVITY, refChildActDef.toArray(new ActivityDef[refChildActDef.size()]));
+    public Dependency makeActDefCollection(TransactionKey transactionKey) throws InvalidDataException {
+        return makeDescCollection(ACTIVITY, transactionKey, refChildActDef.toArray(new ActivityDef[refChildActDef.size()]));
     }
 
-    public ArrayList<ActivityDef> findRefActDefs(GraphModel graph) throws ObjectNotFoundException, InvalidDataException {
+    public ArrayList<ActivityDef> findRefActDefs(GraphModel graph, TransactionKey transactionKey) throws ObjectNotFoundException, InvalidDataException {
         ArrayList<ActivityDef> graphActDefs = new ArrayList<ActivityDef>();
         for (Vertex elem : graph.getVertices()) {
             if (elem instanceof ActivitySlotDef) {
-                ActivityDef actDef = ((ActivitySlotDef) elem).getTheActivityDef();
+                ActivitySlotDef actSlotDef = (ActivitySlotDef) elem;
+                actSlotDef.setTheActivityDef(null); //enforce getTheActivityDef() to do the full search
+                ActivityDef actDef = actSlotDef.getTheActivityDef(transactionKey);
                 if (!graphActDefs.contains(actDef)) graphActDefs.add(actDef);
             }
         }
@@ -345,11 +347,16 @@ public class CompositeActivityDef extends ActivityDef {
 
     @Override
     public void setChildrenGraphModel(GraphModel childrenGraph) throws InvalidDataException {
+        setChildrenGraphModel(childrenGraph, null);
+    }
+
+    //FIXME: castor should call this method with valid TransactionKey when doing unmarshall
+    public void setChildrenGraphModel(GraphModel childrenGraph, TransactionKey transactionKey) throws InvalidDataException {
         super.setChildrenGraphModel(childrenGraph);
         childrenGraph.setVertexOutlineCreator(new LifecycleVertexOutlineCreator());
         
         try {
-            setRefChildActDef(findRefActDefs(childrenGraph));
+            setRefChildActDef(findRefActDefs(childrenGraph, transactionKey));
         }
         catch (ObjectNotFoundException e) {
             throw new InvalidDataException(e.getMessage());
@@ -383,7 +390,7 @@ public class CompositeActivityDef extends ActivityDef {
     @Override
     public void export(Writer imports, File dir, boolean shallow) throws InvalidDataException, ObjectNotFoundException, IOException {
         // rebuild the child refs in case any slots have been removed
-        setRefChildActDef(findRefActDefs(getChildrenGraphModel()));
+        setRefChildActDef(findRefActDefs(getChildrenGraphModel(), null));
 
         // TODO: property include routing scripts in another dependency collection
 
@@ -392,12 +399,12 @@ public class CompositeActivityDef extends ActivityDef {
             for (GraphableVertex vert: getChildren()) {
                 if (vert instanceof AndSplitDef) {
                     try {
-                        ((AndSplitDef) vert).getRoutingScript().export(imports, dir, shallow);
+                        ((AndSplitDef) vert).getRoutingScript(null).export(imports, dir, shallow);
                     }
                     catch (ObjectNotFoundException ex) {}
                 }
                 else if (vert instanceof ActivitySlotDef) {
-                    ActivityDef refAct = ((ActivitySlotDef) vert).getTheActivityDef();
+                    ActivityDef refAct = ((ActivitySlotDef) vert).getTheActivityDef(null);
                     refAct.export(imports, dir, shallow);
                 }
             }

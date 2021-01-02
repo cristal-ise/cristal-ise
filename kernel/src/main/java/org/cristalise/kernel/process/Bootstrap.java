@@ -340,7 +340,7 @@ public class Bootstrap {
 
     private static void initServerItemWf(TransactionKey transactionKey) throws Exception {
         CompositeActivityDef serverWfCa = (CompositeActivityDef)LocalObjectLoader.getCompActDef("ServerItemWorkflow", 0, transactionKey);
-        Workflow wf = new Workflow((CompositeActivity)serverWfCa.instantiate(), new ServerPredefinedStepContainer());
+        Workflow wf = new Workflow((CompositeActivity)serverWfCa.instantiate(transactionKey), new ServerPredefinedStepContainer());
         wf.initialise(thisServerPath.getItemPath(), systemAgents.get(SYSTEM_AGENT.getName()).getPath(), transactionKey);
         Gateway.getStorage().put(thisServerPath.getItemPath(), wf, transactionKey);
     }

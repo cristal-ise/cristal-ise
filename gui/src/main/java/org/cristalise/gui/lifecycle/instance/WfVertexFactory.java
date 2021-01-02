@@ -97,7 +97,7 @@ public class WfVertexFactory implements VertexFactory, WorkflowDialogue
 		try
 		{
 			ActivityDef actD = LocalObjectLoader.getActDef(newName, version==null?0:version);
-			act = (Activity)actD.instantiate(unicName);
+			act = (Activity)actD.instantiate(unicName, null);
 		}
 		catch (Exception e)
 		{

@@ -74,7 +74,7 @@ public class LocalObjectLoader {
     }
 
     static public Script getScript(String scriptName, int scriptVersion, TransactionKey transactionKey) throws ObjectNotFoundException, InvalidDataException {
-        log.trace("getScript("+scriptName+" v"+scriptVersion+")");
+        log.trace("getScript({} v{}) - transactionKey:{}", scriptName, scriptVersion, transactionKey);
         return scrCache.get(scriptName, scriptVersion, transactionKey);
     }
 
@@ -113,7 +113,7 @@ public class LocalObjectLoader {
     }
 
     static public Query getQuery(String queryName, int queryVersion, TransactionKey transactionKey) throws ObjectNotFoundException, InvalidDataException {
-        log.trace("getQuery("+queryName+" v"+queryVersion+")");
+        log.trace("getQuery(({} v{}) - transactionKey:{}", queryName, queryVersion, transactionKey);
         return queryCache.get(queryName, queryVersion, transactionKey);
     }
 
@@ -145,7 +145,7 @@ public class LocalObjectLoader {
     }
 
     static public Schema getSchema(String schemaName, int schemaVersion, TransactionKey transactionKey) throws ObjectNotFoundException, InvalidDataException {
-        log.trace("getSchema("+schemaName+" v"+schemaVersion+")");
+        log.trace("getSchema(({} v{}) - transactionKey:{}", schemaName, schemaVersion, transactionKey);
 
         // don't bother if this is the Schema schema - for bootstrap especially
         if (schemaName.equals("Schema") && schemaVersion == 0) {
@@ -183,7 +183,7 @@ public class LocalObjectLoader {
     }
 
     static public ActivityDef getActDef(String actName, int actVersion, TransactionKey transactionKey) throws ObjectNotFoundException, InvalidDataException {
-        log.trace("getActDef("+actName+" v"+actVersion+")");
+        log.trace("getActDef({} v{}) - transactionKey:{}", actName, actVersion, transactionKey);
         return actCache.get(actName, actVersion, transactionKey);
     }
 
@@ -201,7 +201,7 @@ public class LocalObjectLoader {
     }
 
     static public CompositeActivityDef getCompActDef(String actName, int actVersion, TransactionKey transactionKey) throws ObjectNotFoundException, InvalidDataException {
-        log.trace("getCompActDef("+actName+" v"+actVersion+")");
+        log.trace("getCompActDef({} v{}) - transactionKey:{}", actName, actVersion, transactionKey);
         return (CompositeActivityDef)compActCache.get(actName, actVersion, transactionKey);
     }
 
@@ -219,7 +219,7 @@ public class LocalObjectLoader {
     }
 
     static public ActivityDef getElemActDef(String actName, int actVersion, TransactionKey transactionKey) throws ObjectNotFoundException, InvalidDataException {
-        log.trace("getElemActDef("+actName+" v"+actVersion+")");
+        log.trace("getElemActDef({} v{}) - transactionKey:{}", actName, actVersion, transactionKey);
         return elemActCache.get(actName, actVersion, transactionKey);
     }
 
@@ -237,7 +237,7 @@ public class LocalObjectLoader {
     }
 
     static public StateMachine getStateMachine(String smName, int smVersion, TransactionKey transactionKey) throws ObjectNotFoundException, InvalidDataException {
-        log.trace("getStateMachine("+smName+" v"+smVersion+")");
+        log.trace("getStateMachine(({} v{}) - transactionKey:{}", smName, smVersion, transactionKey);
         return smCache.get(smName, smVersion, transactionKey);
     }
 
@@ -269,7 +269,7 @@ public class LocalObjectLoader {
     }
 
     static public PropertyDescriptionList getPropertyDescriptionList(String name, int version, TransactionKey transactionKey) throws ObjectNotFoundException, InvalidDataException {
-        log.trace("PropertyDescriptionList("+name+" v"+version+")");
+        log.trace("getPropertyDescriptionList(({} v{}) - transactionKey:{}", name, version, transactionKey);
         return propDescCache.get(name, version, transactionKey);
     }
 
@@ -300,12 +300,12 @@ public class LocalObjectLoader {
     private static DescriptionObject getDescObjectByProperty(CastorHashMap properties, BuiltInVertexProperties nameProp, BuiltInVertexProperties verProp, TransactionKey transactionKey)
             throws InvalidDataException, ObjectNotFoundException
     {
+        log.trace("getDescObjectByProperty(nameProp:{} verProp:{}) - transactionKey:{}", nameProp, verProp, transactionKey);
+
         String resName = (String) properties.getBuiltInProperty(nameProp);
 
         if (!(properties.isAbstract(nameProp)) && StringUtils.isNotBlank(resName)) {
             Integer resVer = deriveVersionNumber(properties.getBuiltInProperty(verProp));
-
-            log.trace("getDescObjectByProperty() - "+nameProp+":"+resName+" v"+resVer+")");
 
             if (resVer == null && !(properties.isAbstract(verProp))) {
                 throw new InvalidDataException("Invalid version property '" + resVer + "' in " + verProp);
@@ -318,7 +318,7 @@ public class LocalObjectLoader {
                 case STATE_MACHINE_NAME: return getStateMachine(resName, resVer, transactionKey);
                 case PROPERTY_DEF_NAME:  return getPropertyDescriptionList(resName, resVer, transactionKey);
                 default:
-                    throw new InvalidDataException("LocalObjectLoader CANNOT handle BuiltInVertexPropertie:"+nameProp);
+                    throw new InvalidDataException(" CANNOT handle BuiltInVertexProperties:"+nameProp);
             }
         }
         return null;

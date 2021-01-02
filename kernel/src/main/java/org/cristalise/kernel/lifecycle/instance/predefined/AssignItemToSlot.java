@@ -104,7 +104,7 @@ public class AssignItemToSlot extends PredefinedStep {
             if (member.getID() == slotNo) {
                 if (member.getItemPath() != null)
                     throw new ObjectCannotBeUpdated("AssignItemToSlot: Member slot " + slotNo + " not empty");
-                member.assignItem(childItem);
+                member.assignItem(childItem, transactionKey);
                 stored = true;
                 break;
             }
