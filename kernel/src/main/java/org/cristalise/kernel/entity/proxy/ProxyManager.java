@@ -84,7 +84,7 @@ public class ProxyManager {
             }
         }
         catch (InstantiationException | IllegalAccessException | ClassNotFoundException e) {
-            log.error("", e);
+            log.error("Cannot instantiate ProxyMessageListener", e);
             throw new InvalidDataException(e.getMessage());
         }
     }
