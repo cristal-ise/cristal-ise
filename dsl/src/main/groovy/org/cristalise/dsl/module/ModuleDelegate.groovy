@@ -109,6 +109,9 @@ class ModuleDelegate implements BindingConvention {
         if (args.bindings) bindings = (Binding) args.bindings
         else               bindings = new Binding()
 
+        addToBingings(bindings, 'moduleNs',      newModule.ns as String)
+        addToBingings(bindings, 'moduleVersion', newModule.info.version as String)
+
         if (args.resourceRoot) resourceRoot = args.resourceRoot
         if (args.moduleDir)    moduleDir    = args.moduleDir
         if (args.moduleXmlDir) moduleXmlDir = args.moduleXmlDir
