@@ -84,15 +84,17 @@ class ItemPropertyBuilderSpecs extends Specification implements CristalTestSetup
         ex.message == "IDL:org.cristalise.kernel/common/InvalidDataException:1.0  Inmutable EntityProperty 'Type' must have valid value"
     }
 
-    def 'EntityProperty can only have String value'() {
+    def 'EntityProperty value is coerced to String'() {
         when:
         def props = ItemPropertyTestBuilder.build {
-            Property(Type: new Object())
+            Property(Type: ['e1', 'e2'])
         }
 
         then:
-        InvalidDataException ex = thrown()
-        ex.message == "IDL:org.cristalise.kernel/common/InvalidDataException:1.0  EntityProperty 'Type' value must be String"
+        props && props.size() == 1
+        props[0].name == 'Type'
+        props[0].value == '[e1, e2]'
+        props[0].mutable == true
     }
 
     def 'EntityProperty Builder builds unlimited length of List keeping the order of declaration'() {
