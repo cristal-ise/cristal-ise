@@ -27,11 +27,13 @@ import static org.cristalise.kernel.collection.BuiltInCollections.SCRIPT;
 import static org.cristalise.kernel.collection.BuiltInCollections.STATE_MACHINE;
 import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.VERSION;
 import static org.cristalise.kernel.process.resource.BuiltInResources.ELEM_ACT_DESC_RESOURCE;
+
 import java.io.File;
 import java.io.IOException;
 import java.io.Writer;
 import java.util.ArrayList;
 import java.util.Vector;
+
 import org.cristalise.kernel.collection.BuiltInCollections;
 import org.cristalise.kernel.collection.CollectionArrayList;
 import org.cristalise.kernel.collection.Dependency;
@@ -45,6 +47,7 @@ import org.cristalise.kernel.lifecycle.instance.WfVertex;
 import org.cristalise.kernel.lifecycle.instance.stateMachine.StateMachine;
 import org.cristalise.kernel.lookup.ItemPath;
 import org.cristalise.kernel.persistency.ClusterType;
+import org.cristalise.kernel.persistency.TransactionKey;
 import org.cristalise.kernel.persistency.outcome.Schema;
 import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.querying.Query;
@@ -52,6 +55,7 @@ import org.cristalise.kernel.scripting.Script;
 import org.cristalise.kernel.utils.DescriptionObject;
 import org.cristalise.kernel.utils.FileStringUtility;
 import org.cristalise.kernel.utils.LocalObjectLoader;
+
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -129,15 +133,15 @@ public class ActivityDef extends WfVertexDef implements C2KLocalObject, Descript
     }
 
     @Override
-    public WfVertex instantiate() throws ObjectNotFoundException, InvalidDataException {
-        return instantiate(getName());
+    public WfVertex instantiate(TransactionKey transactionKey) throws ObjectNotFoundException, InvalidDataException {
+        return instantiate(getName(), transactionKey);
     }
 
-    public WfVertex instantiate(String name) throws ObjectNotFoundException, InvalidDataException {
+    public WfVertex instantiate(String name, TransactionKey transactionKey) throws ObjectNotFoundException, InvalidDataException {
         Activity act = new Activity();
         act.setName(name);
 
-        configureInstance(act);
+        configureInstance(act, transactionKey);
 
         if (getItemPath() != null) act.setType(getItemID());
 
@@ -148,12 +152,12 @@ public class ActivityDef extends WfVertexDef implements C2KLocalObject, Descript
      *
      */
     @Override
-    public void configureInstance(WfVertex act) throws InvalidDataException, ObjectNotFoundException {
-        super.configureInstance(act);
+    public void configureInstance(WfVertex act, TransactionKey transactionKey) throws InvalidDataException, ObjectNotFoundException {
+        super.configureInstance(act, transactionKey);
 
         try {
             for (String collName : Gateway.getStorage().getClusterContents(itemPath, ClusterType.COLLECTION)) {
-                log.info("configureInstance("+getName()+") - Processing collection:"+collName);
+                log.debug("configureInstance("+getName()+") - Processing collection:"+collName);
 
                 String verStr = (mVersion == null || mVersion == -1) ? "last" : String.valueOf(mVersion);
                 Dependency dep = null;
@@ -169,7 +173,7 @@ public class ActivityDef extends WfVertexDef implements C2KLocalObject, Descript
                     throw new InvalidDataException("Collection:"+collName+" error:"+e.getMessage());
                 }
 
-                if (dep != null) dep.addToVertexProperties(act.getProperties());
+                if (dep != null) dep.addToVertexProperties(act.getProperties(), transactionKey);
             }
         }
         catch (PersistencyException e) {
@@ -189,58 +193,74 @@ public class ActivityDef extends WfVertexDef implements C2KLocalObject, Descript
     }
 
     public Schema getSchema() throws InvalidDataException, ObjectNotFoundException {
+        return getSchema(null);
+    }
+
+    public Schema getSchema(TransactionKey transactionKey) throws InvalidDataException, ObjectNotFoundException {
         if (actSchema == null) {
-            DescriptionObject[] descObjects = getBuiltInCollectionResource(SCHEMA);
+            DescriptionObject[] descObjects = getBuiltInCollectionResource(SCHEMA, transactionKey);
             if (descObjects.length > 0) actSchema = (Schema)descObjects[0];
 
             if (actSchema == null) {
                 log.trace("getSchema(actName:"+getName()+") - Loading ...");
-                actSchema = LocalObjectLoader.getSchema(getProperties());
+                actSchema = LocalObjectLoader.getSchema(getProperties(), transactionKey);
             }
         }
         return actSchema;
     }
 
     public Script getScript() throws InvalidDataException, ObjectNotFoundException {
+        return getScript(null);
+    }
+
+    public Script getScript(TransactionKey transactionKey) throws InvalidDataException, ObjectNotFoundException {
         if (actScript == null) {
-            DescriptionObject[] descObjects = getBuiltInCollectionResource(SCRIPT);
+            DescriptionObject[] descObjects = getBuiltInCollectionResource(SCRIPT, transactionKey);
             if (descObjects.length > 0) actScript = (Script)descObjects[0];
 
             if (actScript == null) {
                 log.trace("getScript(actName:"+getName()+") - Loading ...");
-                actScript = LocalObjectLoader.getScript(getProperties());
+                actScript = LocalObjectLoader.getScript(getProperties(), transactionKey);
             }
         }
         return actScript;
     }
 
     public Query getQuery() throws InvalidDataException, ObjectNotFoundException {
+        return getQuery(null);
+    }
+
+    public Query getQuery(TransactionKey transactionKey) throws InvalidDataException, ObjectNotFoundException {
         if (actQuery == null) {
-            DescriptionObject[] descObjects = getBuiltInCollectionResource(QUERY);
+            DescriptionObject[] descObjects = getBuiltInCollectionResource(QUERY, transactionKey);
             if (descObjects.length > 0) actQuery = (Query)descObjects[0];
 
             if (actQuery == null) {
                 log.trace("getQuery(actName:"+getName()+") - Loading ...");
-                actQuery = LocalObjectLoader.getQuery(getProperties());
+                actQuery = LocalObjectLoader.getQuery(getProperties(), transactionKey);
             }
         }
         return actQuery;
     }
 
     public StateMachine getStateMachine() throws InvalidDataException, ObjectNotFoundException {
+        return getStateMachine(null);
+    }
+
+    public StateMachine getStateMachine(TransactionKey transactionKey) throws InvalidDataException, ObjectNotFoundException {
         if (actStateMachine == null) {
-            DescriptionObject[] descObjects = getBuiltInCollectionResource(STATE_MACHINE);
+            DescriptionObject[] descObjects = getBuiltInCollectionResource(STATE_MACHINE, transactionKey);
             if (descObjects.length > 0) actStateMachine = (StateMachine)descObjects[0];
 
             if (actStateMachine == null) {
                 log.trace("getStateMachine(actName:"+getName()+") - Loading ...");
-                actStateMachine = LocalObjectLoader.getStateMachine(getProperties());
+                actStateMachine = LocalObjectLoader.getStateMachine(getProperties(), transactionKey);
             }
         }
         return actStateMachine;
     }
 
-    protected DescriptionObject[] getBuiltInCollectionResource(BuiltInCollections collection) throws ObjectNotFoundException, InvalidDataException {
+    protected DescriptionObject[] getBuiltInCollectionResource(BuiltInCollections collection, TransactionKey transactionKey) throws ObjectNotFoundException, InvalidDataException {
         ArrayList<DescriptionObject> retArr = new ArrayList<DescriptionObject>();
 
         if (itemPath == null) {
@@ -282,19 +302,19 @@ public class ActivityDef extends WfVertexDef implements C2KLocalObject, Descript
 
             switch (collection) {
                 case SCHEMA:
-                    retArr.add(LocalObjectLoader.getSchema(resUUID, resVer));
+                    retArr.add(LocalObjectLoader.getSchema(resUUID, resVer, transactionKey));
                     break;
                 case SCRIPT:
-                    retArr.add(LocalObjectLoader.getScript(resUUID, resVer));
+                    retArr.add(LocalObjectLoader.getScript(resUUID, resVer, transactionKey));
                     break;
                 case QUERY:
-                    retArr.add(LocalObjectLoader.getQuery(resUUID, resVer));
+                    retArr.add(LocalObjectLoader.getQuery(resUUID, resVer, transactionKey));
                     break;
                 case STATE_MACHINE:
-                    retArr.add(LocalObjectLoader.getStateMachine(resUUID, resVer));
+                    retArr.add(LocalObjectLoader.getStateMachine(resUUID, resVer, transactionKey));
                     break;
                 case ACTIVITY:
-                    retArr.add(LocalObjectLoader.getActDef(resUUID, resVer));
+                    retArr.add(LocalObjectLoader.getActDef(resUUID, resVer, transactionKey));
                     break;
                 default:
                     throw new InvalidDataException("");
@@ -319,7 +339,7 @@ public class ActivityDef extends WfVertexDef implements C2KLocalObject, Descript
         this.actStateMachine = actStateMachine;
     }
 
-    public Dependency makeDescCollection(BuiltInCollections collection, DescriptionObject... descs) throws InvalidDataException {
+    public Dependency makeDescCollection(BuiltInCollections collection, TransactionKey transactionKey, DescriptionObject... descs) throws InvalidDataException {
         //TODO: restrict membership based on kernel property desc
         Dependency descDep = new Dependency(collection.getName());
         if (mVersion != null && mVersion > -1) {
@@ -329,25 +349,25 @@ public class ActivityDef extends WfVertexDef implements C2KLocalObject, Descript
         for (DescriptionObject thisDesc : descs) {
             if (thisDesc == null) continue;
             try {
-                DependencyMember descMem = descDep.addMember(thisDesc.getItemPath());
+                DependencyMember descMem = descDep.addMember(thisDesc.getItemPath(), transactionKey);
                 descMem.setBuiltInProperty(VERSION, thisDesc.getVersion());
             }
             catch (Exception e) {
                 log.error("Problem creating description collection for " + thisDesc + " in " + getName(), e);
-                throw new InvalidDataException();
+                throw new InvalidDataException(e.getMessage());
             }
         }
         return descDep;
     }
 
     @Override
-    public CollectionArrayList makeDescCollections() throws InvalidDataException, ObjectNotFoundException {
+    public CollectionArrayList makeDescCollections(TransactionKey transactionKey) throws InvalidDataException, ObjectNotFoundException {
         CollectionArrayList retArr = new CollectionArrayList();
 
-        retArr.put(makeDescCollection(SCHEMA,        getSchema()));
-        retArr.put(makeDescCollection(SCRIPT,        getScript()));
-        retArr.put(makeDescCollection(QUERY,         getQuery()));
-        retArr.put(makeDescCollection(STATE_MACHINE, getStateMachine()));
+        retArr.put(makeDescCollection(SCHEMA,        transactionKey, getSchema(transactionKey)));
+        retArr.put(makeDescCollection(SCRIPT,        transactionKey, getScript(transactionKey)));
+        retArr.put(makeDescCollection(QUERY,         transactionKey, getQuery(transactionKey)));
+        retArr.put(makeDescCollection(STATE_MACHINE, transactionKey, getStateMachine(transactionKey)));
 
         return retArr;
     }
@@ -375,10 +395,10 @@ public class ActivityDef extends WfVertexDef implements C2KLocalObject, Descript
     }
 
     protected void exportCollections(Writer imports, File dir) throws InvalidDataException, ObjectNotFoundException, IOException {
-        if (getStateMachine() != null) getStateMachine().export(imports, dir, true);
-        if (getSchema()       != null) getSchema().export(imports, dir, true);
-        if (getScript()       != null) getScript().export(imports, dir, true);
-        if (getQuery()        != null) getQuery().export(imports, dir, true);
+        if (getStateMachine(null) != null) getStateMachine(null).export(imports, dir, true);
+        if (getSchema(null)       != null) getSchema(null).export(imports, dir, true);
+        if (getScript(null)       != null) getScript(null).export(imports, dir, true);
+        if (getQuery(null)        != null) getQuery(null).export(imports, dir, true);
     }
 
     protected String getExportAttributes(String type) throws InvalidDataException, ObjectNotFoundException, IOException {
@@ -396,9 +416,14 @@ public class ActivityDef extends WfVertexDef implements C2KLocalObject, Descript
     }
 
     protected String getExportCollections() throws InvalidDataException, ObjectNotFoundException, IOException {
-        return (getStateMachine() == null ? "" : "<StateMachine name=\"" + getStateMachine().getName() + "\" id=\"" + getStateMachine().getItemID() + "\" version=\"" + getStateMachine().getVersion() + "\"/>")
-                   + (getSchema() == null ? "" : "<Schema name=\""       + getSchema().getName()       + "\" id=\"" + getSchema().getItemID()       + "\" version=\"" + getSchema().getVersion()       + "\"/>")
-                   + (getScript() == null ? "" : "<Script name=\""       + getScript().getName()       + "\" id=\"" + getScript().getItemID()       + "\" version=\"" + getScript().getVersion()       + "\"/>")
-                   + (getQuery()  == null ? "" : "<Query name=\""        + getQuery().getName()        + "\" id=\"" + getQuery().getItemID()        + "\" version=\"" + getQuery().getVersion()        + "\"/>");
+        return (getStateMachine(null) == null ? "" : "<StateMachine name=\"" + getStateMachine(null).getName() + "\" id=\"" + getStateMachine(null).getItemID() + "\" version=\"" + getStateMachine(null).getVersion() + "\"/>")
+                   + (getSchema(null) == null ? "" : "<Schema name=\""       + getSchema(null).getName()       + "\" id=\"" + getSchema(null).getItemID()       + "\" version=\"" + getSchema(null).getVersion()       + "\"/>")
+                   + (getScript(null) == null ? "" : "<Script name=\""       + getScript(null).getName()       + "\" id=\"" + getScript(null).getItemID()       + "\" version=\"" + getScript(null).getVersion()       + "\"/>")
+                   + (getQuery(null)  == null ? "" : "<Query name=\""        + getQuery(null).getName()        + "\" id=\"" + getQuery(null).getItemID()        + "\" version=\"" + getQuery(null).getVersion()        + "\"/>");
+    }
+
+    @Override
+    public String toString() {
+        return getActName()+"(uuid:"+getItemPath()+")";
     }
 }

@@ -42,6 +42,7 @@ import org.cristalise.kernel.lookup.ItemPath;
 import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.utils.CastorHashMap;
 import org.cristalise.kernel.utils.DateUtility;
+import org.cristalise.storage.jooqdb.JooqDataSourceHandler;
 import org.cristalise.storage.jooqdb.JooqHandler;
 import org.jooq.Condition;
 import org.jooq.DSLContext;
@@ -180,7 +181,7 @@ public class JooqJobHandler extends JooqHandler {
 
     @Override
     public void createTables(DSLContext context) {
-        DataType<String> xmlType = getStringXmlType();
+        DataType<String> xmlType = JooqDataSourceHandler.getStringXmlType();
 
         context.createTableIfNotExists(JOB_TABLE)
         .column(UUID,               UUID_TYPE     .nullable(false))

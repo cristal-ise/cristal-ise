@@ -28,6 +28,7 @@ import org.cristalise.kernel.collection.CollectionArrayList;
 import org.cristalise.kernel.common.InvalidDataException;
 import org.cristalise.kernel.common.ObjectNotFoundException;
 import org.cristalise.kernel.lookup.ItemPath;
+import org.cristalise.kernel.persistency.TransactionKey;
 
 public interface DescriptionObject {
 	
@@ -41,7 +42,7 @@ public interface DescriptionObject {
 	
 	public String getItemID();
 	
-	public CollectionArrayList makeDescCollections() throws InvalidDataException, ObjectNotFoundException;
+	public CollectionArrayList makeDescCollections(TransactionKey transactionKey) throws InvalidDataException, ObjectNotFoundException;
 	public void export(Writer imports, File dir, boolean shallow) throws InvalidDataException, ObjectNotFoundException, IOException;
 
 }

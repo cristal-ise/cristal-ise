@@ -35,6 +35,7 @@ import org.cristalise.kernel.common.ObjectNotFoundException;
 import org.cristalise.kernel.lifecycle.instance.Activity;
 import org.cristalise.kernel.lookup.AgentPath;
 import org.cristalise.kernel.lookup.ItemPath;
+import org.cristalise.kernel.persistency.TransactionKey;
 import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.process.resource.BuiltInResources;
 import org.cristalise.kernel.utils.DescriptionObject;
@@ -289,7 +290,7 @@ public class StateMachine implements DescriptionObject {
     }
 
     @Override
-    public CollectionArrayList makeDescCollections() {
+    public CollectionArrayList makeDescCollections(TransactionKey transactionKey) {
         return new CollectionArrayList();
     }
 

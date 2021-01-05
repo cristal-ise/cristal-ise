@@ -23,6 +23,7 @@ package org.cristalise.kernel.utils;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
+
 import org.cristalise.kernel.common.InvalidDataException;
 import org.cristalise.kernel.common.ObjectNotFoundException;
 import org.cristalise.kernel.common.PersistencyException;
@@ -30,6 +31,8 @@ import org.cristalise.kernel.graph.model.BuiltInEdgeProperties;
 import org.cristalise.kernel.graph.model.BuiltInVertexProperties;
 import org.cristalise.kernel.lifecycle.routingHelpers.DataHelperUtility;
 import org.cristalise.kernel.lookup.ItemPath;
+import org.cristalise.kernel.persistency.TransactionKey;
+
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -138,9 +141,9 @@ public class CastorHashMap extends HashMap<String, Object> {
         else            abstractPropNames.remove(key);
     }
 
-    public Object evaluateProperty(ItemPath itemPath, String propName, String actContext, Object locker) throws InvalidDataException, PersistencyException, ObjectNotFoundException {
+    public Object evaluateProperty(ItemPath itemPath, String propName, String actContext, TransactionKey transactionKey) throws InvalidDataException, PersistencyException, ObjectNotFoundException {
         //DataHelper can only be used when ItemPath is NOT null
-        if (itemPath != null) return DataHelperUtility.evaluateValue(itemPath, get(propName), actContext, locker);
+        if (itemPath != null) return DataHelperUtility.evaluateValue(itemPath, get(propName), actContext, transactionKey);
         else                  return get(propName);
     }
 

@@ -177,18 +177,17 @@ public class Gateway
             // check top level directory contexts
             if (mLookup instanceof LookupManager) {
                 mLookupManager = (LookupManager) mLookup;
-                mLookupManager.initializeDirectory();
+                mLookupManager.initializeDirectory(null);
             }
             else {
                 throw new CannotManageException("Lookup implementation is not a LookupManager. Cannot write to directory");
             }
 
             // start entity proxy server
-            mProxyServer = new ProxyServer(mC2KProps.getProperty("ItemServer.name"));
+            String serverName = mC2KProps.getProperty("ItemServer.name");
+            if (serverName != null) mProxyServer = new ProxyServer(serverName);
 
             // Init ORB - set various config 
-            String serverName = mC2KProps.getProperty("ItemServer.name");
-
             //TODO: externalize this (or replace corba completely)
             if (serverName != null) mC2KProps.put("com.sun.CORBA.ORBServerHost", serverName);
 
@@ -274,7 +273,7 @@ public class Gateway
 
     /**
      * Log in with the given username and password, and initialises the {@link Lookup}, 
-     * {@link TransactionManager} and {@link ProxyManager}. It shall be uses in client processes only.
+     * {@link TransactionManager} and {@link ProxyManager}. It shall be used in client processes only.
      * 
      * @param agentName - username
      * @param agentPassword - password
@@ -307,7 +306,7 @@ public class Gateway
             throws InvalidDataException, ObjectNotFoundException, PersistencyException
     {
         mSecurityManager = new SecurityManager();
-        mSecurityManager.authenticate(agentName, agentPassword, resource);
+        mSecurityManager.authenticate(agentName, agentPassword, resource, true, null);
 
         setup(mSecurityManager.getAuth());
 
@@ -344,7 +343,7 @@ public class Gateway
             throws InvalidDataException, ObjectNotFoundException
     {
         if (mSecurityManager == null) mSecurityManager = new SecurityManager();
-        return mSecurityManager.authenticate(agentName, agentPassword, resource);
+        return mSecurityManager.authenticate(agentName, agentPassword, resource, true, null);
     }
 
     /**

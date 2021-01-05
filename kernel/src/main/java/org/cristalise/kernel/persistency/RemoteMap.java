@@ -68,9 +68,9 @@ public class RemoteMap<V extends C2KLocalObject> extends TreeMap<String, V> impl
     /**
      * if this remote map will participate in a transaction
      */
-    Object mTransactionKey;
+    TransactionKey mTransactionKey;
 
-    public RemoteMap(ItemPath itemPath, String path, Object transactionKey) {
+    public RemoteMap(ItemPath itemPath, String path, TransactionKey transactionKey) {
         super(new Comparator<String>() {
             @Override
             public int compare(String o1, String o2) {
@@ -131,7 +131,7 @@ public class RemoteMap<V extends C2KLocalObject> extends TreeMap<String, V> impl
         };
 
         try {
-            source = Gateway.getProxyManager().getProxy(mItemPath);
+            source = Gateway.getProxyManager().getProxy(mItemPath, mTransactionKey);
             source.subscribe(new MemberSubscription<V>(listener, mPath+mName, false));
 
             log.debug("activate() - name:"+mName+" "+mItemPath);
@@ -247,14 +247,11 @@ public class RemoteMap<V extends C2KLocalObject> extends TreeMap<String, V> impl
                 super.put(key, value);
                 return value;
             }
-            catch (PersistencyException e) {
-                log.error("", e);
-            }
-            catch (ObjectNotFoundException e) {
-                log.error("", e);
+            catch (PersistencyException | ObjectNotFoundException e) {
+                log.error("get()", e);
+                throw new IllegalArgumentException(e);
             }
         }
-        return null;
     }
 
     @Override
@@ -288,8 +285,8 @@ public class RemoteMap<V extends C2KLocalObject> extends TreeMap<String, V> impl
             }
         }
         catch (PersistencyException e) {
-            log.error("",e);
-            return null;
+            log.error("put()",e);
+            throw new IllegalArgumentException(e);
         }
     }
 
@@ -311,9 +308,9 @@ public class RemoteMap<V extends C2KLocalObject> extends TreeMap<String, V> impl
             }
         }
         catch (PersistencyException e) {
-            log.error("", e);
+            log.error("remove()", e);
+            throw new IllegalArgumentException(e);
         }
-        return null;
     }
 
     protected synchronized V removeLocal(Object key) {

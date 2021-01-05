@@ -34,6 +34,7 @@ import org.cristalise.kernel.collection.Collection;
 import org.cristalise.kernel.common.PersistencyException;
 import org.cristalise.kernel.entity.C2KLocalObject;
 import org.cristalise.kernel.process.Gateway;
+import org.cristalise.storage.jooqdb.JooqDataSourceHandler;
 import org.cristalise.storage.jooqdb.JooqHandler;
 import org.jooq.Condition;
 import org.jooq.DSLContext;
@@ -144,7 +145,7 @@ public class JooqCollectionHadler extends JooqHandler {
 
     @Override
     public void createTables(DSLContext context) throws PersistencyException {
-        DataType<String> xmlType = getStringXmlType();
+        DataType<String> xmlType = JooqDataSourceHandler.getStringXmlType();
 
         context.createTableIfNotExists(COLLECTION_TABLE)
         .column(UUID,    UUID_TYPE.nullable(false))

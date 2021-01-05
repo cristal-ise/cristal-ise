@@ -49,6 +49,7 @@ import org.cristalise.kernel.lifecycle.instance.stateMachine.Transition;
 import org.cristalise.kernel.lookup.AgentPath;
 import org.cristalise.kernel.lookup.InvalidAgentPathException;
 import org.cristalise.kernel.lookup.ItemPath;
+import org.cristalise.kernel.persistency.TransactionKey;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -246,7 +247,7 @@ public class CompositeActivity extends Activity {
     }
 
     @Override
-    public void run(AgentPath agent, ItemPath itemPath, Object transactionKey) throws InvalidDataException {
+    public void run(AgentPath agent, ItemPath itemPath, TransactionKey transactionKey) throws InvalidDataException {
         log.trace("run() path:" + getPath() + " state:" + getState());
 
         super.run(agent, itemPath, transactionKey);
@@ -272,7 +273,7 @@ public class CompositeActivity extends Activity {
     }
 
     @Override
-    public void runNext(AgentPath agent, ItemPath itemPath, Object transactionKey) throws InvalidDataException  {
+    public void runNext(AgentPath agent, ItemPath itemPath, TransactionKey transactionKey) throws InvalidDataException  {
         if (!isFinished()) {
             Transition trans = null;
             try {
@@ -423,7 +424,7 @@ public class CompositeActivity extends Activity {
     }
 
     @Override
-    public String request(AgentPath agent, AgentPath delegator, ItemPath itemPath, int transitionID, String requestData, String attachmentType, byte[] attachment, Object transactionKey)
+    public String request(AgentPath agent, AgentPath delegator, ItemPath itemPath, int transitionID, String requestData, String attachmentType, byte[] attachment, TransactionKey transactionKey)
             throws AccessRightsException, InvalidTransitionException, InvalidDataException, ObjectNotFoundException, PersistencyException,
             ObjectAlreadyExistsException, ObjectCannotBeUpdated, CannotManageException, InvalidCollectionModification
     {

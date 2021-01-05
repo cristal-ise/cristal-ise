@@ -55,6 +55,7 @@ import org.cristalise.kernel.lifecycle.instance.predefined.UpdateImportReport;
 import org.cristalise.kernel.lookup.AgentPath;
 import org.cristalise.kernel.lookup.Path;
 import org.cristalise.kernel.persistency.ClusterType;
+import org.cristalise.kernel.persistency.TransactionKey;
 import org.cristalise.kernel.process.AbstractMain;
 import org.cristalise.kernel.process.Bootstrap;
 import org.cristalise.kernel.process.Gateway;
@@ -151,9 +152,8 @@ public class Module extends ImportItem {
     public void importAll(ItemProxy serverEntity, AgentProxy systemAgent, boolean reset) throws Exception {
         String moduleChanges = "";
 
-        String transactionKey = null;
-        //Object transactionKey = new Object();;
-        Gateway.getStorage().begin(transactionKey); // should do nothing if transactionKey is null
+        TransactionKey transactionKey = new TransactionKey("Module-ImportAll");
+        Gateway.getStorage().begin(transactionKey);
 
         try {
             if (!Bootstrap.shutdown) moduleChanges = importResources(systemAgent, reset, transactionKey);
@@ -165,7 +165,7 @@ public class Module extends ImportItem {
             if (!Bootstrap.shutdown) this.create(systemAgent.getPath(), reset, transactionKey);
 
             if (!Bootstrap.shutdown && StringUtils.isNotBlank(moduleChanges)) {
-                new UpdateImportReport().request((AgentPath)SYSTEM_AGENT.getPath(), itemPath, moduleChanges, transactionKey);
+                new UpdateImportReport().request((AgentPath)SYSTEM_AGENT.getPath(transactionKey), itemPath, moduleChanges, transactionKey);
             }
 
             Gateway.getStorage().commit(transactionKey);
@@ -181,7 +181,7 @@ public class Module extends ImportItem {
      * @param reset
      * @throws Exception
      */
-    private void importItems(AgentProxy systemAgent, boolean reset, Object transactionKey) throws Exception {
+    private void importItems(AgentProxy systemAgent, boolean reset, TransactionKey transactionKey) throws Exception {
         for (ImportItem thisItem : imports.getItems()) {
             if (Bootstrap.shutdown) return;
 
@@ -190,7 +190,7 @@ public class Module extends ImportItem {
             Status changeStatus = thisItem.getResourceChangeStatus();
 
             // make sure that item is created if not exists
-            if (! thisItem.exists() && changeStatus == IDENTICAL) changeStatus = NEW;
+            if (! thisItem.exists(transactionKey) && changeStatus == IDENTICAL) changeStatus = NEW;
 
             if (changeStatus == null || (changeStatus != IDENTICAL && changeStatus != SKIPPED && changeStatus != REMOVED)) {
                 thisItem.setNamespace(ns);
@@ -205,7 +205,7 @@ public class Module extends ImportItem {
      * @param reset
      * @throws Exception
      */
-    private void importAgents(AgentProxy systemAgent, boolean reset, Object transactionKey) throws Exception {
+    private void importAgents(AgentProxy systemAgent, boolean reset, TransactionKey transactionKey) throws Exception {
         for (ImportAgent thisAgent : imports.getAgents()) {
             if (Bootstrap.shutdown) return;
 
@@ -214,7 +214,7 @@ public class Module extends ImportItem {
             Status changeStatus = thisAgent.getResourceChangeStatus();
 
             // make sure that item is created if not exists
-            if (! thisAgent.exists() && changeStatus == IDENTICAL) changeStatus = NEW;
+            if (! thisAgent.exists(transactionKey) && changeStatus == IDENTICAL) changeStatus = NEW;
 
             if (changeStatus == null || (changeStatus != IDENTICAL && changeStatus != SKIPPED && changeStatus != REMOVED)) {
                 thisAgent.setNamespace(ns);
@@ -229,7 +229,7 @@ public class Module extends ImportItem {
      * @param reset
      * @throws Exception
      */
-    private void importRoles(AgentProxy systemAgent, boolean reset, Object transactionKey) throws Exception {
+    private void importRoles(AgentProxy systemAgent, boolean reset, TransactionKey transactionKey) throws Exception {
         for (ImportRole thisRole : imports.getRoles()) {
             if (Bootstrap.shutdown) return;
 
@@ -238,7 +238,7 @@ public class Module extends ImportItem {
             Status changeStatus = thisRole.getResourceChangeStatus();
 
             // make sure that item is created if not exists
-            if (! thisRole.exists() && changeStatus == IDENTICAL) changeStatus = NEW;
+            if (! thisRole.exists(transactionKey) && changeStatus == IDENTICAL) changeStatus = NEW;
 
             if (changeStatus == null || (changeStatus != IDENTICAL && changeStatus != SKIPPED && changeStatus != REMOVED)) {
                 thisRole.create(systemAgent.getPath(), reset, transactionKey);
@@ -250,7 +250,7 @@ public class Module extends ImportItem {
      * @param systemAgent
      * @param reset
      */
-    private String importResources(AgentProxy systemAgent, boolean reset, Object transactionKey) throws Exception {
+    private String importResources(AgentProxy systemAgent, boolean reset, TransactionKey transactionKey) throws Exception {
         List<String> moduleChanges = new ArrayList<String>();
 
         for (ModuleResource thisRes : imports.getResources()) {
@@ -366,7 +366,7 @@ public class Module extends ImportItem {
     public void addImports(Collection<?> contents) throws ObjectNotFoundException, InvalidDataException {
         for (CollectionMember mem : contents.getMembers().list) {
             if (mem.getItemPath() != null) {
-                ItemProxy    child   = mem.resolveItem();
+                ItemProxy    child   = mem.resolveItem(null);
                 String       name    = child.getName();
                 Integer      version = Integer.valueOf(mem.getProperties().get(VERSION.getName()).toString());
                 String       type    = child.getProperty(TYPE);

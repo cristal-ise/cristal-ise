@@ -25,6 +25,8 @@ import org.cristalise.kernel.process.AbstractMain
 import org.cristalise.kernel.process.Bootstrap
 import org.cristalise.kernel.process.Gateway
 import org.cristalise.kernel.process.auth.Authenticator
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 
 import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
@@ -34,8 +36,8 @@ import groovy.util.logging.Slf4j
  */
 @CompileStatic
 trait CristalTestSetup {
-    @Deprecated
-    final int defaultLogLevel = 8
+    // @Slf4j annotation does not work on traits
+    private static final Logger log = LoggerFactory.getLogger(this.class)
 
     private void waitBootstrapThread() {
         //Give some time the Bootstrapper to start so this check will not fail because it was executed prematurely
@@ -59,14 +61,17 @@ trait CristalTestSetup {
         }
 
         if(bootstrapT) {
+            log.info('waitBootstrapThread() - Bootstrapper FOUND')
             bootstrapT.join()
+            log.info "waitBootstrapThread() - Bootstrapper FINISHED"
         }
         else {
-            AbstractMain.shutdown(1);
+            log.error "waitBootstrapThread() - NO Bootstrapper FOUND!?!?"
+            AbstractMain.shutdown(1) 
         }
     }
 
-    public void loggerSetup(int logLevel = defaultLogLevel) {
+    public void loggerSetup(int logLevel = 8) {
     }
 
     public void loggerCleanup() {
@@ -76,7 +81,7 @@ trait CristalTestSetup {
         cristalSetup(logLevel, conf, clc)
     }
 
-    public void inMemorySetup(int logLevel = defaultLogLevel) {
+    public void inMemorySetup(int logLevel = 8) {
         cristalSetup(logLevel, 'src/test/conf/testServer.conf', 'src/test/conf/testInMemory.clc')
         //FieldUtils.writeDeclaredStaticField(Gateway.class, "mLookupManager", Gateway.getLookup(), true)
     }
@@ -85,12 +90,16 @@ trait CristalTestSetup {
         serverSetup(logLevel, conf, clc, testProps, skipBootstrap)
     }
 
-    public void inMemoryServer(int logLevel = defaultLogLevel, Properties testProps = null, boolean skipBootstrap = false) {
+    public void inMemoryServer(int logLevel = 8, Properties testProps = null, boolean skipBootstrap = false) {
         serverSetup(logLevel, 'src/test/conf/testServer.conf', 'src/test/conf/testInMemory.clc', testProps, skipBootstrap)
         //Thread.sleep(2000)
     }
 
     public Authenticator serverSetup(int logLevel, String config, String connect, Properties testProps = null, boolean skipBootstrap = false) {
+        if (skipBootstrap) {
+            if (testProps == null) testProps = new Properties()
+            testProps.put(AbstractMain.MAIN_ARG_SKIPBOOTSTRAP, true)
+        }
         Authenticator auth = cristalSetup(logLevel, config, connect, testProps)
 
         Gateway.startServer()
@@ -109,10 +118,8 @@ trait CristalTestSetup {
     }
 
     public void cristalInit(int logLevel, String config, String connect, Properties testProps = null) {
-        loggerSetup(logLevel)
-
         if (testProps == null) testProps = new Properties();
-        testProps.put("Shiro.iniFile", "src/main/bin/shiro.ini");
+        if (!testProps.containsKey('Shiro.iniFile')) testProps.put("Shiro.iniFile", "src/main/bin/shiro.ini");
 
         Gateway.init(AbstractMain.readPropertyFiles(config, connect, testProps))
     }

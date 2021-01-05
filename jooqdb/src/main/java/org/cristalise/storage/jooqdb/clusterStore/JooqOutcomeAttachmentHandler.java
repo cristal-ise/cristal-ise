@@ -32,10 +32,9 @@ import java.util.UUID;
 
 import org.cristalise.kernel.common.PersistencyException;
 import org.cristalise.kernel.entity.C2KLocalObject;
+import org.cristalise.kernel.lookup.ItemPath;
 import org.cristalise.kernel.persistency.outcome.OutcomeAttachment;
-import org.cristalise.kernel.persistency.outcome.Schema;
 import org.cristalise.kernel.process.Gateway;
-import org.cristalise.kernel.utils.LocalObjectLoader;
 import org.cristalise.storage.jooqdb.JooqHandler;
 import org.jooq.Condition;
 import org.jooq.CreateTableColumnStep;
@@ -138,12 +137,11 @@ public class JooqOutcomeAttachmentHandler extends JooqHandler {
             if (enableFileName) fileName = result.get(FILE_NAME);
 
             try {
-                Schema schema =  LocalObjectLoader.getSchema(result.get(SCHEMA_NAME), result.get(SCHEMA_VERSION));
                 byte[] binaryData = (byte[]) result.get(ATTACHMENT);
                 return new OutcomeAttachment(
-                        schema.getItemPath(),
-                        schema.getName(),
-                        schema.getVersion(),
+                        new ItemPath(uuid),
+                        result.get(SCHEMA_NAME),
+                        result.get(SCHEMA_VERSION),
                         result.get(EVENT_ID),
                         fileName,
                         binaryData);

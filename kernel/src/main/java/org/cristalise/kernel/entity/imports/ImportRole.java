@@ -32,8 +32,10 @@ import org.cristalise.kernel.common.ObjectAlreadyExistsException;
 import org.cristalise.kernel.common.ObjectCannotBeUpdated;
 import org.cristalise.kernel.common.ObjectNotFoundException;
 import org.cristalise.kernel.lookup.AgentPath;
+import org.cristalise.kernel.lookup.ItemPath;
 import org.cristalise.kernel.lookup.Path;
 import org.cristalise.kernel.lookup.RolePath;
+import org.cristalise.kernel.persistency.TransactionKey;
 import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.process.module.ModuleImport;
 import org.cristalise.kernel.process.resource.BuiltInResources;
@@ -58,28 +60,28 @@ public class ImportRole extends ModuleImport implements DescriptionObject {
         return new RolePath(name.split("/"), (jobList == null) ? false : jobList, permissions);
     }
 
-    public boolean exists() {
-        return getRolePath().exists();
+    public boolean exists(TransactionKey transactionKey) {
+        return getRolePath().exists(transactionKey);
     }
 
     @Override
-    public Path create(AgentPath agentPath, boolean reset, Object transactionKey)
+    public Path create(AgentPath agentPath, boolean reset, TransactionKey transactionKey)
             throws ObjectAlreadyExistsException, ObjectCannotBeUpdated, CannotManageException, ObjectNotFoundException
     {
         RolePath newRolePath = getRolePath();
 
-        if (newRolePath.exists()) {
+        if (newRolePath.exists(transactionKey)) {
             //If jobList is null it means it was NOT set in the module.xml, therefore existing Role cannot be updated
-            if (jobList != null) update(agentPath);
+            if (jobList != null) update(agentPath, transactionKey);
         }
         else {
             log.info("create() - Creating Role:"+name+" joblist:"+jobList);
 
             //Checks if parent exists and throw ObjectNotFoundException
-            newRolePath.getParent();
+            newRolePath.getParent(transactionKey);
 
-            Gateway.getLookupManager().createRole(newRolePath);
-            Gateway.getLookupManager().setPermissions(newRolePath, newRolePath.getPermissionsList());
+            Gateway.getLookupManager().createRole(newRolePath, transactionKey);
+            Gateway.getLookupManager().setPermissions(newRolePath, newRolePath.getPermissionsList(), transactionKey);
         }
         return newRolePath;
     }
@@ -92,17 +94,17 @@ public class ImportRole extends ModuleImport implements DescriptionObject {
      * @throws CannotManageException
      * @throws ObjectNotFoundException
      */
-    public void update(AgentPath agentPath) 
+    public void update(AgentPath agentPath, TransactionKey transactionKey) 
             throws ObjectAlreadyExistsException, ObjectCannotBeUpdated, CannotManageException, ObjectNotFoundException
     {
         log.info("update() - Updating Role:"+name+" joblist:"+jobList);
         RolePath rolePath = getRolePath();
 
-        if (!rolePath.exists()) 
+        if (!rolePath.exists(transactionKey)) 
             throw new ObjectNotFoundException("Role '" + rolePath.getName() + "' does NOT exists.");
 
-        Gateway.getLookupManager().setHasJobList(rolePath, (jobList == null) ? false : jobList);
-        Gateway.getLookupManager().setPermissions(rolePath, rolePath.getPermissionsList());
+        Gateway.getLookupManager().setHasJobList(rolePath, (jobList == null) ? false : jobList, transactionKey);
+        Gateway.getLookupManager().setPermissions(rolePath, rolePath.getPermissionsList(), transactionKey);
     }
 
     /**
@@ -121,12 +123,17 @@ public class ImportRole extends ModuleImport implements DescriptionObject {
     }
 
     @Override
+    public ItemPath getItemPath(TransactionKey transactionKey) {
+        return getItemPath();
+    }
+
+    @Override
     public String getItemID() {
         return getID();
     }
 
     @Override
-    public CollectionArrayList makeDescCollections() throws InvalidDataException, ObjectNotFoundException {
+    public CollectionArrayList makeDescCollections(TransactionKey transactionKey) throws InvalidDataException, ObjectNotFoundException {
         return new CollectionArrayList();
     }
 

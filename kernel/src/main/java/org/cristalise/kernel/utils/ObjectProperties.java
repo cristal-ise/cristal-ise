@@ -30,8 +30,6 @@ import java.util.Map.Entry;
 import java.util.Properties;
 import java.util.StringTokenizer;
 
-import lombok.extern.slf4j.Slf4j;
-
 import org.apache.commons.lang3.StringUtils;
 import org.cristalise.kernel.common.InvalidDataException;
 import org.cristalise.kernel.common.ObjectNotFoundException;
@@ -41,6 +39,8 @@ import org.cristalise.kernel.process.Gateway;
 import org.mvel2.templates.CompiledTemplate;
 import org.mvel2.templates.TemplateCompiler;
 import org.mvel2.templates.TemplateRuntime;
+
+import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class ObjectProperties extends Properties {

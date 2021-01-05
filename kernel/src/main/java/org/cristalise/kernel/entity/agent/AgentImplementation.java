@@ -23,7 +23,6 @@ package org.cristalise.kernel.entity.agent;
 import java.util.List;
 
 import org.cristalise.kernel.common.CannotManageException;
-import org.cristalise.kernel.common.ObjectCannotBeUpdated;
 import org.cristalise.kernel.common.ObjectNotFoundException;
 import org.cristalise.kernel.common.PersistencyException;
 import org.cristalise.kernel.common.SystemKey;
@@ -33,7 +32,7 @@ import org.cristalise.kernel.lifecycle.instance.predefined.PredefinedStepContain
 import org.cristalise.kernel.lifecycle.instance.predefined.agent.AgentPredefinedStepContainer;
 import org.cristalise.kernel.lookup.AgentPath;
 import org.cristalise.kernel.lookup.ItemPath;
-import org.cristalise.kernel.lookup.RolePath;
+import org.cristalise.kernel.persistency.TransactionKey;
 import org.cristalise.kernel.process.Gateway;
 
 import lombok.extern.slf4j.Slf4j;
@@ -63,14 +62,15 @@ public class AgentImplementation extends ItemImplementation implements AgentOper
      */
     @Override
     public synchronized void refreshJobList(SystemKey sysKey, String stepPath, String newJobs) {
-        try {
-            ItemPath itemPath = new ItemPath(sysKey);
+        ItemPath itemPath = new ItemPath(sysKey);
+        TransactionKey transactionKey = new TransactionKey(itemPath);
 
-            mStorage.begin(mItemPath);
+        try {
+            mStorage.begin(transactionKey);
 
             JobArrayList newJobList = (JobArrayList)Gateway.getMarshaller().unmarshall(newJobs);
 
-            JobList currentJobs = new JobList((AgentPath)mItemPath, mItemPath);
+            JobList currentJobs = new JobList((AgentPath)mItemPath, transactionKey);
 
             List<String> keysToRemove = currentJobs.getKeysForStep(itemPath, stepPath);
 
@@ -83,12 +83,12 @@ public class AgentImplementation extends ItemImplementation implements AgentOper
             // remove old jobs for this item0
             for(String key: keysToRemove) currentJobs.remove(key);
 
-            mStorage.commit(mItemPath);
+            mStorage.commit(transactionKey);
         }
         catch (Throwable ex) {
             log.error("Could not refresh job list.", ex);
             try {
-                Gateway.getStorage().abort(mItemPath);
+                Gateway.getStorage().abort(transactionKey);
             }
             catch (PersistencyException e) {
                 log.error("Could not abort transaction.", e);
@@ -96,7 +96,8 @@ public class AgentImplementation extends ItemImplementation implements AgentOper
         }
     }
 
-    /** Adds the given Role to this Agent. Called from the SetAgentRoles predefined step.
+    /** 
+     * Adds the given Role to this Agent. Called from the SetAgentRoles predefined step.
      *
      * @param roleName - the new Role to add
      * @throws CannotManageException When the process has no lookup manager
@@ -105,13 +106,7 @@ public class AgentImplementation extends ItemImplementation implements AgentOper
      */
     @Override
     public void addRole(String roleName) throws CannotManageException, ObjectNotFoundException {
-        RolePath newRole = Gateway.getLookup().getRolePath(roleName);
-        try {
-            Gateway.getLookupManager().addRole((AgentPath)mItemPath, newRole);
-        }
-        catch (ObjectCannotBeUpdated ex) {
-            throw new CannotManageException("Could not update role");
-        }
+        throw new CannotManageException("Unsupported operation. Use SetAgentRoles predefined step instead!");
     }
 
     /**
@@ -122,13 +117,7 @@ public class AgentImplementation extends ItemImplementation implements AgentOper
      */
     @Override
     public void removeRole(String roleName) throws CannotManageException, ObjectNotFoundException {
-        RolePath rolePath = Gateway.getLookup().getRolePath(roleName);
-        try {
-            Gateway.getLookupManager().removeRole((AgentPath)mItemPath, rolePath);
-        }
-        catch (ObjectCannotBeUpdated ex) {
-            throw new CannotManageException("Could not update role");
-        }
+        throw new CannotManageException("Unsupported operation. Use SetAgentRoles predefined step instead!");
     }
 
     /**

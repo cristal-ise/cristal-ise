@@ -35,6 +35,7 @@ import javax.xml.validation.SchemaFactory;
 import org.apache.commons.lang3.StringUtils;
 import org.cristalise.kernel.collection.CollectionArrayList;
 import org.cristalise.kernel.lookup.ItemPath;
+import org.cristalise.kernel.persistency.TransactionKey;
 import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.utils.DescriptionObject;
 import org.cristalise.kernel.utils.FileStringUtility;
@@ -192,7 +193,7 @@ public class Schema implements DescriptionObject, ErrorHandler {
     }
 
     @Override
-    public CollectionArrayList makeDescCollections() {
+    public CollectionArrayList makeDescCollections(TransactionKey transactionKey) {
         return new CollectionArrayList();
     }
 

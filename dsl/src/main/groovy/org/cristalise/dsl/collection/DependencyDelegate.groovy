@@ -98,7 +98,7 @@ class DependencyDelegate {
         //HACK: iPathStr is very likely contains a domainPath. itemPath is created 'manually' because of addMember()
         ItemPath itemPath = new ItemPath()
         itemPath.path[0] = iPathStr
-        def member = dependency.addMember(itemPath)
+        def member = dependency.addMember(itemPath, null)
 
         if (cl) {
             DependencyMemberDelegate delegate = new DependencyMemberDelegate()

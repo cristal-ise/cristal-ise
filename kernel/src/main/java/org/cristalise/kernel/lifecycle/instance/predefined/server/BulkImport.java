@@ -55,6 +55,7 @@ import org.cristalise.kernel.lookup.InvalidItemPathException;
 import org.cristalise.kernel.lookup.ItemPath;
 import org.cristalise.kernel.lookup.RolePath;
 import org.cristalise.kernel.persistency.ClusterType;
+import org.cristalise.kernel.persistency.TransactionKey;
 import org.cristalise.kernel.process.Gateway;
 import org.cristalise.storage.XMLClusterStorage;
 
@@ -90,6 +91,13 @@ public class BulkImport extends PredefinedStep {
         useDir = Gateway.getProperties().getBoolean(BULK_IMPORT_USE_DIRECTORIES, false);
     }
 
+    public BulkImport(String rootDir) {
+        super();
+        root = rootDir;
+        ext = "";
+        useDir = false;
+    }
+
     public void initialise() throws InvalidDataException {
         if (importCluster == null) {
             if (root == null)
@@ -100,11 +108,11 @@ public class BulkImport extends PredefinedStep {
     }
 
     @Override
-    protected String runActivityLogic(AgentPath agent, ItemPath itemPath, int transitionID, String requestData, Object transactionKey)
+    protected String runActivityLogic(AgentPath agent, ItemPath itemPath, int transitionID, String requestData, TransactionKey transactionKey)
             throws InvalidDataException, InvalidCollectionModification, ObjectAlreadyExistsException, ObjectCannotBeUpdated,
                    ObjectNotFoundException, PersistencyException, CannotManageException
     {
-        log.debug("Called by {} on {}", agent.getAgentName(), itemPath);
+        log.debug("Called by {} on {}", agent.getAgentName(transactionKey), itemPath);
 
         initialise();
 
@@ -113,7 +121,7 @@ public class BulkImport extends PredefinedStep {
         return requestData;
     }
 
-    public void importAllClusters(Object transactionKey) throws InvalidDataException, PersistencyException {
+    public void importAllClusters(TransactionKey transactionKey) throws InvalidDataException, PersistencyException {
         for (ItemPath item: getItemsToImport(root)) {
             for (ClusterType type : importCluster.getClusters(item, null)) {
                 switch (type) {
@@ -138,16 +146,23 @@ public class BulkImport extends PredefinedStep {
     private List<ItemPath> getItemsToImport(String root) throws InvalidDataException {
         List<ItemPath> items = new ArrayList<>();
         try {
-            try (Stream<Path> files = Files.walk(Paths.get(root))) {
+            try (Stream<Path> files = Files.walk(Paths.get(root), 1)) {
                 files.filter(Files::isDirectory)
                     .forEach(path -> {
+                        //skip root directory
+                        if (path.equals(Paths.get(root))) return;
+
+                        String uuid = path.getFileName().toString();
+
+                        log.info("getItemsToImport()- directory:{}", uuid);
+
                         try {
-                            items.add(new ItemPath(path.getFileName().toString()));
+                            items.add(new ItemPath(uuid));
                         }
                         catch (InvalidItemPathException e) {
-                            log.warn("getItemsToImport() - Unvalid UUID for import directory:"+path.getFileName().toString());
+                            log.warn("getItemsToImport() - Unvalid UUID for import directory:{}", uuid);
                         }
-                    } );
+                    });
             }
 
             return items;
@@ -158,7 +173,7 @@ public class BulkImport extends PredefinedStep {
         }
     }
 
-    public void importProperty(ItemPath item, Object transactionKey) throws PersistencyException {
+    public void importProperty(ItemPath item, TransactionKey transactionKey) throws PersistencyException {
         String[] contents = importCluster.getClusterContents(item, PROPERTY, null);
 
         for (String c : contents) {
@@ -170,7 +185,7 @@ public class BulkImport extends PredefinedStep {
         }
     }
 
-    public void importViewPoint(ItemPath item, Object transactionKey) throws PersistencyException {
+    public void importViewPoint(ItemPath item, TransactionKey transactionKey) throws PersistencyException {
         String[] contents = importCluster.getClusterContents(item, VIEWPOINT, null);
 
         for (String c : contents) {
@@ -186,7 +201,7 @@ public class BulkImport extends PredefinedStep {
         }
     }
 
-    public void importLifeCycle(ItemPath item, Object transactionKey) throws PersistencyException {
+    public void importLifeCycle(ItemPath item, TransactionKey transactionKey) throws PersistencyException {
         String[] contents = importCluster.getClusterContents(item, LIFECYCLE, null);
 
         for (String c : contents) {
@@ -198,7 +213,7 @@ public class BulkImport extends PredefinedStep {
         }
     }
 
-    public void importHistory(ItemPath item, Object transactionKey) throws PersistencyException {
+    public void importHistory(ItemPath item, TransactionKey transactionKey) throws PersistencyException {
         String[] contents = importCluster.getClusterContents(item, HISTORY, null);
 
         for (String c : contents) {
@@ -210,7 +225,7 @@ public class BulkImport extends PredefinedStep {
         }
     }
 
-    public void importOutcome(ItemPath item, Object transactionKey) throws PersistencyException {
+    public void importOutcome(ItemPath item, TransactionKey transactionKey) throws PersistencyException {
         String[] schemas = importCluster.getClusterContents(item, OUTCOME, null);
 
         for (String schema : schemas) {
@@ -229,7 +244,7 @@ public class BulkImport extends PredefinedStep {
         }
     }
 
-    public void importJob(ItemPath item, Object transactionKey) throws PersistencyException {
+    public void importJob(ItemPath item, TransactionKey transactionKey) throws PersistencyException {
         String[] contents = importCluster.getClusterContents(item, JOB, null);
 
         for (String c : contents) {
@@ -241,7 +256,7 @@ public class BulkImport extends PredefinedStep {
         }
     }
 
-    public void importCollection(ItemPath item, Object transactionKey) throws PersistencyException {
+    public void importCollection(ItemPath item, TransactionKey transactionKey) throws PersistencyException {
         String[] names = importCluster.getClusterContents(item, COLLECTION, null);
 
         for (String name : names) {
@@ -256,12 +271,12 @@ public class BulkImport extends PredefinedStep {
         }
     }
 
-    public void importDomainPath(ItemPath item, Object transactionKey) throws PersistencyException {
+    public void importDomainPath(ItemPath item, TransactionKey transactionKey) throws PersistencyException {
         String[] domains = importCluster.getClusterContents(item, PATH+"/Domain", transactionKey);
 
         for (String name : domains) {
             try {
-                Gateway.getLookupManager().add( (DomainPath)importCluster.get(item, PATH+"/Domain/"+name, transactionKey) );
+                Gateway.getLookupManager().add( (DomainPath)importCluster.get(item, PATH+"/Domain/"+name, transactionKey), transactionKey );
             }
             catch (ObjectCannotBeUpdated | ObjectAlreadyExistsException | CannotManageException e) {
                 log.error("", e);
@@ -272,16 +287,16 @@ public class BulkImport extends PredefinedStep {
         }
     }
 
-    public void importRolePath(ItemPath item, AgentPath agentPath, Object transactionKey) throws PersistencyException {
+    public void importRolePath(ItemPath item, AgentPath agentPath, TransactionKey transactionKey) throws PersistencyException {
         String[] roles = importCluster.getClusterContents(item, PATH+"/Role", transactionKey);
 
         for (String role : roles) {
             RolePath rolePath = (RolePath)importCluster.get(item, PATH+"/Role/"+role, transactionKey);
 
-            if (!Gateway.getLookup().exists(rolePath)) {
+            if (!Gateway.getLookup().exists(rolePath, transactionKey)) {
                 try {
-                    Gateway.getLookupManager().add(rolePath);
-                    if (agentPath != null) Gateway.getLookupManager().addRole(agentPath, rolePath);
+                    Gateway.getLookupManager().add(rolePath, transactionKey);
+                    if (agentPath != null) Gateway.getLookupManager().addRole(agentPath, rolePath, transactionKey);
                 }
                 catch (ObjectCannotBeUpdated | ObjectAlreadyExistsException | CannotManageException | ObjectNotFoundException e) {
                     log.error("", e);
@@ -294,10 +309,10 @@ public class BulkImport extends PredefinedStep {
         
     }
 
-    public ItemPath importItemPath(ItemPath item, Object transactionKey) throws PersistencyException {
+    public ItemPath importItemPath(ItemPath item, TransactionKey transactionKey) throws PersistencyException {
         try {
             ItemPath itemPath = (ItemPath)importCluster.get(item, PATH+"/Item", transactionKey);
-            Gateway.getLookupManager().add(itemPath);
+            Gateway.getLookupManager().add(itemPath, transactionKey);
 
             //importCluster.delete(item, PATH+"/Item");
 
@@ -309,12 +324,12 @@ public class BulkImport extends PredefinedStep {
         }
     }
 
-    public AgentPath importAgentPath(ItemPath item, Object transactionKey) throws PersistencyException {
+    public AgentPath importAgentPath(ItemPath item, TransactionKey transactionKey) throws PersistencyException {
         try {
             AgentPath agentPath = (AgentPath)importCluster.get(item, PATH+"/Item", transactionKey);
-            Gateway.getLookupManager().add(agentPath);
+            Gateway.getLookupManager().add(agentPath, transactionKey);
 
-            Gateway.getLookupManager().setAgentPassword(agentPath, "aaa");
+            Gateway.getLookupManager().setAgentPassword(agentPath, "", true, transactionKey);
 
             //importCluster.delete(item, PATH+"/Item");
 
@@ -327,7 +342,7 @@ public class BulkImport extends PredefinedStep {
         
     }
 
-    public void importPath(ItemPath item, Object transactionKey) throws PersistencyException {
+    public void importPath(ItemPath item, TransactionKey transactionKey) throws PersistencyException {
         String[] contents = importCluster.getClusterContents(item, PATH, null);
 
         AgentPath agentPath = null;

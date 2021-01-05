@@ -166,7 +166,7 @@ public class AgentProxy extends ItemProxy {
             throws AccessRightsException, InvalidDataException, InvalidTransitionException, ObjectNotFoundException,
             PersistencyException, ObjectAlreadyExistsException, ScriptErrorException, InvalidCollectionModification
     {
-        ItemProxy item = Gateway.getProxyManager().getProxy(job.getItemPath());
+        ItemProxy item = Gateway.getProxyManager().getProxy(job.getItemPath(), transactionKey);
         Date startTime = new Date();
 
         log.info("execute(job) - {}" + job);
@@ -487,7 +487,7 @@ public class AgentProxy extends ItemProxy {
         if (returnPath == null) {
             throw new ObjectNotFoundException(name);
         }
-        return Gateway.getProxyManager().getProxy(returnPath);
+        return Gateway.getProxyManager().getProxy(returnPath, transactionKey);
     }
 
     private boolean isItemPathAndNotNull(Path pPath) {
@@ -517,7 +517,7 @@ public class AgentProxy extends ItemProxy {
         while (results.hasNext()) {
             Path nextMatch = results.next();
             try {
-                returnList.add(Gateway.getProxyManager().getProxy(nextMatch));
+                returnList.add(Gateway.getProxyManager().getProxy(nextMatch, transactionKey));
             }
             catch (ObjectNotFoundException e) {
                 log.error("Path '" + nextMatch + "' did not resolve to an Item");
@@ -536,14 +536,14 @@ public class AgentProxy extends ItemProxy {
     }
 
     public ItemProxy getItem(Path itemPath) throws ObjectNotFoundException {
-        return Gateway.getProxyManager().getProxy(itemPath);
+        return Gateway.getProxyManager().getProxy(itemPath, transactionKey);
     }
 
     public ItemProxy getItemByUUID(String uuid) throws ObjectNotFoundException, InvalidItemPathException {
-        return Gateway.getProxyManager().getProxy(new ItemPath(uuid));
+        return Gateway.getProxyManager().getProxy(new ItemPath(uuid), transactionKey);
     }
 
     public RolePath[] getRoles() {
-        return Gateway.getLookup().getRoles(mAgentPath);
+        return Gateway.getLookup().getRoles(mAgentPath, transactionKey);
     }
 }

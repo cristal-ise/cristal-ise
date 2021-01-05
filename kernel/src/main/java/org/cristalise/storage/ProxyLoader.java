@@ -32,6 +32,7 @@ import org.cristalise.kernel.lookup.ItemPath;
 import org.cristalise.kernel.lookup.Lookup;
 import org.cristalise.kernel.persistency.ClusterStorage;
 import org.cristalise.kernel.persistency.ClusterType;
+import org.cristalise.kernel.persistency.TransactionKey;
 import org.cristalise.kernel.persistency.outcome.Outcome;
 import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.process.auth.Authenticator;
@@ -97,7 +98,7 @@ public class ProxyLoader extends ClusterStorage {
     }
 
     @Override
-    public String executeQuery(Query query, Object transactionKey) throws PersistencyException {
+    public String executeQuery(Query query, TransactionKey transactionKey) throws PersistencyException {
         throw new PersistencyException("UNIMPLEMENTED funnction");
     }
 
@@ -105,7 +106,7 @@ public class ProxyLoader extends ClusterStorage {
      * retrieve object by path
      */
     @Override
-    public C2KLocalObject get(ItemPath thisItem, String path, Object transactionKey) throws PersistencyException {
+    public C2KLocalObject get(ItemPath thisItem, String path, TransactionKey transactionKey) throws PersistencyException {
         try {
             Item thisEntity = getIOR(thisItem);
             ClusterType type = getClusterType(path);
@@ -134,7 +135,7 @@ public class ProxyLoader extends ClusterStorage {
      * store object not supported
      */
     @Override
-    public void put(ItemPath thisItem, C2KLocalObject obj, Object transactionKey) throws PersistencyException {
+    public void put(ItemPath thisItem, C2KLocalObject obj, TransactionKey transactionKey) throws PersistencyException {
         throw new PersistencyException("Cannot write to items through the ProxyLoader");
     }
 
@@ -142,7 +143,7 @@ public class ProxyLoader extends ClusterStorage {
      * delete cluster not supported
      */
     @Override
-    public void delete(ItemPath thisItem, String path, Object transactionKey) throws PersistencyException {
+    public void delete(ItemPath thisItem, String path, TransactionKey transactionKey) throws PersistencyException {
         throw new PersistencyException("Cannot write to items through the ProxyLoader");
     }
 
@@ -150,7 +151,7 @@ public class ProxyLoader extends ClusterStorage {
      * Directory listing
      */
     @Override
-    public String[] getClusterContents(ItemPath thisItem, String path, Object transactionKey) throws PersistencyException {
+    public String[] getClusterContents(ItemPath thisItem, String path, TransactionKey transactionKey) throws PersistencyException {
         try {
             Item thisEntity = getIOR(thisItem);
             String contents = thisEntity.queryData(path+"/all");
@@ -201,24 +202,24 @@ public class ProxyLoader extends ClusterStorage {
     }
 
     @Override
-    public int getLastIntegerId(ItemPath itemPath, String path, Object transactionKey) throws PersistencyException {
+    public int getLastIntegerId(ItemPath itemPath, String path, TransactionKey transactionKey) throws PersistencyException {
         throw new PersistencyException("Unimplemented");
     }
 
     @Override
-    public void begin(Object transactionKey) throws PersistencyException {
+    public void begin(TransactionKey transactionKey) throws PersistencyException {
         // TODO Auto-generated method stub
         
     }
 
     @Override
-    public void commit(Object transactionKey) throws PersistencyException {
+    public void commit(TransactionKey transactionKey) throws PersistencyException {
         // TODO Auto-generated method stub
         
     }
 
     @Override
-    public void abort(Object transactionKey) throws PersistencyException {
+    public void abort(TransactionKey transactionKey) throws PersistencyException {
         // TODO Auto-generated method stub
         
     }

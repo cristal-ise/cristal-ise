@@ -30,6 +30,7 @@ import org.cristalise.kernel.common.ObjectCannotBeUpdated;
 import org.cristalise.kernel.common.ObjectNotFoundException;
 import org.cristalise.kernel.lookup.AgentPath;
 import org.cristalise.kernel.lookup.Path;
+import org.cristalise.kernel.persistency.TransactionKey;
 import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.process.resource.BuiltInResources;
 import org.cristalise.kernel.process.resource.ResourceImportHandler;
@@ -90,7 +91,7 @@ public class ModuleResource extends ModuleImport {
     }
 
     @Override
-    public Path create(AgentPath agentPath, boolean reset, Object transactionKey) 
+    public Path create(AgentPath agentPath, boolean reset, TransactionKey transactionKey) 
             throws ObjectNotFoundException, ObjectCannotBeUpdated, CannotManageException, ObjectAlreadyExistsException, InvalidDataException
     {
         try {
@@ -100,7 +101,7 @@ public class ModuleResource extends ModuleImport {
             resourceChangeStatus = importHandler.getResourceChangeStatus();
             resourceChangeDetails = importHandler.getResourceChangeDetails();
 
-            if (itemPath == null) itemPath = domainPath.getItemPath();
+            if (itemPath == null) itemPath = domainPath.getItemPath(transactionKey);
 
             return domainPath;
         }

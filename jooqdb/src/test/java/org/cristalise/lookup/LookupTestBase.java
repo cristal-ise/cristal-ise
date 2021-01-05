@@ -64,7 +64,7 @@ public class LookupTestBase extends JooqTestConfigurationBase {
         FieldUtils.writeDeclaredStaticField(Gateway.class, "mLookup",        lookup, true);
 
         lookup.open(null);
-        lookup.initializeDirectory();
+        lookup.initializeDirectory(null);
     }
 
     @After

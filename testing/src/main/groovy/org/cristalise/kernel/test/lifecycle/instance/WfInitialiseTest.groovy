@@ -36,7 +36,7 @@ class WfInitialiseTest implements CristalTestSetup {
 
     @Before
     public void setup() {
-        inMemoryServer('src/main/bin/inMemoryServer.conf', 'src/main/bin/inMemory.clc', 8)
+        inMemoryServer('src/main/bin/inMemoryServer.conf', 'src/main/bin/inMemory.clc', 8, null, true)
         wfBuilder = new WorkflowTestBuilder()
     }
 

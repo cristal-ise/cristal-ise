@@ -32,6 +32,7 @@ import org.cristalise.kernel.common.ObjectNotFoundException;
 import org.cristalise.kernel.entity.imports.ImportAgent;
 import org.cristalise.kernel.lookup.AgentPath;
 import org.cristalise.kernel.lookup.ItemPath;
+import org.cristalise.kernel.persistency.TransactionKey;
 import org.cristalise.kernel.process.Gateway;
 import org.exolab.castor.mapping.MappingException;
 import org.exolab.castor.xml.MarshalException;
@@ -52,13 +53,13 @@ public class ImportImportAgent extends PredefinedStep {
     }
 
     @Override
-    protected String runActivityLogic(AgentPath agent, ItemPath item, int transitionID, String requestData, Object locker)
+    protected String runActivityLogic(AgentPath agent, ItemPath item, int transitionID, String requestData, TransactionKey transactionKey)
             throws InvalidDataException, ObjectNotFoundException, ObjectCannotBeUpdated, CannotManageException, ObjectAlreadyExistsException
     {
         try {
             ImportAgent importAgent = (ImportAgent) Gateway.getMarshaller().unmarshall(requestData);
             importAgent.setPassword("");
-            importAgent.create(agent, true, locker);
+            importAgent.create(agent, true, transactionKey);
             return requestData;
         }
         catch (MarshalException | ValidationException | IOException | MappingException e) {

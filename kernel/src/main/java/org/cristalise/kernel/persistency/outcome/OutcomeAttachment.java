@@ -32,6 +32,7 @@ import org.cristalise.kernel.events.Event;
 import org.cristalise.kernel.lookup.InvalidItemPathException;
 import org.cristalise.kernel.lookup.ItemPath;
 import org.cristalise.kernel.persistency.ClusterType;
+import org.cristalise.kernel.persistency.TransactionKey;
 import org.cristalise.kernel.process.Gateway;
 
 import lombok.Getter;
@@ -85,13 +86,13 @@ public class OutcomeAttachment implements C2KLocalObject {
         return getOutcome(null);
     }
 
-    public Outcome getOutcome(Object locker) throws ObjectNotFoundException, PersistencyException {
+    public Outcome getOutcome(TransactionKey transactionKey) throws ObjectNotFoundException, PersistencyException {
         if (eventId == NONE) throw new ObjectNotFoundException("No last eventId defined for path:"+getClusterPath());
 
         return (Outcome) Gateway.getStorage().get(
                 itemPath, 
                 OUTCOME + "/" + schemaName + "/" + schemaVersion + "/" + eventId, 
-                locker);
+                transactionKey);
     }
 
     @Override

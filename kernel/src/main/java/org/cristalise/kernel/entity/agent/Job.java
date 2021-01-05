@@ -327,7 +327,7 @@ public class Job implements C2KLocalObject {
     }
 
     public ItemProxy getItemProxy() throws ObjectNotFoundException, InvalidItemPathException {
-        if (item == null) item = Gateway.getProxyManager().getProxy(itemPath);
+        if (item == null) item = Gateway.getProxyManager().getProxy(itemPath, null);
         return item;
     }
 

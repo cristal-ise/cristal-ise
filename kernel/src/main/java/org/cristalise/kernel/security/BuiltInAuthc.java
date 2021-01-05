@@ -22,6 +22,7 @@ package org.cristalise.kernel.security;
 
 import org.cristalise.kernel.common.ObjectNotFoundException;
 import org.cristalise.kernel.lookup.Path;
+import org.cristalise.kernel.persistency.TransactionKey;
 import org.cristalise.kernel.process.Gateway;
 
 import lombok.Getter;
@@ -47,8 +48,12 @@ public enum BuiltInAuthc {
     }
 
     public Path getPath() throws ObjectNotFoundException {
-        if      (this.equals(SYSTEM_AGENT)) return Gateway.getLookup().getAgentPath(name);
-        else if (this.equals(ADMIN_ROLE))   return Gateway.getLookup().getRolePath(name);
+        return getPath(null);
+    }
+
+    public Path getPath(TransactionKey transactionKey) throws ObjectNotFoundException {
+        if      (this.equals(SYSTEM_AGENT)) return Gateway.getLookup().getAgentPath(name, transactionKey);
+        else if (this.equals(ADMIN_ROLE))   return Gateway.getLookup().getRolePath(name, transactionKey);
         else {
             log.warn("getPath() - Enum value '{}' is not handled correctly", name);
             return null;

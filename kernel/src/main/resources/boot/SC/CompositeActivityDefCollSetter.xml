@@ -27,7 +27,7 @@
     <output name="errors" type="org.cristalise.kernel.scripting.ErrorInfo" />
     <script language="javascript" name="CompositeActivityDefCollSetter"><![CDATA[
 var actDef = agent.unmarshall(job.getOutcomeString());
-var newDescColl = actDef.makeActDefCollection();	
+var newDescColl = actDef.makeActDefCollection(item.getTransactionKey());	
 
 var oldDescColl;
 try {

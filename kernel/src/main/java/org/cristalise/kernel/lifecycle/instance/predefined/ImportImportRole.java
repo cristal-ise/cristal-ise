@@ -32,6 +32,7 @@ import org.cristalise.kernel.common.ObjectNotFoundException;
 import org.cristalise.kernel.entity.imports.ImportRole;
 import org.cristalise.kernel.lookup.AgentPath;
 import org.cristalise.kernel.lookup.ItemPath;
+import org.cristalise.kernel.persistency.TransactionKey;
 import org.cristalise.kernel.process.Gateway;
 import org.exolab.castor.mapping.MappingException;
 import org.exolab.castor.xml.MarshalException;
@@ -52,7 +53,7 @@ public class ImportImportRole extends PredefinedStep {
     }
 
     @Override
-    protected String runActivityLogic(AgentPath agent, ItemPath item, int transitionID, String requestData, Object locker)
+    protected String runActivityLogic(AgentPath agent, ItemPath item, int transitionID, String requestData, TransactionKey transactionKey)
             throws InvalidDataException, ObjectNotFoundException, ObjectCannotBeUpdated, CannotManageException, ObjectAlreadyExistsException
     {
         try {
@@ -61,7 +62,7 @@ public class ImportImportRole extends PredefinedStep {
 //            if (Gateway.getLookup().exists(new RolePath(importRole.getName(), importRole.jobList) ))
 //                throw new ObjectAlreadyExistsException("CreateNewRole: Role '" + importRole.getName() + "' already exists.");
 
-            importRole.create(agent, true, locker);
+            importRole.create(agent, true, transactionKey);
 
             return requestData;
         }

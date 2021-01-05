@@ -24,6 +24,7 @@ import org.cristalise.kernel.common.PersistencyException;
 import org.cristalise.kernel.entity.C2KLocalObject;
 import org.cristalise.kernel.lookup.ItemPath;
 import org.cristalise.kernel.persistency.ClusterType;
+import org.cristalise.kernel.persistency.TransactionKey;
 
 /**
  * Allows clients to directly load properties and collections from the LDAP so
@@ -38,7 +39,7 @@ public class LDAPClientReader extends LDAPClusterStorage {
     }
 
     @Override
-    public void delete(ItemPath itemPath, String path, Object transactionKey) throws PersistencyException {
+    public void delete(ItemPath itemPath, String path, TransactionKey transactionKey) throws PersistencyException {
         throw new PersistencyException("Writing not supported in LDAPClientReader");
     }
 
@@ -48,7 +49,7 @@ public class LDAPClientReader extends LDAPClusterStorage {
     }
 
     @Override
-    public void put(ItemPath thisItem, C2KLocalObject obj, Object transactionKey) throws PersistencyException {
+    public void put(ItemPath thisItem, C2KLocalObject obj, TransactionKey transactionKey) throws PersistencyException {
         throw new PersistencyException("Writing not supported in LDAPClientReader");
     }
 }
