@@ -30,6 +30,7 @@ import java.util.Vector;
 import org.cristalise.kernel.lookup.AgentPath;
 import org.cristalise.kernel.lookup.ItemPath;
 import org.cristalise.kernel.persistency.RemoteMap;
+import org.cristalise.kernel.persistency.TransactionKey;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -41,7 +42,7 @@ public class JobList extends RemoteMap<Job> {
      */
     private static final long serialVersionUID = -1110616958817712975L;
 
-    public JobList(AgentPath agentPath, Object transactionKey) {
+    public JobList(AgentPath agentPath, TransactionKey transactionKey) {
         super(agentPath, JOB.getName(), transactionKey);
     }
 

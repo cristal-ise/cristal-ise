@@ -34,6 +34,7 @@ import org.cristalise.kernel.lifecycle.instance.stateMachine.Transition
 import org.cristalise.kernel.lifecycle.renderer.LifecycleRenderer
 import org.cristalise.kernel.lookup.AgentPath
 import org.cristalise.kernel.lookup.ItemPath
+import org.cristalise.kernel.persistency.TransactionKey
 import org.cristalise.kernel.persistency.outcome.Outcome
 import org.cristalise.kernel.process.Gateway
 
@@ -239,7 +240,10 @@ class WorkflowTestBuilder extends WorkflowBuilder {
         if (act instanceof CompositeActivity) transID = getTransID(caSM, trans)
         else transID = getTransID(eaSM, trans)
 
-        wf.requestAction(agentPath, null, act.path, itemPath, transID, requestData, "", "".bytes)
+        TransactionKey tk = new TransactionKey('WorkflowTestBuilder')
+        Gateway.getStorage().begin(tk)
+        wf.requestAction(agentPath, null, act.path, itemPath, transID, requestData, "", "".bytes, tk)
+        Gateway.getStorage().commit(tk)
     }
 
     /**

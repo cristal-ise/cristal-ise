@@ -44,15 +44,11 @@ public class AggregationVertexFactory implements VertexFactory
 
 
     @Override
-	public void create
-    (
-        GraphModelManager           graphModelManager,
-        GraphPoint                       location,
-        TypeNameAndConstructionInfo typeNameAndConstructionInfo
-    ) throws Exception
+	public void create(GraphModelManager graphModelManager, GraphPoint location, TypeNameAndConstructionInfo typeNameAndConstructionInfo)
+	        throws Exception
     {
         if (typeNameAndConstructionInfo.mInfo.equals("AggregationMember")) {
-            mAggregation.addMember(null, new CastorHashMap(), "",location, 40, 40);
+            mAggregation.addMember(null, new CastorHashMap(), "",location, 40, 40, null);
         }
     }
 }

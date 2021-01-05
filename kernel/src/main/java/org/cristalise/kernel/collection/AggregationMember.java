@@ -29,6 +29,7 @@ import org.cristalise.kernel.graph.model.GraphableVertex;
 import org.cristalise.kernel.lookup.InvalidItemPathException;
 import org.cristalise.kernel.lookup.ItemPath;
 import org.cristalise.kernel.persistency.ClusterType;
+import org.cristalise.kernel.persistency.TransactionKey;
 import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.property.Property;
 
@@ -87,7 +88,7 @@ public class AggregationMember extends GraphableVertex implements CollectionMemb
     }
 
     @Override
-    public void assignItem(ItemPath itemPath) throws InvalidCollectionModification
+    public void assignItem(ItemPath itemPath, TransactionKey transactionKey) throws InvalidCollectionModification
     {
         if (itemPath != null) {
             if (mClassProps == null || getProperties() == null)
@@ -100,7 +101,7 @@ public class AggregationMember extends GraphableVertex implements CollectionMemb
                 String aClassProp = sub.nextToken();
                 try {
                     String memberValue = (String)getProperties().get(aClassProp);
-                    Property ItemProperty = (Property)Gateway.getStorage().get(itemPath, ClusterType.PROPERTY+"/"+aClassProp, null);
+                    Property ItemProperty = (Property)Gateway.getStorage().get(itemPath, ClusterType.PROPERTY+"/"+aClassProp, transactionKey);
                     if (ItemProperty == null)
                         throw new InvalidCollectionModification("Property "+aClassProp+ " does not exist for item " + itemPath );
                     if (ItemProperty.getValue() == null || !ItemProperty.getValue().equalsIgnoreCase(memberValue))
@@ -130,9 +131,9 @@ public class AggregationMember extends GraphableVertex implements CollectionMemb
     }
 
     @Override
-    public ItemProxy resolveItem() throws ObjectNotFoundException {
+    public ItemProxy resolveItem(TransactionKey transactionKey) throws ObjectNotFoundException {
         if (mItem == null && mItemPath != null) {
-            mItem = Gateway.getProxyManager().getProxy(mItemPath);
+            mItem = Gateway.getProxyManager().getProxy(mItemPath, transactionKey);
         }
         return mItem;
     }
@@ -141,7 +142,7 @@ public class AggregationMember extends GraphableVertex implements CollectionMemb
         if (mItemName == null) {
             if (mItemPath != null) {
                 try {
-                    mItemName = resolveItem().getName();
+                    mItemName = resolveItem(null).getName();
                 } catch (ObjectNotFoundException ex) {
                     log.error("", ex);
                     mItemName = "Error ("+mItemPath+")";

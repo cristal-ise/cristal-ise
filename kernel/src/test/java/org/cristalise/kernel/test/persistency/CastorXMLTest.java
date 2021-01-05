@@ -278,7 +278,7 @@ public class CastorXMLTest {
         CastorHashMap memberProps = new CastorHashMap();
         memberProps.put("Name", "myName");
         memberProps.put("Stats", "chaotic");
-        dep.addMember(new ItemPath(), memberProps, "");
+        dep.addMember(new ItemPath(), memberProps, "", null);
         dep.getCounter(); //counter is not persistent but calculated from the IDs of its members
 
         Dependency depPrime = (Dependency) marshaller.unmarshall(marshaller.marshall(dep));

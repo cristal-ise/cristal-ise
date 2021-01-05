@@ -26,6 +26,7 @@ import java.util.UUID;
 import org.cristalise.kernel.common.ObjectNotFoundException;
 import org.cristalise.kernel.common.SystemKey;
 import org.cristalise.kernel.persistency.ClusterType;
+import org.cristalise.kernel.persistency.TransactionKey;
 import org.cristalise.kernel.process.Gateway;
 
 /**
@@ -86,9 +87,13 @@ public class AgentPath extends ItemPath {
     }
 
     public String getAgentName() {
+        return getAgentName(null);
+    }
+
+    public String getAgentName(TransactionKey transactionKey) {
         if (mAgentName == null) {
             try {
-                mAgentName = Gateway.getLookup().getAgentName(this);
+                mAgentName = Gateway.getLookup().getAgentName(this, transactionKey);
             }
             catch (ObjectNotFoundException e) {
                 return null;
@@ -98,23 +103,39 @@ public class AgentPath extends ItemPath {
     }
 
     public RolePath[] getRoles() {
-        return Gateway.getLookup().getRoles(this);
+        return getRoles(null);
+    }
+
+    public RolePath[] getRoles(TransactionKey transactionKey) {
+        return Gateway.getLookup().getRoles(this, transactionKey);
     }
 
     public RolePath getFirstMatchingRole(List<RolePath> roles) {
+        return getFirstMatchingRole(roles, null);
+    }
+
+    public RolePath getFirstMatchingRole(List<RolePath> roles, TransactionKey transactionKey) {
         for (RolePath role : roles) {
-            if (Gateway.getLookup().hasRole(this, role)) return role;
+            if (Gateway.getLookup().hasRole(this, role, transactionKey)) return role;
         }
         return null;
     }
 
     public boolean hasRole(RolePath role) {
-        return Gateway.getLookup().hasRole(this, role);
+        return hasRole(role, null);
+    }
+
+    public boolean hasRole(RolePath role, TransactionKey transactionKey) {
+        return Gateway.getLookup().hasRole(this, role, transactionKey);
     }
 
     public boolean hasRole(String role) {
+        return hasRole(role, null);
+    }
+
+    public boolean hasRole(String role, TransactionKey transactionKey) {
         try {
-            return hasRole(Gateway.getLookup().getRolePath(role));
+            return hasRole(Gateway.getLookup().getRolePath(role, transactionKey));
         }
         catch (ObjectNotFoundException ex) {
             return false;

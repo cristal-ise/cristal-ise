@@ -241,7 +241,7 @@ public class ClusterStorageManager {
      * 
      * @throws PersistencyException
      */
-    public String executeQuery(Query query, Object transactionKey) throws PersistencyException {
+    public String executeQuery(Query query, TransactionKey transactionKey) throws PersistencyException {
         ClusterStorage reader = findStorageForQuery(query.getLanguage());
 
         if (reader != null) return reader.executeQuery(query, transactionKey);
@@ -252,7 +252,7 @@ public class ClusterStorageManager {
         return getClusterContents(itemPath, type, null);
     }
 
-    public String[] getClusterContents(ItemPath itemPath, ClusterType type, Object transactionKey) throws PersistencyException {
+    public String[] getClusterContents(ItemPath itemPath, ClusterType type, TransactionKey transactionKey) throws PersistencyException {
         return getClusterContents(itemPath, type.getName(), transactionKey);
     }
 
@@ -267,7 +267,7 @@ public class ClusterStorageManager {
      * @param path the cluster path. The leading slash is removed if exists
      * @return list of keys found in the cluster
      */
-    public String[] getClusterContents(ItemPath itemPath, String path, Object transactionKey) throws PersistencyException {
+    public String[] getClusterContents(ItemPath itemPath, String path, TransactionKey transactionKey) throws PersistencyException {
         if (path.startsWith("/") && path.length() > 1) path = path.substring(1);
 
         ArrayList<String> contents = new ArrayList<String>();
@@ -321,7 +321,7 @@ public class ClusterStorageManager {
      * @param path the cluster path. The leading slash is removed if exists
      * @return the C2KObject located by path
      */
-    public C2KLocalObject get(ItemPath itemPath, String path, Object transactionKey) throws PersistencyException, ObjectNotFoundException {
+    public C2KLocalObject get(ItemPath itemPath, String path, TransactionKey transactionKey) throws PersistencyException, ObjectNotFoundException {
         if (path.startsWith("/") && path.length() > 1) path = path.substring(1);
 
         // check cache first
@@ -394,7 +394,7 @@ public class ClusterStorageManager {
      * @return
      * @throws PersistencyException
      */
-    public int getLastIntegerId(ItemPath itemPath, String path, Object transactionKey) throws PersistencyException {
+    public int getLastIntegerId(ItemPath itemPath, String path, TransactionKey transactionKey) throws PersistencyException {
         if (path.startsWith("/") && path.length() > 1) path = path.substring(1);
 
         ArrayList<ClusterStorage> readers = findStorages(HISTORY, false);
@@ -417,7 +417,7 @@ public class ClusterStorageManager {
     /**
      * Creates or overwrites a cluster in all writers. Used when committing transactions.
      */
-    public void put(ItemPath itemPath, C2KLocalObject obj, Object transactionKey) throws PersistencyException {
+    public void put(ItemPath itemPath, C2KLocalObject obj, TransactionKey transactionKey) throws PersistencyException {
         lockItem(itemPath, transactionKey);
 
         String path = ClusterStorage.getPath(obj);
@@ -499,7 +499,7 @@ public class ClusterStorageManager {
      *
      * @throws PersistencyException - when deleting fails
      */
-    public void remove(ItemPath itemPath, String path, Object transactionKey) throws PersistencyException {
+    public void remove(ItemPath itemPath, String path, TransactionKey transactionKey) throws PersistencyException {
         lockItem(itemPath, transactionKey);
 
         ArrayList<ClusterStorage> writers = findStorages(ClusterStorage.getClusterType(path), true);
@@ -536,7 +536,7 @@ public class ClusterStorageManager {
      *
      * @throws PersistencyException - when deleting fails
      */
-    public void removeCluster(ItemPath itemPath, String path, Object transactionKey) throws PersistencyException {
+    public void removeCluster(ItemPath itemPath, String path, TransactionKey transactionKey) throws PersistencyException {
         String[] children = getClusterContents(itemPath, path);
 
         for (String element : children) {
@@ -649,10 +649,10 @@ public class ClusterStorageManager {
      * @param transactionKey
      * @throws PersistencyException
      */
-    public void begin(Object transactionKey)  throws PersistencyException {
+    public void begin(TransactionKey transactionKey)  throws PersistencyException {
         if (transactionKey != null) {
             if (lockCatalog.containsKey(transactionKey)) {
-                throw new PersistencyException("TransactionKey '"+transactionKey+"' is alsready in use");
+                throw new PersistencyException("TransactionKey '"+transactionKey+"' is already in use");
             }
             else {
                 lockCatalog.put(transactionKey, new LinkedHashSet<ItemPath>());
@@ -669,7 +669,7 @@ public class ClusterStorageManager {
      * @param transactionKey
      * @throws PersistencyException
      */
-    public void commit(Object transactionKey) throws PersistencyException {
+    public void commit(TransactionKey transactionKey) throws PersistencyException {
         for (ClusterStorage thisStore : allStores.values()) {
             thisStore.commit(transactionKey);
         }
@@ -694,7 +694,7 @@ public class ClusterStorageManager {
      * @param transactionKey
      * @throws PersistencyException
      */
-    public void abort(Object transactionKey) throws PersistencyException {
+    public void abort(TransactionKey transactionKey) throws PersistencyException {
         for (ClusterStorage thisStore : allStores.values()) {
             thisStore.abort(transactionKey);
         }
@@ -749,7 +749,7 @@ public class ClusterStorageManager {
      * @param message
      * @param transactionKey
      */
-    private void keepMessageForLater(ProxyMessage message, Object transactionKey){
+    private void keepMessageForLater(ProxyMessage message, TransactionKey transactionKey){
         Set<ProxyMessage> set = proxyMessagesMap.get(transactionKey);
         if (set == null){
             set = new HashSet<ProxyMessage>();
@@ -781,7 +781,7 @@ public class ClusterStorageManager {
         }
     }
 
-    private void lockItem(ItemPath itemPath, Object transactionKey) throws PersistencyException {
+    private void lockItem(ItemPath itemPath, TransactionKey transactionKey) throws PersistencyException {
         synchronized(itemLocks) {
             // look to see if this object is already locked
             if (itemLocks.containsKey(itemPath)) {
@@ -794,7 +794,8 @@ public class ClusterStorageManager {
                 else {
                     // the item is already locked by someone else
                     // at this point a semaphore could be used to block the thread, but this could create deadlocks
-                    throw new PersistencyException("Access denied: '"+itemPath+"' has been locked for writing by "+thisLocker);
+                    throw new PersistencyException("Access denied for '"+transactionKey+"': '"+itemPath+
+                                                   "' has been locked for writing by '"+thisLocker+"'");
                 }
             }
             else { // no locks for this item
@@ -802,7 +803,12 @@ public class ClusterStorageManager {
                     // nothing to do, all the writer storages must be in autocommit mode
                 }
                 else { // add the lock
-                    lockCatalog.get(transactionKey).add(itemPath);
+                    Set<ItemPath> lockEntry = lockCatalog.get(transactionKey);
+                    if (lockEntry == null) {
+                        throw new PersistencyException("'"+itemPath+"' - No lockentry was found for transactionKey:"+transactionKey);
+                    }
+
+                    lockEntry.add(itemPath);
                     itemLocks.put(itemPath, transactionKey);
                 }
             }

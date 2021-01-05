@@ -27,10 +27,12 @@ import static org.cristalise.kernel.property.BuiltInItemProperties.NAME;
 import static org.cristalise.kernel.property.BuiltInItemProperties.SCHEMA_URN;
 import static org.cristalise.kernel.property.BuiltInItemProperties.SCRIPT_URN;
 import static org.cristalise.kernel.property.BuiltInItemProperties.TYPE;
+
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
+
 import org.apache.commons.lang3.StringUtils;
 import org.cristalise.kernel.collection.BuiltInCollections;
 import org.cristalise.kernel.collection.Collection;
@@ -54,6 +56,7 @@ import org.cristalise.kernel.lifecycle.instance.predefined.WriteProperty;
 import org.cristalise.kernel.lookup.AgentPath;
 import org.cristalise.kernel.lookup.ItemPath;
 import org.cristalise.kernel.persistency.ClusterType;
+import org.cristalise.kernel.persistency.TransactionKey;
 import org.cristalise.kernel.persistency.outcome.Outcome;
 import org.cristalise.kernel.persistency.outcome.OutcomeAttachment;
 import org.cristalise.kernel.persistency.outcome.Schema;
@@ -69,6 +72,7 @@ import org.cristalise.kernel.utils.LocalObjectLoader;
 import org.exolab.castor.mapping.MappingException;
 import org.exolab.castor.xml.MarshalException;
 import org.exolab.castor.xml.ValidationException;
+
 import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
@@ -88,10 +92,10 @@ public class ItemProxy
     private final HashMap<MemberSubscription<?>, ProxyObserver<?>> mSubscriptions;
 
     /**
-     * Set Transaction key (a.k.a. locker) when ItemProxy is used in server side scripting
+     * Set Transaction key (a.k.a. transKey) when ItemProxy is used in server side scripting
      */
     @Getter @Setter
-    private Object transactionKey = null;
+    protected TransactionKey transactionKey = null;
 
     /**
      *
@@ -409,12 +413,12 @@ public class ItemProxy
      * side Script to find uncommitted changes during the active transaction.
      *
      * @param collection The built-in collection
-     * @param locker the transaction key
+     * @param transKey the transaction key
      * @return the Collection object
      * @throws ObjectNotFoundException objects were not found
      */
-    public Collection<?> getCollection(BuiltInCollections collection, Object locker) throws ObjectNotFoundException {
-        return getCollection(collection, (Integer)null, locker == null ? transactionKey : locker);
+    public Collection<?> getCollection(BuiltInCollections collection, TransactionKey transKey) throws ObjectNotFoundException {
+        return getCollection(collection, (Integer)null, transKey == null ? transactionKey : transKey);
     }
 
     /**
@@ -434,12 +438,12 @@ public class ItemProxy
      *
      * @param collection The built-in Collection
      * @param version The collection number. Use null to get the 'last' version.
-     * @param locker the transaction key
+     * @param transKey the transaction key
      * @return the Collection object
      * @throws ObjectNotFoundException objects were not found
      */
-    public Collection<?> getCollection(BuiltInCollections collection, Integer version, Object locker) throws ObjectNotFoundException {
-        return getCollection(collection.getName(), version, locker == null ? transactionKey : locker);
+    public Collection<?> getCollection(BuiltInCollections collection, Integer version, TransactionKey transKey) throws ObjectNotFoundException {
+        return getCollection(collection.getName(), version, transKey == null ? transactionKey : transKey);
     }
 
     /**
@@ -458,12 +462,12 @@ public class ItemProxy
      * side Script to find uncommitted changes during the active transaction.
      *
      * @param collName The collection name
-     * @param locker the transaction key
+     * @param transKey the transaction key
      * @return the Collection object
      * @throws ObjectNotFoundException objects were not found
      */
-    public Collection<?> getCollection(String collName, Object locker) throws ObjectNotFoundException {
-        return getCollection(collName, (Integer)null, locker == null ? transactionKey : locker);
+    public Collection<?> getCollection(String collName, TransactionKey transKey) throws ObjectNotFoundException {
+        return getCollection(collName, (Integer)null, transKey == null ? transactionKey : transKey);
     }
 
     /**
@@ -484,13 +488,13 @@ public class ItemProxy
      *
      * @param collName The collection name
      * @param version The collection number. Use null to get the 'last' version.
-     * @param locker the transaction key
+     * @param transKey the transaction key
      * @return the Collection object
      * @throws ObjectNotFoundException objects were not found
      */
-    public Collection<?> getCollection(String collName, Integer version, Object locker) throws ObjectNotFoundException {
+    public Collection<?> getCollection(String collName, Integer version, TransactionKey transKey) throws ObjectNotFoundException {
         String verStr = version == null ? "last" : String.valueOf(version);
-        return (Collection<?>) getObject(ClusterType.COLLECTION+"/"+collName+"/"+verStr, locker == null ? transactionKey : locker);
+        return (Collection<?>) getObject(ClusterType.COLLECTION+"/"+collName+"/"+verStr, transKey == null ? transactionKey : transKey);
     }
 
     /** 
@@ -507,12 +511,12 @@ public class ItemProxy
      * Gets the Workflow object of this Item. This method can be used in server 
      * side Script to find uncommitted changes during the active transaction.
      *
-     * @param locker the transaction key
+     * @param transKey the transaction key
      * @return the Item's Workflow object
      * @throws ObjectNotFoundException objects were not found
      */
-    public Workflow getWorkflow(Object locker) throws ObjectNotFoundException {
-        return (Workflow)getObject(ClusterType.LIFECYCLE+"/workflow", locker == null ? transactionKey : locker);
+    public Workflow getWorkflow(TransactionKey transKey) throws ObjectNotFoundException {
+        return (Workflow)getObject(ClusterType.LIFECYCLE+"/workflow", transKey == null ? transactionKey : transKey);
     }
 
     /**
@@ -533,12 +537,12 @@ public class ItemProxy
      *
      * @param schemaName the name of the Schema associated with the Viewpoint
      * @param viewName the name of the View
-     * @param locker the transaction key
+     * @param transKey the transaction key
      * @return true if the ViewPoint exist false otherwise
      * @throws ObjectNotFoundException Object not found
      */
-    public boolean checkViewpoint(String schemaName, String viewName, Object locker) throws ObjectNotFoundException {
-        return checkContent(ClusterType.VIEWPOINT+"/"+schemaName, viewName, locker == null ? transactionKey : locker);
+    public boolean checkViewpoint(String schemaName, String viewName, TransactionKey transKey) throws ObjectNotFoundException {
+        return checkContent(ClusterType.VIEWPOINT+"/"+schemaName, viewName, transKey == null ? transactionKey : transKey);
     }
 
     /**
@@ -557,12 +561,12 @@ public class ItemProxy
      * side Script to find uncommitted changes during the active transaction.
      * 
      * @param schemaName the name of the schema
-     * @param locker the transaction key
+     * @param transKey the transaction key
      * @return array of strings containing the Viewpoint names
      * @throws ObjectNotFoundException Object not found
      */
-    public String[] getViewpoints(String schemaName, Object locker) throws ObjectNotFoundException {
-        return getContents(ClusterType.VIEWPOINT+"/"+schemaName, locker == null ? transactionKey : locker);
+    public String[] getViewpoints(String schemaName, TransactionKey transKey) throws ObjectNotFoundException {
+        return getContents(ClusterType.VIEWPOINT+"/"+schemaName, transKey == null ? transactionKey : transKey);
     }
 
     /**
@@ -583,12 +587,12 @@ public class ItemProxy
      * 
      * @param schemaName the name of the Schema associated with the Viewpoint
      * @param viewName name if the View
-     * @param locker the transaction key
+     * @param transKey the transaction key
      * @return a Viewpoint object
      * @throws ObjectNotFoundException objects were not found
      */
-    public Viewpoint getViewpoint(String schemaName, String viewName, Object locker) throws ObjectNotFoundException {
-        return (Viewpoint)getObject(ClusterType.VIEWPOINT+"/"+schemaName+"/"+viewName, locker == null ? transactionKey : locker);
+    public Viewpoint getViewpoint(String schemaName, String viewName, TransactionKey transKey) throws ObjectNotFoundException {
+        return (Viewpoint)getObject(ClusterType.VIEWPOINT+"/"+schemaName+"/"+viewName, transKey == null ? transactionKey : transKey);
     }
 
     /**
@@ -611,13 +615,14 @@ public class ItemProxy
      * @param schemaName the name of the Schema used to create the Outcome
      * @param schemaVersion the version of the Schema used to create the Outcome
      * @param eventId the id of the Event created when the Outcome was stored
-     * @param locker the transaction key
+     * @param transKey the transaction key
      * @return true if the Outcome exist false otherwise
      * @throws ObjectNotFoundException Object not found
      */
-    public boolean checkOutcome(String schemaName, int schemaVersion, int eventId, Object locker) throws ObjectNotFoundException {
+    public boolean checkOutcome(String schemaName, int schemaVersion, int eventId, TransactionKey transKey) throws ObjectNotFoundException {
         try {
-            return checkOutcome(LocalObjectLoader.getSchema(schemaName, schemaVersion), eventId, locker == null ? transactionKey : locker);
+            TransactionKey tk = transKey == null ? transactionKey : transKey;
+            return checkOutcome(LocalObjectLoader.getSchema(schemaName, schemaVersion, tk), eventId, tk);
         }
         catch (InvalidDataException e) {
             log.error("Schema was not found:{}", schemaName, e);
@@ -643,12 +648,12 @@ public class ItemProxy
      * 
      * @param schema the Schema used to create the Outcome
      * @param eventId the id of the Event created when the Outcome was stored
-     * @param locker transaction key
+     * @param transKey transaction key
      * @return true if the Outcome exist false otherwise
      * @throws ObjectNotFoundException Object not found
      */
-    public boolean checkOutcome(Schema schema, int eventId, Object locker) throws ObjectNotFoundException {
-        return checkContent(ClusterType.OUTCOME+"/"+schema.getName()+"/"+schema.getVersion(), String.valueOf(eventId), locker == null ? transactionKey : locker);
+    public boolean checkOutcome(Schema schema, int eventId, TransactionKey transKey) throws ObjectNotFoundException {
+        return checkContent(ClusterType.OUTCOME+"/"+schema.getName()+"/"+schema.getVersion(), String.valueOf(eventId), transKey == null ? transactionKey : transKey);
     }
 
     /**
@@ -672,13 +677,14 @@ public class ItemProxy
      * @param schemaName the name of the Schema of the Outcome
      * @param schemaVersion the version of the Schema of the Outcome
      * @param eventId the event id
-     * @param locker the transaction key
+     * @param transKey the transaction key
      * @return the Outcome object
      * @throws ObjectNotFoundException object was not found
      */
-    public Outcome getOutcome(String schemaName, int schemaVersion, int eventId, Object locker) throws ObjectNotFoundException {
+    public Outcome getOutcome(String schemaName, int schemaVersion, int eventId, TransactionKey transKey) throws ObjectNotFoundException {
         try {
-            return getOutcome(LocalObjectLoader.getSchema(schemaName, schemaVersion), eventId, locker == null ? transactionKey : locker);
+            TransactionKey tk = transKey == null ? transactionKey : transKey;
+            return getOutcome(LocalObjectLoader.getSchema(schemaName, schemaVersion, tk), eventId, tk);
         }
         catch (InvalidDataException e) {
             log.error("Schema was not found:{}", schemaName, e);
@@ -704,12 +710,12 @@ public class ItemProxy
      *
      * @param schema the Schema used to create the Outcome
      * @param eventId the id of the Event created when the Outcome was stored
-     * @param locker the transaction key
+     * @param transKey the transaction key
      * @return the Outcome object
      * @throws ObjectNotFoundException object was not found
      */
-    public Outcome getOutcome(Schema schema, int eventId, Object locker) throws ObjectNotFoundException {
-        return (Outcome)getObject(ClusterType.OUTCOME+"/"+schema.getName()+"/"+schema.getVersion()+"/"+eventId, locker == null ? transactionKey : locker);
+    public Outcome getOutcome(Schema schema, int eventId, TransactionKey transKey) throws ObjectNotFoundException {
+        return (Outcome)getObject(ClusterType.OUTCOME+"/"+schema.getName()+"/"+schema.getVersion()+"/"+eventId, transKey == null ? transactionKey : transKey);
     }
 
     /**
@@ -728,13 +734,13 @@ public class ItemProxy
      * during the active transaction.
      *
      * @param view the Viewpoint to be used
-     * @param locker the transaction key
+     * @param transKey the transaction key
      * @return the Outcome object
      * @throws ObjectNotFoundException object was not found
      */
-    public Outcome getOutcome(Viewpoint view, Object locker) throws ObjectNotFoundException {
+    public Outcome getOutcome(Viewpoint view, TransactionKey transKey) throws ObjectNotFoundException {
         try {
-            return view.getOutcome(locker == null ? transactionKey : locker);
+            return view.getOutcome(transKey == null ? transactionKey : transKey);
         }
         catch (PersistencyException e) {
             log.error("Could not retrieve outcome for view:{}", view, e);
@@ -758,12 +764,12 @@ public class ItemProxy
      * during the active transaction.
      * 
      * @param event the Event to be used
-     * @param locker  the transaction key
+     * @param transKey  the transaction key
      * @return the Outcome object
      * @throws ObjectNotFoundException object was not found
      */
-    public Outcome getOutcome(Event event, Object locker) throws ObjectNotFoundException {
-        return getOutcome(event.getSchemaName(), event.getSchemaVersion(), event.getID(), locker);
+    public Outcome getOutcome(Event event, TransactionKey transKey) throws ObjectNotFoundException {
+        return getOutcome(event.getSchemaName(), event.getSchemaVersion(), event.getID(), transKey);
     }
 
     /**
@@ -784,12 +790,12 @@ public class ItemProxy
      *
      * @param schema the Schema used to create the Outcome and its OutcomeAttachment
      * @param eventId the id of the Event created when the Outcome and its OutcomeAttachment was stored
-     * @param locker the transaction key
+     * @param transKey the transaction key
      * @return true if the OutcomeAttachment exist false otherwise
      * @throws ObjectNotFoundException Object not found
      */
-    public boolean checkOutcomeAttachment(Schema schema, int eventId, Object locker) throws ObjectNotFoundException {
-        return checkContent(ClusterType.ATTACHMENT+"/"+schema.getName()+"/"+schema.getVersion(), String.valueOf(eventId), locker == null ? transactionKey : locker);
+    public boolean checkOutcomeAttachment(Schema schema, int eventId, TransactionKey transKey) throws ObjectNotFoundException {
+        return checkContent(ClusterType.ATTACHMENT+"/"+schema.getName()+"/"+schema.getVersion(), String.valueOf(eventId), transKey == null ? transactionKey : transKey);
     }
 
     /**
@@ -812,15 +818,16 @@ public class ItemProxy
      * @param schemaName the name of the Schema used to create the Outcome and its OutcomeAttachment
      * @param schemaVersion the version of the Schema of the Outcome
      * @param eventId the event id
-     * @param locker the transaction key
+     * @param transKey the transaction key
      * @return the Outcome object
      * @throws ObjectNotFoundException object was not found
      */
-    public OutcomeAttachment getOutcomeAttachment(String schemaName, int schemaVersion, int eventId, Object locker)
+    public OutcomeAttachment getOutcomeAttachment(String schemaName, int schemaVersion, int eventId, TransactionKey transKey)
             throws ObjectNotFoundException
     {
         try {
-            return getOutcomeAttachment(LocalObjectLoader.getSchema(schemaName, schemaVersion), eventId, locker == null ? transactionKey : locker);
+            TransactionKey tk = transKey == null ? transactionKey : transKey;
+            return getOutcomeAttachment(LocalObjectLoader.getSchema(schemaName, schemaVersion, tk), eventId, tk);
         }
         catch (InvalidDataException e) {
             log.error("Could not retrieve attachment for schema:{}", schemaName, e);
@@ -846,12 +853,12 @@ public class ItemProxy
      *
      * @param schema the Schema used to create the Outcome and its OutcomeAttachment
      * @param eventId the id of the Event created when the Outcome and the OutcomeAttachment was stored
-     * @param locker the transaction key
+     * @param transKey the transaction key
      * @return the Outcome object
      * @throws ObjectNotFoundException object was not found
      */
-    public OutcomeAttachment getOutcomeAttachment(Schema schema, int eventId, Object locker) throws ObjectNotFoundException {
-        return (OutcomeAttachment)getObject(ClusterType.ATTACHMENT+"/"+schema.getName()+"/"+schema.getVersion()+"/"+eventId, locker == null ? transactionKey : locker);
+    public OutcomeAttachment getOutcomeAttachment(Schema schema, int eventId, TransactionKey transKey) throws ObjectNotFoundException {
+        return (OutcomeAttachment)getObject(ClusterType.ATTACHMENT+"/"+schema.getName()+"/"+schema.getVersion()+"/"+eventId, transKey == null ? transactionKey : transKey);
     }
 
     /**
@@ -930,11 +937,11 @@ public class ItemProxy
      * Query data of the Item located by the ClusterStorage path
      *
      * @param path the ClusterStorage path
-     * @param locker the transaction key
+     * @param transKey the transaction key
      * @return the data in XML form
      * @throws ObjectNotFoundException path was not correct
      */
-    public String queryData(String path, Object locker) throws ObjectNotFoundException {
+    public String queryData(String path, TransactionKey transKey) throws ObjectNotFoundException {
         try {
             log.debug("queryData() - {}/{}", mItemPath, path);
 
@@ -953,7 +960,7 @@ public class ItemProxy
                 return retString.toString();
             }
             else {
-                C2KLocalObject target = Gateway.getStorage().get(mItemPath, path, locker == null ? transactionKey : locker);
+                C2KLocalObject target = Gateway.getStorage().get(mItemPath, path, transKey == null ? transactionKey : transKey);
                 return Gateway.getMarshaller().marshall(target);
             }
         }
@@ -996,12 +1003,12 @@ public class ItemProxy
      *
      * @param cluster the type of the cluster
      * @param name the name of the content to be checked
-     * @param locker the transaction key
+     * @param transKey the transaction key
      * @return true if there is content false otherwise
      * @throws ObjectNotFoundException path was not correct
      */
-    public boolean checkContent(String path, String name, Object locker) throws ObjectNotFoundException {
-        for (String key : getContents(path, locker == null ? transactionKey : locker)) if (key.equals(name)) return true;
+    public boolean checkContent(String path, String name, TransactionKey transKey) throws ObjectNotFoundException {
+        for (String key : getContents(path, transKey == null ? transactionKey : transKey)) if (key.equals(name)) return true;
         return false;
     }
 
@@ -1021,12 +1028,12 @@ public class ItemProxy
      * to find uncommitted changes during the active transaction.
      *
      * @param type the type of the cluster
-     * @param locker the transaction key
+     * @param transKey the transaction key
      * @return list of String of the cluster content
      * @throws ObjectNotFoundException Object nt found
      */
-    public String[] getContents(ClusterType type, Object locker) throws ObjectNotFoundException {
-        return getContents(type.getName(), locker == null ? transactionKey : locker);
+    public String[] getContents(ClusterType type, TransactionKey transKey) throws ObjectNotFoundException {
+        return getContents(type.getName(), transKey == null ? transactionKey : transKey);
     }
 
     /**
@@ -1045,14 +1052,14 @@ public class ItemProxy
      * to find uncommitted changes during the active transaction.
      *
      * @param path the ClusterStorage path
-     * @param locker the transaction key
+     * @param transKey the transaction key
      * @return list of String of the cluster content
      * @throws ObjectNotFoundException Object not found
      */
-    public String[] getContents(String path, Object locker) throws ObjectNotFoundException {
+    public String[] getContents(String path, TransactionKey transKey) throws ObjectNotFoundException {
         try {
             //return Gateway.getStorage().getClusterContents(mItemPath, path);
-            return Gateway.getStorage().getClusterContents(mItemPath, path, locker == null ? transactionKey : locker);
+            return Gateway.getStorage().getClusterContents(mItemPath, path, transKey == null ? transactionKey : transKey);
         }
         catch (PersistencyException e) {
             throw new ObjectNotFoundException(e.toString());
@@ -1097,13 +1104,13 @@ public class ItemProxy
      * during the active transaction.
      * 
      * @param path the path to the cluster object
-     * @param locker the transaction key
+     * @param transKey the transaction key
      * @return the C2KLocalObject
      * @throws ObjectNotFoundException the path did not result in a C2KLocalObject
      */
-    public C2KLocalObject getObject(String path, Object locker) throws ObjectNotFoundException {
+    public C2KLocalObject getObject(String path, TransactionKey transKey) throws ObjectNotFoundException {
         try {
-            return Gateway.getStorage().get(mItemPath, path , locker == null ? transactionKey : locker);
+            return Gateway.getStorage().get(mItemPath, path , transKey == null ? transactionKey : transKey);
         }
         catch( PersistencyException ex ) {
             log.error("getObject() - Exception loading object:{}/{}", mItemPath, path, ex);
@@ -1150,13 +1157,13 @@ public class ItemProxy
      *
      * @param name of the Item Property
      * @param defaultValue the value to be used if no Property was found
-     * @param locker the transaction key
+     * @param transKey the transaction key
      * @return the value of the property
      */
-    public String getProperty(String name, String defaultValue, Object locker) {
+    public String getProperty(String name, String defaultValue, TransactionKey transKey) {
         try {
-            if (checkContent(ClusterType.PROPERTY.getName(), name, locker == null ? transactionKey : locker)) {
-                return getProperty(name, locker == null ? transactionKey : locker);
+            if (checkContent(ClusterType.PROPERTY.getName(), name, transKey == null ? transactionKey : transKey)) {
+                return getProperty(name, transKey == null ? transactionKey : transKey);
             }
         }
         catch(ObjectNotFoundException e) {
@@ -1174,20 +1181,20 @@ public class ItemProxy
      * @throws ObjectNotFoundException property was not found
      */
     public String getProperty( String name ) throws ObjectNotFoundException {
-        return getProperty(name, (Object)null);
+        return getProperty(name, (TransactionKey)null);
     }
 
     /**
      * 
      * @param name
-     * @param locker
+     * @param transKey
      * @return
      * @throws ObjectNotFoundException
      */
-    public String getProperty(String name, Object locker) throws ObjectNotFoundException {
+    public String getProperty(String name, TransactionKey transKey) throws ObjectNotFoundException {
         log.debug("getProperty() - {} from item {}", name, mItemPath);
 
-        Property prop = (Property)getObject(ClusterType.PROPERTY+"/"+name, locker == null ? transactionKey : locker);
+        Property prop = (Property)getObject(ClusterType.PROPERTY+"/"+name, transKey == null ? transactionKey : transKey);
 
         if(prop != null) return prop.getValue();
         else             throw new ObjectNotFoundException("COULD not find property "+name+" from item "+mItemPath);
@@ -1209,12 +1216,12 @@ public class ItemProxy
      * side Script to find uncommitted changes during the active transaction.
      * 
      * @param name of the Property
-     * @param locker the transaction key
+     * @param transKey the transaction key
      * @return true if the Property exist false otherwise
      * @throws ObjectNotFoundException Item does not have any properties at all
      */
-    public boolean checkProperty(String name, Object locker) throws ObjectNotFoundException {
-        return checkContent(ClusterType.PROPERTY.getName(), name, locker == null ? transactionKey : locker);
+    public boolean checkProperty(String name, TransactionKey transKey) throws ObjectNotFoundException {
+        return checkContent(ClusterType.PROPERTY.getName(), name, transKey == null ? transactionKey : transKey);
     }
 
     /**
@@ -1251,12 +1258,12 @@ public class ItemProxy
      * during the active transaction.
      * 
      * @param eventId the id of the Event
-     * @param locker the transaction key
+     * @param transKey the transaction key
      * @return the Event object
      * @throws ObjectNotFoundException there is no event for the given id
      */
-    public Event getEvent(int eventId, Object locker) throws ObjectNotFoundException {
-        return (Event) getObject(HISTORY + "/" + eventId, locker == null ? transactionKey : locker);
+    public Event getEvent(int eventId, TransactionKey transKey) throws ObjectNotFoundException {
+        return (Event) getObject(HISTORY + "/" + eventId, transKey == null ? transactionKey : transKey);
     }
 
     /**
@@ -1303,7 +1310,7 @@ public class ItemProxy
             }
         }
 
-        return LocalObjectLoader.getSchema(schemaName, schemaVersion);
+        return LocalObjectLoader.getSchema(schemaName, schemaVersion, transactionKey);
     }
 
     /**
@@ -1350,7 +1357,7 @@ public class ItemProxy
             }
         }
 
-        return LocalObjectLoader.getScript(scriptName, scriptVersion);
+        return LocalObjectLoader.getScript(scriptName, scriptVersion, transactionKey);
     }
 
     //**************************************************************************

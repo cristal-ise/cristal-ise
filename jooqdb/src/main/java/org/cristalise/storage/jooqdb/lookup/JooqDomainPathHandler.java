@@ -20,8 +20,6 @@
  */
 package org.cristalise.storage.jooqdb.lookup;
 
-import static org.cristalise.kernel.lookup.Lookup.SearchConstraints.EXACT_NAME_MATCH;
-import static org.cristalise.kernel.lookup.Lookup.SearchConstraints.WILDCARD_MATCH;
 import static org.jooq.impl.DSL.constraint;
 import static org.jooq.impl.DSL.field;
 import static org.jooq.impl.DSL.name;

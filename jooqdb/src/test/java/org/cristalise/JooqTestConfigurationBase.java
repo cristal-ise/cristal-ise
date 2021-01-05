@@ -26,7 +26,7 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.util.Properties;
 
-import org.cristalise.storage.jooqdb.JooqHandler;
+import org.cristalise.storage.jooqdb.JooqDataSourceHandler;
 import org.jooq.DSLContext;
 import org.jooq.SQLDialect;
 
@@ -126,11 +126,10 @@ public class JooqTestConfigurationBase {
      * @param c2kProps
      */
     private static void setUpPostgres(Properties c2kProps) {
-        c2kProps.put(JooqHandler.JOOQ_URI,        "jdbc:postgresql://localhost:5432/" + dbName);
-        c2kProps.put(JooqHandler.JOOQ_USER,       "postgres");
-        c2kProps.put(JooqHandler.JOOQ_PASSWORD,   "cristal");
-        c2kProps.put(JooqHandler.JOOQ_DIALECT,    SQLDialect.POSTGRES.toString());
-        c2kProps.put(JooqHandler.JOOQ_AUTOCOMMIT, true);
+        c2kProps.put(JooqDataSourceHandler.JOOQ_URI,        "jdbc:postgresql://localhost:5432/" + dbName);
+        c2kProps.put(JooqDataSourceHandler.JOOQ_USER,       "postgres");
+        c2kProps.put(JooqDataSourceHandler.JOOQ_PASSWORD,   "cristal");
+        c2kProps.put(JooqDataSourceHandler.JOOQ_DIALECT,    SQLDialect.POSTGRES.toString());
     }
 
     /**
@@ -153,11 +152,10 @@ public class JooqTestConfigurationBase {
      * @param c2kProps
      */
     private static void setUpMySQL(Properties c2kProps) {
-        c2kProps.put(JooqHandler.JOOQ_URI,        "jdbc:mysql://localhost:3306/" + dbName);
-        c2kProps.put(JooqHandler.JOOQ_USER,       "root");
-        c2kProps.put(JooqHandler.JOOQ_PASSWORD,   "cristal");
-        c2kProps.put(JooqHandler.JOOQ_DIALECT,    SQLDialect.MYSQL.toString());
-        c2kProps.put(JooqHandler.JOOQ_AUTOCOMMIT, true);
+        c2kProps.put(JooqDataSourceHandler.JOOQ_URI,        "jdbc:mysql://localhost:3306/" + dbName);
+        c2kProps.put(JooqDataSourceHandler.JOOQ_USER,       "root");
+        c2kProps.put(JooqDataSourceHandler.JOOQ_PASSWORD,   "cristal");
+        c2kProps.put(JooqDataSourceHandler.JOOQ_DIALECT,    SQLDialect.MYSQL.toString());
     }
 
     /**
@@ -183,10 +181,10 @@ public class JooqTestConfigurationBase {
      * @param mode
      */
     private static void setUpH2(Properties c2kProps, String mode) {
-        c2kProps.put(JooqHandler.JOOQ_URI,        "jdbc:h2:mem:"+dbName+";DB_CLOSE_DELAY=-1"+(mode!=null?";MODE="+mode:""));
-        c2kProps.put(JooqHandler.JOOQ_USER,       "sa");
-        c2kProps.put(JooqHandler.JOOQ_PASSWORD,   "sa");
-        c2kProps.put(JooqHandler.JOOQ_DIALECT,    SQLDialect.H2.toString());
-        c2kProps.put(JooqHandler.JOOQ_AUTOCOMMIT, true);
+        c2kProps.put(JooqDataSourceHandler.JOOQ_URI,        "jdbc:h2:mem:"+dbName+";DB_CLOSE_DELAY=-1"+(mode!=null?";MODE="+mode:""));
+        c2kProps.put(JooqDataSourceHandler.JOOQ_USER,       "sa");
+        c2kProps.put(JooqDataSourceHandler.JOOQ_PASSWORD,   "sa");
+        c2kProps.put(JooqDataSourceHandler.JOOQ_DIALECT,    SQLDialect.H2.toString());
+        c2kProps.put(JooqDataSourceHandler.JOOQ_AUTOCOMMIT, true);
     }
 }

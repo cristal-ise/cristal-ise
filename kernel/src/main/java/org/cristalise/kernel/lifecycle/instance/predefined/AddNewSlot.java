@@ -32,6 +32,7 @@ import org.cristalise.kernel.lookup.DomainPath;
 import org.cristalise.kernel.lookup.InvalidItemPathException;
 import org.cristalise.kernel.lookup.ItemPath;
 import org.cristalise.kernel.persistency.ClusterType;
+import org.cristalise.kernel.persistency.TransactionKey;
 import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.property.PropertyDescription;
 import org.cristalise.kernel.property.PropertyDescriptionList;
@@ -64,7 +65,7 @@ public class AddNewSlot extends PredefinedStep {
      *             A required object, such as the collection or a PropertyDescription outcome, wasn't found
      */
     @Override
-    protected String runActivityLogic(AgentPath agent, ItemPath item, int transitionID, String requestData, Object locker)
+    protected String runActivityLogic(AgentPath agent, ItemPath item, int transitionID, String requestData, TransactionKey transactionKey)
             throws InvalidDataException, PersistencyException, ObjectNotFoundException
     {
         String collName;
@@ -74,7 +75,7 @@ public class AddNewSlot extends PredefinedStep {
         // extract parameters
         String[] params = getDataList(requestData);
 
-        log.debug("Called by {} on {} with parameters {}", agent.getAgentName(), item, (Object)params);
+        log.debug("Called by {} on {} with parameters {}", agent.getAgentName(transactionKey), item, (Object)params);
 
         // resolve desc item path and version
         try {
@@ -84,7 +85,7 @@ public class AddNewSlot extends PredefinedStep {
                     descKey = new ItemPath(params[1]);
                 }
                 catch (InvalidItemPathException e) {
-                    descKey = new DomainPath(params[1]).getItemPath();
+                    descKey = new DomainPath(params[1]).getItemPath(transactionKey);
                 }
             }
 
@@ -95,7 +96,7 @@ public class AddNewSlot extends PredefinedStep {
         }
 
         // load collection
-        C2KLocalObject collObj = Gateway.getStorage().get(item, ClusterType.COLLECTION + "/" + collName + "/last", locker);
+        C2KLocalObject collObj = Gateway.getStorage().get(item, ClusterType.COLLECTION + "/" + collName + "/last", transactionKey);
 
         if (!(collObj instanceof Aggregation)) throw new InvalidDataException("AddNewSlot operates on Aggregation only.");
 
@@ -107,7 +108,7 @@ public class AddNewSlot extends PredefinedStep {
         
         if (descKey != null) {
             PropertyDescriptionList propList;
-            propList = PropertyUtility.getPropertyDescriptionOutcome(descKey, descVer, locker);
+            propList = PropertyUtility.getPropertyDescriptionOutcome(descKey, descVer, transactionKey);
             for (PropertyDescription pd : propList.list) {
                 props.put(pd.getName(), pd.getDefaultValue());
                 if (pd.getIsClassIdentifier()) classProps.append((classProps.length() > 0 ? "," : "")).append(pd.getName());
@@ -116,7 +117,7 @@ public class AddNewSlot extends PredefinedStep {
 
         agg.addSlot(props, classProps.toString());
 
-        Gateway.getStorage().put(item, agg, locker);
+        Gateway.getStorage().put(item, agg, transactionKey);
 
         return requestData;
     }

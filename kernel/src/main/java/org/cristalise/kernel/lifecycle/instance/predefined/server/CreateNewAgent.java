@@ -33,6 +33,7 @@ import org.cristalise.kernel.entity.imports.ImportAgent;
 import org.cristalise.kernel.lifecycle.instance.predefined.PredefinedStep;
 import org.cristalise.kernel.lookup.AgentPath;
 import org.cristalise.kernel.lookup.ItemPath;
+import org.cristalise.kernel.persistency.TransactionKey;
 import org.cristalise.kernel.process.Gateway;
 import org.exolab.castor.mapping.MappingException;
 import org.exolab.castor.xml.MarshalException;
@@ -48,12 +49,12 @@ public class CreateNewAgent extends PredefinedStep {
     }
 
     @Override
-    protected String runActivityLogic(AgentPath agent, ItemPath item, int transitionID, String requestData, Object locker)
+    protected String runActivityLogic(AgentPath agent, ItemPath item, int transitionID, String requestData, TransactionKey transactionKey)
             throws InvalidDataException, ObjectNotFoundException, ObjectCannotBeUpdated, CannotManageException, ObjectAlreadyExistsException
     {
         try {
             ImportAgent newAgent = (ImportAgent) Gateway.getMarshaller().unmarshall(requestData);
-            newAgent.create(agent, true, locker);
+            newAgent.create(agent, true, transactionKey);
 
             newAgent.setPassword("REDACTED");
 

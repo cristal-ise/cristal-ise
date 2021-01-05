@@ -81,13 +81,13 @@ class ItemWithCollectionIT extends KernelScenarioTestBase {
         memberProps2.put("Name", "P2");
         memberProps2.put("Disease", "covid19");
         //memberProps2.put("MemberUpdateSchema", "Patient:0");
-        dep.addMember(patient2.getPath(), memberProps2, '');
+        dep.addMember(patient2.getPath(), memberProps2, '', null);
 
         CastorHashMap memberProps3 = new CastorHashMap();
         memberProps3.put("Name", "P3");
         memberProps3.put("Disease", "covid19++");
         memberProps3.put("MemberUpdateSchema", "Patient:0");
-        dep.addMember(patient3.getPath(), memberProps3, '');
+        dep.addMember(patient3.getPath(), memberProps3, '', null);
 
         def result = agent.execute(doctor, AddMembersToCollection, Gateway.marshaller.marshall(dep))
 

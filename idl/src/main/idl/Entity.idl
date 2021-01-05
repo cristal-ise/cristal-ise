@@ -190,7 +190,6 @@ module entity
     **************************************************************************/
     interface Agent : Item
     {
-                    
         /** Supplies the new set of jobs for the given item and activity. The Agent should replace all existing jobs for that activity 
           * with the given set. This method should generally only be called by a workflow while performing an execution.
           *
@@ -201,20 +200,17 @@ module entity
 		void refreshJobList( in common::SystemKey itemKey,
 							 in string stepPath,
 							 in string newJobs );
-		
-		/** Add this Agent to the given role
-		  * @param roleName the new role to add
-		  * @throws ObjectNotFoundException when the role doesn't exist
-		  * @throws CannotManageException when an error occurs writing the data to LDAP
-		  **/
+
+		/**
+		* DEPRECATED: Use SetAgentRoles predefined step 
+		**/
 		void addRole( in string roleName )
 			raises( common::ObjectNotFoundException,
 					common::CannotManageException );
 
-		/** Remove this Agent from the given role
-		  * @param the role name to remove
-		  * @throws CannotManageException when an error occurs writing the data to LDAP
-		  **/
+        /**
+        * DEPRECATED: Use SetAgentRoles predefined step 
+        **/
 		void removeRole( in string roleName )
 			raises( common::ObjectNotFoundException,
 					common::CannotManageException );

@@ -27,6 +27,7 @@ import java.util.UUID;
 import org.cristalise.kernel.common.ObjectNotFoundException;
 import org.cristalise.kernel.common.SystemKey;
 import org.cristalise.kernel.persistency.ClusterType;
+import org.cristalise.kernel.persistency.TransactionKey;
 import org.cristalise.kernel.process.Gateway;
 
 import lombok.extern.slf4j.Slf4j;
@@ -106,15 +107,15 @@ public class ItemPath extends Path {
     }
 
     @Override
-    public ItemPath getItemPath() throws ObjectNotFoundException {
+    public ItemPath getItemPath(TransactionKey transactionKey) throws ObjectNotFoundException {
         return this;
     }
 
     @Override
-    public org.omg.CORBA.Object getIOR() {
+    public org.omg.CORBA.Object getIOR(TransactionKey transactionKey) {
         if (mIOR == null) {
             try {
-                mIOR = Gateway.getLookup().getIOR(this);
+                mIOR = Gateway.getLookup().getIOR(this, transactionKey);
             }
             catch (ObjectNotFoundException ex) {
                 log.warn(ex.getMessage());
@@ -175,7 +176,7 @@ public class ItemPath extends Path {
 
     @Override
     public String getName() {
-        return getUUID().toString();
+        return mPath[0]; //originally it was 'return getUUID().toString()';
     }
 
     @Override

@@ -33,6 +33,7 @@ import org.cristalise.kernel.lookup.DomainPath;
 import org.cristalise.kernel.lookup.InvalidItemPathException;
 import org.cristalise.kernel.lookup.ItemPath;
 import org.cristalise.kernel.lookup.Path;
+import org.cristalise.kernel.persistency.TransactionKey;
 
 import lombok.Getter;
 import lombok.Setter;
@@ -50,7 +51,9 @@ public abstract class ModuleImport {
 
     public ModuleImport() {}
 
-    public abstract Path create(AgentPath agentPath, boolean reset, Object transactionKey)
+    public ItemPath getItemPath(TransactionKey transactionKey) { return itemPath; };
+
+    public abstract Path create(AgentPath agentPath, boolean reset, TransactionKey transactionKey)
             throws ObjectNotFoundException, ObjectCannotBeUpdated, CannotManageException, ObjectAlreadyExistsException,
                    InvalidCollectionModification, InvalidDataException, AccessRightsException, PersistencyException;
 

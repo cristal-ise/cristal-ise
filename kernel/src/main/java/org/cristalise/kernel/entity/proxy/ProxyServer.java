@@ -23,6 +23,7 @@ package org.cristalise.kernel.entity.proxy;
 import java.util.ArrayList;
 import java.util.concurrent.LinkedBlockingQueue;
 
+import org.cristalise.kernel.common.InvalidDataException;
 import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.utils.server.SimpleTCPIPServer;
 
@@ -40,14 +41,15 @@ public class ProxyServer implements Runnable {
     
     int port = 0;
 
-    public ProxyServer(String serverName) {
-       log.info("ProxyServer(serverName:"+serverName+") - Starting.....");
+    public ProxyServer(String serverName) throws InvalidDataException {
+        log.info("ProxyServer(serverName:"+serverName+") - Starting.....");
 
         port = Gateway.getProperties().getInt("ItemServer.Proxy.port", 0);
 
         if (port == 0) {
-            log.error("ItemServer.Proxy.port not defined in connect file. Remote proxies will not be informed of changes.");
-            return;
+            String msg = "ItemServer.Proxy.port not defined in connect file. Remote proxies will not be informed of changes.";
+            log.error(msg);
+            throw new InvalidDataException(msg);
         }
 
         this.serverName = serverName;
