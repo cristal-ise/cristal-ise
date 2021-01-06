@@ -104,7 +104,7 @@ public class ImportAgent extends ModuleImport implements DescriptionObject {
     }
 
     public boolean exists(TransactionKey transactionKey) {
-        return getAgentPath().exists(transactionKey);
+        return getAgentPath(transactionKey).exists(transactionKey);
     }
 
     @Override
