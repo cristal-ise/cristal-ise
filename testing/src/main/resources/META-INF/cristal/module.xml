@@ -174,7 +174,7 @@
           <Activity name="Patient_SetUrinSample" version="0"/>
           <Activity name="Patient_SetDetails" version="0"/>
         </Workflow>
-        <Item name="PatientFactory" initialPath="/integTest" workflow="Factory_Workflow" workflowVer="0">
+        <Item name="PatientFactory" initialPath="/integTest" workflow="CrudFactory_Workflow" workflowVer="0">
           <Property name="Type" mutable="false">Factory</Property>
           <Property name="Root" mutable="false">/integTest/Patients</Property>
           <Property name="UpdateSchema" mutable="false">Equipment_Details:0</Property>
