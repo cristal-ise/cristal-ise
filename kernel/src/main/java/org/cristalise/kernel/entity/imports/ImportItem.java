@@ -110,6 +110,14 @@ public class ImportItem extends ModuleImport {
     public ItemPath getItemPath() {
         return getItemPath(null);
     }
+    
+    /**
+     * Get the workflow version. Default workflow version is 0 if not given
+     * @return workflow version (default 0)
+     */
+    public int getWfVersion() {
+        return workflowVer == null ? 0 : workflowVer;
+    }
 
     /**
      * Try to find ItemPath if already exists. If not create new one.
@@ -290,13 +298,12 @@ public class ImportItem extends ModuleImport {
         }
         else {
             if (compActDef == null) {
-                // default workflow version is 0 if not given
                 if (StringUtils.isNotBlank(workflow)) {
-                    compActDef = (CompositeActivityDef) LocalObjectLoader.getActDef(workflow, workflowVer == null ? 0 : workflowVer, transactionKey);
+                    compActDef = (CompositeActivityDef) LocalObjectLoader.getActDef(workflow, getWfVersion(), transactionKey);
                 }
                 else {
                     log.warn("createCompositeActivity() - NO Workflow was set for domainPath:"+domainPath);
-                    compActDef = (CompositeActivityDef) LocalObjectLoader.getActDef("NoWorkflow", workflowVer == null ? 0 : workflowVer, transactionKey);
+                    compActDef = (CompositeActivityDef) LocalObjectLoader.getActDef("NoWorkflow", getWfVersion(), transactionKey);
                 }
             }
         }

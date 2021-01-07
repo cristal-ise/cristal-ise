@@ -160,10 +160,9 @@ public class ActivityDef extends WfVertexDef implements C2KLocalObject, Descript
                 log.debug("configureInstance("+getName()+") - Processing collection:"+collName);
 
                 String verStr = (mVersion == null || mVersion == -1) ? "last" : String.valueOf(mVersion);
-                Dependency dep = null;
-
                 try {
-                    dep = (Dependency) Gateway.getStorage().get(itemPath, ClusterType.COLLECTION+"/"+collName+"/"+verStr, null);
+                    Dependency dep = (Dependency) Gateway.getStorage().get(itemPath, ClusterType.COLLECTION+"/"+collName+"/"+verStr, null);
+                    dep.addToVertexProperties(act.getProperties(), transactionKey);
                 }
                 catch (ObjectNotFoundException e) {
                     log.trace("Unavailable Collection path:"+itemPath+"/"+ClusterType.COLLECTION+"/"+collName+"/"+verStr);
@@ -172,8 +171,6 @@ public class ActivityDef extends WfVertexDef implements C2KLocalObject, Descript
                     log.error("Collection:"+collName, e);
                     throw new InvalidDataException("Collection:"+collName+" error:"+e.getMessage());
                 }
-
-                if (dep != null) dep.addToVertexProperties(act.getProperties(), transactionKey);
             }
         }
         catch (PersistencyException e) {
