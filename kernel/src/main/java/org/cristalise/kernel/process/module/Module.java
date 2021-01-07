@@ -182,7 +182,7 @@ public class Module extends ImportItem {
      * @throws Exception
      */
     private void importItems(AgentProxy systemAgent, boolean reset, TransactionKey transactionKey) throws Exception {
-        for (ImportItem thisItem : imports.getItems()) {
+        for (ImportItem thisItem : imports.getItems(transactionKey)) {
             if (Bootstrap.shutdown) return;
 
             log.info("importItems() - {}", thisItem);
@@ -206,7 +206,7 @@ public class Module extends ImportItem {
      * @throws Exception
      */
     private void importAgents(AgentProxy systemAgent, boolean reset, TransactionKey transactionKey) throws Exception {
-        for (ImportAgent thisAgent : imports.getAgents()) {
+        for (ImportAgent thisAgent : imports.getAgents(transactionKey)) {
             if (Bootstrap.shutdown) return;
 
             log.info("importAgents() - {}", thisAgent);
@@ -230,7 +230,7 @@ public class Module extends ImportItem {
      * @throws Exception
      */
     private void importRoles(AgentProxy systemAgent, boolean reset, TransactionKey transactionKey) throws Exception {
-        for (ImportRole thisRole : imports.getRoles()) {
+        for (ImportRole thisRole : imports.getRoles(transactionKey)) {
             if (Bootstrap.shutdown) return;
 
             log.info("importRoles() - {}", thisRole);

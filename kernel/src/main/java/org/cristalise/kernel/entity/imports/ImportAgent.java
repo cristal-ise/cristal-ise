@@ -154,7 +154,7 @@ public class ImportAgent extends ModuleImport implements DescriptionObject {
 
         for (ImportRole role : roles) {
             RolePath rp = role.getRolePath();
-            if (rp.exists()) {
+            if (rp.exists(transactionKey)) {
                 if (!getAgentPath().hasRole(rp, transactionKey)) {
                     Gateway.getLookupManager().addRole(getAgentPath(), rp, transactionKey);
                 }
@@ -186,7 +186,7 @@ public class ImportAgent extends ModuleImport implements DescriptionObject {
         ActiveEntity activeEntity;
         AgentPath ap = getAgentPath();
 
-        if (ap.exists()) {
+        if (ap.exists(transactionKey)) {
             log.info("getActiveEntity() - Existing agent:{}", name);
             try {
                 activeEntity = Gateway.getCorbaServer().getAgent(ap, transactionKey);
