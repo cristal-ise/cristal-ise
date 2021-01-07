@@ -229,15 +229,9 @@ public class Module extends ImportItem {
         for (ModuleResource thisRes : imports.getResources()) {
             if (Bootstrap.shutdown) return "";
 
-            try {
-                thisRes.setNamespace(ns);
-                addItemToContents(thisRes.create(systemAgent.getPath(), reset, transactionKey));
-                moduleChanges.add(thisRes.getResourceChangeDetails());
-            }
-            catch (Exception ex) {
-                log.error("Error importing module resources. Unsafe to continue.", ex);
-                AbstractMain.shutdown(1);
-            }
+            thisRes.setNamespace(ns);
+            addItemToContents(thisRes.create(systemAgent.getPath(), reset, transactionKey));
+            moduleChanges.add(thisRes.getResourceChangeDetails());
         }
 
         StringBuffer moduleChangesXML = new StringBuffer("<ModuleChanges>\n");
