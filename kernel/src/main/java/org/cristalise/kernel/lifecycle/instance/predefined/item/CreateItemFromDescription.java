@@ -309,7 +309,7 @@ public class CreateItemFromDescription extends PredefinedStep {
     {
         // loop through collections, collecting instantiated descriptions and finding the default workflow def
         CollectionArrayList colls = new CollectionArrayList();
-        String[] collNames = Gateway.getStorage().getClusterContents(descItemPath, COLLECTION);
+        String[] collNames = Gateway.getStorage().getClusterContents(descItemPath, COLLECTION, transactionKey);
 
         for (String collName : collNames) {
             Collection<?> newColl = instantiateCollection(collName, descItemPath, descVer, newProps, transactionKey);
@@ -370,7 +370,7 @@ public class CreateItemFromDescription extends PredefinedStep {
     {
         String collPath = COLLECTION + "/" + SCHEMA_INITIALISE;
 
-        if (Gateway.getStorage().getClusterContents(descItemPath, collPath).length == 0) return null;
+        if (Gateway.getStorage().getClusterContents(descItemPath, collPath, transactionKey).length == 0) return null;
 
         @SuppressWarnings("unchecked")
         Collection<? extends CollectionMember> thisCol = (Collection<? extends CollectionMember>)

@@ -22,6 +22,7 @@ package org.cristalise.kernel.entity.proxy;
 
 import static org.cristalise.kernel.property.BuiltInItemProperties.NAME;
 import static org.cristalise.kernel.property.BuiltInItemProperties.TYPE;
+import static org.cristalise.kernel.property.PropertyUtility.getPropertyValue;
 
 import java.util.ArrayList;
 import java.util.ConcurrentModificationException;
@@ -35,7 +36,6 @@ import org.cristalise.kernel.lookup.DomainPath;
 import org.cristalise.kernel.lookup.InvalidItemPathException;
 import org.cristalise.kernel.lookup.ItemPath;
 import org.cristalise.kernel.lookup.Path;
-import org.cristalise.kernel.persistency.ClusterType;
 import org.cristalise.kernel.persistency.TransactionKey;
 import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.property.Property;
@@ -61,6 +61,13 @@ public class ProxyManager {
      * Create a proxy manager to listen for proxy events and reap unused proxies
      */
     public ProxyManager() throws InvalidDataException {
+        this(null);
+    }
+
+    /**
+     * Create a proxy manager to listen for proxy events and reap unused proxies
+     */
+    public ProxyManager(TransactionKey transactionKey) throws InvalidDataException {
         Iterator<Path> servers = Gateway.getLookup().search(new DomainPath("/servers"), new Property(TYPE, "Server", false));
 
         while(servers.hasNext()) {
@@ -68,8 +75,8 @@ public class ProxyManager {
             try {
                 ItemPath thisServerPath = thisServerResult.getItemPath();
 
-                String remoteServer = ((Property)Gateway.getStorage().get(thisServerPath, ClusterType.PROPERTY+"/"+NAME, null)).getValue();
-                String portStr      = ((Property)Gateway.getStorage().get(thisServerPath, ClusterType.PROPERTY+"/ProxyPort", null)).getValue();
+                String remoteServer = getPropertyValue(thisServerPath, NAME,        "", transactionKey);
+                String portStr      = getPropertyValue(thisServerPath, "ProxyPort", "", transactionKey);
 
                 connectToProxyServer(remoteServer, Integer.parseInt(portStr));
             }

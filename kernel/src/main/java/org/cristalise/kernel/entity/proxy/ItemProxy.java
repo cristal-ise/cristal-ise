@@ -948,7 +948,7 @@ public class ItemProxy
             if (path.endsWith("all")) {
                 log.debug("queryData() - listing contents");
 
-                String[] result = Gateway.getStorage().getClusterContents(mItemPath, path.substring(0, path.length()-3));
+                String[] result = Gateway.getStorage().getClusterContents(mItemPath, path.substring(0, path.length()-3), transKey == null ? transactionKey : transKey);
                 StringBuffer retString = new StringBuffer();
 
                 for (int i = 0; i < result.length; i++) {
@@ -1058,7 +1058,6 @@ public class ItemProxy
      */
     public String[] getContents(String path, TransactionKey transKey) throws ObjectNotFoundException {
         try {
-            //return Gateway.getStorage().getClusterContents(mItemPath, path);
             return Gateway.getStorage().getClusterContents(mItemPath, path, transKey == null ? transactionKey : transKey);
         }
         catch (PersistencyException e) {

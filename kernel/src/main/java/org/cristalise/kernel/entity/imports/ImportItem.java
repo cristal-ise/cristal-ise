@@ -299,11 +299,11 @@ public class ImportItem extends ModuleImport {
         else {
             if (compActDef == null) {
                 if (StringUtils.isNotBlank(workflow)) {
-                    compActDef = (CompositeActivityDef) LocalObjectLoader.getActDef(workflow, getWfVersion(), transactionKey);
+                    compActDef = LocalObjectLoader.getCompActDef(workflow, getWfVersion(), transactionKey);
                 }
                 else {
                     log.warn("createCompositeActivity() - NO Workflow was set for domainPath:"+domainPath);
-                    compActDef = (CompositeActivityDef) LocalObjectLoader.getActDef("NoWorkflow", getWfVersion(), transactionKey);
+                    compActDef = LocalObjectLoader.getCompActDef("NoWorkflow", getWfVersion(), transactionKey);
                 }
             }
         }
