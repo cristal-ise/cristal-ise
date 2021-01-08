@@ -80,7 +80,7 @@ public class UpdateProperitesFromDescription extends PredefinedStep {
         PropertyDescriptionList newPropDesc = getPropertyDesc(descPath, descVer, transactionKey);
 
         //Delete or update existing Properties
-        for (String existingPropName: Gateway.getStorage().getClusterContents(item, ClusterType.PROPERTY)) {
+        for (String existingPropName: Gateway.getStorage().getClusterContents(item, ClusterType.PROPERTY, transactionKey)) {
             if (newPropDesc.definesProperty(existingPropName)) {
                 Property existingProp = PropertyUtility.getProperty(item, existingPropName, transactionKey);
 

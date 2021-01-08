@@ -81,9 +81,9 @@ public class PropertyUtility {
      * @param transactionKey
      * @return
      */
-    public static boolean propertyExists(ItemPath itemPath, String propName, Object transactionKey) {
+    public static boolean propertyExists(ItemPath itemPath, String propName, TransactionKey transactionKey) {
         try {
-            String[] contents = Gateway.getStorage().getClusterContents(itemPath, ClusterType.PROPERTY);
+            String[] contents = Gateway.getStorage().getClusterContents(itemPath, ClusterType.PROPERTY, transactionKey);
 
             for (String name: contents) if(name.equals(propName)) return true;
         }

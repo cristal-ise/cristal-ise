@@ -156,14 +156,13 @@ public class ActivityDef extends WfVertexDef implements C2KLocalObject, Descript
         super.configureInstance(act, transactionKey);
 
         try {
-            for (String collName : Gateway.getStorage().getClusterContents(itemPath, ClusterType.COLLECTION)) {
+            for (String collName : Gateway.getStorage().getClusterContents(itemPath, ClusterType.COLLECTION, transactionKey)) {
                 log.debug("configureInstance("+getName()+") - Processing collection:"+collName);
 
                 String verStr = (mVersion == null || mVersion == -1) ? "last" : String.valueOf(mVersion);
-                Dependency dep = null;
-
                 try {
-                    dep = (Dependency) Gateway.getStorage().get(itemPath, ClusterType.COLLECTION+"/"+collName+"/"+verStr, null);
+                    Dependency dep = (Dependency) Gateway.getStorage().get(itemPath, ClusterType.COLLECTION+"/"+collName+"/"+verStr, transactionKey);
+                    dep.addToVertexProperties(act.getProperties(), transactionKey);
                 }
                 catch (ObjectNotFoundException e) {
                     log.trace("Unavailable Collection path:"+itemPath+"/"+ClusterType.COLLECTION+"/"+collName+"/"+verStr);
@@ -172,8 +171,6 @@ public class ActivityDef extends WfVertexDef implements C2KLocalObject, Descript
                     log.error("Collection:"+collName, e);
                     throw new InvalidDataException("Collection:"+collName+" error:"+e.getMessage());
                 }
-
-                if (dep != null) dep.addToVertexProperties(act.getProperties(), transactionKey);
             }
         }
         catch (PersistencyException e) {
@@ -277,9 +274,9 @@ public class ActivityDef extends WfVertexDef implements C2KLocalObject, Descript
             String clusterPath = ClusterType.COLLECTION + "/" + collection + "/" +
                     ((mVersion == null || mVersion == -1) ? "last" : String.valueOf(mVersion));
 
-            String[] contents = Gateway.getStorage().getClusterContents(itemPath, clusterPath);
+            String[] contents = Gateway.getStorage().getClusterContents(itemPath, clusterPath, transactionKey);
             if (contents != null && contents.length > 0)
-                resColl = (Dependency) Gateway.getStorage().get(itemPath, clusterPath, null);
+                resColl = (Dependency) Gateway.getStorage().get(itemPath, clusterPath, transactionKey);
             else
                 return retArr.toArray(new DescriptionObject[retArr.size()]);
         }

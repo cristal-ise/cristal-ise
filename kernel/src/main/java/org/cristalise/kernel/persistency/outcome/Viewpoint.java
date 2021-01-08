@@ -112,9 +112,13 @@ public class Viewpoint implements C2KLocalObject {
     }
 
     public Event getEvent() throws InvalidDataException, PersistencyException, ObjectNotFoundException {
+        return getEvent(null);
+    }
+
+    public Event getEvent(TransactionKey transactionKey) throws InvalidDataException, PersistencyException, ObjectNotFoundException {
         if (eventId == NONE) throw new InvalidDataException("No last eventId defined for path:"+getClusterPath());
 
-        return (Event) Gateway.getStorage().get(itemPath, HISTORY + "/" + eventId, null);
+        return (Event) Gateway.getStorage().get(itemPath, HISTORY + "/" + eventId, transactionKey);
     }
 
     @Override

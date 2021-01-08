@@ -117,7 +117,7 @@ public class UpdateCollectionsFromDescription extends PredefinedStep {
         }
 
         PropertyArrayList newItemProps = new PropertyArrayList();
-        List<String> currentCollNames = new ArrayList<>(Arrays.asList(Gateway.getStorage().getClusterContents(item, COLLECTION)));
+        List<String> currentCollNames = new ArrayList<>(Arrays.asList(Gateway.getStorage().getClusterContents(item, COLLECTION, transactionKey)));
 
         //Loop through collection desc names and create new ones
         for (String collName :  Gateway.getStorage().getClusterContents(descItemPath, COLLECTION, transactionKey)) {

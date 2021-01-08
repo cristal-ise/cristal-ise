@@ -148,6 +148,14 @@ public class ImportItem extends ModuleImport implements DescriptionObject {
     public ItemPath getItemPath() {
         return getItemPath(null);
     }
+    
+    /**
+     * Get the workflow version. Default workflow version is 0 if not given
+     * @return workflow version (default 0)
+     */
+    public int getWfVersion() {
+        return workflowVer == null ? 0 : workflowVer;
+    }
 
     /**
      * Tries to find ItemPath if already exists. If not create new one.
@@ -324,18 +332,17 @@ public class ImportItem extends ModuleImport implements DescriptionObject {
      */
     protected CompositeActivity createCompositeActivity(TransactionKey transactionKey) throws ObjectNotFoundException, InvalidDataException {
         if (wf != null) {
+            log.info("createCompositeActivity() - use Workflow instance");
             return (CompositeActivity) wf.search("workflow/domain");
         }
         else {
             if (compActDef == null) {
                 if (StringUtils.isNotBlank(workflow)) {
-                    // default workflow version is 0 if not given
-                    int v = workflowVer != null ? workflowVer : 0;
-                    compActDef = (CompositeActivityDef) LocalObjectLoader.getActDef(workflow, v, transactionKey);
+                    compActDef = LocalObjectLoader.getCompActDef(workflow, getWfVersion(), transactionKey);
                 }
                 else {
                     log.warn("createCompositeActivity() - NO Workflow was set for domainPath:"+domainPath);
-                    compActDef = (CompositeActivityDef) LocalObjectLoader.getActDef("NoWorkflow", 0, transactionKey);
+                    compActDef = LocalObjectLoader.getCompActDef("NoWorkflow", getWfVersion(), transactionKey);
                 }
             }
         }
