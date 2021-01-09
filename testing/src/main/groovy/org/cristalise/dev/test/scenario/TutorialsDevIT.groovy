@@ -87,7 +87,7 @@ class TutorialsDevIT extends KernelScenarioTestBase {
                 field(name: 'Color',        type: 'string')
             }
         }
-        
+
         def urinalysisEA = ElementaryActivityDef("SetUrinSample-$timeStamp", folder) {
             Property(OutcomeInit: "Empty")
             Schema(urinalysisSchema)
@@ -95,26 +95,23 @@ class TutorialsDevIT extends KernelScenarioTestBase {
 
         actMap['SetUrinSample'] = urinalysisEA
 
-        eraseItemIfExists("/desc/Schema/$folder", itemType)
-        eraseItemIfExists("/desc/Script/$folder", "${itemType}_Aggregate")
-        
-        Schema(itemType, folder) {
-            struct(name: itemType) {
-                attribute(name: 'InsuranceNumber', type: 'string', default: '123456789ABC')
-                field(name: 'DateOfBirth',  type: 'date')
-                field(name: 'Gender',       type: 'string', values: ['male', 'female'])
-                field(name: 'Weight',       type: 'decimal') { unit(values: ['g', 'kg'], default: 'kg') }
-                field(name: 'Transparency', type: 'string', values: ['clear', 'clouded'])
-                field(name: 'Color',        type: 'string')
-            }
-        }
+//        Schema(itemType, folder) {
+//            struct(name: itemType) {
+//                attribute(name: 'InsuranceNumber', type: 'string', default: '123456789ABC')
+//                field(name: 'DateOfBirth',  type: 'date')
+//                field(name: 'Gender',       type: 'string', values: ['male', 'female'])
+//                field(name: 'Weight',       type: 'decimal') { unit(values: ['g', 'kg'], default: 'kg') }
+//                field(name: 'Transparency', type: 'string', values: ['clear', 'clouded'])
+//                field(name: 'Color',        type: 'string')
+//            }
+//        }
 
-        Script("${itemType}_Aggregate", folder) {
-            output("error", "org.cristalise.kernel.scripting.ErrorInfo")
-            script(language: 'groovy') {
-                new File('src/main/data/AggregatePatientData.groovy').text
-            }
-        }
+//        Script("${itemType}_Aggregate", folder) {
+//            output("error", "org.cristalise.kernel.scripting.ErrorInfo")
+//            script(language: 'groovy') {
+//                new File('src/main/data/AggregatePatientData.groovy').text
+//            }
+//        }
 
         return setupPatient(actMap)
     }
