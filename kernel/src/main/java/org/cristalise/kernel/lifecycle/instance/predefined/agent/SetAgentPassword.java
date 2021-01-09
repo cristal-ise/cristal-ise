@@ -20,6 +20,7 @@
  */
 package org.cristalise.kernel.lifecycle.instance.predefined.agent;
 
+import static org.cristalise.kernel.lifecycle.instance.predefined.agent.Authenticate.REDACTED;
 import static org.cristalise.kernel.security.BuiltInAuthc.ADMIN_ROLE;
 
 import java.security.NoSuchAlgorithmException;
@@ -67,7 +68,7 @@ public class SetAgentPassword extends PredefinedStep {
             if (params.length == 1) {
                 //FIXME these case is deprecated, shall enforce identity check
                 newPwd = params[0];
-                params[0] = "REDACTED"; // censor password from outcome
+                params[0] = REDACTED; // censor password from outcome
             }
             else {
                 //Enforce identity check
@@ -79,8 +80,8 @@ public class SetAgentPassword extends PredefinedStep {
                 }
 
                 newPwd = params[1];
-                params[0] = "REDACTED"; // censor password from outcome
-                params[1] = "REDACTED"; // censor password from outcome
+                params[0] = REDACTED; // censor password from outcome
+                params[1] = REDACTED; // censor password from outcome
             }
 
             // Password is temporary when it was set by someone else

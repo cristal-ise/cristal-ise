@@ -21,6 +21,7 @@
 package org.cristalise.kernel.lifecycle.instance.predefined;
 
 import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.SCHEMA_NAME;
+import static org.cristalise.kernel.lifecycle.instance.predefined.agent.Authenticate.REDACTED;
 
 import java.io.IOException;
 
@@ -58,9 +59,10 @@ public class ImportImportAgent extends PredefinedStep {
     {
         try {
             ImportAgent importAgent = (ImportAgent) Gateway.getMarshaller().unmarshall(requestData);
-            importAgent.setPassword("");
             importAgent.create(agent, true, transactionKey);
-            return requestData;
+            importAgent.setPassword(REDACTED);
+
+            return Gateway.getMarshaller().marshall(importAgent);
         }
         catch (MarshalException | ValidationException | IOException | MappingException e) {
             log.error("Couldn't unmarshall Agent: " + requestData, e);

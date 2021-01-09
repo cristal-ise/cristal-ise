@@ -134,7 +134,7 @@ public class ImportAgent extends ModuleImport implements DescriptionObject {
         properties.add(new Property(TYPE, "Agent", false));
 
         try {
-            if (StringUtils.isNotBlank(password)) Gateway.getLookupManager().setAgentPassword(getAgentPath(), password, false, transactionKey);
+            if (StringUtils.isNotBlank(password)) Gateway.getLookupManager().setAgentPassword(getAgentPath(transactionKey), password, false, transactionKey);
 
             CreateItemFromDescription.storeItem(
                     agentPath, 
@@ -184,7 +184,7 @@ public class ImportAgent extends ModuleImport implements DescriptionObject {
             throws ObjectNotFoundException, CannotManageException, ObjectAlreadyExistsException, ObjectCannotBeUpdated
     {
         ActiveEntity activeEntity;
-        AgentPath ap = getAgentPath();
+        AgentPath ap = getAgentPath(transactionKey);
 
         if (ap.exists(transactionKey)) {
             log.info("getActiveEntity() - Existing agent:{}", name);

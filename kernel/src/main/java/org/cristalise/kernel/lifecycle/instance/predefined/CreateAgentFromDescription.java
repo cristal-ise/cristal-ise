@@ -20,6 +20,8 @@
  */
 package org.cristalise.kernel.lifecycle.instance.predefined;
 
+import static org.cristalise.kernel.lifecycle.instance.predefined.agent.Authenticate.REDACTED;
+
 import org.apache.commons.lang3.StringUtils;
 import org.cristalise.kernel.common.CannotManageException;
 import org.cristalise.kernel.common.InvalidDataException;
@@ -101,7 +103,7 @@ public class CreateAgentFromDescription extends CreateItemFromDescription {
 
         initialiseItem(newAgentPath, agentPath, descItemPath, initProps, outcome, newName, descVer, context, newAgentPath, transactionKey);
 
-        if (input.length > 3) input[3] = "REDACTED"; // censor password from outcome
+        if (input.length > 3) input[3] = REDACTED; // censor password from outcome
 
         return bundleData(input);
     }

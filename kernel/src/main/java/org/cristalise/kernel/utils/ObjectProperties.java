@@ -20,6 +20,8 @@
  */
 package org.cristalise.kernel.utils;
 
+import static org.cristalise.kernel.lifecycle.instance.predefined.agent.Authenticate.REDACTED;
+
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Enumeration;
@@ -271,7 +273,7 @@ public class ObjectProperties extends Properties {
             prop.put("Name", key);
             prop.put("SetInConfigFiles", true);
 
-            if (propertiesToRedact(key)) prop.put("Value", "REDACTED");
+            if (propertiesToRedact(key)) prop.put("Value", REDACTED);
             else                         prop.put("Value", entry.getValue());
 
             props.add(prop);
