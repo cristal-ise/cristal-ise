@@ -28,7 +28,7 @@ class ConcurrentTest extends RestapiTestBase {
      */
     private List<String> setupPatients(int count) {
         def factory = agent.getItem("/$folder/PatientFactory")
-        def createItemJob = factory.getJobByName('CreateItem', agent)
+        def createItemJob = factory.getJobByName('InstantiateItem', agent)
         def o = createItemJob.getOutcome()
 
         List<String> uuids = []
