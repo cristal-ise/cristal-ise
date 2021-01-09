@@ -64,7 +64,7 @@ public class ImportImportRole extends PredefinedStep {
 
             importRole.create(agent, true, transactionKey);
 
-            return requestData;
+            return Gateway.getMarshaller().marshall(importRole);
         }
         catch (MarshalException | ValidationException | IOException | MappingException e) {
             log.error("Couldn't unmarshall Role: " + requestData, e);

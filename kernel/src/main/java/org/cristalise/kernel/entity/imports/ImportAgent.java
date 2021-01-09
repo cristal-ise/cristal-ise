@@ -42,6 +42,7 @@ import org.cristalise.kernel.lifecycle.instance.predefined.item.CreateItemFromDe
 import org.cristalise.kernel.lookup.AgentPath;
 import org.cristalise.kernel.lookup.DomainPath;
 import org.cristalise.kernel.lookup.InvalidAgentPathException;
+import org.cristalise.kernel.lookup.InvalidItemPathException;
 import org.cristalise.kernel.lookup.ItemPath;
 import org.cristalise.kernel.lookup.Path;
 import org.cristalise.kernel.lookup.RolePath;
@@ -90,6 +91,11 @@ public class ImportAgent extends ModuleImport implements DescriptionObject {
      */
     public ImportAgent(String aName, String pwd) {
         this(null, aName, null, pwd);
+    }
+
+    @Override
+    public void setID(String uuid) throws InvalidItemPathException {
+        if (StringUtils.isNotBlank(uuid)) itemPath = new AgentPath(new ItemPath(uuid), name);
     }
 
     /**

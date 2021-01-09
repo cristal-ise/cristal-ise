@@ -20,6 +20,7 @@
  */
 package org.cristalise.kernel.process.module;
 
+import org.apache.commons.lang3.StringUtils;
 import org.cristalise.kernel.common.AccessRightsException;
 import org.cristalise.kernel.common.CannotManageException;
 import org.cristalise.kernel.common.InvalidCollectionModification;
@@ -62,7 +63,7 @@ public abstract class ModuleImport {
                    InvalidCollectionModification, InvalidDataException, AccessRightsException, PersistencyException;
 
     public void setID(String uuid) throws InvalidItemPathException {
-        if (uuid != null && uuid.length() > 0) itemPath = new ItemPath(uuid);
+        if (StringUtils.isNotBlank(uuid)) itemPath = new ItemPath(uuid);
     }
 
     public String getID() {

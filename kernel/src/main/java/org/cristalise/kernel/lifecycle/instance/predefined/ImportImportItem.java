@@ -62,7 +62,8 @@ public class ImportImportItem extends PredefinedStep {
         try {
             ImportItem importItem = (ImportItem) Gateway.getMarshaller().unmarshall(requestData);
             importItem.create(agent, true, transactionKey);
-            return requestData;
+
+            return Gateway.getMarshaller().marshall(importItem);
         }
         catch (MarshalException | ValidationException | IOException | MappingException e) {
             log.error("Couldn't unmarshall Item: " + requestData, e);
