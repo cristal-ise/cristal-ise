@@ -35,7 +35,7 @@ import spock.lang.Specification
  */
 class AgentCreateSpecs extends Specification implements CristalTestSetup {
 
-    def setup()   { inMemoryServer('src/main/bin/inMemoryServer.conf', 'src/main/bin/inMemory.clc', 8) }
+    def setup()   { inMemoryServer('src/main/bin/inMemoryServer.conf', 'src/main/bin/inMemory.clc', 8, null, true) }
     def cleanup() { cristalCleanup() }
 
     def 'Agent with Role is created'() {
