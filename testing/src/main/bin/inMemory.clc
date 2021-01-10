@@ -1,19 +1,20 @@
 Name=Cristal Test In Memory Server
 
-ItemServer.name=localhost
-ItemServer.iiop=1498
-ItemServer.Proxy.port=1499
-ItemServer.Console.port=8888
+ItemServer.name         = localhost
+ItemServer.iiop         = 1498
+ItemServer.Proxy.port   = 1499
+ItemServer.Console.port = 8888
 
 //Authenticator = org.cristalise.lookup.lite.InMemoryAuthManager
 Authenticator = Shiro
 Lookup        = org.cristalise.storage.InMemoryPropertyClusterStorage
 
-JOOQ.URI        = jdbc:h2:mem:
-JOOQ.user       = sa
-JOOQ.password   = sa
-JOOQ.dialect    = H2
-JOOQ.autoCommit = true
+JOOQ.URI                = jdbc:h2:mem:inmemoryDb;DB_CLOSE_DELAY=-1
+JOOQ.user               = sa
+JOOQ.password           = sa
+JOOQ.dialect            = H2
+JOOQ.autoCommit         = true
+JOOQ.supportJdbcXmlType = false
 
 SimpleType.DefaultValues = 12:string
 

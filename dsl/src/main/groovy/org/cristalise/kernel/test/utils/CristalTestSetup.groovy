@@ -103,9 +103,9 @@ trait CristalTestSetup {
         Authenticator auth = cristalSetup(logLevel, config, connect, testProps)
 
         Gateway.startServer()
+        Gateway.runBoostrap();
 
         if (!skipBootstrap) {
-            Gateway.runBoostrap();
             waitBootstrapThread()
         }
 
