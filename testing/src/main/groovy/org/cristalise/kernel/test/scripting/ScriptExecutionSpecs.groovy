@@ -11,7 +11,7 @@ import spock.lang.Specification
 
 class ScriptExecutionSpecs extends Specification implements CristalTestSetup {
 
-    def setup()   { inMemoryServer('src/main/bin/inMemoryServer.conf', 'src/main/bin/inMemory.clc', 8) }
+    def setup()   { inMemoryServer('src/main/bin/inMemoryServer.conf', 'src/main/bin/inMemory.clc', 8, null, true) }
     def cleanup() { cristalCleanup() }
 
     def 'Script can be used without any input or output paramteres'() {
