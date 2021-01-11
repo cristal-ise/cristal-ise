@@ -35,6 +35,7 @@ import java.util.Set;
 import java.util.StringTokenizer;
 import java.util.concurrent.ConcurrentHashMap;
 
+import org.cristalise.kernel.common.InvalidDataException;
 import org.cristalise.kernel.common.ObjectNotFoundException;
 import org.cristalise.kernel.common.PersistencyException;
 import org.cristalise.kernel.entity.C2KLocalObject;
@@ -447,8 +448,9 @@ public class ClusterStorageManager {
      * @param itemPath the Item which data is going to be cached
      * @param path the cluster patch of the object
      * @param obj the C2KLocalObject to be cached
+     * @throws PersistencyException 
      */
-    private void putInMemoryCache(ItemPath itemPath, String path, C2KLocalObject obj) {
+    private void putInMemoryCache(ItemPath itemPath, String path, C2KLocalObject obj) throws PersistencyException {
         if (Gateway.getProperties().getBoolean("Storage.disableCache", false)) {
             log.trace("putInMemoryCache() - Cache is DISABLED");
             return;
@@ -461,6 +463,8 @@ public class ClusterStorageManager {
         }
         else {
             boolean useWeak = Gateway.getProperties().getBoolean("Storage.useWeakCache", false);
+
+            if (useWeak) throw new PersistencyException("Cannot use weakCache, check issue #466");
 
             log.debug("putInMemoryCache() - Creating "+(useWeak ? "Weak" : "Strong")+" cache for item "+itemPath);
 
