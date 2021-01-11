@@ -117,7 +117,7 @@ public abstract class DescriptionObjectCache<D extends DescriptionObject> {
         return filename.equals(getTypeCode() + "/" + resName);
     }
 
-    public ItemPath findItem(String name, TransactionKey transactionKey) throws ObjectNotFoundException, InvalidDataException {
+    protected ItemPath findItem(String name, TransactionKey transactionKey) throws ObjectNotFoundException, InvalidDataException {
         if (Gateway.getLookup() == null) throw new ObjectNotFoundException("Cannot find Items without a Lookup");
 
         // first check for a UUID name
@@ -154,15 +154,15 @@ public abstract class DescriptionObjectCache<D extends DescriptionObject> {
 
         if (searchResult.hasNext()) {
             Path defPath = searchResult.next();
-            if (searchResult.hasNext()) throw new InvalidDataException("Too many matches for " + getTypeCode() + " " + name);
+            if (searchResult.hasNext()) throw new InvalidDataException("Too many matches for name:" + name + " typeCode:" + getTypeCode());
 
             if (defPath.getItemPath(transactionKey) == null)
-                throw new InvalidDataException(getTypeCode() + " " + name + " was found, but was not an Item");
+                throw new InvalidDataException("name:" + name + " typeCode:" + getTypeCode() + " was found, but was not an Item");
 
             return defPath.getItemPath(transactionKey);
         }
         else {
-            throw new ObjectNotFoundException("No match for " + getTypeCode() + " " + name);
+            throw new ObjectNotFoundException("No match for name:" + name + " typeCode:" + getTypeCode());
         }
     }
 
@@ -195,7 +195,7 @@ public abstract class DescriptionObjectCache<D extends DescriptionObject> {
             }
 
             if (thisDefEntry != null) {
-                log.trace("get() - " + name + " v" + version + " found in cache.");
+                log.trace("get() - key:{}_{} found in cache.", name, version);
                 return thisDefEntry.def;
             }
 
@@ -203,43 +203,54 @@ public abstract class DescriptionObjectCache<D extends DescriptionObject> {
             String defUuid = defItemPath.getUUID().toString();
 
             synchronized (cache) {
-                log.trace("get() - " + name + " v" + version + " not found in cache. Checking uuid.");
+                log.trace("get() - key:{}_{} not found in cache. Checking key using uuid:{}", name, version, defUuid);
                 thisDefEntry = cache.get(defUuid + "_" + version);
 
                 if (thisDefEntry != null) {
-                    log.trace("get() - " + name + " v" + version + " found in cache.");
+                    log.trace("get() - key:{}_{} found in cache.", defUuid, version);
                     return thisDefEntry.def;
                 }
             }
 
-            log.trace("get() - " + name + " v" + version + " not found in cache. Loading from database.");
+            log.trace("get() - key:{}_{} not found in cache. Loading from database.", name, version);
 
             ItemProxy defItemProxy = Gateway.getProxyManager().getProxy(defItemPath, transactionKey);
             if (name.equals(defUuid)) {
-                String itemName = defItemProxy.getName();
+                String itemName = defItemProxy.getName(transactionKey);
                 if (itemName != null) name = itemName;
             }
 
-            D thisDef = loadObject(name, version, defItemProxy);
-
-            CacheEntry<D> entry = new CacheEntry<>(thisDef, defItemProxy, this);
-            synchronized (cache) {
-                cache.put(defUuid + "_" + version, entry);
-                cache.put(name + "_" + version, entry);
-            }
+            D thisDef = loadObject(name, version, defItemProxy, transactionKey);
+            addToCache(name, version, defUuid, defItemProxy, thisDef);
 
             return thisDef;
         }
         catch (ObjectNotFoundException ex) {
-            log.trace("Failed to load resource '{}' from database, loading from classpath", name);
+            log.trace("get - failed to load resource key:{}_{} from database, loading from classpath.", name, version);
             // for bootstrap and testing, try to load built-in kernel objects from resources
             if (version == 0) {
                 try {
                     return loadObjectFromBootstrap(name);
                 }
-                catch (ObjectNotFoundException ex2) {}
+                catch (ObjectNotFoundException ex2) {
+                    log.error("get() - ", ex2);
+                }
+            }
+            else {
+                log.error("get() - only resources with version zero can be loaded from classpath - name:{} version:{}", name, version);
             }
             throw ex;
+        }
+    }
+
+    private void addToCache(String name, int version, String defUuid, ItemProxy defItemProxy, D thisDef) {
+        log.trace("addToCache() - key1:{}_{} and key2:{}_{}", name, version, defUuid, version);
+
+        // DO NOT add this to the synchronized block because it can create deadlock. check issue: #447
+        CacheEntry<D> entry = new CacheEntry<>(thisDef, defItemProxy, this);
+        synchronized (cache) {
+            cache.put(defUuid + "_" + version, entry);
+            cache.put(name + "_" + version, entry);
         }
     }
 
@@ -251,11 +262,11 @@ public abstract class DescriptionObjectCache<D extends DescriptionObject> {
 
     public abstract D buildObject(String name, int version, ItemPath path, String data) throws InvalidDataException;
 
-    public D loadObject(String name, int version, ItemProxy proxy) throws ObjectNotFoundException, InvalidDataException {
-        Viewpoint smView = (Viewpoint) proxy.getObject(ClusterType.VIEWPOINT + "/" + getSchemaName() + "/" + version);
+    public D loadObject(String name, int version, ItemProxy proxy, TransactionKey transactionKey) throws ObjectNotFoundException, InvalidDataException {
+        Viewpoint smView = proxy.getViewpoint(getSchemaName(), String.valueOf(version), transactionKey);
 
         try {
-            String rawRes = smView.getOutcome().getData();
+            String rawRes = smView.getOutcome(transactionKey).getData();
             return buildObject(name, version, proxy.getPath(), rawRes);
         }
         catch (PersistencyException ex) {
@@ -264,23 +275,26 @@ public abstract class DescriptionObjectCache<D extends DescriptionObject> {
         }
     }
 
-    public void removeObject(String id) {
+    public void removeObject(String id, String idName) {
         synchronized (cache) {
-            if (cache.keySet().contains(id)) {
-                log.debug("remove() - activityDef:" + id);
+            if (cache.keySet().contains(id) || cache.keySet().contains(idName)) {
+                log.debug("remove() - key:{} and key:{}", id, idName);
                 cache.remove(id);
+                cache.remove(idName);
             }
         }
     }
 
     public class CacheEntry<E extends DescriptionObject> implements ProxyObserver<Viewpoint> {
         public String                    id;
+        public String                    idName;
         public ItemProxy                 proxy;
         public E                         def;
         public DescriptionObjectCache<E> parent;
 
         public CacheEntry(E def, ItemProxy proxy, DescriptionObjectCache<E> parent) {
             this.id = def.getItemID() + "_" + def.getVersion();
+            this.idName = def.getName() + "_" + def.getVersion();
             this.def = def;
             this.parent = parent;
             this.proxy = proxy;
@@ -289,18 +303,18 @@ public abstract class DescriptionObjectCache<D extends DescriptionObject> {
 
         @Override
         public void finalize() {
-            parent.removeObject(id);
+            parent.removeObject(id, idName);
             proxy.unsubscribe(this);
         }
 
         @Override
         public void add(Viewpoint contents) {
-            parent.removeObject(id);
+            parent.removeObject(id, idName);
         }
 
         @Override
         public void remove(String oldId) {
-            parent.removeObject(id);
+            parent.removeObject(id, idName);
         }
 
         @Override

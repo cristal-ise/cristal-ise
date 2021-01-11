@@ -113,7 +113,7 @@ public class LocalObjectLoader {
     }
 
     static public Query getQuery(String queryName, int queryVersion, TransactionKey transactionKey) throws ObjectNotFoundException, InvalidDataException {
-        log.trace("getQuery(({} v{}) - transactionKey:{}", queryName, queryVersion, transactionKey);
+        log.trace("getQuery({} v{}) - transactionKey:{}", queryName, queryVersion, transactionKey);
         return queryCache.get(queryName, queryVersion, transactionKey);
     }
 
@@ -145,7 +145,7 @@ public class LocalObjectLoader {
     }
 
     static public Schema getSchema(String schemaName, int schemaVersion, TransactionKey transactionKey) throws ObjectNotFoundException, InvalidDataException {
-        log.trace("getSchema(({} v{}) - transactionKey:{}", schemaName, schemaVersion, transactionKey);
+        log.trace("getSchema({} v{}) - transactionKey:{}", schemaName, schemaVersion, transactionKey);
 
         // don't bother if this is the Schema schema - for bootstrap especially
         if (schemaName.equals("Schema") && schemaVersion == 0) {
@@ -237,7 +237,7 @@ public class LocalObjectLoader {
     }
 
     static public StateMachine getStateMachine(String smName, int smVersion, TransactionKey transactionKey) throws ObjectNotFoundException, InvalidDataException {
-        log.trace("getStateMachine(({} v{}) - transactionKey:{}", smName, smVersion, transactionKey);
+        log.trace("getStateMachine({} v{}) - transactionKey:{}", smName, smVersion, transactionKey);
         return smCache.get(smName, smVersion, transactionKey);
     }
 
@@ -269,7 +269,7 @@ public class LocalObjectLoader {
     }
 
     static public PropertyDescriptionList getPropertyDescriptionList(String name, int version, TransactionKey transactionKey) throws ObjectNotFoundException, InvalidDataException {
-        log.trace("getPropertyDescriptionList(({} v{}) - transactionKey:{}", name, version, transactionKey);
+        log.trace("getPropertyDescriptionList({} v{}) - transactionKey:{}", name, version, transactionKey);
         return propDescCache.get(name, version, transactionKey);
     }
 
