@@ -1136,7 +1136,20 @@ public class ItemProxy
      * @return the value or the defaultValue
      */
     public String getProperty(BuiltInItemProperties prop, String defaultValue) {
-        return getProperty(prop.getName(), defaultValue);
+        return getProperty(prop, defaultValue, transactionKey);
+    }
+
+    /**
+     * Retrieves the values of a BuiltInItemProperty or returns the defaulValue if no Property was found.
+     * This method can be used in server side Script to find uncommitted changes during the active transaction.
+     * 
+     * @param prop one of the Built-In Item Property
+     * @param defaultValue the value to be used if no Property was found
+     * @param transKey the transaction key
+     * @return the value or the defaultValue
+     */
+    public String getProperty(BuiltInItemProperties prop, String defaultValue, TransactionKey transKey) {
+        return getProperty(prop.getName(), defaultValue, transKey);
     }
 
     /**
@@ -1161,12 +1174,12 @@ public class ItemProxy
      */
     public String getProperty(String name, String defaultValue, TransactionKey transKey) {
         try {
-            if (checkContent(ClusterType.PROPERTY.getName(), name, transKey == null ? transactionKey : transKey)) {
-                return getProperty(name, transKey == null ? transactionKey : transKey);
+            if (checkProperty(name, transKey)) {
+                return getProperty(name, transKey);
             }
         }
         catch(ObjectNotFoundException e) {
-            //This line should never happen because of the use of checkContent()
+            //This line should never happen because of the use of checkProperty()
         }
 
         return defaultValue;
@@ -1229,7 +1242,18 @@ public class ItemProxy
      * @return the name of the Item or null if no Name Property exists
      */
     public String getName() {
-        return getProperty(NAME, (String)null);
+        return getName(transactionKey);
+    }
+
+    /**
+     * Get the name of the Item from its Property called Name. This method can be used in server 
+     * side Script to find uncommitted changes during the active transaction.
+     * 
+     * @param transKey the transaction key
+     * @return the name of the Item or null if no Name Property exists
+     */
+    public String getName(TransactionKey transKey) {
+        return getProperty(NAME, (String)null, transKey);
     }
 
     /**
@@ -1238,7 +1262,18 @@ public class ItemProxy
      * @return the type of the Item or null if no Type Property exists
      */
     public String getType() {
-        return getProperty(TYPE, (String)null);
+        return getType(transactionKey);
+    }
+
+    /**
+     * Get the type of the Item from its Property called Type. This method can be used in server 
+     * side Script to find uncommitted changes during the active transaction.
+     *
+     * @param transKey the transaction key
+     * @return the type of the Item or null if no Type Property exists
+     */
+    public String getType(TransactionKey transKey) {
+        return getProperty(TYPE, (String)null, transKey);
     }
 
     /**

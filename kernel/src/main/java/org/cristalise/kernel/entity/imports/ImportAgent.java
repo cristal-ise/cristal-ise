@@ -154,7 +154,7 @@ public class ImportAgent extends ModuleImport implements DescriptionObject {
         }
         catch (Exception ex) {
             log.error("Error initialising new agent name:{}", name, ex);
-            Gateway.getLookupManager().delete(getAgentPath(), transactionKey);
+            Gateway.getLookupManager().delete(getAgentPath(transactionKey), transactionKey);
             throw new CannotManageException("Error initialising new agent name:"+name);
         }
 
