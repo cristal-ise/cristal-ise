@@ -36,6 +36,7 @@ import org.cristalise.kernel.lookup.ItemPath;
 import org.cristalise.kernel.lookup.Path;
 import org.cristalise.kernel.lookup.RolePath;
 import org.cristalise.kernel.persistency.TransactionKey;
+import org.cristalise.kernel.persistency.outcome.Outcome;
 import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.process.module.ModuleImport;
 import org.cristalise.kernel.process.resource.BuiltInResources;
@@ -144,7 +145,7 @@ public class ImportRole extends ModuleImport implements DescriptionObject {
         String fileName = getName() + (getVersion() == null ? "" : "_" + getVersion()) + ".xml";
 
         try {
-            xml = Gateway.getMarshaller().marshall(this);
+            xml = new Outcome(Gateway.getMarshaller().marshall(this)).getData(true);
         }
         catch (Exception e) {
             log.error("Couldn't marshall name:" + getName(), e);

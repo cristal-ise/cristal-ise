@@ -123,9 +123,14 @@ public enum BuiltInVertexProperties {
     MEMBER_UPDATE_SCRIPT("MemberUpdateScript"),
 
     /**
-     * String property. It is used in ActivitySlotDef to override the name of the ActivityDef
+     * String property. It is used in ActivityDef and ActivitySlotDef to override the name of the ActivityDef
      */
     NAME("Name"),
+
+    /**
+     * String property. It is used in ActivityDef or ActivitySlotDef
+     */
+    NAMESPACE("Namespace"),
 
     /**
      * String property. The type of object the Activity is going to create. Values are Schema, Script, StateMachine and Query.

@@ -37,6 +37,7 @@ import org.cristalise.kernel.common.InvalidDataException;
 import org.cristalise.kernel.common.ObjectNotFoundException;
 import org.cristalise.kernel.lookup.ItemPath;
 import org.cristalise.kernel.persistency.TransactionKey;
+import org.cristalise.kernel.persistency.outcome.Outcome;
 import org.cristalise.kernel.persistency.outcome.OutcomeValidator;
 import org.cristalise.kernel.persistency.outcome.Schema;
 import org.cristalise.kernel.process.Gateway;
@@ -59,6 +60,7 @@ import lombok.extern.slf4j.Slf4j;
 @Getter @Setter @Slf4j
 public class Query implements DescriptionObject {
 
+    private String   namespace;
     private String   name = "";
     private Integer  version = null;
     private ItemPath itemPath;
@@ -249,7 +251,8 @@ public class Query implements DescriptionObject {
     public void export(Writer imports, File dir, boolean shallow) throws InvalidDataException, ObjectNotFoundException, IOException {
         String resType = QUERY_RESOURCE.getTypeCode();
 
-        FileStringUtility.string2File(new File(new File(dir, resType), getName()+(getVersion()==null?"":"_"+getVersion())+".xml"), getQueryXML());
+        String xml = new Outcome(getQueryXML()).getData(true);
+        FileStringUtility.string2File(new File(new File(dir, resType), getName()+(getVersion()==null?"":"_"+getVersion())+".xml"), xml);
 
         if (imports == null) return;
 

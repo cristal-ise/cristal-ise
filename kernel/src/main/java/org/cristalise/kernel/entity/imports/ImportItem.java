@@ -394,7 +394,7 @@ public class ImportItem extends ModuleImport implements DescriptionObject {
         String fileName = getName() + (getVersion() == null ? "" : "_" + getVersion()) + ".xml";
 
         try {
-            xml = Gateway.getMarshaller().marshall(this);
+            xml = new Outcome(Gateway.getMarshaller().marshall(this)).getData(true);
         }
         catch (Exception e) {
             log.error("Couldn't marshall name:" + getName(), e);

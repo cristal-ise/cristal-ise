@@ -25,6 +25,7 @@ import static org.cristalise.kernel.collection.BuiltInCollections.QUERY;
 import static org.cristalise.kernel.collection.BuiltInCollections.SCHEMA;
 import static org.cristalise.kernel.collection.BuiltInCollections.SCRIPT;
 import static org.cristalise.kernel.collection.BuiltInCollections.STATE_MACHINE;
+import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.NAMESPACE;
 import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.VERSION;
 import static org.cristalise.kernel.process.resource.BuiltInResources.ELEM_ACT_DESC_RESOURCE;
 
@@ -48,6 +49,7 @@ import org.cristalise.kernel.lifecycle.instance.stateMachine.StateMachine;
 import org.cristalise.kernel.lookup.ItemPath;
 import org.cristalise.kernel.persistency.ClusterType;
 import org.cristalise.kernel.persistency.TransactionKey;
+import org.cristalise.kernel.persistency.outcome.Outcome;
 import org.cristalise.kernel.persistency.outcome.Schema;
 import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.querying.Query;
@@ -65,7 +67,7 @@ import lombok.extern.slf4j.Slf4j;
 public class ActivityDef extends WfVertexDef implements C2KLocalObject, DescriptionObject {
 
     //FIXME: ActivityDef should not extend WfVertexDef because is not part of the graph (check ActivitySlotDef instead)
-    private Integer mVersion = null;  // null is 'last',previously was -1
+    private Integer version = null;  // null is 'last',previously was -1
     public boolean  changed  = false;
 
     ItemPath        itemPath;
@@ -82,6 +84,16 @@ public class ActivityDef extends WfVertexDef implements C2KLocalObject, Descript
     }
 
     @Override
+    public void setNamespace(String ns) {
+        setBuiltInProperty(NAMESPACE, ns);
+    }
+
+    @Override
+    public String getNamespace() {
+        return (String) getBuiltInProperty(NAMESPACE);
+    }
+
+    @Override
     public void setID(int id) {
         super.setID(id);
         if (getName() == null || "".equals(getName())) setName(String.valueOf(id));
@@ -94,12 +106,12 @@ public class ActivityDef extends WfVertexDef implements C2KLocalObject, Descript
 
     @Override
     public void setVersion(Integer v) {
-        mVersion = v;
+        version = v;
     }
 
     @Override
     public Integer getVersion() {
-        return mVersion;
+        return version;
     }
 
     @Override
@@ -159,7 +171,7 @@ public class ActivityDef extends WfVertexDef implements C2KLocalObject, Descript
             for (String collName : Gateway.getStorage().getClusterContents(itemPath, ClusterType.COLLECTION, transactionKey)) {
                 log.debug("configureInstance("+getName()+") - Processing collection:"+collName);
 
-                String verStr = (mVersion == null || mVersion == -1) ? "last" : String.valueOf(mVersion);
+                String verStr = (version == null || version == -1) ? "last" : String.valueOf(version);
                 try {
                     Dependency dep = (Dependency) Gateway.getStorage().get(itemPath, ClusterType.COLLECTION+"/"+collName+"/"+verStr, transactionKey);
                     dep.addToVertexProperties(act.getProperties(), transactionKey);
@@ -272,7 +284,7 @@ public class ActivityDef extends WfVertexDef implements C2KLocalObject, Descript
 
         try {
             String clusterPath = ClusterType.COLLECTION + "/" + collection + "/" +
-                    ((mVersion == null || mVersion == -1) ? "last" : String.valueOf(mVersion));
+                    ((version == null || version == -1) ? "last" : String.valueOf(version));
 
             String[] contents = Gateway.getStorage().getClusterContents(itemPath, clusterPath, transactionKey);
             if (contents != null && contents.length > 0)
@@ -339,8 +351,8 @@ public class ActivityDef extends WfVertexDef implements C2KLocalObject, Descript
     public Dependency makeDescCollection(BuiltInCollections collection, TransactionKey transactionKey, DescriptionObject... descs) throws InvalidDataException {
         //TODO: restrict membership based on kernel property desc
         Dependency descDep = new Dependency(collection.getName());
-        if (mVersion != null && mVersion > -1) {
-            descDep.setVersion(mVersion);
+        if (version != null && version > -1) {
+            descDep.setVersion(version);
         }
 
         for (DescriptionObject thisDesc : descs) {
@@ -377,7 +389,7 @@ public class ActivityDef extends WfVertexDef implements C2KLocalObject, Descript
         if (!shallow) exportCollections(imports, dir);
 
         try {
-            actXML = Gateway.getMarshaller().marshall(this);
+            actXML = new Outcome(Gateway.getMarshaller().marshall(this)).getData(true);
         }
         catch (Exception e) {
             log.error("Couldn't marshall activity def " + getActName(), e);

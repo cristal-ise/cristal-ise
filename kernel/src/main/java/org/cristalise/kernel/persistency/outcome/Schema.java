@@ -52,6 +52,7 @@ import lombok.extern.slf4j.Slf4j;
 
 @Getter @Setter @Slf4j
 public class Schema implements DescriptionObject, ErrorHandler {
+    private String       namespace;
     private String       name;
     private Integer      version;
     private final String schemaData;
