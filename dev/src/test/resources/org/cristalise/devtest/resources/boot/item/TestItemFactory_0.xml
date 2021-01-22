@@ -1,1 +1,30 @@
-<Item name="TestItemFactory" version="0" initialPath="/devtest" workflow="CrudFactory_Workflow" workflowVer="0"><Property name="Type" mutable="false">Factory</Property><Property name="Root" mutable="false">/devtest/TestItems</Property><Property name="UpdateSchema" mutable="false">TestItem_Details:0</Property><Outcome viewname="last" schema="PropertyDescription" version="0">boot/property/TestItem_0.xml</Outcome><Dependency name="workflow" isDescription="false" classProps=""><DependencyMember itemPath="/desc/ActivityDesc/devtest/TestItem_Workflow"><MemberProperties><KeyValuePair Key="Version" isAbstract="false" Integer="0"/></MemberProperties></DependencyMember><CollectionProperties/></Dependency><Dependency name="MasterSchema" isDescription="false" classProps=""><DependencyMember itemPath="/desc/Schema/devtest/TestItem"><MemberProperties><KeyValuePair Key="Version" isAbstract="false" Integer="0"/></MemberProperties></DependencyMember><CollectionProperties/></Dependency><Dependency name="AggregateScript" isDescription="false" classProps=""><DependencyMember itemPath="/desc/Script/devtest/TestItem_Aggregate"><MemberProperties><KeyValuePair Key="Version" isAbstract="false" Integer="0"/></MemberProperties></DependencyMember><CollectionProperties/></Dependency></Item>
+<Item name="TestItemFactory" version="0" initialPath="/devtest" workflow="CrudFactory_Workflow" workflowVer="0">
+  <Property name="Type" mutable="false">Factory</Property>
+  <Property name="Root" mutable="false">/devtest/TestItems</Property>
+  <Property name="UpdateSchema" mutable="false">TestItem_Details:0</Property>
+  <Outcome viewname="last" schema="PropertyDescription" version="0">boot/property/TestItem_0.xml</Outcome>
+  <Dependency name="workflow" isDescription="false" classProps="">
+    <DependencyMember itemPath="/desc/ActivityDesc/devtest/TestItem_Workflow">
+      <MemberProperties>
+        <KeyValuePair Key="Version" isAbstract="false" Integer="0" />
+      </MemberProperties>
+    </DependencyMember>
+    <CollectionProperties />
+  </Dependency>
+  <Dependency name="MasterSchema" isDescription="false" classProps="">
+    <DependencyMember itemPath="/desc/Schema/devtest/TestItem">
+      <MemberProperties>
+        <KeyValuePair Key="Version" isAbstract="false" Integer="0" />
+      </MemberProperties>
+    </DependencyMember>
+    <CollectionProperties />
+  </Dependency>
+  <Dependency name="AggregateScript" isDescription="false" classProps="">
+    <DependencyMember itemPath="/desc/Script/devtest/TestItem_Aggregate">
+      <MemberProperties>
+        <KeyValuePair Key="Version" isAbstract="false" Integer="0" />
+      </MemberProperties>
+    </DependencyMember>
+    <CollectionProperties />
+  </Dependency>
+</Item>

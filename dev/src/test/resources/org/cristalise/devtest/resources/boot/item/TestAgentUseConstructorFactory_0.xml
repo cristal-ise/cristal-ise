@@ -1,1 +1,41 @@
-<Item name="TestAgentUseConstructorFactory" version="0" initialPath="/devtest" workflow="CrudFactory_Workflow" workflowVer="0"><Property name="Type" mutable="false">Factory</Property><Property name="Root" mutable="false">/devtest/TestAgentUseConstructors</Property><Property name="CreateAgent" mutable="false">true</Property><Property name="DefaultRoles" mutable="true">Admin</Property><Outcome viewname="last" schema="PropertyDescription" version="0">boot/property/TestAgentUseConstructor_0.xml</Outcome><Dependency name="SchemaInitialise" isDescription="false" classProps=""><DependencyMember itemPath="/desc/Schema/devtest/TestAgentUseConstructor_Details"><MemberProperties><KeyValuePair Key="Version" isAbstract="false" Integer="0"/></MemberProperties></DependencyMember><CollectionProperties/></Dependency><Dependency name="workflow" isDescription="false" classProps=""><DependencyMember itemPath="/desc/ActivityDesc/devtest/TestAgentUseConstructor_Workflow"><MemberProperties><KeyValuePair Key="Version" isAbstract="false" Integer="0"/></MemberProperties></DependencyMember><CollectionProperties/></Dependency><Dependency name="MasterSchema" isDescription="false" classProps=""><DependencyMember itemPath="/desc/Schema/devtest/TestAgentUseConstructor"><MemberProperties><KeyValuePair Key="Version" isAbstract="false" Integer="0"/></MemberProperties></DependencyMember><CollectionProperties/></Dependency><Dependency name="AggregateScript" isDescription="false" classProps=""><DependencyMember itemPath="/desc/Script/devtest/TestAgentUseConstructor_Aggregate"><MemberProperties><KeyValuePair Key="Version" isAbstract="false" Integer="0"/></MemberProperties></DependencyMember><CollectionProperties/></Dependency></Item>
+<Item name="TestAgentUseConstructorFactory" version="0" initialPath="/devtest" workflow="CrudFactory_Workflow"
+  workflowVer="0">
+  <Property name="Type" mutable="false">Factory</Property>
+  <Property name="Root" mutable="false">/devtest/TestAgentUseConstructors</Property>
+  <Property name="CreateAgent" mutable="false">true</Property>
+  <Property name="DefaultRoles" mutable="true">Admin</Property>
+  <Outcome viewname="last" schema="PropertyDescription" version="0">boot/property/TestAgentUseConstructor_0.xml
+  </Outcome>
+  <Dependency name="SchemaInitialise" isDescription="false" classProps="">
+    <DependencyMember itemPath="/desc/Schema/devtest/TestAgentUseConstructor_Details">
+      <MemberProperties>
+        <KeyValuePair Key="Version" isAbstract="false" Integer="0" />
+      </MemberProperties>
+    </DependencyMember>
+    <CollectionProperties />
+  </Dependency>
+  <Dependency name="workflow" isDescription="false" classProps="">
+    <DependencyMember itemPath="/desc/ActivityDesc/devtest/TestAgentUseConstructor_Workflow">
+      <MemberProperties>
+        <KeyValuePair Key="Version" isAbstract="false" Integer="0" />
+      </MemberProperties>
+    </DependencyMember>
+    <CollectionProperties />
+  </Dependency>
+  <Dependency name="MasterSchema" isDescription="false" classProps="">
+    <DependencyMember itemPath="/desc/Schema/devtest/TestAgentUseConstructor">
+      <MemberProperties>
+        <KeyValuePair Key="Version" isAbstract="false" Integer="0" />
+      </MemberProperties>
+    </DependencyMember>
+    <CollectionProperties />
+  </Dependency>
+  <Dependency name="AggregateScript" isDescription="false" classProps="">
+    <DependencyMember itemPath="/desc/Script/devtest/TestAgentUseConstructor_Aggregate">
+      <MemberProperties>
+        <KeyValuePair Key="Version" isAbstract="false" Integer="0" />
+      </MemberProperties>
+    </DependencyMember>
+    <CollectionProperties />
+  </Dependency>
+</Item>
