@@ -75,15 +75,18 @@ public class ModuleResource extends ModuleImport {
         return (type == BuiltInResources.SCHEMA_RESOURCE ? "xsd": "xml");
     }
 
-    public String getResourceLocation() {
+    public String getResourceFileName() {
         if (StringUtils.isBlank(resourceLocation) && ns != null) {
             String[] vals = Gateway.getProperties().getString("Resource.moduleUseFileNameWithVersion", "").split(",");
+            log.debug("getResourceLocation() - moduleUseFileNameWithVersion:{}", Arrays.toString(vals));
 
             if (Arrays.asList(vals).contains(ns)) {
                 resourceLocation = getResourceDir() + "/" + name + "_" + version + "." + getResourceExt();
+                log.debug("getResourceLocation(WithVersion) - {}", resourceLocation );
             }
             else {
                 resourceLocation = getResourceDir() + "/" + name + "." + getResourceExt();
+                log.debug("getResourceLocation(NoVersion) - {}", resourceLocation );
             }
         }
 
@@ -97,7 +100,7 @@ public class ModuleResource extends ModuleImport {
         try {
             ResourceImportHandler importHandler = Gateway.getResourceImportHandler(type);
 
-            domainPath = importHandler.importResource(ns, name, version, itemPath, getResourceLocation(), reset, transactionKey);
+            domainPath = importHandler.importResource(ns, name, version, itemPath, getResourceFileName(), reset, transactionKey);
             resourceChangeStatus = importHandler.getResourceChangeStatus();
             resourceChangeDetails = importHandler.getResourceChangeDetails();
 
