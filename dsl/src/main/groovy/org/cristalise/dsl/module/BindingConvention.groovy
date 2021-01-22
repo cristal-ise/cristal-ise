@@ -44,7 +44,7 @@ trait BindingConvention {
      * 
      */
     private static final String variablePrefix = 
-    Gateway.getProperties().getString('DSL.Module.BindingConvention.variablePrefix', '$')
+            Gateway.getProperties().getString('DSL.Module.BindingConvention.variablePrefix', '$')
 
     /**
      * These characters will be removed from the name of the 'variable' added to the binding
@@ -56,6 +56,10 @@ trait BindingConvention {
      */
     private static final boolean autoAddObject = 
             Gateway.getProperties().getBoolean('DSL.Module.BindingConvention.autoAddObject', true)
+
+    public static String getVariablePrefix() {
+        return variablePrefix
+    }
 
     /**
      *
