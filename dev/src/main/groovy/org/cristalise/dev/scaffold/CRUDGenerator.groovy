@@ -20,6 +20,8 @@
  */
 package org.cristalise.dev.scaffold
 
+import org.apache.commons.lang3.StringUtils
+import org.cristalise.kernel.process.Gateway
 import org.cristalise.kernel.process.resource.BuiltInResources
 import org.cristalise.kernel.utils.FileStringUtility
 import org.mvel2.templates.CompiledTemplate
@@ -87,7 +89,11 @@ class CRUDGenerator {
     public void generate(Map<String, Object> inputs, boolean generateModule) {
         assert inputs
 
+        //String prefix = BindingConvention.variablePrefix -- DOES NOT WORK!??!?
+        String prefix = Gateway.getProperties().getString('DSL.Module.BindingConvention.variablePrefix', '$')
+
         inputs.rootDir = rootDir
+        inputs.itemVar = prefix + StringUtils.uncapitalize(inputs.item as String)
         inputs.resourceRootDir = resourceRootDir
         if (moduleXmlDir) inputs.moduleXmlDir = moduleXmlDir
 

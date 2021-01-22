@@ -1,8 +1,7 @@
-<?xml version="1.0" encoding="UTF-8"?>
 <cristalscript>
-  <param name='item' type='org.cristalise.kernel.entity.proxy.ItemProxy' />
-  <output name='TestAgentUseConstructorXML' type='java.lang.String' />
-  <script language='groovy' name='TestAgentUseConstructor_Aggregate'><![CDATA[ import org.cristalise.kernel.persistency.outcome.Outcome
+  <param name="item" type="org.cristalise.kernel.entity.proxy.ItemProxy"/>
+  <output name="TestAgentUseConstructorXML" type="java.lang.String"/>
+  <script language="groovy" name="TestAgentUseConstructor_Aggregate"><![CDATA[ import org.cristalise.kernel.persistency.outcome.Outcome
 
 import groovy.xml.MarkupBuilder
 

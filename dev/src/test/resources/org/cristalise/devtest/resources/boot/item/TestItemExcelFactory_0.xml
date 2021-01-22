@@ -1,31 +1,30 @@
-<Item name="TestItemExcelFactory" version="0" initialPath="/devtest" workflow="CrudFactory_Workflow"
-  workflowVer="0">
-  <Property name="Type" mutable="false">Factory</Property>
-  <Property name="Root" mutable="false">/devtest/TestItemExcels</Property>
-  <Property name="UpdateSchema" mutable="false">TestItemExcel_Details:0</Property>
-  <Outcome viewname="last" schema="PropertyDescription" version="0">boot/property/TestItemExcel_0.xml</Outcome>
-  <Dependency name="workflow" isDescription="false" classProps="">
+<Item initialPath="/devtest" name="TestItemExcelFactory" ns="devtest" version="0" workflow="CrudFactory_Workflow" workflowVer="0">
+  <Property mutable="false" name="Type">Factory</Property>
+  <Property mutable="false" name="Root">/devtest/TestItemExcels</Property>
+  <Property mutable="false" name="UpdateSchema">TestItemExcel_Details:0</Property>
+  <Outcome schema="PropertyDescription" version="0" viewname="last">boot/property/TestItemExcel_0.xml</Outcome>
+  <Dependency classProps="" isDescription="false" name="workflow">
     <DependencyMember itemPath="/desc/ActivityDesc/devtest/TestItemExcel_Workflow">
       <MemberProperties>
-        <KeyValuePair Key="Version" isAbstract="false" Integer="0" />
+        <KeyValuePair Integer="0" Key="Version" isAbstract="false"/>
       </MemberProperties>
     </DependencyMember>
-    <CollectionProperties />
+    <CollectionProperties/>
   </Dependency>
-  <Dependency name="MasterSchema" isDescription="false" classProps="">
+  <Dependency classProps="" isDescription="false" name="MasterSchema">
     <DependencyMember itemPath="/desc/Schema/devtest/TestItemExcel">
       <MemberProperties>
-        <KeyValuePair Key="Version" isAbstract="false" Integer="0" />
+        <KeyValuePair Integer="0" Key="Version" isAbstract="false"/>
       </MemberProperties>
     </DependencyMember>
-    <CollectionProperties />
+    <CollectionProperties/>
   </Dependency>
-  <Dependency name="AggregateScript" isDescription="false" classProps="">
+  <Dependency classProps="" isDescription="false" name="AggregateScript">
     <DependencyMember itemPath="/desc/Script/devtest/TestItemExcel_Aggregate">
       <MemberProperties>
-        <KeyValuePair Key="Version" isAbstract="false" Integer="0" />
+        <KeyValuePair Integer="0" Key="Version" isAbstract="false"/>
       </MemberProperties>
     </DependencyMember>
-    <CollectionProperties />
+    <CollectionProperties/>
   </Dependency>
 </Item>

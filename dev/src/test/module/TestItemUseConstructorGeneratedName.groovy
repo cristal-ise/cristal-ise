@@ -1,6 +1,7 @@
 import static org.cristalise.kernel.collection.BuiltInCollections.AGGREGATE_SCRIPT
 import static org.cristalise.kernel.collection.BuiltInCollections.MASTER_SCHEMA
 import static org.cristalise.kernel.collection.BuiltInCollections.SCHEMA_INITIALISE
+import static org.cristalise.kernel.collection.BuiltInCollections.WORKFLOW
 
 // this is defined in CrudState.groovy of the dev module
 def states = ['ACTIVE', 'INACTIVE']
@@ -9,7 +10,7 @@ def states = ['ACTIVE', 'INACTIVE']
  * TestItemUseConstructorGeneratedName Item
  */
 
-def TestItemUseConstructorGeneratedName = Schema('TestItemUseConstructorGeneratedName', 0) {
+Schema('TestItemUseConstructorGeneratedName', 0) {
     struct(name:' TestItemUseConstructorGeneratedName', documentation: 'TestItemUseConstructorGeneratedName aggregated data') {
         field(name: 'Name',        type: 'string')
         field(name: 'State',       type: 'string', values: states)
@@ -17,7 +18,7 @@ def TestItemUseConstructorGeneratedName = Schema('TestItemUseConstructorGenerate
     }
 }
 
-def TestItemUseConstructorGeneratedNameDetails = Schema('TestItemUseConstructorGeneratedName_Details', 0) {
+Schema('TestItemUseConstructorGeneratedName_Details', 0) {
     struct(name: 'TestItemUseConstructorGeneratedName_Details') {
 
         field(name: 'Name', type: 'string') { dynamicForms (disabled: true, label: 'ID') }
@@ -27,19 +28,19 @@ def TestItemUseConstructorGeneratedNameDetails = Schema('TestItemUseConstructorG
 }
 
 
-def TestItemUseConstructorGeneratedNameUpdateAct = Activity('TestItemUseConstructorGeneratedName_Update', 0) {
+Activity('TestItemUseConstructorGeneratedName_Update', 0) {
     Property('OutcomeInit': 'Empty')
-    Schema(TestItemUseConstructorGeneratedNameDetails)
+    Schema($testItemUseConstructorGeneratedName_Details_Schema)
     //Script('CrudEntity_ChangeName', 0)
 }
 
-def TestItemUseConstructorGeneratedNameAggregateScript = Script('TestItemUseConstructorGeneratedName_Aggregate', 0) {
+Script('TestItemUseConstructorGeneratedName_Aggregate', 0) {
     input('item', 'org.cristalise.kernel.entity.proxy.ItemProxy')
     output('TestItemUseConstructorGeneratedNameXML', 'java.lang.String')
     script('groovy', moduleDir+'/script/TestItemUseConstructorGeneratedName_Aggregate.groovy')
 }
 
-def TestItemUseConstructorGeneratedNameQueryListScript = Script('TestItemUseConstructorGeneratedName_QueryList', 0) {
+Script('TestItemUseConstructorGeneratedName_QueryList', 0) {
     input('item', 'org.cristalise.kernel.entity.proxy.ItemProxy')
     output('TestItemUseConstructorGeneratedNameMap', 'java.util.Map')
     script('groovy', moduleDir+'/script/TestItemUseConstructorGeneratedName_QueryList.groovy')
@@ -49,16 +50,16 @@ Activity('TestItemUseConstructorGeneratedName_Aggregate', 0) {
     Property('OutcomeInit': 'Empty')
     Property('Agent Role': 'UserCode')
 
-    Schema(TestItemUseConstructorGeneratedName)
-    Script(TestItemUseConstructorGeneratedNameAggregateScript)
+    Schema($testItemUseConstructorGeneratedName_Schema)
+    Script($testItemUseConstructorGeneratedName_Aggregate_Script)
 }
 
-def TestItemUseConstructorGeneratedNameWf = Workflow('TestItemUseConstructorGeneratedName_Workflow', 0) {
-    ElemActDef(TestItemUseConstructorGeneratedNameUpdateAct)
+Workflow('TestItemUseConstructorGeneratedName_Workflow', 0) {
+    ElemActDef($testItemUseConstructorGeneratedName_Update_ActivityDef)
     CompActDef('CrudState_Manage', 0)
 }
 
-def TestItemUseConstructorGeneratedNamePropDesc = PropertyDescriptionList('TestItemUseConstructorGeneratedName', 0) {
+PropertyDescriptionList('TestItemUseConstructorGeneratedName', 0) {
     PropertyDesc(name: 'Name',  isMutable: true,  isClassIdentifier: false)
     PropertyDesc(name: 'Type',  isMutable: false, isClassIdentifier: true,  defaultValue: 'TestItemUseConstructorGeneratedName')
     PropertyDesc(name: 'State', isMutable: true,  isClassIdentifier: false, defaultValue: 'ACTIVE')
@@ -76,7 +77,7 @@ Item(name: 'TestItemUseConstructorGeneratedNameFactory', version: 0, folder: '/d
 
 
     Dependency(SCHEMA_INITIALISE) {
-        Member(itemPath: '/desc/Schema/devtest/TestItemUseConstructorGeneratedName_Details') {
+        Member(itemPath: $testItemUseConstructorGeneratedName_Details_Schema) {
             Property('Version': 0)
         }
     }
@@ -84,20 +85,20 @@ Item(name: 'TestItemUseConstructorGeneratedNameFactory', version: 0, folder: '/d
 
     Outcome(schema: 'PropertyDescription', version: '0', viewname: 'last', path: 'boot/property/TestItemUseConstructorGeneratedName_0.xml')
 
-    Dependency('workflow') {
-        Member(itemPath: '/desc/ActivityDesc/devtest/TestItemUseConstructorGeneratedName_Workflow') {
+    Dependency(WORKFLOW) {
+        Member(itemPath: $testItemUseConstructorGeneratedName_Workflow_CompositeActivityDef) {
             Property('Version': 0)
         }
     }
 
     Dependency(MASTER_SCHEMA) {
-        Member(itemPath: '/desc/Schema/devtest/TestItemUseConstructorGeneratedName') {
+        Member(itemPath: $testItemUseConstructorGeneratedName_Schema) {
             Property('Version': 0)
         }
     }
 
     Dependency(AGGREGATE_SCRIPT) {
-        Member(itemPath: '/desc/Script/devtest/TestItemUseConstructorGeneratedName_Aggregate') {
+        Member(itemPath: $testItemUseConstructorGeneratedName_Aggregate_Script) {
             Property('Version': 0)
         }
     }
