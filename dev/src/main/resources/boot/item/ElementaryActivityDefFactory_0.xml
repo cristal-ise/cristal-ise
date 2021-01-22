@@ -1,1 +1,37 @@
-<Item name="ElementaryActivityDefFactory" version="0" initialPath="/desc/dev" workflow="ElementaryActivityFactory" workflowVer="0"><Property name="Type" mutable="false">Factory</Property><Property name="LocalObjectType" mutable="false">ElementaryActivityDef</Property><Outcome viewname="last" schema="PropertyDescription" version="0">boot/property/ElementaryActivityDesc_0.xml</Outcome><Dependency name="workflow" isDescription="false" classProps=""><DependencyMember itemPath="/desc/ActivityDesc/kernel/ManageElementaryActDef"><MemberProperties><KeyValuePair Key="Version" isAbstract="false" Integer="0"/></MemberProperties></DependencyMember><CollectionProperties/></Dependency><Dependency name="Schema" isDescription="true" classProps=""><DependencyMember itemPath="/desc/dev/SchemaFactory"><MemberProperties/></DependencyMember><CollectionProperties/></Dependency><Dependency name="Script" isDescription="true" classProps=""><DependencyMember itemPath="/desc/dev/ScriptFactory"><MemberProperties/></DependencyMember><CollectionProperties/></Dependency><Dependency name="Query" isDescription="true" classProps=""><DependencyMember itemPath="/desc/dev/QueryFactory"><MemberProperties/></DependencyMember><CollectionProperties/></Dependency><Dependency name="StateMachine" isDescription="true" classProps=""><DependencyMember itemPath="/desc/dev/StateMachineFactory"><MemberProperties/></DependencyMember><CollectionProperties/></Dependency></Item>
+<Item initialPath="/desc/dev" name="ElementaryActivityDefFactory" ns="dev" version="0" workflow="ElementaryActivityFactory" workflowVer="0">
+  <Property mutable="false" name="Type">Factory</Property>
+  <Property mutable="false" name="LocalObjectType">ElementaryActivityDef</Property>
+  <Outcome schema="PropertyDescription" version="0" viewname="last">boot/property/ElementaryActivityDesc_0.xml</Outcome>
+  <Dependency classProps="" isDescription="false" name="workflow">
+    <DependencyMember itemPath="/desc/ActivityDesc/kernel/ManageElementaryActDef">
+      <MemberProperties>
+        <KeyValuePair Integer="0" Key="Version" isAbstract="false"/>
+      </MemberProperties>
+    </DependencyMember>
+    <CollectionProperties/>
+  </Dependency>
+  <Dependency classProps="" isDescription="true" name="Schema">
+    <DependencyMember itemPath="/desc/dev/SchemaFactory">
+      <MemberProperties/>
+    </DependencyMember>
+    <CollectionProperties/>
+  </Dependency>
+  <Dependency classProps="" isDescription="true" name="Script">
+    <DependencyMember itemPath="/desc/dev/ScriptFactory">
+      <MemberProperties/>
+    </DependencyMember>
+    <CollectionProperties/>
+  </Dependency>
+  <Dependency classProps="" isDescription="true" name="Query">
+    <DependencyMember itemPath="/desc/dev/QueryFactory">
+      <MemberProperties/>
+    </DependencyMember>
+    <CollectionProperties/>
+  </Dependency>
+  <Dependency classProps="" isDescription="true" name="StateMachine">
+    <DependencyMember itemPath="/desc/dev/StateMachineFactory">
+      <MemberProperties/>
+    </DependencyMember>
+    <CollectionProperties/>
+  </Dependency>
+</Item>
