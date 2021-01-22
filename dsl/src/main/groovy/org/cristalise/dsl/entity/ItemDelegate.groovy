@@ -56,6 +56,7 @@ class ItemDelegate extends PropertyDelegate {
 
         log.debug 'constructor() - args:{}', args
 
+        newItem.namespace   = args.ns
         newItem.name        = args.name
         newItem.initialPath = args.folder
 
@@ -133,18 +134,22 @@ class ItemDelegate extends PropertyDelegate {
     }
 
     public void DependencyDescription(String name, Closure cl) {
-        Dependency(name, true, cl)
+        Dependency('', name, true, cl)
     }
 
     public void Dependency(BuiltInCollections coll, boolean isDescription = false, String classProps = null, @DelegatesTo(DependencyDelegate) Closure cl) {
-        Dependency(coll.getName(), isDescription, classProps, cl)
+        Dependency(newItem.namespace, coll.getName(), isDescription, classProps, cl)
     }
 
     public void Dependency(String name, boolean isDescription = false, String classProps = null, @DelegatesTo(DependencyDelegate) Closure cl) {
+        Dependency(newItem.namespace, name, isDescription, classProps, cl)
+    }
+
+    public void Dependency(String ns, String name, boolean isDescription = false, String classProps = null, @DelegatesTo(DependencyDelegate) Closure cl) {
         assert name
         assert cl
 
-        def builder = DependencyBuilder.build(name, isDescription, classProps, cl)
+        def builder = DependencyBuilder.build(ns, name, isDescription, classProps, cl)
         Dependency dependency = builder.dependency
 
         assert dependency

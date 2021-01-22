@@ -92,7 +92,7 @@ class StateMachineBuilder {
     }
 
     public static StateMachineBuilder build(String module, String name, int version, Closure cl) {
-        def delegate = new StateMachineDelegate(name, version)
+        def delegate = new StateMachineDelegate(module, name, version)
 
         delegate.processClosure(cl)
 
