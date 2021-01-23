@@ -1,1 +1,13 @@
-<Item name="AgentDescFactory" version="0" initialPath="/desc/dev" workflow="AgentDescFactoryWf" workflowVer="0"><Property name="Type" mutable="false">Factory</Property><Property name="LocalObjectType" mutable="false">AgentDesc</Property><Outcome viewname="last" schema="PropertyDescription" version="0">boot/property/AgentDesc_0.xml</Outcome><Dependency name="workflow" isDescription="false" classProps=""><DependencyMember itemPath="/desc/ActivityDesc/kernel/ManageAgentDesc"><MemberProperties><KeyValuePair Key="Version" isAbstract="false" Integer="0"/></MemberProperties></DependencyMember><CollectionProperties/></Dependency></Item>
+<Item initialPath="/desc/dev" name="AgentDescFactory" ns="dev" version="0" workflow="AgentDescFactoryWf" workflowVer="0">
+  <Property mutable="false" name="Type">Factory</Property>
+  <Property mutable="false" name="LocalObjectType">AgentDesc</Property>
+  <Outcome schema="PropertyDescription" version="0" viewname="last">boot/property/AgentDesc_0.xml</Outcome>
+  <Dependency classProps="" isDescription="false" name="workflow">
+    <DependencyMember itemPath="/desc/ActivityDesc/kernel/ManageAgentDesc">
+      <MemberProperties>
+        <KeyValuePair Integer="0" Key="Version" isAbstract="false"/>
+      </MemberProperties>
+    </DependencyMember>
+    <CollectionProperties/>
+  </Dependency>
+</Item>

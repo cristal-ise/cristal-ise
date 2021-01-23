@@ -1,1 +1,6 @@
-<AllProperties><PropertyDescription Name="Name" IsClassIdentifier="false" DefaultValue="" IsMutable="true" Transitive="false"/><PropertyDescription Name="Type" IsClassIdentifier="true" DefaultValue="Module" IsMutable="false" Transitive="true"/><PropertyDescription Name="Version" IsClassIdentifier="false" DefaultValue="" IsMutable="true" Transitive="false"/><PropertyDescription Name="Namespace" IsClassIdentifier="false" DefaultValue="" IsMutable="true" Transitive="false"/></AllProperties>
+<AllProperties>
+  <PropertyDescription DefaultValue="" IsClassIdentifier="false" IsMutable="true" Name="Name" Transitive="false"/>
+  <PropertyDescription DefaultValue="Module" IsClassIdentifier="true" IsMutable="false" Name="Type" Transitive="true"/>
+  <PropertyDescription DefaultValue="" IsClassIdentifier="false" IsMutable="true" Name="Version" Transitive="false"/>
+  <PropertyDescription DefaultValue="" IsClassIdentifier="false" IsMutable="true" Name="Namespace" Transitive="false"/>
+</AllProperties>

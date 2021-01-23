@@ -28,6 +28,7 @@ import org.cristalise.kernel.lifecycle.ActivityDef;
 import org.cristalise.kernel.lifecycle.CompositeActivityDef;
 import org.cristalise.kernel.lifecycle.instance.stateMachine.StateMachine;
 import org.cristalise.kernel.persistency.outcome.Schema;
+import org.cristalise.kernel.process.module.Module;
 import org.cristalise.kernel.property.PropertyDescriptionList;
 import org.cristalise.kernel.querying.Query;
 import org.cristalise.kernel.scripting.Script;
@@ -82,13 +83,31 @@ public enum BuiltInResources {
         }
         return null;
     }
-    
+
+    public static BuiltInResources getValue(DescriptionObject descObject) {
+        switch (descObject.getClass().getSimpleName()) {
+            case "PropertyDescriptionList": return PROPERTY_DESC_RESOURCE;
+            case "Module":                  return MODULE_RESOURCE;
+            case "Schema":                  return SCHEMA_RESOURCE;
+            case "Script":                  return SCRIPT_RESOURCE;
+            case "Query":                   return QUERY_RESOURCE;
+            case "StateMachine":            return STATE_MACHINE_RESOURCE;
+            case "CompositeActivityDef":    return COMP_ACT_DESC_RESOURCE;
+            case "ActivityDef":             return ELEM_ACT_DESC_RESOURCE;
+            case "ImportItem":              return ITEM_DESC_RESOURCE;
+            case "ImportAgent":             return AGENT_DESC_RESOURCE;
+            case "ImportRole":              return ROLE_DESC_RESOURCE;
+            default:
+                return null;
+        }
+    }
+
     public DescriptionObject getDescriptionObject(String name) {
         DescriptionObject descObj;
 
         switch(this) {
             case ACTIVITY_DESC_RESOURCE: descObj = null; break; //abstract resource
-            case MODULE_RESOURCE:        descObj = null; break; //Module is not a DescriptionObject
+            case MODULE_RESOURCE:        descObj = new Module(); break; 
             case SCHEMA_RESOURCE:        descObj = new Schema(null); break; 
             case SCRIPT_RESOURCE:        descObj = new Script(); break; 
             case QUERY_RESOURCE:         descObj = new Query(); break; 

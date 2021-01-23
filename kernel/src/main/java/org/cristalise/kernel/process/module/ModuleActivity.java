@@ -85,7 +85,7 @@ public class ModuleActivity extends ModuleResource {
     {
         try {
             ResourceImportHandler importHandler = Gateway.getResourceImportHandler(type);
-            domainPath = importHandler.importResource(ns, name, version, itemPath, getResourceLocation(), reset, transactionKey);
+            domainPath = importHandler.importResource(ns, name, version, itemPath, getResourceFileName(), reset, transactionKey);
             resourceChangeDetails = importHandler.getResourceChangeDetails();
             itemPath = domainPath.getItemPath(transactionKey);
         }

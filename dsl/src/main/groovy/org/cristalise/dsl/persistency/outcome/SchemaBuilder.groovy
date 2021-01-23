@@ -106,6 +106,7 @@ class SchemaBuilder {
 
         schema = new Schema(name, version, schemaD.xsdString)
         String errors = schema.validate()
+        schema.namespace = module
 
         if (errors) {
             log.error "generateSchema() - xsd:\n{}", schemaD.xsdString

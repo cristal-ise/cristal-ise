@@ -1,1 +1,17 @@
-<Item name="ScriptFactory" version="0" initialPath="/desc/dev" workflow="ScriptFactoryWf" workflowVer="0"><Property name="Type" mutable="false">Factory</Property><Property name="LocalObjectType" mutable="false">Script</Property><Outcome viewname="last" schema="PropertyDescription" version="0">boot/property/Script_0.xml</Outcome><Outcome viewname="last" schema="Script" version="0">boot/SC/New_0.xml</Outcome><Dependency name="workflow" isDescription="false" classProps=""><DependencyMember itemPath="/desc/ActivityDesc/kernel/ManageScript"><MemberProperties><KeyValuePair Key="Version" isAbstract="false" Integer="0"/></MemberProperties></DependencyMember><CollectionProperties/></Dependency><Dependency name="Include" isDescription="true" classProps=""><CollectionProperties/></Dependency></Item>
+<Item initialPath="/desc/dev" name="ScriptFactory" ns="dev" version="0" workflow="ScriptFactoryWf" workflowVer="0">
+  <Property mutable="false" name="Type">Factory</Property>
+  <Property mutable="false" name="LocalObjectType">Script</Property>
+  <Outcome schema="PropertyDescription" version="0" viewname="last">boot/property/Script_0.xml</Outcome>
+  <Outcome schema="Script" version="0" viewname="last">boot/SC/New_0.xml</Outcome>
+  <Dependency classProps="" isDescription="false" name="workflow">
+    <DependencyMember itemPath="/desc/ActivityDesc/kernel/ManageScript">
+      <MemberProperties>
+        <KeyValuePair Integer="0" Key="Version" isAbstract="false"/>
+      </MemberProperties>
+    </DependencyMember>
+    <CollectionProperties/>
+  </Dependency>
+  <Dependency classProps="" isDescription="true" name="Include">
+    <CollectionProperties/>
+  </Dependency>
+</Item>

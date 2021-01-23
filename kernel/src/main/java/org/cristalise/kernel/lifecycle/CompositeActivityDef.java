@@ -441,7 +441,7 @@ public class CompositeActivityDef extends ActivityDef {
                         throw new ObjectNotFoundException("Cannot find item with UIID: "+nodeList.item(i).getNodeValue());
                     }
                 }
-                compactXML = outcome.getData();
+                compactXML = outcome.getData(true);
             }            
             FileStringUtility.string2File(new File(new File(dir, tc), getActName() + (getVersion() == null ? "" : "_" + getVersion()) + ".xml"), compactXML);
         }

@@ -90,6 +90,7 @@
           </xs:complexType>
         </xs:element>
       </xs:sequence>
+      <xs:attribute name="ns" type="xs:string" use="optional" />
       <xs:attribute name="name" type="xs:string" use="required" />
       <xs:attribute name="version" type="xs:integer" use="optional" />
       <xs:attribute name="id" type="uuid" use="optional" />

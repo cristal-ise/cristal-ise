@@ -1,1 +1,15 @@
-<Item name="ModuleFactory" version="0" initialPath="/desc/dev" workflow="ModuleFactory" workflowVer="0"><Property name="Type" mutable="false">Factory</Property><Outcome viewname="last" schema="PropertyDescription" version="0">boot/property/Module_0.xml</Outcome><Dependency name="workflow" isDescription="false" classProps=""><DependencyMember itemPath="/desc/ActivityDesc/kernel/ManageModule"><MemberProperties><KeyValuePair Key="Version" isAbstract="false" Integer="0"/></MemberProperties></DependencyMember><CollectionProperties/></Dependency><Dependency name="Contents" isDescription="true" classProps=""><CollectionProperties/></Dependency></Item>
+<Item initialPath="/desc/dev" name="ModuleFactory" ns="dev" version="0" workflow="ModuleFactory" workflowVer="0">
+  <Property mutable="false" name="Type">Factory</Property>
+  <Outcome schema="PropertyDescription" version="0" viewname="last">boot/property/Module_0.xml</Outcome>
+  <Dependency classProps="" isDescription="false" name="workflow">
+    <DependencyMember itemPath="/desc/ActivityDesc/kernel/ManageModule">
+      <MemberProperties>
+        <KeyValuePair Integer="0" Key="Version" isAbstract="false"/>
+      </MemberProperties>
+    </DependencyMember>
+    <CollectionProperties/>
+  </Dependency>
+  <Dependency classProps="" isDescription="true" name="Contents">
+    <CollectionProperties/>
+  </Dependency>
+</Item>

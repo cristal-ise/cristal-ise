@@ -58,6 +58,7 @@ import org.cristalise.kernel.entity.proxy.ItemProxy;
 import org.cristalise.kernel.graph.model.BuiltInVertexProperties;
 import org.cristalise.kernel.lookup.ItemPath;
 import org.cristalise.kernel.persistency.TransactionKey;
+import org.cristalise.kernel.persistency.outcome.Outcome;
 import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.utils.CastorHashMap;
 import org.cristalise.kernel.utils.DescriptionObject;
@@ -116,6 +117,7 @@ public class Script implements DescriptionObject {
     CompiledScript mCompScript = null;
     String         mScriptXML  = "";
 
+    String         mNamespace;
     String         mName;
     Integer        mVersion;
     ItemPath       mItemPath;
@@ -264,7 +266,7 @@ public class Script implements DescriptionObject {
             engine.eval(scriptText);
         }
         catch (ScriptException ex) {
-            //out.println("Exception parsing console script for " + (ns == null ? "kernel" : ns + " module"));
+            out.println("Exception parsing console script for " + (mNamespace == null ? "kernel" : mNamespace + " module"));
             ex.printStackTrace(out);
         }
 
@@ -1017,13 +1019,15 @@ public class Script implements DescriptionObject {
     }
 
     /**
+     * @throws InvalidDataException 
      * 
      */
     @Override
-    public void export(Writer imports, File dir, boolean shallow) throws IOException {
+    public void export(Writer imports, File dir, boolean shallow) throws IOException, InvalidDataException {
         String tc = SCRIPT_RESOURCE.getTypeCode();
 
-        FileStringUtility.string2File(new File(new File(dir, tc), getName()+(getVersion()==null?"":"_"+getVersion())+".xml"), getScriptData());
+        String xml = new Outcome(getScriptData()).getData(true);
+        FileStringUtility.string2File(new File(new File(dir, tc), getName()+(getVersion()==null?"":"_"+getVersion())+".xml"), xml);
 
         if (imports == null) return;
 

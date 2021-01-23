@@ -99,7 +99,7 @@ public abstract class DescriptionObjectCache<D extends DescriptionObject> {
 
                 if (res != null) {
                     res.setNs(module.getNs());
-                    String resData = Gateway.getResource().getTextResource(module.getNs(), res.getResourceLocation());
+                    String resData = Gateway.getResource().getTextResource(module.getNs(), res.getResourceFileName());
                     // At this point the resource loaded from classpath, which means it has no UUID so a random UUID is assigned 
                     String uuid = res.getID() == null ? UUID.randomUUID().toString() : res.getID();
                     return buildObject(name, 0, new ItemPath(uuid), resData);

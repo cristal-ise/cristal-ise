@@ -42,6 +42,7 @@ class AgentDelegate extends PropertyDelegate {
 
         newAgent = new ImportAgent((String)args.name, (String)args.password)
 
+        if (args.ns) newAgent.namespace = args.ns
         if (args.folder) newAgent.initialPath = args.folder
         if (args.version != null) newAgent.version = args.version as Integer
     }

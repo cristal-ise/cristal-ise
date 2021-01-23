@@ -44,8 +44,8 @@ class ItemBuilder {
         return itemD.newItem
     }
 
-    public static ImportItem build(String name, String folder, Object workflow, Integer workflowVer, @DelegatesTo(ItemDelegate) Closure cl) {
-        return build(['name': name, 'folder': folder, 'workflow': workflow, 'workflowVer': workflowVer], cl)
+    public static ImportItem build(String ns, String name, String folder, Object workflow, Integer workflowVer, @DelegatesTo(ItemDelegate) Closure cl) {
+        return build(['ns': ns, 'name': name, 'folder': folder, 'workflow': workflow, 'workflowVer': workflowVer], cl)
     }
 
     public static DomainPath create(Map<String, Object> attrs, Closure cl) {

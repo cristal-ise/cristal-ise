@@ -1,1 +1,5 @@
-<AllProperties><PropertyDescription Name="Name" IsClassIdentifier="false" DefaultValue="" IsMutable="true" Transitive="false"/><PropertyDescription Name="Type" IsClassIdentifier="true" DefaultValue="StateMachine" IsMutable="false" Transitive="true"/><PropertyDescription Name="Module" IsClassIdentifier="false" DefaultValue="" IsMutable="false" Transitive="false"/></AllProperties>
+<AllProperties>
+  <PropertyDescription DefaultValue="" IsClassIdentifier="false" IsMutable="true" Name="Name" Transitive="false"/>
+  <PropertyDescription DefaultValue="StateMachine" IsClassIdentifier="true" IsMutable="false" Name="Type" Transitive="true"/>
+  <PropertyDescription DefaultValue="" IsClassIdentifier="false" IsMutable="false" Name="Module" Transitive="false"/>
+</AllProperties>

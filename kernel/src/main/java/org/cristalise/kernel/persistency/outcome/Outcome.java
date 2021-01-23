@@ -703,13 +703,23 @@ public class Outcome implements C2KLocalObject {
     }
 
     /**
-     * Returns the serialised DOM as a string
+     * Returns the serialised DOM as a string without pretty printing-
      *
      * @return the xml string
      */
     public String getData() {
+        return getData(false);
+    }
+
+    /**
+     * Returns the serialised DOM as a string -
+     *
+     * @param prettyPrint is the string should be pretty printed or not
+     * @return the xml string
+     */
+    public String getData(boolean prettyPrint) {
         try {
-            return serialize(mDOM, false);
+            return serialize(mDOM, prettyPrint);
         }
         catch (InvalidDataException e) {
            log.error("", e);
@@ -949,7 +959,8 @@ public class Outcome implements C2KLocalObject {
             return "";
         }
         transformer.setOutputProperty(OutputKeys.ENCODING, "UTF-8");
-        transformer.setOutputProperty(OutputKeys.INDENT, prettyPrint?"yes":"no");
+        transformer.setOutputProperty(OutputKeys.INDENT, prettyPrint ? "yes" : "no");
+        if (prettyPrint) transformer.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "2");
         transformer.setOutputProperty(OutputKeys.OMIT_XML_DECLARATION, "yes");
 
         Writer out = new StringWriter();

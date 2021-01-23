@@ -31,6 +31,7 @@ import org.cristalise.kernel.common.InvalidDataException;
 import org.cristalise.kernel.common.ObjectNotFoundException;
 import org.cristalise.kernel.lookup.ItemPath;
 import org.cristalise.kernel.persistency.TransactionKey;
+import org.cristalise.kernel.persistency.outcome.Outcome;
 import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.process.resource.BuiltInResources;
 import org.cristalise.kernel.utils.CastorArrayList;
@@ -44,6 +45,7 @@ import lombok.extern.slf4j.Slf4j;
 
 @Getter @Setter @Slf4j
 public class PropertyDescriptionList extends CastorArrayList<PropertyDescription> implements DescriptionObject {
+    String   namespace;
     String   name;
     Integer  version;
     ItemPath itemPath;
@@ -163,7 +165,7 @@ public class PropertyDescriptionList extends CastorArrayList<PropertyDescription
         String fileName = getName() + (getVersion() == null ? "" : "_" + getVersion()) + ".xml";
 
         try {
-            xml = Gateway.getMarshaller().marshall(this);
+            xml = new Outcome(Gateway.getMarshaller().marshall(this)).getData(true);
         }
         catch (Exception e) {
             log.error("", e);

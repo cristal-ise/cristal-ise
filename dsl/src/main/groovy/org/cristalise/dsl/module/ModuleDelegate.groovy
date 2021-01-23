@@ -86,6 +86,8 @@ import groovy.xml.XmlUtil
 @CompileStatic @Slf4j
 class ModuleDelegate implements BindingConvention {
 
+    private static final boolean generateResourceXml = Gateway.properties.getBoolean('DSL.GenerateResourceXml', true)
+
     Module module = null
     Module newModule = null
     Binding bindings
@@ -156,11 +158,12 @@ class ModuleDelegate implements BindingConvention {
     }
 
     public Schema Schema(String name, Integer version, @DelegatesTo(SchemaDelegate) Closure cl) {
-        def sb = SchemaBuilder.build(name, version, cl)
-        sb.schema.export(null, resourceBootDir, true)
+        def sb = SchemaBuilder.build(newModule.ns, name, version, cl)
+
+        if (generateResourceXml) sb.schema.export(null, resourceBootDir, true)
 
         sb.expressionScipts.each { script ->
-            script.export(null, resourceBootDir, true)
+            if (generateResourceXml) script.export(null, resourceBootDir, true)
             addScript(script)
         }
         addSchema(sb.schema)
@@ -169,12 +172,13 @@ class ModuleDelegate implements BindingConvention {
     }
 
     public Schema Schema(String name, Integer version, File file) {
-        def sb = SchemaBuilder.build(name, version, file)
-        sb.schema.export(null, resourceBootDir, true)
+        def sb = SchemaBuilder.build(newModule.ns, name, version, file)
+
+        if (generateResourceXml) sb.schema.export(null, resourceBootDir, true)
         addSchema(sb.schema)
 
         sb.expressionScipts.each { script ->
-            script.export(null, resourceBootDir, true)
+            if (generateResourceXml) script.export(null, resourceBootDir, true)
             addScript(script)
         }
 
@@ -188,8 +192,8 @@ class ModuleDelegate implements BindingConvention {
     }
 
     public Query Query(String name, Integer version, @DelegatesTo(QueryDelegate) Closure cl) {
-        def query = QueryBuilder.build(newModule.name, name, version, cl)
-        query.export(null, resourceBootDir, true)
+        def query = QueryBuilder.build(newModule.ns, name, version, cl)
+        if (generateResourceXml) query.export(null, resourceBootDir, true)
         addQuery(query)
         return query
     }
@@ -201,10 +205,10 @@ class ModuleDelegate implements BindingConvention {
     }
 
     public Script Script(String name, Integer version, @DelegatesTo(ScriptDelegate) Closure cl) {
-        def script = ScriptBuilder.build(name, version, cl)
-        script.export(null, resourceBootDir, true)
-        addScript(script)
-        return script
+        def sb = ScriptBuilder.build(newModule.ns, name, version, cl)
+        if (generateResourceXml) sb.script.export(null, resourceBootDir, true)
+        addScript(sb.script)
+        return sb.script
     }
 
     public StateMachine StateMachine(String name, Integer version) {
@@ -214,8 +218,8 @@ class ModuleDelegate implements BindingConvention {
     }
 
     public StateMachine StateMachine(String name, Integer version, @DelegatesTo(StateMachineDelegate) Closure cl) {
-        def sm = StateMachineBuilder.build("", name, version, cl).sm
-        sm.export(null, resourceBootDir, true)
+        def sm = StateMachineBuilder.build(newModule.ns, name, version, cl).sm
+        if (generateResourceXml) sm.export(null, resourceBootDir, true)
         addStateMachine(sm)
         return sm
     }
@@ -228,7 +232,7 @@ class ModuleDelegate implements BindingConvention {
 
     public ActivityDef Activity(String name, Integer version, @DelegatesTo(ElemActDefDelegate) Closure cl) {
         def eaDef = ElemActDefBuilder.build(name, version, cl)
-        eaDef.export(null, resourceBootDir, true)
+        if (generateResourceXml) eaDef.export(null, resourceBootDir, true)
         addActivityDef(eaDef)
         return eaDef
     }
@@ -261,7 +265,7 @@ class ModuleDelegate implements BindingConvention {
 
         if (args?.generate) {
             DefaultGraphLayoutGenerator.layoutGraph(caDef.childrenGraphModel)
-            caDef.export(null, resourceBootDir, true)
+            if (generateResourceXml) caDef.export(null, resourceBootDir, true)
         }
         else {
             assert new File(new File(resourceBootDir, 'CA'), ""+args.name + (args.version == null ? "" : "_" + args.version) + ".xml").exists()
@@ -286,8 +290,8 @@ class ModuleDelegate implements BindingConvention {
     }
 
     public PropertyDescriptionList PropertyDescriptionList(String name, Integer version, @DelegatesTo(PropertyDescriptionDelegate) Closure cl) {
-        def propDescList = PropertyDescriptionBuilder.build(name, version, cl)
-        propDescList.export(null, resourceBootDir, true)
+        def propDescList = PropertyDescriptionBuilder.build(newModule.ns, name, version, cl)
+        if (generateResourceXml) propDescList.export(null, resourceBootDir, true)
         addPropertyDescriptionList(propDescList)
 
         return propDescList
@@ -300,11 +304,12 @@ class ModuleDelegate implements BindingConvention {
      * @param cl
      */
     public ImportAgent Agent(Map args, @DelegatesTo(AgentDelegate) Closure cl) {
+        args.ns = newModule.ns
         def agent = AgentBuilder.build(args, cl)
         agent.roles.each { it.jobList = null }
 
         if (Gateway.getProperties().getBoolean('DSL.Module.generateAllResourceItems', true)) {
-            agent.export(null, resourceBootDir, true)
+            if (generateResourceXml) agent.export(null, resourceBootDir, true)
             addImportAgent(agent)
         }
         else {
@@ -322,11 +327,12 @@ class ModuleDelegate implements BindingConvention {
      * @param cl
      */
     public ImportItem Item(Map args, @DelegatesTo(ItemDelegate) Closure cl) {
+        args.ns = newModule.ns
         def item = ItemBuilder.build(args, cl)
         item.properties.removeAll { it.value == args.name }
 
         if (Gateway.getProperties().getBoolean('DSL.Module.generateAllResourceItems', true)) {
-            item.export(null, resourceBootDir, true)
+            if (generateResourceXml) item.export(null, resourceBootDir, true)
             addImportItem(item)
         }
         else {
@@ -342,11 +348,11 @@ class ModuleDelegate implements BindingConvention {
      * @param cl
      */
     public List<ImportRole> Roles(@DelegatesTo(RoleDelegate) Closure cl) {
-        def importRoles = RoleBuilder.build(cl)
+        def importRoles = RoleBuilder.build(newModule.ns, cl)
 
         importRoles.each { role ->
             if (Gateway.getProperties().getBoolean('DSL.Module.generateAllResourceItems', true)) {
-                role.export(null, resourceBootDir, true)
+                if (generateResourceXml) role.export(null, resourceBootDir, true)
                 addImportRole(role)
             }
             else {
@@ -428,7 +434,8 @@ class ModuleDelegate implements BindingConvention {
 
         moduleSm.setVersion(sm.version)
         moduleSm.setName(sm.name)
-
+        moduleSm.setNamespace(sm.namespace)
+        
         updateImports(moduleSm)
     }
 
@@ -444,6 +451,7 @@ class ModuleDelegate implements BindingConvention {
 
         moduleQuery.setVersion(query.version)
         moduleQuery.setName(query.name)
+        moduleQuery.setNamespace(query.namespace)
 
         updateImports(moduleQuery)
     }
@@ -460,6 +468,7 @@ class ModuleDelegate implements BindingConvention {
 
         moduleSchema.setVersion(schema.version)
         moduleSchema.setName(schema.name)
+        moduleSchema.setNamespace(schema.namespace)
 
         updateImports(moduleSchema)
     }
@@ -476,6 +485,7 @@ class ModuleDelegate implements BindingConvention {
 
         moduleScript.setVersion(script.version)
         moduleScript.setName(script.name)
+        moduleScript.setNamespace(script.namespace)
 
         updateImports(moduleScript)
     }
@@ -537,6 +547,7 @@ class ModuleDelegate implements BindingConvention {
         def modulePropDesc = new ModulePropertyDescription()
         modulePropDesc.setVersion(pdl.version)
         modulePropDesc.setName(pdl.name)
+        modulePropDesc.setNamespace(pdl.namespace)
 
         updateImports(modulePropDesc)
     }
@@ -547,6 +558,7 @@ class ModuleDelegate implements BindingConvention {
         def moduleAgent = new ModuleAgent()
         moduleAgent.setName(agent.name)
         moduleAgent.setVersion(agent.version)
+        moduleAgent.setNamespace(agent.namespace)
 
         updateImports(moduleAgent)
     }
@@ -557,6 +569,7 @@ class ModuleDelegate implements BindingConvention {
         def moduleItem = new ModuleItem()
         moduleItem.setName(item.name)
         moduleItem.setVersion(item.version)
+        moduleItem.setNamespace(item.namespace)
 
         updateImports(moduleItem)
     }
@@ -567,7 +580,8 @@ class ModuleDelegate implements BindingConvention {
         def moduleRole = new ModuleRole()
         moduleRole.setName(role.name)
         moduleRole.setVersion(role.version)
-
+        moduleRole.setNamespace(role.namespace)
+        
         updateImports(moduleRole)
     }
 

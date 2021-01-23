@@ -33,6 +33,7 @@ import org.cristalise.kernel.lifecycle.instance.stateMachine.Transition
  */
 @CompileStatic @Slf4j
 class StateMachineDelegate {
+    String ns = ""
     String name = ""
     int version = -1
 
@@ -41,11 +42,13 @@ class StateMachineDelegate {
     Map<String, State>      stateCache = [:]
     Map<String, Transition> transCache = [:]
 
-    public StateMachineDelegate( String n, int v) {
+    public StateMachineDelegate(String ns, String n, int v) {
+        ns = ns
         name = n
         version = v
-        
+
         sm = new StateMachine(n, v)
+        sm.namespace = ns
     }
 
     public void processClosure(Closure cl) {

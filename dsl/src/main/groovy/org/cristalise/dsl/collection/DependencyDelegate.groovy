@@ -24,13 +24,13 @@ import org.cristalise.dsl.property.PropertyBuilder
 import org.cristalise.dsl.property.PropertyDelegate
 import org.cristalise.kernel.collection.Dependency
 import org.cristalise.kernel.collection.DependencyDescription
-import org.cristalise.kernel.common.ObjectNotFoundException
 import org.cristalise.kernel.lookup.DomainPath
 import org.cristalise.kernel.lookup.ItemPath
 import org.cristalise.kernel.lookup.Path
 import org.cristalise.kernel.process.Gateway
 import org.cristalise.kernel.process.resource.BuiltInResources
 import org.cristalise.kernel.property.PropertyDescriptionList
+import org.cristalise.kernel.utils.DescriptionObject
 
 import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
@@ -68,8 +68,8 @@ class DependencyDelegate {
         dependency.properties = PropertyBuilder.build(cl)
     }
 
-    public void Member(PropertyDescriptionList props, @DelegatesTo(DependencyMemberDelegate) Closure cl = null) {
-        Member(moduleNs: moduleNs, itemPath: props, cl)
+    public void Member(DescriptionObject descObject, @DelegatesTo(DependencyMemberDelegate) Closure cl = null) {
+        Member(moduleNs: moduleNs, itemPath: descObject, cl)
     }
 
     public void Member(Map attrs, @DelegatesTo(DependencyMemberDelegate) Closure cl = null) {
@@ -77,15 +77,15 @@ class DependencyDelegate {
 
         String iPathStr
 
-        if (attrs.itemPath instanceof PropertyDescriptionList) {
-            def propDesc = (PropertyDescriptionList)attrs.itemPath
-            def typeRoot = BuiltInResources.PROPERTY_DESC_RESOURCE.getTypeRoot()
+        if (attrs.itemPath instanceof DescriptionObject) {
+            def descObject = (DescriptionObject)attrs.itemPath
+            def typeRoot = BuiltInResources.getValue(descObject).getTypeRoot();
 
             moduleNs = moduleNs ?: (String)attrs.moduleNs
 
             assert moduleNs, "'moduleNs' variable shall not be blank"
 
-            iPathStr = "$typeRoot/$moduleNs/${propDesc.name}"
+            iPathStr = "$typeRoot/$moduleNs/${descObject.name}"
         }
         else 
             iPathStr = (String)attrs.itemPath

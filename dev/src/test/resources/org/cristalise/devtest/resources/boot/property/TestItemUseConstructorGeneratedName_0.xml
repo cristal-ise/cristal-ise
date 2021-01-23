@@ -1,1 +1,5 @@
-<AllProperties><PropertyDescription Name="Name" IsClassIdentifier="false" IsMutable="true" Transitive="false"/><PropertyDescription Name="Type" IsClassIdentifier="true" DefaultValue="TestItemUseConstructorGeneratedName" IsMutable="false" Transitive="true"/><PropertyDescription Name="State" IsClassIdentifier="false" DefaultValue="ACTIVE" IsMutable="true" Transitive="false"/></AllProperties>
+<AllProperties>
+  <PropertyDescription IsClassIdentifier="false" IsMutable="true" Name="Name" Transitive="false"/>
+  <PropertyDescription DefaultValue="TestItemUseConstructorGeneratedName" IsClassIdentifier="true" IsMutable="false" Name="Type" Transitive="true"/>
+  <PropertyDescription DefaultValue="ACTIVE" IsClassIdentifier="false" IsMutable="true" Name="State" Transitive="false"/>
+</AllProperties>

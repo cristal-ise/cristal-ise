@@ -74,6 +74,8 @@ class QueryBuilder {
         qb.version  = queryD.version
         qb.query    = new Query(name, version, (ItemPath)null, queryD.writer.toString())
 
+        qb.query.namespace = module
+
         return qb.query
     }
 

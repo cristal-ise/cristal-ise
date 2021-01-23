@@ -82,7 +82,7 @@ if (createAgent) {
 @CompileStatic
 String getInitaliseOutcomeXML(ItemProxy item, Outcome outcome, String itemName) {
     def initSchemaCollection = item.getCollection(BuiltInCollections.SCHEMA_INITIALISE)
-    DependencyMember member = initSchemaCollection.getMembers().list[0]
+    DependencyMember member = (DependencyMember)initSchemaCollection.getMembers().list[0]
 
     def updateSchemaUUID = member.getChildUUID()
     def updateSchemaVersion = member.getProperties().getBuiltInProperty(VERSION)
