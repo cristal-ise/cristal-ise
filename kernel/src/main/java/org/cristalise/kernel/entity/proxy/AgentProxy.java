@@ -169,7 +169,7 @@ public class AgentProxy extends ItemProxy {
         ItemProxy item = Gateway.getProxyManager().getProxy(job.getItemPath(), transactionKey);
         Date startTime = new Date();
 
-        log.info("execute(job) - {}" + job);
+        log.info("execute(job) - {}", job);
 
         if (job.hasScript()) {
             log.info("execute(job) - executing script");
