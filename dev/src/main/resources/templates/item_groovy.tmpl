@@ -12,8 +12,8 @@ def states = ['ACTIVE', 'INACTIVE']
 @if{inputFile != null}
 def xlsxFile = new File(moduleDir+'/@{inputFile}')
 
-def @{item}         = Schema('@{item}', 0, xlsxFile) 
-def @{item}Details =  Schema('@{item}_Details', 0, xlsxFile)
+Schema('@{item}', 0, xlsxFile)
+Schema('@{item}_Details', 0, xlsxFile)
 
 @else{}
 Schema('@{item}', @{version}) {

@@ -12,8 +12,8 @@ def states = ['ACTIVE', 'INACTIVE']
 
 def xlsxFile = new File(moduleDir+'/TestItemExcel.xlsx')
 
-def TestItemExcel         = Schema('TestItemExcel', 0, xlsxFile) 
-def TestItemExcelDetails =  Schema('TestItemExcel_Details', 0, xlsxFile)
+Schema('TestItemExcel', 0, xlsxFile)
+Schema('TestItemExcel_Details', 0, xlsxFile)
 
 
 
