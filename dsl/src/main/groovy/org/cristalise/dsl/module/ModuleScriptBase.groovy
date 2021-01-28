@@ -60,6 +60,10 @@ abstract class ModuleScriptBase extends DelegatingScript {
     }
 
     public void init() {
+        //This solution is used because getString('...') trims the value which will trim new line characters as well
+        String lineSepType = Gateway.getProperties().getString('ModuleScript.lineSeparator', 'linux');
+        System.setProperty('line.separator', lineSepType == 'linux' ? '\n' : '\r\n' )
+
         if (configDir && (connect || config)) throw new InvalidDataException('Specify only configDir or connect/config')
 
         if (configDir) {
