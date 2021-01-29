@@ -1,1 +1,6 @@
-<AllProperties><PropertyDescription Name="Name" IsClassIdentifier="false" DefaultValue="" IsMutable="true" Transitive="false"/><PropertyDescription Name="Type" IsClassIdentifier="true" DefaultValue="ActivityDesc" IsMutable="false" Transitive="true"/><PropertyDescription Name="Complexity" IsClassIdentifier="true" DefaultValue="Elementary" IsMutable="false" Transitive="true"/><PropertyDescription Name="Module" IsClassIdentifier="false" DefaultValue="" IsMutable="false" Transitive="false"/></AllProperties>
+<AllProperties>
+  <PropertyDescription DefaultValue="" IsClassIdentifier="false" IsMutable="true" Name="Name" Transitive="false"/>
+  <PropertyDescription DefaultValue="ActivityDesc" IsClassIdentifier="true" IsMutable="false" Name="Type" Transitive="true"/>
+  <PropertyDescription DefaultValue="Elementary" IsClassIdentifier="true" IsMutable="false" Name="Complexity" Transitive="true"/>
+  <PropertyDescription DefaultValue="" IsClassIdentifier="false" IsMutable="false" Name="Module" Transitive="false"/>
+</AllProperties>

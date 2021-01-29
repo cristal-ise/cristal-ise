@@ -42,7 +42,7 @@ import org.cristalise.kernel.common.ObjectNotFoundException;
 import org.cristalise.kernel.entity.agent.Job;
 import org.cristalise.kernel.entity.proxy.ItemProxy;
 import org.cristalise.kernel.lookup.Path;
-import org.cristalise.kernel.persistency.ClusterStorage;
+import org.cristalise.kernel.persistency.ClusterType;
 import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.utils.Logger;
 
@@ -221,7 +221,7 @@ public class NodeItem extends Node implements Transferable {
         ArrayList<String> requiredTabs = new ArrayList<String>();
         requiredTabs.add("Properties");
         try {
-            String collNames = myItem.queryData(ClusterStorage.COLLECTION+"/all");
+            String collNames = myItem.queryData(ClusterType.COLLECTION+"/all");
             if (collNames.length() > 0)
                 requiredTabs.add("Collection");
         } catch (Exception e) { }

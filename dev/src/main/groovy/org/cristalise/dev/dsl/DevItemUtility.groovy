@@ -23,6 +23,7 @@ package org.cristalise.dev.dsl
 import static org.cristalise.kernel.collection.BuiltInCollections.*
 import static org.cristalise.kernel.process.resource.BuiltInResources.*
 
+import org.cristalise.kernel.common.ObjectNotFoundException
 import org.cristalise.kernel.entity.agent.Job
 import org.cristalise.kernel.entity.proxy.AgentProxy
 import org.cristalise.kernel.entity.proxy.ItemProxy
@@ -219,8 +220,8 @@ class DevItemUtility {
         assert devItem && devItem.getName() == name
 
         executeDoneJob(devItem, editActName, xml)
+        assert devItem.getViewpoint(resHandler.name, 'last')
         executeDoneJob(devItem, newVersionActName)
-
         assert devItem.getViewpoint(resHandler.name, "0")
 
         return devItem
@@ -332,6 +333,7 @@ class DevItemUtility {
         assert eaDescItem && eaDescItem.getName() == name
 
         executeDoneJob(eaDescItem, "EditDefinition", KernelXMLUtility.getActivityDefXML(Name: name, AgentRole: role))
+        assert eaDescItem.getViewpoint(resHandler.name, 'last')
 
         //it is possible there was no Schema specified for this Activity
         if(schemaName && !schemaName.startsWith("-")) {
@@ -339,9 +341,9 @@ class DevItemUtility {
         }
 
         executeDoneJob(eaDescItem, "AssignNewActivityVersionFromLast")
+        assert eaDescItem.getViewpoint(resHandler.name, "0")
 
         if(schemaName && !schemaName.startsWith("-")) {
-            assert eaDescItem.getViewpoint(resHandler.name, "0")
             assert eaDescItem.getCollection(SCHEMA, (Integer)0).size() == 1
         }
     }
@@ -361,6 +363,7 @@ class DevItemUtility {
         eaDef.setItemPath(eaDescItem.getPath())
 
         executeDoneJob(eaDescItem, "EditDefinition", Gateway.getMarshaller().marshall(eaDef) )
+        assert eaDescItem.getViewpoint(resHandler.name, 'last')
 
         if(eaDef.schema) {
             executeDoneJob(eaDescItem, "SetSchema", KernelXMLUtility.getDescObjectDetailsXML(id: eaDef.schema.name, version: eaDef.schema.version) )
@@ -379,7 +382,6 @@ class DevItemUtility {
         }
 
         executeDoneJob(eaDescItem, "AssignNewActivityVersionFromLast")
-
         assert eaDescItem.getViewpoint(resHandler.name, "0")
 
         if(eaDef.schema)       assert eaDescItem.getCollection(SCHEMA,        (Integer)0).size() == 1
@@ -406,6 +408,17 @@ class DevItemUtility {
      */
     public ItemProxy editScript(String name, String folder, String scriptXML) {
         return editDevItem(SCRIPT_RESOURCE, "EditDefinition", "AssignNewScriptVersionFromLast", name, folder, scriptXML)
+    }
+
+    /**
+     * 
+     * @param name
+     * @param folder
+     * @param scriptXML
+     * @return
+     */
+    public ItemProxy editExistingScript(String name, String folder, String scriptXML) {
+        return editDevItem(SCRIPT_RESOURCE, "EditDefinition", "MoveLatestScriptVersionToLast", name, folder, scriptXML)
     }
 
     /**
@@ -470,28 +483,38 @@ class DevItemUtility {
      *
      * @param name
      * @param folder
-     * @param caXML
+     * @param caXml
      * @param actCollSize
+     * @return
      */
-    public ItemProxy editCompActDesc(String name, String folder, String caXML, int actCollSize = 0) {
-        def caDescItem = editDevItem(COMP_ACT_DESC_RESOURCE, "EditDefinition", "AssignNewActivityVersionFromLast", name, folder, caXML)
+    public ItemProxy editCompActDesc(String name, String folder, String caXml, int actCollSize = 0) {
+        return editCompActDesc(name, folder, (CompositeActivityDef)Gateway.getMarshaller().unmarshall(caXml))
+    }
+
+    /**
+     * 
+     * @param name
+     * @param folder
+     * @param caDef
+     * @param actCollSize
+     * @return
+     */
+    public ItemProxy editCompActDesc(String name, String folder, CompositeActivityDef caDef, int actCollSize = 0) {
+        def resHandler = new DefaultResourceImportHandler(BuiltInResources.COMP_ACT_DESC_RESOURCE)
+        ItemProxy caDescItem = agent.getItem("${resHandler.typeRoot}/$folder/$name")
+        assert caDescItem && caDescItem.getName() == name
+
+        caDef.setItemPath(caDescItem.getPath())
+
+        executeDoneJob(caDescItem, "EditDefinition", Gateway.getMarshaller().marshall(caDef) )
+        assert caDescItem.getViewpoint(resHandler.name, 'last')
+        executeDoneJob(caDescItem, "AssignNewActivityVersionFromLast")
+        assert caDescItem.getViewpoint(resHandler.name, "0")
 
         assert caDescItem.getCollection(ACTIVITY, (Integer)0).size()
         if(actCollSize) assert caDescItem.getCollection(ACTIVITY, (Integer)0).size() == actCollSize
 
         return caDescItem
-    }
-
-    /**
-     *
-     *
-     * @param name
-     * @param folder
-     * @param caDef
-     */
-    public ItemProxy editCompActDesc(String name, String folder, CompositeActivityDef caDef) {
-        String caXML = Gateway.getMarshaller().marshall(caDef)
-        return editCompActDesc(name, folder, caXML)
     }
 
     /**

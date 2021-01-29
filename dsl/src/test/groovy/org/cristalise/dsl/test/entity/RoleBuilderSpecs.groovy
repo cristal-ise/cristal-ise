@@ -45,17 +45,19 @@ class RoleBuilderSpecs extends Specification implements CristalTestSetup {
         roles[0].jobList == false
     }
 
-    def "Build a list of Roles"() {
+    def "Build a list of Roles with namespace"() {
         when:
-        def roles = RoleBuilder.build {
+        def roles = RoleBuilder.build('ttt') {
             Role(name: 'User')
             Role(name: 'User/SubUser', jobList: true)
         }
 
         then:
+        roles[0].namespace == "ttt"
         roles[0].name == "User"
         roles[0].jobList == false
         
+        roles[1].namespace == "ttt"
         roles[1].name == "User/SubUser"
         roles[1].jobList == true
     }

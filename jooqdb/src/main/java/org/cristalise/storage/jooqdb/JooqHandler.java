@@ -23,9 +23,7 @@ package org.cristalise.storage.jooqdb;
 import static org.jooq.SQLDialect.MYSQL;
 import static org.jooq.SQLDialect.POSTGRES;
 import static org.jooq.impl.DSL.select;
-import static org.jooq.impl.DSL.using;
 
-import java.sql.Connection;
 import java.sql.Timestamp;
 import java.util.Arrays;
 import java.util.List;
@@ -42,52 +40,12 @@ import org.jooq.DataType;
 import org.jooq.Field;
 import org.jooq.Record;
 import org.jooq.Result;
-import org.jooq.SQLDialect;
 import org.jooq.Table;
-import org.jooq.exception.ConfigurationException;
 import org.jooq.impl.DefaultDataType;
 import org.jooq.impl.SQLDataType;
 import org.w3c.dom.Document;
 
-import com.zaxxer.hikari.HikariConfig;
-import com.zaxxer.hikari.HikariDataSource;
-import com.zaxxer.hikari.HikariPoolMXBean;
-
-import lombok.extern.slf4j.Slf4j;
-
-@Slf4j
 public abstract class JooqHandler {
-    /**
-     * Defines the key (value:{@value}) to retrieve a string value to set JDBC URI
-     */
-    public static final String JOOQ_URI = "JOOQ.URI";
-    /**
-     * Defines the key (value:{@value}) to retrieve a string value to set the user
-     */
-    public static final String JOOQ_USER = "JOOQ.user";
-    /**
-     * Defines the key (value:{@value}) to retrieve a string value to set the password
-     */
-    public static final String JOOQ_PASSWORD = "JOOQ.password";
-    /**
-     * Defines the key (value:{@value}) to retrieve the database dialect. Default is 'POSTGRES'
-     */
-    public static final String JOOQ_DIALECT = "JOOQ.dialect";
-    /**
-     * Defines the key (value:{@value}) to retrieve a boolean value to set the JDBC connection 
-     * with autocommit or not. Default is 'false'
-     */
-    public static final String JOOQ_AUTOCOMMIT = "JOOQ.autoCommit";
-    /**
-     * Defines the key (value:{@value}) to retrieve a boolean value to tell the data source to
-     * create read only connections. Default is 'false'
-     */
-    public static final String JOOQ_READONLYDATASOURCE = "JOOQ.readOnlyDataSource";
-    /**
-     * Defines the key (value:{@value}) to retrieve a boolean value to setup JooqOutcomeHandler
-     * to use SQLXML support of jdbc. Default is 'true'.
-     */
-    public static final String JOOQ_USESQLXML = "JOOQ.supportJdbXmlType";
     /**
      * Defines the key (value:{@value}) to retrieve the string value of the comma separated list of 
      * fully qualified class names implementing the {@link JooqDomainHandler} interface.
@@ -177,105 +135,6 @@ public abstract class JooqHandler {
     public static final DataType<String>         XML_TYPE_MYSQL  = new DefaultDataType<String>(MYSQL, SQLDataType.CLOB, "mediumtext", "char");
     public static final DataType<byte[]>         ATTACHMENT_TYPE = SQLDataType.BLOB;
 
-
-    public static final String     uri                = Gateway.getProperties().getString(JOOQ_URI);
-    public static final String     user               = Gateway.getProperties().getString(JOOQ_USER);
-    public static final String     pwd                = Gateway.getProperties().getString(JOOQ_PASSWORD);
-    public static final Boolean    autoCommit         = Gateway.getProperties().getBoolean(JOOQ_AUTOCOMMIT, false);
-
-    public static final Boolean    readOnlyDataSource = Gateway.getProperties().getBoolean(JOOQ_READONLYDATASOURCE, false);
-    public static final SQLDialect dialect            = SQLDialect.valueOf(Gateway.getProperties().getString(JOOQ_DIALECT, "POSTGRES"));
-    public static final Boolean    useSqlXml          = Gateway.getProperties().getBoolean(JOOQ_USESQLXML, true);
-
-    private static HikariDataSource ds = null;
-    private static HikariConfig config;
-
-    public static synchronized HikariDataSource getDataSource() {
-        if (ds == null) {
-            if (StringUtils.isAnyBlank(uri, user, pwd))
-                throw new IllegalArgumentException("JOOQ (uri, user, password) config values must not be blank");
-
-            config = new HikariConfig();
-            config.setPoolName("CRISTAL-iSE-HikariCP");
-            config.setRegisterMbeans(true);
-            config.setJdbcUrl(uri);
-            config.setUsername(user);
-            config.setPassword(pwd);
-            config.setAutoCommit(autoCommit);
-            config.setReadOnly(readOnlyDataSource);
-            config.setMaximumPoolSize(50);
-            config.setMaxLifetime(60000);
-            config.setMinimumIdle(10);
-            config.setIdleTimeout(30000);
-            //config.setLeakDetectionThreshold(30000); // enable to see connection leak warning
-            config.addDataSourceProperty( "cachePrepStmts",        true);
-            config.addDataSourceProperty( "prepStmtCacheSize",     "250");
-            config.addDataSourceProperty( "prepStmtCacheSqlLimit", "2048");
-            config.addDataSourceProperty( "autoCommit",             autoCommit);
-
-            log.info("getDataSource() - uri:'{}' user:'{}' dialect:'{}' autoCommit:'{}'", uri, user, dialect, autoCommit);
-
-            ds = new HikariDataSource(config);
-
-            log.info("getDataSource() create datasource {}", ds);
-        }
-        return ds;
-    }
-
-    public static synchronized void recreateDataSource(boolean forcedAutoCommit) throws PersistencyException {
-        if (ds == null)
-            throw new PersistencyException("Cannot recreate a null data source");
-
-        log.info("recreateDataSource() autocommit={}", forcedAutoCommit);
-
-        HikariConfig config = new HikariConfig();
-        ds.copyStateTo(config);
-        config.setAutoCommit(forcedAutoCommit);
-        config.addDataSourceProperty("autoCommit", forcedAutoCommit);
-        closeDataSource();
-        HikariDataSource newDs = new HikariDataSource(config);
-        ds = newDs;
-    }
-
-    public static synchronized void closeDataSource() throws PersistencyException {
-        try {
-            if (ds != null){
-                HikariPoolMXBean poolBean = ds.getHikariPoolMXBean();
-                log.debug("closeDataSource() active connections={}", poolBean.getActiveConnections());
-
-                while (poolBean.getActiveConnections() > 0) {
-                    poolBean.softEvictConnections();
-                }
-                ds.close();
-                ds = null;
-            }
-        }
-        catch (Exception e) {
-            log.error("", e);
-            throw new PersistencyException(e.getMessage());
-        }
-    }
-
-    public static DSLContext connect() throws PersistencyException {
-        try {
-            return using(getDataSource(), dialect);
-        }
-        catch (Exception ex) {
-            log.error("JooqHandler could not connect to URI '"+uri+"' with user '"+user+"'", ex);
-            throw new PersistencyException(ex.getMessage());
-        }
-    }
-
-    public static DSLContext connect(Connection conn) throws PersistencyException {
-        try {
-            return using(conn);
-        }
-        catch (Exception ex) {
-            log.error("JooqHandler could not connect to URI '"+uri+"' with user '"+user+"'", ex);
-            throw new PersistencyException(ex.getMessage());
-        }
-    }
-
     abstract protected Table<?> getTable();
 
     abstract protected Field<?> getNextPKField(String... primaryKeys) throws PersistencyException;
@@ -290,10 +149,13 @@ public abstract class JooqHandler {
         return context.selectDistinct(field).from(getTable()).where(getPKConditions(uuid, primaryKeys)).fetch();
     }
 
+    public static String[] getPrimaryKeys(String path) {
+        String[] pathArray   = StringUtils.split(path, "/");
+        return Arrays.copyOfRange(pathArray, 1, pathArray.length);
+    }
+
     protected List<Condition> getPKConditions(UUID uuid, C2KLocalObject obj) throws PersistencyException {
-        String[] pathArray   = obj.getClusterPath().split("/");
-        String[] primaryKeys = Arrays.copyOfRange(pathArray, 1, pathArray.length);
-        return getPKConditions(uuid, primaryKeys);
+        return getPKConditions(uuid, getPrimaryKeys(obj.getClusterPath()));
     }
 
     public int put(DSLContext context, UUID uuid, C2KLocalObject obj) throws PersistencyException {
@@ -341,17 +203,6 @@ public abstract class JooqHandler {
         else                                               return record.get(field);
     }
 
-    /**
-     * Return the string DataType for the given dialect
-     * 
-     * @return the string DataType for the given dialect
-     */
-    protected static DataType<String> getStringXmlType() {
-        //There a bug in jooq supporting CLOB with MySQL: check issue #23
-        if (dialect.equals(MYSQL)) return XML_TYPE_MYSQL;
-        else                       return XML_TYPE;
-    }
-
     abstract public void createTables(DSLContext context) throws PersistencyException;
 
     abstract public void dropTables(DSLContext context) throws PersistencyException;
@@ -361,27 +212,4 @@ public abstract class JooqHandler {
     abstract public int insert(DSLContext context, UUID uuid, C2KLocalObject obj) throws PersistencyException;
 
     abstract public C2KLocalObject fetch(DSLContext context, UUID uuid, String...primaryKeys) throws PersistencyException;
-
-    public static void logConnectionCount(String text, DSLContext context) {
-        if (context.dialect().equals(POSTGRES)) {
-            Record rec = context.fetchOne("SELECT sum(numbackends) FROM pg_stat_database;");
-            log.trace("{} ------- Number of POSTGRES connections:{}", text, rec.get(0, Integer.class));
-        }
-        else if (context.dialect().equals(MYSQL)) {
-            Record rec = context.fetchOne("SHOW STATUS WHERE `variable_name` = 'Threads_connected';");
-            log.trace("{} ------- Number of MSQL connections:{}", text, rec.get(1, String.class));
-        }
-        else {
-            log.trace("{} ------- Printing number of connections not supported for dialect:{}", text, context.dialect());
-        }
-    }
-
-    protected boolean checkSqlXmlSupport() {
-        switch (dialect) {
-            case POSTGRES: 
-                return true;
-            default:
-                throw new ConfigurationException("NativeXML is not supported for " + dialect);
-        }
-    }
 }

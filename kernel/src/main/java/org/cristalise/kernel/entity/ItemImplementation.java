@@ -20,12 +20,13 @@
  */
 package org.cristalise.kernel.entity;
 
+import static org.apache.commons.lang3.StringUtils.isBlank;
+import static org.apache.commons.lang3.StringUtils.isNotBlank;
+
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.UUID;
 
-import org.apache.commons.lang3.StringUtils;
-import org.cristalise.kernel.collection.Collection;
 import org.cristalise.kernel.collection.CollectionArrayList;
 import org.cristalise.kernel.common.AccessRightsException;
 import org.cristalise.kernel.common.CannotManageException;
@@ -39,30 +40,26 @@ import org.cristalise.kernel.common.PersistencyException;
 import org.cristalise.kernel.common.SystemKey;
 import org.cristalise.kernel.entity.agent.Job;
 import org.cristalise.kernel.entity.agent.JobArrayList;
-import org.cristalise.kernel.events.Event;
-import org.cristalise.kernel.events.History;
 import org.cristalise.kernel.lifecycle.instance.Activity;
 import org.cristalise.kernel.lifecycle.instance.CompositeActivity;
 import org.cristalise.kernel.lifecycle.instance.Workflow;
-import org.cristalise.kernel.lifecycle.instance.predefined.PredefinedStep;
 import org.cristalise.kernel.lifecycle.instance.predefined.PredefinedStepContainer;
+import org.cristalise.kernel.lifecycle.instance.predefined.item.CreateItemFromDescription;
 import org.cristalise.kernel.lifecycle.instance.predefined.item.ItemPredefinedStepContainer;
 import org.cristalise.kernel.lookup.AgentPath;
 import org.cristalise.kernel.lookup.InvalidAgentPathException;
 import org.cristalise.kernel.lookup.InvalidItemPathException;
 import org.cristalise.kernel.lookup.ItemPath;
 import org.cristalise.kernel.lookup.RolePath;
+import org.cristalise.kernel.persistency.ClusterStorageManager;
 import org.cristalise.kernel.persistency.ClusterType;
-import org.cristalise.kernel.persistency.TransactionManager;
-import org.cristalise.kernel.persistency.outcome.Outcome;
-import org.cristalise.kernel.persistency.outcome.Schema;
+import org.cristalise.kernel.persistency.TransactionKey;
 import org.cristalise.kernel.persistency.outcome.Viewpoint;
 import org.cristalise.kernel.process.Gateway;
-import org.cristalise.kernel.property.Property;
 import org.cristalise.kernel.property.PropertyArrayList;
 import org.cristalise.kernel.scripting.ErrorInfo;
 import org.cristalise.kernel.security.SecurityManager;
-import org.cristalise.kernel.utils.LocalObjectLoader;
+import org.cristalise.kernel.utils.CastorXMLUtility;
 import org.exolab.castor.mapping.MappingException;
 import org.exolab.castor.xml.MarshalException;
 import org.exolab.castor.xml.ValidationException;
@@ -72,8 +69,8 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class ItemImplementation implements ItemOperations {
 
-    protected final TransactionManager mStorage;
-    protected final ItemPath           mItemPath;
+    protected final ClusterStorageManager mStorage;
+    protected final ItemPath              mItemPath;
 
     protected ItemImplementation(ItemPath key) {
         this.mStorage = Gateway.getStorage();
@@ -100,7 +97,9 @@ public class ItemImplementation implements ItemOperations {
             throws AccessRightsException, InvalidDataException, PersistencyException
     {
         log.debug("initialise(" + mItemPath + ") - agent:" + agentId);
-        Object locker = new Object();
+        TransactionKey transactionKey = new TransactionKey(mItemPath);
+
+        mStorage.begin(transactionKey);
 
         AgentPath agentPath;
         try {
@@ -111,106 +110,35 @@ public class ItemImplementation implements ItemOperations {
         }
 
         // must supply properties
-        if (StringUtils.isBlank(propString) || propString.equals("<NULL/>")) {
+        if (isBlank(propString) || propString.equals("<NULL/>")) {
             throw new InvalidDataException("No properties supplied");
         }
 
-        // store properties
         try {
-            PropertyArrayList props = (PropertyArrayList) Gateway.getMarshaller().unmarshall(propString);
-            for (Property thisProp : props.list) mStorage.put(mItemPath, thisProp, locker);
+            CastorXMLUtility xml = Gateway.getMarshaller();
+
+            CreateItemFromDescription.storeItem(
+                    agentPath,
+                    mItemPath,
+                    (PropertyArrayList) xml.unmarshall(propString),
+                    isNotBlank(initCollsString) && !initCollsString.equals("<NULL/>") ? (CollectionArrayList) xml.unmarshall(initCollsString) : null,
+                    isNotBlank(initWfString)    && !initWfString.equals("<NULL/>")    ? (CompositeActivity)   xml.unmarshall(initWfString) : null,
+                    isNotBlank(initViewpointString)                                   ? (Viewpoint)           xml.unmarshall(initViewpointString) : null,
+                    initOutcomeString,
+                    transactionKey);
         }
-        catch (Exception ex) {
-            log.error("initialise({}) - Properties were invalid: {}", mItemPath, propString, ex);
-            mStorage.abort(locker);
+        catch (InvalidDataException | PersistencyException e) {
+            log.error("initialise({}) - invalid data: {}", mItemPath, e);
+            mStorage.abort(transactionKey);
+            throw e;
+        }
+        catch (Exception e) {
+            log.error("initialise({}) - invalid data: {}", mItemPath, e);
+            mStorage.abort(transactionKey);
             throw new InvalidDataException("Properties were invalid");
         }
 
-        History hist = new History(mItemPath, locker);
-
-        // Store an "Initialize" event and the outcome containing the initial values for properties
-        try {
-            Schema initSchema = LocalObjectLoader.getSchema("ItemInitialization", 0);
-            Outcome initOutcome = new Outcome(0, propString, initSchema);
-
-            Event newEvent = hist.addEvent(
-                    new AgentPath(agentId), null, "", "Initialize", "", "", initSchema, 
-                    LocalObjectLoader.getStateMachine("PredefinedStep", 0), PredefinedStep.DONE, "last");
-
-            initOutcome.setID(newEvent.getID());
-            Viewpoint newLastView = new Viewpoint(mItemPath, initSchema, "last", newEvent.getID());
-            mStorage.put(mItemPath, initOutcome, locker);
-            mStorage.put(mItemPath, newLastView, locker);
-        }
-        catch (Exception ex) {
-            log.error("initialise("+mItemPath+") - Could not store event and outcome.", ex);
-            mStorage.abort(locker);
-            throw new PersistencyException("Error storing 'Initialize' event and outcome:" + ex.getMessage());
-        }
-
-        // Store an "Constructor" event and the outcome containing the "Constructor"
-        if (StringUtils.isNotBlank(initViewpointString)) {
-            try {
-                Viewpoint vp = (Viewpoint)Gateway.getMarshaller().unmarshall(initViewpointString);
-                Schema schema = LocalObjectLoader.getSchema(vp.getSchemaName(), vp.getSchemaVersion());
-                Outcome outcome = new Outcome(-1, initOutcomeString, schema);
-                outcome.validateAndCheck();
-
-                vp.setItemPath(mItemPath);
-
-                Event newEvent = hist.addEvent(
-                        new AgentPath(agentId), null, "", "Constructor", "", "", schema, 
-                        LocalObjectLoader.getStateMachine("PredefinedStep", 0), PredefinedStep.DONE, vp.getName());
-                vp.setEventId(newEvent.getID());
-                outcome.setID(newEvent.getID());
-
-                mStorage.put(mItemPath, outcome, locker);
-                mStorage.put(mItemPath, vp, locker);
-            }
-            catch (Exception ex) {
-                log.error("initialise({}) - Could not store event and outcome.", mItemPath, ex);
-                mStorage.abort(locker);
-                throw new PersistencyException("Error storing 'Constructor event and outcome:" + ex.getMessage());
-            }
-        }
-
-        // init collections
-        if (StringUtils.isNotBlank(initCollsString) && !initCollsString.equals("<NULL/>")) {
-            try {
-                CollectionArrayList colls = (CollectionArrayList) Gateway.getMarshaller().unmarshall(initCollsString);
-                for (Collection<?> thisColl : colls.list) {
-                    mStorage.put(mItemPath, thisColl, locker);
-                }
-            }
-            catch (Exception ex) {
-                log.error("initialise(" + mItemPath + ") - Collections were invalid: " + initCollsString, ex);
-                mStorage.abort(locker);
-                throw new InvalidDataException("Collections were invalid");
-            }
-        }
-
-        // create wf
-        Workflow lc = null;
-        try {
-            if (StringUtils.isBlank(initWfString) || initWfString.equals("<NULL/>")) {
-                lc = new Workflow(new CompositeActivity(), getNewPredefStepContainer());
-            }
-            else{
-                lc = new Workflow((CompositeActivity) Gateway.getMarshaller().unmarshall(initWfString), getNewPredefStepContainer());
-            }
-
-            mStorage.put(mItemPath, lc, locker);
-        }
-        catch (Exception ex) {
-            log.error("initialise(" + mItemPath + ") - Workflow was invalid: " + initWfString, ex);
-            mStorage.abort(locker);
-            throw new InvalidDataException("Workflow was invalid");
-        }
-
-        // All objects are in place, initialize the workflow to get the Item running
-        lc.initialise(mItemPath, agentPath, locker);
-        mStorage.put(mItemPath, lc, locker);
-        mStorage.commit(locker);
+        mStorage.commit(transactionKey);
 
         log.info("Initialisation of item " + mItemPath + " was successful");
     }
@@ -232,6 +160,7 @@ public class ItemImplementation implements ItemOperations {
             throws AccessRightsException, InvalidTransitionException, ObjectNotFoundException, InvalidDataException,
             PersistencyException, ObjectAlreadyExistsException, InvalidCollectionModification
     {
+        TransactionKey transactionKey = new TransactionKey(mItemPath);
         Workflow lifeCycle = null;
 
         try {
@@ -244,27 +173,34 @@ public class ItemImplementation implements ItemOperations {
             // TODO: check if delegate is allowed valid for agent
             lifeCycle = (Workflow) mStorage.get(mItemPath, ClusterType.LIFECYCLE + "/workflow", null);
 
+            mStorage.begin(transactionKey);
+
             SecurityManager secMan = Gateway.getSecurityManager();
 
-            if (secMan.isShiroEnabled() && !secMan.checkPermissions(agentToUse, (Activity) lifeCycle.search(stepPath), mItemPath)) {
+            Activity act = (Activity) lifeCycle.search(stepPath);
 
-                for (RolePath role: agent.getRoles()) log.error(role.dump());
-
-                throw new AccessRightsException("'" + agentToUse.getAgentName() + "' is NOT permitted to execute step:" + stepPath);
+            if (act != null) {
+                if (secMan.isShiroEnabled() && !secMan.checkPermissions(agentToUse, act, mItemPath, transactionKey)) {
+                    if (log.isTraceEnabled()) for (RolePath role: agent.getRoles()) log.error(role.dump());
+                    throw new AccessRightsException("'" + agentToUse.getAgentName() + "' is NOT permitted to execute step:" + stepPath);
+                }
+            }
+            else {
+                throw new InvalidDataException("Step '"+stepPath+"' is not available for item:"+mItemPath);
             }
 
-            String finalOutcome = lifeCycle.requestAction(agent, delegate, stepPath, mItemPath, transitionID, requestData, fileName, attachment);
+            String finalOutcome = lifeCycle.requestAction(agent, delegate, stepPath, mItemPath, transitionID, requestData, fileName, attachment, transactionKey);
 
             // store the workflow if we've changed the state of the domain wf
-            if (!(stepPath.startsWith("workflow/predefined"))) mStorage.put(mItemPath, lifeCycle, lifeCycle);
+            if (!(stepPath.startsWith("workflow/predefined"))) mStorage.put(mItemPath, lifeCycle, transactionKey);
 
             // remove entity path if transaction was successful
             if (stepPath.equals("workflow/predefined/Erase")) {
                 log.info("Erasing item path " + mItemPath.toString());
-                Gateway.getLookupManager().delete(mItemPath);
+                Gateway.getLookupManager().delete(mItemPath, transactionKey);
             }
 
-            mStorage.commit(lifeCycle);
+            mStorage.commit(transactionKey);
 
             return finalOutcome;
         }
@@ -273,42 +209,42 @@ public class ItemImplementation implements ItemOperations {
         {
             log.error("", ex);
 
-            String errorOutcome = handleError(agentId, delegateId, stepPath, lifeCycle, ex);
+            String errorOutcome = handleError(agentId, delegateId, stepPath, lifeCycle, ex, transactionKey);
 
-            if (StringUtils.isBlank(errorOutcome)) {
-                mStorage.abort(lifeCycle);
+            if (isBlank(errorOutcome)) {
+                mStorage.abort(transactionKey);
                 throw ex;
             }
             else {
-                mStorage.commit(lifeCycle);
+                mStorage.commit(transactionKey);
                 return errorOutcome;
             }
         }
         catch (InvalidAgentPathException | ObjectCannotBeUpdated | CannotManageException ex) {
             log.error("", ex);
 
-            String errorOutcome = handleError(agentId, delegateId, stepPath, lifeCycle, ex);
+            String errorOutcome = handleError(agentId, delegateId, stepPath, lifeCycle, ex, transactionKey);
 
-            if (StringUtils.isBlank(errorOutcome)) {
-                mStorage.abort(lifeCycle);
+            if (isBlank(errorOutcome)) {
+                mStorage.abort(transactionKey);
                 throw new InvalidDataException(ex.getClass().getName() + " - " + ex.getMessage());
             }
             else {
-                mStorage.commit(lifeCycle);
+                mStorage.commit(transactionKey);
                 return errorOutcome;
             }
         }
         catch (Exception ex) { // non-CORBA exception hasn't been caught!
             log.error("Unknown Error: requestAction on " + mItemPath + " by " + agentId + " executing " + stepPath, ex);
 
-            String errorOutcome = handleError(agentId, delegateId, stepPath, lifeCycle, ex);
+            String errorOutcome = handleError(agentId, delegateId, stepPath, lifeCycle, ex, transactionKey);
 
-            if (StringUtils.isBlank(errorOutcome)) {
-                mStorage.abort(lifeCycle);
+            if (isBlank(errorOutcome)) {
+                mStorage.abort(transactionKey);
                 throw new InvalidDataException("Extraordinary Exception during execution:" + ex.getClass().getName() + " - " + ex.getMessage());
             }
             else {
-                mStorage.commit(lifeCycle);
+                mStorage.commit(transactionKey);
                 return errorOutcome;
             }
         }
@@ -329,7 +265,7 @@ public class ItemImplementation implements ItemOperations {
      * @throws ObjectAlreadyExistsException
      * @throws InvalidCollectionModification
      */
-    private String handleError(SystemKey agentId, SystemKey delegateId, String stepPath, Workflow lifeCycle, Exception ex)
+    private String handleError(SystemKey agentId, SystemKey delegateId, String stepPath, Workflow lifeCycle, Exception ex, TransactionKey transactionKey)
             throws PersistencyException, ObjectNotFoundException, AccessRightsException, InvalidTransitionException,
             InvalidDataException, ObjectAlreadyExistsException, InvalidCollectionModification
     {
@@ -345,9 +281,9 @@ public class ItemImplementation implements ItemOperations {
 
             String errorOutcome = Gateway.getMarshaller().marshall(new ErrorInfo(ex));
 
-            lifeCycle.requestAction(agent, delegate, stepPath, mItemPath, errorTransId, errorOutcome, "", null);
+            lifeCycle.requestAction(agent, delegate, stepPath, mItemPath, errorTransId, errorOutcome, "", null, transactionKey);
 
-            if (!(stepPath.startsWith("workflow/predefined"))) mStorage.put(mItemPath, lifeCycle, lifeCycle);
+            if (!(stepPath.startsWith("workflow/predefined"))) mStorage.put(mItemPath, lifeCycle, transactionKey);
 
             return errorOutcome;
         }
@@ -386,7 +322,7 @@ public class ItemImplementation implements ItemOperations {
             if (secMan.isShiroEnabled()) {
                 for (Job j: jobs) {
                     Activity act =  (Activity) wf.search(j.getStepPath());
-                    if (secMan.checkPermissions(agent, act, mItemPath)) {
+                    if (secMan.checkPermissions(agent, act, mItemPath, null)) {
                         try {
                             j.getTransition().getPerformingRole(act, agent);
                             jobBag.list.add(j);

@@ -27,6 +27,7 @@ import org.cristalise.kernel.common.ObjectNotFoundException;
 import org.cristalise.kernel.entity.imports.ImportAgent;
 import org.cristalise.kernel.entity.imports.ImportItem;
 import org.cristalise.kernel.entity.imports.ImportRole;
+import org.cristalise.kernel.persistency.TransactionKey;
 import org.cristalise.kernel.process.AbstractMain;
 import org.cristalise.kernel.process.resource.BuiltInResources;
 import org.cristalise.kernel.utils.CastorArrayList;
@@ -66,7 +67,7 @@ public class ModuleImports extends CastorArrayList<ModuleImport> {
      * Returns all Items defined in Module
      * @return all Items defined in Module
      */
-    public ArrayList<ImportItem> getItems() {
+    public ArrayList<ImportItem> getItems(TransactionKey transactionKey) {
         ArrayList<ImportItem> subset = new ArrayList<ImportItem>();
 
         for (ModuleImport moduleImport : list) {
@@ -77,7 +78,7 @@ public class ModuleImports extends CastorArrayList<ModuleImport> {
                 ModuleItem moduleItem = (ModuleItem) moduleImport;
 
                 try {
-                    ImportItem importItem = LocalObjectLoader.getItemDesc(moduleImport.getName(), moduleItem.getVersion());
+                    ImportItem importItem = LocalObjectLoader.getItemDesc(moduleImport.getName(), moduleItem.getVersion(), transactionKey);
                     importItem.setItemPath(null);
                     importItem.setResourceChangeStatus(moduleItem.getResourceChangeStatus());
                     subset.add(importItem);
@@ -95,7 +96,7 @@ public class ModuleImports extends CastorArrayList<ModuleImport> {
      * Returns all Agents defined in Module
      * @return all Agents defined in Module
      */
-    public ArrayList<ImportAgent> getAgents() {
+    public ArrayList<ImportAgent> getAgents(TransactionKey transactionKey) {
         ArrayList<ImportAgent> subset = new ArrayList<ImportAgent>();
 
         for (ModuleImport imp : list) {
@@ -105,7 +106,7 @@ public class ModuleImports extends CastorArrayList<ModuleImport> {
             else if (imp instanceof ModuleAgent) {
                 int version = ((ModuleAgent) imp).getVersion();
                 try {
-                    ImportAgent importAgent= LocalObjectLoader.getAgentDesc(imp.getName(), version);
+                    ImportAgent importAgent= LocalObjectLoader.getAgentDesc(imp.getName(), version, transactionKey);
                     importAgent.setItemPath(null);
                     importAgent.setResourceChangeStatus(imp.getResourceChangeStatus());
                     subset.add(importAgent);
@@ -123,7 +124,7 @@ public class ModuleImports extends CastorArrayList<ModuleImport> {
      * Returns all Roles defined in Module
      * @return all Roles defined in Module
      */
-    public ArrayList<ImportRole> getRoles() {
+    public ArrayList<ImportRole> getRoles(TransactionKey transactionKey) {
         ArrayList<ImportRole> subset = new ArrayList<ImportRole>();
 
         for (ModuleImport imp : list) {
@@ -133,7 +134,7 @@ public class ModuleImports extends CastorArrayList<ModuleImport> {
             else if (imp instanceof ModuleRole) {
                 int version = ((ModuleRole) imp).getVersion();
                 try {
-                    ImportRole importRole = LocalObjectLoader.getRoleDesc(imp.getName(), version);
+                    ImportRole importRole = LocalObjectLoader.getRoleDesc(imp.getName(), version, transactionKey);
                     importRole.setItemPath(null);
                     importRole.setResourceChangeStatus(imp.getResourceChangeStatus());
                     subset.add(importRole);

@@ -17,7 +17,7 @@ import org.cristalise.kernel.property.Property
 def properties = [new Property('Type', 'TestItemExcel'), new Property('State', 'ACTIVE')]
 
 def result = Gateway.getLookup().search(new DomainPath(), properties, 0, 100)
-TestItemExcelMap = [];
+TestItemExcelMap = [:]
 
 for (DomainPath dp: result.rows) {
     TestItemExcelMap.put(dp.name, dp.itemPath.UUID)

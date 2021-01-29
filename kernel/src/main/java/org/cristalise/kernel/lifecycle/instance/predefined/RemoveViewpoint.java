@@ -28,6 +28,7 @@ import org.cristalise.kernel.common.PersistencyException;
 import org.cristalise.kernel.lookup.AgentPath;
 import org.cristalise.kernel.lookup.ItemPath;
 import org.cristalise.kernel.persistency.ClusterType;
+import org.cristalise.kernel.persistency.TransactionKey;
 import org.cristalise.kernel.process.Gateway;
 
 import lombok.extern.slf4j.Slf4j;
@@ -44,12 +45,12 @@ public class RemoveViewpoint extends PredefinedStep {
      * SchemaName and Viewname 
      */
     @Override
-    protected String runActivityLogic(AgentPath agent, ItemPath item, int transitionID, String requestData, Object locker)
+    protected String runActivityLogic(AgentPath agent, ItemPath item, int transitionID, String requestData, TransactionKey transactionKey)
             throws InvalidDataException, ObjectNotFoundException, PersistencyException
     {
         String[] params = getDataList(requestData);
 
-        log.debug("Called by {} on {} with parameters {}", agent.getAgentName(), item, (Object)params);
+        log.debug("Called by {} on {} with parameters {}", agent.getAgentName(transactionKey), item, (Object)params);
 
         if (params.length != 2) {
             throw new InvalidDataException("RemoveViewpoint: Invalid parameters "+Arrays.toString(params));
@@ -58,7 +59,7 @@ public class RemoveViewpoint extends PredefinedStep {
         String schemaName = params[0];
         String viewName   = params[1];
 
-        Gateway.getStorage().remove(item, ClusterType.VIEWPOINT+"/"+schemaName+"/"+viewName, locker);
+        Gateway.getStorage().remove(item, ClusterType.VIEWPOINT+"/"+schemaName+"/"+viewName, transactionKey);
 
         return requestData;
     }

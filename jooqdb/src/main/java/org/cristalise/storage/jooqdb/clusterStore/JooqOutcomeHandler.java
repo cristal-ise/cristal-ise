@@ -20,6 +20,9 @@
  */
 package org.cristalise.storage.jooqdb.clusterStore;
 
+import static org.cristalise.storage.jooqdb.JooqDataSourceHandler.checkSqlXmlSupport;
+import static org.cristalise.storage.jooqdb.JooqDataSourceHandler.getStringXmlType;
+import static org.cristalise.storage.jooqdb.JooqDataSourceHandler.useSqlXml;
 import static org.jooq.impl.DSL.constraint;
 import static org.jooq.impl.DSL.field;
 import static org.jooq.impl.DSL.name;
@@ -33,8 +36,6 @@ import java.util.UUID;
 import org.cristalise.kernel.common.PersistencyException;
 import org.cristalise.kernel.entity.C2KLocalObject;
 import org.cristalise.kernel.persistency.outcome.Outcome;
-import org.cristalise.kernel.persistency.outcome.Schema;
-import org.cristalise.kernel.utils.LocalObjectLoader;
 import org.cristalise.storage.jooqdb.JooqHandler;
 import org.jooq.Condition;
 import org.jooq.DSLContext;
@@ -141,7 +142,6 @@ public class JooqOutcomeHandler extends JooqHandler {
 
         if (result != null) {
             try {
-                Schema schema = LocalObjectLoader.getSchema(result.get(SCHEMA_NAME), result.get(SCHEMA_VERSION));
                 String xml = null;
 
                 if (useSqlXml && checkSqlXmlSupport()) {
@@ -152,7 +152,7 @@ public class JooqOutcomeHandler extends JooqHandler {
                     xml = result.get(XML);
                 }
 
-                return new Outcome(result.get(EVENT_ID), xml, schema);
+                return new Outcome(result.get(EVENT_ID), xml, result.get(SCHEMA_NAME), result.get(SCHEMA_VERSION));
            }
             catch (Exception e) {
                 log.error("fetch() - could not handle XML", e);

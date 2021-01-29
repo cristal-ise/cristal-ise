@@ -23,11 +23,15 @@
  */
 package org.cristalise.kernel.utils;
 
+import static org.cristalise.kernel.lookup.Lookup.SearchConstraints.EXACT_NAME_MATCH;
 import static org.cristalise.kernel.property.BuiltInItemProperties.NAME;
+
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.StringTokenizer;
 import java.util.UUID;
+
+import org.apache.commons.lang3.StringUtils;
 import org.cristalise.kernel.common.InvalidDataException;
 import org.cristalise.kernel.common.ObjectNotFoundException;
 import org.cristalise.kernel.common.PersistencyException;
@@ -39,6 +43,7 @@ import org.cristalise.kernel.lookup.InvalidItemPathException;
 import org.cristalise.kernel.lookup.ItemPath;
 import org.cristalise.kernel.lookup.Path;
 import org.cristalise.kernel.persistency.ClusterType;
+import org.cristalise.kernel.persistency.TransactionKey;
 import org.cristalise.kernel.persistency.outcome.Viewpoint;
 import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.process.module.Module;
@@ -46,6 +51,7 @@ import org.cristalise.kernel.process.module.ModuleResource;
 import org.cristalise.kernel.property.Property;
 import org.cristalise.kernel.property.PropertyDescription;
 import org.cristalise.kernel.property.PropertyDescriptionList;
+
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -93,7 +99,7 @@ public abstract class DescriptionObjectCache<D extends DescriptionObject> {
 
                 if (res != null) {
                     res.setNs(module.getNs());
-                    String resData = Gateway.getResource().getTextResource(module.getNs(), res.getResourceLocation());
+                    String resData = Gateway.getResource().getTextResource(module.getNs(), res.getResourceFileName());
                     // At this point the resource loaded from classpath, which means it has no UUID so a random UUID is assigned 
                     String uuid = res.getID() == null ? UUID.randomUUID().toString() : res.getID();
                     return buildObject(name, 0, new ItemPath(uuid), resData);
@@ -111,117 +117,184 @@ public abstract class DescriptionObjectCache<D extends DescriptionObject> {
         return filename.equals(getTypeCode() + "/" + resName);
     }
 
-    public ItemPath findItem(String name) throws ObjectNotFoundException, InvalidDataException {
+    protected ItemPath findItem(String name, TransactionKey transactionKey) throws ObjectNotFoundException, InvalidDataException {
         if (Gateway.getLookup() == null) throw new ObjectNotFoundException("Cannot find Items without a Lookup");
 
         // first check for a UUID name
-        try {
-            ItemPath resItem = new ItemPath(name);
-            if (resItem.exists()) return resItem;
+        // exception handling is slow, the if() avoids to use exception to check valid UUID
+        if (ItemPath.isUUID(name)) {
+            try {
+                ItemPath resItem = new ItemPath(name);
+                if (resItem.exists(transactionKey)) return resItem;
+            }
+            catch (InvalidItemPathException ex) {}
         }
-        catch (InvalidItemPathException ex) {}
 
         // then check for a direct path
         DomainPath directPath = new DomainPath(name);
-        if (directPath.exists() && directPath.getItemPath() != null) { return directPath.getItemPath(); }
+        if (directPath.exists(transactionKey) && directPath.getItemPath(transactionKey) != null) { 
+            return directPath.getItemPath(transactionKey);
+        }
 
-        // else search for it in the whole tree using property description
-        Property[] searchProps = new Property[classIdProps.length + 1];
-        searchProps[0] = new Property(NAME, name);
-        System.arraycopy(classIdProps, 0, searchProps, 1, classIdProps.length);
+        Iterator<Path> searchResult = null;
 
-        Iterator<Path> e = Gateway.getLookup().search(new DomainPath(), searchProps);
-        if (e.hasNext()) {
-            Path defPath = e.next();
-            if (e.hasNext()) throw new ObjectNotFoundException("Too many matches for " + getTypeCode() + " " + name);
+        // else ...
+        if (Gateway.getProperties().getBoolean("LocalObjectLoader.lookupUseProperties", false) || StringUtils.isBlank(getTypeRoot())) {
+            // search for it in the whole tree using properties
+            Property[] searchProps = new Property[classIdProps.length + 1];
+            searchProps[0] = new Property(NAME, name);
+            System.arraycopy(classIdProps, 0, searchProps, 1, classIdProps.length);
 
-            if (defPath.getItemPath() == null)
-                throw new InvalidDataException(getTypeCode() + " " + name + " was found, but was not an Item");
-
-            return defPath.getItemPath();
+            searchResult = Gateway.getLookup().search(new DomainPath(getTypeRoot()), transactionKey, searchProps);
         }
         else {
-            throw new ObjectNotFoundException("No match for " + getTypeCode() + " " + name);
+            // or search for it in the subtree using name
+            searchResult = Gateway.getLookup().search(new DomainPath(getTypeRoot()), name, EXACT_NAME_MATCH, transactionKey);
+        }
+
+        if (searchResult.hasNext()) {
+            Path defPath = searchResult.next();
+            if (searchResult.hasNext()) throw new InvalidDataException("Too many matches for name:" + name + " typeCode:" + getTypeCode());
+
+            if (defPath.getItemPath(transactionKey) == null)
+                throw new InvalidDataException("name:" + name + " typeCode:" + getTypeCode() + " was found, but was not an Item");
+
+            return defPath.getItemPath(transactionKey);
+        }
+        else {
+            throw new ObjectNotFoundException("No match for name:" + name + " typeCode:" + getTypeCode());
         }
     }
 
+    /**
+     * 
+     * @param name the Name or the UUID of the resource Item
+     * @param version the Version of the resource Item
+     * @return
+     * @throws ObjectNotFoundException
+     * @throws InvalidDataException
+     */
     public D get(String name, int version) throws ObjectNotFoundException, InvalidDataException {
-        D thisDef = null;
-        synchronized (cache) {
-            CacheEntry<D> thisDefEntry = cache.get(name + "_" + version);
-            if (thisDefEntry == null) {
-                log.trace("get() - " + name + " v" + version + " not found in cache. Checking id.");
-                try {
-                    ItemPath defItemPath = findItem(name);
-                    String defId = defItemPath.getUUID().toString();
-                    thisDefEntry = cache.get(defId + "_" + version);
-                    if (thisDefEntry == null) {
-                        log.trace("get() - " + name + " v" + version + " not found in cache. Loading from database.");
-                        ItemProxy defItemProxy = Gateway.getProxyManager().getProxy(defItemPath);
-                        if (name.equals(defId)) {
-                            String itemName = defItemProxy.getName();
-                            if (itemName != null) name = itemName;
-                        }
-                        thisDef = loadObject(name, version, defItemProxy);
-                        cache.put(defId + "_" + version, new CacheEntry<D>(thisDef, defItemProxy, this));
-                    }
-                }
-                catch (ObjectNotFoundException ex) {
-                    // for bootstrap and testing, try to load built-in kernel objects from resources
-                    if (version == 0) {
-                        try {
-                            return loadObjectFromBootstrap(name);
-                        }
-                        catch (ObjectNotFoundException ex2) {}
-                    }
-                    throw ex;
+        return get(name, version, null);
+    }
+
+    /**
+     * 
+     * @param name the Name or the UUID of the resource Item
+     * @param version the Version of the resource Item
+     * @param transactionKey
+     * @return
+     * @throws ObjectNotFoundException
+     * @throws InvalidDataException
+     */
+    public D get(String name, int version, TransactionKey transactionKey) throws ObjectNotFoundException, InvalidDataException {
+        try {
+            CacheEntry<D> thisDefEntry = null;
+            synchronized (cache) {
+                thisDefEntry = cache.get(name + "_" + version);
+            }
+
+            if (thisDefEntry != null) {
+                log.trace("get() - key:{}_{} found in cache.", name, version);
+                return thisDefEntry.def;
+            }
+
+            ItemPath defItemPath = findItem(name, transactionKey);
+            String defUuid = defItemPath.getUUID().toString();
+
+            synchronized (cache) {
+                log.trace("get() - key:{}_{} not found in cache. Checking key using uuid:{}", name, version, defUuid);
+                thisDefEntry = cache.get(defUuid + "_" + version);
+
+                if (thisDefEntry != null) {
+                    log.trace("get() - key:{}_{} found in cache.", defUuid, version);
+                    return thisDefEntry.def;
                 }
             }
-            if (thisDefEntry != null && thisDef == null) {
-                log.trace("get() - " + name + " v" + version + " found in cache.");
-                thisDef = thisDefEntry.def;
+
+            log.trace("get() - key:{}_{} not found in cache. Loading from database.", name, version);
+
+            ItemProxy defItemProxy = Gateway.getProxyManager().getProxy(defItemPath, transactionKey);
+            if (name.equals(defUuid)) {
+                String itemName = defItemProxy.getName(transactionKey);
+                if (itemName != null) name = itemName;
             }
+
+            D thisDef = loadObject(name, version, defItemProxy, transactionKey);
+            addToCache(name, version, defUuid, defItemProxy, thisDef);
+
+            return thisDef;
         }
-        return thisDef;
+        catch (ObjectNotFoundException ex) {
+            log.trace("get - failed to load resource key:{}_{} from database, loading from classpath.", name, version);
+            // for bootstrap and testing, try to load built-in kernel objects from resources
+            if (version == 0) {
+                try {
+                    return loadObjectFromBootstrap(name);
+                }
+                catch (ObjectNotFoundException ex2) {
+                    log.error("get() - ", ex2);
+                }
+            }
+            else {
+                log.error("get() - only resources with version zero can be loaded from classpath - name:{} version:{}", name, version);
+            }
+            throw ex;
+        }
+    }
+
+    private void addToCache(String name, int version, String defUuid, ItemProxy defItemProxy, D thisDef) {
+        log.trace("addToCache() - key1:{}_{} and key2:{}_{}", name, version, defUuid, version);
+
+        // DO NOT add this to the synchronized block because it can create deadlock. check issue: #447
+        CacheEntry<D> entry = new CacheEntry<>(thisDef, defItemProxy, this);
+        synchronized (cache) {
+            cache.put(defUuid + "_" + version, entry);
+            cache.put(name + "_" + version, entry);
+        }
     }
 
     public abstract String getTypeCode();
 
     public abstract String getSchemaName();
 
+    public abstract String getTypeRoot();
+
     public abstract D buildObject(String name, int version, ItemPath path, String data) throws InvalidDataException;
 
-    public D loadObject(String name, int version, ItemProxy proxy) throws ObjectNotFoundException, InvalidDataException {
+    public D loadObject(String name, int version, ItemProxy proxy, TransactionKey transactionKey) throws ObjectNotFoundException, InvalidDataException {
+        Viewpoint smView = proxy.getViewpoint(getSchemaName(), String.valueOf(version), transactionKey);
 
-        Viewpoint smView = (Viewpoint) proxy.getObject(ClusterType.VIEWPOINT + "/" + getSchemaName() + "/" + version);
-        String rawRes;
         try {
-            rawRes = smView.getOutcome().getData();
+            String rawRes = smView.getOutcome(transactionKey).getData();
+            return buildObject(name, version, proxy.getPath(), rawRes);
         }
         catch (PersistencyException ex) {
             log.error("Problem loading " + getSchemaName() + " " + name + " v" + version, ex);
             throw new ObjectNotFoundException("Problem loading " + getSchemaName() + " " + name + " v" + version + ": " + ex.getMessage());
         }
-        return buildObject(name, version, proxy.getPath(), rawRes);
     }
 
-    public void removeObject(String id) {
+    public void removeObject(String id, String idName) {
         synchronized (cache) {
-            if (cache.keySet().contains(id)) {
-                log.debug("remove() - activityDef:" + id);
+            if (cache.keySet().contains(id) || cache.keySet().contains(idName)) {
+                log.debug("remove() - key:{} and key:{}", id, idName);
                 cache.remove(id);
+                cache.remove(idName);
             }
         }
     }
 
     public class CacheEntry<E extends DescriptionObject> implements ProxyObserver<Viewpoint> {
         public String                    id;
+        public String                    idName;
         public ItemProxy                 proxy;
         public E                         def;
         public DescriptionObjectCache<E> parent;
 
         public CacheEntry(E def, ItemProxy proxy, DescriptionObjectCache<E> parent) {
             this.id = def.getItemID() + "_" + def.getVersion();
+            this.idName = def.getName() + "_" + def.getVersion();
             this.def = def;
             this.parent = parent;
             this.proxy = proxy;
@@ -230,18 +303,18 @@ public abstract class DescriptionObjectCache<D extends DescriptionObject> {
 
         @Override
         public void finalize() {
-            parent.removeObject(id);
+            parent.removeObject(id, idName);
             proxy.unsubscribe(this);
         }
 
         @Override
         public void add(Viewpoint contents) {
-            parent.removeObject(id);
+            parent.removeObject(id, idName);
         }
 
         @Override
         public void remove(String oldId) {
-            parent.removeObject(id);
+            parent.removeObject(id, idName);
         }
 
         @Override

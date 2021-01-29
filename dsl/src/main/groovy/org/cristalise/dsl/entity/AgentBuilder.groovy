@@ -72,6 +72,6 @@ class AgentBuilder {
 
     public static AgentPath create(AgentPath builderAgent, ImportAgent newAgent) {
         assert builderAgent && newAgent
-        return (AgentPath)newAgent.create(builderAgent, true)
+        return (AgentPath)newAgent.create(builderAgent, true, null)
     }
 }

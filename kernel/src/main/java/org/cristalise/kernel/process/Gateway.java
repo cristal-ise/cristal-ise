@@ -35,7 +35,7 @@ import org.cristalise.kernel.entity.proxy.ProxyManager;
 import org.cristalise.kernel.entity.proxy.ProxyServer;
 import org.cristalise.kernel.lookup.Lookup;
 import org.cristalise.kernel.lookup.LookupManager;
-import org.cristalise.kernel.persistency.TransactionManager;
+import org.cristalise.kernel.persistency.ClusterStorageManager;
 import org.cristalise.kernel.process.auth.Authenticator;
 import org.cristalise.kernel.process.module.ModuleManager;
 import org.cristalise.kernel.process.resource.BuiltInResources;
@@ -76,7 +76,7 @@ public class Gateway
     static private boolean              orbDestroyed = false;
     static private Lookup               mLookup;
     static private LookupManager        mLookupManager = null;
-    static private TransactionManager   mStorage;
+    static private ClusterStorageManager   mStorage;
     static private ProxyManager         mProxyManager;
     static private ProxyServer          mProxyServer;
     static private CorbaServer          mCorbaServer;
@@ -177,18 +177,17 @@ public class Gateway
             // check top level directory contexts
             if (mLookup instanceof LookupManager) {
                 mLookupManager = (LookupManager) mLookup;
-                mLookupManager.initializeDirectory();
+                mLookupManager.initializeDirectory(null);
             }
             else {
                 throw new CannotManageException("Lookup implementation is not a LookupManager. Cannot write to directory");
             }
 
             // start entity proxy server
-            mProxyServer = new ProxyServer(mC2KProps.getProperty("ItemServer.name"));
+            String serverName = mC2KProps.getProperty("ItemServer.name");
+            if (serverName != null) mProxyServer = new ProxyServer(serverName);
 
             // Init ORB - set various config 
-            String serverName = mC2KProps.getProperty("ItemServer.name");
-
             //TODO: externalize this (or replace corba completely)
             if (serverName != null) mC2KProps.put("com.sun.CORBA.ORBServerHost", serverName);
 
@@ -246,7 +245,7 @@ public class Gateway
             throw new InvalidDataException("Cannot connect server process. Please check config.");
         }
 
-        mStorage = new TransactionManager(auth);
+        mStorage = new ClusterStorageManager(auth);
         mProxyManager = new ProxyManager();
     }
 
@@ -274,7 +273,7 @@ public class Gateway
 
     /**
      * Log in with the given username and password, and initialises the {@link Lookup}, 
-     * {@link TransactionManager} and {@link ProxyManager}. It shall be uses in client processes only.
+     * {@link TransactionManager} and {@link ProxyManager}. It shall be used in client processes only.
      * 
      * @param agentName - username
      * @param agentPassword - password
@@ -307,7 +306,7 @@ public class Gateway
             throws InvalidDataException, ObjectNotFoundException, PersistencyException
     {
         mSecurityManager = new SecurityManager();
-        mSecurityManager.authenticate(agentName, agentPassword, resource);
+        mSecurityManager.authenticate(agentName, agentPassword, resource, true, null);
 
         setup(mSecurityManager.getAuth());
 
@@ -344,7 +343,7 @@ public class Gateway
             throws InvalidDataException, ObjectNotFoundException
     {
         if (mSecurityManager == null) mSecurityManager = new SecurityManager();
-        return mSecurityManager.authenticate(agentName, agentPassword, resource);
+        return mSecurityManager.authenticate(agentName, agentPassword, resource, true, null);
     }
 
     /**
@@ -446,7 +445,7 @@ public class Gateway
         return mCorbaServer;
     }
 
-    static public TransactionManager getStorage() {
+    static public ClusterStorageManager getStorage() {
         return mStorage;
     }
 

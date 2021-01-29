@@ -1,1 +1,13 @@
-<Item name="StateMachineFactory" version="0" initialPath="/desc/dev" workflow="StateMachineFactoryWf" workflowVer="0"><Property name="Type" mutable="false">Factory</Property><Property name="LocalObjectType" mutable="false">StateMachine</Property><Outcome viewname="last" schema="PropertyDescription" version="0">boot/property/StateMachine_0.xml</Outcome><Dependency name="workflow" isDescription="false"><DependencyMember itemPath="/desc/ActivityDesc/kernel/ManageStateMachine"><MemberProperties><KeyValuePair Key="Version" isAbstract="false" Integer="0"/></MemberProperties></DependencyMember><CollectionProperties/></Dependency></Item>
+<Item initialPath="/desc/dev" name="StateMachineFactory" ns="dev" version="0" workflow="StateMachineFactoryWf" workflowVer="0">
+  <Property mutable="false" name="Type">Factory</Property>
+  <Property mutable="false" name="LocalObjectType">StateMachine</Property>
+  <Outcome schema="PropertyDescription" version="0" viewname="last">boot/property/StateMachine_0.xml</Outcome>
+  <Dependency classProps="" isDescription="false" name="workflow">
+    <DependencyMember itemPath="/desc/ActivityDesc/kernel/ManageStateMachine">
+      <MemberProperties>
+        <KeyValuePair Integer="0" Key="Version" isAbstract="false"/>
+      </MemberProperties>
+    </DependencyMember>
+    <CollectionProperties/>
+  </Dependency>
+</Item>

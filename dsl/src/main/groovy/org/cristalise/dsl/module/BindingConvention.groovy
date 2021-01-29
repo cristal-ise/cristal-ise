@@ -44,7 +44,7 @@ trait BindingConvention {
      * 
      */
     private static final String variablePrefix = 
-    Gateway.getProperties().getString('DSL.Module.BindingConvention.variablePrefix', '$')
+            Gateway.getProperties().getString('DSL.Module.BindingConvention.variablePrefix', '$')
 
     /**
      * These characters will be removed from the name of the 'variable' added to the binding
@@ -56,6 +56,10 @@ trait BindingConvention {
      */
     private static final boolean autoAddObject = 
             Gateway.getProperties().getBoolean('DSL.Module.BindingConvention.autoAddObject', true)
+
+    public static String getVariablePrefix() {
+        return variablePrefix
+    }
 
     /**
      *
@@ -112,10 +116,29 @@ trait BindingConvention {
     }
 
     /**
+     * Adds the value to the Bindings of DSL script using the configured naming convention, i.e.
+     * the name will be prefixed using '$' by default. Use 'DSL.Module.BindingConvention.variablePrefix'
+     * to configured the variable prefix.
      * 
-     * @param bindings
-     * @param obj
-     * @return
+     * @param bindings to be updated
+     * @param name of the variable. It will be prefixed using '$' by default
+     * @param value of the variable
+     * @return the actual name that was added to the binding
+     */
+    public String addToBingings(Binding bindings, String name, Object value) {
+        def variableName = variablePrefix + name
+        bindings[variableName] = value
+        return variableName
+    }
+
+    /**
+     * Adds the value to the Bindings of DSL script using the configured naming convention, i.e. 
+     * the name will be prefixed using '$' by default, and postfixed with the simpleName of DescriptionObjects subclass.
+     * Use 'DSL.Module.BindingConvention.variablePrefix' to configured the variable prefix.
+     * 
+     * @param bindings to be updated
+     * @param obj to be added to the bindings
+     * @return the actual name that was added to the bindings
      */
     public String addToBingings(Binding bindings, Object obj) {
         if (autoAddObject) {

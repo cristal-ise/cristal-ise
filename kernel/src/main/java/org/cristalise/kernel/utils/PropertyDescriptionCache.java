@@ -23,11 +23,13 @@
  */
 package org.cristalise.kernel.utils;
 
+import static org.cristalise.kernel.process.resource.BuiltInResources.PROPERTY_DESC_RESOURCE;
+
 import org.cristalise.kernel.common.InvalidDataException;
 import org.cristalise.kernel.lookup.ItemPath;
 import org.cristalise.kernel.process.Gateway;
-import org.cristalise.kernel.process.resource.BuiltInResources;
 import org.cristalise.kernel.property.PropertyDescriptionList;
+
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -35,12 +37,17 @@ public class PropertyDescriptionCache extends DescriptionObjectCache<PropertyDes
 
     @Override
     public String getTypeCode() {
-        return BuiltInResources.PROPERTY_DESC_RESOURCE.getTypeCode();
+        return PROPERTY_DESC_RESOURCE.getTypeCode();
     }
 
     @Override
     public String getSchemaName() {
-        return BuiltInResources.PROPERTY_DESC_RESOURCE.getSchemaName();
+        return PROPERTY_DESC_RESOURCE.getSchemaName();
+    }
+
+    @Override
+    public String getTypeRoot() {
+        return PROPERTY_DESC_RESOURCE.getTypeRoot();
     }
 
     @Override

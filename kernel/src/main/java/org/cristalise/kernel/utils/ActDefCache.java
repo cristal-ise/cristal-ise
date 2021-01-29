@@ -28,15 +28,17 @@ import static org.cristalise.kernel.process.resource.BuiltInResources.ACTIVITY_D
 import static org.cristalise.kernel.process.resource.BuiltInResources.COMP_ACT_DESC_RESOURCE;
 import static org.cristalise.kernel.process.resource.BuiltInResources.ELEM_ACT_DESC_RESOURCE;
 import static org.cristalise.kernel.property.BuiltInItemProperties.COMPLEXITY;
+
 import org.cristalise.kernel.common.InvalidDataException;
 import org.cristalise.kernel.common.ObjectNotFoundException;
 import org.cristalise.kernel.common.PersistencyException;
 import org.cristalise.kernel.entity.proxy.ItemProxy;
 import org.cristalise.kernel.lifecycle.ActivityDef;
 import org.cristalise.kernel.lookup.ItemPath;
-import org.cristalise.kernel.persistency.ClusterType;
+import org.cristalise.kernel.persistency.TransactionKey;
 import org.cristalise.kernel.persistency.outcome.Viewpoint;
 import org.cristalise.kernel.process.Gateway;
+
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -64,6 +66,12 @@ public class ActDefCache extends DescriptionObjectCache<ActivityDef> {
     }
 
     @Override
+    public String getTypeRoot() {
+        if (isComposite == null) return ACTIVITY_DESC_RESOURCE.getTypeRoot(); 
+        else                     return isComposite ? COMP_ACT_DESC_RESOURCE.getTypeRoot() : ELEM_ACT_DESC_RESOURCE.getTypeRoot();
+    }
+
+    @Override
     protected boolean isBootResource(String filename, String resName) {
         if (isComposite == null)
             return filename.endsWith("/" + resName) && (filename.startsWith("CA") || filename.startsWith("EA"));
@@ -72,7 +80,9 @@ public class ActDefCache extends DescriptionObjectCache<ActivityDef> {
     }
 
     @Override
-    public ActivityDef loadObject(String name, int version, ItemProxy proxy) throws ObjectNotFoundException, InvalidDataException {
+    public ActivityDef loadObject(String name, int version, ItemProxy proxy, TransactionKey transactionKey) 
+            throws ObjectNotFoundException, InvalidDataException
+    {
         String viewName;
 
         if (isComposite == null) {
@@ -87,8 +97,8 @@ public class ActDefCache extends DescriptionObjectCache<ActivityDef> {
         }
 
         try {
-            Viewpoint actView = (Viewpoint) proxy.getObject(ClusterType.VIEWPOINT + "/" + viewName + "/" + version);
-            String marshalledAct = actView.getOutcome().getData();
+            Viewpoint actView = proxy.getViewpoint(viewName, String.valueOf(version), transactionKey);
+            String marshalledAct = actView.getOutcome(transactionKey).getData();
             return buildObject(name, version, proxy.getPath(), marshalledAct);
         }
         catch (PersistencyException ex) {

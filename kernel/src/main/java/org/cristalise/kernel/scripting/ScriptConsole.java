@@ -38,6 +38,7 @@ import org.cristalise.kernel.entity.proxy.AgentProxy;
 import org.cristalise.kernel.process.AbstractMain;
 import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.utils.server.SocketHandler;
+
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -165,7 +166,8 @@ public class ScriptConsole implements SocketHandler {
             //FIXME remove this when Logger class is completly phased out
             Script context;
             try {
-                context = new Script("javascript", agent, output);
+                String lang = Gateway.getProperties().getString("ItemServer.Console.language", "javascript");
+                context = new Script(lang, agent, output);
             }
             catch (Exception ex) {
                 output.println("Error initializing console script context");
@@ -176,7 +178,6 @@ public class ScriptConsole implements SocketHandler {
 
             StringBuffer commandBuffer = new StringBuffer();
             while (socket != null) {
-
                 output.println();
                 output.print('>');
 
@@ -189,8 +190,10 @@ public class ScriptConsole implements SocketHandler {
                     }
                     catch (InterruptedIOException ex) {}
                 }
-                if (command == null) // disconnected
+
+                if (command == null) {// disconnected
                     shutdown();
+                }
                 else {
                     if (command.equals("exit")) {
                         shutdown();

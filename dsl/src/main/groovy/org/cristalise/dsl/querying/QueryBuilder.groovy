@@ -74,6 +74,8 @@ class QueryBuilder {
         qb.version  = queryD.version
         qb.query    = new Query(name, version, (ItemPath)null, queryD.writer.toString())
 
+        qb.query.namespace = module
+
         return qb.query
     }
 
@@ -85,6 +87,6 @@ class QueryBuilder {
     public DomainPath create() {
         Schema querySchema = LocalObjectLoader.getSchema("Query", 0)
         ResourceImportHandler importHandler = Gateway.getResourceImportHandler(QUERY_RESOURCE);
-        return domainPath = importHandler.createResource(module, name, version, new Outcome(-1, (String)null, querySchema), false)
+        return domainPath = importHandler.createResource(module, name, version, new Outcome(-1, (String)null, querySchema), false, null)
     }
 }

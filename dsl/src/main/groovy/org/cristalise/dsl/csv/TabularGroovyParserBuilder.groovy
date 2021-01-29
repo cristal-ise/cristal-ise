@@ -76,10 +76,10 @@ class TabularGroovyParserBuilder {
         
         try {
             XSSFSheet sheet = workbook.getSheet(sheetName.trim())
-            return new ExcelGroovyParser(sheet, options)
+            return new ExcelGroovyParser(workbook, sheet, options)
         }
         catch (Exception e) {
-            log.error("", e)
+            log.error("initExcelParser()", e)
         }
         
         return null

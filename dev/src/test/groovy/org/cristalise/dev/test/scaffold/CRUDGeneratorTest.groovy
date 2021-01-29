@@ -23,22 +23,34 @@ package org.cristalise.dev.test.scaffold
 import org.codehaus.groovy.control.CompilerConfiguration
 import org.cristalise.dev.scaffold.CRUDGenerator
 import org.cristalise.kernel.process.Gateway
-import org.cristalise.kernel.utils.FileStringUtility
-import org.junit.Before
+import org.eclipse.jgit.api.Git
+import org.eclipse.jgit.api.Status
 import org.junit.BeforeClass
 import org.junit.Test
 
 import groovy.transform.CompileStatic
+import groovy.util.logging.Slf4j
 
-@CompileStatic
+@CompileStatic @Slf4j
 class CRUDGeneratorTest {
+    static Git gitRepo
 
     @BeforeClass
     public static void setup() throws Exception {
+        gitRepo = Git.open(new File('../.git'));
+
         Properties props = new Properties()
-        props.put('Resource.moduleUseFileNameWithVersion', 'dev')
+        props.put('Resource.moduleUseFileNameWithVersion', 'dev,devtest')
         Gateway.init(props);
     }
+    
+    public boolean getCheckGitStatus() {
+        Status gitStatus = gitRepo.status().call()
+
+        //gitStatus.getModified().each { log.info it }
+
+        return gitStatus.isClean()
+    } 
 
     @Test
     void generateCRUDItemTest()throws Exception {
@@ -114,6 +126,8 @@ class CRUDGeneratorTest {
 
         generator.generate(inputs, true)
 
+        //assert getCheckGitStatus()
+
         CompilerConfiguration cc = new CompilerConfiguration()
         cc.setScriptBaseClass(DelegatingScript.class.getName())
 
@@ -123,5 +137,7 @@ class CRUDGeneratorTest {
 
         script.setDelegate(this)
         script.run()
+
+        //assert getCheckGitStatus()
     }
 }

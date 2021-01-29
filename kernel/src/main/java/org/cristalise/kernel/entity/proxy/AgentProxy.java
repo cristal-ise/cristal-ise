@@ -166,10 +166,10 @@ public class AgentProxy extends ItemProxy {
             throws AccessRightsException, InvalidDataException, InvalidTransitionException, ObjectNotFoundException,
             PersistencyException, ObjectAlreadyExistsException, ScriptErrorException, InvalidCollectionModification
     {
-        ItemProxy item = Gateway.getProxyManager().getProxy(job.getItemPath());
+        ItemProxy item = Gateway.getProxyManager().getProxy(job.getItemPath(), transactionKey);
         Date startTime = new Date();
 
-        log.info("execute(job) - {}" + job);
+        log.info("execute(job) - {}", job);
 
         if (job.hasScript()) {
             log.info("execute(job) - executing script");
@@ -206,9 +206,11 @@ public class AgentProxy extends ItemProxy {
 
         job.setAgentPath(mAgentPath);
 
-        if ((boolean)job.getActProp(SIMPLE_ELECTRONIC_SIGNATURE, false)) {
+        if (job.hasOutcome() && (boolean)job.getActProp(SIMPLE_ELECTRONIC_SIGNATURE, false)) {
             log.info("execute(job) - executing SimpleElectonicSignature predefStep");
-            executeSimpleElectonicSignature(job);
+            String xml = Sign.getSimpleElectonicSignature(job);
+
+            if (xml != null) execute(this, Sign.class, xml);
         }
 
         log.info("execute(job) - submitting job to item proxy");
@@ -223,40 +225,6 @@ public class AgentProxy extends ItemProxy {
         return result;
     }
     
-    /**
-     * 
-     * @param job
-     * @throws AccessRightsException
-     * @throws InvalidDataException
-     * @throws InvalidTransitionException
-     * @throws ObjectNotFoundException
-     * @throws PersistencyException
-     * @throws ObjectAlreadyExistsException
-     * @throws ScriptErrorException
-     * @throws InvalidCollectionModification
-     */
-    public void executeSimpleElectonicSignature(Job job)
-            throws AccessRightsException, InvalidDataException, InvalidTransitionException, ObjectNotFoundException,
-            PersistencyException, ObjectAlreadyExistsException, ScriptErrorException, InvalidCollectionModification
-    {
-        StringBuffer xml = new StringBuffer("<SimpleElectonicSignature>");
-        xml.append("<AgentName>").append(job.getOutcome().getField("AgentName")).append("</AgentName>");
-        xml.append("<Password>") .append(job.getOutcome().getField("Password")) .append("</Password>");
-
-        xml.append("<ExecutionContext>");
-        xml.append("<ItemPath>")     .append(job.getItemUUID())           .append("</ItemPath>");
-        xml.append("<SchemaName>")   .append(job.getSchema().getName())   .append("</SchemaName>");
-        xml.append("<SchemaVersion>").append(job.getSchema().getVersion()).append("</SchemaVersion>");
-        xml.append("<ActivityType>") .append(job.getStepType())           .append("</ActivityType>");
-        xml.append("<ActivityName>") .append(job.getStepName())           .append("</ActivityName>");
-        xml.append("<StepPath>")     .append(job.getStepPath())           .append("</StepPath>");
-        xml.append("</ExecutionContext>");
-
-        xml.append("</SimpleElectonicSignature>");
-
-        execute(this, Sign.class, xml.toString());
-    }
-
     @SuppressWarnings("rawtypes")
     private  ErrorInfo callScript(ItemProxy item, Job job) throws ScriptingEngineException, InvalidDataException, ObjectNotFoundException {
         Script script = job.getScript();
@@ -519,7 +487,7 @@ public class AgentProxy extends ItemProxy {
         if (returnPath == null) {
             throw new ObjectNotFoundException(name);
         }
-        return Gateway.getProxyManager().getProxy(returnPath);
+        return Gateway.getProxyManager().getProxy(returnPath, transactionKey);
     }
 
     private boolean isItemPathAndNotNull(Path pPath) {
@@ -549,7 +517,7 @@ public class AgentProxy extends ItemProxy {
         while (results.hasNext()) {
             Path nextMatch = results.next();
             try {
-                returnList.add(Gateway.getProxyManager().getProxy(nextMatch));
+                returnList.add(Gateway.getProxyManager().getProxy(nextMatch, transactionKey));
             }
             catch (ObjectNotFoundException e) {
                 log.error("Path '" + nextMatch + "' did not resolve to an Item");
@@ -568,14 +536,14 @@ public class AgentProxy extends ItemProxy {
     }
 
     public ItemProxy getItem(Path itemPath) throws ObjectNotFoundException {
-        return Gateway.getProxyManager().getProxy(itemPath);
+        return Gateway.getProxyManager().getProxy(itemPath, transactionKey);
     }
 
     public ItemProxy getItemByUUID(String uuid) throws ObjectNotFoundException, InvalidItemPathException {
-        return Gateway.getProxyManager().getProxy(new ItemPath(uuid));
+        return Gateway.getProxyManager().getProxy(new ItemPath(uuid), transactionKey);
     }
 
     public RolePath[] getRoles() {
-        return Gateway.getLookup().getRoles(mAgentPath);
+        return Gateway.getLookup().getRoles(mAgentPath, transactionKey);
     }
 }

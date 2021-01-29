@@ -23,11 +23,12 @@
  */
 package org.cristalise.kernel.utils;
 
+import static org.cristalise.kernel.process.resource.BuiltInResources.AGENT_DESC_RESOURCE;
+
 import org.cristalise.kernel.common.InvalidDataException;
 import org.cristalise.kernel.entity.imports.ImportAgent;
 import org.cristalise.kernel.lookup.ItemPath;
 import org.cristalise.kernel.process.Gateway;
-import org.cristalise.kernel.process.resource.BuiltInResources;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -36,12 +37,17 @@ public class AgentDescCache extends DescriptionObjectCache<ImportAgent> {
 
     @Override
     public String getTypeCode() {
-        return BuiltInResources.AGENT_DESC_RESOURCE.getTypeCode();
+        return AGENT_DESC_RESOURCE.getTypeCode();
     }
 
     @Override
     public String getSchemaName() {
-        return BuiltInResources.AGENT_DESC_RESOURCE.getSchemaName();
+        return AGENT_DESC_RESOURCE.getSchemaName();
+    }
+
+    @Override
+    public String getTypeRoot() {
+        return AGENT_DESC_RESOURCE.getTypeRoot(); 
     }
 
     @Override

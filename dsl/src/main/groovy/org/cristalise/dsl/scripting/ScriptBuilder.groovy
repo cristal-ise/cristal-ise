@@ -110,7 +110,7 @@ class ScriptBuilder {
     /**
      * Factory method to build a Script object
      * 
-     * @param module the name of the module the Script belongs to
+     * @param module the namespace of the module the Script belongs to
      * @param name the name of the Script
      * @param version the version of the Script
      * @param cl the closure to build the Script
@@ -134,6 +134,7 @@ class ScriptBuilder {
         sb.validateScriptXML(sb.scriptXML)
 
         sb.script = new Script(name, version, (ItemPath)null, sb.scriptXML)
+        sb.script.namespace = module
         return sb
     }
 
@@ -144,6 +145,6 @@ class ScriptBuilder {
      */
     public DomainPath create() {
         ResourceImportHandler importHandler = Gateway.getResourceImportHandler(SCRIPT_RESOURCE);
-        return domainPath = importHandler.createResource(module, name, version, new Outcome(-1, scriptXML, scriptSchema), false)
+        return domainPath = importHandler.createResource(module, name, version, new Outcome(-1, scriptXML, scriptSchema), false, null)
     }
 }

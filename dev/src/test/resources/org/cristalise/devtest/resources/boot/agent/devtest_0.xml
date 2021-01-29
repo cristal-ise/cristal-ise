@@ -1,1 +1,5 @@
-<Agent name="devtest" version="0" password="test" initialPath="/devtest/Agents"><Role name="Admin"/><Property name="Name" mutable="true">devtest</Property><Property name="Type" mutable="true">Agent</Property></Agent>
+<Agent initialPath="/devtest/Agents" name="devtest" password="test" version="0">
+  <Role name="Admin"/>
+  <Property mutable="true" name="Name">devtest</Property>
+  <Property mutable="true" name="Type">Agent</Property>
+</Agent>

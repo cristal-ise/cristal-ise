@@ -23,7 +23,9 @@ package org.cristalise.kernel.lifecycle.routingHelpers;
 import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.SCHEMA_NAME;
 import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.SCHEMA_VERSION;
 import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.VIEW_POINT;
+
 import javax.xml.xpath.XPathExpressionException;
+
 import org.apache.commons.lang3.StringUtils;
 import org.cristalise.kernel.common.InvalidDataException;
 import org.cristalise.kernel.common.ObjectNotFoundException;
@@ -32,11 +34,13 @@ import org.cristalise.kernel.graph.model.GraphableVertex;
 import org.cristalise.kernel.lifecycle.instance.Workflow;
 import org.cristalise.kernel.lookup.ItemPath;
 import org.cristalise.kernel.persistency.ClusterType;
+import org.cristalise.kernel.persistency.TransactionKey;
 import org.cristalise.kernel.persistency.outcome.Outcome;
 import org.cristalise.kernel.persistency.outcome.Schema;
 import org.cristalise.kernel.persistency.outcome.Viewpoint;
 import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.utils.LocalObjectLoader;
+
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -52,7 +56,7 @@ public class ActivityDataHelper implements DataHelper {
      * retrieves a single value based on XPath
      */
     @Override
-	public String get(ItemPath itemPath, String actContext, String dataPath, Object locker)
+	public String get(ItemPath itemPath, String actContext, String dataPath, TransactionKey transactionKey)
             throws InvalidDataException, PersistencyException, ObjectNotFoundException
     {
         log.debug("get() - item:"+itemPath+", actContext:"+actContext+", dataPath:"+dataPath);
@@ -69,7 +73,7 @@ public class ActivityDataHelper implements DataHelper {
         }
 
         // Find the referenced activity, so get the workflow and search
-        Workflow workflow = (Workflow) Gateway.getStorage().get(itemPath, ClusterType.LIFECYCLE+"/workflow", locker);
+        Workflow workflow = (Workflow) Gateway.getStorage().get(itemPath, ClusterType.LIFECYCLE+"/workflow", transactionKey);
         GraphableVertex act = workflow.search(actPath);
 
         if (act == null) {
@@ -83,11 +87,11 @@ public class ActivityDataHelper implements DataHelper {
 
         if (StringUtils.isBlank(viewName)) viewName = "last";
 
-        Schema schema = LocalObjectLoader.getSchema(schemaName, schemaVersion); //checks if schema/version was correct
+        Schema schema = LocalObjectLoader.getSchema(schemaName, schemaVersion, transactionKey); //checks if schema/version was correct
 
         // get the viewpoint and outcome
-        Viewpoint view  = (Viewpoint) Gateway.getStorage().get(itemPath, ClusterType.VIEWPOINT+"/"+schema.getName()+"/"+viewName, locker);
-        Outcome outcome = (Outcome)   view.getOutcome(locker);
+        Viewpoint view  = (Viewpoint) Gateway.getStorage().get(itemPath, ClusterType.VIEWPOINT+"/"+schema.getName()+"/"+viewName, transactionKey);
+        Outcome outcome = (Outcome)   view.getOutcome(transactionKey);
 
         // apply the XPath to its outcome
         try {

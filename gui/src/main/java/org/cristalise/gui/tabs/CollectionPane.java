@@ -33,7 +33,7 @@ import org.cristalise.kernel.collection.CollectionMember;
 import org.cristalise.kernel.collection.Dependency;
 import org.cristalise.kernel.entity.proxy.MemberSubscription;
 import org.cristalise.kernel.entity.proxy.ProxyObserver;
-import org.cristalise.kernel.persistency.ClusterStorage;
+import org.cristalise.kernel.persistency.ClusterType;
 import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.utils.Logger;
 
@@ -119,12 +119,12 @@ public class CollectionPane extends ItemTabPane implements ProxyObserver<Collect
 	public void run()
 	{
 		Thread.currentThread().setName("Collection Loader");
-		sourceItem.getItem().subscribe(new MemberSubscription<Collection<?>>(this, ClusterStorage.COLLECTION, false));
+		sourceItem.getItem().subscribe(new MemberSubscription<Collection<?>>(this, ClusterType.COLLECTION.getName(), false));
         try {
-            String collNames = sourceItem.getItem().queryData(ClusterStorage.COLLECTION+"/all");
+            String collNames = sourceItem.getItem().queryData(ClusterType.COLLECTION+"/all");
             StringTokenizer tok = new StringTokenizer(collNames, ",");
             while (tok.hasMoreTokens()) {
-                Collection<?> thisLastColl = (Collection<?>) sourceItem.getItem().getObject(ClusterStorage.COLLECTION+"/"+tok.nextToken()+"/last");
+                Collection<?> thisLastColl = (Collection<?>) sourceItem.getItem().getObject(ClusterType.COLLECTION+"/"+tok.nextToken()+"/last");
                 add(thisLastColl);
             }
         } catch (Exception e) {
@@ -136,7 +136,7 @@ public class CollectionPane extends ItemTabPane implements ProxyObserver<Collect
 	@Override
 	public void reload()
 	{
-		Gateway.getStorage().clearCache(sourceItem.getItemPath(), ClusterStorage.COLLECTION);
+		Gateway.getStorage().clearCache(sourceItem.getItemPath(), ClusterType.COLLECTION.getName());
         collTabs.removeAll();
 		initForItem(sourceItem);
 	}

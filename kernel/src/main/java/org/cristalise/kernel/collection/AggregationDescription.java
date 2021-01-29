@@ -24,6 +24,7 @@ import org.cristalise.kernel.common.InvalidCollectionModification;
 import org.cristalise.kernel.common.ObjectAlreadyExistsException;
 import org.cristalise.kernel.common.ObjectNotFoundException;
 import org.cristalise.kernel.graph.model.Vertex;
+import org.cristalise.kernel.persistency.TransactionKey;
 import org.cristalise.kernel.property.PropertyDescriptionList;
 import org.cristalise.kernel.property.PropertyUtility;
 
@@ -55,7 +56,7 @@ public class AggregationDescription extends Aggregation implements CollectionDes
      * 
      */
     @Override
-    public Aggregation newInstance() throws ObjectNotFoundException {
+    public Aggregation newInstance(TransactionKey transactionKey) throws ObjectNotFoundException {
         AggregationInstance newInstance = new AggregationInstance(getName());
         
         for (int i = 0; i < size(); i++) {
@@ -68,7 +69,7 @@ public class AggregationDescription extends Aggregation implements CollectionDes
                 // create the new props of the member object
                 try {
                     Vertex v = getLayout().getVertexById(mem.getID());
-                    newInstance.addMember(null, PropertyUtility.convertTransitiveProperties(pdList), pdList.getClassProps(), v.getCentrePoint(), v.getWidth(), v.getHeight());
+                    newInstance.addMember(null, PropertyUtility.convertTransitiveProperties(pdList), pdList.getClassProps(), v.getCentrePoint(), v.getWidth(), v.getHeight(), transactionKey);
                 }
                 catch (InvalidCollectionModification e) {}
                 catch (ObjectAlreadyExistsException e) {}

@@ -30,6 +30,7 @@ import org.cristalise.kernel.events.Event;
 import org.cristalise.kernel.lookup.AgentPath;
 import org.cristalise.kernel.lookup.ItemPath;
 import org.cristalise.kernel.persistency.ClusterType;
+import org.cristalise.kernel.persistency.TransactionKey;
 import org.cristalise.kernel.persistency.outcome.Schema;
 import org.cristalise.kernel.persistency.outcome.Viewpoint;
 import org.cristalise.kernel.process.Gateway;
@@ -48,7 +49,7 @@ public class WriteViewpoint extends PredefinedStep {
      * SchemaName, name and event Id. Event and Outcome should be checked so schema version should be discovered.
      */
     @Override
-    protected String runActivityLogic(AgentPath agent, ItemPath item, int transitionID, String requestData, Object locker)
+    protected String runActivityLogic(AgentPath agent, ItemPath item, int transitionID, String requestData, TransactionKey transactionKey)
             throws InvalidDataException, ObjectNotFoundException, PersistencyException
     {
         String[] params = getDataList(requestData);
@@ -70,27 +71,27 @@ public class WriteViewpoint extends PredefinedStep {
             throw new InvalidDataException("WriteViewpoint: Parameter 3 (EventId) must be an integer");
         }
 
-        write(item, schemaName, viewName, eventId, locker);
+        write(item, schemaName, viewName, eventId, transactionKey);
 
         return requestData;
     }
 
-    public static void write(ItemPath item, String schemaName, String viewName, int eventId, Object locker)
+    public static void write(ItemPath item, String schemaName, String viewName, int eventId, TransactionKey transactionKey)
             throws PersistencyException, ObjectNotFoundException, InvalidDataException
     {
-        Event event = (Event)Gateway.getStorage().get(item, ClusterType.HISTORY+"/"+eventId, locker);
+        Event event = (Event)Gateway.getStorage().get(item, ClusterType.HISTORY+"/"+eventId, transactionKey);
 
         if (StringUtils.isBlank(event.getSchemaName())) {
             throw new InvalidDataException("Event "+eventId+" does not reference an Outcome, so cannot be assigned to a Viewpoint.");
         }
 
         //checks Schema name/version
-        Schema thisSchema = LocalObjectLoader.getSchema(schemaName, event.getSchemaVersion());
+        Schema thisSchema = LocalObjectLoader.getSchema(schemaName, event.getSchemaVersion(), transactionKey);
 
         if (!event.getSchemaName().equals(thisSchema.getItemID())) { 
             throw new InvalidDataException("Event outcome schema is "+event.getSchemaName()+", and cannot be used for a "+schemaName+" Viewpoint");
         }
 
-        Gateway.getStorage().put(item, new Viewpoint(item, thisSchema, viewName, eventId), locker);
+        Gateway.getStorage().put(item, new Viewpoint(item, thisSchema, viewName, eventId), transactionKey);
     }
 }

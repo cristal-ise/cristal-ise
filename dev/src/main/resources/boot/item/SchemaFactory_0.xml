@@ -1,1 +1,14 @@
-<Item name="SchemaFactory" version="0" initialPath="/desc/dev" workflow="SchemaFactoryWf" workflowVer="0"><Property name="Type" mutable="false">Factory</Property><Property name="LocalObjectType" mutable="false">Schema</Property><Outcome viewname="last" schema="PropertyDescription" version="0">boot/property/Schema_0.xml</Outcome><Outcome viewname="last" schema="Schema" version="0">boot/OD/New_0.xsd</Outcome><Dependency name="workflow" isDescription="false"><DependencyMember itemPath="/desc/ActivityDesc/kernel/ManageSchema"><MemberProperties><KeyValuePair Key="Version" isAbstract="false" Integer="0"/></MemberProperties></DependencyMember><CollectionProperties/></Dependency></Item>
+<Item initialPath="/desc/dev" name="SchemaFactory" ns="dev" version="0" workflow="SchemaFactoryWf" workflowVer="0">
+  <Property mutable="false" name="Type">Factory</Property>
+  <Property mutable="false" name="LocalObjectType">Schema</Property>
+  <Outcome schema="PropertyDescription" version="0" viewname="last">boot/property/Schema_0.xml</Outcome>
+  <Outcome schema="Schema" version="0" viewname="last">boot/OD/New_0.xsd</Outcome>
+  <Dependency classProps="" isDescription="false" name="workflow">
+    <DependencyMember itemPath="/desc/ActivityDesc/kernel/ManageSchema">
+      <MemberProperties>
+        <KeyValuePair Integer="0" Key="Version" isAbstract="false"/>
+      </MemberProperties>
+    </DependencyMember>
+    <CollectionProperties/>
+  </Dependency>
+</Item>

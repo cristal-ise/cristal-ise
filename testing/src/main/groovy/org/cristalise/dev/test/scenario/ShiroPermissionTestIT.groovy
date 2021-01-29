@@ -58,17 +58,17 @@ class ShiroPermissionTestIT extends KernelScenarioTestBase {
             }
         }
 
-        def oper1 = (AgentPath)Agent("oper1-$timeStamp") {
+        def oper1 = Agent("oper1-$timeStamp") {
             Roles {
                 Role(name: 'oper')
             }
-        }.getItemPath()
+        }.agentPath
 
-        def clerk1 = (AgentPath)Agent("clerk1-$timeStamp") {
+        def clerk1 = Agent("clerk1-$timeStamp") {
             Roles {
                 Role(name: 'clerk')
             }
-        }.getItemPath()
+        }.agentPath
 
         def dummy = Item(name: "dummyItem-$timeStamp", folder: "testing") {
             Property(Type: 'test')
@@ -85,7 +85,7 @@ class ShiroPermissionTestIT extends KernelScenarioTestBase {
         def dummyItem = agent.getItem(dummy.getItemPath())
 
         checkJobs(dummyItem, oper1, [[stepName: "first", agentRole: null, transitionName: "Start"],
-                                     [stepName: "first", agentRole: null, transitionName: "Done"]])
+                                               [stepName: "first", agentRole: null, transitionName: "Done"]])
         checkJobs(dummyItem, clerk1, [])
 
         def oper1Job = dummyItem.getJobByName('first', oper1)

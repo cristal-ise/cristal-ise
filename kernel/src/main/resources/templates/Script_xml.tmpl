@@ -1,0 +1,6 @@
+<cristalscript>
+@foreach{script: includes}    <include name="@{script.name}" version="@{script.version}"/>@end{'\n'}
+@foreach{param : inputs}    <param name="@{param.name}" type="@{param.type.getName()}"/>@end{'\n'}
+@foreach{param : outputs}    <output name="@{param.name}" type="@{param.type.getName()}"/>@end{'\n'}
+    <script language="@{language}" name="@{name}"><![CDATA[@{script}]]></script>
+</cristalscript>

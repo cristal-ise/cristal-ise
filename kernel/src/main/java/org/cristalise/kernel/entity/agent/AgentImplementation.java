@@ -21,8 +21,8 @@
 package org.cristalise.kernel.entity.agent;
 
 import java.util.List;
+
 import org.cristalise.kernel.common.CannotManageException;
-import org.cristalise.kernel.common.ObjectCannotBeUpdated;
 import org.cristalise.kernel.common.ObjectNotFoundException;
 import org.cristalise.kernel.common.PersistencyException;
 import org.cristalise.kernel.common.SystemKey;
@@ -32,9 +32,9 @@ import org.cristalise.kernel.lifecycle.instance.predefined.PredefinedStepContain
 import org.cristalise.kernel.lifecycle.instance.predefined.agent.AgentPredefinedStepContainer;
 import org.cristalise.kernel.lookup.AgentPath;
 import org.cristalise.kernel.lookup.ItemPath;
-import org.cristalise.kernel.lookup.RolePath;
-import org.cristalise.kernel.persistency.ClusterType;
+import org.cristalise.kernel.persistency.TransactionKey;
 import org.cristalise.kernel.process.Gateway;
+
 import lombok.extern.slf4j.Slf4j;
 
 
@@ -51,17 +51,8 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class AgentImplementation extends ItemImplementation implements AgentOperations {
 
-    private JobList currentJobs;
-
     public AgentImplementation(AgentPath path) {
         super(path);
-
-        try {
-            currentJobs = (JobList) mStorage.get(path, ClusterType.JOB.getName(), path);
-        }
-        catch (PersistencyException | ObjectNotFoundException ex) {
-            log.error("", ex);
-        }
     }
 
     /**
@@ -71,9 +62,15 @@ public class AgentImplementation extends ItemImplementation implements AgentOper
      */
     @Override
     public synchronized void refreshJobList(SystemKey sysKey, String stepPath, String newJobs) {
+        ItemPath itemPath = new ItemPath(sysKey);
+        TransactionKey transactionKey = new TransactionKey(itemPath);
+
         try {
-            ItemPath itemPath = new ItemPath(sysKey);
+            mStorage.begin(transactionKey);
+
             JobArrayList newJobList = (JobArrayList)Gateway.getMarshaller().unmarshall(newJobs);
+
+            JobList currentJobs = new JobList((AgentPath)mItemPath, transactionKey);
 
             List<String> keysToRemove = currentJobs.getKeysForStep(itemPath, stepPath);
 
@@ -86,15 +83,21 @@ public class AgentImplementation extends ItemImplementation implements AgentOper
             // remove old jobs for this item0
             for(String key: keysToRemove) currentJobs.remove(key);
 
-            Gateway.getStorage().commit(mItemPath);
+            mStorage.commit(transactionKey);
         }
         catch (Throwable ex) {
             log.error("Could not refresh job list.", ex);
-            Gateway.getStorage().abort(mItemPath);
+            try {
+                Gateway.getStorage().abort(transactionKey);
+            }
+            catch (PersistencyException e) {
+                log.error("Could not abort transaction.", e);
+            }
         }
     }
 
-    /** Adds the given Role to this Agent. Called from the SetAgentRoles predefined step.
+    /** 
+     * Adds the given Role to this Agent. Called from the SetAgentRoles predefined step.
      *
      * @param roleName - the new Role to add
      * @throws CannotManageException When the process has no lookup manager
@@ -103,13 +106,7 @@ public class AgentImplementation extends ItemImplementation implements AgentOper
      */
     @Override
     public void addRole(String roleName) throws CannotManageException, ObjectNotFoundException {
-        RolePath newRole = Gateway.getLookup().getRolePath(roleName);
-        try {
-            Gateway.getLookupManager().addRole((AgentPath)mItemPath, newRole);
-        }
-        catch (ObjectCannotBeUpdated ex) {
-            throw new CannotManageException("Could not update role");
-        }
+        throw new CannotManageException("Unsupported operation. Use SetAgentRoles predefined step instead!");
     }
 
     /**
@@ -120,13 +117,7 @@ public class AgentImplementation extends ItemImplementation implements AgentOper
      */
     @Override
     public void removeRole(String roleName) throws CannotManageException, ObjectNotFoundException {
-        RolePath rolePath = Gateway.getLookup().getRolePath(roleName);
-        try {
-            Gateway.getLookupManager().removeRole((AgentPath)mItemPath, rolePath);
-        }
-        catch (ObjectCannotBeUpdated ex) {
-            throw new CannotManageException("Could not update role");
-        }
+        throw new CannotManageException("Unsupported operation. Use SetAgentRoles predefined step instead!");
     }
 
     /**
@@ -144,7 +135,7 @@ public class AgentImplementation extends ItemImplementation implements AgentOper
     @Override
     protected void finalize() throws Throwable {
         log.debug("finalize() - Reaping " + mItemPath);
-        if (currentJobs != null) currentJobs.deactivate();
+        //if (currentJobs != null) currentJobs.deactivate();
         Gateway.getStorage().clearCache(mItemPath, null);
         super.finalize();
     }

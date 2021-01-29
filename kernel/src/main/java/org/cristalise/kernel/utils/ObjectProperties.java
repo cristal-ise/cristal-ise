@@ -20,6 +20,8 @@
  */
 package org.cristalise.kernel.utils;
 
+import static org.cristalise.kernel.lifecycle.instance.predefined.agent.Authenticate.REDACTED;
+
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Enumeration;
@@ -30,8 +32,6 @@ import java.util.Map.Entry;
 import java.util.Properties;
 import java.util.StringTokenizer;
 
-import lombok.extern.slf4j.Slf4j;
-
 import org.apache.commons.lang3.StringUtils;
 import org.cristalise.kernel.common.InvalidDataException;
 import org.cristalise.kernel.common.ObjectNotFoundException;
@@ -41,6 +41,8 @@ import org.cristalise.kernel.process.Gateway;
 import org.mvel2.templates.CompiledTemplate;
 import org.mvel2.templates.TemplateCompiler;
 import org.mvel2.templates.TemplateRuntime;
+
+import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class ObjectProperties extends Properties {
@@ -271,7 +273,7 @@ public class ObjectProperties extends Properties {
             prop.put("Name", key);
             prop.put("SetInConfigFiles", true);
 
-            if (propertiesToRedact(key)) prop.put("Value", "REDACTED");
+            if (propertiesToRedact(key)) prop.put("Value", REDACTED);
             else                         prop.put("Value", entry.getValue());
 
             props.add(prop);

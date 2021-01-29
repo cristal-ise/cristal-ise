@@ -92,7 +92,7 @@ class StateMachineBuilder {
     }
 
     public static StateMachineBuilder build(String module, String name, int version, Closure cl) {
-        def delegate = new StateMachineDelegate(name, version)
+        def delegate = new StateMachineDelegate(module, name, version)
 
         delegate.processClosure(cl)
 
@@ -124,6 +124,6 @@ class StateMachineBuilder {
      */
     public DomainPath create() {
         ResourceImportHandler importHandler = Gateway.getResourceImportHandler(STATE_MACHINE_RESOURCE);
-        return domainPath = importHandler.createResource(module, name, version, new Outcome(-1, smXML, smSchema), false)
+        return domainPath = importHandler.createResource(module, name, version, new Outcome(-1, smXML, smSchema), false, null)
     }
 }

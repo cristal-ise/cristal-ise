@@ -83,76 +83,6 @@ public abstract class ClusterStorage {
      */
     public static final short READWRITE = 3;
 
-    // Cluster types
-    /**
-     * The defined path of the root of the CRISTAL Kernel object cluster tree. A
-     * zero-length string.
-     */
-    @Deprecated()
-    public static final String ROOT = ClusterType.ROOT.getName();
-    /**
-     * 
-     */
-    @Deprecated()
-    public static final String PATH = ClusterType.PATH.getName();
-    /**
-     * The root of the Property object cluster. All Property paths start with
-     * this. Defined as "Property". Properties are stored underneath according
-     * to their name e.g. "Property/Name"
-     */
-    @Deprecated
-    public static final String PROPERTY = ClusterType.PROPERTY.getName();
-    /**
-     * The root of the Collection object cluster. All Collection paths start
-     * with this. Defined as "Collection". Collections are stored underneath by
-     * name e.g. "Collection/Composition"
-     */
-    @Deprecated
-    public static final String COLLECTION = ClusterType.COLLECTION.getName();
-    /**
-     * The cluster which holds the Item workflow. Defined as "LifeCycle". Holds
-     * the workflow inside, which is named "workflow", hence
-     * "LifeCycle/workflow".
-     * 
-     * @see org.cristalise.kernel.lifecycle.instance.Workflow
-     */
-    @Deprecated()
-    public static final String LIFECYCLE = ClusterType.LIFECYCLE.getName();
-    /**
-     * This cluster holds all outcomes of this Item. The path to each outcome is
-     * "Outcome/<i>Schema Name</i>/<i>Schema Version</i>/<i>Event ID</i>"
-     */
-    @Deprecated()
-    public static final String OUTCOME = ClusterType.OUTCOME.getName();
-    /**
-     * This is the cluster that contains all event for this Item. This cluster
-     * may be instantiated in a client as a History, which is a RemoteMap.
-     * Events are stored with their ID: "/AuditTrail/<i>Event ID</i>"
-     */
-    @Deprecated()
-    public static final String HISTORY = ClusterType.HISTORY.getName();
-    /**
-     * This cluster contains all viewpoints. Its name is defined as "ViewPoint".
-     * The paths of viewpoint objects stored here follow this pattern:
-     * "ViewPoint/<i>Schema Name</i>/<i>Viewpoint Name</i>"
-     */
-    @Deprecated()
-    public static final String VIEWPOINT = ClusterType.VIEWPOINT.getName();
-    /**
-     * Agents store their persistent jobs in this cluster that have been pushed
-     * to them by activities configured to do so. The name is defined as "Job"
-     * and each new job received is assigned an integer ID one more than the
-     * highest already present.
-     */
-    @Deprecated()
-    public static final String JOB = ClusterType.JOB.getName();
-
-    /**
-     * An array of all currently supported cluster types, for iterative purposes.
-     */
-    @Deprecated()
-    public static final String[] allClusterTypes = { PROPERTY, COLLECTION, LIFECYCLE, OUTCOME, HISTORY, VIEWPOINT, JOB };
-
     /**
      * Connects to the storage. It must be possible to retrieve CRISTAL local
      * objects after this method returns.
@@ -205,21 +135,7 @@ public abstract class ClusterStorage {
      * @param clusterType The Cluster type requested
      * @return A ClusterStorage constant: NONE, READ, WRITE, or READWRITE
      */
-    public short queryClusterSupport(ClusterType clusterType) {
-        return queryClusterSupport(clusterType.getName());
-    }
-
-    /**
-     * Declares whether or not this ClusterStorage can read or write a
-     * particular CRISTAL local object type.
-     * 
-     * @param clusterType
-     *            The Cluster type requested. Must be one of the Cluster type
-     *            constants from this class.
-     * @return A ClusterStorage constant: NONE, READ, WRITE, or READWRITE
-     */
-    @Deprecated
-    public abstract short queryClusterSupport(String clusterType);
+    public abstract short queryClusterSupport(ClusterType clusterType);
 
     /**
      * Checks whether the storage support the given type of query or not
@@ -238,16 +154,6 @@ public abstract class ClusterStorage {
      * @return A short code for this storage for reference
      */
     public abstract String getId();
-
-    /**
-     * History and JobList based on a integer id that is incremented each tome a new Event or Job is stored
-     * 
-     * @param itemPath The ItemPath (UUID) of the containing Item
-     * @param path the cluster patch, either equals to 'AuditTrail' or 'Job'
-     * @return returns the last found integer id (zero based), or -1 if not found
-     * @throws PersistencyException When storage fails
-     */
-    public abstract int getLastIntegerId(ItemPath itemPath, String path) throws PersistencyException;
 
     /**
      * Utility method to find the cluster for a particular Local Object (the first part of its path)
@@ -288,85 +194,89 @@ public abstract class ClusterStorage {
      * Executes an SQL/OQL/XQuery/XPath/etc query in the target database. 
      * 
      * @param query the query to be executed
+     * @param transactionKey the key of the transaction, can be null
      * @return the xml result of the query
      */
-    public abstract String executeQuery(Query query) throws PersistencyException;
+    public abstract String executeQuery(Query query, TransactionKey transactionKey) throws PersistencyException;
+
+    /**
+     * History and JobList based on a integer id that is incremented each tome a new Event or Job is stored
+     * 
+     * @param itemPath The ItemPath (UUID) of the containing Item
+     * @param path the cluster patch, either equals to 'AuditTrail' or 'Job'
+     * @param transactionKey the key of the transaction, can be null
+     * @return returns the last found integer id (zero based), or -1 if not found
+     * @throws PersistencyException When storage fails
+     */
+    public abstract int getLastIntegerId(ItemPath itemPath, String path, TransactionKey transactionKey) throws PersistencyException;
 
     /**
      * Fetches a CRISTAL local object from storage by path
      * 
-     * @param itemPath
-     *            The ItemPath of the containing Item
-     * @param path
-     *            The path of the local object
+     * @param itemPath The ItemPath of the containing Item
+     * @param path The path of the local object
+     * @param transactionKey the key of the transaction, can be null
      * @return The C2KLocalObject, or null if the object was not found
-     * @throws PersistencyException
-     *             when retrieval failed
+     * @throws PersistencyException when retrieval failed
      */
-    public abstract C2KLocalObject get(ItemPath itemPath, String path) throws PersistencyException;
+    public abstract C2KLocalObject get(ItemPath itemPath, String path, TransactionKey transactionKey) throws PersistencyException;
 
     /**
      * Stores a CRISTAL local object. The path is automatically generated.
      * 
-     * @param itemPath
-     *            The Item that the object will be stored under
-     * @param obj
-     *            The C2KLocalObject to store
-     * @throws PersistencyException
-     *             When storage fails
+     * @param itemPath The Item that the object will be stored under
+     * @param obj The C2KLocalObject to store
+     * @param transactionKey the key of the transaction, cannot be null
+     * @throws PersistencyException When storage fails
      */
-    public abstract void put(ItemPath itemPath, C2KLocalObject obj) throws PersistencyException;
+    public abstract void put(ItemPath itemPath, C2KLocalObject obj, TransactionKey transactionKey) throws PersistencyException;
 
     /**
      * Remove a CRISTAL local object from storage. This should be used sparingly
      * and responsibly, as it violated traceability. Objects removed in this way
      * are not expected to be recoverable.
      * 
-     * @param itemPath
-     *            The containing Item
-     * @param path
-     *            The path of the object to be removed
-     * @throws PersistencyException
-     *             When deletion fails or is not allowed
+     * @param itemPath The containing Item
+     * @param path The path of the object to be removed
+     * @param transactionKey the key of the transaction, cannot be null
+     * @throws PersistencyException When deletion fails or is not allowed
      */
-    public abstract void delete(ItemPath itemPath, String path) throws PersistencyException;
+    public abstract void delete(ItemPath itemPath, String path, TransactionKey transactionKey) throws PersistencyException;
 
     /**
      * Queries the local path below of the item and returns the possible next elements.
      * 
-     * @param itemPath
-     *            The Item to query
-     * @param path
-     *            The path within that Item to query. May be ClusterStorage.ROOT
-     *            (empty String)
+     * @param itemPath The Item to query
+     * @param path The path within that Item to query. May be ClusterStorage.ROOT (empty String)
+     * @param transactionKey the key of the transaction, can be null
      * @return A String array of the possible next path elements
-     * @throws PersistencyException
-     *             When an error occurred during the query
+     * @throws PersistencyException When an error occurred during the query
      */
-    public abstract String[] getClusterContents(ItemPath itemPath, String path) throws PersistencyException;
+    public abstract String[] getClusterContents(ItemPath itemPath, String path, TransactionKey transactionKey) throws PersistencyException;
 
     /**
      * Queries the local path below the given type and returns the possible next elements.
      * 
      * @param itemPath
      * @param type
+     * @param transactionKey the key of the transaction, can be null
      * @return
      * @throws PersistencyException
      */
-    public String[] getClusterContents(ItemPath itemPath, ClusterType type) throws PersistencyException {
-        return getClusterContents(itemPath, type.getName());
+    public String[] getClusterContents(ItemPath itemPath, ClusterType type, TransactionKey transactionKey) throws PersistencyException {
+        return getClusterContents(itemPath, type.getName(), transactionKey);
     }
 
     /**
      * Queries the Item for the Clusters (root path elements) that are available.
      * 
      * @param itemPath the Item to query
+     * @param transactionKey the key of the transaction, can be null
      * @return A ClusterType array of the possible next path elements
-     * @throws PersistencyException
-     *             When an error occurred during the query
+     * @throws PersistencyException When an error occurred during the query
      */
-    public ClusterType[] getClusters(ItemPath itemPath) throws PersistencyException {
-        String[] contents = getClusterContents(itemPath, "");
+    public ClusterType[] getClusters(ItemPath itemPath, TransactionKey transactionKey) throws PersistencyException {
+        String[] contents = getClusterContents(itemPath, "", transactionKey);
         ArrayList<ClusterType> types = new ArrayList<ClusterType>();
 
         for (String content : contents) {
@@ -381,4 +291,12 @@ public abstract class ClusterStorage {
 
         return types.toArray(new ClusterType[0]);
     }
+
+    public abstract void begin(TransactionKey transactionKey) throws PersistencyException;
+
+    public abstract void commit(TransactionKey transactionKey) throws PersistencyException;
+    
+    public abstract void abort(TransactionKey transactionKey) throws PersistencyException;
+
+
 }

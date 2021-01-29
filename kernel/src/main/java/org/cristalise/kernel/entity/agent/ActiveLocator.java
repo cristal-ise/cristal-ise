@@ -29,6 +29,7 @@ import org.cristalise.kernel.common.SystemKey;
 import org.cristalise.kernel.lookup.AgentPath;
 import org.cristalise.kernel.lookup.InvalidItemPathException;
 import org.cristalise.kernel.process.Gateway;
+
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -55,7 +56,7 @@ public class ActiveLocator extends org.omg.PortableServer.ServantLocatorPOA {
             log.info("===========================================================");
             log.info("Agent called at "+new Timestamp( System.currentTimeMillis()) +": " + operation + "(" + syskey + ")." );
 
-            return Gateway.getCorbaServer().getAgent(syskey);
+            return Gateway.getCorbaServer().getAgent(syskey, null);
 
         }
         catch (ObjectNotFoundException ex) {

@@ -22,6 +22,7 @@ package org.cristalise.kernel.scripting;
 
 import static org.cristalise.kernel.collection.BuiltInCollections.INCLUDE;
 import static org.cristalise.kernel.process.resource.BuiltInResources.SCRIPT_RESOURCE;
+
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintStream;
@@ -31,6 +32,7 @@ import java.io.Writer;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
+
 import javax.script.Bindings;
 import javax.script.Compilable;
 import javax.script.CompiledScript;
@@ -42,6 +44,7 @@ import javax.script.ScriptException;
 import javax.script.SimpleScriptContext;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
+
 import org.apache.commons.lang3.StringUtils;
 import org.cristalise.kernel.collection.CollectionArrayList;
 import org.cristalise.kernel.collection.Dependency;
@@ -54,16 +57,22 @@ import org.cristalise.kernel.entity.proxy.AgentProxy;
 import org.cristalise.kernel.entity.proxy.ItemProxy;
 import org.cristalise.kernel.graph.model.BuiltInVertexProperties;
 import org.cristalise.kernel.lookup.ItemPath;
+import org.cristalise.kernel.persistency.TransactionKey;
+import org.cristalise.kernel.persistency.outcome.Outcome;
 import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.utils.CastorHashMap;
 import org.cristalise.kernel.utils.DescriptionObject;
 import org.cristalise.kernel.utils.FileStringUtility;
 import org.cristalise.kernel.utils.LocalObjectLoader;
+import org.mvel2.templates.CompiledTemplate;
+import org.mvel2.templates.TemplateCompiler;
+import org.mvel2.templates.TemplateRuntime;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 import org.w3c.dom.Text;
 import org.xml.sax.InputSource;
+
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
@@ -76,11 +85,26 @@ import lombok.extern.slf4j.Slf4j;
 @Accessors(prefix = "m") @Getter @Setter @Slf4j
 public class Script implements DescriptionObject {
 
+    static final String scriptTemplate = "/org/cristalise/kernel/utils/resources/templates/Script_xml.tmpl";
+
+    private static CompiledTemplate compiledScriptTemplate = null;
+
+    static {
+        try {
+            String templ = FileStringUtility.url2String(Script.class.getResource(scriptTemplate));
+            compiledScriptTemplate = TemplateCompiler.compileTemplate(templ);
+        }
+        catch (IOException e) {
+            // this case should never happen
+            e.printStackTrace();
+        }
+    }
+
     public static final String PARAMETER_AGENT   = "agent";
     public static final String PARAMETER_DB      = "db";
     public static final String PARAMETER_ITEM    = "item";
     public static final String PARAMETER_JOB     = "job";
-    public static final String PARAMETER_LOCKER  = "locker";
+    public static final String PARAMETER_LOCKER  = "transactionKey";
     public static final String PARAMETER_LOOKUP  = "lookup";
     public static final String PARAMETER_OUTPUT  = "output";
     public static final String PARAMETER_ORB     = "orb";
@@ -93,6 +117,7 @@ public class Script implements DescriptionObject {
     CompiledScript mCompScript = null;
     String         mScriptXML  = "";
 
+    String         mNamespace;
     String         mName;
     Integer        mVersion;
     ItemPath       mItemPath;
@@ -222,7 +247,7 @@ public class Script implements DescriptionObject {
         Bindings beans = context.getBindings(ScriptContext.ENGINE_SCOPE);
 
         beans.put(PARAMETER_STORAGE, Gateway.getStorage());
-        beans.put(PARAMETER_DB, Gateway.getStorage().getDb());
+        beans.put(PARAMETER_DB, Gateway.getStorage());
         beans.put(PARAMETER_PROXY, Gateway.getProxyManager());
         beans.put(PARAMETER_LOOKUP, Gateway.getLookup());
         beans.put(PARAMETER_ORB, Gateway.getORB());
@@ -241,7 +266,7 @@ public class Script implements DescriptionObject {
             engine.eval(scriptText);
         }
         catch (ScriptException ex) {
-            //out.println("Exception parsing console script for " + (ns == null ? "kernel" : ns + " module"));
+            out.println("Exception parsing console script for " + (mNamespace == null ? "kernel" : mNamespace + " module"));
             ex.printStackTrace(out);
         }
 
@@ -450,7 +475,7 @@ public class Script implements DescriptionObject {
      * @param type
      * @throws ParameterException
      */
-    protected void addInputParam(String name, String type) throws ParameterException {
+    public void addInputParam(String name, String type) throws ParameterException {
         try {
             addInputParam(name, Gateway.getResource().getClassForName(type));
         }
@@ -459,10 +484,10 @@ public class Script implements DescriptionObject {
         }
     }
 
-    protected void addInputParam(String name, Class<?> type) throws ParameterException {
+    public void addInputParam(String name, Class<?> type) throws ParameterException {
         Parameter inputParam = new Parameter(name, type);
 
-        log.debug("ScriptExecutor.addInputParam() - declared parameter " + name + " (" + type + ")");
+        log.debug("addInputParam() - declared parameter " + name + " (" + type + ")");
         //add parameter to hashtable
         mInputParams.put(inputParam.getName(), inputParam);
         mAllInputParams.put(inputParam.getName(), inputParam);
@@ -500,7 +525,7 @@ public class Script implements DescriptionObject {
      * @param type
      * @throws ParameterException
      */
-    protected void addOutput(String name, String type) throws ParameterException {
+    public void addOutput(String name, String type) throws ParameterException {
         try {
             addOutput(name, Gateway.getResource().getClassForName(type));
         }
@@ -515,7 +540,7 @@ public class Script implements DescriptionObject {
      * @param type
      * @throws ParameterException
      */
-    protected void addOutput(String name, Class<?> type) throws ParameterException {
+    public void addOutput(String name, Class<?> type) throws ParameterException {
         if (mOutputParams.containsKey(name)) {
             throw new ParameterException("Output parameter '"+name+"' declared more than once.");
         }
@@ -593,12 +618,12 @@ public class Script implements DescriptionObject {
      * @param itemPath
      * @param inputProps
      * @param actContext
-     * @param locker
+     * @param transactionKey
      * @return
      * @throws ScriptingEngineException
      */
-    public Object evaluate(ItemPath itemPath, CastorHashMap inputProps, String actContext, Object locker) throws ScriptingEngineException {
-        return evaluate(itemPath, inputProps, actContext, false, locker);
+    public Object evaluate(ItemPath itemPath, CastorHashMap inputProps, String actContext, TransactionKey transactionKey) throws ScriptingEngineException {
+        return evaluate(itemPath, inputProps, actContext, false, transactionKey);
     }
 
     /**
@@ -607,15 +632,15 @@ public class Script implements DescriptionObject {
      * @param itemPath the Item context
      * @param inputProps input properties
      * @param actContext activity path
-     * @param locker transaction locker
+     * @param transactionKey transaction transactionKey
      * @return the values returned by the Script
      */
-    public synchronized Object evaluate(ItemPath itemPath, CastorHashMap inputProps, String actContext, boolean actExecEnv, Object locker) 
+    public synchronized Object evaluate(ItemPath itemPath, CastorHashMap inputProps, String actContext, boolean actExecEnv, TransactionKey transactionKey) 
             throws ScriptingEngineException
     {
         try {
             //it is possible to execute a script outside of the context of an Item
-            ItemProxy item = itemPath == null ? null : Gateway.getProxyManager().getProxy(itemPath);
+            ItemProxy item = itemPath == null ? null : Gateway.getProxyManager().getProxy(itemPath, transactionKey);
 
             createEmptyContext();
             
@@ -623,12 +648,12 @@ public class Script implements DescriptionObject {
 
             for (String inputParamName: getAllInputParams().keySet()) {
                 if (inputProps.containsKey(inputParamName)) {
-                    setInputParamValue(inputParamName, inputProps.evaluateProperty(itemPath, inputParamName, actContext, locker), true);
+                    setInputParamValue(inputParamName, inputProps.evaluateProperty(itemPath, inputParamName, actContext, transactionKey), true);
                 }
             }
 
             //server side scripts are always executed with an Item context
-            if (item != null) item.setTransactionKey(locker);
+            if (item != null) item.setTransactionKey(transactionKey);
 
             if (getAllInputParams().containsKey(PARAMETER_ITEM) && getAllInputParams().get(PARAMETER_ITEM) != null) {
                 setInputParamValue(PARAMETER_ITEM, item, true);
@@ -636,12 +661,12 @@ public class Script implements DescriptionObject {
 
             //Set agent to be 'system' only if it was not set already
             if (getAllInputParams().containsKey(PARAMETER_AGENT) && getAllInputParams().get(PARAMETER_AGENT) != null) {
-                ItemProxy systemAgent = Gateway.getProxyManager().getProxy(Gateway.getLookup().getAgentPath(SYSTEM_USER));
+                ItemProxy systemAgent = Gateway.getProxyManager().getProxy(Gateway.getLookup().getAgentPath(SYSTEM_USER, transactionKey), transactionKey);
                 setInputParamValue(PARAMETER_AGENT, systemAgent, false);
             }
 
             if (getAllInputParams().containsKey(PARAMETER_LOCKER) && getAllInputParams().get(PARAMETER_LOCKER) != null) {
-                setInputParamValue(PARAMETER_LOCKER, locker, true);
+                setInputParamValue(PARAMETER_LOCKER, transactionKey, true);
             }
 
             Object retVal = execute();
@@ -877,6 +902,12 @@ public class Script implements DescriptionObject {
     }
 
     public String getScriptData() {
+        try {
+            if (StringUtils.isBlank(mScriptXML)) mScriptXML = toXml();
+        }
+        catch (IOException e) {
+            log.error("", e);
+        }
         return mScriptXML;
     }
 
@@ -896,13 +927,30 @@ public class Script implements DescriptionObject {
      * @param version the version of the Script. If set to null
      * @return {@link Script}
      */
-    public static Script getScript(String name, Integer version) 
+    public static Script getScript(String name, Integer version)
+            throws ScriptingEngineException, ObjectNotFoundException, InvalidDataException
+    {
+        return getScript(name, version, null);
+    }
+
+    /**
+     * Resolves the Script object using its name and version. If Version is null tries to interpret the name 
+     * as an expression
+     * 
+     * @see BuiltInVertexProperties#ROUTING_EXPR
+     * 
+     * @param name the name of the Script Item or an expression
+     * @param version the version of the Script. If set to null
+     * @param transactionKey key of the transaction
+     * @return {@link Script}
+     */
+    public static Script getScript(String name, Integer version, TransactionKey transactionKey) 
             throws ScriptingEngineException, ObjectNotFoundException, InvalidDataException
     {
         if (StringUtils.isBlank(name)) throw new ScriptingEngineException("Script name is blank");
 
         if (version != null) {
-            return LocalObjectLoader.getScript(name, version);
+            return LocalObjectLoader.getScript(name, version, transactionKey);
         }
         else {
             // empty version: try expression
@@ -950,12 +998,12 @@ public class Script implements DescriptionObject {
      * 
      */
     @Override
-    public CollectionArrayList makeDescCollections() throws InvalidDataException, ObjectNotFoundException {
+    public CollectionArrayList makeDescCollections(TransactionKey transactionKey) throws InvalidDataException, ObjectNotFoundException {
         CollectionArrayList retArr = new CollectionArrayList();
         Dependency includeColl = new Dependency(INCLUDE);
         for (Script script : mIncludes) {
             try {
-                includeColl.addMember(script.getItemPath());
+                includeColl.addMember(script.getItemPath(), transactionKey);
             }
             catch (InvalidCollectionModification e) {
                 log.error("Could not add "+script.getName()+" to description collection. ", e);
@@ -971,13 +1019,15 @@ public class Script implements DescriptionObject {
     }
 
     /**
+     * @throws InvalidDataException 
      * 
      */
     @Override
-    public void export(Writer imports, File dir, boolean shallow) throws IOException {
+    public void export(Writer imports, File dir, boolean shallow) throws IOException, InvalidDataException {
         String tc = SCRIPT_RESOURCE.getTypeCode();
 
-        FileStringUtility.string2File(new File(new File(dir, tc), getName()+(getVersion()==null?"":"_"+getVersion())+".xml"), getScriptData());
+        String xml = new Outcome(getScriptData()).getData(true);
+        FileStringUtility.string2File(new File(new File(dir, tc), getName()+(getVersion()==null?"":"_"+getVersion())+".xml"), xml);
 
         if (imports == null) return;
 
@@ -1001,5 +1051,18 @@ public class Script implements DescriptionObject {
             System.out.println(sef.getEngineName()+" v"+sef.getEngineVersion()+" using "+sef.getLanguageName()+" v"+sef.getLanguageVersion()+" "+sef.getNames());
         }
         System.out.println("Preferred javascript engine: "+new ScriptEngineManager().getEngineByName("javascript").getClass().getName());
+    }
+
+    public String toXml() throws IOException {
+        Map<String, Object> vars = new HashMap<String, Object>();
+
+        vars.put("name", getName());
+        vars.put("language", getLanguage());
+        vars.put("includes", mIncludes);
+        vars.put("inputs", getInputParams().values());
+        vars.put("outputs", getOutputParams().values());
+        vars.put("script", mScript);
+
+        return (String) TemplateRuntime.execute(compiledScriptTemplate, vars);
     }
 }

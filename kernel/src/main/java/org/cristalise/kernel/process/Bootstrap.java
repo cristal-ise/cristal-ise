@@ -50,6 +50,7 @@ import org.cristalise.kernel.lookup.InvalidItemPathException;
 import org.cristalise.kernel.lookup.ItemPath;
 import org.cristalise.kernel.lookup.LookupManager;
 import org.cristalise.kernel.lookup.RolePath;
+import org.cristalise.kernel.persistency.TransactionKey;
 import org.cristalise.kernel.persistency.outcome.Outcome;
 import org.cristalise.kernel.process.resource.BuiltInResources;
 import org.cristalise.kernel.process.resource.ResourceImportHandler;
@@ -57,6 +58,7 @@ import org.cristalise.kernel.property.Property;
 import org.cristalise.kernel.scripting.ScriptConsole;
 import org.cristalise.kernel.utils.FileStringUtility;
 import org.cristalise.kernel.utils.LocalObjectLoader;
+import org.cristalise.kernel.utils.Logger;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -77,14 +79,28 @@ public class Bootstrap {
      * @throws Exception in case of any error
      */
     static void init() throws Exception {
-        // check for system agents
-        checkAdminAgents();
+        TransactionKey transactionKey = new TransactionKey("Bootstrap-Init");
+        Gateway.getStorage().begin(transactionKey);
 
-        // create the server's mother item
-        ItemPath serverItem = createServerItem();
+        try {
+            //start console
+            Logger.initConsole("ItemServer");
 
-        // store system properties in server item
-        storeSystemProperties(serverItem);
+            // check for system agents
+            checkAdminAgents(transactionKey);
+
+            // create the server's mother item
+            ItemPath serverItem = createServerItem(transactionKey);
+
+            // store system properties in server item
+            storeSystemProperties(serverItem, transactionKey);
+
+            Gateway.getStorage().commit(transactionKey);
+        }
+        catch (Exception e) {
+            Gateway.getStorage().abort(transactionKey);
+            throw e;
+        }
     }
 
     /**
@@ -111,23 +127,20 @@ public class Bootstrap {
                         verifyBootDataItems();
                     }
 
-                    // verify the server item's wf
-                    if (!shutdown) {
-                        log.info("run() - Initialising Server Item Workflow");
-                        initServerItemWf();
-                    }
-
                     if (!shutdown) {
                         Gateway.getModuleManager().setUser(systemAgents.get(SYSTEM_AGENT.getName()));
                         Gateway.getModuleManager().registerModules();
                     }
 
                     if (!shutdown) {
-                        log.info("run() - Bootstrapper complete");
+                        log.info("run() - RegisterModules complete");
+
                         Gateway.getModuleManager().runScripts("initialized");
 
                         if (Gateway.getLookupManager() != null) Gateway.getLookupManager().postBoostrap();
                         Gateway.getStorage().postBoostrap();
+
+                        log.info("run() - Bootstrapper complete");
                     }
                 }
                 catch (Throwable e) {
@@ -154,7 +167,18 @@ public class Bootstrap {
 
         bootItems = FileStringUtility.url2String(Gateway.getResource().getKernelResourceURL("boot/allbootitems.txt"));
 
-        verifyBootDataItems(bootItems, null, true);
+        TransactionKey transactionKey = new TransactionKey("Bootstrap-VerifyBootDataItems");
+        Gateway.getStorage().begin(transactionKey);
+
+        try {
+            verifyBootDataItems(bootItems, null, true, transactionKey);
+
+            Gateway.getStorage().commit(transactionKey);
+        }
+        catch (Exception e) {
+            Gateway.getStorage().abort(transactionKey);
+            throw e;
+        }
 
         log.info("verifyBootDataItems() - DONE.");
     }
@@ -166,7 +190,7 @@ public class Bootstrap {
      * @param reset
      * @throws InvalidItemPathException
      */
-    private static void verifyBootDataItems(String bootList, String ns, boolean reset) throws Exception {
+    private static void verifyBootDataItems(String bootList, String ns, boolean reset, TransactionKey transactionKey) throws Exception {
         StringTokenizer str = new StringTokenizer(bootList, "\n\r");
 
         List<String> kernelChanges = new ArrayList<String>();
@@ -179,24 +203,22 @@ public class Bootstrap {
             String[] fileParts = filename.split("/");
             String itemType = fileParts[0], itemName = fileParts[1];
 
-            try {
-                String location = "boot/"+filename+(itemType.equals("OD")?".xsd":".xml");
-                ResourceImportHandler importHandler = Gateway.getResourceImportHandler(BuiltInResources.getValue(itemType));
-                importHandler.importResource(ns, itemName, 0, itemPath, location, reset);
+            String location = "boot/"+filename+(itemType.equals("OD")?".xsd":".xml");
+            ResourceImportHandler importHandler = Gateway.getResourceImportHandler(BuiltInResources.getValue(itemType));
+            importHandler.importResource(ns, itemName, 0, itemPath, location, reset, transactionKey);
 
-                kernelChanges.add(importHandler.getResourceChangeDetails());
-            }
-            catch (Exception e) {
-                log.error("Error importing bootstrap items. Unsafe to continue.", e);
-                AbstractMain.shutdown(1);
-            }
+            kernelChanges.add(importHandler.getResourceChangeDetails());
         }
 
         StringBuffer moduleChangesXML = new StringBuffer("<ModuleChanges>\n");
+        moduleChangesXML.append("<ModuleName>kernel</ModuleName>");
+        moduleChangesXML.append("<ModuleVersion>0</ModuleVersion>");
         for (String oneChange: kernelChanges) moduleChangesXML.append(oneChange).append("\n");
         moduleChangesXML.append("</ModuleChanges>");
 
-        new UpdateImportReport().request((AgentPath)SYSTEM_AGENT.getPath(), thisServerPath.getItemPath(), moduleChangesXML.toString());
+        if (StringUtils.isNotBlank(moduleChangesXML)) {
+            new UpdateImportReport().request((AgentPath)SYSTEM_AGENT.getPath(transactionKey), thisServerPath.getItemPath(), moduleChangesXML.toString(), transactionKey);
+        }
     }
 
     /**
@@ -209,12 +231,12 @@ public class Bootstrap {
      * @return the Proxy representing the Agent
      * @throws Exception any exception found
      */
-    private static AgentProxy checkAgent(String name, String pass, RolePath rolePath, String uuid) throws Exception {
+    private static AgentProxy checkAgent(String name, String pass, RolePath rolePath, String uuid, TransactionKey transactionKey) throws Exception {
         log.info("checkAgent() - Checking for existence of '"+name+"' agent.");
         LookupManager lookup = Gateway.getLookupManager();
 
         try {
-            AgentProxy agentProxy = Gateway.getProxyManager().getAgentProxy(lookup.getAgentPath(name));
+            AgentProxy agentProxy = Gateway.getProxyManager().getAgentProxy(lookup.getAgentPath(name, transactionKey), transactionKey);
             systemAgents.put(name, agentProxy);
             log.info("checkAgent() - Agent '"+name+"' found.");
             return agentProxy;
@@ -226,17 +248,17 @@ public class Bootstrap {
         try {
             AgentPath agentPath = new AgentPath(new ItemPath(uuid), name);
 
-            Gateway.getCorbaServer().createAgent(agentPath);
-            lookup.add(agentPath);
+            Gateway.getCorbaServer().createAgent(agentPath, transactionKey);
+            lookup.add(agentPath, transactionKey);
 
-            if (StringUtils.isNotBlank(pass)) lookup.setAgentPassword(agentPath, pass);
+            if (StringUtils.isNotBlank(pass)) lookup.setAgentPassword(agentPath, pass, false, transactionKey);
 
             // assign role
             log.info("checkAgent() - Assigning role '"+rolePath.getName()+"'");
-            Gateway.getLookupManager().addRole(agentPath, rolePath);
-            Gateway.getStorage().put(agentPath, new Property(NAME, name, true), null);
-            Gateway.getStorage().put(agentPath, new Property(TYPE, "Agent", false), null);
-            AgentProxy agentProxy = Gateway.getProxyManager().getAgentProxy(agentPath);
+            Gateway.getLookupManager().addRole(agentPath, rolePath, transactionKey);
+            Gateway.getStorage().put(agentPath, new Property(NAME, name, true), transactionKey);
+            Gateway.getStorage().put(agentPath, new Property(TYPE, "Agent", false), transactionKey);
+            AgentProxy agentProxy = Gateway.getProxyManager().getAgentProxy(agentPath, transactionKey);
             //TODO: properly init agent here with wf, props and colls -> use CreatItemFromDescription
             systemAgents.put(name, agentProxy);
             return agentProxy;
@@ -251,39 +273,37 @@ public class Bootstrap {
      * 
      * @throws Exception
      */
-    public static void checkAdminAgents() throws Exception {
+    public static void checkAdminAgents(TransactionKey transactionKey) throws Exception {
         RolePath rootRole = new RolePath();
-        if (!rootRole.exists()) Gateway.getLookupManager().createRole(rootRole);
+        if (!rootRole.exists(transactionKey)) Gateway.getLookupManager().createRole(rootRole, transactionKey);
 
         // check for 'Admin' role
         RolePath adminRole = new RolePath(rootRole, ADMIN_ROLE.getName(), false, Arrays.asList("*"));
         ImportRole importAdminRole = ImportRole.getImportRole(adminRole);
 
-        if (adminRole.exists()) importAdminRole.update(null); // this will reset any changes done to thr Admin role
-        else                    importAdminRole.create(null, false);
+        if (adminRole.exists(transactionKey)) importAdminRole.update(null, transactionKey); // this will reset any changes done to the Admin role
+        else                                  importAdminRole.create(null, false, transactionKey);
 
         // check for 'system' Agent
-        AgentProxy system = checkAgent(SYSTEM_AGENT.getName(), null, adminRole, new UUID(0, 1).toString());
+        AgentProxy system = checkAgent(SYSTEM_AGENT.getName(), null, adminRole, new UUID(0, 1).toString(), transactionKey);
         ScriptConsole.setUser(system);
 
         String ucRole = Gateway.getProperties().getString("UserCode.roleOverride", UserCodeProcess.DEFAULT_ROLE);
+        String ucPermissions = Gateway.getProperties().getString(ucRole + ".permissions", "");
 
         // check for local usercode user & its role
         RolePath usercodeRole = new RolePath(rootRole, ucRole, true);
-        if (!usercodeRole.exists()) Gateway.getLookupManager().createRole(usercodeRole);
+        if (!usercodeRole.exists(transactionKey)) Gateway.getLookupManager().createRole(usercodeRole, transactionKey);
+        Gateway.getLookupManager().setPermissions(usercodeRole, Arrays.asList(ucPermissions.split(",")), transactionKey);
         checkAgent(
                 Gateway.getProperties().getString(ucRole + ".agent",     InetAddress.getLocalHost().getHostName()),
                 Gateway.getProperties().getString(ucRole + ".password", "uc"),
                 usercodeRole,
-                UUID.randomUUID().toString());
+                UUID.randomUUID().toString(),
+                transactionKey);
     }
 
-    /**
-     * 
-     * @return
-     * @throws Exception
-     */
-    private static ItemPath createServerItem() throws Exception {
+    private static ItemPath createServerItem(TransactionKey transactionKey) throws Exception {
         LookupManager lookupManager = Gateway.getLookupManager();
         String serverName = Gateway.getProperties().getString("ItemServer.name", InetAddress.getLocalHost().getHostName());
         thisServerPath = new DomainPath("/servers/"+serverName);
@@ -294,34 +314,37 @@ public class Bootstrap {
         catch (ObjectNotFoundException ex) {
             log.info("Creating server item "+thisServerPath);
             serverItem = new ItemPath();
-            Gateway.getCorbaServer().createItem(serverItem);
-            lookupManager.add(serverItem);
+            Gateway.getCorbaServer().createItem(serverItem, transactionKey);
+            lookupManager.add(serverItem, transactionKey);
             thisServerPath.setItemPath(serverItem);
-            lookupManager.add(thisServerPath);
+            lookupManager.add(thisServerPath, transactionKey);
         }
 
         int proxyPort = Gateway.getProperties().getInt("ItemServer.Proxy.port", 1553);
+        int consolePort = Logger.getConsolePort();
 
-        Gateway.getStorage().put(serverItem, new Property(NAME,            serverName,                              false), null);
-        Gateway.getStorage().put(serverItem, new Property(TYPE,            "Server",                                false), null);
-        Gateway.getStorage().put(serverItem, new Property(KERNEL_VERSION,  Gateway.getKernelVersion(),              true),  null);
-        Gateway.getStorage().put(serverItem, new Property("ProxyPort",     String.valueOf(proxyPort),               false), null);
-//        Gateway.getStorage().put(serverItem, new Property("ConsolePort",   String.valueOf(Logger.getConsolePort()), true),  null);
+        Gateway.getStorage().put(serverItem, new Property(NAME,            serverName,                  false), transactionKey);
+        Gateway.getStorage().put(serverItem, new Property(TYPE,            "Server",                    false), transactionKey);
+        Gateway.getStorage().put(serverItem, new Property(KERNEL_VERSION,  Gateway.getKernelVersion(),  true),  transactionKey);
+        Gateway.getStorage().put(serverItem, new Property("ProxyPort",     String.valueOf(proxyPort),   false), transactionKey);
+        Gateway.getStorage().put(serverItem, new Property("ConsolePort",   String.valueOf(consolePort), true),  transactionKey);
+
+        initServerItemWf(transactionKey);
 
         Gateway.getProxyManager().connectToProxyServer(serverName, proxyPort);
 
         return serverItem;
     }
 
-    private static void storeSystemProperties(ItemPath serverItem) throws Exception {
+    private static void storeSystemProperties(ItemPath serverItem, TransactionKey transactionKey) throws Exception {
         Outcome newOutcome = Gateway.getProperties().convertToOutcome("ItemServer");
-        PredefinedStep.storeOutcomeEventAndViews(serverItem, newOutcome);
+        PredefinedStep.storeOutcomeEventAndViews(serverItem, newOutcome, transactionKey);
     }
 
-    public static void initServerItemWf() throws Exception {
-        CompositeActivityDef serverWfCa = (CompositeActivityDef)LocalObjectLoader.getActDef("ServerItemWorkflow", 0);
-        Workflow wf = new Workflow((CompositeActivity)serverWfCa.instantiate(), new ServerPredefinedStepContainer());
-        wf.initialise(thisServerPath.getItemPath(), systemAgents.get(SYSTEM_AGENT.getName()).getPath(), null);
-        Gateway.getStorage().put(thisServerPath.getItemPath(), wf, null);
+    private static void initServerItemWf(TransactionKey transactionKey) throws Exception {
+        CompositeActivityDef serverWfCa = (CompositeActivityDef)LocalObjectLoader.getCompActDef("ServerItemWorkflow", 0, transactionKey);
+        Workflow wf = new Workflow((CompositeActivity)serverWfCa.instantiate(transactionKey), new ServerPredefinedStepContainer());
+        wf.initialise(thisServerPath.getItemPath(), systemAgents.get(SYSTEM_AGENT.getName()).getPath(), transactionKey);
+        Gateway.getStorage().put(thisServerPath.getItemPath(), wf, transactionKey);
     }
 }

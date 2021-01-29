@@ -14,7 +14,7 @@ class SplitExecutionSpecs extends Specification implements CristalTestSetup {
     WorkflowTestBuilder util
 
     def setup() {
-        inMemoryServer('src/main/bin/inMemoryServer.conf', 'src/main/bin/inMemory.clc', 8)
+        inMemoryServer('src/main/bin/inMemoryServer.conf', 'src/main/bin/inMemory.clc', 8, null, true)
         util = new WorkflowTestBuilder()
     }
 
