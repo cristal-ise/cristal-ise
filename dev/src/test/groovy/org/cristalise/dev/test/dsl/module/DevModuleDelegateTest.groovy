@@ -32,6 +32,8 @@ class DevModuleDelegateTest {
     public void devModule_Dependency() {
         def moduleD = new DevModuleDelegate()
         def devModule = moduleD.processClosure() {
+            //System.setProperty('line.separator', '\n')
+    
             Module(namespace: 'test') {
                 Item(name: 'Car') {
                     field(name: 'RegistrationPlate')
@@ -56,7 +58,7 @@ class Car {
 class ClubMember {
   Email : xs:string
 }
-ClubMember  -- "*" Car
+ClubMember -- "*" Car
 @enduml
 """
     }

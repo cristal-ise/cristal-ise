@@ -21,6 +21,7 @@
 package org.cristalise.dev.dsl.item
 
 import static org.cristalise.dev.dsl.item.DevDependency.Cardinality.*
+import static org.cristalise.dev.dsl.item.DevDependency.Type.*
 
 import org.atteo.evo.inflector.English
 
@@ -51,9 +52,10 @@ class DevDependency {
     }
 
     public String getPlantUml() {
-        String fromMany = cardinality == ManyToMany || cardinality == ManyToOne ? '"*"' : ''
-        String toMany   = cardinality == ManyToMany || cardinality == OneToMany ? '"*"' : ''
+        String fromMany = cardinality == ManyToMany || cardinality == ManyToOne ? '"*" ' : ''
+        String toMany   = cardinality == ManyToMany || cardinality == OneToMany ? ' "*"' : ''
+        String toArrow  = type == Unidirectional ? '">"' : ''
 
-        return "${from} ${fromMany} -- ${toMany} ${to}\n".toString()
+        return "${from} ${fromMany}--${toArrow}${toMany} ${to}\n".toString()
     }
 }
