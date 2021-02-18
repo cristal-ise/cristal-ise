@@ -20,63 +20,18 @@
  */
 package org.cristalise.kernel.lifecycle.instance.predefined;
 
-import java.util.Arrays;
-
-import org.cristalise.kernel.collection.Dependency;
-import org.cristalise.kernel.collection.DependencyMember;
-import org.cristalise.kernel.common.InvalidCollectionModification;
-import org.cristalise.kernel.common.InvalidDataException;
-import org.cristalise.kernel.common.ObjectAlreadyExistsException;
-import org.cristalise.kernel.common.ObjectNotFoundException;
-import org.cristalise.kernel.common.PersistencyException;
-import org.cristalise.kernel.lookup.AgentPath;
-import org.cristalise.kernel.lookup.ItemPath;
-import org.cristalise.kernel.persistency.TransactionKey;
-import org.cristalise.kernel.process.Gateway;
-
 /**
- * <pre>
  * Generates a new slot in a Dependency for the given item
  * 
- * Params:
- * 0 - collection name
- * 1 - target UUID or DomainPath
- * 2 - slot properties (optional)
- * </pre>
+ * @deprecated use {@link AddMembersToCollection}
  */
-public class AddMemberToCollection extends PredefinedStepCollectionBase {
-    public static final String description = "Creates a new member slot for the given item in a dependency, and assigns the item";
-    
+public class AddMemberToCollection extends AddMembersToCollection {
+    public static final String description = "Deprecated. Use AddMembersToCollection";
+
     /**
      * Constructor for Castor
      */
     public AddMemberToCollection() {
         super();
-    }
-
-    @Override
-    protected String runActivityLogic(AgentPath agent, ItemPath item, int transitionID, String requestData, TransactionKey transactionKey)
-            throws InvalidDataException, ObjectAlreadyExistsException, PersistencyException, ObjectNotFoundException, InvalidCollectionModification
-    {
-        String[] params = unpackParamsAndGetCollection(item, requestData, transactionKey);
-
-        Dependency dep = getDependency();
-        DependencyMember member = null;
-
-        // find member and assign entity
-        if (memberNewProps == null) member = dep.createMember(childPath, transactionKey);
-        else                        member = dep.createMember(childPath, memberNewProps, transactionKey);
-
-        evaluateScript(item, dep, member, transactionKey);
-
-        dep.addMember(member);
-
-        Gateway.getStorage().put(item, dep, transactionKey);
-
-        //put ID of the newly created member into the return data of this step
-        params = Arrays.copyOf(params, params.length+1);
-        params[params.length-1] = Integer.toString(member.getID());
-
-        return bundleData(params);
     }
 }

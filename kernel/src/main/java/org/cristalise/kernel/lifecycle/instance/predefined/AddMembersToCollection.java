@@ -45,13 +45,13 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class AddMembersToCollection extends PredefinedStepCollectionBase {
 
+    public static final String description = "Adds many members to the Item";
+
     public AddMembersToCollection(){
         super();
         this.setBuiltInProperty(SCHEMA_NAME, "Dependency");
     }
 
-    //Creates a new member slot for the given item in a dependency, and assigns the item
-    public static final String description = "Adds members to a given item";
     @Override
     protected String runActivityLogic(AgentPath agent, ItemPath item, int transitionID, String requestData, TransactionKey transactionKey)
             throws InvalidDataException, ObjectAlreadyExistsException, PersistencyException, ObjectNotFoundException,

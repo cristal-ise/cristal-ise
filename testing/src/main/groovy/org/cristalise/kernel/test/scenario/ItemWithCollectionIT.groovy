@@ -65,12 +65,16 @@ class ItemWithCollectionIT extends KernelScenarioTestBase {
     public void testAddMemberToCollection_AddMembersToCollection_UpdateDependencyMember() {
         def doctor = buildDoctor()
         def patient1 = buildPatient('Patient1')
+
+        def dep0 = new Dependency("Patients");
+
         CastorHashMap memberProps1 = new CastorHashMap();
         memberProps1.put("Name", "P1");
         memberProps1.put("Disease", "covid19--");
         //memberProps1.put("MemberUpdateSchema", "Patient:0");
-        
-        agent.execute(doctor, AddMemberToCollection, 'Patients', patient1.getPath().toString(), Gateway.marshaller.marshall(memberProps1))
+        dep0.addMember(patient1.getPath(), memberProps1, '', null);
+
+        agent.execute(doctor, AddMemberToCollection, Gateway.marshaller.marshall(dep0))
 
         def patient2 = buildPatient('Patient2')
         def patient3 = buildPatient('Patient3')
