@@ -178,7 +178,7 @@
                   <xs:attribute name="name" type="xs:string" use="required" />
                   <xs:attribute name="version" type="xs:integer" use="optional" />
                   <xs:attribute name="id" type="uuid" use="optional" />
-                  <xs:attribute name="workflow" type="xs:string" use="required" />
+                  <xs:attribute name="workflow" type="xs:string" use="optional" />
                   <xs:attribute name="workflowVer" type="xs:int" use="optional" />
                   <xs:attribute name="initialPath" type="xs:string" use="optional" />
                 </xs:complexType>
