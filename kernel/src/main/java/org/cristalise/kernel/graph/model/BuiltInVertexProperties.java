@@ -75,7 +75,7 @@ public enum BuiltInVertexProperties {
     LAST_NUM("LastNum"),
 
     /**
-     * String property used in CollectionDefinition to specify the Script to be executed during AddMemberToCollection. 
+     * String property used in CollectionDefinition to specify the Script to be executed during AddMembersToCollection. 
      * Its primary purpose is to  ensure referential integrity. It shall contain the Name or UUID of the Script and the version number 
      * separated with colon.
      * 
