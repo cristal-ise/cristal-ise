@@ -52,22 +52,20 @@ def aggregateScript =  Script("Patient_Aggregate", 0) {
     script('groovy', 'src/main/data/AggregatePatientData.groovy')
 }
 
-def wf = Workflow(name: "Patient_Workflow", version: 0, generate: true) {
-    ElemActDef('SetPatientDetails', setDetailsEA)
+def patientWf = Workflow(name: "Patient_Workflow", version: 0, generate: true) {
+    ElemActDef('SetDetails', setDetailsEA)
     ElemActDef('SetUrinSample', urinalysisEA)
 }
 
-Item(name: 'PatientFactory', version: 0, folder: '/integTest', workflow: 'Factory_Workflow', workflowVer: 0) {
+Item(name: 'PatientFactory', version: 0, folder: '/integTest', workflow: 'CrudFactory_Workflow', workflowVer: 0) {
     InmutableProperty('Type': 'Factory')
     InmutableProperty('Root': '/integTest/Patients')
-
     InmutableProperty('UpdateSchema': 'Equipment_Details:0')
-
 
     Outcome(schema: 'PropertyDescription', version: '0', viewname: 'last', path: 'boot/property/Patient_0.xml')
 
     Dependency('workflow') {
-        Member(itemPath: '/desc/ActivityDesc/integTest/Patient_Workflow') {
+        Member(patientWf) {
             Property('Version': 0)
         }
     }

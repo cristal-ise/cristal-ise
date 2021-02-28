@@ -7,9 +7,9 @@ import groovy.transform.SourceURI
 @SourceURI
 URI scriptUri
 
-setModuletDir scriptUri
+setModuleDir scriptUri
 
-setConfig  'src/main/bin/client.conf'
+setConfig  'src/main/bin/dsl.conf'
 setConnect 'src/main/bin/integTest.clc'
 
 setResourceRoot Paths.get(scriptUri).parent.toString()+'/resources'
@@ -23,4 +23,5 @@ Module(ns: 'integTest', name: 'IntegrationTest', version: 0) {
     Url('org/cristalise/testing/resources/')
  
     include(moduleDir+'/Patient.groovy')
+    include(moduleDir+'/Doctor.groovy')
  }
