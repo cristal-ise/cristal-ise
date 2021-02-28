@@ -397,7 +397,7 @@ public class CompositeActivityDef extends ActivityDef {
         // TODO: property include routing scripts in another dependency collection
 
         if (!shallow) {
-            //export child activitz defs, routing scripts and schemas
+            //export child activity defs, routing scripts and schemas
             for (GraphableVertex vert: getChildren()) {
                 if (vert instanceof AndSplitDef) {
                     try {
@@ -429,11 +429,9 @@ public class CompositeActivityDef extends ActivityDef {
                             ItemPath itemPath = Gateway.getLookup().getItemPath(syskey);
                             ItemProxy itemProxy = Gateway.getProxyManager().getProxy(itemPath);
                             nodeList.item(i).setNodeValue(itemProxy.getName());
-                            break;
                         }
                         else if (StringUtils.isNotBlank(syskey)) {
                             log.debug("export(name:{}) - syskey:{} was not replaced - not null & not UUID", getActName(), syskey);
-                            break;
                         }
                     }
                     catch(Exception e) {
