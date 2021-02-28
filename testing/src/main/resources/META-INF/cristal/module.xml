@@ -159,6 +159,7 @@
 
         <!-- Patient Descriptions -->
 
+        <PropertyDescriptionResource name="Doctor" version="0"/>
         <PropertyDescriptionResource name="Patient" version="0"/>
         <SchemaResource name="Patient_Details" version="0"/>
         <Activity name="Patient_SetDetails" version="0">
@@ -171,11 +172,10 @@
         <SchemaResource name="Patient" version="0"/>
         <ScriptResource name="Patient_Aggregate" version="0"/>
         <Workflow name="Patient_Workflow" version="0">
-          <Activity name="Patient_SetUrinSample" version="0" id="0bd91a29-87c6-4e7a-a9ca-eda8f4e51ed9"/>
-          <Activity name="Patient_SetDetails" version="0" id="85dc253b-7e14-4f6e-a755-e4d08bb697a6"/>
+          <Activity name="Patient_SetUrinSample" version="0"/>
+          <Activity name="Patient_SetDetails" version="0"/>
         </Workflow>
         <ItemResource name="PatientFactory" version="0"/>
-        <PropertyDescriptionResource name="Doctor" version="0"/>
         <SchemaResource name="Doctor_Patient" version="0"/>
         <ScriptResource name="Doctor_AddPatient" version="0"/>
         <Activity name="Doctor_AddPatient" version="0">

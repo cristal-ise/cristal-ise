@@ -1,15 +1,9 @@
+import static org.cristalise.kernel.collection.Collection.Cardinality.*
+import static org.cristalise.kernel.collection.Collection.Type.*
 import static org.cristalise.kernel.collection.BuiltInCollections.AGGREGATE_SCRIPT
 import static org.cristalise.kernel.collection.BuiltInCollections.MASTER_SCHEMA
 import static org.cristalise.kernel.collection.BuiltInCollections.SCHEMA_INITIALISE
-import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.DEPENDENCY_NAME
-import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.OUTCOME_INIT
-import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.PREDEFINED_STEP
-
-PropertyDescriptionList('Doctor', 0) {
-    PropertyDesc(name: 'Name',  isMutable: true,  isClassIdentifier: false)
-    PropertyDesc(name: 'Type',  isMutable: false, isClassIdentifier: true,  defaultValue: 'Doctor')
-    PropertyDesc(name: 'State', isMutable: true,  isClassIdentifier: false, defaultValue: 'ACTIVE')
-}
+import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.*
 
 def doctorPatientSchema = Schema("Doctor_Patient", 0) {
     struct(name: 'Doctor_Patient', useSequence: true) {
@@ -54,9 +48,12 @@ Item(name: 'DoctorFactory', version: 0, folder: '/integTest', workflow: 'CrudFac
     }
 
     DependencyDescription('Patients') {
-      Member($patient_PropertyDescriptionList) {
-        Property("MemberUpdateSchema": "Doctor_Patient:0")
-      }
+        Properties {
+            Property((DEPENDENCY_CARDINALITY): OneToMany.toString())
+            Property((DEPENDENCY_TYPE): Bidirectional.toString())
+            Property((DEPENDENCY_TO): 'Doctor')
+        }
+        Member($patient_PropertyDescriptionList)
     }
 }
 

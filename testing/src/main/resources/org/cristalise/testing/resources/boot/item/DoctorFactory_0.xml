@@ -13,9 +13,15 @@
   <Dependency classProps="" isDescription="true" name="Patients">
     <DependencyMember itemPath="/desc/PropertyDesc/integTest/Patient">
       <MemberProperties>
-        <KeyValuePair Key="MemberUpdateSchema" String="Doctor_Patient:0" isAbstract="false"/>
+        <KeyValuePair Key="DependencyType" String="Bidirectional" isAbstract="false"/>
+        <KeyValuePair Key="DependencyTo" String="Doctor" isAbstract="false"/>
+        <KeyValuePair Key="DependencyCardinality" String="OneToMany" isAbstract="false"/>
       </MemberProperties>
     </DependencyMember>
-    <CollectionProperties/>
+    <CollectionProperties>
+      <KeyValuePair Key="DependencyTo" String="Doctor" isAbstract="false"/>
+      <KeyValuePair Key="DependencyCardinality" String="OneToMany" isAbstract="false"/>
+      <KeyValuePair Key="DependencyType" String="Bidirectional" isAbstract="false"/>
+    </CollectionProperties>
   </Dependency>
 </Item>

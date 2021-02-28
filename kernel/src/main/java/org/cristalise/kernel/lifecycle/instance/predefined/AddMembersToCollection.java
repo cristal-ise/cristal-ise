@@ -21,9 +21,7 @@
 package org.cristalise.kernel.lifecycle.instance.predefined;
 
 import static org.apache.commons.lang3.StringUtils.isBlank;
-import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.DEPENDENCY_NAME;
-import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.MEMBER_ADD_SCRIPT;
-import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.SCHEMA_NAME;
+import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.*;
 import static org.cristalise.kernel.persistency.ClusterType.COLLECTION;
 
 import java.io.IOException;
@@ -31,6 +29,7 @@ import java.io.IOException;
 import javax.xml.xpath.XPathExpressionException;
 
 import org.apache.commons.lang3.StringUtils;
+import org.cristalise.kernel.collection.Collection;
 import org.cristalise.kernel.collection.Dependency;
 import org.cristalise.kernel.collection.DependencyMember;
 import org.cristalise.kernel.common.InvalidCollectionModification;
@@ -171,10 +170,32 @@ public class AddMembersToCollection extends PredefinedStep {
         }
 
         Dependency inputDependency = setInputDependencyUpdate(currentItem, inputOutcome);
+
         if (isBlank(inputDependency.getName()) || ! dependencyName.equals(inputDependency.getName())) {
             throw new InvalidDataException(dependencyName + " != " + inputDependency.getName());
         }
 
-        //Dependency currentDependency = getCurrentDependency(currentItem, dependencyName, null, transactionKey);
+        Dependency currentDependency = getCurrentDependency(currentItem, dependencyName, null, transactionKey);
+
+        if (currentDependency.containsBuiltInProperty(DEPENDENCY_TYPE)) {
+            Collection.Type currentDepType = Collection.Type.valueOf((String)currentDependency.getBuiltInProperty(DEPENDENCY_TYPE));
+
+            if (currentDepType == Collection.Type.Bidirectional) {
+                String toDepName = (String)currentDependency.getBuiltInProperty(DEPENDENCY_TO);
+
+                for (DependencyMember inputMember : inputDependency.getMembers().list) {
+                    Dependency toDep = new Dependency(toDepName);
+
+                    try {
+                        toDep.addMember(currentItem, new CastorHashMap(), "", null);
+                        getUpdates().put(inputMember.getItemPath(), Gateway.getMarshaller().marshall(toDep));
+                    }
+                    catch (MarshalException | ValidationException | IOException | MappingException | InvalidCollectionModification | ObjectAlreadyExistsException e) {
+                        log.error("computeUpdates()", e);
+                        throw new InvalidDataException(e.getMessage());
+                    }
+                }
+            }
+        }
     }
 }

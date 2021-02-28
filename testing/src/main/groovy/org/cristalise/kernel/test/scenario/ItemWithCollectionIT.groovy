@@ -164,7 +164,7 @@ class ItemWithCollectionIT extends KernelScenarioTestBase {
     }
 
     @Test
-    public void testAutomatic_AddMembersToCollection() {
+    public void testAutomaticUpdateOfBidirectionalDependency() {
         def doctor = setupDoctors(1)[0]
         def patient = setupPatients(1)[0]
 
@@ -179,5 +179,10 @@ class ItemWithCollectionIT extends KernelScenarioTestBase {
 
         assert depPatients.getMembers().list.size() == 1
         assert depPatients.getMember(0).getChildUUID() == patient.getPath().getUUID().toString()
+
+        def depDoctor = (Dependency)patient.getCollection('Doctor')
+
+        assert depDoctor.getMembers().list.size() == 1
+        assert depDoctor.getMember(0).getChildUUID() == doctor.getPath().getUUID().toString()
     }
 }

@@ -5,6 +5,7 @@
   </Info>
   <ResourceURL>org/cristalise/testing/resources/</ResourceURL>
   <Imports>
+    <PropertyDescriptionResource name="Doctor" version="0"/>
     <PropertyDescriptionResource name="Patient" version="0"/>
     <SchemaResource name="Patient_Details" version="0"/>
     <Activity name="Patient_SetDetails" version="0">
@@ -21,7 +22,6 @@
       <Activity name="Patient_SetDetails" version="0" id="85dc253b-7e14-4f6e-a755-e4d08bb697a6"/>
     </Workflow>
     <ItemResource name="PatientFactory" version="0"/>
-    <PropertyDescriptionResource name="Doctor" version="0"/>
     <SchemaResource name="Doctor_Patient" version="0"/>
     <ScriptResource name="Doctor_AddPatient" version="0"/>
     <Activity name="Doctor_AddPatient" version="0">

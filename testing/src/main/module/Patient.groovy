@@ -2,13 +2,6 @@ import static org.cristalise.kernel.collection.BuiltInCollections.AGGREGATE_SCRI
 import static org.cristalise.kernel.collection.BuiltInCollections.MASTER_SCHEMA
 import static org.cristalise.kernel.collection.BuiltInCollections.SCHEMA_INITIALISE
 
-def PatientPropDesc = PropertyDescriptionList('Patient', 0) {
-    PropertyDesc(name: 'Name',  isMutable: true,  isClassIdentifier: false)
-    PropertyDesc(name: 'Type',  isMutable: false, isClassIdentifier: true,  defaultValue: 'Patient')
-    PropertyDesc(name: 'State', isMutable: true,  isClassIdentifier: false, defaultValue: 'ACTIVE')
-}
-
-
 def detailsSchema = Schema("Patient_Details", 0) {
     struct(name: 'PatientDetails') {
         attribute(name: 'InsuranceNumber', type: 'string', default: '123456789ABC')
@@ -64,6 +57,11 @@ Item(name: 'PatientFactory', version: 0, folder: '/integTest', workflow: 'CrudFa
 
     Outcome(schema: 'PropertyDescription', version: '0', viewname: 'last', path: 'boot/property/Patient_0.xml')
 
+    
+    DependencyDescription('Doctor') {
+        Member($doctor_PropertyDescriptionList)
+      }
+  
     Dependency('workflow') {
         Member(patientWf) {
             Property('Version': 0)
