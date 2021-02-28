@@ -28,6 +28,8 @@ import static org.cristalise.kernel.security.BuiltInAuthc.ADMIN_ROLE;
 import static org.cristalise.kernel.security.BuiltInAuthc.SYSTEM_AGENT;
 
 import java.io.StringReader;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -64,6 +66,7 @@ import org.w3c.dom.NodeList;
 import org.w3c.dom.Text;
 import org.xml.sax.InputSource;
 
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -77,6 +80,12 @@ public abstract class PredefinedStep extends Activity {
     public static final int DONE         = 0;
     public static final int AVAILABLE    = 0;
 
+    /**
+     * Order is important
+     */
+    @Getter
+    private Map<ItemPath, String> updates = new  LinkedHashMap<ItemPath, String>();
+
     public PredefinedStep() {
         super();
         setBuiltInProperty(STATE_MACHINE_NAME, StateMachine.getDefaultStateMachine("Predefined"));
@@ -88,26 +97,20 @@ public abstract class PredefinedStep extends Activity {
 
     @Override
     public boolean getActive() {
-        if (isPredefined)
-            return true;
-        else
-            return super.getActive();
+        if (isPredefined) return true;
+        else              return super.getActive();
     }
 
     @Override
     public String getErrors() {
-        if (isPredefined)
-            return getName();
-        else
-            return super.getErrors();
+        if (isPredefined) return getName();
+        else              return super.getErrors();
     }
 
     @Override
     public boolean verify() {
-        if (isPredefined)
-            return true;
-        else
-            return super.verify();
+        if (isPredefined) return true;
+        else              return super.verify();
     }
 
     /**
@@ -314,7 +317,7 @@ public abstract class PredefinedStep extends Activity {
     }
 
     /**
-     * Use this method to run a Predefined step during bootstrap
+     * Use this method to run a Predefined steps during Bootstrap or during Activity.request()
      * 
      * @param agent
      * @param itemPath
@@ -346,4 +349,17 @@ public abstract class PredefinedStep extends Activity {
         this.setActive(true);
         return request(agent, agent, itemPath, PredefinedStep.DONE, requestData, null, new byte[0], true, transactionKey);
     }
+
+    /**
+     * 
+     * @param currentItem
+     * @param currentActivity
+     * @param inputOutcome
+     * @param transactionKey
+     */
+    public void computeUpdates(ItemPath currentItem, Activity currentActivity, Outcome inputOutcome, TransactionKey transactionKey)
+            throws InvalidDataException, PersistencyException, ObjectNotFoundException
+    {
+        //empty implementation
+    };
 }
