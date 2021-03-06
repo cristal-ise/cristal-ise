@@ -42,7 +42,7 @@ class ConcurrentTest extends RestapiTestBase {
 
             def p = agent.getItem("$folder/Patients/$timeStamp/$name")
 
-            executeDoneJob(p, 'SetPatientDetails')
+            executeDoneJob(p, 'SetDetails')
             executeDoneJob(p, 'SetUrinSample')
 
             uuids << p.getPath().getUUID().toString()
