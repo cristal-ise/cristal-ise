@@ -245,7 +245,7 @@ class SchemaBuilderDynymicFormsSpecs extends Specification implements CristalTes
         expect:
         SchemaTestBuilder.build('test', 'FormAppInfo', 0) {
             struct(name: 'Form') {
-                dynamicForms(width: '100%', label: 'testLabel', container: 'ui-g-12')
+                dynamicForms(width: '100%', label: 'testLabel', container: 'ui-g-12', hidden: true)
                 field(name:'stringField1')
             }
         }.compareXML(
@@ -257,6 +257,7 @@ class SchemaBuilderDynymicFormsSpecs extends Specification implements CristalTes
                           <width>100%</width>
                           <label>testLabel</label>
                           <container>ui-g-12</container>
+                          <hidden>true</hidden>
                         </dynamicForms>
                       </xs:appinfo>
                     </xs:annotation>
