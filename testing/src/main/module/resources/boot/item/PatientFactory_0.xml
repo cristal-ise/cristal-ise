@@ -5,9 +5,17 @@
   <Outcome schema="PropertyDescription" version="0" viewname="last">boot/property/Patient_0.xml</Outcome>
   <Dependency classProps="" isDescription="true" name="Doctor">
     <DependencyMember itemPath="/desc/PropertyDesc/integTest/Doctor">
-      <MemberProperties/>
+      <MemberProperties>
+        <KeyValuePair Key="DependencyType" String="Bidirectional" isAbstract="false"/>
+        <KeyValuePair Key="DependencyTo" String="Patients" isAbstract="false"/>
+        <KeyValuePair Key="DependencyCardinality" String="ManyToOne" isAbstract="false"/>
+      </MemberProperties>
     </DependencyMember>
-    <CollectionProperties/>
+    <CollectionProperties>
+      <KeyValuePair Key="DependencyTo" String="Patients" isAbstract="false"/>
+      <KeyValuePair Key="DependencyCardinality" String="ManyToOne" isAbstract="false"/>
+      <KeyValuePair Key="DependencyType" String="Bidirectional" isAbstract="false"/>
+    </CollectionProperties>
   </Dependency>
   <Dependency classProps="" isDescription="false" name="workflow">
     <DependencyMember itemPath="/desc/ActivityDesc/integTest/Patient_Workflow">

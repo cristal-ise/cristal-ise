@@ -1,6 +1,9 @@
 package org.cristalise.kernel.test.scenario;
 
+import static org.junit.Assert.fail
+
 import org.cristalise.kernel.collection.Dependency
+import org.cristalise.kernel.common.InvalidCollectionModification
 import org.cristalise.kernel.entity.proxy.ItemProxy
 import org.cristalise.kernel.lifecycle.instance.predefined.AddMemberToCollection
 import org.cristalise.kernel.lifecycle.instance.predefined.AddMembersToCollection
@@ -43,7 +46,7 @@ class ItemWithCollectionIT extends KernelScenarioTestBase {
         List<ItemProxy> patients = []
 
         count.times { int idx ->
-            def name = "Patient-${timeStamp}"
+            def name = "Patient${idx}-${timeStamp}"
 
             o.setField('Name', name)
             //o.setField('SubFolder', timeStamp)
@@ -73,7 +76,7 @@ class ItemWithCollectionIT extends KernelScenarioTestBase {
         List<ItemProxy> doctors = []
 
         count.times { int idx ->
-            def name = "Doctor-${timeStamp}"
+            def name = "Doctor${idx}-${timeStamp}"
 
             o.setField('Name', name)
             //o.setField('SubFolder', timeStamp)
@@ -165,17 +168,17 @@ class ItemWithCollectionIT extends KernelScenarioTestBase {
 
     @Test
     public void testAutomaticUpdateOfBidirectionalDependency() {
-        def doctor = setupDoctors(1)[0]
+        def doctors = setupDoctors(2)
         def patient = setupPatients(1)[0]
 
-        def addPatientJob = doctor.getJobByName('AddPatient', agent)
+        def addPatientJob = doctors[0].getJobByName('AddPatient', agent)
         assert addPatientJob
         def o = addPatientJob.getOutcome()
         o.setField('MemberName', patient.name)
 
         agent.execute(addPatientJob)
 
-        def depPatients = (Dependency)doctor.getCollection('Patients')
+        def depPatients = (Dependency)doctors[0].getCollection('Patients')
 
         assert depPatients.getMembers().list.size() == 1
         assert depPatients.getMember(0).getChildUUID() == patient.getPath().getUUID().toString()
@@ -183,6 +186,18 @@ class ItemWithCollectionIT extends KernelScenarioTestBase {
         def depDoctor = (Dependency)patient.getCollection('Doctor')
 
         assert depDoctor.getMembers().list.size() == 1
-        assert depDoctor.getMember(0).getChildUUID() == doctor.getPath().getUUID().toString()
+        assert depDoctor.getMember(0).getChildUUID() == doctors[0].getPath().getUUID().toString()
+
+        try {
+            def addPatientJob1 = doctors[1].getJobByName('AddPatient', agent)
+            assert addPatientJob1
+            addPatientJob1.getOutcome().setField('MemberName', patient.name)
+
+            agent.execute(addPatientJob1)
+
+            // Patient can have only one Doctor
+            fail("Shall throw InvalidCollectionModification");
+        }
+        catch (InvalidCollectionModification e) {}
     }
 }

@@ -33,6 +33,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.Vector;
@@ -324,20 +325,22 @@ public class Activity extends WfVertex {
         String predefStepName = getBuiltInProperty(PREDEFINED_STEP, "").toString();
 
         if (StringUtils.isNotBlank(predefStepName)) {
-            log.debug("executePredefinedStep(predefStep:{})", predefStepName);
+            log.debug("executePredefinedStep(predefStepProperty:{})", predefStepName);
 
             PredefinedStep predefStep = null;
 
-            if (predefStepName.equals("AddMembersToCollection")) {
+            if (predefStepName.contains("AddMembersToCollection")) {
                 predefStep = new AddMembersToCollection();
                 predefStep.computeUpdates(itemPath, this, newOutcome, transactionKey);
             }
 
-            if (predefStep == null) return;
+            if (predefStep == null) {
+                log.debug("executePredefinedStep(predefStepProperty:{}) - none of PredefinedSteps will be requested", predefStepName);
+                return;
+            }
 
-            for (ItemPath ip : predefStep.getUpdates().keySet()) {
-                String requestData = predefStep.getUpdates().get(ip);
-                predefStep.request(agent, ip, requestData, transactionKey);
+            for (Entry<ItemPath, String> entry : predefStep.getAutoUpdates().entrySet()) {
+                predefStep.request(agent, entry.getKey(), entry.getValue(), transactionKey);
             }
         }
     }

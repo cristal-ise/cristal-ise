@@ -21,6 +21,8 @@
 package org.cristalise.kernel.collection;
 
 import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.ACTIVITY_DEF_URN;
+import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.DEPENDENCY_CARDINALITY;
+import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.DEPENDENCY_TYPE;
 import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.QUERY_NAME;
 import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.QUERY_VERSION;
 import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.SCHEMA_NAME;
@@ -595,6 +597,28 @@ public class Dependency extends Collection<DependencyMember> {
             log.error("", e);
             throw new InvalidDataException(e.getMessage());
         }
+    }
+    
+    public Type getType() {
+        if (containsBuiltInProperty(DEPENDENCY_TYPE)) {
+            return Collection.Type.valueOf((String)getBuiltInProperty(DEPENDENCY_TYPE));
+        }
+        return null;
+    }
+
+    public Cardinality getCardinality() {
+        if (containsBuiltInProperty(DEPENDENCY_CARDINALITY)) {
+            return Collection.Cardinality.valueOf((String)getBuiltInProperty(DEPENDENCY_CARDINALITY));
+        }
+        return null;
+    }
+
+    
+    @Override
+    public String toString() {
+        Type type = getType();
+        Cardinality cardinality = getCardinality();
+        return "Dependency("+getName() + (cardinality != null ? " "+cardinality : "") + (type != null ? " "+type : "") + ")";
     }
 
 }

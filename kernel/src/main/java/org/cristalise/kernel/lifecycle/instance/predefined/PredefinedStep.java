@@ -84,7 +84,7 @@ public abstract class PredefinedStep extends Activity {
      * Order is important
      */
     @Getter
-    private Map<ItemPath, String> updates = new  LinkedHashMap<ItemPath, String>();
+    private Map<ItemPath, String> autoUpdates = new  LinkedHashMap<ItemPath, String>();
 
     public PredefinedStep() {
         super();
@@ -358,7 +358,7 @@ public abstract class PredefinedStep extends Activity {
      * @param transactionKey
      */
     public void computeUpdates(ItemPath currentItem, Activity currentActivity, Outcome inputOutcome, TransactionKey transactionKey)
-            throws InvalidDataException, PersistencyException, ObjectNotFoundException
+            throws InvalidDataException, PersistencyException, ObjectNotFoundException, ObjectAlreadyExistsException, InvalidCollectionModification
     {
         //empty implementation
     };

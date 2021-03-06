@@ -1,6 +1,9 @@
+import static org.cristalise.kernel.collection.Collection.Cardinality.*
+import static org.cristalise.kernel.collection.Collection.Type.*
 import static org.cristalise.kernel.collection.BuiltInCollections.AGGREGATE_SCRIPT
 import static org.cristalise.kernel.collection.BuiltInCollections.MASTER_SCHEMA
 import static org.cristalise.kernel.collection.BuiltInCollections.SCHEMA_INITIALISE
+import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.*
 
 def detailsSchema = Schema("Patient_Details", 0) {
     struct(name: 'PatientDetails') {
@@ -57,11 +60,15 @@ Item(name: 'PatientFactory', version: 0, folder: '/integTest', workflow: 'CrudFa
 
     Outcome(schema: 'PropertyDescription', version: '0', viewname: 'last', path: 'boot/property/Patient_0.xml')
 
-    
     DependencyDescription('Doctor') {
+        Properties {
+            Property((DEPENDENCY_CARDINALITY): ManyToOne.toString())
+            Property((DEPENDENCY_TYPE): Bidirectional.toString())
+            Property((DEPENDENCY_TO): 'Patients')
+        }
         Member($doctor_PropertyDescriptionList)
-      }
-  
+    }
+
     Dependency('workflow') {
         Member(patientWf) {
             Property('Version': 0)

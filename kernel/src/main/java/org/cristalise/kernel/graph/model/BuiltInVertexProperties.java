@@ -189,11 +189,14 @@ public enum BuiltInVertexProperties {
     PAIRING_ID("PairingID"),
 
     /**
-     * String property. Declares the Activity to be associated with a PredefinedStep. In DSL it is used like this:
+     * String property. Declares the Activity to be associated with a PredefinedStep, therefore the Outcome
+     * shall contain the data required to execute automatically the predefined step.
+     * 
+     * In DSL it is used like this:
      *
      * <pre>
      * Activity('Equipment_AddDevice', 0) {
-     *   Property(PredefinedStep: 'AddMemberToCollection')
+     *   Property(PredefinedStep: 'AddMembersToCollection')
      *   Schema('Equipment_Device', 0)
      * }</pre>
      * 
