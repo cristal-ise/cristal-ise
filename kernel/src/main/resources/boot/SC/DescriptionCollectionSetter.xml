@@ -26,25 +26,22 @@
     <param name="job" type="org.cristalise.kernel.entity.agent.Job"/>
     <output name="errors" type="org.cristalise.kernel.scripting.ErrorInfo"/>
     <script language="javascript" name="DescriptionCollectionSetter"><![CDATA[
-var log = org.slf4j.LoggerFactory.getLogger("org.cristalise.kernel.Script.DescriptionCollectionSetter");
-
 var objType = job.getActPropString("ObjectType");
 
 if (objType == null || objType.isEmpty()) 
 throw "Script:DescriptionCollectionSetter - ObjectType not specified in ActProps of Job.";
 
-var descColl= item.getObject("/Collection/"+objType+"/last");
-
-var newObj;
-var objName = job.getOutcome().getField("ObjectID");
-var objVer  = job.getOutcome().getField("Version");
-var uuid;
+var descColl = item.getObject("/Collection/"+objType+"/last");
+var objName  = job.getOutcome().getField("ObjectID");
+var objVer   = job.getOutcome().getField("Version");
 
 if (objName != null && !objName.isEmpty()) {
-    if      (objType.equals("Schema"))       newObj = org.cristalise.kernel.utils.LocalObjectLoader.getSchema(objName, objVer);
-    else if (objType.equals("Script"))       newObj = org.cristalise.kernel.utils.LocalObjectLoader.getScript(objName, objVer);
-    else if (objType.equals("Query"))        newObj = org.cristalise.kernel.utils.LocalObjectLoader.getQuery(objName, objVer);
-    else if (objType.equals("StateMachine")) newObj = org.cristalise.kernel.utils.LocalObjectLoader.getStateMachine(objName, objVer);
+    var newObjItemPath;
+
+    if      (objType.equals("Schema"))       newObjItemPath = org.cristalise.kernel.utils.LocalObjectLoader.getSchema(      objName, objVer).getItemPath();
+    else if (objType.equals("Script"))       newObjItemPath = org.cristalise.kernel.utils.LocalObjectLoader.getScript(      objName, objVer).getItemPath();
+    else if (objType.equals("Query"))        newObjItemPath = org.cristalise.kernel.utils.LocalObjectLoader.getQuery(       objName, objVer).getItemPath();
+    else if (objType.equals("StateMachine")) newObjItemPath = org.cristalise.kernel.utils.LocalObjectLoader.getStateMachine(objName, objVer).getItemPath();
     else {
         var searchProps = new Array(2);
 
@@ -54,7 +51,7 @@ if (objName != null && !objName.isEmpty()) {
         var foundItems = org.cristalise.kernel.process.Gateway.getLookup().search(new org.cristalise.kernel.lookup.DomainPath("/"), searchProps);
 
         if(foundItems.hasNext()) {
-            uuid = foundItems.next().getItemPath().getUUID();
+            newObjItemPath = foundItems.next().getItemPath();
             if(foundItems.hasNext())
                 throw "Script:DescriptionCollectionSetter - Umbiguous Lookup.search(props Name:"+objName+", Type:"+objType+")";
         }
@@ -62,30 +59,22 @@ if (objName != null && !objName.isEmpty()) {
             throw "Script:DescriptionCollectionSetter - Nothing found for Lookup.search(props Name:"+objName+", Type:"+objType+")";
     }
 
-    var params = new Array(2);
-    params[0] = objType;
-
     //TODO: implement multiplicity check (could be based on a property) instead of hardcoded value
     if ((objType.equals("Schema") || objType.equals("Script") || objType.equals("Query") || objType.equals("StateMachine")) && descColl.size() > 0) {
-        // log.debug("item:{} deleting existing member for Schema/Script/Query/StateMachine", item);
-
+        var params = new Array(2);
+        params[0] = objType;
         params[1] = descColl.getMembers().list.iterator().next().getID();
+
         agent.execute(item, "RemoveSlotFromCollection", params);
     }
 
     var props = new org.cristalise.kernel.utils.CastorHashMap();
     props.put("Version", objVer, true);
 
-    params = new Array(3);
-    params[0] = objType;
-    params[2] = agent.marshall(props);
+    var dep = new org.cristalise.kernel.collection.Dependency(objType);
+    dep.addMember(newObjItemPath, props, "", null);
 
-    if(newObj != null) params[1] = newObj.getItemID();
-    else               params[1] = uuid;
-
-    // log.debug("item:{} adding new member:{}", item, params);
-
-    agent.execute(item, "AddMemberToCollection", params);
+    agent.execute(item, "AddMembersToCollection", agent.marshall(dep));
 }
     ]]></script>
 </cristalscript>

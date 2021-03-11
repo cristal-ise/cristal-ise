@@ -42,7 +42,7 @@ class EditDescItemSpecs extends Specification implements CristalTestSetup {
 
     def 'Item, i.e. Factory, can be updated using UpdateItem activity of ItemDesc resource Item'() {
         given:
-        def testItemGeneratedNameFactory = agent.getItem('/desc/ItemDesc/integTest/TestItemGeneratedNameFactory')
+        def testItemGeneratedNameFactory = agent.getItem('/desc/ItemDesc/integTest/PatientFactory')
         def testItemGeneratedNameFactoryHistory = new History(testItemGeneratedNameFactory.getPath(), null)
         testItemGeneratedNameFactoryHistory.activate()
         def lastEventId = testItemGeneratedNameFactoryHistory.getLastId()

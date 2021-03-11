@@ -134,7 +134,7 @@ class ItemDelegate extends PropertyDelegate {
     }
 
     public void DependencyDescription(String name, Closure cl) {
-        Dependency('', name, true, cl)
+        Dependency(newItem.namespace, name, true, cl)
     }
 
     public void Dependency(BuiltInCollections coll, boolean isDescription = false, String classProps = null, @DelegatesTo(DependencyDelegate) Closure cl) {

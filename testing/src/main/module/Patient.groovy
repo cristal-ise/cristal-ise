@@ -1,13 +1,9 @@
+import static org.cristalise.kernel.collection.Collection.Cardinality.*
+import static org.cristalise.kernel.collection.Collection.Type.*
 import static org.cristalise.kernel.collection.BuiltInCollections.AGGREGATE_SCRIPT
 import static org.cristalise.kernel.collection.BuiltInCollections.MASTER_SCHEMA
 import static org.cristalise.kernel.collection.BuiltInCollections.SCHEMA_INITIALISE
-
-def PatientPropDesc = PropertyDescriptionList('Patient', 0) {
-    PropertyDesc(name: 'Name',  isMutable: true,  isClassIdentifier: false)
-    PropertyDesc(name: 'Type',  isMutable: false, isClassIdentifier: true,  defaultValue: 'Patient')
-    PropertyDesc(name: 'State', isMutable: true,  isClassIdentifier: false, defaultValue: 'ACTIVE')
-}
-
+import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.*
 
 def detailsSchema = Schema("Patient_Details", 0) {
     struct(name: 'PatientDetails') {
@@ -52,22 +48,29 @@ def aggregateScript =  Script("Patient_Aggregate", 0) {
     script('groovy', 'src/main/data/AggregatePatientData.groovy')
 }
 
-def wf = Workflow(name: "Patient_Workflow", version: 0, generate: true) {
-    ElemActDef('SetPatientDetails', setDetailsEA)
+def patientWf = Workflow(name: "Patient_Workflow", version: 0, generate: true) {
+    ElemActDef('SetDetails', setDetailsEA)
     ElemActDef('SetUrinSample', urinalysisEA)
 }
 
-Item(name: 'PatientFactory', version: 0, folder: '/integTest', workflow: 'Factory_Workflow', workflowVer: 0) {
+Item(name: 'PatientFactory', version: 0, folder: '/integTest', workflow: 'CrudFactory_Workflow', workflowVer: 0) {
     InmutableProperty('Type': 'Factory')
     InmutableProperty('Root': '/integTest/Patients')
-
     InmutableProperty('UpdateSchema': 'Equipment_Details:0')
-
 
     Outcome(schema: 'PropertyDescription', version: '0', viewname: 'last', path: 'boot/property/Patient_0.xml')
 
+    DependencyDescription('Doctor') {
+        Properties {
+            Property((DEPENDENCY_CARDINALITY): ManyToOne.toString())
+            Property((DEPENDENCY_TYPE): Bidirectional.toString())
+            Property((DEPENDENCY_TO): 'Patients')
+        }
+        Member($doctor_PropertyDescriptionList)
+    }
+
     Dependency('workflow') {
-        Member(itemPath: '/desc/ActivityDesc/integTest/Patient_Workflow') {
+        Member(patientWf) {
             Property('Version': 0)
         }
     }

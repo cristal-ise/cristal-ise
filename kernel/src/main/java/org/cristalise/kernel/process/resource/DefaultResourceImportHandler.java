@@ -26,7 +26,6 @@ import static org.cristalise.kernel.process.resource.BuiltInResources.SCRIPT_RES
 import static org.cristalise.kernel.process.resource.ResourceImportHandler.Status.IDENTICAL;
 import static org.cristalise.kernel.process.resource.ResourceImportHandler.Status.NEW;
 import static org.cristalise.kernel.process.resource.ResourceImportHandler.Status.OVERWRITTEN;
-import static org.cristalise.kernel.process.resource.ResourceImportHandler.Status.REMOVED;
 import static org.cristalise.kernel.process.resource.ResourceImportHandler.Status.SKIPPED;
 import static org.cristalise.kernel.process.resource.ResourceImportHandler.Status.UPDATED;
 import static org.cristalise.kernel.property.BuiltInItemProperties.MODULE;
@@ -40,6 +39,7 @@ import java.util.Map;
 import org.apache.commons.lang3.StringEscapeUtils;
 import org.cristalise.kernel.collection.Collection;
 import org.cristalise.kernel.collection.CollectionArrayList;
+import org.cristalise.kernel.common.CannotManageException;
 import org.cristalise.kernel.common.InvalidDataException;
 import org.cristalise.kernel.common.ObjectNotFoundException;
 import org.cristalise.kernel.common.PersistencyException;
@@ -234,23 +234,36 @@ public class DefaultResourceImportHandler implements ResourceImportHandler {
 
         log.info("verifyResource() - Outcome {} of item:{} schema:{} version:{} ", status.name(), thisProxy.getName(), outcome.getSchema().getName(), version);
 
-        if (status == NEW || status == UPDATED || status == OVERWRITTEN) {
-            // validate it, but not for kernel objects (ns == null) because those are to validate the rest
-            if (ns != null) outcome.validateAndCheck();
+        switch (status) {
+            case NEW:
+            case UPDATED:
+            case OVERWRITTEN:
+                // validate it, but not for kernel objects (ns == null) because those are to validate the rest
+                if (ns != null) outcome.validateAndCheck();
 
-            PredefinedStep.storeOutcomeEventAndViews(thisProxy.getPath(), outcome, version, transactionKey);
+                PredefinedStep.storeOutcomeEventAndViews(thisProxy.getPath(), outcome, version, transactionKey);
 
-            CollectionArrayList cols = getCollections(itemName, version, outcome, transactionKey);
+                CollectionArrayList cols = getCollections(itemName, version, outcome, transactionKey);
 
-            for (Collection<?> col : cols.list) {
-                Gateway.getStorage().put(thisProxy.getPath(), col, transactionKey);
-                Gateway.getStorage().clearCache(thisProxy.getPath(), ClusterType.COLLECTION+"/"+col.getName());
-                col.setVersion(null);
-                Gateway.getStorage().put(thisProxy.getPath(), col, transactionKey);
-            }
-        }
-        else if (status == REMOVED) {
-            // TODO implement
+                for (Collection<?> col : cols.list) {
+                    Gateway.getStorage().put(thisProxy.getPath(), col, transactionKey);
+                    Gateway.getStorage().clearCache(thisProxy.getPath(), ClusterType.COLLECTION+"/"+col.getName());
+                    col.setVersion(null);
+                    Gateway.getStorage().put(thisProxy.getPath(), col, transactionKey);
+                }
+                break;
+
+            case IDENTICAL:
+            case SKIPPED:
+                //nothing to do
+                break;
+
+            case REMOVED:
+                //TODO: implement
+                throw new CannotManageException("Unimplemented resourceChangeStatus '"+status+ "' for "+ns+"/"+itemName);
+
+            default:
+                throw new CannotManageException("Unknown resourceChangeStatus '"+status+ "' for "+ns+"/"+itemName);
         }
 
         resourceChangeDetails = convertToResourceChangeDetails(itemName, version, outcome.getSchema(), status);
