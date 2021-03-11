@@ -190,7 +190,7 @@ public abstract class JooqHandler {
         autoCommit         = Gateway.getProperties().getBoolean(JooqHandler.JOOQ_AUTOCOMMIT, false);
         readOnlyDataSource = Gateway.getProperties().getBoolean(JooqHandler.JOOQ_READONLYDATASOURCE, false);
         dialect            = SQLDialect.valueOf(Gateway.getProperties().getString(JooqHandler.JOOQ_DIALECT, "POSTGRES"));
-        assumeMinServerVersion = Gateway.getProperties().getString(JooqHandler.JOOQ_ASSUMEMINSERVERVERSION, "null");
+        assumeMinServerVersion = Gateway.getProperties().getString(JooqHandler.JOOQ_ASSUMEMINSERVERVERSION);
     }
 
     public static synchronized HikariDataSource getDataSource() {
@@ -220,7 +220,9 @@ public abstract class JooqHandler {
             config.addDataSourceProperty( "prepStmtCacheSize",     "250");
             config.addDataSourceProperty( "prepStmtCacheSqlLimit", "2048");
             config.addDataSourceProperty( "autoCommit",             autoCommit);
-            config.addDataSourceProperty( "assumeMinServerVersion", assumeMinServerVersion);
+            if (assumeMinServerVersion != null) {
+                config.addDataSourceProperty( "assumeMinServerVersion", assumeMinServerVersion);
+            }
 
             log.info("getDataSource() - uri:'{}' user:'{}' dialect:'{}'", uri, user, dialect);
 
