@@ -151,6 +151,11 @@ public abstract class JooqHandler {
      */
     public static final String JOOQ_TEXT_TYPE_LENGHT = "JOOQ.TextType.length";
 
+    /**
+     * Defines the key (value:{@value}) to retrieve a string value to set the assumeMinServerVersion
+     */
+    public static final String JOOQ_ASSUMEMINSERVERVERSION = "JOOQ.assumeMinServerVersion";
+
     public static final DataType<UUID>           UUID_TYPE       = SQLDataType.UUID;
 
     public static final DataType<String>         NAME_TYPE       = SQLDataType.VARCHAR.length(Gateway.getProperties().getInt(JOOQ_NAME_TYPE_LENGHT, 64));
@@ -173,6 +178,7 @@ public abstract class JooqHandler {
     public static Boolean    autoCommit;
     public static Boolean    readOnlyDataSource;
     public static SQLDialect dialect;
+    public static String     assumeMinServerVersion;
 
     private static HikariDataSource ds = null;
     private static HikariConfig config;
@@ -184,6 +190,7 @@ public abstract class JooqHandler {
         autoCommit         = Gateway.getProperties().getBoolean(JooqHandler.JOOQ_AUTOCOMMIT, false);
         readOnlyDataSource = Gateway.getProperties().getBoolean(JooqHandler.JOOQ_READONLYDATASOURCE, false);
         dialect            = SQLDialect.valueOf(Gateway.getProperties().getString(JooqHandler.JOOQ_DIALECT, "POSTGRES"));
+        assumeMinServerVersion = Gateway.getProperties().getString(JooqHandler.JOOQ_ASSUMEMINSERVERVERSION, "null");
     }
 
     public static synchronized HikariDataSource getDataSource() {
@@ -213,6 +220,7 @@ public abstract class JooqHandler {
             config.addDataSourceProperty( "prepStmtCacheSize",     "250");
             config.addDataSourceProperty( "prepStmtCacheSqlLimit", "2048");
             config.addDataSourceProperty( "autoCommit",             autoCommit);
+            config.addDataSourceProperty( "assumeMinServerVersion", assumeMinServerVersion);
 
             log.info("getDataSource() - uri:'{}' user:'{}' dialect:'{}'", uri, user, dialect);
 
