@@ -1,22 +1,19 @@
 package org.cristalise.kernel.test.scenario;
 
-import static org.cristalise.kernel.persistency.ClusterType.COLLECTION
+import static org.junit.Assert.fail
 
-import org.cristalise.dsl.entity.ItemBuilder
 import org.cristalise.kernel.collection.Dependency
-import org.cristalise.kernel.entity.imports.ImportItem
+import org.cristalise.kernel.common.InvalidCollectionModification
 import org.cristalise.kernel.entity.proxy.ItemProxy
 import org.cristalise.kernel.lifecycle.instance.predefined.AddMemberToCollection
 import org.cristalise.kernel.lifecycle.instance.predefined.AddMembersToCollection
 import org.cristalise.kernel.lifecycle.instance.predefined.UpdateDependencyMember
-import org.cristalise.kernel.lookup.DomainPath
 import org.cristalise.kernel.process.Gateway
 import org.cristalise.kernel.test.KernelScenarioTestBase
 import org.cristalise.kernel.utils.CastorHashMap
 import org.junit.Before
 import org.junit.Test
 
-import groovy.transform.CompileDynamic
 import groovy.transform.CompileStatic
 
 
@@ -36,44 +33,75 @@ class ItemWithCollectionIT extends KernelScenarioTestBase {
         assert serverItem && serverItem.getName() == "localhost"
     }
 
-    private ItemProxy createItem(ImportItem ii) {
-        executeDoneJob(serverItem, "CreateNewItem", Gateway.marshaller.marshall(ii))
-        return Gateway.getProxyManager().getProxy( Gateway.getLookup().resolvePath(new DomainPath("/domain/$folder/${ii.name}")) )
+    /**
+     *
+     * @param count
+     * @return
+     */
+    private List<ItemProxy> setupPatients(int count) {
+        def factory = agent.getItem("/$folder/PatientFactory")
+        def createItemJob = factory.getJobByName('InstantiateItem', agent)
+        def o = createItemJob.getOutcome()
+
+        List<ItemProxy> patients = []
+
+        count.times { int idx ->
+            def name = "Patient${idx}-${timeStamp}"
+
+            o.setField('Name', name)
+            //o.setField('SubFolder', timeStamp)
+            agent.execute(createItemJob)
+
+            def p = agent.getItem("$folder/Patients/$name")
+
+            //executeDoneJob(p, 'SetDetails')
+            //executeDoneJob(p, 'SetUrinSample')
+
+            patients << p
+        }
+
+        return patients
     }
 
-    @CompileDynamic
-    private ItemProxy buildDoctor() {
-        return createItem(ItemBuilder.build(name: "Doctor-$timeStamp", folder: folder) {
-            Property(Type: 'Doctor')
-            Dependency('Patients', false, 'Type') {
-                Properties {
-                    Property(Type: 'Patient')
-                    Property(MemberUpdateSchema: 'Patient:0')
-                }
-            }
-        })
-    }
+    /**
+     *
+     * @param count
+     * @return
+     */
+    private List<ItemProxy> setupDoctors(int count) {
+        def factory = agent.getItem("/$folder/DoctorFactory")
+        def createItemJob = factory.getJobByName('InstantiateItem', agent)
+        def o = createItemJob.getOutcome()
 
-    @CompileDynamic
-    private ItemProxy buildPatient(String name) {
-        return createItem(ItemBuilder.build(name: "${name}-${timeStamp}", folder: folder) {
-            Property(Type: 'Patient')
-        })
+        List<ItemProxy> doctors = []
+
+        count.times { int idx ->
+            def name = "Doctor${idx}-${timeStamp}"
+
+            o.setField('Name', name)
+            //o.setField('SubFolder', timeStamp)
+            agent.execute(createItemJob)
+
+            doctors << agent.getItem("$folder/Doctors/$name")
+        }
+
+        return doctors
     }
 
     @Test
     public void testAddMemberToCollection_AddMembersToCollection_UpdateDependencyMember() {
-        def doctor = buildDoctor()
-        def patient1 = buildPatient('Patient1')
+        def doctor = setupDoctors(1)[0]
+        def patients = setupPatients(3)
+
+        def dep0 = new Dependency("Patients");
+
         CastorHashMap memberProps1 = new CastorHashMap();
         memberProps1.put("Name", "P1");
         memberProps1.put("Disease", "covid19--");
         //memberProps1.put("MemberUpdateSchema", "Patient:0");
-        
-        agent.execute(doctor, AddMemberToCollection, 'Patients', patient1.getPath().toString(), Gateway.marshaller.marshall(memberProps1))
+        dep0.addMember(patients[0].getPath(), memberProps1, '', null);
 
-        def patient2 = buildPatient('Patient2')
-        def patient3 = buildPatient('Patient3')
+        agent.execute(doctor, AddMemberToCollection, Gateway.marshaller.marshall(dep0))
 
         def dep = new Dependency("Patients");
 
@@ -81,13 +109,13 @@ class ItemWithCollectionIT extends KernelScenarioTestBase {
         memberProps2.put("Name", "P2");
         memberProps2.put("Disease", "covid19");
         //memberProps2.put("MemberUpdateSchema", "Patient:0");
-        dep.addMember(patient2.getPath(), memberProps2, '', null);
+        dep.addMember(patients[1].getPath(), memberProps2, '', null);
 
         CastorHashMap memberProps3 = new CastorHashMap();
         memberProps3.put("Name", "P3");
         memberProps3.put("Disease", "covid19++");
         memberProps3.put("MemberUpdateSchema", "Patient:0");
-        dep.addMember(patient3.getPath(), memberProps3, '', null);
+        dep.addMember(patients[2].getPath(), memberProps3, '', null);
 
         def result = agent.execute(doctor, AddMembersToCollection, Gateway.marshaller.marshall(dep))
 
@@ -95,11 +123,11 @@ class ItemWithCollectionIT extends KernelScenarioTestBase {
 
         assert depPrime.classProps == 'Type'
         assert depPrime.getMembers().list.size() == 3
-        assert depPrime.getMember(0).getChildUUID() == patient1.getPath().getUUID().toString()
+        assert depPrime.getMember(0).getChildUUID() == patients[0].getPath().getUUID().toString()
         assert depPrime.getMember(0).getProperties().size() == 3
-        assert depPrime.getMember(1).getChildUUID() == patient2.getPath().getUUID().toString()
+        assert depPrime.getMember(1).getChildUUID() == patients[1].getPath().getUUID().toString()
         assert depPrime.getMember(1).getProperties().size() == 3
-        assert depPrime.getMember(2).getChildUUID() == patient3.getPath().getUUID().toString()
+        assert depPrime.getMember(2).getChildUUID() == patients[02].getPath().getUUID().toString()
         assert depPrime.getMember(2).getProperties().size() == 4
 
         CastorHashMap memberUpdate = new CastorHashMap()
@@ -108,7 +136,7 @@ class ItemWithCollectionIT extends KernelScenarioTestBase {
         def updateParams = new String[4]
         updateParams[0] = "Patients"
         updateParams[1] = "2"
-        updateParams[2] = patient3.getPath().getUUID().toString()
+        updateParams[2] = patients[2].getPath().getUUID().toString()
         updateParams[3] = Gateway.getMarshaller().marshall(memberUpdate)
         agent.execute(doctor, UpdateDependencyMember, updateParams)
 
@@ -116,25 +144,60 @@ class ItemWithCollectionIT extends KernelScenarioTestBase {
         assert depFinal.classProps == 'Type'
         assert depFinal.getMembers().list.size() == 3
 
-        assert depFinal.getMember(0).getChildUUID() == patient1.getPath().getUUID().toString()
+        assert depFinal.getMember(0).getChildUUID() == patients[0].getPath().getUUID().toString()
         assert depFinal.getMember(0).getProperties().size() == 3
         assert depFinal.getMember(0).getProperties()['Name'] == 'P1'
         assert depFinal.getMember(0).getProperties()['Type'] == 'Patient'
         assert depFinal.getMember(0).getProperties()['Disease'] == 'covid19--'
         // Property 'MemberUpdateSchema' was not added to this member
 
-        assert depFinal.getMember(1).getChildUUID() == patient2.getPath().getUUID().toString()
+        assert depFinal.getMember(1).getChildUUID() == patients[1].getPath().getUUID().toString()
         assert depFinal.getMember(1).getProperties().size() == 3
         assert depFinal.getMember(1).getProperties()['Name'] == 'P2'
         assert depFinal.getMember(1).getProperties()['Type'] == 'Patient'
         assert depFinal.getMember(1).getProperties()['Disease'] == 'covid19'
         // Property 'MemberUpdateSchema' was not added to this member
 
-        assert depFinal.getMember(2).getChildUUID() == patient3.getPath().getUUID().toString()
+        assert depFinal.getMember(2).getChildUUID() == patients[2].getPath().getUUID().toString()
         assert depFinal.getMember(2).getProperties().size() == 4
         assert depFinal.getMember(2).getProperties()['Name'] == 'P3a'
         assert depFinal.getMember(2).getProperties()['Type'] == 'Patient'
         assert depFinal.getMember(2).getProperties()['Disease'] == 'covid19+'
         assert depFinal.getMember(2).getProperties()['MemberUpdateSchema'] == 'Patient:0'
+    }
+
+    @Test
+    public void testAutomaticUpdateOfBidirectionalDependency() {
+        def doctors = setupDoctors(2)
+        def patient = setupPatients(1)[0]
+
+        def addPatientJob = doctors[0].getJobByName('AddPatient', agent)
+        assert addPatientJob
+        def o = addPatientJob.getOutcome()
+        o.setField('MemberName', patient.name)
+
+        agent.execute(addPatientJob)
+
+        def depPatients = (Dependency)doctors[0].getCollection('Patients')
+
+        assert depPatients.getMembers().list.size() == 1
+        assert depPatients.getMember(0).getChildUUID() == patient.getPath().getUUID().toString()
+
+        def depDoctor = (Dependency)patient.getCollection('Doctor')
+
+        assert depDoctor.getMembers().list.size() == 1
+        assert depDoctor.getMember(0).getChildUUID() == doctors[0].getPath().getUUID().toString()
+
+        try {
+            def addPatientJob1 = doctors[1].getJobByName('AddPatient', agent)
+            assert addPatientJob1
+            addPatientJob1.getOutcome().setField('MemberName', patient.name)
+
+            agent.execute(addPatientJob1)
+
+            // Patient can have only one Doctor
+            fail("Shall throw InvalidCollectionModification");
+        }
+        catch (InvalidCollectionModification e) {}
     }
 }

@@ -117,9 +117,10 @@ class SchemaDelegate {
                     if (s.dynamicForms) {
                         'xs:appinfo' {
                             dynamicForms {
-                                if (s.dynamicForms.width)     width(     s.dynamicForms.width)
-                                if (s.dynamicForms.label)     label(     s.dynamicForms.label)
-                                if (s.dynamicForms.container) container( s.dynamicForms.container)
+                                if (s.dynamicForms.width)          width(    s.dynamicForms.width)
+                                if (s.dynamicForms.label)          label(    s.dynamicForms.label)
+                                if (s.dynamicForms.container)      container(s.dynamicForms.container)
+                                if (s.dynamicForms.hidden != null) hidden(   s.dynamicForms.hidden)
                             }
                         }
                     }

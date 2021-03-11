@@ -5,6 +5,7 @@
   </Info>
   <ResourceURL>org/cristalise/testing/resources/</ResourceURL>
   <Imports>
+    <PropertyDescriptionResource name="Doctor" version="0"/>
     <PropertyDescriptionResource name="Patient" version="0"/>
     <SchemaResource name="Patient_Details" version="0"/>
     <Activity name="Patient_SetDetails" version="0">
@@ -17,38 +18,19 @@
     <SchemaResource name="Patient" version="0"/>
     <ScriptResource name="Patient_Aggregate" version="0"/>
     <Workflow name="Patient_Workflow" version="0">
-      <Activity name="Patient_SetUrinSample" version="0"/>
-      <Activity name="Patient_SetDetails" version="0"/>
+      <Activity name="Patient_SetUrinSample" version="0" id="0bd91a29-87c6-4e7a-a9ca-eda8f4e51ed9"/>
+      <Activity name="Patient_SetDetails" version="0" id="85dc253b-7e14-4f6e-a755-e4d08bb697a6"/>
     </Workflow>
-    <Item name="PatientFactory" initialPath="/integTest" workflow="Factory_Workflow" workflowVer="0">
-      <Property name="Type" mutable="false">Factory</Property>
-      <Property name="Root" mutable="false">/integTest/Patients</Property>
-      <Property name="UpdateSchema" mutable="false">Equipment_Details:0</Property>
-      <Outcome viewname="last" schema="PropertyDescription" version="0">boot/property/Patient_0.xml</Outcome>
-      <Dependency name="workflow" isDescription="false" classProps="">
-        <DependencyMember itemPath="/desc/ActivityDesc/integTest/Patient_Workflow">
-          <MemberProperties>
-            <KeyValuePair Key="Version" isAbstract="false" Integer="0"/>
-          </MemberProperties>
-        </DependencyMember>
-        <CollectionProperties/>
-      </Dependency>
-      <Dependency name="MasterSchema" isDescription="false" classProps="">
-        <DependencyMember itemPath="/desc/Schema/integTest/Patient">
-          <MemberProperties>
-            <KeyValuePair Key="Version" isAbstract="false" Integer="0"/>
-          </MemberProperties>
-        </DependencyMember>
-        <CollectionProperties/>
-      </Dependency>
-      <Dependency name="AggregateScript" isDescription="false" classProps="">
-        <DependencyMember itemPath="/desc/Script/integTest/Patient_Aggregate">
-          <MemberProperties>
-            <KeyValuePair Key="Version" isAbstract="false" Integer="0"/>
-          </MemberProperties>
-        </DependencyMember>
-        <CollectionProperties/>
-      </Dependency>
-    </Item>
+    <ItemResource name="PatientFactory" version="0"/>
+    <SchemaResource name="Doctor_Patient" version="0"/>
+    <ScriptResource name="Doctor_AddPatient" version="0"/>
+    <Activity name="Doctor_AddPatient" version="0">
+      <Schema name="Doctor_Patient" version="0"/>
+      <Script name="Doctor_AddPatient" version="0"/>
+    </Activity>
+    <Workflow name="Doctor_Workflow" version="0">
+      <Activity name="Doctor_AddPatient" version="0" id="e0b428e4-8a28-4915-8118-8316ca63f572"/>
+    </Workflow>
+    <ItemResource name="DoctorFactory" version="0"/>
   </Imports>
 </CristalModule>

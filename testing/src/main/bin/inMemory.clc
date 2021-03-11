@@ -18,4 +18,4 @@ JOOQ.supportJdbcXmlType = false
 
 SimpleType.DefaultValues = 12:string
 
-Resource.moduleUseFileNameWithVersion = dev
+Resource.moduleUseFileNameWithVersion = dev,integTest

@@ -12,11 +12,17 @@ This work is based on [jhipster-devbox](https://github.com/jhipster/jhipster-dev
 1. default user: vagrant/vagrant
 1. `sudo passwd ubuntu` - Change password of root user
 1. Follow this guide to update VirtualBox Guest Additions
-    - https://linuxize.com/post/how-to-install-virtualbox-guest-additions-in-ubuntu/
+   - https://linuxize.com/post/how-to-install-virtualbox-guest-additions-in-ubuntu/
+   - In case you have an issue with graphics crashes the vm or the auto resize does not work, you need to install `VBoxGuestAdditions.iso` version 5.2.42
+     1. Download ISO image or find file at C:\Program Files\Oracle\VirtualBox\VBoxGuestAdditions.iso
+     1. Attach it to the VM that needs video card fix. Use VM toolbox on the host
+     1. `sudo mkdir /media/VBox_GAs_5.2.42`
+     1. `sudo mount /dev/cdrom /media/VBox_GAs_5.2.42`
+     1. `sudo sh ./VBoxLinuxAdditions.run`
 1. `sudo adduser $USER vboxsf` - Add permission to use shared folders with the host OS
 1. Consider to use different oh-my-zshell theme like: powerlevel10k
-   1. edit ~/.zshrc file: `ZSH_THEME="powerlevel10k/powerlevel10k"`
-   1. use `p10k configure` if you want to tune the settings
+  1. edit ~/.zshrc file: `ZSH_THEME="powerlevel10k/powerlevel10k"`
+  1. use `p10k configure` if you want to tune the settings
 1. `git config --global credential.helper cache`
 1. `git config --global user.name 'John Doe'`
 1. `git config --global user.email john.doe@email.com`

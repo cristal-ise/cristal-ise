@@ -60,6 +60,8 @@ import org.cristalise.kernel.utils.CastorHashMap;
  * Collections are managed through predefined steps.
  */
 abstract public class Collection<E extends CollectionMember> implements C2KLocalObject {
+    public enum Type {Bidirectional, Unidirectional}
+    public enum Cardinality {OneToMany, ManyToOne, OneToOne, ManyToMany}
 
     private int                       mCounter = -1;   // Contains next available Member ID
     protected CollectionMemberList<E> mMembers = new CollectionMemberList<E>();

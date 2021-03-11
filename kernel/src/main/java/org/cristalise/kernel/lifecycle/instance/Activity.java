@@ -25,6 +25,7 @@ import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.AGENT_RO
 import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.BREAKPOINT;
 import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.DESCRIPTION;
 import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.PAIRING_ID;
+import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.PREDEFINED_STEP;
 import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.VIEW_POINT;
 import static org.cristalise.kernel.property.BuiltInItemProperties.NAME;
 
@@ -32,6 +33,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.Vector;
@@ -54,6 +56,8 @@ import org.cristalise.kernel.events.History;
 import org.cristalise.kernel.graph.model.Vertex;
 import org.cristalise.kernel.graph.traversal.GraphTraversal;
 import org.cristalise.kernel.lifecycle.WfCastorHashMap;
+import org.cristalise.kernel.lifecycle.instance.predefined.AddMembersToCollection;
+import org.cristalise.kernel.lifecycle.instance.predefined.PredefinedStep;
 import org.cristalise.kernel.lifecycle.instance.stateMachine.State;
 import org.cristalise.kernel.lifecycle.instance.stateMachine.StateMachine;
 import org.cristalise.kernel.lifecycle.instance.stateMachine.Transition;
@@ -257,42 +261,44 @@ public class Activity extends WfVertex {
         if (getParent() != null) hist = getWf().getHistory(transactionKey);
         else                     hist = new History(itemPath, transactionKey);
 
-            if (storeOutcome) {
-                Schema schema = transition.getSchema(getProperties());
-                Outcome newOutcome = new Outcome(-1, outcome, schema);
+        if (storeOutcome) {
+            Schema schema = transition.getSchema(getProperties());
+            Outcome newOutcome = new Outcome(-1, outcome, schema);
 
             // This is used by PredefinedStep executed during bootstrap
             if (validateOutcome) newOutcome.validateAndCheck();
 
-                String viewpoint = resolveViewpointName(newOutcome);
-                boolean hasAttachment = false;
-                if (attachment.length > 0) {
-                    hasAttachment = true;
-                }
-
-                int eventID = hist.addEvent(agent, delegate, usedRole, getName(), getPath(), getType(),
-                        schema, getStateMachine(), transitionID, viewpoint, hasAttachment).getID();
-                newOutcome.setID(eventID);
-
-                Gateway.getStorage().put(itemPath, newOutcome, transactionKey);
-                if (attachment.length > 0) {
-                    Gateway.getStorage().put(itemPath, new OutcomeAttachment(itemPath, newOutcome, attachmentType, attachment), transactionKey);
-                }
-
-                // update specific view if defined
-                if (!viewpoint.equals("last")) {
-                    Gateway.getStorage().put(itemPath, new Viewpoint(itemPath, schema, viewpoint, eventID), transactionKey);
-                }
-
-                // update the default "last" view
-                Gateway.getStorage().put(itemPath, new Viewpoint(itemPath, schema, "last", eventID), transactionKey);
-
-                updateItemProperties(itemPath, newOutcome, transactionKey);
+            String viewpoint = resolveViewpointName(newOutcome);
+            boolean hasAttachment = false;
+            if (attachment.length > 0) {
+                hasAttachment = true;
             }
-            else {
-                updateItemProperties(itemPath, null, transactionKey);
-                hist.addEvent(agent, delegate, usedRole, getName(), getPath(), getType(), getStateMachine(), transitionID);
+
+            int eventID = hist.addEvent(agent, delegate, usedRole, getName(), getPath(), getType(),
+                    schema, getStateMachine(), transitionID, viewpoint, hasAttachment).getID();
+            newOutcome.setID(eventID);
+
+            Gateway.getStorage().put(itemPath, newOutcome, transactionKey);
+            if (attachment.length > 0) {
+                Gateway.getStorage().put(itemPath, new OutcomeAttachment(itemPath, newOutcome, attachmentType, attachment), transactionKey);
             }
+
+            // update specific view if defined
+            if (!viewpoint.equals("last")) {
+                Gateway.getStorage().put(itemPath, new Viewpoint(itemPath, schema, viewpoint, eventID), transactionKey);
+            }
+
+            // update the default "last" view
+            Gateway.getStorage().put(itemPath, new Viewpoint(itemPath, schema, "last", eventID), transactionKey);
+
+            updateItemProperties(itemPath, newOutcome, transactionKey);
+
+            executePredefinedSteps(agent, itemPath, newOutcome, transactionKey);
+        }
+        else {
+            updateItemProperties(itemPath, null, transactionKey);
+            hist.addEvent(agent, delegate, usedRole, getName(), getPath(), getType(), getStateMachine(), transitionID);
+        }
 
         if (newState.isFinished() && !(getBuiltInProperty(BREAKPOINT).equals(Boolean.TRUE) && !oldState.isFinished())) {
             runNext(agent, itemPath, transactionKey);
@@ -302,6 +308,41 @@ public class Activity extends WfVertex {
         pushJobsToAgents(itemPath);
 
         return outcome;
+    }
+
+    /**
+     * Execute PredefiendSteps using the properties of Activity and the Outcome
+     * 
+     * @param agent
+     * @param itemPath
+     * @param newOutcome
+     * @param transactionKey
+     */
+    private void executePredefinedSteps(AgentPath agent, ItemPath itemPath, Outcome newOutcome, TransactionKey transactionKey) 
+            throws AccessRightsException, InvalidTransitionException, InvalidDataException, ObjectNotFoundException, 
+            PersistencyException, ObjectAlreadyExistsException, ObjectCannotBeUpdated, CannotManageException, InvalidCollectionModification
+    {
+        String predefStepName = getBuiltInProperty(PREDEFINED_STEP, "").toString();
+
+        if (StringUtils.isNotBlank(predefStepName)) {
+            log.debug("executePredefinedStep(predefStepProperty:{})", predefStepName);
+
+            PredefinedStep predefStep = null;
+
+            if (predefStepName.contains("AddMembersToCollection")) {
+                predefStep = new AddMembersToCollection();
+                predefStep.computeUpdates(itemPath, this, newOutcome, transactionKey);
+            }
+
+            if (predefStep == null) {
+                log.debug("executePredefinedStep(predefStepProperty:{}) - none of PredefinedSteps will be requested", predefStepName);
+                return;
+            }
+
+            for (Entry<ItemPath, String> entry : predefStep.getAutoUpdates().entrySet()) {
+                predefStep.request(agent, entry.getKey(), entry.getValue(), transactionKey);
+            }
+        }
     }
 
     private String resolveViewpointName(Outcome outcome) throws InvalidDataException {

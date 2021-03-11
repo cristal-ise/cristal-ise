@@ -1,8 +1,7 @@
-<?xml version="1.0" encoding="UTF-8"?>
 <cristalscript>
-  <param name='item' type='org.cristalise.kernel.entity.proxy.ItemProxy' />
-  <output name='PatientXML' type='java.lang.String' />
-  <script language='groovy' name='Patient_Aggregate'><![CDATA[ import groovy.transform.Field
+  <param name="item" type="org.cristalise.kernel.entity.proxy.ItemProxy"/>
+  <output name="PatientXML" type="java.lang.String"/>
+  <script language="groovy" name="Patient_Aggregate"><![CDATA[ import groovy.transform.Field
 import groovy.xml.MarkupBuilder
 
 import org.cristalise.kernel.persistency.outcome.Outcome
