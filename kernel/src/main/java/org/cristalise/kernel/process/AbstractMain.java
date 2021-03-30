@@ -44,7 +44,6 @@ abstract public class AbstractMain {
     public static final String MAIN_ARG_LOGLEVEL       = "logLevel";
     public static final String MAIN_ARG_LOGFILE        = "logFile";
     public static final String MAIN_ARG_CONNECT        = "connect";
-    public static final String MAIN_ARG_RESETIOR       = "resetIOR";
     public static final String MAIN_ARG_SKIPBOOTSTRAP  = "skipBootstrap";
 
     /**
