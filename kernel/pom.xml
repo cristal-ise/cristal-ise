@@ -90,9 +90,14 @@
 
     <dependencies>
         <dependency>
-            <groupId>org.cristalise</groupId>
-            <artifactId>cristalise-idl</artifactId>
-            <version>${revision}</version>
+            <groupId>io.vertx</groupId>
+            <artifactId>vertx-service-proxy</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>io.vertx</groupId>
+            <artifactId>vertx-codegen</artifactId>
+            <classifier>processor</classifier>
+            <scope>provided</scope>
         </dependency>
 
         <dependency>
