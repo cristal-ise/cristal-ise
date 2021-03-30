@@ -25,7 +25,6 @@ import java.util.Arrays;
 import java.util.UUID;
 
 import org.cristalise.kernel.common.ObjectNotFoundException;
-import org.cristalise.kernel.common.SystemKey;
 import org.cristalise.kernel.persistency.ClusterType;
 import org.cristalise.kernel.persistency.TransactionKey;
 import org.cristalise.kernel.process.Gateway;
@@ -51,10 +50,6 @@ public class ItemPath extends Path {
 
     public ItemPath(UUID uuid) {
         setSysKey(uuid);
-    }
-
-    public ItemPath(SystemKey syskey) {
-        setSysKey(syskey);
     }
 
     public ItemPath(String[] path) throws InvalidItemPathException {
@@ -154,19 +149,9 @@ public class ItemPath extends Path {
         setPathFromUUID(uuid);
     }
 
-    protected void setSysKey(SystemKey sysKey) {
-        setPathFromUUID(new UUID(sysKey.msb, sysKey.lsb));
-    }
-
     private void setPathFromUUID(UUID uuid) {
         mPath = new String[1];
         mPath[0] = uuid.toString();
-    }
-
-    @Override
-    public SystemKey getSystemKey() {
-        UUID uuid = getUUID();
-        return new SystemKey(uuid.getMostSignificantBits(), uuid.getLeastSignificantBits());
     }
 
     @Override

@@ -31,10 +31,11 @@ import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.SCRIPT_V
 import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.STATE_MACHINE_NAME;
 import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.STATE_MACHINE_VERSION;
 
+import java.util.UUID;
+
 import org.apache.commons.lang3.StringUtils;
 import org.cristalise.kernel.common.InvalidDataException;
 import org.cristalise.kernel.common.ObjectNotFoundException;
-import org.cristalise.kernel.common.SystemKey;
 import org.cristalise.kernel.entity.imports.ImportAgent;
 import org.cristalise.kernel.entity.imports.ImportItem;
 import org.cristalise.kernel.entity.imports.ImportRole;
@@ -155,7 +156,7 @@ public class LocalObjectLoader {
 
         // don't bother if this is the Schema schema - for bootstrap especially
         if (schemaName.equals("Schema") && schemaVersion == 0) {
-            return new Schema(schemaName, schemaVersion, new ItemPath(new SystemKey(0, 5)), "");
+            return new Schema(schemaName, schemaVersion, new ItemPath(new UUID(0, 5)), "");
         }
 
         return schCache.get(schemaName, schemaVersion, transactionKey);

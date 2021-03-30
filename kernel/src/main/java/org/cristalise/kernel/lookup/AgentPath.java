@@ -24,7 +24,6 @@ import java.util.List;
 import java.util.UUID;
 
 import org.cristalise.kernel.common.ObjectNotFoundException;
-import org.cristalise.kernel.common.SystemKey;
 import org.cristalise.kernel.persistency.ClusterType;
 import org.cristalise.kernel.persistency.TransactionKey;
 import org.cristalise.kernel.process.Gateway;
@@ -57,10 +56,6 @@ public class AgentPath extends ItemPath {
 
         //This is commented so a AgentPath can be constructed without setting up Lookup
         //if (getAgentName() == null) throw new InvalidAgentPathException();
-    }
-
-    public AgentPath(SystemKey syskey) throws InvalidAgentPathException {
-        this(new UUID(syskey.msb, syskey.lsb));
     }
 
     public AgentPath(ItemPath itemPath) throws InvalidAgentPathException {
