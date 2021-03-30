@@ -182,7 +182,6 @@ public class Activity extends WfVertex {
     }
 
     public String request(AgentPath agent,
-                          AgentPath delegate,
                           ItemPath itemPath,
                           int transitionID,
                           String requestData,
@@ -201,11 +200,10 @@ public class Activity extends WfVertex {
                    InvalidCollectionModification
     {
         boolean validateOutcome = Gateway.getProperties().getBoolean("Activity.validateOutcome", false);
-        return request(agent, delegate, itemPath, transitionID, requestData, attachmentType, attachment, validateOutcome, transactionKey);
+        return request(agent, itemPath, transitionID, requestData, attachmentType, attachment, validateOutcome, transactionKey);
     }
 
     public String request(AgentPath agent,
-                          AgentPath delegate,
                           ItemPath itemPath,
                           int transitionID,
                           String requestData,
@@ -274,7 +272,7 @@ public class Activity extends WfVertex {
                 hasAttachment = true;
             }
 
-            int eventID = hist.addEvent(agent, delegate, usedRole, getName(), getPath(), getType(),
+            int eventID = hist.addEvent(agent, usedRole, getName(), getPath(), getType(),
                     schema, getStateMachine(), transitionID, viewpoint, hasAttachment).getID();
             newOutcome.setID(eventID);
 
@@ -297,7 +295,7 @@ public class Activity extends WfVertex {
         }
         else {
             updateItemProperties(itemPath, null, transactionKey);
-            hist.addEvent(agent, delegate, usedRole, getName(), getPath(), getType(), getStateMachine(), transitionID);
+            hist.addEvent(agent, usedRole, getName(), getPath(), getType(), getStateMachine(), transitionID);
         }
 
         if (newState.isFinished() && !(getBuiltInProperty(BREAKPOINT).equals(Boolean.TRUE) && !oldState.isFinished())) {

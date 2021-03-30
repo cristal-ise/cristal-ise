@@ -443,7 +443,7 @@ public class CreateItemFromDescription extends PredefinedStep {
         Outcome initOutcome = new Outcome(0, Gateway.getMarshaller().marshall(props), initSchema);
         StateMachine predefSm = LocalObjectLoader.getStateMachine("PredefinedStep", 0, transactionKey);
 
-        Event newEvent = hist.addEvent(agent, null, "", "Initialize", "", "", initSchema, predefSm, PredefinedStep.DONE, "last");
+        Event newEvent = hist.addEvent(agent, "", "Initialize", "", "", initSchema, predefSm, PredefinedStep.DONE, "last");
 
         initOutcome.setID(newEvent.getID());
 
@@ -459,7 +459,7 @@ public class CreateItemFromDescription extends PredefinedStep {
 
             initViewpoint.setItemPath(item);
 
-            Event intiEvent = hist.addEvent(agent, null, "", "Constructor", "", "", schema, predefSm, PredefinedStep.DONE, initViewpoint.getName());
+            Event intiEvent = hist.addEvent(agent, "", "Constructor", "", "", schema, predefSm, PredefinedStep.DONE, initViewpoint.getName());
 
             initViewpoint.setEventId(intiEvent.getID());
             outcome.setID(intiEvent.getID());
