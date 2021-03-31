@@ -1,20 +1,18 @@
 package org.cristalise.kernel.common;
 
-public class PersistencyException extends Exception {
-    /**
-     * 
-     */
+public class PersistencyException extends VertxException {
+    private final static int FAILURE_CODE = 105;
     private static final long serialVersionUID = 1176559332900341049L;
 
     public PersistencyException() {
-        super();
+        super(FAILURE_CODE);
     }
 
     public PersistencyException(Exception e) {
-        super(e);
+        super(FAILURE_CODE, e);
     }
 
-    public PersistencyException(String ex) {
-        super(ex);
+    public PersistencyException(String msg) {
+        super(FAILURE_CODE, msg);
     }
 }

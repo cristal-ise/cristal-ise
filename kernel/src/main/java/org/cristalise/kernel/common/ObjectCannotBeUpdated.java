@@ -1,21 +1,19 @@
 package org.cristalise.kernel.common;
 
-public class ObjectCannotBeUpdated extends Exception {
-    /**
-     * 
-     */
+public class ObjectCannotBeUpdated extends VertxException {
+    private final static int FAILURE_CODE = 105;
     private static final long serialVersionUID = 8957655670807468315L;
 
     public ObjectCannotBeUpdated() {
-        super();
+        super(FAILURE_CODE);
     }
 
     public ObjectCannotBeUpdated(Exception e) {
-        super(e);
+        super(FAILURE_CODE, e);
     }
 
-    public ObjectCannotBeUpdated(String ex) {
-        super(ex);
+    public ObjectCannotBeUpdated(String msg) {
+        super(FAILURE_CODE, msg);
     }
 
 }

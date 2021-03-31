@@ -1,21 +1,18 @@
 package org.cristalise.kernel.common;
 
-public class ObjectNotFoundException extends Exception {
-    /**
-     * 
-     */
+public class ObjectNotFoundException extends VertxException {
+    private final static int FAILURE_CODE = 105;
     private static final long serialVersionUID = 6881043115092110048L;
 
     public ObjectNotFoundException() {
-        super();
+        super(FAILURE_CODE);
     }
 
     public ObjectNotFoundException(Exception e) {
-        super(e);
+        super(FAILURE_CODE, e);
     }
 
-    public ObjectNotFoundException(String ex) {
-        super(ex);
+    public ObjectNotFoundException(String msg) {
+        super(FAILURE_CODE, msg);
     }
-
 }
