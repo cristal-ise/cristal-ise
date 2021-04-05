@@ -154,7 +154,7 @@ public abstract class JooqHandler {
     /**
      * Defines the key (value:{@value}) to retrieve a string value to set the assumeMinServerVersion
      */
-    public static final String JOOQ_ASSUMEMINSERVERVERSION = "JOOQ.assumeMinServerVersion";
+    public static final String JOOQ_ASSUMEMINSERVERVERSION = "JOOQ.PostgreSQL.assumeMinServerVersion";
 
     public static final DataType<UUID>           UUID_TYPE       = SQLDataType.UUID;
 
