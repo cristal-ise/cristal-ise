@@ -21,7 +21,6 @@
 package org.cristalise.kernel.entity.agent;
 
 import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.AGENT_NAME;
-import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.DELEGATE_NAME;
 import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.OUTCOME_INIT;
 
 import java.util.ArrayList;
@@ -78,7 +77,6 @@ public class Job implements C2KLocalObject {
     private String         targetStateName;
     private String         agentRole;
     private AgentPath      agentPath;
-    private AgentPath      delegatePath;
     private CastorHashMap  actProps = new CastorHashMap();
     private GTimeStamp     creationDate;
 
@@ -106,7 +104,7 @@ public class Job implements C2KLocalObject {
     /**
      * Main constructor to create Job during workflow enactment
      */
-    public Job(Activity act, ItemPath itemPath, Transition transition, AgentPath agent, AgentPath delegate, String role)
+    public Job(Activity act, ItemPath itemPath, Transition transition, AgentPath agent, String role)
             throws InvalidDataException, ObjectNotFoundException, InvalidAgentPathException
     {
         setCreationDate(DateUtility.getNow());
@@ -130,7 +128,7 @@ public class Job implements C2KLocalObject {
      */
     public Job(int id, ItemPath itemPath, String stepName, String stepPath, String stepType, 
             Transition transition, String originStateName, String targetStateName, 
-            String agentRole, AgentPath agentPath, AgentPath delegatePath, CastorHashMap actProps, GTimeStamp creationDate)
+            String agentRole, AgentPath agentPath, CastorHashMap actProps, GTimeStamp creationDate)
     {
         super();
         setId(id);
@@ -143,7 +141,6 @@ public class Job implements C2KLocalObject {
         setTargetStateName(targetStateName);
         setAgentRole(agentRole);
         setAgentPath(agentPath);
-        setDelegatePath(delegatePath);
         setActProps(actProps);
         setCreationDate(creationDate);
     }
@@ -195,35 +192,21 @@ public class Job implements C2KLocalObject {
      * Used by castor to unmarshall from XML
      * 
      * @param uuid the string representation of UUID
-     * @throws InvalidItemPathException Cannot set UUID of agent and delegate from parameter
+     * @throws InvalidItemPathException Cannot set UUID of agent
+     * @throws InvalidAgentPathException 
      */
-    public void setAgentUUID( String uuid ) throws InvalidItemPathException {
-        if (StringUtils.isBlank(uuid)) { 
-            agentPath = null; 
-            delegatePath = null;
-        }
-        else if (uuid.contains(":")) {
-            String[] agentStr = uuid.split(":");
-
-            if (agentStr.length!=2) throw new InvalidItemPathException("Cannot set UUID of agent and delegate from string:"+uuid);
-
-            setAgentPath(    new AgentPath(agentStr[0]) );
-            setDelegatePath( new AgentPath(agentStr[1]) );
-        }
-        else
-            setAgentPath(new AgentPath(uuid));
+    public void setAgentUUID(String uuid) throws InvalidItemPathException, InvalidAgentPathException {
+        if (StringUtils.isBlank(uuid)) agentPath = null; 
+        else                           setAgentPath(new AgentPath(uuid));
     }
 
     /**
     * Used by castor to marshall to XML
-     * @return The stringified UUID of Agent concatenated with ':' and UUID of Delegate if exists
+     * @return The stringified UUID of Agent
      */
     public String getAgentUUID() {
-        if (agentPath != null) {
-            if (delegatePath != null) return getAgentPath().getUUID().toString()+":"+getDelegatePath().getUUID().toString();
-            else                      return getAgentPath().getUUID().toString();
-        }
-        return null;
+        if (agentPath != null) return getAgentPath().getUUID().toString();
+        else                   return null;
     }
 
     public String getAgentName() {
@@ -233,15 +216,6 @@ public class Job implements C2KLocalObject {
         if (agentName == null) agentName = (String) actProps.getBuiltInProperty(AGENT_NAME);
 
         return agentName;
-    }
-
-    public String getDelegateName() {
-        String delegateName = null;
-
-        if (delegatePath != null) delegateName = delegatePath.getAgentName();
-        if (delegateName == null) delegateName = (String) actProps.getBuiltInProperty(DELEGATE_NAME);
-
-        return delegateName;
     }
 
     public Schema getSchema() throws InvalidDataException, ObjectNotFoundException {

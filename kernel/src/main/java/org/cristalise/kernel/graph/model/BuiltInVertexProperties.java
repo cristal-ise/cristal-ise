@@ -49,12 +49,6 @@ public enum BuiltInVertexProperties {
     ATTACHMENT_MIME_TYPES("AttachmentMimeTypes"),
 
     /**
-     * String property. The name of the Delegate Agent associated with Activities. Can be null or undefined.
-     * @deprecated delegate mechanism is not supported anymore. Use Role and permission.
-     */
-    DELEGATE_NAME("DelegateName"),
-
-    /**
      * String property. The role of the Agent associated with Activities. Can be null or undefined.
      * 
      * @deprecated use {@link RolePath#setPermissions(java.util.List)} instead
