@@ -62,7 +62,7 @@ public class AgentPath extends ItemPath {
         this(itemPath.getUUID());
     }
 
-    public AgentPath(String path) throws InvalidItemPathException {
+    public AgentPath(String path) throws InvalidAgentPathException {
         //remove the '/entity/' string from the beginning if exists
         this(UUID.fromString(path.substring( (path.lastIndexOf("/") == -1 ? 0 : path.lastIndexOf("/")+1) )));
     }

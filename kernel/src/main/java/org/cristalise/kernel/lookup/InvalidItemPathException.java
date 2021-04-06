@@ -20,15 +20,22 @@
  */
 package org.cristalise.kernel.lookup;
 
-public class InvalidItemPathException extends InvalidPathException {
+import org.cristalise.kernel.common.VertxException;
+
+public class InvalidItemPathException extends VertxException {
+    private final static int FAILURE_CODE = 201;
 
     private static final long serialVersionUID = -4251577168832199386L;
 
     public InvalidItemPathException() {
-        super();
+        super(FAILURE_CODE);
+    }
+
+    public InvalidItemPathException(Exception ex) {
+        super(FAILURE_CODE, ex);
     }
 
     public InvalidItemPathException(String msg) {
-        super(msg);
+        super(FAILURE_CODE, msg);
     }
 }

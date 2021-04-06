@@ -27,6 +27,7 @@ import org.cristalise.kernel.entity.C2KLocalObject;
 import org.cristalise.kernel.lifecycle.instance.stateMachine.StateMachine;
 import org.cristalise.kernel.lifecycle.instance.stateMachine.Transition;
 import org.cristalise.kernel.lookup.AgentPath;
+import org.cristalise.kernel.lookup.InvalidAgentPathException;
 import org.cristalise.kernel.lookup.InvalidItemPathException;
 import org.cristalise.kernel.lookup.ItemPath;
 import org.cristalise.kernel.persistency.ClusterType;
@@ -172,7 +173,7 @@ public class Event implements C2KLocalObject {
         return getItemPath().getUUID().toString();
     }
 
-    public void setAgentUUID(String uuid) throws InvalidItemPathException {
+    public void setAgentUUID(String uuid) throws InvalidAgentPathException {
         if (uuid == null || uuid.length() == 0) mAgentPath = null;
         else                                    setAgentPath(new AgentPath(uuid));
     }

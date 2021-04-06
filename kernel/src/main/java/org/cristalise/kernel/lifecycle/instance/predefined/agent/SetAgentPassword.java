@@ -32,7 +32,7 @@ import org.cristalise.kernel.common.ObjectCannotBeUpdated;
 import org.cristalise.kernel.common.ObjectNotFoundException;
 import org.cristalise.kernel.lifecycle.instance.predefined.PredefinedStep;
 import org.cristalise.kernel.lookup.AgentPath;
-import org.cristalise.kernel.lookup.InvalidItemPathException;
+import org.cristalise.kernel.lookup.InvalidAgentPathException;
 import org.cristalise.kernel.lookup.ItemPath;
 import org.cristalise.kernel.persistency.TransactionKey;
 import org.cristalise.kernel.process.Gateway;
@@ -89,7 +89,7 @@ public class SetAgentPassword extends PredefinedStep {
 
             return bundleData(params);
         }
-        catch (InvalidItemPathException ex) {
+        catch (InvalidAgentPathException ex) {
             log.error("", ex);
             throw new InvalidDataException("Can only set password on an Agent. " + item + " is an Item.");
         }
