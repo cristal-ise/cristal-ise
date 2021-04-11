@@ -107,7 +107,7 @@ public class Script implements DescriptionObject {
     public static final String PARAMETER_LOCKER  = "transactionKey";
     public static final String PARAMETER_LOOKUP  = "lookup";
     public static final String PARAMETER_OUTPUT  = "output";
-    public static final String PARAMETER_ORB     = "orb";
+    public static final String PARAMETER_VERTX   = "vertx";
     public static final String PARAMETER_PROXY   = "proxy";
     public static final String PARAMETER_STORAGE = "storage";
 
@@ -250,7 +250,7 @@ public class Script implements DescriptionObject {
         beans.put(PARAMETER_DB, Gateway.getStorage());
         beans.put(PARAMETER_PROXY, Gateway.getProxyManager());
         beans.put(PARAMETER_LOOKUP, Gateway.getLookup());
-        beans.put(PARAMETER_ORB, Gateway.getORB());
+        beans.put(PARAMETER_VERTX, Gateway.getVertx());
         beans.put(PARAMETER_AGENT, agent);
         beans.put(PARAMETER_OUTPUT, out);
 
