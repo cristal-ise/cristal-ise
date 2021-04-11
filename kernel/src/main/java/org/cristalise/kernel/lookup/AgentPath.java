@@ -40,13 +40,8 @@ public class AgentPath extends ItemPath {
         super();
     }
 
-    public AgentPath(UUID uuid, String ior, String agentName) {
-        super(uuid, ior);
-        mAgentName = agentName;
-    }
-
-    public AgentPath(UUID uuid, String ior, String agentName, boolean isPwdTemporary) {
-        super(uuid, ior);
+    public AgentPath(UUID uuid, String agentName, boolean isPwdTemporary) {
+        super(uuid);
         mAgentName = agentName;
         mPasswordTemporary = isPwdTemporary;
     }

@@ -252,16 +252,6 @@ public class JooqLookupManager implements LookupManager {
         }
     }
 
-    @Override
-    public String getIOR(Path path, TransactionKey transactionKey) throws ObjectNotFoundException {
-        try {
-            return getItemPath(path.getStringPath(), transactionKey).getIORString();
-        }
-        catch (InvalidItemPathException e) {
-            throw new ObjectNotFoundException(e.getMessage());
-        }
-    }
-
     private List<Path> find(DSLContext context , Path start, String name, List<UUID> uuids, SearchConstraints constraints) throws PersistencyException {
         log.debug("find() - start:"+start+" name:"+name);
         List<Path> paths = new ArrayList<>();
@@ -593,7 +583,6 @@ public class JooqLookupManager implements LookupManager {
 
         select.addSelect(
                 field(name("item", "UUID"), UUID.class),
-                JooqItemHandler.IOR,
                 JooqItemHandler.IS_AGENT,
                 JooqItemPropertyHandler.VALUE.as("Name"));
 
@@ -739,22 +728,6 @@ public class JooqLookupManager implements LookupManager {
             log.error("searchAliases()", e);
         }
         return new PagedResult();
-    }
-
-    @Override
-    public void setIOR(ItemPath item, String ior, TransactionKey transactionKey) throws ObjectNotFoundException, ObjectCannotBeUpdated {
-        if (!exists(item, transactionKey)) throw new ObjectNotFoundException("Item:"+item);
-
-        item.setIORString(ior);
-
-        try {
-            DSLContext context = retrieveContext(transactionKey);
-            items.updateIOR(context, item, ior);
-        }
-        catch (Exception e) {
-            log.error("setIOR()", e);
-            throw new ObjectCannotBeUpdated("Item:" + item + " error:" + e.getMessage());
-        }
     }
 
     @Override

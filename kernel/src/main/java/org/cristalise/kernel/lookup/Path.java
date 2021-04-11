@@ -86,9 +86,6 @@ public abstract class Path implements C2KLocalObject {
     abstract public String getRoot();
 
     //these methods declared here to provide backward compatibility
-    public org.omg.CORBA.Object getIOR() { return getIOR(null); }
-    public org.omg.CORBA.Object getIOR(TransactionKey transactionKey) { return null; }
-    public void setIOR(org.omg.CORBA.Object IOR) {}
     public UUID getUUID() { return null; }
     public ItemPath getItemPath() throws ObjectNotFoundException { return getItemPath(null); }
     public ItemPath getItemPath(TransactionKey transactionKey) throws ObjectNotFoundException { return null; }

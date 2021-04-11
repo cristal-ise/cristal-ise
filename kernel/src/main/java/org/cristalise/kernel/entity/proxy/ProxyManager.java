@@ -224,44 +224,6 @@ public class ProxyManager {
         sendMessage(sub);
     }
 
-
-    /**
-     * Called by the other GetProxy methods to either load the find the proxy in the cache
-     * or create it from the ItemPath.
-     * 
-     * @param ior
-     * @param itemPath
-     * @return the ItemProx
-     * @throws ObjectNotFoundException
-     */
-    private ItemProxy getProxy(org.omg.CORBA.Object ior, ItemPath itemPath, TransactionKey transactionKey) throws ObjectNotFoundException {
-        synchronized(proxyPool) {
-            ItemProxy newProxy;
-            // return it if it exists
-            newProxy = proxyPool.get(itemPath);
-
-            // create a new one
-            if (newProxy == null) {
-                newProxy = createProxy(ior, itemPath, transactionKey);
-                proxyPool.put(itemPath, newProxy);
-            }
-            else {
-                // Avoid sharing wrong transactionKey between calls to the same item (i.e. server side scripting would require transactionKey)
-                newProxy.setTransactionKey(null);
-
-                // FIXME check transactionKey consistency for server side use of proxies
-//                if (transactionKey == null || newProxy.getTransactionKey() == null || transactionKey.equals(newProxy.getTransactionKey())) {
-//                    newProxy.setTransactionKey(transactionKey);
-//                }
-//                else if (! transactionKey.equals(newProxy.getTransactionKey())) {
-//                    throw new ObjectNotFoundException("Cannot create proxy (name:"+newProxy.getName()+") with different transaction keys");
-//                }
-            }
-
-            return newProxy;
-        }
-    }
-
     public ItemProxy getProxy(Path path) throws ObjectNotFoundException {
         return getProxy(path, null);
     }
@@ -288,7 +250,7 @@ public class ProxyManager {
 
         if (itemPath == null) throw new ObjectNotFoundException("Cannot use RolePath");
 
-        return getProxy(itemPath.getIOR(), itemPath, transactionKey);
+        return getProxy(itemPath, transactionKey);
     }
 
     public AgentProxy getAgentProxy(String agentName) throws ObjectNotFoundException {
