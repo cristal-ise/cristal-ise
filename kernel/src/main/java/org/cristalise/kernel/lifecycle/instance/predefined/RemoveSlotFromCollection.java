@@ -30,6 +30,7 @@ import org.cristalise.kernel.common.ObjectNotFoundException;
 import org.cristalise.kernel.common.PersistencyException;
 import org.cristalise.kernel.lookup.AgentPath;
 import org.cristalise.kernel.lookup.ItemPath;
+import org.cristalise.kernel.persistency.TransactionKey;
 import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.utils.CastorHashMap;
 
@@ -45,10 +46,10 @@ public class RemoveSlotFromCollection extends PredefinedStepCollectionBase {
     }
 
     @Override
-    protected String runActivityLogic(AgentPath agent, ItemPath item, int transitionID, String requestData, Object locker)
+    protected String runActivityLogic(AgentPath agent, ItemPath item, int transitionID, String requestData, TransactionKey transactionKey)
             throws InvalidDataException, ObjectNotFoundException, PersistencyException, InvalidCollectionModification
     {
-        unpackParamsAndGetCollection(item, requestData, locker);
+        unpackParamsAndGetCollection(item, requestData, transactionKey);
 
         if (slotID == -1) throw new InvalidDataException(item + " must give slot id to remove member");
 
@@ -61,13 +62,13 @@ public class RemoveSlotFromCollection extends PredefinedStepCollectionBase {
             scriptProps.put("slotID", slotID);
             scriptProps.put("member", member);
 
-            evaluateScript(item, (String) dep.getBuiltInProperty(MEMBER_REMOVE_SCRIPT), scriptProps, locker);
+            evaluateScript(item, (String) dep.getBuiltInProperty(MEMBER_REMOVE_SCRIPT), scriptProps, transactionKey);
         }
 
         // Remove the slot
         collection.removeMember(slotID);
 
-        Gateway.getStorage().put(item, collection, locker);
+        Gateway.getStorage().put(item, collection, transactionKey);
 
         return requestData;
     }

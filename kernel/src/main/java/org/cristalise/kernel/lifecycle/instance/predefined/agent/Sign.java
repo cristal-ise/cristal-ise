@@ -29,6 +29,7 @@ import org.cristalise.kernel.common.ObjectNotFoundException;
 import org.cristalise.kernel.common.PersistencyException;
 import org.cristalise.kernel.lookup.AgentPath;
 import org.cristalise.kernel.lookup.ItemPath;
+import org.cristalise.kernel.persistency.TransactionKey;
 import org.cristalise.kernel.persistency.outcome.Outcome;
 
 import lombok.extern.slf4j.Slf4j;
@@ -47,13 +48,13 @@ public class Sign extends Authenticate {
     }
 
     @Override
-    protected String runActivityLogic(AgentPath agent, ItemPath itemPath, int transitionID, String requestData, Object locker)
+    protected String runActivityLogic(AgentPath agent, ItemPath itemPath, int transitionID, String requestData, TransactionKey transactionKey)
             throws InvalidDataException, ObjectNotFoundException, ObjectCannotBeUpdated, CannotManageException, PersistencyException
     {
-        log.debug("Called by {} on {}", agent.getAgentName(), itemPath);
+        log.debug("Called by {} on {}", agent.getAgentName(transactionKey), itemPath);
 
         Outcome req = new Outcome(requestData);
-        authenticate(agent, itemPath, bundleData(req.getField("AgentName"), req.getField("Password")), locker);
+        authenticate(agent, itemPath, bundleData(req.getField("AgentName"), req.getField("Password")), transactionKey);
         req.setField("Password", "REDACTED");
 
         return req.getData();

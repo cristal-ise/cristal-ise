@@ -35,9 +35,11 @@ import org.cristalise.kernel.lifecycle.instance.CompositeActivity;
 import org.cristalise.kernel.lifecycle.instance.predefined.item.CreateItemFromDescription;
 import org.cristalise.kernel.lookup.AgentPath;
 import org.cristalise.kernel.lookup.DomainPath;
+import org.cristalise.kernel.lookup.InvalidItemPathException;
 import org.cristalise.kernel.lookup.ItemPath;
 import org.cristalise.kernel.lookup.Path;
 import org.cristalise.kernel.lookup.RolePath;
+import org.cristalise.kernel.persistency.TransactionKey;
 import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.process.module.ModuleImport;
 import org.cristalise.kernel.property.Property;
@@ -69,7 +71,12 @@ public class ImportAgent extends ModuleImport {
     }
 
     @Override
-    public Path create(AgentPath agentPath, boolean reset, Object transactionKey)
+    public void setID(String uuid) throws InvalidItemPathException {
+        if (StringUtils.isNotBlank(uuid)) itemPath = new AgentPath(new ItemPath(uuid), name);
+    }
+
+    @Override
+    public Path create(AgentPath agentPath, boolean reset, TransactionKey transactionKey)
             throws ObjectNotFoundException, ObjectCannotBeUpdated, CannotManageException, ObjectAlreadyExistsException
     {
         if (roles.isEmpty()) throw new ObjectNotFoundException("Agent '"+name+"' must declare at least one Role ");
@@ -77,10 +84,10 @@ public class ImportAgent extends ModuleImport {
         if (StringUtils.isNotBlank(initialPath)) {
             domainPath = new DomainPath(new DomainPath(initialPath), name);
 
-            if (domainPath.exists()) {
-                ItemPath domItem = domainPath.getItemPath();
-                if (!getItemPath().equals(domItem)) {
-                    throw new CannotManageException("'"+domainPath+"' was found with the different itemPath ("+domainPath.getItemPath()+" vs "+getItemPath()+")");
+            if (domainPath.exists(transactionKey)) {
+                ItemPath domItem = domainPath.getItemPath(transactionKey);
+                if (!getItemPath(transactionKey).equals(domItem)) {
+                    throw new CannotManageException("'"+domainPath+"' was found with the different itemPath ("+domainPath.getItemPath(transactionKey)+" vs "+getItemPath(transactionKey)+")");
                 }
             }
             else {
@@ -88,45 +95,50 @@ public class ImportAgent extends ModuleImport {
             }
         }
 
-        AgentPath newAgent = new AgentPath(getItemPath(), name);
+        AgentPath newAgent = new AgentPath(getItemPath(transactionKey), name);
 
-        Gateway.getCorbaServer().createAgent(newAgent);
-        Gateway.getLookupManager().add(newAgent);
+        Gateway.getCorbaServer().createAgent(newAgent, transactionKey);
+        Gateway.getLookupManager().add(newAgent, transactionKey);
 
         // assemble properties
         properties.add(new Property(NAME, name, true));
         properties.add(new Property(TYPE, "Agent", false));
 
         try {
-            if (StringUtils.isNotBlank(password)) Gateway.getLookupManager().setAgentPassword(newAgent, password);
+            if (StringUtils.isNotBlank(password)) Gateway.getLookupManager().setAgentPassword(newAgent, password, false, transactionKey);
 
             CreateItemFromDescription.storeItem(
                     agentPath, 
-                    getItemPath(),
+                    getItemPath(transactionKey),
                     new PropertyArrayList(properties),
                     null, //colls
-                    (CompositeActivity)LocalObjectLoader.getCompActDef("NoWorkflow", 0).instantiate(),
+                    (CompositeActivity)LocalObjectLoader.getCompActDef("NoWorkflow", 0, transactionKey).instantiate(transactionKey),
                     null, //initViewpoint
                     null, //initOutcomeString
                     transactionKey);
         }
         catch (Exception ex) {
             log.error("Error initialising new agent name:{}", name, ex);
-            Gateway.getLookupManager().delete(newAgent);
+            Gateway.getLookupManager().delete(newAgent,transactionKey);
             throw new CannotManageException("Error initialising new agent name:"+name);
         }
 
         for (ImportRole role : roles) {
             RolePath thisRole = (RolePath)role.create(agentPath, reset, transactionKey);
-            Gateway.getLookupManager().addRole(newAgent, thisRole);
+            Gateway.getLookupManager().addRole(newAgent, thisRole, transactionKey);
         }
 
         if (domainPath != null && !isDOMPathExists) {
-            domainPath.setItemPath(getItemPath());
-            Gateway.getLookupManager().add(domainPath);
+            domainPath.setItemPath(getItemPath(transactionKey));
+            Gateway.getLookupManager().add(domainPath, transactionKey);
         }
 
         return newAgent;
+    }
+
+    @Override
+    public ItemPath getItemPath() {
+        return getItemPath(null);
     }
 
     /**
@@ -134,10 +146,10 @@ public class ImportAgent extends ModuleImport {
      * otherwise creates  new ItemPath, i.e. it creates new UUID.
      */
     @Override
-    public ItemPath getItemPath() {
+    public ItemPath getItemPath(TransactionKey transactionKey) {
         if (itemPath == null) {
             try {
-                itemPath = Gateway.getLookup().getAgentPath(name);
+                itemPath = Gateway.getLookup().getAgentPath(name, transactionKey);
             }
             catch (ObjectNotFoundException ex) {
                 itemPath = new AgentPath(new ItemPath(), name);

@@ -48,6 +48,7 @@ import org.cristalise.kernel.lookup.AgentPath;
 import org.cristalise.kernel.lookup.DomainPath;
 import org.cristalise.kernel.lookup.InvalidItemPathException;
 import org.cristalise.kernel.lookup.ItemPath;
+import org.cristalise.kernel.persistency.TransactionKey;
 import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.property.Property;
 import org.cristalise.kernel.property.PropertyArrayList;
@@ -75,7 +76,7 @@ public class UpdateCollectionsFromDescription extends PredefinedStep {
     /**
      * 
      */
-    protected String runActivityLogic(AgentPath agent, ItemPath item, int transitionID, String requestData, Object locker)
+    protected String runActivityLogic(AgentPath agent, ItemPath item, int transitionID, String requestData, TransactionKey transactionKey)
             throws  InvalidDataException,
                     InvalidCollectionModification,
                     ObjectAlreadyExistsException,
@@ -108,7 +109,7 @@ public class UpdateCollectionsFromDescription extends PredefinedStep {
         ItemPath descItemPath; // very likely the factory item
 
         try {
-            descItemPath = Gateway.getLookup().resolvePath(new DomainPath(descPath));
+            descItemPath = Gateway.getLookup().resolvePath(new DomainPath(descPath), transactionKey);
         }
         catch (InvalidItemPathException e) {
             log.error("", e);
@@ -116,35 +117,35 @@ public class UpdateCollectionsFromDescription extends PredefinedStep {
         }
 
         PropertyArrayList newItemProps = new PropertyArrayList();
-        List<String> currentCollNames = new ArrayList<>(Arrays.asList(Gateway.getStorage().getClusterContents(item, COLLECTION)));
+        List<String> currentCollNames = new ArrayList<>(Arrays.asList(Gateway.getStorage().getClusterContents(item, COLLECTION, transactionKey)));
 
         //Loop through collection desc names and create new ones
-        for (String collName :  Gateway.getStorage().getClusterContents(descItemPath, COLLECTION, locker)) {
+        for (String collName :  Gateway.getStorage().getClusterContents(descItemPath, COLLECTION, transactionKey)) {
             if (! currentCollNames.contains(collName)) {
-                Collection<?> newColl = CreateItemFromDescription.instantiateCollection(collName, descItemPath, descVer, newItemProps, locker);
+                Collection<?> newColl = CreateItemFromDescription.instantiateCollection(collName, descItemPath, descVer, newItemProps, transactionKey);
 
-                if (newColl != null) Gateway.getStorage().put(item, newColl, locker);
+                if (newColl != null) Gateway.getStorage().put(item, newColl, transactionKey);
             }
             else {
                 currentCollNames.remove(collName);
 
                 //FIXME: Check if current collection is a Dependency, properties are only available in Dependency and DependencyDescription
-                Dependency itemColl = updateDependencyProperties(item, descItemPath, descVer, collName, locker);
+                Dependency itemColl = updateDependencyProperties(item, descItemPath, descVer, collName, transactionKey);
 
                 updateDependencyMembers(itemColl, newMembers);
 
-                Gateway.getStorage().put(item, itemColl, locker);
+                Gateway.getStorage().put(item, itemColl, transactionKey);
             }
         }
 
         //instantiating Dependency of Factory creates new Item Property
         for (Property p: newItemProps.list) {
-            PropertyUtility.writeProperty(item, p.getName(), p.getValue(), locker);
+            PropertyUtility.writeProperty(item, p.getName(), p.getValue(), transactionKey);
         }
 
         //remove remaining collection from current list
         for (String collName: currentCollNames) {
-            Gateway.getStorage().remove(item, COLLECTION + "/" + collName, locker);
+            Gateway.getStorage().remove(item, COLLECTION + "/" + collName, transactionKey);
         }
 
         return requestData;
@@ -180,24 +181,24 @@ public class UpdateCollectionsFromDescription extends PredefinedStep {
      * @param descItemPath
      * @param descVer
      * @param collName
-     * @param locker
+     * @param transactionKey
      * @return
      * @throws PersistencyException
      * @throws ObjectNotFoundException
      */
-    private static Dependency updateDependencyProperties(ItemPath item, ItemPath descItemPath, String descVer, String collName, Object locker)
+    private static Dependency updateDependencyProperties(ItemPath item, ItemPath descItemPath, String descVer, String collName, TransactionKey transactionKey)
             throws PersistencyException, ObjectNotFoundException
     {
         Map<String, Object> newCollProps = new HashMap<>(); // place holder for all properties from the factory
 
         DependencyDescription collOfDesc = (DependencyDescription)
-                Gateway.getStorage().get(descItemPath, COLLECTION + "/" + collName + "/" + descVer, locker);
+                Gateway.getStorage().get(descItemPath, COLLECTION + "/" + collName + "/" + descVer, transactionKey);
 
         newCollProps.putAll(collOfDesc.getProperties());
 
         // DependencyDescription shall have one member only
         PropertyDescriptionList itemPropertyList = PropertyUtility.getPropertyDescriptionOutcome(
-                collOfDesc.getMembers().list.get(0).getItemPath(), descVer, locker);
+                collOfDesc.getMembers().list.get(0).getItemPath(), descVer, transactionKey);
 
         for (PropertyDescription prop: itemPropertyList.list) {
             if(prop.getIsClassIdentifier() || prop.isTransitive()){
@@ -205,7 +206,7 @@ public class UpdateCollectionsFromDescription extends PredefinedStep {
             }
         }
 
-        Dependency itemColl = (Dependency) Gateway.getStorage().get(item, COLLECTION + "/" + collName + "/" + descVer, locker);
+        Dependency itemColl = (Dependency) Gateway.getStorage().get(item, COLLECTION + "/" + collName + "/" + descVer, transactionKey);
 
         Iterator<String> iterator =  itemColl.getProperties().keySet().iterator();
         while (iterator.hasNext()) {

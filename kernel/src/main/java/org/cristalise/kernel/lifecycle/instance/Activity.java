@@ -63,6 +63,7 @@ import org.cristalise.kernel.lookup.ItemPath;
 import org.cristalise.kernel.lookup.Path;
 import org.cristalise.kernel.lookup.RolePath;
 import org.cristalise.kernel.persistency.ClusterType;
+import org.cristalise.kernel.persistency.TransactionKey;
 import org.cristalise.kernel.persistency.outcome.Outcome;
 import org.cristalise.kernel.persistency.outcome.OutcomeAttachment;
 import org.cristalise.kernel.persistency.outcome.Schema;
@@ -126,9 +127,13 @@ public class Activity extends WfVertex {
     }
 
     public StateMachine getStateMachine() throws InvalidDataException {
+        return getStateMachine(null);
+    }
+
+    public StateMachine getStateMachine(TransactionKey transKey) throws InvalidDataException {
         if (machine == null) {
             try {
-                machine = LocalObjectLoader.getStateMachine(getProperties());
+                machine = LocalObjectLoader.getStateMachine(getProperties(), transKey);
             }
             catch (ObjectNotFoundException e) {
                 throw new InvalidDataException(e.getMessage());
@@ -179,7 +184,7 @@ public class Activity extends WfVertex {
                           String requestData,
                           String attachmentType,
                           byte[] attachment,
-                          Object transactionKey
+                          TransactionKey transactionKey
                           )
             throws AccessRightsException,
                    InvalidTransitionException,
@@ -203,7 +208,7 @@ public class Activity extends WfVertex {
                           String attachmentType,
                           byte[] attachment,
                           boolean validateOutcome,
-                          Object transactionKey
+                          TransactionKey transactionKey
                           )
             throws AccessRightsException,
                    InvalidTransitionException,
@@ -323,7 +328,7 @@ public class Activity extends WfVertex {
         return viewpointString;
     }
 
-    private void updateItemProperties(ItemPath itemPath, Outcome outcome, Object transactionKey)
+    private void updateItemProperties(ItemPath itemPath, Outcome outcome, TransactionKey transactionKey)
             throws InvalidDataException, PersistencyException, ObjectCannotBeUpdated, ObjectNotFoundException
     {
         for(java.util.Map.Entry<String, Object> entry: getProperties().entrySet()) {
@@ -372,7 +377,7 @@ public class Activity extends WfVertex {
      * @throws CannotManageException
      * @throws AccessRightsException
      */
-    protected String runActivityLogic(AgentPath agent, ItemPath itemPath, int transitionID, String requestData, Object transactionKey)
+    protected String runActivityLogic(AgentPath agent, ItemPath itemPath, int transitionID, String requestData, TransactionKey transactionKey)
             throws InvalidDataException, InvalidCollectionModification, ObjectAlreadyExistsException, ObjectCannotBeUpdated,
             ObjectNotFoundException, PersistencyException, CannotManageException, AccessRightsException
     {
@@ -428,7 +433,7 @@ public class Activity extends WfVertex {
      * sets the next activity available if possible
      */
     @Override
-    public void runNext(AgentPath agent, ItemPath itemPath, Object transactionKey) throws InvalidDataException {
+    public void runNext(AgentPath agent, ItemPath itemPath, TransactionKey transactionKey) throws InvalidDataException {
         setActive(false);
 
         Vertex[] outVertices = getOutGraphables();
@@ -534,7 +539,7 @@ public class Activity extends WfVertex {
      * called by precedent Activity runNext() for setting the activity able to be executed
      */
     @Override
-    public void run(AgentPath agent, ItemPath itemPath, Object transactionKey) throws InvalidDataException {
+    public void run(AgentPath agent, ItemPath itemPath, TransactionKey transactionKey) throws InvalidDataException {
         log.trace("run() path:" + getPath() + " state:" + getStateName());
 
         if (isFinished()) {
@@ -553,7 +558,7 @@ public class Activity extends WfVertex {
      * composite activity (when it is the first one of the (sub)process
      */
     @Override
-    public void runFirst(AgentPath agent, ItemPath itemPath, Object transactionKey) throws InvalidDataException {
+    public void runFirst(AgentPath agent, ItemPath itemPath, TransactionKey transactionKey) throws InvalidDataException {
         log.trace("runFirst() - path:" + getPath());
         run(agent, itemPath, transactionKey);
     }

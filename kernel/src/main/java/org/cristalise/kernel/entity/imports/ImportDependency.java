@@ -32,6 +32,7 @@ import org.cristalise.kernel.common.ObjectNotFoundException;
 import org.cristalise.kernel.lookup.DomainPath;
 import org.cristalise.kernel.lookup.InvalidItemPathException;
 import org.cristalise.kernel.lookup.ItemPath;
+import org.cristalise.kernel.persistency.TransactionKey;
 import org.cristalise.kernel.property.PropertyDescription;
 import org.cristalise.kernel.property.PropertyDescriptionList;
 import org.cristalise.kernel.property.PropertyUtility;
@@ -68,7 +69,7 @@ public class ImportDependency {
         props.setKeyValuePairs(pairs);
     }
 
-    public Dependency create() throws InvalidCollectionModification, ObjectNotFoundException, ObjectAlreadyExistsException {
+    public Dependency create(TransactionKey transactionKey) throws InvalidCollectionModification, ObjectNotFoundException, ObjectAlreadyExistsException {
         Dependency newDep = isDescription ? new DependencyDescription(name) : new Dependency(name);
         if (version != null) newDep.setVersion(version);
 
@@ -80,11 +81,11 @@ public class ImportDependency {
                 itemPath = new ItemPath(itemDescriptionPath);
             }
             catch (InvalidItemPathException ex) {
-                itemPath = new DomainPath(itemDescriptionPath).getItemPath();
+                itemPath = new DomainPath(itemDescriptionPath).getItemPath(transactionKey);
             }
 
             String descVer = itemDescriptionVersion == null ? "last" : itemDescriptionVersion;
-            PropertyDescriptionList propDescList = PropertyUtility.getPropertyDescriptionOutcome(itemPath, descVer, null);
+            PropertyDescriptionList propDescList = PropertyUtility.getPropertyDescriptionOutcome(itemPath, descVer, transactionKey);
             StringBuffer descClassProps = new StringBuffer();
 
             for (PropertyDescription pd : propDescList.list) {
@@ -108,10 +109,10 @@ public class ImportDependency {
                 itemPath = new ItemPath(thisMem.itemPath);
             }
             catch (InvalidItemPathException ex) {
-                itemPath = new DomainPath(thisMem.itemPath).getItemPath();
+                itemPath = new DomainPath(thisMem.itemPath).getItemPath(transactionKey);
             }
 
-            org.cristalise.kernel.collection.DependencyMember newDepMem = newDep.addMember(itemPath);
+            org.cristalise.kernel.collection.DependencyMember newDepMem = newDep.addMember(itemPath, transactionKey);
             newDepMem.getProperties().putAll(thisMem.props);
         }
         return newDep;

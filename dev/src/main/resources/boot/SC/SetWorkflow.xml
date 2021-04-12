@@ -65,7 +65,7 @@ if (coll.size() > 0) { // if there's already a member, remove it
 }
 
 // add the new member
-var cm = coll.addMember(wfItem.getPath());
+var cm = coll.addMember(wfItem.getPath(), item.getTransactionKey());
 cm.getProperties().put("Version", wfDefVersion);
 
 // save it back to the item

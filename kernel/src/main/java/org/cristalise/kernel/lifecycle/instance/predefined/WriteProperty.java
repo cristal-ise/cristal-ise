@@ -28,6 +28,7 @@ import org.cristalise.kernel.common.ObjectNotFoundException;
 import org.cristalise.kernel.common.PersistencyException;
 import org.cristalise.kernel.lookup.AgentPath;
 import org.cristalise.kernel.lookup.ItemPath;
+import org.cristalise.kernel.persistency.TransactionKey;
 import org.cristalise.kernel.property.PropertyUtility;
 
 import lombok.extern.slf4j.Slf4j;
@@ -42,12 +43,12 @@ public class WriteProperty extends PredefinedStep {
     }
 
     @Override
-    protected String runActivityLogic(AgentPath agent, ItemPath item, int transitionID, String requestData, Object locker)
+    protected String runActivityLogic(AgentPath agent, ItemPath item, int transitionID, String requestData, TransactionKey transactionKey)
             throws InvalidDataException, ObjectCannotBeUpdated, ObjectNotFoundException, PersistencyException
     {
         String[] params = getDataList(requestData);
 
-        log.debug("Called by {} on {} with parameters {}", agent.getAgentName(), item, (Object)params);
+        log.debug("Called by {} on {} with parameters {}", agent.getAgentName(transactionKey), item, (Object)params);
 
         if (params.length != 2)
             throw new InvalidDataException("WriteProperty: invalid parameters " + Arrays.toString(params));
@@ -55,7 +56,7 @@ public class WriteProperty extends PredefinedStep {
         String name = params[0];
         String value = params[1];
 
-        PropertyUtility.writeProperty(item, name, value, locker);
+        PropertyUtility.writeProperty(item, name, value, transactionKey);
 
         return requestData;
     }
@@ -64,9 +65,9 @@ public class WriteProperty extends PredefinedStep {
      * @deprecated use PropertyUtility.writeProperty() instead
      */
     @Deprecated
-    public static void write(ItemPath item, String name, String value, Object locker)
+    public static void write(ItemPath item, String name, String value, TransactionKey transactionKey)
             throws PersistencyException, ObjectCannotBeUpdated, ObjectNotFoundException 
     {
-        PropertyUtility.writeProperty(item, name, value, locker);
+        PropertyUtility.writeProperty(item, name, value, transactionKey);
     }
 }

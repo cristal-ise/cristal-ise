@@ -64,12 +64,7 @@ public class JooqClusterStorageTest extends JooqTestConfigurationBase {
     public void importItem() throws Exception {
         BulkImport importer = new BulkImport();
         importer.initialise();
-
-        importer.importProperty (itemPath, null);
-        importer.importLifeCycle(itemPath, null);
-        importer.importOutcome  (itemPath, null);
-        importer.importViewPoint(itemPath, null);
-        importer.importHistory  (itemPath, null);
+        importer.importAllClusters(null);
     }
 
     @After

@@ -25,6 +25,7 @@ import org.cristalise.kernel.common.InvalidDataException;
 import org.cristalise.kernel.entity.proxy.AgentProxy;
 import org.cristalise.kernel.lifecycle.instance.stateMachine.StateMachine;
 import org.cristalise.kernel.utils.LocalObjectLoader;
+
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j

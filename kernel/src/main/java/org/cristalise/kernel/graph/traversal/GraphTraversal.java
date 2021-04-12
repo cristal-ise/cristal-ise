@@ -24,6 +24,7 @@ package org.cristalise.kernel.graph.traversal;
 import java.util.LinkedHashSet;
 import java.util.Set;
 import java.util.Vector;
+
 import org.cristalise.kernel.graph.model.GraphModel;
 import org.cristalise.kernel.graph.model.Vertex;
 

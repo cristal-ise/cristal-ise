@@ -29,6 +29,7 @@ import java.util.Set;
 import org.apache.commons.lang3.StringUtils;
 import org.cristalise.kernel.common.ObjectNotFoundException;
 import org.cristalise.kernel.persistency.ClusterType;
+import org.cristalise.kernel.persistency.TransactionKey;
 import org.cristalise.kernel.process.Gateway;
 
 public class RolePath extends Path {
@@ -103,9 +104,13 @@ public class RolePath extends Path {
     }
 
     public RolePath getParent() throws ObjectNotFoundException {
+        return getParent(null);
+    }
+
+    public RolePath getParent(TransactionKey transactionKey) throws ObjectNotFoundException {
         if (mPath.length < 2) return null;
 
-        return Gateway.getLookup().getRolePath(mPath[mPath.length - 2]);
+        return Gateway.getLookup().getRolePath(mPath[mPath.length - 2], transactionKey);
     }
 
     /**
@@ -141,7 +146,11 @@ public class RolePath extends Path {
     }
 
     public Iterator<Path> getChildren() {
-        return Gateway.getLookup().getChildren(this);
+        return getChildren(null);
+    }
+
+    public Iterator<Path> getChildren(TransactionKey transactionKey) {
+        return Gateway.getLookup().getChildren(this, transactionKey);
     }
 
     @Override

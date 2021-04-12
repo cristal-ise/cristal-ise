@@ -54,7 +54,7 @@ public class TraceableLocator extends org.omg.PortableServer.ServantLocatorPOA {
         log.info("Item called: " + operation + "(" + syskey + ")." );
 
         try {
-            return Gateway.getCorbaServer().getItem(syskey);
+            return Gateway.getCorbaServer().getItem(syskey, null);
         }
         catch (ObjectNotFoundException ex) {
             log.error("preinvoke", ex);

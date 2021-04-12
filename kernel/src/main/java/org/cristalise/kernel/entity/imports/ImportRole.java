@@ -27,8 +27,10 @@ import org.cristalise.kernel.common.ObjectAlreadyExistsException;
 import org.cristalise.kernel.common.ObjectCannotBeUpdated;
 import org.cristalise.kernel.common.ObjectNotFoundException;
 import org.cristalise.kernel.lookup.AgentPath;
+import org.cristalise.kernel.lookup.ItemPath;
 import org.cristalise.kernel.lookup.Path;
 import org.cristalise.kernel.lookup.RolePath;
+import org.cristalise.kernel.persistency.TransactionKey;
 import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.process.module.ModuleImport;
 
@@ -39,29 +41,30 @@ public class ImportRole extends ModuleImport {
 
     public Boolean jobList;
     public ArrayList<String> permissions = new ArrayList<>();
+    public RolePath rolePath = null;
 
     public ImportRole() {}
 
     @Override
-    public Path create(AgentPath agentPath, boolean reset, Object transactionKey)
+    public Path create(AgentPath agentPath, boolean reset, TransactionKey transactionKey)
             throws ObjectAlreadyExistsException, ObjectCannotBeUpdated, CannotManageException, ObjectNotFoundException
     {
-        RolePath newRolePath = new RolePath(name.split("/"), (jobList == null) ? false : jobList, permissions);
+        rolePath = new RolePath(name.split("/"), (jobList == null) ? false : jobList, permissions);
 
-        if (Gateway.getLookup().exists(newRolePath)) {
+        if (Gateway.getLookup().exists(rolePath, transactionKey)) {
             //If jobList is null it means it was NOT set in the module.xml, therefore existing Role cannot be updated
-            if (jobList != null) update(agentPath);
+            if (jobList != null) update(agentPath, transactionKey);
         }
         else {
             log.info("ImportRole.create() - Creating Role:"+name+" joblist:"+jobList);
 
             //Checks if parent exists and throw ObjectNotFoundException
-            newRolePath.getParent();
+            rolePath.getParent(transactionKey);
 
-            Gateway.getLookupManager().createRole(newRolePath);
-            Gateway.getLookupManager().setPermissions(newRolePath, newRolePath.getPermissionsList());
+            Gateway.getLookupManager().createRole(rolePath, transactionKey);
+            Gateway.getLookupManager().setPermissions(rolePath, rolePath.getPermissionsList(), transactionKey);
         }
-        return newRolePath;
+        return rolePath;
     }
 
     /**
@@ -72,16 +75,16 @@ public class ImportRole extends ModuleImport {
      * @throws CannotManageException
      * @throws ObjectNotFoundException
      */
-    public void update(AgentPath agentPath) 
+    public void update(AgentPath agentPath, TransactionKey transactionKey) 
             throws ObjectAlreadyExistsException, ObjectCannotBeUpdated, CannotManageException, ObjectNotFoundException
     {
         RolePath rolePath = new RolePath(name.split("/"), (jobList == null) ? false : jobList, permissions);
 
-        if (!Gateway.getLookup().exists(rolePath)) 
+        if (!Gateway.getLookup().exists(rolePath, transactionKey)) 
             throw new ObjectNotFoundException("Role '" + rolePath.getName() + "' does NOT exists.");
 
-        Gateway.getLookupManager().setHasJobList(rolePath, (jobList == null) ? false : jobList);
-        Gateway.getLookupManager().setPermissions(rolePath, rolePath.getPermissionsList());
+        Gateway.getLookupManager().setHasJobList(rolePath, (jobList == null) ? false : jobList, transactionKey);
+        Gateway.getLookupManager().setPermissions(rolePath, rolePath.getPermissionsList(), transactionKey);
     }
 
     /**
@@ -97,5 +100,10 @@ public class ImportRole extends ModuleImport {
         ir.permissions = (ArrayList<String>) rp.getPermissionsList();
 
         return ir;
+    }
+
+    @Override
+    public ItemPath getItemPath(TransactionKey transactionKey) {
+        return getItemPath();
     }
 }

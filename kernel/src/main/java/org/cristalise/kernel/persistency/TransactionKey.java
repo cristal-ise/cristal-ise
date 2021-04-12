@@ -18,27 +18,34 @@
  *
  * http://www.fsf.org/licensing/licenses/lgpl.html
  */
-package org.cristalise.kernel.lifecycle.routingHelpers;
+package org.cristalise.kernel.persistency;
 
-import org.cristalise.kernel.common.InvalidDataException;
-import org.cristalise.kernel.common.ObjectNotFoundException;
-import org.cristalise.kernel.common.PersistencyException;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+
 import org.cristalise.kernel.lookup.ItemPath;
-import org.cristalise.kernel.persistency.ClusterType;
-import org.cristalise.kernel.persistency.TransactionKey;
-import org.cristalise.kernel.process.Gateway;
-import org.cristalise.kernel.property.Property;
 
-public class PropertyDataHelper implements DataHelper {
+/**
+ * Use as transaction key for method calls
+ */
+public class TransactionKey {
+    private static final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd_HH-mm-ss_SSS");
+    private final String id;
 
-    /**
-     * Syntax of search: PropertyName
-     */
+    public TransactionKey(ItemPath item) {
+        id =  getId(item.getName());
+    }
+
+    public TransactionKey(String name) {
+        id = getId(name);
+    }
+
+    private String getId(String preFix) {
+        return preFix + "-" + LocalDateTime.now().format(formatter);
+    }
+
     @Override
-    public String get(ItemPath itemPath, String actContext, String dataPath, TransactionKey transactionKey)
-            throws InvalidDataException, PersistencyException, ObjectNotFoundException
-    {
-        Property prop = (Property)Gateway.getStorage().get(itemPath, ClusterType.PROPERTY+"/"+dataPath, transactionKey);
-        return prop.getValue();
+    public String toString() {
+        return id;
     }
 }

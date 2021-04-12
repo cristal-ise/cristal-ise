@@ -29,6 +29,7 @@ import org.cristalise.kernel.lookup.AgentPath;
 import org.cristalise.kernel.lookup.InvalidItemPathException;
 import org.cristalise.kernel.lookup.ItemPath;
 import org.cristalise.kernel.lookup.RolePath;
+import org.cristalise.kernel.persistency.TransactionKey;
 import org.cristalise.kernel.process.Gateway;
 
 import lombok.extern.slf4j.Slf4j;
@@ -41,12 +42,12 @@ public class SetAgentRoles extends PredefinedStep {
     }
 
     @Override
-    protected String runActivityLogic(AgentPath agent, ItemPath item, int transitionID, String requestData, Object locker) 
+    protected String runActivityLogic(AgentPath agent, ItemPath item, int transitionID, String requestData, TransactionKey transactionKey) 
             throws InvalidDataException
     {
         String[] params = getDataList(requestData);
 
-        log.debug("Called by {} on {} with parameters {}", agent.getAgentName(), item, (Object)params);
+        log.debug("Called by {} on {} with parameters {}", agent.getAgentName(transactionKey), item, (Object)params);
 
         AgentPath targetAgent;
         try {
@@ -56,11 +57,11 @@ public class SetAgentRoles extends PredefinedStep {
             throw new InvalidDataException("Could not resolve syskey " + item + " as an Agent.");
         }
 
-        RolePath[] currentRoles = targetAgent.getRoles();
+        RolePath[] currentRoles = targetAgent.getRoles(transactionKey);
         ArrayList<RolePath> requestedRoles = new ArrayList<RolePath>();
         for (int i = 0; i < params.length; i++) {
             try {
-                requestedRoles.add(Gateway.getLookup().getRolePath(params[i]));
+                requestedRoles.add(Gateway.getLookup().getRolePath(params[i], transactionKey));
             }
             catch (ObjectNotFoundException e) {
                 throw new InvalidDataException("Role " + params[i] + " not found");
@@ -78,7 +79,7 @@ public class SetAgentRoles extends PredefinedStep {
         // remove roles not in new list
         for (RolePath roleToRemove : rolesToRemove)
             try {
-                Gateway.getLookupManager().removeRole(targetAgent, roleToRemove);
+                Gateway.getLookupManager().removeRole(targetAgent, roleToRemove, transactionKey);
             }
             catch (Exception e) {
                 log.error("", e);
@@ -88,7 +89,7 @@ public class SetAgentRoles extends PredefinedStep {
         // add requested roles we don't already have
         for (RolePath roleToAdd : requestedRoles) {
             try {
-                Gateway.getLookupManager().addRole(targetAgent, roleToAdd);
+                Gateway.getLookupManager().addRole(targetAgent, roleToAdd, transactionKey);
             }
             catch (Exception e) {
                 log.error("", e);

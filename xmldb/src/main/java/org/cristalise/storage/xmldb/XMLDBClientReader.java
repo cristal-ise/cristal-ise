@@ -24,6 +24,7 @@ import org.cristalise.kernel.common.PersistencyException;
 import org.cristalise.kernel.entity.C2KLocalObject;
 import org.cristalise.kernel.lookup.ItemPath;
 import org.cristalise.kernel.persistency.ClusterType;
+import org.cristalise.kernel.persistency.TransactionKey;
 
 /**
  * 
@@ -46,12 +47,12 @@ public class XMLDBClientReader extends XMLDBClusterStorage {
     }
 
     @Override
-    public void put(ItemPath itemPath, C2KLocalObject obj, Object transactionKey) throws PersistencyException {
+    public void put(ItemPath itemPath, C2KLocalObject obj, TransactionKey transactionKey) throws PersistencyException {
         throw new PersistencyException("Writing not supported in XMLDBClientReader");
     }
 
     @Override
-    public void delete(ItemPath itemPath, String path, Object transactionKey) throws PersistencyException {
+    public void delete(ItemPath itemPath, String path, TransactionKey transactionKey) throws PersistencyException {
         throw new PersistencyException("Writing not supported in XMLDBClientReader");
     }
 }

@@ -24,6 +24,7 @@ import java.util.UUID;
 
 import org.cristalise.kernel.common.PersistencyException;
 import org.cristalise.kernel.entity.C2KLocalObject;
+import org.cristalise.kernel.persistency.TransactionKey;
 import org.jooq.DSLContext;
 
 /**
@@ -47,39 +48,39 @@ public interface JooqDomainHandler {
      * @param context The configured DSLContext of jooq
      * @param uuid the Item's UUID
      * @param obj Object that is being stored
-     * @param locker transaction key
+     * @param transactionKey transaction key
      * @return the number of rows created/updated
      * @throws PersistencyException throw this exception in case of any error that requires to abort a transaction
      */
-    public int put(DSLContext context, UUID uuid, C2KLocalObject obj, Object locker) throws PersistencyException;
+    public int put(DSLContext context, UUID uuid, C2KLocalObject obj, TransactionKey transactionKey) throws PersistencyException;
 
     /**
      * This method is called each time a C2KLocalObject is deleted.
      * 
      * @param context The configured DSLContext of jooq
      * @param uuid the Item's UUID
-     * @param locker transaction key
+     * @param transactionKey transaction key
      * @param primaryKeys the identifiers of the Outcome withing the Item
      * @return the number of rows deleted
      * @throws PersistencyException throw this exception in case of any error that requires to abort a transaction
      */
-    public int delete(DSLContext context, UUID uuid, Object locker, String...primaryKeys) throws PersistencyException;
+    public int delete(DSLContext context, UUID uuid, TransactionKey transactionKey, String...primaryKeys) throws PersistencyException;
 
     /**
      * Called each time the cristal-ise transaction is comitted
      * 
      * @param context The configured DSLContext of jooq
-     * @param locker transaction key
+     * @param transactionKey transaction key
      */
-    public void commit(DSLContext context, Object locker);
+    public void commit(DSLContext context, TransactionKey transactionKey);
 
     /**
      * Called each time the cristal-ise transaction is aborted
      * 
      * @param context The configured DSLContext of jooq
-     * @param locker transaction key
+     * @param transactionKey transaction key
      */
-    public void abort(DSLContext context, Object locker);
+    public void abort(DSLContext context, TransactionKey transactionKey);
 
     /**
      * Called when the cristal-ise bootstrap has finished

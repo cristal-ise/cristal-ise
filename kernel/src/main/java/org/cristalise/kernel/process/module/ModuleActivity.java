@@ -39,6 +39,7 @@ import org.cristalise.kernel.entity.proxy.ItemProxy;
 import org.cristalise.kernel.lifecycle.ActivityDef;
 import org.cristalise.kernel.lookup.AgentPath;
 import org.cristalise.kernel.lookup.Path;
+import org.cristalise.kernel.persistency.TransactionKey;
 import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.process.resource.BuiltInResources;
 import org.cristalise.kernel.process.resource.ResourceImportHandler;
@@ -79,41 +80,34 @@ public class ModuleActivity extends ModuleResource {
     }
 
     @Override
-    public Path create(AgentPath agentPath, boolean reset, Object transactionKey) 
+    public Path create(AgentPath agentPath, boolean reset, TransactionKey transactionKey) 
             throws ObjectNotFoundException, ObjectCannotBeUpdated, CannotManageException, ObjectAlreadyExistsException, InvalidDataException
     {
         try {
             ResourceImportHandler importHandler = Gateway.getResourceImportHandler(type);
             domainPath = importHandler.importResource(ns, name, version, itemPath, getResourceLocation(), reset, transactionKey);
             resourceChangeDetails = importHandler.getResourceChangeDetails();
-            itemPath = domainPath.getItemPath();
+            itemPath = domainPath.getItemPath(transactionKey);
         }
         catch (Exception e) {
-            log.error("", e);
+            log.error("Exception verifying module resource " + ns + "/" + name, e);
             throw new CannotManageException("Exception verifying module resource " + ns + "/" + name);
         }
 
-        actDef = LocalObjectLoader.getActDef(name, version);
-        populateActivityDef();
+        actDef = LocalObjectLoader.getActDef(name, version, transactionKey);
+        populateActivityDef(transactionKey);
 
-        CollectionArrayList colls;
+        CollectionArrayList colls = actDef.makeDescCollections(transactionKey);
 
-        try {
-            colls = actDef.makeDescCollections();
-        }
-        catch (InvalidDataException e) {
-            log.error("", e);
-            throw new CannotManageException("Could not create description collections for " + getName() + ".");
-        }
         for (Collection<?> coll : colls.list) {
             try {
-                Gateway.getStorage().put(itemPath, coll, null);
+                Gateway.getStorage().put(itemPath, coll, transactionKey);
                 // create last collection
                 coll.setVersion(null);
-                Gateway.getStorage().put(itemPath, coll, null);
+                Gateway.getStorage().put(itemPath, coll, transactionKey);
             }
             catch (PersistencyException e) {
-                log.error("", e);
+                log.error("Storing description collections for " + getName() + ".", e);
                 throw new CannotManageException("Persistency exception storing description collections for " + getName() + ".");
             }
         }
@@ -121,10 +115,10 @@ public class ModuleActivity extends ModuleResource {
         return domainPath;
     }
 
-    public void populateActivityDef() throws ObjectNotFoundException, CannotManageException {
+    public void populateActivityDef(TransactionKey transactionKey) throws ObjectNotFoundException, CannotManageException {
         try {
             if (schema != null)
-                actDef.setSchema(LocalObjectLoader.getSchema(schema.id == null ? schema.name : schema.id, Integer.valueOf(schema.version)));
+                actDef.setSchema(LocalObjectLoader.getSchema(schema.id == null ? schema.name : schema.id, Integer.valueOf(schema.version), transactionKey));
         }
         catch (NumberFormatException | InvalidDataException e) {
             log.error("", e);
@@ -133,7 +127,7 @@ public class ModuleActivity extends ModuleResource {
 
         try {
             if (script != null)
-                actDef.setScript(LocalObjectLoader.getScript(script.id == null ? script.name : script.id, Integer.valueOf(script.version)));
+                actDef.setScript(LocalObjectLoader.getScript(script.id == null ? script.name : script.id, Integer.valueOf(script.version), transactionKey));
         }
         catch (NumberFormatException | InvalidDataException e) {
             log.error("", e);
@@ -142,7 +136,7 @@ public class ModuleActivity extends ModuleResource {
 
         try {
             if (query != null)
-                actDef.setQuery(LocalObjectLoader.getQuery(query.id == null ? query.name : query.id, Integer.valueOf(query.version)));
+                actDef.setQuery(LocalObjectLoader.getQuery(query.id == null ? query.name : query.id, Integer.valueOf(query.version), transactionKey));
         }
         catch (NumberFormatException | InvalidDataException e) {
             log.error("", e);
@@ -152,7 +146,7 @@ public class ModuleActivity extends ModuleResource {
         try {
             if (stateMachine != null)
                 actDef.setStateMachine(LocalObjectLoader.getStateMachine(stateMachine.id == null ? stateMachine.name : stateMachine.id,
-                        Integer.valueOf(stateMachine.version)));
+                        Integer.valueOf(stateMachine.version), transactionKey));
         }
         catch (NumberFormatException | InvalidDataException e) {
             log.error("", e);

@@ -30,6 +30,7 @@ import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.SCRIPT_N
 import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.SCRIPT_VERSION;
 import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.STATE_MACHINE_NAME;
 import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.STATE_MACHINE_VERSION;
+
 import org.apache.commons.lang3.StringUtils;
 import org.cristalise.kernel.common.InvalidDataException;
 import org.cristalise.kernel.common.ObjectNotFoundException;
@@ -39,10 +40,12 @@ import org.cristalise.kernel.lifecycle.ActivityDef;
 import org.cristalise.kernel.lifecycle.CompositeActivityDef;
 import org.cristalise.kernel.lifecycle.instance.stateMachine.StateMachine;
 import org.cristalise.kernel.lookup.ItemPath;
+import org.cristalise.kernel.persistency.TransactionKey;
 import org.cristalise.kernel.persistency.outcome.Schema;
 import org.cristalise.kernel.property.PropertyDescriptionList;
 import org.cristalise.kernel.querying.Query;
 import org.cristalise.kernel.scripting.Script;
+
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -65,10 +68,14 @@ public class LocalObjectLoader {
      * @throws ObjectNotFoundException - When script or version does not exist
      * @throws InvalidDataException - When the stored script data was invalid
      * 
-     */	
+     */
     static public Script getScript(String scriptName, int scriptVersion) throws ObjectNotFoundException, InvalidDataException {
-        log.trace("getScript("+scriptName+" v"+scriptVersion+")");
-        return scrCache.get(scriptName, scriptVersion);
+        return getScript(scriptName, scriptVersion, null);
+    }
+
+    static public Script getScript(String scriptName, int scriptVersion, TransactionKey transactionKey) throws ObjectNotFoundException, InvalidDataException {
+        log.trace("getScript({} v{}) - transactionKey:{}", scriptName, scriptVersion, transactionKey);
+        return scrCache.get(scriptName, scriptVersion, transactionKey);
     }
 
     /**
@@ -77,8 +84,18 @@ public class LocalObjectLoader {
      * @param properties vertex properties
      * @return Script
      */
+    /**
+     * Retrieves a script from the database finding data in the Vertex properties
+     * 
+     * @param properties vertex properties
+     * @return Script
+     */
     static public Script getScript(CastorHashMap properties) throws InvalidDataException, ObjectNotFoundException {
-        return (Script)getDescObjectByProperty(properties, SCRIPT_NAME, SCRIPT_VERSION);
+        return getScript(properties, null);
+    }
+
+    static public Script getScript(CastorHashMap properties, TransactionKey transactionKey) throws InvalidDataException, ObjectNotFoundException {
+        return (Script)getDescObjectByProperty(properties, SCRIPT_NAME, SCRIPT_VERSION, transactionKey);
     }
 
     /**
@@ -90,10 +107,14 @@ public class LocalObjectLoader {
      * @throws ObjectNotFoundException - When query or version does not exist
      * @throws InvalidDataException - When the stored query data was invalid
      * 
-     */ 
+     */
     static public Query getQuery(String queryName, int queryVersion) throws ObjectNotFoundException, InvalidDataException {
-        log.trace("getQuery("+queryName+" v"+queryVersion+")");
-        return queryCache.get(queryName, queryVersion);
+        return getQuery(queryName, queryVersion, null);
+    }
+
+    static public Query getQuery(String queryName, int queryVersion, TransactionKey transactionKey) throws ObjectNotFoundException, InvalidDataException {
+        log.trace("getQuery({} v{}) - transactionKey:{}", queryName, queryVersion, transactionKey);
+        return queryCache.get(queryName, queryVersion, transactionKey);
     }
 
     /**
@@ -103,7 +124,11 @@ public class LocalObjectLoader {
      * @return Query
      */
     static public Query getQuery(CastorHashMap properties) throws InvalidDataException, ObjectNotFoundException {
-        return (Query)getDescObjectByProperty(properties, QUERY_NAME, QUERY_VERSION);
+        return getQuery(properties, null);
+    }
+
+    static public Query getQuery(CastorHashMap properties, TransactionKey transactionKey) throws InvalidDataException, ObjectNotFoundException {
+        return (Query)getDescObjectByProperty(properties, QUERY_NAME, QUERY_VERSION, transactionKey);
     }
 
     /**
@@ -116,13 +141,18 @@ public class LocalObjectLoader {
      * @throws InvalidDataException - When the stored schema data was invalid
      */
     static public Schema getSchema(String schemaName, int schemaVersion) throws ObjectNotFoundException, InvalidDataException {
-        log.trace("getSchema("+schemaName+" v"+schemaVersion+")");
+        return getSchema(schemaName, schemaVersion, null);
+    }
+
+    static public Schema getSchema(String schemaName, int schemaVersion, TransactionKey transactionKey) throws ObjectNotFoundException, InvalidDataException {
+        log.trace("getSchema({} v{}) - transactionKey:{}", schemaName, schemaVersion, transactionKey);
 
         // don't bother if this is the Schema schema - for bootstrap especially
-        if (schemaName.equals("Schema") && schemaVersion == 0)
+        if (schemaName.equals("Schema") && schemaVersion == 0) {
             return new Schema(schemaName, schemaVersion, new ItemPath(new SystemKey(0, 5)), "");
-        
-        return schCache.get(schemaName, schemaVersion);
+        }
+
+        return schCache.get(schemaName, schemaVersion, transactionKey);
     }
 
     /**
@@ -132,7 +162,11 @@ public class LocalObjectLoader {
      * @return Schema
      */
     static public Schema getSchema(CastorHashMap properties) throws InvalidDataException, ObjectNotFoundException {
-        return (Schema)getDescObjectByProperty(properties, SCHEMA_NAME, SCHEMA_VERSION);
+        return getSchema(properties, null);
+    }
+
+    static public Schema getSchema(CastorHashMap properties, TransactionKey transactionKey) throws InvalidDataException, ObjectNotFoundException {
+        return (Schema)getDescObjectByProperty(properties, SCHEMA_NAME, SCHEMA_VERSION, transactionKey);
     }
 
     /**
@@ -145,8 +179,12 @@ public class LocalObjectLoader {
      * @throws InvalidDataException - When the stored script data was invalid
      */
     static public ActivityDef getActDef(String actName, int actVersion) throws ObjectNotFoundException, InvalidDataException {
-        log.trace("getActDef("+actName+" v"+actVersion+")");
-        return actCache.get(actName, actVersion);
+        return getActDef(actName, actVersion, null);
+    }
+
+    static public ActivityDef getActDef(String actName, int actVersion, TransactionKey transactionKey) throws ObjectNotFoundException, InvalidDataException {
+        log.trace("getActDef({} v{}) - transactionKey:{}", actName, actVersion, transactionKey);
+        return actCache.get(actName, actVersion, transactionKey);
     }
 
     /**
@@ -159,8 +197,12 @@ public class LocalObjectLoader {
      * @throws InvalidDataException - When the stored script data was invalid
      */
     static public CompositeActivityDef getCompActDef(String actName, int actVersion) throws ObjectNotFoundException, InvalidDataException {
-        log.trace("getCompActDef("+actName+" v"+actVersion+")");
-        return (CompositeActivityDef)compActCache.get(actName, actVersion);
+        return getCompActDef(actName, actVersion, null);
+    }
+
+    static public CompositeActivityDef getCompActDef(String actName, int actVersion, TransactionKey transactionKey) throws ObjectNotFoundException, InvalidDataException {
+        log.trace("getCompActDef({} v{}) - transactionKey:{}", actName, actVersion, transactionKey);
+        return (CompositeActivityDef)compActCache.get(actName, actVersion, transactionKey);
     }
 
     /**
@@ -173,8 +215,12 @@ public class LocalObjectLoader {
      * @throws InvalidDataException - When the stored script data was invalid
      */
     static public ActivityDef getElemActDef(String actName, int actVersion) throws ObjectNotFoundException, InvalidDataException {
-        log.trace("getElemActDef("+actName+" v"+actVersion+")");
-        return elemActCache.get(actName, actVersion);
+        return getElemActDef(actName, actVersion, null);
+    }
+
+    static public ActivityDef getElemActDef(String actName, int actVersion, TransactionKey transactionKey) throws ObjectNotFoundException, InvalidDataException {
+        log.trace("getElemActDef({} v{}) - transactionKey:{}", actName, actVersion, transactionKey);
+        return elemActCache.get(actName, actVersion, transactionKey);
     }
 
     /**
@@ -187,8 +233,12 @@ public class LocalObjectLoader {
      * @throws InvalidDataException - When the stored state machine data was invalid
      */	
     static public StateMachine getStateMachine(String smName, int smVersion) throws ObjectNotFoundException, InvalidDataException {
-        log.trace("getStateMachine("+smName+" v"+smVersion+")");
-        return smCache.get(smName, smVersion);
+        return getStateMachine(smName, smVersion, null);
+    }
+
+    static public StateMachine getStateMachine(String smName, int smVersion, TransactionKey transactionKey) throws ObjectNotFoundException, InvalidDataException {
+        log.trace("getStateMachine({} v{}) - transactionKey:{}", smName, smVersion, transactionKey);
+        return smCache.get(smName, smVersion, transactionKey);
     }
 
     /**
@@ -199,7 +249,11 @@ public class LocalObjectLoader {
      * @throws ObjectNotFoundException
      */
     static public StateMachine getStateMachine(CastorHashMap properties) throws InvalidDataException, ObjectNotFoundException {
-        return (StateMachine)getDescObjectByProperty(properties, STATE_MACHINE_NAME, STATE_MACHINE_VERSION);
+        return getStateMachine(properties, null);
+    }
+
+    static public StateMachine getStateMachine(CastorHashMap properties, TransactionKey transactionKey) throws InvalidDataException, ObjectNotFoundException {
+        return (StateMachine)getDescObjectByProperty(properties, STATE_MACHINE_NAME, STATE_MACHINE_VERSION, transactionKey);
     }
 
     /**
@@ -211,8 +265,12 @@ public class LocalObjectLoader {
      * @throws InvalidDataException
      */
     static public PropertyDescriptionList getPropertyDescriptionList(String name, int version) throws ObjectNotFoundException, InvalidDataException {
-        log.trace("PropertyDescriptionList("+name+" v"+version+")");
-        return propDescCache.get(name, version);
+        return getPropertyDescriptionList(name, version, null);
+    }
+
+    static public PropertyDescriptionList getPropertyDescriptionList(String name, int version, TransactionKey transactionKey) throws ObjectNotFoundException, InvalidDataException {
+        log.trace("getPropertyDescriptionList({} v{}) - transactionKey:{}", name, version, transactionKey);
+        return propDescCache.get(name, version, transactionKey);
     }
 
     /**
@@ -223,7 +281,11 @@ public class LocalObjectLoader {
      * @throws ObjectNotFoundException
      */
     static public PropertyDescriptionList getPropertyDescriptionList(CastorHashMap properties) throws InvalidDataException, ObjectNotFoundException {
-        return (PropertyDescriptionList)getDescObjectByProperty(properties, PROPERTY_DEF_NAME, PROPERTY_DEF_VERSION);
+        return getPropertyDescriptionList(properties, null);
+    }
+
+    static public PropertyDescriptionList getPropertyDescriptionList(CastorHashMap properties, TransactionKey transactionKey) throws InvalidDataException, ObjectNotFoundException {
+        return (PropertyDescriptionList)getDescObjectByProperty(properties, PROPERTY_DEF_NAME, PROPERTY_DEF_VERSION, transactionKey);
     }
 
     /**
@@ -235,28 +297,28 @@ public class LocalObjectLoader {
      * @throws InvalidDataException
      * @throws ObjectNotFoundException
      */
-    private static DescriptionObject getDescObjectByProperty(CastorHashMap properties, BuiltInVertexProperties nameProp, BuiltInVertexProperties verProp)
+    private static DescriptionObject getDescObjectByProperty(CastorHashMap properties, BuiltInVertexProperties nameProp, BuiltInVertexProperties verProp, TransactionKey transactionKey)
             throws InvalidDataException, ObjectNotFoundException
     {
+        log.trace("getDescObjectByProperty(nameProp:{} verProp:{}) - transactionKey:{}", nameProp, verProp, transactionKey);
+
         String resName = (String) properties.getBuiltInProperty(nameProp);
 
         if (!(properties.isAbstract(nameProp)) && StringUtils.isNotBlank(resName)) {
             Integer resVer = deriveVersionNumber(properties.getBuiltInProperty(verProp));
-
-            log.trace("getDescObjectByProperty() - "+nameProp+":"+resName+" v"+resVer+")");
 
             if (resVer == null && !(properties.isAbstract(verProp))) {
                 throw new InvalidDataException("Invalid version property '" + resVer + "' in " + verProp);
             }
 
             switch (nameProp) {
-                case SCHEMA_NAME:        return getSchema(resName, resVer);
-                case SCRIPT_NAME:        return getScript(resName, resVer);
-                case QUERY_NAME :        return getQuery(resName, resVer);
-                case STATE_MACHINE_NAME: return getStateMachine(resName, resVer);
-                case PROPERTY_DEF_NAME:  return getPropertyDescriptionList(resName, resVer);
+                case SCHEMA_NAME:        return getSchema(resName, resVer, transactionKey);
+                case SCRIPT_NAME:        return getScript(resName, resVer, transactionKey);
+                case QUERY_NAME :        return getQuery(resName, resVer, transactionKey);
+                case STATE_MACHINE_NAME: return getStateMachine(resName, resVer, transactionKey);
+                case PROPERTY_DEF_NAME:  return getPropertyDescriptionList(resName, resVer, transactionKey);
                 default:
-                    throw new InvalidDataException("LocalObjectLoader CANNOT handle BuiltInVertexPropertie:"+nameProp);
+                    throw new InvalidDataException(" CANNOT handle BuiltInVertexProperties:"+nameProp);
             }
         }
         return null;

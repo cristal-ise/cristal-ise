@@ -30,6 +30,7 @@ import org.cristalise.kernel.common.ObjectNotFoundException;
 import org.cristalise.kernel.common.PersistencyException;
 import org.cristalise.kernel.lookup.AgentPath;
 import org.cristalise.kernel.lookup.ItemPath;
+import org.cristalise.kernel.persistency.TransactionKey;
 import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.utils.CastorHashMap;
 
@@ -60,10 +61,10 @@ public class UpdateDependencyMember extends PredefinedStepCollectionBase {
      * 
      */
     @Override
-    protected String runActivityLogic(AgentPath agent, ItemPath item, int transitionID, String requestData, Object locker)
+    protected String runActivityLogic(AgentPath agent, ItemPath item, int transitionID, String requestData, TransactionKey transactionKey)
             throws InvalidDataException, ObjectNotFoundException, PersistencyException, InvalidCollectionModification
     {
-        unpackParamsAndGetCollection(item, requestData, locker);
+        unpackParamsAndGetCollection(item, requestData, transactionKey);
 
         if (slotID == -1 && childPath == null) throw new InvalidDataException("Must give either slot number/item UUID to update member");
         if (memberNewProps == null)            throw new InvalidDataException("Must provide properties to update member");
@@ -77,12 +78,12 @@ public class UpdateDependencyMember extends PredefinedStepCollectionBase {
             scriptProps.put("collection", dep);
             scriptProps.put("properties", memberNewProps);
             scriptProps.put("member", member);
-            evaluateScript(item, (String)dep.getBuiltInProperty(MEMBER_UPDATE_SCRIPT), scriptProps, locker);
+            evaluateScript(item, (String)dep.getBuiltInProperty(MEMBER_UPDATE_SCRIPT), scriptProps, transactionKey);
         }
 
         dep.updateMember(childPath, slotID, memberNewProps);
 
-        Gateway.getStorage().put(item, collection, locker);
+        Gateway.getStorage().put(item, collection, transactionKey);
 
         return requestData;
     }

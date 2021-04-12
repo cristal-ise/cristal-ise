@@ -20,22 +20,18 @@
  */
 package org.cristalise.kernel.test.utils
 
-import java.util.Properties
 import org.cristalise.kernel.process.AbstractMain
-import org.cristalise.kernel.process.Bootstrap
 import org.cristalise.kernel.process.Gateway
 import org.cristalise.kernel.process.auth.Authenticator
-import org.cristalise.kernel.utils.Logger
 
 import groovy.transform.CompileStatic
+import groovy.util.logging.Slf4j
 
 /**
  *
  */
 @CompileStatic
 trait CristalTestSetup {
-    final int defaultLogLevel = 8
-
     private void waitBootstrapThread() {
         //Give some time the Bootstrapper to start so this check will not fail because it was executed prematurely
         Thread.sleep(1000)
@@ -58,27 +54,27 @@ trait CristalTestSetup {
         }
 
         if(bootstrapT) {
-            Logger.msg "CristalTestSetup.waitBootstrapThread() - Bootstrapper FOUND"
+            //log.info('waitBootstrapThread() - Bootstrapper FOUND')
             bootstrapT.join()
-            Logger.msg "CristalTestSetup.waitBootstrapThread() - Bootstrapper FINISHED"
+            //log.info "waitBootstrapThread() - Bootstrapper FINISHED"
         }
-        else
-            Logger.die "CristalTestSetup.waitBootstrapThread() - NO Bootstrapper FOUND!?!?"
+        else {
+            //log.error "CristalTestSetup.waitBootstrapThread() - NO Bootstrapper FOUND!?!?"
+            AbstractMain.shutdown(1) 
+        }
     }
 
-    public void loggerSetup(int logLevel = defaultLogLevel) {
-        Logger.addLogStream(System.out, logLevel);
+    public void loggerSetup(int logLevel = 8) {
     }
 
     public void loggerCleanup() {
-        Logger.removeLogStream(System.out);
     }
 
-    public void inMemorySetup(String conf, String clc,int logLevel) {
+    public void inMemorySetup(String conf, String clc, int logLevel) {
         cristalSetup(logLevel, conf, clc)
     }
 
-    public void inMemorySetup(int logLevel = defaultLogLevel) {
+    public void inMemorySetup(int logLevel = 8) {
         cristalSetup(logLevel, 'src/test/conf/testServer.conf', 'src/test/conf/testInMemory.clc')
         //FieldUtils.writeDeclaredStaticField(Gateway.class, "mLookupManager", Gateway.getLookup(), true)
     }
@@ -87,23 +83,25 @@ trait CristalTestSetup {
         serverSetup(logLevel, conf, clc, testProps, skipBootstrap)
     }
 
-    public void inMemoryServer(int logLevel = defaultLogLevel, Properties testProps = null, boolean skipBootstrap = false) {
+    public void inMemoryServer(int logLevel = 8, Properties testProps = null, boolean skipBootstrap = false) {
         serverSetup(logLevel, 'src/test/conf/testServer.conf', 'src/test/conf/testInMemory.clc', testProps, skipBootstrap)
         //Thread.sleep(2000)
     }
 
     public Authenticator serverSetup(int logLevel, String config, String connect, Properties testProps = null, boolean skipBootstrap = false) {
-        Authenticator auth = cristalSetup(logLevel, config, connect, testProps)
-        Logger.initConsole("ItemServer");
-
-        Gateway.startServer()
-
-        if (!skipBootstrap) {
-            Gateway.runBoostrap();
-            waitBootstrapThread()
+        if (skipBootstrap) {
+            if (testProps == null) testProps = new Properties()
+            testProps.put(AbstractMain.MAIN_ARG_SKIPBOOTSTRAP, true)
         }
 
-        return auth
+        cristalSetup(logLevel, config, connect, testProps)
+        // Logger.initConsole("ItemServer");
+
+        Gateway.startServer()
+        Gateway.runBoostrap();
+        if (!skipBootstrap) waitBootstrapThread()
+
+        return null
     }
 
     public Authenticator cristalSetup(int logLevel, String config, String connect, Properties testProps = null) {
@@ -112,10 +110,8 @@ trait CristalTestSetup {
     }
 
     public void cristalInit(int logLevel, String config, String connect, Properties testProps = null) {
-        loggerSetup(logLevel)
-
         if (testProps == null) testProps = new Properties();
-        testProps.put("Shiro.iniFile", "src/main/bin/shiro.ini");
+        if (!testProps.containsKey('Shiro.iniFile')) testProps.put('Shiro.iniFile', 'src/main/bin/shiro.ini');
 
         Gateway.init(AbstractMain.readPropertyFiles(config, connect, testProps))
     }

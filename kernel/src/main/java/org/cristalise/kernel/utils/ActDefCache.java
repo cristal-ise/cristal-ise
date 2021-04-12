@@ -35,7 +35,7 @@ import org.cristalise.kernel.common.PersistencyException;
 import org.cristalise.kernel.entity.proxy.ItemProxy;
 import org.cristalise.kernel.lifecycle.ActivityDef;
 import org.cristalise.kernel.lookup.ItemPath;
-import org.cristalise.kernel.persistency.ClusterType;
+import org.cristalise.kernel.persistency.TransactionKey;
 import org.cristalise.kernel.persistency.outcome.Viewpoint;
 import org.cristalise.kernel.process.Gateway;
 
@@ -80,7 +80,9 @@ public class ActDefCache extends DescriptionObjectCache<ActivityDef> {
     }
 
     @Override
-    public ActivityDef loadObject(String name, int version, ItemProxy proxy) throws ObjectNotFoundException, InvalidDataException {
+    public ActivityDef loadObject(String name, int version, ItemProxy proxy, TransactionKey transactionKey) 
+            throws ObjectNotFoundException, InvalidDataException
+    {
         String viewName;
 
         if (isComposite == null) {
@@ -95,8 +97,8 @@ public class ActDefCache extends DescriptionObjectCache<ActivityDef> {
         }
 
         try {
-            Viewpoint actView = (Viewpoint) proxy.getObject(ClusterType.VIEWPOINT + "/" + viewName + "/" + version);
-            String marshalledAct = actView.getOutcome().getData();
+            Viewpoint actView = proxy.getViewpoint(viewName, String.valueOf(version), transactionKey);
+            String marshalledAct = actView.getOutcome(transactionKey).getData();
             return buildObject(name, version, proxy.getPath(), marshalledAct);
         }
         catch (PersistencyException ex) {

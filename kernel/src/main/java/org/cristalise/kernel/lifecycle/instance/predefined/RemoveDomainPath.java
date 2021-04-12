@@ -29,6 +29,7 @@ import org.cristalise.kernel.common.ObjectNotFoundException;
 import org.cristalise.kernel.lookup.AgentPath;
 import org.cristalise.kernel.lookup.DomainPath;
 import org.cristalise.kernel.lookup.ItemPath;
+import org.cristalise.kernel.persistency.TransactionKey;
 import org.cristalise.kernel.process.Gateway;
 
 import lombok.extern.slf4j.Slf4j;
@@ -41,26 +42,26 @@ public class RemoveDomainPath extends PredefinedStep {
     }
 
     @Override
-	protected String runActivityLogic(AgentPath agent, ItemPath item, int transitionID, String requestData, Object locker) 
+	protected String runActivityLogic(AgentPath agent, ItemPath item, int transitionID, String requestData, TransactionKey transactionKey) 
 	        throws InvalidDataException, ObjectNotFoundException, ObjectCannotBeUpdated, CannotManageException
     {
         String[] params = getDataList(requestData);
 
-        log.debug("Called by {} on {} with parameters {}", agent.getAgentName(), item, (Object)params);
+        log.debug("Called by {} on {} with parameters {}", agent.getAgentName(transactionKey), item, (Object)params);
 
         if (params.length != 1) throw new InvalidDataException("RemoveDomainPath: Invalid parameters "+Arrays.toString(params));
 
         DomainPath domainPath = new DomainPath(params[0]);
 
-        if (!domainPath.exists()) {
+        if (!domainPath.exists(transactionKey)) {
             throw new ObjectNotFoundException("RemoveDomainPath: Domain path "+domainPath+" does not exist.");
         }
 
-        if (!domainPath.getItemPath().equals(item)) {
+        if (!domainPath.getItemPath(transactionKey).equals(item)) {
             throw new InvalidDataException("RemoveDomainPath: Domain path "+domainPath+" is not an alias of the current Item "+item);
         }
 
-        Gateway.getLookupManager().delete(domainPath);
+        Gateway.getLookupManager().delete(domainPath, transactionKey);
 
         return requestData;
     }
