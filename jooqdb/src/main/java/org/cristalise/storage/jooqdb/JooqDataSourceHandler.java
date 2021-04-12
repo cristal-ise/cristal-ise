@@ -73,12 +73,18 @@ public class JooqDataSourceHandler {
      */
     public static final String JOOQ_READONLYDATASOURCE = "JOOQ.readOnlyDataSource";
 
+    /**
+     * Defines the key (value:{@value}) to retrieve a string value to set the assumeMinServerVersion
+     */
+    public static final String JOOQ_ASSUMEMINSERVERVERSION = "JOOQ.PostgreSQL.assumeMinServerVersion";
+
     public static String     uri;
     public static String     user;
     public static String     pwd ;
     public static Boolean    autoCommit;
     public static Boolean    readOnlyDataSource;
     public static SQLDialect dialect;
+    public static String assumeMinServerVersion;
 
     private static HikariDataSource ds = null;
     private static HikariConfig config;
@@ -90,6 +96,7 @@ public class JooqDataSourceHandler {
         autoCommit         = Gateway.getProperties().getBoolean(JooqDataSourceHandler.JOOQ_AUTOCOMMIT, false);
         readOnlyDataSource = Gateway.getProperties().getBoolean(JooqDataSourceHandler.JOOQ_READONLYDATASOURCE, false);
         dialect            = SQLDialect.valueOf(Gateway.getProperties().getString(JooqDataSourceHandler.JOOQ_DIALECT, "POSTGRES"));
+        assumeMinServerVersion = Gateway.getProperties().getString(JooqDataSourceHandler.JOOQ_ASSUMEMINSERVERVERSION);
     }
 
     public static synchronized HikariDataSource getDataSource() {
@@ -119,6 +126,9 @@ public class JooqDataSourceHandler {
             config.addDataSourceProperty( "prepStmtCacheSize",     "250");
             config.addDataSourceProperty( "prepStmtCacheSqlLimit", "2048");
             config.addDataSourceProperty( "autoCommit",             autoCommit);
+            if (assumeMinServerVersion != null) {
+                config.addDataSourceProperty( "assumeMinServerVersion", assumeMinServerVersion);
+            }
 
             log.info("getDataSource() - uri:'{}' user:'{}' dialect:'{}'", uri, user, dialect);
 
