@@ -20,13 +20,16 @@
  */
 package org.cristalise.kernel.lifecycle.instance;
 
+import static org.cristalise.kernel.security.BuiltInAuthc.SYSTEM_AGENT;
+
 import org.cristalise.kernel.common.ObjectNotFoundException;
-import org.cristalise.kernel.entity.Agent;
-import org.cristalise.kernel.entity.AgentHelper;
+import org.cristalise.kernel.common.PersistencyException;
 import org.cristalise.kernel.entity.agent.JobArrayList;
+import org.cristalise.kernel.lifecycle.instance.predefined.agent.RefreshJobList;
 import org.cristalise.kernel.lookup.AgentPath;
 import org.cristalise.kernel.lookup.ItemPath;
 import org.cristalise.kernel.lookup.RolePath;
+import org.cristalise.kernel.persistency.TransactionKey;
 import org.cristalise.kernel.process.Gateway;
 
 import lombok.extern.slf4j.Slf4j;
@@ -54,19 +57,31 @@ final class JobPusher extends Thread {
             for (AgentPath nextAgent: Gateway.getLookup().getAgents(myRole)) {
                 log.trace("run() - Calculating jobs for agent:" + nextAgent);
 
+                TransactionKey transactionKey = new TransactionKey(nextAgent);
+
                 try {
+                    Gateway.getStorage().begin(transactionKey);
+
                     // get joblist for agent
                     JobArrayList jobList = new JobArrayList(this.activity.calculateJobs(nextAgent, itemPath, false));
 
-                    // push it to the agent
                     String stringJobs = Gateway.getMarshaller().marshall(jobList);
-                    Agent thisAgent = AgentHelper.narrow( nextAgent.getIOR() );
 
                     log.trace("run() - Calling refreshJobList() with "+jobList.list.size()+" jobs for agent "+nextAgent+" from "+activity.getPath());
-                    thisAgent.refreshJobList(itemPath.getSystemKey(), activity.getPath(), stringJobs);
+
+                    // push it to the agent
+                    new RefreshJobList().request((AgentPath)SYSTEM_AGENT.getPath(), nextAgent, stringJobs, transactionKey);
+
+                    Gateway.getStorage().commit(transactionKey);
                 }
                 catch (Exception ex) {
                     log.error("run() - Agent "+nextAgent+" of role "+myRole+" could not be found to be informed of a change in "+itemPath, ex);
+                    try {
+                        Gateway.getStorage().abort(transactionKey);
+                    }
+                    catch (PersistencyException e) {
+                        log.error("", e);
+                    }
                 }
             }
         }

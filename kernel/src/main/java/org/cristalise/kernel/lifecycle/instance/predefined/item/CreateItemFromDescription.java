@@ -41,7 +41,6 @@ import org.cristalise.kernel.common.ObjectAlreadyExistsException;
 import org.cristalise.kernel.common.ObjectCannotBeUpdated;
 import org.cristalise.kernel.common.ObjectNotFoundException;
 import org.cristalise.kernel.common.PersistencyException;
-import org.cristalise.kernel.entity.CorbaServer;
 import org.cristalise.kernel.events.Event;
 import org.cristalise.kernel.events.History;
 import org.cristalise.kernel.lifecycle.CompositeActivityDef;
@@ -121,11 +120,7 @@ public class CreateItemFromDescription extends PredefinedStep {
 
         // create the Item object
         log.info("Creating Item name:{} uuid:{} transactionKey:{}", newName, newItemPath, transactionKey);
-        CorbaServer factory = Gateway.getCorbaServer();
 
-        if (factory == null) throw new CannotManageException("This process cannot create new Items");
-
-        factory.createItem(newItemPath, transactionKey);
         Gateway.getLookupManager().add(newItemPath, transactionKey);
 
         initialiseItem(newItemPath, agent, descItemPath, initProps, outcome, newName, descVer, context, newItemPath, transactionKey);
