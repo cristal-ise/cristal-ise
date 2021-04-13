@@ -60,6 +60,7 @@ import org.cristalise.kernel.collection.CollectionDescription;
 import org.cristalise.kernel.collection.CollectionMember;
 import org.cristalise.kernel.collection.Dependency;
 import org.cristalise.kernel.common.AccessRightsException;
+import org.cristalise.kernel.common.CriseVertxException;
 import org.cristalise.kernel.common.InvalidCollectionModification;
 import org.cristalise.kernel.common.InvalidDataException;
 import org.cristalise.kernel.common.InvalidTransitionException;
@@ -84,7 +85,6 @@ import org.cristalise.kernel.persistency.outcomebuilder.OutcomeBuilder;
 import org.cristalise.kernel.persistency.outcomebuilder.OutcomeBuilderException;
 import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.property.Property;
-import org.cristalise.kernel.scripting.ScriptErrorException;
 import org.cristalise.kernel.utils.CastorHashMap;
 import org.cristalise.kernel.utils.DateUtility;
 import org.cristalise.kernel.utils.KeyValuePair;
@@ -553,8 +553,7 @@ public abstract class ItemUtils extends RestHandler {
      * @throws InvalidCollectionModification
      */
     protected String executePredefinedStep(ItemProxy item, String postData, String contentType, String actPath, AgentProxy agent)
-            throws ObjectNotFoundException, InvalidDataException, OutcomeBuilderException, AccessRightsException,
-            InvalidTransitionException, PersistencyException, ObjectAlreadyExistsException, InvalidCollectionModification
+            throws IOException, CriseVertxException, OutcomeBuilderException
     {
         if ( ! actPath.startsWith(PREDEFINED_PATH) ) {
             throw new InvalidDataException("Predefined Step path should start with " + PREDEFINED_PATH);
@@ -599,19 +598,19 @@ public abstract class ItemUtils extends RestHandler {
     }
 
     protected String executeJob(ItemProxy item, String outcome, String outcomeType,  String actPath, String transition, AgentProxy agent)
-        throws AccessRightsException, ObjectNotFoundException, PersistencyException, InvalidDataException, OutcomeBuilderException,
-            InvalidTransitionException, ObjectAlreadyExistsException, InvalidCollectionModification, ScriptErrorException, IOException
+            throws IOException, CriseVertxException, OutcomeBuilderException
     {
         return executeJob(item, outcome, outcomeType, null, null, actPath, transition, agent);
     }
 
     /**
+     * @throws CriseVertxException 
+     * @throws OutcomeBuilderException 
      * 
      */
     protected String executeJob(ItemProxy item, String outcome, String outcomeType, InputStream attachment, String fileName, 
             String actPath, String transition, AgentProxy agent)
-        throws AccessRightsException, ObjectNotFoundException, PersistencyException, InvalidDataException, OutcomeBuilderException,
-            InvalidTransitionException, ObjectAlreadyExistsException, InvalidCollectionModification, ScriptErrorException, IOException
+        throws IOException, CriseVertxException, OutcomeBuilderException
     {
         Job thisJob = item.getJobByTransitionName(actPath, transition, agent);
 

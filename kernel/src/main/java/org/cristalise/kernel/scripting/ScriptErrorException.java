@@ -20,7 +20,9 @@
  */
 package org.cristalise.kernel.scripting;
 
-public class ScriptErrorException extends java.lang.Exception {
+import org.cristalise.kernel.common.CriseVertxException;
+
+public class ScriptErrorException extends CriseVertxException {
 
     /**
      * 
@@ -32,6 +34,7 @@ public class ScriptErrorException extends java.lang.Exception {
     ErrorInfo errors;
 
     public ScriptErrorException() {
+        super(999);
     }
 
     /**
@@ -41,11 +44,11 @@ public class ScriptErrorException extends java.lang.Exception {
      *            the detail message.
      */
     public ScriptErrorException(String msg) {
-        super(msg);
+        super(999, msg);
     }
 
     public ScriptErrorException(ErrorInfo errors) {
-        super(errors.toString());
+        super(999, errors.toString());
         this.errors = errors;
     }
 
@@ -53,11 +56,11 @@ public class ScriptErrorException extends java.lang.Exception {
         return errors;
     }
 
-    public ScriptErrorException(Throwable throwable) {
-        super(throwable);
+    public ScriptErrorException(Exception throwable) {
+        super(999, throwable);
     }
 
-    public ScriptErrorException(String message, Throwable throwable) {
-        super(message, throwable);
+    public ScriptErrorException(String message, Exception throwable) {
+        super(999, throwable);
     }
 }

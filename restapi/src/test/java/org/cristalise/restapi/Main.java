@@ -23,6 +23,7 @@ package org.cristalise.restapi;
 import java.io.IOException;
 import java.net.URI;
 
+import org.cristalise.kernel.common.CriseVertxException;
 import org.cristalise.kernel.common.InvalidDataException;
 import org.cristalise.kernel.common.ObjectNotFoundException;
 import org.cristalise.kernel.common.PersistencyException;
@@ -56,12 +57,7 @@ public class Main extends StandardClient {
      * @throws PersistencyException Persistency problem
      * @throws ObjectNotFoundException Object Not Found
      */
-    public static void startServer(String[] args) 
-            throws BadArgumentsException, 
-                   InvalidDataException, 
-                   PersistencyException, 
-                   ObjectNotFoundException
-    {
+    public static void startServer(String[] args)throws CriseVertxException, BadArgumentsException {
         setShutdownHandler(new ShutdownHandler() {
             @Override
             public void shutdown(int errCode, boolean isServer) {
@@ -94,17 +90,9 @@ public class Main extends StandardClient {
      * @param args input parameters
      * @throws IOException Input was incorrect
      * @throws BadArgumentsException Bad Arguments
-     * @throws InvalidDataException Invalid Data
-     * @throws PersistencyException Persistency problem
-     * @throws ObjectNotFoundException Object Not Found
+     * @throws CriseVertxException 
      */
-    public static void main(String[] args)
-            throws IOException,
-                   InvalidDataException,
-                   BadArgumentsException,
-                   PersistencyException,
-                   ObjectNotFoundException
-    {
+    public static void main(String[] args) throws IOException, BadArgumentsException, CriseVertxException {
         startServer(args);
 
         System.out.println(String.format("Hit enter to stop it..."));

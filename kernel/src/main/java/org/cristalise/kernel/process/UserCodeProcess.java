@@ -23,13 +23,10 @@ package org.cristalise.kernel.process;
 import java.net.InetAddress;
 import java.util.HashMap;
 
-import org.cristalise.kernel.common.AccessRightsException;
-import org.cristalise.kernel.common.InvalidCollectionModification;
+import org.cristalise.kernel.common.CriseVertxException;
 import org.cristalise.kernel.common.InvalidDataException;
 import org.cristalise.kernel.common.InvalidTransitionException;
-import org.cristalise.kernel.common.ObjectAlreadyExistsException;
 import org.cristalise.kernel.common.ObjectNotFoundException;
-import org.cristalise.kernel.common.PersistencyException;
 import org.cristalise.kernel.entity.C2KLocalObject;
 import org.cristalise.kernel.entity.agent.Job;
 import org.cristalise.kernel.entity.proxy.MemberSubscription;
@@ -37,7 +34,6 @@ import org.cristalise.kernel.entity.proxy.ProxyObserver;
 import org.cristalise.kernel.lifecycle.instance.stateMachine.StateMachine;
 import org.cristalise.kernel.persistency.ClusterStorage;
 import org.cristalise.kernel.persistency.ClusterType;
-import org.cristalise.kernel.scripting.ScriptErrorException;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -182,10 +178,7 @@ public class UserCodeProcess extends StandardClient implements ProxyObserver<Job
      * @param thisJob the actual Job to be executed.
      * @param jobKey the key of the job (i.e. itemPath:stepPat)
      */
-    public void start(Job thisJob, String jobKey)
-            throws AccessRightsException, InvalidDataException, InvalidTransitionException, ObjectNotFoundException, PersistencyException,
-            ObjectAlreadyExistsException, ScriptErrorException, InvalidCollectionModification
-    {
+    public void start(Job thisJob, String jobKey) throws CriseVertxException {
         log.debug("start() - job:"+thisJob);
 
         if (assessStartConditions(thisJob)) {
@@ -228,10 +221,7 @@ public class UserCodeProcess extends StandardClient implements ProxyObserver<Job
      * @param job the actual Job to be executed.
      * @param errorJob Job to be executed in case of an error
      */
-    public void runUserCodeLogic(Job job, Job errorJob)
-            throws AccessRightsException, InvalidDataException, InvalidTransitionException, ObjectNotFoundException, PersistencyException,
-            ObjectAlreadyExistsException, InvalidCollectionModification, ScriptErrorException
-    {
+    public void runUserCodeLogic(Job job, Job errorJob) throws CriseVertxException {
         if (errorJob == null) agent.execute(job);
         else                  agent.execute(job, errorJob);
     }

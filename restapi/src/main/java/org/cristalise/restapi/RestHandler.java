@@ -48,7 +48,7 @@ import org.cristalise.kernel.common.ObjectNotFoundException;
 import org.cristalise.kernel.entity.proxy.AgentProxy;
 import org.cristalise.kernel.lookup.AgentPath;
 import org.cristalise.kernel.lookup.DomainPath;
-import org.cristalise.kernel.lookup.InvalidAgentPathException;
+import org.cristalise.kernel.lookup.InvalidItemPathException;
 import org.cristalise.kernel.lookup.ItemPath;
 import org.cristalise.kernel.lookup.Lookup.PagedResult;
 import org.cristalise.kernel.lookup.Path;
@@ -95,7 +95,7 @@ abstract public class RestHandler {
      * @throws InvalidDataException Cookie too old
      */
     protected synchronized AuthData decryptAuthData(String authData)
-            throws InvalidAgentPathException, InvalidDataException
+            throws InvalidItemPathException, InvalidDataException
     {
         int cntRetries = 5; // try to decrypt 5 times before throwing an exception
 
@@ -226,7 +226,7 @@ abstract public class RestHandler {
             AuthData data = decryptAuthData(authData);
             return data;
         }
-        catch (InvalidAgentPathException | InvalidDataException e) {
+        catch (InvalidItemPathException | InvalidDataException e) {
             log.debug("Invalid agent or login data",  e);
 
             throw new WebAppExceptionBuilder().message("Invalid agent or login data").status(Response.Status.UNAUTHORIZED).build();
@@ -418,7 +418,7 @@ abstract public class RestHandler {
             timestamp = new Date();
         }
 
-        public AuthData(byte[] bytes) throws InvalidAgentPathException, InvalidDataException {
+        public AuthData(byte[] bytes) throws InvalidItemPathException, InvalidDataException {
             ByteBuffer buf = ByteBuffer.wrap(bytes);
             agent = new AgentPath(new ItemPath(new UUID(buf.getLong(), buf.getLong())));
             timestamp = new Date(buf.getLong());
