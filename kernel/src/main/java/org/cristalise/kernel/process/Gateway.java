@@ -415,8 +415,6 @@ public class Gateway
         // close log consoles
         Logger.closeConsole();
 
-        mVertx.close();
-
         // clean up remaining objects
         mModules = null;
         mResource = null;
