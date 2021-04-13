@@ -47,7 +47,7 @@ import org.cristalise.kernel.lifecycle.instance.stateMachine.State;
 import org.cristalise.kernel.lifecycle.instance.stateMachine.StateMachine;
 import org.cristalise.kernel.lifecycle.instance.stateMachine.Transition;
 import org.cristalise.kernel.lookup.AgentPath;
-import org.cristalise.kernel.lookup.InvalidAgentPathException;
+import org.cristalise.kernel.lookup.InvalidItemPathException;
 import org.cristalise.kernel.lookup.ItemPath;
 import org.cristalise.kernel.persistency.TransactionKey;
 
@@ -329,7 +329,7 @@ public class CompositeActivity extends Activity {
      */
     @Override
     public ArrayList<Job> calculateJobs(AgentPath agent, ItemPath itemPath, boolean recurse)
-            throws InvalidAgentPathException, ObjectNotFoundException, InvalidDataException
+            throws InvalidItemPathException, ObjectNotFoundException, InvalidDataException
     {
         ArrayList<Job> jobs = new ArrayList<Job>();
         boolean childActive = false;
@@ -350,7 +350,7 @@ public class CompositeActivity extends Activity {
 
     @Override
     public ArrayList<Job> calculateAllJobs(AgentPath agent, ItemPath itemPath, boolean recurse)
-            throws InvalidAgentPathException, ObjectNotFoundException, InvalidDataException
+            throws InvalidItemPathException, ObjectNotFoundException, InvalidDataException
     {
         ArrayList<Job> jobs = new ArrayList<Job>();
 

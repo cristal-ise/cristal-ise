@@ -26,7 +26,7 @@ import org.cristalise.kernel.common.InvalidDataException;
 import org.cristalise.kernel.common.ObjectNotFoundException;
 import org.cristalise.kernel.lifecycle.instance.predefined.PredefinedStep;
 import org.cristalise.kernel.lookup.AgentPath;
-import org.cristalise.kernel.lookup.InvalidAgentPathException;
+import org.cristalise.kernel.lookup.InvalidItemPathException;
 import org.cristalise.kernel.lookup.ItemPath;
 import org.cristalise.kernel.lookup.RolePath;
 import org.cristalise.kernel.persistency.TransactionKey;
@@ -53,7 +53,7 @@ public class SetAgentRoles extends PredefinedStep {
         try {
             targetAgent = new AgentPath(item);
         }
-        catch (InvalidAgentPathException ex) {
+        catch (InvalidItemPathException ex) {
             throw new InvalidDataException("Could not resolve syskey " + item + " as an Agent.");
         }
 

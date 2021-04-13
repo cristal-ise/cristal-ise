@@ -32,7 +32,7 @@ import org.cristalise.kernel.entity.agent.Job;
 import org.cristalise.kernel.graph.model.BuiltInVertexProperties;
 import org.cristalise.kernel.lifecycle.instance.stateMachine.Transition;
 import org.cristalise.kernel.lookup.AgentPath;
-import org.cristalise.kernel.lookup.InvalidAgentPathException;
+import org.cristalise.kernel.lookup.InvalidItemPathException;
 import org.cristalise.kernel.lookup.ItemPath;
 import org.cristalise.kernel.utils.CastorHashMap;
 import org.cristalise.kernel.utils.DateUtility;
@@ -87,7 +87,7 @@ public class JooqJobTest extends StorageTestBase {
         compareTimestramps(actual.getCreationDate(), expected.getCreationDate());
     }
 
-    private Job createJob(UUID itemUUID, int id) throws InvalidAgentPathException {
+    private Job createJob(UUID itemUUID, int id) throws InvalidItemPathException {
         return new Job(
                 id,
                 new ItemPath(UUID.randomUUID()),

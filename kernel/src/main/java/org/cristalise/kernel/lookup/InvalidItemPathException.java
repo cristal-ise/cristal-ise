@@ -20,9 +20,9 @@
  */
 package org.cristalise.kernel.lookup;
 
-import org.cristalise.kernel.common.VertxException;
+import org.cristalise.kernel.common.CriseVertxException;
 
-public class InvalidItemPathException extends VertxException {
+public class InvalidItemPathException extends CriseVertxException {
     private final static int FAILURE_CODE = 201;
 
     private static final long serialVersionUID = -4251577168832199386L;

@@ -36,12 +36,10 @@ import org.cristalise.kernel.common.InvalidDataException;
 import org.cristalise.kernel.common.ObjectAlreadyExistsException;
 import org.cristalise.kernel.common.ObjectCannotBeUpdated;
 import org.cristalise.kernel.common.ObjectNotFoundException;
-import org.cristalise.kernel.entity.agent.ActiveEntity;
 import org.cristalise.kernel.lifecycle.instance.CompositeActivity;
 import org.cristalise.kernel.lifecycle.instance.predefined.item.CreateItemFromDescription;
 import org.cristalise.kernel.lookup.AgentPath;
 import org.cristalise.kernel.lookup.DomainPath;
-import org.cristalise.kernel.lookup.InvalidAgentPathException;
 import org.cristalise.kernel.lookup.InvalidItemPathException;
 import org.cristalise.kernel.lookup.ItemPath;
 import org.cristalise.kernel.lookup.Path;
@@ -134,24 +132,22 @@ public class ImportAgent extends ModuleImport implements DescriptionObject {
             }
         }
 
-        getActiveEntity(transactionKey);
-
         // assemble properties
         properties.add(new Property(NAME, name, true));
         properties.add(new Property(TYPE, "Agent", false));
 
         try {
-            if (StringUtils.isNotBlank(password)) Gateway.getLookupManager().setAgentPassword(getAgentPath(transactionKey), password, false, transactionKey);
-
             CreateItemFromDescription.storeItem(
                     agentPath, 
-                    getAgentPath(transactionKey),
+                    getOrCreateAgentPath(transactionKey),
                     new PropertyArrayList(properties),
                     null, //colls
                     (CompositeActivity)LocalObjectLoader.getCompActDef("NoWorkflow", 0, transactionKey).instantiate(transactionKey),
                     null, //initViewpoint
                     null, //initOutcomeString
                     transactionKey);
+
+            if (StringUtils.isNotBlank(password)) Gateway.getLookupManager().setAgentPassword(getAgentPath(transactionKey), password, false, transactionKey);
         }
         catch (Exception ex) {
             log.error("Error initialising new agent name:{}", name, ex);
@@ -187,29 +183,21 @@ public class ImportAgent extends ModuleImport implements DescriptionObject {
         return getAgentPath();
     }
 
-    private ActiveEntity getActiveEntity(TransactionKey transactionKey)
+    private AgentPath getOrCreateAgentPath(TransactionKey transactionKey)
             throws ObjectNotFoundException, CannotManageException, ObjectAlreadyExistsException, ObjectCannotBeUpdated
     {
-        ActiveEntity activeEntity;
         AgentPath ap = getAgentPath(transactionKey);
 
         if (ap.exists(transactionKey)) {
             log.info("getActiveEntity() - Existing agent:{}", name);
-            try {
-                activeEntity = Gateway.getCorbaServer().getAgent(ap, transactionKey);
-                isNewItem = false;
-            }
-            catch (InvalidAgentPathException  e) {
-                log.error("", e);
-                throw new CannotManageException(e.getMessage());
-            }
+            isNewItem = false;
         }
         else {
             log.info("getActiveEntity() - Creating agent:{}", name);
-            activeEntity = Gateway.getCorbaServer().createAgent(ap, transactionKey);
             Gateway.getLookupManager().add(ap, transactionKey);
         }
-        return activeEntity;
+        
+        return ap;
     }
 
     public AgentPath getAgentPath() {

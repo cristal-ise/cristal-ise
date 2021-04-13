@@ -62,7 +62,7 @@ import org.cristalise.kernel.lifecycle.instance.stateMachine.State;
 import org.cristalise.kernel.lifecycle.instance.stateMachine.StateMachine;
 import org.cristalise.kernel.lifecycle.instance.stateMachine.Transition;
 import org.cristalise.kernel.lookup.AgentPath;
-import org.cristalise.kernel.lookup.InvalidAgentPathException;
+import org.cristalise.kernel.lookup.InvalidItemPathException;
 import org.cristalise.kernel.lookup.ItemPath;
 import org.cristalise.kernel.lookup.Path;
 import org.cristalise.kernel.lookup.RolePath;
@@ -636,18 +636,18 @@ public class Activity extends WfVertex {
      * Calculates the lists of jobs for the activity and its children (cf org.cristalise.kernel.entity.Job)
      */
     public ArrayList<Job> calculateJobs(AgentPath agent, ItemPath itemPath, boolean recurse)
-            throws InvalidAgentPathException, ObjectNotFoundException, InvalidDataException
+            throws InvalidItemPathException, ObjectNotFoundException, InvalidDataException
     {
         return calculateJobsBase(agent, itemPath, false);
     }
 
     public ArrayList<Job> calculateAllJobs(AgentPath agent, ItemPath itemPath, boolean recurse)
-            throws InvalidAgentPathException, ObjectNotFoundException, InvalidDataException {
+            throws InvalidItemPathException, ObjectNotFoundException, InvalidDataException {
         return calculateJobsBase(agent, itemPath, true);
     }
 
     private ArrayList<Job> calculateJobsBase(AgentPath agent, ItemPath itemPath, boolean includeInactive)
-            throws ObjectNotFoundException, InvalidDataException, InvalidAgentPathException
+            throws ObjectNotFoundException, InvalidDataException, InvalidItemPathException
     {
         log.trace("calculateJobsBase() - act:" + getPath());
         ArrayList<Job> jobs = new ArrayList<Job>();

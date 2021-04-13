@@ -39,7 +39,6 @@ import org.cristalise.kernel.graph.model.GraphableVertex;
 import org.cristalise.kernel.graph.model.TypeNameAndConstructionInfo;
 import org.cristalise.kernel.lifecycle.instance.predefined.PredefinedStepContainer;
 import org.cristalise.kernel.lookup.AgentPath;
-import org.cristalise.kernel.lookup.InvalidAgentPathException;
 import org.cristalise.kernel.lookup.InvalidItemPathException;
 import org.cristalise.kernel.lookup.ItemPath;
 import org.cristalise.kernel.persistency.ClusterType;
@@ -208,7 +207,7 @@ public class Workflow extends CompositeActivity implements C2KLocalObject {
      * if type = 0 only domain steps will be queried if type = 1 only predefined steps will be queried else both will be queried
      */
     public ArrayList<Job> calculateJobs(AgentPath agent, ItemPath itemPath, int type)
-            throws InvalidAgentPathException, ObjectNotFoundException, InvalidDataException {
+            throws InvalidItemPathException, ObjectNotFoundException, InvalidDataException {
         ArrayList<Job> jobs = new ArrayList<Job>();
         if (type != 1)
             jobs.addAll(((CompositeActivity) search("workflow/domain")).calculateJobs(agent, itemPath, true));

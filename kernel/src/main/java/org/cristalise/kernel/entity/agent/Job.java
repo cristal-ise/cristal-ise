@@ -40,7 +40,6 @@ import org.cristalise.kernel.lifecycle.instance.Activity;
 import org.cristalise.kernel.lifecycle.instance.stateMachine.StateMachine;
 import org.cristalise.kernel.lifecycle.instance.stateMachine.Transition;
 import org.cristalise.kernel.lookup.AgentPath;
-import org.cristalise.kernel.lookup.InvalidAgentPathException;
 import org.cristalise.kernel.lookup.InvalidItemPathException;
 import org.cristalise.kernel.lookup.ItemPath;
 import org.cristalise.kernel.persistency.ClusterType;
@@ -105,7 +104,7 @@ public class Job implements C2KLocalObject {
      * Main constructor to create Job during workflow enactment
      */
     public Job(Activity act, ItemPath itemPath, Transition transition, AgentPath agent, String role)
-            throws InvalidDataException, ObjectNotFoundException, InvalidAgentPathException
+            throws InvalidDataException, ObjectNotFoundException
     {
         setCreationDate(DateUtility.getNow());
         setItemPath(itemPath);
@@ -195,7 +194,7 @@ public class Job implements C2KLocalObject {
      * @throws InvalidItemPathException Cannot set UUID of agent
      * @throws InvalidAgentPathException 
      */
-    public void setAgentUUID(String uuid) throws InvalidItemPathException, InvalidAgentPathException {
+    public void setAgentUUID(String uuid) throws InvalidItemPathException {
         if (StringUtils.isBlank(uuid)) agentPath = null; 
         else                           setAgentPath(new AgentPath(uuid));
     }

@@ -46,18 +46,18 @@ public class AgentPath extends ItemPath {
         mPasswordTemporary = isPwdTemporary;
     }
 
-    public AgentPath(UUID uuid) throws InvalidAgentPathException {
+    public AgentPath(UUID uuid) throws InvalidItemPathException {
         super(uuid);
 
         //This is commented so a AgentPath can be constructed without setting up Lookup
         //if (getAgentName() == null) throw new InvalidAgentPathException();
     }
 
-    public AgentPath(ItemPath itemPath) throws InvalidAgentPathException {
+    public AgentPath(ItemPath itemPath) throws InvalidItemPathException {
         this(itemPath.getUUID());
     }
 
-    public AgentPath(String path) throws InvalidAgentPathException {
+    public AgentPath(String path) throws InvalidItemPathException {
         //remove the '/entity/' string from the beginning if exists
         this(UUID.fromString(path.substring( (path.lastIndexOf("/") == -1 ? 0 : path.lastIndexOf("/")+1) )));
     }
