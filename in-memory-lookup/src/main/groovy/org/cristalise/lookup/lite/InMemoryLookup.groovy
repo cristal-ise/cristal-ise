@@ -162,19 +162,6 @@ abstract class InMemoryLookup extends ClusterStorage implements Lookup {
     }
 
     /**
-     * Resolve a path to a CORBA Object Item or Agent
-     *
-     * @param path The path to be resolved
-     * @return The CORBA Object
-     * @throws ObjectNotFoundException When the Path doesn't exist, or doesn't have an IOR associated with it
-     */
-    @Override
-    public String getIOR(Path path, TransactionKey transactionKey) throws ObjectNotFoundException {
-        Logger.msg(5, "InMemoryLookup.getIOR() - Path: $path")
-        return ((ItemPath)retrievePath(path.stringPath)).getIORString()
-    }
-
-    /**
      * Checks if a particular Path exists in the directory
      *
      * @param path The path to check

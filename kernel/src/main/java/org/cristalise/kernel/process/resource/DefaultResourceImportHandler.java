@@ -380,7 +380,6 @@ public class DefaultResourceImportHandler implements ResourceImportHandler {
             // FIXME check if this could be a real error
         }
 
-        Gateway.getCorbaServer().createItem(itemPath, transactionKey);
         lookupManager.add(itemPath, transactionKey);
 
         CreateItemFromDescription.storeItem((AgentPath)SYSTEM_AGENT.getPath(transactionKey), itemPath, props, null, ca, null, null, transactionKey);

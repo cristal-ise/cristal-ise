@@ -24,7 +24,7 @@ import static org.cristalise.kernel.process.resource.BuiltInResources.SCRIPT_RES
 
 import org.cristalise.kernel.common.InvalidDataException
 import org.cristalise.kernel.lookup.DomainPath
-import org.cristalise.kernel.lookup.InvalidPathException
+import org.cristalise.kernel.lookup.InvalidItemPathException
 import org.cristalise.kernel.lookup.ItemPath
 import org.cristalise.kernel.persistency.outcome.Outcome
 import org.cristalise.kernel.persistency.outcome.OutcomeValidator
@@ -83,7 +83,7 @@ class ScriptBuilder {
         else {
             log.error("ScriptBuilder.validateScriptXML() - $error")
             log.error("\n============== XML ==============\n" + xml + "\n=================================\n");
-            throw new InvalidPathException(error)
+            throw new InvalidItemPathException(error)
         }
     }
 

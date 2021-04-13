@@ -64,10 +64,8 @@ class WorkflowTestBuilder extends WorkflowBuilder {
         itemPath  = new ItemPath()
         agentPath = new AgentPath(new ItemPath(), "WorkflowTestBuilder")
 
-        if(Gateway.getCorbaServer() != null) {
-            Gateway.getLookupManager().add(itemPath)
-            Gateway.getLookupManager().add(agentPath)
-        }
+        Gateway.getLookupManager().add(itemPath)
+        Gateway.getLookupManager().add(agentPath)
     }
 
     /**
@@ -242,7 +240,7 @@ class WorkflowTestBuilder extends WorkflowBuilder {
 
         TransactionKey tk = new TransactionKey('WorkflowTestBuilder')
         Gateway.getStorage().begin(tk)
-        wf.requestAction(agentPath, null, act.path, itemPath, transID, requestData, "", "".bytes, tk)
+        wf.requestAction(agentPath, act.path, itemPath, transID, requestData, "", "".bytes, tk)
         Gateway.getStorage().commit(tk)
     }
 
