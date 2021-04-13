@@ -1,6 +1,6 @@
 package org.cristalise.kernel.common;
 
-public class CannotManageException extends VertxException {
+public class CannotManageException extends CriseVertxException {
     private final static int FAILURE_CODE = 102;
     private static final long serialVersionUID = 979223649124910315L;
 

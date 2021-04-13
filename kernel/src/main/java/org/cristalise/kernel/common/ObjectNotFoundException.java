@@ -1,6 +1,6 @@
 package org.cristalise.kernel.common;
 
-public class ObjectNotFoundException extends VertxException {
+public class ObjectNotFoundException extends CriseVertxException {
     private final static int FAILURE_CODE = 105;
     private static final long serialVersionUID = 6881043115092110048L;
 

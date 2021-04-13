@@ -1,5 +1,7 @@
 package org.cristalise.kernel.common;
 
+import java.util.concurrent.ExecutionException;
+
 import org.apache.commons.lang3.exception.ExceptionUtils;
 
 import io.vertx.core.AsyncResult;
@@ -8,22 +10,22 @@ import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.serviceproxy.ServiceException;
 
-public class VertxException extends Exception {
+public class CriseVertxException extends Exception {
     private final int failureCode;
 
     private static final long serialVersionUID = 5606562389374279530L;
 
-    public VertxException(int code) {
+    public CriseVertxException(int code) {
         super();
         failureCode = code;
     }
 
-    public VertxException(int code, Exception e) {
+    public CriseVertxException(int code, Exception e) {
         super(e);
         failureCode = code;
     }
 
-    public VertxException(int code, String msg) {
+    public CriseVertxException(int code, String msg) {
         super(msg);
         failureCode = code;
     }
@@ -42,5 +44,12 @@ public class VertxException extends Exception {
         for (String frame : ExceptionUtils.getStackFrames(ex)) stackTrace.add(frame);
 
         return debugInfo;
+    }
+
+    public static CriseVertxException convert(ExecutionException futureException) {
+        Exception cause = (Exception) futureException.getCause();
+
+        if (cause instanceof CriseVertxException) return (CriseVertxException)cause;
+        else                                      return new CriseVertxException(999, cause);
     }
 }

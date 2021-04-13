@@ -24,12 +24,17 @@ import java.net.MalformedURLException;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Properties;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 import org.cristalise.kernel.common.CannotManageException;
+import org.cristalise.kernel.common.CriseVertxException;
 import org.cristalise.kernel.common.InvalidDataException;
 import org.cristalise.kernel.common.ObjectNotFoundException;
 import org.cristalise.kernel.common.PersistencyException;
-import org.cristalise.kernel.entity.CorbaServer;
+import org.cristalise.kernel.entity.ItemVerticle;
 import org.cristalise.kernel.entity.proxy.AgentProxy;
 import org.cristalise.kernel.entity.proxy.ProxyManager;
 import org.cristalise.kernel.entity.proxy.ProxyServer;
@@ -49,6 +54,9 @@ import org.cristalise.kernel.utils.CastorXMLUtility;
 import org.cristalise.kernel.utils.Logger;
 import org.cristalise.kernel.utils.ObjectProperties;
 
+import io.vertx.core.DeploymentOptions;
+import io.vertx.core.Vertx;
+import io.vertx.core.VertxOptions;
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -62,9 +70,6 @@ import lombok.extern.slf4j.Slf4j;
  * search for Items or Agents.
  * <li>ProxyManager - Gives a local proxy object for Entities found
  * in the directory. Execute activities in Items, query or subscribe to Entity data.
- * <li>TransactionManager - Access to the configured CRISTAL databases
- * <li>CorbaServer - Manages the memory pool of active Entities
- * <li>ORB - the CORBA ORB
  * </ul>
  */
 @Slf4j
@@ -72,14 +77,12 @@ public class Gateway
 {
     static private ObjectProperties     mC2KProps = new ObjectProperties();
     static private ModuleManager        mModules;
-    static private org.omg.CORBA.ORB    mORB;
-    static private boolean              orbDestroyed = false;
+    static private Vertx                mVertx;
     static private Lookup               mLookup;
     static private LookupManager        mLookupManager = null;
     static private ClusterStorageManager   mStorage;
     static private ProxyManager         mProxyManager;
     static private ProxyServer          mProxyServer;
-    static private CorbaServer          mCorbaServer;
     static private CastorXMLUtility     mMarshaller;
     static private ResourceLoader       mResource;
     static private SecurityManager      mSecurityManager = null;
@@ -115,7 +118,6 @@ public class Gateway
         // Init properties & resources
         mC2KProps.clear();
 
-        orbDestroyed = false;
         mResource = res;
         if (mResource == null) mResource = new Resource();
 
@@ -158,19 +160,16 @@ public class Gateway
     }
 
     /**
-     * Makes this process capable of creating and managing server entities. Runs the
-     * Creates the LookupManager, ProxyServer, initialises the ORB and CORBAServer
      * 
-     * @param auth - this is NOT USED
      */
-    @Deprecated
-    static public void startServer(Authenticator auth) throws InvalidDataException, CannotManageException {
-        startServer();
+    static private void createVerticles() {
+        DeploymentOptions options = new DeploymentOptions().setWorker(true);
+        mVertx.deployVerticle(ItemVerticle.class, options);
     }
 
     /**
      * Makes this process capable of creating and managing server entities. Runs the
-     * Creates the LookupManager, ProxyServer, initialises the ORB and CORBAServer
+     * Creates the LookupManager, ProxyServer, initialises the vertx services
      */
     static public void startServer() throws InvalidDataException, CannotManageException {
         try {
@@ -183,28 +182,11 @@ public class Gateway
                 throw new CannotManageException("Lookup implementation is not a LookupManager. Cannot write to directory");
             }
 
+            createVerticles();
+
             // start entity proxy server
             String serverName = mC2KProps.getProperty("ItemServer.name");
             if (serverName != null) mProxyServer = new ProxyServer(serverName);
-
-            // Init ORB - set various config 
-            //TODO: externalize this (or replace corba completely)
-            if (serverName != null) mC2KProps.put("com.sun.CORBA.ORBServerHost", serverName);
-
-            String serverPort = mC2KProps.getProperty("ItemServer.iiop", "1500");
-            mC2KProps.put("com.sun.CORBA.ORBServerPort", serverPort);
-            mC2KProps.put("com.sun.CORBA.POA.ORBServerId", "1");
-            mC2KProps.put("com.sun.CORBA.POA.ORBPersistentServerPort", serverPort);
-            mC2KProps.put("com.sun.CORBA.codeset.charsets", "0x05010001, 0x00010109"); // need to force UTF-8 in the Sun ORB
-            mC2KProps.put("com.sun.CORBA.codeset.wcharsets", "0x00010109, 0x05010001");
-            //Standard initialisation of the ORB
-            orbDestroyed = false;
-            mORB = org.omg.CORBA.ORB.init(new String[0], mC2KProps);
-
-            log.info("ORB initialised. ORB class:'" + mORB.getClass().getName()+"'" );
-
-            // start corba server components
-            mCorbaServer = new CorbaServer();
 
             log.info("Server '"+serverName+"' STARTED.");
 
@@ -225,16 +207,59 @@ public class Gateway
     public static ModuleManager getModuleManager() {
         return mModules;
     }
+    
 
     /**
-     * Initialises the {@link Lookup}, {@link TransactionManager} and {@link ProxyManager}
+     * 
+     * @param options
+     * @param clustered
+     * @throws CriseVertxException 
+     */
+    private static void createVertx(VertxOptions options, boolean clustered) throws CriseVertxException {
+        if (mVertx == null) {
+            if (clustered) {
+                CompletableFuture<Void> future = new CompletableFuture<Void>();
+
+                Vertx.clusteredVertx(options, (result) -> {
+                    if (result.succeeded()) {
+                        mVertx = result.result();
+                        log.info("createVertx(clustered) -  Done:{}", mVertx);
+                        future.complete(null);
+                    }
+                    else {
+                        log.error("createVertx(clustered)", result.cause());
+                        future.completeExceptionally(result.cause());
+                  }
+                });
+
+                try {
+                    future.get(120, TimeUnit.SECONDS);
+                }
+                catch (ExecutionException e) {
+                    throw CriseVertxException.convert(e);
+                }
+                catch (InterruptedException | TimeoutException e) {
+                    log.error("requestAction()", e);
+                    throw new CannotManageException(e);
+                }
+            }
+            else {
+                mVertx = Vertx.vertx(options);
+                log.info("createVertx() -  Done:{}", mVertx);
+            }
+        }
+    }
+
+    /**
+     * Initialises the {@link Lookup} and {@link ProxyManager}
      *
      * @param auth the Authenticator instance
-     * @throws InvalidDataException bad params
-     * @throws PersistencyException error starting storages
+     * @throws CriseVertxException 
      */
-    private static void setup(Authenticator auth) throws InvalidDataException, PersistencyException {
+    private static void setup(Authenticator auth) throws CriseVertxException {
         if (mLookup != null) mLookup.close();
+
+        createVertx(new VertxOptions(), true);
 
         try {
             mLookup = (Lookup)mC2KProps.getInstance("Lookup");
@@ -258,7 +283,7 @@ public class Gateway
      * @throws PersistencyException - error starting storages
      * @throws ObjectNotFoundException - object not found
      */
-    static public Authenticator connect() throws InvalidDataException, PersistencyException, ObjectNotFoundException {
+    static public Authenticator connect() throws CriseVertxException {
         mSecurityManager = new SecurityManager();
         mSecurityManager.authenticate();
 
@@ -272,8 +297,8 @@ public class Gateway
     }
 
     /**
-     * Log in with the given username and password, and initialises the {@link Lookup}, 
-     * {@link TransactionManager} and {@link ProxyManager}. It shall be used in client processes only.
+     * Log in with the given username and password, and initialises the {@link Lookup} and 
+     * {@link ProxyManager}. It shall be used in client processes only.
      * 
      * @param agentName - username
      * @param agentPassword - password
@@ -283,15 +308,13 @@ public class Gateway
      * @throws PersistencyException - error starting storages
      * @throws ObjectNotFoundException - object not found
      */
-    static public AgentProxy connect(String agentName, String agentPassword) 
-            throws InvalidDataException, ObjectNotFoundException, PersistencyException
-    {
+    static public AgentProxy connect(String agentName, String agentPassword)throws CriseVertxException {
         return connect(agentName, agentPassword, null);
     }
 
     /**
-     * Log in with the given username and password, and initialises the {@link Lookup}, 
-     * {@link TransactionManager} and {@link ProxyManager}. It shall be uses in client processes only.
+     * Log in with the given username and password, and initialises the {@link Lookup} 
+     * and {@link ProxyManager}. It shall be uses in client processes only.
      * 
      * @param agentName - username
      * @param agentPassword - password
@@ -303,7 +326,7 @@ public class Gateway
      * @throws ObjectNotFoundException - object not found
      */
     static public AgentProxy connect(String agentName, String agentPassword, String resource)
-            throws InvalidDataException, ObjectNotFoundException, PersistencyException
+            throws CriseVertxException
     {
         mSecurityManager = new SecurityManager();
         mSecurityManager.authenticate(agentName, agentPassword, resource, true, null);
@@ -372,8 +395,7 @@ public class Gateway
         if (mModules != null) mModules.runScripts("shutdown");
 
         // shut down servers if running
-        if (mCorbaServer != null) mCorbaServer.close();
-        mCorbaServer = null;
+        if (mVertx != null) mVertx.close();
 
         // disconnect from storages
         if (mStorage != null) mStorage.close();
@@ -393,12 +415,7 @@ public class Gateway
         // close log consoles
         Logger.closeConsole();
 
-        // finally, destroy the ORB
-        if (!orbDestroyed) {
-            getORB().destroy();
-            orbDestroyed = true;
-            mORB = null;
-        }
+        mVertx.close();
 
         // clean up remaining objects
         mModules = null;
@@ -408,22 +425,6 @@ public class Gateway
 
         // abandon any log streams
         Logger.removeAll();
-    }
-
-    /**
-     * Returns the initialised CORBA ORB Object 
-     * 
-     * @return the CORBA ORB Object
-     */
-    static public org.omg.CORBA.ORB getORB() {
-        if (orbDestroyed) throw new RuntimeException("Gateway has been closed. ORB is destroyed. ");
-
-        if (mORB == null) {
-            mC2KProps.put("com.sun.CORBA.codeset.charsets", "0x05010001, 0x00010109"); // need to force UTF-8 in the Sun ORB
-            mC2KProps.put("com.sun.CORBA.codeset.wcharsets", "0x00010109, 0x05010001");
-            mORB = org.omg.CORBA.ORB.init(new String[0], mC2KProps);
-        }
-        return mORB;
     }
 
     static public SecurityManager getSecurityManager() {
@@ -441,8 +442,8 @@ public class Gateway
             return mLookupManager;
     }
 
-    static public CorbaServer getCorbaServer() {
-        return mCorbaServer;
+    static public Vertx getVertx() {
+        return mVertx;
     }
 
     static public ClusterStorageManager getStorage() {

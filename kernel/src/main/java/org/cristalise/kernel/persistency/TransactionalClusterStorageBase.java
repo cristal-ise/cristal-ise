@@ -36,6 +36,12 @@ import org.cristalise.kernel.process.AbstractMain;
 
 import lombok.extern.slf4j.Slf4j;
 
+/**
+ * Potentially the base class for ClusterStorage implementation without transactional support, i.e.
+ * XMLClusterStorage and MemoryOnlyClusterStorage.
+ * 
+ * @implNote Class was created from TransactionalClusterStorage and it is very much incomplete
+ */
 @Slf4j
 public abstract class TransactionalClusterStorageBase extends ClusterStorage{
 

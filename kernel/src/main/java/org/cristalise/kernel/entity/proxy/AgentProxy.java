@@ -37,8 +37,7 @@ import org.cristalise.kernel.common.InvalidTransitionException;
 import org.cristalise.kernel.common.ObjectAlreadyExistsException;
 import org.cristalise.kernel.common.ObjectNotFoundException;
 import org.cristalise.kernel.common.PersistencyException;
-import org.cristalise.kernel.entity.Agent;
-import org.cristalise.kernel.entity.AgentHelper;
+import org.cristalise.kernel.common.CriseVertxException;
 import org.cristalise.kernel.entity.C2KLocalObject;
 import org.cristalise.kernel.entity.agent.Job;
 import org.cristalise.kernel.graph.model.BuiltInVertexProperties;
@@ -87,19 +86,9 @@ public class AgentProxy extends ItemProxy {
      * @param agentPath
      * @throws ObjectNotFoundException
      */
-    protected AgentProxy(org.omg.CORBA.Object ior, AgentPath agentPath) throws ObjectNotFoundException {
-        super(ior, agentPath);
+    protected AgentProxy(AgentPath agentPath) throws ObjectNotFoundException {
+        super(agentPath);
         mAgentPath = agentPath;
-    }
-
-    @Override
-    public Agent narrow() throws ObjectNotFoundException {
-        try {
-            return AgentHelper.narrow(mIOR);
-        }
-        catch (org.omg.CORBA.BAD_PARAM ex) {
-        }
-        throw new ObjectNotFoundException("CORBA Object was not an Agent, or the server is down.");
     }
 
     /**
@@ -121,10 +110,7 @@ public class AgentProxy extends ItemProxy {
      * @throws ScriptErrorException Thrown by scripting classes
      * @throws InvalidCollectionModification Thrown by steps that create/modify collections
      */
-    public String execute(Job job, Job errorJob)
-            throws ObjectNotFoundException, AccessRightsException, InvalidTransitionException, InvalidDataException,
-            PersistencyException, ObjectAlreadyExistsException, InvalidCollectionModification, ScriptErrorException
-    {
+    public String execute(Job job, Job errorJob) throws CriseVertxException {
         if (errorJob == null) throw new InvalidDataException("errorJob cannot be null");
 
         try {
@@ -153,19 +139,9 @@ public class AgentProxy extends ItemProxy {
      * @param job the Actual Job to be executed
      * @return The outcome after processing. May have been altered by the step.
      *
-     * @throws AccessRightsException The agent was not allowed to execute this step
-     * @throws InvalidDataException The parameters supplied were incorrect
-     * @throws InvalidTransitionException The step wasn't available
-     * @throws ObjectNotFoundException Thrown by some steps that try to locate additional objects
-     * @throws PersistencyException Problem writing or reading the database
-     * @throws ObjectAlreadyExistsException Thrown by steps that create additional object
-     * @throws ScriptErrorException Thrown by scripting classes
-     * @throws InvalidCollectionModification Thrown by steps that create/modify collections
+     * @throws CriseVertxException
      */
-    public String execute(Job job)
-            throws AccessRightsException, InvalidDataException, InvalidTransitionException, ObjectNotFoundException,
-            PersistencyException, ObjectAlreadyExistsException, ScriptErrorException, InvalidCollectionModification
-    {
+    public String execute(Job job) throws CriseVertxException {
         ItemProxy item = Gateway.getProxyManager().getProxy(job.getItemPath(), transactionKey);
         Date startTime = new Date();
 
@@ -275,10 +251,7 @@ public class AgentProxy extends ItemProxy {
      * @throws ObjectAlreadyExistsException
      * @throws InvalidCollectionModification
      */
-    public String execute(ItemProxy item, Class<?> predefStep, C2KLocalObject obj)
-            throws AccessRightsException, InvalidDataException, InvalidTransitionException, ObjectNotFoundException, 
-                   PersistencyException, ObjectAlreadyExistsException, InvalidCollectionModification 
-    {
+    public String execute(ItemProxy item, Class<?> predefStep, C2KLocalObject obj) throws CriseVertxException {
         return execute(item, predefStep.getSimpleName(), obj);
     }
 
@@ -296,10 +269,7 @@ public class AgentProxy extends ItemProxy {
      * @throws ObjectAlreadyExistsException
      * @throws InvalidCollectionModification
      */
-    public String execute(ItemProxy item, String predefStep, C2KLocalObject obj)
-            throws AccessRightsException, InvalidDataException, InvalidTransitionException, ObjectNotFoundException, 
-                   PersistencyException, ObjectAlreadyExistsException, InvalidCollectionModification 
-    {
+    public String execute(ItemProxy item, String predefStep, C2KLocalObject obj) throws CriseVertxException {
         String param;
         try {
             param = marshall(obj);
@@ -325,10 +295,7 @@ public class AgentProxy extends ItemProxy {
      * @throws ObjectAlreadyExistsException
      * @throws InvalidCollectionModification
      */
-    public String execute(ItemProxy item, Class<?> predefStep, String...params)
-            throws AccessRightsException, InvalidDataException, InvalidTransitionException, ObjectNotFoundException,
-            PersistencyException, ObjectAlreadyExistsException, InvalidCollectionModification
-    {
+    public String execute(ItemProxy item, Class<?> predefStep, String...params) throws CriseVertxException    {
         return execute(item, predefStep.getSimpleName(), params);
     }
 
@@ -350,10 +317,7 @@ public class AgentProxy extends ItemProxy {
      * @throws ObjectAlreadyExistsException Thrown by steps that create additional object
      * @throws InvalidCollectionModification Thrown by steps that create/modify collections
      */
-    public String execute(ItemProxy item, String predefStep, String...params)
-            throws AccessRightsException, InvalidDataException, InvalidTransitionException, ObjectNotFoundException,
-            PersistencyException, ObjectAlreadyExistsException, InvalidCollectionModification
-    {
+    public String execute(ItemProxy item, String predefStep, String...params) throws CriseVertxException {
         String schemaName = PredefinedStep.getPredefStepSchemaName(predefStep);
         String param = null;
 
@@ -366,13 +330,14 @@ public class AgentProxy extends ItemProxy {
             else                        throw new InvalidDataException("prdefStep:'"+predefStep+"' schemaName:'"+schemaName+"' incorrect params:"+Arrays.toString(params));
         }
 
-        String result = item.getItem().requestAction(
-                mAgentPath.getSystemKey(), 
+        String result = requestAction(
+                item.getPath().toString(),
+                mAgentPath.toString(), 
                 "workflow/predefined/" + predefStep, 
                 PredefinedStep.DONE, 
                 param,
                 "",
-                new byte[0]);
+                new ArrayList<Byte>());
 
         String[] clearCacheSteps = {
                 ChangeName.class.getSimpleName(), 
@@ -395,10 +360,7 @@ public class AgentProxy extends ItemProxy {
      * 
      * @see #execute(ItemProxy, String)
      */
-    public String execute(ItemProxy item, Class<?> predefStep)
-            throws AccessRightsException, InvalidDataException, InvalidTransitionException, ObjectNotFoundException,
-            PersistencyException, ObjectAlreadyExistsException,InvalidCollectionModification
-    {
+    public String execute(ItemProxy item, Class<?> predefStep) throws CriseVertxException {
         return execute(item, predefStep.getSimpleName());
     }
 
@@ -407,10 +369,7 @@ public class AgentProxy extends ItemProxy {
      * 
      * @see #execute(ItemProxy, String, String[])
      */
-    public String execute(ItemProxy item, String predefStep)
-            throws AccessRightsException, InvalidDataException, InvalidTransitionException, ObjectNotFoundException,
-            PersistencyException, ObjectAlreadyExistsException,InvalidCollectionModification
-    {
+    public String execute(ItemProxy item, String predefStep) throws CriseVertxException {
         return execute(item, predefStep, new String[0]);
     }
 
@@ -420,10 +379,7 @@ public class AgentProxy extends ItemProxy {
      *
      * @see #execute(ItemProxy, String, String)
      */
-    public String execute(ItemProxy item, Class<?> predefStep, String param)
-            throws AccessRightsException, InvalidDataException, InvalidTransitionException, ObjectNotFoundException,
-            PersistencyException, ObjectAlreadyExistsException,InvalidCollectionModification
-    {
+    public String execute(ItemProxy item, Class<?> predefStep, String param) throws CriseVertxException {
         return execute(item, predefStep.getSimpleName(), param);
     }
 
@@ -432,10 +388,7 @@ public class AgentProxy extends ItemProxy {
      *
      * @see #execute(ItemProxy, String, String[])
      */
-    public String execute(ItemProxy item, String predefStep, String param)
-            throws AccessRightsException, InvalidDataException, InvalidTransitionException, ObjectNotFoundException,
-            PersistencyException, ObjectAlreadyExistsException,InvalidCollectionModification
-    {
+    public String execute(ItemProxy item, String predefStep, String param) throws CriseVertxException {
         return execute(item, predefStep, new String[] { param });
     }
 

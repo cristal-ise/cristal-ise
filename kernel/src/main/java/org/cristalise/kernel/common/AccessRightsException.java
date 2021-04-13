@@ -1,6 +1,6 @@
 package org.cristalise.kernel.common;
 
-public class AccessRightsException extends VertxException {
+public class AccessRightsException extends CriseVertxException {
     private final static int FAILURE_CODE = 101;
     private static final long serialVersionUID = 5606562389374279530L;
 

@@ -1,6 +1,6 @@
 package org.cristalise.kernel.common;
 
-public class InvalidDataException extends VertxException {
+public class InvalidDataException extends CriseVertxException {
     private final static int FAILURE_CODE = 103;
     private static final long serialVersionUID = -4491884465493921352L;
 

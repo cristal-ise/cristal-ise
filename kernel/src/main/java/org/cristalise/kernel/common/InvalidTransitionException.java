@@ -1,6 +1,6 @@
 package org.cristalise.kernel.common;
 
-public class InvalidTransitionException extends VertxException {
+public class InvalidTransitionException extends CriseVertxException {
     private final static int FAILURE_CODE = 104;
     private static final long serialVersionUID = -6403980570839158164L;
 

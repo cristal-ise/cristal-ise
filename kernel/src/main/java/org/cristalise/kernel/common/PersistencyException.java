@@ -1,6 +1,6 @@
 package org.cristalise.kernel.common;
 
-public class PersistencyException extends VertxException {
+public class PersistencyException extends CriseVertxException {
     private final static int FAILURE_CODE = 105;
     private static final long serialVersionUID = 1176559332900341049L;
 

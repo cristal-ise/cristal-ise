@@ -247,8 +247,6 @@ public class Bootstrap {
 
         try {
             AgentPath agentPath = new AgentPath(new ItemPath(uuid), name);
-
-            Gateway.getCorbaServer().createAgent(agentPath, transactionKey);
             lookup.add(agentPath, transactionKey);
 
             if (StringUtils.isNotBlank(pass)) lookup.setAgentPassword(agentPath, pass, false, transactionKey);
@@ -314,7 +312,6 @@ public class Bootstrap {
         catch (ObjectNotFoundException ex) {
             log.info("Creating server item "+thisServerPath);
             serverItem = new ItemPath();
-            Gateway.getCorbaServer().createItem(serverItem, transactionKey);
             lookupManager.add(serverItem, transactionKey);
             thisServerPath.setItemPath(serverItem);
             lookupManager.add(thisServerPath, transactionKey);

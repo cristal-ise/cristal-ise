@@ -1,6 +1,6 @@
 package org.cristalise.kernel.common;
 
-public class InvalidCollectionModification extends VertxException {
+public class InvalidCollectionModification extends CriseVertxException {
     private final static int FAILURE_CODE = 103;
     private static final long serialVersionUID = -8108958427700141393L;
 

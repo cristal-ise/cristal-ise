@@ -1,6 +1,6 @@
 package org.cristalise.kernel.common;
 
-public class ObjectAlreadyExistsException extends VertxException {
+public class ObjectAlreadyExistsException extends CriseVertxException {
     private final static int FAILURE_CODE = 105;
     private static final long serialVersionUID = 5876015808620266247L;
 
