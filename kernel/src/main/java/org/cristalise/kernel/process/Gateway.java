@@ -259,7 +259,7 @@ public class Gateway
     private static void setup(Authenticator auth) throws CriseVertxException {
         if (mLookup != null) mLookup.close();
 
-        createVertx(new VertxOptions(), true);
+        createVertx(new VertxOptions(), mC2KProps.getBoolean("Gateway.clusteredVertx", true));
 
         try {
             mLookup = (Lookup)mC2KProps.getInstance("Lookup");
