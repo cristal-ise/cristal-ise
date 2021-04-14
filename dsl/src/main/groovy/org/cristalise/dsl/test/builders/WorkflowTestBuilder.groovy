@@ -36,6 +36,7 @@ import org.cristalise.kernel.lookup.AgentPath
 import org.cristalise.kernel.lookup.ItemPath
 import org.cristalise.kernel.persistency.TransactionKey
 import org.cristalise.kernel.persistency.outcome.Outcome
+import org.cristalise.kernel.process.AbstractMain
 import org.cristalise.kernel.process.Gateway
 
 import groovy.transform.CompileStatic
@@ -64,8 +65,10 @@ class WorkflowTestBuilder extends WorkflowBuilder {
         itemPath  = new ItemPath()
         agentPath = new AgentPath(new ItemPath(), "WorkflowTestBuilder")
 
-        Gateway.getLookupManager().add(itemPath)
-        Gateway.getLookupManager().add(agentPath)
+        if (AbstractMain.isServer) {
+            Gateway.getLookupManager().add(itemPath)
+            Gateway.getLookupManager().add(agentPath)
+        }
     }
 
     /**

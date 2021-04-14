@@ -81,7 +81,7 @@ class ItemPropertyBuilderSpecs extends Specification implements CristalTestSetup
 
         then:
         InvalidDataException ex = thrown()
-        ex.message == "IDL:org.cristalise.kernel/common/InvalidDataException:1.0  Inmutable EntityProperty 'Type' must have valid value"
+        ex.message == "Inmutable EntityProperty 'Type' must have valid value"
     }
 
     def 'EntityProperty value is coerced to String'() {
