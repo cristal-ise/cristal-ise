@@ -32,7 +32,6 @@
     <packaging>pom</packaging>
 
     <modules>
-        <module>idl</module>
         <module>kernel</module>
         <module>jooqdb</module>
         <module>in-memory-lookup</module>
