@@ -1,0 +1,1333 @@
+openapi: 3.0.0
+info:
+  version: "1.0"
+  title: CRISTAL-iSE API
+  description: CRISTAL-iSE REST API - Converted from wadl by apimatic.io
+  license:
+    name: LGPLv3
+    url: https://github.com/cristal-ise/restapi/blob/master/LICENSE
+paths:
+  /auth:
+    get:
+      description: ""
+      summary: login
+      operationId: login
+      parameters:
+        - name: user
+          in: query
+          required: false
+          description: ""
+          schema:
+            type: string
+        - name: pass
+          in: query
+          required: false
+          description: ""
+          schema:
+            type: string
+      responses:
+        "200":
+          description: ""
+          content:
+            application/json:
+              schema:
+                type: string
+      x-unitTests: []
+      x-operation-settings:
+        CollectParameters: false
+        AllowDynamicQueryParameters: false
+        AllowDynamicFormParameters: false
+        IsMultiContentStreaming: false
+  "/item/{uuid}/history":
+    get:
+      description: ""
+      summary: list
+      operationId: list
+      parameters:
+        - name: uuid
+          in: path
+          required: true
+          description: ""
+          schema:
+            type: string
+        - name: start
+          in: query
+          required: false
+          description: ""
+          schema:
+            type: integer
+            format: int32
+        - name: batch
+          in: query
+          required: false
+          description: ""
+          schema:
+            type: integer
+            format: int32
+        - name: Cookie
+          in: header
+          required: false
+          description: ""
+          schema:
+            type: string
+      responses:
+        "200":
+          description: ""
+          content:
+            application/json:
+              schema:
+                type: object
+      x-unitTests: []
+      x-operation-settings:
+        CollectParameters: false
+        AllowDynamicQueryParameters: false
+        AllowDynamicFormParameters: false
+        IsMultiContentStreaming: false
+  "/item/{uuid}/history/{eventId}":
+    get:
+      description: ""
+      summary: getEvent
+      operationId: getEvent
+      parameters:
+        - name: eventId
+          in: path
+          required: true
+          description: ""
+          schema:
+            type: string
+        - name: uuid
+          in: path
+          required: true
+          description: ""
+          schema:
+            type: string
+        - name: Cookie
+          in: header
+          required: false
+          description: ""
+          schema:
+            type: string
+      responses:
+        "200":
+          description: ""
+          content:
+            application/json:
+              schema:
+                type: object
+      x-unitTests: []
+      x-operation-settings:
+        CollectParameters: false
+        AllowDynamicQueryParameters: false
+        AllowDynamicFormParameters: false
+        IsMultiContentStreaming: false
+  "/item/{uuid}/history/{eventId}/data":
+    get:
+      description: ""
+      summary: getEventXMLOutcome
+      operationId: getEventXMLOutcome
+      parameters:
+        - name: eventId
+          in: path
+          required: true
+          description: ""
+          schema:
+            type: string
+        - name: uuid
+          in: path
+          required: true
+          description: ""
+          schema:
+            type: string
+        - name: Cookie
+          in: header
+          required: false
+          description: ""
+          schema:
+            type: string
+      responses:
+        "200":
+          description: ""
+          content:
+            application/json:
+              schema:
+                type: object
+      x-unitTests: []
+      x-operation-settings:
+        CollectParameters: false
+        AllowDynamicQueryParameters: false
+        AllowDynamicFormParameters: false
+        IsMultiContentStreaming: false
+  /schema:
+    get:
+      description: ""
+      summary: listAllSchemas
+      operationId: listAllSchemas
+      parameters:
+        - name: Cookie
+          in: header
+          required: false
+          description: ""
+          schema:
+            type: string
+      responses:
+        "200":
+          description: ""
+          content:
+            application/json:
+              schema:
+                type: object
+      x-unitTests: []
+      x-operation-settings:
+        CollectParameters: false
+        AllowDynamicQueryParameters: false
+        AllowDynamicFormParameters: false
+        IsMultiContentStreaming: false
+  "/schema/{name}/{version}":
+    get:
+      description: ""
+      summary: getSchema
+      operationId: getSchema
+      parameters:
+        - name: name
+          in: path
+          required: true
+          description: ""
+          schema:
+            type: string
+        - name: version
+          in: path
+          required: true
+          description: ""
+          schema:
+            type: integer
+            format: int32
+        - name: Cookie
+          in: header
+          required: false
+          description: ""
+          schema:
+            type: string
+      responses:
+        "200":
+          description: ""
+          content:
+            application/json:
+              schema:
+                type: object
+      x-unitTests: []
+      x-operation-settings:
+        CollectParameters: false
+        AllowDynamicQueryParameters: false
+        AllowDynamicFormParameters: false
+        IsMultiContentStreaming: false
+  "/schema/{name}":
+    get:
+      description: ""
+      summary: listSchemaVersions
+      operationId: listSchemaVersions
+      parameters:
+        - name: name
+          in: path
+          required: true
+          description: ""
+          schema:
+            type: string
+        - name: Cookie
+          in: header
+          required: false
+          description: ""
+          schema:
+            type: string
+      responses:
+        "200":
+          description: ""
+          content:
+            application/json:
+              schema:
+                type: object
+      x-unitTests: []
+      x-operation-settings:
+        CollectParameters: false
+        AllowDynamicQueryParameters: false
+        AllowDynamicFormParameters: false
+        IsMultiContentStreaming: false
+  "/item/{uuid}":
+    get:
+      description: ""
+      summary: getItemSummary
+      operationId: getItemSummary
+      parameters:
+        - name: uuid
+          in: path
+          required: true
+          description: ""
+          schema:
+            type: string
+        - name: Cookie
+          in: header
+          required: false
+          description: ""
+          schema:
+            type: string
+      responses:
+        "200":
+          description: ""
+          content:
+            application/json:
+              schema:
+                type: object
+      x-unitTests: []
+      x-operation-settings:
+        CollectParameters: false
+        AllowDynamicQueryParameters: false
+        AllowDynamicFormParameters: false
+        IsMultiContentStreaming: false
+  "/item/{uuid}/name":
+    get:
+      description: ""
+      summary: getName
+      operationId: getName
+      parameters:
+        - name: uuid
+          in: path
+          required: true
+          description: ""
+          schema:
+            type: string
+        - name: Cookie
+          in: header
+          required: false
+          description: ""
+          schema:
+            type: string
+      responses:
+        "200":
+          description: ""
+          content:
+            application/json:
+              schema:
+                type: string
+      x-unitTests: []
+      x-operation-settings:
+        CollectParameters: false
+        AllowDynamicQueryParameters: false
+        AllowDynamicFormParameters: false
+        IsMultiContentStreaming: false
+  "/item/{uuid}/{activityPath: .*}":
+    post:
+      description: ""
+      summary: requestTransition
+      operationId: requestTransition
+      parameters:
+        - name: activityPath
+          in: path
+          required: true
+          description: ""
+          schema:
+            type: string
+        - name: uuid
+          in: path
+          required: true
+          description: ""
+          schema:
+            type: string
+        - name: "activityPath: .*"
+          in: path
+          required: true
+          description: ""
+          schema:
+            type: string
+        - name: transition
+          in: query
+          required: false
+          description: ""
+          schema:
+            type: string
+        - name: agent
+          in: query
+          required: false
+          description: ""
+          schema:
+            type: string
+        - name: Cookie
+          in: header
+          required: false
+          description: ""
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RequesttransitionRequest"
+        required: true
+      responses:
+        "200":
+          description: ""
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RequesttransitionRequest"
+      x-unitTests: []
+      x-operation-settings:
+        CollectParameters: false
+        AllowDynamicQueryParameters: false
+        AllowDynamicFormParameters: false
+        IsMultiContentStreaming: false
+  /stateMachine:
+    get:
+      description: ""
+      summary: listAllStateMachines
+      operationId: listAllStateMachines
+      parameters:
+        - name: Cookie
+          in: header
+          required: false
+          description: ""
+          schema:
+            type: string
+      responses:
+        "200":
+          description: ""
+          content:
+            application/json:
+              schema:
+                type: object
+      x-unitTests: []
+      x-operation-settings:
+        CollectParameters: false
+        AllowDynamicQueryParameters: false
+        AllowDynamicFormParameters: false
+        IsMultiContentStreaming: false
+  "/stateMachine/{name}/{version}":
+    get:
+      description: ""
+      summary: getStateMachineData
+      operationId: getStateMachineData
+      parameters:
+        - name: name
+          in: path
+          required: true
+          description: ""
+          schema:
+            type: string
+        - name: version
+          in: path
+          required: true
+          description: ""
+          schema:
+            type: integer
+            format: int32
+        - name: Cookie
+          in: header
+          required: false
+          description: ""
+          schema:
+            type: string
+      responses:
+        "200":
+          description: ""
+          content:
+            application/json:
+              schema:
+                type: object
+      x-unitTests: []
+      x-operation-settings:
+        CollectParameters: false
+        AllowDynamicQueryParameters: false
+        AllowDynamicFormParameters: false
+        IsMultiContentStreaming: false
+  "/stateMachine/{name}":
+    get:
+      description: ""
+      summary: listStateMachineVersions
+      operationId: listStateMachineVersions
+      parameters:
+        - name: name
+          in: path
+          required: true
+          description: ""
+          schema:
+            type: string
+        - name: Cookie
+          in: header
+          required: false
+          description: ""
+          schema:
+            type: string
+      responses:
+        "200":
+          description: ""
+          content:
+            application/json:
+              schema:
+                type: object
+      x-unitTests: []
+      x-operation-settings:
+        CollectParameters: false
+        AllowDynamicQueryParameters: false
+        AllowDynamicFormParameters: false
+        IsMultiContentStreaming: false
+  "/agent/{uuid}/job":
+    get:
+      description: ""
+      summary: list1
+      operationId: list1
+      parameters:
+        - name: uuid
+          in: path
+          required: true
+          description: ""
+          schema:
+            type: string
+        - name: start
+          in: query
+          required: false
+          description: ""
+          schema:
+            type: integer
+            format: int32
+            default: 0
+        - name: batch
+          in: query
+          required: false
+          description: ""
+          schema:
+            type: integer
+            format: int32
+        - name: Cookie
+          in: header
+          required: false
+          description: ""
+          schema:
+            type: string
+      responses:
+        "200":
+          description: ""
+          content:
+            application/json:
+              schema:
+                type: object
+      x-unitTests: []
+      x-operation-settings:
+        CollectParameters: false
+        AllowDynamicQueryParameters: false
+        AllowDynamicFormParameters: false
+        IsMultiContentStreaming: false
+  "/agent/{uuid}/roles":
+    get:
+      description: ""
+      summary: getRoles
+      operationId: getRoles
+      parameters:
+        - name: uuid
+          in: path
+          required: true
+          description: ""
+          schema:
+            type: string
+        - name: Cookie
+          in: header
+          required: false
+          description: ""
+          schema:
+            type: string
+      responses:
+        "200":
+          description: ""
+          content:
+            application/json:
+              schema:
+                type: object
+      x-unitTests: []
+      x-operation-settings:
+        CollectParameters: false
+        AllowDynamicQueryParameters: false
+        AllowDynamicFormParameters: false
+        IsMultiContentStreaming: false
+  "/agent/{uuid}/job/{jobId}":
+    get:
+      description: ""
+      summary: getEvent
+      operationId: getEvent1
+      parameters:
+        - name: jobId
+          in: path
+          required: true
+          description: ""
+          schema:
+            type: string
+        - name: uuid
+          in: path
+          required: true
+          description: ""
+          schema:
+            type: string
+        - name: Cookie
+          in: header
+          required: false
+          description: ""
+          schema:
+            type: string
+      responses:
+        "200":
+          description: ""
+          content:
+            application/json:
+              schema:
+                type: object
+      x-unitTests: []
+      x-operation-settings:
+        CollectParameters: false
+        AllowDynamicQueryParameters: false
+        AllowDynamicFormParameters: false
+        IsMultiContentStreaming: false
+  "/item/{uuid}/data":
+    get:
+      description: ""
+      summary: getSchemas
+      operationId: getSchemas
+      parameters:
+        - name: uuid
+          in: path
+          required: true
+          description: ""
+          schema:
+            type: string
+        - name: Cookie
+          in: header
+          required: false
+          description: ""
+          schema:
+            type: string
+      responses:
+        "200":
+          description: ""
+          content:
+            application/json:
+              schema:
+                type: object
+      x-unitTests: []
+      x-operation-settings:
+        CollectParameters: false
+        AllowDynamicQueryParameters: false
+        AllowDynamicFormParameters: false
+        IsMultiContentStreaming: false
+  "/item/{uuid}/data/{schema}":
+    get:
+      description: ""
+      summary: getViewNames
+      operationId: getViewNames
+      parameters:
+        - name: schema
+          in: path
+          required: true
+          description: ""
+          schema:
+            type: string
+        - name: uuid
+          in: path
+          required: true
+          description: ""
+          schema:
+            type: string
+        - name: Cookie
+          in: header
+          required: false
+          description: ""
+          schema:
+            type: string
+      responses:
+        "200":
+          description: ""
+          content:
+            application/json:
+              schema:
+                type: object
+      x-unitTests: []
+      x-operation-settings:
+        CollectParameters: false
+        AllowDynamicQueryParameters: false
+        AllowDynamicFormParameters: false
+        IsMultiContentStreaming: false
+  "/item/{uuid}/data/{schema}/{viewName}/history/{event}/event":
+    get:
+      description: ""
+      summary: getOutcomeEvent
+      operationId: getOutcomeEvent
+      parameters:
+        - name: schema
+          in: path
+          required: true
+          description: ""
+          schema:
+            type: string
+        - name: viewName
+          in: path
+          required: true
+          description: ""
+          schema:
+            type: string
+        - name: event
+          in: path
+          required: true
+          description: ""
+          schema:
+            type: integer
+            format: int32
+        - name: uuid
+          in: path
+          required: true
+          description: ""
+          schema:
+            type: string
+        - name: Cookie
+          in: header
+          required: false
+          description: ""
+          schema:
+            type: string
+      responses:
+        "200":
+          description: ""
+          content:
+            application/json:
+              schema:
+                type: object
+      x-unitTests: []
+      x-operation-settings:
+        CollectParameters: false
+        AllowDynamicQueryParameters: false
+        AllowDynamicFormParameters: false
+        IsMultiContentStreaming: false
+  "/item/{uuid}/data/{schema}/{viewName}/event":
+    get:
+      description: ""
+      summary: getViewEvent
+      operationId: getViewEvent
+      parameters:
+        - name: schema
+          in: path
+          required: true
+          description: ""
+          schema:
+            type: string
+        - name: viewName
+          in: path
+          required: true
+          description: ""
+          schema:
+            type: string
+        - name: uuid
+          in: path
+          required: true
+          description: ""
+          schema:
+            type: string
+        - name: Cookie
+          in: header
+          required: false
+          description: ""
+          schema:
+            type: string
+      responses:
+        "200":
+          description: ""
+          content:
+            application/json:
+              schema:
+                type: object
+      x-unitTests: []
+      x-operation-settings:
+        CollectParameters: false
+        AllowDynamicQueryParameters: false
+        AllowDynamicFormParameters: false
+        IsMultiContentStreaming: false
+  "/item/{uuid}/data/{schema}/{viewName}":
+    get:
+      description: ""
+      summary: queryXMLData
+      operationId: queryXMLData
+      parameters:
+        - name: schema
+          in: path
+          required: true
+          description: ""
+          schema:
+            type: string
+        - name: viewName
+          in: path
+          required: true
+          description: ""
+          schema:
+            type: string
+        - name: uuid
+          in: path
+          required: true
+          description: ""
+          schema:
+            type: string
+        - name: Cookie
+          in: header
+          required: false
+          description: ""
+          schema:
+            type: string
+      responses:
+        "200":
+          description: ""
+          content:
+            application/json:
+              schema:
+                type: object
+      x-unitTests: []
+      x-operation-settings:
+        CollectParameters: false
+        AllowDynamicQueryParameters: false
+        AllowDynamicFormParameters: false
+        IsMultiContentStreaming: false
+  "/item/{uuid}/data/{schema}/{viewName}/history/{event}":
+    get:
+      description: ""
+      summary: getOutcomeForEvent
+      operationId: getOutcomeForEvent
+      parameters:
+        - name: schema
+          in: path
+          required: true
+          description: ""
+          schema:
+            type: string
+        - name: viewName
+          in: path
+          required: true
+          description: ""
+          schema:
+            type: string
+        - name: event
+          in: path
+          required: true
+          description: ""
+          schema:
+            type: integer
+            format: int32
+        - name: uuid
+          in: path
+          required: true
+          description: ""
+          schema:
+            type: string
+        - name: Cookie
+          in: header
+          required: false
+          description: ""
+          schema:
+            type: string
+      responses:
+        "200":
+          description: ""
+          content:
+            application/json:
+              schema:
+                type: object
+      x-unitTests: []
+      x-operation-settings:
+        CollectParameters: false
+        AllowDynamicQueryParameters: false
+        AllowDynamicFormParameters: false
+        IsMultiContentStreaming: false
+  "/item/{uuid}/data/{schema}/{viewName}/history":
+    get:
+      description: ""
+      summary: getAllEventsForView
+      operationId: getAllEventsForView
+      parameters:
+        - name: schema
+          in: path
+          required: true
+          description: ""
+          schema:
+            type: string
+        - name: viewName
+          in: path
+          required: true
+          description: ""
+          schema:
+            type: string
+        - name: uuid
+          in: path
+          required: true
+          description: ""
+          schema:
+            type: string
+        - name: Cookie
+          in: header
+          required: false
+          description: ""
+          schema:
+            type: string
+      responses:
+        "200":
+          description: ""
+          content:
+            application/json:
+              schema:
+                type: object
+      x-unitTests: []
+      x-operation-settings:
+        CollectParameters: false
+        AllowDynamicQueryParameters: false
+        AllowDynamicFormParameters: false
+        IsMultiContentStreaming: false
+  /domain:
+    get:
+      description: ""
+      summary: queryPath
+      operationId: queryPath
+      parameters:
+        - name: start
+          in: query
+          required: false
+          description: ""
+          schema:
+            type: integer
+            format: int32
+            default: 0
+        - name: batch
+          in: query
+          required: false
+          description: ""
+          schema:
+            type: integer
+            format: int32
+        - name: search
+          in: query
+          required: false
+          description: ""
+          schema:
+            type: string
+        - name: Cookie
+          in: header
+          required: false
+          description: ""
+          schema:
+            type: string
+      responses:
+        "200":
+          description: ""
+          content:
+            application/json:
+              schema:
+                type: object
+      x-unitTests: []
+      x-operation-settings:
+        CollectParameters: false
+        AllowDynamicQueryParameters: false
+        AllowDynamicFormParameters: false
+        IsMultiContentStreaming: false
+  "/domain/{path: .*}":
+    get:
+      description: ""
+      summary: queryPath
+      operationId: queryPath1
+      parameters:
+        - name: path
+          in: path
+          required: true
+          description: ""
+          schema:
+            type: string
+        - name: "path: .*"
+          in: path
+          required: true
+          description: ""
+          schema:
+            type: string
+        - name: start
+          in: query
+          required: false
+          description: ""
+          schema:
+            type: integer
+            format: int32
+            default: 0
+        - name: batch
+          in: query
+          required: false
+          description: ""
+          schema:
+            type: integer
+            format: int32
+        - name: search
+          in: query
+          required: false
+          description: ""
+          schema:
+            type: string
+        - name: Cookie
+          in: header
+          required: false
+          description: ""
+          schema:
+            type: string
+      responses:
+        "200":
+          description: ""
+          content:
+            application/json:
+              schema:
+                type: object
+      x-unitTests: []
+      x-operation-settings:
+        CollectParameters: false
+        AllowDynamicQueryParameters: false
+        AllowDynamicFormParameters: false
+        IsMultiContentStreaming: false
+  /login:
+    get:
+      description: ""
+      summary: login1
+      operationId: login1
+      parameters:
+        - name: user
+          in: query
+          required: false
+          description: ""
+          schema:
+            type: string
+        - name: pass
+          in: query
+          required: false
+          description: ""
+          schema:
+            type: string
+      responses:
+        "200":
+          description: ""
+          content:
+            application/json:
+              schema:
+                type: string
+      x-unitTests: []
+      x-operation-settings:
+        CollectParameters: false
+        AllowDynamicQueryParameters: false
+        AllowDynamicFormParameters: false
+        IsMultiContentStreaming: false
+  "/item/{uuid}/property":
+    get:
+      description: ""
+      summary: listProperties
+      operationId: listProperties
+      parameters:
+        - name: uuid
+          in: path
+          required: true
+          description: ""
+          schema:
+            type: string
+        - name: Cookie
+          in: header
+          required: false
+          description: ""
+          schema:
+            type: string
+      responses:
+        "200":
+          description: ""
+          content:
+            application/json:
+              schema:
+                type: object
+      x-unitTests: []
+      x-operation-settings:
+        CollectParameters: false
+        AllowDynamicQueryParameters: false
+        AllowDynamicFormParameters: false
+        IsMultiContentStreaming: false
+  "/item/{uuid}/property/{name}":
+    get:
+      description: ""
+      summary: getProperty
+      operationId: getProperty
+      parameters:
+        - name: name
+          in: path
+          required: true
+          description: ""
+          schema:
+            type: string
+        - name: uuid
+          in: path
+          required: true
+          description: ""
+          schema:
+            type: string
+        - name: Cookie
+          in: header
+          required: false
+          description: ""
+          schema:
+            type: string
+      responses:
+        "200":
+          description: ""
+          content:
+            application/json:
+              schema:
+                type: string
+      x-unitTests: []
+      x-operation-settings:
+        CollectParameters: false
+        AllowDynamicQueryParameters: false
+        AllowDynamicFormParameters: false
+        IsMultiContentStreaming: false
+  "/item/{uuid}/property/{name}/details":
+    get:
+      description: ""
+      summary: getPropertyDetails
+      operationId: getPropertyDetails
+      parameters:
+        - name: name
+          in: path
+          required: true
+          description: ""
+          schema:
+            type: string
+        - name: uuid
+          in: path
+          required: true
+          description: ""
+          schema:
+            type: string
+        - name: Cookie
+          in: header
+          required: false
+          description: ""
+          schema:
+            type: string
+      responses:
+        "200":
+          description: ""
+          content:
+            application/json:
+              schema:
+                type: object
+      x-unitTests: []
+      x-operation-settings:
+        CollectParameters: false
+        AllowDynamicQueryParameters: false
+        AllowDynamicFormParameters: false
+        IsMultiContentStreaming: false
+  "/item/{uuid}/collection":
+    get:
+      description: ""
+      summary: getCollections
+      operationId: getCollections
+      parameters:
+        - name: uuid
+          in: path
+          required: true
+          description: ""
+          schema:
+            type: string
+        - name: Cookie
+          in: header
+          required: false
+          description: ""
+          schema:
+            type: string
+      responses:
+        "200":
+          description: ""
+          content:
+            application/json:
+              schema:
+                type: object
+      x-unitTests: []
+      x-operation-settings:
+        CollectParameters: false
+        AllowDynamicQueryParameters: false
+        AllowDynamicFormParameters: false
+        IsMultiContentStreaming: false
+  "/item/{uuid}/collection/{name}":
+    get:
+      description: ""
+      summary: getLastCollection
+      operationId: getLastCollection
+      parameters:
+        - name: name
+          in: path
+          required: true
+          description: ""
+          schema:
+            type: string
+        - name: uuid
+          in: path
+          required: true
+          description: ""
+          schema:
+            type: string
+        - name: Cookie
+          in: header
+          required: false
+          description: ""
+          schema:
+            type: string
+      responses:
+        "200":
+          description: ""
+          content:
+            application/json:
+              schema:
+                type: object
+      x-unitTests: []
+      x-operation-settings:
+        CollectParameters: false
+        AllowDynamicQueryParameters: false
+        AllowDynamicFormParameters: false
+        IsMultiContentStreaming: false
+  "/item/{uuid}/collection/{name}/version":
+    get:
+      description: ""
+      summary: getCollectionVersions
+      operationId: getCollectionVersions
+      parameters:
+        - name: name
+          in: path
+          required: true
+          description: ""
+          schema:
+            type: string
+        - name: uuid
+          in: path
+          required: true
+          description: ""
+          schema:
+            type: string
+        - name: Cookie
+          in: header
+          required: false
+          description: ""
+          schema:
+            type: string
+      responses:
+        "200":
+          description: ""
+          content:
+            application/json:
+              schema:
+                type: object
+      x-unitTests: []
+      x-operation-settings:
+        CollectParameters: false
+        AllowDynamicQueryParameters: false
+        AllowDynamicFormParameters: false
+        IsMultiContentStreaming: false
+  "/item/{uuid}/collection/{name}/version/{version}":
+    get:
+      description: ""
+      summary: getCollectionVersion
+      operationId: getCollectionVersion
+      parameters:
+        - name: name
+          in: path
+          required: true
+          description: ""
+          schema:
+            type: string
+        - name: uuid
+          in: path
+          required: true
+          description: ""
+          schema:
+            type: string
+        - name: version
+          in: path
+          required: true
+          description: ""
+          schema:
+            type: string
+        - name: Cookie
+          in: header
+          required: false
+          description: ""
+          schema:
+            type: string
+      responses:
+        "200":
+          description: ""
+          content:
+            application/json:
+              schema:
+                type: object
+      x-unitTests: []
+      x-operation-settings:
+        CollectParameters: false
+        AllowDynamicQueryParameters: false
+        AllowDynamicFormParameters: false
+        IsMultiContentStreaming: false
+  /role:
+    get:
+      description: ""
+      summary: listRoles
+      operationId: listRoles
+      parameters:
+        - name: Cookie
+          in: header
+          required: false
+          description: ""
+          schema:
+            type: string
+      responses:
+        "200":
+          description: ""
+          content:
+            application/json:
+              schema:
+                type: object
+      x-unitTests: []
+      x-operation-settings:
+        CollectParameters: false
+        AllowDynamicQueryParameters: false
+        AllowDynamicFormParameters: false
+        IsMultiContentStreaming: false
+  "/role/{role}":
+    get:
+      description: ""
+      summary: getRole
+      operationId: getRole
+      parameters:
+        - name: role
+          in: path
+          required: true
+          description: ""
+          schema:
+            type: string
+        - name: Cookie
+          in: header
+          required: false
+          description: ""
+          schema:
+            type: string
+      responses:
+        "200":
+          description: ""
+          content:
+            application/json:
+              schema:
+                type: object
+      x-unitTests: []
+      x-operation-settings:
+        CollectParameters: false
+        AllowDynamicQueryParameters: false
+        AllowDynamicFormParameters: false
+        IsMultiContentStreaming: false
+servers:
+  - url: http://localhost:8081/
+components:
+  schemas:
+    RequesttransitionRequest:
+      title: requestTransition Request
+      description: ""
+      type: object
