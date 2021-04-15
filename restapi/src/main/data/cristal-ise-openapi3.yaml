@@ -319,12 +319,6 @@ paths:
       summary: requestTransition
       operationId: requestTransition
       parameters:
-        - name: activityPath
-          in: path
-          required: true
-          description: ""
-          schema:
-            type: string
         - name: uuid
           in: path
           required: true
@@ -931,12 +925,6 @@ paths:
       summary: queryPath
       operationId: queryPath1
       parameters:
-        - name: path
-          in: path
-          required: true
-          description: ""
-          schema:
-            type: string
         - name: "path: .*"
           in: path
           required: true
