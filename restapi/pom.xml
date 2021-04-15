@@ -1,6 +1,6 @@
 <!--
 
-    This file is part of the CRISTAL-iSE eXist-DB storage plugin.
+    This file is part of the CRISTAL-iSE REST API.
     Copyright (c) 2001-2016 The CRISTAL Consortium. All rights reserved.
 
     This library is free software; you can redistribute it and/or modify it
@@ -107,23 +107,6 @@
             <plugin>
                 <groupId>com.mycila</groupId>
                 <artifactId>license-maven-plugin</artifactId>
-                <configuration>
-                    <header>HEADER.txt</header>
-                    <excludes>
-                        <exclude>pom.xml</exclude>
-                        <exclude>.flattened-pom.xml</exclude>
-                        <exclude>**/*LICENSE</exclude>
-                        <exclude>**/*.gpg.enc</exclude>
-                        <exclude>**/src/test/bin/**</exclude>
-                    </excludes>
-                </configuration>
-                <executions>
-                    <execution>
-                        <goals>
-                            <goal>check</goal>
-                        </goals>
-                    </execution>
-                </executions>
             </plugin>
         </plugins>
     </build>
