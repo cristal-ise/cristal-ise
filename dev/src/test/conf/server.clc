@@ -13,4 +13,4 @@ JOOQ.password   = sa
 JOOQ.dialect    = H2
 JOOQ.autoCommit = true
 
-Resource.moduleUseFileNameWithVersion = dev,devtest
+Gateway.clusteredVertx = false
