@@ -115,6 +115,10 @@ public class Gateway
      * @throws InvalidDataException - invalid properties caused a failure in initialisation
      */
     static public void init(Properties props, ResourceLoader res) throws InvalidDataException {
+
+        System.setProperty("vertx.logger-delegate-factory-class-name", "io.vertx.core.logging.SLF4JLogDelegateFactory");
+        System.setProperty("hazelcast.logging.type", "slf4j");
+
         // Init properties & resources
         mC2KProps.clear();
 
