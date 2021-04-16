@@ -58,7 +58,7 @@ public class RefreshJobList extends PredefinedStep {
 
     public RefreshJobList() {
         super();
-        this.setBuiltInProperty(SCHEMA_NAME, "Job");
+        this.setBuiltInProperty(SCHEMA_NAME, "JobArrayList");
     }
 
     @Override
