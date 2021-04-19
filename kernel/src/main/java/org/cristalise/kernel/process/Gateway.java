@@ -354,26 +354,6 @@ public class Gateway
     }
 
     /**
-     * Authenticates the agent
-     * 
-     * @param agentName the name of the agent
-     * @param agentPassword the password of the agent
-     * @param resource check {@link Authenticator#authenticate(String, String, String)}
-     * @return AgentProxy representing the logged in user/agent
-     * 
-     * @throws InvalidDataException - bad params
-     * @throws ObjectNotFoundException - object not found
-     * @deprecated use {@link SecurityManager#authenticate(String, String, String)}
-     */
-    @Deprecated
-    static public AgentProxy login(String agentName, String agentPassword, String resource) 
-            throws InvalidDataException, ObjectNotFoundException
-    {
-        if (mSecurityManager == null) mSecurityManager = new SecurityManager();
-        return mSecurityManager.authenticate(agentName, agentPassword, resource, true, null);
-    }
-
-    /**
      * Get the Authenticator instance
      * 
      * @return the Authenticator
