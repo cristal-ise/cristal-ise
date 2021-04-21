@@ -24,6 +24,7 @@ import java.awt.image.BufferedImage
 
 import javax.imageio.ImageIO
 
+import org.cristalise.dsl.lifecycle.instance.CompActDelegate
 import org.cristalise.dsl.lifecycle.instance.WorkflowBuilder
 import org.cristalise.kernel.graph.layout.DefaultGraphLayoutGenerator
 import org.cristalise.kernel.graph.model.DirectedEdge
@@ -260,7 +261,7 @@ class WorkflowTestBuilder extends WorkflowBuilder {
      * @param cl
      * @return
      */
-    public Workflow buildAndInitWf(Closure cl) {
+    public Workflow buildAndInitWf(@DelegatesTo(CompActDelegate) Closure cl) {
         super.build(cl)
         initialise()
         return wf
