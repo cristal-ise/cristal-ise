@@ -38,10 +38,9 @@ class ItemWithoutDescriptionIT extends KernelScenarioTestBase {
 
     @Before
     public void before() {
-        super.before();
-
         serverItem = agent.getItem("/domain/servers/localhost")
         assert serverItem && serverItem.getName() == "localhost"
+        timeStamp = getNowString()
     }
 
     private RolePath createRole(String roleName) {

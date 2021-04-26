@@ -47,7 +47,7 @@ import groovy.util.logging.Slf4j
 @CompileStatic @Slf4j
 class DevItemUtility {
 
-    AgentProxy agent = null
+    static AgentProxy agent = null
 
     public String elemActDefFactoryName   = "/domain/desc/dev/ElementaryActivityDefFactory"
     public String compActDefFactoryName   = "/domain/desc/dev/CompositeActivityDefFactory"
