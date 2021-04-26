@@ -203,5 +203,9 @@ class TutorialsDevIT extends KernelScenarioTestBase {
         pollingWait.eventually {
             userCode.jobList.isEmpty()
         }
+
+        //checks if the usercode successfully executed aggregate script and the outcome was stored
+        def vp = patient.getViewpoint("AggregatedPatientData-$timeStamp", 'last')
+        patient.getOutcome(vp)
     }
 }
