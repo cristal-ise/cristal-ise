@@ -40,15 +40,22 @@ class JoblistSpecs extends Specification implements CristalTestSetup {
     AgentTestBuilder dummyAgentBuilder
     AgentTestBuilder timeoutAgentBuilder
 
-    def setup() {
+    def setupSpec() {
         def props = new Properties()
         props.put('Shiro.iniFile', 'src/main/bin/shiroInMemory.ini')
         //skips boostrap!!!
         inMemoryServer('src/main/bin/inMemoryServer.conf', 'src/main/bin/inMemory.clc', 8, props, true)
     }
+
+    def setup() {
+    }
+        
     def cleanup() {
         if(dummyAgentBuilder) dummyAgentBuilder.jobList.deactivate()
         if(timeoutAgentBuilder) timeoutAgentBuilder.jobList.deactivate()
+    }
+
+    def cleanupSpec() {
         cristalCleanup()
     }
 
@@ -126,13 +133,14 @@ class JoblistSpecs extends Specification implements CristalTestSetup {
             Role(name: 'toto') { Permission('*') }
             Role(name: 'Timeout', jobList: true) { Permission('*') }
         }
-        AgentTestBuilder dummyAgentBuilder = AgentTestBuilder.create(name: "dummy", password: 'dummy') {
+
+        dummyAgentBuilder = AgentTestBuilder.create(name: "dummy", password: 'dummy') {
             Roles {
                 Role(name: 'toto')
             }
         }
 
-        AgentTestBuilder timeoutAgentBuilder = AgentTestBuilder.create(name: "TimeoutManager", password: 'dummy') {
+        timeoutAgentBuilder = AgentTestBuilder.create(name: "TimeoutManager", password: 'dummy') {
             Roles {
                 Role(name: 'Timeout')
             }

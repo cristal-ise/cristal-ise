@@ -116,7 +116,7 @@ class AgentTestBuilder extends AgentBuilder {
         if(!newAgentProxy) newAgentProxy = Gateway.getProxyManager().getAgentProxy(newAgentPath)
 
         Job j = itemProxy.getJobByTransitionName(actName, transName, newAgentPath)
-        assert j, "Could not find job - act:'$actName' agent:'${newAgentProxy}'"
+        assert j, "Could not find job - act:'$actName : $transName' agent:'${newAgentProxy}'"
         if (outcome) j.setOutcome(outcome)
         return newAgentProxy.execute(j)
     }

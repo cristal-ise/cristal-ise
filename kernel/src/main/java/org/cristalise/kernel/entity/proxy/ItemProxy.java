@@ -194,6 +194,7 @@ public class ItemProxy {
             return futureResult.get(300, TimeUnit.SECONDS);
         }
         catch (ExecutionException e) {
+            log.error("requestAction()", e);
             throw CriseVertxException.convert(e);
         }
         catch (InterruptedException | TimeoutException e) {

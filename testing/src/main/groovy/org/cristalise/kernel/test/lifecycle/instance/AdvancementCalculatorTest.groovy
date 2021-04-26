@@ -28,7 +28,9 @@ import org.cristalise.kernel.lifecycle.instance.WfVertex
 import org.cristalise.kernel.process.Gateway
 import org.cristalise.kernel.test.utils.CristalTestSetup;
 import org.junit.After
+import org.junit.AfterClass
 import org.junit.Before
+import org.junit.BeforeClass
 import org.junit.Test
 
 
@@ -38,7 +40,12 @@ import org.junit.Test
 class AdvancementCalculatorTest implements CristalTestSetup {
 
     WorkflowTestBuilder wfBuilder
-    
+
+    @BeforeClass
+    public static void beforeClass() {
+        inMemoryServer('src/main/bin/inMemoryServer.conf', 'src/main/bin/inMemory.clc', 8, null, true)
+    }
+
     @Before
     public void setup() {
         inMemoryServer('src/main/bin/inMemoryServer.conf', 'src/main/bin/inMemory.clc', 8, null, true)
@@ -48,9 +55,13 @@ class AdvancementCalculatorTest implements CristalTestSetup {
     @After
     public void cleanup() {
         if(wfBuilder && wfBuilder.wf) println Gateway.getMarshaller().marshall(wfBuilder.wf)
+    }
+
+    @AfterClass
+    public static void afterClass() {
         cristalCleanup()
     }
-    
+
     def printVertex(v) {
         print " - $v.path"
         if(v instanceof Activity) println "- active:"+((Activity)v).active

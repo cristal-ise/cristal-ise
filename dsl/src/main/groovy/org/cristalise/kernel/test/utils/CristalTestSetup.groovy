@@ -96,6 +96,8 @@ trait CristalTestSetup {
     }
 
     public Authenticator serverSetup(int logLevel, String config, String connect, Properties testProps = null, boolean skipBootstrap = false) {
+        AbstractMain.isServer = true
+
         if (skipBootstrap) {
             if (testProps == null) testProps = new Properties()
             testProps.put(AbstractMain.MAIN_ARG_SKIPBOOTSTRAP, true)
@@ -124,7 +126,7 @@ trait CristalTestSetup {
         Gateway.init(AbstractMain.readPropertyFiles(config, connect, testProps))
     }
 
-    public void cristalCleanup() {
+    public static void cristalCleanup() {
         Gateway.close()
     }
 }
