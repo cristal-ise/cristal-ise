@@ -58,7 +58,6 @@ import org.cristalise.kernel.property.Property;
 import org.cristalise.kernel.scripting.ScriptConsole;
 import org.cristalise.kernel.utils.FileStringUtility;
 import org.cristalise.kernel.utils.LocalObjectLoader;
-import org.cristalise.kernel.utils.Logger;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -83,9 +82,6 @@ public class Bootstrap {
         Gateway.getStorage().begin(transactionKey);
 
         try {
-            //start console
-            Logger.initConsole("ItemServer");
-
             // check for system agents
             checkAdminAgents(transactionKey);
 
@@ -318,13 +314,13 @@ public class Bootstrap {
         }
 
         int proxyPort = Gateway.getProperties().getInt("ItemServer.Proxy.port", 1553);
-        int consolePort = Logger.getConsolePort();
+//        int consolePort = Logger.getConsolePort();
 
         Gateway.getStorage().put(serverItem, new Property(NAME,            serverName,                  false), transactionKey);
         Gateway.getStorage().put(serverItem, new Property(TYPE,            "Server",                    false), transactionKey);
         Gateway.getStorage().put(serverItem, new Property(KERNEL_VERSION,  Gateway.getKernelVersion(),  true),  transactionKey);
         Gateway.getStorage().put(serverItem, new Property("ProxyPort",     String.valueOf(proxyPort),   false), transactionKey);
-        Gateway.getStorage().put(serverItem, new Property("ConsolePort",   String.valueOf(consolePort), true),  transactionKey);
+//        Gateway.getStorage().put(serverItem, new Property("ConsolePort",   String.valueOf(consolePort), true),  transactionKey);
 
         initServerItemWf(transactionKey);
 

@@ -29,6 +29,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
+import org.apache.commons.lang3.StringUtils;
 import org.cristalise.kernel.common.CannotManageException;
 import org.cristalise.kernel.common.CriseVertxException;
 import org.cristalise.kernel.common.InvalidDataException;
@@ -38,6 +39,8 @@ import org.cristalise.kernel.entity.ItemVerticle;
 import org.cristalise.kernel.entity.proxy.AgentProxy;
 import org.cristalise.kernel.entity.proxy.ProxyManager;
 import org.cristalise.kernel.entity.proxy.ProxyServer;
+import org.cristalise.kernel.lookup.DomainPath;
+import org.cristalise.kernel.lookup.ItemPath;
 import org.cristalise.kernel.lookup.Lookup;
 import org.cristalise.kernel.lookup.LookupManager;
 import org.cristalise.kernel.persistency.ClusterStorageManager;
@@ -51,12 +54,21 @@ import org.cristalise.kernel.process.resource.ResourceLoader;
 import org.cristalise.kernel.scripting.ScriptConsole;
 import org.cristalise.kernel.security.SecurityManager;
 import org.cristalise.kernel.utils.CastorXMLUtility;
-import org.cristalise.kernel.utils.Logger;
 import org.cristalise.kernel.utils.ObjectProperties;
 
 import io.vertx.core.DeploymentOptions;
 import io.vertx.core.Vertx;
 import io.vertx.core.VertxOptions;
+import io.vertx.core.cli.Argument;
+import io.vertx.core.cli.CLI;
+import io.vertx.core.cli.CommandLine;
+import io.vertx.core.cli.Option;
+import io.vertx.ext.shell.ShellService;
+import io.vertx.ext.shell.ShellServiceOptions;
+import io.vertx.ext.shell.command.CommandBuilder;
+import io.vertx.ext.shell.command.CommandProcess;
+import io.vertx.ext.shell.command.CommandRegistry;
+import io.vertx.ext.shell.term.TelnetTermOptions;
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -163,12 +175,74 @@ public class Gateway
         dumpC2KProps(7);
     }
 
+    private static void clearCacheHandler(CommandProcess process) {
+        CommandLine commandLine = process.commandLine();
+        String cmdName = commandLine.cli().getName();
+
+        try {
+            String item = commandLine.getArgumentValue(0);
+
+            if (StringUtils.isNotBlank(item)) {
+                ItemPath ip = null;
+
+                if (ItemPath.isUUID(item)) ip = new ItemPath(item);
+                else                       ip = getLookup().resolvePath(new DomainPath(item));
+
+                if (cmdName.startsWith("storage-")) getStorage().clearCache(ip);
+                else                                getProxyManager().clearCache(ip);
+
+                process.write("Command "+cmdName+" was executed for item:"+item+"\n");
+            }
+            else {
+                if (cmdName.startsWith("storage-")) getStorage().clearCache();
+                else                                getProxyManager().clearCache();
+
+                process.write("Command "+cmdName+" was executed for ALL items.\n");
+            }
+        }
+        catch (Exception e) {
+            log.error(cmdName, e);
+            process.write("ERROR executing "+cmdName+":"+e.getMessage()+"\n");
+        }
+
+        process.end();
+    }
+
+    /**
+     * 
+     * @param cmdName
+     */
+    private static void addClearCacheCommand(String cmdName) {
+        CLI cli = CLI.create(cmdName)
+                .addOption(new Option().setShortName("h").setLongName("help").setHelp(true).setFlag(true))
+                .addArgument(new Argument().setArgName("item").setRequired(false));
+
+        CommandBuilder command = CommandBuilder.command(cli).processHandler(Gateway::clearCacheHandler);
+
+        // Register the command
+        CommandRegistry registry = CommandRegistry.getShared(mVertx);
+        registry.registerCommand(command.build(mVertx));
+    }
+
     /**
      * 
      */
-    static private void createVerticles() {
+    static private void createServerVerticles() {
         DeploymentOptions options = new DeploymentOptions().setWorker(true);
         mVertx.deployVerticle(ItemVerticle.class, options);
+    }
+
+    /**
+     * 
+     */
+    static private void createTelnetShellService(String host, int port) {
+        addClearCacheCommand("proxy-clearCache");
+        addClearCacheCommand("storage-clearCache");
+
+        ShellServiceOptions options = new ShellServiceOptions()
+            .setTelnetOptions(new TelnetTermOptions().setHost(host).setPort(port));
+
+        ShellService.create(mVertx, options).start();
     }
 
     /**
@@ -186,7 +260,12 @@ public class Gateway
                 throw new CannotManageException("Lookup implementation is not a LookupManager. Cannot write to directory");
             }
 
-            createVerticles();
+            createServerVerticles();
+
+            String host = Gateway.getProperties().getString("ItemServer.Telnet.host", "localhost");
+            int    port = Gateway.getProperties().getInt(   "ItemServer.Telnet.port", 0);
+
+            if (port != 0) createTelnetShellService(host, port);
 
             // start entity proxy server
             String serverName = mC2KProps.getProperty("ItemServer.name");
@@ -396,17 +475,14 @@ public class Gateway
         mProxyManager = null;
         mProxyServer = null;
 
-        // close log consoles
-        Logger.closeConsole();
+        // shutdown vert.x
+        mVertx.close();
 
         // clean up remaining objects
         mModules = null;
         mResource = null;
         mMarshaller = null;
         mC2KProps.clear();
-
-        // abandon any log streams
-        Logger.removeAll();
     }
 
     static public SecurityManager getSecurityManager() {
