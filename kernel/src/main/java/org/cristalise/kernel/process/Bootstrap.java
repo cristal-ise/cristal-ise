@@ -55,7 +55,6 @@ import org.cristalise.kernel.persistency.outcome.Outcome;
 import org.cristalise.kernel.process.resource.BuiltInResources;
 import org.cristalise.kernel.process.resource.ResourceImportHandler;
 import org.cristalise.kernel.property.Property;
-import org.cristalise.kernel.scripting.ScriptConsole;
 import org.cristalise.kernel.utils.FileStringUtility;
 import org.cristalise.kernel.utils.LocalObjectLoader;
 
@@ -280,7 +279,6 @@ public class Bootstrap {
 
         // check for 'system' Agent
         AgentProxy system = checkAgent(SYSTEM_AGENT.getName(), null, adminRole, new UUID(0, 1).toString(), transactionKey);
-        ScriptConsole.setUser(system);
 
         String ucRole = Gateway.getProperties().getString("UserCode.roleOverride", UserCodeProcess.DEFAULT_ROLE);
         String ucPermissions = Gateway.getProperties().getString(ucRole + ".permissions", "");
@@ -314,13 +312,11 @@ public class Bootstrap {
         }
 
         int proxyPort = Gateway.getProperties().getInt("ItemServer.Proxy.port", 1553);
-//        int consolePort = Logger.getConsolePort();
 
         Gateway.getStorage().put(serverItem, new Property(NAME,            serverName,                  false), transactionKey);
         Gateway.getStorage().put(serverItem, new Property(TYPE,            "Server",                    false), transactionKey);
         Gateway.getStorage().put(serverItem, new Property(KERNEL_VERSION,  Gateway.getKernelVersion(),  true),  transactionKey);
         Gateway.getStorage().put(serverItem, new Property("ProxyPort",     String.valueOf(proxyPort),   false), transactionKey);
-//        Gateway.getStorage().put(serverItem, new Property("ConsolePort",   String.valueOf(consolePort), true),  transactionKey);
 
         initServerItemWf(transactionKey);
 

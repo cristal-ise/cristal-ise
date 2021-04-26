@@ -51,7 +51,6 @@ import org.cristalise.kernel.process.resource.DefaultResourceImportHandler;
 import org.cristalise.kernel.process.resource.Resource;
 import org.cristalise.kernel.process.resource.ResourceImportHandler;
 import org.cristalise.kernel.process.resource.ResourceLoader;
-import org.cristalise.kernel.scripting.ScriptConsole;
 import org.cristalise.kernel.security.SecurityManager;
 import org.cristalise.kernel.utils.CastorXMLUtility;
 import org.cristalise.kernel.utils.ObjectProperties;
@@ -417,9 +416,6 @@ public class Gateway
         setup(mSecurityManager.getAuth());
 
         AgentProxy agent = Gateway.getProxyManager().getAgentProxy(agentName);
-
-        //TODO: swingui specific initialization
-        ScriptConsole.setUser(agent);
 
         // Run module startup scripts. Server does this during bootstrap
         mModules.setUser(agent);

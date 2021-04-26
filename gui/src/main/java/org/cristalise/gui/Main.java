@@ -66,7 +66,6 @@ public class Main extends StandardClient
                         
             }
             Gateway.init(readC2KArgs(args));
-            Logger.initConsole("GUI");
             Gateway.connect();
             MainFrame client = new MainFrame();
             client.showLogin();
