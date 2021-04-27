@@ -54,7 +54,7 @@ public class CriseVertxException extends Exception {
         return Future.failedFuture(new ServiceException(failureCode, getMessage(), convertToDebugInfo(this)));
     }
 
-    public static JsonObject convertToDebugInfo(Exception ex) {
+    public static JsonObject convertToDebugInfo(Throwable ex) {
         JsonObject debugInfo = new JsonObject();
         debugInfo.put("type", ex.getClass().getSimpleName());
 
@@ -68,6 +68,8 @@ public class CriseVertxException extends Exception {
 
     public static CriseVertxException convert(ExecutionException futureException) {
         Exception cause = (Exception) futureException.getCause();
+
+        if (cause == null) return new CriseVertxException(999, futureException);
 
         if (cause instanceof CriseVertxException) return (CriseVertxException)cause;
         else                                      return new CriseVertxException(999, cause);

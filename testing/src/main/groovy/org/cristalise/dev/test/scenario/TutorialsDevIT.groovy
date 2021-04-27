@@ -73,8 +73,6 @@ class TutorialsDevIT extends KernelScenarioTestBase {
         def patient = agent.getItem("$folder/$itemType-$timeStamp")
 
         executeDoneJob(patient, elemActName)
-
-        agent.execute(patient, "Erase", new String[0])
     }
     
     @CompileDynamic

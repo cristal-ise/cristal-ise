@@ -113,8 +113,13 @@ class DevItemUtility {
      */
     public Job executeDoneJob(ItemProxy proxy, String actName, String outcomeXML) {
         def job = getDoneJob(proxy, actName)
-        job.setOutcome(outcomeXML)
-        agent.execute(job)
+
+        if (outcomeXML)            job.outcome = outcomeXML
+        else if (job.hasOutcome()) job.outcome = job.getOutcome() //this calls outcome initiator if defined
+
+        String resultOutcome = agent.execute(job)
+        if (job.hasOutcome()) assert resultOutcome
+
         return job
     }
 
@@ -127,10 +132,12 @@ class DevItemUtility {
     public Job executeDoneJob(ItemProxy proxy, String actName, Outcome outcome = null) {
         def job = getDoneJob(proxy, actName)
 
-        if(outcome)               job.outcome = outcome
-        else if(job.hasOutcome()) job.outcome = job.getOutcome() //this calls outcome initiator if defined
+        if (outcome)               job.outcome = outcome
+        else if (job.hasOutcome()) job.outcome = job.getOutcome() //this calls outcome initiator if defined
 
-        agent.execute(job)
+        String resultOutcome = agent.execute(job)
+        if (job.hasOutcome()) assert resultOutcome
+
         return job
     }
 
