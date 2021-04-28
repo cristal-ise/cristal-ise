@@ -212,9 +212,12 @@ public class Gateway
      * @param cmdName
      */
     private static void addClearCacheCommand(String cmdName) {
-        CLI cli = CLI.create(cmdName)
+        String summary = "Clear the Proxy cache";
+        if (cmdName.startsWith("storage-")) summary = "Clear the Storage cache";
+
+        CLI cli = CLI.create(cmdName).setSummary(summary)
                 .addOption(new Option().setShortName("h").setLongName("help").setHelp(true).setFlag(true))
-                .addArgument(new Argument().setArgName("item").setRequired(false));
+                .addArgument(new Argument().setArgName("item").setRequired(false).setDescription("UUID or the DomainPath of the Item"));
 
         CommandBuilder command = CommandBuilder.command(cli).processHandler(Gateway::clearCacheHandler);
 
