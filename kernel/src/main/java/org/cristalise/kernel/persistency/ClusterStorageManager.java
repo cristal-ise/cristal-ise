@@ -76,11 +76,11 @@ public class ClusterStorageManager {
     /**
      * Stores the transactionKey for each Item updated during the transaction. It prevents concurrent writing to the same Item.
      */
-    private Map<ItemPath, Object> itemLocks = new ConcurrentHashMap<ItemPath, Object>();
+    private Map<ItemPath, TransactionKey> itemLocks = new ConcurrentHashMap<ItemPath, TransactionKey>();
     /**
-     * Catalog of the locked Items. It is required during commit/abor. Key is the transactionKey
+     * Catalog of the locked Items. It is required during commit/abort.
      */
-    private Map<Object, Set<ItemPath>> lockCatalog = new ConcurrentHashMap<Object, Set<ItemPath>>();
+    private Map<TransactionKey, Set<ItemPath>> lockCatalog = new ConcurrentHashMap<TransactionKey, Set<ItemPath>>();
 
     /**
      * Initializes all ClusterStorage handlers listed by class name in the property "ClusterStorages"
@@ -688,7 +688,10 @@ public class ClusterStorageManager {
                 throw new PersistencyException("TransactionKey '"+transactionKey+"' is unknown");
             }
 
-            sendProxyMessages(proxyMessagesMap.remove(transactionKey));
+            Set<ProxyMessage> messageSet = proxyMessagesMap.remove(transactionKey);
+            if (messageSet != null) {
+                for (ProxyMessage message: messageSet) sendProxyEvent(message);
+            }
         }
     }
 
@@ -759,16 +762,6 @@ public class ClusterStorageManager {
             proxyMessagesMap.put(transactionKey, set);
         }
         set.add(message);
-    }
-
-    /**
-     * 
-     * @param messageSet
-     */
-    private void sendProxyMessages(Set<ProxyMessage> messageSet){
-        if (messageSet != null) {
-            for (ProxyMessage message: messageSet) sendProxyEvent(message);
-        }
     }
 
     /**
