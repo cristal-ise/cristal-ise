@@ -230,7 +230,11 @@ public class Gateway
      * 
      */
     static private void createServerVerticles() {
-        DeploymentOptions options = new DeploymentOptions().setWorker(true);
+        int ivInstances = getProperties().getInt("ItemVerticle.instances", 8);
+
+        DeploymentOptions options = new DeploymentOptions()
+                .setWorker(true)
+                .setInstances(ivInstances);
         mVertx.deployVerticle(ItemVerticle.class, options);
     }
 
