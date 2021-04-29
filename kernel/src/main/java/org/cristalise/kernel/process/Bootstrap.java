@@ -93,6 +93,7 @@ public class Bootstrap {
             Gateway.getStorage().commit(transactionKey);
         }
         catch (Exception e) {
+            log.error("init()", e);
             Gateway.getStorage().abort(transactionKey);
             throw e;
         }
@@ -278,7 +279,7 @@ public class Bootstrap {
         else                                  importAdminRole.create(null, false, transactionKey);
 
         // check for 'system' Agent
-        AgentProxy system = checkAgent(SYSTEM_AGENT.getName(), null, adminRole, new UUID(0, 1).toString(), transactionKey);
+        checkAgent(SYSTEM_AGENT.getName(), null, adminRole, new UUID(0, 1).toString(), transactionKey);
 
         String ucRole = Gateway.getProperties().getString("UserCode.roleOverride", UserCodeProcess.DEFAULT_ROLE);
         String ucPermissions = Gateway.getProperties().getString(ucRole + ".permissions", "");

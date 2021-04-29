@@ -20,7 +20,6 @@
  */
 package org.cristalise.gui;
 
-
 import java.io.File;
 import java.util.Arrays;
 
@@ -28,27 +27,23 @@ import javax.swing.JFileChooser;
 
 import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.process.StandardClient;
-import org.cristalise.kernel.utils.Logger;
-
 
 /**
  *
  */
-public class Main extends StandardClient
-{
-    static public void main(String[] args)
-    {
-        try
-        {
-            if (args[args.length-1].equals("-connect")) { // prompt for connect file
-                    JFileChooser clcChooser = new JFileChooser();
-                    clcChooser.setDialogTitle("Please choose a CRISTAL connect file.");
-                    clcChooser.addChoosableFileFilter(
+public class Main extends StandardClient {
+    static public void main(String[] args) {
+        try {
+            if (args[args.length - 1].equals("-connect")) { // prompt for connect file
+                JFileChooser clcChooser = new JFileChooser();
+                clcChooser.setDialogTitle("Please choose a CRISTAL connect file.");
+                clcChooser.addChoosableFileFilter(
                         new javax.swing.filechooser.FileFilter() {
                             @Override
                             public String getDescription() {
                                 return "CRISTAL Connect Files";
                             }
+
                             @Override
                             public boolean accept(File f) {
                                 if (f.isDirectory() || (f.isFile() && f.getName().endsWith(".clc"))) {
@@ -57,30 +52,26 @@ public class Main extends StandardClient
                                 return false;
                             }
                         });
-                    int returnVal = clcChooser.showOpenDialog(null);
-                    if (returnVal == JFileChooser.APPROVE_OPTION) {
-                        File targetFile = clcChooser.getSelectedFile();
-                        args = Arrays.copyOf(args, args.length+1);
-                        args[args.length-1] = targetFile.getCanonicalPath();
-                    }
-                        
+                int returnVal = clcChooser.showOpenDialog(null);
+                if (returnVal == JFileChooser.APPROVE_OPTION) {
+                    File targetFile = clcChooser.getSelectedFile();
+                    args = Arrays.copyOf(args, args.length + 1);
+                    args[args.length - 1] = targetFile.getCanonicalPath();
+                }
             }
-            Gateway.init(readC2KArgs(args));
-            Gateway.connect();
+
+            standardInitialisation(args);
+
             MainFrame client = new MainFrame();
             client.showLogin();
-
         }
-        catch( Exception ex )
-        {
+        catch (Exception ex) {
             ex.printStackTrace();
 
-            try
-            {
+            try {
                 Gateway.close();
             }
-            catch(Exception ex1)
-            {
+            catch (Exception ex1) {
                 ex1.printStackTrace();
             }
         }

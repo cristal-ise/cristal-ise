@@ -23,6 +23,7 @@ package org.cristalise.kernel.entity.proxy;
 import java.io.IOException;
 import java.net.DatagramPacket;
 
+import org.apache.commons.lang3.StringUtils;
 import org.cristalise.kernel.common.InvalidDataException;
 import org.cristalise.kernel.lookup.InvalidItemPathException;
 import org.cristalise.kernel.lookup.ItemPath;
@@ -33,6 +34,8 @@ import lombok.Setter;
 
 @Getter @Setter
 public class ProxyMessage {
+    
+    public static final String ebAddress = "cristalise-proxyMessage";
 
     // special server message paths
     public static final String  BYEPATH  = "bye";
@@ -41,9 +44,6 @@ public class ProxyMessage {
     public static final String  PINGPATH = "ping";
     public static final boolean ADDED    = false;
     public static final boolean DELETED  = true;
-
-    static ProxyMessage byeMessage  = new ProxyMessage(null, BYEPATH, ADDED);
-    static ProxyMessage pingMessage = new ProxyMessage(null, PINGPATH, ADDED);
 
     private ItemPath itemPath = null;
     private String   path     = "";
@@ -61,8 +61,8 @@ public class ProxyMessage {
         setState(state);
     }
 
-    public ProxyMessage(String line) throws InvalidDataException, IOException {
-        if (line == null) throw new IOException("Null proxy message");
+    public ProxyMessage(String line) throws InvalidDataException {
+        if (StringUtils.isBlank(line)) throw new InvalidDataException("Blank proxy message");
 
         String[] tok = line.split(":", 2);
 

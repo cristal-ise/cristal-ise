@@ -20,6 +20,9 @@
  */
 package org.cristalise.kernel.entity.proxy;
 
+import static org.cristalise.kernel.entity.proxy.ProxyMessage.ADDED;
+import static org.cristalise.kernel.entity.proxy.ProxyMessage.PINGPATH;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -137,7 +140,7 @@ public class ProxyClientConnection implements SocketHandler {
         }
         else if (message.getPath().equals(ProxyMessage.PINGPATH)) {
             // proxy checking connection
-            response.println(ProxyMessage.pingMessage);
+            response.println(new ProxyMessage(null, PINGPATH, ADDED));
         }
         else if (message.getPath().equals(ProxyMessage.ADDPATH)) {
             // new subscription to entity changes

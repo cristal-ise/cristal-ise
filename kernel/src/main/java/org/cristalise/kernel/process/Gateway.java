@@ -184,10 +184,10 @@ public class Gateway
             if (StringUtils.isNotBlank(item)) {
                 ItemPath ip = null;
 
-                if (ItemPath.isUUID(item)) ip = new ItemPath(item);
+                if (ItemPath.isUUID(item)) ip = getLookup().getItemPath(item);
                 else                       ip = getLookup().resolvePath(new DomainPath(item));
 
-                if (cmdName.startsWith("storage-")) getStorage().clearCache(ip);
+                if (cmdName.startsWith("storage-")) getStorage().clearCache(ip, null);
                 else                                getProxyManager().clearCache(ip);
 
                 process.write("Command "+cmdName+" was executed for item:"+item+"\n");
@@ -365,8 +365,7 @@ public class Gateway
 
     /**
      * Connects to the Lookup server in an administrative context - using the admin username and
-     * password available in the implementation of the Authenticator. It shall be
-     * used in server processes only.
+     * password available in the implementation of the Authenticator. It shall be used in server processes only.
      *
      * @throws InvalidDataException - bad params
      * @throws PersistencyException - error starting storages

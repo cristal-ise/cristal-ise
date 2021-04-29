@@ -20,6 +20,9 @@
  */
 package org.cristalise.kernel.entity.proxy;
 
+import static org.cristalise.kernel.entity.proxy.ProxyMessage.ADDED;
+import static org.cristalise.kernel.entity.proxy.ProxyMessage.PINGPATH;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -77,7 +80,7 @@ public class ProxyServerConnection extends Thread
                             thisMessage.setServer(serverName);
                             manager.processMessage(thisMessage);
                         } catch (InterruptedIOException ex) { // timeout - send a ping
-                            sendMessage(ProxyMessage.pingMessage);
+                            sendMessage(new ProxyMessage(null, PINGPATH, ADDED));
                         } catch (InvalidDataException ex) { // invalid proxy message
                             if (input != null) {
                                 log.error("run() - Invalid proxy message: "+input, ex);
@@ -101,7 +104,7 @@ public class ProxyServerConnection extends Thread
         if (serverStream != null) {
             try {
                 log.info("run() - Disconnecting from proxy server on "+serverName+":"+serverPort);
-                serverStream.println(ProxyMessage.byeMessage.toString());
+//                serverStream.println(ProxyMessage.getByeMessage().toString());
                 serverStream.close();
                 serverConnection.close();
                 serverConnection = null;

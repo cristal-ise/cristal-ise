@@ -51,13 +51,13 @@ public class Main extends StandardClient {
      * Initialise standard CRISTAL-iSE client process.
      * Creates ResourceConfig that scans for JAX-RS resources and providers in 'org.cristalise.restapi' package
      * Creates Grizzly HTTP server exposing the Jersey application at the given URI.
+     * @throws Exception 
      * 
-     * @throws BadArgumentsException Bad Arguments
      * @throws InvalidDataException Invalid Data
      * @throws PersistencyException Persistency problem
      * @throws ObjectNotFoundException Object Not Found
      */
-    public static void startServer(String[] args)throws CriseVertxException, BadArgumentsException {
+    public static void startServer(String[] args) throws Exception {
         setShutdownHandler(new ShutdownHandler() {
             @Override
             public void shutdown(int errCode, boolean isServer) {
@@ -65,8 +65,7 @@ public class Main extends StandardClient {
             }
         });
 
-        Gateway.init(readC2KArgs(args));
-        Gateway.connect();
+        standardInitialisation(args);
 
         String uri = Gateway.getProperties().getString("REST.URI", "http://localhost:8081/");
 
@@ -75,7 +74,7 @@ public class Main extends StandardClient {
 
         final ResourceConfig rc = new ResourceConfig().packages("org.cristalise.restapi");
         
-       rc.register(MultiPartFeature.class);
+        rc.register(MultiPartFeature.class);
 
         if (Gateway.getProperties().getBoolean("REST.addCorsHeaders", false)) rc.register(CORSResponseFilter.class);
 
@@ -92,7 +91,7 @@ public class Main extends StandardClient {
      * @throws BadArgumentsException Bad Arguments
      * @throws CriseVertxException 
      */
-    public static void main(String[] args) throws IOException, BadArgumentsException, CriseVertxException {
+    public static void main(String[] args) throws Exception {
         startServer(args);
 
         System.out.println(String.format("Hit enter to stop it..."));
