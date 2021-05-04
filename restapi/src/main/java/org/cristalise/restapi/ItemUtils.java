@@ -26,7 +26,6 @@ import static javax.ws.rs.core.MediaType.TEXT_XML_TYPE;
 import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.ATTACHMENT_MIME_TYPES;
 import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.STATE_MACHINE_NAME;
 import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.STATE_MACHINE_VERSION;
-import static org.cristalise.kernel.persistency.ClusterType.HISTORY;
 import static org.cristalise.kernel.persistency.ClusterType.PROPERTY;
 import static org.cristalise.kernel.persistency.ClusterType.VIEWPOINT;
 
@@ -73,6 +72,7 @@ import org.cristalise.kernel.entity.proxy.ItemProxy;
 import org.cristalise.kernel.events.Event;
 import org.cristalise.kernel.lifecycle.instance.predefined.PredefinedStep;
 import org.cristalise.kernel.lifecycle.instance.stateMachine.StateMachine;
+import org.cristalise.kernel.lookup.AgentPath;
 import org.cristalise.kernel.lookup.DomainPath;
 import org.cristalise.kernel.lookup.InvalidItemPathException;
 import org.cristalise.kernel.lookup.ItemPath;
@@ -147,14 +147,31 @@ public abstract class ItemUtils extends RestHandler {
         return props;
     }
 
-    //protected ItemProxy getProxy(String uuid) { return getProxy(uuid, null); }
-
     protected ItemProxy getProxy(String uuid, NewCookie cookie) {
         try {
             ItemPath itemPath = Gateway.getLookup().getItemPath(uuid);
-            return Gateway.getProxyManager().getProxy(itemPath);
+            return Gateway.getProxy(itemPath);
         }
         catch(InvalidItemPathException | ObjectNotFoundException e) {
+            throw new WebAppExceptionBuilder().exception(e).newCookie(cookie).build();
+        }
+    }
+
+    protected AgentProxy getAgentProxy(String uuid, NewCookie cookie) {
+        try {
+            ItemPath itemPath = Gateway.getLookup().getItemPath(uuid);
+            return Gateway.getAgentProxy((AgentPath)itemPath);
+        }
+        catch(InvalidItemPathException | ObjectNotFoundException e) {
+            throw new WebAppExceptionBuilder().exception(e).newCookie(cookie).build();
+        }
+    }
+
+    protected AgentProxy getAgentProxy(NewCookie cookie) {
+        try {
+            return Gateway.getAgentProxy(getAgentPath(cookie));
+        }
+        catch (ObjectNotFoundException e) {
             throw new WebAppExceptionBuilder().exception(e).newCookie(cookie).build();
         }
     }
@@ -176,7 +193,8 @@ public abstract class ItemUtils extends RestHandler {
 
         try {
             Outcome outcome = item.getOutcome(schema, version, eventId);
-            return getOutcomeResponse(outcome,(Event)RemoteMapAccess.get(item, HISTORY, Integer.toString(eventId)), json, cookie);
+            Event event = item.getEvent(eventId);
+            return getOutcomeResponse(outcome, event, json, cookie);
         }
         catch (ObjectNotFoundException e) {
             throw new WebAppExceptionBuilder().exception(e).newCookie(cookie).build();
