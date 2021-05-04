@@ -40,21 +40,20 @@ public class StorageInvalidatorVerticle extends AbstractVerticle {
 
         eb.consumer(ProxyMessage.ebAddress, message -> {
             Object body = message.body();
-            log.info("handler() - message.body:{}", body);
+            log.debug("handler() - message.body:{}", body);
 
             try {
                 ArrayList<String> clearCacheList = new ArrayList<String>();
 
-                if (body instanceof String) {
-                    ProxyMessage m = new ProxyMessage((String) body);
-                    clearCacheList.add(m.getItemPath().getUUID().toString() + "/" + m.getPath());
-                }
-                else if (body instanceof JsonArray) {
-                    for (Object msg: (JsonArray)body) {
-                        ProxyMessage m = new ProxyMessage((String) msg);
+                for (Object msg: (JsonArray)body) {
+                    ProxyMessage m = new ProxyMessage((String) msg);
+
+                    if (m.getItemPath() != null) {
                         clearCacheList.add(m.getItemPath().getUUID().toString() + "/" + m.getPath());
                     }
                 }
+
+                log.trace("handler() - invalidating #{} cache entries", clearCacheList.size());
                 Gateway.getStorage().clearCache(clearCacheList);
             }
             catch (Exception e) {
@@ -62,7 +61,7 @@ public class StorageInvalidatorVerticle extends AbstractVerticle {
             }
         });
 
-        log.info("start()");
         startPromise.complete();
+        log.info("start() - '{}' consumer configured", ProxyMessage.ebAddress);
     }
 }

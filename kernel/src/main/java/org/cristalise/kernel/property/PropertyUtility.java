@@ -27,6 +27,7 @@ import static org.cristalise.kernel.property.BuiltInItemProperties.TYPE;
 
 import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.List;
 
 import org.apache.commons.lang3.StringUtils;
 import org.cristalise.kernel.common.ObjectCannotBeUpdated;
@@ -67,7 +68,7 @@ public class PropertyUtility {
      * @param name name of the Property to search for
      * @return the defeult value of the property. Can be null.
      */
-    static public String getDefaultValue(ArrayList<PropertyDescription> pdlist, String name) {
+    static public String getDefaultValue(List<PropertyDescription> pdlist, String name) {
         for (PropertyDescription pd : pdlist) {
             if (name.equalsIgnoreCase(pd.getName())) return pd.getDefaultValue();
         }

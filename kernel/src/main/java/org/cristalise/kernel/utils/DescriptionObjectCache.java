@@ -36,13 +36,10 @@ import org.cristalise.kernel.common.InvalidDataException;
 import org.cristalise.kernel.common.ObjectNotFoundException;
 import org.cristalise.kernel.common.PersistencyException;
 import org.cristalise.kernel.entity.proxy.ItemProxy;
-import org.cristalise.kernel.entity.proxy.MemberSubscription;
-import org.cristalise.kernel.entity.proxy.ProxyObserver;
 import org.cristalise.kernel.lookup.DomainPath;
 import org.cristalise.kernel.lookup.InvalidItemPathException;
 import org.cristalise.kernel.lookup.ItemPath;
 import org.cristalise.kernel.lookup.Path;
-import org.cristalise.kernel.persistency.ClusterType;
 import org.cristalise.kernel.persistency.TransactionKey;
 import org.cristalise.kernel.persistency.outcome.Viewpoint;
 import org.cristalise.kernel.process.Gateway;
@@ -214,7 +211,7 @@ public abstract class DescriptionObjectCache<D extends DescriptionObject> {
 
             log.trace("get() - key:{}_{} not found in cache. Loading from database.", name, version);
 
-            ItemProxy defItemProxy = Gateway.getProxyManager().getProxy(defItemPath, transactionKey);
+            ItemProxy defItemProxy = Gateway.getProxy(defItemPath, transactionKey);
             if (name.equals(defUuid)) {
                 String itemName = defItemProxy.getName(transactionKey);
                 if (itemName != null) name = itemName;
@@ -285,7 +282,7 @@ public abstract class DescriptionObjectCache<D extends DescriptionObject> {
         }
     }
 
-    public class CacheEntry<E extends DescriptionObject> implements ProxyObserver<Viewpoint> {
+    public class CacheEntry<E extends DescriptionObject> {
         public String                    id;
         public String                    idName;
         public ItemProxy                 proxy;
@@ -298,32 +295,11 @@ public abstract class DescriptionObjectCache<D extends DescriptionObject> {
             this.def = def;
             this.parent = parent;
             this.proxy = proxy;
-            proxy.subscribe(new MemberSubscription<Viewpoint>(this, ClusterType.VIEWPOINT.getName(), false));
-        }
-
-        @Override
-        public void finalize() {
-            parent.removeObject(id, idName);
-            proxy.unsubscribe(this);
-        }
-
-        @Override
-        public void add(Viewpoint contents) {
-            parent.removeObject(id, idName);
-        }
-
-        @Override
-        public void remove(String oldId) {
-            parent.removeObject(id, idName);
         }
 
         @Override
         public String toString() {
             return "Cache entry: " + id;
-        }
-
-        @Override
-        public void control(String control, String msg) {
         }
     }
 }

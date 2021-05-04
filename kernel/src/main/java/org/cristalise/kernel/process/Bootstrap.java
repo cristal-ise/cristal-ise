@@ -232,7 +232,7 @@ public class Bootstrap {
         LookupManager lookup = Gateway.getLookupManager();
 
         try {
-            AgentProxy agentProxy = Gateway.getProxyManager().getAgentProxy(lookup.getAgentPath(name, transactionKey), transactionKey);
+            AgentProxy agentProxy = Gateway.getAgentProxy(lookup.getAgentPath(name, transactionKey), transactionKey);
             systemAgents.put(name, agentProxy);
             log.info("checkAgent() - Agent '"+name+"' found.");
             return agentProxy;
@@ -252,7 +252,7 @@ public class Bootstrap {
             Gateway.getLookupManager().addRole(agentPath, rolePath, transactionKey);
             Gateway.getStorage().put(agentPath, new Property(NAME, name, true), transactionKey);
             Gateway.getStorage().put(agentPath, new Property(TYPE, "Agent", false), transactionKey);
-            AgentProxy agentProxy = Gateway.getProxyManager().getAgentProxy(agentPath, transactionKey);
+            AgentProxy agentProxy = Gateway.getAgentProxy(agentPath, transactionKey);
             //TODO: properly init agent here with wf, props and colls -> use CreatItemFromDescription
             systemAgents.put(name, agentProxy);
             return agentProxy;
@@ -312,16 +312,11 @@ public class Bootstrap {
             lookupManager.add(thisServerPath, transactionKey);
         }
 
-        int proxyPort = Gateway.getProperties().getInt("ItemServer.Proxy.port", 1553);
-
         Gateway.getStorage().put(serverItem, new Property(NAME,            serverName,                  false), transactionKey);
         Gateway.getStorage().put(serverItem, new Property(TYPE,            "Server",                    false), transactionKey);
         Gateway.getStorage().put(serverItem, new Property(KERNEL_VERSION,  Gateway.getKernelVersion(),  true),  transactionKey);
-        Gateway.getStorage().put(serverItem, new Property("ProxyPort",     String.valueOf(proxyPort),   false), transactionKey);
 
         initServerItemWf(transactionKey);
-
-        Gateway.getProxyManager().connectToProxyServer(serverName, proxyPort);
 
         return serverItem;
     }

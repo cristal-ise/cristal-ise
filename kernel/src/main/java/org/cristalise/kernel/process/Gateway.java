@@ -20,10 +20,14 @@
  */
 package org.cristalise.kernel.process;
 
+import static java.util.concurrent.TimeUnit.SECONDS;
+
 import java.net.MalformedURLException;
 import java.util.Enumeration;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Properties;
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
@@ -38,7 +42,8 @@ import org.cristalise.kernel.common.PersistencyException;
 import org.cristalise.kernel.entity.ItemVerticle;
 import org.cristalise.kernel.entity.proxy.AgentProxy;
 import org.cristalise.kernel.entity.proxy.ProxyManager;
-import org.cristalise.kernel.entity.proxy.ProxyServer;
+import org.cristalise.kernel.entity.proxy.ProxyMessage;
+import org.cristalise.kernel.lifecycle.instance.JobPusherVerticle;
 import org.cristalise.kernel.lookup.DomainPath;
 import org.cristalise.kernel.lookup.ItemPath;
 import org.cristalise.kernel.lookup.Lookup;
@@ -62,6 +67,7 @@ import io.vertx.core.cli.Argument;
 import io.vertx.core.cli.CLI;
 import io.vertx.core.cli.CommandLine;
 import io.vertx.core.cli.Option;
+import io.vertx.core.json.JsonArray;
 import io.vertx.ext.shell.ShellService;
 import io.vertx.ext.shell.ShellServiceOptions;
 import io.vertx.ext.shell.command.CommandBuilder;
@@ -84,19 +90,19 @@ import lombok.extern.slf4j.Slf4j;
  * </ul>
  */
 @Slf4j
-public class Gateway
+public class Gateway extends ProxyManager
 {
-    static private ObjectProperties     mC2KProps = new ObjectProperties();
-    static private ModuleManager        mModules;
-    static private Vertx                mVertx;
-    static private Lookup               mLookup;
-    static private LookupManager        mLookupManager = null;
-    static private ClusterStorageManager   mStorage;
-    static private ProxyManager         mProxyManager;
-    static private ProxyServer          mProxyServer;
-    static private CastorXMLUtility     mMarshaller;
-    static private ResourceLoader       mResource;
-    static private SecurityManager      mSecurityManager = null;
+    static private ObjectProperties      mC2KProps = new ObjectProperties();
+    static private ModuleManager         mModules;
+    static private Vertx                 mVertx;
+    static private Lookup                mLookup;
+    static private LookupManager         mLookupManager = null;
+    static private ClusterStorageManager mStorage;
+    static private CastorXMLUtility      mMarshaller;
+    static private ResourceLoader        mResource;
+    static private SecurityManager       mSecurityManager = null;
+
+    @Deprecated static private ProxyManager mProxyManager; //this is kept only to minimise migration of user written Scripts
 
     //FIXME: Move this cache to Resource class - requires to extend ResourceLoader with getResourceImportHandler()
     static private HashMap<BuiltInResources, ResourceImportHandler> resourceImportHandlerCache = new HashMap<BuiltInResources, ResourceImportHandler>();
@@ -188,13 +194,13 @@ public class Gateway
                 else                       ip = getLookup().resolvePath(new DomainPath(item));
 
                 if (cmdName.startsWith("storage-")) getStorage().clearCache(ip, null);
-                else                                getProxyManager().clearCache(ip);
+                else                                ; //getProxyManager().clearCache(ip);
 
                 process.write("Command "+cmdName+" was executed for item:"+item+"\n");
             }
             else {
                 if (cmdName.startsWith("storage-")) getStorage().clearCache();
-                else                                getProxyManager().clearCache();
+                else                                ; //getProxyManager().clearCache();
 
                 process.write("Command "+cmdName+" was executed for ALL items.\n");
             }
@@ -230,12 +236,14 @@ public class Gateway
      * 
      */
     static private void createServerVerticles() {
-        int ivInstances = getProperties().getInt("ItemVerticle.instances", 8);
-
         DeploymentOptions options = new DeploymentOptions()
                 .setWorker(true)
-                .setInstances(ivInstances);
+                .setInstances(getProperties().getInt("ItemVerticle.instances", 4));
+
         mVertx.deployVerticle(ItemVerticle.class, options);
+
+        options.setInstances(getProperties().getInt("JobPusherVerticle.instances", 2));
+        mVertx.deployVerticle(JobPusherVerticle.class, options);
     }
 
     /**
@@ -275,8 +283,7 @@ public class Gateway
 
             // start entity proxy server
             String serverName = mC2KProps.getProperty("ItemServer.name");
-            if (serverName != null) mProxyServer = new ProxyServer(serverName);
-
+ 
             log.info("Server '"+serverName+"' STARTED.");
 
             if (mLookupManager != null) mLookupManager.postStartServer();
@@ -312,7 +319,7 @@ public class Gateway
                 Vertx.clusteredVertx(options, (result) -> {
                     if (result.succeeded()) {
                         mVertx = result.result();
-                        log.info("createVertx(clustered) -  Done:{}", mVertx);
+                        log.info("createVertx(clustered) -  Done");
                         future.complete(null);
                     }
                     else {
@@ -322,7 +329,7 @@ public class Gateway
                 });
 
                 try {
-                    future.get(120, TimeUnit.SECONDS);
+                    future.get(60, SECONDS);
                 }
                 catch (ExecutionException e) {
                     throw CriseVertxException.convert(e);
@@ -334,7 +341,7 @@ public class Gateway
             }
             else {
                 mVertx = Vertx.vertx(options);
-                log.info("createVertx() -  Done:{}", mVertx);
+                log.info("createVertx() -  Done");
             }
         }
     }
@@ -421,7 +428,7 @@ public class Gateway
 
         setup(mSecurityManager.getAuth());
 
-        AgentProxy agent = Gateway.getProxyManager().getAgentProxy(agentName);
+        AgentProxy agent = getAgentProxy(agentName);
 
         // Run module startup scripts. Server does this during bootstrap
         mModules.setUser(agent);
@@ -471,14 +478,10 @@ public class Gateway
         mLookup = null;
         mLookupManager = null;
 
-        // shut down proxy manager & server
-        if (mProxyManager != null) mProxyManager.shutdown();
-        if (mProxyServer != null)  mProxyServer.shutdownServer();
         mProxyManager = null;
-        mProxyServer = null;
 
         // shutdown vert.x
-        mVertx.close();
+        if (mVertx != null) mVertx.close();
 
         // clean up remaining objects
         mModules = null;
@@ -518,13 +521,12 @@ public class Gateway
         return mResource;
     }
 
+    /**
+     * @return the instance of {@link ProxyManager}
+     * @deprecated use static getProxy(...) methods of {@link Gateway}
+     */
     static public ProxyManager getProxyManager() {
         return mProxyManager;
-    }
-
-
-    public static ProxyServer getProxyServer() {
-        return mProxyServer;
     }
 
     static public String getCentreId() {
@@ -609,5 +611,25 @@ public class Gateway
             //creates a new thread to run initialisation and complete checking bootstrap & module items
             Bootstrap.run();
         }
+    }
+
+    /**
+     * Send a single ProxyMessage to the subscribers
+     * @param message the be sent
+     */
+    public static void sendProxyEvent(ProxyMessage message) {
+        Set<ProxyMessage> messages = new HashSet<>();
+        messages.add(message);
+        sendProxyEvent(messages);
+    }
+
+    /**
+     * Send a Set of ProxyMessages to the subscribers
+     * @param messages 
+     */
+    public static void sendProxyEvent(Set<ProxyMessage> messages) {
+        JsonArray msgArray = new JsonArray();
+        for (ProxyMessage m: messages) msgArray.add(m.toString());
+        getVertx().eventBus().publish(ProxyMessage.ebAddress, msgArray);
     }
 }

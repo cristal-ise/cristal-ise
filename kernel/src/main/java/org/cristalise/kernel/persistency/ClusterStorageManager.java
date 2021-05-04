@@ -50,7 +50,6 @@ import org.cristalise.kernel.querying.Query;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 
-import io.vertx.core.json.JsonArray;
 import lombok.extern.slf4j.Slf4j;
 
 
@@ -418,7 +417,7 @@ public class ClusterStorageManager {
      * @param itemPath current Item
      * @param path the cluster path. The leading slash is removed if exists
      * @param transactionKey
-     * @return
+     * @return the ID used starting with 0 or -1 if the cluster empty (e.g. Jobs)
      * @throws PersistencyException
      */
     public int getLastIntegerId(ItemPath itemPath, String path, TransactionKey transactionKey) throws PersistencyException {
@@ -457,7 +456,7 @@ public class ClusterStorageManager {
         ProxyMessage message = new ProxyMessage(itemPath, path, ProxyMessage.ADDED);
 
         if (transactionKey != null) keepMessageForLater(message, transactionKey);
-        else                        sendProxyEvent(message);
+        else                        Gateway.sendProxyEvent(message);
     }
 
     /**
@@ -491,7 +490,7 @@ public class ClusterStorageManager {
         ProxyMessage message = new ProxyMessage(itemPath, path, ProxyMessage.DELETED);
 
         if (transactionKey != null) keepMessageForLater(message, transactionKey);
-        else                        sendProxyEvent(message);
+        else                        Gateway.sendProxyEvent(message);
     }
 
     /**
@@ -510,7 +509,7 @@ public class ClusterStorageManager {
             removeCluster(itemPath, path+(path.length()>0?"/":"")+element, transactionKey);
         }
 
-        if (children.length==0 && path.indexOf("/") > -1) {
+        if (children.length == 0 && path.indexOf("/") > -1) {
             remove(itemPath, path, transactionKey);
         }
     }
@@ -585,7 +584,7 @@ public class ClusterStorageManager {
                 throw new PersistencyException("TransactionKey '"+transactionKey+"' is unknown");
             }
 
-            sendProxyEvent(proxyMessagesMap.remove(transactionKey));
+            Gateway.sendProxyEvent(proxyMessagesMap.remove(transactionKey));
         }
     }
 
@@ -658,38 +657,13 @@ public class ClusterStorageManager {
         set.add(message);
     }
 
-    private void sendProxyEvent(Set<ProxyMessage> messages) {
-        JsonArray msgArray = new JsonArray();
-
-        for (ProxyMessage m: messages) msgArray.add(m.toString());
-
-        Gateway.getVertx().eventBus().publish(ProxyMessage.ebAddress, msgArray);
-    }
-
-    /**
-     * 
-     * @param message
-     */
-    private void sendProxyEvent(ProxyMessage message) {
-        //Gateway.getVertx().eventBus().publish(ProxyMessage.ebAddress, message.toString());
-
-        if(Gateway.getProxyServer() != null) {
-            Gateway.getProxyServer().sendProxyEvent(message);
-        }
-        else {
-            log.warn("sendProxyEvent: ProxyServer is null - Proxies are not notified of this event");
-        }
-    }
-
     private void lockItem(ItemPath itemPath, TransactionKey transactionKey) throws PersistencyException {
-        if (transactionKey == null) throw new PersistencyException("TransactionKey must not be null");
-
         synchronized(itemLocks) {
             // look to see if this object is already locked
             if (itemLocks.containsKey(itemPath)) {
                 TransactionKey existingTransaction = itemLocks.get(itemPath);
 
-                if (existingTransaction.equals(transactionKey)) {
+                if (transactionKey != null && existingTransaction.equals(transactionKey)) {
                     // nothing to do
                     lockCatalog.get(transactionKey).add(itemPath);
                 }
@@ -700,15 +674,19 @@ public class ClusterStorageManager {
                                                    "' has been locked for writing by '"+existingTransaction+"'");
                 }
             }
-            else {
-                // add the lock
-                Set<ItemPath> lockEntry = lockCatalog.get(transactionKey);
-                if (lockEntry == null) {
-                    throw new PersistencyException("'"+itemPath+"' - No lockentry was found for transactionKey:"+transactionKey);
+            else { // no locks for this item
+                if (transactionKey == null) {
+                    // nothing to do, all the writer storages must be in autocommit mode
                 }
-
-                lockEntry.add(itemPath);
-                itemLocks.put(itemPath, transactionKey);
+                else {// add the lock
+                    Set<ItemPath> lockEntry = lockCatalog.get(transactionKey);
+                    if (lockEntry == null) {
+                        throw new PersistencyException("'"+itemPath+"' - No lockentry was found for transactionKey:"+transactionKey);
+                    }
+    
+                    lockEntry.add(itemPath);
+                    itemLocks.put(itemPath, transactionKey);
+                }
             }
         }
     }

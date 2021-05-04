@@ -1,0 +1,291 @@
+/**
+ * This file is part of the CRISTAL-iSE kernel.
+ * Copyright (c) 2001-2015 The CRISTAL Consortium. All rights reserved.
+ *
+ * This library is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU Lesser General Public License as published
+ * by the Free Software Foundation; either version 3 of the License, or (at
+ * your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; with out even the implied warranty of MERCHANTABILITY or
+ * FITNESS FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public
+ * License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this library; if not, write to the Free Software Foundation,
+ * Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA.
+ *
+ * http://www.fsf.org/licensing/licenses/lgpl.html
+ */
+package org.cristalise.kernel.process;
+
+import static org.cristalise.kernel.persistency.ClusterType.JOB;
+
+import java.util.HashMap;
+
+import org.cristalise.kernel.common.CriseVertxException;
+import org.cristalise.kernel.common.InvalidDataException;
+import org.cristalise.kernel.common.InvalidTransitionException;
+import org.cristalise.kernel.common.ObjectNotFoundException;
+import org.cristalise.kernel.entity.C2KLocalObject;
+import org.cristalise.kernel.entity.agent.Job;
+import org.cristalise.kernel.entity.proxy.AgentProxy;
+import org.cristalise.kernel.entity.proxy.ProxyMessage;
+import org.cristalise.kernel.lifecycle.instance.stateMachine.StateMachine;
+import org.cristalise.kernel.persistency.ClusterStorage;
+
+import io.vertx.core.AbstractVerticle;
+import io.vertx.core.Promise;
+import io.vertx.core.eventbus.EventBus;
+import io.vertx.core.json.JsonArray;
+import lombok.extern.slf4j.Slf4j;
+
+/**
+ * Provides a very basic automatic execution of Scripts associated with the Jobs (Activities).
+ * It is based on the Default StateMachine, and it implements the following sequence:
+ * <pre>
+ * 1. assessStartConditions()
+ * 2. start()
+ * 3. complete()
+ * 4. in case of error/exception execute error transition which is suspend for default statemachine
+ */
+@Slf4j
+public class UserCodeVerticle extends AbstractVerticle {
+
+    AgentProxy agent;
+
+    private final int START;
+    private final int COMPLETE;
+    private final int ERROR;
+
+    /**
+     * Defines the name of the CRISTAL Property (value:{@value}) to override the default mapping for Start transition.
+     * It is always prefixed like this: eg: UserCode.StateMachine.startTransition
+     */
+    public static final String STATE_MACHINE_START_TRANSITION = "StateMachine.startTransition";
+    /**
+     * Defines the name of the CRISTAL Property (value:{@value}) to override the default mapping for Complete transition.
+     * It is always prefixed like this: eg: UserCode.StateMachine.completeTransition
+     */
+    public static final String STATE_MACHINE_COMPLETE_TRANSITION = "StateMachine.completeTransition";
+    /**
+     * Defines the name of the CRISTAL Property (value:{@value}) to override the default mapping for Error transition.
+     * It is always prefixed like this: eg: UserCode.StateMachine.errorTransition
+     */
+    public static final String STATE_MACHINE_ERROR_TRANSITION = "StateMachine.errorTransition";
+
+    /**
+     * Defines the value (value:{@value}) to to be used in CRISTAL Property to ignore the Jobs of that Transition
+     * eg: UserCode.StateMachine.resumeTransition = USERCODE_IGNORE
+     */
+    public static final String USERCODE_IGNORE = "USERCODE_IGNORE";
+
+    protected final HashMap<String, C2KLocalObject> jobs = new HashMap<String, C2KLocalObject>();
+
+    /**
+     * Constructor set up the user code
+     *
+     * @param propPrefix string to be used as prefix for each property
+     *
+     * @throws InvalidDataException StateMachine does not have the named Transition
+     * @throws ObjectNotFoundException StateMachine was not found
+     */
+    public UserCodeVerticle(String propPrefix, AgentProxy uc, StateMachine sm) throws InvalidDataException, ObjectNotFoundException {
+        agent = uc;
+
+        //default values are valid for Transitions compatible with kernel provided Default StateMachine
+        START    = getValidTransitionID(sm, propPrefix+"."+STATE_MACHINE_START_TRANSITION,    "Start");
+        ERROR    = getValidTransitionID(sm, propPrefix+"."+STATE_MACHINE_ERROR_TRANSITION,    "Suspend");
+        COMPLETE = getValidTransitionID(sm, propPrefix+"."+STATE_MACHINE_COMPLETE_TRANSITION, "Complete");
+    }
+
+    private boolean shallTrigger(ProxyMessage msg) {
+        if (msg.getItemPath() == null) return false;
+
+        return 
+            msg.getItemPath().equals(agent.getPath()) && 
+            msg.getPath().startsWith(JOB.getName()) &&
+            msg.isState();
+    }
+
+    @Override
+    public void start(Promise<Void> startPromise) throws Exception {
+        EventBus eb = vertx.eventBus();
+
+        eb.consumer(ProxyMessage.ebAddress, message -> {
+            Object body = message.body();
+            log.trace("handler() - message.body:{}", body);
+
+            try {
+                boolean triggerUC = false;
+
+                for (Object msg: (JsonArray)body) {
+                    triggerUC = shallTrigger(new ProxyMessage((String) msg));
+                    if (triggerUC) break;
+                }
+
+                if (triggerUC) {
+                    run();
+                }
+            }
+            catch (Exception e) {
+                log.error("handler()", e);
+            }
+        });
+
+        log.info("start()");
+        startPromise.complete();
+    }
+
+    /**
+     *
+     * @param sm
+     * @param propertyName
+     * @param defaultValue
+     * @return
+     * @throws InvalidDataException
+     */
+    private int getValidTransitionID(StateMachine sm, String propertyName, String defaultValue) throws InvalidDataException {
+        String propertyValue = Gateway.getProperties().getString(propertyName, defaultValue);
+
+        if("USERCODE_IGNORE".equals(propertyValue)) return -1;
+        else                                        return sm.getValidTransitionID(propertyValue);
+    }
+
+    public void run() {
+        Job thisJob = getActualJob();
+
+        if (thisJob != null) {
+            String jobKey = thisJob.getItemPath() + ":" + thisJob.getStepPath();
+            int transitionId = thisJob.getTransition().getId();
+
+            try {
+                if (transitionId == START) start(thisJob, jobKey);
+                else if (transitionId == COMPLETE) complete(thisJob, jobKey);
+            }
+            catch (InvalidTransitionException ex) {
+                // must have already been done by someone else - ignore
+            }
+            catch (Exception ex) {
+                log.error("Error executing job:" + thisJob, ex);
+            }
+        }
+    }
+
+    /**
+     * Method called to handle the Start transition. Override this method to implement application specific action
+     * for Jobs of Start Transition.
+     *
+     * @param thisJob the actual Job to be executed.
+     * @param jobKey the key of the job (i.e. itemPath:stepPat)
+     */
+    public void start(Job thisJob, String jobKey) throws CriseVertxException {
+        log.debug("start() - job:"+thisJob);
+
+        if (assessStartConditions(thisJob)) {
+            log.debug("start() - Attempting to start");
+            agent.execute(thisJob);
+        }
+        else {
+            log.debug("start() - Start conditions failed "+thisJob.getStepName()+" in "+thisJob.getItemPath());
+        }
+    }
+
+    /**
+     * Method called to handle the Complete transition. Override this method to implement application specific action
+     * for Jobs of Complete Transition.
+     *
+     * @param thisJob the actual Job to be executed.
+     * @param jobKey the key of the job (i.e. itemPath:stepPat)
+     */
+    public void complete(Job thisJob, String jobKey) throws Exception {
+        log.debug("complete() - job:"+thisJob);
+
+        runUserCodeLogic(thisJob, getErrorJob(thisJob, ERROR));
+    }
+
+    /**
+     * Override this method to implement application specific evaluation of start condition.
+     * Default implementation - returns always true, i.e. there were no start conditions.
+     *
+     * @param job the actual Job to be executed.
+     * @return true, if the start condition were met
+     */
+    public boolean assessStartConditions(Job job) {
+        return true;
+    }
+
+    /**
+     * Override this mehod to implement application specific (business) logic
+     * Default implementation - the agent execute any scripts, query or both defined
+     *
+     * @param job the actual Job to be executed.
+     * @param errorJob Job to be executed in case of an error
+     */
+    public void runUserCodeLogic(Job job, Job errorJob) throws CriseVertxException {
+        if (errorJob == null) agent.execute(job);
+        else                  agent.execute(job, errorJob);
+    }
+
+    /**
+     * Gets the next possible Job based on the Transitions of the Default StateMachine
+     *
+     * @return the actual Job
+     */
+    protected Job getActualJob() {
+        Job thisJob = null;
+
+        if (jobs.size() > 0) {
+            thisJob = getJob(jobs, COMPLETE);
+            if (thisJob == null) thisJob = getJob(jobs, START);
+
+            if (thisJob == null) {
+                log.error("No supported jobs, but joblist is not empty! Discarding remaining jobs");
+                jobs.clear();
+            }
+            else {
+                jobs.remove(ClusterStorage.getPath(thisJob));
+            }
+        }
+        return thisJob;
+    }
+
+    /**
+     *
+     * @param completeJob
+     * @param errorTrans
+     * @return
+     */
+    private Job getErrorJob(Job completeJob, int errorTrans) {
+        Job errorJob = null;
+
+        for (C2KLocalObject c2kLocalObject : jobs.values()) {
+            Job thisJob = (Job)c2kLocalObject;
+            if (thisJob.getItemUUID().equals(completeJob.getItemUUID()) && thisJob.getTransition().getId() == errorTrans) {
+                log.debug("getErrorJob() - job:"+thisJob);
+                errorJob = thisJob;
+            }
+        }
+
+        return errorJob;
+    }
+
+    /**
+     *
+     * @param jobs
+     * @param transition
+     * @return
+     */
+    private Job getJob(HashMap<String, C2KLocalObject> jobs, int transition) {
+        for (C2KLocalObject c2kLocalObject : jobs.values()) {
+            Job thisJob = (Job)c2kLocalObject;
+            if (thisJob.getTransition().getId() == transition) {
+                log.debug("=================================================================");
+                log.debug("getJob() - job:"+thisJob);
+                return thisJob;
+            }
+        }
+        return null;
+    }
+}

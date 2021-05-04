@@ -34,7 +34,7 @@ import org.cristalise.kernel.process.Gateway;
 
 import lombok.extern.slf4j.Slf4j;
 
-@Slf4j
+@Slf4j @Deprecated
 final class JobPusher extends Thread {
     private final Activity activity;
     private final RolePath myRole;
@@ -48,7 +48,7 @@ final class JobPusher extends Thread {
 
     @Override
     public void run() {
-        String tName = "Agent job pusher for "+itemPath+":"+activity.getPath()+" to role "+myRole;
+        String tName = "JobPusher"+itemPath+":"+activity.getName()+":"+myRole;
         Thread.currentThread().setName(tName);
 
         log.trace("run() - Started:"+tName);

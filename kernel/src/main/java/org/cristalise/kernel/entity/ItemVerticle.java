@@ -23,7 +23,9 @@ package org.cristalise.kernel.entity;
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.Promise;
 import io.vertx.serviceproxy.ServiceBinder;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 public class ItemVerticle extends AbstractVerticle {
 
     @Override
@@ -36,5 +38,6 @@ public class ItemVerticle extends AbstractVerticle {
           .register(Item.class, service);
 
         startPromise.complete();
+        log.info("start() - service register done");
     }
 }

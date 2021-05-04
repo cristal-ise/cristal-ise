@@ -36,15 +36,12 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 abstract public class StandardClient extends AbstractMain {
     protected AgentProxy agent = null;
-    
-    
 
     /**
      * 
      */
-    static private void createClientVerticles() {
+     public static void createClientVerticles() {
         int ivInstances = Gateway.getProperties().getInt("ProxyMessageVerticle.instances", 1);
-
         DeploymentOptions options = new DeploymentOptions().setInstances(ivInstances);
 
         Gateway.getVertx().deployVerticle(StorageInvalidatorVerticle.class, options);
@@ -121,7 +118,7 @@ abstract public class StandardClient extends AbstractMain {
             }
         });
 
-        Gateway.init(props, res);;
+        Gateway.init(props, res);
         Gateway.connect();
 
         createClientVerticles();

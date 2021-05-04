@@ -54,7 +54,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class RefreshJobList extends PredefinedStep {
 
-    public static final String description = "Updates an Agent's list of Jobs relating to a particular activity.";
+    public static final String description = "Updates the Agent's list of Jobs referencing one Activity of a single Item.";
 
     public RefreshJobList() {
         super();
@@ -68,17 +68,22 @@ public class RefreshJobList extends PredefinedStep {
         log.debug("Called by {} on {}", agent.getAgentName(transactionKey), itemPath);
 
         try {
-            JobArrayList newJobList = (JobArrayList)Gateway.getMarshaller().unmarshall(requestData);
+            JobArrayList newJobs = (JobArrayList)Gateway.getMarshaller().unmarshall(requestData);
 
             JobList currentJobs = new JobList((AgentPath)itemPath, transactionKey);
 
-            List<String> keysToRemove = currentJobs.getKeysForStep(itemPath, "workflow/predefined/RefreshJobList");
+            //the newJobs contains only the jobs for one Activity of a single Item
+            List<String> keysToRemove = currentJobs.getKeysForStep(newJobs.list.get(0));
 
             // merge new jobs in first, so the RemoteMap.getLastId() used during addJob() returns the next unique id
-            for (Job newJob : newJobList.list) {
-                log.debug("refreshJobList() - Adding job:"+newJob.getItemPath()+"/"+newJob.getStepPath()+":"+newJob.getTransition().getName());
-                currentJobs.addJob(newJob);
+            for (Job newJob : newJobs.list) {
+                if (newJob.getId() != -1) {
+                    log.trace("Adding job:{}", newJob);
+                    currentJobs.addJob(newJob);
+                }
             }
+
+            log.trace("Removing old jobs:{}", keysToRemove);
 
             // remove old jobs for this item
             for(String key: keysToRemove) currentJobs.remove(key);

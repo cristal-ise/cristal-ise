@@ -78,6 +78,7 @@ import org.cristalise.kernel.property.PropertyUtility;
 import org.cristalise.kernel.utils.DateUtility;
 import org.cristalise.kernel.utils.LocalObjectLoader;
 
+import io.vertx.core.json.JsonObject;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -704,7 +705,21 @@ public class Activity extends WfVertex {
      * @param role RolePath
      */
     protected void pushJobsToAgents(ItemPath itemPath, RolePath role) {
-        if (role.hasJobList()) new JobPusher(this, itemPath, role).start();
+        if (role.hasJobList()) {
+            try {
+                for (AgentPath nextAgent: Gateway.getLookup().getAgents(role)) {
+                    JsonObject msg = new JsonObject();
+                    msg.put("agentPath", nextAgent.toString());
+                    msg.put("itemPath", itemPath.toString());
+                    msg.put("stepPath", this.getPath());
+    
+                    Gateway.getVertx().eventBus().send(JobPusherVerticle.ebAddress, msg);
+                }
+            }
+            catch (ObjectNotFoundException e) {
+                log.error("pushJobsToAgents()", e);
+            }
+        }
 
         //Inform child roles as well
         Iterator<Path> childRoles = role.getChildren();

@@ -20,9 +20,6 @@
  */
 package org.cristalise.kernel.entity.proxy;
 
-import java.io.IOException;
-import java.net.DatagramPacket;
-
 import org.apache.commons.lang3.StringUtils;
 import org.cristalise.kernel.common.InvalidDataException;
 import org.cristalise.kernel.lookup.InvalidItemPathException;
@@ -83,10 +80,6 @@ public class ProxyMessage {
             state = DELETED;
             path = path.substring(1);
         }
-    }
-
-    public ProxyMessage(DatagramPacket packet) throws InvalidDataException, IOException {
-        this(new String(packet.getData()));
     }
 
     /**

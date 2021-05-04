@@ -24,6 +24,7 @@ import java.util.ArrayList;
 import java.util.ConcurrentModificationException;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 import org.cristalise.kernel.common.PersistencyException;
 import org.cristalise.kernel.entity.C2KLocalObject;
@@ -39,7 +40,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class MemoryOnlyClusterStorage extends ClusterStorage {
 
-    HashMap<ItemPath, Map<String, C2KLocalObject>> memoryCache = new HashMap<ItemPath, Map<String, C2KLocalObject>>();
+    Map<ItemPath, Map<String, C2KLocalObject>> memoryCache = new ConcurrentHashMap<ItemPath, Map<String, C2KLocalObject>>();
 
     public void clear() {
         memoryCache.clear();
@@ -115,7 +116,6 @@ public class MemoryOnlyClusterStorage extends ClusterStorage {
         synchronized(sysKeyMemCache) {
             sysKeyMemCache.put(path, obj);
         }
-
     }
 
     @Override
@@ -126,9 +126,7 @@ public class MemoryOnlyClusterStorage extends ClusterStorage {
                 if (sysKeyMemCache.containsKey(path)) {
                     sysKeyMemCache.remove(path);
                     if (sysKeyMemCache.isEmpty()) {
-                        synchronized (memoryCache) {
-                            memoryCache.remove(thisItem);
-                        }
+                        memoryCache.remove(thisItem);
                     }
                 }
             }
@@ -140,8 +138,7 @@ public class MemoryOnlyClusterStorage extends ClusterStorage {
         Map<String, C2KLocalObject> sysKeyMemCache = memoryCache.get(thisItem);
         ArrayList<String> result = new ArrayList<String>();
         if (sysKeyMemCache != null) {
-            while (path.endsWith("/")) 
-                path = path.substring(0,path.length()-1);
+            while (path.endsWith("/")) path = path.substring(0,path.length()-1);
             path = path+"/";
             for (String thisPath : sysKeyMemCache.keySet()) {
                 if (thisPath.startsWith(path)) {

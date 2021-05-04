@@ -96,6 +96,7 @@ public class Job implements C2KLocalObject {
      * Empty constructor required for Castor
      */
     public Job() {
+        id = -1;
         setCreationDate(DateUtility.getNow());
         setActProps(new CastorHashMap());
     }
@@ -106,7 +107,7 @@ public class Job implements C2KLocalObject {
     public Job(Activity act, ItemPath itemPath, Transition transition, AgentPath agent, String role)
             throws InvalidDataException, ObjectNotFoundException
     {
-        setCreationDate(DateUtility.getNow());
+        this();
         setItemPath(itemPath);
         setStepPath(act.getPath());
         setTransition(transition);
@@ -129,7 +130,7 @@ public class Job implements C2KLocalObject {
             Transition transition, String originStateName, String targetStateName, 
             String agentRole, AgentPath agentPath, CastorHashMap actProps, GTimeStamp creationDate)
     {
-        super();
+        this();
         setId(id);
         setItemPath(itemPath);
         setStepName(stepName);
@@ -300,7 +301,7 @@ public class Job implements C2KLocalObject {
     }
 
     public ItemProxy getItemProxy() throws ObjectNotFoundException, InvalidItemPathException {
-        if (item == null) item = Gateway.getProxyManager().getProxy(itemPath, null);
+        if (item == null) item = Gateway.getProxy(itemPath, null);
         return item;
     }
 
@@ -606,7 +607,7 @@ public class Job implements C2KLocalObject {
         }
 
         if(result.size() == 0) {
-            log.info("Job.matchActPropNames() - NO properties were found for propName.startsWith(pattern:'{}')", pattern);
+            log.info("matchActPropNames() - NO properties were found for propName.startsWith(pattern:'{}')", pattern);
             log.trace("matchActPropNames() - actProps:", actProps);
         }
 

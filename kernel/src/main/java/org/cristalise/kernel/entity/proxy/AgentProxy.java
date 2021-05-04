@@ -21,6 +21,7 @@
 package org.cristalise.kernel.entity.proxy;
 
 import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.SIMPLE_ELECTRONIC_SIGNATURE;
+import static org.cristalise.kernel.persistency.ClusterType.JOB;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -31,15 +32,16 @@ import java.util.List;
 import java.util.Map;
 
 import org.cristalise.kernel.common.AccessRightsException;
+import org.cristalise.kernel.common.CriseVertxException;
 import org.cristalise.kernel.common.InvalidCollectionModification;
 import org.cristalise.kernel.common.InvalidDataException;
 import org.cristalise.kernel.common.InvalidTransitionException;
 import org.cristalise.kernel.common.ObjectAlreadyExistsException;
 import org.cristalise.kernel.common.ObjectNotFoundException;
 import org.cristalise.kernel.common.PersistencyException;
-import org.cristalise.kernel.common.CriseVertxException;
 import org.cristalise.kernel.entity.C2KLocalObject;
 import org.cristalise.kernel.entity.agent.Job;
+import org.cristalise.kernel.entity.agent.JobList;
 import org.cristalise.kernel.graph.model.BuiltInVertexProperties;
 import org.cristalise.kernel.lifecycle.instance.predefined.ChangeName;
 import org.cristalise.kernel.lifecycle.instance.predefined.Erase;
@@ -53,6 +55,7 @@ import org.cristalise.kernel.lookup.InvalidItemPathException;
 import org.cristalise.kernel.lookup.ItemPath;
 import org.cristalise.kernel.lookup.Path;
 import org.cristalise.kernel.lookup.RolePath;
+import org.cristalise.kernel.persistency.TransactionKey;
 import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.property.Property;
 import org.cristalise.kernel.property.PropertyDescriptionList;
@@ -67,17 +70,17 @@ import org.exolab.castor.mapping.MappingException;
 import org.exolab.castor.xml.MarshalException;
 import org.exolab.castor.xml.ValidationException;
 
+import com.google.errorprone.annotations.Immutable;
+
 import lombok.extern.slf4j.Slf4j;
 
 /**
  * It is a wrapper for the connection and communication with Agent It caches
  * data loaded from the Agent to reduce communication
  */
-@Slf4j
+@Slf4j @Immutable
 public class AgentProxy extends ItemProxy {
-
-    AgentPath     mAgentPath;
-    String        mAgentName;
+    String mAgentName;
 
     /**
      * Creates an AgentProxy without cache and change notification
@@ -88,7 +91,10 @@ public class AgentProxy extends ItemProxy {
      */
     protected AgentProxy(AgentPath agentPath) throws ObjectNotFoundException {
         super(agentPath);
-        mAgentPath = agentPath;
+    }
+
+    protected AgentProxy(AgentPath agentPath, TransactionKey transKey) {
+        super(agentPath, transKey);
     }
 
     /**
@@ -120,7 +126,7 @@ public class AgentProxy extends ItemProxy {
             log.error("", ex);
 
             try {
-                errorJob.setAgentPath(mAgentPath);
+                errorJob.setAgentPath(getPath());
                 errorJob.setOutcome(Gateway.getMarshaller().marshall(new ErrorInfo(job, ex)));
 
                 return execute(errorJob);
@@ -142,7 +148,7 @@ public class AgentProxy extends ItemProxy {
      * @throws CriseVertxException
      */
     public String execute(Job job) throws CriseVertxException {
-        ItemProxy item = Gateway.getProxyManager().getProxy(job.getItemPath(), transactionKey);
+        ItemProxy item = Gateway.getProxy(job.getItemPath(), transactionKey);
         Date startTime = new Date();
 
         log.info("execute(job) - {}", job);
@@ -180,7 +186,7 @@ public class AgentProxy extends ItemProxy {
         // can submit an incomplete outcome which is made complete by the script
         if (job.hasOutcome() && job.isOutcomeSet()) job.getOutcome().validateAndCheck();
 
-        job.setAgentPath(mAgentPath);
+        job.setAgentPath(getPath());
 
         if (job.hasOutcome() && (boolean)job.getActProp(SIMPLE_ELECTRONIC_SIGNATURE, false)) {
             log.info("execute(job) - executing SimpleElectonicSignature predefStep");
@@ -327,12 +333,12 @@ public class AgentProxy extends ItemProxy {
         else {
             if(params.length == 0)      param = "";
             else if(params.length == 1) param = params[0];
-            else                        throw new InvalidDataException("prdefStep:'"+predefStep+"' schemaName:'"+schemaName+"' incorrect params:"+Arrays.toString(params));
+            else                        throw new InvalidDataException("predefStep:'"+predefStep+"' schemaName:'"+schemaName+"' incorrect params:"+Arrays.toString(params));
         }
 
         String result = requestAction(
                 item.getPath().toString(),
-                mAgentPath.toString(), 
+                getPath().toString(), 
                 "workflow/predefined/" + predefStep, 
                 PredefinedStep.DONE, 
                 param,
@@ -348,7 +354,7 @@ public class AgentProxy extends ItemProxy {
 
         if (Arrays.asList(clearCacheSteps).contains(predefStep)) {
             Gateway.getStorage().clearCache(item.getPath(), null);
-            Gateway.getProxyManager().clearCache(item.getPath());
+            //Gateway.getProxyManager().clearCache(item.getPath());
         }
 
         return result;
@@ -440,7 +446,7 @@ public class AgentProxy extends ItemProxy {
         if (returnPath == null) {
             throw new ObjectNotFoundException(name);
         }
-        return Gateway.getProxyManager().getProxy(returnPath, transactionKey);
+        return Gateway.getProxy(returnPath, transactionKey);
     }
 
     private boolean isItemPathAndNotNull(Path pPath) {
@@ -470,7 +476,7 @@ public class AgentProxy extends ItemProxy {
         while (results.hasNext()) {
             Path nextMatch = results.next();
             try {
-                returnList.add(Gateway.getProxyManager().getProxy(nextMatch, transactionKey));
+                returnList.add(Gateway.getProxy(nextMatch, transactionKey));
             }
             catch (ObjectNotFoundException e) {
                 log.error("Path '" + nextMatch + "' did not resolve to an Item");
@@ -485,18 +491,40 @@ public class AgentProxy extends ItemProxy {
 
     @Override
     public AgentPath getPath() {
-        return mAgentPath;
+        return (AgentPath) mItemPath;
     }
 
     public ItemProxy getItem(Path itemPath) throws ObjectNotFoundException {
-        return Gateway.getProxyManager().getProxy(itemPath, transactionKey);
+        return Gateway.getProxy(itemPath, transactionKey);
     }
 
     public ItemProxy getItemByUUID(String uuid) throws ObjectNotFoundException, InvalidItemPathException {
-        return Gateway.getProxyManager().getProxy(new ItemPath(uuid), transactionKey);
+        return Gateway.getProxy(new ItemPath(uuid), transactionKey);
     }
 
     public RolePath[] getRoles() {
-        return Gateway.getLookup().getRoles(mAgentPath, transactionKey);
+        return Gateway.getLookup().getRoles(getPath(), transactionKey);
+    }
+
+    /**
+     * Retrieves the JobList of the Agent.
+     * 
+     * @return the JobList object
+     * @throws ObjectNotFoundException there is no event for the given id
+     */
+    public JobList getJobList() throws ObjectNotFoundException {
+        return (JobList) getObject(JOB, transactionKey);
+    }
+
+    /**
+     * Retrieves the JobList of the Agent. This method can be used in server side Script to find uncommitted changes
+     * during the active transaction.
+     * 
+     * @param transKey the transaction key
+     * @return the JobList object
+     * @throws ObjectNotFoundException there is no event for the given id
+     */
+    public JobList getJobList(TransactionKey transKey) throws ObjectNotFoundException {
+        return (JobList) getObject(JOB, transKey == null ? transactionKey : transKey);
     }
 }

@@ -20,6 +20,7 @@
  */
 package org.cristalise.kernel.entity.proxy;
 
+import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.cristalise.kernel.persistency.ClusterType.HISTORY;
 import static org.cristalise.kernel.property.BuiltInItemProperties.AGGREGATE_SCRIPT_URN;
 import static org.cristalise.kernel.property.BuiltInItemProperties.MASTER_SCHEMA_URN;
@@ -30,12 +31,9 @@ import static org.cristalise.kernel.property.BuiltInItemProperties.TYPE;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
 import org.apache.commons.lang3.ArrayUtils;
@@ -44,19 +42,20 @@ import org.cristalise.kernel.collection.BuiltInCollections;
 import org.cristalise.kernel.collection.Collection;
 import org.cristalise.kernel.common.AccessRightsException;
 import org.cristalise.kernel.common.CannotManageException;
+import org.cristalise.kernel.common.CriseVertxException;
 import org.cristalise.kernel.common.InvalidCollectionModification;
 import org.cristalise.kernel.common.InvalidDataException;
 import org.cristalise.kernel.common.InvalidTransitionException;
 import org.cristalise.kernel.common.ObjectAlreadyExistsException;
 import org.cristalise.kernel.common.ObjectNotFoundException;
 import org.cristalise.kernel.common.PersistencyException;
-import org.cristalise.kernel.common.CriseVertxException;
 import org.cristalise.kernel.entity.C2KLocalObject;
 import org.cristalise.kernel.entity.Item;
 import org.cristalise.kernel.entity.ItemVertxEBProxy;
 import org.cristalise.kernel.entity.agent.Job;
 import org.cristalise.kernel.entity.agent.JobArrayList;
 import org.cristalise.kernel.events.Event;
+import org.cristalise.kernel.events.History;
 import org.cristalise.kernel.lifecycle.instance.Workflow;
 import org.cristalise.kernel.lifecycle.instance.predefined.WriteProperty;
 import org.cristalise.kernel.lookup.AgentPath;
@@ -74,36 +73,37 @@ import org.cristalise.kernel.querying.Query;
 import org.cristalise.kernel.scripting.Script;
 import org.cristalise.kernel.utils.LocalObjectLoader;
 
+import com.google.errorprone.annotations.Immutable;
+
 import lombok.Getter;
-import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 
-
 /**
- * It is a wrapper for the connection and communication with Item.
- * It caches data loaded from the Item to reduce communication
+ * It is a wrapper for the connection and communication with Item. It relies on the
+ * ClusterStorage mechanism to rertieve and cache data.
  */
-@Slf4j
+@Slf4j @Immutable
 public class ItemProxy {
-    protected Item             mItem = null;
-    protected ItemPath         mItemPath;
-
-    private final HashMap<MemberSubscription<?>, ProxyObserver<?>> mSubscriptions;
+    protected Item     mItem = null;
+    protected ItemPath mItemPath;
 
     /**
      * Set Transaction key (a.k.a. transKey) when ItemProxy is used in server side scripting
      */
-    @Getter @Setter
+    @Getter
     protected TransactionKey transactionKey = null;
 
     /**
      *
-     * @param ior
      * @param itemPath
      */
     protected ItemProxy(ItemPath itemPath) {
-        mItemPath       = itemPath;
-        mSubscriptions  = new HashMap<MemberSubscription<?>, ProxyObserver<?>>();
+        this(itemPath, null);
+    }
+
+    protected ItemProxy(ItemPath itemPath, TransactionKey transKey) {
+        mItemPath  = itemPath;
+        transactionKey = transKey;
     }
 
     public Item getItem() {
@@ -170,6 +170,8 @@ public class ItemProxy {
     {
         CompletableFuture<String> futureResult = new CompletableFuture<>();
 
+        log.debug("requestAction() - item:{} agent:{}", itemUuid, agentUuid);
+
         getItem().requestAction(
                 itemUuid,
                 agentUuid,
@@ -191,7 +193,7 @@ public class ItemProxy {
                 });
 
         try {
-            return futureResult.get(300, TimeUnit.SECONDS);
+            return futureResult.get(5, SECONDS);
         }
         catch (ExecutionException e) {
             log.error("requestAction()", e);
@@ -256,8 +258,8 @@ public class ItemProxy {
      * @throws PersistencyException there was a database problems during this operations
      * @throws ObjectNotFoundException data was invalid
      */
-    public ArrayList<Job> getJobList(AgentPath agentPath) throws CriseVertxException {
-        return getJobList(agentPath, false);
+    public List<Job> getJobs(AgentPath agentPath) throws CriseVertxException {
+        return getJobs(agentPath, false);
     }
 
     /**
@@ -270,40 +272,39 @@ public class ItemProxy {
      * @throws PersistencyException there was a database problems during this operations
      * @throws ObjectNotFoundException data was invalid
      */
-    private ArrayList<Job> getJobList(AgentPath agentPath, boolean filter) throws CriseVertxException {
-        JobArrayList thisJobList;
+    private List<Job> getJobs(AgentPath agentPath, boolean filter) throws CriseVertxException {
         CompletableFuture<String> futureResult = new CompletableFuture<>();
 
-        getItem().queryLifeCycle(mItemPath.toString(), agentPath.toString(), filter, 
-                (result) -> {
+        log.debug("getJobList() - item:{} agent:{}", mItemPath, agentPath.getAgentName());
+
+        getItem().queryLifeCycle(mItemPath.toString(), agentPath.toString(), filter, (result) -> {
             if (result.succeeded()) {
                 String returnString = result.result();
-                log.trace("requestAction() - return:{}", returnString);
+                log.trace("getJobList() - handler return:{}", returnString);
                 futureResult.complete(returnString);
             }
             else {
-                log.error("requestAction()", result.cause());
+                log.error("getJobList() - handler error", result.cause());
                 futureResult.completeExceptionally(result.cause());
             }
         });
 
-        String jobs;
         try {
-            jobs = futureResult.get(300, TimeUnit.SECONDS);
+            String jobs = futureResult.get(5, SECONDS);
             try {
-                thisJobList = (JobArrayList)Gateway.getMarshaller().unmarshall(jobs);
+                JobArrayList thisJobList = (JobArrayList)Gateway.getMarshaller().unmarshall(jobs);
+                return thisJobList.list;
             }
             catch (Exception e) {
                 log.error("Cannot unmarshall the jobs", e);
                 throw new PersistencyException("Cannot unmarshall the jobs");
             }
-            return thisJobList.list;
         }
         catch (ExecutionException e) {
             throw CriseVertxException.convert(e);
         }
         catch (InterruptedException | TimeoutException e) {
-            log.error("requestAction()", e);
+            log.error("getJobList()", e);
             throw new CannotManageException(e);
         }
     }
@@ -311,14 +312,28 @@ public class ItemProxy {
     /**
      * Get the list of active Jobs of the Item that can be executed by the Agent
      *
-     * @param agent the Agent requesting the job
+     * @param agent requesting the job
      * @return list of Jobs
-     * @throws AccessRightsException Agent does not the rights to execute this operation
-     * @throws PersistencyException there was a database problems during this operations
-     * @throws ObjectNotFoundException data was invalid
      */
-    public ArrayList<Job> getJobList(AgentProxy agent) throws CriseVertxException {
-        return getJobList(agent.getPath(), true);
+    public List<Job> getJobs(AgentProxy agent) throws CriseVertxException {
+        return getJobs(agent.getPath(), true);
+    }
+
+    /**
+     * Get the list of active Jobs of the Item for the given Activity that can be executed by the Agent.
+     * 
+     * @param agent requesting the job
+     * @param stepPath of the Activity
+     * @return list of active Jobs of the Item for the given Activity that can be executed by the Agent
+     * @throws CriseVertxException
+     */
+    public List<Job> getJobs(AgentPath agent, String stepPath) throws CriseVertxException {
+        List<Job> resultJobs = new ArrayList<>();
+
+        for (Job job : getJobs(agent, true)) {
+            if (job.getStepPath().equals(stepPath)) resultJobs.add(job);
+        }
+        return resultJobs;
     }
 
     /**
@@ -331,8 +346,7 @@ public class ItemProxy {
      * @throws PersistencyException
      */
     private Job getJobByName(String actName, AgentPath agent) throws CriseVertxException {
-        ArrayList<Job> jobList = getJobList(agent, true);
-        for (Job job : jobList) {
+        for (Job job : getJobs(agent, true)) {
             if (job.getStepName().equals(actName) && job.getTransition().isFinishing())
                 return job;
         }
@@ -844,24 +858,13 @@ public class ItemProxy {
      * @throws PersistencyException Error loading the relevant objects
      */
     public Job getJobByTransitionName(String actName, String transName, AgentPath agentPath) throws CriseVertxException {
-        for (Job job : getJobList(agentPath, true)) {
+        for (Job job : getJobs(agentPath, true)) {
             if (job.getTransition().getName().equals(transName)) {
                 if ((actName.contains("/") && job.getStepPath().equals(actName)) || job.getStepName().equals(actName))
                     return job;
             }
         }
         return null;
-    }
-
-    /**
-     * If this is reaped, clear out the cache for it too.
-     */
-    @Override
-    protected void finalize() throws Throwable {
-        log.debug("finalize() - caches are reaped for item:{}", mItemPath);
-        Gateway.getStorage().clearCache(mItemPath, null);
-        Gateway.getProxyManager().removeProxy(mItemPath);
-        super.finalize();
     }
 
     /**
@@ -1026,7 +1029,18 @@ public class ItemProxy {
      * @throws ObjectNotFoundException the type did not result in a C2KLocalObject
      */
     public C2KLocalObject getObject(ClusterType type) throws ObjectNotFoundException {
-        return getObject(type.getName());
+        return getObject(type.getName(), null);
+    }
+
+    /**
+     * Retrieve the C2KLocalObject for the ClusterType
+     *
+     * @param type the ClusterTyoe
+     * @return the C2KLocalObject
+     * @throws ObjectNotFoundException the type did not result in a C2KLocalObject
+     */
+    public C2KLocalObject getObject(ClusterType type, TransactionKey transKey) throws ObjectNotFoundException {
+        return getObject(type.getName(), transKey);
     }
 
     /**
@@ -1243,6 +1257,28 @@ public class ItemProxy {
     }
 
     /**
+     * Retrieves the History of the item.
+     * 
+     * @return the History object
+     * @throws ObjectNotFoundException there is no event for the given id
+     */
+    public History getHistory() throws ObjectNotFoundException {
+        return (History) getObject(HISTORY, transactionKey);
+    }
+
+    /**
+     * Retrieves the History of the item. This method can be used in server side Script to find uncommitted changes
+     * during the active transaction.
+     * 
+     * @param transKey the transaction key
+     * @return the History object
+     * @throws ObjectNotFoundException there is no event for the given id
+     */
+    public History getHistory(TransactionKey transKey) throws ObjectNotFoundException {
+        return (History) getObject(HISTORY, transKey == null ? transactionKey : transKey);
+    }
+
+    /**
      * Returns the so called Master Schema which can be used to construct master outcome.
      * 
      * @return the actual Schema
@@ -1336,64 +1372,6 @@ public class ItemProxy {
         return LocalObjectLoader.getScript(scriptName, scriptVersion, transactionKey);
     }
 
-    //**************************************************************************
-    // Subscription methods
-    //**************************************************************************/
-
-
-    public void subscribe(MemberSubscription<?> newSub) {
-        newSub.setSubject(this);
-        synchronized (this){
-            mSubscriptions.put( newSub, newSub.getObserver() );
-        }
-        new Thread(newSub).start();
-        log.debug("subscribe() - {} for {}", newSub.getObserver().getClass().getName(), newSub.interest);
-    }
-
-    public void unsubscribe(ProxyObserver<?> observer) {
-        synchronized (this){
-            for (Iterator<MemberSubscription<?>> e = mSubscriptions.keySet().iterator(); e.hasNext();) {
-                MemberSubscription<?> thisSub = e.next();
-                if (mSubscriptions.get( thisSub ) == observer) {
-                    e.remove();
-                    log.debug("unsubscribed() - {}", observer.getClass().getName());
-                }
-            }
-        }
-    }
-
-    public void dumpSubscriptions(int logLevel) {
-        log.debug("Subscriptions to proxy {}", mItemPath);
-
-        synchronized(this) {
-            for (MemberSubscription<?> element : mSubscriptions.keySet()) {
-                ProxyObserver<?> obs = element.getObserver();
-
-                if (obs != null) log.debug("    {} subscribed to {}", element.getObserver().getClass().getName(), element.interest);
-                else             log.debug("    Phantom subscription to {}", element.interest);
-            }
-        }
-    }
-
-    public void notify(ProxyMessage message) {
-        log.trace("Received change notification for {} on {}", message.getPath(), mItemPath);
-
-        synchronized (this){
-            if (Gateway.getProxyServer() == null || !message.getServer().equals(Gateway.getProxyServer().getServerName())) {
-                Gateway.getStorage().clearCache(mItemPath, message.getPath());
-            }
-            for (Iterator<MemberSubscription<?>> e = mSubscriptions.keySet().iterator(); e.hasNext();) {
-                MemberSubscription<?> newSub = e.next();
-                if (newSub.getObserver() == null) { // phantom
-                    log.trace("removing phantom subscription to {}", newSub.interest);
-                    e.remove();
-                }
-                else
-                    newSub.update(message.getPath(), message.isState());
-            }
-        }
-    }
-    
     @Override
     public String toString() {
         if (log.isTraceEnabled()) {
