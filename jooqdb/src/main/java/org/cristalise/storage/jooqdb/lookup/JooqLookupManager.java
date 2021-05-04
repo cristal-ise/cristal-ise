@@ -45,6 +45,7 @@ import org.cristalise.kernel.common.ObjectAlreadyExistsException;
 import org.cristalise.kernel.common.ObjectCannotBeUpdated;
 import org.cristalise.kernel.common.ObjectNotFoundException;
 import org.cristalise.kernel.common.PersistencyException;
+import org.cristalise.kernel.entity.proxy.ProxyMessage;
 import org.cristalise.kernel.lookup.AgentPath;
 import org.cristalise.kernel.lookup.DomainPath;
 import org.cristalise.kernel.lookup.InvalidItemPathException;
@@ -195,6 +196,8 @@ public class JooqLookupManager implements LookupManager {
             if (rows == 0) throw new ObjectCannotBeUpdated("JOOQLookupManager must insert some records:"+rows);
             else           log.debug("add() - path:"+newPath+" rows inserted:"+rows);
 
+            Gateway.sendProxyEvent(new ProxyMessage(null, newPath.toString(), ProxyMessage.ADDED));
+
             JooqDataSourceHandler.logConnectionCount("JooqLookupManager.add()", context);
         }
         catch (PersistencyException e) {
@@ -228,6 +231,8 @@ public class JooqLookupManager implements LookupManager {
 
             if (rows == 0) throw new ObjectCannotBeUpdated("JOOQLookupManager must delete some records:"+rows);
             else           log.debug("delete() - path:"+path+" rows deleted:"+rows);
+
+            Gateway.sendProxyEvent(new ProxyMessage(null, path.toString(), ProxyMessage.DELETED));
         }
         catch (PersistencyException e) {
             log.error("delete()", e);
@@ -512,6 +517,8 @@ public class JooqLookupManager implements LookupManager {
             roles.insert(context, role, null);
             permissions.insert(context, role.getStringPath(), role.getPermissionsList());
 
+            Gateway.sendProxyEvent(new ProxyMessage(null, role.toString(), ProxyMessage.ADDED));
+
             return role;
         }
         catch (Exception e) {
@@ -527,11 +534,12 @@ public class JooqLookupManager implements LookupManager {
 
         try {
             DSLContext context = retrieveContext(transactionKey);
-            RolePath finalRole = roles.fetch(context, role); // retreive the joblist
+            RolePath finalRole = roles.fetch(context, role);
             int rows = roles.insert(context, finalRole, agent);
             if (rows != 1) throw new ObjectCannotBeUpdated("Updated rows must be 1 but it was '"+rows+"'");
 
-        }
+            Gateway.sendProxyEvent(new ProxyMessage(null, role.toString(), ProxyMessage.ADDED));
+       }
         catch (Exception e) {
             log.error("addRole()", e);
             throw new ObjectCannotBeUpdated(e.getMessage());
@@ -681,6 +689,7 @@ public class JooqLookupManager implements LookupManager {
             DSLContext context = retrieveContext(transactionKey);
             int rows = items.updatePassword(context, agent, passwordHasher.hashPassword(newPassword.toCharArray()), temporary);
             if (rows != 1) throw new ObjectCannotBeUpdated("Agent:"+agent);
+            Gateway.sendProxyEvent(new ProxyMessage(null, agent.toString(), ProxyMessage.ADDED));
         }
         catch (Exception e) {
             log.error("setAgentPassword()", e);
@@ -697,6 +706,7 @@ public class JooqLookupManager implements LookupManager {
         try {
             DSLContext context = retrieveContext(transactionKey);
             roles.update(context, role);
+            Gateway.sendProxyEvent(new ProxyMessage(null, role.toString(), ProxyMessage.ADDED));
         }
         catch (Exception e) {
             log.error("setHasJobList()", e);
@@ -753,6 +763,7 @@ public class JooqLookupManager implements LookupManager {
                 this.permissions.delete(context, role.getStringPath());
             }
             this.permissions.insert(context, role.getStringPath(), role.getPermissionsList());
+            Gateway.sendProxyEvent(new ProxyMessage(null, role.toString(), ProxyMessage.ADDED));
         }
         catch (Exception e) {
             log.error("setPermissions()", e);

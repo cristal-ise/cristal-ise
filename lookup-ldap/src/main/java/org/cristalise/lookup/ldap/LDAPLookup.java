@@ -257,7 +257,7 @@ public class LDAPLookup implements LookupManager {
 
             // FIXME: Check if this is correct to call in the Lookup implementation
             if (path instanceof DomainPath)
-                Gateway.getProxyServer().sendProxyEvent(new ProxyMessage(null, path.toString(), ProxyMessage.ADDED));
+                Gateway.sendProxyEvent(new ProxyMessage(null, path.toString(), ProxyMessage.ADDED));
         }
         catch (LDAPException ex) {
             if (ex.getResultCode() == LDAPException.ENTRY_ALREADY_EXISTS)
@@ -279,8 +279,7 @@ public class LDAPLookup implements LookupManager {
             throw new ObjectCannotBeUpdated("Cannot delete Path '" + path.getStringPath() + "' - LDAPException:" + ex.getLDAPErrorMessage());
         }
         if (path instanceof DomainPath) {
-            // FIXME: Check if this is correct to call in the Lookup implementation
-            Gateway.getProxyServer().sendProxyEvent(new ProxyMessage(null, path.toString(), ProxyMessage.DELETED));
+            Gateway.sendProxyEvent(new ProxyMessage(null, path.toString(), ProxyMessage.DELETED));
         }
     }
 
