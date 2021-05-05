@@ -25,6 +25,7 @@ import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.List;
 
 import javax.swing.Box;
 import javax.swing.JComboBox;
@@ -44,7 +45,7 @@ import org.cristalise.kernel.utils.Logger;
 
 public class ExecutionPane extends ItemTabPane implements ProxyObserver<Workflow> {
 
-    ArrayList<Job> jobList = null;
+    List<Job> jobList = null;
     Object jobLock = new Object();
     ActivityItem emptyAct = new ActivityItem();
     JLabel noActs = new JLabel("There are currently no activities that you can execute in this item.");
@@ -105,7 +106,7 @@ public class ExecutionPane extends ItemTabPane implements ProxyObserver<Workflow
             view.removeAll();
             activities = new ArrayList<ActivityItem>();
             try {
-                jobList = (sourceItem.getItem()).getJobList(MainFrame.userAgent);
+                jobList = (sourceItem.getItem()).getJobs(MainFrame.userAgent);
                 activitySelector.addItem(emptyAct);
                 for (Job thisJob : jobList) {
                     //Logger.msg(7, "ExecutionPane - loadJobList " + thisJob.hasOutcome() + "|" + thisJob.getSchemaName() + "|" + thisJob.getSchemaVersion() + "|");
@@ -187,7 +188,7 @@ public class ExecutionPane extends ItemTabPane implements ProxyObserver<Workflow
         else { // look to see if this form is now invalid
             // get the new joblist
             try {
-                jobList = (sourceItem.getItem()).getJobList(MainFrame.userAgent);
+                jobList = (sourceItem.getItem()).getJobs(MainFrame.userAgent);
             } catch (Exception ex) {
                 return;
             }

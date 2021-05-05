@@ -507,22 +507,46 @@ public class AgentProxy extends ItemProxy {
     }
 
     /**
-     * Retrieves the JobList of the Agent.
+     * Retrieves single persistent Job of the Agent.
      * 
-     * @return the JobList object
-     * @throws ObjectNotFoundException there is no event for the given id
+     * @param id of the persistent Job
+     * @return persistent Job of the Agent
+     * @throws ObjectNotFoundException there is no persistent Job for the given id
+     */
+    public Job getJob(String id) throws ObjectNotFoundException {
+        return getJob(id, null);
+    }
+
+    /**
+     * Retrieves single persistent Job of the Agent. This method can be used in server side Script 
+     * to find uncommitted changes during the active transaction.
+     * 
+     * @param id of the Job
+     * @param transKey the transaction key
+     * @return persistent Job of the Agent
+     * @throws ObjectNotFoundException there is no Job for the given id
+     */
+    public Job getJob(String id, TransactionKey transKey) throws ObjectNotFoundException {
+        return (Job) getObject(JOB+"/"+id, transKey == null ? transactionKey : transKey);
+    }
+
+    /**
+     * Retrieves the persistent JobList of the Agent.
+     * 
+     * @return the persistent JobList object
+     * @throws ObjectNotFoundException there is no persistent JobList for the Agent
      */
     public JobList getJobList() throws ObjectNotFoundException {
         return (JobList) getObject(JOB, transactionKey);
     }
 
     /**
-     * Retrieves the JobList of the Agent. This method can be used in server side Script to find uncommitted changes
-     * during the active transaction.
+     * Retrieves the persistent JobList of the Agent. This method can be used in server side Script
+     * to find uncommitted changes during the active transaction.
      * 
      * @param transKey the transaction key
-     * @return the JobList object
-     * @throws ObjectNotFoundException there is no event for the given id
+     * @return the persistent JobList object
+     * @throws ObjectNotFoundException there is no persistent JobList for the Agent
      */
     public JobList getJobList(TransactionKey transKey) throws ObjectNotFoundException {
         return (JobList) getObject(JOB, transKey == null ? transactionKey : transKey);

@@ -32,7 +32,7 @@ import io.vertx.core.json.JsonArray;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-public class StorageInvalidatorVerticle extends AbstractVerticle {
+public class CacheInvalidatorVerticle extends AbstractVerticle {
 
     @Override
     public void start(Promise<Void> startPromise) throws Exception {

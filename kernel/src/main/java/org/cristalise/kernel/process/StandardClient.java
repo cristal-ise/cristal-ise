@@ -26,7 +26,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.cristalise.kernel.common.InvalidDataException;
 import org.cristalise.kernel.entity.proxy.AgentProxy;
 import org.cristalise.kernel.lifecycle.instance.stateMachine.StateMachine;
-import org.cristalise.kernel.persistency.StorageInvalidatorVerticle;
+import org.cristalise.kernel.persistency.CacheInvalidatorVerticle;
 import org.cristalise.kernel.process.resource.ResourceLoader;
 import org.cristalise.kernel.utils.LocalObjectLoader;
 
@@ -44,7 +44,7 @@ abstract public class StandardClient extends AbstractMain {
         int ivInstances = Gateway.getProperties().getInt("ProxyMessageVerticle.instances", 1);
         DeploymentOptions options = new DeploymentOptions().setInstances(ivInstances);
 
-        Gateway.getVertx().deployVerticle(StorageInvalidatorVerticle.class, options);
+        Gateway.getVertx().deployVerticle(CacheInvalidatorVerticle.class, options);
     }
 
     /**

@@ -25,8 +25,10 @@ import static org.cristalise.kernel.persistency.ClusterType.JOB;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.commons.lang3.StringUtils;
 import org.cristalise.kernel.entity.C2KLocalObject;
 import org.cristalise.kernel.lookup.AgentPath;
+import org.cristalise.kernel.lookup.ItemPath;
 import org.cristalise.kernel.persistency.C2KLocalObjectMap;
 import org.cristalise.kernel.persistency.TransactionKey;
 
@@ -34,6 +36,10 @@ import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class JobList extends C2KLocalObjectMap<Job> implements C2KLocalObject {
+
+    public JobList(AgentPath agentPath) {
+        super(agentPath, JOB);
+    }
 
     public JobList(AgentPath agentPath, TransactionKey transactionKey) {
         super(agentPath, JOB, transactionKey);
@@ -70,20 +76,43 @@ public class JobList extends C2KLocalObjectMap<Job> implements C2KLocalObject {
      * @param otherJob use this Job's itemPath and stepPath for search
      * @return the current list of Job keys matching the inputs
      */
-    public synchronized List<String> getKeysForStep(Job otherJob) {
+    public List<String> getKeysForStep(Job otherJob) {
+        if (otherJob == null) return new ArrayList<String>();
+        return getKeysForStep(otherJob.getItemPath(), otherJob.getStepName(), null);
+    }
+
+    /**
+     * Find the list of JobKeys for the given Item and its Step
+     * 
+     * @param itemPath for search
+     * @param stepPath for search, can be null
+     * @param transitionId for search, can be null
+     * @return the current list of Job keys matching the inputs
+     */
+    public synchronized List<String> getKeysForStep(ItemPath itemPath, String stepPath, Integer transitionId) {
         List<String> jobKeys = new ArrayList<String>();
 
-        log.debug("getKeysForStep() - job:{}", otherJob);
+        log.debug("getKeysForStep() - item:{} step:{}", itemPath, stepPath);
 
-        if (otherJob == null) return jobKeys;
-
-        for (String jid:  keySet()) {
+        for (String jid: keySet()) {
             Job currentJob = get(jid);
+            boolean addJob = false;
 
-            if (currentJob.getItemPath().equals(otherJob.getItemPath()) && 
-                currentJob.getStepPath().equals(otherJob.getStepPath()))
-            {
-                log.trace("getKeysForStep() - adding job:{}", jid);
+            if (currentJob.getItemPath().equals(itemPath)) {
+                if (StringUtils.isBlank(stepPath)) {
+                    addJob = true;
+                }
+                else if(currentJob.getStepPath().equals(stepPath)) {
+                    if (transitionId == null) {
+                        addJob = true;
+                    }
+                    else if (currentJob.getTransition().getId() == transitionId) {
+                        addJob = true;
+                    }
+                }
+            }
+            if (addJob) {
+                log.trace("getKeysForStep() - adding job:{}", currentJob);
                 jobKeys.add(jid);
             }
         }

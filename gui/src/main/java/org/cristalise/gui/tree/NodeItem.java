@@ -27,6 +27,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.StringTokenizer;
 
 import javax.swing.JMenuItem;
@@ -177,7 +178,7 @@ public class NodeItem extends Node implements Transferable {
 			popup.addSeparator();
 		}
 		try {
-            ArrayList<Job> jobList = myItem.getJobList(MainFrame.userAgent);
+            List<Job> jobList = myItem.getJobs(MainFrame.userAgent);
             ArrayList<String> already = new ArrayList<String>();
 			if (jobList.size() > 0) {
 	            for (Job thisJob : jobList) {

@@ -18,7 +18,7 @@
  *
  * http://www.fsf.org/licensing/licenses/lgpl.html
  */
-package org.cristalise.kernel.persistency;
+package org.cristalise.storage;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -32,6 +32,9 @@ import org.cristalise.kernel.entity.agent.JobList;
 import org.cristalise.kernel.events.History;
 import org.cristalise.kernel.lookup.AgentPath;
 import org.cristalise.kernel.lookup.ItemPath;
+import org.cristalise.kernel.persistency.ClusterStorage;
+import org.cristalise.kernel.persistency.ClusterType;
+import org.cristalise.kernel.persistency.TransactionKey;
 import org.cristalise.kernel.process.AbstractMain;
 
 import lombok.extern.slf4j.Slf4j;
@@ -54,7 +57,6 @@ public abstract class TransactionalClusterStorageBase extends ClusterStorage{
         locks = new HashMap<ItemPath, TransactionKey>();
         pendingTransactions = new HashMap<TransactionKey, ArrayList<TransactionEntry>>();
     }
-
 
     /**
      * Retrieves the ids of the next level of a cluster

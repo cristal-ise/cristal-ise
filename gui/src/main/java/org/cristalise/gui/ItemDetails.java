@@ -198,7 +198,6 @@ public class ItemDetails extends JPanel implements ChangeListener, Runnable {
     public void closeTab() {
     	desktopManager.remove(myItem.getItemPath());
     	Logger.msg(5,"Remove master Tab :"+myItem.getType()+ " SysKey "+myItem.getItemPath());
-        myItem.getItem().dumpSubscriptions(5);
 	}
 
     public void actionPerformed(ActionEvent e) {

@@ -20,6 +20,9 @@
  */
 package org.cristalise.lookup.ldap;
 
+import static org.cristalise.kernel.entity.proxy.ProxyMessage.Type.ADD;
+import static org.cristalise.kernel.entity.proxy.ProxyMessage.Type.DELETE;
+
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -247,8 +250,7 @@ public class LDAPLookup implements LookupManager {
     }
 
     @Override
-    public void add(Path path, TransactionKey transactionKey)
-            throws ObjectCannotBeUpdated, ObjectAlreadyExistsException {
+    public void add(Path path, TransactionKey transactionKey) throws ObjectCannotBeUpdated, ObjectAlreadyExistsException {
         try {
             checkLDAPContext(path);
             LDAPAttributeSet attrSet = createAttributeSet(path);
@@ -257,7 +259,7 @@ public class LDAPLookup implements LookupManager {
 
             // FIXME: Check if this is correct to call in the Lookup implementation
             if (path instanceof DomainPath)
-                Gateway.sendProxyEvent(new ProxyMessage(null, path.toString(), ProxyMessage.ADDED));
+                Gateway.sendProxyEvent(new ProxyMessage(null, path.toString(), ADD));
         }
         catch (LDAPException ex) {
             if (ex.getResultCode() == LDAPException.ENTRY_ALREADY_EXISTS)
@@ -279,7 +281,7 @@ public class LDAPLookup implements LookupManager {
             throw new ObjectCannotBeUpdated("Cannot delete Path '" + path.getStringPath() + "' - LDAPException:" + ex.getLDAPErrorMessage());
         }
         if (path instanceof DomainPath) {
-            Gateway.sendProxyEvent(new ProxyMessage(null, path.toString(), ProxyMessage.DELETED));
+            Gateway.sendProxyEvent(new ProxyMessage(null, path.toString(), DELETE));
         }
     }
 

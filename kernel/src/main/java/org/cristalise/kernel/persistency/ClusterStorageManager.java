@@ -20,6 +20,8 @@
  */
 package org.cristalise.kernel.persistency;
 
+import static org.cristalise.kernel.entity.proxy.ProxyMessage.Type.ADD;
+import static org.cristalise.kernel.entity.proxy.ProxyMessage.Type.DELETE;
 import static org.cristalise.kernel.persistency.ClusterType.HISTORY;
 import static org.cristalise.kernel.persistency.ClusterType.JOB;
 
@@ -453,7 +455,7 @@ public class ClusterStorageManager {
 
         cache.put(getFullPath(itemPath, path), obj);
 
-        ProxyMessage message = new ProxyMessage(itemPath, path, ProxyMessage.ADDED);
+        ProxyMessage message = new ProxyMessage(itemPath, path, ADD);
 
         if (transactionKey != null) keepMessageForLater(message, transactionKey);
         else                        Gateway.sendProxyEvent(message);
@@ -487,7 +489,7 @@ public class ClusterStorageManager {
 
         cache.invalidate(getFullPath(itemPath, path));
 
-        ProxyMessage message = new ProxyMessage(itemPath, path, ProxyMessage.DELETED);
+        ProxyMessage message = new ProxyMessage(itemPath, path, DELETE);
 
         if (transactionKey != null) keepMessageForLater(message, transactionKey);
         else                        Gateway.sendProxyEvent(message);

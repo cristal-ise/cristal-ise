@@ -20,10 +20,14 @@
  */
 package org.cristalise.kernel.entity.proxy;
 
+import static org.cristalise.kernel.entity.proxy.ProxyMessage.Type.ADD;
+import static org.cristalise.kernel.entity.proxy.ProxyMessage.Type.DELETE;
+
 import org.apache.commons.lang3.StringUtils;
 import org.cristalise.kernel.common.InvalidDataException;
 import org.cristalise.kernel.lookup.InvalidItemPathException;
 import org.cristalise.kernel.lookup.ItemPath;
+import org.cristalise.kernel.persistency.ClusterType;
 
 import lombok.Getter;
 import lombok.Setter;
@@ -31,31 +35,36 @@ import lombok.Setter;
 
 @Getter @Setter
 public class ProxyMessage {
-    
+
+    public enum Type {ADD, DELETE};
     public static final String ebAddress = "cristalise-proxyMessage";
 
-    // special server message paths
-    public static final String  BYEPATH  = "bye";
-    public static final String  ADDPATH  = "add";
-    public static final String  DELPATH  = "del";
-    public static final String  PINGPATH = "ping";
-    public static final boolean ADDED    = false;
-    public static final boolean DELETED  = true;
-
+    /**
+     * The reference of the changed Item. Can be null for messages of Lookup changes
+     */
     private ItemPath itemPath = null;
-    private String   path     = "";
-    private String   server   = null;
-    private boolean  state    = ADDED;
+    /**
+     * Either the clusterPath of the changed Item, or DomainPath in case of a Lookup change
+     */
+    private String path  = "";
+    /**
+     The type pf the the actual operation
+     */
+    private Type messageType = ADD;
+    /**
+     * If the message was from the ClusterStore or from the Lookup DomainPath change
+     */
+    private boolean clusterStoreMesssage = true;
 
     public ProxyMessage() {
         super();
     }
 
-    public ProxyMessage(ItemPath itemPath, String path, boolean state) {
+    public ProxyMessage(ItemPath itemPath, String path, Type type) {
         this();
         setItemPath(itemPath);
         setPath(path);
-        setState(state);
+        setMessageType(type);
     }
 
     public ProxyMessage(String line) throws InvalidDataException {
@@ -63,31 +72,73 @@ public class ProxyMessage {
 
         String[] tok = line.split(":", 2);
 
-        if (tok.length != 2)
+        if (tok.length != 2) {
             throw new InvalidDataException("String '" + line + "' is not a valid proxy message (i.e. ':' is used as separator");
+        }
 
-        if (tok[0].length() > 0 && !tok[0].equals("tree")) {
-            try {
-                itemPath = new ItemPath(tok[0]);
+        if (tok[0].length() > 0) {
+            if (tok[0].equals("tree")) {
+                clusterStoreMesssage = false;
             }
-            catch (InvalidItemPathException e) {
-                throw new InvalidDataException("Item in proxy message " + line + " was not valid");
+            else {
+                try {
+                    itemPath = new ItemPath(tok[0]);
+                }
+                catch (InvalidItemPathException e) {
+                    throw new InvalidDataException("Item in proxy message " + line + " was not valid");
+                }
             }
         }
+
         path = tok[1];
 
         if (path.startsWith("-")) {
-            state = DELETED;
+            messageType = DELETE;
             path = path.substring(1);
         }
     }
 
     /**
-     * This is also used to create the message sent to the subscribers, therfore the format cannot
+     * 
+     * @return
+     */
+    public ClusterType getClusterType() {
+        if (clusterStoreMesssage) return ClusterType.valueOf(path.substring(0, path.indexOf('/')));
+        else                      return null;
+    }
+
+    /**
+     * 
+     * @return
+     */
+    public String getObjectKey() {
+        if (clusterStoreMesssage) return path.substring(path.indexOf('/') + 1);
+        else                      return path;
+    }
+
+    /**
+     * 
+     * @return
+     */
+    public String getLocalEventBusAddress() {
+        if (clusterStoreMesssage) return itemPath.getUUID() + "/" + getClusterType();
+        else                      return "tree";
+    }
+
+    /**
+     * 
+     * @return
+     */
+    public String getLocalEventBusMessage() {
+        return getObjectKey() + ":" + messageType;
+    }
+
+    /**
+     * This is also used to create the message sent to the subscribers, therefore the format cannot
      * be changed without changing the parsing 
      */
     @Override
     public String toString() {
-        return (itemPath == null ? "tree" : itemPath.getUUID()) + ":" + (state ? "-" : "") + path;
+        return (itemPath == null ? "tree" : itemPath.getUUID()) + ":" + (messageType == DELETE ? "-" : "") + path;
     }
 }

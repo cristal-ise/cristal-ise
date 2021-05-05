@@ -20,20 +20,17 @@
  */
 package org.cristalise.kernel.process;
 
+import static org.cristalise.kernel.entity.proxy.ProxyMessage.Type.ADD;
 import static org.cristalise.kernel.persistency.ClusterType.JOB;
-
-import java.util.HashMap;
 
 import org.cristalise.kernel.common.CriseVertxException;
 import org.cristalise.kernel.common.InvalidDataException;
 import org.cristalise.kernel.common.InvalidTransitionException;
 import org.cristalise.kernel.common.ObjectNotFoundException;
-import org.cristalise.kernel.entity.C2KLocalObject;
 import org.cristalise.kernel.entity.agent.Job;
 import org.cristalise.kernel.entity.proxy.AgentProxy;
 import org.cristalise.kernel.entity.proxy.ProxyMessage;
 import org.cristalise.kernel.lifecycle.instance.stateMachine.StateMachine;
-import org.cristalise.kernel.persistency.ClusterStorage;
 
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.Promise;
@@ -43,17 +40,20 @@ import lombok.extern.slf4j.Slf4j;
 
 /**
  * Provides a very basic automatic execution of Scripts associated with the Jobs (Activities).
- * It is based on the Default StateMachine, and it implements the following sequence:
+ * It listens to the proxyMessage channel for cluster storage updates of Jobs of the UseCode Agent.
+ * The processing of ProxyMessages assumes that a single message contains Jobs of the same Item.
+ * <p>
+ * Execution is based on the Default StateMachine, and it implements the following sequence:
  * <pre>
  * 1. assessStartConditions()
  * 2. start()
  * 3. complete()
- * 4. in case of error/exception execute error transition which is suspend for default statemachine
+ * 4. in case of error/exception during complete() execute error transition (e.g. Suspend for default StateMachine)
  */
 @Slf4j
 public class UserCodeVerticle extends AbstractVerticle {
 
-    AgentProxy agent;
+    protected final AgentProxy userCode;
 
     private final int START;
     private final int COMPLETE;
@@ -74,14 +74,13 @@ public class UserCodeVerticle extends AbstractVerticle {
      * It is always prefixed like this: eg: UserCode.StateMachine.errorTransition
      */
     public static final String STATE_MACHINE_ERROR_TRANSITION = "StateMachine.errorTransition";
-
     /**
      * Defines the value (value:{@value}) to to be used in CRISTAL Property to ignore the Jobs of that Transition
      * eg: UserCode.StateMachine.resumeTransition = USERCODE_IGNORE
      */
     public static final String USERCODE_IGNORE = "USERCODE_IGNORE";
 
-    protected final HashMap<String, C2KLocalObject> jobs = new HashMap<String, C2KLocalObject>();
+    //protected final JobList jobList;
 
     /**
      * Constructor set up the user code
@@ -92,50 +91,13 @@ public class UserCodeVerticle extends AbstractVerticle {
      * @throws ObjectNotFoundException StateMachine was not found
      */
     public UserCodeVerticle(String propPrefix, AgentProxy uc, StateMachine sm) throws InvalidDataException, ObjectNotFoundException {
-        agent = uc;
+        //jobList = new JobList(uc.getPath());
+        userCode = uc;
 
         //default values are valid for Transitions compatible with kernel provided Default StateMachine
         START    = getValidTransitionID(sm, propPrefix+"."+STATE_MACHINE_START_TRANSITION,    "Start");
         ERROR    = getValidTransitionID(sm, propPrefix+"."+STATE_MACHINE_ERROR_TRANSITION,    "Suspend");
         COMPLETE = getValidTransitionID(sm, propPrefix+"."+STATE_MACHINE_COMPLETE_TRANSITION, "Complete");
-    }
-
-    private boolean shallTrigger(ProxyMessage msg) {
-        if (msg.getItemPath() == null) return false;
-
-        return 
-            msg.getItemPath().equals(agent.getPath()) && 
-            msg.getPath().startsWith(JOB.getName()) &&
-            msg.isState();
-    }
-
-    @Override
-    public void start(Promise<Void> startPromise) throws Exception {
-        EventBus eb = vertx.eventBus();
-
-        eb.consumer(ProxyMessage.ebAddress, message -> {
-            Object body = message.body();
-            log.trace("handler() - message.body:{}", body);
-
-            try {
-                boolean triggerUC = false;
-
-                for (Object msg: (JsonArray)body) {
-                    triggerUC = shallTrigger(new ProxyMessage((String) msg));
-                    if (triggerUC) break;
-                }
-
-                if (triggerUC) {
-                    run();
-                }
-            }
-            catch (Exception e) {
-                log.error("handler()", e);
-            }
-        });
-
-        log.info("start()");
-        startPromise.complete();
     }
 
     /**
@@ -153,23 +115,77 @@ public class UserCodeVerticle extends AbstractVerticle {
         else                                        return sm.getValidTransitionID(propertyValue);
     }
 
-    public void run() {
-        Job thisJob = getActualJob();
+    private boolean messageRelevant(ProxyMessage msg) {
+        return 
+            msg.isClusterStoreMesssage() 
+            && msg.getItemPath().equals(userCode.getPath())
+            && msg.getClusterType() == JOB
+            && msg.getMessageType() == ADD;
+    }
 
-        if (thisJob != null) {
-            String jobKey = thisJob.getItemPath() + ":" + thisJob.getStepPath();
-            int transitionId = thisJob.getTransition().getId();
+    private boolean jobRelevant(Job selected, Job other) {
+        int otherTransId = other.getTransition().getId();
+
+        if (selected == null) {
+            return otherTransId == START || otherTransId == COMPLETE;
+        }
+        else {
+            int selectedTransId = selected.getTransition().getId();
+
+            //This makes sure that Jobs are completed before starting a new one
+            if (selectedTransId == COMPLETE) return false;
+            else                             return otherTransId == COMPLETE;
+        }
+    }
+
+    @Override
+    public void start(Promise<Void> startPromise) throws Exception {
+        EventBus eb = vertx.eventBus();
+
+        eb.consumer(ProxyMessage.ebAddress, message -> {
+            Object body = message.body();
+            log.trace("handler() - message.body:{}", body);
 
             try {
-                if (transitionId == START) start(thisJob, jobKey);
-                else if (transitionId == COMPLETE) complete(thisJob, jobKey);
+                Job selectedJob = null;
+                Job errorJob = null;
+
+                for (Object element: (JsonArray)body) {
+                    ProxyMessage msg = new ProxyMessage((String)element);
+                    if (messageRelevant(msg)) {
+                        Job otherJob = userCode.getJob(msg.getObjectKey());
+
+                        if (jobRelevant(selectedJob, otherJob)) selectedJob = otherJob;
+                        if (otherJob.getTransition().getId() == ERROR) errorJob = otherJob;
+                    }
+                }
+
+                final Job finalJob = selectedJob; // this is required to compile
+                final Job finalErrorJob = errorJob; // this is required to compile
+
+                if (finalJob != null) vertx.executeBlocking((result) -> process(finalJob, finalErrorJob));
             }
-            catch (InvalidTransitionException ex) {
-                // must have already been done by someone else - ignore
+            catch (Exception e) {
+                log.error("handler()", e);
             }
-            catch (Exception ex) {
-                log.error("Error executing job:" + thisJob, ex);
-            }
+        });
+
+        startPromise.complete();
+        log.info("start() - deployed '{}' consumer", ProxyMessage.ebAddress);
+    }
+
+    protected void process(Job thisJob, Job erroJob) {
+        int transitionId = thisJob.getTransition().getId();
+
+        try {
+            if (transitionId == START) start(thisJob);
+            else if (transitionId == COMPLETE) complete(thisJob, erroJob);
+        }
+        catch (InvalidTransitionException ex) {
+            // must have already been done by someone else - ignore
+        }
+        catch (Exception ex) {
+            log.error("Error executing job:" + thisJob, ex);
         }
     }
 
@@ -178,14 +194,13 @@ public class UserCodeVerticle extends AbstractVerticle {
      * for Jobs of Start Transition.
      *
      * @param thisJob the actual Job to be executed.
-     * @param jobKey the key of the job (i.e. itemPath:stepPat)
      */
-    public void start(Job thisJob, String jobKey) throws CriseVertxException {
+    public void start(Job thisJob) throws CriseVertxException {
         log.debug("start() - job:"+thisJob);
 
         if (assessStartConditions(thisJob)) {
             log.debug("start() - Attempting to start");
-            agent.execute(thisJob);
+            userCode.execute(thisJob);
         }
         else {
             log.debug("start() - Start conditions failed "+thisJob.getStepName()+" in "+thisJob.getItemPath());
@@ -197,12 +212,12 @@ public class UserCodeVerticle extends AbstractVerticle {
      * for Jobs of Complete Transition.
      *
      * @param thisJob the actual Job to be executed.
-     * @param jobKey the key of the job (i.e. itemPath:stepPat)
+     * @param erroJob the error Job to be executed in case of error
      */
-    public void complete(Job thisJob, String jobKey) throws Exception {
+    public void complete(Job thisJob, Job erroJob) throws Exception {
         log.debug("complete() - job:"+thisJob);
 
-        runUserCodeLogic(thisJob, getErrorJob(thisJob, ERROR));
+        runUserCodeLogic(thisJob, erroJob);
     }
 
     /**
@@ -217,75 +232,14 @@ public class UserCodeVerticle extends AbstractVerticle {
     }
 
     /**
-     * Override this mehod to implement application specific (business) logic
+     * Override this method to implement application specific (business) logic
      * Default implementation - the agent execute any scripts, query or both defined
      *
      * @param job the actual Job to be executed.
      * @param errorJob Job to be executed in case of an error
      */
     public void runUserCodeLogic(Job job, Job errorJob) throws CriseVertxException {
-        if (errorJob == null) agent.execute(job);
-        else                  agent.execute(job, errorJob);
-    }
-
-    /**
-     * Gets the next possible Job based on the Transitions of the Default StateMachine
-     *
-     * @return the actual Job
-     */
-    protected Job getActualJob() {
-        Job thisJob = null;
-
-        if (jobs.size() > 0) {
-            thisJob = getJob(jobs, COMPLETE);
-            if (thisJob == null) thisJob = getJob(jobs, START);
-
-            if (thisJob == null) {
-                log.error("No supported jobs, but joblist is not empty! Discarding remaining jobs");
-                jobs.clear();
-            }
-            else {
-                jobs.remove(ClusterStorage.getPath(thisJob));
-            }
-        }
-        return thisJob;
-    }
-
-    /**
-     *
-     * @param completeJob
-     * @param errorTrans
-     * @return
-     */
-    private Job getErrorJob(Job completeJob, int errorTrans) {
-        Job errorJob = null;
-
-        for (C2KLocalObject c2kLocalObject : jobs.values()) {
-            Job thisJob = (Job)c2kLocalObject;
-            if (thisJob.getItemUUID().equals(completeJob.getItemUUID()) && thisJob.getTransition().getId() == errorTrans) {
-                log.debug("getErrorJob() - job:"+thisJob);
-                errorJob = thisJob;
-            }
-        }
-
-        return errorJob;
-    }
-
-    /**
-     *
-     * @param jobs
-     * @param transition
-     * @return
-     */
-    private Job getJob(HashMap<String, C2KLocalObject> jobs, int transition) {
-        for (C2KLocalObject c2kLocalObject : jobs.values()) {
-            Job thisJob = (Job)c2kLocalObject;
-            if (thisJob.getTransition().getId() == transition) {
-                log.debug("=================================================================");
-                log.debug("getJob() - job:"+thisJob);
-                return thisJob;
-            }
-        }
-        return null;
+        if (errorJob == null) userCode.execute(job);
+        else                  userCode.execute(job, errorJob);
     }
 }
