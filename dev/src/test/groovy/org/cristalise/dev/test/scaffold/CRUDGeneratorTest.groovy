@@ -25,6 +25,7 @@ import org.cristalise.dev.scaffold.CRUDGenerator
 import org.cristalise.kernel.process.Gateway
 import org.eclipse.jgit.api.Git
 import org.eclipse.jgit.api.Status
+import org.junit.AfterClass
 import org.junit.BeforeClass
 import org.junit.Test
 
@@ -43,7 +44,12 @@ class CRUDGeneratorTest {
         props.put('Resource.moduleUseFileNameWithVersion', 'dev,devtest')
         Gateway.init(props);
     }
-    
+
+    @AfterClass
+    public static void teardown() {
+        Gateway.close()
+    }
+
     public boolean getCheckGitStatus() {
         Status gitStatus = gitRepo.status().call()
 
