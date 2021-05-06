@@ -192,7 +192,7 @@ public class Gateway extends ProxyManager
                 if (ItemPath.isUUID(item)) ip = getLookup().getItemPath(item);
                 else                       ip = getLookup().resolvePath(new DomainPath(item));
 
-                if (cmdName.startsWith("storage-")) getStorage().clearCache(ip, null);
+                if (cmdName.startsWith("storage-")) getStorage().clearCache(ip);
                 else                                ; //getProxyManager().clearCache(ip);
 
                 process.write("Command "+cmdName+" was executed for item:"+item+"\n");
@@ -249,7 +249,7 @@ public class Gateway extends ProxyManager
      * 
      */
     static private void createTelnetShellService(String host, int port) {
-        addClearCacheCommand("proxy-clearCache");
+        // addClearCacheCommand("proxy-clearCache");
         addClearCacheCommand("storage-clearCache");
 
         ShellServiceOptions options = new ShellServiceOptions()

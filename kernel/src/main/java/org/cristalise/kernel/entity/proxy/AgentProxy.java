@@ -353,8 +353,7 @@ public class AgentProxy extends ItemProxy {
         };
 
         if (Arrays.asList(clearCacheSteps).contains(predefStep)) {
-            Gateway.getStorage().clearCache(item.getPath(), null);
-            //Gateway.getProxyManager().clearCache(item.getPath());
+            Gateway.getStorage().clearCache(item.getPath());
         }
 
         return result;

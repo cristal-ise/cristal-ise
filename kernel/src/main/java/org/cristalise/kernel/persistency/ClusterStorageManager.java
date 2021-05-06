@@ -24,6 +24,7 @@ import static org.cristalise.kernel.entity.proxy.ProxyMessage.Type.ADD;
 import static org.cristalise.kernel.entity.proxy.ProxyMessage.Type.DELETE;
 import static org.cristalise.kernel.persistency.ClusterType.HISTORY;
 import static org.cristalise.kernel.persistency.ClusterType.JOB;
+import static org.cristalise.kernel.persistency.ClusterType.VIEWPOINT;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -45,12 +46,15 @@ import org.cristalise.kernel.entity.proxy.ProxyMessage;
 import org.cristalise.kernel.events.History;
 import org.cristalise.kernel.lookup.AgentPath;
 import org.cristalise.kernel.lookup.ItemPath;
+import org.cristalise.kernel.persistency.outcome.Viewpoint;
 import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.process.auth.Authenticator;
 import org.cristalise.kernel.querying.Query;
 
+import com.google.common.base.Predicates;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
+import com.google.common.collect.Sets;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -390,6 +394,17 @@ public class ClusterStorageManager {
         C2KLocalObject result;
         String fullPath = getFullPath(itemPath, path);
 
+        // special case for Viewpoint- When path ends with /data it returns referenced Outcome instead of Viewpoint
+        if (path.startsWith(VIEWPOINT.getName()) && path.endsWith("/data")) {
+            StringTokenizer tok = new StringTokenizer(path,"/");
+            if (tok.countTokens() == 4) { // to not catch viewpoints called 'data'
+                Viewpoint view = (Viewpoint)get(itemPath, path.substring(0, path.lastIndexOf("/")), transactionKey);
+
+                if (view != null) return view.getOutcome();
+                else              return null;
+            }
+        }
+
         try {
             result = cache.get(fullPath, new Callable<C2KLocalObject>() {
                 @Override
@@ -516,6 +531,18 @@ public class ClusterStorageManager {
         }
     }
 
+    public void clearCache(ItemPath itemPath) {
+        if (itemPath == null) {
+            log.warn("clearCache() - either itemPath was null, NOTHING done");
+            return;
+        }
+
+        Set<String> keys = Sets.filter(cache.asMap().keySet(), Predicates.containsPattern("^"+itemPath.getUUID()));
+
+        log.debug( "clearCache({}) - removing {} entries", itemPath, keys.size());
+        cache.invalidateAll(keys);
+    }
+
     /**
      * Clear the cache of the given cluster content of the given Item.
      * 
@@ -523,6 +550,11 @@ public class ClusterStorageManager {
      * @param path the identifier of the cluster content to be cleared. Cannot not be nul.
      */
     public void clearCache(ItemPath itemPath, String path) {
+        if (itemPath == null || path == null) {
+            log.warn("clearCache() - either itemPath or path was null, NOTHING done");
+            return;
+        }
+
         String fullPath = getFullPath(itemPath, path);
         log.debug( "clearCache() - removing {}", fullPath);
         cache.invalidate(fullPath);
