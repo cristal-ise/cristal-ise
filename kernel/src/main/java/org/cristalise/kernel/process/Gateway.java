@@ -30,7 +30,6 @@ import java.util.Properties;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
 import org.apache.commons.lang3.StringUtils;
@@ -628,6 +627,10 @@ public class Gateway extends ProxyManager
      * @param messages 
      */
     public static void sendProxyEvent(Set<ProxyMessage> messages) {
+        if (getVertx() == null) {
+            log.warn("sendProxyEvent() -  vertx was not initialised, messages were not sent:{}", messages);
+            return;
+        }
         JsonArray msgArray = new JsonArray();
         for (ProxyMessage m: messages) msgArray.add(m.toString());
         getVertx().eventBus().publish(ProxyMessage.ebAddress, msgArray);
