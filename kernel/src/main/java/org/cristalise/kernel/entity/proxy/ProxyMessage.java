@@ -103,7 +103,7 @@ public class ProxyMessage {
      * @return
      */
     public ClusterType getClusterType() {
-        if (clusterStoreMesssage) return ClusterType.valueOf(path.substring(0, path.indexOf('/')));
+        if (clusterStoreMesssage) return ClusterType.getValue(path.substring(0, path.indexOf('/')));
         else                      return null;
     }
 

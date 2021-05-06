@@ -20,6 +20,8 @@
  */
 package org.cristalise.gui.tree;
 
+import static org.cristalise.kernel.persistency.ClusterType.COLLECTION;
+
 import java.util.ArrayList;
 
 import javax.swing.tree.DefaultMutableTreeNode;
@@ -31,58 +33,73 @@ import org.cristalise.kernel.collection.CollectionMember;
 import org.cristalise.kernel.collection.Dependency;
 import org.cristalise.kernel.common.ObjectNotFoundException;
 import org.cristalise.kernel.entity.proxy.ItemProxy;
-import org.cristalise.kernel.entity.proxy.MemberSubscription;
-import org.cristalise.kernel.entity.proxy.ProxyObserver;
 import org.cristalise.kernel.lifecycle.instance.predefined.AddMembersToCollection;
 import org.cristalise.kernel.lookup.ItemPath;
 import org.cristalise.kernel.lookup.Path;
-import org.cristalise.kernel.persistency.ClusterType;
 import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.utils.CastorHashMap;
 import org.cristalise.kernel.utils.KeyValuePair;
 
+import io.vertx.core.Vertx;
+import lombok.extern.slf4j.Slf4j;
 
-public class NodeCollection extends Node implements ProxyObserver<Collection<? extends CollectionMember>> {
+@Slf4j
+public class NodeCollection extends Node {
 
-    ItemProxy parent;
+    ItemProxy                              parent;
     Collection<? extends CollectionMember> thisCollection;
-    String path;
+    String                                 path;
 
     public NodeCollection(ItemProxy parent, String name, ItemTabManager desktop) {
-    	super(desktop);
+        super(desktop);
         this.parent = parent;
         this.name = name;
-        this.path = parent.getPath()+"/"+ClusterType.COLLECTION+"/"+name+"/last";
+        this.path = parent.getPath() + "/" + COLLECTION + "/" + name + "/last";
         createTreeNode();
         this.makeExpandable();
+
+        Vertx vertx = Gateway.getVertx();
+        vertx.eventBus().localConsumer(parent.getPath().getUUID() + "/" + COLLECTION, message -> {
+            String[] tokens = ((String) message.body()).split(":");
+             String collPath = tokens[0];
+
+            if (tokens[1].equals("DELETE")) return;
+
+            vertx.executeBlocking(promise -> {
+                try {
+                    add(parent.getCollection(collPath));
+                }
+                catch (ObjectNotFoundException e) {
+                    log.error("", e);
+                }
+                promise.complete();
+            }, res -> {
+                //
+            });
+        });
     }
-    
+
     public NodeCollection(ItemProxy parent, Collection<? extends CollectionMember> coll, ItemTabManager desktop) {
-    	super(desktop);
-        this.parent = parent;
-        this.name = coll.getName();
-        this.path = parent.getPath()+"/"+ClusterType.COLLECTION+"/"+name+"/last";
-        createTreeNode();
-        this.makeExpandable();
+        this(parent, coll.getName(), desktop);
         add(coll);
     }
 
     @Override
-	public void loadChildren() {
+    public void loadChildren() {
         try {
             if (thisCollection == null) {
                 @SuppressWarnings("unchecked")
-                Collection<? extends CollectionMember> initColl = (Collection<? extends CollectionMember>)parent.getObject(ClusterType.COLLECTION+"/"+name+"/last");
+                Collection<? extends CollectionMember> initColl = (Collection<? extends CollectionMember>) parent
+                        .getObject(COLLECTION + "/" + name + "/last");
                 add(initColl);
             }
-            parent.subscribe(new MemberSubscription<Collection<? extends CollectionMember>>(this, ClusterType.COLLECTION.getName(), false));
-        } catch (ObjectNotFoundException ex) {
+        }
+        catch (ObjectNotFoundException ex) {
             end(false);
             return;
         }
     }
-    
-    @Override
+
     public void add(Collection<? extends CollectionMember> contents) {
         if (!contents.getName().equals(name)) return;
         this.type = contents.getClass().getSimpleName();
@@ -92,7 +109,7 @@ public class NodeCollection extends Node implements ProxyObserver<Collection<? e
             oldMembers = new ArrayList<CollectionMember>();
         else
             oldMembers = thisCollection.getMembers().list;
-        
+
         ArrayList<Path> currentPaths = new ArrayList<Path>();
         // add any missing paths
         for (CollectionMember newMember : newMembers) {
@@ -111,13 +128,13 @@ public class NodeCollection extends Node implements ProxyObserver<Collection<? e
                 remove(childPath);
             }
         }
-        
+
         thisCollection = contents;
         if (isDependency())
-            setToolTip(getPropertyToolTip(((Dependency)contents).getProperties()));
+            setToolTip(getPropertyToolTip(((Dependency) contents).getProperties()));
         end(false);
     }
-    
+
     public boolean addMember(ItemPath itemPath) {
         if (!isDependency()) return false;
         try {
@@ -126,12 +143,13 @@ public class NodeCollection extends Node implements ProxyObserver<Collection<? e
             dep.addMember(itemPath, memberProps1, "", null);
             MainFrame.userAgent.execute(parent, AddMembersToCollection.class, Gateway.getMarshaller().marshall(dep));
             return true;
-        } catch (Exception e1) {
+        }
+        catch (Exception e1) {
             MainFrame.exceptionDialog(e1);
             return false;
         }
     }
-    
+
     public static String getPropertyToolTip(CastorHashMap props) {
         if (props.size() == 0) return null;
         StringBuffer verStr = new StringBuffer("<html>");
@@ -142,18 +160,8 @@ public class NodeCollection extends Node implements ProxyObserver<Collection<? e
     }
 
     @Override
-	public DefaultMutableTreeNode getTreeNode() {
+    public DefaultMutableTreeNode getTreeNode() {
         return treeNode;
-    }
-
-    @Override
-    public void remove(String id) {
-        // TODO Auto-generated method stub
-    }
-
-    @Override
-    public void control(String control, String msg) {
-        // TODO Auto-generated method stub
     }
 
     public boolean isDependency() {

@@ -19,6 +19,10 @@
  * http://www.fsf.org/licensing/licenses/lgpl.html
  */
 package org.cristalise.gui.tabs;
+
+import static org.cristalise.kernel.persistency.ClusterType.OUTCOME;
+import static org.cristalise.kernel.persistency.ClusterType.VIEWPOINT;
+
 import java.awt.GridLayout;
 import java.awt.Insets;
 import java.awt.event.ActionEvent;
@@ -41,50 +45,92 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.SwingConstants;
 
+import org.cristalise.gui.ItemDetails;
 import org.cristalise.gui.MainFrame;
 import org.cristalise.gui.tabs.outcome.OutcomeException;
 import org.cristalise.gui.tabs.outcome.OutcomeHandler;
+import org.cristalise.kernel.common.ObjectNotFoundException;
 import org.cristalise.kernel.entity.C2KLocalObject;
-import org.cristalise.kernel.entity.proxy.MemberSubscription;
-import org.cristalise.kernel.entity.proxy.ProxyObserver;
 import org.cristalise.kernel.events.Event;
 import org.cristalise.kernel.persistency.ClusterType;
 import org.cristalise.kernel.persistency.outcome.Outcome;
 import org.cristalise.kernel.persistency.outcome.Schema;
 import org.cristalise.kernel.persistency.outcome.Viewpoint;
-import org.cristalise.kernel.utils.Logger;
+import org.cristalise.kernel.process.Gateway;
 
+import io.vertx.core.Vertx;
+import lombok.extern.slf4j.Slf4j;
 
-public class ViewpointPane extends ItemTabPane implements ItemListener, ActionListener, ProxyObserver<C2KLocalObject> {
+@Slf4j
+public class ViewpointPane extends ItemTabPane implements ItemListener, ActionListener {
 
-    JComboBox<String> schemas;
+    JComboBox<String>    schemas;
     JComboBox<Viewpoint> views;
     JComboBox<EventItem> events;
-    JLabel eventDetails;
-    JButton exportButton;
-    JButton viewButton;
+    JLabel               eventDetails;
+    JButton              exportButton;
+    JButton              viewButton;
 
-    ArrayList<String> schemaList;
+    ArrayList<String>    schemaList;
     ArrayList<Viewpoint> viewpointList;
     ArrayList<EventItem> eventList;
-    String currentSchema = null;
-    Outcome currentOutcome = null;
-    OutcomeHandler thisOutcome;
-    boolean suspendSelection = false;
+    String               currentSchema    = null;
+    Outcome              currentOutcome   = null;
+    OutcomeHandler       thisOutcome;
+    boolean              suspendSelection = false;
 
-    JPanel dataView = new JPanel(new GridLayout(1,1));
+    JPanel dataView = new JPanel(new GridLayout(1, 1));
 
     public ViewpointPane() {
-
         super("Data Viewer", "Outcome Browser");
         initialize();
+    }
+
+    @Override
+    public void setParent(ItemDetails parent) {
+        super.setParent(parent);
+
+        Vertx vertx = Gateway.getVertx();
+        vertx.eventBus().localConsumer(parent.getItemPath().getUUID() + "/" + VIEWPOINT, message -> {
+            String[] tokens = ((String) message.body()).split(":");
+            String viewPath = tokens[0];
+            if (tokens[1].equals("DELETE")) return;
+
+            vertx.executeBlocking(promise -> {
+                try {
+                    add(sourceItem.getItem().getObject(viewPath));
+                }
+                catch (ObjectNotFoundException e) {
+                    log.error("", e);
+                }
+                promise.complete();
+            }, res -> {
+                //
+            });
+        });
+        vertx.eventBus().localConsumer(parent.getItemPath().getUUID() + "/" + OUTCOME, message -> {
+            String[] tokens = ((String) message.body()).split(":");
+            String outcomePath = tokens[0];
+            if (tokens[1].equals("DELETE")) return;
+
+            vertx.executeBlocking(promise -> {
+                try {
+                    add(sourceItem.getItem().getObject(outcomePath));
+                }
+                catch (ObjectNotFoundException e) {
+                    log.error("", e);
+                }
+                promise.complete();
+            }, res -> {
+                //
+            });
+        });
     }
 
     public void initialize() {
         initPanel();
 
         // Set up view box
-
         Box viewBox = Box.createHorizontalBox();
 
         JLabel label = new JLabel("Outcome Type:", SwingConstants.LEFT);
@@ -146,7 +192,7 @@ public class ViewpointPane extends ItemTabPane implements ItemListener, ActionLi
     }
 
     @Override
-	public void reload() {
+    public void reload() {
         // reset boxes
         schemas.removeAllItems();
         views.removeAllItems();
@@ -160,35 +206,35 @@ public class ViewpointPane extends ItemTabPane implements ItemListener, ActionLi
     }
 
     @Override
-	public void run() {
+    public void run() {
         Thread.currentThread().setName("Viewpoint Pane Builder");
-        //Local object subscriptions
-        sourceItem.getItem().subscribe(new MemberSubscription<C2KLocalObject>(this, ClusterType.VIEWPOINT.getName(), false));
-        sourceItem.getItem().subscribe(new MemberSubscription<C2KLocalObject>(this, ClusterType.OUTCOME.getName(), false));
         clearView();
         schemas.addItem("--");
         currentSchema = null;
         schemaList = new ArrayList<String>();
         try {
-            String outcomeTypes = sourceItem.getItem().queryData(ClusterType.VIEWPOINT+"/all");
+            String outcomeTypes = sourceItem.getItem().queryData(ClusterType.VIEWPOINT + "/all");
             StringTokenizer tok = new StringTokenizer(outcomeTypes, ",");
-            int nonSystemSchemas = 0; String defaultSelection = null;
+            int nonSystemSchemas = 0;
+            String defaultSelection = null;
             while (tok.hasMoreTokens()) {
                 String thisType = tok.nextToken();
                 schemas.addItem(thisType);
                 schemaList.add(thisType);
                 if (thisType.equals("PredefinedStepOutcome") || thisType.equals("ItemInitialization"))
-                	continue;
-                nonSystemSchemas++; defaultSelection = thisType;
+                    continue;
+                nonSystemSchemas++;
+                defaultSelection = thisType;
             }
             if (nonSystemSchemas == 1) schemas.setSelectedItem(defaultSelection);
-        } catch (Exception e) {
-            Logger.msg(2, "No viewpoints found");
+        }
+        catch (Exception e) {
+            log.info("No viewpoints found");
         }
     }
 
     @Override
-	public void itemStateChanged(ItemEvent e) {
+    public void itemStateChanged(ItemEvent e) {
 
         Object selectedItem = e.getItem();
         if (e.getStateChange() == ItemEvent.DESELECTED) return;
@@ -196,11 +242,11 @@ public class ViewpointPane extends ItemTabPane implements ItemListener, ActionLi
         if (e.getItem().equals("--")) return;
 
         if (e.getItemSelectable() == schemas)
-            switchSchema((String)selectedItem);
+            switchSchema((String) selectedItem);
         else if (e.getItemSelectable() == views)
-            switchView((Viewpoint)selectedItem);
+            switchView((Viewpoint) selectedItem);
         else if (e.getItemSelectable() == events)
-            showEvent((EventItem)selectedItem);
+            showEvent((EventItem) selectedItem);
     }
 
     public void switchSchema(String schemaName) {
@@ -215,42 +261,42 @@ public class ViewpointPane extends ItemTabPane implements ItemListener, ActionLi
 
         try {
             // populate views
-            String viewNames = sourceItem.getItem().queryData(ClusterType.VIEWPOINT+"/"+schemaName+"/all");
+            String viewNames = sourceItem.getItem().queryData(ClusterType.VIEWPOINT + "/" + schemaName + "/all");
             StringTokenizer tok = new StringTokenizer(viewNames, ",");
             Viewpoint lastView = null;
-            while(tok.hasMoreTokens()) {
+            while (tok.hasMoreTokens()) {
                 String viewName = tok.nextToken();
-                Viewpoint thisView = (Viewpoint)sourceItem.getItem().getObject(ClusterType.VIEWPOINT+"/"+schemaName+"/"+viewName);
+                Viewpoint thisView = (Viewpoint) sourceItem.getItem().getObject(ClusterType.VIEWPOINT + "/" + schemaName + "/" + viewName);
                 views.addItem(thisView);
                 if (lastView == null) lastView = thisView;
-                if (thisView.getName().equals("last")) //select
+                if (thisView.getName().equals("last")) // select
                     lastView = thisView;
                 viewpointList.add(thisView);
             }
 
-            String ocVersions = sourceItem.getItem().queryData(ClusterType.OUTCOME+"/"+schemaName+"/all");
+            String ocVersions = sourceItem.getItem().queryData(ClusterType.OUTCOME + "/" + schemaName + "/all");
             tok = new StringTokenizer(ocVersions, ",");
-            while(tok.hasMoreTokens()) {
+            while (tok.hasMoreTokens()) {
                 int schemaVersion = Integer.parseInt(tok.nextToken());
-                String ocEvents = sourceItem.getItem().queryData(ClusterType.OUTCOME+"/"+schemaName+"/"+schemaVersion+"/all");
+                String ocEvents = sourceItem.getItem().queryData(ClusterType.OUTCOME + "/" + schemaName + "/" + schemaVersion + "/all");
                 StringTokenizer tok2 = new StringTokenizer(ocEvents, ",");
-                    while(tok2.hasMoreTokens()) {
-                        int eventId = Integer.parseInt(tok2.nextToken());
-                        EventItem newEvent = new EventItem(eventId, schemaVersion);
-                        for (Viewpoint thisView : viewpointList) {
-                            if (thisView.getEventId() == eventId)
-                                newEvent.addView(thisView.getName());
-                        }
-                        eventList.add(newEvent);
+                while (tok2.hasMoreTokens()) {
+                    int eventId = Integer.parseInt(tok2.nextToken());
+                    EventItem newEvent = new EventItem(eventId, schemaVersion);
+                    for (Viewpoint thisView : viewpointList) {
+                        if (thisView.getEventId() == eventId)
+                            newEvent.addView(thisView.getName());
                     }
-                    Collections.sort(eventList, new Comparator<EventItem>() {
-                        @Override
-						public int compare(EventItem o1, EventItem o2) {
-                            return o1.compareTo(o2);
-                        }
-                    });
-                    for (EventItem eventItem : eventList)
-						events.addItem(eventItem);
+                    eventList.add(newEvent);
+                }
+                Collections.sort(eventList, new Comparator<EventItem>() {
+                    @Override
+                    public int compare(EventItem o1, EventItem o2) {
+                        return o1.compareTo(o2);
+                    }
+                });
+                for (EventItem eventItem : eventList)
+                    events.addItem(eventItem);
             }
 
             if (lastView != null) {
@@ -259,11 +305,12 @@ public class ViewpointPane extends ItemTabPane implements ItemListener, ActionLi
                 switchView(lastView);
             }
 
-        } catch (Exception e) {
-            Logger.error(e);
+        }
+        catch (Exception e) {
+            log.error("", e);
             JOptionPane.showMessageDialog(this,
-                "The data structures of this item are incorrect.\nPlease contact your administrator.",
-                "Viewpoint Error" , JOptionPane.ERROR_MESSAGE);
+                    "The data structures of this item are incorrect.\nPlease contact your administrator.",
+                    "Viewpoint Error", JOptionPane.ERROR_MESSAGE);
         }
         suspendSelection = false;
     }
@@ -283,37 +330,39 @@ public class ViewpointPane extends ItemTabPane implements ItemListener, ActionLi
     public void showEvent(EventItem thisEvent) {
         eventDetails.setText(thisEvent.getEventDesc());
         try {
-            setView((Outcome)sourceItem.getItem().getObject(
-                ClusterType.OUTCOME+"/"+currentSchema+"/"+thisEvent.schemaVersion+"/"+thisEvent.eventId));
-        } catch (Exception ex) {
-            Logger.error(ex);
+            setView((Outcome) sourceItem.getItem().getObject(
+                    ClusterType.OUTCOME + "/" + currentSchema + "/" + thisEvent.schemaVersion + "/" + thisEvent.eventId));
+        }
+        catch (Exception ex) {
+            log.error("", ex);
             JOptionPane.showMessageDialog(this,
-                "Could not retrieve requested outcome.\nPlease contact your administrator.",
-                "Viewpoint Error" , JOptionPane.ERROR_MESSAGE);
+                    "Could not retrieve requested outcome.\nPlease contact your administrator.",
+                    "Viewpoint Error", JOptionPane.ERROR_MESSAGE);
         }
     }
 
     public void setView(Outcome data) {
-		Logger.msg(6, "ViewpointPane: got outcome type: "+data.getSchema().getName()+" version: "+data.getSchema().getVersion());
-		Schema schema;
+        log.debug("ViewpointPane: got outcome type: " + data.getSchema().getName() + " version: " + data.getSchema().getVersion());
+        Schema schema;
         currentOutcome = data;
         dataView.removeAll();
         String error = null;
         try {
-        	schema = data.getSchema();
-    		thisOutcome = ItemTabPane.getOutcomeHandler(schema.getName(), schema.getVersion());
+            schema = data.getSchema();
+            thisOutcome = ItemTabPane.getOutcomeHandler(schema.getName(), schema.getVersion());
             thisOutcome.setDescription(schema.getSchemaData());
             thisOutcome.setOutcome(data.getData());
             thisOutcome.setReadOnly(true);
-		    Thread builder = new Thread(thisOutcome);
-		    builder.start();
+            Thread builder = new Thread(thisOutcome);
+            builder.start();
             dataView.add(thisOutcome.getPanel());
             exportButton.setEnabled(true);
-            if (viewButton!=null) viewButton.setEnabled(true);
+            if (viewButton != null) viewButton.setEnabled(true);
             return;
-		} catch (OutcomeException ex) {
-            error = "Outcome was not valid. See log for details: "+ex.getMessage();
-            Logger.error(ex);
+        }
+        catch (OutcomeException ex) {
+            error = "Outcome was not valid. See log for details: " + ex.getMessage();
+            log.error("", ex);
         }
 
         dataView.add(new JLabel(error));
@@ -322,11 +371,11 @@ public class ViewpointPane extends ItemTabPane implements ItemListener, ActionLi
     public void clearView() {
         dataView.removeAll();
         exportButton.setEnabled(false);
-        if (viewButton!=null) viewButton.setEnabled(false);
+        if (viewButton != null) viewButton.setEnabled(false);
     }
 
     @Override
-	public void actionPerformed(ActionEvent e) {
+    public void actionPerformed(ActionEvent e) {
         if (e.getActionCommand().equals("export") && currentOutcome != null)
             saveOutcomeToFile();
         if (e.getActionCommand().equals("setview") && currentOutcome != null)
@@ -334,41 +383,38 @@ public class ViewpointPane extends ItemTabPane implements ItemListener, ActionLi
     }
 
     private void saveOutcomeToFile() {
-
-        MainFrame.xmlChooser.setSelectedFile(new File(currentOutcome.getSchema().getName()+".xml"));
+        MainFrame.xmlChooser.setSelectedFile(new File(currentOutcome.getSchema().getName() + ".xml"));
         int returnVal = MainFrame.xmlChooser.showSaveDialog(this);
         if (returnVal == JFileChooser.APPROVE_OPTION) {
             File targetFile = MainFrame.xmlChooser.getSelectedFile();
             if (!(targetFile.getAbsolutePath().endsWith(".xml")))
-                targetFile = new File(targetFile.getAbsolutePath()+".xml");
+                targetFile = new File(targetFile.getAbsolutePath() + ".xml");
 
-            Logger.msg(2, "ViewpointPane.actionPerformed() - Exporting outcome to file " + targetFile.getName());
+            log.info("ViewpointPane.actionPerformed() - Exporting outcome to file " + targetFile.getName());
             try {
                 thisOutcome.export(targetFile);
             }
             catch (Exception ex) {
-                Logger.error(ex);
+                log.error("", ex);
                 MainFrame.exceptionDialog(ex);
             }
         }
-
     }
 
     private void overrideView() {
-
-        Viewpoint oldView = (Viewpoint)views.getSelectedItem();
-        EventItem newEvent = (EventItem)events.getSelectedItem();
+        Viewpoint oldView = (Viewpoint) views.getSelectedItem();
+        EventItem newEvent = (EventItem) events.getSelectedItem();
 
         if (oldView.getEventId() == newEvent.eventId) {
             JOptionPane.showMessageDialog(this,
-            "View '"+oldView.getName()+"' is already set to event "+newEvent.eventId,
-            "Viewpoint Already Set" , JOptionPane.ERROR_MESSAGE);
+                    "View '" + oldView.getName() + "' is already set to event " + newEvent.eventId,
+                    "Viewpoint Already Set", JOptionPane.ERROR_MESSAGE);
             return;
         }
 
         if (JOptionPane.showConfirmDialog(this,
-                "Are you sure you want to set the '"+oldView.getName()+
-                "' view to event " + newEvent.eventId+ "?",
+                "Are you sure you want to set the '" + oldView.getName() +
+                        "' view to event " + newEvent.eventId + "?",
                 "Overwrite view",
                 JOptionPane.YES_NO_OPTION) != JOptionPane.YES_OPTION)
             return;
@@ -379,45 +425,43 @@ public class ViewpointPane extends ItemTabPane implements ItemListener, ActionLi
             predefParams[1] = oldView.getName();
             predefParams[2] = String.valueOf(newEvent.eventId);
             MainFrame.userAgent.execute(sourceItem.getItem(), "WriteViewpoint", predefParams);
-        } catch (Exception e) {
-            Logger.error(e);
+        }
+        catch (Exception e) {
+            log.error("", e);
             MainFrame.exceptionDialog(e);
         }
     }
 
     @Override
-	public void runCommand(String command) {
-		String[] viewElements = command.split(":");
-		if (viewElements.length!=2) return;
-		if (schemaList == null) run();
-		schemas.setSelectedItem(viewElements[0]);
-		for (Viewpoint thisView : viewpointList) {
-			if (thisView.getName().equals(viewElements[1])) {
-				switchView(thisView);
-				return;
-			}
-		}
-		Logger.error("Viewpoint "+command+" not found in this item");
-	}
+    public void runCommand(String command) {
+        String[] viewElements = command.split(":");
+        if (viewElements.length != 2) return;
+        if (schemaList == null) run();
+        schemas.setSelectedItem(viewElements[0]);
+        for (Viewpoint thisView : viewpointList) {
+            if (thisView.getName().equals(viewElements[1])) {
+                switchView(thisView);
+                return;
+            }
+        }
+        log.error("Viewpoint " + command + " not found in this item");
+    }
 
-	@Override
-	public void add(C2KLocalObject contents) {
+    public void add(C2KLocalObject contents) {
         if (contents instanceof Viewpoint)
-            addViewpoint((Viewpoint)contents);
+            addViewpoint((Viewpoint) contents);
         else if (contents instanceof Outcome)
-            addOutcome((Outcome)contents);
-
+            addOutcome((Outcome) contents);
     }
 
     public void addViewpoint(Viewpoint newView) {
         String schemaName = newView.getSchemaName();
-        Logger.msg(3, "Viewpoint "+newView.getName()+" now points to "+newView.getEventId());
+        log.info("Viewpoint " + newView.getName() + " now points to " + newView.getEventId());
         if (!(schemaList.contains(schemaName))) {
             schemaList.add(schemaName);
             schemas.addItem(schemaName);
             return;
         }
-
 
         if (!(schemaName.equals(schemas.getSelectedItem())))
             return;
@@ -450,22 +494,17 @@ public class ViewpointPane extends ItemTabPane implements ItemListener, ActionLi
     public void addOutcome(Outcome contents) {
         if (!(contents.getSchema().getName().equals(currentSchema))) // not interested
             return;
-        Logger.msg(3, "Adding event "+contents.getID());
+        log.info("Adding event " + contents.getID());
         EventItem newEvent = new EventItem(contents.getID(), contents.getSchema().getVersion());
         eventList.add(newEvent);
         events.addItem(newEvent);
     }
 
-    @Override
-	public void remove(String id) {
-        // we don't really remove viewpoints
-    }
-
     class EventItem implements Comparable<EventItem> {
-        public int eventId;
-        public int schemaVersion;
+        public int               eventId;
+        public int               schemaVersion;
         public ArrayList<String> viewNames = new ArrayList<String>();
-        public String viewList = "";
+        public String            viewList  = "";
 
         public EventItem(int eventId, int schemaVersion) {
             this.eventId = eventId;
@@ -502,34 +541,29 @@ public class ViewpointPane extends ItemTabPane implements ItemListener, ActionLi
         }
 
         @Override
-		public String toString() {
-            return eventId+viewList;
+        public String toString() {
+            return eventId + viewList;
 
         }
 
         public String getEventDesc() {
             try {
-                Event myEvent = (Event)sourceItem.getItem().getObject(ClusterType.HISTORY+"/"+eventId);
-                return ("Recorded on "+myEvent.getTimeString()+
-                    " by "+myEvent.getAgentPath().getAgentName()+
-                    " using schema v"+schemaVersion);
-            } catch (Exception ex) {
-                Logger.error(ex);
+                Event myEvent = (Event) sourceItem.getItem().getObject(ClusterType.HISTORY + "/" + eventId);
+                return ("Recorded on " + myEvent.getTimeString() +
+                        " by " + myEvent.getAgentPath().getAgentName() +
+                        " using schema v" + schemaVersion);
+            }
+            catch (Exception ex) {
+                log.error("", ex);
                 return ("Error retrieving event details");
             }
         }
 
         @Override
-		public int compareTo(EventItem other) {
+        public int compareTo(EventItem other) {
             if (other.eventId < eventId) return 1;
             if (other.eventId > eventId) return -1;
             return 0;
         }
     }
-
-	@Override
-	public void control(String control, String msg) {
-		// TODO Auto-generated method stub
-		
-	}
 }
