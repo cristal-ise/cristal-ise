@@ -20,19 +20,24 @@
  */
 package org.cristalise.kernel.common;
 
+import static org.cristalise.kernel.common.CriseVertxException.FailureCodes.InvalidCollectionModification;
+
 public class InvalidCollectionModification extends CriseVertxException {
-    private final static int FAILURE_CODE = 103;
     private static final long serialVersionUID = -8108958427700141393L;
 
     public InvalidCollectionModification() {
-        super(FAILURE_CODE);
+        super(InvalidCollectionModification);
     }
 
-    public InvalidCollectionModification(Exception e) {
-        super(FAILURE_CODE, e);
+    public InvalidCollectionModification(Throwable e) {
+        super(InvalidCollectionModification, e);
     }
 
     public InvalidCollectionModification(String msg) {
-        super(FAILURE_CODE, msg);
+        super(InvalidCollectionModification, msg);
+    }
+
+    public InvalidCollectionModification(String message, Throwable cause) {
+        super(InvalidCollectionModification, message, cause);
     }
 }

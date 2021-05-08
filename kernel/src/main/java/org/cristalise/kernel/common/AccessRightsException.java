@@ -20,19 +20,24 @@
  */
 package org.cristalise.kernel.common;
 
+import static org.cristalise.kernel.common.CriseVertxException.FailureCodes.AccessRightsError;
+
 public class AccessRightsException extends CriseVertxException {
-    private final static int FAILURE_CODE = 101;
     private static final long serialVersionUID = 5606562389374279530L;
 
     public AccessRightsException() {
-        super(FAILURE_CODE);
+        super(AccessRightsError);
     }
 
-    public AccessRightsException(Exception e) {
-        super(FAILURE_CODE, e);
+    public AccessRightsException(Throwable e) {
+        super(AccessRightsError, e);
     }
 
     public AccessRightsException(String msg) {
-        super(FAILURE_CODE, msg);
+        super(AccessRightsError, msg);
+    }
+
+    public AccessRightsException(String msg, Throwable e) {
+        super(AccessRightsError, msg, e);
     }
 }

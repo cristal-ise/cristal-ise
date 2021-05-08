@@ -20,20 +20,25 @@
  */
 package org.cristalise.kernel.common;
 
+import static org.cristalise.kernel.common.CriseVertxException.FailureCodes.ObjectCannotBeUpdated;
+
 public class ObjectCannotBeUpdated extends CriseVertxException {
-    private final static int FAILURE_CODE = 105;
     private static final long serialVersionUID = 8957655670807468315L;
 
     public ObjectCannotBeUpdated() {
-        super(FAILURE_CODE);
+        super(ObjectCannotBeUpdated);
     }
 
-    public ObjectCannotBeUpdated(Exception e) {
-        super(FAILURE_CODE, e);
+    public ObjectCannotBeUpdated(Throwable e) {
+        super(ObjectCannotBeUpdated, e);
     }
 
     public ObjectCannotBeUpdated(String msg) {
-        super(FAILURE_CODE, msg);
+        super(ObjectCannotBeUpdated, msg);
+    }
+
+    public ObjectCannotBeUpdated(String message, Throwable cause) {
+        super(ObjectCannotBeUpdated, message, cause);
     }
 
 }

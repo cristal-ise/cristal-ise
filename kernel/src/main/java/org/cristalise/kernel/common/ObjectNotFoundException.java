@@ -20,19 +20,24 @@
  */
 package org.cristalise.kernel.common;
 
+import static org.cristalise.kernel.common.CriseVertxException.FailureCodes.ObjectNotFound;
+
 public class ObjectNotFoundException extends CriseVertxException {
-    private final static int FAILURE_CODE = 105;
     private static final long serialVersionUID = 6881043115092110048L;
 
     public ObjectNotFoundException() {
-        super(FAILURE_CODE);
+        super(ObjectNotFound);
     }
 
-    public ObjectNotFoundException(Exception e) {
-        super(FAILURE_CODE, e);
+    public ObjectNotFoundException(Throwable e) {
+        super(ObjectNotFound, e);
     }
 
     public ObjectNotFoundException(String msg) {
-        super(FAILURE_CODE, msg);
+        super(ObjectNotFound, msg);
+    }
+
+    public ObjectNotFoundException(String message, Throwable cause) {
+        super(ObjectNotFound, message, cause);
     }
 }

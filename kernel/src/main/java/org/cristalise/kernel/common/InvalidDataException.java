@@ -20,20 +20,24 @@
  */
 package org.cristalise.kernel.common;
 
+import static org.cristalise.kernel.common.CriseVertxException.FailureCodes.InvalidData;
+
 public class InvalidDataException extends CriseVertxException {
-    private final static int FAILURE_CODE = 103;
     private static final long serialVersionUID = -4491884465493921352L;
 
     public InvalidDataException() {
-        super(FAILURE_CODE);
+        super(InvalidData);
     }
 
-    public InvalidDataException(Exception e) {
-        super(FAILURE_CODE, e);
+    public InvalidDataException(Throwable e) {
+        super(InvalidData, e);
     }
 
     public InvalidDataException(String msg) {
-        super(FAILURE_CODE, msg);
+        super(InvalidData, msg);
     }
 
+    public InvalidDataException(String message, Throwable cause) {
+        super(InvalidData, message, cause);
+    }
 }

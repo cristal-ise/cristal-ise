@@ -20,19 +20,24 @@
  */
 package org.cristalise.kernel.common;
 
+import static org.cristalise.kernel.common.CriseVertxException.FailureCodes.InvalidTransition;
+
 public class InvalidTransitionException extends CriseVertxException {
-    private final static int FAILURE_CODE = 104;
     private static final long serialVersionUID = -6403980570839158164L;
 
     public InvalidTransitionException() {
-        super(FAILURE_CODE);
+        super(InvalidTransition);
     }
 
-    public InvalidTransitionException(Exception e) {
-        super(FAILURE_CODE, e);
+    public InvalidTransitionException(Throwable e) {
+        super(InvalidTransition, e);
     }
 
     public InvalidTransitionException(String msg) {
-        super(FAILURE_CODE, msg);
+        super(InvalidTransition, msg);
+    }
+
+    public InvalidTransitionException(String message, Throwable cause) {
+        super(InvalidTransition, message, cause);
     }
 }

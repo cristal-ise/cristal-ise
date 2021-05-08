@@ -20,19 +20,24 @@
  */
 package org.cristalise.kernel.common;
 
+import static org.cristalise.kernel.common.CriseVertxException.FailureCodes.ObjectAlreadyExists;
+
 public class ObjectAlreadyExistsException extends CriseVertxException {
-    private final static int FAILURE_CODE = 105;
     private static final long serialVersionUID = 5876015808620266247L;
 
     public ObjectAlreadyExistsException() {
-        super(FAILURE_CODE);
+        super(ObjectAlreadyExists);
     }
 
-    public ObjectAlreadyExistsException(Exception e) {
-        super(FAILURE_CODE, e);
+    public ObjectAlreadyExistsException(Throwable e) {
+        super(ObjectAlreadyExists, e);
     }
 
     public ObjectAlreadyExistsException(String msg) {
-        super(FAILURE_CODE, msg);
+        super(ObjectAlreadyExists, msg);
+    }
+
+    public ObjectAlreadyExistsException(String message, Throwable cause) {
+        super(ObjectAlreadyExists, message, cause);
     }
 }
