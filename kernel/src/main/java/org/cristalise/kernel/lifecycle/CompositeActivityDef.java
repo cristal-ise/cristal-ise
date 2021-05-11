@@ -427,7 +427,7 @@ public class CompositeActivityDef extends ActivityDef {
                         String syskey = nodeList.item(i).getNodeValue();
                         if (StringUtils.isNotBlank(syskey) && ItemPath.isUUID(syskey)) {
                             ItemPath itemPath = Gateway.getLookup().getItemPath(syskey);
-                            ItemProxy itemProxy = Gateway.getProxyManager().getProxy(itemPath);
+                            ItemProxy itemProxy = Gateway.getProxy(itemPath);
                             nodeList.item(i).setNodeValue(itemProxy.getName());
                         }
                         else if (StringUtils.isNotBlank(syskey)) {

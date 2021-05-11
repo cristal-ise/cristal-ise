@@ -20,7 +20,9 @@
  */
 package org.cristalise.kernel.process.module;
 
+import java.net.InetAddress;
 import java.net.URL;
+import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.HashMap;
@@ -227,11 +229,20 @@ public class ModuleManager {
     }
 
     public void registerModules() throws ModuleException {
-        ItemProxy serverItem;
-        DomainPath serverItemDP = new DomainPath("/servers/"+Gateway.getProperties().getString("ItemServer.name"));
+        DomainPath serverItemDP = null;
 
         try {
-            serverItem = Gateway.getProxyManager().getProxy(serverItemDP);
+            String serverName = Gateway.getProperties().getString("ItemServer.name", InetAddress.getLocalHost().getHostName());
+            serverItemDP = new DomainPath("/servers/"+serverName);
+        }
+        catch (UnknownHostException e1) {
+            throw new ModuleException("Cannot find local server Item:"+serverItemDP);
+        }
+
+        ItemProxy serverItem;
+        try {
+            
+            serverItem = Gateway.getProxy(serverItemDP);
         }
         catch (ObjectNotFoundException e) {
             throw new ModuleException("Cannot find local server Item:"+serverItemDP);

@@ -282,7 +282,7 @@ public class DefaultResourceImportHandler implements ResourceImportHandler {
             throws Exception
     {
         LookupManager lookupManager = Gateway.getLookupManager();
-        ItemProxy thisProxy = Gateway.getProxyManager().getProxy(path, transactionKey);
+        ItemProxy thisProxy = Gateway.getProxy(path, transactionKey);
 
         if (itemPath != null && !path.getItemPath().equals(itemPath)) {
             String error = "Resource "+type+"/"+itemName+" should have path "+itemPath+" but was found with path "+path.getItemPath();

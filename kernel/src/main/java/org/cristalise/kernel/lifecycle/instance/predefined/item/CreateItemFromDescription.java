@@ -176,12 +176,12 @@ public class CreateItemFromDescription extends PredefinedStep {
             storeItem(agent, newItem, newProps, newColls, newWorkflow, newViewpoint, outcome, transactionKey);
         }
         catch (MarshalException | ValidationException | IOException | MappingException e) {
-            log.error("", e);
+            if (log.isDebugEnabled()) log.error("initialiseItem()", e);
             Gateway.getLookupManager().delete(newItemPath, transactionKey);
-            throw new InvalidDataException("CreateItemFromDescription: Problem initializing new Item. See log: " + e.getMessage());
+            throw new InvalidDataException("CreateItemFromDescription: Problem initializing new Item. See log: " + e.getMessage(), e);
         }
         catch (InvalidDataException | ObjectNotFoundException | PersistencyException e) {
-            log.error("", e);
+            if (log.isDebugEnabled()) log.error("initialiseItem()", e);
             Gateway.getLookupManager().delete(newItemPath, transactionKey);
             throw e;
         }
@@ -205,7 +205,7 @@ public class CreateItemFromDescription extends PredefinedStep {
         }
         catch (Exception e) {
             log.error("", e);
-            throw new InvalidDataException("Initial property parameter was not a marshalled PropertyArrayList: " + initPropString);
+            throw new InvalidDataException("Initial property parameter was not a marshalled PropertyArrayList: " + initPropString, e);
         }
     }
 
@@ -263,7 +263,7 @@ public class CreateItemFromDescription extends PredefinedStep {
                     Gateway.getStorage().get(descItemPath, COLLECTION + "/" + WORKFLOW + "/" + descVer, transactionKey);
 
         CollectionMember wfMember  = thisCol.getMembers().list.get(0);
-        String           wfDefName = wfMember.resolveItem(transactionKey).getName();
+        String           wfDefName = wfMember.resolveItem(transactionKey).getName(transactionKey);
         Object           wfVerObj  = wfMember.getProperties().getBuiltInProperty(VERSION);
 
         if (wfVerObj == null || String.valueOf(wfVerObj).length() == 0) {
