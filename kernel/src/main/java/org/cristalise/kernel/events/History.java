@@ -30,7 +30,6 @@ import java.util.Set;
 
 import org.cristalise.kernel.common.InvalidDataException;
 import org.cristalise.kernel.common.PersistencyException;
-import org.cristalise.kernel.entity.C2KLocalObject;
 import org.cristalise.kernel.lifecycle.instance.stateMachine.StateMachine;
 import org.cristalise.kernel.lookup.AgentPath;
 import org.cristalise.kernel.lookup.ItemPath;
@@ -39,10 +38,10 @@ import org.cristalise.kernel.persistency.TransactionKey;
 import org.cristalise.kernel.persistency.outcome.Schema;
 
 /**
- * The History is an instance of {@link org.cristalise.kernel.persistency.RemoteMap} 
+ * The History is an instance of {@link org.cristalise.kernel.persistency.C2KLocalObjectMap} 
  * which provides a live view onto the Events of an Item.
  */
-public class History extends C2KLocalObjectMap<Event> implements C2KLocalObject {
+public class History extends C2KLocalObjectMap<Event> {
 
     public History(ItemPath itemPath) {
         super(itemPath, HISTORY);
@@ -112,21 +111,6 @@ public class History extends C2KLocalObjectMap<Event> implements C2KLocalObject 
         newEvent.addOutcomeDetails(schema, viewName);
         newEvent.setTimeString(timeString);
         return storeNewEvent(newEvent);
-    }
-
-    @Override
-    public void setName(String name) {
-        //DO nothing
-    }
-
-    @Override
-    public String getName() {
-        return getClusterType().getName();
-    }
-
-    @Override
-    public String getClusterPath() {
-        return getClusterType().getName();
     }
 
     /**

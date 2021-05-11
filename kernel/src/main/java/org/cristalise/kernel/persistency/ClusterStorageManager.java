@@ -22,9 +22,7 @@ package org.cristalise.kernel.persistency;
 
 import static org.cristalise.kernel.entity.proxy.ProxyMessage.Type.ADD;
 import static org.cristalise.kernel.entity.proxy.ProxyMessage.Type.DELETE;
-import static org.cristalise.kernel.persistency.ClusterType.HISTORY;
-import static org.cristalise.kernel.persistency.ClusterType.JOB;
-import static org.cristalise.kernel.persistency.ClusterType.VIEWPOINT;
+import static org.cristalise.kernel.persistency.ClusterType.*;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -38,17 +36,25 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
 
+import org.apache.commons.lang3.StringUtils;
+import org.cristalise.kernel.collection.Collection;
+import org.cristalise.kernel.collection.CollectionMember;
 import org.cristalise.kernel.common.ObjectNotFoundException;
 import org.cristalise.kernel.common.PersistencyException;
 import org.cristalise.kernel.entity.C2KLocalObject;
 import org.cristalise.kernel.entity.agent.JobList;
 import org.cristalise.kernel.entity.proxy.ProxyMessage;
 import org.cristalise.kernel.events.History;
+import org.cristalise.kernel.lifecycle.instance.Workflow;
 import org.cristalise.kernel.lookup.AgentPath;
 import org.cristalise.kernel.lookup.ItemPath;
+import org.cristalise.kernel.lookup.Path;
+import org.cristalise.kernel.persistency.outcome.Outcome;
+import org.cristalise.kernel.persistency.outcome.OutcomeAttachment;
 import org.cristalise.kernel.persistency.outcome.Viewpoint;
 import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.process.auth.Authenticator;
+import org.cristalise.kernel.property.Property;
 import org.cristalise.kernel.querying.Query;
 
 import com.google.common.base.Predicates;
@@ -68,9 +74,18 @@ import lombok.extern.slf4j.Slf4j;
 public class ClusterStorageManager {
 
     /**
+     * 
+     */
+    public static final String INSTANCESPEC_PROPERTY = "ClusterStorage";
+    /**
+     * 
+     */
+    public static final String CACHESPEC_PROPERTY = "ClusterStorage.cacheSpec";
+    /**
      * {@value}
      */
     public static final String defaultCacheSpec = "expireAfterAccess = 600s, recordStats";
+
 
     HashMap<String, ClusterStorage>                 allStores           = new HashMap<String, ClusterStorage>();
     String[]                                        clusterPriority     = new String[0];
@@ -101,10 +116,10 @@ public class ClusterStorageManager {
      * @param auth the Authenticator to be used to initialise all the handlers
      */
     public ClusterStorageManager(Authenticator auth) throws PersistencyException {
-        Object clusterStorageProp = Gateway.getProperties().getObject("ClusterStorage");
+        Object clusterStorageProp = Gateway.getProperties().getObject(INSTANCESPEC_PROPERTY);
 
         if (clusterStorageProp == null || "".equals(clusterStorageProp)) {
-            throw new PersistencyException("init() - no ClusterStorages defined. No persistency!");
+            throw new PersistencyException("No persistency, no ClusterStorage defined!");
         }
 
         ArrayList<ClusterStorage> rootStores;
@@ -142,7 +157,7 @@ public class ClusterStorageManager {
         clusterReaders.put(ClusterType.ROOT, rootStores); // all storages are queried for clusters at the root level
 
         cache = CacheBuilder
-                .from(Gateway.getProperties().getString("ClusterStorageManager.cacheSpec", defaultCacheSpec))
+                .from(Gateway.getProperties().getString(CACHESPEC_PROPERTY, defaultCacheSpec))
                 .build();
     }
 
@@ -181,7 +196,7 @@ public class ClusterStorageManager {
                 thisStorage.close();
             }
             catch (PersistencyException ex) {
-                log.error("Error closing storage " + thisStorage.getName(), ex);
+                log.error("Error closing storage {}", thisStorage, ex);
             }
         }
     }
@@ -219,7 +234,7 @@ public class ClusterStorageManager {
         if (cache.containsKey(clusterType)) return cache.get(clusterType);
 
         // not done yet, we'll have to query them all
-        log.debug("findStorages() - finding storage for "+clusterType+" forWrite:"+forWrite);
+        log.trace("findStorages() - finding storage for "+clusterType+" forWrite:"+forWrite);
 
         ArrayList<ClusterStorage> useableStorages = new ArrayList<ClusterStorage>();
 
@@ -228,7 +243,7 @@ public class ClusterStorageManager {
             short requiredSupport = forWrite ? ClusterStorage.WRITE : ClusterStorage.READ;
 
             if ((thisStorage.queryClusterSupport(clusterType) & requiredSupport) == requiredSupport) {
-                log.debug( "findStorages() - Got "+thisStorage.getName());
+                log.trace( "findStorages() - Got {}", thisStorage);
                 useableStorages.add(thisStorage);
             }
         }
@@ -298,15 +313,17 @@ public class ClusterStorageManager {
                 if (thisArr != null) {
                     for (int j = 0; j < thisArr.length; j++) {
                         if (!contents.contains(thisArr[j])) {
-                            log.trace("getClusterContents() - "+thisReader.getName()+" reports "+thisArr[j]);
+                            log.trace("getClusterContents() - {} reports {}", thisReader, thisArr[j]);
                             contents.add(thisArr[j]);
                         }
                     }
                 }
             }
             catch (PersistencyException e) {
-                log.debug( "getClusterContents() - reader " + thisReader.getName() +
-                        " could not retrieve contents of " + itemPath + "/" + path + ": " + e.getMessage());
+                if (log.isDebugEnabled()) {
+                    log.error("getClusterContents() - reader {} could not retrieve contents of {}", 
+                            thisReader, itemPath+"/"+path, e);
+                }
             }
         }
 
@@ -330,7 +347,7 @@ public class ClusterStorageManager {
     }
 
     /**
-     * This is called as a Callable during get() when the cache does not contain the C2KObject
+     * This is called as a Callable during get() when the cache does not contain the C2KLocalObject
      * 
      * @param itemPath
      * @param path
@@ -340,65 +357,88 @@ public class ClusterStorageManager {
      * @throws ObjectNotFoundException
      */
     private C2KLocalObject retrive(ItemPath itemPath, String path, TransactionKey transactionKey) throws PersistencyException, ObjectNotFoundException {
-        if (path.startsWith("/") && path.length() > 1) path = path.substring(1);
-
-        String fullPath = getFullPath(itemPath, path);
-        log.debug("retrive() - fullPath:{}", fullPath);
+        log.debug("retrive() - {}/{}", itemPath, path);
 
         C2KLocalObject result = null;
 
-        // deal out top level remote maps
-        if (path.indexOf('/') == -1) {
-            if (path.equals(HISTORY.getName())) {
-                result = new History(itemPath, transactionKey);
-            }
-            else if (path.equals(JOB.getName())) {
-                if (itemPath instanceof AgentPath) result = new JobList((AgentPath)itemPath, transactionKey);
-                else                               throw new ObjectNotFoundException("Items do not have job lists");
-            }
-        }
-
-        if (result == null) {
-            // else try each reader in turn until we find it
-            ArrayList<ClusterStorage> readers = findStorages(ClusterStorage.getClusterType(path), false);
-            for (ClusterStorage thisReader : readers) {
-                try {
-                    result = thisReader.get(itemPath, path, transactionKey);
-                    log.trace( "retrive() - reading {} from reader {}", fullPath, thisReader.getName());
-                    if (result != null) break; // got it!
+        // else try each reader in turn until it is found
+        ArrayList<ClusterStorage> readers = findStorages(ClusterStorage.getClusterType(path), false);
+        for (ClusterStorage thisReader : readers) {
+            try {
+                result = thisReader.get(itemPath, path, transactionKey);
+                if (result != null) {
+                    log.trace( "retrive() - FOUND {}/{} in reader {}", itemPath, path, thisReader);
+                    break;
                 }
-                catch (PersistencyException e) {
-                    log.debug( "retrive() - reader {} could not retrieve {}", thisReader.getName(), fullPath, e);
-                }
+            }
+            catch (PersistencyException e) {
+                log.debug( "retrive() - reader {} could not retrieve {}/{}", thisReader, itemPath, path, e);
             }
         }
 
         //No result was found after reading the list of ClusterStorages
         if (result == null) {
-            throw new ObjectNotFoundException("retrive() - Path "+fullPath+" not found");
+            throw new ObjectNotFoundException("Path "+itemPath+"/"+path+" not found");
         }
 
         return result;
     }
-    
-
 
     /**
      * Retrieves clusters from ClusterStorages & maintains the memory cache.
      *
      * @param itemPath current Item
-     * @param path the cluster path. The leading slash is removed if exists
-     * @return the C2KObject located by path
+     * @param path the cluster path. The leading slash is removed if exists. Cannot be blank or a single '/'
+     * @return the C2KLocalObject located by path
      */
-    public C2KLocalObject get(ItemPath itemPath, String path, TransactionKey transactionKey) throws PersistencyException, ObjectNotFoundException {
-        C2KLocalObject result;
-        String fullPath = getFullPath(itemPath, path);
+    public C2KLocalObject get(final ItemPath itemPath, final String path, final TransactionKey transactionKey) 
+            throws PersistencyException, ObjectNotFoundException
+    {
+        if (StringUtils.isBlank(path) || path.equals("/")) {
+            throw new ObjectNotFoundException("Path cannot be blank or contains '/' only - item:"+itemPath);
+        }
+        
+        ClusterType clusterType = ClusterType.getFromPath(path);
+
+        if (clusterType == null) {
+            throw new ObjectNotFoundException("Path must start with one of the values of ClusterType - "+itemPath+"/"+path);
+        }
+
+        final String correctPath = (path.startsWith("/") && path.length() > 1) ? path.substring(1) : path;
+
+        // return top level maps, NOT cached
+        if (correctPath.indexOf('/') == -1) {
+            switch (clusterType) {
+                case HISTORY:
+                    return new History(itemPath, transactionKey);
+                case JOB:
+                    if (itemPath instanceof AgentPath) return new JobList((AgentPath)itemPath, transactionKey);
+                    else                               throw new ObjectNotFoundException("Item "+itemPath+" do not have JobList");
+                case PROPERTY:
+                    return new C2KLocalObjectMap<Property>(itemPath, PROPERTY, transactionKey);
+                case COLLECTION:
+                    return new C2KLocalObjectMap<Collection<? extends CollectionMember>>(itemPath, ClusterType.COLLECTION, transactionKey);
+                case LIFECYCLE:
+                    return new C2KLocalObjectMap<Workflow>(itemPath, LIFECYCLE, transactionKey);
+                case OUTCOME:
+                    return new C2KLocalObjectMap<Outcome>(itemPath, OUTCOME, transactionKey);
+                case VIEWPOINT:
+                    return new C2KLocalObjectMap<Viewpoint>(itemPath, VIEWPOINT, transactionKey);
+                case ATTACHMENT:
+                    return new C2KLocalObjectMap<OutcomeAttachment>(itemPath, ATTACHMENT, transactionKey);
+                case PATH:
+                    return new C2KLocalObjectMap<Path>(itemPath, PATH, transactionKey);
+
+                default:
+                    break;
+            }
+        }
 
         // special case for Viewpoint- When path ends with /data it returns referenced Outcome instead of Viewpoint
-        if (path.startsWith(VIEWPOINT.getName()) && path.endsWith("/data")) {
-            StringTokenizer tok = new StringTokenizer(path,"/");
+        if (clusterType == VIEWPOINT && correctPath.endsWith("/data")) {
+            StringTokenizer tok = new StringTokenizer(correctPath,"/");
             if (tok.countTokens() == 4) { // to not catch viewpoints called 'data'
-                Viewpoint view = (Viewpoint)get(itemPath, path.substring(0, path.lastIndexOf("/")), transactionKey);
+                Viewpoint view = (Viewpoint)get(itemPath, correctPath.substring(0, correctPath.lastIndexOf("/")), transactionKey);
 
                 if (view != null) return view.getOutcome();
                 else              return null;
@@ -406,10 +446,10 @@ public class ClusterStorageManager {
         }
 
         try {
-            result = cache.get(fullPath, new Callable<C2KLocalObject>() {
+            return cache.get(getFullPath(itemPath, path), new Callable<C2KLocalObject>() {
                 @Override
                 public C2KLocalObject call() throws PersistencyException, ObjectNotFoundException  {
-                    return retrive(itemPath, path, transactionKey);
+                    return retrive(itemPath, correctPath, transactionKey);
                 }
             });
         }
@@ -419,12 +459,16 @@ public class ClusterStorageManager {
             if      (cause == null)                            throw new PersistencyException(e);
             else if (cause instanceof PersistencyException)    throw (PersistencyException)cause;
             else if (cause instanceof ObjectNotFoundException) throw (ObjectNotFoundException)cause;
-            else                                               throw new PersistencyException((Exception)cause);
+            else                                               throw new PersistencyException(cause);
         }
-
-        return result;
     }
 
+    /**
+     * 
+     * @param itemPath
+     * @param path
+     * @return
+     */
     private String getFullPath(ItemPath itemPath, String path) {
         return itemPath.getUUID().toString() + ((path.startsWith("/")) ? path : "/" + path);
     }
@@ -459,11 +503,11 @@ public class ClusterStorageManager {
         ArrayList<ClusterStorage> writers = findStorages(ClusterStorage.getClusterType(path), true);
         for (ClusterStorage thisWriter : writers) {
             try {
-                log.debug( "put() - writing {} to {}", fullPath, thisWriter.getName());
+                log.debug( "put() - writing {} to {}", fullPath, thisWriter);
                 thisWriter.put(itemPath, obj, transactionKey);
             }
             catch (PersistencyException e) {
-                log.error("put() - writer {} could not store {}", thisWriter.getName(), fullPath, e);
+                log.error("put() - writer {} could not store {}", thisWriter, fullPath, e);
                 throw e;
             }
         }
@@ -493,11 +537,11 @@ public class ClusterStorageManager {
         ArrayList<ClusterStorage> writers = findStorages(ClusterStorage.getClusterType(path), true);
         for (ClusterStorage thisWriter : writers) {
             try {
-                log.debug( "delete() - removing {} to {}", fullPath, thisWriter.getName());
+                log.debug( "delete() - removing {} to {}", fullPath, thisWriter);
                 thisWriter.delete(itemPath, path, transactionKey);
             }
             catch (PersistencyException e) {
-                log.error("delete() - writer {} could not delete {}", thisWriter.getName(), fullPath, e);
+                log.error("delete() - writer {} could not delete {}", thisWriter, fullPath, e);
                 throw e;
             }
         }

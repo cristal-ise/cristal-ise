@@ -64,9 +64,11 @@ public class LocalChangeVerticle extends AbstractVerticle {
 
         for (Object element: body) {
             ProxyMessage msg = new ProxyMessage((String)element);
+            String ebAddress = msg.getLocalEventBusAddress();
+            String ebMsg     = msg.getLocalEventBusMessage();
 
-            log.trace("handler() - sending address:{}, msg:{}", msg.getLocalEventBusAddress(), msg.getLocalEventBusMessage());
-            vertx.eventBus().publish(msg.getLocalEventBusAddress(), msg.getLocalEventBusMessage(), opt);
+            log.trace("handler() - sending address:{}, msg:{}", ebAddress, ebMsg);
+            vertx.eventBus().publish(ebAddress, ebMsg, opt);
         }
     }
 
@@ -77,11 +79,12 @@ public class LocalChangeVerticle extends AbstractVerticle {
             ProxyMessage msg = new ProxyMessage((String)element);
 
             if (msg.isClusterStoreMesssage()) {
-                clearCacheList.add(msg.getItemPath().getUUID() + "/" + msg.getPath());
+                String key = msg.getItemPath().getUUID() + "/" + msg.getPath();
+                log.trace("clearCache() - invalidating entry:{}", key);
+                clearCacheList.add(key);
             }
         }
 
-        log.trace("clearCache() - invalidating #{} cache entries", clearCacheList.size());
         Gateway.getStorage().clearCache(clearCacheList);
     }
 }

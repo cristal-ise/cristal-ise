@@ -26,7 +26,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.commons.lang3.StringUtils;
-import org.cristalise.kernel.entity.C2KLocalObject;
 import org.cristalise.kernel.lookup.AgentPath;
 import org.cristalise.kernel.lookup.ItemPath;
 import org.cristalise.kernel.persistency.C2KLocalObjectMap;
@@ -35,7 +34,7 @@ import org.cristalise.kernel.persistency.TransactionKey;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-public class JobList extends C2KLocalObjectMap<Job> implements C2KLocalObject {
+public class JobList extends C2KLocalObjectMap<Job> {
 
     public JobList(AgentPath agentPath) {
         super(agentPath, JOB);
@@ -55,30 +54,15 @@ public class JobList extends C2KLocalObjectMap<Job> implements C2KLocalObject {
         return get(String.valueOf(id));
     }
 
-    @Override
-    public void setName(String name) {
-        //DO nothing
-    }
-
-    @Override
-    public String getName() {
-        return getClusterType().getName();
-    }
-
-    @Override
-    public String getClusterPath() {
-        return getClusterType().getName();
-    }
-
     /**
      * Find the list of JobKeys for the given Item and its Step
      * 
      * @param otherJob use this Job's itemPath and stepPath for search
      * @return the current list of Job keys matching the inputs
      */
-    public List<String> getKeysForStep(Job otherJob) {
+    public List<String> getJobIdsForStep(Job otherJob) {
         if (otherJob == null) return new ArrayList<String>();
-        return getKeysForStep(otherJob.getItemPath(), otherJob.getStepName(), null);
+        return getJobIdsForStep(otherJob.getItemPath(), otherJob.getStepPath(), null);
     }
 
     /**
@@ -89,7 +73,7 @@ public class JobList extends C2KLocalObjectMap<Job> implements C2KLocalObject {
      * @param transitionId for search, can be null
      * @return the current list of Job keys matching the inputs
      */
-    public synchronized List<String> getKeysForStep(ItemPath itemPath, String stepPath, Integer transitionId) {
+    public synchronized List<String> getJobIdsForStep(ItemPath itemPath, String stepPath, Integer transitionId) {
         List<String> jobKeys = new ArrayList<String>();
 
         log.debug("getKeysForStep() - item:{} step:{}", itemPath, stepPath);

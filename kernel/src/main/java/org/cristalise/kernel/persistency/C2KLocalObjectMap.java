@@ -46,6 +46,7 @@ import org.cristalise.kernel.lookup.ItemPath;
 import org.cristalise.kernel.process.Gateway;
 
 import lombok.Getter;
+import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -55,7 +56,7 @@ import lombok.extern.slf4j.Slf4j;
  * @param <V>
  */
 @Slf4j @Getter
-public class C2KLocalObjectMap<V extends C2KLocalObject> implements Map<String, V> {
+public class C2KLocalObjectMap<V extends C2KLocalObject> implements Map<String, V>, C2KLocalObject {
 
     protected ItemPath itemPath;
     protected ClusterType clusterType;
@@ -64,6 +65,7 @@ public class C2KLocalObjectMap<V extends C2KLocalObject> implements Map<String, 
     /**
      * Use it participate in a transaction. Can be null
      */
+    @Setter
     TransactionKey transactionKey;
 
     public C2KLocalObjectMap(ItemPath item, ClusterType cluster) {
@@ -219,5 +221,21 @@ public class C2KLocalObjectMap<V extends C2KLocalObject> implements Map<String, 
         List<V> values = new ArrayList<>();
         for (String key: keySet()) values.add(get(key));
         return values;
+    }
+    
+
+    @Override
+    public void setName(String name) {
+        //DO nothing
+    }
+
+    @Override
+    public String getName() {
+        return getClusterType().getName();
+    }
+
+    @Override
+    public String getClusterPath() {
+        return getClusterType().getName();
     }
 }
