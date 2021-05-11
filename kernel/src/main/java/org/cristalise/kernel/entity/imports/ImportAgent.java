@@ -42,6 +42,7 @@ import org.cristalise.kernel.lookup.AgentPath;
 import org.cristalise.kernel.lookup.DomainPath;
 import org.cristalise.kernel.lookup.InvalidItemPathException;
 import org.cristalise.kernel.lookup.ItemPath;
+import org.cristalise.kernel.lookup.LookupManager;
 import org.cristalise.kernel.lookup.Path;
 import org.cristalise.kernel.lookup.RolePath;
 import org.cristalise.kernel.persistency.TransactionKey;
@@ -136,6 +137,8 @@ public class ImportAgent extends ModuleImport implements DescriptionObject {
         properties.add(new Property(NAME, name, true));
         properties.add(new Property(TYPE, "Agent", false));
 
+        LookupManager lookupManager = Gateway.getLookupManager();
+
         try {
             CreateItemFromDescription.storeItem(
                     agentPath, 
@@ -147,11 +150,13 @@ public class ImportAgent extends ModuleImport implements DescriptionObject {
                     null, //initOutcomeString
                     transactionKey);
 
-            if (StringUtils.isNotBlank(password)) Gateway.getLookupManager().setAgentPassword(getAgentPath(transactionKey), password, false, transactionKey);
+            if (StringUtils.isNotBlank(password)) {
+                lookupManager.setAgentPassword(getAgentPath(transactionKey), password, false, transactionKey);
+            }
         }
         catch (Exception ex) {
             log.error("Error initialising new agent name:{}", name, ex);
-            Gateway.getLookupManager().delete(getAgentPath(transactionKey), transactionKey);
+            lookupManager.delete(getAgentPath(transactionKey), transactionKey);
             throw new CannotManageException("Error initialising new agent name:"+name);
         }
 
@@ -159,7 +164,7 @@ public class ImportAgent extends ModuleImport implements DescriptionObject {
             RolePath rp = role.getRolePath();
             if (rp.exists(transactionKey)) {
                 if (!getAgentPath().hasRole(rp, transactionKey)) {
-                    Gateway.getLookupManager().addRole(getAgentPath(), rp, transactionKey);
+                    lookupManager.addRole(getAgentPath(), rp, transactionKey);
                 }
                 // no update to the role is done, because role might not be fully specified (i.e. it only contains the name as a reference)
             }
@@ -167,7 +172,7 @@ public class ImportAgent extends ModuleImport implements DescriptionObject {
                 if (Gateway.getProperties().getBoolean("Module.ImportAgent.enableRoleCreation", false)) {
                     // Creates Role even if it is not fully specified in the ImportAgent (i.e. no permissions were specified)
                     RolePath thisRole = (RolePath)role.create(agentPath, reset, transactionKey);
-                    Gateway.getLookupManager().addRole(getAgentPath(), thisRole, transactionKey);
+                    lookupManager.addRole(getAgentPath(), thisRole, transactionKey);
                 }
                 else {
                     throw new CannotManageException("Role '"+rp+ "' does not exists");
@@ -177,7 +182,7 @@ public class ImportAgent extends ModuleImport implements DescriptionObject {
 
         if (domainPath != null && !isDOMPathExists) {
             domainPath.setItemPath(getItemPath(transactionKey));
-            Gateway.getLookupManager().add(domainPath, transactionKey);
+            lookupManager.add(domainPath, transactionKey);
         }
 
         return getAgentPath();
@@ -201,7 +206,7 @@ public class ImportAgent extends ModuleImport implements DescriptionObject {
     }
 
     public AgentPath getAgentPath() {
-        return (AgentPath)getItemPath();
+        return getAgentPath(null);
     }
 
     public AgentPath getAgentPath(TransactionKey transactionKey) {
@@ -227,6 +232,14 @@ public class ImportAgent extends ModuleImport implements DescriptionObject {
 
     public void addRoles(List<RolePath> newRoles) {
         for (RolePath rp: newRoles) roles.add(ImportRole.getImportRole(rp));
+    }
+
+    public void addRole(ImportRole ir) {
+        roles.add(ir);
+    }
+
+    public void addRole(RolePath rp) {
+        roles.add(ImportRole.getImportRole(rp));
     }
 
     @Override
