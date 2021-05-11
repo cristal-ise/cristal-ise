@@ -193,7 +193,7 @@ public abstract class DescriptionObjectCache<D extends DescriptionObject> {
 
             if (thisDefEntry != null) {
                 log.trace("get() - key:{}_{} found in cache.", name, version);
-                return thisDefEntry.def;
+                return thisDefEntry.descObject;
             }
 
             ItemPath defItemPath = findItem(name, transactionKey);
@@ -205,7 +205,7 @@ public abstract class DescriptionObjectCache<D extends DescriptionObject> {
 
                 if (thisDefEntry != null) {
                     log.trace("get() - key:{}_{} found in cache.", defUuid, version);
-                    return thisDefEntry.def;
+                    return thisDefEntry.descObject;
                 }
             }
 
@@ -218,7 +218,7 @@ public abstract class DescriptionObjectCache<D extends DescriptionObject> {
             }
 
             D thisDef = loadObject(name, version, defItemProxy, transactionKey);
-            addToCache(name, version, defUuid, defItemProxy, thisDef);
+            addToCache(name, version, defUuid, thisDef);
 
             return thisDef;
         }
@@ -240,11 +240,11 @@ public abstract class DescriptionObjectCache<D extends DescriptionObject> {
         }
     }
 
-    private void addToCache(String name, int version, String defUuid, ItemProxy defItemProxy, D thisDef) {
+    private void addToCache(String name, int version, String defUuid, D thisDef) {
         log.trace("addToCache() - key1:{}_{} and key2:{}_{}", name, version, defUuid, version);
 
         // DO NOT add this to the synchronized block because it can create deadlock. check issue: #447
-        CacheEntry<D> entry = new CacheEntry<>(thisDef, defItemProxy, this);
+        CacheEntry<D> entry = new CacheEntry<>(thisDef, this);
         synchronized (cache) {
             cache.put(defUuid + "_" + version, entry);
             cache.put(name + "_" + version, entry);
@@ -285,16 +285,14 @@ public abstract class DescriptionObjectCache<D extends DescriptionObject> {
     public class CacheEntry<E extends DescriptionObject> {
         public String                    id;
         public String                    idName;
-        public ItemProxy                 proxy;
-        public E                         def;
+        public E                         descObject;
         public DescriptionObjectCache<E> parent;
 
-        public CacheEntry(E def, ItemProxy proxy, DescriptionObjectCache<E> parent) {
+        public CacheEntry(E def, DescriptionObjectCache<E> parent) {
             this.id = def.getItemID() + "_" + def.getVersion();
             this.idName = def.getName() + "_" + def.getVersion();
-            this.def = def;
+            this.descObject = def;
             this.parent = parent;
-            this.proxy = proxy;
         }
 
         @Override
