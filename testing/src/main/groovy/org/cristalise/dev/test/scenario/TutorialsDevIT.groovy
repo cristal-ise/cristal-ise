@@ -197,7 +197,7 @@ class TutorialsDevIT extends KernelScenarioTestBase {
         executeDoneJob(patient, elemActName)
         executeDoneJob(patient, 'SetUrinSample')
 
-        PollingConditions pollingWait = new PollingConditions(timeout: 3, initialDelay: 0.2 as double, factor: 1)
+        PollingConditions pollingWait = new PollingConditions(timeout: 3, initialDelay: 0.5, delay: 0.2, factor: 1)
         pollingWait.eventually {
             userCode.jobList.isEmpty()
         }
