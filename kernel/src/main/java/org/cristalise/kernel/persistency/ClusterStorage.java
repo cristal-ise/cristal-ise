@@ -298,4 +298,8 @@ public abstract class ClusterStorage {
     public abstract void abort(TransactionKey transactionKey) throws PersistencyException;
 
 
+    @Override
+    public String toString() {
+        return getName();
+    }
 }
