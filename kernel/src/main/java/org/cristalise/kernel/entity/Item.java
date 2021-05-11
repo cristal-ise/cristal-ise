@@ -30,9 +30,6 @@ import io.vertx.core.Handler;
 @ProxyGen // Generate the proxy and handler
 @VertxGen // Generate clients in non-java languages
 public interface Item {
-    
-    public static final String ebAddress = "cristalise-items";
-
     /**
      * Requests a transition of an Activity in this Item's workflow. If possible and permitted, an Event is generated and stored, the
      * Activity's state is updated, which may cause the Workflow to proceed. If this transition requires Outcome data, this is supplied and
