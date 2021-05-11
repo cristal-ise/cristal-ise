@@ -60,6 +60,6 @@ public class ScriptErrorException extends CriseVertxException {
     }
 
     public ScriptErrorException(String message, Throwable throwable) {
-        super(ScriptError, throwable);
+        super(ScriptError, message, throwable);
     }
 }
