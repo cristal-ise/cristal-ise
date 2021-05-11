@@ -23,13 +23,21 @@ package org.cristalise.dev.dsl
 import static org.cristalise.kernel.process.resource.BuiltInResources.*
 
 import org.cristalise.dsl.entity.AgentBuilder
+import org.cristalise.dsl.entity.AgentDelegate
 import org.cristalise.dsl.entity.ItemBuilder
+import org.cristalise.dsl.entity.ItemDelegate
 import org.cristalise.dsl.entity.RoleBuilder
+import org.cristalise.dsl.entity.RoleDelegate
 import org.cristalise.dsl.lifecycle.definition.CompActDefBuilder
+import org.cristalise.dsl.lifecycle.definition.CompActDefDelegate
 import org.cristalise.dsl.lifecycle.definition.ElemActDefBuilder
+import org.cristalise.dsl.lifecycle.definition.ElemActDefDelegate
 import org.cristalise.dsl.persistency.outcome.SchemaBuilder
+import org.cristalise.dsl.persistency.outcome.SchemaDelegate
 import org.cristalise.dsl.querying.QueryBuilder
+import org.cristalise.dsl.querying.QueryDelegate
 import org.cristalise.dsl.scripting.ScriptBuilder
+import org.cristalise.dsl.scripting.ScriptDelegate
 import org.cristalise.kernel.common.ObjectNotFoundException
 import org.cristalise.kernel.entity.imports.ImportAgent
 import org.cristalise.kernel.entity.imports.ImportItem
@@ -55,7 +63,7 @@ import groovy.transform.CompileStatic
  */
 @CompileStatic
 class DevItemDSL extends DevItemUtility {
-    public List<ImportRole> Roles(Closure cl) {
+    public List<ImportRole> Roles(@DelegatesTo(RoleDelegate) Closure cl) {
         def newRoles = RoleBuilder.build(cl)
         def resultRoles = new ArrayList<ImportRole>()
 
@@ -68,17 +76,17 @@ class DevItemDSL extends DevItemUtility {
     }
 
     // name parameter is not used, method is only kept for backward compatibility
-    public List<ImportRole> Role(String name, Closure cl) {
+    public List<ImportRole> Role(String name, @DelegatesTo(RoleDelegate) Closure cl) {
         return Roles(cl)
     }
 
-    public ImportAgent Agent(String name, Closure cl) {
+    public ImportAgent Agent(String name, @DelegatesTo(AgentDelegate) Closure cl) {
         def newAgent = AgentBuilder.build(name, "pwd", cl)
         def result = agent.execute(agent.getItem('/servers/localhost'), ImportImportAgent.class, agent.marshall(newAgent))
         return (ImportAgent) Gateway.getMarshaller().unmarshall(result)
     }
 
-    public ImportItem Item(Map<String, Object> attrs, Closure cl) {
+    public ImportItem Item(Map<String, Object> attrs, @DelegatesTo(ItemDelegate) Closure cl) {
         def newItem = ItemBuilder.build(attrs, cl)
         def result = agent.execute(agent.getItem('/servers/localhost'), ImportImportItem.class, agent.marshall(newItem))
 
@@ -91,21 +99,21 @@ class DevItemDSL extends DevItemUtility {
         return (ImportItem) Gateway.getMarshaller().unmarshall(result)
     }
 
-    public Schema Schema(String name, String folder, Closure cl) {
+    public Schema Schema(String name, String folder, @DelegatesTo(SchemaDelegate) Closure cl) {
         createNewSchema(name, folder)
         def schema = SchemaBuilder.build(name, 0, cl).schema
         editSchema(name, folder, schema.XSD)
         return schema
     }
 
-    public Query Query(String name, String folder, Closure cl) {
+    public Query Query(String name, String folder, @DelegatesTo(QueryDelegate) Closure cl) {
         createNewQuery(name, folder)
         def query = QueryBuilder.build("", name, 0, cl)
         editQuery(name, folder, query.queryXML)
         return query
     }
 
-    public Script Script(String name, String folder, Closure cl) {
+    public Script Script(String name, String folder, @DelegatesTo(ScriptDelegate) Closure cl) {
         Script script = ScriptBuilder.build("", name, 0, cl).script
 
         try {
@@ -121,21 +129,21 @@ class DevItemDSL extends DevItemUtility {
         return script
     }
 
-    public ActivityDef ElementaryActivityDef(String actName, String folder, Closure cl) {
+    public ActivityDef ElementaryActivityDef(String actName, String folder, @DelegatesTo(ElemActDefDelegate) Closure cl) {
         createNewElemActDesc(actName, folder)
         def eaDef = ElemActDefBuilder.build(name: (Object)actName, version: 0, cl)
         editElemActDesc(actName, folder, eaDef)
         return eaDef
     }
 
-    public CompositeActivityDef CompositeActivityDef(String actName, String folder, Closure cl) {
+    public CompositeActivityDef CompositeActivityDef(String actName, String folder, @DelegatesTo(CompActDefDelegate) Closure cl) {
         createNewCompActDesc(actName, folder)
         def caDef = CompActDefBuilder.build(name: (Object)actName, version: 0, cl)
         editCompActDesc(actName, folder, caDef)
         return caDef
     }
 
-    public ItemProxy DescriptionItem(String itemName, String folder, Closure cl) {
+    public ItemProxy DescriptionItem(String itemName, String folder, @DelegatesTo(DescriptionItemFactoryDelegate) Closure cl) {
         def descItem = createNewDescriptionItem(itemName, folder)
         def difd = new DescriptionItemFactoryDelegate()
         difd.processClosure(cl)
