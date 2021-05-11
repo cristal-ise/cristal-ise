@@ -32,6 +32,7 @@ import static org.cristalise.kernel.property.BuiltInItemProperties.TYPE;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.CancellationException;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeoutException;
@@ -51,6 +52,7 @@ import org.cristalise.kernel.common.ObjectNotFoundException;
 import org.cristalise.kernel.common.PersistencyException;
 import org.cristalise.kernel.entity.C2KLocalObject;
 import org.cristalise.kernel.entity.Item;
+import org.cristalise.kernel.entity.ItemVerticle;
 import org.cristalise.kernel.entity.ItemVertxEBProxy;
 import org.cristalise.kernel.entity.agent.Job;
 import org.cristalise.kernel.entity.agent.JobArrayList;
@@ -60,6 +62,7 @@ import org.cristalise.kernel.lifecycle.instance.Workflow;
 import org.cristalise.kernel.lifecycle.instance.predefined.WriteProperty;
 import org.cristalise.kernel.lookup.AgentPath;
 import org.cristalise.kernel.lookup.ItemPath;
+import org.cristalise.kernel.persistency.C2KLocalObjectMap;
 import org.cristalise.kernel.persistency.ClusterType;
 import org.cristalise.kernel.persistency.TransactionKey;
 import org.cristalise.kernel.persistency.outcome.Outcome;
@@ -88,7 +91,7 @@ public class ItemProxy {
     protected ItemPath mItemPath;
 
     /**
-     * Set Transaction key (a.k.a. transKey) when ItemProxy is used in server side scripting
+     * Set Transaction key (a.k.a. transKey/locker) when ItemProxy is used in server side scripting
      */
     @Getter
     protected TransactionKey transactionKey = null;
@@ -107,7 +110,7 @@ public class ItemProxy {
     }
 
     public Item getItem() {
-        if (mItem == null) mItem = new ItemVertxEBProxy(Gateway.getVertx(), Item.ebAddress);
+        if (mItem == null) mItem = new ItemVertxEBProxy(Gateway.getVertx(), ItemVerticle.ebAddress);
 
         return mItem;
     }
@@ -187,7 +190,6 @@ public class ItemProxy {
                         futureResult.complete(returnString);
                     }
                     else {
-                        log.error("requestAction()", result.cause());
                         futureResult.completeExceptionally(result.cause());
                     }
                 });
@@ -196,12 +198,11 @@ public class ItemProxy {
             return futureResult.get(5, SECONDS);
         }
         catch (ExecutionException e) {
-            log.error("requestAction()", e);
-            throw CriseVertxException.convert(e);
+            throw CriseVertxException.convertFutureException(e);
         }
-        catch (InterruptedException | TimeoutException e) {
-            log.error("requestAction()", e);
-            throw new CannotManageException(e);
+        catch (InterruptedException | TimeoutException | CancellationException e) {
+            log.error("requestAction() - item:{} agent:{}", itemUuid, agentUuid, e);
+            throw new CannotManageException("Error while waiting for the requestAction() return value item:"+itemUuid+" agent:"+agentUuid+"", e);
         }
     }
 
@@ -301,11 +302,11 @@ public class ItemProxy {
             }
         }
         catch (ExecutionException e) {
-            throw CriseVertxException.convert(e);
+            throw CriseVertxException.convertFutureException(e);
         }
-        catch (InterruptedException | TimeoutException e) {
-            log.error("getJobList()", e);
-            throw new CannotManageException(e);
+        catch (InterruptedException | TimeoutException | CancellationException e) {
+            log.error("getJobList() - item:{} agent:{}", mItemPath, agentPath, e);
+            throw new CannotManageException("Error while waiting for the getJobList() return value item:"+mItemPath+" agent:"+agentPath+"", e);
         }
     }
 
@@ -912,7 +913,7 @@ public class ItemProxy {
         catch (ObjectNotFoundException e) {
             throw e;
         }
-        catch (Exception e) {
+        catch (Throwable e) {
             log.error("queryData() - could not read data for path:{}/{}", mItemPath, path, e);
             return "<ERROR>"+e.getMessage()+"</ERROR>";
         }
@@ -1033,14 +1034,16 @@ public class ItemProxy {
     }
 
     /**
-     * Retrieve the C2KLocalObject for the ClusterType
+     * Retrieve the C2KLocalObject for the ClusterType. Actually it returns an instance of C2KLocalObjectMap
      *
      * @param type the ClusterTyoe
-     * @return the C2KLocalObject
+     * @return the C2KLocalObjectMap representing all the Object in the ClusterType
      * @throws ObjectNotFoundException the type did not result in a C2KLocalObject
      */
     public C2KLocalObject getObject(ClusterType type, TransactionKey transKey) throws ObjectNotFoundException {
-        return getObject(type.getName(), transKey);
+        C2KLocalObjectMap<?> c2kObjMap = (C2KLocalObjectMap<?>) getObject(type.getName(), transKey);
+        c2kObjMap.setTransactionKey(transKey);
+        return c2kObjMap;
     }
 
     /**
@@ -1263,7 +1266,7 @@ public class ItemProxy {
      * @throws ObjectNotFoundException there is no event for the given id
      */
     public History getHistory() throws ObjectNotFoundException {
-        return (History) getObject(HISTORY, transactionKey);
+        return getHistory(null);
     }
 
     /**

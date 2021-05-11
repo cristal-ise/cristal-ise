@@ -39,14 +39,10 @@ import lombok.extern.slf4j.Slf4j;
 public class ProxyManager {
 
     private static ItemProxy createProxy(ItemPath itemPath, TransactionKey transactionKey) throws ObjectNotFoundException {
-        ItemProxy newProxy = null;
-
         log.debug("createProxy() - Item:{}", itemPath);
 
-        if( itemPath instanceof AgentPath ) newProxy = new AgentProxy((AgentPath)itemPath, transactionKey);
-        else                                newProxy = new ItemProxy(itemPath, transactionKey);
-
-        return newProxy;
+        if( itemPath instanceof AgentPath ) return new AgentProxy((AgentPath)itemPath, transactionKey);
+        else                                return new ItemProxy(itemPath, transactionKey);
     }
 
     public static ItemProxy getProxy(Path path) throws ObjectNotFoundException {
@@ -64,7 +60,7 @@ public class ProxyManager {
                 itemPath = getLookup().getItemPath(((ItemPath)path).getUUID().toString(), transactionKey);
             }
             catch (InvalidItemPathException e) {
-                throw new ObjectNotFoundException(e.getMessage());
+                throw new ObjectNotFoundException(e);
             }
         }
         else if (path instanceof DomainPath) {

@@ -65,7 +65,6 @@ import org.cristalise.kernel.scripting.Script;
 import org.cristalise.kernel.scripting.ScriptErrorException;
 import org.cristalise.kernel.scripting.ScriptingEngineException;
 import org.cristalise.kernel.utils.CastorHashMap;
-import org.cristalise.kernel.utils.CorbaExceptionUtility;
 import org.exolab.castor.mapping.MappingException;
 import org.exolab.castor.xml.MarshalException;
 import org.exolab.castor.xml.ValidationException;
@@ -167,13 +166,16 @@ public class AgentProxy extends ItemProxy {
                 if (errorString.length() > 0) log.warn("Script errors: {}", errorString);
             }
             catch (ScriptingEngineException ex) {
+                //script.evaluate() wraps all exception in ScriptingEngineException
                 Throwable cause = ex.getCause();
 
-                if (cause == null) cause = ex;
-
-                log.error("", ex);
-
-                throw new InvalidDataException(CorbaExceptionUtility.unpackMessage(cause));
+                if (cause != null) {
+                    if (cause instanceof CriseVertxException) throw ((CriseVertxException)cause);
+                    else                                      throw new ScriptErrorException(cause);
+                }
+                else {
+                    throw new ScriptErrorException(ex);
+                }
             }
         }
         else if (job.hasQuery() && !"Query".equals(job.getActProp(BuiltInVertexProperties.OUTCOME_INIT))) {
@@ -536,7 +538,7 @@ public class AgentProxy extends ItemProxy {
      * @throws ObjectNotFoundException there is no persistent JobList for the Agent
      */
     public JobList getJobList() throws ObjectNotFoundException {
-        return (JobList) getObject(JOB, transactionKey);
+        return getJobList(null);
     }
 
     /**

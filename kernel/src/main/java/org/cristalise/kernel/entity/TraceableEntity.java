@@ -21,6 +21,7 @@
 package org.cristalise.kernel.entity;
 
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
+import static org.cristalise.kernel.common.CriseVertxException.FailureCodes.InternalServerError;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -122,14 +123,14 @@ public class TraceableEntity implements Item {
         }
         catch (InvalidItemPathException | ObjectNotFoundException e) {
             log.error("requestAction()", e);
-            returnHandler.handle(e.fail());
+            returnHandler.handle(e.failService());
             return;
         }
 
         SharedData sharedData = Gateway.getVertx().sharedData();
 
         sharedData.getLockWithTimeout(itemUuid, 5000,  lockResult -> {
-          if (lockResult.succeeded()) {
+        if (lockResult.succeeded()) {
             // Got the lock!
             Lock lock = lockResult.result();
 
@@ -166,11 +167,10 @@ public class TraceableEntity implements Item {
                     // Now throw the original exception
                     if (ex instanceof CriseVertxException) {
                         CriseVertxException criseEx = (CriseVertxException) ex;
-                        returnHandler.handle(criseEx.fail());
+                        returnHandler.handle(criseEx.failService());
                     }
                     else {
-                        returnHandler.handle(Future.failedFuture(
-                                new ServiceException(999, ex.getMessage(), CriseVertxException.convertToDebugInfo(ex))));
+                        returnHandler.handle(CriseVertxException.failService(ex));
                     }
                 }
                 catch (PersistencyException pex) {
@@ -180,18 +180,18 @@ public class TraceableEntity implements Item {
                     catch (PersistencyException e) {}
 
                     log.error("requestAction()", pex);
-                    returnHandler.handle(pex.fail());
+                    returnHandler.handle(pex.failService());
                 }
             }
 
             lock.release();
-          }
-          else {
-              Throwable cause = lockResult.cause();
-              log.error("requestAction()", cause);
-              JsonObject debugInfo = CriseVertxException.convertToDebugInfo(cause);
-              returnHandler.handle(Future.failedFuture(new ServiceException(999, cause.getMessage(), debugInfo)));
-          }
+        }
+        else {
+            Throwable cause = lockResult.cause();
+            log.error("requestAction()", cause);
+            JsonObject debugInfo = CriseVertxException.convertToDebugInfo(cause);
+            returnHandler.handle(CriseVertxException.failService(cause));
+        }
         });
     }
 
@@ -286,7 +286,7 @@ public class TraceableEntity implements Item {
         }
         catch (InvalidItemPathException | ObjectNotFoundException e) {
             log.error("queryLifeCycle("+item+")", e);
-            returnHandler.handle(e.fail());
+            returnHandler.handle(e.failService());
             return;
         }
 
@@ -328,11 +328,10 @@ public class TraceableEntity implements Item {
                 log.error("queryLifeCycle(" + item + ")", ex);
                 if (ex instanceof CriseVertxException) {
                     CriseVertxException e = (CriseVertxException) ex;
-                    returnHandler.handle(e.fail());
+                    returnHandler.handle(e.failService());
                 }
                 else {
-                    returnHandler.handle(Future.failedFuture(
-                            new ServiceException(999, ex.getMessage(), CriseVertxException.convertToDebugInfo(ex))));
+                    returnHandler.handle(CriseVertxException.failService(ex));
                 }
             }
         }
@@ -340,11 +339,10 @@ public class TraceableEntity implements Item {
             log.error("queryLifeCycle(" + item + ") - Unknown error", ex);
             if (ex instanceof CriseVertxException) {
                 CriseVertxException e = (CriseVertxException) ex;
-                returnHandler.handle(e.fail());
+                returnHandler.handle(e.failService());
             }
             else {
-                returnHandler.handle(Future.failedFuture(
-                        new ServiceException(999, ex.getMessage(), CriseVertxException.convertToDebugInfo(ex))));
+                returnHandler.handle(CriseVertxException.failService(ex));
             }
         }
     }
