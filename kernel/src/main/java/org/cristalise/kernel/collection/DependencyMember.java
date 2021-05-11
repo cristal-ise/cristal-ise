@@ -49,7 +49,6 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class DependencyMember implements CollectionMember {
     private ItemPath      mItemPath   = null;
-    private ItemProxy     mItem       = null;
     private int           mId         = -1;
     private CastorHashMap mProperties = null;
     private String        mClassProps = "";
@@ -128,20 +127,16 @@ public class DependencyMember implements CollectionMember {
         }
 
         mItemPath = itemPath;
-        mItem = null;
     }
 
     @Override
     public void clearItem() {
         mItemPath = null;
-        mItem = null;
     }
 
     @Override
     public ItemProxy resolveItem(TransactionKey transactionKey) throws ObjectNotFoundException {
-        if (mItem == null && mItemPath != null)
-            mItem = Gateway.getProxyManager().getProxy(mItemPath, transactionKey);
-        return mItem;
+        return Gateway.getProxy(mItemPath, transactionKey);
     }
 
     public void setChildUUID(String uuid) throws InvalidCollectionModification, InvalidItemPathException {

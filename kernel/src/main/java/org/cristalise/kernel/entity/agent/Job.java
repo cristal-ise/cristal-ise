@@ -81,7 +81,6 @@ public class Job implements C2KLocalObject {
 
     // Non-persistent fields
     private ErrorInfo  error;
-    private ItemProxy  item = null;
     private boolean    transitionResolved = false;
 
     private Outcome           outcome = null;
@@ -147,7 +146,6 @@ public class Job implements C2KLocalObject {
 
     public void setItemPath(ItemPath path) {
         itemPath = path;
-        item = null;
     }
 
     public void setItemUUID( String uuid ) throws InvalidItemPathException {
@@ -163,7 +161,7 @@ public class Job implements C2KLocalObject {
             return getItemProxy();
         }
         catch (InvalidItemPathException | ObjectNotFoundException e) {
-            throw new InvalidDataException(e.getMessage());
+            throw new InvalidDataException(e);
         }
     }
 
@@ -301,8 +299,7 @@ public class Job implements C2KLocalObject {
     }
 
     public ItemProxy getItemProxy() throws ObjectNotFoundException, InvalidItemPathException {
-        if (item == null) item = Gateway.getProxy(itemPath, null);
-        return item;
+        return Gateway.getProxy(itemPath, null);
     }
 
     public String getDescription() {
@@ -356,11 +353,11 @@ public class Job implements C2KLocalObject {
      */
     public Outcome getLastOutcome() throws InvalidDataException, ObjectNotFoundException {
         try {
-            return item.getViewpoint(getSchema().getName(), getValidViewpointName()).getOutcome();
+            return getItemProxy().getViewpoint(getSchema().getName(), getValidViewpointName()).getOutcome();
         }
-        catch (PersistencyException e) {
+        catch (PersistencyException | InvalidItemPathException e) {
             log.error("Error loading viewpoint", e);
-            throw new InvalidDataException("Error loading viewpoint:"+e.getMessage()); 
+            throw new InvalidDataException("Error loading viewpoint:"+e.getMessage(), e); 
         }
     }
 
