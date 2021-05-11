@@ -33,6 +33,7 @@ import org.cristalise.kernel.common.PersistencyException;
 import org.cristalise.kernel.entity.agent.Job;
 import org.cristalise.kernel.entity.agent.JobArrayList;
 import org.cristalise.kernel.entity.agent.JobList;
+import org.cristalise.kernel.entity.proxy.AgentProxy;
 import org.cristalise.kernel.lifecycle.instance.predefined.PredefinedStep;
 import org.cristalise.kernel.lookup.AgentPath;
 import org.cristalise.kernel.lookup.ItemPath;
@@ -67,32 +68,35 @@ public class RefreshJobList extends PredefinedStep {
     {
         log.debug("Called by {} on {}", agent.getAgentName(transactionKey), itemPath);
 
+        AgentProxy item = (AgentProxy) Gateway.getProxy(itemPath, transactionKey);
+
         try {
             JobArrayList newJobs = (JobArrayList)Gateway.getMarshaller().unmarshall(requestData);
 
-            JobList currentJobs = new JobList((AgentPath)itemPath, transactionKey);
+            JobList currentJobList = item.getJobList(transactionKey);
 
-            //the newJobs contains only the jobs for one Activity of a single Item
-            List<String> keysToRemove = currentJobs.getKeysForStep(newJobs.list.get(0));
+            //newJobs.list.get(0) can be used becuase the newJobs contains only the jobs for one Activity of a single Item
+            List<String> idsToRemove = currentJobList.getJobIdsForStep(newJobs.list.get(0));
 
             // merge new jobs in first, so the RemoteMap.getLastId() used during addJob() returns the next unique id
             for (Job newJob : newJobs.list) {
-                if (newJob.getId() != -1) {
+                // FIXME: id = -999 is a hack to get the itemPath and stepPath to cleanup the actual list
+                if (newJob.getId() != -999) {
                     log.trace("Adding job:{}", newJob);
-                    currentJobs.addJob(newJob);
+                    currentJobList.addJob(newJob);
                 }
             }
 
-            log.trace("Removing old jobs:{}", keysToRemove);
+            log.trace("Removing old jobs:{}", idsToRemove);
 
             // remove old jobs for this item
-            for(String key: keysToRemove) currentJobs.remove(key);
+            for(String key: idsToRemove) currentJobList.remove(key);
 
             return requestData;
         }
         catch (MarshalException | ValidationException | IOException | MappingException e) {
             log.error("Error marshalling Jobs", e);
-            throw new InvalidDataException("Error marshalling Jobs:" + e);
+            throw new InvalidDataException("Error marshalling Jobs", e);
         }
     }
 }

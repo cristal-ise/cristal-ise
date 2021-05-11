@@ -20,10 +20,8 @@
  */
 package org.cristalise.kernel.lifecycle.instance;
 
-import java.io.IOException;
 import java.util.List;
 
-import org.cristalise.kernel.common.CriseVertxException;
 import org.cristalise.kernel.common.ObjectNotFoundException;
 import org.cristalise.kernel.entity.agent.Job;
 import org.cristalise.kernel.entity.agent.JobArrayList;
@@ -35,9 +33,6 @@ import org.cristalise.kernel.lookup.InvalidItemPathException;
 import org.cristalise.kernel.lookup.ItemPath;
 import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.utils.CastorHashMap;
-import org.exolab.castor.mapping.MappingException;
-import org.exolab.castor.xml.MarshalException;
-import org.exolab.castor.xml.ValidationException;
 
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.json.JsonObject;
@@ -66,9 +61,9 @@ public class JobPusherVerticle extends AbstractVerticle {
                         List<Job> jobs = item.getJobs(agentPath, stepPath);
 
                         if (jobs.isEmpty()) {
-                            // FIXME: this is a hack to send the itemPath and stepPath to RefreshJobList so it can cleanup the actual list
-                            jobs.add(new Job(-1, itemPath, "stepName", stepPath, "stepType", 
-                                    null, ""/*originStateName*/, ""/*targetStateName*/, agentPath.getRoles()[0].getName(),
+                            // FIXME: hack to send the itemPath and stepPath to RefreshJobList to cleanup the actual list
+                            jobs.add(new Job(-999, itemPath, "stepName", stepPath, "stepType", 
+                                    null, ""/*originStateName*/, ""/*targetStateName*/, ""/*roleName*/,
                                     agentPath, new CastorHashMap(), null/*creationDate*/));
                         }
 
@@ -76,13 +71,8 @@ public class JobPusherVerticle extends AbstractVerticle {
 
                         agent.execute(agent, RefreshJobList.class, stringJobs);
                     }
-                    catch (CriseVertxException e) {
-                        log.error("handler()", e);
-                    }
-                    catch (MarshalException | ValidationException | IOException |  MappingException e) {
-                        log.error("handler()", e);
-                    }
                     catch (Throwable e) {
+                        //FIXME store this error, because the JobList of Agent was not refreshed
                         log.error("handler()", e);
                     }
                 });
