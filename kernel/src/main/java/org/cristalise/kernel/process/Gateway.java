@@ -28,6 +28,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Properties;
 import java.util.Set;
+import java.util.concurrent.CancellationException;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeoutException;
@@ -236,8 +237,8 @@ public class Gateway extends ProxyManager
      */
     static private void createServerVerticles() {
         DeploymentOptions options = new DeploymentOptions()
-                .setWorker(true)
-                .setInstances(getProperties().getInt("ItemVerticle.instances", 4));
+                .setWorker(ItemVerticle.isWorker)
+                .setInstances(ItemVerticle.instances);
 
         mVertx.deployVerticle(ItemVerticle.class, options);
 
@@ -331,10 +332,10 @@ public class Gateway extends ProxyManager
                     future.get(60, SECONDS);
                 }
                 catch (ExecutionException e) {
-                    throw CriseVertxException.convert(e);
+                    throw CriseVertxException.convertFutureException(e);
                 }
-                catch (InterruptedException | TimeoutException e) {
-                    log.error("requestAction()", e);
+                catch (InterruptedException | TimeoutException | CancellationException e) {
+                    log.error("createVertx(clustered)", e);
                     throw new CannotManageException(e);
                 }
             }

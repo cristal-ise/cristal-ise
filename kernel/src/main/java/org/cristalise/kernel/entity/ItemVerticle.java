@@ -20,13 +20,42 @@
  */
 package org.cristalise.kernel.entity;
 
+import static org.cristalise.kernel.process.Gateway.getProperties;
+
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.Promise;
 import io.vertx.serviceproxy.ServiceBinder;
+import io.vertx.serviceproxy.ServiceException;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class ItemVerticle extends AbstractVerticle {
+
+    public static final String EB_ADDRESS_PROPERTY    = "ItemVerticle.ebAddress";
+    public static final String IS_WORKER_PROPERTY     = "ItemVerticle.isWorker";
+    public static final String INSTANCES_PROPERTY     = "ItemVerticle.instances";
+    public static final String INCLUDE_DEBUG_PROPERTY = "ItemVerticle.includeDebugInfo";
+
+    /**
+     * The address name of the vertx event bus. Use {@value #EB_ADDRESS_PROPERTY} SystemProperty to configure it. 
+     * Default value is 'cristalise-items'
+     */
+    public static final String ebAddress = getProperties().getString(EB_ADDRESS_PROPERTY, "cristalise-items");
+    /**
+     * If the verticle is a worker verticle or not. Use {@value #IS_WORKER_PROPERTY} SystemProperty to configure it. 
+     * Default value is 'true'
+     */
+    public static final boolean isWorker = getProperties().getBoolean(IS_WORKER_PROPERTY, true);
+    /**
+     * The number of deployed verticle instances. Use {@value #INSTANCES_PROPERTY} SystemProperty to configure it. 
+     * Default value is 8
+     */
+    public static final int instances = getProperties().getInt(INSTANCES_PROPERTY, 8);
+    /**
+     * If the {@link ServiceException} includes debug information or not. Use {@value #INCLUDE_DEBUG_PROPERTY} 
+     * SystemProperty to configure it. Default value is 'true'
+     */
+    public static final boolean includeDebug = getProperties().getBoolean(INCLUDE_DEBUG_PROPERTY, true);
 
     @Override
     public void start(Promise<Void> startPromise) throws Exception {
@@ -34,8 +63,9 @@ public class ItemVerticle extends AbstractVerticle {
         Item service = new TraceableEntity();
 
         new ServiceBinder(vertx)
-          .setAddress(Item.ebAddress)
-          .register(Item.class, service);
+                .setAddress(ebAddress)
+                .setIncludeDebugInfo(includeDebug)
+                .register(Item.class, service);
 
         startPromise.complete();
         log.info("start() - service register done");
