@@ -69,8 +69,8 @@ public class Main extends StandardClient {
             throw new BadArgumentsException("Please specify REST.URI on which to listen in config.");
 
         final ResourceConfig rc = new ResourceConfig().packages("org.cristalise.restapi");
-        
-       rc.register(MultiPartFeature.class);
+
+        rc.register(MultiPartFeature.class);
 
         if (Gateway.getProperties().getBoolean("REST.addCorsHeaders", false)) rc.register(CORSResponseFilter.class);
 
