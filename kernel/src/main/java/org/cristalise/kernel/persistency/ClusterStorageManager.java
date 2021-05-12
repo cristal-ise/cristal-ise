@@ -600,7 +600,7 @@ public class ClusterStorageManager {
         }
 
         String fullPath = getFullPath(itemPath, path);
-        log.debug( "clearCache() - removing {}", fullPath);
+        log.trace( "clearCache() - removing {}", fullPath);
         cache.invalidate(fullPath);
     }
 
@@ -609,7 +609,7 @@ public class ClusterStorageManager {
      * @param fullPathList
      */
     public void clearCache(List<String> fullPathList) {
-        log.debug( "clearCache() - removing {} entries", fullPathList.size());
+        log.trace( "clearCache() - removing {} entries", fullPathList.size());
         cache.invalidate(fullPathList);
     }
 
@@ -617,7 +617,7 @@ public class ClusterStorageManager {
      * Clear entire cache
      */
     public void clearCache() {
-        log.debug( "clearCache() - clearing entire cache, {} entities.", cache.size());
+        log.trace( "clearCache() - clearing entire cache, {} entities.", cache.size());
         cache.invalidateAll();
     }
 

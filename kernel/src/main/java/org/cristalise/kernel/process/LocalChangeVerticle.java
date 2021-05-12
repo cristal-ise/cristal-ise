@@ -45,10 +45,12 @@ public class LocalChangeVerticle extends AbstractVerticle {
             Object body = message.body();
             log.debug("handler() - message.body:{}", body);
 
+            boolean publish = Gateway.getProperties().getBoolean("LocalChangeVerticle.publishLocalMessage", false);
+
             try {
                 //order is important: see above
                 clearCache((JsonArray)body);
-                sendLocalMessages((JsonArray)body);
+                publishLocalMessages((JsonArray)body, publish);
             }
             catch (Exception e) {
                 log.error("handler()", e);
@@ -59,7 +61,7 @@ public class LocalChangeVerticle extends AbstractVerticle {
         log.info("start() - '{}' consumer configured", ProxyMessage.ebAddress);
     }
 
-    private void sendLocalMessages(JsonArray body) throws InvalidDataException {
+    private void publishLocalMessages(JsonArray body, boolean publish) throws InvalidDataException {
         DeliveryOptions opt = new DeliveryOptions().setLocalOnly(true);
 
         for (Object element: body) {
@@ -67,8 +69,14 @@ public class LocalChangeVerticle extends AbstractVerticle {
             String ebAddress = msg.getLocalEventBusAddress();
             String ebMsg     = msg.getLocalEventBusMessage();
 
-            log.trace("handler() - sending address:{}, msg:{}", ebAddress, ebMsg);
-            vertx.eventBus().publish(ebAddress, ebMsg, opt);
+            if (publish) {
+                log.trace("handler() - publising to address:{}, msg:{}", ebAddress, ebMsg);
+                vertx.eventBus().publish(ebAddress, ebMsg, opt);
+            }
+            else {
+                log.trace("handler() - sending to address:{}, msg:{}", ebAddress, ebMsg);
+                vertx.eventBus().send(ebAddress, ebMsg, opt);
+            }
         }
     }
 
