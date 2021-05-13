@@ -20,8 +20,10 @@
  */
 package org.cristalise.dsl.test.lifecycle.definition
 
+import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.PAIRING_ID
+
 import org.cristalise.dsl.lifecycle.definition.CompActDefBuilder;
-import org.cristalise.dsl.lifecycle.definition.ElemActDefBuilder
+import org.cristalise.kernel.lifecycle.LoopDef
 import org.cristalise.kernel.test.utils.CristalTestSetup
 
 import spock.lang.Specification
@@ -32,8 +34,8 @@ import spock.lang.Specification
  */
 class CompActDefBuilderSpecs extends Specification implements CristalTestSetup {
     
-    def setup()   { loggerSetup()    }
-    def cleanup() { cristalCleanup() }
+    def setup()   {}
+    def cleanup() {}
 
     def 'CompositeActivityDef can be built without any ElementaryActivityDefs'() {
         when:
@@ -58,5 +60,31 @@ class CompActDefBuilderSpecs extends Specification implements CristalTestSetup {
         caDef.version == 0
         caDef.childrenGraphModel.vertices.length == 2
         caDef.childrenGraphModel.startVertex.name == "EA1"
+    }
+
+    def 'CompositeActivityDef can build a sequence including LoopDef'() {
+        when:
+        def caDef = CompActDefBuilder.build(module: 'test', name: 'CADef', version: 0) {
+            ElemActDef('EA1', 0) {}
+            ElemActDef('EA2', 0)
+            LoopDef {
+                ElemActDef('EA3', 0)
+            }
+        }
+        def loopDef = caDef.getChildren().find { it instanceof LoopDef }
+
+        then:
+        caDef.name == 'CADef'
+        caDef.version == 0
+        caDef.childrenGraphModel.vertices.length == 6
+        caDef.childrenGraphModel.startVertex.name == "EA1"
+        caDef.childrenGraphModel.vertices.find { it.name == "EA3" }
+
+        loopDef
+        loopDef.getOutGraphables().size() == 2
+        loopDef.getOutGraphables().findAll {
+            it.getBuiltInProperty(PAIRING_ID) == loopDef.getBuiltInProperty(PAIRING_ID)}.size() == 1
+        loopDef.getInGraphables().size() == 1
+        loopDef.getOutEdges()
     }
 }

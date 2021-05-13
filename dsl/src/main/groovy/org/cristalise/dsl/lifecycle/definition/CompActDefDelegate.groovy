@@ -39,39 +39,31 @@ import org.cristalise.kernel.utils.LocalObjectLoader;
  * Wrapper/Delegate class of CompositeActivityDef
  */
 @CompileStatic
-class CompActDefDelegate extends PropertyDelegate {
+class CompActDefDelegate extends BlockDefDelegate {
 
-    ActivitySlotDef prevActSlotDef = null
+    public CompActDefDelegate() {
+        super (new CompositeActivityDef(), null)
+    }
 
-    public CompositeActivityDef compActDef
-
-    //TODO: build this to enable easier testing
-    public Map<String, WfVertexDef> vertexDefCache = [:]
-
-    public Map<String, WfVertexDef> processClosure(String name, int version, Closure cl) {
-        compActDef = new CompositeActivityDef()
+    public void processClosure(String name, int version, Closure cl) {
         compActDef.name = name
         compActDef.version = version
 
-        return processClosure(compActDef, cl)
+        processClosure(cl)
     }
 
-    public Map<String, WfVertexDef> processClosure(CompositeActivityDef caDef, Closure cl) {
-        assert caDef
-
-        compActDef = caDef
+    public void processClosure(Closure cl) {
+        assert compActDef
 
         if (cl) {
             cl.delegate = this
             cl.resolveStrategy = Closure.DELEGATE_FIRST
             cl()
-    
+
             props.each { k, v ->
                 compActDef.properties.put(k, v, props.getAbstract().contains(k))
             }
         }
-
-        return vertexDefCache
     }
 
     def StateMachine(StateMachine s) {
@@ -82,29 +74,9 @@ class CompActDefDelegate extends PropertyDelegate {
         compActDef.setStateMachine(LocalObjectLoader.getStateMachine(name, version))
     }
 
-    private int addActDefToSequence(String actName, ActivityDef actDef) {
-        def newActSlotDef = compActDef.addExistingActivityDef(actName, actDef, new GraphPoint())
-
-        //Simple logic only to add sequential activities
-        if(prevActSlotDef) compActDef.addNextDef(prevActSlotDef, newActSlotDef)
-        else               compActDef.getChildrenGraphModel().setStartVertexId(newActSlotDef.ID)
-
-        prevActSlotDef = newActSlotDef;
-
-        return newActSlotDef.ID
-    }
-
     def ElemActDef(String actName, int actVer, Closure cl = null) {
         ActivityDef eaDef = ElemActDefBuilder.build('name': (Object)actName, 'version': actVer, cl)
         return ElemActDef(actName, eaDef)
-    }
-
-    def ElemActDef(ActivityDef actDef) {
-        return addActDefToSequence(actDef.actName, actDef)
-    }
-
-    def ElemActDef(String actName, ActivityDef actDef) {
-        return addActDefToSequence(actName, actDef)
     }
 
     def CompActDef(String actName, int actVer, Closure cl = null) {
@@ -112,11 +84,4 @@ class CompActDefDelegate extends PropertyDelegate {
         return CompActDef(actName, caDef)
     }
 
-    def CompActDef(CompositeActivityDef actDef) {
-        return addActDefToSequence(actDef.actName, actDef)
-    }
-
-    def CompActDef(String actName, CompositeActivityDef actDef) {
-        return addActDefToSequence(actName, actDef)
-    }
 }

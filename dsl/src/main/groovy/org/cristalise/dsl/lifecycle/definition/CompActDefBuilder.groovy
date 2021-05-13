@@ -41,9 +41,9 @@ class CompActDefBuilder {
         return delegate.compActDef
     }
 
-    public static CompositeActivityDef build(CompositeActivityDef caDef,  @DelegatesTo(CompActDefDelegate) Closure cl) {
-        def delegate = new CompActDefDelegate()
-        delegate.processClosure(caDef, cl)
-        return caDef
-    }
+//    public static CompositeActivityDef build(CompositeActivityDef caDef,  @DelegatesTo(CompActDefDelegate) Closure cl) {
+//        def delegate = new CompActDefDelegate()
+//        delegate.processClosure(caDef, cl)
+//        return caDef
+//    }
 }

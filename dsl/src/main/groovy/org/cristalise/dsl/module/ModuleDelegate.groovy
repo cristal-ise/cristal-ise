@@ -51,6 +51,7 @@ import org.cristalise.kernel.graph.layout.DefaultGraphLayoutGenerator
 import org.cristalise.kernel.lifecycle.ActivityDef
 import org.cristalise.kernel.lifecycle.CompositeActivityDef
 import org.cristalise.kernel.lifecycle.instance.stateMachine.StateMachine
+import org.cristalise.kernel.lifecycle.renderer.LifecycleRenderer
 import org.cristalise.kernel.persistency.outcome.Schema
 import org.cristalise.kernel.process.Gateway
 import org.cristalise.kernel.process.module.Module
@@ -75,6 +76,8 @@ import org.cristalise.kernel.scripting.Script
 import org.cristalise.kernel.test.utils.KernelXMLUtility
 import org.cristalise.kernel.utils.FileStringUtility
 import org.cristalise.kernel.utils.LocalObjectLoader
+import org.jfree.graphics2d.svg.SVGGraphics2D
+import org.jfree.graphics2d.svg.SVGUtils
 
 import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
@@ -237,6 +240,28 @@ class ModuleDelegate implements BindingConvention {
         return eaDef
     }
 
+    /**
+     *
+     * @param caDef
+     */
+    public void generateWorkflowSVG(CompositeActivityDef caDef) {
+        LifecycleRenderer generator = new LifecycleRenderer(caDef.getChildrenGraphModel(), true)
+        int zoomFactor = generator.getZoomFactor(1000, 1000)
+
+        SVGGraphics2D svgG2D = new SVGGraphics2D(1000, 1000)
+        svgG2D.scale((double) zoomFactor / 100, (double) zoomFactor / 100)
+
+        generator.draw(svgG2D)
+
+        SVGUtils.writeToSVG(new File("target/${caDef.name}_${caDef.version}.svg"), svgG2D.getSVGElement())
+    }
+
+    /**
+     * 
+     * @param name
+     * @param version
+     * @return
+     */
     public CompositeActivityDef Workflow(String name, Integer version) {
         def caDef = LocalObjectLoader.getCompActDef(name, version)
         addCompositeActivityDef(caDef)
@@ -264,10 +289,15 @@ class ModuleDelegate implements BindingConvention {
         def caDef = CompActDefBuilder.build((String)args.name, (Integer)args.version, cl)
 
         if (args?.generate) {
-            DefaultGraphLayoutGenerator.layoutGraph(caDef.childrenGraphModel)
-            if (generateResourceXml) caDef.export(null, resourceBootDir, true)
+            if (generateResourceXml) {
+                DefaultGraphLayoutGenerator.layoutGraph(caDef.childrenGraphModel)
+                //do not rebuild during export, because LocalObjectLoader will not find new actDefs declared in DSL
+                caDef.export(null, resourceBootDir, true, false)
+                generateWorkflowSVG(caDef)
+            }
         }
         else {
+            // since the workflow id not generated the XML file must exist
             assert new File(new File(resourceBootDir, 'CA'), ""+args.name + (args.version == null ? "" : "_" + args.version) + ".xml").exists()
         }
 
@@ -289,6 +319,13 @@ class ModuleDelegate implements BindingConvention {
         )
     }
 
+    /**
+     * 
+     * @param name
+     * @param version
+     * @param cl
+     * @return
+     */
     public PropertyDescriptionList PropertyDescriptionList(String name, Integer version, @DelegatesTo(PropertyDescriptionDelegate) Closure cl) {
         def propDescList = PropertyDescriptionBuilder.build(newModule.ns, name, version, cl)
         if (generateResourceXml) propDescList.export(null, resourceBootDir, true)
