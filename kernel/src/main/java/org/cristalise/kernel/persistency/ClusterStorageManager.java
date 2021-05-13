@@ -401,7 +401,7 @@ public class ClusterStorageManager {
         ClusterType clusterType = ClusterType.getFromPath(path);
 
         if (clusterType == null) {
-            throw new ObjectNotFoundException("Path must start with one of the values of ClusterType - "+itemPath+"/"+path);
+            throw new ObjectNotFoundException("Path '"+path+"' must start with one of the values of ClusterType - item:"+itemPath);
         }
 
         final String correctPath = (path.startsWith("/") && path.length() > 1) ? path.substring(1) : path;

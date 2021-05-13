@@ -18,6 +18,7 @@ import org.junit.Test
 
 import groovy.transform.CompileDynamic
 import groovy.transform.CompileStatic
+import groovy.util.logging.Slf4j
 import spock.util.concurrent.PollingConditions
 
 
@@ -25,7 +26,7 @@ import spock.util.concurrent.PollingConditions
  *
  *
  */
-@CompileStatic
+@CompileStatic @Slf4j
 class TutorialsDevIT extends KernelScenarioTestBase {
     String schemaName  = "PatientDetails"
     String elemActName = "SetPatientDetails"
@@ -120,7 +121,7 @@ class TutorialsDevIT extends KernelScenarioTestBase {
         createNewItemByFactory(factory, "CreateNewInstance", "$itemType-$timeStamp", folder)
 
         def patient = agent.getItem("$folder/$itemType-$timeStamp")
-        
+
         assert patient.getMasterSchema()
         assert patient.getAggregateScript()
 
@@ -186,7 +187,9 @@ class TutorialsDevIT extends KernelScenarioTestBase {
 
     @Test
     public void 'Extended Tutorial using Usercode to execute Aggregate Script'() {
-        def factory = setupUsercode()
+        //def factory = setupUsercode()
+        def factory = agent.getItem("$folder/$factoryName-2021-05-11_23-43-54_514")
+
         createNewItemByFactory(factory, "CreateNewInstance", "$itemType-$timeStamp", folder)
         def patient = agent.getItem("$folder/$itemType-$timeStamp")
 
@@ -197,9 +200,9 @@ class TutorialsDevIT extends KernelScenarioTestBase {
         executeDoneJob(patient, elemActName)
         executeDoneJob(patient, 'SetUrinSample')
 
-        PollingConditions pollingWait = new PollingConditions(timeout: 3, initialDelay: 0.5, delay: 0.2, factor: 1)
+        PollingConditions pollingWait = new PollingConditions(timeout: 5, initialDelay: 0.5, delay: 0.5, factor: 1)
         pollingWait.eventually {
-            userCode.jobList.isEmpty()
+            assert patient.checkViewpoint("AggregatedPatientData-$timeStamp", 'last')
         }
 
         //checks if the usercode successfully executed aggregate script and the outcome was stored

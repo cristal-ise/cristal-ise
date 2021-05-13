@@ -171,9 +171,14 @@
         </Activity>
         <SchemaResource name="Patient" version="0"/>
         <ScriptResource name="Patient_Aggregate" version="0"/>
+        <Activity name="Patient_Aggregate" version="0">
+          <Schema name="Patient" version="0"/>
+          <Script name="Patient_Aggregate" version="0"/>
+        </Activity>
         <Workflow name="Patient_Workflow" version="0">
-          <Activity name="Patient_SetUrinSample" version="0"/>
           <Activity name="Patient_SetDetails" version="0"/>
+          <Activity name="Patient_SetUrinSample" version="0"/>
+          <Activity name="Patient_Aggregate" version="0"/>
         </Workflow>
         <ItemResource name="PatientFactory" version="0"/>
         <SchemaResource name="Doctor_Patient" version="0"/>

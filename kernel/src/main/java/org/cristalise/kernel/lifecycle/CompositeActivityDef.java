@@ -30,6 +30,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.Writer;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map.Entry;
 
@@ -151,41 +152,60 @@ public class CompositeActivityDef extends ActivityDef {
         return child;
     }
 
+    @Deprecated //use method using WfVertex.Types enum
     public WfVertexDef newChild(String Name, String Type, Integer version, GraphPoint location)
+            throws ObjectNotFoundException, InvalidDataException
+    {
+        List<String> splits = Arrays.asList(new String[]{"Or", "XOr", "And", "Loop"});
+
+        if (splits.contains(Type)) Type = Type+"Split";
+
+        return newChild(Name, WfVertex.Types.valueOf(Type), version, location);
+    }
+
+    public WfVertexDef newChild(String name, WfVertex.Types type, Integer version, GraphPoint location)
             throws ObjectNotFoundException, InvalidDataException
     {
         changed = true;
         boolean wasAdded = false;
-        WfVertexDef child;
-        
-        if (Type.equals("Or"))        child = new OrSplitDef();
-        else if (Type.equals("XOr"))  child = new XOrSplitDef();
-        else if (Type.equals("And"))  child = new AndSplitDef();
-        else if (Type.equals("Loop")) child = new LoopDef();
-        else if (Type.equals("Join") || Type.equals("Route")) {
-            child = new JoinDef();
-            child.getProperties().put("Type", Type);
-        }
-        else if (Type.equals("Atomic") || Type.equals("Composite")) {
-            ActivityDef act = Type.equals("Atomic") ? LocalObjectLoader.getElemActDef(Name, version) : LocalObjectLoader.getCompActDef(Name, version);
-            child = addExistingActivityDef(act.getActName(), act, location);
-            wasAdded = true;
-        }
-        else if (Type.equals("AtomicLocal") || Type.equals("CompositeLocal")) {
-            child = addLocalActivityDef(Name, Type, location);
-            wasAdded = true;
-        }
-        else {
-            throw new InvalidDataException("Unknown child type: " + Type);
+        WfVertexDef child = null;
+
+        switch (type) {
+            case OrSplit: child = new OrSplitDef(); break;
+            case XOrSplit: child = new XOrSplitDef(); break;
+            case AndSplit: child = new AndSplitDef(); break;
+            case LoopSplit: child = new LoopDef(); break;
+            case Join:
+            case Route:
+                child = new JoinDef(); 
+                child.getProperties().put("Type", type.toString());
+                break;
+            case Atomic:
+                ActivityDef eaDef = LocalObjectLoader.getElemActDef(name, version); 
+                child = addExistingActivityDef(eaDef.getActName(), eaDef, location);
+                wasAdded = true;
+                break;
+            case Composite:
+                ActivityDef caDef = LocalObjectLoader.getCompActDef(name, version);
+                child = addExistingActivityDef(caDef.getActName(), caDef, location);
+                wasAdded = true;
+                break;
+            case LocalAtomic:
+            case LocalComposite:
+                child = addLocalActivityDef(name, type.toString(), location);
+                wasAdded = true;
+                break;
+
+            default:
+                throw new InvalidDataException("Unknown child type '" + type + "' for name:'"+name+"'");
         }
 
-        if(!wasAdded) addChild(child, location);
+        if (!wasAdded) addChild(child, location);
 
-        log.debug("newChild() - Type:"+Type + " ID:" + child.getID() + " added to ID:" + this.getID());
+        log.debug("newChild() - Type:"+type + " ID:" + child.getID() + " added to ID:" + this.getID());
 
         return child;
     }
-
     /**
      * 
      * @return CompositeActivity
@@ -391,8 +411,12 @@ public class CompositeActivityDef extends ActivityDef {
 
     @Override
     public void export(Writer imports, File dir, boolean shallow) throws InvalidDataException, ObjectNotFoundException, IOException {
+        export(imports, dir, shallow, true);
+    }
+
+    public void export(Writer imports, File dir, boolean shallow, boolean rebuild) throws InvalidDataException, ObjectNotFoundException, IOException {
         // rebuild the child refs in case any slots have been removed
-        setRefChildActDef(findRefActDefs(getChildrenGraphModel(), null));
+        if (rebuild) setRefChildActDef(findRefActDefs(getChildrenGraphModel(), null));
 
         // TODO: property include routing scripts in another dependency collection
 

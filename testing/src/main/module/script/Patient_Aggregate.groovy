@@ -1,7 +1,4 @@
-<cristalscript>
-  <param name="item" type="org.cristalise.kernel.entity.proxy.ItemProxy"/>
-  <output name="PatientXML" type="java.lang.String"/>
-  <script language="groovy" name="Patient_Aggregate"><![CDATA[ import groovy.transform.Field
+import groovy.transform.Field
 import groovy.xml.MarkupBuilder
 
 import org.cristalise.kernel.persistency.outcome.Outcome
@@ -45,5 +42,3 @@ else {
     PatientXML = writer.toString()
     log.debug('item:{} returning:{}', item, PatientXML)
 }
- ]]></script>
-</cristalscript>
