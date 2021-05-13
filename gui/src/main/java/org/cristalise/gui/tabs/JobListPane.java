@@ -27,12 +27,12 @@
 package org.cristalise.gui.tabs;
 
 import static org.cristalise.kernel.persistency.ClusterType.JOB;
+import static org.cristalise.kernel.persistency.ClusterType.PROPERTY;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.util.Iterator;
 
 import javax.swing.Box;
 import javax.swing.JButton;
@@ -47,6 +47,7 @@ import org.cristalise.kernel.common.ObjectNotFoundException;
 import org.cristalise.kernel.entity.agent.Job;
 import org.cristalise.kernel.entity.agent.JobList;
 import org.cristalise.kernel.entity.proxy.AgentProxy;
+import org.cristalise.kernel.lookup.ItemPath;
 import org.cristalise.kernel.persistency.ClusterType;
 import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.property.Property;
@@ -134,7 +135,6 @@ public class JobListPane extends ItemTabPane implements ActionListener {
 
     @Override
     public void reload() {
-        joblist.clear();
         jumpToEnd();
     }
 
@@ -148,8 +148,10 @@ public class JobListPane extends ItemTabPane implements ActionListener {
         catch (ObjectNotFoundException e) {
             log.error("", e);
         }
-        model = new JoblistTableModel(joblist);
+
+        model = new JoblistTableModel();
         eventTable.setModel(model);
+
         jumpToEnd();
     }
 
@@ -180,7 +182,6 @@ public class JobListPane extends ItemTabPane implements ActionListener {
             currentSize = SIZE;
             startEvent = 0;
         }
-
         else if (e.getActionCommand().equals("prev")) {
             currentSize = SIZE;
             startEvent -= currentSize;
@@ -206,7 +207,7 @@ public class JobListPane extends ItemTabPane implements ActionListener {
         int       loaded  = 0;
         int       startId = 0;
 
-        public JoblistTableModel(JobList joblist) {
+        public JoblistTableModel() {
             job = new Job[0];
             ids = new Integer[0];
         }
@@ -221,21 +222,20 @@ public class JobListPane extends ItemTabPane implements ActionListener {
             itemNames = new String[size];
             this.startId = startId;
             int count = 0;
-            for (Iterator<?> i = joblist.keySet().iterator(); i.hasNext();) {
-                Integer thisJobId = new Integer((String) i.next());
+            for (String key: joblist.keySet()) {
+                int thisJobId = new Integer(key);
                 if (count >= startId) {
                     int idx = count - startId;
                     ids[idx] = thisJobId;
-                    job[idx] = joblist.get(thisJobId.intValue());
+                    job[idx] = joblist.get(thisJobId);
                     itemNames[idx] = "Item Not Found";
                     try {
-                        itemNames[idx] = ((Property) Gateway.getStorage().get(job[count - startId].getItemPath(),
-                                ClusterType.PROPERTY + "/Name", null)).getValue();
+                        ItemPath ip = job[count - startId].getItemPath();
+                        itemNames[idx] = ((Property) Gateway.getStorage().get(ip, PROPERTY+"/Name", null)).getValue();
                     }
                     catch (Exception ex) {
                         log.error("", ex);
                     }
-
                 }
                 count++;
                 loaded = count - startId;
@@ -271,18 +271,12 @@ public class JobListPane extends ItemTabPane implements ActionListener {
         @Override
         public String getColumnName(int columnIndex) {
             switch (columnIndex) {
-                case 0:
-                    return "ID";
-                case 1:
-                    return "Subject";
-                case 2:
-                    return "Activity";
-                case 3:
-                    return "Transition";
-                case 4:
-                    return "Date";
-                default:
-                    return "";
+                case 0: return "ID";
+                case 1: return "Subject";
+                case 2: return "Activity";
+                case 3: return "Transition";
+                case 4: return "Date";
+                default: return "";
             }
         }
 
@@ -303,18 +297,12 @@ public class JobListPane extends ItemTabPane implements ActionListener {
                 return "";
             try {
                 switch (columnIndex) {
-                    case 0:
-                        return ids[rowIndex];
-                    case 1:
-                        return itemNames[rowIndex];
-                    case 2:
-                        return job[rowIndex].getStepName();
-                    case 3:
-                        return job[rowIndex].getTransition().getName();
-                    case 4:
-                        return DateUtility.timeToString(job[rowIndex].getCreationDate());
-                    default:
-                        return "";
+                    case 0: return ids[rowIndex];
+                    case 1: return itemNames[rowIndex];
+                    case 2: return job[rowIndex].getStepName();
+                    case 3: return job[rowIndex].getTransition().getName();
+                    case 4: return DateUtility.timeToString(job[rowIndex].getCreationDate());
+                    default: return "";
                 }
             }
             catch (Exception e) {
@@ -337,7 +325,6 @@ public class JobListPane extends ItemTabPane implements ActionListener {
     }
 
     private class JobListMouseListener extends MouseAdapter {
-
         @Override
         public void mouseClicked(MouseEvent e) {
             super.mouseClicked(e);

@@ -158,10 +158,12 @@ public class ItemTabPane extends JPanel implements Runnable {
 
     public void initForItem(NodeItem sourceItem) {
         this.sourceItem = sourceItem;
-        Thread loader = new Thread(this);
-        loader.start();
+        new Thread(this).start();
     }
 
+    /**
+     * Empty implementation. Subclases shall provide the cluster specific version
+     */
     @Override
     public void run() {
         Thread.currentThread().setName("Default Entity Pane Builder");

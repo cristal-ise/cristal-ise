@@ -218,6 +218,7 @@ public class WorkflowPane extends ItemTabPane {
             mEditorPanel.setEditable(MainFrame.isAdmin);
             init = true;
         }
+        transPanel.setItem(sourceItem.getItem());
 
         try {
             add(sourceItem.getItem().getWorkflow());
@@ -225,13 +226,11 @@ public class WorkflowPane extends ItemTabPane {
         catch (ObjectNotFoundException e) {
             log.error("run()", e);
         }
-
-        transPanel.setItem(sourceItem.getItem());
     }
 
     @Override
     public void reload() {
-        Gateway.getStorage().clearCache(sourceItem.getItemPath(), ClusterType.LIFECYCLE.getName());
+        Gateway.getStorage().clearCache(sourceItem.getItemPath(), LIFECYCLE+"/workflow");
         initForItem(sourceItem);
     }
 

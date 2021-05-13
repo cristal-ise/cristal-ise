@@ -46,6 +46,7 @@ import org.cristalise.gui.MainFrame;
 import org.cristalise.gui.tree.NodeAgent;
 import org.cristalise.kernel.common.ObjectNotFoundException;
 import org.cristalise.kernel.entity.proxy.AgentProxy;
+import org.cristalise.kernel.persistency.C2KLocalObjectMap;
 import org.cristalise.kernel.persistency.ClusterType;
 import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.property.Property;
@@ -154,6 +155,16 @@ public class PropertiesPane extends ItemTabPane implements ActionListener {
         if (domAdmin != null) domAdmin.setEntity(sourceItem.getItem());
         propertyBox.removeAll();
         revalidate();
+        
+        try {
+            @SuppressWarnings("unchecked")
+            //Load all properties
+            C2KLocalObjectMap<Property> propMap = (C2KLocalObjectMap<Property>)sourceItem.getItem().getObject(PROPERTY);
+            for (String propName: propMap.keySet()) add(propMap.get(propName));
+        }
+        catch (ObjectNotFoundException e) {
+            log.error("Could not load all the ItemProperties", e);
+        }
     }
 
     /**
@@ -195,7 +206,6 @@ public class PropertiesPane extends ItemTabPane implements ActionListener {
 
     @Override
     public void actionPerformed(ActionEvent e) {
-
         if (e.getSource() == eraseButton) {
             try {
                 if (JOptionPane.showConfirmDialog(this,
@@ -210,7 +220,6 @@ public class PropertiesPane extends ItemTabPane implements ActionListener {
                 MainFrame.exceptionDialog(ex);
             }
         }
-
         else {
             String oldVal = loadedProps.get(e.getActionCommand()).getText();
             String newVal = (String) JOptionPane.showInputDialog(null, "Enter new value for " + e.getActionCommand(), "Edit Property",

@@ -98,7 +98,7 @@ public class ViewpointPane extends ItemTabPane implements ItemListener, ActionLi
 
             vertx.executeBlocking(promise -> {
                 try {
-                    add(sourceItem.getItem().getObject(viewPath));
+                    add(sourceItem.getItem().getObject(VIEWPOINT+"/"+viewPath));
                 }
                 catch (ObjectNotFoundException e) {
                     log.error("", e);
@@ -115,7 +115,7 @@ public class ViewpointPane extends ItemTabPane implements ItemListener, ActionLi
 
             vertx.executeBlocking(promise -> {
                 try {
-                    add(sourceItem.getItem().getObject(outcomePath));
+                    add(sourceItem.getItem().getObject(OUTCOME+"/"+outcomePath));
                 }
                 catch (ObjectNotFoundException e) {
                     log.error("", e);
