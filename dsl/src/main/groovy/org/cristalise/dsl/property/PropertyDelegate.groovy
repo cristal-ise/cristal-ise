@@ -28,7 +28,6 @@ import groovy.util.logging.Slf4j
 
 /**
  * Wrapper/Delegate class of CastorHashMap used in Lifecycle and Collection Properties
- *
  */
 @CompileStatic @Slf4j
 class PropertyDelegate {
@@ -47,23 +46,20 @@ class PropertyDelegate {
         Property((name): (Object)"")
     }
 
-    public void Property(Map<String, Object> attrs) {
-        assert attrs, "Property must have the name and value pair set"
+    private void addProperties(Map<String, Object> attrs, boolean isAbstract) {
+        assert attrs, "Property must have at least one name and value pair set"
 
         attrs.each { k, v ->
             log.debug 'Property() - adding name/value: {}/{}', k, v
-
-            props.put(k, (v instanceof String) ? (String)v : v, false)
+            props.put(k, (v instanceof String) ? v as String : v, isAbstract)
         }
     }
 
+    public void Property(Map<String, Object> attrs) {
+        addProperties(attrs, false)
+    }
+
     public void AbstractProperty(Map<String, Object> attrs) {
-        assert attrs, "AbstractProperty must have the name and value pair set"
-
-        attrs.each { k, v ->
-            log.debug 'AbstractProperty() - adding name/value: {}/{}', k, v
-
-            props.put(k, (v instanceof String) ? (String)v : v, true)
-        }
+        addProperties(attrs, true)
     }
 }
