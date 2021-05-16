@@ -55,10 +55,12 @@ def aggregateEA = Activity("Patient_Aggregate", 0) {
 }
 
 def patientWf = Workflow(name: "Patient_Workflow", version: 0, generate: true) {
-    ElemActDef('SetDetails', setDetailsEA)
-    ElemActDef('SetUrinSample', urinalysisEA)
-    LoopDef { 
-        ElemActDef('Aggregate', aggregateEA) //by default the DSL creates infinitive Loop
+    Layout {
+        Act('SetDetails', setDetailsEA)
+        Act('SetUrinSample', urinalysisEA)
+        Loop {
+            Act('Aggregate', aggregateEA) //by default the DSL creates infinitive Loop
+        }
     }
 }
 

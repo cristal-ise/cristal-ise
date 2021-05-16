@@ -13,24 +13,7 @@
           <KeyValuePair Key="PairingID" String="" isAbstract="false"/>
         </Properties>
       </JoinDef>
-      <LoopDef Height="24" ID="4" IsComposite="false" IsLayoutable="true" Name="" Width="60" isNext="0">
-        <CentrePoint x="180" y="370"/>
-        <OutlinePoint x="150" y="358"/>
-        <OutlinePoint x="210" y="358"/>
-        <OutlinePoint x="210" y="382"/>
-        <OutlinePoint x="150" y="382"/>
-        <InEdgeId>9</InEdgeId>
-        <OutEdgeId>10</OutEdgeId>
-        <OutEdgeId>11</OutEdgeId>
-        <Properties>
-          <KeyValuePair Key="RoutingExpr" String="true" isAbstract="false"/>
-          <KeyValuePair Key="PairingID" String="Loop4" isAbstract="false"/>
-          <KeyValuePair Key="RoutingScriptVersion" String="" isAbstract="false"/>
-          <KeyValuePair Key="LastNum" String="2" isAbstract="false"/>
-          <KeyValuePair Key="RoutingScriptName" String="" isAbstract="false"/>
-        </Properties>
-      </LoopDef>
-      <JoinDef Height="24" ID="3" IsComposite="false" IsLayoutable="true" Name="" Width="60">
+      <JoinDef Height="24" ID="4" IsComposite="false" IsLayoutable="true" Name="" Width="60">
         <CentrePoint x="180" y="210"/>
         <OutlinePoint x="150" y="198"/>
         <OutlinePoint x="210" y="198"/>
@@ -41,9 +24,26 @@
         <OutEdgeId>8</OutEdgeId>
         <Properties>
           <KeyValuePair Key="Type" String="Join" isAbstract="false"/>
-          <KeyValuePair Key="PairingID" String="Loop4" isAbstract="false"/>
+          <KeyValuePair Key="PairingID" String="Loop3" isAbstract="false"/>
         </Properties>
       </JoinDef>
+      <LoopDef Height="24" ID="3" IsComposite="false" IsLayoutable="true" Name="" Width="60" isNext="0">
+        <CentrePoint x="180" y="370"/>
+        <OutlinePoint x="150" y="358"/>
+        <OutlinePoint x="210" y="358"/>
+        <OutlinePoint x="210" y="382"/>
+        <OutlinePoint x="150" y="382"/>
+        <InEdgeId>9</InEdgeId>
+        <OutEdgeId>10</OutEdgeId>
+        <OutEdgeId>11</OutEdgeId>
+        <Properties>
+          <KeyValuePair Key="RoutingExpr" String="true" isAbstract="false"/>
+          <KeyValuePair Key="PairingID" String="Loop3" isAbstract="false"/>
+          <KeyValuePair Key="RoutingScriptVersion" String="" isAbstract="false"/>
+          <KeyValuePair Key="LastNum" String="2" isAbstract="false"/>
+          <KeyValuePair Key="RoutingScriptName" String="" isAbstract="false"/>
+        </Properties>
+      </LoopDef>
       <ActivitySlotDef Height="60" ID="1" IsComposite="false" IsLayoutable="true" Name="SetUrinSample" Width="130">
         <CentrePoint x="100" y="130"/>
         <OutlinePoint x="35" y="100"/>
@@ -85,12 +85,12 @@
         </Properties>
         <activityDef>Patient_Aggregate</activityDef>
       </ActivitySlotDef>
-      <NextDef ID="6" OriginVertexId="1" TerminusVertexId="3">
+      <NextDef ID="6" OriginVertexId="1" TerminusVertexId="4">
         <OriginPoint x="100" y="130"/>
         <TerminusPoint x="180" y="210"/>
         <Properties/>
       </NextDef>
-      <NextDef ID="11" OriginVertexId="4" TerminusVertexId="3">
+      <NextDef ID="11" OriginVertexId="3" TerminusVertexId="4">
         <OriginPoint x="180" y="370"/>
         <TerminusPoint x="180" y="210"/>
         <Properties>
@@ -102,19 +102,19 @@
         <TerminusPoint x="100" y="130"/>
         <Properties/>
       </NextDef>
-      <NextDef ID="10" OriginVertexId="4" TerminusVertexId="5">
+      <NextDef ID="10" OriginVertexId="3" TerminusVertexId="5">
         <OriginPoint x="180" y="370"/>
         <TerminusPoint x="100" y="450"/>
         <Properties>
           <KeyValuePair Key="Alias" String="false" isAbstract="false"/>
         </Properties>
       </NextDef>
-      <NextDef ID="9" OriginVertexId="7" TerminusVertexId="4">
+      <NextDef ID="9" OriginVertexId="7" TerminusVertexId="3">
         <OriginPoint x="100" y="290"/>
         <TerminusPoint x="180" y="370"/>
         <Properties/>
       </NextDef>
-      <NextDef ID="8" OriginVertexId="3" TerminusVertexId="7">
+      <NextDef ID="8" OriginVertexId="4" TerminusVertexId="7">
         <OriginPoint x="180" y="210"/>
         <TerminusPoint x="100" y="290"/>
         <Properties/>
