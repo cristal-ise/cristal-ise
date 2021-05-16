@@ -36,6 +36,8 @@ import groovy.transform.CompileStatic
 
 @CompileStatic
 class LoopDefDelegate extends BlockDefDelegate {
+    
+    LoopDef loopDef
 
     public LoopDefDelegate(CompositeActivityDef parent, WfVertexDef originSlotDef) {
         super(parent, originSlotDef)
@@ -44,8 +46,8 @@ class LoopDefDelegate extends BlockDefDelegate {
     public void processClosure(Closure cl) {
         assert cl, "Split only works with a valid Closure"
 
+        loopDef              = (LoopDef) compActDef.newChild("", Types.LoopSplit, 0, new GraphPoint())
         JoinDef joinDefFirst = (JoinDef) compActDef.newChild("", Types.Join, 0, new GraphPoint())
-        LoopDef loopDef      = (LoopDef) compActDef.newChild("", Types.LoopSplit, 0, new GraphPoint())
         JoinDef joinDefLast  = (JoinDef) compActDef.newChild("", Types.Join, 0, new GraphPoint())
 
         String pairingId = "Loop${loopDef.getID()}";

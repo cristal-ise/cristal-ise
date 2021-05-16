@@ -38,6 +38,6 @@ class ElemActDefBuilder {
     public static ActivityDef build(LinkedHashMap<String, Object> attrs, Closure cl) {
         def delegate = new ElemActDefDelegate()
         delegate.processClosure((String)attrs.name, (Integer)attrs.version, cl)
-        return delegate.elemActDef
+        return delegate.activityDef
     }
 }

@@ -39,49 +39,28 @@ import org.cristalise.kernel.utils.LocalObjectLoader;
  * Wrapper/Delegate class of CompositeActivityDef
  */
 @CompileStatic
-class CompActDefDelegate extends BlockDefDelegate {
-
-    public CompActDefDelegate() {
-        super (new CompositeActivityDef(), null)
+class CompActDefDelegate extends ElemActDefDelegate {
+    
+    public CompActDefDelegate(String n, Integer v) {
+        activityDef = new CompositeActivityDef()
+        activityDef.setName(n)
+        activityDef.setVersion(v)
     }
 
-    public void processClosure(String name, int version, Closure cl) {
-        compActDef.name = name
-        compActDef.version = version
-
-        processClosure(cl)
+    def ElemActDef(String actName, int actVer) {
+        return ElemActDef(LocalObjectLoader.getActDef(actName, actVer))
     }
 
-    public void processClosure(Closure cl) {
-        assert compActDef
-
-        if (cl) {
-            cl.delegate = this
-            cl.resolveStrategy = Closure.DELEGATE_FIRST
-            cl()
-
-            props.each { k, v ->
-                compActDef.properties.put(k, v, props.getAbstract().contains(k))
-            }
-        }
+    def ElemActDef(ActivityDef actDef) {
+        return ElemActDef(actDef.actName, actDef)
     }
 
-    def StateMachine(StateMachine s) {
-        compActDef.setStateMachine(s)
+    def ElemActDef(String actName, ActivityDef actDef) {
+        return ((CompositeActivityDef)activityDef).addExistingActivityDef(actName, actDef, new GraphPoint())
     }
 
-    def StateMachine(String name, int version = 0) {
-        compActDef.setStateMachine(LocalObjectLoader.getStateMachine(name, version))
+    def Layout(@DelegatesTo(CompActDefLayoutDelegate) Closure cl) {
+        def delegate = new CompActDefLayoutDelegate((CompositeActivityDef)activityDef)
+        delegate.processClosure(cl)
     }
-
-    def ElemActDef(String actName, int actVer, Closure cl = null) {
-        ActivityDef eaDef = ElemActDefBuilder.build('name': (Object)actName, 'version': actVer, cl)
-        return ElemActDef(actName, eaDef)
-    }
-
-    def CompActDef(String actName, int actVer, Closure cl = null) {
-        CompositeActivityDef caDef = CompActDefBuilder.build('name': (Object)actName, 'version': actVer, cl)
-        return CompActDef(actName, caDef)
-    }
-
 }

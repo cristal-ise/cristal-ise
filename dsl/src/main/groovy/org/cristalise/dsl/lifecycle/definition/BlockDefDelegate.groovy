@@ -28,6 +28,7 @@ import org.cristalise.dsl.property.PropertyDelegate
 import org.cristalise.kernel.graph.model.GraphPoint
 import org.cristalise.kernel.graph.model.GraphableVertex
 import org.cristalise.kernel.lifecycle.ActivityDef
+import org.cristalise.kernel.lifecycle.ActivitySlotDef
 import org.cristalise.kernel.lifecycle.AndSplitDef
 import org.cristalise.kernel.lifecycle.CompositeActivityDef
 import org.cristalise.kernel.lifecycle.NextDef
@@ -57,30 +58,33 @@ abstract class BlockDefDelegate extends PropertyDelegate {
         return nextDef
     }
 
-    public NextDef addActDefAsNext(String actName, ActivityDef actDef) {
+    public ActivitySlotDef addActDefAsNext(String actName, ActivityDef actDef) {
         def newSlotDef = compActDef.addExistingActivityDef(actName, actDef, new GraphPoint())
-        return addAsNext(newSlotDef)
+        addAsNext(newSlotDef)
+        return newSlotDef
     }
 
-    def LoopDef(Closure cl) {
-        def loopDef =  new LoopDefDelegate(compActDef, lastSlotDef)
-        return loopDef.processClosure(cl)
+    def Loop(@DelegatesTo(LoopDefDelegate) Closure cl) {
+        def loopD =  new LoopDefDelegate(compActDef, lastSlotDef)
+        loopD.processClosure(cl)
+        return loopD.loopDef
     }
 
-    def ElemActDef(ActivityDef actDef) {
-        return addActDefAsNext(actDef.actName, actDef)
+    def Act(ActivityDef actDef, @DelegatesTo(PropertyDelegate) Closure cl = null) {
+        return Act(actDef.actName, actDef, cl)
     }
 
-    def ElemActDef(String actName, ActivityDef actDef) {
-        return addActDefAsNext(actName, actDef)
-    }
+    def Act(String actName, ActivityDef actDef, @DelegatesTo(PropertyDelegate) Closure cl = null) {
+        def newSlotDef = addActDefAsNext(actName, actDef)
 
-    def CompActDef(CompositeActivityDef actDef) {
-        return addActDefAsNext(actDef.actName, actDef)
-    }
-
-    def CompActDef(String actName, CompositeActivityDef actDef) {
-        return addActDefAsNext(actName, actDef)
+        if (cl) {
+            def propD = new PropertyDelegate()
+            propD.processClosure(cl)
+            propD.props.each { k, v ->
+                newSlotDef.properties.put(k, v, props.getAbstract().contains(k))
+            }
+        }
+        return newSlotDef
     }
 
     public void setRoutingExpr(GraphableVertex aSplit, String exp) {

@@ -25,80 +25,52 @@ import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.AGENT_RO
 import groovy.transform.CompileStatic
 
 import org.cristalise.dsl.property.PropertyDelegate
+import org.cristalise.kernel.graph.layout.DefaultGraphLayoutGenerator
+import org.cristalise.kernel.graph.model.GraphPoint
 import org.cristalise.kernel.lifecycle.ActivityDef
+import org.cristalise.kernel.lifecycle.ActivitySlotDef
+import org.cristalise.kernel.lifecycle.CompositeActivityDef
+import org.cristalise.kernel.lifecycle.WfVertexDef;
 import org.cristalise.kernel.lifecycle.instance.stateMachine.StateMachine
-import org.cristalise.kernel.persistency.outcome.Schema
-import org.cristalise.kernel.scripting.Script
-import org.cristalise.kernel.utils.LocalObjectLoader
+import org.cristalise.kernel.utils.LocalObjectLoader;
+
 
 /**
- * Wrapper/Delegate class of Elementary Activity definition
- *
+ * Wrapper/Delegate class of CompositeActivityDef
  */
 @CompileStatic
-class ElemActDefDelegate extends PropertyDelegate {
+class CompActDefLayoutDelegate extends BlockDefDelegate {
 
-    ActivityDef activityDef
+    public CompActDefLayoutDelegate(CompositeActivityDef caDef) {
+        super(caDef, null)
+    }
 
     public void processClosure(String name, int version, Closure cl) {
-        activityDef = new ActivityDef()
-        activityDef.name = name
-        activityDef.version = version
+        compActDef.name = name
+        compActDef.version = version
 
         processClosure(cl)
     }
 
     public void processClosure(Closure cl) {
-        assert cl
+        assert compActDef
 
-        if(cl) {
+        if (cl) {
             cl.delegate = this
             cl.resolveStrategy = Closure.DELEGATE_FIRST
             cl()
 
             props.each { k, v ->
-                activityDef.properties.put(k, v, props.getAbstract().contains(k))
+                compActDef.properties.put(k, v, props.getAbstract().contains(k))
             }
         }
     }
 
-    def Schema(Schema s) {
-        activityDef.setSchema(s)
-    }
-
-    def Schema(String name, int ver = 0) {
-        activityDef.setSchema(LocalObjectLoader.getSchema(name, ver))
-    }
-
-    def Script(Script s) {
-        activityDef.setScript(s)
-    }
-
-    def Script(String name, int ver = 0) {
-        activityDef.setScript(LocalObjectLoader.getScript(name, ver))
-    }
-
-    def Query(org.cristalise.kernel.querying.Query q) {
-        activityDef.setQuery(q)
-    }
-
-    def Query(String name, int ver = 0) {
-        activityDef.setQuery(LocalObjectLoader.getQuery(name, ver))
-    }
-
     def StateMachine(StateMachine s) {
-        activityDef.setStateMachine(s)
+        compActDef.setStateMachine(s)
     }
 
-    def StateMachine(String name, int ver = 0) {
-        activityDef.setStateMachine(LocalObjectLoader.getStateMachine(name, ver))
-    }
-
-    def Agent(String a) {
-        activityDef.setBuiltInProperty(AGENT_NAME, a)
-    }
-
-    def Role(String r) {
-        activityDef.setBuiltInProperty(AGENT_ROLE, r)
+    def StateMachine(String name, int version = 0) {
+        compActDef.setStateMachine(LocalObjectLoader.getStateMachine(name, version))
     }
 }
