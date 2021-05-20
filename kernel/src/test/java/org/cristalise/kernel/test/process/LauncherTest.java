@@ -33,10 +33,10 @@ public class LauncherTest {
 
     private String[] standardArgs() {
         String[] args = new String[4];
-        args[4] = "-config";
-        args[5] = LauncherTest.class.getResource("/server.conf").getPath();
-        args[6] = "-connect";
-        args[7] = LauncherTest.class.getResource("/test.clc").getPath();
+        args[0] = "-config";
+        args[1] = LauncherTest.class.getResource("/server.conf").getPath();
+        args[2] = "-connect";
+        args[3] = LauncherTest.class.getResource("/test.clc").getPath();
 
         return args;
     }
@@ -52,10 +52,10 @@ public class LauncherTest {
     @Test
     public void testWrongConfigFileName() throws Exception {
         String[] args = standardArgs();
-        args[5] = "filenotfound";
+        args[1] = "filenotfound";
         try {
             AbstractMain.readC2KArgs(args);
-            fail("Invalid connect file not detected");
+            fail("Invalid config file not detected");
         }
         catch (BadArgumentsException ex) {}
     }
@@ -63,7 +63,7 @@ public class LauncherTest {
     @Test
     public void testWrongConnectFileName() throws Exception {
         String[] args = standardArgs();
-        args[7] = "alsonotfound";
+        args[3] = "alsonotfound";
         try {
             AbstractMain.readC2KArgs(args);
             fail("Invalid connect file not detected");
