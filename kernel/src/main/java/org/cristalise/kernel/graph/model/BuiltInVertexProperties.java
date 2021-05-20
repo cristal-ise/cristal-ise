@@ -21,7 +21,6 @@
 package org.cristalise.kernel.graph.model;
 
 import org.cristalise.kernel.collection.Collection;
-import org.cristalise.kernel.lookup.RolePath;
 
 /**
  * Enumeration to define all Vertex properties which are used by collection and lifecycle packages
@@ -49,9 +48,8 @@ public enum BuiltInVertexProperties {
     ATTACHMENT_MIME_TYPES("AttachmentMimeTypes"),
 
     /**
-     * String property. The role of the Agent associated with Activities. Can be null or undefined.
-     * 
-     * @deprecated use {@link RolePath#setPermissions(java.util.List)} instead
+     * String property. The role of the Agent associated with Activities. It should only be used to
+     * for UserCode like functionality. Can be null or undefined.
      */
     AGENT_ROLE("Agent Role"),
 
