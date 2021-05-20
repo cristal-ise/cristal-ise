@@ -53,7 +53,7 @@ public class JobPusherVerticle extends AbstractVerticle {
                 final ItemPath itemPath  = new ItemPath(msg.getString("itemPath"));
                 final String stepPath = msg.getString("stepPath");
 
-                ItemProxy item = Gateway.getProxy(itemPath);
+                ItemProxy  item  = Gateway.getProxy(itemPath);
                 AgentProxy agent = Gateway.getAgentProxy(agentPath);
 
                 vertx.executeBlocking((toto) -> {
@@ -62,8 +62,8 @@ public class JobPusherVerticle extends AbstractVerticle {
 
                         if (jobs.isEmpty()) {
                             // FIXME: hack to send the itemPath and stepPath to RefreshJobList to cleanup the actual list
-                            jobs.add(new Job(-999, itemPath, "stepName", stepPath, "stepType", 
-                                    null, ""/*originStateName*/, ""/*targetStateName*/, ""/*roleName*/,
+                            jobs.add(new Job(-999, itemPath, ""/*stepName*/, stepPath, ""/*stepType*/, 
+                                    null/*transition*/, ""/*originStateName*/, ""/*targetStateName*/, ""/*roleName*/,
                                     agentPath, new CastorHashMap(), null/*creationDate*/));
                         }
 
