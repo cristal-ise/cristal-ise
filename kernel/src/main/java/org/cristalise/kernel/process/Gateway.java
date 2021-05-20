@@ -60,6 +60,8 @@ import org.cristalise.kernel.security.SecurityManager;
 import org.cristalise.kernel.utils.CastorXMLUtility;
 import org.cristalise.kernel.utils.ObjectProperties;
 
+import com.hazelcast.config.Config;
+
 import io.vertx.core.DeploymentOptions;
 import io.vertx.core.Vertx;
 import io.vertx.core.VertxOptions;
@@ -68,12 +70,15 @@ import io.vertx.core.cli.CLI;
 import io.vertx.core.cli.CommandLine;
 import io.vertx.core.cli.Option;
 import io.vertx.core.json.JsonArray;
+import io.vertx.core.spi.cluster.ClusterManager;
 import io.vertx.ext.shell.ShellService;
 import io.vertx.ext.shell.ShellServiceOptions;
 import io.vertx.ext.shell.command.CommandBuilder;
 import io.vertx.ext.shell.command.CommandProcess;
 import io.vertx.ext.shell.command.CommandRegistry;
 import io.vertx.ext.shell.term.TelnetTermOptions;
+import io.vertx.spi.cluster.hazelcast.ConfigUtil;
+import io.vertx.spi.cluster.hazelcast.HazelcastClusterManager;
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -314,6 +319,11 @@ public class Gateway extends ProxyManager
     private static void createVertx(VertxOptions options, boolean clustered) throws CriseVertxException {
         if (mVertx == null) {
             if (clustered) {
+                Config hazelcastConfig =  ConfigUtil.loadConfig();
+                if (!AbstractMain.isServer) hazelcastConfig.setLiteMember(true);
+                ClusterManager mgr = new HazelcastClusterManager(hazelcastConfig);
+                options.setClusterManager(mgr);
+
                 CompletableFuture<Void> future = new CompletableFuture<Void>();
 
                 Vertx.clusteredVertx(options, (result) -> {
