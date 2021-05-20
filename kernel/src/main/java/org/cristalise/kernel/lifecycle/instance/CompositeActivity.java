@@ -292,8 +292,8 @@ public class CompositeActivity extends Activity {
                 }
             }
             catch (ObjectNotFoundException e) {
-                log.error("", e);
-                throw new InvalidDataException("Problem calculating possible transitions for agent "+agent.toString());
+                log.error("runNext() - Problem calculating possible transitions for agent:{}", agent, e);
+                throw new InvalidDataException("Problem calculating possible transitions for agent "+agent.toString(), e);
             }
 
             if (trans == null) { // current agent can't proceed
@@ -302,7 +302,7 @@ public class CompositeActivity extends Activity {
                 return;
             }
             else {
-                // automatically execute the next outcome if it doesn't require an outcome.
+                // automatically execute the next transition if it doesn't require an outcome.
                 if (trans.hasOutcome(getProperties()) || trans.hasScript(getProperties())) {
                     log.info("Composite activity '"+getName()+"' has script or schema defined. Cannot proceed automatically.");
                     setActive(true);
@@ -310,14 +310,14 @@ public class CompositeActivity extends Activity {
                 }
 
                 try {
-                    request(agent, itemPath, trans.getId(), null, "", null, transactionKey);
-                    if (!trans.isFinishing()) // don't run next if we didn't finish
-                        return;
+                    request(agent, itemPath, trans.getId(), /*requestData*/null, "", /*attachment*/null, transactionKey);
+                    // don't run next if we didn't finish
+                    if (!trans.isFinishing()) return;
                 }
                 catch (Exception e) {
-                    log.error("", e);
+                    log.error("runNext() - Problem completing CompAct:{}", getName(), e);
                     setActive(true);
-                    throw new InvalidDataException("Problem completing composite activity: "+e.getMessage());
+                    throw new InvalidDataException("Problem completing CompAct:"+getName(), e);
                 }
             }
         }
