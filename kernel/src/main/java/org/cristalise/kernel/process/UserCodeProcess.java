@@ -20,12 +20,21 @@
  */
 package org.cristalise.kernel.process;
 
-import java.net.InetAddress;
+import static org.cristalise.kernel.process.Gateway.getProperties;
 
-import org.cristalise.kernel.lifecycle.instance.stateMachine.StateMachine;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
+import java.util.Arrays;
+import java.util.List;
+
+import org.cristalise.kernel.entity.imports.ImportAgent;
+import org.cristalise.kernel.entity.imports.ImportRole;
+import org.cristalise.kernel.lookup.RolePath;
 
 import io.vertx.core.DeploymentOptions;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 public class UserCodeProcess extends StandardClient {
 
     /**
@@ -33,24 +42,78 @@ public class UserCodeProcess extends StandardClient {
      * eg: UserCode.StateMachine.startTransition
      */
     public static final String DEFAULT_ROLE = "UserCode";
+    /**
+     * Defines the default password (value:{@value}).
+     */
+    public static final String DEFAULT_PASSWORD = "uc";
 
+    /**
+     * 
+     * @return
+     */
+    public static String getRoleName() {
+        return getProperties().getString("UserCode.roleOverride", DEFAULT_ROLE);
+    }
+
+    /**
+     * 
+     * @return
+     */
+    public static List<String> getRolePermissions() {
+        String permissionString = Gateway.getProperties().getString(getRoleName() + ".permissions", "*");
+        return Arrays.asList(permissionString.split(","));
+    }
+
+    /**
+     * 
+     * @return
+     */
+    public static ImportRole getImportRole() {
+        RolePath rp = new RolePath(new RolePath(), getRoleName(), true, getRolePermissions());
+        return ImportRole.getImportRole(rp);
+    }
+
+    /**
+     * 
+     * @return
+     */
+    public static String getAgentName() {
+        try {
+            return getProperties().getString(getRoleName()+ ".agent", InetAddress.getLocalHost().getHostName());
+        }
+        catch (UnknownHostException e) {
+            log.error("getRole(roelName={}) ", getRoleName(), e);
+            return null;
+        }
+    }
+
+    /**
+     * 
+     * @return
+     */
+    public static String getAgentPassword() {
+        return getProperties().getString(getRoleName() + ".password", DEFAULT_PASSWORD);
+    }
+
+    /**
+     * 
+     * @return
+     */
+    public static ImportAgent getImportAgent() {
+        ImportAgent iAgent = new ImportAgent(getAgentName(), getAgentPassword());
+        iAgent.addRole(getImportRole());
+        return iAgent;
+    }
+
+    /**
+     * 
+     * @param args
+     * @throws Exception
+     */
     static public void main(String[] args) throws Exception {
-        Gateway.init(readC2KArgs(args));
+        standardInitialisation(args);
 
-        String prefix = Gateway.getProperties().getString("UserCode.roleOverride", UserCodeProcess.DEFAULT_ROLE);
-
-        UserCodeProcess proc = new UserCodeProcess();
-
-        proc.login(
-                Gateway.getProperties().getString(prefix + ".agent", InetAddress.getLocalHost().getHostName()),
-                Gateway.getProperties().getString(prefix + ".password", "uc"),
-                Gateway.getProperties().getString("AuthResource", "Cristal"));
-
-        StateMachine sm = getRequiredStateMachine(prefix, null, "boot/SM/Default.xml");
-
-        StandardClient.createClientVerticles();
-
-        DeploymentOptions options = new DeploymentOptions().setWorker(true);
-        Gateway.getVertx().deployVerticle(new UserCodeVerticle(prefix, proc.agent, sm), options);
+        DeploymentOptions options = new DeploymentOptions().setWorker(true).setInstances(4);
+        Gateway.getVertx().deployVerticle(UserCodeVerticle.class, options);
     }
 }

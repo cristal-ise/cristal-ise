@@ -22,6 +22,8 @@ package org.cristalise.kernel.entity.agent;
 
 import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.AGENT_NAME;
 import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.OUTCOME_INIT;
+import static org.cristalise.kernel.property.BuiltInItemProperties.NAME;
+import static org.cristalise.kernel.property.PropertyUtility.getPropertyValue;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -166,7 +168,7 @@ public class Job implements C2KLocalObject {
     }
 
     public Transition getTransition() {
-        if (transition != null && transitionResolved == false) {
+        if (transition != null && transitionResolved == false && actProps.size() != 0) {
             log.debug("getTransition() - retrieving state machine for actProps:{}", actProps);
             try {
                 StateMachine sm = LocalObjectLoader.getStateMachine(actProps);
@@ -613,11 +615,14 @@ public class Job implements C2KLocalObject {
 
     @Override
     public String toString() {
-        String agent = agentPath.toString();
         //enable to use toString even if Lookup is not configured in Gateway
-        if (Gateway.getLookup() != null) {
-            agent = agentPath.getAgentName();
-        }
-        return "[item:"+itemPath+" step:"+stepName+" trans:"+getTransition()+" agent:"+agent+"]";
+        String agent = agentPath.toString();
+        if (Gateway.getLookup() != null) agent = agentPath.getAgentName();
+
+        //enable to use toString even if ClusterStorage is not configured in Gateway
+        String item = itemPath.toString();
+        if (Gateway.getStorage() != null) item = getPropertyValue(itemPath, NAME, item, null);
+
+        return "[id:"+id+" item:"+item+" step:"+stepName+" trans:"+getTransition()+" agent:"+agent+"]";
     }
 }

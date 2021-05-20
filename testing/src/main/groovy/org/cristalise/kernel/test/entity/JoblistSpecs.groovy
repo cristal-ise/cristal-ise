@@ -35,7 +35,7 @@ import spock.util.concurrent.PollingConditions
  */
 class JoblistSpecs extends Specification implements CristalTestSetup {
 
-    PollingConditions pollingWait = new PollingConditions(timeout: 2, initialDelay: 0.5, delay: 0.2, factor: 1)
+    PollingConditions pollingWait = new PollingConditions(timeout: 5, initialDelay: 0.5, delay: 0.2, factor: 1)
 
     AgentTestBuilder dummyAgentBuilder
     AgentTestBuilder timeoutAgentBuilder
@@ -102,7 +102,7 @@ class JoblistSpecs extends Specification implements CristalTestSetup {
 
         then: "Agent gets the Proccess Job for the Activity it was assigned to"
         pollingWait.eventually {
-            dummyAgentBuilder.checkJobList([[stepName: "EA1", agentRole: "toto", transitionName: "Proceed"]])
+            dummyAgentBuilder.checkJobList([])
         }
     }
 

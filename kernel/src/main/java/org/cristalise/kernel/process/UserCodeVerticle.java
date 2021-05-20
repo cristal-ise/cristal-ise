@@ -20,8 +20,11 @@
  */
 package org.cristalise.kernel.process;
 
-import static org.cristalise.kernel.entity.proxy.ProxyMessage.Type.ADD;
 import static org.cristalise.kernel.persistency.ClusterType.JOB;
+import static org.cristalise.kernel.process.StandardClient.getRequiredStateMachine;
+import static org.cristalise.kernel.process.UserCodeProcess.getAgentName;
+import static org.cristalise.kernel.process.UserCodeProcess.getAgentPassword;
+import static org.cristalise.kernel.process.UserCodeProcess.getRoleName;
 
 import org.cristalise.kernel.common.CriseVertxException;
 import org.cristalise.kernel.common.InvalidDataException;
@@ -35,7 +38,6 @@ import org.cristalise.kernel.lifecycle.instance.stateMachine.StateMachine;
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.Promise;
 import io.vertx.core.eventbus.EventBus;
-import io.vertx.core.json.JsonArray;
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -53,7 +55,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class UserCodeVerticle extends AbstractVerticle {
 
-    protected final AgentProxy userCode;
+    private AgentProxy userCode;
 
     private final int START;
     private final int COMPLETE;
@@ -80,19 +82,16 @@ public class UserCodeVerticle extends AbstractVerticle {
      */
     public static final String USERCODE_IGNORE = "USERCODE_IGNORE";
 
-    //protected final JobList jobList;
-
     /**
      * Constructor set up the user code
-     *
-     * @param propPrefix string to be used as prefix for each property
-     *
-     * @throws InvalidDataException StateMachine does not have the named Transition
-     * @throws ObjectNotFoundException StateMachine was not found
+     * 
+     * @throws InvalidDataException
+     * @throws ObjectNotFoundException
      */
-    public UserCodeVerticle(String propPrefix, AgentProxy uc, StateMachine sm) throws InvalidDataException, ObjectNotFoundException {
-        //jobList = new JobList(uc.getPath());
-        userCode = uc;
+    public UserCodeVerticle() throws InvalidDataException, ObjectNotFoundException {
+
+        StateMachine sm = getRequiredStateMachine(getRoleName(), null, "boot/SM/Default.xml");
+        String propPrefix = getRoleName();
 
         //default values are valid for Transitions compatible with kernel provided Default StateMachine
         START    = getValidTransitionID(sm, propPrefix+"."+STATE_MACHINE_START_TRANSITION,    "Start");
@@ -111,61 +110,27 @@ public class UserCodeVerticle extends AbstractVerticle {
     private int getValidTransitionID(StateMachine sm, String propertyName, String defaultValue) throws InvalidDataException {
         String propertyValue = Gateway.getProperties().getString(propertyName, defaultValue);
 
-        if("USERCODE_IGNORE".equals(propertyValue)) return -1;
-        else                                        return sm.getValidTransitionID(propertyValue);
-    }
-
-    private boolean messageRelevant(ProxyMessage msg) {
-        return 
-            msg.isClusterStoreMesssage() 
-            && msg.getItemPath().equals(userCode.getPath())
-            && msg.getClusterType() == JOB
-            && msg.getMessageType() == ADD;
-    }
-
-    private boolean jobRelevant(Job selected, Job other) {
-        int otherTransId = other.getTransition().getId();
-
-        if (selected == null) {
-            return otherTransId == START || otherTransId == COMPLETE;
-        }
-        else {
-            int selectedTransId = selected.getTransition().getId();
-
-            //This makes sure that Jobs are completed before starting a new one
-            if (selectedTransId == COMPLETE) return false;
-            else                             return otherTransId == COMPLETE;
-        }
+        if(USERCODE_IGNORE.equals(propertyValue)) return -1;
+        else                                      return sm.getValidTransitionID(propertyValue);
     }
 
     @Override
     public void start(Promise<Void> startPromise) throws Exception {
+        userCode = Gateway.getSecurityManager().authenticate(getAgentName(), getAgentPassword(), null);
+
         EventBus eb = vertx.eventBus();
 
-        eb.consumer(ProxyMessage.ebAddress, message -> {
-            Object body = message.body();
-            log.trace("handler() - message.body:{}", body);
+        eb.localConsumer(userCode.getPath().getUUID() + "/" + JOB, (message) -> {
+            String[] tokens = ((String) message.body()).split(":");
+            String jobId = tokens[0];
+
+            if (tokens[1].equals("DELETE")) return;
 
             try {
-                Job selectedJob = null;
-                Job errorJob = null;
-
-                for (Object element: (JsonArray)body) {
-                    ProxyMessage msg = new ProxyMessage((String)element);
-                    if (messageRelevant(msg)) {
-                        Job otherJob = userCode.getJob(msg.getObjectKey());
-
-                        if (jobRelevant(selectedJob, otherJob)) selectedJob = otherJob;
-                        if (otherJob.getTransition().getId() == ERROR) errorJob = otherJob;
-                    }
-                }
-
-                final Job finalJob = selectedJob; // this is required to compile
-                final Job finalErrorJob = errorJob; // this is required to compile
-
-                if (finalJob != null) vertx.executeBlocking((result) -> process(finalJob, finalErrorJob));
+                Job aJob = userCode.getJob(jobId);
+                vertx.executeBlocking((result) -> process(aJob));
             }
-            catch (Exception e) {
+            catch (ObjectNotFoundException e) {
                 log.error("handler()", e);
             }
         });
@@ -174,18 +139,28 @@ public class UserCodeVerticle extends AbstractVerticle {
         log.info("start() - deployed '{}' consumer", ProxyMessage.ebAddress);
     }
 
-    protected void process(Job thisJob, Job erroJob) {
-        int transitionId = thisJob.getTransition().getId();
+    /**
+     * 
+     * @param thisJob
+     * @param errorJob
+     */
+    protected void process(Job thisJob) {
+        log.info("=======================================================================================");
 
         try {
-            if (transitionId == START) start(thisJob);
-            else if (transitionId == COMPLETE) complete(thisJob, erroJob);
+            int transitionId = thisJob.getTransition().getId();
+
+            if (transitionId == START)         start(thisJob);
+            else if (transitionId == COMPLETE) complete(thisJob, null); //FIXME: ERROR Job needs to be retrieved
+            else if (transitionId == ERROR)    log.trace("process() - skipping ERROR job:{}", thisJob); 
+            else                               log.trace("process() - skipping job:{}", thisJob);
         }
         catch (InvalidTransitionException ex) {
             // must have already been done by someone else - ignore
+            log.debug("process() - job was already executed - {}", thisJob);
         }
         catch (Exception ex) {
-            log.error("Error executing job:" + thisJob, ex);
+            log.error("Error executing job:{}", thisJob, ex);
         }
     }
 
@@ -199,7 +174,7 @@ public class UserCodeVerticle extends AbstractVerticle {
         log.debug("start() - job:"+thisJob);
 
         if (assessStartConditions(thisJob)) {
-            log.debug("start() - Attempting to start");
+            log.trace("start() - Attempting to start");
             userCode.execute(thisJob);
         }
         else {
