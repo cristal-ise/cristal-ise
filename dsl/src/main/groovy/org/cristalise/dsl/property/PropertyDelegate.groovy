@@ -20,6 +20,7 @@
  */
 package org.cristalise.dsl.property
 
+import org.cristalise.kernel.graph.model.BuiltInVertexProperties
 import org.cristalise.kernel.utils.CastorHashMap
 
 import groovy.transform.CompileStatic
@@ -42,21 +43,42 @@ class PropertyDelegate {
         cl()
     }
 
-    public void Property(String name) {
-        Property((name): (Object)"")
+    private void addProperty(String name, Object value, boolean isAbstract) {
+        log.debug '{}Property() - {}:{}', (isAbstract ? 'Abstract' : ''), name, value
+        props.put(name, (value instanceof String) ? value as String : value, isAbstract)
     }
 
     private void addProperties(Map<String, Object> attrs, boolean isAbstract) {
         assert attrs, "Property must have at least one name and value pair set"
+        attrs.each { k, v -> addProperty(k, v, isAbstract) }
+    }
 
-        attrs.each { k, v ->
-            log.debug 'Property() - adding name/value: {}/{}', k, v
-            props.put(k, (v instanceof String) ? v as String : v, isAbstract)
-        }
+    public void Property(String name) {
+        Property(name, (Object)"")
+    }
+
+    public void Property(BuiltInVertexProperties prop, Object value) {
+        Property(prop.getName(), value)
+    }
+
+    public void Property(String name, Object value) {
+        addProperty(name, value, false)
     }
 
     public void Property(Map<String, Object> attrs) {
         addProperties(attrs, false)
+    }
+
+    public void AbstractProperty(String name) {
+        AbstractProperty(name, (Object)"")
+    }
+
+    public void AbstractProperty(BuiltInVertexProperties prop, Object value) {
+        AbstractProperty(prop.name(), value)
+    }
+
+    public void AbstractProperty(String name, Object value) {
+        addProperty(name, value, true)
     }
 
     public void AbstractProperty(Map<String, Object> attrs) {

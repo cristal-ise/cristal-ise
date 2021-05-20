@@ -22,31 +22,37 @@ package org.cristalise.dsl.lifecycle.definition;
 
 import static org.cristalise.kernel.graph.model.BuiltInEdgeProperties.ALIAS
 import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.PAIRING_ID
+import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.ROUTING_EXPR
+import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.ROUTING_SCRIPT_NAME
+import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.ROUTING_SCRIPT_VERSION
+
 
 import org.cristalise.kernel.graph.model.GraphPoint
-import org.cristalise.kernel.lifecycle.ActivityDef
+import org.cristalise.kernel.graph.model.GraphableVertex
+import org.cristalise.kernel.lifecycle.AndSplitDef
 import org.cristalise.kernel.lifecycle.CompositeActivityDef
 import org.cristalise.kernel.lifecycle.JoinDef
 import org.cristalise.kernel.lifecycle.LoopDef
 import org.cristalise.kernel.lifecycle.WfVertexDef
-import org.cristalise.kernel.lifecycle.instance.WfVertex
 import org.cristalise.kernel.lifecycle.instance.WfVertex.Types
 
 import groovy.transform.CompileStatic
 
 @CompileStatic
 class LoopDefDelegate extends BlockDefDelegate {
-    
+
     LoopDef loopDef
 
-    public LoopDefDelegate(CompositeActivityDef parent, WfVertexDef originSlotDef) {
+    public LoopDefDelegate(CompositeActivityDef parent, WfVertexDef originSlotDef, Map<String, Object> initialProps) {
         super(parent, originSlotDef)
+        loopDef = (LoopDef) compActDef.newChild("", Types.LoopSplit, 0, new GraphPoint())
+
+        setInitialProperties(initialProps)
     }
 
     public void processClosure(Closure cl) {
         assert cl, "Split only works with a valid Closure"
 
-        loopDef              = (LoopDef) compActDef.newChild("", Types.LoopSplit, 0, new GraphPoint())
         JoinDef joinDefFirst = (JoinDef) compActDef.newChild("", Types.Join, 0, new GraphPoint())
         JoinDef joinDefLast  = (JoinDef) compActDef.newChild("", Types.Join, 0, new GraphPoint())
 
@@ -67,10 +73,33 @@ class LoopDefDelegate extends BlockDefDelegate {
         nextFirst.setBuiltInProperty(ALIAS, 'true')
         nextLast.setBuiltInProperty(ALIAS, 'false')
 
-        setRoutingExpr(loopDef, 'true')
-
         props.each { k, v ->
             loopDef.properties.put(k, v, props.getAbstract().contains(k))
         }
+    }
+
+    protected void setInitialProperties(Map<String, Object> initialProps) {
+        if(initialProps?.javascript) {
+            setRoutingScript((String)"javascript:\"${initialProps.javascript}\";", null);
+            initialProps.remove('javascript')
+        }
+        else if(initialProps?.groovy) {
+            setRoutingScript((String)"groovy:\"${initialProps.groovy}\";", null);
+            initialProps.remove('groovy')
+        }
+        else {
+            setRoutingExpr('true')
+        }
+
+        if (initialProps) initialProps.each { k, v -> props.put(k, v, false) }
+    }
+
+    protected void setRoutingExpr(String exp) {
+        loopDef.setBuiltInProperty(ROUTING_EXPR, exp)
+    }
+
+    protected void setRoutingScript(String name, Integer version) {
+        loopDef.setBuiltInProperty(ROUTING_SCRIPT_NAME,    name);
+        loopDef.setBuiltInProperty(ROUTING_SCRIPT_VERSION, version)
     }
 }

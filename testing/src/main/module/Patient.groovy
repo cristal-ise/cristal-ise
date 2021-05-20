@@ -58,8 +58,8 @@ def patientWf = Workflow(name: "Patient_Workflow", version: 0, generate: true) {
     Layout {
         Act('SetDetails', setDetailsEA)
         Act('SetUrinSample', urinalysisEA)
-        Loop {
-            Act('Aggregate', aggregateEA) //by default the DSL creates infinitive Loop
+        Act('Aggregate', aggregateEA) { //by default the DSL creates infinitive Loop
+            Property(AGENT_ROLE, 'UserCode')
         }
     }
 }

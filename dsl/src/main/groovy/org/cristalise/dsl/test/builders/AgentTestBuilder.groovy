@@ -95,12 +95,10 @@ class AgentTestBuilder extends AgentBuilder {
     public void checkJobList(List<Map<String, Object>> expectedJobs) {
         Collection<Job> currentJobs = jobList.values();
 
-        assert expectedJobs && currentJobs.size() == expectedJobs.size()
+        assert currentJobs.size() == expectedJobs.size()
 
         expectedJobs.each { Map jobMap ->
             assert jobMap && jobMap.stepName && jobMap.agentRole && jobMap.transitionName
-
-
             assert currentJobs.find { Job job ->
                     job.stepName == jobMap.stepName &&
                     job.agentRole == jobMap.agentRole &&

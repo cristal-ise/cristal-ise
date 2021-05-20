@@ -20,10 +20,6 @@
  */
 package org.cristalise.dsl.lifecycle.definition
 
-import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.ROUTING_EXPR
-import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.ROUTING_SCRIPT_NAME
-import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.ROUTING_SCRIPT_VERSION
-
 import org.cristalise.dsl.property.PropertyDelegate
 import org.cristalise.kernel.graph.model.GraphPoint
 import org.cristalise.kernel.graph.model.GraphableVertex
@@ -33,6 +29,7 @@ import org.cristalise.kernel.lifecycle.AndSplitDef
 import org.cristalise.kernel.lifecycle.CompositeActivityDef
 import org.cristalise.kernel.lifecycle.NextDef
 import org.cristalise.kernel.lifecycle.WfVertexDef;
+import org.cristalise.kernel.lifecycle.instance.WfVertex
 
 import groovy.transform.CompileStatic
 
@@ -64,8 +61,14 @@ abstract class BlockDefDelegate extends PropertyDelegate {
         return newSlotDef
     }
 
+    def Loop(Map<String, Object> props, @DelegatesTo(LoopDefDelegate) Closure cl) {
+        def loopD =  new LoopDefDelegate(compActDef, lastSlotDef, props)
+        loopD.processClosure(cl)
+        return loopD.loopDef
+    }
+
     def Loop(@DelegatesTo(LoopDefDelegate) Closure cl) {
-        def loopD =  new LoopDefDelegate(compActDef, lastSlotDef)
+        def loopD =  new LoopDefDelegate(compActDef, lastSlotDef, null)
         loopD.processClosure(cl)
         return loopD.loopDef
     }
@@ -85,18 +88,5 @@ abstract class BlockDefDelegate extends PropertyDelegate {
             }
         }
         return newSlotDef
-    }
-
-    public void setRoutingExpr(GraphableVertex aSplit, String exp) {
-        assert aSplit instanceof AndSplitDef, "'$aSplit.name' must be instance of SplitDef"
-
-        aSplit.setBuiltInProperty(ROUTING_EXPR, exp)
-    }
-
-    public void setRoutingScript(GraphableVertex aSplit, String name, Integer version) {
-        assert aSplit instanceof AndSplitDef, "'$aSplit.name' must be instance of SplitDef"
-
-        aSplit.setBuiltInProperty(ROUTING_SCRIPT_NAME,    name);
-        aSplit.setBuiltInProperty(ROUTING_SCRIPT_VERSION, version)
     }
 }

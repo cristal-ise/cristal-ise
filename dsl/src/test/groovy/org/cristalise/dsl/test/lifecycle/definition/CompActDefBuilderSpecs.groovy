@@ -20,7 +20,7 @@
  */
 package org.cristalise.dsl.test.lifecycle.definition
 
-import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.PAIRING_ID
+import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.*
 
 import org.cristalise.dsl.lifecycle.definition.CompActDefBuilder;
 import org.cristalise.kernel.graph.model.GraphableVertex
@@ -113,6 +113,7 @@ class CompActDefBuilderSpecs extends Specification implements CristalTestSetup {
         def caDef = CompActDefBuilder.build(module: 'test', name: 'CADef', version: 0) {
             Layout {
                 Act(ea1) {
+                    Property(AGENT_ROLE, 'UserCode')
                     Property(stringVal: '1')
                     Property(intVal: 0, booleanVal: true)
                 }
@@ -126,6 +127,7 @@ class CompActDefBuilderSpecs extends Specification implements CristalTestSetup {
         caDef.childrenGraphModel.startVertex.name == "EA1"
         //def ea1Slot = (GraphableVertex) caDef.childrenGraphModel.vertices.find { it.name == "EA1" }
         def ea1Slot = (GraphableVertex) caDef.search('EA1')
+        ea1Slot.getBuiltInProperty(AGENT_ROLE) == 'UserCode'
         ea1Slot.getProperties().get('stringVal') == '1'
         ea1Slot.getProperties().get('booleanVal') == true
         ea1Slot.getProperties().get('intVal') == 0
@@ -156,6 +158,7 @@ class CompActDefBuilderSpecs extends Specification implements CristalTestSetup {
         caDef.childrenGraphModel.startVertex.name == "EA1"
 
         loopDef
+        loopDef.properties.RoutingExpr
         loopDef.getOutGraphables().size() == 2
         loopDef.getOutGraphables().findAll {
             it.getBuiltInProperty(PAIRING_ID) == loopDef.getBuiltInProperty(PAIRING_ID) }.size() == 1
@@ -163,5 +166,27 @@ class CompActDefBuilderSpecs extends Specification implements CristalTestSetup {
 
         loopDef.getInGraphables().size() == 1
         loopDef.getInEdges().size() == 1
+    }
+
+    def 'LoopDef can define RoutingScript'() {
+        when:
+        def caDef = CompActDefBuilder.build(module: 'test', name: 'CADef', version: 0) {
+            Layout {
+                Loop(javascript: true) {
+                    Property(toto: 123)
+                }
+            }
+        }
+
+        def loopDef = caDef.getChildren().find { it instanceof LoopDef }
+
+        then:
+        caDef.name == 'CADef'
+        caDef.version == 0
+        caDef.childrenGraphModel.vertices.length == 3
+
+        loopDef
+        loopDef.properties.RoutingScriptName == 'javascript:"true";'
+        loopDef.properties.toto == 123
     }
 }
