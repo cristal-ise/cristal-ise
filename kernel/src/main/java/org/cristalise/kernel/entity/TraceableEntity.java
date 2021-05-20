@@ -21,20 +21,14 @@
 package org.cristalise.kernel.entity;
 
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
-import static org.cristalise.kernel.common.CriseVertxException.FailureCodes.InternalServerError;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.commons.lang3.ArrayUtils;
 import org.cristalise.kernel.common.AccessRightsException;
-import org.cristalise.kernel.common.CannotManageException;
 import org.cristalise.kernel.common.CriseVertxException;
-import org.cristalise.kernel.common.InvalidCollectionModification;
 import org.cristalise.kernel.common.InvalidDataException;
-import org.cristalise.kernel.common.InvalidTransitionException;
-import org.cristalise.kernel.common.ObjectAlreadyExistsException;
-import org.cristalise.kernel.common.ObjectCannotBeUpdated;
 import org.cristalise.kernel.common.ObjectNotFoundException;
 import org.cristalise.kernel.common.PersistencyException;
 import org.cristalise.kernel.entity.agent.Job;
@@ -58,10 +52,8 @@ import org.cristalise.kernel.security.SecurityManager;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;
 import io.vertx.core.Handler;
-import io.vertx.core.json.JsonObject;
 import io.vertx.core.shareddata.Lock;
 import io.vertx.core.shareddata.SharedData;
-import io.vertx.serviceproxy.ServiceException;
 import lombok.extern.slf4j.Slf4j;
 
 /**************************************************************************
@@ -109,9 +101,6 @@ public class TraceableEntity implements Item {
     public void requestAction(String itemUuid, String agentUuid, String stepPath, int transitionID, String requestData, String fileName,
             List<Byte> attachment, Handler<AsyncResult<String>> returnHandler)
     {
-        log.info("=======================================================================================");
-        log.info("requestAction("+itemUuid+") Transition " + transitionID + " on " + stepPath + " by agent " + agentUuid);
-
         ItemPath item;
         AgentPath agent;
         TransactionKey transactionKey;
@@ -130,76 +119,68 @@ public class TraceableEntity implements Item {
         SharedData sharedData = Gateway.getVertx().sharedData();
 
         sharedData.getLockWithTimeout(itemUuid, 5000,  lockResult -> {
-        if (lockResult.succeeded()) {
-            // Got the lock!
-            Lock lock = lockResult.result();
+            if (lockResult.succeeded()) {
+                // Got the lock!
+                Lock lock = lockResult.result();
 
-            try {
-                mStorage.begin(transactionKey);
-                String finalOutcome = requestAction(item, agent, stepPath, transitionID, requestData, fileName, attachment, transactionKey);
-                mStorage.commit(transactionKey);
-                returnHandler.handle(Future.succeededFuture(finalOutcome));
-            }
-            catch (Exception ex) {
-                log.error("requestAction() - " + item + " by " + agent + " executing " + stepPath, ex);
                 try {
-                    mStorage.abort(transactionKey);
+                    mStorage.begin(transactionKey);
+                    String finalOutcome = requestAction(item, agent, stepPath, transitionID, requestData, fileName, attachment, transactionKey);
+                    mStorage.commit(transactionKey);
+                    returnHandler.handle(Future.succeededFuture(finalOutcome));
                 }
-                catch (PersistencyException e) {}
-
-                TransactionKey errorTransactionKey = new TransactionKey(item);
-
-                try {
-                    // Start a new transaction
-                    mStorage.begin(errorTransactionKey);
-
-                    String errorOutcome = handleError(item, agent, stepPath, ex, transactionKey);
-
-                    if (isNotBlank(errorOutcome)) {
-                        // Error handling was defined and successful therefore commit transaction to store error outcome
-                        mStorage.commit(errorTransactionKey);
+                catch (Exception originalEx) {
+                    log.error("requestAction() - " + item + " by " + agent + " executing " + stepPath, originalEx);
+                    try {
+                        mStorage.abort(transactionKey);
                     }
-                    else{
-                        // Error handling was not defined or there was an exception therefore abort transaction
-                        mStorage.abort(errorTransactionKey);
+                    catch (PersistencyException e) {
+                        log.debug("requestAction() - Could not abort original transaction {}", transactionKey , e);
+                    }
+
+                    if (Gateway.getProperties().getBoolean("StateMachine.enableErrorHandling", false)) {
+                        handleError(stepPath, item, agent, originalEx);
                     }
 
                     // Now throw the original exception
-                    if (ex instanceof CriseVertxException) {
-                        CriseVertxException criseEx = (CriseVertxException) ex;
+                    if (originalEx instanceof CriseVertxException) {
+                        CriseVertxException criseEx = (CriseVertxException) originalEx;
                         returnHandler.handle(criseEx.failService());
                     }
                     else {
-                        returnHandler.handle(CriseVertxException.failService(ex));
+                        returnHandler.handle(CriseVertxException.failService(originalEx));
                     }
                 }
-                catch (PersistencyException pex) {
-                    try {
-                        mStorage.abort(errorTransactionKey);
-                    }
-                    catch (PersistencyException e) {}
 
-                    log.error("requestAction()", pex);
-                    returnHandler.handle(pex.failService());
-                }
+                lock.release();
             }
-
-            lock.release();
-        }
-        else {
-            Throwable cause = lockResult.cause();
-            log.error("requestAction()", cause);
-            JsonObject debugInfo = CriseVertxException.convertToDebugInfo(cause);
-            returnHandler.handle(CriseVertxException.failService(cause));
-        }
+            else {
+                Throwable cause = lockResult.cause();
+                log.error("requestAction() - could not lock item:{}", itemUuid, cause);
+                returnHandler.handle(CriseVertxException.failService(cause));
+            }
         });
     }
 
+    /**
+     * 
+     * @param item
+     * @param agent
+     * @param stepPath
+     * @param transitionID
+     * @param requestData
+     * @param fileName
+     * @param attachment
+     * @param transactionKey
+     * @return
+     * @throws Exception
+     */
     private String requestAction(ItemPath item, AgentPath agent, String stepPath, int transitionID, String requestData, String fileName,
-            List<Byte> attachment, TransactionKey transactionKey)
-            throws PersistencyException, ObjectNotFoundException, AccessRightsException, InvalidDataException, InvalidTransitionException,
-            ObjectAlreadyExistsException, ObjectCannotBeUpdated, CannotManageException, InvalidCollectionModification
+            List<Byte> attachment, TransactionKey transactionKey) throws Exception
     {
+        log.info("=======================================================================================");
+        log.info("requestAction("+item+") Transition " + transitionID + " on " + stepPath + " by agent " + agent);
+
         Workflow lifeCycle = (Workflow) mStorage.get(item, ClusterType.LIFECYCLE + "/workflow", transactionKey);
 
         SecurityManager secMan = Gateway.getSecurityManager();
@@ -235,6 +216,43 @@ public class TraceableEntity implements Item {
 
     /**
      * 
+     * @param stepPath
+     * @param item
+     * @param agent
+     * @param cause
+     */
+    private void handleError(String stepPath, ItemPath item, AgentPath agent, Exception cause) {
+        TransactionKey errorTransactionKey = new TransactionKey(item);
+
+        try {
+            // Start a new transaction
+            mStorage.begin(errorTransactionKey);
+
+            String errorOutcome = requestErrorAction(item, agent, stepPath, cause, errorTransactionKey);
+
+            if (isNotBlank(errorOutcome)) {
+                // Error handling was defined and successful therefore commit transaction to store error outcome
+                mStorage.commit(errorTransactionKey);
+            }
+            else{
+                // Error handling was not defined or there was an exception therefore abort transaction
+                mStorage.abort(errorTransactionKey);
+            }
+        }
+        catch (PersistencyException pex) {
+            try {
+                mStorage.abort(errorTransactionKey);
+            }
+            catch (PersistencyException e) {
+                log.debug("handleError() - Could not abort error transaction {}", errorTransactionKey , e);
+            }
+
+            log.error("handleError() - ", pex);
+        }
+    }
+
+    /**
+     * 
      * @param itemPath
      * @param agent
      * @param stepPath
@@ -243,34 +261,37 @@ public class TraceableEntity implements Item {
      * @param transactionKey
      * @return
      */
-    private String handleError(ItemPath itemPath, AgentPath agent, String stepPath, Exception cause, TransactionKey transactionKey) {
-        if (!Gateway.getProperties().getBoolean("StateMachine.enableErrorHandling", false)) return null;
-
+    private String requestErrorAction(ItemPath itemPath, AgentPath agent, String stepPath, Exception cause, TransactionKey transactionKey) {
         try {
             Workflow lifeCycle = (Workflow) mStorage.get(itemPath, ClusterType.LIFECYCLE + "/workflow", transactionKey);
 
-            int errorTransId = ((Activity) lifeCycle.search(stepPath)).getErrorTransitionId();
-            if (errorTransId == -1) return null;
+            int errorTransitionId = ((Activity) lifeCycle.search(stepPath)).getErrorTransitionId();
 
-            log.info("handleError({}) - errorTransId " + errorTransId + " on " + stepPath + " by " + agent, itemPath);
+            if (errorTransitionId == -1) {
+                log.debug("requestErrorAction({}) - StateMachine does not define error transition for step:{}", itemPath, stepPath);
+                return null;
+            }
+
+            log.info("---------------------------------------------------------------------------------------");
+            log.info("requestErrorAction({}) - transitionId {} on {} by {}", itemPath, errorTransitionId, stepPath, agent);
 
             String errorOutcome = Gateway.getMarshaller().marshall(new ErrorInfo(cause));
 
-            lifeCycle.requestAction(agent, stepPath, itemPath, errorTransId, errorOutcome, "", null, transactionKey);
+            errorOutcome = lifeCycle.requestAction(agent, stepPath, itemPath, errorTransitionId, errorOutcome, "", null, transactionKey);
 
             // store the workflow if we've changed the state of the domain wf
-            if (!(stepPath.startsWith("workflow/predefined"))) mStorage.put(itemPath, lifeCycle, transactionKey);
+            mStorage.put(itemPath, lifeCycle, transactionKey);
 
             return errorOutcome;
         }
         catch (Exception e) {
-            log.error("handleError()", e);
+            log.error("requestErrorAction()", e);
             return "";
         }
     }
 
     /**
-     *
+     * 
      */
     @Override
     public void queryLifeCycle(String itemUuid, String agentUuid, boolean filter, Handler<AsyncResult<String>> returnHandler) {
