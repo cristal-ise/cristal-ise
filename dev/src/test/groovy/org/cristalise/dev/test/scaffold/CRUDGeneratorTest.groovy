@@ -39,22 +39,14 @@ class CRUDGeneratorTest {
     @BeforeClass
     public static void setup() throws Exception {
         gitRepo = Git.open(new File('../.git'));
-
-        Properties props = new Properties()
-        props.put('Resource.moduleUseFileNameWithVersion', 'dev,devtest')
-        Gateway.init(props);
     }
 
     @AfterClass
-    public static void teardown() {
-        Gateway.close()
-    }
+    public static void teardown() {}
 
     public boolean getCheckGitStatus() {
         Status gitStatus = gitRepo.status().call()
-
         //gitStatus.getModified().each { log.info it }
-
         return gitStatus.isClean()
     } 
 
@@ -132,7 +124,7 @@ class CRUDGeneratorTest {
 
         generator.generate(inputs, true)
 
-        //assert getCheckGitStatus()
+        assert getCheckGitStatus()
 
         CompilerConfiguration cc = new CompilerConfiguration()
         cc.setScriptBaseClass(DelegatingScript.class.getName())
@@ -144,6 +136,6 @@ class CRUDGeneratorTest {
         script.setDelegate(this)
         script.run()
 
-        //assert getCheckGitStatus()
+        assert getCheckGitStatus()
     }
 }

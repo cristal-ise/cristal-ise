@@ -14,3 +14,5 @@ JOOQ.dialect    = H2
 JOOQ.autoCommit = true
 
 Gateway.clusteredVertx = false
+
+Resource.moduleUseFileNameWithVersion = dev,devtest
