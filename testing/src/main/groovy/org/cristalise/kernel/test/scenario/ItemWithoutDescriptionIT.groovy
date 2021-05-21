@@ -1,8 +1,5 @@
 package org.cristalise.kernel.test.scenario;
 
-import static org.junit.Assert.*
-
-import org.apache.commons.collections4.CollectionUtils
 import org.cristalise.kernel.entity.agent.Job
 import org.cristalise.kernel.entity.imports.ImportAgent
 import org.cristalise.kernel.entity.imports.ImportItem
@@ -14,13 +11,11 @@ import org.cristalise.kernel.lifecycle.instance.predefined.server.ConfigureLogba
 import org.cristalise.kernel.lifecycle.instance.predefined.server.CreateNewAgent
 import org.cristalise.kernel.lifecycle.instance.predefined.server.CreateNewRole
 import org.cristalise.kernel.lifecycle.instance.predefined.server.RemoveRole
-import org.cristalise.kernel.lookup.DomainPath
 import org.cristalise.kernel.lookup.RolePath
 import org.cristalise.kernel.persistency.outcomebuilder.OutcomeBuilder
 import org.cristalise.kernel.process.Gateway
 import org.cristalise.kernel.property.Property
 import org.cristalise.kernel.test.KernelScenarioTestBase
-import org.cristalise.kernel.test.utils.KernelXMLUtility
 import org.cristalise.kernel.utils.LocalObjectLoader
 import org.junit.Before
 import org.junit.Test

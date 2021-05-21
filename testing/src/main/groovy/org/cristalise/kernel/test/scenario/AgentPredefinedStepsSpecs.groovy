@@ -24,17 +24,16 @@ import spock.lang.Specification
  */
 class AgentPredefinedStepsSpecs extends Specification implements CristalTestSetup {
 
-    AgentProxy agent
-    String timeStamp
+    static AgentProxy agent
+    static String timeStamp
 
-    def setup() {
+    def setupSpec() {
         cristalInit(8, 'src/main/bin/client.conf', 'src/main/bin/integTest.clc')
         agent = Gateway.connect('user', 'test')
         timeStamp = LocalDateTime.now().format("yyyy-MM-dd_HH-mm-ss_SSS")
     }
 
-    def cleanup() { cristalCleanup() }
-
+    def cleanupSpec() { cristalCleanup() }
 
     private ItemProxy getServerItem() { return agent.getItem("/domain/servers/localhost") }
 
