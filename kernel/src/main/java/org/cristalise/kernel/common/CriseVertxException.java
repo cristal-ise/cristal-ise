@@ -32,12 +32,10 @@ import io.vertx.core.AsyncResult;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.serviceproxy.ServiceException;
-import lombok.Getter;
 
 public class CriseVertxException extends Exception {
     private static final long serialVersionUID = 5606562389374279530L;
     
-    @Getter
     public enum FailureCodes {
         /**
          * Generic code for errors not covered by specific exception
@@ -66,6 +64,10 @@ public class CriseVertxException extends Exception {
                 if(code.getId() == id) return code;
             }
             return null;
+        }
+
+        public int getId() {
+            return id;
         }
     }
 
