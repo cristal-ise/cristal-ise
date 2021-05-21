@@ -571,7 +571,7 @@ class ModuleDelegate implements BindingConvention {
         if (caDef.refChildActDef) {
             caDef.refChildActDef.each {
                 ActivityDef act = ActivityDef.cast(it)
-                moduleWf.activities.add(new ModuleDescRef(act.name, act.itemID, act.version))
+                moduleWf.activities.add(new ModuleDescRef(act.name, null/*act.itemID*/, act.version))
             }
         }
 
