@@ -40,8 +40,8 @@ import spock.lang.Specification
  */
 class CompActDefBuilderSpecs extends Specification implements CristalTestSetup {
     
-    def setup()   {}
-    def cleanup() {}
+    def setup()   { inMemorySetup() }
+    def cleanup() { cristalCleanup() }
 
     def 'Empty CompositeActivityDef can be built '() {
         when:
@@ -54,7 +54,7 @@ class CompActDefBuilderSpecs extends Specification implements CristalTestSetup {
         caDef.properties.getAbstract().size() == 0
     }
 
-    def 'CompositeActivityDef can define its Properties, StateMachine, Schema and Script'() {
+    def 'CompositeActivityDef can define its Properties, StateMachine, Schema, Script, ElemActDef and CompActDef'() {
         when:
         def schema = new Schema('schema', 0, '<xs:schema/>')
         def script = new Script('script', 0, new ItemPath(), null)
@@ -67,6 +67,9 @@ class CompActDefBuilderSpecs extends Specification implements CristalTestSetup {
             Schema(schema)
             Script(script)
             StateMachine(sm)
+
+            ElemActDef('EditDefinition', 0)
+            CompActDef('ManageItemDesc', 0)
         }
 
         then:

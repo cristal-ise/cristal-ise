@@ -48,7 +48,7 @@ class CompActDefDelegate extends ElemActDefDelegate {
     }
 
     def ElemActDef(String actName, int actVer) {
-        return ElemActDef(LocalObjectLoader.getActDef(actName, actVer))
+        return ElemActDef(LocalObjectLoader.getElemActDef(actName, actVer))
     }
 
     def ElemActDef(ActivityDef actDef) {
@@ -56,6 +56,18 @@ class CompActDefDelegate extends ElemActDefDelegate {
     }
 
     def ElemActDef(String actName, ActivityDef actDef) {
+        return ((CompositeActivityDef)activityDef).addExistingActivityDef(actName, actDef, new GraphPoint())
+    }
+
+    def CompActDef(String actName, int actVer) {
+        return CompActDef(LocalObjectLoader.getCompActDef(actName, actVer))
+    }
+
+    def CompActDef(CompositeActivityDef actDef) {
+        return CompActDef(actDef.actName, actDef)
+    }
+
+    def CompActDef(String actName, CompositeActivityDef actDef) {
         return ((CompositeActivityDef)activityDef).addExistingActivityDef(actName, actDef, new GraphPoint())
     }
 
