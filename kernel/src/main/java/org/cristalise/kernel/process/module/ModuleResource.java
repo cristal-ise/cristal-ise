@@ -78,7 +78,7 @@ public class ModuleResource extends ModuleImport {
     public String getResourceFileName() {
         if (StringUtils.isBlank(resourceLocation) && ns != null) {
             String[] vals = Gateway.getProperties().getString("Resource.moduleUseFileNameWithVersion", "").split(",");
-            log.debug("getResourceLocation() - moduleUseFileNameWithVersion:{}", Arrays.toString(vals));
+            log.debug("getResourceLocation(ns:{}) - moduleUseFileNameWithVersion:{}", ns, Arrays.toString(vals));
 
             if (Arrays.asList(vals).contains(ns)) {
                 resourceLocation = getResourceDir() + "/" + name + "_" + version + "." + getResourceExt();
