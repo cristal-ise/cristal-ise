@@ -244,7 +244,7 @@ class ModuleDelegate implements BindingConvention {
      *
      * @param caDef
      */
-    public void generateWorkflowSVG(CompositeActivityDef caDef) {
+    public void generateWorkflowSVG(String dir, CompositeActivityDef caDef) {
         LifecycleRenderer generator = new LifecycleRenderer(caDef.getChildrenGraphModel(), true)
         int zoomFactor = generator.getZoomFactor(1000, 1000)
 
@@ -253,7 +253,7 @@ class ModuleDelegate implements BindingConvention {
 
         generator.draw(svgG2D)
 
-        SVGUtils.writeToSVG(new File("target/${caDef.name}_${caDef.version}.svg"), svgG2D.getSVGElement())
+        SVGUtils.writeToSVG(new File("${dir}/${caDef.name}_${caDef.version}.svg"), svgG2D.getSVGElement())
     }
 
     /**
@@ -293,12 +293,17 @@ class ModuleDelegate implements BindingConvention {
                 DefaultGraphLayoutGenerator.layoutGraph(caDef.childrenGraphModel)
                 //do not rebuild during export, because LocalObjectLoader will not find new actDefs declared in DSL
                 caDef.export(null, resourceBootDir, true, false)
-                generateWorkflowSVG(caDef)
+                generateWorkflowSVG('target', caDef)
             }
         }
         else {
-            // since the workflow id not generated the XML file must exist
-            assert new File(new File(resourceBootDir, 'CA'), ""+args.name + (args.version == null ? "" : "_" + args.version) + ".xml").exists()
+            // since the workflow was not generated the XML file must exist
+            File caDir = new File(resourceBootDir, 'CA')
+            assert caDir.exists(), "Directory '$caDir' must exists"
+
+            String caFileName = ""+args.name + (args.version == null ? "" : "_" + args.version) + ".xml"
+            File caXmlFile = new File(caDir, caFileName)
+            assert caXmlFile.exists(), "File '$caXmlFile' must exists"
         }
 
         addCompositeActivityDef(caDef)
