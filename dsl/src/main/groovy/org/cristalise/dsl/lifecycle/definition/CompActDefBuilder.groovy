@@ -21,6 +21,9 @@
 package org.cristalise.dsl.lifecycle.definition
 
 import org.cristalise.kernel.lifecycle.CompositeActivityDef
+import org.cristalise.kernel.lifecycle.renderer.LifecycleRenderer
+import org.jfree.graphics2d.svg.SVGGraphics2D
+import org.jfree.graphics2d.svg.SVGUtils
 
 import groovy.transform.CompileStatic
 
@@ -46,4 +49,21 @@ class CompActDefBuilder {
 //        delegate.processClosure(caDef, cl)
 //        return caDef
 //    }
+    
+    /**
+     *
+     * @param caDef
+     */
+    public static void generateWorkflowSVG(String dir, CompositeActivityDef caDef) {
+        LifecycleRenderer generator = new LifecycleRenderer(caDef.getChildrenGraphModel(), true)
+        int zoomFactor = generator.getZoomFactor(1000, 1000)
+
+        SVGGraphics2D svgG2D = new SVGGraphics2D(1000, 1000)
+        svgG2D.scale((double) zoomFactor / 100, (double) zoomFactor / 100)
+
+        generator.draw(svgG2D)
+
+        SVGUtils.writeToSVG(new File("${dir}/${caDef.name}_${caDef.version}.svg"), svgG2D.getSVGElement())
+    }
+
 }
