@@ -84,6 +84,12 @@ public class CompositeActivityDef extends ActivityDef {
         setIsComposite(true);
     }
 
+    public CompositeActivityDef(String n, Integer v) {
+        this();
+        setName(n);
+        setVersion(v);
+    }
+
     public ArrayList<ActivityDef> getRefChildActDef() {
         return refChildActDef;
     }

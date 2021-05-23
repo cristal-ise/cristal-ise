@@ -23,8 +23,10 @@ package org.cristalise.dsl.test.lifecycle.definition
 import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.*
 
 import org.cristalise.dsl.lifecycle.definition.CompActDefBuilder;
+import org.cristalise.kernel.graph.layout.DefaultGraphLayoutGenerator
 import org.cristalise.kernel.graph.model.GraphableVertex
 import org.cristalise.kernel.lifecycle.ActivityDef
+import org.cristalise.kernel.lifecycle.CompositeActivityDef
 import org.cristalise.kernel.lifecycle.LoopDef
 import org.cristalise.kernel.lifecycle.instance.stateMachine.StateMachine
 import org.cristalise.kernel.lookup.ItemPath
@@ -52,6 +54,7 @@ class CompActDefBuilderSpecs extends Specification implements CristalTestSetup {
         caDef.version == 0
 
         caDef.properties.getAbstract().size() == 0
+        caDef.childrenGraphModel.vertices.length == 0
     }
 
     def 'CompositeActivityDef can define its Properties, StateMachine, Schema, Script, ElemActDef and CompActDef'() {
@@ -85,6 +88,43 @@ class CompActDefBuilderSpecs extends Specification implements CristalTestSetup {
         caDef.properties.abstractProp == 'dummy'
     }
 
+    def 'CompositeActivityDef can build single EA'() {
+        when:
+        def ea = new ActivityDef('EA', 0)
+    
+        def wf = CompActDefBuilder.build(module: 'test', name: 'WfDef-EA', version: 0) {
+            Layout {
+                Act(ea)
+            }
+        }
+
+        DefaultGraphLayoutGenerator.layoutGraph(wf.childrenGraphModel)
+        CompActDefBuilder.generateWorkflowSVG('target', wf)
+
+        then:
+        wf.name == 'WfDef-EA'
+        wf.childrenGraphModel.startVertex.name == 'EA'
+        wf.childrenGraphModel.vertices.length == 1
+    }
+
+    def 'CompositeActivityDef can build single CA'() {
+        when:
+        def ca = new CompositeActivityDef('CA', 0)
+    
+        def wf = CompActDefBuilder.build(module: 'test', name: 'WfDef-CA', version: 0) {
+            Layout {
+                Act(ca)
+            }
+        }
+
+        DefaultGraphLayoutGenerator.layoutGraph(wf.childrenGraphModel)
+        CompActDefBuilder.generateWorkflowSVG('target', wf)
+
+        then:
+        wf.name == 'WfDef-CA'
+        wf.childrenGraphModel.startVertex.name == 'CA'
+        wf.childrenGraphModel.vertices.length == 1
+    }
 
     def 'CompositeActivityDef can build a sequence of ElementaryActivityDefs'() {
         when:

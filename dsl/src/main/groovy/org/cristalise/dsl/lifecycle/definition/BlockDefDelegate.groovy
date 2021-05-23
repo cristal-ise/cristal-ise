@@ -89,4 +89,24 @@ abstract class BlockDefDelegate extends PropertyDelegate {
         }
         return newSlotDef
     }
+
+    // Alias of method Act(...)
+    def ElemActDef(ActivityDef actDef, @DelegatesTo(PropertyDelegate) Closure cl = null) {
+        return Act(actDef.actName, actDef, cl)
+    }
+
+    // Alias of method Act(...)
+    def ElemActDef(String actName, ActivityDef actDef, @DelegatesTo(PropertyDelegate) Closure cl = null) {
+        return Act(actName, actDef, cl)
+    }
+
+    // Alias of method Act(...)
+    def CompActDef(CompositeActivityDef actDef, @DelegatesTo(PropertyDelegate) Closure cl = null) {
+        return Act(actDef.actName, actDef, cl)
+    }
+
+    // Alias of method Act(...)
+    def CompActDef(String actName, CompositeActivityDef actDef, @DelegatesTo(PropertyDelegate) Closure cl = null) {
+        return Act(actName, actDef, cl)
+    }
 }
