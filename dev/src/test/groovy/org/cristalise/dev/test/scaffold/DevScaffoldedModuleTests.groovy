@@ -67,7 +67,7 @@ class DevScaffoldedModuleTests extends DevItemDSL implements CristalTestSetup {
     public void init() {
         //cristal in memory server has to be initialised only once
         if (!initialised) {
-            inMemoryServer(-1, props) //it is not static therefore cannot be called from @BeforeClass
+            inMemoryServer(props) //it is not static therefore cannot be called from @BeforeClass
             initialised = true
         }
 

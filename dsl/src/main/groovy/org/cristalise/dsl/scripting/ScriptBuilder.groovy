@@ -96,13 +96,13 @@ class ScriptBuilder {
      * @param cl the closure to build the Script
      * @return the ScriptBuilder instance full configured
      */
-    public static ScriptBuilder create(String module, String name, int version, Closure cl) {
+    public static ScriptBuilder create(String module, String name, int version, @DelegatesTo(ScriptDelegate) Closure cl) {
         def sb = build(module, name, version, cl)
         sb.create()
         return sb
     }
 
-    public static Script build(String name, int version, Closure cl) {
+    public static Script build(String name, int version, @DelegatesTo(ScriptDelegate) Closure cl) {
         // FIXME: build method should return Script instead of ScriptBuilder
         return build("", name, version, cl).script
     }
@@ -116,7 +116,7 @@ class ScriptBuilder {
      * @param cl the closure to build the Script
      * @return the ScriptBuilder instance full configured
      */
-    public static ScriptBuilder build(String module, String name, int version, Closure cl) {
+    public static ScriptBuilder build(String module, String name, int version, @DelegatesTo(ScriptDelegate) Closure cl) {
         def sb = new ScriptBuilder(module, name, version)
 
         def scriptD = new ScriptDelegate(module, name, version)

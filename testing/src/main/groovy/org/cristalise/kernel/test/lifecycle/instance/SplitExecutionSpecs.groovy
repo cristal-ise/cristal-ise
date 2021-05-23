@@ -11,18 +11,20 @@ import spock.lang.Specification
 
 class SplitExecutionSpecs extends Specification implements CristalTestSetup {
 
-    WorkflowTestBuilder util
+    static WorkflowTestBuilder util
 
-    def setup() {
-        inMemoryServer('src/main/bin/inMemoryServer.conf', 'src/main/bin/inMemory.clc', 8, null, true)
+    def setupSpec() {
+        inMemoryServer('src/main/bin/inMemoryServer.conf', 'src/main/bin/inMemory.clc', null, true)
         util = new WorkflowTestBuilder()
     }
 
     def cleanup() {
         println Gateway.getMarshaller().marshall(util.wf)
-        cristalCleanup()
     }
 
+    def cleanupSpec() {
+        cristalCleanup()
+    }
 
     def 'OrSplit enables branch(es) using RoutingScript'() {
         given: "Wf = first-OrSplit(script:1)((left)(right))-last"

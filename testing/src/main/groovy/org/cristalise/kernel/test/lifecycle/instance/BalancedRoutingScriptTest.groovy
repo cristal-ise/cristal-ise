@@ -12,28 +12,31 @@ import org.junit.After
 import org.junit.Before
 import org.junit.Test
 
+import spock.lang.Specification
 
-class BalancedRoutingScriptTest implements CristalTestSetup {
 
-    WorkflowTestBuilder wfBuilder
+class BalancedRoutingScriptTest extends Specification implements CristalTestSetup {
 
-    @Before
-    public void setup() {
-        inMemoryServer('src/main/bin/inMemoryServer.conf', 'src/main/bin/inMemory.clc', 8, null, true)
+    static WorkflowTestBuilder wfBuilder
+
+    def setupSpec() {
+        inMemoryServer('src/main/bin/inMemoryServer.conf', 'src/main/bin/inMemory.clc', null, true)
         wfBuilder = new WorkflowTestBuilder()
     }
 
-    @After
-    public void cleanup() {
+    def cleanup() {
+        if (wfBuilder && wfBuilder.wf) println Gateway.getMarshaller().marshall(wfBuilder.wf)
+    }
+
+    def cleanupSpec() {
         if (wfBuilder && wfBuilder.wf) println Gateway.getMarshaller().marshall(wfBuilder.wf)
         cristalCleanup()
     }
 
-    @Test
-    public void 'Loop-OrSplit-AndSPlit using RoutingScript'() {
+    def 'Loop-OrSplit-AndSPlit using RoutingScript'() {
+        given:
         String module = 'integTest'
         String schemaName = 'TestData'
-        
         int repetition = 10
 
         ScriptBuilder.create(module, "LoopScript", 0) {
@@ -79,6 +82,7 @@ class BalancedRoutingScriptTest implements CristalTestSetup {
             ElemAct("last")
         }
 
+        when:
         for(i in (0..repetition)) {
             wfBuilder.requestAction("incrementer", "Done", OutcomeBuilder.build(schema) {counter i})
 
@@ -94,7 +98,8 @@ class BalancedRoutingScriptTest implements CristalTestSetup {
         }
 
         wfBuilder.requestAction("last", "Done")
+
+        then:
         wfBuilder.checkActStatus("last",  [state: "Finished", active: false])
     }
-
 }
