@@ -65,12 +65,4 @@ class CompActDefLayoutDelegate extends BlockDefDelegate {
             }
         }
     }
-
-    def StateMachine(StateMachine s) {
-        compActDef.setStateMachine(s)
-    }
-
-    def StateMachine(String name, int version = 0) {
-        compActDef.setStateMachine(LocalObjectLoader.getStateMachine(name, version))
-    }
 }
