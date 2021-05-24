@@ -26,6 +26,7 @@ import static org.cristalise.kernel.persistency.ClusterType.HISTORY;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.Set;
 
 import org.cristalise.kernel.common.InvalidDataException;
@@ -127,8 +128,8 @@ public class History extends C2KLocalObjectMap<Event> {
     }
 
     @SuppressWarnings("unlikely-arg-type")
-    public LinkedHashMap<String, Event> list(int start, int batchSize, Boolean descending) {
-        LinkedHashMap<String, Event> batch = new LinkedHashMap<>();
+    public Map<Integer, Event> list(int start, int batchSize, Boolean descending) {
+        Map<Integer, Event> batch = new LinkedHashMap<>();
 
         int last = getLastId();
 
@@ -136,7 +137,7 @@ public class History extends C2KLocalObjectMap<Event> {
             int i = last - start;
 
             while (i >= 0 && batch.size() < batchSize) {
-                batch.put(String.valueOf(i), get(i));
+                batch.put(i, get(i));
                 i--;
             }
 
@@ -148,10 +149,10 @@ public class History extends C2KLocalObjectMap<Event> {
             // }
         }
         else {
-            int i = start;
+            Integer i = start;
 
             while (i <= last && batch.size() < batchSize) {
-                batch.put(String.valueOf(i), get(i));
+                batch.put(i, get(i));
                 i++;
             }
 

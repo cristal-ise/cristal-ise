@@ -28,8 +28,10 @@ import static org.cristalise.kernel.persistency.ClusterType.VIEWPOINT;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.fail;
 
+import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 
@@ -111,6 +113,13 @@ public class C2KLocalObjectMapTest {
         assertEquals(30, keys.size());
         assertTrue(keys.contains("0"));
         assertTrue(history.containsKey("0"));
+        assertFalse(history.containsKey("30"));
+        assertEquals(new Integer(0), history.getEvent(0).getID());
+
+        Map<Integer, Event> events = history.list(0, 10, false);
+        assertEquals(10, events.size());
+        assertEquals(new Integer(0), events.get(0).getID());
+        assertEquals(new Integer(9), events.get(9).getID());
 
         try {
             history.values();

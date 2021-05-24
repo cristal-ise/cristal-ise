@@ -146,7 +146,7 @@ public class C2KLocalObjectMap<V extends C2KLocalObject> implements Map<String, 
     @SuppressWarnings("unchecked")
     @Override
     public V get(Object key) {
-        String fullKey = getFullKey(key);
+        String fullKey = getFullKey(key.toString());
         try {
             return (V) storage.get(itemPath, fullKey, transactionKey);
         }

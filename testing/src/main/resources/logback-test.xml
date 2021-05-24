@@ -29,6 +29,8 @@
     </encoder>
   </appender>
 
+  <logger name="org.cristalise.restapi" level="DEBUG" />
+
 <!-- <logger name="org.jooq" level="DEBUG" /> -->
 <!-- <logger name="org.cristalise" level="DEBUG" /> -->
 <!-- <logger name="org.cristalise.kernel.process" level="TRACE" /> -->
