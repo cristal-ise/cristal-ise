@@ -167,7 +167,7 @@ public class ItemCollection extends ItemUtils {
                 inputs.put("memberNames", names); // Put the new member here e.g.ListOfValues
             }
 
-            AgentProxy agent = Gateway.getProxyManager().getAgentProxy(authData.agent);
+            AgentProxy agent = Gateway.getAgentProxy(authData.agent);
 
             inputs.put(Script.PARAMETER_AGENT, agent);
             inputs.put(Script.PARAMETER_ITEM, item);

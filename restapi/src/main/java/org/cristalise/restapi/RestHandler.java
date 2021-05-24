@@ -275,7 +275,7 @@ abstract public class RestHandler {
                 agentPath = agentAuthData.agent;
             }
 
-            return (AgentProxy)Gateway.getProxyManager().getProxy(agentPath);
+            return (AgentProxy)Gateway.getProxy(agentPath);
         }
         catch (ObjectNotFoundException e) {
             log.error("Agent not found", e);
