@@ -211,7 +211,13 @@ public class RemoteMap<V extends C2KLocalObject> extends TreeMap<String, V> impl
 
     @Override
     public synchronized boolean containsKey(Object key) {
-        return key >= 0 && key <= getLastId();
+        try {
+            int i = (int) key;
+            return i >= 0 && i <= getLastId();
+        }
+        catch (ClassCastException | NullPointerException e) {
+            return false;
+        }
     }
 
     /**
