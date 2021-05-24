@@ -33,8 +33,8 @@ import spock.lang.Specification
  */
 class SchemaBuilderAttributeSpecs extends Specification implements CristalTestSetup {
 
-    def setup()   { loggerSetup()    }
-    def cleanup() { cristalCleanup() }
+    def setup()   {}
+    def cleanup() {}
 
     def 'Attribute accepts a number of types: string, boolean, integer, decimal, date, time, dateTime'() {
         expect: "Accepted types are ${org.cristalise.dsl.persistency.outcome.Attribute.types}"

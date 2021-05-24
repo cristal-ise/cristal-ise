@@ -31,8 +31,8 @@ import spock.lang.Specification
  */
 class ItemPropertyBuilderSpecs extends Specification implements CristalTestSetup {
     
-    def setup()   { loggerSetup()    }
-    def cleanup() { cristalCleanup() }
+    def setup()   {}
+    def cleanup() {}
 
     def 'Mutable EntityProperty can be created from name only'() {
         when:

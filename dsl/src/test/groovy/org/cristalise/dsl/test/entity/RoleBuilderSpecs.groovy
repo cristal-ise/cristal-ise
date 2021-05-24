@@ -31,8 +31,8 @@ import spock.lang.Specification
  */
 class RoleBuilderSpecs extends Specification implements CristalTestSetup {
 
-    def setup()   { loggerSetup()    }
-    def cleanup() { cristalCleanup() }
+    def setup()   {}
+    def cleanup() {}
 
     def "Default value for jobList is false"() {
         when:

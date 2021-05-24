@@ -37,8 +37,8 @@ import spock.lang.Specification
  */
 class SchemaBuilderDynymicFormsSpecs extends Specification implements CristalTestSetup {
 
-    def setup()   { loggerSetup()    }
-    def cleanup() { cristalCleanup() }
+    def setup()   {}
+    def cleanup() {}
 
     def 'Field can specify dynamicForms.mask'() {
         expect:
