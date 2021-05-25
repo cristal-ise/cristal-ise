@@ -44,7 +44,7 @@ class JoblistSpecs extends Specification implements CristalTestSetup {
         def props = new Properties()
         props.put('Shiro.iniFile', 'src/main/bin/shiroInMemory.ini')
         //skips boostrap!!!
-        inMemoryServer('src/main/bin/inMemoryServer.conf', 'src/main/bin/inMemory.clc', 8, props, true)
+        inMemoryServer('src/main/bin/inMemoryServer.conf', 'src/main/bin/inMemory.clc', props, true)
     }
 
     def setup() {

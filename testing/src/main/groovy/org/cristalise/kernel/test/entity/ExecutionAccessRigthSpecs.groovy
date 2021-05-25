@@ -47,7 +47,7 @@ class ExecutionAccessRigthSpecs extends Specification implements CristalTestSetu
     def setup() {
         def props = new Properties()
         props.put('Shiro.iniFile', 'src/main/bin/shiroInMemory.ini')
-        inMemoryServer('src/main/bin/inMemoryServer.conf', 'src/main/bin/inMemory.clc', 8, props, true) //skips boostrap!!!
+        inMemoryServer('src/main/bin/inMemoryServer.conf', 'src/main/bin/inMemory.clc', props, true) //skips boostrap!!!
     }
 
     def cleanup() { cristalCleanup() }

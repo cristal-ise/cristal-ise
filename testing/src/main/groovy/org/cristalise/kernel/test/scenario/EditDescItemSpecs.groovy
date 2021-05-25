@@ -17,7 +17,7 @@ class EditDescItemSpecs extends Specification implements CristalTestSetup {
     PollingConditions pollingWait = new PollingConditions(timeout: 2, initialDelay: 0.2, factor: 1)
     
     def setupSpec() {
-        cristalInit(8, 'src/main/bin/client.conf', 'src/main/bin/integTest.clc')
+        cristalInit('src/main/bin/client.conf', 'src/main/bin/integTest.clc')
         agent = Gateway.connect('user', 'test')
         timeStamp = LocalDateTime.now().format("yyyy-MM-dd_HH-mm-ss_SSS")
     }
