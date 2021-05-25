@@ -58,7 +58,7 @@ class ItemWithoutDescriptionIT extends KernelScenarioTestBase {
         role.name = roleName
         agent.roles.add(role)
         Job j = executeDoneJob(serverItem, "CreateNewAgent", Gateway.marshaller.marshall(agent))
-        return Gateway.getProxyManager().getAgentProxy( Gateway.getLookup().getAgentPath(name) )
+        return Gateway.getAgentProxy( Gateway.getLookup().getAgentPath(name) )
     }
 
     private ItemProxy createItem(String name) {

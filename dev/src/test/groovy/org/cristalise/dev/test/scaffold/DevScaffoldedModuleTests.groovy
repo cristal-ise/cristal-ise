@@ -73,7 +73,7 @@ class DevScaffoldedModuleTests extends DevItemDSL implements CristalTestSetup {
 
         log.info '======================================================================================'
 
-        agent = Gateway.getProxyManager().getAgentProxy('devtest')
+        agent = Gateway.getAgentProxy('devtest')
         creator = new CRUDItemCreator(folder, ERASE, agent)
     }
 

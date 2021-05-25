@@ -171,7 +171,7 @@ public class DependencyMember implements CollectionMember {
             script.setInputParamValue("dependencyMember", this);
 
             script.setInputParamValue("storage", Gateway.getStorage());
-            script.setInputParamValue("proxy", Gateway.getProxyManager());
+//            script.setInputParamValue("proxy", Gateway.getProxyManager());
             script.setInputParamValue("lookup", Gateway.getLookup());
 
             return script.evaluate(getItemPath(), getProperties(), null, null);

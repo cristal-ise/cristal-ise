@@ -64,7 +64,7 @@ public class NodeItem extends Node implements Transferable {
 
         // if an item - resolve the item and get its properties
 		try {
-			myItem = Gateway.getProxyManager().getProxy(path);
+			myItem = Gateway.getProxy(path);
 	        this.itemPath = path.getItemPath();
 	        Logger.msg(2,"NodeEntity.<init> - System key is "+this.itemPath);
 	

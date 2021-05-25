@@ -388,7 +388,7 @@ public class DefaultResourceImportHandler implements ResourceImportHandler {
         newDomPath.setItemPath(itemPath);
         lookupManager.add(newDomPath, transactionKey);
 
-        return Gateway.getProxyManager().getProxy(itemPath, transactionKey);
+        return Gateway.getProxy(itemPath, transactionKey);
     }
 
     /**

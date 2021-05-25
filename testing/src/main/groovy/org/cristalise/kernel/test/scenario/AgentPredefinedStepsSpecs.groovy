@@ -58,7 +58,7 @@ class AgentPredefinedStepsSpecs extends Specification implements CristalTestSetu
 
         agent.execute(serverItem, CreateNewAgent.class, Gateway.getMarshaller().marshall(importAgent));
 
-        return Gateway.getProxyManager().getAgentProxy( Gateway.getLookup().getAgentPath(name) )
+        return Gateway.getAgentProxy( Gateway.getLookup().getAgentPath(name) )
     }
 
     def 'SetAgentRole can be used to assign/unassing roles with agent'() {
@@ -88,7 +88,7 @@ class AgentPredefinedStepsSpecs extends Specification implements CristalTestSetu
     def 'SetAgentPassword can be called by admin or by the agent itself'() {
         when: 'Admin changes the password of triggerAgent'
         String[] params = [ 'test', timeStamp ]
-        def triggerAgent = Gateway.getProxyManager().getAgentProxy( Gateway.getLookup().getAgentPath('triggerAgent') )
+        def triggerAgent = Gateway.getAgentProxy( Gateway.getLookup().getAgentPath('triggerAgent') )
         assert ! triggerAgent.getPath().isPasswordTemporary()
         agent.execute(triggerAgent, SetAgentPassword.class, params)
 

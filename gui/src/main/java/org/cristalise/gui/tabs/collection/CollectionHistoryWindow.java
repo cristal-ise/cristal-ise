@@ -145,7 +145,7 @@ public class CollectionHistoryWindow extends JFrame {
                         return "Click to view";
                     String name;
                     try {
-                        ItemProxy childItem = Gateway.getProxyManager().getProxy(new ItemPath(((String[]) collEventData.get(rowIndex))[2]));
+                        ItemProxy childItem = Gateway.getProxy(new ItemPath(((String[]) collEventData.get(rowIndex))[2]));
                         name = childItem.getName();
                     }
                     catch (ObjectNotFoundException e) {
@@ -222,7 +222,7 @@ public class CollectionHistoryWindow extends JFrame {
                 else {
                     String[] params = (String[]) data;
                     try {
-                        ItemProxy childItem = Gateway.getProxyManager().getProxy(new ItemPath(params[2]));
+                        ItemProxy childItem = Gateway.getProxy(new ItemPath(params[2]));
                         MainFrame.itemFinder.pushNewKey(childItem.getName());
                     }
                     catch (Exception ex) {}

@@ -134,7 +134,7 @@ public class SelectedMemberPanel extends SelectedVertexPanel implements DomainKe
         String name = "Empty";
         if (memberPath != null)
         	try {
-        		ItemProxy member = Gateway.getProxyManager().getProxy(memberPath);
+        		ItemProxy member = Gateway.getProxy(memberPath);
         		name = member.getName();
         	} catch (Exception e) { }
         memberKey.setText(name);

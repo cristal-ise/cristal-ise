@@ -65,7 +65,7 @@ class BasicDevDescriptionTests extends DevItemUtility implements CristalTestSetu
 
         log.info '====================================================================================================='
     
-        agent = Gateway.getProxyManager().getAgentProxy('devtest')
+        agent = Gateway.getAgentProxy('devtest')
     }
 
     @AfterClass

@@ -37,7 +37,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.cristalise.kernel.common.ObjectNotFoundException;
 import org.cristalise.kernel.entity.imports.ImportAgent;
 import org.cristalise.kernel.entity.imports.ImportRole;
-import org.cristalise.kernel.entity.proxy.AgentProxy;
 import org.cristalise.kernel.lifecycle.CompositeActivityDef;
 import org.cristalise.kernel.lifecycle.instance.CompositeActivity;
 import org.cristalise.kernel.lifecycle.instance.Workflow;
