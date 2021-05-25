@@ -106,12 +106,14 @@ public class C2KLocalObjectMap<V extends C2KLocalObject> implements Map<String, 
             ((clusterType == VIEWPOINT || clusterType == COLLECTION) && count == 1) ||
             ((clusterType == OUTCOME   || clusterType == ATTACHMENT) && count == 2))
         {
+            //at last element of the object key, so add the actual key values
             for (String subKey : children) {
                 fullKey = path + (path.length() > 0 ? "/" : "") + subKey;
                 keys.add(fullKey);
             }
         }
         else {
+            //still needs to read the next level of key, so do the recursion and add to the result
             for (String element : children) {
                 fullKey = path + (path.length() > 0 ? "/" : "") + element;
                 keys.addAll(loadKeys(fullKey));

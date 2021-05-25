@@ -20,6 +20,7 @@
  */
 package org.cristalise.kernel.test.persistency;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.cristalise.kernel.persistency.ClusterType.HISTORY;
 import static org.cristalise.kernel.persistency.ClusterType.LIFECYCLE;
 import static org.cristalise.kernel.persistency.ClusterType.OUTCOME;
@@ -54,13 +55,16 @@ import org.junit.Test;
 
 public class C2KLocalObjectMapTest {
     static ItemPath itemPath;
+    static String uuid = "fcecd4ad-40eb-421c-a648-edc1d74f339b";
+    static String storageDir;
 
     @BeforeClass
     public static void beforeClass() throws Exception {
         Properties props = FileStringUtility.loadConfigFile(MainTest.class.getResource("/server.conf").getPath());
         Gateway.init(props);
         FieldUtils.writeDeclaredStaticField(Gateway.class, "mStorage", new ClusterStorageManager(null), true);
-        itemPath = new ItemPath("fcecd4ad-40eb-421c-a648-edc1d74f339b");
+        itemPath = new ItemPath(uuid);
+        storageDir = Gateway.getProperties().getString("XMLStorage.root") + "/" + uuid;
     }
 
     @AfterClass
@@ -90,6 +94,7 @@ public class C2KLocalObjectMapTest {
         assertNotNull(viewpointMap.get("NextStepData/last"));
         assertTrue(keys.contains("NextStepData/last"));
         assertTrue(viewpointMap.containsKey("NextStepData/last"));
+        assertFalse(viewpointMap.containsKey("NextStepData"));
     }
 
     @Test
@@ -102,24 +107,40 @@ public class C2KLocalObjectMapTest {
         //assertNotNull(outcomeMap.get("DispensingData/0/18")); //mock LocalObjectLoader to return the Schema
         assertTrue(keys.contains("DispensingData/0/18"));
         assertTrue(outcomeMap.containsKey("DispensingData/0/18"));
+        assertFalse(outcomeMap.containsKey("DispensingData/0"));
     }
 
     @Test
     public void checkHistory() throws Exception {
         History history = new History(itemPath);
 
+        String event0String = FileStringUtility.file2String(storageDir+"/AuditTrail/0.xml");
+        Event event0 = (Event)Gateway.getMarshaller().unmarshall(event0String);
+        String event29String = FileStringUtility.file2String(storageDir+"/AuditTrail/29.xml");
+        Event event29 = (Event)Gateway.getMarshaller().unmarshall(event29String);
+
         Set<String> keys = history.keySet();
 
         assertEquals(30, keys.size());
         assertTrue(keys.contains("0"));
-        assertTrue(history.containsKey("0"));
-        assertFalse(history.containsKey("30"));
-        assertEquals(new Integer(0), history.getEvent(0).getID());
+        assertTrue(keys.contains("29"));
 
-        Map<Integer, Event> events = history.list(0, 10, false);
-        assertEquals(10, events.size());
-        assertEquals(new Integer(0), events.get(0).getID());
-        assertEquals(new Integer(9), events.get(9).getID());
+        assertTrue(history.containsKey("0"));
+        assertTrue(history.containsKey(0));
+        assertFalse(history.containsKey("30"));
+        assertFalse(history.containsKey(30));
+
+        assertThat(event0).isEqualToComparingFieldByFieldRecursively(history.getEvent(0));
+        assertThat(event0).isEqualToComparingFieldByFieldRecursively(history.get(0));
+        assertThat(event0).isEqualToComparingFieldByFieldRecursively(history.get("0"));
+
+        assertThat(event29).isEqualToComparingFieldByFieldRecursively(history.getEvent(29));
+        assertThat(event29).isEqualToComparingFieldByFieldRecursively(history.get(29));
+        assertThat(event29).isEqualToComparingFieldByFieldRecursively(history.get("29"));
+
+        Map<Integer, Event> batchOfEvents = history.list(20, 10, false);
+        assertEquals(10, batchOfEvents.size());
+        assertThat(event29).isEqualToComparingFieldByFieldRecursively(batchOfEvents.get(29));
 
         try {
             history.values();

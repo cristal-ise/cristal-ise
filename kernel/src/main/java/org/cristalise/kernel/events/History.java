@@ -38,10 +38,13 @@ import org.cristalise.kernel.persistency.C2KLocalObjectMap;
 import org.cristalise.kernel.persistency.TransactionKey;
 import org.cristalise.kernel.persistency.outcome.Schema;
 
+import lombok.extern.slf4j.Slf4j;
+
 /**
  * The History is an instance of {@link org.cristalise.kernel.persistency.C2KLocalObjectMap} 
  * which provides a live view onto the Events of an Item.
  */
+@Slf4j
 public class History extends C2KLocalObjectMap<Event> {
 
     public History(ItemPath itemPath) {
@@ -54,6 +57,10 @@ public class History extends C2KLocalObjectMap<Event> {
 
     public Event getEvent(int id) {
         return get(String.valueOf(id));
+    }
+
+    public Event get(Integer id) {
+        return get((Object)id);
     }
 
     @Override
@@ -127,7 +134,7 @@ public class History extends C2KLocalObjectMap<Event> {
         return keys;
     }
 
-    @SuppressWarnings("unlikely-arg-type")
+    //TODO error handling is missing to check boundary values for start+-batchSize
     public Map<Integer, Event> list(int start, int batchSize, Boolean descending) {
         Map<Integer, Event> batch = new LinkedHashMap<>();
 
@@ -137,31 +144,17 @@ public class History extends C2KLocalObjectMap<Event> {
             int i = last - start;
 
             while (i >= 0 && batch.size() < batchSize) {
-                batch.put(i, get(i));
+                batch.put(i, getEvent(i));
                 i--;
             }
-
-            // 'nextBatch' is not returned to the client, check ItemHistory.listEvents()
-            // while (i >= 0 && map.get(i) == null) i--;
-            // if (i >= 0) {
-            // batch.put("nextBatch", uri.getAbsolutePathBuilder().replaceQueryParam("start", i).replaceQueryParam("batch",
-            // batchSize).build());
-            // }
         }
         else {
             Integer i = start;
 
             while (i <= last && batch.size() < batchSize) {
-                batch.put(i, get(i));
+                batch.put(i, getEvent(i));
                 i++;
             }
-
-            // 'nextBatch' is not returned to the client, check ItemHistory.listEvents()
-            // while (i <= last && map.get(i) == null) i++;
-            // if (i <= last) {
-            // batch.put("nextBatch", uri.getAbsolutePathBuilder().replaceQueryParam("start", i).replaceQueryParam("batch",
-            // batchSize).build());
-            // }
         }
 
         return batch;
@@ -180,6 +173,28 @@ public class History extends C2KLocalObjectMap<Event> {
 
     @Override
     public int size() {
-        return getLastId()+1;
+        return getLastId()+1; //id starts with 0
+    }
+
+    /**
+     * Events are never deleted and they are numbered incrementally, which means id >= 0 and id <= lastId
+     */
+    public boolean containsKey(Integer id) {
+        return containsKey((Object)id);
+    }
+
+    /**
+     * Events are never deleted and they are numbered incrementally, which means key >= 0 and key <= lastId
+     */
+    @Override
+    public boolean containsKey(Object key) {
+        try {
+            int id = key instanceof String ? Integer.valueOf((String)key) : (int)key;
+            return id >= 0 && id <= getLastId();
+        }
+        catch (Exception ex) {
+            log.error("containsKey() - cannot convert key:{}", key, ex);
+        }
+        return false;
     }
 }
