@@ -131,8 +131,8 @@ public class SecurityManager {
         }
 
         // It can be invoked before Lookup is initialised
-        if (isClient) return Gateway.getAgentProxy(agentName, transactionKey);
-        else          return null;
+        if (isClient && Gateway.getLookup() != null) return Gateway.getAgentProxy(agentName, transactionKey);
+        else                                         return null;
     }
 
     /**
