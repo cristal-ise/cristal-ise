@@ -209,17 +209,6 @@ public class RemoteMap<V extends C2KLocalObject> extends TreeMap<String, V> impl
         keyLock = null;
     }
 
-    @Override
-    public synchronized boolean containsKey(Object key) {
-        try {
-            int i = (int) key;
-            return i >= 0 && i <= getLastId();
-        }
-        catch (ClassCastException | NullPointerException e) {
-            return false;
-        }
-    }
-
     /**
      * This must retrieve all the values until a match is made.
      * Very expensive, but if you must, you must.

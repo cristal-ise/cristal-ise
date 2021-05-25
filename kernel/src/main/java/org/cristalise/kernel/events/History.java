@@ -47,6 +47,10 @@ public class History extends RemoteMap<Event> {
         return get(String.valueOf(id));
     }
 
+    public Event get(Integer id) {
+        return get(String.valueOf(id));
+    }
+
     @Override
     public Event remove(Object key) {
         throw new UnsupportedOperationException();
@@ -105,5 +109,26 @@ public class History extends RemoteMap<Event> {
         newEvent.addOutcomeDetails(schema, viewName);
         newEvent.setTimeString(timeString);
         return storeNewEvent(newEvent);
+    }
+
+    /**
+     * Events are never deleted and they are numbered incrementally, which means id >= 0 and id <= lastId
+     */
+    public boolean containsKey(Integer id) {
+        return containsKey((Object)id);
+    }
+
+    /**
+     * Events are never deleted and they are numbered incrementally, which means key >= 0 and key <= lastId
+     */
+    @Override
+    public synchronized boolean containsKey(Object key) {
+        try {
+            int id = key instanceof String ? Integer.valueOf((String)key) : (int)key;
+            return id >= 0 && id <= getLastId();
+        }
+        catch (ClassCastException | NullPointerException e) {
+            return false;
+        }
     }
 }
