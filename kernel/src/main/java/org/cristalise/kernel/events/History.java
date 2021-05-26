@@ -31,10 +31,13 @@ import org.cristalise.kernel.persistency.RemoteMap;
 import org.cristalise.kernel.persistency.TransactionKey;
 import org.cristalise.kernel.persistency.outcome.Schema;
 
+import lombok.extern.slf4j.Slf4j;
+
 /**
  * The History is an instance of {@link org.cristalise.kernel.persistency.RemoteMap} 
  * which provides a live view onto the Events of an Item.
  */
+@Slf4j
 public class History extends RemoteMap<Event> {
 
     private static final long serialVersionUID = 3273324106002587993L;
@@ -127,7 +130,8 @@ public class History extends RemoteMap<Event> {
             int id = key instanceof String ? Integer.valueOf((String)key) : (int)key;
             return id >= 0 && id <= getLastId();
         }
-        catch (ClassCastException | NullPointerException | NumberFormatException e) {
+        catch (Exception e) {
+            log.error("containsKey() - Could not read key:{}", key, e);
             return false;
         }
     }
