@@ -127,7 +127,7 @@ public class History extends RemoteMap<Event> {
             int id = key instanceof String ? Integer.valueOf((String)key) : (int)key;
             return id >= 0 && id <= getLastId();
         }
-        catch (ClassCastException | NullPointerException e) {
+        catch (ClassCastException | NullPointerException | NumberFormatException e) {
             return false;
         }
     }
