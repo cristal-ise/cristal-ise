@@ -46,7 +46,7 @@ public class LauncherTest {
     public void testValidC2KArgs() throws Exception {
         Properties props = AbstractMain.readC2KArgs(standardArgs());
 
-        assert "MemoryOnlyClusterStorage".equals(props.get("ClusterStorage")) : "Config file properties not loaded";
+        assert "XMLClusterStorage".equals(props.get("ClusterStorage")) : "Config file properties not loaded";
         assert "1553".equals(props.get("ItemServer.Proxy.port")) : "Connect file properties not loaded";
     }
 
