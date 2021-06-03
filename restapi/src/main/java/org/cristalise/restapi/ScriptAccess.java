@@ -142,7 +142,7 @@ public class ScriptAccess extends ResourceAccess {
      * @param cookie
      * @return
      */
-    private Response handleScriptExecution(HttpHeaders headers, String scriptName, Integer scriptVersion, String inputJson, NewCookie cookie, Path agentPath) {
+    private Response handleScriptExecution(HttpHeaders headers, String scriptName, Integer scriptVersion, String inputJson, NewCookie cookie, AgentPath agentPath) {
         try (DSLContext context = JooqDataSourceHandler.retrieveContext(null)) {
             AgentProxy agent = (AgentProxy)Gateway.getProxyManager().getProxy(agentPath);
             return scriptUtils.executeScript(headers, null, scriptName, scriptVersion, null, inputJson, 
