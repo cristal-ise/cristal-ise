@@ -285,11 +285,11 @@ public class SecurityManager {
      * @throws AccessRightsException
      * @throws ObjectNotFoundException Item was not found
      */
-    public boolean checkPermissions(AgentPath agent, BuiltInAction action, ItemPath itemPath, TransactionKey transactionKey) 
+    public boolean checkPermissions(AgentPath agent, BuiltInAction builtInAction, ItemPath itemPath, TransactionKey transactionKey) 
             throws AccessRightsException, ObjectNotFoundException
     {
         String domain = getWildcardPermissionDomain(itemPath, transactionKey);
-        String action = action.name();
+        String action = builtInAction.name();
         String target = PropertyUtility.getPropertyValue(itemPath, NAME, "", transactionKey);
 
         //The Shiro's WildcardPermission string 
