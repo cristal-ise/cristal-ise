@@ -108,7 +108,7 @@ public class ScriptUtils extends ItemUtils {
 
                 SecurityManager secMan = Gateway.getSecurityManager();
                 if (secMan.isShiroEnabled()) {
-                    AgentProxy agentProxy = additionalInputs.get(Script.PARAMETER_AGENT)
+                    AgentProxy agentProxy = additionalInputs.get(Script.PARAMETER_AGENT);
                     if (null == agentProxy) {
                         throw new AccessRightsException("Input parameter '" + Script.PARAMETER_AGENT + "' was not specified");
                     }
