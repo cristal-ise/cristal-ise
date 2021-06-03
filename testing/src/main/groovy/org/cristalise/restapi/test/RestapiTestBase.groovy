@@ -27,6 +27,8 @@ import io.restassured.http.Cookie
 import io.restassured.response.Response
 import io.restassured.specification.RequestSpecification
 
+import javax.ws.rs.core.Response;
+
 @CompileStatic
 class RestapiTestBase extends KernelScenarioTestBase {
 
@@ -34,12 +36,9 @@ class RestapiTestBase extends KernelScenarioTestBase {
 
     String userUuid
     Cookie cauthCookie
-
-    static final int STATUS_OK = 200
-
+ 
     @BeforeClass
     public static void init() {
-        org.cristalise.kernel.utils.Logger.addLogStream(System.out, 5)
         Properties props = AbstractMain.readPropertyFiles("src/main/bin/client.conf", "src/main/bin/integTest.clc", null)
         apiUri = props.get('REST.URI')
     }
@@ -66,7 +65,7 @@ class RestapiTestBase extends KernelScenarioTestBase {
                 .get(apiUri+"/login")
             .then()
                 .cookie('cauth')
-                .statusCode(STATUS_OK)
+                .statusCode(Response.Status.OK)
                 .extract().response()
 
         cauthCookie = loginResp.getDetailedCookie('cauth');
@@ -84,7 +83,7 @@ class RestapiTestBase extends KernelScenarioTestBase {
            .when()
                 .get(apiUri+"/logout")
            .then()
-                .statusCode(STATUS_OK)
+                .statusCode(Response.Status.OK)
         }
         else {
             given()
@@ -93,7 +92,7 @@ class RestapiTestBase extends KernelScenarioTestBase {
             .when()
                 .get(apiUri+"/logout")
             .then()
-                .statusCode(STATUS_OK)
+                .statusCode(Response.Status.OK)
         }
     }
 
@@ -111,7 +110,7 @@ class RestapiTestBase extends KernelScenarioTestBase {
                 .when()
                     .get(apiUri+"/item/$uuid/history")
                 .then()
-                    .statusCode(STATUS_OK)
+                    .statusCode(Response.Status.OK)
                 .extract().response().body().asString()
 
             def histJson = new JSONArray(histBody)
@@ -128,7 +127,7 @@ class RestapiTestBase extends KernelScenarioTestBase {
             .when()
                 .get(apiUri+"/item/$userUuid/history/$id")
             .then()
-                .statusCode(STATUS_OK)
+                .statusCode(Response.Status.OK)
                 .body('activity.name', equalTo(name))
 
             return id
@@ -160,7 +159,7 @@ class RestapiTestBase extends KernelScenarioTestBase {
         .when()
             .post(apiUri+"/item/$uuid/workflow/predefined/"+predefStepName)
         .then()
-            .statusCode(STATUS_OK)
+            .statusCode(Response.Status.OK)
             .extract().response().body().asString()
 
         return responseBody
@@ -175,7 +174,7 @@ class RestapiTestBase extends KernelScenarioTestBase {
         .when()
             .post(apiUri+"/item/$uuid/workflow/domain/${actPath}?transition=Done")
         .then()
-            .statusCode(STATUS_OK)
+            .statusCode(Response.Status.OK)
             .extract().response().body().asString()
     }
 
@@ -185,7 +184,7 @@ class RestapiTestBase extends KernelScenarioTestBase {
         .when()
             .get(apiUri+"/item/$uuid/attachment/$schema/$version/$event")
         .then()
-            .statusCode(STATUS_OK)
+            .statusCode(Response.Status.OK)
         .extract().response().body().asString()
     }
 
@@ -195,7 +194,7 @@ class RestapiTestBase extends KernelScenarioTestBase {
         .when()
             .get(apiUri+"/item/$uuid/outcome/$schema/$version/$event")
         .then()
-            .statusCode(STATUS_OK)
+            .statusCode(Response.Status.OK)
         .extract().response().body().asString()
     }
 
@@ -209,11 +208,11 @@ class RestapiTestBase extends KernelScenarioTestBase {
             .when()
                 .post(apiUri+"/item/$uuid/workflow/domain/${actPath}?transition=Done")
             .then()
-                .statusCode(STATUS_OK)
+                .statusCode(Response.Status.OK)
             .extract().response().asString()
     }
 
-    String executeScript(String uuid, String scriptName, ContentType contentType = JSON, String inputs) {
+    String executeScript(String uuid, String scriptName, ContentType contentType = JSON, int statusCode = Response.Status.OK, String inputs) {
         return given()
             .contentType(contentType)
             .accept(JSON)
@@ -222,7 +221,7 @@ class RestapiTestBase extends KernelScenarioTestBase {
         .when()
             .post(apiUri+"/item/$uuid/scriptResult/?script=${scriptName}&version=0")
         .then()
-            .statusCode(STATUS_OK)
+            .statusCode(statusCode)
             .extract().response().body().asString()
     }
 
@@ -236,7 +235,7 @@ class RestapiTestBase extends KernelScenarioTestBase {
         .when()
             .get(apiUri+"/domain/$path")
         .then()
-            .statusCode(STATUS_OK)
+            .statusCode(Response.Status.OK)
             .extract().response().body().asString()
 
         return new JSONObject(responseBody).getString("uuid")
@@ -250,7 +249,7 @@ class RestapiTestBase extends KernelScenarioTestBase {
         .when()
             .get(apiUri+"/role/$name")
         .then()
-            .statusCode(STATUS_OK)
+            .statusCode(Response.Status.OK)
             .extract().response().body().asString()
 
         return new JSONArray(responseBody)
@@ -292,6 +291,17 @@ class RestapiTestBase extends KernelScenarioTestBase {
 
     void createNewRole(String name, ContentType type) {
         def param = KernelXMLUtility.getRoleXML(name: name)
+        def serverItemUUID = resolveDomainPath('/servers/localhost')
+
+        if (type == JSON) param = XML.toJSONObject(param).toString()
+
+        executePredefStep(serverItemUUID, CreateNewRole.class, type, param)
+
+        resolveRole(name)
+    }
+
+    void createNewRole(String name, ContentType type, String... permissions) {
+        def param = KernelXMLUtility.getRoleXML(name: name, permissions: permissions)
         def serverItemUUID = resolveDomainPath('/servers/localhost')
 
         if (type == JSON) param = XML.toJSONObject(param).toString()

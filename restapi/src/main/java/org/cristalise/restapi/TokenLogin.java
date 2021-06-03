@@ -66,7 +66,7 @@ public class TokenLogin extends RestHandler {
             throw new WebApplicationException("Problem logging in");
         }
         catch (ObjectNotFoundException e1) {
-            throw new WebApplicationException("Bad username/password", 401);
+            throw new WebApplicationException("Bad username/password", Response.Status.UNAUTHORIZED);
         }
     }
 

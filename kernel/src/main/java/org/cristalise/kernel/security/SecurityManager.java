@@ -52,6 +52,11 @@ import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class SecurityManager {
+
+    public enum BuiltInAction {
+        ACTION_EXECUTE,
+        ACTION_READ
+    }
     
     private static final String securityMsgBegin = "[errorMessage]";
     private static final String securityMsgEnd   = "[/errorMessage]";
@@ -261,6 +266,30 @@ public class SecurityManager {
     {
         String domain = getWildcardPermissionDomain(itemPath, transactionKey);
         String action = getWildcardPermissionAction(act);
+        String target = PropertyUtility.getPropertyValue(itemPath, NAME, "", transactionKey);
+
+        //The Shiro's WildcardPermission string 
+        String permission = domain+":"+action+":"+target;
+
+        log.debug("checkPermissions() - agent:'{}' permission:'{}'", agent.getAgentName(), permission);
+
+        return getSubject(agent).isPermitted(permission);
+    }
+    
+    /**
+     * 
+     * @param agent
+     * @param stepPath
+     * @param itemPath
+     * @return
+     * @throws AccessRightsException
+     * @throws ObjectNotFoundException Item was not found
+     */
+    public boolean checkPermissions(AgentPath agent, BuiltInAction builtInAction, ItemPath itemPath, TransactionKey transactionKey) 
+            throws AccessRightsException, ObjectNotFoundException
+    {
+        String domain = getWildcardPermissionDomain(itemPath, transactionKey);
+        String action = builtInAction.name();
         String target = PropertyUtility.getPropertyValue(itemPath, NAME, "", transactionKey);
 
         //The Shiro's WildcardPermission string 

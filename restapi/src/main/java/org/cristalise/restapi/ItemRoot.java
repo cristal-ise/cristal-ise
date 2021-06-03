@@ -45,8 +45,10 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 
 import org.apache.commons.lang3.StringUtils;
+import org.cristalise.kernel.common.AccessRightsException;
 import org.cristalise.kernel.common.InvalidDataException;
 import org.cristalise.kernel.common.ObjectNotFoundException;
+import org.cristalise.kernel.common.AccessDeniedException;
 import org.cristalise.kernel.common.PersistencyException;
 import org.cristalise.kernel.entity.agent.Job;
 import org.cristalise.kernel.entity.proxy.AgentProxy;
@@ -200,15 +202,18 @@ public class ItemRoot extends ItemUtils {
             @QueryParam("inputs")       String      inputJson,
             @CookieParam(COOKIENAME)    Cookie      authCookie)
     {
-        NewCookie cookie = checkAndCreateNewCookie(checkAuthCookie(authCookie));
+        AuthData authData = checkAuthCookie(authCookie);
+        NewCookie cookie = checkAndCreateNewCookie(authData);
         ItemProxy item = getProxy(uuid, cookie);
 
         try {
+            AgentProxy agent = (AgentProxy)Gateway.getProxyManager().getProxy(authData.agent);
             return scriptUtils
-                    .executeScript(headers, item, scriptName, scriptVersion, actPath, inputJson, ImmutableMap.of())
+                    .executeScript(headers, item, scriptName, scriptVersion, actPath, inputJson, 
+                                   ImmutableMap.of(Script.PARAMETER_AGENT, agent))
                     .cookie(cookie).build();
         }
-        catch (ObjectNotFoundException | UnsupportedOperationException | InvalidDataException e) {
+        catch (ObjectNotFoundException | UnsupportedOperationException | InvalidDataException | AccessRightsException | AccessDeniedException e) {
             throw new WebAppExceptionBuilder().exception(e).newCookie(cookie).build();
         }
     }
@@ -226,15 +231,18 @@ public class ItemRoot extends ItemUtils {
             @QueryParam("activityPath") String      actPath,
             @CookieParam(COOKIENAME)    Cookie      authCookie)
     {
-        NewCookie cookie = checkAndCreateNewCookie(checkAuthCookie(authCookie));
+        AuthData authData = checkAuthCookie(authCookie);
+        NewCookie cookie = checkAndCreateNewCookie(authData);
         ItemProxy item = getProxy(uuid, cookie);
 
         try {
+            AgentProxy agent = (AgentProxy)Gateway.getProxyManager().getProxy(authData.agent);
             return scriptUtils
-                    .executeScript(headers, item, scriptName, scriptVersion, actPath, postData, ImmutableMap.of())
+                    .executeScript(headers, item, scriptName, scriptVersion, actPath, postData, 
+                                   ImmutableMap.of(Script.PARAMETER_AGENT, agent))
                     .cookie(cookie).build();
         }
-        catch (ObjectNotFoundException | UnsupportedOperationException | InvalidDataException e) {
+        catch (ObjectNotFoundException | UnsupportedOperationException | InvalidDataException | AccessRightsException | AccessDeniedException e) {
             throw new WebAppExceptionBuilder().exception(e).newCookie(cookie).build();
         }
     }

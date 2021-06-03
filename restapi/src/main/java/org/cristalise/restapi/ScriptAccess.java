@@ -39,10 +39,15 @@ import javax.ws.rs.core.NewCookie;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 
+import org.cristalise.kernel.common.AccessRightsException;
 import org.cristalise.kernel.common.InvalidDataException;
 import org.cristalise.kernel.common.ObjectNotFoundException;
+import org.cristalise.kernel.common.AccessDeniedException;
 import org.cristalise.kernel.common.PersistencyException;
+import org.cristalise.kernel.entity.proxy.AgentProxy;
+import org.cristalise.kernel.lookup.AgentPath;
 import org.cristalise.kernel.process.Gateway;
+import org.cristalise.kernel.scripting.Script;
 import org.cristalise.storage.jooqdb.JooqDataSourceHandler;
 import org.jooq.DSLContext;
 import org.jooq.exception.DataAccessException;
@@ -112,7 +117,7 @@ public class ScriptAccess extends ResourceAccess {
         AuthData authData = checkAuthCookie(authCookie);
         NewCookie cookie = checkAndCreateNewCookie(authData);
 
-        return handleScriptExecution(headers, scriptName, scriptVersion, inputJson, cookie);
+        return handleScriptExecution(headers, scriptName, scriptVersion, inputJson, cookie, authData.agent);
     }
 
     @POST
@@ -129,7 +134,7 @@ public class ScriptAccess extends ResourceAccess {
         AuthData authData = checkAuthCookie(authCookie);
         NewCookie cookie = checkAndCreateNewCookie(authData);
 
-        return handleScriptExecution(headers, scriptName, scriptVersion, postData, cookie);
+        return handleScriptExecution(headers, scriptName, scriptVersion, postData, cookie, authData.agent);
     }
 
     /**
@@ -141,11 +146,14 @@ public class ScriptAccess extends ResourceAccess {
      * @param cookie
      * @return
      */
-    private Response handleScriptExecution(HttpHeaders headers, String scriptName, Integer scriptVersion, String inputJson, NewCookie cookie) {
+    private Response handleScriptExecution(HttpHeaders headers, String scriptName, Integer scriptVersion, String inputJson, NewCookie cookie, AgentPath agentPath) 
+    {
         try (DSLContext context = JooqDataSourceHandler.retrieveContext(null)) {
-            return scriptUtils.executeScript(headers, null, scriptName, scriptVersion, null, inputJson, ImmutableMap.of("dsl", context)).cookie(cookie).build();
+            AgentProxy agent = (AgentProxy)Gateway.getProxyManager().getProxy(agentPath);
+            return scriptUtils.executeScript(headers, null, scriptName, scriptVersion, null, inputJson, 
+                   ImmutableMap.of("dsl", context, Script.PARAMETER_AGENT, agent)).cookie(cookie).build();
         }
-        catch (ObjectNotFoundException | UnsupportedOperationException | InvalidDataException e) {
+        catch (ObjectNotFoundException | UnsupportedOperationException | InvalidDataException | AccessRightsException | AccessDeniedException e) {
             throw new WebAppExceptionBuilder().exception(e).newCookie(cookie).build();
         }
         catch (DataAccessException | PersistencyException e) {
