@@ -43,6 +43,7 @@ import org.cristalise.kernel.common.InvalidDataException;
 import org.cristalise.kernel.common.ObjectNotFoundException;
 import org.cristalise.kernel.common.PersistencyException;
 import org.cristalise.kernel.process.Gateway;
+import org.cristalise.kernel.scripting.Script;
 import org.cristalise.storage.jooqdb.JooqDataSourceHandler;
 import org.jooq.DSLContext;
 import org.jooq.exception.DataAccessException;
@@ -144,7 +145,7 @@ public class ScriptAccess extends ResourceAccess {
     private Response handleScriptExecution(HttpHeaders headers, String scriptName, Integer scriptVersion, String inputJson, NewCookie cookie, AuthData authData) {
         try (DSLContext context = JooqDataSourceHandler.retrieveContext(null)) {
             return scriptUtils.executeScript(headers, null, scriptName, scriptVersion, null, inputJson, 
-                   ImmutableMap.of("dsl", context, "agent", getAgent(null, authData))).cookie(cookie).build();
+                   ImmutableMap.of("dsl", context, Script.PARAMETER_AGENT, getAgent(null, authData))).cookie(cookie).build();
         }
         catch (ObjectNotFoundException | UnsupportedOperationException | InvalidDataException e) {
             throw new WebAppExceptionBuilder().exception(e).newCookie(cookie).build();
