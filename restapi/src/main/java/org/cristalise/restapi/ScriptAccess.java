@@ -112,7 +112,7 @@ public class ScriptAccess extends ResourceAccess {
         AuthData authData = checkAuthCookie(authCookie);
         NewCookie cookie = checkAndCreateNewCookie(authData);
 
-        return handleScriptExecution(headers, scriptName, scriptVersion, inputJson, cookie);
+        return handleScriptExecution(headers, scriptName, scriptVersion, inputJson, cookie, authData);
     }
 
     @POST
@@ -129,7 +129,7 @@ public class ScriptAccess extends ResourceAccess {
         AuthData authData = checkAuthCookie(authCookie);
         NewCookie cookie = checkAndCreateNewCookie(authData);
 
-        return handleScriptExecution(headers, scriptName, scriptVersion, postData, cookie);
+        return handleScriptExecution(headers, scriptName, scriptVersion, postData, cookie, authData);
     }
 
     /**
@@ -141,9 +141,10 @@ public class ScriptAccess extends ResourceAccess {
      * @param cookie
      * @return
      */
-    private Response handleScriptExecution(HttpHeaders headers, String scriptName, Integer scriptVersion, String inputJson, NewCookie cookie) {
+    private Response handleScriptExecution(HttpHeaders headers, String scriptName, Integer scriptVersion, String inputJson, NewCookie cookie, AuthData authData) {
         try (DSLContext context = JooqDataSourceHandler.retrieveContext(null)) {
-            return scriptUtils.executeScript(headers, null, scriptName, scriptVersion, null, inputJson, ImmutableMap.of("dsl", context)).cookie(cookie).build();
+            return scriptUtils.executeScript(headers, null, scriptName, scriptVersion, null, inputJson, 
+                   ImmutableMap.of("dsl", context, "agent", getAgent(null, authData))).cookie(cookie).build();
         }
         catch (ObjectNotFoundException | UnsupportedOperationException | InvalidDataException e) {
             throw new WebAppExceptionBuilder().exception(e).newCookie(cookie).build();
