@@ -200,12 +200,15 @@ public class ItemRoot extends ItemUtils {
             @QueryParam("inputs")       String      inputJson,
             @CookieParam(COOKIENAME)    Cookie      authCookie)
     {
-        NewCookie cookie = checkAndCreateNewCookie(checkAuthCookie(authCookie));
+        AuthData authData = checkAuthCookie(authCookie);
+        NewCookie cookie = checkAndCreateNewCookie(authData);
         ItemProxy item = getProxy(uuid, cookie);
 
         try {
+            AgentProxy agent = (AgentProxy)Gateway.getProxyManager().getProxy(authData.agent);
             return scriptUtils
-                    .executeScript(headers, item, scriptName, scriptVersion, actPath, inputJson, ImmutableMap.of())
+                    .executeScript(headers, item, scriptName, scriptVersion, actPath, inputJson, 
+                                   ImmutableMap.of(Script.PARAMETER_AGENT, agent))
                     .cookie(cookie).build();
         }
         catch (ObjectNotFoundException | UnsupportedOperationException | InvalidDataException e) {
@@ -226,12 +229,15 @@ public class ItemRoot extends ItemUtils {
             @QueryParam("activityPath") String      actPath,
             @CookieParam(COOKIENAME)    Cookie      authCookie)
     {
-        NewCookie cookie = checkAndCreateNewCookie(checkAuthCookie(authCookie));
+        AuthData authData = checkAuthCookie(authCookie);
+        NewCookie cookie = checkAndCreateNewCookie(authData);
         ItemProxy item = getProxy(uuid, cookie);
 
         try {
+            AgentProxy agent = (AgentProxy)Gateway.getProxyManager().getProxy(authData.agent);
             return scriptUtils
-                    .executeScript(headers, item, scriptName, scriptVersion, actPath, postData, ImmutableMap.of())
+                    .executeScript(headers, item, scriptName, scriptVersion, actPath, postData, 
+                                   ImmutableMap.of(Script.PARAMETER_AGENT, agent))
                     .cookie(cookie).build();
         }
         catch (ObjectNotFoundException | UnsupportedOperationException | InvalidDataException e) {
